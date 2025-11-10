@@ -1,0 +1,27 @@
+const PushNotification = {
+    configure: jest.fn(),
+    createChannel: jest.fn(),
+    onRegister: jest.fn(),
+    onNotification: jest.fn(),
+    addEventListener: jest.fn(),
+    removeEventListener: jest.fn(),
+    requestPermissions: jest.fn(),
+    abandonPermissions: jest.fn(),
+    checkPermissions: jest.fn(),
+    getInitialNotification: jest.fn(),
+    getChannels: jest.fn(),
+    localNotification: jest.fn(),
+    localNotificationSchedule: jest.fn(),
+    cancelAllLocalNotifications: jest.fn(),
+    removeAllDeliveredNotifications: jest.fn(),
+    getDeliveredNotifications: jest.fn(),
+    removeDeliveredNotifications: jest.fn(),
+    setApplicationIconBadgeNumber: jest.fn(),
+    getApplicationIconBadgeNumber: jest.fn(),
+    cancelLocalNotifications: jest.fn(),
+    getScheduledLocalNotifications: jest.fn(),
+    addNotificationResponseReceivedListener: jest.fn(),
+    removeNotificationResponseReceivedListener: jest.fn(),
+  };
+  
+  export default PushNotification;

@@ -1,0 +1,25 @@
+Eternal Stone Bible App - Proprietary License
+
+Copyright (c) 2024 Eternal Stone.
+
+All rights reserved.
+
+This app and all of its contents, including but not limited to software, code, documentation, graphics, and text, are protected by copyright and other intellectual property laws. You may not copy, modify, distribute, sell, or rent any part of this application or its contents without the prior written consent of the copyright holder.
+
+### Limited Permissions
+
+You are granted a non-exclusive, non-transferable, revocable license to use this application solely for personal, non-commercial purposes. Any redistribution, modification, decompilation, disassembly or reverse engineering of this application is prohibited.
+
+### Limitation of Liability
+
+This application is provided "as is" without warranties of any kind, express or implied, including, but not limited to, warranties of merchantability, fitness for a particular purpose and non-infringement. In no event shall the copyright holder be liable for any damages, including, without limitation, direct, indirect, incidental, punitive and consequential damages, arising out of the use of this application.
+
+### Reverse Engineering Prohibited
+
+Reverse engineering, decompiling or disassembling this application, or attempting to obtain the source code of this application by any means is strictly prohibited.
+
+### Terms of Use
+
+Use of this application constitutes acceptance of these terms. If you do not agree to these terms, you must not use this application.
+
+For additional permissions or inquiries regarding the use of this application, please contact victor_vdu@hotmail.com.
