@@ -11,8 +11,7 @@ import {
   TextInput,
   FlatList,
   Animated,
-  StyleSheet,
-  AccessibilityInfo
+  StyleSheet
 } from 'react-native';
 import Clipboard from '@react-native-clipboard/clipboard';
 import { useNavigation } from '@react-navigation/native';
@@ -22,6 +21,7 @@ import { useBookmarks } from '../context/BookmarksContext';
 import { useUserPreferences } from '../context/UserPreferencesContext';
 import { useNotes } from '../context/NotesContext';
 import { useStyles } from '../hooks/useStyles';
+import { useScreenReaderListener } from '../hooks/useScreenReaderListener';
 import NoteModal from '../components/NoteModal';
 import DistractionFreeMode from '../components/DistractionFreeMode';
 import { useTranslation } from 'react-i18next';
@@ -29,7 +29,7 @@ import { withTheme } from '../hoc/withTheme';
 import { AnalyticsService } from '../services/AnalyticsService';
 import CustomIconButton from '../components/CustomIconButton';
 import HapticFeedback from '../services/HapticFeedback';
-import bibleVerses from '../data/bibleVerses.json';
+import { getChapter, getBookChapters } from '../services/bibleDataManager';
 
 const INITIAL_VERSES_TO_LOAD = 20;
 const VERSES_PER_BATCH = 10;
@@ -155,7 +155,7 @@ const VerseScreen = ({ route, theme }) => {
   const [currentVerseIndex, setCurrentVerseIndex] = useState(0);
   const [isTransitioning, setIsTransitioning] = useState(false);
   const [hasMoreVerses, setHasMoreVerses] = useState(true);
-  const [screenReaderEnabled, setScreenReaderEnabled] = useState(false);
+  const screenReaderEnabled = useScreenReaderListener();
 
   const listRef = useRef(null);
   const fadeAnim = useRef(new Animated.Value(1)).current;
@@ -165,13 +165,22 @@ const VerseScreen = ({ route, theme }) => {
     try {
       setLoading(true);
       setError(null);
-      const chapterVerses = bibleVerses[bookToLoad][chapterToLoad.toString()].slice(start, start + limit);
+      const chapterData = getChapter(bookToLoad, chapterToLoad);
+      if (!chapterData) {
+        throw new Error('No se encontraron versículos para este capítulo');
+      }
+      // Convertir objeto de versículos a array
+      const allVerses = Object.entries(chapterData).map(([verseNumber, verseText]) => ({
+        number: parseInt(verseNumber),
+        text: verseText
+      }));
+      const chapterVerses = allVerses.slice(start, start + limit);
       if (!chapterVerses || chapterVerses.length === 0) {
         throw new Error('No se encontraron versículos para este capítulo');
       }
       setVerses(prevVerses => start === 0 ? chapterVerses : [...prevVerses, ...chapterVerses]);
       setHasMoreVerses(chapterVerses.length === limit);
-      setTotalChapters(Object.keys(bibleVerses[bookToLoad]).length);
+      setTotalChapters(getBookChapters(bookToLoad));
       AnalyticsService.logScreenView(`Verse_${bookToLoad}_${chapterToLoad}`);
     } catch (error) {
       console.error('Error al cargar versículos:', error);
@@ -184,23 +193,6 @@ const VerseScreen = ({ route, theme }) => {
 
   useEffect(() => {
     loadVerses(book, chapter);
-
-    AccessibilityInfo.isScreenReaderEnabled().then(
-      screenReaderEnabled => {
-        setScreenReaderEnabled(screenReaderEnabled);
-      }
-    );
-
-    const listener = AccessibilityInfo.addEventListener(
-      'screenReaderChanged',
-      screenReaderEnabled => {
-        setScreenReaderEnabled(screenReaderEnabled);
-      }
-    );
-
-    return () => {
-      listener.remove();
-    };
   }, [book, chapter, loadVerses]);
 
   useEffect(() => {

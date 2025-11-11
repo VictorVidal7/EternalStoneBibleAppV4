@@ -1,5 +1,5 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { getRandomVerse } from '../data/bibleVerses';
+import { getRandomVerse } from './bibleDataManager';
 
 class DailyVerseService {
   async getDailyVerse() {

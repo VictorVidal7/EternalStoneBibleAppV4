@@ -1,8 +1,9 @@
-import React, { useCallback, useState, useEffect } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, VirtualizedList, AccessibilityInfo } from 'react-native';
+import React, { useCallback } from 'react';
+import { View, Text, TouchableOpacity, StyleSheet, VirtualizedList } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { useBookmarks } from '../context/BookmarksContext';
 import { useStyles } from '../hooks/useStyles';
+import { useScreenReaderListener } from '../hooks/useScreenReaderListener';
 import { withTheme } from '../hoc/withTheme';
 import { useTranslation } from 'react-i18next';
 import { AnalyticsService } from '../services/AnalyticsService';
@@ -40,26 +41,7 @@ const BookmarksScreen = ({ theme }) => {
   const { colors } = theme;
   const styles = useStyles(createStyles);
   const { t } = useTranslation();
-  const [screenReaderEnabled, setScreenReaderEnabled] = useState(false);
-
-  useEffect(() => {
-    AccessibilityInfo.isScreenReaderEnabled().then(
-      screenReaderEnabled => {
-        setScreenReaderEnabled(screenReaderEnabled);
-      }
-    );
-
-    const listener = AccessibilityInfo.addEventListener(
-      'screenReaderChanged',
-      screenReaderEnabled => {
-        setScreenReaderEnabled(screenReaderEnabled);
-      }
-    );
-
-    return () => {
-      listener.remove();
-    };
-  }, []);
+  const screenReaderEnabled = useScreenReaderListener();
 
   const getItem = useCallback((data, index) => data[index], []);
   const getItemCount = useCallback((data) => data.length, []);
