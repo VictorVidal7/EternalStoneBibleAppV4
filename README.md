@@ -1,42 +1,106 @@
-# Eternal Stone Bible App
+# 📖 Eternal Stone Bible App V4
 
-## Descripción del Proyecto
+<div align="center">
 
-Eternal Stone Bible App es una aplicación móvil desarrollada con React Native que ofrece una experiencia interactiva y enriquecedora para la lectura y estudio de la Biblia. La aplicación incorpora una amplia gama de características diseñadas para facilitar la lectura diaria, el estudio en profundidad y la interacción personal con las Escrituras.
+**Una experiencia bíblica moderna, interactiva y gamificada** 🚀
 
-## Características Principales
+[![React Native](https://img.shields.io/badge/React%20Native-0.81-blue.svg)](https://reactnative.dev/)
+[![Expo](https://img.shields.io/badge/Expo-~54.0-black.svg)](https://expo.dev/)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5.9-blue.svg)](https://www.typescriptlang.org/)
+[![SQLite](https://img.shields.io/badge/SQLite-FTS5-green.svg)](https://www.sqlite.org/)
 
-1. **Lectura de la Biblia**
+</div>
 
-   - Múltiples versiones y traducciones disponibles
-   - Navegación fluida entre libros, capítulos y versículos
+---
 
-2. **Planes de Lectura**
+## 🌟 Descripción del Proyecto
 
-   - Planes personalizados con seguimiento de progreso
-   - Notificaciones diarias para mantener la consistencia
+**Eternal Stone Bible App** es una aplicación móvil de última generación desarrollada con **React Native + Expo** que ofrece una experiencia **interactiva, gamificada y profundamente enriquecedora** para la lectura y estudio de la Biblia.
 
-3. **Sistema de Marcadores**
+Con **31,102 versículos completos** (RVR1960), **sistema de logros**, **resaltados inteligentes**, **analíticas avanzadas** y una **interfaz moderna**, esta aplicación transforma la lectura bíblica en una experiencia memorable.
 
-   - Guardado de versículos favoritos
-   - Exportación e importación de marcadores
+---
 
-4. **Búsqueda Avanzada**
+## ✨ Características Principales
 
-   - Búsqueda por palabras clave en toda la Biblia
-   - Filtros por Antiguo y Nuevo Testamento
+### 📚 Lectura y Navegación
 
-5. **Personalización de la Interfaz**
+- ✅ **Biblia completa** (Reina Valera 1960 - 31,102 versículos)
+- ✅ **Navegación fluida** entre 66 libros, 1,189 capítulos
+- ✅ **Búsqueda full-text** con FTS5 (ultra rápida)
+- ✅ **Modo lectura sin distracciones**
+- ✅ **Continuar donde lo dejaste**
 
-   - Modo oscuro para lectura nocturna
-   - Ajustes de tamaño de fuente y tipo de letra
+### 🎨 Sistema de Resaltado Inteligente ⭐ **NUEVO**
 
-6. **Versículo del Día**
+- 🎨 **8 colores predefinidos** para destacar versículos
+- 📑 **8 categorías temáticas**: Promesa, Oración, Mandamiento, Sabiduría, Profecía, Favorito, Memorizar, Estudio
+- 📝 **Notas personalizadas** en cada resaltado
+- 📊 **Estadísticas** por color y categoría
+- 💾 **Exportar/Importar** en formato JSON
 
-   - Muestra un versículo aleatorio diariamente
+### 🏆 Sistema de Logros y Gamificación ⭐ **NUEVO**
 
-7. **Sistema de Notificaciones**
-   - Recordatorios de lectura personalizables
+- 🎖️ **47+ logros únicos** en 8 categorías
+- 🥇 **5 niveles de dificultad**: Bronze, Silver, Gold, Platinum, Diamond
+- 📈 **10 niveles de usuario**: Desde Aprendiz (🌱) hasta Leyenda (👑)
+- 🔥 **Sistema de rachas** de lectura diaria
+- 🎉 **Animaciones celebratorias** al desbloquear logros
+- 📊 **Estadísticas completas** de progreso
+
+### 📊 Analíticas Avanzadas ⭐ **NUEVO**
+
+- 📈 **Heatmap de lectura** (365 días de historial)
+- ⏰ **Horarios pico** de lectura
+- 📚 **Libros favoritos** con estadísticas
+- 📉 **Insights detallados** por período (diario, semanal, mensual)
+- 🎯 **Progreso por testamento** (AT/NT)
+- 💾 **Exportación completa** de datos
+
+### ⚡ Optimización de Rendimiento ⭐ **NUEVO**
+
+- 🚀 **Sistema de caché dual** (memoria + disco)
+- 🔧 **Utilidades de performance** (debounce, throttle, memoize, etc.)
+- 📊 **Monitoreo de rendimiento** integrado
+- 💪 **Cola de ejecución** con control de concurrencia
+
+### 🔖 Funcionalidades Clásicas Mejoradas
+
+- 📍 **Marcadores** con sincronización
+- 📝 **Notas personales** por versículo
+- 📅 **5 planes de lectura** estructurados
+- 🌙 **Modo oscuro** + Modo claro + Auto
+- 🌐 **Soporte multiidioma** (preparado)
+- 📱 **Responsive** y adaptable
+
+---
+
+## 🎯 Lo Que Hace Única Esta App
+
+1. **Gamificación Completa** 🎮
+   - Sistema de puntos, niveles y logros
+   - Motivación constante para leer más
+   - Feedback visual inmediato
+
+2. **Resaltados Inteligentes** 🎨
+   - Organiza por colores y categorías
+   - Agrega notas contextuales
+   - Exporta para backup
+
+3. **Analíticas Profundas** 📊
+   - Entiende tus hábitos de lectura
+   - Visualiza tu progreso
+   - Descubre patrones temporales
+
+4. **Rendimiento Superior** ⚡
+   - Caché inteligente
+   - Búsquedas instantáneas
+   - Carga ultra rápida
+
+5. **UI/UX Moderna** 🎨
+   - Animaciones fluidas
+   - Diseño Material 3
+   - Componentes personalizados
 
 ## Requisitos del Sistema
 

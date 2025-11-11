@@ -33,6 +33,15 @@ class BibleDatabase {
     return this.getDb();
   }
 
+  // Método helper para ejecutar SQL (usado por servicios externos)
+  async executeSql(sql: string, params?: any[]): Promise<SQLite.SQLiteRunResult> {
+    const db = this.getDb();
+    if (params) {
+      return await db.runAsync(sql, params);
+    }
+    return await db.execAsync(sql) as any;
+  }
+
   // ========== VERSE OPERATIONS ==========
 
   async insertVerses(verses: Omit<BibleVerse, 'id'>[]): Promise<void> {
@@ -287,5 +296,6 @@ class BibleDatabase {
   }
 }
 
+export { BibleDatabase };
 export const bibleDB = new BibleDatabase();
 export default bibleDB;
