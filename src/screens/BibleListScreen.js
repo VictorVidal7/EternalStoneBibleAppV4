@@ -8,50 +8,56 @@ import { withTheme } from '../hoc/withTheme';
 import { AnalyticsService } from '../services/AnalyticsService';
 import { useTranslation } from 'react-i18next';
 import bibleBooks from '../data/bibleBooks.json';
+import { getBookName } from '../data/bookNames';
 
 const BibleListScreen = ({ theme }) => {
   const navigation = useNavigation();
   const { colors } = theme;
   const styles = useStyles(createStyles);
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
 
   const sections = useMemo(() => [
     { title: t('Antiguo Testamento'), data: bibleBooks["Antiguo Testamento"] },
     { title: t('Nuevo Testamento'), data: bibleBooks["Nuevo Testamento"] }
   ], [t]);
 
-  const getBookNameFromFileName = useCallback((fileName) => {
-    return fileName.replace('.json', '').replace(/-/g, ' ').replace(/(\d+)\s/, '$1 ');
+  const getBookKeyFromFileName = useCallback((fileName) => {
+    // Convierte "genesis.json" -> "genesis", "1-samuel.json" -> "1samuel"
+    return fileName.replace('.json', '').replace(/-/g, '');
   }, []);
 
   const navigateToChapter = useCallback((bookFileName) => {
-    const bookName = getBookNameFromFileName(bookFileName);
-    navigation.navigate('Chapter', { book: bookName });
-    AnalyticsService.logEvent('select_book', { book: bookName });
-  }, [navigation, getBookNameFromFileName]);
+    const bookKey = getBookKeyFromFileName(bookFileName);
+    navigation.navigate('Chapter', { book: bookKey });
+    AnalyticsService.logEvent('select_book', { book: bookKey });
+  }, [navigation, getBookKeyFromFileName]);
 
-  const renderItem = useCallback(({ item, index, section }) => (
-    <TouchableOpacity
-      style={styles.bookItem}
-      onPress={() => navigateToChapter(item)}
-      accessibilityRole="button"
-      accessibilityLabel={t('Libro de') + ' ' + getBookNameFromFileName(item)}
-      accessibilityHint={t('Toca para ver los capítulos de') + ' ' + getBookNameFromFileName(item)}
-    >
-      <CustomIconButton 
-        name="book" 
-        size={24} 
-        color={colors.primary} 
-        style={styles.bookIcon}
-      />
-      <Text style={styles.bookName}>{getBookNameFromFileName(item)}</Text>
-      <CustomIconButton 
-        name="chevron-right" 
-        size={24} 
-        color={colors.secondary}
-      />
-    </TouchableOpacity>
-  ), [styles, navigateToChapter, getBookNameFromFileName, colors, t]);
+  const renderItem = useCallback(({ item, index, section }) => {
+    const bookKey = getBookKeyFromFileName(item);
+    const bookName = getBookName(bookKey, i18n.language);
+    return (
+      <TouchableOpacity
+        style={styles.bookItem}
+        onPress={() => navigateToChapter(item)}
+        accessibilityRole="button"
+        accessibilityLabel={t('Libro de') + ' ' + bookName}
+        accessibilityHint={t('Toca para ver los capítulos de') + ' ' + bookName}
+      >
+        <CustomIconButton
+          name="book"
+          size={24}
+          color={colors.primary}
+          style={styles.bookIcon}
+        />
+        <Text style={styles.bookName}>{bookName}</Text>
+        <CustomIconButton
+          name="chevron-right"
+          size={24}
+          color={colors.secondary}
+        />
+      </TouchableOpacity>
+    );
+  }, [styles, navigateToChapter, getBookKeyFromFileName, colors, t, i18n.language]);
 
   const renderSectionHeader = useCallback(({ section: { title } }) => (
     <View style={styles.sectionHeader}>

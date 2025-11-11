@@ -4,6 +4,7 @@ import { useNavigation } from '@react-navigation/native';
 import { useStyles } from '../hooks/useStyles';
 import { useScreenReaderListener } from '../hooks/useScreenReaderListener';
 import { searchBible } from '../services/bibleDataManager';
+import { getBookName } from '../data/bookNames';
 import { useTranslation } from 'react-i18next';
 import { withTheme } from '../hoc/withTheme';
 import { AnalyticsService } from '../services/AnalyticsService';
@@ -18,7 +19,7 @@ const SearchScreen = ({ theme }) => {
   const screenReaderEnabled = useScreenReaderListener();
   const { colors } = theme;
   const styles = useStyles(createStyles);
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
 
   const handleSearch = useCallback(async () => {
     if (query.length < 3) return;
@@ -48,26 +49,29 @@ const SearchScreen = ({ theme }) => {
     return () => clearTimeout(delayDebounceFn);
   }, [query, handleSearch]);
 
-  const renderItem = useCallback(({ item }) => (
-    <TouchableOpacity
-      style={styles.resultItem}
-      onPress={() => {
-        navigation.navigate('Biblia', {
-          screen: 'Verse',
-          params: { book: item.book, chapter: item.chapter, verse: item.verse }
-        });
-        AnalyticsService.logEvent('search_result_selected', { book: item.book, chapter: item.chapter, verse: item.verse });
-        HapticFeedback.light();
-      }}
-      accessible={true}
-      accessibilityRole="button"
-      accessibilityLabel={t('{{book}} capítulo {{chapter}}, versículo {{verse}}', { book: item.book, chapter: item.chapter, verse: item.verse })}
-      accessibilityHint={t('Toca para ir a este versículo')}
-    >
-      <Text style={styles.resultReference}>{item.book} {item.chapter}:{item.verse}</Text>
-      <Text style={styles.resultText} numberOfLines={2}>{item.text}</Text>
-    </TouchableOpacity>
-  ), [navigation, styles, t]);
+  const renderItem = useCallback(({ item }) => {
+    const bookName = getBookName(item.book, i18n.language);
+    return (
+      <TouchableOpacity
+        style={styles.resultItem}
+        onPress={() => {
+          navigation.navigate('Biblia', {
+            screen: 'Verse',
+            params: { book: item.book, chapter: item.chapter, verse: item.verse }
+          });
+          AnalyticsService.logEvent('search_result_selected', { book: item.book, chapter: item.chapter, verse: item.verse });
+          HapticFeedback.light();
+        }}
+        accessible={true}
+        accessibilityRole="button"
+        accessibilityLabel={t('{{book}} capítulo {{chapter}}, versículo {{verse}}', { book: bookName, chapter: item.chapter, verse: item.verse })}
+        accessibilityHint={t('Toca para ir a este versículo')}
+      >
+        <Text style={styles.resultReference}>{bookName} {item.chapter}:{item.verse}</Text>
+        <Text style={styles.resultText} numberOfLines={2}>{item.text}</Text>
+      </TouchableOpacity>
+    );
+  }, [navigation, styles, t, i18n.language]);
 
   return (
     <View 

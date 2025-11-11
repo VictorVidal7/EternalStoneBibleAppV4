@@ -3,6 +3,7 @@ import { View, Text, TouchableOpacity, ActivityIndicator, StyleSheet } from 'rea
 import { useNavigation } from '@react-navigation/native';
 import { useTheme } from '../context/ThemeContext';
 import DailyVerseService from '../services/DailyVerseService';
+import { getBookName } from '../data/bookNames';
 import { useTranslation } from 'react-i18next';
 import { AnalyticsService } from '../services/AnalyticsService';
 
@@ -12,7 +13,7 @@ const DailyVerse = () => {
   const [error, setError] = useState(null);
   const navigation = useNavigation();
   const { colors, roundness } = useTheme();
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
 
   const fetchDailyVerse = useCallback(async () => {
     try {
@@ -131,9 +132,11 @@ const DailyVerse = () => {
     return null;
   }
 
+  const bookName = getBookName(verse.book, i18n.language);
+
   return (
-    <TouchableOpacity 
-      style={styles.container} 
+    <TouchableOpacity
+      style={styles.container}
       onPress={handlePress}
       accessibilityLabel={t('Versículo diario')}
       accessibilityHint={t('Toca para ver el versículo completo')}
@@ -141,7 +144,7 @@ const DailyVerse = () => {
       <Text style={styles.title}>{t('Versículo del día')}</Text>
       <Text style={styles.verseText}>{verse.text}</Text>
       <Text style={styles.reference}>
-        {verse.book} {verse.chapter}:{verse.number}
+        {bookName} {verse.chapter}:{verse.number}
       </Text>
     </TouchableOpacity>
   );
