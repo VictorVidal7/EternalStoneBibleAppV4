@@ -1,7 +1,8 @@
 import React, { useEffect, useCallback, useState, useMemo } from 'react';
-import { View, ScrollView, Text, StyleSheet, Animated, TouchableOpacity, StatusBar, Dimensions, AccessibilityInfo } from 'react-native';
+import { View, ScrollView, Text, StyleSheet, Animated, TouchableOpacity, StatusBar, Dimensions } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { useTheme } from '../context/ThemeContext';
+import { useScreenReaderListener } from '../hooks/useScreenReaderListener';
 import CustomIconButton from '../components/CustomIconButton';
 import DailyVerse from '../components/DailyVerse';
 import { useTranslation } from 'react-i18next';
@@ -18,7 +19,7 @@ const HomeScreen = () => {
   const { t } = useTranslation();
   const readingProgressContext = useReadingProgress();
   const [lastRead, setLastRead] = useState(null);
-  const [screenReaderEnabled, setScreenReaderEnabled] = useState(false);
+  const screenReaderEnabled = useScreenReaderListener();
 
   const fadeAnim = useMemo(() => new Animated.Value(0), []);
   const translateY = useMemo(() => new Animated.Value(50), []);
@@ -51,23 +52,6 @@ const HomeScreen = () => {
       }
     };
     loadLastRead();
-
-    AccessibilityInfo.isScreenReaderEnabled().then(
-      screenReaderEnabled => {
-        setScreenReaderEnabled(screenReaderEnabled);
-      }
-    );
-
-    const listener = AccessibilityInfo.addEventListener(
-      'screenReaderChanged',
-      screenReaderEnabled => {
-        setScreenReaderEnabled(screenReaderEnabled);
-      }
-    );
-
-    return () => {
-      listener.remove();
-    };
   }, [readingProgressContext, fadeAnim, translateY]);
 
   const styles = StyleSheet.create({

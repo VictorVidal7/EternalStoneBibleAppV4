@@ -9,7 +9,6 @@ import { ReadingProgressProvider } from './src/context/ReadingProgressContext';
 import { BookmarksProvider } from './src/context/BookmarksContext';
 import { ReadingPlanProvider } from './src/context/ReadingPlanContext';
 import { NotesProvider } from './src/context/NotesContext';
-import { ErrorProvider } from './src/context/ErrorContext';
 import { resetDatabase, initializeBibleData, closeBibleDatabase, preloadFrequentlyAccessedData } from './src/services/bibleDataManager';
 import AppNavigator from './src/navigation/AppNavigator';
 import './src/i18n';
@@ -50,25 +49,23 @@ const App = () => {
   }
 
   return (
-    <ErrorProvider>
-      <SafeAreaProvider>
-        <UserPreferencesProvider>
-          <ThemeProvider>
-            <ReadingProgressProvider>
-              <BookmarksProvider>
-                <ReadingPlanProvider>
-                  <NotesProvider>
-                    <NavigationContainer>
-                      <AppNavigator />
-                    </NavigationContainer>
-                  </NotesProvider>
-                </ReadingPlanProvider>
-              </BookmarksProvider>
-            </ReadingProgressProvider>
-          </ThemeProvider>
-        </UserPreferencesProvider>
-      </SafeAreaProvider>
-    </ErrorProvider>
+    <SafeAreaProvider>
+      <UserPreferencesProvider>
+        <ThemeProvider>
+          <ReadingProgressProvider>
+            <BookmarksProvider>
+              <ReadingPlanProvider>
+                <NotesProvider>
+                  <NavigationContainer>
+                    <AppNavigator />
+                  </NavigationContainer>
+                </NotesProvider>
+              </ReadingPlanProvider>
+            </BookmarksProvider>
+          </ReadingProgressProvider>
+        </ThemeProvider>
+      </UserPreferencesProvider>
+    </SafeAreaProvider>
   );
 };
 

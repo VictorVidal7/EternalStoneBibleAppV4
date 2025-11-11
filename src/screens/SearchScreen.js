@@ -2,6 +2,7 @@ import React, { useState, useCallback, useEffect } from 'react';
 import { View, Text, TextInput, FlatList, TouchableOpacity, ActivityIndicator, StyleSheet, AccessibilityInfo } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { useStyles } from '../hooks/useStyles';
+import { useScreenReaderListener } from '../hooks/useScreenReaderListener';
 import { searchBible } from '../services/bibleDataManager';
 import { useTranslation } from 'react-i18next';
 import { withTheme } from '../hoc/withTheme';
@@ -14,29 +15,10 @@ const SearchScreen = ({ theme }) => {
   const [query, setQuery] = useState('');
   const [results, setResults] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
-  const [screenReaderEnabled, setScreenReaderEnabled] = useState(false);
+  const screenReaderEnabled = useScreenReaderListener();
   const { colors } = theme;
   const styles = useStyles(createStyles);
   const { t } = useTranslation();
-
-  useEffect(() => {
-    AccessibilityInfo.isScreenReaderEnabled().then(
-      screenReaderEnabled => {
-        setScreenReaderEnabled(screenReaderEnabled);
-      }
-    );
-
-    const listener = AccessibilityInfo.addEventListener(
-      'screenReaderChanged',
-      screenReaderEnabled => {
-        setScreenReaderEnabled(screenReaderEnabled);
-      }
-    );
-
-    return () => {
-      listener.remove();
-    };
-  }, []);
 
   const handleSearch = useCallback(async () => {
     if (query.length < 3) return;
