@@ -110,28 +110,41 @@ export const getChapter = (book, chapter) => {
 };
 
 export const getAllBooks = () => {
-  return [...bibleBooks["Antiguo Testamento"], ...bibleBooks["Nuevo Testamento"]];
+  // Quitar la extensión .json de los nombres de archivos
+  const removeExtension = (filename) => filename.replace('.json', '');
+  return [
+    ...bibleBooks["Antiguo Testamento"].map(removeExtension),
+    ...bibleBooks["Nuevo Testamento"].map(removeExtension)
+  ];
 };
 
 export const searchBible = (query, searchType = 'all') => {
   const results = [];
-  const booksToSearch = searchType === 'ot' ? bibleBooks["Antiguo Testamento"] :
-                        searchType === 'nt' ? bibleBooks["Nuevo Testamento"] :
+  const booksToSearch = searchType === 'ot' ? bibleBooks["Antiguo Testamento"].map(b => b.replace('.json', '')) :
+                        searchType === 'nt' ? bibleBooks["Nuevo Testamento"].map(b => b.replace('.json', '')) :
                         getAllBooks();
 
   for (const book of booksToSearch) {
-    const bookData = getBookData(book);
-    for (const [chapterNum, chapter] of Object.entries(bookData)) {
-      for (const [verseNum, verseText] of Object.entries(chapter)) {
-        if (verseText.toLowerCase().includes(query.toLowerCase())) {
-          results.push({
-            book,
-            chapter: parseInt(chapterNum),
-            verse: parseInt(verseNum),
-            text: verseText
-          });
+    try {
+      const bookData = getBookData(book);
+      // bookData es un objeto donde cada key es un número de capítulo
+      // y cada value es un array de objetos {number, text}
+      for (const [chapterNum, versesArray] of Object.entries(bookData)) {
+        if (Array.isArray(versesArray)) {
+          for (const verse of versesArray) {
+            if (verse.text && verse.text.toLowerCase().includes(query.toLowerCase())) {
+              results.push({
+                book,
+                chapter: parseInt(chapterNum),
+                verse: verse.number,
+                text: verse.text
+              });
+            }
+          }
         }
       }
+    } catch (error) {
+      console.error(`Error searching in book ${book}:`, error);
     }
   }
   return results;
@@ -146,14 +159,16 @@ export const getRandomVerse = () => {
   const allBooks = getAllBooks();
   const randomBook = allBooks[Math.floor(Math.random() * allBooks.length)];
   const bookData = getBookData(randomBook);
-  const randomChapter = Object.keys(bookData)[Math.floor(Math.random() * Object.keys(bookData).length)];
-  const randomVerse = Object.keys(bookData[randomChapter])[Math.floor(Math.random() * Object.keys(bookData[randomChapter]).length)];
-  
+  const chapters = Object.keys(bookData);
+  const randomChapter = chapters[Math.floor(Math.random() * chapters.length)];
+  const versesArray = bookData[randomChapter]; // Es un array de {number, text}
+  const randomVerseObj = versesArray[Math.floor(Math.random() * versesArray.length)];
+
   return {
     book: randomBook,
     chapter: parseInt(randomChapter),
-    number: parseInt(randomVerse),
-    text: bookData[randomChapter][randomVerse]
+    number: randomVerseObj.number,
+    text: randomVerseObj.text
   };
 };
 

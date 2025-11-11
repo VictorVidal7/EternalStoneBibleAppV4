@@ -2,6 +2,7 @@ import React, { useCallback, useEffect, useState } from 'react';
 import { View, Text, FlatList, TouchableOpacity, StyleSheet } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { getBookChapters } from '../services/bibleDataManager';
+import { getBookName } from '../data/bookNames';
 import { useTheme } from '../context/ThemeContext';
 import { useStyles } from '../hooks/useStyles';
 import { AnalyticsService } from '../services/AnalyticsService';
@@ -14,7 +15,8 @@ const ChapterScreen = ({ route }) => {
   const navigation = useNavigation();
   const { colors } = useTheme();
   const styles = useStyles(createStyles);
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
+  const bookName = getBookName(book, i18n.language);
 
   useEffect(() => {
     const loadChapters = async () => {
@@ -35,21 +37,21 @@ const ChapterScreen = ({ route }) => {
       onPress={() => navigateToVerse(item)}
       accessibilityRole="button"
       accessibilityLabel={t('Capítulo') + ' ' + item}
-      accessibilityHint={t('Toca para leer el capítulo') + ' ' + item + ' ' + t('de') + ' ' + book}
+      accessibilityHint={t('Toca para leer el capítulo') + ' ' + item + ' ' + t('de') + ' ' + bookName}
     >
       <Text style={styles.chapterText}>{item}</Text>
     </TouchableOpacity>
-  ), [styles, navigateToVerse, book, t]);
+  ), [styles, navigateToVerse, bookName, t]);
 
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <CustomIconButton 
-          name="book" 
-          size={24} 
+        <CustomIconButton
+          name="book"
+          size={24}
           color={colors.primary}
         />
-        <Text style={styles.bookTitle}>{book}</Text>
+        <Text style={styles.bookTitle}>{bookName}</Text>
       </View>
       <FlatList
         data={chapters}

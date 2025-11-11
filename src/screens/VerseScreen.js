@@ -30,6 +30,7 @@ import { AnalyticsService } from '../services/AnalyticsService';
 import CustomIconButton from '../components/CustomIconButton';
 import HapticFeedback from '../services/HapticFeedback';
 import { getChapter, getBookChapters } from '../services/bibleDataManager';
+import { getBookName } from '../data/bookNames';
 
 const INITIAL_VERSES_TO_LOAD = 20;
 const VERSES_PER_BATCH = 10;
@@ -147,7 +148,8 @@ const VerseScreen = ({ route, theme }) => {
   const [noteModalVisible, setNoteModalVisible] = useState(false);
   const [currentVerse, setCurrentVerse] = useState(null);
   const navigation = useNavigation();
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
+  const bookName = getBookName(book, i18n.language);
   const [searchQuery, setSearchQuery] = useState('');
   const [highlightedVerses, setHighlightedVerses] = useState([]);
   const [totalChapters, setTotalChapters] = useState(0);
@@ -169,11 +171,8 @@ const VerseScreen = ({ route, theme }) => {
       if (!chapterData) {
         throw new Error('No se encontraron versículos para este capítulo');
       }
-      // Convertir objeto de versículos a array
-      const allVerses = Object.entries(chapterData).map(([verseNumber, verseText]) => ({
-        number: parseInt(verseNumber),
-        text: verseText
-      }));
+      // chapterData ya es un array de objetos {number, text}
+      const allVerses = Array.isArray(chapterData) ? chapterData : [];
       const chapterVerses = allVerses.slice(start, start + limit);
       if (!chapterVerses || chapterVerses.length === 0) {
         throw new Error('No se encontraron versículos para este capítulo');
@@ -443,7 +442,7 @@ const VerseScreen = ({ route, theme }) => {
               accessibilityLabel={t('Capítulo anterior')}
               accessibilityHint={t('Navegar al capítulo anterior')}
             />
-            <Text style={styles.chapterTitle} accessibilityRole="header">{`${book} ${chapter}`}</Text>
+            <Text style={styles.chapterTitle} accessibilityRole="header">{`${bookName} ${chapter}`}</Text>
             <CustomIconButton 
               name="chevron-right" 
               onPress={() => navigateToChapter(chapter + 1)} 
