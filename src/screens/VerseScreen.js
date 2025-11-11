@@ -169,11 +169,8 @@ const VerseScreen = ({ route, theme }) => {
       if (!chapterData) {
         throw new Error('No se encontraron versículos para este capítulo');
       }
-      // Convertir objeto de versículos a array
-      const allVerses = Object.entries(chapterData).map(([verseNumber, verseText]) => ({
-        number: parseInt(verseNumber),
-        text: verseText
-      }));
+      // chapterData ya es un array de objetos {number, text}
+      const allVerses = Array.isArray(chapterData) ? chapterData : [];
       const chapterVerses = allVerses.slice(start, start + limit);
       if (!chapterVerses || chapterVerses.length === 0) {
         throw new Error('No se encontraron versículos para este capítulo');
