@@ -5,6 +5,9 @@ import { initializeBibleData, checkDataStatus } from '../src/lib/database/data-l
 import { ThemeProvider } from '../src/hooks/useTheme';
 import { BibleVersionProvider } from '../src/hooks/useBibleVersion';
 import { LanguageProvider } from '../src/hooks/useLanguage';
+import { ServicesProvider } from '../src/context/ServicesContext';
+import { AchievementNotifications } from '../src/components/AchievementNotifications';
+import bibleDB from '../src/lib/database';
 
 function AppContent() {
   const [isLoading, setIsLoading] = useState(true);
@@ -89,13 +92,16 @@ function AppContent() {
   }
 
   return (
-    <Stack
-      screenOptions={{
-        headerShown: false,
-      }}
-    >
-      <Stack.Screen name="(tabs)" />
-    </Stack>
+    <>
+      <Stack
+        screenOptions={{
+          headerShown: false,
+        }}
+      >
+        <Stack.Screen name="(tabs)" />
+      </Stack>
+      <AchievementNotifications />
+    </>
   );
 }
 
@@ -192,7 +198,9 @@ export default function RootLayout() {
     <LanguageProvider>
       <ThemeProvider>
         <BibleVersionProvider>
-          <AppContent />
+          <ServicesProvider database={bibleDB}>
+            <AppContent />
+          </ServicesProvider>
         </BibleVersionProvider>
       </ThemeProvider>
     </LanguageProvider>

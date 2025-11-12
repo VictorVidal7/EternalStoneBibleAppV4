@@ -1,4 +1,4 @@
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator, Alert } from 'react-native';
 import { useEffect, useState } from 'react';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
@@ -7,11 +7,13 @@ import { BibleVerse, ReadingProgress } from '../../src/types/bible';
 import { READING_PLANS } from '../../src/constants/reading-plans';
 import { useTheme } from '../../src/hooks/useTheme';
 import { useBibleVersion } from '../../src/hooks/useBibleVersion';
+import { useServices } from '../../src/context/ServicesContext';
 
 export default function HomeScreen() {
   const router = useRouter();
   const { colors, isDark } = useTheme();
   const { selectedVersion } = useBibleVersion();
+  const { achievementService, initialized: servicesInitialized } = useServices();
   const [dailyVerse, setDailyVerse] = useState<BibleVerse | null>(null);
   const [lastRead, setLastRead] = useState<ReadingProgress | null>(null);
   const [loading, setLoading] = useState(true);
@@ -47,6 +49,42 @@ export default function HomeScreen() {
 
   function goToBook(bookName: string) {
     router.push(`/chapter/${bookName}` as any);
+  }
+
+  async function testAchievements() {
+    if (!achievementService || !servicesInitialized) {
+      Alert.alert('Sistema de Logros', 'El sistema de logros aún se está inicializando...');
+      return;
+    }
+
+    try {
+      // Simular lectura de 10 versículos
+      const achievements = await achievementService.trackVersesRead(10, 5);
+
+      if (achievements.length > 0) {
+        Alert.alert(
+          '¡Logro Desbloqueado! 🎉',
+          `Has desbloqueado: ${achievements.map(a => a.name).join(', ')}`,
+          [
+            { text: 'Ver Logros', onPress: () => router.push('/achievements' as any) },
+            { text: 'OK' }
+          ]
+        );
+      } else {
+        const stats = await achievementService.getUserStats();
+        Alert.alert(
+          'Lectura Registrada ✓',
+          `Has leído ${stats.totalVersesRead} versículos en total.\nNivel ${stats.level} - ${stats.totalPoints} puntos\n\nSigue leyendo para desbloquear más logros!`,
+          [
+            { text: 'Ver Logros', onPress: () => router.push('/achievements' as any) },
+            { text: 'OK' }
+          ]
+        );
+      }
+    } catch (error) {
+      console.error('Error testing achievements:', error);
+      Alert.alert('Error', 'Hubo un problema al registrar la lectura');
+    }
   }
 
   if (loading) {
@@ -210,6 +248,35 @@ export default function HomeScreen() {
           </TouchableOpacity>
         </View>
       </View>
+
+      {/* Demo Button - Prueba el sistema de logros */}
+      {servicesInitialized && achievementService && (
+        <TouchableOpacity
+          style={[themedStyles.card, { backgroundColor: '#FFF3CD', borderWidth: 2, borderColor: '#FFD700' }]}
+          onPress={testAchievements}
+        >
+          <View style={themedStyles.cardHeader}>
+            <Ionicons name="trophy" size={20} color="#F39C12" />
+            <Text style={[themedStyles.cardTitle, { color: '#856404' }]}>Prueba los Logros</Text>
+          </View>
+          <Text style={{ fontSize: 14, color: '#856404', marginBottom: 12 }}>
+            Toca aquí para simular la lectura de 10 versículos y ver cómo funciona el sistema de logros 🎮
+          </Text>
+          <View style={{
+            flexDirection: 'row',
+            alignItems: 'center',
+            justifyContent: 'center',
+            backgroundColor: '#F39C12',
+            borderRadius: 8,
+            paddingVertical: 12,
+          }}>
+            <Text style={{ fontSize: 16, color: '#FFFFFF', fontWeight: 'bold', marginRight: 8 }}>
+              Simular Lectura
+            </Text>
+            <Ionicons name="play-circle" size={24} color="#FFFFFF" />
+          </View>
+        </TouchableOpacity>
+      )}
 
       {/* Footer Quote */}
       <View style={styles.footerQuote}>
