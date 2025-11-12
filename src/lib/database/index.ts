@@ -34,12 +34,31 @@ class BibleDatabase {
   }
 
   // Método helper para ejecutar SQL (usado por servicios externos)
-  async executeSql(sql: string, params?: any[]): Promise<SQLite.SQLiteRunResult> {
+  async executeSql(sql: string, params?: any[]): Promise<any> {
     const db = this.getDb();
-    if (params) {
-      return await db.runAsync(sql, params);
+
+    // Detectar si es una query SELECT
+    const isSelect = sql.trim().toUpperCase().startsWith('SELECT');
+
+    if (isSelect) {
+      // Para SELECT, retornar resultados con formato compatible
+      const results = params
+        ? await db.getAllAsync(sql, params)
+        : await db.getAllAsync(sql);
+
+      return {
+        rows: {
+          _array: results,
+          length: results.length,
+        }
+      };
+    } else {
+      // Para INSERT, UPDATE, DELETE, CREATE, etc.
+      if (params) {
+        return await db.runAsync(sql, params);
+      }
+      return await db.execAsync(sql);
     }
-    return await db.execAsync(sql) as any;
   }
 
   // ========== VERSE OPERATIONS ==========
