@@ -60,7 +60,11 @@ export const ServicesProvider: React.FC<ServicesProviderProps> = ({
       try {
         console.log('🔵 Initializing services...');
 
-        // Inicializar servicios
+        // IMPORTANTE: Inicializar la base de datos primero
+        await database.initialize();
+        console.log('🟢 Database initialized for services');
+
+        // Ahora inicializar servicios
         const achievements = new AchievementService(database);
         const highlights = new HighlightService(database);
         const analytics = new AdvancedAnalytics(database);
