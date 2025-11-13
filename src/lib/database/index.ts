@@ -5,8 +5,32 @@ import { CREATE_TABLES, INITIAL_READING_PROGRESS } from './schema';
 class BibleDatabase {
   private db: SQLite.SQLiteDatabase | null = null;
   private initialized = false;
+  private initializationPromise: Promise<void> | null = null;
 
   async initialize(): Promise<void> {
+    // Si ya está inicializado, retornar inmediatamente
+    if (this.initialized) {
+      console.log('⚡ Database already initialized, skipping');
+      return;
+    }
+
+    // Si hay una inicialización en progreso, esperar a que termine
+    if (this.initializationPromise) {
+      console.log('⏳ Waiting for ongoing initialization...');
+      return this.initializationPromise;
+    }
+
+    // Crear la promesa de inicialización
+    this.initializationPromise = this._performInitialization();
+
+    try {
+      await this.initializationPromise;
+    } finally {
+      this.initializationPromise = null;
+    }
+  }
+
+  private async _performInitialization(): Promise<void> {
     if (this.initialized) return;
 
     try {
@@ -359,18 +383,32 @@ class BibleDatabase {
   }
 
   async getBookmarks(): Promise<Bookmark[]> {
+    console.log('📑 [DB] getBookmarks() called');
     const db = this.getDb();
+    console.log('📑 [DB] Got database instance');
 
     try {
-      const result = await db.getAllAsync<Bookmark>(
-        `SELECT id, book_name as book, chapter, verse, text, created_at as createdAt
-         FROM bookmarks
-         ORDER BY created_at DESC`
-      );
+      const sql = `SELECT id, book_name as book, chapter, verse, text, created_at as createdAt
+       FROM bookmarks
+       ORDER BY created_at DESC`;
 
+      console.log('📑 [DB] Executing query:', sql.substring(0, 80));
+
+      const result = await db.getAllAsync<Bookmark>(sql);
+
+      console.log(`📑 [DB] Query successful, got ${result.length} bookmarks`);
       return result;
     } catch (error) {
-      console.error('❌ Error loading bookmarks:', error);
+      console.error('❌ [DB] Error in getBookmarks():', error);
+      // Intentar verificar si la tabla existe
+      try {
+        const tables = await db.getAllAsync<{name: string}>(
+          "SELECT name FROM sqlite_master WHERE type='table' AND name='bookmarks'"
+        );
+        console.log('📊 [DB] Bookmarks table exists:', tables.length > 0, tables);
+      } catch (e) {
+        console.error('❌ [DB] Could not check if bookmarks table exists:', e);
+      }
       throw error;
     }
   }
