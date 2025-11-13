@@ -37,15 +37,30 @@ class BibleDatabase {
   async executeSql(sql: string, params?: any[]): Promise<any> {
     const db = this.getDb();
 
+    // Validar SQL no vacío
+    if (!sql || sql.trim() === '') {
+      console.error('executeSql: SQL query is empty');
+      throw new Error('SQL query cannot be empty');
+    }
+
+    // Filtrar parámetros null/undefined y reemplazar con valores válidos
+    const sanitizedParams = params?.map((param, index) => {
+      if (param === null || param === undefined) {
+        console.warn(`executeSql: Parameter at index ${index} is ${param}, replacing with null`);
+        return null;
+      }
+      return param;
+    });
+
     // Detectar si es una query SELECT
     const isSelect = sql.trim().toUpperCase().startsWith('SELECT');
 
     if (isSelect) {
       // Para SELECT, usar prepared statement
       try {
-        if (params && params.length > 0) {
+        if (sanitizedParams && sanitizedParams.length > 0) {
           const statement = await db.prepareAsync(sql);
-          const result = await statement.executeAsync(params);
+          const result = await statement.executeAsync(sanitizedParams);
           const rows = await result.getAllAsync();
           await statement.finalizeAsync();
 
@@ -65,7 +80,7 @@ class BibleDatabase {
           };
         }
       } catch (error) {
-        console.error('Error executing SELECT query:', sql, error);
+        console.error('❌ Error executing SELECT query:', { sql: sql.substring(0, 100), params: sanitizedParams }, error);
         throw error;
       }
     } else {
@@ -75,9 +90,9 @@ class BibleDatabase {
           // Para DDL, usar execAsync
           await db.execAsync(sql);
           return { changes: 0, lastInsertRowId: 0 };
-        } else if (params && params.length > 0) {
+        } else if (sanitizedParams && sanitizedParams.length > 0) {
           // Para DML con parámetros, usar runAsync
-          const result = await db.runAsync(sql, params);
+          const result = await db.runAsync(sql, sanitizedParams);
           return result;
         } else {
           // Para DML sin parámetros
@@ -85,7 +100,7 @@ class BibleDatabase {
           return { changes: 0, lastInsertRowId: 0 };
         }
       } catch (error) {
-        console.error('Error executing DML query:', sql, error);
+        console.error('❌ Error executing DML query:', { sql: sql.substring(0, 100), params: sanitizedParams }, error);
         throw error;
       }
     }
@@ -115,15 +130,36 @@ class BibleDatabase {
   async getChapter(bookName: string, chapter: number, version: string = 'RVR1960'): Promise<BibleVerse[]> {
     const db = this.getDb();
 
-    const result = await db.getAllAsync<BibleVerse>(
-      `SELECT id, book_id as bookNumber, book_name as book, chapter, verse, text, version
-       FROM verses
-       WHERE book_name = ? AND chapter = ? AND version = ?
-       ORDER BY verse ASC`,
-      [bookName, chapter, version]
-    );
+    // Validar parámetros
+    if (!bookName || bookName.trim() === '') {
+      console.error('getChapter: bookName is invalid:', bookName);
+      throw new Error('Book name is required');
+    }
 
-    return result;
+    if (!chapter || chapter < 1) {
+      console.error('getChapter: chapter is invalid:', chapter);
+      throw new Error('Chapter must be a positive number');
+    }
+
+    if (!version || version.trim() === '') {
+      console.error('getChapter: version is invalid:', version);
+      version = 'RVR1960'; // fallback
+    }
+
+    try {
+      const result = await db.getAllAsync<BibleVerse>(
+        `SELECT id, book_id as bookNumber, book_name as book, chapter, verse, text, version
+         FROM verses
+         WHERE book_name = ? AND chapter = ? AND version = ?
+         ORDER BY verse ASC`,
+        [bookName, chapter, version]
+      );
+
+      return result;
+    } catch (error) {
+      console.error(`❌ Error loading chapter ${bookName} ${chapter} (${version}):`, error);
+      throw error;
+    }
   }
 
   async getVerse(bookName: string, chapter: number, verse: number, version: string = 'RVR1960'): Promise<BibleVerse | null> {
@@ -211,13 +247,18 @@ class BibleDatabase {
   async getBookmarks(): Promise<Bookmark[]> {
     const db = this.getDb();
 
-    const result = await db.getAllAsync<Bookmark>(
-      `SELECT id, book_name as book, chapter, verse, text, created_at as createdAt
-       FROM bookmarks
-       ORDER BY created_at DESC`
-    );
+    try {
+      const result = await db.getAllAsync<Bookmark>(
+        `SELECT id, book_name as book, chapter, verse, text, created_at as createdAt
+         FROM bookmarks
+         ORDER BY created_at DESC`
+      );
 
-    return result;
+      return result;
+    } catch (error) {
+      console.error('❌ Error loading bookmarks:', error);
+      throw error;
+    }
   }
 
   async isBookmarked(bookName: string, chapter: number, verse: number): Promise<boolean> {
