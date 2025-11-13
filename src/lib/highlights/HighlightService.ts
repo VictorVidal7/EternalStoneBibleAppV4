@@ -17,7 +17,10 @@ export class HighlightService {
    * Inicializa las tablas de highlights en la base de datos
    */
   async initialize(): Promise<void> {
-    const createTableSQL = `
+    // Ejecutar cada sentencia SQL por separado
+    const db = await this.db.getDatabase();
+
+    await db.execAsync(`
       CREATE TABLE IF NOT EXISTS highlights (
         id TEXT PRIMARY KEY,
         verse_id TEXT NOT NULL,
@@ -30,15 +33,13 @@ export class HighlightService {
         created_at INTEGER NOT NULL,
         updated_at INTEGER NOT NULL,
         UNIQUE(verse_id)
-      );
+      )
+    `);
 
-      CREATE INDEX IF NOT EXISTS idx_highlights_verse ON highlights(verse_id);
-      CREATE INDEX IF NOT EXISTS idx_highlights_book ON highlights(book_id);
-      CREATE INDEX IF NOT EXISTS idx_highlights_category ON highlights(category);
-      CREATE INDEX IF NOT EXISTS idx_highlights_color ON highlights(color);
-    `;
-
-    await this.db.executeSql(createTableSQL);
+    await db.execAsync('CREATE INDEX IF NOT EXISTS idx_highlights_verse ON highlights(verse_id)');
+    await db.execAsync('CREATE INDEX IF NOT EXISTS idx_highlights_book ON highlights(book_id)');
+    await db.execAsync('CREATE INDEX IF NOT EXISTS idx_highlights_category ON highlights(category)');
+    await db.execAsync('CREATE INDEX IF NOT EXISTS idx_highlights_color ON highlights(color)');
   }
 
   /**

@@ -55,7 +55,10 @@ export class AdvancedAnalytics {
    * Inicializa las tablas de analíticas
    */
   async initialize(): Promise<void> {
-    const createTablesSQL = `
+    // Ejecutar cada sentencia SQL por separado
+    const db = await this.db.getDatabase();
+
+    await db.execAsync(`
       CREATE TABLE IF NOT EXISTS reading_sessions (
         id TEXT PRIMARY KEY,
         start_time INTEGER NOT NULL,
@@ -65,8 +68,10 @@ export class AdvancedAnalytics {
         book_name TEXT,
         chapter INTEGER,
         created_at INTEGER NOT NULL
-      );
+      )
+    `);
 
+    await db.execAsync(`
       CREATE TABLE IF NOT EXISTS verse_read_log (
         id TEXT PRIMARY KEY,
         verse_id TEXT NOT NULL,
@@ -76,14 +81,12 @@ export class AdvancedAnalytics {
         read_at INTEGER NOT NULL,
         session_id TEXT,
         FOREIGN KEY (session_id) REFERENCES reading_sessions(id)
-      );
+      )
+    `);
 
-      CREATE INDEX IF NOT EXISTS idx_verse_read_log_date ON verse_read_log(read_at);
-      CREATE INDEX IF NOT EXISTS idx_verse_read_log_book ON verse_read_log(book_name);
-      CREATE INDEX IF NOT EXISTS idx_sessions_date ON reading_sessions(start_time);
-    `;
-
-    await this.db.executeSql(createTablesSQL);
+    await db.execAsync('CREATE INDEX IF NOT EXISTS idx_verse_read_log_date ON verse_read_log(read_at)');
+    await db.execAsync('CREATE INDEX IF NOT EXISTS idx_verse_read_log_book ON verse_read_log(book_name)');
+    await db.execAsync('CREATE INDEX IF NOT EXISTS idx_sessions_date ON reading_sessions(start_time)');
   }
 
   /**

@@ -20,15 +20,20 @@ export class AchievementService {
    * Inicializa las tablas de logros
    */
   async initialize(): Promise<void> {
-    const createTablesSQL = `
+    // Ejecutar cada sentencia SQL por separado para evitar problemas con execAsync
+    const db = await this.db.getDatabase();
+
+    await db.execAsync(`
       CREATE TABLE IF NOT EXISTS user_achievements (
         id TEXT PRIMARY KEY,
         is_unlocked INTEGER DEFAULT 0,
         current_progress INTEGER DEFAULT 0,
         unlocked_at INTEGER,
         created_at INTEGER NOT NULL
-      );
+      )
+    `);
 
+    await db.execAsync(`
       CREATE TABLE IF NOT EXISTS user_stats (
         id INTEGER PRIMARY KEY CHECK (id = 1),
         total_verses_read INTEGER DEFAULT 0,
@@ -46,18 +51,22 @@ export class AchievementService {
         level INTEGER DEFAULT 1,
         total_points INTEGER DEFAULT 0,
         updated_at INTEGER NOT NULL
-      );
+      )
+    `);
 
+    await db.execAsync(`
       CREATE TABLE IF NOT EXISTS reading_streak_log (
         date TEXT PRIMARY KEY,
         verses_read INTEGER DEFAULT 0,
         time_spent INTEGER DEFAULT 0
-      );
+      )
+    `);
 
-      INSERT OR IGNORE INTO user_stats (id, updated_at) VALUES (1, ${Date.now()});
-    `;
+    await db.runAsync(
+      'INSERT OR IGNORE INTO user_stats (id, updated_at) VALUES (?, ?)',
+      [1, Date.now()]
+    );
 
-    await this.db.executeSql(createTablesSQL);
     await this.initializeAchievements();
   }
 
