@@ -147,6 +147,8 @@ class BibleDatabase {
     }
 
     try {
+      console.log(`🔍 Querying DB: book="${bookName}", chapter=${chapter}, version="${version}"`);
+
       const result = await db.getAllAsync<BibleVerse>(
         `SELECT id, book_id as bookNumber, book_name as book, chapter, verse, text, version
          FROM verses
@@ -154,6 +156,16 @@ class BibleDatabase {
          ORDER BY verse ASC`,
         [bookName, chapter, version]
       );
+
+      console.log(`📊 Query result: ${result.length} verses found`);
+
+      if (result.length === 0) {
+        // Intentar buscar libros similares para debugging
+        const allBooks = await db.getAllAsync<{book_name: string}>(
+          'SELECT DISTINCT book_name FROM verses LIMIT 10'
+        );
+        console.warn(`⚠️ No verses found for "${bookName}". Sample books in DB:`, allBooks.map(b => b.book_name));
+      }
 
       return result;
     } catch (error) {
