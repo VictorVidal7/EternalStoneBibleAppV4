@@ -21,12 +21,15 @@ export default function BookmarksScreen() {
 
   async function loadBookmarks() {
     try {
+      console.log('📑 [BookmarksScreen] Initializing database...');
       await bibleDB.initialize();
+      console.log('📑 [BookmarksScreen] Calling getBookmarks()...');
       const data = await bibleDB.getBookmarks();
+      console.log(`📑 [BookmarksScreen] Successfully loaded ${data.length} bookmarks`);
       setBookmarks(data);
       setLoading(false);
     } catch (error) {
-      console.error('Error loading bookmarks:', error);
+      console.error('❌ [BookmarksScreen] Error loading bookmarks:', error);
       setLoading(false);
     }
   }

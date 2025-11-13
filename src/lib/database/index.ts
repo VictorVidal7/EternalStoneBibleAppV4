@@ -5,18 +5,144 @@ import { CREATE_TABLES, INITIAL_READING_PROGRESS } from './schema';
 class BibleDatabase {
   private db: SQLite.SQLiteDatabase | null = null;
   private initialized = false;
+  private initializationPromise: Promise<void> | null = null;
 
   async initialize(): Promise<void> {
+    // Si ya está inicializado, retornar inmediatamente
+    if (this.initialized) {
+      console.log('⚡ Database already initialized, skipping');
+      return;
+    }
+
+    // Si hay una inicialización en progreso, esperar a que termine
+    if (this.initializationPromise) {
+      console.log('⏳ Waiting for ongoing initialization...');
+      return this.initializationPromise;
+    }
+
+    // Crear la promesa de inicialización
+    this.initializationPromise = this._performInitialization();
+
+    try {
+      await this.initializationPromise;
+    } finally {
+      this.initializationPromise = null;
+    }
+  }
+
+  private async _performInitialization(): Promise<void> {
     if (this.initialized) return;
 
     try {
       this.db = await SQLite.openDatabaseAsync('bible.db');
-      await this.db.execAsync(CREATE_TABLES);
-      await this.db.execAsync(INITIAL_READING_PROGRESS);
+
+      // Ejecutar cada sentencia SQL por separado para evitar NullPointerException
+      console.log('🔧 Creating database tables...');
+
+      // Tabla verses
+      await this.db.execAsync(`
+        CREATE TABLE IF NOT EXISTS verses (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          book_id INTEGER NOT NULL,
+          book_name TEXT NOT NULL,
+          chapter INTEGER NOT NULL,
+          verse INTEGER NOT NULL,
+          text TEXT NOT NULL,
+          version TEXT NOT NULL DEFAULT 'RVR1960',
+          UNIQUE(book_id, chapter, verse, version)
+        )
+      `);
+
+      // FTS5 table
+      await this.db.execAsync(`
+        CREATE VIRTUAL TABLE IF NOT EXISTS verses_fts USING fts5(
+          book_name,
+          chapter,
+          verse,
+          text,
+          content='verses',
+          content_rowid='id'
+        )
+      `);
+
+      // Triggers
+      await this.db.execAsync(`
+        CREATE TRIGGER IF NOT EXISTS verses_ai AFTER INSERT ON verses BEGIN
+          INSERT INTO verses_fts(rowid, book_name, chapter, verse, text)
+          VALUES (new.id, new.book_name, new.chapter, new.verse, new.text);
+        END
+      `);
+
+      await this.db.execAsync(`
+        CREATE TRIGGER IF NOT EXISTS verses_ad AFTER DELETE ON verses BEGIN
+          INSERT INTO verses_fts(verses_fts, rowid, book_name, chapter, verse, text)
+          VALUES('delete', old.id, old.book_name, old.chapter, old.verse, old.text);
+        END
+      `);
+
+      await this.db.execAsync(`
+        CREATE TRIGGER IF NOT EXISTS verses_au AFTER UPDATE ON verses BEGIN
+          INSERT INTO verses_fts(verses_fts, rowid, book_name, chapter, verse, text)
+          VALUES('delete', old.id, old.book_name, old.chapter, old.verse, old.text);
+          INSERT INTO verses_fts(rowid, book_name, chapter, verse, text)
+          VALUES (new.id, new.book_name, new.chapter, new.verse, new.text);
+        END
+      `);
+
+      // Tabla bookmarks
+      await this.db.execAsync(`
+        CREATE TABLE IF NOT EXISTS bookmarks (
+          id TEXT PRIMARY KEY,
+          book_name TEXT NOT NULL,
+          chapter INTEGER NOT NULL,
+          verse INTEGER NOT NULL,
+          text TEXT NOT NULL,
+          created_at TEXT NOT NULL
+        )
+      `);
+
+      // Tabla notes
+      await this.db.execAsync(`
+        CREATE TABLE IF NOT EXISTS notes (
+          id TEXT PRIMARY KEY,
+          book_name TEXT NOT NULL,
+          chapter INTEGER NOT NULL,
+          verse INTEGER NOT NULL,
+          verse_text TEXT NOT NULL,
+          note TEXT NOT NULL,
+          created_at TEXT NOT NULL,
+          updated_at TEXT NOT NULL
+        )
+      `);
+
+      // Tabla reading_progress
+      await this.db.execAsync(`
+        CREATE TABLE IF NOT EXISTS reading_progress (
+          id INTEGER PRIMARY KEY CHECK (id = 1),
+          book_name TEXT NOT NULL,
+          chapter INTEGER NOT NULL,
+          verse INTEGER NOT NULL,
+          timestamp TEXT NOT NULL
+        )
+      `);
+
+      // Índices
+      await this.db.execAsync('CREATE INDEX IF NOT EXISTS idx_verses_book_chapter ON verses(book_id, chapter)');
+      await this.db.execAsync('CREATE INDEX IF NOT EXISTS idx_verses_version ON verses(version)');
+      await this.db.execAsync('CREATE INDEX IF NOT EXISTS idx_bookmarks_reference ON bookmarks(book_name, chapter, verse)');
+      await this.db.execAsync('CREATE INDEX IF NOT EXISTS idx_notes_reference ON notes(book_name, chapter, verse)');
+
+      // Initial reading progress
+      await this.db.runAsync(
+        `INSERT OR REPLACE INTO reading_progress (id, book_name, chapter, verse, timestamp)
+         VALUES (?, ?, ?, ?, datetime('now'))`,
+        [1, 'Juan', 3, 16]
+      );
+
       this.initialized = true;
-      console.log('Database initialized successfully');
+      console.log('✅ Database initialized successfully');
     } catch (error) {
-      console.error('Error initializing database:', error);
+      console.error('❌ Error initializing database:', error);
       throw error;
     }
   }
@@ -31,6 +157,79 @@ class BibleDatabase {
   // Método público para acceder a la base de datos
   async getDatabase(): Promise<SQLite.SQLiteDatabase> {
     return this.getDb();
+  }
+
+  // Método helper para ejecutar SQL (usado por servicios externos)
+  async executeSql(sql: string, params?: any[]): Promise<any> {
+    const db = this.getDb();
+
+    // Validar SQL no vacío
+    if (!sql || sql.trim() === '') {
+      console.error('executeSql: SQL query is empty');
+      throw new Error('SQL query cannot be empty');
+    }
+
+    // Filtrar parámetros null/undefined y reemplazar con valores válidos
+    const sanitizedParams = params?.map((param, index) => {
+      if (param === null || param === undefined) {
+        console.warn(`executeSql: Parameter at index ${index} is ${param}, replacing with null`);
+        return null;
+      }
+      return param;
+    });
+
+    // Detectar si es una query SELECT
+    const isSelect = sql.trim().toUpperCase().startsWith('SELECT');
+
+    if (isSelect) {
+      // Para SELECT, usar prepared statement
+      try {
+        if (sanitizedParams && sanitizedParams.length > 0) {
+          const statement = await db.prepareAsync(sql);
+          const result = await statement.executeAsync(sanitizedParams);
+          const rows = await result.getAllAsync();
+          await statement.finalizeAsync();
+
+          return {
+            rows: {
+              _array: rows,
+              length: rows.length,
+            }
+          };
+        } else {
+          const rows = await db.getAllAsync(sql);
+          return {
+            rows: {
+              _array: rows,
+              length: rows.length,
+            }
+          };
+        }
+      } catch (error) {
+        console.error('❌ Error executing SELECT query:', { sql: sql.substring(0, 100), params: sanitizedParams }, error);
+        throw error;
+      }
+    } else {
+      // Para INSERT, UPDATE, DELETE, CREATE, etc.
+      try {
+        if (sql.includes('CREATE') || sql.includes('DROP') || sql.includes('ALTER')) {
+          // Para DDL, usar execAsync
+          await db.execAsync(sql);
+          return { changes: 0, lastInsertRowId: 0 };
+        } else if (sanitizedParams && sanitizedParams.length > 0) {
+          // Para DML con parámetros, usar runAsync
+          const result = await db.runAsync(sql, sanitizedParams);
+          return result;
+        } else {
+          // Para DML sin parámetros
+          await db.execAsync(sql);
+          return { changes: 0, lastInsertRowId: 0 };
+        }
+      } catch (error) {
+        console.error('❌ Error executing DML query:', { sql: sql.substring(0, 100), params: sanitizedParams }, error);
+        throw error;
+      }
+    }
   }
 
   // ========== VERSE OPERATIONS ==========
@@ -57,15 +256,48 @@ class BibleDatabase {
   async getChapter(bookName: string, chapter: number, version: string = 'RVR1960'): Promise<BibleVerse[]> {
     const db = this.getDb();
 
-    const result = await db.getAllAsync<BibleVerse>(
-      `SELECT id, book_id as bookNumber, book_name as book, chapter, verse, text, version
-       FROM verses
-       WHERE book_name = ? AND chapter = ? AND version = ?
-       ORDER BY verse ASC`,
-      [bookName, chapter, version]
-    );
+    // Validar parámetros
+    if (!bookName || bookName.trim() === '') {
+      console.error('getChapter: bookName is invalid:', bookName);
+      throw new Error('Book name is required');
+    }
 
-    return result;
+    if (!chapter || chapter < 1) {
+      console.error('getChapter: chapter is invalid:', chapter);
+      throw new Error('Chapter must be a positive number');
+    }
+
+    if (!version || version.trim() === '') {
+      console.error('getChapter: version is invalid:', version);
+      version = 'RVR1960'; // fallback
+    }
+
+    try {
+      console.log(`🔍 Querying DB: book="${bookName}", chapter=${chapter}, version="${version}"`);
+
+      const result = await db.getAllAsync<BibleVerse>(
+        `SELECT id, book_id as bookNumber, book_name as book, chapter, verse, text, version
+         FROM verses
+         WHERE book_name = ? AND chapter = ? AND version = ?
+         ORDER BY verse ASC`,
+        [bookName, chapter, version]
+      );
+
+      console.log(`📊 Query result: ${result.length} verses found`);
+
+      if (result.length === 0) {
+        // Intentar buscar libros similares para debugging
+        const allBooks = await db.getAllAsync<{book_name: string}>(
+          'SELECT DISTINCT book_name FROM verses LIMIT 10'
+        );
+        console.warn(`⚠️ No verses found for "${bookName}". Sample books in DB:`, allBooks.map(b => b.book_name));
+      }
+
+      return result;
+    } catch (error) {
+      console.error(`❌ Error loading chapter ${bookName} ${chapter} (${version}):`, error);
+      throw error;
+    }
   }
 
   async getVerse(bookName: string, chapter: number, verse: number, version: string = 'RVR1960'): Promise<BibleVerse | null> {
@@ -151,15 +383,34 @@ class BibleDatabase {
   }
 
   async getBookmarks(): Promise<Bookmark[]> {
+    console.log('📑 [DB] getBookmarks() called');
     const db = this.getDb();
+    console.log('📑 [DB] Got database instance');
 
-    const result = await db.getAllAsync<Bookmark>(
-      `SELECT id, book_name as book, chapter, verse, text, created_at as createdAt
+    try {
+      const sql = `SELECT id, book_name as book, chapter, verse, text, created_at as createdAt
        FROM bookmarks
-       ORDER BY created_at DESC`
-    );
+       ORDER BY created_at DESC`;
 
-    return result;
+      console.log('📑 [DB] Executing query:', sql.substring(0, 80));
+
+      const result = await db.getAllAsync<Bookmark>(sql);
+
+      console.log(`📑 [DB] Query successful, got ${result.length} bookmarks`);
+      return result;
+    } catch (error) {
+      console.error('❌ [DB] Error in getBookmarks():', error);
+      // Intentar verificar si la tabla existe
+      try {
+        const tables = await db.getAllAsync<{name: string}>(
+          "SELECT name FROM sqlite_master WHERE type='table' AND name='bookmarks'"
+        );
+        console.log('📊 [DB] Bookmarks table exists:', tables.length > 0, tables);
+      } catch (e) {
+        console.error('❌ [DB] Could not check if bookmarks table exists:', e);
+      }
+      throw error;
+    }
   }
 
   async isBookmarked(bookName: string, chapter: number, verse: number): Promise<boolean> {
@@ -287,5 +538,6 @@ class BibleDatabase {
   }
 }
 
+export { BibleDatabase };
 export const bibleDB = new BibleDatabase();
 export default bibleDB;

@@ -1,4 +1,4 @@
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator, Alert } from 'react-native';
 import { useEffect, useState } from 'react';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
@@ -7,11 +7,15 @@ import { BibleVerse, ReadingProgress } from '../../src/types/bible';
 import { READING_PLANS } from '../../src/constants/reading-plans';
 import { useTheme } from '../../src/hooks/useTheme';
 import { useBibleVersion } from '../../src/hooks/useBibleVersion';
+import { useServices } from '../../src/context/ServicesContext';
+import { useLanguage } from '../../src/hooks/useLanguage';
 
 export default function HomeScreen() {
   const router = useRouter();
   const { colors, isDark } = useTheme();
   const { selectedVersion } = useBibleVersion();
+  const { achievementService, initialized: servicesInitialized } = useServices();
+  const { t } = useLanguage();
   const [dailyVerse, setDailyVerse] = useState<BibleVerse | null>(null);
   const [lastRead, setLastRead] = useState<ReadingProgress | null>(null);
   const [loading, setLoading] = useState(true);
@@ -47,6 +51,47 @@ export default function HomeScreen() {
 
   function goToBook(bookName: string) {
     router.push(`/chapter/${bookName}` as any);
+  }
+
+  async function testAchievements() {
+    if (!achievementService || !servicesInitialized) {
+      Alert.alert(t.achievements.title, t.achievements.loading);
+      return;
+    }
+
+    try {
+      // Simular lectura de 10 versículos
+      const achievements = await achievementService.trackVersesRead(10, 5);
+
+      if (achievements.length > 0) {
+        Alert.alert(
+          `${t.achievements.unlockTitle} 🎉`,
+          `${t.achievements.unlockMessage} ${achievements.map(a => a.name).join(', ')}`,
+          [
+            { text: t.achievements.viewAchievements, onPress: () => router.push('/achievements' as any) },
+            { text: t.achievements.ok }
+          ]
+        );
+      } else {
+        const stats = await achievementService.getUserStats();
+        const message = t.achievements.readingStats
+          .replace('{{verses}}', stats.totalVersesRead.toString())
+          .replace('{{level}}', stats.level.toString())
+          .replace('{{points}}', stats.totalPoints.toString());
+
+        Alert.alert(
+          `${t.achievements.readingRegistered} ✓`,
+          message,
+          [
+            { text: t.achievements.viewAchievements, onPress: () => router.push('/achievements' as any) },
+            { text: t.achievements.ok }
+          ]
+        );
+      }
+    } catch (error) {
+      console.error('Error testing achievements:', error);
+      Alert.alert(t.error, 'Hubo un problema al registrar la lectura');
+    }
   }
 
   if (loading) {
@@ -210,6 +255,35 @@ export default function HomeScreen() {
           </TouchableOpacity>
         </View>
       </View>
+
+      {/* Demo Button - Prueba el sistema de logros */}
+      {servicesInitialized && achievementService && (
+        <TouchableOpacity
+          style={[themedStyles.card, { backgroundColor: '#FFF3CD', borderWidth: 2, borderColor: '#FFD700' }]}
+          onPress={testAchievements}
+        >
+          <View style={themedStyles.cardHeader}>
+            <Ionicons name="trophy" size={20} color="#F39C12" />
+            <Text style={[themedStyles.cardTitle, { color: '#856404' }]}>{t.achievements.testButton}</Text>
+          </View>
+          <Text style={{ fontSize: 14, color: '#856404', marginBottom: 12 }}>
+            {t.achievements.testDescription} 🎮
+          </Text>
+          <View style={{
+            flexDirection: 'row',
+            alignItems: 'center',
+            justifyContent: 'center',
+            backgroundColor: '#F39C12',
+            borderRadius: 8,
+            paddingVertical: 12,
+          }}>
+            <Text style={{ fontSize: 16, color: '#FFFFFF', fontWeight: 'bold', marginRight: 8 }}>
+              {t.achievements.simulateReading}
+            </Text>
+            <Ionicons name="play-circle" size={24} color="#FFFFFF" />
+          </View>
+        </TouchableOpacity>
+      )}
 
       {/* Footer Quote */}
       <View style={styles.footerQuote}>

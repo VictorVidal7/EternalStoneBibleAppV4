@@ -66,6 +66,17 @@ export default function TabLayout() {
       />
 
       <Tabs.Screen
+        name="achievements"
+        options={{
+          title: 'Logros',
+          tabBarIcon: ({ color, size }) => (
+            <Ionicons name="trophy" size={size} color={color} />
+          ),
+          headerTitle: 'Mis Logros',
+        }}
+      />
+
+      <Tabs.Screen
         name="bookmarks"
         options={{
           title: 'Favoritos',

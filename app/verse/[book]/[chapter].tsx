@@ -52,9 +52,13 @@ export default function VerseReadingScreen() {
   async function loadChapter() {
     try {
       setLoading(true);
+      console.log(`📖 Loading chapter: book="${book}", chapter=${chapterNum}, version="${selectedVersion.id}"`);
+
       await bibleDB.initialize();
 
       const chapterVerses = await bibleDB.getChapter(book, chapterNum, selectedVersion.id);
+      console.log(`✅ Loaded ${chapterVerses.length} verses`);
+
       setVerses(chapterVerses);
 
       // Update reading progress
@@ -72,21 +76,23 @@ export default function VerseReadingScreen() {
         }, 300);
       }
     } catch (error) {
-      console.error('Error loading chapter:', error);
+      console.error(`❌ Error loading chapter ${book} ${chapterNum}:`, error);
       setLoading(false);
     }
   }
 
   async function loadBookmarks() {
     try {
+      console.log(`📑 Loading bookmarks for ${book} ${chapterNum}...`);
       const allBookmarks = await bibleDB.getBookmarks();
       const currentChapterBookmarks = allBookmarks
         .filter((b) => b.book === book && b.chapter === chapterNum)
         .map((b) => b.verse);
 
+      console.log(`✅ Found ${currentChapterBookmarks.length} bookmarks for this chapter`);
       setBookmarkedVerses(new Set(currentChapterBookmarks));
     } catch (error) {
-      console.error('Error loading bookmarks:', error);
+      console.error(`❌ Error loading bookmarks for ${book} ${chapterNum}:`, error);
     }
   }
 
