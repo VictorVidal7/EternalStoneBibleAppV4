@@ -28,6 +28,8 @@ export const translations = {
       oldTestament: 'Antiguo Testamento',
       newTestament: 'Nuevo Testamento',
       chapters: 'capítulos',
+      chapter: 'capítulo',
+      books: 'libros',
       selectBook: 'Selecciona un libro para comenzar',
     },
 
@@ -117,6 +119,15 @@ export const translations = {
       addNote: 'Agregar Nota',
       fontSize: 'Tamaño de Letra',
       verseCopied: 'Versículo copiado al portapapeles',
+      previous: 'Anterior',
+      next: 'Siguiente',
+      copy: 'Copiar',
+      note: 'Nota',
+      endOfBook: 'Fin del libro',
+      lastChapter: 'Estás en el primer capítulo de este libro',
+      reachedEnd: 'Has llegado al final de este libro',
+      saveNote: 'Guardar Nota',
+      notePlaceholder: 'Escribe tu nota aquí...',
     },
 
     // Reading Plans
@@ -174,6 +185,8 @@ export const translations = {
       oldTestament: 'Old Testament',
       newTestament: 'New Testament',
       chapters: 'chapters',
+      chapter: 'chapter',
+      books: 'books',
       selectBook: 'Select a book to start',
     },
 
@@ -263,6 +276,15 @@ export const translations = {
       addNote: 'Add Note',
       fontSize: 'Font Size',
       verseCopied: 'Verse copied to clipboard',
+      previous: 'Previous',
+      next: 'Next',
+      copy: 'Copy',
+      note: 'Note',
+      endOfBook: 'End of book',
+      lastChapter: 'You are at the first chapter of this book',
+      reachedEnd: 'You have reached the end of this book',
+      saveNote: 'Save Note',
+      notePlaceholder: 'Write your note here...',
     },
 
     // Reading Plans

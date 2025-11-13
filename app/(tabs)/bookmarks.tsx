@@ -6,10 +6,12 @@ import bibleDB from '../../src/lib/database';
 import { Bookmark } from '../../src/types/bible';
 import { useCallback } from 'react';
 import { useTheme } from '../../src/hooks/useTheme';
+import { useLanguage } from '../../src/hooks/useLanguage';
 
 export default function BookmarksScreen() {
   const router = useRouter();
   const { colors } = useTheme();
+  const { t } = useLanguage();
   const [bookmarks, setBookmarks] = useState<Bookmark[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -33,12 +35,12 @@ export default function BookmarksScreen() {
 
   async function handleDelete(id: string) {
     Alert.alert(
-      'Eliminar Favorito',
-      '¿Estás seguro de que quieres eliminar este favorito?',
+      t.bookmarks.deleteTitle,
+      t.bookmarks.deleteMessage,
       [
-        { text: 'Cancelar', style: 'cancel' },
+        { text: t.cancel, style: 'cancel' },
         {
-          text: 'Eliminar',
+          text: t.delete,
           style: 'destructive',
           onPress: async () => {
             await bibleDB.removeBookmark(id);
@@ -80,11 +82,7 @@ export default function BookmarksScreen() {
                 {item.text}
               </Text>
               <Text style={[styles.bookmarkDate, { color: colors.textSecondary }]}>
-                {new Date(item.createdAt).toLocaleDateString('es-ES', {
-                  year: 'numeric',
-                  month: 'long',
-                  day: 'numeric',
-                })}
+                {new Date(item.createdAt).toLocaleDateString()}
               </Text>
             </View>
 
@@ -100,9 +98,9 @@ export default function BookmarksScreen() {
         ListEmptyComponent={
           <View style={styles.emptyContainer}>
             <Ionicons name="bookmark-outline" size={80} color={colors.border} />
-            <Text style={[styles.emptyTitle, { color: colors.text }]}>No tienes favoritos</Text>
+            <Text style={[styles.emptyTitle, { color: colors.text }]}>{t.bookmarks.empty}</Text>
             <Text style={[styles.emptySubtitle, { color: colors.textSecondary }]}>
-              Toca el ícono de estrella al leer versículos para guardarlos aquí
+              {t.bookmarks.emptyHint}
             </Text>
           </View>
         }

@@ -65,18 +65,18 @@ export async function checkDataStatus(): Promise<{
 
   if (isLoaded) {
     try {
-      // Verificar que realmente hay datos en la base de datos
-      const db = await bibleDB.getDatabase();
-      const result = await db.getFirstAsync<{ count: number, versions: string }>(
-        'SELECT COUNT(*) as count, GROUP_CONCAT(DISTINCT version) as versions FROM verses'
-      );
+      // Asegurar que la base de datos esté inicializada antes de consultarla
+      await bibleDB.initialize();
 
-      if (result && result.count > 0) {
+      // Verificar que realmente hay datos en la base de datos
+      const stats = await bibleDB.getDatabaseStats();
+
+      if (stats.totalVerses > 0) {
         return {
           isLoaded: true,
           stats: {
-            totalVerses: result.count,
-            versions: result.versions ? result.versions.split(',') : []
+            totalVerses: stats.totalVerses,
+            versions: stats.versions
           }
         };
       }
@@ -96,9 +96,9 @@ export async function resetBibleData(): Promise<void> {
 
   // Limpiar la base de datos
   try {
-    const db = await bibleDB.getDatabase();
-    await db.execAsync('DELETE FROM verses;');
-    await db.execAsync('DELETE FROM verses_fts;');
+    // Asegurar que la base de datos esté inicializada antes de limpiarla
+    await bibleDB.initialize();
+    await bibleDB.clearAllData();
     console.log('✅ Database cleared successfully');
   } catch (error) {
     console.error('❌ Error clearing database:', error);

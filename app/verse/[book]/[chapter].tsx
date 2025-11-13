@@ -20,11 +20,13 @@ import { BibleVerse } from '../../../src/types/bible';
 import { getBookByName } from '../../../src/constants/bible';
 import { useTheme } from '../../../src/hooks/useTheme';
 import { useBibleVersion } from '../../../src/hooks/useBibleVersion';
+import { useLanguage } from '../../../src/hooks/useLanguage';
 
 export default function VerseReadingScreen() {
   const router = useRouter();
   const { colors, isDark } = useTheme();
   const { selectedVersion } = useBibleVersion();
+  const { t } = useLanguage();
   const { book, chapter, verse: highlightVerse } = useLocalSearchParams<{
     book: string;
     chapter: string;
@@ -128,7 +130,7 @@ export default function VerseReadingScreen() {
     await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     const text = `"${verse.text}" - ${verse.book} ${verse.chapter}:${verse.verse}`;
     await Clipboard.setStringAsync(text);
-    Alert.alert('Copiado', 'Versículo copiado al portapapeles');
+    Alert.alert(t.copied, t.verse.verseCopied);
   }
 
   async function handleShareVerse(verse: BibleVerse) {
@@ -187,7 +189,7 @@ export default function VerseReadingScreen() {
 
     setNoteModalVisible(false);
     setNoteText('');
-    Alert.alert('Guardado', 'Nota guardada exitosamente');
+    Alert.alert(t.saved, t.notes.saved);
   }
 
   function navigateChapter(direction: 'prev' | 'next') {
@@ -197,10 +199,10 @@ export default function VerseReadingScreen() {
 
     if (newChapter < 1 || newChapter > bookInfo.chapters) {
       Alert.alert(
-        'Fin del libro',
+        t.verse.endOfBook,
         direction === 'next'
-          ? 'Has llegado al final de este libro'
-          : 'Estás en el primer capítulo de este libro'
+          ? t.verse.reachedEnd
+          : t.verse.lastChapter
       );
       return;
     }
@@ -258,7 +260,7 @@ export default function VerseReadingScreen() {
             <Text
               style={[styles.navButtonText, { color: chapterNum === 1 ? colors.textTertiary : colors.primary }]}
             >
-              Anterior
+              {t.verse.previous}
             </Text>
           </TouchableOpacity>
 
@@ -274,7 +276,7 @@ export default function VerseReadingScreen() {
             <Text
               style={[styles.navButtonText, { color: chapterNum === bookInfo.chapters ? colors.textTertiary : colors.primary }]}
             >
-              Siguiente
+              {t.verse.next}
             </Text>
             <Ionicons
               name="chevron-forward"
@@ -319,7 +321,7 @@ export default function VerseReadingScreen() {
                     onPress={() => handleCopyVerse(verse)}
                   >
                     <Ionicons name="copy-outline" size={18} color={colors.textSecondary} />
-                    <Text style={[styles.actionButtonText, { color: colors.textSecondary }]}>Copiar</Text>
+                    <Text style={[styles.actionButtonText, { color: colors.textSecondary }]}>{t.verse.copy}</Text>
                   </TouchableOpacity>
 
                   <TouchableOpacity
@@ -327,7 +329,7 @@ export default function VerseReadingScreen() {
                     onPress={() => handleShareVerse(verse)}
                   >
                     <Ionicons name="share-outline" size={18} color={colors.textSecondary} />
-                    <Text style={[styles.actionButtonText, { color: colors.textSecondary }]}>Compartir</Text>
+                    <Text style={[styles.actionButtonText, { color: colors.textSecondary }]}>{t.share}</Text>
                   </TouchableOpacity>
 
                   <TouchableOpacity
@@ -335,7 +337,7 @@ export default function VerseReadingScreen() {
                     onPress={() => handleAddNote(verse)}
                   >
                     <Ionicons name="create-outline" size={18} color={colors.textSecondary} />
-                    <Text style={[styles.actionButtonText, { color: colors.textSecondary }]}>Nota</Text>
+                    <Text style={[styles.actionButtonText, { color: colors.textSecondary }]}>{t.verse.note}</Text>
                   </TouchableOpacity>
                 </View>
               </View>
@@ -356,7 +358,7 @@ export default function VerseReadingScreen() {
                 <Text style={[styles.modalTitle, { color: colors.text }]}>
                   {selectedVerse
                     ? `${selectedVerse.book} ${selectedVerse.chapter}:${selectedVerse.verse}`
-                    : 'Nota'}
+                    : t.verse.note}
                 </Text>
                 <TouchableOpacity onPress={() => setNoteModalVisible(false)}>
                   <Ionicons name="close" size={24} color={colors.textSecondary} />
@@ -369,7 +371,7 @@ export default function VerseReadingScreen() {
 
               <TextInput
                 style={[styles.noteInput, { color: colors.text, borderColor: colors.border }]}
-                placeholder="Escribe tu nota aquí..."
+                placeholder={t.verse.notePlaceholder}
                 placeholderTextColor={colors.textTertiary}
                 value={noteText}
                 onChangeText={setNoteText}
@@ -383,7 +385,7 @@ export default function VerseReadingScreen() {
                 onPress={saveNote}
                 disabled={!noteText.trim()}
               >
-                <Text style={styles.saveButtonText}>Guardar Nota</Text>
+                <Text style={styles.saveButtonText}>{t.verse.saveNote}</Text>
               </TouchableOpacity>
             </View>
           </View>
