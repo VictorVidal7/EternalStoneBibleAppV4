@@ -41,23 +41,53 @@ class BibleDatabase {
     const isSelect = sql.trim().toUpperCase().startsWith('SELECT');
 
     if (isSelect) {
-      // Para SELECT, retornar resultados con formato compatible
-      const results = params
-        ? await db.getAllAsync(sql, params)
-        : await db.getAllAsync(sql);
+      // Para SELECT, usar prepared statement
+      try {
+        if (params && params.length > 0) {
+          const statement = await db.prepareAsync(sql);
+          const result = await statement.executeAsync(params);
+          const rows = await result.getAllAsync();
+          await statement.finalizeAsync();
 
-      return {
-        rows: {
-          _array: results,
-          length: results.length,
+          return {
+            rows: {
+              _array: rows,
+              length: rows.length,
+            }
+          };
+        } else {
+          const rows = await db.getAllAsync(sql);
+          return {
+            rows: {
+              _array: rows,
+              length: rows.length,
+            }
+          };
         }
-      };
+      } catch (error) {
+        console.error('Error executing SELECT query:', sql, error);
+        throw error;
+      }
     } else {
       // Para INSERT, UPDATE, DELETE, CREATE, etc.
-      if (params) {
-        return await db.runAsync(sql, params);
+      try {
+        if (sql.includes('CREATE') || sql.includes('DROP') || sql.includes('ALTER')) {
+          // Para DDL, usar execAsync
+          await db.execAsync(sql);
+          return { changes: 0, lastInsertRowId: 0 };
+        } else if (params && params.length > 0) {
+          // Para DML con parámetros, usar runAsync
+          const result = await db.runAsync(sql, params);
+          return result;
+        } else {
+          // Para DML sin parámetros
+          await db.execAsync(sql);
+          return { changes: 0, lastInsertRowId: 0 };
+        }
+      } catch (error) {
+        console.error('Error executing DML query:', sql, error);
+        throw error;
       }
-      return await db.execAsync(sql);
     }
   }
 

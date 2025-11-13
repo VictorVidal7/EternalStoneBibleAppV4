@@ -8,12 +8,14 @@ import { READING_PLANS } from '../../src/constants/reading-plans';
 import { useTheme } from '../../src/hooks/useTheme';
 import { useBibleVersion } from '../../src/hooks/useBibleVersion';
 import { useServices } from '../../src/context/ServicesContext';
+import { useLanguage } from '../../src/hooks/useLanguage';
 
 export default function HomeScreen() {
   const router = useRouter();
   const { colors, isDark } = useTheme();
   const { selectedVersion } = useBibleVersion();
   const { achievementService, initialized: servicesInitialized } = useServices();
+  const { t } = useLanguage();
   const [dailyVerse, setDailyVerse] = useState<BibleVerse | null>(null);
   const [lastRead, setLastRead] = useState<ReadingProgress | null>(null);
   const [loading, setLoading] = useState(true);
@@ -53,7 +55,7 @@ export default function HomeScreen() {
 
   async function testAchievements() {
     if (!achievementService || !servicesInitialized) {
-      Alert.alert('Sistema de Logros', 'El sistema de logros aún se está inicializando...');
+      Alert.alert(t.achievements.title, t.achievements.loading);
       return;
     }
 
@@ -63,27 +65,32 @@ export default function HomeScreen() {
 
       if (achievements.length > 0) {
         Alert.alert(
-          '¡Logro Desbloqueado! 🎉',
-          `Has desbloqueado: ${achievements.map(a => a.name).join(', ')}`,
+          `${t.achievements.unlockTitle} 🎉`,
+          `${t.achievements.unlockMessage} ${achievements.map(a => a.name).join(', ')}`,
           [
-            { text: 'Ver Logros', onPress: () => router.push('/achievements' as any) },
-            { text: 'OK' }
+            { text: t.achievements.viewAchievements, onPress: () => router.push('/achievements' as any) },
+            { text: t.achievements.ok }
           ]
         );
       } else {
         const stats = await achievementService.getUserStats();
+        const message = t.achievements.readingStats
+          .replace('{{verses}}', stats.totalVersesRead.toString())
+          .replace('{{level}}', stats.level.toString())
+          .replace('{{points}}', stats.totalPoints.toString());
+
         Alert.alert(
-          'Lectura Registrada ✓',
-          `Has leído ${stats.totalVersesRead} versículos en total.\nNivel ${stats.level} - ${stats.totalPoints} puntos\n\nSigue leyendo para desbloquear más logros!`,
+          `${t.achievements.readingRegistered} ✓`,
+          message,
           [
-            { text: 'Ver Logros', onPress: () => router.push('/achievements' as any) },
-            { text: 'OK' }
+            { text: t.achievements.viewAchievements, onPress: () => router.push('/achievements' as any) },
+            { text: t.achievements.ok }
           ]
         );
       }
     } catch (error) {
       console.error('Error testing achievements:', error);
-      Alert.alert('Error', 'Hubo un problema al registrar la lectura');
+      Alert.alert(t.error, 'Hubo un problema al registrar la lectura');
     }
   }
 
@@ -257,10 +264,10 @@ export default function HomeScreen() {
         >
           <View style={themedStyles.cardHeader}>
             <Ionicons name="trophy" size={20} color="#F39C12" />
-            <Text style={[themedStyles.cardTitle, { color: '#856404' }]}>Prueba los Logros</Text>
+            <Text style={[themedStyles.cardTitle, { color: '#856404' }]}>{t.achievements.testButton}</Text>
           </View>
           <Text style={{ fontSize: 14, color: '#856404', marginBottom: 12 }}>
-            Toca aquí para simular la lectura de 10 versículos y ver cómo funciona el sistema de logros 🎮
+            {t.achievements.testDescription} 🎮
           </Text>
           <View style={{
             flexDirection: 'row',
@@ -271,7 +278,7 @@ export default function HomeScreen() {
             paddingVertical: 12,
           }}>
             <Text style={{ fontSize: 16, color: '#FFFFFF', fontWeight: 'bold', marginRight: 8 }}>
-              Simular Lectura
+              {t.achievements.simulateReading}
             </Text>
             <Ionicons name="play-circle" size={24} color="#FFFFFF" />
           </View>
