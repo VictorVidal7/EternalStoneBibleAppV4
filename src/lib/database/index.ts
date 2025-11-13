@@ -11,12 +11,114 @@ class BibleDatabase {
 
     try {
       this.db = await SQLite.openDatabaseAsync('bible.db');
-      await this.db.execAsync(CREATE_TABLES);
-      await this.db.execAsync(INITIAL_READING_PROGRESS);
+
+      // Ejecutar cada sentencia SQL por separado para evitar NullPointerException
+      console.log('🔧 Creating database tables...');
+
+      // Tabla verses
+      await this.db.execAsync(`
+        CREATE TABLE IF NOT EXISTS verses (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          book_id INTEGER NOT NULL,
+          book_name TEXT NOT NULL,
+          chapter INTEGER NOT NULL,
+          verse INTEGER NOT NULL,
+          text TEXT NOT NULL,
+          version TEXT NOT NULL DEFAULT 'RVR1960',
+          UNIQUE(book_id, chapter, verse, version)
+        )
+      `);
+
+      // FTS5 table
+      await this.db.execAsync(`
+        CREATE VIRTUAL TABLE IF NOT EXISTS verses_fts USING fts5(
+          book_name,
+          chapter,
+          verse,
+          text,
+          content='verses',
+          content_rowid='id'
+        )
+      `);
+
+      // Triggers
+      await this.db.execAsync(`
+        CREATE TRIGGER IF NOT EXISTS verses_ai AFTER INSERT ON verses BEGIN
+          INSERT INTO verses_fts(rowid, book_name, chapter, verse, text)
+          VALUES (new.id, new.book_name, new.chapter, new.verse, new.text);
+        END
+      `);
+
+      await this.db.execAsync(`
+        CREATE TRIGGER IF NOT EXISTS verses_ad AFTER DELETE ON verses BEGIN
+          INSERT INTO verses_fts(verses_fts, rowid, book_name, chapter, verse, text)
+          VALUES('delete', old.id, old.book_name, old.chapter, old.verse, old.text);
+        END
+      `);
+
+      await this.db.execAsync(`
+        CREATE TRIGGER IF NOT EXISTS verses_au AFTER UPDATE ON verses BEGIN
+          INSERT INTO verses_fts(verses_fts, rowid, book_name, chapter, verse, text)
+          VALUES('delete', old.id, old.book_name, old.chapter, old.verse, old.text);
+          INSERT INTO verses_fts(rowid, book_name, chapter, verse, text)
+          VALUES (new.id, new.book_name, new.chapter, new.verse, new.text);
+        END
+      `);
+
+      // Tabla bookmarks
+      await this.db.execAsync(`
+        CREATE TABLE IF NOT EXISTS bookmarks (
+          id TEXT PRIMARY KEY,
+          book_name TEXT NOT NULL,
+          chapter INTEGER NOT NULL,
+          verse INTEGER NOT NULL,
+          text TEXT NOT NULL,
+          created_at TEXT NOT NULL
+        )
+      `);
+
+      // Tabla notes
+      await this.db.execAsync(`
+        CREATE TABLE IF NOT EXISTS notes (
+          id TEXT PRIMARY KEY,
+          book_name TEXT NOT NULL,
+          chapter INTEGER NOT NULL,
+          verse INTEGER NOT NULL,
+          verse_text TEXT NOT NULL,
+          note TEXT NOT NULL,
+          created_at TEXT NOT NULL,
+          updated_at TEXT NOT NULL
+        )
+      `);
+
+      // Tabla reading_progress
+      await this.db.execAsync(`
+        CREATE TABLE IF NOT EXISTS reading_progress (
+          id INTEGER PRIMARY KEY CHECK (id = 1),
+          book_name TEXT NOT NULL,
+          chapter INTEGER NOT NULL,
+          verse INTEGER NOT NULL,
+          timestamp TEXT NOT NULL
+        )
+      `);
+
+      // Índices
+      await this.db.execAsync('CREATE INDEX IF NOT EXISTS idx_verses_book_chapter ON verses(book_id, chapter)');
+      await this.db.execAsync('CREATE INDEX IF NOT EXISTS idx_verses_version ON verses(version)');
+      await this.db.execAsync('CREATE INDEX IF NOT EXISTS idx_bookmarks_reference ON bookmarks(book_name, chapter, verse)');
+      await this.db.execAsync('CREATE INDEX IF NOT EXISTS idx_notes_reference ON notes(book_name, chapter, verse)');
+
+      // Initial reading progress
+      await this.db.runAsync(
+        `INSERT OR REPLACE INTO reading_progress (id, book_name, chapter, verse, timestamp)
+         VALUES (?, ?, ?, ?, datetime('now'))`,
+        [1, 'Juan', 3, 16]
+      );
+
       this.initialized = true;
-      console.log('Database initialized successfully');
+      console.log('✅ Database initialized successfully');
     } catch (error) {
-      console.error('Error initializing database:', error);
+      console.error('❌ Error initializing database:', error);
       throw error;
     }
   }
