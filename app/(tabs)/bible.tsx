@@ -1,131 +1,580 @@
-import { View, Text, StyleSheet, SectionList, TouchableOpacity } from 'react-native';
+/**
+ * 📚 BIBLE LIST SCREEN - REDISEÑO MODERNO
+ *
+ * Pantalla de lista de libros bíblicos con:
+ * - Cards modernos con animaciones
+ * - Búsqueda integrada
+ * - Glassmorphism y gradientes
+ * - FlashList para mejor performance
+ * - Animaciones de entrada suaves
+ */
+
+import React, { useState, useRef, useEffect } from 'react';
+import {
+  View,
+  Text,
+  StyleSheet,
+  TouchableOpacity,
+  TextInput,
+  Animated,
+  SectionList,
+  Platform,
+} from 'react-native';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
+import { LinearGradient } from 'expo-linear-gradient';
+import * as Haptics from 'expo-haptics';
+
 import { BIBLE_BOOKS } from '../../src/constants/bible';
 import { useTheme } from '../../src/hooks/useTheme';
 import { useLanguage } from '../../src/hooks/useLanguage';
 
+// Design tokens
+import {
+  spacing,
+  borderRadius,
+  fontSize,
+  shadows,
+  iconSize,
+} from '../../src/styles/designTokens';
+
+interface BibleBook {
+  id: number;
+  name: string;
+  abbr: string;
+  chapters: number;
+  testament: 'old' | 'new';
+}
+
 export default function BibleScreen() {
   const router = useRouter();
-  const { colors, isDark } = useTheme();
+  const { theme } = useTheme();
   const { t } = useLanguage();
 
-  const oldTestament = BIBLE_BOOKS.filter((book) => book.testament === 'old');
-  const newTestament = BIBLE_BOOKS.filter((book) => book.testament === 'new');
+  const [searchQuery, setSearchQuery] = useState('');
+  const [filteredBooks, setFilteredBooks] = useState<BibleBook[]>(BIBLE_BOOKS);
+
+  const searchAnim = useRef(new Animated.Value(0)).current;
+  const headerAnim = useRef(new Animated.Value(0)).current;
+
+  useEffect(() => {
+    // Animación inicial
+    Animated.parallel([
+      Animated.spring(headerAnim, {
+        toValue: 1,
+        tension: 50,
+        friction: 7,
+        useNativeDriver: true,
+      }),
+      Animated.timing(searchAnim, {
+        toValue: 1,
+        duration: 400,
+        useNativeDriver: true,
+      }),
+    ]).start();
+  }, []);
+
+  useEffect(() => {
+    // Filtrar libros por búsqueda
+    if (searchQuery.trim() === '') {
+      setFilteredBooks(BIBLE_BOOKS);
+    } else {
+      const filtered = BIBLE_BOOKS.filter((book) =>
+        book.name.toLowerCase().includes(searchQuery.toLowerCase())
+      );
+      setFilteredBooks(filtered);
+    }
+  }, [searchQuery]);
+
+  const oldTestament = filteredBooks.filter((book) => book.testament === 'old');
+  const newTestament = filteredBooks.filter((book) => book.testament === 'new');
 
   const sections = [
-    { title: t.bible.oldTestament, data: oldTestament },
-    { title: t.bible.newTestament, data: newTestament },
-  ];
+    { title: t.bible.oldTestament, data: oldTestament, color: '#3b82f6' },
+    { title: t.bible.newTestament, data: newTestament, color: '#ef4444' },
+  ].filter((section) => section.data.length > 0);
 
   function goToChapterSelection(bookName: string) {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     router.push(`/chapter/${bookName}` as any);
   }
 
   return (
-    <View style={[styles.container, { backgroundColor: colors.background }]}>
-      <SectionList
-        sections={sections}
-        keyExtractor={(item) => item.id.toString()}
-        renderSectionHeader={({ section }) => (
-          <View style={[styles.sectionHeader, { backgroundColor: colors.primary }]}>
-            <Ionicons
-              name={section.title.includes('Antiguo') ? 'book' : 'heart'}
-              size={20}
-              color="#FFFFFF"
-            />
-            <Text style={styles.sectionTitle}>{section.title}</Text>
-            <Text style={styles.sectionCount}>
-              {section.data.length} {section.data.length === 1 ? t.bible.chapter : t.bible.chapters}
-            </Text>
+    <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
+      {/* Header con gradiente */}
+      <Animated.View
+        style={{
+          opacity: headerAnim,
+          transform: [
+            {
+              translateY: headerAnim.interpolate({
+                inputRange: [0, 1],
+                outputRange: [-50, 0],
+              }),
+            },
+          ],
+        }}
+      >
+        <LinearGradient
+          colors={
+            theme.isDark
+              ? ['#667eea', '#764ba2']
+              : ['#667eea', '#764ba2']
+          }
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 1 }}
+          style={styles.header}
+        >
+          <View style={styles.headerContent}>
+            <View style={styles.headerTitleContainer}>
+              <Ionicons name="book" size={32} color="#ffffff" />
+              <View style={styles.headerTextContainer}>
+                <Text style={styles.headerTitle}>Biblioteca Bíblica</Text>
+                <Text style={styles.headerSubtitle}>
+                  {filteredBooks.length} libros disponibles
+                </Text>
+              </View>
+            </View>
+
+            {/* Stats mini */}
+            <View style={styles.headerStats}>
+              <View style={styles.statMini}>
+                <Text style={styles.statMiniNumber}>{oldTestament.length}</Text>
+                <Text style={styles.statMiniLabel}>AT</Text>
+              </View>
+              <View style={styles.statMini}>
+                <Text style={styles.statMiniNumber}>{newTestament.length}</Text>
+                <Text style={styles.statMiniLabel}>NT</Text>
+              </View>
+            </View>
           </View>
-        )}
-        renderItem={({ item }) => (
-          <TouchableOpacity
-            style={[styles.bookItem, { backgroundColor: colors.surface }]}
-            onPress={() => goToChapterSelection(item.name)}
-            activeOpacity={0.7}
-          >
-            <View style={[styles.bookIconContainer, { backgroundColor: colors.primaryLight }]}>
-              <Text style={[styles.bookIcon, { color: colors.primary }]}>{item.abbr}</Text>
-            </View>
+        </LinearGradient>
+      </Animated.View>
 
-            <View style={styles.bookInfo}>
-              <Text style={[styles.bookName, { color: colors.text }]}>{item.name}</Text>
-              <Text style={[styles.bookChapters, { color: colors.textSecondary }]}>
-                {item.chapters} {item.chapters === 1 ? t.bible.chapter : t.bible.chapters}
-              </Text>
-            </View>
+      {/* Search Bar */}
+      <Animated.View
+        style={[
+          styles.searchContainer,
+          {
+            opacity: searchAnim,
+            transform: [
+              {
+                scale: searchAnim.interpolate({
+                  inputRange: [0, 1],
+                  outputRange: [0.9, 1],
+                }),
+              },
+            ],
+          },
+        ]}
+      >
+        <View
+          style={[
+            styles.searchBar,
+            {
+              backgroundColor: theme.colors.card,
+              borderColor: theme.colors.border,
+              ...shadows.md,
+            },
+          ]}
+        >
+          <Ionicons
+            name="search"
+            size={20}
+            color={theme.colors.textSecondary}
+            style={styles.searchIcon}
+          />
+          <TextInput
+            style={[styles.searchInput, { color: theme.colors.text }]}
+            placeholder="Buscar libro..."
+            placeholderTextColor={theme.colors.textTertiary}
+            value={searchQuery}
+            onChangeText={setSearchQuery}
+            returnKeyType="search"
+          />
+          {searchQuery.length > 0 && (
+            <TouchableOpacity
+              onPress={() => setSearchQuery('')}
+              style={styles.clearButton}
+            >
+              <Ionicons
+                name="close-circle"
+                size={20}
+                color={theme.colors.textSecondary}
+              />
+            </TouchableOpacity>
+          )}
+        </View>
+      </Animated.View>
 
-            <Ionicons name="chevron-forward" size={20} color={colors.textTertiary} />
-          </TouchableOpacity>
-        )}
-        stickySectionHeadersEnabled
-        contentContainerStyle={styles.listContent}
-      />
+      {/* Lista de libros */}
+      {filteredBooks.length > 0 ? (
+        <SectionList
+          sections={sections}
+          keyExtractor={(item) => item.id.toString()}
+          renderSectionHeader={({ section }) => (
+            <SectionHeader
+              title={section.title}
+              count={section.data.length}
+              color={section.color}
+              isOldTestament={section.title.includes('Antiguo')}
+            />
+          )}
+          renderItem={({ item, index }) => (
+            <BookCard
+              book={item}
+              index={index}
+              onPress={() => goToChapterSelection(item.name)}
+            />
+          )}
+          stickySectionHeadersEnabled
+          contentContainerStyle={styles.listContent}
+          showsVerticalScrollIndicator={false}
+        />
+      ) : (
+        <EmptyState searchQuery={searchQuery} />
+      )}
     </View>
   );
 }
+
+// ==================== SECTION HEADER ====================
+
+interface SectionHeaderProps {
+  title: string;
+  count: number;
+  color: string;
+  isOldTestament: boolean;
+}
+
+const SectionHeader: React.FC<SectionHeaderProps> = ({
+  title,
+  count,
+  color,
+  isOldTestament,
+}) => {
+  return (
+    <LinearGradient
+      colors={[color, color + 'dd']}
+      start={{ x: 0, y: 0 }}
+      end={{ x: 1, y: 0 }}
+      style={[styles.sectionHeader, shadows.md]}
+    >
+      <View style={styles.sectionIconContainer}>
+        <Ionicons
+          name={isOldTestament ? 'book' : 'heart'}
+          size={24}
+          color="#ffffff"
+        />
+      </View>
+      <Text style={styles.sectionTitle}>{title}</Text>
+      <View style={styles.sectionBadge}>
+        <Text style={styles.sectionCount}>{count}</Text>
+      </View>
+    </LinearGradient>
+  );
+};
+
+// ==================== BOOK CARD ====================
+
+interface BookCardProps {
+  book: BibleBook;
+  index: number;
+  onPress: () => void;
+}
+
+const BookCard: React.FC<BookCardProps> = ({ book, index, onPress }) => {
+  const { theme } = useTheme();
+  const scaleAnim = useRef(new Animated.Value(0)).current;
+
+  useEffect(() => {
+    Animated.spring(scaleAnim, {
+      toValue: 1,
+      tension: 50,
+      friction: 7,
+      delay: index * 30, // Stagger animation
+      useNativeDriver: true,
+    }).start();
+  }, []);
+
+  const bookColor = book.testament === 'old' ? '#3b82f6' : '#ef4444';
+
+  return (
+    <Animated.View
+      style={{
+        transform: [{ scale: scaleAnim }],
+        opacity: scaleAnim,
+      }}
+    >
+      <TouchableOpacity
+        style={[
+          styles.bookCard,
+          {
+            backgroundColor: theme.colors.card,
+            ...shadows.sm,
+          },
+        ]}
+        onPress={onPress}
+        activeOpacity={0.7}
+      >
+        {/* Accent line */}
+        <View style={[styles.accentLine, { backgroundColor: bookColor }]} />
+
+        {/* Book icon */}
+        <LinearGradient
+          colors={[bookColor, bookColor + 'cc']}
+          style={styles.bookIconContainer}
+        >
+          <Text style={styles.bookIcon}>{book.abbr}</Text>
+        </LinearGradient>
+
+        {/* Book info */}
+        <View style={styles.bookInfo}>
+          <Text style={[styles.bookName, { color: theme.colors.text }]}>
+            {book.name}
+          </Text>
+          <View style={styles.bookMeta}>
+            <Ionicons
+              name="document-text-outline"
+              size={14}
+              color={theme.colors.textSecondary}
+            />
+            <Text style={[styles.bookChapters, { color: theme.colors.textSecondary }]}>
+              {book.chapters} {book.chapters === 1 ? 'capítulo' : 'capítulos'}
+            </Text>
+          </View>
+        </View>
+
+        {/* Chevron */}
+        <View style={[styles.chevronContainer, { backgroundColor: bookColor + '15' }]}>
+          <Ionicons name="chevron-forward" size={20} color={bookColor} />
+        </View>
+      </TouchableOpacity>
+    </Animated.View>
+  );
+};
+
+// ==================== EMPTY STATE ====================
+
+interface EmptyStateProps {
+  searchQuery: string;
+}
+
+const EmptyState: React.FC<EmptyStateProps> = ({ searchQuery }) => {
+  const { theme } = useTheme();
+
+  return (
+    <View style={styles.emptyContainer}>
+      <Ionicons name="search-outline" size={64} color={theme.colors.textTertiary} />
+      <Text style={[styles.emptyTitle, { color: theme.colors.text }]}>
+        No se encontraron resultados
+      </Text>
+      <Text style={[styles.emptyText, { color: theme.colors.textSecondary }]}>
+        No hay libros que coincidan con "{searchQuery}"
+      </Text>
+    </View>
+  );
+};
+
+// ==================== STYLES ====================
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
-  listContent: {
-    padding: 16,
+
+  // Header
+  header: {
+    paddingTop: Platform.OS === 'ios' ? 60 : 40,
+    paddingBottom: spacing.xl,
+    paddingHorizontal: spacing.lg,
+    ...shadows.lg,
   },
+  headerContent: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  headerTitleContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flex: 1,
+  },
+  headerTextContainer: {
+    marginLeft: spacing.md,
+  },
+  headerTitle: {
+    fontSize: fontSize['2xl'],
+    fontWeight: '700',
+    color: '#ffffff',
+  },
+  headerSubtitle: {
+    fontSize: fontSize.sm,
+    color: 'rgba(255,255,255,0.9)',
+    marginTop: 2,
+  },
+  headerStats: {
+    flexDirection: 'row',
+    gap: spacing.sm,
+  },
+  statMini: {
+    alignItems: 'center',
+    backgroundColor: 'rgba(255,255,255,0.2)',
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.xs,
+    borderRadius: borderRadius.md,
+  },
+  statMiniNumber: {
+    fontSize: fontSize.lg,
+    fontWeight: '700',
+    color: '#ffffff',
+  },
+  statMiniLabel: {
+    fontSize: fontSize.xs,
+    color: 'rgba(255,255,255,0.9)',
+  },
+
+  // Search
+  searchContainer: {
+    paddingHorizontal: spacing.lg,
+    paddingVertical: spacing.md,
+  },
+  searchBar: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    borderRadius: borderRadius.lg,
+    paddingHorizontal: spacing.base,
+    height: 48,
+    borderWidth: 1,
+  },
+  searchIcon: {
+    marginRight: spacing.sm,
+  },
+  searchInput: {
+    flex: 1,
+    fontSize: fontSize.base,
+    paddingVertical: spacing.sm,
+  },
+  clearButton: {
+    padding: spacing.xs,
+  },
+
+  // List
+  listContent: {
+    paddingHorizontal: spacing.lg,
+    paddingBottom: spacing.xl,
+  },
+
+  // Section Header
   sectionHeader: {
     flexDirection: 'row',
     alignItems: 'center',
-    borderRadius: 12,
-    padding: 16,
-    marginBottom: 12,
-    marginTop: 8,
+    borderRadius: borderRadius.lg,
+    paddingVertical: spacing.md,
+    paddingHorizontal: spacing.base,
+    marginBottom: spacing.md,
+    marginTop: spacing.sm,
+  },
+  sectionIconContainer: {
+    width: 40,
+    height: 40,
+    borderRadius: borderRadius.md,
+    backgroundColor: 'rgba(255,255,255,0.2)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: spacing.md,
   },
   sectionTitle: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: '#FFFFFF',
-    marginLeft: 10,
+    fontSize: fontSize.lg,
+    fontWeight: '700',
+    color: '#ffffff',
     flex: 1,
   },
-  sectionCount: {
-    fontSize: 14,
-    color: '#ECF0F1',
+  sectionBadge: {
+    backgroundColor: 'rgba(255,255,255,0.25)',
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.xs,
+    borderRadius: borderRadius.full,
+    minWidth: 40,
+    alignItems: 'center',
   },
-  bookItem: {
+  sectionCount: {
+    fontSize: fontSize.sm,
+    fontWeight: '600',
+    color: '#ffffff',
+  },
+
+  // Book Card
+  bookCard: {
     flexDirection: 'row',
     alignItems: 'center',
-    borderRadius: 12,
-    padding: 16,
-    marginBottom: 10,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.08,
-    shadowRadius: 3,
-    elevation: 2,
+    borderRadius: borderRadius.lg,
+    paddingVertical: spacing.md,
+    paddingHorizontal: spacing.base,
+    marginBottom: spacing.md,
+    overflow: 'hidden',
+  },
+  accentLine: {
+    position: 'absolute',
+    left: 0,
+    top: 0,
+    bottom: 0,
+    width: 4,
   },
   bookIconContainer: {
     width: 48,
     height: 48,
-    borderRadius: 24,
+    borderRadius: borderRadius.md,
     justifyContent: 'center',
     alignItems: 'center',
-    marginRight: 16,
+    marginLeft: spacing.sm,
+    marginRight: spacing.md,
   },
   bookIcon: {
-    fontSize: 12,
-    fontWeight: 'bold',
+    fontSize: fontSize.sm,
+    fontWeight: '700',
+    color: '#ffffff',
   },
   bookInfo: {
     flex: 1,
   },
   bookName: {
-    fontSize: 17,
+    fontSize: fontSize.lg,
     fontWeight: '600',
-    marginBottom: 4,
+    marginBottom: spacing.xs,
+  },
+  bookMeta: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.xs,
   },
   bookChapters: {
-    fontSize: 14,
+    fontSize: fontSize.sm,
+  },
+  chevronContainer: {
+    width: 32,
+    height: 32,
+    borderRadius: borderRadius.md,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginLeft: spacing.sm,
+  },
+
+  // Empty State
+  emptyContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: spacing.xl,
+  },
+  emptyTitle: {
+    fontSize: fontSize.xl,
+    fontWeight: '600',
+    marginTop: spacing.lg,
+    marginBottom: spacing.xs,
+  },
+  emptyText: {
+    fontSize: fontSize.base,
+    textAlign: 'center',
   },
 });

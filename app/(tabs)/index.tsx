@@ -1,7 +1,30 @@
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator, Alert } from 'react-native';
-import { useEffect, useState } from 'react';
+/**
+ * 🏠 HOME SCREEN - REDISEÑO MODERNO
+ *
+ * Pantalla principal completamente rediseñada con:
+ * - Hero section con gradientes impactantes
+ * - Animaciones suaves y profesionales
+ * - Glassmorphism y design tokens modernos
+ * - Mejor jerarquía visual y tipografía
+ */
+
+import React, { useEffect, useState, useRef } from 'react';
+import {
+  View,
+  Text,
+  StyleSheet,
+  ScrollView,
+  TouchableOpacity,
+  Dimensions,
+  Animated,
+  Platform,
+} from 'react-native';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
+import { LinearGradient } from 'expo-linear-gradient';
+import { BlurView } from 'expo-blur';
+import * as Haptics from 'expo-haptics';
+
 import bibleDB from '../../src/lib/database';
 import { BibleVerse, ReadingProgress } from '../../src/types/bible';
 import { READING_PLANS } from '../../src/constants/reading-plans';
@@ -10,31 +33,87 @@ import { useBibleVersion } from '../../src/hooks/useBibleVersion';
 import { useServices } from '../../src/context/ServicesContext';
 import { useLanguage } from '../../src/hooks/useLanguage';
 
+// Componentes modernos
+import { ModernCard } from '../../src/components/ModernCard';
+import { ProgressIndicator } from '../../src/components/ProgressIndicator';
+import { SkeletonLoader } from '../../src/components/SkeletonLoader';
+
+// Design tokens
+import {
+  spacing,
+  borderRadius,
+  fontSize,
+  shadows,
+  iconSize,
+} from '../../src/styles/designTokens';
+
+const { width: SCREEN_WIDTH } = Dimensions.get('window');
+
 export default function HomeScreen() {
   const router = useRouter();
-  const { colors, isDark } = useTheme();
+  const { theme } = useTheme();
   const { selectedVersion } = useBibleVersion();
   const { achievementService, initialized: servicesInitialized } = useServices();
   const { t } = useLanguage();
+
   const [dailyVerse, setDailyVerse] = useState<BibleVerse | null>(null);
   const [lastRead, setLastRead] = useState<ReadingProgress | null>(null);
   const [loading, setLoading] = useState(true);
+  const [userStats, setUserStats] = useState({ progress: 0, streak: 0, level: 1 });
+
+  // Animaciones
+  const fadeAnim = useRef(new Animated.Value(0)).current;
+  const slideAnim = useRef(new Animated.Value(50)).current;
+  const scaleAnim = useRef(new Animated.Value(0.95)).current;
 
   useEffect(() => {
     loadHomeData();
+    startAnimations();
   }, [selectedVersion.id]);
+
+  const startAnimations = () => {
+    Animated.parallel([
+      Animated.timing(fadeAnim, {
+        toValue: 1,
+        duration: 600,
+        useNativeDriver: true,
+      }),
+      Animated.spring(slideAnim, {
+        toValue: 0,
+        tension: 50,
+        friction: 8,
+        useNativeDriver: true,
+      }),
+      Animated.spring(scaleAnim, {
+        toValue: 1,
+        tension: 50,
+        friction: 7,
+        useNativeDriver: true,
+      }),
+    ]).start();
+  };
 
   async function loadHomeData() {
     try {
       await bibleDB.initialize();
 
-      // Get daily verse (random for now, can be improved with actual daily logic)
+      // Get daily verse
       const verse = await bibleDB.getRandomVerse(selectedVersion.id);
       setDailyVerse(verse);
 
       // Get last reading position
       const progress = await bibleDB.getReadingProgress();
       setLastRead(progress);
+
+      // Get user stats (simulated for now)
+      if (achievementService && servicesInitialized) {
+        const stats = await achievementService.getUserStats();
+        setUserStats({
+          progress: stats.totalVersesRead / 311 * 100, // % of Bible read
+          streak: stats.currentStreak || 0,
+          level: stats.level,
+        });
+      }
 
       setLoading(false);
     } catch (error) {
@@ -43,440 +122,587 @@ export default function HomeScreen() {
     }
   }
 
-  function goToLastRead() {
-    if (lastRead) {
-      router.push(`/verse/${lastRead.book}/${lastRead.chapter}` as any);
-    }
-  }
-
-  function goToBook(bookName: string) {
-    router.push(`/chapter/${bookName}` as any);
-  }
-
-  async function testAchievements() {
-    if (!achievementService || !servicesInitialized) {
-      Alert.alert(t.achievements.title, t.achievements.loading);
-      return;
-    }
-
-    try {
-      // Simular lectura de 10 versículos
-      const achievements = await achievementService.trackVersesRead(10, 5);
-
-      if (achievements.length > 0) {
-        Alert.alert(
-          `${t.achievements.unlockTitle} 🎉`,
-          `${t.achievements.unlockMessage} ${achievements.map(a => a.name).join(', ')}`,
-          [
-            { text: t.achievements.viewAchievements, onPress: () => router.push('/achievements' as any) },
-            { text: t.achievements.ok }
-          ]
-        );
-      } else {
-        const stats = await achievementService.getUserStats();
-        const message = t.achievements.readingStats
-          .replace('{{verses}}', stats.totalVersesRead.toString())
-          .replace('{{level}}', stats.level.toString())
-          .replace('{{points}}', stats.totalPoints.toString());
-
-        Alert.alert(
-          `${t.achievements.readingRegistered} ✓`,
-          message,
-          [
-            { text: t.achievements.viewAchievements, onPress: () => router.push('/achievements' as any) },
-            { text: t.achievements.ok }
-          ]
-        );
-      }
-    } catch (error) {
-      console.error('Error testing achievements:', error);
-      Alert.alert(t.error, t.achievements.errorTracking);
-    }
-  }
+  const handlePress = (callback: () => void) => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    callback();
+  };
 
   if (loading) {
     return (
-      <View style={[styles.loadingContainer, { backgroundColor: colors.background }]}>
-        <ActivityIndicator size="large" color={colors.primary} />
-      </View>
+      <ScrollView
+        style={[styles.container, { backgroundColor: theme.colors.background }]}
+        contentContainerStyle={styles.contentContainer}
+      >
+        <SkeletonLoader variant="rectangular" width="100%" height={200} />
+        <View style={{ marginTop: spacing.lg }}>
+          <SkeletonLoader variant="rectangular" width="100%" height={150} />
+        </View>
+        <View style={{ marginTop: spacing.lg }}>
+          <SkeletonLoader variant="rectangular" width="100%" height={150} />
+        </View>
+      </ScrollView>
     );
   }
 
-  const themedStyles = createThemedStyles(colors);
-
   return (
-    <ScrollView style={[styles.container, { backgroundColor: colors.background }]} contentContainerStyle={styles.contentContainer}>
-      {/* Welcome Section */}
-      <View style={themedStyles.welcomeCard}>
-        <Text style={themedStyles.welcomeTitle}>{t.home.welcome}</Text>
-        <Text style={themedStyles.welcomeSubtitle}>
-          {t.home.subtitle}
-        </Text>
-      </View>
-
-      {/* Daily Verse */}
-      {dailyVerse && (
-        <View style={themedStyles.card}>
-          <View style={themedStyles.cardHeader}>
-            <Ionicons name="sparkles" size={20} color={colors.warning} />
-            <Text style={themedStyles.cardTitle}>{t.home.dailyVerse}</Text>
-          </View>
-
-          <Text style={themedStyles.verseText}>"{dailyVerse.text}"</Text>
-
-          <Text style={themedStyles.verseReference}>
-            {dailyVerse.book} {dailyVerse.chapter}:{dailyVerse.verse}
-          </Text>
-
-          <TouchableOpacity
-            style={themedStyles.verseButton}
-            onPress={() => router.push(`/verse/${dailyVerse.book}/${dailyVerse.chapter}` as any)}
+    <ScrollView
+      style={[styles.container, { backgroundColor: theme.colors.background }]}
+      contentContainerStyle={styles.contentContainer}
+      showsVerticalScrollIndicator={false}
+    >
+      {/* HERO SECTION - Gradiente impactante con stats */}
+      <Animated.View
+        style={{
+          opacity: fadeAnim,
+          transform: [{ translateY: slideAnim }, { scale: scaleAnim }],
+        }}
+      >
+        <View style={styles.heroContainer}>
+          <LinearGradient
+            colors={
+              theme.isDark
+                ? ['#667eea', '#764ba2', '#f093fb']
+                : ['#667eea', '#764ba2']
+            }
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 1 }}
+            style={styles.heroGradient}
           >
-            <Text style={themedStyles.verseButtonText}>{t.home.readFullChapter}</Text>
-            <Ionicons name="arrow-forward" size={16} color={colors.primary} />
-          </TouchableOpacity>
+            {/* Stars decoration */}
+            <View style={styles.starsContainer}>
+              <Ionicons name="star" size={20} color="rgba(255,255,255,0.3)" style={styles.star1} />
+              <Ionicons name="star" size={16} color="rgba(255,255,255,0.2)" style={styles.star2} />
+              <Ionicons name="star" size={12} color="rgba(255,255,255,0.25)" style={styles.star3} />
+            </View>
+
+            <View style={styles.heroContent}>
+              <Ionicons name="book" size={48} color="#ffffff" />
+              <Text style={styles.heroTitle}>{t.home.welcome}</Text>
+              <Text style={styles.heroSubtitle}>{t.home.subtitle}</Text>
+
+              {/* Stats row */}
+              <View style={styles.statsRow}>
+                <View style={styles.statItem}>
+                  <View style={styles.statIconContainer}>
+                    <Ionicons name="flame" size={24} color="#fbbf24" />
+                  </View>
+                  <Text style={styles.statValue}>{userStats.streak}</Text>
+                  <Text style={styles.statLabel}>Días</Text>
+                </View>
+
+                <View style={styles.statDivider} />
+
+                <View style={styles.statItem}>
+                  <View style={styles.statIconContainer}>
+                    <Ionicons name="trophy" size={24} color="#fbbf24" />
+                  </View>
+                  <Text style={styles.statValue}>Nivel {userStats.level}</Text>
+                  <Text style={styles.statLabel}>Rango</Text>
+                </View>
+
+                <View style={styles.statDivider} />
+
+                <View style={styles.statItem}>
+                  <View style={styles.statIconContainer}>
+                    <Ionicons name="book-outline" size={24} color="#fbbf24" />
+                  </View>
+                  <Text style={styles.statValue}>{Math.round(userStats.progress)}%</Text>
+                  <Text style={styles.statLabel}>Progreso</Text>
+                </View>
+              </View>
+            </View>
+          </LinearGradient>
         </View>
+      </Animated.View>
+
+      {/* DAILY VERSE - Card con glassmorphism */}
+      {dailyVerse && (
+        <Animated.View style={{ opacity: fadeAnim }}>
+          <ModernCard
+            variant="glass"
+            padding="large"
+            style={{ marginBottom: spacing.lg }}
+            onPress={() =>
+              handlePress(() =>
+                router.push(`/verse/${dailyVerse.book}/${dailyVerse.chapter}` as any)
+              )
+            }
+          >
+            <View style={styles.cardHeader}>
+              <View style={styles.cardIconContainer}>
+                <Ionicons name="sparkles" size={24} color="#fbbf24" />
+              </View>
+              <View>
+                <Text style={[styles.cardTitle, { color: theme.colors.text }]}>
+                  ✨ Versículo del Día
+                </Text>
+                <Text style={[styles.cardSubtitle, { color: theme.colors.textSecondary }]}>
+                  {dailyVerse.book} {dailyVerse.chapter}:{dailyVerse.verse}
+                </Text>
+              </View>
+            </View>
+
+            <Text style={[styles.verseText, { color: theme.colors.text }]}>
+              "{dailyVerse.text}"
+            </Text>
+
+            <View style={styles.cardAction}>
+              <Text style={[styles.actionText, { color: theme.colors.primary }]}>
+                Leer capítulo completo
+              </Text>
+              <Ionicons name="arrow-forward" size={20} color={theme.colors.primary} />
+            </View>
+          </ModernCard>
+        </Animated.View>
       )}
 
-      {/* Continue Reading */}
+      {/* CONTINUE READING - Card elevado con gradiente */}
       {lastRead && (
-        <TouchableOpacity style={themedStyles.card} onPress={goToLastRead}>
-          <View style={themedStyles.cardHeader}>
-            <Ionicons name="book-outline" size={20} color={colors.success} />
-            <Text style={themedStyles.cardTitle}>{t.home.continueReading}</Text>
-          </View>
+        <Animated.View style={{ opacity: fadeAnim }}>
+          <ModernCard
+            variant="gradient"
+            gradient={
+              theme.isDark
+                ? ['#10b981', '#059669']
+                : ['#34d399', '#10b981']
+            }
+            padding="large"
+            style={{ marginBottom: spacing.lg }}
+            onPress={() =>
+              handlePress(() =>
+                router.push(`/verse/${lastRead.book}/${lastRead.chapter}` as any)
+              )
+            }
+          >
+            <View style={styles.continueHeader}>
+              <Ionicons name="play-circle" size={32} color="#ffffff" />
+              <Text style={styles.continueTitle}>Continuar Leyendo</Text>
+            </View>
 
-          <Text style={themedStyles.continueText}>
-            {lastRead.book} {lastRead.chapter}:{lastRead.verse}
-          </Text>
+            <Text style={styles.continueReference}>
+              {lastRead.book} {lastRead.chapter}:{lastRead.verse}
+            </Text>
 
-          <View style={themedStyles.continueButton}>
-            <Text style={themedStyles.continueButtonText}>{t.home.continue}</Text>
-            <Ionicons name="play-circle" size={24} color="#FFFFFF" />
-          </View>
-        </TouchableOpacity>
+            <View style={styles.continueProgress}>
+              <ProgressIndicator
+                progress={65}
+                variant="linear"
+                size="small"
+                color="#ffffff"
+                backgroundColor="rgba(255,255,255,0.3)"
+                animated
+              />
+            </View>
+          </ModernCard>
+        </Animated.View>
       )}
 
-      {/* Reading Plans */}
-      <View style={themedStyles.card}>
-        <View style={themedStyles.cardHeader}>
-          <Ionicons name="calendar-outline" size={20} color={colors.accent} />
-          <Text style={themedStyles.cardTitle}>{t.home.readingPlans}</Text>
+      {/* QUICK ACCESS - Grid moderno */}
+      <Animated.View style={{ opacity: fadeAnim }}>
+        <View style={styles.sectionHeader}>
+          <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>
+            Acceso Rápido
+          </Text>
+          <Ionicons name="flash" size={20} color={theme.colors.warning} />
         </View>
 
-        <Text style={themedStyles.sectionDescription}>
-          {t.home.plansDescription}
-        </Text>
+        <View style={styles.quickGrid}>
+          {QUICK_ACCESS_BOOKS.map((book, index) => (
+            <QuickAccessCard
+              key={book.name}
+              {...book}
+              onPress={() => handlePress(() => router.push(`/chapter/${book.name}` as any))}
+              delay={index * 50}
+            />
+          ))}
+        </View>
+      </Animated.View>
+
+      {/* READING PLANS - Horizontal scroll con cards modernos */}
+      <Animated.View style={{ opacity: fadeAnim }}>
+        <View style={styles.sectionHeader}>
+          <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>
+            Planes de Lectura
+          </Text>
+          <Ionicons name="calendar" size={20} color={theme.colors.secondary} />
+        </View>
 
         <ScrollView
           horizontal
           showsHorizontalScrollIndicator={false}
-          style={styles.plansScrollView}
-          contentContainerStyle={styles.plansScrollContent}
+          contentContainerStyle={styles.plansScroll}
         >
-          {READING_PLANS.map((plan) => (
-            <TouchableOpacity
+          {READING_PLANS.slice(0, 3).map((plan, index) => (
+            <ReadingPlanCard
               key={plan.id}
-              style={[themedStyles.planCard, { borderLeftColor: plan.color }]}
-              onPress={() => {
-                // TODO: Navigate to plan details
-                router.push(`/chapter/${plan.days[0].readings[0].book}` as any);
-              }}
-            >
-              <View style={[styles.planIcon, { backgroundColor: plan.color + '20' }]}>
-                <Ionicons name={plan.icon as any} size={24} color={plan.color} />
-              </View>
-              <Text style={themedStyles.planName} numberOfLines={2}>
-                {plan.name}
-              </Text>
-              <Text style={themedStyles.planDuration}>{plan.duration} {t.home.days}</Text>
-              <Text style={themedStyles.planDescription} numberOfLines={2}>
-                {plan.description}
-              </Text>
-            </TouchableOpacity>
+              plan={plan}
+              onPress={() =>
+                handlePress(() =>
+                  router.push(`/chapter/${plan.days[0].readings[0].book}` as any)
+                )
+              }
+            />
           ))}
         </ScrollView>
-      </View>
+      </Animated.View>
 
-      {/* Quick Access */}
-      <View style={themedStyles.card}>
-        <View style={themedStyles.cardHeader}>
-          <Ionicons name="flash" size={20} color={colors.error} />
-          <Text style={themedStyles.cardTitle}>{t.home.quickAccess}</Text>
-        </View>
-
-        <View style={styles.quickAccessGrid}>
-          <TouchableOpacity
-            style={themedStyles.quickAccessItem}
-            onPress={() => goToBook('Génesis')}
-          >
-            <Ionicons name="star" size={28} color="#3498DB" />
-            <Text style={themedStyles.quickAccessText}>Génesis</Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            style={themedStyles.quickAccessItem}
-            onPress={() => goToBook('Salmos')}
-          >
-            <Ionicons name="musical-notes" size={28} color="#9B59B6" />
-            <Text style={themedStyles.quickAccessText}>Salmos</Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            style={themedStyles.quickAccessItem}
-            onPress={() => goToBook('Proverbios')}
-          >
-            <Ionicons name="bulb" size={28} color="#F39C12" />
-            <Text style={themedStyles.quickAccessText}>Proverbios</Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            style={themedStyles.quickAccessItem}
-            onPress={() => goToBook('Juan')}
-          >
-            <Ionicons name="heart" size={28} color="#E74C3C" />
-            <Text style={themedStyles.quickAccessText}>Juan</Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            style={themedStyles.quickAccessItem}
-            onPress={() => goToBook('Romanos')}
-          >
-            <Ionicons name="book" size={28} color="#1ABC9C" />
-            <Text style={themedStyles.quickAccessText}>Romanos</Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            style={themedStyles.quickAccessItem}
-            onPress={() => goToBook('Apocalipsis')}
-          >
-            <Ionicons name="flame" size={28} color="#E67E22" />
-            <Text style={themedStyles.quickAccessText}>Apocalipsis</Text>
-          </TouchableOpacity>
-        </View>
-      </View>
-
-      {/* Demo Button - Prueba el sistema de logros */}
-      {servicesInitialized && achievementService && (
-        <TouchableOpacity
-          style={[themedStyles.card, { backgroundColor: '#FFF3CD', borderWidth: 2, borderColor: '#FFD700' }]}
-          onPress={testAchievements}
-        >
-          <View style={themedStyles.cardHeader}>
-            <Ionicons name="trophy" size={20} color="#F39C12" />
-            <Text style={[themedStyles.cardTitle, { color: '#856404' }]}>{t.achievements.testButton}</Text>
-          </View>
-          <Text style={{ fontSize: 14, color: '#856404', marginBottom: 12 }}>
-            {t.achievements.testDescription} 🎮
-          </Text>
-          <View style={{
-            flexDirection: 'row',
-            alignItems: 'center',
-            justifyContent: 'center',
-            backgroundColor: '#F39C12',
-            borderRadius: 8,
-            paddingVertical: 12,
-          }}>
-            <Text style={{ fontSize: 16, color: '#FFFFFF', fontWeight: 'bold', marginRight: 8 }}>
-              {t.achievements.simulateReading}
-            </Text>
-            <Ionicons name="play-circle" size={24} color="#FFFFFF" />
-          </View>
-        </TouchableOpacity>
-      )}
-
-      {/* Footer Quote */}
-      <View style={styles.footerQuote}>
-        <Text style={themedStyles.footerQuoteText}>
-          {t.home.footerQuote}
+      {/* FOOTER */}
+      <View style={styles.footer}>
+        <Text style={[styles.footerText, { color: theme.colors.textTertiary }]}>
+          "Lámpara es a mis pies tu palabra, y lumbrera a mi camino."
+        </Text>
+        <Text style={[styles.footerReference, { color: theme.colors.textTertiary }]}>
+          — Salmos 119:105
         </Text>
       </View>
     </ScrollView>
   );
 }
 
-function createThemedStyles(colors: any) {
-  return StyleSheet.create({
-    welcomeCard: {
-      backgroundColor: colors.primary,
-      borderRadius: 16,
-      padding: 24,
-      marginBottom: 16,
-      alignItems: 'center' as const,
-    },
-    welcomeTitle: {
-      fontSize: 24,
-      fontWeight: 'bold' as const,
-      color: '#FFFFFF',
-      marginBottom: 8,
-      textAlign: 'center' as const,
-    },
-    welcomeSubtitle: {
-      fontSize: 16,
-      color: '#ECF0F1',
-      textAlign: 'center' as const,
-    },
-    card: {
-      backgroundColor: colors.surface,
-      borderRadius: 12,
-      padding: 20,
-      marginBottom: 16,
-      shadowColor: '#000',
-      shadowOffset: { width: 0, height: 2 },
-      shadowOpacity: 0.1,
-      shadowRadius: 4,
-      elevation: 3,
-    },
-    cardHeader: {
-      flexDirection: 'row' as const,
-      alignItems: 'center' as const,
-      marginBottom: 16,
-    },
-    cardTitle: {
-      fontSize: 18,
-      fontWeight: 'bold' as const,
-      color: colors.text,
-      marginLeft: 8,
-    },
-    verseText: {
-      fontSize: 16,
-      lineHeight: 26,
-      color: colors.text,
-      fontStyle: 'italic' as const,
-      marginBottom: 12,
-    },
-    verseReference: {
-      fontSize: 14,
-      color: colors.textSecondary,
-      fontWeight: '600' as const,
-      marginBottom: 16,
-    },
-    verseButton: {
-      flexDirection: 'row' as const,
-      alignItems: 'center' as const,
-      justifyContent: 'center' as const,
-      paddingVertical: 10,
-    },
-    verseButtonText: {
-      fontSize: 15,
-      color: colors.primary,
-      fontWeight: '600' as const,
-      marginRight: 6,
-    },
-    continueText: {
-      fontSize: 20,
-      color: colors.text,
-      fontWeight: '600' as const,
-      marginBottom: 16,
-    },
-    continueButton: {
-      flexDirection: 'row' as const,
-      alignItems: 'center' as const,
-      justifyContent: 'center' as const,
-      backgroundColor: colors.success,
-      borderRadius: 8,
-      paddingVertical: 12,
-    },
-    continueButtonText: {
-      fontSize: 16,
-      color: '#FFFFFF',
-      fontWeight: 'bold' as const,
-      marginRight: 8,
-    },
-    sectionDescription: {
-      fontSize: 14,
-      color: colors.textSecondary,
-      marginBottom: 16,
-      lineHeight: 20,
-    },
-    planCard: {
-      width: 200,
-      backgroundColor: colors.surfaceVariant,
-      borderRadius: 12,
-      padding: 16,
-      marginRight: 12,
-      borderLeftWidth: 4,
-    },
-    planName: {
-      fontSize: 16,
-      fontWeight: 'bold' as const,
-      color: colors.text,
-      marginBottom: 6,
-      minHeight: 40,
-    },
-    planDuration: {
-      fontSize: 13,
-      color: colors.textSecondary,
-      fontWeight: '600' as const,
-      marginBottom: 8,
-    },
-    planDescription: {
-      fontSize: 13,
-      color: colors.textTertiary,
-      lineHeight: 18,
-    },
-    quickAccessItem: {
-      width: '30%',
-      margin: '1.66%' as any,
-      aspectRatio: 1,
-      backgroundColor: colors.surfaceVariant,
-      borderRadius: 12,
-      justifyContent: 'center' as const,
-      alignItems: 'center' as const,
-      borderWidth: 1,
-      borderColor: colors.border,
-    },
-    quickAccessText: {
-      fontSize: 12,
-      color: colors.text,
-      fontWeight: '600' as const,
-      marginTop: 8,
-      textAlign: 'center' as const,
-    },
-    footerQuoteText: {
-      fontSize: 13,
-      color: colors.textTertiary,
-      fontStyle: 'italic' as const,
-    },
-  });
+// ==================== QUICK ACCESS CARD ====================
+
+interface QuickAccessCardProps {
+  name: string;
+  icon: keyof typeof Ionicons.glyphMap;
+  color: string;
+  onPress: () => void;
+  delay: number;
 }
+
+const QuickAccessCard: React.FC<QuickAccessCardProps> = ({
+  name,
+  icon,
+  color,
+  onPress,
+  delay,
+}) => {
+  const { theme } = useTheme();
+  const fadeIn = useRef(new Animated.Value(0)).current;
+  const scale = useRef(new Animated.Value(0.9)).current;
+
+  useEffect(() => {
+    Animated.parallel([
+      Animated.timing(fadeIn, {
+        toValue: 1,
+        duration: 400,
+        delay,
+        useNativeDriver: true,
+      }),
+      Animated.spring(scale, {
+        toValue: 1,
+        tension: 50,
+        friction: 7,
+        delay,
+        useNativeDriver: true,
+      }),
+    ]).start();
+  }, []);
+
+  return (
+    <Animated.View
+      style={{
+        opacity: fadeIn,
+        transform: [{ scale }],
+        width: (SCREEN_WIDTH - spacing.lg * 3) / 2,
+        marginBottom: spacing.md,
+      }}
+    >
+      <ModernCard
+        variant="elevated"
+        padding="medium"
+        onPress={onPress}
+        style={{ height: 120 }}
+      >
+        <View style={[styles.quickAccessIconContainer, { backgroundColor: color + '20' }]}>
+          <Ionicons name={icon} size={32} color={color} />
+        </View>
+        <Text style={[styles.quickAccessText, { color: theme.colors.text }]} numberOfLines={1}>
+          {name}
+        </Text>
+      </ModernCard>
+    </Animated.View>
+  );
+};
+
+// ==================== READING PLAN CARD ====================
+
+interface ReadingPlanCardProps {
+  plan: any;
+  onPress: () => void;
+}
+
+const ReadingPlanCard: React.FC<ReadingPlanCardProps> = ({ plan, onPress }) => {
+  const { theme } = useTheme();
+
+  return (
+    <ModernCard
+      variant="outlined"
+      padding="medium"
+      onPress={onPress}
+      style={[styles.planCard, { borderLeftColor: plan.color, borderLeftWidth: 4 }]}
+    >
+      <View style={[styles.planIconContainer, { backgroundColor: plan.color + '20' }]}>
+        <Ionicons name={plan.icon as any} size={28} color={plan.color} />
+      </View>
+
+      <Text style={[styles.planName, { color: theme.colors.text }]} numberOfLines={2}>
+        {plan.name}
+      </Text>
+
+      <Text style={[styles.planDuration, { color: theme.colors.textSecondary }]}>
+        {plan.duration} días
+      </Text>
+
+      <Text style={[styles.planDescription, { color: theme.colors.textTertiary }]} numberOfLines={2}>
+        {plan.description}
+      </Text>
+    </ModernCard>
+  );
+};
+
+// ==================== DATA ====================
+
+const QUICK_ACCESS_BOOKS = [
+  { name: 'Génesis', icon: 'star' as const, color: '#3b82f6' },
+  { name: 'Salmos', icon: 'musical-notes' as const, color: '#8b5cf6' },
+  { name: 'Proverbios', icon: 'bulb' as const, color: '#f59e0b' },
+  { name: 'Juan', icon: 'heart' as const, color: '#ef4444' },
+  { name: 'Romanos', icon: 'book' as const, color: '#10b981' },
+  { name: 'Apocalipsis', icon: 'flame' as const, color: '#f97316' },
+];
+
+// ==================== STYLES ====================
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
   contentContainer: {
-    padding: 16,
-    paddingBottom: 40,
+    paddingBottom: spacing['2xl'],
   },
-  loadingContainer: {
-    flex: 1,
-    justifyContent: 'center',
+
+  // Hero
+  heroContainer: {
+    marginBottom: spacing.lg,
+    overflow: 'hidden',
+  },
+  heroGradient: {
+    paddingHorizontal: spacing.lg,
+    paddingVertical: spacing['2xl'],
+    borderBottomLeftRadius: borderRadius['2xl'],
+    borderBottomRightRadius: borderRadius['2xl'],
+    ...shadows.xl,
+  },
+  starsContainer: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+  },
+  star1: {
+    position: 'absolute',
+    top: 30,
+    right: 40,
+  },
+  star2: {
+    position: 'absolute',
+    top: 70,
+    right: 100,
+  },
+  star3: {
+    position: 'absolute',
+    top: 50,
+    left: 50,
+  },
+  heroContent: {
     alignItems: 'center',
   },
-  quickAccessGrid: {
+  heroTitle: {
+    fontSize: fontSize['4xl'],
+    fontWeight: '700',
+    color: '#ffffff',
+    marginTop: spacing.base,
+    marginBottom: spacing.xs,
+    textAlign: 'center',
+  },
+  heroSubtitle: {
+    fontSize: fontSize.lg,
+    color: 'rgba(255,255,255,0.9)',
+    marginBottom: spacing.xl,
+    textAlign: 'center',
+  },
+  statsRow: {
+    flexDirection: 'row',
+    backgroundColor: 'rgba(255,255,255,0.15)',
+    borderRadius: borderRadius.lg,
+    paddingVertical: spacing.base,
+    paddingHorizontal: spacing.lg,
+    alignItems: 'center',
+  },
+  statItem: {
+    alignItems: 'center',
+    flex: 1,
+  },
+  statIconContainer: {
+    marginBottom: spacing.xs,
+  },
+  statValue: {
+    fontSize: fontSize.xl,
+    fontWeight: '700',
+    color: '#ffffff',
+  },
+  statLabel: {
+    fontSize: fontSize.xs,
+    color: 'rgba(255,255,255,0.8)',
+    marginTop: 2,
+  },
+  statDivider: {
+    width: 1,
+    height: 40,
+    backgroundColor: 'rgba(255,255,255,0.2)',
+    marginHorizontal: spacing.md,
+  },
+
+  // Card Header
+  cardHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: spacing.base,
+  },
+  cardIconContainer: {
+    marginRight: spacing.md,
+  },
+  cardTitle: {
+    fontSize: fontSize.lg,
+    fontWeight: '600',
+  },
+  cardSubtitle: {
+    fontSize: fontSize.sm,
+    marginTop: 2,
+  },
+
+  // Verse
+  verseText: {
+    fontSize: fontSize.base,
+    lineHeight: fontSize.base * 1.6,
+    fontStyle: 'italic',
+    marginBottom: spacing.base,
+  },
+  cardAction: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingTop: spacing.md,
+  },
+  actionText: {
+    fontSize: fontSize.base,
+    fontWeight: '600',
+    marginRight: spacing.xs,
+  },
+
+  // Continue Reading
+  continueHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: spacing.md,
+  },
+  continueTitle: {
+    fontSize: fontSize['2xl'],
+    fontWeight: '700',
+    color: '#ffffff',
+    marginLeft: spacing.md,
+  },
+  continueReference: {
+    fontSize: fontSize.xl,
+    fontWeight: '600',
+    color: 'rgba(255,255,255,0.95)',
+    marginBottom: spacing.base,
+  },
+  continueProgress: {
+    marginTop: spacing.md,
+  },
+
+  // Section Header
+  sectionHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: spacing.lg,
+    marginBottom: spacing.base,
+    marginTop: spacing.md,
+  },
+  sectionTitle: {
+    fontSize: fontSize.xl,
+    fontWeight: '700',
+  },
+
+  // Quick Access
+  quickGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    marginHorizontal: -6,
+    justifyContent: 'space-between',
+    paddingHorizontal: spacing.lg,
   },
-  plansScrollView: {
-    marginHorizontal: -20,
-    marginBottom: -10,
-  },
-  plansScrollContent: {
-    paddingHorizontal: 20,
-    paddingBottom: 10,
-  },
-  planIcon: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
+  quickAccessIconContainer: {
+    width: 56,
+    height: 56,
+    borderRadius: borderRadius.lg,
     justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: 12,
+    marginBottom: spacing.sm,
   },
-  footerQuote: {
+  quickAccessText: {
+    fontSize: fontSize.sm,
+    fontWeight: '600',
+    textAlign: 'center',
+  },
+
+  // Reading Plans
+  plansScroll: {
+    paddingHorizontal: spacing.lg,
+  },
+  planCard: {
+    width: 220,
+    marginRight: spacing.base,
+  },
+  planIconContainer: {
+    width: 56,
+    height: 56,
+    borderRadius: borderRadius.lg,
+    justifyContent: 'center',
     alignItems: 'center',
-    marginTop: 20,
+    marginBottom: spacing.md,
+  },
+  planName: {
+    fontSize: fontSize.lg,
+    fontWeight: '600',
+    marginBottom: spacing.xs,
+    minHeight: 48,
+  },
+  planDuration: {
+    fontSize: fontSize.sm,
+    marginBottom: spacing.xs,
+  },
+  planDescription: {
+    fontSize: fontSize.sm,
+    lineHeight: fontSize.sm * 1.4,
+  },
+
+  // Footer
+  footer: {
+    alignItems: 'center',
+    paddingHorizontal: spacing.xl,
+    marginTop: spacing.xl,
+  },
+  footerText: {
+    fontSize: fontSize.base,
+    fontStyle: 'italic',
+    textAlign: 'center',
+    marginBottom: spacing.xs,
+  },
+  footerReference: {
+    fontSize: fontSize.sm,
+    textAlign: 'center',
   },
 });
