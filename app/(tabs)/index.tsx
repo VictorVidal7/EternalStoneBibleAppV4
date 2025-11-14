@@ -90,7 +90,7 @@ export default function HomeScreen() {
       }
     } catch (error) {
       console.error('Error testing achievements:', error);
-      Alert.alert(t.error, 'Hubo un problema al registrar la lectura');
+      Alert.alert(t.error, t.achievements.errorTracking);
     }
   }
 
@@ -108,9 +108,9 @@ export default function HomeScreen() {
     <ScrollView style={[styles.container, { backgroundColor: colors.background }]} contentContainerStyle={styles.contentContainer}>
       {/* Welcome Section */}
       <View style={themedStyles.welcomeCard}>
-        <Text style={themedStyles.welcomeTitle}>Bienvenido a Eternal Bible</Text>
+        <Text style={themedStyles.welcomeTitle}>{t.home.welcome}</Text>
         <Text style={themedStyles.welcomeSubtitle}>
-          Que la Palabra de Dios ilumine tu día
+          {t.home.subtitle}
         </Text>
       </View>
 
@@ -119,7 +119,7 @@ export default function HomeScreen() {
         <View style={themedStyles.card}>
           <View style={themedStyles.cardHeader}>
             <Ionicons name="sparkles" size={20} color={colors.warning} />
-            <Text style={themedStyles.cardTitle}>Versículo del Día</Text>
+            <Text style={themedStyles.cardTitle}>{t.home.dailyVerse}</Text>
           </View>
 
           <Text style={themedStyles.verseText}>"{dailyVerse.text}"</Text>
@@ -132,7 +132,7 @@ export default function HomeScreen() {
             style={themedStyles.verseButton}
             onPress={() => router.push(`/verse/${dailyVerse.book}/${dailyVerse.chapter}` as any)}
           >
-            <Text style={themedStyles.verseButtonText}>Leer Capítulo Completo</Text>
+            <Text style={themedStyles.verseButtonText}>{t.home.readFullChapter}</Text>
             <Ionicons name="arrow-forward" size={16} color={colors.primary} />
           </TouchableOpacity>
         </View>
@@ -143,7 +143,7 @@ export default function HomeScreen() {
         <TouchableOpacity style={themedStyles.card} onPress={goToLastRead}>
           <View style={themedStyles.cardHeader}>
             <Ionicons name="book-outline" size={20} color={colors.success} />
-            <Text style={themedStyles.cardTitle}>Continuar Leyendo</Text>
+            <Text style={themedStyles.cardTitle}>{t.home.continueReading}</Text>
           </View>
 
           <Text style={themedStyles.continueText}>
@@ -151,7 +151,7 @@ export default function HomeScreen() {
           </Text>
 
           <View style={themedStyles.continueButton}>
-            <Text style={themedStyles.continueButtonText}>Continuar</Text>
+            <Text style={themedStyles.continueButtonText}>{t.home.continue}</Text>
             <Ionicons name="play-circle" size={24} color="#FFFFFF" />
           </View>
         </TouchableOpacity>
@@ -161,11 +161,11 @@ export default function HomeScreen() {
       <View style={themedStyles.card}>
         <View style={themedStyles.cardHeader}>
           <Ionicons name="calendar-outline" size={20} color={colors.accent} />
-          <Text style={themedStyles.cardTitle}>Planes de Lectura</Text>
+          <Text style={themedStyles.cardTitle}>{t.home.readingPlans}</Text>
         </View>
 
         <Text style={themedStyles.sectionDescription}>
-          Sigue un plan estructurado para leer la Biblia
+          {t.home.plansDescription}
         </Text>
 
         <ScrollView
@@ -189,7 +189,7 @@ export default function HomeScreen() {
               <Text style={themedStyles.planName} numberOfLines={2}>
                 {plan.name}
               </Text>
-              <Text style={themedStyles.planDuration}>{plan.duration} días</Text>
+              <Text style={themedStyles.planDuration}>{plan.duration} {t.home.days}</Text>
               <Text style={themedStyles.planDescription} numberOfLines={2}>
                 {plan.description}
               </Text>
@@ -202,7 +202,7 @@ export default function HomeScreen() {
       <View style={themedStyles.card}>
         <View style={themedStyles.cardHeader}>
           <Ionicons name="flash" size={20} color={colors.error} />
-          <Text style={themedStyles.cardTitle}>Acceso Rápido</Text>
+          <Text style={themedStyles.cardTitle}>{t.home.quickAccess}</Text>
         </View>
 
         <View style={styles.quickAccessGrid}>
@@ -288,7 +288,7 @@ export default function HomeScreen() {
       {/* Footer Quote */}
       <View style={styles.footerQuote}>
         <Text style={themedStyles.footerQuoteText}>
-          "Tu palabra es verdad" - Juan 17:17
+          {t.home.footerQuote}
         </Text>
       </View>
     </ScrollView>

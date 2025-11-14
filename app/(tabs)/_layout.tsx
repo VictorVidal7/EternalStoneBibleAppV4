@@ -1,9 +1,11 @@
 import { Tabs } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '../../src/hooks/useTheme';
+import { useLanguage } from '../../src/hooks/useLanguage';
 
 export default function TabLayout() {
   const { colors, isDark } = useTheme();
+  const { t } = useLanguage();
 
   return (
     <Tabs
@@ -35,77 +37,77 @@ export default function TabLayout() {
       <Tabs.Screen
         name="index"
         options={{
-          title: 'Inicio',
+          title: t.tabs.home,
           tabBarIcon: ({ color, size }) => (
             <Ionicons name="home" size={size} color={color} />
           ),
-          headerTitle: 'Eternal Bible',
+          headerTitle: t.headers.home,
         }}
       />
 
       <Tabs.Screen
         name="bible"
         options={{
-          title: 'Biblia',
+          title: t.tabs.bible,
           tabBarIcon: ({ color, size }) => (
             <Ionicons name="book" size={size} color={color} />
           ),
-          headerTitle: 'La Biblia',
+          headerTitle: t.headers.bible,
         }}
       />
 
       <Tabs.Screen
         name="search"
         options={{
-          title: 'Buscar',
+          title: t.tabs.search,
           tabBarIcon: ({ color, size }) => (
             <Ionicons name="search" size={size} color={color} />
           ),
-          headerTitle: 'Buscar en la Biblia',
+          headerTitle: t.headers.search,
         }}
       />
 
       <Tabs.Screen
         name="achievements"
         options={{
-          title: 'Logros',
+          title: t.tabs.achievements,
           tabBarIcon: ({ color, size }) => (
             <Ionicons name="trophy" size={size} color={color} />
           ),
-          headerTitle: 'Mis Logros',
+          headerTitle: t.headers.achievements,
         }}
       />
 
       <Tabs.Screen
         name="bookmarks"
         options={{
-          title: 'Favoritos',
+          title: t.tabs.bookmarks,
           tabBarIcon: ({ color, size }) => (
             <Ionicons name="bookmark" size={size} color={color} />
           ),
-          headerTitle: 'Mis Favoritos',
+          headerTitle: t.headers.bookmarks,
         }}
       />
 
       <Tabs.Screen
         name="notes"
         options={{
-          title: 'Notas',
+          title: t.tabs.notes,
           tabBarIcon: ({ color, size }) => (
             <Ionicons name="create" size={size} color={color} />
           ),
-          headerTitle: 'Mis Notas',
+          headerTitle: t.headers.notes,
         }}
       />
 
       <Tabs.Screen
         name="settings"
         options={{
-          title: 'Ajustes',
+          title: t.tabs.settings,
           tabBarIcon: ({ color, size }) => (
             <Ionicons name="settings" size={size} color={color} />
           ),
-          headerTitle: 'Configuración',
+          headerTitle: t.headers.settings,
         }}
       />
     </Tabs>

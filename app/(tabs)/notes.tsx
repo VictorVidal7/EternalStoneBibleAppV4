@@ -5,10 +5,12 @@ import { Ionicons } from '@expo/vector-icons';
 import bibleDB from '../../src/lib/database';
 import { Note } from '../../src/types/bible';
 import { useTheme } from '../../src/hooks/useTheme';
+import { useLanguage } from '../../src/hooks/useLanguage';
 
 export default function NotesScreen() {
   const router = useRouter();
   const { colors } = useTheme();
+  const { t } = useLanguage();
   const [notes, setNotes] = useState<Note[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -32,12 +34,12 @@ export default function NotesScreen() {
 
   async function handleDelete(id: string) {
     Alert.alert(
-      'Eliminar Nota',
-      '¿Estás seguro de que quieres eliminar esta nota?',
+      t.notes.deleteTitle,
+      t.notes.deleteMessage,
       [
-        { text: 'Cancelar', style: 'cancel' },
+        { text: t.cancel, style: 'cancel' },
         {
-          text: 'Eliminar',
+          text: t.delete,
           style: 'destructive',
           onPress: async () => {
             await bibleDB.removeNote(id);

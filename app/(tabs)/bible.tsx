@@ -3,17 +3,19 @@ import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { BIBLE_BOOKS } from '../../src/constants/bible';
 import { useTheme } from '../../src/hooks/useTheme';
+import { useLanguage } from '../../src/hooks/useLanguage';
 
 export default function BibleScreen() {
   const router = useRouter();
   const { colors, isDark } = useTheme();
+  const { t } = useLanguage();
 
   const oldTestament = BIBLE_BOOKS.filter((book) => book.testament === 'old');
   const newTestament = BIBLE_BOOKS.filter((book) => book.testament === 'new');
 
   const sections = [
-    { title: 'Antiguo Testamento', data: oldTestament },
-    { title: 'Nuevo Testamento', data: newTestament },
+    { title: t.bible.oldTestament, data: oldTestament },
+    { title: t.bible.newTestament, data: newTestament },
   ];
 
   function goToChapterSelection(bookName: string) {
@@ -34,7 +36,7 @@ export default function BibleScreen() {
             />
             <Text style={styles.sectionTitle}>{section.title}</Text>
             <Text style={styles.sectionCount}>
-              {section.data.length} libros
+              {section.data.length} {section.data.length === 1 ? t.bible.chapter : t.bible.chapters}
             </Text>
           </View>
         )}
@@ -51,7 +53,7 @@ export default function BibleScreen() {
             <View style={styles.bookInfo}>
               <Text style={[styles.bookName, { color: colors.text }]}>{item.name}</Text>
               <Text style={[styles.bookChapters, { color: colors.textSecondary }]}>
-                {item.chapters} {item.chapters === 1 ? 'capítulo' : 'capítulos'}
+                {item.chapters} {item.chapters === 1 ? t.bible.chapter : t.bible.chapters}
               </Text>
             </View>
 

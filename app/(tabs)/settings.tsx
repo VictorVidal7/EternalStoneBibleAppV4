@@ -46,10 +46,10 @@ export default function SettingsScreen() {
               Alert.alert(
                 t.settings.resetSuccess,
                 t.settings.resetSuccessMessage,
-                [{ text: 'OK' }]
+                [{ text: t.ok }]
               );
             } catch (error) {
-              Alert.alert(t.error, 'Error resetting data.');
+              Alert.alert(t.error, t.settings.resetError);
             } finally {
               setIsResetting(false);
             }
