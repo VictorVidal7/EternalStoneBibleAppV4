@@ -9,6 +9,29 @@ export const translations = {
     edit: 'Editar',
     share: 'Compartir',
     copied: 'Copiado',
+    ok: 'OK',
+
+    // Tabs Navigation
+    tabs: {
+      home: 'Inicio',
+      bible: 'Biblia',
+      search: 'Buscar',
+      achievements: 'Logros',
+      bookmarks: 'Favoritos',
+      notes: 'Notas',
+      settings: 'Ajustes',
+    },
+
+    // Headers
+    headers: {
+      home: 'Eternal Bible',
+      bible: 'La Biblia',
+      search: 'Buscar en la Biblia',
+      achievements: 'Mis Logros',
+      bookmarks: 'Mis Favoritos',
+      notes: 'Mis Notas',
+      settings: 'Configuración',
+    },
 
     // Home Screen
     home: {
@@ -20,6 +43,12 @@ export const translations = {
       lastRead: 'Última lectura',
       readingPlans: 'Planes de Lectura',
       viewPlan: 'Ver Plan',
+      continue: 'Continuar',
+      plansDescription: 'Sigue un plan estructurado para leer la Biblia',
+      quickAccess: 'Acceso Rápido',
+      days: 'días',
+      footerQuote: '"Tu palabra es verdad" - Juan 17:17',
+      books: 'libros',
     },
 
     // Bible Screen
@@ -104,6 +133,7 @@ export const translations = {
       resetSuccess: 'Datos Reseteados',
       resetSuccessMessage: 'Por favor, cierra y vuelve a abrir la aplicación para recargar los datos.',
       resetting: 'Reseteando...',
+      resetError: 'Error al resetear los datos.',
 
       about: 'Acerca de',
       version: 'Versión',
@@ -171,6 +201,7 @@ export const translations = {
       testButton: 'Prueba los Logros',
       testDescription: 'Toca aquí para simular la lectura de 10 versículos y ver cómo funciona el sistema de logros',
       simulateReading: 'Simular Lectura',
+      errorTracking: 'Hubo un problema al registrar la lectura',
       level: 'Nivel',
       to: 'para',
       current: 'actual',
@@ -206,6 +237,29 @@ export const translations = {
     edit: 'Edit',
     share: 'Share',
     copied: 'Copied',
+    ok: 'OK',
+
+    // Tabs Navigation
+    tabs: {
+      home: 'Home',
+      bible: 'Bible',
+      search: 'Search',
+      achievements: 'Achievements',
+      bookmarks: 'Bookmarks',
+      notes: 'Notes',
+      settings: 'Settings',
+    },
+
+    // Headers
+    headers: {
+      home: 'Eternal Bible',
+      bible: 'The Bible',
+      search: 'Search the Bible',
+      achievements: 'My Achievements',
+      bookmarks: 'My Bookmarks',
+      notes: 'My Notes',
+      settings: 'Settings',
+    },
 
     // Home Screen
     home: {
@@ -217,6 +271,12 @@ export const translations = {
       lastRead: 'Last read',
       readingPlans: 'Reading Plans',
       viewPlan: 'View Plan',
+      continue: 'Continue',
+      plansDescription: 'Follow a structured plan to read the Bible',
+      quickAccess: 'Quick Access',
+      days: 'days',
+      footerQuote: '"Your word is truth" - John 17:17',
+      books: 'books',
     },
 
     // Bible Screen
@@ -301,6 +361,7 @@ export const translations = {
       resetSuccess: 'Data Reset',
       resetSuccessMessage: 'Please close and reopen the app to reload the data.',
       resetting: 'Resetting...',
+      resetError: 'Error resetting data.',
 
       about: 'About',
       version: 'Version',
@@ -368,6 +429,7 @@ export const translations = {
       testButton: 'Try Achievements',
       testDescription: 'Tap here to simulate reading 10 verses and see how the achievement system works',
       simulateReading: 'Simulate Reading',
+      errorTracking: 'There was a problem registering the reading',
       level: 'Level',
       to: 'to',
       current: 'current',
