@@ -10,6 +10,7 @@ export const translations = {
     share: 'Compartir',
     copied: 'Copiado',
     ok: 'OK',
+    change: 'Cambiar',
 
     // Tabs Navigation
     tabs: {
@@ -101,12 +102,23 @@ export const translations = {
 
     // Bookmarks Screen
     bookmarks: {
-      title: 'Favoritos',
+      title: 'Mis versículos favoritos',
+      noBookmarks: 'Aún no tienes versículos favoritos',
+      noBookmarksA11y: 'No tienes versículos favoritos',
       empty: 'No tienes favoritos',
       emptyHint:
         'Toca el ícono de estrella al leer versículos para guardarlos aquí',
       deleteTitle: 'Eliminar Favorito',
       deleteMessage: '¿Estás seguro de que quieres eliminar este favorito?',
+      deleteLabel: 'Eliminar marcador',
+      deleteHint: 'Toca para eliminar este marcador',
+      itemLabel: 'Marcador para {{book}} {{chapter}}:{{verse}}',
+      itemHint: 'Toca para ir a este versículo',
+      screenLabel: 'Pantalla de marcadores',
+      screenHint: 'Lista de tus versículos favoritos',
+      listLabel: 'Lista de marcadores',
+      listHint: 'Desplázate para explorar tus versículos favoritos',
+      removed: 'Marcador eliminado',
     },
 
     // Notes Screen
@@ -114,12 +126,18 @@ export const translations = {
       title: 'Notas',
       empty: 'No tienes notas',
       emptyHint: 'Agrega notas personales mientras lees la Biblia',
+      emptyState: 'No tienes notas guardadas',
       deleteTitle: 'Eliminar Nota',
       deleteMessage: '¿Estás seguro de que quieres eliminar esta nota?',
+      deleteNote: 'Eliminar nota',
       add: 'Agregar Nota',
       edit: 'Editar Nota',
       placeholder: 'Escribe tu nota aquí...',
       saved: 'Nota guardada',
+      goToVerse: 'Ir al versículo',
+      navigate: 'Navegar a',
+      screenLabel: 'Pantalla de notas',
+      screenHint: 'Lista de tus notas personales de la Biblia',
     },
 
     // Settings Screen
@@ -172,6 +190,15 @@ export const translations = {
       addNote: 'Agregar Nota',
       fontSize: 'Tamaño de Letra',
       verseCopied: 'Versículo copiado al portapapeles',
+      errorLoadingVerses: 'Error al cargar los versículos',
+      retry: 'Reintentar',
+      searchInChapter: 'Buscar en el capítulo',
+      loadingVerses: 'Cargando versículos...',
+      prevChapter: 'Capítulo anterior',
+      nextChapter: 'Siguiente capítulo',
+      distractionFreeMode: 'Modo sin distracciones',
+      versesList: 'Lista de versículos',
+      errorSharingVerse: 'Error al compartir el versículo',
     },
 
     // Reading Plans
@@ -197,6 +224,29 @@ export const translations = {
         name: 'Génesis - Los Comienzos',
         description: 'Descubre cómo comenzó todo en 25 días',
       },
+    },
+
+    // Reading Plan Screen
+    readingPlan: {
+      changePlanTitle: 'Cambiar Plan de Lectura',
+      changePlanMessage:
+        '¿Estás seguro de que quieres cambiar tu plan de lectura actual? Tu progreso en el plan actual se guardará.',
+      noPlanSelectedTitle: 'No hay plan seleccionado',
+      noPlanSelectedMessage:
+        'Por favor, selecciona un plan de lectura primero.',
+      duration: 'Duración',
+      days: 'días',
+      currentPlanHint: 'Este es tu plan actual',
+      selectPlanHint: 'Toca para seleccionar este plan',
+      selected: 'Seleccionado',
+      durationText: 'Duración',
+      progress: 'Progreso',
+      daysCompleted: 'días completados',
+      continueReading: 'Continuar Lectura',
+      startPlan: 'Comenzar Plan',
+      startContinueHint: 'Toca para comenzar o continuar tu plan de lectura',
+      availablePlans: 'Planes de Lectura Disponibles',
+      listLabel: 'Lista de planes de lectura',
     },
 
     // Achievements System
@@ -260,6 +310,7 @@ export const translations = {
     share: 'Share',
     copied: 'Copied',
     ok: 'OK',
+    change: 'Change',
 
     // Tabs Navigation
     tabs: {
@@ -351,11 +402,22 @@ export const translations = {
 
     // Bookmarks Screen
     bookmarks: {
-      title: 'Bookmarks',
+      title: 'My favorite verses',
+      noBookmarks: "You don't have any favorite verses yet",
+      noBookmarksA11y: "You don't have any favorite verses",
       empty: 'No bookmarks yet',
       emptyHint: 'Tap the star icon while reading verses to save them here',
       deleteTitle: 'Delete Bookmark',
       deleteMessage: 'Are you sure you want to delete this bookmark?',
+      deleteLabel: 'Delete bookmark',
+      deleteHint: 'Tap to delete this bookmark',
+      itemLabel: 'Bookmark for {{book}} {{chapter}}:{{verse}}',
+      itemHint: 'Tap to go to this verse',
+      screenLabel: 'Bookmarks screen',
+      screenHint: 'List of your favorite verses',
+      listLabel: 'Bookmarks list',
+      listHint: 'Scroll to explore your favorite verses',
+      removed: 'Bookmark removed',
     },
 
     // Notes Screen
@@ -363,12 +425,18 @@ export const translations = {
       title: 'Notes',
       empty: 'No notes yet',
       emptyHint: 'Add personal notes while reading the Bible',
+      emptyState: 'You have no saved notes',
       deleteTitle: 'Delete Note',
       deleteMessage: 'Are you sure you want to delete this note?',
+      deleteNote: 'Delete note',
       add: 'Add Note',
       edit: 'Edit Note',
       placeholder: 'Write your note here...',
       saved: 'Note saved',
+      goToVerse: 'Go to verse',
+      navigate: 'Navigate to',
+      screenLabel: 'Notes screen',
+      screenHint: 'List of your personal Bible notes',
     },
 
     // Settings Screen
@@ -420,6 +488,15 @@ export const translations = {
       addNote: 'Add Note',
       fontSize: 'Font Size',
       verseCopied: 'Verse copied to clipboard',
+      errorLoadingVerses: 'Error loading verses',
+      retry: 'Retry',
+      searchInChapter: 'Search in chapter',
+      loadingVerses: 'Loading verses...',
+      prevChapter: 'Previous chapter',
+      nextChapter: 'Next chapter',
+      distractionFreeMode: 'Distraction-free mode',
+      versesList: 'Verses list',
+      errorSharingVerse: 'Error sharing verse',
     },
 
     // Reading Plans
@@ -445,6 +522,28 @@ export const translations = {
         name: 'Genesis - The Beginnings',
         description: 'Discover how it all began in 25 days',
       },
+    },
+
+    // Reading Plan Screen
+    readingPlan: {
+      changePlanTitle: 'Change Reading Plan',
+      changePlanMessage:
+        'Are you sure you want to change your current reading plan? Your progress in the current plan will be saved.',
+      noPlanSelectedTitle: 'No plan selected',
+      noPlanSelectedMessage: 'Please select a reading plan first.',
+      duration: 'Duration',
+      days: 'days',
+      currentPlanHint: 'This is your current plan',
+      selectPlanHint: 'Tap to select this plan',
+      selected: 'Selected',
+      durationText: 'Duration',
+      progress: 'Progress',
+      daysCompleted: 'days completed',
+      continueReading: 'Continue Reading',
+      startPlan: 'Start Plan',
+      startContinueHint: 'Tap to start or continue your reading plan',
+      availablePlans: 'Available Reading Plans',
+      listLabel: 'Reading plans list',
     },
 
     // Achievements System
