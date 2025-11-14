@@ -10,6 +10,7 @@ export const translations = {
     share: 'Compartir',
     copied: 'Copiado',
     ok: 'OK',
+    change: 'Cambiar',
 
     // Tabs Navigation
     tabs: {
@@ -35,20 +36,35 @@ export const translations = {
 
     // Home Screen
     home: {
+      title: 'Biblia Eterna',
       welcome: 'Bienvenido a Eternal Bible',
-      subtitle: 'Que la Palabra de Dios ilumine tu día',
+      subtitle: 'Inspiración Bíblica Diaria',
       dailyVerse: 'Versículo del Día',
-      continueReading: 'Continuar Leyendo',
+      continueReading: 'Continuar tu Lectura Bíblica',
+      startReading: 'Comenzar tu Viaje Bíblico',
       readFullChapter: 'Leer Capítulo Completo',
       lastRead: 'Última lectura',
       readingPlans: 'Planes de Lectura',
       viewPlan: 'Ver Plan',
       continue: 'Continuar',
       plansDescription: 'Sigue un plan estructurado para leer la Biblia',
-      quickAccess: 'Acceso Rápido',
+      quickAccess: 'Acceso Rápido a la Biblia',
       days: 'días',
       footerQuote: '"Tu palabra es verdad" - Juan 17:17',
       books: 'libros',
+      menu: {
+        exploreBible: 'Explorar\nla Biblia',
+        favorites: 'Mis Versículos\nFavoritos',
+        readingPlan: 'Plan de\nEstudio Bíblico',
+        notes: 'Mis\nNotas',
+        search: 'Buscar en\nlas Escrituras',
+      },
+      a11y: {
+        screenLabel: 'Pantalla de inicio de Eternal Stone Bible App',
+        screenHint: 'Desplázate para explorar las opciones de la aplicación',
+        startReadingHint: 'Toca para empezar o continuar tu lectura',
+        navigateHint: 'Toca para ir a',
+      },
     },
 
     // Bible Screen
@@ -86,11 +102,23 @@ export const translations = {
 
     // Bookmarks Screen
     bookmarks: {
-      title: 'Favoritos',
+      title: 'Mis versículos favoritos',
+      noBookmarks: 'Aún no tienes versículos favoritos',
+      noBookmarksA11y: 'No tienes versículos favoritos',
       empty: 'No tienes favoritos',
-      emptyHint: 'Toca el ícono de estrella al leer versículos para guardarlos aquí',
+      emptyHint:
+        'Toca el ícono de estrella al leer versículos para guardarlos aquí',
       deleteTitle: 'Eliminar Favorito',
       deleteMessage: '¿Estás seguro de que quieres eliminar este favorito?',
+      deleteLabel: 'Eliminar marcador',
+      deleteHint: 'Toca para eliminar este marcador',
+      itemLabel: 'Marcador para {{book}} {{chapter}}:{{verse}}',
+      itemHint: 'Toca para ir a este versículo',
+      screenLabel: 'Pantalla de marcadores',
+      screenHint: 'Lista de tus versículos favoritos',
+      listLabel: 'Lista de marcadores',
+      listHint: 'Desplázate para explorar tus versículos favoritos',
+      removed: 'Marcador eliminado',
     },
 
     // Notes Screen
@@ -98,12 +126,18 @@ export const translations = {
       title: 'Notas',
       empty: 'No tienes notas',
       emptyHint: 'Agrega notas personales mientras lees la Biblia',
+      emptyState: 'No tienes notas guardadas',
       deleteTitle: 'Eliminar Nota',
       deleteMessage: '¿Estás seguro de que quieres eliminar esta nota?',
+      deleteNote: 'Eliminar nota',
       add: 'Agregar Nota',
       edit: 'Editar Nota',
       placeholder: 'Escribe tu nota aquí...',
       saved: 'Nota guardada',
+      goToVerse: 'Ir al versículo',
+      navigate: 'Navegar a',
+      screenLabel: 'Pantalla de notas',
+      screenHint: 'Lista de tus notas personales de la Biblia',
     },
 
     // Settings Screen
@@ -129,18 +163,22 @@ export const translations = {
       resetData: 'Resetear Datos de la Biblia',
       resetDescription: 'Elimina y recarga todos los versículos',
       resetTitle: 'Resetear Datos',
-      resetMessage: '¿Estás seguro de que quieres resetear todos los datos de la Biblia? La app se recargará automáticamente.',
+      resetMessage:
+        '¿Estás seguro de que quieres resetear todos los datos de la Biblia? La app se recargará automáticamente.',
       resetSuccess: 'Datos Reseteados',
-      resetSuccessMessage: 'Por favor, cierra y vuelve a abrir la aplicación para recargar los datos.',
+      resetSuccessMessage:
+        'Por favor, cierra y vuelve a abrir la aplicación para recargar los datos.',
       resetting: 'Reseteando...',
       resetError: 'Error al resetear los datos.',
 
       about: 'Acerca de',
       version: 'Versión',
-      description: 'Una aplicación de lectura de la Biblia diseñada para acercarte a la Palabra de Dios.',
+      description:
+        'Una aplicación de lectura de la Biblia diseñada para acercarte a la Palabra de Dios.',
       viewGitHub: 'Ver en GitHub',
       footerText: 'Hecho con ❤️ para la gloria de Dios',
-      footerVerse: '"Toda la Escritura es inspirada por Dios"\n- 2 Timoteo 3:16',
+      footerVerse:
+        '"Toda la Escritura es inspirada por Dios"\n- 2 Timoteo 3:16',
     },
 
     // Verse Reading Screen
@@ -152,6 +190,15 @@ export const translations = {
       addNote: 'Agregar Nota',
       fontSize: 'Tamaño de Letra',
       verseCopied: 'Versículo copiado al portapapeles',
+      errorLoadingVerses: 'Error al cargar los versículos',
+      retry: 'Reintentar',
+      searchInChapter: 'Buscar en el capítulo',
+      loadingVerses: 'Cargando versículos...',
+      prevChapter: 'Capítulo anterior',
+      nextChapter: 'Siguiente capítulo',
+      distractionFreeMode: 'Modo sin distracciones',
+      versesList: 'Lista de versículos',
+      errorSharingVerse: 'Error al compartir el versículo',
     },
 
     // Reading Plans
@@ -179,6 +226,29 @@ export const translations = {
       },
     },
 
+    // Reading Plan Screen
+    readingPlan: {
+      changePlanTitle: 'Cambiar Plan de Lectura',
+      changePlanMessage:
+        '¿Estás seguro de que quieres cambiar tu plan de lectura actual? Tu progreso en el plan actual se guardará.',
+      noPlanSelectedTitle: 'No hay plan seleccionado',
+      noPlanSelectedMessage:
+        'Por favor, selecciona un plan de lectura primero.',
+      duration: 'Duración',
+      days: 'días',
+      currentPlanHint: 'Este es tu plan actual',
+      selectPlanHint: 'Toca para seleccionar este plan',
+      selected: 'Seleccionado',
+      durationText: 'Duración',
+      progress: 'Progreso',
+      daysCompleted: 'días completados',
+      continueReading: 'Continuar Lectura',
+      startPlan: 'Comenzar Plan',
+      startContinueHint: 'Toca para comenzar o continuar tu plan de lectura',
+      availablePlans: 'Planes de Lectura Disponibles',
+      listLabel: 'Lista de planes de lectura',
+    },
+
     // Achievements System
     achievements: {
       title: 'Mis Logros',
@@ -197,9 +267,11 @@ export const translations = {
       viewAchievements: 'Ver Logros',
       ok: 'OK',
       readingRegistered: 'Lectura Registrada',
-      readingStats: 'Has leído {{verses}} versículos en total.\nNivel {{level}} - {{points}} puntos\n\nSigue leyendo para desbloquear más logros!',
+      readingStats:
+        'Has leído {{verses}} versículos en total.\nNivel {{level}} - {{points}} puntos\n\nSigue leyendo para desbloquear más logros!',
       testButton: 'Prueba los Logros',
-      testDescription: 'Toca aquí para simular la lectura de 10 versículos y ver cómo funciona el sistema de logros',
+      testDescription:
+        'Toca aquí para simular la lectura de 10 versículos y ver cómo funciona el sistema de logros',
       simulateReading: 'Simular Lectura',
       errorTracking: 'Hubo un problema al registrar la lectura',
       level: 'Nivel',
@@ -238,6 +310,7 @@ export const translations = {
     share: 'Share',
     copied: 'Copied',
     ok: 'OK',
+    change: 'Change',
 
     // Tabs Navigation
     tabs: {
@@ -263,20 +336,35 @@ export const translations = {
 
     // Home Screen
     home: {
+      title: 'Eternal Bible',
       welcome: 'Welcome to Eternal Bible',
-      subtitle: 'May God\'s Word illuminate your day',
+      subtitle: 'Daily Biblical Inspiration',
       dailyVerse: 'Verse of the Day',
-      continueReading: 'Continue Reading',
+      continueReading: 'Continue Your Bible Reading',
+      startReading: 'Start Your Bible Journey',
       readFullChapter: 'Read Full Chapter',
       lastRead: 'Last read',
       readingPlans: 'Reading Plans',
       viewPlan: 'View Plan',
       continue: 'Continue',
       plansDescription: 'Follow a structured plan to read the Bible',
-      quickAccess: 'Quick Access',
+      quickAccess: 'Quick Bible Access',
       days: 'days',
       footerQuote: '"Your word is truth" - John 17:17',
       books: 'books',
+      menu: {
+        exploreBible: 'Explore\nthe Bible',
+        favorites: 'My Favorite\nVerses',
+        readingPlan: 'Bible Study\nPlan',
+        notes: 'My\nNotes',
+        search: 'Search the\nScriptures',
+      },
+      a11y: {
+        screenLabel: 'Eternal Stone Bible App home screen',
+        screenHint: "Scroll to explore the app's options",
+        startReadingHint: 'Tap to start or continue your reading',
+        navigateHint: 'Tap to go to',
+      },
     },
 
     // Bible Screen
@@ -314,11 +402,22 @@ export const translations = {
 
     // Bookmarks Screen
     bookmarks: {
-      title: 'Bookmarks',
+      title: 'My favorite verses',
+      noBookmarks: "You don't have any favorite verses yet",
+      noBookmarksA11y: "You don't have any favorite verses",
       empty: 'No bookmarks yet',
       emptyHint: 'Tap the star icon while reading verses to save them here',
       deleteTitle: 'Delete Bookmark',
       deleteMessage: 'Are you sure you want to delete this bookmark?',
+      deleteLabel: 'Delete bookmark',
+      deleteHint: 'Tap to delete this bookmark',
+      itemLabel: 'Bookmark for {{book}} {{chapter}}:{{verse}}',
+      itemHint: 'Tap to go to this verse',
+      screenLabel: 'Bookmarks screen',
+      screenHint: 'List of your favorite verses',
+      listLabel: 'Bookmarks list',
+      listHint: 'Scroll to explore your favorite verses',
+      removed: 'Bookmark removed',
     },
 
     // Notes Screen
@@ -326,12 +425,18 @@ export const translations = {
       title: 'Notes',
       empty: 'No notes yet',
       emptyHint: 'Add personal notes while reading the Bible',
+      emptyState: 'You have no saved notes',
       deleteTitle: 'Delete Note',
       deleteMessage: 'Are you sure you want to delete this note?',
+      deleteNote: 'Delete note',
       add: 'Add Note',
       edit: 'Edit Note',
       placeholder: 'Write your note here...',
       saved: 'Note saved',
+      goToVerse: 'Go to verse',
+      navigate: 'Navigate to',
+      screenLabel: 'Notes screen',
+      screenHint: 'List of your personal Bible notes',
     },
 
     // Settings Screen
@@ -357,15 +462,18 @@ export const translations = {
       resetData: 'Reset Bible Data',
       resetDescription: 'Delete and reload all verses',
       resetTitle: 'Reset Data',
-      resetMessage: 'Are you sure you want to reset all Bible data? The app will reload automatically.',
+      resetMessage:
+        'Are you sure you want to reset all Bible data? The app will reload automatically.',
       resetSuccess: 'Data Reset',
-      resetSuccessMessage: 'Please close and reopen the app to reload the data.',
+      resetSuccessMessage:
+        'Please close and reopen the app to reload the data.',
       resetting: 'Resetting...',
       resetError: 'Error resetting data.',
 
       about: 'About',
       version: 'Version',
-      description: 'A Bible reading app designed to bring you closer to God\'s Word.',
+      description:
+        "A Bible reading app designed to bring you closer to God's Word.",
       viewGitHub: 'View on GitHub',
       footerText: 'Made with ❤️ for the glory of God',
       footerVerse: '"All Scripture is God-breathed"\n- 2 Timothy 3:16',
@@ -380,6 +488,15 @@ export const translations = {
       addNote: 'Add Note',
       fontSize: 'Font Size',
       verseCopied: 'Verse copied to clipboard',
+      errorLoadingVerses: 'Error loading verses',
+      retry: 'Retry',
+      searchInChapter: 'Search in chapter',
+      loadingVerses: 'Loading verses...',
+      prevChapter: 'Previous chapter',
+      nextChapter: 'Next chapter',
+      distractionFreeMode: 'Distraction-free mode',
+      versesList: 'Verses list',
+      errorSharingVerse: 'Error sharing verse',
     },
 
     // Reading Plans
@@ -407,6 +524,28 @@ export const translations = {
       },
     },
 
+    // Reading Plan Screen
+    readingPlan: {
+      changePlanTitle: 'Change Reading Plan',
+      changePlanMessage:
+        'Are you sure you want to change your current reading plan? Your progress in the current plan will be saved.',
+      noPlanSelectedTitle: 'No plan selected',
+      noPlanSelectedMessage: 'Please select a reading plan first.',
+      duration: 'Duration',
+      days: 'days',
+      currentPlanHint: 'This is your current plan',
+      selectPlanHint: 'Tap to select this plan',
+      selected: 'Selected',
+      durationText: 'Duration',
+      progress: 'Progress',
+      daysCompleted: 'days completed',
+      continueReading: 'Continue Reading',
+      startPlan: 'Start Plan',
+      startContinueHint: 'Tap to start or continue your reading plan',
+      availablePlans: 'Available Reading Plans',
+      listLabel: 'Reading plans list',
+    },
+
     // Achievements System
     achievements: {
       title: 'My Achievements',
@@ -425,9 +564,11 @@ export const translations = {
       viewAchievements: 'View Achievements',
       ok: 'OK',
       readingRegistered: 'Reading Registered',
-      readingStats: 'You have read {{verses}} verses in total.\nLevel {{level}} - {{points}} points\n\nKeep reading to unlock more achievements!',
+      readingStats:
+        'You have read {{verses}} verses in total.\nLevel {{level}} - {{points}} points\n\nKeep reading to unlock more achievements!',
       testButton: 'Try Achievements',
-      testDescription: 'Tap here to simulate reading 10 verses and see how the achievement system works',
+      testDescription:
+        'Tap here to simulate reading 10 verses and see how the achievement system works',
       simulateReading: 'Simulate Reading',
       errorTracking: 'There was a problem registering the reading',
       level: 'Level',
