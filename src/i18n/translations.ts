@@ -28,7 +28,12 @@ export const translations = {
       oldTestament: 'Antiguo Testamento',
       newTestament: 'Nuevo Testamento',
       chapters: 'capítulos',
+      chapter: 'capítulo',
       selectBook: 'Selecciona un libro para comenzar',
+      bookOf: 'Libro de',
+      tapToView: 'Toca para ver los capítulos de',
+      tapToRead: 'Toca para leer el capítulo',
+      of: 'de',
     },
 
     // Search Screen
@@ -220,7 +225,12 @@ export const translations = {
       oldTestament: 'Old Testament',
       newTestament: 'New Testament',
       chapters: 'chapters',
+      chapter: 'chapter',
       selectBook: 'Select a book to start',
+      bookOf: 'Book of',
+      tapToView: 'Tap to view chapters of',
+      tapToRead: 'Tap to read chapter',
+      of: 'of',
     },
 
     // Search Screen

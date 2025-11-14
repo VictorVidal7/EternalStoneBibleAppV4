@@ -8,6 +8,7 @@ import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { FlashList } from '@shopify/flash-list';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { useTheme } from '../hooks/useTheme';
+import { useLanguage } from '../hooks/useLanguage';
 import { ChapterGridSkeleton } from '../components/SkeletonLoader';
 import { getBookName } from '../data/bookNames';
 import { addBreadcrumb } from '../lib/monitoring/sentry';
@@ -26,10 +27,11 @@ const ChapterScreen: React.FC = () => {
   const router = useRouter();
   const params = useLocalSearchParams<{ book: string }>();
   const { colors } = useTheme();
+  const { language, t } = useLanguage();
   const [isLoading, setIsLoading] = useState(true);
 
   const bookKey = params.book || '';
-  const bookName = useMemo(() => getBookName(bookKey, 'es'), [bookKey]);
+  const bookName = useMemo(() => getBookName(bookKey, language), [bookKey, language]);
 
   /**
    * Generar lista de capítulos
@@ -85,13 +87,13 @@ const ChapterScreen: React.FC = () => {
         style={[styles.chapterItem, { backgroundColor: colors.surface }]}
         onPress={() => navigateToVerse(item.chapter)}
         accessibilityRole="button"
-        accessibilityLabel={`Capítulo ${item.chapter}`}
-        accessibilityHint={`Toca para leer el capítulo ${item.chapter} de ${bookName}`}
+        accessibilityLabel={`${t.bible.chapter} ${item.chapter}`}
+        accessibilityHint={`${t.bible.tapToRead} ${item.chapter} ${t.bible.of} ${bookName}`}
       >
         <Text style={[styles.chapterText, { color: colors.text }]}>{item.chapter}</Text>
       </TouchableOpacity>
     ),
-    [colors, navigateToVerse, bookName]
+    [colors, navigateToVerse, bookName, t]
   );
 
   if (isLoading) {
@@ -122,7 +124,7 @@ const ChapterScreen: React.FC = () => {
         <View style={styles.headerText}>
           <Text style={[styles.bookTitle, { color: colors.text }]}>{bookName}</Text>
           <Text style={[styles.chapterCount, { color: colors.textSecondary }]}>
-            {chapters.length} {chapters.length === 1 ? 'capítulo' : 'capítulos'}
+            {chapters.length} {chapters.length === 1 ? t.bible.chapter : t.bible.chapters}
           </Text>
         </View>
       </View>

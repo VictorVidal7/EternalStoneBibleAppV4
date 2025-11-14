@@ -8,6 +8,7 @@ import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { FlashList } from '@shopify/flash-list';
 import { useRouter } from 'expo-router';
 import { useTheme } from '../hooks/useTheme';
+import { useLanguage } from '../hooks/useLanguage';
 import { BibleListSkeleton } from '../components/SkeletonLoader';
 import { getBookName } from '../data/bookNames';
 import { addBreadcrumb } from '../lib/monitoring/sentry';
@@ -35,6 +36,7 @@ interface SectionData {
 const BibleListScreen: React.FC = () => {
   const router = useRouter();
   const { colors } = useTheme();
+  const { language, t } = useLanguage();
   const [isLoading, setIsLoading] = useState(true);
 
   // Simular carga inicial (puedes quitar esto si no es necesario)
@@ -53,7 +55,7 @@ const BibleListScreen: React.FC = () => {
         return {
           fileName,
           bookKey,
-          displayName: getBookName(bookKey, 'es'),
+          displayName: getBookName(bookKey, language),
           testament: 'OT' as const,
           index,
         };
@@ -66,7 +68,7 @@ const BibleListScreen: React.FC = () => {
         return {
           fileName,
           bookKey,
-          displayName: getBookName(bookKey, 'es'),
+          displayName: getBookName(bookKey, language),
           testament: 'NT' as const,
           index,
         };
@@ -78,7 +80,7 @@ const BibleListScreen: React.FC = () => {
     // Antiguo Testamento
     data.push({
       type: 'header',
-      title: 'Antiguo Testamento',
+      title: t.bible.oldTestament,
       id: 'header-ot',
     });
     oldTestamentBooks.forEach((book, idx) => {
@@ -92,7 +94,7 @@ const BibleListScreen: React.FC = () => {
     // Nuevo Testamento
     data.push({
       type: 'header',
-      title: 'Nuevo Testamento',
+      title: t.bible.newTestament,
       id: 'header-nt',
     });
     newTestamentBooks.forEach((book, idx) => {
@@ -104,7 +106,7 @@ const BibleListScreen: React.FC = () => {
     });
 
     return data;
-  }, []);
+  }, [language, t]);
 
   /**
    * Navegar a la pantalla de capítulos
@@ -148,8 +150,8 @@ const BibleListScreen: React.FC = () => {
             style={[styles.bookItem, { borderBottomColor: colors.border }]}
             onPress={() => navigateToChapter(bookKey, displayName)}
             accessibilityRole="button"
-            accessibilityLabel={`Libro de ${displayName}`}
-            accessibilityHint={`Toca para ver los capítulos de ${displayName}`}
+            accessibilityLabel={`${t.bible.bookOf} ${displayName}`}
+            accessibilityHint={`${t.bible.tapToView} ${displayName}`}
           >
             <View style={[styles.bookIconContainer, { backgroundColor: colors.primaryLight }]}>
               <Text style={[styles.bookIcon, { color: colors.primary }]}>📖</Text>
@@ -164,7 +166,7 @@ const BibleListScreen: React.FC = () => {
 
       return null;
     },
-    [colors, navigateToChapter]
+    [colors, navigateToChapter, t]
   );
 
   /**
