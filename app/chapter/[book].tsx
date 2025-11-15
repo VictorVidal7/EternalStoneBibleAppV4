@@ -3,10 +3,12 @@ import { useLocalSearchParams, useRouter, Stack } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { getBookByName } from '../../src/constants/bible';
 import { useTheme } from '../../src/hooks/useTheme';
+import { useLanguage } from '../../src/hooks/useLanguage';
 
 export default function ChapterSelectionScreen() {
   const router = useRouter();
   const { colors } = useTheme();
+  const { t } = useLanguage();
   const { book } = useLocalSearchParams<{ book: string }>();
   const bookInfo = getBookByName(book);
 
@@ -39,10 +41,10 @@ export default function ChapterSelectionScreen() {
         <View style={[styles.header, { backgroundColor: colors.surface, borderBottomColor: colors.border }]}>
           <Text style={[styles.headerTitle, { color: colors.text }]}>{bookInfo.name}</Text>
           <Text style={[styles.headerSubtitle, { color: colors.textSecondary }]}>
-            {bookInfo.testament === 'old' ? 'Antiguo Testamento' : 'Nuevo Testamento'}
+            {bookInfo.testament === 'old' ? t.bible.oldTestament : t.bible.newTestament}
           </Text>
           <Text style={[styles.chapterCount, { color: colors.primary }]}>
-            {bookInfo.chapters} {bookInfo.chapters === 1 ? 'capítulo' : 'capítulos'}
+            {bookInfo.chapters} {bookInfo.chapters === 1 ? t.bible.chapter : t.bible.chapters}
           </Text>
         </View>
 

@@ -7,15 +7,17 @@ import React from 'react';
 import { AchievementsScreen } from '../../src/screens/AchievementsScreen';
 import { useServices } from '../../src/context/ServicesContext';
 import { View, Text, ActivityIndicator, StyleSheet } from 'react-native';
+import { useLanguage } from '../../src/hooks/useLanguage';
 
 export default function AchievementsTab() {
   const { database, initialized } = useServices();
+  const { t } = useLanguage();
 
   if (!initialized || !database) {
     return (
       <View style={styles.loadingContainer}>
         <ActivityIndicator size="large" color="#4A90E2" />
-        <Text style={styles.loadingText}>Cargando logros...</Text>
+        <Text style={styles.loadingText}>{t.achievements.loading}</Text>
       </View>
     );
   }

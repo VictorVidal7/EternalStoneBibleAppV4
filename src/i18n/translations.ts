@@ -8,9 +8,26 @@ export const translations = {
     delete: 'Eliminar',
     edit: 'Editar',
     share: 'Compartir',
+    copy: 'Copiar',
     copied: 'Copiado',
     ok: 'OK',
     change: 'Cambiar',
+    previous: 'Anterior',
+    next: 'Siguiente',
+
+    // App Loading
+    app: {
+      subtitle: 'La Palabra de Dios',
+      loadingBible: 'Cargando la Biblia...',
+      verses: 'versículos',
+      preparing: 'Preparando...',
+      loadingVerse: '"Lámpara es a mis pies tu palabra,\ny lumbrera a mi camino"\n- Salmos 119:105',
+      errorHint: 'Por favor, cierra y vuelve a abrir la aplicación.',
+      endOfBook: 'Fin del libro',
+      endOfBookMessage: 'Has llegado al final de este libro',
+      firstChapterMessage: 'Estás en el primer capítulo de este libro',
+      emptyBookmarksHint: 'Toca el ícono de estrella al leer versículos para guardarlos aquí',
+    },
 
     // Tabs Navigation
     tabs: {
@@ -40,7 +57,7 @@ export const translations = {
       welcome: 'Bienvenido a Eternal Bible',
       subtitle: 'Inspiración Bíblica Diaria',
       dailyVerse: 'Versículo del Día',
-      continueReading: 'Continuar tu Lectura Bíblica',
+      continueReading: 'Continuar Leyendo',
       startReading: 'Comenzar tu Viaje Bíblico',
       readFullChapter: 'Leer Capítulo Completo',
       lastRead: 'Última lectura',
@@ -48,10 +65,16 @@ export const translations = {
       viewPlan: 'Ver Plan',
       continue: 'Continuar',
       plansDescription: 'Sigue un plan estructurado para leer la Biblia',
-      quickAccess: 'Acceso Rápido a la Biblia',
+      quickAccess: 'Acceso Rápido',
       days: 'días',
       footerQuote: '"Tu palabra es verdad" - Juan 17:17',
       books: 'libros',
+      bibleLibrary: 'Biblioteca Bíblica',
+      booksAvailable: 'libros disponibles',
+      searchBook: 'Buscar libro...',
+      streakDays: 'Días',
+      rank: 'Rango',
+      progress: 'Progreso',
       menu: {
         exploreBible: 'Explorar\nla Biblia',
         favorites: 'Mis Versículos\nFavoritos',
@@ -79,6 +102,8 @@ export const translations = {
       tapToView: 'Toca para ver los capítulos de',
       tapToRead: 'Toca para leer el capítulo',
       of: 'de',
+      noResultsFound: 'No se encontraron resultados',
+      noMatchingBooks: 'No hay libros que coincidan con',
     },
 
     // Search Screen
@@ -308,9 +333,26 @@ export const translations = {
     delete: 'Delete',
     edit: 'Edit',
     share: 'Share',
+    copy: 'Copy',
     copied: 'Copied',
     ok: 'OK',
     change: 'Change',
+    previous: 'Previous',
+    next: 'Next',
+
+    // App Loading
+    app: {
+      subtitle: 'The Word of God',
+      loadingBible: 'Loading the Bible...',
+      verses: 'verses',
+      preparing: 'Preparing...',
+      loadingVerse: '"Your word is a lamp to my feet\nand a light to my path"\n- Psalm 119:105',
+      errorHint: 'Please close and reopen the application.',
+      endOfBook: 'End of book',
+      endOfBookMessage: 'You have reached the end of this book',
+      firstChapterMessage: 'You are at the first chapter of this book',
+      emptyBookmarksHint: 'Tap the star icon while reading verses to save them here',
+    },
 
     // Tabs Navigation
     tabs: {
@@ -340,7 +382,7 @@ export const translations = {
       welcome: 'Welcome to Eternal Bible',
       subtitle: 'Daily Biblical Inspiration',
       dailyVerse: 'Verse of the Day',
-      continueReading: 'Continue Your Bible Reading',
+      continueReading: 'Continue Reading',
       startReading: 'Start Your Bible Journey',
       readFullChapter: 'Read Full Chapter',
       lastRead: 'Last read',
@@ -348,10 +390,16 @@ export const translations = {
       viewPlan: 'View Plan',
       continue: 'Continue',
       plansDescription: 'Follow a structured plan to read the Bible',
-      quickAccess: 'Quick Bible Access',
+      quickAccess: 'Quick Access',
       days: 'days',
       footerQuote: '"Your word is truth" - John 17:17',
       books: 'books',
+      bibleLibrary: 'Bible Library',
+      booksAvailable: 'books available',
+      searchBook: 'Search book...',
+      streakDays: 'Days',
+      rank: 'Rank',
+      progress: 'Progress',
       menu: {
         exploreBible: 'Explore\nthe Bible',
         favorites: 'My Favorite\nVerses',
@@ -379,6 +427,8 @@ export const translations = {
       tapToView: 'Tap to view chapters of',
       tapToRead: 'Tap to read chapter',
       of: 'of',
+      noResultsFound: 'No results found',
+      noMatchingBooks: 'No books match',
     },
 
     // Search Screen
