@@ -105,9 +105,9 @@ export default function BookmarksScreen() {
         ListEmptyComponent={
           <View style={styles.emptyContainer}>
             <Ionicons name="bookmark-outline" size={80} color={colors.border} />
-            <Text style={[styles.emptyTitle, { color: colors.text }]}>No tienes favoritos</Text>
+            <Text style={[styles.emptyTitle, { color: colors.text }]}>{t.bookmarks.empty}</Text>
             <Text style={[styles.emptySubtitle, { color: colors.textSecondary }]}>
-              Toca el ícono de estrella al leer versículos para guardarlos aquí
+              {t.bookmarks.emptyHint}
             </Text>
           </View>
         }

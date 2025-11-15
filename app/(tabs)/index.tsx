@@ -187,7 +187,7 @@ export default function HomeScreen() {
                     <Ionicons name="flame" size={24} color="#fbbf24" />
                   </View>
                   <Text style={styles.statValue}>{userStats.streak}</Text>
-                  <Text style={styles.statLabel}>Días</Text>
+                  <Text style={styles.statLabel}>{t.home.streakDays}</Text>
                 </View>
 
                 <View style={styles.statDivider} />
@@ -196,8 +196,8 @@ export default function HomeScreen() {
                   <View style={styles.statIconContainer}>
                     <Ionicons name="trophy" size={24} color="#fbbf24" />
                   </View>
-                  <Text style={styles.statValue}>Nivel {userStats.level}</Text>
-                  <Text style={styles.statLabel}>Rango</Text>
+                  <Text style={styles.statValue}>{t.achievements.level} {userStats.level}</Text>
+                  <Text style={styles.statLabel}>{t.home.rank}</Text>
                 </View>
 
                 <View style={styles.statDivider} />
@@ -207,7 +207,7 @@ export default function HomeScreen() {
                     <Ionicons name="book-outline" size={24} color="#fbbf24" />
                   </View>
                   <Text style={styles.statValue}>{Math.round(userStats.progress)}%</Text>
-                  <Text style={styles.statLabel}>Progreso</Text>
+                  <Text style={styles.statLabel}>{t.home.progress}</Text>
                 </View>
               </View>
             </View>
@@ -234,7 +234,7 @@ export default function HomeScreen() {
               </View>
               <View>
                 <Text style={[styles.cardTitle, { color: colors.text }]}>
-                  ✨ Versículo del Día
+                  ✨ {t.home.dailyVerse}
                 </Text>
                 <Text style={[styles.cardSubtitle, { color: colors.textSecondary }]}>
                   {dailyVerse.book} {dailyVerse.chapter}:{dailyVerse.verse}
@@ -248,7 +248,7 @@ export default function HomeScreen() {
 
             <View style={styles.cardAction}>
               <Text style={[styles.actionText, { color: colors.primary }]}>
-                Leer capítulo completo
+                {t.home.readFullChapter}
               </Text>
               <Ionicons name="arrow-forward" size={20} color={colors.primary} />
             </View>
@@ -276,7 +276,7 @@ export default function HomeScreen() {
           >
             <View style={styles.continueHeader}>
               <Ionicons name="play-circle" size={32} color="#ffffff" />
-              <Text style={styles.continueTitle}>Continuar Leyendo</Text>
+              <Text style={styles.continueTitle}>{t.home.continueReading}</Text>
             </View>
 
             <Text style={styles.continueReference}>
@@ -301,7 +301,7 @@ export default function HomeScreen() {
       <Animated.View style={{ opacity: fadeAnim }}>
         <View style={styles.sectionHeader}>
           <Text style={[styles.sectionTitle, { color: colors.text }]}>
-            Acceso Rápido
+            {t.home.quickAccess}
           </Text>
           <Ionicons name="flash" size={20} color={colors.warning} />
         </View>
@@ -322,7 +322,7 @@ export default function HomeScreen() {
       <Animated.View style={{ opacity: fadeAnim }}>
         <View style={styles.sectionHeader}>
           <Text style={[styles.sectionTitle, { color: colors.text }]}>
-            Planes de Lectura
+            {t.home.readingPlans}
           </Text>
           <Ionicons name="calendar" size={20} color={colors.secondary} />
         </View>
@@ -450,7 +450,7 @@ const ReadingPlanCard: React.FC<ReadingPlanCardProps> = ({ plan, onPress }) => {
       </Text>
 
       <Text style={[styles.planDuration, { color: colors.textSecondary }]}>
-        {plan.duration} días
+        {plan.duration} {t.home.days}
       </Text>
 
       <Text style={[styles.planDescription, { color: colors.textTertiary }]} numberOfLines={2}>

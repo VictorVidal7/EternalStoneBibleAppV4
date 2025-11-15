@@ -129,9 +129,9 @@ export default function BibleScreen() {
             <View style={styles.headerTitleContainer}>
               <Ionicons name="book" size={32} color="#ffffff" />
               <View style={styles.headerTextContainer}>
-                <Text style={styles.headerTitle}>Biblioteca Bíblica</Text>
+                <Text style={styles.headerTitle}>{t.home.bibleLibrary}</Text>
                 <Text style={styles.headerSubtitle}>
-                  {filteredBooks.length} libros disponibles
+                  {filteredBooks.length} {t.home.booksAvailable}
                 </Text>
               </View>
             </View>
@@ -186,7 +186,7 @@ export default function BibleScreen() {
           />
           <TextInput
             style={[styles.searchInput, { color: colors.text }]}
-            placeholder="Buscar libro..."
+            placeholder={t.home.searchBook}
             placeholderTextColor={colors.textTertiary}
             value={searchQuery}
             onChangeText={setSearchQuery}
@@ -340,7 +340,7 @@ const BookCard: React.FC<BookCardProps> = ({ book, index, onPress }) => {
               color={colors.textSecondary}
             />
             <Text style={[styles.bookChapters, { color: colors.textSecondary }]}>
-              {book.chapters} {book.chapters === 1 ? 'capítulo' : 'capítulos'}
+              {book.chapters} {book.chapters === 1 ? t.bible.chapter : t.bible.chapters}
             </Text>
           </View>
         </View>
@@ -362,15 +362,16 @@ interface EmptyStateProps {
 
 const EmptyState: React.FC<EmptyStateProps> = ({ searchQuery }) => {
   const { colors } = useTheme();
+  const { t } = useLanguage();
 
   return (
     <View style={styles.emptyContainer}>
       <Ionicons name="search-outline" size={64} color={colors.textTertiary} />
       <Text style={[styles.emptyTitle, { color: colors.text }]}>
-        No se encontraron resultados
+        {t.bible.noResultsFound}
       </Text>
       <Text style={[styles.emptyText, { color: colors.textSecondary }]}>
-        No hay libros que coincidan con "{searchQuery}"
+        {t.bible.noMatchingBooks} "{searchQuery}"
       </Text>
     </View>
   );

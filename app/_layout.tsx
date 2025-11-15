@@ -4,12 +4,13 @@ import { View, Text, ActivityIndicator, StyleSheet } from 'react-native';
 import { initializeBibleData, checkDataStatus } from '../src/lib/database/data-loader';
 import { ThemeProvider } from '../src/hooks/useTheme';
 import { BibleVersionProvider } from '../src/hooks/useBibleVersion';
-import { LanguageProvider } from '../src/hooks/useLanguage';
+import { LanguageProvider, useLanguage } from '../src/hooks/useLanguage';
 import { ServicesProvider } from '../src/context/ServicesContext';
 import { AchievementNotifications } from '../src/components/AchievementNotifications';
 import bibleDB from '../src/lib/database';
 
 function AppContent() {
+  const { t } = useLanguage();
   const [isLoading, setIsLoading] = useState(true);
   const [loadingProgress, setLoadingProgress] = useState({ loaded: 0, total: 0 });
   const [error, setError] = useState<string | null>(null);
@@ -41,7 +42,7 @@ function AppContent() {
     return (
       <View style={styles.loadingContainer}>
         <Text style={styles.appName}>Eternal Bible</Text>
-        <Text style={styles.subtitle}>La Palabra de Dios</Text>
+        <Text style={styles.subtitle}>{t.app.subtitle}</Text>
 
         <View style={styles.progressContainer}>
           <ActivityIndicator size="large" color="#4A90E2" />
@@ -49,10 +50,10 @@ function AppContent() {
           {loadingProgress.total > 0 && (
             <View style={styles.progressTextContainer}>
               <Text style={styles.progressText}>
-                Cargando la Biblia...
+                {t.app.loadingBible}
               </Text>
               <Text style={styles.progressNumbers}>
-                {loadingProgress.loaded.toLocaleString()} / {loadingProgress.total.toLocaleString()} versículos
+                {loadingProgress.loaded.toLocaleString()} / {loadingProgress.total.toLocaleString()} {t.app.verses}
               </Text>
               <View style={styles.progressBar}>
                 <View
@@ -66,14 +67,12 @@ function AppContent() {
           )}
 
           {loadingProgress.total === 0 && (
-            <Text style={styles.progressText}>Preparando...</Text>
+            <Text style={styles.progressText}>{t.app.preparing}</Text>
           )}
         </View>
 
         <Text style={styles.verse}>
-          "Lámpara es a mis pies tu palabra, {'\n'}
-          y lumbrera a mi camino" {'\n'}
-          - Salmos 119:105
+          {t.app.loadingVerse}
         </Text>
       </View>
     );
@@ -82,10 +81,10 @@ function AppContent() {
   if (error) {
     return (
       <View style={styles.errorContainer}>
-        <Text style={styles.errorTitle}>Error</Text>
+        <Text style={styles.errorTitle}>{t.error}</Text>
         <Text style={styles.errorText}>{error}</Text>
         <Text style={styles.errorHint}>
-          Por favor, cierra y vuelve a abrir la aplicación.
+          {t.app.errorHint}
         </Text>
       </View>
     );
