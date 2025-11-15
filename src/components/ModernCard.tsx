@@ -15,7 +15,7 @@ import {
   Platform,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
-import { BlurView } from 'expo-blur';
+// import { BlurView } from 'expo-blur'; // Commented out temporarily
 import * as Haptics from 'expo-haptics';
 import { spacing, borderRadius, shadows } from '../styles/designTokens';
 import { useTheme } from '../hooks/useTheme';
@@ -142,19 +142,20 @@ export const ModernCard: React.FC<ModernCardProps> = ({
       );
     }
 
-    if (variant === 'glass' && useBlur) {
-      return (
-        <View style={[styles.glassContainer, style]}>
-          <BlurView
-            intensity={80}
-            tint={isDark ? 'dark' : 'light'}
-            style={[getCardStyle(), styles.blurView]}
-          >
-            {children}
-          </BlurView>
-        </View>
-      );
-    }
+    // Temporarily disabled BlurView until expo-blur is installed
+    // if (variant === 'glass' && useBlur) {
+    //   return (
+    //     <View style={[styles.glassContainer, style]}>
+    //       <BlurView
+    //         intensity={80}
+    //         tint={isDark ? 'dark' : 'light'}
+    //         style={[getCardStyle(), styles.blurView]}
+    //       >
+    //         {children}
+    //       </BlurView>
+    //     </View>
+    //   );
+    // }
 
     return <View style={[getCardStyle(), style]}>{children}</View>;
   };

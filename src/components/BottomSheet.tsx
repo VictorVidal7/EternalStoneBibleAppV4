@@ -16,7 +16,7 @@ import {
   PanResponder,
   Platform,
 } from 'react-native';
-import { BlurView } from 'expo-blur';
+// import { BlurView } from 'expo-blur'; // Commented out temporarily
 import { spacing, borderRadius, shadows } from '../styles/designTokens';
 import { useTheme } from '../hooks/useTheme';
 
@@ -161,7 +161,8 @@ export const BottomSheet: React.FC<BottomSheetProps> = ({
         ]}
         {...(enableGestureDismiss ? panResponder.panHandlers : {})}
       >
-        {useBlur ? (
+        {/* Temporarily disabled BlurView until expo-blur is installed */}
+        {/* {useBlur ? (
           <BlurView
             intensity={80}
             tint={isDark ? 'dark' : 'light'}
@@ -177,7 +178,6 @@ export const BottomSheet: React.FC<BottomSheetProps> = ({
                 },
               ]}
             >
-              {/* Handle */}
               <View style={styles.handleContainer}>
                 <View
                   style={[
@@ -186,12 +186,10 @@ export const BottomSheet: React.FC<BottomSheetProps> = ({
                   ]}
                 />
               </View>
-
-              {/* Content */}
               <View style={styles.content}>{children}</View>
             </View>
           </BlurView>
-        ) : (
+        ) : ( */}
           <View
             style={[
               styles.sheet,
@@ -211,7 +209,7 @@ export const BottomSheet: React.FC<BottomSheetProps> = ({
             {/* Content */}
             <View style={styles.content}>{children}</View>
           </View>
-        )}
+        {/* )} */}
       </Animated.View>
     </Modal>
   );
