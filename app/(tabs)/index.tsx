@@ -36,7 +36,7 @@ import { useLanguage } from '../../src/hooks/useLanguage';
 // Componentes modernos
 import ModernCard from '../../src/components/ModernCard';
 import ProgressIndicator from '../../src/components/ProgressIndicator';
-import { SkeletonLoader } from '../../src/components/SkeletonLoader';
+import Skeleton from '../../src/components/SkeletonLoader';
 
 // Design tokens
 import {
@@ -133,12 +133,12 @@ export default function HomeScreen() {
         style={[styles.container, { backgroundColor: colors.background }]}
         contentContainerStyle={styles.contentContainer}
       >
-        <SkeletonLoader variant="rectangular" width="100%" height={200} />
+        <Skeleton variant="rectangular" width="100%" height={200} />
         <View style={{ marginTop: spacing.lg }}>
-          <SkeletonLoader variant="rectangular" width="100%" height={150} />
+          <Skeleton variant="rectangular" width="100%" height={150} />
         </View>
         <View style={{ marginTop: spacing.lg }}>
-          <SkeletonLoader variant="rectangular" width="100%" height={150} />
+          <Skeleton variant="rectangular" width="100%" height={150} />
         </View>
       </ScrollView>
     );
