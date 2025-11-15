@@ -285,6 +285,7 @@ interface BookCardProps {
 
 const BookCard: React.FC<BookCardProps> = ({ book, index, onPress }) => {
   const { colors } = useTheme();
+  const { t } = useLanguage();
   const scaleAnim = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
