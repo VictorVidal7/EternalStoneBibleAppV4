@@ -6,10 +6,11 @@ import bibleDB from '../../src/lib/database';
 import { Note } from '../../src/types/bible';
 import { useTheme } from '../../src/hooks/useTheme';
 import { useLanguage } from '../../src/hooks/useLanguage';
+import { IllustratedEmptyState } from '../../src/components/IllustratedEmptyState';
 
 export default function NotesScreen() {
   const router = useRouter();
-  const { colors } = useTheme();
+  const { colors, isDark } = useTheme();
   const { t } = useLanguage();
   const [notes, setNotes] = useState<Note[]>([]);
   const [loading, setLoading] = useState(true);
@@ -108,13 +109,12 @@ export default function NotesScreen() {
         )}
         contentContainerStyle={styles.listContent}
         ListEmptyComponent={
-          <View style={styles.emptyContainer}>
-            <Ionicons name="create-outline" size={80} color={colors.border} />
-            <Text style={[styles.emptyTitle, { color: colors.text }]}>No tienes notas</Text>
-            <Text style={[styles.emptySubtitle, { color: colors.textSecondary }]}>
-              Agrega notas personales mientras lees la Biblia
-            </Text>
-          </View>
+          <IllustratedEmptyState
+            type="no-notes"
+            colors={colors}
+            isDark={isDark}
+            onAction={() => router.push('/(tabs)/bible' as any)}
+          />
         }
       />
     </View>

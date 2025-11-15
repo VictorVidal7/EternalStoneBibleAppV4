@@ -7,10 +7,11 @@ import { Bookmark } from '../../src/types/bible';
 import { useCallback } from 'react';
 import { useTheme } from '../../src/hooks/useTheme';
 import { useLanguage } from '../../src/hooks/useLanguage';
+import { IllustratedEmptyState } from '../../src/components/IllustratedEmptyState';
 
 export default function BookmarksScreen() {
   const router = useRouter();
-  const { colors } = useTheme();
+  const { colors, isDark } = useTheme();
   const { t } = useLanguage();
   const [bookmarks, setBookmarks] = useState<Bookmark[]>([]);
   const [loading, setLoading] = useState(true);
@@ -103,13 +104,12 @@ export default function BookmarksScreen() {
         )}
         contentContainerStyle={styles.listContent}
         ListEmptyComponent={
-          <View style={styles.emptyContainer}>
-            <Ionicons name="bookmark-outline" size={80} color={colors.border} />
-            <Text style={[styles.emptyTitle, { color: colors.text }]}>{t.bookmarks.empty}</Text>
-            <Text style={[styles.emptySubtitle, { color: colors.textSecondary }]}>
-              {t.bookmarks.emptyHint}
-            </Text>
-          </View>
+          <IllustratedEmptyState
+            type="no-bookmarks"
+            colors={colors}
+            isDark={isDark}
+            onAction={() => router.push('/(tabs)/bible' as any)}
+          />
         }
       />
     </View>
