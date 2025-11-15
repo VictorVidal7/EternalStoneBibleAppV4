@@ -34,8 +34,8 @@ import { useServices } from '../../src/context/ServicesContext';
 import { useLanguage } from '../../src/hooks/useLanguage';
 
 // Componentes modernos
-import { ModernCard } from '../../src/components/ModernCard';
-import { ProgressIndicator } from '../../src/components/ProgressIndicator';
+import ModernCard from '../../src/components/ModernCard';
+import ProgressIndicator from '../../src/components/ProgressIndicator';
 import { SkeletonLoader } from '../../src/components/SkeletonLoader';
 
 // Design tokens
