@@ -20,11 +20,13 @@ import { BibleVerse } from '../../../src/types/bible';
 import { getBookByName } from '../../../src/constants/bible';
 import { useTheme } from '../../../src/hooks/useTheme';
 import { useBibleVersion } from '../../../src/hooks/useBibleVersion';
+import { useLanguage } from '../../../src/hooks/useLanguage';
 
 export default function VerseReadingScreen() {
   const router = useRouter();
   const { colors, isDark } = useTheme();
   const { selectedVersion } = useBibleVersion();
+  const { t } = useLanguage();
   const { book, chapter, verse: highlightVerse } = useLocalSearchParams<{
     book: string;
     chapter: string;
