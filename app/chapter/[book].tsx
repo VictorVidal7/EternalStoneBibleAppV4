@@ -51,13 +51,20 @@ export default function ChapterSelectionScreen() {
   const [isLoading, setIsLoading] = useState(true);
 
   // Manejar el parámetro book (puede venir como string o array)
-  const book = typeof params.book === 'string' ? params.book : (params.book?.[0] || '');
+  const rawBook = params.book;
+  const book = typeof rawBook === 'string' ? rawBook : (rawBook?.[0] || '');
+
+  console.log('🔍 ChapterSelectionScreen - Raw params:', params);
+  console.log('🔍 ChapterSelectionScreen - Raw book:', rawBook);
+  console.log('🔍 ChapterSelectionScreen - Processed book:', book);
 
   // Animaciones
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const slideAnim = useRef(new Animated.Value(-50)).current;
 
   const bookInfo = getBookByName(book);
+
+  console.log('🔍 ChapterSelectionScreen - BookInfo:', bookInfo ? `Found: ${bookInfo.name} (${bookInfo.chapters} chapters)` : 'NOT FOUND');
 
   /**
    * Generar lista de capítulos
@@ -134,11 +141,81 @@ export default function ChapterSelectionScreen() {
     [colors, isDark, navigateToVerse, bookInfo, t]
   );
 
+  // Mostrar error si no se encuentra el libro
   if (!bookInfo) {
     return (
-      <View style={[styles.container, { backgroundColor: colors.background }]}>
-        <Text style={{ color: colors.text }}>Libro no encontrado</Text>
-      </View>
+      <>
+        <Stack.Screen
+          options={{
+            headerShown: false,
+          }}
+        />
+        <View style={[styles.container, styles.errorContainer, { backgroundColor: colors.background }]}>
+          <LinearGradient
+            colors={isDark ? ['#ef4444', '#dc2626'] : ['#f87171', '#ef4444']}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 1 }}
+            style={styles.errorHeader}
+          >
+            <Ionicons name="alert-circle" size={64} color="#ffffff" />
+            <Text style={styles.errorTitle}>Libro no encontrado</Text>
+            <Text style={styles.errorSubtitle}>
+              No se pudo encontrar: "{book}"
+            </Text>
+          </LinearGradient>
+
+          <View style={styles.errorDetails}>
+            <Text style={[styles.errorLabel, { color: colors.textSecondary }]}>
+              Parámetro recibido:
+            </Text>
+            <Text style={[styles.errorValue, { color: colors.text }]}>
+              {JSON.stringify(params, null, 2)}
+            </Text>
+
+            <TouchableOpacity
+              style={[styles.backButton, { backgroundColor: colors.primary }]}
+              onPress={() => router.back()}
+            >
+              <Ionicons name="arrow-back" size={20} color="#ffffff" />
+              <Text style={styles.backButtonText}>Volver</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </>
+    );
+  }
+
+  // Mostrar indicador de carga
+  if (isLoading) {
+    return (
+      <>
+        <Stack.Screen
+          options={{
+            headerShown: false,
+          }}
+        />
+        <View style={[styles.container, styles.loadingContainer, { backgroundColor: colors.background }]}>
+          <Animated.View style={{ opacity: fadeAnim }}>
+            <LinearGradient
+              colors={isDark ? ['#667eea', '#764ba2'] : ['#667eea', '#764ba2']}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 1 }}
+              style={styles.loadingCard}
+            >
+              <Ionicons name="book" size={48} color="#ffffff" />
+              <Text style={styles.loadingTitle}>{bookInfo.name}</Text>
+              <Text style={styles.loadingSubtitle}>
+                Cargando {bookInfo.chapters} capítulos...
+              </Text>
+              <View style={styles.loadingDots}>
+                <View style={[styles.dot, styles.dot1]} />
+                <View style={[styles.dot, styles.dot2]} />
+                <View style={[styles.dot, styles.dot3]} />
+              </View>
+            </LinearGradient>
+          </Animated.View>
+        </View>
+      </>
     );
   }
 
@@ -380,6 +457,110 @@ ChapterCard.displayName = 'ChapterCard';
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+  },
+
+  // Error State
+  errorContainer: {
+    justifyContent: 'center',
+    paddingHorizontal: spacing.xl,
+  },
+  errorHeader: {
+    padding: spacing.xl,
+    borderRadius: borderRadius.xl,
+    alignItems: 'center',
+    marginBottom: spacing.xl,
+    ...shadows.lg,
+  },
+  errorTitle: {
+    fontSize: fontSize['2xl'],
+    fontWeight: '700',
+    color: '#ffffff',
+    marginTop: spacing.base,
+    textAlign: 'center',
+  },
+  errorSubtitle: {
+    fontSize: fontSize.base,
+    color: 'rgba(255,255,255,0.9)',
+    marginTop: spacing.xs,
+    textAlign: 'center',
+  },
+  errorDetails: {
+    backgroundColor: 'rgba(239, 68, 68, 0.1)',
+    padding: spacing.base,
+    borderRadius: borderRadius.lg,
+    borderWidth: 1,
+    borderColor: 'rgba(239, 68, 68, 0.3)',
+  },
+  errorLabel: {
+    fontSize: fontSize.sm,
+    fontWeight: '600',
+    marginBottom: spacing.xs,
+  },
+  errorValue: {
+    fontSize: fontSize.xs,
+    fontFamily: Platform.OS === 'ios' ? 'Menlo' : 'monospace',
+    marginBottom: spacing.base,
+  },
+  backButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: spacing.base,
+    borderRadius: borderRadius.lg,
+    marginTop: spacing.base,
+    gap: spacing.xs,
+  },
+  backButtonText: {
+    fontSize: fontSize.base,
+    fontWeight: '600',
+    color: '#ffffff',
+  },
+
+  // Loading State
+  loadingContainer: {
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: spacing.xl,
+  },
+  loadingCard: {
+    padding: spacing['2xl'],
+    borderRadius: borderRadius.xl,
+    alignItems: 'center',
+    width: SCREEN_WIDTH - spacing.xl * 2,
+    ...shadows.xl,
+  },
+  loadingTitle: {
+    fontSize: fontSize['2xl'],
+    fontWeight: '700',
+    color: '#ffffff',
+    marginTop: spacing.base,
+    textAlign: 'center',
+  },
+  loadingSubtitle: {
+    fontSize: fontSize.base,
+    color: 'rgba(255,255,255,0.9)',
+    marginTop: spacing.xs,
+    textAlign: 'center',
+  },
+  loadingDots: {
+    flexDirection: 'row',
+    gap: spacing.sm,
+    marginTop: spacing.lg,
+  },
+  dot: {
+    width: 12,
+    height: 12,
+    borderRadius: 6,
+    backgroundColor: '#ffffff',
+  },
+  dot1: {
+    opacity: 0.3,
+  },
+  dot2: {
+    opacity: 0.6,
+  },
+  dot3: {
+    opacity: 0.9,
   },
 
   // Header
