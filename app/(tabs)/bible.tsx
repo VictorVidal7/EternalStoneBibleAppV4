@@ -48,7 +48,7 @@ interface BibleBook {
 
 export default function BibleScreen() {
   const router = useRouter();
-  const { theme } = useTheme();
+  const { colors, isDark } = useTheme();
   const { t } = useLanguage();
 
   const [searchQuery, setSearchQuery] = useState('');
@@ -100,7 +100,7 @@ export default function BibleScreen() {
   }
 
   return (
-    <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
+    <View style={[styles.container, { backgroundColor: colors.background }]}>
       {/* Header con gradiente */}
       <Animated.View
         style={{
@@ -117,7 +117,7 @@ export default function BibleScreen() {
       >
         <LinearGradient
           colors={
-            theme.isDark
+            isDark
               ? ['#667eea', '#764ba2']
               : ['#667eea', '#764ba2']
           }
@@ -172,8 +172,8 @@ export default function BibleScreen() {
           style={[
             styles.searchBar,
             {
-              backgroundColor: theme.colors.card,
-              borderColor: theme.colors.border,
+              backgroundColor: colors.card,
+              borderColor: colors.border,
               ...shadows.md,
             },
           ]}
@@ -181,13 +181,13 @@ export default function BibleScreen() {
           <Ionicons
             name="search"
             size={20}
-            color={theme.colors.textSecondary}
+            color={colors.textSecondary}
             style={styles.searchIcon}
           />
           <TextInput
-            style={[styles.searchInput, { color: theme.colors.text }]}
+            style={[styles.searchInput, { color: colors.text }]}
             placeholder="Buscar libro..."
-            placeholderTextColor={theme.colors.textTertiary}
+            placeholderTextColor={colors.textTertiary}
             value={searchQuery}
             onChangeText={setSearchQuery}
             returnKeyType="search"
@@ -200,7 +200,7 @@ export default function BibleScreen() {
               <Ionicons
                 name="close-circle"
                 size={20}
-                color={theme.colors.textSecondary}
+                color={colors.textSecondary}
               />
             </TouchableOpacity>
           )}
@@ -284,7 +284,7 @@ interface BookCardProps {
 }
 
 const BookCard: React.FC<BookCardProps> = ({ book, index, onPress }) => {
-  const { theme } = useTheme();
+  const { colors } = useTheme();
   const scaleAnim = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
@@ -310,7 +310,7 @@ const BookCard: React.FC<BookCardProps> = ({ book, index, onPress }) => {
         style={[
           styles.bookCard,
           {
-            backgroundColor: theme.colors.card,
+            backgroundColor: colors.card,
             ...shadows.sm,
           },
         ]}
@@ -330,16 +330,16 @@ const BookCard: React.FC<BookCardProps> = ({ book, index, onPress }) => {
 
         {/* Book info */}
         <View style={styles.bookInfo}>
-          <Text style={[styles.bookName, { color: theme.colors.text }]}>
+          <Text style={[styles.bookName, { color: colors.text }]}>
             {book.name}
           </Text>
           <View style={styles.bookMeta}>
             <Ionicons
               name="document-text-outline"
               size={14}
-              color={theme.colors.textSecondary}
+              color={colors.textSecondary}
             />
-            <Text style={[styles.bookChapters, { color: theme.colors.textSecondary }]}>
+            <Text style={[styles.bookChapters, { color: colors.textSecondary }]}>
               {book.chapters} {book.chapters === 1 ? 'capítulo' : 'capítulos'}
             </Text>
           </View>
@@ -361,15 +361,15 @@ interface EmptyStateProps {
 }
 
 const EmptyState: React.FC<EmptyStateProps> = ({ searchQuery }) => {
-  const { theme } = useTheme();
+  const { colors } = useTheme();
 
   return (
     <View style={styles.emptyContainer}>
-      <Ionicons name="search-outline" size={64} color={theme.colors.textTertiary} />
-      <Text style={[styles.emptyTitle, { color: theme.colors.text }]}>
+      <Ionicons name="search-outline" size={64} color={colors.textTertiary} />
+      <Text style={[styles.emptyTitle, { color: colors.text }]}>
         No se encontraron resultados
       </Text>
-      <Text style={[styles.emptyText, { color: theme.colors.textSecondary }]}>
+      <Text style={[styles.emptyText, { color: colors.textSecondary }]}>
         No hay libros que coincidan con "{searchQuery}"
       </Text>
     </View>

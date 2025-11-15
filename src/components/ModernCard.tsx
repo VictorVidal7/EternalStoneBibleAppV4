@@ -54,7 +54,7 @@ export const ModernCard: React.FC<ModernCardProps> = ({
   borderWidth = 1,
   useBlur = Platform.OS === 'ios',
 }) => {
-  const { theme } = useTheme();
+  const { colors, isDark } = useTheme();
 
   const paddingMap = {
     none: 0,
@@ -90,7 +90,7 @@ export const ModernCard: React.FC<ModernCardProps> = ({
       case 'elevated':
         return {
           ...baseStyle,
-          backgroundColor: theme.colors.card,
+          backgroundColor: colors.card,
           ...shadows[elevation],
         };
 
@@ -99,21 +99,21 @@ export const ModernCard: React.FC<ModernCardProps> = ({
           ...baseStyle,
           backgroundColor: 'transparent',
           borderWidth: borderWidth,
-          borderColor: borderColor || theme.colors.border,
+          borderColor: borderColor || colors.border,
         };
 
       case 'filled':
         return {
           ...baseStyle,
-          backgroundColor: theme.colors.surface,
+          backgroundColor: colors.surface,
         };
 
       case 'glass':
         return {
           ...baseStyle,
-          backgroundColor: theme.colors.glass,
+          backgroundColor: colors.glass,
           borderWidth: 1,
-          borderColor: theme.colors.glassBorder,
+          borderColor: colors.glassBorder,
           ...shadows.sm,
         };
 
@@ -147,7 +147,7 @@ export const ModernCard: React.FC<ModernCardProps> = ({
         <View style={[styles.glassContainer, style]}>
           <BlurView
             intensity={80}
-            tint={theme.isDark ? 'dark' : 'light'}
+            tint={isDark ? 'dark' : 'light'}
             style={[getCardStyle(), styles.blurView]}
           >
             {children}
@@ -195,18 +195,18 @@ export const CardHeader: React.FC<CardHeaderProps> = ({
   action,
   style,
 }) => {
-  const { theme } = useTheme();
+  const { colors, isDark } = useTheme();
 
   return (
     <View style={[styles.header, style]}>
       <View style={styles.headerContent}>
         {icon && <View style={styles.headerIcon}>{icon}</View>}
         <View style={styles.headerText}>
-          <Text style={[styles.title, { color: theme.colors.text }]}>
+          <Text style={[styles.title, { color: colors.text }]}>
             {title}
           </Text>
           {subtitle && (
-            <Text style={[styles.subtitle, { color: theme.colors.textSecondary }]}>
+            <Text style={[styles.subtitle, { color: colors.textSecondary }]}>
               {subtitle}
             </Text>
           )}
@@ -225,13 +225,13 @@ interface CardFooterProps {
 }
 
 export const CardFooter: React.FC<CardFooterProps> = ({ children, style }) => {
-  const { theme } = useTheme();
+  const { colors, isDark } = useTheme();
 
   return (
     <View
       style={[
         styles.footer,
-        { borderTopColor: theme.colors.border },
+        { borderTopColor: colors.border },
         style,
       ]}
     >
@@ -253,7 +253,7 @@ export const CardSection: React.FC<CardSectionProps> = ({
   divider = false,
   style,
 }) => {
-  const { theme } = useTheme();
+  const { colors, isDark } = useTheme();
 
   return (
     <View
@@ -261,7 +261,7 @@ export const CardSection: React.FC<CardSectionProps> = ({
         styles.section,
         divider && {
           borderBottomWidth: 1,
-          borderBottomColor: theme.colors.divider,
+          borderBottomColor: colors.divider,
         },
         style,
       ]}

@@ -44,7 +44,7 @@ export const BottomSheet: React.FC<BottomSheetProps> = ({
   backdropOpacity = 0.5,
   useBlur = Platform.OS === 'ios',
 }) => {
-  const { theme } = useTheme();
+  const { colors, isDark } = useTheme();
   const translateY = useRef(new Animated.Value(SCREEN_HEIGHT)).current;
   const backdropOpacityAnim = useRef(new Animated.Value(0)).current;
 
@@ -140,7 +140,7 @@ export const BottomSheet: React.FC<BottomSheetProps> = ({
           style={[
             styles.backdropOverlay,
             {
-              backgroundColor: theme.colors.overlay,
+              backgroundColor: colors.overlay,
               opacity: backdropOpacityAnim.interpolate({
                 inputRange: [0, 1],
                 outputRange: [0, backdropOpacity],
@@ -164,15 +164,15 @@ export const BottomSheet: React.FC<BottomSheetProps> = ({
         {useBlur ? (
           <BlurView
             intensity={80}
-            tint={theme.isDark ? 'dark' : 'light'}
+            tint={isDark ? 'dark' : 'light'}
             style={styles.blurContainer}
           >
             <View
               style={[
                 styles.sheet,
                 {
-                  backgroundColor: theme.isDark
-                    ? theme.colors.glass
+                  backgroundColor: isDark
+                    ? colors.glass
                     : 'rgba(255, 255, 255, 0.95)',
                 },
               ]}
@@ -182,7 +182,7 @@ export const BottomSheet: React.FC<BottomSheetProps> = ({
                 <View
                   style={[
                     styles.handle,
-                    { backgroundColor: theme.colors.border },
+                    { backgroundColor: colors.border },
                   ]}
                 />
               </View>
@@ -196,7 +196,7 @@ export const BottomSheet: React.FC<BottomSheetProps> = ({
             style={[
               styles.sheet,
               {
-                backgroundColor: theme.colors.card,
+                backgroundColor: colors.card,
                 ...shadows.xl,
               },
             ]}
@@ -204,7 +204,7 @@ export const BottomSheet: React.FC<BottomSheetProps> = ({
             {/* Handle */}
             <View style={styles.handleContainer}>
               <View
-                style={[styles.handle, { backgroundColor: theme.colors.border }]}
+                style={[styles.handle, { backgroundColor: colors.border }]}
               />
             </View>
 

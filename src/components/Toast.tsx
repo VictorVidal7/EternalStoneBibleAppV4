@@ -56,7 +56,7 @@ export const Toast: React.FC<ToastProps> = ({
   icon,
   useBlur = Platform.OS === 'ios',
 }) => {
-  const { theme } = useTheme();
+  const { colors, isDark } = useTheme();
   const translateY = useRef(new Animated.Value(position === 'top' ? -100 : 100)).current;
   const opacity = useRef(new Animated.Value(0)).current;
   const timeoutRef = useRef<NodeJS.Timeout>();
@@ -65,33 +65,33 @@ export const Toast: React.FC<ToastProps> = ({
     switch (variant) {
       case 'success':
         return {
-          backgroundColor: theme.colors.success,
+          backgroundColor: colors.success,
           iconColor: '#ffffff',
           textColor: '#ffffff',
         };
       case 'error':
         return {
-          backgroundColor: theme.colors.error,
+          backgroundColor: colors.error,
           iconColor: '#ffffff',
           textColor: '#ffffff',
         };
       case 'warning':
         return {
-          backgroundColor: theme.colors.warning,
+          backgroundColor: colors.warning,
           iconColor: '#ffffff',
           textColor: '#ffffff',
         };
       case 'info':
         return {
-          backgroundColor: theme.colors.info,
+          backgroundColor: colors.info,
           iconColor: '#ffffff',
           textColor: '#ffffff',
         };
       default:
         return {
-          backgroundColor: theme.colors.card,
-          iconColor: theme.colors.text,
-          textColor: theme.colors.text,
+          backgroundColor: colors.card,
+          iconColor: colors.text,
+          textColor: colors.text,
         };
     }
   };
@@ -222,7 +222,7 @@ export const Toast: React.FC<ToastProps> = ({
       {useBlur && variant === 'default' ? (
         <BlurView
           intensity={80}
-          tint={theme.isDark ? 'dark' : 'light'}
+          tint={isDark ? 'dark' : 'light'}
           style={styles.blurContainer}
         >
           {ToastContent}

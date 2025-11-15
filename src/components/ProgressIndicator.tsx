@@ -50,7 +50,7 @@ export const LinearProgress: React.FC<
   animated = true,
   style,
 }) => {
-  const { theme } = useTheme();
+  const { colors, isDark } = useTheme();
   const animatedProgress = useRef(new Animated.Value(0)).current;
 
   const heightMap = {
@@ -60,8 +60,8 @@ export const LinearProgress: React.FC<
   };
 
   const height = heightMap[size];
-  const progressColor = color || theme.colors.primary;
-  const bgColor = backgroundColor || theme.colors.disabled;
+  const progressColor = color || colors.primary;
+  const bgColor = backgroundColor || colors.disabled;
 
   useEffect(() => {
     if (animated) {
@@ -84,10 +84,10 @@ export const LinearProgress: React.FC<
     <View style={[styles.linearContainer, style]}>
       {showLabel && (
         <View style={styles.labelContainer}>
-          <Text style={[styles.label, { color: theme.colors.textSecondary }]}>
+          <Text style={[styles.label, { color: colors.textSecondary }]}>
             {label || 'Progress'}
           </Text>
-          <Text style={[styles.percentage, { color: theme.colors.text }]}>
+          <Text style={[styles.percentage, { color: colors.text }]}>
             {Math.round(progress)}%
           </Text>
         </View>
@@ -106,7 +106,7 @@ export const LinearProgress: React.FC<
         <Animated.View style={{ width }}>
           {useGradient ? (
             <LinearGradient
-              colors={[progressColor, theme.colors.primaryDark]}
+              colors={[progressColor, colors.primaryDark]}
               start={{ x: 0, y: 0 }}
               end={{ x: 1, y: 0 }}
               style={[
@@ -148,7 +148,7 @@ export const CircularProgress: React.FC<
   thickness = 8,
   style,
 }) => {
-  const { theme } = useTheme();
+  const { colors, isDark } = useTheme();
 
   const sizeMap = {
     small: 60,
@@ -157,8 +157,8 @@ export const CircularProgress: React.FC<
   };
 
   const circleSize = sizeMap[size];
-  const progressColor = color || theme.colors.primary;
-  const bgColor = backgroundColor || theme.colors.disabled;
+  const progressColor = color || colors.primary;
+  const bgColor = backgroundColor || colors.disabled;
 
   const radius = (circleSize - thickness) / 2;
   const circumference = 2 * Math.PI * radius;
@@ -199,7 +199,7 @@ export const CircularProgress: React.FC<
       {/* Center Label */}
       {showLabel && (
         <View style={styles.circularLabel}>
-          <Text style={[styles.circularPercentage, { color: theme.colors.text }]}>
+          <Text style={[styles.circularPercentage, { color: colors.text }]}>
             {Math.round(progress)}%
           </Text>
         </View>
@@ -223,7 +223,7 @@ export const RingProgress: React.FC<
   thickness = 12,
   style,
 }) => {
-  const { theme } = useTheme();
+  const { colors, isDark } = useTheme();
 
   const sizeMap = {
     small: 80,
@@ -232,7 +232,7 @@ export const RingProgress: React.FC<
   };
 
   const circleSize = sizeMap[size];
-  const progressColor = color || theme.colors.primary;
+  const progressColor = color || colors.primary;
 
   return (
     <View
@@ -253,8 +253,8 @@ export const RingProgress: React.FC<
             width: circleSize,
             height: circleSize,
             borderRadius: circleSize / 2,
-            backgroundColor: theme.colors.glass,
-            borderColor: theme.colors.glassBorder,
+            backgroundColor: colors.glass,
+            borderColor: colors.glassBorder,
           },
         ]}
       >
@@ -263,7 +263,7 @@ export const RingProgress: React.FC<
             <Text
               style={[
                 styles.ringPercentage,
-                { color: theme.colors.text, fontSize: circleSize * 0.2 },
+                { color: colors.text, fontSize: circleSize * 0.2 },
               ]}
             >
               {Math.round(progress)}%
@@ -272,7 +272,7 @@ export const RingProgress: React.FC<
               <Text
                 style={[
                   styles.ringSubtext,
-                  { color: theme.colors.textSecondary, fontSize: circleSize * 0.1 },
+                  { color: colors.textSecondary, fontSize: circleSize * 0.1 },
                 ]}
               >
                 {label}

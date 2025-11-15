@@ -45,7 +45,7 @@ export const FloatingActionButton: React.FC<FloatingActionButtonProps> = ({
   useGradient = true,
   color,
 }) => {
-  const { theme } = useTheme();
+  const { colors, isDark } = useTheme();
   const [isExpanded, setIsExpanded] = useState(false);
   const rotation = useRef(new Animated.Value(0)).current;
   const scale = useRef(new Animated.Value(1)).current;
@@ -124,9 +124,9 @@ export const FloatingActionButton: React.FC<FloatingActionButtonProps> = ({
     }
   })();
 
-  const fabColor = color || theme.colors.primary;
+  const fabColor = color || colors.primary;
   const gradientColors = useGradient
-    ? [fabColor, theme.colors.primaryDark]
+    ? [fabColor, colors.primaryDark]
     : [fabColor, fabColor];
 
   return (
@@ -214,7 +214,7 @@ const ActionItem: React.FC<ActionItemProps> = ({
   total,
   isExpanded,
 }) => {
-  const { theme } = useTheme();
+  const { colors, isDark } = useTheme();
   const translateY = useRef(new Animated.Value(0)).current;
   const opacity = useRef(new Animated.Value(0)).current;
 
@@ -251,7 +251,7 @@ const ActionItem: React.FC<ActionItemProps> = ({
     }
   }, [isExpanded]);
 
-  const actionColor = color || theme.colors.secondary;
+  const actionColor = color || colors.secondary;
 
   return (
     <Animated.View

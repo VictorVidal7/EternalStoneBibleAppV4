@@ -51,7 +51,7 @@ const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
 export default function HomeScreen() {
   const router = useRouter();
-  const { theme } = useTheme();
+  const { colors, isDark } = useTheme();
   const { selectedVersion } = useBibleVersion();
   const { achievementService, initialized: servicesInitialized } = useServices();
   const { t } = useLanguage();
@@ -130,7 +130,7 @@ export default function HomeScreen() {
   if (loading) {
     return (
       <ScrollView
-        style={[styles.container, { backgroundColor: theme.colors.background }]}
+        style={[styles.container, { backgroundColor: colors.background }]}
         contentContainerStyle={styles.contentContainer}
       >
         <SkeletonLoader variant="rectangular" width="100%" height={200} />
@@ -146,7 +146,7 @@ export default function HomeScreen() {
 
   return (
     <ScrollView
-      style={[styles.container, { backgroundColor: theme.colors.background }]}
+      style={[styles.container, { backgroundColor: colors.background }]}
       contentContainerStyle={styles.contentContainer}
       showsVerticalScrollIndicator={false}
     >
@@ -160,7 +160,7 @@ export default function HomeScreen() {
         <View style={styles.heroContainer}>
           <LinearGradient
             colors={
-              theme.isDark
+              isDark
                 ? ['#667eea', '#764ba2', '#f093fb']
                 : ['#667eea', '#764ba2']
             }
@@ -233,24 +233,24 @@ export default function HomeScreen() {
                 <Ionicons name="sparkles" size={24} color="#fbbf24" />
               </View>
               <View>
-                <Text style={[styles.cardTitle, { color: theme.colors.text }]}>
+                <Text style={[styles.cardTitle, { color: colors.text }]}>
                   ✨ Versículo del Día
                 </Text>
-                <Text style={[styles.cardSubtitle, { color: theme.colors.textSecondary }]}>
+                <Text style={[styles.cardSubtitle, { color: colors.textSecondary }]}>
                   {dailyVerse.book} {dailyVerse.chapter}:{dailyVerse.verse}
                 </Text>
               </View>
             </View>
 
-            <Text style={[styles.verseText, { color: theme.colors.text }]}>
+            <Text style={[styles.verseText, { color: colors.text }]}>
               "{dailyVerse.text}"
             </Text>
 
             <View style={styles.cardAction}>
-              <Text style={[styles.actionText, { color: theme.colors.primary }]}>
+              <Text style={[styles.actionText, { color: colors.primary }]}>
                 Leer capítulo completo
               </Text>
-              <Ionicons name="arrow-forward" size={20} color={theme.colors.primary} />
+              <Ionicons name="arrow-forward" size={20} color={colors.primary} />
             </View>
           </ModernCard>
         </Animated.View>
@@ -262,7 +262,7 @@ export default function HomeScreen() {
           <ModernCard
             variant="gradient"
             gradient={
-              theme.isDark
+              isDark
                 ? ['#10b981', '#059669']
                 : ['#34d399', '#10b981']
             }
@@ -300,10 +300,10 @@ export default function HomeScreen() {
       {/* QUICK ACCESS - Grid moderno */}
       <Animated.View style={{ opacity: fadeAnim }}>
         <View style={styles.sectionHeader}>
-          <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>
+          <Text style={[styles.sectionTitle, { color: colors.text }]}>
             Acceso Rápido
           </Text>
-          <Ionicons name="flash" size={20} color={theme.colors.warning} />
+          <Ionicons name="flash" size={20} color={colors.warning} />
         </View>
 
         <View style={styles.quickGrid}>
@@ -321,10 +321,10 @@ export default function HomeScreen() {
       {/* READING PLANS - Horizontal scroll con cards modernos */}
       <Animated.View style={{ opacity: fadeAnim }}>
         <View style={styles.sectionHeader}>
-          <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>
+          <Text style={[styles.sectionTitle, { color: colors.text }]}>
             Planes de Lectura
           </Text>
-          <Ionicons name="calendar" size={20} color={theme.colors.secondary} />
+          <Ionicons name="calendar" size={20} color={colors.secondary} />
         </View>
 
         <ScrollView
@@ -348,10 +348,10 @@ export default function HomeScreen() {
 
       {/* FOOTER */}
       <View style={styles.footer}>
-        <Text style={[styles.footerText, { color: theme.colors.textTertiary }]}>
+        <Text style={[styles.footerText, { color: colors.textTertiary }]}>
           "Lámpara es a mis pies tu palabra, y lumbrera a mi camino."
         </Text>
-        <Text style={[styles.footerReference, { color: theme.colors.textTertiary }]}>
+        <Text style={[styles.footerReference, { color: colors.textTertiary }]}>
           — Salmos 119:105
         </Text>
       </View>
@@ -376,7 +376,7 @@ const QuickAccessCard: React.FC<QuickAccessCardProps> = ({
   onPress,
   delay,
 }) => {
-  const { theme } = useTheme();
+  const { colors } = useTheme();
   const fadeIn = useRef(new Animated.Value(0)).current;
   const scale = useRef(new Animated.Value(0.9)).current;
 
@@ -416,7 +416,7 @@ const QuickAccessCard: React.FC<QuickAccessCardProps> = ({
         <View style={[styles.quickAccessIconContainer, { backgroundColor: color + '20' }]}>
           <Ionicons name={icon} size={32} color={color} />
         </View>
-        <Text style={[styles.quickAccessText, { color: theme.colors.text }]} numberOfLines={1}>
+        <Text style={[styles.quickAccessText, { color: colors.text }]} numberOfLines={1}>
           {name}
         </Text>
       </ModernCard>
@@ -432,7 +432,7 @@ interface ReadingPlanCardProps {
 }
 
 const ReadingPlanCard: React.FC<ReadingPlanCardProps> = ({ plan, onPress }) => {
-  const { theme } = useTheme();
+  const { colors } = useTheme();
 
   return (
     <ModernCard
@@ -445,15 +445,15 @@ const ReadingPlanCard: React.FC<ReadingPlanCardProps> = ({ plan, onPress }) => {
         <Ionicons name={plan.icon as any} size={28} color={plan.color} />
       </View>
 
-      <Text style={[styles.planName, { color: theme.colors.text }]} numberOfLines={2}>
+      <Text style={[styles.planName, { color: colors.text }]} numberOfLines={2}>
         {plan.name}
       </Text>
 
-      <Text style={[styles.planDuration, { color: theme.colors.textSecondary }]}>
+      <Text style={[styles.planDuration, { color: colors.textSecondary }]}>
         {plan.duration} días
       </Text>
 
-      <Text style={[styles.planDescription, { color: theme.colors.textTertiary }]} numberOfLines={2}>
+      <Text style={[styles.planDescription, { color: colors.textTertiary }]} numberOfLines={2}>
         {plan.description}
       </Text>
     </ModernCard>
