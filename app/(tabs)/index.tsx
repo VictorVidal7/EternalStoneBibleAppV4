@@ -433,6 +433,7 @@ interface ReadingPlanCardProps {
 
 const ReadingPlanCard: React.FC<ReadingPlanCardProps> = ({ plan, onPress }) => {
   const { colors } = useTheme();
+  const { t } = useLanguage();
 
   return (
     <ModernCard
