@@ -155,7 +155,7 @@ export const Toast: React.FC<ToastProps> = ({
 
   if (!visible) return null;
 
-  const colors = getVariantColors();
+  const variantColors = getVariantColors();
   const toastIcon = icon || ICONS[variant];
 
   const positionStyle =
@@ -169,18 +169,18 @@ export const Toast: React.FC<ToastProps> = ({
         styles.container,
         {
           backgroundColor:
-            variant === 'default' && !useBlur ? colors.backgroundColor : 'transparent',
-          ...(variant !== 'default' && { backgroundColor: colors.backgroundColor }),
+            variant === 'default' && !useBlur ? variantColors.backgroundColor : 'transparent',
+          ...(variant !== 'default' && { backgroundColor: variantColors.backgroundColor }),
           ...shadows.lg,
         },
       ]}
     >
       {/* Icon */}
-      <Ionicons name={toastIcon} size={24} color={colors.iconColor} />
+      <Ionicons name={toastIcon} size={24} color={variantColors.iconColor} />
 
       {/* Message */}
       <Text
-        style={[styles.message, { color: colors.textColor }]}
+        style={[styles.message, { color: variantColors.textColor }]}
         numberOfLines={2}
       >
         {message}
@@ -195,7 +195,7 @@ export const Toast: React.FC<ToastProps> = ({
           }}
           style={styles.actionButton}
         >
-          <Text style={[styles.actionText, { color: colors.textColor }]}>
+          <Text style={[styles.actionText, { color: variantColors.textColor }]}>
             {action.label}
           </Text>
         </TouchableOpacity>
@@ -203,7 +203,7 @@ export const Toast: React.FC<ToastProps> = ({
 
       {/* Close Button */}
       <TouchableOpacity onPress={hide} style={styles.closeButton}>
-        <Ionicons name="close" size={20} color={colors.iconColor} />
+        <Ionicons name="close" size={20} color={variantColors.iconColor} />
       </TouchableOpacity>
     </View>
   );
