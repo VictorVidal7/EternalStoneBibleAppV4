@@ -13,8 +13,8 @@ import {
   Animated,
   Dimensions,
   Platform,
+  FlatList,
 } from 'react-native';
-import { FlashList } from '@shopify/flash-list';
 import { useRouter, useLocalSearchParams, Stack } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
@@ -47,8 +47,11 @@ export default function ChapterSelectionScreen() {
   const router = useRouter();
   const { colors, isDark } = useTheme();
   const { t } = useLanguage();
-  const { book } = useLocalSearchParams<{ book: string }>();
+  const params = useLocalSearchParams<{ book: string }>();
   const [isLoading, setIsLoading] = useState(true);
+
+  // Manejar el parámetro book (puede venir como string o array)
+  const book = typeof params.book === 'string' ? params.book : (params.book?.[0] || '');
 
   // Animaciones
   const fadeAnim = useRef(new Animated.Value(0)).current;
@@ -60,21 +63,31 @@ export default function ChapterSelectionScreen() {
    * Generar lista de capítulos
    */
   const chapters = useMemo((): ChapterItem[] => {
-    if (!bookInfo) return [];
+    if (!bookInfo) {
+      console.log('📚 No bookInfo found for:', book);
+      return [];
+    }
 
-    return Array.from({ length: bookInfo.chapters }, (_, i) => ({
+    const chapterList = Array.from({ length: bookInfo.chapters }, (_, i) => ({
       chapter: i + 1,
       id: `chapter-${i + 1}`,
     }));
-  }, [bookInfo]);
+
+    console.log('📚 Generated chapters:', chapterList.length, 'for book:', bookInfo.name);
+    return chapterList;
+  }, [bookInfo, book]);
 
   useEffect(() => {
+    console.log('📚 ChapterScreen mounted with book:', book);
+    console.log('📚 BookInfo:', bookInfo);
+    console.log('📚 Chapters count:', chapters.length);
+
     const timer = setTimeout(() => {
       setIsLoading(false);
       startAnimations();
     }, 100);
     return () => clearTimeout(timer);
-  }, []);
+  }, [book, bookInfo, chapters]);
 
   const startAnimations = () => {
     Animated.parallel([
@@ -193,15 +206,29 @@ export default function ChapterSelectionScreen() {
 
         {/* Grid de capítulos */}
         <Animated.View style={[styles.listContainer, { opacity: fadeAnim }]}>
-          <FlashList
-            data={chapters}
-            renderItem={renderItem}
-            keyExtractor={(item) => item.id}
-            numColumns={CARDS_PER_ROW}
-            estimatedItemSize={CARD_SIZE + spacing.base}
-            showsVerticalScrollIndicator={false}
-            contentContainerStyle={styles.listContent}
-          />
+          {chapters.length > 0 ? (
+            <FlatList
+              data={chapters}
+              renderItem={renderItem}
+              keyExtractor={(item) => item.id}
+              numColumns={CARDS_PER_ROW}
+              showsVerticalScrollIndicator={false}
+              contentContainerStyle={styles.listContent}
+              initialNumToRender={15}
+              maxToRenderPerBatch={10}
+              windowSize={5}
+            />
+          ) : (
+            <View style={styles.emptyContainer}>
+              <Ionicons name="book-outline" size={64} color={colors.textTertiary} />
+              <Text style={[styles.emptyText, { color: colors.textSecondary }]}>
+                No se pudieron cargar los capítulos
+              </Text>
+              <Text style={[styles.emptySubtext, { color: colors.textTertiary }]}>
+                Libro: {book || 'No especificado'}
+              </Text>
+            </View>
+          )}
         </Animated.View>
       </View>
     </>
@@ -435,6 +462,24 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.lg,
     paddingTop: spacing.lg,
     paddingBottom: spacing.xl,
+  },
+  emptyContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: spacing.xl,
+    paddingVertical: spacing['2xl'],
+  },
+  emptyText: {
+    fontSize: fontSize.lg,
+    fontWeight: '600',
+    marginTop: spacing.base,
+    textAlign: 'center',
+  },
+  emptySubtext: {
+    fontSize: fontSize.sm,
+    marginTop: spacing.xs,
+    textAlign: 'center',
   },
 
   // Card
