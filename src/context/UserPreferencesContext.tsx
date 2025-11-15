@@ -116,127 +116,129 @@ export interface UserPreferencesProviderProps {
 }
 
 /**
- * Default color themes configuration
+ * 🎨 PREMIUM COLOR THEMES
+ * Paletas de colores profesionales y modernas optimizadas para legibilidad
+ * y experiencia visual impresionante
  */
 export const COLOR_THEMES: ColorThemes = {
   default: {
     light: {
-      primary: '#007AFF',
-      secondary: '#5856D6',
-      background: '#FFFFFF',
-      text: '#000000',
-      card: '#F2F2F7',
-      border: '#C7C7CC',
-      highlight: '#FFFF00',
+      primary: '#667eea', // Azul vibrante premium
+      secondary: '#764ba2', // Púrpura elegante
+      background: '#ffffff', // Blanco puro
+      text: '#1a202c', // Gris carbón profundo
+      card: '#f7fafc', // Gris muy claro
+      border: '#e2e8f0', // Borde suave
+      highlight: '#fef08a', // Amarillo brillante
     },
     dark: {
-      primary: '#0A84FF',
-      secondary: '#5E5CE6',
-      background: '#000000',
-      text: '#FFFFFF',
-      card: '#1C1C1E',
-      border: '#38383A',
-      highlight: '#FFFF00',
+      primary: '#8098fc', // Azul luminoso
+      secondary: '#9b6dd6', // Púrpura brillante
+      background: '#000000', // Negro puro OLED
+      text: '#f7fafc', // Blanco casi puro
+      card: '#1a1a1a', // Gris oscuro
+      border: '#2d3748', // Borde oscuro
+      highlight: '#fbbf24', // Amarillo dorado
     },
   },
   sepia: {
     light: {
-      primary: '#8B4513',
-      secondary: '#D2691E',
-      background: '#FFF8DC',
-      text: '#5D4037',
-      card: '#FAEBD7',
-      border: '#DEB887',
-      highlight: '#FFD700',
+      primary: '#92400e', // Marrón cálido
+      secondary: '#b45309', // Ámbar oscuro
+      background: '#fefce8', // Crema suave
+      text: '#451a03', // Marrón oscuro
+      card: '#fef3c7', // Crema dorado
+      border: '#fde68a', // Borde dorado
+      highlight: '#fbbf24', // Dorado brillante
     },
     dark: {
-      primary: '#D2691E',
-      secondary: '#8B4513',
-      background: '#5D4037',
-      text: '#FFF8DC',
-      card: '#3E2723',
-      border: '#8B4513',
-      highlight: '#FFD700',
+      primary: '#f59e0b', // Ámbar brillante
+      secondary: '#d97706', // Ámbar oscuro
+      background: '#1c1917', // Marrón muy oscuro
+      text: '#fef3c7', // Crema claro
+      card: '#292524', // Gris marrón
+      border: '#44403c', // Borde marrón
+      highlight: '#fbbf24', // Dorado
     },
   },
   green: {
     light: {
-      primary: '#4CAF50',
-      secondary: '#81C784',
-      background: '#E8F5E9',
-      text: '#1B5E20',
-      card: '#C8E6C9',
-      border: '#A5D6A7',
-      highlight: '#FFEB3B',
+      primary: '#059669', // Verde esmeralda
+      secondary: '#10b981', // Verde vibrante
+      background: '#f0fdf4', // Verde muy claro
+      text: '#064e3b', // Verde oscuro
+      card: '#d1fae5', // Verde pastel
+      border: '#a7f3d0', // Verde menta
+      highlight: '#fef08a', // Amarillo
     },
     dark: {
-      primary: '#81C784',
-      secondary: '#4CAF50',
-      background: '#1B5E20',
-      text: '#E8F5E9',
-      card: '#2E7D32',
-      border: '#4CAF50',
-      highlight: '#FFEB3B',
+      primary: '#34d399', // Verde luminoso
+      secondary: '#6ee7b7', // Verde brillante
+      background: '#000000', // Negro puro
+      text: '#ecfdf5', // Verde muy claro
+      card: '#064e3b', // Verde oscuro profundo
+      border: '#047857', // Verde bosque
+      highlight: '#fbbf24', // Dorado
     },
   },
   purple: {
     light: {
-      primary: '#9C27B0',
-      secondary: '#BA68C8',
-      background: '#F3E5F5',
-      text: '#4A148C',
-      card: '#E1BEE7',
-      border: '#CE93D8',
-      highlight: '#FFC107',
+      primary: '#7c3aed', // Púrpura real
+      secondary: '#a78bfa', // Lavanda
+      background: '#faf5ff', // Lavanda muy claro
+      text: '#3b0764', // Púrpura oscuro
+      card: '#ede9fe', // Lavanda claro
+      border: '#c4b5fd', // Lavanda medio
+      highlight: '#fef08a', // Amarillo
     },
     dark: {
-      primary: '#BA68C8',
-      secondary: '#9C27B0',
-      background: '#4A148C',
-      text: '#F3E5F5',
-      card: '#6A1B9A',
-      border: '#9C27B0',
-      highlight: '#FFC107',
+      primary: '#a78bfa', // Lavanda brillante
+      secondary: '#c4b5fd', // Lavanda claro
+      background: '#000000', // Negro puro
+      text: '#f5f3ff', // Lavanda muy claro
+      card: '#2e1065', // Púrpura oscuro
+      border: '#5b21b6', // Púrpura profundo
+      highlight: '#fbbf24', // Dorado
     },
   },
   ocean: {
     light: {
-      primary: '#0277BD',
-      secondary: '#4DD0E1',
-      background: '#E0F7FA',
-      text: '#01579B',
-      card: '#B2EBF2',
-      border: '#80DEEA',
-      highlight: '#FFEB3B',
+      primary: '#0891b2', // Cian oceánico
+      secondary: '#06b6d4', // Cian brillante
+      background: '#ecfeff', // Cian muy claro
+      text: '#164e63', // Cian oscuro
+      card: '#cffafe', // Cian pastel
+      border: '#a5f3fc', // Cian claro
+      highlight: '#fef08a', // Amarillo
     },
     dark: {
-      primary: '#4DD0E1',
-      secondary: '#0277BD',
-      background: '#01579B',
-      text: '#E0F7FA',
-      card: '#0288D1',
-      border: '#0277BD',
-      highlight: '#FFEB3B',
+      primary: '#22d3ee', // Cian luminoso
+      secondary: '#67e8f9', // Cian brillante
+      background: '#000000', // Negro puro
+      text: '#ecfeff', // Cian muy claro
+      card: '#083344', // Cian oscuro profundo
+      border: '#155e75', // Cian profundo
+      highlight: '#fbbf24', // Dorado
     },
   },
   sunset: {
     light: {
-      primary: '#FF5722',
-      secondary: '#FF9800',
-      background: '#FFF3E0',
-      text: '#BF360C',
-      card: '#FFE0B2',
-      border: '#FFCC80',
-      highlight: '#FFC107',
+      primary: '#dc2626', // Rojo vibrante
+      secondary: '#f97316', // Naranja brillante
+      background: '#fff7ed', // Naranja muy claro
+      text: '#7c2d12', // Naranja oscuro
+      card: '#fed7aa', // Naranja pastel
+      border: '#fdba74', // Naranja claro
+      highlight: '#fef08a', // Amarillo
     },
     dark: {
-      primary: '#FF9800',
-      secondary: '#FF5722',
-      background: '#BF360C',
-      text: '#FFF3E0',
-      card: '#E64A19',
-      border: '#FF5722',
-      highlight: '#FFC107',
+      primary: '#f87171', // Rojo luminoso
+      secondary: '#fb923c', // Naranja brillante
+      background: '#000000', // Negro puro
+      text: '#fff7ed', // Naranja muy claro
+      card: '#7c2d12', // Naranja oscuro profundo
+      border: '#9a3412', // Naranja profundo
+      highlight: '#fbbf24', // Dorado
     },
   },
 };

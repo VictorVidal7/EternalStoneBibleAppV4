@@ -15,7 +15,7 @@ import {
   Platform,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-// import { BlurView } from 'expo-blur'; // Commented out temporarily
+import { BlurView } from 'expo-blur';
 import { spacing, borderRadius, shadows, fontSize } from '../styles/designTokens';
 import { useTheme } from '../hooks/useTheme';
 
@@ -219,18 +219,17 @@ export const Toast: React.FC<ToastProps> = ({
         },
       ]}
     >
-      {/* Temporarily disabled BlurView until expo-blur is installed */}
-      {/* {useBlur && variant === 'default' ? (
+      {useBlur && variant === 'default' ? (
         <BlurView
-          intensity={80}
+          intensity={isDark ? 60 : 80}
           tint={isDark ? 'dark' : 'light'}
           style={styles.blurContainer}
         >
           {ToastContent}
         </BlurView>
-      ) : ( */}
-        {ToastContent}
-      {/* )} */}
+      ) : (
+        ToastContent
+      )}
     </Animated.View>
   );
 };

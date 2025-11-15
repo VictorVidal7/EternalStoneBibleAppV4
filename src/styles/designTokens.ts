@@ -164,17 +164,54 @@ export const zIndex = {
 } as const;
 
 // ==================== GRADIENTS ====================
-// Gradientes modernos pre-definidos
+// 🎨 Gradientes premium modernos optimizados para impacto visual
 export const gradients = {
+  // Gradientes principales
   primary: ['#667eea', '#764ba2'],
-  sunset: ['#ff6b6b', '#feca57'],
-  ocean: ['#4facfe', '#00f2fe'],
-  forest: ['#2ecc71', '#27ae60'],
-  purple: ['#a8c0ff', '#3f2b96'],
-  fire: ['#f12711', '#f5af19'],
-  aurora: ['#667eea', '#764ba2', '#f093fb'],
-  midnight: ['#232526', '#414345'],
-  royal: ['#141e30', '#243b55'],
+  primaryLight: ['#8098fc', '#9b6dd6'],
+
+  // Naturales
+  sunset: ['#ff6b6b', '#ff9a76', '#feca57'],
+  sunrise: ['#ff6b95', '#ff8e53', '#feb47b'],
+  ocean: ['#4facfe', '#00c6ff', '#00f2fe'],
+  forest: ['#2ecc71', '#06d6a0', '#27ae60'],
+  aurora: ['#667eea', '#764ba2', '#f093fb', '#4facfe'],
+
+  // Vibrantes
+  purple: ['#a8c0ff', '#7c3aed', '#3f2b96'],
+  fire: ['#f12711', '#ff5e62', '#f5af19'],
+  paradise: ['#1cd8d2', '#93edc7', '#fef9d7'],
+  cosmic: ['#6a11cb', '#2575fc', '#00c6fb'],
+
+  // Elegantes
+  midnight: ['#000000', '#1a1a2e', '#16213e'],
+  royal: ['#141e30', '#1e3c72', '#243b55'],
+  rose: ['#ff9a9e', '#fad0c4', '#ffecd2'],
+  champagne: ['#dfe9f3', '#ffffff'],
+
+  // Energéticos
+  neon: ['#00f2fe', '#4facfe', '#667eea'],
+  tropical: ['#f093fb', '#f5576c', '#ffd868'],
+  candy: ['#ff6a88', '#ff99ac', '#ffc1cc'],
+  citrus: ['#fdeb71', '#f8d800', '#ff6b6b'],
+
+  // Sofisticados
+  slate: ['#667eea', '#88a5dd', '#a4b8e0'],
+  emerald: ['#134e5e', '#10b981', '#71b280'],
+  sapphire: ['#0f2027', '#203a43', '#2c5364'],
+  amethyst: ['#7c3aed', '#a78bfa', '#c4b5fd'],
+
+  // Suaves
+  peach: ['#ffecd2', '#fcb69f'],
+  lavender: ['#a8edea', '#fed6e3'],
+  mint: ['#d1fae5', '#a7f3d0', '#6ee7b7'],
+  sky: ['#e0f7fa', '#b2ebf2', '#80deea'],
+
+  // Oscuros premium
+  deepSpace: ['#000000', '#0f2027', '#203a43'],
+  darkPurple: ['#0f0c29', '#302b63', '#24243e'],
+  darkOcean: ['#000046', '#1cb5e0'],
+  charcoal: ['#0d0d0d', '#1a1a1a', '#2d2d2d'],
 } as const;
 
 // ==================== GLASSMORPHISM ====================
