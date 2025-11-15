@@ -8,11 +8,13 @@ import { useCallback } from 'react';
 import { useTheme } from '../../src/hooks/useTheme';
 import { useLanguage } from '../../src/hooks/useLanguage';
 import { IllustratedEmptyState } from '../../src/components/IllustratedEmptyState';
+import { useToast } from '../../src/context/ToastContext';
 
 export default function BookmarksScreen() {
   const router = useRouter();
   const { colors, isDark } = useTheme();
   const { t } = useLanguage();
+  const toast = useToast();
   const [bookmarks, setBookmarks] = useState<Bookmark[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -48,6 +50,7 @@ export default function BookmarksScreen() {
           style: 'destructive',
           onPress: async () => {
             await bibleDB.removeBookmark(id);
+            toast.success('Marcador eliminado correctamente');
             loadBookmarks();
           },
         },

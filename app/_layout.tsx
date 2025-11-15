@@ -6,6 +6,7 @@ import { ThemeProvider } from '../src/hooks/useTheme';
 import { BibleVersionProvider } from '../src/hooks/useBibleVersion';
 import { LanguageProvider, useLanguage } from '../src/hooks/useLanguage';
 import { ServicesProvider } from '../src/context/ServicesContext';
+import { ToastProvider } from '../src/context/ToastContext';
 import { AchievementNotifications } from '../src/components/AchievementNotifications';
 import { AnimatedSplashScreen } from '../src/components/AnimatedSplashScreen';
 import bibleDB from '../src/lib/database';
@@ -168,7 +169,9 @@ export default function RootLayout() {
       <ThemeProvider>
         <BibleVersionProvider>
           <ServicesProvider database={bibleDB}>
-            <AppContent />
+            <ToastProvider>
+              <AppContent />
+            </ToastProvider>
           </ServicesProvider>
         </BibleVersionProvider>
       </ThemeProvider>
