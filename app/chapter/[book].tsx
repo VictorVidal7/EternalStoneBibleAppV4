@@ -3,10 +3,12 @@ import { useLocalSearchParams, useRouter, Stack } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { getBookByName } from '../../src/constants/bible';
 import { useTheme } from '../../src/hooks/useTheme';
+import { useLanguage } from '../../src/hooks/useLanguage';
 
 export default function ChapterSelectionScreen() {
   const router = useRouter();
   const { colors } = useTheme();
+  const { t } = useLanguage();
   const { book } = useLocalSearchParams<{ book: string }>();
   const bookInfo = getBookByName(book);
 
