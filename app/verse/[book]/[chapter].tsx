@@ -426,15 +426,15 @@ const styles = StyleSheet.create({
     marginLeft: spacing.base,
   },
 
-  // NAVEGACIÓN MEJORADA
+  // NAVEGACIÓN - MÁS COMPACTA
   navBar: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingVertical: spacing.lg,
-    paddingHorizontal: spacing.xl,
-    borderBottomWidth: 0,  // Sin borde para más limpieza
-    ...shadows.sm,
+    paddingVertical: spacing.md,  // Menos padding
+    paddingHorizontal: spacing.lg,
+    borderBottomWidth: 0,
+    ...shadows.xs,  // Sombra mínima
   },
   navButton: {
     flexDirection: 'row',
@@ -453,62 +453,62 @@ const styles = StyleSheet.create({
     letterSpacing: -0.2,
   },
 
-  // CONTENEDOR DE VERSÍCULOS - OPTIMIZADO
+  // CONTENEDOR DE VERSÍCULOS - MÁXIMA DENSIDAD
   versesContainer: {
     flex: 1,
   },
   versesContent: {
-    paddingHorizontal: spacing.lg,  // Balance perfecto
-    paddingVertical: spacing.md,
+    paddingHorizontal: spacing.base,  // Más compacto
+    paddingVertical: spacing.sm,  // Muy compacto
   },
 
-  // CARD DE VERSÍCULO - MINIMALISTA
+  // CARD DE VERSÍCULO - ULTRA COMPACTO
   verseItem: {
-    borderRadius: borderRadius.lg,  // Más sutil
-    padding: spacing.base,  // Compacto pero cómodo
-    marginBottom: spacing.md,  // Menos separación
-    ...shadows.sm,  // Sombra más sutil
+    borderRadius: borderRadius.md,  // Más sutil
+    padding: spacing.sm,  // Muy compacto
+    marginBottom: spacing.sm,  // Mínima separación
+    ...shadows.xs,  // Sombra mínima
     borderWidth: 0,
   },
   verseHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    alignItems: 'flex-start',
-    marginBottom: spacing.sm,  // Más compacto
+    alignItems: 'center',  // Alineado al centro
+    marginBottom: spacing.xs,  // Muy poco espacio
   },
   verseNumber: {
-    fontSize: fontSizes.base,  // Más discreto
+    fontSize: fontSize.sm,  // Muy discreto
     fontWeight: '600',
-    minWidth: 32,  // Ancho mínimo
+    minWidth: 28,
     textAlign: 'left',
   },
 
-  // TEXTO DEL VERSÍCULO - OPTIMIZADO PARA LECTURA
+  // TEXTO DEL VERSÍCULO - OPTIMIZADO PARA DENSIDAD
   verseText: {
-    fontSize: fontSizes.base,  // Tamaño estándar
-    lineHeight: fontSizes.base * 1.6,  // Line-height cómodo
-    letterSpacing: 0.1,
-    marginBottom: spacing.md,  // Menos espacio
+    fontSize: fontSize.base,
+    lineHeight: fontSize.base * 1.5,  // Más compacto
+    letterSpacing: 0,
+    marginBottom: spacing.xs,  // Muy poco espacio
   },
 
-  // ACCIONES - MINIMALISTAS
+  // ACCIONES - ULTRA COMPACTAS
   verseActions: {
     flexDirection: 'row',
-    justifyContent: 'flex-start',  // Alineado a la izquierda
-    gap: spacing.lg,  // Espacio entre botones
-    borderTopWidth: 0,  // Sin borde superior
-    paddingTop: spacing.sm,
-    marginTop: spacing.xs,
+    justifyContent: 'flex-start',
+    gap: spacing.md,  // Menos espacio
+    borderTopWidth: 0,
+    paddingTop: spacing.xs,  // Muy poco padding
+    marginTop: 0,  // Sin margen
   },
   actionButton: {
-    flexDirection: 'row',  // Horizontal
+    flexDirection: 'row',
     alignItems: 'center',
-    gap: spacing.xs,
-    paddingVertical: spacing.xs,
-    paddingHorizontal: spacing.sm,
+    gap: 4,  // Muy poco espacio
+    paddingVertical: 2,
+    paddingHorizontal: spacing.xs,
   },
   actionButtonText: {
-    fontSize: fontSizes.sm,
+    fontSize: fontSizes.xs,  // Más pequeño
     fontWeight: '500',
     letterSpacing: 0,
   },

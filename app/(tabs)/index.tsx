@@ -268,8 +268,8 @@ export default function HomeScreen() {
                 ? ['#10b981', '#059669']
                 : ['#34d399', '#10b981']
             }
-            padding="large"
-            style={{ marginBottom: spacing.lg }}
+            padding="medium"  // Menos padding
+            style={{ marginBottom: spacing.md }}  // Menos margen
             onPress={() =>
               handlePress(() =>
                 router.push(`/verse/${lastRead.book}/${lastRead.chapter}` as any)
@@ -566,22 +566,22 @@ const styles = StyleSheet.create({
     paddingBottom: spacing['2xl'],
   },
 
-  // Hero
+  // Hero - MÁS COMPACTO
   heroContainer: {
-    marginBottom: spacing.lg,
+    marginBottom: spacing.md,  // Menos separación
     overflow: 'hidden',
   },
   heroGradient: {
-    paddingHorizontal: spacing.xl,  // Más espacioso
-    paddingTop: Platform.OS === 'ios' ? 70 : 50,  // Más altura
-    paddingBottom: spacing['4xl'],  // Más respiración
-    borderBottomLeftRadius: 40,  // Curvas más suaves
-    borderBottomRightRadius: 40,
-    shadowColor: '#6366f1',  // Sombra refinada
-    shadowOffset: { width: 0, height: 16 },
-    shadowOpacity: 0.25,  // Más sutil
-    shadowRadius: 24,
-    elevation: 10,
+    paddingHorizontal: spacing.lg,  // Menos padding
+    paddingTop: Platform.OS === 'ios' ? 60 : 40,  // Menos altura
+    paddingBottom: spacing.xl,  // Más compacto
+    borderBottomLeftRadius: 32,  // Más compacto
+    borderBottomRightRadius: 32,
+    shadowColor: '#6366f1',
+    shadowOffset: { width: 0, height: 12 },
+    shadowOpacity: 0.2,
+    shadowRadius: 20,
+    elevation: 8,
   },
   starsContainer: {
     position: 'absolute',
@@ -609,35 +609,35 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   heroTitle: {
-    fontSize: fontSize['4xl'],
-    fontWeight: '800',  // Más bold
+    fontSize: fontSize['3xl'],  // Más compacto
+    fontWeight: '800',
     color: '#ffffff',
-    marginTop: spacing.md,
-    marginBottom: spacing.sm,
+    marginTop: spacing.sm,  // Menos espacio
+    marginBottom: spacing.xs,
     textAlign: 'center',
-    letterSpacing: -0.5,  // Tracking más apretado para títulos
+    letterSpacing: -0.5,
   },
   heroSubtitle: {
-    fontSize: fontSize.md,
+    fontSize: fontSize.base,  // Más compacto
     fontWeight: '400',
     color: 'rgba(255,255,255,0.85)',
-    marginBottom: spacing['2xl'],  // Más separación
+    marginBottom: spacing.lg,  // Menos espacio
     textAlign: 'center',
     letterSpacing: 0.2,
   },
   statsRow: {
     flexDirection: 'row',
-    backgroundColor: 'rgba(255,255,255,0.15)',  // Más sutil
-    borderRadius: 24,  // Más suave
-    paddingVertical: spacing.lg,  // Más espacioso
-    paddingHorizontal: spacing.xl,
+    backgroundColor: 'rgba(255,255,255,0.15)',
+    borderRadius: 20,  // Más compacto
+    paddingVertical: spacing.md,  // Menos padding
+    paddingHorizontal: spacing.lg,  // Menos padding
     alignItems: 'center',
-    borderWidth: 1.5,
+    borderWidth: 1,
     borderColor: 'rgba(255,255,255,0.2)',
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.15,
-    shadowRadius: 16,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.12,
+    shadowRadius: 12,
   },
   statItem: {
     alignItems: 'center',
@@ -647,62 +647,61 @@ const styles = StyleSheet.create({
     marginBottom: spacing.xs,
   },
   statValue: {
-    fontSize: fontSize['2xl'],  // Más grande
-    fontWeight: '800',
+    fontSize: fontSize.xl,  // Más compacto
+    fontWeight: '700',
     color: '#ffffff',
-    letterSpacing: -0.5,
+    letterSpacing: -0.3,
   },
   statLabel: {
-    fontSize: fontSize.xs,
-    fontWeight: '500',  // Más legible
+    fontSize: fontSize['2xs'],  // Más pequeño
+    fontWeight: '500',
     color: 'rgba(255,255,255,0.75)',
-    marginTop: 4,
+    marginTop: 2,
     letterSpacing: 0.5,
-    textTransform: 'uppercase',  // Más sofisticado
+    textTransform: 'uppercase',
   },
   statDivider: {
     width: 1,
-    height: 40,
+    height: 32,  // Más bajo
     backgroundColor: 'rgba(255,255,255,0.2)',
-    marginHorizontal: spacing.md,
+    marginHorizontal: spacing.sm,  // Menos espacio
   },
 
-  // Card Header
+  // Card Header - MÁS COMPACTO
   cardHeader: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: spacing.lg,  // Más separación
+    marginBottom: spacing.md,  // Menos separación
   },
   cardIconContainer: {
-    marginRight: spacing.base,
+    marginRight: spacing.md,
   },
   cardTitle: {
-    fontSize: fontSize.xl,  // Más grande
+    fontSize: fontSize.lg,  // Más compacto
     fontWeight: '700',
     letterSpacing: -0.3,
   },
   cardSubtitle: {
-    fontSize: fontSize.sm,
+    fontSize: fontSize.xs,  // Más pequeño
     fontWeight: '500',
-    marginTop: 4,
+    marginTop: 2,
     opacity: 0.7,
   },
 
-  // Verse
+  // Verse - MÁS COMPACTO
   verseText: {
-    fontSize: fontSize.md,  // Más legible
-    lineHeight: fontSize.md * 1.7,  // Mejor line-height
+    fontSize: fontSize.base,  // Más compacto
+    lineHeight: fontSize.base * 1.6,
     fontStyle: 'italic',
-    marginBottom: spacing.lg,
+    marginBottom: spacing.md,  // Menos espacio
     opacity: 0.95,
   },
   cardAction: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    paddingTop: spacing.lg,
-    borderTopWidth: 1,
-    borderTopColor: 'rgba(0,0,0,0.05)',
+    paddingTop: spacing.md,  // Menos espacio
+    borderTopWidth: 0,  // Sin borde
   },
   actionText: {
     fontSize: fontSize.base,
@@ -733,101 +732,101 @@ const styles = StyleSheet.create({
     marginTop: spacing.md,
   },
 
-  // Section Header
+  // Section Header - MÁS COMPACTO
   sectionHeader: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingHorizontal: spacing.xl,  // Más padding
-    marginBottom: spacing.lg,  // Más separación
-    marginTop: spacing.xl,  // Más espacio arriba
+    paddingHorizontal: spacing.lg,
+    marginBottom: spacing.md,  // Menos separación
+    marginTop: spacing.lg,  // Menos espacio
   },
   sectionTitle: {
-    fontSize: fontSize['2xl'],  // Más grande
-    fontWeight: '800',
-    letterSpacing: -0.5,
+    fontSize: fontSize.xl,  // Más compacto
+    fontWeight: '700',
+    letterSpacing: -0.4,
   },
 
-  // Quick Access - MINIMALISTA
+  // Quick Access - MÁS COMPACTO
   quickGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
     justifyContent: 'space-between',
-    paddingHorizontal: spacing.xl,
+    paddingHorizontal: spacing.lg,
   },
   quickAccessCardContainer: {
     flex: 1,
   },
   quickAccessCard: {
-    height: 100,  // Más compacto
-    borderRadius: borderRadius.lg,
-    padding: spacing.base,
-    ...shadows.sm,  // Sombra sutil
+    height: 90,  // Más compacto (era 100)
+    borderRadius: borderRadius.md,
+    padding: spacing.sm,  // Menos padding
+    ...shadows.sm,
     justifyContent: 'space-between',
   },
   quickAccessIconContainer: {
-    width: 44,
-    height: 44,
-    borderRadius: borderRadius.md,
+    width: 40,  // Más pequeño
+    height: 40,
+    borderRadius: borderRadius.sm,
     justifyContent: 'center',
     alignItems: 'center',
   },
   quickAccessText: {
-    fontSize: fontSize.sm,
+    fontSize: fontSize.xs,  // Más pequeño
     fontWeight: '600',
     textAlign: 'left',
     letterSpacing: 0,
   },
 
-  // Reading Plans - MINIMALISTA
+  // Reading Plans - MÁS COMPACTO
   plansScroll: {
-    paddingHorizontal: spacing.xl,
+    paddingHorizontal: spacing.lg,
   },
   planCard: {
-    width: 240,  // Más compacto
+    width: 220,  // Más compacto
     marginRight: spacing.md,
   },
   planContainer: {
-    borderRadius: borderRadius.lg,
-    padding: spacing.base,
+    borderRadius: borderRadius.md,
+    padding: spacing.sm,  // Menos padding
     ...shadows.sm,
-    minHeight: 160,
+    minHeight: 140,  // Más bajo
     justifyContent: 'space-between',
   },
   planHeader: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    marginBottom: spacing.md,
+    marginBottom: spacing.sm,  // Menos espacio
   },
   planIconContainer: {
-    width: 44,
-    height: 44,
-    borderRadius: borderRadius.md,
+    width: 40,  // Más pequeño
+    height: 40,
+    borderRadius: borderRadius.sm,
     justifyContent: 'center',
     alignItems: 'center',
   },
   planDurationBadge: {
-    paddingHorizontal: spacing.md,
-    paddingVertical: spacing.xs,
+    paddingHorizontal: spacing.sm,
+    paddingVertical: 2,
     borderRadius: borderRadius.full,
   },
   planDurationBadgeText: {
-    fontSize: fontSize.xs,
+    fontSize: fontSize['2xs'],  // Más pequeño
     fontWeight: '600',
   },
   planContent: {
     flex: 1,
   },
   planName: {
-    fontSize: fontSize.lg,
+    fontSize: fontSize.base,  // Más compacto
     fontWeight: '700',
     marginBottom: spacing.xs,
-    lineHeight: fontSize.lg * 1.3,
+    lineHeight: fontSize.base * 1.3,
   },
   planDescription: {
-    fontSize: fontSize.sm,
-    lineHeight: fontSize.sm * 1.4,
+    fontSize: fontSize.xs,  // Más pequeño
+    lineHeight: fontSize.xs * 1.4,
     opacity: 0.7,
   },
   planFooter: {
@@ -835,10 +834,10 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'flex-end',
     gap: spacing.xs,
-    marginTop: spacing.sm,
+    marginTop: spacing.xs,  // Menos espacio
   },
   planStartText: {
-    fontSize: fontSize.sm,
+    fontSize: fontSize.xs,  // Más pequeño
     fontWeight: '600',
   },
 
