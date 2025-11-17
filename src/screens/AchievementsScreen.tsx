@@ -269,10 +269,10 @@ const styles = StyleSheet.create({
   categoryChip: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: spacing.base,
+    paddingHorizontal: spacing.lg,
     paddingVertical: spacing.sm,
     borderRadius: borderRadius.full,
-    marginRight: spacing.xs,
+    marginRight: spacing.sm,
   },
   categoryChipSelected: {},
   categoryIcon: {
@@ -285,29 +285,35 @@ const styles = StyleSheet.create({
   },
   summary: {
     flexDirection: 'row',
-    padding: spacing.lg,
+    padding: spacing.xl,
     marginHorizontal: spacing.base,
     marginTop: spacing.base,
+    marginBottom: spacing.xs,
     borderRadius: borderRadius.lg,
     borderWidth: 1,
   },
   summaryItem: {
     flex: 1,
     alignItems: 'center',
+    paddingVertical: spacing.xs,
   },
   summaryValue: {
-    fontSize: fontSize.xl,
-    fontWeight: '700',
-    marginBottom: spacing.xs,
+    fontSize: fontSize['2xl'],
+    fontWeight: '800',
+    marginBottom: spacing['1'],
   },
   summaryLabel: {
-    fontSize: fontSize.xs,
+    fontSize: fontSize.sm,
+    textAlign: 'center',
   },
   summaryDivider: {
     width: 1,
+    marginHorizontal: spacing.sm,
   },
   list: {
-    padding: spacing.base,
+    paddingHorizontal: spacing.base,
+    paddingTop: spacing.sm,
+    paddingBottom: spacing.lg,
   },
   emptyContainer: {
     padding: spacing['2xl'],
