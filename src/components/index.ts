@@ -4,7 +4,18 @@
  * Exportación centralizada de todos los componentes premium
  */
 
-// Premium Components
+// ==================== PREMIUM COMPONENTS V5 ====================
+export { AnimatedSplashScreen } from './AnimatedSplashScreen';
+export { PremiumVerseReader } from './PremiumVerseReader';
+export {
+  ParticleSystem,
+  Confetti,
+  AchievementCelebration,
+  FloatingParticles,
+} from './ParticleSystem';
+export { IllustratedEmptyState } from './IllustratedEmptyState';
+
+// ==================== PREMIUM COMPONENTS V4 ====================
 export { default as Card3D } from './Card3D';
 export { default as AnimatedGradient } from './AnimatedGradient';
 export { default as PremiumButton } from './PremiumButton';

@@ -8,6 +8,7 @@ import { BibleVerse } from '../../src/types/bible';
 import { useTheme } from '../../src/hooks/useTheme';
 import { useBibleVersion } from '../../src/hooks/useBibleVersion';
 import { useLanguage } from '../../src/hooks/useLanguage';
+import { IllustratedEmptyState } from '../../src/components/IllustratedEmptyState';
 
 type TestamentFilter = 'all' | 'old' | 'new';
 
@@ -251,15 +252,14 @@ export default function SearchScreen() {
             contentContainerStyle={styles.resultsList}
             ListEmptyComponent={
               !loading && hasSearched ? (
-                <View style={styles.emptyContainer}>
-                  <Ionicons name="search-outline" size={64} color={colors.textTertiary} />
-                  <Text style={themedStyles.emptyText}>
-                    {t.search.noResults} "{searchQuery}"
-                  </Text>
-                  <Text style={themedStyles.emptyHint}>
-                    {t.search.tryDifferent}
-                  </Text>
-                </View>
+                <IllustratedEmptyState
+                  type="no-search-results"
+                  colors={colors}
+                  isDark={isDark}
+                  message={`${t.search.noResults} "${searchQuery}"`}
+                  onAction={() => setSearchQuery('')}
+                  actionLabel={t.search.tryDifferent}
+                />
               ) : null
             }
           />

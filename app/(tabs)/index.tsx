@@ -376,9 +376,10 @@ const QuickAccessCard: React.FC<QuickAccessCardProps> = ({
   onPress,
   delay,
 }) => {
-  const { colors } = useTheme();
+  const { colors, isDark } = useTheme();
   const fadeIn = useRef(new Animated.Value(0)).current;
   const scale = useRef(new Animated.Value(0.9)).current;
+  const rotateAnim = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
     Animated.parallel([
@@ -396,7 +397,28 @@ const QuickAccessCard: React.FC<QuickAccessCardProps> = ({
         useNativeDriver: true,
       }),
     ]).start();
+
+    // Animación de rotación sutil
+    Animated.loop(
+      Animated.sequence([
+        Animated.timing(rotateAnim, {
+          toValue: 1,
+          duration: 3000,
+          useNativeDriver: true,
+        }),
+        Animated.timing(rotateAnim, {
+          toValue: 0,
+          duration: 3000,
+          useNativeDriver: true,
+        }),
+      ])
+    ).start();
   }, []);
+
+  const rotate = rotateAnim.interpolate({
+    inputRange: [0, 1],
+    outputRange: ['-2deg', '2deg'],
+  });
 
   return (
     <Animated.View
@@ -407,19 +429,38 @@ const QuickAccessCard: React.FC<QuickAccessCardProps> = ({
         marginBottom: spacing.md,
       }}
     >
-      <ModernCard
-        variant="elevated"
-        padding="medium"
+      <TouchableOpacity
+        activeOpacity={0.8}
         onPress={onPress}
-        style={{ height: 120 }}
+        style={styles.quickAccessCardContainer}
       >
-        <View style={[styles.quickAccessIconContainer, { backgroundColor: color + '20' }]}>
-          <Ionicons name={icon} size={32} color={color} />
-        </View>
-        <Text style={[styles.quickAccessText, { color: colors.text }]} numberOfLines={1}>
-          {name}
-        </Text>
-      </ModernCard>
+        <LinearGradient
+          colors={isDark
+            ? [color + '30', color + '10']
+            : [color + '25', color + '10']}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 1 }}
+          style={[styles.quickAccessGradient, { borderColor: color + '40' }]}
+        >
+          {/* Círculo decorativo de fondo */}
+          <View style={[styles.quickAccessCircle, { backgroundColor: color + '15' }]} />
+
+          <Animated.View style={{ transform: [{ rotate }] }}>
+            <View style={[styles.quickAccessIconContainer, { backgroundColor: color + '30' }]}>
+              <Ionicons name={icon} size={36} color={color} />
+            </View>
+          </Animated.View>
+
+          <Text style={[styles.quickAccessText, { color: colors.text }]} numberOfLines={1}>
+            {name}
+          </Text>
+
+          {/* Icono de flecha pequeño */}
+          <View style={styles.quickAccessArrow}>
+            <Ionicons name="chevron-forward" size={16} color={color} />
+          </View>
+        </LinearGradient>
+      </TouchableOpacity>
     </Animated.View>
   );
 };
@@ -432,32 +473,80 @@ interface ReadingPlanCardProps {
 }
 
 const ReadingPlanCard: React.FC<ReadingPlanCardProps> = ({ plan, onPress }) => {
-  const { colors } = useTheme();
+  const { colors, isDark } = useTheme();
   const { t } = useLanguage();
+  const scaleAnim = useRef(new Animated.Value(1)).current;
+
+  const handlePressIn = () => {
+    Animated.spring(scaleAnim, {
+      toValue: 0.97,
+      useNativeDriver: true,
+    }).start();
+  };
+
+  const handlePressOut = () => {
+    Animated.spring(scaleAnim, {
+      toValue: 1,
+      tension: 100,
+      friction: 3,
+      useNativeDriver: true,
+    }).start();
+  };
 
   return (
-    <ModernCard
-      variant="outlined"
-      padding="medium"
-      onPress={onPress}
-      style={[styles.planCard, { borderLeftColor: plan.color, borderLeftWidth: 4 }]}
-    >
-      <View style={[styles.planIconContainer, { backgroundColor: plan.color + '20' }]}>
-        <Ionicons name={plan.icon as any} size={28} color={plan.color} />
-      </View>
+    <Animated.View style={[styles.planCard, { transform: [{ scale: scaleAnim }] }]}>
+      <TouchableOpacity
+        activeOpacity={1}
+        onPress={onPress}
+        onPressIn={handlePressIn}
+        onPressOut={handlePressOut}
+      >
+        <LinearGradient
+          colors={isDark
+            ? [plan.color + '35', plan.color + '15']
+            : [plan.color + '25', plan.color + '10']}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 0, y: 1 }}
+          style={[styles.planGradient, { borderColor: plan.color + '50' }]}
+        >
+          {/* Decoración de líneas diagonales */}
+          <View style={styles.planDecorativeLines}>
+            <View style={[styles.planLine, { backgroundColor: plan.color + '10' }]} />
+            <View style={[styles.planLine, { backgroundColor: plan.color + '15' }]} />
+          </View>
 
-      <Text style={[styles.planName, { color: colors.text }]} numberOfLines={2}>
-        {plan.name}
-      </Text>
+          {/* Icono del plan */}
+          <View style={[styles.planIconContainer, { backgroundColor: plan.color + '30', borderColor: plan.color }]}>
+            <Ionicons name={plan.icon as any} size={32} color={plan.color} />
+          </View>
 
-      <Text style={[styles.planDuration, { color: colors.textSecondary }]}>
-        {plan.duration} {t.home.days}
-      </Text>
+          {/* Badge de duración */}
+          <View style={[styles.planDurationBadge, { backgroundColor: plan.color }]}>
+            <Ionicons name="calendar-outline" size={14} color="#ffffff" />
+            <Text style={styles.planDurationBadgeText}>
+              {plan.duration} {t.home.days}
+            </Text>
+          </View>
 
-      <Text style={[styles.planDescription, { color: colors.textTertiary }]} numberOfLines={2}>
-        {plan.description}
-      </Text>
-    </ModernCard>
+          {/* Contenido del plan */}
+          <View style={styles.planContent}>
+            <Text style={[styles.planName, { color: colors.text }]} numberOfLines={2}>
+              {plan.name}
+            </Text>
+
+            <Text style={[styles.planDescription, { color: colors.textSecondary }]} numberOfLines={3}>
+              {plan.description}
+            </Text>
+
+            {/* Botón de comenzar */}
+            <View style={[styles.planStartButton, { backgroundColor: plan.color }]}>
+              <Text style={styles.planStartButtonText}>{t.home.startPlan || 'Comenzar'}</Text>
+              <Ionicons name="arrow-forward" size={16} color="#ffffff" />
+            </View>
+          </View>
+        </LinearGradient>
+      </TouchableOpacity>
+    </Animated.View>
   );
 };
 
@@ -645,18 +734,50 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     paddingHorizontal: spacing.lg,
   },
+  quickAccessCardContainer: {
+    flex: 1,
+  },
+  quickAccessGradient: {
+    height: 135,
+    borderRadius: borderRadius.xl,
+    padding: spacing.base,
+    borderWidth: 1.5,
+    overflow: 'hidden',
+    position: 'relative',
+    ...shadows.md,
+  },
+  quickAccessCircle: {
+    position: 'absolute',
+    width: 100,
+    height: 100,
+    borderRadius: 50,
+    top: -30,
+    right: -20,
+  },
   quickAccessIconContainer: {
-    width: 56,
-    height: 56,
-    borderRadius: borderRadius.lg,
+    width: 64,
+    height: 64,
+    borderRadius: borderRadius.xl,
     justifyContent: 'center',
     alignItems: 'center',
     marginBottom: spacing.sm,
+    ...shadows.sm,
   },
   quickAccessText: {
-    fontSize: fontSize.sm,
-    fontWeight: '600',
-    textAlign: 'center',
+    fontSize: fontSize.base,
+    fontWeight: '700',
+    textAlign: 'left',
+  },
+  quickAccessArrow: {
+    position: 'absolute',
+    bottom: spacing.md,
+    right: spacing.md,
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    backgroundColor: 'rgba(255,255,255,0.2)',
+    justifyContent: 'center',
+    alignItems: 'center',
   },
 
   // Reading Plans
@@ -664,30 +785,86 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.lg,
   },
   planCard: {
-    width: 220,
+    width: 260,
     marginRight: spacing.base,
   },
+  planGradient: {
+    borderRadius: borderRadius.xl,
+    borderWidth: 2,
+    overflow: 'hidden',
+    ...shadows.lg,
+  },
+  planDecorativeLines: {
+    position: 'absolute',
+    top: 0,
+    right: 0,
+    bottom: 0,
+    left: 0,
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    opacity: 0.3,
+  },
+  planLine: {
+    width: 2,
+    height: '100%',
+    transform: [{ skewX: '-10deg' }],
+  },
   planIconContainer: {
-    width: 56,
-    height: 56,
-    borderRadius: borderRadius.lg,
+    width: 68,
+    height: 68,
+    borderRadius: borderRadius['2xl'],
     justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: spacing.md,
+    margin: spacing.base,
+    borderWidth: 2,
+    ...shadows.md,
+  },
+  planDurationBadge: {
+    position: 'absolute',
+    top: spacing.base,
+    right: spacing.base,
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: spacing.sm,
+    paddingVertical: spacing.xs,
+    borderRadius: borderRadius.lg,
+    gap: 4,
+  },
+  planDurationBadgeText: {
+    fontSize: fontSize.xs,
+    fontWeight: '700',
+    color: '#ffffff',
+  },
+  planContent: {
+    paddingHorizontal: spacing.base,
+    paddingBottom: spacing.base,
   },
   planName: {
-    fontSize: fontSize.lg,
-    fontWeight: '600',
-    marginBottom: spacing.xs,
-    minHeight: 48,
-  },
-  planDuration: {
-    fontSize: fontSize.sm,
-    marginBottom: spacing.xs,
+    fontSize: fontSize.xl,
+    fontWeight: '700',
+    marginBottom: spacing.sm,
+    lineHeight: fontSize.xl * 1.3,
   },
   planDescription: {
     fontSize: fontSize.sm,
-    lineHeight: fontSize.sm * 1.4,
+    lineHeight: fontSize.sm * 1.5,
+    marginBottom: spacing.md,
+    minHeight: 60,
+  },
+  planStartButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: spacing.sm,
+    paddingHorizontal: spacing.base,
+    borderRadius: borderRadius.lg,
+    gap: spacing.xs,
+    ...shadows.sm,
+  },
+  planStartButtonText: {
+    fontSize: fontSize.sm,
+    fontWeight: '700',
+    color: '#ffffff',
   },
 
   // Footer

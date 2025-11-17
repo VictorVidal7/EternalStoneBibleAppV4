@@ -6,7 +6,9 @@ import { ThemeProvider } from '../src/hooks/useTheme';
 import { BibleVersionProvider } from '../src/hooks/useBibleVersion';
 import { LanguageProvider, useLanguage } from '../src/hooks/useLanguage';
 import { ServicesProvider } from '../src/context/ServicesContext';
+import { ToastProvider } from '../src/context/ToastContext';
 import { AchievementNotifications } from '../src/components/AchievementNotifications';
+import { AnimatedSplashScreen } from '../src/components/AnimatedSplashScreen';
 import bibleDB from '../src/lib/database';
 
 function AppContent() {
@@ -40,41 +42,10 @@ function AppContent() {
 
   if (isLoading) {
     return (
-      <View style={styles.loadingContainer}>
-        <Text style={styles.appName}>Eternal Bible</Text>
-        <Text style={styles.subtitle}>{t.app.subtitle}</Text>
-
-        <View style={styles.progressContainer}>
-          <ActivityIndicator size="large" color="#4A90E2" />
-
-          {loadingProgress.total > 0 && (
-            <View style={styles.progressTextContainer}>
-              <Text style={styles.progressText}>
-                {t.app.loadingBible}
-              </Text>
-              <Text style={styles.progressNumbers}>
-                {loadingProgress.loaded.toLocaleString()} / {loadingProgress.total.toLocaleString()} {t.app.verses}
-              </Text>
-              <View style={styles.progressBar}>
-                <View
-                  style={[
-                    styles.progressFill,
-                    { width: `${(loadingProgress.loaded / loadingProgress.total) * 100}%` },
-                  ]}
-                />
-              </View>
-            </View>
-          )}
-
-          {loadingProgress.total === 0 && (
-            <Text style={styles.progressText}>{t.app.preparing}</Text>
-          )}
-        </View>
-
-        <Text style={styles.verse}>
-          {t.app.loadingVerse}
-        </Text>
-      </View>
+      <AnimatedSplashScreen
+        loadingProgress={loadingProgress}
+        message={loadingProgress.total === 0 ? t.app.preparing : undefined}
+      />
     );
   }
 
@@ -198,7 +169,9 @@ export default function RootLayout() {
       <ThemeProvider>
         <BibleVersionProvider>
           <ServicesProvider database={bibleDB}>
-            <AppContent />
+            <ToastProvider>
+              <AppContent />
+            </ToastProvider>
           </ServicesProvider>
         </BibleVersionProvider>
       </ThemeProvider>
