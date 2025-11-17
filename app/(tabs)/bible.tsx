@@ -172,9 +172,13 @@ export default function BibleScreen() {
           style={[
             styles.searchBar,
             {
-              backgroundColor: colors.card,
-              borderColor: colors.border,
-              ...shadows.md,
+              backgroundColor: '#F8F9FA',
+              borderColor: '#E8E8E8',
+              shadowColor: '#000',
+              shadowOffset: { width: 0, height: 1 },
+              shadowOpacity: 0.05,
+              shadowRadius: 2,
+              elevation: 1,
             },
           ]}
         >
@@ -311,11 +315,11 @@ const BookCard: React.FC<BookCardProps> = ({ book, index, onPress }) => {
         style={[
           styles.bookCard,
           {
-            backgroundColor: colors.card,
-            shadowColor: '#000',
-            shadowOffset: { width: 0, height: 4 },
-            shadowOpacity: 0.1,
-            shadowRadius: 8,
+            backgroundColor: '#FFFFFF',  // Blanco puro para máximo contraste
+            shadowColor: '#000000',
+            shadowOffset: { width: 0, height: 2 },
+            shadowOpacity: 0.08,  // Sutil pero visible
+            shadowRadius: 12,  // Suave difuminado
             elevation: 3,
           },
         ]}
@@ -409,9 +413,12 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     flex: 1,
+    marginRight: spacing.md,  // Espacio antes de los badges
   },
   headerTextContainer: {
     marginLeft: spacing.md,
+    flex: 1,
+    flexShrink: 1,  // Permite que se ajuste si hay poco espacio
   },
   headerTitle: {
     fontSize: fontSize['3xl'],  // Más grande
@@ -433,9 +440,10 @@ const styles = StyleSheet.create({
   statMini: {
     alignItems: 'center',
     backgroundColor: 'rgba(255,255,255,0.2)',
-    paddingHorizontal: spacing.md,
+    paddingHorizontal: spacing.sm,  // Más compacto
     paddingVertical: spacing.xs,
     borderRadius: borderRadius.md,
+    minWidth: 42,  // Ancho mínimo consistente
   },
   statMiniNumber: {
     fontSize: fontSize.lg,
@@ -455,10 +463,10 @@ const styles = StyleSheet.create({
   searchBar: {
     flexDirection: 'row',
     alignItems: 'center',
-    borderRadius: 20,  // Más suave
-    paddingHorizontal: spacing.lg,  // Más padding
-    height: 56,  // Más alto
-    borderWidth: 0,  // Sin borde para más limpieza
+    borderRadius: 12,  // Moderno y limpio
+    paddingHorizontal: 16,
+    height: 48,
+    borderWidth: 1.5,  // Borde sutil visible
   },
   searchIcon: {
     marginRight: spacing.sm,
@@ -523,16 +531,16 @@ const styles = StyleSheet.create({
     color: '#ffffff',
   },
 
-  // Book Card
+  // Book Card - Estilo profesional con profundidad
   bookCard: {
     flexDirection: 'row',
     alignItems: 'center',
-    borderRadius: 16,  // Suave y moderno
-    paddingVertical: spacing.lg,  // Más espacioso
-    paddingHorizontal: spacing.lg,
-    marginBottom: spacing.base,
+    borderRadius: 16,  // Esquinas generosas y modernas
+    paddingVertical: 16,  // Espaciado interno balanceado
+    paddingHorizontal: 16,
+    marginBottom: 12,  // Separación óptima entre tarjetas
     overflow: 'hidden',
-    borderWidth: 0,  // Sin borde para más limpieza
+    borderWidth: 0,  // Sin bordes duros
   },
   accentLine: {
     position: 'absolute',
