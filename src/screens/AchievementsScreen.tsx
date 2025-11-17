@@ -137,11 +137,11 @@ export const AchievementsScreen: React.FC<AchievementsScreenProps> = ({ database
             style={[styles.categoryScroll, { backgroundColor: colors.background, borderBottomColor: colors.border }]}
           />
 
-          {/* Resumen - Mejorado para evitar superposiciones */}
+          {/* Resumen - Optimizado sin dobles bordes */}
           {stats && (
             <View style={[
               styles.summary,
-              { backgroundColor: colors.card, borderColor: colors.border },
+              { backgroundColor: colors.card },
               isDark ? shadows.md : shadows.sm
             ]}>
               <View style={styles.summaryItem}>
@@ -237,10 +237,10 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.lg,
     paddingVertical: spacing.lg,
     shadowColor: '#6366f1',
-    shadowOffset: { width: 0, height: 3 },
-    shadowOpacity: 0.15,
-    shadowRadius: 8,
-    elevation: 4,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.12,
+    shadowRadius: 4,
+    elevation: 2,
   },
   headerTitle: {
     fontSize: fontSize['2xl'],
@@ -290,7 +290,6 @@ const styles = StyleSheet.create({
     marginTop: spacing.base,
     marginBottom: spacing.xs,
     borderRadius: borderRadius.lg,
-    borderWidth: 1,
   },
   summaryItem: {
     flex: 1,
