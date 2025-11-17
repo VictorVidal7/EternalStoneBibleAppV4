@@ -8,16 +8,20 @@ import { AchievementsScreen } from '../../src/screens/AchievementsScreen';
 import { useServices } from '../../src/context/ServicesContext';
 import { View, Text, ActivityIndicator, StyleSheet } from 'react-native';
 import { useLanguage } from '../../src/hooks/useLanguage';
+import { useTheme } from '../../src/hooks/useTheme';
 
 export default function AchievementsTab() {
   const { database, initialized } = useServices();
   const { t } = useLanguage();
+  const { colors } = useTheme();
 
   if (!initialized || !database) {
     return (
-      <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color="#4A90E2" />
-        <Text style={styles.loadingText}>{t.achievements.loading}</Text>
+      <View style={[styles.loadingContainer, { backgroundColor: colors.background }]}>
+        <ActivityIndicator size="large" color={colors.primary} />
+        <Text style={[styles.loadingText, { color: colors.textSecondary }]}>
+          {t.achievements.loading}
+        </Text>
       </View>
     );
   }
@@ -30,11 +34,9 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#F9FAFB',
   },
   loadingText: {
     marginTop: 12,
     fontSize: 16,
-    color: '#6B7280',
   },
 });
