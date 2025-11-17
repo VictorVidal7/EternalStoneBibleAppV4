@@ -379,7 +379,7 @@ const ChapterCard: React.FC<ChapterCardProps> = React.memo(
         onLayout={handleLayout}
       >
         <TouchableOpacity
-          activeOpacity={0.9}
+          activeOpacity={0.7}
           onPress={onPress}
           onPressIn={handlePressIn}
           onPressOut={handlePressOut}
@@ -391,19 +391,21 @@ const ChapterCard: React.FC<ChapterCardProps> = React.memo(
             style={[
               styles.card,
               {
-                backgroundColor: isDark
-                  ? 'rgba(255,255,255,0.04)'  // Muy sutil en dark
-                  : 'rgba(0,0,0,0.02)',  // Muy sutil en light
+                backgroundColor: '#FFFFFF',  // Blanco puro para máximo contraste
+                shadowColor: '#000000',
+                shadowOffset: { width: 0, height: 2 },
+                shadowOpacity: 0.08,  // Sutil pero visible
+                shadowRadius: 12,  // Suave difuminado profesional
+                elevation: 3,
               },
-              shadows.sm,  // Sombra más sutil
             ]}
           >
-            {/* Número del capítulo - Minimalista */}
+            {/* Número del capítulo */}
             <Text
               style={[
                 styles.chapterNumber,
                 {
-                  color: colors.primary,  // Color primario para énfasis
+                  color: '#4A90E2',  // Azul consistente con la app
                 },
               ]}
             >
@@ -629,27 +631,27 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
 
-  // Card - DISEÑO MINIMALISTA Y PROFESIONAL
+  // Card - Estilo profesional con profundidad (matching BibleLibrary)
   cardWrapper: {
     width: CARD_SIZE,
     height: CARD_SIZE,
-    padding: spacing.xs,
+    padding: 6,  // Margen entre botones
   },
   cardTouchable: {
-    width: CARD_SIZE - spacing.xs * 2,
-    height: CARD_SIZE - spacing.xs * 2,
+    width: CARD_SIZE - 12,
+    height: CARD_SIZE - 12,
   },
   card: {
-    width: CARD_SIZE - spacing.xs * 2,
-    height: CARD_SIZE - spacing.xs * 2,
-    borderRadius: borderRadius.md,  // Más sutil
-    borderWidth: 0,  // Sin bordes para minimalismo
+    width: CARD_SIZE - 12,
+    height: CARD_SIZE - 12,
+    borderRadius: 16,  // Esquinas generosas y modernas
+    borderWidth: 0,  // Sin bordes duros
     justifyContent: 'center',
     alignItems: 'center',
   },
   chapterNumber: {
-    fontSize: fontSize.xl,  // Más pequeño y elegante
-    fontWeight: '600',  // Menos bold
-    letterSpacing: -0.2,
+    fontSize: 26,  // Tamaño óptimo para legibilidad
+    fontWeight: '600',
+    letterSpacing: -0.3,
   },
 });
