@@ -118,11 +118,11 @@ export default function BibleScreen() {
         <LinearGradient
           colors={
             isDark
-              ? ['#4169ff', '#6b8fff', '#a4c1ff'] // Azul eléctrico vibrante
-              : ['#4169ff', '#2952ff', '#6b8fff'] // Gradiente intenso
+              ? ['#6366f1', '#818cf8', '#a5b4fc'] // Índigo refinado
+              : ['#6366f1', '#4f46e5', '#7c3aed'] // Gradiente sofisticado
           }
           start={{ x: 0, y: 0 }}
-          end={{ x: 1.3, y: 1.3 }}
+          end={{ x: 1, y: 1 }}
           style={styles.header}
         >
           <View style={styles.headerContent}>
@@ -387,14 +387,14 @@ const styles = StyleSheet.create({
 
   // Header
   header: {
-    paddingTop: Platform.OS === 'ios' ? 60 : 40,
-    paddingBottom: spacing.xl,
-    paddingHorizontal: spacing.lg,
-    shadowColor: '#4169ff', // Sombra vibrante
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.3,
-    shadowRadius: 16,
-    elevation: 10,
+    paddingTop: Platform.OS === 'ios' ? 65 : 45,  // Más alto
+    paddingBottom: spacing['2xl'],  // Más respiración
+    paddingHorizontal: spacing.xl,  // Más espacioso
+    shadowColor: '#6366f1',  // Sombra refinada
+    shadowOffset: { width: 0, height: 12 },
+    shadowOpacity: 0.2,  // Más sutil
+    shadowRadius: 20,
+    elevation: 8,
   },
   headerContent: {
     flexDirection: 'row',
@@ -410,14 +410,17 @@ const styles = StyleSheet.create({
     marginLeft: spacing.md,
   },
   headerTitle: {
-    fontSize: fontSize['2xl'],
-    fontWeight: '700',
+    fontSize: fontSize['3xl'],  // Más grande
+    fontWeight: '800',
     color: '#ffffff',
+    letterSpacing: -0.5,
   },
   headerSubtitle: {
     fontSize: fontSize.sm,
-    color: 'rgba(255,255,255,0.9)',
-    marginTop: 2,
+    fontWeight: '500',
+    color: 'rgba(255,255,255,0.85)',
+    marginTop: 4,
+    letterSpacing: 0.3,
   },
   headerStats: {
     flexDirection: 'row',
@@ -442,16 +445,16 @@ const styles = StyleSheet.create({
 
   // Search
   searchContainer: {
-    paddingHorizontal: spacing.lg,
-    paddingVertical: spacing.md,
+    paddingHorizontal: spacing.xl,  // Más espacioso
+    paddingVertical: spacing.lg,
   },
   searchBar: {
     flexDirection: 'row',
     alignItems: 'center',
-    borderRadius: 16,
-    paddingHorizontal: spacing.base,
-    height: 52,
-    borderWidth: 1.5,
+    borderRadius: 20,  // Más suave
+    paddingHorizontal: spacing.lg,  // Más padding
+    height: 56,  // Más alto
+    borderWidth: 0,  // Sin borde para más limpieza
   },
   searchIcon: {
     marginRight: spacing.sm,
@@ -475,16 +478,16 @@ const styles = StyleSheet.create({
   sectionHeader: {
     flexDirection: 'row',
     alignItems: 'center',
-    borderRadius: 20,
-    paddingVertical: spacing.md,
-    paddingHorizontal: spacing.base,
-    marginBottom: spacing.md,
-    marginTop: spacing.sm,
+    borderRadius: 24,  // Más suave
+    paddingVertical: spacing.lg,  // Más espacioso
+    paddingHorizontal: spacing.lg,
+    marginBottom: spacing.lg,
+    marginTop: spacing.base,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.15,
-    shadowRadius: 8,
-    elevation: 4,
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.12,  // Más sutil
+    shadowRadius: 12,
+    elevation: 3,
   },
   sectionIconContainer: {
     width: 40,
@@ -496,10 +499,11 @@ const styles = StyleSheet.create({
     marginRight: spacing.md,
   },
   sectionTitle: {
-    fontSize: fontSize.lg,
-    fontWeight: '700',
+    fontSize: fontSize.xl,  // Más grande
+    fontWeight: '800',
     color: '#ffffff',
     flex: 1,
+    letterSpacing: -0.3,
   },
   sectionBadge: {
     backgroundColor: 'rgba(255,255,255,0.25)',
@@ -519,13 +523,12 @@ const styles = StyleSheet.create({
   bookCard: {
     flexDirection: 'row',
     alignItems: 'center',
-    borderRadius: 18,
-    paddingVertical: spacing.md,
-    paddingHorizontal: spacing.base,
-    marginBottom: spacing.md,
+    borderRadius: 20,  // Más suave
+    paddingVertical: spacing.lg,  // Más espacioso
+    paddingHorizontal: spacing.lg,
+    marginBottom: spacing.base,
     overflow: 'hidden',
-    borderWidth: 1,
-    borderColor: 'rgba(0,0,0,0.05)',
+    borderWidth: 0,  // Sin borde para más limpieza
   },
   accentLine: {
     position: 'absolute',
@@ -535,26 +538,28 @@ const styles = StyleSheet.create({
     width: 4,
   },
   bookIconContainer: {
-    width: 48,
-    height: 48,
-    borderRadius: borderRadius.md,
+    width: 52,  // Un poco más grande
+    height: 52,
+    borderRadius: borderRadius.lg,  // Más suave
     justifyContent: 'center',
     alignItems: 'center',
     marginLeft: spacing.sm,
-    marginRight: spacing.md,
+    marginRight: spacing.lg,
   },
   bookIcon: {
     fontSize: fontSize.sm,
-    fontWeight: '700',
+    fontWeight: '800',  // Más bold
     color: '#ffffff',
+    letterSpacing: 0.5,
   },
   bookInfo: {
     flex: 1,
   },
   bookName: {
     fontSize: fontSize.lg,
-    fontWeight: '600',
+    fontWeight: '700',  // Más bold
     marginBottom: spacing.xs,
+    letterSpacing: -0.2,
   },
   bookMeta: {
     flexDirection: 'row',

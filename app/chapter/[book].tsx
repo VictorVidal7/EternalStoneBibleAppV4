@@ -391,33 +391,24 @@ const ChapterCard: React.FC<ChapterCardProps> = React.memo(
             style={[
               styles.card,
               {
-                backgroundColor: colors.card,
-                borderColor: isDark
-                  ? 'rgba(255,255,255,0.1)'
-                  : 'rgba(0,0,0,0.05)',
+                backgroundColor: isDark
+                  ? 'rgba(255,255,255,0.04)'  // Muy sutil en dark
+                  : 'rgba(0,0,0,0.02)',  // Muy sutil en light
               },
-              shadows.md,
+              shadows.sm,  // Sombra más sutil
             ]}
           >
-            {/* Número del capítulo */}
+            {/* Número del capítulo - Minimalista */}
             <Text
               style={[
                 styles.chapterNumber,
                 {
-                  color: colors.text,
+                  color: colors.primary,  // Color primario para énfasis
                 },
               ]}
             >
               {chapter}
             </Text>
-
-            {/* Ícono decorativo */}
-            <Ionicons
-              name="document-text-outline"
-              size={20}
-              color={colors.textSecondary}
-              style={{ marginTop: 8 }}
-            />
           </View>
         </TouchableOpacity>
       </View>
@@ -638,28 +629,27 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
 
-  // Card
+  // Card - DISEÑO MINIMALISTA Y PROFESIONAL
   cardWrapper: {
     width: CARD_SIZE,
     height: CARD_SIZE,
     padding: spacing.xs,
-    backgroundColor: 'rgba(255,0,0,0.1)', // Debug: red tint
   },
   cardTouchable: {
     width: CARD_SIZE - spacing.xs * 2,
     height: CARD_SIZE - spacing.xs * 2,
-    backgroundColor: 'rgba(0,255,0,0.1)', // Debug: green tint
   },
   card: {
     width: CARD_SIZE - spacing.xs * 2,
     height: CARD_SIZE - spacing.xs * 2,
-    borderRadius: borderRadius.lg,
-    borderWidth: 2,
+    borderRadius: borderRadius.md,  // Más sutil
+    borderWidth: 0,  // Sin bordes para minimalismo
     justifyContent: 'center',
     alignItems: 'center',
   },
   chapterNumber: {
-    fontSize: fontSize['3xl'],
-    fontWeight: '800',
+    fontSize: fontSize.xl,  // Más pequeño y elegante
+    fontWeight: '600',  // Menos bold
+    letterSpacing: -0.2,
   },
 });

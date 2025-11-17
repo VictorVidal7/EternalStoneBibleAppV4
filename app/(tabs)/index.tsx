@@ -163,11 +163,11 @@ export default function HomeScreen() {
           <LinearGradient
             colors={
               isDark
-                ? ['#4169ff', '#6b8fff', '#a4c1ff'] // Azul eléctrico vibrante
-                : ['#4169ff', '#2952ff', '#6b8fff'] // Gradiente más intenso
+                ? ['#6366f1', '#818cf8', '#a5b4fc'] // Índigo refinado
+                : ['#6366f1', '#4f46e5', '#7c3aed'] // Gradiente sofisticado
             }
             start={{ x: 0, y: 0 }}
-            end={{ x: 1.2, y: 1.2 }}
+            end={{ x: 1, y: 1 }}
             style={styles.heroGradient}
           >
             {/* Stars decoration */}
@@ -268,8 +268,8 @@ export default function HomeScreen() {
                 ? ['#10b981', '#059669']
                 : ['#34d399', '#10b981']
             }
-            padding="large"
-            style={{ marginBottom: spacing.lg }}
+            padding="medium"  // Menos padding
+            style={{ marginBottom: spacing.md }}  // Menos margen
             onPress={() =>
               handlePress(() =>
                 router.push(`/verse/${lastRead.book}/${lastRead.chapter}` as any)
@@ -427,41 +427,35 @@ const QuickAccessCard: React.FC<QuickAccessCardProps> = ({
       style={{
         opacity: fadeIn,
         transform: [{ scale }],
-        width: (SCREEN_WIDTH - spacing.lg * 3) / 2,
-        marginBottom: spacing.md,
+        width: (SCREEN_WIDTH - spacing.xl * 3) / 2,
+        marginBottom: spacing.base,
       }}
     >
       <TouchableOpacity
-        activeOpacity={0.8}
+        activeOpacity={0.7}
         onPress={onPress}
         style={styles.quickAccessCardContainer}
       >
-        <LinearGradient
-          colors={isDark
-            ? [color + '30', color + '10']
-            : [color + '25', color + '10']}
-          start={{ x: 0, y: 0 }}
-          end={{ x: 1, y: 1 }}
-          style={[styles.quickAccessGradient, { borderColor: color + '40' }]}
+        {/* DISEÑO MINIMALISTA - Sin gradientes ni decoraciones */}
+        <View
+          style={[
+            styles.quickAccessCard,
+            {
+              backgroundColor: isDark
+                ? 'rgba(255,255,255,0.03)'
+                : 'rgba(0,0,0,0.02)',
+            },
+          ]}
         >
-          {/* Círculo decorativo de fondo */}
-          <View style={[styles.quickAccessCircle, { backgroundColor: color + '15' }]} />
-
-          <Animated.View style={{ transform: [{ rotate }] }}>
-            <View style={[styles.quickAccessIconContainer, { backgroundColor: color + '30' }]}>
-              <Ionicons name={icon} size={36} color={color} />
-            </View>
-          </Animated.View>
+          {/* Icono simple */}
+          <View style={[styles.quickAccessIconContainer, { backgroundColor: color + '10' }]}>
+            <Ionicons name={icon} size={28} color={color} />
+          </View>
 
           <Text style={[styles.quickAccessText, { color: colors.text }]} numberOfLines={1}>
             {name}
           </Text>
-
-          {/* Icono de flecha pequeño */}
-          <View style={styles.quickAccessArrow}>
-            <Ionicons name="chevron-forward" size={16} color={color} />
-          </View>
-        </LinearGradient>
+        </View>
       </TouchableOpacity>
     </Animated.View>
   );
@@ -498,55 +492,54 @@ const ReadingPlanCard: React.FC<ReadingPlanCardProps> = ({ plan, onPress }) => {
   return (
     <Animated.View style={[styles.planCard, { transform: [{ scale: scaleAnim }] }]}>
       <TouchableOpacity
-        activeOpacity={1}
+        activeOpacity={0.7}
         onPress={onPress}
         onPressIn={handlePressIn}
         onPressOut={handlePressOut}
       >
-        <LinearGradient
-          colors={isDark
-            ? [plan.color + '35', plan.color + '15']
-            : [plan.color + '25', plan.color + '10']}
-          start={{ x: 0, y: 0 }}
-          end={{ x: 0, y: 1 }}
-          style={[styles.planGradient, { borderColor: plan.color + '50' }]}
+        {/* DISEÑO MINIMALISTA - Sin gradientes */}
+        <View
+          style={[
+            styles.planContainer,
+            {
+              backgroundColor: isDark
+                ? 'rgba(255,255,255,0.03)'
+                : 'rgba(0,0,0,0.02)',
+            },
+          ]}
         >
-          {/* Decoración de líneas diagonales */}
-          <View style={styles.planDecorativeLines}>
-            <View style={[styles.planLine, { backgroundColor: plan.color + '10' }]} />
-            <View style={[styles.planLine, { backgroundColor: plan.color + '15' }]} />
+          {/* Header con ícono */}
+          <View style={styles.planHeader}>
+            <View style={[styles.planIconContainer, { backgroundColor: plan.color + '15' }]}>
+              <Ionicons name={plan.icon as any} size={24} color={plan.color} />
+            </View>
+
+            <View style={[styles.planDurationBadge, { backgroundColor: plan.color + '15' }]}>
+              <Text style={[styles.planDurationBadgeText, { color: plan.color }]}>
+                {plan.duration} días
+              </Text>
+            </View>
           </View>
 
-          {/* Icono del plan */}
-          <View style={[styles.planIconContainer, { backgroundColor: plan.color + '30', borderColor: plan.color }]}>
-            <Ionicons name={plan.icon as any} size={32} color={plan.color} />
-          </View>
-
-          {/* Badge de duración */}
-          <View style={[styles.planDurationBadge, { backgroundColor: plan.color }]}>
-            <Ionicons name="calendar-outline" size={14} color="#ffffff" />
-            <Text style={styles.planDurationBadgeText}>
-              {plan.duration} {t.home.days}
-            </Text>
-          </View>
-
-          {/* Contenido del plan */}
+          {/* Contenido */}
           <View style={styles.planContent}>
             <Text style={[styles.planName, { color: colors.text }]} numberOfLines={2}>
               {plan.name}
             </Text>
 
-            <Text style={[styles.planDescription, { color: colors.textSecondary }]} numberOfLines={3}>
+            <Text style={[styles.planDescription, { color: colors.textSecondary }]} numberOfLines={2}>
               {plan.description}
             </Text>
-
-            {/* Botón de comenzar */}
-            <View style={[styles.planStartButton, { backgroundColor: plan.color }]}>
-              <Text style={styles.planStartButtonText}>{t.home.startPlan || 'Comenzar'}</Text>
-              <Ionicons name="arrow-forward" size={16} color="#ffffff" />
-            </View>
           </View>
-        </LinearGradient>
+
+          {/* Footer simple */}
+          <View style={styles.planFooter}>
+            <Text style={[styles.planStartText, { color: plan.color }]}>
+              {t.home.startPlan || 'Comenzar'}
+            </Text>
+            <Ionicons name="arrow-forward" size={18} color={plan.color} />
+          </View>
+        </View>
       </TouchableOpacity>
     </Animated.View>
   );
@@ -555,12 +548,12 @@ const ReadingPlanCard: React.FC<ReadingPlanCardProps> = ({ plan, onPress }) => {
 // ==================== DATA ====================
 
 const QUICK_ACCESS_BOOKS = [
-  { name: 'Génesis', icon: 'star' as const, color: '#3b82f6' },
-  { name: 'Salmos', icon: 'musical-notes' as const, color: '#8b5cf6' },
-  { name: 'Proverbios', icon: 'bulb' as const, color: '#f59e0b' },
-  { name: 'Juan', icon: 'heart' as const, color: '#ef4444' },
-  { name: 'Romanos', icon: 'book' as const, color: '#10b981' },
-  { name: 'Apocalipsis', icon: 'flame' as const, color: '#f97316' },
+  { name: 'Génesis', icon: 'book-outline' as const, color: '#6366f1' },
+  { name: 'Salmos', icon: 'musical-notes-outline' as const, color: '#8b5cf6' },
+  { name: 'Proverbios', icon: 'bulb-outline' as const, color: '#f59e0b' },
+  { name: 'Juan', icon: 'heart-outline' as const, color: '#ef4444' },
+  { name: 'Romanos', icon: 'document-text-outline' as const, color: '#10b981' },
+  { name: 'Apocalipsis', icon: 'flash-outline' as const, color: '#ec4899' },
 ];
 
 // ==================== STYLES ====================
@@ -573,22 +566,22 @@ const styles = StyleSheet.create({
     paddingBottom: spacing['2xl'],
   },
 
-  // Hero
+  // Hero - MÁS COMPACTO
   heroContainer: {
-    marginBottom: spacing.lg,
+    marginBottom: spacing.md,  // Menos separación
     overflow: 'hidden',
   },
   heroGradient: {
-    paddingHorizontal: spacing.lg,
-    paddingTop: Platform.OS === 'ios' ? 60 : 40,
-    paddingBottom: spacing['3xl'],
-    borderBottomLeftRadius: 32,
+    paddingHorizontal: spacing.lg,  // Menos padding
+    paddingTop: Platform.OS === 'ios' ? 60 : 40,  // Menos altura
+    paddingBottom: spacing.xl,  // Más compacto
+    borderBottomLeftRadius: 32,  // Más compacto
     borderBottomRightRadius: 32,
-    shadowColor: '#4169ff', // Sombra con color vibrante
+    shadowColor: '#6366f1',
     shadowOffset: { width: 0, height: 12 },
-    shadowOpacity: 0.35,
+    shadowOpacity: 0.2,
     shadowRadius: 20,
-    elevation: 12,
+    elevation: 8,
   },
   starsContainer: {
     position: 'absolute',
@@ -616,32 +609,35 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   heroTitle: {
-    fontSize: fontSize['4xl'],
-    fontWeight: '700',
+    fontSize: fontSize['3xl'],  // Más compacto
+    fontWeight: '800',
     color: '#ffffff',
-    marginTop: spacing.base,
+    marginTop: spacing.sm,  // Menos espacio
     marginBottom: spacing.xs,
     textAlign: 'center',
+    letterSpacing: -0.5,
   },
   heroSubtitle: {
-    fontSize: fontSize.lg,
-    color: 'rgba(255,255,255,0.9)',
-    marginBottom: spacing.xl,
+    fontSize: fontSize.base,  // Más compacto
+    fontWeight: '400',
+    color: 'rgba(255,255,255,0.85)',
+    marginBottom: spacing.lg,  // Menos espacio
     textAlign: 'center',
+    letterSpacing: 0.2,
   },
   statsRow: {
     flexDirection: 'row',
-    backgroundColor: 'rgba(255,255,255,0.18)',
-    borderRadius: 20,
-    paddingVertical: spacing.md,
-    paddingHorizontal: spacing.lg,
+    backgroundColor: 'rgba(255,255,255,0.15)',
+    borderRadius: 20,  // Más compacto
+    paddingVertical: spacing.md,  // Menos padding
+    paddingHorizontal: spacing.lg,  // Menos padding
     alignItems: 'center',
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.25)',
+    borderColor: 'rgba(255,255,255,0.2)',
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
+    shadowOpacity: 0.12,
+    shadowRadius: 12,
   },
   statItem: {
     alignItems: 'center',
@@ -651,57 +647,67 @@ const styles = StyleSheet.create({
     marginBottom: spacing.xs,
   },
   statValue: {
-    fontSize: fontSize.xl,
+    fontSize: fontSize.xl,  // Más compacto
     fontWeight: '700',
     color: '#ffffff',
+    letterSpacing: -0.3,
   },
   statLabel: {
-    fontSize: fontSize.xs,
-    color: 'rgba(255,255,255,0.8)',
+    fontSize: fontSize['2xs'],  // Más pequeño
+    fontWeight: '500',
+    color: 'rgba(255,255,255,0.75)',
     marginTop: 2,
+    letterSpacing: 0.5,
+    textTransform: 'uppercase',
   },
   statDivider: {
     width: 1,
-    height: 40,
+    height: 32,  // Más bajo
     backgroundColor: 'rgba(255,255,255,0.2)',
-    marginHorizontal: spacing.md,
+    marginHorizontal: spacing.sm,  // Menos espacio
   },
 
-  // Card Header
+  // Card Header - MÁS COMPACTO
   cardHeader: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: spacing.base,
+    marginBottom: spacing.md,  // Menos separación
   },
   cardIconContainer: {
     marginRight: spacing.md,
   },
   cardTitle: {
-    fontSize: fontSize.lg,
-    fontWeight: '600',
+    fontSize: fontSize.lg,  // Más compacto
+    fontWeight: '700',
+    letterSpacing: -0.3,
   },
   cardSubtitle: {
-    fontSize: fontSize.sm,
+    fontSize: fontSize.xs,  // Más pequeño
+    fontWeight: '500',
     marginTop: 2,
+    opacity: 0.7,
   },
 
-  // Verse
+  // Verse - MÁS COMPACTO
   verseText: {
-    fontSize: fontSize.base,
+    fontSize: fontSize.base,  // Más compacto
     lineHeight: fontSize.base * 1.6,
     fontStyle: 'italic',
-    marginBottom: spacing.base,
+    marginBottom: spacing.md,  // Menos espacio
+    opacity: 0.95,
   },
   cardAction: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    paddingTop: spacing.md,
+    paddingTop: spacing.md,  // Menos espacio
+    borderTopWidth: 0,  // Sin borde
   },
   actionText: {
     fontSize: fontSize.base,
     fontWeight: '600',
-    marginRight: spacing.xs,
+    marginRight: spacing.sm,
+    letterSpacing: 0.2,
   },
 
   // Continue Reading
@@ -726,21 +732,22 @@ const styles = StyleSheet.create({
     marginTop: spacing.md,
   },
 
-  // Section Header
+  // Section Header - MÁS COMPACTO
   sectionHeader: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: spacing.lg,
-    marginBottom: spacing.base,
-    marginTop: spacing.md,
+    marginBottom: spacing.md,  // Menos separación
+    marginTop: spacing.lg,  // Menos espacio
   },
   sectionTitle: {
-    fontSize: fontSize.xl,
+    fontSize: fontSize.xl,  // Más compacto
     fontWeight: '700',
+    letterSpacing: -0.4,
   },
 
-  // Quick Access
+  // Quick Access - MÁS COMPACTO
   quickGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
@@ -750,134 +757,88 @@ const styles = StyleSheet.create({
   quickAccessCardContainer: {
     flex: 1,
   },
-  quickAccessGradient: {
-    height: 135,
-    borderRadius: borderRadius.xl,
-    padding: spacing.base,
-    borderWidth: 1.5,
-    overflow: 'hidden',
-    position: 'relative',
-    ...shadows.md,
-  },
-  quickAccessCircle: {
-    position: 'absolute',
-    width: 100,
-    height: 100,
-    borderRadius: 50,
-    top: -30,
-    right: -20,
+  quickAccessCard: {
+    height: 90,  // Más compacto (era 100)
+    borderRadius: borderRadius.md,
+    padding: spacing.sm,  // Menos padding
+    ...shadows.sm,
+    justifyContent: 'space-between',
   },
   quickAccessIconContainer: {
-    width: 64,
-    height: 64,
-    borderRadius: borderRadius.xl,
+    width: 40,  // Más pequeño
+    height: 40,
+    borderRadius: borderRadius.sm,
     justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: spacing.sm,
-    ...shadows.sm,
   },
   quickAccessText: {
-    fontSize: fontSize.base,
-    fontWeight: '700',
+    fontSize: fontSize.xs,  // Más pequeño
+    fontWeight: '600',
     textAlign: 'left',
-  },
-  quickAccessArrow: {
-    position: 'absolute',
-    bottom: spacing.md,
-    right: spacing.md,
-    width: 28,
-    height: 28,
-    borderRadius: 14,
-    backgroundColor: 'rgba(255,255,255,0.2)',
-    justifyContent: 'center',
-    alignItems: 'center',
+    letterSpacing: 0,
   },
 
-  // Reading Plans
+  // Reading Plans - MÁS COMPACTO
   plansScroll: {
     paddingHorizontal: spacing.lg,
   },
   planCard: {
-    width: 260,
-    marginRight: spacing.base,
+    width: 220,  // Más compacto
+    marginRight: spacing.md,
   },
-  planGradient: {
-    borderRadius: borderRadius.xl,
-    borderWidth: 2,
-    overflow: 'hidden',
-    ...shadows.lg,
+  planContainer: {
+    borderRadius: borderRadius.md,
+    padding: spacing.sm,  // Menos padding
+    ...shadows.sm,
+    minHeight: 140,  // Más bajo
+    justifyContent: 'space-between',
   },
-  planDecorativeLines: {
-    position: 'absolute',
-    top: 0,
-    right: 0,
-    bottom: 0,
-    left: 0,
+  planHeader: {
     flexDirection: 'row',
-    justifyContent: 'space-around',
-    opacity: 0.3,
-  },
-  planLine: {
-    width: 2,
-    height: '100%',
-    transform: [{ skewX: '-10deg' }],
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: spacing.sm,  // Menos espacio
   },
   planIconContainer: {
-    width: 68,
-    height: 68,
-    borderRadius: borderRadius['2xl'],
+    width: 40,  // Más pequeño
+    height: 40,
+    borderRadius: borderRadius.sm,
     justifyContent: 'center',
     alignItems: 'center',
-    margin: spacing.base,
-    borderWidth: 2,
-    ...shadows.md,
   },
   planDurationBadge: {
-    position: 'absolute',
-    top: spacing.base,
-    right: spacing.base,
-    flexDirection: 'row',
-    alignItems: 'center',
     paddingHorizontal: spacing.sm,
-    paddingVertical: spacing.xs,
-    borderRadius: borderRadius.lg,
-    gap: 4,
+    paddingVertical: 2,
+    borderRadius: borderRadius.full,
   },
   planDurationBadgeText: {
-    fontSize: fontSize.xs,
-    fontWeight: '700',
-    color: '#ffffff',
+    fontSize: fontSize['2xs'],  // Más pequeño
+    fontWeight: '600',
   },
   planContent: {
-    paddingHorizontal: spacing.base,
-    paddingBottom: spacing.base,
+    flex: 1,
   },
   planName: {
-    fontSize: fontSize.xl,
+    fontSize: fontSize.base,  // Más compacto
     fontWeight: '700',
-    marginBottom: spacing.sm,
-    lineHeight: fontSize.xl * 1.3,
+    marginBottom: spacing.xs,
+    lineHeight: fontSize.base * 1.3,
   },
   planDescription: {
-    fontSize: fontSize.sm,
-    lineHeight: fontSize.sm * 1.5,
-    marginBottom: spacing.md,
-    minHeight: 60,
+    fontSize: fontSize.xs,  // Más pequeño
+    lineHeight: fontSize.xs * 1.4,
+    opacity: 0.7,
   },
-  planStartButton: {
+  planFooter: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: spacing.sm,
-    paddingHorizontal: spacing.base,
-    borderRadius: borderRadius.lg,
+    justifyContent: 'flex-end',
     gap: spacing.xs,
-    ...shadows.sm,
+    marginTop: spacing.xs,  // Menos espacio
   },
-  planStartButtonText: {
-    fontSize: fontSize.sm,
-    fontWeight: '700',
-    color: '#ffffff',
+  planStartText: {
+    fontSize: fontSize.xs,  // Más pequeño
+    fontWeight: '600',
   },
 
   // Footer
