@@ -312,7 +312,11 @@ const BookCard: React.FC<BookCardProps> = ({ book, index, onPress }) => {
           styles.bookCard,
           {
             backgroundColor: colors.card,
-            ...shadows.sm,
+            shadowColor: '#000',
+            shadowOffset: { width: 0, height: 4 },
+            shadowOpacity: 0.1,
+            shadowRadius: 8,
+            elevation: 3,
           },
         ]}
         onPress={onPress}
@@ -523,7 +527,7 @@ const styles = StyleSheet.create({
   bookCard: {
     flexDirection: 'row',
     alignItems: 'center',
-    borderRadius: 20,  // Más suave
+    borderRadius: 16,  // Suave y moderno
     paddingVertical: spacing.lg,  // Más espacioso
     paddingHorizontal: spacing.lg,
     marginBottom: spacing.base,
