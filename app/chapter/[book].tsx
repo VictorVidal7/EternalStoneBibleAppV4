@@ -368,8 +368,16 @@ const ChapterCard: React.FC<ChapterCardProps> = React.memo(
       }).start();
     };
 
+    const handleLayout = (event: any) => {
+      const { width, height, x, y } = event.nativeEvent.layout;
+      console.log(`📏 ChapterCard ${chapter} layout:`, { width, height, x, y });
+    };
+
     return (
-      <View style={styles.cardWrapper}>
+      <View
+        style={styles.cardWrapper}
+        onLayout={handleLayout}
+      >
         <TouchableOpacity
           activeOpacity={0.9}
           onPress={onPress}
@@ -635,16 +643,18 @@ const styles = StyleSheet.create({
     width: CARD_SIZE,
     height: CARD_SIZE,
     padding: spacing.xs,
+    backgroundColor: 'rgba(255,0,0,0.1)', // Debug: red tint
   },
   cardTouchable: {
-    width: '100%',
-    height: '100%',
+    width: CARD_SIZE - spacing.xs * 2,
+    height: CARD_SIZE - spacing.xs * 2,
+    backgroundColor: 'rgba(0,255,0,0.1)', // Debug: green tint
   },
   card: {
-    width: '100%',
-    height: '100%',
+    width: CARD_SIZE - spacing.xs * 2,
+    height: CARD_SIZE - spacing.xs * 2,
     borderRadius: borderRadius.lg,
-    borderWidth: 1,
+    borderWidth: 2,
     justifyContent: 'center',
     alignItems: 'center',
   },
