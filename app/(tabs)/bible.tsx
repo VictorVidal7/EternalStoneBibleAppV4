@@ -118,8 +118,8 @@ export default function BibleScreen() {
         <LinearGradient
           colors={
             isDark
-              ? ['#7c8dff', '#9b6dd6', '#c7a8ff']
-              : ['#7c8dff', '#9b6dd6', '#c7a8ff']
+              ? ['#4169ff', '#6b8fff', '#a4c1ff'] // Azul eléctrico vibrante
+              : ['#4169ff', '#2952ff', '#6b8fff'] // Gradiente intenso
           }
           start={{ x: 0, y: 0 }}
           end={{ x: 1.3, y: 1.3 }}
@@ -390,11 +390,11 @@ const styles = StyleSheet.create({
     paddingTop: Platform.OS === 'ios' ? 60 : 40,
     paddingBottom: spacing.xl,
     paddingHorizontal: spacing.lg,
-    shadowColor: '#7c8dff',
-    shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.25,
-    shadowRadius: 12,
-    elevation: 8,
+    shadowColor: '#4169ff', // Sombra vibrante
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.3,
+    shadowRadius: 16,
+    elevation: 10,
   },
   headerContent: {
     flexDirection: 'row',

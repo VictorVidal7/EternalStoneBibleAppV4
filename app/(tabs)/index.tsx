@@ -163,8 +163,8 @@ export default function HomeScreen() {
           <LinearGradient
             colors={
               isDark
-                ? ['#7c8dff', '#9b6dd6', '#f5b4fc']
-                : ['#7c8dff', '#9b6dd6', '#c7a8ff']
+                ? ['#4169ff', '#6b8fff', '#a4c1ff'] // Azul eléctrico vibrante
+                : ['#4169ff', '#2952ff', '#6b8fff'] // Gradiente más intenso
             }
             start={{ x: 0, y: 0 }}
             end={{ x: 1.2, y: 1.2 }}
@@ -584,11 +584,11 @@ const styles = StyleSheet.create({
     paddingBottom: spacing['3xl'],
     borderBottomLeftRadius: 32,
     borderBottomRightRadius: 32,
-    shadowColor: '#7c8dff',
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.25,
-    shadowRadius: 16,
-    elevation: 10,
+    shadowColor: '#4169ff', // Sombra con color vibrante
+    shadowOffset: { width: 0, height: 12 },
+    shadowOpacity: 0.35,
+    shadowRadius: 20,
+    elevation: 12,
   },
   starsContainer: {
     position: 'absolute',

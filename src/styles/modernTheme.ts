@@ -13,39 +13,39 @@ import { borderRadius, shadows, spacing, fontSize, gradients } from './designTok
 // ==================== COLOR PALETTES ====================
 
 /**
- * Paleta de colores primaria mejorada - Azul/Púrpura Premium
- * Inspirada en diseño moderno con mejor contraste
+ * Paleta de colores primaria ULTRA VIBRANTE - Azul eléctrico
+ * ¡COLORES SUPER NOTORIOS Y MODERNOS!
  */
 const primaryPalette = {
-  50: '#f5f7ff',
-  100: '#ebedff',
-  200: '#d6dbff',
-  300: '#b8c1ff',
-  400: '#9aa7ff',
-  500: '#7c8dff', // Primary - Más vibrante
-  600: '#667eea', // Original
-  700: '#5668d3',
-  800: '#4651b6',
-  900: '#3b4294',
-  950: '#2a2f63',
+  50: '#f0f5ff',
+  100: '#e0ebff',
+  200: '#c7d9ff',
+  300: '#a4c1ff',
+  400: '#6b8fff', // Más brillante
+  500: '#4169ff', // PRIMARY SUPER VIBRANTE - Azul eléctrico
+  600: '#2952ff', // Más intenso
+  700: '#1a3ddb',
+  800: '#1530b0',
+  900: '#0f2380',
+  950: '#0a1650',
 };
 
 /**
- * Paleta de colores secundaria mejorada - Verde Esmeralda Vibrante
- * Colores más vivos y profesionales
+ * Paleta de colores secundaria ULTRA VIBRANTE - Verde neón
+ * ¡IMPOSIBLE NO NOTAR!
  */
 const secondaryPalette = {
-  50: '#ecfdf5',
-  100: '#d1fae5',
-  200: '#a7f3d0',
-  300: '#6ee7b7',
-  400: '#34d399',
-  500: '#10b981', // Secondary - Más moderno
-  600: '#059669',
-  700: '#047857',
-  800: '#065f46',
-  900: '#064e3b',
-  950: '#022c22',
+  50: '#e6fff9',
+  100: '#c0fff0',
+  200: '#80ffe0',
+  300: '#40ffd0',
+  400: '#00f7c0', // Más brillante
+  500: '#00d9a8', // SECONDARY SUPER VIBRANTE - Verde neón
+  600: '#00ba8f',
+  700: '#009b76',
+  800: '#007c5d',
+  900: '#005d44',
+  950: '#003e2b',
 };
 
 /**

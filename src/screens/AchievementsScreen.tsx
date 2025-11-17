@@ -83,9 +83,9 @@ export const AchievementsScreen: React.FC<AchievementsScreenProps> = ({ database
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
-      {/* Header con toggle - Moderno con gradiente */}
+      {/* Header con toggle - Moderno con gradiente VIBRANTE */}
       <LinearGradient
-        colors={isDark ? ['#7c8dff', '#9b6dd6'] : ['#7c8dff', '#9b6dd6']}
+        colors={isDark ? ['#4169ff', '#6b8fff'] : ['#4169ff', '#2952ff']}
         start={{ x: 0, y: 0 }}
         end={{ x: 1, y: 0 }}
         style={styles.header}
@@ -232,11 +232,11 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingHorizontal: spacing.lg,
     paddingVertical: spacing.base,
-    shadowColor: '#7c8dff',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.2,
-    shadowRadius: 8,
-    elevation: 6,
+    shadowColor: '#4169ff', // Sombra ultra vibrante
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.3,
+    shadowRadius: 12,
+    elevation: 8,
   },
   headerTitle: {
     fontSize: fontSize['2xl'],
