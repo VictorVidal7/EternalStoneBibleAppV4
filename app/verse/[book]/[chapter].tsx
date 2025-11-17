@@ -453,71 +453,64 @@ const styles = StyleSheet.create({
     letterSpacing: -0.2,
   },
 
-  // CONTENEDOR DE VERSÍCULOS
+  // CONTENEDOR DE VERSÍCULOS - OPTIMIZADO
   versesContainer: {
     flex: 1,
   },
   versesContent: {
-    paddingHorizontal: spacing.xl,  // Más espacioso
-    paddingVertical: spacing.lg,
+    paddingHorizontal: spacing.lg,  // Balance perfecto
+    paddingVertical: spacing.md,
   },
 
-  // CARD DE VERSÍCULO REDISEÑADA
+  // CARD DE VERSÍCULO - MINIMALISTA
   verseItem: {
-    borderRadius: borderRadius.xl,  // Más suave
-    padding: spacing.xl,  // Más espacioso
-    marginBottom: spacing.lg,  // Más separación
-    ...shadows.md,
+    borderRadius: borderRadius.lg,  // Más sutil
+    padding: spacing.base,  // Compacto pero cómodo
+    marginBottom: spacing.md,  // Menos separación
+    ...shadows.sm,  // Sombra más sutil
     borderWidth: 0,
   },
   verseHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    alignItems: 'flex-start',  // Mejor alineación
-    marginBottom: spacing.md,
+    alignItems: 'flex-start',
+    marginBottom: spacing.sm,  // Más compacto
   },
   verseNumber: {
-    fontSize: fontSizes.lg,
-    fontWeight: '800',
-    width: 40,  // Ancho fijo para alineación
-    height: 40,
-    borderRadius: borderRadius.md,
-    textAlign: 'center',
-    lineHeight: 40,
-    overflow: 'hidden',
+    fontSize: fontSizes.base,  // Más discreto
+    fontWeight: '600',
+    minWidth: 32,  // Ancho mínimo
+    textAlign: 'left',
   },
 
-  // TEXTO DEL VERSÍCULO MEJORADO
+  // TEXTO DEL VERSÍCULO - OPTIMIZADO PARA LECTURA
   verseText: {
-    fontSize: fontSizes.md,  // Tamaño más grande para lectura
-    lineHeight: fontSizes.md * 1.75,  // Line-height óptimo para lectura
-    letterSpacing: 0.2,
-    marginBottom: spacing.lg,
+    fontSize: fontSizes.base,  // Tamaño estándar
+    lineHeight: fontSizes.base * 1.6,  // Line-height cómodo
+    letterSpacing: 0.1,
+    marginBottom: spacing.md,  // Menos espacio
   },
 
-  // ACCIONES REDISEÑADAS
+  // ACCIONES - MINIMALISTAS
   verseActions: {
     flexDirection: 'row',
-    justifyContent: 'space-around',  // Mejor distribución
-    borderTopWidth: 1,
-    paddingTop: spacing.lg,
-    marginTop: spacing.sm,
-    borderTopColor: 'rgba(0,0,0,0.06)',
+    justifyContent: 'flex-start',  // Alineado a la izquierda
+    gap: spacing.lg,  // Espacio entre botones
+    borderTopWidth: 0,  // Sin borde superior
+    paddingTop: spacing.sm,
+    marginTop: spacing.xs,
   },
   actionButton: {
-    flexDirection: 'column',  // Stack vertical
+    flexDirection: 'row',  // Horizontal
     alignItems: 'center',
+    gap: spacing.xs,
     paddingVertical: spacing.xs,
-    paddingHorizontal: spacing.md,
-    borderRadius: borderRadius.md,
-    minWidth: 70,
+    paddingHorizontal: spacing.sm,
   },
   actionButtonText: {
-    fontSize: fontSizes.xs,
-    fontWeight: '600',
-    marginTop: spacing.xs,
-    letterSpacing: 0.3,
-    textTransform: 'uppercase',
+    fontSize: fontSizes.sm,
+    fontWeight: '500',
+    letterSpacing: 0,
   },
 
   // MODAL MEJORADO

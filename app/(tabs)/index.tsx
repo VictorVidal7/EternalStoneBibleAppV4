@@ -427,41 +427,35 @@ const QuickAccessCard: React.FC<QuickAccessCardProps> = ({
       style={{
         opacity: fadeIn,
         transform: [{ scale }],
-        width: (SCREEN_WIDTH - spacing.lg * 3) / 2,
-        marginBottom: spacing.md,
+        width: (SCREEN_WIDTH - spacing.xl * 3) / 2,
+        marginBottom: spacing.base,
       }}
     >
       <TouchableOpacity
-        activeOpacity={0.8}
+        activeOpacity={0.7}
         onPress={onPress}
         style={styles.quickAccessCardContainer}
       >
-        <LinearGradient
-          colors={isDark
-            ? [color + '30', color + '10']
-            : [color + '25', color + '10']}
-          start={{ x: 0, y: 0 }}
-          end={{ x: 1, y: 1 }}
-          style={[styles.quickAccessGradient, { borderColor: color + '40' }]}
+        {/* DISEÑO MINIMALISTA - Sin gradientes ni decoraciones */}
+        <View
+          style={[
+            styles.quickAccessCard,
+            {
+              backgroundColor: isDark
+                ? 'rgba(255,255,255,0.03)'
+                : 'rgba(0,0,0,0.02)',
+            },
+          ]}
         >
-          {/* Círculo decorativo de fondo */}
-          <View style={[styles.quickAccessCircle, { backgroundColor: color + '15' }]} />
-
-          <Animated.View style={{ transform: [{ rotate }] }}>
-            <View style={[styles.quickAccessIconContainer, { backgroundColor: color + '30' }]}>
-              <Ionicons name={icon} size={36} color={color} />
-            </View>
-          </Animated.View>
+          {/* Icono simple */}
+          <View style={[styles.quickAccessIconContainer, { backgroundColor: color + '10' }]}>
+            <Ionicons name={icon} size={28} color={color} />
+          </View>
 
           <Text style={[styles.quickAccessText, { color: colors.text }]} numberOfLines={1}>
             {name}
           </Text>
-
-          {/* Icono de flecha pequeño */}
-          <View style={styles.quickAccessArrow}>
-            <Ionicons name="chevron-forward" size={16} color={color} />
-          </View>
-        </LinearGradient>
+        </View>
       </TouchableOpacity>
     </Animated.View>
   );
@@ -498,55 +492,54 @@ const ReadingPlanCard: React.FC<ReadingPlanCardProps> = ({ plan, onPress }) => {
   return (
     <Animated.View style={[styles.planCard, { transform: [{ scale: scaleAnim }] }]}>
       <TouchableOpacity
-        activeOpacity={1}
+        activeOpacity={0.7}
         onPress={onPress}
         onPressIn={handlePressIn}
         onPressOut={handlePressOut}
       >
-        <LinearGradient
-          colors={isDark
-            ? [plan.color + '35', plan.color + '15']
-            : [plan.color + '25', plan.color + '10']}
-          start={{ x: 0, y: 0 }}
-          end={{ x: 0, y: 1 }}
-          style={[styles.planGradient, { borderColor: plan.color + '50' }]}
+        {/* DISEÑO MINIMALISTA - Sin gradientes */}
+        <View
+          style={[
+            styles.planContainer,
+            {
+              backgroundColor: isDark
+                ? 'rgba(255,255,255,0.03)'
+                : 'rgba(0,0,0,0.02)',
+            },
+          ]}
         >
-          {/* Decoración de líneas diagonales */}
-          <View style={styles.planDecorativeLines}>
-            <View style={[styles.planLine, { backgroundColor: plan.color + '10' }]} />
-            <View style={[styles.planLine, { backgroundColor: plan.color + '15' }]} />
+          {/* Header con ícono */}
+          <View style={styles.planHeader}>
+            <View style={[styles.planIconContainer, { backgroundColor: plan.color + '15' }]}>
+              <Ionicons name={plan.icon as any} size={24} color={plan.color} />
+            </View>
+
+            <View style={[styles.planDurationBadge, { backgroundColor: plan.color + '15' }]}>
+              <Text style={[styles.planDurationBadgeText, { color: plan.color }]}>
+                {plan.duration} días
+              </Text>
+            </View>
           </View>
 
-          {/* Icono del plan */}
-          <View style={[styles.planIconContainer, { backgroundColor: plan.color + '30', borderColor: plan.color }]}>
-            <Ionicons name={plan.icon as any} size={32} color={plan.color} />
-          </View>
-
-          {/* Badge de duración */}
-          <View style={[styles.planDurationBadge, { backgroundColor: plan.color }]}>
-            <Ionicons name="calendar-outline" size={14} color="#ffffff" />
-            <Text style={styles.planDurationBadgeText}>
-              {plan.duration} {t.home.days}
-            </Text>
-          </View>
-
-          {/* Contenido del plan */}
+          {/* Contenido */}
           <View style={styles.planContent}>
             <Text style={[styles.planName, { color: colors.text }]} numberOfLines={2}>
               {plan.name}
             </Text>
 
-            <Text style={[styles.planDescription, { color: colors.textSecondary }]} numberOfLines={3}>
+            <Text style={[styles.planDescription, { color: colors.textSecondary }]} numberOfLines={2}>
               {plan.description}
             </Text>
-
-            {/* Botón de comenzar */}
-            <View style={[styles.planStartButton, { backgroundColor: plan.color }]}>
-              <Text style={styles.planStartButtonText}>{t.home.startPlan || 'Comenzar'}</Text>
-              <Ionicons name="arrow-forward" size={16} color="#ffffff" />
-            </View>
           </View>
-        </LinearGradient>
+
+          {/* Footer simple */}
+          <View style={styles.planFooter}>
+            <Text style={[styles.planStartText, { color: plan.color }]}>
+              {t.home.startPlan || 'Comenzar'}
+            </Text>
+            <Ionicons name="arrow-forward" size={18} color={plan.color} />
+          </View>
+        </View>
       </TouchableOpacity>
     </Animated.View>
   );
@@ -555,12 +548,12 @@ const ReadingPlanCard: React.FC<ReadingPlanCardProps> = ({ plan, onPress }) => {
 // ==================== DATA ====================
 
 const QUICK_ACCESS_BOOKS = [
-  { name: 'Génesis', icon: 'star' as const, color: '#3b82f6' },
-  { name: 'Salmos', icon: 'musical-notes' as const, color: '#8b5cf6' },
-  { name: 'Proverbios', icon: 'bulb' as const, color: '#f59e0b' },
-  { name: 'Juan', icon: 'heart' as const, color: '#ef4444' },
-  { name: 'Romanos', icon: 'book' as const, color: '#10b981' },
-  { name: 'Apocalipsis', icon: 'flame' as const, color: '#f97316' },
+  { name: 'Génesis', icon: 'book-outline' as const, color: '#6366f1' },
+  { name: 'Salmos', icon: 'musical-notes-outline' as const, color: '#8b5cf6' },
+  { name: 'Proverbios', icon: 'bulb-outline' as const, color: '#f59e0b' },
+  { name: 'Juan', icon: 'heart-outline' as const, color: '#ef4444' },
+  { name: 'Romanos', icon: 'document-text-outline' as const, color: '#10b981' },
+  { name: 'Apocalipsis', icon: 'flash-outline' as const, color: '#ec4899' },
 ];
 
 // ==================== STYLES ====================
@@ -755,144 +748,98 @@ const styles = StyleSheet.create({
     letterSpacing: -0.5,
   },
 
-  // Quick Access
+  // Quick Access - MINIMALISTA
   quickGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
     justifyContent: 'space-between',
-    paddingHorizontal: spacing.lg,
+    paddingHorizontal: spacing.xl,
   },
   quickAccessCardContainer: {
     flex: 1,
   },
-  quickAccessGradient: {
-    height: 140,  // Un poco más alto
-    borderRadius: borderRadius['2xl'],  // Más suave
-    padding: spacing.lg,  // Más espacioso
-    borderWidth: 0,  // Sin borde para más limpieza
-    overflow: 'hidden',
-    position: 'relative',
-    ...shadows.lg,  // Sombra más profunda
-  },
-  quickAccessCircle: {
-    position: 'absolute',
-    width: 100,
-    height: 100,
-    borderRadius: 50,
-    top: -30,
-    right: -20,
+  quickAccessCard: {
+    height: 100,  // Más compacto
+    borderRadius: borderRadius.lg,
+    padding: spacing.base,
+    ...shadows.sm,  // Sombra sutil
+    justifyContent: 'space-between',
   },
   quickAccessIconContainer: {
-    width: 56,  // Un poco más pequeño para balance
-    height: 56,
-    borderRadius: borderRadius.lg,
+    width: 44,
+    height: 44,
+    borderRadius: borderRadius.md,
     justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: spacing.md,
   },
   quickAccessText: {
-    fontSize: fontSize.base,
-    fontWeight: '700',
+    fontSize: fontSize.sm,
+    fontWeight: '600',
     textAlign: 'left',
-    letterSpacing: -0.2,
-  },
-  quickAccessArrow: {
-    position: 'absolute',
-    bottom: spacing.md,
-    right: spacing.md,
-    width: 28,
-    height: 28,
-    borderRadius: 14,
-    backgroundColor: 'rgba(255,255,255,0.2)',
-    justifyContent: 'center',
-    alignItems: 'center',
+    letterSpacing: 0,
   },
 
-  // Reading Plans
+  // Reading Plans - MINIMALISTA
   plansScroll: {
-    paddingHorizontal: spacing.lg,
+    paddingHorizontal: spacing.xl,
   },
   planCard: {
-    width: 260,
-    marginRight: spacing.base,
+    width: 240,  // Más compacto
+    marginRight: spacing.md,
   },
-  planGradient: {
-    borderRadius: borderRadius.xl,
-    borderWidth: 2,
-    overflow: 'hidden',
-    ...shadows.lg,
+  planContainer: {
+    borderRadius: borderRadius.lg,
+    padding: spacing.base,
+    ...shadows.sm,
+    minHeight: 160,
+    justifyContent: 'space-between',
   },
-  planDecorativeLines: {
-    position: 'absolute',
-    top: 0,
-    right: 0,
-    bottom: 0,
-    left: 0,
+  planHeader: {
     flexDirection: 'row',
-    justifyContent: 'space-around',
-    opacity: 0.3,
-  },
-  planLine: {
-    width: 2,
-    height: '100%',
-    transform: [{ skewX: '-10deg' }],
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: spacing.md,
   },
   planIconContainer: {
-    width: 68,
-    height: 68,
-    borderRadius: borderRadius['2xl'],
+    width: 44,
+    height: 44,
+    borderRadius: borderRadius.md,
     justifyContent: 'center',
     alignItems: 'center',
-    margin: spacing.base,
-    borderWidth: 2,
-    ...shadows.md,
   },
   planDurationBadge: {
-    position: 'absolute',
-    top: spacing.base,
-    right: spacing.base,
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: spacing.sm,
+    paddingHorizontal: spacing.md,
     paddingVertical: spacing.xs,
-    borderRadius: borderRadius.lg,
-    gap: 4,
+    borderRadius: borderRadius.full,
   },
   planDurationBadgeText: {
     fontSize: fontSize.xs,
-    fontWeight: '700',
-    color: '#ffffff',
+    fontWeight: '600',
   },
   planContent: {
-    paddingHorizontal: spacing.base,
-    paddingBottom: spacing.base,
+    flex: 1,
   },
   planName: {
-    fontSize: fontSize.xl,
+    fontSize: fontSize.lg,
     fontWeight: '700',
-    marginBottom: spacing.sm,
-    lineHeight: fontSize.xl * 1.3,
+    marginBottom: spacing.xs,
+    lineHeight: fontSize.lg * 1.3,
   },
   planDescription: {
     fontSize: fontSize.sm,
-    lineHeight: fontSize.sm * 1.5,
-    marginBottom: spacing.md,
-    minHeight: 60,
+    lineHeight: fontSize.sm * 1.4,
+    opacity: 0.7,
   },
-  planStartButton: {
+  planFooter: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: spacing.sm,
-    paddingHorizontal: spacing.base,
-    borderRadius: borderRadius.lg,
+    justifyContent: 'flex-end',
     gap: spacing.xs,
-    ...shadows.sm,
+    marginTop: spacing.sm,
   },
-  planStartButtonText: {
+  planStartText: {
     fontSize: fontSize.sm,
-    fontWeight: '700',
-    color: '#ffffff',
+    fontWeight: '600',
   },
 
   // Footer
