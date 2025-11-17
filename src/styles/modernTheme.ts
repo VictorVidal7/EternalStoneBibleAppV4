@@ -79,17 +79,17 @@ export const lightTheme = {
   secondaryLight: secondaryPalette[400],
   secondaryDark: secondaryPalette[600],
 
-  // Backgrounds - Elegantes y espaciosos
-  background: '#f8f9fa',  // Gris muy suave para mejor contraste
-  backgroundSecondary: '#f1f3f5',
-  backgroundTertiary: grayPalette[100],
+  // Backgrounds - Elegantes y espaciosos con mejor separación
+  background: '#fafbfc',  // Gris ultra suave - mejor contraste
+  backgroundSecondary: '#f5f7fa',
+  backgroundTertiary: '#eef1f5',
   surface: '#ffffff',
   surfaceElevated: '#ffffff',
 
-  // Cards & Components
+  // Cards & Components - Optimizado para evitar superposiciones
   card: '#ffffff',
-  cardHover: grayPalette[50],
-  cardPressed: grayPalette[100],
+  cardHover: '#f8f9fa',
+  cardPressed: '#f0f2f5',
 
   // Text
   text: grayPalette[900],
@@ -98,11 +98,11 @@ export const lightTheme = {
   textDisabled: grayPalette[400],
   textInverse: '#ffffff',
 
-  // Borders
-  border: grayPalette[200],
-  borderLight: grayPalette[100],
-  borderStrong: grayPalette[300],
-  divider: grayPalette[200],
+  // Borders - Más sutiles para evitar superposiciones visuales
+  border: 'rgba(0, 0, 0, 0.06)',
+  borderLight: 'rgba(0, 0, 0, 0.04)',
+  borderStrong: 'rgba(0, 0, 0, 0.12)',
+  divider: 'rgba(0, 0, 0, 0.08)',
 
   // States
   hover: 'rgba(0, 0, 0, 0.04)',

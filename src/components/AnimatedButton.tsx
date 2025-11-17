@@ -257,7 +257,7 @@ export default function AnimatedButton({
             colors={defaultGradientColors}
             start={{ x: 0, y: 0 }}
             end={{ x: 1, y: 1 }}
-            style={[containerStyle, shadows.md]}
+            style={[containerStyle, isDark ? shadows.lg : shadows.md]}
           >
             {buttonContent}
           </LinearGradient>
@@ -277,7 +277,7 @@ export default function AnimatedButton({
         style={[
           containerStyle,
           { backgroundColor: buttonColors.background },
-          variant !== 'ghost' && variant !== 'outline' && shadows.md,
+          variant !== 'ghost' && variant !== 'outline' && (isDark ? shadows.md : shadows.sm),
         ]}
         activeOpacity={1}
         onPress={onPress}
@@ -296,7 +296,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    borderRadius: 16,
+    borderRadius: borderRadius.lg,
     gap: spacing.xs,
   },
   fullWidth: {

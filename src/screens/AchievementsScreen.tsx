@@ -83,9 +83,9 @@ export const AchievementsScreen: React.FC<AchievementsScreenProps> = ({ database
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
-      {/* Header con toggle - Moderno con gradiente VIBRANTE */}
+      {/* Header con toggle - Diseño moderno y elegante */}
       <LinearGradient
-        colors={isDark ? ['#4169ff', '#6b8fff'] : ['#4169ff', '#2952ff']}
+        colors={isDark ? ['#6366f1', '#818cf8'] : ['#6366f1', '#4f46e5']}
         start={{ x: 0, y: 0 }}
         end={{ x: 1, y: 0 }}
         style={styles.header}
@@ -94,7 +94,7 @@ export const AchievementsScreen: React.FC<AchievementsScreenProps> = ({ database
           {showStats ? 'Tus Estadísticas' : 'Tus Logros'}
         </Text>
         <Pressable
-          style={[styles.toggleButton, { backgroundColor: 'rgba(255,255,255,0.25)' }]}
+          style={[styles.toggleButton, { backgroundColor: 'rgba(255,255,255,0.2)' }]}
           onPress={() => setShowStats(!showStats)}
         >
           <Text style={styles.toggleIcon}>{showStats ? '🏅' : '📊'}</Text>
@@ -137,27 +137,31 @@ export const AchievementsScreen: React.FC<AchievementsScreenProps> = ({ database
             style={[styles.categoryScroll, { backgroundColor: colors.background, borderBottomColor: colors.border }]}
           />
 
-          {/* Resumen */}
+          {/* Resumen - Mejorado para evitar superposiciones */}
           {stats && (
-            <View style={[styles.summary, { backgroundColor: colors.card }, shadows.md]}>
+            <View style={[
+              styles.summary,
+              { backgroundColor: colors.card, borderColor: colors.border },
+              isDark ? shadows.md : shadows.sm
+            ]}>
               <View style={styles.summaryItem}>
-                <Text style={[styles.summaryValue, { color: colors.text }]}>
+                <Text style={[styles.summaryValue, { color: colors.primary }]}>
                   {achievements.filter((a) => a.isUnlocked).length}
                 </Text>
                 <Text style={[styles.summaryLabel, { color: colors.textSecondary }]}>
                   Desbloqueados
                 </Text>
               </View>
-              <View style={[styles.summaryDivider, { backgroundColor: colors.border }]} />
+              <View style={[styles.summaryDivider, { backgroundColor: colors.divider }]} />
               <View style={styles.summaryItem}>
-                <Text style={[styles.summaryValue, { color: colors.text }]}>
+                <Text style={[styles.summaryValue, { color: colors.secondary }]}>
                   {stats.totalPoints}
                 </Text>
                 <Text style={[styles.summaryLabel, { color: colors.textSecondary }]}>
                   Puntos totales
                 </Text>
               </View>
-              <View style={[styles.summaryDivider, { backgroundColor: colors.border }]} />
+              <View style={[styles.summaryDivider, { backgroundColor: colors.divider }]} />
               <View style={styles.summaryItem}>
                 <Text style={[styles.summaryValue, { color: colors.text }]}>
                   Nivel {stats.level}
@@ -231,12 +235,12 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     paddingHorizontal: spacing.lg,
-    paddingVertical: spacing.base,
-    shadowColor: '#4169ff', // Sombra ultra vibrante
-    shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.3,
-    shadowRadius: 12,
-    elevation: 8,
+    paddingVertical: spacing.lg,
+    shadowColor: '#6366f1',
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.15,
+    shadowRadius: 8,
+    elevation: 4,
   },
   headerTitle: {
     fontSize: fontSize['2xl'],
@@ -266,10 +270,9 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     paddingHorizontal: spacing.base,
-    paddingVertical: spacing.xs,
+    paddingVertical: spacing.sm,
     borderRadius: borderRadius.full,
     marginRight: spacing.xs,
-    ...shadows.sm,
   },
   categoryChipSelected: {},
   categoryIcon: {
@@ -282,10 +285,11 @@ const styles = StyleSheet.create({
   },
   summary: {
     flexDirection: 'row',
-    padding: spacing.base,
+    padding: spacing.lg,
     marginHorizontal: spacing.base,
     marginTop: spacing.base,
-    borderRadius: borderRadius.xl,
+    borderRadius: borderRadius.lg,
+    borderWidth: 1,
   },
   summaryItem: {
     flex: 1,
