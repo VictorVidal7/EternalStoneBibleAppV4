@@ -369,23 +369,15 @@ const ChapterCard: React.FC<ChapterCardProps> = React.memo(
     };
 
     return (
-      <Animated.View
-        style={[
-          styles.cardWrapper,
-          {
-            opacity: fadeAnim,
-            transform: [{ scale: scaleAnim }],
-          },
-        ]}
-      >
+      <View style={styles.cardWrapper}>
         <TouchableOpacity
           activeOpacity={0.9}
           onPress={onPress}
           onPressIn={handlePressIn}
           onPressOut={handlePressOut}
           accessibilityRole="button"
-          accessibilityLabel={`${t.bible.chapter} ${chapter}`}
-          accessibilityHint={`${t.bible.tapToRead} ${chapter} ${t.bible.of} ${bookName}`}
+          accessibilityLabel={`Capítulo ${chapter}`}
+          style={styles.cardTouchable}
         >
           <View
             style={[
@@ -399,24 +391,12 @@ const ChapterCard: React.FC<ChapterCardProps> = React.memo(
               shadows.md,
             ]}
           >
-            {/* Gradiente sutil en el fondo */}
-            <LinearGradient
-              colors={
-                isDark
-                  ? ['rgba(102, 126, 234, 0.1)', 'transparent']
-                  : ['rgba(102, 126, 234, 0.05)', 'transparent']
-              }
-              start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 1 }}
-              style={StyleSheet.absoluteFill}
-            />
-
             {/* Número del capítulo */}
             <Text
               style={[
                 styles.chapterNumber,
                 {
-                  color: isPressed ? colors.primary : colors.text,
+                  color: colors.text,
                 },
               ]}
             >
@@ -424,25 +404,15 @@ const ChapterCard: React.FC<ChapterCardProps> = React.memo(
             </Text>
 
             {/* Ícono decorativo */}
-            <View
-              style={[
-                styles.cardIconContainer,
-                {
-                  backgroundColor: isPressed
-                    ? colors.primary + '20'
-                    : colors.primaryLight + '15',
-                },
-              ]}
-            >
-              <Ionicons
-                name="document-text-outline"
-                size={16}
-                color={isPressed ? colors.primary : colors.textSecondary}
-              />
-            </View>
+            <Ionicons
+              name="document-text-outline"
+              size={20}
+              color={colors.textSecondary}
+              style={{ marginTop: 8 }}
+            />
           </View>
         </TouchableOpacity>
-      </Animated.View>
+      </View>
     );
   }
 );
@@ -664,27 +634,22 @@ const styles = StyleSheet.create({
   cardWrapper: {
     width: CARD_SIZE,
     height: CARD_SIZE,
-    padding: CARD_MARGIN / 2,
+    padding: spacing.xs,
+  },
+  cardTouchable: {
+    width: '100%',
+    height: '100%',
   },
   card: {
-    flex: 1,
+    width: '100%',
+    height: '100%',
     borderRadius: borderRadius.lg,
     borderWidth: 1,
-    overflow: 'hidden',
     justifyContent: 'center',
     alignItems: 'center',
-    position: 'relative',
   },
   chapterNumber: {
-    fontSize: fontSize['4xl'],
+    fontSize: fontSize['3xl'],
     fontWeight: '800',
-    marginBottom: spacing.xs,
-  },
-  cardIconContainer: {
-    width: 32,
-    height: 32,
-    borderRadius: borderRadius.md,
-    justifyContent: 'center',
-    alignItems: 'center',
   },
 });
