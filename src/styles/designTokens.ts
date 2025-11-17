@@ -26,8 +26,8 @@ export const spacing = {
 } as const;
 
 // ==================== TYPOGRAPHY ====================
-// Escala tipográfica modular perfecta (1.2 ratio - Minor Third)
-// Más armónica y profesional
+// Escala tipográfica modular perfecta (1.25 ratio - Major Third)
+// Sistema refinado para máxima legibilidad y jerarquía visual
 export const fontSize = {
   '2xs': 10,
   xs: 12,
@@ -36,13 +36,13 @@ export const fontSize = {
   md: 18,
   lg: 20,
   xl: 24,
-  '2xl': 28,
-  '3xl': 32,
-  '4xl': 40,
-  '5xl': 48,
-  '6xl': 56,
-  '7xl': 64,
-  '8xl': 72,
+  '2xl': 30,  // Mejorado para títulos más impactantes
+  '3xl': 36,
+  '4xl': 44,
+  '5xl': 52,
+  '6xl': 64,
+  '7xl': 72,
+  '8xl': 84,
   '9xl': 96,
 } as const;
 
@@ -53,10 +53,12 @@ export const fontWeight = {
   semibold: '600',
   bold: '700',
   extrabold: '800',
+  black: '900',  // Añadido para títulos ultra destacados
 } as const;
 
 export const lineHeight = {
   tight: 1.2,
+  snug: 1.375,  // Añadido para mejor control
   normal: 1.5,
   relaxed: 1.75,
   loose: 2.0,
@@ -68,7 +70,8 @@ export const letterSpacing = {
   normal: 0,
   wide: 0.25,
   wider: 0.5,
-  widest: 1,
+  widest: 1.0,
+  super: 1.5,  // Para textos con mucha separación
 } as const;
 
 // ==================== BORDER RADIUS ====================

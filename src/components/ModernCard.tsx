@@ -18,7 +18,7 @@ import {
 import { LinearGradient } from 'expo-linear-gradient';
 import { BlurView } from 'expo-blur';
 import * as Haptics from 'expo-haptics';
-import { spacing, borderRadius, shadows } from '../styles/designTokens';
+import { spacing, borderRadius, shadows, fontSize } from '../styles/designTokens';
 import { useTheme } from '../hooks/useTheme';
 
 type CardVariant = 'elevated' | 'outlined' | 'filled' | 'glass' | 'gradient';
@@ -113,7 +113,7 @@ export const ModernCard: React.FC<ModernCardProps> = ({
 
   const getCardStyle = (): ViewStyle => {
     const baseStyle: ViewStyle = {
-      borderRadius: borderRadius.lg,
+      borderRadius: borderRadius.xl,  // Más suave
       padding: paddingMap[padding],
       opacity: disabled ? 0.5 : 1,
     };
@@ -124,6 +124,7 @@ export const ModernCard: React.FC<ModernCardProps> = ({
           ...baseStyle,
           backgroundColor: colors.card,
           ...shadows[elevation],
+          borderWidth: 0,  // Sin borde para más limpieza
         };
 
       case 'outlined':
@@ -146,7 +147,7 @@ export const ModernCard: React.FC<ModernCardProps> = ({
           backgroundColor: colors.glass,
           borderWidth: 1,
           borderColor: colors.glassBorder,
-          ...shadows.sm,
+          ...shadows.md,  // Sombra más profunda
         };
 
       case 'gradient':
@@ -331,7 +332,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: spacing.md,
+    marginBottom: spacing.lg,  // Más separación
   },
   headerContent: {
     flexDirection: 'row',
@@ -339,33 +340,36 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   headerIcon: {
-    marginRight: spacing.md,
+    marginRight: spacing.base,
   },
   headerText: {
     flex: 1,
   },
   title: {
-    fontSize: 18,
-    fontWeight: '600',
-    marginBottom: 2,
+    fontSize: fontSize.xl,  // Más grande
+    fontWeight: '700',
+    marginBottom: 4,
+    letterSpacing: -0.3,
   },
   subtitle: {
-    fontSize: 14,
+    fontSize: fontSize.sm,
+    fontWeight: '500',
+    opacity: 0.7,
   },
   headerAction: {
-    marginLeft: spacing.md,
+    marginLeft: spacing.lg,
   },
 
   // Footer
   footer: {
-    marginTop: spacing.md,
-    paddingTop: spacing.md,
+    marginTop: spacing.lg,  // Más separación
+    paddingTop: spacing.lg,
     borderTopWidth: 1,
   },
 
   // Section
   section: {
-    paddingVertical: spacing.md,
+    paddingVertical: spacing.lg,  // Más espacioso
   },
 });
 

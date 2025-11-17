@@ -163,11 +163,11 @@ export default function HomeScreen() {
           <LinearGradient
             colors={
               isDark
-                ? ['#4169ff', '#6b8fff', '#a4c1ff'] // Azul eléctrico vibrante
-                : ['#4169ff', '#2952ff', '#6b8fff'] // Gradiente más intenso
+                ? ['#6366f1', '#818cf8', '#a5b4fc'] // Índigo refinado
+                : ['#6366f1', '#4f46e5', '#7c3aed'] // Gradiente sofisticado
             }
             start={{ x: 0, y: 0 }}
-            end={{ x: 1.2, y: 1.2 }}
+            end={{ x: 1, y: 1 }}
             style={styles.heroGradient}
           >
             {/* Stars decoration */}
@@ -579,16 +579,16 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
   },
   heroGradient: {
-    paddingHorizontal: spacing.lg,
-    paddingTop: Platform.OS === 'ios' ? 60 : 40,
-    paddingBottom: spacing['3xl'],
-    borderBottomLeftRadius: 32,
-    borderBottomRightRadius: 32,
-    shadowColor: '#4169ff', // Sombra con color vibrante
-    shadowOffset: { width: 0, height: 12 },
-    shadowOpacity: 0.35,
-    shadowRadius: 20,
-    elevation: 12,
+    paddingHorizontal: spacing.xl,  // Más espacioso
+    paddingTop: Platform.OS === 'ios' ? 70 : 50,  // Más altura
+    paddingBottom: spacing['4xl'],  // Más respiración
+    borderBottomLeftRadius: 40,  // Curvas más suaves
+    borderBottomRightRadius: 40,
+    shadowColor: '#6366f1',  // Sombra refinada
+    shadowOffset: { width: 0, height: 16 },
+    shadowOpacity: 0.25,  // Más sutil
+    shadowRadius: 24,
+    elevation: 10,
   },
   starsContainer: {
     position: 'absolute',
@@ -617,31 +617,34 @@ const styles = StyleSheet.create({
   },
   heroTitle: {
     fontSize: fontSize['4xl'],
-    fontWeight: '700',
+    fontWeight: '800',  // Más bold
     color: '#ffffff',
-    marginTop: spacing.base,
-    marginBottom: spacing.xs,
+    marginTop: spacing.md,
+    marginBottom: spacing.sm,
     textAlign: 'center',
+    letterSpacing: -0.5,  // Tracking más apretado para títulos
   },
   heroSubtitle: {
-    fontSize: fontSize.lg,
-    color: 'rgba(255,255,255,0.9)',
-    marginBottom: spacing.xl,
+    fontSize: fontSize.md,
+    fontWeight: '400',
+    color: 'rgba(255,255,255,0.85)',
+    marginBottom: spacing['2xl'],  // Más separación
     textAlign: 'center',
+    letterSpacing: 0.2,
   },
   statsRow: {
     flexDirection: 'row',
-    backgroundColor: 'rgba(255,255,255,0.18)',
-    borderRadius: 20,
-    paddingVertical: spacing.md,
-    paddingHorizontal: spacing.lg,
+    backgroundColor: 'rgba(255,255,255,0.15)',  // Más sutil
+    borderRadius: 24,  // Más suave
+    paddingVertical: spacing.lg,  // Más espacioso
+    paddingHorizontal: spacing.xl,
     alignItems: 'center',
-    borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.25)',
+    borderWidth: 1.5,
+    borderColor: 'rgba(255,255,255,0.2)',
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.15,
+    shadowRadius: 16,
   },
   statItem: {
     alignItems: 'center',
@@ -651,14 +654,18 @@ const styles = StyleSheet.create({
     marginBottom: spacing.xs,
   },
   statValue: {
-    fontSize: fontSize.xl,
-    fontWeight: '700',
+    fontSize: fontSize['2xl'],  // Más grande
+    fontWeight: '800',
     color: '#ffffff',
+    letterSpacing: -0.5,
   },
   statLabel: {
     fontSize: fontSize.xs,
-    color: 'rgba(255,255,255,0.8)',
-    marginTop: 2,
+    fontWeight: '500',  // Más legible
+    color: 'rgba(255,255,255,0.75)',
+    marginTop: 4,
+    letterSpacing: 0.5,
+    textTransform: 'uppercase',  // Más sofisticado
   },
   statDivider: {
     width: 1,
@@ -671,37 +678,44 @@ const styles = StyleSheet.create({
   cardHeader: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: spacing.base,
+    marginBottom: spacing.lg,  // Más separación
   },
   cardIconContainer: {
-    marginRight: spacing.md,
+    marginRight: spacing.base,
   },
   cardTitle: {
-    fontSize: fontSize.lg,
-    fontWeight: '600',
+    fontSize: fontSize.xl,  // Más grande
+    fontWeight: '700',
+    letterSpacing: -0.3,
   },
   cardSubtitle: {
     fontSize: fontSize.sm,
-    marginTop: 2,
+    fontWeight: '500',
+    marginTop: 4,
+    opacity: 0.7,
   },
 
   // Verse
   verseText: {
-    fontSize: fontSize.base,
-    lineHeight: fontSize.base * 1.6,
+    fontSize: fontSize.md,  // Más legible
+    lineHeight: fontSize.md * 1.7,  // Mejor line-height
     fontStyle: 'italic',
-    marginBottom: spacing.base,
+    marginBottom: spacing.lg,
+    opacity: 0.95,
   },
   cardAction: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    paddingTop: spacing.md,
+    paddingTop: spacing.lg,
+    borderTopWidth: 1,
+    borderTopColor: 'rgba(0,0,0,0.05)',
   },
   actionText: {
     fontSize: fontSize.base,
     fontWeight: '600',
-    marginRight: spacing.xs,
+    marginRight: spacing.sm,
+    letterSpacing: 0.2,
   },
 
   // Continue Reading
@@ -731,13 +745,14 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingHorizontal: spacing.lg,
-    marginBottom: spacing.base,
-    marginTop: spacing.md,
+    paddingHorizontal: spacing.xl,  // Más padding
+    marginBottom: spacing.lg,  // Más separación
+    marginTop: spacing.xl,  // Más espacio arriba
   },
   sectionTitle: {
-    fontSize: fontSize.xl,
-    fontWeight: '700',
+    fontSize: fontSize['2xl'],  // Más grande
+    fontWeight: '800',
+    letterSpacing: -0.5,
   },
 
   // Quick Access
@@ -751,13 +766,13 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   quickAccessGradient: {
-    height: 135,
-    borderRadius: borderRadius.xl,
-    padding: spacing.base,
-    borderWidth: 1.5,
+    height: 140,  // Un poco más alto
+    borderRadius: borderRadius['2xl'],  // Más suave
+    padding: spacing.lg,  // Más espacioso
+    borderWidth: 0,  // Sin borde para más limpieza
     overflow: 'hidden',
     position: 'relative',
-    ...shadows.md,
+    ...shadows.lg,  // Sombra más profunda
   },
   quickAccessCircle: {
     position: 'absolute',
@@ -768,18 +783,18 @@ const styles = StyleSheet.create({
     right: -20,
   },
   quickAccessIconContainer: {
-    width: 64,
-    height: 64,
-    borderRadius: borderRadius.xl,
+    width: 56,  // Un poco más pequeño para balance
+    height: 56,
+    borderRadius: borderRadius.lg,
     justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: spacing.sm,
-    ...shadows.sm,
+    marginBottom: spacing.md,
   },
   quickAccessText: {
     fontSize: fontSize.base,
     fontWeight: '700',
     textAlign: 'left',
+    letterSpacing: -0.2,
   },
   quickAccessArrow: {
     position: 'absolute',

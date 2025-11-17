@@ -9,6 +9,7 @@ import {
   Modal,
   TextInput,
   Share,
+  Animated,
 } from 'react-native';
 import { useState, useEffect, useRef } from 'react';
 import { useLocalSearchParams, useRouter, Stack } from 'expo-router';
@@ -21,6 +22,14 @@ import { getBookByName } from '../../../src/constants/bible';
 import { useTheme } from '../../../src/hooks/useTheme';
 import { useBibleVersion } from '../../../src/hooks/useBibleVersion';
 import { useLanguage } from '../../../src/hooks/useLanguage';
+
+// Design tokens
+import {
+  spacing,
+  borderRadius,
+  fontSize as fontSizes,
+  shadows,
+} from '../../../src/styles/designTokens';
 
 export default function VerseReadingScreen() {
   const router = useRouter();
@@ -404,7 +413,6 @@ export default function VerseReadingScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F8F9FA',
   },
   loadingContainer: {
     flex: 1,
@@ -415,144 +423,155 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
   },
   headerButton: {
-    marginLeft: 16,
+    marginLeft: spacing.base,
   },
+
+  // NAVEGACIÓN MEJORADA
   navBar: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    backgroundColor: '#FFFFFF',
-    paddingVertical: 12,
-    paddingHorizontal: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: '#ECF0F1',
+    paddingVertical: spacing.lg,
+    paddingHorizontal: spacing.xl,
+    borderBottomWidth: 0,  // Sin borde para más limpieza
+    ...shadows.sm,
   },
   navButton: {
     flexDirection: 'row',
     alignItems: 'center',
+    paddingVertical: spacing.sm,
+    paddingHorizontal: spacing.md,
   },
   navButtonText: {
-    fontSize: 15,
-    color: '#4A90E2',
+    fontSize: fontSizes.base,
     fontWeight: '600',
-  },
-  navButtonTextDisabled: {
-    color: '#BDC3C7',
+    letterSpacing: 0.2,
   },
   navTitle: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    color: '#2C3E50',
+    fontSize: fontSizes.lg,
+    fontWeight: '700',
+    letterSpacing: -0.2,
   },
+
+  // CONTENEDOR DE VERSÍCULOS
   versesContainer: {
     flex: 1,
   },
   versesContent: {
-    padding: 16,
+    paddingHorizontal: spacing.xl,  // Más espacioso
+    paddingVertical: spacing.lg,
   },
+
+  // CARD DE VERSÍCULO REDISEÑADA
   verseItem: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 12,
-    padding: 16,
-    marginBottom: 12,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.05,
-    shadowRadius: 2,
-    elevation: 1,
-  },
-  verseItemHighlighted: {
-    backgroundColor: '#FFF9E6',
-    borderColor: '#F39C12',
-    borderWidth: 2,
+    borderRadius: borderRadius.xl,  // Más suave
+    padding: spacing.xl,  // Más espacioso
+    marginBottom: spacing.lg,  // Más separación
+    ...shadows.md,
+    borderWidth: 0,
   },
   verseHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 8,
+    alignItems: 'flex-start',  // Mejor alineación
+    marginBottom: spacing.md,
   },
   verseNumber: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    color: '#4A90E2',
+    fontSize: fontSizes.lg,
+    fontWeight: '800',
+    width: 40,  // Ancho fijo para alineación
+    height: 40,
+    borderRadius: borderRadius.md,
+    textAlign: 'center',
+    lineHeight: 40,
+    overflow: 'hidden',
   },
+
+  // TEXTO DEL VERSÍCULO MEJORADO
   verseText: {
-    lineHeight: 26,
-    color: '#2C3E50',
-    marginBottom: 12,
+    fontSize: fontSizes.md,  // Tamaño más grande para lectura
+    lineHeight: fontSizes.md * 1.75,  // Line-height óptimo para lectura
+    letterSpacing: 0.2,
+    marginBottom: spacing.lg,
   },
+
+  // ACCIONES REDISEÑADAS
   verseActions: {
     flexDirection: 'row',
+    justifyContent: 'space-around',  // Mejor distribución
     borderTopWidth: 1,
-    borderTopColor: '#ECF0F1',
-    paddingTop: 12,
+    paddingTop: spacing.lg,
+    marginTop: spacing.sm,
+    borderTopColor: 'rgba(0,0,0,0.06)',
   },
   actionButton: {
-    flexDirection: 'row',
+    flexDirection: 'column',  // Stack vertical
     alignItems: 'center',
-    marginRight: 20,
+    paddingVertical: spacing.xs,
+    paddingHorizontal: spacing.md,
+    borderRadius: borderRadius.md,
+    minWidth: 70,
   },
   actionButtonText: {
-    fontSize: 13,
-    color: '#7F8C8D',
-    marginLeft: 4,
+    fontSize: fontSizes.xs,
+    fontWeight: '600',
+    marginTop: spacing.xs,
+    letterSpacing: 0.3,
+    textTransform: 'uppercase',
   },
+
+  // MODAL MEJORADO
   modalOverlay: {
     flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
     justifyContent: 'flex-end',
   },
   modalContent: {
-    backgroundColor: '#FFFFFF',
-    borderTopLeftRadius: 20,
-    borderTopRightRadius: 20,
-    padding: 20,
-    minHeight: 400,
+    borderTopLeftRadius: borderRadius['2xl'],
+    borderTopRightRadius: borderRadius['2xl'],
+    padding: spacing.xl,
+    minHeight: 450,
+    ...shadows['3xl'],
   },
   modalHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 16,
+    marginBottom: spacing.lg,
   },
   modalTitle: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: '#2C3E50',
+    fontSize: fontSizes.xl,
+    fontWeight: '800',
+    letterSpacing: -0.3,
   },
   modalVerse: {
-    fontSize: 15,
-    lineHeight: 22,
-    color: '#7F8C8D',
+    fontSize: fontSizes.base,
+    lineHeight: fontSizes.base * 1.6,
     fontStyle: 'italic',
-    marginBottom: 16,
-    padding: 12,
-    backgroundColor: '#F8F9FA',
-    borderRadius: 8,
+    marginBottom: spacing.lg,
+    padding: spacing.lg,
+    borderRadius: borderRadius.lg,
+    opacity: 0.8,
   },
   noteInput: {
-    borderWidth: 1,
-    borderColor: '#ECF0F1',
-    borderRadius: 12,
-    padding: 16,
-    fontSize: 16,
-    minHeight: 150,
-    color: '#2C3E50',
+    borderWidth: 1.5,
+    borderRadius: borderRadius.lg,
+    padding: spacing.lg,
+    fontSize: fontSizes.base,
+    minHeight: 160,
+    textAlignVertical: 'top',
   },
   saveButton: {
-    backgroundColor: '#27AE60',
-    borderRadius: 12,
-    padding: 16,
+    borderRadius: borderRadius.lg,
+    padding: spacing.lg,
     alignItems: 'center',
-    marginTop: 16,
-  },
-  saveButtonDisabled: {
-    backgroundColor: '#BDC3C7',
+    marginTop: spacing.lg,
+    ...shadows.md,
   },
   saveButtonText: {
-    fontSize: 16,
-    fontWeight: 'bold',
+    fontSize: fontSizes.base,
+    fontWeight: '700',
     color: '#FFFFFF',
+    letterSpacing: 0.5,
+    textTransform: 'uppercase',
   },
 });
