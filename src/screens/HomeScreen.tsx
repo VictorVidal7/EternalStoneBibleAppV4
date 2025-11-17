@@ -155,7 +155,7 @@ const HomeScreen: React.FC = () => {
       StyleSheet.create({
         container: {
           flex: 1,
-          backgroundColor: isDarkMode ? '#000000' : '#fafbfc',
+          backgroundColor: isDarkMode ? '#1A1A1E' : '#F5F5F7',
         },
         contentContainer: {
           flexGrow: 1,
@@ -192,16 +192,17 @@ const HomeScreen: React.FC = () => {
           letterSpacing: -0.5,
         },
         startReadingButton: {
-          backgroundColor: colors.primary,
+          backgroundColor: '#34C759',
           padding: 18,
-          borderRadius: 14,
+          borderRadius: 16,
           alignItems: 'center',
           marginVertical: 20,
-          shadowColor: colors.primary,
-          shadowOffset: {width: 0, height: 2},
-          shadowOpacity: 0.15,
-          shadowRadius: 4,
-          elevation: 2,
+          borderWidth: 0,
+          shadowColor: '#34C759',
+          shadowOffset: {width: 0, height: 4},
+          shadowOpacity: 0.3,
+          shadowRadius: 10,
+          elevation: 5,
         },
         startReadingText: {
           color: '#FFFFFF',
@@ -218,17 +219,18 @@ const HomeScreen: React.FC = () => {
         menuItem: {
           width: (width - 60) / 2,
           aspectRatio: 1,
-          backgroundColor: isDarkMode ? '#1a1a1a' : '#FFFFFF',
+          backgroundColor: isDarkMode ? '#2A2A3E' : '#FFFFFF',
           borderRadius: 16,
           padding: 20,
           marginBottom: 20,
           alignItems: 'center',
           justifyContent: 'center',
-          elevation: 2,
-          shadowColor: '#000',
-          shadowOffset: {width: 0, height: 2},
-          shadowOpacity: 0.04,
-          shadowRadius: 4,
+          borderWidth: 0,
+          shadowColor: '#000000',
+          shadowOffset: {width: 0, height: 3},
+          shadowOpacity: isDarkMode ? 0.3 : 0.1,
+          shadowRadius: 15,
+          elevation: 4,
         },
         menuItemText: {
           marginTop: 12,
@@ -250,12 +252,16 @@ const HomeScreen: React.FC = () => {
       accessibilityLabel={t('home.a11y.screenLabel')}
       accessibilityHint={t('home.a11y.screenHint')}>
       <StatusBar
-        backgroundColor={colors.primary}
-        barStyle={isDarkMode ? 'light-content' : 'dark-content'}
+        backgroundColor={isDarkMode ? '#1E3A5F' : '#4A90E2'}
+        barStyle="light-content"
       />
 
       <LinearGradient
-        colors={[colors.primary, isDarkMode ? '#121212' : '#F5F5F5']}
+        colors={
+          isDarkMode
+            ? ['#1E3A5F', '#2C4B73', '#3A5C87']
+            : ['#4A90E2', '#5B9FED', '#6EADFF']
+        }
         style={styles.gradientHeader}>
         <View style={styles.header}>
           <Text style={styles.headerTitle} accessibilityRole="header">
