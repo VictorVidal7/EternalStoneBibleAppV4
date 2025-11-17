@@ -127,17 +127,20 @@ export default function ChapterSelectionScreen() {
    * Renderizar item de capítulo con animación
    */
   const renderItem = useCallback(
-    ({ item, index }: { item: ChapterItem; index: number }) => (
-      <ChapterCard
-        chapter={item.chapter}
-        onPress={() => navigateToVerse(item.chapter)}
-        index={index}
-        colors={colors}
-        isDark={isDark}
-        t={t}
-        bookName={bookInfo?.name || ''}
-      />
-    ),
+    ({ item, index }: { item: ChapterItem; index: number }) => {
+      console.log('🎨 Rendering chapter:', item.chapter, 'at index:', index);
+      return (
+        <ChapterCard
+          chapter={item.chapter}
+          onPress={() => navigateToVerse(item.chapter)}
+          index={index}
+          colors={colors}
+          isDark={isDark}
+          t={t}
+          bookName={bookInfo?.name || ''}
+        />
+      );
+    },
     [colors, isDark, navigateToVerse, bookInfo, t]
   );
 
@@ -282,18 +285,21 @@ export default function ChapterSelectionScreen() {
         </Animated.View>
 
         {/* Grid de capítulos */}
-        <Animated.View style={[styles.listContainer, { opacity: fadeAnim }]}>
+        <View style={styles.listContainer}>
           {chapters.length > 0 ? (
             <FlatList
               data={chapters}
               renderItem={renderItem}
               keyExtractor={(item) => item.id}
               numColumns={CARDS_PER_ROW}
+              key={`flatlist-${CARDS_PER_ROW}`}
               showsVerticalScrollIndicator={false}
               contentContainerStyle={styles.listContent}
               initialNumToRender={15}
               maxToRenderPerBatch={10}
               windowSize={5}
+              removeClippedSubviews={false}
+              style={{ flex: 1 }}
             />
           ) : (
             <View style={styles.emptyContainer}>
@@ -306,7 +312,7 @@ export default function ChapterSelectionScreen() {
               </Text>
             </View>
           )}
-        </Animated.View>
+        </View>
       </View>
     </>
   );
