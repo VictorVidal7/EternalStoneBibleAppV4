@@ -477,7 +477,7 @@ const styles = StyleSheet.create({
     marginBottom: spacing.xs,  // Muy poco espacio
   },
   verseNumber: {
-    fontSize: fontSize.sm,  // Muy discreto
+    fontSize: fontSizes.sm,  // Muy discreto
     fontWeight: '600',
     minWidth: 28,
     textAlign: 'left',
@@ -485,8 +485,8 @@ const styles = StyleSheet.create({
 
   // TEXTO DEL VERSÍCULO - OPTIMIZADO PARA DENSIDAD
   verseText: {
-    fontSize: fontSize.base,
-    lineHeight: fontSize.base * 1.5,  // Más compacto
+    fontSize: fontSizes.base,
+    lineHeight: fontSizes.base * 1.5,  // Más compacto
     letterSpacing: 0,
     marginBottom: spacing.xs,  // Muy poco espacio
   },
