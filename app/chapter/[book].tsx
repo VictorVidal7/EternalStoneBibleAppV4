@@ -33,10 +33,18 @@ import {
 } from '../../src/styles/designTokens';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
-const CARD_MARGIN = spacing.md;
+const CARD_MARGIN = spacing.xs;
 const CARDS_PER_ROW = 3;
-const CARD_SIZE =
-  (SCREEN_WIDTH - spacing.lg * 2 - CARD_MARGIN * (CARDS_PER_ROW - 1)) / CARDS_PER_ROW;
+const CARD_SIZE = (SCREEN_WIDTH - spacing.lg * 2) / CARDS_PER_ROW - spacing.md;
+
+console.log('📐 Chapter Screen Layout:', {
+  SCREEN_WIDTH,
+  CARD_MARGIN,
+  CARDS_PER_ROW,
+  CARD_SIZE,
+  'spacing.lg': spacing.lg,
+  'spacing.md': spacing.md,
+});
 
 interface ChapterItem {
   chapter: number;
@@ -332,30 +340,13 @@ interface ChapterCardProps {
 
 const ChapterCard: React.FC<ChapterCardProps> = React.memo(
   ({ chapter, onPress, index, colors, isDark, t, bookName }) => {
-    const scaleAnim = useRef(new Animated.Value(0)).current;
-    const fadeAnim = useRef(new Animated.Value(0)).current;
+    const scaleAnim = useRef(new Animated.Value(1)).current;
+    const fadeAnim = useRef(new Animated.Value(1)).current;
     const [isPressed, setIsPressed] = useState(false);
 
     useEffect(() => {
-      // Animación staggered
-      const delay = (index % 9) * 50; // 9 items por pantalla aprox
-
-      Animated.parallel([
-        Animated.spring(scaleAnim, {
-          toValue: 1,
-          tension: 50,
-          friction: 7,
-          delay,
-          useNativeDriver: true,
-        }),
-        Animated.timing(fadeAnim, {
-          toValue: 1,
-          duration: 400,
-          delay,
-          useNativeDriver: true,
-        }),
-      ]).start();
-    }, [index]);
+      console.log(`🎴 ChapterCard ${chapter} - Mounted, size: ${CARD_SIZE}px`);
+    }, [chapter]);
 
     const handlePressIn = () => {
       setIsPressed(true);
