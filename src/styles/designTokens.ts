@@ -6,32 +6,44 @@
  */
 
 // ==================== SPACING SYSTEM ====================
-// Sistema de espaciado basado en múltiplos de 4
+// Sistema de espaciado basado en múltiplos de 4 (Escala perfecta 8pt grid)
 export const spacing = {
-  xs: 4,
-  sm: 8,
-  md: 12,
-  base: 16,
+  '0': 0,
+  '0.5': 2,
+  '1': 4,
+  '1.5': 6,
+  xs: 8,
+  sm: 12,
+  md: 16,
+  base: 20,
   lg: 24,
   xl: 32,
-  '2xl': 48,
-  '3xl': 64,
-  '4xl': 96,
+  '2xl': 40,
+  '3xl': 48,
+  '4xl': 64,
+  '5xl': 80,
+  '6xl': 96,
 } as const;
 
 // ==================== TYPOGRAPHY ====================
-// Escala tipográfica modular (1.25 ratio - Major Third)
+// Escala tipográfica modular perfecta (1.2 ratio - Minor Third)
+// Más armónica y profesional
 export const fontSize = {
+  '2xs': 10,
   xs: 12,
   sm: 14,
   base: 16,
-  lg: 18,
-  xl: 20,
-  '2xl': 24,
-  '3xl': 30,
-  '4xl': 36,
+  md: 18,
+  lg: 20,
+  xl: 24,
+  '2xl': 28,
+  '3xl': 32,
+  '4xl': 40,
   '5xl': 48,
-  '6xl': 60,
+  '6xl': 56,
+  '7xl': 64,
+  '8xl': 72,
+  '9xl': 96,
 } as const;
 
 export const fontWeight = {
@@ -72,7 +84,8 @@ export const borderRadius = {
 } as const;
 
 // ==================== SHADOWS ====================
-// Sistema de sombras para diferentes elevaciones
+// Sistema de sombras mejorado con profundidad realista
+// Inspirado en Material Design 3 y iOS Human Interface Guidelines
 export const shadows = {
   none: {
     shadowColor: '#000',
@@ -81,57 +94,126 @@ export const shadows = {
     shadowRadius: 0,
     elevation: 0,
   },
-  sm: {
+  xs: {
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.05,
-    shadowRadius: 2,
+    shadowOpacity: 0.04,
+    shadowRadius: 1,
     elevation: 1,
+  },
+  sm: {
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.06,
+    shadowRadius: 3,
+    elevation: 2,
   },
   md: {
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.08,
+    shadowRadius: 6,
+    elevation: 4,
   },
   lg: {
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.15,
-    shadowRadius: 8,
-    elevation: 5,
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.12,
+    shadowRadius: 12,
+    elevation: 6,
   },
   xl: {
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.2,
+    shadowOffset: { width: 0, height: 12 },
+    shadowOpacity: 0.16,
     shadowRadius: 16,
     elevation: 8,
   },
   '2xl': {
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 16 },
-    shadowOpacity: 0.25,
+    shadowOpacity: 0.20,
     shadowRadius: 24,
     elevation: 12,
+  },
+  '3xl': {
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 24 },
+    shadowOpacity: 0.25,
+    shadowRadius: 32,
+    elevation: 16,
+  },
+  // Sombras especiales
+  inner: {
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 0,
+  },
+  colored: {
+    primary: {
+      shadowColor: '#667eea',
+      shadowOffset: { width: 0, height: 4 },
+      shadowOpacity: 0.3,
+      shadowRadius: 8,
+      elevation: 4,
+    },
+    secondary: {
+      shadowColor: '#10b981',
+      shadowOffset: { width: 0, height: 4 },
+      shadowOpacity: 0.3,
+      shadowRadius: 8,
+      elevation: 4,
+    },
+    accent: {
+      shadowColor: '#f59e0b',
+      shadowOffset: { width: 0, height: 4 },
+      shadowOpacity: 0.3,
+      shadowRadius: 8,
+      elevation: 4,
+    },
   },
 } as const;
 
 // ==================== ANIMATION ====================
+// Configuraciones de animación siguiendo las curvas de Material Design y iOS
 export const animation = {
   duration: {
-    fast: 150,
-    normal: 250,
-    slow: 350,
+    instant: 100,
+    fast: 200,
+    normal: 300,
+    slow: 400,
     slower: 500,
+    slowest: 700,
   },
-  easing: {
-    linear: 'linear',
-    easeIn: 'ease-in',
-    easeOut: 'ease-out',
-    easeInOut: 'ease-in-out',
-    spring: 'spring',
+  // Configuraciones de spring para React Native Animated
+  spring: {
+    gentle: {
+      tension: 180,
+      friction: 12,
+    },
+    default: {
+      tension: 280,
+      friction: 20,
+    },
+    snappy: {
+      tension: 380,
+      friction: 18,
+    },
+    bouncy: {
+      tension: 300,
+      friction: 10,
+    },
+  },
+  // Timing para diferentes tipos de animaciones
+  timing: {
+    fadeIn: { duration: 300, useNativeDriver: true },
+    fadeOut: { duration: 200, useNativeDriver: true },
+    slideIn: { duration: 350, useNativeDriver: true },
+    slideOut: { duration: 250, useNativeDriver: true },
+    scale: { duration: 300, useNativeDriver: true },
+    rotate: { duration: 400, useNativeDriver: true },
   },
 } as const;
 

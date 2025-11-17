@@ -118,11 +118,11 @@ export default function BibleScreen() {
         <LinearGradient
           colors={
             isDark
-              ? ['#667eea', '#764ba2']
-              : ['#667eea', '#764ba2']
+              ? ['#4169ff', '#6b8fff', '#a4c1ff'] // Azul eléctrico vibrante
+              : ['#4169ff', '#2952ff', '#6b8fff'] // Gradiente intenso
           }
           start={{ x: 0, y: 0 }}
-          end={{ x: 1, y: 1 }}
+          end={{ x: 1.3, y: 1.3 }}
           style={styles.header}
         >
           <View style={styles.headerContent}>
@@ -390,7 +390,11 @@ const styles = StyleSheet.create({
     paddingTop: Platform.OS === 'ios' ? 60 : 40,
     paddingBottom: spacing.xl,
     paddingHorizontal: spacing.lg,
-    ...shadows.lg,
+    shadowColor: '#4169ff', // Sombra vibrante
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.3,
+    shadowRadius: 16,
+    elevation: 10,
   },
   headerContent: {
     flexDirection: 'row',
@@ -444,10 +448,10 @@ const styles = StyleSheet.create({
   searchBar: {
     flexDirection: 'row',
     alignItems: 'center',
-    borderRadius: borderRadius.lg,
+    borderRadius: 16,
     paddingHorizontal: spacing.base,
-    height: 48,
-    borderWidth: 1,
+    height: 52,
+    borderWidth: 1.5,
   },
   searchIcon: {
     marginRight: spacing.sm,
@@ -471,11 +475,16 @@ const styles = StyleSheet.create({
   sectionHeader: {
     flexDirection: 'row',
     alignItems: 'center',
-    borderRadius: borderRadius.lg,
+    borderRadius: 20,
     paddingVertical: spacing.md,
     paddingHorizontal: spacing.base,
     marginBottom: spacing.md,
     marginTop: spacing.sm,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.15,
+    shadowRadius: 8,
+    elevation: 4,
   },
   sectionIconContainer: {
     width: 40,
@@ -510,11 +519,13 @@ const styles = StyleSheet.create({
   bookCard: {
     flexDirection: 'row',
     alignItems: 'center',
-    borderRadius: borderRadius.lg,
+    borderRadius: 18,
     paddingVertical: spacing.md,
     paddingHorizontal: spacing.base,
     marginBottom: spacing.md,
     overflow: 'hidden',
+    borderWidth: 1,
+    borderColor: 'rgba(0,0,0,0.05)',
   },
   accentLine: {
     position: 'absolute',

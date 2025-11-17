@@ -13,35 +13,39 @@ import { borderRadius, shadows, spacing, fontSize, gradients } from './designTok
 // ==================== COLOR PALETTES ====================
 
 /**
- * Paleta de colores primaria - Azul/Púrpura Premium
+ * Paleta de colores primaria ULTRA VIBRANTE - Azul eléctrico
+ * ¡COLORES SUPER NOTORIOS Y MODERNOS!
  */
 const primaryPalette = {
-  50: '#f0f4ff',
-  100: '#e0e8ff',
-  200: '#c7d7fe',
-  300: '#a5bbfd',
-  400: '#8098fc',
-  500: '#667eea', // Primary
-  600: '#5568d3',
-  700: '#4651b6',
-  800: '#3b4294',
-  900: '#343a75',
+  50: '#f0f5ff',
+  100: '#e0ebff',
+  200: '#c7d9ff',
+  300: '#a4c1ff',
+  400: '#6b8fff', // Más brillante
+  500: '#4169ff', // PRIMARY SUPER VIBRANTE - Azul eléctrico
+  600: '#2952ff', // Más intenso
+  700: '#1a3ddb',
+  800: '#1530b0',
+  900: '#0f2380',
+  950: '#0a1650',
 };
 
 /**
- * Paleta de colores secundaria - Verde Esmeralda
+ * Paleta de colores secundaria ULTRA VIBRANTE - Verde neón
+ * ¡IMPOSIBLE NO NOTAR!
  */
 const secondaryPalette = {
-  50: '#e8faf5',
-  100: '#c3f4e8',
-  200: '#9aecd8',
-  300: '#6ee4c8',
-  400: '#4ddeba',
-  500: '#2ecc71', // Secondary
-  600: '#27ae60',
-  700: '#229954',
-  800: '#1e8449',
-  900: '#186a3b',
+  50: '#e6fff9',
+  100: '#c0fff0',
+  200: '#80ffe0',
+  300: '#40ffd0',
+  400: '#00f7c0', // Más brillante
+  500: '#00d9a8', // SECONDARY SUPER VIBRANTE - Verde neón
+  600: '#00ba8f',
+  700: '#009b76',
+  800: '#007c5d',
+  900: '#005d44',
+  950: '#003e2b',
 };
 
 /**
@@ -67,16 +71,16 @@ const grayPalette = {
  * Colores para Light Mode
  */
 export const lightTheme = {
-  // Primary & Secondary
+  // Primary & Secondary - Actualizados con nueva paleta
   primary: primaryPalette[500],
   primaryLight: primaryPalette[400],
-  primaryDark: primaryPalette[600],
+  primaryDark: primaryPalette[700],
   secondary: secondaryPalette[500],
   secondaryLight: secondaryPalette[400],
   secondaryDark: secondaryPalette[600],
 
-  // Backgrounds
-  background: '#ffffff',
+  // Backgrounds - Más suaves y profesionales
+  background: '#fafbfc',
   backgroundSecondary: grayPalette[50],
   backgroundTertiary: grayPalette[100],
   surface: '#ffffff',
@@ -148,20 +152,20 @@ export const lightTheme = {
  * Colores para Dark Mode - Optimizado para OLED
  */
 export const darkTheme = {
-  // Primary & Secondary
-  primary: primaryPalette[400],
-  primaryLight: primaryPalette[300],
-  primaryDark: primaryPalette[500],
-  secondary: secondaryPalette[400],
-  secondaryLight: secondaryPalette[300],
-  secondaryDark: secondaryPalette[500],
+  // Primary & Secondary - Actualizados con nueva paleta
+  primary: primaryPalette[500],
+  primaryLight: primaryPalette[400],
+  primaryDark: primaryPalette[600],
+  secondary: secondaryPalette[500],
+  secondaryLight: secondaryPalette[400],
+  secondaryDark: secondaryPalette[600],
 
-  // Backgrounds - True Black para OLED
+  // Backgrounds - True Black premium para OLED con gradación sutil
   background: '#000000',
-  backgroundSecondary: grayPalette[950],
-  backgroundTertiary: grayPalette[900],
-  surface: '#0a0a0a',
-  surfaceElevated: grayPalette[900],
+  backgroundSecondary: '#0a0a0a',
+  backgroundTertiary: '#141414',
+  surface: '#0d0d0d',
+  surfaceElevated: '#1a1a1a',
 
   // Cards & Components
   card: '#1a1a1a',

@@ -12,12 +12,15 @@ import {
   Pressable,
   SafeAreaView,
 } from 'react-native';
+import { LinearGradient } from 'expo-linear-gradient';
 import { AchievementCard } from '../components/achievements/AchievementCard';
 import { UserStatsPanel } from '../components/achievements/UserStatsPanel';
 import { AchievementUnlockedModal } from '../components/achievements/AchievementUnlockedModal';
 import { useAchievements } from '../hooks/useAchievements';
+import { useTheme } from '../hooks/useTheme';
 import { BibleDatabase } from '../lib/database';
 import { Achievement, AchievementCategory } from '../lib/achievements/types';
+import { spacing, borderRadius, fontSize, shadows } from '../styles/designTokens';
 
 interface AchievementsScreenProps {
   database: BibleDatabase;
@@ -31,6 +34,7 @@ export const AchievementsScreen: React.FC<AchievementsScreenProps> = ({ database
     newUnlocks,
     clearNewUnlocks,
   } = useAchievements(database);
+  const { colors, isDark } = useTheme();
 
   const [selectedCategory, setSelectedCategory] = useState<AchievementCategory | 'all'>('all');
   const [showStats, setShowStats] = useState(false);
@@ -67,28 +71,35 @@ export const AchievementsScreen: React.FC<AchievementsScreenProps> = ({ database
 
   if (loading) {
     return (
-      <SafeAreaView style={styles.container}>
+      <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
         <View style={styles.loadingContainer}>
-          <Text style={styles.loadingText}>Cargando logros...</Text>
+          <Text style={[styles.loadingText, { color: colors.textSecondary }]}>
+            Cargando logros...
+          </Text>
         </View>
       </SafeAreaView>
     );
   }
 
   return (
-    <SafeAreaView style={styles.container}>
-      {/* Header con toggle */}
-      <View style={styles.header}>
+    <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
+      {/* Header con toggle - Moderno con gradiente VIBRANTE */}
+      <LinearGradient
+        colors={isDark ? ['#4169ff', '#6b8fff'] : ['#4169ff', '#2952ff']}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 1, y: 0 }}
+        style={styles.header}
+      >
         <Text style={styles.headerTitle}>
           {showStats ? 'Tus Estadísticas' : 'Tus Logros'}
         </Text>
         <Pressable
-          style={styles.toggleButton}
+          style={[styles.toggleButton, { backgroundColor: 'rgba(255,255,255,0.25)' }]}
           onPress={() => setShowStats(!showStats)}
         >
           <Text style={styles.toggleIcon}>{showStats ? '🏅' : '📊'}</Text>
         </Pressable>
-      </View>
+      </LinearGradient>
 
       {showStats ? (
         // Vista de estadísticas
@@ -105,6 +116,7 @@ export const AchievementsScreen: React.FC<AchievementsScreenProps> = ({ database
               <Pressable
                 style={[
                   styles.categoryChip,
+                  { backgroundColor: selectedCategory === item.id ? colors.primary : colors.surface },
                   selectedCategory === item.id && styles.categoryChipSelected,
                 ]}
                 onPress={() => setSelectedCategory(item.id)}
@@ -113,7 +125,7 @@ export const AchievementsScreen: React.FC<AchievementsScreenProps> = ({ database
                 <Text
                   style={[
                     styles.categoryText,
-                    selectedCategory === item.id && styles.categoryTextSelected,
+                    { color: selectedCategory === item.id ? '#fff' : colors.text },
                   ]}
                 >
                   {item.name}
@@ -122,27 +134,37 @@ export const AchievementsScreen: React.FC<AchievementsScreenProps> = ({ database
             )}
             showsHorizontalScrollIndicator={false}
             contentContainerStyle={styles.categoryList}
-            style={styles.categoryScroll}
+            style={[styles.categoryScroll, { backgroundColor: colors.background, borderBottomColor: colors.border }]}
           />
 
           {/* Resumen */}
           {stats && (
-            <View style={styles.summary}>
+            <View style={[styles.summary, { backgroundColor: colors.card }, shadows.md]}>
               <View style={styles.summaryItem}>
-                <Text style={styles.summaryValue}>
+                <Text style={[styles.summaryValue, { color: colors.text }]}>
                   {achievements.filter((a) => a.isUnlocked).length}
                 </Text>
-                <Text style={styles.summaryLabel}>Desbloqueados</Text>
+                <Text style={[styles.summaryLabel, { color: colors.textSecondary }]}>
+                  Desbloqueados
+                </Text>
               </View>
-              <View style={styles.summaryDivider} />
+              <View style={[styles.summaryDivider, { backgroundColor: colors.border }]} />
               <View style={styles.summaryItem}>
-                <Text style={styles.summaryValue}>{stats.totalPoints}</Text>
-                <Text style={styles.summaryLabel}>Puntos totales</Text>
+                <Text style={[styles.summaryValue, { color: colors.text }]}>
+                  {stats.totalPoints}
+                </Text>
+                <Text style={[styles.summaryLabel, { color: colors.textSecondary }]}>
+                  Puntos totales
+                </Text>
               </View>
-              <View style={styles.summaryDivider} />
+              <View style={[styles.summaryDivider, { backgroundColor: colors.border }]} />
               <View style={styles.summaryItem}>
-                <Text style={styles.summaryValue}>Nivel {stats.level}</Text>
-                <Text style={styles.summaryLabel}>{stats.level >= 10 ? '👑 Leyenda' : 'En progreso'}</Text>
+                <Text style={[styles.summaryValue, { color: colors.text }]}>
+                  Nivel {stats.level}
+                </Text>
+                <Text style={[styles.summaryLabel, { color: colors.textSecondary }]}>
+                  {stats.level >= 10 ? '👑 Leyenda' : 'En progreso'}
+                </Text>
               </View>
             </View>
           )}
@@ -162,7 +184,7 @@ export const AchievementsScreen: React.FC<AchievementsScreenProps> = ({ database
             showsVerticalScrollIndicator={false}
             ListEmptyComponent={
               <View style={styles.emptyContainer}>
-                <Text style={styles.emptyText}>
+                <Text style={[styles.emptyText, { color: colors.textTertiary }]}>
                   No hay logros en esta categoría
                 </Text>
               </View>
@@ -195,7 +217,6 @@ export const AchievementsScreen: React.FC<AchievementsScreenProps> = ({ database
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F9FAFB',
   },
   loadingContainer: {
     flex: 1,
@@ -203,111 +224,93 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   loadingText: {
-    fontSize: 16,
-    color: '#6B7280',
+    fontSize: fontSize.base,
   },
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingHorizontal: 20,
-    paddingVertical: 16,
-    backgroundColor: '#FFFFFF',
-    borderBottomWidth: 1,
-    borderBottomColor: '#E5E7EB',
+    paddingHorizontal: spacing.lg,
+    paddingVertical: spacing.base,
+    shadowColor: '#4169ff', // Sombra ultra vibrante
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.3,
+    shadowRadius: 12,
+    elevation: 8,
   },
   headerTitle: {
-    fontSize: 24,
+    fontSize: fontSize['2xl'],
     fontWeight: '800',
-    color: '#1F2937',
+    color: '#ffffff',
   },
   toggleButton: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: '#F3F4F6',
+    width: 44,
+    height: 44,
+    borderRadius: 22,
     justifyContent: 'center',
     alignItems: 'center',
   },
   toggleIcon: {
-    fontSize: 20,
+    fontSize: 22,
   },
   categoryScroll: {
     maxHeight: 60,
-    backgroundColor: '#FFFFFF',
     borderBottomWidth: 1,
-    borderBottomColor: '#E5E7EB',
   },
   categoryList: {
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    gap: 8,
+    paddingHorizontal: spacing.base,
+    paddingVertical: spacing.sm,
+    gap: spacing.xs,
   },
   categoryChip: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderRadius: 20,
-    backgroundColor: '#F3F4F6',
-    marginRight: 8,
+    paddingHorizontal: spacing.base,
+    paddingVertical: spacing.xs,
+    borderRadius: borderRadius.full,
+    marginRight: spacing.xs,
+    ...shadows.sm,
   },
-  categoryChipSelected: {
-    backgroundColor: '#3B82F6',
-  },
+  categoryChipSelected: {},
   categoryIcon: {
-    fontSize: 16,
-    marginRight: 6,
+    fontSize: fontSize.base,
+    marginRight: spacing.xs,
   },
   categoryText: {
-    fontSize: 14,
+    fontSize: fontSize.sm,
     fontWeight: '600',
-    color: '#374151',
-  },
-  categoryTextSelected: {
-    color: '#FFFFFF',
   },
   summary: {
     flexDirection: 'row',
-    backgroundColor: '#FFFFFF',
-    padding: 16,
-    marginHorizontal: 16,
-    marginTop: 16,
-    borderRadius: 12,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 2,
+    padding: spacing.base,
+    marginHorizontal: spacing.base,
+    marginTop: spacing.base,
+    borderRadius: borderRadius.xl,
   },
   summaryItem: {
     flex: 1,
     alignItems: 'center',
   },
   summaryValue: {
-    fontSize: 20,
+    fontSize: fontSize.xl,
     fontWeight: '700',
-    color: '#1F2937',
-    marginBottom: 4,
+    marginBottom: spacing.xs,
   },
   summaryLabel: {
-    fontSize: 12,
-    color: '#6B7280',
+    fontSize: fontSize.xs,
   },
   summaryDivider: {
     width: 1,
-    backgroundColor: '#E5E7EB',
   },
   list: {
-    padding: 16,
+    padding: spacing.base,
   },
   emptyContainer: {
-    padding: 40,
+    padding: spacing['2xl'],
     alignItems: 'center',
   },
   emptyText: {
-    fontSize: 16,
-    color: '#9CA3AF',
+    fontSize: fontSize.base,
     textAlign: 'center',
   },
 });

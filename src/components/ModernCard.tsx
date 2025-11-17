@@ -5,7 +5,7 @@
  * y múltiples variantes de diseño.
  */
 
-import React from 'react';
+import React, { useRef, useEffect } from 'react';
 import {
   View,
   Text,
@@ -13,6 +13,7 @@ import {
   ViewStyle,
   TouchableOpacity,
   Platform,
+  Animated,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { BlurView } from 'expo-blur';
@@ -55,12 +56,43 @@ export const ModernCard: React.FC<ModernCardProps> = ({
   useBlur = Platform.OS === 'ios',
 }) => {
   const { colors, isDark } = useTheme();
+  const scaleAnim = useRef(new Animated.Value(1)).current;
+  const fadeAnim = useRef(new Animated.Value(0)).current;
+
+  useEffect(() => {
+    Animated.spring(fadeAnim, {
+      toValue: 1,
+      tension: 80,
+      friction: 10,
+      useNativeDriver: true,
+    }).start();
+  }, []);
 
   const paddingMap = {
     none: 0,
     small: spacing.md,
     medium: spacing.base,
     large: spacing.lg,
+  };
+
+  const handlePressIn = () => {
+    if (disabled) return;
+    Animated.spring(scaleAnim, {
+      toValue: 0.97,
+      tension: 300,
+      friction: 10,
+      useNativeDriver: true,
+    }).start();
+  };
+
+  const handlePressOut = () => {
+    if (disabled) return;
+    Animated.spring(scaleAnim, {
+      toValue: 1,
+      tension: 300,
+      friction: 10,
+      useNativeDriver: true,
+    }).start();
   };
 
   const handlePress = () => {
@@ -162,21 +194,34 @@ export const ModernCard: React.FC<ModernCardProps> = ({
 
   if (onPress || onLongPress) {
     return (
-      <TouchableOpacity
-        activeOpacity={0.7}
-        onPress={handlePress}
-        onLongPress={handleLongPress}
-        disabled={disabled}
-        accessible
-        accessibilityRole="button"
-        accessibilityState={{ disabled }}
+      <Animated.View
+        style={{
+          transform: [{ scale: scaleAnim }],
+          opacity: fadeAnim,
+        }}
       >
-        {renderContent()}
-      </TouchableOpacity>
+        <TouchableOpacity
+          activeOpacity={1}
+          onPress={handlePress}
+          onLongPress={handleLongPress}
+          onPressIn={handlePressIn}
+          onPressOut={handlePressOut}
+          disabled={disabled}
+          accessible
+          accessibilityRole="button"
+          accessibilityState={{ disabled }}
+        >
+          {renderContent()}
+        </TouchableOpacity>
+      </Animated.View>
     );
   }
 
-  return renderContent();
+  return (
+    <Animated.View style={{ opacity: fadeAnim }}>
+      {renderContent()}
+    </Animated.View>
+  );
 };
 
 // ==================== CARD HEADER ====================
