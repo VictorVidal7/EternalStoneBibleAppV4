@@ -72,22 +72,24 @@ export default function HomeScreen() {
   }, [selectedVersion.id]);
 
   const startAnimations = () => {
-    Animated.parallel([
-      Animated.timing(fadeAnim, {
-        toValue: 1,
-        duration: 600,
-        useNativeDriver: true,
-      }),
-      Animated.spring(slideAnim, {
-        toValue: 0,
-        tension: 50,
-        friction: 8,
-        useNativeDriver: true,
-      }),
+    Animated.stagger(80, [
+      Animated.parallel([
+        Animated.timing(fadeAnim, {
+          toValue: 1,
+          duration: 500,
+          useNativeDriver: true,
+        }),
+        Animated.spring(slideAnim, {
+          toValue: 0,
+          tension: 65,
+          friction: 9,
+          useNativeDriver: true,
+        }),
+      ]),
       Animated.spring(scaleAnim, {
         toValue: 1,
-        tension: 50,
-        friction: 7,
+        tension: 80,
+        friction: 8,
         useNativeDriver: true,
       }),
     ]).start();
@@ -161,11 +163,11 @@ export default function HomeScreen() {
           <LinearGradient
             colors={
               isDark
-                ? ['#667eea', '#764ba2', '#f093fb']
-                : ['#667eea', '#764ba2']
+                ? ['#7c8dff', '#9b6dd6', '#f5b4fc']
+                : ['#7c8dff', '#9b6dd6', '#c7a8ff']
             }
             start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 1 }}
+            end={{ x: 1.2, y: 1.2 }}
             style={styles.heroGradient}
           >
             {/* Stars decoration */}
@@ -578,10 +580,15 @@ const styles = StyleSheet.create({
   },
   heroGradient: {
     paddingHorizontal: spacing.lg,
-    paddingVertical: spacing['2xl'],
-    borderBottomLeftRadius: borderRadius['2xl'],
-    borderBottomRightRadius: borderRadius['2xl'],
-    ...shadows.xl,
+    paddingTop: Platform.OS === 'ios' ? 60 : 40,
+    paddingBottom: spacing['3xl'],
+    borderBottomLeftRadius: 32,
+    borderBottomRightRadius: 32,
+    shadowColor: '#7c8dff',
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.25,
+    shadowRadius: 16,
+    elevation: 10,
   },
   starsContainer: {
     position: 'absolute',
@@ -624,11 +631,17 @@ const styles = StyleSheet.create({
   },
   statsRow: {
     flexDirection: 'row',
-    backgroundColor: 'rgba(255,255,255,0.15)',
-    borderRadius: borderRadius.lg,
-    paddingVertical: spacing.base,
+    backgroundColor: 'rgba(255,255,255,0.18)',
+    borderRadius: 20,
+    paddingVertical: spacing.md,
     paddingHorizontal: spacing.lg,
     alignItems: 'center',
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.25)',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
   },
   statItem: {
     alignItems: 'center',

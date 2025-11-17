@@ -1,5 +1,7 @@
 import { Tabs } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
+import { Platform } from 'react-native';
+import { BlurView } from 'expo-blur';
 import { useTheme } from '../../src/hooks/useTheme';
 import { useLanguage } from '../../src/hooks/useLanguage';
 
@@ -13,23 +15,39 @@ export default function TabLayout() {
         tabBarActiveTintColor: colors.primary,
         tabBarInactiveTintColor: colors.textTertiary,
         tabBarStyle: {
-          backgroundColor: colors.surface,
-          borderTopWidth: 1,
-          borderTopColor: colors.border,
-          paddingBottom: 5,
-          paddingTop: 5,
-          height: 60,
+          position: 'absolute',
+          backgroundColor: isDark
+            ? 'rgba(20, 20, 20, 0.95)'
+            : 'rgba(255, 255, 255, 0.95)',
+          borderTopWidth: 0,
+          borderTopLeftRadius: 24,
+          borderTopRightRadius: 24,
+          paddingBottom: Platform.OS === 'ios' ? 20 : 10,
+          paddingTop: 12,
+          height: Platform.OS === 'ios' ? 85 : 70,
+          marginHorizontal: 0,
+          elevation: 0,
+          shadowColor: '#000',
+          shadowOffset: { width: 0, height: -4 },
+          shadowOpacity: isDark ? 0.3 : 0.1,
+          shadowRadius: 12,
         },
         tabBarLabelStyle: {
           fontSize: 11,
           fontWeight: '600',
+          marginTop: 4,
+        },
+        tabBarIconStyle: {
+          marginTop: 4,
         },
         headerStyle: {
           backgroundColor: colors.primary,
+          elevation: 0,
+          shadowOpacity: 0,
         },
         headerTintColor: '#FFFFFF',
         headerTitleStyle: {
-          fontWeight: 'bold',
+          fontWeight: '700',
           fontSize: 20,
         },
       }}
