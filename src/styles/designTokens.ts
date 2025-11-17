@@ -87,8 +87,9 @@ export const borderRadius = {
 } as const;
 
 // ==================== SHADOWS ====================
-// Sistema de sombras mejorado con profundidad realista
+// Sistema de sombras ULTRA SUTILES - Look minimalista moderno
 // Inspirado en Material Design 3 y iOS Human Interface Guidelines
+// Sombras casi imperceptibles para un diseño ultra limpio
 export const shadows = {
   none: {
     shadowColor: '#000',
@@ -100,81 +101,81 @@ export const shadows = {
   xs: {
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.04,
+    shadowOpacity: 0.01, // Casi invisible
     shadowRadius: 1,
     elevation: 1,
   },
   sm: {
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.03,
-    shadowRadius: 2,
+    shadowOpacity: 0.015, // Apenas perceptible
+    shadowRadius: 1.5,
     elevation: 1,
   },
   md: {
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 4,
-    elevation: 2,
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.02, // Muy sutil
+    shadowRadius: 2,
+    elevation: 1,
   },
   lg: {
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.08,
-    shadowRadius: 8,
-    elevation: 4,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.03, // Sutil
+    shadowRadius: 3,
+    elevation: 2,
   },
   xl: {
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 12 },
-    shadowOpacity: 0.16,
-    shadowRadius: 16,
-    elevation: 8,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.04, // Moderadamente sutil
+    shadowRadius: 4,
+    elevation: 2,
   },
   '2xl': {
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 16 },
-    shadowOpacity: 0.20,
-    shadowRadius: 24,
-    elevation: 12,
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.05, // Para modales
+    shadowRadius: 5,
+    elevation: 3,
   },
   '3xl': {
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 24 },
-    shadowOpacity: 0.25,
-    shadowRadius: 32,
-    elevation: 16,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.06, // Solo para elementos flotantes
+    shadowRadius: 6,
+    elevation: 3,
   },
   // Sombras especiales
   inner: {
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.02,
+    shadowRadius: 1,
     elevation: 0,
   },
   colored: {
     primary: {
       shadowColor: '#667eea',
-      shadowOffset: { width: 0, height: 4 },
-      shadowOpacity: 0.3,
-      shadowRadius: 8,
-      elevation: 4,
+      shadowOffset: { width: 0, height: 1 },
+      shadowOpacity: 0.08, // Reducido de 0.15
+      shadowRadius: 2,
+      elevation: 1,
     },
     secondary: {
       shadowColor: '#10b981',
-      shadowOffset: { width: 0, height: 4 },
-      shadowOpacity: 0.3,
-      shadowRadius: 8,
-      elevation: 4,
+      shadowOffset: { width: 0, height: 1 },
+      shadowOpacity: 0.08, // Reducido de 0.15
+      shadowRadius: 2,
+      elevation: 1,
     },
     accent: {
       shadowColor: '#f59e0b',
-      shadowOffset: { width: 0, height: 4 },
-      shadowOpacity: 0.3,
-      shadowRadius: 8,
-      elevation: 4,
+      shadowOffset: { width: 0, height: 1 },
+      shadowOpacity: 0.08, // Reducido de 0.15
+      shadowRadius: 2,
+      elevation: 1,
     },
   },
 } as const;

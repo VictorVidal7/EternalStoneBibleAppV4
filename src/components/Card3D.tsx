@@ -77,7 +77,7 @@ export const Card3D: React.FC<Card3DProps> = ({
     ]).start();
   };
 
-  // Crear sombras 3D profundas
+  // Crear sombras 3D sutiles y modernas
   const get3DShadows = () => {
     const baseElevation = elevation;
 
@@ -85,11 +85,11 @@ export const Card3D: React.FC<Card3DProps> = ({
       shadowColor: '#000',
       shadowOffset: {
         width: 0,
-        height: baseElevation * 2,
+        height: baseElevation,
       },
-      shadowOpacity: 0.25,
-      shadowRadius: baseElevation * 4,
-      elevation: baseElevation * 3,
+      shadowOpacity: 0.06, // Reducido dramáticamente de 0.25
+      shadowRadius: baseElevation * 2, // Reducido de baseElevation * 4
+      elevation: baseElevation, // Reducido de baseElevation * 3
     };
   };
 
@@ -97,7 +97,7 @@ export const Card3D: React.FC<Card3DProps> = ({
     ...get3DShadows(),
     shadowOpacity: elevationAnim.interpolate({
       inputRange: [0.6, 1],
-      outputRange: [0.15, 0.25],
+      outputRange: [0.04, 0.06], // Reducido de [0.15, 0.25]
     }),
   };
 

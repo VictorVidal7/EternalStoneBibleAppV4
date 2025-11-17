@@ -123,7 +123,7 @@ export const ModernCard: React.FC<ModernCardProps> = ({
         return {
           ...baseStyle,
           backgroundColor: colors.card,
-          ...(isDark ? shadows[elevation] : shadows[elevation === 'xl' ? 'md' : elevation === 'lg' ? 'sm' : 'xs']),
+          ...shadows[elevation],
           borderWidth: 0,
         };
 
@@ -131,7 +131,7 @@ export const ModernCard: React.FC<ModernCardProps> = ({
         return {
           ...baseStyle,
           backgroundColor: isDark ? 'rgba(255, 255, 255, 0.02)' : 'rgba(255, 255, 255, 0.8)',
-          borderWidth: borderWidth,
+          borderWidth: StyleSheet.hairlineWidth, // Borde sutil
           borderColor: borderColor || colors.border,
         };
 
@@ -139,16 +139,15 @@ export const ModernCard: React.FC<ModernCardProps> = ({
         return {
           ...baseStyle,
           backgroundColor: colors.surface,
-          ...(isDark ? {} : shadows.xs),
+          ...shadows.xs,
         };
 
       case 'glass':
         return {
           ...baseStyle,
           backgroundColor: colors.glass,
-          borderWidth: 1,
-          borderColor: colors.glassBorder,
-          ...shadows.md,  // Sombra más profunda
+          borderWidth: 0, // Sin borde para glassmorphism limpio
+          ...shadows.sm, // Sombra sutil
         };
 
       case 'gradient':

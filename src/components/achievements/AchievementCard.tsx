@@ -66,11 +66,9 @@ export const AchievementCard: React.FC<AchievementCardProps> = ({
             backgroundColor: achievement.isUnlocked
               ? (isDark ? colors.primary + '15' : colors.primary + '08')
               : colors.card,
-            borderColor: achievement.isUnlocked ? tierColor : colors.border,
           },
-          achievement.isUnlocked && styles.cardUnlocked,
           !achievement.isUnlocked && (isDark ? shadows.md : shadows.sm),
-          achievement.isUnlocked && shadows.md,
+          achievement.isUnlocked && shadows.sm,
         ]}
       >
         {/* Icono del logro */}
@@ -145,9 +143,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     borderRadius: borderRadius.lg,
     padding: spacing.lg,
-    borderWidth: 1,
   },
-  cardUnlocked: {},
   iconContainer: {
     width: 56,
     height: 56,

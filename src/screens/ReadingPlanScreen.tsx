@@ -182,8 +182,8 @@ const PlanCard: React.FC<PlanCardProps> = ({
           end={{x: 1, y: 1}}
           style={[
             styles.planCardGradient,
-            isCurrentPlan && {borderColor: planColor, borderWidth: 2.5},
-            !isCurrentPlan && {borderColor: colors.border, borderWidth: 1.5},
+            isCurrentPlan && {borderColor: planColor, borderWidth: 1},
+            !isCurrentPlan && {borderWidth: 0},
           ]}
         >
           {/* Círculo decorativo */}
@@ -199,7 +199,7 @@ const PlanCard: React.FC<PlanCardProps> = ({
             <View
               style={[
                 styles.planCardIconContainer,
-                {backgroundColor: planColor + '25', borderColor: planColor},
+                {backgroundColor: planColor + '25'},
               ]}
             >
               <Ionicons name={planIcon} size={32} color={planColor} />
@@ -233,7 +233,7 @@ const PlanCard: React.FC<PlanCardProps> = ({
               <View
                 style={[
                   styles.planDurationTag,
-                  {backgroundColor: planColor + '20', borderColor: planColor},
+                  {backgroundColor: planColor + '20'},
                 ]}
               >
                 <Ionicons name="calendar-outline" size={16} color={planColor} />
@@ -292,7 +292,7 @@ const PlanCard: React.FC<PlanCardProps> = ({
                 styles.planActionButton,
                 isCurrentPlan
                   ? {backgroundColor: planColor}
-                  : {backgroundColor: colors.surface, borderColor: planColor, borderWidth: 1.5},
+                  : {backgroundColor: colors.surface},
               ]}
             >
               <Text
@@ -723,7 +723,7 @@ const createStyles = (colors: Theme['colors']) =>
       marginBottom: spacing.xl,
       borderBottomLeftRadius: borderRadius['2xl'],
       borderBottomRightRadius: borderRadius['2xl'],
-      ...shadows.xl,
+      ...shadows.md,
       position: 'relative',
       overflow: 'hidden',
     },
@@ -817,7 +817,7 @@ const createStyles = (colors: Theme['colors']) =>
     planCardGradient: {
       borderRadius: borderRadius.xl,
       overflow: 'hidden',
-      ...shadows.lg,
+      ...shadows.md,
       position: 'relative',
     },
     planDecorativeCircle: {
@@ -841,8 +841,6 @@ const createStyles = (colors: Theme['colors']) =>
       borderRadius: borderRadius['2xl'],
       justifyContent: 'center',
       alignItems: 'center',
-      borderWidth: 2.5,
-      ...shadows.md,
     },
     currentBadge: {
       flexDirection: 'row',
@@ -884,7 +882,6 @@ const createStyles = (colors: Theme['colors']) =>
       paddingVertical: spacing.xs,
       borderRadius: borderRadius.md,
       gap: 4,
-      borderWidth: 1.5,
     },
     planDurationText: {
       fontSize: fontSize.sm,
@@ -921,7 +918,6 @@ const createStyles = (colors: Theme['colors']) =>
     progressBarFill: {
       height: '100%',
       borderRadius: borderRadius.md,
-      ...shadows.sm,
     },
     progressShine: {
       position: 'absolute',
@@ -951,7 +947,6 @@ const createStyles = (colors: Theme['colors']) =>
       paddingHorizontal: spacing.base,
       borderRadius: borderRadius.lg,
       gap: spacing.xs,
-      ...shadows.sm,
     },
     planActionText: {
       fontSize: fontSize.base,
@@ -968,7 +963,7 @@ const createStyles = (colors: Theme['colors']) =>
     floatingButton: {
       borderRadius: borderRadius.xl,
       overflow: 'hidden',
-      ...shadows.xl,
+      ...shadows.lg,
     },
     floatingButtonGradient: {
       flexDirection: 'row',
