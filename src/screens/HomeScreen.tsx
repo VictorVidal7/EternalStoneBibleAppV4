@@ -180,7 +180,9 @@ const HomeScreen: React.FC = () => {
           color: 'rgba(255, 255, 255, 0.9)',
         },
         section: {
-          margin: 20,
+          marginHorizontal: 20,
+          marginTop: 8,
+          marginBottom: 20,
         },
         sectionTitle: {
           fontSize: 24,
@@ -203,8 +205,9 @@ const HomeScreen: React.FC = () => {
         },
         startReadingText: {
           color: '#FFFFFF',
-          fontSize: 18,
-          fontWeight: 'bold',
+          fontSize: 17,
+          fontWeight: '700',
+          letterSpacing: -0.2,
         },
         menuGrid: {
           flexDirection: 'row',
@@ -228,10 +231,12 @@ const HomeScreen: React.FC = () => {
           shadowRadius: isDarkMode ? 8 : 2,
         },
         menuItemText: {
-          marginTop: 10,
-          fontSize: 14,
+          marginTop: 12,
+          fontSize: 15,
+          fontWeight: '600',
           color: colors.text,
           textAlign: 'center',
+          letterSpacing: -0.2,
         },
       }),
     [isDarkMode, colors],
