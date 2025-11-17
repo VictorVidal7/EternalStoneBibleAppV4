@@ -149,19 +149,20 @@ const styles = StyleSheet.create({
   header: {
     flexDirection: 'row',
     alignItems: 'center',
-    padding: 16,
+    paddingHorizontal: 20,
+    paddingVertical: 20,
     borderBottomWidth: StyleSheet.hairlineWidth,
   },
   bookIconContainer: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
+    width: 56,
+    height: 56,
+    borderRadius: 12,
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: 16,
   },
   bookIcon: {
-    fontSize: 24,
+    fontSize: 28,
   },
   headerText: {
     flex: 1,
@@ -169,11 +170,13 @@ const styles = StyleSheet.create({
   bookTitle: {
     fontSize: 24,
     fontWeight: '700',
-    marginBottom: 2,
+    marginBottom: 4,
+    letterSpacing: -0.3,
   },
   chapterCount: {
-    fontSize: 14,
+    fontSize: 15,
     fontWeight: '500',
+    letterSpacing: -0.1,
   },
   listContent: {
     padding: 12,
@@ -186,14 +189,15 @@ const styles = StyleSheet.create({
     margin: 6,
     borderRadius: 12,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.1,
-    shadowRadius: 3,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.06,
+    shadowRadius: 8,
     elevation: 2,
   },
   chapterText: {
     fontSize: 20,
     fontWeight: '600',
+    letterSpacing: -0.2,
   },
 });
 
