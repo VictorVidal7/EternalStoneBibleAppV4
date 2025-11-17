@@ -215,8 +215,9 @@ const createStyles = (colors: ThemeColors) =>
     noteItem: {
       flexDirection: 'row',
       alignItems: 'center',
-      padding: 16,
-      borderBottomWidth: 1,
+      paddingHorizontal: 20,
+      paddingVertical: 16,
+      borderBottomWidth: StyleSheet.hairlineWidth,
       borderBottomColor: colors.border,
     },
     noteContent: {
@@ -224,13 +225,16 @@ const createStyles = (colors: ThemeColors) =>
     },
     noteReference: {
       fontSize: 16,
-      fontWeight: 'bold',
+      fontWeight: '700',
       color: colors.primary,
       marginBottom: 4,
+      letterSpacing: -0.2,
     },
     noteText: {
-      fontSize: 14,
+      fontSize: 15,
       color: colors.text,
+      lineHeight: 22,
+      letterSpacing: 0.1,
     },
     emptyContainer: {
       flex: 1,

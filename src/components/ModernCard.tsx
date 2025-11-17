@@ -113,7 +113,7 @@ export const ModernCard: React.FC<ModernCardProps> = ({
 
   const getCardStyle = (): ViewStyle => {
     const baseStyle: ViewStyle = {
-      borderRadius: borderRadius.xl,  // Más suave
+      borderRadius: borderRadius.lg,
       padding: paddingMap[padding],
       opacity: disabled ? 0.5 : 1,
     };
@@ -123,14 +123,14 @@ export const ModernCard: React.FC<ModernCardProps> = ({
         return {
           ...baseStyle,
           backgroundColor: colors.card,
-          ...shadows[elevation],
-          borderWidth: 0,  // Sin borde para más limpieza
+          ...(isDark ? shadows[elevation] : shadows[elevation === 'xl' ? 'md' : elevation === 'lg' ? 'sm' : 'xs']),
+          borderWidth: 0,
         };
 
       case 'outlined':
         return {
           ...baseStyle,
-          backgroundColor: 'transparent',
+          backgroundColor: isDark ? 'rgba(255, 255, 255, 0.02)' : 'rgba(255, 255, 255, 0.8)',
           borderWidth: borderWidth,
           borderColor: borderColor || colors.border,
         };
@@ -139,6 +139,7 @@ export const ModernCard: React.FC<ModernCardProps> = ({
         return {
           ...baseStyle,
           backgroundColor: colors.surface,
+          ...(isDark ? {} : shadows.xs),
         };
 
       case 'glass':

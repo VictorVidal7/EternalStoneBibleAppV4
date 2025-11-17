@@ -64,12 +64,13 @@ export const AchievementCard: React.FC<AchievementCardProps> = ({
           styles.card,
           {
             backgroundColor: achievement.isUnlocked
-              ? (isDark ? colors.primary + '15' : colors.primary + '10')
+              ? (isDark ? colors.primary + '15' : colors.primary + '08')
               : colors.card,
-            borderColor: tierColor,
+            borderColor: achievement.isUnlocked ? tierColor : colors.border,
           },
           achievement.isUnlocked && styles.cardUnlocked,
-          shadows.md,
+          !achievement.isUnlocked && (isDark ? shadows.md : shadows.sm),
+          achievement.isUnlocked && shadows.md,
         ]}
       >
         {/* Icono del logro */}
@@ -138,22 +139,22 @@ export const AchievementCard: React.FC<AchievementCardProps> = ({
 
 const styles = StyleSheet.create({
   container: {
-    marginBottom: spacing.sm,
+    marginBottom: spacing.base,
   },
   card: {
     flexDirection: 'row',
-    borderRadius: borderRadius.xl,
-    padding: spacing.base,
-    borderWidth: 2,
+    borderRadius: borderRadius.lg,
+    padding: spacing.lg,
+    borderWidth: 1,
   },
   cardUnlocked: {},
   iconContainer: {
-    width: 60,
-    height: 60,
-    borderRadius: 30,
+    width: 56,
+    height: 56,
+    borderRadius: borderRadius.md,
     justifyContent: 'center',
     alignItems: 'center',
-    marginRight: spacing.sm,
+    marginRight: spacing.base,
   },
   icon: {
     fontSize: 32,
@@ -167,21 +168,21 @@ const styles = StyleSheet.create({
   name: {
     fontSize: fontSize.base,
     fontWeight: '700',
-    marginBottom: spacing.xs,
+    marginBottom: spacing['1'],
   },
   description: {
     fontSize: fontSize.sm,
-    marginBottom: spacing.xs,
-    lineHeight: 18,
+    marginBottom: spacing.sm,
+    lineHeight: 20,
   },
   progressContainer: {
-    marginTop: spacing.xs,
+    marginTop: spacing.sm,
   },
   progressBar: {
     height: 6,
-    borderRadius: borderRadius.sm,
+    borderRadius: borderRadius.xs,
     overflow: 'hidden',
-    marginBottom: spacing.xs,
+    marginBottom: spacing['1'],
   },
   progressFill: {
     height: '100%',
@@ -195,12 +196,12 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    marginTop: spacing.xs,
+    marginTop: spacing.sm,
   },
   tierBadge: {
-    paddingHorizontal: spacing.xs,
-    paddingVertical: spacing['0.5'],
-    borderRadius: borderRadius.sm,
+    paddingHorizontal: spacing.sm,
+    paddingVertical: spacing['1'],
+    borderRadius: borderRadius.xs,
   },
   tierText: {
     fontSize: fontSize['2xs'],

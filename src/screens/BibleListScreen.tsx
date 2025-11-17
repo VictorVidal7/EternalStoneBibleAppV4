@@ -199,43 +199,46 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   listContent: {
-    paddingBottom: 20,
+    paddingBottom: 24,
   },
   sectionHeader: {
-    padding: 16,
-    paddingTop: 24,
+    paddingHorizontal: 20,
+    paddingTop: 28,
     paddingBottom: 12,
   },
   sectionHeaderText: {
-    fontSize: 20,
-    fontWeight: '700',
-    letterSpacing: 0.5,
+    fontSize: 22,
+    fontWeight: '800',
+    letterSpacing: -0.3,
   },
   bookItem: {
     flexDirection: 'row',
     alignItems: 'center',
-    padding: 16,
+    paddingHorizontal: 20,
+    paddingVertical: 16,
     borderBottomWidth: StyleSheet.hairlineWidth,
   },
   bookIconContainer: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
+    width: 48,
+    height: 48,
+    borderRadius: 12,
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: 16,
   },
   bookIcon: {
-    fontSize: 20,
+    fontSize: 22,
   },
   bookName: {
     flex: 1,
     fontSize: 17,
-    fontWeight: '500',
+    fontWeight: '600',
+    letterSpacing: -0.2,
   },
   chevron: {
     fontSize: 28,
     fontWeight: '300',
+    opacity: 0.6,
   },
 });
 
