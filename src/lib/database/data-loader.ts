@@ -91,7 +91,10 @@ export async function checkDataStatus(): Promise<{
   isLoaded: boolean;
   stats?: { totalVerses: number; versions: string[] };
 }> {
-  const isLoaded = (await AsyncStorage.getItem(DATA_LOADED_KEY)) === 'true';
+  // Check if at least one version is loaded
+  const rvr1960Loaded = (await AsyncStorage.getItem(DATA_LOADED_KEY_RVR1960)) === 'true';
+  const nkjvLoaded = (await AsyncStorage.getItem(DATA_LOADED_KEY_NKJV)) === 'true';
+  const isLoaded = rvr1960Loaded || nkjvLoaded;
 
   if (isLoaded) {
     try {
