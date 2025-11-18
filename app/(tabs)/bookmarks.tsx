@@ -50,7 +50,7 @@ export default function BookmarksScreen() {
           style: 'destructive',
           onPress: async () => {
             await bibleDB.removeBookmark(id);
-            toast.success('Marcador eliminado correctamente');
+            toast.success('Bookmark removed successfully');
             loadBookmarks();
           },
         },
@@ -89,7 +89,7 @@ export default function BookmarksScreen() {
                 {item.text}
               </Text>
               <Text style={[styles.bookmarkDate, { color: colors.textSecondary }]}>
-                {new Date(item.createdAt).toLocaleDateString('es-ES', {
+                {new Date(item.createdAt).toLocaleDateString('en-US', {
                   year: 'numeric',
                   month: 'long',
                   day: 'numeric',

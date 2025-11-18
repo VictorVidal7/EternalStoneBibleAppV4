@@ -1,5 +1,5 @@
 /**
- * Modal celebratorio cuando se desbloquea un logro
+ * Celebratory modal when an achievement is unlocked
  */
 
 import React, { useEffect, useRef } from 'react';
@@ -41,7 +41,7 @@ export const AchievementUnlockedModal: React.FC<AchievementUnlockedModalProps> =
 
   useEffect(() => {
     if (visible && achievement) {
-      // Resetear animaciones
+      // Reset animations
       scaleAnim.setValue(0);
       rotateAnim.setValue(0);
       fadeAnim.setValue(0);
@@ -52,7 +52,7 @@ export const AchievementUnlockedModal: React.FC<AchievementUnlockedModalProps> =
         anim.opacity.setValue(1);
       });
 
-      // Animación de entrada
+      // Entry animation
       Animated.parallel([
         Animated.spring(scaleAnim, {
           toValue: 1,
@@ -79,7 +79,7 @@ export const AchievementUnlockedModal: React.FC<AchievementUnlockedModalProps> =
         ]),
       ]).start();
 
-      // Animación de confeti
+      // Confetti animation
       confettiAnims.forEach((anim, index) => {
         const angle = (Math.PI * 2 * index) / confettiAnims.length;
         const distance = 150 + Math.random() * 100;
@@ -123,7 +123,7 @@ export const AchievementUnlockedModal: React.FC<AchievementUnlockedModalProps> =
       <View style={styles.overlay}>
         <Pressable style={styles.backdrop} onPress={onClose} />
 
-        {/* Confeti */}
+        {/* Confetti */}
         {confettiAnims.map((anim, index) => (
           <Animated.View
             key={index}
@@ -147,7 +147,7 @@ export const AchievementUnlockedModal: React.FC<AchievementUnlockedModalProps> =
           />
         ))}
 
-        {/* Contenido */}
+        {/* Content */}
         <Animated.View
           style={[
             styles.container,
@@ -166,16 +166,16 @@ export const AchievementUnlockedModal: React.FC<AchievementUnlockedModalProps> =
               </View>
             </View>
 
-            {/* Icono */}
+            {/* Icon */}
             <View style={[styles.iconContainer, { backgroundColor: tierColor + '20' }]}>
               <Text style={styles.icon}>{achievement.icon}</Text>
             </View>
 
-            {/* Nombre y descripción */}
+            {/* Name and description */}
             <Text style={styles.name}>{achievement.name}</Text>
             <Text style={styles.description}>{achievement.description}</Text>
 
-            {/* Puntos */}
+            {/* Points */}
             <View style={styles.pointsContainer}>
               <Text style={styles.pointsLabel}>{t.achievements.pointsEarned}</Text>
               <Text style={[styles.points, { color: tierColor }]}>
@@ -183,7 +183,7 @@ export const AchievementUnlockedModal: React.FC<AchievementUnlockedModalProps> =
               </Text>
             </View>
 
-            {/* Botón */}
+            {/* Button */}
             <Pressable
               style={[styles.button, { backgroundColor: tierColor }]}
               onPress={onClose}

@@ -1,6 +1,6 @@
 /**
- * Pantalla de Logros (Tab)
- * Muestra el sistema completo de logros y gamificación
+ * Achievements Screen (Tab)
+ * Displays the complete achievements and gamification system
  */
 
 import React from 'react';
