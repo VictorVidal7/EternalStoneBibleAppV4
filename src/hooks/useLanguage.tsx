@@ -14,7 +14,7 @@ interface LanguageContextType {
 const LanguageContext = createContext<LanguageContextType | undefined>(undefined);
 
 export function LanguageProvider({ children }: { children: ReactNode }) {
-  const [language, setLanguageState] = useState<Language>('es');
+  const [language, setLanguageState] = useState<Language>('en');
 
   useEffect(() => {
     loadSavedLanguage();
@@ -29,7 +29,7 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
       } else {
         // Auto-detect language from device locale
         const deviceLanguage = Localization.getLocales()[0]?.languageCode;
-        const detectedLang: Language = deviceLanguage === 'en' ? 'en' : 'es';
+        const detectedLang: Language = deviceLanguage === 'es' ? 'es' : 'en';
         setLanguageState(detectedLang);
         await AsyncStorage.setItem(LANGUAGE_STORAGE_KEY, detectedLang);
       }

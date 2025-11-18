@@ -1,10 +1,10 @@
 /**
  * ✨ PREMIUM BUTTON COMPONENT
  *
- * Botón premium con efectos visuales impactantes:
- * - Gradientes animados
- * - Efectos de brillo (shine)
- * - Animaciones de escala
+ * Premium button with stunning visual effects:
+ * - Animated gradients
+ * - Shine effects
+ * - Scale animations
  * - Haptic feedback
  */
 
@@ -21,6 +21,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
 import { spacing, borderRadius, fontSize, shadows } from '../styles/designTokens';
+import { useLanguage } from '../hooks/useLanguage';
 
 type ButtonVariant = 'primary' | 'secondary' | 'success' | 'danger' | 'gradient';
 type ButtonSize = 'small' | 'medium' | 'large';
@@ -56,11 +57,12 @@ export const PremiumButton: React.FC<PremiumButtonProps> = ({
   fullWidth = false,
   haptic = true,
 }) => {
+  const { t } = useLanguage();
   const scaleAnim = useRef(new Animated.Value(1)).current;
   const shineAnim = useRef(new Animated.Value(-1)).current;
 
   useEffect(() => {
-    // Animación de brillo continua
+    // Continuous shine animation
     Animated.loop(
       Animated.timing(shineAnim, {
         toValue: 1,
@@ -192,7 +194,7 @@ export const PremiumButton: React.FC<PremiumButtonProps> = ({
               textStyle,
             ]}
           >
-            {loading ? 'Cargando...' : title}
+            {loading ? t.loading : title}
           </Text>
 
           {icon && iconPosition === 'right' && (
@@ -204,7 +206,7 @@ export const PremiumButton: React.FC<PremiumButtonProps> = ({
             />
           )}
 
-          {/* Efecto de brillo */}
+          {/* Shine effect */}
           <Animated.View
             style={[
               styles.shine,

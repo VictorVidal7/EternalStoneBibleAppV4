@@ -3,13 +3,13 @@
  */
 
 import { Achievement, AchievementCategory, AchievementTier } from './types';
+import { translations, Language } from '../../i18n/translations';
 
-export const ACHIEVEMENT_DEFINITIONS: Omit<Achievement, 'currentProgress' | 'isUnlocked' | 'unlockedAt'>[] = [
+// Static achievement data (IDs, icons, requirements, points, etc.)
+const ACHIEVEMENT_DATA = [
   // READING ACHIEVEMENTS
   {
     id: 'first_verse',
-    name: 'First Steps',
-    description: 'Read your first verse',
     icon: '👶',
     category: AchievementCategory.READING,
     requirement: 1,
@@ -18,8 +18,6 @@ export const ACHIEVEMENT_DEFINITIONS: Omit<Achievement, 'currentProgress' | 'isU
   },
   {
     id: 'verses_10',
-    name: 'Dedicated Reader',
-    description: 'Read 10 verses',
     icon: '📖',
     category: AchievementCategory.READING,
     requirement: 10,
@@ -28,8 +26,6 @@ export const ACHIEVEMENT_DEFINITIONS: Omit<Achievement, 'currentProgress' | 'isU
   },
   {
     id: 'verses_100',
-    name: 'Diligent Student',
-    description: 'Read 100 verses',
     icon: '📚',
     category: AchievementCategory.READING,
     requirement: 100,
@@ -38,8 +34,6 @@ export const ACHIEVEMENT_DEFINITIONS: Omit<Achievement, 'currentProgress' | 'isU
   },
   {
     id: 'verses_500',
-    name: 'Devoted Reader',
-    description: 'Read 500 verses',
     icon: '✨',
     category: AchievementCategory.READING,
     requirement: 500,
@@ -48,8 +42,6 @@ export const ACHIEVEMENT_DEFINITIONS: Omit<Achievement, 'currentProgress' | 'isU
   },
   {
     id: 'verses_1000',
-    name: 'Word Master',
-    description: 'Read 1000 verses',
     icon: '⭐',
     category: AchievementCategory.READING,
     requirement: 1000,
@@ -58,8 +50,6 @@ export const ACHIEVEMENT_DEFINITIONS: Omit<Achievement, 'currentProgress' | 'isU
   },
   {
     id: 'verses_5000',
-    name: 'Biblical Scholar',
-    description: 'Read 5000 verses',
     icon: '💎',
     category: AchievementCategory.READING,
     requirement: 5000,
@@ -70,8 +60,6 @@ export const ACHIEVEMENT_DEFINITIONS: Omit<Achievement, 'currentProgress' | 'isU
   // STREAK ACHIEVEMENTS
   {
     id: 'streak_3',
-    name: 'Commitment Started',
-    description: 'Read 3 days in a row',
     icon: '🔥',
     category: AchievementCategory.STREAK,
     requirement: 3,
@@ -80,8 +68,6 @@ export const ACHIEVEMENT_DEFINITIONS: Omit<Achievement, 'currentProgress' | 'isU
   },
   {
     id: 'streak_7',
-    name: 'Steady Week',
-    description: 'Read 7 days in a row',
     icon: '📅',
     category: AchievementCategory.STREAK,
     requirement: 7,
@@ -90,8 +76,6 @@ export const ACHIEVEMENT_DEFINITIONS: Omit<Achievement, 'currentProgress' | 'isU
   },
   {
     id: 'streak_30',
-    name: 'Victorious Month',
-    description: 'Read 30 days in a row',
     icon: '🏆',
     category: AchievementCategory.STREAK,
     requirement: 30,
@@ -100,8 +84,6 @@ export const ACHIEVEMENT_DEFINITIONS: Omit<Achievement, 'currentProgress' | 'isU
   },
   {
     id: 'streak_100',
-    name: 'Unbreakable Discipline',
-    description: 'Read 100 days in a row',
     icon: '💪',
     category: AchievementCategory.STREAK,
     requirement: 100,
@@ -110,8 +92,6 @@ export const ACHIEVEMENT_DEFINITIONS: Omit<Achievement, 'currentProgress' | 'isU
   },
   {
     id: 'streak_365',
-    name: 'Year of Dedication',
-    description: 'Read 365 days in a row',
     icon: '👑',
     category: AchievementCategory.STREAK,
     requirement: 365,
@@ -122,8 +102,6 @@ export const ACHIEVEMENT_DEFINITIONS: Omit<Achievement, 'currentProgress' | 'isU
   // CHAPTER ACHIEVEMENTS
   {
     id: 'first_chapter',
-    name: 'First Chapter',
-    description: 'Complete your first chapter',
     icon: '📄',
     category: AchievementCategory.CHAPTERS,
     requirement: 1,
@@ -132,8 +110,6 @@ export const ACHIEVEMENT_DEFINITIONS: Omit<Achievement, 'currentProgress' | 'isU
   },
   {
     id: 'chapters_10',
-    name: 'Chapter Explorer',
-    description: 'Complete 10 chapters',
     icon: '🗺️',
     category: AchievementCategory.CHAPTERS,
     requirement: 10,
@@ -142,8 +118,6 @@ export const ACHIEVEMENT_DEFINITIONS: Omit<Achievement, 'currentProgress' | 'isU
   },
   {
     id: 'chapters_50',
-    name: 'Word Traveler',
-    description: 'Complete 50 chapters',
     icon: '🚶',
     category: AchievementCategory.CHAPTERS,
     requirement: 50,
@@ -152,8 +126,6 @@ export const ACHIEVEMENT_DEFINITIONS: Omit<Achievement, 'currentProgress' | 'isU
   },
   {
     id: 'chapters_150',
-    name: 'Chapter Conqueror',
-    description: 'Complete 150 chapters',
     icon: '⚔️',
     category: AchievementCategory.CHAPTERS,
     requirement: 150,
@@ -164,8 +136,6 @@ export const ACHIEVEMENT_DEFINITIONS: Omit<Achievement, 'currentProgress' | 'isU
   // BOOK ACHIEVEMENTS
   {
     id: 'first_book',
-    name: 'First Book',
-    description: 'Complete your first book of the Bible',
     icon: '📕',
     category: AchievementCategory.BOOKS,
     requirement: 1,
@@ -174,8 +144,6 @@ export const ACHIEVEMENT_DEFINITIONS: Omit<Achievement, 'currentProgress' | 'isU
   },
   {
     id: 'books_5',
-    name: 'Pentateuch Read',
-    description: 'Complete 5 books',
     icon: '📗',
     category: AchievementCategory.BOOKS,
     requirement: 5,
@@ -184,8 +152,6 @@ export const ACHIEVEMENT_DEFINITIONS: Omit<Achievement, 'currentProgress' | 'isU
   },
   {
     id: 'books_27',
-    name: 'New Testament Complete',
-    description: 'Complete all 27 NT books',
     icon: '✝️',
     category: AchievementCategory.BOOKS,
     requirement: 27,
@@ -194,8 +160,6 @@ export const ACHIEVEMENT_DEFINITIONS: Omit<Achievement, 'currentProgress' | 'isU
   },
   {
     id: 'books_39',
-    name: 'Old Testament Complete',
-    description: 'Complete all 39 OT books',
     icon: '📜',
     category: AchievementCategory.BOOKS,
     requirement: 39,
@@ -204,8 +168,6 @@ export const ACHIEVEMENT_DEFINITIONS: Omit<Achievement, 'currentProgress' | 'isU
   },
   {
     id: 'books_66',
-    name: 'Complete Bible!',
-    description: 'Complete all 66 books of the Bible',
     icon: '🎉',
     category: AchievementCategory.BOOKS,
     requirement: 66,
@@ -216,8 +178,6 @@ export const ACHIEVEMENT_DEFINITIONS: Omit<Achievement, 'currentProgress' | 'isU
   // HIGHLIGHT ACHIEVEMENTS
   {
     id: 'first_highlight',
-    name: 'First Mark',
-    description: 'Create your first highlight',
     icon: '🖍️',
     category: AchievementCategory.HIGHLIGHTS,
     requirement: 1,
@@ -226,8 +186,6 @@ export const ACHIEVEMENT_DEFINITIONS: Omit<Achievement, 'currentProgress' | 'isU
   },
   {
     id: 'highlights_25',
-    name: 'Treasure Collector',
-    description: 'Create 25 highlights',
     icon: '💛',
     category: AchievementCategory.HIGHLIGHTS,
     requirement: 25,
@@ -236,8 +194,6 @@ export const ACHIEVEMENT_DEFINITIONS: Omit<Achievement, 'currentProgress' | 'isU
   },
   {
     id: 'highlights_100',
-    name: 'Truth Archivist',
-    description: 'Create 100 highlights',
     icon: '🌟',
     category: AchievementCategory.HIGHLIGHTS,
     requirement: 100,
@@ -248,8 +204,6 @@ export const ACHIEVEMENT_DEFINITIONS: Omit<Achievement, 'currentProgress' | 'isU
   // NOTE ACHIEVEMENTS
   {
     id: 'first_note',
-    name: 'First Reflection',
-    description: 'Write your first note',
     icon: '📝',
     category: AchievementCategory.NOTES,
     requirement: 1,
@@ -258,8 +212,6 @@ export const ACHIEVEMENT_DEFINITIONS: Omit<Achievement, 'currentProgress' | 'isU
   },
   {
     id: 'notes_50',
-    name: 'Spiritual Journal',
-    description: 'Write 50 notes',
     icon: '📔',
     category: AchievementCategory.NOTES,
     requirement: 50,
@@ -270,8 +222,6 @@ export const ACHIEVEMENT_DEFINITIONS: Omit<Achievement, 'currentProgress' | 'isU
   // SEARCH ACHIEVEMENTS
   {
     id: 'first_search',
-    name: 'Truth Seeker',
-    description: 'Perform your first search',
     icon: '🔍',
     category: AchievementCategory.SEARCH,
     requirement: 1,
@@ -280,8 +230,6 @@ export const ACHIEVEMENT_DEFINITIONS: Omit<Achievement, 'currentProgress' | 'isU
   },
   {
     id: 'searches_50',
-    name: 'Diligent Investigator',
-    description: 'Perform 50 searches',
     icon: '🔎',
     category: AchievementCategory.SEARCH,
     requirement: 50,
@@ -292,8 +240,6 @@ export const ACHIEVEMENT_DEFINITIONS: Omit<Achievement, 'currentProgress' | 'isU
   // TIME ACHIEVEMENTS
   {
     id: 'time_60',
-    name: 'One Hour of Reading',
-    description: 'Read for 60 accumulated minutes',
     icon: '⏰',
     category: AchievementCategory.TIME,
     requirement: 60,
@@ -302,8 +248,6 @@ export const ACHIEVEMENT_DEFINITIONS: Omit<Achievement, 'currentProgress' | 'isU
   },
   {
     id: 'time_300',
-    name: 'Five Hours of Study',
-    description: 'Read for 5 accumulated hours',
     icon: '⏳',
     category: AchievementCategory.TIME,
     requirement: 300,
@@ -312,8 +256,6 @@ export const ACHIEVEMENT_DEFINITIONS: Omit<Achievement, 'currentProgress' | 'isU
   },
   {
     id: 'time_1000',
-    name: 'Dedicated Student',
-    description: 'Read for 1000 minutes',
     icon: '📚',
     category: AchievementCategory.TIME,
     requirement: 1000,
@@ -324,8 +266,6 @@ export const ACHIEVEMENT_DEFINITIONS: Omit<Achievement, 'currentProgress' | 'isU
   // SPECIAL ACHIEVEMENTS
   {
     id: 'psalms_complete',
-    name: 'Psalmist',
-    description: 'Complete the book of Psalms',
     icon: '🎵',
     category: AchievementCategory.SPECIAL,
     requirement: 1,
@@ -334,8 +274,6 @@ export const ACHIEVEMENT_DEFINITIONS: Omit<Achievement, 'currentProgress' | 'isU
   },
   {
     id: 'proverbs_complete',
-    name: 'Wise One',
-    description: 'Complete the book of Proverbs',
     icon: '💡',
     category: AchievementCategory.SPECIAL,
     requirement: 1,
@@ -344,8 +282,6 @@ export const ACHIEVEMENT_DEFINITIONS: Omit<Achievement, 'currentProgress' | 'isU
   },
   {
     id: 'gospels_complete',
-    name: 'Evangelist',
-    description: 'Complete the 4 gospels',
     icon: '📯',
     category: AchievementCategory.SPECIAL,
     requirement: 4,
@@ -354,8 +290,6 @@ export const ACHIEVEMENT_DEFINITIONS: Omit<Achievement, 'currentProgress' | 'isU
   },
   {
     id: 'early_bird',
-    name: 'Early Bird',
-    description: 'Read before 6 AM',
     icon: '🌅',
     category: AchievementCategory.SPECIAL,
     requirement: 1,
@@ -364,8 +298,6 @@ export const ACHIEVEMENT_DEFINITIONS: Omit<Achievement, 'currentProgress' | 'isU
   },
   {
     id: 'night_owl',
-    name: 'Night Owl',
-    description: 'Read after 11 PM',
     icon: '🦉',
     category: AchievementCategory.SPECIAL,
     requirement: 1,
@@ -373,3 +305,16 @@ export const ACHIEVEMENT_DEFINITIONS: Omit<Achievement, 'currentProgress' | 'isU
     tier: AchievementTier.SILVER,
   },
 ];
+
+// Get achievement definitions with translations
+export function getAchievementDefinitions(language: Language = 'en'): Omit<Achievement, 'currentProgress' | 'isUnlocked' | 'unlockedAt'>[] {
+  const t = translations[language];
+  return ACHIEVEMENT_DATA.map(achievement => ({
+    ...achievement,
+    name: t.achievements.achievementsList[achievement.id as keyof typeof t.achievements.achievementsList].name,
+    description: t.achievements.achievementsList[achievement.id as keyof typeof t.achievements.achievementsList].description,
+  }));
+}
+
+// Legacy export for backward compatibility (defaults to English)
+export const ACHIEVEMENT_DEFINITIONS: Omit<Achievement, 'currentProgress' | 'isUnlocked' | 'unlockedAt'>[] = getAchievementDefinitions('en');

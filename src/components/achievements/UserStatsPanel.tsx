@@ -16,8 +16,8 @@ interface UserStatsPanelProps {
 
 export const UserStatsPanel: React.FC<UserStatsPanelProps> = ({ stats }) => {
   const { colors, isDark } = useTheme();
-  const { t } = useLanguage();
-  const levelProgress = calculateLevelProgress(stats.totalPoints);
+  const { t, language } = useLanguage();
+  const levelProgress = calculateLevelProgress(stats.totalPoints, language);
 
   return (
     <ScrollView style={[styles.container, { backgroundColor: colors.background }]} showsVerticalScrollIndicator={false}>

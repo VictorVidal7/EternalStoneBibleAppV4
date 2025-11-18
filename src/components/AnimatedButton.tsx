@@ -1,12 +1,12 @@
 /**
- * 🎯 ANIMATED BUTTON - Componente de Botón Moderno
+ * 🎯 ANIMATED BUTTON - Modern Button Component
  *
- * Botón premium con:
- * - Animaciones fluidas y profesionales
- * - Múltiples variantes y tamaños
- * - Feedback háptico
- * - Efectos de presión realistas
- * - Gradientes y sombras personalizables
+ * Premium button with:
+ * - Fluid and professional animations
+ * - Multiple variants and sizes
+ * - Haptic feedback
+ * - Realistic press effects
+ * - Customizable gradients and shadows
  */
 
 import React, { useRef } from 'react';
@@ -25,6 +25,7 @@ import * as Haptics from 'expo-haptics';
 
 import { spacing, borderRadius, fontSize, shadows } from '../styles/designTokens';
 import { useTheme } from '../hooks/useTheme';
+import { useLanguage } from '../hooks/useLanguage';
 
 type ButtonVariant = 'primary' | 'secondary' | 'outline' | 'ghost' | 'gradient';
 type ButtonSize = 'small' | 'medium' | 'large';
@@ -61,6 +62,7 @@ export default function AnimatedButton({
   hapticFeedback = true,
 }: AnimatedButtonProps) {
   const { colors, isDark } = useTheme();
+  const { t } = useLanguage();
   const scaleAnim = useRef(new Animated.Value(1)).current;
   const opacityAnim = useRef(new Animated.Value(1)).current;
 
@@ -211,7 +213,7 @@ export default function AnimatedButton({
           textStyle,
         ]}
       >
-        {loading ? 'Cargando...' : title}
+        {loading ? t.loading : title}
       </Text>
       {icon && iconPosition === 'right' && (
         <Ionicons
