@@ -14,25 +14,11 @@ export const AVAILABLE_VERSIONS: BibleVersion[] = [
     year: '1960',
   },
   {
-    id: 'NKJV',
-    name: 'New King James Version',
-    abbreviation: 'NKJV',
+    id: 'KJV',
+    name: 'King James Version',
+    abbreviation: 'KJV',
     language: 'en',
-    year: '1982',
-  },
-  {
-    id: 'NTV',
-    name: 'Nueva Traducción Viviente',
-    abbreviation: 'NTV',
-    language: 'es',
-    year: '2008',
-  },
-  {
-    id: 'NLT',
-    name: 'New Living Translation',
-    abbreviation: 'NLT',
-    language: 'en',
-    year: '1996',
+    year: '1611',
   },
 ];
 
