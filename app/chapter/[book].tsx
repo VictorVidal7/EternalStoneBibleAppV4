@@ -208,7 +208,11 @@ export default function ChapterSelectionScreen() {
         <View style={[styles.container, styles.loadingContainer, { backgroundColor: colors.background }]}>
           <Animated.View style={{ opacity: fadeAnim }}>
             <LinearGradient
-              colors={isDark ? ['#667eea', '#764ba2'] : ['#667eea', '#764ba2']}
+              colors={
+                isDark
+                  ? ['#1E3A5F', '#2C4B73']
+                  : ['#4A90E2', '#5B9FED']
+              }
               start={{ x: 0, y: 0 }}
               end={{ x: 1, y: 1 }}
               style={styles.loadingCard}
@@ -249,8 +253,8 @@ export default function ChapterSelectionScreen() {
           <LinearGradient
             colors={
               isDark
-                ? ['#667eea', '#764ba2', colors.background]
-                : ['#667eea', '#764ba2', colors.background]
+                ? ['#1E3A5F', '#2C4B73', '#3A5C87']
+                : ['#4A90E2', '#5B9FED', '#6EADFF']
             }
             start={{ x: 0, y: 0 }}
             end={{ x: 0, y: 1 }}
@@ -559,16 +563,22 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   headerSubtitle: {
-    fontSize: fontSize.sm,
+    fontSize: 16,
     color: 'rgba(255,255,255,0.9)',
     fontWeight: '500',
     marginBottom: 4,
+    textShadowColor: 'rgba(0, 0, 0, 0.2)',
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 3,
   },
   headerTitle: {
-    fontSize: fontSize['3xl'],
-    fontWeight: '800',
+    fontSize: 34,
+    fontWeight: '700',
     color: '#ffffff',
     marginBottom: spacing.xs,
+    textShadowColor: 'rgba(0, 0, 0, 0.3)',
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 4,
   },
   chapterCountBadge: {
     flexDirection: 'row',
