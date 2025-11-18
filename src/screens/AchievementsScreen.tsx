@@ -1,6 +1,6 @@
 /**
- * Pantalla de Logros
- * Muestra todos los logros del usuario, progreso y estadísticas
+ * Achievements Screen
+ * Shows all user achievements, progress and statistics
  */
 
 import React, { useState, useEffect } from 'react';
@@ -18,6 +18,7 @@ import { UserStatsPanel } from '../components/achievements/UserStatsPanel';
 import { AchievementUnlockedModal } from '../components/achievements/AchievementUnlockedModal';
 import { useAchievements } from '../hooks/useAchievements';
 import { useTheme } from '../hooks/useTheme';
+import { useLanguage } from '../hooks/useLanguage';
 import { BibleDatabase } from '../lib/database';
 import { Achievement, AchievementCategory } from '../lib/achievements/types';
 import { spacing, borderRadius, fontSize, shadows } from '../styles/designTokens';
@@ -35,18 +36,19 @@ export const AchievementsScreen: React.FC<AchievementsScreenProps> = ({ database
     clearNewUnlocks,
   } = useAchievements(database);
   const { colors, isDark } = useTheme();
+  const { t } = useLanguage();
 
   const [selectedCategory, setSelectedCategory] = useState<AchievementCategory | 'all'>('all');
   const [showStats, setShowStats] = useState(false);
   const [selectedAchievement, setSelectedAchievement] = useState<Achievement | null>(null);
 
-  // Filtrar logros por categoría
+  // Filter achievements by category
   const filteredAchievements = achievements.filter(
     (achievement) =>
       selectedCategory === 'all' || achievement.category === selectedCategory
   );
 
-  // Ordenar: desbloqueados primero, luego por progreso
+  // Sort: unlocked first, then by progress
   const sortedAchievements = [...filteredAchievements].sort((a, b) => {
     if (a.isUnlocked && !b.isUnlocked) return -1;
     if (!a.isUnlocked && b.isUnlocked) return 1;
@@ -59,14 +61,14 @@ export const AchievementsScreen: React.FC<AchievementsScreenProps> = ({ database
   });
 
   const categories: Array<{ id: AchievementCategory | 'all'; name: string; icon: string }> = [
-    { id: 'all', name: 'Todos', icon: '📋' },
-    { id: AchievementCategory.READING, name: 'Lectura', icon: '📖' },
-    { id: AchievementCategory.STREAK, name: 'Rachas', icon: '🔥' },
-    { id: AchievementCategory.CHAPTERS, name: 'Capítulos', icon: '📄' },
-    { id: AchievementCategory.BOOKS, name: 'Libros', icon: '📚' },
-    { id: AchievementCategory.HIGHLIGHTS, name: 'Destacados', icon: '🖍️' },
-    { id: AchievementCategory.NOTES, name: 'Notas', icon: '📝' },
-    { id: AchievementCategory.SPECIAL, name: 'Especiales', icon: '⭐' },
+    { id: 'all', name: 'All', icon: '📋' },
+    { id: AchievementCategory.READING, name: 'Reading', icon: '📖' },
+    { id: AchievementCategory.STREAK, name: 'Streaks', icon: '🔥' },
+    { id: AchievementCategory.CHAPTERS, name: 'Chapters', icon: '📄' },
+    { id: AchievementCategory.BOOKS, name: 'Books', icon: '📚' },
+    { id: AchievementCategory.HIGHLIGHTS, name: 'Highlights', icon: '🖍️' },
+    { id: AchievementCategory.NOTES, name: 'Notes', icon: '📝' },
+    { id: AchievementCategory.SPECIAL, name: 'Special', icon: '⭐' },
   ];
 
   if (loading) {
@@ -74,7 +76,7 @@ export const AchievementsScreen: React.FC<AchievementsScreenProps> = ({ database
       <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
         <View style={styles.loadingContainer}>
           <Text style={[styles.loadingText, { color: colors.textSecondary }]}>
-            Cargando logros...
+            {t.achievements.loading}
           </Text>
         </View>
       </SafeAreaView>
@@ -83,7 +85,7 @@ export const AchievementsScreen: React.FC<AchievementsScreenProps> = ({ database
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
-      {/* Header con toggle - Diseño moderno y elegante */}
+      {/* Header with toggle - Modern and elegant design */}
       <LinearGradient
         colors={isDark ? ['#6366f1', '#818cf8'] : ['#6366f1', '#4f46e5']}
         start={{ x: 0, y: 0 }}
@@ -91,7 +93,7 @@ export const AchievementsScreen: React.FC<AchievementsScreenProps> = ({ database
         style={styles.header}
       >
         <Text style={styles.headerTitle}>
-          {showStats ? 'Tus Estadísticas' : 'Tus Logros'}
+          {showStats ? t.achievements.yourStats : t.achievements.yourAchievements}
         </Text>
         <Pressable
           style={[styles.toggleButton, { backgroundColor: 'rgba(255,255,255,0.2)' }]}
@@ -102,12 +104,12 @@ export const AchievementsScreen: React.FC<AchievementsScreenProps> = ({ database
       </LinearGradient>
 
       {showStats ? (
-        // Vista de estadísticas
+        // Statistics view
         stats && <UserStatsPanel stats={stats} />
       ) : (
-        // Vista de logros
+        // Achievements view
         <>
-          {/* Filtros de categoría */}
+          {/* Category filters */}
           <FlatList
             horizontal
             data={categories}
@@ -137,7 +139,7 @@ export const AchievementsScreen: React.FC<AchievementsScreenProps> = ({ database
             style={[styles.categoryScroll, { backgroundColor: colors.background, borderBottomColor: colors.border }]}
           />
 
-          {/* Resumen - Optimizado sin dobles bordes */}
+          {/* Summary - Optimized without double borders */}
           {stats && (
             <View style={[
               styles.summary,
@@ -149,7 +151,7 @@ export const AchievementsScreen: React.FC<AchievementsScreenProps> = ({ database
                   {achievements.filter((a) => a.isUnlocked).length}
                 </Text>
                 <Text style={[styles.summaryLabel, { color: colors.textSecondary }]}>
-                  Desbloqueados
+                  {t.achievements.achievementsUnlocked}
                 </Text>
               </View>
               <View style={[styles.summaryDivider, { backgroundColor: colors.divider }]} />
@@ -158,22 +160,22 @@ export const AchievementsScreen: React.FC<AchievementsScreenProps> = ({ database
                   {stats.totalPoints}
                 </Text>
                 <Text style={[styles.summaryLabel, { color: colors.textSecondary }]}>
-                  Puntos totales
+                  {t.achievements.totalPoints}
                 </Text>
               </View>
               <View style={[styles.summaryDivider, { backgroundColor: colors.divider }]} />
               <View style={styles.summaryItem}>
                 <Text style={[styles.summaryValue, { color: colors.text }]}>
-                  Nivel {stats.level}
+                  {t.achievements.level} {stats.level}
                 </Text>
                 <Text style={[styles.summaryLabel, { color: colors.textSecondary }]}>
-                  {stats.level >= 10 ? '👑 Leyenda' : 'En progreso'}
+                  {stats.level >= 10 ? '👑 Legend' : 'In progress'}
                 </Text>
               </View>
             </View>
           )}
 
-          {/* Lista de logros */}
+          {/* Achievements list */}
           <FlatList
             data={sortedAchievements}
             keyExtractor={(item) => item.id}
@@ -189,7 +191,7 @@ export const AchievementsScreen: React.FC<AchievementsScreenProps> = ({ database
             ListEmptyComponent={
               <View style={styles.emptyContainer}>
                 <Text style={[styles.emptyText, { color: colors.textTertiary }]}>
-                  No hay logros en esta categoría
+                  No achievements in this category
                 </Text>
               </View>
             }
@@ -197,7 +199,7 @@ export const AchievementsScreen: React.FC<AchievementsScreenProps> = ({ database
         </>
       )}
 
-      {/* Modal de detalle de logro */}
+      {/* Achievement detail modal */}
       {selectedAchievement && (
         <AchievementUnlockedModal
           visible={!!selectedAchievement}
@@ -206,7 +208,7 @@ export const AchievementsScreen: React.FC<AchievementsScreenProps> = ({ database
         />
       )}
 
-      {/* Modal de nuevo logro desbloqueado */}
+      {/* New achievement unlocked modal */}
       {newUnlocks.length > 0 && (
         <AchievementUnlockedModal
           visible={newUnlocks.length > 0}

@@ -226,7 +226,7 @@ export default function SettingsScreen() {
                       </>
                     )}
                   </View>
-                  {version.id !== 'RVR1960' && (
+                  {version.id !== 'RVR1960' && version.id !== 'KJV' && (
                     <View style={themedStyles.comingSoonBadge}>
                       <Text style={themedStyles.comingSoonBadgeText}>{t.settings.comingSoon}</Text>
                     </View>

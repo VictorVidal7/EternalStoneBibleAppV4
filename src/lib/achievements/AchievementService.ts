@@ -1,6 +1,6 @@
 /**
- * Servicio de Gestión de Logros
- * Maneja el seguimiento, desbloqueo y notificación de logros
+ * Achievement Management Service
+ * Handles tracking, unlocking and notification of achievements
  */
 
 import { BibleDatabase } from '../database';
@@ -17,10 +17,10 @@ export class AchievementService {
   }
 
   /**
-   * Inicializa las tablas de logros
+   * Initializes achievement tables
    */
   async initialize(): Promise<void> {
-    // Ejecutar cada sentencia SQL por separado para evitar problemas con execAsync
+    // Execute each SQL statement separately to avoid problems with execAsync
     const db = await this.db.getDatabase();
 
     await db.execAsync(`
@@ -71,7 +71,7 @@ export class AchievementService {
   }
 
   /**
-   * Inicializa todos los logros definidos
+   * Initializes all defined achievements
    */
   private async initializeAchievements(): Promise<void> {
     const now = Date.now();
@@ -85,7 +85,7 @@ export class AchievementService {
   }
 
   /**
-   * Obtiene las estadísticas del usuario
+   * Gets user statistics
    */
   async getUserStats(): Promise<UserStats> {
     if (this.stats) return this.stats;
@@ -122,14 +122,14 @@ export class AchievementService {
   }
 
   /**
-   * Registra lectura de versículos
+   * Tracks verses read
    */
   async trackVersesRead(count: number, timeSpent: number = 0): Promise<Achievement[]> {
-    this.stats = null; // Invalidar caché
+    this.stats = null; // Invalidate cache
     const today = new Date().toISOString().split('T')[0];
     const now = Date.now();
 
-    // Actualizar estadísticas
+    // Update statistics
     await this.db.executeSql(
       `UPDATE user_stats SET
         total_verses_read = total_verses_read + ?,
@@ -140,10 +140,10 @@ export class AchievementService {
       [count, timeSpent, today, now]
     );
 
-    // Actualizar racha
+    // Update streak
     await this.updateReadingStreak(today);
 
-    // Registrar en log de racha
+    // Register in streak log
     await this.db.executeSql(
       `INSERT INTO reading_streak_log (date, verses_read, time_spent)
        VALUES (?, ?, ?)
@@ -153,12 +153,12 @@ export class AchievementService {
       [today, count, timeSpent]
     );
 
-    // Verificar logros desbloqueados
+    // Check unlocked achievements
     return await this.checkAchievements();
   }
 
   /**
-   * Registra capítulo completado
+   * Tracks completed chapter
    */
   async trackChapterCompleted(): Promise<Achievement[]> {
     this.stats = null;
@@ -170,7 +170,7 @@ export class AchievementService {
   }
 
   /**
-   * Registra libro completado
+   * Tracks completed book
    */
   async trackBookCompleted(bookId: string): Promise<Achievement[]> {
     this.stats = null;
@@ -179,13 +179,13 @@ export class AchievementService {
       [Date.now()]
     );
 
-    // Verificar logros especiales de libros
+    // Check special book achievements
     const achievements = await this.checkAchievements();
 
-    // Verificar logros especiales por libro específico
-    if (bookId === 'Salmos') {
+    // Check special achievements for specific book
+    if (bookId === 'Psalms') {
       await this.unlockAchievement('psalms_complete');
-    } else if (bookId === 'Proverbios') {
+    } else if (bookId === 'Proverbs') {
       await this.unlockAchievement('proverbs_complete');
     }
 
@@ -193,14 +193,14 @@ export class AchievementService {
   }
 
   /**
-   * Actualiza la racha de lectura
+   * Updates reading streak
    */
   private async updateReadingStreak(today: string): Promise<void> {
     const stats = await this.getUserStats();
     const lastRead = stats.lastReadDate;
 
     if (!lastRead) {
-      // Primera lectura
+      // First reading
       await this.db.executeSql(
         'UPDATE user_stats SET current_streak = 1, longest_streak = 1 WHERE id = 1'
       );
@@ -212,10 +212,10 @@ export class AchievementService {
     const diffDays = Math.floor((todayDate.getTime() - lastDate.getTime()) / (1000 * 60 * 60 * 24));
 
     if (diffDays === 0) {
-      // Ya leyó hoy
+      // Already read today
       return;
     } else if (diffDays === 1) {
-      // Día consecutivo
+      // Consecutive day
       const newStreak = stats.currentStreak + 1;
       const newLongest = Math.max(newStreak, stats.longestStreak);
       await this.db.executeSql(
@@ -223,7 +223,7 @@ export class AchievementService {
         [newStreak, newLongest]
       );
     } else {
-      // Racha rota
+      // Streak broken
       await this.db.executeSql(
         'UPDATE user_stats SET current_streak = 1 WHERE id = 1'
       );
@@ -231,7 +231,7 @@ export class AchievementService {
   }
 
   /**
-   * Registra otras acciones
+   * Tracks other actions
    */
   async trackHighlight(): Promise<void> {
     this.stats = null;
@@ -277,7 +277,7 @@ export class AchievementService {
   }
 
   /**
-   * Verifica y desbloquea logros basados en estadísticas actuales
+   * Checks and unlocks achievements based on current statistics
    */
   private async checkAchievements(): Promise<Achievement[]> {
     const stats = await this.getUserStats();
@@ -297,7 +297,7 @@ export class AchievementService {
           });
         }
       } else {
-        // Actualizar progreso
+        // Update progress
         await this.db.executeSql(
           'UPDATE user_achievements SET current_progress = ? WHERE id = ?',
           [progress, def.id]
@@ -309,7 +309,7 @@ export class AchievementService {
   }
 
   /**
-   * Obtiene el progreso actual para un logro
+   * Gets current progress for an achievement
    */
   private getProgressForAchievement(achievementId: string, stats: UserStats): number {
     const def = ACHIEVEMENT_DEFINITIONS.find(a => a.id === achievementId);
@@ -338,14 +338,14 @@ export class AchievementService {
   }
 
   /**
-   * Desbloquea un logro específico
+   * Unlocks a specific achievement
    */
   private async unlockAchievement(achievementId: string): Promise<boolean> {
     const sql = 'SELECT is_unlocked FROM user_achievements WHERE id = ?';
     const result = await this.db.executeSql(sql, [achievementId]);
 
     if (result.rows._array[0]?.is_unlocked) {
-      return false; // Ya desbloqueado
+      return false; // Already unlocked
     }
 
     const def = ACHIEVEMENT_DEFINITIONS.find(a => a.id === achievementId);
@@ -357,14 +357,14 @@ export class AchievementService {
       [now, def.requirement, achievementId]
     );
 
-    // Otorgar puntos
+    // Award points
     await this.addPoints(def.points);
 
     return true;
   }
 
   /**
-   * Añade puntos y actualiza nivel
+   * Adds points and updates level
    */
   private async addPoints(points: number): Promise<void> {
     const stats = await this.getUserStats();
@@ -376,11 +376,11 @@ export class AchievementService {
       [newPoints, newLevel.level, Date.now()]
     );
 
-    this.stats = null; // Invalidar caché
+    this.stats = null; // Invalidate cache
   }
 
   /**
-   * Obtiene todos los logros con su estado actual
+   * Gets all achievements with their current status
    */
   async getAllAchievements(): Promise<Achievement[]> {
     const sql = 'SELECT * FROM user_achievements';
@@ -399,7 +399,7 @@ export class AchievementService {
   }
 
   /**
-   * Obtiene solo los logros desbloqueados
+   * Gets only unlocked achievements
    */
   async getUnlockedAchievements(): Promise<Achievement[]> {
     const all = await this.getAllAchievements();
@@ -407,7 +407,7 @@ export class AchievementService {
   }
 
   /**
-   * Obtiene el conteo de logros desbloqueados
+   * Gets the count of unlocked achievements
    */
   async getUnlockedAchievementsCount(): Promise<number> {
     const sql = 'SELECT COUNT(*) as count FROM user_achievements WHERE is_unlocked = 1';
@@ -416,7 +416,7 @@ export class AchievementService {
   }
 
   /**
-   * Obtiene la racha de lectura
+   * Gets reading streak
    */
   async getReadingStreak(): Promise<ReadingStreak> {
     const stats = await this.getUserStats();

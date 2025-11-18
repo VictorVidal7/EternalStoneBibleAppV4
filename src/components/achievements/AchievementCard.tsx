@@ -1,5 +1,5 @@
 /**
- * Tarjeta de Logro con animación y diseño moderno
+ * Achievement Card with animation and modern design
  */
 
 import React, { useEffect, useRef } from 'react';
@@ -24,7 +24,7 @@ export const AchievementCard: React.FC<AchievementCardProps> = ({
   const progressAnim = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
-    // Animar progreso
+    // Animate progress
     Animated.spring(progressAnim, {
       toValue: achievement.isUnlocked
         ? 1
@@ -71,14 +71,14 @@ export const AchievementCard: React.FC<AchievementCardProps> = ({
           achievement.isUnlocked && shadows.sm,
         ]}
       >
-        {/* Icono del logro */}
+        {/* Achievement icon */}
         <View style={[styles.iconContainer, { backgroundColor: tierColor + '20' }]}>
           <Text style={[styles.icon, !achievement.isUnlocked && styles.iconLocked]}>
             {achievement.icon}
           </Text>
         </View>
 
-        {/* Información */}
+        {/* Information */}
         <View style={styles.info}>
           <Text style={[
             styles.name,
@@ -90,7 +90,7 @@ export const AchievementCard: React.FC<AchievementCardProps> = ({
             {achievement.description}
           </Text>
 
-          {/* Barra de progreso */}
+          {/* Progress bar */}
           {showProgress && !achievement.isUnlocked && (
             <View style={styles.progressContainer}>
               <View style={[styles.progressBar, { backgroundColor: colors.border }]}>
@@ -113,7 +113,7 @@ export const AchievementCard: React.FC<AchievementCardProps> = ({
             </View>
           )}
 
-          {/* Puntos */}
+          {/* Points */}
           <View style={styles.footer}>
             <View style={[styles.tierBadge, { backgroundColor: tierColor }]}>
               <Text style={styles.tierText}>{achievement.tier.toUpperCase()}</Text>
@@ -124,7 +124,7 @@ export const AchievementCard: React.FC<AchievementCardProps> = ({
           </View>
         </View>
 
-        {/* Badge de desbloqueado */}
+        {/* Unlocked badge */}
         {achievement.isUnlocked && (
           <View style={[styles.unlockedBadge, { backgroundColor: colors.secondary }]}>
             <Text style={styles.unlockedText}>✓</Text>

@@ -1,12 +1,13 @@
 /**
- * Panel de Estadísticas del Usuario
- * Muestra nivel, progreso, rachas y estadísticas
+ * User Statistics Panel
+ * Displays level, progress, streaks and statistics
  */
 
 import React from 'react';
 import { View, Text, StyleSheet, ScrollView } from 'react-native';
 import { UserStats, calculateLevelProgress } from '../../lib/achievements/types';
 import { useTheme } from '../../hooks/useTheme';
+import { useLanguage } from '../../hooks/useLanguage';
 import { spacing, borderRadius, fontSize, shadows } from '../../styles/designTokens';
 
 interface UserStatsPanelProps {
@@ -15,17 +16,18 @@ interface UserStatsPanelProps {
 
 export const UserStatsPanel: React.FC<UserStatsPanelProps> = ({ stats }) => {
   const { colors, isDark } = useTheme();
+  const { t } = useLanguage();
   const levelProgress = calculateLevelProgress(stats.totalPoints);
 
   return (
     <ScrollView style={[styles.container, { backgroundColor: colors.background }]} showsVerticalScrollIndicator={false}>
-      {/* Nivel y Progreso */}
+      {/* Level and Progress */}
       <View style={[styles.levelCard, { backgroundColor: colors.card }, isDark ? shadows.md : shadows.sm]}>
         <View style={styles.levelHeader}>
           <Text style={styles.levelIcon}>{levelProgress.currentLevel.icon}</Text>
           <View style={styles.levelInfo}>
             <Text style={[styles.levelTitle, { color: colors.text }]}>{levelProgress.currentLevel.title}</Text>
-            <Text style={[styles.levelNumber, { color: colors.textSecondary }]}>Nivel {stats.level}</Text>
+            <Text style={[styles.levelNumber, { color: colors.textSecondary }]}>{t.achievements.level} {stats.level}</Text>
           </View>
         </View>
 
@@ -39,52 +41,52 @@ export const UserStatsPanel: React.FC<UserStatsPanelProps> = ({ stats }) => {
             />
           </View>
           <Text style={[styles.progressText, { color: colors.textSecondary }]}>
-            {stats.totalPoints} / {levelProgress.nextLevel?.minPoints || '∞'} pts
+            {stats.totalPoints} / {levelProgress.nextLevel?.minPoints || '∞'} {t.achievements.pts}
           </Text>
         </View>
 
         {levelProgress.nextLevel && (
           <Text style={[styles.nextLevelText, { color: colors.textTertiary }]}>
-            {levelProgress.pointsNeeded} puntos para {levelProgress.nextLevel.title}
+            {levelProgress.pointsNeeded} {t.achievements.pointsNeeded} {levelProgress.nextLevel.title}
           </Text>
         )}
       </View>
 
-      {/* Racha */}
+      {/* Streak */}
       <View style={[styles.streakCard, { backgroundColor: isDark ? colors.primary + '20' : '#FEF3C7' }]}>
         <View style={styles.streakRow}>
           <View style={styles.streakItem}>
             <Text style={styles.streakIcon}>🔥</Text>
             <Text style={[styles.streakValue, { color: isDark ? colors.text : '#92400E' }]}>{stats.currentStreak}</Text>
-            <Text style={[styles.streakLabel, { color: isDark ? colors.textSecondary : '#78350F' }]}>Racha actual</Text>
+            <Text style={[styles.streakLabel, { color: isDark ? colors.textSecondary : '#78350F' }]}>{t.achievements.currentStreak}</Text>
           </View>
           <View style={[styles.streakDivider, { backgroundColor: isDark ? colors.border : '#FCD34D' }]} />
           <View style={styles.streakItem}>
             <Text style={styles.streakIcon}>🏆</Text>
             <Text style={[styles.streakValue, { color: isDark ? colors.text : '#92400E' }]}>{stats.longestStreak}</Text>
-            <Text style={[styles.streakLabel, { color: isDark ? colors.textSecondary : '#78350F' }]}>Racha máxima</Text>
+            <Text style={[styles.streakLabel, { color: isDark ? colors.textSecondary : '#78350F' }]}>{t.achievements.longestStreak}</Text>
           </View>
         </View>
       </View>
 
-      {/* Estadísticas de Lectura */}
+      {/* Reading Statistics */}
       <View style={styles.statsGrid}>
         <View style={[styles.statCard, { backgroundColor: colors.card }, isDark ? shadows.sm : shadows.xs]}>
           <Text style={styles.statIcon}>📖</Text>
           <Text style={[styles.statValue, { color: colors.text }]}>{stats.totalVersesRead.toLocaleString()}</Text>
-          <Text style={[styles.statLabel, { color: colors.textSecondary }]}>Versículos leídos</Text>
+          <Text style={[styles.statLabel, { color: colors.textSecondary }]}>{t.achievements.versesRead}</Text>
         </View>
 
         <View style={[styles.statCard, { backgroundColor: colors.card }, isDark ? shadows.sm : shadows.xs]}>
           <Text style={styles.statIcon}>📄</Text>
           <Text style={[styles.statValue, { color: colors.text }]}>{stats.totalChaptersRead}</Text>
-          <Text style={[styles.statLabel, { color: colors.textSecondary }]}>Capítulos</Text>
+          <Text style={[styles.statLabel, { color: colors.textSecondary }]}>{t.achievements.chaptersRead}</Text>
         </View>
 
         <View style={[styles.statCard, { backgroundColor: colors.card }, isDark ? shadows.sm : shadows.xs]}>
           <Text style={styles.statIcon}>📚</Text>
           <Text style={[styles.statValue, { color: colors.text }]}>{stats.totalBooksCompleted}</Text>
-          <Text style={[styles.statLabel, { color: colors.textSecondary }]}>Libros completados</Text>
+          <Text style={[styles.statLabel, { color: colors.textSecondary }]}>{t.achievements.booksCompleted}</Text>
         </View>
 
         <View style={[styles.statCard, { backgroundColor: colors.card }, isDark ? shadows.sm : shadows.xs]}>
@@ -93,24 +95,24 @@ export const UserStatsPanel: React.FC<UserStatsPanelProps> = ({ stats }) => {
             {Math.floor(stats.totalReadingTime / 60)}h{' '}
             {stats.totalReadingTime % 60}m
           </Text>
-          <Text style={[styles.statLabel, { color: colors.textSecondary }]}>Tiempo de lectura</Text>
+          <Text style={[styles.statLabel, { color: colors.textSecondary }]}>{t.achievements.readingTime}</Text>
         </View>
       </View>
 
-      {/* Estadísticas de Interacción */}
+      {/* Interaction Statistics */}
       <View style={[styles.interactionCard, { backgroundColor: colors.card }, isDark ? shadows.md : shadows.sm]}>
-        <Text style={[styles.sectionTitle, { color: colors.text }]}>Interacción</Text>
+        <Text style={[styles.sectionTitle, { color: colors.text }]}>Interaction</Text>
         <View style={styles.interactionGrid}>
-          <StatRow icon="🖍️" label="Destacados" value={stats.totalHighlights} colors={colors} />
-          <StatRow icon="📝" label="Notas" value={stats.totalNotes} colors={colors} />
-          <StatRow icon="🔖" label="Marcadores" value={stats.totalBookmarks} colors={colors} />
-          <StatRow icon="🔍" label="Búsquedas" value={stats.totalSearches} colors={colors} />
+          <StatRow icon="🖍️" label="Highlights" value={stats.totalHighlights} colors={colors} />
+          <StatRow icon="📝" label="Notes" value={stats.totalNotes} colors={colors} />
+          <StatRow icon="🔖" label="Bookmarks" value={stats.totalBookmarks} colors={colors} />
+          <StatRow icon="🔍" label="Searches" value={stats.totalSearches} colors={colors} />
         </View>
       </View>
 
-      {/* Logros */}
+      {/* Achievements */}
       <View style={[styles.achievementsCard, { backgroundColor: isDark ? colors.secondary + '20' : '#DBEAFE' }]}>
-        <Text style={[styles.sectionTitle, { color: isDark ? colors.text : '#1F2937' }]}>Logros</Text>
+        <Text style={[styles.sectionTitle, { color: isDark ? colors.text : '#1F2937' }]}>Achievements</Text>
         <View style={styles.achievementsRow}>
           <Text style={styles.achievementsIcon}>🏅</Text>
           <View style={styles.achievementsInfo}>

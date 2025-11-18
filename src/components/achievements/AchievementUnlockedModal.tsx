@@ -1,5 +1,5 @@
 /**
- * Modal celebratorio cuando se desbloquea un logro
+ * Celebratory modal when an achievement is unlocked
  */
 
 import React, { useEffect, useRef } from 'react';
@@ -13,6 +13,7 @@ import {
   Dimensions,
 } from 'react-native';
 import { Achievement, ACHIEVEMENT_TIER_COLORS } from '../../lib/achievements/types';
+import { useLanguage } from '../../hooks/useLanguage';
 
 interface AchievementUnlockedModalProps {
   visible: boolean;
@@ -25,6 +26,7 @@ export const AchievementUnlockedModal: React.FC<AchievementUnlockedModalProps> =
   achievement,
   onClose,
 }) => {
+  const { t } = useLanguage();
   const scaleAnim = useRef(new Animated.Value(0)).current;
   const rotateAnim = useRef(new Animated.Value(0)).current;
   const fadeAnim = useRef(new Animated.Value(0)).current;
@@ -39,7 +41,7 @@ export const AchievementUnlockedModal: React.FC<AchievementUnlockedModalProps> =
 
   useEffect(() => {
     if (visible && achievement) {
-      // Resetear animaciones
+      // Reset animations
       scaleAnim.setValue(0);
       rotateAnim.setValue(0);
       fadeAnim.setValue(0);
@@ -50,7 +52,7 @@ export const AchievementUnlockedModal: React.FC<AchievementUnlockedModalProps> =
         anim.opacity.setValue(1);
       });
 
-      // Animación de entrada
+      // Entry animation
       Animated.parallel([
         Animated.spring(scaleAnim, {
           toValue: 1,
@@ -77,7 +79,7 @@ export const AchievementUnlockedModal: React.FC<AchievementUnlockedModalProps> =
         ]),
       ]).start();
 
-      // Animación de confeti
+      // Confetti animation
       confettiAnims.forEach((anim, index) => {
         const angle = (Math.PI * 2 * index) / confettiAnims.length;
         const distance = 150 + Math.random() * 100;
@@ -121,7 +123,7 @@ export const AchievementUnlockedModal: React.FC<AchievementUnlockedModalProps> =
       <View style={styles.overlay}>
         <Pressable style={styles.backdrop} onPress={onClose} />
 
-        {/* Confeti */}
+        {/* Confetti */}
         {confettiAnims.map((anim, index) => (
           <Animated.View
             key={index}
@@ -145,7 +147,7 @@ export const AchievementUnlockedModal: React.FC<AchievementUnlockedModalProps> =
           />
         ))}
 
-        {/* Contenido */}
+        {/* Content */}
         <Animated.View
           style={[
             styles.container,
@@ -158,35 +160,35 @@ export const AchievementUnlockedModal: React.FC<AchievementUnlockedModalProps> =
           <View style={[styles.card, { borderColor: tierColor }]}>
             {/* Header */}
             <View style={styles.header}>
-              <Text style={styles.title}>¡Logro Desbloqueado!</Text>
+              <Text style={styles.title}>{t.achievements.unlockTitle}</Text>
               <View style={[styles.tierBadge, { backgroundColor: tierColor }]}>
                 <Text style={styles.tierText}>{achievement.tier.toUpperCase()}</Text>
               </View>
             </View>
 
-            {/* Icono */}
+            {/* Icon */}
             <View style={[styles.iconContainer, { backgroundColor: tierColor + '20' }]}>
               <Text style={styles.icon}>{achievement.icon}</Text>
             </View>
 
-            {/* Nombre y descripción */}
+            {/* Name and description */}
             <Text style={styles.name}>{achievement.name}</Text>
             <Text style={styles.description}>{achievement.description}</Text>
 
-            {/* Puntos */}
+            {/* Points */}
             <View style={styles.pointsContainer}>
-              <Text style={styles.pointsLabel}>Has ganado</Text>
+              <Text style={styles.pointsLabel}>{t.achievements.pointsEarned}</Text>
               <Text style={[styles.points, { color: tierColor }]}>
-                +{achievement.points} puntos
+                +{achievement.points} {t.achievements.points}
               </Text>
             </View>
 
-            {/* Botón */}
+            {/* Button */}
             <Pressable
               style={[styles.button, { backgroundColor: tierColor }]}
               onPress={onClose}
             >
-              <Text style={styles.buttonText}>¡Genial!</Text>
+              <Text style={styles.buttonText}>{t.achievements.awesome}</Text>
             </Pressable>
           </View>
         </Animated.View>
@@ -223,11 +225,11 @@ const styles = StyleSheet.create({
     backgroundColor: '#FFFFFF',
     borderRadius: 24,
     padding: 24,
-    borderWidth: 3,
+    borderWidth: 0,
     alignItems: 'center',
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 10 },
-    shadowOpacity: 0.3,
+    shadowOpacity: 0.1,
     shadowRadius: 20,
     elevation: 10,
   },

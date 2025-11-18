@@ -1,15 +1,15 @@
 /**
- * Definiciones de todos los logros disponibles
+ * Definitions of all available achievements
  */
 
 import { Achievement, AchievementCategory, AchievementTier } from './types';
 
 export const ACHIEVEMENT_DEFINITIONS: Omit<Achievement, 'currentProgress' | 'isUnlocked' | 'unlockedAt'>[] = [
-  // LOGROS DE LECTURA
+  // READING ACHIEVEMENTS
   {
     id: 'first_verse',
-    name: 'Primeros Pasos',
-    description: 'Lee tu primer versículo',
+    name: 'First Steps',
+    description: 'Read your first verse',
     icon: '👶',
     category: AchievementCategory.READING,
     requirement: 1,
@@ -18,8 +18,8 @@ export const ACHIEVEMENT_DEFINITIONS: Omit<Achievement, 'currentProgress' | 'isU
   },
   {
     id: 'verses_10',
-    name: 'Lector Dedicado',
-    description: 'Lee 10 versículos',
+    name: 'Dedicated Reader',
+    description: 'Read 10 verses',
     icon: '📖',
     category: AchievementCategory.READING,
     requirement: 10,
@@ -28,8 +28,8 @@ export const ACHIEVEMENT_DEFINITIONS: Omit<Achievement, 'currentProgress' | 'isU
   },
   {
     id: 'verses_100',
-    name: 'Estudiante Aplicado',
-    description: 'Lee 100 versículos',
+    name: 'Diligent Student',
+    description: 'Read 100 verses',
     icon: '📚',
     category: AchievementCategory.READING,
     requirement: 100,
@@ -38,8 +38,8 @@ export const ACHIEVEMENT_DEFINITIONS: Omit<Achievement, 'currentProgress' | 'isU
   },
   {
     id: 'verses_500',
-    name: 'Devoto Lector',
-    description: 'Lee 500 versículos',
+    name: 'Devoted Reader',
+    description: 'Read 500 verses',
     icon: '✨',
     category: AchievementCategory.READING,
     requirement: 500,
@@ -48,8 +48,8 @@ export const ACHIEVEMENT_DEFINITIONS: Omit<Achievement, 'currentProgress' | 'isU
   },
   {
     id: 'verses_1000',
-    name: 'Maestro de la Palabra',
-    description: 'Lee 1000 versículos',
+    name: 'Word Master',
+    description: 'Read 1000 verses',
     icon: '⭐',
     category: AchievementCategory.READING,
     requirement: 1000,
@@ -58,8 +58,8 @@ export const ACHIEVEMENT_DEFINITIONS: Omit<Achievement, 'currentProgress' | 'isU
   },
   {
     id: 'verses_5000',
-    name: 'Erudito Bíblico',
-    description: 'Lee 5000 versículos',
+    name: 'Biblical Scholar',
+    description: 'Read 5000 verses',
     icon: '💎',
     category: AchievementCategory.READING,
     requirement: 5000,
@@ -67,11 +67,11 @@ export const ACHIEVEMENT_DEFINITIONS: Omit<Achievement, 'currentProgress' | 'isU
     tier: AchievementTier.DIAMOND,
   },
 
-  // LOGROS DE RACHAS
+  // STREAK ACHIEVEMENTS
   {
     id: 'streak_3',
-    name: 'Compromiso Iniciado',
-    description: 'Lee 3 días seguidos',
+    name: 'Commitment Started',
+    description: 'Read 3 days in a row',
     icon: '🔥',
     category: AchievementCategory.STREAK,
     requirement: 3,
@@ -80,8 +80,8 @@ export const ACHIEVEMENT_DEFINITIONS: Omit<Achievement, 'currentProgress' | 'isU
   },
   {
     id: 'streak_7',
-    name: 'Una Semana Constante',
-    description: 'Lee 7 días seguidos',
+    name: 'Steady Week',
+    description: 'Read 7 days in a row',
     icon: '📅',
     category: AchievementCategory.STREAK,
     requirement: 7,
@@ -90,8 +90,8 @@ export const ACHIEVEMENT_DEFINITIONS: Omit<Achievement, 'currentProgress' | 'isU
   },
   {
     id: 'streak_30',
-    name: 'Mes Victorioso',
-    description: 'Lee 30 días seguidos',
+    name: 'Victorious Month',
+    description: 'Read 30 days in a row',
     icon: '🏆',
     category: AchievementCategory.STREAK,
     requirement: 30,
@@ -100,8 +100,8 @@ export const ACHIEVEMENT_DEFINITIONS: Omit<Achievement, 'currentProgress' | 'isU
   },
   {
     id: 'streak_100',
-    name: 'Disciplina Inquebrantable',
-    description: 'Lee 100 días seguidos',
+    name: 'Unbreakable Discipline',
+    description: 'Read 100 days in a row',
     icon: '💪',
     category: AchievementCategory.STREAK,
     requirement: 100,
@@ -110,8 +110,8 @@ export const ACHIEVEMENT_DEFINITIONS: Omit<Achievement, 'currentProgress' | 'isU
   },
   {
     id: 'streak_365',
-    name: 'Año de Dedicación',
-    description: 'Lee 365 días seguidos',
+    name: 'Year of Dedication',
+    description: 'Read 365 days in a row',
     icon: '👑',
     category: AchievementCategory.STREAK,
     requirement: 365,
@@ -119,11 +119,11 @@ export const ACHIEVEMENT_DEFINITIONS: Omit<Achievement, 'currentProgress' | 'isU
     tier: AchievementTier.DIAMOND,
   },
 
-  // LOGROS DE CAPÍTULOS
+  // CHAPTER ACHIEVEMENTS
   {
     id: 'first_chapter',
-    name: 'Primer Capítulo',
-    description: 'Completa tu primer capítulo',
+    name: 'First Chapter',
+    description: 'Complete your first chapter',
     icon: '📄',
     category: AchievementCategory.CHAPTERS,
     requirement: 1,
@@ -132,8 +132,8 @@ export const ACHIEVEMENT_DEFINITIONS: Omit<Achievement, 'currentProgress' | 'isU
   },
   {
     id: 'chapters_10',
-    name: 'Explorador de Capítulos',
-    description: 'Completa 10 capítulos',
+    name: 'Chapter Explorer',
+    description: 'Complete 10 chapters',
     icon: '🗺️',
     category: AchievementCategory.CHAPTERS,
     requirement: 10,
@@ -142,8 +142,8 @@ export const ACHIEVEMENT_DEFINITIONS: Omit<Achievement, 'currentProgress' | 'isU
   },
   {
     id: 'chapters_50',
-    name: 'Viajero de la Palabra',
-    description: 'Completa 50 capítulos',
+    name: 'Word Traveler',
+    description: 'Complete 50 chapters',
     icon: '🚶',
     category: AchievementCategory.CHAPTERS,
     requirement: 50,
@@ -152,8 +152,8 @@ export const ACHIEVEMENT_DEFINITIONS: Omit<Achievement, 'currentProgress' | 'isU
   },
   {
     id: 'chapters_150',
-    name: 'Conquistador de Capítulos',
-    description: 'Completa 150 capítulos',
+    name: 'Chapter Conqueror',
+    description: 'Complete 150 chapters',
     icon: '⚔️',
     category: AchievementCategory.CHAPTERS,
     requirement: 150,
@@ -161,11 +161,11 @@ export const ACHIEVEMENT_DEFINITIONS: Omit<Achievement, 'currentProgress' | 'isU
     tier: AchievementTier.PLATINUM,
   },
 
-  // LOGROS DE LIBROS
+  // BOOK ACHIEVEMENTS
   {
     id: 'first_book',
-    name: 'Primer Libro',
-    description: 'Completa tu primer libro de la Biblia',
+    name: 'First Book',
+    description: 'Complete your first book of the Bible',
     icon: '📕',
     category: AchievementCategory.BOOKS,
     requirement: 1,
@@ -174,8 +174,8 @@ export const ACHIEVEMENT_DEFINITIONS: Omit<Achievement, 'currentProgress' | 'isU
   },
   {
     id: 'books_5',
-    name: 'Pentateuco Leído',
-    description: 'Completa 5 libros',
+    name: 'Pentateuch Read',
+    description: 'Complete 5 books',
     icon: '📗',
     category: AchievementCategory.BOOKS,
     requirement: 5,
@@ -184,8 +184,8 @@ export const ACHIEVEMENT_DEFINITIONS: Omit<Achievement, 'currentProgress' | 'isU
   },
   {
     id: 'books_27',
-    name: 'Nuevo Testamento Completo',
-    description: 'Completa los 27 libros del NT',
+    name: 'New Testament Complete',
+    description: 'Complete all 27 NT books',
     icon: '✝️',
     category: AchievementCategory.BOOKS,
     requirement: 27,
@@ -194,8 +194,8 @@ export const ACHIEVEMENT_DEFINITIONS: Omit<Achievement, 'currentProgress' | 'isU
   },
   {
     id: 'books_39',
-    name: 'Antiguo Testamento Completo',
-    description: 'Completa los 39 libros del AT',
+    name: 'Old Testament Complete',
+    description: 'Complete all 39 OT books',
     icon: '📜',
     category: AchievementCategory.BOOKS,
     requirement: 39,
@@ -204,8 +204,8 @@ export const ACHIEVEMENT_DEFINITIONS: Omit<Achievement, 'currentProgress' | 'isU
   },
   {
     id: 'books_66',
-    name: '¡Biblia Completa!',
-    description: 'Completa los 66 libros de la Biblia',
+    name: 'Complete Bible!',
+    description: 'Complete all 66 books of the Bible',
     icon: '🎉',
     category: AchievementCategory.BOOKS,
     requirement: 66,
@@ -213,11 +213,11 @@ export const ACHIEVEMENT_DEFINITIONS: Omit<Achievement, 'currentProgress' | 'isU
     tier: AchievementTier.DIAMOND,
   },
 
-  // LOGROS DE DESTACADOS
+  // HIGHLIGHT ACHIEVEMENTS
   {
     id: 'first_highlight',
-    name: 'Primera Marca',
-    description: 'Crea tu primer destacado',
+    name: 'First Mark',
+    description: 'Create your first highlight',
     icon: '🖍️',
     category: AchievementCategory.HIGHLIGHTS,
     requirement: 1,
@@ -226,8 +226,8 @@ export const ACHIEVEMENT_DEFINITIONS: Omit<Achievement, 'currentProgress' | 'isU
   },
   {
     id: 'highlights_25',
-    name: 'Coleccionista de Tesoros',
-    description: 'Crea 25 destacados',
+    name: 'Treasure Collector',
+    description: 'Create 25 highlights',
     icon: '💛',
     category: AchievementCategory.HIGHLIGHTS,
     requirement: 25,
@@ -236,8 +236,8 @@ export const ACHIEVEMENT_DEFINITIONS: Omit<Achievement, 'currentProgress' | 'isU
   },
   {
     id: 'highlights_100',
-    name: 'Archivero de Verdades',
-    description: 'Crea 100 destacados',
+    name: 'Truth Archivist',
+    description: 'Create 100 highlights',
     icon: '🌟',
     category: AchievementCategory.HIGHLIGHTS,
     requirement: 100,
@@ -245,11 +245,11 @@ export const ACHIEVEMENT_DEFINITIONS: Omit<Achievement, 'currentProgress' | 'isU
     tier: AchievementTier.GOLD,
   },
 
-  // LOGROS DE NOTAS
+  // NOTE ACHIEVEMENTS
   {
     id: 'first_note',
-    name: 'Primera Reflexión',
-    description: 'Escribe tu primera nota',
+    name: 'First Reflection',
+    description: 'Write your first note',
     icon: '📝',
     category: AchievementCategory.NOTES,
     requirement: 1,
@@ -258,8 +258,8 @@ export const ACHIEVEMENT_DEFINITIONS: Omit<Achievement, 'currentProgress' | 'isU
   },
   {
     id: 'notes_50',
-    name: 'Diario Espiritual',
-    description: 'Escribe 50 notas',
+    name: 'Spiritual Journal',
+    description: 'Write 50 notes',
     icon: '📔',
     category: AchievementCategory.NOTES,
     requirement: 50,
@@ -267,11 +267,11 @@ export const ACHIEVEMENT_DEFINITIONS: Omit<Achievement, 'currentProgress' | 'isU
     tier: AchievementTier.GOLD,
   },
 
-  // LOGROS DE BÚSQUEDA
+  // SEARCH ACHIEVEMENTS
   {
     id: 'first_search',
-    name: 'Buscador de Verdad',
-    description: 'Realiza tu primera búsqueda',
+    name: 'Truth Seeker',
+    description: 'Perform your first search',
     icon: '🔍',
     category: AchievementCategory.SEARCH,
     requirement: 1,
@@ -280,8 +280,8 @@ export const ACHIEVEMENT_DEFINITIONS: Omit<Achievement, 'currentProgress' | 'isU
   },
   {
     id: 'searches_50',
-    name: 'Investigador Diligente',
-    description: 'Realiza 50 búsquedas',
+    name: 'Diligent Investigator',
+    description: 'Perform 50 searches',
     icon: '🔎',
     category: AchievementCategory.SEARCH,
     requirement: 50,
@@ -289,11 +289,11 @@ export const ACHIEVEMENT_DEFINITIONS: Omit<Achievement, 'currentProgress' | 'isU
     tier: AchievementTier.SILVER,
   },
 
-  // LOGROS DE TIEMPO
+  // TIME ACHIEVEMENTS
   {
     id: 'time_60',
-    name: 'Una Hora de Lectura',
-    description: 'Lee durante 60 minutos acumulados',
+    name: 'One Hour of Reading',
+    description: 'Read for 60 accumulated minutes',
     icon: '⏰',
     category: AchievementCategory.TIME,
     requirement: 60,
@@ -302,8 +302,8 @@ export const ACHIEVEMENT_DEFINITIONS: Omit<Achievement, 'currentProgress' | 'isU
   },
   {
     id: 'time_300',
-    name: 'Cinco Horas de Estudio',
-    description: 'Lee durante 5 horas acumuladas',
+    name: 'Five Hours of Study',
+    description: 'Read for 5 accumulated hours',
     icon: '⏳',
     category: AchievementCategory.TIME,
     requirement: 300,
@@ -312,8 +312,8 @@ export const ACHIEVEMENT_DEFINITIONS: Omit<Achievement, 'currentProgress' | 'isU
   },
   {
     id: 'time_1000',
-    name: 'Estudiante Dedicado',
-    description: 'Lee durante 1000 minutos',
+    name: 'Dedicated Student',
+    description: 'Read for 1000 minutes',
     icon: '📚',
     category: AchievementCategory.TIME,
     requirement: 1000,
@@ -321,11 +321,11 @@ export const ACHIEVEMENT_DEFINITIONS: Omit<Achievement, 'currentProgress' | 'isU
     tier: AchievementTier.PLATINUM,
   },
 
-  // LOGROS ESPECIALES
+  // SPECIAL ACHIEVEMENTS
   {
     id: 'psalms_complete',
-    name: 'Salmista',
-    description: 'Completa el libro de Salmos',
+    name: 'Psalmist',
+    description: 'Complete the book of Psalms',
     icon: '🎵',
     category: AchievementCategory.SPECIAL,
     requirement: 1,
@@ -334,8 +334,8 @@ export const ACHIEVEMENT_DEFINITIONS: Omit<Achievement, 'currentProgress' | 'isU
   },
   {
     id: 'proverbs_complete',
-    name: 'Sabio',
-    description: 'Completa el libro de Proverbios',
+    name: 'Wise One',
+    description: 'Complete the book of Proverbs',
     icon: '💡',
     category: AchievementCategory.SPECIAL,
     requirement: 1,
@@ -344,8 +344,8 @@ export const ACHIEVEMENT_DEFINITIONS: Omit<Achievement, 'currentProgress' | 'isU
   },
   {
     id: 'gospels_complete',
-    name: 'Evangelista',
-    description: 'Completa los 4 evangelios',
+    name: 'Evangelist',
+    description: 'Complete the 4 gospels',
     icon: '📯',
     category: AchievementCategory.SPECIAL,
     requirement: 4,
@@ -354,8 +354,8 @@ export const ACHIEVEMENT_DEFINITIONS: Omit<Achievement, 'currentProgress' | 'isU
   },
   {
     id: 'early_bird',
-    name: 'Madrugador',
-    description: 'Lee antes de las 6 AM',
+    name: 'Early Bird',
+    description: 'Read before 6 AM',
     icon: '🌅',
     category: AchievementCategory.SPECIAL,
     requirement: 1,
@@ -364,8 +364,8 @@ export const ACHIEVEMENT_DEFINITIONS: Omit<Achievement, 'currentProgress' | 'isU
   },
   {
     id: 'night_owl',
-    name: 'Búho Nocturno',
-    description: 'Lee después de las 11 PM',
+    name: 'Night Owl',
+    description: 'Read after 11 PM',
     icon: '🦉',
     category: AchievementCategory.SPECIAL,
     requirement: 1,

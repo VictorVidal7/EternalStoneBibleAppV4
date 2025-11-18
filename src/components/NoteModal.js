@@ -29,22 +29,22 @@ const NoteModal = ({ visible, onClose, verse, onSave, initialNote }) => {
       <View style={styles.modalContainer}>
         <View style={styles.modalContent}>
           <Text style={styles.modalTitle}>
-            {verse ? `Nota para ${verse.book} ${verse.chapter}:${verse.number}` : 'Nueva Nota'}
+            {verse ? `Note for ${verse.book} ${verse.chapter}:${verse.number}` : 'New Note'}
           </Text>
           <TextInput
             style={styles.noteInput}
             multiline
             value={note}
             onChangeText={setNote}
-            placeholder="Escribe tu nota aquí..."
+            placeholder="Write your note here..."
             placeholderTextColor={colors.secondary}
           />
           <View style={styles.buttonContainer}>
             <TouchableOpacity style={styles.button} onPress={onClose}>
-              <Text style={styles.buttonText}>Cancelar</Text>
+              <Text style={styles.buttonText}>Cancel</Text>
             </TouchableOpacity>
             <TouchableOpacity style={[styles.button, styles.saveButton]} onPress={handleSave}>
-              <Text style={styles.buttonText}>Guardar</Text>
+              <Text style={styles.buttonText}>Save</Text>
             </TouchableOpacity>
           </View>
         </View>

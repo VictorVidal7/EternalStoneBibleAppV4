@@ -9,18 +9,11 @@ export const BIBLE_VERSIONS: BibleVersion[] = [
     year: '1960',
   },
   {
-    id: 'NTV',
-    name: 'Nueva Traducción Viviente',
-    abbreviation: 'NTV',
-    language: 'es',
-    year: '2008',
-  },
-  {
-    id: 'NLT',
-    name: 'New Living Translation',
-    abbreviation: 'NLT',
+    id: 'KJV',
+    name: 'King James Version',
+    abbreviation: 'KJV',
     language: 'en',
-    year: '1996',
+    year: '1611',
   },
 ];
 

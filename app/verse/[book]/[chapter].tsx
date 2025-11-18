@@ -65,9 +65,15 @@ export default function VerseReadingScreen() {
       setLoading(true);
       console.log(`📖 Loading chapter: book="${book}", chapter=${chapterNum}, version="${selectedVersion.id}"`);
 
+      if (!bookInfo) {
+        console.error(`❌ Book not found: ${book}`);
+        setLoading(false);
+        return;
+      }
+
       await bibleDB.initialize();
 
-      const chapterVerses = await bibleDB.getChapter(book, chapterNum, selectedVersion.id);
+      const chapterVerses = await bibleDB.getChapter(bookInfo.id, chapterNum, selectedVersion.id);
       console.log(`✅ Loaded ${chapterVerses.length} verses`);
 
       setVerses(chapterVerses);
@@ -145,7 +151,7 @@ export default function VerseReadingScreen() {
     await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     const text = `"${verse.text}" - ${verse.book} ${verse.chapter}:${verse.verse}`;
     await Clipboard.setStringAsync(text);
-    Alert.alert('Copiado', 'Versículo copiado al portapapeles');
+    Alert.alert(t.copied, t.verse.verseCopied);
   }
 
   async function handleShareVerse(verse: BibleVerse) {
@@ -352,7 +358,7 @@ export default function VerseReadingScreen() {
                     onPress={() => handleAddNote(verse)}
                   >
                     <Ionicons name="create-outline" size={18} color={colors.textSecondary} />
-                    <Text style={[styles.actionButtonText, { color: colors.textSecondary }]}>Nota</Text>
+                    <Text style={[styles.actionButtonText, { color: colors.textSecondary }]}>{t.notes.note}</Text>
                   </TouchableOpacity>
                 </View>
               </View>
@@ -373,7 +379,7 @@ export default function VerseReadingScreen() {
                 <Text style={[styles.modalTitle, { color: colors.text }]}>
                   {selectedVerse
                     ? `${selectedVerse.book} ${selectedVerse.chapter}:${selectedVerse.verse}`
-                    : 'Nota'}
+                    : t.notes.add}
                 </Text>
                 <TouchableOpacity onPress={() => setNoteModalVisible(false)}>
                   <Ionicons name="close" size={24} color={colors.textSecondary} />
@@ -400,7 +406,7 @@ export default function VerseReadingScreen() {
                 onPress={saveNote}
                 disabled={!noteText.trim()}
               >
-                <Text style={styles.saveButtonText}>Guardar Nota</Text>
+                <Text style={styles.saveButtonText}>{t.notes.saveNote}</Text>
               </TouchableOpacity>
             </View>
           </View>

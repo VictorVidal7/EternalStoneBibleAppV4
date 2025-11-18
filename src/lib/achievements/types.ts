@@ -1,6 +1,6 @@
 /**
- * Sistema de Logros y Gamificación
- * Motiva a los usuarios a leer más la Biblia con logros, rachas y niveles
+ * Achievement and Gamification System
+ * Motivates users to read the Bible more with achievements, streaks and levels
  */
 
 export interface Achievement {
@@ -39,30 +39,30 @@ export enum AchievementTier {
 }
 
 export interface UserStats {
-  // Lectura
+  // Reading
   totalVersesRead: number;
   totalChaptersRead: number;
   totalBooksCompleted: number;
-  totalReadingTime: number; // en minutos
+  totalReadingTime: number; // in minutes
 
-  // Rachas
+  // Streaks
   currentStreak: number;
   longestStreak: number;
   lastReadDate: string; // ISO date
 
-  // Interacción
+  // Interaction
   totalHighlights: number;
   totalNotes: number;
   totalBookmarks: number;
   totalSearches: number;
   totalShares: number;
 
-  // Nivel
+  // Level
   level: number;
   totalPoints: number;
   pointsToNextLevel: number;
 
-  // Logros
+  // Achievements
   achievementsUnlocked: number;
   totalAchievements: number;
 }
@@ -71,7 +71,7 @@ export interface ReadingStreak {
   currentStreak: number;
   longestStreak: number;
   lastReadDate: string;
-  streakDates: string[]; // Array de fechas ISO
+  streakDates: string[]; // Array of ISO dates
 }
 
 export interface LevelInfo {
@@ -99,21 +99,21 @@ export const ACHIEVEMENT_TIER_POINTS: Record<AchievementTier, number> = {
   [AchievementTier.DIAMOND]: 200,
 };
 
-// Niveles de usuario
+// User levels
 export const USER_LEVELS: LevelInfo[] = [
-  { level: 1, title: 'Aprendiz', icon: '🌱', minPoints: 0, maxPoints: 100, benefits: ['Acceso básico'] },
-  { level: 2, title: 'Lector', icon: '📖', minPoints: 100, maxPoints: 250, benefits: ['Destacados desbloqueados'] },
-  { level: 3, title: 'Estudiante', icon: '📚', minPoints: 250, maxPoints: 500, benefits: ['Notas avanzadas'] },
-  { level: 4, title: 'Discípulo', icon: '✝️', minPoints: 500, maxPoints: 1000, benefits: ['Temas personalizados'] },
-  { level: 5, title: 'Maestro', icon: '👨‍🏫', minPoints: 1000, maxPoints: 2000, benefits: ['Estadísticas detalladas'] },
-  { level: 6, title: 'Erudito', icon: '🎓', minPoints: 2000, maxPoints: 4000, benefits: ['Exportar datos'] },
-  { level: 7, title: 'Sabio', icon: '🧙', minPoints: 4000, maxPoints: 8000, benefits: ['Insignias especiales'] },
-  { level: 8, title: 'Profeta', icon: '🔮', minPoints: 8000, maxPoints: 15000, benefits: ['Todo desbloqueado'] },
-  { level: 9, title: 'Apóstol', icon: '⚡', minPoints: 15000, maxPoints: 30000, benefits: ['Rango élite'] },
-  { level: 10, title: 'Leyenda', icon: '👑', minPoints: 30000, maxPoints: Infinity, benefits: ['Maestría total'] },
+  { level: 1, title: 'Apprentice', icon: '🌱', minPoints: 0, maxPoints: 100, benefits: ['Basic access'] },
+  { level: 2, title: 'Reader', icon: '📖', minPoints: 100, maxPoints: 250, benefits: ['Highlights unlocked'] },
+  { level: 3, title: 'Student', icon: '📚', minPoints: 250, maxPoints: 500, benefits: ['Advanced notes'] },
+  { level: 4, title: 'Disciple', icon: '✝️', minPoints: 500, maxPoints: 1000, benefits: ['Custom themes'] },
+  { level: 5, title: 'Teacher', icon: '👨‍🏫', minPoints: 1000, maxPoints: 2000, benefits: ['Detailed statistics'] },
+  { level: 6, title: 'Scholar', icon: '🎓', minPoints: 2000, maxPoints: 4000, benefits: ['Export data'] },
+  { level: 7, title: 'Sage', icon: '🧙', minPoints: 4000, maxPoints: 8000, benefits: ['Special badges'] },
+  { level: 8, title: 'Prophet', icon: '🔮', minPoints: 8000, maxPoints: 15000, benefits: ['Everything unlocked'] },
+  { level: 9, title: 'Apostle', icon: '⚡', minPoints: 15000, maxPoints: 30000, benefits: ['Elite rank'] },
+  { level: 10, title: 'Legend', icon: '👑', minPoints: 30000, maxPoints: Infinity, benefits: ['Total mastery'] },
 ];
 
-// Calcular nivel basado en puntos
+// Calculate level based on points
 export function calculateLevel(points: number): LevelInfo {
   for (let i = USER_LEVELS.length - 1; i >= 0; i--) {
     if (points >= USER_LEVELS[i].minPoints) {
@@ -123,7 +123,7 @@ export function calculateLevel(points: number): LevelInfo {
   return USER_LEVELS[0];
 }
 
-// Calcular progreso al siguiente nivel
+// Calculate progress to next level
 export function calculateLevelProgress(points: number): {
   currentLevel: LevelInfo;
   nextLevel: LevelInfo | null;
