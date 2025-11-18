@@ -97,7 +97,7 @@ export const NavigationParamsSchema = z.object({
 export const UserPreferencesSchema = z.object({
   theme: z.enum(['light', 'dark', 'auto']).default('auto'),
   fontSize: z.number().int().min(12).max(32).default(16),
-  language: z.enum(['es', 'en']).default('es'),
+  language: z.enum(['es', 'en']).default('en'),
   bibleVersion: z.string().default('RVR1960'),
   notificationsEnabled: z.boolean().default(true),
   dailyVerseEnabled: z.boolean().default(true),

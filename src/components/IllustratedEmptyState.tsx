@@ -23,7 +23,7 @@ import * as Haptics from 'expo-haptics';
 
 import { spacing, borderRadius, fontSize, shadows } from '../styles/designTokens';
 import { typography } from '../styles/typography';
-import { useTranslation } from '../context/TranslationContext';
+import { useLanguage } from '../hooks/useLanguage';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
@@ -52,7 +52,7 @@ export const IllustratedEmptyState: React.FC<IllustratedEmptyStateProps> = ({
   colors,
   isDark,
 }) => {
-  const { t } = useTranslation();
+  const { t } = useLanguage();
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const scaleAnim = useRef(new Animated.Value(0.9)).current;
   const bounceAnim = useRef(new Animated.Value(0)).current;

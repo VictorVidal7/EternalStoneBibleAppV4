@@ -25,7 +25,7 @@ import * as Haptics from 'expo-haptics';
 
 import { spacing, borderRadius, fontSize, shadows } from '../styles/designTokens';
 import { useTheme } from '../hooks/useTheme';
-import { useTranslation } from '../context/TranslationContext';
+import { useLanguage } from '../hooks/useLanguage';
 
 type ButtonVariant = 'primary' | 'secondary' | 'outline' | 'ghost' | 'gradient';
 type ButtonSize = 'small' | 'medium' | 'large';
@@ -62,7 +62,7 @@ export default function AnimatedButton({
   hapticFeedback = true,
 }: AnimatedButtonProps) {
   const { colors, isDark } = useTheme();
-  const { t } = useTranslation();
+  const { t } = useLanguage();
   const scaleAnim = useRef(new Animated.Value(1)).current;
   const opacityAnim = useRef(new Animated.Value(1)).current;
 

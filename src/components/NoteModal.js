@@ -1,12 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { Modal, View, Text, TextInput, TouchableOpacity, StyleSheet } from 'react-native';
 import { useTheme } from '../context/ThemeContext';
-import { useTranslation } from '../context/TranslationContext';
+import { useLanguage } from '../hooks/useLanguage';
 
 const NoteModal = ({ visible, onClose, verse, onSave, initialNote }) => {
   const [note, setNote] = useState('');
   const { colors } = useTheme();
-  const { t } = useTranslation();
+  const { t } = useLanguage();
 
   useEffect(() => {
     if (visible) {

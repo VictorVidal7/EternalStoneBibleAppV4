@@ -21,7 +21,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
 import { spacing, borderRadius, fontSize, shadows } from '../styles/designTokens';
-import { useTranslation } from '../context/TranslationContext';
+import { useLanguage } from '../hooks/useLanguage';
 
 type ButtonVariant = 'primary' | 'secondary' | 'success' | 'danger' | 'gradient';
 type ButtonSize = 'small' | 'medium' | 'large';
@@ -57,7 +57,7 @@ export const PremiumButton: React.FC<PremiumButtonProps> = ({
   fullWidth = false,
   haptic = true,
 }) => {
-  const { t } = useTranslation();
+  const { t } = useLanguage();
   const scaleAnim = useRef(new Animated.Value(1)).current;
   const shineAnim = useRef(new Animated.Value(-1)).current;
 
