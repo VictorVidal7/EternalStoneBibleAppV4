@@ -65,9 +65,15 @@ export default function VerseReadingScreen() {
       setLoading(true);
       console.log(`📖 Loading chapter: book="${book}", chapter=${chapterNum}, version="${selectedVersion.id}"`);
 
+      if (!bookInfo) {
+        console.error(`❌ Book not found: ${book}`);
+        setLoading(false);
+        return;
+      }
+
       await bibleDB.initialize();
 
-      const chapterVerses = await bibleDB.getChapter(book, chapterNum, selectedVersion.id);
+      const chapterVerses = await bibleDB.getChapter(bookInfo.id, chapterNum, selectedVersion.id);
       console.log(`✅ Loaded ${chapterVerses.length} verses`);
 
       setVerses(chapterVerses);

@@ -253,13 +253,13 @@ class BibleDatabase {
     });
   }
 
-  async getChapter(bookName: string, chapter: number, version: string = 'RVR1960'): Promise<BibleVerse[]> {
+  async getChapter(bookId: number, chapter: number, version: string = 'RVR1960'): Promise<BibleVerse[]> {
     const db = this.getDb();
 
     // Validar parámetros
-    if (!bookName || bookName.trim() === '') {
-      console.error('getChapter: bookName is invalid:', bookName);
-      throw new Error('Book name is required');
+    if (!bookId || bookId < 1 || bookId > 66) {
+      console.error('getChapter: bookId is invalid:', bookId);
+      throw new Error('Book ID must be between 1 and 66');
     }
 
     if (!chapter || chapter < 1) {
@@ -273,41 +273,42 @@ class BibleDatabase {
     }
 
     try {
-      console.log(`🔍 Querying DB: book="${bookName}", chapter=${chapter}, version="${version}"`);
+      console.log(`🔍 Querying DB: bookId=${bookId}, chapter=${chapter}, version="${version}"`);
 
       const result = await db.getAllAsync<BibleVerse>(
         `SELECT id, book_id as bookNumber, book_name as book, chapter, verse, text, version
          FROM verses
-         WHERE book_name = ? AND chapter = ? AND version = ?
+         WHERE book_id = ? AND chapter = ? AND version = ?
          ORDER BY verse ASC`,
-        [bookName, chapter, version]
+        [bookId, chapter, version]
       );
 
       console.log(`📊 Query result: ${result.length} verses found`);
 
       if (result.length === 0) {
         // Intentar buscar libros similares para debugging
-        const allBooks = await db.getAllAsync<{book_name: string}>(
-          'SELECT DISTINCT book_name FROM verses LIMIT 10'
+        const allBooks = await db.getAllAsync<{book_id: number, book_name: string}>(
+          'SELECT DISTINCT book_id, book_name FROM verses WHERE version = ? LIMIT 10',
+          [version]
         );
-        console.warn(`⚠️ No verses found for "${bookName}". Sample books in DB:`, allBooks.map(b => b.book_name));
+        console.warn(`⚠️ No verses found for bookId=${bookId}. Sample books in DB for ${version}:`, allBooks);
       }
 
       return result;
     } catch (error) {
-      console.error(`❌ Error loading chapter ${bookName} ${chapter} (${version}):`, error);
+      console.error(`❌ Error loading chapter bookId=${bookId} chapter=${chapter} (${version}):`, error);
       throw error;
     }
   }
 
-  async getVerse(bookName: string, chapter: number, verse: number, version: string = 'RVR1960'): Promise<BibleVerse | null> {
+  async getVerse(bookId: number, chapter: number, verse: number, version: string = 'RVR1960'): Promise<BibleVerse | null> {
     const db = this.getDb();
 
     const result = await db.getFirstAsync<BibleVerse>(
       `SELECT id, book_id as bookNumber, book_name as book, chapter, verse, text, version
        FROM verses
-       WHERE book_name = ? AND chapter = ? AND verse = ? AND version = ?`,
-      [bookName, chapter, verse, version]
+       WHERE book_id = ? AND chapter = ? AND verse = ? AND version = ?`,
+      [bookId, chapter, verse, version]
     );
 
     return result || null;
@@ -347,16 +348,16 @@ class BibleDatabase {
     return result;
   }
 
-  async searchByBook(bookName: string, query: string, version: string = 'RVR1960'): Promise<BibleVerse[]> {
+  async searchByBook(bookId: number, query: string, version: string = 'RVR1960'): Promise<BibleVerse[]> {
     const db = this.getDb();
 
     const result = await db.getAllAsync<BibleVerse>(
       `SELECT v.id, v.book_id as bookNumber, v.book_name as book, v.chapter, v.verse, v.text, v.version
        FROM verses v
        INNER JOIN verses_fts fts ON v.id = fts.rowid
-       WHERE fts.text MATCH ? AND v.book_name = ? AND v.version = ?
+       WHERE fts.text MATCH ? AND v.book_id = ? AND v.version = ?
        ORDER BY v.chapter, v.verse`,
-      [query, bookName, version]
+      [query, bookId, version]
     );
 
     return result;
