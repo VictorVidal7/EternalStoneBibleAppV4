@@ -13,6 +13,7 @@ import {
   Dimensions,
 } from 'react-native';
 import { Achievement, ACHIEVEMENT_TIER_COLORS } from '../../lib/achievements/types';
+import { useLanguage } from '../../hooks/useLanguage';
 
 interface AchievementUnlockedModalProps {
   visible: boolean;
@@ -25,6 +26,7 @@ export const AchievementUnlockedModal: React.FC<AchievementUnlockedModalProps> =
   achievement,
   onClose,
 }) => {
+  const { t } = useLanguage();
   const scaleAnim = useRef(new Animated.Value(0)).current;
   const rotateAnim = useRef(new Animated.Value(0)).current;
   const fadeAnim = useRef(new Animated.Value(0)).current;
@@ -158,7 +160,7 @@ export const AchievementUnlockedModal: React.FC<AchievementUnlockedModalProps> =
           <View style={[styles.card, { borderColor: tierColor }]}>
             {/* Header */}
             <View style={styles.header}>
-              <Text style={styles.title}>¡Logro Desbloqueado!</Text>
+              <Text style={styles.title}>{t.achievements.unlockTitle}</Text>
               <View style={[styles.tierBadge, { backgroundColor: tierColor }]}>
                 <Text style={styles.tierText}>{achievement.tier.toUpperCase()}</Text>
               </View>
@@ -175,9 +177,9 @@ export const AchievementUnlockedModal: React.FC<AchievementUnlockedModalProps> =
 
             {/* Puntos */}
             <View style={styles.pointsContainer}>
-              <Text style={styles.pointsLabel}>Has ganado</Text>
+              <Text style={styles.pointsLabel}>{t.achievements.pointsEarned}</Text>
               <Text style={[styles.points, { color: tierColor }]}>
-                +{achievement.points} puntos
+                +{achievement.points} {t.achievements.points}
               </Text>
             </View>
 
@@ -186,7 +188,7 @@ export const AchievementUnlockedModal: React.FC<AchievementUnlockedModalProps> =
               style={[styles.button, { backgroundColor: tierColor }]}
               onPress={onClose}
             >
-              <Text style={styles.buttonText}>¡Genial!</Text>
+              <Text style={styles.buttonText}>{t.achievements.awesome}</Text>
             </Pressable>
           </View>
         </Animated.View>
@@ -223,11 +225,11 @@ const styles = StyleSheet.create({
     backgroundColor: '#FFFFFF',
     borderRadius: 24,
     padding: 24,
-    borderWidth: 3,
+    borderWidth: 0,
     alignItems: 'center',
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 10 },
-    shadowOpacity: 0.3,
+    shadowOpacity: 0.1,
     shadowRadius: 20,
     elevation: 10,
   },

@@ -231,12 +231,12 @@ const styles = StyleSheet.create({
     borderRadius: 25,
     justifyContent: 'center',
     alignItems: 'center',
-    borderWidth: 3,
+    borderWidth: 0,
     borderColor: 'transparent',
   },
   colorButtonSelected: {
     borderColor: '#1F2937',
-    borderWidth: 3,
+    borderWidth: 2,
   },
   colorCheckmark: {
     fontSize: 24,
@@ -261,7 +261,7 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     paddingHorizontal: 12,
     paddingVertical: 8,
-    borderWidth: 2,
+    borderWidth: 0,
     borderColor: 'transparent',
     maxWidth: '48%',
   },

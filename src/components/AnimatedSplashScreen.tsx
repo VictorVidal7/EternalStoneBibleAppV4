@@ -21,6 +21,7 @@ import {
 import { LinearGradient } from 'expo-linear-gradient';
 import { BlurView } from 'expo-blur';
 import { Ionicons } from '@expo/vector-icons';
+import { useLanguage } from '../hooks/useLanguage';
 
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
 
@@ -33,6 +34,8 @@ export const AnimatedSplashScreen: React.FC<AnimatedSplashScreenProps> = ({
   loadingProgress,
   message,
 }) => {
+  const { t } = useLanguage();
+
   // Animaciones
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const scaleAnim = useRef(new Animated.Value(0.8)).current;
@@ -243,14 +246,14 @@ export const AnimatedSplashScreen: React.FC<AnimatedSplashScreenProps> = ({
 
         {/* Título */}
         <Text style={styles.title}>Eternal Bible</Text>
-        <Text style={styles.subtitle}>La Palabra que transforma vidas</Text>
+        <Text style={styles.subtitle}>{t.app.subtitle}</Text>
 
         {/* Progress container */}
         <View style={styles.progressContainer}>
           {loadingProgress.total > 0 ? (
             <>
               <Text style={styles.progressText}>
-                Cargando versículos...
+                {t.app.loadingBible}
               </Text>
               <Text style={styles.progressNumbers}>
                 {loadingProgress.loaded.toLocaleString()} /{' '}
@@ -287,7 +290,7 @@ export const AnimatedSplashScreen: React.FC<AnimatedSplashScreenProps> = ({
                 <Ionicons name="sync" size={32} color="#ffffff" />
               </Animated.View>
               <Text style={styles.preparingText}>
-                {message || 'Preparando la aplicación...'}
+                {message || t.app.preparing}
               </Text>
             </View>
           )}
@@ -296,9 +299,8 @@ export const AnimatedSplashScreen: React.FC<AnimatedSplashScreenProps> = ({
         {/* Versículo inspirador */}
         <View style={styles.verseContainer}>
           <Text style={styles.verseText}>
-            "Lámpara es a mis pies tu palabra,{'\n'}y lumbrera a mi camino."
+            {t.app.loadingVerse}
           </Text>
-          <Text style={styles.verseReference}>— Salmos 119:105</Text>
         </View>
       </Animated.View>
 
@@ -341,7 +343,7 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(255,255,255,0.2)',
     justifyContent: 'center',
     alignItems: 'center',
-    borderWidth: 3,
+    borderWidth: 0,
     borderColor: 'rgba(255,255,255,0.3)',
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 10 },

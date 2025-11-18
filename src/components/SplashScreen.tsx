@@ -246,7 +246,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     marginBottom: spacing.xl,
-    borderWidth: 3,
+    borderWidth: 0,
     borderColor: 'rgba(255, 255, 255, 0.3)',
   },
   title: {

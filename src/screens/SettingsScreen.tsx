@@ -695,7 +695,7 @@ const createStyles = (
       margin: 5,
     },
     selectedColorTheme: {
-      borderWidth: 2,
+      borderWidth: 1,
       borderColor: colors.text,
     },
   });

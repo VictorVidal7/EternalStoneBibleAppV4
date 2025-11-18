@@ -18,6 +18,7 @@ import { UserStatsPanel } from '../components/achievements/UserStatsPanel';
 import { AchievementUnlockedModal } from '../components/achievements/AchievementUnlockedModal';
 import { useAchievements } from '../hooks/useAchievements';
 import { useTheme } from '../hooks/useTheme';
+import { useLanguage } from '../hooks/useLanguage';
 import { BibleDatabase } from '../lib/database';
 import { Achievement, AchievementCategory } from '../lib/achievements/types';
 import { spacing, borderRadius, fontSize, shadows } from '../styles/designTokens';
@@ -35,6 +36,7 @@ export const AchievementsScreen: React.FC<AchievementsScreenProps> = ({ database
     clearNewUnlocks,
   } = useAchievements(database);
   const { colors, isDark } = useTheme();
+  const { t } = useLanguage();
 
   const [selectedCategory, setSelectedCategory] = useState<AchievementCategory | 'all'>('all');
   const [showStats, setShowStats] = useState(false);
@@ -74,7 +76,7 @@ export const AchievementsScreen: React.FC<AchievementsScreenProps> = ({ database
       <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
         <View style={styles.loadingContainer}>
           <Text style={[styles.loadingText, { color: colors.textSecondary }]}>
-            Cargando logros...
+            {t.achievements.loading}
           </Text>
         </View>
       </SafeAreaView>
@@ -91,7 +93,7 @@ export const AchievementsScreen: React.FC<AchievementsScreenProps> = ({ database
         style={styles.header}
       >
         <Text style={styles.headerTitle}>
-          {showStats ? 'Tus Estadísticas' : 'Tus Logros'}
+          {showStats ? t.achievements.yourStats : t.achievements.yourAchievements}
         </Text>
         <Pressable
           style={[styles.toggleButton, { backgroundColor: 'rgba(255,255,255,0.2)' }]}
@@ -149,7 +151,7 @@ export const AchievementsScreen: React.FC<AchievementsScreenProps> = ({ database
                   {achievements.filter((a) => a.isUnlocked).length}
                 </Text>
                 <Text style={[styles.summaryLabel, { color: colors.textSecondary }]}>
-                  Desbloqueados
+                  {t.achievements.achievementsUnlocked}
                 </Text>
               </View>
               <View style={[styles.summaryDivider, { backgroundColor: colors.divider }]} />
@@ -158,13 +160,13 @@ export const AchievementsScreen: React.FC<AchievementsScreenProps> = ({ database
                   {stats.totalPoints}
                 </Text>
                 <Text style={[styles.summaryLabel, { color: colors.textSecondary }]}>
-                  Puntos totales
+                  {t.achievements.totalPoints}
                 </Text>
               </View>
               <View style={[styles.summaryDivider, { backgroundColor: colors.divider }]} />
               <View style={styles.summaryItem}>
                 <Text style={[styles.summaryValue, { color: colors.text }]}>
-                  Nivel {stats.level}
+                  {t.achievements.level} {stats.level}
                 </Text>
                 <Text style={[styles.summaryLabel, { color: colors.textSecondary }]}>
                   {stats.level >= 10 ? '👑 Leyenda' : 'En progreso'}
