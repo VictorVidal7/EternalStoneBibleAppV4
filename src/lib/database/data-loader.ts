@@ -2,7 +2,7 @@
 import bibleDB from './index';
 
 const DATA_LOADED_KEY_RVR1960 = '@bible_data_loaded_rvr1960';
-const DATA_LOADED_KEY_NKJV = '@bible_data_loaded_nkjv';
+const DATA_LOADED_KEY_KJV = '@bible_data_loaded_kjv';
 
 export async function initializeBibleData(
     onProgress?: (loaded: number, total: number) => void
@@ -21,11 +21,11 @@ export async function initializeBibleData(
       onProgress
     );
 
-    // Load NKJV
+    // Load KJV
     await loadBibleVersion(
-      'NKJV',
-      DATA_LOADED_KEY_NKJV,
-      async () => (await import('./bible-data-nkjv')).NKJV_DATA,
+      'KJV',
+      DATA_LOADED_KEY_KJV,
+      async () => (await import('./bible-data-kjv')).KJV_DATA,
       onProgress
     );
 
@@ -93,8 +93,8 @@ export async function checkDataStatus(): Promise<{
 }> {
   // Check if at least one version is loaded
   const rvr1960Loaded = (await AsyncStorage.getItem(DATA_LOADED_KEY_RVR1960)) === 'true';
-  const nkjvLoaded = (await AsyncStorage.getItem(DATA_LOADED_KEY_NKJV)) === 'true';
-  const isLoaded = rvr1960Loaded || nkjvLoaded;
+  const kjvLoaded = (await AsyncStorage.getItem(DATA_LOADED_KEY_KJV)) === 'true';
+  const isLoaded = rvr1960Loaded || kjvLoaded;
 
   if (isLoaded) {
     try {
@@ -126,7 +126,7 @@ export async function resetBibleData(): Promise<void> {
 
   // Limpiar flags de AsyncStorage para todas las versiones
   await AsyncStorage.removeItem(DATA_LOADED_KEY_RVR1960);
-  await AsyncStorage.removeItem(DATA_LOADED_KEY_NKJV);
+  await AsyncStorage.removeItem(DATA_LOADED_KEY_KJV);
 
   // Limpiar la base de datos
   try {

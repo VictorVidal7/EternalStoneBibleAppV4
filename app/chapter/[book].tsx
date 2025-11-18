@@ -34,7 +34,7 @@ import {
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 const CARD_MARGIN = spacing.xs;
-const CARDS_PER_ROW = 3;
+const CARDS_PER_ROW = 4;
 const CARD_SIZE = (SCREEN_WIDTH - spacing.lg * 2) / CARDS_PER_ROW - spacing.md;
 
 console.log('📐 Chapter Screen Layout:', {
@@ -621,6 +621,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.lg,
     paddingTop: spacing.lg,
     paddingBottom: spacing.xl,
+    alignItems: 'center',
   },
   emptyContainer: {
     flex: 1,
