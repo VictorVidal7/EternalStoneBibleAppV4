@@ -1,11 +1,11 @@
 /**
  * 🎨 ILLUSTRATED EMPTY STATE
  *
- * Componentes de empty state con ilustraciones premium:
- * - Diseños atractivos y profesionales
- * - Animaciones suaves
- * - Mensajes claros y accionables
- * - Iconografía expresiva
+ * Empty state components with premium illustrations:
+ * - Attractive and professional designs
+ * - Smooth animations
+ * - Clear and actionable messages
+ * - Expressive iconography
  */
 
 import React, { useEffect, useRef } from 'react';
@@ -23,6 +23,7 @@ import * as Haptics from 'expo-haptics';
 
 import { spacing, borderRadius, fontSize, shadows } from '../styles/designTokens';
 import { typography } from '../styles/typography';
+import { useTranslation } from '../context/TranslationContext';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
@@ -51,6 +52,7 @@ export const IllustratedEmptyState: React.FC<IllustratedEmptyStateProps> = ({
   colors,
   isDark,
 }) => {
+  const { t } = useTranslation();
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const scaleAnim = useRef(new Animated.Value(0.9)).current;
   const bounceAnim = useRef(new Animated.Value(0)).current;
@@ -74,7 +76,7 @@ export const IllustratedEmptyState: React.FC<IllustratedEmptyStateProps> = ({
       }),
     ]).start();
 
-    // Bounce animation continua
+    // Continuous bounce animation
     Animated.loop(
       Animated.sequence([
         Animated.timing(bounceAnim, {
@@ -101,45 +103,44 @@ export const IllustratedEmptyState: React.FC<IllustratedEmptyStateProps> = ({
       'no-bookmarks': {
         icon: 'bookmark-outline' as const,
         gradient: ['#667eea', '#764ba2'],
-        defaultTitle: 'Sin marcadores aún',
-        defaultMessage:
-          'Guarda tus versículos favoritos para acceder a ellos rápidamente',
-        defaultAction: 'Explorar la Biblia',
+        defaultTitle: t.bookmarks.empty,
+        defaultMessage: t.bookmarks.emptyHint,
+        defaultAction: t.home.menu.exploreBible.replace(/\n/g, ' '),
       },
       'no-notes': {
         icon: 'create-outline' as const,
         gradient: ['#10b981', '#059669'],
-        defaultTitle: 'Sin notas todavía',
-        defaultMessage: 'Crea notas personales para reflexionar sobre tu lectura',
-        defaultAction: 'Empezar a leer',
+        defaultTitle: t.notes.empty,
+        defaultMessage: t.notes.emptyHint,
+        defaultAction: t.home.startReading,
       },
       'no-highlights': {
         icon: 'color-palette-outline' as const,
         gradient: ['#f59e0b', '#d97706'],
-        defaultTitle: 'Sin resaltados',
-        defaultMessage: 'Resalta versículos importantes mientras lees',
-        defaultAction: 'Abrir Biblia',
+        defaultTitle: 'No highlights yet',
+        defaultMessage: 'Highlight important verses while reading',
+        defaultAction: t.tabs.bible,
       },
       'no-search-results': {
         icon: 'search-outline' as const,
         gradient: ['#3b82f6', '#2563eb'],
-        defaultTitle: 'Sin resultados',
-        defaultMessage: 'Intenta con otras palabras clave o términos',
-        defaultAction: 'Limpiar búsqueda',
+        defaultTitle: t.search.noResults,
+        defaultMessage: t.search.tryDifferent,
+        defaultAction: 'Clear search',
       },
       'no-achievements': {
         icon: 'trophy-outline' as const,
         gradient: ['#ec4899', '#db2777'],
-        defaultTitle: 'Sin logros desbloqueados',
-        defaultMessage: 'Lee la Biblia diariamente para desbloquear logros',
-        defaultAction: 'Ver desafíos',
+        defaultTitle: 'No achievements unlocked',
+        defaultMessage: 'Read the Bible daily to unlock achievements',
+        defaultAction: 'View challenges',
       },
       'no-reading-plan': {
         icon: 'calendar-outline' as const,
         gradient: ['#8b5cf6', '#7c3aed'],
-        defaultTitle: 'Sin plan de lectura activo',
-        defaultMessage: 'Elige un plan para guiar tu lectura diaria',
-        defaultAction: 'Explorar planes',
+        defaultTitle: 'No active reading plan',
+        defaultMessage: 'Choose a plan to guide your daily reading',
+        defaultAction: 'Explore plans',
       },
     };
 
@@ -165,7 +166,7 @@ export const IllustratedEmptyState: React.FC<IllustratedEmptyStateProps> = ({
         }}
       >
         <View style={styles.illustrationContainer}>
-          {/* Círculos decorativos de fondo */}
+          {/* Decorative background circles */}
           <View style={styles.decorativeCircles}>
             <View
               style={[
@@ -202,7 +203,7 @@ export const IllustratedEmptyState: React.FC<IllustratedEmptyStateProps> = ({
             />
           </View>
 
-          {/* Ícono principal con gradiente */}
+          {/* Main icon with gradient */}
           <LinearGradient
             colors={config.gradient}
             start={{ x: 0, y: 0 }}
@@ -212,7 +213,7 @@ export const IllustratedEmptyState: React.FC<IllustratedEmptyStateProps> = ({
             <Ionicons name={config.icon} size={64} color="#ffffff" />
           </LinearGradient>
 
-          {/* Iconos decorativos flotantes */}
+          {/* Floating decorative icons */}
           <View style={styles.floatingIcons}>
             <Ionicons
               name="sparkles"
@@ -236,7 +237,7 @@ export const IllustratedEmptyState: React.FC<IllustratedEmptyStateProps> = ({
         </View>
       </Animated.View>
 
-      {/* Texto */}
+      {/* Text */}
       <View style={styles.textContainer}>
         <Text style={[typography.h4, { color: colors.text, textAlign: 'center' }]}>
           {title || config.defaultTitle}
@@ -276,7 +277,7 @@ export const IllustratedEmptyState: React.FC<IllustratedEmptyStateProps> = ({
         </TouchableOpacity>
       )}
 
-      {/* Puntos decorativos inferiores */}
+      {/* Bottom decorative dots */}
       <View style={styles.bottomDots}>
         <View style={[styles.dot, { backgroundColor: config.gradient[0] + '40' }]} />
         <View style={[styles.dot, { backgroundColor: config.gradient[1] + '40' }]} />
