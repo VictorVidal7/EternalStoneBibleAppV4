@@ -28,9 +28,14 @@ When you have internet connectivity, run:
 node scripts/fetch-nkjv-data.js
 ```
 
-This script will attempt to download the complete NKJV text from a public API source.
+This script will download the complete Bible text (KJV) from a public CDN source.
 
-**Note:** The script requires internet connection and may take several minutes to complete.
+**Important Notes:**
+- The script downloads **KJV** (King James Version) text, which is public domain
+- KJV and NKJV are very similar but not identical translations
+- The script requires internet connection and may take a few minutes
+- A backup of your current file will be created automatically
+- The downloaded file will be ~7-8 MB with 31,000+ verses
 
 ### Option 2: Manual Integration
 If you have access to NKJV text data through proper licensing:
@@ -80,8 +85,16 @@ Users can now:
 ⚠️ **IMPORTANT:** The NKJV is copyrighted by Thomas Nelson Publishers.
 
 - The sample data included is for testing and demonstration purposes
-- For production use, proper licensing must be obtained from Thomas Nelson
+- The fetch script downloads **KJV text** (public domain), not actual NKJV
+- KJV and NKJV are similar modern English translations with slight differences
+- For actual NKJV text in production, obtain proper licensing from Thomas Nelson
 - Public domain alternatives include KJV, ASV, and WEB translations
+
+**Why KJV instead of NKJV?**
+- KJV is in the public domain and freely available
+- NKJV requires licensing from Thomas Nelson
+- Both are modern English translations, readable and widely used
+- KJV was published in 1611, NKJV is a 1982 modernization of KJV
 
 ## Technical Details
 
