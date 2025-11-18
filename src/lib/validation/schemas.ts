@@ -1,9 +1,15 @@
 /**
- * Schemas de validación con Zod para la aplicación bíblica
- * Proporciona validación type-safe para datos críticos
+ * 🔒 VALIDATION SCHEMAS
+ *
+ * Schemas de validación con Zod para la aplicación bíblica.
+ * Proporciona validación type-safe para datos críticos y previene
+ * errores en tiempo de ejecución.
+ *
+ * @see https://zod.dev
  */
 
-import { z } from 'zod';
+import {z} from 'zod';
+import {VALIDATION} from '../../constants/app';
 
 /**
  * Schema para un versículo bíblico individual
@@ -41,10 +47,14 @@ export const BookmarkSchema = z.object({
  */
 export const NoteSchema = z.object({
   id: z.string().uuid().optional(),
-  book: z.string().min(1),
-  chapter: z.number().int().positive(),
-  verse: z.number().int().positive(),
-  note: z.string().min(1, 'La nota no puede estar vacía'),
+  book: z.string().min(1, 'El libro es requerido'),
+  chapter: z.number().int().positive('Capítulo inválido'),
+  verse: z.number().int().positive('Versículo inválido'),
+  note: z
+    .string()
+    .min(VALIDATION.MIN_NOTE_LENGTH, 'La nota es demasiado corta')
+    .max(VALIDATION.MAX_NOTE_LENGTH, 'La nota es demasiado larga')
+    .trim(),
   createdAt: z.date().or(z.string()),
   updatedAt: z.date().or(z.string()).optional(),
 });
@@ -57,17 +67,28 @@ export const HighlightSchema = z.object({
   book: z.string().min(1),
   chapter: z.number().int().positive(),
   verse: z.number().int().positive(),
-  color: z.enum(['yellow', 'green', 'blue', 'purple', 'pink', 'orange', 'red', 'gray']),
-  category: z.enum([
-    'promise',
-    'prayer',
-    'commandment',
-    'wisdom',
-    'prophecy',
-    'favorite',
-    'memorize',
-    'study',
-  ]).optional(),
+  color: z.enum([
+    'yellow',
+    'green',
+    'blue',
+    'purple',
+    'pink',
+    'orange',
+    'red',
+    'gray',
+  ]),
+  category: z
+    .enum([
+      'promise',
+      'prayer',
+      'commandment',
+      'wisdom',
+      'prophecy',
+      'favorite',
+      'memorize',
+      'study',
+    ])
+    .optional(),
   note: z.string().optional(),
   createdAt: z.date().or(z.string()),
 });
@@ -76,9 +97,14 @@ export const HighlightSchema = z.object({
  * Schema para búsquedas
  */
 export const SearchQuerySchema = z.object({
-  query: z.string().min(1, 'La búsqueda no puede estar vacía').max(500),
+  query: z
+    .string()
+    .min(VALIDATION.MIN_SEARCH_LENGTH, 'La búsqueda es demasiado corta')
+    .max(VALIDATION.MAX_SEARCH_LENGTH, 'La búsqueda es demasiado larga')
+    .trim(),
   book: z.string().optional(),
-  limit: z.number().int().positive().max(1000).default(100),
+  testament: z.enum(['all', 'old', 'new']).default('all'),
+  limit: z.number().int().positive().max(500).default(100),
   offset: z.number().int().min(0).default(0),
 });
 
@@ -171,7 +197,9 @@ export function validate<T>(schema: z.ZodSchema<T>, data: unknown): T {
     return schema.parse(data);
   } catch (error) {
     if (error instanceof z.ZodError) {
-      const errorMessages = error.errors.map((err) => `${err.path.join('.')}: ${err.message}`);
+      const errorMessages = error.errors.map(
+        err => `${err.path.join('.')}: ${err.message}`,
+      );
       throw new Error(`Error de validación:\n${errorMessages.join('\n')}`);
     }
     throw error;
@@ -183,16 +211,18 @@ export function validate<T>(schema: z.ZodSchema<T>, data: unknown): T {
  */
 export function safeValidate<T>(
   schema: z.ZodSchema<T>,
-  data: unknown
-): { success: true; data: T } | { success: false; error: string } {
+  data: unknown,
+): {success: true; data: T} | {success: false; error: string} {
   try {
     const result = schema.parse(data);
-    return { success: true, data: result };
+    return {success: true, data: result};
   } catch (error) {
     if (error instanceof z.ZodError) {
-      const errorMessages = error.errors.map((err) => `${err.path.join('.')}: ${err.message}`);
-      return { success: false, error: errorMessages.join(', ') };
+      const errorMessages = error.errors.map(
+        err => `${err.path.join('.')}: ${err.message}`,
+      );
+      return {success: false, error: errorMessages.join(', ')};
     }
-    return { success: false, error: 'Error de validación desconocido' };
+    return {success: false, error: 'Error de validación desconocido'};
   }
 }

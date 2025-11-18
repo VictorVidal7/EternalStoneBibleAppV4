@@ -6,159 +6,185 @@
  * - Animaciones de entrada
  * - Acción primaria
  * - Múltiples variantes
+ * - Soporte completo para tema dinámico
  */
 
-import React, { useEffect, useRef } from 'react';
+import React, {useEffect, useRef} from 'react';
 import {
   View,
-  Text,
   StyleSheet,
   Animated,
   ViewStyle,
+  Text as RNText,
 } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
-import { LinearGradient } from 'expo-linear-gradient';
+import {Ionicons} from '@expo/vector-icons';
+import {LinearGradient} from 'expo-linear-gradient';
 import PremiumButton from './PremiumButton';
-import { spacing, fontSize, borderRadius } from '../styles/designTokens';
+import {spacing, fontSize} from '../styles/designTokens';
+import {useTheme} from '../hooks/useTheme';
+import {ANIMATION} from '../constants/app';
+
+// Alias to use in component
+const Text = RNText;
 
 interface EmptyStateProps {
+  /** Nombre del icono de Ionicons */
   icon?: keyof typeof Ionicons.glyphMap;
+  /** Título principal */
   title: string;
+  /** Descripción opcional */
   description?: string;
+  /** Etiqueta del botón de acción */
   actionLabel?: string;
+  /** Función ejecutada al presionar el botón */
   onAction?: () => void;
+  /** Colores del gradiente para el botón */
   actionGradient?: string[];
+  /** Estilos personalizados */
   style?: ViewStyle;
+  /** Variante visual del componente */
   variant?: 'default' | 'gradient' | 'minimal';
+  /** Label de accesibilidad */
+  accessibilityLabel?: string;
 }
 
-export const EmptyState: React.FC<EmptyStateProps> = ({
-  icon = 'albums-outline',
-  title,
-  description,
-  actionLabel,
-  onAction,
-  actionGradient = ['#667eea', '#764ba2'],
-  style,
-  variant = 'default',
-}) => {
-  const fadeAnim = useRef(new Animated.Value(0)).current;
-  const scaleAnim = useRef(new Animated.Value(0.8)).current;
-  const slideAnim = useRef(new Animated.Value(30)).current;
+export const EmptyState: React.FC<EmptyStateProps> = React.memo(
+  ({
+    icon = 'albums-outline',
+    title,
+    description,
+    actionLabel,
+    onAction,
+    actionGradient = ['#667eea', '#764ba2'],
+    style,
+    variant = 'default',
+    accessibilityLabel,
+  }) => {
+    const {colors} = useTheme();
+    const fadeAnim = useRef(new Animated.Value(0)).current;
+    const scaleAnim = useRef(new Animated.Value(0.8)).current;
+    const slideAnim = useRef(new Animated.Value(30)).current;
 
-  useEffect(() => {
-    Animated.parallel([
-      Animated.timing(fadeAnim, {
-        toValue: 1,
-        duration: 600,
-        useNativeDriver: true,
-      }),
-      Animated.spring(scaleAnim, {
-        toValue: 1,
-        tension: 50,
-        friction: 7,
-        useNativeDriver: true,
-      }),
-      Animated.spring(slideAnim, {
-        toValue: 0,
-        tension: 50,
-        friction: 8,
-        useNativeDriver: true,
-      }),
-    ]).start();
-  }, []);
+    useEffect(() => {
+      Animated.parallel([
+        Animated.timing(fadeAnim, {
+          toValue: 1,
+          duration: 600,
+          useNativeDriver: true,
+        }),
+        Animated.spring(scaleAnim, {
+          toValue: 1,
+          tension: ANIMATION.SPRING_TENSION,
+          friction: ANIMATION.SPRING_FRICTION,
+          useNativeDriver: true,
+        }),
+        Animated.spring(slideAnim, {
+          toValue: 0,
+          tension: ANIMATION.SPRING_TENSION,
+          friction: ANIMATION.SPRING_FRICTION + 1,
+          useNativeDriver: true,
+        }),
+      ]).start();
+    }, []);
 
-  return (
-    <Animated.View
-      style={[
-        styles.container,
-        {
-          opacity: fadeAnim,
-          transform: [{ scale: scaleAnim }],
-        },
-        style,
-      ]}
-    >
-      {/* Icon Container */}
+    return (
       <Animated.View
         style={[
-          styles.iconContainer,
-          {
-            transform: [{ translateY: slideAnim }],
-          },
-        ]}
-      >
-        {variant === 'gradient' ? (
-          <LinearGradient
-            colors={actionGradient}
-            style={styles.iconGradientBg}
-          >
-            <Ionicons name={icon} size={64} color="#ffffff" />
-          </LinearGradient>
-        ) : (
-          <View
-            style={[
-              styles.iconBg,
-              variant === 'minimal' && styles.iconBgMinimal,
-            ]}
-          >
-            <Ionicons
-              name={icon}
-              size={64}
-              color={variant === 'minimal' ? '#cccccc' : '#667eea'}
-            />
-          </View>
-        )}
-      </Animated.View>
-
-      {/* Title */}
-      <Animated.Text
-        style={[
-          styles.title,
+          styles.container,
           {
             opacity: fadeAnim,
-            transform: [{ translateY: slideAnim }],
+            transform: [{scale: scaleAnim}],
           },
+          style,
         ]}
-      >
-        {title}
-      </Animated.Text>
+        accessible
+        accessibilityRole="text"
+        accessibilityLabel={
+          accessibilityLabel || `${title}. ${description || ''}`
+        }>
+        {/* Icon Container */}
+        <Animated.View
+          style={[
+            styles.iconContainer,
+            {
+              transform: [{translateY: slideAnim}],
+            },
+          ]}>
+          {variant === 'gradient' ? (
+            <LinearGradient
+              colors={actionGradient}
+              style={styles.iconGradientBg}>
+              <Ionicons name={icon} size={64} color="#ffffff" />
+            </LinearGradient>
+          ) : (
+            <View
+              style={[
+                styles.iconBg,
+                variant === 'minimal' && styles.iconBgMinimal,
+                variant !== 'minimal' && {
+                  backgroundColor: colors.primary + '20',
+                },
+              ]}>
+              <Ionicons
+                name={icon}
+                size={64}
+                color={
+                  variant === 'minimal' ? colors.textSecondary : colors.primary
+                }
+              />
+            </View>
+          )}
+        </Animated.View>
 
-      {/* Description */}
-      {description && (
+        {/* Title */}
         <Animated.Text
           style={[
-            styles.description,
+            styles.title,
             {
               opacity: fadeAnim,
+              transform: [{translateY: slideAnim}],
+              color: colors.text,
             },
           ]}
-        >
-          {description}
+          accessibilityRole="header">
+          {title}
         </Animated.Text>
-      )}
 
-      {/* Action Button */}
-      {actionLabel && onAction && (
-        <Animated.View
-          style={{
-            opacity: fadeAnim,
-            transform: [{ scale: scaleAnim }],
-            marginTop: spacing.xl,
-          }}
-        >
-          <PremiumButton
-            title={actionLabel}
-            onPress={onAction}
-            gradient={actionGradient}
-            variant="gradient"
-            size="large"
-          />
-        </Animated.View>
-      )}
-    </Animated.View>
-  );
-};
+        {/* Description */}
+        {description && (
+          <Animated.Text
+            style={[
+              styles.description,
+              {
+                opacity: fadeAnim,
+                color: colors.textSecondary,
+              },
+            ]}>
+            {description}
+          </Animated.Text>
+        )}
+
+        {/* Action Button */}
+        {actionLabel && onAction && (
+          <Animated.View
+            style={{
+              opacity: fadeAnim,
+              transform: [{scale: scaleAnim}],
+              marginTop: spacing.xl,
+            }}>
+            <PremiumButton
+              title={actionLabel}
+              onPress={onAction}
+              gradient={actionGradient}
+              variant="gradient"
+              size="large"
+            />
+          </Animated.View>
+        )}
+      </Animated.View>
+    );
+  },
+);
 
 const styles = StyleSheet.create({
   container: {
@@ -175,7 +201,6 @@ const styles = StyleSheet.create({
     width: 120,
     height: 120,
     borderRadius: 60,
-    backgroundColor: 'rgba(102, 126, 234, 0.1)',
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -192,17 +217,18 @@ const styles = StyleSheet.create({
   title: {
     fontSize: fontSize['2xl'],
     fontWeight: '700',
-    color: '#1a202c',
     textAlign: 'center',
     marginBottom: spacing.sm,
+    letterSpacing: -0.5,
   },
   description: {
     fontSize: fontSize.base,
-    color: '#718096',
     textAlign: 'center',
     lineHeight: fontSize.base * 1.5,
     maxWidth: 300,
   },
 });
+
+EmptyState.displayName = 'EmptyState';
 
 export default EmptyState;
