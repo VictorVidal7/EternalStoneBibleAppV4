@@ -14,6 +14,13 @@ export const AVAILABLE_VERSIONS: BibleVersion[] = [
     year: '1960',
   },
   {
+    id: 'NKJV',
+    name: 'New King James Version',
+    abbreviation: 'NKJV',
+    language: 'en',
+    year: '1982',
+  },
+  {
     id: 'NTV',
     name: 'Nueva Traducción Viviente',
     abbreviation: 'NTV',
