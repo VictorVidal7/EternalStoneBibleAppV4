@@ -80,7 +80,7 @@ export default function NotesScreen() {
                   {item.book} {item.chapter}:{item.verse}
                 </Text>
                 <Text style={[styles.noteDate, { color: colors.textSecondary }]}>
-                  {new Date(item.updatedAt).toLocaleDateString('es-ES', {
+                  {new Date(item.updatedAt).toLocaleDateString('en-US', {
                     year: 'numeric',
                     month: 'short',
                     day: 'numeric',
