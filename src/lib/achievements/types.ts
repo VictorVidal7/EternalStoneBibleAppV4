@@ -3,6 +3,8 @@
  * Motivates users to read the Bible more with achievements, streaks and levels
  */
 
+import { translations, Language } from '../../i18n/translations';
+
 export interface Achievement {
   id: string;
   name: string;
@@ -99,40 +101,55 @@ export const ACHIEVEMENT_TIER_POINTS: Record<AchievementTier, number> = {
   [AchievementTier.DIAMOND]: 200,
 };
 
-// User levels
-export const USER_LEVELS: LevelInfo[] = [
-  { level: 1, title: 'Apprentice', icon: '🌱', minPoints: 0, maxPoints: 100, benefits: ['Basic access'] },
-  { level: 2, title: 'Reader', icon: '📖', minPoints: 100, maxPoints: 250, benefits: ['Highlights unlocked'] },
-  { level: 3, title: 'Student', icon: '📚', minPoints: 250, maxPoints: 500, benefits: ['Advanced notes'] },
-  { level: 4, title: 'Disciple', icon: '✝️', minPoints: 500, maxPoints: 1000, benefits: ['Custom themes'] },
-  { level: 5, title: 'Teacher', icon: '👨‍🏫', minPoints: 1000, maxPoints: 2000, benefits: ['Detailed statistics'] },
-  { level: 6, title: 'Scholar', icon: '🎓', minPoints: 2000, maxPoints: 4000, benefits: ['Export data'] },
-  { level: 7, title: 'Sage', icon: '🧙', minPoints: 4000, maxPoints: 8000, benefits: ['Special badges'] },
-  { level: 8, title: 'Prophet', icon: '🔮', minPoints: 8000, maxPoints: 15000, benefits: ['Everything unlocked'] },
-  { level: 9, title: 'Apostle', icon: '⚡', minPoints: 15000, maxPoints: 30000, benefits: ['Elite rank'] },
-  { level: 10, title: 'Legend', icon: '👑', minPoints: 30000, maxPoints: Infinity, benefits: ['Total mastery'] },
+// User levels with static data (icons and points)
+const USER_LEVELS_DATA = [
+  { level: 1, icon: '🌱', minPoints: 0, maxPoints: 100 },
+  { level: 2, icon: '📖', minPoints: 100, maxPoints: 250 },
+  { level: 3, icon: '📚', minPoints: 250, maxPoints: 500 },
+  { level: 4, icon: '✝️', minPoints: 500, maxPoints: 1000 },
+  { level: 5, icon: '👨‍🏫', minPoints: 1000, maxPoints: 2000 },
+  { level: 6, icon: '🎓', minPoints: 2000, maxPoints: 4000 },
+  { level: 7, icon: '🧙', minPoints: 4000, maxPoints: 8000 },
+  { level: 8, icon: '🔮', minPoints: 8000, maxPoints: 15000 },
+  { level: 9, icon: '⚡', minPoints: 15000, maxPoints: 30000 },
+  { level: 10, icon: '👑', minPoints: 30000, maxPoints: Infinity },
 ];
 
+// Get user levels with translations
+export function getUserLevels(language: Language = 'en'): LevelInfo[] {
+  const t = translations[language];
+  return USER_LEVELS_DATA.map(level => ({
+    ...level,
+    title: t.achievements.levels[level.level as keyof typeof t.achievements.levels].title,
+    benefits: [t.achievements.levels[level.level as keyof typeof t.achievements.levels].benefits],
+  }));
+}
+
+// Legacy export for backward compatibility (defaults to English)
+export const USER_LEVELS: LevelInfo[] = getUserLevels('en');
+
 // Calculate level based on points
-export function calculateLevel(points: number): LevelInfo {
-  for (let i = USER_LEVELS.length - 1; i >= 0; i--) {
-    if (points >= USER_LEVELS[i].minPoints) {
-      return USER_LEVELS[i];
+export function calculateLevel(points: number, language: Language = 'en'): LevelInfo {
+  const levels = getUserLevels(language);
+  for (let i = levels.length - 1; i >= 0; i--) {
+    if (points >= levels[i].minPoints) {
+      return levels[i];
     }
   }
-  return USER_LEVELS[0];
+  return levels[0];
 }
 
 // Calculate progress to next level
-export function calculateLevelProgress(points: number): {
+export function calculateLevelProgress(points: number, language: Language = 'en'): {
   currentLevel: LevelInfo;
   nextLevel: LevelInfo | null;
   progress: number; // 0-100
   pointsNeeded: number;
 } {
-  const currentLevel = calculateLevel(points);
-  const currentIndex = USER_LEVELS.findIndex(l => l.level === currentLevel.level);
-  const nextLevel = currentIndex < USER_LEVELS.length - 1 ? USER_LEVELS[currentIndex + 1] : null;
+  const levels = getUserLevels(language);
+  const currentLevel = calculateLevel(points, language);
+  const currentIndex = levels.findIndex(l => l.level === currentLevel.level);
+  const nextLevel = currentIndex < levels.length - 1 ? levels[currentIndex + 1] : null;
 
   if (!nextLevel) {
     return {

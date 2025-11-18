@@ -6,14 +6,30 @@ import { useState, useEffect, useCallback } from 'react';
 import { AchievementService } from '../lib/achievements/AchievementService';
 import { Achievement, UserStats, ReadingStreak } from '../lib/achievements/types';
 import { BibleDatabase } from '../lib/database';
+import { useLanguage } from './useLanguage';
+import { getAchievementDefinitions } from '../lib/achievements/definitions';
 
 export function useAchievements(database: BibleDatabase | null) {
+  const { language } = useLanguage();
   const [service, setService] = useState<AchievementService | null>(null);
   const [achievements, setAchievements] = useState<Achievement[]>([]);
   const [stats, setStats] = useState<UserStats | null>(null);
   const [streak, setStreak] = useState<ReadingStreak | null>(null);
   const [loading, setLoading] = useState(true);
   const [newUnlocks, setNewUnlocks] = useState<Achievement[]>([]);
+
+  // Helper function to translate achievements
+  const translateAchievements = useCallback((achievements: Achievement[]): Achievement[] => {
+    const translations = getAchievementDefinitions(language);
+    return achievements.map(achievement => {
+      const translation = translations.find(t => t.id === achievement.id);
+      return translation ? {
+        ...achievement,
+        name: translation.name,
+        description: translation.description,
+      } : achievement;
+    });
+  }, [language]);
 
   // Inicializar servicio
   useEffect(() => {
@@ -38,7 +54,7 @@ export function useAchievements(database: BibleDatabase | null) {
           service.getReadingStreak(),
         ]);
 
-        setAchievements(allAchievements);
+        setAchievements(translateAchievements(allAchievements));
         setStats(userStats);
         setStreak(readingStreak);
       } catch (error) {
@@ -47,7 +63,7 @@ export function useAchievements(database: BibleDatabase | null) {
     };
 
     loadData();
-  }, [service]);
+  }, [service, translateAchievements]);
 
   /**
    * Registra lectura de versículos
@@ -68,11 +84,11 @@ export function useAchievements(database: BibleDatabase | null) {
         service.getReadingStreak(),
       ]);
 
-      setAchievements(updatedAchievements);
+      setAchievements(translateAchievements(updatedAchievements));
       setStats(updatedStats);
       setStreak(updatedStreak);
     },
-    [service]
+    [service, translateAchievements]
   );
 
   /**
@@ -91,9 +107,9 @@ export function useAchievements(database: BibleDatabase | null) {
       service.getUserStats(),
     ]);
 
-    setAchievements(updatedAchievements);
+    setAchievements(translateAchievements(updatedAchievements));
     setStats(updatedStats);
-  }, [service]);
+  }, [service, translateAchievements]);
 
   /**
    * Registra libro completado
@@ -130,9 +146,9 @@ export function useAchievements(database: BibleDatabase | null) {
       service.getUserStats(),
     ]);
 
-    setAchievements(updatedAchievements);
+    setAchievements(translateAchievements(updatedAchievements));
     setStats(updatedStats);
-  }, [service]);
+  }, [service, translateAchievements]);
 
   /**
    * Registra nota
@@ -146,9 +162,9 @@ export function useAchievements(database: BibleDatabase | null) {
       service.getUserStats(),
     ]);
 
-    setAchievements(updatedAchievements);
+    setAchievements(translateAchievements(updatedAchievements));
     setStats(updatedStats);
-  }, [service]);
+  }, [service, translateAchievements]);
 
   /**
    * Registra búsqueda
