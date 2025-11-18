@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { Modal, View, Text, TextInput, TouchableOpacity, StyleSheet } from 'react-native';
 import { useTheme } from '../context/ThemeContext';
+import { useTranslation } from '../context/TranslationContext';
 
 const NoteModal = ({ visible, onClose, verse, onSave, initialNote }) => {
   const [note, setNote] = useState('');
   const { colors } = useTheme();
+  const { t } = useTranslation();
 
   useEffect(() => {
     if (visible) {
@@ -29,22 +31,22 @@ const NoteModal = ({ visible, onClose, verse, onSave, initialNote }) => {
       <View style={styles.modalContainer}>
         <View style={styles.modalContent}>
           <Text style={styles.modalTitle}>
-            {verse ? `Note for ${verse.book} ${verse.chapter}:${verse.number}` : 'New Note'}
+            {verse ? `${t.notes.note} - ${verse.book} ${verse.chapter}:${verse.number}` : t.notes.add}
           </Text>
           <TextInput
             style={styles.noteInput}
             multiline
             value={note}
             onChangeText={setNote}
-            placeholder="Write your note here..."
+            placeholder={t.notes.placeholder}
             placeholderTextColor={colors.secondary}
           />
           <View style={styles.buttonContainer}>
             <TouchableOpacity style={styles.button} onPress={onClose}>
-              <Text style={styles.buttonText}>Cancel</Text>
+              <Text style={styles.buttonText}>{t.cancel}</Text>
             </TouchableOpacity>
             <TouchableOpacity style={[styles.button, styles.saveButton]} onPress={handleSave}>
-              <Text style={styles.buttonText}>Save</Text>
+              <Text style={styles.buttonText}>{t.save}</Text>
             </TouchableOpacity>
           </View>
         </View>

@@ -1,11 +1,11 @@
 /**
- * NotesContext - Contexto Global para Notas Bíblicas
+ * NotesContext - Global Context for Bible Notes
  *
- * Proporciona funcionalidad para agregar, actualizar, eliminar y recuperar
- * notas asociadas a versículos bíblicos específicos.
+ * Provides functionality to add, update, delete, and retrieve
+ * notes associated with specific Bible verses.
  *
- * Almacenamiento: AsyncStorage (persistencia local)
- * TypeScript completo con interfaces tipadas
+ * Storage: AsyncStorage (local persistence)
+ * Full TypeScript with typed interfaces
  */
 
 import React, {
@@ -21,7 +21,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import {logger} from '../lib/utils/logger';
 
 /**
- * Interfaz para una nota individual
+ * Interface for an individual note
  */
 interface Note {
   book: string;
@@ -33,14 +33,14 @@ interface Note {
 }
 
 /**
- * Tipo para el almacén de notas (clave-valor)
+ * Type for notes storage (key-value)
  */
 type NotesStore = {
   [key: string]: Note;
 };
 
 /**
- * Interfaz del contexto de notas
+ * Notes context interface
  */
 interface NotesContextType {
   notes: NotesStore;
@@ -63,34 +63,34 @@ interface NotesContextType {
 }
 
 /**
- * Contexto de notas - inicializado con valores por defecto
+ * Notes context - initialized with default values
  */
 const NotesContext = createContext<NotesContextType | undefined>(undefined);
 
 /**
- * Props para el proveedor de notas
+ * Props for notes provider
  */
 interface NotesProviderProps {
   children: ReactNode;
 }
 
 /**
- * Componente proveedor de contexto de notas
- * Maneja la carga, almacenamiento y sincronización de notas
+ * Notes context provider component
+ * Handles loading, storage, and synchronization of notes
  */
 export const NotesProvider: FC<NotesProviderProps> = ({children}) => {
   const [notes, setNotes] = useState<NotesStore>({});
   const [isLoading, setIsLoading] = useState(true);
 
   /**
-   * Carga notas guardadas desde AsyncStorage al inicializar
+   * Load saved notes from AsyncStorage on initialization
    */
   useEffect(() => {
     loadNotes();
   }, []);
 
   /**
-   * Carga notas desde AsyncStorage con manejo de errores
+   * Load notes from AsyncStorage with error handling
    */
   const loadNotes = useCallback(async (): Promise<void> => {
     try {
@@ -101,20 +101,20 @@ export const NotesProvider: FC<NotesProviderProps> = ({children}) => {
         const parsedNotes: NotesStore = JSON.parse(savedNotes);
         setNotes(parsedNotes);
 
-        logger.info('Notas cargadas desde almacenamiento', {
+        logger.info('Notes loaded from storage', {
           component: 'NotesContext',
           action: 'loadNotes',
           count: Object.keys(parsedNotes).length,
         });
       } else {
-        logger.info('No hay notas guardadas previamente', {
+        logger.info('No previously saved notes', {
           component: 'NotesContext',
           action: 'loadNotes',
         });
       }
     } catch (error) {
       logger.error(
-        'Error cargando notas',
+        'Error loading notes',
         error instanceof Error ? error : new Error(String(error)),
         {
           component: 'NotesContext',
@@ -127,21 +127,21 @@ export const NotesProvider: FC<NotesProviderProps> = ({children}) => {
   }, []);
 
   /**
-   * Guarda notas en AsyncStorage con manejo de errores
+   * Save notes to AsyncStorage with error handling
    */
   const saveNotes = useCallback(async (newNotes: NotesStore): Promise<void> => {
     try {
       await AsyncStorage.setItem('notes', JSON.stringify(newNotes));
       setNotes(newNotes);
 
-      logger.info('Notas guardadas en almacenamiento', {
+      logger.info('Notes saved to storage', {
         component: 'NotesContext',
         action: 'saveNotes',
         count: Object.keys(newNotes).length,
       });
     } catch (error) {
       logger.error(
-        'Error guardando notas',
+        'Error saving notes',
         error instanceof Error ? error : new Error(String(error)),
         {
           component: 'NotesContext',
@@ -152,7 +152,7 @@ export const NotesProvider: FC<NotesProviderProps> = ({children}) => {
   }, []);
 
   /**
-   * Agrega una nueva nota o reemplaza una existente
+   * Add a new note or replace an existing one
    */
   const addNote = useCallback(
     (book: string, chapter: number, verse: number, content: string): void => {
@@ -173,7 +173,7 @@ export const NotesProvider: FC<NotesProviderProps> = ({children}) => {
         };
         saveNotes(newNotes);
 
-        logger.info('Nota agregada', {
+        logger.info('Note added', {
           component: 'NotesContext',
           action: 'addNote',
           reference: key,
@@ -186,7 +186,7 @@ export const NotesProvider: FC<NotesProviderProps> = ({children}) => {
   );
 
   /**
-   * Actualiza una nota existente
+   * Update an existing note
    */
   const updateNote = useCallback(
     (book: string, chapter: number, verse: number, content: string): void => {
@@ -195,7 +195,7 @@ export const NotesProvider: FC<NotesProviderProps> = ({children}) => {
 
       setNotes(prevNotes => {
         if (!prevNotes[key]) {
-          logger.warn('Intento de actualizar nota que no existe', {
+          logger.warn('Attempt to update non-existent note', {
             component: 'NotesContext',
             action: 'updateNote',
             reference: key,
@@ -213,7 +213,7 @@ export const NotesProvider: FC<NotesProviderProps> = ({children}) => {
         };
         saveNotes(newNotes);
 
-        logger.info('Nota actualizada', {
+        logger.info('Note updated', {
           component: 'NotesContext',
           action: 'updateNote',
           reference: key,
@@ -226,7 +226,7 @@ export const NotesProvider: FC<NotesProviderProps> = ({children}) => {
   );
 
   /**
-   * Elimina una nota específica
+   * Delete a specific note
    */
   const deleteNote = useCallback(
     (book: string, chapter: number, verse: number): void => {
@@ -234,7 +234,7 @@ export const NotesProvider: FC<NotesProviderProps> = ({children}) => {
 
       setNotes(prevNotes => {
         if (!prevNotes[key]) {
-          logger.warn('Intento de eliminar nota que no existe', {
+          logger.warn('Attempt to delete non-existent note', {
             component: 'NotesContext',
             action: 'deleteNote',
             reference: key,
@@ -246,7 +246,7 @@ export const NotesProvider: FC<NotesProviderProps> = ({children}) => {
         delete newNotes[key];
         saveNotes(newNotes);
 
-        logger.info('Nota eliminada', {
+        logger.info('Note deleted', {
           component: 'NotesContext',
           action: 'deleteNote',
           reference: key,
@@ -259,7 +259,7 @@ export const NotesProvider: FC<NotesProviderProps> = ({children}) => {
   );
 
   /**
-   * Obtiene una nota específica por referencia
+   * Get a specific note by reference
    */
   const getNote = useCallback(
     (book: string, chapter: number, verse: number): Note | null => {
@@ -272,14 +272,14 @@ export const NotesProvider: FC<NotesProviderProps> = ({children}) => {
   );
 
   /**
-   * Obtiene todas las notas como un array
+   * Get all notes as an array
    */
   const getAllNotes = useCallback((): Note[] => {
     return Object.values(notes);
   }, [notes]);
 
   /**
-   * Valor del contexto con todas las funciones y estados
+   * Context value with all functions and states
    */
   const value: NotesContextType = {
     notes,
@@ -297,16 +297,16 @@ export const NotesProvider: FC<NotesProviderProps> = ({children}) => {
 };
 
 /**
- * Hook para usar el contexto de notas
- * @throws Error si se usa fuera del NotesProvider
+ * Hook to use notes context
+ * @throws Error if used outside NotesProvider
  */
 export const useNotes = (): NotesContextType => {
   const context = useContext(NotesContext);
 
   if (context === undefined) {
     throw new Error(
-      'useNotes debe ser utilizado dentro de un NotesProvider. ' +
-        'Asegúrate de envolver tu componente con <NotesProvider>.',
+      'useNotes must be used within a NotesProvider. ' +
+        'Make sure to wrap your component with <NotesProvider>.',
     );
   }
 
@@ -314,6 +314,6 @@ export const useNotes = (): NotesContextType => {
 };
 
 /**
- * Tipos exportados para uso en otros módulos
+ * Exported types for use in other modules
  */
 export type {Note, NotesStore, NotesContextType, NotesProviderProps};
