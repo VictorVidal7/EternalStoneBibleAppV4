@@ -169,15 +169,15 @@ export default function ChapterSelectionScreen() {
             style={styles.errorHeader}
           >
             <Ionicons name="alert-circle" size={64} color="#ffffff" />
-            <Text style={styles.errorTitle}>Libro no encontrado</Text>
+            <Text style={styles.errorTitle}>{t.bible.bookNotFound}</Text>
             <Text style={styles.errorSubtitle}>
-              No se pudo encontrar: "{book}"
+              {t.bible.couldNotFind}: "{book}"
             </Text>
           </LinearGradient>
 
           <View style={styles.errorDetails}>
             <Text style={[styles.errorLabel, { color: colors.textSecondary }]}>
-              Parámetro recibido:
+              {t.bible.parameterReceived}:
             </Text>
             <Text style={[styles.errorValue, { color: colors.text }]}>
               {JSON.stringify(params, null, 2)}
@@ -188,7 +188,7 @@ export default function ChapterSelectionScreen() {
               onPress={() => router.back()}
             >
               <Ionicons name="arrow-back" size={20} color="#ffffff" />
-              <Text style={styles.backButtonText}>Volver</Text>
+              <Text style={styles.backButtonText}>{t.bible.back}</Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -220,7 +220,7 @@ export default function ChapterSelectionScreen() {
               <Ionicons name="book" size={48} color="#ffffff" />
               <Text style={styles.loadingTitle}>{bookInfo.name}</Text>
               <Text style={styles.loadingSubtitle}>
-                Cargando {bookInfo.chapters} capítulos...
+                {t.bible.loadingChapters.replace('{{count}}', bookInfo.chapters.toString())}
               </Text>
               <View style={styles.loadingDots}>
                 <View style={[styles.dot, styles.dot1]} />
@@ -265,14 +265,14 @@ export default function ChapterSelectionScreen() {
                 <Ionicons name="book-outline" size={32} color="#ffffff" />
               </View>
               <View style={styles.headerTextContainer}>
-                <Text style={styles.headerSubtitle}>Selecciona un capítulo</Text>
+                <Text style={styles.headerSubtitle}>{t.bible.selectChapter}</Text>
                 <Text style={styles.headerTitle} numberOfLines={1}>
                   {bookInfo.name}
                 </Text>
                 <View style={styles.chapterCountBadge}>
                   <Ionicons name="document-text" size={14} color="#fbbf24" />
                   <Text style={styles.chapterCountText}>
-                    {chapters.length} {chapters.length === 1 ? 'capítulo' : 'capítulos'}
+                    {chapters.length} {chapters.length === 1 ? t.bible.chapter : t.bible.chapters}
                   </Text>
                 </View>
               </View>
@@ -317,10 +317,10 @@ export default function ChapterSelectionScreen() {
             <View style={styles.emptyContainer}>
               <Ionicons name="book-outline" size={64} color={colors.textTertiary} />
               <Text style={[styles.emptyText, { color: colors.textSecondary }]}>
-                No se pudieron cargar los capítulos
+                {t.bible.couldNotLoadChapters}
               </Text>
               <Text style={[styles.emptySubtext, { color: colors.textTertiary }]}>
-                Libro: {book || 'No especificado'}
+                {t.bible.book}: {book || t.bible.notSpecified}
               </Text>
             </View>
           )}

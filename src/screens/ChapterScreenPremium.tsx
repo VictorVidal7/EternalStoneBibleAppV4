@@ -399,7 +399,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: spacing.base,
-    borderWidth: 2,
+    borderWidth: 0,
     borderColor: 'rgba(255,255,255,0.3)',
   },
   headerTextContainer: {
