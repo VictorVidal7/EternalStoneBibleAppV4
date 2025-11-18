@@ -395,11 +395,11 @@ const ChapterCard: React.FC<ChapterCardProps> = React.memo(
             style={[
               styles.card,
               {
-                backgroundColor: '#FFFFFF',  // Blanco puro para máximo contraste
-                shadowColor: '#000000',
+                backgroundColor: isDark ? '#2A2A3E' : '#FFFFFF',
+                shadowColor: isDark ? '#FFFFFF' : '#000000',
                 shadowOffset: { width: 0, height: 2 },
-                shadowOpacity: 0.08,  // Sutil pero visible
-                shadowRadius: 12,  // Suave difuminado profesional
+                shadowOpacity: isDark ? 0.05 : 0.08,
+                shadowRadius: 12,
                 elevation: 3,
               },
             ]}
@@ -409,7 +409,7 @@ const ChapterCard: React.FC<ChapterCardProps> = React.memo(
               style={[
                 styles.chapterNumber,
                 {
-                  color: '#4A90E2',  // Azul consistente con la app
+                  color: isDark ? '#5B9FED' : '#4A90E2',
                 },
               ]}
             >
