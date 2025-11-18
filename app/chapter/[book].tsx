@@ -13,7 +13,7 @@ import {
   Animated,
   Dimensions,
   Platform,
-  FlatList,
+  ScrollView,
 } from 'react-native';
 import { useRouter, useLocalSearchParams, Stack } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -129,27 +129,6 @@ export default function ChapterSelectionScreen() {
       router.push(`/verse/${book}/${chapter}` as any);
     },
     [router, book]
-  );
-
-  /**
-   * Renderizar item de capítulo con animación
-   */
-  const renderItem = useCallback(
-    ({ item, index }: { item: ChapterItem; index: number }) => {
-      console.log('🎨 Rendering chapter:', item.chapter, 'at index:', index);
-      return (
-        <ChapterCard
-          chapter={item.chapter}
-          onPress={() => navigateToVerse(item.chapter)}
-          index={index}
-          colors={colors}
-          isDark={isDark}
-          t={t}
-          bookName={bookInfo?.name || ''}
-        />
-      );
-    },
-    [colors, isDark, navigateToVerse, bookInfo, t]
   );
 
   // Mostrar error si no se encuentra el libro
@@ -293,22 +272,29 @@ export default function ChapterSelectionScreen() {
         </Animated.View>
 
         {/* Grid de capítulos */}
-        <View style={styles.listContainer}>
+        <ScrollView
+          style={styles.scrollView}
+          contentContainerStyle={styles.scrollContent}
+          showsVerticalScrollIndicator={false}
+        >
           {chapters.length > 0 ? (
-            <FlatList
-              data={chapters}
-              renderItem={renderItem}
-              keyExtractor={(item) => item.id}
-              numColumns={CARDS_PER_ROW}
-              key={`flatlist-${CARDS_PER_ROW}`}
-              showsVerticalScrollIndicator={false}
-              contentContainerStyle={styles.listContent}
-              initialNumToRender={15}
-              maxToRenderPerBatch={10}
-              windowSize={5}
-              removeClippedSubviews={false}
-              style={{ flex: 1 }}
-            />
+            <View style={styles.gridContainer}>
+              {chapters.map((item, index) => {
+                console.log('🎨 Rendering chapter:', item.chapter, 'at index:', index);
+                return (
+                  <ChapterCard
+                    key={item.id}
+                    chapter={item.chapter}
+                    onPress={() => navigateToVerse(item.chapter)}
+                    index={index}
+                    colors={colors}
+                    isDark={isDark}
+                    t={t}
+                    bookName={bookInfo?.name || ''}
+                  />
+                );
+              })}
+            </View>
           ) : (
             <View style={styles.emptyContainer}>
               <Ionicons name="book-outline" size={64} color={colors.textTertiary} />
@@ -320,7 +306,7 @@ export default function ChapterSelectionScreen() {
               </Text>
             </View>
           )}
-        </View>
+        </ScrollView>
       </View>
     </>
   );
@@ -610,14 +596,19 @@ const styles = StyleSheet.create({
     right: 50,
   },
 
-  // List
-  listContainer: {
+  // ScrollView & Grid
+  scrollView: {
     flex: 1,
   },
-  listContent: {
+  scrollContent: {
     paddingHorizontal: spacing.lg,
     paddingTop: spacing.lg,
     paddingBottom: spacing.xl,
+  },
+  gridContainer: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'flex-start',
   },
   emptyContainer: {
     flex: 1,
