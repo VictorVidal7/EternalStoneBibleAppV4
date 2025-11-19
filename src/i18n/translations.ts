@@ -174,6 +174,8 @@ export const translations = {
       navigate: 'Navegar a',
       screenLabel: 'Pantalla de notas',
       screenHint: 'Lista de tus notas personales de la Biblia',
+      modalTitle: 'Nota para {{book}} {{chapter}}:{{verse}}',
+      newNote: 'Nueva Nota',
     },
 
     // Settings Screen
@@ -511,6 +513,8 @@ export const translations = {
       navigate: 'Navigate to',
       screenLabel: 'Notes screen',
       screenHint: 'List of your personal Bible notes',
+      modalTitle: 'Note for {{book}} {{chapter}}:{{verse}}',
+      newNote: 'New Note',
     },
 
     // Settings Screen
