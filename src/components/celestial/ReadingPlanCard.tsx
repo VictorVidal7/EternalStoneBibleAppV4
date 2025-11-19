@@ -84,7 +84,7 @@ interface ReadingPlanCardProps {
 
   /**
    * Ancho de la card
-   * @default 240
+   * @default 260
    */
   width?: number;
 }
@@ -100,7 +100,7 @@ const ReadingPlanCard: React.FC<ReadingPlanCardProps> = ({
   onPress,
   continueText = 'Continuar',
   isDark = false,
-  width = 240,
+  width = 260,
 }) => {
   const theme = createCelestialTheme(isDark);
   const scaleAnim = useRef(new Animated.Value(1)).current;
@@ -253,7 +253,7 @@ const styles = StyleSheet.create({
   card: {
     borderWidth: 1,
     padding: 20, // Aumentado de 16 a 20 para más espacio
-    minHeight: 220, // Aumentado de 200 a 220 para acomodar texto
+    minHeight: 240, // Aumentado de 220 a 240 para acomodar texto
     justifyContent: 'space-between',
   },
   header: {
@@ -290,13 +290,14 @@ const styles = StyleSheet.create({
   },
   subtitle: {
     fontSize: 12, // xs
-    fontWeight: '500',
+    fontWeight: '600',
     marginBottom: 4,
+    lineHeight: 16,
     opacity: 0.8,
   },
   description: {
-    fontSize: 12, // xs
-    lineHeight: 16.8, // 12 * 1.4
+    fontSize: 11, // Reducido de 12 a 11 para mejor ajuste
+    lineHeight: 15, // 11 * 1.36
     opacity: 0.7,
   },
   progressContainer: {
