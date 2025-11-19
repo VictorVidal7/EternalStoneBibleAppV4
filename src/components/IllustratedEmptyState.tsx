@@ -23,6 +23,7 @@ import * as Haptics from 'expo-haptics';
 
 import { spacing, borderRadius, fontSize, shadows } from '../styles/designTokens';
 import { typography } from '../styles/typography';
+import { useLanguage } from '../hooks/useLanguage';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
@@ -51,6 +52,7 @@ export const IllustratedEmptyState: React.FC<IllustratedEmptyStateProps> = ({
   colors,
   isDark,
 }) => {
+  const { t } = useLanguage();
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const scaleAnim = useRef(new Animated.Value(0.9)).current;
   const bounceAnim = useRef(new Animated.Value(0)).current;
@@ -101,45 +103,44 @@ export const IllustratedEmptyState: React.FC<IllustratedEmptyStateProps> = ({
       'no-bookmarks': {
         icon: 'bookmark-outline' as const,
         gradient: ['#667eea', '#764ba2'],
-        defaultTitle: 'Sin marcadores aún',
-        defaultMessage:
-          'Guarda tus versículos favoritos para acceder a ellos rápidamente',
-        defaultAction: 'Explorar la Biblia',
+        defaultTitle: t.emptyStates.noBookmarks.title,
+        defaultMessage: t.emptyStates.noBookmarks.message,
+        defaultAction: t.emptyStates.noBookmarks.action,
       },
       'no-notes': {
         icon: 'create-outline' as const,
         gradient: ['#10b981', '#059669'],
-        defaultTitle: 'Sin notas todavía',
-        defaultMessage: 'Crea notas personales para reflexionar sobre tu lectura',
-        defaultAction: 'Empezar a leer',
+        defaultTitle: t.emptyStates.noNotes.title,
+        defaultMessage: t.emptyStates.noNotes.message,
+        defaultAction: t.emptyStates.noNotes.action,
       },
       'no-highlights': {
         icon: 'color-palette-outline' as const,
         gradient: ['#f59e0b', '#d97706'],
-        defaultTitle: 'Sin resaltados',
-        defaultMessage: 'Resalta versículos importantes mientras lees',
-        defaultAction: 'Abrir Biblia',
+        defaultTitle: t.emptyStates.noHighlights.title,
+        defaultMessage: t.emptyStates.noHighlights.message,
+        defaultAction: t.emptyStates.noHighlights.action,
       },
       'no-search-results': {
         icon: 'search-outline' as const,
         gradient: ['#3b82f6', '#2563eb'],
-        defaultTitle: 'Sin resultados',
-        defaultMessage: 'Intenta con otras palabras clave o términos',
-        defaultAction: 'Limpiar búsqueda',
+        defaultTitle: t.emptyStates.noSearchResults.title,
+        defaultMessage: t.emptyStates.noSearchResults.message,
+        defaultAction: t.emptyStates.noSearchResults.action,
       },
       'no-achievements': {
         icon: 'trophy-outline' as const,
         gradient: ['#ec4899', '#db2777'],
-        defaultTitle: 'Sin logros desbloqueados',
-        defaultMessage: 'Lee la Biblia diariamente para desbloquear logros',
-        defaultAction: 'Ver desafíos',
+        defaultTitle: t.emptyStates.noAchievements.title,
+        defaultMessage: t.emptyStates.noAchievements.message,
+        defaultAction: t.emptyStates.noAchievements.action,
       },
       'no-reading-plan': {
         icon: 'calendar-outline' as const,
         gradient: ['#8b5cf6', '#7c3aed'],
-        defaultTitle: 'Sin plan de lectura activo',
-        defaultMessage: 'Elige un plan para guiar tu lectura diaria',
-        defaultAction: 'Explorar planes',
+        defaultTitle: t.emptyStates.noReadingPlan.title,
+        defaultMessage: t.emptyStates.noReadingPlan.message,
+        defaultAction: t.emptyStates.noReadingPlan.action,
       },
     };
 
