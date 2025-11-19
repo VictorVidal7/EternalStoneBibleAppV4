@@ -87,8 +87,8 @@ const QUICK_ACCESS_BOOKS = [
 const READING_PLANS = [
   {
     name: 'Sabiduría Diaria',
-    subtitle: 'Libro de Proverbios',
-    description: 'Un capítulo de Proverbios cada día',
+    subtitle: 'Proverbios',
+    description: 'Un capítulo cada día',
     icon: 'bulb-outline',
     color: '#f59e0b',
     duration: 31,
@@ -96,8 +96,8 @@ const READING_PLANS = [
   },
   {
     name: 'Nuevo Testamento',
-    subtitle: 'Plan de 260 días',
-    description: 'Lee el Nuevo Testamento completo',
+    subtitle: '260 días',
+    description: 'Completo en 260 días',
     icon: 'book-outline',
     color: '#6366f1',
     duration: 260,
@@ -105,8 +105,8 @@ const READING_PLANS = [
   },
   {
     name: 'Salmos y Alabanza',
-    subtitle: 'Plan de 150 días',
-    description: 'Un salmo por día',
+    subtitle: '150 días',
+    description: 'Un salmo diario',
     icon: 'musical-notes-outline',
     color: '#a855f7',
     duration: 150,
@@ -489,7 +489,7 @@ const HomeScreen: React.FC = () => {
                 onPress={() => handleReadingPlanPress(plan.name)}
                 continueText="Continuar"
                 isDark={isDarkMode}
-                width={260}
+                width={240}
               />
             ))}
           </ScrollView>
