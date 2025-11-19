@@ -153,6 +153,7 @@ export const translations = {
       listLabel: 'Lista de marcadores',
       listHint: 'Desplázate para explorar tus versículos favoritos',
       removed: 'Marcador eliminado',
+      removedSuccessfully: 'Marcador eliminado exitosamente',
     },
 
     // Notes Screen
@@ -174,6 +175,8 @@ export const translations = {
       navigate: 'Navegar a',
       screenLabel: 'Pantalla de notas',
       screenHint: 'Lista de tus notas personales de la Biblia',
+      modalTitle: 'Nota para {{book}} {{chapter}}:{{verse}}',
+      newNote: 'Nueva Nota',
     },
 
     // Settings Screen
@@ -335,6 +338,40 @@ export const translations = {
         special: 'Especiales',
       },
     },
+
+    // Empty States
+    emptyStates: {
+      noBookmarks: {
+        title: 'Sin marcadores aún',
+        message: 'Guarda tus versículos favoritos para acceder a ellos rápidamente',
+        action: 'Explorar la Biblia',
+      },
+      noNotes: {
+        title: 'Sin notas todavía',
+        message: 'Crea notas personales para reflexionar sobre tu lectura',
+        action: 'Empezar a leer',
+      },
+      noHighlights: {
+        title: 'Sin resaltados',
+        message: 'Resalta versículos importantes mientras lees',
+        action: 'Abrir Biblia',
+      },
+      noSearchResults: {
+        title: 'Sin resultados',
+        message: 'Intenta con otras palabras clave o términos',
+        action: 'Limpiar búsqueda',
+      },
+      noAchievements: {
+        title: 'Sin logros desbloqueados',
+        message: 'Lee la Biblia diariamente para desbloquear logros',
+        action: 'Ver desafíos',
+      },
+      noReadingPlan: {
+        title: 'Sin plan de lectura activo',
+        message: 'Elige un plan para guiar tu lectura diaria',
+        action: 'Explorar planes',
+      },
+    },
   },
 
   en: {
@@ -490,6 +527,7 @@ export const translations = {
       listLabel: 'Bookmarks list',
       listHint: 'Scroll to explore your favorite verses',
       removed: 'Bookmark removed',
+      removedSuccessfully: 'Bookmark removed successfully',
     },
 
     // Notes Screen
@@ -511,6 +549,8 @@ export const translations = {
       navigate: 'Navigate to',
       screenLabel: 'Notes screen',
       screenHint: 'List of your personal Bible notes',
+      modalTitle: 'Note for {{book}} {{chapter}}:{{verse}}',
+      newNote: 'New Note',
     },
 
     // Settings Screen
@@ -668,6 +708,40 @@ export const translations = {
         notes: 'Notes',
         search: 'Search',
         special: 'Special',
+      },
+    },
+
+    // Empty States
+    emptyStates: {
+      noBookmarks: {
+        title: 'No bookmarks yet',
+        message: 'Save your favorite verses to access them quickly',
+        action: 'Explore the Bible',
+      },
+      noNotes: {
+        title: 'No notes yet',
+        message: 'Create personal notes to reflect on your reading',
+        action: 'Start reading',
+      },
+      noHighlights: {
+        title: 'No highlights',
+        message: 'Highlight important verses while reading',
+        action: 'Open Bible',
+      },
+      noSearchResults: {
+        title: 'No results',
+        message: 'Try different keywords or terms',
+        action: 'Clear search',
+      },
+      noAchievements: {
+        title: 'No achievements unlocked',
+        message: 'Read the Bible daily to unlock achievements',
+        action: 'View challenges',
+      },
+      noReadingPlan: {
+        title: 'No active reading plan',
+        message: 'Choose a plan to guide your daily reading',
+        action: 'Explore plans',
       },
     },
   },

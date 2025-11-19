@@ -50,7 +50,7 @@ export default function BookmarksScreen() {
           style: 'destructive',
           onPress: async () => {
             await bibleDB.removeBookmark(id);
-            toast.success('Bookmark removed successfully');
+            toast.success(t.bookmarks.removedSuccessfully);
             loadBookmarks();
           },
         },
