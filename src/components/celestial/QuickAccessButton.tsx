@@ -54,20 +54,14 @@ const getGradientForColor = (baseColor: string): [string, string] => {
 };
 
 /**
- * Obtiene el background tintado para modo claro según el color
- * Usa rgba con opacidad uniforme (0.08) para consistencia visual
+ * Obtiene el background para modo claro
+ * Usa blanco semi-transparente uniforme para diseño ligero y elegante
+ * El color vibrante viene SOLO del gradiente del ícono
  */
 const getBackgroundForColor = (baseColor: string): string => {
-  const backgroundMap: Record<string, string> = {
-    '#3b82f6': 'rgba(59, 130, 246, 0.08)',   // blue con 8% opacidad
-    '#a855f7': 'rgba(168, 85, 247, 0.08)',   // purple con 8% opacidad
-    '#f59e0b': 'rgba(245, 158, 11, 0.08)',   // amber con 8% opacidad
-    '#f43f5e': 'rgba(244, 63, 94, 0.08)',    // rose con 8% opacidad
-    '#10b981': 'rgba(16, 185, 129, 0.08)',   // emerald con 8% opacidad
-    '#8b5cf6': 'rgba(139, 92, 246, 0.08)',   // violet con 8% opacidad
-  };
-
-  return backgroundMap[baseColor] || 'rgba(0,0,0,0.02)';
+  // Background blanco uniforme para todos los cards
+  // El color distintivo viene del gradiente del ícono
+  return 'rgba(255, 255, 255, 0.75)'; // Blanco semi-transparente
 };
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
@@ -311,16 +305,16 @@ const styles = StyleSheet.create({
     }),
   },
   lightModeShadow: {
-    // Sombras más pronunciadas para modo claro
+    // Sombras sutiles para modo claro - diseño ligero
     ...Platform.select({
       ios: {
-        shadowColor: '#94a3b8', // slate-400 (más oscuro que slate-300)
-        shadowOffset: { width: 0, height: 3 },
-        shadowOpacity: 0.18, // Aumentado para más visibilidad
-        shadowRadius: 10,
+        shadowColor: '#64748b', // slate-500
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.06, // MUY sutil - reducido de 0.18
+        shadowRadius: 8,
       },
       android: {
-        elevation: 5, // Aumentado de 4 a 5
+        elevation: 2, // Reducido de 5 a 2 para diseño más ligero
       },
     }),
   },
