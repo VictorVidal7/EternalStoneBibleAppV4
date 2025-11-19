@@ -55,15 +55,16 @@ const getGradientForColor = (baseColor: string): [string, string] => {
 
 /**
  * Obtiene el background tintado para modo claro según el color
+ * Usa rgba con opacidad uniforme (0.08) para consistencia visual
  */
 const getBackgroundForColor = (baseColor: string): string => {
   const backgroundMap: Record<string, string> = {
-    '#3b82f6': '#eff6ff', // blue-50
-    '#a855f7': '#faf5ff', // purple-50
-    '#f59e0b': '#fffbeb', // amber-50
-    '#f43f5e': '#fff1f2', // rose-50
-    '#10b981': '#f0fdf4', // emerald-50
-    '#8b5cf6': '#f5f3ff', // violet-50
+    '#3b82f6': 'rgba(59, 130, 246, 0.08)',   // blue con 8% opacidad
+    '#a855f7': 'rgba(168, 85, 247, 0.08)',   // purple con 8% opacidad
+    '#f59e0b': 'rgba(245, 158, 11, 0.08)',   // amber con 8% opacidad
+    '#f43f5e': 'rgba(244, 63, 94, 0.08)',    // rose con 8% opacidad
+    '#10b981': 'rgba(16, 185, 129, 0.08)',   // emerald con 8% opacidad
+    '#8b5cf6': 'rgba(139, 92, 246, 0.08)',   // violet con 8% opacidad
   };
 
   return backgroundMap[baseColor] || 'rgba(0,0,0,0.02)';
@@ -270,13 +271,13 @@ const QuickAccessButton: React.FC<QuickAccessButtonProps> = ({
 
 const styles = StyleSheet.create({
   container: {
-    width: (SCREEN_WIDTH - 24 * 3) / 2, // 2 columnas con padding
-    marginBottom: 20,
+    width: '48%', // Exactamente la mitad para 2 columnas con gap
+    marginBottom: 16,
   },
   card: {
-    height: 100,
+    aspectRatio: 1, // Proporción 1:1 para cards cuadrados
     borderWidth: 1,
-    padding: 12,
+    padding: 16,
     justifyContent: 'space-between',
     position: 'relative',
   },
@@ -301,11 +302,11 @@ const styles = StyleSheet.create({
       ios: {
         shadowColor: '#000',
         shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.15,
+        shadowOpacity: 0.25, // Aumentado de 0.15 a 0.25 para más visibilidad
         shadowRadius: 8,
       },
       android: {
-        elevation: 6,
+        elevation: 8, // Aumentado de 6 a 8
       },
     }),
   },
@@ -313,13 +314,13 @@ const styles = StyleSheet.create({
     // Sombras más pronunciadas para modo claro
     ...Platform.select({
       ios: {
-        shadowColor: '#cbd5e1', // slate-300
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.2,
-        shadowRadius: 8,
+        shadowColor: '#94a3b8', // slate-400 (más oscuro que slate-300)
+        shadowOffset: { width: 0, height: 3 },
+        shadowOpacity: 0.18, // Aumentado para más visibilidad
+        shadowRadius: 10,
       },
       android: {
-        elevation: 4,
+        elevation: 5, // Aumentado de 4 a 5
       },
     }),
   },

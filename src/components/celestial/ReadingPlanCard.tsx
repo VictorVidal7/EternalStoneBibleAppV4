@@ -188,6 +188,7 @@ const ReadingPlanCard: React.FC<ReadingPlanCardProps> = ({
             <Text
               style={[styles.name, { color: theme.colors.text }]}
               numberOfLines={2}
+              ellipsizeMode="tail"
             >
               {name}
             </Text>
@@ -196,6 +197,7 @@ const ReadingPlanCard: React.FC<ReadingPlanCardProps> = ({
               <Text
                 style={[styles.subtitle, { color: theme.colors.textSecondary }]}
                 numberOfLines={1}
+                ellipsizeMode="tail"
               >
                 {subtitle}
               </Text>
@@ -205,6 +207,7 @@ const ReadingPlanCard: React.FC<ReadingPlanCardProps> = ({
               <Text
                 style={[styles.description, { color: theme.colors.textSecondary }]}
                 numberOfLines={2}
+                ellipsizeMode="tail"
               >
                 {description}
               </Text>
@@ -249,15 +252,15 @@ const styles = StyleSheet.create({
   },
   card: {
     borderWidth: 1,
-    padding: 16,
-    minHeight: 200,
+    padding: 20, // Aumentado de 16 a 20 para más espacio
+    minHeight: 220, // Aumentado de 200 a 220 para acomodar texto
     justifyContent: 'space-between',
   },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    marginBottom: 12,
+    marginBottom: 10,
   },
   iconContainer: {
     width: 40,
@@ -277,13 +280,13 @@ const styles = StyleSheet.create({
   },
   content: {
     flex: 1,
-    marginBottom: 12,
+    marginBottom: 10,
   },
   name: {
-    fontSize: 16, // base
+    fontSize: 15, // Reducido de 16 a 15 para mejor ajuste
     fontWeight: '700',
     marginBottom: 4,
-    lineHeight: 20.8, // 16 * 1.3
+    lineHeight: 20, // Ajustado para 15px
   },
   subtitle: {
     fontSize: 12, // xs

@@ -261,7 +261,16 @@ const HomeScreen: React.FC = () => {
       StyleSheet.create({
         container: {
           flex: 1,
-          backgroundColor: theme.colors.background,
+          backgroundColor: isDarkMode
+            ? theme.colors.background
+            : '#f8fafc', // slate-50 para modo claro
+        },
+        backgroundGradient: {
+          position: 'absolute',
+          left: 0,
+          right: 0,
+          top: 0,
+          bottom: 0,
         },
         contentContainer: {
           flexGrow: 1,
@@ -339,15 +348,29 @@ const HomeScreen: React.FC = () => {
   );
 
   return (
-    <ScrollView
-      style={styles.container}
-      contentContainerStyle={styles.contentContainer}
-      showsVerticalScrollIndicator={false}>
-      <StatusBar
-        backgroundColor="transparent"
-        barStyle="light-content"
-        translucent
-      />
+    <View style={styles.container}>
+      {/* Gradiente de fondo sutil solo en modo claro */}
+      {!isDarkMode && (
+        <LinearGradient
+          colors={[
+            '#f8fafc', // slate-50
+            '#f1f5f9', // slate-100
+            '#eef2ff', // indigo-50
+          ]}
+          locations={[0, 0.6, 1]}
+          style={styles.backgroundGradient}
+        />
+      )}
+
+      <ScrollView
+        style={{flex: 1}}
+        contentContainerStyle={styles.contentContainer}
+        showsVerticalScrollIndicator={false}>
+        <StatusBar
+          backgroundColor="transparent"
+          barStyle="light-content"
+          translucent
+        />
 
       {/* Header con Glassmorphism y Gradiente */}
       <LinearGradient
@@ -472,7 +495,8 @@ const HomeScreen: React.FC = () => {
           </ScrollView>
         </View>
       </Animated.View>
-    </ScrollView>
+      </ScrollView>
+    </View>
   );
 };
 
