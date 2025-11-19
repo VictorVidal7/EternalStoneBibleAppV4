@@ -10,3 +10,5 @@ export { default as StatsCard } from './StatsCard';
 export { default as VerseOfDayCard } from './VerseOfDayCard';
 export { default as QuickAccessButton } from './QuickAccessButton';
 export { default as ReadingPlanCard } from './ReadingPlanCard';
+export { default as WelcomeCard } from './WelcomeCard';
+export { default as ContinueReadingButton } from './ContinueReadingButton';
