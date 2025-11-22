@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "682262373872",
+    "project_id": "eternal-stone-bible-app-5ad27",
+    "storage_bucket": "eternal-stone-bible-app-5ad27.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:682262373872:android:51b4865e337496c74f6935",
+        "android_client_info": {
+          "package_name": "com.eternalstonebible.app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBKCU6Lp1f9Unexnt0fhbzlIzLUkaZ5rgg"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

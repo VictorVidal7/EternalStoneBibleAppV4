@@ -8,10 +8,7 @@
     "userInterfaceStyle": "automatic",
     "scheme": "eternalbible",
     "newArchEnabled": true,
-    "plugins": [
-      "expo-router",
-      "expo-sqlite"
-    ],
+    "plugins": ["expo-router", "expo-sqlite", "@react-native-firebase/app"],
     "splash": {
       "image": "./assets/splash-icon.png",
       "resizeMode": "contain",
@@ -21,12 +18,14 @@
       "supportsTablet": true
     },
     "android": {
+      "package": "com.eternalstonebible.app",
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#ffffff"
       },
       "edgeToEdgeEnabled": true,
-      "predictiveBackGestureEnabled": false
+      "predictiveBackGestureEnabled": false,
+      "googleServicesFile": "./google-services.json"
     },
     "web": {
       "favicon": "./assets/favicon.png"
