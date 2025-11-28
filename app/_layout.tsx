@@ -1,20 +1,27 @@
-import { Stack } from 'expo-router';
-import { useEffect, useState } from 'react';
-import { View, Text, ActivityIndicator, StyleSheet } from 'react-native';
-import { initializeBibleData, checkDataStatus } from '../src/lib/database/data-loader';
-import { ThemeProvider } from '../src/hooks/useTheme';
-import { BibleVersionProvider } from '../src/hooks/useBibleVersion';
-import { LanguageProvider, useLanguage } from '../src/hooks/useLanguage';
-import { ServicesProvider } from '../src/context/ServicesContext';
-import { ToastProvider } from '../src/context/ToastContext';
-import { AchievementNotifications } from '../src/components/AchievementNotifications';
-import { AnimatedSplashScreen } from '../src/components/AnimatedSplashScreen';
+import {Stack} from 'expo-router';
+import {useEffect, useState} from 'react';
+import {View, Text, ActivityIndicator, StyleSheet} from 'react-native';
+import {
+  initializeBibleData,
+  checkDataStatus,
+} from '../src/lib/database/data-loader';
+import {ThemeProvider} from '../src/hooks/useTheme';
+import {BibleVersionProvider} from '../src/hooks/useBibleVersion';
+import {LanguageProvider, useLanguage} from '../src/hooks/useLanguage';
+import {ServicesProvider} from '../src/context/ServicesContext';
+import {ToastProvider} from '../src/context/ToastContext';
+import {AchievementNotifications} from '../src/components/AchievementNotifications';
+import {AnimatedSplashScreen} from '../src/components/AnimatedSplashScreen';
 import bibleDB from '../src/lib/database';
+import {predictiveCacheService} from '../src/lib/cache/PredictiveCache';
+import {badgeSystemService} from '../src/lib/badges/BadgeSystem';
+import {versionComparisonService} from '../src/lib/comparison/VersionComparison';
+import {widgetTaskHandler} from '../src/widgets/WidgetTaskHandler';
 
 function AppContent() {
-  const { t } = useLanguage();
+  const {t} = useLanguage();
   const [isLoading, setIsLoading] = useState(true);
-  const [loadingProgress, setLoadingProgress] = useState({ loaded: 0, total: 0 });
+  const [loadingProgress, setLoadingProgress] = useState({loaded: 0, total: 0});
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -28,9 +35,26 @@ function AppContent() {
       if (!status.isLoaded) {
         // Load Bible data with progress tracking
         await initializeBibleData((loaded, total) => {
-          setLoadingProgress({ loaded, total });
+          setLoadingProgress({loaded, total});
         });
       }
+
+      // ✨ Inicializar servicios V5.1
+      console.log('🚀 Inicializando servicios V5.1...');
+      await Promise.all([
+        predictiveCacheService.initialize(),
+        badgeSystemService.initialize(),
+        versionComparisonService.initialize(),
+        widgetTaskHandler.initialize(),
+      ]);
+
+      // Precalentar caché con contenido popular
+      await predictiveCacheService.warmupCache();
+
+      // Limpiar entradas expiradas del caché
+      await predictiveCacheService.cleanup();
+
+      console.log('✅ Servicios V5.1 inicializados correctamente');
 
       setIsLoading(false);
     } catch (err) {
@@ -54,9 +78,7 @@ function AppContent() {
       <View style={styles.errorContainer}>
         <Text style={styles.errorTitle}>{t.error}</Text>
         <Text style={styles.errorText}>{error}</Text>
-        <Text style={styles.errorHint}>
-          {t.app.errorHint}
-        </Text>
+        <Text style={styles.errorHint}>{t.app.errorHint}</Text>
       </View>
     );
   }
@@ -66,8 +88,7 @@ function AppContent() {
       <Stack
         screenOptions={{
           headerShown: false,
-        }}
-      >
+        }}>
         <Stack.Screen name="(tabs)" />
       </Stack>
       <AchievementNotifications />

@@ -8,21 +8,23 @@ import {
   Alert,
   Linking,
 } from 'react-native';
-import { useState } from 'react';
-import { Ionicons } from '@expo/vector-icons';
-import { useTheme } from '../../src/hooks/useTheme';
-import { useBibleVersion } from '../../src/hooks/useBibleVersion';
-import { useLanguage } from '../../src/hooks/useLanguage';
-import { resetBibleData } from '../../src/lib/database/data-loader';
+import {useState} from 'react';
+import {Ionicons} from '@expo/vector-icons';
+import {useRouter} from 'expo-router';
+import {useTheme} from '../../src/hooks/useTheme';
+import {useBibleVersion} from '../../src/hooks/useBibleVersion';
+import {useLanguage} from '../../src/hooks/useLanguage';
+import {resetBibleData} from '../../src/lib/database/data-loader';
 import * as Haptics from 'expo-haptics';
-import type { Language } from '../../src/i18n/translations';
+import type {Language} from '../../src/i18n/translations';
 
 type ThemeOption = 'light' | 'dark' | 'auto';
 
 export default function SettingsScreen() {
-  const { mode, setThemeMode, isDark, colors } = useTheme();
-  const { selectedVersion, setVersion, availableVersions } = useBibleVersion();
-  const { language, setLanguage, t } = useLanguage();
+  const router = useRouter();
+  const {mode, setThemeMode, isDark, colors} = useTheme();
+  const {selectedVersion, setVersion, availableVersions} = useBibleVersion();
+  const {language, setLanguage, t} = useLanguage();
   const [isResetting, setIsResetting] = useState(false);
 
   async function handleThemeChange(newMode: ThemeOption) {
@@ -31,32 +33,28 @@ export default function SettingsScreen() {
   }
 
   async function handleResetData() {
-    Alert.alert(
-      t.settings.resetTitle,
-      t.settings.resetMessage,
-      [
-        { text: t.cancel, style: 'cancel' },
-        {
-          text: t.delete,
-          style: 'destructive',
-          onPress: async () => {
-            setIsResetting(true);
-            try {
-              await resetBibleData();
-              Alert.alert(
-                t.settings.resetSuccess,
-                t.settings.resetSuccessMessage,
-                [{ text: t.ok }]
-              );
-            } catch (error) {
-              Alert.alert(t.error, t.settings.resetError);
-            } finally {
-              setIsResetting(false);
-            }
-          },
+    Alert.alert(t.settings.resetTitle, t.settings.resetMessage, [
+      {text: t.cancel, style: 'cancel'},
+      {
+        text: t.delete,
+        style: 'destructive',
+        onPress: async () => {
+          setIsResetting(true);
+          try {
+            await resetBibleData();
+            Alert.alert(
+              t.settings.resetSuccess,
+              t.settings.resetSuccessMessage,
+              [{text: t.ok}],
+            );
+          } catch (error) {
+            Alert.alert(t.error, t.settings.resetError);
+          } finally {
+            setIsResetting(false);
+          }
         },
-      ]
-    );
+      },
+    ]);
   }
 
   function handleOpenGitHub() {
@@ -66,11 +64,16 @@ export default function SettingsScreen() {
   const themedStyles = createThemedStyles(colors, isDark);
 
   return (
-    <ScrollView style={[styles.container, { backgroundColor: colors.background }]}>
+    <ScrollView
+      style={[styles.container, {backgroundColor: colors.background}]}>
       {/* Appearance Section */}
       <View style={themedStyles.section}>
         <View style={themedStyles.sectionHeader}>
-          <Ionicons name="color-palette-outline" size={22} color={colors.primary} />
+          <Ionicons
+            name="color-palette-outline"
+            size={22}
+            color={colors.primary}
+          />
           <Text style={themedStyles.sectionTitle}>{t.settings.appearance}</Text>
         </View>
 
@@ -86,8 +89,7 @@ export default function SettingsScreen() {
                 themedStyles.themeOption,
                 mode === 'light' && themedStyles.themeOptionActive,
               ]}
-              onPress={() => handleThemeChange('light')}
-            >
+              onPress={() => handleThemeChange('light')}>
               <Ionicons
                 name="sunny"
                 size={24}
@@ -97,8 +99,7 @@ export default function SettingsScreen() {
                 style={[
                   themedStyles.themeOptionText,
                   mode === 'light' && themedStyles.themeOptionTextActive,
-                ]}
-              >
+                ]}>
                 {t.settings.themeLight}
               </Text>
             </TouchableOpacity>
@@ -108,8 +109,7 @@ export default function SettingsScreen() {
                 themedStyles.themeOption,
                 mode === 'dark' && themedStyles.themeOptionActive,
               ]}
-              onPress={() => handleThemeChange('dark')}
-            >
+              onPress={() => handleThemeChange('dark')}>
               <Ionicons
                 name="moon"
                 size={24}
@@ -119,8 +119,7 @@ export default function SettingsScreen() {
                 style={[
                   themedStyles.themeOptionText,
                   mode === 'dark' && themedStyles.themeOptionTextActive,
-                ]}
-              >
+                ]}>
                 {t.settings.themeDark}
               </Text>
             </TouchableOpacity>
@@ -130,8 +129,7 @@ export default function SettingsScreen() {
                 themedStyles.themeOption,
                 mode === 'auto' && themedStyles.themeOptionActive,
               ]}
-              onPress={() => handleThemeChange('auto')}
-            >
+              onPress={() => handleThemeChange('auto')}>
               <Ionicons
                 name="phone-portrait-outline"
                 size={24}
@@ -141,8 +139,7 @@ export default function SettingsScreen() {
                 style={[
                   themedStyles.themeOptionText,
                   mode === 'auto' && themedStyles.themeOptionTextActive,
-                ]}
-              >
+                ]}>
                 {t.settings.themeAuto}
               </Text>
             </TouchableOpacity>
@@ -154,62 +151,74 @@ export default function SettingsScreen() {
       <View style={themedStyles.section}>
         <View style={themedStyles.sectionHeader}>
           <Ionicons name="book-outline" size={22} color={colors.primary} />
-          <Text style={themedStyles.sectionTitle}>{t.settings.bibleVersion}</Text>
+          <Text style={themedStyles.sectionTitle}>
+            {t.settings.bibleVersion}
+          </Text>
         </View>
 
         <View style={themedStyles.card}>
-          <Text style={themedStyles.settingLabel}>{t.settings.selectVersion}</Text>
+          <Text style={themedStyles.settingLabel}>
+            {t.settings.selectVersion}
+          </Text>
           <Text style={themedStyles.settingDescription}>
             {t.settings.versionDescription}
           </Text>
 
           <View style={themedStyles.versionOptions}>
-            {availableVersions.map((version) => (
+            {availableVersions.map(version => (
               <TouchableOpacity
                 key={version.id}
                 style={[
                   themedStyles.versionOption,
-                  selectedVersion.id === version.id && themedStyles.versionOptionActive,
+                  selectedVersion.id === version.id &&
+                    themedStyles.versionOptionActive,
                 ]}
                 onPress={async () => {
                   await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
                   await setVersion(version.id);
-                }}
-              >
+                }}>
                 <View style={styles.versionOptionContent}>
                   <View style={styles.versionHeader}>
                     <Text
                       style={[
                         themedStyles.versionAbbr,
-                        selectedVersion.id === version.id && themedStyles.versionAbbrActive,
-                      ]}
-                    >
+                        selectedVersion.id === version.id &&
+                          themedStyles.versionAbbrActive,
+                      ]}>
                       {version.abbreviation}
                     </Text>
                     {selectedVersion.id === version.id && (
-                      <Ionicons name="checkmark-circle" size={20} color={colors.primary} />
+                      <Ionicons
+                        name="checkmark-circle"
+                        size={20}
+                        color={colors.primary}
+                      />
                     )}
                   </View>
                   <Text
                     style={[
                       themedStyles.versionName,
-                      selectedVersion.id === version.id && themedStyles.versionNameActive,
-                    ]}
-                  >
+                      selectedVersion.id === version.id &&
+                        themedStyles.versionNameActive,
+                    ]}>
                     {version.name}
                   </Text>
                   <View style={styles.versionMeta}>
                     <Ionicons
                       name="language-outline"
                       size={12}
-                      color={selectedVersion.id === version.id ? colors.primary : colors.textTertiary}
+                      color={
+                        selectedVersion.id === version.id
+                          ? colors.primary
+                          : colors.textTertiary
+                      }
                     />
                     <Text
                       style={[
                         themedStyles.versionMetaText,
-                        selectedVersion.id === version.id && themedStyles.versionMetaActive,
-                      ]}
-                    >
+                        selectedVersion.id === version.id &&
+                          themedStyles.versionMetaActive,
+                      ]}>
                       {version.language === 'es' ? 'Español' : 'English'}
                     </Text>
                     {version.year && (
@@ -218,9 +227,9 @@ export default function SettingsScreen() {
                         <Text
                           style={[
                             themedStyles.versionMetaText,
-                            selectedVersion.id === version.id && themedStyles.versionMetaActive,
-                          ]}
-                        >
+                            selectedVersion.id === version.id &&
+                              themedStyles.versionMetaActive,
+                          ]}>
                           {version.year}
                         </Text>
                       </>
@@ -228,7 +237,9 @@ export default function SettingsScreen() {
                   </View>
                   {version.id !== 'RVR1960' && version.id !== 'KJV' && (
                     <View style={themedStyles.comingSoonBadge}>
-                      <Text style={themedStyles.comingSoonBadgeText}>{t.settings.comingSoon}</Text>
+                      <Text style={themedStyles.comingSoonBadgeText}>
+                        {t.settings.comingSoon}
+                      </Text>
                     </View>
                   )}
                 </View>
@@ -246,7 +257,9 @@ export default function SettingsScreen() {
         </View>
 
         <View style={themedStyles.card}>
-          <Text style={themedStyles.settingLabel}>{t.settings.selectLanguage}</Text>
+          <Text style={themedStyles.settingLabel}>
+            {t.settings.selectLanguage}
+          </Text>
           <Text style={themedStyles.settingDescription}>
             {t.settings.languageDescription}
           </Text>
@@ -260,20 +273,22 @@ export default function SettingsScreen() {
               onPress={async () => {
                 await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
                 await setLanguage('es');
-              }}
-            >
+              }}>
               <View style={styles.languageContent}>
                 <Text style={themedStyles.languageFlag}>🇪🇸</Text>
                 <Text
                   style={[
                     themedStyles.languageName,
                     language === 'es' && themedStyles.languageNameActive,
-                  ]}
-                >
+                  ]}>
                   Español
                 </Text>
                 {language === 'es' && (
-                  <Ionicons name="checkmark-circle" size={20} color={colors.primary} />
+                  <Ionicons
+                    name="checkmark-circle"
+                    size={20}
+                    color={colors.primary}
+                  />
                 )}
               </View>
             </TouchableOpacity>
@@ -286,20 +301,22 @@ export default function SettingsScreen() {
               onPress={async () => {
                 await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
                 await setLanguage('en');
-              }}
-            >
+              }}>
               <View style={styles.languageContent}>
                 <Text style={themedStyles.languageFlag}>🇺🇸</Text>
                 <Text
                   style={[
                     themedStyles.languageName,
                     language === 'en' && themedStyles.languageNameActive,
-                  ]}
-                >
+                  ]}>
                   English
                 </Text>
                 {language === 'en' && (
-                  <Ionicons name="checkmark-circle" size={20} color={colors.primary} />
+                  <Ionicons
+                    name="checkmark-circle"
+                    size={20}
+                    color={colors.primary}
+                  />
                 )}
               </View>
             </TouchableOpacity>
@@ -317,11 +334,10 @@ export default function SettingsScreen() {
         <TouchableOpacity
           style={themedStyles.card}
           onPress={handleResetData}
-          disabled={isResetting}
-        >
+          disabled={isResetting}>
           <View style={themedStyles.settingRow}>
             <View style={styles.settingInfo}>
-              <Text style={[themedStyles.settingLabel, { color: colors.error }]}>
+              <Text style={[themedStyles.settingLabel, {color: colors.error}]}>
                 {isResetting ? t.settings.resetting : t.settings.resetData}
               </Text>
               <Text style={themedStyles.settingDescription}>
@@ -333,17 +349,155 @@ export default function SettingsScreen() {
         </TouchableOpacity>
       </View>
 
+      {/* New Features V5.1 Section */}
+      <View style={themedStyles.section}>
+        <View style={themedStyles.sectionHeader}>
+          <Ionicons name="sparkles" size={22} color={colors.accent} />
+          <Text style={themedStyles.sectionTitle}>
+            Nuevas Funcionalidades V5.1
+          </Text>
+        </View>
+
+        <View style={themedStyles.card}>
+          {/* Widgets */}
+          <TouchableOpacity
+            style={themedStyles.featureItem}
+            onPress={async () => {
+              await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+              router.push('/features/widgets');
+            }}>
+            <View style={styles.featureContent}>
+              <View
+                style={[
+                  themedStyles.featureIcon,
+                  {backgroundColor: colors.primary + '15'},
+                ]}>
+                <Ionicons name="apps" size={24} color={colors.primary} />
+              </View>
+              <View style={styles.featureInfo}>
+                <Text style={themedStyles.featureTitle}>Widgets</Text>
+                <Text style={themedStyles.featureDescription}>
+                  Agrega widgets a tu pantalla principal
+                </Text>
+              </View>
+            </View>
+            <Ionicons
+              name="chevron-forward"
+              size={20}
+              color={colors.textTertiary}
+            />
+          </TouchableOpacity>
+
+          {/* Version Comparison */}
+          <TouchableOpacity
+            style={themedStyles.featureItem}
+            onPress={async () => {
+              await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+              router.push('/features/version-comparison');
+            }}>
+            <View style={styles.featureContent}>
+              <View
+                style={[
+                  themedStyles.featureIcon,
+                  {backgroundColor: colors.accent + '15'},
+                ]}>
+                <Ionicons name="git-compare" size={24} color={colors.accent} />
+              </View>
+              <View style={styles.featureInfo}>
+                <Text style={themedStyles.featureTitle}>
+                  Comparación de Versiones
+                </Text>
+                <Text style={themedStyles.featureDescription}>
+                  Compara hasta 4 versiones de la Biblia
+                </Text>
+              </View>
+            </View>
+            <Ionicons
+              name="chevron-forward"
+              size={20}
+              color={colors.textTertiary}
+            />
+          </TouchableOpacity>
+
+          {/* Badges & Titles */}
+          <TouchableOpacity
+            style={themedStyles.featureItem}
+            onPress={async () => {
+              await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+              router.push('/features/badges');
+            }}>
+            <View style={styles.featureContent}>
+              <View
+                style={[
+                  themedStyles.featureIcon,
+                  {backgroundColor: colors.warning + '15'},
+                ]}>
+                <Ionicons name="ribbon" size={24} color={colors.warning} />
+              </View>
+              <View style={styles.featureInfo}>
+                <Text style={themedStyles.featureTitle}>Logros y Títulos</Text>
+                <Text style={themedStyles.featureDescription}>
+                  Desbloquea badges y títulos especiales
+                </Text>
+              </View>
+            </View>
+            <Ionicons
+              name="chevron-forward"
+              size={20}
+              color={colors.textTertiary}
+            />
+          </TouchableOpacity>
+
+          {/* Cache Stats */}
+          <TouchableOpacity
+            style={[themedStyles.featureItem, {borderBottomWidth: 0}]}
+            onPress={async () => {
+              await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+              router.push('/features/cache-stats');
+            }}>
+            <View style={styles.featureContent}>
+              <View
+                style={[
+                  themedStyles.featureIcon,
+                  {backgroundColor: '#10B981' + '15'},
+                ]}>
+                <Ionicons name="flash" size={24} color="#10B981" />
+              </View>
+              <View style={styles.featureInfo}>
+                <Text style={themedStyles.featureTitle}>
+                  Estadísticas de Caché
+                </Text>
+                <Text style={themedStyles.featureDescription}>
+                  Visualiza el rendimiento del sistema
+                </Text>
+              </View>
+            </View>
+            <Ionicons
+              name="chevron-forward"
+              size={20}
+              color={colors.textTertiary}
+            />
+          </TouchableOpacity>
+        </View>
+      </View>
+
       {/* About Section */}
       <View style={themedStyles.section}>
         <View style={themedStyles.sectionHeader}>
-          <Ionicons name="information-circle-outline" size={22} color={colors.primary} />
+          <Ionicons
+            name="information-circle-outline"
+            size={22}
+            color={colors.primary}
+          />
           <Text style={themedStyles.sectionTitle}>{t.settings.about}</Text>
         </View>
 
         <View style={themedStyles.card}>
           <View style={themedStyles.aboutRow}>
             <Text style={themedStyles.settingLabel}>Eternal Bible</Text>
-            <Text style={themedStyles.settingValue}>{t.settings.version} 3.0.0</Text>
+            <Text style={themedStyles.settingValue}>
+              {t.settings.version} 3.0.0
+            </Text>
           </View>
 
           <View style={themedStyles.aboutRow}>
@@ -352,7 +506,9 @@ export default function SettingsScreen() {
             </Text>
           </View>
 
-          <TouchableOpacity style={themedStyles.linkButton} onPress={handleOpenGitHub}>
+          <TouchableOpacity
+            style={themedStyles.linkButton}
+            onPress={handleOpenGitHub}>
             <Ionicons name="logo-github" size={20} color={colors.primary} />
             <Text style={themedStyles.linkText}>{t.settings.viewGitHub}</Text>
           </TouchableOpacity>
@@ -361,12 +517,8 @@ export default function SettingsScreen() {
 
       {/* Footer */}
       <View style={themedStyles.footer}>
-        <Text style={themedStyles.footerText}>
-          {t.settings.footerText}
-        </Text>
-        <Text style={themedStyles.footerVerse}>
-          {t.settings.footerVerse}
-        </Text>
+        <Text style={themedStyles.footerText}>{t.settings.footerText}</Text>
+        <Text style={themedStyles.footerVerse}>{t.settings.footerVerse}</Text>
       </View>
     </ScrollView>
   );
@@ -398,6 +550,15 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 12,
   },
+  featureContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flex: 1,
+    gap: 12,
+  },
+  featureInfo: {
+    flex: 1,
+  },
 });
 
 function createThemedStyles(colors: any, isDark: boolean) {
@@ -423,7 +584,7 @@ function createThemedStyles(colors: any, isDark: boolean) {
       borderRadius: 12,
       padding: 16,
       shadowColor: '#000',
-      shadowOffset: { width: 0, height: 2 },
+      shadowOffset: {width: 0, height: 2},
       shadowOpacity: isDark ? 0.3 : 0.1,
       shadowRadius: 4,
       elevation: 3,
@@ -607,6 +768,31 @@ function createThemedStyles(colors: any, isDark: boolean) {
       textAlign: 'center',
       fontStyle: 'italic',
       lineHeight: 20,
+    },
+    featureItem: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      paddingVertical: 14,
+      borderBottomWidth: 1,
+      borderBottomColor: colors.border,
+    },
+    featureIcon: {
+      width: 48,
+      height: 48,
+      borderRadius: 12,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    featureTitle: {
+      fontSize: 15,
+      fontWeight: '600',
+      color: colors.text,
+      marginBottom: 2,
+    },
+    featureDescription: {
+      fontSize: 13,
+      color: colors.textSecondary,
     },
   });
 }
