@@ -13,7 +13,7 @@
  * - Tipografía dual (Serif para versículos, Sans para UI)
  */
 
-import React, { useEffect, useState, useRef } from 'react';
+import React, {useEffect, useState, useRef} from 'react';
 import {
   View,
   Text,
@@ -25,19 +25,19 @@ import {
   Platform,
   StatusBar as RNStatusBar,
 } from 'react-native';
-import { useRouter } from 'expo-router';
-import { Ionicons } from '@expo/vector-icons';
-import { LinearGradient } from 'expo-linear-gradient';
-import { BlurView } from 'expo-blur';
+import {useRouter} from 'expo-router';
+import {Ionicons} from '@expo/vector-icons';
+import {LinearGradient} from 'expo-linear-gradient';
+import {BlurView} from 'expo-blur';
 import * as Haptics from 'expo-haptics';
 
 import bibleDB from '../../src/lib/database';
-import { BibleVerse, ReadingProgress } from '../../src/types/bible';
-import { READING_PLANS } from '../../src/constants/reading-plans';
-import { useTheme } from '../../src/hooks/useTheme';
-import { useBibleVersion } from '../../src/hooks/useBibleVersion';
-import { useServices } from '../../src/context/ServicesContext';
-import { useLanguage } from '../../src/hooks/useLanguage';
+import {BibleVerse, ReadingProgress} from '../../src/types/bible';
+import {READING_PLANS} from '../../src/constants/reading-plans';
+import {useTheme} from '../../src/hooks/useTheme';
+import {useBibleVersion} from '../../src/hooks/useBibleVersion';
+import {useServices} from '../../src/context/ServicesContext';
+import {useLanguage} from '../../src/hooks/useLanguage';
 
 // Componentes Celestial
 import {
@@ -54,15 +54,15 @@ import {
   celestialSpacing,
 } from '../../src/styles/celestialTheme';
 
-const { width: SCREEN_WIDTH } = Dimensions.get('window');
+const {width: SCREEN_WIDTH} = Dimensions.get('window');
 
 export default function HomeScreen() {
   const router = useRouter();
-  const { isDark } = useTheme();
+  const {isDark, colors} = useTheme();
   const celestialTheme = createCelestialTheme(isDark);
-  const { selectedVersion } = useBibleVersion();
-  const { achievementService, initialized: servicesInitialized } = useServices();
-  const { t } = useLanguage();
+  const {selectedVersion} = useBibleVersion();
+  const {achievementService, initialized: servicesInitialized} = useServices();
+  const {t} = useLanguage();
 
   const [dailyVerse, setDailyVerse] = useState<BibleVerse | null>(null);
   const [lastRead, setLastRead] = useState<ReadingProgress | null>(null);
@@ -145,14 +145,25 @@ export default function HomeScreen() {
 
   if (loading) {
     return (
-      <View style={[styles.container, { backgroundColor: celestialTheme.colors.background }]}>
+      <View
+        style={[
+          styles.container,
+          {backgroundColor: celestialTheme.colors.background},
+        ]}>
         <LinearGradient
           colors={celestialTheme.colors.backgroundGradient}
-          style={styles.gradientBackground}
-        >
+          style={styles.gradientBackground}>
           <View style={styles.loadingContainer}>
-            <Ionicons name="book" size={48} color={celestialTheme.colors.primary} />
-            <Text style={[styles.loadingText, { color: celestialTheme.colors.textSecondary }]}>
+            <Ionicons
+              name="book"
+              size={48}
+              color={celestialTheme.colors.primary}
+            />
+            <Text
+              style={[
+                styles.loadingText,
+                {color: celestialTheme.colors.textSecondary},
+              ]}>
               Cargando tu biblia...
             </Text>
           </View>
@@ -172,15 +183,13 @@ export default function HomeScreen() {
       <ScrollView
         style={styles.scrollView}
         contentContainerStyle={styles.contentContainer}
-        showsVerticalScrollIndicator={false}
-      >
+        showsVerticalScrollIndicator={false}>
         {/* ==================== HERO SECTION - Welcome Card ==================== */}
         <Animated.View
           style={{
             opacity: fadeAnim,
-            transform: [{ translateY: slideAnim }, { scale: scaleAnim }],
-          }}
-        >
+            transform: [{translateY: slideAnim}, {scale: scaleAnim}],
+          }}>
           <BlurView
             intensity={isDark ? 40 : 70}
             tint={isDark ? 'dark' : 'light'}
@@ -190,46 +199,58 @@ export default function HomeScreen() {
                 backgroundColor: celestialTheme.colors.surfaceGlass,
                 borderColor: celestialTheme.colors.glassBorder,
                 borderRadius: celestialBorderRadius.cardLarge, // 28px
+                shadowColor: '#6366f1',
+                shadowOffset: {width: 0, height: 12},
+                shadowOpacity: 0.35, // Sombra DRAMÁTICA
+                shadowRadius: 24,
+                elevation: 12, // Elevación DRAMÁTICA para Android
               },
-              celestialTheme.shadows.xl,
-            ]}
-          >
+            ]}>
             {/* Decorative circles blur effect */}
             <View style={styles.decorativeCircles}>
-              <View style={[styles.circle1, { backgroundColor: celestialTheme.colors.glow }]} />
-              <View style={[styles.circle2, { backgroundColor: celestialTheme.colors.glow }]} />
+              <View
+                style={[
+                  styles.circle1,
+                  {backgroundColor: celestialTheme.colors.glow},
+                ]}
+              />
+              <View
+                style={[
+                  styles.circle2,
+                  {backgroundColor: celestialTheme.colors.glow},
+                ]}
+              />
             </View>
 
             {/* Gradiente de fondo del hero */}
             <LinearGradient
               colors={celestialTheme.colors.primaryGradient}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 1 }}
-              style={styles.heroGradient}
-            >
-              {/* Stars decoration */}
+              start={{x: 0, y: 0}}
+              end={{x: 1, y: 1}}
+              style={styles.heroGradient}>
+              {/* Stars decoration - MÁS GRANDES Y VISIBLES */}
               <Ionicons
                 name="star"
-                size={20}
-                color="rgba(255,255,255,0.3)"
+                size={28}
+                color="rgba(255,255,255,0.45)"
                 style={styles.star1}
               />
               <Ionicons
                 name="star"
-                size={16}
-                color="rgba(255,255,255,0.2)"
+                size={22}
+                color="rgba(255,255,255,0.35)"
                 style={styles.star2}
               />
               <Ionicons
                 name="star"
-                size={12}
-                color="rgba(255,255,255,0.25)"
+                size={18}
+                color="rgba(255,255,255,0.40)"
                 style={styles.star3}
               />
 
               <View style={styles.heroContent}>
-                {/* Ícono principal */}
-                <Ionicons name="book" size={48} color="#ffffff" />
+                {/* Ícono principal - MÁS GRANDE */}
+                <Ionicons name="book" size={64} color="#ffffff" />
 
                 {/* Título y subtítulo */}
                 <Text style={styles.heroTitle}>Bienvenido</Text>
@@ -272,48 +293,59 @@ export default function HomeScreen() {
 
         {/* ==================== VERSE OF THE DAY ==================== */}
         {dailyVerse && (
-          <Animated.View style={{ opacity: fadeAnim, marginTop: celestialSpacing.sectionGap }}>
+          <Animated.View
+            style={{opacity: fadeAnim, marginTop: celestialSpacing.sectionGap}}>
             <VerseOfDayCard
               verseText={dailyVerse.text}
               reference={`${dailyVerse.book} ${dailyVerse.chapter}:${dailyVerse.verse}`}
               title="✨ Verso del Día"
               isDark={isDark}
+              shadowIntensity="xl" // Sombra más pronunciada
               onPress={() =>
                 handlePress(() =>
-                  router.push(`/verse/${dailyVerse.book}/${dailyVerse.chapter}` as any)
+                  router.push(
+                    `/verse/${dailyVerse.book}/${dailyVerse.chapter}` as any,
+                  ),
                 )
               }
               onShare={() => handlePress(() => console.log('Share verse'))}
-              onFavorite={() => handlePress(() => console.log('Favorite verse'))}
+              onFavorite={() =>
+                handlePress(() => console.log('Favorite verse'))
+              }
             />
           </Animated.View>
         )}
 
         {/* ==================== CONTINUE READING ==================== */}
         {lastRead && (
-          <Animated.View style={{ opacity: fadeAnim, marginTop: celestialSpacing.sectionGap }}>
+          <Animated.View
+            style={{opacity: fadeAnim, marginTop: celestialSpacing.sectionGap}}>
             <TouchableOpacity
               activeOpacity={0.9}
               onPress={() =>
                 handlePress(() =>
-                  router.push(`/verse/${lastRead.book}/${lastRead.chapter}` as any)
+                  router.push(
+                    `/verse/${lastRead.book}/${lastRead.chapter}` as any,
+                  ),
                 )
-              }
-            >
+              }>
               <LinearGradient
-                colors={celestialTheme.colors.accentGradient}
-                start={{ x: 0, y: 0 }}
-                end={{ x: 1, y: 0 }}
+                colors={['#FFB74D', '#FF9800', '#F57C00']} // Gradiente naranja vibrante
+                start={{x: 0, y: 0}}
+                end={{x: 1, y: 1}}
                 style={[
                   styles.continueButton,
                   {
                     borderRadius: celestialBorderRadius.cardMedium, // 24px
+                    shadowColor: '#FFB74D',
+                    shadowOffset: {width: 0, height: 8},
+                    shadowOpacity: 0.4, // MÁS visible
+                    shadowRadius: 16,
+                    elevation: 12, // DUPLICADO para Android
                   },
-                  celestialTheme.shadows.lg,
-                ]}
-              >
+                ]}>
                 <View style={styles.continueHeader}>
-                  <Ionicons name="play-circle" size={32} color="#ffffff" />
+                  <Ionicons name="play-circle" size={48} color="#ffffff" />
                   <Text style={styles.continueTitle}>Continuar Leyendo</Text>
                 </View>
 
@@ -341,12 +373,21 @@ export default function HomeScreen() {
         )}
 
         {/* ==================== QUICK ACCESS ==================== */}
-        <Animated.View style={{ opacity: fadeAnim, marginTop: celestialSpacing.sectionGap }}>
+        <Animated.View
+          style={{opacity: fadeAnim, marginTop: celestialSpacing.sectionGap}}>
           <View style={styles.sectionHeader}>
-            <Text style={[styles.sectionTitle, { color: celestialTheme.colors.text }]}>
+            <Text
+              style={[
+                styles.sectionTitle,
+                {color: celestialTheme.colors.text},
+              ]}>
               Acceso Rápido
             </Text>
-            <Ionicons name="flash" size={20} color={celestialTheme.colors.warning} />
+            <Ionicons
+              name="flash"
+              size={26}
+              color={celestialTheme.colors.warning}
+            />
           </View>
 
           <View style={styles.quickGrid}>
@@ -368,19 +409,27 @@ export default function HomeScreen() {
         </Animated.View>
 
         {/* ==================== READING PLANS ==================== */}
-        <Animated.View style={{ opacity: fadeAnim, marginTop: celestialSpacing.sectionGap }}>
+        <Animated.View
+          style={{opacity: fadeAnim, marginTop: celestialSpacing.sectionGap}}>
           <View style={styles.sectionHeader}>
-            <Text style={[styles.sectionTitle, { color: celestialTheme.colors.text }]}>
+            <Text
+              style={[
+                styles.sectionTitle,
+                {color: celestialTheme.colors.text},
+              ]}>
               Planes de Lectura
             </Text>
-            <Ionicons name="calendar" size={20} color={celestialTheme.colors.accent} />
+            <Ionicons
+              name="calendar"
+              size={26}
+              color={celestialTheme.colors.accent}
+            />
           </View>
 
           <ScrollView
             horizontal
             showsHorizontalScrollIndicator={false}
-            contentContainerStyle={styles.plansScroll}
-          >
+            contentContainerStyle={styles.plansScroll}>
             {READING_PLANS.slice(0, 3).map((plan, index) => (
               <ReadingPlanCard
                 key={plan.id}
@@ -393,7 +442,9 @@ export default function HomeScreen() {
                 daysCompleted={Math.floor(plan.duration * 0.3)} // Simulado
                 onPress={() =>
                   handlePress(() =>
-                    router.push(`/chapter/${plan.days[0].readings[0].book}` as any)
+                    router.push(
+                      `/chapter/${plan.days[0].readings[0].book}` as any,
+                    ),
                   )
                 }
                 continueText="Comenzar"
@@ -412,11 +463,14 @@ export default function HomeScreen() {
                 color: celestialTheme.colors.textTertiary,
                 fontFamily: celestialTheme.typography.fontFamily.serif,
               },
-            ]}
-          >
+            ]}>
             "Lámpara es a mis pies tu palabra, y lumbrera a mi camino."
           </Text>
-          <Text style={[styles.footerReference, { color: celestialTheme.colors.textTertiary }]}>
+          <Text
+            style={[
+              styles.footerReference,
+              {color: celestialTheme.colors.textTertiary},
+            ]}>
             — Salmos 119:105
           </Text>
         </View>
@@ -431,12 +485,12 @@ export default function HomeScreen() {
  * Libros de acceso rápido con íconos vectoriales (NO emojis)
  */
 const QUICK_ACCESS_BOOKS = [
-  { name: 'Génesis', icon: 'book-outline' as const, color: '#6366f1' }, // indigo
-  { name: 'Salmos', icon: 'musical-notes-outline' as const, color: '#8b5cf6' }, // purple
-  { name: 'Proverbios', icon: 'bulb-outline' as const, color: '#f59e0b' }, // amber
-  { name: 'Juan', icon: 'heart-outline' as const, color: '#ef4444' }, // red
-  { name: 'Romanos', icon: 'document-text-outline' as const, color: '#10b981' }, // emerald
-  { name: 'Apocalipsis', icon: 'flash-outline' as const, color: '#ec4899' }, // pink
+  {name: 'Génesis', icon: 'book-outline' as const, color: '#6366f1'}, // indigo
+  {name: 'Salmos', icon: 'musical-notes-outline' as const, color: '#8b5cf6'}, // purple
+  {name: 'Proverbios', icon: 'bulb-outline' as const, color: '#f59e0b'}, // amber
+  {name: 'Juan', icon: 'heart-outline' as const, color: '#ef4444'}, // red
+  {name: 'Romanos', icon: 'document-text-outline' as const, color: '#10b981'}, // emerald
+  {name: 'Apocalipsis', icon: 'flash-outline' as const, color: '#ec4899'}, // pink
 ];
 
 /**
@@ -461,25 +515,28 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   contentContainer: {
-    paddingHorizontal: 24,
-    paddingTop: Platform.OS === 'ios' ? 60 : 40,
-    paddingBottom: 40,
+    paddingHorizontal: 20, // Más ajustado para pantallas pequeñas
+    paddingTop: Platform.OS === 'ios' ? 56 : 32,
+    paddingBottom: 100, // Más espacio para el tab bar
   },
   loadingContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
+    gap: 16,
   },
   loadingText: {
-    marginTop: 16,
+    marginTop: 12,
     fontSize: 16,
-    fontWeight: '500',
+    fontWeight: '600',
+    letterSpacing: -0.2,
   },
 
-  // Hero Card
+  // Hero Card - Diseño minimalista y profesional
   heroCard: {
     overflow: 'hidden',
     borderWidth: 1,
+    marginBottom: 24,
   },
   decorativeCircles: {
     position: 'absolute',
@@ -530,21 +587,25 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   heroTitle: {
-    fontSize: 36, // 3xl
-    fontWeight: '800',
+    fontSize: 36, // 3xl - MÁS GRANDE Y DRAMÁTICO
+    fontWeight: '800', // Más bold
     color: '#ffffff',
-    marginTop: 12,
-    marginBottom: 4,
+    marginTop: 16,
+    marginBottom: 8,
     textAlign: 'center',
-    letterSpacing: -0.5,
+    letterSpacing: -0.6,
+    textShadowColor: 'rgba(0, 0, 0, 0.25)',
+    textShadowOffset: {width: 0, height: 2},
+    textShadowRadius: 8,
   },
   heroSubtitle: {
-    fontSize: 16, // base
-    fontWeight: '400',
-    color: 'rgba(255,255,255,0.85)',
-    marginBottom: 24,
+    fontSize: 19, // lg - MÁS GRANDE
+    fontWeight: '500', // Más bold
+    color: 'rgba(255,255,255,0.95)', // Más contraste
+    marginBottom: 32,
     textAlign: 'center',
-    letterSpacing: 0.2,
+    letterSpacing: 0.4,
+    lineHeight: 26,
   },
   statsRow: {
     flexDirection: 'row',
@@ -563,59 +624,64 @@ const styles = StyleSheet.create({
     marginHorizontal: 12,
   },
 
-  // Continue Reading Button
+  // Continue Reading Button - DRAMÁTICO Y VISIBLE
   continueButton: {
-    padding: 24,
+    padding: 32, // Incrementado de 24
   },
   continueHeader: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 12,
+    marginBottom: 16, // Incrementado de 12
   },
   continueTitle: {
-    fontSize: 24, // 2xl
-    fontWeight: '700',
+    fontSize: 28, // Incrementado de 24
+    fontWeight: '800', // Más bold
     color: '#ffffff',
-    marginLeft: 12,
+    marginLeft: 16, // Incrementado de 12
+    letterSpacing: -0.5,
   },
   continueReference: {
-    fontSize: 20, // xl
-    fontWeight: '600',
-    color: 'rgba(255,255,255,0.95)',
-    marginBottom: 16,
+    fontSize: 22, // Incrementado de 20
+    fontWeight: '700', // Incrementado de 600
+    color: 'rgba(255,255,255,1)', // Máximo contraste
+    marginBottom: 20, // Incrementado de 16
+    letterSpacing: 0.2,
   },
   progressBarContainer: {
-    marginTop: 8,
+    marginTop: 12, // Incrementado de 8
   },
   progressBarBackground: {
-    height: 8,
-    backgroundColor: 'rgba(255,255,255,0.3)',
-    borderRadius: 4,
+    height: 10, // Incrementado de 8
+    backgroundColor: 'rgba(255,255,255,0.35)', // Más visible
+    borderRadius: 5,
     overflow: 'hidden',
-    marginBottom: 8,
+    marginBottom: 10, // Incrementado de 8
   },
   progressBarFill: {
     height: '100%',
     backgroundColor: '#ffffff',
-    borderRadius: 4,
+    borderRadius: 5,
+    shadowColor: '#ffffff',
+    shadowOpacity: 0.5,
+    shadowRadius: 4,
   },
   progressText: {
-    fontSize: 12,
-    fontWeight: '600',
-    color: 'rgba(255,255,255,0.9)',
+    fontSize: 14, // Incrementado de 12
+    fontWeight: '700', // Incrementado de 600
+    color: 'rgba(255,255,255,1)', // Máximo contraste
   },
 
-  // Section Header
+  // Section Header - MÁS PROMINENTE
   sectionHeader: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    marginBottom: 16,
+    marginBottom: 24, // Incrementado de 20
   },
   sectionTitle: {
-    fontSize: 24, // xl
-    fontWeight: '700',
-    letterSpacing: -0.4,
+    fontSize: 26, // MÁS GRANDE - de 22 a 26
+    fontWeight: '800', // Más bold
+    letterSpacing: -0.5,
   },
 
   // Quick Access Grid

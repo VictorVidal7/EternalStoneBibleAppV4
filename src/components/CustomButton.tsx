@@ -1,6 +1,11 @@
 /**
- * CustomButton - Botón personalizado con feedback háptico y accesibilidad mejorada
- * Migrado a TypeScript con mejoras de UX y type safety
+ * CustomButton - Botón personalizado con diseño Celestial Sereno
+ *
+ * Características:
+ * - Diseño minimalista y profesional
+ * - Soporte completo para modo claro/oscuro
+ * - Feedback háptico y accesibilidad
+ * - Múltiples variantes y tamaños
  */
 
 import React from 'react';
@@ -13,6 +18,8 @@ import {
   ActivityIndicator,
 } from 'react-native';
 import HapticFeedback from '../services/HapticFeedback';
+import {useTheme} from '../hooks/useTheme';
+import {borderRadius, fontSize, spacing} from '../styles/designTokens';
 
 interface CustomButtonProps {
   /** Función a ejecutar al presionar el botón */
@@ -73,6 +80,8 @@ const CustomButton: React.FC<CustomButtonProps> = ({
   iconPosition = 'left',
   disableHaptic = false,
 }) => {
+  const {colors, isDark} = useTheme();
+
   const handlePress = async () => {
     if (disabled || loading) return;
 
@@ -89,35 +98,133 @@ const CustomButton: React.FC<CustomButtonProps> = ({
 
   const isDisabled = disabled || loading;
 
-  // Determinar estilos basados en variante y tamaño
-  const buttonStyle = [
-    styles.button,
-    styles[`button_${variant}`],
-    styles[`button_${size}`],
-    isDisabled && styles.button_disabled,
-    style,
-  ];
+  // Estilos dinámicos basados en tema
+  const getButtonStyle = (): ViewStyle => {
+    const baseStyle: ViewStyle = {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'center',
+      borderRadius: borderRadius.md,
+    };
 
-  const textStyles = [
-    styles.text,
-    styles[`text_${variant}`],
-    styles[`text_${size}`],
-    isDisabled && styles.text_disabled,
-    textStyle,
-  ];
+    // Padding según tamaño
+    const sizeStyles: Record<string, ViewStyle> = {
+      small: {
+        paddingHorizontal: spacing.md,
+        paddingVertical: spacing.sm,
+        borderRadius: borderRadius.sm,
+      },
+      medium: {
+        paddingHorizontal: spacing.lg,
+        paddingVertical: spacing.md,
+        borderRadius: borderRadius.md,
+      },
+      large: {
+        paddingHorizontal: spacing.xl,
+        paddingVertical: spacing.base,
+        borderRadius: borderRadius.lg,
+      },
+    };
+
+    // Colores según variante
+    const variantStyles: Record<string, ViewStyle> = {
+      primary: {
+        backgroundColor: colors.primary,
+        shadowColor: isDark ? '#000' : colors.primary,
+        shadowOffset: {width: 0, height: 4},
+        shadowOpacity: isDark ? 0.3 : 0.2,
+        shadowRadius: 8,
+        elevation: 4,
+      },
+      secondary: {
+        backgroundColor: colors.accent,
+        shadowColor: isDark ? '#000' : colors.accent,
+        shadowOffset: {width: 0, height: 3},
+        shadowOpacity: isDark ? 0.25 : 0.15,
+        shadowRadius: 6,
+        elevation: 3,
+      },
+      danger: {
+        backgroundColor: colors.error,
+        shadowColor: isDark ? '#000' : colors.error,
+        shadowOffset: {width: 0, height: 2},
+        shadowOpacity: isDark ? 0.3 : 0.2,
+        shadowRadius: 4,
+        elevation: 2,
+      },
+      ghost: {
+        backgroundColor: 'transparent',
+        borderWidth: 1.5,
+        borderColor: colors.primary,
+      },
+    };
+
+    return {
+      ...baseStyle,
+      ...sizeStyles[size],
+      ...variantStyles[variant],
+      ...(isDisabled && {
+        opacity: 0.5,
+        shadowOpacity: 0,
+        elevation: 0,
+      }),
+    };
+  };
+
+  const getTextStyle = (): TextStyle => {
+    const sizeStyles: Record<string, TextStyle> = {
+      small: {
+        fontSize: fontSize.sm,
+      },
+      medium: {
+        fontSize: fontSize.base,
+      },
+      large: {
+        fontSize: fontSize.md,
+      },
+    };
+
+    const variantStyles: Record<string, TextStyle> = {
+      primary: {
+        color: '#FFFFFF',
+      },
+      secondary: {
+        color: '#FFFFFF',
+      },
+      danger: {
+        color: '#FFFFFF',
+      },
+      ghost: {
+        color: colors.primary,
+      },
+    };
+
+    return {
+      fontWeight: '600',
+      textAlign: 'center',
+      ...sizeStyles[size],
+      ...variantStyles[variant],
+    };
+  };
+
+  const buttonStyle = [getButtonStyle(), style];
+  const textStyles = [getTextStyle(), textStyle];
 
   return (
     <TouchableOpacity
       style={buttonStyle}
       onPress={handlePress}
       disabled={isDisabled}
+      activeOpacity={0.7}
       accessibilityRole="button"
       accessibilityLabel={accessibilityLabel || title}
       accessibilityHint={accessibilityHint}
-      accessibilityState={{ disabled: isDisabled, busy: loading }}
-    >
+      accessibilityState={{disabled: isDisabled, busy: loading}}>
       {loading ? (
-        <ActivityIndicator color={variant === 'primary' ? 'white' : '#007AFF'} />
+        <ActivityIndicator
+          color={variant === 'ghost' ? colors.primary : '#FFFFFF'}
+          size={size === 'small' ? 'small' : 'small'}
+        />
       ) : (
         <>
           {icon && iconPosition === 'left' && <>{icon}</>}
@@ -128,85 +235,5 @@ const CustomButton: React.FC<CustomButtonProps> = ({
     </TouchableOpacity>
   );
 };
-
-const styles = StyleSheet.create({
-  // Estilos base
-  button: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderRadius: 8,
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-  },
-  text: {
-    fontWeight: '600',
-    textAlign: 'center',
-  },
-
-  // Variantes
-  button_primary: {
-    backgroundColor: '#007AFF',
-  },
-  text_primary: {
-    color: 'white',
-  },
-
-  button_secondary: {
-    backgroundColor: '#E5E5EA',
-  },
-  text_secondary: {
-    color: '#000000',
-  },
-
-  button_danger: {
-    backgroundColor: '#FF3B30',
-  },
-  text_danger: {
-    color: 'white',
-  },
-
-  button_ghost: {
-    backgroundColor: 'transparent',
-    borderWidth: 1,
-    borderColor: '#007AFF',
-  },
-  text_ghost: {
-    color: '#007AFF',
-  },
-
-  // Tamaños
-  button_small: {
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-  },
-  text_small: {
-    fontSize: 14,
-  },
-
-  button_medium: {
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-  },
-  text_medium: {
-    fontSize: 16,
-  },
-
-  button_large: {
-    paddingHorizontal: 20,
-    paddingVertical: 16,
-  },
-  text_large: {
-    fontSize: 18,
-  },
-
-  // Estados
-  button_disabled: {
-    opacity: 0.5,
-  },
-  text_disabled: {
-    opacity: 0.7,
-  },
-});
 
 export default React.memo(CustomButton);

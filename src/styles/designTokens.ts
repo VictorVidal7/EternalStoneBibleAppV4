@@ -7,43 +7,56 @@
 
 // ==================== SPACING SYSTEM ====================
 // Sistema de espaciado basado en múltiplos de 4 (Escala perfecta 8pt grid)
+// Minimalista y profesional - Espaciado consistente en toda la app
 export const spacing = {
   '0': 0,
   '0.5': 2,
   '1': 4,
   '1.5': 6,
-  xs: 8,
-  sm: 12,
-  md: 16,
-  base: 20,
-  lg: 24,
-  xl: 32,
-  '2xl': 40,
-  '3xl': 48,
-  '4xl': 64,
-  '5xl': 80,
-  '6xl': 96,
+  '2': 8,
+  '3': 12,
+  '4': 16,
+  '5': 20,
+  '6': 24,
+  '8': 32,
+  '10': 40,
+  '12': 48,
+  '16': 64,
+  '20': 80,
+  '24': 96,
+  // Aliases semánticos para mejor legibilidad
+  xs: 8, // 2
+  sm: 12, // 3
+  md: 16, // 4
+  base: 20, // 5
+  lg: 24, // 6
+  xl: 32, // 8
+  '2xl': 40, // 10
+  '3xl': 48, // 12
+  '4xl': 64, // 16
+  '5xl': 80, // 20
+  '6xl': 96, // 24
 } as const;
 
 // ==================== TYPOGRAPHY ====================
-// Escala tipográfica modular perfecta (1.25 ratio - Major Third)
-// Sistema refinado para máxima legibilidad y jerarquía visual
+// Escala tipográfica modular perfecta (1.2 ratio - Minor Third)
+// Sistema refinado para máxima legibilidad, jerarquía visual y profesionalismo
 export const fontSize = {
   '2xs': 10,
   xs: 12,
   sm: 14,
-  base: 16,
+  base: 16, // Base óptimo para lectura
   md: 18,
   lg: 20,
   xl: 24,
-  '2xl': 30,  // Mejorado para títulos más impactantes
-  '3xl': 36,
-  '4xl': 44,
-  '5xl': 52,
-  '6xl': 64,
-  '7xl': 72,
-  '8xl': 84,
-  '9xl': 96,
+  '2xl': 28, // Optimizado para títulos principales
+  '3xl': 32,
+  '4xl': 40,
+  '5xl': 48,
+  '6xl': 56,
+  '7xl': 64,
+  '8xl': 72,
+  '9xl': 80,
 } as const;
 
 export const fontWeight = {
@@ -53,12 +66,12 @@ export const fontWeight = {
   semibold: '600',
   bold: '700',
   extrabold: '800',
-  black: '900',  // Añadido para títulos ultra destacados
+  black: '900', // Añadido para títulos ultra destacados
 } as const;
 
 export const lineHeight = {
   tight: 1.2,
-  snug: 1.375,  // Añadido para mejor control
+  snug: 1.375, // Añadido para mejor control
   normal: 1.5,
   relaxed: 1.75,
   loose: 2.0,
@@ -71,111 +84,121 @@ export const letterSpacing = {
   wide: 0.25,
   wider: 0.5,
   widest: 1.0,
-  super: 1.5,  // Para textos con mucha separación
+  super: 1.5, // Para textos con mucha separación
 } as const;
 
 // ==================== BORDER RADIUS ====================
+// Sistema de border radius moderno y consistente
+// Minimalista con bordes suaves para una estética profesional
 export const borderRadius = {
   none: 0,
-  xs: 4,
-  sm: 8,
-  md: 12,
-  lg: 16,
-  xl: 24,
-  '2xl': 32,
-  full: 9999,
+  xs: 6, // Elementos pequeños
+  sm: 10, // Botones pequeños, inputs
+  md: 14, // Botones estándar
+  lg: 18, // Cards pequeños
+  xl: 22, // Cards medianos
+  '2xl': 28, // Cards grandes
+  '3xl': 36, // Elementos destacados
+  full: 9999, // Círculos y pills
 } as const;
 
 // ==================== SHADOWS ====================
-// Sistema de sombras ULTRA SUTILES - Look minimalista moderno
+// Sistema de sombras PROFESIONAL - Balance perfecto de profundidad
 // Inspirado en Material Design 3 y iOS Human Interface Guidelines
-// Sombras casi imperceptibles para un diseño ultra limpio
+// Sombras optimizadas para crear jerarquía visual clara
 export const shadows = {
   none: {
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 0 },
+    shadowOffset: {width: 0, height: 0},
     shadowOpacity: 0,
     shadowRadius: 0,
     elevation: 0,
   },
   xs: {
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.01, // Casi invisible
-    shadowRadius: 1,
+    shadowOffset: {width: 0, height: 1},
+    shadowOpacity: 0.05, // Sutil pero visible
+    shadowRadius: 2,
     elevation: 1,
   },
   sm: {
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.015, // Apenas perceptible
-    shadowRadius: 1.5,
-    elevation: 1,
-  },
-  md: {
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.02, // Muy sutil
-    shadowRadius: 2,
-    elevation: 1,
-  },
-  lg: {
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.03, // Sutil
-    shadowRadius: 3,
-    elevation: 2,
-  },
-  xl: {
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.04, // Moderadamente sutil
+    shadowOffset: {width: 0, height: 2},
+    shadowOpacity: 0.08, // Cards pequeños
     shadowRadius: 4,
     elevation: 2,
   },
+  md: {
+    shadowColor: '#000',
+    shadowOffset: {width: 0, height: 4},
+    shadowOpacity: 0.1, // Cards principales
+    shadowRadius: 8,
+    elevation: 3,
+  },
+  lg: {
+    shadowColor: '#000',
+    shadowOffset: {width: 0, height: 6},
+    shadowOpacity: 0.12, // Cards elevados
+    shadowRadius: 12,
+    elevation: 4,
+  },
+  xl: {
+    shadowColor: '#000',
+    shadowOffset: {width: 0, height: 8},
+    shadowOpacity: 0.15, // Modales y popovers
+    shadowRadius: 16,
+    elevation: 6,
+  },
   '2xl': {
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 3 },
-    shadowOpacity: 0.05, // Para modales
-    shadowRadius: 5,
-    elevation: 3,
+    shadowOffset: {width: 0, height: 12},
+    shadowOpacity: 0.2, // Elementos flotantes principales
+    shadowRadius: 24,
+    elevation: 8,
   },
   '3xl': {
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.06, // Solo para elementos flotantes
-    shadowRadius: 6,
-    elevation: 3,
+    shadowOffset: {width: 0, height: 16},
+    shadowOpacity: 0.25, // Diálogos y elementos de máxima elevación
+    shadowRadius: 32,
+    elevation: 10,
   },
   // Sombras especiales
   inner: {
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.02,
-    shadowRadius: 1,
+    shadowOffset: {width: 0, height: 2},
+    shadowOpacity: 0.06,
+    shadowRadius: 4,
     elevation: 0,
   },
   colored: {
     primary: {
-      shadowColor: '#667eea',
-      shadowOffset: { width: 0, height: 1 },
-      shadowOpacity: 0.08, // Reducido de 0.15
-      shadowRadius: 2,
-      elevation: 1,
+      shadowColor: '#6366f1', // Indigo shadow
+      shadowOffset: {width: 0, height: 4},
+      shadowOpacity: 0.25, // Más visible para CTA
+      shadowRadius: 12,
+      elevation: 4,
     },
     secondary: {
-      shadowColor: '#10b981',
-      shadowOffset: { width: 0, height: 1 },
-      shadowOpacity: 0.08, // Reducido de 0.15
-      shadowRadius: 2,
-      elevation: 1,
+      shadowColor: '#10b981', // Green shadow
+      shadowOffset: {width: 0, height: 4},
+      shadowOpacity: 0.2,
+      shadowRadius: 12,
+      elevation: 4,
     },
     accent: {
-      shadowColor: '#f59e0b',
-      shadowOffset: { width: 0, height: 1 },
-      shadowOpacity: 0.08, // Reducido de 0.15
-      shadowRadius: 2,
-      elevation: 1,
+      shadowColor: '#FFB74D', // Orange shadow para CTAs
+      shadowOffset: {width: 0, height: 4},
+      shadowOpacity: 0.25,
+      shadowRadius: 12,
+      elevation: 4,
+    },
+    error: {
+      shadowColor: '#ef4444', // Red shadow
+      shadowOffset: {width: 0, height: 2},
+      shadowOpacity: 0.15,
+      shadowRadius: 8,
+      elevation: 2,
     },
   },
 } as const;
@@ -212,12 +235,12 @@ export const animation = {
   },
   // Timing para diferentes tipos de animaciones
   timing: {
-    fadeIn: { duration: 300, useNativeDriver: true },
-    fadeOut: { duration: 200, useNativeDriver: true },
-    slideIn: { duration: 350, useNativeDriver: true },
-    slideOut: { duration: 250, useNativeDriver: true },
-    scale: { duration: 300, useNativeDriver: true },
-    rotate: { duration: 400, useNativeDriver: true },
+    fadeIn: {duration: 300, useNativeDriver: true},
+    fadeOut: {duration: 200, useNativeDriver: true},
+    slideIn: {duration: 350, useNativeDriver: true},
+    slideOut: {duration: 250, useNativeDriver: true},
+    scale: {duration: 300, useNativeDriver: true},
+    rotate: {duration: 400, useNativeDriver: true},
   },
 } as const;
 
@@ -231,9 +254,9 @@ export const opacity = {
 
 // ==================== BREAKPOINTS ====================
 export const breakpoints = {
-  sm: 375,  // iPhone SE
-  md: 414,  // iPhone Pro Max
-  lg: 768,  // iPad
+  sm: 375, // iPhone SE
+  md: 414, // iPhone Pro Max
+  lg: 768, // iPad
   xl: 1024, // iPad Pro
 } as const;
 

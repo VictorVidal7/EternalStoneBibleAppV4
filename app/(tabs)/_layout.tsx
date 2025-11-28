@@ -1,13 +1,13 @@
-import { Tabs } from 'expo-router';
-import { Ionicons } from '@expo/vector-icons';
-import { Platform } from 'react-native';
-import { BlurView } from 'expo-blur';
-import { useTheme } from '../../src/hooks/useTheme';
-import { useLanguage } from '../../src/hooks/useLanguage';
+import {Tabs} from 'expo-router';
+import {Ionicons} from '@expo/vector-icons';
+import {Platform} from 'react-native';
+import {BlurView} from 'expo-blur';
+import {useTheme} from '../../src/hooks/useTheme';
+import {useLanguage} from '../../src/hooks/useLanguage';
 
 export default function TabLayout() {
-  const { colors, isDark } = useTheme();
-  const { t } = useLanguage();
+  const {colors, isDark} = useTheme();
+  const {t} = useLanguage();
 
   return (
     <Tabs
@@ -17,46 +17,51 @@ export default function TabLayout() {
         tabBarStyle: {
           position: 'absolute',
           backgroundColor: isDark
-            ? 'rgba(20, 20, 20, 0.95)'
-            : 'rgba(255, 255, 255, 0.95)',
-          borderTopWidth: 0,
-          borderTopLeftRadius: 24,
-          borderTopRightRadius: 24,
-          paddingBottom: Platform.OS === 'ios' ? 20 : 10,
-          paddingTop: 12,
-          height: Platform.OS === 'ios' ? 85 : 70,
+            ? 'rgba(26, 29, 46, 0.95)' // Nuevo color oscuro consistente
+            : 'rgba(255, 255, 255, 0.98)', // Más sólido en claro
+          borderTopWidth: 1,
+          borderTopColor: isDark
+            ? 'rgba(71, 85, 105, 0.15)' // Borde sutil oscuro
+            : 'rgba(226, 232, 240, 0.60)', // Borde sutil claro
+          borderTopLeftRadius: 28, // Bordes más suaves
+          borderTopRightRadius: 28,
+          paddingBottom: Platform.OS === 'ios' ? 24 : 12,
+          paddingTop: 10,
+          height: Platform.OS === 'ios' ? 88 : 68,
           marginHorizontal: 0,
           elevation: 0,
-          shadowColor: '#000',
-          shadowOffset: { width: 0, height: -4 },
-          shadowOpacity: isDark ? 0.3 : 0.1,
-          shadowRadius: 12,
+          shadowColor: isDark ? '#000' : colors.shadowColor,
+          shadowOffset: {width: 0, height: -2},
+          shadowOpacity: isDark ? 0.4 : 0.08,
+          shadowRadius: 16,
         },
         tabBarLabelStyle: {
           fontSize: 11,
           fontWeight: '600',
-          marginTop: 4,
+          marginTop: 2,
+          letterSpacing: -0.2,
         },
         tabBarIconStyle: {
-          marginTop: 4,
+          marginTop: 2,
         },
         headerStyle: {
           backgroundColor: colors.primary,
           elevation: 0,
           shadowOpacity: 0,
+          borderBottomWidth: 0,
         },
         headerTintColor: '#FFFFFF',
         headerTitleStyle: {
           fontWeight: '700',
-          fontSize: 20,
+          fontSize: 18,
+          letterSpacing: -0.5,
         },
-      }}
-    >
+      }}>
       <Tabs.Screen
         name="index"
         options={{
           title: t.tabs.home,
-          tabBarIcon: ({ color, size }) => (
+          tabBarIcon: ({color, size}) => (
             <Ionicons name="home" size={size} color={color} />
           ),
           headerTitle: t.headers.home,
@@ -67,7 +72,7 @@ export default function TabLayout() {
         name="bible"
         options={{
           title: t.tabs.bible,
-          tabBarIcon: ({ color, size }) => (
+          tabBarIcon: ({color, size}) => (
             <Ionicons name="book" size={size} color={color} />
           ),
           headerTitle: t.headers.bible,
@@ -78,7 +83,7 @@ export default function TabLayout() {
         name="search"
         options={{
           title: t.tabs.search,
-          tabBarIcon: ({ color, size }) => (
+          tabBarIcon: ({color, size}) => (
             <Ionicons name="search" size={size} color={color} />
           ),
           headerTitle: t.headers.search,
@@ -89,7 +94,7 @@ export default function TabLayout() {
         name="achievements"
         options={{
           title: t.tabs.achievements,
-          tabBarIcon: ({ color, size }) => (
+          tabBarIcon: ({color, size}) => (
             <Ionicons name="trophy" size={size} color={color} />
           ),
           headerTitle: t.headers.achievements,
@@ -100,7 +105,7 @@ export default function TabLayout() {
         name="bookmarks"
         options={{
           title: t.tabs.bookmarks,
-          tabBarIcon: ({ color, size }) => (
+          tabBarIcon: ({color, size}) => (
             <Ionicons name="bookmark" size={size} color={color} />
           ),
           headerTitle: t.headers.bookmarks,
@@ -111,7 +116,7 @@ export default function TabLayout() {
         name="notes"
         options={{
           title: t.tabs.notes,
-          tabBarIcon: ({ color, size }) => (
+          tabBarIcon: ({color, size}) => (
             <Ionicons name="create" size={size} color={color} />
           ),
           headerTitle: t.headers.notes,
@@ -122,7 +127,7 @@ export default function TabLayout() {
         name="settings"
         options={{
           title: t.tabs.settings,
-          tabBarIcon: ({ color, size }) => (
+          tabBarIcon: ({color, size}) => (
             <Ionicons name="settings" size={size} color={color} />
           ),
           headerTitle: t.headers.settings,
