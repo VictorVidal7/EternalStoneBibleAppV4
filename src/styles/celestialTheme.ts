@@ -12,8 +12,8 @@
  * - Sistema de elevación y sombras premium
  */
 
-import { Platform } from 'react-native';
-import { spacing, fontSize } from './designTokens';
+import {Platform} from 'react-native';
+import {spacing, fontSize} from './designTokens';
 
 // ==================== PALETA DE COLORES CELESTIAL ====================
 
@@ -108,83 +108,87 @@ export const celestialLightTheme = {
   // --- Nombre del tema ---
   name: 'Celestial Sereno Light',
 
-  // --- Backgrounds con gradiente suave ---
-  background: '#f8fafc', // slate-50 base
-  backgroundGradient: [slatePalette[50], indigoPalette[50], purplePalette[50]], // slate-50 → indigo-50 → purple-50
-  backgroundSecondary: '#f1f5f9', // slate-100
-  backgroundTertiary: '#e2e8f0', // slate-200
+  // --- Backgrounds con gradiente suave y minimalista ---
+  background: '#ffffff', // Blanco puro para máxima claridad
+  backgroundGradient: ['#ffffff', '#fafbff', '#f8f9ff'], // white → casi blanco con tinte indigo muy sutil
+  backgroundSecondary: '#f8f9fc', // Gris muy claro
+  backgroundTertiary: '#f1f3f9', // Gris claro
 
-  // --- Surfaces y Cards con glassmorphism ---
-  surface: 'rgba(255, 255, 255, 0.80)', // bg-white/80
-  surfaceElevated: 'rgba(255, 255, 255, 0.90)',
-  surfaceGlass: 'rgba(255, 255, 255, 0.70)', // Para glassmorphism
-  card: 'rgba(255, 255, 255, 0.80)',
-  cardHover: 'rgba(255, 255, 255, 0.90)',
+  // --- Surfaces y Cards con glassmorphism mejorado ---
+  surface: 'rgba(255, 255, 255, 0.95)', // bg-white/95 - más sólido
+  surfaceElevated: 'rgba(255, 255, 255, 0.98)',
+  surfaceGlass: 'rgba(255, 255, 255, 0.85)', // Para glassmorphism más visible
+  card: 'rgba(255, 255, 255, 0.95)',
+  cardHover: 'rgba(255, 255, 255, 1)',
 
-  // --- Primary Colors (Indigo → Purple gradient) ---
-  primary: indigoPalette[600], // #4f46e5
-  primaryLight: indigoPalette[500], // #6366f1
-  primaryDark: indigoPalette[700], // #4338ca
-  primaryGradient: [indigoPalette[600], purplePalette[600]], // indigo-600 → purple-600
-  primaryGradientReverse: [purplePalette[600], indigoPalette[600]],
+  // --- Primary Colors (Indigo) - REFINADO Y PROFESIONAL ---
+  primary: indigoPalette[600], // #4f46e5 - Color principal
+  primaryLight: indigoPalette[500], // #6366f1 - Variante clara
+  primaryDark: indigoPalette[700], // #4338ca - Variante oscura
+  primaryGradient: [indigoPalette[600], indigoPalette[500], purplePalette[500]], // Gradiente sofisticado
+  primaryGradientReverse: [
+    purplePalette[500],
+    indigoPalette[500],
+    indigoPalette[600],
+  ],
 
-  // --- Accent Colors (Emerald → Teal gradient) ---
-  accent: emeraldPalette[500], // #10b981
-  accentLight: emeraldPalette[400], // #34d399
-  accentDark: emeraldPalette[600], // #059669
-  accentGradient: [emeraldPalette[500], tealPalette[500]], // emerald-500 → teal-500
-  accentGradientReverse: [tealPalette[500], emeraldPalette[500]],
+  // --- Accent Colors (Emerald) - PARA CTAs Y ACCIONES POSITIVAS ---
+  accent: emeraldPalette[600], // #059669 - Más saturado
+  accentLight: emeraldPalette[500], // #10b981
+  accentDark: emeraldPalette[700], // #047857
+  accentGradient: [emeraldPalette[600], emeraldPalette[500]], // Gradiente simple y elegante
+  accentGradientReverse: [emeraldPalette[500], emeraldPalette[600]],
 
-  // --- Text Colors ---
-  text: slatePalette[900], // #0f172a
-  textSecondary: slatePalette[600], // #475569
-  textTertiary: slatePalette[500], // #64748b
-  textDisabled: slatePalette[400], // #94a3b8
+  // --- Text Colors - CONTRASTE MEJORADO ---
+  text: slatePalette[900], // #0f172a - Negro azulado
+  textSecondary: slatePalette[600], // #475569 - Gris medio
+  textTertiary: slatePalette[500], // #64748b - Gris claro
+  textDisabled: slatePalette[400], // #94a3b8 - Gris muy claro
   textInverse: '#ffffff',
 
-  // --- Borders (sutiles con opacidad) ---
-  border: 'rgba(224, 231, 255, 0.50)', // indigo-100/50
-  borderLight: 'rgba(224, 231, 255, 0.30)',
-  borderStrong: 'rgba(224, 231, 255, 0.70)',
-  divider: 'rgba(203, 213, 225, 0.40)', // slate-300/40
+  // --- Borders (sutiles y minimalistas) ---
+  border: 'rgba(226, 232, 240, 0.60)', // slate-200/60 - Más neutral
+  borderLight: 'rgba(226, 232, 240, 0.40)',
+  borderStrong: 'rgba(226, 232, 240, 0.90)',
+  divider: 'rgba(226, 232, 240, 0.50)', // slate-200/50
 
-  // --- States ---
-  hover: 'rgba(99, 102, 241, 0.08)', // indigo-500/8
-  pressed: 'rgba(99, 102, 241, 0.16)', // indigo-500/16
-  focus: indigoPalette[500],
-  selected: indigoPalette[50],
-  disabled: slatePalette[100],
+  // --- States - MEJORADOS ---
+  hover: 'rgba(79, 70, 229, 0.06)', // indigo-600/6 - Más sutil
+  pressed: 'rgba(79, 70, 229, 0.12)', // indigo-600/12
+  focus: indigoPalette[600],
+  selected: 'rgba(79, 70, 229, 0.08)', // indigo-600/8
+  disabled: slatePalette[200],
 
-  // --- Semantic Colors ---
-  success: emeraldPalette[600],
-  successLight: emeraldPalette[100],
-  error: '#ef4444',
-  errorLight: '#fee2e2',
-  warning: '#f59e0b',
-  warningLight: '#fef3c7',
-  info: indigoPalette[500],
-  infoLight: indigoPalette[100],
+  // --- Semantic Colors - OPTIMIZADOS ---
+  success: emeraldPalette[600], // #059669
+  successLight: 'rgba(5, 150, 105, 0.1)', // emerald-600/10
+  error: '#dc2626', // red-600 - Más profesional
+  errorLight: 'rgba(220, 38, 38, 0.1)', // red-600/10
+  warning: '#ea580c', // orange-600 - Más visible
+  warningLight: 'rgba(234, 88, 12, 0.1)', // orange-600/10
+  info: indigoPalette[600],
+  infoLight: 'rgba(79, 70, 229, 0.1)', // indigo-600/10
 
-  // --- Overlays ---
-  overlay: 'rgba(15, 23, 42, 0.50)', // slate-900/50
-  overlayLight: 'rgba(15, 23, 42, 0.30)',
-  overlayStrong: 'rgba(15, 23, 42, 0.70)',
+  // --- Overlays - MÁS SUTILES ---
+  overlay: 'rgba(15, 23, 42, 0.40)', // slate-900/40
+  overlayLight: 'rgba(15, 23, 42, 0.20)',
+  overlayStrong: 'rgba(15, 23, 42, 0.60)',
 
-  // --- Glassmorphism específico ---
-  glassBorder: 'rgba(255, 255, 255, 0.30)',
-  glassBackground: 'rgba(255, 255, 255, 0.70)',
+  // --- Glassmorphism específico - REFINADO ---
+  glassBorder: 'rgba(226, 232, 240, 0.50)', // slate-200/50 - Más visible
+  glassBackground: 'rgba(255, 255, 255, 0.85)',
   backdropBlur: 'xl', // Para BlurView intensity
 
-  // --- Shadows (sutiles con tinte indigo) ---
-  shadowColor: indigoPalette[600],
-  shadowLight: 'rgba(79, 70, 229, 0.10)', // indigo-600/10
-  shadowMedium: 'rgba(79, 70, 229, 0.20)', // indigo-600/20
-  shadowStrong: 'rgba(79, 70, 229, 0.30)', // indigo-600/30
+  // --- Shadows (sutiles y naturales) ---
+  shadowColor: '#0f172a', // slate-900 - Más natural
+  shadowLight: 'rgba(15, 23, 42, 0.08)', // slate-900/8
+  shadowMedium: 'rgba(15, 23, 42, 0.12)', // slate-900/12
+  shadowStrong: 'rgba(15, 23, 42, 0.16)', // slate-900/16
 
   // --- Special Effects ---
   highlight: '#fef08a', // yellow para highlights
-  glow: 'rgba(99, 102, 241, 0.30)', // indigo glow effect
-  shimmer: 'rgba(255, 255, 255, 0.50)',
+  glow: 'rgba(79, 70, 229, 0.20)', // indigo glow effect
+  shimmer: 'rgba(255, 255, 255, 0.60)',
 };
 
 // ==================== MODO OSCURO - CELESTIAL ====================
@@ -193,97 +197,101 @@ export const celestialDarkTheme = {
   // --- Nombre del tema ---
   name: 'Celestial Sereno Dark',
 
-  // --- Backgrounds con gradiente oscuro ---
-  background: '#020617', // slate-950 base
-  backgroundGradient: [slatePalette[950], indigoPalette[950], slatePalette[900]], // slate-950 → indigo-950 → slate-900
-  backgroundSecondary: '#0f172a', // slate-900
-  backgroundTertiary: '#1e293b', // slate-800
+  // --- Backgrounds con gradiente oscuro y profundo ---
+  background: '#0a0d1a', // Casi negro con tinte azul
+  backgroundGradient: ['#0a0d1a', '#0f1419', '#12151f'], // Gradiente sutil oscuro
+  backgroundSecondary: '#111422', // Gris oscuro
+  backgroundTertiary: '#1a1d2e', // Gris oscuro medio
 
-  // --- Surfaces y Cards con glassmorphism oscuro ---
-  surface: 'rgba(30, 41, 59, 0.50)', // bg-slate-800/50
-  surfaceElevated: 'rgba(30, 41, 59, 0.70)',
-  surfaceGlass: 'rgba(30, 41, 59, 0.40)', // Para glassmorphism
-  card: 'rgba(30, 41, 59, 0.50)',
-  cardHover: 'rgba(30, 41, 59, 0.70)',
+  // --- Surfaces y Cards con glassmorphism oscuro mejorado ---
+  surface: 'rgba(26, 29, 46, 0.70)', // Más opaco para mejor contraste
+  surfaceElevated: 'rgba(26, 29, 46, 0.85)',
+  surfaceGlass: 'rgba(26, 29, 46, 0.60)', // Para glassmorphism
+  card: 'rgba(26, 29, 46, 0.70)',
+  cardHover: 'rgba(26, 29, 46, 0.90)',
 
-  // --- Primary Colors (Indigo → Purple gradient) ---
-  primary: indigoPalette[500], // #6366f1 (más brillante en dark)
-  primaryLight: indigoPalette[400], // #818cf8
+  // --- Primary Colors (Indigo) - MÁS VIBRANTE EN DARK ---
+  primary: indigoPalette[500], // #6366f1 - Más brillante en dark
+  primaryLight: indigoPalette[400], // #818cf8 - Aún más brillante
   primaryDark: indigoPalette[600], // #4f46e5
-  primaryGradient: [indigoPalette[500], purplePalette[500]], // indigo-500 → purple-500
-  primaryGradientReverse: [purplePalette[500], indigoPalette[500]],
+  primaryGradient: [indigoPalette[500], indigoPalette[400], purplePalette[400]], // Gradiente vibrante
+  primaryGradientReverse: [
+    purplePalette[400],
+    indigoPalette[400],
+    indigoPalette[500],
+  ],
 
-  // --- Accent Colors (Emerald → Teal gradient) ---
-  accent: emeraldPalette[600], // #059669 (ajustado para dark)
-  accentLight: emeraldPalette[500], // #10b981
-  accentDark: emeraldPalette[700], // #047857
-  accentGradient: [emeraldPalette[600], tealPalette[600]], // emerald-600 → teal-600
-  accentGradientReverse: [tealPalette[600], emeraldPalette[600]],
+  // --- Accent Colors (Emerald) - VIBRANTE ---
+  accent: emeraldPalette[500], // #10b981 - Más brillante
+  accentLight: emeraldPalette[400], // #34d399
+  accentDark: emeraldPalette[600], // #059669
+  accentGradient: [emeraldPalette[500], emeraldPalette[400]], // Gradiente simple
+  accentGradientReverse: [emeraldPalette[400], emeraldPalette[500]],
 
-  // --- Text Colors ---
-  text: slatePalette[100], // #f1f5f9
-  textSecondary: slatePalette[300], // #cbd5e1
-  textTertiary: slatePalette[400], // #94a3b8
-  textDisabled: slatePalette[600], // #475569
+  // --- Text Colors - ALTO CONTRASTE ---
+  text: '#f8f9fc', // Casi blanco
+  textSecondary: slatePalette[300], // #cbd5e1 - Gris claro
+  textTertiary: slatePalette[400], // #94a3b8 - Gris medio
+  textDisabled: slatePalette[600], // #475569 - Gris oscuro
   textInverse: slatePalette[900],
 
-  // --- Borders (sutiles con opacidad) ---
-  border: 'rgba(49, 46, 129, 0.30)', // indigo-900/30
-  borderLight: 'rgba(49, 46, 129, 0.20)',
-  borderStrong: 'rgba(49, 46, 129, 0.50)',
-  divider: 'rgba(51, 65, 85, 0.40)', // slate-700/40
+  // --- Borders (sutiles con mejor visibilidad) ---
+  border: 'rgba(71, 85, 105, 0.30)', // slate-600/30 - Más visible
+  borderLight: 'rgba(71, 85, 105, 0.20)',
+  borderStrong: 'rgba(71, 85, 105, 0.50)',
+  divider: 'rgba(71, 85, 105, 0.25)', // slate-600/25
 
-  // --- States ---
-  hover: 'rgba(99, 102, 241, 0.12)', // indigo-500/12
-  pressed: 'rgba(99, 102, 241, 0.24)', // indigo-500/24
-  focus: indigoPalette[400],
-  selected: indigoPalette[950],
-  disabled: slatePalette[800],
+  // --- States - OPTIMIZADOS PARA DARK ---
+  hover: 'rgba(99, 102, 241, 0.15)', // indigo-500/15 - Más visible en dark
+  pressed: 'rgba(99, 102, 241, 0.25)', // indigo-500/25
+  focus: indigoPalette[500],
+  selected: 'rgba(99, 102, 241, 0.18)', // indigo-500/18
+  disabled: 'rgba(26, 29, 46, 0.50)',
 
-  // --- Semantic Colors ---
-  success: emeraldPalette[500],
-  successLight: emeraldPalette[950],
-  error: '#f87171',
-  errorLight: '#7f1d1d',
-  warning: '#fbbf24',
-  warningLight: '#78350f',
-  info: indigoPalette[400],
-  infoLight: indigoPalette[950],
+  // --- Semantic Colors - VIBRANTES PARA DARK ---
+  success: emeraldPalette[500], // #10b981 - Más brillante
+  successLight: 'rgba(16, 185, 129, 0.15)', // emerald-500/15
+  error: '#f87171', // red-400 - Más brillante
+  errorLight: 'rgba(248, 113, 113, 0.15)', // red-400/15
+  warning: '#fbbf24', // yellow-400 - Más brillante
+  warningLight: 'rgba(251, 191, 36, 0.15)', // yellow-400/15
+  info: indigoPalette[500],
+  infoLight: 'rgba(99, 102, 241, 0.15)', // indigo-500/15
 
-  // --- Overlays ---
-  overlay: 'rgba(0, 0, 0, 0.70)',
-  overlayLight: 'rgba(0, 0, 0, 0.50)',
-  overlayStrong: 'rgba(0, 0, 0, 0.90)',
+  // --- Overlays - MEJORADOS ---
+  overlay: 'rgba(0, 0, 0, 0.60)',
+  overlayLight: 'rgba(0, 0, 0, 0.40)',
+  overlayStrong: 'rgba(0, 0, 0, 0.80)',
 
-  // --- Glassmorphism específico ---
-  glassBorder: 'rgba(255, 255, 255, 0.10)',
-  glassBackground: 'rgba(30, 41, 59, 0.40)',
+  // --- Glassmorphism específico - REFINADO ---
+  glassBorder: 'rgba(71, 85, 105, 0.30)', // slate-600/30 - Más visible
+  glassBackground: 'rgba(26, 29, 46, 0.60)',
   backdropBlur: 'dark', // Para BlurView tint
 
-  // --- Shadows (más fuertes en dark mode) ---
+  // --- Shadows (fuertes y profundas en dark mode) ---
   shadowColor: '#000000',
-  shadowLight: 'rgba(0, 0, 0, 0.30)',
-  shadowMedium: 'rgba(0, 0, 0, 0.50)',
-  shadowStrong: 'rgba(0, 0, 0, 0.70)',
+  shadowLight: 'rgba(0, 0, 0, 0.40)',
+  shadowMedium: 'rgba(0, 0, 0, 0.60)',
+  shadowStrong: 'rgba(0, 0, 0, 0.80)',
 
   // --- Special Effects ---
-  highlight: '#fbbf24', // yellow más brillante para dark
-  glow: 'rgba(99, 102, 241, 0.40)', // indigo glow effect
-  shimmer: 'rgba(255, 255, 255, 0.10)',
+  highlight: '#fbbf24', // yellow brillante para dark
+  glow: 'rgba(99, 102, 241, 0.30)', // indigo glow effect
+  shimmer: 'rgba(255, 255, 255, 0.15)',
 };
 
 // ==================== BORDER RADIUS SYSTEM ====================
+// Sistema de border radius unificado y minimalista
 
 export const celestialBorderRadius = {
   none: 0,
-  xs: 8, // Pequeño
-  sm: 12, // Pequeño-medio
-  buttonSmall: 16, // Botones pequeños
-  cardSmall: 20, // Cards pequeños
-  cardMedium: 24, // Cards medianos
-  cardLarge: 28, // Cards principales
-  xl: 32, // Extra grande
-  full: 9999, // Círculo completo
+  xs: 6, // Elementos muy pequeños
+  sm: 10, // Botones pequeños, badges
+  md: 14, // Botones estándar
+  lg: 18, // Cards pequeños
+  xl: 22, // Cards medianos
+  '2xl': 28, // Cards grandes
+  full: 9999, // Círculo completo (avatares, pills)
 };
 
 // ==================== SHADOWS SYSTEM (Celestial) ====================
@@ -296,42 +304,42 @@ export const celestialShadows = {
   light: {
     none: {
       shadowColor: 'transparent',
-      shadowOffset: { width: 0, height: 0 },
+      shadowOffset: {width: 0, height: 0},
       shadowOpacity: 0,
       shadowRadius: 0,
       elevation: 0,
     },
     sm: {
       shadowColor: indigoPalette[600], // #4f46e5
-      shadowOffset: { width: 0, height: 2 },
+      shadowOffset: {width: 0, height: 2},
       shadowOpacity: 0.08,
       shadowRadius: 4,
       elevation: 2,
     },
     md: {
       shadowColor: indigoPalette[600],
-      shadowOffset: { width: 0, height: 4 },
+      shadowOffset: {width: 0, height: 4},
       shadowOpacity: 0.12,
       shadowRadius: 8,
       elevation: 3,
     },
     lg: {
       shadowColor: indigoPalette[600],
-      shadowOffset: { width: 0, height: 8 },
+      shadowOffset: {width: 0, height: 8},
       shadowOpacity: 0.16,
       shadowRadius: 16,
       elevation: 5,
     },
     xl: {
       shadowColor: indigoPalette[600],
-      shadowOffset: { width: 0, height: 12 },
-      shadowOpacity: 0.20,
+      shadowOffset: {width: 0, height: 12},
+      shadowOpacity: 0.2,
       shadowRadius: 24,
       elevation: 8,
     },
     '2xl': {
       shadowColor: indigoPalette[600],
-      shadowOffset: { width: 0, height: 16 },
+      shadowOffset: {width: 0, height: 16},
       shadowOpacity: 0.24,
       shadowRadius: 32,
       elevation: 10,
@@ -340,43 +348,43 @@ export const celestialShadows = {
   dark: {
     none: {
       shadowColor: 'transparent',
-      shadowOffset: { width: 0, height: 0 },
+      shadowOffset: {width: 0, height: 0},
       shadowOpacity: 0,
       shadowRadius: 0,
       elevation: 0,
     },
     sm: {
       shadowColor: '#000000',
-      shadowOffset: { width: 0, height: 2 },
-      shadowOpacity: 0.30,
+      shadowOffset: {width: 0, height: 2},
+      shadowOpacity: 0.3,
       shadowRadius: 4,
       elevation: 2,
     },
     md: {
       shadowColor: '#000000',
-      shadowOffset: { width: 0, height: 4 },
-      shadowOpacity: 0.40,
+      shadowOffset: {width: 0, height: 4},
+      shadowOpacity: 0.4,
       shadowRadius: 8,
       elevation: 3,
     },
     lg: {
       shadowColor: '#000000',
-      shadowOffset: { width: 0, height: 8 },
-      shadowOpacity: 0.50,
+      shadowOffset: {width: 0, height: 8},
+      shadowOpacity: 0.5,
       shadowRadius: 16,
       elevation: 5,
     },
     xl: {
       shadowColor: '#000000',
-      shadowOffset: { width: 0, height: 12 },
-      shadowOpacity: 0.60,
+      shadowOffset: {width: 0, height: 12},
+      shadowOpacity: 0.6,
       shadowRadius: 24,
       elevation: 8,
     },
     '2xl': {
       shadowColor: '#000000',
-      shadowOffset: { width: 0, height: 16 },
-      shadowOpacity: 0.70,
+      shadowOffset: {width: 0, height: 16},
+      shadowOpacity: 0.7,
       shadowRadius: 32,
       elevation: 10,
     },
@@ -386,7 +394,9 @@ export const celestialShadows = {
 // ==================== TYPOGRAPHY SYSTEM ====================
 
 /**
- * Sistema tipográfico dual: Serif para contenido bíblico, Sans para UI
+ * Sistema tipográfico profesional y minimalista
+ * - Serif elegante para contenido bíblico (mejor legibilidad)
+ * - Sans moderno para UI (interfaz limpia)
  */
 export const celestialTypography = {
   // Familia de fuentes
@@ -401,26 +411,39 @@ export const celestialTypography = {
       android: 'Roboto',
       default: 'System',
     }),
+    mono: Platform.select({
+      ios: 'Courier',
+      android: 'monospace',
+      default: 'Courier',
+    }),
   },
 
-  // Escalas de tamaño (heredadas de designTokens pero organizadas)
+  // Escalas de tamaño optimizadas
   fontSize: {
-    caption: fontSize['2xs'], // 10px
-    small: fontSize.xs, // 12px
-    body: fontSize.base, // 16px
-    h3: fontSize.md, // 18px
-    h2: fontSize.xl, // 24px
-    h1: fontSize['2xl'], // 30px (ajustado de 32 a 30 por designTokens)
+    caption: fontSize['2xs'], // 10px - Textos muy pequeños
+    small: fontSize.xs, // 12px - Etiquetas, metadata
+    body: fontSize.base, // 16px - Texto principal
+    bodyLarge: fontSize.md, // 18px - Texto destacado
+    h4: fontSize.lg, // 20px - Subtítulos pequeños
+    h3: fontSize.xl, // 24px - Subtítulos
+    h2: fontSize['2xl'], // 28px - Títulos secundarios
+    h1: fontSize['3xl'], // 32px - Títulos principales
   },
 
-  // Line heights para cada tamaño
+  // Line heights optimizados para legibilidad
   lineHeight: {
-    caption: fontSize['2xs'] * 1.4, // 14px
-    small: fontSize.xs * 1.5, // 18px
-    body: fontSize.base * 1.6, // 25.6px
-    h3: fontSize.md * 1.4, // 25.2px
-    h2: fontSize.xl * 1.3, // 31.2px
-    h1: fontSize['2xl'] * 1.2, // 36px
+    tight: 1.25, // Títulos
+    normal: 1.5, // UI text
+    relaxed: 1.7, // Body text
+    loose: 2.0, // Texto bíblico (máxima legibilidad)
+  },
+
+  // Pesos de fuente semánticos
+  fontWeight: {
+    normal: '400',
+    medium: '500',
+    semibold: '600',
+    bold: '700',
   },
 };
 
@@ -428,15 +451,24 @@ export const celestialTypography = {
 
 /**
  * Espaciado específico para componentes Celestial
- * (Heredado de designTokens pero con aliases semánticos)
+ * Sistema consistente y minimalista para toda la app
  */
 export const celestialSpacing = {
-  cardPadding: spacing.lg, // 24px - Padding estándar de cards
-  cardGap: spacing.base, // 20px - Gap entre elementos dentro de cards
-  sectionGap: spacing.lg, // 24px - Gap entre secciones
-  componentMargin: spacing.lg, // 24px - Margin bottom de componentes principales
-  elementGap: spacing.md, // 16px - Gap entre elementos pequeños
-  tinyGap: spacing.sm, // 12px - Gap mínimo
+  // Padding de contenedores
+  screenPadding: spacing.lg, // 24px - Padding de pantallas
+  cardPadding: spacing.lg, // 24px - Padding interno de cards
+  cardPaddingSmall: spacing.md, // 16px - Padding de cards pequeños
+
+  // Gaps entre elementos
+  sectionGap: spacing.xl, // 32px - Gap entre secciones principales
+  cardGap: spacing.lg, // 24px - Gap entre cards
+  elementGap: spacing.md, // 16px - Gap entre elementos relacionados
+  smallGap: spacing.sm, // 12px - Gap pequeño
+  tinyGap: spacing.xs, // 8px - Gap mínimo
+
+  // Margins
+  componentMargin: spacing.lg, // 24px - Margin de componentes
+  listItemMargin: spacing.md, // 16px - Margin entre items de lista
 };
 
 // ==================== ANIMATION PRESETS ====================
@@ -456,16 +488,16 @@ export const celestialAnimations = {
 
   // Spring configs para Animated.spring
   spring: {
-    gentle: { tension: 50, friction: 7 },
-    default: { tension: 65, friction: 9 },
-    snappy: { tension: 80, friction: 8 },
+    gentle: {tension: 50, friction: 7},
+    default: {tension: 65, friction: 9},
+    snappy: {tension: 80, friction: 8},
   },
 
   // Timing configs
   timing: {
-    easeInOut: { duration: 200, useNativeDriver: true },
-    easeOut: { duration: 300, useNativeDriver: true },
-    smooth: { duration: 500, useNativeDriver: true },
+    easeInOut: {duration: 200, useNativeDriver: true},
+    easeOut: {duration: 300, useNativeDriver: true},
+    smooth: {duration: 500, useNativeDriver: true},
   },
 
   // Valores de scale para interacciones

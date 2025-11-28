@@ -5,7 +5,7 @@
  * y múltiples variantes de diseño.
  */
 
-import React, { useRef, useEffect } from 'react';
+import React, {useRef, useEffect} from 'react';
 import {
   View,
   Text,
@@ -15,11 +15,11 @@ import {
   Platform,
   Animated,
 } from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
-import { BlurView } from 'expo-blur';
+import {LinearGradient} from 'expo-linear-gradient';
+import {BlurView} from 'expo-blur';
 import * as Haptics from 'expo-haptics';
-import { spacing, borderRadius, shadows, fontSize } from '../styles/designTokens';
-import { useTheme } from '../hooks/useTheme';
+import {spacing, borderRadius, shadows, fontSize} from '../styles/designTokens';
+import {useTheme} from '../hooks/useTheme';
 
 type CardVariant = 'elevated' | 'outlined' | 'filled' | 'glass' | 'gradient';
 type CardPadding = 'none' | 'small' | 'medium' | 'large';
@@ -55,7 +55,7 @@ export const ModernCard: React.FC<ModernCardProps> = ({
   borderWidth = 1,
   useBlur = Platform.OS === 'ios',
 }) => {
-  const { colors, isDark } = useTheme();
+  const {colors, isDark} = useTheme();
   const scaleAnim = useRef(new Animated.Value(1)).current;
   const fadeAnim = useRef(new Animated.Value(0)).current;
 
@@ -113,7 +113,7 @@ export const ModernCard: React.FC<ModernCardProps> = ({
 
   const getCardStyle = (): ViewStyle => {
     const baseStyle: ViewStyle = {
-      borderRadius: borderRadius.lg,
+      borderRadius: borderRadius.xl, // Bordes más suaves y modernos
       padding: paddingMap[padding],
       opacity: disabled ? 0.5 : 1,
     };
@@ -130,8 +130,10 @@ export const ModernCard: React.FC<ModernCardProps> = ({
       case 'outlined':
         return {
           ...baseStyle,
-          backgroundColor: isDark ? 'rgba(255, 255, 255, 0.02)' : 'rgba(255, 255, 255, 0.8)',
-          borderWidth: StyleSheet.hairlineWidth, // Borde sutil
+          backgroundColor: isDark
+            ? 'rgba(26, 29, 46, 0.40)'
+            : 'rgba(255, 255, 255, 0.90)',
+          borderWidth: 1,
           borderColor: borderColor || colors.border,
         };
 
@@ -145,9 +147,10 @@ export const ModernCard: React.FC<ModernCardProps> = ({
       case 'glass':
         return {
           ...baseStyle,
-          backgroundColor: colors.glass,
-          borderWidth: 0, // Sin borde para glassmorphism limpio
-          ...shadows.sm, // Sombra sutil
+          backgroundColor: 'transparent',
+          borderWidth: 1,
+          borderColor: colors.glassBorder,
+          ...shadows.sm,
         };
 
       case 'gradient':
@@ -166,10 +169,9 @@ export const ModernCard: React.FC<ModernCardProps> = ({
       return (
         <LinearGradient
           colors={gradient}
-          start={{ x: 0, y: 0 }}
-          end={{ x: 1, y: 1 }}
-          style={[getCardStyle(), style]}
-        >
+          start={{x: 0, y: 0}}
+          end={{x: 1, y: 1}}
+          style={[getCardStyle(), style]}>
           {children}
         </LinearGradient>
       );
@@ -182,8 +184,7 @@ export const ModernCard: React.FC<ModernCardProps> = ({
           <BlurView
             intensity={isDark ? 60 : 80}
             tint={isDark ? 'dark' : 'light'}
-            style={[getCardStyle(), styles.blurView]}
-          >
+            style={[getCardStyle(), styles.blurView]}>
             {children}
           </BlurView>
         </View>
@@ -197,10 +198,9 @@ export const ModernCard: React.FC<ModernCardProps> = ({
     return (
       <Animated.View
         style={{
-          transform: [{ scale: scaleAnim }],
+          transform: [{scale: scaleAnim}],
           opacity: fadeAnim,
-        }}
-      >
+        }}>
         <TouchableOpacity
           activeOpacity={1}
           onPress={handlePress}
@@ -210,8 +210,7 @@ export const ModernCard: React.FC<ModernCardProps> = ({
           disabled={disabled}
           accessible
           accessibilityRole="button"
-          accessibilityState={{ disabled }}
-        >
+          accessibilityState={{disabled}}>
           {renderContent()}
         </TouchableOpacity>
       </Animated.View>
@@ -219,9 +218,7 @@ export const ModernCard: React.FC<ModernCardProps> = ({
   }
 
   return (
-    <Animated.View style={{ opacity: fadeAnim }}>
-      {renderContent()}
-    </Animated.View>
+    <Animated.View style={{opacity: fadeAnim}}>{renderContent()}</Animated.View>
   );
 };
 
@@ -242,18 +239,16 @@ export const CardHeader: React.FC<CardHeaderProps> = ({
   action,
   style,
 }) => {
-  const { colors, isDark } = useTheme();
+  const {colors, isDark} = useTheme();
 
   return (
     <View style={[styles.header, style]}>
       <View style={styles.headerContent}>
         {icon && <View style={styles.headerIcon}>{icon}</View>}
         <View style={styles.headerText}>
-          <Text style={[styles.title, { color: colors.text }]}>
-            {title}
-          </Text>
+          <Text style={[styles.title, {color: colors.text}]}>{title}</Text>
           {subtitle && (
-            <Text style={[styles.subtitle, { color: colors.textSecondary }]}>
+            <Text style={[styles.subtitle, {color: colors.textSecondary}]}>
               {subtitle}
             </Text>
           )}
@@ -271,17 +266,11 @@ interface CardFooterProps {
   style?: ViewStyle;
 }
 
-export const CardFooter: React.FC<CardFooterProps> = ({ children, style }) => {
-  const { colors, isDark } = useTheme();
+export const CardFooter: React.FC<CardFooterProps> = ({children, style}) => {
+  const {colors, isDark} = useTheme();
 
   return (
-    <View
-      style={[
-        styles.footer,
-        { borderTopColor: colors.border },
-        style,
-      ]}
-    >
+    <View style={[styles.footer, {borderTopColor: colors.border}, style]}>
       {children}
     </View>
   );
@@ -300,7 +289,7 @@ export const CardSection: React.FC<CardSectionProps> = ({
   divider = false,
   style,
 }) => {
-  const { colors, isDark } = useTheme();
+  const {colors, isDark} = useTheme();
 
   return (
     <View
@@ -311,8 +300,7 @@ export const CardSection: React.FC<CardSectionProps> = ({
           borderBottomColor: colors.divider,
         },
         style,
-      ]}
-    >
+      ]}>
       {children}
     </View>
   );
@@ -321,18 +309,18 @@ export const CardSection: React.FC<CardSectionProps> = ({
 const styles = StyleSheet.create({
   glassContainer: {
     overflow: 'hidden',
-    borderRadius: borderRadius.lg,
+    borderRadius: borderRadius.xl,
   },
   blurView: {
     overflow: 'hidden',
   },
 
-  // Header
+  // Header - Más limpio y espacioso
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: spacing.lg,  // Más separación
+    marginBottom: spacing.lg,
   },
   headerContent: {
     flexDirection: 'row',
@@ -340,36 +328,36 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   headerIcon: {
-    marginRight: spacing.base,
+    marginRight: spacing.md,
   },
   headerText: {
     flex: 1,
   },
   title: {
-    fontSize: fontSize.xl,  // Más grande
+    fontSize: fontSize.xl,
     fontWeight: '700',
-    marginBottom: 4,
-    letterSpacing: -0.3,
+    marginBottom: 2,
+    letterSpacing: -0.5,
   },
   subtitle: {
     fontSize: fontSize.sm,
     fontWeight: '500',
-    opacity: 0.7,
+    opacity: 0.65,
   },
   headerAction: {
-    marginLeft: spacing.lg,
+    marginLeft: spacing.md,
   },
 
-  // Footer
+  // Footer - Más espacioso
   footer: {
-    marginTop: spacing.lg,  // Más separación
+    marginTop: spacing.lg,
     paddingTop: spacing.lg,
     borderTopWidth: 1,
   },
 
-  // Section
+  // Section - Gap optimizado
   section: {
-    paddingVertical: spacing.lg,  // Más espacioso
+    paddingVertical: spacing.md,
   },
 });
 
