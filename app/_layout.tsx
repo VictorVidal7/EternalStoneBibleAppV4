@@ -41,20 +41,28 @@ function AppContent() {
 
       // ✨ Inicializar servicios V5.1
       console.log('🚀 Inicializando servicios V5.1...');
-      await Promise.all([
-        predictiveCacheService.initialize(),
-        badgeSystemService.initialize(),
-        versionComparisonService.initialize(),
-        widgetTaskHandler.initialize(),
-      ]);
+      try {
+        await Promise.all([
+          predictiveCacheService.initialize(),
+          badgeSystemService.initialize(),
+          versionComparisonService.initialize(),
+          widgetTaskHandler.initialize(),
+        ]);
 
-      // Precalentar caché con contenido popular
-      await predictiveCacheService.warmupCache();
+        // Precalentar caché con contenido popular
+        await predictiveCacheService.warmupCache();
 
-      // Limpiar entradas expiradas del caché
-      await predictiveCacheService.cleanup();
+        // Limpiar entradas expiradas del caché
+        await predictiveCacheService.cleanup();
 
-      console.log('✅ Servicios V5.1 inicializados correctamente');
+        console.log('✅ Servicios V5.1 inicializados correctamente');
+      } catch (serviceError) {
+        console.warn(
+          '⚠️ Algunos servicios V5.1 no se pudieron inicializar:',
+          serviceError,
+        );
+        // No fallar la app, solo continuar sin los servicios V5.1
+      }
 
       setIsLoading(false);
     } catch (err) {

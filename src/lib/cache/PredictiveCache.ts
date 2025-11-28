@@ -502,7 +502,7 @@ class PredictiveCacheService {
     }>(
       `
       SELECT verse, text FROM verses
-      WHERE book = ? AND chapter = ?
+      WHERE book_name = ? AND chapter = ? AND version = 'RVR1960'
       ORDER BY verse
     `,
       [book, chapter],
