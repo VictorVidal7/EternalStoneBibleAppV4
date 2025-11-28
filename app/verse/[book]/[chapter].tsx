@@ -11,17 +11,18 @@ import {
   Share,
   Animated,
 } from 'react-native';
-import { useState, useEffect, useRef } from 'react';
-import { useLocalSearchParams, useRouter, Stack } from 'expo-router';
-import { Ionicons } from '@expo/vector-icons';
+import {useState, useEffect, useRef} from 'react';
+import {useLocalSearchParams, useRouter, Stack} from 'expo-router';
+import {Ionicons} from '@expo/vector-icons';
 import * as Clipboard from 'expo-clipboard';
 import * as Haptics from 'expo-haptics';
 import bibleDB from '../../../src/lib/database';
-import { BibleVerse } from '../../../src/types/bible';
-import { getBookByName } from '../../../src/constants/bible';
-import { useTheme } from '../../../src/hooks/useTheme';
-import { useBibleVersion } from '../../../src/hooks/useBibleVersion';
-import { useLanguage } from '../../../src/hooks/useLanguage';
+import {BibleVerse} from '../../../src/types/bible';
+import {getBookByName} from '../../../src/constants/bible';
+import {useTheme} from '../../../src/hooks/useTheme';
+import {useBibleVersion} from '../../../src/hooks/useBibleVersion';
+import {useLanguage} from '../../../src/hooks/useLanguage';
+import {ImmersiveReader} from '../../../src/components/reading/ImmersiveReader';
 
 // Design tokens
 import {
@@ -33,10 +34,14 @@ import {
 
 export default function VerseReadingScreen() {
   const router = useRouter();
-  const { colors, isDark } = useTheme();
-  const { selectedVersion } = useBibleVersion();
-  const { t } = useLanguage();
-  const { book, chapter, verse: highlightVerse } = useLocalSearchParams<{
+  const {colors, isDark} = useTheme();
+  const {selectedVersion} = useBibleVersion();
+  const {t} = useLanguage();
+  const {
+    book,
+    chapter,
+    verse: highlightVerse,
+  } = useLocalSearchParams<{
     book: string;
     chapter: string;
     verse?: string;
@@ -51,7 +56,10 @@ export default function VerseReadingScreen() {
   const [selectedVerse, setSelectedVerse] = useState<BibleVerse | null>(null);
   const [noteModalVisible, setNoteModalVisible] = useState(false);
   const [noteText, setNoteText] = useState('');
-  const [bookmarkedVerses, setBookmarkedVerses] = useState<Set<number>>(new Set());
+  const [bookmarkedVerses, setBookmarkedVerses] = useState<Set<number>>(
+    new Set(),
+  );
+  const [immersiveModeActive, setImmersiveModeActive] = useState(false);
 
   const scrollViewRef = useRef<ScrollView>(null);
 
@@ -63,7 +71,9 @@ export default function VerseReadingScreen() {
   async function loadChapter() {
     try {
       setLoading(true);
-      console.log(`📖 Loading chapter: book="${book}", chapter=${chapterNum}, version="${selectedVersion.id}"`);
+      console.log(
+        `📖 Loading chapter: book="${book}", chapter=${chapterNum}, version="${selectedVersion.id}"`,
+      );
 
       if (!bookInfo) {
         console.error(`❌ Book not found: ${book}`);
@@ -73,7 +83,11 @@ export default function VerseReadingScreen() {
 
       await bibleDB.initialize();
 
-      const chapterVerses = await bibleDB.getChapter(bookInfo.id, chapterNum, selectedVersion.id);
+      const chapterVerses = await bibleDB.getChapter(
+        bookInfo.id,
+        chapterNum,
+        selectedVersion.id,
+      );
       console.log(`✅ Loaded ${chapterVerses.length} verses`);
 
       setVerses(chapterVerses);
@@ -103,13 +117,18 @@ export default function VerseReadingScreen() {
       console.log(`📑 Loading bookmarks for ${book} ${chapterNum}...`);
       const allBookmarks = await bibleDB.getBookmarks();
       const currentChapterBookmarks = allBookmarks
-        .filter((b) => b.book === book && b.chapter === chapterNum)
-        .map((b) => b.verse);
+        .filter(b => b.book === book && b.chapter === chapterNum)
+        .map(b => b.verse);
 
-      console.log(`✅ Found ${currentChapterBookmarks.length} bookmarks for this chapter`);
+      console.log(
+        `✅ Found ${currentChapterBookmarks.length} bookmarks for this chapter`,
+      );
       setBookmarkedVerses(new Set(currentChapterBookmarks));
     } catch (error) {
-      console.error(`❌ Error loading bookmarks for ${book} ${chapterNum}:`, error);
+      console.error(
+        `❌ Error loading bookmarks for ${book} ${chapterNum}:`,
+        error,
+      );
     }
   }
 
@@ -122,7 +141,10 @@ export default function VerseReadingScreen() {
       // Find and remove bookmark
       const allBookmarks = await bibleDB.getBookmarks();
       const bookmark = allBookmarks.find(
-        (b) => b.book === verse.book && b.chapter === verse.chapter && b.verse === verse.verse
+        b =>
+          b.book === verse.book &&
+          b.chapter === verse.chapter &&
+          b.verse === verse.verse,
       );
 
       if (bookmark) {
@@ -171,7 +193,11 @@ export default function VerseReadingScreen() {
     setSelectedVerse(verse);
 
     // Check if note already exists
-    const existingNote = await bibleDB.getNoteForVerse(verse.book, verse.chapter, verse.verse);
+    const existingNote = await bibleDB.getNoteForVerse(
+      verse.book,
+      verse.chapter,
+      verse.verse,
+    );
 
     if (existingNote) {
       setNoteText(existingNote.note);
@@ -190,7 +216,7 @@ export default function VerseReadingScreen() {
     const existingNote = await bibleDB.getNoteForVerse(
       selectedVerse.book,
       selectedVerse.chapter,
-      selectedVerse.verse
+      selectedVerse.verse,
     );
 
     if (existingNote) {
@@ -216,14 +242,14 @@ export default function VerseReadingScreen() {
   function navigateChapter(direction: 'prev' | 'next') {
     if (!bookInfo) return;
 
-    let newChapter = chapterNum + (direction === 'next' ? 1 : -1);
+    const newChapter = chapterNum + (direction === 'next' ? 1 : -1);
 
     if (newChapter < 1 || newChapter > bookInfo.chapters) {
       Alert.alert(
         t.app.endOfBook,
         direction === 'next'
           ? t.app.endOfBookMessage
-          : t.app.firstChapterMessage
+          : t.app.firstChapterMessage,
       );
       return;
     }
@@ -233,7 +259,8 @@ export default function VerseReadingScreen() {
 
   if (!bookInfo || loading) {
     return (
-      <View style={[styles.loadingContainer, { backgroundColor: colors.background }]}>
+      <View
+        style={[styles.loadingContainer, {backgroundColor: colors.background}]}>
         <ActivityIndicator size="large" color={colors.primary} />
       </View>
     );
@@ -244,65 +271,93 @@ export default function VerseReadingScreen() {
       <Stack.Screen
         options={{
           title: `${bookInfo.name} ${chapterNum}`,
-          headerStyle: { backgroundColor: colors.primary },
+          headerStyle: {backgroundColor: colors.primary},
           headerTintColor: '#FFFFFF',
           headerRight: () => (
             <View style={styles.headerButtons}>
               <TouchableOpacity
-                onPress={() => setFontSize((prev) => Math.min(prev + 2, 24))}
-                style={styles.headerButton}
-              >
+                onPress={() => {
+                  Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+                  setImmersiveModeActive(true);
+                }}
+                style={styles.headerButton}>
+                <Ionicons name="expand-outline" size={24} color="#FFFFFF" />
+              </TouchableOpacity>
+              <TouchableOpacity
+                onPress={() => setFontSize(prev => Math.min(prev + 2, 24))}
+                style={styles.headerButton}>
                 <Ionicons name="add-circle-outline" size={24} color="#FFFFFF" />
               </TouchableOpacity>
               <TouchableOpacity
-                onPress={() => setFontSize((prev) => Math.max(prev - 2, 12))}
-                style={styles.headerButton}
-              >
-                <Ionicons name="remove-circle-outline" size={24} color="#FFFFFF" />
+                onPress={() => setFontSize(prev => Math.max(prev - 2, 12))}
+                style={styles.headerButton}>
+                <Ionicons
+                  name="remove-circle-outline"
+                  size={24}
+                  color="#FFFFFF"
+                />
               </TouchableOpacity>
             </View>
           ),
         }}
       />
 
-      <View style={[styles.container, { backgroundColor: colors.background }]}>
+      <View style={[styles.container, {backgroundColor: colors.background}]}>
         {/* Navigation Bar */}
-        <View style={[styles.navBar, { backgroundColor: colors.surface, borderBottomColor: colors.border }]}>
+        <View
+          style={[
+            styles.navBar,
+            {backgroundColor: colors.surface, borderBottomColor: colors.border},
+          ]}>
           <TouchableOpacity
             style={styles.navButton}
             onPress={() => navigateChapter('prev')}
-            disabled={chapterNum === 1}
-          >
+            disabled={chapterNum === 1}>
             <Ionicons
               name="chevron-back"
               size={24}
               color={chapterNum === 1 ? colors.textTertiary : colors.primary}
             />
             <Text
-              style={[styles.navButtonText, { color: chapterNum === 1 ? colors.textTertiary : colors.primary }]}
-            >
+              style={[
+                styles.navButtonText,
+                {
+                  color:
+                    chapterNum === 1 ? colors.textTertiary : colors.primary,
+                },
+              ]}>
               {t.previous}
             </Text>
           </TouchableOpacity>
 
-          <Text style={[styles.navTitle, { color: colors.text }]}>
+          <Text style={[styles.navTitle, {color: colors.text}]}>
             {bookInfo.name} {chapterNum}
           </Text>
 
           <TouchableOpacity
             style={styles.navButton}
             onPress={() => navigateChapter('next')}
-            disabled={chapterNum === bookInfo.chapters}
-          >
+            disabled={chapterNum === bookInfo.chapters}>
             <Text
-              style={[styles.navButtonText, { color: chapterNum === bookInfo.chapters ? colors.textTertiary : colors.primary }]}
-            >
+              style={[
+                styles.navButtonText,
+                {
+                  color:
+                    chapterNum === bookInfo.chapters
+                      ? colors.textTertiary
+                      : colors.primary,
+                },
+              ]}>
               {t.next}
             </Text>
             <Ionicons
               name="chevron-forward"
               size={24}
-              color={chapterNum === bookInfo.chapters ? colors.textTertiary : colors.primary}
+              color={
+                chapterNum === bookInfo.chapters
+                  ? colors.textTertiary
+                  : colors.primary
+              }
             />
           </TouchableOpacity>
         </View>
@@ -311,54 +366,100 @@ export default function VerseReadingScreen() {
         <ScrollView
           ref={scrollViewRef}
           style={styles.versesContainer}
-          contentContainerStyle={styles.versesContent}
-        >
-          {verses.map((verse) => {
+          contentContainerStyle={styles.versesContent}>
+          {verses.map(verse => {
             const isBookmarked = bookmarkedVerses.has(verse.verse);
-            const isHighlighted = highlightVerse && parseInt(highlightVerse as string) === verse.verse;
+            const isHighlighted =
+              highlightVerse &&
+              parseInt(highlightVerse as string) === verse.verse;
 
             return (
               <View
                 key={verse.verse}
-                style={[styles.verseItem, { backgroundColor: colors.surface }, isHighlighted && { backgroundColor: colors.verseHighlight, borderColor: colors.warning, borderWidth: 2 }]}
-              >
+                style={[
+                  styles.verseItem,
+                  {backgroundColor: colors.surface},
+                  isHighlighted && {
+                    backgroundColor: colors.verseHighlight,
+                    borderColor: colors.warning,
+                    borderWidth: 2,
+                  },
+                ]}>
                 <View style={styles.verseHeader}>
-                  <Text style={[styles.verseNumber, { color: colors.primary }]}>{verse.verse}</Text>
+                  <Text style={[styles.verseNumber, {color: colors.primary}]}>
+                    {verse.verse}
+                  </Text>
 
                   <TouchableOpacity onPress={() => toggleBookmark(verse)}>
                     <Ionicons
                       name={isBookmarked ? 'bookmark' : 'bookmark-outline'}
                       size={20}
-                      color={isBookmarked ? colors.bookmark : colors.textTertiary}
+                      color={
+                        isBookmarked ? colors.bookmark : colors.textTertiary
+                      }
                     />
                   </TouchableOpacity>
                 </View>
 
-                <Text style={[styles.verseText, { fontSize, color: colors.text }]}>{verse.text}</Text>
+                <Text
+                  style={[styles.verseText, {fontSize, color: colors.text}]}>
+                  {verse.text}
+                </Text>
 
-                <View style={[styles.verseActions, { borderTopColor: colors.border }]}>
+                <View
+                  style={[
+                    styles.verseActions,
+                    {borderTopColor: colors.border},
+                  ]}>
                   <TouchableOpacity
                     style={styles.actionButton}
-                    onPress={() => handleCopyVerse(verse)}
-                  >
-                    <Ionicons name="copy-outline" size={18} color={colors.textSecondary} />
-                    <Text style={[styles.actionButtonText, { color: colors.textSecondary }]}>{t.copy}</Text>
+                    onPress={() => handleCopyVerse(verse)}>
+                    <Ionicons
+                      name="copy-outline"
+                      size={18}
+                      color={colors.textSecondary}
+                    />
+                    <Text
+                      style={[
+                        styles.actionButtonText,
+                        {color: colors.textSecondary},
+                      ]}>
+                      {t.copy}
+                    </Text>
                   </TouchableOpacity>
 
                   <TouchableOpacity
                     style={styles.actionButton}
-                    onPress={() => handleShareVerse(verse)}
-                  >
-                    <Ionicons name="share-outline" size={18} color={colors.textSecondary} />
-                    <Text style={[styles.actionButtonText, { color: colors.textSecondary }]}>{t.share}</Text>
+                    onPress={() => handleShareVerse(verse)}>
+                    <Ionicons
+                      name="share-outline"
+                      size={18}
+                      color={colors.textSecondary}
+                    />
+                    <Text
+                      style={[
+                        styles.actionButtonText,
+                        {color: colors.textSecondary},
+                      ]}>
+                      {t.share}
+                    </Text>
                   </TouchableOpacity>
 
                   <TouchableOpacity
                     style={styles.actionButton}
-                    onPress={() => handleAddNote(verse)}
-                  >
-                    <Ionicons name="create-outline" size={18} color={colors.textSecondary} />
-                    <Text style={[styles.actionButtonText, { color: colors.textSecondary }]}>{t.notes.note}</Text>
+                    onPress={() => handleAddNote(verse)}>
+                    <Ionicons
+                      name="create-outline"
+                      size={18}
+                      color={colors.textSecondary}
+                    />
+                    <Text
+                      style={[
+                        styles.actionButtonText,
+                        {color: colors.textSecondary},
+                      ]}>
+                      {t.notes.note}
+                    </Text>
                   </TouchableOpacity>
                 </View>
               </View>
@@ -371,27 +472,44 @@ export default function VerseReadingScreen() {
           visible={noteModalVisible}
           transparent
           animationType="slide"
-          onRequestClose={() => setNoteModalVisible(false)}
-        >
-          <View style={[styles.modalOverlay, { backgroundColor: colors.overlay }]}>
-            <View style={[styles.modalContent, { backgroundColor: colors.surface }]}>
+          onRequestClose={() => setNoteModalVisible(false)}>
+          <View
+            style={[styles.modalOverlay, {backgroundColor: colors.overlay}]}>
+            <View
+              style={[styles.modalContent, {backgroundColor: colors.surface}]}>
               <View style={styles.modalHeader}>
-                <Text style={[styles.modalTitle, { color: colors.text }]}>
+                <Text style={[styles.modalTitle, {color: colors.text}]}>
                   {selectedVerse
                     ? `${selectedVerse.book} ${selectedVerse.chapter}:${selectedVerse.verse}`
                     : t.notes.add}
                 </Text>
                 <TouchableOpacity onPress={() => setNoteModalVisible(false)}>
-                  <Ionicons name="close" size={24} color={colors.textSecondary} />
+                  <Ionicons
+                    name="close"
+                    size={24}
+                    color={colors.textSecondary}
+                  />
                 </TouchableOpacity>
               </View>
 
               {selectedVerse && (
-                <Text style={[styles.modalVerse, { color: colors.textSecondary, backgroundColor: colors.surfaceVariant }]}>"{selectedVerse.text}"</Text>
+                <Text
+                  style={[
+                    styles.modalVerse,
+                    {
+                      color: colors.textSecondary,
+                      backgroundColor: colors.surfaceVariant,
+                    },
+                  ]}>
+                  "{selectedVerse.text}"
+                </Text>
               )}
 
               <TextInput
-                style={[styles.noteInput, { color: colors.text, borderColor: colors.border }]}
+                style={[
+                  styles.noteInput,
+                  {color: colors.text, borderColor: colors.border},
+                ]}
                 placeholder={t.notes.placeholder}
                 placeholderTextColor={colors.textTertiary}
                 value={noteText}
@@ -402,14 +520,32 @@ export default function VerseReadingScreen() {
               />
 
               <TouchableOpacity
-                style={[styles.saveButton, { backgroundColor: noteText.trim() ? colors.success : colors.textTertiary }]}
+                style={[
+                  styles.saveButton,
+                  {
+                    backgroundColor: noteText.trim()
+                      ? colors.success
+                      : colors.textTertiary,
+                  },
+                ]}
                 onPress={saveNote}
-                disabled={!noteText.trim()}
-              >
+                disabled={!noteText.trim()}>
                 <Text style={styles.saveButtonText}>{t.notes.saveNote}</Text>
               </TouchableOpacity>
             </View>
           </View>
+        </Modal>
+
+        {/* Immersive Reading Mode Modal */}
+        <Modal
+          visible={immersiveModeActive}
+          animationType="fade"
+          presentationStyle="fullScreen">
+          <ImmersiveReader
+            verses={verses}
+            onClose={() => setImmersiveModeActive(false)}
+            startIndex={0}
+          />
         </Modal>
       </View>
     </>
@@ -437,10 +573,10 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingVertical: spacing.md,  // Menos padding
+    paddingVertical: spacing.md, // Menos padding
     paddingHorizontal: spacing.lg,
     borderBottomWidth: 0,
-    ...shadows.xs,  // Sombra mínima
+    ...shadows.xs, // Sombra mínima
   },
   navButton: {
     flexDirection: 'row',
@@ -464,26 +600,26 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   versesContent: {
-    paddingHorizontal: spacing.base,  // Más compacto
-    paddingVertical: spacing.sm,  // Muy compacto
+    paddingHorizontal: spacing.base, // Más compacto
+    paddingVertical: spacing.sm, // Muy compacto
   },
 
   // CARD DE VERSÍCULO - ULTRA COMPACTO
   verseItem: {
-    borderRadius: borderRadius.md,  // Más sutil
-    padding: spacing.sm,  // Muy compacto
-    marginBottom: spacing.sm,  // Mínima separación
-    ...shadows.xs,  // Sombra mínima
+    borderRadius: borderRadius.md, // Más sutil
+    padding: spacing.sm, // Muy compacto
+    marginBottom: spacing.sm, // Mínima separación
+    ...shadows.xs, // Sombra mínima
     borderWidth: 0,
   },
   verseHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    alignItems: 'center',  // Alineado al centro
-    marginBottom: spacing.xs,  // Muy poco espacio
+    alignItems: 'center', // Alineado al centro
+    marginBottom: spacing.xs, // Muy poco espacio
   },
   verseNumber: {
-    fontSize: fontSizes.sm,  // Muy discreto
+    fontSize: fontSizes.sm, // Muy discreto
     fontWeight: '600',
     minWidth: 28,
     textAlign: 'left',
@@ -492,29 +628,29 @@ const styles = StyleSheet.create({
   // TEXTO DEL VERSÍCULO - OPTIMIZADO PARA DENSIDAD
   verseText: {
     fontSize: fontSizes.base,
-    lineHeight: fontSizes.base * 1.5,  // Más compacto
+    lineHeight: fontSizes.base * 1.5, // Más compacto
     letterSpacing: 0,
-    marginBottom: spacing.xs,  // Muy poco espacio
+    marginBottom: spacing.xs, // Muy poco espacio
   },
 
   // ACCIONES - ULTRA COMPACTAS
   verseActions: {
     flexDirection: 'row',
     justifyContent: 'flex-start',
-    gap: spacing.md,  // Menos espacio
+    gap: spacing.md, // Menos espacio
     borderTopWidth: 0,
-    paddingTop: spacing.xs,  // Muy poco padding
-    marginTop: 0,  // Sin margen
+    paddingTop: spacing.xs, // Muy poco padding
+    marginTop: 0, // Sin margen
   },
   actionButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 4,  // Muy poco espacio
+    gap: 4, // Muy poco espacio
     paddingVertical: 2,
     paddingHorizontal: spacing.xs,
   },
   actionButtonText: {
-    fontSize: fontSizes.xs,  // Más pequeño
+    fontSize: fontSizes.xs, // Más pequeño
     fontWeight: '500',
     letterSpacing: 0,
   },
