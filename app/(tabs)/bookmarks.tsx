@@ -1,19 +1,27 @@
-import { View, Text, StyleSheet, FlatList, TouchableOpacity, Alert } from 'react-native';
-import { useState, useEffect } from 'react';
-import { useRouter, useFocusEffect } from 'expo-router';
-import { Ionicons } from '@expo/vector-icons';
+import {
+  View,
+  Text,
+  StyleSheet,
+  FlatList,
+  TouchableOpacity,
+  Alert,
+} from 'react-native';
+import {useState, useEffect} from 'react';
+import {useRouter, useFocusEffect} from 'expo-router';
+import {Ionicons} from '@expo/vector-icons';
 import bibleDB from '../../src/lib/database';
-import { Bookmark } from '../../src/types/bible';
-import { useCallback } from 'react';
-import { useTheme } from '../../src/hooks/useTheme';
-import { useLanguage } from '../../src/hooks/useLanguage';
-import { IllustratedEmptyState } from '../../src/components/IllustratedEmptyState';
-import { useToast } from '../../src/context/ToastContext';
+import {Bookmark} from '../../src/types/bible';
+import {useCallback} from 'react';
+import {useTheme} from '../../src/hooks/useTheme';
+import {useLanguage} from '../../src/hooks/useLanguage';
+import {IllustratedEmptyState} from '../../src/components/IllustratedEmptyState';
+import {useToast} from '../../src/context/ToastContext';
+import {logger} from '../../src/lib/utils/logger';
 
 export default function BookmarksScreen() {
   const router = useRouter();
-  const { colors, isDark } = useTheme();
-  const { t } = useLanguage();
+  const {colors, isDark} = useTheme();
+  const {t} = useLanguage();
   const toast = useToast();
   const [bookmarks, setBookmarks] = useState<Bookmark[]>([]);
   const [loading, setLoading] = useState(true);
@@ -21,74 +29,89 @@ export default function BookmarksScreen() {
   useFocusEffect(
     useCallback(() => {
       loadBookmarks();
-    }, [])
+    }, []),
   );
 
   async function loadBookmarks() {
     try {
-      console.log('📑 [BookmarksScreen] Initializing database...');
+      logger.info('Initializing database', {
+        component: 'BookmarksScreen',
+        action: 'loadBookmarks',
+      });
       await bibleDB.initialize();
-      console.log('📑 [BookmarksScreen] Calling getBookmarks()...');
       const data = await bibleDB.getBookmarks();
-      console.log(`📑 [BookmarksScreen] Successfully loaded ${data.length} bookmarks`);
+      logger.info('Bookmarks loaded successfully', {
+        component: 'BookmarksScreen',
+        action: 'loadBookmarks',
+        count: data.length,
+      });
       setBookmarks(data);
       setLoading(false);
     } catch (error) {
-      console.error('❌ [BookmarksScreen] Error loading bookmarks:', error);
+      logger.error('Error loading bookmarks', error as Error, {
+        component: 'BookmarksScreen',
+        action: 'loadBookmarks',
+      });
       setLoading(false);
     }
   }
 
   async function handleDelete(id: string) {
-    Alert.alert(
-      t.bookmarks.deleteTitle,
-      t.bookmarks.deleteMessage,
-      [
-        { text: t.cancel, style: 'cancel' },
-        {
-          text: t.delete,
-          style: 'destructive',
-          onPress: async () => {
-            await bibleDB.removeBookmark(id);
-            toast.success(t.bookmarks.removedSuccessfully);
-            loadBookmarks();
-          },
+    Alert.alert(t.bookmarks.deleteTitle, t.bookmarks.deleteMessage, [
+      {text: t.cancel, style: 'cancel'},
+      {
+        text: t.delete,
+        style: 'destructive',
+        onPress: async () => {
+          await bibleDB.removeBookmark(id);
+          toast.success(t.bookmarks.removedSuccessfully);
+          loadBookmarks();
         },
-      ]
-    );
+      },
+    ]);
   }
 
   function goToVerse(bookmark: Bookmark) {
-    router.push(`/verse/${bookmark.book}/${bookmark.chapter}?verse=${bookmark.verse}` as any);
+    router.push(
+      `/verse/${bookmark.book}/${bookmark.chapter}?verse=${bookmark.verse}` as any,
+    );
   }
 
   if (loading) {
-    return <View style={[styles.container, { backgroundColor: colors.background }]} />;
+    return (
+      <View style={[styles.container, {backgroundColor: colors.background}]} />
+    );
   }
 
   return (
-    <View style={[styles.container, { backgroundColor: colors.background }]}>
+    <View style={[styles.container, {backgroundColor: colors.background}]}>
       <FlatList
         data={bookmarks}
-        keyExtractor={(item) => item.id}
-        renderItem={({ item }) => (
+        keyExtractor={item => item.id}
+        renderItem={({item}) => (
           <TouchableOpacity
-            style={[styles.bookmarkItem, { backgroundColor: colors.surface }]}
+            style={[styles.bookmarkItem, {backgroundColor: colors.surface}]}
             onPress={() => goToVerse(item)}
-            activeOpacity={0.7}
-          >
-            <View style={[styles.bookmarkIcon, { backgroundColor: colors.primaryLight }]}>
+            activeOpacity={0.7}>
+            <View
+              style={[
+                styles.bookmarkIcon,
+                {backgroundColor: colors.primaryLight},
+              ]}>
               <Ionicons name="bookmark" size={20} color={colors.primary} />
             </View>
 
             <View style={styles.bookmarkContent}>
-              <Text style={[styles.bookmarkReference, { color: colors.primary }]}>
+              <Text style={[styles.bookmarkReference, {color: colors.primary}]}>
                 {item.book} {item.chapter}:{item.verse}
               </Text>
-              <Text style={[styles.bookmarkText, { color: colors.text }]} numberOfLines={2}>
+              <Text
+                style={[styles.bookmarkText, {color: colors.text}]}
+                numberOfLines={2}>
                 {item.text}
               </Text>
-              <Text style={[styles.bookmarkDate, { color: colors.textSecondary }]}>
+              <Text
+                style={[styles.bookmarkDate, {color: colors.textSecondary}]}>
                 {new Date(item.createdAt).toLocaleDateString('en-US', {
                   year: 'numeric',
                   month: 'long',
@@ -99,8 +122,7 @@ export default function BookmarksScreen() {
 
             <TouchableOpacity
               style={styles.deleteButton}
-              onPress={() => handleDelete(item.id)}
-            >
+              onPress={() => handleDelete(item.id)}>
               <Ionicons name="trash-outline" size={20} color={colors.error} />
             </TouchableOpacity>
           </TouchableOpacity>
@@ -135,7 +157,7 @@ const styles = StyleSheet.create({
     padding: 16,
     marginBottom: 12,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
+    shadowOffset: {width: 0, height: 1},
     shadowOpacity: 0.08,
     shadowRadius: 3,
     elevation: 2,

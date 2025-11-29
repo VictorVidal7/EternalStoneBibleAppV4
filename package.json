@@ -1,6 +1,6 @@
 {
-  "name": "eternalstonebibleappv3",
-  "version": "1.0.0",
+  "name": "eternalstonebibleappv4",
+  "version": "3.0.0",
   "main": "node_modules/expo-router/entry",
   "scripts": {
     "start": "expo start",

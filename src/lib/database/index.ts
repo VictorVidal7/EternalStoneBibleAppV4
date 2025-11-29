@@ -1,6 +1,6 @@
 import * as SQLite from 'expo-sqlite';
-import { BibleVerse, Bookmark, Note, ReadingProgress } from '../../types/bible';
-import { CREATE_TABLES, INITIAL_READING_PROGRESS } from './schema';
+import {BibleVerse, Bookmark, Note, ReadingProgress} from '../../types/bible';
+import {CREATE_TABLES, INITIAL_READING_PROGRESS} from './schema';
 
 class BibleDatabase {
   private db: SQLite.SQLiteDatabase | null = null;
@@ -126,17 +126,52 @@ class BibleDatabase {
         )
       `);
 
+      // Tabla favorites
+      await this.db.execAsync(`
+        CREATE TABLE IF NOT EXISTS favorites (
+          id TEXT PRIMARY KEY,
+          verse_id TEXT NOT NULL,
+          book_name TEXT NOT NULL,
+          chapter INTEGER NOT NULL,
+          verse INTEGER NOT NULL,
+          text TEXT NOT NULL,
+          category TEXT NOT NULL DEFAULT 'other',
+          rating INTEGER NOT NULL DEFAULT 5 CHECK (rating >= 1 AND rating <= 5),
+          tags TEXT,
+          note TEXT,
+          created_at INTEGER NOT NULL,
+          updated_at INTEGER NOT NULL
+        )
+      `);
+
       // Índices
-      await this.db.execAsync('CREATE INDEX IF NOT EXISTS idx_verses_book_chapter ON verses(book_id, chapter)');
-      await this.db.execAsync('CREATE INDEX IF NOT EXISTS idx_verses_version ON verses(version)');
-      await this.db.execAsync('CREATE INDEX IF NOT EXISTS idx_bookmarks_reference ON bookmarks(book_name, chapter, verse)');
-      await this.db.execAsync('CREATE INDEX IF NOT EXISTS idx_notes_reference ON notes(book_name, chapter, verse)');
+      await this.db.execAsync(
+        'CREATE INDEX IF NOT EXISTS idx_verses_book_chapter ON verses(book_id, chapter)',
+      );
+      await this.db.execAsync(
+        'CREATE INDEX IF NOT EXISTS idx_verses_version ON verses(version)',
+      );
+      await this.db.execAsync(
+        'CREATE INDEX IF NOT EXISTS idx_bookmarks_reference ON bookmarks(book_name, chapter, verse)',
+      );
+      await this.db.execAsync(
+        'CREATE INDEX IF NOT EXISTS idx_notes_reference ON notes(book_name, chapter, verse)',
+      );
+      await this.db.execAsync(
+        'CREATE INDEX IF NOT EXISTS idx_favorites_reference ON favorites(book_name, chapter, verse)',
+      );
+      await this.db.execAsync(
+        'CREATE INDEX IF NOT EXISTS idx_favorites_category ON favorites(category)',
+      );
+      await this.db.execAsync(
+        'CREATE INDEX IF NOT EXISTS idx_favorites_rating ON favorites(rating)',
+      );
 
       // Initial reading progress
       await this.db.runAsync(
         `INSERT OR REPLACE INTO reading_progress (id, book_name, chapter, verse, timestamp)
          VALUES (?, ?, ?, ?, datetime('now'))`,
-        [1, 'Juan', 3, 16]
+        [1, 'Juan', 3, 16],
       );
 
       this.initialized = true;
@@ -172,7 +207,9 @@ class BibleDatabase {
     // Filtrar parámetros null/undefined y reemplazar con valores válidos
     const sanitizedParams = params?.map((param, index) => {
       if (param === null || param === undefined) {
-        console.warn(`executeSql: Parameter at index ${index} is ${param}, replacing with null`);
+        console.warn(
+          `executeSql: Parameter at index ${index} is ${param}, replacing with null`,
+        );
         return null;
       }
       return param;
@@ -194,7 +231,7 @@ class BibleDatabase {
             rows: {
               _array: rows,
               length: rows.length,
-            }
+            },
           };
         } else {
           const rows = await db.getAllAsync(sql);
@@ -202,20 +239,28 @@ class BibleDatabase {
             rows: {
               _array: rows,
               length: rows.length,
-            }
+            },
           };
         }
       } catch (error) {
-        console.error('❌ Error executing SELECT query:', { sql: sql.substring(0, 100), params: sanitizedParams }, error);
+        console.error(
+          '❌ Error executing SELECT query:',
+          {sql: sql.substring(0, 100), params: sanitizedParams},
+          error,
+        );
         throw error;
       }
     } else {
       // Para INSERT, UPDATE, DELETE, CREATE, etc.
       try {
-        if (sql.includes('CREATE') || sql.includes('DROP') || sql.includes('ALTER')) {
+        if (
+          sql.includes('CREATE') ||
+          sql.includes('DROP') ||
+          sql.includes('ALTER')
+        ) {
           // Para DDL, usar execAsync
           await db.execAsync(sql);
-          return { changes: 0, lastInsertRowId: 0 };
+          return {changes: 0, lastInsertRowId: 0};
         } else if (sanitizedParams && sanitizedParams.length > 0) {
           // Para DML con parámetros, usar runAsync
           const result = await db.runAsync(sql, sanitizedParams);
@@ -223,10 +268,14 @@ class BibleDatabase {
         } else {
           // Para DML sin parámetros
           await db.execAsync(sql);
-          return { changes: 0, lastInsertRowId: 0 };
+          return {changes: 0, lastInsertRowId: 0};
         }
       } catch (error) {
-        console.error('❌ Error executing DML query:', { sql: sql.substring(0, 100), params: sanitizedParams }, error);
+        console.error(
+          '❌ Error executing DML query:',
+          {sql: sql.substring(0, 100), params: sanitizedParams},
+          error,
+        );
         throw error;
       }
     }
@@ -247,13 +296,24 @@ class BibleDatabase {
         await db.runAsync(
           `INSERT OR REPLACE INTO verses (book_id, book_name, chapter, verse, text, version)
            VALUES (?, ?, ?, ?, ?, ?)`,
-          [bookId, bookName, verse.chapter, verse.verse, verse.text, verse.version]
+          [
+            bookId,
+            bookName,
+            verse.chapter,
+            verse.verse,
+            verse.text,
+            verse.version,
+          ],
         );
       }
     });
   }
 
-  async getChapter(bookId: number, chapter: number, version: string = 'RVR1960'): Promise<BibleVerse[]> {
+  async getChapter(
+    bookId: number,
+    chapter: number,
+    version: string = 'RVR1960',
+  ): Promise<BibleVerse[]> {
     const db = this.getDb();
 
     // Validar parámetros
@@ -273,48 +333,66 @@ class BibleDatabase {
     }
 
     try {
-      console.log(`🔍 Querying DB: bookId=${bookId}, chapter=${chapter}, version="${version}"`);
+      console.log(
+        `🔍 Querying DB: bookId=${bookId}, chapter=${chapter}, version="${version}"`,
+      );
 
       const result = await db.getAllAsync<BibleVerse>(
         `SELECT id, book_id as bookNumber, book_name as book, chapter, verse, text, version
          FROM verses
          WHERE book_id = ? AND chapter = ? AND version = ?
          ORDER BY verse ASC`,
-        [bookId, chapter, version]
+        [bookId, chapter, version],
       );
 
       console.log(`📊 Query result: ${result.length} verses found`);
 
       if (result.length === 0) {
         // Intentar buscar libros similares para debugging
-        const allBooks = await db.getAllAsync<{book_id: number, book_name: string}>(
+        const allBooks = await db.getAllAsync<{
+          book_id: number;
+          book_name: string;
+        }>(
           'SELECT DISTINCT book_id, book_name FROM verses WHERE version = ? LIMIT 10',
-          [version]
+          [version],
         );
-        console.warn(`⚠️ No verses found for bookId=${bookId}. Sample books in DB for ${version}:`, allBooks);
+        console.warn(
+          `⚠️ No verses found for bookId=${bookId}. Sample books in DB for ${version}:`,
+          allBooks,
+        );
       }
 
       return result;
     } catch (error) {
-      console.error(`❌ Error loading chapter bookId=${bookId} chapter=${chapter} (${version}):`, error);
+      console.error(
+        `❌ Error loading chapter bookId=${bookId} chapter=${chapter} (${version}):`,
+        error,
+      );
       throw error;
     }
   }
 
-  async getVerse(bookId: number, chapter: number, verse: number, version: string = 'RVR1960'): Promise<BibleVerse | null> {
+  async getVerse(
+    bookId: number,
+    chapter: number,
+    verse: number,
+    version: string = 'RVR1960',
+  ): Promise<BibleVerse | null> {
     const db = this.getDb();
 
     const result = await db.getFirstAsync<BibleVerse>(
       `SELECT id, book_id as bookNumber, book_name as book, chapter, verse, text, version
        FROM verses
        WHERE book_id = ? AND chapter = ? AND verse = ? AND version = ?`,
-      [bookId, chapter, verse, version]
+      [bookId, chapter, verse, version],
     );
 
     return result || null;
   }
 
-  async getRandomVerse(version: string = 'RVR1960'): Promise<BibleVerse | null> {
+  async getRandomVerse(
+    version: string = 'RVR1960',
+  ): Promise<BibleVerse | null> {
     const db = this.getDb();
 
     const result = await db.getFirstAsync<BibleVerse>(
@@ -323,7 +401,7 @@ class BibleDatabase {
        WHERE version = ?
        ORDER BY RANDOM()
        LIMIT 1`,
-      [version]
+      [version],
     );
 
     return result || null;
@@ -331,7 +409,11 @@ class BibleDatabase {
 
   // ========== SEARCH OPERATIONS ==========
 
-  async searchVerses(query: string, version: string = 'RVR1960', limit: number = 100): Promise<BibleVerse[]> {
+  async searchVerses(
+    query: string,
+    version: string = 'RVR1960',
+    limit: number = 100,
+  ): Promise<BibleVerse[]> {
     const db = this.getDb();
 
     // Use FTS5 for fast full-text search
@@ -342,13 +424,17 @@ class BibleDatabase {
        WHERE fts.text MATCH ? AND v.version = ?
        ORDER BY rank
        LIMIT ?`,
-      [query, version, limit]
+      [query, version, limit],
     );
 
     return result;
   }
 
-  async searchByBook(bookId: number, query: string, version: string = 'RVR1960'): Promise<BibleVerse[]> {
+  async searchByBook(
+    bookId: number,
+    query: string,
+    version: string = 'RVR1960',
+  ): Promise<BibleVerse[]> {
     const db = this.getDb();
 
     const result = await db.getAllAsync<BibleVerse>(
@@ -357,7 +443,7 @@ class BibleDatabase {
        INNER JOIN verses_fts fts ON v.id = fts.rowid
        WHERE fts.text MATCH ? AND v.book_id = ? AND v.version = ?
        ORDER BY v.chapter, v.verse`,
-      [query, bookId, version]
+      [query, bookId, version],
     );
 
     return result;
@@ -372,7 +458,14 @@ class BibleDatabase {
     await db.runAsync(
       `INSERT INTO bookmarks (id, book_name, chapter, verse, text, created_at)
        VALUES (?, ?, ?, ?, ?, ?)`,
-      [id, bookmark.book, bookmark.chapter, bookmark.verse, bookmark.text, bookmark.createdAt]
+      [
+        id,
+        bookmark.book,
+        bookmark.chapter,
+        bookmark.verse,
+        bookmark.text,
+        bookmark.createdAt,
+      ],
     );
 
     return id;
@@ -404,9 +497,13 @@ class BibleDatabase {
       // Intentar verificar si la tabla existe
       try {
         const tables = await db.getAllAsync<{name: string}>(
-          "SELECT name FROM sqlite_master WHERE type='table' AND name='bookmarks'"
+          "SELECT name FROM sqlite_master WHERE type='table' AND name='bookmarks'",
         );
-        console.log('📊 [DB] Bookmarks table exists:', tables.length > 0, tables);
+        console.log(
+          '📊 [DB] Bookmarks table exists:',
+          tables.length > 0,
+          tables,
+        );
       } catch (e) {
         console.error('❌ [DB] Could not check if bookmarks table exists:', e);
       }
@@ -414,13 +511,17 @@ class BibleDatabase {
     }
   }
 
-  async isBookmarked(bookName: string, chapter: number, verse: number): Promise<boolean> {
+  async isBookmarked(
+    bookName: string,
+    chapter: number,
+    verse: number,
+  ): Promise<boolean> {
     const db = this.getDb();
 
-    const result = await db.getFirstAsync<{ count: number }>(
+    const result = await db.getFirstAsync<{count: number}>(
       `SELECT COUNT(*) as count FROM bookmarks
        WHERE book_name = ? AND chapter = ? AND verse = ?`,
-      [bookName, chapter, verse]
+      [bookName, chapter, verse],
     );
 
     return (result?.count ?? 0) > 0;
@@ -435,7 +536,16 @@ class BibleDatabase {
     await db.runAsync(
       `INSERT INTO notes (id, book_name, chapter, verse, verse_text, note, created_at, updated_at)
        VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
-      [id, note.book, note.chapter, note.verse, note.text, note.note, note.createdAt, note.updatedAt]
+      [
+        id,
+        note.book,
+        note.chapter,
+        note.verse,
+        note.text,
+        note.note,
+        note.createdAt,
+        note.updatedAt,
+      ],
     );
 
     return id;
@@ -447,7 +557,7 @@ class BibleDatabase {
 
     await db.runAsync(
       'UPDATE notes SET note = ?, updated_at = ? WHERE id = ?',
-      [noteText, now, id]
+      [noteText, now, id],
     );
   }
 
@@ -463,13 +573,17 @@ class BibleDatabase {
       `SELECT id, book_name as book, chapter, verse, verse_text as text, note,
               created_at as createdAt, updated_at as updatedAt
        FROM notes
-       ORDER BY updated_at DESC`
+       ORDER BY updated_at DESC`,
     );
 
     return result;
   }
 
-  async getNoteForVerse(bookName: string, chapter: number, verse: number): Promise<Note | null> {
+  async getNoteForVerse(
+    bookName: string,
+    chapter: number,
+    verse: number,
+  ): Promise<Note | null> {
     const db = this.getDb();
 
     const result = await db.getFirstAsync<Note>(
@@ -477,15 +591,118 @@ class BibleDatabase {
               created_at as createdAt, updated_at as updatedAt
        FROM notes
        WHERE book_name = ? AND chapter = ? AND verse = ?`,
-      [bookName, chapter, verse]
+      [bookName, chapter, verse],
     );
 
     return result || null;
   }
 
+  // ========== FAVORITE OPERATIONS ==========
+
+  async addFavorite(
+    favorite: import('../context/FavoritesContext').Favorite,
+  ): Promise<void> {
+    const db = this.getDb();
+
+    await db.runAsync(
+      `INSERT INTO favorites (id, verse_id, book_name, chapter, verse, text, category, rating, tags, note, created_at, updated_at)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      [
+        favorite.id,
+        favorite.verseId,
+        favorite.book,
+        favorite.chapter,
+        favorite.verse,
+        favorite.text,
+        favorite.category,
+        favorite.rating,
+        JSON.stringify(favorite.tags),
+        favorite.note || null,
+        favorite.createdAt,
+        favorite.updatedAt,
+      ],
+    );
+  }
+
+  async removeFavorite(id: string): Promise<void> {
+    const db = this.getDb();
+    await db.runAsync('DELETE FROM favorites WHERE id = ?', [id]);
+  }
+
+  async updateFavorite(id: string, updates: Partial<any>): Promise<void> {
+    const db = this.getDb();
+    const fields: string[] = [];
+    const values: any[] = [];
+
+    if (updates.category !== undefined) {
+      fields.push('category = ?');
+      values.push(updates.category);
+    }
+    if (updates.rating !== undefined) {
+      fields.push('rating = ?');
+      values.push(updates.rating);
+    }
+    if (updates.tags !== undefined) {
+      fields.push('tags = ?');
+      values.push(JSON.stringify(updates.tags));
+    }
+    if (updates.note !== undefined) {
+      fields.push('note = ?');
+      values.push(updates.note);
+    }
+    if (updates.updatedAt !== undefined) {
+      fields.push('updated_at = ?');
+      values.push(updates.updatedAt);
+    }
+
+    if (fields.length > 0) {
+      values.push(id);
+      const sql = `UPDATE favorites SET ${fields.join(', ')} WHERE id = ?`;
+      await db.runAsync(sql, values);
+    }
+  }
+
+  async getFavorites(): Promise<
+    import('../context/FavoritesContext').Favorite[]
+  > {
+    const db = this.getDb();
+
+    const result = await db.getAllAsync<any>(
+      `SELECT id, verse_id as verseId, book_name as book, chapter, verse, text,
+              category, rating, tags, note, created_at as createdAt, updated_at as updatedAt
+       FROM favorites
+       ORDER BY created_at DESC`,
+    );
+
+    return result.map(row => ({
+      ...row,
+      tags: row.tags ? JSON.parse(row.tags) : [],
+    }));
+  }
+
+  async isFavorite(
+    book: string,
+    chapter: number,
+    verse: number,
+  ): Promise<boolean> {
+    const db = this.getDb();
+
+    const result = await db.getFirstAsync<{count: number}>(
+      `SELECT COUNT(*) as count FROM favorites
+       WHERE book_name = ? AND chapter = ? AND verse = ?`,
+      [book, chapter, verse],
+    );
+
+    return (result?.count ?? 0) > 0;
+  }
+
   // ========== READING PROGRESS ==========
 
-  async updateReadingProgress(bookName: string, chapter: number, verse: number): Promise<void> {
+  async updateReadingProgress(
+    bookName: string,
+    chapter: number,
+    verse: number,
+  ): Promise<void> {
     const db = this.getDb();
     const timestamp = new Date().toISOString();
 
@@ -493,7 +710,7 @@ class BibleDatabase {
       `UPDATE reading_progress
        SET book_name = ?, chapter = ?, verse = ?, timestamp = ?
        WHERE id = 1`,
-      [bookName, chapter, verse, timestamp]
+      [bookName, chapter, verse, timestamp],
     );
   }
 
@@ -503,7 +720,7 @@ class BibleDatabase {
     const result = await db.getFirstAsync<ReadingProgress>(
       `SELECT book_name as book, chapter, verse, timestamp
        FROM reading_progress
-       WHERE id = 1`
+       WHERE id = 1`,
     );
 
     return result || null;
@@ -511,20 +728,20 @@ class BibleDatabase {
 
   // ========== UTILITY OPERATIONS ==========
 
-  async getDatabaseStats(): Promise<{ totalVerses: number; versions: string[] }> {
+  async getDatabaseStats(): Promise<{totalVerses: number; versions: string[]}> {
     const db = this.getDb();
 
-    const countResult = await db.getFirstAsync<{ count: number }>(
-      'SELECT COUNT(*) as count FROM verses'
+    const countResult = await db.getFirstAsync<{count: number}>(
+      'SELECT COUNT(*) as count FROM verses',
     );
 
-    const versionsResult = await db.getAllAsync<{ version: string }>(
-      'SELECT DISTINCT version FROM verses'
+    const versionsResult = await db.getAllAsync<{version: string}>(
+      'SELECT DISTINCT version FROM verses',
     );
 
     return {
       totalVerses: countResult?.count ?? 0,
-      versions: versionsResult.map((v) => v.version),
+      versions: versionsResult.map(v => v.version),
     };
   }
 
@@ -539,6 +756,6 @@ class BibleDatabase {
   }
 }
 
-export { BibleDatabase };
+export {BibleDatabase};
 export const bibleDB = new BibleDatabase();
 export default bibleDB;

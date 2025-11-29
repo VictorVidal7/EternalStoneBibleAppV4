@@ -38,6 +38,10 @@ import {useTheme} from '../../src/hooks/useTheme';
 import {useBibleVersion} from '../../src/hooks/useBibleVersion';
 import {useServices} from '../../src/context/ServicesContext';
 import {useLanguage} from '../../src/hooks/useLanguage';
+import ShareService from '../../src/services/ShareService';
+import {logger} from '../../src/lib/utils/logger';
+import {useReadingProgress} from '../../src/context/ReadingProgressContext';
+import {useFavorites} from '../../src/context/FavoritesContext';
 
 // Componentes Celestial
 import {
@@ -63,10 +67,13 @@ export default function HomeScreen() {
   const {selectedVersion} = useBibleVersion();
   const {achievementService, initialized: servicesInitialized} = useServices();
   const {t} = useLanguage();
+  const {getChapterProgress} = useReadingProgress();
+  const {addFavorite, isFavorite} = useFavorites();
 
   const [dailyVerse, setDailyVerse] = useState<BibleVerse | null>(null);
   const [lastRead, setLastRead] = useState<ReadingProgress | null>(null);
   const [loading, setLoading] = useState(true);
+  const [chapterProgress, setChapterProgress] = useState(0);
   const [userStats, setUserStats] = useState({
     progress: 0,
     streak: 0,
@@ -120,6 +127,15 @@ export default function HomeScreen() {
       const progress = await bibleDB.getReadingProgress();
       setLastRead(progress);
 
+      // Get chapter progress if available
+      if (progress) {
+        const currentProgress = getChapterProgress(
+          progress.book,
+          progress.chapter.toString(),
+        );
+        setChapterProgress(currentProgress);
+      }
+
       // Get user stats
       if (achievementService && servicesInitialized) {
         const stats = await achievementService.getUserStats();
@@ -133,7 +149,10 @@ export default function HomeScreen() {
 
       setLoading(false);
     } catch (error) {
-      console.error('Error loading home data:', error);
+      logger.error('Error loading home data', error as Error, {
+        component: 'HomeScreen',
+        action: 'loadHomeData',
+      });
       setLoading(false);
     }
   }
@@ -308,10 +327,28 @@ export default function HomeScreen() {
                   ),
                 )
               }
-              onShare={() => handlePress(() => console.log('Share verse'))}
-              onFavorite={() =>
-                handlePress(() => console.log('Favorite verse'))
-              }
+              onShare={async () => {
+                if (dailyVerse) {
+                  const reference = `${dailyVerse.book} ${dailyVerse.chapter}:${dailyVerse.verse}`;
+                  await ShareService.shareVerse(dailyVerse, reference);
+                }
+              }}
+              onFavorite={async () => {
+                if (dailyVerse) {
+                  const alreadyFavorite = isFavorite(
+                    dailyVerse.book,
+                    dailyVerse.chapter,
+                    dailyVerse.verse,
+                  );
+
+                  if (!alreadyFavorite) {
+                    await addFavorite(dailyVerse, 'worship', 5);
+                    await Haptics.notificationAsync(
+                      Haptics.NotificationFeedbackType.Success,
+                    );
+                  }
+                }
+              }}
             />
           </Animated.View>
         )}
@@ -360,12 +397,14 @@ export default function HomeScreen() {
                       style={[
                         styles.progressBarFill,
                         {
-                          width: '65%', // Simulado, puedes calcular el real
+                          width: `${Math.round(chapterProgress)}%`,
                         },
                       ]}
                     />
                   </View>
-                  <Text style={styles.progressText}>65% completado</Text>
+                  <Text style={styles.progressText}>
+                    {Math.round(chapterProgress)}% completado
+                  </Text>
                 </View>
               </LinearGradient>
             </TouchableOpacity>
