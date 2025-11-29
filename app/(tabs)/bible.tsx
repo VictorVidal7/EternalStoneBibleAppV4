@@ -186,11 +186,11 @@ export default function BibleScreen() {
           style={[
             styles.searchBar,
             {
-              backgroundColor: '#F8F9FA',
-              borderColor: '#E8E8E8',
+              backgroundColor: isDark ? '#35384E' : '#F8F9FA',
+              borderColor: isDark ? 'rgba(99, 102, 241, 0.3)' : '#E8E8E8',
               shadowColor: '#000',
               shadowOffset: {width: 0, height: 1},
-              shadowOpacity: 0.05,
+              shadowOpacity: isDark ? 0.3 : 0.05,
               shadowRadius: 2,
               elevation: 1,
             },
@@ -307,7 +307,7 @@ interface BookCardProps {
 }
 
 const BookCard: React.FC<BookCardProps> = ({book, index, onPress}) => {
-  const {colors} = useTheme();
+  const {colors, isDark} = useTheme();
   const {t} = useLanguage();
   const scaleAnim = useRef(new Animated.Value(0)).current;
 
@@ -333,12 +333,14 @@ const BookCard: React.FC<BookCardProps> = ({book, index, onPress}) => {
         style={[
           styles.bookCard,
           {
-            backgroundColor: '#FFFFFF', // Blanco puro para máximo contraste
+            backgroundColor: isDark ? '#35384E' : '#FFFFFF',
             shadowColor: '#000000',
             shadowOffset: {width: 0, height: 2},
-            shadowOpacity: 0.08, // Sutil pero visible
-            shadowRadius: 12, // Suave difuminado
+            shadowOpacity: isDark ? 0.3 : 0.08,
+            shadowRadius: 12,
             elevation: 3,
+            borderWidth: isDark ? 1 : 0,
+            borderColor: isDark ? 'rgba(99, 102, 241, 0.15)' : 'transparent',
           },
         ]}
         onPress={onPress}

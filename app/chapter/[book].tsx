@@ -4,7 +4,7 @@
  * Pantalla de selección de capítulos con diseño premium
  */
 
-import React, { useCallback, useEffect, useState, useMemo, useRef } from 'react';
+import React, {useCallback, useEffect, useState, useMemo, useRef} from 'react';
 import {
   View,
   Text,
@@ -15,14 +15,14 @@ import {
   Platform,
   FlatList,
 } from 'react-native';
-import { useRouter, useLocalSearchParams, Stack } from 'expo-router';
-import { LinearGradient } from 'expo-linear-gradient';
-import { Ionicons } from '@expo/vector-icons';
+import {useRouter, useLocalSearchParams, Stack} from 'expo-router';
+import {LinearGradient} from 'expo-linear-gradient';
+import {Ionicons} from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
 
-import { getBookByName } from '../../src/constants/bible';
-import { useTheme } from '../../src/hooks/useTheme';
-import { useLanguage } from '../../src/hooks/useLanguage';
+import {getBookByName} from '../../src/constants/bible';
+import {useTheme} from '../../src/hooks/useTheme';
+import {useLanguage} from '../../src/hooks/useLanguage';
 
 // Design tokens
 import {
@@ -32,7 +32,7 @@ import {
   shadows,
 } from '../../src/styles/designTokens';
 
-const { width: SCREEN_WIDTH } = Dimensions.get('window');
+const {width: SCREEN_WIDTH} = Dimensions.get('window');
 const CARD_MARGIN = spacing.xs;
 const CARDS_PER_ROW = 4;
 const CARD_SIZE = (SCREEN_WIDTH - spacing.lg * 2) / CARDS_PER_ROW - spacing.md;
@@ -53,14 +53,14 @@ interface ChapterItem {
 
 export default function ChapterSelectionScreen() {
   const router = useRouter();
-  const { colors, isDark } = useTheme();
-  const { t } = useLanguage();
-  const params = useLocalSearchParams<{ book: string }>();
+  const {colors, isDark} = useTheme();
+  const {t} = useLanguage();
+  const params = useLocalSearchParams<{book: string}>();
   const [isLoading, setIsLoading] = useState(true);
 
   // Manejar el parámetro book (puede venir como string o array)
   const rawBook = params.book;
-  const book = typeof rawBook === 'string' ? rawBook : (rawBook?.[0] || '');
+  const book = typeof rawBook === 'string' ? rawBook : rawBook?.[0] || '';
 
   console.log('🔍 ChapterSelectionScreen - Raw params:', params);
   console.log('🔍 ChapterSelectionScreen - Raw book:', rawBook);
@@ -72,7 +72,12 @@ export default function ChapterSelectionScreen() {
 
   const bookInfo = getBookByName(book);
 
-  console.log('🔍 ChapterSelectionScreen - BookInfo:', bookInfo ? `Found: ${bookInfo.name} (${bookInfo.chapters} chapters)` : 'NOT FOUND');
+  console.log(
+    '🔍 ChapterSelectionScreen - BookInfo:',
+    bookInfo
+      ? `Found: ${bookInfo.name} (${bookInfo.chapters} chapters)`
+      : 'NOT FOUND',
+  );
 
   /**
    * Generar lista de capítulos
@@ -83,12 +88,17 @@ export default function ChapterSelectionScreen() {
       return [];
     }
 
-    const chapterList = Array.from({ length: bookInfo.chapters }, (_, i) => ({
+    const chapterList = Array.from({length: bookInfo.chapters}, (_, i) => ({
       chapter: i + 1,
       id: `chapter-${i + 1}`,
     }));
 
-    console.log('📚 Generated chapters:', chapterList.length, 'for book:', bookInfo.name);
+    console.log(
+      '📚 Generated chapters:',
+      chapterList.length,
+      'for book:',
+      bookInfo.name,
+    );
     return chapterList;
   }, [bookInfo, book]);
 
@@ -128,14 +138,14 @@ export default function ChapterSelectionScreen() {
       Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
       router.push(`/verse/${book}/${chapter}` as any);
     },
-    [router, book]
+    [router, book],
   );
 
   /**
    * Renderizar item de capítulo con animación
    */
   const renderItem = useCallback(
-    ({ item, index }: { item: ChapterItem; index: number }) => {
+    ({item, index}: {item: ChapterItem; index: number}) => {
       console.log('🎨 Rendering chapter:', item.chapter, 'at index:', index);
       return (
         <ChapterCard
@@ -149,7 +159,7 @@ export default function ChapterSelectionScreen() {
         />
       );
     },
-    [colors, isDark, navigateToVerse, bookInfo, t]
+    [colors, isDark, navigateToVerse, bookInfo, t],
   );
 
   // Mostrar error si no se encuentra el libro
@@ -161,13 +171,17 @@ export default function ChapterSelectionScreen() {
             headerShown: false,
           }}
         />
-        <View style={[styles.container, styles.errorContainer, { backgroundColor: colors.background }]}>
+        <View
+          style={[
+            styles.container,
+            styles.errorContainer,
+            {backgroundColor: colors.background},
+          ]}>
           <LinearGradient
             colors={isDark ? ['#ef4444', '#dc2626'] : ['#f87171', '#ef4444']}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 1 }}
-            style={styles.errorHeader}
-          >
+            start={{x: 0, y: 0}}
+            end={{x: 1, y: 1}}
+            style={styles.errorHeader}>
             <Ionicons name="alert-circle" size={64} color="#ffffff" />
             <Text style={styles.errorTitle}>{t.bible.bookNotFound}</Text>
             <Text style={styles.errorSubtitle}>
@@ -176,17 +190,16 @@ export default function ChapterSelectionScreen() {
           </LinearGradient>
 
           <View style={styles.errorDetails}>
-            <Text style={[styles.errorLabel, { color: colors.textSecondary }]}>
+            <Text style={[styles.errorLabel, {color: colors.textSecondary}]}>
               {t.bible.parameterReceived}:
             </Text>
-            <Text style={[styles.errorValue, { color: colors.text }]}>
+            <Text style={[styles.errorValue, {color: colors.text}]}>
               {JSON.stringify(params, null, 2)}
             </Text>
 
             <TouchableOpacity
-              style={[styles.backButton, { backgroundColor: colors.primary }]}
-              onPress={() => router.back()}
-            >
+              style={[styles.backButton, {backgroundColor: colors.primary}]}
+              onPress={() => router.back()}>
               <Ionicons name="arrow-back" size={20} color="#ffffff" />
               <Text style={styles.backButtonText}>{t.bible.back}</Text>
             </TouchableOpacity>
@@ -205,22 +218,25 @@ export default function ChapterSelectionScreen() {
             headerShown: false,
           }}
         />
-        <View style={[styles.container, styles.loadingContainer, { backgroundColor: colors.background }]}>
-          <Animated.View style={{ opacity: fadeAnim }}>
+        <View
+          style={[
+            styles.container,
+            styles.loadingContainer,
+            {backgroundColor: colors.background},
+          ]}>
+          <Animated.View style={{opacity: fadeAnim}}>
             <LinearGradient
-              colors={
-                isDark
-                  ? ['#1E3A5F', '#2C4B73']
-                  : ['#4A90E2', '#5B9FED']
-              }
-              start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 1 }}
-              style={styles.loadingCard}
-            >
+              colors={isDark ? ['#1E3A5F', '#2C4B73'] : ['#4A90E2', '#5B9FED']}
+              start={{x: 0, y: 0}}
+              end={{x: 1, y: 1}}
+              style={styles.loadingCard}>
               <Ionicons name="book" size={48} color="#ffffff" />
               <Text style={styles.loadingTitle}>{bookInfo.name}</Text>
               <Text style={styles.loadingSubtitle}>
-                {t.bible.loadingChapters.replace('{{count}}', bookInfo.chapters.toString())}
+                {t.bible.loadingChapters.replace(
+                  '{{count}}',
+                  bookInfo.chapters.toString(),
+                )}
               </Text>
               <View style={styles.loadingDots}>
                 <View style={[styles.dot, styles.dot1]} />
@@ -242,37 +258,38 @@ export default function ChapterSelectionScreen() {
         }}
       />
 
-      <View style={[styles.container, { backgroundColor: colors.background }]}>
+      <View style={[styles.container, {backgroundColor: colors.background}]}>
         {/* Header con gradiente */}
         <Animated.View
           style={{
             opacity: fadeAnim,
-            transform: [{ translateY: slideAnim }],
-          }}
-        >
+            transform: [{translateY: slideAnim}],
+          }}>
           <LinearGradient
             colors={
               isDark
                 ? ['#1E3A5F', '#2C4B73', '#3A5C87']
                 : ['#4A90E2', '#5B9FED', '#6EADFF']
             }
-            start={{ x: 0, y: 0 }}
-            end={{ x: 0, y: 1 }}
-            style={styles.header}
-          >
+            start={{x: 0, y: 0}}
+            end={{x: 0, y: 1}}
+            style={styles.header}>
             <View style={styles.headerContent}>
               <View style={styles.headerIconContainer}>
                 <Ionicons name="book-outline" size={32} color="#ffffff" />
               </View>
               <View style={styles.headerTextContainer}>
-                <Text style={styles.headerSubtitle}>{t.bible.selectChapter}</Text>
+                <Text style={styles.headerSubtitle}>
+                  {t.bible.selectChapter}
+                </Text>
                 <Text style={styles.headerTitle} numberOfLines={1}>
                   {bookInfo.name}
                 </Text>
                 <View style={styles.chapterCountBadge}>
                   <Ionicons name="document-text" size={14} color="#fbbf24" />
                   <Text style={styles.chapterCountText}>
-                    {chapters.length} {chapters.length === 1 ? t.bible.chapter : t.bible.chapters}
+                    {chapters.length}{' '}
+                    {chapters.length === 1 ? t.bible.chapter : t.bible.chapters}
                   </Text>
                 </View>
               </View>
@@ -302,7 +319,7 @@ export default function ChapterSelectionScreen() {
             <FlatList
               data={chapters}
               renderItem={renderItem}
-              keyExtractor={(item) => item.id}
+              keyExtractor={item => item.id}
               numColumns={CARDS_PER_ROW}
               key={`flatlist-${CARDS_PER_ROW}`}
               showsVerticalScrollIndicator={false}
@@ -311,15 +328,19 @@ export default function ChapterSelectionScreen() {
               maxToRenderPerBatch={10}
               windowSize={5}
               removeClippedSubviews={false}
-              style={{ flex: 1 }}
+              style={{flex: 1}}
             />
           ) : (
             <View style={styles.emptyContainer}>
-              <Ionicons name="book-outline" size={64} color={colors.textTertiary} />
-              <Text style={[styles.emptyText, { color: colors.textSecondary }]}>
+              <Ionicons
+                name="book-outline"
+                size={64}
+                color={colors.textTertiary}
+              />
+              <Text style={[styles.emptyText, {color: colors.textSecondary}]}>
                 {t.bible.couldNotLoadChapters}
               </Text>
-              <Text style={[styles.emptySubtext, { color: colors.textTertiary }]}>
+              <Text style={[styles.emptySubtext, {color: colors.textTertiary}]}>
                 {t.bible.book}: {book || t.bible.notSpecified}
               </Text>
             </View>
@@ -343,7 +364,7 @@ interface ChapterCardProps {
 }
 
 const ChapterCard: React.FC<ChapterCardProps> = React.memo(
-  ({ chapter, onPress, index, colors, isDark, t, bookName }) => {
+  ({chapter, onPress, index, colors, isDark, t, bookName}) => {
     const scaleAnim = useRef(new Animated.Value(1)).current;
     const fadeAnim = useRef(new Animated.Value(1)).current;
     const [isPressed, setIsPressed] = useState(false);
@@ -373,15 +394,12 @@ const ChapterCard: React.FC<ChapterCardProps> = React.memo(
     };
 
     const handleLayout = (event: any) => {
-      const { width, height, x, y } = event.nativeEvent.layout;
-      console.log(`📏 ChapterCard ${chapter} layout:`, { width, height, x, y });
+      const {width, height, x, y} = event.nativeEvent.layout;
+      console.log(`📏 ChapterCard ${chapter} layout:`, {width, height, x, y});
     };
 
     return (
-      <View
-        style={styles.cardWrapper}
-        onLayout={handleLayout}
-      >
+      <View style={styles.cardWrapper} onLayout={handleLayout}>
         <TouchableOpacity
           activeOpacity={0.7}
           onPress={onPress}
@@ -389,37 +407,36 @@ const ChapterCard: React.FC<ChapterCardProps> = React.memo(
           onPressOut={handlePressOut}
           accessibilityRole="button"
           accessibilityLabel={`Capítulo ${chapter}`}
-          style={styles.cardTouchable}
-        >
+          style={styles.cardTouchable}>
           <View
             style={[
               styles.card,
               {
-                backgroundColor: isDark ? '#2A2A3E' : '#FFFFFF',
-                shadowColor: isDark ? '#FFFFFF' : '#000000',
-                shadowOffset: { width: 0, height: 2 },
-                shadowOpacity: isDark ? 0.05 : 0.08,
+                backgroundColor: isDark ? '#35384E' : '#FFFFFF',
+                shadowColor: isDark ? '#000000' : '#000000',
+                shadowOffset: {width: 0, height: 2},
+                shadowOpacity: isDark ? 0.3 : 0.08,
                 shadowRadius: 12,
                 elevation: 3,
+                borderWidth: isDark ? 1 : 0,
+                borderColor: isDark ? 'rgba(99, 102, 241, 0.2)' : 'transparent',
               },
-            ]}
-          >
+            ]}>
             {/* Número del capítulo */}
             <Text
               style={[
                 styles.chapterNumber,
                 {
-                  color: isDark ? '#5B9FED' : '#4A90E2',
+                  color: isDark ? '#E0E7FF' : '#4A90E2',
                 },
-              ]}
-            >
+              ]}>
               {chapter}
             </Text>
           </View>
         </TouchableOpacity>
       </View>
     );
-  }
+  },
 );
 
 ChapterCard.displayName = 'ChapterCard';
@@ -568,7 +585,7 @@ const styles = StyleSheet.create({
     fontWeight: '500',
     marginBottom: 4,
     textShadowColor: 'rgba(0, 0, 0, 0.2)',
-    textShadowOffset: { width: 0, height: 1 },
+    textShadowOffset: {width: 0, height: 1},
     textShadowRadius: 3,
   },
   headerTitle: {
@@ -577,7 +594,7 @@ const styles = StyleSheet.create({
     color: '#ffffff',
     marginBottom: spacing.xs,
     textShadowColor: 'rgba(0, 0, 0, 0.3)',
-    textShadowOffset: { width: 0, height: 1 },
+    textShadowOffset: {width: 0, height: 1},
     textShadowRadius: 4,
   },
   chapterCountBadge: {
@@ -646,7 +663,7 @@ const styles = StyleSheet.create({
   cardWrapper: {
     width: CARD_SIZE,
     height: CARD_SIZE,
-    padding: 6,  // Margen entre botones
+    padding: 6, // Margen entre botones
   },
   cardTouchable: {
     width: CARD_SIZE - 12,
@@ -655,13 +672,13 @@ const styles = StyleSheet.create({
   card: {
     width: CARD_SIZE - 12,
     height: CARD_SIZE - 12,
-    borderRadius: 16,  // Esquinas generosas y modernas
-    borderWidth: 0,  // Sin bordes duros
+    borderRadius: 16, // Esquinas generosas y modernas
+    borderWidth: 0, // Sin bordes duros
     justifyContent: 'center',
     alignItems: 'center',
   },
   chapterNumber: {
-    fontSize: 26,  // Tamaño óptimo para legibilidad
+    fontSize: 26, // Tamaño óptimo para legibilidad
     fontWeight: '600',
     letterSpacing: -0.3,
   },
