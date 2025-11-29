@@ -9,6 +9,7 @@
 
 import * as SQLite from 'expo-sqlite';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import bibleDB from '../database';
 
 export interface CacheEntry {
   key: string;
@@ -46,7 +47,9 @@ class PredictiveCacheService {
 
   async initialize() {
     if (!this.db) {
-      this.db = await SQLite.openDatabaseAsync('EternalStone.db');
+      // Usar la misma instancia de base de datos que el resto de la app
+      await bibleDB.initialize();
+      this.db = await bibleDB.getDatabase();
       await this.createCacheTables();
     }
   }

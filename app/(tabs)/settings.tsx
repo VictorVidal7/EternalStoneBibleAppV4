@@ -353,9 +353,7 @@ export default function SettingsScreen() {
       <View style={themedStyles.section}>
         <View style={themedStyles.sectionHeader}>
           <Ionicons name="sparkles" size={22} color={colors.accent} />
-          <Text style={themedStyles.sectionTitle}>
-            Nuevas Funcionalidades V5.1
-          </Text>
+          <Text style={themedStyles.sectionTitle}>{t.settingsV51.title}</Text>
         </View>
 
         <View style={themedStyles.card}>
@@ -375,9 +373,11 @@ export default function SettingsScreen() {
                 <Ionicons name="apps" size={24} color={colors.primary} />
               </View>
               <View style={styles.featureInfo}>
-                <Text style={themedStyles.featureTitle}>Widgets</Text>
+                <Text style={themedStyles.featureTitle}>
+                  {t.settingsV51.widgets}
+                </Text>
                 <Text style={themedStyles.featureDescription}>
-                  Agrega widgets a tu pantalla principal
+                  {t.settingsV51.widgetsDesc}
                 </Text>
               </View>
             </View>
@@ -405,10 +405,10 @@ export default function SettingsScreen() {
               </View>
               <View style={styles.featureInfo}>
                 <Text style={themedStyles.featureTitle}>
-                  Comparación de Versiones
+                  {t.settingsV51.versionComparison}
                 </Text>
                 <Text style={themedStyles.featureDescription}>
-                  Compara hasta 4 versiones de la Biblia
+                  {t.settingsV51.versionComparisonDesc}
                 </Text>
               </View>
             </View>
@@ -435,9 +435,11 @@ export default function SettingsScreen() {
                 <Ionicons name="ribbon" size={24} color={colors.warning} />
               </View>
               <View style={styles.featureInfo}>
-                <Text style={themedStyles.featureTitle}>Logros y Títulos</Text>
+                <Text style={themedStyles.featureTitle}>
+                  {t.settingsV51.badges}
+                </Text>
                 <Text style={themedStyles.featureDescription}>
-                  Desbloquea badges y títulos especiales
+                  {t.settingsV51.badgesDesc}
                 </Text>
               </View>
             </View>
@@ -465,10 +467,10 @@ export default function SettingsScreen() {
               </View>
               <View style={styles.featureInfo}>
                 <Text style={themedStyles.featureTitle}>
-                  Estadísticas de Caché
+                  {t.settingsV51.cacheStats}
                 </Text>
                 <Text style={themedStyles.featureDescription}>
-                  Visualiza el rendimiento del sistema
+                  {t.settingsV51.cacheStatsDesc}
                 </Text>
               </View>
             </View>

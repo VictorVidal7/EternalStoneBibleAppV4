@@ -19,6 +19,7 @@ import {LinearGradient} from 'expo-linear-gradient';
 import {Ionicons} from '@expo/vector-icons';
 import {widgetTaskHandler, ProgressWidgetData} from './WidgetTaskHandler';
 import {useTheme} from '../hooks/useTheme';
+import {useLanguage} from '../hooks/useLanguage';
 import Svg, {Circle} from 'react-native-svg';
 
 interface ProgressWidgetProps {
@@ -31,6 +32,7 @@ export const ProgressWidget: React.FC<ProgressWidgetProps> = ({
   onPress,
 }) => {
   const {colors, isDark} = useTheme();
+  const {t} = useLanguage();
   const [progressData, setProgressData] = useState<ProgressWidgetData | null>(
     null,
   );
@@ -90,7 +92,7 @@ export const ProgressWidget: React.FC<ProgressWidgetProps> = ({
         <View style={styles.header}>
           <Ionicons name="stats-chart" size={20} color={colors.primary} />
           <Text style={[styles.headerText, {color: colors.text}]}>
-            Tu Progreso
+            {t.widgets.progressTitle}
           </Text>
         </View>
 
@@ -127,7 +129,7 @@ export const ProgressWidget: React.FC<ProgressWidgetProps> = ({
                 {progressData.level}
               </Text>
               <Text style={[styles.levelLabel, {color: colors.textSecondary}]}>
-                Nivel
+                {t.widgets.level}
               </Text>
             </View>
           </View>
@@ -147,7 +149,7 @@ export const ProgressWidget: React.FC<ProgressWidgetProps> = ({
                 {progressData.currentStreak}
               </Text>
               <Text style={[styles.statLabel, {color: colors.textSecondary}]}>
-                días
+                {t.widgets.days}
               </Text>
             </View>
 
@@ -164,7 +166,7 @@ export const ProgressWidget: React.FC<ProgressWidgetProps> = ({
                 {progressData.versesReadToday}/{progressData.dailyGoal}
               </Text>
               <Text style={[styles.statLabel, {color: colors.textSecondary}]}>
-                versos
+                {t.widgets.verses}
               </Text>
             </View>
           </View>
@@ -174,7 +176,7 @@ export const ProgressWidget: React.FC<ProgressWidgetProps> = ({
         <View style={styles.xpSection}>
           <View style={styles.xpHeader}>
             <Text style={[styles.xpLabel, {color: colors.textSecondary}]}>
-              XP hasta nivel {progressData.level + 1}
+              {t.widgets.xpToLevel} {progressData.level + 1}
             </Text>
             <Text style={[styles.xpValue, {color: colors.text}]}>
               {progressData.xp}/{progressData.nextLevelXp}
@@ -202,7 +204,8 @@ export const ProgressWidget: React.FC<ProgressWidgetProps> = ({
           <View style={styles.achievementBadge}>
             <Ionicons name="trophy" size={14} color="#FCD34D" />
             <Text style={[styles.achievementText, {color: colors.text}]}>
-              ¡{progressData.currentStreak} días de racha! Sigue así
+              {progressData.currentStreak} {t.widgets.days}{' '}
+              {t.widgets.currentStreak}!
             </Text>
           </View>
         )}
@@ -230,8 +233,8 @@ export const ProgressWidget: React.FC<ProgressWidgetProps> = ({
                 },
               ]}>
               {progressData.completionPercentage >= 100
-                ? '✓ Meta diaria alcanzada'
-                : `${progressData.completionPercentage}% completado hoy`}
+                ? `✓ ${t.widgets.dailyGoalReached}`
+                : `${progressData.completionPercentage}% ${t.widgets.percentCompleted}`}
             </Text>
           </View>
         </View>

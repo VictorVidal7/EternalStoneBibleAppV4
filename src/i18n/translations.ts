@@ -14,6 +14,11 @@ export const translations = {
     change: 'Cambiar',
     previous: 'Anterior',
     next: 'Siguiente',
+    to: 'para',
+    tap: 'Toca',
+    readMore: 'Leer más',
+    completed: 'Completado',
+    coins: 'monedas',
 
     // App Loading
     app: {
@@ -21,12 +26,14 @@ export const translations = {
       loadingBible: 'Cargando la Biblia...',
       verses: 'versículos',
       preparing: 'Preparando...',
-      loadingVerse: '"Lámpara es a mis pies tu palabra,\ny lumbrera a mi camino"\n- Salmos 119:105',
+      loadingVerse:
+        '"Lámpara es a mis pies tu palabra,\ny lumbrera a mi camino"\n- Salmos 119:105',
       errorHint: 'Por favor, cierra y vuelve a abrir la aplicación.',
       endOfBook: 'Fin del libro',
       endOfBookMessage: 'Has llegado al final de este libro',
       firstChapterMessage: 'Estás en el primer capítulo de este libro',
-      emptyBookmarksHint: 'Toca el ícono de estrella al leer versículos para guardarlos aquí',
+      emptyBookmarksHint:
+        'Toca el ícono de estrella al leer versículos para guardarlos aquí',
     },
 
     // Tabs Navigation
@@ -343,7 +350,8 @@ export const translations = {
     emptyStates: {
       noBookmarks: {
         title: 'Sin marcadores aún',
-        message: 'Guarda tus versículos favoritos para acceder a ellos rápidamente',
+        message:
+          'Guarda tus versículos favoritos para acceder a ellos rápidamente',
         action: 'Explorar la Biblia',
       },
       noNotes: {
@@ -372,6 +380,361 @@ export const translations = {
         action: 'Explorar planes',
       },
     },
+
+    // Version Comparison (V5.1)
+    versionComparison: {
+      title: 'Comparación de Versiones',
+      selectVersions: 'Seleccionar Versiones',
+      addVersion: 'Agregar',
+      removeVersion: 'Quitar',
+      compareButton: 'Comparar',
+      saveComparison: 'Guardar Comparación',
+      savedComparisons: 'Comparaciones Guardadas',
+      analysis: 'Análisis de Diferencias',
+      similarity: 'Similaridad',
+      commonWords: 'Palabras comunes',
+      uniqueWords: 'Palabras únicas',
+      observations: 'Observaciones',
+      verse: 'Verso',
+      words: 'palabras',
+      selectVerse: 'Seleccionar Versículo',
+      multiSelectMode: 'Múltiple',
+      simpleMode: 'Simple',
+      versesSelected: 'versículos seleccionados',
+      clearSelection: 'Limpiar',
+      applySelection: 'Aplicar Selección',
+      noComparisons: 'No tienes comparaciones guardadas',
+      comparisonName: 'Nombre de la comparación',
+      notes: 'Notas',
+      saveSuccess: 'Comparación guardada',
+      deleteConfirm: '¿Eliminar esta comparación?',
+      loadComparison: 'Cargar',
+    },
+
+    // Badge System (V5.1)
+    badgeSystem: {
+      title: 'Insignias y Títulos',
+      collectionTitle: 'Colección de Logros',
+      myBadges: 'Mis Insignias',
+      allBadges: 'Todas las Insignias',
+      equip: 'Equipar',
+      equipped: 'Equipada',
+      equippedTitle: 'Título equipado',
+      unlock: 'Desbloquear',
+      locked: 'Bloqueada',
+      unlocked: 'Desbloqueados',
+      completed: 'Completado',
+      all: 'Todos',
+      rarity: {
+        common: 'Común',
+        rare: 'Rara',
+        epic: 'Épica',
+        legendary: 'Legendaria',
+        mythic: 'Mítica',
+      },
+      progress: 'Progreso',
+      requirements: 'Requisitos',
+      reward: 'Recompensa',
+      category: {
+        reading: 'Lectura',
+        streak: 'Racha',
+        chapters: 'Capítulos',
+        books: 'Libros',
+        special: 'Especial',
+        completion: 'Completación',
+        knowledge: 'Conocimiento',
+        social: 'Social',
+      },
+      // Badge names and descriptions
+      badges: {
+        first_verse: {
+          name: 'Primera Lectura',
+          description: 'Lee tu primer verso',
+        },
+        hundred_verses: {
+          name: 'Lector Dedicado',
+          description: 'Lee 100 versos',
+        },
+        thousand_verses: {
+          name: 'Estudiante de la Palabra',
+          description: 'Lee 1,000 versos',
+        },
+        five_thousand_verses: {
+          name: 'Maestro de las Escrituras',
+          description: 'Lee 5,000 versos',
+        },
+        week_streak: {
+          name: 'Constancia Semanal',
+          description: 'Mantén una racha de 7 días',
+        },
+        month_streak: {
+          name: 'Fidelidad Mensual',
+          description: 'Mantén una racha de 30 días',
+        },
+        hundred_day_streak: {
+          name: 'Centurión de la Fe',
+          description: 'Mantén una racha de 100 días',
+        },
+        year_streak: {
+          name: 'Guardián del Pacto',
+          description: 'Mantén una racha de 365 días',
+        },
+        first_book: {
+          name: 'Primer Libro Completado',
+          description: 'Completa tu primer libro de la Biblia',
+        },
+        new_testament: {
+          name: 'Testigo del Nuevo Pacto',
+          description: 'Completa todo el Nuevo Testamento',
+        },
+        old_testament: {
+          name: 'Guardián de la Ley',
+          description: 'Completa todo el Antiguo Testamento',
+        },
+        full_bible: {
+          name: 'Conocedor de la Palabra',
+          description: 'Completa toda la Biblia',
+        },
+        quiz_master: {
+          name: 'Maestro del Conocimiento',
+          description: 'Responde correctamente 50 preguntas',
+        },
+        memory_verse_10: {
+          name: 'Mente Iluminada',
+          description: 'Memoriza 10 versos',
+        },
+        memory_verse_50: {
+          name: 'Tesoro Viviente',
+          description: 'Memoriza 50 versos',
+        },
+        midnight_reader: {
+          name: 'Vigilia Nocturna',
+          description: 'Lee entre la medianoche y las 3 AM',
+        },
+        early_bird: {
+          name: 'Madrugador de Dios',
+          description: 'Lee antes de las 6 AM durante 7 días',
+        },
+        share_master: {
+          name: 'Evangelizador Digital',
+          description: 'Comparte 25 versos',
+        },
+        christmas_special: {
+          name: 'Estrella de Belén',
+          description: 'Lee en Navidad',
+        },
+      },
+      // Title names and descriptions
+      titles: {
+        title_reader: {
+          name: 'Lector Devoto',
+          description: 'Has demostrado dedicación a la lectura',
+          prefix: 'Lector',
+        },
+        title_scholar: {
+          name: 'Estudiante de las Escrituras',
+          description: 'Tu conocimiento de la Palabra es notable',
+          prefix: 'Estudiante',
+        },
+        title_master: {
+          name: 'Maestro de la Palabra',
+          description: 'Dominas las Escrituras',
+          prefix: 'Maestro',
+        },
+        title_faithful: {
+          name: 'El Fiel',
+          description: 'Tu constancia es admirable',
+          suffix: 'el Fiel',
+        },
+        title_centurion: {
+          name: 'Centurión de la Fe',
+          description: '100 días de devoción inquebrantable',
+          prefix: 'Centurión',
+        },
+        title_guardian: {
+          name: 'Guardián del Pacto',
+          description: 'Un año de compromiso espiritual',
+          prefix: 'Guardián',
+        },
+        title_witness: {
+          name: 'Testigo del Nuevo Pacto',
+          description: 'Has completado el Nuevo Testamento',
+          prefix: 'Testigo',
+        },
+        title_lawkeeper: {
+          name: 'Guardián de la Ley',
+          description: 'Has completado el Antiguo Testamento',
+          prefix: 'Guardián',
+          suffix: 'de la Ley',
+        },
+        title_wordbearer: {
+          name: 'Portador de la Palabra',
+          description: 'Has leído toda la Biblia',
+          prefix: 'Portador',
+          suffix: 'de la Palabra',
+        },
+        title_illuminated: {
+          name: 'El Iluminado',
+          description: 'Tu mente guarda la Palabra',
+          suffix: 'el Iluminado',
+        },
+        title_treasure: {
+          name: 'Tesoro Viviente',
+          description: 'La Palabra vive en tu corazón',
+          prefix: 'Tesoro Viviente',
+        },
+        title_earlybird: {
+          name: 'Madrugador de Dios',
+          description: 'Inicias el día con la Palabra',
+          prefix: 'Madrugador',
+        },
+        title_star: {
+          name: 'Estrella de Belén',
+          description: 'Celebraste a Cristo en Su nacimiento',
+          prefix: 'Estrella',
+          suffix: 'de Belén',
+        },
+      },
+    },
+
+    // Mission System (V5.1)
+    missions: {
+      // Daily missions
+      daily: {
+        lector_diario: {
+          title: 'Lector Diario',
+          description: 'Lee al menos 5 versículos hoy',
+        },
+        reflexion_personal: {
+          title: 'Reflexión Personal',
+          description: 'Agrega 1 nota a un versículo',
+        },
+        estudioso: {
+          title: 'Estudioso',
+          description: 'Completa 1 capítulo completo',
+        },
+        compartir_palabra: {
+          title: 'Compartir la Palabra',
+          description: 'Comparte 1 versículo con alguien',
+        },
+      },
+      // Weekly missions
+      weekly: {
+        lector_dedicado: {
+          title: 'Lector Dedicado',
+          description: 'Lee 50 versículos esta semana',
+        },
+        guerrero_fin_semana: {
+          title: 'Guerrero del Fin de Semana',
+          description: 'Lee ambos días del fin de semana',
+        },
+        maestro_organizador: {
+          title: 'Maestro Organizador',
+          description: 'Agrega 10 resaltados esta semana',
+        },
+        evangelista: {
+          title: 'Evangelista',
+          description: 'Comparte 5 versículos esta semana',
+        },
+      },
+      // Special missions
+      special: {
+        explorando: 'Explorando',
+        lee_cualquier: 'Lee cualquier capítulo de',
+      },
+      // Reward names
+      rewards: {
+        puntos: 'Puntos',
+        badge_lector_semanal: 'Badge: Lector Semanal',
+        badge_evangelista: 'Badge: Evangelista',
+      },
+    },
+
+    // Cache Stats (V5.1)
+    cacheStats: {
+      title: 'Estadísticas de Caché',
+      predictiveCache: 'Caché Predictivo',
+      totalEntries: 'Entradas totales',
+      memoryEntries: 'En memoria',
+      hitRate: 'Tasa de aciertos',
+      avgAccess: 'Accesos promedio',
+      clearCache: 'Limpiar Caché',
+      clearSuccess: 'Caché limpiado',
+      clearConfirm: '¿Limpiar todo el caché?',
+      readingPatterns: 'Patrones de Lectura',
+      commonBooks: 'Libros frecuentes',
+      avgReadingTime: 'Tiempo promedio',
+      preferredTime: 'Horario preferido',
+      readingSequence: 'Secuencia',
+      sequential: 'Secuencial',
+      mixed: 'Mixto',
+      random: 'Aleatorio',
+      predictions: 'Predicciones',
+      nextChapter: 'Próximo capítulo',
+      confidence: 'Confianza',
+      relatedChapters: 'Capítulos relacionados',
+    },
+
+    // Widgets (V5.1)
+    widgets: {
+      title: 'Widgets',
+      subtitle: 'Mantén tu progreso visible en todo momento',
+      verseOfDay: 'Verso del Día',
+      verseOfDayDesc:
+        'Inspiración diaria directamente en tu pantalla principal',
+      progress: 'Progreso',
+      progressTitle: 'Tu Progreso',
+      progressDesc: 'Visualiza tu racha, nivel y objetivos diarios',
+      mission: 'Misión del Día',
+      missionTitle: 'Misión Activa',
+      missionDesc: 'Completa misiones diarias y gana recompensas',
+      currentStreak: 'Racha actual',
+      longestStreak: 'Racha máxima',
+      versesToday: 'Versículos hoy',
+      dailyGoal: 'Meta diaria',
+      level: 'Nivel',
+      completed: '¡Completado!',
+      continueMission: 'Continuar misión',
+      allCompleted: '¡Todas las misiones completadas!',
+      rewards: 'Recompensas',
+      expiresIn: 'Expira en',
+      days: 'días',
+      verses: 'versos',
+      xpToLevel: 'XP para nivel',
+      percentCompleted: 'completado',
+      dailyGoalReached: 'Meta diaria alcanzada',
+      difficulty: {
+        easy: 'Fácil',
+        medium: 'Medio',
+        hard: 'Difícil',
+      },
+      howToUse: 'Cómo usar los Widgets',
+      howToUseSteps: {
+        step1: 'Mantén presionada la pantalla principal de tu teléfono',
+        step2: 'Toca el ícono "+" en la esquina superior',
+        step3: 'Busca "EternalStone" en la lista de apps',
+        step4: 'Selecciona el widget que desees agregar',
+        step5: '¡Listo! Ahora tendrás acceso rápido a tu contenido favorito',
+      },
+      features: 'Características',
+      autoUpdate: 'Actualización automática cada hora',
+      adaptiveDesign: 'Diseño adaptativo claro/oscuro',
+      optimizedPerformance: 'Rendimiento optimizado',
+      multipleSizes: 'Múltiples tamaños disponibles',
+    },
+
+    // Settings V5.1 Section
+    settingsV51: {
+      title: 'Nuevas Funcionalidades V5.1',
+      widgets: 'Widgets',
+      widgetsDesc: 'Vista previa de widgets para pantalla de inicio',
+      versionComparison: 'Comparación de Versiones',
+      versionComparisonDesc: 'Compara versículos en diferentes traducciones',
+      badges: 'Insignias y Títulos',
+      badgesDesc: 'Sistema de logros con insignias coleccionables',
+      cacheStats: 'Estadísticas de Caché',
+      cacheStatsDesc: 'Rendimiento y predicciones del sistema',
+    },
   },
 
   en: {
@@ -389,6 +752,11 @@ export const translations = {
     change: 'Change',
     previous: 'Previous',
     next: 'Next',
+    to: 'to',
+    tap: 'Tap',
+    readMore: 'Read more',
+    completed: 'Completed',
+    coins: 'coins',
 
     // App Loading
     app: {
@@ -396,12 +764,14 @@ export const translations = {
       loadingBible: 'Loading the Bible...',
       verses: 'verses',
       preparing: 'Preparing...',
-      loadingVerse: '"Your word is a lamp to my feet\nand a light to my path"\n- Psalm 119:105',
+      loadingVerse:
+        '"Your word is a lamp to my feet\nand a light to my path"\n- Psalm 119:105',
       errorHint: 'Please close and reopen the application.',
       endOfBook: 'End of book',
       endOfBookMessage: 'You have reached the end of this book',
       firstChapterMessage: 'You are at the first chapter of this book',
-      emptyBookmarksHint: 'Tap the star icon while reading verses to save them here',
+      emptyBookmarksHint:
+        'Tap the star icon while reading verses to save them here',
     },
 
     // Tabs Navigation
@@ -743,6 +1113,360 @@ export const translations = {
         message: 'Choose a plan to guide your daily reading',
         action: 'Explore plans',
       },
+    },
+
+    // Version Comparison (V5.1)
+    versionComparison: {
+      title: 'Version Comparison',
+      selectVersions: 'Select Versions',
+      addVersion: 'Add',
+      removeVersion: 'Remove',
+      compareButton: 'Compare',
+      saveComparison: 'Save Comparison',
+      savedComparisons: 'Saved Comparisons',
+      analysis: 'Difference Analysis',
+      similarity: 'Similarity',
+      commonWords: 'Common words',
+      uniqueWords: 'Unique words',
+      observations: 'Observations',
+      verse: 'Verse',
+      words: 'words',
+      selectVerse: 'Select Verse',
+      multiSelectMode: 'Multiple',
+      simpleMode: 'Simple',
+      versesSelected: 'verses selected',
+      clearSelection: 'Clear',
+      applySelection: 'Apply Selection',
+      noComparisons: 'You have no saved comparisons',
+      comparisonName: 'Comparison name',
+      notes: 'Notes',
+      saveSuccess: 'Comparison saved',
+      deleteConfirm: 'Delete this comparison?',
+      loadComparison: 'Load',
+    },
+
+    // Badge System (V5.1)
+    badgeSystem: {
+      title: 'Badges and Titles',
+      collectionTitle: 'Achievement Collection',
+      myBadges: 'My Badges',
+      allBadges: 'All Badges',
+      equip: 'Equip',
+      equipped: 'Equipped',
+      equippedTitle: 'Equipped title',
+      unlock: 'Unlock',
+      locked: 'Locked',
+      unlocked: 'Unlocked',
+      completed: 'Completed',
+      all: 'All',
+      rarity: {
+        common: 'Common',
+        rare: 'Rare',
+        epic: 'Epic',
+        legendary: 'Legendary',
+        mythic: 'Mythic',
+      },
+      progress: 'Progress',
+      requirements: 'Requirements',
+      reward: 'Reward',
+      category: {
+        reading: 'Reading',
+        streak: 'Streak',
+        chapters: 'Chapters',
+        books: 'Books',
+        special: 'Special',
+        completion: 'Completion',
+        knowledge: 'Knowledge',
+        social: 'Social',
+      },
+      // Badge names and descriptions
+      badges: {
+        first_verse: {
+          name: 'First Read',
+          description: 'Read your first verse',
+        },
+        hundred_verses: {
+          name: 'Dedicated Reader',
+          description: 'Read 100 verses',
+        },
+        thousand_verses: {
+          name: 'Word Student',
+          description: 'Read 1,000 verses',
+        },
+        five_thousand_verses: {
+          name: 'Scripture Master',
+          description: 'Read 5,000 verses',
+        },
+        week_streak: {
+          name: 'Weekly Consistency',
+          description: 'Maintain a 7-day streak',
+        },
+        month_streak: {
+          name: 'Monthly Faithfulness',
+          description: 'Maintain a 30-day streak',
+        },
+        hundred_day_streak: {
+          name: 'Faith Centurion',
+          description: 'Maintain a 100-day streak',
+        },
+        year_streak: {
+          name: 'Covenant Guardian',
+          description: 'Maintain a 365-day streak',
+        },
+        first_book: {
+          name: 'First Book Completed',
+          description: 'Complete your first Bible book',
+        },
+        new_testament: {
+          name: 'New Covenant Witness',
+          description: 'Complete the entire New Testament',
+        },
+        old_testament: {
+          name: 'Law Guardian',
+          description: 'Complete the entire Old Testament',
+        },
+        full_bible: {
+          name: 'Word Knower',
+          description: 'Complete the entire Bible',
+        },
+        quiz_master: {
+          name: 'Knowledge Master',
+          description: 'Answer 50 questions correctly',
+        },
+        memory_verse_10: {
+          name: 'Enlightened Mind',
+          description: 'Memorize 10 verses',
+        },
+        memory_verse_50: {
+          name: 'Living Treasure',
+          description: 'Memorize 50 verses',
+        },
+        midnight_reader: {
+          name: 'Midnight Vigil',
+          description: 'Read between midnight and 3 AM',
+        },
+        early_bird: {
+          name: "God's Early Riser",
+          description: 'Read before 6 AM for 7 days',
+        },
+        share_master: {
+          name: 'Digital Evangelist',
+          description: 'Share 25 verses',
+        },
+        christmas_special: {
+          name: 'Star of Bethlehem',
+          description: 'Read on Christmas',
+        },
+      },
+      // Title names and descriptions
+      titles: {
+        title_reader: {
+          name: 'Devout Reader',
+          description: 'You have shown dedication to reading',
+          prefix: 'Reader',
+        },
+        title_scholar: {
+          name: 'Scripture Student',
+          description: 'Your knowledge of the Word is notable',
+          prefix: 'Student',
+        },
+        title_master: {
+          name: 'Word Master',
+          description: 'You master the Scriptures',
+          prefix: 'Master',
+        },
+        title_faithful: {
+          name: 'The Faithful',
+          description: 'Your consistency is admirable',
+          suffix: 'the Faithful',
+        },
+        title_centurion: {
+          name: 'Faith Centurion',
+          description: '100 days of unwavering devotion',
+          prefix: 'Centurion',
+        },
+        title_guardian: {
+          name: 'Covenant Guardian',
+          description: 'One year of spiritual commitment',
+          prefix: 'Guardian',
+        },
+        title_witness: {
+          name: 'New Covenant Witness',
+          description: 'You have completed the New Testament',
+          prefix: 'Witness',
+        },
+        title_lawkeeper: {
+          name: 'Law Guardian',
+          description: 'You have completed the Old Testament',
+          prefix: 'Guardian',
+          suffix: 'of the Law',
+        },
+        title_wordbearer: {
+          name: 'Word Bearer',
+          description: 'You have read the entire Bible',
+          prefix: 'Bearer',
+          suffix: 'of the Word',
+        },
+        title_illuminated: {
+          name: 'The Enlightened',
+          description: 'Your mind holds the Word',
+          suffix: 'the Enlightened',
+        },
+        title_treasure: {
+          name: 'Living Treasure',
+          description: 'The Word lives in your heart',
+          prefix: 'Living Treasure',
+        },
+        title_earlybird: {
+          name: "God's Early Riser",
+          description: 'You start the day with the Word',
+          prefix: 'Early Riser',
+        },
+        title_star: {
+          name: 'Star of Bethlehem',
+          description: 'You celebrated Christ on His birth',
+          prefix: 'Star',
+          suffix: 'of Bethlehem',
+        },
+      },
+    },
+
+    // Mission System (V5.1)
+    missions: {
+      // Daily missions
+      daily: {
+        lector_diario: {
+          title: 'Daily Reader',
+          description: 'Read at least 5 verses today',
+        },
+        reflexion_personal: {
+          title: 'Personal Reflection',
+          description: 'Add 1 note to a verse',
+        },
+        estudioso: {
+          title: 'Scholar',
+          description: 'Complete 1 full chapter',
+        },
+        compartir_palabra: {
+          title: 'Share the Word',
+          description: 'Share 1 verse with someone',
+        },
+      },
+      // Weekly missions
+      weekly: {
+        lector_dedicado: {
+          title: 'Dedicated Reader',
+          description: 'Read 50 verses this week',
+        },
+        guerrero_fin_semana: {
+          title: 'Weekend Warrior',
+          description: 'Read both weekend days',
+        },
+        maestro_organizador: {
+          title: 'Master Organizer',
+          description: 'Add 10 highlights this week',
+        },
+        evangelista: {
+          title: 'Evangelist',
+          description: 'Share 5 verses this week',
+        },
+      },
+      // Special missions
+      special: {
+        explorando: 'Exploring',
+        lee_cualquier: 'Read any chapter of',
+      },
+      // Reward names
+      rewards: {
+        puntos: 'Points',
+        badge_lector_semanal: 'Badge: Weekly Reader',
+        badge_evangelista: 'Badge: Evangelist',
+      },
+    },
+
+    // Cache Stats (V5.1)
+    cacheStats: {
+      title: 'Cache Statistics',
+      predictiveCache: 'Predictive Cache',
+      totalEntries: 'Total entries',
+      memoryEntries: 'In memory',
+      hitRate: 'Hit rate',
+      avgAccess: 'Average accesses',
+      clearCache: 'Clear Cache',
+      clearSuccess: 'Cache cleared',
+      clearConfirm: 'Clear all cache?',
+      readingPatterns: 'Reading Patterns',
+      commonBooks: 'Frequent books',
+      avgReadingTime: 'Average time',
+      preferredTime: 'Preferred time',
+      readingSequence: 'Sequence',
+      sequential: 'Sequential',
+      mixed: 'Mixed',
+      random: 'Random',
+      predictions: 'Predictions',
+      nextChapter: 'Next chapter',
+      confidence: 'Confidence',
+      relatedChapters: 'Related chapters',
+    },
+
+    // Widgets (V5.1)
+    widgets: {
+      title: 'Widgets',
+      subtitle: 'Keep your progress visible at all times',
+      verseOfDay: 'Verse of the Day',
+      verseOfDayDesc: 'Daily inspiration directly on your home screen',
+      progress: 'Progress',
+      progressTitle: 'Your Progress',
+      progressDesc: 'Track your streak, level, and daily goals',
+      mission: 'Daily Mission',
+      missionTitle: 'Active Mission',
+      missionDesc: 'Complete daily missions and earn rewards',
+      currentStreak: 'Current streak',
+      longestStreak: 'Longest streak',
+      versesToday: 'Verses today',
+      dailyGoal: 'Daily goal',
+      level: 'Level',
+      completed: 'Completed!',
+      continueMission: 'Continue mission',
+      allCompleted: 'All missions completed!',
+      rewards: 'Rewards',
+      expiresIn: 'Expires in',
+      days: 'days',
+      verses: 'verses',
+      xpToLevel: 'XP to level',
+      percentCompleted: 'completed',
+      dailyGoalReached: 'Daily goal reached',
+      difficulty: {
+        easy: 'Easy',
+        medium: 'Medium',
+        hard: 'Hard',
+      },
+      howToUse: 'How to use Widgets',
+      howToUseSteps: {
+        step1: "Long press on your phone's home screen",
+        step2: 'Tap the "+" icon in the top corner',
+        step3: 'Search for "EternalStone" in the apps list',
+        step4: 'Select the widget you want to add',
+        step5: 'Done! You now have quick access to your favorite content',
+      },
+      features: 'Features',
+      autoUpdate: 'Auto-update every hour',
+      adaptiveDesign: 'Adaptive light/dark design',
+      optimizedPerformance: 'Optimized performance',
+      multipleSizes: 'Multiple sizes available',
+    },
+
+    // Settings V5.1 Section
+    settingsV51: {
+      title: 'New V5.1 Features',
+      widgets: 'Widgets',
+      widgetsDesc: 'Home screen widgets preview',
+      versionComparison: 'Version Comparison',
+      versionComparisonDesc: 'Compare verses in different translations',
+      badges: 'Badges and Titles',
+      badgesDesc: 'Achievement system with collectible badges',
+      cacheStats: 'Cache Statistics',
+      cacheStatsDesc: 'System performance and predictions',
     },
   },
 };

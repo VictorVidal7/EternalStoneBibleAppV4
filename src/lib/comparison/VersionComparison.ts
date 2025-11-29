@@ -8,6 +8,7 @@
  */
 
 import * as SQLite from 'expo-sqlite';
+import bibleDB from '../database';
 
 export interface BibleVersion {
   id: string;
@@ -54,7 +55,9 @@ class VersionComparisonService {
 
   async initialize() {
     if (!this.db) {
-      this.db = await SQLite.openDatabaseAsync('EternalStone.db');
+      // Usar la misma instancia de base de datos que el resto de la app
+      await bibleDB.initialize();
+      this.db = await bibleDB.getDatabase();
       await this.createVersionsTables();
     }
   }
@@ -241,42 +244,43 @@ class VersionComparisonService {
     const versions: VersionText[] = [];
 
     for (const versionId of versionIds) {
-      // Primero buscar en verses_by_version
-      let result = await this.db!.getFirstAsync<{
+      // Por ahora, solo soportamos las versiones que están en la tabla verses
+      // En el futuro, cuando se agreguen más versiones, usaremos verses_by_version
+      const versionMap: Record<
+        string,
+        {name: string; abbr: string; dbVersion: string}
+      > = {
+        rvr1960: {
+          name: 'Reina-Valera 1960',
+          abbr: 'RVR1960',
+          dbVersion: 'RVR1960',
+        },
+        kjv: {name: 'King James Version', abbr: 'KJV', dbVersion: 'KJV'},
+      };
+
+      const versionInfo = versionMap[versionId.toLowerCase()];
+
+      if (!versionInfo) {
+        // Versión no soportada aún, omitir
+        continue;
+      }
+
+      const result = await this.db!.getFirstAsync<{
         text: string;
-        name: string;
-        abbreviation: string;
       }>(
         `
-        SELECT v.text, bv.name, bv.abbreviation
-        FROM verses_by_version v
-        JOIN bible_versions bv ON v.version_id = bv.id
-        WHERE v.version_id = ? AND v.book = ? AND v.chapter = ? AND v.verse = ?
+        SELECT v.text
+        FROM verses v
+        WHERE v.book_name = ? AND v.chapter = ? AND v.verse = ? AND v.version = ?
       `,
-        [versionId, book, chapter, verse],
+        [book, chapter, verse, versionInfo.dbVersion],
       );
-
-      // Si no existe, usar la tabla principal (RVR1960 por defecto)
-      if (!result && versionId === 'rvr1960') {
-        result = await this.db!.getFirstAsync<{
-          text: string;
-          name: string;
-          abbreviation: string;
-        }>(
-          `
-          SELECT v.text, 'Reina-Valera 1960' as name, 'RVR1960' as abbreviation
-          FROM verses v
-          WHERE v.book = ? AND v.chapter = ? AND v.verse = ?
-        `,
-          [book, chapter, verse],
-        );
-      }
 
       if (result) {
         versions.push({
           versionId,
-          versionName: result.name,
-          versionAbbr: result.abbreviation,
+          versionName: versionInfo.name,
+          versionAbbr: versionInfo.abbr,
           text: result.text,
           wordCount: result.text.split(/\s+/).length,
         });

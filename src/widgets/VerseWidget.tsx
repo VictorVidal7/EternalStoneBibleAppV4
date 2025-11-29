@@ -20,6 +20,7 @@ import {LinearGradient} from 'expo-linear-gradient';
 import {Ionicons} from '@expo/vector-icons';
 import {widgetTaskHandler, VerseWidgetData} from './WidgetTaskHandler';
 import {useTheme} from '../hooks/useTheme';
+import {useLanguage} from '../hooks/useLanguage';
 
 const {width: SCREEN_WIDTH} = Dimensions.get('window');
 
@@ -33,6 +34,7 @@ export const VerseWidget: React.FC<VerseWidgetProps> = ({
   compact = false,
 }) => {
   const {colors, isDark} = useTheme();
+  const {t} = useLanguage();
   const [verseData, setVerseData] = useState<VerseWidgetData | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -90,7 +92,7 @@ export const VerseWidget: React.FC<VerseWidgetProps> = ({
             <Ionicons name="book" size={20} color={colors.primary} />
           </View>
           <Text style={[styles.headerText, {color: colors.text}]}>
-            Verso del Día
+            {t.widgets.verseOfDay}
           </Text>
           <View style={styles.dateContainer}>
             <Text style={[styles.dateText, {color: colors.textSecondary}]}>
@@ -135,7 +137,7 @@ export const VerseWidget: React.FC<VerseWidgetProps> = ({
             color={colors.textTertiary}
           />
           <Text style={[styles.tapText, {color: colors.textTertiary}]}>
-            Toca para leer completo
+            {t.tap} {t.to.toLowerCase()} {t.readMore.toLowerCase()}
           </Text>
         </View>
       </LinearGradient>

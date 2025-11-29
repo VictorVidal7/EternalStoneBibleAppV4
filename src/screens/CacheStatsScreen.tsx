@@ -19,6 +19,7 @@ import {
 } from 'react-native';
 import {Ionicons} from '@expo/vector-icons';
 import {useTheme} from '../hooks/useTheme';
+import {useLanguage} from '../hooks/useLanguage';
 import {
   predictiveCacheService,
   ReadingPattern,
@@ -32,6 +33,7 @@ interface CacheStatsScreenProps {
 
 export const CacheStatsScreen: React.FC<CacheStatsScreenProps> = ({userId}) => {
   const {colors} = useTheme();
+  const {t} = useLanguage();
   const {stats, refresh: refreshStats} = useCacheStats();
 
   const [refreshing, setRefreshing] = useState(false);
@@ -65,22 +67,18 @@ export const CacheStatsScreen: React.FC<CacheStatsScreenProps> = ({userId}) => {
   };
 
   const handleClearCache = () => {
-    Alert.alert(
-      'Limpiar Caché',
-      '¿Estás seguro? Esto eliminará todos los datos en caché.',
-      [
-        {text: 'Cancelar', style: 'cancel'},
-        {
-          text: 'Limpiar',
-          style: 'destructive',
-          onPress: async () => {
-            await predictiveCacheService.clearAll();
-            await handleRefresh();
-            Alert.alert('¡Listo!', 'Caché limpiado exitosamente');
-          },
+    Alert.alert(t.cacheStats.clearCache, t.cacheStats.clearConfirm, [
+      {text: t.cancel, style: 'cancel'},
+      {
+        text: t.cacheStats.clearCache,
+        style: 'destructive',
+        onPress: async () => {
+          await predictiveCacheService.clearAll();
+          await handleRefresh();
+          Alert.alert(t.ok, t.cacheStats.clearSuccess);
         },
-      ],
-    );
+      },
+    ]);
   };
 
   const handleWarmup = async () => {
@@ -122,7 +120,7 @@ export const CacheStatsScreen: React.FC<CacheStatsScreenProps> = ({userId}) => {
       {/* Header */}
       <View style={styles.header}>
         <Text style={[styles.title, {color: colors.text}]}>
-          Estadísticas de Caché
+          {t.cacheStats.title}
         </Text>
         <Text style={[styles.subtitle, {color: colors.textSecondary}]}>
           Sistema de optimización inteligente

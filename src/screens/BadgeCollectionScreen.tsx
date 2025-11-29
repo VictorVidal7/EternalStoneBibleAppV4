@@ -21,6 +21,7 @@ import {LinearGradient} from 'expo-linear-gradient';
 import {Ionicons} from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
 import {useTheme} from '../hooks/useTheme';
+import {useLanguage} from '../hooks/useLanguage';
 import {
   badgeSystemService,
   BadgeProgress,
@@ -42,6 +43,7 @@ export const BadgeCollectionScreen: React.FC<BadgeCollectionScreenProps> = ({
   userId,
 }) => {
   const {colors, isDark} = useTheme();
+  const {t, language} = useLanguage();
 
   // State
   const [viewMode, setViewMode] = useState<ViewMode>('badges');
@@ -57,7 +59,7 @@ export const BadgeCollectionScreen: React.FC<BadgeCollectionScreenProps> = ({
 
   useEffect(() => {
     loadData();
-  }, [userId]);
+  }, [userId, language]);
 
   const loadData = async () => {
     try {
@@ -68,9 +70,19 @@ export const BadgeCollectionScreen: React.FC<BadgeCollectionScreenProps> = ({
         badgeSystemService.getEquippedTitle(userId),
       ]);
 
-      setBadgesProgress(badges);
-      setUserTitles(titles);
-      setEquippedTitle(equipped);
+      // Translate badges and titles
+      const {translateBadgeProgress, translateTitles, translateTitle} =
+        await import('../lib/badges/BadgeTranslationHelper');
+
+      const translatedBadges = await translateBadgeProgress(badges);
+      const translatedTitles = await translateTitles(titles);
+      const translatedEquipped = equipped
+        ? await translateTitle(equipped)
+        : null;
+
+      setBadgesProgress(translatedBadges);
+      setUserTitles(translatedTitles);
+      setEquippedTitle(translatedEquipped);
     } catch (error) {
       console.error('Error loading badge data:', error);
     } finally {
@@ -102,23 +114,23 @@ export const BadgeCollectionScreen: React.FC<BadgeCollectionScreenProps> = ({
 
   const getRarityName = (rarity: BadgeRarity): string => {
     const names = {
-      common: 'Común',
-      rare: 'Raro',
-      epic: 'Épico',
-      legendary: 'Legendario',
-      mythic: 'Mítico',
+      common: t.badgeSystem.rarity.common,
+      rare: t.badgeSystem.rarity.rare,
+      epic: t.badgeSystem.rarity.epic,
+      legendary: t.badgeSystem.rarity.legendary,
+      mythic: t.badgeSystem.rarity.mythic,
     };
     return names[rarity];
   };
 
   const getCategoryName = (category: BadgeCategory): string => {
     const names = {
-      reading: 'Lectura',
-      streak: 'Racha',
-      completion: 'Completitud',
-      knowledge: 'Conocimiento',
-      social: 'Social',
-      special: 'Especial',
+      reading: t.badgeSystem.category.reading,
+      streak: t.badgeSystem.category.streak,
+      completion: t.badgeSystem.category.chapters,
+      knowledge: t.badgeSystem.category.books,
+      social: t.badgeSystem.category.reading,
+      special: t.badgeSystem.category.special,
     };
     return names[category];
   };
@@ -149,7 +161,7 @@ export const BadgeCollectionScreen: React.FC<BadgeCollectionScreenProps> = ({
       {/* Header */}
       <View style={styles.header}>
         <Text style={[styles.title, {color: colors.text}]}>
-          Colección de Logros
+          {t.badgeSystem.collectionTitle}
         </Text>
 
         {/* Equipped Title Display */}
@@ -174,7 +186,7 @@ export const BadgeCollectionScreen: React.FC<BadgeCollectionScreenProps> = ({
                   styles.equippedTitleLabel,
                   {color: colors.textSecondary},
                 ]}>
-                Título equipado
+                {t.badgeSystem.equippedTitle}
               </Text>
             </View>
             <Ionicons
@@ -192,7 +204,7 @@ export const BadgeCollectionScreen: React.FC<BadgeCollectionScreenProps> = ({
               {unlockedCount}/{totalBadges}
             </Text>
             <Text style={[styles.statLabel, {color: colors.textSecondary}]}>
-              Desbloqueados
+              {t.badgeSystem.unlocked}
             </Text>
           </View>
           <View style={styles.statDivider} />
@@ -201,7 +213,7 @@ export const BadgeCollectionScreen: React.FC<BadgeCollectionScreenProps> = ({
               {completionPercent}%
             </Text>
             <Text style={[styles.statLabel, {color: colors.textSecondary}]}>
-              Completado
+              {t.badgeSystem.completed}
             </Text>
           </View>
           <View style={styles.statDivider} />
@@ -210,7 +222,7 @@ export const BadgeCollectionScreen: React.FC<BadgeCollectionScreenProps> = ({
               {userTitles.length}
             </Text>
             <Text style={[styles.statLabel, {color: colors.textSecondary}]}>
-              Títulos
+              {t.badgeSystem.myBadges}
             </Text>
           </View>
         </View>
@@ -262,7 +274,7 @@ export const BadgeCollectionScreen: React.FC<BadgeCollectionScreenProps> = ({
               styles.toggleText,
               {color: viewMode === 'titles' ? '#FFF' : colors.text},
             ]}>
-            Títulos
+            {t.badgeSystem.myBadges}
           </Text>
         </TouchableOpacity>
       </View>
@@ -288,7 +300,7 @@ export const BadgeCollectionScreen: React.FC<BadgeCollectionScreenProps> = ({
                   styles.filterChipText,
                   {color: filterCategory === 'all' ? '#FFF' : colors.text},
                 ]}>
-                Todos
+                {t.badgeSystem.all}
               </Text>
             </TouchableOpacity>
 
@@ -546,7 +558,7 @@ export const BadgeCollectionScreen: React.FC<BadgeCollectionScreenProps> = ({
               {!selectedBadge.isUnlocked && (
                 <View style={styles.progressSection}>
                   <Text style={[styles.progressText, {color: colors.text}]}>
-                    Progreso: {selectedBadge.currentProgress}/
+                    {t.badgeSystem.progress}: {selectedBadge.currentProgress}/
                     {selectedBadge.badge.requirementValue}
                   </Text>
                   <View
@@ -632,7 +644,9 @@ export const BadgeCollectionScreen: React.FC<BadgeCollectionScreenProps> = ({
                     {backgroundColor: selectedTitle.color},
                   ]}
                   onPress={() => handleEquipTitle(selectedTitle)}>
-                  <Text style={styles.equipButtonText}>Equipar Título</Text>
+                  <Text style={styles.equipButtonText}>
+                    {t.badgeSystem.equip}
+                  </Text>
                 </TouchableOpacity>
               )}
 

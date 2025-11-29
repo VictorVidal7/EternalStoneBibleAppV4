@@ -10,6 +10,7 @@
 import React from 'react';
 import {View, Text, StyleSheet, ScrollView} from 'react-native';
 import {useTheme} from '../hooks/useTheme';
+import {useLanguage} from '../hooks/useLanguage';
 import {VerseWidget} from '../widgets/VerseWidget';
 import {ProgressWidget} from '../widgets/ProgressWidget';
 import {MissionWidget} from '../widgets/MissionWidget';
@@ -17,6 +18,7 @@ import {useRouter} from 'expo-router';
 
 export const WidgetsDemoScreen: React.FC = () => {
   const {colors} = useTheme();
+  const {t} = useLanguage();
   const router = useRouter();
 
   const handleVersePress = (book: string, chapter: number, verse: number) => {
@@ -28,7 +30,9 @@ export const WidgetsDemoScreen: React.FC = () => {
   };
 
   const handleMissionPress = () => {
-    router.push('/missions');
+    // Por ahora, no hay pantalla de misiones implementada
+    // En el futuro, esto navegará a la pantalla de misiones
+    console.log('Mission widget pressed - missions feature coming soon');
   };
 
   return (
@@ -36,10 +40,10 @@ export const WidgetsDemoScreen: React.FC = () => {
       {/* Header */}
       <View style={styles.header}>
         <Text style={[styles.title, {color: colors.text}]}>
-          Widgets de EternalStone
+          {t.widgets.title}
         </Text>
         <Text style={[styles.subtitle, {color: colors.textSecondary}]}>
-          Mantén tu progreso visible en todo momento
+          {t.widgets.subtitle}
         </Text>
       </View>
 
@@ -51,10 +55,10 @@ export const WidgetsDemoScreen: React.FC = () => {
         {/* Verse Widget */}
         <View style={styles.widgetSection}>
           <Text style={[styles.sectionTitle, {color: colors.text}]}>
-            📖 Verso del Día
+            📖 {t.widgets.verseOfDay}
           </Text>
           <Text style={[styles.sectionDesc, {color: colors.textSecondary}]}>
-            Inspiración diaria directamente en tu pantalla principal
+            {t.widgets.verseOfDayDesc}
           </Text>
           <VerseWidget onPress={handleVersePress} />
         </View>
@@ -62,10 +66,10 @@ export const WidgetsDemoScreen: React.FC = () => {
         {/* Progress Widget */}
         <View style={styles.widgetSection}>
           <Text style={[styles.sectionTitle, {color: colors.text}]}>
-            📊 Tu Progreso
+            📊 {t.widgets.progressTitle}
           </Text>
           <Text style={[styles.sectionDesc, {color: colors.textSecondary}]}>
-            Visualiza tu racha, nivel y objetivos diarios
+            {t.widgets.progressDesc}
           </Text>
           <ProgressWidget userId="demo-user" onPress={handleProgressPress} />
         </View>
@@ -73,10 +77,10 @@ export const WidgetsDemoScreen: React.FC = () => {
         {/* Mission Widget */}
         <View style={styles.widgetSection}>
           <Text style={[styles.sectionTitle, {color: colors.text}]}>
-            🎯 Misión Activa
+            🎯 {t.widgets.missionTitle}
           </Text>
           <Text style={[styles.sectionDesc, {color: colors.textSecondary}]}>
-            Completa misiones diarias y gana recompensas
+            {t.widgets.missionDesc}
           </Text>
           <MissionWidget userId="demo-user" onPress={handleMissionPress} />
         </View>
@@ -84,23 +88,23 @@ export const WidgetsDemoScreen: React.FC = () => {
         {/* Info Section */}
         <View style={[styles.infoCard, {backgroundColor: colors.surface}]}>
           <Text style={[styles.infoTitle, {color: colors.text}]}>
-            💡 Cómo usar los Widgets
+            💡 {t.widgets.howToUse}
           </Text>
           <View style={styles.infoList}>
             <Text style={[styles.infoItem, {color: colors.textSecondary}]}>
-              1. Mantén presionada la pantalla principal de tu teléfono
+              1. {t.widgets.howToUseSteps.step1}
             </Text>
             <Text style={[styles.infoItem, {color: colors.textSecondary}]}>
-              2. Toca el ícono "+" en la esquina superior
+              2. {t.widgets.howToUseSteps.step2}
             </Text>
             <Text style={[styles.infoItem, {color: colors.textSecondary}]}>
-              3. Busca "EternalStone" en la lista de apps
+              3. {t.widgets.howToUseSteps.step3}
             </Text>
             <Text style={[styles.infoItem, {color: colors.textSecondary}]}>
-              4. Selecciona el widget que desees agregar
+              4. {t.widgets.howToUseSteps.step4}
             </Text>
             <Text style={[styles.infoItem, {color: colors.textSecondary}]}>
-              5. ¡Listo! Ahora tendrás acceso rápido a tu contenido favorito
+              5. {t.widgets.howToUseSteps.step5}
             </Text>
           </View>
         </View>
@@ -108,35 +112,35 @@ export const WidgetsDemoScreen: React.FC = () => {
         {/* Feature Highlights */}
         <View style={styles.featuresSection}>
           <Text style={[styles.featureTitle, {color: colors.text}]}>
-            ✨ Características
+            ✨ {t.widgets.features}
           </Text>
           <View style={styles.featuresList}>
             <View
               style={[styles.featureCard, {backgroundColor: colors.surface}]}>
               <Text style={styles.featureEmoji}>🔄</Text>
               <Text style={[styles.featureText, {color: colors.text}]}>
-                Actualización automática cada hora
+                {t.widgets.autoUpdate}
               </Text>
             </View>
             <View
               style={[styles.featureCard, {backgroundColor: colors.surface}]}>
               <Text style={styles.featureEmoji}>🎨</Text>
               <Text style={[styles.featureText, {color: colors.text}]}>
-                Diseño adaptativo claro/oscuro
+                {t.widgets.adaptiveDesign}
               </Text>
             </View>
             <View
               style={[styles.featureCard, {backgroundColor: colors.surface}]}>
               <Text style={styles.featureEmoji}>⚡</Text>
               <Text style={[styles.featureText, {color: colors.text}]}>
-                Rendimiento optimizado
+                {t.widgets.optimizedPerformance}
               </Text>
             </View>
             <View
               style={[styles.featureCard, {backgroundColor: colors.surface}]}>
               <Text style={styles.featureEmoji}>📱</Text>
               <Text style={[styles.featureText, {color: colors.text}]}>
-                Múltiples tamaños disponibles
+                {t.widgets.multipleSizes}
               </Text>
             </View>
           </View>

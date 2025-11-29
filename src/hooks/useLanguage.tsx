@@ -1,6 +1,6 @@
-import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import {createContext, useContext, useState, useEffect, ReactNode} from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { translations, Language, TranslationKeys } from '../i18n/translations';
+import {translations, Language, TranslationKeys} from '../i18n/translations';
 import * as Localization from 'expo-localization';
 
 const LANGUAGE_STORAGE_KEY = '@app_language';
@@ -11,9 +11,11 @@ interface LanguageContextType {
   t: TranslationKeys;
 }
 
-const LanguageContext = createContext<LanguageContextType | undefined>(undefined);
+const LanguageContext = createContext<LanguageContextType | undefined>(
+  undefined,
+);
 
-export function LanguageProvider({ children }: { children: ReactNode }) {
+export function LanguageProvider({children}: {children: ReactNode}) {
   const [language, setLanguageState] = useState<Language>('es');
 
   useEffect(() => {
@@ -41,12 +43,16 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
   async function setLanguage(lang: Language) {
     setLanguageState(lang);
     await AsyncStorage.setItem(LANGUAGE_STORAGE_KEY, lang);
+
+    // Invalidate language cache for non-React utilities
+    const {invalidateLanguageCache} = await import('../i18n/languageUtils');
+    invalidateLanguageCache();
   }
 
   const t = translations[language];
 
   return (
-    <LanguageContext.Provider value={{ language, setLanguage, t }}>
+    <LanguageContext.Provider value={{language, setLanguage, t}}>
       {children}
     </LanguageContext.Provider>
   );

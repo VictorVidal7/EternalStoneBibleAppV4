@@ -8,6 +8,7 @@
  */
 
 import * as SQLite from 'expo-sqlite';
+import bibleDB from '../database';
 
 export type BadgeRarity = 'common' | 'rare' | 'epic' | 'legendary' | 'mythic';
 export type BadgeCategory =
@@ -67,7 +68,9 @@ class BadgeSystemService {
 
   async initialize() {
     if (!this.db) {
-      this.db = await SQLite.openDatabaseAsync('EternalStone.db');
+      // Usar la misma instancia de base de datos que el resto de la app
+      await bibleDB.initialize();
+      this.db = await bibleDB.getDatabase();
       await this.createBadgeTables();
       await this.insertDefaultBadges();
     }

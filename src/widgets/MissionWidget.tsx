@@ -19,6 +19,7 @@ import {LinearGradient} from 'expo-linear-gradient';
 import {Ionicons} from '@expo/vector-icons';
 import {widgetTaskHandler, MissionWidgetData} from './WidgetTaskHandler';
 import {useTheme} from '../hooks/useTheme';
+import {useLanguage} from '../hooks/useLanguage';
 
 interface MissionWidgetProps {
   userId: string;
@@ -30,6 +31,7 @@ export const MissionWidget: React.FC<MissionWidgetProps> = ({
   onPress,
 }) => {
   const {colors, isDark} = useTheme();
+  const {t, language} = useLanguage();
   const [missionData, setMissionData] = useState<MissionWidgetData | null>(
     null,
   );
@@ -37,7 +39,7 @@ export const MissionWidget: React.FC<MissionWidgetProps> = ({
 
   useEffect(() => {
     loadMission();
-  }, [userId]);
+  }, [userId, language]);
 
   const loadMission = async () => {
     try {
@@ -65,7 +67,7 @@ export const MissionWidget: React.FC<MissionWidgetProps> = ({
         <View style={styles.emptyState}>
           <Ionicons name="checkmark-circle" size={40} color={colors.success} />
           <Text style={[styles.emptyText, {color: colors.text}]}>
-            ¡Todas las misiones completadas!
+            {t.widgets.allCompleted}
           </Text>
         </View>
       </View>
@@ -93,11 +95,11 @@ export const MissionWidget: React.FC<MissionWidgetProps> = ({
   const getDifficultyLabel = () => {
     switch (missionData.difficulty) {
       case 'easy':
-        return 'Fácil';
+        return t.widgets.difficulty.easy;
       case 'medium':
-        return 'Medio';
+        return t.widgets.difficulty.medium;
       case 'hard':
-        return 'Difícil';
+        return t.widgets.difficulty.hard;
       default:
         return '';
     }
@@ -137,7 +139,7 @@ export const MissionWidget: React.FC<MissionWidgetProps> = ({
           <View style={styles.titleContainer}>
             <Ionicons name="trophy" size={20} color={colors.warning} />
             <Text style={[styles.headerText, {color: colors.text}]}>
-              Misión del Día
+              {t.widgets.mission}
             </Text>
           </View>
           <View
@@ -167,7 +169,7 @@ export const MissionWidget: React.FC<MissionWidgetProps> = ({
         <View style={styles.progressSection}>
           <View style={styles.progressHeader}>
             <Text style={[styles.progressLabel, {color: colors.textSecondary}]}>
-              Progreso
+              {t.widgets.progress}
             </Text>
             <Text style={[styles.progressValue, {color: colors.text}]}>
               {missionData.progress}/{missionData.target}
@@ -194,14 +196,14 @@ export const MissionWidget: React.FC<MissionWidgetProps> = ({
             </View>
           </View>
           <Text style={[styles.progressPercent, {color: colors.textTertiary}]}>
-            {Math.round(progressPercentage)}% completado
+            {Math.round(progressPercentage)}% {t.widgets.percentCompleted}
           </Text>
         </View>
 
         {/* Rewards */}
         <View style={styles.rewardsSection}>
           <Text style={[styles.rewardsLabel, {color: colors.textSecondary}]}>
-            Recompensas:
+            {t.widgets.rewards}:
           </Text>
           <View style={styles.rewardsList}>
             {missionData.reward.xp > 0 && (
@@ -216,7 +218,7 @@ export const MissionWidget: React.FC<MissionWidgetProps> = ({
               <View style={styles.rewardItem}>
                 <Ionicons name="cash" size={14} color="#F59E0B" />
                 <Text style={[styles.rewardText, {color: colors.text}]}>
-                  +{missionData.reward.coins} monedas
+                  +{missionData.reward.coins} {t.coins}
                 </Text>
               </View>
             )}
@@ -227,7 +229,7 @@ export const MissionWidget: React.FC<MissionWidgetProps> = ({
         <View style={styles.timerSection}>
           <Ionicons name="time-outline" size={14} color={colors.textTertiary} />
           <Text style={[styles.timerText, {color: colors.textTertiary}]}>
-            Expira en {getTimeRemaining()}
+            {t.widgets.expiresIn} {getTimeRemaining()}
           </Text>
         </View>
 
@@ -235,13 +237,13 @@ export const MissionWidget: React.FC<MissionWidgetProps> = ({
         {isCompleted ? (
           <View style={[styles.ctaCompleted, {backgroundColor: '#22C55E'}]}>
             <Ionicons name="checkmark-circle" size={18} color="#FFF" />
-            <Text style={styles.ctaTextCompleted}>¡Completado!</Text>
+            <Text style={styles.ctaTextCompleted}>{t.widgets.completed}</Text>
           </View>
         ) : (
           <View
             style={[styles.cta, {backgroundColor: 'rgba(255, 255, 255, 0.2)'}]}>
             <Text style={[styles.ctaText, {color: colors.text}]}>
-              Continuar misión
+              {t.widgets.continueMission}
             </Text>
             <Ionicons name="chevron-forward" size={16} color={colors.text} />
           </View>
