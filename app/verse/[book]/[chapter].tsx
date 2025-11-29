@@ -22,6 +22,8 @@ import {getBookByName} from '../../../src/constants/bible';
 import {useTheme} from '../../../src/hooks/useTheme';
 import {useBibleVersion} from '../../../src/hooks/useBibleVersion';
 import {useLanguage} from '../../../src/hooks/useLanguage';
+import {useServices} from '../../../src/context/ServicesContext';
+import {logger} from '../../../src/lib/utils/logger';
 import {ImmersiveReader} from '../../../src/components/reading/ImmersiveReader';
 
 // Design tokens
@@ -37,6 +39,7 @@ export default function VerseReadingScreen() {
   const {colors, isDark} = useTheme();
   const {selectedVersion} = useBibleVersion();
   const {t} = useLanguage();
+  const {achievementService} = useServices();
   const {
     book,
     chapter,
@@ -62,21 +65,77 @@ export default function VerseReadingScreen() {
   const [immersiveModeActive, setImmersiveModeActive] = useState(false);
 
   const scrollViewRef = useRef<ScrollView>(null);
+  const startTimeRef = useRef<number>(Date.now());
 
   useEffect(() => {
     loadChapter();
     loadBookmarks();
   }, [book, chapter, selectedVersion.id]);
 
+  // ✨ Track reading progress after 5 seconds
+  useEffect(() => {
+    if (loading || verses.length === 0 || !achievementService) return;
+
+    // Reset start time when chapter changes
+    startTimeRef.current = Date.now();
+
+    const trackingTimer = setTimeout(async () => {
+      try {
+        const timeSpent = Math.floor(
+          (Date.now() - startTimeRef.current) / 1000,
+        ); // seconds
+
+        logger.info('Tracking verse reading', {
+          component: 'VerseReadingScreen',
+          book,
+          chapter: chapterNum,
+          versesCount: verses.length,
+          timeSpent,
+        });
+
+        // Track verses read
+        const newAchievements = await achievementService.trackVersesRead(
+          verses.length,
+          timeSpent,
+        );
+
+        // Track chapter completed
+        await achievementService.trackChapterCompleted();
+
+        if (newAchievements.length > 0) {
+          logger.info('New achievements unlocked!', {
+            component: 'VerseReadingScreen',
+            achievements: newAchievements.map(a => a.title),
+          });
+        }
+      } catch (error) {
+        logger.error('Error tracking reading progress', error as Error, {
+          component: 'VerseReadingScreen',
+          action: 'trackReading',
+        });
+      }
+    }, 5000); // 5 seconds
+
+    return () => clearTimeout(trackingTimer);
+  }, [verses, loading, achievementService, book, chapterNum]);
+
   async function loadChapter() {
     try {
       setLoading(true);
-      console.log(
-        `📖 Loading chapter: book="${book}", chapter=${chapterNum}, version="${selectedVersion.id}"`,
-      );
+      logger.info('Loading chapter', {
+        component: 'VerseReadingScreen',
+        action: 'loadChapter',
+        book,
+        chapter: chapterNum,
+        version: selectedVersion.id,
+      });
 
       if (!bookInfo) {
-        console.error(`❌ Book not found: ${book}`);
+        logger.error('Book not found', new Error(`Book not found: ${book}`), {
+          component: 'VerseReadingScreen',
+          action: 'loadChapter',
+          book,
+        });
         setLoading(false);
         return;
       }
@@ -88,7 +147,11 @@ export default function VerseReadingScreen() {
         chapterNum,
         selectedVersion.id,
       );
-      console.log(`✅ Loaded ${chapterVerses.length} verses`);
+      logger.info('Chapter loaded successfully', {
+        component: 'VerseReadingScreen',
+        action: 'loadChapter',
+        versesCount: chapterVerses.length,
+      });
 
       setVerses(chapterVerses);
 
@@ -107,28 +170,42 @@ export default function VerseReadingScreen() {
         }, 300);
       }
     } catch (error) {
-      console.error(`❌ Error loading chapter ${book} ${chapterNum}:`, error);
+      logger.error('Error loading chapter', error as Error, {
+        component: 'VerseReadingScreen',
+        action: 'loadChapter',
+        book,
+        chapter: chapterNum,
+      });
       setLoading(false);
     }
   }
 
   async function loadBookmarks() {
     try {
-      console.log(`📑 Loading bookmarks for ${book} ${chapterNum}...`);
+      logger.info('Loading bookmarks', {
+        component: 'VerseReadingScreen',
+        action: 'loadBookmarks',
+        book,
+        chapter: chapterNum,
+      });
       const allBookmarks = await bibleDB.getBookmarks();
       const currentChapterBookmarks = allBookmarks
         .filter(b => b.book === book && b.chapter === chapterNum)
         .map(b => b.verse);
 
-      console.log(
-        `✅ Found ${currentChapterBookmarks.length} bookmarks for this chapter`,
-      );
+      logger.info('Bookmarks loaded successfully', {
+        component: 'VerseReadingScreen',
+        action: 'loadBookmarks',
+        bookmarksCount: currentChapterBookmarks.length,
+      });
       setBookmarkedVerses(new Set(currentChapterBookmarks));
     } catch (error) {
-      console.error(
-        `❌ Error loading bookmarks for ${book} ${chapterNum}:`,
-        error,
-      );
+      logger.error('Error loading bookmarks', error as Error, {
+        component: 'VerseReadingScreen',
+        action: 'loadBookmarks',
+        book,
+        chapter: chapterNum,
+      });
     }
   }
 
@@ -185,7 +262,11 @@ export default function VerseReadingScreen() {
         message: text,
       });
     } catch (error) {
-      console.error('Error sharing:', error);
+      logger.error('Error sharing verse', error as Error, {
+        component: 'VerseReadingScreen',
+        action: 'handleShareVerse',
+        verse: `${verse.book} ${verse.chapter}:${verse.verse}`,
+      });
     }
   }
 

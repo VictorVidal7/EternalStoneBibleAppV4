@@ -24,6 +24,7 @@ import {
   Animated,
   Platform,
   StatusBar as RNStatusBar,
+  RefreshControl,
 } from 'react-native';
 import {useRouter} from 'expo-router';
 import {Ionicons} from '@expo/vector-icons';
@@ -51,6 +52,9 @@ import {
   ReadingPlanCard,
 } from '../../src/components/celestial';
 
+// Skeleton Loaders
+import {Skeleton} from '../../src/components/SkeletonLoader';
+
 // Tema Celestial
 import {
   createCelestialTheme,
@@ -73,6 +77,7 @@ export default function HomeScreen() {
   const [dailyVerse, setDailyVerse] = useState<BibleVerse | null>(null);
   const [lastRead, setLastRead] = useState<ReadingProgress | null>(null);
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
   const [chapterProgress, setChapterProgress] = useState(0);
   const [userStats, setUserStats] = useState({
     progress: 0,
@@ -157,6 +162,27 @@ export default function HomeScreen() {
     }
   }
 
+  async function onRefresh() {
+    setRefreshing(true);
+
+    try {
+      await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+      await loadHomeData();
+
+      logger.info('Home screen refreshed', {
+        component: 'HomeScreen',
+        action: 'onRefresh',
+      });
+    } catch (error) {
+      logger.error('Error refreshing home screen', error as Error, {
+        component: 'HomeScreen',
+        action: 'onRefresh',
+      });
+    } finally {
+      setRefreshing(false);
+    }
+  }
+
   const handlePress = (callback: () => void) => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     callback();
@@ -172,20 +198,59 @@ export default function HomeScreen() {
         <LinearGradient
           colors={celestialTheme.colors.backgroundGradient}
           style={styles.gradientBackground}>
-          <View style={styles.loadingContainer}>
-            <Ionicons
-              name="book"
-              size={48}
-              color={celestialTheme.colors.primary}
-            />
-            <Text
-              style={[
-                styles.loadingText,
-                {color: celestialTheme.colors.textSecondary},
-              ]}>
-              Cargando tu biblia...
-            </Text>
-          </View>
+          <ScrollView
+            style={styles.scrollView}
+            contentContainerStyle={styles.contentContainer}
+            showsVerticalScrollIndicator={false}>
+            {/* Skeleton for Verse of Day Card */}
+            <View style={styles.section}>
+              <Skeleton
+                width="100%"
+                height={240}
+                borderRadius={celestialBorderRadius['2xl']}
+                style={{marginBottom: celestialSpacing.lg}}
+              />
+            </View>
+
+            {/* Skeleton for Stats Card */}
+            <View style={styles.section}>
+              <Skeleton
+                width="100%"
+                height={160}
+                borderRadius={celestialBorderRadius['2xl']}
+                style={{marginBottom: celestialSpacing.lg}}
+              />
+            </View>
+
+            {/* Skeleton for Quick Access Buttons */}
+            <View style={styles.section}>
+              <Skeleton
+                width={120}
+                height={20}
+                borderRadius={celestialBorderRadius.md}
+                style={{marginBottom: celestialSpacing.base}}
+              />
+              <View style={styles.quickAccessGrid}>
+                {[1, 2, 3, 4].map(i => (
+                  <Skeleton
+                    key={i}
+                    width={(SCREEN_WIDTH - celestialSpacing.xl * 3) / 2}
+                    height={100}
+                    borderRadius={celestialBorderRadius.xl}
+                  />
+                ))}
+              </View>
+            </View>
+
+            {/* Skeleton for Reading Plan */}
+            <View style={styles.section}>
+              <Skeleton
+                width="100%"
+                height={140}
+                borderRadius={celestialBorderRadius['2xl']}
+              />
+            </View>
+          </ScrollView>
         </LinearGradient>
       </View>
     );
@@ -202,7 +267,15 @@ export default function HomeScreen() {
       <ScrollView
         style={styles.scrollView}
         contentContainerStyle={styles.contentContainer}
-        showsVerticalScrollIndicator={false}>
+        showsVerticalScrollIndicator={false}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={onRefresh}
+            tintColor={colors.primary}
+            colors={[colors.primary]}
+          />
+        }>
         {/* ==================== HERO SECTION - Welcome Card ==================== */}
         <Animated.View
           style={{

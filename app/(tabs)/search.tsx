@@ -1,74 +1,130 @@
-import { View, Text, StyleSheet, TextInput, FlatList, TouchableOpacity, ActivityIndicator, ScrollView } from 'react-native';
-import { useState, useCallback } from 'react';
-import { useRouter } from 'expo-router';
-import { Ionicons } from '@expo/vector-icons';
-import { useDebouncedCallback } from 'use-debounce';
+import {
+  View,
+  Text,
+  StyleSheet,
+  TextInput,
+  FlatList,
+  TouchableOpacity,
+  ActivityIndicator,
+  ScrollView,
+  RefreshControl,
+} from 'react-native';
+import {useState, useCallback} from 'react';
+import {useRouter} from 'expo-router';
+import {Ionicons} from '@expo/vector-icons';
+import {useDebouncedCallback} from 'use-debounce';
 import bibleDB from '../../src/lib/database';
-import { BibleVerse } from '../../src/types/bible';
-import { useTheme } from '../../src/hooks/useTheme';
-import { useBibleVersion } from '../../src/hooks/useBibleVersion';
-import { useLanguage } from '../../src/hooks/useLanguage';
-import { IllustratedEmptyState } from '../../src/components/IllustratedEmptyState';
+import {BibleVerse} from '../../src/types/bible';
+import {useTheme} from '../../src/hooks/useTheme';
+import {useBibleVersion} from '../../src/hooks/useBibleVersion';
+import {useLanguage} from '../../src/hooks/useLanguage';
+import {IllustratedEmptyState} from '../../src/components/IllustratedEmptyState';
+import {VerseSkeleton} from '../../src/components/SkeletonLoader';
 
 type TestamentFilter = 'all' | 'old' | 'new';
 
 // Libros del Antiguo Testamento (1-39)
 const OLD_TESTAMENT_BOOKS = [
-  'Génesis', 'Éxodo', 'Levítico', 'Números', 'Deuteronomio', 'Josué', 'Jueces', 'Rut',
-  '1 Samuel', '2 Samuel', '1 Reyes', '2 Reyes', '1 Crónicas', '2 Crónicas', 'Esdras',
-  'Nehemías', 'Ester', 'Job', 'Salmos', 'Proverbios', 'Eclesiastés', 'Cantares',
-  'Isaías', 'Jeremías', 'Lamentaciones', 'Ezequiel', 'Daniel', 'Oseas', 'Joel',
-  'Amós', 'Abdías', 'Jonás', 'Miqueas', 'Nahúm', 'Habacuc', 'Sofonías', 'Hageo',
-  'Zacarías', 'Malaquías'
+  'Génesis',
+  'Éxodo',
+  'Levítico',
+  'Números',
+  'Deuteronomio',
+  'Josué',
+  'Jueces',
+  'Rut',
+  '1 Samuel',
+  '2 Samuel',
+  '1 Reyes',
+  '2 Reyes',
+  '1 Crónicas',
+  '2 Crónicas',
+  'Esdras',
+  'Nehemías',
+  'Ester',
+  'Job',
+  'Salmos',
+  'Proverbios',
+  'Eclesiastés',
+  'Cantares',
+  'Isaías',
+  'Jeremías',
+  'Lamentaciones',
+  'Ezequiel',
+  'Daniel',
+  'Oseas',
+  'Joel',
+  'Amós',
+  'Abdías',
+  'Jonás',
+  'Miqueas',
+  'Nahúm',
+  'Habacuc',
+  'Sofonías',
+  'Hageo',
+  'Zacarías',
+  'Malaquías',
 ];
 
 export default function SearchScreen() {
   const router = useRouter();
-  const { colors, isDark } = useTheme();
-  const { selectedVersion } = useBibleVersion();
-  const { t } = useLanguage();
+  const {colors, isDark} = useTheme();
+  const {selectedVersion} = useBibleVersion();
+  const {t} = useLanguage();
   const [searchQuery, setSearchQuery] = useState('');
   const [results, setResults] = useState<BibleVerse[]>([]);
   const [allResults, setAllResults] = useState<BibleVerse[]>([]);
   const [loading, setLoading] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
   const [hasSearched, setHasSearched] = useState(false);
-  const [testamentFilter, setTestamentFilter] = useState<TestamentFilter>('all');
+  const [testamentFilter, setTestamentFilter] =
+    useState<TestamentFilter>('all');
 
-  const applyTestamentFilter = useCallback((verses: BibleVerse[], filter: TestamentFilter) => {
-    if (filter === 'all') return verses;
+  const applyTestamentFilter = useCallback(
+    (verses: BibleVerse[], filter: TestamentFilter) => {
+      if (filter === 'all') return verses;
 
-    if (filter === 'old') {
-      return verses.filter(v => OLD_TESTAMENT_BOOKS.includes(v.book));
-    }
+      if (filter === 'old') {
+        return verses.filter(v => OLD_TESTAMENT_BOOKS.includes(v.book));
+      }
 
-    // Nuevo Testamento
-    return verses.filter(v => !OLD_TESTAMENT_BOOKS.includes(v.book));
-  }, []);
+      // Nuevo Testamento
+      return verses.filter(v => !OLD_TESTAMENT_BOOKS.includes(v.book));
+    },
+    [],
+  );
 
-  const performSearch = useCallback(async (query: string) => {
-    if (query.trim().length < 3) {
-      setResults([]);
-      setAllResults([]);
-      setHasSearched(false);
-      return;
-    }
+  const performSearch = useCallback(
+    async (query: string) => {
+      if (query.trim().length < 3) {
+        setResults([]);
+        setAllResults([]);
+        setHasSearched(false);
+        return;
+      }
 
-    setLoading(true);
-    setHasSearched(true);
+      setLoading(true);
+      setHasSearched(true);
 
-    try {
-      await bibleDB.initialize();
-      const searchResults = await bibleDB.searchVerses(query, selectedVersion.id, 200);
-      setAllResults(searchResults);
-      setResults(applyTestamentFilter(searchResults, testamentFilter));
-    } catch (error) {
-      console.error('Search error:', error);
-      setResults([]);
-      setAllResults([]);
-    } finally {
-      setLoading(false);
-    }
-  }, [testamentFilter, applyTestamentFilter, selectedVersion.id]);
+      try {
+        await bibleDB.initialize();
+        const searchResults = await bibleDB.searchVerses(
+          query,
+          selectedVersion.id,
+          200,
+        );
+        setAllResults(searchResults);
+        setResults(applyTestamentFilter(searchResults, testamentFilter));
+      } catch (error) {
+        console.error('Search error:', error);
+        setResults([]);
+        setAllResults([]);
+      } finally {
+        setLoading(false);
+      }
+    },
+    [testamentFilter, applyTestamentFilter, selectedVersion.id],
+  );
 
   const debouncedSearch = useDebouncedCallback(performSearch, 500);
 
@@ -82,31 +138,47 @@ export default function SearchScreen() {
     setResults(applyTestamentFilter(allResults, filter));
   }
 
+  async function onRefresh() {
+    if (!searchQuery.trim() || searchQuery.trim().length < 3) {
+      setRefreshing(false);
+      return;
+    }
+
+    setRefreshing(true);
+    await performSearch(searchQuery);
+    setRefreshing(false);
+  }
+
   function goToVerse(verse: BibleVerse) {
-    router.push(`/verse/${verse.book}/${verse.chapter}?verse=${verse.verse}` as any);
+    router.push(
+      `/verse/${verse.book}/${verse.chapter}?verse=${verse.verse}` as any,
+    );
   }
 
   function getHighlightedText(text: string, query: string) {
-    if (!query.trim()) return [{ text, highlight: false }];
+    if (!query.trim()) return [{text, highlight: false}];
 
-    const words = query.toLowerCase().split(' ').filter(w => w.length > 0);
-    const parts: { text: string; highlight: boolean }[] = [];
+    const words = query
+      .toLowerCase()
+      .split(' ')
+      .filter(w => w.length > 0);
+    const parts: {text: string; highlight: boolean}[] = [];
     let lastIndex = 0;
     const lowerText = text.toLowerCase();
 
     // Encontrar todas las coincidencias
-    const matches: { start: number; end: number }[] = [];
+    const matches: {start: number; end: number}[] = [];
     words.forEach(word => {
       let index = 0;
       while ((index = lowerText.indexOf(word, index)) !== -1) {
-        matches.push({ start: index, end: index + word.length });
+        matches.push({start: index, end: index + word.length});
         index += word.length;
       }
     });
 
     // Ordenar y fusionar coincidencias superpuestas
     matches.sort((a, b) => a.start - b.start);
-    const mergedMatches: { start: number; end: number }[] = [];
+    const mergedMatches: {start: number; end: number}[] = [];
     matches.forEach(match => {
       if (mergedMatches.length === 0) {
         mergedMatches.push(match);
@@ -123,29 +195,32 @@ export default function SearchScreen() {
     // Crear partes con highlights
     mergedMatches.forEach(match => {
       if (match.start > lastIndex) {
-        parts.push({ text: text.slice(lastIndex, match.start), highlight: false });
+        parts.push({
+          text: text.slice(lastIndex, match.start),
+          highlight: false,
+        });
       }
-      parts.push({ text: text.slice(match.start, match.end), highlight: true });
+      parts.push({text: text.slice(match.start, match.end), highlight: true});
       lastIndex = match.end;
     });
 
     if (lastIndex < text.length) {
-      parts.push({ text: text.slice(lastIndex), highlight: false });
+      parts.push({text: text.slice(lastIndex), highlight: false});
     }
 
-    return parts.length > 0 ? parts : [{ text, highlight: false }];
+    return parts.length > 0 ? parts : [{text, highlight: false}];
   }
 
   const themedStyles = createThemedStyles(colors, isDark);
 
   return (
-    <View style={[styles.container, { backgroundColor: colors.background }]}>
+    <View style={[styles.container, {backgroundColor: colors.background}]}>
       {/* Search Input */}
       <View style={themedStyles.searchContainer}>
         <View style={styles.searchInputContainer}>
           <Ionicons name="search" size={20} color={colors.textSecondary} />
           <TextInput
-            style={[styles.searchInput, { color: colors.text }]}
+            style={[styles.searchInput, {color: colors.text}]}
             placeholder={t.search.placeholder}
             placeholderTextColor={colors.textTertiary}
             value={searchQuery}
@@ -156,18 +231,22 @@ export default function SearchScreen() {
           />
           {searchQuery.length > 0 && (
             <TouchableOpacity onPress={() => handleSearchChange('')}>
-              <Ionicons name="close-circle" size={20} color={colors.textSecondary} />
+              <Ionicons
+                name="close-circle"
+                size={20}
+                color={colors.textSecondary}
+              />
             </TouchableOpacity>
           )}
         </View>
 
         <View style={styles.hintRow}>
-          <Text style={themedStyles.hint}>
-            {t.search.minChars}
-          </Text>
+          <Text style={themedStyles.hint}>{t.search.minChars}</Text>
           <View style={themedStyles.versionBadge}>
             <Ionicons name="book-outline" size={12} color={colors.primary} />
-            <Text style={themedStyles.versionBadgeText}>{selectedVersion.abbreviation}</Text>
+            <Text style={themedStyles.versionBadgeText}>
+              {selectedVersion.abbreviation}
+            </Text>
           </View>
         </View>
 
@@ -175,26 +254,44 @@ export default function SearchScreen() {
         {hasSearched && (
           <View style={styles.filtersContainer}>
             <TouchableOpacity
-              style={[themedStyles.filterButton, testamentFilter === 'all' && themedStyles.filterButtonActive]}
-              onPress={() => handleFilterChange('all')}
-            >
-              <Text style={[themedStyles.filterText, testamentFilter === 'all' && themedStyles.filterTextActive]}>
+              style={[
+                themedStyles.filterButton,
+                testamentFilter === 'all' && themedStyles.filterButtonActive,
+              ]}
+              onPress={() => handleFilterChange('all')}>
+              <Text
+                style={[
+                  themedStyles.filterText,
+                  testamentFilter === 'all' && themedStyles.filterTextActive,
+                ]}>
                 {t.search.testament.all}
               </Text>
             </TouchableOpacity>
             <TouchableOpacity
-              style={[themedStyles.filterButton, testamentFilter === 'old' && themedStyles.filterButtonActive]}
-              onPress={() => handleFilterChange('old')}
-            >
-              <Text style={[themedStyles.filterText, testamentFilter === 'old' && themedStyles.filterTextActive]}>
+              style={[
+                themedStyles.filterButton,
+                testamentFilter === 'old' && themedStyles.filterButtonActive,
+              ]}
+              onPress={() => handleFilterChange('old')}>
+              <Text
+                style={[
+                  themedStyles.filterText,
+                  testamentFilter === 'old' && themedStyles.filterTextActive,
+                ]}>
                 {t.search.testament.old}
               </Text>
             </TouchableOpacity>
             <TouchableOpacity
-              style={[themedStyles.filterButton, testamentFilter === 'new' && themedStyles.filterButtonActive]}
-              onPress={() => handleFilterChange('new')}
-            >
-              <Text style={[themedStyles.filterText, testamentFilter === 'new' && themedStyles.filterTextActive]}>
+              style={[
+                themedStyles.filterButton,
+                testamentFilter === 'new' && themedStyles.filterButtonActive,
+              ]}
+              onPress={() => handleFilterChange('new')}>
+              <Text
+                style={[
+                  themedStyles.filterText,
+                  testamentFilter === 'new' && themedStyles.filterTextActive,
+                ]}>
                 {t.search.testament.new}
               </Text>
             </TouchableOpacity>
@@ -205,8 +302,9 @@ export default function SearchScreen() {
       {/* Loading State */}
       {loading && (
         <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color={colors.primary} />
-          <Text style={themedStyles.loadingText}>{t.loading}</Text>
+          {Array.from({length: 5}).map((_, index) => (
+            <VerseSkeleton key={index} />
+          ))}
         </View>
       )}
 
@@ -223,29 +321,47 @@ export default function SearchScreen() {
 
           <FlatList
             data={results}
-            keyExtractor={(item) => `${item.id}-${item.book}-${item.chapter}-${item.verse}`}
-            renderItem={({ item }) => (
+            keyExtractor={item =>
+              `${item.id}-${item.book}-${item.chapter}-${item.verse}`
+            }
+            refreshControl={
+              <RefreshControl
+                refreshing={refreshing}
+                onRefresh={onRefresh}
+                tintColor={colors.primary}
+                colors={[colors.primary]}
+              />
+            }
+            renderItem={({item}) => (
               <TouchableOpacity
                 style={themedStyles.resultItem}
                 onPress={() => goToVerse(item)}
-                activeOpacity={0.7}
-              >
+                activeOpacity={0.7}>
                 <View style={styles.resultHeader}>
                   <Text style={themedStyles.resultReference}>
                     {item.book} {item.chapter}:{item.verse}
                   </Text>
-                  <Ionicons name="chevron-forward" size={18} color={colors.textTertiary} />
+                  <Ionicons
+                    name="chevron-forward"
+                    size={18}
+                    color={colors.textTertiary}
+                  />
                 </View>
 
                 <Text style={themedStyles.resultText} numberOfLines={3}>
-                  {getHighlightedText(item.text, searchQuery).map((part, index) => (
-                    <Text
-                      key={index}
-                      style={part.highlight ? themedStyles.highlightedText : undefined}
-                    >
-                      {part.text}
-                    </Text>
-                  ))}
+                  {getHighlightedText(item.text, searchQuery).map(
+                    (part, index) => (
+                      <Text
+                        key={index}
+                        style={
+                          part.highlight
+                            ? themedStyles.highlightedText
+                            : undefined
+                        }>
+                        {part.text}
+                      </Text>
+                    ),
+                  )}
                 </Text>
               </TouchableOpacity>
             )}
@@ -276,13 +392,14 @@ export default function SearchScreen() {
           </Text>
 
           <View style={styles.suggestionsContainer}>
-            <Text style={themedStyles.suggestionsTitle}>{t.search.popularSearches}</Text>
-            {t.search.suggestions.map((suggestion) => (
+            <Text style={themedStyles.suggestionsTitle}>
+              {t.search.popularSearches}
+            </Text>
+            {t.search.suggestions.map(suggestion => (
               <TouchableOpacity
                 key={suggestion}
                 style={themedStyles.suggestionChip}
-                onPress={() => handleSearchChange(suggestion)}
-              >
+                onPress={() => handleSearchChange(suggestion)}>
                 <Text style={themedStyles.suggestionText}>{suggestion}</Text>
               </TouchableOpacity>
             ))}
@@ -364,7 +481,7 @@ function createThemedStyles(colors: any, isDark: boolean) {
       padding: 16,
       marginBottom: 12,
       shadowColor: '#000',
-      shadowOffset: { width: 0, height: 1 },
+      shadowOffset: {width: 0, height: 1},
       shadowOpacity: isDark ? 0.3 : 0.08,
       shadowRadius: 3,
       elevation: 2,
