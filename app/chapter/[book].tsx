@@ -24,6 +24,8 @@ import {getBookByName} from '../../src/constants/bible';
 import {useTheme} from '../../src/hooks/useTheme';
 import {useLanguage} from '../../src/hooks/useLanguage';
 import {PremiumSkeleton} from '../../src/components/PremiumSkeleton';
+import {getBookTheme} from '../../src/constants/bookThemes';
+import {useChapterFavorites} from '../../src/hooks/useChapterFavorites';
 
 // Design tokens
 import {
@@ -47,6 +49,7 @@ export default function ChapterSelectionScreen() {
   const {colors, isDark} = useTheme();
   const {t} = useLanguage();
   const params = useLocalSearchParams<{book: string}>();
+  const {isFavorite, toggleFavorite} = useChapterFavorites();
   const [isLoading, setIsLoading] = useState(true);
 
   // Manejar el parámetro book (puede venir como string o array)
@@ -58,14 +61,15 @@ export default function ChapterSelectionScreen() {
   const slideAnim = useRef(new Animated.Value(-50)).current;
 
   const bookInfo = getBookByName(book);
+  const bookTheme = useMemo(
+    () => getBookTheme(bookInfo?.name || ''),
+    [bookInfo],
+  );
 
-  // Optimización: Gradientes memorizados para evitar recreación
+  // Optimización: Gradientes memorizados con tema dinámico del libro
   const headerGradient = useMemo(
-    () =>
-      isDark
-        ? ['#1E3A5F', '#2C4B73', '#3A5C87']
-        : ['#4A90E2', '#5B9FED', '#6EADFF'],
-    [isDark],
+    () => (isDark ? bookTheme.gradientDark : bookTheme.gradient),
+    [isDark, bookTheme],
   );
 
   /**
@@ -133,10 +137,14 @@ export default function ChapterSelectionScreen() {
           isDark={isDark}
           t={t}
           bookName={bookInfo?.name || ''}
+          isFavorite={isFavorite(bookInfo?.name || '', item.chapter)}
+          onToggleFavorite={() =>
+            toggleFavorite(bookInfo?.name || '', item.chapter)
+          }
         />
       );
     },
-    [colors, isDark, navigateToVerse, bookInfo, t],
+    [colors, isDark, navigateToVerse, bookInfo, t, isFavorite, toggleFavorite],
   );
 
   // Mostrar error si no se encuentra el libro
@@ -244,12 +252,22 @@ export default function ChapterSelectionScreen() {
                 <Text style={styles.headerTitle} numberOfLines={1}>
                   {bookInfo.name}
                 </Text>
-                <View style={styles.chapterCountBadge}>
-                  <Ionicons name="document-text" size={14} color="#fbbf24" />
-                  <Text style={styles.chapterCountText}>
-                    {chapters.length}{' '}
-                    {chapters.length === 1 ? t.bible.chapter : t.bible.chapters}
-                  </Text>
+                <View style={styles.headerBadges}>
+                  <View style={styles.chapterCountBadge}>
+                    <Ionicons name="document-text" size={14} color="#fbbf24" />
+                    <Text style={styles.chapterCountText}>
+                      {chapters.length}{' '}
+                      {chapters.length === 1
+                        ? t.bible.chapter
+                        : t.bible.chapters}
+                    </Text>
+                  </View>
+                  <View style={styles.themeBadge}>
+                    <Text style={styles.themeEmoji}>{bookTheme.emoji}</Text>
+                    <Text style={styles.themeDescription}>
+                      {bookTheme.description}
+                    </Text>
+                  </View>
                 </View>
               </View>
             </View>
@@ -319,10 +337,22 @@ interface ChapterCardProps {
   isDark: boolean;
   t: any;
   bookName: string;
+  isFavorite: boolean;
+  onToggleFavorite: () => void;
 }
 
 const ChapterCard: React.FC<ChapterCardProps> = React.memo(
-  ({chapter, onPress, index, colors, isDark, t, bookName}) => {
+  ({
+    chapter,
+    onPress,
+    index,
+    colors,
+    isDark,
+    t,
+    bookName,
+    isFavorite,
+    onToggleFavorite,
+  }) => {
     const scaleAnim = useRef(new Animated.Value(1)).current;
     const fadeAnim = useRef(new Animated.Value(1)).current;
     const [isPressed, setIsPressed] = useState(false);
@@ -355,7 +385,9 @@ const ChapterCard: React.FC<ChapterCardProps> = React.memo(
           onPressIn={handlePressIn}
           onPressOut={handlePressOut}
           accessibilityRole="button"
-          accessibilityLabel={`Capítulo ${chapter}`}
+          accessibilityLabel={`${t.bible.chapter} ${chapter} ${t.bible.of} ${bookName}`}
+          accessibilityHint={`${t.bible.openChapter} ${chapter} ${t.bible.of} ${bookName}`}
+          accessibilityState={{selected: isFavorite}}
           style={styles.cardTouchable}>
           <View
             style={[
@@ -371,6 +403,32 @@ const ChapterCard: React.FC<ChapterCardProps> = React.memo(
                 borderColor: isDark ? 'rgba(99, 102, 241, 0.2)' : 'transparent',
               },
             ]}>
+            {/* Botón de favorito */}
+            <TouchableOpacity
+              style={styles.favoriteButton}
+              onPress={e => {
+                e.stopPropagation();
+                onToggleFavorite();
+              }}
+              hitSlop={{top: 8, bottom: 8, left: 8, right: 8}}
+              accessibilityRole="button"
+              accessibilityLabel={
+                isFavorite
+                  ? `${t.bible.removeFavorite} ${t.bible.chapter} ${chapter}`
+                  : `${t.bible.addFavorite} ${t.bible.chapter} ${chapter}`
+              }
+              accessibilityHint={
+                isFavorite
+                  ? t.bible.removeFromFavorites
+                  : t.bible.addToFavorites
+              }>
+              <Ionicons
+                name={isFavorite ? 'star' : 'star-outline'}
+                size={16}
+                color={isFavorite ? '#fbbf24' : isDark ? '#9ca3af' : '#d1d5db'}
+              />
+            </TouchableOpacity>
+
             {/* Número del capítulo */}
             <Text
               style={[
@@ -561,6 +619,29 @@ const styles = StyleSheet.create({
     color: '#ffffff',
     fontWeight: '600',
   },
+  headerBadges: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.sm,
+    flexWrap: 'wrap',
+  },
+  themeBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: 'rgba(255,255,255,0.15)',
+    paddingHorizontal: spacing.sm,
+    paddingVertical: 4,
+    borderRadius: borderRadius.full,
+    gap: 4,
+  },
+  themeEmoji: {
+    fontSize: 14,
+  },
+  themeDescription: {
+    fontSize: fontSize.xs,
+    color: 'rgba(255,255,255,0.95)',
+    fontWeight: '500',
+  },
   headerDecoration: {
     position: 'absolute',
     top: 0,
@@ -630,5 +711,12 @@ const styles = StyleSheet.create({
     fontSize: 26, // Tamaño óptimo para legibilidad
     fontWeight: '600',
     letterSpacing: -0.3,
+  },
+  favoriteButton: {
+    position: 'absolute',
+    top: 4,
+    right: 4,
+    padding: 4,
+    zIndex: 10,
   },
 });

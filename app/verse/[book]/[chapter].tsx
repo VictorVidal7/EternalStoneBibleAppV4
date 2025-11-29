@@ -25,6 +25,7 @@ import {useLanguage} from '../../../src/hooks/useLanguage';
 import {useServices} from '../../../src/context/ServicesContext';
 import {logger} from '../../../src/lib/utils/logger';
 import {ImmersiveReader} from '../../../src/components/reading/ImmersiveReader';
+import {getBookTheme} from '../../../src/constants/bookThemes';
 
 // Design tokens
 import {
@@ -52,6 +53,7 @@ export default function VerseReadingScreen() {
 
   const bookInfo = getBookByName(book);
   const chapterNum = parseInt(chapter);
+  const bookTheme = getBookTheme(bookInfo?.name || '');
 
   const [verses, setVerses] = useState<BibleVerse[]>([]);
   const [loading, setLoading] = useState(true);
@@ -351,8 +353,8 @@ export default function VerseReadingScreen() {
     <>
       <Stack.Screen
         options={{
-          title: `${bookInfo.name} ${chapterNum}`,
-          headerStyle: {backgroundColor: colors.primary},
+          title: `${bookTheme.emoji} ${bookInfo.name} ${chapterNum}`,
+          headerStyle: {backgroundColor: bookTheme.primary},
           headerTintColor: '#FFFFFF',
           headerRight: () => (
             <View style={styles.headerButtons}>
@@ -397,23 +399,26 @@ export default function VerseReadingScreen() {
             <Ionicons
               name="chevron-back"
               size={24}
-              color={chapterNum === 1 ? colors.textTertiary : colors.primary}
+              color={chapterNum === 1 ? colors.textTertiary : bookTheme.primary}
             />
             <Text
               style={[
                 styles.navButtonText,
                 {
                   color:
-                    chapterNum === 1 ? colors.textTertiary : colors.primary,
+                    chapterNum === 1 ? colors.textTertiary : bookTheme.primary,
                 },
               ]}>
               {t.previous}
             </Text>
           </TouchableOpacity>
 
-          <Text style={[styles.navTitle, {color: colors.text}]}>
-            {bookInfo.name} {chapterNum}
-          </Text>
+          <View style={{flexDirection: 'row', alignItems: 'center', gap: 4}}>
+            <Text style={{fontSize: 16}}>{bookTheme.emoji}</Text>
+            <Text style={[styles.navTitle, {color: colors.text}]}>
+              {bookInfo.name} {chapterNum}
+            </Text>
+          </View>
 
           <TouchableOpacity
             style={styles.navButton}
@@ -426,7 +431,7 @@ export default function VerseReadingScreen() {
                   color:
                     chapterNum === bookInfo.chapters
                       ? colors.textTertiary
-                      : colors.primary,
+                      : bookTheme.primary,
                 },
               ]}>
               {t.next}
@@ -437,7 +442,7 @@ export default function VerseReadingScreen() {
               color={
                 chapterNum === bookInfo.chapters
                   ? colors.textTertiary
-                  : colors.primary
+                  : bookTheme.primary
               }
             />
           </TouchableOpacity>
