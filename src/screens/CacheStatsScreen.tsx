@@ -33,7 +33,7 @@ interface CacheStatsScreenProps {
 
 export const CacheStatsScreen: React.FC<CacheStatsScreenProps> = ({userId}) => {
   const {colors} = useTheme();
-  const {t} = useLanguage();
+  const {t, language} = useLanguage();
   const {stats, refresh: refreshStats} = useCacheStats();
 
   const [refreshing, setRefreshing] = useState(false);
@@ -44,7 +44,7 @@ export const CacheStatsScreen: React.FC<CacheStatsScreenProps> = ({userId}) => {
 
   useEffect(() => {
     loadData();
-  }, [userId]);
+  }, [userId, language]);
 
   const loadData = async () => {
     try {
@@ -82,18 +82,21 @@ export const CacheStatsScreen: React.FC<CacheStatsScreenProps> = ({userId}) => {
   };
 
   const handleWarmup = async () => {
-    Alert.alert('Precalentando Caché', 'Precargando contenido popular...');
+    Alert.alert(t.cacheStats.warmupTitle, t.cacheStats.warmupMessage);
 
     await predictiveCacheService.warmupCache();
     await handleRefresh();
 
-    Alert.alert('¡Completado!', 'Caché precalentado exitosamente');
+    Alert.alert(t.cacheStats.warmupComplete, t.cacheStats.warmupSuccess);
   };
 
   const handleCleanup = async () => {
     const removed = await predictiveCacheService.cleanup();
     await handleRefresh();
-    Alert.alert('¡Listo!', `Se eliminaron ${removed} entradas expiradas`);
+    Alert.alert(
+      t.cacheStats.cleanupComplete,
+      t.cacheStats.cleanupMessage.replace('{count}', removed.toString()),
+    );
   };
 
   const getConfidenceColor = (confidence: number): string => {
@@ -123,7 +126,7 @@ export const CacheStatsScreen: React.FC<CacheStatsScreenProps> = ({userId}) => {
           {t.cacheStats.title}
         </Text>
         <Text style={[styles.subtitle, {color: colors.textSecondary}]}>
-          Sistema de optimización inteligente
+          {t.cacheStats.subtitle}
         </Text>
       </View>
 
@@ -140,7 +143,7 @@ export const CacheStatsScreen: React.FC<CacheStatsScreenProps> = ({userId}) => {
         {/* Cache Stats Cards */}
         <View style={styles.statsSection}>
           <Text style={[styles.sectionTitle, {color: colors.text}]}>
-            Rendimiento del Caché
+            {t.cacheStats.performanceTitle}
           </Text>
 
           <View style={styles.statsGrid}>
@@ -154,7 +157,7 @@ export const CacheStatsScreen: React.FC<CacheStatsScreenProps> = ({userId}) => {
                 {stats.totalEntries}
               </Text>
               <Text style={[styles.statLabel, {color: colors.textSecondary}]}>
-                Entradas Totales
+                {t.cacheStats.totalEntriesLabel}
               </Text>
             </View>
 
@@ -168,7 +171,7 @@ export const CacheStatsScreen: React.FC<CacheStatsScreenProps> = ({userId}) => {
                 {stats.memoryEntries}
               </Text>
               <Text style={[styles.statLabel, {color: colors.textSecondary}]}>
-                En Memoria
+                {t.cacheStats.memoryLabel}
               </Text>
             </View>
 
@@ -182,7 +185,7 @@ export const CacheStatsScreen: React.FC<CacheStatsScreenProps> = ({userId}) => {
                 {stats.hitRate}%
               </Text>
               <Text style={[styles.statLabel, {color: colors.textSecondary}]}>
-                Tasa de Acierto
+                {t.cacheStats.hitRateLabel}
               </Text>
             </View>
 
@@ -196,7 +199,7 @@ export const CacheStatsScreen: React.FC<CacheStatsScreenProps> = ({userId}) => {
                 {stats.avgAccessCount}
               </Text>
               <Text style={[styles.statLabel, {color: colors.textSecondary}]}>
-                Accesos Promedio
+                {t.cacheStats.avgAccessLabel}
               </Text>
             </View>
           </View>
@@ -206,7 +209,7 @@ export const CacheStatsScreen: React.FC<CacheStatsScreenProps> = ({userId}) => {
         {readingPattern && (
           <View style={styles.patternSection}>
             <Text style={[styles.sectionTitle, {color: colors.text}]}>
-              Patrón de Lectura Analizado
+              {t.cacheStats.patternAnalyzed}
             </Text>
 
             <View
@@ -221,14 +224,14 @@ export const CacheStatsScreen: React.FC<CacheStatsScreenProps> = ({userId}) => {
                       styles.patternLabel,
                       {color: colors.textSecondary},
                     ]}>
-                    Secuencia
+                    {t.cacheStats.sequenceLabel}
                   </Text>
                   <Text style={[styles.patternValue, {color: colors.text}]}>
                     {readingPattern.readingSequence === 'sequential'
-                      ? 'Secuencial'
+                      ? t.cacheStats.sequential
                       : readingPattern.readingSequence === 'mixed'
-                        ? 'Mixta'
-                        : 'Aleatoria'}
+                        ? t.cacheStats.mixed
+                        : t.cacheStats.random}
                   </Text>
                 </View>
 
@@ -239,7 +242,7 @@ export const CacheStatsScreen: React.FC<CacheStatsScreenProps> = ({userId}) => {
                       styles.patternLabel,
                       {color: colors.textSecondary},
                     ]}>
-                    Tiempo Promedio
+                    {t.cacheStats.avgTimeLabel}
                   </Text>
                   <Text style={[styles.patternValue, {color: colors.text}]}>
                     {readingPattern.averageReadingTime} min
@@ -255,7 +258,7 @@ export const CacheStatsScreen: React.FC<CacheStatsScreenProps> = ({userId}) => {
                       styles.patternLabel,
                       {color: colors.textSecondary},
                     ]}>
-                    Versos/Sesión
+                    {t.cacheStats.versesPerSession}
                   </Text>
                   <Text style={[styles.patternValue, {color: colors.text}]}>
                     {readingPattern.averageVersesPerSession}
@@ -269,7 +272,7 @@ export const CacheStatsScreen: React.FC<CacheStatsScreenProps> = ({userId}) => {
                       styles.patternLabel,
                       {color: colors.textSecondary},
                     ]}>
-                    Hora Preferida
+                    {t.cacheStats.preferredTimeLabel}
                   </Text>
                   <Text style={[styles.patternValue, {color: colors.text}]}>
                     {readingPattern.preferredTimeOfDay}:00
@@ -284,7 +287,7 @@ export const CacheStatsScreen: React.FC<CacheStatsScreenProps> = ({userId}) => {
                       styles.commonBooksTitle,
                       {color: colors.textSecondary},
                     ]}>
-                    Libros Frecuentes
+                    {t.cacheStats.commonBooks}
                   </Text>
                   <View style={styles.booksList}>
                     {readingPattern.commonBooks.map((book, index) => (
@@ -311,7 +314,7 @@ export const CacheStatsScreen: React.FC<CacheStatsScreenProps> = ({userId}) => {
         {prediction && (
           <View style={styles.predictionSection}>
             <Text style={[styles.sectionTitle, {color: colors.text}]}>
-              Predicción Inteligente
+              {t.cacheStats.intelligentPrediction}
             </Text>
 
             <View
@@ -321,7 +324,7 @@ export const CacheStatsScreen: React.FC<CacheStatsScreenProps> = ({userId}) => {
               ]}>
               <View style={styles.predictionHeader}>
                 <Text style={[styles.predictionTitle, {color: colors.text}]}>
-                  Próxima Lectura Sugerida
+                  {t.cacheStats.nextReadingSuggested}
                 </Text>
                 <View
                   style={[
@@ -349,7 +352,7 @@ export const CacheStatsScreen: React.FC<CacheStatsScreenProps> = ({userId}) => {
                       styles.nextChapterNumber,
                       {color: colors.textSecondary},
                     ]}>
-                    Capítulo {prediction.nextChapter.chapter}
+                    {t.cacheStats.chapter} {prediction.nextChapter.chapter}
                   </Text>
                 </View>
               </View>
@@ -361,7 +364,7 @@ export const CacheStatsScreen: React.FC<CacheStatsScreenProps> = ({userId}) => {
                       styles.relatedTitle,
                       {color: colors.textSecondary},
                     ]}>
-                    También precargado:
+                    {t.cacheStats.alsoPreloaded}
                   </Text>
                   <View style={styles.relatedList}>
                     {prediction.relatedChapters.map((chapter, index) => (
@@ -381,14 +384,16 @@ export const CacheStatsScreen: React.FC<CacheStatsScreenProps> = ({userId}) => {
         {/* Actions */}
         <View style={styles.actionsSection}>
           <Text style={[styles.sectionTitle, {color: colors.text}]}>
-            Acciones
+            {t.cacheStats.actions}
           </Text>
 
           <TouchableOpacity
             style={[styles.actionButton, {backgroundColor: colors.primary}]}
             onPress={handleWarmup}>
             <Ionicons name="flame" size={20} color="#FFF" />
-            <Text style={styles.actionButtonText}>Precalentar Caché</Text>
+            <Text style={styles.actionButtonText}>
+              {t.cacheStats.warmupCache}
+            </Text>
           </TouchableOpacity>
 
           <TouchableOpacity
@@ -396,7 +401,7 @@ export const CacheStatsScreen: React.FC<CacheStatsScreenProps> = ({userId}) => {
             onPress={handleCleanup}>
             <Ionicons name="trash-outline" size={20} color="#FFF" />
             <Text style={styles.actionButtonText}>
-              Limpiar Entradas Expiradas
+              {t.cacheStats.cleanupExpired}
             </Text>
           </TouchableOpacity>
 
@@ -404,7 +409,9 @@ export const CacheStatsScreen: React.FC<CacheStatsScreenProps> = ({userId}) => {
             style={[styles.actionButton, {backgroundColor: colors.error}]}
             onPress={handleClearCache}>
             <Ionicons name="close-circle" size={20} color="#FFF" />
-            <Text style={styles.actionButtonText}>Limpiar Todo el Caché</Text>
+            <Text style={styles.actionButtonText}>
+              {t.cacheStats.clearAllCache}
+            </Text>
           </TouchableOpacity>
         </View>
       </ScrollView>
