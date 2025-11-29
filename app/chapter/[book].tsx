@@ -14,7 +14,7 @@ import {
   Dimensions,
   Platform,
 } from 'react-native';
-import {FlashList} from '@shopify/flash-list';
+import {FlatList} from 'react-native';
 import {useRouter, useLocalSearchParams, Stack} from 'expo-router';
 import {LinearGradient} from 'expo-linear-gradient';
 import {Ionicons} from '@expo/vector-icons';
@@ -34,18 +34,8 @@ import {
 } from '../../src/styles/designTokens';
 
 const {width: SCREEN_WIDTH} = Dimensions.get('window');
-const CARD_MARGIN = spacing.xs;
 const CARDS_PER_ROW = 4;
 const CARD_SIZE = (SCREEN_WIDTH - spacing.lg * 2) / CARDS_PER_ROW - spacing.md;
-
-console.log('📐 Chapter Screen Layout:', {
-  SCREEN_WIDTH,
-  CARD_MARGIN,
-  CARDS_PER_ROW,
-  CARD_SIZE,
-  'spacing.lg': spacing.lg,
-  'spacing.md': spacing.md,
-});
 
 interface ChapterItem {
   chapter: number;
@@ -63,22 +53,11 @@ export default function ChapterSelectionScreen() {
   const rawBook = params.book;
   const book = typeof rawBook === 'string' ? rawBook : rawBook?.[0] || '';
 
-  console.log('🔍 ChapterSelectionScreen - Raw params:', params);
-  console.log('🔍 ChapterSelectionScreen - Raw book:', rawBook);
-  console.log('🔍 ChapterSelectionScreen - Processed book:', book);
-
   // Animaciones
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const slideAnim = useRef(new Animated.Value(-50)).current;
 
   const bookInfo = getBookByName(book);
-
-  console.log(
-    '🔍 ChapterSelectionScreen - BookInfo:',
-    bookInfo
-      ? `Found: ${bookInfo.name} (${bookInfo.chapters} chapters)`
-      : 'NOT FOUND',
-  );
 
   // Optimización: Gradientes memorizados para evitar recreación
   const headerGradient = useMemo(
@@ -94,7 +73,6 @@ export default function ChapterSelectionScreen() {
    */
   const chapters = useMemo((): ChapterItem[] => {
     if (!bookInfo) {
-      console.log('📚 No bookInfo found for:', book);
       return [];
     }
 
@@ -103,20 +81,10 @@ export default function ChapterSelectionScreen() {
       id: `chapter-${i + 1}`,
     }));
 
-    console.log(
-      '📚 Generated chapters:',
-      chapterList.length,
-      'for book:',
-      bookInfo.name,
-    );
     return chapterList;
   }, [bookInfo, book]);
 
   useEffect(() => {
-    console.log('📚 ChapterScreen mounted with book:', book);
-    console.log('📚 BookInfo:', bookInfo);
-    console.log('📚 Chapters count:', chapters.length);
-
     const timer = setTimeout(() => {
       setIsLoading(false);
       startAnimations();
@@ -156,7 +124,6 @@ export default function ChapterSelectionScreen() {
    */
   const renderItem = useCallback(
     ({item, index}: {item: ChapterItem; index: number}) => {
-      console.log('🎨 Rendering chapter:', item.chapter, 'at index:', index);
       return (
         <ChapterCard
           chapter={item.chapter}
@@ -311,12 +278,11 @@ export default function ChapterSelectionScreen() {
         ) : (
           <View style={styles.listContainer}>
             {chapters.length > 0 ? (
-              <FlashList
+              <FlatList
                 data={chapters}
                 renderItem={renderItem}
                 keyExtractor={item => item.id}
                 numColumns={CARDS_PER_ROW}
-                estimatedItemSize={CARD_SIZE}
                 showsVerticalScrollIndicator={false}
                 contentContainerStyle={styles.listContent}
               />
@@ -361,10 +327,6 @@ const ChapterCard: React.FC<ChapterCardProps> = React.memo(
     const fadeAnim = useRef(new Animated.Value(1)).current;
     const [isPressed, setIsPressed] = useState(false);
 
-    useEffect(() => {
-      console.log(`🎴 ChapterCard ${chapter} - Mounted, size: ${CARD_SIZE}px`);
-    }, [chapter]);
-
     const handlePressIn = () => {
       setIsPressed(true);
       Animated.spring(scaleAnim, {
@@ -385,13 +347,8 @@ const ChapterCard: React.FC<ChapterCardProps> = React.memo(
       }).start();
     };
 
-    const handleLayout = (event: any) => {
-      const {width, height, x, y} = event.nativeEvent.layout;
-      console.log(`📏 ChapterCard ${chapter} layout:`, {width, height, x, y});
-    };
-
     return (
-      <View style={styles.cardWrapper} onLayout={handleLayout}>
+      <View style={styles.cardWrapper}>
         <TouchableOpacity
           activeOpacity={0.7}
           onPress={onPress}
@@ -546,7 +503,7 @@ const styles = StyleSheet.create({
 
   // Header
   header: {
-    paddingTop: Platform.OS === 'ios' ? 60 : 20,
+    paddingTop: Platform.OS === 'ios' ? 80 : 40,
     paddingBottom: spacing.xl,
     paddingHorizontal: spacing.lg,
     borderBottomLeftRadius: borderRadius['2xl'],

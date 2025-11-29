@@ -654,7 +654,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingVertical: spacing.md, // Menos padding
+    paddingVertical: spacing.lg, // Más padding para mejor accesibilidad
     paddingHorizontal: spacing.lg,
     borderBottomWidth: 0,
     ...shadows.xs, // Sombra mínima
