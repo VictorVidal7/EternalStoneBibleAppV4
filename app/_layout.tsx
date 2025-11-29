@@ -10,9 +10,12 @@ import {BibleVersionProvider} from '../src/hooks/useBibleVersion';
 import {LanguageProvider, useLanguage} from '../src/hooks/useLanguage';
 import {ServicesProvider} from '../src/context/ServicesContext';
 import {ToastProvider} from '../src/context/ToastContext';
+import {ReadingProgressProvider} from '../src/context/ReadingProgressContext';
+import {FavoritesProvider} from '../src/context/FavoritesContext';
 import {AchievementNotifications} from '../src/components/AchievementNotifications';
 import {AnimatedSplashScreen} from '../src/components/AnimatedSplashScreen';
 import bibleDB from '../src/lib/database';
+import {logger} from '../src/lib/utils/logger';
 import {predictiveCacheService} from '../src/lib/cache/PredictiveCache';
 import {badgeSystemService} from '../src/lib/badges/BadgeSystem';
 import {versionComparisonService} from '../src/lib/comparison/VersionComparison';
@@ -40,7 +43,10 @@ function AppContent() {
       }
 
       // ✨ Inicializar servicios V5.1
-      console.log('🚀 Inicializando servicios V5.1...');
+      logger.info('Inicializando servicios V5.1', {
+        component: 'RootLayout',
+        action: 'initializeApp',
+      });
       try {
         await Promise.all([
           predictiveCacheService.initialize(),
@@ -55,18 +61,25 @@ function AppContent() {
         // Limpiar entradas expiradas del caché
         await predictiveCacheService.cleanup();
 
-        console.log('✅ Servicios V5.1 inicializados correctamente');
+        logger.info('Servicios V5.1 inicializados correctamente', {
+          component: 'RootLayout',
+          action: 'initializeApp',
+        });
       } catch (serviceError) {
-        console.warn(
-          '⚠️ Algunos servicios V5.1 no se pudieron inicializar:',
-          serviceError,
-        );
+        logger.warn('Algunos servicios V5.1 no se pudieron inicializar', {
+          component: 'RootLayout',
+          action: 'initializeApp',
+          error: serviceError,
+        });
         // No fallar la app, solo continuar sin los servicios V5.1
       }
 
       setIsLoading(false);
     } catch (err) {
-      console.error('Initialization error:', err);
+      logger.error('Initialization error', err as Error, {
+        component: 'RootLayout',
+        action: 'initializeApp',
+      });
       setError(err instanceof Error ? err.message : 'Failed to initialize app');
       setIsLoading(false);
     }
@@ -198,9 +211,13 @@ export default function RootLayout() {
       <ThemeProvider>
         <BibleVersionProvider>
           <ServicesProvider database={bibleDB}>
-            <ToastProvider>
-              <AppContent />
-            </ToastProvider>
+            <ReadingProgressProvider>
+              <FavoritesProvider>
+                <ToastProvider>
+                  <AppContent />
+                </ToastProvider>
+              </FavoritesProvider>
+            </ReadingProgressProvider>
           </ServicesProvider>
         </BibleVersionProvider>
       </ThemeProvider>
