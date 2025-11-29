@@ -13,8 +13,8 @@ import {
   Animated,
   Dimensions,
   Platform,
-  FlatList,
 } from 'react-native';
+import {FlashList} from '@shopify/flash-list';
 import {useRouter, useLocalSearchParams, Stack} from 'expo-router';
 import {LinearGradient} from 'expo-linear-gradient';
 import {Ionicons} from '@expo/vector-icons';
@@ -23,6 +23,7 @@ import * as Haptics from 'expo-haptics';
 import {getBookByName} from '../../src/constants/bible';
 import {useTheme} from '../../src/hooks/useTheme';
 import {useLanguage} from '../../src/hooks/useLanguage';
+import {PremiumSkeleton} from '../../src/components/PremiumSkeleton';
 
 // Design tokens
 import {
@@ -77,6 +78,15 @@ export default function ChapterSelectionScreen() {
     bookInfo
       ? `Found: ${bookInfo.name} (${bookInfo.chapters} chapters)`
       : 'NOT FOUND',
+  );
+
+  // Optimización: Gradientes memorizados para evitar recreación
+  const headerGradient = useMemo(
+    () =>
+      isDark
+        ? ['#1E3A5F', '#2C4B73', '#3A5C87']
+        : ['#4A90E2', '#5B9FED', '#6EADFF'],
+    [isDark],
   );
 
   /**
@@ -209,46 +219,32 @@ export default function ChapterSelectionScreen() {
     );
   }
 
-  // Mostrar indicador de carga
-  if (isLoading) {
-    return (
-      <>
-        <Stack.Screen
-          options={{
-            headerShown: false,
-          }}
-        />
-        <View
-          style={[
-            styles.container,
-            styles.loadingContainer,
-            {backgroundColor: colors.background},
-          ]}>
-          <Animated.View style={{opacity: fadeAnim}}>
-            <LinearGradient
-              colors={isDark ? ['#1E3A5F', '#2C4B73'] : ['#4A90E2', '#5B9FED']}
-              start={{x: 0, y: 0}}
-              end={{x: 1, y: 1}}
-              style={styles.loadingCard}>
-              <Ionicons name="book" size={48} color="#ffffff" />
-              <Text style={styles.loadingTitle}>{bookInfo.name}</Text>
-              <Text style={styles.loadingSubtitle}>
-                {t.bible.loadingChapters.replace(
-                  '{{count}}',
-                  bookInfo.chapters.toString(),
-                )}
-              </Text>
-              <View style={styles.loadingDots}>
-                <View style={[styles.dot, styles.dot1]} />
-                <View style={[styles.dot, styles.dot2]} />
-                <View style={[styles.dot, styles.dot3]} />
-              </View>
-            </LinearGradient>
-          </Animated.View>
-        </View>
-      </>
-    );
-  }
+  // Skeleton Grid Component
+  const SkeletonGrid = () => (
+    <View style={[styles.listContainer, {paddingTop: spacing.lg}]}>
+      <View
+        style={[
+          styles.listContent,
+          {
+            flexDirection: 'row',
+            flexWrap: 'wrap',
+            justifyContent: 'flex-start',
+          },
+        ]}>
+        {Array.from({length: 20}).map((_, i) => (
+          <View key={i} style={styles.cardWrapper}>
+            <PremiumSkeleton
+              width={CARD_SIZE - 12}
+              height={CARD_SIZE - 12}
+              borderRadius={16}
+              variant="rounded"
+              animation="wave"
+            />
+          </View>
+        ))}
+      </View>
+    </View>
+  );
 
   return (
     <>
@@ -266,11 +262,7 @@ export default function ChapterSelectionScreen() {
             transform: [{translateY: slideAnim}],
           }}>
           <LinearGradient
-            colors={
-              isDark
-                ? ['#1E3A5F', '#2C4B73', '#3A5C87']
-                : ['#4A90E2', '#5B9FED', '#6EADFF']
-            }
+            colors={headerGradient}
             start={{x: 0, y: 0}}
             end={{x: 0, y: 1}}
             style={styles.header}>
@@ -314,38 +306,38 @@ export default function ChapterSelectionScreen() {
         </Animated.View>
 
         {/* Grid de capítulos */}
-        <View style={styles.listContainer}>
-          {chapters.length > 0 ? (
-            <FlatList
-              data={chapters}
-              renderItem={renderItem}
-              keyExtractor={item => item.id}
-              numColumns={CARDS_PER_ROW}
-              key={`flatlist-${CARDS_PER_ROW}`}
-              showsVerticalScrollIndicator={false}
-              contentContainerStyle={styles.listContent}
-              initialNumToRender={15}
-              maxToRenderPerBatch={10}
-              windowSize={5}
-              removeClippedSubviews={false}
-              style={{flex: 1}}
-            />
-          ) : (
-            <View style={styles.emptyContainer}>
-              <Ionicons
-                name="book-outline"
-                size={64}
-                color={colors.textTertiary}
+        {isLoading ? (
+          <SkeletonGrid />
+        ) : (
+          <View style={styles.listContainer}>
+            {chapters.length > 0 ? (
+              <FlashList
+                data={chapters}
+                renderItem={renderItem}
+                keyExtractor={item => item.id}
+                numColumns={CARDS_PER_ROW}
+                estimatedItemSize={CARD_SIZE}
+                showsVerticalScrollIndicator={false}
+                contentContainerStyle={styles.listContent}
               />
-              <Text style={[styles.emptyText, {color: colors.textSecondary}]}>
-                {t.bible.couldNotLoadChapters}
-              </Text>
-              <Text style={[styles.emptySubtext, {color: colors.textTertiary}]}>
-                {t.bible.book}: {book || t.bible.notSpecified}
-              </Text>
-            </View>
-          )}
-        </View>
+            ) : (
+              <View style={styles.emptyContainer}>
+                <Ionicons
+                  name="book-outline"
+                  size={64}
+                  color={colors.textTertiary}
+                />
+                <Text style={[styles.emptyText, {color: colors.textSecondary}]}>
+                  {t.bible.couldNotLoadChapters}
+                </Text>
+                <Text
+                  style={[styles.emptySubtext, {color: colors.textTertiary}]}>
+                  {t.bible.book}: {book || t.bible.notSpecified}
+                </Text>
+              </View>
+            )}
+          </View>
+        )}
       </View>
     </>
   );
