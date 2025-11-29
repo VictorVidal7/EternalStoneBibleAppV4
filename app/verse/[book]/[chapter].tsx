@@ -26,6 +26,7 @@ import {useServices} from '../../../src/context/ServicesContext';
 import {logger} from '../../../src/lib/utils/logger';
 import {ImmersiveReader} from '../../../src/components/reading/ImmersiveReader';
 import {getBookTheme} from '../../../src/constants/bookThemes';
+import {useNightReading} from '../../../src/hooks/useNightReading';
 
 // Design tokens
 import {
@@ -41,6 +42,7 @@ export default function VerseReadingScreen() {
   const {selectedVersion} = useBibleVersion();
   const {t} = useLanguage();
   const {achievementService} = useServices();
+  const {isNightMode, theme: nightTheme, toggleNightMode} = useNightReading();
   const {
     book,
     chapter,
@@ -65,6 +67,27 @@ export default function VerseReadingScreen() {
     new Set(),
   );
   const [immersiveModeActive, setImmersiveModeActive] = useState(false);
+
+  // Apply night reading mode colors
+  const effectiveColors = isNightMode
+    ? {
+        background: nightTheme.background,
+        surface: nightTheme.card,
+        text: nightTheme.text,
+        textSecondary: nightTheme.textSecondary,
+        textTertiary: nightTheme.textSecondary,
+        primary: nightTheme.accent,
+        border: nightTheme.border,
+        bookmark: nightTheme.accent,
+        verseHighlight: 'rgba(255, 107, 53, 0.15)',
+        warning: nightTheme.accent,
+      }
+    : colors;
+
+  // Adjust font size for night mode
+  const effectiveFontSize = isNightMode
+    ? Math.round(fontSize * nightTheme.fontSizeMultiplier)
+    : fontSize;
 
   const scrollViewRef = useRef<ScrollView>(null);
   const startTimeRef = useRef<number>(Date.now());
@@ -343,8 +366,11 @@ export default function VerseReadingScreen() {
   if (!bookInfo || loading) {
     return (
       <View
-        style={[styles.loadingContainer, {backgroundColor: colors.background}]}>
-        <ActivityIndicator size="large" color={colors.primary} />
+        style={[
+          styles.loadingContainer,
+          {backgroundColor: effectiveColors.background},
+        ]}>
+        <ActivityIndicator size="large" color={effectiveColors.primary} />
       </View>
     );
   }
@@ -358,6 +384,21 @@ export default function VerseReadingScreen() {
           headerTintColor: '#FFFFFF',
           headerRight: () => (
             <View style={styles.headerButtons}>
+              <TouchableOpacity
+                onPress={() => {
+                  Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+                  toggleNightMode();
+                }}
+                style={[
+                  styles.headerButton,
+                  isNightMode && {backgroundColor: 'rgba(212, 175, 55, 0.2)'},
+                ]}>
+                <Ionicons
+                  name={isNightMode ? 'moon' : 'moon-outline'}
+                  size={24}
+                  color={isNightMode ? '#D4AF37' : '#FFFFFF'}
+                />
+              </TouchableOpacity>
               <TouchableOpacity
                 onPress={() => {
                   Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
@@ -385,12 +426,22 @@ export default function VerseReadingScreen() {
         }}
       />
 
-      <View style={[styles.container, {backgroundColor: colors.background}]}>
+      <View
+        style={[
+          styles.container,
+          {
+            backgroundColor: effectiveColors.background,
+            opacity: isNightMode ? nightTheme.sepiaStrength + 0.7 : 1,
+          },
+        ]}>
         {/* Navigation Bar */}
         <View
           style={[
             styles.navBar,
-            {backgroundColor: colors.surface, borderBottomColor: colors.border},
+            {
+              backgroundColor: effectiveColors.surface,
+              borderBottomColor: effectiveColors.border,
+            },
           ]}>
           <TouchableOpacity
             style={styles.navButton}
@@ -399,14 +450,24 @@ export default function VerseReadingScreen() {
             <Ionicons
               name="chevron-back"
               size={24}
-              color={chapterNum === 1 ? colors.textTertiary : bookTheme.primary}
+              color={
+                chapterNum === 1
+                  ? effectiveColors.textTertiary
+                  : isNightMode
+                    ? effectiveColors.primary
+                    : bookTheme.primary
+              }
             />
             <Text
               style={[
                 styles.navButtonText,
                 {
                   color:
-                    chapterNum === 1 ? colors.textTertiary : bookTheme.primary,
+                    chapterNum === 1
+                      ? effectiveColors.textTertiary
+                      : isNightMode
+                        ? effectiveColors.primary
+                        : bookTheme.primary,
                 },
               ]}>
               {t.previous}
@@ -415,7 +476,7 @@ export default function VerseReadingScreen() {
 
           <View style={{flexDirection: 'row', alignItems: 'center', gap: 4}}>
             <Text style={{fontSize: 16}}>{bookTheme.emoji}</Text>
-            <Text style={[styles.navTitle, {color: colors.text}]}>
+            <Text style={[styles.navTitle, {color: effectiveColors.text}]}>
               {bookInfo.name} {chapterNum}
             </Text>
           </View>
@@ -430,8 +491,10 @@ export default function VerseReadingScreen() {
                 {
                   color:
                     chapterNum === bookInfo.chapters
-                      ? colors.textTertiary
-                      : bookTheme.primary,
+                      ? effectiveColors.textTertiary
+                      : isNightMode
+                        ? effectiveColors.primary
+                        : bookTheme.primary,
                 },
               ]}>
               {t.next}
@@ -441,8 +504,10 @@ export default function VerseReadingScreen() {
               size={24}
               color={
                 chapterNum === bookInfo.chapters
-                  ? colors.textTertiary
-                  : bookTheme.primary
+                  ? effectiveColors.textTertiary
+                  : isNightMode
+                    ? effectiveColors.primary
+                    : bookTheme.primary
               }
             />
           </TouchableOpacity>
@@ -464,15 +529,19 @@ export default function VerseReadingScreen() {
                 key={verse.verse}
                 style={[
                   styles.verseItem,
-                  {backgroundColor: colors.surface},
+                  {backgroundColor: effectiveColors.surface},
                   isHighlighted && {
-                    backgroundColor: colors.verseHighlight,
-                    borderColor: colors.warning,
+                    backgroundColor: effectiveColors.verseHighlight,
+                    borderColor: effectiveColors.warning,
                     borderWidth: 2,
                   },
                 ]}>
                 <View style={styles.verseHeader}>
-                  <Text style={[styles.verseNumber, {color: colors.primary}]}>
+                  <Text
+                    style={[
+                      styles.verseNumber,
+                      {color: effectiveColors.primary},
+                    ]}>
                     {verse.verse}
                   </Text>
 
@@ -481,21 +550,30 @@ export default function VerseReadingScreen() {
                       name={isBookmarked ? 'bookmark' : 'bookmark-outline'}
                       size={20}
                       color={
-                        isBookmarked ? colors.bookmark : colors.textTertiary
+                        isBookmarked
+                          ? effectiveColors.bookmark
+                          : effectiveColors.textTertiary
                       }
                     />
                   </TouchableOpacity>
                 </View>
 
                 <Text
-                  style={[styles.verseText, {fontSize, color: colors.text}]}>
+                  style={[
+                    styles.verseText,
+                    {
+                      fontSize: effectiveFontSize,
+                      color: effectiveColors.text,
+                      lineHeight: effectiveFontSize * 1.6,
+                    },
+                  ]}>
                   {verse.text}
                 </Text>
 
                 <View
                   style={[
                     styles.verseActions,
-                    {borderTopColor: colors.border},
+                    {borderTopColor: effectiveColors.border},
                   ]}>
                   <TouchableOpacity
                     style={styles.actionButton}
@@ -503,12 +581,12 @@ export default function VerseReadingScreen() {
                     <Ionicons
                       name="copy-outline"
                       size={18}
-                      color={colors.textSecondary}
+                      color={effectiveColors.textSecondary}
                     />
                     <Text
                       style={[
                         styles.actionButtonText,
-                        {color: colors.textSecondary},
+                        {color: effectiveColors.textSecondary},
                       ]}>
                       {t.copy}
                     </Text>
@@ -520,12 +598,12 @@ export default function VerseReadingScreen() {
                     <Ionicons
                       name="share-outline"
                       size={18}
-                      color={colors.textSecondary}
+                      color={effectiveColors.textSecondary}
                     />
                     <Text
                       style={[
                         styles.actionButtonText,
-                        {color: colors.textSecondary},
+                        {color: effectiveColors.textSecondary},
                       ]}>
                       {t.share}
                     </Text>
@@ -537,12 +615,12 @@ export default function VerseReadingScreen() {
                     <Ionicons
                       name="create-outline"
                       size={18}
-                      color={colors.textSecondary}
+                      color={effectiveColors.textSecondary}
                     />
                     <Text
                       style={[
                         styles.actionButtonText,
-                        {color: colors.textSecondary},
+                        {color: effectiveColors.textSecondary},
                       ]}>
                       {t.notes.note}
                     </Text>

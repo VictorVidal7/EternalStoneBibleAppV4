@@ -26,6 +26,7 @@ import {useLanguage} from '../../src/hooks/useLanguage';
 import {PremiumSkeleton} from '../../src/components/PremiumSkeleton';
 import {getBookTheme} from '../../src/constants/bookThemes';
 import {useChapterFavorites} from '../../src/hooks/useChapterFavorites';
+import {useReadingProgress} from '../../src/context/ReadingProgressContext';
 
 // Design tokens
 import {
@@ -50,6 +51,7 @@ export default function ChapterSelectionScreen() {
   const {t} = useLanguage();
   const params = useLocalSearchParams<{book: string}>();
   const {isFavorite, toggleFavorite} = useChapterFavorites();
+  const {getChapterProgress} = useReadingProgress();
   const [isLoading, setIsLoading] = useState(true);
 
   // Manejar el parámetro book (puede venir como string o array)
@@ -128,6 +130,12 @@ export default function ChapterSelectionScreen() {
    */
   const renderItem = useCallback(
     ({item, index}: {item: ChapterItem; index: number}) => {
+      const chapterProgress = getChapterProgress(
+        bookInfo?.name || '',
+        item.chapter.toString(),
+      );
+      const isCompleted = chapterProgress >= 100;
+
       return (
         <ChapterCard
           chapter={item.chapter}
@@ -141,10 +149,21 @@ export default function ChapterSelectionScreen() {
           onToggleFavorite={() =>
             toggleFavorite(bookInfo?.name || '', item.chapter)
           }
+          isCompleted={isCompleted}
+          progressPercentage={chapterProgress}
         />
       );
     },
-    [colors, isDark, navigateToVerse, bookInfo, t, isFavorite, toggleFavorite],
+    [
+      colors,
+      isDark,
+      navigateToVerse,
+      bookInfo,
+      t,
+      isFavorite,
+      toggleFavorite,
+      getChapterProgress,
+    ],
   );
 
   // Mostrar error si no se encuentra el libro
@@ -339,6 +358,8 @@ interface ChapterCardProps {
   bookName: string;
   isFavorite: boolean;
   onToggleFavorite: () => void;
+  isCompleted: boolean;
+  progressPercentage: number;
 }
 
 const ChapterCard: React.FC<ChapterCardProps> = React.memo(
@@ -352,6 +373,8 @@ const ChapterCard: React.FC<ChapterCardProps> = React.memo(
     bookName,
     isFavorite,
     onToggleFavorite,
+    isCompleted,
+    progressPercentage,
   }) => {
     const scaleAnim = useRef(new Animated.Value(1)).current;
     const fadeAnim = useRef(new Animated.Value(1)).current;
@@ -428,6 +451,37 @@ const ChapterCard: React.FC<ChapterCardProps> = React.memo(
                 color={isFavorite ? '#fbbf24' : isDark ? '#9ca3af' : '#d1d5db'}
               />
             </TouchableOpacity>
+
+            {/* Badge de progreso completado */}
+            {isCompleted && (
+              <View style={styles.completedBadge}>
+                <Ionicons name="checkmark-circle" size={20} color="#10b981" />
+              </View>
+            )}
+
+            {/* Badge de progreso en curso (si está entre 1% y 99%) */}
+            {!isCompleted && progressPercentage > 0 && (
+              <View style={styles.progressBadge}>
+                <View
+                  style={[
+                    styles.progressIndicator,
+                    {
+                      backgroundColor: isDark
+                        ? 'rgba(59, 130, 246, 0.15)'
+                        : 'rgba(59, 130, 246, 0.1)',
+                      borderColor: isDark
+                        ? 'rgba(59, 130, 246, 0.4)'
+                        : 'rgba(59, 130, 246, 0.3)',
+                    },
+                  ]}>
+                  <Ionicons
+                    name="book-outline"
+                    size={12}
+                    color={isDark ? '#60a5fa' : '#3b82f6'}
+                  />
+                </View>
+              </View>
+            )}
 
             {/* Número del capítulo */}
             <Text
@@ -718,5 +772,25 @@ const styles = StyleSheet.create({
     right: 4,
     padding: 4,
     zIndex: 10,
+  },
+  completedBadge: {
+    position: 'absolute',
+    bottom: 4,
+    left: 4,
+    zIndex: 10,
+  },
+  progressBadge: {
+    position: 'absolute',
+    bottom: 4,
+    left: 4,
+    zIndex: 10,
+  },
+  progressIndicator: {
+    width: 20,
+    height: 20,
+    borderRadius: 10,
+    borderWidth: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
 });

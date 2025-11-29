@@ -1,226 +1,273 @@
 /**
- * Achievement Card with animation and modern design
+ * 🏆 ACHIEVEMENT CARD COMPONENT
+ *
+ * Tarjeta visual para mostrar logros con raridades
+ * Para la gloria de Dios y del Rey Jesús
  */
 
-import React, { useEffect, useRef } from 'react';
-import { View, Text, StyleSheet, Animated, Pressable } from 'react-native';
-import { Achievement, ACHIEVEMENT_TIER_COLORS } from '../../lib/achievements/types';
-import { useTheme } from '../../hooks/useTheme';
-import { spacing, borderRadius, fontSize, shadows } from '../../styles/designTokens';
+import React from 'react';
+import {View, Text, StyleSheet} from 'react-native';
+import {LinearGradient} from 'expo-linear-gradient';
+import {Ionicons} from '@expo/vector-icons';
+import {
+  Achievement,
+  getRarityInfo,
+  RARITY_COLORS,
+} from '../../lib/achievements/expandedDefinitions';
+import {useTheme} from '../../hooks/useTheme';
 
 interface AchievementCardProps {
   achievement: Achievement;
-  onPress?: (achievement: Achievement) => void;
-  showProgress?: boolean;
+  unlocked: boolean;
+  progress?: number;
+  compact?: boolean;
 }
 
-export const AchievementCard: React.FC<AchievementCardProps> = ({
+export function AchievementCard({
   achievement,
-  onPress,
-  showProgress = true,
-}) => {
-  const { colors, isDark } = useTheme();
-  const scaleAnim = useRef(new Animated.Value(1)).current;
-  const progressAnim = useRef(new Animated.Value(0)).current;
-
-  useEffect(() => {
-    // Animate progress
-    Animated.spring(progressAnim, {
-      toValue: achievement.isUnlocked
-        ? 1
-        : achievement.currentProgress / achievement.requirement,
-      useNativeDriver: false,
-      friction: 5,
-    }).start();
-  }, [achievement.currentProgress, achievement.isUnlocked]);
-
-  const handlePressIn = () => {
-    Animated.spring(scaleAnim, {
-      toValue: 0.95,
-      useNativeDriver: true,
-    }).start();
-  };
-
-  const handlePressOut = () => {
-    Animated.spring(scaleAnim, {
-      toValue: 1,
-      useNativeDriver: true,
-      friction: 3,
-    }).start();
-  };
-
-  const tierColor = ACHIEVEMENT_TIER_COLORS[achievement.tier];
-  const progress = achievement.isUnlocked
-    ? 100
-    : Math.min(100, (achievement.currentProgress / achievement.requirement) * 100);
+  unlocked,
+  progress = 0,
+  compact = false,
+}: AchievementCardProps) {
+  const {isDark, colors} = useTheme();
+  const rarityInfo = getRarityInfo(achievement.rarity, isDark);
+  const rarityColors = RARITY_COLORS[achievement.rarity];
 
   return (
-    <Animated.View style={[styles.container, { transform: [{ scale: scaleAnim }] }]}>
-      <Pressable
-        onPress={() => onPress?.(achievement)}
-        onPressIn={handlePressIn}
-        onPressOut={handlePressOut}
+    <View
+      style={[
+        styles.container,
+        compact && styles.containerCompact,
+        {
+          backgroundColor: isDark ? '#1f2937' : '#ffffff',
+          borderColor: unlocked ? rarityInfo.color : colors.border,
+          borderWidth: unlocked ? 2 : 1,
+          opacity: unlocked ? 1 : 0.6,
+        },
+      ]}>
+      {/* Glow effect for unlocked legendary/epic */}
+      {unlocked &&
+        (achievement.rarity === 'legendary' ||
+          achievement.rarity === 'epic') && (
+          <View
+            style={[
+              styles.glowEffect,
+              {
+                backgroundColor: rarityColors.glow,
+                shadowColor: rarityInfo.color,
+              },
+            ]}
+          />
+        )}
+
+      {/* Icon */}
+      <View
         style={[
-          styles.card,
+          styles.iconContainer,
           {
-            backgroundColor: achievement.isUnlocked
-              ? (isDark ? colors.primary + '15' : colors.primary + '08')
-              : colors.card,
+            backgroundColor: unlocked
+              ? rarityInfo.color + '20'
+              : colors.surface,
           },
-          !achievement.isUnlocked && (isDark ? shadows.md : shadows.sm),
-          achievement.isUnlocked && shadows.sm,
-        ]}
-      >
-        {/* Achievement icon */}
-        <View style={[styles.iconContainer, { backgroundColor: tierColor + '20' }]}>
-          <Text style={[styles.icon, !achievement.isUnlocked && styles.iconLocked]}>
-            {achievement.icon}
-          </Text>
-        </View>
+        ]}>
+        <Ionicons
+          name={achievement.icon as any}
+          size={compact ? 24 : 32}
+          color={unlocked ? rarityInfo.color : colors.textTertiary}
+        />
+      </View>
 
-        {/* Information */}
-        <View style={styles.info}>
-          <Text style={[
-            styles.name,
-            { color: achievement.isUnlocked ? colors.primary : colors.text }
-          ]}>
-            {achievement.name}
+      {/* Content */}
+      <View style={styles.content}>
+        {/* Title and Rarity */}
+        <View style={styles.titleRow}>
+          <Text
+            style={[
+              styles.title,
+              compact && styles.titleCompact,
+              {color: unlocked ? colors.text : colors.textSecondary},
+            ]}
+            numberOfLines={1}>
+            {achievement.title}
           </Text>
-          <Text style={[styles.description, { color: colors.textSecondary }]} numberOfLines={2}>
-            {achievement.description}
-          </Text>
-
-          {/* Progress bar */}
-          {showProgress && !achievement.isUnlocked && (
-            <View style={styles.progressContainer}>
-              <View style={[styles.progressBar, { backgroundColor: colors.border }]}>
-                <Animated.View
-                  style={[
-                    styles.progressFill,
-                    {
-                      backgroundColor: tierColor,
-                      width: progressAnim.interpolate({
-                        inputRange: [0, 1],
-                        outputRange: ['0%', '100%'],
-                      }),
-                    },
-                  ]}
-                />
-              </View>
-              <Text style={[styles.progressText, { color: colors.textTertiary }]}>
-                {achievement.currentProgress}/{achievement.requirement}
-              </Text>
-            </View>
-          )}
-
-          {/* Points */}
-          <View style={styles.footer}>
-            <View style={[styles.tierBadge, { backgroundColor: tierColor }]}>
-              <Text style={styles.tierText}>{achievement.tier.toUpperCase()}</Text>
-            </View>
-            <Text style={[styles.points, { color: colors.secondary }]}>
-              +{achievement.points} pts
+          <View
+            style={[
+              styles.rarityBadge,
+              {
+                backgroundColor: rarityInfo.color + '20',
+                borderColor: rarityInfo.color,
+              },
+            ]}>
+            <Text style={[styles.rarityText, {color: rarityInfo.color}]}>
+              {rarityInfo.label}
             </Text>
           </View>
         </View>
 
-        {/* Unlocked badge */}
-        {achievement.isUnlocked && (
-          <View style={[styles.unlockedBadge, { backgroundColor: colors.secondary }]}>
-            <Text style={styles.unlockedText}>✓</Text>
+        {/* Description */}
+        {!compact && (
+          <Text
+            style={[styles.description, {color: colors.textSecondary}]}
+            numberOfLines={2}>
+            {achievement.description}
+          </Text>
+        )}
+
+        {/* Progress Bar (if not unlocked) */}
+        {!unlocked && progress > 0 && (
+          <View style={styles.progressContainer}>
+            <View style={[styles.progressBg, {backgroundColor: colors.border}]}>
+              <LinearGradient
+                colors={rarityColors.gradient}
+                start={{x: 0, y: 0}}
+                end={{x: 1, y: 0}}
+                style={[styles.progressFill, {width: `${progress}%`}]}
+              />
+            </View>
+            <Text style={[styles.progressText, {color: colors.textTertiary}]}>
+              {Math.round(progress)}%
+            </Text>
           </View>
         )}
-      </Pressable>
-    </Animated.View>
+
+        {/* Points and Reward */}
+        <View style={styles.footer}>
+          <View style={styles.pointsBadge}>
+            <Ionicons name="star" size={14} color="#fbbf24" />
+            <Text style={[styles.pointsText, {color: colors.textSecondary}]}>
+              {achievement.points} pts
+            </Text>
+          </View>
+
+          {unlocked && achievement.reward && (
+            <View style={styles.rewardBadge}>
+              <Ionicons name="gift" size={14} color={rarityInfo.color} />
+              <Text style={[styles.rewardText, {color: rarityInfo.color}]}>
+                {achievement.reward.name}
+              </Text>
+            </View>
+          )}
+        </View>
+      </View>
+    </View>
   );
-};
+}
 
 const styles = StyleSheet.create({
   container: {
-    marginBottom: spacing.base,
-  },
-  card: {
     flexDirection: 'row',
-    borderRadius: borderRadius.lg,
-    padding: spacing.lg,
+    padding: 16,
+    borderRadius: 16,
+    marginBottom: 12,
+    shadowColor: '#000',
+    shadowOffset: {width: 0, height: 2},
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    elevation: 3,
+    position: 'relative',
+    overflow: 'hidden',
+  },
+  containerCompact: {
+    padding: 12,
+    marginBottom: 8,
+  },
+  glowEffect: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    shadowOffset: {width: 0, height: 0},
+    shadowOpacity: 0.5,
+    shadowRadius: 20,
+    elevation: 8,
   },
   iconContainer: {
     width: 56,
     height: 56,
-    borderRadius: borderRadius.md,
+    borderRadius: 28,
     justifyContent: 'center',
     alignItems: 'center',
-    marginRight: spacing.base,
+    marginRight: 12,
   },
-  icon: {
-    fontSize: 32,
-  },
-  iconLocked: {
-    opacity: 0.4,
-  },
-  info: {
+  content: {
     flex: 1,
   },
-  name: {
-    fontSize: fontSize.base,
+  titleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 4,
+  },
+  title: {
+    fontSize: 16,
+    fontWeight: '600',
+    flex: 1,
+    marginRight: 8,
+  },
+  titleCompact: {
+    fontSize: 14,
+  },
+  rarityBadge: {
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    borderRadius: 8,
+    borderWidth: 1,
+  },
+  rarityText: {
+    fontSize: 10,
     fontWeight: '700',
-    marginBottom: spacing['1'],
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
   },
   description: {
-    fontSize: fontSize.sm,
-    marginBottom: spacing.sm,
+    fontSize: 14,
     lineHeight: 20,
+    marginBottom: 8,
   },
   progressContainer: {
-    marginTop: spacing.sm,
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 8,
+    gap: 8,
   },
-  progressBar: {
+  progressBg: {
+    flex: 1,
     height: 6,
-    borderRadius: borderRadius.xs,
+    borderRadius: 3,
     overflow: 'hidden',
-    marginBottom: spacing['1'],
   },
   progressFill: {
     height: '100%',
-    borderRadius: borderRadius.sm,
+    borderRadius: 3,
   },
   progressText: {
-    fontSize: fontSize.xs,
+    fontSize: 12,
     fontWeight: '600',
+    minWidth: 40,
+    textAlign: 'right',
   },
   footer: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    marginTop: spacing.sm,
   },
-  tierBadge: {
-    paddingHorizontal: spacing.sm,
-    paddingVertical: spacing['1'],
-    borderRadius: borderRadius.xs,
-  },
-  tierText: {
-    fontSize: fontSize['2xs'],
-    fontWeight: '700',
-    color: '#FFFFFF',
-  },
-  points: {
-    fontSize: fontSize.sm,
-    fontWeight: '700',
-  },
-  unlockedBadge: {
-    position: 'absolute',
-    top: spacing.xs,
-    right: spacing.xs,
-    width: 24,
-    height: 24,
-    borderRadius: 12,
-    justifyContent: 'center',
+  pointsBadge: {
+    flexDirection: 'row',
     alignItems: 'center',
+    gap: 4,
   },
-  unlockedText: {
-    color: '#FFFFFF',
-    fontSize: fontSize.sm,
-    fontWeight: '700',
+  pointsText: {
+    fontSize: 12,
+    fontWeight: '600',
+  },
+  rewardBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+  },
+  rewardText: {
+    fontSize: 11,
+    fontWeight: '600',
   },
 });
