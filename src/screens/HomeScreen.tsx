@@ -1,13 +1,14 @@
 /**
  * 🏠 HOME SCREEN - Pantalla Principal
  *
- * Pantalla principal refinada con diseño Celestial Sereno:
+ * Pantalla principal refinada con diseño Celestial Premium 2.0:
  * - Header con glassmorphism y gradiente
  * - Welcome Card con estadísticas animadas
  * - Verso del Día con tipografía serif
  * - Continue Reading con barra de progreso
  * - Quick Access con gradientes vibrantes
  * - Reading Plans con círculos de progreso
+ * - Animaciones fluidas de 60fps con Reanimated 3
  *
  * Para la gloria de Dios - Eternal Bible App
  */
@@ -18,10 +19,19 @@ import {
   ScrollView,
   Text,
   StyleSheet,
-  Animated,
   StatusBar,
   Dimensions,
 } from 'react-native';
+import Animated, {
+  useSharedValue,
+  useAnimatedStyle,
+  withSpring,
+  withTiming,
+  withDelay,
+  FadeIn,
+  FadeInDown,
+  SlideInRight,
+} from 'react-native-reanimated';
 import {useNavigation} from '@react-navigation/native';
 import {LinearGradient} from 'expo-linear-gradient';
 import {BlurView} from 'expo-blur';
@@ -42,6 +52,7 @@ import {
   ReadingPlanCard,
 } from '../components/celestial';
 import {createCelestialTheme} from '../styles/celestialTheme';
+import {SPRING_CONFIGS, DURATIONS} from '../styles/reanimatedAnimations';
 
 const {width} = Dimensions.get('window');
 
@@ -67,7 +78,12 @@ const QUICK_ACCESS_BOOKS = [
     color: '#a855f7',
     screen: 'Biblia',
   },
-  {name: 'Proverbios', icon: 'bulb-outline', color: '#f59e0b', screen: 'Biblia'},
+  {
+    name: 'Proverbios',
+    icon: 'bulb-outline',
+    color: '#f59e0b',
+    screen: 'Biblia',
+  },
   {name: 'Juan', icon: 'heart-outline', color: '#f43f5e', screen: 'Biblia'},
   {
     name: 'Romanos',
@@ -123,26 +139,35 @@ const HomeScreen: React.FC = () => {
   const [dailyVerse, setDailyVerse] = useState<DailyVerse | null>(null);
   const [loadingVerse, setLoadingVerse] = useState(true);
 
-  const fadeAnim = useMemo(() => new Animated.Value(0), []);
-  const translateY = useMemo(() => new Animated.Value(50), []);
+  // Reanimated 3 - Shared Values para animaciones de 60fps
+  const contentOpacity = useSharedValue(0);
+  const contentTranslateY = useSharedValue(30);
+  const headerScale = useSharedValue(0.95);
 
   const theme = createCelestialTheme(isDarkMode);
 
+  // Estilo animado para el contenido principal
+  const animatedContentStyle = useAnimatedStyle(() => ({
+    opacity: contentOpacity.value,
+    transform: [{translateY: contentTranslateY.value}],
+  }));
+
+  // Estilo animado para el header
+  const animatedHeaderStyle = useAnimatedStyle(() => ({
+    transform: [{scale: headerScale.value}],
+  }));
+
   useEffect(() => {
-    // Entrance animations
-    Animated.parallel([
-      Animated.timing(fadeAnim, {
-        toValue: 1,
-        duration: 1000,
-        useNativeDriver: true,
-      }),
-      Animated.spring(translateY, {
-        toValue: 0,
-        tension: 20,
-        friction: 7,
-        useNativeDriver: true,
-      }),
-    ]).start();
+    // Entrance animations con Reanimated 3 - Más fluidas
+    contentOpacity.value = withDelay(
+      200,
+      withTiming(1, {duration: DURATIONS.slower}),
+    );
+    contentTranslateY.value = withDelay(
+      200,
+      withSpring(0, SPRING_CONFIGS.default),
+    );
+    headerScale.value = withSpring(1, SPRING_CONFIGS.gentle);
 
     // Load last read position
     const loadLastRead = async () => {
@@ -184,7 +209,7 @@ const HomeScreen: React.FC = () => {
 
     loadLastRead();
     loadDailyVerse();
-  }, [readingProgressContext, fadeAnim, translateY]);
+  }, [readingProgressContext, contentOpacity, contentTranslateY, headerScale]);
 
   const handleNavigation = useCallback(
     (screen: string) => {
@@ -261,9 +286,7 @@ const HomeScreen: React.FC = () => {
       StyleSheet.create({
         container: {
           flex: 1,
-          backgroundColor: isDarkMode
-            ? theme.colors.background
-            : '#f8fafc', // slate-50 para modo claro
+          backgroundColor: isDarkMode ? theme.colors.background : '#f8fafc', // slate-50 para modo claro
         },
         backgroundGradient: {
           position: 'absolute',
@@ -372,129 +395,151 @@ const HomeScreen: React.FC = () => {
           translucent
         />
 
-      {/* Header con Glassmorphism y Gradiente */}
-      <LinearGradient
-        colors={
-          isDarkMode
-            ? ['#6366f1', '#8b5cf6', '#7c3aed'] // indigo-500 → purple-600 → purple-600
-            : ['#6366f1', '#7c3aed'] // indigo-500 → purple-600
-        }
-        start={{x: 0, y: 0}}
-        end={{x: 1, y: 1}}>
-        <BlurView
-          intensity={isDarkMode ? 20 : 40}
-          tint={isDarkMode ? 'dark' : 'light'}
-          style={styles.headerGradient}>
-          <View style={styles.headerContent}>
-            <Text style={styles.headerTitle} accessibilityRole="header">
-              {t('home.title') || 'Eternal Bible'}
-            </Text>
-            <Text style={styles.headerSubtitle} accessibilityRole="text">
-              {t('home.subtitle') || 'Tu viaje espiritual continúa'}
-            </Text>
-          </View>
-        </BlurView>
-      </LinearGradient>
+        {/* Header con Glassmorphism y Gradiente - Animado */}
+        <Animated.View style={animatedHeaderStyle}>
+          <LinearGradient
+            colors={
+              isDarkMode
+                ? ['#6366f1', '#8b5cf6', '#7c3aed'] // indigo-500 → purple-600 → purple-600
+                : ['#6366f1', '#7c3aed'] // indigo-500 → purple-600
+            }
+            start={{x: 0, y: 0}}
+            end={{x: 1, y: 1}}>
+            <BlurView
+              intensity={isDarkMode ? 20 : 40}
+              tint={isDarkMode ? 'dark' : 'light'}
+              style={styles.headerGradient}>
+              <View style={styles.headerContent}>
+                <Animated.Text
+                  entering={FadeIn.delay(100).duration(600)}
+                  style={styles.headerTitle}
+                  accessibilityRole="header">
+                  {t('home.title') || 'Eternal Bible'}
+                </Animated.Text>
+                <Animated.Text
+                  entering={FadeIn.delay(200).duration(600)}
+                  style={styles.headerSubtitle}
+                  accessibilityRole="text">
+                  {t('home.subtitle') || 'Tu viaje espiritual continúa'}
+                </Animated.Text>
+              </View>
+            </BlurView>
+          </LinearGradient>
+        </Animated.View>
 
-      <Animated.View style={{opacity: fadeAnim, transform: [{translateY}]}}>
-        {/* Welcome Card con Estadísticas */}
-        <WelcomeCard
-          userName="Bienvenido"
-          subtitle="Tu viaje espiritual continúa"
-          streakDays={7}
-          level={5}
-          progress={42}
-          isDark={isDarkMode}
-        />
-
-        {/* Verso del Día */}
-        {!loadingVerse && dailyVerse ? (
-          <View style={{marginHorizontal: 20, marginBottom: 24}}>
-            <VerseOfDayCard
-              verseText={dailyVerse.text}
-              reference={`${getBookName(dailyVerse.book, 'es')} ${dailyVerse.chapter}:${dailyVerse.number}`}
-              title="✨ Verso del Día"
-              onPress={handleVersePress}
-              onShare={handleVerseShare}
-              onFavorite={handleVerseFavorite}
-              isDark={isDarkMode}
-            />
-          </View>
-        ) : (
-          <View style={styles.emptyVerse}>
-            <Text style={styles.emptyVerseText}>
-              {loadingVerse ? 'Cargando verso...' : 'No hay verso disponible'}
-            </Text>
-          </View>
-        )}
-
-        {/* Continue Reading */}
-        {lastRead && (
-          <ContinueReadingButton
-            bookName={getBookName(lastRead.book, 'es')}
-            chapter={lastRead.chapter}
-            progress={65}
-            onPress={handleContinueReading}
-            buttonText={t('home.continueReading') || 'Continuar Leyendo'}
+        <Animated.View style={animatedContentStyle}>
+          {/* Welcome Card con Estadísticas */}
+          <WelcomeCard
+            userName="Bienvenido"
+            subtitle="Tu viaje espiritual continúa"
+            streakDays={7}
+            level={5}
+            progress={42}
             isDark={isDarkMode}
           />
-        )}
 
-        {/* Quick Access */}
-        <View style={styles.section}>
-          <View style={styles.sectionHeader}>
-            <Text style={styles.sectionTitle}>Acceso Rápido</Text>
-          </View>
-
-          <View style={styles.quickAccessGrid}>
-            {QUICK_ACCESS_BOOKS.map((book, index) => (
-              <QuickAccessButton
-                key={book.name}
-                name={book.name}
-                icon={book.icon as any}
-                color={book.color}
-                onPress={() => handleNavigation(book.screen)}
-                delay={index * 50}
+          {/* Verso del Día */}
+          {!loadingVerse && dailyVerse ? (
+            <View style={{marginHorizontal: 20, marginBottom: 24}}>
+              <VerseOfDayCard
+                verseText={dailyVerse.text}
+                reference={`${getBookName(dailyVerse.book, 'es')} ${dailyVerse.chapter}:${dailyVerse.number}`}
+                title="✨ Verso del Día"
+                onPress={handleVersePress}
+                onShare={handleVerseShare}
+                onFavorite={handleVerseFavorite}
                 isDark={isDarkMode}
               />
-            ))}
-          </View>
-        </View>
+            </View>
+          ) : (
+            <View style={styles.emptyVerse}>
+              <Text style={styles.emptyVerseText}>
+                {loadingVerse ? 'Cargando verso...' : 'No hay verso disponible'}
+              </Text>
+            </View>
+          )}
 
-        {/* Reading Plans */}
-        <View style={styles.section}>
-          <View style={styles.sectionHeader}>
-            <Text style={styles.sectionTitle}>Planes de Lectura</Text>
-            <Text
-              style={styles.sectionSubtitle}
-              onPress={() => handleNavigation('Plan')}>
-              Ver todos
-            </Text>
-          </View>
+          {/* Continue Reading */}
+          {lastRead && (
+            <ContinueReadingButton
+              bookName={getBookName(lastRead.book, 'es')}
+              chapter={lastRead.chapter}
+              progress={65}
+              onPress={handleContinueReading}
+              buttonText={t('home.continueReading') || 'Continuar Leyendo'}
+              isDark={isDarkMode}
+            />
+          )}
 
-          <ScrollView
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            contentContainerStyle={styles.readingPlansScroll}>
-            {READING_PLANS.map(plan => (
-              <ReadingPlanCard
-                key={plan.name}
-                name={plan.name}
-                subtitle={plan.subtitle}
-                description={plan.description}
-                icon={plan.icon as any}
-                color={plan.color}
-                duration={plan.duration}
-                daysCompleted={plan.daysCompleted}
-                onPress={() => handleReadingPlanPress(plan.name)}
-                continueText="Continuar"
-                isDark={isDarkMode}
-                width={240}
-              />
-            ))}
-          </ScrollView>
-        </View>
-      </Animated.View>
+          {/* Quick Access - Con animaciones staggered */}
+          <Animated.View
+            entering={FadeInDown.delay(400).duration(500).springify()}
+            style={styles.section}>
+            <View style={styles.sectionHeader}>
+              <Text style={styles.sectionTitle}>Acceso Rápido</Text>
+            </View>
+
+            <View style={styles.quickAccessGrid}>
+              {QUICK_ACCESS_BOOKS.map((book, index) => (
+                <Animated.View
+                  key={book.name}
+                  entering={FadeInDown.delay(500 + index * 80)
+                    .duration(400)
+                    .springify()}>
+                  <QuickAccessButton
+                    name={book.name}
+                    icon={book.icon as any}
+                    color={book.color}
+                    onPress={() => handleNavigation(book.screen)}
+                    delay={0}
+                    isDark={isDarkMode}
+                  />
+                </Animated.View>
+              ))}
+            </View>
+          </Animated.View>
+
+          {/* Reading Plans - Con animaciones de entrada */}
+          <Animated.View
+            entering={FadeInDown.delay(700).duration(500).springify()}
+            style={styles.section}>
+            <View style={styles.sectionHeader}>
+              <Text style={styles.sectionTitle}>Planes de Lectura</Text>
+              <Text
+                style={styles.sectionSubtitle}
+                onPress={() => handleNavigation('Plan')}>
+                Ver todos
+              </Text>
+            </View>
+
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={styles.readingPlansScroll}>
+              {READING_PLANS.map((plan, index) => (
+                <Animated.View
+                  key={plan.name}
+                  entering={SlideInRight.delay(800 + index * 100)
+                    .duration(400)
+                    .springify()}>
+                  <ReadingPlanCard
+                    name={plan.name}
+                    subtitle={plan.subtitle}
+                    description={plan.description}
+                    icon={plan.icon as any}
+                    color={plan.color}
+                    duration={plan.duration}
+                    daysCompleted={plan.daysCompleted}
+                    onPress={() => handleReadingPlanPress(plan.name)}
+                    continueText="Continuar"
+                    isDark={isDarkMode}
+                    width={240}
+                  />
+                </Animated.View>
+              ))}
+            </ScrollView>
+          </Animated.View>
+        </Animated.View>
       </ScrollView>
     </View>
   );
