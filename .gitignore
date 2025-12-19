@@ -39,3 +39,36 @@ yarn-error.*
 # generated native folders
 /ios
 /android
+
+# Build artifacts & releases
+release/
+*.apk
+*.aab
+*.ipa
+
+# Development scripts (logo processing, etc.)
+*.py
+*.ps1
+crop_logo.ps1
+center_logo.py
+center_logo_v2.py
+generate_premium_icon.py
+generate_premium_icon_v2.py
+analyze_edges.py
+patch_logo.ps1
+process_logo.ps1
+smart_logo_fix.ps1
+get_dims.ps1
+
+# Temporary logo versions (keep only official v7)
+assets/eternal-stone-logo-v2.jpg
+assets/eternal-stone-logo-v3.png
+assets/eternal-stone-logo-v4.png
+assets/eternal-stone-logo-v5.png
+assets/eternal-stone-logo-v6.png
+assets/eternal-stone-logo-v8.png
+assets/eternal-stone-logo.png
+assets/eternal-stone-logo-final.png
+assets/eternal-stone-logo-no-text.png
+assets/eternal-stone-logo-patched.png
+assets/logo-original.jpg

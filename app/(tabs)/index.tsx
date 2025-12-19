@@ -196,45 +196,51 @@ export default function HomeScreen() {
           {backgroundColor: celestialTheme.colors.background},
         ]}>
         <LinearGradient
-          colors={celestialTheme.colors.backgroundGradient}
+          colors={
+            celestialTheme.colors.backgroundGradient as [
+              string,
+              string,
+              ...string[],
+            ]
+          }
           style={styles.gradientBackground}>
           <ScrollView
             style={styles.scrollView}
             contentContainerStyle={styles.contentContainer}
             showsVerticalScrollIndicator={false}>
             {/* Skeleton for Verse of Day Card */}
-            <View style={styles.section}>
+            <View style={styles.skeletonSection}>
               <Skeleton
                 width="100%"
                 height={240}
                 borderRadius={celestialBorderRadius['2xl']}
-                style={{marginBottom: celestialSpacing.lg}}
+                style={{marginBottom: celestialSpacing.cardGap}}
               />
             </View>
 
             {/* Skeleton for Stats Card */}
-            <View style={styles.section}>
+            <View style={styles.skeletonSection}>
               <Skeleton
                 width="100%"
                 height={160}
                 borderRadius={celestialBorderRadius['2xl']}
-                style={{marginBottom: celestialSpacing.lg}}
+                style={{marginBottom: celestialSpacing.cardGap}}
               />
             </View>
 
             {/* Skeleton for Quick Access Buttons */}
-            <View style={styles.section}>
+            <View style={styles.skeletonSection}>
               <Skeleton
                 width={120}
                 height={20}
                 borderRadius={celestialBorderRadius.md}
-                style={{marginBottom: celestialSpacing.base}}
+                style={{marginBottom: celestialSpacing.elementGap}}
               />
-              <View style={styles.quickAccessGrid}>
+              <View style={styles.quickGrid}>
                 {[1, 2, 3, 4].map(i => (
                   <Skeleton
                     key={i}
-                    width={(SCREEN_WIDTH - celestialSpacing.xl * 3) / 2}
+                    width={(SCREEN_WIDTH - celestialSpacing.sectionGap * 3) / 2}
                     height={100}
                     borderRadius={celestialBorderRadius.xl}
                   />
@@ -243,7 +249,7 @@ export default function HomeScreen() {
             </View>
 
             {/* Skeleton for Reading Plan */}
-            <View style={styles.section}>
+            <View style={styles.skeletonSection}>
               <Skeleton
                 width="100%"
                 height={140}
@@ -260,7 +266,13 @@ export default function HomeScreen() {
     <View style={styles.container}>
       {/* Gradiente de fondo */}
       <LinearGradient
-        colors={celestialTheme.colors.backgroundGradient}
+        colors={
+          celestialTheme.colors.backgroundGradient as [
+            string,
+            string,
+            ...string[],
+          ]
+        }
         style={styles.gradientBackground}
       />
 
@@ -290,7 +302,7 @@ export default function HomeScreen() {
               {
                 backgroundColor: celestialTheme.colors.surfaceGlass,
                 borderColor: celestialTheme.colors.glassBorder,
-                borderRadius: celestialBorderRadius.cardLarge, // 28px
+                borderRadius: celestialBorderRadius['2xl'], // 28px
                 shadowColor: '#6366f1',
                 shadowOffset: {width: 0, height: 12},
                 shadowOpacity: 0.35, // Sombra DRAMÁTICA
@@ -316,7 +328,13 @@ export default function HomeScreen() {
 
             {/* Gradiente de fondo del hero */}
             <LinearGradient
-              colors={celestialTheme.colors.primaryGradient}
+              colors={
+                celestialTheme.colors.primaryGradient as [
+                  string,
+                  string,
+                  ...string[],
+                ]
+              }
               start={{x: 0, y: 0}}
               end={{x: 1, y: 1}}
               style={styles.heroGradient}>
@@ -390,9 +408,8 @@ export default function HomeScreen() {
             <VerseOfDayCard
               verseText={dailyVerse.text}
               reference={`${dailyVerse.book} ${dailyVerse.chapter}:${dailyVerse.verse}`}
-              title="✨ Verso del Día"
+              title="Verso del Día"
               isDark={isDark}
-              shadowIntensity="xl" // Sombra más pronunciada
               onPress={() =>
                 handlePress(() =>
                   router.push(
@@ -440,13 +457,13 @@ export default function HomeScreen() {
                 )
               }>
               <LinearGradient
-                colors={['#FFB74D', '#FF9800', '#F57C00']} // Gradiente naranja vibrante
+                colors={['#FFB74D', '#FF9800', '#F57C00'] as const}
                 start={{x: 0, y: 0}}
                 end={{x: 1, y: 1}}
                 style={[
                   styles.continueButton,
                   {
-                    borderRadius: celestialBorderRadius.cardMedium, // 24px
+                    borderRadius: celestialBorderRadius.xl, // 22px
                     shadowColor: '#FFB74D',
                     shadowOffset: {width: 0, height: 8},
                     shadowOpacity: 0.4, // MÁS visible
@@ -823,5 +840,8 @@ const styles = StyleSheet.create({
   footerReference: {
     fontSize: 14,
     textAlign: 'center',
+  },
+  skeletonSection: {
+    marginBottom: 16,
   },
 });
