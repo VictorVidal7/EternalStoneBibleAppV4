@@ -8,23 +8,14 @@
  * - Sticky header opcional
  */
 
-import React, { useRef, ReactNode } from 'react';
-import {
-  ScrollView,
-  Animated,
-  View,
-  StyleSheet,
-  ViewStyle,
-  NativeSyntheticEvent,
-  NativeScrollEvent,
-} from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
-import { spacing } from '../styles/designTokens';
+import React, {useRef, ReactNode} from 'react';
+import {Animated, View, StyleSheet, ViewStyle} from 'react-native';
+import {LinearGradient} from 'expo-linear-gradient';
 
 interface ParallaxScrollViewProps {
   headerHeight?: number;
   headerBackground?: ReactNode;
-  headerGradient?: string[];
+  headerGradient?: readonly [string, string, ...string[]];
   children: ReactNode;
   style?: ViewStyle;
   contentContainerStyle?: ViewStyle;
@@ -75,8 +66,8 @@ export const ParallaxScrollView: React.FC<ParallaxScrollViewProps> = ({
   });
 
   const handleScroll = Animated.event(
-    [{ nativeEvent: { contentOffset: { y: scrollY } } }],
-    { useNativeDriver: true }
+    [{nativeEvent: {contentOffset: {y: scrollY}}}],
+    {useNativeDriver: true},
   );
 
   return (
@@ -87,21 +78,17 @@ export const ParallaxScrollView: React.FC<ParallaxScrollViewProps> = ({
           styles.header,
           {
             height: headerHeight,
-            transform: [
-              { translateY: headerTranslate },
-              { scale: headerScale },
-            ],
+            transform: [{translateY: headerTranslate}, {scale: headerScale}],
             opacity: fadeHeader ? headerOpacity : 1,
           },
-        ]}
-      >
+        ]}>
         {headerBackground ? (
           headerBackground
         ) : (
           <LinearGradient
             colors={headerGradient}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 1 }}
+            start={{x: 0, y: 0}}
+            end={{x: 1, y: 1}}
             style={StyleSheet.absoluteFill}
           />
         )}
@@ -122,14 +109,13 @@ export const ParallaxScrollView: React.FC<ParallaxScrollViewProps> = ({
       <Animated.ScrollView
         style={styles.scrollView}
         contentContainerStyle={[
-          { paddingTop: headerHeight },
+          {paddingTop: headerHeight},
           contentContainerStyle,
         ]}
         scrollEventThrottle={16}
         onScroll={handleScroll}
         showsVerticalScrollIndicator={false}
-        stickyHeaderIndices={stickyHeaderIndices}
-      >
+        stickyHeaderIndices={stickyHeaderIndices}>
         {children}
       </Animated.ScrollView>
     </View>

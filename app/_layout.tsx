@@ -1,6 +1,6 @@
 import {Stack} from 'expo-router';
 import {useEffect, useState} from 'react';
-import {View, Text, ActivityIndicator, StyleSheet} from 'react-native';
+import {View, Text, StyleSheet} from 'react-native';
 import {
   initializeBibleData,
   checkDataStatus,

@@ -8,7 +8,7 @@
  * - Haptic feedback
  */
 
-import React, { useRef, useEffect } from 'react';
+import React, {useRef, useEffect} from 'react';
 import {
   TouchableOpacity,
   Text,
@@ -17,12 +17,17 @@ import {
   ViewStyle,
   TextStyle,
 } from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
-import { Ionicons } from '@expo/vector-icons';
+import {LinearGradient} from 'expo-linear-gradient';
+import {Ionicons} from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
-import { spacing, borderRadius, fontSize, shadows } from '../styles/designTokens';
+import {spacing, borderRadius, fontSize, shadows} from '../styles/designTokens';
 
-type ButtonVariant = 'primary' | 'secondary' | 'success' | 'danger' | 'gradient';
+type ButtonVariant =
+  | 'primary'
+  | 'secondary'
+  | 'success'
+  | 'danger'
+  | 'gradient';
 type ButtonSize = 'small' | 'medium' | 'large';
 
 interface PremiumButtonProps {
@@ -34,7 +39,7 @@ interface PremiumButtonProps {
   iconPosition?: 'left' | 'right';
   loading?: boolean;
   disabled?: boolean;
-  gradient?: string[];
+  gradient?: readonly [string, string, ...string[]];
   style?: ViewStyle;
   textStyle?: TextStyle;
   fullWidth?: boolean;
@@ -66,7 +71,7 @@ export const PremiumButton: React.FC<PremiumButtonProps> = ({
         toValue: 1,
         duration: 2000,
         useNativeDriver: true,
-      })
+      }),
     ).start();
   }, []);
 
@@ -128,8 +133,8 @@ export const PremiumButton: React.FC<PremiumButtonProps> = ({
     }
   };
 
-  const getGradientColors = () => {
-    if (gradient) return gradient;
+  const getGradientColors = (): readonly [string, string] => {
+    if (gradient) return [gradient[0], gradient[1]];
 
     switch (variant) {
       case 'primary':
@@ -154,25 +159,22 @@ export const PremiumButton: React.FC<PremiumButtonProps> = ({
       onPressOut={handlePressOut}
       onPress={handlePress}
       disabled={disabled || loading}
-      style={[fullWidth && styles.fullWidth]}
-    >
+      style={[fullWidth && styles.fullWidth]}>
       <Animated.View
         style={[
           styles.button,
           getSizeStyles(),
           {
-            transform: [{ scale: scaleAnim }],
+            transform: [{scale: scaleAnim}],
             opacity: disabled ? 0.5 : 1,
           },
           style,
-        ]}
-      >
+        ]}>
         <LinearGradient
           colors={getGradientColors()}
-          start={{ x: 0, y: 0 }}
-          end={{ x: 1, y: 1 }}
-          style={[styles.gradient, { borderRadius: borderRadius.lg }]}
-        >
+          start={{x: 0, y: 0}}
+          end={{x: 1, y: 1}}
+          style={[styles.gradient, {borderRadius: borderRadius.lg}]}>
           {icon && iconPosition === 'left' && (
             <Ionicons
               name={icon}
@@ -190,8 +192,7 @@ export const PremiumButton: React.FC<PremiumButtonProps> = ({
                 fontWeight: '600',
               },
               textStyle,
-            ]}
-          >
+            ]}>
             {loading ? 'Cargando...' : title}
           </Text>
 

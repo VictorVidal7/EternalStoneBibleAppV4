@@ -9,7 +9,6 @@ import {
   Modal,
   TextInput,
   Share,
-  Animated,
 } from 'react-native';
 import {useState, useEffect, useRef} from 'react';
 import {useLocalSearchParams, useRouter, Stack} from 'expo-router';
@@ -38,7 +37,7 @@ import {
 
 export default function VerseReadingScreen() {
   const router = useRouter();
-  const {colors, isDark} = useTheme();
+  const {colors} = useTheme();
   const {selectedVersion} = useBibleVersion();
   const {t} = useLanguage();
   const {achievementService} = useServices();
@@ -130,7 +129,7 @@ export default function VerseReadingScreen() {
         if (newAchievements.length > 0) {
           logger.info('New achievements unlocked!', {
             component: 'VerseReadingScreen',
-            achievements: newAchievements.map(a => a.title),
+            achievements: newAchievements.map(a => a.name || (a as any).title),
           });
         }
       } catch (error) {
@@ -190,8 +189,10 @@ export default function VerseReadingScreen() {
       // Scroll to highlighted verse if provided
       if (highlightVerse && scrollViewRef.current) {
         setTimeout(() => {
-          const verseNum = parseInt(highlightVerse as string);
+          // Parse verse number for potential scrolling implementation
+          const _verseNum = parseInt(highlightVerse as string);
           // Simplified scrolling - in production would use measurement
+          void _verseNum; // Mark as intentionally unused for now
         }, 300);
       }
     } catch (error) {

@@ -11,7 +11,7 @@
  * Para la gloria de Dios - Eternal Bible App
  */
 
-import React, { useRef, useEffect } from 'react';
+import React, {useRef, useEffect} from 'react';
 import {
   View,
   Text,
@@ -20,9 +20,12 @@ import {
   Animated,
   Platform,
 } from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
-import { Ionicons } from '@expo/vector-icons';
-import { createCelestialTheme, celestialBorderRadius } from '../../styles/celestialTheme';
+import {LinearGradient} from 'expo-linear-gradient';
+import {Ionicons} from '@expo/vector-icons';
+import {
+  createCelestialTheme,
+  celestialBorderRadius,
+} from '../../styles/celestialTheme';
 
 interface ContinueReadingButtonProps {
   /**
@@ -66,7 +69,8 @@ const ContinueReadingButton: React.FC<ContinueReadingButtonProps> = ({
   buttonText = 'Continuar Leyendo',
   isDark = false,
 }) => {
-  const theme = createCelestialTheme(isDark);
+  // Theme available if needed for future enhancements
+  createCelestialTheme(isDark);
   const scaleAnim = useRef(new Animated.Value(1)).current;
   const chevronAnim = useRef(new Animated.Value(0)).current;
   const progressAnim = useRef(new Animated.Value(0)).current;
@@ -120,24 +124,22 @@ const ContinueReadingButton: React.FC<ContinueReadingButtonProps> = ({
       style={[
         styles.container,
         {
-          transform: [{ scale: scaleAnim }],
+          transform: [{scale: scaleAnim}],
         },
-      ]}
-    >
+      ]}>
       <TouchableOpacity
         activeOpacity={0.9}
         onPress={onPress}
         onPressIn={handlePressIn}
-        onPressOut={handlePressOut}
-      >
+        onPressOut={handlePressOut}>
         <LinearGradient
           colors={
             isDark
               ? ['#059669', '#0d9488'] // emerald-600 → teal-600
               : ['#10b981', '#14b8a6'] // emerald-500 → teal-500
           }
-          start={{ x: 0, y: 0 }}
-          end={{ x: 1, y: 0 }}
+          start={{x: 0, y: 0}}
+          end={{x: 1, y: 0}}
           style={[
             styles.gradientButton,
             {
@@ -146,7 +148,7 @@ const ContinueReadingButton: React.FC<ContinueReadingButtonProps> = ({
             Platform.select({
               ios: {
                 shadowColor: '#10b981',
-                shadowOffset: { width: 0, height: 8 },
+                shadowOffset: {width: 0, height: 8},
                 shadowOpacity: 0.3,
                 shadowRadius: 16,
               },
@@ -154,8 +156,7 @@ const ContinueReadingButton: React.FC<ContinueReadingButtonProps> = ({
                 elevation: 5,
               },
             }),
-          ]}
-        >
+          ]}>
           {/* Contenido principal */}
           <View style={styles.content}>
             {/* Título y capítulo */}
@@ -171,16 +172,17 @@ const ContinueReadingButton: React.FC<ContinueReadingButtonProps> = ({
               <Text style={styles.percentage}>{Math.round(progress)}%</Text>
               <Animated.View
                 style={{
-                  transform: [{ translateX: chevronAnim }],
-                }}
-              >
+                  transform: [{translateX: chevronAnim}],
+                }}>
                 <Ionicons name="chevron-forward" size={24} color="#ffffff" />
               </Animated.View>
             </View>
           </View>
 
           {/* Texto completado */}
-          <Text style={styles.completedText}>{Math.round(progress)}% completado</Text>
+          <Text style={styles.completedText}>
+            {Math.round(progress)}% completado
+          </Text>
 
           {/* Barra de progreso */}
           <View style={styles.progressBarContainer}>
@@ -261,7 +263,7 @@ const styles = StyleSheet.create({
     ...Platform.select({
       ios: {
         shadowColor: '#000',
-        shadowOffset: { width: 0, height: 2 },
+        shadowOffset: {width: 0, height: 2},
         shadowOpacity: 0.1,
         shadowRadius: 4,
       },
@@ -274,7 +276,7 @@ const styles = StyleSheet.create({
     ...Platform.select({
       ios: {
         shadowColor: '#fff',
-        shadowOffset: { width: 0, height: 0 },
+        shadowOffset: {width: 0, height: 0},
         shadowOpacity: 0.5,
         shadowRadius: 8,
       },

@@ -11,19 +11,15 @@
  * Para la gloria de Dios - Eternal Bible App
  */
 
-import React, { useRef } from 'react';
+import React, {useRef} from 'react';
+import {View, Text, StyleSheet, TouchableOpacity, Animated} from 'react-native';
+import {Ionicons} from '@expo/vector-icons';
+import {BlurView} from 'expo-blur';
+import type {ComponentProps} from 'react';
 import {
-  View,
-  Text,
-  StyleSheet,
-  TouchableOpacity,
-  Animated,
-} from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
-import { BlurView } from 'expo-blur';
-import { LinearGradient } from 'expo-linear-gradient';
-import type { ComponentProps } from 'react';
-import { createCelestialTheme, celestialBorderRadius } from '../../styles/celestialTheme';
+  createCelestialTheme,
+  celestialBorderRadius,
+} from '../../styles/celestialTheme';
 import ProgressCircle from './ProgressCircle';
 
 type IoniconsName = ComponentProps<typeof Ionicons>['name'];
@@ -131,16 +127,14 @@ const ReadingPlanCard: React.FC<ReadingPlanCardProps> = ({
         styles.container,
         {
           width,
-          transform: [{ scale: scaleAnim }],
+          transform: [{scale: scaleAnim}],
         },
-      ]}
-    >
+      ]}>
       <TouchableOpacity
         activeOpacity={0.7}
         onPress={onPress}
         onPressIn={handlePressIn}
-        onPressOut={handlePressOut}
-      >
+        onPressOut={handlePressOut}>
         <BlurView
           intensity={isDark ? 20 : 40}
           tint={isDark ? 'dark' : 'light'}
@@ -154,8 +148,7 @@ const ReadingPlanCard: React.FC<ReadingPlanCardProps> = ({
               borderRadius: celestialBorderRadius.cardMedium, // 24px
             },
             theme.shadows.md,
-          ]}
-        >
+          ]}>
           {/* Header con ícono y duración */}
           <View style={styles.header}>
             <View
@@ -164,8 +157,7 @@ const ReadingPlanCard: React.FC<ReadingPlanCardProps> = ({
                 {
                   backgroundColor: `${color}15`, // color con 15% opacidad
                 },
-              ]}
-            >
+              ]}>
               <Ionicons name={icon} size={24} color={color} />
             </View>
 
@@ -175,9 +167,8 @@ const ReadingPlanCard: React.FC<ReadingPlanCardProps> = ({
                 {
                   backgroundColor: `${color}15`,
                 },
-              ]}
-            >
-              <Text style={[styles.durationText, { color }]}>
+              ]}>
+              <Text style={[styles.durationText, {color}]}>
                 {duration} días
               </Text>
             </View>
@@ -186,29 +177,29 @@ const ReadingPlanCard: React.FC<ReadingPlanCardProps> = ({
           {/* Contenido con título y descripción */}
           <View style={styles.content}>
             <Text
-              style={[styles.name, { color: theme.colors.text }]}
+              style={[styles.name, {color: theme.colors.text}]}
               numberOfLines={2}
-              ellipsizeMode="tail"
-            >
+              ellipsizeMode="tail">
               {name}
             </Text>
 
             {subtitle && (
               <Text
-                style={[styles.subtitle, { color: theme.colors.textSecondary }]}
+                style={[styles.subtitle, {color: theme.colors.textSecondary}]}
                 numberOfLines={1}
-                ellipsizeMode="tail"
-              >
+                ellipsizeMode="tail">
                 {subtitle}
               </Text>
             )}
 
             {description && (
               <Text
-                style={[styles.description, { color: theme.colors.textSecondary }]}
+                style={[
+                  styles.description,
+                  {color: theme.colors.textSecondary},
+                ]}
                 numberOfLines={2}
-                ellipsizeMode="tail"
-              >
+                ellipsizeMode="tail">
                 {description}
               </Text>
             )}
@@ -227,7 +218,7 @@ const ReadingPlanCard: React.FC<ReadingPlanCardProps> = ({
 
             {/* Texto de progreso sobre el círculo */}
             <View style={styles.progressTextContainer}>
-              <Text style={[styles.progressText, { color: theme.colors.text }]}>
+              <Text style={[styles.progressText, {color: theme.colors.text}]}>
                 {daysCompleted}/{duration}
               </Text>
             </View>
@@ -235,9 +226,7 @@ const ReadingPlanCard: React.FC<ReadingPlanCardProps> = ({
 
           {/* Footer con botón de continuar */}
           <View style={styles.footer}>
-            <Text style={[styles.continueText, { color }]}>
-              {continueText}
-            </Text>
+            <Text style={[styles.continueText, {color}]}>{continueText}</Text>
             <Ionicons name="arrow-forward" size={18} color={color} />
           </View>
         </BlurView>

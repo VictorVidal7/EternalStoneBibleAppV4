@@ -40,34 +40,34 @@ export const RARITY_COLORS = {
   common: {
     light: '#9CA3AF', // Gray
     dark: '#6B7280',
-    gradient: ['#D1D5DB', '#9CA3AF'],
+    gradient: ['#D1D5DB', '#9CA3AF'] as const,
     glow: 'rgba(156, 163, 175, 0.3)',
   },
   uncommon: {
     light: '#10B981', // Green
     dark: '#059669',
-    gradient: ['#34D399', '#10B981'],
+    gradient: ['#34D399', '#10B981'] as const,
     glow: 'rgba(16, 185, 129, 0.3)',
   },
   rare: {
     light: '#3B82F6', // Blue
     dark: '#2563EB',
-    gradient: ['#60A5FA', '#3B82F6'],
+    gradient: ['#60A5FA', '#3B82F6'] as const,
     glow: 'rgba(59, 130, 246, 0.3)',
   },
   epic: {
     light: '#A855F7', // Purple
     dark: '#9333EA',
-    gradient: ['#C084FC', '#A855F7'],
+    gradient: ['#C084FC', '#A855F7'] as const,
     glow: 'rgba(168, 85, 247, 0.3)',
   },
   legendary: {
     light: '#F59E0B', // Gold
     dark: '#D97706',
-    gradient: ['#FBBF24', '#F59E0B'],
+    gradient: ['#FBBF24', '#F59E0B'] as const,
     glow: 'rgba(245, 158, 11, 0.4)',
   },
-};
+} as const;
 
 /**
  * Sistema de logros expandido

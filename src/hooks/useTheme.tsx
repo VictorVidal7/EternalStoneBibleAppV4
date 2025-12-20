@@ -1,6 +1,6 @@
-import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import {createContext, useContext, useState, useEffect, ReactNode} from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { useColorScheme } from 'react-native';
+import {useColorScheme} from 'react-native';
 
 type ThemeMode = 'light' | 'dark' | 'auto';
 
@@ -9,6 +9,7 @@ interface ThemeColors {
   background: string;
   surface: string;
   surfaceVariant: string;
+  card: string;
 
   // Text
   text: string;
@@ -20,19 +21,26 @@ interface ThemeColors {
   primaryLight: string;
   primaryDark: string;
 
+  // Secondary colors
+  secondary: string;
+
   // Accent colors
   accent: string;
   error: string;
   success: string;
   warning: string;
+  info: string;
 
   // Borders and dividers
   border: string;
   divider: string;
+  glassBorder: string;
 
   // Special
   highlight: string;
   overlay: string;
+  disabled: string;
+  glass: string;
 
   // Specific to Bible app
   verseCard: string;
@@ -51,6 +59,7 @@ const lightColors: ThemeColors = {
   background: '#F8F9FA',
   surface: '#FFFFFF',
   surfaceVariant: '#F8F9FA',
+  card: '#FFFFFF',
 
   text: '#2C3E50',
   textSecondary: '#7F8C8D',
@@ -60,16 +69,22 @@ const lightColors: ThemeColors = {
   primaryLight: '#E8F4FD',
   primaryDark: '#2471C7',
 
+  secondary: '#10b981',
+
   accent: '#9B59B6',
   error: '#E74C3C',
   success: '#27AE60',
   warning: '#F39C12',
+  info: '#3498DB',
 
   border: '#ECF0F1',
   divider: '#E0E0E0',
+  glassBorder: 'rgba(255, 255, 255, 0.3)',
 
   highlight: '#FFF9C4',
   overlay: 'rgba(0, 0, 0, 0.5)',
+  disabled: 'rgba(0, 0, 0, 0.38)',
+  glass: 'rgba(255, 255, 255, 0.7)',
 
   verseCard: '#FFFFFF',
   verseHighlight: '#FFF9E6',
@@ -80,6 +95,7 @@ const darkColors: ThemeColors = {
   background: '#121212',
   surface: '#1E1E1E',
   surfaceVariant: '#2C2C2C',
+  card: '#1E1E1E',
 
   text: '#E8EAED',
   textSecondary: '#9AA0A6',
@@ -89,16 +105,22 @@ const darkColors: ThemeColors = {
   primaryLight: '#1A3A52',
   primaryDark: '#7DB8FF',
 
+  secondary: '#34d399',
+
   accent: '#B380CC',
   error: '#F28B82',
   success: '#81C995',
   warning: '#FDD663',
+  info: '#5DA3F5',
 
   border: '#3C3C3C',
   divider: '#2C2C2C',
+  glassBorder: 'rgba(255, 255, 255, 0.1)',
 
   highlight: '#3E3A2F',
   overlay: 'rgba(0, 0, 0, 0.7)',
+  disabled: 'rgba(255, 255, 255, 0.38)',
+  glass: 'rgba(26, 26, 26, 0.7)',
 
   verseCard: '#1E1E1E',
   verseHighlight: '#2E2A1F',
@@ -109,10 +131,12 @@ const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 
 const THEME_STORAGE_KEY = '@app_theme_mode';
 
-export function ThemeProvider({ children }: { children: ReactNode }) {
+export function ThemeProvider({children}: {children: ReactNode}) {
   const systemColorScheme = useColorScheme();
   const [mode, setMode] = useState<ThemeMode>('auto');
-  const [effectiveTheme, setEffectiveTheme] = useState<'light' | 'dark'>('light');
+  const [effectiveTheme, setEffectiveTheme] = useState<'light' | 'dark'>(
+    'light',
+  );
 
   // Load saved theme preference on mount
   useEffect(() => {
@@ -131,7 +155,10 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
   async function loadThemePreference() {
     try {
       const savedMode = await AsyncStorage.getItem(THEME_STORAGE_KEY);
-      if (savedMode && (savedMode === 'light' || savedMode === 'dark' || savedMode === 'auto')) {
+      if (
+        savedMode &&
+        (savedMode === 'light' || savedMode === 'dark' || savedMode === 'auto')
+      ) {
         setMode(savedMode as ThemeMode);
       }
     } catch (error) {
@@ -152,7 +179,7 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
   const isDark = effectiveTheme === 'dark';
 
   return (
-    <ThemeContext.Provider value={{ mode, colors, isDark, setThemeMode }}>
+    <ThemeContext.Provider value={{mode, colors, isDark, setThemeMode}}>
       {children}
     </ThemeContext.Provider>
   );

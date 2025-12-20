@@ -9,24 +9,16 @@
  * - Transición fluida
  */
 
-import React, { useEffect, useRef } from 'react';
-import {
-  View,
-  Text,
-  StyleSheet,
-  Animated,
-  Dimensions,
-  Platform,
-} from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
-import { BlurView } from 'expo-blur';
-import { Ionicons } from '@expo/vector-icons';
-import { useLanguage } from '../hooks/useLanguage';
+import React, {useEffect, useRef} from 'react';
+import {View, Text, StyleSheet, Animated, Dimensions} from 'react-native';
+import {LinearGradient} from 'expo-linear-gradient';
+import {Ionicons} from '@expo/vector-icons';
+import {useLanguage} from '../hooks/useLanguage';
 
-const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
+const {width: SCREEN_WIDTH, height: SCREEN_HEIGHT} = Dimensions.get('window');
 
 interface AnimatedSplashScreenProps {
-  loadingProgress: { loaded: number; total: number };
+  loadingProgress: {loaded: number; total: number};
   message?: string;
 }
 
@@ -34,7 +26,7 @@ export const AnimatedSplashScreen: React.FC<AnimatedSplashScreenProps> = ({
   loadingProgress,
   message,
 }) => {
-  const { t } = useLanguage();
+  const {t} = useLanguage();
 
   // Animaciones
   const fadeAnim = useRef(new Animated.Value(0)).current;
@@ -45,12 +37,12 @@ export const AnimatedSplashScreen: React.FC<AnimatedSplashScreenProps> = ({
 
   // Partículas
   const particles = useRef(
-    Array.from({ length: 20 }, () => ({
+    Array.from({length: 20}, () => ({
       translateY: new Animated.Value(0),
       translateX: new Animated.Value(0),
       opacity: new Animated.Value(0),
       scale: new Animated.Value(0),
-    }))
+    })),
   ).current;
 
   useEffect(() => {
@@ -85,7 +77,7 @@ export const AnimatedSplashScreen: React.FC<AnimatedSplashScreenProps> = ({
         toValue: 1,
         duration: 3000,
         useNativeDriver: true,
-      })
+      }),
     ).start();
 
     // Pulso continuo
@@ -101,7 +93,7 @@ export const AnimatedSplashScreen: React.FC<AnimatedSplashScreenProps> = ({
           duration: 1000,
           useNativeDriver: true,
         }),
-      ])
+      ]),
     ).start();
 
     // Animar partículas
@@ -161,7 +153,7 @@ export const AnimatedSplashScreen: React.FC<AnimatedSplashScreenProps> = ({
               useNativeDriver: true,
             }),
           ]),
-        ])
+        ]),
       ).start();
     });
   };
@@ -181,8 +173,8 @@ export const AnimatedSplashScreen: React.FC<AnimatedSplashScreenProps> = ({
       {/* Gradiente de fondo */}
       <LinearGradient
         colors={['#667eea', '#764ba2', '#f093fb']}
-        start={{ x: 0, y: 0 }}
-        end={{ x: 1, y: 1 }}
+        start={{x: 0, y: 0}}
+        end={{x: 1, y: 1}}
         style={StyleSheet.absoluteFill}
       />
 
@@ -196,17 +188,14 @@ export const AnimatedSplashScreen: React.FC<AnimatedSplashScreenProps> = ({
               {
                 opacity: particle.opacity,
                 transform: [
-                  { translateX: particle.translateX },
-                  { translateY: particle.translateY },
-                  { scale: particle.scale },
+                  {translateX: particle.translateX},
+                  {translateY: particle.translateY},
+                  {scale: particle.scale},
                 ],
               },
-            ]}
-          >
+            ]}>
             <Ionicons
-              name={
-                ['star', 'sparkles', 'heart', 'moon'][index % 4] as any
-              }
+              name={['star', 'sparkles', 'heart', 'moon'][index % 4] as any}
               size={16}
               color="rgba(255,255,255,0.8)"
             />
@@ -220,25 +209,17 @@ export const AnimatedSplashScreen: React.FC<AnimatedSplashScreenProps> = ({
           styles.content,
           {
             opacity: fadeAnim,
-            transform: [
-              { scale: scaleAnim },
-              { translateY: slideUpAnim },
-            ],
+            transform: [{scale: scaleAnim}, {translateY: slideUpAnim}],
           },
-        ]}
-      >
+        ]}>
         {/* Logo con rotación */}
         <Animated.View
           style={[
             styles.logoContainer,
             {
-              transform: [
-                { rotate: rotateInterpolate },
-                { scale: pulseAnim },
-              ],
+              transform: [{rotate: rotateInterpolate}, {scale: pulseAnim}],
             },
-          ]}
-        >
+          ]}>
           <View style={styles.logoCircle}>
             <Ionicons name="book" size={64} color="#ffffff" />
           </View>
@@ -252,9 +233,7 @@ export const AnimatedSplashScreen: React.FC<AnimatedSplashScreenProps> = ({
         <View style={styles.progressContainer}>
           {loadingProgress.total > 0 ? (
             <>
-              <Text style={styles.progressText}>
-                {t.app.loadingBible}
-              </Text>
+              <Text style={styles.progressText}>{t.app.loadingBible}</Text>
               <Text style={styles.progressNumbers}>
                 {loadingProgress.loaded.toLocaleString()} /{' '}
                 {loadingProgress.total.toLocaleString()}
@@ -264,29 +243,26 @@ export const AnimatedSplashScreen: React.FC<AnimatedSplashScreenProps> = ({
               <View style={styles.progressBarContainer}>
                 <View style={styles.progressBarBackground}>
                   <Animated.View
-                    style={[
-                      styles.progressBarFill,
-                      { width: `${progress}%` },
-                    ]}
-                  >
+                    style={[styles.progressBarFill, {width: `${progress}%`}]}>
                     <LinearGradient
                       colors={['#fbbf24', '#f59e0b', '#d97706']}
-                      start={{ x: 0, y: 0 }}
-                      end={{ x: 1, y: 0 }}
+                      start={{x: 0, y: 0}}
+                      end={{x: 1, y: 0}}
                       style={StyleSheet.absoluteFill}
                     />
                   </Animated.View>
                 </View>
-                <Text style={styles.progressPercent}>{Math.round(progress)}%</Text>
+                <Text style={styles.progressPercent}>
+                  {Math.round(progress)}%
+                </Text>
               </View>
             </>
           ) : (
             <View style={styles.loadingIndicator}>
               <Animated.View
                 style={{
-                  transform: [{ rotate: rotateInterpolate }],
-                }}
-              >
+                  transform: [{rotate: rotateInterpolate}],
+                }}>
                 <Ionicons name="sync" size={32} color="#ffffff" />
               </Animated.View>
               <Text style={styles.preparingText}>
@@ -298,9 +274,7 @@ export const AnimatedSplashScreen: React.FC<AnimatedSplashScreenProps> = ({
 
         {/* Versículo inspirador */}
         <View style={styles.verseContainer}>
-          <Text style={styles.verseText}>
-            {t.app.loadingVerse}
-          </Text>
+          <Text style={styles.verseText}>{t.app.loadingVerse}</Text>
         </View>
       </Animated.View>
 
@@ -346,7 +320,7 @@ const styles = StyleSheet.create({
     borderWidth: 0,
     borderColor: 'rgba(255,255,255,0.3)',
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 10 },
+    shadowOffset: {width: 0, height: 10},
     shadowOpacity: 0.3,
     shadowRadius: 20,
     elevation: 10,
@@ -359,7 +333,7 @@ const styles = StyleSheet.create({
     letterSpacing: 1.5,
     textAlign: 'center',
     textShadowColor: 'rgba(0, 0, 0, 0.3)',
-    textShadowOffset: { width: 0, height: 2 },
+    textShadowOffset: {width: 0, height: 2},
     textShadowRadius: 4,
   },
   subtitle: {
@@ -369,7 +343,7 @@ const styles = StyleSheet.create({
     fontStyle: 'italic',
     textAlign: 'center',
     textShadowColor: 'rgba(0, 0, 0, 0.2)',
-    textShadowOffset: { width: 0, height: 1 },
+    textShadowOffset: {width: 0, height: 1},
     textShadowRadius: 2,
   },
   progressContainer: {
@@ -433,7 +407,7 @@ const styles = StyleSheet.create({
     fontStyle: 'italic',
     marginBottom: 8,
     textShadowColor: 'rgba(0, 0, 0, 0.2)',
-    textShadowOffset: { width: 0, height: 1 },
+    textShadowOffset: {width: 0, height: 1},
     textShadowRadius: 2,
   },
   verseReference: {

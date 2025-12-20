@@ -11,19 +11,15 @@
  * Para la gloria de Dios - Eternal Bible App
  */
 
-import React, { useRef, useState } from 'react';
+import React, {useRef, useState} from 'react';
+import {View, Text, StyleSheet, TouchableOpacity, Animated} from 'react-native';
+import {BlurView} from 'expo-blur';
+import {Ionicons} from '@expo/vector-icons';
+import {LinearGradient} from 'expo-linear-gradient';
 import {
-  View,
-  Text,
-  StyleSheet,
-  TouchableOpacity,
-  Animated,
-  Platform,
-} from 'react-native';
-import { BlurView } from 'expo-blur';
-import { Ionicons } from '@expo/vector-icons';
-import { LinearGradient } from 'expo-linear-gradient';
-import { createCelestialTheme, celestialBorderRadius } from '../../styles/celestialTheme';
+  createCelestialTheme,
+  celestialBorderRadius,
+} from '../../styles/celestialTheme';
 
 interface VerseOfDayCardProps {
   /**
@@ -100,14 +96,13 @@ const VerseOfDayCard: React.FC<VerseOfDayCardProps> = ({
   };
 
   return (
-    <Animated.View style={{ transform: [{ scale: scaleAnim }] }}>
+    <Animated.View style={{transform: [{scale: scaleAnim}]}}>
       <TouchableOpacity
         activeOpacity={0.9}
         onPress={onPress}
         onPressIn={handlePressIn}
         onPressOut={handlePressOut}
-        disabled={!onPress}
-      >
+        disabled={!onPress}>
         <BlurView
           intensity={isDark ? 30 : 60}
           tint={isDark ? 'dark' : 'light'}
@@ -119,24 +114,25 @@ const VerseOfDayCard: React.FC<VerseOfDayCardProps> = ({
               borderRadius: celestialBorderRadius.cardMedium, // 24px
             },
             theme.shadows.lg,
-          ]}
-        >
+          ]}>
           {/* Header con ícono sparkles */}
           <View style={styles.header}>
             <View style={styles.iconContainer}>
               <LinearGradient
                 colors={['#fbbf24', '#f59e0b']} // amber gradient
-                start={{ x: 0, y: 0 }}
-                end={{ x: 1, y: 1 }}
-                style={styles.iconGradient}
-              >
+                start={{x: 0, y: 0}}
+                end={{x: 1, y: 1}}
+                style={styles.iconGradient}>
                 <Ionicons name="sparkles" size={24} color="#ffffff" />
               </LinearGradient>
             </View>
 
             <View style={styles.titleContainer}>
-              <Text style={[styles.title, { color: theme.colors.text }]}>{title}</Text>
-              <Text style={[styles.subtitle, { color: theme.colors.textSecondary }]}>
+              <Text style={[styles.title, {color: theme.colors.text}]}>
+                {title}
+              </Text>
+              <Text
+                style={[styles.subtitle, {color: theme.colors.textSecondary}]}>
                 {reference}
               </Text>
             </View>
@@ -149,8 +145,7 @@ const VerseOfDayCard: React.FC<VerseOfDayCardProps> = ({
               {
                 borderLeftColor: theme.colors.primary,
               },
-            ]}
-          >
+            ]}>
             <Text
               style={[
                 styles.verseText,
@@ -158,8 +153,7 @@ const VerseOfDayCard: React.FC<VerseOfDayCardProps> = ({
                   color: theme.colors.text,
                   fontFamily: theme.typography.fontFamily.serif,
                 },
-              ]}
-            >
+              ]}>
               "{verseText}"
             </Text>
           </View>
@@ -169,10 +163,15 @@ const VerseOfDayCard: React.FC<VerseOfDayCardProps> = ({
             {/* Botón leer capítulo completo */}
             {onPress && (
               <TouchableOpacity style={styles.actionButton} onPress={onPress}>
-                <Text style={[styles.actionText, { color: theme.colors.primary }]}>
+                <Text
+                  style={[styles.actionText, {color: theme.colors.primary}]}>
                   Leer capítulo completo
                 </Text>
-                <Ionicons name="arrow-forward" size={18} color={theme.colors.primary} />
+                <Ionicons
+                  name="arrow-forward"
+                  size={18}
+                  color={theme.colors.primary}
+                />
               </TouchableOpacity>
             )}
 
@@ -180,18 +179,26 @@ const VerseOfDayCard: React.FC<VerseOfDayCardProps> = ({
             <View style={styles.iconButtons}>
               {onShare && (
                 <TouchableOpacity
-                  style={[styles.iconButton, { backgroundColor: theme.colors.hover }]}
-                  onPress={onShare}
-                >
-                  <Ionicons name="share-outline" size={20} color={theme.colors.text} />
+                  style={[
+                    styles.iconButton,
+                    {backgroundColor: theme.colors.hover},
+                  ]}
+                  onPress={onShare}>
+                  <Ionicons
+                    name="share-outline"
+                    size={20}
+                    color={theme.colors.text}
+                  />
                 </TouchableOpacity>
               )}
 
               {onFavorite && (
                 <TouchableOpacity
-                  style={[styles.iconButton, { backgroundColor: theme.colors.hover }]}
-                  onPress={handleFavorite}
-                >
+                  style={[
+                    styles.iconButton,
+                    {backgroundColor: theme.colors.hover},
+                  ]}
+                  onPress={handleFavorite}>
                   <Ionicons
                     name={isFavorited ? 'heart' : 'heart-outline'}
                     size={20}

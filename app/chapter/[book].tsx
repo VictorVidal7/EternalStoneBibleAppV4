@@ -129,7 +129,7 @@ export default function ChapterSelectionScreen() {
    * Renderizar item de capítulo con animación
    */
   const renderItem = useCallback(
-    ({item, index}: {item: ChapterItem; index: number}) => {
+    ({item}: {item: ChapterItem}) => {
       const chapterProgress = getChapterProgress(
         bookInfo?.name || '',
         item.chapter.toString(),
@@ -140,8 +140,6 @@ export default function ChapterSelectionScreen() {
         <ChapterCard
           chapter={item.chapter}
           onPress={() => navigateToVerse(item.chapter)}
-          index={index}
-          colors={colors}
           isDark={isDark}
           t={t}
           bookName={bookInfo?.name || ''}
@@ -155,7 +153,6 @@ export default function ChapterSelectionScreen() {
       );
     },
     [
-      colors,
       isDark,
       navigateToVerse,
       bookInfo,
@@ -351,8 +348,6 @@ export default function ChapterSelectionScreen() {
 interface ChapterCardProps {
   chapter: number;
   onPress: () => void;
-  index: number;
-  colors: any;
   isDark: boolean;
   t: any;
   bookName: string;
@@ -366,8 +361,6 @@ const ChapterCard: React.FC<ChapterCardProps> = React.memo(
   ({
     chapter,
     onPress,
-    index,
-    colors,
     isDark,
     t,
     bookName,
@@ -377,11 +370,8 @@ const ChapterCard: React.FC<ChapterCardProps> = React.memo(
     progressPercentage,
   }) => {
     const scaleAnim = useRef(new Animated.Value(1)).current;
-    const fadeAnim = useRef(new Animated.Value(1)).current;
-    const [isPressed, setIsPressed] = useState(false);
 
     const handlePressIn = () => {
-      setIsPressed(true);
       Animated.spring(scaleAnim, {
         toValue: 0.95,
         tension: 100,
@@ -391,7 +381,6 @@ const ChapterCard: React.FC<ChapterCardProps> = React.memo(
     };
 
     const handlePressOut = () => {
-      setIsPressed(false);
       Animated.spring(scaleAnim, {
         toValue: 1,
         tension: 100,

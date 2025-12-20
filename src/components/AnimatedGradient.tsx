@@ -7,12 +7,12 @@
  * - Efectos de shimmer opcionales
  */
 
-import React, { useEffect, useRef } from 'react';
-import { Animated, StyleSheet } from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
+import React, {useEffect, useRef} from 'react';
+import {Animated, StyleSheet} from 'react-native';
+import {LinearGradient} from 'expo-linear-gradient';
 
 interface AnimatedGradientProps {
-  colors: string[];
+  colors: readonly [string, string, ...string[]];
   duration?: number;
   angle?: number;
   children?: React.ReactNode;
@@ -41,7 +41,7 @@ export const AnimatedGradient: React.FC<AnimatedGradientProps> = ({
           duration,
           useNativeDriver: false,
         }),
-      ])
+      ]),
     ).start();
   }, []);
 
@@ -61,8 +61,7 @@ export const AnimatedGradient: React.FC<AnimatedGradientProps> = ({
       colors={colors}
       start={start}
       end={end}
-      style={[styles.gradient, style]}
-    >
+      style={[styles.gradient, style]}>
       {children}
     </LinearGradient>
   );

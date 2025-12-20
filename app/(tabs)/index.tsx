@@ -23,7 +23,6 @@ import {
   Dimensions,
   Animated,
   Platform,
-  StatusBar as RNStatusBar,
   RefreshControl,
 } from 'react-native';
 import {useRouter} from 'expo-router';
@@ -70,7 +69,7 @@ export default function HomeScreen() {
   const celestialTheme = createCelestialTheme(isDark);
   const {selectedVersion} = useBibleVersion();
   const {achievementService, initialized: servicesInitialized} = useServices();
-  const {t} = useLanguage();
+  useLanguage(); // Hook used for language context
   const {getChapterProgress} = useReadingProgress();
   const {addFavorite, isFavorite} = useFavorites();
 

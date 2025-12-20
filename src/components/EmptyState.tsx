@@ -8,18 +8,12 @@
  * - Múltiples variantes
  */
 
-import React, { useEffect, useRef } from 'react';
-import {
-  View,
-  Text,
-  StyleSheet,
-  Animated,
-  ViewStyle,
-} from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
-import { LinearGradient } from 'expo-linear-gradient';
+import React, {useEffect, useRef} from 'react';
+import {View, StyleSheet, Animated, ViewStyle} from 'react-native';
+import {Ionicons} from '@expo/vector-icons';
+import {LinearGradient} from 'expo-linear-gradient';
 import PremiumButton from './PremiumButton';
-import { spacing, fontSize, borderRadius } from '../styles/designTokens';
+import {spacing, fontSize} from '../styles/designTokens';
 
 interface EmptyStateProps {
   icon?: keyof typeof Ionicons.glyphMap;
@@ -27,7 +21,7 @@ interface EmptyStateProps {
   description?: string;
   actionLabel?: string;
   onAction?: () => void;
-  actionGradient?: string[];
+  actionGradient?: readonly [string, string, ...string[]];
   style?: ViewStyle;
   variant?: 'default' | 'gradient' | 'minimal';
 }
@@ -38,7 +32,7 @@ export const EmptyState: React.FC<EmptyStateProps> = ({
   description,
   actionLabel,
   onAction,
-  actionGradient = ['#667eea', '#764ba2'],
+  actionGradient = ['#667eea', '#764ba2'] as const,
   style,
   variant = 'default',
 }) => {
@@ -74,25 +68,20 @@ export const EmptyState: React.FC<EmptyStateProps> = ({
         styles.container,
         {
           opacity: fadeAnim,
-          transform: [{ scale: scaleAnim }],
+          transform: [{scale: scaleAnim}],
         },
         style,
-      ]}
-    >
+      ]}>
       {/* Icon Container */}
       <Animated.View
         style={[
           styles.iconContainer,
           {
-            transform: [{ translateY: slideAnim }],
+            transform: [{translateY: slideAnim}],
           },
-        ]}
-      >
+        ]}>
         {variant === 'gradient' ? (
-          <LinearGradient
-            colors={actionGradient}
-            style={styles.iconGradientBg}
-          >
+          <LinearGradient colors={actionGradient} style={styles.iconGradientBg}>
             <Ionicons name={icon} size={64} color="#ffffff" />
           </LinearGradient>
         ) : (
@@ -100,8 +89,7 @@ export const EmptyState: React.FC<EmptyStateProps> = ({
             style={[
               styles.iconBg,
               variant === 'minimal' && styles.iconBgMinimal,
-            ]}
-          >
+            ]}>
             <Ionicons
               name={icon}
               size={64}
@@ -117,10 +105,9 @@ export const EmptyState: React.FC<EmptyStateProps> = ({
           styles.title,
           {
             opacity: fadeAnim,
-            transform: [{ translateY: slideAnim }],
+            transform: [{translateY: slideAnim}],
           },
-        ]}
-      >
+        ]}>
         {title}
       </Animated.Text>
 
@@ -132,8 +119,7 @@ export const EmptyState: React.FC<EmptyStateProps> = ({
             {
               opacity: fadeAnim,
             },
-          ]}
-        >
+          ]}>
           {description}
         </Animated.Text>
       )}
@@ -143,10 +129,9 @@ export const EmptyState: React.FC<EmptyStateProps> = ({
         <Animated.View
           style={{
             opacity: fadeAnim,
-            transform: [{ scale: scaleAnim }],
+            transform: [{scale: scaleAnim}],
             marginTop: spacing.xl,
-          }}
-        >
+          }}>
           <PremiumButton
             title={actionLabel}
             onPress={onAction}

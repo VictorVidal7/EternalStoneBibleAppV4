@@ -2,6 +2,7 @@
  * 🏆 ACHIEVEMENT CARD COMPONENT
  *
  * Tarjeta visual para mostrar logros con raridades
+ * Soporta ambos sistemas de logros (types.ts y expandedDefinitions.ts)
  * Para la gloria de Dios y del Rey Jesús
  */
 
@@ -10,14 +11,87 @@ import {View, Text, StyleSheet} from 'react-native';
 import {LinearGradient} from 'expo-linear-gradient';
 import {Ionicons} from '@expo/vector-icons';
 import {
-  Achievement,
+  Achievement as ExpandedAchievement,
+  AchievementRarity,
   getRarityInfo,
   RARITY_COLORS,
 } from '../../lib/achievements/expandedDefinitions';
+import {
+  Achievement as BaseAchievement,
+  AchievementTier,
+} from '../../lib/achievements/types';
 import {useTheme} from '../../hooks/useTheme';
 
+// ==================== TYPE COMPATIBILITY ====================
+
+/**
+ * Union type to support both achievement systems
+ */
+type AnyAchievement = ExpandedAchievement | BaseAchievement;
+
+/**
+ * Map tier (from types.ts) to rarity (from expandedDefinitions.ts)
+ */
+const tierToRarity: Record<AchievementTier, AchievementRarity> = {
+  [AchievementTier.BRONZE]: 'common',
+  [AchievementTier.SILVER]: 'uncommon',
+  [AchievementTier.GOLD]: 'rare',
+  [AchievementTier.PLATINUM]: 'epic',
+  [AchievementTier.DIAMOND]: 'legendary',
+};
+
+/**
+ * Helper to get rarity from any achievement type
+ */
+function getAchievementRarity(achievement: AnyAchievement): AchievementRarity {
+  // Check for rarity field (expandedDefinitions format)
+  if ('rarity' in achievement && achievement.rarity) {
+    return achievement.rarity;
+  }
+  // Check for tier field (types.ts format)
+  if ('tier' in achievement && achievement.tier) {
+    return tierToRarity[achievement.tier] || 'common';
+  }
+  // Default fallback
+  return 'common';
+}
+
+/**
+ * Helper to get title from any achievement type
+ */
+function getAchievementTitle(achievement: AnyAchievement): string {
+  // expandedDefinitions uses 'title'
+  if ('title' in achievement && achievement.title) {
+    return achievement.title;
+  }
+  // types.ts uses 'name'
+  if ('name' in achievement && achievement.name) {
+    return achievement.name;
+  }
+  return 'Logro';
+}
+
+/**
+ * Helper to check if rarity is high (for glow effects)
+ */
+function isHighRarity(rarity: AchievementRarity): boolean {
+  return rarity === 'legendary' || rarity === 'epic';
+}
+
+/**
+ * Helper to get reward from any achievement type
+ */
+function getAchievementReward(achievement: AnyAchievement) {
+  if ('reward' in achievement && achievement.reward) {
+    return achievement.reward;
+  }
+  return null;
+}
+
+// ==================== COMPONENT ====================
+
 interface AchievementCardProps {
-  achievement: Achievement;
+  achievement: AnyAchievement;
   unlocked: boolean;
   progress?: number;
   compact?: boolean;
@@ -30,8 +104,15 @@ export function AchievementCard({
   compact = false,
 }: AchievementCardProps) {
   const {isDark, colors} = useTheme();
-  const rarityInfo = getRarityInfo(achievement.rarity, isDark);
-  const rarityColors = RARITY_COLORS[achievement.rarity];
+
+  // Get normalized values that work with both achievement types
+  const rarity = getAchievementRarity(achievement);
+  const title = getAchievementTitle(achievement);
+  const reward = getAchievementReward(achievement);
+
+  // Get rarity info and colors (now safe since rarity is guaranteed)
+  const rarityInfo = getRarityInfo(rarity, isDark);
+  const rarityColors = RARITY_COLORS[rarity];
 
   return (
     <View
@@ -46,19 +127,17 @@ export function AchievementCard({
         },
       ]}>
       {/* Glow effect for unlocked legendary/epic */}
-      {unlocked &&
-        (achievement.rarity === 'legendary' ||
-          achievement.rarity === 'epic') && (
-          <View
-            style={[
-              styles.glowEffect,
-              {
-                backgroundColor: rarityColors.glow,
-                shadowColor: rarityInfo.color,
-              },
-            ]}
-          />
-        )}
+      {unlocked && isHighRarity(rarity) && (
+        <View
+          style={[
+            styles.glowEffect,
+            {
+              backgroundColor: rarityColors.glow,
+              shadowColor: rarityInfo.color,
+            },
+          ]}
+        />
+      )}
 
       {/* Icon */}
       <View
@@ -88,7 +167,7 @@ export function AchievementCard({
               {color: unlocked ? colors.text : colors.textSecondary},
             ]}
             numberOfLines={1}>
-            {achievement.title}
+            {title}
           </Text>
           <View
             style={[
@@ -139,11 +218,11 @@ export function AchievementCard({
             </Text>
           </View>
 
-          {unlocked && achievement.reward && (
+          {unlocked && reward && (
             <View style={styles.rewardBadge}>
               <Ionicons name="gift" size={14} color={rarityInfo.color} />
               <Text style={[styles.rewardText, {color: rarityInfo.color}]}>
-                {achievement.reward.name}
+                {reward.name}
               </Text>
             </View>
           )}

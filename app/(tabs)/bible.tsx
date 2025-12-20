@@ -36,7 +36,6 @@ import {
   borderRadius,
   fontSize,
   shadows,
-  iconSize,
 } from '../../src/styles/designTokens';
 
 interface BibleBook {

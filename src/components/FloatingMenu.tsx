@@ -8,44 +8,35 @@
  * - Configuración flexible
  */
 
-import React, { useRef, useState } from 'react';
-import {
-  View,
-  StyleSheet,
-  TouchableOpacity,
-  Animated,
-  Platform,
-} from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
-import { LinearGradient } from 'expo-linear-gradient';
-import { BlurView } from 'expo-blur';
+import React, {useRef, useState} from 'react';
+import {View, StyleSheet, TouchableOpacity, Animated} from 'react-native';
+import {Ionicons} from '@expo/vector-icons';
+import {LinearGradient} from 'expo-linear-gradient';
 import * as Haptics from 'expo-haptics';
-import { spacing, borderRadius, shadows } from '../styles/designTokens';
+import {spacing, shadows} from '../styles/designTokens';
 
 export interface MenuAction {
   icon: keyof typeof Ionicons.glyphMap;
   label: string;
   onPress: () => void;
   color?: string;
-  gradient?: string[];
+  gradient?: readonly [string, string, ...string[]];
 }
 
 interface FloatingMenuProps {
   actions: MenuAction[];
   mainIcon?: keyof typeof Ionicons.glyphMap;
-  mainGradient?: string[];
+  mainGradient?: readonly [string, string, ...string[]];
   position?: 'bottom-right' | 'bottom-left' | 'bottom-center';
   size?: 'small' | 'medium' | 'large';
-  useGlassmorphism?: boolean;
 }
 
 export const FloatingMenu: React.FC<FloatingMenuProps> = ({
   actions,
   mainIcon = 'add',
-  mainGradient = ['#667eea', '#764ba2'],
+  mainGradient = ['#667eea', '#764ba2'] as const,
   position = 'bottom-right',
   size = 'large',
-  useGlassmorphism = true,
 }) => {
   const [isOpen, setIsOpen] = useState(false);
   const rotation = useRef(new Animated.Value(0)).current;
@@ -57,7 +48,7 @@ export const FloatingMenu: React.FC<FloatingMenuProps> = ({
       opacity: new Animated.Value(0),
       scale: new Animated.Value(0),
       translateY: new Animated.Value(20),
-    }))
+    })),
   ).current;
 
   const getSizeValue = () => {
@@ -95,7 +86,7 @@ export const FloatingMenu: React.FC<FloatingMenuProps> = ({
       // Abrir
       Animated.stagger(
         50,
-        actionAnimations.map((anim) =>
+        actionAnimations.map(anim =>
           Animated.parallel([
             Animated.spring(anim.opacity, {
               toValue: 1,
@@ -115,13 +106,13 @@ export const FloatingMenu: React.FC<FloatingMenuProps> = ({
               friction: 10,
               useNativeDriver: true,
             }),
-          ])
-        )
+          ]),
+        ),
       ).start();
     } else {
       // Cerrar
       Animated.parallel(
-        actionAnimations.map((anim) =>
+        actionAnimations.map(anim =>
           Animated.parallel([
             Animated.timing(anim.opacity, {
               toValue: 0,
@@ -139,15 +130,15 @@ export const FloatingMenu: React.FC<FloatingMenuProps> = ({
               duration: 150,
               useNativeDriver: true,
             }),
-          ])
-        )
+          ]),
+        ),
       ).start();
     }
 
     setIsOpen(newState);
   };
 
-  const handleActionPress = (action: MenuAction, index: number) => {
+  const handleActionPress = (action: MenuAction) => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     action.onPress();
     toggleMenu();
@@ -166,13 +157,13 @@ export const FloatingMenu: React.FC<FloatingMenuProps> = ({
 
     switch (position) {
       case 'bottom-right':
-        return { ...baseStyle, right: spacing.xl };
+        return {...baseStyle, right: spacing.xl};
       case 'bottom-left':
-        return { ...baseStyle, left: spacing.xl };
+        return {...baseStyle, left: spacing.xl};
       case 'bottom-center':
-        return { ...baseStyle, alignSelf: 'center' as const };
+        return {...baseStyle, alignSelf: 'center' as const};
       default:
-        return { ...baseStyle, right: spacing.xl };
+        return {...baseStyle, right: spacing.xl};
     }
   };
 
@@ -195,25 +186,22 @@ export const FloatingMenu: React.FC<FloatingMenuProps> = ({
                 height: actionButtonSize,
                 opacity: actionAnimations[index].opacity,
                 transform: [
-                  { scale: actionAnimations[index].scale },
-                  { translateX: x },
-                  { translateY: y },
+                  {scale: actionAnimations[index].scale},
+                  {translateX: x},
+                  {translateY: y},
                 ],
               },
-            ]}
-          >
+            ]}>
             <TouchableOpacity
               activeOpacity={0.8}
-              onPress={() => handleActionPress(action, index)}
-            >
+              onPress={() => handleActionPress(action)}>
               {action.gradient ? (
                 <LinearGradient
                   colors={action.gradient}
                   style={[
                     styles.actionButtonInner,
-                    { width: actionButtonSize, height: actionButtonSize },
-                  ]}
-                >
+                    {width: actionButtonSize, height: actionButtonSize},
+                  ]}>
                   <Ionicons
                     name={action.icon}
                     size={actionButtonSize * 0.5}
@@ -229,8 +217,7 @@ export const FloatingMenu: React.FC<FloatingMenuProps> = ({
                       height: actionButtonSize,
                       backgroundColor: action.color || '#667eea',
                     },
-                  ]}
-                >
+                  ]}>
                   <Ionicons
                     name={action.icon}
                     size={actionButtonSize * 0.5}
@@ -246,9 +233,8 @@ export const FloatingMenu: React.FC<FloatingMenuProps> = ({
       {/* Main Button */}
       <Animated.View
         style={{
-          transform: [{ scale }, { rotate: rotationDegrees }],
-        }}
-      >
+          transform: [{scale}, {rotate: rotationDegrees}],
+        }}>
         <TouchableOpacity
           activeOpacity={0.9}
           onPress={toggleMenu}
@@ -267,8 +253,7 @@ export const FloatingMenu: React.FC<FloatingMenuProps> = ({
               friction: 10,
               useNativeDriver: true,
             }).start();
-          }}
-        >
+          }}>
           <LinearGradient
             colors={mainGradient}
             style={[
@@ -279,9 +264,12 @@ export const FloatingMenu: React.FC<FloatingMenuProps> = ({
                 borderRadius: buttonSize / 2,
               },
               shadows.xl,
-            ]}
-          >
-            <Ionicons name={mainIcon} size={buttonSize * 0.45} color="#ffffff" />
+            ]}>
+            <Ionicons
+              name={mainIcon}
+              size={buttonSize * 0.45}
+              color="#ffffff"
+            />
           </LinearGradient>
         </TouchableOpacity>
       </Animated.View>
@@ -295,8 +283,7 @@ export const FloatingMenu: React.FC<FloatingMenuProps> = ({
               backgroundColor: 'rgba(0, 0, 0, 0.3)',
               opacity: rotation,
             },
-          ]}
-        >
+          ]}>
           <TouchableOpacity
             style={StyleSheet.absoluteFill}
             activeOpacity={1}

@@ -21,13 +21,7 @@ export {
 } from '../PremiumSkeleton';
 
 // ==================== BADGES ====================
-export {
-  PremiumBadge,
-  LevelBadge,
-  NewBadge,
-  VersionBadge,
-  StatusBadge,
-} from '../PremiumBadge';
+export {PremiumBadge} from '../PremiumBadge';
 
 // ==================== PROGRESS BARS ====================
 export {

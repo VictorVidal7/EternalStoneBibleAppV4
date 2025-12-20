@@ -9,7 +9,7 @@
  * - Gradientes y sombras personalizables
  */
 
-import React, { useRef } from 'react';
+import React, {useRef} from 'react';
 import {
   TouchableOpacity,
   Text,
@@ -19,12 +19,12 @@ import {
   TextStyle,
   GestureResponderEvent,
 } from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
-import { Ionicons } from '@expo/vector-icons';
+import {LinearGradient} from 'expo-linear-gradient';
+import {Ionicons} from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
 
-import { spacing, borderRadius, fontSize, shadows } from '../styles/designTokens';
-import { useTheme } from '../hooks/useTheme';
+import {spacing, borderRadius, fontSize, shadows} from '../styles/designTokens';
+import {useTheme} from '../hooks/useTheme';
 
 type ButtonVariant = 'primary' | 'secondary' | 'outline' | 'ghost' | 'gradient';
 type ButtonSize = 'small' | 'medium' | 'large';
@@ -60,7 +60,7 @@ export default function AnimatedButton({
   gradientColors,
   hapticFeedback = true,
 }: AnimatedButtonProps) {
-  const { colors, isDark } = useTheme();
+  const {colors, isDark} = useTheme();
   const scaleAnim = useRef(new Animated.Value(1)).current;
   const opacityAnim = useRef(new Animated.Value(1)).current;
 
@@ -185,10 +185,12 @@ export default function AnimatedButton({
   const buttonColors = getButtonColors();
   const sizeStyles = getSizeStyles();
 
-  const defaultGradientColors = gradientColors || [
-    colors.primary,
-    colors.primaryDark,
-  ];
+  const defaultGradientColors: readonly [string, string] = gradientColors
+    ? [
+        gradientColors[0] || colors.primary,
+        gradientColors[1] || colors.primaryDark,
+      ]
+    : [colors.primary, colors.primaryDark];
 
   const buttonContent = (
     <>
@@ -209,8 +211,7 @@ export default function AnimatedButton({
             fontWeight: '600',
           },
           textStyle,
-        ]}
-      >
+        ]}>
         {loading ? 'Cargando...' : title}
       </Text>
       {icon && iconPosition === 'right' && (
@@ -242,23 +243,20 @@ export default function AnimatedButton({
     return (
       <Animated.View
         style={{
-          transform: [{ scale: scaleAnim }],
+          transform: [{scale: scaleAnim}],
           opacity: opacityAnim,
-        }}
-      >
+        }}>
         <TouchableOpacity
           activeOpacity={1}
           onPress={onPress}
           onPressIn={handlePressIn}
           onPressOut={handlePressOut}
-          disabled={disabled || loading}
-        >
+          disabled={disabled || loading}>
           <LinearGradient
             colors={defaultGradientColors}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 1 }}
-            style={[containerStyle, isDark ? shadows.lg : shadows.md]}
-          >
+            start={{x: 0, y: 0}}
+            end={{x: 1, y: 1}}
+            style={[containerStyle, isDark ? shadows.lg : shadows.md]}>
             {buttonContent}
           </LinearGradient>
         </TouchableOpacity>
@@ -269,22 +267,22 @@ export default function AnimatedButton({
   return (
     <Animated.View
       style={{
-        transform: [{ scale: scaleAnim }],
+        transform: [{scale: scaleAnim}],
         opacity: opacityAnim,
-      }}
-    >
+      }}>
       <TouchableOpacity
         style={[
           containerStyle,
-          { backgroundColor: buttonColors.background },
-          variant !== 'ghost' && variant !== 'outline' && (isDark ? shadows.md : shadows.sm),
+          {backgroundColor: buttonColors.background},
+          variant !== 'ghost' &&
+            variant !== 'outline' &&
+            (isDark ? shadows.md : shadows.sm),
         ]}
         activeOpacity={1}
         onPress={onPress}
         onPressIn={handlePressIn}
         onPressOut={handlePressOut}
-        disabled={disabled || loading}
-      >
+        disabled={disabled || loading}>
         {buttonContent}
       </TouchableOpacity>
     </Animated.View>

@@ -41,7 +41,7 @@ export const nightReadingTheme: NightReadingTheme = {
 
 export function useNightReading() {
   const [isNightMode, setIsNightMode] = useState(false);
-  const [autoNightMode, setAutoNightMode] = useState(true);
+  const [autoNightMode, setAutoNightMode] = useState(false); // Desactivado por defecto para respetar el tema de la app
   const [loading, setLoading] = useState(true);
 
   /**
@@ -105,7 +105,7 @@ export function useNightReading() {
       ]);
 
       const autoMode =
-        savedAutoMode !== null ? JSON.parse(savedAutoMode) : true;
+        savedAutoMode !== null ? JSON.parse(savedAutoMode) : false; // false por defecto
       setAutoNightMode(autoMode);
 
       // Si auto mode está activado, usar la hora actual

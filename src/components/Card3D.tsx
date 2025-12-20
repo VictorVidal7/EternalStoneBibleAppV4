@@ -8,16 +8,10 @@
  * - Parallax sutil
  */
 
-import React, { useRef } from 'react';
-import {
-  View,
-  StyleSheet,
-  TouchableOpacity,
-  Animated,
-  ViewStyle,
-} from 'react-native';
+import React, {useRef} from 'react';
+import {StyleSheet, TouchableOpacity, Animated, ViewStyle} from 'react-native';
 import * as Haptics from 'expo-haptics';
-import { shadows, borderRadius, spacing } from '../styles/designTokens';
+import {borderRadius} from '../styles/designTokens';
 
 interface Card3DProps {
   children: React.ReactNode;
@@ -107,20 +101,18 @@ export const Card3D: React.FC<Card3DProps> = ({
         activeOpacity={1}
         onPressIn={handlePressIn}
         onPressOut={handlePressOut}
-        onPress={onPress}
-      >
+        onPress={onPress}>
         <Animated.View
           style={[
             styles.card,
             {
               backgroundColor,
               borderRadius: customBorderRadius,
-              transform: [{ scale: scaleAnim }],
+              transform: [{scale: scaleAnim}],
             },
             animatedShadow,
             style,
-          ]}
-        >
+          ]}>
           {children}
         </Animated.View>
       </TouchableOpacity>
@@ -137,8 +129,7 @@ export const Card3D: React.FC<Card3DProps> = ({
         },
         get3DShadows(),
         style,
-      ]}
-    >
+      ]}>
       {children}
     </Animated.View>
   );

@@ -12,21 +12,23 @@
  * Para la gloria de Dios - Eternal Bible App
  */
 
-import React, { useEffect, useRef } from 'react';
+import React, {useEffect, useRef} from 'react';
 import {
   TouchableOpacity,
   View,
   Text,
   StyleSheet,
   Animated,
-  Dimensions,
   Platform,
 } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
-import { BlurView } from 'expo-blur';
-import { LinearGradient } from 'expo-linear-gradient';
-import type { ComponentProps } from 'react';
-import { createCelestialTheme, celestialBorderRadius } from '../../styles/celestialTheme';
+import {Ionicons} from '@expo/vector-icons';
+import {BlurView} from 'expo-blur';
+import {LinearGradient} from 'expo-linear-gradient';
+import type {ComponentProps} from 'react';
+import {
+  createCelestialTheme,
+  celestialBorderRadius,
+} from '../../styles/celestialTheme';
 
 type IoniconsName = ComponentProps<typeof Ionicons>['name'];
 
@@ -58,13 +60,11 @@ const getGradientForColor = (baseColor: string): [string, string] => {
  * Usa blanco semi-transparente uniforme para diseño ligero y elegante
  * El color vibrante viene SOLO del gradiente del ícono
  */
-const getBackgroundForColor = (baseColor: string): string => {
+const getBackgroundForColor = (_baseColor: string): string => {
   // Background blanco uniforme para todos los cards
   // El color distintivo viene del gradiente del ícono
   return 'rgba(255, 255, 255, 0.75)'; // Blanco semi-transparente
 };
-
-const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
 interface QuickAccessButtonProps {
   /**
@@ -159,7 +159,7 @@ const QuickAccessButton: React.FC<QuickAccessButtonProps> = ({
             duration: 1000,
             useNativeDriver: true,
           }),
-        ])
+        ]),
       ).start();
     }
   }, [recentlyAccessed]);
@@ -187,16 +187,14 @@ const QuickAccessButton: React.FC<QuickAccessButtonProps> = ({
         styles.container,
         {
           opacity: fadeAnim,
-          transform: [{ scale: scaleAnim }],
+          transform: [{scale: scaleAnim}],
         },
-      ]}
-    >
+      ]}>
       <TouchableOpacity
         activeOpacity={0.7}
         onPress={onPress}
         onPressIn={handlePressIn}
-        onPressOut={handlePressOut}
-      >
+        onPressOut={handlePressOut}>
         <BlurView
           intensity={isDark ? 20 : 40}
           tint={isDark ? 'dark' : 'light'}
@@ -210,8 +208,7 @@ const QuickAccessButton: React.FC<QuickAccessButtonProps> = ({
               borderRadius: celestialBorderRadius.cardSmall, // 20px
             },
             isDark ? theme.shadows.sm : styles.lightModeShadow,
-          ]}
-        >
+          ]}>
           {/* Indicador de "recently accessed" */}
           {recentlyAccessed && (
             <Animated.View
@@ -219,7 +216,7 @@ const QuickAccessButton: React.FC<QuickAccessButtonProps> = ({
                 styles.recentIndicator,
                 {
                   backgroundColor: color,
-                  transform: [{ scale: pulseAnim }],
+                  transform: [{scale: pulseAnim}],
                 },
               ]}
             />
@@ -230,10 +227,9 @@ const QuickAccessButton: React.FC<QuickAccessButtonProps> = ({
             // MODO CLARO: Gradiente vibrante con ícono blanco
             <LinearGradient
               colors={gradientColors}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 1 }}
-              style={[styles.iconContainer, styles.iconGradient]}
-            >
+              start={{x: 0, y: 0}}
+              end={{x: 1, y: 1}}
+              style={[styles.iconContainer, styles.iconGradient]}>
               <Ionicons name={icon} size={28} color="#FFFFFF" />
             </LinearGradient>
           ) : (
@@ -244,17 +240,15 @@ const QuickAccessButton: React.FC<QuickAccessButtonProps> = ({
                 {
                   backgroundColor: `${color}15`, // color con 15% opacidad
                 },
-              ]}
-            >
+              ]}>
               <Ionicons name={icon} size={28} color={color} />
             </View>
           )}
 
           {/* Nombre del libro */}
           <Text
-            style={[styles.name, { color: theme.colors.text }]}
-            numberOfLines={1}
-          >
+            style={[styles.name, {color: theme.colors.text}]}
+            numberOfLines={1}>
             {name}
           </Text>
         </BlurView>
@@ -295,7 +289,7 @@ const styles = StyleSheet.create({
     ...Platform.select({
       ios: {
         shadowColor: '#000',
-        shadowOffset: { width: 0, height: 4 },
+        shadowOffset: {width: 0, height: 4},
         shadowOpacity: 0.25, // Aumentado de 0.15 a 0.25 para más visibilidad
         shadowRadius: 8,
       },
@@ -309,7 +303,7 @@ const styles = StyleSheet.create({
     ...Platform.select({
       ios: {
         shadowColor: '#64748b', // slate-500
-        shadowOffset: { width: 0, height: 2 },
+        shadowOffset: {width: 0, height: 2},
         shadowOpacity: 0.06, // MUY sutil - reducido de 0.18
         shadowRadius: 8,
       },

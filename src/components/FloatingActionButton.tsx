@@ -5,19 +5,13 @@
  * y diseño Material Design moderno.
  */
 
-import React, { useRef, useState } from 'react';
-import {
-  View,
-  StyleSheet,
-  TouchableOpacity,
-  Animated,
-  Platform,
-} from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import React, {useRef, useState} from 'react';
+import {View, StyleSheet, TouchableOpacity, Animated} from 'react-native';
+import {Ionicons} from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
-import { LinearGradient } from 'expo-linear-gradient';
-import { spacing, borderRadius, shadows, iconSize } from '../styles/designTokens';
-import { useTheme } from '../hooks/useTheme';
+import {LinearGradient} from 'expo-linear-gradient';
+import {spacing, borderRadius, shadows, iconSize} from '../styles/designTokens';
+import {useTheme} from '../hooks/useTheme';
 
 interface FABAction {
   icon: keyof typeof Ionicons.glyphMap;
@@ -45,7 +39,7 @@ export const FloatingActionButton: React.FC<FloatingActionButtonProps> = ({
   useGradient = true,
   color,
 }) => {
-  const { colors, isDark } = useTheme();
+  const {colors} = useTheme();
   const [isExpanded, setIsExpanded] = useState(false);
   const rotation = useRef(new Animated.Value(0)).current;
   const scale = useRef(new Animated.Value(1)).current;
@@ -115,17 +109,17 @@ export const FloatingActionButton: React.FC<FloatingActionButtonProps> = ({
   const positionStyle = (() => {
     switch (position) {
       case 'bottom-left':
-        return { bottom: spacing.xl, left: spacing.xl };
+        return {bottom: spacing.xl, left: spacing.xl};
       case 'bottom-center':
-        return { bottom: spacing.xl, alignSelf: 'center' };
+        return {bottom: spacing.xl, alignSelf: 'center' as const};
       case 'bottom-right':
       default:
-        return { bottom: spacing.xl, right: spacing.xl };
+        return {bottom: spacing.xl, right: spacing.xl};
     }
   })();
 
   const fabColor = color || colors.primary;
-  const gradientColors = useGradient
+  const gradientColors: readonly [string, string] = useGradient
     ? [fabColor, colors.primaryDark]
     : [fabColor, fabColor];
 
@@ -139,7 +133,6 @@ export const FloatingActionButton: React.FC<FloatingActionButtonProps> = ({
               key={index}
               {...action}
               index={index}
-              total={actions.length}
               isExpanded={isExpanded}
               onPress={() => {
                 Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
@@ -157,19 +150,17 @@ export const FloatingActionButton: React.FC<FloatingActionButtonProps> = ({
         onPress={handlePress}
         accessible
         accessibilityRole="button"
-        accessibilityLabel="Floating action button"
-      >
+        accessibilityLabel="Floating action button">
         <Animated.View
           style={[
             {
-              transform: [{ scale }, { rotate: rotateInterpolate }],
+              transform: [{scale}, {rotate: rotateInterpolate}],
             },
-          ]}
-        >
+          ]}>
           <LinearGradient
             colors={gradientColors}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 1 }}
+            start={{x: 0, y: 0}}
+            end={{x: 1, y: 1}}
             style={[
               styles.fab,
               {
@@ -178,8 +169,7 @@ export const FloatingActionButton: React.FC<FloatingActionButtonProps> = ({
                 borderRadius: fabSize / 2,
                 ...shadows['2xl'],
               },
-            ]}
-          >
+            ]}>
             <Ionicons name={icon} size={fabIconSize} color="#ffffff" />
           </LinearGradient>
         </Animated.View>
@@ -201,20 +191,17 @@ export const FloatingActionButton: React.FC<FloatingActionButtonProps> = ({
 
 interface ActionItemProps extends FABAction {
   index: number;
-  total: number;
   isExpanded: boolean;
 }
 
 const ActionItem: React.FC<ActionItemProps> = ({
   icon,
-  label,
   onPress,
   color,
   index,
-  total,
   isExpanded,
 }) => {
-  const { colors, isDark } = useTheme();
+  const {colors} = useTheme();
   const translateY = useRef(new Animated.Value(0)).current;
   const opacity = useRef(new Animated.Value(0)).current;
 
@@ -258,11 +245,10 @@ const ActionItem: React.FC<ActionItemProps> = ({
       style={[
         styles.actionItem,
         {
-          transform: [{ translateY }],
+          transform: [{translateY}],
           opacity,
         },
-      ]}
-    >
+      ]}>
       <TouchableOpacity
         onPress={onPress}
         style={[
@@ -272,8 +258,7 @@ const ActionItem: React.FC<ActionItemProps> = ({
             ...shadows.lg,
           },
         ]}
-        activeOpacity={0.9}
-      >
+        activeOpacity={0.9}>
         <Ionicons name={icon} size={24} color="#ffffff" />
       </TouchableOpacity>
     </Animated.View>

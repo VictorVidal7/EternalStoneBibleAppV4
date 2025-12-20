@@ -52,7 +52,7 @@ export const ModernCard: React.FC<ModernCardProps> = ({
   disabled = false,
   hapticFeedback = true,
   borderColor,
-  borderWidth = 1,
+  borderWidth: _borderWidth = 1,
   useBlur = Platform.OS === 'ios',
 }) => {
   const {colors, isDark} = useTheme();
@@ -239,7 +239,7 @@ export const CardHeader: React.FC<CardHeaderProps> = ({
   action,
   style,
 }) => {
-  const {colors, isDark} = useTheme();
+  const {colors} = useTheme();
 
   return (
     <View style={[styles.header, style]}>
@@ -267,7 +267,7 @@ interface CardFooterProps {
 }
 
 export const CardFooter: React.FC<CardFooterProps> = ({children, style}) => {
-  const {colors, isDark} = useTheme();
+  const {colors} = useTheme();
 
   return (
     <View style={[styles.footer, {borderTopColor: colors.border}, style]}>
@@ -289,7 +289,7 @@ export const CardSection: React.FC<CardSectionProps> = ({
   divider = false,
   style,
 }) => {
-  const {colors, isDark} = useTheme();
+  const {colors} = useTheme();
 
   return (
     <View

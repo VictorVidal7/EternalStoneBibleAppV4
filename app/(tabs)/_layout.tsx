@@ -1,7 +1,6 @@
 import {Tabs} from 'expo-router';
 import {Ionicons} from '@expo/vector-icons';
 import {Platform} from 'react-native';
-import {BlurView} from 'expo-blur';
 import {useTheme} from '../../src/hooks/useTheme';
 import {useLanguage} from '../../src/hooks/useLanguage';
 
@@ -30,7 +29,7 @@ export default function TabLayout() {
           height: Platform.OS === 'ios' ? 88 : 68,
           marginHorizontal: 0,
           elevation: 0,
-          shadowColor: isDark ? '#000' : colors.shadowColor,
+          shadowColor: '#000',
           shadowOffset: {width: 0, height: -2},
           shadowOpacity: isDark ? 0.4 : 0.08,
           shadowRadius: 16,

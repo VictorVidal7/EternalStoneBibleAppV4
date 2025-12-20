@@ -46,15 +46,15 @@ export {default as FloatingActionButton} from './FloatingActionButton';
 export {default as ProgressIndicator} from './ProgressIndicator';
 export {default as SkeletonLoader} from './SkeletonLoader';
 export {default as ErrorBoundary} from './ErrorBoundary';
-export {default as AchievementNotifications} from './AchievementNotifications';
+export {AchievementNotifications} from './AchievementNotifications';
 
 // Achievement Components
-export {default as AchievementCard} from './achievements/AchievementCard';
-export {default as AchievementUnlockedModal} from './achievements/AchievementUnlockedModal';
-export {default as UserStatsPanel} from './achievements/UserStatsPanel';
+export {AchievementCard} from './achievements/AchievementCard';
+export {AchievementUnlockedModal} from './achievements/AchievementUnlockedModal';
+export {UserStatsPanel} from './achievements/UserStatsPanel';
 
 // Highlight Components
-export {default as HighlightColorPicker} from './highlights/HighlightColorPicker';
+export {HighlightColorPicker} from './highlights/HighlightColorPicker';
 
 // Types
 export type {MenuAction} from './FloatingMenu';

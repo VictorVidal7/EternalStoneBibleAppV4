@@ -3,7 +3,7 @@
  * Permite elegir color y categoría para destacar versículos
  */
 
-import React, { useState } from 'react';
+import React, {useState} from 'react';
 import {
   View,
   Text,
@@ -11,8 +11,7 @@ import {
   Pressable,
   Modal,
   ScrollView,
-  Animated,
-} from 'react';
+} from 'react-native';
 import {
   HighlightColor,
   HighlightCategory,
@@ -39,11 +38,11 @@ export const HighlightColorPicker: React.FC<HighlightColorPickerProps> = ({
   onClose,
 }) => {
   const [selectedColor, setSelectedColor] = useState<HighlightColor>(
-    currentColor || HighlightColor.YELLOW
+    currentColor || HighlightColor.YELLOW,
   );
-  const [selectedCategory, setSelectedCategory] = useState<HighlightCategory | undefined>(
-    currentCategory
-  );
+  const [selectedCategory, setSelectedCategory] = useState<
+    HighlightCategory | undefined
+  >(currentCategory);
 
   const handleConfirm = () => {
     onSelect(selectedColor, selectedCategory);
@@ -58,8 +57,7 @@ export const HighlightColorPicker: React.FC<HighlightColorPickerProps> = ({
       visible={visible}
       animationType="slide"
       transparent
-      onRequestClose={onClose}
-    >
+      onRequestClose={onClose}>
       <View style={styles.overlay}>
         <Pressable style={styles.backdrop} onPress={onClose} />
 
@@ -77,16 +75,15 @@ export const HighlightColorPicker: React.FC<HighlightColorPickerProps> = ({
             <View style={styles.section}>
               <Text style={styles.sectionTitle}>Color</Text>
               <View style={styles.colorGrid}>
-                {colors.map((color) => (
+                {colors.map(color => (
                   <Pressable
                     key={color}
                     style={[
                       styles.colorButton,
-                      { backgroundColor: color },
+                      {backgroundColor: color},
                       selectedColor === color && styles.colorButtonSelected,
                     ]}
-                    onPress={() => setSelectedColor(color)}
-                  >
+                    onPress={() => setSelectedColor(color)}>
                     {selectedColor === color && (
                       <Text style={styles.colorCheckmark}>✓</Text>
                     )}
@@ -102,19 +99,19 @@ export const HighlightColorPicker: React.FC<HighlightColorPickerProps> = ({
             <View style={styles.section}>
               <Text style={styles.sectionTitle}>Categoría (opcional)</Text>
               <View style={styles.categoryGrid}>
-                {categories.map((category) => (
+                {categories.map(category => (
                   <Pressable
                     key={category}
                     style={[
                       styles.categoryButton,
-                      selectedCategory === category && styles.categoryButtonSelected,
+                      selectedCategory === category &&
+                        styles.categoryButtonSelected,
                     ]}
                     onPress={() =>
                       setSelectedCategory(
-                        selectedCategory === category ? undefined : category
+                        selectedCategory === category ? undefined : category,
                       )
-                    }
-                  >
+                    }>
                     <Text style={styles.categoryIcon}>
                       {HIGHLIGHT_CATEGORY_ICONS[category]}
                     </Text>
@@ -124,8 +121,7 @@ export const HighlightColorPicker: React.FC<HighlightColorPickerProps> = ({
                         selectedCategory === category &&
                           styles.categoryTextSelected,
                       ]}
-                      numberOfLines={1}
-                    >
+                      numberOfLines={1}>
                       {HIGHLIGHT_CATEGORY_NAMES[category]}
                     </Text>
                   </Pressable>
@@ -136,7 +132,8 @@ export const HighlightColorPicker: React.FC<HighlightColorPickerProps> = ({
             {/* Vista previa */}
             <View style={styles.preview}>
               <Text style={styles.previewLabel}>Vista previa:</Text>
-              <View style={[styles.previewText, { backgroundColor: selectedColor }]}>
+              <View
+                style={[styles.previewText, {backgroundColor: selectedColor}]}>
                 <Text style={styles.previewVerse}>
                   "Porque de tal manera amó Dios al mundo..."
                 </Text>
@@ -152,8 +149,7 @@ export const HighlightColorPicker: React.FC<HighlightColorPickerProps> = ({
                 onPress={() => {
                   onRemove();
                   onClose();
-                }}
-              >
+                }}>
                 <Text style={styles.removeButtonText}>Quitar resaltado</Text>
               </Pressable>
             )}
@@ -161,10 +157,9 @@ export const HighlightColorPicker: React.FC<HighlightColorPickerProps> = ({
               style={[
                 styles.actionButton,
                 styles.confirmButton,
-                { backgroundColor: selectedColor },
+                {backgroundColor: selectedColor},
               ]}
-              onPress={handleConfirm}
-            >
+              onPress={handleConfirm}>
               <Text style={styles.confirmButtonText}>
                 {currentColor ? 'Actualizar' : 'Resaltar'}
               </Text>
@@ -318,7 +313,7 @@ const styles = StyleSheet.create({
   },
   confirmButton: {
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
+    shadowOffset: {width: 0, height: 2},
     shadowOpacity: 0.2,
     shadowRadius: 4,
     elevation: 3,

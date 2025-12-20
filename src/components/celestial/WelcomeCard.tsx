@@ -12,19 +12,14 @@
  */
 
 import React from 'react';
-import {
-  View,
-  Text,
-  StyleSheet,
-  Dimensions,
-  Platform,
-} from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
-import { BlurView } from 'expo-blur';
+import {View, Text, StyleSheet, Platform} from 'react-native';
+import {LinearGradient} from 'expo-linear-gradient';
+import {BlurView} from 'expo-blur';
 import StatsCard from './StatsCard';
-import { createCelestialTheme, celestialBorderRadius } from '../../styles/celestialTheme';
-
-const { width: SCREEN_WIDTH } = Dimensions.get('window');
+import {
+  createCelestialTheme,
+  celestialBorderRadius,
+} from '../../styles/celestialTheme';
 
 interface WelcomeCardProps {
   /**
@@ -79,16 +74,15 @@ const WelcomeCard: React.FC<WelcomeCardProps> = ({
             ? ['#7c3aed', '#6366f1', '#4f46e5'] // purple-600 → indigo-500 → indigo-600
             : ['#a855f7', '#8b5cf6', '#6366f1'] // purple-500 → purple-600 → indigo-500
         }
-        start={{ x: 0, y: 0 }}
-        end={{ x: 1, y: 1 }}
+        start={{x: 0, y: 0}}
+        end={{x: 1, y: 1}}
         style={[
           styles.gradientCard,
           {
             borderRadius: celestialBorderRadius.cardLarge, // 28px
           },
           theme.shadows.xl,
-        ]}
-      >
+        ]}>
         {/* Elementos decorativos blur */}
         <View style={styles.decorativeBlurs}>
           {/* Top-right blur */}
@@ -113,8 +107,7 @@ const WelcomeCard: React.FC<WelcomeCardProps> = ({
           <BlurView
             intensity={30}
             tint={isDark ? 'dark' : 'light'}
-            style={styles.statsContainer}
-          >
+            style={styles.statsContainer}>
             <View style={styles.statsInner}>
               {/* Días de racha con animación pulse */}
               <StatsCard
@@ -224,7 +217,7 @@ const styles = StyleSheet.create({
     ...Platform.select({
       ios: {
         shadowColor: '#000',
-        shadowOffset: { width: 0, height: 4 },
+        shadowOffset: {width: 0, height: 4},
         shadowOpacity: 0.3,
         shadowRadius: 12,
       },

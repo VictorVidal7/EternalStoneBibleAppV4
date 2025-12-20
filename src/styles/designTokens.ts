@@ -100,6 +100,10 @@ export const borderRadius = {
   '2xl': 28, // Cards grandes
   '3xl': 36, // Elementos destacados
   full: 9999, // Círculos y pills
+  // Card-specific aliases
+  cardSmall: 14,
+  cardMedium: 18,
+  cardLarge: 22,
 } as const;
 
 // ==================== SHADOWS ====================

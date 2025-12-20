@@ -4,7 +4,6 @@ import {
   StyleSheet,
   ScrollView,
   TouchableOpacity,
-  Switch,
   Alert,
   Linking,
 } from 'react-native';
@@ -16,7 +15,6 @@ import {useBibleVersion} from '../../src/hooks/useBibleVersion';
 import {useLanguage} from '../../src/hooks/useLanguage';
 import {resetBibleData} from '../../src/lib/database/data-loader';
 import * as Haptics from 'expo-haptics';
-import type {Language} from '../../src/i18n/translations';
 
 type ThemeOption = 'light' | 'dark' | 'auto';
 

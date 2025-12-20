@@ -6,7 +6,7 @@ import {
   TouchableOpacity,
   Alert,
 } from 'react-native';
-import {useState, useEffect} from 'react';
+import {useState} from 'react';
 import {useRouter, useFocusEffect} from 'expo-router';
 import {Ionicons} from '@expo/vector-icons';
 import bibleDB from '../../src/lib/database';

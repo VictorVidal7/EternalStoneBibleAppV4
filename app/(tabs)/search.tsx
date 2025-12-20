@@ -5,8 +5,6 @@ import {
   TextInput,
   FlatList,
   TouchableOpacity,
-  ActivityIndicator,
-  ScrollView,
   RefreshControl,
 } from 'react-native';
 import {useState, useCallback} from 'react';

@@ -292,6 +292,10 @@ export const celestialBorderRadius = {
   xl: 22, // Cards medianos
   '2xl': 28, // Cards grandes
   full: 9999, // Círculo completo (avatares, pills)
+  // Card-specific aliases
+  cardSmall: 20, // Quick Access buttons
+  cardMedium: 24, // Standard cards
+  cardLarge: 28, // Large feature cards
 };
 
 // ==================== SHADOWS SYSTEM (Celestial) ====================
