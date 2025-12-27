@@ -26,6 +26,8 @@ import {logger} from '../../../src/lib/utils/logger';
 import {ImmersiveReader} from '../../../src/components/reading/ImmersiveReader';
 import {getBookTheme} from '../../../src/constants/bookThemes';
 import {useNightReading} from '../../../src/hooks/useNightReading';
+// Audio Bible Feature
+import {useAudioPlayer, AudioVerse} from '../../../src/features/audio';
 
 // Design tokens
 import {
@@ -42,6 +44,12 @@ export default function VerseReadingScreen() {
   const {t} = useLanguage();
   const {achievementService} = useServices();
   const {isNightMode, theme: nightTheme, toggleNightMode} = useNightReading();
+  // Audio Bible
+  const {
+    loadChapter: loadAudioChapter,
+    play,
+    state: audioState,
+  } = useAudioPlayer();
   const {
     book,
     chapter,
@@ -364,6 +372,30 @@ export default function VerseReadingScreen() {
     router.replace(`/verse/${book}/${newChapter}` as any);
   }
 
+  // Start Audio Bible playback
+  function startAudioPlayback() {
+    console.log('🎵 startAudioPlayback called, verses:', verses.length);
+    if (verses.length === 0) {
+      console.log('⚠️ No verses to play');
+      return;
+    }
+
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+
+    // Convert BibleVerse to AudioVerse format
+    const audioVerses: AudioVerse[] = verses.map(v => ({
+      book: v.book,
+      chapter: v.chapter,
+      verse: v.verse,
+      text: v.text,
+    }));
+
+    console.log('🎵 Loading audio chapter with', audioVerses.length, 'verses');
+    loadAudioChapter(audioVerses);
+    console.log('🎵 Calling play()');
+    play();
+  }
+
   if (!bookInfo || loading) {
     return (
       <View
@@ -385,6 +417,20 @@ export default function VerseReadingScreen() {
           headerTintColor: '#FFFFFF',
           headerRight: () => (
             <View style={styles.headerButtons}>
+              <TouchableOpacity
+                onPress={startAudioPlayback}
+                style={[
+                  styles.headerButton,
+                  audioState.isPlaying && {
+                    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+                  },
+                ]}>
+                <Ionicons
+                  name={audioState.isPlaying ? 'pause' : 'play'}
+                  size={24}
+                  color="#FFFFFF"
+                />
+              </TouchableOpacity>
               <TouchableOpacity
                 onPress={() => {
                   Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
@@ -511,6 +557,119 @@ export default function VerseReadingScreen() {
                     : bookTheme.primary
               }
             />
+          </TouchableOpacity>
+        </View>
+
+        {/* Toolbar with Audio, Night Mode, Immersive, Font Size */}
+        <View
+          style={[
+            styles.toolbar,
+            {
+              backgroundColor: effectiveColors.surface,
+              borderBottomColor: effectiveColors.border,
+            },
+          ]}>
+          <TouchableOpacity
+            style={[
+              styles.toolbarButton,
+              audioState.isPlaying && {
+                backgroundColor: effectiveColors.primary + '20',
+              },
+            ]}
+            onPress={startAudioPlayback}>
+            <Ionicons
+              name={audioState.isPlaying ? 'pause' : 'play'}
+              size={22}
+              color={
+                audioState.isPlaying
+                  ? effectiveColors.primary
+                  : effectiveColors.text
+              }
+            />
+            <Text
+              style={[
+                styles.toolbarButtonText,
+                {color: effectiveColors.textSecondary},
+              ]}>
+              {audioState.isPlaying ? 'Pausar' : 'Audio'}
+            </Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={[
+              styles.toolbarButton,
+              isNightMode && {backgroundColor: '#D4AF37' + '20'},
+            ]}
+            onPress={() => {
+              Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+              toggleNightMode();
+            }}>
+            <Ionicons
+              name={isNightMode ? 'moon' : 'moon-outline'}
+              size={22}
+              color={isNightMode ? '#D4AF37' : effectiveColors.text}
+            />
+            <Text
+              style={[
+                styles.toolbarButtonText,
+                {color: effectiveColors.textSecondary},
+              ]}>
+              Noche
+            </Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={styles.toolbarButton}
+            onPress={() => {
+              Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+              setImmersiveModeActive(true);
+            }}>
+            <Ionicons
+              name="expand-outline"
+              size={22}
+              color={effectiveColors.text}
+            />
+            <Text
+              style={[
+                styles.toolbarButtonText,
+                {color: effectiveColors.textSecondary},
+              ]}>
+              Inmersivo
+            </Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={styles.toolbarButton}
+            onPress={() => setFontSize(prev => Math.min(prev + 2, 24))}>
+            <Ionicons
+              name="add-circle-outline"
+              size={22}
+              color={effectiveColors.text}
+            />
+            <Text
+              style={[
+                styles.toolbarButtonText,
+                {color: effectiveColors.textSecondary},
+              ]}>
+              A+
+            </Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={styles.toolbarButton}
+            onPress={() => setFontSize(prev => Math.max(prev - 2, 12))}>
+            <Ionicons
+              name="remove-circle-outline"
+              size={22}
+              color={effectiveColors.text}
+            />
+            <Text
+              style={[
+                styles.toolbarButtonText,
+                {color: effectiveColors.textSecondary},
+              ]}>
+              A-
+            </Text>
           </TouchableOpacity>
         </View>
 
@@ -758,6 +917,29 @@ const styles = StyleSheet.create({
     fontSize: fontSizes.lg,
     fontWeight: '700',
     letterSpacing: -0.2,
+  },
+
+  // TOOLBAR
+  toolbar: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    alignItems: 'center',
+    paddingVertical: spacing.sm,
+    paddingHorizontal: spacing.base,
+    borderBottomWidth: 1,
+  },
+  toolbarButton: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: spacing.xs,
+    paddingHorizontal: spacing.sm,
+    borderRadius: borderRadius.md,
+    minWidth: 56,
+  },
+  toolbarButtonText: {
+    fontSize: fontSizes.xs,
+    marginTop: 2,
+    fontWeight: '500',
   },
 
   // CONTENEDOR DE VERSÍCULOS - MÁXIMA DENSIDAD

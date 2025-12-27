@@ -230,7 +230,7 @@ const QuickAccessButton: React.FC<QuickAccessButtonProps> = ({
               start={{x: 0, y: 0}}
               end={{x: 1, y: 1}}
               style={[styles.iconContainer, styles.iconGradient]}>
-              <Ionicons name={icon} size={28} color="#FFFFFF" />
+              <Ionicons name={icon} size={22} color="#FFFFFF" />
             </LinearGradient>
           ) : (
             // MODO OSCURO: Mantener diseño actual
@@ -241,7 +241,7 @@ const QuickAccessButton: React.FC<QuickAccessButtonProps> = ({
                   backgroundColor: `${color}15`, // color con 15% opacidad
                 },
               ]}>
-              <Ionicons name={icon} size={28} color={color} />
+              <Ionicons name={icon} size={22} color={color} />
             </View>
           )}
 
@@ -260,14 +260,15 @@ const QuickAccessButton: React.FC<QuickAccessButtonProps> = ({
 const styles = StyleSheet.create({
   container: {
     width: '48%', // Exactamente la mitad para 2 columnas con gap
-    marginBottom: 16,
+    marginBottom: 8, // Más compacto
   },
   card: {
-    aspectRatio: 1, // Proporción 1:1 para cards cuadrados
-    borderWidth: 1,
-    padding: 16,
+    aspectRatio: 1.3, // Más ancho que alto para cards compactos
+    borderWidth: StyleSheet.hairlineWidth, // Borde más fino
+    padding: 12,
     justifyContent: 'space-between',
     position: 'relative',
+    overflow: 'hidden',
   },
   recentIndicator: {
     position: 'absolute',
@@ -278,9 +279,9 @@ const styles = StyleSheet.create({
     borderRadius: 4,
   },
   iconContainer: {
-    width: 56,
-    height: 56,
-    borderRadius: 18,
+    width: 42,
+    height: 42,
+    borderRadius: 12,
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -313,10 +314,10 @@ const styles = StyleSheet.create({
     }),
   },
   name: {
-    fontSize: 14, // sm
+    fontSize: 13,
     fontWeight: '600',
     textAlign: 'left',
-    letterSpacing: 0,
+    letterSpacing: -0.2,
   },
 });
 

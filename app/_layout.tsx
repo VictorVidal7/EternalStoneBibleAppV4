@@ -1,6 +1,7 @@
 import {Stack} from 'expo-router';
 import {useEffect, useState} from 'react';
 import {View, Text, StyleSheet} from 'react-native';
+import {GestureHandlerRootView} from 'react-native-gesture-handler';
 import {
   initializeBibleData,
   checkDataStatus,
@@ -20,6 +21,9 @@ import {predictiveCacheService} from '../src/lib/cache/PredictiveCache';
 import {badgeSystemService} from '../src/lib/badges/BadgeSystem';
 import {versionComparisonService} from '../src/lib/comparison/VersionComparison';
 import {widgetTaskHandler} from '../src/widgets/WidgetTaskHandler';
+// Audio Bible Feature
+import {AudioPlayerProvider} from '../src/features/audio/context/AudioPlayerContext';
+import {MiniAudioPlayer} from '../src/features/audio/components/MiniAudioPlayer';
 
 function AppContent() {
   const {t} = useLanguage();
@@ -105,7 +109,7 @@ function AppContent() {
   }
 
   return (
-    <>
+    <GestureHandlerRootView style={{flex: 1}}>
       <Stack
         screenOptions={{
           headerShown: false,
@@ -113,7 +117,8 @@ function AppContent() {
         <Stack.Screen name="(tabs)" />
       </Stack>
       <AchievementNotifications />
-    </>
+      <MiniAudioPlayer />
+    </GestureHandlerRootView>
   );
 }
 
@@ -214,7 +219,9 @@ export default function RootLayout() {
             <ReadingProgressProvider>
               <FavoritesProvider>
                 <ToastProvider>
-                  <AppContent />
+                  <AudioPlayerProvider>
+                    <AppContent />
+                  </AudioPlayerProvider>
                 </ToastProvider>
               </FavoritesProvider>
             </ReadingProgressProvider>

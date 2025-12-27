@@ -4827,6 +4827,11 @@ expo-sharing@^14.0.7:
   resolved "https://registry.npmjs.org/expo-sharing/-/expo-sharing-14.0.7.tgz"
   integrity sha512-t/5tR8ZJNH6tMkHXlF7453UafNIfrpfTG+THN9EMLC4Wsi4bJuESPm3NdmWDg2D4LDALJI/LQo0iEnLAd5Sp4g==
 
+expo-speech@^14.0.8:
+  version "14.0.8"
+  resolved "https://registry.npmjs.org/expo-speech/-/expo-speech-14.0.8.tgz"
+  integrity sha512-UjBFCFv58nutlLw92L7kUS0ZjbOOfaTdiEv/HbjvMrT6BfldoOLLBZbaEcEhDdZK36NY/kass0Kzxk+co6vxSQ==
+
 expo-sqlite@^16.0.9:
   version "16.0.9"
   resolved "https://registry.npmjs.org/expo-sqlite/-/expo-sqlite-16.0.9.tgz"
