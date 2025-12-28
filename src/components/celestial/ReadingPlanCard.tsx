@@ -145,7 +145,7 @@ const ReadingPlanCard: React.FC<ReadingPlanCardProps> = ({
                 ? 'rgba(255,255,255,0.03)'
                 : 'rgba(0,0,0,0.02)',
               borderColor: theme.colors.border,
-              borderRadius: celestialBorderRadius.cardMedium, // 24px
+              borderRadius: 16, // Reducido de 24px a 16px
             },
             theme.shadows.md,
           ]}>
@@ -241,9 +241,11 @@ const styles = StyleSheet.create({
   },
   card: {
     borderWidth: 1,
-    padding: 20, // Aumentado de 16 a 20 para más espacio
-    minHeight: 240, // Aumentado de 220 a 240 para acomodar texto
+    padding: 16,
+    paddingHorizontal: 14, // Más espacio horizontal para el texto
+    minHeight: 220,
     justifyContent: 'space-between',
+    overflow: 'hidden',
   },
   header: {
     flexDirection: 'row',
@@ -252,16 +254,16 @@ const styles = StyleSheet.create({
     marginBottom: 10,
   },
   iconContainer: {
-    width: 40,
-    height: 40,
-    borderRadius: 12,
+    width: 36,
+    height: 36,
+    borderRadius: 10,
     justifyContent: 'center',
     alignItems: 'center',
   },
   durationBadge: {
-    paddingHorizontal: 12,
+    paddingHorizontal: 10,
     paddingVertical: 4,
-    borderRadius: 9999, // full
+    borderRadius: 12,
   },
   durationText: {
     fontSize: 10, // 2xs
@@ -269,13 +271,14 @@ const styles = StyleSheet.create({
   },
   content: {
     flex: 1,
-    marginBottom: 10,
+    marginBottom: 8,
+    paddingRight: 4, // Espacio extra para evitar que el texto toque el borde
   },
   name: {
-    fontSize: 14, // Reducido para mejor ajuste y evitar desbordamiento
+    fontSize: 13,
     fontWeight: '700',
     marginBottom: 4,
-    lineHeight: 18, // Ajustado para 14px
+    lineHeight: 17,
   },
   subtitle: {
     fontSize: 11, // Reducido para mejor ajuste
