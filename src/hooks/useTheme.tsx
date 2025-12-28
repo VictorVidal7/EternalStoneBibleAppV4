@@ -3,6 +3,104 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import {useColorScheme} from 'react-native';
 
 type ThemeMode = 'light' | 'dark' | 'auto';
+type TimeOfDay = 'morning' | 'afternoon' | 'evening' | 'night';
+
+// Función para determinar la hora del día
+function getTimeOfDay(): TimeOfDay {
+  const hour = new Date().getHours();
+  if (hour >= 5 && hour < 12) return 'morning';
+  if (hour >= 12 && hour < 17) return 'afternoon';
+  if (hour >= 17 && hour < 21) return 'evening';
+  return 'night';
+}
+
+// Gradientes dinámicos por hora del día
+export const timeBasedGradients = {
+  morning: {
+    colors: ['#fbbf24', '#f97316', '#ea580c'] as const, // Dorado → Naranja (amanecer)
+    headerColors: ['#4f46e5', '#7c3aed', '#a855f7'] as const, // Indigo suave
+    accentGlow: '#fbbf24',
+  },
+  afternoon: {
+    colors: ['#4f46e5', '#7c3aed', '#a855f7'] as const, // Indigo → Púrpura
+    headerColors: ['#4f46e5', '#6366f1', '#8b5cf6'] as const,
+    accentGlow: '#f59e0b',
+  },
+  evening: {
+    colors: ['#7c3aed', '#6d28d9', '#4c1d95'] as const, // Púrpura profundo
+    headerColors: ['#4c1d95', '#6d28d9', '#7c3aed'] as const,
+    accentGlow: '#fbbf24',
+  },
+  night: {
+    colors: ['#1e1b4b', '#312e81', '#3730a3'] as const, // Azul medianoche
+    headerColors: ['#0f0a1e', '#1e1b4b', '#312e81'] as const,
+    accentGlow: '#60a5fa',
+  },
+};
+
+// Configuración del tema celestial
+export const celestialTheme = {
+  // Acentos dorados (simbolismo bíblico)
+  gold: {
+    primary: '#f59e0b', // amber-500
+    light: '#fbbf24', // amber-400
+    dark: '#d97706', // amber-600
+    glow: 'rgba(245, 158, 11, 0.3)',
+  },
+  // Efectos de glassmorphism
+  glass: {
+    blur: 20,
+    opacity: 0.85,
+    borderOpacity: 0.2,
+  },
+  // Configuración de partículas
+  particles: {
+    count: 20,
+    minSize: 2,
+    maxSize: 6,
+    speed: 0.5,
+  },
+  // Bordes redondeados
+  borderRadius: {
+    sm: 8,
+    md: 16,
+    lg: 24,
+    xl: 32,
+    card: 20,
+    button: 12,
+  },
+  // Sombras dramáticas
+  shadows: {
+    sm: {
+      shadowColor: '#000',
+      shadowOffset: {width: 0, height: 2},
+      shadowOpacity: 0.1,
+      shadowRadius: 4,
+      elevation: 2,
+    },
+    md: {
+      shadowColor: '#000',
+      shadowOffset: {width: 0, height: 4},
+      shadowOpacity: 0.15,
+      shadowRadius: 8,
+      elevation: 4,
+    },
+    lg: {
+      shadowColor: '#000',
+      shadowOffset: {width: 0, height: 8},
+      shadowOpacity: 0.2,
+      shadowRadius: 16,
+      elevation: 8,
+    },
+    glow: (color: string) => ({
+      shadowColor: color,
+      shadowOffset: {width: 0, height: 0},
+      shadowOpacity: 0.5,
+      shadowRadius: 20,
+      elevation: 10,
+    }),
+  },
+};
 
 interface ThemeColors {
   // Backgrounds
@@ -52,6 +150,8 @@ interface ThemeContextType {
   mode: ThemeMode;
   colors: ThemeColors;
   isDark: boolean;
+  timeOfDay: TimeOfDay;
+  gradient: (typeof timeBasedGradients)[TimeOfDay];
   setThemeMode: (mode: ThemeMode) => Promise<void>;
 }
 
@@ -139,10 +239,18 @@ export function ThemeProvider({children}: {children: ReactNode}) {
   const [effectiveTheme, setEffectiveTheme] = useState<'light' | 'dark'>(
     'light',
   );
+  const [timeOfDay, setTimeOfDay] = useState<TimeOfDay>(getTimeOfDay());
 
   // Load saved theme preference on mount
   useEffect(() => {
     loadThemePreference();
+  }, []);
+
+  // Update time of day every minute
+  useEffect(() => {
+    const updateTimeOfDay = () => setTimeOfDay(getTimeOfDay());
+    const interval = setInterval(updateTimeOfDay, 60000);
+    return () => clearInterval(interval);
   }, []);
 
   // Update effective theme when mode or system preference changes
@@ -179,9 +287,11 @@ export function ThemeProvider({children}: {children: ReactNode}) {
 
   const colors = effectiveTheme === 'dark' ? darkColors : lightColors;
   const isDark = effectiveTheme === 'dark';
+  const gradient = timeBasedGradients[timeOfDay];
 
   return (
-    <ThemeContext.Provider value={{mode, colors, isDark, setThemeMode}}>
+    <ThemeContext.Provider
+      value={{mode, colors, isDark, timeOfDay, gradient, setThemeMode}}>
       {children}
     </ThemeContext.Provider>
   );

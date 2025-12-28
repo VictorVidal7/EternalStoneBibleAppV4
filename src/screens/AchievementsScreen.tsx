@@ -3,7 +3,7 @@
  * Shows all user achievements, progress and statistics
  */
 
-import React, { useState, useEffect } from 'react';
+import React, {useState, useEffect} from 'react';
 import {
   View,
   Text,
@@ -12,40 +12,40 @@ import {
   Pressable,
   SafeAreaView,
 } from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
-import { AchievementCard } from '../components/achievements/AchievementCard';
-import { UserStatsPanel } from '../components/achievements/UserStatsPanel';
-import { AchievementUnlockedModal } from '../components/achievements/AchievementUnlockedModal';
-import { useAchievements } from '../hooks/useAchievements';
-import { useTheme } from '../hooks/useTheme';
-import { useLanguage } from '../hooks/useLanguage';
-import { BibleDatabase } from '../lib/database';
-import { Achievement, AchievementCategory } from '../lib/achievements/types';
-import { spacing, borderRadius, fontSize, shadows } from '../styles/designTokens';
+import {LinearGradient} from 'expo-linear-gradient';
+import {AchievementCard} from '../components/achievements/AchievementCard';
+import {UserStatsPanel} from '../components/achievements/UserStatsPanel';
+import {AchievementUnlockedModal} from '../components/achievements/AchievementUnlockedModal';
+import {useAchievements} from '../hooks/useAchievements';
+import {useTheme} from '../hooks/useTheme';
+import {useLanguage} from '../hooks/useLanguage';
+import {BibleDatabase} from '../lib/database';
+import {Achievement, AchievementCategory} from '../lib/achievements/types';
+import {spacing, borderRadius, fontSize, shadows} from '../styles/designTokens';
 
 interface AchievementsScreenProps {
   database: BibleDatabase;
 }
 
-export const AchievementsScreen: React.FC<AchievementsScreenProps> = ({ database }) => {
-  const {
-    achievements,
-    stats,
-    loading,
-    newUnlocks,
-    clearNewUnlocks,
-  } = useAchievements(database);
-  const { colors, isDark } = useTheme();
-  const { t } = useLanguage();
+export const AchievementsScreen: React.FC<AchievementsScreenProps> = ({
+  database,
+}) => {
+  const {achievements, stats, loading, newUnlocks, clearNewUnlocks} =
+    useAchievements(database);
+  const {colors, isDark, gradient} = useTheme();
+  const {t} = useLanguage();
 
-  const [selectedCategory, setSelectedCategory] = useState<AchievementCategory | 'all'>('all');
+  const [selectedCategory, setSelectedCategory] = useState<
+    AchievementCategory | 'all'
+  >('all');
   const [showStats, setShowStats] = useState(false);
-  const [selectedAchievement, setSelectedAchievement] = useState<Achievement | null>(null);
+  const [selectedAchievement, setSelectedAchievement] =
+    useState<Achievement | null>(null);
 
   // Filter achievements by category
   const filteredAchievements = achievements.filter(
-    (achievement) =>
-      selectedCategory === 'all' || achievement.category === selectedCategory
+    achievement =>
+      selectedCategory === 'all' || achievement.category === selectedCategory,
   );
 
   // Sort: unlocked first, then by progress
@@ -60,22 +60,27 @@ export const AchievementsScreen: React.FC<AchievementsScreenProps> = ({ database
     return (b.unlockedAt || 0) - (a.unlockedAt || 0);
   });
 
-  const categories: Array<{ id: AchievementCategory | 'all'; name: string; icon: string }> = [
-    { id: 'all', name: 'All', icon: '📋' },
-    { id: AchievementCategory.READING, name: 'Reading', icon: '📖' },
-    { id: AchievementCategory.STREAK, name: 'Streaks', icon: '🔥' },
-    { id: AchievementCategory.CHAPTERS, name: 'Chapters', icon: '📄' },
-    { id: AchievementCategory.BOOKS, name: 'Books', icon: '📚' },
-    { id: AchievementCategory.HIGHLIGHTS, name: 'Highlights', icon: '🖍️' },
-    { id: AchievementCategory.NOTES, name: 'Notes', icon: '📝' },
-    { id: AchievementCategory.SPECIAL, name: 'Special', icon: '⭐' },
+  const categories: Array<{
+    id: AchievementCategory | 'all';
+    name: string;
+    icon: string;
+  }> = [
+    {id: 'all', name: 'All', icon: '📋'},
+    {id: AchievementCategory.READING, name: 'Reading', icon: '📖'},
+    {id: AchievementCategory.STREAK, name: 'Streaks', icon: '🔥'},
+    {id: AchievementCategory.CHAPTERS, name: 'Chapters', icon: '📄'},
+    {id: AchievementCategory.BOOKS, name: 'Books', icon: '📚'},
+    {id: AchievementCategory.HIGHLIGHTS, name: 'Highlights', icon: '🖍️'},
+    {id: AchievementCategory.NOTES, name: 'Notes', icon: '📝'},
+    {id: AchievementCategory.SPECIAL, name: 'Special', icon: '⭐'},
   ];
 
   if (loading) {
     return (
-      <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
+      <SafeAreaView
+        style={[styles.container, {backgroundColor: colors.background}]}>
         <View style={styles.loadingContainer}>
-          <Text style={[styles.loadingText, { color: colors.textSecondary }]}>
+          <Text style={[styles.loadingText, {color: colors.textSecondary}]}>
             {t.achievements.loading}
           </Text>
         </View>
@@ -84,21 +89,25 @@ export const AchievementsScreen: React.FC<AchievementsScreenProps> = ({ database
   }
 
   return (
-    <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
+    <SafeAreaView
+      style={[styles.container, {backgroundColor: colors.background}]}>
       {/* Header with toggle - Modern and elegant design */}
       <LinearGradient
-        colors={isDark ? ['#6366f1', '#818cf8'] : ['#6366f1', '#4f46e5']}
-        start={{ x: 0, y: 0 }}
-        end={{ x: 1, y: 0 }}
-        style={styles.header}
-      >
+        colors={[...gradient.headerColors]}
+        start={{x: 0, y: 0}}
+        end={{x: 1, y: 0}}
+        style={styles.header}>
         <Text style={styles.headerTitle}>
-          {showStats ? t.achievements.yourStats : t.achievements.yourAchievements}
+          {showStats
+            ? t.achievements.yourStats
+            : t.achievements.yourAchievements}
         </Text>
         <Pressable
-          style={[styles.toggleButton, { backgroundColor: 'rgba(255,255,255,0.2)' }]}
-          onPress={() => setShowStats(!showStats)}
-        >
+          style={[
+            styles.toggleButton,
+            {backgroundColor: 'rgba(255,255,255,0.2)'},
+          ]}
+          onPress={() => setShowStats(!showStats)}>
           <Text style={styles.toggleIcon}>{showStats ? '🏅' : '📊'}</Text>
         </Pressable>
       </LinearGradient>
@@ -113,62 +122,88 @@ export const AchievementsScreen: React.FC<AchievementsScreenProps> = ({ database
           <FlatList
             horizontal
             data={categories}
-            keyExtractor={(item) => item.id}
-            renderItem={({ item }) => (
+            keyExtractor={item => item.id}
+            renderItem={({item}) => (
               <Pressable
                 style={[
                   styles.categoryChip,
-                  { backgroundColor: selectedCategory === item.id ? colors.primary : colors.surface },
+                  {
+                    backgroundColor:
+                      selectedCategory === item.id
+                        ? colors.primary
+                        : colors.surface,
+                  },
                   selectedCategory === item.id && styles.categoryChipSelected,
                 ]}
-                onPress={() => setSelectedCategory(item.id)}
-              >
+                onPress={() => setSelectedCategory(item.id)}>
                 <Text style={styles.categoryIcon}>{item.icon}</Text>
                 <Text
                   style={[
                     styles.categoryText,
-                    { color: selectedCategory === item.id ? '#fff' : colors.text },
-                  ]}
-                >
+                    {
+                      color:
+                        selectedCategory === item.id ? '#fff' : colors.text,
+                    },
+                  ]}>
                   {item.name}
                 </Text>
               </Pressable>
             )}
             showsHorizontalScrollIndicator={false}
             contentContainerStyle={styles.categoryList}
-            style={[styles.categoryScroll, { backgroundColor: colors.background, borderBottomColor: colors.border }]}
+            style={[
+              styles.categoryScroll,
+              {
+                backgroundColor: colors.background,
+                borderBottomColor: colors.border,
+              },
+            ]}
           />
 
           {/* Summary - Optimized without double borders */}
           {stats && (
-            <View style={[
-              styles.summary,
-              { backgroundColor: colors.card },
-              isDark ? shadows.md : shadows.sm
-            ]}>
+            <View
+              style={[
+                styles.summary,
+                {backgroundColor: colors.card},
+                isDark ? shadows.md : shadows.sm,
+              ]}>
               <View style={styles.summaryItem}>
-                <Text style={[styles.summaryValue, { color: colors.primary }]}>
-                  {achievements.filter((a) => a.isUnlocked).length}
+                <Text style={[styles.summaryValue, {color: colors.primary}]}>
+                  {achievements.filter(a => a.isUnlocked).length}
                 </Text>
-                <Text style={[styles.summaryLabel, { color: colors.textSecondary }]}>
+                <Text
+                  style={[styles.summaryLabel, {color: colors.textSecondary}]}>
                   {t.achievements.achievementsUnlocked}
                 </Text>
               </View>
-              <View style={[styles.summaryDivider, { backgroundColor: colors.divider }]} />
+              <View
+                style={[
+                  styles.summaryDivider,
+                  {backgroundColor: colors.divider},
+                ]}
+              />
               <View style={styles.summaryItem}>
-                <Text style={[styles.summaryValue, { color: colors.secondary }]}>
+                <Text style={[styles.summaryValue, {color: colors.secondary}]}>
                   {stats.totalPoints}
                 </Text>
-                <Text style={[styles.summaryLabel, { color: colors.textSecondary }]}>
+                <Text
+                  style={[styles.summaryLabel, {color: colors.textSecondary}]}>
                   {t.achievements.totalPoints}
                 </Text>
               </View>
-              <View style={[styles.summaryDivider, { backgroundColor: colors.divider }]} />
+              <View
+                style={[
+                  styles.summaryDivider,
+                  {backgroundColor: colors.divider},
+                ]}
+              />
               <View style={styles.summaryItem}>
-                <Text style={[styles.summaryValue, { color: colors.text }]}>
+                <Text style={[styles.summaryValue, {color: colors.text}]}>
                   {t.achievements.level} {stats.level}
                 </Text>
-                <Text style={[styles.summaryLabel, { color: colors.textSecondary }]}>
+                <Text
+                  style={[styles.summaryLabel, {color: colors.textSecondary}]}>
                   {stats.level >= 10 ? '👑 Legend' : 'In progress'}
                 </Text>
               </View>
@@ -178,8 +213,8 @@ export const AchievementsScreen: React.FC<AchievementsScreenProps> = ({ database
           {/* Achievements list */}
           <FlatList
             data={sortedAchievements}
-            keyExtractor={(item) => item.id}
-            renderItem={({ item }) => (
+            keyExtractor={item => item.id}
+            renderItem={({item}) => (
               <AchievementCard
                 achievement={item}
                 onPress={setSelectedAchievement}
@@ -190,7 +225,7 @@ export const AchievementsScreen: React.FC<AchievementsScreenProps> = ({ database
             showsVerticalScrollIndicator={false}
             ListEmptyComponent={
               <View style={styles.emptyContainer}>
-                <Text style={[styles.emptyText, { color: colors.textTertiary }]}>
+                <Text style={[styles.emptyText, {color: colors.textTertiary}]}>
                   No achievements in this category
                 </Text>
               </View>
@@ -239,7 +274,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.lg,
     paddingVertical: spacing.lg,
     shadowColor: '#6366f1',
-    shadowOffset: { width: 0, height: 2 },
+    shadowOffset: {width: 0, height: 2},
     shadowOpacity: 0.12,
     shadowRadius: 4,
     elevation: 2,

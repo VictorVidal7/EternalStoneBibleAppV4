@@ -47,8 +47,10 @@ import {useFavorites} from '../../src/context/FavoritesContext';
 import {
   StatsCard,
   VerseOfDayCard,
-  QuickAccessButton,
   ReadingPlanCard,
+  ShimmerCard,
+  PulsingGlow,
+  AnimatedParticles,
 } from '../../src/components/celestial';
 
 // Skeleton Loaders
@@ -65,7 +67,7 @@ const {width: SCREEN_WIDTH} = Dimensions.get('window');
 
 export default function HomeScreen() {
   const router = useRouter();
-  const {isDark, colors} = useTheme();
+  const {isDark, colors, gradient} = useTheme();
   const celestialTheme = createCelestialTheme(isDark);
   const {selectedVersion} = useBibleVersion();
   const {achievementService, initialized: servicesInitialized} = useServices();
@@ -327,16 +329,16 @@ export default function HomeScreen() {
 
             {/* Gradiente de fondo del hero */}
             <LinearGradient
-              colors={
-                celestialTheme.colors.primaryGradient as [
-                  string,
-                  string,
-                  ...string[],
-                ]
-              }
+              colors={[...gradient.headerColors]}
               start={{x: 0, y: 0}}
               end={{x: 1, y: 1}}
               style={styles.heroGradient}>
+              {/* Animated particles overlay */}
+              <AnimatedParticles
+                count={12}
+                height={280}
+                color="rgba(255,255,255,0.5)"
+              />
               {/* Stars decoration - MÁS GRANDES Y VISIBLES */}
               <Ionicons
                 name="star"
@@ -358,8 +360,10 @@ export default function HomeScreen() {
               />
 
               <View style={styles.heroContent}>
-                {/* Ícono principal - MÁS GRANDE */}
-                <Ionicons name="book" size={64} color="#ffffff" />
+                {/* Ícono principal con glow pulsante */}
+                <PulsingGlow color={gradient.accentGlow} size={80}>
+                  <Ionicons name="book" size={64} color="#ffffff" />
+                </PulsingGlow>
 
                 {/* Título y subtítulo */}
                 <Text style={styles.heroTitle}>Bienvenido</Text>
@@ -404,41 +408,43 @@ export default function HomeScreen() {
         {dailyVerse && (
           <Animated.View
             style={{opacity: fadeAnim, marginTop: celestialSpacing.sectionGap}}>
-            <VerseOfDayCard
-              verseText={dailyVerse.text}
-              reference={`${dailyVerse.book} ${dailyVerse.chapter}:${dailyVerse.verse}`}
-              title="Verso del Día"
-              isDark={isDark}
-              onPress={() =>
-                handlePress(() =>
-                  router.push(
-                    `/verse/${dailyVerse.book}/${dailyVerse.chapter}` as any,
-                  ),
-                )
-              }
-              onShare={async () => {
-                if (dailyVerse) {
-                  const reference = `${dailyVerse.book} ${dailyVerse.chapter}:${dailyVerse.verse}`;
-                  await ShareService.shareVerse(dailyVerse, reference);
+            <ShimmerCard>
+              <VerseOfDayCard
+                verseText={dailyVerse.text}
+                reference={`${dailyVerse.book} ${dailyVerse.chapter}:${dailyVerse.verse}`}
+                title="Verso del Día"
+                isDark={isDark}
+                onPress={() =>
+                  handlePress(() =>
+                    router.push(
+                      `/verse/${dailyVerse.book}/${dailyVerse.chapter}` as any,
+                    ),
+                  )
                 }
-              }}
-              onFavorite={async () => {
-                if (dailyVerse) {
-                  const alreadyFavorite = isFavorite(
-                    dailyVerse.book,
-                    dailyVerse.chapter,
-                    dailyVerse.verse,
-                  );
-
-                  if (!alreadyFavorite) {
-                    await addFavorite(dailyVerse, 'worship', 5);
-                    await Haptics.notificationAsync(
-                      Haptics.NotificationFeedbackType.Success,
-                    );
+                onShare={async () => {
+                  if (dailyVerse) {
+                    const reference = `${dailyVerse.book} ${dailyVerse.chapter}:${dailyVerse.verse}`;
+                    await ShareService.shareVerse(dailyVerse, reference);
                   }
-                }
-              }}
-            />
+                }}
+                onFavorite={async () => {
+                  if (dailyVerse) {
+                    const alreadyFavorite = isFavorite(
+                      dailyVerse.book,
+                      dailyVerse.chapter,
+                      dailyVerse.verse,
+                    );
+
+                    if (!alreadyFavorite) {
+                      await addFavorite(dailyVerse, 'worship', 5);
+                      await Haptics.notificationAsync(
+                        Haptics.NotificationFeedbackType.Success,
+                      );
+                    }
+                  }
+                }}
+              />
+            </ShimmerCard>
           </Animated.View>
         )}
 
@@ -499,42 +505,6 @@ export default function HomeScreen() {
             </TouchableOpacity>
           </Animated.View>
         )}
-
-        {/* ==================== QUICK ACCESS ==================== */}
-        <Animated.View
-          style={{opacity: fadeAnim, marginTop: celestialSpacing.sectionGap}}>
-          <View style={styles.sectionHeader}>
-            <Text
-              style={[
-                styles.sectionTitle,
-                {color: celestialTheme.colors.text},
-              ]}>
-              Acceso Rápido
-            </Text>
-            <Ionicons
-              name="flash"
-              size={26}
-              color={celestialTheme.colors.warning}
-            />
-          </View>
-
-          <View style={styles.quickGrid}>
-            {QUICK_ACCESS_BOOKS.map((book, index) => (
-              <QuickAccessButton
-                key={book.name}
-                name={book.name}
-                icon={book.icon}
-                color={book.color}
-                onPress={() =>
-                  handlePress(() => router.push(`/chapter/${book.name}` as any))
-                }
-                recentlyAccessed={index === 0} // Primer libro como recently accessed
-                delay={index * 50}
-                isDark={isDark}
-              />
-            ))}
-          </View>
-        </Animated.View>
 
         {/* ==================== READING PLANS ==================== */}
         <Animated.View
@@ -608,18 +578,6 @@ export default function HomeScreen() {
 }
 
 // ==================== DATA ====================
-
-/**
- * Libros de acceso rápido con íconos vectoriales (NO emojis)
- */
-const QUICK_ACCESS_BOOKS = [
-  {name: 'Génesis', icon: 'book-outline' as const, color: '#6366f1'}, // indigo
-  {name: 'Salmos', icon: 'musical-notes-outline' as const, color: '#8b5cf6'}, // purple
-  {name: 'Proverbios', icon: 'bulb-outline' as const, color: '#f59e0b'}, // amber
-  {name: 'Juan', icon: 'heart-outline' as const, color: '#ef4444'}, // red
-  {name: 'Romanos', icon: 'document-text-outline' as const, color: '#10b981'}, // emerald
-  {name: 'Apocalipsis', icon: 'flash-outline' as const, color: '#ec4899'}, // pink
-];
 
 /**
  * Colores para los planes de lectura

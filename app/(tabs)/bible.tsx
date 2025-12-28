@@ -48,7 +48,7 @@ interface BibleBook {
 
 export default function BibleScreen() {
   const router = useRouter();
-  const {colors, isDark} = useTheme();
+  const {colors, isDark, gradient} = useTheme();
   const {t} = useLanguage();
 
   const [searchQuery, setSearchQuery] = useState('');
@@ -131,11 +131,7 @@ export default function BibleScreen() {
           ],
         }}>
         <LinearGradient
-          colors={
-            isDark
-              ? ['#6366f1', '#818cf8', '#a5b4fc'] // Índigo refinado
-              : ['#6366f1', '#4f46e5', '#7c3aed'] // Gradiente sofisticado
-          }
+          colors={[...gradient.headerColors]}
           start={{x: 0, y: 0}}
           end={{x: 1, y: 1}}
           style={styles.header}>

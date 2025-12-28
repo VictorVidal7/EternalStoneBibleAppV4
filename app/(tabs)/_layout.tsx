@@ -5,7 +5,7 @@ import {useTheme} from '../../src/hooks/useTheme';
 import {useLanguage} from '../../src/hooks/useLanguage';
 
 export default function TabLayout() {
-  const {colors, isDark} = useTheme();
+  const {colors, isDark, gradient} = useTheme();
   const {t} = useLanguage();
 
   return (
@@ -44,7 +44,7 @@ export default function TabLayout() {
           marginTop: 2,
         },
         headerStyle: {
-          backgroundColor: colors.primary,
+          backgroundColor: gradient.headerColors[0],
           elevation: 0,
           shadowOpacity: 0,
           borderBottomWidth: 0,
