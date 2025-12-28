@@ -77,7 +77,7 @@ export default function HomeScreen() {
   });
   const {selectedVersion} = useBibleVersion();
   const {achievementService, initialized: servicesInitialized} = useServices();
-  useLanguage(); // Hook used for language context
+  const {t} = useLanguage();
   const {getChapterProgress} = useReadingProgress();
   const {addFavorite, isFavorite} = useFavorites();
 
@@ -372,9 +372,9 @@ export default function HomeScreen() {
                 </PulsingGlow>
 
                 {/* Título y subtítulo */}
-                <Text style={styles.heroTitle}>Bienvenido</Text>
+                <Text style={styles.heroTitle}>{t.home.welcomeShort}</Text>
                 <Text style={styles.heroSubtitle}>
-                  Tu viaje espiritual continúa
+                  {t.home.journeyContinues}
                 </Text>
 
                 {/* Stats Row */}
@@ -382,7 +382,7 @@ export default function HomeScreen() {
                   <StatsCard
                     icon="flame"
                     value={userStats.streak}
-                    label="Días"
+                    label={t.home.streakDays}
                     iconColor="#fbbf24"
                     pulse={userStats.streak > 0}
                   />
@@ -391,8 +391,8 @@ export default function HomeScreen() {
 
                   <StatsCard
                     icon="star"
-                    value={`Nivel ${userStats.level}`}
-                    label="Rango"
+                    value={userStats.level}
+                    label={t.home.level}
                     iconColor="#fbbf24"
                   />
 
@@ -401,7 +401,7 @@ export default function HomeScreen() {
                   <StatsCard
                     icon="trending-up"
                     value={`${Math.round(userStats.progress)}%`}
-                    label="Progreso"
+                    label={t.home.progress}
                     iconColor="#fbbf24"
                   />
                 </View>
@@ -418,7 +418,7 @@ export default function HomeScreen() {
               <VerseOfDayCard
                 verseText={dailyVerse.text}
                 reference={`${dailyVerse.book} ${dailyVerse.chapter}:${dailyVerse.verse}`}
-                title="Verso del Día"
+                title={t.home.dailyVerse}
                 isDark={isDark}
                 onPress={() =>
                   handlePress(() =>
@@ -490,7 +490,9 @@ export default function HomeScreen() {
                 ]}>
                 <View style={styles.continueHeader}>
                   <Ionicons name="play-circle" size={48} color="#ffffff" />
-                  <Text style={styles.continueTitle}>Continuar Leyendo</Text>
+                  <Text style={styles.continueTitle}>
+                    {t.home.continueReading}
+                  </Text>
                 </View>
 
                 <Text style={styles.continueReference}>
@@ -510,7 +512,10 @@ export default function HomeScreen() {
                     />
                   </View>
                   <Text style={styles.progressText}>
-                    {Math.round(chapterProgress)}% completado
+                    {t.home.percentCompleted.replace(
+                      '{{percent}}',
+                      Math.round(chapterProgress).toString(),
+                    )}
                   </Text>
                 </View>
               </LinearGradient>
@@ -527,7 +532,7 @@ export default function HomeScreen() {
                 styles.sectionTitle,
                 {color: celestialTheme.colors.text},
               ]}>
-              Planes de Lectura
+              {t.home.readingPlans}
             </Text>
             <Ionicons
               name="calendar"
@@ -545,7 +550,10 @@ export default function HomeScreen() {
                 key={plan.id}
                 name={plan.name}
                 description={plan.description}
-                subtitle={`Plan de ${plan.duration} días`}
+                subtitle={t.home.planDays.replace(
+                  '{{days}}',
+                  plan.duration.toString(),
+                )}
                 icon="book-outline"
                 color={PLAN_COLORS[index % PLAN_COLORS.length]}
                 duration={plan.duration}
@@ -557,7 +565,7 @@ export default function HomeScreen() {
                     ),
                   )
                 }
-                continueText="Comenzar"
+                continueText={t.home.start}
                 isDark={isDark}
               />
             ))}

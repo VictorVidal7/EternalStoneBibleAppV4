@@ -241,7 +241,11 @@ export default function SearchScreen() {
         <View style={styles.hintRow}>
           <Text style={themedStyles.hint}>{t.search.minChars}</Text>
           <View style={themedStyles.versionBadge}>
-            <Ionicons name="book-outline" size={12} color={colors.primary} />
+            <Ionicons
+              name="book-outline"
+              size={12}
+              color={isDark ? colors.primaryDark : colors.primary}
+            />
             <Text style={themedStyles.versionBadgeText}>
               {selectedVersion.abbreviation}
             </Text>
@@ -433,7 +437,8 @@ function createThemedStyles(colors: any, isDark: boolean) {
     versionBadgeText: {
       fontSize: 11,
       fontWeight: '600' as const,
-      color: colors.primary,
+      // En modo oscuro usar color oscuro para contrastar con fondo claro
+      color: isDark ? colors.primaryDark : colors.primary,
     },
     filterButton: {
       flex: 1,
@@ -537,7 +542,8 @@ function createThemedStyles(colors: any, isDark: boolean) {
     },
     suggestionText: {
       fontSize: 15,
-      color: colors.primary,
+      // En modo oscuro usar color oscuro para contrastar con fondo claro
+      color: isDark ? colors.primaryDark : colors.primary,
       fontWeight: '500' as const,
     },
   });

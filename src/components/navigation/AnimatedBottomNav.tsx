@@ -6,10 +6,18 @@
  */
 
 import React, {useEffect, useRef} from 'react';
-import {TouchableOpacity, StyleSheet, Animated, Platform} from 'react-native';
+import {
+  TouchableOpacity,
+  StyleSheet,
+  Animated,
+  Platform,
+  Text,
+  View,
+} from 'react-native';
 import {Ionicons} from '@expo/vector-icons';
 import {useRouter} from 'expo-router';
-import {useTheme, colorThemes} from '../../hooks/useTheme';
+import {useTheme} from '../../hooks/useTheme';
+import {useLanguage} from '../../hooks/useLanguage';
 
 interface AnimatedBottomNavProps {
   visible?: boolean;
@@ -21,7 +29,8 @@ export const AnimatedBottomNav: React.FC<AnimatedBottomNavProps> = ({
   activeTab,
 }) => {
   const router = useRouter();
-  const {colors, isDark, colorTheme} = useTheme();
+  const {colors, isDark} = useTheme();
+  const {t} = useLanguage();
   const translateY = useRef(new Animated.Value(0)).current;
 
   // Animate tab bar visibility
@@ -34,17 +43,42 @@ export const AnimatedBottomNav: React.FC<AnimatedBottomNavProps> = ({
     }).start();
   }, [visible, translateY]);
 
-  const themePreview = colorThemes[colorTheme]?.preview;
-  const activeColor = themePreview?.[1] ?? colors.primary;
+  // Usar el color primario del tema para consistencia
+  const activeColor = colors.primary;
 
   const tabs = [
-    {name: 'index', icon: 'home', route: '/(tabs)'},
-    {name: 'bible', icon: 'book', route: '/(tabs)/bible'},
-    {name: 'search', icon: 'search', route: '/(tabs)/search'},
-    {name: 'achievements', icon: 'trophy', route: '/(tabs)/achievements'},
-    {name: 'bookmarks', icon: 'bookmark', route: '/(tabs)/bookmarks'},
-    {name: 'notes', icon: 'create', route: '/(tabs)/notes'},
-    {name: 'settings', icon: 'settings', route: '/(tabs)/settings'},
+    {name: 'index', icon: 'home', label: t.tabs.home, route: '/(tabs)'},
+    {name: 'bible', icon: 'book', label: t.tabs.bible, route: '/(tabs)/bible'},
+    {
+      name: 'search',
+      icon: 'search',
+      label: t.tabs.search,
+      route: '/(tabs)/search',
+    },
+    {
+      name: 'achievements',
+      icon: 'trophy',
+      label: t.tabs.achievements,
+      route: '/(tabs)/achievements',
+    },
+    {
+      name: 'bookmarks',
+      icon: 'bookmark',
+      label: t.tabs.bookmarks,
+      route: '/(tabs)/bookmarks',
+    },
+    {
+      name: 'notes',
+      icon: 'create',
+      label: t.tabs.notes,
+      route: '/(tabs)/notes',
+    },
+    {
+      name: 'settings',
+      icon: 'settings',
+      label: t.tabs.settings,
+      route: '/(tabs)/settings',
+    },
   ];
 
   const handleTabPress = (route: string) => {
@@ -67,17 +101,24 @@ export const AnimatedBottomNav: React.FC<AnimatedBottomNavProps> = ({
       ]}>
       {tabs.map(tab => {
         const isActive = activeTab === tab.name;
+        const tabColor = isActive ? activeColor : colors.textTertiary;
         return (
           <TouchableOpacity
             key={tab.name}
             style={styles.tabButton}
             onPress={() => handleTabPress(tab.route)}
             activeOpacity={0.7}>
-            <Ionicons
-              name={tab.icon as any}
-              size={24}
-              color={isActive ? activeColor : colors.textTertiary}
-            />
+            <Ionicons name={tab.icon as any} size={22} color={tabColor} />
+            <Text
+              style={[styles.tabLabel, {color: tabColor}]}
+              numberOfLines={1}>
+              {tab.label}
+            </Text>
+            {isActive && (
+              <View
+                style={[styles.activeIndicator, {backgroundColor: activeColor}]}
+              />
+            )}
           </TouchableOpacity>
         );
       })}
@@ -135,7 +176,23 @@ const styles = StyleSheet.create({
   tabButton: {
     alignItems: 'center',
     justifyContent: 'center',
-    padding: 8,
+    paddingHorizontal: 4,
+    paddingVertical: 6,
+    minWidth: 48,
+    position: 'relative',
+  },
+  tabLabel: {
+    fontSize: 9,
+    fontWeight: '500',
+    marginTop: 2,
+    textAlign: 'center',
+  },
+  activeIndicator: {
+    position: 'absolute',
+    bottom: -4,
+    width: 20,
+    height: 3,
+    borderRadius: 2,
   },
 });
 

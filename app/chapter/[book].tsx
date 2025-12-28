@@ -25,6 +25,7 @@ import {useTheme} from '../../src/hooks/useTheme';
 import {useLanguage} from '../../src/hooks/useLanguage';
 import {PremiumSkeleton} from '../../src/components/PremiumSkeleton';
 import {useReadingProgress} from '../../src/context/ReadingProgressContext';
+import {AnimatedBottomNav} from '../../src/components/navigation/AnimatedBottomNav';
 
 // Design tokens
 import {spacing, fontSize, shadows} from '../../src/styles/designTokens';
@@ -289,7 +290,10 @@ export default function ChapterSelectionScreen() {
                 keyExtractor={item => item.id}
                 numColumns={CARDS_PER_ROW}
                 showsVerticalScrollIndicator={false}
-                contentContainerStyle={styles.listContent}
+                contentContainerStyle={[
+                  styles.listContent,
+                  {paddingBottom: Platform.OS === 'ios' ? 100 : 80},
+                ]}
               />
             ) : (
               <View style={styles.emptyContainer}>
@@ -309,6 +313,9 @@ export default function ChapterSelectionScreen() {
             )}
           </View>
         )}
+
+        {/* Bottom Navigation */}
+        <AnimatedBottomNav activeTab="bible" />
       </View>
     </>
   );
