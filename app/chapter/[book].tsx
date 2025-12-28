@@ -1,7 +1,7 @@
 /**
- * 🎨 CHAPTER SELECTION SCREEN - PREMIUM
+ * CHAPTER SELECTION SCREEN
  *
- * Pantalla de selección de capítulos con diseño premium
+ * Pantalla de seleccion de capitulos con diseno limpio y profesional
  */
 
 import React, {useCallback, useEffect, useState, useMemo, useRef} from 'react';
@@ -25,16 +25,10 @@ import {useTheme} from '../../src/hooks/useTheme';
 import {useLanguage} from '../../src/hooks/useLanguage';
 import {PremiumSkeleton} from '../../src/components/PremiumSkeleton';
 import {getBookTheme} from '../../src/constants/bookThemes';
-import {useChapterFavorites} from '../../src/hooks/useChapterFavorites';
 import {useReadingProgress} from '../../src/context/ReadingProgressContext';
 
 // Design tokens
-import {
-  spacing,
-  borderRadius,
-  fontSize,
-  shadows,
-} from '../../src/styles/designTokens';
+import {spacing, fontSize, shadows} from '../../src/styles/designTokens';
 
 const {width: SCREEN_WIDTH} = Dimensions.get('window');
 const CARDS_PER_ROW = 4;
@@ -50,11 +44,10 @@ export default function ChapterSelectionScreen() {
   const {colors, isDark} = useTheme();
   const {t} = useLanguage();
   const params = useLocalSearchParams<{book: string}>();
-  const {isFavorite, toggleFavorite} = useChapterFavorites();
   const {getChapterProgress} = useReadingProgress();
   const [isLoading, setIsLoading] = useState(true);
 
-  // Manejar el parámetro book (puede venir como string o array)
+  // Manejar el parametro book (puede venir como string o array)
   const rawBook = params.book;
   const book = typeof rawBook === 'string' ? rawBook : rawBook?.[0] || '';
 
@@ -68,14 +61,14 @@ export default function ChapterSelectionScreen() {
     [bookInfo],
   );
 
-  // Optimización: Gradientes memorizados con tema dinámico del libro
+  // Optimizacion: Gradientes memorizados con tema dinamico del libro
   const headerGradient = useMemo(
     () => (isDark ? bookTheme.gradientDark : bookTheme.gradient),
     [isDark, bookTheme],
   );
 
   /**
-   * Generar lista de capítulos
+   * Generar lista de capitulos
    */
   const chapters = useMemo((): ChapterItem[] => {
     if (!bookInfo) {
@@ -115,7 +108,7 @@ export default function ChapterSelectionScreen() {
   };
 
   /**
-   * Navegar a la pantalla de versículos
+   * Navegar a la pantalla de versiculos
    */
   const navigateToVerse = useCallback(
     (chapter: number) => {
@@ -126,7 +119,15 @@ export default function ChapterSelectionScreen() {
   );
 
   /**
-   * Renderizar item de capítulo con animación
+   * Navegar hacia atras
+   */
+  const handleBack = useCallback(() => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    router.back();
+  }, [router]);
+
+  /**
+   * Renderizar item de capitulo con animacion
    */
   const renderItem = useCallback(
     ({item}: {item: ChapterItem}) => {
@@ -143,24 +144,12 @@ export default function ChapterSelectionScreen() {
           isDark={isDark}
           t={t}
           bookName={bookInfo?.name || ''}
-          isFavorite={isFavorite(bookInfo?.name || '', item.chapter)}
-          onToggleFavorite={() =>
-            toggleFavorite(bookInfo?.name || '', item.chapter)
-          }
           isCompleted={isCompleted}
           progressPercentage={chapterProgress}
         />
       );
     },
-    [
-      isDark,
-      navigateToVerse,
-      bookInfo,
-      t,
-      isFavorite,
-      toggleFavorite,
-      getChapterProgress,
-    ],
+    [isDark, navigateToVerse, bookInfo, t, getChapterProgress],
   );
 
   // Mostrar error si no se encuentra el libro
@@ -257,6 +246,15 @@ export default function ChapterSelectionScreen() {
             start={{x: 0, y: 0}}
             end={{x: 0, y: 1}}
             style={styles.header}>
+            {/* Boton de regreso */}
+            <TouchableOpacity
+              style={styles.headerBackButton}
+              onPress={handleBack}
+              accessibilityRole="button"
+              accessibilityLabel={t.bible.back}>
+              <Ionicons name="arrow-back" size={24} color="#ffffff" />
+            </TouchableOpacity>
+
             <View style={styles.headerContent}>
               <View style={styles.headerIconContainer}>
                 <Ionicons name="book-outline" size={32} color="#ffffff" />
@@ -268,45 +266,19 @@ export default function ChapterSelectionScreen() {
                 <Text style={styles.headerTitle} numberOfLines={1}>
                   {bookInfo.name}
                 </Text>
-                <View style={styles.headerBadges}>
-                  <View style={styles.chapterCountBadge}>
-                    <Ionicons name="document-text" size={14} color="#fbbf24" />
-                    <Text style={styles.chapterCountText}>
-                      {chapters.length}{' '}
-                      {chapters.length === 1
-                        ? t.bible.chapter
-                        : t.bible.chapters}
-                    </Text>
-                  </View>
-                  <View style={styles.themeBadge}>
-                    <Text style={styles.themeEmoji}>{bookTheme.emoji}</Text>
-                    <Text style={styles.themeDescription}>
-                      {bookTheme.description}
-                    </Text>
-                  </View>
+                <View style={styles.chapterCountBadge}>
+                  <Ionicons name="document-text" size={14} color="#fbbf24" />
+                  <Text style={styles.chapterCountText}>
+                    {chapters.length}{' '}
+                    {chapters.length === 1 ? t.bible.chapter : t.bible.chapters}
+                  </Text>
                 </View>
               </View>
-            </View>
-
-            {/* Decoración */}
-            <View style={styles.headerDecoration}>
-              <Ionicons
-                name="sparkles"
-                size={20}
-                color="rgba(255,255,255,0.3)"
-                style={styles.decorationIcon1}
-              />
-              <Ionicons
-                name="star"
-                size={16}
-                color="rgba(255,255,255,0.2)"
-                style={styles.decorationIcon2}
-              />
             </View>
           </LinearGradient>
         </Animated.View>
 
-        {/* Grid de capítulos */}
+        {/* Grid de capitulos */}
         {isLoading ? (
           <SkeletonGrid />
         ) : (
@@ -351,8 +323,6 @@ interface ChapterCardProps {
   isDark: boolean;
   t: any;
   bookName: string;
-  isFavorite: boolean;
-  onToggleFavorite: () => void;
   isCompleted: boolean;
   progressPercentage: number;
 }
@@ -364,8 +334,6 @@ const ChapterCard: React.FC<ChapterCardProps> = React.memo(
     isDark,
     t,
     bookName,
-    isFavorite,
-    onToggleFavorite,
     isCompleted,
     progressPercentage,
   }) => {
@@ -391,99 +359,66 @@ const ChapterCard: React.FC<ChapterCardProps> = React.memo(
 
     return (
       <View style={styles.cardWrapper}>
-        <TouchableOpacity
-          activeOpacity={0.7}
-          onPress={onPress}
-          onPressIn={handlePressIn}
-          onPressOut={handlePressOut}
-          accessibilityRole="button"
-          accessibilityLabel={`${t.bible.chapter} ${chapter} ${t.bible.of} ${bookName}`}
-          accessibilityHint={`${t.bible.openChapter} ${chapter} ${t.bible.of} ${bookName}`}
-          accessibilityState={{selected: isFavorite}}
-          style={styles.cardTouchable}>
-          <View
-            style={[
-              styles.card,
-              {
-                backgroundColor: isDark ? '#35384E' : '#FFFFFF',
-                shadowColor: isDark ? '#000000' : '#000000',
-                shadowOffset: {width: 0, height: 2},
-                shadowOpacity: isDark ? 0.3 : 0.08,
-                shadowRadius: 12,
-                elevation: 3,
-                borderWidth: isDark ? 1 : 0,
-                borderColor: isDark ? 'rgba(99, 102, 241, 0.2)' : 'transparent',
-              },
-            ]}>
-            {/* Botón de favorito */}
-            <TouchableOpacity
-              style={styles.favoriteButton}
-              onPress={e => {
-                e.stopPropagation();
-                onToggleFavorite();
-              }}
-              hitSlop={{top: 8, bottom: 8, left: 8, right: 8}}
-              accessibilityRole="button"
-              accessibilityLabel={
-                isFavorite
-                  ? `${t.bible.removeFavorite} ${t.bible.chapter} ${chapter}`
-                  : `${t.bible.addFavorite} ${t.bible.chapter} ${chapter}`
-              }
-              accessibilityHint={
-                isFavorite
-                  ? t.bible.removeFromFavorites
-                  : t.bible.addToFavorites
-              }>
-              <Ionicons
-                name={isFavorite ? 'star' : 'star-outline'}
-                size={16}
-                color={isFavorite ? '#fbbf24' : isDark ? '#9ca3af' : '#d1d5db'}
-              />
-            </TouchableOpacity>
-
-            {/* Badge de progreso completado */}
-            {isCompleted && (
-              <View style={styles.completedBadge}>
-                <Ionicons name="checkmark-circle" size={20} color="#10b981" />
-              </View>
-            )}
-
-            {/* Badge de progreso en curso (si está entre 1% y 99%) */}
-            {!isCompleted && progressPercentage > 0 && (
-              <View style={styles.progressBadge}>
-                <View
-                  style={[
-                    styles.progressIndicator,
-                    {
-                      backgroundColor: isDark
-                        ? 'rgba(59, 130, 246, 0.15)'
-                        : 'rgba(59, 130, 246, 0.1)',
-                      borderColor: isDark
-                        ? 'rgba(59, 130, 246, 0.4)'
-                        : 'rgba(59, 130, 246, 0.3)',
-                    },
-                  ]}>
-                  <Ionicons
-                    name="book-outline"
-                    size={12}
-                    color={isDark ? '#60a5fa' : '#3b82f6'}
-                  />
-                </View>
-              </View>
-            )}
-
-            {/* Número del capítulo */}
-            <Text
+        <Animated.View style={{transform: [{scale: scaleAnim}]}}>
+          <TouchableOpacity
+            activeOpacity={0.7}
+            onPress={onPress}
+            onPressIn={handlePressIn}
+            onPressOut={handlePressOut}
+            accessibilityRole="button"
+            accessibilityLabel={`${t.bible.chapter} ${chapter} ${t.bible.of} ${bookName}`}
+            accessibilityHint={`${t.bible.openChapter} ${chapter} ${t.bible.of} ${bookName}`}
+            style={styles.cardTouchable}>
+            <View
               style={[
-                styles.chapterNumber,
+                styles.card,
                 {
-                  color: isDark ? '#E0E7FF' : '#4A90E2',
+                  backgroundColor: isDark ? '#35384E' : '#FFFFFF',
+                  shadowColor: '#000000',
+                  shadowOffset: {width: 0, height: 2},
+                  shadowOpacity: isDark ? 0.3 : 0.08,
+                  shadowRadius: 12,
+                  elevation: 3,
+                  borderWidth: isDark ? 1 : 0,
+                  borderColor: isDark
+                    ? 'rgba(99, 102, 241, 0.2)'
+                    : 'transparent',
                 },
               ]}>
-              {chapter}
-            </Text>
-          </View>
-        </TouchableOpacity>
+              {/* Numero del capitulo */}
+              <Text
+                style={[
+                  styles.chapterNumber,
+                  {
+                    color: isDark ? '#E0E7FF' : '#4A90E2',
+                  },
+                ]}>
+                {chapter}
+              </Text>
+
+              {/* Indicador de completado */}
+              {isCompleted && (
+                <View style={styles.completedIndicator}>
+                  <Ionicons name="checkmark" size={12} color="#10b981" />
+                </View>
+              )}
+
+              {/* Indicador de progreso (si tiene progreso pero no esta completado) */}
+              {!isCompleted && progressPercentage > 0 && (
+                <View style={styles.progressIndicator}>
+                  <View
+                    style={[
+                      styles.progressDot,
+                      {
+                        backgroundColor: isDark ? '#60a5fa' : '#3b82f6',
+                      },
+                    ]}
+                  />
+                </View>
+              )}
+            </View>
+          </TouchableOpacity>
+        </Animated.View>
       </View>
     );
   },
@@ -505,7 +440,7 @@ const styles = StyleSheet.create({
   },
   errorHeader: {
     padding: spacing.xl,
-    borderRadius: borderRadius.xl,
+    borderRadius: 16,
     alignItems: 'center',
     marginBottom: spacing.xl,
     ...shadows.lg,
@@ -526,7 +461,7 @@ const styles = StyleSheet.create({
   errorDetails: {
     backgroundColor: 'rgba(239, 68, 68, 0.1)',
     padding: spacing.base,
-    borderRadius: borderRadius.lg,
+    borderRadius: 16,
     borderWidth: 1,
     borderColor: 'rgba(239, 68, 68, 0.3)',
   },
@@ -545,7 +480,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     padding: spacing.base,
-    borderRadius: borderRadius.lg,
+    borderRadius: 16,
     marginTop: spacing.base,
     gap: spacing.xs,
   },
@@ -563,7 +498,7 @@ const styles = StyleSheet.create({
   },
   loadingCard: {
     padding: spacing['2xl'],
-    borderRadius: borderRadius.xl,
+    borderRadius: 16,
     alignItems: 'center',
     width: SCREEN_WIDTH - spacing.xl * 2,
     ...shadows.xl,
@@ -604,12 +539,21 @@ const styles = StyleSheet.create({
 
   // Header
   header: {
-    paddingTop: Platform.OS === 'ios' ? 80 : 40,
+    paddingTop: Platform.OS === 'ios' ? 60 : 40,
     paddingBottom: spacing.xl,
     paddingHorizontal: spacing.lg,
-    borderBottomLeftRadius: borderRadius['2xl'],
-    borderBottomRightRadius: borderRadius['2xl'],
+    borderBottomLeftRadius: 16,
+    borderBottomRightRadius: 16,
     ...shadows.lg,
+  },
+  headerBackButton: {
+    width: 40,
+    height: 40,
+    borderRadius: 16,
+    backgroundColor: 'rgba(255,255,255,0.2)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: spacing.base,
   },
   headerContent: {
     flexDirection: 'row',
@@ -618,7 +562,7 @@ const styles = StyleSheet.create({
   headerIconContainer: {
     width: 64,
     height: 64,
-    borderRadius: borderRadius.lg,
+    borderRadius: 16,
     backgroundColor: 'rgba(255,255,255,0.2)',
     justifyContent: 'center',
     alignItems: 'center',
@@ -653,7 +597,7 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(255,255,255,0.2)',
     paddingHorizontal: spacing.md,
     paddingVertical: 4,
-    borderRadius: borderRadius.full,
+    borderRadius: 16,
     alignSelf: 'flex-start',
     gap: 4,
   },
@@ -661,46 +605,6 @@ const styles = StyleSheet.create({
     fontSize: fontSize.xs,
     color: '#ffffff',
     fontWeight: '600',
-  },
-  headerBadges: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing.sm,
-    flexWrap: 'wrap',
-  },
-  themeBadge: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: 'rgba(255,255,255,0.15)',
-    paddingHorizontal: spacing.sm,
-    paddingVertical: 4,
-    borderRadius: borderRadius.full,
-    gap: 4,
-  },
-  themeEmoji: {
-    fontSize: 14,
-  },
-  themeDescription: {
-    fontSize: fontSize.xs,
-    color: 'rgba(255,255,255,0.95)',
-    fontWeight: '500',
-  },
-  headerDecoration: {
-    position: 'absolute',
-    top: 0,
-    right: 0,
-    bottom: 0,
-    justifyContent: 'center',
-  },
-  decorationIcon1: {
-    position: 'absolute',
-    top: 70,
-    right: 30,
-  },
-  decorationIcon2: {
-    position: 'absolute',
-    top: 110,
-    right: 50,
   },
 
   // List
@@ -732,11 +636,11 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
 
-  // Card - Estilo profesional con profundidad (matching BibleLibrary)
+  // Card - Estilo profesional con profundidad
   cardWrapper: {
     width: CARD_SIZE,
     height: CARD_SIZE,
-    padding: 6, // Margen entre botones
+    padding: 6,
   },
   cardTouchable: {
     width: CARD_SIZE - 12,
@@ -745,41 +649,38 @@ const styles = StyleSheet.create({
   card: {
     width: CARD_SIZE - 12,
     height: CARD_SIZE - 12,
-    borderRadius: 16, // Esquinas generosas y modernas
-    borderWidth: 0, // Sin bordes duros
+    borderRadius: 16,
     justifyContent: 'center',
     alignItems: 'center',
   },
   chapterNumber: {
-    fontSize: 26, // Tamaño óptimo para legibilidad
+    fontSize: 26,
     fontWeight: '600',
     letterSpacing: -0.3,
   },
-  favoriteButton: {
+  completedIndicator: {
     position: 'absolute',
-    top: 4,
-    right: 4,
-    padding: 4,
-    zIndex: 10,
-  },
-  completedBadge: {
-    position: 'absolute',
-    bottom: 4,
-    left: 4,
-    zIndex: 10,
-  },
-  progressBadge: {
-    position: 'absolute',
-    bottom: 4,
-    left: 4,
-    zIndex: 10,
-  },
-  progressIndicator: {
-    width: 20,
-    height: 20,
-    borderRadius: 10,
-    borderWidth: 1,
+    top: 6,
+    right: 6,
+    width: 18,
+    height: 18,
+    borderRadius: 9,
+    backgroundColor: 'rgba(16, 185, 129, 0.15)',
     justifyContent: 'center',
     alignItems: 'center',
+  },
+  progressIndicator: {
+    position: 'absolute',
+    top: 6,
+    right: 6,
+    width: 18,
+    height: 18,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  progressDot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
   },
 });

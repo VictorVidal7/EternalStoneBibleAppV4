@@ -55,76 +55,78 @@ interface ThemeContextType {
   setThemeMode: (mode: ThemeMode) => Promise<void>;
 }
 
+// Colores Celestial Sereno Light - Paleta Indigo/Purple profesional
 const lightColors: ThemeColors = {
-  background: '#F8F9FA',
-  surface: '#FFFFFF',
-  surfaceVariant: '#F8F9FA',
-  card: '#FFFFFF',
+  background: '#ffffff',
+  surface: 'rgba(255, 255, 255, 0.95)',
+  surfaceVariant: '#f8f9fc',
+  card: 'rgba(255, 255, 255, 0.95)',
 
-  text: '#2C3E50',
-  textSecondary: '#7F8C8D',
-  textTertiary: '#95A5A6',
+  text: '#0f172a', // slate-900
+  textSecondary: '#475569', // slate-600
+  textTertiary: '#64748b', // slate-500
 
-  primary: '#4A90E2',
-  primaryLight: '#E8F4FD',
-  primaryDark: '#2471C7',
+  primary: '#4f46e5', // indigo-600 - Color principal celestial
+  primaryLight: '#e0e7ff', // indigo-100
+  primaryDark: '#4338ca', // indigo-700
 
-  secondary: '#10b981',
+  secondary: '#059669', // emerald-600
 
-  accent: '#9B59B6',
-  error: '#E74C3C',
-  success: '#27AE60',
-  warning: '#F39C12',
-  info: '#3498DB',
+  accent: '#9333ea', // purple-600
+  error: '#dc2626', // red-600
+  success: '#059669', // emerald-600
+  warning: '#ea580c', // orange-600
+  info: '#4f46e5', // indigo-600
 
-  border: '#ECF0F1',
-  divider: '#E0E0E0',
-  glassBorder: 'rgba(255, 255, 255, 0.3)',
+  border: 'rgba(226, 232, 240, 0.60)',
+  divider: 'rgba(226, 232, 240, 0.50)',
+  glassBorder: 'rgba(226, 232, 240, 0.50)',
 
-  highlight: '#FFF9C4',
-  overlay: 'rgba(0, 0, 0, 0.5)',
-  disabled: 'rgba(0, 0, 0, 0.38)',
-  glass: 'rgba(255, 255, 255, 0.7)',
+  highlight: '#fef08a',
+  overlay: 'rgba(15, 23, 42, 0.40)',
+  disabled: '#e2e8f0',
+  glass: 'rgba(255, 255, 255, 0.85)',
 
   verseCard: '#FFFFFF',
-  verseHighlight: '#FFF9E6',
-  bookmark: '#F39C12',
+  verseHighlight: '#fef9c3',
+  bookmark: '#f59e0b',
 };
 
+// Colores Celestial Sereno Dark - Paleta Indigo/Purple vibrante
 const darkColors: ThemeColors = {
-  background: '#121212',
-  surface: '#1E1E1E',
-  surfaceVariant: '#2C2C2C',
-  card: '#1E1E1E',
+  background: '#0a0d1a', // Casi negro con tinte azul
+  surface: 'rgba(26, 29, 46, 0.70)',
+  surfaceVariant: '#1a1d2e',
+  card: 'rgba(26, 29, 46, 0.70)',
 
-  text: '#E8EAED',
-  textSecondary: '#9AA0A6',
-  textTertiary: '#6E7681',
+  text: '#f8f9fc', // Casi blanco
+  textSecondary: '#cbd5e1', // slate-300
+  textTertiary: '#94a3b8', // slate-400
 
-  primary: '#5DA3F5',
-  primaryLight: '#1A3A52',
-  primaryDark: '#7DB8FF',
+  primary: '#6366f1', // indigo-500 - Mas brillante en dark
+  primaryLight: '#818cf8', // indigo-400
+  primaryDark: '#4f46e5', // indigo-600
 
-  secondary: '#34d399',
+  secondary: '#10b981', // emerald-500
 
-  accent: '#B380CC',
-  error: '#F28B82',
-  success: '#81C995',
-  warning: '#FDD663',
-  info: '#5DA3F5',
+  accent: '#a855f7', // purple-500
+  error: '#f87171', // red-400
+  success: '#10b981', // emerald-500
+  warning: '#fbbf24', // yellow-400
+  info: '#6366f1', // indigo-500
 
-  border: '#3C3C3C',
-  divider: '#2C2C2C',
-  glassBorder: 'rgba(255, 255, 255, 0.1)',
+  border: 'rgba(71, 85, 105, 0.30)',
+  divider: 'rgba(71, 85, 105, 0.25)',
+  glassBorder: 'rgba(71, 85, 105, 0.30)',
 
-  highlight: '#3E3A2F',
-  overlay: 'rgba(0, 0, 0, 0.7)',
-  disabled: 'rgba(255, 255, 255, 0.38)',
-  glass: 'rgba(26, 26, 26, 0.7)',
+  highlight: '#fbbf24',
+  overlay: 'rgba(0, 0, 0, 0.60)',
+  disabled: 'rgba(26, 29, 46, 0.50)',
+  glass: 'rgba(26, 29, 46, 0.60)',
 
-  verseCard: '#1E1E1E',
-  verseHighlight: '#2E2A1F',
-  bookmark: '#FDD663',
+  verseCard: '#1a1d2e',
+  verseHighlight: '#2e2a1f',
+  bookmark: '#fbbf24',
 };
 
 const ThemeContext = createContext<ThemeContextType | undefined>(undefined);

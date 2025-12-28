@@ -1,6 +1,31 @@
 import {Stack} from 'expo-router';
 import {useEffect, useState} from 'react';
-import {View, Text, StyleSheet} from 'react-native';
+import {View, Text, StyleSheet, LogBox} from 'react-native';
+
+// Ignore specific development warnings
+// En produccion ignorar todo, en desarrollo ignorar warnings no criticos
+if (!__DEV__) {
+  LogBox.ignoreAllLogs();
+} else {
+  // In development, ignore non-critical warnings to reduce noise
+  LogBox.ignoreLogs([
+    'Remote debugger',
+    'Debugger and device times',
+    'Non-serializable values were found in the navigation state',
+    'Require cycle',
+    'ViewPropTypes',
+    'ColorPropType',
+    'EdgeInsetsPropType',
+    'PointPropType',
+    'Animated:',
+    'componentWillReceiveProps',
+    'componentWillMount',
+    'Each child in a list',
+    'VirtualizedLists should never',
+    'Failed prop type',
+    'Warning:',
+  ]);
+}
 import {GestureHandlerRootView} from 'react-native-gesture-handler';
 import {
   initializeBibleData,

@@ -25,7 +25,6 @@ import {useServices} from '../../../src/context/ServicesContext';
 import {logger} from '../../../src/lib/utils/logger';
 import {ImmersiveReader} from '../../../src/components/reading/ImmersiveReader';
 import {getBookTheme} from '../../../src/constants/bookThemes';
-import {useNightReading} from '../../../src/hooks/useNightReading';
 // Audio Bible Feature
 import {useAudioPlayer, AudioVerse} from '../../../src/features/audio';
 
@@ -43,7 +42,6 @@ export default function VerseReadingScreen() {
   const {selectedVersion} = useBibleVersion();
   const {t} = useLanguage();
   const {achievementService} = useServices();
-  const {isNightMode, theme: nightTheme, toggleNightMode} = useNightReading();
   // Audio Bible
   const {
     loadChapter: loadAudioChapter,
@@ -75,26 +73,13 @@ export default function VerseReadingScreen() {
   );
   const [immersiveModeActive, setImmersiveModeActive] = useState(false);
 
-  // Apply night reading mode colors
-  const effectiveColors = isNightMode
-    ? {
-        background: nightTheme.background,
-        surface: nightTheme.card,
-        text: nightTheme.text,
-        textSecondary: nightTheme.textSecondary,
-        textTertiary: nightTheme.textSecondary,
-        primary: nightTheme.accent,
-        border: nightTheme.border,
-        bookmark: nightTheme.accent,
-        verseHighlight: 'rgba(255, 107, 53, 0.15)',
-        warning: nightTheme.accent,
-      }
-    : colors;
-
-  // Adjust font size for night mode
-  const effectiveFontSize = isNightMode
-    ? Math.round(fontSize * nightTheme.fontSizeMultiplier)
-    : fontSize;
+  // Use theme colors directly
+  const effectiveColors = {
+    ...colors,
+    bookmark: colors.primary,
+    verseHighlight: colors.primaryLight || 'rgba(74, 144, 226, 0.15)',
+    warning: colors.warning,
+  };
 
   const scrollViewRef = useRef<ScrollView>(null);
   const startTimeRef = useRef<number>(Date.now());
@@ -360,6 +345,7 @@ export default function VerseReadingScreen() {
     const newChapter = chapterNum + (direction === 'next' ? 1 : -1);
 
     if (newChapter < 1 || newChapter > bookInfo.chapters) {
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning);
       Alert.alert(
         t.app.endOfBook,
         direction === 'next'
@@ -369,6 +355,7 @@ export default function VerseReadingScreen() {
       return;
     }
 
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     router.replace(`/verse/${book}/${newChapter}` as any);
   }
 
@@ -434,33 +421,24 @@ export default function VerseReadingScreen() {
               <TouchableOpacity
                 onPress={() => {
                   Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-                  toggleNightMode();
-                }}
-                style={[
-                  styles.headerButton,
-                  isNightMode && {backgroundColor: 'rgba(212, 175, 55, 0.2)'},
-                ]}>
-                <Ionicons
-                  name={isNightMode ? 'moon' : 'moon-outline'}
-                  size={24}
-                  color={isNightMode ? '#D4AF37' : '#FFFFFF'}
-                />
-              </TouchableOpacity>
-              <TouchableOpacity
-                onPress={() => {
-                  Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
                   setImmersiveModeActive(true);
                 }}
                 style={styles.headerButton}>
                 <Ionicons name="expand-outline" size={24} color="#FFFFFF" />
               </TouchableOpacity>
               <TouchableOpacity
-                onPress={() => setFontSize(prev => Math.min(prev + 2, 24))}
+                onPress={() => {
+                  Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                  setFontSize(prev => Math.min(prev + 2, 24));
+                }}
                 style={styles.headerButton}>
                 <Ionicons name="add-circle-outline" size={24} color="#FFFFFF" />
               </TouchableOpacity>
               <TouchableOpacity
-                onPress={() => setFontSize(prev => Math.max(prev - 2, 12))}
+                onPress={() => {
+                  Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                  setFontSize(prev => Math.max(prev - 2, 12));
+                }}
                 style={styles.headerButton}>
                 <Ionicons
                   name="remove-circle-outline"
@@ -478,7 +456,6 @@ export default function VerseReadingScreen() {
           styles.container,
           {
             backgroundColor: effectiveColors.background,
-            opacity: isNightMode ? nightTheme.sepiaStrength + 0.7 : 1,
           },
         ]}>
         {/* Navigation Bar */}
@@ -500,9 +477,7 @@ export default function VerseReadingScreen() {
               color={
                 chapterNum === 1
                   ? effectiveColors.textTertiary
-                  : isNightMode
-                    ? effectiveColors.primary
-                    : bookTheme.primary
+                  : bookTheme.primary
               }
             />
             <Text
@@ -512,9 +487,7 @@ export default function VerseReadingScreen() {
                   color:
                     chapterNum === 1
                       ? effectiveColors.textTertiary
-                      : isNightMode
-                        ? effectiveColors.primary
-                        : bookTheme.primary,
+                      : bookTheme.primary,
                 },
               ]}>
               {t.previous}
@@ -539,9 +512,7 @@ export default function VerseReadingScreen() {
                   color:
                     chapterNum === bookInfo.chapters
                       ? effectiveColors.textTertiary
-                      : isNightMode
-                        ? effectiveColors.primary
-                        : bookTheme.primary,
+                      : bookTheme.primary,
                 },
               ]}>
               {t.next}
@@ -552,15 +523,13 @@ export default function VerseReadingScreen() {
               color={
                 chapterNum === bookInfo.chapters
                   ? effectiveColors.textTertiary
-                  : isNightMode
-                    ? effectiveColors.primary
-                    : bookTheme.primary
+                  : bookTheme.primary
               }
             />
           </TouchableOpacity>
         </View>
 
-        {/* Toolbar with Audio, Night Mode, Immersive, Font Size */}
+        {/* Toolbar with Audio, Immersive, Font Size */}
         <View
           style={[
             styles.toolbar,
@@ -596,29 +565,6 @@ export default function VerseReadingScreen() {
           </TouchableOpacity>
 
           <TouchableOpacity
-            style={[
-              styles.toolbarButton,
-              isNightMode && {backgroundColor: '#D4AF37' + '20'},
-            ]}
-            onPress={() => {
-              Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-              toggleNightMode();
-            }}>
-            <Ionicons
-              name={isNightMode ? 'moon' : 'moon-outline'}
-              size={22}
-              color={isNightMode ? '#D4AF37' : effectiveColors.text}
-            />
-            <Text
-              style={[
-                styles.toolbarButtonText,
-                {color: effectiveColors.textSecondary},
-              ]}>
-              Noche
-            </Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity
             style={styles.toolbarButton}
             onPress={() => {
               Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
@@ -640,7 +586,10 @@ export default function VerseReadingScreen() {
 
           <TouchableOpacity
             style={styles.toolbarButton}
-            onPress={() => setFontSize(prev => Math.min(prev + 2, 24))}>
+            onPress={() => {
+              Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+              setFontSize(prev => Math.min(prev + 2, 24));
+            }}>
             <Ionicons
               name="add-circle-outline"
               size={22}
@@ -657,7 +606,10 @@ export default function VerseReadingScreen() {
 
           <TouchableOpacity
             style={styles.toolbarButton}
-            onPress={() => setFontSize(prev => Math.max(prev - 2, 12))}>
+            onPress={() => {
+              Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+              setFontSize(prev => Math.max(prev - 2, 12));
+            }}>
             <Ionicons
               name="remove-circle-outline"
               size={22}
@@ -678,11 +630,14 @@ export default function VerseReadingScreen() {
           ref={scrollViewRef}
           style={styles.versesContainer}
           contentContainerStyle={styles.versesContent}>
-          {verses.map(verse => {
+          {verses.map((verse, index) => {
             const isBookmarked = bookmarkedVerses.has(verse.verse);
             const isHighlighted =
               highlightVerse &&
               parseInt(highlightVerse as string) === verse.verse;
+            // Check if this verse is currently being read by TTS
+            const isBeingRead =
+              audioState.isPlaying && audioState.currentVerseIndex === index;
 
             return (
               <View
@@ -695,14 +650,26 @@ export default function VerseReadingScreen() {
                     borderColor: effectiveColors.warning,
                     borderWidth: 2,
                   },
+                  // Highlight for TTS reading - golden glow effect
+                  isBeingRead && {
+                    backgroundColor: 'rgba(212, 175, 55, 0.15)',
+                    borderColor: '#D4AF37',
+                    borderWidth: 2,
+                    borderLeftWidth: 4,
+                  },
                 ]}>
                 <View style={styles.verseHeader}>
                   <Text
                     style={[
                       styles.verseNumber,
-                      {color: effectiveColors.primary},
+                      {
+                        color: isBeingRead
+                          ? '#D4AF37'
+                          : effectiveColors.primary,
+                      },
+                      isBeingRead && {fontWeight: '800', fontSize: 18},
                     ]}>
-                    {verse.verse}
+                    {isBeingRead ? `🔊 ${verse.verse}` : verse.verse}
                   </Text>
 
                   <TouchableOpacity onPress={() => toggleBookmark(verse)}>
@@ -722,9 +689,9 @@ export default function VerseReadingScreen() {
                   style={[
                     styles.verseText,
                     {
-                      fontSize: effectiveFontSize,
+                      fontSize: fontSize,
                       color: effectiveColors.text,
-                      lineHeight: effectiveFontSize * 1.6,
+                      lineHeight: fontSize * 1.6,
                     },
                   ]}>
                   {verse.text}
