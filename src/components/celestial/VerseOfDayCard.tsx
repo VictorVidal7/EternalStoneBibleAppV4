@@ -20,6 +20,8 @@ import {
   createCelestialTheme,
   celestialBorderRadius,
 } from '../../styles/celestialTheme';
+import {useLanguage} from '../../hooks/useLanguage';
+import {useTheme} from '../../hooks/useTheme';
 
 interface VerseOfDayCardProps {
   /**
@@ -63,15 +65,26 @@ interface VerseOfDayCardProps {
 const VerseOfDayCard: React.FC<VerseOfDayCardProps> = ({
   verseText,
   reference,
-  title = '✨ Verso del Día',
+  title,
   onPress,
   onShare,
   onFavorite,
   isDark = false,
 }) => {
-  const theme = createCelestialTheme(isDark);
+  const {t} = useLanguage();
+  const {colors} = useTheme();
+  // Pasar colores dinámicos del tema seleccionado
+  const theme = createCelestialTheme(isDark, {
+    primary: colors.primary,
+    primaryLight: colors.primaryLight,
+    primaryDark: colors.primaryDark,
+    info: colors.info,
+  });
   const scaleAnim = useRef(new Animated.Value(1)).current;
   const [isFavorited, setIsFavorited] = useState(false);
+
+  // Use translation if title not provided
+  const displayTitle = title || t.home.dailyVerse;
 
   // Animaciones de interacción
   const handlePressIn = () => {
@@ -119,7 +132,12 @@ const VerseOfDayCard: React.FC<VerseOfDayCardProps> = ({
           <View style={styles.header}>
             <View style={styles.iconContainer}>
               <LinearGradient
-                colors={['#fbbf24', '#f59e0b']} // amber gradient
+                colors={
+                  [colors.primary, colors.primaryDark || colors.primary] as [
+                    string,
+                    string,
+                  ]
+                }
                 start={{x: 0, y: 0}}
                 end={{x: 1, y: 1}}
                 style={styles.iconGradient}>
@@ -129,7 +147,7 @@ const VerseOfDayCard: React.FC<VerseOfDayCardProps> = ({
 
             <View style={styles.titleContainer}>
               <Text style={[styles.title, {color: theme.colors.text}]}>
-                {title}
+                {displayTitle}
               </Text>
               <Text
                 style={[styles.subtitle, {color: theme.colors.textSecondary}]}>
@@ -143,7 +161,7 @@ const VerseOfDayCard: React.FC<VerseOfDayCardProps> = ({
             style={[
               styles.verseContainer,
               {
-                borderLeftColor: theme.colors.primary,
+                borderLeftColor: colors.primary,
               },
             ]}>
             <Text
@@ -163,14 +181,13 @@ const VerseOfDayCard: React.FC<VerseOfDayCardProps> = ({
             {/* Botón leer capítulo completo */}
             {onPress && (
               <TouchableOpacity style={styles.actionButton} onPress={onPress}>
-                <Text
-                  style={[styles.actionText, {color: theme.colors.primary}]}>
-                  Leer capítulo completo
+                <Text style={[styles.actionText, {color: colors.primary}]}>
+                  {t.home.readFullChapter}
                 </Text>
                 <Ionicons
                   name="arrow-forward"
                   size={18}
-                  color={theme.colors.primary}
+                  color={colors.primary}
                 />
               </TouchableOpacity>
             )}

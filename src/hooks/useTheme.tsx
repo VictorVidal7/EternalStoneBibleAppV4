@@ -11,7 +11,8 @@ export type ColorTheme =
   | 'sunset'
   | 'graphite'
   | 'royal'
-  | 'midnight';
+  | 'midnight'
+  | 'cafe';
 
 // Función para determinar la hora del día
 function getTimeOfDay(): TimeOfDay {
@@ -213,10 +214,154 @@ export const colorThemes = {
       },
     },
   },
+  cafe: {
+    name: 'Café',
+    icon: 'cafe',
+    preview: ['#78350f', '#92400e', '#b45309'],
+    gradients: {
+      morning: {
+        colors: ['#78350f', '#92400e', '#d97706'] as const,
+        headerColors: ['#78350f', '#92400e', '#b45309'] as const,
+        accentGlow: '#fbbf24',
+      },
+      afternoon: {
+        colors: ['#78350f', '#92400e', '#b45309'] as const,
+        headerColors: ['#451a03', '#78350f', '#92400e'] as const,
+        accentGlow: '#f59e0b',
+      },
+      evening: {
+        colors: ['#451a03', '#78350f', '#92400e'] as const,
+        headerColors: ['#1c0a00', '#451a03', '#78350f'] as const,
+        accentGlow: '#d97706',
+      },
+      night: {
+        colors: ['#1c0a00', '#451a03', '#78350f'] as const,
+        headerColors: ['#1c0a00', '#451a03', '#78350f'] as const,
+        accentGlow: '#b45309',
+      },
+    },
+  },
 };
 
 // Gradientes por defecto (usa el tema midnight - serio y profesional)
 export const timeBasedGradients = colorThemes.midnight.gradients;
+
+// ==================== COLORES PRIMARIOS POR TEMA ====================
+// Colores primarios para cada tema de color (afectan toda la UI)
+export const themePrimaryColors = {
+  ocean: {
+    light: {
+      primary: '#0284c7', // sky-600
+      primaryLight: '#e0f2fe', // sky-100
+      primaryDark: '#0369a1', // sky-700
+      info: '#0284c7',
+    },
+    dark: {
+      primary: '#38bdf8', // sky-400
+      primaryLight: '#7dd3fc', // sky-300
+      primaryDark: '#0284c7', // sky-600
+      info: '#38bdf8',
+    },
+  },
+  celestial: {
+    light: {
+      primary: '#7c3aed', // violet-600
+      primaryLight: '#ede9fe', // violet-100
+      primaryDark: '#6d28d9', // violet-700
+      info: '#7c3aed',
+    },
+    dark: {
+      primary: '#a78bfa', // violet-400
+      primaryLight: '#c4b5fd', // violet-300
+      primaryDark: '#7c3aed', // violet-600
+      info: '#a78bfa',
+    },
+  },
+  forest: {
+    light: {
+      primary: '#16a34a', // green-600
+      primaryLight: '#dcfce7', // green-100
+      primaryDark: '#15803d', // green-700
+      info: '#16a34a',
+    },
+    dark: {
+      primary: '#4ade80', // green-400
+      primaryLight: '#86efac', // green-300
+      primaryDark: '#16a34a', // green-600
+      info: '#4ade80',
+    },
+  },
+  sunset: {
+    light: {
+      primary: '#ea580c', // orange-600
+      primaryLight: '#ffedd5', // orange-100
+      primaryDark: '#c2410c', // orange-700
+      info: '#ea580c',
+    },
+    dark: {
+      primary: '#fb923c', // orange-400
+      primaryLight: '#fdba74', // orange-300
+      primaryDark: '#ea580c', // orange-600
+      info: '#fb923c',
+    },
+  },
+  graphite: {
+    light: {
+      primary: '#52525b', // zinc-600
+      primaryLight: '#e4e4e7', // zinc-200
+      primaryDark: '#3f3f46', // zinc-700
+      info: '#52525b',
+    },
+    dark: {
+      primary: '#a1a1aa', // zinc-400
+      primaryLight: '#d4d4d8', // zinc-300
+      primaryDark: '#71717a', // zinc-500
+      info: '#a1a1aa',
+    },
+  },
+  royal: {
+    light: {
+      primary: '#2563eb', // blue-600
+      primaryLight: '#dbeafe', // blue-100
+      primaryDark: '#1d4ed8', // blue-700
+      info: '#2563eb',
+    },
+    dark: {
+      primary: '#60a5fa', // blue-400
+      primaryLight: '#93c5fd', // blue-300
+      primaryDark: '#2563eb', // blue-600
+      info: '#60a5fa',
+    },
+  },
+  midnight: {
+    light: {
+      primary: '#4f46e5', // indigo-600
+      primaryLight: '#e0e7ff', // indigo-100
+      primaryDark: '#4338ca', // indigo-700
+      info: '#4f46e5',
+    },
+    dark: {
+      primary: '#6366f1', // indigo-500
+      primaryLight: '#818cf8', // indigo-400
+      primaryDark: '#4f46e5', // indigo-600
+      info: '#6366f1',
+    },
+  },
+  cafe: {
+    light: {
+      primary: '#92400e', // amber-800
+      primaryLight: '#fef3c7', // amber-100
+      primaryDark: '#78350f', // amber-900
+      info: '#92400e',
+    },
+    dark: {
+      primary: '#fbbf24', // yellow-400
+      primaryLight: '#fcd34d', // yellow-300
+      primaryDark: '#d97706', // amber-600
+      info: '#fbbf24',
+    },
+  },
+};
 
 // Configuración del tema celestial
 export const celestialTheme = {
@@ -492,10 +637,20 @@ export function ThemeProvider({children}: {children: ReactNode}) {
     }
   }
 
-  const colors = effectiveTheme === 'dark' ? darkColors : lightColors;
+  const baseColors = effectiveTheme === 'dark' ? darkColors : lightColors;
   const isDark = effectiveTheme === 'dark';
   // Usar gradientes del tema de color seleccionado
   const gradient = colorThemes[colorTheme].gradients[timeOfDay];
+
+  // Aplicar colores primarios según el tema de color seleccionado
+  const themePrimary = themePrimaryColors[colorTheme][effectiveTheme];
+  const colors: ThemeColors = {
+    ...baseColors,
+    primary: themePrimary.primary,
+    primaryLight: themePrimary.primaryLight,
+    primaryDark: themePrimary.primaryDark,
+    info: themePrimary.info,
+  };
 
   return (
     <ThemeContext.Provider

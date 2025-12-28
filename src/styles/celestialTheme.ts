@@ -576,11 +576,53 @@ export interface CelestialTheme {
 // ==================== CREATOR FUNCTION ====================
 
 /**
- * Crea un tema Celestial completo basado en el modo (light/dark)
+ * Interface para colores dinámicos del tema
  */
-export const createCelestialTheme = (isDark: boolean) => {
-  const colors = isDark ? celestialDarkTheme : celestialLightTheme;
+interface DynamicThemeColors {
+  primary: string;
+  primaryLight: string;
+  primaryDark: string;
+  info: string;
+}
+
+/**
+ * Crea un tema Celestial completo basado en el modo (light/dark)
+ * Opcionalmente acepta colores dinámicos del tema seleccionado (useTheme)
+ */
+export const createCelestialTheme = (
+  isDark: boolean,
+  dynamicColors?: DynamicThemeColors,
+) => {
+  const baseColors = isDark ? celestialDarkTheme : celestialLightTheme;
   const shadows = isDark ? celestialShadows.dark : celestialShadows.light;
+
+  // Si se proporcionan colores dinámicos, los aplicamos al tema
+  const colors = dynamicColors
+    ? {
+        ...baseColors,
+        primary: dynamicColors.primary,
+        primaryLight: dynamicColors.primaryLight,
+        primaryDark: dynamicColors.primaryDark,
+        info: dynamicColors.info,
+        // También actualizamos gradientes para usar los colores dinámicos
+        primaryGradient: [
+          dynamicColors.primary,
+          dynamicColors.primaryLight,
+          dynamicColors.primary,
+        ],
+        primaryGradientReverse: [
+          dynamicColors.primaryLight,
+          dynamicColors.primary,
+          dynamicColors.primaryDark,
+        ],
+        // Actualizar glow para usar el color dinámico
+        glow: `${dynamicColors.primary}33`, // 20% opacity
+        focus: dynamicColors.primary,
+        accent: dynamicColors.primary,
+        accentLight: dynamicColors.primaryLight,
+        accentDark: dynamicColors.primaryDark,
+      }
+    : baseColors;
 
   return {
     colors,

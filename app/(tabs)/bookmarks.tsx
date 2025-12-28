@@ -21,7 +21,7 @@ import {logger} from '../../src/lib/utils/logger';
 export default function BookmarksScreen() {
   const router = useRouter();
   const {colors, isDark} = useTheme();
-  const {t} = useLanguage();
+  const {t, language} = useLanguage();
   const toast = useToast();
   const [bookmarks, setBookmarks] = useState<Bookmark[]>([]);
   const [loading, setLoading] = useState(true);
@@ -112,11 +112,14 @@ export default function BookmarksScreen() {
               </Text>
               <Text
                 style={[styles.bookmarkDate, {color: colors.textSecondary}]}>
-                {new Date(item.createdAt).toLocaleDateString('en-US', {
-                  year: 'numeric',
-                  month: 'long',
-                  day: 'numeric',
-                })}
+                {new Date(item.createdAt).toLocaleDateString(
+                  language === 'es' ? 'es-ES' : 'en-US',
+                  {
+                    year: 'numeric',
+                    month: 'long',
+                    day: 'numeric',
+                  },
+                )}
               </Text>
             </View>
 

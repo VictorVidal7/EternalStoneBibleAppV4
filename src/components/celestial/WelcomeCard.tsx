@@ -20,6 +20,7 @@ import {
   createCelestialTheme,
   celestialBorderRadius,
 } from '../../styles/celestialTheme';
+import {useTheme} from '../../hooks/useTheme';
 
 interface WelcomeCardProps {
   /**
@@ -64,16 +65,26 @@ const WelcomeCard: React.FC<WelcomeCardProps> = ({
   progress,
   isDark = false,
 }) => {
-  const theme = createCelestialTheme(isDark);
+  const {colors: themeColors} = useTheme();
+  // Pasar colores dinámicos del tema seleccionado
+  const theme = createCelestialTheme(isDark, {
+    primary: themeColors.primary,
+    primaryLight: themeColors.primaryLight,
+    primaryDark: themeColors.primaryDark,
+    info: themeColors.info,
+  });
+
+  // Usar colores dinámicos para el gradiente
+  const gradientColors: [string, string, string] = [
+    themeColors.primary,
+    themeColors.primaryLight,
+    themeColors.primaryDark,
+  ];
 
   return (
     <View style={styles.container}>
       <LinearGradient
-        colors={
-          isDark
-            ? ['#7c3aed', '#6366f1', '#4f46e5'] // purple-600 → indigo-500 → indigo-600
-            : ['#a855f7', '#8b5cf6', '#6366f1'] // purple-500 → purple-600 → indigo-500
-        }
+        colors={gradientColors}
         start={{x: 0, y: 0}}
         end={{x: 1, y: 1}}
         style={[
@@ -88,11 +99,23 @@ const WelcomeCard: React.FC<WelcomeCardProps> = ({
           {/* Top-right blur */}
           <View style={[styles.blurElement, styles.blurTopRight]} />
 
-          {/* Bottom-left blur */}
-          <View style={[styles.blurElement, styles.blurBottomLeft]} />
+          {/* Bottom-left blur - color dinámico */}
+          <View
+            style={[
+              styles.blurElement,
+              styles.blurBottomLeft,
+              {backgroundColor: `${themeColors.primary}4D`}, // 30% opacity
+            ]}
+          />
 
-          {/* Center-right blur */}
-          <View style={[styles.blurElement, styles.blurCenterRight]} />
+          {/* Center-right blur - color dinámico */}
+          <View
+            style={[
+              styles.blurElement,
+              styles.blurCenterRight,
+              {backgroundColor: `${themeColors.primaryLight}33`}, // 20% opacity
+            ]}
+          />
         </View>
 
         {/* Contenido principal */}

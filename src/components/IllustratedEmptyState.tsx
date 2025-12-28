@@ -89,46 +89,46 @@ export const IllustratedEmptyState: React.FC<IllustratedEmptyStateProps> = ({
     onAction?.();
   };
 
+  // Use theme primary colors for gradient
+  const themeGradient = [
+    colors.primary,
+    colors.primaryDark || colors.primary,
+  ] as [string, string];
+
   const getConfig = () => {
     const configs = {
       'no-bookmarks': {
         icon: 'bookmark-outline' as const,
-        gradient: ['#667eea', '#764ba2'] as const,
         defaultTitle: t.emptyStates.noBookmarks.title,
         defaultMessage: t.emptyStates.noBookmarks.message,
         defaultAction: t.emptyStates.noBookmarks.action,
       },
       'no-notes': {
         icon: 'create-outline' as const,
-        gradient: ['#10b981', '#059669'] as const,
         defaultTitle: t.emptyStates.noNotes.title,
         defaultMessage: t.emptyStates.noNotes.message,
         defaultAction: t.emptyStates.noNotes.action,
       },
       'no-highlights': {
         icon: 'color-palette-outline' as const,
-        gradient: ['#f59e0b', '#d97706'] as const,
         defaultTitle: t.emptyStates.noHighlights.title,
         defaultMessage: t.emptyStates.noHighlights.message,
         defaultAction: t.emptyStates.noHighlights.action,
       },
       'no-search-results': {
         icon: 'search-outline' as const,
-        gradient: ['#3b82f6', '#2563eb'] as const,
         defaultTitle: t.emptyStates.noSearchResults.title,
         defaultMessage: t.emptyStates.noSearchResults.message,
         defaultAction: t.emptyStates.noSearchResults.action,
       },
       'no-achievements': {
         icon: 'trophy-outline' as const,
-        gradient: ['#ec4899', '#db2777'] as const,
         defaultTitle: t.emptyStates.noAchievements.title,
         defaultMessage: t.emptyStates.noAchievements.message,
         defaultAction: t.emptyStates.noAchievements.action,
       },
       'no-reading-plan': {
         icon: 'calendar-outline' as const,
-        gradient: ['#8b5cf6', '#7c3aed'] as const,
         defaultTitle: t.emptyStates.noReadingPlan.title,
         defaultMessage: t.emptyStates.noReadingPlan.message,
         defaultAction: t.emptyStates.noReadingPlan.action,
@@ -162,9 +162,7 @@ export const IllustratedEmptyState: React.FC<IllustratedEmptyStateProps> = ({
                 styles.circle,
                 styles.circle1,
                 {
-                  backgroundColor: isDark
-                    ? 'rgba(102, 126, 234, 0.1)'
-                    : 'rgba(102, 126, 234, 0.08)',
+                  backgroundColor: colors.primary + (isDark ? '1A' : '14'),
                 },
               ]}
             />
@@ -173,9 +171,7 @@ export const IllustratedEmptyState: React.FC<IllustratedEmptyStateProps> = ({
                 styles.circle,
                 styles.circle2,
                 {
-                  backgroundColor: isDark
-                    ? 'rgba(118, 75, 162, 0.1)'
-                    : 'rgba(118, 75, 162, 0.08)',
+                  backgroundColor: colors.primary + (isDark ? '1A' : '14'),
                 },
               ]}
             />
@@ -184,9 +180,7 @@ export const IllustratedEmptyState: React.FC<IllustratedEmptyStateProps> = ({
                 styles.circle,
                 styles.circle3,
                 {
-                  backgroundColor: isDark
-                    ? 'rgba(240, 147, 251, 0.1)'
-                    : 'rgba(240, 147, 251, 0.08)',
+                  backgroundColor: colors.primary + (isDark ? '1A' : '14'),
                 },
               ]}
             />
@@ -194,7 +188,7 @@ export const IllustratedEmptyState: React.FC<IllustratedEmptyStateProps> = ({
 
           {/* Ícono principal con gradiente */}
           <LinearGradient
-            colors={config.gradient}
+            colors={themeGradient}
             start={{x: 0, y: 0}}
             end={{x: 1, y: 1}}
             style={styles.iconContainer}>
@@ -206,19 +200,19 @@ export const IllustratedEmptyState: React.FC<IllustratedEmptyStateProps> = ({
             <Ionicons
               name="sparkles"
               size={20}
-              color={config.gradient[0]}
+              color={themeGradient[0]}
               style={[styles.floatingIcon, styles.floatingIcon1]}
             />
             <Ionicons
               name="star"
               size={16}
-              color={config.gradient[1]}
+              color={themeGradient[1]}
               style={[styles.floatingIcon, styles.floatingIcon2]}
             />
             <Ionicons
               name="heart"
               size={18}
-              color={config.gradient[0]}
+              color={themeGradient[0]}
               style={[styles.floatingIcon, styles.floatingIcon3]}
             />
           </View>
@@ -251,7 +245,7 @@ export const IllustratedEmptyState: React.FC<IllustratedEmptyStateProps> = ({
           activeOpacity={0.8}
           style={styles.actionButton}>
           <LinearGradient
-            colors={config.gradient}
+            colors={themeGradient}
             start={{x: 0, y: 0}}
             end={{x: 1, y: 0}}
             style={[styles.actionButtonGradient, shadows.md]}>
@@ -266,13 +260,13 @@ export const IllustratedEmptyState: React.FC<IllustratedEmptyStateProps> = ({
       {/* Puntos decorativos inferiores */}
       <View style={styles.bottomDots}>
         <View
-          style={[styles.dot, {backgroundColor: config.gradient[0] + '40'}]}
+          style={[styles.dot, {backgroundColor: themeGradient[0] + '40'}]}
         />
         <View
-          style={[styles.dot, {backgroundColor: config.gradient[1] + '40'}]}
+          style={[styles.dot, {backgroundColor: themeGradient[1] + '40'}]}
         />
         <View
-          style={[styles.dot, {backgroundColor: config.gradient[0] + '40'}]}
+          style={[styles.dot, {backgroundColor: themeGradient[0] + '40'}]}
         />
       </View>
     </Animated.View>

@@ -16,10 +16,8 @@ import {View, Text, StyleSheet, TouchableOpacity, Animated} from 'react-native';
 import {Ionicons} from '@expo/vector-icons';
 import {BlurView} from 'expo-blur';
 import type {ComponentProps} from 'react';
-import {
-  createCelestialTheme,
-  celestialBorderRadius,
-} from '../../styles/celestialTheme';
+import {createCelestialTheme} from '../../styles/celestialTheme';
+import {useTheme} from '../../hooks/useTheme';
 import ProgressCircle from './ProgressCircle';
 
 type IoniconsName = ComponentProps<typeof Ionicons>['name'];
@@ -98,7 +96,14 @@ const ReadingPlanCard: React.FC<ReadingPlanCardProps> = ({
   isDark = false,
   width = 240,
 }) => {
-  const theme = createCelestialTheme(isDark);
+  const {colors: themeColors} = useTheme();
+  // Pasar colores dinámicos del tema seleccionado
+  const theme = createCelestialTheme(isDark, {
+    primary: themeColors.primary,
+    primaryLight: themeColors.primaryLight,
+    primaryDark: themeColors.primaryDark,
+    info: themeColors.info,
+  });
   const scaleAnim = useRef(new Animated.Value(1)).current;
 
   // Calcular progreso

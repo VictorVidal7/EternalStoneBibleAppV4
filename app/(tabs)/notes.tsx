@@ -19,7 +19,7 @@ import {logger} from '../../src/lib/utils/logger';
 export default function NotesScreen() {
   const router = useRouter();
   const {colors, isDark} = useTheme();
-  const {t} = useLanguage();
+  const {t, language} = useLanguage();
   const [notes, setNotes] = useState<Note[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -98,11 +98,14 @@ export default function NotesScreen() {
                   {item.book} {item.chapter}:{item.verse}
                 </Text>
                 <Text style={[styles.noteDate, {color: colors.textSecondary}]}>
-                  {new Date(item.updatedAt).toLocaleDateString('en-US', {
-                    year: 'numeric',
-                    month: 'short',
-                    day: 'numeric',
-                  })}
+                  {new Date(item.updatedAt).toLocaleDateString(
+                    language === 'es' ? 'es-ES' : 'en-US',
+                    {
+                      year: 'numeric',
+                      month: 'short',
+                      day: 'numeric',
+                    },
+                  )}
                 </Text>
               </View>
 

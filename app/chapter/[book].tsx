@@ -24,7 +24,6 @@ import {getBookByName} from '../../src/constants/bible';
 import {useTheme} from '../../src/hooks/useTheme';
 import {useLanguage} from '../../src/hooks/useLanguage';
 import {PremiumSkeleton} from '../../src/components/PremiumSkeleton';
-import {getBookTheme} from '../../src/constants/bookThemes';
 import {useReadingProgress} from '../../src/context/ReadingProgressContext';
 
 // Design tokens
@@ -56,10 +55,6 @@ export default function ChapterSelectionScreen() {
   const slideAnim = useRef(new Animated.Value(-50)).current;
 
   const bookInfo = getBookByName(book);
-  const bookTheme = useMemo(
-    () => getBookTheme(bookInfo?.name || ''),
-    [bookInfo],
-  );
 
   // Gradiente dinámico sincronizado con el tema de la app (con fallback)
   const headerGradient = useMemo(
@@ -145,6 +140,7 @@ export default function ChapterSelectionScreen() {
           chapter={item.chapter}
           onPress={() => navigateToVerse(item.chapter)}
           isDark={isDark}
+          colors={colors}
           t={t}
           bookName={bookInfo?.name || ''}
           isCompleted={isCompleted}
@@ -152,7 +148,7 @@ export default function ChapterSelectionScreen() {
         />
       );
     },
-    [isDark, navigateToVerse, bookInfo, t, getChapterProgress],
+    [isDark, colors, navigateToVerse, bookInfo, t, getChapterProgress],
   );
 
   // Mostrar error si no se encuentra el libro
@@ -324,6 +320,7 @@ interface ChapterCardProps {
   chapter: number;
   onPress: () => void;
   isDark: boolean;
+  colors: any;
   t: any;
   bookName: string;
   isCompleted: boolean;
@@ -335,6 +332,7 @@ const ChapterCard: React.FC<ChapterCardProps> = React.memo(
     chapter,
     onPress,
     isDark,
+    colors,
     t,
     bookName,
     isCompleted,
@@ -393,7 +391,7 @@ const ChapterCard: React.FC<ChapterCardProps> = React.memo(
                 style={[
                   styles.chapterNumber,
                   {
-                    color: isDark ? '#E0E7FF' : '#4A90E2',
+                    color: colors.primary,
                   },
                 ]}>
                 {chapter}
@@ -413,7 +411,7 @@ const ChapterCard: React.FC<ChapterCardProps> = React.memo(
                     style={[
                       styles.progressDot,
                       {
-                        backgroundColor: isDark ? '#60a5fa' : '#3b82f6',
+                        backgroundColor: colors.primary,
                       },
                     ]}
                   />

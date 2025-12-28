@@ -68,7 +68,13 @@ const {width: SCREEN_WIDTH} = Dimensions.get('window');
 export default function HomeScreen() {
   const router = useRouter();
   const {isDark, colors, gradient} = useTheme();
-  const celestialTheme = createCelestialTheme(isDark);
+  // Pasar colores dinámicos del tema seleccionado a celestialTheme
+  const celestialTheme = createCelestialTheme(isDark, {
+    primary: colors.primary,
+    primaryLight: colors.primaryLight,
+    primaryDark: colors.primaryDark,
+    info: colors.info,
+  });
   const {selectedVersion} = useBibleVersion();
   const {achievementService, initialized: servicesInitialized} = useServices();
   useLanguage(); // Hook used for language context
@@ -304,7 +310,7 @@ export default function HomeScreen() {
                 backgroundColor: celestialTheme.colors.surfaceGlass,
                 borderColor: celestialTheme.colors.glassBorder,
                 borderRadius: celestialBorderRadius['2xl'], // 28px
-                shadowColor: '#6366f1',
+                shadowColor: colors.primary,
                 shadowOffset: {width: 0, height: 12},
                 shadowOpacity: 0.35, // Sombra DRAMÁTICA
                 shadowRadius: 24,
@@ -462,14 +468,20 @@ export default function HomeScreen() {
                 )
               }>
               <LinearGradient
-                colors={['#FFB74D', '#FF9800', '#F57C00'] as const}
+                colors={
+                  [colors.primary, colors.primaryLight, colors.primaryDark] as [
+                    string,
+                    string,
+                    string,
+                  ]
+                }
                 start={{x: 0, y: 0}}
                 end={{x: 1, y: 1}}
                 style={[
                   styles.continueButton,
                   {
                     borderRadius: celestialBorderRadius.xl, // 22px
-                    shadowColor: '#FFB74D',
+                    shadowColor: colors.primary,
                     shadowOffset: {width: 0, height: 8},
                     shadowOpacity: 0.4, // MÁS visible
                     shadowRadius: 16,

@@ -196,6 +196,9 @@ export const translations = {
       themeDark: 'Oscuro',
       themeAuto: 'Auto',
 
+      colorTheme: 'Tema de Color',
+      colorThemeDescription: 'Elige el estilo visual de la aplicación',
+
       bibleVersion: 'Versión de la Biblia',
       selectVersion: 'Selecciona tu versión',
       versionDescription: 'Elige la traducción de la Biblia que prefieres',
@@ -957,6 +960,9 @@ export const translations = {
       themeLight: 'Light',
       themeDark: 'Dark',
       themeAuto: 'Auto',
+
+      colorTheme: 'Color Theme',
+      colorThemeDescription: 'Choose the visual style of the app',
 
       bibleVersion: 'Bible Version',
       selectVersion: 'Select your version',

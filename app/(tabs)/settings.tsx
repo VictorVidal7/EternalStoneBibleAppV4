@@ -151,14 +151,14 @@ export default function SettingsScreen() {
           </View>
         </View>
 
-        {/* Color Theme Selector */}
+        {/* Color Theme Selector - Compacto */}
         <View style={[themedStyles.card, {marginTop: 16}]}>
-          <Text style={themedStyles.settingLabel}>Tema de Color</Text>
+          <Text style={themedStyles.settingLabel}>{t.settings.colorTheme}</Text>
           <Text style={themedStyles.settingDescription}>
-            Elige el estilo visual de la aplicación
+            {t.settings.colorThemeDescription}
           </Text>
 
-          <View style={themedStyles.colorThemeGrid}>
+          <View style={themedStyles.colorThemeGridCompact}>
             {(Object.keys(colorThemes) as ColorTheme[]).map(themeKey => {
               const theme = colorThemes[themeKey];
               const isSelected = colorTheme === themeKey;
@@ -166,28 +166,25 @@ export default function SettingsScreen() {
                 <TouchableOpacity
                   key={themeKey}
                   style={[
-                    themedStyles.colorThemeOption,
-                    isSelected && themedStyles.colorThemeOptionActive,
+                    themedStyles.colorThemeOptionCompact,
+                    isSelected && themedStyles.colorThemeOptionCompactActive,
                   ]}
                   onPress={() => handleColorThemeChange(themeKey)}>
                   <LinearGradient
                     colors={theme.preview as [string, string, string]}
                     start={{x: 0, y: 0}}
                     end={{x: 1, y: 1}}
-                    style={themedStyles.colorThemePreview}>
+                    style={themedStyles.colorThemePreviewCompact}>
                     {isSelected && (
-                      <Ionicons
-                        name="checkmark-circle"
-                        size={20}
-                        color="#FFFFFF"
-                      />
+                      <Ionicons name="checkmark" size={14} color="#FFFFFF" />
                     )}
                   </LinearGradient>
                   <Text
                     style={[
-                      themedStyles.colorThemeName,
-                      isSelected && themedStyles.colorThemeNameActive,
-                    ]}>
+                      themedStyles.colorThemeNameCompact,
+                      isSelected && themedStyles.colorThemeNameCompactActive,
+                    ]}
+                    numberOfLines={1}>
                     {theme.name}
                   </Text>
                 </TouchableOpacity>
@@ -241,7 +238,7 @@ export default function SettingsScreen() {
                       <Ionicons
                         name="checkmark-circle"
                         size={20}
-                        color={colors.primary}
+                        color={isDark ? colors.primaryDark : colors.primary}
                       />
                     )}
                   </View>
@@ -259,7 +256,9 @@ export default function SettingsScreen() {
                       size={12}
                       color={
                         selectedVersion.id === version.id
-                          ? colors.primary
+                          ? isDark
+                            ? colors.primaryDark
+                            : colors.primary
                           : colors.textTertiary
                       }
                     />
@@ -337,7 +336,7 @@ export default function SettingsScreen() {
                   <Ionicons
                     name="checkmark-circle"
                     size={20}
-                    color={colors.primary}
+                    color={isDark ? colors.primaryDark : colors.primary}
                   />
                 )}
               </View>
@@ -365,7 +364,7 @@ export default function SettingsScreen() {
                   <Ionicons
                     name="checkmark-circle"
                     size={20}
-                    color={colors.primary}
+                    color={isDark ? colors.primaryDark : colors.primary}
                   />
                 )}
               </View>
@@ -726,7 +725,8 @@ function createThemedStyles(colors: any, isDark: boolean) {
       color: colors.text,
     },
     versionAbbrActive: {
-      color: colors.primary,
+      // En modo oscuro usar color oscuro para contrastar con fondo claro
+      color: isDark ? colors.primaryDark : colors.primary,
     },
     versionName: {
       fontSize: 14,
@@ -734,7 +734,8 @@ function createThemedStyles(colors: any, isDark: boolean) {
       marginTop: 4,
     },
     versionNameActive: {
-      color: colors.text,
+      // En modo oscuro usar color oscuro para contrastar con fondo claro
+      color: isDark ? colors.primaryDark : colors.text,
       fontWeight: '500',
     },
     versionMetaText: {
@@ -743,7 +744,8 @@ function createThemedStyles(colors: any, isDark: boolean) {
       marginLeft: 4,
     },
     versionMetaActive: {
-      color: colors.primary,
+      // En modo oscuro usar color oscuro para contrastar con fondo claro
+      color: isDark ? colors.primaryDark : colors.primary,
     },
     comingSoonBadge: {
       marginTop: 10,
@@ -783,7 +785,8 @@ function createThemedStyles(colors: any, isDark: boolean) {
       flex: 1,
     },
     languageNameActive: {
-      color: colors.primary,
+      // En modo oscuro usar color oscuro para contrastar con fondo claro
+      color: isDark ? colors.primaryDark : colors.primary,
     },
     aboutRow: {
       marginBottom: 12,
@@ -879,7 +882,46 @@ function createThemedStyles(colors: any, isDark: boolean) {
       textAlign: 'center',
     },
     colorThemeNameActive: {
-      color: colors.primary,
+      // En modo oscuro usar color oscuro para contrastar con fondo claro
+      color: isDark ? colors.primaryDark : colors.primary,
+    },
+    // Estilos compactos para el selector de temas
+    colorThemeGridCompact: {
+      flexDirection: 'row',
+      flexWrap: 'wrap',
+      marginTop: 12,
+      gap: 8,
+      justifyContent: 'flex-start',
+    },
+    colorThemeOptionCompact: {
+      width: '23%',
+      alignItems: 'center',
+      padding: 6,
+      borderRadius: 10,
+      borderWidth: 2,
+      borderColor: 'transparent',
+    },
+    colorThemeOptionCompactActive: {
+      borderColor: colors.primary,
+      backgroundColor: colors.primaryLight,
+    },
+    colorThemePreviewCompact: {
+      width: 36,
+      height: 36,
+      borderRadius: 18,
+      justifyContent: 'center',
+      alignItems: 'center',
+      marginBottom: 4,
+    },
+    colorThemeNameCompact: {
+      fontSize: 10,
+      fontWeight: '600',
+      color: colors.textSecondary,
+      textAlign: 'center',
+    },
+    colorThemeNameCompactActive: {
+      // En modo oscuro usar color oscuro para contrastar con fondo claro
+      color: isDark ? colors.primaryDark : colors.primary,
     },
   });
 }

@@ -22,10 +22,8 @@ import {
 } from 'react-native';
 import {LinearGradient} from 'expo-linear-gradient';
 import {Ionicons} from '@expo/vector-icons';
-import {
-  createCelestialTheme,
-  celestialBorderRadius,
-} from '../../styles/celestialTheme';
+import {celestialBorderRadius} from '../../styles/celestialTheme';
+import {useTheme} from '../../hooks/useTheme';
 
 interface ContinueReadingButtonProps {
   /**
@@ -69,8 +67,7 @@ const ContinueReadingButton: React.FC<ContinueReadingButtonProps> = ({
   buttonText = 'Continuar Leyendo',
   isDark = false,
 }) => {
-  // Theme available if needed for future enhancements
-  createCelestialTheme(isDark);
+  const {colors: themeColors} = useTheme();
   const scaleAnim = useRef(new Animated.Value(1)).current;
   const chevronAnim = useRef(new Animated.Value(0)).current;
   const progressAnim = useRef(new Animated.Value(0)).current;
@@ -134,9 +131,7 @@ const ContinueReadingButton: React.FC<ContinueReadingButtonProps> = ({
         onPressOut={handlePressOut}>
         <LinearGradient
           colors={
-            isDark
-              ? ['#059669', '#0d9488'] // emerald-600 → teal-600
-              : ['#10b981', '#14b8a6'] // emerald-500 → teal-500
+            [themeColors.primary, themeColors.primaryLight] as [string, string]
           }
           start={{x: 0, y: 0}}
           end={{x: 1, y: 0}}
@@ -147,7 +142,7 @@ const ContinueReadingButton: React.FC<ContinueReadingButtonProps> = ({
             },
             Platform.select({
               ios: {
-                shadowColor: '#10b981',
+                shadowColor: themeColors.primary,
                 shadowOffset: {width: 0, height: 8},
                 shadowOpacity: 0.3,
                 shadowRadius: 16,

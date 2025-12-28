@@ -27,6 +27,11 @@ import {ImmersiveReader} from '../../../src/components/reading/ImmersiveReader';
 import {getBookTheme} from '../../../src/constants/bookThemes';
 // Audio Bible Feature
 import {useAudioPlayer, AudioVerse} from '../../../src/features/audio';
+// Navigation
+import {
+  AnimatedBottomNav,
+  useScrollDirection,
+} from '../../../src/components/navigation/AnimatedBottomNav';
 
 // Design tokens
 import {
@@ -72,6 +77,9 @@ export default function VerseReadingScreen() {
     new Set(),
   );
   const [immersiveModeActive, setImmersiveModeActive] = useState(false);
+
+  // Bottom nav visibility based on scroll direction
+  const {isVisible: isNavVisible, handleScroll} = useScrollDirection();
 
   // Use theme colors directly
   const effectiveColors = {
@@ -399,7 +407,7 @@ export default function VerseReadingScreen() {
     <>
       <Stack.Screen
         options={{
-          title: `${bookTheme.emoji} ${bookInfo.name} ${chapterNum}`,
+          title: `${bookInfo.name} ${chapterNum}`,
           headerStyle: {backgroundColor: bookTheme.primary},
           headerTintColor: '#FFFFFF',
           headerRight: () => (
@@ -477,7 +485,7 @@ export default function VerseReadingScreen() {
               color={
                 chapterNum === 1
                   ? effectiveColors.textTertiary
-                  : bookTheme.primary
+                  : effectiveColors.primary
               }
             />
             <Text
@@ -487,19 +495,16 @@ export default function VerseReadingScreen() {
                   color:
                     chapterNum === 1
                       ? effectiveColors.textTertiary
-                      : bookTheme.primary,
+                      : effectiveColors.primary,
                 },
               ]}>
               {t.previous}
             </Text>
           </TouchableOpacity>
 
-          <View style={{flexDirection: 'row', alignItems: 'center', gap: 4}}>
-            <Text style={{fontSize: 16}}>{bookTheme.emoji}</Text>
-            <Text style={[styles.navTitle, {color: effectiveColors.text}]}>
-              {bookInfo.name} {chapterNum}
-            </Text>
-          </View>
+          <Text style={[styles.navTitle, {color: effectiveColors.text}]}>
+            {bookInfo.name} {chapterNum}
+          </Text>
 
           <TouchableOpacity
             style={styles.navButton}
@@ -512,7 +517,7 @@ export default function VerseReadingScreen() {
                   color:
                     chapterNum === bookInfo.chapters
                       ? effectiveColors.textTertiary
-                      : bookTheme.primary,
+                      : effectiveColors.primary,
                 },
               ]}>
               {t.next}
@@ -523,7 +528,7 @@ export default function VerseReadingScreen() {
               color={
                 chapterNum === bookInfo.chapters
                   ? effectiveColors.textTertiary
-                  : bookTheme.primary
+                  : effectiveColors.primary
               }
             />
           </TouchableOpacity>
@@ -629,7 +634,12 @@ export default function VerseReadingScreen() {
         <ScrollView
           ref={scrollViewRef}
           style={styles.versesContainer}
-          contentContainerStyle={styles.versesContent}>
+          contentContainerStyle={[
+            styles.versesContent,
+            {paddingBottom: 100}, // Extra space for bottom nav
+          ]}
+          onScroll={handleScroll}
+          scrollEventThrottle={16}>
           {verses.map((verse, index) => {
             const isBookmarked = bookmarkedVerses.has(verse.verse);
             const isHighlighted =
@@ -838,6 +848,9 @@ export default function VerseReadingScreen() {
             startIndex={0}
           />
         </Modal>
+
+        {/* Bottom Navigation - hides on scroll down, shows on scroll up */}
+        <AnimatedBottomNav visible={isNavVisible} activeTab="bible" />
       </View>
     </>
   );

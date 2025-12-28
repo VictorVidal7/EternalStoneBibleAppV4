@@ -29,6 +29,7 @@ import {
   createCelestialTheme,
   celestialBorderRadius,
 } from '../../styles/celestialTheme';
+import {useTheme} from '../../hooks/useTheme';
 
 type IoniconsName = ComponentProps<typeof Ionicons>['name'];
 
@@ -116,7 +117,14 @@ const QuickAccessButton: React.FC<QuickAccessButtonProps> = ({
   delay = 0,
   isDark = false,
 }) => {
-  const theme = createCelestialTheme(isDark);
+  const {colors: themeColors} = useTheme();
+  // Pasar colores dinámicos del tema seleccionado
+  const theme = createCelestialTheme(isDark, {
+    primary: themeColors.primary,
+    primaryLight: themeColors.primaryLight,
+    primaryDark: themeColors.primaryDark,
+    info: themeColors.info,
+  });
   const scaleAnim = useRef(new Animated.Value(0.9)).current;
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const pulseAnim = useRef(new Animated.Value(1)).current;
