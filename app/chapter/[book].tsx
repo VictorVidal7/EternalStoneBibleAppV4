@@ -41,7 +41,7 @@ interface ChapterItem {
 
 export default function ChapterSelectionScreen() {
   const router = useRouter();
-  const {colors, isDark} = useTheme();
+  const {colors, isDark, gradient} = useTheme();
   const {t} = useLanguage();
   const params = useLocalSearchParams<{book: string}>();
   const {getChapterProgress} = useReadingProgress();
@@ -61,10 +61,13 @@ export default function ChapterSelectionScreen() {
     [bookInfo],
   );
 
-  // Optimizacion: Gradientes memorizados con tema dinamico del libro
+  // Gradiente dinámico sincronizado con el tema de la app (con fallback)
   const headerGradient = useMemo(
-    () => (isDark ? bookTheme.gradientDark : bookTheme.gradient),
-    [isDark, bookTheme],
+    () =>
+      (gradient?.headerColors
+        ? [...gradient.headerColors]
+        : ['#4f46e5', '#7c3aed', '#a855f7']) as [string, string, string],
+    [gradient?.headerColors],
   );
 
   /**

@@ -10,7 +10,8 @@ import {
 import {useState} from 'react';
 import {Ionicons} from '@expo/vector-icons';
 import {useRouter} from 'expo-router';
-import {useTheme} from '../../src/hooks/useTheme';
+import {useTheme, colorThemes, ColorTheme} from '../../src/hooks/useTheme';
+import {LinearGradient} from 'expo-linear-gradient';
 import {useBibleVersion} from '../../src/hooks/useBibleVersion';
 import {useLanguage} from '../../src/hooks/useLanguage';
 import {resetBibleData} from '../../src/lib/database/data-loader';
@@ -20,7 +21,8 @@ type ThemeOption = 'light' | 'dark' | 'auto';
 
 export default function SettingsScreen() {
   const router = useRouter();
-  const {mode, setThemeMode, isDark, colors} = useTheme();
+  const {mode, setThemeMode, isDark, colors, colorTheme, setColorTheme} =
+    useTheme();
   const {selectedVersion, setVersion, availableVersions} = useBibleVersion();
   const {language, setLanguage, t} = useLanguage();
   const [isResetting, setIsResetting] = useState(false);
@@ -28,6 +30,11 @@ export default function SettingsScreen() {
   async function handleThemeChange(newMode: ThemeOption) {
     await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     await setThemeMode(newMode);
+  }
+
+  async function handleColorThemeChange(newColorTheme: ColorTheme) {
+    await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+    await setColorTheme(newColorTheme);
   }
 
   async function handleResetData() {
@@ -141,6 +148,51 @@ export default function SettingsScreen() {
                 {t.settings.themeAuto}
               </Text>
             </TouchableOpacity>
+          </View>
+        </View>
+
+        {/* Color Theme Selector */}
+        <View style={[themedStyles.card, {marginTop: 16}]}>
+          <Text style={themedStyles.settingLabel}>Tema de Color</Text>
+          <Text style={themedStyles.settingDescription}>
+            Elige el estilo visual de la aplicación
+          </Text>
+
+          <View style={themedStyles.colorThemeGrid}>
+            {(Object.keys(colorThemes) as ColorTheme[]).map(themeKey => {
+              const theme = colorThemes[themeKey];
+              const isSelected = colorTheme === themeKey;
+              return (
+                <TouchableOpacity
+                  key={themeKey}
+                  style={[
+                    themedStyles.colorThemeOption,
+                    isSelected && themedStyles.colorThemeOptionActive,
+                  ]}
+                  onPress={() => handleColorThemeChange(themeKey)}>
+                  <LinearGradient
+                    colors={theme.preview as [string, string, string]}
+                    start={{x: 0, y: 0}}
+                    end={{x: 1, y: 1}}
+                    style={themedStyles.colorThemePreview}>
+                    {isSelected && (
+                      <Ionicons
+                        name="checkmark-circle"
+                        size={20}
+                        color="#FFFFFF"
+                      />
+                    )}
+                  </LinearGradient>
+                  <Text
+                    style={[
+                      themedStyles.colorThemeName,
+                      isSelected && themedStyles.colorThemeNameActive,
+                    ]}>
+                    {theme.name}
+                  </Text>
+                </TouchableOpacity>
+              );
+            })}
           </View>
         </View>
       </View>
@@ -793,6 +845,41 @@ function createThemedStyles(colors: any, isDark: boolean) {
     featureDescription: {
       fontSize: 13,
       color: colors.textSecondary,
+    },
+    colorThemeGrid: {
+      flexDirection: 'row',
+      flexWrap: 'wrap',
+      marginTop: 16,
+      gap: 12,
+    },
+    colorThemeOption: {
+      width: '30%',
+      alignItems: 'center',
+      padding: 8,
+      borderRadius: 12,
+      borderWidth: 2,
+      borderColor: 'transparent',
+    },
+    colorThemeOptionActive: {
+      borderColor: colors.primary,
+      backgroundColor: colors.primaryLight,
+    },
+    colorThemePreview: {
+      width: 56,
+      height: 56,
+      borderRadius: 28,
+      justifyContent: 'center',
+      alignItems: 'center',
+      marginBottom: 6,
+    },
+    colorThemeName: {
+      fontSize: 12,
+      fontWeight: '600',
+      color: colors.textSecondary,
+      textAlign: 'center',
+    },
+    colorThemeNameActive: {
+      color: colors.primary,
     },
   });
 }

@@ -4,6 +4,14 @@ import {useColorScheme} from 'react-native';
 
 type ThemeMode = 'light' | 'dark' | 'auto';
 type TimeOfDay = 'morning' | 'afternoon' | 'evening' | 'night';
+export type ColorTheme =
+  | 'ocean'
+  | 'celestial'
+  | 'forest'
+  | 'sunset'
+  | 'graphite'
+  | 'royal'
+  | 'midnight';
 
 // Función para determinar la hora del día
 function getTimeOfDay(): TimeOfDay {
@@ -14,29 +22,201 @@ function getTimeOfDay(): TimeOfDay {
   return 'night';
 }
 
-// Gradientes dinámicos por hora del día
-export const timeBasedGradients = {
-  morning: {
-    colors: ['#fbbf24', '#f97316', '#ea580c'] as const, // Dorado → Naranja (amanecer)
-    headerColors: ['#4f46e5', '#7c3aed', '#a855f7'] as const, // Indigo suave
-    accentGlow: '#fbbf24',
+// ==================== TEMAS DE COLOR ====================
+export const colorThemes = {
+  ocean: {
+    name: 'Océano',
+    icon: 'water',
+    preview: ['#0c4a6e', '#0369a1', '#0ea5e9'],
+    gradients: {
+      morning: {
+        colors: ['#0c4a6e', '#0284c7', '#38bdf8'] as const,
+        headerColors: ['#0c4a6e', '#0369a1', '#0ea5e9'] as const,
+        accentGlow: '#38bdf8',
+      },
+      afternoon: {
+        colors: ['#0c4a6e', '#0369a1', '#0ea5e9'] as const,
+        headerColors: ['#082f49', '#0c4a6e', '#0369a1'] as const,
+        accentGlow: '#0ea5e9',
+      },
+      evening: {
+        colors: ['#082f49', '#0c4a6e', '#0369a1'] as const,
+        headerColors: ['#051c2c', '#082f49', '#0c4a6e'] as const,
+        accentGlow: '#38bdf8',
+      },
+      night: {
+        colors: ['#020617', '#051c2c', '#082f49'] as const,
+        headerColors: ['#020617', '#051c2c', '#0c4a6e'] as const,
+        accentGlow: '#38bdf8',
+      },
+    },
   },
-  afternoon: {
-    colors: ['#4f46e5', '#7c3aed', '#a855f7'] as const, // Indigo → Púrpura
-    headerColors: ['#4f46e5', '#6366f1', '#8b5cf6'] as const,
-    accentGlow: '#f59e0b',
+  celestial: {
+    name: 'Celestial',
+    icon: 'sparkles',
+    preview: ['#4c1d95', '#7c3aed', '#a855f7'],
+    gradients: {
+      morning: {
+        colors: ['#5b21b6', '#7c3aed', '#a78bfa'] as const,
+        headerColors: ['#4c1d95', '#6d28d9', '#8b5cf6'] as const,
+        accentGlow: '#a78bfa',
+      },
+      afternoon: {
+        colors: ['#4c1d95', '#7c3aed', '#a855f7'] as const,
+        headerColors: ['#3b0764', '#4c1d95', '#6d28d9'] as const,
+        accentGlow: '#a855f7',
+      },
+      evening: {
+        colors: ['#3b0764', '#4c1d95', '#6d28d9'] as const,
+        headerColors: ['#1e1b4b', '#3b0764', '#4c1d95'] as const,
+        accentGlow: '#c084fc',
+      },
+      night: {
+        colors: ['#0f0a1e', '#1e1b4b', '#3b0764'] as const,
+        headerColors: ['#0f0a1e', '#1e1b4b', '#4c1d95'] as const,
+        accentGlow: '#818cf8',
+      },
+    },
   },
-  evening: {
-    colors: ['#7c3aed', '#6d28d9', '#4c1d95'] as const, // Púrpura profundo
-    headerColors: ['#4c1d95', '#6d28d9', '#7c3aed'] as const,
-    accentGlow: '#fbbf24',
+  forest: {
+    name: 'Bosque',
+    icon: 'leaf',
+    preview: ['#14532d', '#166534', '#22c55e'],
+    gradients: {
+      morning: {
+        colors: ['#14532d', '#15803d', '#4ade80'] as const,
+        headerColors: ['#14532d', '#166534', '#22c55e'] as const,
+        accentGlow: '#4ade80',
+      },
+      afternoon: {
+        colors: ['#14532d', '#166534', '#22c55e'] as const,
+        headerColors: ['#052e16', '#14532d', '#166534'] as const,
+        accentGlow: '#22c55e',
+      },
+      evening: {
+        colors: ['#052e16', '#14532d', '#166534'] as const,
+        headerColors: ['#022c22', '#052e16', '#14532d'] as const,
+        accentGlow: '#34d399',
+      },
+      night: {
+        colors: ['#020617', '#022c22', '#052e16'] as const,
+        headerColors: ['#020617', '#022c22', '#14532d'] as const,
+        accentGlow: '#34d399',
+      },
+    },
   },
-  night: {
-    colors: ['#1e1b4b', '#312e81', '#3730a3'] as const, // Azul medianoche
-    headerColors: ['#0f0a1e', '#1e1b4b', '#312e81'] as const,
-    accentGlow: '#60a5fa',
+  sunset: {
+    name: 'Atardecer',
+    icon: 'sunny',
+    preview: ['#9a3412', '#ea580c', '#fb923c'],
+    gradients: {
+      morning: {
+        colors: ['#fbbf24', '#f97316', '#ea580c'] as const,
+        headerColors: ['#c2410c', '#ea580c', '#f97316'] as const,
+        accentGlow: '#fbbf24',
+      },
+      afternoon: {
+        colors: ['#9a3412', '#ea580c', '#fb923c'] as const,
+        headerColors: ['#7c2d12', '#9a3412', '#c2410c'] as const,
+        accentGlow: '#fb923c',
+      },
+      evening: {
+        colors: ['#7c2d12', '#9a3412', '#c2410c'] as const,
+        headerColors: ['#431407', '#7c2d12', '#9a3412'] as const,
+        accentGlow: '#f97316',
+      },
+      night: {
+        colors: ['#1c1917', '#431407', '#7c2d12'] as const,
+        headerColors: ['#0c0a09', '#1c1917', '#7c2d12'] as const,
+        accentGlow: '#fb923c',
+      },
+    },
+  },
+  graphite: {
+    name: 'Grafito',
+    icon: 'moon',
+    preview: ['#18181b', '#3f3f46', '#71717a'],
+    gradients: {
+      morning: {
+        colors: ['#27272a', '#3f3f46', '#52525b'] as const,
+        headerColors: ['#18181b', '#27272a', '#3f3f46'] as const,
+        accentGlow: '#a1a1aa',
+      },
+      afternoon: {
+        colors: ['#18181b', '#27272a', '#3f3f46'] as const,
+        headerColors: ['#09090b', '#18181b', '#27272a'] as const,
+        accentGlow: '#71717a',
+      },
+      evening: {
+        colors: ['#09090b', '#18181b', '#27272a'] as const,
+        headerColors: ['#09090b', '#18181b', '#27272a'] as const,
+        accentGlow: '#a1a1aa',
+      },
+      night: {
+        colors: ['#09090b', '#18181b', '#27272a'] as const,
+        headerColors: ['#09090b', '#18181b', '#27272a'] as const,
+        accentGlow: '#71717a',
+      },
+    },
+  },
+  royal: {
+    name: 'Royal',
+    icon: 'diamond',
+    preview: ['#1e3a8a', '#2563eb', '#3b82f6'],
+    gradients: {
+      morning: {
+        colors: ['#1e40af', '#2563eb', '#60a5fa'] as const,
+        headerColors: ['#1e3a8a', '#2563eb', '#3b82f6'] as const,
+        accentGlow: '#60a5fa',
+      },
+      afternoon: {
+        colors: ['#1e3a8a', '#1d4ed8', '#2563eb'] as const,
+        headerColors: ['#172554', '#1e3a8a', '#1d4ed8'] as const,
+        accentGlow: '#3b82f6',
+      },
+      evening: {
+        colors: ['#172554', '#1e3a8a', '#1d4ed8'] as const,
+        headerColors: ['#0f172a', '#172554', '#1e3a8a'] as const,
+        accentGlow: '#60a5fa',
+      },
+      night: {
+        colors: ['#020617', '#0f172a', '#172554'] as const,
+        headerColors: ['#020617', '#0f172a', '#1e3a8a'] as const,
+        accentGlow: '#3b82f6',
+      },
+    },
+  },
+  midnight: {
+    name: 'Midnight',
+    icon: 'moon-outline',
+    preview: ['#020617', '#0f172a', '#1e293b'],
+    gradients: {
+      morning: {
+        colors: ['#0f172a', '#1e293b', '#334155'] as const,
+        headerColors: ['#020617', '#0f172a', '#1e293b'] as const,
+        accentGlow: '#94a3b8',
+      },
+      afternoon: {
+        colors: ['#020617', '#0f172a', '#1e293b'] as const,
+        headerColors: ['#020617', '#0f172a', '#1e293b'] as const,
+        accentGlow: '#64748b',
+      },
+      evening: {
+        colors: ['#020617', '#0f172a', '#1e293b'] as const,
+        headerColors: ['#020617', '#0f172a', '#1e293b'] as const,
+        accentGlow: '#475569',
+      },
+      night: {
+        colors: ['#020617', '#0f172a', '#1e293b'] as const,
+        headerColors: ['#020617', '#0f172a', '#1e293b'] as const,
+        accentGlow: '#475569',
+      },
+    },
   },
 };
+
+// Gradientes por defecto (usa el tema midnight - serio y profesional)
+export const timeBasedGradients = colorThemes.midnight.gradients;
 
 // Configuración del tema celestial
 export const celestialTheme = {
@@ -152,7 +332,9 @@ interface ThemeContextType {
   isDark: boolean;
   timeOfDay: TimeOfDay;
   gradient: (typeof timeBasedGradients)[TimeOfDay];
+  colorTheme: ColorTheme;
   setThemeMode: (mode: ThemeMode) => Promise<void>;
+  setColorTheme: (theme: ColorTheme) => Promise<void>;
 }
 
 // Colores Celestial Sereno Light - Paleta Indigo/Purple profesional
@@ -232,18 +414,21 @@ const darkColors: ThemeColors = {
 const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 
 const THEME_STORAGE_KEY = '@app_theme_mode';
+const COLOR_THEME_STORAGE_KEY = '@app_color_theme';
 
 export function ThemeProvider({children}: {children: ReactNode}) {
   const systemColorScheme = useColorScheme();
   const [mode, setMode] = useState<ThemeMode>('auto');
+  const [colorTheme, setColorThemeState] = useState<ColorTheme>('midnight'); // Default: Midnight (serio y profesional)
   const [effectiveTheme, setEffectiveTheme] = useState<'light' | 'dark'>(
     'light',
   );
   const [timeOfDay, setTimeOfDay] = useState<TimeOfDay>(getTimeOfDay());
 
-  // Load saved theme preference on mount
+  // Load saved preferences on mount
   useEffect(() => {
     loadThemePreference();
+    loadColorThemePreference();
   }, []);
 
   // Update time of day every minute
@@ -276,6 +461,19 @@ export function ThemeProvider({children}: {children: ReactNode}) {
     }
   }
 
+  async function loadColorThemePreference() {
+    try {
+      const savedColorTheme = await AsyncStorage.getItem(
+        COLOR_THEME_STORAGE_KEY,
+      );
+      if (savedColorTheme && savedColorTheme in colorThemes) {
+        setColorThemeState(savedColorTheme as ColorTheme);
+      }
+    } catch (error) {
+      console.error('Error loading color theme preference:', error);
+    }
+  }
+
   async function setThemeMode(newMode: ThemeMode) {
     try {
       await AsyncStorage.setItem(THEME_STORAGE_KEY, newMode);
@@ -285,22 +483,54 @@ export function ThemeProvider({children}: {children: ReactNode}) {
     }
   }
 
+  async function setColorTheme(newColorTheme: ColorTheme) {
+    try {
+      await AsyncStorage.setItem(COLOR_THEME_STORAGE_KEY, newColorTheme);
+      setColorThemeState(newColorTheme);
+    } catch (error) {
+      console.error('Error saving color theme preference:', error);
+    }
+  }
+
   const colors = effectiveTheme === 'dark' ? darkColors : lightColors;
   const isDark = effectiveTheme === 'dark';
-  const gradient = timeBasedGradients[timeOfDay];
+  // Usar gradientes del tema de color seleccionado
+  const gradient = colorThemes[colorTheme].gradients[timeOfDay];
 
   return (
     <ThemeContext.Provider
-      value={{mode, colors, isDark, timeOfDay, gradient, setThemeMode}}>
+      value={{
+        mode,
+        colors,
+        isDark,
+        timeOfDay,
+        gradient,
+        colorTheme,
+        setThemeMode,
+        setColorTheme,
+      }}>
       {children}
     </ThemeContext.Provider>
   );
 }
 
+// Default fallback values for when context is not yet available
+const defaultThemeContext: ThemeContextType = {
+  mode: 'auto',
+  colors: lightColors,
+  isDark: false,
+  timeOfDay: getTimeOfDay(),
+  gradient: colorThemes.midnight.gradients[getTimeOfDay()],
+  colorTheme: 'midnight',
+  setThemeMode: async () => {},
+  setColorTheme: async () => {},
+};
+
 export function useTheme() {
   const context = useContext(ThemeContext);
+  // Return fallback instead of throwing error for smoother initialization
   if (context === undefined) {
-    throw new Error('useTheme must be used within a ThemeProvider');
+    return defaultThemeContext;
   }
   return context;
 }

@@ -90,9 +90,21 @@ export default function BibleScreen() {
   const oldTestament = filteredBooks.filter(book => book.testament === 'old');
   const newTestament = filteredBooks.filter(book => book.testament === 'new');
 
+  // Fallback gradient colors
+  const sectionGradient =
+    gradient?.headerColors ?? (['#4f46e5', '#7c3aed', '#a855f7'] as const);
+
   const sections = [
-    {title: t.bible.oldTestament, data: oldTestament, color: '#3b82f6'},
-    {title: t.bible.newTestament, data: newTestament, color: '#ef4444'},
+    {
+      title: t.bible.oldTestament,
+      data: oldTestament,
+      gradientColors: sectionGradient,
+    },
+    {
+      title: t.bible.newTestament,
+      data: newTestament,
+      gradientColors: sectionGradient,
+    },
   ].filter(section => section.data.length > 0);
 
   async function onRefresh() {
@@ -235,7 +247,7 @@ export default function BibleScreen() {
             <SectionHeader
               title={section.title}
               count={section.data.length}
-              color={section.color}
+              gradientColors={section.gradientColors}
               isOldTestament={section.title.includes('Antiguo')}
             />
           )}
@@ -262,19 +274,19 @@ export default function BibleScreen() {
 interface SectionHeaderProps {
   title: string;
   count: number;
-  color: string;
+  gradientColors: readonly [string, string, string];
   isOldTestament: boolean;
 }
 
 const SectionHeader: React.FC<SectionHeaderProps> = ({
   title,
   count,
-  color,
+  gradientColors,
   isOldTestament,
 }) => {
   return (
     <LinearGradient
-      colors={[color, color + 'dd']}
+      colors={[...gradientColors]}
       start={{x: 0, y: 0}}
       end={{x: 1, y: 0}}
       style={[styles.sectionHeader, shadows.md]}>
@@ -302,7 +314,7 @@ interface BookCardProps {
 }
 
 const BookCard: React.FC<BookCardProps> = ({book, index, onPress}) => {
-  const {colors, isDark} = useTheme();
+  const {colors, isDark, gradient} = useTheme();
   const {t} = useLanguage();
   const scaleAnim = useRef(new Animated.Value(0)).current;
 
@@ -316,7 +328,8 @@ const BookCard: React.FC<BookCardProps> = ({book, index, onPress}) => {
     }).start();
   }, []);
 
-  const bookColor = book.testament === 'old' ? '#3b82f6' : '#ef4444';
+  // Usar el color del gradiente dinámico para todos los libros
+  const bookColor = gradient?.headerColors?.[0] ?? colors.primary;
 
   return (
     <Animated.View

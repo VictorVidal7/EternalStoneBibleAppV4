@@ -8,6 +8,9 @@ export default function TabLayout() {
   const {colors, isDark, gradient} = useTheme();
   const {t} = useLanguage();
 
+  // Fallback color in case gradient is not ready
+  const headerBgColor = gradient?.headerColors?.[0] ?? colors.primary;
+
   return (
     <Tabs
       screenOptions={{
@@ -44,7 +47,7 @@ export default function TabLayout() {
           marginTop: 2,
         },
         headerStyle: {
-          backgroundColor: gradient.headerColors[0],
+          backgroundColor: headerBgColor,
           elevation: 0,
           shadowOpacity: 0,
           borderBottomWidth: 0,
