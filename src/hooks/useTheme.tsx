@@ -335,16 +335,16 @@ export const themePrimaryColors = {
   },
   midnight: {
     light: {
-      primary: '#4f46e5', // indigo-600
-      primaryLight: '#e0e7ff', // indigo-100
-      primaryDark: '#4338ca', // indigo-700
-      info: '#4f46e5',
+      primary: '#475569', // slate-600 - neutral gray
+      primaryLight: '#e2e8f0', // slate-200
+      primaryDark: '#334155', // slate-700
+      info: '#475569',
     },
     dark: {
-      primary: '#6366f1', // indigo-500
-      primaryLight: '#818cf8', // indigo-400
-      primaryDark: '#4f46e5', // indigo-600
-      info: '#6366f1',
+      primary: '#94a3b8', // slate-400 - neutral gray
+      primaryLight: '#cbd5e1', // slate-300
+      primaryDark: '#64748b', // slate-500
+      info: '#94a3b8',
     },
   },
   cafe: {

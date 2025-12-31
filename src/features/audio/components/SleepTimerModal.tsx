@@ -80,7 +80,7 @@ export const SleepTimerModal: React.FC<SleepTimerModalProps> = ({
             <View style={styles.headerLeft}>
               <Ionicons name="moon" size={24} color={colors.primary} />
               <Text style={[styles.modalTitle, {color: colors.text}]}>
-                Temporizador de sueno
+                Temporizador de sueño
               </Text>
             </View>
             <TouchableOpacity onPress={onClose}>
@@ -99,7 +99,7 @@ export const SleepTimerModal: React.FC<SleepTimerModalProps> = ({
                 <Ionicons name="time" size={20} color={colors.primary} />
                 <Text style={[styles.timerText, {color: colors.primary}]}>
                   {currentTimer.mode === 'end-of-chapter'
-                    ? 'Se detendr al terminar el capitulo'
+                    ? 'Se detendrá al terminar el capítulo'
                     : formatRemainingTime(currentTimer.remainingMinutes)}
                 </Text>
               </View>
@@ -156,14 +156,14 @@ export const SleepTimerModal: React.FC<SleepTimerModalProps> = ({
                 <View style={styles.endOfChapterText}>
                   <Text
                     style={[styles.endOfChapterTitle, {color: colors.text}]}>
-                    Fin del capitulo
+                    Fin del capítulo
                   </Text>
                   <Text
                     style={[
                       styles.endOfChapterSubtitle,
                       {color: colors.textSecondary},
                     ]}>
-                    Detener al terminar el capitulo actual
+                    Detener al terminar el capítulo actual
                   </Text>
                 </View>
               </View>
@@ -183,7 +183,7 @@ export const SleepTimerModal: React.FC<SleepTimerModalProps> = ({
               color={colors.textTertiary}
             />
             <Text style={[styles.infoText, {color: colors.textTertiary}]}>
-              El audio se detendr automaticamente cuando termine el tiempo
+              El audio se detendrá automáticamente cuando termine el tiempo
               seleccionado
             </Text>
           </View>

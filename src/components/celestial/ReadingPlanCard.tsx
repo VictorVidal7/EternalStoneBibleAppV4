@@ -16,7 +16,11 @@ import {View, Text, StyleSheet, TouchableOpacity, Animated} from 'react-native';
 import {Ionicons} from '@expo/vector-icons';
 import {BlurView} from 'expo-blur';
 import type {ComponentProps} from 'react';
-import {createCelestialTheme} from '../../styles/celestialTheme';
+import {
+  createCelestialTheme,
+  celestialBorderRadius,
+} from '../../styles/celestialTheme';
+import {withOpacity} from '../../styles/modernTheme';
 import {useTheme} from '../../hooks/useTheme';
 import ProgressCircle from './ProgressCircle';
 
@@ -43,11 +47,6 @@ interface ReadingPlanCardProps {
    * @default 'book-outline'
    */
   icon?: IoniconsName;
-
-  /**
-   * Color del plan (para ícono y progreso)
-   */
-  color: string;
 
   /**
    * Duración en días
@@ -88,7 +87,6 @@ const ReadingPlanCard: React.FC<ReadingPlanCardProps> = ({
   description,
   subtitle,
   icon = 'book-outline',
-  color,
   duration,
   daysCompleted,
   onPress,
@@ -104,6 +102,8 @@ const ReadingPlanCard: React.FC<ReadingPlanCardProps> = ({
     primaryDark: themeColors.primaryDark,
     info: themeColors.info,
   });
+  const accentColor = themeColors.primary;
+  const accentSoft = withOpacity(accentColor, isDark ? 0.2 : 0.12);
   const scaleAnim = useRef(new Animated.Value(1)).current;
 
   // Calcular progreso
@@ -141,16 +141,14 @@ const ReadingPlanCard: React.FC<ReadingPlanCardProps> = ({
         onPressIn={handlePressIn}
         onPressOut={handlePressOut}>
         <BlurView
-          intensity={isDark ? 20 : 40}
+          intensity={isDark ? 30 : 60}
           tint={isDark ? 'dark' : 'light'}
           style={[
             styles.card,
             {
-              backgroundColor: isDark
-                ? 'rgba(255,255,255,0.03)'
-                : 'rgba(0,0,0,0.02)',
-              borderColor: theme.colors.border,
-              borderRadius: 16, // Reducido de 24px a 16px
+              backgroundColor: theme.colors.surfaceGlass,
+              borderColor: theme.colors.glassBorder,
+              borderRadius: celestialBorderRadius.cardMedium,
             },
             theme.shadows.md,
           ]}>
@@ -160,20 +158,20 @@ const ReadingPlanCard: React.FC<ReadingPlanCardProps> = ({
               style={[
                 styles.iconContainer,
                 {
-                  backgroundColor: `${color}15`, // color con 15% opacidad
+                  backgroundColor: accentSoft,
                 },
               ]}>
-              <Ionicons name={icon} size={24} color={color} />
+              <Ionicons name={icon} size={24} color={accentColor} />
             </View>
 
             <View
               style={[
                 styles.durationBadge,
                 {
-                  backgroundColor: `${color}15`,
+                  backgroundColor: accentSoft,
                 },
               ]}>
-              <Text style={[styles.durationText, {color}]}>
+              <Text style={[styles.durationText, {color: accentColor}]}>
                 {duration} días
               </Text>
             </View>
@@ -216,8 +214,11 @@ const ReadingPlanCard: React.FC<ReadingPlanCardProps> = ({
               progress={progress}
               size={60}
               strokeWidth={5}
-              gradientColors={[color, color]}
-              backgroundColor={`${color}20`}
+              gradientColors={[
+                accentColor,
+                themeColors.primaryDark || accentColor,
+              ]}
+              backgroundColor={withOpacity(accentColor, isDark ? 0.18 : 0.12)}
               animated
             />
 
@@ -231,8 +232,10 @@ const ReadingPlanCard: React.FC<ReadingPlanCardProps> = ({
 
           {/* Footer con botón de continuar */}
           <View style={styles.footer}>
-            <Text style={[styles.continueText, {color}]}>{continueText}</Text>
-            <Ionicons name="arrow-forward" size={18} color={color} />
+            <Text style={[styles.continueText, {color: accentColor}]}>
+              {continueText}
+            </Text>
+            <Ionicons name="arrow-forward" size={18} color={accentColor} />
           </View>
         </BlurView>
       </TouchableOpacity>

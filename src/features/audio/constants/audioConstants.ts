@@ -57,11 +57,11 @@ export const SLEEP_TIMER_OPTIONS = [
 // ==================== PLAYER DIMENSIONS ====================
 
 export const PLAYER_DIMENSIONS = {
-  collapsedHeight: 64,
-  expandedHeight: 220,
+  collapsedHeight: 56,
+  expandedHeight: 192,
   borderRadius: 20,
   bottomMargin: 16,
-  horizontalPadding: 16,
+  horizontalPadding: 24,
 } as const;
 
 // ==================== ANIMATION CONFIGS ====================
@@ -100,6 +100,31 @@ export const AUDIO_ICONS = {
   volume: 'volume-high' as const,
   volumeMute: 'volume-mute' as const,
 };
+
+// ==================== CONTROL SIZES ====================
+
+export const AUDIO_CONTROL_SIZES = {
+  small: {
+    main: 42,
+    secondary: 34,
+    iconMain: 18,
+    iconSecondary: 14,
+  },
+  medium: {
+    main: 56,
+    secondary: 44,
+    iconMain: 28,
+    iconSecondary: 20,
+  },
+  large: {
+    main: 72,
+    secondary: 52,
+    iconMain: 36,
+    iconSecondary: 24,
+  },
+} as const;
+
+export const AUDIO_CONTROL_GAP = 24;
 
 // ==================== ACCESSIBILITY ====================
 

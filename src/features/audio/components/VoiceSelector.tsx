@@ -29,6 +29,7 @@ interface VoiceSelectorProps {
   currentLanguage: AudioLanguage;
   onVoiceSelect: (voice: VoiceInfo) => void;
   onLanguageChange: (language: AudioLanguage) => void;
+  variant?: 'default' | 'compact';
 }
 
 export const VoiceSelector: React.FC<VoiceSelectorProps> = ({
@@ -36,6 +37,7 @@ export const VoiceSelector: React.FC<VoiceSelectorProps> = ({
   currentLanguage,
   onVoiceSelect,
   onLanguageChange,
+  variant = 'default',
 }) => {
   const {colors} = useTheme();
   const [modalVisible, setModalVisible] = useState(false);
@@ -43,6 +45,7 @@ export const VoiceSelector: React.FC<VoiceSelectorProps> = ({
     useVoices();
 
   const voices = currentLanguage === 'es' ? spanishVoices : englishVoices;
+  const isCompact = variant === 'compact';
 
   const handleOpenModal = () => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
@@ -74,23 +77,46 @@ export const VoiceSelector: React.FC<VoiceSelectorProps> = ({
     <>
       {/* Trigger Button */}
       <TouchableOpacity
-        style={[styles.triggerButton, {backgroundColor: colors.surfaceVariant}]}
+        style={[
+          isCompact ? styles.triggerButtonCompact : styles.triggerButton,
+          {backgroundColor: colors.surfaceVariant},
+        ]}
         onPress={handleOpenModal}>
-        <View style={styles.triggerContent}>
-          <Ionicons name="mic" size={18} color={colors.primary} />
-          <View style={styles.triggerTextContainer}>
-            <Text style={[styles.triggerLabel, {color: colors.textSecondary}]}>
-              Voz
-            </Text>
+        <View
+          style={
+            isCompact ? styles.triggerContentCompact : styles.triggerContent
+          }>
+          <Ionicons
+            name="mic"
+            size={isCompact ? 16 : 18}
+            color={colors.primary}
+          />
+          {isCompact ? (
             <Text
-              style={[styles.triggerValue, {color: colors.text}]}
-              numberOfLines={1}>
-              {currentVoice?.name || 'Seleccionar'}
+              style={[
+                styles.languageLabelCompact,
+                {color: colors.textSecondary},
+              ]}>
+              {currentLanguage.toUpperCase()}
             </Text>
-          </View>
-          <Text style={styles.languageFlag}>
-            {LANGUAGE_FLAGS[currentLanguage]}
-          </Text>
+          ) : (
+            <>
+              <View style={styles.triggerTextContainer}>
+                <Text
+                  style={[styles.triggerLabel, {color: colors.textSecondary}]}>
+                  Voz
+                </Text>
+                <Text
+                  style={[styles.triggerValue, {color: colors.text}]}
+                  numberOfLines={1}>
+                  {currentVoice?.name || 'Seleccionar'}
+                </Text>
+              </View>
+              <Text style={styles.languageFlag}>
+                {LANGUAGE_FLAGS[currentLanguage]}
+              </Text>
+            </>
+          )}
         </View>
       </TouchableOpacity>
 
@@ -254,12 +280,27 @@ export const VoiceSelector: React.FC<VoiceSelectorProps> = ({
 const styles = StyleSheet.create({
   triggerButton: {
     borderRadius: 12,
-    padding: 12,
+    paddingHorizontal: 10,
+    paddingVertical: 8,
   },
   triggerContent: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 10,
+  },
+  triggerButtonCompact: {
+    borderRadius: 10,
+    paddingHorizontal: 8,
+    paddingVertical: 5,
+    height: 24,
+    minWidth: 42,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  triggerContentCompact: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 2,
   },
   triggerTextContainer: {
     flex: 1,
@@ -274,6 +315,13 @@ const styles = StyleSheet.create({
   },
   languageFlag: {
     fontSize: 20,
+  },
+  languageLabelCompact: {
+    fontSize: 11,
+    fontWeight: '700',
+    letterSpacing: 0.4,
+    lineHeight: 12,
+    includeFontPadding: false,
   },
   // Modal styles
   modalOverlay: {

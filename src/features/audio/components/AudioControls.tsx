@@ -19,7 +19,12 @@ import Animated, {
 import {Ionicons} from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
 import {useTheme} from '../../../hooks/useTheme';
-import {AUDIO_ICONS, AUDIO_A11Y_LABELS} from '../constants/audioConstants';
+import {
+  AUDIO_ICONS,
+  AUDIO_A11Y_LABELS,
+  AUDIO_CONTROL_SIZES,
+  AUDIO_CONTROL_GAP,
+} from '../constants/audioConstants';
 
 interface AudioControlsProps {
   isPlaying: boolean;
@@ -32,27 +37,6 @@ interface AudioControlsProps {
   onNext?: () => void;
   onPrevious?: () => void;
 }
-
-const SIZES = {
-  small: {
-    main: 44,
-    secondary: 36,
-    iconMain: 20,
-    iconSecondary: 16,
-  },
-  medium: {
-    main: 56,
-    secondary: 44,
-    iconMain: 28,
-    iconSecondary: 20,
-  },
-  large: {
-    main: 72,
-    secondary: 52,
-    iconMain: 36,
-    iconSecondary: 24,
-  },
-};
 
 const AnimatedTouchable = Animated.createAnimatedComponent(TouchableOpacity);
 
@@ -68,7 +52,7 @@ export const AudioControls: React.FC<AudioControlsProps> = ({
   onPrevious,
 }) => {
   const {colors} = useTheme();
-  const sizeConfig = SIZES[size];
+  const sizeConfig = AUDIO_CONTROL_SIZES[size];
 
   // Animation values
   const playButtonScale = useSharedValue(1);
@@ -118,7 +102,7 @@ export const AudioControls: React.FC<AudioControlsProps> = ({
   };
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, {gap: AUDIO_CONTROL_GAP}]}>
       {/* Previous Button */}
       <View style={styles.buttonWrapper}>
         <AnimatedTouchable
@@ -229,7 +213,6 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    gap: 24,
   },
   buttonWrapper: {
     alignItems: 'center',

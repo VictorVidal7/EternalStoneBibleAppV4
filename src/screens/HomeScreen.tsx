@@ -527,7 +527,6 @@ const HomeScreen: React.FC = () => {
                     subtitle={plan.subtitle}
                     description={plan.description}
                     icon={plan.icon as any}
-                    color={plan.color}
                     duration={plan.duration}
                     daysCompleted={plan.daysCompleted}
                     onPress={() => handleReadingPlanPress(plan.name)}

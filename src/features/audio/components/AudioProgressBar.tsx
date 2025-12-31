@@ -165,7 +165,7 @@ const styles = StyleSheet.create({
   labelsContainer: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    marginBottom: 4,
+    marginBottom: 2,
   },
   label: {
     fontSize: 11,
@@ -191,7 +191,7 @@ const styles = StyleSheet.create({
     borderWidth: 2,
   },
   progressText: {
-    marginTop: 8,
+    marginTop: 6,
     fontSize: 12,
     textAlign: 'center',
   },

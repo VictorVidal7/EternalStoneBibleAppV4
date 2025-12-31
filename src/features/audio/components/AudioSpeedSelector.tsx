@@ -226,13 +226,19 @@ const styles = StyleSheet.create({
   },
   // Compact styles
   compactButton: {
-    paddingHorizontal: 12,
-    paddingVertical: 6,
+    paddingHorizontal: 10,
+    paddingVertical: 3,
     borderRadius: 12,
+    height: 24,
+    minWidth: 36,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   compactText: {
-    fontSize: 13,
+    fontSize: 12,
     fontWeight: '600',
+    lineHeight: 12,
+    includeFontPadding: false,
   },
   // Inline styles
   inlineContainer: {

@@ -238,6 +238,8 @@ export const translations = {
 
     // Verse Reading Screen
     verse: {
+      singular: 'versículo',
+      plural: 'versículos',
       addBookmark: 'Agregar a Favoritos',
       removeBookmark: 'Quitar de Favoritos',
       copyVerse: 'Copiar Versículo',
@@ -245,6 +247,8 @@ export const translations = {
       addNote: 'Agregar Nota',
       fontSize: 'Tamaño de Letra',
       verseCopied: 'Versículo copiado al portapapeles',
+      imageReady: 'Imagen preparada para compartir',
+      imageShareError: 'No se pudo compartir la imagen',
       errorLoadingVerses: 'Error al cargar los versículos',
       retry: 'Reintentar',
       searchInChapter: 'Buscar en el capítulo',
@@ -1008,6 +1012,8 @@ export const translations = {
 
     // Verse Reading Screen
     verse: {
+      singular: 'verse',
+      plural: 'verses',
       addBookmark: 'Add Bookmark',
       removeBookmark: 'Remove Bookmark',
       copyVerse: 'Copy Verse',
@@ -1015,6 +1021,8 @@ export const translations = {
       addNote: 'Add Note',
       fontSize: 'Font Size',
       verseCopied: 'Verse copied to clipboard',
+      imageReady: 'Image ready to share',
+      imageShareError: 'Unable to share image',
       errorLoadingVerses: 'Error loading verses',
       retry: 'Retry',
       searchInChapter: 'Search in chapter',

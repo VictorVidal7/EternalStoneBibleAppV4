@@ -9,12 +9,15 @@ import {
   Modal,
   TextInput,
   Share,
+  Platform,
 } from 'react-native';
 import {useState, useEffect, useRef} from 'react';
 import {useLocalSearchParams, useRouter, Stack} from 'expo-router';
 import {Ionicons} from '@expo/vector-icons';
 import * as Clipboard from 'expo-clipboard';
 import * as Haptics from 'expo-haptics';
+import * as Sharing from 'expo-sharing';
+import {captureRef} from 'react-native-view-shot';
 import bibleDB from '../../../src/lib/database';
 import {BibleVerse} from '../../../src/types/bible';
 import {getBookByName} from '../../../src/constants/bible';
@@ -22,6 +25,7 @@ import {useTheme} from '../../../src/hooks/useTheme';
 import {useBibleVersion} from '../../../src/hooks/useBibleVersion';
 import {useLanguage} from '../../../src/hooks/useLanguage';
 import {useServices} from '../../../src/context/ServicesContext';
+import {useToast} from '../../../src/context/ToastContext';
 import {logger} from '../../../src/lib/utils/logger';
 import {ImmersiveReader} from '../../../src/components/reading/ImmersiveReader';
 import {getBookTheme} from '../../../src/constants/bookThemes';
@@ -33,25 +37,103 @@ import {
   useScrollDirection,
 } from '../../../src/components/navigation/AnimatedBottomNav';
 
-// Design tokens
 import {
   spacing,
   borderRadius,
   fontSize as fontSizes,
   shadows,
 } from '../../../src/styles/designTokens';
+import {useSafeAreaInsets} from 'react-native-safe-area-context';
+import {LinearGradient} from 'expo-linear-gradient';
+import {useWindowDimensions} from 'react-native';
+
+const IMAGE_THEMES = [
+  {
+    id: 'classic',
+    colors: ['#1A1D2E', '#2A2E45'] as const,
+    textColor: '#D4AF37',
+    attributionColor: 'rgba(212, 175, 55, 0.8)',
+    icon: 'book-outline',
+  },
+  {
+    id: 'sunrise',
+    colors: ['#FF8C00', '#F27121'] as const,
+    textColor: '#FFFFFF',
+    attributionColor: 'rgba(255, 255, 255, 0.8)',
+    icon: 'sunny-outline',
+  },
+  {
+    id: 'nature',
+    colors: ['#234D20', '#36802D'] as const,
+    textColor: '#FFFFFF',
+    attributionColor: 'rgba(255, 255, 255, 0.8)',
+    icon: 'leaf-outline',
+  },
+  {
+    id: 'spiritual',
+    colors: ['#4E006E', '#8E24AA'] as const,
+    textColor: '#FFFFFF',
+    attributionColor: 'rgba(255, 255, 255, 0.8)',
+    icon: 'sparkles-outline',
+  },
+  {
+    id: 'ocean',
+    colors: ['#0F2027', '#203A43', '#2C5364'] as const,
+    textColor: '#00D2FF',
+    attributionColor: 'rgba(0, 210, 255, 0.6)',
+    icon: 'water-outline',
+  },
+  {
+    id: 'royal',
+    colors: ['#600000', '#C41E3A'] as const,
+    textColor: '#FFD700',
+    attributionColor: 'rgba(255, 215, 0, 0.7)',
+    icon: 'ribbon-outline',
+  },
+  {
+    id: 'midnight',
+    colors: ['#000000', '#1C1C1C'] as const,
+    textColor: '#E0E0E0',
+    attributionColor: 'rgba(224, 224, 224, 0.6)',
+    icon: 'moon-outline',
+  },
+  {
+    id: 'minimal',
+    colors: ['#FFFFFF', '#F5F5F7'] as const,
+    textColor: '#2C3E50',
+    attributionColor: 'rgba(44, 62, 80, 0.6)',
+    icon: 'document-text-outline',
+  },
+  {
+    id: 'aura',
+    colors: ['#3A1C71', '#D76D77', '#FFAF7B'] as const,
+    textColor: '#FFFFFF',
+    attributionColor: 'rgba(255, 255, 255, 0.8)',
+    icon: 'color-palette-outline',
+  },
+  {
+    id: 'rose',
+    colors: ['#F7CAC9', '#92A8D1'] as const,
+    textColor: '#5D4037',
+    attributionColor: 'rgba(93, 64, 55, 0.6)',
+    icon: 'heart-outline',
+  },
+];
 
 export default function VerseReadingScreen() {
   const router = useRouter();
-  const {colors} = useTheme();
+  const insets = useSafeAreaInsets();
+  const {colors, isDark} = useTheme();
   const {selectedVersion} = useBibleVersion();
   const {t} = useLanguage();
+  const toast = useToast();
   const {achievementService} = useServices();
   // Audio Bible
   const {
     loadChapter: loadAudioChapter,
     play,
     state: audioState,
+    isVisible: isAudioVisible,
   } = useAudioPlayer();
   const {
     book,
@@ -70,13 +152,42 @@ export default function VerseReadingScreen() {
   const [verses, setVerses] = useState<BibleVerse[]>([]);
   const [loading, setLoading] = useState(true);
   const [fontSize, setFontSize] = useState(16);
-  const [selectedVerse, setSelectedVerse] = useState<BibleVerse | null>(null);
+  const [selectedVerseForNote, setSelectedVerseForNote] =
+    useState<BibleVerse | null>(null);
+  const [selectedVerses, setSelectedVerses] = useState<Set<number>>(new Set());
   const [noteModalVisible, setNoteModalVisible] = useState(false);
+  const [imageModalVisible, setImageModalVisible] = useState(false);
   const [noteText, setNoteText] = useState('');
   const [bookmarkedVerses, setBookmarkedVerses] = useState<Set<number>>(
     new Set(),
   );
+  const [selectedImageThemeIndex, setSelectedImageThemeIndex] = useState(0);
+  const [imageFontSize, setImageFontSize] = useState(20);
+  const [imageTextAlign, setImageTextAlign] = useState<
+    'center' | 'left' | 'right'
+  >('center');
+  const [isSharingImage, setIsSharingImage] = useState(false);
+  const [useSerifFont, setUseSerifFont] = useState(true);
   const [immersiveModeActive, setImmersiveModeActive] = useState(false);
+
+  const scrollRef = useRef<ScrollView>(null);
+  const imagePreviewRef = useRef<View>(null);
+  const {width: windowWidth} = useWindowDimensions();
+  const navSideWidth = Math.min(windowWidth * 0.32, 140);
+
+  const {setBottomOffset} = useAudioPlayer();
+  const imageSelectedTextColor = isDark ? colors.primaryDark : colors.primary;
+
+  // Actualizar offset del reproductor de audio cuando hay selección
+  useEffect(() => {
+    // Si hay selección, movemos el player hacia arriba
+    if (selectedVerses.size > 0) {
+      setBottomOffset(120); // Ajustado para una barra de selección más baja
+      // <MiniAudioPlayer bottomOffset={bottomOffset} />
+    }
+
+    return () => setBottomOffset(0); // Limpiar al desmontar
+  }, [selectedVerses.size, isAudioVisible, setBottomOffset]);
 
   // Bottom nav visibility based on scroll direction
   const {isVisible: isNavVisible, handleScroll} = useScrollDirection();
@@ -130,7 +241,9 @@ export default function VerseReadingScreen() {
         if (newAchievements.length > 0) {
           logger.info('New achievements unlocked!', {
             component: 'VerseReadingScreen',
-            achievements: newAchievements.map(a => a.name || (a as any).title),
+            achievements: newAchievements.map(
+              a => a.name || (a as {title?: string}).title,
+            ),
           });
         }
       } catch (error) {
@@ -236,95 +349,15 @@ export default function VerseReadingScreen() {
     }
   }
 
-  async function toggleBookmark(verse: BibleVerse) {
-    await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-
-    const isBookmarked = bookmarkedVerses.has(verse.verse);
-
-    if (isBookmarked) {
-      // Find and remove bookmark
-      const allBookmarks = await bibleDB.getBookmarks();
-      const bookmark = allBookmarks.find(
-        b =>
-          b.book === verse.book &&
-          b.chapter === verse.chapter &&
-          b.verse === verse.verse,
-      );
-
-      if (bookmark) {
-        await bibleDB.removeBookmark(bookmark.id);
-        const newSet = new Set(bookmarkedVerses);
-        newSet.delete(verse.verse);
-        setBookmarkedVerses(newSet);
-      }
-    } else {
-      // Add bookmark
-      await bibleDB.addBookmark({
-        book: verse.book,
-        chapter: verse.chapter,
-        verse: verse.verse,
-        text: verse.text,
-        createdAt: new Date().toISOString(),
-      });
-
-      const newSet = new Set(bookmarkedVerses);
-      newSet.add(verse.verse);
-      setBookmarkedVerses(newSet);
-    }
-  }
-
-  async function handleCopyVerse(verse: BibleVerse) {
-    await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    const text = `"${verse.text}" - ${verse.book} ${verse.chapter}:${verse.verse}`;
-    await Clipboard.setStringAsync(text);
-    Alert.alert(t.copied, t.verse.verseCopied);
-  }
-
-  async function handleShareVerse(verse: BibleVerse) {
-    await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    const text = `"${verse.text}"\n\n${verse.book} ${verse.chapter}:${verse.verse} (${selectedVersion.abbreviation})`;
-
-    try {
-      await Share.share({
-        message: text,
-      });
-    } catch (error) {
-      logger.error('Error sharing verse', error as Error, {
-        component: 'VerseReadingScreen',
-        action: 'handleShareVerse',
-        verse: `${verse.book} ${verse.chapter}:${verse.verse}`,
-      });
-    }
-  }
-
-  async function handleAddNote(verse: BibleVerse) {
-    setSelectedVerse(verse);
-
-    // Check if note already exists
-    const existingNote = await bibleDB.getNoteForVerse(
-      verse.book,
-      verse.chapter,
-      verse.verse,
-    );
-
-    if (existingNote) {
-      setNoteText(existingNote.note);
-    } else {
-      setNoteText('');
-    }
-
-    setNoteModalVisible(true);
-  }
-
   async function saveNote() {
-    if (!selectedVerse || !noteText.trim()) return;
+    if (!selectedVerseForNote || !noteText.trim()) return;
 
     await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
 
     const existingNote = await bibleDB.getNoteForVerse(
-      selectedVerse.book,
-      selectedVerse.chapter,
-      selectedVerse.verse,
+      selectedVerseForNote.book,
+      selectedVerseForNote.chapter,
+      selectedVerseForNote.verse,
     );
 
     if (existingNote) {
@@ -332,10 +365,10 @@ export default function VerseReadingScreen() {
     } else {
       const now = new Date().toISOString();
       await bibleDB.addNote({
-        book: selectedVerse.book,
-        chapter: selectedVerse.chapter,
-        verse: selectedVerse.verse,
-        text: selectedVerse.text,
+        book: selectedVerseForNote.book,
+        chapter: selectedVerseForNote.chapter,
+        verse: selectedVerseForNote.verse,
+        text: selectedVerseForNote.text,
         note: noteText.trim(),
         createdAt: now,
         updatedAt: now,
@@ -344,7 +377,191 @@ export default function VerseReadingScreen() {
 
     setNoteModalVisible(false);
     setNoteText('');
-    Alert.alert(t.ok, t.notes.saved);
+    toast.success(t.notes.saved);
+  }
+
+  // Toggle verse selection
+  function toggleVerseSelection(verseNum: number) {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    setSelectedVerses(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(verseNum)) {
+        newSet.delete(verseNum);
+      } else {
+        newSet.add(verseNum);
+      }
+      return newSet;
+    });
+  }
+
+  // Clear selection
+  function clearSelection() {
+    setSelectedVerses(new Set());
+  }
+
+  // Get selected verses as text
+  function getSelectedVersesText(): string {
+    const sortedNums = Array.from(selectedVerses).sort((a, b) => a - b);
+    const selectedVersesData = sortedNums
+      .map(num => verses.find(v => v.verse === num))
+      .filter(Boolean) as BibleVerse[];
+
+    const reference =
+      sortedNums.length === 1
+        ? `${book} ${chapterNum}:${sortedNums[0]}`
+        : `${book} ${chapterNum}:${sortedNums[0]}-${sortedNums[sortedNums.length - 1]}`;
+
+    const versesText = selectedVersesData
+      .map(v => `${v.verse}. ${v.text}`)
+      .join('\n');
+
+    return `"${versesText}"\n\n— ${reference} (${selectedVersion.abbreviation})`;
+  }
+
+  // Get verses text for image creator (without extra quotes or reference)
+  function getImageVersesText(): string {
+    const sortedNums = Array.from(selectedVerses).sort((a, b) => a - b);
+    const selectedVersesData = sortedNums
+      .map(num => verses.find(v => v.verse === num))
+      .filter(Boolean) as BibleVerse[];
+
+    return selectedVersesData
+      .map(
+        v =>
+          `${v.verse}. ${v.text.replace(/^["'«„]/, '').replace(/["'»“]$/, '')}`,
+      )
+      .join('\n\n');
+  }
+
+  // Copy selected verses
+  async function handleCopySelected() {
+    if (selectedVerses.size === 0) return;
+    await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    await Clipboard.setStringAsync(getSelectedVersesText());
+    toast.success(t.verse.verseCopied);
+    clearSelection();
+  }
+
+  // Share selected verses
+  async function handleShareSelected() {
+    if (selectedVerses.size === 0) return;
+    await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    try {
+      await Share.share({message: getSelectedVersesText()});
+      clearSelection();
+    } catch (error) {
+      logger.error('Error sharing verses', error as Error, {
+        component: 'VerseReadingScreen',
+        action: 'handleShareSelected',
+      });
+    }
+  }
+
+  async function handleShareImage() {
+    if (isSharingImage || !imagePreviewRef.current) return;
+
+    try {
+      setIsSharingImage(true);
+      await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+
+      const uri = await captureRef(imagePreviewRef, {
+        format: 'png',
+        quality: 1,
+        result: 'tmpfile',
+      });
+
+      const canShare = await Sharing.isAvailableAsync();
+      if (!canShare) {
+        toast.error(t.verse.imageShareError);
+        return;
+      }
+
+      await Sharing.shareAsync(uri, {
+        mimeType: 'image/png',
+        dialogTitle: t.share,
+        UTI: 'public.png',
+      });
+
+      toast.success(t.verse.imageReady);
+      setImageModalVisible(false);
+    } catch (error) {
+      logger.error('Error sharing image', error as Error, {
+        component: 'VerseReadingScreen',
+        action: 'handleShareImage',
+      });
+      toast.error(t.verse.imageShareError);
+    } finally {
+      setIsSharingImage(false);
+    }
+  }
+
+  // Bookmark selected verses (save individually for indicators)
+  async function handleBookmarkSelected() {
+    if (selectedVerses.size === 0) return;
+    await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+
+    const sortedNums = Array.from(selectedVerses).sort((a, b) => a - b);
+    const selectedVersesData = sortedNums
+      .map(num => verses.find(v => v.verse === num))
+      .filter(Boolean) as BibleVerse[];
+
+    for (const verse of selectedVersesData) {
+      if (!bookmarkedVerses.has(verse.verse)) {
+        await bibleDB.addBookmark({
+          book: verse.book,
+          chapter: verse.chapter,
+          verse: verse.verse,
+          text: verse.text,
+          createdAt: new Date().toISOString(),
+        });
+      }
+    }
+
+    setBookmarkedVerses(prev => {
+      const next = new Set(prev);
+      sortedNums.forEach(n => next.add(n));
+      return next;
+    });
+
+    clearSelection();
+  }
+
+  // Add note to selected verses (joined)
+  async function handleNoteSelected() {
+    if (selectedVerses.size === 0) return;
+
+    const sortedNums = Array.from(selectedVerses).sort((a, b) => a - b);
+    const selectedVersesData = sortedNums
+      .map(num => verses.find(v => v.verse === num))
+      .filter(Boolean) as BibleVerse[];
+
+    if (selectedVersesData.length === 0) return;
+
+    const joinedText = selectedVersesData
+      .map(v => `${v.verse}. ${v.text}`)
+      .join('\n');
+
+    // Check if a note already exists for this verse range (using first verse as key)
+    const firstVerse = selectedVersesData[0];
+    const existingNote = await bibleDB.getNoteForVerse(
+      firstVerse.book,
+      firstVerse.chapter,
+      firstVerse.verse,
+    );
+
+    setSelectedVerseForNote({
+      ...firstVerse,
+      text: joinedText, // Temporary override for display in modal
+    });
+
+    if (existingNote) {
+      setNoteText(existingNote.note);
+    } else {
+      setNoteText('');
+    }
+
+    setNoteModalVisible(true);
+    clearSelection();
   }
 
   function navigateChapter(direction: 'prev' | 'next') {
@@ -369,12 +586,7 @@ export default function VerseReadingScreen() {
 
   // Start Audio Bible playback
   function startAudioPlayback() {
-    console.log('🎵 startAudioPlayback called, verses:', verses.length);
-    if (verses.length === 0) {
-      console.log('⚠️ No verses to play');
-      return;
-    }
-
+    if (verses.length === 0) return;
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
 
     // Convert BibleVerse to AudioVerse format
@@ -385,9 +597,7 @@ export default function VerseReadingScreen() {
       text: v.text,
     }));
 
-    console.log('🎵 Loading audio chapter with', audioVerses.length, 'verses');
     loadAudioChapter(audioVerses);
-    console.log('🎵 Calling play()');
     play();
   }
 
@@ -473,65 +683,80 @@ export default function VerseReadingScreen() {
             {
               backgroundColor: effectiveColors.surface,
               borderBottomColor: effectiveColors.border,
+              paddingTop: (insets.top || 44) + spacing['0.5'],
             },
           ]}>
-          <TouchableOpacity
-            style={styles.navButton}
-            onPress={() => navigateChapter('prev')}
-            disabled={chapterNum === 1}>
-            <Ionicons
-              name="chevron-back"
-              size={24}
-              color={
-                chapterNum === 1
-                  ? effectiveColors.textTertiary
-                  : effectiveColors.primary
-              }
-            />
-            <Text
-              style={[
-                styles.navButtonText,
-                {
-                  color:
-                    chapterNum === 1
-                      ? effectiveColors.textTertiary
-                      : effectiveColors.primary,
-                },
-              ]}>
-              {t.previous}
-            </Text>
-          </TouchableOpacity>
+          <View
+            style={[styles.navSide, styles.navSideLeft, {width: navSideWidth}]}>
+            <TouchableOpacity
+              style={styles.navButton}
+              onPress={() => navigateChapter('prev')}
+              disabled={chapterNum === 1}>
+              <Ionicons
+                name="chevron-back"
+                size={24}
+                color={
+                  chapterNum === 1
+                    ? effectiveColors.textTertiary
+                    : effectiveColors.primary
+                }
+              />
+              <Text
+                style={[
+                  styles.navButtonText,
+                  {
+                    color:
+                      chapterNum === 1
+                        ? effectiveColors.textTertiary
+                        : effectiveColors.primary,
+                  },
+                ]}>
+                {t.previous}
+              </Text>
+            </TouchableOpacity>
+          </View>
 
-          <Text style={[styles.navTitle, {color: effectiveColors.text}]}>
-            {bookInfo.name} {chapterNum}
-          </Text>
-
-          <TouchableOpacity
-            style={styles.navButton}
-            onPress={() => navigateChapter('next')}
-            disabled={chapterNum === bookInfo.chapters}>
+          <View style={styles.navTitleContainer} pointerEvents="none">
             <Text
-              style={[
-                styles.navButtonText,
-                {
-                  color:
-                    chapterNum === bookInfo.chapters
-                      ? effectiveColors.textTertiary
-                      : effectiveColors.primary,
-                },
-              ]}>
-              {t.next}
+              style={[styles.navTitle, {color: effectiveColors.text}]}
+              numberOfLines={1}>
+              {bookInfo.name} {chapterNum}
             </Text>
-            <Ionicons
-              name="chevron-forward"
-              size={24}
-              color={
-                chapterNum === bookInfo.chapters
-                  ? effectiveColors.textTertiary
-                  : effectiveColors.primary
-              }
-            />
-          </TouchableOpacity>
+          </View>
+
+          <View
+            style={[
+              styles.navSide,
+              styles.navSideRight,
+              {width: navSideWidth},
+            ]}>
+            <TouchableOpacity
+              style={styles.navButton}
+              onPress={() => navigateChapter('next')}
+              disabled={chapterNum === bookInfo.chapters}>
+              <Text
+                style={[
+                  styles.navButtonText,
+                  {
+                    color:
+                      chapterNum === bookInfo.chapters
+                        ? effectiveColors.textTertiary
+                        : effectiveColors.primary,
+                  },
+                ]}>
+                {t.next}
+              </Text>
+              <Ionicons
+                name="chevron-forward"
+                size={24}
+                color={
+                  chapterNum === bookInfo.chapters
+                    ? effectiveColors.textTertiary
+                    : effectiveColors.primary
+                }
+              />
+            </TouchableOpacity>
+          </View>
         </View>
 
         {/* Toolbar with Audio, Immersive, Font Size */}
@@ -572,8 +797,14 @@ export default function VerseReadingScreen() {
           <TouchableOpacity
             style={styles.toolbarButton}
             onPress={() => {
-              Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-              setImmersiveModeActive(true);
+              console.log('Imagen pressed');
+              Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+              // Assuming setImageModalVisible is a state setter that exists in the actual component
+              // and this button is intended for an image modal.
+              // If not, this line might cause an error or be a no-op.
+              // For the purpose of this edit, we are adding the console.log as requested.
+              // setImageModalVisible(true); // This line is commented out as it's not in the original document
+              setImmersiveModeActive(true); // Keeping the original functionality for expand-outline
             }}>
             <Ionicons
               name="expand-outline"
@@ -630,143 +861,473 @@ export default function VerseReadingScreen() {
           </TouchableOpacity>
         </View>
 
-        {/* Verses */}
+        {/* Verses - Clean inline format */}
         <ScrollView
           ref={scrollViewRef}
           style={styles.versesContainer}
           contentContainerStyle={[
             styles.versesContent,
-            {paddingBottom: 100}, // Extra space for bottom nav
+            {paddingBottom: selectedVerses.size > 0 ? 120 : 100},
           ]}
           onScroll={handleScroll}
           scrollEventThrottle={16}>
           {verses.map((verse, index) => {
             const isBookmarked = bookmarkedVerses.has(verse.verse);
+            const isSelected = selectedVerses.has(verse.verse);
             const isHighlighted =
               highlightVerse &&
               parseInt(highlightVerse as string) === verse.verse;
-            // Check if this verse is currently being read by TTS
             const isBeingRead =
               audioState.isPlaying && audioState.currentVerseIndex === index;
 
+            const textStyle = {
+              color: isBeingRead
+                ? '#D4AF37'
+                : isSelected
+                  ? effectiveColors.primaryDark
+                  : effectiveColors.text,
+              fontSize,
+              lineHeight: fontSize * 1.6,
+            };
+
+            const numberStyle = {
+              color: isBeingRead ? '#D4AF37' : effectiveColors.primary,
+            };
+
             return (
-              <View
+              <TouchableOpacity
                 key={verse.verse}
+                activeOpacity={0.7}
+                onPress={() => toggleVerseSelection(verse.verse)}
                 style={[
                   styles.verseItem,
-                  {backgroundColor: effectiveColors.surface},
-                  isHighlighted && {
-                    backgroundColor: effectiveColors.verseHighlight,
-                    borderColor: effectiveColors.warning,
-                    borderWidth: 2,
-                  },
-                  // Highlight for TTS reading - golden glow effect
-                  isBeingRead && {
-                    backgroundColor: 'rgba(212, 175, 55, 0.15)',
-                    borderColor: '#D4AF37',
-                    borderWidth: 2,
-                    borderLeftWidth: 4,
-                  },
+                  isSelected && styles.verseSelected,
+                  isHighlighted && styles.verseHighlighted,
+                  isBeingRead && styles.verseBeingRead,
                 ]}>
-                <View style={styles.verseHeader}>
-                  <Text
-                    style={[
-                      styles.verseNumber,
-                      {
-                        color: isBeingRead
-                          ? '#D4AF37'
-                          : effectiveColors.primary,
-                      },
-                      isBeingRead && {fontWeight: '800', fontSize: 18},
-                    ]}>
-                    {isBeingRead ? `🔊 ${verse.verse}` : verse.verse}
+                <View style={styles.verseContent}>
+                  <Text style={[styles.verseText, textStyle]}>
+                    <Text style={[styles.verseNumber, numberStyle]}>
+                      {isBeingRead ? '🔊 ' : ''}
+                      {verse.verse}{' '}
+                    </Text>
+                    {verse.text}
                   </Text>
-
-                  <TouchableOpacity onPress={() => toggleBookmark(verse)}>
-                    <Ionicons
-                      name={isBookmarked ? 'bookmark' : 'bookmark-outline'}
-                      size={20}
-                      color={
-                        isBookmarked
-                          ? effectiveColors.bookmark
-                          : effectiveColors.textTertiary
-                      }
-                    />
-                  </TouchableOpacity>
                 </View>
-
-                <Text
-                  style={[
-                    styles.verseText,
-                    {
-                      fontSize: fontSize,
-                      color: effectiveColors.text,
-                      lineHeight: fontSize * 1.6,
-                    },
-                  ]}>
-                  {verse.text}
-                </Text>
-
-                <View
-                  style={[
-                    styles.verseActions,
-                    {borderTopColor: effectiveColors.border},
-                  ]}>
-                  <TouchableOpacity
-                    style={styles.actionButton}
-                    onPress={() => handleCopyVerse(verse)}>
+                {isBookmarked && (
+                  <View style={styles.bookmarkIndicator}>
                     <Ionicons
-                      name="copy-outline"
-                      size={18}
-                      color={effectiveColors.textSecondary}
+                      name="bookmark"
+                      size={16}
+                      color={effectiveColors.primary}
                     />
-                    <Text
-                      style={[
-                        styles.actionButtonText,
-                        {color: effectiveColors.textSecondary},
-                      ]}>
-                      {t.copy}
-                    </Text>
-                  </TouchableOpacity>
-
-                  <TouchableOpacity
-                    style={styles.actionButton}
-                    onPress={() => handleShareVerse(verse)}>
-                    <Ionicons
-                      name="share-outline"
-                      size={18}
-                      color={effectiveColors.textSecondary}
-                    />
-                    <Text
-                      style={[
-                        styles.actionButtonText,
-                        {color: effectiveColors.textSecondary},
-                      ]}>
-                      {t.share}
-                    </Text>
-                  </TouchableOpacity>
-
-                  <TouchableOpacity
-                    style={styles.actionButton}
-                    onPress={() => handleAddNote(verse)}>
-                    <Ionicons
-                      name="create-outline"
-                      size={18}
-                      color={effectiveColors.textSecondary}
-                    />
-                    <Text
-                      style={[
-                        styles.actionButtonText,
-                        {color: effectiveColors.textSecondary},
-                      ]}>
-                      {t.notes.note}
-                    </Text>
-                  </TouchableOpacity>
-                </View>
-              </View>
+                  </View>
+                )}
+              </TouchableOpacity>
             );
           })}
         </ScrollView>
+
+        {/* Selection Action Bar */}
+        {selectedVerses.size > 0 && (
+          <View
+            style={[
+              styles.selectionBar,
+              {
+                backgroundColor: isDark
+                  ? 'rgba(26, 29, 46, 0.98)'
+                  : 'rgba(255, 255, 255, 0.98)',
+                borderColor: effectiveColors.border,
+                bottom: isAudioVisible ? 84 : 28,
+              },
+            ]}>
+            <View style={styles.selectionHeader}>
+              <Text
+                style={[styles.selectionCount, {color: effectiveColors.text}]}>
+                {selectedVerses.size}{' '}
+                {selectedVerses.size === 1 ? t.verse.singular : t.verse.plural}
+              </Text>
+              <TouchableOpacity onPress={clearSelection}>
+                <Ionicons
+                  name="close"
+                  size={22}
+                  color={effectiveColors.textSecondary}
+                />
+              </TouchableOpacity>
+            </View>
+            <View style={styles.selectionActions}>
+              <TouchableOpacity
+                style={styles.selectionButton}
+                onPress={handleCopySelected}>
+                <Ionicons
+                  name="copy-outline"
+                  size={22}
+                  color={effectiveColors.primary}
+                />
+                <Text
+                  style={[
+                    styles.selectionButtonText,
+                    {color: effectiveColors.text},
+                  ]}>
+                  {t.copy}
+                </Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={styles.selectionButton}
+                onPress={handleShareSelected}>
+                <Ionicons
+                  name="share-outline"
+                  size={22}
+                  color={effectiveColors.primary}
+                />
+                <Text
+                  style={[
+                    styles.selectionButtonText,
+                    {color: effectiveColors.text},
+                  ]}>
+                  {t.share}
+                </Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={styles.selectionButton}
+                onPress={handleNoteSelected}>
+                <Ionicons
+                  name="create-outline"
+                  size={22}
+                  color={effectiveColors.primary}
+                />
+                <Text
+                  style={[
+                    styles.selectionButtonText,
+                    {color: effectiveColors.text},
+                  ]}>
+                  {t.notes.note}
+                </Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={styles.selectionButton}
+                onPress={handleBookmarkSelected}>
+                <Ionicons
+                  name="bookmark-outline"
+                  size={22}
+                  color={effectiveColors.primary}
+                />
+                <Text
+                  style={[
+                    styles.selectionButtonText,
+                    {color: effectiveColors.text},
+                  ]}>
+                  {t.save}
+                </Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={styles.selectionButton}
+                onPress={() => setImageModalVisible(true)}>
+                <Ionicons
+                  name="image-outline"
+                  size={22}
+                  color={effectiveColors.primary}
+                />
+                <Text
+                  style={[
+                    styles.selectionButtonText,
+                    {color: effectiveColors.text},
+                  ]}>
+                  Imagen
+                </Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        )}
+
+        {/* Image Creator Modal */}
+        <Modal
+          visible={imageModalVisible}
+          animationType="slide"
+          onRequestClose={() => setImageModalVisible(false)}>
+          <View
+            style={[
+              styles.imageCreatorContainer,
+              {backgroundColor: colors.background},
+            ]}>
+            <View
+              style={[
+                styles.imageCreatorHeader,
+                {paddingTop: insets.top + 10},
+              ]}>
+              <TouchableOpacity onPress={() => setImageModalVisible(false)}>
+                <Ionicons name="close" size={28} color={colors.text} />
+              </TouchableOpacity>
+              <Text style={[styles.imageCreatorTitle, {color: colors.text}]}>
+                Compartir como Imagen
+              </Text>
+              <TouchableOpacity
+                onPress={handleShareImage}
+                disabled={isSharingImage}
+                style={isSharingImage && {opacity: 0.6}}>
+                <Ionicons
+                  name="share-outline"
+                  size={28}
+                  color={colors.primary}
+                />
+              </TouchableOpacity>
+            </View>
+
+            <ScrollView
+              style={{flex: 1}}
+              contentContainerStyle={{paddingBottom: spacing['4xl']}}>
+              <View style={styles.imagePreviewContainer}>
+                <LinearGradient
+                  colors={IMAGE_THEMES[selectedImageThemeIndex].colors}
+                  style={[
+                    styles.verseImageCard,
+                    {minHeight: windowWidth - spacing.xl * 2},
+                  ]}
+                  ref={imagePreviewRef}
+                  collapsable={false}
+                  start={{x: 0, y: 0}}
+                  end={{x: 1, y: 1}}>
+                  <View style={styles.imageHeaderArea}>
+                    <Ionicons
+                      name={IMAGE_THEMES[selectedImageThemeIndex].icon as any}
+                      size={32}
+                      color={IMAGE_THEMES[selectedImageThemeIndex].textColor}
+                      style={styles.watermarkIcon}
+                    />
+                  </View>
+
+                  <View style={styles.imageMainArea}>
+                    <Ionicons
+                      name="chatbubble-outline"
+                      size={24}
+                      color={IMAGE_THEMES[selectedImageThemeIndex].textColor}
+                      style={styles.quoteIcon}
+                    />
+                    <Text
+                      style={[
+                        styles.verseImageText,
+                        {
+                          color:
+                            IMAGE_THEMES[selectedImageThemeIndex].textColor,
+                          fontSize: imageFontSize,
+                          textAlign: imageTextAlign,
+                          fontFamily: useSerifFont
+                            ? Platform.OS === 'ios'
+                              ? 'Georgia'
+                              : 'serif'
+                            : undefined,
+                          paddingBottom: spacing.sm,
+                        },
+                      ]}>
+                      {selectedVerses.size > 0
+                        ? getImageVersesText()
+                        : 'Selecciona versículos primero'}
+                    </Text>
+                  </View>
+
+                  <View style={styles.imageBrandContainer}>
+                    <View
+                      style={[
+                        styles.brandDivider,
+                        {
+                          backgroundColor:
+                            IMAGE_THEMES[selectedImageThemeIndex].textColor,
+                        },
+                      ]}
+                    />
+                    <Text
+                      style={[
+                        styles.brandText,
+                        {
+                          color:
+                            IMAGE_THEMES[selectedImageThemeIndex].textColor,
+                        },
+                      ]}>
+                      Eternal Stone Bible
+                    </Text>
+                    <Text
+                      style={[
+                        styles.brandReference,
+                        {
+                          color:
+                            IMAGE_THEMES[selectedImageThemeIndex].textColor,
+                        },
+                      ]}>
+                      {book} {chapter}
+                    </Text>
+                  </View>
+                </LinearGradient>
+              </View>
+
+              <View style={styles.imageOptionsContainer}>
+                <Text
+                  style={[styles.optionsTitle, {color: colors.textSecondary}]}>
+                  Elige un estilo
+                </Text>
+                <ScrollView
+                  horizontal
+                  showsHorizontalScrollIndicator={false}
+                  style={styles.optionsRow}>
+                  {IMAGE_THEMES.map((theme, index) => (
+                    <TouchableOpacity
+                      key={theme.id}
+                      onPress={() => {
+                        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                        setSelectedImageThemeIndex(index);
+                      }}
+                      style={[
+                        styles.styleCircle,
+                        index === selectedImageThemeIndex && {
+                          borderColor: colors.primary,
+                          borderWidth: 3,
+                        },
+                      ]}>
+                      <LinearGradient
+                        colors={theme.colors}
+                        style={styles.styleCircleGradient}>
+                        <Ionicons
+                          name={theme.icon as any}
+                          size={20}
+                          color={theme.textColor}
+                        />
+                      </LinearGradient>
+                    </TouchableOpacity>
+                  ))}
+                </ScrollView>
+
+                <View style={styles.optionSection}>
+                  <Text
+                    style={[
+                      styles.optionsTitle,
+                      {color: colors.textSecondary},
+                    ]}>
+                    Tamaño de Fuente
+                  </Text>
+                  <View style={styles.optionsRow}>
+                    {[16, 20, 24, 28].map(size => (
+                      <TouchableOpacity
+                        key={size}
+                        onPress={() => setImageFontSize(size)}
+                        style={[
+                          styles.sizeButton,
+                          imageFontSize === size && {
+                            borderColor: colors.primary,
+                            backgroundColor: colors.primaryLight,
+                          },
+                        ]}>
+                        <Text
+                          style={{
+                            color:
+                              imageFontSize === size
+                                ? imageSelectedTextColor
+                                : colors.text,
+                            fontWeight: 'bold',
+                          }}>
+                          {size}
+                        </Text>
+                      </TouchableOpacity>
+                    ))}
+                  </View>
+                </View>
+
+                <View style={styles.optionSection}>
+                  <Text
+                    style={[
+                      styles.optionsTitle,
+                      {color: colors.textSecondary},
+                    ]}>
+                    Alineación
+                  </Text>
+                  <View style={styles.optionsRow}>
+                    {(['left', 'center', 'right'] as const).map(align => (
+                      <TouchableOpacity
+                        key={align}
+                        onPress={() => setImageTextAlign(align)}
+                        style={[
+                          styles.sizeButton,
+                          styles.flex1,
+                          imageTextAlign === align && {
+                            borderColor: colors.primary,
+                            backgroundColor: colors.primaryLight,
+                          },
+                        ]}>
+                        <Ionicons
+                          name={
+                            align === 'left'
+                              ? 'list-outline'
+                              : align === 'center'
+                                ? 'menu-outline'
+                                : 'reorder-three-outline'
+                          }
+                          size={20}
+                          color={
+                            imageTextAlign === align
+                              ? imageSelectedTextColor
+                              : colors.text
+                          }
+                        />
+                      </TouchableOpacity>
+                    ))}
+                  </View>
+                </View>
+
+                <View style={styles.optionSection}>
+                  <Text
+                    style={[
+                      styles.optionsTitle,
+                      {color: colors.textSecondary},
+                    ]}>
+                    Estilo de Fuente
+                  </Text>
+                  <View style={styles.optionsRow}>
+                    <TouchableOpacity
+                      onPress={() => setUseSerifFont(true)}
+                      style={[
+                        styles.sizeButton,
+                        styles.flex1,
+                        useSerifFont && {
+                          borderColor: colors.primary,
+                          backgroundColor: colors.primaryLight,
+                        },
+                      ]}>
+                      <Text
+                        style={{
+                          color: useSerifFont
+                            ? imageSelectedTextColor
+                            : colors.text,
+                          fontWeight: 'bold',
+                          fontFamily:
+                            Platform.OS === 'ios' ? 'Georgia' : 'serif',
+                        }}>
+                        Serif
+                      </Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity
+                      onPress={() => setUseSerifFont(false)}
+                      style={[
+                        styles.sizeButton,
+                        styles.flex1,
+                        !useSerifFont && {
+                          borderColor: colors.primary,
+                          backgroundColor: colors.primaryLight,
+                        },
+                      ]}>
+                      <Text
+                        style={{
+                          color: !useSerifFont
+                            ? imageSelectedTextColor
+                            : colors.text,
+                          fontWeight: 'bold',
+                        }}>
+                        Sans
+                      </Text>
+                    </TouchableOpacity>
+                  </View>
+                </View>
+              </View>
+            </ScrollView>
+          </View>
+        </Modal>
 
         {/* Note Modal */}
         <Modal
@@ -780,8 +1341,8 @@ export default function VerseReadingScreen() {
               style={[styles.modalContent, {backgroundColor: colors.surface}]}>
               <View style={styles.modalHeader}>
                 <Text style={[styles.modalTitle, {color: colors.text}]}>
-                  {selectedVerse
-                    ? `${selectedVerse.book} ${selectedVerse.chapter}:${selectedVerse.verse}`
+                  {selectedVerseForNote
+                    ? `${selectedVerseForNote.book} ${selectedVerseForNote.chapter}:${selectedVerseForNote.verse}`
                     : t.notes.add}
                 </Text>
                 <TouchableOpacity onPress={() => setNoteModalVisible(false)}>
@@ -793,7 +1354,7 @@ export default function VerseReadingScreen() {
                 </TouchableOpacity>
               </View>
 
-              {selectedVerse && (
+              {selectedVerseForNote && (
                 <Text
                   style={[
                     styles.modalVerse,
@@ -802,7 +1363,7 @@ export default function VerseReadingScreen() {
                       backgroundColor: colors.surfaceVariant,
                     },
                   ]}>
-                  "{selectedVerse.text}"
+                  "{selectedVerseForNote.text}"
                 </Text>
               )}
 
@@ -849,8 +1410,11 @@ export default function VerseReadingScreen() {
           />
         </Modal>
 
-        {/* Bottom Navigation - hides on scroll down, shows on scroll up */}
-        <AnimatedBottomNav visible={isNavVisible} activeTab="bible" />
+        {/* Bottom Navigation - hides on scroll down or when selection is active */}
+        <AnimatedBottomNav
+          visible={isNavVisible && selectedVerses.size === 0}
+          activeTab="bible"
+        />
       </View>
     </>
   );
@@ -872,39 +1436,52 @@ const styles = StyleSheet.create({
     marginLeft: spacing.base,
   },
 
-  // NAVEGACIÓN - MÁS COMPACTA
+  // NAVEGACIÓN - COMPACTA
   navBar: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingVertical: spacing.lg, // Más padding para mejor accesibilidad
-    paddingHorizontal: spacing.lg,
+    paddingVertical: spacing['0.5'],
+    paddingHorizontal: spacing.md,
     borderBottomWidth: 0,
-    ...shadows.xs, // Sombra mínima
+  },
+  navSide: {
+    justifyContent: 'center',
+  },
+  navSideLeft: {
+    alignItems: 'flex-start',
+  },
+  navSideRight: {
+    alignItems: 'flex-end',
+  },
+  navTitleContainer: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   navButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingVertical: spacing.sm,
-    paddingHorizontal: spacing.md,
+    paddingVertical: spacing['1.5'],
+    paddingHorizontal: spacing.sm,
   },
   navButtonText: {
-    fontSize: fontSizes.base,
+    fontSize: fontSizes.sm,
     fontWeight: '600',
     letterSpacing: 0.2,
   },
   navTitle: {
-    fontSize: fontSizes.lg,
+    fontSize: fontSizes.base,
     fontWeight: '700',
     letterSpacing: -0.2,
   },
 
-  // TOOLBAR
+  // TOOLBAR - COMPACTA
   toolbar: {
     flexDirection: 'row',
     justifyContent: 'space-around',
     alignItems: 'center',
-    paddingVertical: spacing.sm,
+    paddingVertical: spacing['0.5'],
     paddingHorizontal: spacing.base,
     borderBottomWidth: 1,
   },
@@ -922,64 +1499,95 @@ const styles = StyleSheet.create({
     fontWeight: '500',
   },
 
-  // CONTENEDOR DE VERSÍCULOS - MÁXIMA DENSIDAD
+  // CONTENEDOR DE VERSÍCULOS
   versesContainer: {
     flex: 1,
   },
   versesContent: {
-    paddingHorizontal: spacing.base, // Más compacto
-    paddingVertical: spacing.sm, // Muy compacto
+    paddingHorizontal: spacing.lg,
+    paddingVertical: spacing.md,
   },
 
-  // CARD DE VERSÍCULO - ULTRA COMPACTO
+  // VERSÍCULO - Sin tarjeta, formato inline
   verseItem: {
-    borderRadius: borderRadius.md, // Más sutil
-    padding: spacing.sm, // Muy compacto
-    marginBottom: spacing.sm, // Mínima separación
-    ...shadows.xs, // Sombra mínima
-    borderWidth: 0,
-  },
-  verseHeader: {
+    paddingVertical: spacing.sm,
+    paddingHorizontal: spacing.md,
+    marginBottom: 4,
+    borderRadius: borderRadius.md,
     flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center', // Alineado al centro
-    marginBottom: spacing.xs, // Muy poco espacio
+    alignItems: 'flex-start',
+    backgroundColor: 'transparent',
+  },
+  verseSelected: {
+    backgroundColor: 'rgba(74, 144, 226, 0.15)',
+  },
+  verseHighlighted: {
+    backgroundColor: 'rgba(74, 144, 226, 0.1)',
+    borderLeftWidth: 3,
+    borderLeftColor: '#4A90E2',
+  },
+  verseBeingRead: {
+    backgroundColor: 'rgba(212, 175, 55, 0.08)',
+  },
+  verseContent: {
+    flex: 1,
+    paddingRight: 4,
   },
   verseNumber: {
-    fontSize: fontSizes.sm, // Muy discreto
-    fontWeight: '600',
-    minWidth: 28,
-    textAlign: 'left',
+    fontSize: fontSizes.sm,
+    fontWeight: '700',
   },
-
-  // TEXTO DEL VERSÍCULO - OPTIMIZADO PARA DENSIDAD
   verseText: {
     fontSize: fontSizes.base,
-    lineHeight: fontSizes.base * 1.5, // Más compacto
-    letterSpacing: 0,
-    marginBottom: spacing.xs, // Muy poco espacio
+  },
+  bookmarkIndicator: {
+    paddingTop: 6,
+    paddingLeft: 4,
+    justifyContent: 'flex-start',
+    alignItems: 'center',
   },
 
-  // ACCIONES - ULTRA COMPACTAS
-  verseActions: {
-    flexDirection: 'row',
-    justifyContent: 'flex-start',
-    gap: spacing.md, // Menos espacio
-    borderTopWidth: 0,
-    paddingTop: spacing.xs, // Muy poco padding
-    marginTop: 0, // Sin margen
+  // BARRA DE SELECCIÓN
+  selectionBar: {
+    position: 'absolute',
+    bottom: 40, // Elevado del fondo
+    left: 16, // Margen izquierdo
+    right: 16, // Margen derecho
+    borderRadius: 24, // Bordes totalmente redondeados
+    borderWidth: 1,
+    paddingTop: spacing.sm,
+    paddingBottom: spacing.sm,
+    paddingHorizontal: spacing.md,
+    shadowColor: '#000',
+    shadowOffset: {width: 0, height: 4},
+    shadowOpacity: 0.2, // Sombra más pronunciada
+    shadowRadius: 16,
+    elevation: 20,
   },
-  actionButton: {
+  selectionHeader: {
     flexDirection: 'row',
+    justifyContent: 'space-between',
     alignItems: 'center',
-    gap: 4, // Muy poco espacio
-    paddingVertical: 2,
-    paddingHorizontal: spacing.xs,
+    marginBottom: spacing.md,
   },
-  actionButtonText: {
-    fontSize: fontSizes.xs, // Más pequeño
+  selectionCount: {
+    fontSize: fontSizes.sm,
+    fontWeight: '600',
+  },
+  selectionActions: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+  },
+  selectionButton: {
+    alignItems: 'center',
+    paddingVertical: spacing.xs,
+    paddingHorizontal: spacing.sm,
+    minWidth: 56,
+  },
+  selectionButtonText: {
+    fontSize: fontSizes.xs,
+    marginTop: 4,
     fontWeight: '500',
-    letterSpacing: 0,
   },
 
   // MODAL MEJORADO
@@ -1035,5 +1643,132 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
     letterSpacing: 0.5,
     textTransform: 'uppercase',
+  },
+  // IMAGE CREATOR STYLES
+  imageCreatorContainer: {
+    flex: 1,
+  },
+  imageCreatorHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: spacing.xl,
+    paddingBottom: spacing.lg,
+  },
+  imageCreatorTitle: {
+    fontSize: fontSizes.lg,
+    fontWeight: '700',
+  },
+  imagePreviewContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: spacing.xl,
+  },
+  verseImageCard: {
+    padding: spacing.xl,
+    borderRadius: borderRadius.xl,
+    width: '100%',
+    // Eliminamos aspectRatio fijo para permitir crecimiento vertical
+    justifyContent: 'center',
+    alignItems: 'center',
+    ...shadows.xl,
+  },
+  verseImageText: {
+    fontSize: fontSizes.lg,
+    textAlign: 'center',
+    fontStyle: 'italic',
+    lineHeight: 34,
+    paddingHorizontal: spacing.sm,
+  },
+  imageOptionsContainer: {
+    padding: spacing.xl,
+    paddingBottom: 40,
+  },
+  optionsTitle: {
+    fontSize: fontSizes.sm,
+    fontWeight: '600',
+    marginBottom: spacing.md,
+  },
+  optionsRow: {
+    flexDirection: 'row',
+  },
+  styleCircle: {
+    width: 60,
+    height: 60,
+    borderRadius: 30,
+    marginRight: spacing.md,
+    borderWidth: 2,
+    borderColor: 'transparent',
+  },
+  styleCircleGradient: {
+    flex: 1,
+    width: '100%',
+    borderRadius: 28,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  imageHeaderArea: {
+    alignItems: 'center',
+    paddingTop: spacing.sm,
+    height: 40,
+  },
+  imageMainArea: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingVertical: spacing.md,
+    width: '100%',
+  },
+  quoteIcon: {
+    opacity: 0.3,
+    marginBottom: spacing.xs,
+  },
+  brandText: {
+    fontSize: fontSizes.xs,
+    fontWeight: '700',
+    textTransform: 'uppercase',
+    letterSpacing: 2,
+  },
+  styleIcon: {
+    opacity: 0.6,
+  },
+  sizeButton: {
+    paddingVertical: spacing.sm,
+    paddingHorizontal: spacing.md,
+    borderRadius: borderRadius.md,
+    borderWidth: 1.5,
+    borderColor: 'transparent',
+    backgroundColor: 'rgba(0,0,0,0.05)',
+    marginRight: spacing.sm,
+    alignItems: 'center',
+    justifyContent: 'center',
+    minWidth: 44,
+  },
+  imageBrandContainer: {
+    width: '100%',
+    alignItems: 'center',
+    paddingBottom: spacing.lg,
+  },
+  brandDivider: {
+    width: 30,
+    height: 2,
+    marginBottom: spacing.md,
+    opacity: 0.2,
+  },
+  brandReference: {
+    fontSize: fontSizes.xs,
+    marginTop: 4,
+    fontWeight: '500',
+    opacity: 0.7,
+  },
+  watermarkIcon: {
+    opacity: 0.4,
+  },
+  optionSection: {
+    marginTop: spacing.lg,
+  },
+  flex1: {
+    flex: 1,
   },
 });

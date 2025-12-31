@@ -31,6 +31,7 @@ export interface AudioPlayerState {
   selectedVoice: VoiceInfo | null;
   selectedLanguage: AudioLanguage;
   isExpanded: boolean;
+  bottomOffset?: number;
 }
 
 export interface SleepTimerState {
@@ -95,6 +96,7 @@ export interface AudioPlayerContextValue {
   // Chapter loading
   loadChapter: (verses: AudioVerse[]) => void;
   clearChapter: () => void;
+  setBottomOffset: (offset: number) => void;
 }
 
 // ==================== COMPONENT PROPS ====================

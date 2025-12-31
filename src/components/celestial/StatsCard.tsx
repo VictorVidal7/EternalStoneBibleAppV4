@@ -7,10 +7,10 @@
  * Para la gloria de Dios - Eternal Bible App
  */
 
-import React, { useEffect, useRef } from 'react';
-import { View, Text, StyleSheet, Animated } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
-import type { ComponentProps } from 'react';
+import React, {useEffect, useRef} from 'react';
+import {View, Text, StyleSheet, Animated} from 'react-native';
+import {Ionicons} from '@expo/vector-icons';
+import type {ComponentProps} from 'react';
 
 type IoniconsName = ComponentProps<typeof Ionicons>['name'];
 
@@ -89,7 +89,7 @@ const StatsCard: React.FC<StatsCardProps> = ({
             duration: 800,
             useNativeDriver: true,
           }),
-        ])
+        ]),
       ).start();
     }
   }, [pulse, pulseAnim]);
@@ -101,18 +101,17 @@ const StatsCard: React.FC<StatsCardProps> = ({
         style={[
           styles.iconContainer,
           pulse && {
-            transform: [{ scale: pulseAnim }],
+            transform: [{scale: pulseAnim}],
           },
-        ]}
-      >
+        ]}>
         <Ionicons name={icon} size={iconSize} color={iconColor} />
       </Animated.View>
 
       {/* Valor */}
-      <Text style={[styles.value, { color: valueColor }]}>{value}</Text>
+      <Text style={[styles.value, {color: valueColor}]}>{value}</Text>
 
       {/* Label */}
-      <Text style={[styles.label, { color: labelColor }]}>{label}</Text>
+      <Text style={[styles.label, {color: labelColor}]}>{label}</Text>
     </View>
   );
 };
@@ -123,18 +122,18 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   iconContainer: {
-    marginBottom: 8,
+    marginBottom: 4,
   },
   value: {
-    fontSize: 24, // xl
+    fontSize: 18,
     fontWeight: '700',
     letterSpacing: -0.3,
   },
   label: {
-    fontSize: 10, // 2xs
+    fontSize: 9,
     fontWeight: '500',
     marginTop: 2,
-    letterSpacing: 0.5,
+    letterSpacing: 0.3,
     textTransform: 'uppercase',
   },
 });

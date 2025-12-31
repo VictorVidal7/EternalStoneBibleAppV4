@@ -28,7 +28,6 @@ import {
 import {useRouter} from 'expo-router';
 import {Ionicons} from '@expo/vector-icons';
 import {LinearGradient} from 'expo-linear-gradient';
-import {BlurView} from 'expo-blur';
 import * as Haptics from 'expo-haptics';
 
 import bibleDB from '../../src/lib/database';
@@ -49,8 +48,6 @@ import {
   VerseOfDayCard,
   ReadingPlanCard,
   ShimmerCard,
-  PulsingGlow,
-  AnimatedParticles,
 } from '../../src/components/celestial';
 
 // Skeleton Loaders
@@ -62,6 +59,7 @@ import {
   celestialBorderRadius,
   celestialSpacing,
 } from '../../src/styles/celestialTheme';
+import {withOpacity} from '../../src/styles/modernTheme';
 
 const {width: SCREEN_WIDTH} = Dimensions.get('window');
 
@@ -80,6 +78,10 @@ export default function HomeScreen() {
   const {t} = useLanguage();
   const {getChapterProgress} = useReadingProgress();
   const {addFavorite, isFavorite} = useFavorites();
+  const cardBorderOpacity = isDark ? 0.3 : 0.8;
+  const cardBorderColor = withOpacity(colors.primary, cardBorderOpacity);
+  const cardBackgroundColor = withOpacity(colors.primary, isDark ? 0.08 : 0.05);
+  const progressTrackColor = isDark ? 'transparent' : cardBorderColor;
 
   const [dailyVerse, setDailyVerse] = useState<BibleVerse | null>(null);
   const [lastRead, setLastRead] = useState<ReadingProgress | null>(null);
@@ -295,126 +297,79 @@ export default function HomeScreen() {
             colors={[colors.primary]}
           />
         }>
-        {/* ==================== HERO SECTION - Welcome Card ==================== */}
+        {/* ==================== HERO SECTION - Welcome Card (Compact) ==================== */}
         <Animated.View
           style={{
             opacity: fadeAnim,
             transform: [{translateY: slideAnim}, {scale: scaleAnim}],
           }}>
-          <BlurView
-            intensity={isDark ? 40 : 70}
-            tint={isDark ? 'dark' : 'light'}
+          <LinearGradient
+            colors={[...gradient.headerColors]}
+            start={{x: 0, y: 0}}
+            end={{x: 1, y: 1}}
             style={[
               styles.heroCard,
               {
-                backgroundColor: celestialTheme.colors.surfaceGlass,
-                borderColor: celestialTheme.colors.glassBorder,
-                borderRadius: celestialBorderRadius['2xl'], // 28px
+                borderRadius: celestialBorderRadius.xl,
                 shadowColor: colors.primary,
-                shadowOffset: {width: 0, height: 12},
-                shadowOpacity: 0.35, // Sombra DRAMÁTICA
-                shadowRadius: 24,
-                elevation: 12, // Elevación DRAMÁTICA para Android
+                shadowOffset: {width: 0, height: 4},
+                shadowOpacity: 0.2,
+                shadowRadius: 8,
+                elevation: 4,
               },
             ]}>
-            {/* Decorative circles blur effect */}
-            <View style={styles.decorativeCircles}>
-              <View
-                style={[
-                  styles.circle1,
-                  {backgroundColor: celestialTheme.colors.glow},
-                ]}
-              />
-              <View
-                style={[
-                  styles.circle2,
-                  {backgroundColor: celestialTheme.colors.glow},
-                ]}
-              />
-            </View>
-
-            {/* Gradiente de fondo del hero */}
-            <LinearGradient
-              colors={[...gradient.headerColors]}
-              start={{x: 0, y: 0}}
-              end={{x: 1, y: 1}}
-              style={styles.heroGradient}>
-              {/* Animated particles overlay */}
-              <AnimatedParticles
-                count={12}
-                height={280}
-                color="rgba(255,255,255,0.5)"
-              />
-              {/* Stars decoration - MÁS GRANDES Y VISIBLES */}
-              <Ionicons
-                name="star"
-                size={28}
-                color="rgba(255,255,255,0.45)"
-                style={styles.star1}
-              />
-              <Ionicons
-                name="star"
-                size={22}
-                color="rgba(255,255,255,0.35)"
-                style={styles.star2}
-              />
-              <Ionicons
-                name="star"
-                size={18}
-                color="rgba(255,255,255,0.40)"
-                style={styles.star3}
-              />
-
-              <View style={styles.heroContent}>
-                {/* Ícono principal con glow pulsante */}
-                <PulsingGlow color={gradient.accentGlow} size={80}>
-                  <Ionicons name="book" size={64} color="#ffffff" />
-                </PulsingGlow>
-
-                {/* Título y subtítulo */}
-                <Text style={styles.heroTitle}>{t.home.welcomeShort}</Text>
-                <Text style={styles.heroSubtitle}>
-                  {t.home.journeyContinues}
-                </Text>
-
-                {/* Stats Row */}
-                <View style={styles.statsRow}>
-                  <StatsCard
-                    icon="flame"
-                    value={userStats.streak}
-                    label={t.home.streakDays}
-                    iconColor="#fbbf24"
-                    pulse={userStats.streak > 0}
-                  />
-
-                  <View style={styles.statDivider} />
-
-                  <StatsCard
-                    icon="star"
-                    value={userStats.level}
-                    label={t.home.level}
-                    iconColor="#fbbf24"
-                  />
-
-                  <View style={styles.statDivider} />
-
-                  <StatsCard
-                    icon="trending-up"
-                    value={`${Math.round(userStats.progress)}%`}
-                    label={t.home.progress}
-                    iconColor="#fbbf24"
-                  />
+            <View style={styles.heroContent}>
+              {/* Compact header with icon */}
+              <View style={styles.heroHeader}>
+                <Ionicons name="book" size={28} color="#ffffff" />
+                <View style={styles.heroTextContainer}>
+                  <Text style={styles.heroTitle}>{t.home.welcomeShort}</Text>
+                  <Text style={styles.heroSubtitle}>
+                    {t.home.journeyContinues}
+                  </Text>
                 </View>
               </View>
-            </LinearGradient>
-          </BlurView>
+
+              {/* Stats Row - Compact */}
+              <View style={styles.statsRow}>
+                <StatsCard
+                  icon="flame"
+                  value={userStats.streak}
+                  label={t.home.streakDays}
+                  iconColor="#fbbf24"
+                  iconSize={18}
+                  pulse={userStats.streak > 0}
+                />
+
+                <View style={styles.statDivider} />
+
+                <StatsCard
+                  icon="star"
+                  value={userStats.level}
+                  label={t.home.level}
+                  iconColor="#fbbf24"
+                  iconSize={18}
+                />
+
+                <View style={styles.statDivider} />
+
+                <StatsCard
+                  icon="trending-up"
+                  value={`${Math.round(userStats.progress)}%`}
+                  label={t.home.progress}
+                  iconColor="#fbbf24"
+                  iconSize={18}
+                />
+              </View>
+            </View>
+          </LinearGradient>
         </Animated.View>
 
         {/* ==================== VERSE OF THE DAY ==================== */}
         {dailyVerse && (
           <Animated.View
             style={{opacity: fadeAnim, marginTop: celestialSpacing.sectionGap}}>
-            <ShimmerCard>
+            <ShimmerCard glowColor={colors.primary}>
               <VerseOfDayCard
                 verseText={dailyVerse.text}
                 reference={`${dailyVerse.book} ${dailyVerse.chapter}:${dailyVerse.verse}`}
@@ -454,72 +409,86 @@ export default function HomeScreen() {
           </Animated.View>
         )}
 
-        {/* ==================== CONTINUE READING ==================== */}
+        {/* ==================== CONTINUE READING (Compact) ==================== */}
         {lastRead && (
           <Animated.View
             style={{opacity: fadeAnim, marginTop: celestialSpacing.sectionGap}}>
-            <TouchableOpacity
-              activeOpacity={0.9}
-              onPress={() =>
-                handlePress(() =>
-                  router.push(
-                    `/verse/${lastRead.book}/${lastRead.chapter}` as any,
-                  ),
-                )
-              }>
-              <LinearGradient
-                colors={
-                  [colors.primary, colors.primaryLight, colors.primaryDark] as [
-                    string,
-                    string,
-                    string,
-                  ]
+            <ShimmerCard
+              glowColor={colors.primary}
+              shimmerEnabled={false}
+              cardBorderColor={cardBorderColor}
+              cardBackgroundColor={cardBackgroundColor}>
+              <TouchableOpacity
+                activeOpacity={0.9}
+                onPress={() =>
+                  handlePress(() =>
+                    router.push(
+                      `/verse/${lastRead.book}/${lastRead.chapter}` as any,
+                    ),
+                  )
                 }
-                start={{x: 0, y: 0}}
-                end={{x: 1, y: 1}}
                 style={[
                   styles.continueButton,
                   {
-                    borderRadius: celestialBorderRadius.xl, // 22px
-                    shadowColor: colors.primary,
-                    shadowOffset: {width: 0, height: 8},
-                    shadowOpacity: 0.4, // MÁS visible
-                    shadowRadius: 16,
-                    elevation: 12, // DUPLICADO para Android
+                    backgroundColor: celestialTheme.colors.surfaceGlass,
+                    borderRadius: celestialBorderRadius.cardMedium,
                   },
+                  celestialTheme.shadows.lg,
                 ]}>
                 <View style={styles.continueHeader}>
-                  <Ionicons name="play-circle" size={48} color="#ffffff" />
-                  <Text style={styles.continueTitle}>
-                    {t.home.continueReading}
-                  </Text>
+                  <View
+                    style={[
+                      styles.continueIconContainer,
+                      {backgroundColor: colors.primary},
+                    ]}>
+                    <Ionicons name="play" size={16} color="#ffffff" />
+                  </View>
+                  <View style={styles.continueTextContainer}>
+                    <Text
+                      style={[styles.continueTitle, {color: colors.text}]}
+                      numberOfLines={1}>
+                      {t.home.continueReading}
+                    </Text>
+                    <Text
+                      style={[
+                        styles.continueReference,
+                        {color: colors.textSecondary},
+                      ]}>
+                      {lastRead.book} {lastRead.chapter}:{lastRead.verse || 1}
+                    </Text>
+                  </View>
+                  <View style={styles.continueProgress}>
+                    <Text
+                      style={[styles.progressText, {color: colors.primary}]}>
+                      {Math.round(chapterProgress)}%
+                    </Text>
+                    <Ionicons
+                      name="chevron-forward"
+                      size={18}
+                      color={colors.textTertiary}
+                    />
+                  </View>
                 </View>
-
-                <Text style={styles.continueReference}>
-                  {lastRead.book} {lastRead.chapter}:{lastRead.verse || 1}
-                </Text>
-
-                {/* Progress bar */}
+                {/* Progress bar - subtle */}
                 <View style={styles.progressBarContainer}>
-                  <View style={styles.progressBarBackground}>
+                  <View
+                    style={[
+                      styles.progressBarBackground,
+                      {backgroundColor: progressTrackColor},
+                    ]}>
                     <Animated.View
                       style={[
                         styles.progressBarFill,
                         {
                           width: `${Math.round(chapterProgress)}%`,
+                          backgroundColor: colors.primary,
                         },
                       ]}
                     />
                   </View>
-                  <Text style={styles.progressText}>
-                    {t.home.percentCompleted.replace(
-                      '{{percent}}',
-                      Math.round(chapterProgress).toString(),
-                    )}
-                  </Text>
                 </View>
-              </LinearGradient>
-            </TouchableOpacity>
+              </TouchableOpacity>
+            </ShimmerCard>
           </Animated.View>
         )}
 
@@ -555,7 +524,6 @@ export default function HomeScreen() {
                   plan.duration.toString(),
                 )}
                 icon="book-outline"
-                color={PLAN_COLORS[index % PLAN_COLORS.length]}
                 duration={plan.duration}
                 daysCompleted={Math.floor(plan.duration * 0.3)} // Simulado
                 onPress={() =>
@@ -602,8 +570,6 @@ export default function HomeScreen() {
 /**
  * Colores para los planes de lectura
  */
-const PLAN_COLORS = ['#6366f1', '#10b981', '#f59e0b', '#8b5cf6', '#ec4899'];
-
 // ==================== STYLES ====================
 
 const styles = StyleSheet.create({
@@ -638,143 +604,104 @@ const styles = StyleSheet.create({
     letterSpacing: -0.2,
   },
 
-  // Hero Card - Diseño minimalista y profesional
+  // Hero Card - Compact and Professional
   heroCard: {
     overflow: 'hidden',
-    borderWidth: 1,
-    marginBottom: 24,
-  },
-  decorativeCircles: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-  },
-  circle1: {
-    position: 'absolute',
-    width: 150,
-    height: 150,
-    borderRadius: 75,
-    top: -50,
-    right: -50,
-    opacity: 0.3,
-  },
-  circle2: {
-    position: 'absolute',
-    width: 100,
-    height: 100,
-    borderRadius: 50,
-    bottom: -30,
-    left: -30,
-    opacity: 0.2,
-  },
-  heroGradient: {
-    padding: 32,
-    paddingTop: 40,
-    paddingBottom: 32,
-  },
-  star1: {
-    position: 'absolute',
-    top: 30,
-    right: 40,
-  },
-  star2: {
-    position: 'absolute',
-    top: 70,
-    right: 100,
-  },
-  star3: {
-    position: 'absolute',
-    top: 50,
-    left: 50,
+    padding: 16,
+    marginBottom: 16,
   },
   heroContent: {
+    gap: 12,
+  },
+  heroHeader: {
+    flexDirection: 'row',
     alignItems: 'center',
+    gap: 12,
+  },
+  heroTextContainer: {
+    flex: 1,
   },
   heroTitle: {
-    fontSize: 36, // 3xl - MÁS GRANDE Y DRAMÁTICO
-    fontWeight: '800', // Más bold
+    fontSize: 20,
+    fontWeight: '700',
     color: '#ffffff',
-    marginTop: 16,
-    marginBottom: 8,
-    textAlign: 'center',
-    letterSpacing: -0.6,
-    textShadowColor: 'rgba(0, 0, 0, 0.25)',
-    textShadowOffset: {width: 0, height: 2},
-    textShadowRadius: 8,
+    letterSpacing: -0.3,
   },
   heroSubtitle: {
-    fontSize: 19, // lg - MÁS GRANDE
-    fontWeight: '500', // Más bold
-    color: 'rgba(255,255,255,0.95)', // Más contraste
-    marginBottom: 32,
-    textAlign: 'center',
-    letterSpacing: 0.4,
-    lineHeight: 26,
+    fontSize: 13,
+    fontWeight: '500',
+    color: 'rgba(255,255,255,0.85)',
+    marginTop: 2,
   },
   statsRow: {
     flexDirection: 'row',
-    backgroundColor: 'rgba(255,255,255,0.15)',
-    borderRadius: 20,
-    paddingVertical: 16,
-    paddingHorizontal: 24,
+    backgroundColor: 'rgba(255,255,255,0.12)',
+    borderRadius: 12,
+    paddingVertical: 10,
+    paddingHorizontal: 16,
     alignItems: 'center',
-    borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.2)',
   },
   statDivider: {
     width: 1,
-    height: 32,
+    height: 24,
     backgroundColor: 'rgba(255,255,255,0.2)',
-    marginHorizontal: 12,
+    marginHorizontal: 8,
   },
 
-  // Continue Reading Button - DRAMÁTICO Y VISIBLE
+  // Continue Reading Button - Compact
   continueButton: {
-    padding: 32, // Incrementado de 24
+    paddingHorizontal: 14,
+    paddingTop: 14,
+    paddingBottom: 8,
+    borderWidth: 0,
+    overflow: 'hidden',
   },
   continueHeader: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 16, // Incrementado de 12
+  },
+  continueIconContainer: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  continueTextContainer: {
+    flex: 1,
+    marginLeft: 12,
   },
   continueTitle: {
-    fontSize: 28, // Incrementado de 24
-    fontWeight: '800', // Más bold
-    color: '#ffffff',
-    marginLeft: 16, // Incrementado de 12
-    letterSpacing: -0.5,
+    fontSize: 15,
+    fontWeight: '600',
+    letterSpacing: -0.2,
   },
   continueReference: {
-    fontSize: 22, // Incrementado de 20
-    fontWeight: '700', // Incrementado de 600
-    color: 'rgba(255,255,255,1)', // Máximo contraste
-    marginBottom: 20, // Incrementado de 16
-    letterSpacing: 0.2,
+    fontSize: 13,
+    fontWeight: '500',
+    marginTop: 2,
+  },
+  continueProgress: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
   },
   progressBarContainer: {
-    marginTop: 12, // Incrementado de 8
+    marginTop: 8,
+    marginBottom: -2,
   },
   progressBarBackground: {
-    height: 10, // Incrementado de 8
-    backgroundColor: 'rgba(255,255,255,0.35)', // Más visible
-    borderRadius: 5,
+    height: 3,
+    borderRadius: 2,
     overflow: 'hidden',
-    marginBottom: 10, // Incrementado de 8
   },
   progressBarFill: {
     height: '100%',
-    backgroundColor: '#ffffff',
-    borderRadius: 5,
-    shadowColor: '#ffffff',
-    shadowOpacity: 0.5,
-    shadowRadius: 4,
+    borderRadius: 1,
   },
   progressText: {
-    fontSize: 14, // Incrementado de 12
-    fontWeight: '700', // Incrementado de 600
-    color: 'rgba(255,255,255,1)', // Máximo contraste
+    fontSize: 14,
+    fontWeight: '700',
   },
 
   // Section Header - MÁS PROMINENTE

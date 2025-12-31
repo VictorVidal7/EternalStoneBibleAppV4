@@ -10,6 +10,7 @@ import Animated, {
 } from 'react-native-reanimated';
 import {LinearGradient} from 'expo-linear-gradient';
 import {useTheme} from '../../hooks/useTheme';
+import {withOpacity} from '../../styles/modernTheme';
 
 const {width: SCREEN_WIDTH} = Dimensions.get('window');
 
@@ -30,10 +31,25 @@ export const ShimmerEffect: React.FC<ShimmerEffectProps> = ({
   delay = 0,
   enabled = true,
 }) => {
-  const {gradient} = useTheme();
+  const {gradient, isDark, colors} = useTheme();
   const translateX = useSharedValue(-SCREEN_WIDTH);
 
   const defaultShimmerColor = shimmerColor || gradient.accentGlow;
+  const shimmerStops = isDark
+    ? [
+        'transparent',
+        `${defaultShimmerColor}20`,
+        `${defaultShimmerColor}40`,
+        `${defaultShimmerColor}20`,
+        'transparent',
+      ]
+    : [
+        'transparent',
+        `${defaultShimmerColor}08`,
+        `${defaultShimmerColor}14`,
+        `${defaultShimmerColor}08`,
+        'transparent',
+      ];
 
   useEffect(() => {
     if (enabled) {
@@ -64,15 +80,7 @@ export const ShimmerEffect: React.FC<ShimmerEffectProps> = ({
       {children}
       <Animated.View style={[styles.shimmerContainer, animatedStyle]}>
         <LinearGradient
-          colors={
-            [
-              'transparent',
-              `${defaultShimmerColor}20`,
-              `${defaultShimmerColor}40`,
-              `${defaultShimmerColor}20`,
-              'transparent',
-            ] as const
-          }
+          colors={shimmerStops as const}
           start={{x: 0, y: 0.5}}
           end={{x: 1, y: 0.5}}
           style={styles.shimmerGradient}
@@ -88,6 +96,9 @@ interface ShimmerCardProps {
   style?: StyleProp<ViewStyle>;
   glowColor?: string;
   showGlow?: boolean;
+  shimmerEnabled?: boolean;
+  cardBackgroundColor?: string;
+  cardBorderColor?: string;
 }
 
 export const ShimmerCard: React.FC<ShimmerCardProps> = ({
@@ -95,11 +106,20 @@ export const ShimmerCard: React.FC<ShimmerCardProps> = ({
   style,
   glowColor,
   showGlow = true,
+  shimmerEnabled = true,
+  cardBackgroundColor,
+  cardBorderColor,
 }) => {
-  const {gradient, isDark} = useTheme();
+  const {gradient, isDark, colors} = useTheme();
   const glowOpacity = useSharedValue(0.3);
 
   const effectiveGlowColor = glowColor || gradient.accentGlow;
+  const cardBorderOpacity = isDark ? 0.3 : 0.8;
+  const effectiveCardBorderColor =
+    cardBorderColor || withOpacity(colors.primary, cardBorderOpacity);
+  const effectiveCardBackground =
+    cardBackgroundColor ||
+    (isDark ? 'rgba(26, 29, 46, 0.85)' : 'rgba(255, 255, 255, 0.95)');
 
   useEffect(() => {
     if (showGlow) {
@@ -139,14 +159,11 @@ export const ShimmerCard: React.FC<ShimmerCardProps> = ({
         style={[
           styles.card,
           {
-            backgroundColor: isDark
-              ? 'rgba(26, 29, 46, 0.85)'
-              : 'rgba(255, 255, 255, 0.95)',
-            borderColor: isDark
-              ? 'rgba(99, 102, 241, 0.2)'
-              : 'rgba(79, 70, 229, 0.15)',
+            backgroundColor: effectiveCardBackground,
+            borderColor: effectiveCardBorderColor,
           },
         ]}
+        enabled={shimmerEnabled}
         shimmerColor={effectiveGlowColor}
         duration={4000}
         delay={1000}>

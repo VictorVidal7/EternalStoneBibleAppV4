@@ -48,6 +48,7 @@ const initialPlayerState: AudioPlayerState = {
   selectedVoice: null,
   selectedLanguage: DEFAULT_LANGUAGE,
   isExpanded: false,
+  bottomOffset: 0,
 };
 
 const initialSleepTimerState: SleepTimerState = {
@@ -399,13 +400,19 @@ export const AudioPlayerProvider: React.FC<AudioPlayerProviderProps> = ({
     setState(prev => ({...prev, isExpanded: !prev.isExpanded}));
   }, []);
 
+  const setBottomOffset = useCallback((offset: number) => {
+    setState(prev => ({...prev, bottomOffset: offset}));
+  }, []);
+
   const showPlayer = useCallback(() => {
     setIsVisible(true);
   }, []);
 
   const hidePlayer = useCallback(async () => {
-    await stop();
     setIsVisible(false);
+    setState(prev => ({...prev, isExpanded: false}));
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+    await stop();
   }, [stop]);
 
   // ==================== SLEEP TIMER ====================
@@ -539,6 +546,7 @@ export const AudioPlayerProvider: React.FC<AudioPlayerProviderProps> = ({
 
     loadChapter,
     clearChapter,
+    setBottomOffset,
   };
 
   return (

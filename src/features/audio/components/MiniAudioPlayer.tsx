@@ -16,7 +16,7 @@
  * Para la gloria de Dios - Eternal Stone Bible App
  */
 
-import React, {useState, useCallback} from 'react';
+import React, {useState, useCallback, useMemo} from 'react';
 import {
   View,
   Text,
@@ -43,12 +43,23 @@ import {AudioControls} from './AudioControls';
 import {AudioProgressBar, MiniProgressDots} from './AudioProgressBar';
 import {AudioSpeedSelector} from './AudioSpeedSelector';
 import {SleepTimerModal} from './SleepTimerModal';
-import {PLAYER_DIMENSIONS, AUDIO_ICONS} from '../constants/audioConstants';
+import {VoiceSelector} from './VoiceSelector';
+import {
+  PLAYER_DIMENSIONS,
+  AUDIO_ICONS,
+  AUDIO_CONTROL_SIZES,
+  AUDIO_CONTROL_GAP,
+} from '../constants/audioConstants';
 import {SPRING_CONFIGS} from '../../../styles/reanimatedAnimations';
 
 interface MiniAudioPlayerProps {
   bottomOffset?: number;
 }
+
+const EXPANDED_CONTROLS_WIDTH =
+  AUDIO_CONTROL_SIZES.small.secondary * 2 +
+  AUDIO_CONTROL_SIZES.small.main +
+  AUDIO_CONTROL_GAP * 2;
 
 export const MiniAudioPlayer: React.FC<MiniAudioPlayerProps> = ({
   bottomOffset = 0,
@@ -62,6 +73,7 @@ export const MiniAudioPlayer: React.FC<MiniAudioPlayerProps> = ({
     sleepTimer,
     currentVerse,
     verses,
+    isVisible,
     togglePlayPause,
     nextVerse,
     previousVerse,
@@ -72,6 +84,8 @@ export const MiniAudioPlayer: React.FC<MiniAudioPlayerProps> = ({
     setSleepTimer,
     setSleepTimerEndOfChapter,
     cancelSleepTimer,
+    setVoice,
+    setLanguage,
   } = useAudioPlayer();
 
   // Animation values
@@ -93,6 +107,8 @@ export const MiniAudioPlayer: React.FC<MiniAudioPlayerProps> = ({
 
   // Gesture handler for swipe down to close using new Gesture API
   const panGesture = Gesture.Pan()
+    .enabled(state.isExpanded)
+    .activeOffsetY(12)
     .onStart(() => {
       startY.value = translateY.value;
     })
@@ -138,6 +154,17 @@ export const MiniAudioPlayer: React.FC<MiniAudioPlayerProps> = ({
     ),
   }));
 
+  const dynamicStyles = useMemo(() => {
+    return {
+      innerContainer: {
+        backgroundColor: isDark
+          ? 'rgba(26, 29, 46, 0.85)'
+          : 'rgba(255, 255, 255, 0.9)',
+        borderColor: colors.glassBorder,
+      },
+    };
+  }, [isDark, colors.glassBorder]);
+
   const expandedContentStyle = useAnimatedStyle(() => ({
     opacity: interpolate(
       expandProgress.value,
@@ -147,14 +174,16 @@ export const MiniAudioPlayer: React.FC<MiniAudioPlayerProps> = ({
     ),
   }));
 
-  // Don't render if no verses loaded
-  if (!currentVerse || verses.length === 0) {
+  // Don't render if not visible or no verses loaded
+  if (!isVisible || !currentVerse || verses.length === 0) {
     return null;
   }
 
   const verseTitle = `${currentVerse.book} ${currentVerse.chapter}:${currentVerse.verse}`;
   const canGoPrevious = state.currentVerseIndex > 0;
   const canGoNext = state.currentVerseIndex < verses.length - 1;
+
+  const finalBottomOffset = (state.bottomOffset || 0) + bottomOffset;
 
   return (
     <GestureDetector gesture={panGesture}>
@@ -163,7 +192,9 @@ export const MiniAudioPlayer: React.FC<MiniAudioPlayerProps> = ({
           styles.container,
           {
             bottom:
-              bottomOffset + insets.bottom + PLAYER_DIMENSIONS.bottomMargin,
+              finalBottomOffset +
+              insets.bottom +
+              PLAYER_DIMENSIONS.bottomMargin,
           },
           containerStyle,
         ]}>
@@ -171,16 +202,7 @@ export const MiniAudioPlayer: React.FC<MiniAudioPlayerProps> = ({
           intensity={isDark ? 80 : 60}
           tint={isDark ? 'dark' : 'light'}
           style={styles.blurContainer}>
-          <View
-            style={[
-              styles.innerContainer,
-              {
-                backgroundColor: isDark
-                  ? 'rgba(26, 29, 46, 0.85)'
-                  : 'rgba(255, 255, 255, 0.9)',
-                borderColor: colors.glassBorder,
-              },
-            ]}>
+          <View style={[styles.innerContainer, dynamicStyles.innerContainer]}>
             {/* Drag Handle */}
             <View style={styles.dragHandle}>
               <View
@@ -193,12 +215,16 @@ export const MiniAudioPlayer: React.FC<MiniAudioPlayerProps> = ({
 
             {/* ==================== COLLAPSED CONTENT ==================== */}
             <Animated.View
-              style={[styles.collapsedContent, collapsedContentStyle]}>
-              <Pressable
-                style={styles.collapsedMain}
-                onPress={handleToggleExpand}>
+              pointerEvents={state.isExpanded ? 'none' : 'box-none'}
+              style={[
+                styles.collapsedContent,
+                collapsedContentStyle,
+                {zIndex: state.isExpanded ? 0 : 10},
+              ]}>
+              <View style={styles.collapsedMain}>
                 {/* Play/Pause Button */}
                 <TouchableOpacity
+                  disabled={state.isExpanded}
                   style={[
                     styles.miniPlayButton,
                     {backgroundColor: colors.primary},
@@ -208,13 +234,15 @@ export const MiniAudioPlayer: React.FC<MiniAudioPlayerProps> = ({
                     name={
                       state.isPlaying ? AUDIO_ICONS.pause : AUDIO_ICONS.play
                     }
-                    size={18}
+                    size={16}
                     color="#FFFFFF"
                   />
                 </TouchableOpacity>
 
-                {/* Verse Info */}
-                <View style={styles.verseInfo}>
+                <Pressable
+                  disabled={state.isExpanded}
+                  style={styles.verseInfo}
+                  onPress={handleToggleExpand}>
                   <Text
                     style={[styles.verseTitle, {color: colors.text}]}
                     numberOfLines={1}>
@@ -224,27 +252,37 @@ export const MiniAudioPlayer: React.FC<MiniAudioPlayerProps> = ({
                     currentIndex={state.currentVerseIndex}
                     totalVerses={verses.length}
                   />
-                </View>
+                </Pressable>
 
                 {/* Next Button */}
                 <TouchableOpacity
                   style={styles.miniNextButton}
                   onPress={nextVerse}
-                  disabled={!canGoNext}>
+                  disabled={!canGoNext || state.isExpanded}>
                   <Ionicons
                     name={AUDIO_ICONS.next}
-                    size={20}
+                    size={18}
                     color={canGoNext ? colors.text : colors.textTertiary}
                   />
                 </TouchableOpacity>
 
                 {/* Speed Indicator */}
                 <TouchableOpacity
+                  disabled={state.isExpanded}
                   style={[
                     styles.speedBadge,
                     {backgroundColor: colors.surfaceVariant},
                   ]}
-                  onPress={handleToggleExpand}>
+                  onPress={() => {
+                    const nextSpeed =
+                      state.playbackSpeed === 1
+                        ? 1.5
+                        : state.playbackSpeed === 1.5
+                          ? 2
+                          : 1;
+                    setPlaybackSpeed(nextSpeed);
+                    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                  }}>
                   <Text style={[styles.speedText, {color: colors.primary}]}>
                     {state.playbackSpeed}x
                   </Text>
@@ -252,30 +290,33 @@ export const MiniAudioPlayer: React.FC<MiniAudioPlayerProps> = ({
 
                 {/* Expand Button */}
                 <TouchableOpacity
+                  disabled={state.isExpanded}
                   style={styles.expandButton}
                   onPress={handleToggleExpand}>
                   <Ionicons
                     name={AUDIO_ICONS.expand}
-                    size={20}
+                    size={18}
                     color={colors.textSecondary}
                   />
                 </TouchableOpacity>
-              </Pressable>
+              </View>
             </Animated.View>
 
             {/* ==================== EXPANDED CONTENT ==================== */}
             <Animated.View
-              style={[styles.expandedContent, expandedContentStyle]}>
+              pointerEvents={state.isExpanded ? 'box-none' : 'none'}
+              style={[
+                styles.expandedContent,
+                expandedContentStyle,
+                {zIndex: state.isExpanded ? 10 : 0},
+              ]}>
               {/* Header */}
               <View style={styles.expandedHeader}>
                 <TouchableOpacity
                   style={styles.collapseButton}
-                  onPress={handleToggleExpand}>
-                  <Ionicons
-                    name={AUDIO_ICONS.collapse}
-                    size={24}
-                    color={colors.textSecondary}
-                  />
+                  onPress={handleToggleExpand}
+                  hitSlop={{top: 15, bottom: 15, left: 15, right: 15}}>
+                  <Ionicons name={AUDIO_ICONS.collapse} size={22} />
                 </TouchableOpacity>
                 <View style={styles.expandedTitle}>
                   <Text
@@ -293,11 +334,19 @@ export const MiniAudioPlayer: React.FC<MiniAudioPlayerProps> = ({
                   </Text>
                 </View>
                 <TouchableOpacity
-                  style={styles.closeButton}
-                  onPress={hidePlayer}>
+                  style={styles.closeButtonContainer}
+                  onPress={() => {
+                    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+                    hidePlayer();
+                  }}
+                  hitSlop={{top: 25, bottom: 25, left: 25, right: 25}}>
+                  <Text
+                    style={[styles.closeText, {color: colors.textSecondary}]}>
+                    Cerrar
+                  </Text>
                   <Ionicons
                     name={AUDIO_ICONS.close}
-                    size={24}
+                    size={22}
                     color={colors.text}
                   />
                 </TouchableOpacity>
@@ -313,13 +362,17 @@ export const MiniAudioPlayer: React.FC<MiniAudioPlayerProps> = ({
               </View>
 
               {/* Controls */}
-              <View style={styles.controlsContainer}>
+              <View
+                style={[
+                  styles.controlsContainer,
+                  {width: EXPANDED_CONTROLS_WIDTH},
+                ]}>
                 <AudioControls
                   isPlaying={state.isPlaying}
                   isLoading={state.isLoading}
                   canGoPrevious={canGoPrevious}
                   canGoNext={canGoNext}
-                  size="medium"
+                  size="small"
                   onPlayPause={togglePlayPause}
                   onNext={nextVerse}
                   onPrevious={previousVerse}
@@ -327,45 +380,56 @@ export const MiniAudioPlayer: React.FC<MiniAudioPlayerProps> = ({
               </View>
 
               {/* Bottom Options */}
-              <View style={styles.optionsRow}>
+              <View
+                style={[
+                  styles.optionsRow,
+                  {width: EXPANDED_CONTROLS_WIDTH, gap: AUDIO_CONTROL_GAP},
+                ]}>
                 {/* Speed Selector */}
-                <AudioSpeedSelector
-                  currentSpeed={state.playbackSpeed}
-                  onSpeedChange={setPlaybackSpeed}
-                  variant="compact"
-                />
+                <View style={styles.optionSlot}>
+                  <AudioSpeedSelector
+                    currentSpeed={state.playbackSpeed}
+                    onSpeedChange={setPlaybackSpeed}
+                    variant="compact"
+                  />
+                </View>
 
                 {/* Sleep Timer Button */}
-                <TouchableOpacity
-                  style={[
-                    styles.optionButton,
-                    {
-                      backgroundColor: sleepTimer.isActive
-                        ? colors.primary + '20'
-                        : colors.surfaceVariant,
-                    },
-                  ]}
-                  onPress={() => setSleepTimerModalVisible(true)}>
-                  <Ionicons
-                    name="moon"
-                    size={18}
-                    color={sleepTimer.isActive ? colors.primary : colors.text}
-                  />
-                  {sleepTimer.isActive && sleepTimer.remainingMinutes > 0 && (
-                    <Text style={[styles.timerBadge, {color: colors.primary}]}>
-                      {sleepTimer.remainingMinutes}m
-                    </Text>
-                  )}
-                </TouchableOpacity>
+                <View style={styles.optionSlotMain}>
+                  <TouchableOpacity
+                    style={[
+                      styles.optionButton,
+                      {
+                        backgroundColor: sleepTimer.isActive
+                          ? colors.primary + '20'
+                          : colors.surfaceVariant,
+                      },
+                    ]}
+                    onPress={() => setSleepTimerModalVisible(true)}>
+                    <Ionicons
+                      name="moon"
+                      size={16}
+                      color={sleepTimer.isActive ? colors.primary : colors.text}
+                    />
+                    {sleepTimer.isActive && sleepTimer.remainingMinutes > 0 && (
+                      <Text
+                        style={[styles.timerBadge, {color: colors.primary}]}>
+                        {sleepTimer.remainingMinutes}m
+                      </Text>
+                    )}
+                  </TouchableOpacity>
+                </View>
 
                 {/* Voice Selector */}
-                <TouchableOpacity
-                  style={[
-                    styles.optionButton,
-                    {backgroundColor: colors.surfaceVariant},
-                  ]}>
-                  <Ionicons name="mic" size={18} color={colors.text} />
-                </TouchableOpacity>
+                <View style={styles.optionSlot}>
+                  <VoiceSelector
+                    currentVoice={state.selectedVoice}
+                    currentLanguage={state.selectedLanguage}
+                    onVoiceSelect={setVoice}
+                    onLanguageChange={setLanguage}
+                    variant="compact"
+                  />
+                </View>
               </View>
             </Animated.View>
           </View>
@@ -397,6 +461,7 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.15,
     shadowRadius: 16,
     elevation: 12,
+    zIndex: 9999,
   },
   blurContainer: {
     flex: 1,
@@ -411,34 +476,34 @@ const styles = StyleSheet.create({
   },
   dragHandle: {
     alignItems: 'center',
-    paddingTop: 8,
-    paddingBottom: 4,
+    paddingTop: 4,
+    paddingBottom: 0,
   },
   dragIndicator: {
-    width: 36,
-    height: 4,
+    width: 32,
+    height: 3,
     borderRadius: 2,
     opacity: 0.4,
   },
   // Collapsed styles
   collapsedContent: {
     position: 'absolute',
-    top: 12,
+    top: 8,
     left: 0,
     right: 0,
-    height: 52,
+    height: 44,
   },
   collapsedMain: {
     flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: 12,
-    gap: 10,
+    paddingHorizontal: 10,
+    gap: 8,
   },
   miniPlayButton: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
+    width: 32,
+    height: 32,
+    borderRadius: 16,
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -451,74 +516,94 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   miniNextButton: {
-    padding: 8,
+    padding: 6,
   },
   speedBadge: {
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 8,
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 6,
   },
   speedText: {
-    fontSize: 12,
+    fontSize: 11,
     fontWeight: '600',
   },
   expandButton: {
-    padding: 4,
+    padding: 2,
   },
   // Expanded styles
   expandedContent: {
     position: 'absolute',
-    top: 12,
+    top: 8,
     left: 0,
     right: 0,
     bottom: 0,
-    paddingHorizontal: 16,
+    paddingHorizontal: 14,
   },
   expandedHeader: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 12,
-    marginBottom: 12,
+    gap: 10,
+    marginBottom: 4,
   },
   collapseButton: {
-    padding: 4,
+    padding: 2,
   },
   expandedTitle: {
     flex: 1,
   },
   expandedVerseTitle: {
-    fontSize: 16,
+    fontSize: 15,
     fontWeight: '700',
   },
   expandedVerseText: {
-    fontSize: 12,
+    fontSize: 11,
     marginTop: 2,
   },
-  closeButton: {
-    padding: 4,
+  closeButtonContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    padding: 2,
+  },
+  closeText: {
+    fontSize: 11,
+    fontWeight: '600',
   },
   progressContainer: {
-    marginBottom: 12,
+    marginBottom: 4,
   },
   controlsContainer: {
-    marginBottom: 12,
+    alignSelf: 'center',
+    marginBottom: 2,
   },
   optionsRow: {
     flexDirection: 'row',
     alignItems: 'center',
+    alignSelf: 'center',
     justifyContent: 'center',
-    gap: 12,
+    marginTop: 6,
+  },
+  optionSlot: {
+    width: AUDIO_CONTROL_SIZES.small.secondary,
+    alignItems: 'center',
+  },
+  optionSlotMain: {
+    width: AUDIO_CONTROL_SIZES.small.main,
+    alignItems: 'center',
   },
   optionButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    borderRadius: 12,
+    paddingHorizontal: 7,
+    paddingVertical: 3,
+    height: 24,
+    minWidth: 32,
+    justifyContent: 'center',
+    borderRadius: 10,
     gap: 6,
   },
   timerBadge: {
-    fontSize: 12,
+    fontSize: 11,
     fontWeight: '600',
   },
 });

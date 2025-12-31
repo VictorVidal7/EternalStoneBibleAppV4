@@ -1,24 +1,20 @@
 import {Tabs} from 'expo-router';
 import {Ionicons} from '@expo/vector-icons';
 import {Platform} from 'react-native';
-import {useTheme, colorThemes} from '../../src/hooks/useTheme';
+import {useTheme} from '../../src/hooks/useTheme';
 import {useLanguage} from '../../src/hooks/useLanguage';
 
 export default function TabLayout() {
-  const {colors, isDark, gradient, colorTheme} = useTheme();
+  const {colors, isDark, gradient} = useTheme();
   const {t} = useLanguage();
 
   // Fallback color in case gradient is not ready
   const headerBgColor = gradient?.headerColors?.[0] ?? colors.primary;
 
-  // Color activo de la barra de navegación basado en el tema de color
-  const themePreview = colorThemes[colorTheme]?.preview;
-  const tabActiveColor = themePreview?.[1] ?? colors.primary;
-
   return (
     <Tabs
       screenOptions={{
-        tabBarActiveTintColor: tabActiveColor,
+        tabBarActiveTintColor: colors.primary,
         tabBarInactiveTintColor: colors.textTertiary,
         tabBarStyle: {
           position: 'absolute',

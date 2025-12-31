@@ -381,16 +381,12 @@ const ChapterCard: React.FC<ChapterCardProps> = React.memo(
               style={[
                 styles.card,
                 {
-                  backgroundColor: isDark ? '#35384E' : '#FFFFFF',
-                  shadowColor: '#000000',
-                  shadowOffset: {width: 0, height: 2},
-                  shadowOpacity: isDark ? 0.3 : 0.08,
-                  shadowRadius: 12,
-                  elevation: 3,
-                  borderWidth: isDark ? 1 : 0,
-                  borderColor: isDark
-                    ? 'rgba(99, 102, 241, 0.2)'
-                    : 'transparent',
+                  backgroundColor: 'transparent',
+                  shadowOpacity: 0,
+                  shadowRadius: 0,
+                  elevation: 0,
+                  borderWidth: 1,
+                  borderColor: colors.glassBorder,
                 },
               ]}>
               {/* Numero del capitulo */}

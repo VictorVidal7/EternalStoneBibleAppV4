@@ -38,6 +38,8 @@ import {
   shadows,
 } from '../../src/styles/designTokens';
 
+const NEUTRAL_INPUT_BACKGROUND = 'rgba(127, 140, 141, 0.1)';
+
 interface BibleBook {
   id: number;
   name: string;
@@ -193,13 +195,11 @@ export default function BibleScreen() {
           style={[
             styles.searchBar,
             {
-              backgroundColor: isDark ? '#35384E' : '#F8F9FA',
-              borderColor: isDark ? 'rgba(99, 102, 241, 0.3)' : '#E8E8E8',
-              shadowColor: '#000',
-              shadowOffset: {width: 0, height: 1},
-              shadowOpacity: isDark ? 0.3 : 0.05,
-              shadowRadius: 2,
-              elevation: 1,
+              backgroundColor: NEUTRAL_INPUT_BACKGROUND,
+              borderColor: 'transparent',
+              shadowOpacity: 0,
+              shadowRadius: 0,
+              elevation: 0,
             },
           ]}>
           <Ionicons
@@ -341,14 +341,12 @@ const BookCard: React.FC<BookCardProps> = ({book, index, onPress}) => {
         style={[
           styles.bookCard,
           {
-            backgroundColor: isDark ? '#35384E' : '#FFFFFF',
-            shadowColor: '#000000',
-            shadowOffset: {width: 0, height: 2},
-            shadowOpacity: isDark ? 0.3 : 0.08,
-            shadowRadius: 12,
-            elevation: 3,
-            borderWidth: isDark ? 1 : 0,
-            borderColor: isDark ? 'rgba(99, 102, 241, 0.15)' : 'transparent',
+            backgroundColor: 'transparent',
+            shadowOpacity: 0,
+            shadowRadius: 0,
+            elevation: 0,
+            borderWidth: 1,
+            borderColor: colors.glassBorder,
           },
         ]}
         onPress={onPress}

@@ -58,10 +58,18 @@ export function LanguageProvider({children}: {children: ReactNode}) {
   );
 }
 
+// Default context for graceful fallback during initialization
+const defaultLanguageContext: LanguageContextType = {
+  language: 'es',
+  setLanguage: async () => {},
+  t: translations.es,
+};
+
 export function useLanguage() {
   const context = useContext(LanguageContext);
-  if (!context) {
-    throw new Error('useLanguage must be used within LanguageProvider');
+  // Return fallback instead of throwing error for smoother initialization
+  if (context === undefined) {
+    return defaultLanguageContext;
   }
   return context;
 }

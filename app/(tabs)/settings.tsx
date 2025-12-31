@@ -66,7 +66,12 @@ export default function SettingsScreen() {
     Linking.openURL('https://github.com/VictorVidal7/EternalStoneBibleAppV3');
   }
 
-  const themedStyles = createThemedStyles(colors, isDark);
+  const themeActiveTextColor = getReadableTextColor(
+    colors.primaryLight,
+    colors.primaryDark,
+    isDark,
+  );
+  const themedStyles = createThemedStyles(colors, isDark, themeActiveTextColor);
 
   return (
     <ScrollView
@@ -98,7 +103,7 @@ export default function SettingsScreen() {
               <Ionicons
                 name="sunny"
                 size={24}
-                color={mode === 'light' ? '#FFFFFF' : colors.text}
+                color={mode === 'light' ? themeActiveTextColor : colors.text}
               />
               <Text
                 style={[
@@ -118,7 +123,7 @@ export default function SettingsScreen() {
               <Ionicons
                 name="moon"
                 size={24}
-                color={mode === 'dark' ? '#FFFFFF' : colors.text}
+                color={mode === 'dark' ? themeActiveTextColor : colors.text}
               />
               <Text
                 style={[
@@ -138,7 +143,7 @@ export default function SettingsScreen() {
               <Ionicons
                 name="phone-portrait-outline"
                 size={24}
-                color={mode === 'auto' ? '#FFFFFF' : colors.text}
+                color={mode === 'auto' ? themeActiveTextColor : colors.text}
               />
               <Text
                 style={[
@@ -612,7 +617,11 @@ const styles = StyleSheet.create({
   },
 });
 
-function createThemedStyles(colors: any, isDark: boolean) {
+function createThemedStyles(
+  colors: any,
+  isDark: boolean,
+  themeActiveTextColor: string,
+) {
   return StyleSheet.create({
     section: {
       marginTop: 24,
@@ -677,7 +686,7 @@ function createThemedStyles(colors: any, isDark: boolean) {
       borderColor: colors.border,
     },
     themeOptionActive: {
-      backgroundColor: colors.primary,
+      backgroundColor: colors.primaryLight,
       borderColor: colors.primary,
     },
     themeOptionText: {
@@ -687,7 +696,7 @@ function createThemedStyles(colors: any, isDark: boolean) {
       marginTop: 8,
     },
     themeOptionTextActive: {
-      color: '#FFFFFF',
+      color: themeActiveTextColor,
     },
     comingSoon: {
       flexDirection: 'row',
@@ -924,4 +933,22 @@ function createThemedStyles(colors: any, isDark: boolean) {
       color: isDark ? colors.primaryDark : colors.primary,
     },
   });
+}
+
+function getReadableTextColor(
+  color: string,
+  darkFallback: string,
+  isDark: boolean,
+) {
+  if (!color || !color.startsWith('#') || color.length < 7) {
+    return isDark ? darkFallback : '#FFFFFF';
+  }
+
+  const hex = color.replace('#', '');
+  const r = parseInt(hex.substring(0, 2), 16);
+  const g = parseInt(hex.substring(2, 4), 16);
+  const b = parseInt(hex.substring(4, 6), 16);
+  const luminance = (0.2126 * r + 0.7152 * g + 0.0722 * b) / 255;
+
+  return luminance > 0.62 ? darkFallback : '#FFFFFF';
 }
