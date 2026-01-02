@@ -152,7 +152,11 @@ const CompactSpeedSelector: React.FC<CompactSelectorProps> = ({
       ]}
       onPress={cycleSpeed}
       accessibilityLabel={`${AUDIO_A11Y_LABELS.speed} ${PLAYBACK_SPEED_LABELS[currentSpeed]}`}>
-      <Text style={[styles.compactText, {color: colors.primary}]}>
+      <Text
+        style={[styles.compactText, {color: colors.primary}]}
+        numberOfLines={1}
+        adjustsFontSizeToFit
+        minimumFontScale={0.8}>
         {PLAYBACK_SPEED_LABELS[currentSpeed]}
       </Text>
     </AnimatedTouchable>
@@ -227,17 +231,17 @@ const styles = StyleSheet.create({
   // Compact styles
   compactButton: {
     paddingHorizontal: 10,
-    paddingVertical: 3,
+    paddingVertical: 6,
     borderRadius: 12,
-    height: 24,
-    minWidth: 36,
+    minHeight: 32,
+    minWidth: 52,
     alignItems: 'center',
     justifyContent: 'center',
   },
   compactText: {
     fontSize: 12,
     fontWeight: '600',
-    lineHeight: 12,
+    textAlign: 'center',
     includeFontPadding: false,
   },
   // Inline styles

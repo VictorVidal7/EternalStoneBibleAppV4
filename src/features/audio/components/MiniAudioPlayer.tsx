@@ -380,11 +380,7 @@ export const MiniAudioPlayer: React.FC<MiniAudioPlayerProps> = ({
               </View>
 
               {/* Bottom Options */}
-              <View
-                style={[
-                  styles.optionsRow,
-                  {width: EXPANDED_CONTROLS_WIDTH, gap: AUDIO_CONTROL_GAP},
-                ]}>
+              <View style={[styles.optionsRow, {gap: AUDIO_CONTROL_GAP}]}>
                 {/* Speed Selector */}
                 <View style={styles.optionSlot}>
                   <AudioSpeedSelector
@@ -584,7 +580,7 @@ const styles = StyleSheet.create({
     marginTop: 6,
   },
   optionSlot: {
-    width: AUDIO_CONTROL_SIZES.small.secondary,
+    minWidth: 54,
     alignItems: 'center',
   },
   optionSlotMain: {

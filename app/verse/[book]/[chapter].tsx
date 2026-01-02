@@ -132,6 +132,7 @@ export default function VerseReadingScreen() {
   const {
     loadChapter: loadAudioChapter,
     play,
+    pause,
     state: audioState,
     isVisible: isAudioVisible,
   } = useAudioPlayer();
@@ -623,7 +624,13 @@ export default function VerseReadingScreen() {
           headerRight: () => (
             <View style={styles.headerButtons}>
               <TouchableOpacity
-                onPress={startAudioPlayback}
+                onPress={() => {
+                  if (audioState.isPlaying) {
+                    pause();
+                  } else {
+                    startAudioPlayback();
+                  }
+                }}
                 style={[
                   styles.headerButton,
                   audioState.isPlaying && {
@@ -775,7 +782,13 @@ export default function VerseReadingScreen() {
                 backgroundColor: effectiveColors.primary + '20',
               },
             ]}
-            onPress={startAudioPlayback}>
+            onPress={() => {
+              if (audioState.isPlaying) {
+                pause();
+              } else {
+                startAudioPlayback();
+              }
+            }}>
             <Ionicons
               name={audioState.isPlaying ? 'pause' : 'play'}
               size={22}

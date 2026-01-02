@@ -216,6 +216,12 @@ export const AudioPlayerProvider: React.FC<AudioPlayerProviderProps> = ({
           const freshSleepTimer = sleepTimerStateRef.current;
           const currentIdx = freshState.currentVerseIndex;
 
+          // Don't auto-advance if paused or not playing
+          if (freshState.isPaused || !freshState.isPlaying) {
+            console.log('🎵 Playback paused/stopped, not auto-advancing');
+            return;
+          }
+
           // Check if we're at the end of the chapter
           if (currentIdx >= freshVerses.length - 1) {
             console.log('🎵 Chapter complete');
@@ -289,19 +295,42 @@ export const AudioPlayerProvider: React.FC<AudioPlayerProviderProps> = ({
 
   const pause = useCallback(async () => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    // Update ref immediately so callbacks see paused state synchronously
+    stateRef.current = {
+      ...stateRef.current,
+      isPlaying: false,
+      isPaused: true,
+      isLoading: false,
+    };
+    // Then update React state
+    setState(prev => ({
+      ...prev,
+      isPlaying: false,
+      isPaused: true,
+      isLoading: false,
+    }));
     await Speech.stop();
-    setState(prev => ({...prev, isPlaying: false, isPaused: true}));
   }, []);
 
   const stop = useCallback(async () => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    await Speech.stop();
+    // Update ref immediately so callbacks see stopped state synchronously
+    stateRef.current = {
+      ...stateRef.current,
+      isPlaying: false,
+      isPaused: false,
+      isLoading: false,
+      currentVerseIndex: 0,
+    };
+    // Then update React state
     setState(prev => ({
       ...prev,
       isPlaying: false,
       isPaused: false,
+      isLoading: false,
       currentVerseIndex: 0,
     }));
+    await Speech.stop();
   }, []);
 
   const togglePlayPause = useCallback(() => {
@@ -491,6 +520,17 @@ export const AudioPlayerProvider: React.FC<AudioPlayerProviderProps> = ({
   // ==================== CHAPTER LOADING ====================
 
   const loadChapter = useCallback((newVerses: AudioVerse[]) => {
+    // Update refs immediately for synchronous access (before async setState)
+    versesRef.current = newVerses;
+    stateRef.current = {
+      ...stateRef.current,
+      currentVerseIndex: 0,
+      totalVerses: newVerses.length,
+      isPlaying: false,
+      isPaused: false,
+      isLoading: false,
+    };
+    // Then update React state
     setVerses(newVerses);
     setState(prev => ({
       ...prev,
@@ -498,6 +538,7 @@ export const AudioPlayerProvider: React.FC<AudioPlayerProviderProps> = ({
       totalVerses: newVerses.length,
       isPlaying: false,
       isPaused: false,
+      isLoading: false,
     }));
     setIsVisible(true);
   }, []);
