@@ -16,7 +16,7 @@
  * Para la gloria de Dios - Eternal Stone Bible App
  */
 
-import React, {useState, useCallback, useMemo} from 'react';
+import React, {useState, useCallback, useMemo, useRef} from 'react';
 import {
   View,
   Text,
@@ -91,10 +91,29 @@ export const MiniAudioPlayer: React.FC<MiniAudioPlayerProps> = ({
   // Animation values
   const expandProgress = useSharedValue(0);
   const translateY = useSharedValue(0);
-
   const startY = useSharedValue(0);
+
+  // Ref to prevent accidental taps during animation
+  const isAnimatingRef = useRef(false);
+
+  // Handle collapse only (for swipe gesture)
+  const handleCollapseOnly = useCallback(() => {
+    if (isAnimatingRef.current) return;
+    isAnimatingRef.current = true;
+    expandProgress.value = withSpring(0, SPRING_CONFIGS.snappy);
+    collapse();
+    // Reset animation lock after animation duration
+    setTimeout(() => {
+      isAnimatingRef.current = false;
+    }, 300);
+  }, [collapse, expandProgress]);
+
   // Handle expand/collapse
   const handleToggleExpand = useCallback(() => {
+    // Prevent accidental double taps during animation
+    if (isAnimatingRef.current) return;
+    isAnimatingRef.current = true;
+
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     if (state.isExpanded) {
       expandProgress.value = withSpring(0, SPRING_CONFIGS.snappy);
@@ -103,9 +122,14 @@ export const MiniAudioPlayer: React.FC<MiniAudioPlayerProps> = ({
       expandProgress.value = withSpring(1, SPRING_CONFIGS.snappy);
       expand();
     }
+
+    // Reset animation lock after animation duration
+    setTimeout(() => {
+      isAnimatingRef.current = false;
+    }, 300);
   }, [state.isExpanded, expand, collapse, expandProgress]);
 
-  // Gesture handler for swipe down to close using new Gesture API
+  // Gesture handler for swipe down to collapse (not close) using new Gesture API
   const panGesture = Gesture.Pan()
     .enabled(state.isExpanded)
     .activeOffsetY(12)
@@ -120,10 +144,9 @@ export const MiniAudioPlayer: React.FC<MiniAudioPlayerProps> = ({
     })
     .onEnd(event => {
       if (event.translationY > 100 || event.velocityY > 500) {
-        // Close player
-        translateY.value = withSpring(300, SPRING_CONFIGS.snappy, () => {
-          runOnJS(hidePlayer)();
-        });
+        // Collapse player (not close - keep audio playing)
+        translateY.value = withSpring(0, SPRING_CONFIGS.snappy);
+        runOnJS(handleCollapseOnly)();
       } else {
         // Snap back
         translateY.value = withSpring(0, SPRING_CONFIGS.snappy);
@@ -215,13 +238,15 @@ export const MiniAudioPlayer: React.FC<MiniAudioPlayerProps> = ({
 
             {/* ==================== COLLAPSED CONTENT ==================== */}
             <Animated.View
-              pointerEvents={state.isExpanded ? 'none' : 'box-none'}
+              pointerEvents={state.isExpanded ? 'none' : 'auto'}
               style={[
                 styles.collapsedContent,
                 collapsedContentStyle,
-                {zIndex: state.isExpanded ? 0 : 10},
+                {zIndex: state.isExpanded ? -1 : 10},
               ]}>
-              <View style={styles.collapsedMain}>
+              <View
+                pointerEvents={state.isExpanded ? 'none' : 'auto'}
+                style={styles.collapsedMain}>
                 {/* Play/Pause Button */}
                 <TouchableOpacity
                   disabled={state.isExpanded}
@@ -304,20 +329,14 @@ export const MiniAudioPlayer: React.FC<MiniAudioPlayerProps> = ({
 
             {/* ==================== EXPANDED CONTENT ==================== */}
             <Animated.View
-              pointerEvents={state.isExpanded ? 'box-none' : 'none'}
+              pointerEvents={state.isExpanded ? 'auto' : 'none'}
               style={[
                 styles.expandedContent,
                 expandedContentStyle,
-                {zIndex: state.isExpanded ? 10 : 0},
+                {zIndex: state.isExpanded ? 100 : -1},
               ]}>
               {/* Header */}
               <View style={styles.expandedHeader}>
-                <TouchableOpacity
-                  style={styles.collapseButton}
-                  onPress={handleToggleExpand}
-                  hitSlop={{top: 15, bottom: 15, left: 15, right: 15}}>
-                  <Ionicons name={AUDIO_ICONS.collapse} size={22} />
-                </TouchableOpacity>
                 <View style={styles.expandedTitle}>
                   <Text
                     style={[styles.expandedVerseTitle, {color: colors.text}]}
@@ -333,23 +352,29 @@ export const MiniAudioPlayer: React.FC<MiniAudioPlayerProps> = ({
                     {currentVerse.text.substring(0, 50)}...
                   </Text>
                 </View>
-                <TouchableOpacity
-                  style={styles.closeButtonContainer}
-                  onPress={() => {
-                    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-                    hidePlayer();
-                  }}
-                  hitSlop={{top: 25, bottom: 25, left: 25, right: 25}}>
-                  <Text
-                    style={[styles.closeText, {color: colors.textSecondary}]}>
-                    Cerrar
-                  </Text>
-                  <Ionicons
-                    name={AUDIO_ICONS.close}
-                    size={22}
-                    color={colors.text}
-                  />
-                </TouchableOpacity>
+                <View style={styles.headerButtons}>
+                  {/* Collapse Button */}
+                  <TouchableOpacity
+                    style={styles.headerButton}
+                    onPress={handleToggleExpand}
+                    hitSlop={{top: 10, bottom: 10, left: 10, right: 10}}>
+                    <Ionicons
+                      name={AUDIO_ICONS.collapse}
+                      size={22}
+                      color={colors.text}
+                    />
+                  </TouchableOpacity>
+                  {/* Close Button */}
+                  <TouchableOpacity
+                    style={styles.headerButton}
+                    onPress={() => {
+                      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+                      hidePlayer();
+                    }}
+                    hitSlop={{top: 10, bottom: 10, left: 10, right: 10}}>
+                    <Ionicons name="close" size={22} color={colors.text} />
+                  </TouchableOpacity>
+                </View>
               </View>
 
               {/* Progress Bar */}
@@ -363,6 +388,7 @@ export const MiniAudioPlayer: React.FC<MiniAudioPlayerProps> = ({
 
               {/* Controls */}
               <View
+                pointerEvents="auto"
                 style={[
                   styles.controlsContainer,
                   {width: EXPANDED_CONTROLS_WIDTH},
@@ -555,15 +581,14 @@ const styles = StyleSheet.create({
     fontSize: 11,
     marginTop: 2,
   },
-  closeButtonContainer: {
+  headerButtons: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 6,
-    padding: 2,
+    gap: 8,
   },
-  closeText: {
-    fontSize: 11,
-    fontWeight: '600',
+  headerButton: {
+    padding: 6,
+    borderRadius: 16,
   },
   progressContainer: {
     marginBottom: 4,
