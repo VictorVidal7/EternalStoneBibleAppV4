@@ -831,8 +831,9 @@ function createThemedStyles(
       borderColor: colors.border,
     },
     themeOptionActive: {
-      backgroundColor: colors.primaryLight,
+      backgroundColor: colors.primary + '40', // 25% opacity para visibilidad en modo oscuro
       borderColor: colors.primary,
+      borderWidth: 2,
     },
     themeOptionText: {
       fontSize: 13,
