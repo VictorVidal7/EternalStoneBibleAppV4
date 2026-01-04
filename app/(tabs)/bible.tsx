@@ -18,7 +18,6 @@ import {
   TextInput,
   Animated,
   SectionList,
-  Platform,
   RefreshControl,
 } from 'react-native';
 import {useRouter} from 'expo-router';
@@ -166,14 +165,14 @@ export default function BibleScreen() {
           </TouchableOpacity>
 
           <View style={styles.headerContent}>
-            <View style={styles.headerTitleContainer}>
+            <View style={styles.headerIconContainer}>
               <Ionicons name="book" size={32} color="#ffffff" />
-              <View style={styles.headerTextContainer}>
-                <Text style={styles.headerTitle}>{t.home.bibleLibrary}</Text>
-                <Text style={styles.headerSubtitle}>
-                  {filteredBooks.length} {t.home.booksAvailable}
-                </Text>
-              </View>
+            </View>
+            <View style={styles.headerTextContainer}>
+              <Text style={styles.headerTitle}>{t.home.bibleLibrary}</Text>
+              <Text style={styles.headerSubtitle}>
+                {filteredBooks.length} {t.home.booksAvailable}
+              </Text>
             </View>
 
             {/* Stats mini */}
@@ -446,16 +445,18 @@ const styles = StyleSheet.create({
     flex: 1,
   },
 
-  // Header
+  // Header - Estandarizado con todas las pantallas
   header: {
-    paddingTop: Platform.OS === 'ios' ? 65 : 45, // Más alto
-    paddingBottom: spacing['2xl'], // Más respiración
-    paddingHorizontal: spacing.xl, // Más espacioso
-    shadowColor: '#6366f1', // Sombra refinada
-    shadowOffset: {width: 0, height: 12},
-    shadowOpacity: 0.2, // Más sutil
-    shadowRadius: 20,
-    elevation: 8,
+    paddingTop: 60,
+    paddingBottom: 24,
+    paddingHorizontal: 20,
+    borderBottomLeftRadius: 16,
+    borderBottomRightRadius: 16,
+    shadowColor: '#000',
+    shadowOffset: {width: 0, height: 4},
+    shadowOpacity: 0.1,
+    shadowRadius: 12,
+    elevation: 5,
   },
   headerBackButton: {
     width: 40,
@@ -468,32 +469,32 @@ const styles = StyleSheet.create({
   },
   headerContent: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
     alignItems: 'center',
   },
-  headerTitleContainer: {
-    flexDirection: 'row',
+  headerIconContainer: {
+    width: 64,
+    height: 64,
+    borderRadius: 16,
+    backgroundColor: 'rgba(255,255,255,0.2)',
+    justifyContent: 'center',
     alignItems: 'center',
-    flex: 1,
-    marginRight: spacing.md, // Espacio antes de los badges
+    marginRight: 16,
+    borderWidth: 2,
+    borderColor: 'rgba(255,255,255,0.3)',
   },
   headerTextContainer: {
-    marginLeft: spacing.md,
     flex: 1,
-    flexShrink: 1, // Permite que se ajuste si hay poco espacio
   },
   headerTitle: {
-    fontSize: fontSize['3xl'], // Más grande
-    fontWeight: '800',
+    fontSize: 34,
+    fontWeight: '700',
     color: '#ffffff',
-    letterSpacing: -0.5,
+    marginBottom: 4,
   },
   headerSubtitle: {
-    fontSize: fontSize.sm,
+    fontSize: 16,
+    color: 'rgba(255,255,255,0.9)',
     fontWeight: '500',
-    color: 'rgba(255,255,255,0.85)',
-    marginTop: 4,
-    letterSpacing: 0.3,
   },
   headerStats: {
     flexDirection: 'row',

@@ -310,7 +310,7 @@ const styles = StyleSheet.create({
     fontSize: fontSize.base,
   },
   header: {
-    paddingTop: 40,
+    paddingTop: 60,
     paddingBottom: 24,
     paddingHorizontal: 20,
     borderBottomLeftRadius: 16,

@@ -2,35 +2,30 @@
 
 _Estado del proyecto al 4 de enero de 2026_
 
-## 📍 ESTADO ACTUAL: "CELESTIAL TRANSITION COMPLETE"
+## 📍 ESTADO ACTUAL: "STABLE BASELINE & UI REFINEMENT"
 
-Hemos logrado una base sólida con el rediseño **Celestial Premium**, un sistema de **Audio Bible** robusto y una arquitectura escalable. La app ahora se siente fluida, moderna y orientada al usuario.
+Hemos consolidado la versión 4.0 tras una intensa sesión de refinamiento UI/UX. Aunque exploramos cambios estructurales en la navegación, **priorizamos la estabilidad y la consistencia**, revirtiendo layouts experimentales para asegurar una experiencia de usuario familiar y robusta. La identidad visual se ha perfeccionado con el nuevo icono de aplicación centrado.
 
 ---
 
-## ✅ LOGROS ALCANZADOS (DONE)
+## ✅ LOGROS RECIENTES (DONE)
 
-### **Fase 1: Revolución UI/UX**
+### **Estabilización y Pulido UI/UX (Sprint Actual)**
 
-- **[COMPLETO]** Implementación del Sistema de Diseño "Celestial": Gradientes dinámicos, Glassmorphism y paleta armónica.
-- **[COMPLETO]** Encabezados Personalizados: Navegación premium en todas las pantallas principales.
-- **[COMPLETO]** Modo Inmersivo: Lectura a pantalla completa optimizada.
-- **[COMPLETO]** Iconografía y Marca: Integración del logo v7 y assets premium.
+- **[COMPLETO] Identidad de Marca**: Corrección definitiva del **Icono de la App** (centrado y ajustado visualmente para APK).
+- **[COMPLETO] Layout de Selección**: Ajuste de tarjetas de números de versículos para mostrar **5 por fila**, optimizando el uso del espacio horizontal.
+- **[COMPLETO] Correcciones Visuales**:
+  - Solución al solapamiento del icono de "Favorito" sobre el texto del versículo.
+  - Estandarización de `paddingTop` en encabezados para consistencia entre iOS y Android.
+  - Mejoras de visibilidad en el selector de temas (bordes en modo oscuro).
+- **[COMPLETO] Localización**: Corrección de nombres de libros claves (1/2 Reyes en inglés).
+- **[COMPLETO] Navegación**: Estandarización de botones de retorno y consistencia en la navegación entre pestañas principales.
 
-### **Fase 2: Tecnología de Vanguardia**
+### **Funcionalidades Previas Consolidadas**
 
-- **[COMPLETO]** Migración a Expo Router v3 y React Native Reanimated 3 (Animaciones 60fps).
-- **[COMPLETO]** Arquitectura basada en Features: Estructura de carpetas profesional (`src/features/audio`, `src/features/bible`, etc.).
-- **[COMPLETO]** Optimizaciones de Rendimiento: Búsqueda debounced y renderizado eficiente de listas.
-
-### **Fase 3: Funcionalidades Innovadoras**
-
-- **[COMPLETO] 🎙️ Audio Bible v1.0**:
-  - Reproductor flotante interactivo (MiniPlayer).
-  - Control de velocidad (0.5x a 2.0x).
-  - Temporizador de sueño (Sleep Timer).
-  - Selector de voces Premium/Enhanced del sistema.
-  - Visualización de ondas animadas con Reanimated.
+- **[COMPLETO] Audio Bible v1.0**: Reproductor estable con Reanimated (reemplazo de Skia para estabilidad) y control de velocidad.
+- **[COMPLETO] Modo Inmersivo**: Lectura sin distracciones.
+- **[COMPLETO] Arquitectura**: Migración a Expo Router y estructura de carpetas limpia.
 
 ---
 
@@ -38,52 +33,41 @@ Hemos logrado una base sólida con el rediseño **Celestial Premium**, un sistem
 
 ### 🏃 SPRINT ACTUAL: "ENFOQUE Y PROFUNDIDAD"
 
-1.  **[PENDIENTE] 🧘 Modo Meditación Guiada**:
+1.  **[PRIORIDAD ALTA] 🛠️ Limpieza Técnica Final**:
+    - Resolver advertencias de linter residuales (estilos no usados).
+    - Verificar consistencia de tipos TypeScript estricta.
+
+2.  **[PENDIENTE] 🧘 Modo Meditación Guiada**:
     - Agregar música de fondo relajante integrada con el audio de la Biblia.
     - Efectos visuales de respiración.
-2.  **[PENDIENTE] 🔗 Referencias Cruzadas Inteligentes**:
+
+3.  **[PENDIENTE] 🔗 Referencias Cruzadas Inteligentes**:
     - Conectar versículos y mostrarlos en un panel deslizante.
-3.  **[PENDIENTE] 📊 Dashboard de Estadísticas**:
+
+4.  **[PENDIENTE] 📊 Dashboard de Estadísticas**:
     - Visualizar progreso de lectura semanal/mensual con gráficos premium.
-
-### 🏆 Gamificación 2.0 (Próxima actualización)
-
-- Expandir sistema de logros a 20 niveles.
-- Añadir desafíos diarios ("Lee 5 versículos para mantener tu racha").
-- Animaciones Lottie especiales al subir de nivel.
-
-### 📝 Editor de Notas Premium
-
-- Soporte para formato enriquecido (Negrita, Cursiva en notas).
-- Organización por etiquetas (Tags).
 
 ---
 
 ## 🗓️ ROADMAP REVISADO
 
-### **SPRINT 4 (En curso)**
-
-- Implementar **Modo Meditación** (Música + Audio Bible).
-- Mejorar **Comparación de Versiones** (Vista dividida).
-- Afinar **Referencias Cruzadas**.
-
 ### **SPRINT 5 (Analítica y Gamificación)**
 
 - Construir el **Dashboard de Usuario**.
-- Expandir los **Logros y Desafíos**.
-- Implementar el sistema de **Niveles 1-20**.
+- Expandir sistema de **Logros (Niveles 1-20)**.
+- Desafíos diarios.
 
-### **SPRINT 6 (Polishing Final)**
+### **SPRINT 6 (Polishing Final & Release)**
 
-- Optimización extrema del peso del APK (<15MB).
+- Optimización extrema del peso del APK.
 - Pruebas de accesibilidad VoiceOver/TalkBack.
 - QA completo para producción.
 
 ---
 
-## 🛠️ NOTA TÉCNICA SOBRE SKIA
+## 🛠️ NOTA TÉCNICA
 
-_Se ha decidido utilizar un enfoque híbrido: **Reanimated** para animaciones fluidas de UI (por su estabilidad actual con React 19) y reservar **Skia** para gráficos estadísticos complejos y efectos visuales de alta gama en futuras iteraciones de la Fase 5, una vez que la compatibilidad de los hooks esté 100% validada en el entorno._
+_Se ha decidido mantener un enfoque conservador en la navegación principal (Tabs con Headers tradicionales) para evitar la "extrañeza" visual reportada en layouts experimentales. La prioridad es la **claridad y la familiaridad** para el usuario._
 
 ---
 

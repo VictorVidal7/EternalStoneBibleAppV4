@@ -541,11 +541,11 @@ const styles = StyleSheet.create({
     opacity: 0.9,
   },
 
-  // Header
+  // Header - Estandarizado con todas las pantallas
   header: {
-    paddingTop: Platform.OS === 'ios' ? 60 : 40,
-    paddingBottom: spacing.xl,
-    paddingHorizontal: spacing.lg,
+    paddingTop: 60,
+    paddingBottom: 24,
+    paddingHorizontal: 20,
     borderBottomLeftRadius: 16,
     borderBottomRightRadius: 16,
     ...shadows.lg,
@@ -557,7 +557,7 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(255,255,255,0.2)',
     justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: spacing.base,
+    marginBottom: 16,
   },
   headerContent: {
     flexDirection: 'row',
@@ -570,7 +570,7 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(255,255,255,0.2)',
     justifyContent: 'center',
     alignItems: 'center',
-    marginRight: spacing.base,
+    marginRight: 16,
     borderWidth: 2,
     borderColor: 'rgba(255,255,255,0.3)',
   },
