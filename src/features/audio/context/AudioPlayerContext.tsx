@@ -192,15 +192,12 @@ export const AudioPlayerProvider: React.FC<AudioPlayerProviderProps> = ({
       const languageCodes = SUPPORTED_LANGUAGES[currentState.selectedLanguage];
       const language = currentState.selectedVoice?.language || languageCodes[0];
 
-      console.log('🎵 Speaking verse', index + 1, 'of', currentVerses.length);
-
       await Speech.speak(verse.text, {
         language,
         voice: currentState.selectedVoice?.identifier,
         rate: currentState.playbackSpeed,
         pitch: 1.0,
         onStart: () => {
-          console.log('🎵 Speech started for verse', index + 1);
           setState(prev => ({
             ...prev,
             isPlaying: true,
@@ -209,7 +206,6 @@ export const AudioPlayerProvider: React.FC<AudioPlayerProviderProps> = ({
           }));
         },
         onDone: () => {
-          console.log('🎵 Speech done for verse', index + 1);
           // Use refs to get fresh values and auto-advance
           const freshState = stateRef.current;
           const freshVerses = versesRef.current;
@@ -218,13 +214,11 @@ export const AudioPlayerProvider: React.FC<AudioPlayerProviderProps> = ({
 
           // Don't auto-advance if paused or not playing
           if (freshState.isPaused || !freshState.isPlaying) {
-            console.log('🎵 Playback paused/stopped, not auto-advancing');
             return;
           }
 
           // Check if we're at the end of the chapter
           if (currentIdx >= freshVerses.length - 1) {
-            console.log('🎵 Chapter complete');
             if (freshSleepTimer.mode === 'end-of-chapter') {
               Speech.stop();
               setState(prev => ({...prev, isPlaying: false, isPaused: false}));
@@ -236,11 +230,9 @@ export const AudioPlayerProvider: React.FC<AudioPlayerProviderProps> = ({
 
           // Auto-advance to next verse
           const nextIdx = currentIdx + 1;
-          console.log('🎵 Auto-advancing to verse', nextIdx + 1);
           speakVerseByIndex(nextIdx);
         },
         onStopped: () => {
-          console.log('🎵 Speech stopped');
           setState(prev => ({
             ...prev,
             isPlaying: false,

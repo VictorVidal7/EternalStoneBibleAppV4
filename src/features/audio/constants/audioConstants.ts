@@ -57,8 +57,8 @@ export const SLEEP_TIMER_OPTIONS = [
 // ==================== PLAYER DIMENSIONS ====================
 
 export const PLAYER_DIMENSIONS = {
-  collapsedHeight: 56,
-  expandedHeight: 192,
+  collapsedHeight: 64,
+  expandedHeight: 220,
   borderRadius: 20,
   bottomMargin: 16,
   horizontalPadding: 24,

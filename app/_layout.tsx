@@ -148,7 +148,7 @@ function AppContent() {
         <Stack.Screen name="(tabs)" />
       </Stack>
       {/* <AchievementNotifications /> */}
-      {/* <MiniAudioPlayer /> */}
+      <MiniAudioPlayer />
     </>
   );
 }

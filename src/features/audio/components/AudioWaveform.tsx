@@ -1,7 +1,8 @@
 /**
  * AudioWaveform Component
  *
- * Lightweight animated waveform for audio playback.
+ * Lightweight animated waveform for audio playback using standard Reanimated.
+ * This version is 100% safe and doesn't rely on experimental Skia hooks.
  */
 
 import React, {useEffect, useMemo} from 'react';
@@ -39,9 +40,9 @@ const WaveBar: React.FC<WaveBarProps> = ({
   color,
   mutedColor,
 }) => {
-  const heightValue = useSharedValue(0.35);
-  const duration = 360 + (index % 5) * 120;
-  const delay = index * 70;
+  const heightValue = useSharedValue(0.3);
+  const duration = 400 + (index % 5) * 150;
+  const delay = index * 50;
 
   useEffect(() => {
     if (isPlaying) {
@@ -54,12 +55,12 @@ const WaveBar: React.FC<WaveBarProps> = ({
         ),
       );
     } else {
-      heightValue.value = withTiming(0.3, {duration: 200});
+      heightValue.value = withTiming(0.2, {duration: 300});
     }
   }, [delay, duration, heightValue, isPlaying]);
 
   const animatedStyle = useAnimatedStyle(() => ({
-    height: Math.max(2, maxHeight * heightValue.value),
+    height: Math.max(3, maxHeight * heightValue.value),
   }));
 
   return (
@@ -69,7 +70,7 @@ const WaveBar: React.FC<WaveBarProps> = ({
         animatedStyle,
         {
           backgroundColor: isPlaying ? color : mutedColor,
-          opacity: isPlaying ? 1 : 0.5,
+          opacity: isPlaying ? 1 : 0.4,
         },
       ]}
     />
@@ -78,8 +79,8 @@ const WaveBar: React.FC<WaveBarProps> = ({
 
 export const AudioWaveform: React.FC<AudioWaveformProps> = ({
   isPlaying,
-  barCount = 14,
-  height = 20,
+  barCount = 18,
+  height = 24,
   color,
   mutedColor,
 }) => {
@@ -112,9 +113,9 @@ const styles = StyleSheet.create({
   container: {
     width: '100%',
     flexDirection: 'row',
-    alignItems: 'flex-end',
+    alignItems: 'center',
     justifyContent: 'space-between',
-    paddingHorizontal: 6,
+    paddingHorizontal: 4,
   },
   bar: {
     width: 3,

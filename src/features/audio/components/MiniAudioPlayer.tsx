@@ -618,7 +618,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     alignSelf: 'center',
     justifyContent: 'center',
-    marginTop: 6,
+    marginTop: 8,
+    paddingBottom: 4,
   },
   optionSlot: {
     minWidth: 54,
