@@ -240,15 +240,21 @@ export default function SettingsScreen() {
                       isSelected && themedStyles.colorThemeOptionCompactActive,
                     ]}
                     onPress={() => handleColorThemeChange(themeKey)}>
-                    <LinearGradient
-                      colors={theme.preview as [string, string, string]}
-                      start={{x: 0, y: 0}}
-                      end={{x: 1, y: 1}}
-                      style={themedStyles.colorThemePreviewCompact}>
-                      {isSelected && (
-                        <Ionicons name="checkmark" size={14} color="#FFFFFF" />
-                      )}
-                    </LinearGradient>
+                    <View style={themedStyles.colorThemeCircleWrapper}>
+                      <LinearGradient
+                        colors={theme.preview as [string, string, string]}
+                        start={{x: 0, y: 0}}
+                        end={{x: 1, y: 1}}
+                        style={themedStyles.colorThemePreviewCompact}>
+                        {isSelected && (
+                          <Ionicons
+                            name="checkmark"
+                            size={14}
+                            color="#FFFFFF"
+                          />
+                        )}
+                      </LinearGradient>
+                    </View>
                     <Text
                       style={[
                         themedStyles.colorThemeNameCompact,
@@ -871,7 +877,7 @@ function createThemedStyles(
       borderColor: colors.border,
     },
     versionOptionActive: {
-      backgroundColor: colors.primaryLight,
+      backgroundColor: colors.primary + '40', // 25% opacity para coincidir con themeOptionActive
       borderColor: colors.primary,
     },
     versionAbbr: {
@@ -880,8 +886,8 @@ function createThemedStyles(
       color: colors.text,
     },
     versionAbbrActive: {
-      // En modo oscuro usar color oscuro para contrastar con fondo claro
-      color: isDark ? colors.primaryDark : colors.primary,
+      // Color primario para coincidir con el estilo del botón GitHub
+      color: colors.primary,
     },
     versionName: {
       fontSize: 14,
@@ -889,8 +895,8 @@ function createThemedStyles(
       marginTop: 4,
     },
     versionNameActive: {
-      // En modo oscuro usar color oscuro para contrastar con fondo claro
-      color: isDark ? colors.primaryDark : colors.text,
+      // Color primario para coincidir con el estilo del botón GitHub
+      color: colors.primary,
       fontWeight: '500',
     },
     versionMetaText: {
@@ -899,8 +905,8 @@ function createThemedStyles(
       marginLeft: 4,
     },
     versionMetaActive: {
-      // En modo oscuro usar color oscuro para contrastar con fondo claro
-      color: isDark ? colors.primaryDark : colors.primary,
+      // Color primario para coincidir con el estilo del botón GitHub
+      color: colors.primary,
     },
     comingSoonBadge: {
       marginTop: 10,
@@ -927,7 +933,7 @@ function createThemedStyles(
       borderColor: colors.border,
     },
     languageOptionActive: {
-      backgroundColor: colors.primaryLight,
+      backgroundColor: colors.primary + '40', // 25% opacity para coincidir con themeOptionActive
       borderColor: colors.primary,
     },
     languageFlag: {
@@ -940,8 +946,8 @@ function createThemedStyles(
       flex: 1,
     },
     languageNameActive: {
-      // En modo oscuro usar color oscuro para contrastar con fondo claro
-      color: isDark ? colors.primaryDark : colors.primary,
+      // Color primario para coincidir con el estilo del botón GitHub
+      color: colors.primary,
     },
     aboutRow: {
       marginBottom: 12,
@@ -952,8 +958,10 @@ function createThemedStyles(
       justifyContent: 'center',
       marginTop: 12,
       padding: 12,
-      backgroundColor: colors.primaryLight,
+      backgroundColor: colors.primary + '40', // 25% opacity para coincidir con themeOptionActive
       borderRadius: 8,
+      borderWidth: 2,
+      borderColor: colors.primary,
     },
     linkText: {
       fontSize: 15,
@@ -1073,7 +1081,18 @@ function createThemedStyles(
     },
     colorThemeOptionCompactActive: {
       borderColor: colors.primary,
-      backgroundColor: colors.primaryLight,
+      backgroundColor: colors.primary + '40', // 25% opacity para coincidir con themeOptionActive
+    },
+    // Wrapper con borde circular para que el círculo sea visible en modo oscuro
+    colorThemeCircleWrapper: {
+      width: 40,
+      height: 40,
+      borderRadius: 20,
+      justifyContent: 'center',
+      alignItems: 'center',
+      borderWidth: isDark ? 1 : 0,
+      borderColor: isDark ? 'rgba(255,255,255,0.25)' : 'transparent',
+      marginBottom: 4,
     },
     colorThemePreviewCompact: {
       width: 36,
@@ -1081,7 +1100,6 @@ function createThemedStyles(
       borderRadius: 18,
       justifyContent: 'center',
       alignItems: 'center',
-      marginBottom: 4,
     },
     colorThemeNameCompact: {
       fontSize: 10,
@@ -1090,8 +1108,8 @@ function createThemedStyles(
       textAlign: 'center',
     },
     colorThemeNameCompactActive: {
-      // En modo oscuro usar color oscuro para contrastar con fondo claro
-      color: isDark ? colors.primaryDark : colors.primary,
+      // Color primario para coincidir con el estilo del botón GitHub
+      color: colors.primary,
     },
   });
 }
