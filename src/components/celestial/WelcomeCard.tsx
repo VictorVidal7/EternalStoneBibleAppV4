@@ -71,6 +71,8 @@ const WelcomeCard: React.FC<WelcomeCardProps> = ({
     primary: themeColors.primary,
     primaryLight: themeColors.primaryLight,
     primaryDark: themeColors.primaryDark,
+    secondary: themeColors.secondary,
+    accent: themeColors.accent,
     info: themeColors.info,
   });
 

@@ -26,6 +26,7 @@ import {useBibleVersion} from '../../../src/hooks/useBibleVersion';
 import {useLanguage} from '../../../src/hooks/useLanguage';
 import {useServices} from '../../../src/context/ServicesContext';
 import {useToast} from '../../../src/context/ToastContext';
+import {useFavorites} from '../../../src/context/FavoritesContext';
 import {logger} from '../../../src/lib/utils/logger';
 import {ImmersiveReader} from '../../../src/components/reading/ImmersiveReader';
 import {getBookTheme} from '../../../src/constants/bookThemes';
@@ -128,6 +129,7 @@ export default function VerseReadingScreen() {
   const {t} = useLanguage();
   const toast = useToast();
   const {achievementService} = useServices();
+  const {favorites, addFavorite} = useFavorites();
   // Audio Bible
   const {
     loadChapter: loadAudioChapter,
@@ -159,7 +161,7 @@ export default function VerseReadingScreen() {
   const [noteModalVisible, setNoteModalVisible] = useState(false);
   const [imageModalVisible, setImageModalVisible] = useState(false);
   const [noteText, setNoteText] = useState('');
-  const [bookmarkedVerses, setBookmarkedVerses] = useState<Set<number>>(
+  const [favoritedVerses, setFavoritedVerses] = useState<Set<number>>(
     new Set(),
   );
   const [selectedImageThemeIndex, setSelectedImageThemeIndex] = useState(0);
@@ -171,8 +173,7 @@ export default function VerseReadingScreen() {
   const [useSerifFont, setUseSerifFont] = useState(true);
   const [immersiveModeActive, setImmersiveModeActive] = useState(false);
 
-  const scrollRef = useRef<ScrollView>(null);
-  const imagePreviewRef = useRef<View>(null);
+  const imagePreviewRef = useRef<any>(null);
   const {width: windowWidth} = useWindowDimensions();
   const navSideWidth = Math.min(windowWidth * 0.32, 140);
 
@@ -196,7 +197,7 @@ export default function VerseReadingScreen() {
   // Use theme colors directly
   const effectiveColors = {
     ...colors,
-    bookmark: colors.primary,
+    favorite: colors.primary,
     verseHighlight: colors.primaryLight || 'rgba(74, 144, 226, 0.15)',
     warning: colors.warning,
   };
@@ -206,8 +207,16 @@ export default function VerseReadingScreen() {
 
   useEffect(() => {
     loadChapter();
-    loadBookmarks();
   }, [book, chapter, selectedVersion.id]);
+
+  useEffect(() => {
+    const currentChapterFavorites = favorites
+      .filter(
+        favorite => favorite.book === book && favorite.chapter === chapterNum,
+      )
+      .map(favorite => favorite.verse);
+    setFavoritedVerses(new Set(currentChapterFavorites));
+  }, [favorites, book, chapterNum]);
 
   // ✨ Track reading progress after 5 seconds
   useEffect(() => {
@@ -318,35 +327,6 @@ export default function VerseReadingScreen() {
         chapter: chapterNum,
       });
       setLoading(false);
-    }
-  }
-
-  async function loadBookmarks() {
-    try {
-      logger.info('Loading bookmarks', {
-        component: 'VerseReadingScreen',
-        action: 'loadBookmarks',
-        book,
-        chapter: chapterNum,
-      });
-      const allBookmarks = await bibleDB.getBookmarks();
-      const currentChapterBookmarks = allBookmarks
-        .filter(b => b.book === book && b.chapter === chapterNum)
-        .map(b => b.verse);
-
-      logger.info('Bookmarks loaded successfully', {
-        component: 'VerseReadingScreen',
-        action: 'loadBookmarks',
-        bookmarksCount: currentChapterBookmarks.length,
-      });
-      setBookmarkedVerses(new Set(currentChapterBookmarks));
-    } catch (error) {
-      logger.error('Error loading bookmarks', error as Error, {
-        component: 'VerseReadingScreen',
-        action: 'loadBookmarks',
-        book,
-        chapter: chapterNum,
-      });
     }
   }
 
@@ -496,8 +476,8 @@ export default function VerseReadingScreen() {
     }
   }
 
-  // Bookmark selected verses (save individually for indicators)
-  async function handleBookmarkSelected() {
+  // Favorite selected verses (save individually for indicators)
+  async function handleFavoriteSelected() {
     if (selectedVerses.size === 0) return;
     await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
 
@@ -507,18 +487,10 @@ export default function VerseReadingScreen() {
       .filter(Boolean) as BibleVerse[];
 
     for (const verse of selectedVersesData) {
-      if (!bookmarkedVerses.has(verse.verse)) {
-        await bibleDB.addBookmark({
-          book: verse.book,
-          chapter: verse.chapter,
-          verse: verse.verse,
-          text: verse.text,
-          createdAt: new Date().toISOString(),
-        });
-      }
+      await addFavorite(verse, 'other', 5);
     }
 
-    setBookmarkedVerses(prev => {
+    setFavoritedVerses(prev => {
       const next = new Set(prev);
       sortedNums.forEach(n => next.add(n));
       return next;
@@ -810,14 +782,8 @@ export default function VerseReadingScreen() {
           <TouchableOpacity
             style={styles.toolbarButton}
             onPress={() => {
-              console.log('Imagen pressed');
               Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-              // Assuming setImageModalVisible is a state setter that exists in the actual component
-              // and this button is intended for an image modal.
-              // If not, this line might cause an error or be a no-op.
-              // For the purpose of this edit, we are adding the console.log as requested.
-              // setImageModalVisible(true); // This line is commented out as it's not in the original document
-              setImmersiveModeActive(true); // Keeping the original functionality for expand-outline
+              setImmersiveModeActive(true);
             }}>
             <Ionicons
               name="expand-outline"
@@ -885,7 +851,7 @@ export default function VerseReadingScreen() {
           onScroll={handleScroll}
           scrollEventThrottle={16}>
           {verses.map((verse, index) => {
-            const isBookmarked = bookmarkedVerses.has(verse.verse);
+            const isFavorited = favoritedVerses.has(verse.verse);
             const isSelected = selectedVerses.has(verse.verse);
             const isHighlighted =
               highlightVerse &&
@@ -927,10 +893,10 @@ export default function VerseReadingScreen() {
                     {verse.text}
                   </Text>
                 </View>
-                {isBookmarked && (
-                  <View style={styles.bookmarkIndicator}>
+                {isFavorited && (
+                  <View style={styles.favoriteIndicator}>
                     <Ionicons
-                      name="bookmark"
+                      name="heart"
                       size={16}
                       color={effectiveColors.primary}
                     />
@@ -1019,18 +985,18 @@ export default function VerseReadingScreen() {
               </TouchableOpacity>
               <TouchableOpacity
                 style={styles.selectionButton}
-                onPress={handleBookmarkSelected}>
+                onPress={handleFavoriteSelected}>
                 <Ionicons
-                  name="bookmark-outline"
-                  size={22}
+                  name="heart"
+                  size={20}
                   color={effectiveColors.primary}
                 />
                 <Text
                   style={[
                     styles.selectionButtonText,
-                    {color: effectiveColors.text},
+                    {color: effectiveColors.primary},
                   ]}>
-                  {t.save}
+                  {t.verse.addFavorite}
                 </Text>
               </TouchableOpacity>
               <TouchableOpacity
@@ -1553,13 +1519,11 @@ const styles = StyleSheet.create({
   verseText: {
     fontSize: fontSizes.base,
   },
-  bookmarkIndicator: {
-    paddingTop: 6,
-    paddingLeft: 4,
-    justifyContent: 'flex-start',
-    alignItems: 'center',
+  favoriteIndicator: {
+    position: 'absolute',
+    top: 12,
+    right: 12,
   },
-
   // BARRA DE SELECCIÓN
   selectionBar: {
     position: 'absolute',

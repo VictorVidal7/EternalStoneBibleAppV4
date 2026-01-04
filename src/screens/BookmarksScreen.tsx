@@ -8,7 +8,8 @@ import {
 } from 'react-native';
 import {useNavigation} from '@react-navigation/native';
 import {FlashList} from '@shopify/flash-list';
-import {useBookmarks} from '../context/BookmarksContext';
+import {useFavorites} from '../context/FavoritesContext';
+import type {Favorite} from '../context/FavoritesContext';
 import {useTheme} from '../context/ThemeContext';
 import {useUserPreferences} from '../context/UserPreferencesContext';
 import {useLanguage} from '../hooks/useLanguage';
@@ -16,15 +17,8 @@ import CustomIconButton from '../components/CustomIconButton';
 import HapticFeedback from '../services/HapticFeedback';
 import {logger} from '../lib/utils/logger';
 
-// Interfaces
-interface Bookmark {
-  book: string;
-  chapter: number;
-  verse: number;
-}
-
 interface BookmarkItemProps {
-  item: Bookmark;
+  item: Favorite;
   onPress: () => void;
   onRemove: () => void;
   styles: ReturnType<typeof createStyles>;
@@ -78,25 +72,10 @@ BookmarkItem.displayName = 'BookmarkItem';
 
 const BookmarksScreen: React.FC = () => {
   const navigation = useNavigation<any>();
-  const {bookmarks: rawBookmarks, removeBookmark} = useBookmarks();
+  const {favorites, removeFavorite} = useFavorites();
   const {colors} = useTheme();
   const {fontSize, fontFamily} = useUserPreferences();
   const {t} = useLanguage();
-
-  // Type-safe bookmarks array
-  const bookmarks = useMemo<Bookmark[]>(() => {
-    if (!Array.isArray(rawBookmarks)) {
-      return [];
-    }
-    return rawBookmarks.filter(
-      (item): item is Bookmark =>
-        item !== null &&
-        typeof item === 'object' &&
-        'book' in item &&
-        'chapter' in item &&
-        'verse' in item,
-    );
-  }, [rawBookmarks]);
 
   // Memoized styles
   const styles = useMemo(
@@ -105,15 +84,11 @@ const BookmarksScreen: React.FC = () => {
   );
 
   // Key extractor for FlashList
-  const keyExtractor = useCallback(
-    (item: Bookmark, index: number) =>
-      `${item.book}-${item.chapter}-${item.verse}-${index}`,
-    [],
-  );
+  const keyExtractor = useCallback((item: Favorite) => item.id, []);
 
   // Handle bookmark press
   const handleBookmarkPress = useCallback(
-    (item: Bookmark) => {
+    (item: Favorite) => {
       try {
         navigation.navigate('Biblia', {
           screen: 'Verse',
@@ -145,9 +120,9 @@ const BookmarksScreen: React.FC = () => {
 
   // Handle bookmark removal
   const handleBookmarkRemove = useCallback(
-    (item: Bookmark) => {
+    (item: Favorite) => {
       try {
-        removeBookmark(item.book, item.chapter, item.verse);
+        removeFavorite(item.id);
 
         HapticFeedback.medium();
 
@@ -168,12 +143,12 @@ const BookmarksScreen: React.FC = () => {
         });
       }
     },
-    [removeBookmark, t],
+    [removeFavorite, t],
   );
 
   // Render item for FlashList
   const renderItem = useCallback(
-    ({item}: {item: Bookmark}) => (
+    ({item}: {item: Favorite}) => (
       <BookmarkItem
         item={item}
         onPress={() => handleBookmarkPress(item)}
@@ -209,7 +184,7 @@ const BookmarksScreen: React.FC = () => {
         {t.bookmarks.title}
       </Text>
       <FlashList
-        data={bookmarks}
+        data={favorites}
         renderItem={renderItem}
         keyExtractor={keyExtractor}
         ListEmptyComponent={renderEmptyComponent}
@@ -241,7 +216,7 @@ const createStyles = (fontSize: number, fontFamily: string) =>
       borderRadius: 12,
       marginBottom: 12,
       shadowColor: '#000',
-      shadowOffset: { width: 0, height: 2 },
+      shadowOffset: {width: 0, height: 2},
       shadowOpacity: 0.06,
       shadowRadius: 8,
       elevation: 2,

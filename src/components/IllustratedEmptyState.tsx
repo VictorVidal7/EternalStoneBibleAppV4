@@ -20,7 +20,7 @@ import {useLanguage} from '../hooks/useLanguage';
 
 interface IllustratedEmptyStateProps {
   type:
-    | 'no-bookmarks'
+    | 'no-favorites'
     | 'no-notes'
     | 'no-highlights'
     | 'no-search-results'
@@ -97,11 +97,11 @@ export const IllustratedEmptyState: React.FC<IllustratedEmptyStateProps> = ({
 
   const getConfig = () => {
     const configs = {
-      'no-bookmarks': {
-        icon: 'bookmark-outline' as const,
-        defaultTitle: t.emptyStates.noBookmarks.title,
-        defaultMessage: t.emptyStates.noBookmarks.message,
-        defaultAction: t.emptyStates.noBookmarks.action,
+      'no-favorites': {
+        icon: 'heart-outline' as const,
+        defaultTitle: t.emptyStates.noFavorites.title,
+        defaultMessage: t.emptyStates.noFavorites.message,
+        defaultAction: t.emptyStates.noFavorites.action,
       },
       'no-notes': {
         icon: 'create-outline' as const,
@@ -198,13 +198,13 @@ export const IllustratedEmptyState: React.FC<IllustratedEmptyStateProps> = ({
           {/* Iconos decorativos flotantes */}
           <View style={styles.floatingIcons}>
             <Ionicons
-              name="sparkles"
+              name="heart"
               size={20}
               color={themeGradient[0]}
               style={[styles.floatingIcon, styles.floatingIcon1]}
             />
             <Ionicons
-              name="star"
+              name="heart"
               size={16}
               color={themeGradient[1]}
               style={[styles.floatingIcon, styles.floatingIcon2]}
@@ -252,7 +252,7 @@ export const IllustratedEmptyState: React.FC<IllustratedEmptyStateProps> = ({
             <Text style={styles.actionButtonText}>
               {actionLabel || config.defaultAction}
             </Text>
-            <Ionicons name="arrow-forward" size={20} color="#ffffff" />
+            <Ionicons name="heart" size={20} color="#ffffff" />
           </LinearGradient>
         </TouchableOpacity>
       )}

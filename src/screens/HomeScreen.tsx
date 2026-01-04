@@ -144,7 +144,14 @@ const HomeScreen: React.FC = () => {
   const contentTranslateY = useSharedValue(30);
   const headerScale = useSharedValue(0.95);
 
-  const theme = createCelestialTheme(isDarkMode);
+  const theme = createCelestialTheme(isDarkMode, {
+    primary: colors.primary,
+    primaryLight: colors.primaryLight,
+    primaryDark: colors.primaryDark,
+    secondary: colors.secondary,
+    accent: colors.accent,
+    info: colors.info,
+  });
 
   // Estilo animado para el contenido principal
   const animatedContentStyle = useAnimatedStyle(() => ({
@@ -178,7 +185,11 @@ const HomeScreen: React.FC = () => {
         ) {
           const position = await readingProgressContext.getLastReadPosition();
           if (position) {
-            setLastRead(position);
+            setLastRead({
+              book: position.book,
+              chapter: parseInt(position.chapter, 10),
+              verse: parseInt(position.verse, 10),
+            });
           }
         }
       } catch (error) {
@@ -195,7 +206,12 @@ const HomeScreen: React.FC = () => {
         setLoadingVerse(true);
         const verse = await DailyVerseService.getDailyVerse();
         if (verse) {
-          setDailyVerse(verse);
+          setDailyVerse({
+            book: verse.book,
+            chapter: verse.chapter,
+            number: verse.verse,
+            text: verse.text,
+          });
         }
       } catch (error) {
         logger.error('Error loading daily verse', error as Error, {
@@ -400,8 +416,8 @@ const HomeScreen: React.FC = () => {
           <LinearGradient
             colors={
               isDarkMode
-                ? ['#6366f1', '#8b5cf6', '#7c3aed'] // indigo-500 → purple-600 → purple-600
-                : ['#6366f1', '#7c3aed'] // indigo-500 → purple-600
+                ? (['#6366f1', '#8b5cf6', '#7c3aed'] as const)
+                : (['#6366f1', '#7c3aed'] as const)
             }
             start={{x: 0, y: 0}}
             end={{x: 1, y: 1}}>
@@ -414,13 +430,13 @@ const HomeScreen: React.FC = () => {
                   entering={FadeIn.delay(100).duration(600)}
                   style={styles.headerTitle}
                   accessibilityRole="header">
-                  {t('home.title') || 'Eternal Bible'}
+                  {t.home.title || 'Eternal Bible'}
                 </Animated.Text>
                 <Animated.Text
                   entering={FadeIn.delay(200).duration(600)}
                   style={styles.headerSubtitle}
                   accessibilityRole="text">
-                  {t('home.subtitle') || 'Tu viaje espiritual continúa'}
+                  {t.home.subtitle || 'Tu viaje espiritual continúa'}
                 </Animated.Text>
               </View>
             </BlurView>
@@ -466,7 +482,7 @@ const HomeScreen: React.FC = () => {
               chapter={lastRead.chapter}
               progress={65}
               onPress={handleContinueReading}
-              buttonText={t('home.continueReading') || 'Continuar Leyendo'}
+              buttonText={t.home.continueReading || 'Continuar Leyendo'}
               isDark={isDarkMode}
             />
           )}

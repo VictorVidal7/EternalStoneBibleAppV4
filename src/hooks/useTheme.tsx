@@ -254,12 +254,16 @@ export const themePrimaryColors = {
       primary: '#0284c7', // sky-600
       primaryLight: '#e0f2fe', // sky-100
       primaryDark: '#0369a1', // sky-700
+      secondary: '#0ea5e9',
+      accent: '#06b6d4',
       info: '#0284c7',
     },
     dark: {
       primary: '#38bdf8', // sky-400
       primaryLight: '#7dd3fc', // sky-300
       primaryDark: '#0284c7', // sky-600
+      secondary: '#0ea5e9',
+      accent: '#22d3ee',
       info: '#38bdf8',
     },
   },
@@ -268,12 +272,16 @@ export const themePrimaryColors = {
       primary: '#7c3aed', // violet-600
       primaryLight: '#ede9fe', // violet-100
       primaryDark: '#6d28d9', // violet-700
+      secondary: '#7c3aed',
+      accent: '#9333ea',
       info: '#7c3aed',
     },
     dark: {
       primary: '#a78bfa', // violet-400
       primaryLight: '#c4b5fd', // violet-300
       primaryDark: '#7c3aed', // violet-600
+      secondary: '#a78bfa',
+      accent: '#c084fc',
       info: '#a78bfa',
     },
   },
@@ -282,12 +290,16 @@ export const themePrimaryColors = {
       primary: '#16a34a', // green-600
       primaryLight: '#dcfce7', // green-100
       primaryDark: '#15803d', // green-700
+      secondary: '#166534',
+      accent: '#10b981',
       info: '#16a34a',
     },
     dark: {
       primary: '#4ade80', // green-400
       primaryLight: '#86efac', // green-300
       primaryDark: '#16a34a', // green-600
+      secondary: '#22c55e',
+      accent: '#34d399',
       info: '#4ade80',
     },
   },
@@ -296,12 +308,16 @@ export const themePrimaryColors = {
       primary: '#ea580c', // orange-600
       primaryLight: '#ffedd5', // orange-100
       primaryDark: '#c2410c', // orange-700
+      secondary: '#f97316',
+      accent: '#fbbf24',
       info: '#ea580c',
     },
     dark: {
       primary: '#fb923c', // orange-400
       primaryLight: '#fdba74', // orange-300
       primaryDark: '#ea580c', // orange-600
+      secondary: '#f97316',
+      accent: '#fbbf24',
       info: '#fb923c',
     },
   },
@@ -310,12 +326,16 @@ export const themePrimaryColors = {
       primary: '#52525b', // zinc-600
       primaryLight: '#e4e4e7', // zinc-200
       primaryDark: '#3f3f46', // zinc-700
+      secondary: '#3f3f46',
+      accent: '#71717a',
       info: '#52525b',
     },
     dark: {
       primary: '#a1a1aa', // zinc-400
       primaryLight: '#d4d4d8', // zinc-300
       primaryDark: '#71717a', // zinc-500
+      secondary: '#71717a',
+      accent: '#52525b',
       info: '#a1a1aa',
     },
   },
@@ -324,27 +344,35 @@ export const themePrimaryColors = {
       primary: '#2563eb', // blue-600
       primaryLight: '#dbeafe', // blue-100
       primaryDark: '#1d4ed8', // blue-700
+      secondary: '#1d4ed8',
+      accent: '#3b82f6',
       info: '#2563eb',
     },
     dark: {
       primary: '#60a5fa', // blue-400
       primaryLight: '#93c5fd', // blue-300
       primaryDark: '#2563eb', // blue-600
+      secondary: '#3b82f6',
+      accent: '#93c5fd',
       info: '#60a5fa',
     },
   },
   midnight: {
     light: {
-      primary: '#475569', // slate-600 - neutral gray
-      primaryLight: '#e2e8f0', // slate-200
-      primaryDark: '#334155', // slate-700
-      info: '#475569',
+      primary: '#334155', // slate-700 - neutral gray
+      primaryLight: '#f1f5f9', // slate-100
+      primaryDark: '#0f172a', // slate-900
+      secondary: '#475569',
+      accent: '#64748b',
+      info: '#334155',
     },
     dark: {
-      primary: '#94a3b8', // slate-400 - neutral gray
-      primaryLight: '#cbd5e1', // slate-300
-      primaryDark: '#64748b', // slate-500
-      info: '#94a3b8',
+      primary: '#cbd5e1', // slate-300 - neutral gray
+      primaryLight: '#f1f5f9', // slate-100
+      primaryDark: '#94a3b8', // slate-400
+      secondary: '#94a3b8',
+      accent: '#475569',
+      info: '#cbd5e1',
     },
   },
   cafe: {
@@ -352,12 +380,16 @@ export const themePrimaryColors = {
       primary: '#92400e', // amber-800
       primaryLight: '#fef3c7', // amber-100
       primaryDark: '#78350f', // amber-900
+      secondary: '#b45309',
+      accent: '#d97706',
       info: '#92400e',
     },
     dark: {
       primary: '#fbbf24', // yellow-400
       primaryLight: '#fcd34d', // yellow-300
       primaryDark: '#d97706', // amber-600
+      secondary: '#fbbf24',
+      accent: '#f59e0b',
       info: '#fbbf24',
     },
   },
@@ -427,7 +459,7 @@ export const celestialTheme = {
   },
 };
 
-interface ThemeColors {
+export interface ThemeColors {
   // Backgrounds
   background: string;
   surface: string;
@@ -476,7 +508,11 @@ interface ThemeContextType {
   colors: ThemeColors;
   isDark: boolean;
   timeOfDay: TimeOfDay;
-  gradient: (typeof timeBasedGradients)[TimeOfDay];
+  gradient: {
+    readonly colors: readonly string[];
+    readonly headerColors: readonly string[];
+    readonly accentGlow: string;
+  };
   colorTheme: ColorTheme;
   setThemeMode: (mode: ThemeMode) => Promise<void>;
   setColorTheme: (theme: ColorTheme) => Promise<void>;
@@ -642,14 +678,16 @@ export function ThemeProvider({children}: {children: ReactNode}) {
   // Usar gradientes del tema de color seleccionado
   const gradient = colorThemes[colorTheme].gradients[timeOfDay];
 
-  // Aplicar colores primarios según el tema de color seleccionado
-  const themePrimary = themePrimaryColors[colorTheme][effectiveTheme];
+  // Aplicar colores primarios y de realce según el tema de color seleccionado
+  const themeColorsSet = themePrimaryColors[colorTheme][effectiveTheme];
   const colors: ThemeColors = {
     ...baseColors,
-    primary: themePrimary.primary,
-    primaryLight: themePrimary.primaryLight,
-    primaryDark: themePrimary.primaryDark,
-    info: themePrimary.info,
+    primary: themeColorsSet.primary,
+    primaryLight: themeColorsSet.primaryLight,
+    primaryDark: themeColorsSet.primaryDark,
+    secondary: themeColorsSet.secondary,
+    accent: themeColorsSet.accent,
+    info: themeColorsSet.info,
   };
 
   return (

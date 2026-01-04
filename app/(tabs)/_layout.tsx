@@ -62,7 +62,8 @@ export default function TabLayout() {
       <Tabs.Screen
         name="index"
         options={{
-          title: t.tabs.home,
+          title: 'Inicio',
+          headerShown: false,
           tabBarIcon: ({color, size}) => (
             <Ionicons name="home" size={size} color={color} />
           ),
@@ -74,6 +75,7 @@ export default function TabLayout() {
         name="bible"
         options={{
           title: t.tabs.bible,
+          headerShown: false,
           tabBarIcon: ({color, size}) => (
             <Ionicons name="book" size={size} color={color} />
           ),
@@ -85,6 +87,7 @@ export default function TabLayout() {
         name="search"
         options={{
           title: t.tabs.search,
+          headerShown: false,
           tabBarIcon: ({color, size}) => (
             <Ionicons name="search" size={size} color={color} />
           ),
@@ -96,6 +99,7 @@ export default function TabLayout() {
         name="achievements"
         options={{
           title: t.tabs.achievements,
+          headerShown: false,
           tabBarIcon: ({color, size}) => (
             <Ionicons name="trophy" size={size} color={color} />
           ),
@@ -104,20 +108,24 @@ export default function TabLayout() {
       />
 
       <Tabs.Screen
-        name="bookmarks"
+        name="favorites"
         options={{
-          title: t.tabs.bookmarks,
+          href: null,
+          title: t.tabs.favorites,
+          headerShown: false,
           tabBarIcon: ({color, size}) => (
-            <Ionicons name="bookmark" size={size} color={color} />
+            <Ionicons name="heart" size={size} color={color} />
           ),
-          headerTitle: t.headers.bookmarks,
+          headerTitle: t.headers.favorites,
         }}
       />
 
       <Tabs.Screen
         name="notes"
         options={{
+          href: null,
           title: t.tabs.notes,
+          headerShown: false,
           tabBarIcon: ({color, size}) => (
             <Ionicons name="create" size={size} color={color} />
           ),
@@ -129,6 +137,7 @@ export default function TabLayout() {
         name="settings"
         options={{
           title: t.tabs.settings,
+          headerShown: false,
           tabBarIcon: ({color, size}) => (
             <Ionicons name="settings" size={size} color={color} />
           ),

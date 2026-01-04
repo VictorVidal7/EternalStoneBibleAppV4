@@ -22,6 +22,13 @@ import React, {
 import bibleDB from '../lib/database';
 import {logger} from '../lib/utils/logger';
 import {BibleVerse} from '../types/bible';
+import {useServices} from './ServicesContext';
+
+type FavoriteSourceVerse = Pick<
+  BibleVerse,
+  'book' | 'chapter' | 'verse' | 'text'
+> &
+  Partial<Pick<BibleVerse, 'id' | 'bookNumber' | 'version'>>;
 
 export type FavoriteCategory =
   | 'promise'
@@ -50,7 +57,7 @@ export interface FavoritesContextType {
   favorites: Favorite[];
   loading: boolean;
   addFavorite: (
-    verse: BibleVerse,
+    verse: FavoriteSourceVerse,
     category: FavoriteCategory,
     rating?: number,
     tags?: string[],
@@ -75,6 +82,7 @@ const FavoritesContext = createContext<FavoritesContextType | undefined>(
 export const FavoritesProvider: FC<{children: ReactNode}> = ({children}) => {
   const [favorites, setFavorites] = useState<Favorite[]>([]);
   const [loading, setLoading] = useState(true);
+  const {achievementService} = useServices();
 
   useEffect(() => {
     loadFavorites();
@@ -106,7 +114,7 @@ export const FavoritesProvider: FC<{children: ReactNode}> = ({children}) => {
    * Añade un versículo a favoritos
    */
   async function addFavorite(
-    verse: BibleVerse,
+    verse: FavoriteSourceVerse,
     category: FavoriteCategory = 'other',
     rating: number = 5,
     tags: string[] = [],
@@ -141,6 +149,16 @@ export const FavoritesProvider: FC<{children: ReactNode}> = ({children}) => {
       };
 
       await bibleDB.addFavorite(favorite);
+      if (achievementService) {
+        try {
+          await achievementService.trackBookmark();
+        } catch (error) {
+          logger.warn('Error tracking favorite', {
+            component: 'FavoritesContext',
+            error,
+          });
+        }
+      }
       setFavorites(prev => [favorite, ...prev]);
 
       logger.info('Favorite added successfully', {

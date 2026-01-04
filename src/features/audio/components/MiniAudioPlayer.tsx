@@ -41,6 +41,7 @@ import {useTheme} from '../../../hooks/useTheme';
 import {useAudioPlayer} from '../context/AudioPlayerContext';
 import {AudioControls} from './AudioControls';
 import {AudioProgressBar, MiniProgressDots} from './AudioProgressBar';
+import {AudioWaveform} from './AudioWaveform';
 import {AudioSpeedSelector} from './AudioSpeedSelector';
 import {SleepTimerModal} from './SleepTimerModal';
 import {VoiceSelector} from './VoiceSelector';
@@ -377,6 +378,17 @@ export const MiniAudioPlayer: React.FC<MiniAudioPlayerProps> = ({
                 </View>
               </View>
 
+              {/* Waveform */}
+              <View style={styles.waveformContainer}>
+                <AudioWaveform
+                  isPlaying={state.isPlaying && state.isExpanded}
+                  barCount={14}
+                  height={18}
+                  color={colors.primary}
+                  mutedColor={colors.border}
+                />
+              </View>
+
               {/* Progress Bar */}
               <View style={styles.progressContainer}>
                 <AudioProgressBar
@@ -591,7 +603,11 @@ const styles = StyleSheet.create({
     borderRadius: 16,
   },
   progressContainer: {
+    marginBottom: 2,
+  },
+  waveformContainer: {
     marginBottom: 4,
+    marginTop: 2,
   },
   controlsContainer: {
     alignSelf: 'center',

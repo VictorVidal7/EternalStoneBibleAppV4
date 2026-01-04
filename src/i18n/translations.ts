@@ -33,7 +33,7 @@ export const translations = {
       endOfBookMessage: 'Has llegado al final de este libro',
       firstChapterMessage: 'Estás en el primer capítulo de este libro',
       emptyBookmarksHint:
-        'Toca el ícono de estrella al leer versículos para guardarlos aquí',
+        'Toca el icono de estrella al leer versiculos para guardarlos como favoritos',
     },
 
     // Tabs Navigation
@@ -42,7 +42,7 @@ export const translations = {
       bible: 'Biblia',
       search: 'Buscar',
       achievements: 'Logros',
-      bookmarks: 'Favoritos',
+      favorites: 'Favoritos',
       notes: 'Notas',
       settings: 'Ajustes',
     },
@@ -53,9 +53,9 @@ export const translations = {
       bible: 'La Biblia',
       search: 'Buscar en la Biblia',
       achievements: 'Mis Logros',
-      bookmarks: 'Mis Favoritos',
+      favorites: 'Mis Favoritos',
       notes: 'Mis Notas',
-      settings: 'Configuración',
+      settings: 'Configuracion',
     },
 
     // Home Screen
@@ -75,6 +75,7 @@ export const translations = {
       readFullChapter: 'Leer Capítulo Completo',
       lastRead: 'Última lectura',
       readingPlans: 'Planes de Lectura',
+      savedTitle: 'Guardados',
       viewPlan: 'Ver Plan',
       continue: 'Continuar',
       plansDescription: 'Sigue un plan estructurado para leer la Biblia',
@@ -147,26 +148,27 @@ export const translations = {
       },
     },
 
-    // Bookmarks Screen
-    bookmarks: {
-      title: 'Mis versículos favoritos',
-      noBookmarks: 'Aún no tienes versículos favoritos',
-      noBookmarksA11y: 'No tienes versículos favoritos',
+    // Favorites Screen
+    favorites: {
+      title: 'Mis versiculos favoritos',
+      noFavorites: 'Aun no tienes versiculos favoritos',
+      noFavoritesA11y: 'No tienes versiculos favoritos',
       empty: 'No tienes favoritos',
       emptyHint:
-        'Toca el ícono de estrella al leer versículos para guardarlos aquí',
+        'Toca el icono de estrella al leer versiculos para guardarlos aqui',
       deleteTitle: 'Eliminar Favorito',
-      deleteMessage: '¿Estás seguro de que quieres eliminar este favorito?',
-      deleteLabel: 'Eliminar marcador',
-      deleteHint: 'Toca para eliminar este marcador',
-      itemLabel: 'Marcador para {{book}} {{chapter}}:{{verse}}',
-      itemHint: 'Toca para ir a este versículo',
-      screenLabel: 'Pantalla de marcadores',
-      screenHint: 'Lista de tus versículos favoritos',
-      listLabel: 'Lista de marcadores',
-      listHint: 'Desplázate para explorar tus versículos favoritos',
-      removed: 'Marcador eliminado',
-      removedSuccessfully: 'Marcador eliminado exitosamente',
+      deleteMessage: 'Estas seguro de que quieres eliminar este favorito?',
+      deleteLabel: 'Eliminar favorito',
+      deleteHint: 'Toca para eliminar este favorito',
+      itemLabel: 'Favorito para {{book}} {{chapter}}:{{verse}}',
+      itemHint: 'Toca para ir a este versiculo',
+      screenLabel: 'Pantalla de favoritos',
+      screenHint: 'Lista de tus versiculos favoritos',
+      listLabel: 'Lista de favoritos',
+      listHint: 'Desplazate para explorar tus versiculos favoritos',
+      removed: 'Favorito eliminado',
+      removedSuccessfully: 'Favorito eliminado exitosamente',
+      versesSaved: 'Versículos guardados',
     },
 
     // Notes Screen
@@ -190,6 +192,7 @@ export const translations = {
       screenHint: 'Lista de tus notas personales de la Biblia',
       modalTitle: 'Nota para {{book}} {{chapter}}:{{verse}}',
       newNote: 'Nueva Nota',
+      countLabel: 'Notas guardadas',
     },
 
     // Settings Screen
@@ -240,8 +243,8 @@ export const translations = {
     verse: {
       singular: 'versículo',
       plural: 'versículos',
-      addBookmark: 'Agregar a Favoritos',
-      removeBookmark: 'Quitar de Favoritos',
+      addFavorite: 'Agregar a Favoritos',
+      removeFavorite: 'Quitar de Favoritos',
       copyVerse: 'Copiar Versículo',
       shareVerse: 'Compartir Versículo',
       addNote: 'Agregar Nota',
@@ -361,10 +364,10 @@ export const translations = {
 
     // Empty States
     emptyStates: {
-      noBookmarks: {
-        title: 'Sin marcadores aún',
+      noFavorites: {
+        title: 'Sin favoritos aun',
         message:
-          'Guarda tus versículos favoritos para acceder a ellos rápidamente',
+          'Guarda tus versiculos favoritos para acceder a ellos rapidamente',
         action: 'Explorar la Biblia',
       },
       noNotes: {
@@ -809,7 +812,7 @@ export const translations = {
       endOfBookMessage: 'You have reached the end of this book',
       firstChapterMessage: 'You are at the first chapter of this book',
       emptyBookmarksHint:
-        'Tap the star icon while reading verses to save them here',
+        'Tap the star icon while reading verses to save them as favorites',
     },
 
     // Tabs Navigation
@@ -818,7 +821,7 @@ export const translations = {
       bible: 'Bible',
       search: 'Search',
       achievements: 'Achievements',
-      bookmarks: 'Bookmarks',
+      favorites: 'Favorites',
       notes: 'Notes',
       settings: 'Settings',
     },
@@ -829,7 +832,7 @@ export const translations = {
       bible: 'The Bible',
       search: 'Search the Bible',
       achievements: 'My Achievements',
-      bookmarks: 'My Bookmarks',
+      favorites: 'My Favorites',
       notes: 'My Notes',
       settings: 'Settings',
     },
@@ -851,6 +854,7 @@ export const translations = {
       readFullChapter: 'Read Full Chapter',
       lastRead: 'Last read',
       readingPlans: 'Reading Plans',
+      savedTitle: 'Saved',
       viewPlan: 'View Plan',
       continue: 'Continue',
       plansDescription: 'Follow a structured plan to read the Bible',
@@ -923,25 +927,26 @@ export const translations = {
       },
     },
 
-    // Bookmarks Screen
-    bookmarks: {
+    // Favorites Screen
+    favorites: {
       title: 'My favorite verses',
-      noBookmarks: "You don't have any favorite verses yet",
-      noBookmarksA11y: "You don't have any favorite verses",
-      empty: 'No bookmarks yet',
+      noFavorites: "You don't have any favorite verses yet",
+      noFavoritesA11y: "You don't have any favorite verses",
+      empty: 'No favorites yet',
       emptyHint: 'Tap the star icon while reading verses to save them here',
-      deleteTitle: 'Delete Bookmark',
-      deleteMessage: 'Are you sure you want to delete this bookmark?',
-      deleteLabel: 'Delete bookmark',
-      deleteHint: 'Tap to delete this bookmark',
-      itemLabel: 'Bookmark for {{book}} {{chapter}}:{{verse}}',
+      deleteTitle: 'Delete Favorite',
+      deleteMessage: 'Are you sure you want to delete this favorite?',
+      deleteLabel: 'Delete favorite',
+      deleteHint: 'Tap to delete this favorite',
+      itemLabel: 'Favorite for {{book}} {{chapter}}:{{verse}}',
       itemHint: 'Tap to go to this verse',
-      screenLabel: 'Bookmarks screen',
+      screenLabel: 'Favorites screen',
       screenHint: 'List of your favorite verses',
-      listLabel: 'Bookmarks list',
+      listLabel: 'Favorites list',
       listHint: 'Scroll to explore your favorite verses',
-      removed: 'Bookmark removed',
-      removedSuccessfully: 'Bookmark removed successfully',
+      removed: 'Favorite removed',
+      removedSuccessfully: 'Favorite removed successfully',
+      versesSaved: 'Verses saved',
     },
 
     // Notes Screen
@@ -965,6 +970,7 @@ export const translations = {
       screenHint: 'List of your personal Bible notes',
       modalTitle: 'Note for {{book}} {{chapter}}:{{verse}}',
       newNote: 'New Note',
+      countLabel: 'Notes saved',
     },
 
     // Settings Screen
@@ -1012,10 +1018,8 @@ export const translations = {
 
     // Verse Reading Screen
     verse: {
-      singular: 'verse',
-      plural: 'verses',
-      addBookmark: 'Add Bookmark',
-      removeBookmark: 'Remove Bookmark',
+      addFavorite: 'Add to Favorites',
+      removeFavorite: 'Remove from Favorites',
       copyVerse: 'Copy Verse',
       shareVerse: 'Share Verse',
       addNote: 'Add Note',
@@ -1134,14 +1138,14 @@ export const translations = {
 
     // Empty States
     emptyStates: {
-      noBookmarks: {
-        title: 'No bookmarks yet',
+      noFavorites: {
+        title: 'No favorites yet',
         message: 'Save your favorite verses to access them quickly',
         action: 'Explore the Bible',
       },
       noNotes: {
         title: 'No notes yet',
-        message: 'Create personal notes to reflect on your reading',
+        message: 'Add your reflections and thoughts while reading',
         action: 'Start reading',
       },
       noHighlights: {

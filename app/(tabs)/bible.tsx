@@ -9,7 +9,7 @@
  * - Animaciones de entrada suaves
  */
 
-import React, {useState, useRef, useEffect} from 'react';
+import React, {useState, useRef, useEffect, useMemo} from 'react';
 import {
   View,
   Text,
@@ -59,6 +59,13 @@ export default function BibleScreen() {
 
   const searchAnim = useRef(new Animated.Value(0)).current;
   const headerAnim = useRef(new Animated.Value(0)).current;
+  const headerGradient = useMemo(
+    () =>
+      (gradient?.headerColors
+        ? [...gradient.headerColors]
+        : ['#4f46e5', '#7c3aed', '#a855f7']) as [string, string, string],
+    [gradient?.headerColors],
+  );
 
   useEffect(() => {
     // Animación inicial
@@ -145,10 +152,19 @@ export default function BibleScreen() {
           ],
         }}>
         <LinearGradient
-          colors={[...gradient.headerColors]}
+          colors={headerGradient}
           start={{x: 0, y: 0}}
           end={{x: 1, y: 1}}
           style={styles.header}>
+          {/* Boton de regreso */}
+          <TouchableOpacity
+            style={styles.headerBackButton}
+            onPress={() => router.push('/' as any)}
+            accessibilityRole="button"
+            accessibilityLabel={t.bible.back}>
+            <Ionicons name="arrow-back" size={24} color="#ffffff" />
+          </TouchableOpacity>
+
           <View style={styles.headerContent}>
             <View style={styles.headerTitleContainer}>
               <Ionicons name="book" size={32} color="#ffffff" />
@@ -284,9 +300,17 @@ const SectionHeader: React.FC<SectionHeaderProps> = ({
   gradientColors,
   isOldTestament,
 }) => {
+  const {gradient} = useTheme();
+  const headerGradient = useMemo(
+    () =>
+      (gradient?.headerColors
+        ? [...gradient.headerColors]
+        : ['#4f46e5', '#7c3aed', '#a855f7']) as [string, string, string],
+    [gradient?.headerColors],
+  );
   return (
     <LinearGradient
-      colors={[...gradientColors]}
+      colors={headerGradient}
       start={{x: 0, y: 0}}
       end={{x: 1, y: 0}}
       style={[styles.sectionHeader, shadows.md]}>
@@ -432,6 +456,15 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.2, // Más sutil
     shadowRadius: 20,
     elevation: 8,
+  },
+  headerBackButton: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: 'rgba(255,255,255,0.2)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 16,
   },
   headerContent: {
     flexDirection: 'row',

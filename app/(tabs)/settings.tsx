@@ -7,10 +7,15 @@ import {
   Alert,
   Linking,
 } from 'react-native';
-import {useState} from 'react';
+import React, {useState, useMemo} from 'react';
 import {Ionicons} from '@expo/vector-icons';
 import {useRouter} from 'expo-router';
-import {useTheme, colorThemes, ColorTheme} from '../../src/hooks/useTheme';
+import {
+  useTheme,
+  colorThemes,
+  ColorTheme,
+  ThemeColors,
+} from '../../src/hooks/useTheme';
 import {LinearGradient} from 'expo-linear-gradient';
 import {useBibleVersion} from '../../src/hooks/useBibleVersion';
 import {useLanguage} from '../../src/hooks/useLanguage';
@@ -19,13 +24,39 @@ import * as Haptics from 'expo-haptics';
 
 type ThemeOption = 'light' | 'dark' | 'auto';
 
+// Helper function to determine readable text color based on background
+function getReadableTextColor(
+  lightBgColor: string,
+  darkBgColor: string,
+  isDark: boolean,
+): string {
+  // This is a simplified example. In a real app, you might use a more robust color contrast algorithm.
+  // For now, we'll assume light text on dark backgrounds and dark text on light backgrounds.
+  return isDark ? lightBgColor : darkBgColor;
+}
+
 export default function SettingsScreen() {
   const router = useRouter();
-  const {mode, setThemeMode, isDark, colors, colorTheme, setColorTheme} =
-    useTheme();
+  const {
+    mode,
+    setThemeMode,
+    isDark,
+    colors,
+    colorTheme,
+    setColorTheme,
+    gradient,
+  } = useTheme();
   const {selectedVersion, setVersion, availableVersions} = useBibleVersion();
   const {language, setLanguage, t} = useLanguage();
   const [isResetting, setIsResetting] = useState(false);
+
+  const headerGradient = useMemo(
+    () =>
+      (gradient?.headerColors
+        ? [...gradient.headerColors]
+        : ['#4f46e5', '#7c3aed', '#a855f7']) as [string, string, string],
+    [gradient?.headerColors],
+  );
 
   async function handleThemeChange(newMode: ThemeOption) {
     await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
@@ -52,7 +83,7 @@ export default function SettingsScreen() {
               t.settings.resetSuccessMessage,
               [{text: t.ok}],
             );
-          } catch (error) {
+          } catch {
             Alert.alert(t.error, t.settings.resetError);
           } finally {
             setIsResetting(false);
@@ -74,515 +105,610 @@ export default function SettingsScreen() {
   const themedStyles = createThemedStyles(colors, isDark, themeActiveTextColor);
 
   return (
-    <ScrollView
-      style={[styles.container, {backgroundColor: colors.background}]}>
-      {/* Appearance Section */}
-      <View style={themedStyles.section}>
-        <View style={themedStyles.sectionHeader}>
-          <Ionicons
-            name="color-palette-outline"
-            size={22}
-            color={colors.primary}
-          />
-          <Text style={themedStyles.sectionTitle}>{t.settings.appearance}</Text>
-        </View>
+    <View style={[styles.container, {backgroundColor: colors.background}]}>
+      {/* Header con gradiente */}
+      <LinearGradient
+        colors={headerGradient}
+        start={{x: 0, y: 0}}
+        end={{x: 0, y: 1}}
+        style={styles.header}>
+        {/* Boton de regreso */}
+        <TouchableOpacity
+          style={styles.headerBackButton}
+          onPress={() => router.back()}
+          accessibilityRole="button"
+          accessibilityLabel={t.bible.back}>
+          <Ionicons name="arrow-back" size={24} color="#ffffff" />
+        </TouchableOpacity>
 
-        <View style={themedStyles.card}>
-          <Text style={themedStyles.settingLabel}>{t.settings.theme}</Text>
-          <Text style={themedStyles.settingDescription}>
-            {t.settings.themeDescription}
-          </Text>
-
-          <View style={themedStyles.themeOptions}>
-            <TouchableOpacity
-              style={[
-                themedStyles.themeOption,
-                mode === 'light' && themedStyles.themeOptionActive,
-              ]}
-              onPress={() => handleThemeChange('light')}>
-              <Ionicons
-                name="sunny"
-                size={24}
-                color={mode === 'light' ? themeActiveTextColor : colors.text}
-              />
-              <Text
-                style={[
-                  themedStyles.themeOptionText,
-                  mode === 'light' && themedStyles.themeOptionTextActive,
-                ]}>
-                {t.settings.themeLight}
-              </Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              style={[
-                themedStyles.themeOption,
-                mode === 'dark' && themedStyles.themeOptionActive,
-              ]}
-              onPress={() => handleThemeChange('dark')}>
-              <Ionicons
-                name="moon"
-                size={24}
-                color={mode === 'dark' ? themeActiveTextColor : colors.text}
-              />
-              <Text
-                style={[
-                  themedStyles.themeOptionText,
-                  mode === 'dark' && themedStyles.themeOptionTextActive,
-                ]}>
-                {t.settings.themeDark}
-              </Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              style={[
-                themedStyles.themeOption,
-                mode === 'auto' && themedStyles.themeOptionActive,
-              ]}
-              onPress={() => handleThemeChange('auto')}>
-              <Ionicons
-                name="phone-portrait-outline"
-                size={24}
-                color={mode === 'auto' ? themeActiveTextColor : colors.text}
-              />
-              <Text
-                style={[
-                  themedStyles.themeOptionText,
-                  mode === 'auto' && themedStyles.themeOptionTextActive,
-                ]}>
-                {t.settings.themeAuto}
-              </Text>
-            </TouchableOpacity>
+        <View style={styles.headerContent}>
+          <View style={styles.headerIconContainer}>
+            <Ionicons name="settings" size={32} color="#ffffff" />
+          </View>
+          <View style={styles.headerTextContainer}>
+            <Text style={styles.headerTitle} numberOfLines={1}>
+              {t.tabs.settings}
+            </Text>
+            <Text style={styles.headerSubtitle}>
+              Personaliza tu experiencia celestial
+            </Text>
           </View>
         </View>
+      </LinearGradient>
 
-        {/* Color Theme Selector - Compacto */}
-        <View style={[themedStyles.card, {marginTop: 16}]}>
-          <Text style={themedStyles.settingLabel}>{t.settings.colorTheme}</Text>
-          <Text style={themedStyles.settingDescription}>
-            {t.settings.colorThemeDescription}
-          </Text>
-
-          <View style={themedStyles.colorThemeGridCompact}>
-            {(Object.keys(colorThemes) as ColorTheme[]).map(themeKey => {
-              const theme = colorThemes[themeKey];
-              const isSelected = colorTheme === themeKey;
-              return (
-                <TouchableOpacity
-                  key={themeKey}
-                  style={[
-                    themedStyles.colorThemeOptionCompact,
-                    isSelected && themedStyles.colorThemeOptionCompactActive,
-                  ]}
-                  onPress={() => handleColorThemeChange(themeKey)}>
-                  <LinearGradient
-                    colors={theme.preview as [string, string, string]}
-                    start={{x: 0, y: 0}}
-                    end={{x: 1, y: 1}}
-                    style={themedStyles.colorThemePreviewCompact}>
-                    {isSelected && (
-                      <Ionicons name="checkmark" size={14} color="#FFFFFF" />
-                    )}
-                  </LinearGradient>
-                  <Text
-                    style={[
-                      themedStyles.colorThemeNameCompact,
-                      isSelected && themedStyles.colorThemeNameCompactActive,
-                    ]}
-                    numberOfLines={1}>
-                    {theme.name}
-                  </Text>
-                </TouchableOpacity>
-              );
-            })}
+      <ScrollView style={styles.scrollView}>
+        {/* Appearance Section */}
+        <View style={themedStyles.section}>
+          <View style={themedStyles.sectionHeader}>
+            <Ionicons
+              name="color-palette-outline"
+              size={22}
+              color={colors.primary}
+            />
+            <Text style={themedStyles.sectionTitle}>
+              {t.settings.appearance}
+            </Text>
           </View>
-        </View>
-      </View>
 
-      {/* Bible Version Section */}
-      <View style={themedStyles.section}>
-        <View style={themedStyles.sectionHeader}>
-          <Ionicons name="book-outline" size={22} color={colors.primary} />
-          <Text style={themedStyles.sectionTitle}>
-            {t.settings.bibleVersion}
-          </Text>
-        </View>
+          <View style={themedStyles.card}>
+            <Text style={themedStyles.settingLabel}>{t.settings.theme}</Text>
+            <Text style={themedStyles.settingDescription}>
+              {t.settings.themeDescription}
+            </Text>
 
-        <View style={themedStyles.card}>
-          <Text style={themedStyles.settingLabel}>
-            {t.settings.selectVersion}
-          </Text>
-          <Text style={themedStyles.settingDescription}>
-            {t.settings.versionDescription}
-          </Text>
-
-          <View style={themedStyles.versionOptions}>
-            {availableVersions.map(version => (
+            <View style={themedStyles.themeOptions}>
               <TouchableOpacity
-                key={version.id}
                 style={[
-                  themedStyles.versionOption,
-                  selectedVersion.id === version.id &&
-                    themedStyles.versionOptionActive,
+                  themedStyles.themeOption,
+                  mode === 'light' && themedStyles.themeOptionActive,
+                ]}
+                onPress={() => handleThemeChange('light')}>
+                <Ionicons
+                  name="sunny"
+                  size={24}
+                  color={mode === 'light' ? themeActiveTextColor : colors.text}
+                />
+                <Text
+                  style={[
+                    themedStyles.themeOptionText,
+                    mode === 'light' && themedStyles.themeOptionTextActive,
+                  ]}>
+                  {t.settings.themeLight}
+                </Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={[
+                  themedStyles.themeOption,
+                  mode === 'dark' && themedStyles.themeOptionActive,
+                ]}
+                onPress={() => handleThemeChange('dark')}>
+                <Ionicons
+                  name="moon"
+                  size={24}
+                  color={mode === 'dark' ? themeActiveTextColor : colors.text}
+                />
+                <Text
+                  style={[
+                    themedStyles.themeOptionText,
+                    mode === 'dark' && themedStyles.themeOptionTextActive,
+                  ]}>
+                  {t.settings.themeDark}
+                </Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={[
+                  themedStyles.themeOption,
+                  mode === 'auto' && themedStyles.themeOptionActive,
+                ]}
+                onPress={() => handleThemeChange('auto')}>
+                <Ionicons
+                  name="phone-portrait-outline"
+                  size={24}
+                  color={mode === 'auto' ? themeActiveTextColor : colors.text}
+                />
+                <Text
+                  style={[
+                    themedStyles.themeOptionText,
+                    mode === 'auto' && themedStyles.themeOptionTextActive,
+                  ]}>
+                  {t.settings.themeAuto}
+                </Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+
+          {/* Color Theme Selector - Compacto */}
+          <View style={themedStyles.cardWithMargin}>
+            <Text style={themedStyles.settingLabel}>
+              {t.settings.colorTheme}
+            </Text>
+            <Text style={themedStyles.settingDescription}>
+              {t.settings.colorThemeDescription}
+            </Text>
+
+            <View style={themedStyles.colorThemeGridCompact}>
+              {(Object.keys(colorThemes) as ColorTheme[]).map(themeKey => {
+                const theme = colorThemes[themeKey];
+                const isSelected = colorTheme === themeKey;
+                return (
+                  <TouchableOpacity
+                    key={themeKey}
+                    style={[
+                      themedStyles.colorThemeOptionCompact,
+                      isSelected && themedStyles.colorThemeOptionCompactActive,
+                    ]}
+                    onPress={() => handleColorThemeChange(themeKey)}>
+                    <LinearGradient
+                      colors={theme.preview as [string, string, string]}
+                      start={{x: 0, y: 0}}
+                      end={{x: 1, y: 1}}
+                      style={themedStyles.colorThemePreviewCompact}>
+                      {isSelected && (
+                        <Ionicons name="checkmark" size={14} color="#FFFFFF" />
+                      )}
+                    </LinearGradient>
+                    <Text
+                      style={[
+                        themedStyles.colorThemeNameCompact,
+                        isSelected && themedStyles.colorThemeNameCompactActive,
+                      ]}
+                      numberOfLines={1}>
+                      {theme.name}
+                    </Text>
+                  </TouchableOpacity>
+                );
+              })}
+            </View>
+          </View>
+        </View>
+
+        {/* Bible Version Section */}
+        <View style={themedStyles.section}>
+          <View style={themedStyles.sectionHeader}>
+            <Ionicons name="book-outline" size={22} color={colors.primary} />
+            <Text style={themedStyles.sectionTitle}>
+              {t.settings.bibleVersion}
+            </Text>
+          </View>
+
+          <View style={themedStyles.card}>
+            <Text style={themedStyles.settingLabel}>
+              {t.settings.selectVersion}
+            </Text>
+            <Text style={themedStyles.settingDescription}>
+              {t.settings.versionDescription}
+            </Text>
+
+            <View style={themedStyles.versionOptions}>
+              {availableVersions.map(version => (
+                <TouchableOpacity
+                  key={version.id}
+                  style={[
+                    themedStyles.versionOption,
+                    selectedVersion.id === version.id &&
+                      themedStyles.versionOptionActive,
+                  ]}
+                  onPress={async () => {
+                    await Haptics.impactAsync(
+                      Haptics.ImpactFeedbackStyle.Light,
+                    );
+                    await setVersion(version.id);
+                  }}>
+                  <View style={styles.versionOptionContent}>
+                    <View style={styles.versionHeader}>
+                      <Text
+                        style={[
+                          themedStyles.versionAbbr,
+                          selectedVersion.id === version.id &&
+                            themedStyles.versionAbbrActive,
+                        ]}>
+                        {version.abbreviation}
+                      </Text>
+                      {selectedVersion.id === version.id && (
+                        <Ionicons
+                          name="checkmark-circle"
+                          size={20}
+                          color={isDark ? colors.primaryDark : colors.primary}
+                        />
+                      )}
+                    </View>
+                    <Text
+                      style={[
+                        themedStyles.versionName,
+                        selectedVersion.id === version.id &&
+                          themedStyles.versionNameActive,
+                      ]}>
+                      {version.name}
+                    </Text>
+                    <View style={styles.versionMeta}>
+                      <Ionicons
+                        name="language-outline"
+                        size={12}
+                        color={
+                          selectedVersion.id === version.id
+                            ? isDark
+                              ? colors.primaryDark
+                              : colors.primary
+                            : colors.textTertiary
+                        }
+                      />
+                      <Text
+                        style={[
+                          themedStyles.versionMetaText,
+                          selectedVersion.id === version.id &&
+                            themedStyles.versionMetaActive,
+                        ]}>
+                        {version.language === 'es' ? 'Español' : 'English'}
+                      </Text>
+                      {version.year && (
+                        <>
+                          <Text style={themedStyles.versionMetaText}> • </Text>
+                          <Text
+                            style={[
+                              themedStyles.versionMetaText,
+                              selectedVersion.id === version.id &&
+                                themedStyles.versionMetaActive,
+                            ]}>
+                            {version.year}
+                          </Text>
+                        </>
+                      )}
+                    </View>
+                    {version.id !== 'RVR1960' && version.id !== 'KJV' && (
+                      <View style={themedStyles.comingSoonBadge}>
+                        <Text style={themedStyles.comingSoonBadgeText}>
+                          {t.settings.comingSoon}
+                        </Text>
+                      </View>
+                    )}
+                  </View>
+                </TouchableOpacity>
+              ))}
+            </View>
+          </View>
+        </View>
+
+        {/* Language Section */}
+        <View style={themedStyles.section}>
+          <View style={themedStyles.sectionHeader}>
+            <Ionicons
+              name="language-outline"
+              size={22}
+              color={colors.primary}
+            />
+            <Text style={themedStyles.sectionTitle}>{t.settings.language}</Text>
+          </View>
+
+          <View style={themedStyles.card}>
+            <Text style={themedStyles.settingLabel}>
+              {t.settings.selectLanguage}
+            </Text>
+            <Text style={themedStyles.settingDescription}>
+              {t.settings.languageDescription}
+            </Text>
+
+            <View style={themedStyles.languageOptions}>
+              <TouchableOpacity
+                style={[
+                  themedStyles.languageOption,
+                  language === 'es' && themedStyles.languageOptionActive,
                 ]}
                 onPress={async () => {
                   await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-                  await setVersion(version.id);
+                  await setLanguage('es');
                 }}>
-                <View style={styles.versionOptionContent}>
-                  <View style={styles.versionHeader}>
-                    <Text
-                      style={[
-                        themedStyles.versionAbbr,
-                        selectedVersion.id === version.id &&
-                          themedStyles.versionAbbrActive,
-                      ]}>
-                      {version.abbreviation}
-                    </Text>
-                    {selectedVersion.id === version.id && (
-                      <Ionicons
-                        name="checkmark-circle"
-                        size={20}
-                        color={isDark ? colors.primaryDark : colors.primary}
-                      />
-                    )}
-                  </View>
+                <View style={styles.languageContent}>
+                  <Text style={themedStyles.languageFlag}>🇪🇸</Text>
                   <Text
                     style={[
-                      themedStyles.versionName,
-                      selectedVersion.id === version.id &&
-                        themedStyles.versionNameActive,
+                      themedStyles.languageName,
+                      language === 'es' && themedStyles.languageNameActive,
                     ]}>
-                    {version.name}
+                    Español
                   </Text>
-                  <View style={styles.versionMeta}>
+                  {language === 'es' && (
                     <Ionicons
-                      name="language-outline"
-                      size={12}
-                      color={
-                        selectedVersion.id === version.id
-                          ? isDark
-                            ? colors.primaryDark
-                            : colors.primary
-                          : colors.textTertiary
-                      }
+                      name="checkmark-circle"
+                      size={20}
+                      color={isDark ? colors.primaryDark : colors.primary}
                     />
-                    <Text
-                      style={[
-                        themedStyles.versionMetaText,
-                        selectedVersion.id === version.id &&
-                          themedStyles.versionMetaActive,
-                      ]}>
-                      {version.language === 'es' ? 'Español' : 'English'}
-                    </Text>
-                    {version.year && (
-                      <>
-                        <Text style={themedStyles.versionMetaText}> • </Text>
-                        <Text
-                          style={[
-                            themedStyles.versionMetaText,
-                            selectedVersion.id === version.id &&
-                              themedStyles.versionMetaActive,
-                          ]}>
-                          {version.year}
-                        </Text>
-                      </>
-                    )}
-                  </View>
-                  {version.id !== 'RVR1960' && version.id !== 'KJV' && (
-                    <View style={themedStyles.comingSoonBadge}>
-                      <Text style={themedStyles.comingSoonBadgeText}>
-                        {t.settings.comingSoon}
-                      </Text>
-                    </View>
                   )}
                 </View>
               </TouchableOpacity>
-            ))}
+
+              <TouchableOpacity
+                style={[
+                  themedStyles.languageOption,
+                  language === 'en' && themedStyles.languageOptionActive,
+                ]}
+                onPress={async () => {
+                  await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                  await setLanguage('en');
+                }}>
+                <View style={styles.languageContent}>
+                  <Text style={themedStyles.languageFlag}>🇺🇸</Text>
+                  <Text
+                    style={[
+                      themedStyles.languageName,
+                      language === 'en' && themedStyles.languageNameActive,
+                    ]}>
+                    English
+                  </Text>
+                  {language === 'en' && (
+                    <Ionicons
+                      name="checkmark-circle"
+                      size={20}
+                      color={isDark ? colors.primaryDark : colors.primary}
+                    />
+                  )}
+                </View>
+              </TouchableOpacity>
+            </View>
           </View>
         </View>
-      </View>
 
-      {/* Language Section */}
-      <View style={themedStyles.section}>
-        <View style={themedStyles.sectionHeader}>
-          <Ionicons name="language-outline" size={22} color={colors.primary} />
-          <Text style={themedStyles.sectionTitle}>{t.settings.language}</Text>
+        {/* Data Section */}
+        <View style={themedStyles.section}>
+          <View style={themedStyles.sectionHeader}>
+            <Ionicons name="server-outline" size={22} color={colors.primary} />
+            <Text style={themedStyles.sectionTitle}>{t.settings.data}</Text>
+          </View>
+
+          <TouchableOpacity
+            style={themedStyles.card}
+            onPress={handleResetData}
+            disabled={isResetting}>
+            <View style={themedStyles.settingRow}>
+              <View style={styles.settingInfo}>
+                <Text
+                  style={[themedStyles.settingLabel, {color: colors.error}]}>
+                  {isResetting ? t.settings.resetting : t.settings.resetData}
+                </Text>
+                <Text style={themedStyles.settingDescription}>
+                  {t.settings.resetDescription}
+                </Text>
+              </View>
+              <Ionicons name="trash-outline" size={20} color={colors.error} />
+            </View>
+          </TouchableOpacity>
         </View>
 
-        <View style={themedStyles.card}>
-          <Text style={themedStyles.settingLabel}>
-            {t.settings.selectLanguage}
-          </Text>
-          <Text style={themedStyles.settingDescription}>
-            {t.settings.languageDescription}
-          </Text>
+        {/* New Features V5.1 Section */}
+        <View style={themedStyles.section}>
+          <View style={themedStyles.sectionHeader}>
+            <Ionicons name="sparkles" size={22} color={colors.accent} />
+            <Text style={themedStyles.sectionTitle}>{t.settingsV51.title}</Text>
+          </View>
 
-          <View style={themedStyles.languageOptions}>
+          <View style={themedStyles.card}>
+            {/* Widgets */}
             <TouchableOpacity
-              style={[
-                themedStyles.languageOption,
-                language === 'es' && themedStyles.languageOptionActive,
-              ]}
+              style={themedStyles.featureItem}
               onPress={async () => {
                 await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-                await setLanguage('es');
+                router.push('/features/widgets');
               }}>
-              <View style={styles.languageContent}>
-                <Text style={themedStyles.languageFlag}>🇪🇸</Text>
-                <Text
+              <View style={styles.featureContent}>
+                <View
                   style={[
-                    themedStyles.languageName,
-                    language === 'es' && themedStyles.languageNameActive,
+                    themedStyles.featureIcon,
+                    {backgroundColor: colors.primary + '15'},
                   ]}>
-                  Español
-                </Text>
-                {language === 'es' && (
-                  <Ionicons
-                    name="checkmark-circle"
-                    size={20}
-                    color={isDark ? colors.primaryDark : colors.primary}
-                  />
-                )}
+                  <Ionicons name="apps" size={24} color={colors.primary} />
+                </View>
+                <View style={styles.featureInfo}>
+                  <Text style={themedStyles.featureTitle}>
+                    {t.settingsV51.widgets}
+                  </Text>
+                  <Text style={themedStyles.featureDescription}>
+                    {t.settingsV51.widgetsDesc}
+                  </Text>
+                </View>
               </View>
+              <Ionicons
+                name="chevron-forward"
+                size={20}
+                color={colors.textTertiary}
+              />
             </TouchableOpacity>
 
+            {/* Version Comparison */}
             <TouchableOpacity
-              style={[
-                themedStyles.languageOption,
-                language === 'en' && themedStyles.languageOptionActive,
-              ]}
+              style={themedStyles.featureItem}
               onPress={async () => {
                 await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-                await setLanguage('en');
+                router.push('/features/version-comparison');
               }}>
-              <View style={styles.languageContent}>
-                <Text style={themedStyles.languageFlag}>🇺🇸</Text>
-                <Text
+              <View style={styles.featureContent}>
+                <View
                   style={[
-                    themedStyles.languageName,
-                    language === 'en' && themedStyles.languageNameActive,
+                    themedStyles.featureIcon,
+                    {backgroundColor: colors.accent + '15'},
                   ]}>
-                  English
-                </Text>
-                {language === 'en' && (
                   <Ionicons
-                    name="checkmark-circle"
-                    size={20}
-                    color={isDark ? colors.primaryDark : colors.primary}
+                    name="git-compare"
+                    size={24}
+                    color={colors.accent}
                   />
-                )}
+                </View>
+                <View style={styles.featureInfo}>
+                  <Text style={themedStyles.featureTitle}>
+                    {t.settingsV51.versionComparison}
+                  </Text>
+                  <Text style={themedStyles.featureDescription}>
+                    {t.settingsV51.versionComparisonDesc}
+                  </Text>
+                </View>
               </View>
+              <Ionicons
+                name="chevron-forward"
+                size={20}
+                color={colors.textTertiary}
+              />
+            </TouchableOpacity>
+
+            {/* Badges & Titles */}
+            <TouchableOpacity
+              style={themedStyles.featureItem}
+              onPress={async () => {
+                await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                router.push('/features/badges');
+              }}>
+              <View style={styles.featureContent}>
+                <View
+                  style={[
+                    themedStyles.featureIcon,
+                    {backgroundColor: colors.warning + '15'},
+                  ]}>
+                  <Ionicons name="ribbon" size={24} color={colors.warning} />
+                </View>
+                <View style={styles.featureInfo}>
+                  <Text style={themedStyles.featureTitle}>
+                    {t.settingsV51.badges}
+                  </Text>
+                  <Text style={themedStyles.featureDescription}>
+                    {t.settingsV51.badgesDesc}
+                  </Text>
+                </View>
+              </View>
+              <Ionicons
+                name="chevron-forward"
+                size={20}
+                color={colors.textTertiary}
+              />
+            </TouchableOpacity>
+
+            {/* Cache Stats */}
+            <TouchableOpacity
+              style={themedStyles.featureItemLast}
+              onPress={async () => {
+                await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                router.push('/features/cache-stats');
+              }}>
+              <View style={styles.featureContent}>
+                <View style={themedStyles.featureIconSuccess}>
+                  <Ionicons name="flash" size={24} color={colors.success} />
+                </View>
+                <View style={styles.featureInfo}>
+                  <Text style={themedStyles.featureTitle}>
+                    {t.settingsV51.cacheStats}
+                  </Text>
+                  <Text style={themedStyles.featureDescription}>
+                    {t.settingsV51.cacheStatsDesc}
+                  </Text>
+                </View>
+              </View>
+              <Ionicons
+                name="chevron-forward"
+                size={20}
+                color={colors.textTertiary}
+              />
             </TouchableOpacity>
           </View>
         </View>
-      </View>
 
-      {/* Data Section */}
-      <View style={themedStyles.section}>
-        <View style={themedStyles.sectionHeader}>
-          <Ionicons name="server-outline" size={22} color={colors.primary} />
-          <Text style={themedStyles.sectionTitle}>{t.settings.data}</Text>
-        </View>
+        {/* About Section */}
+        <View style={themedStyles.section}>
+          <View style={themedStyles.sectionHeader}>
+            <Ionicons
+              name="information-circle-outline"
+              size={22}
+              color={colors.primary}
+            />
+            <Text style={themedStyles.sectionTitle}>{t.settings.about}</Text>
+          </View>
 
-        <TouchableOpacity
-          style={themedStyles.card}
-          onPress={handleResetData}
-          disabled={isResetting}>
-          <View style={themedStyles.settingRow}>
-            <View style={styles.settingInfo}>
-              <Text style={[themedStyles.settingLabel, {color: colors.error}]}>
-                {isResetting ? t.settings.resetting : t.settings.resetData}
+          <View style={themedStyles.card}>
+            <View style={themedStyles.aboutRow}>
+              <Text style={themedStyles.settingLabel}>Eternal Bible</Text>
+              <Text style={themedStyles.settingValue}>
+                {t.settings.version} 3.0.0
               </Text>
+            </View>
+
+            <View style={themedStyles.aboutRow}>
               <Text style={themedStyles.settingDescription}>
-                {t.settings.resetDescription}
+                {t.settings.description}
               </Text>
             </View>
-            <Ionicons name="trash-outline" size={20} color={colors.error} />
+
+            <TouchableOpacity
+              style={themedStyles.linkButton}
+              onPress={handleOpenGitHub}>
+              <Ionicons name="logo-github" size={20} color={colors.primary} />
+              <Text style={themedStyles.linkText}>{t.settings.viewGitHub}</Text>
+            </TouchableOpacity>
           </View>
-        </TouchableOpacity>
-      </View>
-
-      {/* New Features V5.1 Section */}
-      <View style={themedStyles.section}>
-        <View style={themedStyles.sectionHeader}>
-          <Ionicons name="sparkles" size={22} color={colors.accent} />
-          <Text style={themedStyles.sectionTitle}>{t.settingsV51.title}</Text>
         </View>
 
-        <View style={themedStyles.card}>
-          {/* Widgets */}
-          <TouchableOpacity
-            style={themedStyles.featureItem}
-            onPress={async () => {
-              await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-              router.push('/features/widgets');
-            }}>
-            <View style={styles.featureContent}>
-              <View
-                style={[
-                  themedStyles.featureIcon,
-                  {backgroundColor: colors.primary + '15'},
-                ]}>
-                <Ionicons name="apps" size={24} color={colors.primary} />
-              </View>
-              <View style={styles.featureInfo}>
-                <Text style={themedStyles.featureTitle}>
-                  {t.settingsV51.widgets}
-                </Text>
-                <Text style={themedStyles.featureDescription}>
-                  {t.settingsV51.widgetsDesc}
-                </Text>
-              </View>
-            </View>
-            <Ionicons
-              name="chevron-forward"
-              size={20}
-              color={colors.textTertiary}
-            />
-          </TouchableOpacity>
-
-          {/* Version Comparison */}
-          <TouchableOpacity
-            style={themedStyles.featureItem}
-            onPress={async () => {
-              await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-              router.push('/features/version-comparison');
-            }}>
-            <View style={styles.featureContent}>
-              <View
-                style={[
-                  themedStyles.featureIcon,
-                  {backgroundColor: colors.accent + '15'},
-                ]}>
-                <Ionicons name="git-compare" size={24} color={colors.accent} />
-              </View>
-              <View style={styles.featureInfo}>
-                <Text style={themedStyles.featureTitle}>
-                  {t.settingsV51.versionComparison}
-                </Text>
-                <Text style={themedStyles.featureDescription}>
-                  {t.settingsV51.versionComparisonDesc}
-                </Text>
-              </View>
-            </View>
-            <Ionicons
-              name="chevron-forward"
-              size={20}
-              color={colors.textTertiary}
-            />
-          </TouchableOpacity>
-
-          {/* Badges & Titles */}
-          <TouchableOpacity
-            style={themedStyles.featureItem}
-            onPress={async () => {
-              await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-              router.push('/features/badges');
-            }}>
-            <View style={styles.featureContent}>
-              <View
-                style={[
-                  themedStyles.featureIcon,
-                  {backgroundColor: colors.warning + '15'},
-                ]}>
-                <Ionicons name="ribbon" size={24} color={colors.warning} />
-              </View>
-              <View style={styles.featureInfo}>
-                <Text style={themedStyles.featureTitle}>
-                  {t.settingsV51.badges}
-                </Text>
-                <Text style={themedStyles.featureDescription}>
-                  {t.settingsV51.badgesDesc}
-                </Text>
-              </View>
-            </View>
-            <Ionicons
-              name="chevron-forward"
-              size={20}
-              color={colors.textTertiary}
-            />
-          </TouchableOpacity>
-
-          {/* Cache Stats */}
-          <TouchableOpacity
-            style={[themedStyles.featureItem, {borderBottomWidth: 0}]}
-            onPress={async () => {
-              await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-              router.push('/features/cache-stats');
-            }}>
-            <View style={styles.featureContent}>
-              <View
-                style={[
-                  themedStyles.featureIcon,
-                  {backgroundColor: '#10B981' + '15'},
-                ]}>
-                <Ionicons name="flash" size={24} color="#10B981" />
-              </View>
-              <View style={styles.featureInfo}>
-                <Text style={themedStyles.featureTitle}>
-                  {t.settingsV51.cacheStats}
-                </Text>
-                <Text style={themedStyles.featureDescription}>
-                  {t.settingsV51.cacheStatsDesc}
-                </Text>
-              </View>
-            </View>
-            <Ionicons
-              name="chevron-forward"
-              size={20}
-              color={colors.textTertiary}
-            />
-          </TouchableOpacity>
+        {/* Footer */}
+        <View style={themedStyles.footer}>
+          <Text style={themedStyles.footerText}>{t.settings.footerText}</Text>
+          <Text style={themedStyles.footerVerse}>{t.settings.footerVerse}</Text>
         </View>
-      </View>
-
-      {/* About Section */}
-      <View style={themedStyles.section}>
-        <View style={themedStyles.sectionHeader}>
-          <Ionicons
-            name="information-circle-outline"
-            size={22}
-            color={colors.primary}
-          />
-          <Text style={themedStyles.sectionTitle}>{t.settings.about}</Text>
-        </View>
-
-        <View style={themedStyles.card}>
-          <View style={themedStyles.aboutRow}>
-            <Text style={themedStyles.settingLabel}>Eternal Bible</Text>
-            <Text style={themedStyles.settingValue}>
-              {t.settings.version} 3.0.0
-            </Text>
-          </View>
-
-          <View style={themedStyles.aboutRow}>
-            <Text style={themedStyles.settingDescription}>
-              {t.settings.description}
-            </Text>
-          </View>
-
-          <TouchableOpacity
-            style={themedStyles.linkButton}
-            onPress={handleOpenGitHub}>
-            <Ionicons name="logo-github" size={20} color={colors.primary} />
-            <Text style={themedStyles.linkText}>{t.settings.viewGitHub}</Text>
-          </TouchableOpacity>
-        </View>
-      </View>
-
-      {/* Footer */}
-      <View style={themedStyles.footer}>
-        <Text style={themedStyles.footerText}>{t.settings.footerText}</Text>
-        <Text style={themedStyles.footerVerse}>{t.settings.footerVerse}</Text>
-      </View>
-    </ScrollView>
+      </ScrollView>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+  },
+  scrollView: {
+    flex: 1,
+  },
+  header: {
+    paddingTop: 60,
+    paddingBottom: 24,
+    paddingHorizontal: 20,
+    borderBottomLeftRadius: 16,
+    borderBottomRightRadius: 16,
+    shadowColor: '#000',
+    shadowOffset: {width: 0, height: 4},
+    shadowOpacity: 0.1,
+    shadowRadius: 12,
+    elevation: 5,
+  },
+  headerBackButton: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: 'rgba(255,255,255,0.2)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 16,
+  },
+  headerContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  headerIconContainer: {
+    width: 64,
+    height: 64,
+    borderRadius: 16,
+    backgroundColor: 'rgba(255,255,255,0.2)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 16,
+    borderWidth: 2,
+    borderColor: 'rgba(255,255,255,0.3)',
+  },
+  headerTextContainer: {
+    flex: 1,
+  },
+  headerTitle: {
+    fontSize: 34,
+    fontWeight: '700',
+    color: '#ffffff',
+    marginBottom: 4,
+  },
+  headerSubtitle: {
+    fontSize: 16,
+    color: 'rgba(255,255,255,0.9)',
+    fontWeight: '500',
   },
   settingInfo: {
     flex: 1,
@@ -618,7 +744,7 @@ const styles = StyleSheet.create({
 });
 
 function createThemedStyles(
-  colors: any,
+  colors: ThemeColors,
   isDark: boolean,
   themeActiveTextColor: string,
 ) {
@@ -626,6 +752,14 @@ function createThemedStyles(
     section: {
       marginTop: 24,
       paddingHorizontal: 16,
+    },
+    searchInputContainer: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      backgroundColor: colors.surfaceVariant,
+      borderRadius: 12,
+      paddingHorizontal: 16,
+      paddingVertical: 12,
     },
     sectionHeader: {
       flexDirection: 'row',
@@ -643,6 +777,17 @@ function createThemedStyles(
       backgroundColor: colors.surface,
       borderRadius: 12,
       padding: 16,
+      shadowColor: '#000',
+      shadowOffset: {width: 0, height: 2},
+      shadowOpacity: isDark ? 0.3 : 0.1,
+      shadowRadius: 4,
+      elevation: 3,
+    },
+    cardWithMargin: {
+      backgroundColor: colors.surface,
+      borderRadius: 12,
+      padding: 16,
+      marginTop: 16,
       shadowColor: '#000',
       shadowOffset: {width: 0, height: 2},
       shadowOpacity: isDark ? 0.3 : 0.1,
@@ -841,12 +986,27 @@ function createThemedStyles(
       borderBottomWidth: 1,
       borderBottomColor: colors.border,
     },
+    featureItemLast: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      paddingVertical: 14,
+      borderBottomWidth: 0,
+    },
     featureIcon: {
       width: 48,
       height: 48,
       borderRadius: 12,
       alignItems: 'center',
       justifyContent: 'center',
+    },
+    featureIconSuccess: {
+      width: 48,
+      height: 48,
+      borderRadius: 12,
+      alignItems: 'center',
+      justifyContent: 'center',
+      backgroundColor: colors.success + '20',
     },
     featureTitle: {
       fontSize: 15,
@@ -933,22 +1093,4 @@ function createThemedStyles(
       color: isDark ? colors.primaryDark : colors.primary,
     },
   });
-}
-
-function getReadableTextColor(
-  color: string,
-  darkFallback: string,
-  isDark: boolean,
-) {
-  if (!color || !color.startsWith('#') || color.length < 7) {
-    return isDark ? darkFallback : '#FFFFFF';
-  }
-
-  const hex = color.replace('#', '');
-  const r = parseInt(hex.substring(0, 2), 16);
-  const g = parseInt(hex.substring(2, 4), 16);
-  const b = parseInt(hex.substring(4, 6), 16);
-  const luminance = (0.2126 * r + 0.7152 * g + 0.0722 * b) / 255;
-
-  return luminance > 0.62 ? darkFallback : '#FFFFFF';
 }

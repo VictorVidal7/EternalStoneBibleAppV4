@@ -1,19 +1,25 @@
-import React, { useState, useEffect, useCallback } from 'react';
-import { View, Text, TouchableOpacity, ActivityIndicator, StyleSheet } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
-import { useTheme } from '../context/ThemeContext';
+import React, {useState, useEffect, useCallback} from 'react';
+import {
+  View,
+  Text,
+  TouchableOpacity,
+  ActivityIndicator,
+  StyleSheet,
+} from 'react-native';
+import {useNavigation} from '@react-navigation/native';
+import {useTheme} from '../context/ThemeContext';
 import DailyVerseService from '../services/DailyVerseService';
-import { getBookName } from '../data/bookNames';
-import { useTranslation } from 'react-i18next';
-import { AnalyticsService } from '../services/AnalyticsService';
+import {getBookName} from '../data/bookNames';
+import {useTranslation} from 'react-i18next';
+import {AnalyticsService} from '../services/AnalyticsService';
 
 const DailyVerse = () => {
   const [verse, setVerse] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const navigation = useNavigation();
-  const { colors, roundness } = useTheme();
-  const { t, i18n } = useTranslation();
+  const {colors, roundness} = useTheme();
+  const {t, i18n} = useTranslation();
 
   const fetchDailyVerse = useCallback(async () => {
     try {
@@ -22,11 +28,10 @@ const DailyVerse = () => {
       const dailyVerse = await DailyVerseService.getDailyVerse();
       if (dailyVerse) {
         setVerse(dailyVerse);
-        console.log('Daily verse fetched:', dailyVerse);
         AnalyticsService.logEvent('daily_verse_fetched', {
           book: dailyVerse.book,
           chapter: dailyVerse.chapter,
-          verse: dailyVerse.number
+          verse: dailyVerse.number,
         });
       } else {
         throw new Error('No se pudo obtener el versículo diario');
@@ -34,7 +39,9 @@ const DailyVerse = () => {
     } catch (error) {
       console.error('Error al obtener el versículo del día:', error);
       setError(error.message);
-      AnalyticsService.logEvent('daily_verse_fetch_error', { error: error.message });
+      AnalyticsService.logEvent('daily_verse_fetch_error', {
+        error: error.message,
+      });
     } finally {
       setLoading(false);
     }
@@ -46,19 +53,18 @@ const DailyVerse = () => {
 
   const handlePress = useCallback(() => {
     if (verse) {
-      console.log('Navigating to verse:', verse);
       navigation.navigate('Biblia', {
         screen: 'Verse',
-        params: { 
-          book: verse.book, 
-          chapter: verse.chapter, 
-          verse: verse.number 
-        }
+        params: {
+          book: verse.book,
+          chapter: verse.chapter,
+          verse: verse.number,
+        },
       });
       AnalyticsService.logEvent('daily_verse_opened', {
         book: verse.book,
         chapter: verse.chapter,
-        verse: verse.number
+        verse: verse.number,
       });
     }
   }, [navigation, verse]);
@@ -72,7 +78,7 @@ const DailyVerse = () => {
       marginVertical: 12,
       borderWidth: 0,
       shadowColor: '#000000',
-      shadowOffset: { width: 0, height: 3 },
+      shadowOffset: {width: 0, height: 3},
       shadowOpacity: 0.1,
       shadowRadius: 15,
       elevation: 4,
@@ -149,8 +155,7 @@ const DailyVerse = () => {
       style={styles.container}
       onPress={handlePress}
       accessibilityLabel={t('Versículo diario')}
-      accessibilityHint={t('Toca para ver el versículo completo')}
-    >
+      accessibilityHint={t('Toca para ver el versículo completo')}>
       <Text style={styles.title}>{t('Versículo del día')}</Text>
       <Text style={styles.verseText}>{verse.text}</Text>
       <Text style={styles.reference}>

@@ -39,16 +39,6 @@ CREATE TRIGGER IF NOT EXISTS verses_au AFTER UPDATE ON verses BEGIN
   VALUES (new.id, new.book_name, new.chapter, new.verse, new.text);
 END;
 
--- Bookmarks table
-CREATE TABLE IF NOT EXISTS bookmarks (
-  id TEXT PRIMARY KEY,
-  book_name TEXT NOT NULL,
-  chapter INTEGER NOT NULL,
-  verse INTEGER NOT NULL,
-  text TEXT NOT NULL,
-  created_at TEXT NOT NULL
-);
-
 -- Notes table
 CREATE TABLE IF NOT EXISTS notes (
   id TEXT PRIMARY KEY,
@@ -70,11 +60,29 @@ CREATE TABLE IF NOT EXISTS reading_progress (
   timestamp TEXT NOT NULL
 );
 
+-- Favorites table
+CREATE TABLE IF NOT EXISTS favorites (
+  id TEXT PRIMARY KEY,
+  verse_id TEXT NOT NULL,
+  book_name TEXT NOT NULL,
+  chapter INTEGER NOT NULL,
+  verse INTEGER NOT NULL,
+  text TEXT NOT NULL,
+  category TEXT NOT NULL DEFAULT 'other',
+  rating INTEGER NOT NULL DEFAULT 5 CHECK (rating >= 1 AND rating <= 5),
+  tags TEXT,
+  note TEXT,
+  created_at INTEGER NOT NULL,
+  updated_at INTEGER NOT NULL
+);
+
 -- Indexes for faster queries
 CREATE INDEX IF NOT EXISTS idx_verses_book_chapter ON verses(book_id, chapter);
 CREATE INDEX IF NOT EXISTS idx_verses_version ON verses(version);
-CREATE INDEX IF NOT EXISTS idx_bookmarks_reference ON bookmarks(book_name, chapter, verse);
 CREATE INDEX IF NOT EXISTS idx_notes_reference ON notes(book_name, chapter, verse);
+CREATE INDEX IF NOT EXISTS idx_favorites_reference ON favorites(book_name, chapter, verse);
+CREATE INDEX IF NOT EXISTS idx_favorites_category ON favorites(category);
+CREATE INDEX IF NOT EXISTS idx_favorites_rating ON favorites(rating);
 `;
 
 export const INITIAL_READING_PROGRESS = `

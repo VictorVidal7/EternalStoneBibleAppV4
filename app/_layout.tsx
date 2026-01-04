@@ -3,6 +3,9 @@ import {useEffect, useState} from 'react';
 import {View, Text, StyleSheet, LogBox} from 'react-native';
 
 // Ignore specific development warnings
+
+// Ignore specific development warnings
+
 // En produccion ignorar todo, en desarrollo ignorar warnings no criticos
 if (!__DEV__) {
   LogBox.ignoreAllLogs();
@@ -116,10 +119,13 @@ function AppContent() {
 
   if (isLoading) {
     return (
-      <AnimatedSplashScreen
-        loadingProgress={loadingProgress}
-        message={loadingProgress.total === 0 ? t.app.preparing : undefined}
-      />
+      <View style={styles.loadingContainer}>
+        <Text style={styles.progressText}>
+          {loadingProgress.total === 0
+            ? t.app.preparing
+            : `Cargando... ${Math.round((loadingProgress.loaded / loadingProgress.total) * 100)}%`}
+        </Text>
+      </View>
     );
   }
 
@@ -134,16 +140,16 @@ function AppContent() {
   }
 
   return (
-    <GestureHandlerRootView style={{flex: 1}}>
+    <>
       <Stack
         screenOptions={{
           headerShown: false,
         }}>
         <Stack.Screen name="(tabs)" />
       </Stack>
-      <AchievementNotifications />
-      <MiniAudioPlayer />
-    </GestureHandlerRootView>
+      {/* <AchievementNotifications /> */}
+      {/* <MiniAudioPlayer /> */}
+    </>
   );
 }
 
@@ -237,22 +243,24 @@ const styles = StyleSheet.create({
 
 export default function RootLayout() {
   return (
-    <LanguageProvider>
-      <ThemeProvider>
-        <BibleVersionProvider>
-          <ServicesProvider database={bibleDB}>
-            <ReadingProgressProvider>
-              <FavoritesProvider>
-                <ToastProvider>
-                  <AudioPlayerProvider>
-                    <AppContent />
-                  </AudioPlayerProvider>
-                </ToastProvider>
-              </FavoritesProvider>
-            </ReadingProgressProvider>
-          </ServicesProvider>
-        </BibleVersionProvider>
-      </ThemeProvider>
-    </LanguageProvider>
+    <GestureHandlerRootView style={{flex: 1}}>
+      <LanguageProvider>
+        <ThemeProvider>
+          <BibleVersionProvider>
+            <ServicesProvider database={bibleDB}>
+              <ReadingProgressProvider>
+                <FavoritesProvider>
+                  <ToastProvider>
+                    <AudioPlayerProvider>
+                      <AppContent />
+                    </AudioPlayerProvider>
+                  </ToastProvider>
+                </FavoritesProvider>
+              </ReadingProgressProvider>
+            </ServicesProvider>
+          </BibleVersionProvider>
+        </ThemeProvider>
+      </LanguageProvider>
+    </GestureHandlerRootView>
   );
 }

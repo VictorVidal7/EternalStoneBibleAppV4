@@ -3,7 +3,7 @@
  * Shows all user achievements, progress and statistics
  */
 
-import React, {useState, useEffect} from 'react';
+import React, {useState, useMemo} from 'react';
 import {
   View,
   Text,
@@ -11,7 +11,10 @@ import {
   FlatList,
   Pressable,
   SafeAreaView,
+  TouchableOpacity,
 } from 'react-native';
+import {useRouter} from 'expo-router';
+import {Ionicons} from '@expo/vector-icons';
 import {LinearGradient} from 'expo-linear-gradient';
 import {AchievementCard} from '../components/achievements/AchievementCard';
 import {UserStatsPanel} from '../components/achievements/UserStatsPanel';
@@ -34,6 +37,15 @@ export const AchievementsScreen: React.FC<AchievementsScreenProps> = ({
     useAchievements(database);
   const {colors, isDark, gradient} = useTheme();
   const {t} = useLanguage();
+  const router = useRouter();
+
+  const headerGradient = useMemo(
+    () =>
+      (gradient?.headerColors
+        ? [...gradient.headerColors]
+        : ['#4f46e5', '#7c3aed', '#a855f7']) as [string, string, string],
+    [gradient?.headerColors],
+  );
 
   const [selectedCategory, setSelectedCategory] = useState<
     AchievementCategory | 'all'
@@ -93,23 +105,51 @@ export const AchievementsScreen: React.FC<AchievementsScreenProps> = ({
       style={[styles.container, {backgroundColor: colors.background}]}>
       {/* Header with toggle - Modern and elegant design */}
       <LinearGradient
-        colors={[...gradient.headerColors]}
+        colors={headerGradient}
         start={{x: 0, y: 0}}
         end={{x: 1, y: 0}}
         style={styles.header}>
-        <Text style={styles.headerTitle}>
-          {showStats
-            ? t.achievements.yourStats
-            : t.achievements.yourAchievements}
-        </Text>
-        <Pressable
-          style={[
-            styles.toggleButton,
-            {backgroundColor: 'rgba(255,255,255,0.2)'},
-          ]}
-          onPress={() => setShowStats(!showStats)}>
-          <Text style={styles.toggleIcon}>{showStats ? '🏅' : '📊'}</Text>
-        </Pressable>
+        <View style={styles.headerTop}>
+          <TouchableOpacity
+            style={styles.headerBackButton}
+            onPress={() => router.back()}
+            accessibilityRole="button"
+            accessibilityLabel={t.bible.back}>
+            <Ionicons name="arrow-back" size={24} color="#ffffff" />
+          </TouchableOpacity>
+
+          <Pressable
+            style={[
+              styles.toggleButton,
+              {backgroundColor: 'rgba(255,255,255,0.2)'},
+            ]}
+            onPress={() => setShowStats(!showStats)}
+            accessibilityRole="button"
+            accessibilityLabel={
+              showStats
+                ? t.achievements.viewAchievements
+                : t.achievements.yourStats
+            }>
+            <Text style={styles.toggleIcon}>{showStats ? '🏅' : '📊'}</Text>
+          </Pressable>
+        </View>
+
+        <View style={styles.headerContentContainer}>
+          <View style={styles.headerIconContainer}>
+            <Ionicons name="trophy" size={32} color="#ffffff" />
+          </View>
+          <View style={styles.headerTextContainer}>
+            <Text style={styles.headerTitle}>
+              {showStats
+                ? t.achievements.yourStats
+                : t.achievements.yourAchievements}
+            </Text>
+            <Text style={styles.headerSubtitle}>
+              {achievements.filter(a => a.isUnlocked).length} /{' '}
+              {achievements.length} {t.achievements.achievementsUnlocked}
+            </Text>
+          </View>
+        </View>
       </LinearGradient>
 
       {showStats ? (
@@ -215,11 +255,13 @@ export const AchievementsScreen: React.FC<AchievementsScreenProps> = ({
             data={sortedAchievements}
             keyExtractor={item => item.id}
             renderItem={({item}) => (
-              <AchievementCard
-                achievement={item}
-                onPress={setSelectedAchievement}
-                showProgress
-              />
+              <TouchableOpacity onPress={() => setSelectedAchievement(item)}>
+                <AchievementCard
+                  achievement={item}
+                  unlocked={item.isUnlocked}
+                  progress={(item.currentProgress / item.requirement) * 100}
+                />
+              </TouchableOpacity>
             )}
             contentContainerStyle={styles.list}
             showsVerticalScrollIndicator={false}
@@ -268,21 +310,59 @@ const styles = StyleSheet.create({
     fontSize: fontSize.base,
   },
   header: {
+    paddingTop: 40,
+    paddingBottom: 24,
+    paddingHorizontal: 20,
+    borderBottomLeftRadius: 16,
+    borderBottomRightRadius: 16,
+    shadowColor: '#000',
+    shadowOffset: {width: 0, height: 4},
+    shadowOpacity: 0.1,
+    shadowRadius: 12,
+    elevation: 5,
+  },
+  headerTop: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingHorizontal: spacing.lg,
-    paddingVertical: spacing.lg,
-    shadowColor: '#6366f1',
-    shadowOffset: {width: 0, height: 2},
-    shadowOpacity: 0.12,
-    shadowRadius: 4,
-    elevation: 2,
+    marginBottom: 16,
+  },
+  headerBackButton: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: 'rgba(255,255,255,0.2)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  headerContentContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  headerIconContainer: {
+    width: 64,
+    height: 64,
+    borderRadius: 16,
+    backgroundColor: 'rgba(255,255,255,0.2)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 16,
+    borderWidth: 2,
+    borderColor: 'rgba(255,255,255,0.3)',
+  },
+  headerTextContainer: {
+    flex: 1,
   },
   headerTitle: {
-    fontSize: fontSize['2xl'],
-    fontWeight: '800',
+    fontSize: 34,
+    fontWeight: '700',
     color: '#ffffff',
+    marginBottom: 4,
+  },
+  headerSubtitle: {
+    fontSize: 16,
+    color: 'rgba(255,255,255,0.9)',
+    fontWeight: '500',
   },
   toggleButton: {
     width: 44,

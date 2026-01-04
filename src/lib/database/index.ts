@@ -1,6 +1,5 @@
 import * as SQLite from 'expo-sqlite';
-import {BibleVerse, Bookmark, Note, ReadingProgress} from '../../types/bible';
-import {CREATE_TABLES, INITIAL_READING_PROGRESS} from './schema';
+import {BibleVerse, Note, ReadingProgress} from '../../types/bible';
 
 class BibleDatabase {
   private db: SQLite.SQLiteDatabase | null = null;
@@ -40,7 +39,7 @@ class BibleDatabase {
       console.log('🔧 Creating database tables...');
 
       // Tabla verses
-      await this.db.execAsync(`
+      await this.db.runAsync(`
         CREATE TABLE IF NOT EXISTS verses (
           id INTEGER PRIMARY KEY AUTOINCREMENT,
           book_id INTEGER NOT NULL,
@@ -54,7 +53,7 @@ class BibleDatabase {
       `);
 
       // FTS5 table
-      await this.db.execAsync(`
+      await this.db.runAsync(`
         CREATE VIRTUAL TABLE IF NOT EXISTS verses_fts USING fts5(
           book_name,
           chapter,
@@ -66,21 +65,21 @@ class BibleDatabase {
       `);
 
       // Triggers
-      await this.db.execAsync(`
+      await this.db.runAsync(`
         CREATE TRIGGER IF NOT EXISTS verses_ai AFTER INSERT ON verses BEGIN
           INSERT INTO verses_fts(rowid, book_name, chapter, verse, text)
           VALUES (new.id, new.book_name, new.chapter, new.verse, new.text);
         END
       `);
 
-      await this.db.execAsync(`
+      await this.db.runAsync(`
         CREATE TRIGGER IF NOT EXISTS verses_ad AFTER DELETE ON verses BEGIN
           INSERT INTO verses_fts(verses_fts, rowid, book_name, chapter, verse, text)
           VALUES('delete', old.id, old.book_name, old.chapter, old.verse, old.text);
         END
       `);
 
-      await this.db.execAsync(`
+      await this.db.runAsync(`
         CREATE TRIGGER IF NOT EXISTS verses_au AFTER UPDATE ON verses BEGIN
           INSERT INTO verses_fts(verses_fts, rowid, book_name, chapter, verse, text)
           VALUES('delete', old.id, old.book_name, old.chapter, old.verse, old.text);
@@ -89,20 +88,8 @@ class BibleDatabase {
         END
       `);
 
-      // Tabla bookmarks
-      await this.db.execAsync(`
-        CREATE TABLE IF NOT EXISTS bookmarks (
-          id TEXT PRIMARY KEY,
-          book_name TEXT NOT NULL,
-          chapter INTEGER NOT NULL,
-          verse INTEGER NOT NULL,
-          text TEXT NOT NULL,
-          created_at TEXT NOT NULL
-        )
-      `);
-
       // Tabla notes
-      await this.db.execAsync(`
+      await this.db.runAsync(`
         CREATE TABLE IF NOT EXISTS notes (
           id TEXT PRIMARY KEY,
           book_name TEXT NOT NULL,
@@ -116,7 +103,7 @@ class BibleDatabase {
       `);
 
       // Tabla reading_progress
-      await this.db.execAsync(`
+      await this.db.runAsync(`
         CREATE TABLE IF NOT EXISTS reading_progress (
           id INTEGER PRIMARY KEY CHECK (id = 1),
           book_name TEXT NOT NULL,
@@ -127,7 +114,7 @@ class BibleDatabase {
       `);
 
       // Tabla favorites
-      await this.db.execAsync(`
+      await this.db.runAsync(`
         CREATE TABLE IF NOT EXISTS favorites (
           id TEXT PRIMARY KEY,
           verse_id TEXT NOT NULL,
@@ -144,26 +131,25 @@ class BibleDatabase {
         )
       `);
 
+      await this.migrateBookmarksToFavorites();
+
       // Índices
-      await this.db.execAsync(
+      await this.db.runAsync(
         'CREATE INDEX IF NOT EXISTS idx_verses_book_chapter ON verses(book_id, chapter)',
       );
-      await this.db.execAsync(
+      await this.db.runAsync(
         'CREATE INDEX IF NOT EXISTS idx_verses_version ON verses(version)',
       );
-      await this.db.execAsync(
-        'CREATE INDEX IF NOT EXISTS idx_bookmarks_reference ON bookmarks(book_name, chapter, verse)',
-      );
-      await this.db.execAsync(
+      await this.db.runAsync(
         'CREATE INDEX IF NOT EXISTS idx_notes_reference ON notes(book_name, chapter, verse)',
       );
-      await this.db.execAsync(
+      await this.db.runAsync(
         'CREATE INDEX IF NOT EXISTS idx_favorites_reference ON favorites(book_name, chapter, verse)',
       );
-      await this.db.execAsync(
+      await this.db.runAsync(
         'CREATE INDEX IF NOT EXISTS idx_favorites_category ON favorites(category)',
       );
-      await this.db.execAsync(
+      await this.db.runAsync(
         'CREATE INDEX IF NOT EXISTS idx_favorites_rating ON favorites(rating)',
       );
 
@@ -187,6 +173,97 @@ class BibleDatabase {
       throw new Error('Database not initialized. Call initialize() first.');
     }
     return this.db;
+  }
+
+  private async migrateBookmarksToFavorites(): Promise<void> {
+    const db = this.getDb();
+    const table = await db.getFirstAsync<{name: string}>(
+      "SELECT name FROM sqlite_master WHERE type='table' AND name='bookmarks'",
+    );
+
+    if (!table) {
+      return;
+    }
+
+    const bookmarks = await db.getAllAsync<{
+      book_name: string;
+      chapter: number;
+      verse: number;
+      text: string;
+      created_at: string;
+    }>(
+      `SELECT book_name, chapter, verse, text, created_at
+       FROM bookmarks`,
+    );
+
+    if (bookmarks.length === 0) {
+      await db.runAsync('DROP TABLE IF EXISTS bookmarks');
+      return;
+    }
+
+    const existingFavorites = await db.getAllAsync<{verseId: string}>(
+      'SELECT verse_id as verseId FROM favorites',
+    );
+    const existingVerseIds = new Set(
+      existingFavorites.map(item => item.verseId),
+    );
+
+    await db.withTransactionAsync(async () => {
+      for (const bookmark of bookmarks) {
+        const verseId = `${bookmark.book_name}_${bookmark.chapter}_${bookmark.verse}`;
+        if (existingVerseIds.has(verseId)) {
+          continue;
+        }
+
+        const numericCreatedAt = Number(bookmark.created_at);
+        const parsedDate = Date.parse(bookmark.created_at);
+        const createdAt = Number.isFinite(numericCreatedAt)
+          ? numericCreatedAt
+          : Number.isFinite(parsedDate)
+            ? parsedDate
+            : Date.now();
+
+        const favoriteId = `fav_${Date.now()}_${Math.random()
+          .toString(36)
+          .slice(2, 9)}`;
+
+        await db.runAsync(
+          `INSERT INTO favorites (
+            id,
+            verse_id,
+            book_name,
+            chapter,
+            verse,
+            text,
+            category,
+            rating,
+            tags,
+            note,
+            created_at,
+            updated_at
+          )
+          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+          [
+            favoriteId,
+            verseId,
+            bookmark.book_name,
+            bookmark.chapter,
+            bookmark.verse,
+            bookmark.text,
+            'other',
+            5,
+            JSON.stringify([]),
+            null,
+            createdAt,
+            createdAt,
+          ],
+        );
+
+        existingVerseIds.add(verseId);
+      }
+    });
+
+    await db.runAsync('DROP TABLE IF EXISTS bookmarks');
   }
 
   // Método público para acceder a la base de datos
@@ -259,7 +336,7 @@ class BibleDatabase {
           sql.includes('ALTER')
         ) {
           // Para DDL, usar execAsync
-          await db.execAsync(sql);
+          await db.runAsync(sql);
           return {changes: 0, lastInsertRowId: 0};
         } else if (sanitizedParams && sanitizedParams.length > 0) {
           // Para DML con parámetros, usar runAsync
@@ -267,7 +344,7 @@ class BibleDatabase {
           return result;
         } else {
           // Para DML sin parámetros
-          await db.execAsync(sql);
+          await db.runAsync(sql);
           return {changes: 0, lastInsertRowId: 0};
         }
       } catch (error) {
@@ -449,84 +526,6 @@ class BibleDatabase {
     return result;
   }
 
-  // ========== BOOKMARK OPERATIONS ==========
-
-  async addBookmark(bookmark: Omit<Bookmark, 'id'>): Promise<string> {
-    const db = this.getDb();
-    const id = `bookmark_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-
-    await db.runAsync(
-      `INSERT INTO bookmarks (id, book_name, chapter, verse, text, created_at)
-       VALUES (?, ?, ?, ?, ?, ?)`,
-      [
-        id,
-        bookmark.book,
-        bookmark.chapter,
-        bookmark.verse,
-        bookmark.text,
-        bookmark.createdAt,
-      ],
-    );
-
-    return id;
-  }
-
-  async removeBookmark(id: string): Promise<void> {
-    const db = this.getDb();
-    await db.runAsync('DELETE FROM bookmarks WHERE id = ?', [id]);
-  }
-
-  async getBookmarks(): Promise<Bookmark[]> {
-    console.log('📑 [DB] getBookmarks() called');
-    const db = this.getDb();
-    console.log('📑 [DB] Got database instance');
-
-    try {
-      const sql = `SELECT id, book_name as book, chapter, verse, text, created_at as createdAt
-       FROM bookmarks
-       ORDER BY created_at DESC`;
-
-      console.log('📑 [DB] Executing query:', sql.substring(0, 80));
-
-      const result = await db.getAllAsync<Bookmark>(sql);
-
-      console.log(`📑 [DB] Query successful, got ${result.length} bookmarks`);
-      return result;
-    } catch (error) {
-      console.error('❌ [DB] Error in getBookmarks():', error);
-      // Intentar verificar si la tabla existe
-      try {
-        const tables = await db.getAllAsync<{name: string}>(
-          "SELECT name FROM sqlite_master WHERE type='table' AND name='bookmarks'",
-        );
-        console.log(
-          '📊 [DB] Bookmarks table exists:',
-          tables.length > 0,
-          tables,
-        );
-      } catch (e) {
-        console.error('❌ [DB] Could not check if bookmarks table exists:', e);
-      }
-      throw error;
-    }
-  }
-
-  async isBookmarked(
-    bookName: string,
-    chapter: number,
-    verse: number,
-  ): Promise<boolean> {
-    const db = this.getDb();
-
-    const result = await db.getFirstAsync<{count: number}>(
-      `SELECT COUNT(*) as count FROM bookmarks
-       WHERE book_name = ? AND chapter = ? AND verse = ?`,
-      [bookName, chapter, verse],
-    );
-
-    return (result?.count ?? 0) > 0;
-  }
-
   // ========== NOTE OPERATIONS ==========
 
   async addNote(note: Omit<Note, 'id'>): Promise<string> {
@@ -577,6 +576,15 @@ class BibleDatabase {
     );
 
     return result;
+  }
+
+  async getNotesCount(): Promise<number> {
+    const db = this.getDb();
+    const result = await db.getFirstAsync<{count: number}>(
+      'SELECT COUNT(*) as count FROM notes',
+    );
+
+    return result?.count ?? 0;
   }
 
   async getNoteForVerse(
@@ -680,6 +688,15 @@ class BibleDatabase {
     }));
   }
 
+  async getFavoritesCount(): Promise<number> {
+    const db = this.getDb();
+    const result = await db.getFirstAsync<{count: number}>(
+      'SELECT COUNT(*) as count FROM favorites',
+    );
+
+    return result?.count ?? 0;
+  }
+
   async isFavorite(
     book: string,
     chapter: number,
@@ -749,9 +766,9 @@ class BibleDatabase {
     const db = this.getDb();
 
     await db.withTransactionAsync(async () => {
-      await db.execAsync('DELETE FROM verses');
-      await db.execAsync('DELETE FROM bookmarks');
-      await db.execAsync('DELETE FROM notes');
+      await db.runAsync('DELETE FROM verses');
+      await db.runAsync('DELETE FROM favorites');
+      await db.runAsync('DELETE FROM notes');
     });
   }
 }

@@ -3,12 +3,19 @@
  * Proporciona acceso a todos los servicios de la app (logros, resaltados, analytics)
  */
 
-import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import { BibleDatabase } from '../lib/database';
-import { AchievementService } from '../lib/achievements/AchievementService';
-import { HighlightService } from '../lib/highlights/HighlightService';
-import { AdvancedAnalytics } from '../lib/analytics/AdvancedAnalytics';
-import { Achievement } from '../lib/achievements/types';
+import React, {
+  createContext,
+  useContext,
+  useState,
+  useEffect,
+  ReactNode,
+} from 'react';
+import {BibleDatabase} from '../lib/database';
+import {AchievementService} from '../lib/achievements/AchievementService';
+import {HighlightService} from '../lib/highlights/HighlightService';
+import {AdvancedAnalytics} from '../lib/analytics/AdvancedAnalytics';
+import {Achievement} from '../lib/achievements/types';
+import {logger} from '../lib/utils/logger';
 
 interface ServicesContextType {
   database: BibleDatabase | null;
@@ -47,9 +54,12 @@ export const ServicesProvider: React.FC<ServicesProviderProps> = ({
   children,
   database,
 }) => {
-  const [achievementService, setAchievementService] = useState<AchievementService | null>(null);
-  const [highlightService, setHighlightService] = useState<HighlightService | null>(null);
-  const [analyticsService, setAnalyticsService] = useState<AdvancedAnalytics | null>(null);
+  const [achievementService, setAchievementService] =
+    useState<AchievementService | null>(null);
+  const [highlightService, setHighlightService] =
+    useState<HighlightService | null>(null);
+  const [analyticsService, setAnalyticsService] =
+    useState<AdvancedAnalytics | null>(null);
   const [initialized, setInitialized] = useState(false);
   const [newAchievements, setNewAchievements] = useState<Achievement[]>([]);
 
@@ -58,11 +68,15 @@ export const ServicesProvider: React.FC<ServicesProviderProps> = ({
 
     const initializeServices = async () => {
       try {
-        console.log('🔵 Initializing services...');
+        logger.info('🔵 Initializing services...', {
+          component: 'ServicesProvider',
+        });
 
         // IMPORTANTE: Inicializar la base de datos primero
         await database.initialize();
-        console.log('🟢 Database initialized for services');
+        logger.info('🟢 Database initialized for services', {
+          component: 'ServicesProvider',
+        });
 
         // Ahora inicializar servicios
         const achievements = new AchievementService(database);
@@ -79,10 +93,13 @@ export const ServicesProvider: React.FC<ServicesProviderProps> = ({
         setHighlightService(highlights);
         setAnalyticsService(analytics);
         setInitialized(true);
-
-        console.log('🟢 Services initialized successfully');
+        logger.info('🟢 Services initialized successfully', {
+          component: 'ServicesProvider',
+        });
       } catch (error) {
-        console.error('❌ Error initializing services:', error);
+        logger.error('❌ Error initializing services:', error as Error, {
+          component: 'ServicesProvider',
+        });
       }
     };
 

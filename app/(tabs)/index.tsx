@@ -28,6 +28,7 @@ import {
 import {useRouter} from 'expo-router';
 import {Ionicons} from '@expo/vector-icons';
 import {LinearGradient} from 'expo-linear-gradient';
+import {BlurView} from 'expo-blur';
 import * as Haptics from 'expo-haptics';
 
 import bibleDB from '../../src/lib/database';
@@ -62,6 +63,10 @@ import {
 import {withOpacity} from '../../src/styles/modernTheme';
 
 const {width: SCREEN_WIDTH} = Dimensions.get('window');
+const CONTENT_HORIZONTAL_PADDING = 20;
+const SAVED_CARD_GAP = 12;
+const SAVED_CARD_WIDTH =
+  (SCREEN_WIDTH - CONTENT_HORIZONTAL_PADDING * 2 - SAVED_CARD_GAP) / 2;
 
 export default function HomeScreen() {
   const router = useRouter();
@@ -71,13 +76,15 @@ export default function HomeScreen() {
     primary: colors.primary,
     primaryLight: colors.primaryLight,
     primaryDark: colors.primaryDark,
+    secondary: colors.secondary,
+    accent: colors.accent,
     info: colors.info,
   });
   const {selectedVersion} = useBibleVersion();
   const {achievementService, initialized: servicesInitialized} = useServices();
   const {t} = useLanguage();
   const {getChapterProgress} = useReadingProgress();
-  const {addFavorite, isFavorite} = useFavorites();
+  const {addFavorite, isFavorite, favorites} = useFavorites();
   const cardBorderOpacity = isDark ? 0.3 : 0.8;
   const cardBorderColor = withOpacity(colors.primary, cardBorderOpacity);
   const cardBackgroundColor = withOpacity(colors.primary, isDark ? 0.08 : 0.05);
@@ -88,6 +95,10 @@ export default function HomeScreen() {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [chapterProgress, setChapterProgress] = useState(0);
+  const [savedCounts, setSavedCounts] = useState({
+    favorites: 0,
+    notes: 0,
+  });
   const [userStats, setUserStats] = useState({
     progress: 0,
     streak: 0,
@@ -100,10 +111,22 @@ export default function HomeScreen() {
   const slideAnim = useRef(new Animated.Value(50)).current;
   const scaleAnim = useRef(new Animated.Value(0.95)).current;
 
+  const formatSavedCount = (count: number) => {
+    if (count > 99) return '99+';
+    return count.toString();
+  };
+
   useEffect(() => {
     loadHomeData();
     startAnimations();
   }, [selectedVersion.id]);
+
+  useEffect(() => {
+    setSavedCounts(prev => ({
+      ...prev,
+      favorites: favorites.length,
+    }));
+  }, [favorites.length]);
 
   const startAnimations = () => {
     Animated.stagger(80, [
@@ -133,13 +156,23 @@ export default function HomeScreen() {
     try {
       await bibleDB.initialize();
 
+      const [verse, progress, favoritesCount, notesCount] = await Promise.all([
+        bibleDB.getRandomVerse(selectedVersion.id),
+        bibleDB.getReadingProgress(),
+        bibleDB.getFavoritesCount().catch(() => 0),
+        bibleDB.getNotesCount().catch(() => 0),
+      ]);
+
       // Get daily verse
-      const verse = await bibleDB.getRandomVerse(selectedVersion.id);
       setDailyVerse(verse);
 
       // Get last reading position
-      const progress = await bibleDB.getReadingProgress();
       setLastRead(progress);
+
+      setSavedCounts({
+        favorites: favoritesCount,
+        notes: notesCount,
+      });
 
       // Get chapter progress if available
       if (progress) {
@@ -304,7 +337,11 @@ export default function HomeScreen() {
             transform: [{translateY: slideAnim}, {scale: scaleAnim}],
           }}>
           <LinearGradient
-            colors={[...gradient.headerColors]}
+            colors={
+              gradient?.headerColors && gradient.headerColors.length >= 2
+                ? [...gradient.headerColors]
+                : [colors.primary, colors.primaryDark]
+            }
             start={{x: 0, y: 0}}
             end={{x: 1, y: 1}}
             style={[
@@ -441,7 +478,7 @@ export default function HomeScreen() {
                       styles.continueIconContainer,
                       {backgroundColor: colors.primary},
                     ]}>
-                    <Ionicons name="play" size={16} color="#ffffff" />
+                    <Ionicons name="play" size={14} color="#ffffff" />
                   </View>
                   <View style={styles.continueTextContainer}>
                     <Text
@@ -462,11 +499,6 @@ export default function HomeScreen() {
                       style={[styles.progressText, {color: colors.primary}]}>
                       {Math.round(chapterProgress)}%
                     </Text>
-                    <Ionicons
-                      name="chevron-forward"
-                      size={18}
-                      color={colors.textTertiary}
-                    />
                   </View>
                 </View>
                 {/* Progress bar - subtle */}
@@ -514,7 +546,7 @@ export default function HomeScreen() {
             horizontal
             showsHorizontalScrollIndicator={false}
             contentContainerStyle={styles.plansScroll}>
-            {READING_PLANS.slice(0, 3).map((plan, index) => (
+            {READING_PLANS.slice(0, 3).map(plan => (
               <ReadingPlanCard
                 key={plan.id}
                 name={plan.name}
@@ -538,6 +570,158 @@ export default function HomeScreen() {
               />
             ))}
           </ScrollView>
+        </Animated.View>
+
+        {/* ==================== SAVED SHORTCUTS ==================== */}
+        <Animated.View
+          style={{opacity: fadeAnim, marginTop: celestialSpacing.sectionGap}}>
+          <View style={styles.sectionHeader}>
+            <Text
+              style={[
+                styles.sectionTitle,
+                {color: celestialTheme.colors.text},
+              ]}>
+              {t.home.savedTitle}
+            </Text>
+            <Ionicons
+              name="heart"
+              size={24}
+              color={celestialTheme.colors.accent}
+            />
+          </View>
+
+          <View style={styles.savedGrid}>
+            <TouchableOpacity
+              activeOpacity={0.9}
+              style={styles.savedCardWrapper}
+              onPress={() =>
+                handlePress(() => router.push('/(tabs)/favorites' as any))
+              }>
+              <BlurView
+                intensity={isDark ? 28 : 48}
+                tint={isDark ? 'dark' : 'light'}
+                style={[
+                  styles.savedCard,
+                  {
+                    backgroundColor: celestialTheme.colors.surfaceGlass,
+                    borderColor: celestialTheme.colors.glassBorder,
+                  },
+                  celestialTheme.shadows.md,
+                ]}>
+                <View style={styles.savedCardHeader}>
+                  <View
+                    style={[
+                      styles.savedIcon,
+                      {
+                        backgroundColor: withOpacity(
+                          colors.primary,
+                          isDark ? 0.2 : 0.12,
+                        ),
+                      },
+                    ]}>
+                    <Ionicons name="heart" size={20} color={colors.primary} />
+                  </View>
+                  <View style={styles.savedMeta}>
+                    <View
+                      style={[
+                        styles.savedBadge,
+                        {
+                          backgroundColor: withOpacity(
+                            colors.primary,
+                            isDark ? 0.18 : 0.12,
+                          ),
+                        },
+                      ]}>
+                      <Text
+                        style={[
+                          styles.savedBadgeText,
+                          {color: colors.primary},
+                        ]}>
+                        {formatSavedCount(savedCounts.favorites)}
+                      </Text>
+                    </View>
+                    <Ionicons
+                      name="chevron-forward"
+                      size={18}
+                      color={colors.textTertiary}
+                    />
+                  </View>
+                </View>
+                <Text
+                  style={[styles.savedLabel, {color: colors.text}]}
+                  numberOfLines={1}
+                  ellipsizeMode="tail">
+                  {t.tabs.favorites}
+                </Text>
+              </BlurView>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              activeOpacity={0.9}
+              style={styles.savedCardWrapper}
+              onPress={() =>
+                handlePress(() => router.push('/(tabs)/notes' as any))
+              }>
+              <BlurView
+                intensity={isDark ? 28 : 48}
+                tint={isDark ? 'dark' : 'light'}
+                style={[
+                  styles.savedCard,
+                  {
+                    backgroundColor: celestialTheme.colors.surfaceGlass,
+                    borderColor: celestialTheme.colors.glassBorder,
+                  },
+                  celestialTheme.shadows.md,
+                ]}>
+                <View style={styles.savedCardHeader}>
+                  <View
+                    style={[
+                      styles.savedIcon,
+                      {
+                        backgroundColor: withOpacity(
+                          colors.accent,
+                          isDark ? 0.2 : 0.12,
+                        ),
+                      },
+                    ]}>
+                    <Ionicons
+                      name="document-text"
+                      size={20}
+                      color={colors.accent}
+                    />
+                  </View>
+                  <View style={styles.savedMeta}>
+                    <View
+                      style={[
+                        styles.savedBadge,
+                        {
+                          backgroundColor: withOpacity(
+                            colors.accent,
+                            isDark ? 0.18 : 0.12,
+                          ),
+                        },
+                      ]}>
+                      <Text
+                        style={[styles.savedBadgeText, {color: colors.accent}]}>
+                        {formatSavedCount(savedCounts.notes)}
+                      </Text>
+                    </View>
+                    <Ionicons
+                      name="chevron-forward"
+                      size={18}
+                      color={colors.textTertiary}
+                    />
+                  </View>
+                </View>
+                <Text
+                  style={[styles.savedLabel, {color: colors.text}]}
+                  numberOfLines={1}
+                  ellipsizeMode="tail">
+                  {t.tabs.notes}
+                </Text>
+              </BlurView>
+            </TouchableOpacity>
+          </View>
         </Animated.View>
 
         {/* ==================== FOOTER ==================== */}
@@ -650,9 +834,9 @@ const styles = StyleSheet.create({
 
   // Continue Reading Button - Compact
   continueButton: {
-    paddingHorizontal: 14,
-    paddingTop: 14,
-    paddingBottom: 8,
+    paddingHorizontal: 12,
+    paddingTop: 10,
+    paddingBottom: 6,
     borderWidth: 0,
     overflow: 'hidden',
   },
@@ -661,9 +845,9 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   continueIconContainer: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
+    width: 32,
+    height: 32,
+    borderRadius: 16,
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -722,6 +906,62 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     flexWrap: 'wrap',
     justifyContent: 'space-between',
+  },
+
+  // Saved shortcuts
+  savedGrid: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    columnGap: SAVED_CARD_GAP,
+  },
+  savedCardWrapper: {
+    width: SAVED_CARD_WIDTH,
+  },
+  savedCard: {
+    flex: 1,
+    minHeight: 110,
+    width: '100%',
+    padding: 16,
+    borderRadius: celestialBorderRadius.xl,
+    borderWidth: 1,
+    justifyContent: 'space-between',
+    overflow: 'hidden',
+  },
+  savedCardHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  savedMeta: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  savedBadge: {
+    minWidth: 26,
+    height: 20,
+    borderRadius: 10,
+    paddingHorizontal: 6,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  savedBadgeText: {
+    fontSize: 11,
+    fontWeight: '700',
+    letterSpacing: -0.2,
+  },
+  savedIcon: {
+    width: 36,
+    height: 36,
+    borderRadius: 12,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  savedLabel: {
+    fontSize: 15,
+    fontWeight: '700',
+    letterSpacing: -0.2,
+    lineHeight: 18,
   },
 
   // Reading Plans

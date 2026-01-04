@@ -88,7 +88,7 @@ const emeraldPalette = {
 /**
  * Paleta Teal - Color accent secundario
  */
-const tealPalette = {
+/* const tealPalette = {
   50: '#f0fdfa',
   100: '#ccfbf1',
   200: '#99f6e4',
@@ -100,7 +100,7 @@ const tealPalette = {
   800: '#115e59',
   900: '#134e4a',
   950: '#042f2e',
-};
+}; */
 
 // ==================== MODO CLARO - CELESTIAL ====================
 
@@ -582,6 +582,8 @@ interface DynamicThemeColors {
   primary: string;
   primaryLight: string;
   primaryDark: string;
+  secondary: string;
+  accent: string;
   info: string;
 }
 
@@ -603,6 +605,8 @@ export const createCelestialTheme = (
         primary: dynamicColors.primary,
         primaryLight: dynamicColors.primaryLight,
         primaryDark: dynamicColors.primaryDark,
+        secondary: dynamicColors.secondary,
+        accent: dynamicColors.accent,
         info: dynamicColors.info,
         // También actualizamos gradientes para usar los colores dinámicos
         primaryGradient: [
@@ -618,9 +622,6 @@ export const createCelestialTheme = (
         // Actualizar glow para usar el color dinámico
         glow: `${dynamicColors.primary}33`, // 20% opacity
         focus: dynamicColors.primary,
-        accent: dynamicColors.primary,
-        accentLight: dynamicColors.primaryLight,
-        accentDark: dynamicColors.primaryDark,
       }
     : baseColors;
 

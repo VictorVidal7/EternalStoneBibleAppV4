@@ -8,7 +8,7 @@
  */
 export function debounce<T extends (...args: any[]) => any>(
   func: T,
-  wait: number
+  wait: number,
 ): (...args: Parameters<T>) => void {
   let timeout: NodeJS.Timeout | null = null;
 
@@ -31,7 +31,7 @@ export function debounce<T extends (...args: any[]) => any>(
  */
 export function throttle<T extends (...args: any[]) => any>(
   func: T,
-  limit: number
+  limit: number,
 ): (...args: Parameters<T>) => void {
   let inThrottle: boolean;
 
@@ -52,7 +52,7 @@ export function throttle<T extends (...args: any[]) => any>(
  */
 export function memoize<T extends (...args: any[]) => any>(
   func: T,
-  maxSize: number = 100
+  maxSize: number = 100,
 ): T {
   const cache = new Map<string, ReturnType<T>>();
   const keys: string[] = [];
@@ -86,9 +86,9 @@ export function batchify<T, R>(
   options: {
     maxSize?: number;
     maxWait?: number;
-  } = {}
+  } = {},
 ): (item: T) => Promise<R> {
-  const { maxSize = 50, maxWait = 100 } = options;
+  const {maxSize = 50, maxWait = 100} = options;
 
   let batch: T[] = [];
   let resolvers: Array<(value: R) => void> = [];
@@ -114,7 +114,7 @@ export function batchify<T, R>(
   };
 
   return (item: T): Promise<R> => {
-    return new Promise((resolve) => {
+    return new Promise(resolve => {
       batch.push(item);
       resolvers.push(resolve);
 
@@ -136,10 +136,10 @@ export function batchify<T, R>(
  */
 export async function lazyLoad<T>(
   loader: () => Promise<T>,
-  delay: number = 0
+  delay: number = 0,
 ): Promise<T> {
   if (delay > 0) {
-    await new Promise((resolve) => setTimeout(resolve, delay));
+    await new Promise(resolve => setTimeout(resolve, delay));
   }
   return loader();
 }
@@ -166,9 +166,9 @@ export async function retry<T>(
     maxAttempts?: number;
     delay?: number;
     backoff?: boolean;
-  } = {}
+  } = {},
 ): Promise<T> {
-  const { maxAttempts = 3, delay = 1000, backoff = true } = options;
+  const {maxAttempts = 3, delay = 1000, backoff = true} = options;
 
   let lastError: Error | null = null;
 
@@ -180,7 +180,7 @@ export async function retry<T>(
 
       if (attempt < maxAttempts) {
         const waitTime = backoff ? delay * Math.pow(2, attempt - 1) : delay;
-        await new Promise((resolve) => setTimeout(resolve, waitTime));
+        await new Promise(resolve => setTimeout(resolve, waitTime));
       }
     }
   }
@@ -317,7 +317,7 @@ export class PerformanceMonitor {
  */
 export function cleanupRefs<T extends Record<string, any>>(obj: T): void {
   for (const key in obj) {
-    if (obj.hasOwnProperty(key)) {
+    if (Object.prototype.hasOwnProperty.call(obj, key)) {
       obj[key] = null as any;
     }
   }

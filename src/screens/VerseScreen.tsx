@@ -20,7 +20,7 @@ import {
   HandlerStateChangeEvent,
 } from 'react-native-gesture-handler';
 import Slider from '@react-native-community/slider';
-import {useBookmarks} from '../context/BookmarksContext';
+import {useFavorites} from '../context/FavoritesContext';
 import {useUserPreferences} from '../context/UserPreferencesContext';
 import {useNotes} from '../context/NotesContext';
 import {useStyles} from '../hooks/useStyles';
@@ -228,7 +228,7 @@ VerseItem.displayName = 'VerseItem';
 const VerseScreen: React.FC<VerseScreenProps> = ({route, theme}) => {
   const {book, chapter: initialChapter, initialVerse} = route.params;
   const [chapter, setChapter] = useState<number>(initialChapter);
-  const {bookmarks, addBookmark, removeBookmark} = useBookmarks();
+  const {favorites, addFavorite, removeFavorite, isFavorite} = useFavorites();
   const {addNote, getNote} = useNotes();
   const {fontSize, changeFontSize} = useUserPreferences();
   const [localFontSize, setLocalFontSize] = useState<number>(fontSize);
@@ -388,18 +388,22 @@ const VerseScreen: React.FC<VerseScreenProps> = ({route, theme}) => {
 
   const isBookmarked = useCallback(
     (verse: number): boolean => {
-      return bookmarks.some(
-        (b: any) =>
-          b.book === book && b.chapter === chapter && b.verse === verse,
-      );
+      return isFavorite(book, chapter, verse);
     },
-    [bookmarks, book, chapter],
+    [isFavorite, book, chapter],
   );
 
   const toggleBookmark = useCallback(
     (verse: number) => {
-      if (isBookmarked(verse)) {
-        removeBookmark(book, chapter, verse);
+      const existing = favorites.find(
+        favorite =>
+          favorite.book === book &&
+          favorite.chapter === chapter &&
+          favorite.verse === verse,
+      );
+
+      if (existing) {
+        removeFavorite(existing.id);
         AnalyticsService.logEvent('remove_bookmark', {book, chapter, verse});
 
         logger.breadcrumb('Bookmark removed', 'user-action', {
@@ -408,7 +412,21 @@ const VerseScreen: React.FC<VerseScreenProps> = ({route, theme}) => {
           verse,
         });
       } else {
-        addBookmark(book, chapter, verse);
+        const verseData = verses.find(item => item.number === verse);
+        if (!verseData) {
+          return;
+        }
+
+        addFavorite(
+          {
+            book,
+            chapter,
+            verse,
+            text: verseData.text,
+          },
+          'other',
+          5,
+        );
         AnalyticsService.logEvent('add_bookmark', {book, chapter, verse});
 
         logger.breadcrumb('Bookmark added', 'user-action', {
@@ -418,7 +436,7 @@ const VerseScreen: React.FC<VerseScreenProps> = ({route, theme}) => {
         });
       }
     },
-    [isBookmarked, addBookmark, removeBookmark, book, chapter],
+    [favorites, removeFavorite, addFavorite, book, chapter, verses],
   );
 
   // ============================================================================

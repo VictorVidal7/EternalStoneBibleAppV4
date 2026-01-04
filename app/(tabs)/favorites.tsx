@@ -6,20 +6,23 @@ import {
   TouchableOpacity,
   Alert,
 } from 'react-native';
-import {useState, useCallback, useMemo} from 'react';
+import React, {useCallback, useMemo} from 'react';
 import {useRouter, useFocusEffect} from 'expo-router';
 import {Ionicons} from '@expo/vector-icons';
 import {LinearGradient} from 'expo-linear-gradient';
-import bibleDB from '../../src/lib/database';
-import {Note} from '../../src/types/bible';
 import {useTheme} from '../../src/hooks/useTheme';
 import {useLanguage} from '../../src/hooks/useLanguage';
 import {IllustratedEmptyState} from '../../src/components/IllustratedEmptyState';
+import {useToast} from '../../src/context/ToastContext';
 import {logger} from '../../src/lib/utils/logger';
+import {useFavorites} from '../../src/context/FavoritesContext';
 
-export default function NotesScreen() {
+export default function FavoritesScreen() {
   const router = useRouter();
   const {colors, isDark, gradient} = useTheme();
+  const {t, language} = useLanguage();
+  const toast = useToast();
+  const {favorites, removeFavorite, refreshFavorites, loading} = useFavorites();
   const headerGradient = useMemo(
     () =>
       (gradient?.headerColors
@@ -27,48 +30,35 @@ export default function NotesScreen() {
         : ['#4f46e5', '#7c3aed', '#a855f7']) as [string, string, string],
     [gradient?.headerColors],
   );
-  const {t, language} = useLanguage();
-  const [notes, setNotes] = useState<Note[]>([]);
-  const [loading, setLoading] = useState(true);
 
   useFocusEffect(
     useCallback(() => {
-      loadNotes();
-    }, []),
+      refreshFavorites().catch(error => {
+        logger.error('Error loading favorites', error as Error, {
+          component: 'FavoritesScreen',
+          action: 'refreshFavorites',
+        });
+      });
+    }, [refreshFavorites]),
   );
 
-  async function loadNotes() {
-    try {
-      await bibleDB.initialize();
-      const data = await bibleDB.getNotes();
-      setNotes(data);
-      setLoading(false);
-    } catch (error) {
-      logger.error('Error loading notes', error as Error, {
-        component: 'NotesScreen',
-        action: 'loadNotes',
-      });
-      setLoading(false);
-    }
-  }
-
   async function handleDelete(id: string) {
-    Alert.alert(t.notes.deleteTitle, t.notes.deleteMessage, [
+    Alert.alert(t.favorites.deleteTitle, t.favorites.deleteMessage, [
       {text: t.cancel, style: 'cancel'},
       {
         text: t.delete,
         style: 'destructive',
         onPress: async () => {
-          await bibleDB.removeNote(id);
-          loadNotes();
+          await removeFavorite(id);
+          toast.success(t.favorites.removedSuccessfully);
         },
       },
     ]);
   }
 
-  function goToVerse(note: Note) {
+  function goToVerse(favorite: (typeof favorites)[number]) {
     router.push(
-      `/verse/${note.book}/${note.chapter}?verse=${note.verse}` as any,
+      `/verse/${favorite.book}/${favorite.chapter}?verse=${favorite.verse}` as any,
     );
   }
 
@@ -97,84 +87,69 @@ export default function NotesScreen() {
 
         <View style={styles.headerContent}>
           <View style={styles.headerIconContainer}>
-            <Ionicons name="document-text" size={32} color="#ffffff" />
+            <Ionicons name="heart" size={32} color="#ffffff" />
           </View>
           <View style={styles.headerTextContainer}>
             <Text style={styles.headerTitle} numberOfLines={1}>
-              {t.tabs.notes}
+              {t.tabs.favorites}
             </Text>
             <Text style={styles.headerSubtitle}>
-              {notes.length} {t.notes.countLabel || 'Notas guardadas'}
+              {favorites.length}{' '}
+              {t.favorites.versesSaved || 'Versículos guardados'}
             </Text>
           </View>
         </View>
       </LinearGradient>
 
       <FlatList
-        data={notes}
+        data={favorites}
         keyExtractor={item => item.id}
         renderItem={({item}) => (
           <TouchableOpacity
-            style={[styles.noteItem, {backgroundColor: colors.surface}]}
+            style={[styles.favoriteItem, {backgroundColor: colors.surface}]}
             onPress={() => goToVerse(item)}
             activeOpacity={0.7}>
-            <View style={styles.noteHeader}>
-              <View
-                style={[
-                  styles.noteIcon,
-                  {backgroundColor: colors.success + '20'},
-                ]}>
-                <Ionicons
-                  name="document-text"
-                  size={20}
-                  color={colors.success}
-                />
-              </View>
-
-              <View style={styles.noteHeaderText}>
-                <Text style={[styles.noteReference, {color: colors.success}]}>
-                  {item.book} {item.chapter}:{item.verse}
-                </Text>
-                <Text style={[styles.noteDate, {color: colors.textSecondary}]}>
-                  {new Date(item.updatedAt).toLocaleDateString(
-                    language === 'es' ? 'es-ES' : 'en-US',
-                    {
-                      year: 'numeric',
-                      month: 'short',
-                      day: 'numeric',
-                    },
-                  )}
-                </Text>
-              </View>
-
-              <TouchableOpacity
-                style={styles.deleteButton}
-                onPress={() => handleDelete(item.id)}>
-                <Ionicons name="trash-outline" size={20} color={colors.error} />
-              </TouchableOpacity>
+            <View
+              style={[
+                styles.favoriteIcon,
+                {backgroundColor: colors.primaryLight},
+              ]}>
+              <Ionicons name="heart" size={20} color={colors.primary} />
             </View>
 
-            <Text
-              style={[styles.verseText, {color: colors.textSecondary}]}
-              numberOfLines={2}>
-              "{item.text}"
-            </Text>
+            <View style={styles.favoriteContent}>
+              <Text style={[styles.favoriteReference, {color: colors.primary}]}>
+                {item.book} {item.chapter}:{item.verse}
+              </Text>
+              <Text
+                style={[styles.favoriteText, {color: colors.text}]}
+                numberOfLines={2}>
+                {item.text}
+              </Text>
+              <Text
+                style={[styles.favoriteDate, {color: colors.textSecondary}]}>
+                {new Date(item.createdAt).toLocaleDateString(
+                  language === 'es' ? 'es-ES' : 'en-US',
+                  {
+                    year: 'numeric',
+                    month: 'long',
+                    day: 'numeric',
+                  },
+                )}
+              </Text>
+            </View>
 
-            <View
-              style={[styles.noteDivider, {backgroundColor: colors.border}]}
-            />
-
-            <Text
-              style={[styles.noteText, {color: colors.text}]}
-              numberOfLines={3}>
-              {item.note}
-            </Text>
+            <TouchableOpacity
+              style={styles.deleteButton}
+              onPress={() => handleDelete(item.id)}>
+              <Ionicons name="trash-outline" size={20} color={colors.error} />
+            </TouchableOpacity>
           </TouchableOpacity>
         )}
         contentContainerStyle={styles.listContent}
         ListEmptyComponent={
           <IllustratedEmptyState
-            type="no-notes"
+            type="no-favorites"
             colors={colors}
             isDark={isDark}
             onAction={() => router.push('/(tabs)/bible' as any)}
@@ -242,7 +217,9 @@ const styles = StyleSheet.create({
   listContent: {
     padding: 16,
   },
-  noteItem: {
+  favoriteItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
     backgroundColor: '#FFFFFF',
     borderRadius: 12,
     padding: 16,
@@ -253,52 +230,37 @@ const styles = StyleSheet.create({
     shadowRadius: 3,
     elevation: 2,
   },
-  noteHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 12,
-  },
-  noteIcon: {
+  favoriteIcon: {
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: '#D5F4E6',
+    backgroundColor: '#E8F4FD',
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: 12,
   },
-  noteHeaderText: {
+  favoriteContent: {
     flex: 1,
   },
-  noteReference: {
+  favoriteReference: {
     fontSize: 15,
     fontWeight: '600',
-    color: '#27AE60',
-    marginBottom: 2,
+    color: '#4A90E2',
+    marginBottom: 6,
   },
-  noteDate: {
+  favoriteText: {
+    fontSize: 14,
+    lineHeight: 20,
+    color: '#34495E',
+    marginBottom: 6,
+  },
+  favoriteDate: {
     fontSize: 12,
     color: '#95A5A6',
   },
   deleteButton: {
     padding: 8,
-  },
-  verseText: {
-    fontSize: 14,
-    lineHeight: 20,
-    color: '#7F8C8D',
-    fontStyle: 'italic',
-    marginBottom: 12,
-  },
-  noteDivider: {
-    height: 1,
-    backgroundColor: '#ECF0F1',
-    marginBottom: 12,
-  },
-  noteText: {
-    fontSize: 15,
-    lineHeight: 22,
-    color: '#2C3E50',
+    marginLeft: 8,
   },
   emptyContainer: {
     alignItems: 'center',
