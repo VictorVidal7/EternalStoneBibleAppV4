@@ -158,7 +158,7 @@ export default function BibleScreen() {
           {/* Boton de regreso */}
           <TouchableOpacity
             style={styles.headerBackButton}
-            onPress={() => router.push('/' as any)}
+            onPress={() => router.back()}
             accessibilityRole="button"
             accessibilityLabel={t.bible.back}>
             <Ionicons name="arrow-back" size={24} color="#ffffff" />
