@@ -8,6 +8,7 @@
  */
 
 import React, {useState, useEffect} from 'react';
+import {useRouter} from 'expo-router';
 import {
   View,
   Text,
@@ -15,13 +16,14 @@ import {
   ScrollView,
   TouchableOpacity,
   Modal,
-  TextInput,
   Alert,
   ActivityIndicator,
 } from 'react-native';
 import {Ionicons} from '@expo/vector-icons';
+import {SaveComparisonDialog} from '../components/comparison/SaveComparisonDialog';
 import {useTheme} from '../hooks/useTheme';
 import {useLanguage} from '../hooks/useLanguage';
+import {useToast} from '../context/ToastContext';
 import {
   versionComparisonService,
   BibleVersion,
@@ -39,8 +41,10 @@ interface VersionComparisonScreenProps {
 export const VersionComparisonScreen: React.FC<
   VersionComparisonScreenProps
 > = ({book, chapter, initialVerse = 1, userId}) => {
-  const {colors, isDark} = useTheme();
+  const router = useRouter();
+  const {colors} = useTheme();
   const {t} = useLanguage();
+  const toast = useToast();
 
   // State
   const [availableVersions, setAvailableVersions] = useState<BibleVersion[]>(
@@ -62,10 +66,28 @@ export const VersionComparisonScreen: React.FC<
   const [showSavedComparisons, setShowSavedComparisons] = useState(false);
   const [showVersePicker, setShowVersePicker] = useState(false);
   const [multiSelectMode, setMultiSelectMode] = useState(false);
-  const [comparisonName, setComparisonName] = useState('');
-  const [comparisonNotes, setComparisonNotes] = useState('');
-  const [savedComparisons, setSavedComparisons] = useState<any[]>([]);
-  const [totalVerses, setTotalVerses] = useState(31); // Default, se actualizará dinámicamente
+  interface SavedComparison {
+    id: string;
+    name: string;
+    book: string;
+    chapter: number;
+    versesRange: string;
+    versionIds: string[];
+    notes: string;
+    createdAt: string;
+    created_at?: string; // Por compatibilidad
+    version_ids?: string; // Por compatibilidad
+    verses_range?: string; // Por compatibilidad
+  }
+
+  const [savedComparisons, setSavedComparisons] = useState<SavedComparison[]>(
+    [],
+  );
+  const [totalVerses] = useState(31); // Default, se actualizará dinámicamente
+  const [viewMode, setViewMode] = useState<'list' | 'grid'>('list');
+  const [editingComparisonId, setEditingComparisonId] = useState<string | null>(
+    null,
+  );
 
   useEffect(() => {
     loadVersions();
@@ -120,8 +142,8 @@ export const VersionComparisonScreen: React.FC<
           setAnalysis(analysisResult);
         }
       }
-    } catch (error) {
-      console.error('Error loading comparison:', error);
+    } catch (err) {
+      console.error('Error loading comparison:', err);
     } finally {
       setLoading(false);
     }
@@ -136,10 +158,7 @@ export const VersionComparisonScreen: React.FC<
       if (selectedVersions.length < 4) {
         setSelectedVersions([...selectedVersions, versionId]);
       } else {
-        Alert.alert(
-          'Límite alcanzado',
-          'Solo puedes comparar hasta 4 versiones simultáneamente',
-        );
+        toast.warning('Solo puedes comparar hasta 4 versiones simultáneamente');
       }
     }
   };
@@ -151,41 +170,129 @@ export const VersionComparisonScreen: React.FC<
       setSavedComparisons(comparisons);
     } catch (error) {
       console.error('Error loading saved comparisons:', error);
-      Alert.alert('Error', 'No se pudieron cargar las comparaciones guardadas');
+      toast.error('No se pudieron cargar las comparaciones guardadas');
     }
   };
 
-  const handleSaveComparison = async () => {
-    if (!comparisonName.trim()) {
-      Alert.alert('Error', 'Por favor ingresa un nombre para la comparación');
+  const handleSaveComparison = async (name: string, notes: string) => {
+    if (!name.trim()) {
+      toast.warning('Por favor ingresa un nombre para la comparación');
       return;
     }
 
     try {
-      await versionComparisonService.saveComparison(
-        userId,
-        comparisonName,
-        book,
-        chapter,
-        `${currentVerse}`,
-        selectedVersions,
-        comparisonNotes,
-      );
+      if (editingComparisonId) {
+        // Actualizar existente
+        await versionComparisonService.updateComparison(
+          editingComparisonId,
+          name,
+          notes,
+        );
+        toast.success('Comparación actualizada correctamente');
+      } else {
+        // Crear nueva
+        const versesRange =
+          multiSelectMode && selectedVerses.length > 0
+            ? selectedVerses.sort((a, b) => a - b).join(',')
+            : `${currentVerse}`;
 
-      Alert.alert(t.save, t.versionComparison.saveSuccess);
-      setShowSaveDialog(false);
-      setComparisonName('');
-      setComparisonNotes('');
-    } catch (error) {
-      Alert.alert('Error', 'No se pudo guardar la comparación');
+        await versionComparisonService.saveComparison(
+          userId,
+          name,
+          book,
+          chapter,
+          versesRange,
+          selectedVersions,
+          notes,
+        );
+        toast.success(t.versionComparison.saveSuccess);
+      }
+
+      closeSaveDialog();
+      loadSavedComparisons();
+    } catch {
+      toast.error('No se pudo guardar la comparación');
     }
   };
 
-  const handleLoadComparison = (comp: any) => {
-    const versionIds = comp.version_ids.split(',');
-    setSelectedVersions(versionIds);
-    setCurrentVerse(parseInt(comp.verses_range));
+  const handleEditComparison = (comp: SavedComparison) => {
+    setEditingComparisonId(comp.id);
+    // Estos se pasarán como props iniciales al diálogo
+    setShowSaveDialog(true);
     setShowSavedComparisons(false);
+  };
+
+  const closeSaveDialog = () => {
+    setShowSaveDialog(false);
+    setEditingComparisonId(null);
+  };
+
+  const handleLoadComparison = (comp: SavedComparison) => {
+    try {
+      if (!comp) {
+        throw new Error('Datos de comparación inválidos');
+      }
+
+      // El servicio mapea los campos a camelCase
+      const versionIds = (comp.versionIds || comp.version_ids) as
+        | string
+        | string[];
+      const versesRangeRaw = comp.versesRange || comp.verses_range || '';
+
+      if (
+        !versionIds ||
+        (Array.isArray(versionIds) && versionIds.length === 0)
+      ) {
+        throw new Error('No hay versiones seleccionadas en esta comparación');
+      }
+
+      let finalVersionIds: string[] = [];
+      if (typeof versionIds === 'string') {
+        if (versionIds.startsWith('[')) {
+          finalVersionIds = JSON.parse(versionIds);
+        } else {
+          finalVersionIds = versionIds.split(',').filter(Boolean);
+        }
+      } else if (Array.isArray(versionIds)) {
+        finalVersionIds = versionIds;
+      }
+
+      if (finalVersionIds.length === 0) {
+        throw new Error('La comparación no contiene versiones válidas');
+      }
+
+      setSelectedVersions(finalVersionIds);
+
+      const rangeStr = String(versesRangeRaw);
+      if (rangeStr.includes(',')) {
+        const verseNums = rangeStr
+          .split(',')
+          .map((v: string) => parseInt(v.trim()))
+          .filter(v => !isNaN(v));
+
+        if (verseNums.length > 0) {
+          setSelectedVerses(verseNums);
+          setMultiSelectMode(true);
+        } else {
+          const firstVerse = parseInt(rangeStr) || 1;
+          setCurrentVerse(firstVerse);
+          setSelectedVerses([firstVerse]);
+          setMultiSelectMode(false);
+        }
+      } else {
+        const verseNum = parseInt(rangeStr) || 1;
+        setCurrentVerse(verseNum);
+        setSelectedVerses([verseNum]);
+        setMultiSelectMode(false);
+      }
+
+      setShowSavedComparisons(false);
+      toast.info(`Cargada: ${comp.name || 'Comparación'}`);
+    } catch (error: any) {
+      console.error('Error loading comparison:', error);
+      toast.error(error.message || 'Error al cargar la comparación');
+      setShowSavedComparisons(false);
+    }
   };
 
   const handleDeleteComparison = async (comparisonId: string) => {
@@ -201,9 +308,9 @@ export const VersionComparisonScreen: React.FC<
             try {
               await versionComparisonService.deleteComparison(comparisonId);
               await loadSavedComparisons();
-              Alert.alert('Eliminado', 'Comparación eliminada exitosamente');
-            } catch (error) {
-              Alert.alert('Error', 'No se pudo eliminar la comparación');
+              toast.success('Comparación eliminada');
+            } catch {
+              toast.error('No se pudo eliminar la comparación');
             }
           },
         },
@@ -213,7 +320,7 @@ export const VersionComparisonScreen: React.FC<
 
   const getVersionColor = (index: number) => {
     const versionColors = [
-      '#3B82F6', // Blue
+      colors.primary,
       '#10B981', // Green
       '#F59E0B', // Orange
       '#8B5CF6', // Purple
@@ -226,31 +333,60 @@ export const VersionComparisonScreen: React.FC<
       {/* Header */}
       <View style={[styles.header, {borderBottomColor: colors.border}]}>
         <View style={styles.headerTop}>
-          <Text style={[styles.title, {color: colors.text}]}>
+          <TouchableOpacity
+            style={styles.backButton}
+            onPress={() => router.back()}>
+            <Ionicons name="chevron-back" size={28} color={colors.text} />
+          </TouchableOpacity>
+
+          <Text style={[styles.title, {color: colors.text}]} numberOfLines={1}>
             {t.versionComparison.title}
           </Text>
+
+          <View style={styles.spacer} />
+
           <View style={styles.headerButtons}>
             <TouchableOpacity
-              style={[
-                styles.saveButton,
-                {backgroundColor: colors.surface, marginRight: 8},
-              ]}
+              style={styles.iconActionButton}
+              onPress={() =>
+                setViewMode(viewMode === 'list' ? 'grid' : 'list')
+              }>
+              <Ionicons
+                name={viewMode === 'list' ? 'grid-outline' : 'list-outline'}
+                size={22}
+                color={colors.textSecondary}
+              />
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={styles.iconActionButton}
               onPress={() => {
                 loadSavedComparisons();
                 setShowSavedComparisons(true);
               }}>
-              <Ionicons name="list" size={20} color={colors.primary} />
+              <Ionicons
+                name="bookmarks-outline"
+                size={22}
+                color={colors.textSecondary}
+              />
             </TouchableOpacity>
+
             <TouchableOpacity
-              style={[styles.saveButton, {backgroundColor: colors.primary}]}
+              style={[
+                styles.saveCircleButton,
+                {backgroundColor: colors.primary},
+              ]}
               onPress={() => setShowSaveDialog(true)}>
-              <Ionicons name="bookmark" size={20} color="#FFF" />
+              <Ionicons name="add" size={24} color="#FFF" />
             </TouchableOpacity>
           </View>
         </View>
 
         <Text style={[styles.reference, {color: colors.textSecondary}]}>
-          {book} {chapter}:{currentVerse}
+          {book} {chapter}:
+          {multiSelectMode && selectedVerses.length > 0
+            ? selectedVerses.sort((a, b) => a - b).join(',')
+            : currentVerse}
         </Text>
 
         {/* Version Pills */}
@@ -280,12 +416,15 @@ export const VersionComparisonScreen: React.FC<
           <TouchableOpacity
             style={[
               styles.addVersionButton,
-              {borderColor: colors.border, backgroundColor: colors.surface},
+              {
+                borderColor: colors.primary + '40',
+                backgroundColor: colors.surface,
+              },
             ]}
             onPress={() => setShowVersionPicker(true)}>
-            <Ionicons name="add" size={18} color={colors.primary} />
+            <Ionicons name="add" size={16} color={colors.primary} />
             <Text style={[styles.addVersionText, {color: colors.primary}]}>
-              {t.versionComparison.addVersion}
+              {t.add}
             </Text>
           </TouchableOpacity>
         </ScrollView>
@@ -316,57 +455,80 @@ export const VersionComparisonScreen: React.FC<
                 </View>
 
                 {/* Versions for this verse */}
-                {comp.versions.map((version, index) => (
-                  <View
-                    key={`${comp.verseNumber}-${version.versionId}`}
-                    style={[
-                      styles.versionCard,
-                      {
-                        backgroundColor: colors.surface,
-                        borderLeftColor: getVersionColor(index),
-                      },
-                    ]}>
-                    <View style={styles.versionHeader}>
-                      <View
-                        style={[
-                          styles.versionBadge,
-                          {backgroundColor: getVersionColor(index)},
-                        ]}>
-                        <Text style={styles.versionBadgeText}>
-                          {version.versionAbbr}
-                        </Text>
+                <View style={viewMode === 'grid' ? styles.gridContainer : null}>
+                  {comp.versions.map((version, index) => (
+                    <View
+                      key={`${comp.verseNumber}-${version.versionId}`}
+                      style={[
+                        viewMode === 'grid'
+                          ? styles.gridCard
+                          : styles.versionCard,
+                        {
+                          backgroundColor: colors.surface,
+                          borderLeftColor:
+                            viewMode === 'list'
+                              ? getVersionColor(index)
+                              : undefined,
+                          borderTopColor:
+                            viewMode === 'grid'
+                              ? getVersionColor(index)
+                              : undefined,
+                        },
+                      ]}>
+                      <View style={styles.versionHeader}>
+                        <View
+                          style={[
+                            styles.versionBadge,
+                            {backgroundColor: getVersionColor(index)},
+                          ]}>
+                          <Text style={styles.versionBadgeText}>
+                            {version.versionAbbr}
+                          </Text>
+                        </View>
+                        {version.versionName !== version.versionAbbr && (
+                          <Text
+                            style={[
+                              styles.versionName,
+                              {color: colors.textSecondary},
+                            ]}
+                            numberOfLines={1}>
+                            {version.versionName}
+                          </Text>
+                        )}
                       </View>
+
                       <Text
                         style={[
-                          styles.versionName,
-                          {color: colors.textSecondary},
-                        ]}>
-                        {version.versionName}
+                          viewMode === 'grid'
+                            ? styles.gridVerseText
+                            : styles.verseText,
+                          {color: colors.text},
+                        ]}
+                        numberOfLines={viewMode === 'grid' ? 6 : undefined}>
+                        {version.text}
                       </Text>
-                    </View>
 
-                    <Text style={[styles.verseText, {color: colors.text}]}>
-                      {version.text}
-                    </Text>
-
-                    <View style={styles.versionMeta}>
-                      <View style={styles.metaItem}>
-                        <Ionicons
-                          name="text"
-                          size={12}
-                          color={colors.textTertiary}
-                        />
-                        <Text
-                          style={[
-                            styles.metaText,
-                            {color: colors.textTertiary},
-                          ]}>
-                          {version.wordCount} {t.versionComparison.words}
-                        </Text>
-                      </View>
+                      {viewMode === 'list' && (
+                        <View style={styles.versionMeta}>
+                          <View style={styles.metaItem}>
+                            <Ionicons
+                              name="text"
+                              size={12}
+                              color={colors.textTertiary}
+                            />
+                            <Text
+                              style={[
+                                styles.metaText,
+                                {color: colors.textTertiary},
+                              ]}>
+                              {version.wordCount} {t.versionComparison.words}
+                            </Text>
+                          </View>
+                        </View>
+                      )}
                     </View>
-                  </View>
-                ))}
+                  ))}
+                </View>
 
                 {/* Divider between verses */}
                 {compIndex < comparisons.length - 1 && (
@@ -382,54 +544,80 @@ export const VersionComparisonScreen: React.FC<
           ) : (
             <>
               {/* Single Verse Mode - Versions Comparison */}
-              {comparison?.versions.map((version, index) => (
-                <View
-                  key={version.versionId}
-                  style={[
-                    styles.versionCard,
-                    {
-                      backgroundColor: colors.surface,
-                      borderLeftColor: getVersionColor(index),
-                    },
-                  ]}>
-                  <View style={styles.versionHeader}>
-                    <View
-                      style={[
-                        styles.versionBadge,
-                        {backgroundColor: getVersionColor(index)},
-                      ]}>
-                      <Text style={styles.versionBadgeText}>
-                        {version.versionAbbr}
-                      </Text>
+              <View style={viewMode === 'grid' ? styles.gridContainer : null}>
+                {comparison?.versions.map((version, index) => (
+                  <View
+                    key={version.versionId}
+                    style={[
+                      viewMode === 'grid'
+                        ? styles.gridCard
+                        : styles.versionCard,
+                      {
+                        backgroundColor: colors.surface,
+                        borderLeftColor:
+                          viewMode === 'list'
+                            ? getVersionColor(index)
+                            : undefined,
+                        borderTopColor:
+                          viewMode === 'grid'
+                            ? getVersionColor(index)
+                            : undefined,
+                      },
+                    ]}>
+                    <View style={styles.versionHeader}>
+                      <View
+                        style={[
+                          styles.versionBadge,
+                          {backgroundColor: getVersionColor(index)},
+                        ]}>
+                        <Text style={styles.versionBadgeText}>
+                          {version.versionAbbr}
+                        </Text>
+                      </View>
+                      {version.versionName !== version.versionAbbr && (
+                        <Text
+                          style={[
+                            styles.versionName,
+                            {color: colors.textSecondary},
+                          ]}
+                          numberOfLines={1}>
+                          {version.versionName}
+                        </Text>
+                      )}
                     </View>
+
                     <Text
                       style={[
-                        styles.versionName,
-                        {color: colors.textSecondary},
-                      ]}>
-                      {version.versionName}
+                        viewMode === 'grid'
+                          ? styles.gridVerseText
+                          : styles.verseText,
+                        {color: colors.text},
+                      ]}
+                      numberOfLines={viewMode === 'grid' ? 6 : undefined}>
+                      {version.text}
                     </Text>
-                  </View>
 
-                  <Text style={[styles.verseText, {color: colors.text}]}>
-                    {version.text}
-                  </Text>
-
-                  <View style={styles.versionMeta}>
-                    <View style={styles.metaItem}>
-                      <Ionicons
-                        name="text"
-                        size={12}
-                        color={colors.textTertiary}
-                      />
-                      <Text
-                        style={[styles.metaText, {color: colors.textTertiary}]}>
-                        {version.wordCount} {t.versionComparison.words}
-                      </Text>
-                    </View>
+                    {viewMode === 'list' && (
+                      <View style={styles.versionMeta}>
+                        <View style={styles.metaItem}>
+                          <Ionicons
+                            name="text"
+                            size={12}
+                            color={colors.textTertiary}
+                          />
+                          <Text
+                            style={[
+                              styles.metaText,
+                              {color: colors.textTertiary},
+                            ]}>
+                            {version.wordCount} {t.versionComparison.words}
+                          </Text>
+                        </View>
+                      </View>
+                    )}
                   </View>
-                </View>
-              ))}
+                ))}
+              </View>
 
               {/* Analysis Section */}
               {analysis && (
@@ -471,8 +659,8 @@ export const VersionComparisonScreen: React.FC<
                               analysis.similarity >= 80
                                 ? '#10B981'
                                 : analysis.similarity >= 60
-                                  ? '#F59E0B'
-                                  : '#EF4444',
+                                  ? colors.warning
+                                  : colors.error,
                           },
                         ]}
                       />
@@ -609,13 +797,22 @@ export const VersionComparisonScreen: React.FC<
                     key={version.id}
                     style={[
                       styles.versionListItem,
-                      {borderBottomColor: colors.border},
-                      isSelected && {backgroundColor: colors.primaryLight},
+                      {
+                        backgroundColor: isSelected
+                          ? colors.primary + '10'
+                          : colors.surface,
+                        borderColor: isSelected
+                          ? colors.primary
+                          : colors.border + '40',
+                      },
                     ]}
                     onPress={() => toggleVersion(version.id)}>
                     <View style={styles.versionInfo}>
                       <Text
-                        style={[styles.versionListName, {color: colors.text}]}>
+                        style={[
+                          styles.versionListName,
+                          {color: isSelected ? colors.primary : colors.text},
+                        ]}>
                         {version.name}
                       </Text>
                       <Text
@@ -626,13 +823,11 @@ export const VersionComparisonScreen: React.FC<
                         {version.description}
                       </Text>
                     </View>
-                    {isSelected && (
-                      <Ionicons
-                        name="checkmark-circle"
-                        size={24}
-                        color={colors.primary}
-                      />
-                    )}
+                    <Ionicons
+                      name={isSelected ? 'checkmark-circle' : 'ellipse-outline'}
+                      size={24}
+                      color={isSelected ? colors.primary : colors.border}
+                    />
                   </TouchableOpacity>
                 );
               })}
@@ -642,69 +837,22 @@ export const VersionComparisonScreen: React.FC<
       </Modal>
 
       {/* Save Dialog */}
-      <Modal
+      <SaveComparisonDialog
         visible={showSaveDialog}
-        animationType="slide"
-        transparent
-        onRequestClose={() => setShowSaveDialog(false)}>
-        <View style={styles.modalOverlay}>
-          <View
-            style={[styles.modalContent, {backgroundColor: colors.surface}]}>
-            <View style={styles.modalHeader}>
-              <Text style={[styles.modalTitle, {color: colors.text}]}>
-                {t.versionComparison.saveComparison}
-              </Text>
-              <TouchableOpacity onPress={() => setShowSaveDialog(false)}>
-                <Ionicons name="close" size={24} color={colors.text} />
-              </TouchableOpacity>
-            </View>
-
-            <View style={styles.saveForm}>
-              <TextInput
-                style={[
-                  styles.input,
-                  {
-                    backgroundColor: colors.background,
-                    color: colors.text,
-                    borderColor: colors.border,
-                  },
-                ]}
-                placeholder={t.versionComparison.comparisonName}
-                placeholderTextColor={colors.textTertiary}
-                value={comparisonName}
-                onChangeText={setComparisonName}
-              />
-
-              <TextInput
-                style={[
-                  styles.input,
-                  styles.textArea,
-                  {
-                    backgroundColor: colors.background,
-                    color: colors.text,
-                    borderColor: colors.border,
-                  },
-                ]}
-                placeholder={`${t.versionComparison.notes} (${t.cancel.toLowerCase()})`}
-                placeholderTextColor={colors.textTertiary}
-                value={comparisonNotes}
-                onChangeText={setComparisonNotes}
-                multiline
-                numberOfLines={4}
-              />
-
-              <TouchableOpacity
-                style={[
-                  styles.saveButtonLarge,
-                  {backgroundColor: colors.primary},
-                ]}
-                onPress={handleSaveComparison}>
-                <Text style={styles.saveButtonText}>Guardar</Text>
-              </TouchableOpacity>
-            </View>
-          </View>
-        </View>
-      </Modal>
+        onClose={closeSaveDialog}
+        onSave={handleSaveComparison}
+        initialName={
+          editingComparisonId
+            ? savedComparisons.find(c => c.id === editingComparisonId)?.name
+            : ''
+        }
+        initialNotes={
+          editingComparisonId
+            ? savedComparisons.find(c => c.id === editingComparisonId)?.notes
+            : ''
+        }
+        isEditing={!!editingComparisonId}
+      />
 
       {/* Saved Comparisons Modal */}
       <Modal
@@ -758,7 +906,8 @@ export const VersionComparisonScreen: React.FC<
                           styles.savedReference,
                           {color: colors.textSecondary},
                         ]}>
-                        {comp.book} {comp.chapter}:{comp.verses_range}
+                        {comp.book} {comp.chapter}:
+                        {comp.versesRange || comp.verses_range}
                       </Text>
                       {comp.notes && (
                         <Text
@@ -775,21 +924,47 @@ export const VersionComparisonScreen: React.FC<
                           styles.savedDate,
                           {color: colors.textTertiary},
                         ]}>
-                        {new Date(comp.created_at).toLocaleDateString()}
+                        {(() => {
+                          try {
+                            const dateVal = comp.createdAt || comp.created_at;
+                            if (!dateVal) return '';
+                            // Manejar formato SQLite YYYY-MM-DD HH:MM:SS
+                            const dateStr = String(dateVal).replace(' ', 'T');
+                            const date = new Date(dateStr);
+                            return isNaN(date.getTime())
+                              ? dateVal
+                              : date.toLocaleDateString();
+                          } catch (e) {
+                            return comp.createdAt || comp.created_at || '';
+                          }
+                        })()}
                       </Text>
                     </View>
-                    <TouchableOpacity
-                      style={styles.deleteButton}
-                      onPress={e => {
-                        e.stopPropagation();
-                        handleDeleteComparison(comp.id);
-                      }}>
-                      <Ionicons
-                        name="trash-outline"
-                        size={20}
-                        color="#EF4444"
-                      />
-                    </TouchableOpacity>
+                    <View style={styles.savedItemButtons}>
+                      <TouchableOpacity
+                        style={styles.actionButton}
+                        onPress={() => {
+                          handleEditComparison(comp);
+                        }}>
+                        <Ionicons
+                          name="pencil-outline"
+                          size={20}
+                          color={colors.primary}
+                        />
+                      </TouchableOpacity>
+                      <TouchableOpacity
+                        style={styles.actionButton}
+                        onPress={e => {
+                          e.stopPropagation();
+                          handleDeleteComparison(comp.id);
+                        }}>
+                        <Ionicons
+                          name="trash-outline"
+                          size={20}
+                          color="#EF4444"
+                        />
+                      </TouchableOpacity>
+                    </View>
                   </TouchableOpacity>
                 ))
               )}
@@ -818,11 +993,7 @@ export const VersionComparisonScreen: React.FC<
             </View>
 
             <View style={styles.versePickerHeader}>
-              <Text
-                style={[
-                  styles.versePickerSubtitle,
-                  {color: colors.textSecondary},
-                ]}>
+              <Text style={[styles.versePickerSubtitle, {color: colors.text}]}>
                 {book} {chapter}
               </Text>
               <TouchableOpacity
@@ -967,20 +1138,44 @@ const styles = StyleSheet.create({
   },
   headerTop: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 8,
+    height: 48,
+  },
+  backButton: {
+    marginLeft: -10,
+    marginRight: 4,
+    padding: 8,
   },
   title: {
-    fontSize: 24,
+    fontSize: 20,
     fontWeight: '800',
+    flexShrink: 1,
   },
-  saveButton: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
+  spacer: {
+    flex: 1,
+  },
+  headerButtons: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+  },
+  iconActionButton: {
+    padding: 8,
     justifyContent: 'center',
     alignItems: 'center',
+  },
+  saveCircleButton: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginLeft: 4,
+    elevation: 2,
+    shadowColor: '#000',
+    shadowOffset: {width: 0, height: 2},
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
   },
   reference: {
     fontSize: 14,
@@ -1183,7 +1378,8 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    padding: 20,
+    paddingHorizontal: 20,
+    paddingVertical: 12,
     borderBottomWidth: 1,
     borderBottomColor: 'rgba(0,0,0,0.05)',
   },
@@ -1240,10 +1436,6 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     color: '#FFF',
   },
-  headerButtons: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
   savedList: {
     maxHeight: 500,
   },
@@ -1285,9 +1477,15 @@ const styles = StyleSheet.create({
   savedDate: {
     fontSize: 11,
   },
-  deleteButton: {
+  savedItemButtons: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  actionButton: {
     padding: 8,
-    justifyContent: 'center',
+    borderRadius: 8,
+    backgroundColor: 'rgba(0,0,0,0.03)',
   },
   verseNumberButton: {
     flexDirection: 'row',
@@ -1297,25 +1495,24 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
   },
   versePickerSubtitle: {
-    fontSize: 16,
-    fontWeight: '600',
-    textAlign: 'center',
-    marginBottom: 16,
-    paddingHorizontal: 20,
+    fontSize: 18,
+    fontWeight: '700',
+    textAlign: 'left',
   },
   verseGrid: {
-    maxHeight: 400,
+    maxHeight: 350,
   },
   verseGridContent: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    padding: 20,
+    padding: 16,
+    justifyContent: 'center',
     gap: 12,
   },
   verseGridItem: {
-    width: 60,
-    height: 60,
-    borderRadius: 12,
+    width: 46,
+    height: 46,
+    borderRadius: 8,
     justifyContent: 'center',
     alignItems: 'center',
     borderWidth: 1.5,
@@ -1329,7 +1526,9 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     paddingHorizontal: 20,
-    paddingBottom: 12,
+    paddingVertical: 8,
+    borderBottomWidth: 1,
+    borderBottomColor: 'rgba(0,0,0,0.05)',
   },
   multiSelectToggle: {
     flexDirection: 'row',
@@ -1402,5 +1601,22 @@ const styles = StyleSheet.create({
   verseDivider: {
     height: 2,
     marginVertical: 20,
+  },
+  // Split View Styles
+  gridContainer: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 12,
+  },
+  gridCard: {
+    width: '48%',
+    padding: 12,
+    borderRadius: 12,
+    borderTopWidth: 4,
+    minHeight: 180,
+  },
+  gridVerseText: {
+    fontSize: 14,
+    lineHeight: 20,
   },
 });

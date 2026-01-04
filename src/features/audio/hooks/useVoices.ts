@@ -94,6 +94,8 @@ export const useVoices = (): UseVoicesReturn => {
   const spanishVoices = getVoicesByLanguage('es');
   const englishVoices = getVoicesByLanguage('en');
 
+  const [isPreviewActive, setIsPreviewActive] = useState(false);
+
   const previewVoice = useCallback(async (voice: VoiceInfo, text?: string) => {
     const previewText =
       text ||
@@ -102,16 +104,23 @@ export const useVoices = (): UseVoicesReturn => {
         : 'For God so loved the world');
 
     await Speech.stop();
+    setIsPreviewActive(true);
     await Speech.speak(previewText, {
       voice: voice.identifier,
       language: voice.language,
       rate: 1.0,
+      onDone: () => setIsPreviewActive(false),
+      onStopped: () => setIsPreviewActive(false),
+      onError: () => setIsPreviewActive(false),
     });
   }, []);
 
   const stopPreview = useCallback(async () => {
-    await Speech.stop();
-  }, []);
+    if (isPreviewActive) {
+      await Speech.stop();
+      setIsPreviewActive(false);
+    }
+  }, [isPreviewActive]);
 
   return {
     voices,

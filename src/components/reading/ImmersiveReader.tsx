@@ -16,7 +16,6 @@ import {
   View,
   Text,
   StyleSheet,
-  Dimensions,
   TouchableOpacity,
   Animated,
   Platform,
@@ -28,7 +27,7 @@ import * as Haptics from 'expo-haptics';
 import {BibleVerse} from '../../types/bible';
 import {useTheme} from '../../hooks/useTheme';
 
-const {width: SCREEN_WIDTH, height: SCREEN_HEIGHT} = Dimensions.get('window');
+// Removed unused dimensions
 
 interface ImmersiveReaderProps {
   verses: BibleVerse[];
@@ -37,20 +36,17 @@ interface ImmersiveReaderProps {
 }
 
 type BackgroundType = 'celestial' | 'minimal' | 'nature' | 'paper';
-type AnimationType = 'fade' | 'slide' | 'none';
 
 export const ImmersiveReader: React.FC<ImmersiveReaderProps> = ({
   verses,
   onClose,
   startIndex = 0,
 }) => {
-  const {colors, isDark} = useTheme();
+  const {colors, isDark, gradient} = useTheme();
   const [currentIndex, setCurrentIndex] = useState(startIndex);
-  const [isPlaying, setIsPlaying] = useState(false);
   const [autoScroll, setAutoScroll] = useState(false);
   const [showControls, setShowControls] = useState(true);
-  const [backgroundType, setBackgroundType] =
-    useState<BackgroundType>('celestial');
+  const [backgroundType] = useState<BackgroundType>('celestial');
   const [fontSize, setFontSize] = useState(22);
 
   // Animations
@@ -174,11 +170,14 @@ export const ImmersiveReader: React.FC<ImmersiveReaderProps> = ({
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
   };
 
-  const getBackgroundGradient = (): string[] => {
+  const getBackgroundGradient = (): readonly string[] => {
     if (backgroundType === 'celestial') {
-      return isDark
-        ? ['#0f172a', '#1e1b4b', '#312e81', '#4c1d95']
-        : ['#dbeafe', '#bfdbfe', '#93c5fd', '#60a5fa'];
+      return (
+        gradient?.colors ||
+        (isDark
+          ? ['#0f172a', '#1e1b4b', '#312e81', '#4c1d95']
+          : ['#dbeafe', '#bfdbfe', '#93c5fd', '#60a5fa'])
+      );
     } else if (backgroundType === 'nature') {
       return isDark
         ? ['#064e3b', '#065f46', '#047857', '#059669']
@@ -197,7 +196,7 @@ export const ImmersiveReader: React.FC<ImmersiveReaderProps> = ({
 
       {/* Animated Background */}
       <LinearGradient
-        colors={getBackgroundGradient()}
+        colors={getBackgroundGradient() as [string, string, ...string[]]}
         start={{x: 0, y: 0}}
         end={{x: 1, y: 1}}
         style={StyleSheet.absoluteFill}

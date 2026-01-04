@@ -11,9 +11,11 @@ export interface BibleVerse {
 export interface BibleBook {
   id: number;
   name: string;
+  nameEn: string;
   testament: 'old' | 'new';
   chapters: number;
   abbr: string;
+  abbrEn: string;
 }
 
 export interface BibleChapter {

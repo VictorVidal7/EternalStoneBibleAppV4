@@ -199,17 +199,24 @@ class VersionComparisonService {
 
   /**
    * Obtiene todas las versiones disponibles
+   * Prioriza las que tienen contenido en la tabla 'verses'
    */
   async getAvailableVersions(language?: string): Promise<BibleVersion[]> {
     await this.initialize();
 
+    // 1. Obtener versiones distintas presentes en la tabla 'verses'
+    const versesResult = await this.db!.getAllAsync<{version: string}>(
+      'SELECT DISTINCT version FROM verses',
+    );
+    const existingVersionIds = versesResult.map(r => r.version);
+
+    // 2. Obtener metadatos de 'bible_versions'
     const query = language
-      ? `SELECT * FROM bible_versions WHERE language = ? ORDER BY is_premium ASC, year DESC`
-      : `SELECT * FROM bible_versions ORDER BY language, is_premium ASC, year DESC`;
+      ? `SELECT * FROM bible_versions WHERE language = ?`
+      : `SELECT * FROM bible_versions`;
 
     const params = language ? [language] : [];
-
-    const rows = await this.db!.getAllAsync<{
+    const metaRows = await this.db!.getAllAsync<{
       id: string;
       name: string;
       abbreviation: string;
@@ -219,15 +226,66 @@ class VersionComparisonService {
       is_premium: number;
     }>(query, params);
 
-    return rows.map(row => ({
-      id: row.id,
-      name: row.name,
-      abbreviation: row.abbreviation,
-      language: row.language,
-      description: row.description || '',
-      year: row.year,
-      isPremium: row.is_premium === 1,
-    }));
+    const metaMap = new Map(metaRows.map(row => [row.id.toLowerCase(), row]));
+    const metaMapByAbbr = new Map(
+      metaRows.map(row => [row.abbreviation.toLowerCase(), row]),
+    );
+
+    // 3. Construir la lista final priorizando lo que el usuario "realmente tiene"
+    const finalVersions: BibleVersion[] = [];
+    const processedIds = new Set<string>();
+
+    // Añadir versiones que existen en 'verses'
+    for (const vId of existingVersionIds) {
+      const lowerId = vId.toLowerCase();
+      const meta = metaMap.get(lowerId) || metaMapByAbbr.get(lowerId);
+
+      if (meta) {
+        finalVersions.push({
+          id: meta.id,
+          name: meta.name,
+          abbreviation: meta.abbreviation,
+          language: meta.language,
+          description: meta.description || '',
+          year: meta.year,
+          isPremium: meta.is_premium === 1,
+        });
+        processedIds.add(meta.id.toLowerCase());
+        processedIds.add(meta.abbreviation.toLowerCase());
+      } else {
+        // Si no hay metadatos, crear entrada genérica
+        finalVersions.push({
+          id: vId.toLowerCase(),
+          name: vId,
+          abbreviation: vId,
+          language: language || 'es',
+          description: 'Versión local cargada en memoria',
+          year: new Date().getFullYear(),
+          isPremium: false,
+        });
+        processedIds.add(vId.toLowerCase());
+      }
+    }
+
+    // Opcional: Añadir versiones por defecto que NO están en verses pero podrían interesarle al usuario
+    // (comentado si el usuario solo quiere ver lo que "realmente tiene")
+    /*
+    for (const [id, meta] of metaMap) {
+      if (!processedIds.has(id)) {
+        finalVersions.push({
+          id: meta.id,
+          name: meta.name,
+          abbreviation: meta.abbreviation,
+          language: meta.language,
+          description: (meta.description || '') + ' (No descargada)',
+          year: meta.year,
+          isPremium: meta.is_premium === 1,
+        });
+      }
+    }
+    */
+
+    return finalVersions.sort((a, b) => a.name.localeCompare(b.name));
   }
 
   /**
@@ -243,47 +301,59 @@ class VersionComparisonService {
 
     const versions: VersionText[] = [];
 
+    // 1. Intentar encontrar el book_id para este nombre de libro
+    const bookInfo = await this.db!.getFirstAsync<{book_id: number}>(
+      'SELECT book_id FROM verses WHERE book_name = ? LIMIT 1',
+      [book],
+    );
+
+    // Si no encontramos por nombre exacto, intentamos una búsqueda por LIKE (por si hay variaciones de tildes)
+    let bookId = bookInfo?.book_id;
+    if (!bookId) {
+      const bookInfoAlternative = await this.db!.getFirstAsync<{
+        book_id: number;
+      }>('SELECT book_id FROM verses WHERE book_name LIKE ? LIMIT 1', [
+        `%${book}%`,
+      ]);
+      bookId = bookInfoAlternative?.book_id;
+    }
+
     for (const versionId of versionIds) {
-      // Por ahora, solo soportamos las versiones que están en la tabla verses
-      // En el futuro, cuando se agreguen más versiones, usaremos verses_by_version
-      const versionMap: Record<
-        string,
-        {name: string; abbr: string; dbVersion: string}
-      > = {
-        rvr1960: {
-          name: 'Reina-Valera 1960',
-          abbr: 'RVR1960',
-          dbVersion: 'RVR1960',
-        },
-        kjv: {name: 'King James Version', abbr: 'KJV', dbVersion: 'KJV'},
-      };
+      // 2. Buscar el texto usando book_id si lo tenemos, si no, caemos a book_name
+      let query = '';
+      let params: any[] = [];
 
-      const versionInfo = versionMap[versionId.toLowerCase()];
-
-      if (!versionInfo) {
-        // Versión no soportada aún, omitir
-        continue;
+      if (bookId) {
+        query = `
+          SELECT text, version
+          FROM verses 
+          WHERE book_id = ? AND chapter = ? AND verse = ? AND (LOWER(version) = LOWER(?) OR version = ?)
+        `;
+        params = [bookId, chapter, verse, versionId, versionId.toUpperCase()];
+      } else {
+        query = `
+          SELECT text, version
+          FROM verses 
+          WHERE book_name = ? AND chapter = ? AND verse = ? AND (LOWER(version) = LOWER(?) OR version = ?)
+        `;
+        params = [book, chapter, verse, versionId, versionId.toUpperCase()];
       }
 
       const result = await this.db!.getFirstAsync<{
         text: string;
-      }>(
-        `
-        SELECT v.text
-        FROM verses v
-        WHERE v.book_name = ? AND v.chapter = ? AND v.verse = ? AND v.version = ?
-      `,
-        [book, chapter, verse, versionInfo.dbVersion],
-      );
+        version: string;
+      }>(query, params);
 
       if (result) {
         versions.push({
-          versionId,
-          versionName: versionInfo.name,
-          versionAbbr: versionInfo.abbr,
+          versionId: versionId.toLowerCase(),
+          versionName: result.version,
+          versionAbbr: result.version,
           text: result.text,
           wordCount: result.text.split(/\s+/).length,
         });
+      } else {
+        // En el futuro buscaremos en verses_by_version si implementamos descarga de versiones
       }
     }
 
@@ -522,6 +592,18 @@ class VersionComparisonService {
     await this.db!.runAsync(`DELETE FROM saved_comparisons WHERE id = ?`, [
       comparisonId,
     ]);
+  }
+
+  /**
+   * Actualiza una comparación guardada
+   */
+  async updateComparison(comparisonId: string, name: string, notes: string) {
+    await this.initialize();
+
+    await this.db!.runAsync(
+      `UPDATE saved_comparisons SET name = ?, notes = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?`,
+      [name, notes, comparisonId],
+    );
   }
 }
 

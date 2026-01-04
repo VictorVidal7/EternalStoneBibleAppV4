@@ -4,15 +4,15 @@
     "slug": "eternal-bible",
     "version": "3.0.0",
     "orientation": "portrait",
-    "icon": "./assets/eternal-stone-logo-v7.png",
+    "icon": "./assets/eternal-stone-logo-v7-centered.png",
     "userInterfaceStyle": "automatic",
     "scheme": "eternalbible",
     "newArchEnabled": true,
     "plugins": ["expo-router", "expo-sqlite", "@react-native-firebase/app"],
     "splash": {
-      "image": "./assets/eternal-stone-logo-v7.png",
+      "image": "./assets/eternal-stone-logo-v7-centered.png",
       "resizeMode": "contain",
-      "backgroundColor": "#ffffff"
+      "backgroundColor": "#1A1D2E"
     },
     "ios": {
       "supportsTablet": true
@@ -20,7 +20,7 @@
     "android": {
       "package": "com.eternalstonebible.app",
       "adaptiveIcon": {
-        "foregroundImage": "./assets/eternal-stone-logo-v7.png",
+        "foregroundImage": "./assets/eternal-stone-logo-v7-centered.png",
         "backgroundColor": "#000000"
       },
       "edgeToEdgeEnabled": true,
@@ -28,7 +28,7 @@
       "googleServicesFile": "./google-services.json"
     },
     "web": {
-      "favicon": "./assets/eternal-stone-logo-v7.png"
+      "favicon": "./assets/eternal-stone-logo-v7-centered.png"
     }
   }
 }

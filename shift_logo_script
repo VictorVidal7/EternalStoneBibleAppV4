@@ -1,0 +1,25 @@
+from PIL import Image
+import os
+
+def shift_logo(input_path, output_path, dx, dy):
+    img = Image.open(input_path).convert("RGBA")
+    width, height = img.size
+    
+    # Use dark theme background color (#1A1D2E) as the fill for new image
+    new_img = Image.new("RGBA", (width, height), (26, 29, 46, 255))
+    # Paste original with offset
+    new_img.paste(img, (dx, dy), img)
+    
+    new_img.save(output_path)
+    print(f"Saved logo with offset ({dx}, {dy}) to {output_path}")
+
+if __name__ == "__main__":
+    # Shifting 32 pixels right to visually center the "ES" monogram
+    input_file = "assets/eternal-stone-logo-v7.png"
+    temp_file = "assets/temp_logo.png"
+    shift_logo(input_file, temp_file, 32, 0)
+    
+    # Overwrite original
+    if os.path.exists(temp_file):
+        os.replace(temp_file, input_file)
+        print("Updated original asset.")

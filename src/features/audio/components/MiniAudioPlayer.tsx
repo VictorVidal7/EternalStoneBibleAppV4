@@ -378,7 +378,6 @@ export const MiniAudioPlayer: React.FC<MiniAudioPlayerProps> = ({
                 </View>
               </View>
 
-              {/* Waveform */}
               <View style={styles.waveformContainer}>
                 <AudioWaveform
                   isPlaying={state.isPlaying && state.isExpanded}
@@ -417,7 +416,6 @@ export const MiniAudioPlayer: React.FC<MiniAudioPlayerProps> = ({
                 />
               </View>
 
-              {/* Bottom Options */}
               <View style={[styles.optionsRow, {gap: AUDIO_CONTROL_GAP}]}>
                 {/* Speed Selector */}
                 <View style={styles.optionSlot}>
@@ -429,7 +427,7 @@ export const MiniAudioPlayer: React.FC<MiniAudioPlayerProps> = ({
                 </View>
 
                 {/* Sleep Timer Button */}
-                <View style={styles.optionSlotMain}>
+                <View style={styles.optionSlot}>
                   <TouchableOpacity
                     style={[
                       styles.optionButton,
@@ -445,7 +443,7 @@ export const MiniAudioPlayer: React.FC<MiniAudioPlayerProps> = ({
                       size={16}
                       color={sleepTimer.isActive ? colors.primary : colors.text}
                     />
-                    {sleepTimer.isActive && sleepTimer.remainingMinutes > 0 && (
+                    {sleepTimer.isActive && (
                       <Text
                         style={[styles.timerBadge, {color: colors.primary}]}>
                         {sleepTimer.remainingMinutes}m
@@ -623,10 +621,6 @@ const styles = StyleSheet.create({
   },
   optionSlot: {
     minWidth: 54,
-    alignItems: 'center',
-  },
-  optionSlotMain: {
-    width: AUDIO_CONTROL_SIZES.small.main,
     alignItems: 'center',
   },
   optionButton: {

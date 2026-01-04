@@ -41,8 +41,6 @@ import {ServicesProvider} from '../src/context/ServicesContext';
 import {ToastProvider} from '../src/context/ToastContext';
 import {ReadingProgressProvider} from '../src/context/ReadingProgressContext';
 import {FavoritesProvider} from '../src/context/FavoritesContext';
-import {AchievementNotifications} from '../src/components/AchievementNotifications';
-import {AnimatedSplashScreen} from '../src/components/AnimatedSplashScreen';
 import bibleDB from '../src/lib/database';
 import {logger} from '../src/lib/utils/logger';
 import {predictiveCacheService} from '../src/lib/cache/PredictiveCache';

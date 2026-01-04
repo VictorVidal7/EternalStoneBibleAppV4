@@ -18,6 +18,9 @@ export const translations = {
     tap: 'Toca',
     readMore: 'Leer más',
     completed: 'Completado',
+    add: 'Añadir',
+    range: 'Rango',
+    optional: 'Opcional',
     coins: 'monedas',
 
     // App Loading
@@ -797,6 +800,9 @@ export const translations = {
     tap: 'Tap',
     readMore: 'Read more',
     completed: 'Completed',
+    add: 'Add',
+    range: 'Range',
+    optional: 'Optional',
     coins: 'coins',
 
     // App Loading

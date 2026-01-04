@@ -21,6 +21,7 @@ import {
   celestialBorderRadius,
 } from '../../styles/celestialTheme';
 import {useTheme} from '../../hooks/useTheme';
+import {useLanguage} from '../../hooks/useLanguage';
 
 interface WelcomeCardProps {
   /**
@@ -66,6 +67,7 @@ const WelcomeCard: React.FC<WelcomeCardProps> = ({
   isDark = false,
 }) => {
   const {colors: themeColors} = useTheme();
+  const {t} = useLanguage();
   // Pasar colores dinámicos del tema seleccionado
   const theme = createCelestialTheme(isDark, {
     primary: themeColors.primary,
@@ -138,7 +140,7 @@ const WelcomeCard: React.FC<WelcomeCardProps> = ({
               <StatsCard
                 icon="flame"
                 value={streakDays}
-                label="Días"
+                label={t.home.days}
                 iconColor="#fbbf24" // amber-400
                 valueColor="#ffffff"
                 labelColor="rgba(255, 255, 255, 0.75)"
@@ -149,7 +151,7 @@ const WelcomeCard: React.FC<WelcomeCardProps> = ({
               <StatsCard
                 icon="star"
                 value={level}
-                label="Nivel"
+                label={t.home.level}
                 iconColor="#fbbf24" // amber-400
                 valueColor="#ffffff"
                 labelColor="rgba(255, 255, 255, 0.75)"
@@ -159,7 +161,7 @@ const WelcomeCard: React.FC<WelcomeCardProps> = ({
               <StatsCard
                 icon="trending-up"
                 value={`${progress}%`}
-                label="Progreso"
+                label={t.home.progress}
                 iconColor="#fbbf24" // amber-400
                 valueColor="#ffffff"
                 labelColor="rgba(255, 255, 255, 0.75)"
@@ -175,7 +177,7 @@ const WelcomeCard: React.FC<WelcomeCardProps> = ({
 const styles = StyleSheet.create({
   container: {
     marginHorizontal: 20,
-    marginTop: 20,
+    marginTop: 40,
     marginBottom: 24,
   },
   gradientCard: {

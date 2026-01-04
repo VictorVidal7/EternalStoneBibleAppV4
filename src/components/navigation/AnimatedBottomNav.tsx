@@ -62,18 +62,6 @@ export const AnimatedBottomNav: React.FC<AnimatedBottomNavProps> = ({
       route: '/(tabs)/achievements',
     },
     {
-      name: 'bookmarks',
-      icon: 'bookmark',
-      label: t.tabs.bookmarks,
-      route: '/(tabs)/bookmarks',
-    },
-    {
-      name: 'notes',
-      icon: 'create',
-      label: t.tabs.notes,
-      route: '/(tabs)/notes',
-    },
-    {
       name: 'settings',
       icon: 'settings',
       label: t.tabs.settings,
