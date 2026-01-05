@@ -1585,10 +1585,10 @@ const styles = StyleSheet.create({
     justifyContent: 'space-around',
   },
   selectionButton: {
+    flex: 1,
     alignItems: 'center',
     paddingVertical: spacing.xs,
-    paddingHorizontal: spacing.sm,
-    minWidth: 56,
+    paddingHorizontal: spacing.xs,
   },
   selectionButtonText: {
     fontSize: fontSizes.xs,

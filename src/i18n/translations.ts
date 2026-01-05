@@ -257,7 +257,7 @@ export const translations = {
     verse: {
       singular: 'versículo',
       plural: 'versículos',
-      addFavorite: 'Agregar a Favoritos',
+      addFavorite: 'Favoritos',
       removeFavorite: 'Quitar de Favoritos',
       compare: 'Comparar',
       copyVerse: 'Copiar Versículo',
@@ -1049,7 +1049,7 @@ export const translations = {
     verse: {
       singular: 'verse',
       plural: 'verses',
-      addFavorite: 'Add to Favorites',
+      addFavorite: 'Favorite',
       removeFavorite: 'Remove from Favorites',
       compare: 'Compare',
       copyVerse: 'Copy Verse',
