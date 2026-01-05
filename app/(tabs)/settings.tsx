@@ -515,41 +515,6 @@ export default function SettingsScreen() {
               />
             </TouchableOpacity>
 
-            {/* Version Comparison */}
-            <TouchableOpacity
-              style={themedStyles.featureItem}
-              onPress={async () => {
-                await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-                router.push('/features/version-comparison');
-              }}>
-              <View style={styles.featureContent}>
-                <View
-                  style={[
-                    themedStyles.featureIcon,
-                    {backgroundColor: colors.accent + '15'},
-                  ]}>
-                  <Ionicons
-                    name="git-compare"
-                    size={24}
-                    color={colors.accent}
-                  />
-                </View>
-                <View style={styles.featureInfo}>
-                  <Text style={themedStyles.featureTitle}>
-                    {t.settingsV51.versionComparison}
-                  </Text>
-                  <Text style={themedStyles.featureDescription}>
-                    {t.settingsV51.versionComparisonDesc}
-                  </Text>
-                </View>
-              </View>
-              <Ionicons
-                name="chevron-forward"
-                size={20}
-                color={colors.textTertiary}
-              />
-            </TouchableOpacity>
-
             {/* Badges & Titles */}
             <TouchableOpacity
               style={themedStyles.featureItem}

@@ -784,7 +784,7 @@ export const translations = {
 
     // Settings V5.1 Section
     settingsV51: {
-      title: 'Nuevas Funcionalidades V5.1',
+      title: 'Funcionalidades',
       widgets: 'Widgets',
       widgetsDesc: 'Vista previa de widgets para pantalla de inicio',
       versionComparison: 'Comparación de Versiones',
@@ -1576,7 +1576,7 @@ export const translations = {
 
     // Settings V5.1 Section
     settingsV51: {
-      title: 'New V5.1 Features',
+      title: 'Features',
       widgets: 'Widgets',
       widgetsDesc: 'Home screen widgets preview',
       versionComparison: 'Version Comparison',
