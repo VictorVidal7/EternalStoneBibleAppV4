@@ -261,7 +261,7 @@ export default function SettingsScreen() {
                         isSelected && themedStyles.colorThemeNameCompactActive,
                       ]}
                       numberOfLines={1}>
-                      {theme.name}
+                      {t.settings.colorThemeNames[themeKey]}
                     </Text>
                   </TouchableOpacity>
                 );

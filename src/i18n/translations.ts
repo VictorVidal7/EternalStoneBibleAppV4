@@ -210,6 +210,16 @@ export const translations = {
 
       colorTheme: 'Tema de Color',
       colorThemeDescription: 'Elige el estilo visual de la aplicación',
+      colorThemeNames: {
+        ocean: 'Océano',
+        celestial: 'Celestial',
+        forest: 'Bosque',
+        sunset: 'Atardecer',
+        graphite: 'Grafito',
+        royal: 'Royal',
+        midnight: 'Midnight',
+        cafe: 'Café',
+      },
 
       bibleVersion: 'Versión de la Biblia',
       selectVersion: 'Selecciona tu versión',
@@ -991,6 +1001,16 @@ export const translations = {
 
       colorTheme: 'Color Theme',
       colorThemeDescription: 'Choose the visual style of the app',
+      colorThemeNames: {
+        ocean: 'Ocean',
+        celestial: 'Celestial',
+        forest: 'Forest',
+        sunset: 'Sunset',
+        graphite: 'Graphite',
+        royal: 'Royal',
+        midnight: 'Midnight',
+        cafe: 'Café',
+      },
 
       bibleVersion: 'Bible Version',
       selectVersion: 'Select your version',
