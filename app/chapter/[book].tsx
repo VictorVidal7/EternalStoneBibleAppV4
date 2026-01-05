@@ -31,8 +31,8 @@ import {AnimatedBottomNav} from '../../src/components/navigation/AnimatedBottomN
 import {spacing, fontSize, shadows} from '../../src/styles/designTokens';
 
 const {width: SCREEN_WIDTH} = Dimensions.get('window');
-const CARDS_PER_ROW = 4;
-const CARD_SIZE = (SCREEN_WIDTH - spacing.lg * 2) / CARDS_PER_ROW - spacing.md;
+const CARDS_PER_ROW = 5;
+const CARD_SIZE = (SCREEN_WIDTH - spacing.lg * 2) / CARDS_PER_ROW;
 
 interface ChapterItem {
   chapter: number;
@@ -289,6 +289,7 @@ export default function ChapterSelectionScreen() {
                 renderItem={renderItem}
                 keyExtractor={item => item.id}
                 numColumns={CARDS_PER_ROW}
+                key={CARDS_PER_ROW}
                 showsVerticalScrollIndicator={false}
                 contentContainerStyle={[
                   styles.listContent,
@@ -644,41 +645,41 @@ const styles = StyleSheet.create({
   cardWrapper: {
     width: CARD_SIZE,
     height: CARD_SIZE,
-    padding: 6,
+    padding: 4, // Menos padding para 5 por fila
   },
   cardTouchable: {
-    width: CARD_SIZE - 12,
-    height: CARD_SIZE - 12,
+    width: CARD_SIZE - 8,
+    height: CARD_SIZE - 8,
   },
   card: {
-    width: CARD_SIZE - 12,
-    height: CARD_SIZE - 12,
-    borderRadius: 16,
+    width: CARD_SIZE - 8,
+    height: CARD_SIZE - 8,
+    borderRadius: 12,
     justifyContent: 'center',
     alignItems: 'center',
   },
   chapterNumber: {
-    fontSize: 26,
+    fontSize: 20, // Reducido para 5 por fila
     fontWeight: '600',
     letterSpacing: -0.3,
   },
   completedIndicator: {
     position: 'absolute',
-    top: 6,
-    right: 6,
-    width: 18,
-    height: 18,
-    borderRadius: 9,
+    top: 4,
+    right: 4,
+    width: 14,
+    height: 14,
+    borderRadius: 7,
     backgroundColor: 'rgba(16, 185, 129, 0.15)',
     justifyContent: 'center',
     alignItems: 'center',
   },
   progressIndicator: {
     position: 'absolute',
-    top: 6,
-    right: 6,
-    width: 18,
-    height: 18,
+    top: 4,
+    right: 4,
+    width: 14,
+    height: 14,
     justifyContent: 'center',
     alignItems: 'center',
   },
