@@ -47,6 +47,7 @@ export default function BibleScreen() {
   const {t} = useLanguage();
 
   const [searchQuery, setSearchQuery] = useState('');
+  const [filter, setFilter] = useState<'all' | 'old' | 'new'>('all');
   const [filteredBooks, setFilteredBooks] = useState<BibleBook[]>(BIBLE_BOOKS);
   const [refreshing, setRefreshing] = useState(false);
 
@@ -92,30 +93,30 @@ export default function BibleScreen() {
   const oldTestament = filteredBooks.filter(book => book.testament === 'old');
   const newTestament = filteredBooks.filter(book => book.testament === 'new');
 
-  // Fallback gradient colors
-  const sectionGradient =
-    gradient?.headerColors ?? (['#4f46e5', '#7c3aed', '#a855f7'] as const);
-
   const sections = [
     {
       title: t.bible.oldTestament,
       data: oldTestament,
-      gradientColors: sectionGradient,
+      type: 'old' as const,
     },
     {
       title: t.bible.newTestament,
       data: newTestament,
-      gradientColors: sectionGradient,
+      type: 'new' as const,
     },
-  ].filter(section => section.data.length > 0);
+  ].filter(section => {
+    if (filter === 'all') return section.data.length > 0;
+    return section.type === filter && section.data.length > 0;
+  });
 
   async function onRefresh() {
     setRefreshing(true);
     await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
 
-    // Reset search if there is one
-    if (searchQuery) {
+    // Reset search and filter if there is one
+    if (searchQuery || filter !== 'all') {
       setSearchQuery('');
+      setFilter('all');
       setFilteredBooks(BIBLE_BOOKS);
     }
 
@@ -128,7 +129,10 @@ export default function BibleScreen() {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     router.push(`/chapter/${bookName}` as any);
   }
-
+  function toggleFilter(newFilter: 'old' | 'new') {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+    setFilter(prev => (prev === newFilter ? 'all' : newFilter));
+  }
   return (
     <View style={[styles.container, {backgroundColor: colors.background}]}>
       {/* Header con gradiente */}
@@ -178,26 +182,6 @@ export default function BibleScreen() {
                 {filteredBooks.length} {t.home.booksAvailable}
               </Text>
             </View>
-
-            {/* Stats mini */}
-            <View style={styles.headerStats}>
-              <View
-                style={[
-                  styles.statMini,
-                  {backgroundColor: 'rgba(255,255,255,0.15)'},
-                ]}>
-                <Text style={styles.statMiniNumber}>{oldTestament.length}</Text>
-                <Text style={styles.statMiniLabel}>AT</Text>
-              </View>
-              <View
-                style={[
-                  styles.statMini,
-                  {backgroundColor: 'rgba(255,255,255,0.15)'},
-                ]}>
-                <Text style={styles.statMiniNumber}>{newTestament.length}</Text>
-                <Text style={styles.statMiniLabel}>NT</Text>
-              </View>
-            </View>
           </View>
         </LinearGradient>
       </Animated.View>
@@ -218,42 +202,104 @@ export default function BibleScreen() {
             ],
           },
         ]}>
-        <View
-          style={[
-            styles.searchBar,
-            {
-              backgroundColor: isDark
-                ? 'rgba(255,255,255,0.05)'
-                : 'rgba(0,0,0,0.03)',
-              borderColor: colors.glassBorder,
-              borderWidth: 1,
-            },
-          ]}>
-          <Ionicons
-            name="search"
-            size={20}
-            color={colors.textSecondary}
-            style={styles.searchIcon}
-          />
-          <TextInput
-            style={[styles.searchInput, {color: colors.text}]}
-            placeholder={t.home.searchBook}
-            placeholderTextColor={colors.textTertiary}
-            value={searchQuery}
-            onChangeText={setSearchQuery}
-            returnKeyType="search"
-          />
-          {searchQuery.length > 0 && (
+        <View style={styles.searchRow}>
+          <View
+            style={[
+              styles.searchBar,
+              {
+                backgroundColor: isDark
+                  ? 'rgba(255,255,255,0.05)'
+                  : 'rgba(0,0,0,0.03)',
+                borderColor: colors.glassBorder,
+                borderWidth: 1,
+                flex: 1,
+              },
+            ]}>
+            <Ionicons
+              name="search"
+              size={18}
+              color={colors.textSecondary}
+              style={styles.searchIcon}
+            />
+            <TextInput
+              style={[styles.searchInput, {color: colors.text}]}
+              placeholder={t.home.searchBook}
+              placeholderTextColor={colors.textTertiary}
+              value={searchQuery}
+              onChangeText={setSearchQuery}
+              returnKeyType="search"
+            />
+            {searchQuery.length > 0 && (
+              <TouchableOpacity
+                onPress={() => setSearchQuery('')}
+                style={styles.clearButton}>
+                <Ionicons
+                  name="close-circle"
+                  size={18}
+                  color={colors.textSecondary}
+                />
+              </TouchableOpacity>
+            )}
+          </View>
+
+          {/* Filter Chips */}
+          <View style={styles.filterRow}>
             <TouchableOpacity
-              onPress={() => setSearchQuery('')}
-              style={styles.clearButton}>
-              <Ionicons
-                name="close-circle"
-                size={20}
-                color={colors.textSecondary}
-              />
+              onPress={() => toggleFilter('old')}
+              activeOpacity={0.7}
+              style={[
+                styles.filterChip,
+                {
+                  backgroundColor:
+                    filter === 'old'
+                      ? colors.primary + '40' // Traslúcido activo
+                      : isDark
+                        ? 'rgba(255,255,255,0.05)'
+                        : 'rgba(0,0,0,0.03)',
+                  borderColor:
+                    filter === 'old' ? colors.primary : colors.glassBorder,
+                },
+              ]}>
+              <Text
+                style={[
+                  styles.filterChipText,
+                  {
+                    color:
+                      filter === 'old' ? colors.primary : colors.textSecondary,
+                  },
+                ]}>
+                AT
+              </Text>
             </TouchableOpacity>
-          )}
+
+            <TouchableOpacity
+              onPress={() => toggleFilter('new')}
+              activeOpacity={0.7}
+              style={[
+                styles.filterChip,
+                {
+                  backgroundColor:
+                    filter === 'new'
+                      ? colors.primary + '40' // Traslúcido activo
+                      : isDark
+                        ? 'rgba(255,255,255,0.05)'
+                        : 'rgba(0,0,0,0.03)',
+                  borderColor:
+                    filter === 'new' ? colors.primary : colors.glassBorder,
+                },
+              ]}>
+              <Text
+                style={[
+                  styles.filterChipText,
+                  {
+                    color:
+                      filter === 'new' ? colors.primary : colors.textSecondary,
+                  },
+                ]}>
+                NT
+              </Text>
+            </TouchableOpacity>
+          </View>
         </View>
       </Animated.View>
 
@@ -274,8 +320,7 @@ export default function BibleScreen() {
             <SectionHeader
               title={section.title}
               count={section.data.length}
-              gradientColors={section.gradientColors}
-              isOldTestament={section.title.includes('Antiguo')}
+              isOldTestament={section.type === 'old'}
             />
           )}
           renderItem={({item, index}) => (
@@ -301,7 +346,6 @@ export default function BibleScreen() {
 interface SectionHeaderProps {
   title: string;
   count: number;
-  gradientColors: readonly [string, string, string];
   isOldTestament: boolean;
 }
 
@@ -526,51 +570,51 @@ const styles = StyleSheet.create({
     color: 'rgba(255,255,255,0.9)',
     fontWeight: '500',
   },
-  headerStats: {
-    flexDirection: 'row',
-    gap: spacing.sm,
-  },
-  statMini: {
-    alignItems: 'center',
-    backgroundColor: 'rgba(255,255,255,0.2)',
-    paddingHorizontal: spacing.sm, // Más compacto
-    paddingVertical: spacing.xs,
-    borderRadius: borderRadius.md,
-    minWidth: 42, // Ancho mínimo consistente
-  },
-  statMiniNumber: {
-    fontSize: fontSize.lg,
-    fontWeight: '700',
-    color: '#ffffff',
-  },
-  statMiniLabel: {
-    fontSize: fontSize.xs,
-    color: 'rgba(255,255,255,0.9)',
-  },
-
   // Search
   searchContainer: {
     paddingHorizontal: spacing.lg,
-    paddingVertical: spacing.lg,
+    paddingVertical: spacing.md,
+  },
+  searchRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
   },
   searchBar: {
     flexDirection: 'row',
     alignItems: 'center',
-    borderRadius: 12, // Moderno y limpio
-    paddingHorizontal: 16,
-    height: 48,
-    borderWidth: 1.5, // Borde sutil visible
+    borderRadius: 12,
+    paddingHorizontal: 12,
+    height: 44,
   },
   searchIcon: {
-    marginRight: spacing.sm,
+    marginRight: 8,
   },
   searchInput: {
     flex: 1,
-    fontSize: fontSize.base,
-    paddingVertical: spacing.sm,
+    fontSize: 15,
   },
   clearButton: {
-    padding: spacing.xs,
+    padding: 4,
+  },
+
+  // Filters
+  filterRow: {
+    flexDirection: 'row',
+    gap: 6,
+  },
+  filterChip: {
+    height: 44,
+    paddingHorizontal: 12,
+    borderRadius: 12,
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 1,
+    minWidth: 44,
+  },
+  filterChipText: {
+    fontSize: 13,
+    fontWeight: '800',
   },
 
   // List
