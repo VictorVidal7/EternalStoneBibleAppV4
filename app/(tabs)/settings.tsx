@@ -10,16 +10,11 @@ import {
 import React, {useState, useMemo} from 'react';
 import {Ionicons} from '@expo/vector-icons';
 import {useRouter} from 'expo-router';
-import {
-  useTheme,
-  colorThemes,
-  ColorTheme,
-  ThemeColors,
-} from '../../src/hooks/useTheme';
+import {useTheme, colorThemes, ColorTheme, ThemeColors} from '@hooks/useTheme';
 import {LinearGradient} from 'expo-linear-gradient';
-import {useBibleVersion} from '../../src/hooks/useBibleVersion';
-import {useLanguage} from '../../src/hooks/useLanguage';
-import {resetBibleData} from '../../src/lib/database/data-loader';
+import {useBibleVersion} from '@hooks/useBibleVersion';
+import {useLanguage} from '@hooks/useLanguage';
+import {resetBibleData} from '@lib/database/data-loader';
 import * as Haptics from 'expo-haptics';
 
 type ThemeOption = 'light' | 'dark' | 'auto';

@@ -10,12 +10,12 @@ import {useState, useCallback, useMemo} from 'react';
 import {useRouter, useFocusEffect} from 'expo-router';
 import {Ionicons} from '@expo/vector-icons';
 import {LinearGradient} from 'expo-linear-gradient';
-import bibleDB from '../../src/lib/database';
-import {Note} from '../../src/types/bible';
-import {useTheme} from '../../src/hooks/useTheme';
-import {useLanguage} from '../../src/hooks/useLanguage';
-import {IllustratedEmptyState} from '../../src/components/IllustratedEmptyState';
-import {logger} from '../../src/lib/utils/logger';
+import bibleDB from '@lib/database';
+import {Note} from '@/types/bible';
+import {useTheme} from '@hooks/useTheme';
+import {useLanguage} from '@hooks/useLanguage';
+import {IllustratedEmptyState} from '@components/IllustratedEmptyState';
+import {logger} from '@lib/utils/logger';
 
 export default function NotesScreen() {
   const router = useRouter();

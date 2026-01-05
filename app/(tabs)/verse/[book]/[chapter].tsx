@@ -18,32 +18,32 @@ import * as Clipboard from 'expo-clipboard';
 import * as Haptics from 'expo-haptics';
 import * as Sharing from 'expo-sharing';
 import {captureRef} from 'react-native-view-shot';
-import bibleDB from '../../../src/lib/database';
-import {BibleVerse} from '../../../src/types/bible';
-import {getBookByName} from '../../../src/constants/bible';
-import {useTheme} from '../../../src/hooks/useTheme';
-import {useBibleVersion} from '../../../src/hooks/useBibleVersion';
-import {useLanguage} from '../../../src/hooks/useLanguage';
-import {useServices} from '../../../src/context/ServicesContext';
-import {useToast} from '../../../src/context/ToastContext';
-import {useFavorites} from '../../../src/context/FavoritesContext';
-import {logger} from '../../../src/lib/utils/logger';
-import {ImmersiveReader} from '../../../src/components/reading/ImmersiveReader';
-import {getBookTheme} from '../../../src/constants/bookThemes';
+import bibleDB from '@lib/database';
+import {BibleVerse} from '@types/bible';
+import {getBookByName} from '@/constants/bible';
+import {useTheme} from '@hooks/useTheme';
+import {useBibleVersion} from '@hooks/useBibleVersion';
+import {useLanguage} from '@hooks/useLanguage';
+import {useServices} from '@context/ServicesContext';
+import {useToast} from '@context/ToastContext';
+import {useFavorites} from '@context/FavoritesContext';
+import {logger} from '@lib/utils/logger';
+import {ImmersiveReader} from '@components/reading/ImmersiveReader';
+import {getBookTheme} from '@/constants/bookThemes';
 // Audio Bible Feature
-import {useAudioPlayer, AudioVerse} from '../../../src/features/audio';
+import {useAudioPlayer, AudioVerse} from '@/features/audio';
 // Navigation
-import {
-  AnimatedBottomNav,
-  useScrollDirection,
-} from '../../../src/components/navigation/AnimatedBottomNav';
+// import {
+//   AnimatedBottomNav,
+//   useScrollDirection,
+// } from '../../../../src/components/navigation/AnimatedBottomNav';
 
 import {
   spacing,
   borderRadius,
   fontSize as fontSizes,
   shadows,
-} from '../../../src/styles/designTokens';
+} from '@/styles/designTokens';
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
 import {LinearGradient} from 'expo-linear-gradient';
 import {useWindowDimensions} from 'react-native';
@@ -191,8 +191,10 @@ export default function VerseReadingScreen() {
     return () => setBottomOffset(0); // Limpiar al desmontar
   }, [selectedVerses.size, isAudioVisible, setBottomOffset]);
 
-  // Bottom nav visibility based on scroll direction
-  const {isVisible: isNavVisible, handleScroll} = useScrollDirection();
+  // Bottom nav visibility based on scroll direction (Native tab bar is persistent for now)
+  // const {isVisible: isNavVisible, handleScroll} = useScrollDirection();
+  const isNavVisible = true;
+  const handleScroll = () => {};
 
   // Use theme colors directly
   const effectiveColors = {
@@ -1455,10 +1457,7 @@ export default function VerseReadingScreen() {
         </Modal>
 
         {/* Bottom Navigation - hides on scroll down or when selection is active */}
-        <AnimatedBottomNav
-          visible={isNavVisible && selectedVerses.size === 0}
-          activeTab="bible"
-        />
+        {/* Bottom Navigation is now handled by TabLayout */}
       </View>
     </>
   );
@@ -1590,9 +1589,10 @@ const styles = StyleSheet.create({
   // BARRA DE SELECCIÓN
   selectionBar: {
     position: 'absolute',
-    bottom: 40, // Elevado del fondo
-    left: 16, // Margen izquierdo
-    right: 16, // Margen derecho
+    bottom: 90, // Adjusted to be above the native tab bar
+    left: 20,
+    right: 20,
+    height: 54,
     borderRadius: 24, // Bordes totalmente redondeados
     borderWidth: 1,
     paddingTop: spacing.sm,

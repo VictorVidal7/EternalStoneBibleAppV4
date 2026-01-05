@@ -20,15 +20,15 @@ import {LinearGradient} from 'expo-linear-gradient';
 import {Ionicons} from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
 
-import {getBookByName} from '../../src/constants/bible';
-import {useTheme} from '../../src/hooks/useTheme';
-import {useLanguage} from '../../src/hooks/useLanguage';
-import {PremiumSkeleton} from '../../src/components/PremiumSkeleton';
-import {useReadingProgress} from '../../src/context/ReadingProgressContext';
-import {AnimatedBottomNav} from '../../src/components/navigation/AnimatedBottomNav';
+import {getBookByName} from '@/constants/bible';
+import {useTheme} from '@hooks/useTheme';
+import {useLanguage} from '@hooks/useLanguage';
+import {PremiumSkeleton} from '@components/PremiumSkeleton';
+import {useReadingProgress} from '@context/ReadingProgressContext';
+// import {AnimatedBottomNav} from '@components/navigation/AnimatedBottomNav';
 
 // Design tokens
-import {spacing, fontSize, shadows} from '../../src/styles/designTokens';
+import {spacing, fontSize, shadows} from '@/styles/designTokens';
 
 const {width: SCREEN_WIDTH} = Dimensions.get('window');
 const CARDS_PER_ROW = 5;
@@ -293,7 +293,7 @@ export default function ChapterSelectionScreen() {
                 showsVerticalScrollIndicator={false}
                 contentContainerStyle={[
                   styles.listContent,
-                  {paddingBottom: Platform.OS === 'ios' ? 100 : 80},
+                  {paddingBottom: Platform.OS === 'ios' ? 120 : 100},
                 ]}
               />
             ) : (
@@ -315,8 +315,7 @@ export default function ChapterSelectionScreen() {
           </View>
         )}
 
-        {/* Bottom Navigation */}
-        <AnimatedBottomNav activeTab="bible" />
+        {/* Bottom Navigation is now handled by TabLayout */}
       </View>
     </>
   );

@@ -31,17 +31,17 @@ import {LinearGradient} from 'expo-linear-gradient';
 import {BlurView} from 'expo-blur';
 import * as Haptics from 'expo-haptics';
 
-import bibleDB from '../../src/lib/database';
-import {BibleVerse, ReadingProgress} from '../../src/types/bible';
-import {READING_PLANS} from '../../src/constants/reading-plans';
-import {useTheme} from '../../src/hooks/useTheme';
-import {useBibleVersion} from '../../src/hooks/useBibleVersion';
-import {useServices} from '../../src/context/ServicesContext';
-import {useLanguage} from '../../src/hooks/useLanguage';
-import ShareService from '../../src/services/ShareService';
-import {logger} from '../../src/lib/utils/logger';
-import {useReadingProgress} from '../../src/context/ReadingProgressContext';
-import {useFavorites} from '../../src/context/FavoritesContext';
+import bibleDB from '@lib/database';
+import {BibleVerse, ReadingProgress} from '@/types/bible';
+import {READING_PLANS} from '@/constants/reading-plans';
+import {useTheme} from '@hooks/useTheme';
+import {useBibleVersion} from '@hooks/useBibleVersion';
+import {useServices} from '@context/ServicesContext';
+import {useLanguage} from '@hooks/useLanguage';
+import ShareService from '@/services/ShareService';
+import {logger} from '@lib/utils/logger';
+import {useReadingProgress} from '@context/ReadingProgressContext';
+import {useFavorites} from '@context/FavoritesContext';
 
 // Componentes Celestial
 import {
@@ -49,18 +49,18 @@ import {
   VerseOfDayCard,
   ReadingPlanCard,
   ShimmerCard,
-} from '../../src/components/celestial';
+} from '@components/celestial';
 
 // Skeleton Loaders
-import {Skeleton} from '../../src/components/SkeletonLoader';
+import {Skeleton} from '@components/SkeletonLoader';
 
 // Tema Celestial
 import {
   createCelestialTheme,
   celestialBorderRadius,
   celestialSpacing,
-} from '../../src/styles/celestialTheme';
-import {withOpacity} from '../../src/styles/modernTheme';
+} from '@/styles/celestialTheme';
+import {withOpacity} from '@/styles/modernTheme';
 
 const {width: SCREEN_WIDTH} = Dimensions.get('window');
 const CONTENT_HORIZONTAL_PADDING = 20;

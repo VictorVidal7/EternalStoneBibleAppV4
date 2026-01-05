@@ -1,8 +1,8 @@
 import {Tabs} from 'expo-router';
 import {Ionicons} from '@expo/vector-icons';
 import {Platform} from 'react-native';
-import {useTheme} from '../../src/hooks/useTheme';
-import {useLanguage} from '../../src/hooks/useLanguage';
+import {useTheme} from '@hooks/useTheme';
+import {useLanguage} from '@hooks/useLanguage';
 
 export default function TabLayout() {
   const {colors, isDark, gradient} = useTheme();
@@ -130,6 +130,22 @@ export default function TabLayout() {
             <Ionicons name="create" size={size} color={color} />
           ),
           headerTitle: t.headers.notes,
+        }}
+      />
+
+      <Tabs.Screen
+        name="chapter/[book]"
+        options={{
+          href: null,
+          headerShown: false,
+        }}
+      />
+
+      <Tabs.Screen
+        name="verse/[book]/[chapter]"
+        options={{
+          href: null,
+          headerShown: false,
         }}
       />
 

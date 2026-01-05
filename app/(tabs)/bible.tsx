@@ -26,12 +26,12 @@ import {LinearGradient} from 'expo-linear-gradient';
 import {BlurView} from 'expo-blur';
 import * as Haptics from 'expo-haptics';
 
-import {BIBLE_BOOKS} from '../../src/constants/bible';
-import {useTheme} from '../../src/hooks/useTheme';
-import {useLanguage} from '../../src/hooks/useLanguage';
+import {BIBLE_BOOKS} from '@/constants/bible';
+import {useTheme} from '@hooks/useTheme';
+import {useLanguage} from '@hooks/useLanguage';
 
 // Design tokens
-import {spacing, borderRadius, fontSize} from '../../src/styles/designTokens';
+import {spacing, borderRadius, fontSize} from '@/styles/designTokens';
 
 interface BibleBook {
   id: number;

@@ -4,22 +4,23 @@
  */
 
 import React from 'react';
-import { AchievementsScreen } from '../../src/screens/AchievementsScreen';
-import { useServices } from '../../src/context/ServicesContext';
-import { View, Text, ActivityIndicator, StyleSheet } from 'react-native';
-import { useLanguage } from '../../src/hooks/useLanguage';
-import { useTheme } from '../../src/hooks/useTheme';
+import {AchievementsScreen} from '@screens/AchievementsScreen';
+import {useServices} from '@context/ServicesContext';
+import {View, Text, ActivityIndicator, StyleSheet} from 'react-native';
+import {useLanguage} from '@hooks/useLanguage';
+import {useTheme} from '@hooks/useTheme';
 
 export default function AchievementsTab() {
-  const { database, initialized } = useServices();
-  const { t } = useLanguage();
-  const { colors } = useTheme();
+  const {database, initialized} = useServices();
+  const {t} = useLanguage();
+  const {colors} = useTheme();
 
   if (!initialized || !database) {
     return (
-      <View style={[styles.loadingContainer, { backgroundColor: colors.background }]}>
+      <View
+        style={[styles.loadingContainer, {backgroundColor: colors.background}]}>
         <ActivityIndicator size="large" color={colors.primary} />
-        <Text style={[styles.loadingText, { color: colors.textSecondary }]}>
+        <Text style={[styles.loadingText, {color: colors.textSecondary}]}>
           {t.achievements.loading}
         </Text>
       </View>

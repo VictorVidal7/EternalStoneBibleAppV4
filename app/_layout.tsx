@@ -30,26 +30,23 @@ if (!__DEV__) {
   ]);
 }
 import {GestureHandlerRootView} from 'react-native-gesture-handler';
-import {
-  initializeBibleData,
-  checkDataStatus,
-} from '../src/lib/database/data-loader';
-import {ThemeProvider} from '../src/hooks/useTheme';
-import {BibleVersionProvider} from '../src/hooks/useBibleVersion';
-import {LanguageProvider, useLanguage} from '../src/hooks/useLanguage';
-import {ServicesProvider} from '../src/context/ServicesContext';
-import {ToastProvider} from '../src/context/ToastContext';
-import {ReadingProgressProvider} from '../src/context/ReadingProgressContext';
-import {FavoritesProvider} from '../src/context/FavoritesContext';
-import bibleDB from '../src/lib/database';
-import {logger} from '../src/lib/utils/logger';
-import {predictiveCacheService} from '../src/lib/cache/PredictiveCache';
-import {badgeSystemService} from '../src/lib/badges/BadgeSystem';
-import {versionComparisonService} from '../src/lib/comparison/VersionComparison';
-import {widgetTaskHandler} from '../src/widgets/WidgetTaskHandler';
+import {initializeBibleData, checkDataStatus} from '@lib/database/data-loader';
+import {ThemeProvider} from '@hooks/useTheme';
+import {BibleVersionProvider} from '@hooks/useBibleVersion';
+import {LanguageProvider, useLanguage} from '@hooks/useLanguage';
+import {ServicesProvider} from '@context/ServicesContext';
+import {ToastProvider} from '@context/ToastContext';
+import {ReadingProgressProvider} from '@context/ReadingProgressContext';
+import {FavoritesProvider} from '@context/FavoritesContext';
+import bibleDB from '@lib/database';
+import {logger} from '@lib/utils/logger';
+import {predictiveCacheService} from '@lib/cache/PredictiveCache';
+import {badgeSystemService} from '@lib/badges/BadgeSystem';
+import {versionComparisonService} from '@lib/comparison/VersionComparison';
+import {widgetTaskHandler} from '@/widgets/WidgetTaskHandler';
 // Audio Bible Feature
-import {AudioPlayerProvider} from '../src/features/audio/context/AudioPlayerContext';
-import {MiniAudioPlayer} from '../src/features/audio/components/MiniAudioPlayer';
+import {AudioPlayerProvider} from '@/features/audio/context/AudioPlayerContext';
+import {MiniAudioPlayer} from '@/features/audio/components/MiniAudioPlayer';
 
 function AppContent() {
   const {t} = useLanguage();

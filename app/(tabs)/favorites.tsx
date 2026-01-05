@@ -10,12 +10,12 @@ import React, {useCallback, useMemo} from 'react';
 import {useRouter, useFocusEffect} from 'expo-router';
 import {Ionicons} from '@expo/vector-icons';
 import {LinearGradient} from 'expo-linear-gradient';
-import {useTheme} from '../../src/hooks/useTheme';
-import {useLanguage} from '../../src/hooks/useLanguage';
-import {IllustratedEmptyState} from '../../src/components/IllustratedEmptyState';
-import {useToast} from '../../src/context/ToastContext';
-import {logger} from '../../src/lib/utils/logger';
-import {useFavorites} from '../../src/context/FavoritesContext';
+import {useTheme} from '@hooks/useTheme';
+import {useLanguage} from '@hooks/useLanguage';
+import {IllustratedEmptyState} from '@components/IllustratedEmptyState';
+import {useToast} from '@context/ToastContext';
+import {logger} from '@lib/utils/logger';
+import {useFavorites} from '@context/FavoritesContext';
 
 export default function FavoritesScreen() {
   const router = useRouter();

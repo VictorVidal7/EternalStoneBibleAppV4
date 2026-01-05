@@ -23,7 +23,9 @@ import {
   TouchableOpacity,
   StyleSheet,
   Pressable,
+  Platform,
 } from 'react-native';
+import {usePathname} from 'expo-router';
 import Animated, {
   useAnimatedStyle,
   useSharedValue,
@@ -207,7 +209,26 @@ export const MiniAudioPlayer: React.FC<MiniAudioPlayerProps> = ({
   const canGoPrevious = state.currentVerseIndex > 0;
   const canGoNext = state.currentVerseIndex < verses.length - 1;
 
-  const finalBottomOffset = (state.bottomOffset || 0) + bottomOffset;
+  const pathname = usePathname();
+  // Determinar si la pantalla actual tiene la barra de pestañas nativa
+  // Incluimos las rutas principales y las nuevas rutas movidas a (tabs)
+  const isTabScreen = useMemo(() => {
+    return (
+      pathname === '/' ||
+      pathname === '/bible' ||
+      pathname === '/search' ||
+      pathname === '/achievements' ||
+      pathname === '/settings' ||
+      pathname.startsWith('/chapter/') ||
+      pathname.startsWith('/verse/') ||
+      pathname === '/favorites' ||
+      pathname === '/notes'
+    );
+  }, [pathname]);
+
+  const TAB_BAR_HEIGHT = isTabScreen ? (Platform.OS === 'ios' ? 88 : 68) : 0;
+  const finalBottomOffset =
+    (state.bottomOffset || 0) + bottomOffset + TAB_BAR_HEIGHT;
 
   return (
     <GestureDetector gesture={panGesture}>

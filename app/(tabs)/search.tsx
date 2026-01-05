@@ -12,13 +12,13 @@ import {useRouter} from 'expo-router';
 import {Ionicons} from '@expo/vector-icons';
 import {LinearGradient} from 'expo-linear-gradient';
 import {useDebouncedCallback} from 'use-debounce';
-import bibleDB from '../../src/lib/database';
-import {BibleVerse} from '../../src/types/bible';
-import {useTheme, ThemeColors} from '../../src/hooks/useTheme';
-import {useBibleVersion} from '../../src/hooks/useBibleVersion';
-import {useLanguage} from '../../src/hooks/useLanguage';
-import {IllustratedEmptyState} from '../../src/components/IllustratedEmptyState';
-import {VerseSkeleton} from '../../src/components/SkeletonLoader';
+import bibleDB from '@lib/database';
+import {BibleVerse} from '@types/bible';
+import {useTheme, ThemeColors} from '@hooks/useTheme';
+import {useBibleVersion} from '@hooks/useBibleVersion';
+import {useLanguage} from '@hooks/useLanguage';
+import {IllustratedEmptyState} from '@components/IllustratedEmptyState';
+import {VerseSkeleton} from '@components/SkeletonLoader';
 
 type TestamentFilter = 'all' | 'old' | 'new';
 
