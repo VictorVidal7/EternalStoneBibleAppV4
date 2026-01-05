@@ -85,10 +85,9 @@ export default function HomeScreen() {
   const {t} = useLanguage();
   const {getChapterProgress} = useReadingProgress();
   const {addFavorite, isFavorite, favorites} = useFavorites();
-  const cardBorderOpacity = isDark ? 0.3 : 0.8;
-  const cardBorderColor = withOpacity(colors.primary, cardBorderOpacity);
-  const cardBackgroundColor = withOpacity(colors.primary, isDark ? 0.08 : 0.05);
-  const progressTrackColor = isDark ? 'transparent' : cardBorderColor;
+  const progressTrackColor = isDark
+    ? 'transparent'
+    : withOpacity(colors.primary, isDark ? 0.3 : 0.8);
 
   const [dailyVerse, setDailyVerse] = useState<BibleVerse | null>(null);
   const [lastRead, setLastRead] = useState<ReadingProgress | null>(null);
@@ -450,77 +449,74 @@ export default function HomeScreen() {
         {lastRead && (
           <Animated.View
             style={{opacity: fadeAnim, marginTop: celestialSpacing.cardGap}}>
-            <ShimmerCard
-              glowColor={colors.primary}
-              shimmerEnabled={false}
-              cardBorderColor={cardBorderColor}
-              cardBackgroundColor={cardBackgroundColor}>
-              <TouchableOpacity
-                activeOpacity={0.9}
-                onPress={() =>
-                  handlePress(() =>
-                    router.push(
-                      `/verse/${lastRead.book}/${lastRead.chapter}` as any,
-                    ),
-                  )
-                }
-                style={[
-                  styles.continueButton,
-                  {
-                    backgroundColor: celestialTheme.colors.surfaceGlass,
-                    borderRadius: celestialBorderRadius.cardMedium,
-                  },
-                  celestialTheme.shadows.lg,
-                ]}>
-                <View style={styles.continueHeader}>
-                  <View
-                    style={[
-                      styles.continueIconContainer,
-                      {backgroundColor: colors.primary},
-                    ]}>
-                    <Ionicons name="play" size={14} color="#ffffff" />
-                  </View>
-                  <View style={styles.continueTextContainer}>
-                    <Text
-                      style={[styles.continueTitle, {color: colors.text}]}
-                      numberOfLines={1}>
-                      {t.home.continueReading}
-                    </Text>
-                    <Text
+            <TouchableOpacity
+              activeOpacity={0.9}
+              onPress={() =>
+                handlePress(() =>
+                  router.push(
+                    `/verse/${lastRead.book}/${lastRead.chapter}` as any,
+                  ),
+                )
+              }>
+              <ShimmerCard
+                glowColor={colors.primary}
+                shimmerEnabled={false}
+                cardBackgroundColor={celestialTheme.colors.surfaceGlass}
+                cardBorderColor={celestialTheme.colors.glassBorder}>
+                <View style={styles.continueButton}>
+                  <View style={styles.continueHeader}>
+                    <View
                       style={[
-                        styles.continueReference,
-                        {color: colors.textSecondary},
-                      ]}>
-                      {lastRead.book} {lastRead.chapter}:{lastRead.verse || 1}
-                    </Text>
-                  </View>
-                  <View style={styles.continueProgress}>
-                    <Text
-                      style={[styles.progressText, {color: colors.primary}]}>
-                      {Math.round(chapterProgress)}%
-                    </Text>
-                  </View>
-                </View>
-                {/* Progress bar - subtle */}
-                <View style={styles.progressBarContainer}>
-                  <View
-                    style={[
-                      styles.progressBarBackground,
-                      {backgroundColor: progressTrackColor},
-                    ]}>
-                    <Animated.View
-                      style={[
-                        styles.progressBarFill,
+                        styles.continueIconContainer,
                         {
-                          width: `${Math.round(chapterProgress)}%`,
-                          backgroundColor: colors.primary,
+                          backgroundColor: colors.primary + '20',
+                          borderRadius: 10,
                         },
-                      ]}
-                    />
+                      ]}>
+                      <Ionicons name="play" size={14} color={colors.primary} />
+                    </View>
+                    <View style={styles.continueTextContainer}>
+                      <Text
+                        style={[styles.continueTitle, {color: colors.text}]}
+                        numberOfLines={1}>
+                        {t.home.continueReading}
+                      </Text>
+                      <Text
+                        style={[
+                          styles.continueReference,
+                          {color: colors.textSecondary},
+                        ]}>
+                        {lastRead.book} {lastRead.chapter}:{lastRead.verse || 1}
+                      </Text>
+                    </View>
+                    <View style={styles.continueProgress}>
+                      <Text
+                        style={[styles.progressText, {color: colors.primary}]}>
+                        {Math.round(chapterProgress)}%
+                      </Text>
+                    </View>
+                  </View>
+                  {/* Progress bar - subtle */}
+                  <View style={styles.progressBarContainer}>
+                    <View
+                      style={[
+                        styles.progressBarBackground,
+                        {backgroundColor: progressTrackColor},
+                      ]}>
+                      <Animated.View
+                        style={[
+                          styles.progressBarFill,
+                          {
+                            width: `${Math.round(chapterProgress)}%`,
+                            backgroundColor: colors.primary,
+                          },
+                        ]}
+                      />
+                    </View>
                   </View>
                 </View>
-              </TouchableOpacity>
-            </ShimmerCard>
+              </ShimmerCard>
+            </TouchableOpacity>
           </Animated.View>
         )}
 
@@ -586,7 +582,7 @@ export default function HomeScreen() {
             <Ionicons
               name="construct-outline"
               size={24}
-              color={celestialTheme.colors.accent}
+              color={colors.primary}
             />
           </View>
 
@@ -596,7 +592,7 @@ export default function HomeScreen() {
               handlePress(() => router.push('/features/version-comparison'))
             }>
             <ShimmerCard
-              glowColor={colors.accent}
+              glowColor={colors.primary}
               shimmerEnabled={false}
               cardBackgroundColor={celestialTheme.colors.surfaceGlass}
               cardBorderColor={celestialTheme.colors.glassBorder}>
@@ -604,12 +600,12 @@ export default function HomeScreen() {
                 <View
                   style={[
                     styles.toolIconContainer,
-                    {backgroundColor: colors.accent + '20'},
+                    {backgroundColor: colors.primary + '20'},
                   ]}>
                   <Ionicons
                     name="git-compare-outline"
                     size={28}
-                    color={colors.accent}
+                    color={colors.primary}
                   />
                 </View>
                 <View style={styles.toolInfo}>

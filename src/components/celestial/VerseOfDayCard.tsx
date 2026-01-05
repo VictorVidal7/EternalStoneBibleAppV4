@@ -15,7 +15,6 @@ import React, {useRef, useState} from 'react';
 import {View, Text, StyleSheet, TouchableOpacity, Animated} from 'react-native';
 import {BlurView} from 'expo-blur';
 import {Ionicons} from '@expo/vector-icons';
-import {LinearGradient} from 'expo-linear-gradient';
 import {
   createCelestialTheme,
   celestialBorderRadius,
@@ -131,18 +130,16 @@ const VerseOfDayCard: React.FC<VerseOfDayCardProps> = ({
           {/* Header con ícono sparkles */}
           <View style={styles.header}>
             <View style={styles.iconContainer}>
-              <LinearGradient
-                colors={
-                  [colors.primary, colors.primaryDark || colors.primary] as [
-                    string,
-                    string,
-                  ]
-                }
-                start={{x: 0, y: 0}}
-                end={{x: 1, y: 1}}
-                style={styles.iconGradient}>
-                <Ionicons name="sparkles" size={24} color="#ffffff" />
-              </LinearGradient>
+              <View
+                style={[
+                  styles.iconContainerBase,
+                  {
+                    backgroundColor: colors.primary + '20',
+                    borderRadius: 12,
+                  },
+                ]}>
+                <Ionicons name="sparkles" size={24} color={colors.primary} />
+              </View>
             </View>
 
             <View style={styles.titleContainer}>
@@ -245,10 +242,9 @@ const styles = StyleSheet.create({
   iconContainer: {
     marginRight: 12,
   },
-  iconGradient: {
+  iconContainerBase: {
     width: 40,
     height: 40,
-    borderRadius: 20,
     justifyContent: 'center',
     alignItems: 'center',
   },
