@@ -405,7 +405,7 @@ export default function HomeScreen() {
         {/* ==================== VERSE OF THE DAY ==================== */}
         {dailyVerse && (
           <Animated.View
-            style={{opacity: fadeAnim, marginTop: celestialSpacing.sectionGap}}>
+            style={{opacity: fadeAnim, marginTop: celestialSpacing.cardGap}}>
             <ShimmerCard glowColor={colors.primary}>
               <VerseOfDayCard
                 verseText={dailyVerse.text}
@@ -449,7 +449,7 @@ export default function HomeScreen() {
         {/* ==================== CONTINUE READING (Compact) ==================== */}
         {lastRead && (
           <Animated.View
-            style={{opacity: fadeAnim, marginTop: celestialSpacing.sectionGap}}>
+            style={{opacity: fadeAnim, marginTop: celestialSpacing.cardGap}}>
             <ShimmerCard
               glowColor={colors.primary}
               shimmerEnabled={false}
@@ -792,7 +792,7 @@ const styles = StyleSheet.create({
   heroCard: {
     overflow: 'hidden',
     padding: 16,
-    marginBottom: 16,
+    marginBottom: 0,
   },
   heroContent: {
     gap: 12,
