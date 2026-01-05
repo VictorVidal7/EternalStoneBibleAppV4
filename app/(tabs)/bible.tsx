@@ -23,6 +23,7 @@ import {
 import {useRouter} from 'expo-router';
 import {Ionicons} from '@expo/vector-icons';
 import {LinearGradient} from 'expo-linear-gradient';
+import {BlurView} from 'expo-blur';
 import * as Haptics from 'expo-haptics';
 
 import {BIBLE_BOOKS} from '../../src/constants/bible';
@@ -30,14 +31,7 @@ import {useTheme} from '../../src/hooks/useTheme';
 import {useLanguage} from '../../src/hooks/useLanguage';
 
 // Design tokens
-import {
-  spacing,
-  borderRadius,
-  fontSize,
-  shadows,
-} from '../../src/styles/designTokens';
-
-const NEUTRAL_INPUT_BACKGROUND = 'rgba(127, 140, 141, 0.1)';
+import {spacing, borderRadius, fontSize} from '../../src/styles/designTokens';
 
 interface BibleBook {
   id: number;
@@ -157,7 +151,10 @@ export default function BibleScreen() {
           style={styles.header}>
           {/* Boton de regreso */}
           <TouchableOpacity
-            style={styles.headerBackButton}
+            style={[
+              styles.headerBackButton,
+              {backgroundColor: 'rgba(255,255,255,0.15)'},
+            ]}
             onPress={() => router.back()}
             accessibilityRole="button"
             accessibilityLabel={t.bible.back}>
@@ -165,8 +162,15 @@ export default function BibleScreen() {
           </TouchableOpacity>
 
           <View style={styles.headerContent}>
-            <View style={styles.headerIconContainer}>
-              <Ionicons name="book" size={32} color="#ffffff" />
+            <View
+              style={[
+                styles.headerIconContainer,
+                {
+                  backgroundColor: 'rgba(255,255,255,0.12)',
+                  borderColor: 'rgba(255,255,255,0.2)',
+                },
+              ]}>
+              <Ionicons name="library" size={32} color="#ffffff" />
             </View>
             <View style={styles.headerTextContainer}>
               <Text style={styles.headerTitle}>{t.home.bibleLibrary}</Text>
@@ -177,11 +181,19 @@ export default function BibleScreen() {
 
             {/* Stats mini */}
             <View style={styles.headerStats}>
-              <View style={styles.statMini}>
+              <View
+                style={[
+                  styles.statMini,
+                  {backgroundColor: 'rgba(255,255,255,0.15)'},
+                ]}>
                 <Text style={styles.statMiniNumber}>{oldTestament.length}</Text>
                 <Text style={styles.statMiniLabel}>AT</Text>
               </View>
-              <View style={styles.statMini}>
+              <View
+                style={[
+                  styles.statMini,
+                  {backgroundColor: 'rgba(255,255,255,0.15)'},
+                ]}>
                 <Text style={styles.statMiniNumber}>{newTestament.length}</Text>
                 <Text style={styles.statMiniLabel}>NT</Text>
               </View>
@@ -210,11 +222,11 @@ export default function BibleScreen() {
           style={[
             styles.searchBar,
             {
-              backgroundColor: NEUTRAL_INPUT_BACKGROUND,
-              borderColor: 'transparent',
-              shadowOpacity: 0,
-              shadowRadius: 0,
-              elevation: 0,
+              backgroundColor: isDark
+                ? 'rgba(255,255,255,0.05)'
+                : 'rgba(0,0,0,0.03)',
+              borderColor: colors.glassBorder,
+              borderWidth: 1,
             },
           ]}>
           <Ionicons
@@ -296,35 +308,49 @@ interface SectionHeaderProps {
 const SectionHeader: React.FC<SectionHeaderProps> = ({
   title,
   count,
-  gradientColors,
   isOldTestament,
 }) => {
-  const {gradient} = useTheme();
-  const headerGradient = useMemo(
-    () =>
-      (gradient?.headerColors
-        ? [...gradient.headerColors]
-        : ['#4f46e5', '#7c3aed', '#a855f7']) as [string, string, string],
-    [gradient?.headerColors],
-  );
+  const {colors, isDark} = useTheme();
+
   return (
-    <LinearGradient
-      colors={headerGradient}
-      start={{x: 0, y: 0}}
-      end={{x: 1, y: 0}}
-      style={[styles.sectionHeader, shadows.md]}>
-      <View style={styles.sectionIconContainer}>
-        <Ionicons
-          name={isOldTestament ? 'book' : 'heart'}
-          size={24}
-          color="#ffffff"
-        />
-      </View>
-      <Text style={styles.sectionTitle}>{title}</Text>
-      <View style={styles.sectionBadge}>
-        <Text style={styles.sectionCount}>{count}</Text>
-      </View>
-    </LinearGradient>
+    <View style={styles.sectionHeaderWrapper}>
+      <BlurView
+        intensity={isDark ? 40 : 80}
+        tint={isDark ? 'dark' : 'light'}
+        style={[
+          styles.sectionHeader,
+          {
+            backgroundColor: isDark
+              ? 'rgba(255, 255, 255, 0.08)'
+              : 'rgba(255, 255, 255, 0.85)',
+            borderColor: colors.glassBorder,
+            borderWidth: 1,
+            borderRadius: 16,
+          },
+        ]}>
+        <View
+          style={[
+            styles.sectionIconContainer,
+            {backgroundColor: colors.primary + '20'},
+          ]}>
+          <Ionicons
+            name={isOldTestament ? 'library' : 'bookmark'}
+            size={20}
+            color={colors.primary}
+          />
+        </View>
+        <Text style={[styles.sectionTitle, {color: colors.text}]}>{title}</Text>
+        <View
+          style={[
+            styles.sectionBadge,
+            {backgroundColor: colors.primary + '20'},
+          ]}>
+          <Text style={[styles.sectionCount, {color: colors.primary}]}>
+            {count}
+          </Text>
+        </View>
+      </BlurView>
+    </View>
   );
 };
 
@@ -337,7 +363,7 @@ interface BookCardProps {
 }
 
 const BookCard: React.FC<BookCardProps> = ({book, index, onPress}) => {
-  const {colors, isDark, gradient} = useTheme();
+  const {colors, gradient} = useTheme();
   const {t} = useLanguage();
   const scaleAnim = useRef(new Animated.Value(0)).current;
 
@@ -375,14 +401,18 @@ const BookCard: React.FC<BookCardProps> = ({book, index, onPress}) => {
         onPress={onPress}
         activeOpacity={0.7}>
         {/* Accent line */}
-        <View style={[styles.accentLine, {backgroundColor: bookColor}]} />
+        <View style={[styles.accentLine, {backgroundColor: colors.primary}]} />
 
         {/* Book icon */}
-        <LinearGradient
-          colors={[bookColor, bookColor + 'cc']}
-          style={styles.bookIconContainer}>
-          <Text style={styles.bookIcon}>{book.abbr}</Text>
-        </LinearGradient>
+        <View
+          style={[
+            styles.bookIconContainer,
+            {backgroundColor: colors.primary + '15'},
+          ]}>
+          <Text style={[styles.bookIcon, {color: colors.primary}]}>
+            {book.abbr}
+          </Text>
+        </View>
 
         {/* Book info */}
         <View style={styles.bookInfo}>
@@ -520,7 +550,7 @@ const styles = StyleSheet.create({
 
   // Search
   searchContainer: {
-    paddingHorizontal: spacing.xl, // Más espacioso
+    paddingHorizontal: spacing.lg,
     paddingVertical: spacing.lg,
   },
   searchBar: {
@@ -550,48 +580,42 @@ const styles = StyleSheet.create({
   },
 
   // Section Header
+  sectionHeaderWrapper: {
+    backgroundColor: 'transparent',
+    paddingVertical: 8,
+    marginTop: 8,
+  },
   sectionHeader: {
     flexDirection: 'row',
     alignItems: 'center',
-    borderRadius: 24, // Más suave
-    paddingVertical: spacing.lg, // Más espacioso
-    paddingHorizontal: spacing.lg,
-    marginBottom: spacing.lg,
-    marginTop: spacing.base,
-    shadowColor: '#000',
-    shadowOffset: {width: 0, height: 6},
-    shadowOpacity: 0.12, // Más sutil
-    shadowRadius: 12,
-    elevation: 3,
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    overflow: 'hidden',
   },
   sectionIconContainer: {
-    width: 40,
-    height: 40,
-    borderRadius: borderRadius.md,
-    backgroundColor: 'rgba(255,255,255,0.2)',
+    width: 36,
+    height: 36,
+    borderRadius: 10,
     justifyContent: 'center',
     alignItems: 'center',
-    marginRight: spacing.md,
+    marginRight: 12,
   },
   sectionTitle: {
-    fontSize: fontSize.xl, // Más grande
+    fontSize: 18,
     fontWeight: '800',
-    color: '#ffffff',
     flex: 1,
-    letterSpacing: -0.3,
+    letterSpacing: -0.5,
   },
   sectionBadge: {
-    backgroundColor: 'rgba(255,255,255,0.25)',
-    paddingHorizontal: spacing.md,
-    paddingVertical: spacing.xs,
-    borderRadius: borderRadius.full,
-    minWidth: 40,
+    paddingHorizontal: 12,
+    paddingVertical: 4,
+    borderRadius: 20,
+    minWidth: 32,
     alignItems: 'center',
   },
   sectionCount: {
-    fontSize: fontSize.sm,
-    fontWeight: '600',
-    color: '#ffffff',
+    fontSize: 12,
+    fontWeight: '800',
   },
 
   // Book Card - Estilo profesional con profundidad
