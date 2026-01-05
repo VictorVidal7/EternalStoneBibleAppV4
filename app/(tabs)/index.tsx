@@ -572,6 +572,72 @@ export default function HomeScreen() {
           </ScrollView>
         </Animated.View>
 
+        {/* ==================== STUDY TOOLS ==================== */}
+        <Animated.View
+          style={{opacity: fadeAnim, marginTop: celestialSpacing.sectionGap}}>
+          <View style={styles.sectionHeader}>
+            <Text
+              style={[
+                styles.sectionTitle,
+                {color: celestialTheme.colors.text},
+              ]}>
+              {t.home.studyTools}
+            </Text>
+            <Ionicons
+              name="construct-outline"
+              size={24}
+              color={celestialTheme.colors.accent}
+            />
+          </View>
+
+          <TouchableOpacity
+            activeOpacity={0.9}
+            onPress={() =>
+              handlePress(() => router.push('/features/version-comparison'))
+            }>
+            <ShimmerCard
+              glowColor={colors.accent}
+              shimmerEnabled={false}
+              cardBackgroundColor={celestialTheme.colors.surfaceGlass}
+              cardBorderColor={celestialTheme.colors.glassBorder}>
+              <View style={styles.toolCard}>
+                <View
+                  style={[
+                    styles.toolIconContainer,
+                    {backgroundColor: colors.accent + '20'},
+                  ]}>
+                  <Ionicons
+                    name="git-compare-outline"
+                    size={28}
+                    color={colors.accent}
+                  />
+                </View>
+                <View style={styles.toolInfo}>
+                  <Text
+                    style={[
+                      styles.toolTitle,
+                      {color: celestialTheme.colors.text},
+                    ]}>
+                    {t.settingsV51.versionComparison}
+                  </Text>
+                  <Text
+                    style={[
+                      styles.toolDescription,
+                      {color: celestialTheme.colors.textSecondary},
+                    ]}>
+                    {t.settingsV51.versionComparisonDesc}
+                  </Text>
+                </View>
+                <Ionicons
+                  name="chevron-forward"
+                  size={24}
+                  color={colors.textTertiary}
+                />
+              </View>
+            </ShimmerCard>
+          </TouchableOpacity>
+        </Animated.View>
+
         {/* ==================== SAVED SHORTCUTS ==================== */}
         <Animated.View
           style={{opacity: fadeAnim, marginTop: celestialSpacing.sectionGap}}>
@@ -987,5 +1053,33 @@ const styles = StyleSheet.create({
   },
   skeletonSection: {
     marginBottom: 16,
+  },
+  // Tool Card
+  toolCard: {
+    padding: 16,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 16,
+  },
+  toolIconContainer: {
+    width: 48,
+    height: 48,
+    borderRadius: 14,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  toolInfo: {
+    flex: 1,
+  },
+  toolTitle: {
+    fontSize: 17,
+    fontWeight: '700',
+    letterSpacing: -0.3,
+  },
+  toolDescription: {
+    fontSize: 14,
+    fontWeight: '400',
+    marginTop: 2,
+    lineHeight: 18,
   },
 });

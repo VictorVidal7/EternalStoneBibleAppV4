@@ -987,16 +987,45 @@ export default function VerseReadingScreen() {
                 style={styles.selectionButton}
                 onPress={handleFavoriteSelected}>
                 <Ionicons
-                  name="heart"
+                  name="heart-outline"
                   size={20}
                   color={effectiveColors.primary}
                 />
                 <Text
                   style={[
                     styles.selectionButtonText,
-                    {color: effectiveColors.primary},
+                    {color: effectiveColors.text},
                   ]}>
                   {t.verse.addFavorite}
+                </Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={styles.selectionButton}
+                onPress={() => {
+                  const sortedNums = Array.from(selectedVerses).sort(
+                    (a, b) => a - b,
+                  );
+                  router.push({
+                    pathname: '/features/version-comparison',
+                    params: {
+                      book,
+                      chapter,
+                      verse: sortedNums[0],
+                    },
+                  });
+                  clearSelection();
+                }}>
+                <Ionicons
+                  name="git-compare-outline"
+                  size={22}
+                  color={effectiveColors.primary}
+                />
+                <Text
+                  style={[
+                    styles.selectionButtonText,
+                    {color: effectiveColors.text},
+                  ]}>
+                  {t.verse.compare}
                 </Text>
               </TouchableOpacity>
               <TouchableOpacity

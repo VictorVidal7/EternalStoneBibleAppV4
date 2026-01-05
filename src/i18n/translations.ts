@@ -78,6 +78,7 @@ export const translations = {
       readFullChapter: 'Leer Capítulo Completo',
       lastRead: 'Última lectura',
       readingPlans: 'Planes de Lectura',
+      studyTools: 'Herramientas de Estudio',
       savedTitle: 'Guardados',
       viewPlan: 'Ver Plan',
       continue: 'Continuar',
@@ -258,6 +259,7 @@ export const translations = {
       plural: 'versículos',
       addFavorite: 'Agregar a Favoritos',
       removeFavorite: 'Quitar de Favoritos',
+      compare: 'Comparar',
       copyVerse: 'Copiar Versículo',
       shareVerse: 'Compartir Versículo',
       addNote: 'Agregar Nota',
@@ -870,6 +872,7 @@ export const translations = {
       readFullChapter: 'Read Full Chapter',
       lastRead: 'Last read',
       readingPlans: 'Reading Plans',
+      studyTools: 'Study Tools',
       savedTitle: 'Saved',
       viewPlan: 'View Plan',
       continue: 'Continue',
@@ -1044,8 +1047,11 @@ export const translations = {
 
     // Verse Reading Screen
     verse: {
+      singular: 'verse',
+      plural: 'verses',
       addFavorite: 'Add to Favorites',
       removeFavorite: 'Remove from Favorites',
+      compare: 'Compare',
       copyVerse: 'Copy Verse',
       shareVerse: 'Share Verse',
       addNote: 'Add Note',
