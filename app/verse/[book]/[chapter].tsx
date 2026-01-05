@@ -944,6 +944,8 @@ export default function VerseReadingScreen() {
                   color={effectiveColors.primary}
                 />
                 <Text
+                  numberOfLines={1}
+                  adjustsFontSizeToFit
                   style={[
                     styles.selectionButtonText,
                     {color: effectiveColors.text},
@@ -960,6 +962,8 @@ export default function VerseReadingScreen() {
                   color={effectiveColors.primary}
                 />
                 <Text
+                  numberOfLines={1}
+                  adjustsFontSizeToFit
                   style={[
                     styles.selectionButtonText,
                     {color: effectiveColors.text},
@@ -976,6 +980,8 @@ export default function VerseReadingScreen() {
                   color={effectiveColors.primary}
                 />
                 <Text
+                  numberOfLines={1}
+                  adjustsFontSizeToFit
                   style={[
                     styles.selectionButtonText,
                     {color: effectiveColors.text},
@@ -992,6 +998,8 @@ export default function VerseReadingScreen() {
                   color={effectiveColors.primary}
                 />
                 <Text
+                  numberOfLines={1}
+                  adjustsFontSizeToFit
                   style={[
                     styles.selectionButtonText,
                     {color: effectiveColors.text},
@@ -1021,6 +1029,8 @@ export default function VerseReadingScreen() {
                   color={effectiveColors.primary}
                 />
                 <Text
+                  numberOfLines={1}
+                  adjustsFontSizeToFit
                   style={[
                     styles.selectionButtonText,
                     {color: effectiveColors.text},
@@ -1037,11 +1047,13 @@ export default function VerseReadingScreen() {
                   color={effectiveColors.primary}
                 />
                 <Text
+                  numberOfLines={1}
+                  adjustsFontSizeToFit
                   style={[
                     styles.selectionButtonText,
                     {color: effectiveColors.text},
                   ]}>
-                  Imagen
+                  {t.verse.image}
                 </Text>
               </TouchableOpacity>
             </View>
@@ -1591,7 +1603,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.xs,
   },
   selectionButtonText: {
-    fontSize: fontSizes.xs,
+    fontSize: 11,
     marginTop: 4,
     fontWeight: '500',
   },
