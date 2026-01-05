@@ -458,31 +458,27 @@ const BookCard: React.FC<BookCardProps> = ({book, index, onPress}) => {
           </Text>
         </View>
 
-        {/* Book info */}
+        {/* Book info - Ultra Linear Layout */}
         <View style={styles.bookInfo}>
-          <Text style={[styles.bookName, {color: colors.text}]}>
+          <Text
+            style={[styles.bookName, {color: colors.text}]}
+            numberOfLines={1}
+            ellipsizeMode="tail">
             {book.name}
           </Text>
-          <View style={styles.bookMeta}>
-            <Ionicons
-              name="document-text-outline"
-              size={14}
-              color={colors.textSecondary}
-            />
+          <View style={styles.bookRightContent}>
             <Text style={[styles.bookChapters, {color: colors.textSecondary}]}>
               {book.chapters}{' '}
               {book.chapters === 1 ? t.bible.chapter : t.bible.chapters}
             </Text>
+            <View style={styles.chevronContainer}>
+              <Ionicons
+                name="chevron-forward"
+                size={14}
+                color={colors.textTertiary}
+              />
+            </View>
           </View>
-        </View>
-
-        {/* Chevron */}
-        <View
-          style={[
-            styles.chevronContainer,
-            {backgroundColor: bookColor + '15'},
-          ]}>
-          <Ionicons name="chevron-forward" size={20} color={bookColor} />
         </View>
       </TouchableOpacity>
     </Animated.View>
@@ -666,12 +662,11 @@ const styles = StyleSheet.create({
   bookCard: {
     flexDirection: 'row',
     alignItems: 'center',
-    borderRadius: 16, // Esquinas generosas y modernas
-    paddingVertical: 16, // Espaciado interno balanceado
-    paddingHorizontal: 16,
-    marginBottom: 12, // Separación óptima entre tarjetas
+    borderRadius: 12,
+    paddingVertical: 8, // Altura mínima elegante
+    paddingHorizontal: 10,
+    marginBottom: 6,
     overflow: 'hidden',
-    borderWidth: 0, // Sin bordes duros
   },
   accentLine: {
     position: 'absolute',
@@ -681,44 +676,46 @@ const styles = StyleSheet.create({
     width: 4,
   },
   bookIconContainer: {
-    width: 52, // Un poco más grande
-    height: 52,
-    borderRadius: borderRadius.lg, // Más suave
+    width: 36,
+    height: 36,
+    borderRadius: 8,
     justifyContent: 'center',
     alignItems: 'center',
-    marginLeft: spacing.sm,
-    marginRight: spacing.lg,
+    marginLeft: 4,
+    marginRight: 12,
   },
   bookIcon: {
-    fontSize: fontSize.sm,
-    fontWeight: '800', // Más bold
-    color: '#ffffff',
+    fontSize: 11,
+    fontWeight: '800',
     letterSpacing: 0.5,
   },
   bookInfo: {
     flex: 1,
-  },
-  bookName: {
-    fontSize: fontSize.lg,
-    fontWeight: '700', // Más bold
-    marginBottom: spacing.xs,
-    letterSpacing: -0.2,
-  },
-  bookMeta: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: spacing.xs,
+    justifyContent: 'space-between',
+  },
+  bookName: {
+    fontSize: 16,
+    fontWeight: '600',
+    letterSpacing: -0.3,
+    flex: 1,
+  },
+  bookRightContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
   },
   bookChapters: {
-    fontSize: fontSize.sm,
+    fontSize: 12,
+    opacity: 0.6,
+    fontWeight: '500',
   },
   chevronContainer: {
-    width: 32,
-    height: 32,
-    borderRadius: borderRadius.md,
+    width: 20,
+    height: 20,
     justifyContent: 'center',
     alignItems: 'center',
-    marginLeft: spacing.sm,
   },
 
   // Empty State
