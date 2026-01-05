@@ -129,7 +129,7 @@ export default function VerseReadingScreen() {
   const {t} = useLanguage();
   const toast = useToast();
   const {achievementService} = useServices();
-  const {favorites, addFavorite} = useFavorites();
+  const {favorites, addFavorite, removeFavorite} = useFavorites();
   // Audio Bible
   const {
     loadChapter: loadAudioChapter,
@@ -497,6 +497,26 @@ export default function VerseReadingScreen() {
     });
 
     clearSelection();
+  }
+
+  // Toggle favorite for a single verse (when clicking the heart icon)
+  async function handleToggleSingleFavorite(verseObj: BibleVerse) {
+    await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+
+    const existingFav = favorites.find(
+      f =>
+        f.book === verseObj.book &&
+        f.chapter === verseObj.chapter &&
+        f.verse === verseObj.verse,
+    );
+
+    if (existingFav) {
+      await removeFavorite(existingFav.id);
+      toast.info(t.verse.removedFromFavorites || 'Eliminado de favoritos');
+    } else {
+      await addFavorite(verseObj, 'other', 5);
+      toast.success(t.verse.addedToFavorites || 'Agregado a favoritos');
+    }
   }
 
   // Add note to selected verses (joined)
@@ -888,19 +908,23 @@ export default function VerseReadingScreen() {
                   <Text style={[styles.verseText, textStyle]}>
                     <Text style={[styles.verseNumber, numberStyle]}>
                       {isBeingRead ? '🔊 ' : ''}
-                      {verse.verse}{' '}
+                      {verse.verse}
+                      {'  '}
                     </Text>
                     {verse.text}
                   </Text>
                 </View>
                 {isFavorited && (
-                  <View style={styles.favoriteIndicator}>
+                  <TouchableOpacity
+                    onPress={() => handleToggleSingleFavorite(verse)}
+                    hitSlop={{top: 10, bottom: 10, left: 10, right: 10}}
+                    style={styles.favoriteIndicator}>
                     <Ionicons
                       name="heart"
-                      size={16}
-                      color={effectiveColors.primary}
+                      size={18}
+                      color={effectiveColors.favorite}
                     />
-                  </View>
+                  </TouchableOpacity>
                 )}
               </TouchableOpacity>
             );
@@ -1551,7 +1575,6 @@ const styles = StyleSheet.create({
   },
   verseContent: {
     flex: 1,
-    paddingRight: 4,
   },
   verseNumber: {
     fontSize: fontSizes.sm,
@@ -1561,9 +1584,8 @@ const styles = StyleSheet.create({
     fontSize: fontSizes.base,
   },
   favoriteIndicator: {
-    position: 'absolute',
-    top: 12,
-    right: 12,
+    marginLeft: spacing.sm,
+    marginTop: 5, // Alineación visual con el centro de la primera línea
   },
   // BARRA DE SELECCIÓN
   selectionBar: {

@@ -277,6 +277,8 @@ export const translations = {
       distractionFreeMode: 'Modo sin distracciones',
       versesList: 'Lista de versículos',
       errorSharingVerse: 'Error al compartir el versículo',
+      addedToFavorites: 'Agregado a favoritos',
+      removedFromFavorites: 'Eliminado de favoritos',
     },
 
     // Reading Plans
@@ -1070,6 +1072,8 @@ export const translations = {
       distractionFreeMode: 'Distraction-free mode',
       versesList: 'Verses list',
       errorSharingVerse: 'Error sharing verse',
+      addedToFavorites: 'Added to favorites',
+      removedFromFavorites: 'Removed from favorites',
     },
 
     // Reading Plans
