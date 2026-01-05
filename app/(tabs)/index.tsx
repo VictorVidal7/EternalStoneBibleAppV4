@@ -772,7 +772,7 @@ const styles = StyleSheet.create({
   },
   contentContainer: {
     paddingHorizontal: 20, // Más ajustado para pantallas pequeñas
-    paddingTop: Platform.OS === 'ios' ? 56 : 32,
+    paddingTop: Platform.OS === 'ios' ? 68 : 44, // Más espacio superior para mejor visibilidad
     paddingBottom: 100, // Más espacio para el tab bar
   },
   loadingContainer: {
