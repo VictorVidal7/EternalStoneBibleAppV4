@@ -36,7 +36,9 @@ import {spacing, borderRadius, fontSize} from '../../src/styles/designTokens';
 interface BibleBook {
   id: number;
   name: string;
+  nameEn: string;
   abbr: string;
+  abbrEn: string;
   chapters: number;
   testament: 'old' | 'new';
 }
@@ -44,7 +46,7 @@ interface BibleBook {
 export default function BibleScreen() {
   const router = useRouter();
   const {colors, isDark, gradient} = useTheme();
-  const {t} = useLanguage();
+  const {t, language} = useLanguage();
 
   const [searchQuery, setSearchQuery] = useState('');
   const [filter, setFilter] = useState<'all' | 'old' | 'new'>('all');
@@ -83,8 +85,11 @@ export default function BibleScreen() {
     if (searchQuery.trim() === '') {
       setFilteredBooks(BIBLE_BOOKS);
     } else {
-      const filtered = BIBLE_BOOKS.filter(book =>
-        book.name.toLowerCase().includes(searchQuery.toLowerCase()),
+      const query = searchQuery.toLowerCase();
+      const filtered = BIBLE_BOOKS.filter(
+        book =>
+          book.name.toLowerCase().includes(query) ||
+          book.nameEn.toLowerCase().includes(query),
       );
       setFilteredBooks(filtered);
     }
@@ -408,7 +413,7 @@ interface BookCardProps {
 
 const BookCard: React.FC<BookCardProps> = ({book, index, onPress}) => {
   const {colors, gradient} = useTheme();
-  const {t} = useLanguage();
+  const {t, language} = useLanguage();
   const scaleAnim = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
@@ -454,7 +459,7 @@ const BookCard: React.FC<BookCardProps> = ({book, index, onPress}) => {
             {backgroundColor: colors.primary + '15'},
           ]}>
           <Text style={[styles.bookIcon, {color: colors.primary}]}>
-            {book.abbr}
+            {language === 'en' ? book.abbrEn : book.abbr}
           </Text>
         </View>
 
@@ -464,7 +469,7 @@ const BookCard: React.FC<BookCardProps> = ({book, index, onPress}) => {
             style={[styles.bookName, {color: colors.text}]}
             numberOfLines={1}
             ellipsizeMode="tail">
-            {book.name}
+            {language === 'en' ? book.nameEn : book.name}
           </Text>
           <View style={styles.bookRightContent}>
             <Text style={[styles.bookChapters, {color: colors.textSecondary}]}>
