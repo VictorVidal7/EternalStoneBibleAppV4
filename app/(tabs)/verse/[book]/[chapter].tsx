@@ -582,18 +582,27 @@ export default function VerseReadingScreen() {
   // Start Audio Bible playback
   function startAudioPlayback() {
     if (verses.length === 0) return;
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
 
-    // Convert BibleVerse to AudioVerse format
+    try {
+      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+    } catch (_err) {
+      // Ignore
+    }
+
+    // Convert BibleVerse to AudioVerse format with defensive text check
     const audioVerses: AudioVerse[] = verses.map(v => ({
-      book: v.book,
-      chapter: v.chapter,
-      verse: v.verse,
-      text: v.text,
+      book: v.book || '',
+      chapter: v.chapter || 0,
+      verse: v.verse || 0,
+      text: String(v.text || ''),
     }));
 
     loadAudioChapter(audioVerses);
-    play();
+
+    // Small delay before playing to ensure loading is complete in context
+    setTimeout(() => {
+      play();
+    }, 100);
   }
 
   if (!bookInfo || loading) {

@@ -19,6 +19,7 @@ import React, {
 import * as Speech from 'expo-speech';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as Haptics from 'expo-haptics';
+import {logger} from '@lib/utils/logger';
 import {
   AudioPlayerState,
   AudioPlayerContextValue,
@@ -103,6 +104,20 @@ export const AudioPlayerProvider: React.FC<AudioPlayerProviderProps> = ({
     sleepTimerStateRef.current = sleepTimer;
   }, [sleepTimer]);
 
+  // Safe Haptics wrapper to prevent crashes on emulators/devices
+  const safeHaptic = useCallback(
+    async (
+      style: Haptics.ImpactFeedbackStyle = Haptics.ImpactFeedbackStyle.Light,
+    ) => {
+      try {
+        await Haptics.impactAsync(style);
+      } catch (_e) {
+        // Ignore haptic errors
+      }
+    },
+    [],
+  );
+
   // ==================== LOAD PREFERENCES ====================
 
   useEffect(() => {
@@ -169,6 +184,15 @@ export const AudioPlayerProvider: React.FC<AudioPlayerProviderProps> = ({
     }
   };
 
+  // ==================== SLEEP TIMER = :MOVED UP ====================
+
+  const cancelSleepTimer = useCallback(() => {
+    if (sleepTimerRef.current) clearTimeout(sleepTimerRef.current);
+    if (sleepCountdownRef.current) clearInterval(sleepCountdownRef.current);
+
+    setSleepTimerState(initialSleepTimerState);
+  }, []);
+
   // ==================== CURRENT VERSE ====================
 
   const currentVerse = verses[state.currentVerseIndex] || null;
@@ -176,154 +200,206 @@ export const AudioPlayerProvider: React.FC<AudioPlayerProviderProps> = ({
   // ==================== PLAYBACK CONTROLS ====================
 
   // Speak a verse by index - uses refs to avoid stale closures
-  const speakVerseByIndex = useCallback(async (index: number) => {
-    const currentVerses = versesRef.current;
-    const verse = currentVerses[index];
-    if (!verse) return;
+  const speakVerseByIndex = useCallback(
+    async (index: number) => {
+      const currentVerses = versesRef.current;
 
-    setState(prev => ({...prev, isLoading: true, currentVerseIndex: index}));
+      if (index < 0 || index >= currentVerses.length) {
+        logger.warn('Index out of bounds in speakVerseByIndex', {
+          index,
+          count: currentVerses.length,
+        });
+        setState(prev => ({...prev, isPlaying: false, isLoading: false}));
+        return;
+      }
 
-    try {
-      // Stop any current speech
-      await Speech.stop();
+      const verse = currentVerses[index];
+      if (!verse || !verse.text) {
+        logger.warn('Found empty verse or no text at index', {index});
+        // If we have more verses, try skip to next, otherwise stop
+        if (index + 1 < currentVerses.length) {
+          speakVerseByIndex(index + 1);
+        } else {
+          setState(prev => ({...prev, isPlaying: false, isLoading: false}));
+        }
+        return;
+      }
 
-      // Get language code based on selection (read from ref for fresh values)
       const currentState = stateRef.current;
-      const languageCodes = SUPPORTED_LANGUAGES[currentState.selectedLanguage];
+      // Map language code correctly
+      const languageCodes = SUPPORTED_LANGUAGES[
+        currentState.selectedLanguage
+      ] || ['es-ES'];
       const language = currentState.selectedVoice?.language || languageCodes[0];
 
-      await Speech.speak(verse.text, {
-        language,
+      logger.info('Attempting to speak verse', {
+        index,
+        reference: `${verse.book} ${verse.chapter}:${verse.verse}`,
+        textLength: verse.text.length,
         voice: currentState.selectedVoice?.identifier,
-        rate: currentState.playbackSpeed,
-        pitch: 1.0,
-        onStart: () => {
-          setState(prev => ({
-            ...prev,
-            isPlaying: true,
-            isPaused: false,
-            isLoading: false,
-          }));
-        },
-        onDone: () => {
-          // Use refs to get fresh values and auto-advance
-          const freshState = stateRef.current;
-          const freshVerses = versesRef.current;
-          const freshSleepTimer = sleepTimerStateRef.current;
-          const currentIdx = freshState.currentVerseIndex;
-
-          // Don't auto-advance if paused or not playing
-          if (freshState.isPaused || !freshState.isPlaying) {
-            return;
-          }
-
-          // Check if we're at the end of the chapter
-          if (currentIdx >= freshVerses.length - 1) {
-            if (freshSleepTimer.mode === 'end-of-chapter') {
-              Speech.stop();
-              setState(prev => ({...prev, isPlaying: false, isPaused: false}));
-            } else {
-              setState(prev => ({...prev, isPlaying: false, isPaused: false}));
-            }
-            return;
-          }
-
-          // Auto-advance to next verse
-          const nextIdx = currentIdx + 1;
-          speakVerseByIndex(nextIdx);
-        },
-        onStopped: () => {
-          setState(prev => ({
-            ...prev,
-            isPlaying: false,
-            isPaused: true,
-            isLoading: false,
-          }));
-        },
-        onError: error => {
-          console.error('Speech error:', error);
-          setState(prev => ({
-            ...prev,
-            isPlaying: false,
-            isPaused: false,
-            isLoading: false,
-          }));
-        },
+        language,
       });
-    } catch (error) {
-      console.error('Error speaking verse:', error);
-      setState(prev => ({...prev, isLoading: false}));
-    }
-  }, []);
 
-  // Legacy speakVerse for compatibility
-  const speakVerse = useCallback(
-    async (verse: AudioVerse) => {
-      const index = versesRef.current.findIndex(
-        v =>
-          v.book === verse.book &&
-          v.chapter === verse.chapter &&
-          v.verse === verse.verse,
-      );
-      if (index >= 0) {
-        speakVerseByIndex(index);
+      setState(prev => ({...prev, isLoading: true, currentVerseIndex: index}));
+
+      try {
+        // First ensure we are not already speaking
+        await Speech.stop().catch((err: any) =>
+          logger.warn('Error in Speech.stop', {error: String(err)}),
+        );
+
+        await Speech.speak(verse.text, {
+          language,
+          voice: currentState.selectedVoice?.identifier,
+          rate: currentState.playbackSpeed,
+          pitch: 1.0,
+          onStart: () => {
+            logger.info('Speech started callback', {index});
+            setState(prev => ({
+              ...prev,
+              isPlaying: true,
+              isPaused: false,
+              isLoading: false,
+              currentVerseIndex: index,
+            }));
+          },
+          onDone: () => {
+            logger.info('Speech finished normally', {index});
+            // Use refs to get fresh values and auto-advance
+            const freshState = stateRef.current;
+            const freshVerses = versesRef.current;
+            const freshSleepTimer = sleepTimerStateRef.current;
+
+            // Don't auto-advance if paused or not playing
+            if (freshState.isPaused || !freshState.isPlaying) {
+              logger.info('Auto-advance skipped (paused or stopped)');
+              return;
+            }
+
+            if (index >= freshVerses.length - 1) {
+              logger.info('Reached end of chapter');
+              if (freshSleepTimer.mode === 'end-of-chapter') {
+                cancelSleepTimer();
+              }
+              const finalState = {
+                ...freshState,
+                isPlaying: false,
+                isPaused: false,
+              };
+              stateRef.current = finalState;
+              setState(finalState);
+              return;
+            }
+
+            // Small delay before next verse to avoid rapid recursive calls
+            setTimeout(() => {
+              const nextIdx = index + 1;
+              speakVerseByIndex(nextIdx);
+            }, 50);
+          },
+          onStopped: () => {
+            logger.info('Speech stopped callback', {index});
+            setState(prev => ({
+              ...prev,
+              isPlaying: false,
+              isPaused: true,
+              isLoading: false,
+            }));
+          },
+          onError: err => {
+            logger.error(
+              'Speech synthesis error callback',
+              new Error(String(err)),
+              {
+                index,
+                verse: verse.verse,
+              },
+            );
+            setState(prev => ({
+              ...prev,
+              isPlaying: false,
+              isPaused: false,
+              isLoading: false,
+            }));
+          },
+        });
+      } catch (error) {
+        logger.error('Critical error in speakVerseByIndex', error as Error, {
+          index,
+          action: 'Speech.speak',
+        });
+        setState(prev => {
+          const next = {...prev, isLoading: false, isPlaying: false};
+          stateRef.current = next;
+          return next;
+        });
       }
     },
-    [speakVerseByIndex],
+    [cancelSleepTimer, safeHaptic],
   );
 
-  // handleVerseComplete is now handled inline in onDone callback
-  const handleVerseComplete = useCallback(() => {
-    // This is now handled in the onDone callback above using refs
-  }, []);
-
+  /**
+   * Start or resume playback
+   */
   const play = useCallback(() => {
+    // We access the state from the current closure if possible, or from the ref
+    // But speakVerseByIndex also uses versesRef.current
     const currentIdx = stateRef.current.currentVerseIndex;
     const currentVerses = versesRef.current;
-    if (currentVerses.length === 0) return;
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+
+    logger.info('Play button pressed', {
+      index: currentIdx,
+      versesCount: currentVerses.length,
+      isVisible,
+    });
+
+    if (currentVerses.length === 0) {
+      logger.warn('Attempted to play with no verses loaded');
+      return;
+    }
+
+    safeHaptic(Haptics.ImpactFeedbackStyle.Light);
     speakVerseByIndex(currentIdx);
-  }, [speakVerseByIndex]);
+  }, [speakVerseByIndex, isVisible, safeHaptic]);
 
   const pause = useCallback(async () => {
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    safeHaptic(Haptics.ImpactFeedbackStyle.Light);
     // Update ref immediately so callbacks see paused state synchronously
-    stateRef.current = {
+    const nextState = {
       ...stateRef.current,
       isPlaying: false,
       isPaused: true,
       isLoading: false,
     };
+    stateRef.current = nextState;
     // Then update React state
-    setState(prev => ({
-      ...prev,
-      isPlaying: false,
-      isPaused: true,
-      isLoading: false,
-    }));
-    await Speech.stop();
-  }, []);
+    setState(nextState);
+    try {
+      await Speech.stop();
+    } catch (err) {
+      logger.warn('Error stopping speech during pause', {error: String(err)});
+    }
+  }, [safeHaptic]);
 
   const stop = useCallback(async () => {
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    safeHaptic(Haptics.ImpactFeedbackStyle.Light);
     // Update ref immediately so callbacks see stopped state synchronously
-    stateRef.current = {
+    const nextState = {
       ...stateRef.current,
       isPlaying: false,
       isPaused: false,
       isLoading: false,
       currentVerseIndex: 0,
     };
+    stateRef.current = nextState;
     // Then update React state
-    setState(prev => ({
-      ...prev,
-      isPlaying: false,
-      isPaused: false,
-      isLoading: false,
-      currentVerseIndex: 0,
-    }));
-    await Speech.stop();
-  }, []);
+    setState(nextState);
+    try {
+      await Speech.stop();
+    } catch (err) {
+      logger.warn('Error stopping speech during stop', {error: String(err)});
+    }
+  }, [safeHaptic]);
 
   const togglePlayPause = useCallback(() => {
     const currentState = stateRef.current;
@@ -338,16 +414,20 @@ export const AudioPlayerProvider: React.FC<AudioPlayerProviderProps> = ({
     const currentState = stateRef.current;
     const currentVerses = versesRef.current;
     if (currentState.currentVerseIndex < currentVerses.length - 1) {
-      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+      safeHaptic(Haptics.ImpactFeedbackStyle.Light);
       const nextIndex = currentState.currentVerseIndex + 1;
 
       if (currentState.isPlaying) {
         speakVerseByIndex(nextIndex);
       } else {
-        setState(prev => ({...prev, currentVerseIndex: nextIndex}));
+        setState(prev => {
+          const next = {...prev, currentVerseIndex: nextIndex};
+          stateRef.current = next;
+          return next;
+        });
       }
     }
-  }, [speakVerseByIndex]);
+  }, [speakVerseByIndex, safeHaptic]);
 
   const previousVerse = useCallback(() => {
     const currentState = stateRef.current;
@@ -494,13 +574,6 @@ export const AudioPlayerProvider: React.FC<AudioPlayerProviderProps> = ({
     });
   }, []);
 
-  const cancelSleepTimer = useCallback(() => {
-    if (sleepTimerRef.current) clearTimeout(sleepTimerRef.current);
-    if (sleepCountdownRef.current) clearInterval(sleepCountdownRef.current);
-
-    setSleepTimerState(initialSleepTimerState);
-  }, []);
-
   // Cleanup timers on unmount
   useEffect(() => {
     return () => {
@@ -512,6 +585,21 @@ export const AudioPlayerProvider: React.FC<AudioPlayerProviderProps> = ({
   // ==================== CHAPTER LOADING ====================
 
   const loadChapter = useCallback((newVerses: AudioVerse[]) => {
+    logger.info('Loading new chapter for audio', {
+      versesCount: newVerses.length,
+      firstVerse:
+        newVerses[0]?.book +
+        ' ' +
+        newVerses[0]?.chapter +
+        ':' +
+        newVerses[0]?.verse,
+    });
+
+    // Stop any current speech immediately
+    Speech.stop().catch(e =>
+      logger.warn('Error stopping speech during loadChapter', e),
+    );
+
     // Update refs immediately for synchronous access (before async setState)
     versesRef.current = newVerses;
     stateRef.current = {

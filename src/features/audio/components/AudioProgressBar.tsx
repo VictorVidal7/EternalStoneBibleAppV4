@@ -43,6 +43,14 @@ export const AudioProgressBar: React.FC<AudioProgressBarProps> = ({
     };
   }, [progress, animated]);
 
+  // Animated indicator style
+  const indicatorStyle = useAnimatedStyle(
+    () => ({
+      left: `${progress}%`,
+    }),
+    [progress],
+  );
+
   if (mini) {
     return (
       <View style={styles.miniContainer}>
@@ -88,9 +96,7 @@ export const AudioProgressBar: React.FC<AudioProgressBarProps> = ({
               backgroundColor: colors.primary,
               borderColor: colors.background,
             },
-            useAnimatedStyle(() => ({
-              left: `${progress}%`,
-            })),
+            indicatorStyle,
           ]}
         />
       </View>

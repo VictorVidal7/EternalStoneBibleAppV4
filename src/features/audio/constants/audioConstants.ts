@@ -141,3 +141,10 @@ export const AUDIO_A11Y_LABELS = {
   collapse: 'Minimizar reproductor',
   close: 'Cerrar reproductor',
 };
+// ==================== COLORS ====================
+
+export const AUDIO_COLORS = {
+  white: '#FFFFFF',
+  black: '#000000',
+  shadow: '#000000',
+};

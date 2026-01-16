@@ -52,6 +52,7 @@ import {
   AUDIO_ICONS,
   AUDIO_CONTROL_SIZES,
   AUDIO_CONTROL_GAP,
+  AUDIO_COLORS,
 } from '../constants/audioConstants';
 import {SPRING_CONFIGS} from '../../../styles/reanimatedAnimations';
 
@@ -200,15 +201,6 @@ export const MiniAudioPlayer: React.FC<MiniAudioPlayerProps> = ({
     ),
   }));
 
-  // Don't render if not visible or no verses loaded
-  if (!isVisible || !currentVerse || verses.length === 0) {
-    return null;
-  }
-
-  const verseTitle = `${currentVerse.book} ${currentVerse.chapter}:${currentVerse.verse}`;
-  const canGoPrevious = state.currentVerseIndex > 0;
-  const canGoNext = state.currentVerseIndex < verses.length - 1;
-
   const pathname = usePathname();
   // Determinar si la pantalla actual tiene la barra de pestañas nativa
   // Incluimos las rutas principales y las nuevas rutas movidas a (tabs)
@@ -225,6 +217,15 @@ export const MiniAudioPlayer: React.FC<MiniAudioPlayerProps> = ({
       pathname === '/notes'
     );
   }, [pathname]);
+
+  // Don't render if not visible or no verses loaded
+  if (!isVisible || !currentVerse || verses.length === 0) {
+    return null;
+  }
+
+  const verseTitle = `${currentVerse.book} ${currentVerse.chapter}:${currentVerse.verse}`;
+  const canGoPrevious = state.currentVerseIndex > 0;
+  const canGoNext = state.currentVerseIndex < verses.length - 1;
 
   const TAB_BAR_HEIGHT = isTabScreen ? (Platform.OS === 'ios' ? 88 : 68) : 0;
   const finalBottomOffset =
@@ -264,7 +265,7 @@ export const MiniAudioPlayer: React.FC<MiniAudioPlayerProps> = ({
               style={[
                 styles.collapsedContent,
                 collapsedContentStyle,
-                {zIndex: state.isExpanded ? -1 : 10},
+                state.isExpanded ? styles.hidden : styles.visible,
               ]}>
               <View
                 pointerEvents={state.isExpanded ? 'none' : 'auto'}
@@ -282,7 +283,7 @@ export const MiniAudioPlayer: React.FC<MiniAudioPlayerProps> = ({
                       state.isPlaying ? AUDIO_ICONS.pause : AUDIO_ICONS.play
                     }
                     size={16}
-                    color="#FFFFFF"
+                    color={AUDIO_COLORS.white}
                   />
                 </TouchableOpacity>
 
@@ -355,7 +356,7 @@ export const MiniAudioPlayer: React.FC<MiniAudioPlayerProps> = ({
               style={[
                 styles.expandedContent,
                 expandedContentStyle,
-                {zIndex: state.isExpanded ? 100 : -1},
+                state.isExpanded ? styles.expandedVisible : styles.hidden,
               ]}>
               {/* Header */}
               <View style={styles.expandedHeader}>
@@ -509,7 +510,7 @@ const styles = StyleSheet.create({
     right: PLAYER_DIMENSIONS.horizontalPadding,
     borderRadius: PLAYER_DIMENSIONS.borderRadius,
     overflow: 'hidden',
-    shadowColor: '#000',
+    shadowColor: AUDIO_COLORS.shadow,
     shadowOffset: {width: 0, height: 8},
     shadowOpacity: 0.15,
     shadowRadius: 16,
@@ -598,9 +599,6 @@ const styles = StyleSheet.create({
     gap: 10,
     marginBottom: 4,
   },
-  collapseButton: {
-    padding: 2,
-  },
   expandedTitle: {
     flex: 1,
   },
@@ -658,6 +656,15 @@ const styles = StyleSheet.create({
   timerBadge: {
     fontSize: 11,
     fontWeight: '600',
+  },
+  hidden: {
+    zIndex: -1,
+  },
+  visible: {
+    zIndex: 10,
+  },
+  expandedVisible: {
+    zIndex: 100,
   },
 });
 
