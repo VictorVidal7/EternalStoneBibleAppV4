@@ -429,7 +429,7 @@ const styles = StyleSheet.create({
   list: {
     paddingHorizontal: spacing.base,
     paddingTop: spacing.sm,
-    paddingBottom: spacing.lg,
+    paddingBottom: 100, // Espacio para tab bar (88px iOS / 68px Android)
   },
   emptyContainer: {
     padding: spacing['2xl'],

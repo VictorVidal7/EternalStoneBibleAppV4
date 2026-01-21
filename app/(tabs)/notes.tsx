@@ -241,6 +241,7 @@ const styles = StyleSheet.create({
   },
   listContent: {
     padding: 16,
+    paddingBottom: 100, // Espacio para tab bar (88px iOS / 68px Android)
   },
   noteItem: {
     backgroundColor: '#FFFFFF',

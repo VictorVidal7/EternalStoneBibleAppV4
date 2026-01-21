@@ -621,7 +621,7 @@ const styles = StyleSheet.create({
   // List
   listContent: {
     paddingHorizontal: spacing.lg,
-    paddingBottom: spacing.xl,
+    paddingBottom: 100, // Espacio para tab bar (88px iOS / 68px Android)
   },
 
   // Section Header

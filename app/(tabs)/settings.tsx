@@ -931,7 +931,8 @@ function createThemedStyles(
     },
     footer: {
       alignItems: 'center',
-      paddingVertical: 32,
+      paddingTop: 32,
+      paddingBottom: 100, // Espacio para tab bar (88px iOS / 68px Android)
       paddingHorizontal: 16,
     },
     footerText: {

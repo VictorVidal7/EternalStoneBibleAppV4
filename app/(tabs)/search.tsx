@@ -719,6 +719,7 @@ const styles = StyleSheet.create({
   },
   resultsList: {
     padding: 16,
+    paddingBottom: 100, // Espacio para tab bar (88px iOS / 68px Android)
   },
   resultHeader: {
     flexDirection: 'row',
