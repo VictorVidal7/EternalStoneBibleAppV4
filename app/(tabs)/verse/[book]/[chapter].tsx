@@ -952,7 +952,9 @@ export default function VerseReadingScreen() {
                   ? 'rgba(26, 29, 46, 0.98)'
                   : 'rgba(255, 255, 255, 0.98)',
                 borderColor: effectiveColors.border,
-                bottom: isAudioVisible ? 84 : 28,
+                bottom:
+                  (Platform.OS === 'ios' ? 88 : 68) +
+                  (isAudioVisible ? 84 : 16),
               },
             ]}>
             <View style={styles.selectionHeader}>
@@ -1598,7 +1600,7 @@ const styles = StyleSheet.create({
   // BARRA DE SELECCIÓN
   selectionBar: {
     position: 'absolute',
-    bottom: 90, // Adjusted to be above the native tab bar
+    bottom: 84, // Base value, dynamically overridden to account for tab bar height
     left: 20,
     right: 20,
     height: 54,

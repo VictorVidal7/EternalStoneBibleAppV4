@@ -461,7 +461,9 @@ export default function SearchScreen() {
             <Text style={styles.headerSubtitle}>
               {results.length > 0
                 ? `${results.length} ${t.search.results}`
-                : t.search.noResults}
+                : hasSearched
+                  ? t.search.noResults
+                  : t.search.readyToSearch}
             </Text>
           </View>
         </View>

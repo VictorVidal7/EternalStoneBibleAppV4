@@ -561,7 +561,11 @@ export default function HomeScreen() {
                     ),
                   )
                 }
-                continueText={t.home.start}
+                continueText={
+                  Math.floor(plan.duration * 0.3) > 0
+                    ? t.home.continue
+                    : t.home.start
+                }
                 isDark={isDark}
               />
             ))}

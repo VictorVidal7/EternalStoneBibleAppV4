@@ -139,6 +139,7 @@ export const translations = {
       placeholder: 'Buscar en la Biblia...',
       minChars: 'Escribe al menos 3 caracteres para buscar',
       noResults: 'No se encontraron resultados',
+      readyToSearch: 'Busca versículos por palabras clave',
       tryDifferent: 'Intenta con otras palabras clave',
       results: 'resultados encontrados',
       initialTitle: 'Busca en toda la Biblia',
@@ -202,6 +203,7 @@ export const translations = {
     // Settings Screen
     settings: {
       title: 'Configuración',
+      subtitle: 'Personaliza tu experiencia celestial',
       appearance: 'Apariencia',
       theme: 'Tema',
       themeDescription: 'Elige el tema de la aplicación',
@@ -936,6 +938,7 @@ export const translations = {
       placeholder: 'Search the Bible...',
       minChars: 'Type at least 3 characters to search',
       noResults: 'No results found',
+      readyToSearch: 'Search verses by keywords',
       tryDifferent: 'Try different keywords',
       results: 'results found',
       initialTitle: 'Search the entire Bible',
@@ -998,6 +1001,7 @@ export const translations = {
     // Settings Screen
     settings: {
       title: 'Settings',
+      subtitle: 'Personalize your celestial experience',
       appearance: 'Appearance',
       theme: 'Theme',
       themeDescription: 'Choose the app theme',

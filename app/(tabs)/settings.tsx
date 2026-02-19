@@ -7,9 +7,9 @@ import {
   Alert,
   Linking,
 } from 'react-native';
-import React, {useState, useMemo} from 'react';
+import React, {useState, useMemo, useRef, useCallback} from 'react';
 import {Ionicons} from '@expo/vector-icons';
-import {useRouter} from 'expo-router';
+import {useRouter, useFocusEffect} from 'expo-router';
 import {useTheme, colorThemes, ColorTheme, ThemeColors} from '@hooks/useTheme';
 import {LinearGradient} from 'expo-linear-gradient';
 import {useBibleVersion} from '@hooks/useBibleVersion';
@@ -44,6 +44,13 @@ export default function SettingsScreen() {
   const {selectedVersion, setVersion, availableVersions} = useBibleVersion();
   const {language, setLanguage, t} = useLanguage();
   const [isResetting, setIsResetting] = useState(false);
+  const scrollViewRef = useRef<ScrollView>(null);
+
+  useFocusEffect(
+    useCallback(() => {
+      scrollViewRef.current?.scrollTo({y: 0, animated: false});
+    }, []),
+  );
 
   const headerGradient = useMemo(
     () =>
@@ -124,14 +131,16 @@ export default function SettingsScreen() {
             <Text style={styles.headerTitle} numberOfLines={1}>
               {t.tabs.settings}
             </Text>
-            <Text style={styles.headerSubtitle}>
-              Personaliza tu experiencia celestial
-            </Text>
+            <Text style={styles.headerSubtitle}>{t.settings.subtitle}</Text>
           </View>
         </View>
       </LinearGradient>
 
-      <ScrollView style={styles.scrollView}>
+      <ScrollView
+        ref={scrollViewRef}
+        style={styles.scrollView}
+        contentContainerStyle={styles.scrollViewContent}
+        showsVerticalScrollIndicator={true}>
         {/* Appearance Section */}
         <View style={themedStyles.section}>
           <View style={themedStyles.sectionHeader}>
@@ -625,6 +634,9 @@ const styles = StyleSheet.create({
   },
   scrollView: {
     flex: 1,
+  },
+  scrollViewContent: {
+    flexGrow: 1,
   },
   header: {
     paddingTop: 60,
