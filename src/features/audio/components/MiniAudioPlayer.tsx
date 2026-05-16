@@ -16,7 +16,7 @@
  * Para la gloria de Dios - Eternal Stone Bible App
  */
 
-import React, {useState, useCallback, useMemo, useRef} from 'react';
+import React, {useState, useCallback, useEffect, useMemo, useRef} from 'react';
 import {
   View,
   Text,
@@ -202,6 +202,22 @@ export const MiniAudioPlayer: React.FC<MiniAudioPlayerProps> = ({
   }));
 
   const pathname = usePathname();
+
+  // Auto-colapsar el reproductor expandido al cambiar de pantalla: un panel
+  // flotante a tamaño completo no debe quedarse sobre contenido ajeno (p. ej.
+  // tapando la sección de temas en Ajustes).
+  const prevPathnameRef = useRef(pathname);
+  useEffect(() => {
+    if (prevPathnameRef.current !== pathname) {
+      prevPathnameRef.current = pathname;
+      if (state.isExpanded) {
+        expandProgress.value = withSpring(0, SPRING_CONFIGS.snappy);
+        translateY.value = 0;
+        collapse();
+      }
+    }
+  }, [pathname, state.isExpanded, collapse, expandProgress, translateY]);
+
   // Determinar si la pantalla actual tiene la barra de pestañas nativa
   // Incluimos las rutas principales y las nuevas rutas movidas a (tabs)
   const isTabScreen = useMemo(() => {

@@ -180,16 +180,13 @@ export default function VerseReadingScreen() {
   const {setBottomOffset} = useAudioPlayer();
   const imageSelectedTextColor = isDark ? colors.primaryDark : colors.primary;
 
-  // Actualizar offset del reproductor de audio cuando hay selección
+  // El reproductor de audio conserva su posición; la barra de selección de
+  // versículos se dibuja por encima de él (ver estilo `selectionBar`), así
+  // que no hace falta desplazar el player.
   useEffect(() => {
-    // Si hay selección, movemos el player hacia arriba
-    if (selectedVerses.size > 0) {
-      setBottomOffset(120); // Ajustado para una barra de selección más baja
-      // <MiniAudioPlayer bottomOffset={bottomOffset} />
-    }
-
-    return () => setBottomOffset(0); // Limpiar al desmontar
-  }, [selectedVerses.size, isAudioVisible, setBottomOffset]);
+    setBottomOffset(0);
+    return () => setBottomOffset(0);
+  }, [setBottomOffset]);
 
   // Bottom nav visibility based on scroll direction (Native tab bar is persistent for now)
   // const {isVisible: isNavVisible, handleScroll} = useScrollDirection();
@@ -877,7 +874,15 @@ export default function VerseReadingScreen() {
           style={styles.versesContainer}
           contentContainerStyle={[
             styles.versesContent,
-            {paddingBottom: selectedVerses.size > 0 ? 120 : 100},
+            {
+              // Leave room so the last verses are never hidden behind the
+              // tab bar, the audio mini-player or the selection action bar.
+              paddingBottom:
+                insets.bottom +
+                100 +
+                (isAudioVisible ? 80 : 0) +
+                (selectedVerses.size > 0 ? 130 : 0),
+            },
           ]}
           onScroll={handleScroll}
           scrollEventThrottle={16}>
@@ -952,9 +957,13 @@ export default function VerseReadingScreen() {
                   ? 'rgba(26, 29, 46, 0.98)'
                   : 'rgba(255, 255, 255, 0.98)',
                 borderColor: effectiveColors.border,
+                // Float clear above the tab bar (which now includes the
+                // system inset). When the audio mini-player is visible, sit
+                // above it too.
                 bottom:
+                  insets.bottom +
                   (Platform.OS === 'ios' ? 88 : 68) +
-                  (isAudioVisible ? 84 : 16),
+                  (isAudioVisible ? 92 : 12),
               },
             ]}>
             <View style={styles.selectionHeader}>
@@ -1601,13 +1610,14 @@ const styles = StyleSheet.create({
   selectionBar: {
     position: 'absolute',
     bottom: 84, // Base value, dynamically overridden to account for tab bar height
-    left: 20,
-    right: 20,
-    height: 54,
-    borderRadius: 24, // Bordes totalmente redondeados
+    left: 16,
+    right: 16,
+    // No fixed height: the bar grows to fit the header row + the action row
+    // so the buttons are never clipped.
+    borderRadius: 20,
     borderWidth: 1,
-    paddingTop: spacing.sm,
-    paddingBottom: spacing.sm,
+    paddingTop: spacing.md,
+    paddingBottom: spacing.md,
     paddingHorizontal: spacing.md,
     shadowColor: '#000',
     shadowOffset: {width: 0, height: 4},

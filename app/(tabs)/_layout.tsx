@@ -1,15 +1,21 @@
 import {Tabs} from 'expo-router';
 import {Ionicons} from '@expo/vector-icons';
 import {Platform} from 'react-native';
+import {useSafeAreaInsets} from 'react-native-safe-area-context';
 import {useTheme} from '@hooks/useTheme';
 import {useLanguage} from '@hooks/useLanguage';
 
 export default function TabLayout() {
   const {colors, isDark, gradient} = useTheme();
   const {t} = useLanguage();
+  const insets = useSafeAreaInsets();
 
   // Fallback color in case gradient is not ready
   const headerBgColor = gradient?.headerColors?.[0] ?? colors.primary;
+
+  // Base tab bar height (content) — the system navigation inset is added on
+  // top so the gesture pill never overlaps the labels.
+  const tabBarBaseHeight = Platform.OS === 'ios' ? 88 : 68;
 
   return (
     <Tabs
@@ -27,9 +33,11 @@ export default function TabLayout() {
             : 'rgba(226, 232, 240, 0.60)', // Borde sutil claro
           borderTopLeftRadius: 28, // Bordes más suaves
           borderTopRightRadius: 28,
-          paddingBottom: Platform.OS === 'ios' ? 24 : 12,
+          // Add the bottom safe-area inset so the system gesture pill sits
+          // below the labels instead of slashing through them.
+          paddingBottom: (Platform.OS === 'ios' ? 24 : 12) + insets.bottom,
           paddingTop: 10,
-          height: Platform.OS === 'ios' ? 88 : 68,
+          height: tabBarBaseHeight + insets.bottom,
           marginHorizontal: 0,
           elevation: 0,
           shadowColor: '#000',
