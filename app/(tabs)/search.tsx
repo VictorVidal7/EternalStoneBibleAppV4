@@ -13,7 +13,7 @@ import {Ionicons} from '@expo/vector-icons';
 import {LinearGradient} from 'expo-linear-gradient';
 import {useDebouncedCallback} from 'use-debounce';
 import bibleDB from '@lib/database';
-import {BibleVerse} from '@types/bible';
+import {BibleVerse} from '@/types/bible';
 import {useTheme, ThemeColors} from '@hooks/useTheme';
 import {useBibleVersion} from '@hooks/useBibleVersion';
 import {useLanguage} from '@hooks/useLanguage';

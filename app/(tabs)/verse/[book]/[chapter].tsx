@@ -19,7 +19,7 @@ import * as Haptics from 'expo-haptics';
 import * as Sharing from 'expo-sharing';
 import {captureRef} from 'react-native-view-shot';
 import bibleDB from '@lib/database';
-import {BibleVerse} from '@types/bible';
+import {BibleVerse} from '@/types/bible';
 import {getBookByName} from '@/constants/bible';
 import {useTheme} from '@hooks/useTheme';
 import {useBibleVersion} from '@hooks/useBibleVersion';

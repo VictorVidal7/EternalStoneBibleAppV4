@@ -175,7 +175,7 @@ export const fadeOut = (
  */
 export const scaleIn = (
   animatedValue: Animated.Value,
-  duration = DURATIONS.normal,
+  _duration = DURATIONS.normal,
 ): Animated.CompositeAnimation => {
   return Animated.spring(animatedValue, {
     toValue: 1,
@@ -203,7 +203,7 @@ export const scaleOut = (
  */
 export const slideInFromBottom = (
   animatedValue: Animated.Value,
-  distance = 50,
+  _distance = 50,
 ): Animated.CompositeAnimation => {
   return Animated.spring(animatedValue, {
     toValue: 0,

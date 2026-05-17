@@ -8,7 +8,6 @@
  */
 
 import * as SQLite from 'expo-sqlite';
-import {Platform} from 'react-native';
 import bibleDB from '../lib/database';
 
 export interface WidgetData {
@@ -149,7 +148,7 @@ class WidgetTaskHandler {
   /**
    * Obtiene datos de progreso del usuario para el widget
    */
-  async getProgressData(userId: string): Promise<ProgressWidgetData> {
+  async getProgressData(_userId: string): Promise<ProgressWidgetData> {
     try {
       await this.initialize();
 
@@ -198,7 +197,7 @@ class WidgetTaskHandler {
   /**
    * Obtiene la misión activa más relevante para mostrar en el widget
    */
-  async getActiveMission(userId: string): Promise<MissionWidgetData | null> {
+  async getActiveMission(_userId: string): Promise<MissionWidgetData | null> {
     try {
       await this.initialize();
 

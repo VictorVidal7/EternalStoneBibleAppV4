@@ -5,12 +5,14 @@
 ### ❌ Problemas Identificados
 
 #### 1. **Inconsistencia en Border Radius**
+
 - **Problema:** Valores mezclados sin patrón claro
   - `borderRadius: 12, 16, 20, 30, roundness variable`
   - Iconos circulares (`borderRadius: 30`) vs contenedores redondeados
   - No hay jerarquía clara entre componentes
 
 #### 2. **Padding Caótico**
+
 - **Problema:** Valores arbitrarios sin sistema
   - Cards: `16px, 20px, 24px` (inconsistente)
   - Buttons: `10px, 12px, 15px, 18px`
@@ -18,6 +20,7 @@
 - **Resultado:** Sensación de compresión o espacios excesivos
 
 #### 3. **Sombras Sin Jerarquía**
+
 - **Problema:** No hay sistema de elevación coherente
   - `shadowOpacity: 0.05, 0.1, 0.3` (valores random)
   - Algunas cards con `elevation: 2`, otras `elevation: 4, 8`
@@ -25,18 +28,21 @@
   - En modo oscuro: sombras demasiado fuertes
 
 #### 4. **Doble Marco Visual**
+
 - **Problema:** Superposición de bordes y sombras
   - Border gris `borderWidth: 1-2` + sombra = efecto de "doble caja"
   - Achievement cards: borde colorido + sombra → visual pesado
   - DailyVerse: borde + sombra + background diferente
 
 #### 5. **Márgenes Inconsistentes**
+
 - **Problema:** Spacing vertical irregular
   - Entre cards: `8px, 12px, 16px, 20px`
   - Márgenes horizontales: `16px, 20px` mezclados
   - No hay ritmo visual consistente
 
 #### 6. **Jerarquía Visual Confusa**
+
 - **Problema:** Todo tiene el mismo peso visual
   - Cards principales vs secundarias: mismo estilo
   - No se distingue contenido primario de secundario
@@ -49,6 +55,7 @@
 ### 📐 Fundamentos: Material Design 3 + iOS HIG
 
 #### **Principios Base:**
+
 1. **Simplicidad:** Un solo nivel de elevación por card (sin doble marco)
 2. **Consistencia:** Valores fijos del sistema de 8pt grid
 3. **Jerarquía:** 3 niveles de cards (Primary, Secondary, Tertiary)
@@ -60,6 +67,7 @@
 ## 🎴 SISTEMA DE TARJETAS (Cards)
 
 ### **Nivel 1: Primary Card** (Contenido Principal)
+
 **Uso:** DailyVerse, AchievementCard destacada, contenido hero
 
 ```
@@ -88,6 +96,7 @@ Shadow (Dark):
 ```
 
 ### **Nivel 2: Secondary Card** (Contenido de Soporte)
+
 **Uso:** Lista de libros, capítulos, bookmarks, notes
 
 ```
@@ -116,6 +125,7 @@ Shadow (Dark):
 ```
 
 ### **Nivel 3: Tertiary Card** (Elementos Pequeños)
+
 **Uso:** Chips, tags, pequeños contenedores
 
 ```
@@ -134,6 +144,7 @@ NO Shadow (totalmente plano)
 ## 📏 SPACING SYSTEM (8pt Grid)
 
 ### **Padding Estándar:**
+
 ```
 Extra Small:  8dp   (spacing.xs)   → Chips, tags internos
 Small:        12dp  (spacing.sm)   → Elementos compactos
@@ -144,6 +155,7 @@ Extra Large:  32dp  (spacing.xl)   → Summary cards, destacados
 ```
 
 ### **Margin Estándar:**
+
 ```
 Vertical entre cards:     12dp
 Horizontal (pantalla):    16dp
@@ -152,6 +164,7 @@ Bottom de listas:         24dp
 ```
 
 ### **Spacing Interno (dentro de cards):**
+
 ```
 Título → Contenido:       12dp
 Contenido → Contenido:    8dp
@@ -164,6 +177,7 @@ Icon → Texto:             12dp
 ## 🎨 BORDER RADIUS SYSTEM
 
 ### **Jerarquía de Radios:**
+
 ```
 Extra Small:  4dp   (borderRadius.xs)   → Badges, progress bars
 Small:        8dp   (borderRadius.sm)   → Chips, small buttons
@@ -174,6 +188,7 @@ Full:         9999  (borderRadius.full) → Círculos, pills
 ```
 
 ### **Reglas de Uso:**
+
 1. **Cards principales:** 16dp (lg)
 2. **Cards en lista:** 12dp (md)
 3. **Botones principales:** 12dp (md)
@@ -185,6 +200,7 @@ Full:         9999  (borderRadius.full) → Círculos, pills
 ## 🌓 ELEVATION SYSTEM (Sombras)
 
 ### **Nivel 0: Flat** (Sin elevación)
+
 ```typescript
 // Uso: Chips, tags, elementos integrados al fondo
 {
@@ -193,6 +209,7 @@ Full:         9999  (borderRadius.full) → Círculos, pills
 ```
 
 ### **Nivel 1: Raised** (Elevación mínima)
+
 ```typescript
 // Uso: Lista items, secondary cards
 Light: {
@@ -213,6 +230,7 @@ Dark: {
 ```
 
 ### **Nivel 2: Elevated** (Elevación estándar)
+
 ```typescript
 // Uso: Primary cards, modals, important content
 Light: {
@@ -233,6 +251,7 @@ Dark: {
 ```
 
 ### **Nivel 3: Floating** (Elevación alta)
+
 ```typescript
 // Uso: FAB, dropdowns, popovers
 Light: {
@@ -257,18 +276,21 @@ Dark: {
 ## 🎯 JERARQUÍA VISUAL
 
 ### **Contenido Primario:**
+
 - Cards grandes con padding generoso (20-24dp)
 - Border radius: 16dp
 - Elevación: Nivel 2
 - Márgenes: 16dp horizontales
 
 ### **Contenido Secundario:**
+
 - Cards medianas con padding standard (16dp)
 - Border radius: 12dp
 - Elevación: Nivel 1
 - Separadores hairline entre items
 
 ### **Contenido Terciario:**
+
 - Elementos compactos (12dp padding)
 - Border radius: 8dp
 - Sin elevación (flat)
@@ -279,11 +301,14 @@ Dark: {
 ## 📱 ALINEACIÓN Y SEPARACIÓN
 
 ### **Regla de Oro: 8pt Grid**
+
 Todos los valores deben ser múltiplos de 8:
+
 - ✅ 8, 16, 24, 32, 40, 48...
 - ❌ 10, 14, 18, 22, 26...
 
 ### **Márgenes de Pantalla:**
+
 ```
 Horizontal:        16dp (consistente en toda la app)
 Top (debajo nav):  8dp
@@ -291,6 +316,7 @@ Bottom:            24dp (espacio para scroll)
 ```
 
 ### **Separación entre Secciones:**
+
 ```
 Título → Contenido:  16dp
 Sección → Sección:   24dp
@@ -302,6 +328,7 @@ Card → Card:         12dp
 ## 🔤 TIPOGRAFÍA (Ya establecida - mantener)
 
 ### **Sistema Actual (Correcto):**
+
 ```typescript
 fontSize: {
   xs: 12,     // Labels pequeños
@@ -327,17 +354,19 @@ fontWeight: {
 ## 🎨 COLORES (Ya establecidos - mantener)
 
 ### **Light Mode:**
+
 ```typescript
-background: '#fafbfc'     // Fondo principal
-card: '#ffffff'           // Cards
-border: 'rgba(0,0,0,0.06)'// Bordes sutiles
+background: '#fafbfc'; // Fondo principal
+card: '#ffffff'; // Cards
+border: 'rgba(0,0,0,0.06)'; // Bordes sutiles
 ```
 
 ### **Dark Mode:**
+
 ```typescript
-background: '#000000'     // True black OLED
-card: '#1a1a1a'          // Cards
-border: 'rgba(255,255,255,0.1)' // Bordes sutiles
+background: '#000000'; // True black OLED
+card: '#1a1a1a'; // Cards
+border: 'rgba(255,255,255,0.1)'; // Bordes sutiles
 ```
 
 ---
@@ -345,6 +374,7 @@ border: 'rgba(255,255,255,0.1)' // Bordes sutiles
 ## 📋 REGLAS DE ORO
 
 ### ✅ **DO (Hacer):**
+
 1. Usar UN SOLO nivel de elevación por card (NO border + shadow juntos)
 2. Mantener border radius en 12dp o 16dp para cards
 3. Padding mínimo de 16dp en cards
@@ -354,6 +384,7 @@ border: 'rgba(255,255,255,0.1)' // Bordes sutiles
 7. Sombras más sutiles en light mode (0.04-0.06 opacity)
 
 ### ❌ **DON'T (No hacer):**
+
 1. NO mezclar border + shadow en la misma card
 2. NO usar border radius > 20dp (excepto full/pill)
 3. NO usar padding < 12dp en elementos touch

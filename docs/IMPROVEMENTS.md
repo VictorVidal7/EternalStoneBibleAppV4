@@ -41,11 +41,11 @@ src/lib/highlights/
 ### 🔧 Uso
 
 ```typescript
-import { useHighlights } from '../hooks/useHighlights';
-import { HighlightColor, HighlightCategory } from '../lib/highlights';
+import {useHighlights} from '../hooks/useHighlights';
+import {HighlightColor, HighlightCategory} from '../lib/highlights';
 
 // En un componente
-const { addHighlight, highlights } = useHighlights(database);
+const {addHighlight, highlights} = useHighlights(database);
 
 // Agregar resaltado
 await addHighlight(
@@ -55,7 +55,7 @@ await addHighlight(
   1,
   HighlightColor.YELLOW,
   HighlightCategory.FAVORITE,
-  'Mi versículo favorito'
+  'Mi versículo favorito',
 );
 ```
 
@@ -92,18 +92,18 @@ await addHighlight(
 
 ### 🎖️ Niveles de Usuario
 
-| Nivel | Título      | Puntos Requeridos | Icono |
-| ----- | ----------- | ----------------- | ----- |
-| 1     | Aprendiz    | 0 - 100           | 🌱    |
-| 2     | Lector      | 100 - 250         | 📖    |
-| 3     | Estudiante  | 250 - 500         | 📚    |
-| 4     | Discípulo   | 500 - 1,000       | ✝️    |
-| 5     | Maestro     | 1,000 - 2,000     | 👨‍🏫  |
-| 6     | Erudito     | 2,000 - 4,000     | 🎓    |
-| 7     | Sabio       | 4,000 - 8,000     | 🧙    |
-| 8     | Profeta     | 8,000 - 15,000    | 🔮    |
-| 9     | Apóstol     | 15,000 - 30,000   | ⚡    |
-| 10    | Leyenda     | 30,000+           | 👑    |
+| Nivel | Título     | Puntos Requeridos | Icono |
+| ----- | ---------- | ----------------- | ----- |
+| 1     | Aprendiz   | 0 - 100           | 🌱    |
+| 2     | Lector     | 100 - 250         | 📖    |
+| 3     | Estudiante | 250 - 500         | 📚    |
+| 4     | Discípulo  | 500 - 1,000       | ✝️    |
+| 5     | Maestro    | 1,000 - 2,000     | 👨‍🏫    |
+| 6     | Erudito    | 2,000 - 4,000     | 🎓    |
+| 7     | Sabio      | 4,000 - 8,000     | 🧙    |
+| 8     | Profeta    | 8,000 - 15,000    | 🔮    |
+| 9     | Apóstol    | 15,000 - 30,000   | ⚡    |
+| 10    | Leyenda    | 30,000+           | 👑    |
 
 ### 📁 Archivos Creados
 
@@ -118,10 +118,10 @@ src/lib/achievements/
 ### 🔧 Uso
 
 ```typescript
-import { useAchievements } from '../hooks/useAchievements';
+import {useAchievements} from '../hooks/useAchievements';
 
 // En un componente
-const { stats, achievements, trackVersesRead } = useAchievements(database);
+const {stats, achievements, trackVersesRead} = useAchievements(database);
 
 // Registrar lectura
 await trackVersesRead(10, 5); // 10 versículos, 5 minutos
@@ -287,25 +287,21 @@ src/screens/
 ### 📈 Métricas Disponibles
 
 1. **Reading Heatmap**
-
    - Visualización de 365 días
    - 5 niveles de intensidad (0-4)
    - Fechas y conteos exactos
 
 2. **Peak Times**
-
    - Horarios preferidos (0-23h)
    - Porcentaje por hora
    - Conteo de lecturas
 
 3. **Favorite Books**
-
    - Top 10 (o más) libros
    - Versículos leídos por libro
    - Última fecha de lectura
 
 4. **Testament Progress**
-
    - AT: 39 libros, 929 caps, 23,145 versículos
    - NT: 27 libros, 260 caps, 7,957 versículos
    - Porcentaje de completitud
@@ -325,7 +321,7 @@ src/lib/analytics/
 ### 🔧 Uso
 
 ```typescript
-import { AdvancedAnalytics } from '../lib/analytics/AdvancedAnalytics';
+import {AdvancedAnalytics} from '../lib/analytics/AdvancedAnalytics';
 
 const analytics = new AdvancedAnalytics(database);
 await analytics.initialize();
@@ -387,32 +383,26 @@ cacheManager.preload(key, dataFetcher);
 #### Funciones Disponibles
 
 1. **`debounce(func, wait)`**
-
    - Retrasa ejecución hasta N ms sin llamadas
    - Ideal para búsqueda en tiempo real
 
 2. **`throttle(func, limit)`**
-
    - Limita ejecución a una vez cada N ms
    - Ideal para scroll handlers
 
 3. **`memoize(func, maxSize)`**
-
    - Cachea resultados de funciones costosas
    - Límite configurable de entradas
 
 4. **`batchify(processor, options)`**
-
    - Agrupa múltiples llamadas en una sola
    - Reduce overhead de operaciones
 
 5. **`retry(operation, options)`**
-
    - Reintenta operaciones fallidas
    - Backoff exponencial opcional
 
 6. **`AsyncQueue`**
-
    - Cola de ejecución con límite de concurrencia
    - Previene sobrecarga del sistema
 
@@ -454,7 +444,7 @@ await database.executeSql(sql, params);
 Clase ahora exportada para uso en servicios.
 
 ```typescript
-import { BibleDatabase } from '../lib/database';
+import {BibleDatabase} from '../lib/database';
 ```
 
 ### 📁 Archivos Modificados
@@ -504,7 +494,6 @@ src/
 ### Implementación Inmediata
 
 1. **Integrar en el flujo principal**
-
    - Añadir pantalla de Logros al tab navigator
    - Integrar resaltados en pantalla de versículos
    - Conectar tracking de lectura
@@ -583,13 +572,16 @@ Eternal Stone Bible App V4 - Todos los derechos reservados.
 ### ✨ Sistema de Temas Renovado
 
 #### Paletas de Colores Premium
+
 - **6 Temas Profesionales**: Default (Azul/Púrpura), Sepia, Green, Purple, Ocean, Sunset
 - **Colores Optimizados**: Diseñados para máxima legibilidad y impacto visual
 - **Dark Mode OLED**: Negro puro (#000000) optimizado para pantallas OLED
 - **Contraste WCAG AA**: Todos los colores cumplen estándares de accesibilidad
 
 #### Gradientes Modernos
+
 Se agregaron **30+ gradientes premium** categorizados:
+
 - **Naturales**: Sunset, Sunrise, Ocean, Forest, Aurora
 - **Vibrantes**: Purple, Fire, Paradise, Cosmic
 - **Elegantes**: Midnight, Royal, Rose, Champagne
@@ -599,12 +591,14 @@ Se agregaron **30+ gradientes premium** categorizados:
 - **Oscuros**: Deep Space, Dark Purple, Dark Ocean, Charcoal
 
 **Archivos Modificados:**
+
 - `src/styles/designTokens.ts`
 - `src/context/UserPreferencesContext.tsx`
 
 ### 🔮 Glassmorphism Implementado
 
 #### Efectos de Vidrio Esmerilado
+
 - **BlurView Activado**: Implementado en todos los componentes principales
 - **Intensidades Dinámicas**: Dark mode (60) vs Light mode (80-85)
 - **Componentes con Glassmorphism**:
@@ -613,6 +607,7 @@ Se agregaron **30+ gradientes premium** categorizados:
   - ✅ Toast (variante 'default')
 
 **Archivos Modificados:**
+
 - `src/components/ModernCard.tsx`
 - `src/components/BottomSheet.tsx`
 - `src/components/Toast.tsx`
@@ -621,6 +616,7 @@ Se agregaron **30+ gradientes premium** categorizados:
 ### 🏠 HomeScreen Rediseñado
 
 #### Hero Section Premium
+
 - **Gradiente Impactante**: Gradiente dinámico multi-color
 - **Decoración de Estrellas**: Efectos visuales sutiles en el fondo
 - **Panel de Estadísticas**:
@@ -629,6 +625,7 @@ Se agregaron **30+ gradientes premium** categorizados:
   - 📖 Progreso de lectura (%)
 
 #### Cards Modernizados
+
 - **Daily Verse Card**: Con glassmorphism y tipografía mejorada
 - **Continue Reading Card**: Gradiente verde con barra de progreso
 - **Quick Access Grid**: 6 libros con animaciones staggered
@@ -639,6 +636,7 @@ Se agregaron **30+ gradientes premium** categorizados:
 ### 📚 Bible List Screen Modernizado
 
 #### Mejoras Visuales
+
 - **Header con Gradiente**: Purple premium con stats AT/NT
 - **Search Bar Premium**: Animaciones de escala, botón clear
 - **Book Cards 3D**: Accent line, gradientes, chevron coloreado
@@ -649,7 +647,9 @@ Se agregaron **30+ gradientes premium** categorizados:
 ### 🎴 Nuevos Componentes Premium
 
 #### Card3D Component
+
 Card con efectos 3D realistas:
+
 - Sombras profundas multi-capa
 - Animación de elevación en press
 - Scale animations suaves
@@ -658,7 +658,9 @@ Card con efectos 3D realistas:
 **Archivo**: `src/components/Card3D.tsx`
 
 #### AnimatedGradient Component
+
 Gradiente con animación continua:
+
 - Animación loop infinita
 - Dirección configurable (ángulo)
 - Duración ajustable
@@ -667,7 +669,9 @@ Gradiente con animación continua:
 **Archivo**: `src/components/AnimatedGradient.tsx`
 
 #### PremiumButton Component
+
 Botón con efectos visuales impactantes:
+
 - **5 Variantes**: Primary, Secondary, Success, Danger, Gradient
 - **Efecto Shine**: Brillo que se mueve horizontalmente
 - **Animaciones**: Scale, haptic feedback
@@ -676,7 +680,9 @@ Botón con efectos visuales impactantes:
 **Archivo**: `src/components/PremiumButton.tsx`
 
 #### SplashScreen Component
+
 Pantalla de bienvenida impresionante:
+
 - **Animaciones Secuenciales**: Logo → Rotación → Texto → Fade out
 - **20 Estrellas Animadas**: Con posiciones y tiempos aleatorios
 - **Puntos de Carga**: 3 dots con animación loop
@@ -688,6 +694,7 @@ Pantalla de bienvenida impresionante:
 ### 🎯 Animaciones Mejoradas
 
 #### Micro-animaciones Implementadas
+
 - **Fade In/Out**: Transiciones de opacidad suaves
 - **Spring Animations**: Físicas naturales (tension: 50, friction: 7-10)
 - **Scale Animations**: Press/release con efecto elástico
@@ -695,6 +702,7 @@ Pantalla de bienvenida impresionante:
 - **Slide Animations**: Deslizamientos desde diferentes direcciones
 
 #### Configuraciones Optimizadas
+
 ```typescript
 // Configuraciones estándar
 Animated.spring({
@@ -712,6 +720,7 @@ Animated.timing({
 ### 🎨 Design Tokens Expandidos
 
 #### Nuevos Tokens Premium
+
 ```typescript
 // 30+ Gradientes
 gradients.paradise: ['#1cd8d2', '#93edc7', '#fef9d7']
@@ -734,6 +743,7 @@ borderRadius.full: 9999px
 ### 📊 Resultados de las Mejoras Visuales
 
 #### Experiencia de Usuario
+
 - ✨ **Interfaz Impresionante**: Diseño profesional de clase mundial
 - 🎨 **Paletas Premium**: 6 temas + 30 gradientes
 - 🔮 **Glassmorphism**: Profundidad y modernidad
@@ -742,6 +752,7 @@ borderRadius.full: 9999px
 - ⚡ **Performance Óptimo**: Sin lag en animaciones
 
 #### Componentes Creados/Mejorados
+
 - 🆕 **4 Componentes Nuevos**: Card3D, AnimatedGradient, PremiumButton, SplashScreen
 - ✅ **3 Componentes Mejorados**: ModernCard, BottomSheet, Toast
 - 🎨 **2 Pantallas Rediseñadas**: HomeScreen, BibleListScreen
@@ -750,6 +761,7 @@ borderRadius.full: 9999px
 ### 📁 Archivos Nuevos/Modificados
 
 **Creados:**
+
 ```
 src/components/
   ├── Card3D.tsx
@@ -759,6 +771,7 @@ src/components/
 ```
 
 **Modificados:**
+
 ```
 src/context/UserPreferencesContext.tsx
 src/styles/designTokens.ts
@@ -774,7 +787,9 @@ app/(tabs)/bible.tsx
 ## 🎯 9. COMPONENTES PREMIUM ADICIONALES (FASE 2)
 
 ### 🌊 ParallaxScrollView
+
 Scroll view con efectos de parallax impresionantes:
+
 - **Header Parallax**: Escala y se desvanece al scrollear
 - **Overlay Dinámico**: Aparece gradualmente con scroll
 - **Factor Configurable**: Control total del efecto parallax
@@ -784,7 +799,9 @@ Scroll view con efectos de parallax impresionantes:
 **Archivo**: `src/components/ParallaxScrollView.tsx`
 
 ### 🎯 FloatingMenu
+
 Menú flotante radial con animaciones premium:
+
 - **Animaciones Radiales**: Botones que se expanden en círculo
 - **Hasta N Acciones**: Configurables con icono y color
 - **Gradientes Individuales**: Por cada acción
@@ -795,7 +812,9 @@ Menú flotante radial con animaciones premium:
 **Archivo**: `src/components/FloatingMenu.tsx`
 
 ### 🎛️ SegmentedControl
+
 Control segmentado iOS-style moderno:
+
 - **3 Variantes**: Default, gradient, outlined
 - **Indicador Animado**: Se mueve suavemente entre opciones
 - **Soporte Íconos**: Iconos + texto
@@ -805,7 +824,9 @@ Control segmentado iOS-style moderno:
 **Archivo**: `src/components/SegmentedControl.tsx`
 
 ### 🏷️ PremiumBadge
+
 Sistema de badges elegante:
+
 - **7 Variantes**: Primary, secondary, success, error, warning, info, gradient
 - **3 Tamaños**: Small, medium, large
 - **Modo Dot**: Para indicadores simples
@@ -816,7 +837,9 @@ Sistema de badges elegante:
 **Archivo**: `src/components/PremiumBadge.tsx`
 
 ### 🎭 EmptyState
+
 Componente para estados vacíos elegante:
+
 - **Animaciones de Entrada**: Fade + scale + slide
 - **3 Variantes**: Default, gradient, minimal
 - **Ícono Grande**: 64px customizable
@@ -827,7 +850,9 @@ Componente para estados vacíos elegante:
 **Archivo**: `src/components/EmptyState.tsx`
 
 ### ⭐ PremiumRating
+
 Sistema de calificación con estrellas:
+
 - **Interactivo**: Permite selección
 - **Readonly Mode**: Solo visualización
 - **Half Stars**: Soporte para medias estrellas
@@ -838,7 +863,9 @@ Sistema de calificación con estrellas:
 **Archivo**: `src/components/PremiumRating.tsx`
 
 ### 📦 Components Index
+
 Exportación centralizada de componentes:
+
 - **26 Componentes Totales** exportados
 - **Types Incluidos**: MenuAction, SegmentOption, etc.
 - **Imports Simplificados**: Un solo import
@@ -847,6 +874,7 @@ Exportación centralizada de componentes:
 **Archivo**: `src/components/index.ts`
 
 **Ejemplo de uso**:
+
 ```typescript
 // Antes: múltiples imports
 import Card3D from './components/Card3D';
@@ -854,12 +882,13 @@ import PremiumButton from './components/PremiumButton';
 import FloatingMenu from './components/FloatingMenu';
 
 // Ahora: un solo import
-import { Card3D, PremiumButton, FloatingMenu } from './components';
+import {Card3D, PremiumButton, FloatingMenu} from './components';
 ```
 
 ### 📊 Resumen Componentes Premium
 
 #### Estadísticas
+
 - 🆕 **Fase 2**: 6 componentes nuevos
 - ✅ **Fase 1**: 4 componentes
 - 📐 **Total Premium**: 10 componentes
@@ -868,42 +897,51 @@ import { Card3D, PremiumButton, FloatingMenu } from './components';
 #### Componentes por Categoría
 
 **Efectos Visuales** (3):
+
 - ParallaxScrollView
 - AnimatedGradient
 - SplashScreen
 
 **Tarjetas** (2):
+
 - Card3D
 - ModernCard
 
 **Botones y Acciones** (3):
+
 - PremiumButton
 - FloatingMenu
 - FloatingActionButton
 
 **Navegación y Controles** (2):
+
 - SegmentedControl
 - BottomSheet
 
 **Feedback Visual** (4):
+
 - PremiumBadge
 - PremiumRating
 - Toast
 - ProgressIndicator
 
 **Estados y Contenido** (2):
+
 - EmptyState
 - SkeletonLoader
 
 **Logros** (3):
+
 - AchievementCard
 - AchievementUnlockedModal
 - UserStatsPanel
 
 **Highlights** (1):
+
 - HighlightColorPicker
 
 **Utilidades** (6):
+
 - ErrorBoundary
 - AchievementNotifications
 - CustomButton

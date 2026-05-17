@@ -17,9 +17,6 @@ import {
   interpolate,
   Extrapolation,
   SharedValue,
-  useSharedValue,
-  useAnimatedStyle,
-  runOnJS,
 } from 'react-native-reanimated';
 
 // ==================== SPRING CONFIGURATIONS ====================

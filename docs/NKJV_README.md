@@ -9,6 +9,7 @@ The app now supports the **New King James Version (NKJV)** as an additional Bibl
 ## Current Implementation
 
 ### Sample Data
+
 The current implementation includes **sample NKJV data** with popular verses for testing and demonstration purposes:
 
 - **John 1:1-5, 3:16-17** - Famous New Testament passages
@@ -22,6 +23,7 @@ This sample data (27 verses) is sufficient to test the multi-version functionali
 ## How to Get Full NKJV Text
 
 ### Option 1: Use the Fetch Script (Recommended)
+
 When you have internet connectivity, run:
 
 ```bash
@@ -31,6 +33,7 @@ node scripts/fetch-nkjv-data.js
 This script will download the complete Bible text (KJV) from a public CDN source.
 
 **Important Notes:**
+
 - The script downloads **KJV** (King James Version) text, which is public domain
 - KJV and NKJV are very similar but not identical translations
 - The script requires internet connection and may take a few minutes
@@ -38,9 +41,11 @@ This script will download the complete Bible text (KJV) from a public CDN source
 - The downloaded file will be ~7-8 MB with 31,000+ verses
 
 ### Option 2: Manual Integration
+
 If you have access to NKJV text data through proper licensing:
 
 1. Format your data to match this structure:
+
 ```javascript
 {
   book_id: number,      // 1-66 (Genesis=1, Revelation=66)
@@ -55,6 +60,7 @@ If you have access to NKJV text data through proper licensing:
 2. Replace the contents of `src/lib/database/bible-data-nkjv.ts` with your data
 
 3. Reset the app data to reload:
+
 ```javascript
 // In your app, call
 await resetBibleData();
@@ -75,6 +81,7 @@ await resetBibleData();
 ## How Users Can Switch Versions
 
 Users can now:
+
 1. Open the app settings
 2. Navigate to Bible Version settings
 3. Select "New King James Version (NKJV)"
@@ -91,6 +98,7 @@ Users can now:
 - Public domain alternatives include KJV, ASV, and WEB translations
 
 **Why KJV instead of NKJV?**
+
 - KJV is in the public domain and freely available
 - NKJV requires licensing from Thomas Nelson
 - Both are modern English translations, readable and widely used
@@ -99,12 +107,14 @@ Users can now:
 ## Technical Details
 
 ### Database Structure
+
 - All Bible versions share the same SQLite database
 - Verses are differentiated by the `version` field
 - The app loads multiple versions on first launch
 - Each version has its own AsyncStorage flag to track load status
 
 ### Data Loading
+
 - **RVR1960**: ~31,102 verses (7.7 MB)
 - **NKJV**: ~31,102 verses when complete (currently 27 sample verses)
 - Loading is done in chunks of 1000 verses for optimal performance

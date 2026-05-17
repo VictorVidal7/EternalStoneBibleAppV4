@@ -6,8 +6,6 @@ import React, {
   useCallback,
   ReactNode,
   FC,
-  Dispatch,
-  SetStateAction,
 } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {logger} from '../lib/utils/logger';

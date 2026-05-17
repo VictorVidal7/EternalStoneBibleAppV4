@@ -14,7 +14,6 @@ import {
   withDelay,
   withSequence,
   withRepeat,
-  runOnJS,
   interpolate,
   Extrapolation,
 } from 'react-native-reanimated';
@@ -368,7 +367,7 @@ export const useProgressAnimation = (
 export const useCountUp = (
   targetValue: number,
   duration = 1000,
-  onUpdate?: (value: number) => void,
+  _onUpdate?: (value: number) => void,
 ) => {
   const animatedValue = useSharedValue(0);
   const displayValue = useSharedValue(0);

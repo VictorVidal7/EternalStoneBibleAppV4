@@ -6,7 +6,6 @@
 
 // ==================== PREMIUM COMPONENTS V5 ====================
 export {AnimatedSplashScreen} from './AnimatedSplashScreen';
-export {PremiumVerseReader} from './PremiumVerseReader';
 export {
   ParticleSystem,
   Confetti,
@@ -41,9 +40,7 @@ export {CardHeader, CardFooter, CardSection} from './ModernCard';
 export {default as BottomSheet} from './BottomSheet';
 export {default as Toast} from './Toast';
 export {toastManager} from './Toast';
-export {default as CustomButton} from './CustomButton';
 export {default as FloatingActionButton} from './FloatingActionButton';
-export {default as ProgressIndicator} from './ProgressIndicator';
 export {default as SkeletonLoader} from './SkeletonLoader';
 export {default as ErrorBoundary} from './ErrorBoundary';
 export {AchievementNotifications} from './AchievementNotifications';

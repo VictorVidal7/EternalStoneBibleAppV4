@@ -3,6 +3,7 @@
 ## 🎯 REGLA DE ORO: Simplicidad y Consistencia
 
 > **"Un solo nivel de elevación por componente"**
+>
 > - ❌ NO: Border + Shadow
 > - ✅ SÍ: Shadow SOLAMENTE
 
@@ -11,6 +12,7 @@
 ## 📐 VALORES RÁPIDOS (Copy-Paste)
 
 ### **Border Radius:**
+
 ```typescript
 Small cards:      12dp (borderRadius.md)
 Large cards:      16dp (borderRadius.lg)
@@ -20,6 +22,7 @@ Chips/Pills:      8dp (borderRadius.sm) o full
 ```
 
 ### **Padding:**
+
 ```typescript
 List items:       16dp horizontal, 16dp vertical
 Primary cards:    20dp horizontal, 20dp vertical
@@ -28,6 +31,7 @@ Buttons:          16dp horizontal, 12-16dp vertical
 ```
 
 ### **Margin:**
+
 ```typescript
 Screen horizontal:  16dp (SIEMPRE)
 Between cards:      12dp vertical
@@ -36,6 +40,7 @@ Bottom of lists:    24dp
 ```
 
 ### **Shadows (Light Mode):**
+
 ```typescript
 Level 0 (Flat):
   // Sin sombra
@@ -63,6 +68,7 @@ Level 3 (Floating):
 ```
 
 ### **Shadows (Dark Mode):**
+
 ```typescript
 Level 0 (Flat):
   // Sin sombra
@@ -94,6 +100,7 @@ Level 3 (Floating):
 ## 🎴 PLANTILLAS POR TIPO DE CARD
 
 ### **1. PRIMARY CARD** (DailyVerse, Destacados)
+
 ```typescript
 {
   borderRadius: 16,
@@ -108,6 +115,7 @@ Level 3 (Floating):
 ```
 
 ### **2. SECONDARY CARD** (Lista items)
+
 ```typescript
 {
   borderRadius: 12,        // ← Solo si es card independiente
@@ -124,6 +132,7 @@ Level 3 (Floating):
 ```
 
 ### **3. TERTIARY CARD** (Chips, tags, botones pequeños)
+
 ```typescript
 {
   borderRadius: 8,
@@ -137,6 +146,7 @@ Level 3 (Floating):
 ```
 
 ### **4. ICON CONTAINER** (Todos los iconos)
+
 ```typescript
 {
   width: 48-56,
@@ -168,6 +178,7 @@ Antes de hacer commit, verifica:
 ## 🚨 ERRORES COMUNES A EVITAR
 
 ### ❌ **ERROR 1: Doble marco**
+
 ```typescript
 // MAL
 {
@@ -184,6 +195,7 @@ Antes de hacer commit, verifica:
 ```
 
 ### ❌ **ERROR 2: Iconos circulares en contenedores rectangulares**
+
 ```typescript
 // MAL
 {
@@ -201,21 +213,25 @@ Antes de hacer commit, verifica:
 ```
 
 ### ❌ **ERROR 3: Mismas sombras en light y dark**
+
 ```typescript
 // MAL
 const shadow = {
-  shadowOpacity: 0.1,  // ← Igual para ambos
-}
+  shadowOpacity: 0.1, // ← Igual para ambos
+};
 
 // BIEN
-const shadow = isDark ? {
-  shadowOpacity: 0.25,  // ← Más fuerte en dark
-} : {
-  shadowOpacity: 0.06,  // ← Más sutil en light
-}
+const shadow = isDark
+  ? {
+      shadowOpacity: 0.25, // ← Más fuerte en dark
+    }
+  : {
+      shadowOpacity: 0.06, // ← Más sutil en light
+    };
 ```
 
 ### ❌ **ERROR 4: Valores que no son múltiplos de 4**
+
 ```typescript
 // MAL
 padding: 15,      // ← No es múltiplo de 4
@@ -229,6 +245,7 @@ borderRadius: 12, // ← 8pt grid
 ```
 
 ### ❌ **ERROR 5: Padding insuficiente**
+
 ```typescript
 // MAL
 {
@@ -247,6 +264,7 @@ borderRadius: 12, // ← 8pt grid
 ## 🎨 COMBINACIONES RECOMENDADAS
 
 ### **Card de Contenido Importante:**
+
 ```typescript
 - Border Radius: 16dp
 - Padding: 20-24dp
@@ -256,6 +274,7 @@ borderRadius: 12, // ← 8pt grid
 ```
 
 ### **Item de Lista:**
+
 ```typescript
 - Border Radius: 0 (o 12dp si es independiente)
 - Padding: 16dp
@@ -265,6 +284,7 @@ borderRadius: 12, // ← 8pt grid
 ```
 
 ### **Botón Destacado:**
+
 ```typescript
 - Border Radius: 12dp
 - Padding H: 20dp, V: 12-16dp
@@ -273,6 +293,7 @@ borderRadius: 12, // ← 8pt grid
 ```
 
 ### **Chip/Tag:**
+
 ```typescript
 - Border Radius: 8dp o full
 - Padding H: 12dp, V: 8dp

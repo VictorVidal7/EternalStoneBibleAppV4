@@ -31,15 +31,19 @@ EXPO_OFFLINE=1 npm start -- --offline
 Una vez que el servidor esté corriendo, tienes 3 opciones:
 
 ### A) **Android** (si tienes emulador o dispositivo)
+
 Presiona **`a`** en la terminal donde corre Expo
 
 ### B) **iOS** (si tienes simulador o dispositivo)
+
 Presiona **`i`** en la terminal donde corre Expo
 
 ### C) **Web** (navegador)
+
 Presiona **`w`** en la terminal donde corre Expo
 
 ### D) **Expo Go** (app en tu teléfono)
+
 1. Instala "Expo Go" desde Play Store o App Store
 2. Abre Expo Go
 3. Escanea el QR que aparece en tu terminal
@@ -80,21 +84,25 @@ npm install
 Al abrir la app verás:
 
 ✅ **HomeScreen**
+
 - Gradiente azul moderno (#4A90E2 → #6EADFF)
 - Botón "Continue Reading" verde (#34C759)
 - Cards sin bordes duros con sombras profesionales
 - Background mejorado
 
 ✅ **ChapterSelection**
+
 - Gradiente azul consistente
 - Textos con sombras para mejor legibilidad
 - Títulos más grandes y visibles
 
 ✅ **Daily Verse Card**
+
 - Estilo profesional sin dobles marcos
 - Sombras mejoradas
 
 ✅ **Modo Oscuro**
+
 - Gradientes azul oscuro (#1E3A5F → #3A5C87)
 - Cards con background #2A2A3E
 - Sombras adaptativas

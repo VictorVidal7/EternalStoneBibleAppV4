@@ -683,7 +683,7 @@ class BadgeSystemService {
   /**
    * Obtiene estadísticas del usuario para verificar progreso
    */
-  private async getUserStats(userId: string): Promise<Record<string, number>> {
+  private async getUserStats(_userId: string): Promise<Record<string, number>> {
     // En producción, esto obtendría stats reales de múltiples tablas
     // Por ahora retornamos valores de ejemplo
     return {

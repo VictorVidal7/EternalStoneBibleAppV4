@@ -582,8 +582,8 @@ interface DynamicThemeColors {
   primary: string;
   primaryLight: string;
   primaryDark: string;
-  secondary: string;
-  accent: string;
+  secondary?: string;
+  accent?: string;
   info: string;
 }
 
@@ -605,8 +605,8 @@ export const createCelestialTheme = (
         primary: dynamicColors.primary,
         primaryLight: dynamicColors.primaryLight,
         primaryDark: dynamicColors.primaryDark,
-        secondary: dynamicColors.secondary,
-        accent: dynamicColors.accent,
+        secondary: dynamicColors.secondary ?? dynamicColors.primary,
+        accent: dynamicColors.accent ?? dynamicColors.primary,
         info: dynamicColors.info,
         // También actualizamos gradientes para usar los colores dinámicos
         primaryGradient: [

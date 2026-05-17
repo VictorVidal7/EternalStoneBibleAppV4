@@ -13,7 +13,7 @@
 
 import * as Sharing from 'expo-sharing';
 import * as Clipboard from 'expo-clipboard';
-import {Alert, Platform} from 'react-native';
+import {Alert} from 'react-native';
 import * as Haptics from 'expo-haptics';
 import {BibleVerse} from '../types/bible';
 import {logger} from '../lib/utils/logger';

@@ -8,7 +8,6 @@
  */
 
 import * as SQLite from 'expo-sqlite';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import bibleDB from '../database';
 
 export interface CacheEntry {

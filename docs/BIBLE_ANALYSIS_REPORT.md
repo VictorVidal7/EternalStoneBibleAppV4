@@ -11,6 +11,7 @@
 Se realizó un análisis exhaustivo de la Biblia RVR1960 contenida en este repositorio, verificando cada libro, capítulo y versículo contra el estándar de la Biblia RVR1960.
 
 ### Resultados Generales:
+
 - ✅ **66 libros** verificados (39 AT + 27 NT)
 - ✅ **1,187 capítulos** analizados
 - ⚠️ **31,041 versículos** encontrados en archivos JSON (se esperan 31,102)
@@ -28,6 +29,7 @@ Se realizó un análisis exhaustivo de la Biblia RVR1960 contenida en este repos
 **Problema:** Faltan 2 capítulos completos y 14 versículos del capítulo 32.
 
 **Detalles:**
+
 - ❌ **Capítulos encontrados:** 32 de 34 esperados
 - ❌ **Capítulos faltantes:** 33 y 34 (COMPLETOS)
 - ❌ **Capítulo 32:** Tiene 38 versículos, debería tener 52
@@ -36,6 +38,7 @@ Se realizó un análisis exhaustivo de la Biblia RVR1960 contenida en este repos
 **Ubicación:** `/src/data/bible_books/deuteronomio.json`
 
 **Impacto:** CRÍTICO - Faltan 2 capítulos completos del Pentateuco, incluyendo:
+
 - Capítulo 33: La bendición de Moisés sobre las tribus de Israel
 - Capítulo 34: La muerte de Moisés
 
@@ -46,6 +49,7 @@ Se realizó un análisis exhaustivo de la Biblia RVR1960 contenida en este repos
 **Problema:** Falta el versículo 1, el evangelio comienza incorrectamente.
 
 **Detalles:**
+
 - ❌ **Versículo faltante:** Marcos 1:1
 - ❌ **Primer versículo actual:** Marcos 1:2
 - ⚠️ **Todos los versículos están desplazados** una posición
@@ -64,6 +68,7 @@ Se realizó un análisis exhaustivo de la Biblia RVR1960 contenida en este repos
 **Problema:** Faltan los últimos 2 versículos del libro.
 
 **Detalles:**
+
 - ❌ **Versículos encontrados:** 28 de 30 esperados
 - ❌ **Versículos faltantes:** 29 y 30
 - 📖 **Último versículo actual:** Verso 28 (termina abruptamente)
@@ -79,6 +84,7 @@ Se realizó un análisis exhaustivo de la Biblia RVR1960 contenida en este repos
 **Problema:** Faltan los últimos 4 versículos del capítulo.
 
 **Detalles:**
+
 - ❌ **Versículos encontrados:** 17 de 21 esperados
 - ❌ **Versículos faltantes:** 18, 19, 20 y 21
 - 📖 **Contenido faltante:** La visión de los cuatro cuernos y los cuatro carpinteros
@@ -94,6 +100,7 @@ Se realizó un análisis exhaustivo de la Biblia RVR1960 contenida en este repos
 **Problema:** Tiene 1 versículo extra.
 
 **Detalles:**
+
 - ❌ **Versículos encontrados:** 15
 - ✅ **Versículos esperados:** 14
 - ⚠️ **Versículo extra:** Probablemente el versículo 15 no debería existir o está duplicado
@@ -113,6 +120,7 @@ Se realizó un análisis exhaustivo de la Biblia RVR1960 contenida en este repos
 **Ubicación:** `/src/data/bibleChapters.json`
 
 **Contenido actual:**
+
 ```json
 {
   "Génesis": 50,
@@ -155,20 +163,24 @@ Se realizó un análisis exhaustivo de la Biblia RVR1960 contenida en este repos
 ### Libros Analizados por Testamento
 
 #### Antiguo Testamento (39 libros)
+
 - ✅ Perfectos: 37 libros (94.9%)
 - ❌ Con errores: 2 libros (Deuteronomio, 2 Reyes, Zacarías = 3)
 
 #### Nuevo Testamento (27 libros)
+
 - ✅ Perfectos: 24 libros (88.9%)
 - ❌ Con errores: 2 libros (Marcos, 3 Juan = 2)
 
 ### Versículos Totales
+
 - **RVR1960 estándar:** 31,102 versículos
 - **Encontrados en JSON:** 31,041 versículos
 - **Faltantes:** 61 versículos
 - **Archivo compilado:** 31,096 versículos (más cercano al estándar)
 
 ### Desglose de Versículos Faltantes
+
 - Deuteronomio cap. 32: 14 versículos (del 39 al 52)
 - Deuteronomio cap. 33: 29 versículos (capítulo completo)
 - Deuteronomio cap. 34: 12 versículos (capítulo completo)
@@ -186,9 +198,11 @@ Se realizó un análisis exhaustivo de la Biblia RVR1960 contenida en este repos
 Los siguientes libros están **100% correctos** con todos sus capítulos y versículos:
 
 ### Antiguo Testamento (36 libros):
+
 ✅ Génesis, Éxodo, Levítico, Números, Josué, Jueces, Rut, 1 Samuel, 2 Samuel, 1 Reyes, 1 Crónicas, 2 Crónicas, Esdras, Nehemías, Ester, Job, Salmos, Proverbios, Eclesiastés, Cantares, Isaías, Jeremías, Lamentaciones, Ezequiel, Daniel, Oseas, Joel, Amós, Abdías, Jonás, Miqueas, Nahum, Habacuc, Sofonías, Hageo, Malaquías
 
 ### Nuevo Testamento (25 libros):
+
 ✅ Mateo, Lucas, Juan, Hechos, Romanos, 1 Corintios, 2 Corintios, Gálatas, Efesios, Filipenses, Colosenses, 1 Tesalonicenses, 2 Tesalonicenses, 1 Timoteo, 2 Timoteo, Tito, Filemón, Hebreos, Santiago, 1 Pedro, 2 Pedro, 1 Juan, 2 Juan, Judas, Apocalipsis
 
 ---
@@ -238,6 +252,7 @@ Los siguientes libros están **100% correctos** con todos sus capítulos y vers�
 ## 🛠️ HERRAMIENTAS DE ANÁLISIS
 
 Se creó un script de análisis exhaustivo:
+
 - **Ubicación:** `/scripts/analyze-bible-integrity.js`
 - **Uso:** `node scripts/analyze-bible-integrity.js`
 - **Funcionalidades:**
