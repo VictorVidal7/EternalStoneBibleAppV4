@@ -1,6 +1,7 @@
-import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import {createContext, useContext, useState, useEffect, ReactNode} from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { BibleVersion } from '../types/bible';
+import {BibleVersion} from '../types/bible';
+import {useLanguage} from './useLanguage';
 
 const VERSION_STORAGE_KEY = '@bible_version';
 
@@ -28,14 +29,34 @@ interface BibleVersionContextType {
   availableVersions: BibleVersion[];
 }
 
-const BibleVersionContext = createContext<BibleVersionContextType | undefined>(undefined);
+const BibleVersionContext = createContext<BibleVersionContextType | undefined>(
+  undefined,
+);
 
-export function BibleVersionProvider({ children }: { children: ReactNode }) {
-  const [selectedVersion, setSelectedVersion] = useState<BibleVersion>(AVAILABLE_VERSIONS[0]);
+export function BibleVersionProvider({children}: {children: ReactNode}) {
+  const {language} = useLanguage();
+  const [selectedVersion, setSelectedVersion] = useState<BibleVersion>(
+    AVAILABLE_VERSIONS[0],
+  );
+  // Whether the user has explicitly picked a version in Settings. Until then
+  // the version simply follows the UI language.
+  const [hasExplicitChoice, setHasExplicitChoice] = useState(false);
 
   useEffect(() => {
     loadSavedVersion();
   }, []);
+
+  // While the user has not made an explicit choice, keep the Bible version in
+  // sync with the UI language (English → KJV, Spanish → RVR1960). This avoids
+  // an English UI paired with a Spanish Bible (and search terms that match
+  // nothing).
+  useEffect(() => {
+    if (hasExplicitChoice) return;
+    const match = AVAILABLE_VERSIONS.find(v => v.language === language);
+    if (match && match.id !== selectedVersion.id) {
+      setSelectedVersion(match);
+    }
+  }, [language, hasExplicitChoice, selectedVersion.id]);
 
   async function loadSavedVersion() {
     try {
@@ -44,8 +65,10 @@ export function BibleVersionProvider({ children }: { children: ReactNode }) {
         const version = AVAILABLE_VERSIONS.find(v => v.id === savedVersionId);
         if (version) {
           setSelectedVersion(version);
+          setHasExplicitChoice(true);
         }
       }
+      // No saved version: the language-sync effect above picks the default.
     } catch (error) {
       console.error('Error loading saved version:', error);
     }
@@ -55,6 +78,7 @@ export function BibleVersionProvider({ children }: { children: ReactNode }) {
     const version = AVAILABLE_VERSIONS.find(v => v.id === versionId);
     if (version) {
       setSelectedVersion(version);
+      setHasExplicitChoice(true);
       await AsyncStorage.setItem(VERSION_STORAGE_KEY, versionId);
     }
   }
@@ -65,8 +89,7 @@ export function BibleVersionProvider({ children }: { children: ReactNode }) {
         selectedVersion,
         setVersion,
         availableVersions: AVAILABLE_VERSIONS,
-      }}
-    >
+      }}>
       {children}
     </BibleVersionContext.Provider>
   );

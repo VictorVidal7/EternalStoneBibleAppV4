@@ -273,7 +273,7 @@ export default function BibleScreen() {
                       filter === 'old' ? colors.primary : colors.textSecondary,
                   },
                 ]}>
-                AT
+                {t.bible.oldTestamentShort}
               </Text>
             </TouchableOpacity>
 
@@ -301,7 +301,7 @@ export default function BibleScreen() {
                       filter === 'new' ? colors.primary : colors.textSecondary,
                   },
                 ]}>
-                NT
+                {t.bible.newTestamentShort}
               </Text>
             </TouchableOpacity>
           </View>

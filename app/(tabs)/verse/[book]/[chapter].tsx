@@ -126,7 +126,7 @@ export default function VerseReadingScreen() {
   const insets = useSafeAreaInsets();
   const {colors, isDark} = useTheme();
   const {selectedVersion} = useBibleVersion();
-  const {t} = useLanguage();
+  const {t, language} = useLanguage();
   const toast = useToast();
   const {achievementService} = useServices();
   const {favorites, addFavorite, removeFavorite} = useFavorites();
@@ -151,6 +151,13 @@ export default function VerseReadingScreen() {
   const bookInfo = getBookByName(book);
   const chapterNum = parseInt(chapter);
   const bookTheme = getBookTheme(bookInfo?.name || '');
+  // Display name follows the UI language so it stays consistent with the
+  // Bible library (e.g. "Genesis" in English, not "Génesis").
+  const localizedBookName = bookInfo
+    ? language === 'en'
+      ? bookInfo.nameEn
+      : bookInfo.name
+    : '';
 
   const [verses, setVerses] = useState<BibleVerse[]>([]);
   const [loading, setLoading] = useState(true);
@@ -618,7 +625,7 @@ export default function VerseReadingScreen() {
     <>
       <Stack.Screen
         options={{
-          title: `${bookInfo.name} ${chapterNum}`,
+          title: `${localizedBookName} ${chapterNum}`,
           headerStyle: {backgroundColor: bookTheme.primary},
           headerTintColor: '#FFFFFF',
           headerRight: () => (
@@ -727,7 +734,7 @@ export default function VerseReadingScreen() {
             <Text
               style={[styles.navTitle, {color: effectiveColors.text}]}
               numberOfLines={1}>
-              {bookInfo.name} {chapterNum}
+              {localizedBookName} {chapterNum}
             </Text>
           </View>
 
@@ -803,7 +810,7 @@ export default function VerseReadingScreen() {
                 styles.toolbarButtonText,
                 {color: effectiveColors.textSecondary},
               ]}>
-              {audioState.isPlaying ? 'Pausar' : 'Audio'}
+              {audioState.isPlaying ? t.verse.pause : t.verse.audio}
             </Text>
           </TouchableOpacity>
 
@@ -823,7 +830,7 @@ export default function VerseReadingScreen() {
                 styles.toolbarButtonText,
                 {color: effectiveColors.textSecondary},
               ]}>
-              Inmersivo
+              {t.verse.immersive}
             </Text>
           </TouchableOpacity>
 
@@ -1125,7 +1132,7 @@ export default function VerseReadingScreen() {
                 <Ionicons name="close" size={28} color={colors.text} />
               </TouchableOpacity>
               <Text style={[styles.imageCreatorTitle, {color: colors.text}]}>
-                Compartir como Imagen
+                {t.verse.shareAsImage}
               </Text>
               <TouchableOpacity
                 onPress={handleShareImage}

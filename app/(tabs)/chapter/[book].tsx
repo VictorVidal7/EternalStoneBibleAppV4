@@ -42,7 +42,7 @@ interface ChapterItem {
 export default function ChapterSelectionScreen() {
   const router = useRouter();
   const {colors, isDark, gradient} = useTheme();
-  const {t} = useLanguage();
+  const {t, language} = useLanguage();
   const params = useLocalSearchParams<{book: string}>();
   const {getChapterProgress} = useReadingProgress();
   const [isLoading, setIsLoading] = useState(true);
@@ -264,7 +264,7 @@ export default function ChapterSelectionScreen() {
                   {t.bible.selectChapter}
                 </Text>
                 <Text style={styles.headerTitle} numberOfLines={1}>
-                  {bookInfo.name}
+                  {language === 'en' ? bookInfo.nameEn : bookInfo.name}
                 </Text>
                 <View style={styles.chapterCountBadge}>
                   <Ionicons name="document-text" size={14} color="#fbbf24" />

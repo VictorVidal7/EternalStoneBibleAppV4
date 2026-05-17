@@ -22,6 +22,7 @@ import {
 } from '../../styles/celestialTheme';
 import {withOpacity} from '../../styles/modernTheme';
 import {useTheme} from '../../hooks/useTheme';
+import {useLanguage} from '../../hooks/useLanguage';
 import ProgressCircle from './ProgressCircle';
 
 type IoniconsName = ComponentProps<typeof Ionicons>['name'];
@@ -95,6 +96,7 @@ const ReadingPlanCard: React.FC<ReadingPlanCardProps> = ({
   width = 240,
 }) => {
   const {colors: themeColors} = useTheme();
+  const {t} = useLanguage();
   // Pasar colores dinámicos del tema seleccionado
   const theme = createCelestialTheme(isDark, {
     primary: themeColors.primary,
@@ -172,7 +174,7 @@ const ReadingPlanCard: React.FC<ReadingPlanCardProps> = ({
                 },
               ]}>
               <Text style={[styles.durationText, {color: accentColor}]}>
-                {duration} días
+                {duration} {t.readingPlans.days}
               </Text>
             </View>
           </View>

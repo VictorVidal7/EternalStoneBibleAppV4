@@ -11,6 +11,7 @@ import React from 'react';
 import {View, Text, StyleSheet} from 'react-native';
 import Animated, {useAnimatedStyle, withSpring} from 'react-native-reanimated';
 import {useTheme} from '../../../hooks/useTheme';
+import {useLanguage} from '../../../hooks/useLanguage';
 
 interface AudioProgressBarProps {
   currentIndex: number;
@@ -28,6 +29,7 @@ export const AudioProgressBar: React.FC<AudioProgressBarProps> = ({
   animated = true,
 }) => {
   const {colors} = useTheme();
+  const {t} = useLanguage();
 
   const progress =
     totalVerses > 0 ? ((currentIndex + 1) / totalVerses) * 100 : 0;
@@ -103,7 +105,9 @@ export const AudioProgressBar: React.FC<AudioProgressBarProps> = ({
 
       {showLabels && (
         <Text style={[styles.progressText, {color: colors.textTertiary}]}>
-          Versiculo {currentIndex + 1} de {totalVerses}
+          {t.verse.verseProgress
+            .replace('{{current}}', String(currentIndex + 1))
+            .replace('{{total}}', String(totalVerses))}
         </Text>
       )}
     </View>

@@ -34,6 +34,7 @@ import * as Haptics from 'expo-haptics';
 import bibleDB from '@lib/database';
 import {BibleVerse, ReadingProgress} from '@/types/bible';
 import {READING_PLANS} from '@/constants/reading-plans';
+import {getDailyVerseRef} from '@/constants/daily-verses';
 import {useTheme} from '@hooks/useTheme';
 import {useBibleVersion} from '@hooks/useBibleVersion';
 import {useServices} from '@context/ServicesContext';
@@ -155,15 +156,27 @@ export default function HomeScreen() {
     try {
       await bibleDB.initialize();
 
+      const dailyRef = getDailyVerseRef();
       const [verse, progress, favoritesCount, notesCount] = await Promise.all([
-        bibleDB.getRandomVerse(selectedVersion.id),
+        bibleDB
+          .getVerse(
+            dailyRef.book,
+            dailyRef.chapter,
+            dailyRef.verse,
+            selectedVersion.id,
+          )
+          .catch(() => null),
         bibleDB.getReadingProgress(),
         bibleDB.getFavoritesCount().catch(() => 0),
         bibleDB.getNotesCount().catch(() => 0),
       ]);
 
-      // Get daily verse
-      setDailyVerse(verse);
+      // Curated verse of the day — deterministic by calendar day, so it is
+      // the same for everyone and never changes mid-day. Fall back to a
+      // random verse only if the reference can't be resolved.
+      setDailyVerse(
+        verse ?? (await bibleDB.getRandomVerse(selectedVersion.id)),
+      );
 
       // Get last reading position
       setLastRead(progress);
@@ -553,7 +566,9 @@ export default function HomeScreen() {
                 )}
                 icon="book-outline"
                 duration={plan.duration}
-                daysCompleted={Math.floor(plan.duration * 0.3)} // Simulado
+                // Reading-plan progress is not tracked yet, so every plan
+                // honestly starts at 0 instead of showing a fake number.
+                daysCompleted={0}
                 onPress={() =>
                   handlePress(() =>
                     router.push(
@@ -561,11 +576,7 @@ export default function HomeScreen() {
                     ),
                   )
                 }
-                continueText={
-                  Math.floor(plan.duration * 0.3) > 0
-                    ? t.home.continue
-                    : t.home.start
-                }
+                continueText={t.home.start}
                 isDark={isDark}
               />
             ))}

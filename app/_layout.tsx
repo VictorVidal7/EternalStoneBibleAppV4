@@ -118,7 +118,14 @@ function AppContent() {
         <Text style={styles.progressText}>
           {loadingProgress.total === 0
             ? t.app.preparing
-            : `Cargando... ${Math.round((loadingProgress.loaded / loadingProgress.total) * 100)}%`}
+            : t.app.loadingProgress.replace(
+                '{{percent}}',
+                String(
+                  Math.round(
+                    (loadingProgress.loaded / loadingProgress.total) * 100,
+                  ),
+                ),
+              )}
         </Text>
       </View>
     );

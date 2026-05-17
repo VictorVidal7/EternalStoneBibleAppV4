@@ -37,6 +37,7 @@ export const translations = {
       firstChapterMessage: 'Estás en el primer capítulo de este libro',
       emptyBookmarksHint:
         'Toca el icono de estrella al leer versiculos para guardarlos como favoritos',
+      loadingProgress: 'Cargando... {{percent}}%',
     },
 
     // Tabs Navigation
@@ -131,6 +132,8 @@ export const translations = {
       couldNotLoadChapters: 'No se pudieron cargar los capítulos',
       book: 'Libro',
       notSpecified: 'No especificado',
+      oldTestamentShort: 'AT',
+      newTestamentShort: 'NT',
     },
 
     // Search Screen
@@ -281,6 +284,11 @@ export const translations = {
       errorSharingVerse: 'Error al compartir el versículo',
       addedToFavorites: 'Agregado a favoritos',
       removedFromFavorites: 'Eliminado de favoritos',
+      audio: 'Audio',
+      pause: 'Pausar',
+      immersive: 'Inmersivo',
+      shareAsImage: 'Compartir como Imagen',
+      verseProgress: 'Versículo {{current}} de {{total}}',
     },
 
     // Reading Plans
@@ -836,6 +844,7 @@ export const translations = {
       firstChapterMessage: 'You are at the first chapter of this book',
       emptyBookmarksHint:
         'Tap the star icon while reading verses to save them as favorites',
+      loadingProgress: 'Loading... {{percent}}%',
     },
 
     // Tabs Navigation
@@ -930,6 +939,8 @@ export const translations = {
       couldNotLoadChapters: 'Could not load chapters',
       book: 'Book',
       notSpecified: 'Not specified',
+      oldTestamentShort: 'OT',
+      newTestamentShort: 'NT',
     },
 
     // Search Screen
@@ -1078,6 +1089,11 @@ export const translations = {
       errorSharingVerse: 'Error sharing verse',
       addedToFavorites: 'Added to favorites',
       removedFromFavorites: 'Removed from favorites',
+      audio: 'Audio',
+      pause: 'Pause',
+      immersive: 'Immersive',
+      shareAsImage: 'Share as Image',
+      verseProgress: 'Verse {{current}} of {{total}}',
     },
 
     // Reading Plans
