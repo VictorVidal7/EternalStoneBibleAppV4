@@ -506,8 +506,6 @@ export class MissionService {
     const updatedMissions: Mission[] = [];
 
     for (const mission of activeMissions) {
-      let updated = false;
-
       for (let i = 0; i < mission.requirements.length; i++) {
         const req = mission.requirements[i];
 
@@ -543,7 +541,6 @@ export class MissionService {
 
           if (updatedMission) {
             updatedMissions.push(updatedMission);
-            updated = true;
           }
         }
       }

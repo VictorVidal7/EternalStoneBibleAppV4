@@ -42,7 +42,7 @@ type FilterCategory = 'all' | BadgeCategory;
 export const BadgeCollectionScreen: React.FC<BadgeCollectionScreenProps> = ({
   userId,
 }) => {
-  const {colors, isDark} = useTheme();
+  const {colors} = useTheme();
   const {t, language} = useLanguage();
 
   // State
@@ -55,7 +55,7 @@ export const BadgeCollectionScreen: React.FC<BadgeCollectionScreenProps> = ({
     null,
   );
   const [selectedTitle, setSelectedTitle] = useState<Title | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [, setLoading] = useState(true);
 
   useEffect(() => {
     loadData();

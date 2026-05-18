@@ -112,9 +112,9 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({children}) => {
         });
       }
 
-      const colors: Colors = isDarkMode
+      const colors = (isDarkMode
         ? baseTheme?.dark || {}
-        : baseTheme?.light || {};
+        : baseTheme?.light || {}) as unknown as Colors;
 
       const themeConfig: ThemeContextType = {
         isDarkMode,

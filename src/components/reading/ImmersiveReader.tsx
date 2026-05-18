@@ -64,6 +64,7 @@ export const ImmersiveReader: React.FC<ImmersiveReaderProps> = ({
       }, 3000);
       return () => clearTimeout(timer);
     }
+    return undefined;
   }, [showControls]);
 
   // Auto-scroll logic
@@ -82,6 +83,7 @@ export const ImmersiveReader: React.FC<ImmersiveReaderProps> = ({
 
       return () => clearTimeout(timer);
     }
+    return undefined;
   }, [currentIndex, autoScroll, currentVerse]);
 
   const animateTransition = (callback: () => void) => {

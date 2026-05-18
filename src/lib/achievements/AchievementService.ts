@@ -3,10 +3,15 @@
  * Handles tracking, unlocking and notification of achievements
  */
 
-import { BibleDatabase } from '../database';
-import { Achievement, UserStats, ReadingStreak, AchievementCategory } from './types';
-import { ACHIEVEMENT_DEFINITIONS } from './definitions';
-import { calculateLevel } from './types';
+import {BibleDatabase} from '../database';
+import {
+  Achievement,
+  UserStats,
+  ReadingStreak,
+  AchievementCategory,
+} from './types';
+import {ACHIEVEMENT_DEFINITIONS} from './definitions';
+import {calculateLevel} from './types';
 
 export class AchievementService {
   private db: BibleDatabase;
@@ -64,7 +69,7 @@ export class AchievementService {
 
     await db.runAsync(
       'INSERT OR IGNORE INTO user_stats (id, updated_at) VALUES (?, ?)',
-      [1, Date.now()]
+      [1, Date.now()],
     );
 
     await this.initializeAchievements();
@@ -96,7 +101,10 @@ export class AchievementService {
 
     const achievementsUnlocked = await this.getUnlockedAchievementsCount();
     const levelInfo = calculateLevel(row.total_points);
-    const nextLevelPoints = levelInfo.maxPoints === Infinity ? 0 : levelInfo.maxPoints - row.total_points;
+    const nextLevelPoints =
+      levelInfo.maxPoints === Infinity
+        ? 0
+        : levelInfo.maxPoints - row.total_points;
 
     this.stats = {
       totalVersesRead: row.total_verses_read,
@@ -108,6 +116,7 @@ export class AchievementService {
       lastReadDate: row.last_read_date || '',
       totalHighlights: row.total_highlights,
       totalNotes: row.total_notes,
+      totalFavorites: row.total_favorites || 0,
       totalBookmarks: row.total_bookmarks,
       totalSearches: row.total_searches,
       totalShares: row.total_shares,
@@ -118,13 +127,16 @@ export class AchievementService {
       totalAchievements: ACHIEVEMENT_DEFINITIONS.length,
     };
 
-    return this.stats;
+    return this.stats!;
   }
 
   /**
    * Tracks verses read
    */
-  async trackVersesRead(count: number, timeSpent: number = 0): Promise<Achievement[]> {
+  async trackVersesRead(
+    count: number,
+    timeSpent: number = 0,
+  ): Promise<Achievement[]> {
     this.stats = null; // Invalidate cache
     const today = new Date().toISOString().split('T')[0];
     const now = Date.now();
@@ -137,7 +149,7 @@ export class AchievementService {
         last_read_date = ?,
         updated_at = ?
        WHERE id = 1`,
-      [count, timeSpent, today, now]
+      [count, timeSpent, today, now],
     );
 
     // Update streak
@@ -150,7 +162,7 @@ export class AchievementService {
        ON CONFLICT(date) DO UPDATE SET
          verses_read = verses_read + excluded.verses_read,
          time_spent = time_spent + excluded.time_spent`,
-      [today, count, timeSpent]
+      [today, count, timeSpent],
     );
 
     // Check unlocked achievements
@@ -164,7 +176,7 @@ export class AchievementService {
     this.stats = null;
     await this.db.executeSql(
       'UPDATE user_stats SET total_chapters_read = total_chapters_read + 1, updated_at = ? WHERE id = 1',
-      [Date.now()]
+      [Date.now()],
     );
     return await this.checkAchievements();
   }
@@ -176,7 +188,7 @@ export class AchievementService {
     this.stats = null;
     await this.db.executeSql(
       'UPDATE user_stats SET total_books_completed = total_books_completed + 1, updated_at = ? WHERE id = 1',
-      [Date.now()]
+      [Date.now()],
     );
 
     // Check special book achievements
@@ -202,14 +214,16 @@ export class AchievementService {
     if (!lastRead) {
       // First reading
       await this.db.executeSql(
-        'UPDATE user_stats SET current_streak = 1, longest_streak = 1 WHERE id = 1'
+        'UPDATE user_stats SET current_streak = 1, longest_streak = 1 WHERE id = 1',
       );
       return;
     }
 
     const lastDate = new Date(lastRead);
     const todayDate = new Date(today);
-    const diffDays = Math.floor((todayDate.getTime() - lastDate.getTime()) / (1000 * 60 * 60 * 24));
+    const diffDays = Math.floor(
+      (todayDate.getTime() - lastDate.getTime()) / (1000 * 60 * 60 * 24),
+    );
 
     if (diffDays === 0) {
       // Already read today
@@ -220,12 +234,12 @@ export class AchievementService {
       const newLongest = Math.max(newStreak, stats.longestStreak);
       await this.db.executeSql(
         'UPDATE user_stats SET current_streak = ?, longest_streak = ? WHERE id = 1',
-        [newStreak, newLongest]
+        [newStreak, newLongest],
       );
     } else {
       // Streak broken
       await this.db.executeSql(
-        'UPDATE user_stats SET current_streak = 1 WHERE id = 1'
+        'UPDATE user_stats SET current_streak = 1 WHERE id = 1',
       );
     }
   }
@@ -237,7 +251,7 @@ export class AchievementService {
     this.stats = null;
     await this.db.executeSql(
       'UPDATE user_stats SET total_highlights = total_highlights + 1, updated_at = ? WHERE id = 1',
-      [Date.now()]
+      [Date.now()],
     );
     await this.checkAchievements();
   }
@@ -246,7 +260,7 @@ export class AchievementService {
     this.stats = null;
     await this.db.executeSql(
       'UPDATE user_stats SET total_notes = total_notes + 1, updated_at = ? WHERE id = 1',
-      [Date.now()]
+      [Date.now()],
     );
     await this.checkAchievements();
   }
@@ -255,7 +269,7 @@ export class AchievementService {
     this.stats = null;
     await this.db.executeSql(
       'UPDATE user_stats SET total_bookmarks = total_bookmarks + 1, updated_at = ? WHERE id = 1',
-      [Date.now()]
+      [Date.now()],
     );
   }
 
@@ -263,7 +277,7 @@ export class AchievementService {
     this.stats = null;
     await this.db.executeSql(
       'UPDATE user_stats SET total_searches = total_searches + 1, updated_at = ? WHERE id = 1',
-      [Date.now()]
+      [Date.now()],
     );
     await this.checkAchievements();
   }
@@ -272,7 +286,7 @@ export class AchievementService {
     this.stats = null;
     await this.db.executeSql(
       'UPDATE user_stats SET total_shares = total_shares + 1, updated_at = ? WHERE id = 1',
-      [Date.now()]
+      [Date.now()],
     );
   }
 
@@ -300,7 +314,7 @@ export class AchievementService {
         // Update progress
         await this.db.executeSql(
           'UPDATE user_achievements SET current_progress = ? WHERE id = ?',
-          [progress, def.id]
+          [progress, def.id],
         );
       }
     }
@@ -311,7 +325,10 @@ export class AchievementService {
   /**
    * Gets current progress for an achievement
    */
-  private getProgressForAchievement(achievementId: string, stats: UserStats): number {
+  private getProgressForAchievement(
+    achievementId: string,
+    stats: UserStats,
+  ): number {
     const def = ACHIEVEMENT_DEFINITIONS.find(a => a.id === achievementId);
     if (!def) return 0;
 
@@ -354,7 +371,7 @@ export class AchievementService {
     const now = Date.now();
     await this.db.executeSql(
       'UPDATE user_achievements SET is_unlocked = 1, unlocked_at = ?, current_progress = ? WHERE id = ?',
-      [now, def.requirement, achievementId]
+      [now, def.requirement, achievementId],
     );
 
     // Award points
@@ -373,7 +390,7 @@ export class AchievementService {
 
     await this.db.executeSql(
       'UPDATE user_stats SET total_points = ?, level = ?, updated_at = ? WHERE id = 1',
-      [newPoints, newLevel.level, Date.now()]
+      [newPoints, newLevel.level, Date.now()],
     );
 
     this.stats = null; // Invalidate cache
@@ -388,7 +405,7 @@ export class AchievementService {
     const rows = result.rows._array;
 
     return ACHIEVEMENT_DEFINITIONS.map(def => {
-      const row = rows.find(r => r.id === def.id);
+      const row = rows.find((r: any) => r.id === def.id);
       return {
         ...def,
         currentProgress: row?.current_progress || 0,
@@ -410,7 +427,8 @@ export class AchievementService {
    * Gets the count of unlocked achievements
    */
   async getUnlockedAchievementsCount(): Promise<number> {
-    const sql = 'SELECT COUNT(*) as count FROM user_achievements WHERE is_unlocked = 1';
+    const sql =
+      'SELECT COUNT(*) as count FROM user_achievements WHERE is_unlocked = 1';
     const result = await this.db.executeSql(sql);
     return result.rows._array[0].count;
   }
@@ -420,9 +438,10 @@ export class AchievementService {
    */
   async getReadingStreak(): Promise<ReadingStreak> {
     const stats = await this.getUserStats();
-    const sql = 'SELECT date FROM reading_streak_log ORDER BY date DESC LIMIT 30';
+    const sql =
+      'SELECT date FROM reading_streak_log ORDER BY date DESC LIMIT 30';
     const result = await this.db.executeSql(sql);
-    const dates = result.rows._array.map(row => row.date);
+    const dates = result.rows._array.map((row: any) => row.date);
 
     return {
       currentStreak: stats.currentStreak,

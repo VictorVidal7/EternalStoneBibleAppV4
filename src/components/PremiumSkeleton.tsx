@@ -8,13 +8,19 @@
  */
 
 import React, {useEffect, useRef} from 'react';
-import {View, StyleSheet, Animated, ViewStyle} from 'react-native';
+import {
+  View,
+  StyleSheet,
+  Animated,
+  ViewStyle,
+  DimensionValue,
+} from 'react-native';
 import {LinearGradient} from 'expo-linear-gradient';
 import {useTheme} from '../hooks/useTheme';
 import {borderRadius, spacing} from '../styles/designTokens';
 
 interface PremiumSkeletonProps {
-  width?: number | string;
+  width?: DimensionValue;
   height?: number;
   borderRadius?: number;
   style?: ViewStyle;
@@ -30,7 +36,7 @@ export const PremiumSkeleton: React.FC<PremiumSkeletonProps> = ({
   variant = 'text',
   animation = 'wave',
 }) => {
-  const {colors, isDark} = useTheme();
+  const {isDark} = useTheme();
   const animatedValue = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
@@ -165,7 +171,7 @@ export const PremiumSkeleton: React.FC<PremiumSkeletonProps> = ({
  * Skeleton para texto (una línea)
  */
 export const SkeletonText: React.FC<{
-  width?: number | string;
+  width?: DimensionValue;
   style?: ViewStyle;
 }> = ({width = '100%', style}) => (
   <PremiumSkeleton width={width} height={16} variant="text" style={style} />
@@ -175,7 +181,7 @@ export const SkeletonText: React.FC<{
  * Skeleton para título
  */
 export const SkeletonTitle: React.FC<{
-  width?: number | string;
+  width?: DimensionValue;
   style?: ViewStyle;
 }> = ({width = '60%', style}) => (
   <PremiumSkeleton width={width} height={28} variant="rounded" style={style} />
@@ -200,7 +206,7 @@ export const SkeletonAvatar: React.FC<{
  * Skeleton para botón
  */
 export const SkeletonButton: React.FC<{
-  width?: number | string;
+  width?: DimensionValue;
   style?: ViewStyle;
 }> = ({width = 120, style}) => (
   <PremiumSkeleton width={width} height={44} variant="rounded" style={style} />

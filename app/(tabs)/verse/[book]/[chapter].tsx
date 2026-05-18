@@ -197,7 +197,6 @@ export default function VerseReadingScreen() {
 
   // Bottom nav visibility based on scroll direction (Native tab bar is persistent for now)
   // const {isVisible: isNavVisible, handleScroll} = useScrollDirection();
-  const isNavVisible = true;
   const handleScroll = () => {};
 
   // Use theme colors directly

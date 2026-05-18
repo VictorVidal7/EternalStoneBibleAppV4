@@ -35,6 +35,7 @@ import Animated, {
   withSpring,
   interpolate,
   Extrapolation,
+  SharedValue,
 } from 'react-native-reanimated';
 import {BlurView} from 'expo-blur';
 import * as Haptics from 'expo-haptics';
@@ -86,7 +87,7 @@ interface PremiumBottomSheetProps {
 
 interface HandleProps {
   isDark: boolean;
-  animatedIndex: Animated.SharedValue<number>;
+  animatedIndex: SharedValue<number>;
   style?: ViewStyle;
 }
 

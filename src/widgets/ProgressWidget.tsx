@@ -84,7 +84,7 @@ export const ProgressWidget: React.FC<ProgressWidgetProps> = ({
       onPress={onPress}
       activeOpacity={0.9}>
       <LinearGradient
-        colors={gradientColors}
+        colors={gradientColors as [string, string, ...string[]]}
         start={{x: 0, y: 0}}
         end={{x: 1, y: 1}}
         style={styles.gradient}>

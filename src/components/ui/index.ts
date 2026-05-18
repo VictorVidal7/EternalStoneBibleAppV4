@@ -30,6 +30,3 @@ export type {FABAction, MenuLayout, MenuPosition} from './FloatingActionMenu';
 
 // ==================== RE-EXPORT TYPES ====================
 export type {default as AnimatedCardProps} from './AnimatedCard';
-
-export {SwipeableView} from './SwipeableView';
-export type {SwipeDirection} from './SwipeableView';

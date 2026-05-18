@@ -31,7 +31,7 @@ import {useTheme} from '@hooks/useTheme';
 import {useLanguage} from '@hooks/useLanguage';
 
 // Design tokens
-import {spacing, borderRadius, fontSize} from '@/styles/designTokens';
+import {spacing, fontSize} from '@/styles/designTokens';
 
 interface BibleBook {
   id: number;
@@ -46,7 +46,7 @@ interface BibleBook {
 export default function BibleScreen() {
   const router = useRouter();
   const {colors, isDark, gradient} = useTheme();
-  const {t, language} = useLanguage();
+  const {t} = useLanguage();
 
   const [searchQuery, setSearchQuery] = useState('');
   const [filter, setFilter] = useState<'all' | 'old' | 'new'>('all');
@@ -412,7 +412,7 @@ interface BookCardProps {
 }
 
 const BookCard: React.FC<BookCardProps> = ({book, index, onPress}) => {
-  const {colors, gradient} = useTheme();
+  const {colors} = useTheme();
   const {t, language} = useLanguage();
   const scaleAnim = useRef(new Animated.Value(0)).current;
 
@@ -425,9 +425,6 @@ const BookCard: React.FC<BookCardProps> = ({book, index, onPress}) => {
       useNativeDriver: true,
     }).start();
   }, []);
-
-  // Usar el color del gradiente dinámico para todos los libros
-  const bookColor = gradient?.headerColors?.[0] ?? colors.primary;
 
   return (
     <Animated.View

@@ -6,7 +6,7 @@
  */
 
 import React from 'react';
-import {StyleSheet, View, ViewStyle} from 'react-native';
+import {StyleSheet, View, ViewStyle, DimensionValue} from 'react-native';
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
@@ -30,7 +30,7 @@ type SkeletonVariant =
 
 interface SkeletonLoaderProps {
   variant?: SkeletonVariant;
-  width?: number | string;
+  width?: DimensionValue;
   height?: number;
   borderRadius?: number;
   style?: ViewStyle;
@@ -45,7 +45,7 @@ export const SkeletonLoader: React.FC<SkeletonLoaderProps> = ({
   style,
   shimmerColors,
 }) => {
-  const {colors, isDarkMode} = useTheme();
+  const {isDarkMode} = useTheme();
   const shimmerValue = useSharedValue(0);
 
   // Iniciar animación de shimmer
@@ -101,7 +101,7 @@ export const SkeletonLoader: React.FC<SkeletonLoaderProps> = ({
   const gradientColors = shimmerColors || [baseColor, shimmerColor, baseColor];
 
   const containerStyle: ViewStyle = {
-    width: width ?? dimensions.width,
+    width: (width ?? dimensions.width) as DimensionValue,
     height: height ?? dimensions.height,
     borderRadius: borderRadius ?? dimensions.borderRadius,
     backgroundColor: baseColor,

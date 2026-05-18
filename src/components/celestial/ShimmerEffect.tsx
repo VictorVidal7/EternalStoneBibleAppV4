@@ -31,7 +31,7 @@ export const ShimmerEffect: React.FC<ShimmerEffectProps> = ({
   delay = 0,
   enabled = true,
 }) => {
-  const {gradient, isDark, colors} = useTheme();
+  const {gradient, isDark} = useTheme();
   const translateX = useSharedValue(-SCREEN_WIDTH);
 
   const defaultShimmerColor = shimmerColor || gradient.accentGlow;
@@ -80,7 +80,7 @@ export const ShimmerEffect: React.FC<ShimmerEffectProps> = ({
       {children}
       <Animated.View style={[styles.shimmerContainer, animatedStyle]}>
         <LinearGradient
-          colors={shimmerStops as const}
+          colors={shimmerStops as [string, string, ...string[]]}
           start={{x: 0, y: 0.5}}
           end={{x: 1, y: 0.5}}
           style={styles.shimmerGradient}

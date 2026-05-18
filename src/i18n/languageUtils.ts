@@ -89,7 +89,12 @@ export async function getTitleTranslation(titleId: string): Promise<{
   const t = await getTranslations();
 
   const titleKey = titleId as keyof typeof t.badgeSystem.titles;
-  const title = t.badgeSystem.titles[titleKey];
+  const title = t.badgeSystem.titles[titleKey] as {
+    name: string;
+    description: string;
+    prefix?: string;
+    suffix?: string;
+  };
 
   if (title) {
     return {

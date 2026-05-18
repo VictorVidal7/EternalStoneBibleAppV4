@@ -123,9 +123,8 @@ export function useNightReading() {
           savedNightMode !== null ? JSON.parse(savedNightMode) : false,
       });
     } catch (error) {
-      logger.error('Failed to load night reading preferences', {
+      logger.error('Failed to load night reading preferences', error as Error, {
         component: 'useNightReading',
-        error,
       });
     } finally {
       setLoading(false);
@@ -150,9 +149,8 @@ export function useNightReading() {
         isNightMode: newValue,
       });
     } catch (error) {
-      logger.error('Failed to save night reading mode', {
+      logger.error('Failed to save night reading mode', error as Error, {
         component: 'useNightReading',
-        error,
       });
     }
   }, [isNightMode]);
@@ -178,9 +176,8 @@ export function useNightReading() {
         autoNightMode: newValue,
       });
     } catch (error) {
-      logger.error('Failed to save auto night reading mode', {
+      logger.error('Failed to save auto night reading mode', error as Error, {
         component: 'useNightReading',
-        error,
       });
     }
   }, [autoNightMode, isNightTime]);

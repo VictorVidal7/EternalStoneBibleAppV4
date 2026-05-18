@@ -54,6 +54,7 @@ export interface UserStats {
   totalHighlights: number;
   totalNotes: number;
   totalFavorites: number;
+  totalBookmarks: number;
   totalSearches: number;
   totalShares: number;
 

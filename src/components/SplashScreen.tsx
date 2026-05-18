@@ -8,29 +8,20 @@
  * - Transiciones suaves
  */
 
-import React, { useEffect, useRef } from 'react';
-import {
-  View,
-  Text,
-  StyleSheet,
-  Animated,
-  Dimensions,
-} from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
-import { Ionicons } from '@expo/vector-icons';
-import { spacing, fontSize, borderRadius } from '../styles/designTokens';
+import React, {useEffect, useRef} from 'react';
+import {View, Text, StyleSheet, Animated, Dimensions} from 'react-native';
+import {LinearGradient} from 'expo-linear-gradient';
+import {Ionicons} from '@expo/vector-icons';
+import {spacing, fontSize} from '../styles/designTokens';
 
-const { width, height } = Dimensions.get('window');
+const {width, height} = Dimensions.get('window');
 
 interface SplashScreenProps {
   onComplete?: () => void;
   duration?: number;
 }
 
-export const SplashScreen: React.FC<SplashScreenProps> = ({
-  onComplete,
-  duration = 2500,
-}) => {
+export const SplashScreen: React.FC<SplashScreenProps> = ({onComplete}) => {
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const scaleAnim = useRef(new Animated.Value(0.3)).current;
   const rotateAnim = useRef(new Animated.Value(0)).current;
@@ -89,26 +80,23 @@ export const SplashScreen: React.FC<SplashScreenProps> = ({
     <View style={styles.container}>
       <LinearGradient
         colors={['#667eea', '#764ba2', '#f093fb']}
-        start={{ x: 0, y: 0 }}
-        end={{ x: 1, y: 1 }}
-        style={styles.gradient}
-      >
+        start={{x: 0, y: 0}}
+        end={{x: 1, y: 1}}
+        style={styles.gradient}>
         <Animated.View
           style={[
             styles.content,
             {
               opacity: fadeAnim,
-              transform: [{ scale: scaleAnim }],
+              transform: [{scale: scaleAnim}],
             },
-          ]}
-        >
+          ]}>
           {/* Círculo de fondo con glassmorphism */}
           <View style={styles.circle}>
             <Animated.View
               style={{
-                transform: [{ rotate: spin }],
-              }}
-            >
+                transform: [{rotate: spin}],
+              }}>
               <Ionicons name="book" size={80} color="#ffffff" />
             </Animated.View>
           </View>
@@ -116,10 +104,9 @@ export const SplashScreen: React.FC<SplashScreenProps> = ({
           {/* Título y subtítulo */}
           <Animated.View
             style={{
-              transform: [{ translateY: slideAnim }],
+              transform: [{translateY: slideAnim}],
               opacity: fadeAnim,
-            }}
-          >
+            }}>
             <Text style={styles.title}>Eternal Bible</Text>
             <Text style={styles.subtitle}>Tu compañero espiritual diario</Text>
           </Animated.View>
@@ -144,7 +131,7 @@ export const SplashScreen: React.FC<SplashScreenProps> = ({
 };
 
 // Componente de punto animado
-const AnimatedDot: React.FC<{ delay: number }> = ({ delay }) => {
+const AnimatedDot: React.FC<{delay: number}> = ({delay}) => {
   const opacity = useRef(new Animated.Value(0.3)).current;
 
   useEffect(() => {
@@ -161,15 +148,15 @@ const AnimatedDot: React.FC<{ delay: number }> = ({ delay }) => {
           duration: 600,
           useNativeDriver: true,
         }),
-      ])
+      ]),
     ).start();
   }, []);
 
-  return <Animated.View style={[styles.dot, { opacity }]} />;
+  return <Animated.View style={[styles.dot, {opacity}]} />;
 };
 
 // Componente de estrella animada
-const AnimatedStar: React.FC<{ index: number }> = ({ index }) => {
+const AnimatedStar: React.FC<{index: number}> = ({index}) => {
   const opacity = useRef(new Animated.Value(0)).current;
   const scale = useRef(new Animated.Value(0)).current;
 
@@ -200,7 +187,7 @@ const AnimatedStar: React.FC<{ index: number }> = ({ index }) => {
             useNativeDriver: true,
           }),
         ]),
-      ])
+      ]),
     ).start();
   }, []);
 
@@ -218,7 +205,7 @@ const AnimatedStar: React.FC<{ index: number }> = ({ index }) => {
           width: size,
           height: size,
           opacity,
-          transform: [{ scale }],
+          transform: [{scale}],
         },
       ]}
     />
@@ -256,7 +243,7 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     marginBottom: spacing.xs,
     textShadowColor: 'rgba(0, 0, 0, 0.3)',
-    textShadowOffset: { width: 0, height: 2 },
+    textShadowOffset: {width: 0, height: 2},
     textShadowRadius: 4,
   },
   subtitle: {

@@ -65,7 +65,6 @@ const ContinueReadingButton: React.FC<ContinueReadingButtonProps> = ({
   progress,
   onPress,
   buttonText = 'Continuar Leyendo',
-  isDark = false,
 }) => {
   const {colors: themeColors} = useTheme();
   const scaleAnim = useRef(new Animated.Value(1)).current;

@@ -152,7 +152,11 @@ export const CacheStatsScreen: React.FC<CacheStatsScreenProps> = ({userId}) => {
                 styles.statCard,
                 {backgroundColor: colors.surface, borderColor: colors.primary},
               ]}>
-              <Ionicons name="database" size={24} color={colors.primary} />
+              <Ionicons
+                name="server-outline"
+                size={24}
+                color={colors.primary}
+              />
               <Text style={[styles.statValue, {color: colors.text}]}>
                 {stats.totalEntries}
               </Text>

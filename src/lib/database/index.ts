@@ -608,7 +608,7 @@ class BibleDatabase {
   // ========== FAVORITE OPERATIONS ==========
 
   async addFavorite(
-    favorite: import('../context/FavoritesContext').Favorite,
+    favorite: import('../../context/FavoritesContext').Favorite,
   ): Promise<void> {
     const db = this.getDb();
 
@@ -671,7 +671,7 @@ class BibleDatabase {
   }
 
   async getFavorites(): Promise<
-    import('../context/FavoritesContext').Favorite[]
+    import('../../context/FavoritesContext').Favorite[]
   > {
     const db = this.getDb();
 

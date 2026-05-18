@@ -77,7 +77,6 @@ export const AnimatedButton: React.FC<AnimatedButtonProps> = ({
   // Colores según variante
   const getVariantStyles = (): {container: ViewStyle; text: TextStyle} => {
     const primary = colors?.primary || '#6366f1';
-    const text = colors?.text || '#000';
     const textSecondary = colors?.textSecondary || '#666';
 
     switch (variant) {

@@ -29,10 +29,11 @@ import Svg, {
   Stop,
 } from 'react-native-svg';
 import {useTheme} from '../hooks/useTheme';
-import {fontSize} from '../styles/designTokens';
 
 // Animated Circle component
-const AnimatedCircle = Animated.createAnimatedComponent(Circle);
+// Cast to `any`: the typings for an Animated-wrapped SVG Circle do not
+// accept animated props (strokeDashoffset, etc.) even though they work.
+const AnimatedCircle: any = Animated.createAnimatedComponent(Circle);
 
 export interface SVGCircularProgressProps {
   progress: number; // 0-100
@@ -149,12 +150,14 @@ export const SVGCircularProgress: React.FC<SVGCircularProgressProps> = ({
           rotation="-90"
           origin={`${center}, ${center}`}
           style={
-            glow && {
-              shadowColor: strokeColor,
-              shadowOffset: {width: 0, height: 0},
-              shadowOpacity: 0.6,
-              shadowRadius: 10,
-            }
+            (glow
+              ? {
+                  shadowColor: strokeColor,
+                  shadowOffset: {width: 0, height: 0},
+                  shadowOpacity: 0.6,
+                  shadowRadius: 10,
+                }
+              : undefined) as any
           }
         />
       </Svg>
@@ -226,8 +229,6 @@ export const LevelCircularProgress: React.FC<{
   size?: number;
   style?: ViewStyle;
 }> = ({progress, level, size = 120, style}) => {
-  const {colors} = useTheme();
-
   return (
     <SVGCircularProgress
       progress={progress}

@@ -8,7 +8,7 @@
  * - Haptic feedback
  */
 
-import React, { useRef, useEffect } from 'react';
+import React, {useRef, useEffect} from 'react';
 import {
   View,
   Text,
@@ -17,9 +17,9 @@ import {
   Animated,
   LayoutChangeEvent,
 } from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
+import {LinearGradient} from 'expo-linear-gradient';
 import * as Haptics from 'expo-haptics';
-import { spacing, borderRadius, fontSize, shadows } from '../styles/designTokens';
+import {spacing, borderRadius, fontSize, shadows} from '../styles/designTokens';
 
 export interface SegmentOption {
   value: string;
@@ -53,7 +53,7 @@ export const SegmentedControl: React.FC<SegmentedControlProps> = ({
   const animatedValue = useRef(new Animated.Value(0)).current;
   const scaleValue = useRef(new Animated.Value(1)).current;
 
-  const selectedIndex = options.findIndex((opt) => opt.value === selectedValue);
+  const selectedIndex = options.findIndex(opt => opt.value === selectedValue);
 
   useEffect(() => {
     if (containerWidth && options.length) {
@@ -71,7 +71,7 @@ export const SegmentedControl: React.FC<SegmentedControlProps> = ({
     }).start();
   }, [selectedIndex]);
 
-  const handlePress = (value: string, index: number) => {
+  const handlePress = (value: string, _index: number) => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
 
     // Animate scale
@@ -93,7 +93,7 @@ export const SegmentedControl: React.FC<SegmentedControlProps> = ({
   };
 
   const handleLayout = (event: LayoutChangeEvent) => {
-    const { width } = event.nativeEvent.layout;
+    const {width} = event.nativeEvent.layout;
     setContainerWidth(width);
   };
 
@@ -113,23 +113,21 @@ export const SegmentedControl: React.FC<SegmentedControlProps> = ({
           borderColor: gradient[0],
         },
       ]}
-      onLayout={handleLayout}
-    >
+      onLayout={handleLayout}>
       {/* Animated Indicator */}
       <Animated.View
         style={[
           styles.indicator,
           {
             width: segmentWidth,
-            transform: [{ translateX }, { scale: scaleValue }],
+            transform: [{translateX}, {scale: scaleValue}],
           },
-        ]}
-      >
+        ]}>
         {variant === 'gradient' ? (
           <LinearGradient
-            colors={gradient}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 1 }}
+            colors={gradient as [string, string, ...string[]]}
+            start={{x: 0, y: 0}}
+            end={{x: 1, y: 1}}
             style={styles.indicatorGradient}
           />
         ) : (
@@ -154,8 +152,7 @@ export const SegmentedControl: React.FC<SegmentedControlProps> = ({
             key={option.value}
             style={styles.segment}
             onPress={() => handlePress(option.value, index)}
-            activeOpacity={0.7}
-          >
+            activeOpacity={0.7}>
             {option.icon && (
               <View style={styles.iconContainer}>{option.icon}</View>
             )}
@@ -166,8 +163,7 @@ export const SegmentedControl: React.FC<SegmentedControlProps> = ({
                   color: isSelected ? activeTextColor : inactiveTextColor,
                   fontWeight: isSelected ? '600' : '400',
                 },
-              ]}
-            >
+              ]}>
               {option.label}
             </Text>
           </TouchableOpacity>

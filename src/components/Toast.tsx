@@ -5,7 +5,7 @@
  * múltiples variantes y auto-dismiss.
  */
 
-import React, { useEffect, useRef } from 'react';
+import React, {useEffect, useRef} from 'react';
 import {
   View,
   Text,
@@ -14,10 +14,10 @@ import {
   TouchableOpacity,
   Platform,
 } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
-import { BlurView } from 'expo-blur';
-import { spacing, borderRadius, shadows, fontSize } from '../styles/designTokens';
-import { useTheme } from '../hooks/useTheme';
+import {Ionicons} from '@expo/vector-icons';
+import {BlurView} from 'expo-blur';
+import {spacing, borderRadius, shadows, fontSize} from '../styles/designTokens';
+import {useTheme} from '../hooks/useTheme';
 
 type ToastVariant = 'success' | 'error' | 'warning' | 'info' | 'default';
 type ToastPosition = 'top' | 'bottom';
@@ -56,10 +56,12 @@ export const Toast: React.FC<ToastProps> = ({
   icon,
   useBlur = Platform.OS === 'ios',
 }) => {
-  const { colors, isDark } = useTheme();
-  const translateY = useRef(new Animated.Value(position === 'top' ? -100 : 100)).current;
+  const {colors, isDark} = useTheme();
+  const translateY = useRef(
+    new Animated.Value(position === 'top' ? -100 : 100),
+  ).current;
   const opacity = useRef(new Animated.Value(0)).current;
-  const timeoutRef = useRef<NodeJS.Timeout>();
+  const timeoutRef = useRef<NodeJS.Timeout | undefined>(undefined);
 
   const getVariantColors = () => {
     switch (variant) {
@@ -160,8 +162,8 @@ export const Toast: React.FC<ToastProps> = ({
 
   const positionStyle =
     position === 'top'
-      ? { top: Platform.OS === 'ios' ? 60 : 20 }
-      : { bottom: Platform.OS === 'ios' ? 40 : 20 };
+      ? {top: Platform.OS === 'ios' ? 60 : 20}
+      : {bottom: Platform.OS === 'ios' ? 40 : 20};
 
   const ToastContent = (
     <View
@@ -169,20 +171,22 @@ export const Toast: React.FC<ToastProps> = ({
         styles.container,
         {
           backgroundColor:
-            variant === 'default' && !useBlur ? variantColors.backgroundColor : 'transparent',
-          ...(variant !== 'default' && { backgroundColor: variantColors.backgroundColor }),
+            variant === 'default' && !useBlur
+              ? variantColors.backgroundColor
+              : 'transparent',
+          ...(variant !== 'default' && {
+            backgroundColor: variantColors.backgroundColor,
+          }),
           ...shadows.lg,
         },
-      ]}
-    >
+      ]}>
       {/* Icon */}
       <Ionicons name={toastIcon} size={24} color={variantColors.iconColor} />
 
       {/* Message */}
       <Text
-        style={[styles.message, { color: variantColors.textColor }]}
-        numberOfLines={2}
-      >
+        style={[styles.message, {color: variantColors.textColor}]}
+        numberOfLines={2}>
         {message}
       </Text>
 
@@ -193,9 +197,8 @@ export const Toast: React.FC<ToastProps> = ({
             action.onPress();
             hide();
           }}
-          style={styles.actionButton}
-        >
-          <Text style={[styles.actionText, { color: variantColors.textColor }]}>
+          style={styles.actionButton}>
+          <Text style={[styles.actionText, {color: variantColors.textColor}]}>
             {action.label}
           </Text>
         </TouchableOpacity>
@@ -214,17 +217,15 @@ export const Toast: React.FC<ToastProps> = ({
         styles.wrapper,
         positionStyle,
         {
-          transform: [{ translateY }],
+          transform: [{translateY}],
           opacity,
         },
-      ]}
-    >
+      ]}>
       {useBlur && variant === 'default' ? (
         <BlurView
           intensity={isDark ? 60 : 80}
           tint={isDark ? 'dark' : 'light'}
-          style={styles.blurContainer}
-        >
+          style={styles.blurContainer}>
           {ToastContent}
         </BlurView>
       ) : (
@@ -289,11 +290,12 @@ interface ToastConfig {
 }
 
 class ToastManager {
-  private listeners: ((config: ToastConfig & { id: string; visible: boolean }) => void)[] =
-    [];
+  private listeners: ((
+    config: ToastConfig & {id: string; visible: boolean},
+  ) => void)[] = [];
 
   subscribe(
-    listener: (config: ToastConfig & { id: string; visible: boolean }) => void
+    listener: (config: ToastConfig & {id: string; visible: boolean}) => void,
   ) {
     this.listeners.push(listener);
     return () => {
@@ -304,24 +306,24 @@ class ToastManager {
   show(config: ToastConfig) {
     const id = Date.now().toString();
     this.listeners.forEach(listener => {
-      listener({ ...config, id, visible: true });
+      listener({...config, id, visible: true});
     });
   }
 
   success(message: string, options?: Partial<ToastConfig>) {
-    this.show({ message, variant: 'success', ...options });
+    this.show({message, variant: 'success', ...options});
   }
 
   error(message: string, options?: Partial<ToastConfig>) {
-    this.show({ message, variant: 'error', ...options });
+    this.show({message, variant: 'error', ...options});
   }
 
   warning(message: string, options?: Partial<ToastConfig>) {
-    this.show({ message, variant: 'warning', ...options });
+    this.show({message, variant: 'warning', ...options});
   }
 
   info(message: string, options?: Partial<ToastConfig>) {
-    this.show({ message, variant: 'info', ...options });
+    this.show({message, variant: 'info', ...options});
   }
 }
 

@@ -322,7 +322,7 @@ export const FloatingActionMenu: React.FC<FloatingActionMenuProps> = ({
   }, [mainScale]);
 
   // Position styles
-  const positionStyle = useMemo(() => {
+  const positionStyle = useMemo<ViewStyle>(() => {
     const base: ViewStyle = {position: 'absolute'};
 
     switch (position) {

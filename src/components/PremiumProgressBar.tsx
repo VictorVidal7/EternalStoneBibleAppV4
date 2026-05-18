@@ -20,7 +20,7 @@ import {
 import {LinearGradient} from 'expo-linear-gradient';
 import {useTheme} from '../hooks/useTheme';
 import {borderRadius, fontSize, spacing} from '../styles/designTokens';
-import {SPRING_CONFIGS, DURATIONS, EASING} from '../styles/animations';
+import {SPRING_CONFIGS, EASING} from '../styles/animations';
 
 interface PremiumProgressBarProps {
   progress: number; // 0-100
@@ -372,12 +372,6 @@ export const CircularProgress: React.FC<{
       ...SPRING_CONFIGS.gentle,
     }).start();
   }, [progress]);
-
-  const circumference = 2 * Math.PI * (size / 2 - 10);
-  const strokeDashoffset = progressAnim.interpolate({
-    inputRange: [0, 100],
-    outputRange: [circumference, 0],
-  });
 
   return (
     <View

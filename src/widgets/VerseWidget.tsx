@@ -14,15 +14,12 @@ import {
   StyleSheet,
   TouchableOpacity,
   ActivityIndicator,
-  Dimensions,
 } from 'react-native';
 import {LinearGradient} from 'expo-linear-gradient';
 import {Ionicons} from '@expo/vector-icons';
 import {widgetTaskHandler, VerseWidgetData} from './WidgetTaskHandler';
 import {useTheme} from '../hooks/useTheme';
 import {useLanguage} from '../hooks/useLanguage';
-
-const {width: SCREEN_WIDTH} = Dimensions.get('window');
 
 interface VerseWidgetProps {
   onPress?: (book: string, chapter: number, verse: number) => void;
@@ -82,7 +79,7 @@ export const VerseWidget: React.FC<VerseWidgetProps> = ({
       onPress={handlePress}
       activeOpacity={0.9}>
       <LinearGradient
-        colors={gradientColors}
+        colors={gradientColors as [string, string, ...string[]]}
         start={{x: 0, y: 0}}
         end={{x: 1, y: 1}}
         style={styles.gradient}>

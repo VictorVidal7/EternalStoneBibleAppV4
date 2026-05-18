@@ -338,7 +338,6 @@ const ChapterCard: React.FC<ChapterCardProps> = React.memo(
   ({
     chapter,
     onPress,
-    isDark,
     colors,
     t,
     bookName,

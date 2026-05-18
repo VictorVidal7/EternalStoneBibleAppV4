@@ -8,7 +8,7 @@
  * - Dot indicator
  */
 
-import React, { useRef, useEffect } from 'react';
+import React, {useRef, useEffect} from 'react';
 import {
   View,
   Text,
@@ -17,9 +17,9 @@ import {
   ViewStyle,
   TextStyle,
 } from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
-import { Ionicons } from '@expo/vector-icons';
-import { spacing, borderRadius, fontSize } from '../styles/designTokens';
+import {LinearGradient} from 'expo-linear-gradient';
+import {Ionicons} from '@expo/vector-icons';
+import {spacing, borderRadius, fontSize} from '../styles/designTokens';
 
 type BadgeVariant =
   | 'primary'
@@ -58,7 +58,6 @@ export const PremiumBadge: React.FC<PremiumBadgeProps> = ({
   style,
   textStyle,
 }) => {
-  const scaleAnim = useRef(new Animated.Value(1)).current;
   const pulseAnim = useRef(new Animated.Value(1)).current;
 
   useEffect(() => {
@@ -75,31 +74,31 @@ export const PremiumBadge: React.FC<PremiumBadgeProps> = ({
             duration: 1000,
             useNativeDriver: true,
           }),
-        ])
+        ]),
       ).start();
     }
   }, [pulse]);
 
   const getVariantColors = () => {
     if (customColor) {
-      return { background: customColor, text: '#ffffff' };
+      return {background: customColor, text: '#ffffff'};
     }
 
     switch (variant) {
       case 'primary':
-        return { background: '#667eea', text: '#ffffff' };
+        return {background: '#667eea', text: '#ffffff'};
       case 'secondary':
-        return { background: '#10b981', text: '#ffffff' };
+        return {background: '#10b981', text: '#ffffff'};
       case 'success':
-        return { background: '#34d399', text: '#ffffff' };
+        return {background: '#34d399', text: '#ffffff'};
       case 'error':
-        return { background: '#f87171', text: '#ffffff' };
+        return {background: '#f87171', text: '#ffffff'};
       case 'warning':
-        return { background: '#fbbf24', text: '#000000' };
+        return {background: '#fbbf24', text: '#000000'};
       case 'info':
-        return { background: '#60a5fa', text: '#ffffff' };
+        return {background: '#60a5fa', text: '#ffffff'};
       default:
-        return { background: '#667eea', text: '#ffffff' };
+        return {background: '#667eea', text: '#ffffff'};
     }
   };
 
@@ -147,7 +146,7 @@ export const PremiumBadge: React.FC<PremiumBadgeProps> = ({
             backgroundColor: colors.background,
             width: size === 'small' ? 8 : size === 'large' ? 16 : 12,
             height: size === 'small' ? 8 : size === 'large' ? 16 : 12,
-            transform: [{ scale: pulse ? pulseAnim : 1 }],
+            transform: [{scale: pulse ? pulseAnim : 1}],
           },
           style,
         ]}
@@ -163,10 +162,9 @@ export const PremiumBadge: React.FC<PremiumBadgeProps> = ({
           paddingVertical: sizeStyles.paddingVertical,
           paddingHorizontal: sizeStyles.paddingHorizontal,
         },
-        variant !== 'gradient' && { backgroundColor: colors.background },
+        variant !== 'gradient' && {backgroundColor: colors.background},
         style,
-      ]}
-    >
+      ]}>
       {icon && (
         <Ionicons
           name={icon}
@@ -185,8 +183,7 @@ export const PremiumBadge: React.FC<PremiumBadgeProps> = ({
               fontWeight: '600',
             },
             textStyle,
-          ]}
-        >
+          ]}>
           {displayText}
         </Text>
       )}
@@ -195,11 +192,11 @@ export const PremiumBadge: React.FC<PremiumBadgeProps> = ({
 
   if (variant === 'gradient') {
     return (
-      <Animated.View style={{ transform: [{ scale: pulse ? pulseAnim : 1 }] }}>
+      <Animated.View style={{transform: [{scale: pulse ? pulseAnim : 1}]}}>
         <LinearGradient
-          colors={getGradientColors()}
-          start={{ x: 0, y: 0 }}
-          end={{ x: 1, y: 0 }}
+          colors={getGradientColors() as [string, string, ...string[]]}
+          start={{x: 0, y: 0}}
+          end={{x: 1, y: 0}}
           style={[
             styles.badge,
             {
@@ -207,8 +204,7 @@ export const PremiumBadge: React.FC<PremiumBadgeProps> = ({
               paddingHorizontal: sizeStyles.paddingHorizontal,
             },
             style,
-          ]}
-        >
+          ]}>
           {icon && (
             <Ionicons
               name={icon}
@@ -227,8 +223,7 @@ export const PremiumBadge: React.FC<PremiumBadgeProps> = ({
                   fontWeight: '600',
                 },
                 textStyle,
-              ]}
-            >
+              ]}>
               {displayText}
             </Text>
           )}
@@ -238,7 +233,7 @@ export const PremiumBadge: React.FC<PremiumBadgeProps> = ({
   }
 
   return (
-    <Animated.View style={{ transform: [{ scale: pulse ? pulseAnim : 1 }] }}>
+    <Animated.View style={{transform: [{scale: pulse ? pulseAnim : 1}]}}>
       {BadgeContent}
     </Animated.View>
   );

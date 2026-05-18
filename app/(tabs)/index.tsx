@@ -350,9 +350,13 @@ export default function HomeScreen() {
           }}>
           <LinearGradient
             colors={
-              gradient?.headerColors && gradient.headerColors.length >= 2
+              (gradient?.headerColors && gradient.headerColors.length >= 2
                 ? [...gradient.headerColors]
-                : [colors.primary, colors.primaryDark]
+                : [colors.primary, colors.primaryDark]) as [
+                string,
+                string,
+                ...string[],
+              ]
             }
             start={{x: 0, y: 0}}
             end={{x: 1, y: 1}}
