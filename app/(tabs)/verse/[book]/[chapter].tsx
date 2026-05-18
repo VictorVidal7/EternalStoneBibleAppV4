@@ -1695,7 +1695,8 @@ export default function VerseReadingScreen() {
         <Modal
           visible={immersiveModeActive}
           animationType="fade"
-          presentationStyle="fullScreen">
+          presentationStyle="fullScreen"
+          onRequestClose={() => setImmersiveModeActive(false)}>
           <ImmersiveReader
             verses={verses}
             onClose={() => setImmersiveModeActive(false)}

@@ -135,6 +135,10 @@ export default function ChapterSelectionScreen() {
         item.chapter.toString(),
       );
       const isCompleted = chapterProgress >= 100;
+      // Localized name for the accessibility label (the progress lookup above
+      // stays keyed on the canonical name).
+      const localizedBookName =
+        (language === 'en' ? bookInfo?.nameEn : bookInfo?.name) || '';
 
       return (
         <ChapterCard
@@ -143,13 +147,21 @@ export default function ChapterSelectionScreen() {
           isDark={isDark}
           colors={colors}
           t={t}
-          bookName={bookInfo?.name || ''}
+          bookName={localizedBookName}
           isCompleted={isCompleted}
           progressPercentage={chapterProgress}
         />
       );
     },
-    [isDark, colors, navigateToVerse, bookInfo, t, getChapterProgress],
+    [
+      isDark,
+      colors,
+      navigateToVerse,
+      bookInfo,
+      t,
+      getChapterProgress,
+      language,
+    ],
   );
 
   // Mostrar error si no se encuentra el libro
