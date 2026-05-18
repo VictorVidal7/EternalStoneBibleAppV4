@@ -544,7 +544,7 @@ export const BIBLE_BOOKS: BibleBook[] = [
     abbrEn: 'Heb',
   },
   {
-    id: 60,
+    id: 59,
     name: 'Santiago',
     nameEn: 'James',
     testament: 'new',
@@ -553,7 +553,7 @@ export const BIBLE_BOOKS: BibleBook[] = [
     abbrEn: 'Jam',
   },
   {
-    id: 61,
+    id: 60,
     name: '1 Pedro',
     nameEn: '1 Peter',
     testament: 'new',
@@ -562,7 +562,7 @@ export const BIBLE_BOOKS: BibleBook[] = [
     abbrEn: '1Pet',
   },
   {
-    id: 62,
+    id: 61,
     name: '2 Pedro',
     nameEn: '2 Peter',
     testament: 'new',
@@ -571,7 +571,7 @@ export const BIBLE_BOOKS: BibleBook[] = [
     abbrEn: '2Pet',
   },
   {
-    id: 63,
+    id: 62,
     name: '1 Juan',
     nameEn: '1 John',
     testament: 'new',
@@ -580,7 +580,7 @@ export const BIBLE_BOOKS: BibleBook[] = [
     abbrEn: '1Joh',
   },
   {
-    id: 64,
+    id: 63,
     name: '2 Juan',
     nameEn: '2 John',
     testament: 'new',
@@ -589,7 +589,7 @@ export const BIBLE_BOOKS: BibleBook[] = [
     abbrEn: '2Joh',
   },
   {
-    id: 65,
+    id: 64,
     name: '3 Juan',
     nameEn: '3 John',
     testament: 'new',
@@ -598,7 +598,7 @@ export const BIBLE_BOOKS: BibleBook[] = [
     abbrEn: '3Joh',
   },
   {
-    id: 66,
+    id: 65,
     name: 'Judas',
     nameEn: 'Jude',
     testament: 'new',
@@ -607,7 +607,7 @@ export const BIBLE_BOOKS: BibleBook[] = [
     abbrEn: 'Jud',
   },
   {
-    id: 67,
+    id: 66,
     name: 'Apocalipsis',
     nameEn: 'Revelation',
     testament: 'new',

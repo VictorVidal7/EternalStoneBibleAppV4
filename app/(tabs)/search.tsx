@@ -195,6 +195,7 @@ function createThemedStyles(colors: ThemeColors, isDark: boolean) {
       paddingHorizontal: 20,
       paddingVertical: 10,
       marginBottom: 10,
+      marginHorizontal: 5,
     },
     suggestionText: {
       fontSize: 15,
@@ -621,14 +622,16 @@ export default function SearchScreen() {
             <Text style={themedStyles.suggestionsTitle}>
               {t.search.popularSearches}
             </Text>
-            {t.search.suggestions.map(suggestion => (
-              <TouchableOpacity
-                key={suggestion}
-                style={themedStyles.suggestionChip}
-                onPress={() => handleSearchChange(suggestion)}>
-                <Text style={themedStyles.suggestionText}>{suggestion}</Text>
-              </TouchableOpacity>
-            ))}
+            <View style={styles.suggestionsWrap}>
+              {t.search.suggestions.map(suggestion => (
+                <TouchableOpacity
+                  key={suggestion}
+                  style={themedStyles.suggestionChip}
+                  onPress={() => handleSearchChange(suggestion)}>
+                  <Text style={themedStyles.suggestionText}>{suggestion}</Text>
+                </TouchableOpacity>
+              ))}
+            </View>
           </View>
         </View>
       )}
@@ -741,6 +744,13 @@ const styles = StyleSheet.create({
   },
   suggestionsContainer: {
     marginTop: 40,
+    alignSelf: 'stretch',
+    alignItems: 'center',
+  },
+  suggestionsWrap: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'center',
     alignItems: 'center',
   },
 });

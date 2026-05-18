@@ -35,6 +35,7 @@ import bibleDB from '@lib/database';
 import {BibleVerse, ReadingProgress} from '@/types/bible';
 import {READING_PLANS, getLocalizedPlan} from '@/constants/reading-plans';
 import {getDailyVerseRef} from '@/constants/daily-verses';
+import {getBookByName} from '@/constants/bible';
 import {useTheme} from '@hooks/useTheme';
 import {useBibleVersion} from '@hooks/useBibleVersion';
 import {useServices} from '@context/ServicesContext';
@@ -88,7 +89,7 @@ export default function HomeScreen() {
     highlightService,
     initialized: servicesInitialized,
   } = useServices();
-  const {t} = useLanguage();
+  const {t, language} = useLanguage();
   const {getChapterProgress} = useReadingProgress();
   const {getCompletedDays} = useReadingPlanProgress();
   const {addFavorite, isFavorite, favorites} = useFavorites();
@@ -518,7 +519,17 @@ export default function HomeScreen() {
                           styles.continueReference,
                           {color: colors.textSecondary},
                         ]}>
-                        {lastRead.book} {lastRead.chapter}:{lastRead.verse || 1}
+                        {(() => {
+                          const info = getBookByName(lastRead.book);
+                          const name = info
+                            ? language === 'en'
+                              ? info.nameEn
+                              : info.name
+                            : lastRead.book;
+                          return `${name} ${lastRead.chapter}:${
+                            lastRead.verse || 1
+                          }`;
+                        })()}
                       </Text>
                     </View>
                     <View style={styles.continueProgress}>
@@ -896,14 +907,14 @@ export default function HomeScreen() {
                 fontFamily: celestialTheme.typography.fontFamily.serif,
               },
             ]}>
-            "Lámpara es a mis pies tu palabra, y lumbrera a mi camino."
+            {t.home.footerQuote}
           </Text>
           <Text
             style={[
               styles.footerReference,
               {color: celestialTheme.colors.textTertiary},
             ]}>
-            — Salmos 119:105
+            {t.home.footerReference}
           </Text>
         </View>
       </ScrollView>

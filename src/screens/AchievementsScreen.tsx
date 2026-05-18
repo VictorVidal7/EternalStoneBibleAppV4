@@ -159,46 +159,43 @@ export const AchievementsScreen: React.FC<AchievementsScreenProps> = ({
         // Achievements view
         <>
           {/* Category filters */}
-          <FlatList
-            horizontal
-            data={categories}
-            keyExtractor={item => item.id}
-            renderItem={({item}) => (
-              <Pressable
-                style={[
-                  styles.categoryChip,
-                  {
-                    backgroundColor:
-                      selectedCategory === item.id
-                        ? colors.primary
-                        : colors.surface,
-                  },
-                  selectedCategory === item.id && styles.categoryChipSelected,
-                ]}
-                onPress={() => setSelectedCategory(item.id)}>
-                <Text style={styles.categoryIcon}>{item.icon}</Text>
-                <Text
-                  style={[
-                    styles.categoryText,
-                    {
-                      color:
-                        selectedCategory === item.id ? '#fff' : colors.text,
-                    },
-                  ]}>
-                  {item.name}
-                </Text>
-              </Pressable>
-            )}
-            showsHorizontalScrollIndicator={false}
-            contentContainerStyle={styles.categoryList}
+          <View
             style={[
               styles.categoryScroll,
               {
                 backgroundColor: colors.background,
                 borderBottomColor: colors.border,
               },
-            ]}
-          />
+            ]}>
+            <View style={styles.categoryList}>
+              {categories.map(item => {
+                const isActive = selectedCategory === item.id;
+                return (
+                  <Pressable
+                    key={item.id}
+                    style={[
+                      styles.categoryChip,
+                      {
+                        backgroundColor: isActive
+                          ? colors.primary
+                          : colors.surface,
+                        borderColor: colors.border,
+                      },
+                    ]}
+                    onPress={() => setSelectedCategory(item.id)}>
+                    <Text style={styles.categoryIcon}>{item.icon}</Text>
+                    <Text
+                      style={[
+                        styles.categoryText,
+                        {color: isActive ? colors.background : colors.text},
+                      ]}>
+                      {item.name}
+                    </Text>
+                  </Pressable>
+                );
+              })}
+            </View>
+          </View>
 
           {/* Summary - Optimized without double borders */}
           {stats && (
@@ -375,10 +372,11 @@ const styles = StyleSheet.create({
     fontSize: 22,
   },
   categoryScroll: {
-    maxHeight: 60,
     borderBottomWidth: 1,
   },
   categoryList: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
     paddingHorizontal: spacing.base,
     paddingVertical: spacing.sm,
     gap: spacing.xs,
@@ -386,12 +384,11 @@ const styles = StyleSheet.create({
   categoryChip: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: spacing.lg,
-    paddingVertical: spacing.sm,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.xs,
     borderRadius: borderRadius.full,
-    marginRight: spacing.sm,
+    borderWidth: 1,
   },
-  categoryChipSelected: {},
   categoryIcon: {
     fontSize: fontSize.base,
     marginRight: spacing.xs,
