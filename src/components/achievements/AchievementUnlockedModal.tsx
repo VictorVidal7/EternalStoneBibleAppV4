@@ -2,7 +2,7 @@
  * Celebratory modal when an achievement is unlocked
  */
 
-import React, { useEffect, useRef } from 'react';
+import React, {useEffect, useRef} from 'react';
 import {
   Modal,
   View,
@@ -12,8 +12,12 @@ import {
   Pressable,
   Dimensions,
 } from 'react-native';
-import { Achievement, ACHIEVEMENT_TIER_COLORS } from '../../lib/achievements/types';
-import { useLanguage } from '../../hooks/useLanguage';
+import {
+  Achievement,
+  ACHIEVEMENT_TIER_COLORS,
+} from '../../lib/achievements/types';
+import {getLocalizedAchievement} from '../../lib/achievements/definitions';
+import {useLanguage} from '../../hooks/useLanguage';
 
 interface AchievementUnlockedModalProps {
   visible: boolean;
@@ -21,22 +25,20 @@ interface AchievementUnlockedModalProps {
   onClose: () => void;
 }
 
-export const AchievementUnlockedModal: React.FC<AchievementUnlockedModalProps> = ({
-  visible,
-  achievement,
-  onClose,
-}) => {
-  const { t } = useLanguage();
+export const AchievementUnlockedModal: React.FC<
+  AchievementUnlockedModalProps
+> = ({visible, achievement, onClose}) => {
+  const {t} = useLanguage();
   const scaleAnim = useRef(new Animated.Value(0)).current;
   const rotateAnim = useRef(new Animated.Value(0)).current;
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const confettiAnims = useRef(
-    Array.from({ length: 20 }, () => ({
+    Array.from({length: 20}, () => ({
       translateY: new Animated.Value(0),
       translateX: new Animated.Value(0),
       rotate: new Animated.Value(0),
       opacity: new Animated.Value(1),
-    }))
+    })),
   ).current;
 
   useEffect(() => {
@@ -45,7 +47,7 @@ export const AchievementUnlockedModal: React.FC<AchievementUnlockedModalProps> =
       scaleAnim.setValue(0);
       rotateAnim.setValue(0);
       fadeAnim.setValue(0);
-      confettiAnims.forEach((anim) => {
+      confettiAnims.forEach(anim => {
         anim.translateY.setValue(0);
         anim.translateX.setValue(0);
         anim.rotate.setValue(0);
@@ -113,13 +115,21 @@ export const AchievementUnlockedModal: React.FC<AchievementUnlockedModalProps> =
   if (!achievement) return null;
 
   const tierColor = ACHIEVEMENT_TIER_COLORS[achievement.tier];
+  const localized = getLocalizedAchievement(achievement, t);
+  const tierLabel = (t.achievements.tiers as Record<string, string>)[
+    achievement.tier
+  ];
   const rotation = rotateAnim.interpolate({
     inputRange: [0, 1],
     outputRange: ['0deg', '360deg'],
   });
 
   return (
-    <Modal transparent visible={visible} animationType="fade" onRequestClose={onClose}>
+    <Modal
+      transparent
+      visible={visible}
+      animationType="fade"
+      onRequestClose={onClose}>
       <View style={styles.overlay}>
         <Pressable style={styles.backdrop} onPress={onClose} />
 
@@ -130,16 +140,22 @@ export const AchievementUnlockedModal: React.FC<AchievementUnlockedModalProps> =
             style={[
               styles.confetti,
               {
-                backgroundColor: ['#FFD700', '#FF6B6B', '#4ECDC4', '#95E1D3', '#F38181'][
-                  index % 5
-                ],
+                backgroundColor: [
+                  '#FFD700',
+                  '#FF6B6B',
+                  '#4ECDC4',
+                  '#95E1D3',
+                  '#F38181',
+                ][index % 5],
                 transform: [
-                  { translateX: anim.translateX },
-                  { translateY: anim.translateY },
-                  { rotate: anim.rotate.interpolate({
-                    inputRange: [0, 360],
-                    outputRange: ['0deg', '360deg'],
-                  }) },
+                  {translateX: anim.translateX},
+                  {translateY: anim.translateY},
+                  {
+                    rotate: anim.rotate.interpolate({
+                      inputRange: [0, 360],
+                      outputRange: ['0deg', '360deg'],
+                    }),
+                  },
                 ],
                 opacity: anim.opacity,
               },
@@ -152,42 +168,46 @@ export const AchievementUnlockedModal: React.FC<AchievementUnlockedModalProps> =
           style={[
             styles.container,
             {
-              transform: [{ scale: scaleAnim }, { rotate: rotation }],
+              transform: [{scale: scaleAnim}, {rotate: rotation}],
               opacity: fadeAnim,
             },
-          ]}
-        >
-          <View style={[styles.card, { borderColor: tierColor }]}>
+          ]}>
+          <View style={[styles.card, {borderColor: tierColor}]}>
             {/* Header */}
             <View style={styles.header}>
               <Text style={styles.title}>{t.achievements.unlockTitle}</Text>
-              <View style={[styles.tierBadge, { backgroundColor: tierColor }]}>
-                <Text style={styles.tierText}>{achievement.tier.toUpperCase()}</Text>
+              <View style={[styles.tierBadge, {backgroundColor: tierColor}]}>
+                <Text style={styles.tierText}>{tierLabel.toUpperCase()}</Text>
               </View>
             </View>
 
             {/* Icon */}
-            <View style={[styles.iconContainer, { backgroundColor: tierColor + '20' }]}>
+            <View
+              style={[
+                styles.iconContainer,
+                {backgroundColor: tierColor + '20'},
+              ]}>
               <Text style={styles.icon}>{achievement.icon}</Text>
             </View>
 
             {/* Name and description */}
-            <Text style={styles.name}>{achievement.name}</Text>
-            <Text style={styles.description}>{achievement.description}</Text>
+            <Text style={styles.name}>{localized.name}</Text>
+            <Text style={styles.description}>{localized.description}</Text>
 
             {/* Points */}
             <View style={styles.pointsContainer}>
-              <Text style={styles.pointsLabel}>{t.achievements.pointsEarned}</Text>
-              <Text style={[styles.points, { color: tierColor }]}>
+              <Text style={styles.pointsLabel}>
+                {t.achievements.pointsEarned}
+              </Text>
+              <Text style={[styles.points, {color: tierColor}]}>
                 +{achievement.points} {t.achievements.points}
               </Text>
             </View>
 
             {/* Button */}
             <Pressable
-              style={[styles.button, { backgroundColor: tierColor }]}
-              onPress={onClose}
-            >
+              style={[styles.button, {backgroundColor: tierColor}]}
+              onPress={onClose}>
               <Text style={styles.buttonText}>{t.achievements.awesome}</Text>
             </Pressable>
           </View>
@@ -197,7 +217,7 @@ export const AchievementUnlockedModal: React.FC<AchievementUnlockedModalProps> =
   );
 };
 
-const { width } = Dimensions.get('window');
+const {width} = Dimensions.get('window');
 
 const styles = StyleSheet.create({
   overlay: {
@@ -228,7 +248,7 @@ const styles = StyleSheet.create({
     borderWidth: 0,
     alignItems: 'center',
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 10 },
+    shadowOffset: {width: 0, height: 10},
     shadowOpacity: 0.1,
     shadowRadius: 20,
     elevation: 10,
