@@ -5,7 +5,7 @@ const DATA_LOADED_KEY_RVR1960 = '@bible_data_loaded_rvr1960';
 const DATA_LOADED_KEY_KJV = '@bible_data_loaded_kjv';
 
 export async function initializeBibleData(
-    onProgress?: (loaded: number, total: number) => void
+  onProgress?: (loaded: number, total: number) => void,
 ): Promise<void> {
   try {
     console.log('🔵 Starting Bible data initialization...');
@@ -18,7 +18,7 @@ export async function initializeBibleData(
       'RVR1960',
       DATA_LOADED_KEY_RVR1960,
       async () => (await import('./bible-data-rvr1960')).RVR1960_DATA,
-      onProgress
+      onProgress,
     );
 
     // Load KJV
@@ -26,7 +26,7 @@ export async function initializeBibleData(
       'KJV',
       DATA_LOADED_KEY_KJV,
       async () => (await import('./bible-data-kjv')).KJV_DATA,
-      onProgress
+      onProgress,
     );
 
     console.log('✅ All Bible versions initialization complete!');
@@ -40,7 +40,7 @@ async function loadBibleVersion(
   versionName: string,
   storageKey: string,
   dataLoader: () => Promise<any[]>,
-  onProgress?: (loaded: number, total: number) => void
+  onProgress?: (loaded: number, total: number) => void,
 ): Promise<void> {
   try {
     const isLoaded = await AsyncStorage.getItem(storageKey);
@@ -71,14 +71,18 @@ async function loadBibleVersion(
         onProgress(loadedCount, totalVerses);
       }
 
-      console.log(`⏳ ${versionName} Progress: ${loadedCount}/${totalVerses} verses (${Math.round(loadedCount/totalVerses*100)}%)`);
+      console.log(
+        `⏳ ${versionName} Progress: ${loadedCount}/${totalVerses} verses (${Math.round((loadedCount / totalVerses) * 100)}%)`,
+      );
     }
 
     // Marcar como cargado
     await AsyncStorage.setItem(storageKey, 'true');
 
     console.log(`✅ ${versionName} data loaded successfully!`);
-    console.log(`📚 Successfully loaded ${totalVerses} verses from ${versionName}`);
+    console.log(
+      `📚 Successfully loaded ${totalVerses} verses from ${versionName}`,
+    );
   } catch (error) {
     console.error(`❌ Error loading ${versionName}:`, error);
     // En caso de error, limpiar el flag para permitir reintento
@@ -89,19 +93,23 @@ async function loadBibleVersion(
 
 export async function checkDataStatus(): Promise<{
   isLoaded: boolean;
-  stats?: { totalVerses: number; versions: string[] };
+  stats?: {totalVerses: number; versions: string[]};
 }> {
   // Check if at least one version is loaded
-  const rvr1960Loaded = (await AsyncStorage.getItem(DATA_LOADED_KEY_RVR1960)) === 'true';
-  const kjvLoaded = (await AsyncStorage.getItem(DATA_LOADED_KEY_KJV)) === 'true';
+  const rvr1960Loaded =
+    (await AsyncStorage.getItem(DATA_LOADED_KEY_RVR1960)) === 'true';
+  const kjvLoaded =
+    (await AsyncStorage.getItem(DATA_LOADED_KEY_KJV)) === 'true';
   const isLoaded = rvr1960Loaded || kjvLoaded;
 
   if (isLoaded) {
     try {
-      // Verificar que realmente hay datos en la base de datos
+      // Verificar que realmente hay datos en la base de datos.
+      // initialize() es idempotente y debe ejecutarse antes de consultar la BD.
+      await bibleDB.initialize();
       const db = await bibleDB.getDatabase();
-      const result = await db.getFirstAsync<{ count: number, versions: string }>(
-        'SELECT COUNT(*) as count, GROUP_CONCAT(DISTINCT version) as versions FROM verses'
+      const result = await db.getFirstAsync<{count: number; versions: string}>(
+        'SELECT COUNT(*) as count, GROUP_CONCAT(DISTINCT version) as versions FROM verses',
       );
 
       if (result && result.count > 0) {
@@ -109,8 +117,8 @@ export async function checkDataStatus(): Promise<{
           isLoaded: true,
           stats: {
             totalVerses: result.count,
-            versions: result.versions ? result.versions.split(',') : []
-          }
+            versions: result.versions ? result.versions.split(',') : [],
+          },
         };
       }
     } catch (error) {
@@ -118,7 +126,7 @@ export async function checkDataStatus(): Promise<{
     }
   }
 
-  return { isLoaded: false };
+  return {isLoaded: false};
 }
 
 export async function resetBibleData(): Promise<void> {
@@ -138,5 +146,7 @@ export async function resetBibleData(): Promise<void> {
     console.error('❌ Error clearing database:', error);
   }
 
-  console.log('✅ Bible data reset complete - app will reload data on next launch');
+  console.log(
+    '✅ Bible data reset complete - app will reload data on next launch',
+  );
 }

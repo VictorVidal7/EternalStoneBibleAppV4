@@ -153,9 +153,11 @@ class BibleDatabase {
         'CREATE INDEX IF NOT EXISTS idx_favorites_rating ON favorites(rating)',
       );
 
-      // Initial reading progress
+      // Seed the reading_progress row only if it does not exist yet.
+      // INSERT OR IGNORE (not OR REPLACE) so a returning user's real
+      // last-read position survives every app launch.
       await this.db.runAsync(
-        `INSERT OR REPLACE INTO reading_progress (id, book_name, chapter, verse, timestamp)
+        `INSERT OR IGNORE INTO reading_progress (id, book_name, chapter, verse, timestamp)
          VALUES (?, ?, ?, ?, datetime('now'))`,
         [1, 'Juan', 3, 16],
       );

@@ -325,6 +325,12 @@ export const translations = {
       imageAlignment: 'Alineación',
       imageFontStyle: 'Estilo de fuente',
       verseProgress: 'Versículo {{current}} de {{total}}',
+      autoPlay: 'Auto',
+      closeImmersive: 'Cerrar modo inmersivo',
+      increaseFontSize: 'Aumentar tamaño de letra',
+      decreaseFontSize: 'Reducir tamaño de letra',
+      previousVerse: 'Versículo anterior',
+      nextVerse: 'Versículo siguiente',
     },
 
     // Reading Plans
@@ -1182,6 +1188,12 @@ export const translations = {
       imageAlignment: 'Alignment',
       imageFontStyle: 'Font style',
       verseProgress: 'Verse {{current}} of {{total}}',
+      autoPlay: 'Auto',
+      closeImmersive: 'Close immersive mode',
+      increaseFontSize: 'Increase font size',
+      decreaseFontSize: 'Decrease font size',
+      previousVerse: 'Previous verse',
+      nextVerse: 'Next verse',
     },
 
     // Reading Plans

@@ -26,6 +26,7 @@ import {Ionicons} from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
 import {BibleVerse} from '../../types/bible';
 import {useTheme} from '../../hooks/useTheme';
+import {useLanguage} from '../../hooks/useLanguage';
 
 // Removed unused dimensions
 
@@ -43,6 +44,7 @@ export const ImmersiveReader: React.FC<ImmersiveReaderProps> = ({
   startIndex = 0,
 }) => {
   const {colors, isDark, gradient} = useTheme();
+  const {t} = useLanguage();
   const [currentIndex, setCurrentIndex] = useState(startIndex);
   const [autoScroll, setAutoScroll] = useState(false);
   const [showControls, setShowControls] = useState(true);
@@ -308,7 +310,9 @@ export const ImmersiveReader: React.FC<ImmersiveReaderProps> = ({
                 styles.controlButton,
                 {backgroundColor: 'rgba(0,0,0,0.5)'},
               ]}
-              onPress={onClose}>
+              onPress={onClose}
+              accessibilityRole="button"
+              accessibilityLabel={t.verse.closeImmersive}>
               <Ionicons name="close" size={24} color="#fff" />
             </TouchableOpacity>
 
@@ -319,7 +323,9 @@ export const ImmersiveReader: React.FC<ImmersiveReaderProps> = ({
                   styles.controlButton,
                   {backgroundColor: 'rgba(0,0,0,0.5)'},
                 ]}
-                onPress={decreaseFontSize}>
+                onPress={decreaseFontSize}
+                accessibilityRole="button"
+                accessibilityLabel={t.verse.decreaseFontSize}>
                 <Ionicons name="remove" size={20} color="#fff" />
               </TouchableOpacity>
               <TouchableOpacity
@@ -327,7 +333,9 @@ export const ImmersiveReader: React.FC<ImmersiveReaderProps> = ({
                   styles.controlButton,
                   {backgroundColor: 'rgba(0,0,0,0.5)'},
                 ]}
-                onPress={increaseFontSize}>
+                onPress={increaseFontSize}
+                accessibilityRole="button"
+                accessibilityLabel={t.verse.increaseFontSize}>
                 <Ionicons name="add" size={20} color="#fff" />
               </TouchableOpacity>
             </View>
@@ -342,7 +350,9 @@ export const ImmersiveReader: React.FC<ImmersiveReaderProps> = ({
                 {opacity: currentIndex === 0 ? 0.3 : 1},
               ]}
               onPress={goToPrevious}
-              disabled={currentIndex === 0}>
+              disabled={currentIndex === 0}
+              accessibilityRole="button"
+              accessibilityLabel={t.verse.previousVerse}>
               <Ionicons name="chevron-back" size={32} color="#fff" />
             </TouchableOpacity>
 
@@ -354,14 +364,18 @@ export const ImmersiveReader: React.FC<ImmersiveReaderProps> = ({
                   styles.actionButton,
                   autoScroll && styles.actionButtonActive,
                 ]}
-                onPress={toggleAutoScroll}>
+                onPress={toggleAutoScroll}
+                accessibilityRole="button"
+                accessibilityLabel={
+                  autoScroll ? t.verse.pause : t.verse.autoPlay
+                }>
                 <Ionicons
                   name={autoScroll ? 'pause' : 'play'}
                   size={24}
                   color="#fff"
                 />
                 <Text style={styles.actionButtonText}>
-                  {autoScroll ? 'Pausar' : 'Auto'}
+                  {autoScroll ? t.verse.pause : t.verse.autoPlay}
                 </Text>
               </TouchableOpacity>
             </View>
@@ -373,7 +387,9 @@ export const ImmersiveReader: React.FC<ImmersiveReaderProps> = ({
                 {opacity: currentIndex === verses.length - 1 ? 0.3 : 1},
               ]}
               onPress={goToNext}
-              disabled={currentIndex === verses.length - 1}>
+              disabled={currentIndex === verses.length - 1}
+              accessibilityRole="button"
+              accessibilityLabel={t.verse.nextVerse}>
               <Ionicons name="chevron-forward" size={32} color="#fff" />
             </TouchableOpacity>
           </View>
