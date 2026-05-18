@@ -49,6 +49,8 @@ export default function HighlightsScreen() {
   const [items, setItems] = useState<HighlightItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [colorFilter, setColorFilter] = useState<string | null>(null);
+  const [categoryFilter, setCategoryFilter] =
+    useState<HighlightCategory | null>(null);
   const [editing, setEditing] = useState<HighlightItem | null>(null);
   const [noteDraft, setNoteDraft] = useState('');
   const [categoryDraft, setCategoryDraft] = useState<
@@ -102,9 +104,15 @@ export default function HighlightsScreen() {
   );
 
   const usedColors = Array.from(new Set(items.map(i => i.color)));
-  const filtered = colorFilter
-    ? items.filter(i => i.color === colorFilter)
-    : items;
+  // Categories actually present on the user's highlights, in enum order.
+  const usedCategories = CATEGORY_KEYS.filter(cat =>
+    items.some(i => i.category === cat),
+  );
+  const filtered = items.filter(
+    i =>
+      (!colorFilter || i.color === colorFilter) &&
+      (!categoryFilter || i.category === categoryFilter),
+  );
 
   function handleDelete(item: HighlightItem) {
     Alert.alert(t.highlights.deleteTitle, t.highlights.deleteMessage, [
@@ -223,6 +231,58 @@ export default function HighlightsScreen() {
         </View>
       )}
 
+      {/* Category filter */}
+      {usedCategories.length > 0 && (
+        <View style={styles.filterRow}>
+          <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+            <TouchableOpacity
+              onPress={() => setCategoryFilter(null)}
+              style={[
+                styles.filterChip,
+                {
+                  backgroundColor: !categoryFilter
+                    ? colors.primary
+                    : colors.surface,
+                  borderColor: colors.border,
+                },
+              ]}>
+              <Text
+                style={{
+                  color: !categoryFilter ? '#fff' : colors.textSecondary,
+                  fontWeight: '600',
+                  fontSize: 13,
+                }}>
+                {t.highlights.all}
+              </Text>
+            </TouchableOpacity>
+            {usedCategories.map(cat => {
+              const active = cat === categoryFilter;
+              return (
+                <TouchableOpacity
+                  key={cat}
+                  onPress={() => setCategoryFilter(active ? null : cat)}
+                  style={[
+                    styles.filterChip,
+                    {
+                      backgroundColor: active ? colors.primary : colors.surface,
+                      borderColor: colors.border,
+                    },
+                  ]}>
+                  <Text
+                    style={{
+                      color: active ? '#fff' : colors.textSecondary,
+                      fontWeight: '600',
+                      fontSize: 13,
+                    }}>
+                    {t.highlights.categories[cat]}
+                  </Text>
+                </TouchableOpacity>
+              );
+            })}
+          </ScrollView>
+        </View>
+      )}
+
       {loading ? (
         <View style={styles.centerBox}>
           <ActivityIndicator size="large" color={colors.primary} />
@@ -301,16 +361,20 @@ export default function HighlightsScreen() {
           ListEmptyComponent={
             <View style={styles.centerBox}>
               <Ionicons
-                name="color-palette-outline"
+                name={
+                  items.length > 0 ? 'funnel-outline' : 'color-palette-outline'
+                }
                 size={64}
                 color={colors.textTertiary}
               />
               <Text style={[styles.emptyTitle, {color: colors.text}]}>
-                {t.highlights.empty}
+                {items.length > 0 ? t.highlights.noMatch : t.highlights.empty}
               </Text>
-              <Text style={[styles.emptyHint, {color: colors.textSecondary}]}>
-                {t.highlights.emptyHint}
-              </Text>
+              {items.length === 0 && (
+                <Text style={[styles.emptyHint, {color: colors.textSecondary}]}>
+                  {t.highlights.emptyHint}
+                </Text>
+              )}
             </View>
           }
         />

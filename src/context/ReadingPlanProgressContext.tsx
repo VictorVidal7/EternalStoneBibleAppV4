@@ -4,6 +4,10 @@
  * Persists, per reading plan, which days the user has marked as completed.
  * Backed by AsyncStorage and shared across the app so the home cards and the
  * plan detail screen always agree.
+ *
+ * It also tracks which Bible chapters the user has actually read, so a plan
+ * day can be **auto-completed** the moment every chapter it lists has been
+ * opened — no manual check-off required.
  */
 
 import React, {
@@ -11,13 +15,17 @@ import React, {
   useContext,
   useState,
   useEffect,
+  useRef,
   useCallback,
   ReactNode,
 } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {logger} from '../lib/utils/logger';
+import {READING_PLANS} from '../constants/reading-plans';
+import {getBookByName} from '../constants/bible';
 
 const STORAGE_KEY = '@reading_plan_progress';
+const READ_CHAPTERS_KEY = '@reading_plan_read_chapters';
 
 export interface PlanProgress {
   completedDays: number[];
@@ -25,26 +33,72 @@ export interface PlanProgress {
 }
 
 type ProgressMap = Record<string, PlanProgress>;
+/** Set of read chapters, keyed by `${bookId}:${chapter}`. */
+type ReadChaptersMap = Record<string, true>;
+
+/** A plan day that just became complete because of the latest chapter read. */
+export interface AutoCompletedDay {
+  planId: string;
+  day: number;
+}
 
 interface ReadingPlanProgressContextType {
   getCompletedDays: (planId: string) => number[];
   isDayComplete: (planId: string, day: number) => boolean;
   toggleDay: (planId: string, day: number) => Promise<void>;
+  /**
+   * Records that a chapter was read and auto-completes any plan day whose
+   * chapters are now all read. Returns the days that just became complete so
+   * the caller can surface feedback (e.g. a toast).
+   */
+  markChapterRead: (
+    book: string | number,
+    chapter: number,
+  ) => Promise<AutoCompletedDay[]>;
 }
 
 const ReadingPlanProgressContext = createContext<
   ReadingPlanProgressContextType | undefined
 >(undefined);
 
+/** Canonical read-chapter key. Returns null if the book can't be resolved. */
+function chapterKey(book: string | number, chapter: number): string | null {
+  const bookId =
+    typeof book === 'number' ? book : (getBookByName(book)?.id ?? null);
+  return bookId == null ? null : `${bookId}:${chapter}`;
+}
+
 export function ReadingPlanProgressProvider({children}: {children: ReactNode}) {
   const [progress, setProgress] = useState<ProgressMap>({});
+  const [readChapters, setReadChapters] = useState<ReadChaptersMap>({});
+
+  // Refs mirror the latest state so `markChapterRead` can stay referentially
+  // stable (it's called from a timer in the reader and must not retrigger it).
+  const progressRef = useRef(progress);
+  const readChaptersRef = useRef(readChapters);
+  useEffect(() => {
+    progressRef.current = progress;
+  }, [progress]);
+  useEffect(() => {
+    readChaptersRef.current = readChapters;
+  }, [readChapters]);
 
   useEffect(() => {
     (async () => {
       try {
-        const raw = await AsyncStorage.getItem(STORAGE_KEY);
-        if (raw) {
-          setProgress(JSON.parse(raw));
+        const [rawProgress, rawRead] = await Promise.all([
+          AsyncStorage.getItem(STORAGE_KEY),
+          AsyncStorage.getItem(READ_CHAPTERS_KEY),
+        ]);
+        if (rawProgress) {
+          const parsed = JSON.parse(rawProgress);
+          setProgress(parsed);
+          progressRef.current = parsed;
+        }
+        if (rawRead) {
+          const parsed = JSON.parse(rawRead);
+          setReadChapters(parsed);
+          readChaptersRef.current = parsed;
         }
       } catch {
         logger.warn('Could not load reading plan progress', {
@@ -56,6 +110,7 @@ export function ReadingPlanProgressProvider({children}: {children: ReactNode}) {
 
   const persist = useCallback(async (next: ProgressMap) => {
     setProgress(next);
+    progressRef.current = next;
     try {
       await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(next));
     } catch (err) {
@@ -94,9 +149,73 @@ export function ReadingPlanProgressProvider({children}: {children: ReactNode}) {
     [progress, persist],
   );
 
+  const markChapterRead = useCallback(
+    async (
+      book: string | number,
+      chapter: number,
+    ): Promise<AutoCompletedDay[]> => {
+      const key = chapterKey(book, chapter);
+      if (!key) return [];
+
+      const currentRead = readChaptersRef.current;
+      const nextRead: ReadChaptersMap = currentRead[key]
+        ? currentRead
+        : {...currentRead, [key]: true};
+
+      // Persist the read chapter if it's new.
+      if (!currentRead[key]) {
+        readChaptersRef.current = nextRead;
+        setReadChapters(nextRead);
+        AsyncStorage.setItem(READ_CHAPTERS_KEY, JSON.stringify(nextRead)).catch(
+          err =>
+            logger.error('Could not save read chapters', err as Error, {
+              component: 'ReadingPlanProgress',
+            }),
+        );
+      }
+
+      // Find every plan day not yet completed whose chapters are all read.
+      const currentProgress = progressRef.current;
+      const newlyCompleted: AutoCompletedDay[] = [];
+      for (const plan of READING_PLANS) {
+        const completedDays = currentProgress[plan.id]?.completedDays ?? [];
+        for (const planDay of plan.days) {
+          if (completedDays.includes(planDay.day)) continue;
+          const allRead = planDay.readings.every(r => {
+            const k = chapterKey(r.book, r.chapter);
+            return k != null && nextRead[k];
+          });
+          if (allRead) {
+            newlyCompleted.push({planId: plan.id, day: planDay.day});
+          }
+        }
+      }
+
+      if (newlyCompleted.length > 0) {
+        const nextProgress: ProgressMap = {...currentProgress};
+        for (const {planId, day} of newlyCompleted) {
+          const cur = nextProgress[planId] ?? {
+            completedDays: [],
+            startedAt: new Date().toISOString(),
+          };
+          if (!cur.completedDays.includes(day)) {
+            nextProgress[planId] = {
+              ...cur,
+              completedDays: [...cur.completedDays, day].sort((a, b) => a - b),
+            };
+          }
+        }
+        await persist(nextProgress);
+      }
+
+      return newlyCompleted;
+    },
+    [persist],
+  );
+
   return (
     <ReadingPlanProgressContext.Provider
-      value={{getCompletedDays, isDayComplete, toggleDay}}>
+      value={{getCompletedDays, isDayComplete, toggleDay, markChapterRead}}>
       {children}
     </ReadingPlanProgressContext.Provider>
   );

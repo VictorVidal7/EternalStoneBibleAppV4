@@ -32,7 +32,7 @@ if (!__DEV__) {
 import {GestureHandlerRootView} from 'react-native-gesture-handler';
 import {initializeBibleData, checkDataStatus} from '@lib/database/data-loader';
 import {ThemeProvider} from '@hooks/useTheme';
-import {BibleVersionProvider} from '@hooks/useBibleVersion';
+import {BibleVersionProvider, useBibleVersion} from '@hooks/useBibleVersion';
 import {LanguageProvider, useLanguage} from '@hooks/useLanguage';
 import {ServicesProvider} from '@context/ServicesContext';
 import {ToastProvider} from '@context/ToastContext';
@@ -48,9 +48,11 @@ import {widgetTaskHandler} from '@/widgets/WidgetTaskHandler';
 // Audio Bible Feature
 import {AudioPlayerProvider} from '@/features/audio/context/AudioPlayerContext';
 import {MiniAudioPlayer} from '@/features/audio/components/MiniAudioPlayer';
+import {refreshDailyVerseNotifications} from '@lib/notifications/NotificationService';
 
 function AppContent() {
-  const {t} = useLanguage();
+  const {t, language} = useLanguage();
+  const {selectedVersion} = useBibleVersion();
   const [isLoading, setIsLoading] = useState(true);
   const [loadingProgress, setLoadingProgress] = useState({loaded: 0, total: 0});
   const [error, setError] = useState<string | null>(null);
@@ -58,6 +60,19 @@ function AppContent() {
   useEffect(() => {
     initializeApp();
   }, []);
+
+  // Once the app is ready, top up the rolling window of daily-verse
+  // notifications (no-op unless the user has enabled the reminder). Re-runs
+  // if the language or Bible version changes so the verse text stays correct.
+  useEffect(() => {
+    if (isLoading) return;
+    refreshDailyVerseNotifications({
+      language,
+      version: selectedVersion.id,
+    }).catch(() => {
+      // Notifications are best-effort; never block the app on them.
+    });
+  }, [isLoading, language, selectedVersion.id]);
 
   async function initializeApp() {
     try {

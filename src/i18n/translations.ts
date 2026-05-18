@@ -210,6 +210,7 @@ export const translations = {
       count: '{{count}} versículos resaltados',
       empty: 'Aún no tienes resaltados',
       emptyHint: 'Selecciona versículos al leer y toca Resaltar',
+      noMatch: 'Ningún resaltado coincide con el filtro',
       all: 'Todos',
       deleteTitle: 'Eliminar resaltado',
       deleteMessage: '¿Quieres quitar este resaltado?',
@@ -328,24 +329,25 @@ export const translations = {
     readingPlans: {
       days: 'días',
       proverbs: {
-        name: 'Proverbios - Un Mes',
-        description: 'Lee un capítulo de Proverbios cada día durante un mes',
+        name: 'Sabiduría Diaria (Proverbios)',
+        description: 'Un capítulo de Proverbios cada día',
       },
       psalms: {
-        name: 'Salmos Selectos',
-        description: 'Los salmos más poderosos en 30 días',
+        name: 'Salmos en 30 Días',
+        description: 'Lee el libro de Salmos completo en un mes',
       },
       gospels: {
-        name: 'Los Evangelios',
-        description: 'Conoce la vida de Jesús en 40 días',
+        name: 'Los 4 Evangelios en 40 Días',
+        description:
+          'Conoce la vida de Jesús a través de los cuatro evangelios',
       },
       newTestament: {
         name: 'Nuevo Testamento en 30 Días',
-        description: 'Una introducción rápida al Nuevo Testamento',
+        description: 'Lee todo el Nuevo Testamento en un mes',
       },
       genesis: {
-        name: 'Génesis - Los Comienzos',
-        description: 'Descubre cómo comenzó todo en 25 días',
+        name: 'Génesis - El Principio',
+        description: 'Descubre el origen de todo en el libro de Génesis',
       },
     },
 
@@ -371,6 +373,20 @@ export const translations = {
       startContinueHint: 'Toca para comenzar o continuar tu plan de lectura',
       availablePlans: 'Planes de Lectura Disponibles',
       listLabel: 'Lista de planes de lectura',
+      dayAutoCompleted: '✅ Día {{day}} de "{{plan}}" completado',
+    },
+
+    // Daily Verse Notifications
+    notifications: {
+      title: 'Notificaciones',
+      dailyVerse: 'Versículo del día',
+      dailyVerseDesc: 'Recibe el versículo del día a la hora que elijas',
+      time: 'Hora del recordatorio',
+      enabled: 'Recordatorio diario activado',
+      disabled: 'Recordatorio diario desactivado',
+      permissionDeniedTitle: 'Permiso necesario',
+      permissionDeniedMessage:
+        'Para recibir el versículo diario, activa las notificaciones de la app en los ajustes del sistema.',
     },
 
     // Achievements System
@@ -1050,6 +1066,7 @@ export const translations = {
       count: '{{count}} highlighted verses',
       empty: 'No highlights yet',
       emptyHint: 'Select verses while reading and tap Highlight',
+      noMatch: 'No highlights match this filter',
       all: 'All',
       deleteTitle: 'Remove highlight',
       deleteMessage: 'Remove this highlight?',
@@ -1167,24 +1184,24 @@ export const translations = {
     readingPlans: {
       days: 'days',
       proverbs: {
-        name: 'Proverbs - One Month',
-        description: 'Read one chapter of Proverbs each day for a month',
+        name: 'Daily Wisdom (Proverbs)',
+        description: 'One chapter of Proverbs each day',
       },
       psalms: {
-        name: 'Selected Psalms',
-        description: 'The most powerful psalms in 30 days',
+        name: 'Psalms in 30 Days',
+        description: 'Read the entire book of Psalms in a month',
       },
       gospels: {
-        name: 'The Gospels',
-        description: 'Discover the life of Jesus in 40 days',
+        name: 'The 4 Gospels in 40 Days',
+        description: 'Get to know the life of Jesus through the four gospels',
       },
       newTestament: {
         name: 'New Testament in 30 Days',
-        description: 'A quick introduction to the New Testament',
+        description: 'Read the entire New Testament in a month',
       },
       genesis: {
-        name: 'Genesis - The Beginnings',
-        description: 'Discover how it all began in 25 days',
+        name: 'Genesis - The Beginning',
+        description: 'Discover the origin of everything in the book of Genesis',
       },
     },
 
@@ -1209,6 +1226,20 @@ export const translations = {
       startContinueHint: 'Tap to start or continue your reading plan',
       availablePlans: 'Available Reading Plans',
       listLabel: 'Reading plans list',
+      dayAutoCompleted: '✅ Day {{day}} of "{{plan}}" completed',
+    },
+
+    // Daily Verse Notifications
+    notifications: {
+      title: 'Notifications',
+      dailyVerse: 'Verse of the day',
+      dailyVerseDesc: 'Receive the verse of the day at the time you choose',
+      time: 'Reminder time',
+      enabled: 'Daily reminder turned on',
+      disabled: 'Daily reminder turned off',
+      permissionDeniedTitle: 'Permission needed',
+      permissionDeniedMessage:
+        'To receive the daily verse, enable notifications for the app in your system settings.',
     },
 
     // Achievements System

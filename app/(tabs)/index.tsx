@@ -33,7 +33,7 @@ import * as Haptics from 'expo-haptics';
 
 import bibleDB from '@lib/database';
 import {BibleVerse, ReadingProgress} from '@/types/bible';
-import {READING_PLANS} from '@/constants/reading-plans';
+import {READING_PLANS, getLocalizedPlan} from '@/constants/reading-plans';
 import {getDailyVerseRef} from '@/constants/daily-verses';
 import {useTheme} from '@hooks/useTheme';
 import {useBibleVersion} from '@hooks/useBibleVersion';
@@ -576,11 +576,12 @@ export default function HomeScreen() {
             contentContainerStyle={styles.plansScroll}>
             {READING_PLANS.slice(0, 3).map(plan => {
               const planDaysDone = getCompletedDays(plan.id).length;
+              const localizedPlan = getLocalizedPlan(plan, t);
               return (
                 <ReadingPlanCard
                   key={plan.id}
-                  name={plan.name}
-                  description={plan.description}
+                  name={localizedPlan.name}
+                  description={localizedPlan.description}
                   subtitle={t.home.planDays.replace(
                     '{{days}}',
                     plan.duration.toString(),
