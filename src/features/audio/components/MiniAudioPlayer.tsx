@@ -40,6 +40,8 @@ import {Ionicons} from '@expo/vector-icons';
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
 import * as Haptics from 'expo-haptics';
 import {useTheme} from '../../../hooks/useTheme';
+import {useLanguage} from '../../../hooks/useLanguage';
+import {getBookByName} from '../../../constants/bible';
 import {useAudioPlayer} from '../context/AudioPlayerContext';
 import {AudioControls} from './AudioControls';
 import {AudioProgressBar, MiniProgressDots} from './AudioProgressBar';
@@ -69,6 +71,7 @@ export const MiniAudioPlayer: React.FC<MiniAudioPlayerProps> = ({
   bottomOffset = 0,
 }) => {
   const {colors, isDark} = useTheme();
+  const {language} = useLanguage();
   const insets = useSafeAreaInsets();
   const [sleepTimerModalVisible, setSleepTimerModalVisible] = useState(false);
 
@@ -239,7 +242,15 @@ export const MiniAudioPlayer: React.FC<MiniAudioPlayerProps> = ({
     return null;
   }
 
-  const verseTitle = `${currentVerse.book} ${currentVerse.chapter}:${currentVerse.verse}`;
+  // Localize the book name so the title matches the app language even when
+  // it was changed after audio playback started.
+  const verseBookInfo = getBookByName(currentVerse.book);
+  const verseBookName = verseBookInfo
+    ? language === 'en'
+      ? verseBookInfo.nameEn
+      : verseBookInfo.name
+    : currentVerse.book;
+  const verseTitle = `${verseBookName} ${currentVerse.chapter}:${currentVerse.verse}`;
   const canGoPrevious = state.currentVerseIndex > 0;
   const canGoNext = state.currentVerseIndex < verses.length - 1;
 

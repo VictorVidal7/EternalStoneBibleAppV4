@@ -13,7 +13,7 @@
  * - Tipografía dual (Serif para versículos, Sans para UI)
  */
 
-import React, {useEffect, useState, useRef} from 'react';
+import React, {useEffect, useState, useRef, useCallback} from 'react';
 import {
   View,
   Text,
@@ -25,7 +25,7 @@ import {
   Platform,
   RefreshControl,
 } from 'react-native';
-import {useRouter} from 'expo-router';
+import {useRouter, useFocusEffect} from 'expo-router';
 import {Ionicons} from '@expo/vector-icons';
 import {LinearGradient} from 'expo-linear-gradient';
 import {BlurView} from 'expo-blur';
@@ -125,9 +125,16 @@ export default function HomeScreen() {
   };
 
   useEffect(() => {
-    loadHomeData();
     startAnimations();
-  }, [selectedVersion.id]);
+  }, []);
+
+  // Refresh home data whenever the tab regains focus so "Continue Reading",
+  // saved counts and stats reflect activity from the reader and other screens.
+  useFocusEffect(
+    useCallback(() => {
+      loadHomeData();
+    }, [selectedVersion.id]),
+  );
 
   useEffect(() => {
     setSavedCounts(prev => ({
