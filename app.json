@@ -8,7 +8,18 @@
     "userInterfaceStyle": "automatic",
     "scheme": "eternalbible",
     "newArchEnabled": true,
-    "plugins": ["expo-router", "expo-sqlite", "@react-native-firebase/app"],
+    "plugins": [
+      "expo-router",
+      "expo-sqlite",
+      "@react-native-firebase/app",
+      [
+        "expo-notifications",
+        {
+          "icon": "./assets/icon.png",
+          "color": "#001122"
+        }
+      ]
+    ],
     "splash": {
       "image": "./assets/splash-icon.png",
       "resizeMode": "contain",

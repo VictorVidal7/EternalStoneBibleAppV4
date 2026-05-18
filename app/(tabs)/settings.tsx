@@ -15,6 +15,7 @@ import {LinearGradient} from 'expo-linear-gradient';
 import {useBibleVersion} from '@hooks/useBibleVersion';
 import {useLanguage} from '@hooks/useLanguage';
 import {resetBibleData} from '@lib/database/data-loader';
+import DailyVerseSettings from '@components/settings/DailyVerseSettings';
 import * as Haptics from 'expo-haptics';
 
 type ThemeOption = 'light' | 'dark' | 'auto';
@@ -484,6 +485,9 @@ export default function SettingsScreen() {
             </View>
           </TouchableOpacity>
         </View>
+
+        {/* Daily Verse Notifications */}
+        <DailyVerseSettings />
 
         {/* New Features V5.1 Section */}
         <View style={themedStyles.section}>

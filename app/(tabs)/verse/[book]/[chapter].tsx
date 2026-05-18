@@ -28,6 +28,8 @@ import {useLanguage} from '@hooks/useLanguage';
 import {useServices} from '@context/ServicesContext';
 import {useToast} from '@context/ToastContext';
 import {useFavorites} from '@context/FavoritesContext';
+import {useReadingPlanProgress} from '@context/ReadingPlanProgressContext';
+import {getReadingPlanById, getLocalizedPlan} from '@/constants/reading-plans';
 import {logger} from '@lib/utils/logger';
 import {ImmersiveReader} from '@components/reading/ImmersiveReader';
 import {getBookTheme} from '@/constants/bookThemes';
@@ -131,6 +133,7 @@ export default function VerseReadingScreen() {
   const toast = useToast();
   const {achievementService, highlightService} = useServices();
   const {favorites, addFavorite, removeFavorite} = useFavorites();
+  const {markChapterRead} = useReadingPlanProgress();
   // Audio Bible
   const {
     loadChapter: loadAudioChapter,
@@ -261,6 +264,26 @@ export default function VerseReadingScreen() {
         // Track chapter completed
         await achievementService.trackChapterCompleted();
 
+        // Auto-complete any reading-plan day whose chapters are now all read.
+        try {
+          const autoDone = await markChapterRead(book, chapterNum);
+          if (autoDone.length > 0) {
+            const {planId, day} = autoDone[0];
+            const plan = getReadingPlanById(planId);
+            const planName = plan ? getLocalizedPlan(plan, t).name : '';
+            toast.success(
+              t.readingPlan.dayAutoCompleted
+                .replace('{{day}}', String(day))
+                .replace('{{plan}}', planName),
+            );
+          }
+        } catch (autoErr) {
+          logger.warn('Could not auto-complete reading plan day', {
+            component: 'VerseReadingScreen',
+            error: autoErr,
+          });
+        }
+
         if (newAchievements.length > 0) {
           logger.info('New achievements unlocked!', {
             component: 'VerseReadingScreen',
@@ -278,7 +301,16 @@ export default function VerseReadingScreen() {
     }, 5000); // 5 seconds
 
     return () => clearTimeout(trackingTimer);
-  }, [verses, loading, achievementService, book, chapterNum]);
+  }, [
+    verses,
+    loading,
+    achievementService,
+    book,
+    chapterNum,
+    markChapterRead,
+    t,
+    toast,
+  ]);
 
   async function loadChapter() {
     try {

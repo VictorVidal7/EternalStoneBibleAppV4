@@ -14,7 +14,11 @@ import {LinearGradient} from 'expo-linear-gradient';
 import {useTheme} from '@hooks/useTheme';
 import {useLanguage} from '@hooks/useLanguage';
 import {useReadingPlanProgress} from '@context/ReadingPlanProgressContext';
-import {getReadingPlanById, ReadingPlanDay} from '@/constants/reading-plans';
+import {
+  getReadingPlanById,
+  getLocalizedPlan,
+  ReadingPlanDay,
+} from '@/constants/reading-plans';
 import {getBookByName} from '@/constants/bible';
 import * as Haptics from 'expo-haptics';
 
@@ -50,6 +54,7 @@ export default function ReadingPlanDetailScreen() {
 
   const completed = getCompletedDays(plan.id).length;
   const percent = Math.round((completed / plan.duration) * 100);
+  const localizedPlan = getLocalizedPlan(plan, t);
 
   function bookLabel(book: string): string {
     const info = getBookByName(book);
@@ -127,9 +132,9 @@ export default function ReadingPlanDetailScreen() {
           <Ionicons name="arrow-back" size={24} color="#ffffff" />
         </TouchableOpacity>
         <Text style={styles.headerTitle} numberOfLines={2}>
-          {plan.name}
+          {localizedPlan.name}
         </Text>
-        <Text style={styles.headerSubtitle}>{plan.description}</Text>
+        <Text style={styles.headerSubtitle}>{localizedPlan.description}</Text>
 
         {/* Progress bar */}
         <View style={styles.progressInfo}>
