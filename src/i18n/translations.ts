@@ -86,7 +86,9 @@ export const translations = {
       plansDescription: 'Sigue un plan estructurado para leer la Biblia',
       quickAccess: 'Acceso Rápido',
       days: 'días',
-      footerQuote: '"Tu palabra es verdad" - Juan 17:17',
+      footerQuote:
+        '"Lámpara es a mis pies tu palabra, y lumbrera a mi camino."',
+      footerReference: '— Salmos 119:105',
       books: 'libros',
       bibleLibrary: 'Biblioteca Bíblica',
       booksAvailable: 'libros disponibles',
@@ -943,7 +945,9 @@ export const translations = {
       plansDescription: 'Follow a structured plan to read the Bible',
       quickAccess: 'Quick Access',
       days: 'days',
-      footerQuote: '"Your word is truth" - John 17:17',
+      footerQuote:
+        '"Thy word is a lamp unto my feet, and a light unto my path."',
+      footerReference: '— Psalm 119:105',
       books: 'books',
       bibleLibrary: 'Bible Library',
       booksAvailable: 'books available',

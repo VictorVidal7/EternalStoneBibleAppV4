@@ -17,6 +17,7 @@ import {useLanguage} from '@hooks/useLanguage';
 import {resetBibleData} from '@lib/database/data-loader';
 import DailyVerseSettings from '@components/settings/DailyVerseSettings';
 import * as Haptics from 'expo-haptics';
+import Constants from 'expo-constants';
 
 type ThemeOption = 'light' | 'dark' | 'auto';
 
@@ -603,7 +604,7 @@ export default function SettingsScreen() {
             <View style={themedStyles.aboutRow}>
               <Text style={themedStyles.settingLabel}>Eternal Bible</Text>
               <Text style={themedStyles.settingValue}>
-                {t.settings.version} 3.0.0
+                {t.settings.version} {Constants.expoConfig?.version ?? '3.0.4'}
               </Text>
             </View>
 

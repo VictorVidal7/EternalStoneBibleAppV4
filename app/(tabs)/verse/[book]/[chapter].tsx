@@ -51,6 +51,29 @@ import {useSafeAreaInsets} from 'react-native-safe-area-context';
 import {LinearGradient} from 'expo-linear-gradient';
 import {useWindowDimensions} from 'react-native';
 
+/**
+ * Builds a compact verse list, collapsing consecutive runs into ranges.
+ * e.g. [16] -> "16", [16,17,18] -> "16-18", [1,4,5] -> "1,4-5".
+ */
+function formatVerseList(nums: number[]): string {
+  if (nums.length === 0) return '';
+  const sorted = [...nums].sort((a, b) => a - b);
+  const parts: string[] = [];
+  let runStart = sorted[0];
+  let prev = sorted[0];
+  for (let i = 1; i <= sorted.length; i++) {
+    const current = sorted[i];
+    if (current === prev + 1) {
+      prev = current;
+      continue;
+    }
+    parts.push(runStart === prev ? `${runStart}` : `${runStart}-${prev}`);
+    runStart = current;
+    prev = current;
+  }
+  return parts.join(',');
+}
+
 const IMAGE_THEMES = [
   {
     id: 'classic',
@@ -223,6 +246,10 @@ export default function VerseReadingScreen() {
 
   useEffect(() => {
     loadChapter();
+    // A verse selection belongs to the chapter it was made in — drop it when
+    // the chapter changes so stale verse numbers don't re-highlight here.
+    setSelectedVerses(new Set());
+    setShowHighlightPicker(false);
   }, [book, chapter, selectedVersion.id]);
 
   useEffect(() => {
@@ -355,14 +382,27 @@ export default function VerseReadingScreen() {
 
       setLoading(false);
 
-      // Scroll to highlighted verse if provided
-      if (highlightVerse && scrollViewRef.current) {
-        setTimeout(() => {
-          // Parse verse number for potential scrolling implementation
-          const _verseNum = parseInt(highlightVerse as string);
-          // Simplified scrolling - in production would use measurement
-          void _verseNum; // Mark as intentionally unused for now
-        }, 300);
+      // Scroll to the highlighted verse (e.g. when arriving from search).
+      // Verse offsets are filled in by each row's onLayout, so retry a few
+      // times until the target verse has reported its position.
+      if (highlightVerse) {
+        const verseNum = parseInt(highlightVerse as string);
+        if (!Number.isNaN(verseNum)) {
+          let attempts = 0;
+          const tryScroll = () => {
+            const offset = verseOffsetsRef.current.get(verseNum);
+            if (offset != null && scrollViewRef.current) {
+              scrollViewRef.current.scrollTo({
+                y: Math.max(offset - 120, 0),
+                animated: true,
+              });
+            } else if (attempts < 10) {
+              attempts += 1;
+              setTimeout(tryScroll, 120);
+            }
+          };
+          setTimeout(tryScroll, 250);
+        }
       }
     } catch (error) {
       logger.error('Error loading chapter', error as Error, {
@@ -505,10 +545,9 @@ export default function VerseReadingScreen() {
       .map(num => verses.find(v => v.verse === num))
       .filter(Boolean) as BibleVerse[];
 
-    const reference =
-      sortedNums.length === 1
-        ? `${book} ${chapterNum}:${sortedNums[0]}`
-        : `${book} ${chapterNum}:${sortedNums[0]}-${sortedNums[sortedNums.length - 1]}`;
+    const reference = `${localizedBookName} ${chapterNum}:${formatVerseList(
+      sortedNums,
+    )}`;
 
     const versesText = selectedVersesData
       .map(v => `${v.verse}. ${v.text}`)
@@ -538,10 +577,7 @@ export default function VerseReadingScreen() {
     if (sortedNums.length === 0) {
       return `${localizedBookName} ${chapterNum}`;
     }
-    if (sortedNums.length === 1) {
-      return `${localizedBookName} ${chapterNum}:${sortedNums[0]}`;
-    }
-    return `${localizedBookName} ${chapterNum}:${sortedNums[0]}-${sortedNums[sortedNums.length - 1]}`;
+    return `${localizedBookName} ${chapterNum}:${formatVerseList(sortedNums)}`;
   }
 
   // Copy selected verses
