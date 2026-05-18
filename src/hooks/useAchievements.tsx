@@ -2,10 +2,10 @@
  * Hook personalizado para gestionar logros
  */
 
-import { useState, useEffect, useCallback } from 'react';
-import { AchievementService } from '../lib/achievements/AchievementService';
-import { Achievement, UserStats, ReadingStreak } from '../lib/achievements/types';
-import { BibleDatabase } from '../lib/database';
+import {useState, useEffect, useCallback} from 'react';
+import {AchievementService} from '../lib/achievements/AchievementService';
+import {Achievement, UserStats, ReadingStreak} from '../lib/achievements/types';
+import {BibleDatabase} from '../lib/database';
 
 export function useAchievements(database: BibleDatabase | null) {
   const [service, setService] = useState<AchievementService | null>(null);
@@ -26,28 +26,30 @@ export function useAchievements(database: BibleDatabase | null) {
     });
   }, [database]);
 
-  // Cargar datos iniciales
-  useEffect(() => {
+  // Cargar / recargar datos. Se expone como `reload` para que la pantalla
+  // lo invoque al recuperar el foco y refleje el progreso de la lectura.
+  const reload = useCallback(async () => {
     if (!service) return;
 
-    const loadData = async () => {
-      try {
-        const [allAchievements, userStats, readingStreak] = await Promise.all([
-          service.getAllAchievements(),
-          service.getUserStats(),
-          service.getReadingStreak(),
-        ]);
+    try {
+      const [allAchievements, userStats, readingStreak] = await Promise.all([
+        service.getAllAchievements(),
+        service.getUserStats(),
+        service.getReadingStreak(),
+      ]);
 
-        setAchievements(allAchievements);
-        setStats(userStats);
-        setStreak(readingStreak);
-      } catch (error) {
-        console.error('Error loading achievements:', error);
-      }
-    };
-
-    loadData();
+      setAchievements(allAchievements);
+      setStats(userStats);
+      setStreak(readingStreak);
+    } catch (error) {
+      console.error('Error loading achievements:', error);
+    }
   }, [service]);
+
+  // Cargar datos iniciales
+  useEffect(() => {
+    reload();
+  }, [reload]);
 
   /**
    * Registra lectura de versículos
@@ -62,17 +64,18 @@ export function useAchievements(database: BibleDatabase | null) {
       }
 
       // Refrescar datos
-      const [updatedAchievements, updatedStats, updatedStreak] = await Promise.all([
-        service.getAllAchievements(),
-        service.getUserStats(),
-        service.getReadingStreak(),
-      ]);
+      const [updatedAchievements, updatedStats, updatedStreak] =
+        await Promise.all([
+          service.getAllAchievements(),
+          service.getUserStats(),
+          service.getReadingStreak(),
+        ]);
 
       setAchievements(updatedAchievements);
       setStats(updatedStats);
       setStreak(updatedStreak);
     },
-    [service]
+    [service],
   );
 
   /**
@@ -115,7 +118,7 @@ export function useAchievements(database: BibleDatabase | null) {
       setAchievements(updatedAchievements);
       setStats(updatedStats);
     },
-    [service]
+    [service],
   );
 
   /**
@@ -171,6 +174,7 @@ export function useAchievements(database: BibleDatabase | null) {
     streak,
     loading,
     newUnlocks,
+    reload,
     trackVersesRead,
     trackChapterCompleted,
     trackBookCompleted,

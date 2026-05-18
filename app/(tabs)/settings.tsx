@@ -98,7 +98,7 @@ export default function SettingsScreen() {
   }
 
   function handleOpenGitHub() {
-    Linking.openURL('https://github.com/VictorVidal7/EternalStoneBibleAppV3');
+    Linking.openURL('https://github.com/VictorVidal7/EternalStoneBibleAppV4');
   }
 
   const themeActiveTextColor = getReadableTextColor(

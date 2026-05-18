@@ -3,7 +3,7 @@
  * Shows all user achievements, progress and statistics
  */
 
-import React, {useState, useMemo} from 'react';
+import React, {useState, useMemo, useCallback} from 'react';
 import {
   View,
   Text,
@@ -13,7 +13,7 @@ import {
   SafeAreaView,
   TouchableOpacity,
 } from 'react-native';
-import {useRouter} from 'expo-router';
+import {useRouter, useFocusEffect} from 'expo-router';
 import {Ionicons} from '@expo/vector-icons';
 import {LinearGradient} from 'expo-linear-gradient';
 import {AchievementCard} from '../components/achievements/AchievementCard';
@@ -33,11 +33,19 @@ interface AchievementsScreenProps {
 export const AchievementsScreen: React.FC<AchievementsScreenProps> = ({
   database,
 }) => {
-  const {achievements, stats, loading, newUnlocks, clearNewUnlocks} =
+  const {achievements, stats, loading, newUnlocks, clearNewUnlocks, reload} =
     useAchievements(database);
   const {colors, isDark, gradient} = useTheme();
   const {t} = useLanguage();
   const router = useRouter();
+
+  // Re-read achievements and stats when the tab regains focus so reading
+  // progress made elsewhere is reflected without an app restart.
+  useFocusEffect(
+    useCallback(() => {
+      reload();
+    }, [reload]),
+  );
 
   const headerGradient = useMemo(
     () =>
