@@ -21,6 +21,7 @@ import {captureRef} from 'react-native-view-shot';
 import bibleDB from '@lib/database';
 import {BibleVerse} from '@/types/bible';
 import {getBookByName} from '@/constants/bible';
+import {HighlightColor} from '@lib/highlights';
 import {useTheme} from '@hooks/useTheme';
 import {useBibleVersion} from '@hooks/useBibleVersion';
 import {useLanguage} from '@hooks/useLanguage';
@@ -128,7 +129,7 @@ export default function VerseReadingScreen() {
   const {selectedVersion} = useBibleVersion();
   const {t, language} = useLanguage();
   const toast = useToast();
-  const {achievementService} = useServices();
+  const {achievementService, highlightService} = useServices();
   const {favorites, addFavorite, removeFavorite} = useFavorites();
   // Audio Bible
   const {
@@ -179,8 +180,15 @@ export default function VerseReadingScreen() {
   const [isSharingImage, setIsSharingImage] = useState(false);
   const [useSerifFont, setUseSerifFont] = useState(true);
   const [immersiveModeActive, setImmersiveModeActive] = useState(false);
+  // Verse highlights: map of verse number -> highlight color (hex).
+  const [verseHighlights, setVerseHighlights] = useState<Map<number, string>>(
+    new Map(),
+  );
+  const [showHighlightPicker, setShowHighlightPicker] = useState(false);
 
   const imagePreviewRef = useRef<any>(null);
+  // Y offset of each verse row within the ScrollView, for audio auto-scroll.
+  const verseOffsetsRef = useRef<Map<number, number>>(new Map());
   const {width: windowWidth} = useWindowDimensions();
   const navSideWidth = Math.min(windowWidth * 0.32, 140);
 
@@ -383,6 +391,79 @@ export default function VerseReadingScreen() {
   // Clear selection
   function clearSelection() {
     setSelectedVerses(new Set());
+    setShowHighlightPicker(false);
+  }
+
+  // Load saved highlights for the current chapter
+  useEffect(() => {
+    let active = true;
+    (async () => {
+      if (!highlightService) return;
+      try {
+        const chapterHighlights = await highlightService.getHighlightsByChapter(
+          book,
+          chapterNum,
+        );
+        if (!active) return;
+        const map = new Map<number, string>();
+        chapterHighlights.forEach(h => map.set(h.verse, h.color));
+        setVerseHighlights(map);
+      } catch {
+        logger.warn('Could not load highlights', {
+          component: 'VerseReadingScreen',
+        });
+      }
+    })();
+    return () => {
+      active = false;
+    };
+  }, [highlightService, book, chapterNum]);
+
+  // Auto-scroll so the verse currently read aloud stays visible
+  useEffect(() => {
+    if (!audioState.isPlaying) return;
+    const verseNum = verses[audioState.currentVerseIndex]?.verse;
+    if (verseNum == null) return;
+    const offset = verseOffsetsRef.current.get(verseNum);
+    if (offset != null && scrollViewRef.current) {
+      scrollViewRef.current.scrollTo({
+        y: Math.max(offset - 140, 0),
+        animated: true,
+      });
+    }
+  }, [audioState.currentVerseIndex, audioState.isPlaying, verses]);
+
+  // Apply or remove a highlight color on the selected verses
+  async function handleApplyHighlight(color: HighlightColor | null) {
+    if (!highlightService || selectedVerses.size === 0) return;
+    await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    const nums = Array.from(selectedVerses);
+    const next = new Map(verseHighlights);
+    try {
+      for (const num of nums) {
+        const verseId = `${book}:${chapterNum}:${num}`;
+        if (color === null) {
+          await highlightService.removeHighlight(verseId);
+          next.delete(num);
+        } else {
+          await highlightService.addHighlight(
+            verseId,
+            book,
+            chapterNum,
+            num,
+            color,
+          );
+          next.set(num, color);
+        }
+      }
+      setVerseHighlights(next);
+    } catch (err) {
+      logger.error('Error applying highlight', err as Error, {
+        component: 'VerseReadingScreen',
+      });
+    }
+    setShowHighlightPicker(false);
+    clearSelection();
   }
 
   // Get selected verses as text
@@ -417,6 +498,18 @@ export default function VerseReadingScreen() {
           `${v.verse}. ${v.text.replace(/^["'«„]/, '').replace(/["'»“]$/, '')}`,
       )
       .join('\n\n');
+  }
+
+  // Reference label for the selected verses, e.g. "John 3:16" or "John 3:16-18"
+  function getSelectedReference(): string {
+    const sortedNums = Array.from(selectedVerses).sort((a, b) => a - b);
+    if (sortedNums.length === 0) {
+      return `${localizedBookName} ${chapterNum}`;
+    }
+    if (sortedNums.length === 1) {
+      return `${localizedBookName} ${chapterNum}:${sortedNums[0]}`;
+    }
+    return `${localizedBookName} ${chapterNum}:${sortedNums[0]}-${sortedNums[sortedNums.length - 1]}`;
   }
 
   // Copy selected verses
@@ -900,19 +993,26 @@ export default function VerseReadingScreen() {
               parseInt(highlightVerse as string) === verse.verse;
             const isBeingRead =
               audioState.isPlaying && audioState.currentVerseIndex === index;
+            const userHighlight = verseHighlights.get(verse.verse);
 
             const textStyle = {
               color: isBeingRead
                 ? '#D4AF37'
-                : isSelected
-                  ? effectiveColors.primaryDark
-                  : effectiveColors.text,
+                : userHighlight
+                  ? '#1A1D2E'
+                  : isSelected
+                    ? effectiveColors.primaryDark
+                    : effectiveColors.text,
               fontSize,
               lineHeight: fontSize * 1.6,
             };
 
             const numberStyle = {
-              color: isBeingRead ? '#D4AF37' : effectiveColors.primary,
+              color: isBeingRead
+                ? '#D4AF37'
+                : userHighlight
+                  ? '#1A1D2E'
+                  : effectiveColors.primary,
             };
 
             return (
@@ -920,11 +1020,21 @@ export default function VerseReadingScreen() {
                 key={verse.verse}
                 activeOpacity={0.7}
                 onPress={() => toggleVerseSelection(verse.verse)}
+                onLayout={e => {
+                  verseOffsetsRef.current.set(
+                    verse.verse,
+                    e.nativeEvent.layout.y,
+                  );
+                }}
                 style={[
                   styles.verseItem,
                   isSelected && styles.verseSelected,
                   isHighlighted && styles.verseHighlighted,
                   isBeingRead && styles.verseBeingRead,
+                  userHighlight && {
+                    backgroundColor: userHighlight,
+                    borderRadius: 10,
+                  },
                 ]}>
                 <View style={styles.verseContent}>
                   <Text style={[styles.verseText, textStyle]}>
@@ -986,129 +1096,172 @@ export default function VerseReadingScreen() {
                 />
               </TouchableOpacity>
             </View>
-            <View style={styles.selectionActions}>
-              <TouchableOpacity
-                style={styles.selectionButton}
-                onPress={handleCopySelected}>
-                <Ionicons
-                  name="copy-outline"
-                  size={22}
-                  color={effectiveColors.primary}
-                />
-                <Text
-                  numberOfLines={1}
-                  adjustsFontSizeToFit
+            {showHighlightPicker ? (
+              <View style={styles.highlightPicker}>
+                {Object.values(HighlightColor).map(c => (
+                  <TouchableOpacity
+                    key={c}
+                    style={[styles.highlightSwatch, {backgroundColor: c}]}
+                    onPress={() => handleApplyHighlight(c)}
+                  />
+                ))}
+                <TouchableOpacity
                   style={[
-                    styles.selectionButtonText,
-                    {color: effectiveColors.text},
-                  ]}>
-                  {t.copy}
-                </Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={styles.selectionButton}
-                onPress={handleShareSelected}>
-                <Ionicons
-                  name="share-outline"
-                  size={22}
-                  color={effectiveColors.primary}
-                />
-                <Text
-                  numberOfLines={1}
-                  adjustsFontSizeToFit
-                  style={[
-                    styles.selectionButtonText,
-                    {color: effectiveColors.text},
-                  ]}>
-                  {t.share}
-                </Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={styles.selectionButton}
-                onPress={handleNoteSelected}>
-                <Ionicons
-                  name="create-outline"
-                  size={22}
-                  color={effectiveColors.primary}
-                />
-                <Text
-                  numberOfLines={1}
-                  adjustsFontSizeToFit
-                  style={[
-                    styles.selectionButtonText,
-                    {color: effectiveColors.text},
-                  ]}>
-                  {t.notes.note}
-                </Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={styles.selectionButton}
-                onPress={handleFavoriteSelected}>
-                <Ionicons
-                  name="heart-outline"
-                  size={20}
-                  color={effectiveColors.primary}
-                />
-                <Text
-                  numberOfLines={1}
-                  adjustsFontSizeToFit
-                  style={[
-                    styles.selectionButtonText,
-                    {color: effectiveColors.text},
-                  ]}>
-                  {t.verse.addFavorite}
-                </Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={styles.selectionButton}
-                onPress={() => {
-                  const sortedNums = Array.from(selectedVerses).sort(
-                    (a, b) => a - b,
-                  );
-                  router.push({
-                    pathname: '/features/version-comparison',
-                    params: {
-                      book,
-                      chapter,
-                      verse: sortedNums[0],
-                    },
-                  });
-                  clearSelection();
-                }}>
-                <Ionicons
-                  name="git-compare-outline"
-                  size={22}
-                  color={effectiveColors.primary}
-                />
-                <Text
-                  numberOfLines={1}
-                  adjustsFontSizeToFit
-                  style={[
-                    styles.selectionButtonText,
-                    {color: effectiveColors.text},
-                  ]}>
-                  {t.verse.compare}
-                </Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={styles.selectionButton}
-                onPress={() => setImageModalVisible(true)}>
-                <Ionicons
-                  name="image-outline"
-                  size={22}
-                  color={effectiveColors.primary}
-                />
-                <Text
-                  numberOfLines={1}
-                  adjustsFontSizeToFit
-                  style={[
-                    styles.selectionButtonText,
-                    {color: effectiveColors.text},
-                  ]}>
-                  {t.verse.image}
-                </Text>
-              </TouchableOpacity>
-            </View>
+                    styles.highlightSwatch,
+                    styles.highlightRemoveSwatch,
+                    {borderColor: effectiveColors.border},
+                  ]}
+                  onPress={() => handleApplyHighlight(null)}>
+                  <Ionicons
+                    name="close"
+                    size={18}
+                    color={effectiveColors.textSecondary}
+                  />
+                </TouchableOpacity>
+              </View>
+            ) : (
+              <View style={styles.selectionActions}>
+                <TouchableOpacity
+                  style={styles.selectionButton}
+                  onPress={handleCopySelected}>
+                  <Ionicons
+                    name="copy-outline"
+                    size={22}
+                    color={effectiveColors.primary}
+                  />
+                  <Text
+                    numberOfLines={1}
+                    adjustsFontSizeToFit
+                    style={[
+                      styles.selectionButtonText,
+                      {color: effectiveColors.text},
+                    ]}>
+                    {t.copy}
+                  </Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={styles.selectionButton}
+                  onPress={handleShareSelected}>
+                  <Ionicons
+                    name="share-outline"
+                    size={22}
+                    color={effectiveColors.primary}
+                  />
+                  <Text
+                    numberOfLines={1}
+                    adjustsFontSizeToFit
+                    style={[
+                      styles.selectionButtonText,
+                      {color: effectiveColors.text},
+                    ]}>
+                    {t.share}
+                  </Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={styles.selectionButton}
+                  onPress={handleNoteSelected}>
+                  <Ionicons
+                    name="create-outline"
+                    size={22}
+                    color={effectiveColors.primary}
+                  />
+                  <Text
+                    numberOfLines={1}
+                    adjustsFontSizeToFit
+                    style={[
+                      styles.selectionButtonText,
+                      {color: effectiveColors.text},
+                    ]}>
+                    {t.notes.note}
+                  </Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={styles.selectionButton}
+                  onPress={handleFavoriteSelected}>
+                  <Ionicons
+                    name="heart-outline"
+                    size={20}
+                    color={effectiveColors.primary}
+                  />
+                  <Text
+                    numberOfLines={1}
+                    adjustsFontSizeToFit
+                    style={[
+                      styles.selectionButtonText,
+                      {color: effectiveColors.text},
+                    ]}>
+                    {t.verse.addFavorite}
+                  </Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={styles.selectionButton}
+                  onPress={() => setShowHighlightPicker(true)}>
+                  <Ionicons
+                    name="color-palette-outline"
+                    size={22}
+                    color={effectiveColors.primary}
+                  />
+                  <Text
+                    numberOfLines={1}
+                    adjustsFontSizeToFit
+                    style={[
+                      styles.selectionButtonText,
+                      {color: effectiveColors.text},
+                    ]}>
+                    {t.verse.highlight}
+                  </Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={styles.selectionButton}
+                  onPress={() => {
+                    const sortedNums = Array.from(selectedVerses).sort(
+                      (a, b) => a - b,
+                    );
+                    router.push({
+                      pathname: '/features/version-comparison',
+                      params: {
+                        book,
+                        chapter,
+                        verse: sortedNums[0],
+                      },
+                    });
+                    clearSelection();
+                  }}>
+                  <Ionicons
+                    name="git-compare-outline"
+                    size={22}
+                    color={effectiveColors.primary}
+                  />
+                  <Text
+                    numberOfLines={1}
+                    adjustsFontSizeToFit
+                    style={[
+                      styles.selectionButtonText,
+                      {color: effectiveColors.text},
+                    ]}>
+                    {t.verse.compare}
+                  </Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={styles.selectionButton}
+                  onPress={() => setImageModalVisible(true)}>
+                  <Ionicons
+                    name="image-outline"
+                    size={22}
+                    color={effectiveColors.primary}
+                  />
+                  <Text
+                    numberOfLines={1}
+                    adjustsFontSizeToFit
+                    style={[
+                      styles.selectionButtonText,
+                      {color: effectiveColors.text},
+                    ]}>
+                    {t.verse.image}
+                  </Text>
+                </TouchableOpacity>
+              </View>
+            )}
           </View>
         )}
 
@@ -1193,7 +1346,7 @@ export default function VerseReadingScreen() {
                       ]}>
                       {selectedVerses.size > 0
                         ? getImageVersesText()
-                        : 'Selecciona versículos primero'}
+                        : t.verse.selectVersesFirst}
                     </Text>
                   </View>
 
@@ -1225,7 +1378,7 @@ export default function VerseReadingScreen() {
                             IMAGE_THEMES[selectedImageThemeIndex].textColor,
                         },
                       ]}>
-                      {book} {chapter}
+                      {getSelectedReference()}
                     </Text>
                   </View>
                 </LinearGradient>
@@ -1234,7 +1387,7 @@ export default function VerseReadingScreen() {
               <View style={styles.imageOptionsContainer}>
                 <Text
                   style={[styles.optionsTitle, {color: colors.textSecondary}]}>
-                  Elige un estilo
+                  {t.verse.imageStyle}
                 </Text>
                 <ScrollView
                   horizontal
@@ -1273,7 +1426,7 @@ export default function VerseReadingScreen() {
                       styles.optionsTitle,
                       {color: colors.textSecondary},
                     ]}>
-                    Tamaño de Fuente
+                    {t.verse.imageFontSize}
                   </Text>
                   <View style={styles.optionsRow}>
                     {[16, 20, 24, 28].map(size => (
@@ -1308,7 +1461,7 @@ export default function VerseReadingScreen() {
                       styles.optionsTitle,
                       {color: colors.textSecondary},
                     ]}>
-                    Alineación
+                    {t.verse.imageAlignment}
                   </Text>
                   <View style={styles.optionsRow}>
                     {(['left', 'center', 'right'] as const).map(align => (
@@ -1349,7 +1502,7 @@ export default function VerseReadingScreen() {
                       styles.optionsTitle,
                       {color: colors.textSecondary},
                     ]}>
-                    Estilo de Fuente
+                    {t.verse.imageFontStyle}
                   </Text>
                   <View style={styles.optionsRow}>
                     <TouchableOpacity
@@ -1655,6 +1808,23 @@ const styles = StyleSheet.create({
     fontSize: 11,
     marginTop: 4,
     fontWeight: '500',
+  },
+  highlightPicker: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    alignItems: 'center',
+    paddingVertical: spacing.xs,
+  },
+  highlightSwatch: {
+    width: 34,
+    height: 34,
+    borderRadius: 17,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  highlightRemoveSwatch: {
+    backgroundColor: 'transparent',
+    borderWidth: 1.5,
   },
 
   // MODAL MEJORADO
