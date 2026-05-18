@@ -85,14 +85,42 @@ export const AchievementsScreen: React.FC<AchievementsScreenProps> = ({
     name: string;
     icon: string;
   }> = [
-    {id: 'all', name: 'All', icon: '📋'},
-    {id: AchievementCategory.READING, name: 'Reading', icon: '📖'},
-    {id: AchievementCategory.STREAK, name: 'Streaks', icon: '🔥'},
-    {id: AchievementCategory.CHAPTERS, name: 'Chapters', icon: '📄'},
-    {id: AchievementCategory.BOOKS, name: 'Books', icon: '📚'},
-    {id: AchievementCategory.HIGHLIGHTS, name: 'Highlights', icon: '🖍️'},
-    {id: AchievementCategory.NOTES, name: 'Notes', icon: '📝'},
-    {id: AchievementCategory.SPECIAL, name: 'Special', icon: '⭐'},
+    {id: 'all', name: t.achievements.filterAll, icon: '📋'},
+    {
+      id: AchievementCategory.READING,
+      name: t.achievements.categories.reading,
+      icon: '📖',
+    },
+    {
+      id: AchievementCategory.STREAK,
+      name: t.achievements.categories.streak,
+      icon: '🔥',
+    },
+    {
+      id: AchievementCategory.CHAPTERS,
+      name: t.achievements.categories.chapters,
+      icon: '📄',
+    },
+    {
+      id: AchievementCategory.BOOKS,
+      name: t.achievements.categories.books,
+      icon: '📚',
+    },
+    {
+      id: AchievementCategory.HIGHLIGHTS,
+      name: t.achievements.categories.highlights,
+      icon: '🖍️',
+    },
+    {
+      id: AchievementCategory.NOTES,
+      name: t.achievements.categories.notes,
+      icon: '📝',
+    },
+    {
+      id: AchievementCategory.SPECIAL,
+      name: t.achievements.categories.special,
+      icon: '⭐',
+    },
   ];
 
   if (loading) {
@@ -249,7 +277,9 @@ export const AchievementsScreen: React.FC<AchievementsScreenProps> = ({
                 </Text>
                 <Text
                   style={[styles.summaryLabel, {color: colors.textSecondary}]}>
-                  {stats.level >= 10 ? '👑 Legend' : 'In progress'}
+                  {stats.level >= 10
+                    ? `👑 ${t.achievements.legend}`
+                    : t.achievements.inProgress}
                 </Text>
               </View>
             </View>
@@ -273,7 +303,7 @@ export const AchievementsScreen: React.FC<AchievementsScreenProps> = ({
             ListEmptyComponent={
               <View style={styles.emptyContainer}>
                 <Text style={[styles.emptyText, {color: colors.textTertiary}]}>
-                  No achievements in this category
+                  {t.achievements.noCategoryAchievements}
                 </Text>
               </View>
             }

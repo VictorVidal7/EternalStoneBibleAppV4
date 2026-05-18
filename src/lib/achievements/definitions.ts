@@ -2,9 +2,13 @@
  * Definitions of all available achievements
  */
 
-import { Achievement, AchievementCategory, AchievementTier } from './types';
+import {Achievement, AchievementCategory, AchievementTier} from './types';
+import type {TranslationKeys} from '../../i18n/translations';
 
-export const ACHIEVEMENT_DEFINITIONS: Omit<Achievement, 'currentProgress' | 'isUnlocked' | 'unlockedAt'>[] = [
+export const ACHIEVEMENT_DEFINITIONS: Omit<
+  Achievement,
+  'currentProgress' | 'isUnlocked' | 'unlockedAt'
+>[] = [
   // READING ACHIEVEMENTS
   {
     id: 'first_verse',
@@ -373,3 +377,32 @@ export const ACHIEVEMENT_DEFINITIONS: Omit<Achievement, 'currentProgress' | 'isU
     tier: AchievementTier.SILVER,
   },
 ];
+
+/**
+ * Resolves an achievement's name and description in the active language.
+ * Falls back to the definition's default (English) text when there is no
+ * translation for that id — so an unknown id never renders blank.
+ */
+export function getLocalizedAchievement(
+  achievement: {
+    id: string;
+    name?: string;
+    title?: string;
+    description: string;
+  },
+  t: TranslationKeys,
+): {name: string; description: string} {
+  const defs = t.achievements.definitions as Record<
+    string,
+    {name: string; description: string} | undefined
+  >;
+  const localized = defs?.[achievement.id];
+  return {
+    name:
+      localized?.name ??
+      achievement.name ??
+      achievement.title ??
+      achievement.id,
+    description: localized?.description ?? achievement.description,
+  };
+}

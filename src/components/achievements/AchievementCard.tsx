@@ -20,7 +20,9 @@ import {
   Achievement as BaseAchievement,
   AchievementTier,
 } from '../../lib/achievements/types';
+import {getLocalizedAchievement} from '../../lib/achievements/definitions';
 import {useTheme} from '../../hooks/useTheme';
+import {useLanguage} from '../../hooks/useLanguage';
 
 // ==================== TYPE COMPATIBILITY ====================
 
@@ -57,21 +59,6 @@ function getAchievementRarity(achievement: AnyAchievement): AchievementRarity {
 }
 
 /**
- * Helper to get title from any achievement type
- */
-function getAchievementTitle(achievement: AnyAchievement): string {
-  // expandedDefinitions uses 'title'
-  if ('title' in achievement && achievement.title) {
-    return achievement.title;
-  }
-  // types.ts uses 'name'
-  if ('name' in achievement && achievement.name) {
-    return achievement.name;
-  }
-  return 'Logro';
-}
-
-/**
  * Helper to check if rarity is high (for glow effects)
  */
 function isHighRarity(rarity: AchievementRarity): boolean {
@@ -104,10 +91,12 @@ export function AchievementCard({
   compact = false,
 }: AchievementCardProps) {
   const {isDark, colors} = useTheme();
+  const {t} = useLanguage();
 
   // Get normalized values that work with both achievement types
   const rarity = getAchievementRarity(achievement);
-  const title = getAchievementTitle(achievement);
+  const localized = getLocalizedAchievement(achievement, t);
+  const title = localized.name;
   const reward = getAchievementReward(achievement);
 
   // Get rarity info and colors (now safe since rarity is guaranteed)
@@ -178,7 +167,7 @@ export function AchievementCard({
               },
             ]}>
             <Text style={[styles.rarityText, {color: rarityInfo.color}]}>
-              {rarityInfo.label}
+              {t.achievements.rarities[rarity]}
             </Text>
           </View>
         </View>
@@ -188,7 +177,7 @@ export function AchievementCard({
           <Text
             style={[styles.description, {color: colors.textSecondary}]}
             numberOfLines={2}>
-            {achievement.description}
+            {localized.description}
           </Text>
         )}
 
