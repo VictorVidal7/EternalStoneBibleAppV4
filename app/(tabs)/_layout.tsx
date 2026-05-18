@@ -142,6 +142,19 @@ export default function TabLayout() {
       />
 
       <Tabs.Screen
+        name="highlights"
+        options={{
+          href: null,
+          title: t.highlights.title,
+          headerShown: false,
+          tabBarIcon: ({color, size}) => (
+            <Ionicons name="color-palette" size={size} color={color} />
+          ),
+          headerTitle: t.highlights.title,
+        }}
+      />
+
+      <Tabs.Screen
         name="chapter/[book]"
         options={{
           href: null,
@@ -151,6 +164,14 @@ export default function TabLayout() {
 
       <Tabs.Screen
         name="verse/[book]/[chapter]"
+        options={{
+          href: null,
+          headerShown: false,
+        }}
+      />
+
+      <Tabs.Screen
+        name="plan/[id]"
         options={{
           href: null,
           headerShown: false,

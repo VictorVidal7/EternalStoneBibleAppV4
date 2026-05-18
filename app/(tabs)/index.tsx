@@ -42,6 +42,7 @@ import {useLanguage} from '@hooks/useLanguage';
 import ShareService from '@/services/ShareService';
 import {logger} from '@lib/utils/logger';
 import {useReadingProgress} from '@context/ReadingProgressContext';
+import {useReadingPlanProgress} from '@context/ReadingPlanProgressContext';
 import {useFavorites} from '@context/FavoritesContext';
 
 // Componentes Celestial
@@ -67,7 +68,7 @@ const {width: SCREEN_WIDTH} = Dimensions.get('window');
 const CONTENT_HORIZONTAL_PADDING = 20;
 const SAVED_CARD_GAP = 12;
 const SAVED_CARD_WIDTH =
-  (SCREEN_WIDTH - CONTENT_HORIZONTAL_PADDING * 2 - SAVED_CARD_GAP) / 2;
+  (SCREEN_WIDTH - CONTENT_HORIZONTAL_PADDING * 2 - SAVED_CARD_GAP * 2) / 3;
 
 export default function HomeScreen() {
   const router = useRouter();
@@ -82,9 +83,14 @@ export default function HomeScreen() {
     info: colors.info,
   });
   const {selectedVersion} = useBibleVersion();
-  const {achievementService, initialized: servicesInitialized} = useServices();
+  const {
+    achievementService,
+    highlightService,
+    initialized: servicesInitialized,
+  } = useServices();
   const {t} = useLanguage();
   const {getChapterProgress} = useReadingProgress();
+  const {getCompletedDays} = useReadingPlanProgress();
   const {addFavorite, isFavorite, favorites} = useFavorites();
   const progressTrackColor = isDark
     ? 'transparent'
@@ -98,6 +104,7 @@ export default function HomeScreen() {
   const [savedCounts, setSavedCounts] = useState({
     favorites: 0,
     notes: 0,
+    highlights: 0,
   });
   const [userStats, setUserStats] = useState({
     progress: 0,
@@ -157,19 +164,26 @@ export default function HomeScreen() {
       await bibleDB.initialize();
 
       const dailyRef = getDailyVerseRef();
-      const [verse, progress, favoritesCount, notesCount] = await Promise.all([
-        bibleDB
-          .getVerse(
-            dailyRef.book,
-            dailyRef.chapter,
-            dailyRef.verse,
-            selectedVersion.id,
-          )
-          .catch(() => null),
-        bibleDB.getReadingProgress(),
-        bibleDB.getFavoritesCount().catch(() => 0),
-        bibleDB.getNotesCount().catch(() => 0),
-      ]);
+      const [verse, progress, favoritesCount, notesCount, highlightsCount] =
+        await Promise.all([
+          bibleDB
+            .getVerse(
+              dailyRef.book,
+              dailyRef.chapter,
+              dailyRef.verse,
+              selectedVersion.id,
+            )
+            .catch(() => null),
+          bibleDB.getReadingProgress(),
+          bibleDB.getFavoritesCount().catch(() => 0),
+          bibleDB.getNotesCount().catch(() => 0),
+          highlightService
+            ? highlightService
+                .getAllHighlights()
+                .then(h => h.length)
+                .catch(() => 0)
+            : Promise.resolve(0),
+        ]);
 
       // Curated verse of the day — deterministic by calendar day, so it is
       // the same for everyone and never changes mid-day. Fall back to a
@@ -184,6 +198,7 @@ export default function HomeScreen() {
       setSavedCounts({
         favorites: favoritesCount,
         notes: notesCount,
+        highlights: highlightsCount,
       });
 
       // Get chapter progress if available
@@ -559,31 +574,30 @@ export default function HomeScreen() {
             horizontal
             showsHorizontalScrollIndicator={false}
             contentContainerStyle={styles.plansScroll}>
-            {READING_PLANS.slice(0, 3).map(plan => (
-              <ReadingPlanCard
-                key={plan.id}
-                name={plan.name}
-                description={plan.description}
-                subtitle={t.home.planDays.replace(
-                  '{{days}}',
-                  plan.duration.toString(),
-                )}
-                icon="book-outline"
-                duration={plan.duration}
-                // Reading-plan progress is not tracked yet, so every plan
-                // honestly starts at 0 instead of showing a fake number.
-                daysCompleted={0}
-                onPress={() =>
-                  handlePress(() =>
-                    router.push(
-                      `/chapter/${plan.days[0].readings[0].book}` as any,
-                    ),
-                  )
-                }
-                continueText={t.home.start}
-                isDark={isDark}
-              />
-            ))}
+            {READING_PLANS.slice(0, 3).map(plan => {
+              const planDaysDone = getCompletedDays(plan.id).length;
+              return (
+                <ReadingPlanCard
+                  key={plan.id}
+                  name={plan.name}
+                  description={plan.description}
+                  subtitle={t.home.planDays.replace(
+                    '{{days}}',
+                    plan.duration.toString(),
+                  )}
+                  icon="book-outline"
+                  duration={plan.duration}
+                  daysCompleted={planDaysDone}
+                  onPress={() =>
+                    handlePress(() => router.push(`/plan/${plan.id}` as any))
+                  }
+                  continueText={
+                    planDaysDone > 0 ? t.home.continue : t.home.start
+                  }
+                  isDark={isDark}
+                />
+              );
+            })}
           </ScrollView>
         </Animated.View>
 
@@ -799,6 +813,72 @@ export default function HomeScreen() {
                   numberOfLines={1}
                   ellipsizeMode="tail">
                   {t.tabs.notes}
+                </Text>
+              </BlurView>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              activeOpacity={0.9}
+              style={styles.savedCardWrapper}
+              onPress={() =>
+                handlePress(() => router.push('/(tabs)/highlights' as any))
+              }>
+              <BlurView
+                intensity={isDark ? 28 : 48}
+                tint={isDark ? 'dark' : 'light'}
+                style={[
+                  styles.savedCard,
+                  {
+                    backgroundColor: celestialTheme.colors.surfaceGlass,
+                    borderColor: celestialTheme.colors.glassBorder,
+                  },
+                  celestialTheme.shadows.md,
+                ]}>
+                <View style={styles.savedCardHeader}>
+                  <View
+                    style={[
+                      styles.savedIcon,
+                      {
+                        backgroundColor: withOpacity(
+                          colors.info,
+                          isDark ? 0.2 : 0.12,
+                        ),
+                      },
+                    ]}>
+                    <Ionicons
+                      name="color-palette"
+                      size={20}
+                      color={colors.info}
+                    />
+                  </View>
+                  <View style={styles.savedMeta}>
+                    <View
+                      style={[
+                        styles.savedBadge,
+                        {
+                          backgroundColor: withOpacity(
+                            colors.info,
+                            isDark ? 0.18 : 0.12,
+                          ),
+                        },
+                      ]}>
+                      <Text
+                        style={[styles.savedBadgeText, {color: colors.info}]}>
+                        {formatSavedCount(savedCounts.highlights)}
+                      </Text>
+                    </View>
+                    <Ionicons
+                      name="chevron-forward"
+                      size={18}
+                      color={colors.textTertiary}
+                    />
+                  </View>
+                </View>
+                <Text
+                  style={[styles.savedLabel, {color: colors.text}]}
+                  numberOfLines={1}
+                  ellipsizeMode="tail">
+                  {t.highlights.short}
                 </Text>
               </BlurView>
             </TouchableOpacity>

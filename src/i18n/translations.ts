@@ -203,6 +203,33 @@ export const translations = {
       countLabel: 'Notas guardadas',
     },
 
+    // My Highlights Screen
+    highlights: {
+      title: 'Mis Resaltados',
+      short: 'Resaltados',
+      count: '{{count}} versículos resaltados',
+      empty: 'Aún no tienes resaltados',
+      emptyHint: 'Selecciona versículos al leer y toca Resaltar',
+      all: 'Todos',
+      deleteTitle: 'Eliminar resaltado',
+      deleteMessage: '¿Quieres quitar este resaltado?',
+      removed: 'Resaltado eliminado',
+      saved: 'Resaltado actualizado',
+      notePlaceholder: 'Añade una nota personal...',
+      category: 'Categoría',
+      save: 'Guardar',
+      categories: {
+        promise: 'Promesa',
+        prayer: 'Oración',
+        commandment: 'Mandamiento',
+        wisdom: 'Sabiduría',
+        prophecy: 'Profecía',
+        favorite: 'Favorito',
+        memorize: 'Memorizar',
+        study: 'Estudio',
+      },
+    },
+
     // Settings Screen
     settings: {
       title: 'Configuración',
@@ -338,6 +365,7 @@ export const translations = {
       durationText: 'Duración',
       progress: 'Progreso',
       daysCompleted: 'días completados',
+      dayLabel: 'Día',
       continueReading: 'Continuar Lectura',
       startPlan: 'Comenzar Plan',
       startContinueHint: 'Toca para comenzar o continuar tu plan de lectura',
@@ -1015,6 +1043,33 @@ export const translations = {
       countLabel: 'Notes saved',
     },
 
+    // My Highlights Screen
+    highlights: {
+      title: 'My Highlights',
+      short: 'Highlights',
+      count: '{{count}} highlighted verses',
+      empty: 'No highlights yet',
+      emptyHint: 'Select verses while reading and tap Highlight',
+      all: 'All',
+      deleteTitle: 'Remove highlight',
+      deleteMessage: 'Remove this highlight?',
+      removed: 'Highlight removed',
+      saved: 'Highlight updated',
+      notePlaceholder: 'Add a personal note...',
+      category: 'Category',
+      save: 'Save',
+      categories: {
+        promise: 'Promise',
+        prayer: 'Prayer',
+        commandment: 'Commandment',
+        wisdom: 'Wisdom',
+        prophecy: 'Prophecy',
+        favorite: 'Favorite',
+        memorize: 'Memorize',
+        study: 'Study',
+      },
+    },
+
     // Settings Screen
     settings: {
       title: 'Settings',
@@ -1148,6 +1203,7 @@ export const translations = {
       durationText: 'Duration',
       progress: 'Progress',
       daysCompleted: 'days completed',
+      dayLabel: 'Day',
       continueReading: 'Continue Reading',
       startPlan: 'Start Plan',
       startContinueHint: 'Tap to start or continue your reading plan',
