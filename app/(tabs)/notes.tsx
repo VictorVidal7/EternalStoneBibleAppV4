@@ -16,6 +16,7 @@ import {useTheme} from '@hooks/useTheme';
 import {useLanguage} from '@hooks/useLanguage';
 import {IllustratedEmptyState} from '@components/IllustratedEmptyState';
 import {logger} from '@lib/utils/logger';
+import {getBookByName} from '@/constants/bible';
 
 export default function NotesScreen() {
   const router = useRouter();
@@ -72,6 +73,14 @@ export default function NotesScreen() {
     );
   }
 
+  // El nombre del libro se guarda en el idioma activo al crear la nota;
+  // se relocaliza para que la referencia siga al idioma de la app.
+  function localizeBook(book: string): string {
+    const info = getBookByName(book);
+    if (!info) return book;
+    return language === 'en' ? info.nameEn : info.name;
+  }
+
   if (loading) {
     return (
       <View style={[styles.container, {backgroundColor: colors.background}]} />
@@ -104,7 +113,10 @@ export default function NotesScreen() {
               {t.tabs.notes}
             </Text>
             <Text style={styles.headerSubtitle}>
-              {notes.length} {t.notes.countLabel || 'Notas guardadas'}
+              {notes.length}{' '}
+              {notes.length === 1
+                ? t.notes.countLabelSingular
+                : t.notes.countLabel}
             </Text>
           </View>
         </View>
@@ -133,7 +145,7 @@ export default function NotesScreen() {
 
               <View style={styles.noteHeaderText}>
                 <Text style={[styles.noteReference, {color: colors.success}]}>
-                  {item.book} {item.chapter}:{item.verse}
+                  {localizeBook(item.book)} {item.chapter}:{item.verse}
                 </Text>
                 <Text style={[styles.noteDate, {color: colors.textSecondary}]}>
                   {new Date(item.updatedAt).toLocaleDateString(
