@@ -71,7 +71,7 @@ export const MiniAudioPlayer: React.FC<MiniAudioPlayerProps> = ({
   bottomOffset = 0,
 }) => {
   const {colors, isDark} = useTheme();
-  const {language} = useLanguage();
+  const {language, t} = useLanguage();
   const insets = useSafeAreaInsets();
   const [sleepTimerModalVisible, setSleepTimerModalVisible] = useState(false);
 
@@ -482,7 +482,9 @@ export const MiniAudioPlayer: React.FC<MiniAudioPlayerProps> = ({
                           : colors.surfaceVariant,
                       },
                     ]}
-                    onPress={() => setSleepTimerModalVisible(true)}>
+                    onPress={() => setSleepTimerModalVisible(true)}
+                    accessibilityRole="button"
+                    accessibilityLabel={t.audio.sleepTimer.openTimer}>
                     <Ionicons
                       name="moon"
                       size={16}

@@ -55,5 +55,4 @@ export {
   PLAYER_DIMENSIONS,
   AUDIO_STORAGE_KEYS,
   AUDIO_ICONS,
-  AUDIO_A11Y_LABELS,
 } from './constants/audioConstants';

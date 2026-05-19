@@ -442,48 +442,67 @@ export default function HomeScreen() {
         </Animated.View>
 
         {/* ==================== VERSE OF THE DAY ==================== */}
-        {dailyVerse && (
-          <Animated.View
-            style={{opacity: fadeAnim, marginTop: celestialSpacing.cardGap}}>
-            <ShimmerCard glowColor={colors.primary}>
-              <VerseOfDayCard
-                verseText={dailyVerse.text}
-                reference={`${dailyVerse.book} ${dailyVerse.chapter}:${dailyVerse.verse}`}
-                title={t.home.dailyVerse}
-                isDark={isDark}
-                onPress={() =>
-                  handlePress(() =>
-                    router.push(
-                      `/verse/${dailyVerse.book}/${dailyVerse.chapter}` as any,
-                    ),
-                  )
-                }
-                onShare={async () => {
-                  if (dailyVerse) {
-                    const reference = `${dailyVerse.book} ${dailyVerse.chapter}:${dailyVerse.verse}`;
-                    await ShareService.shareVerse(dailyVerse, reference);
-                  }
-                }}
-                onFavorite={async () => {
-                  if (dailyVerse) {
-                    const alreadyFavorite = isFavorite(
-                      dailyVerse.book,
-                      dailyVerse.chapter,
-                      dailyVerse.verse,
-                    );
-
-                    if (!alreadyFavorite) {
-                      await addFavorite(dailyVerse, 'worship', 5);
-                      await Haptics.notificationAsync(
-                        Haptics.NotificationFeedbackType.Success,
-                      );
+        {dailyVerse &&
+          (() => {
+            // The stored book name reflects the Bible-version language (Spanish
+            // for RVR1960, English for KJV). Localize the reference to match
+            // the UI language so the card reads naturally regardless of which
+            // version is active, mirroring "Continue Reading" above.
+            const verseBookInfo = getBookByName(dailyVerse.book);
+            const verseBookName = verseBookInfo
+              ? language === 'en'
+                ? verseBookInfo.nameEn
+                : verseBookInfo.name
+              : dailyVerse.book;
+            const verseReference = `${verseBookName} ${dailyVerse.chapter}:${dailyVerse.verse}`;
+            return (
+              <Animated.View
+                style={{
+                  opacity: fadeAnim,
+                  marginTop: celestialSpacing.cardGap,
+                }}>
+                <ShimmerCard glowColor={colors.primary}>
+                  <VerseOfDayCard
+                    verseText={dailyVerse.text}
+                    reference={verseReference}
+                    title={t.home.dailyVerse}
+                    isDark={isDark}
+                    onPress={() =>
+                      handlePress(() =>
+                        router.push(
+                          `/verse/${dailyVerse.book}/${dailyVerse.chapter}` as any,
+                        ),
+                      )
                     }
-                  }
-                }}
-              />
-            </ShimmerCard>
-          </Animated.View>
-        )}
+                    onShare={async () => {
+                      if (dailyVerse) {
+                        await ShareService.shareVerse(
+                          dailyVerse,
+                          verseReference,
+                        );
+                      }
+                    }}
+                    onFavorite={async () => {
+                      if (dailyVerse) {
+                        const alreadyFavorite = isFavorite(
+                          dailyVerse.book,
+                          dailyVerse.chapter,
+                          dailyVerse.verse,
+                        );
+
+                        if (!alreadyFavorite) {
+                          await addFavorite(dailyVerse, 'worship', 5);
+                          await Haptics.notificationAsync(
+                            Haptics.NotificationFeedbackType.Success,
+                          );
+                        }
+                      }
+                    }}
+                  />
+                </ShimmerCard>
+              </Animated.View>
+            );
+          })()}
 
         {/* ==================== CONTINUE READING (Compact) ==================== */}
         {lastRead && (

@@ -336,6 +336,32 @@ export const translations = {
       nextVerse: 'Versículo siguiente',
     },
 
+    // Audio Player
+    audio: {
+      sleepTimer: {
+        title: 'Temporizador de sueño',
+        openTimer: 'Abrir temporizador de sueño',
+        stopAt: 'Detener audio en:',
+        minutesShort: '{{n}} min',
+        hour1: '1 hora',
+        endOfChapterTitle: 'Fin del capítulo',
+        endOfChapterSubtitle: 'Detener al terminar el capítulo actual',
+        endOfChapterStatus: 'Se detendrá al terminar el capítulo',
+        lessThanOne: 'Menos de 1 minuto',
+        oneRemaining: '1 minuto restante',
+        minutesRemaining: '{{n}} minutos restantes',
+        info: 'El audio se detendrá automáticamente cuando termine el tiempo seleccionado',
+        cancel: 'Cancelar',
+      },
+      a11y: {
+        play: 'Reproducir audio',
+        pause: 'Pausar audio',
+        nextVerse: 'Versículo siguiente',
+        previousVerse: 'Versículo anterior',
+        speed: 'Velocidad de reproducción',
+      },
+    },
+
     // Reading Plans
     readingPlans: {
       days: 'días',
@@ -1394,6 +1420,32 @@ export const translations = {
       decreaseFontSize: 'Decrease font size',
       previousVerse: 'Previous verse',
       nextVerse: 'Next verse',
+    },
+
+    // Audio Player
+    audio: {
+      sleepTimer: {
+        title: 'Sleep timer',
+        openTimer: 'Open sleep timer',
+        stopAt: 'Stop audio in:',
+        minutesShort: '{{n}} min',
+        hour1: '1 hour',
+        endOfChapterTitle: 'End of chapter',
+        endOfChapterSubtitle: 'Stop when the current chapter ends',
+        endOfChapterStatus: 'Will stop at the end of the chapter',
+        lessThanOne: 'Less than 1 minute',
+        oneRemaining: '1 minute remaining',
+        minutesRemaining: '{{n}} minutes remaining',
+        info: 'Audio will stop automatically when the selected time ends',
+        cancel: 'Cancel',
+      },
+      a11y: {
+        play: 'Play audio',
+        pause: 'Pause audio',
+        nextVerse: 'Next verse',
+        previousVerse: 'Previous verse',
+        speed: 'Playback speed',
+      },
     },
 
     // Reading Plans

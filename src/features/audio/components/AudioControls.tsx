@@ -19,9 +19,9 @@ import Animated, {
 import {Ionicons} from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
 import {useTheme} from '../../../hooks/useTheme';
+import {useLanguage} from '../../../hooks/useLanguage';
 import {
   AUDIO_ICONS,
-  AUDIO_A11Y_LABELS,
   AUDIO_CONTROL_SIZES,
   AUDIO_CONTROL_GAP,
 } from '../constants/audioConstants';
@@ -52,6 +52,8 @@ export const AudioControls: React.FC<AudioControlsProps> = ({
   onPrevious,
 }) => {
   const {colors} = useTheme();
+  const {t} = useLanguage();
+  const a11y = t.audio.a11y;
   const sizeConfig = AUDIO_CONTROL_SIZES[size];
 
   // Animation values
@@ -119,7 +121,7 @@ export const AudioControls: React.FC<AudioControlsProps> = ({
           ]}
           onPress={handlePrevious}
           disabled={!canGoPrevious}
-          accessibilityLabel={AUDIO_A11Y_LABELS.previousVerse}
+          accessibilityLabel={a11y.previousVerse}
           accessibilityRole="button">
           <Ionicons
             name={AUDIO_ICONS.previous}
@@ -129,7 +131,7 @@ export const AudioControls: React.FC<AudioControlsProps> = ({
         </AnimatedTouchable>
         {showLabels && (
           <Text style={[styles.buttonLabel, {color: colors.textSecondary}]}>
-            Anterior
+            {t.previous}
           </Text>
         )}
       </View>
@@ -149,9 +151,7 @@ export const AudioControls: React.FC<AudioControlsProps> = ({
           ]}
           onPress={handlePlayPause}
           disabled={isLoading}
-          accessibilityLabel={
-            isPlaying ? AUDIO_A11Y_LABELS.pause : AUDIO_A11Y_LABELS.play
-          }
+          accessibilityLabel={isPlaying ? a11y.pause : a11y.play}
           accessibilityRole="button">
           {isLoading ? (
             <Ionicons
@@ -169,7 +169,7 @@ export const AudioControls: React.FC<AudioControlsProps> = ({
         </AnimatedTouchable>
         {showLabels && (
           <Text style={[styles.buttonLabel, {color: colors.textSecondary}]}>
-            {isPlaying ? 'Pausar' : 'Reproducir'}
+            {isPlaying ? t.verse.pause : t.verse.audio}
           </Text>
         )}
       </View>
@@ -190,7 +190,7 @@ export const AudioControls: React.FC<AudioControlsProps> = ({
           ]}
           onPress={handleNext}
           disabled={!canGoNext}
-          accessibilityLabel={AUDIO_A11Y_LABELS.nextVerse}
+          accessibilityLabel={a11y.nextVerse}
           accessibilityRole="button">
           <Ionicons
             name={AUDIO_ICONS.next}
@@ -200,7 +200,7 @@ export const AudioControls: React.FC<AudioControlsProps> = ({
         </AnimatedTouchable>
         {showLabels && (
           <Text style={[styles.buttonLabel, {color: colors.textSecondary}]}>
-            Siguiente
+            {t.next}
           </Text>
         )}
       </View>

@@ -14,6 +14,7 @@ import {LinearGradient} from 'expo-linear-gradient';
 import {useDebouncedCallback} from 'use-debounce';
 import bibleDB from '@lib/database';
 import {BibleVerse} from '@/types/bible';
+import {getBookByName} from '@/constants/bible';
 import {useTheme, ThemeColors} from '@hooks/useTheme';
 import {useBibleVersion} from '@hooks/useBibleVersion';
 import {useLanguage} from '@hooks/useLanguage';
@@ -25,49 +26,6 @@ type TestamentFilter = 'all' | 'old' | 'new';
 // Tope de filas que devuelve searchVerses; al alcanzarlo el conteo se muestra
 // como "200+" porque puede haber más resultados sin cargar.
 const SEARCH_RESULT_LIMIT = 200;
-
-// Libros del Antiguo Testamento (1-39)
-const OLD_TESTAMENT_BOOKS = [
-  'Génesis',
-  'Éxodo',
-  'Levítico',
-  'Números',
-  'Deuteronomio',
-  'Josué',
-  'Jueces',
-  'Rut',
-  '1 Samuel',
-  '2 Samuel',
-  '1 Reyes',
-  '2 Reyes',
-  '1 Crónicas',
-  '2 Crónicas',
-  'Esdras',
-  'Nehemías',
-  'Ester',
-  'Job',
-  'Salmos',
-  'Proverbios',
-  'Eclesiastés',
-  'Cantares',
-  'Isaías',
-  'Jeremías',
-  'Lamentaciones',
-  'Ezequiel',
-  'Daniel',
-  'Oseas',
-  'Joel',
-  'Amós',
-  'Abdías',
-  'Jonás',
-  'Miqueas',
-  'Nahúm',
-  'Habacuc',
-  'Sofonías',
-  'Hageo',
-  'Zacarías',
-  'Malaquías',
-];
 
 /**
  * Create themed styles for the search screen
@@ -349,12 +307,18 @@ export default function SearchScreen() {
     (verses: BibleVerse[], filter: TestamentFilter) => {
       if (filter === 'all') return verses;
 
-      if (filter === 'old') {
-        return verses.filter(v => OLD_TESTAMENT_BOOKS.includes(v.book));
-      }
-
-      // Nuevo Testamento
-      return verses.filter(v => !OLD_TESTAMENT_BOOKS.includes(v.book));
+      // The stored book name on each verse reflects the Bible-version
+      // language (Spanish for RVR1960, English for KJV). `getBookByName`
+      // matches either, so the OT/NT split stays correct across versions
+      // — an older Spanish-string allowlist silently dropped most OT books
+      // whenever the active version was KJV.
+      const wantOld = filter === 'old';
+      return verses.filter(v => {
+        const info = getBookByName(v.book);
+        // Unknown books fall into NT by default so they remain searchable.
+        const isOld = info?.testament === 'old';
+        return wantOld ? isOld : !isOld;
+      });
     },
     [],
   );
