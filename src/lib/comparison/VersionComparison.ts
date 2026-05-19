@@ -9,6 +9,7 @@
 
 import * as SQLite from 'expo-sqlite';
 import bibleDB from '../database';
+import type {TranslationKeys} from '../../i18n/translations';
 
 export interface BibleVersion {
   id: string;
@@ -393,11 +394,14 @@ class VersionComparisonService {
   /**
    * Analiza diferencias entre versiones de un verso
    */
-  analyzeComparison(comparison: VerseComparison): ComparisonAnalysis {
+  analyzeComparison(
+    comparison: VerseComparison,
+    t: TranslationKeys,
+  ): ComparisonAnalysis {
     const {versions} = comparison;
 
     if (versions.length < 2) {
-      throw new Error('Se necesitan al menos 2 versiones para comparar');
+      throw new Error(t.versionComparison.minVersionsError);
     }
 
     // Base version (primera en la lista)
@@ -479,11 +483,11 @@ class VersionComparisonService {
     const insights: string[] = [];
 
     if (similarity >= 90) {
-      insights.push('Las versiones son muy similares en este verso');
+      insights.push(t.versionComparison.insightVerySimilar);
     } else if (similarity >= 70) {
-      insights.push('Las versiones tienen diferencias menores');
+      insights.push(t.versionComparison.insightMinorDiff);
     } else {
-      insights.push('Las versiones tienen diferencias significativas');
+      insights.push(t.versionComparison.insightSignificantDiff);
     }
 
     const wordCountDiff =
@@ -491,12 +495,20 @@ class VersionComparisonService {
       Math.min(...versions.map(v => v.wordCount));
     if (wordCountDiff > 5) {
       insights.push(
-        `Diferencia de ${wordCountDiff} palabras entre la versión más corta y más larga`,
+        t.versionComparison.insightWordDiff.replace(
+          '{{count}}',
+          String(wordCountDiff),
+        ),
       );
     }
 
     if (uniqueWords.size > 10) {
-      insights.push(`${uniqueWords.size} palabras únicas encontradas`);
+      insights.push(
+        t.versionComparison.insightUniqueWords.replace(
+          '{{count}}',
+          String(uniqueWords.size),
+        ),
+      );
     }
 
     return {

@@ -55,7 +55,7 @@ export const SaveComparisonDialog: React.FC<SaveComparisonDialogProps> = ({
           <View style={styles.modalHeader}>
             <Text style={[styles.modalTitle, {color: colors.text}]}>
               {isEditing
-                ? 'Editar Comparación'
+                ? t.versionComparison.editComparison
                 : t.versionComparison.saveComparison}
             </Text>
             <TouchableOpacity onPress={onClose}>
@@ -110,7 +110,9 @@ export const SaveComparisonDialog: React.FC<SaveComparisonDialogProps> = ({
               ]}
               onPress={handleSave}>
               <Text style={styles.saveButtonText}>
-                {isEditing ? 'Actualizar' : 'Guardar'}
+                {isEditing
+                  ? t.versionComparison.update
+                  : t.versionComparison.save}
               </Text>
             </TouchableOpacity>
           </View>

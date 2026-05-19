@@ -24,6 +24,7 @@ import {SaveComparisonDialog} from '../components/comparison/SaveComparisonDialo
 import {useTheme} from '../hooks/useTheme';
 import {useLanguage} from '../hooks/useLanguage';
 import {useToast} from '../context/ToastContext';
+import {getBookByName} from '../constants/bible';
 import {
   versionComparisonService,
   BibleVersion,
@@ -43,7 +44,7 @@ export const VersionComparisonScreen: React.FC<
 > = ({book, chapter, initialVerse = 1, userId}) => {
   const router = useRouter();
   const {colors} = useTheme();
-  const {t} = useLanguage();
+  const {t, language} = useLanguage();
   const toast = useToast();
 
   // State
@@ -137,8 +138,10 @@ export const VersionComparisonScreen: React.FC<
         setComparison(comp);
 
         if (comp.versions.length >= 2) {
-          const analysisResult =
-            versionComparisonService.analyzeComparison(comp);
+          const analysisResult = versionComparisonService.analyzeComparison(
+            comp,
+            t,
+          );
           setAnalysis(analysisResult);
         }
       }
@@ -158,7 +161,7 @@ export const VersionComparisonScreen: React.FC<
       if (selectedVersions.length < 4) {
         setSelectedVersions([...selectedVersions, versionId]);
       } else {
-        toast.warning('Solo puedes comparar hasta 4 versiones simultáneamente');
+        toast.warning(t.versionComparison.maxVersionsWarning);
       }
     }
   };
@@ -170,13 +173,13 @@ export const VersionComparisonScreen: React.FC<
       setSavedComparisons(comparisons);
     } catch (error) {
       console.error('Error loading saved comparisons:', error);
-      toast.error('No se pudieron cargar las comparaciones guardadas');
+      toast.error(t.versionComparison.loadComparisonsError);
     }
   };
 
   const handleSaveComparison = async (name: string, notes: string) => {
     if (!name.trim()) {
-      toast.warning('Por favor ingresa un nombre para la comparación');
+      toast.warning(t.versionComparison.nameRequired);
       return;
     }
 
@@ -188,7 +191,7 @@ export const VersionComparisonScreen: React.FC<
           name,
           notes,
         );
-        toast.success('Comparación actualizada correctamente');
+        toast.success(t.versionComparison.updateSuccess);
       } else {
         // Crear nueva
         const versesRange =
@@ -211,7 +214,7 @@ export const VersionComparisonScreen: React.FC<
       closeSaveDialog();
       loadSavedComparisons();
     } catch {
-      toast.error('No se pudo guardar la comparación');
+      toast.error(t.versionComparison.saveError);
     }
   };
 
@@ -230,7 +233,7 @@ export const VersionComparisonScreen: React.FC<
   const handleLoadComparison = (comp: SavedComparison) => {
     try {
       if (!comp) {
-        throw new Error('Datos de comparación inválidos');
+        throw new Error(t.versionComparison.invalidData);
       }
 
       // El servicio mapea los campos a camelCase
@@ -243,7 +246,7 @@ export const VersionComparisonScreen: React.FC<
         !versionIds ||
         (Array.isArray(versionIds) && versionIds.length === 0)
       ) {
-        throw new Error('No hay versiones seleccionadas en esta comparación');
+        throw new Error(t.versionComparison.noVersionsSelected);
       }
 
       let finalVersionIds: string[] = [];
@@ -258,7 +261,7 @@ export const VersionComparisonScreen: React.FC<
       }
 
       if (finalVersionIds.length === 0) {
-        throw new Error('La comparación no contiene versiones válidas');
+        throw new Error(t.versionComparison.noValidVersions);
       }
 
       setSelectedVersions(finalVersionIds);
@@ -287,30 +290,35 @@ export const VersionComparisonScreen: React.FC<
       }
 
       setShowSavedComparisons(false);
-      toast.info(`Cargada: ${comp.name || 'Comparación'}`);
+      toast.info(
+        t.versionComparison.loadedComparison.replace(
+          '{{name}}',
+          comp.name || t.versionComparison.untitledComparison,
+        ),
+      );
     } catch (error: any) {
       console.error('Error loading comparison:', error);
-      toast.error(error.message || 'Error al cargar la comparación');
+      toast.error(error.message || t.versionComparison.loadError);
       setShowSavedComparisons(false);
     }
   };
 
   const handleDeleteComparison = async (comparisonId: string) => {
     Alert.alert(
-      'Eliminar comparación',
-      '¿Estás seguro de que deseas eliminar esta comparación?',
+      t.versionComparison.deleteTitle,
+      t.versionComparison.deleteConfirm,
       [
-        {text: 'Cancelar', style: 'cancel'},
+        {text: t.versionComparison.cancel, style: 'cancel'},
         {
-          text: 'Eliminar',
+          text: t.versionComparison.delete,
           style: 'destructive',
           onPress: async () => {
             try {
               await versionComparisonService.deleteComparison(comparisonId);
               await loadSavedComparisons();
-              toast.success('Comparación eliminada');
+              toast.success(t.versionComparison.deleteSuccess);
             } catch {
-              toast.error('No se pudo eliminar la comparación');
+              toast.error(t.versionComparison.deleteError);
             }
           },
         },
@@ -327,6 +335,14 @@ export const VersionComparisonScreen: React.FC<
     ];
     return versionColors[index % versionColors.length];
   };
+
+  // Localize the book name in the reference so it matches the app language.
+  const bookInfo = getBookByName(book);
+  const localizedBook = bookInfo
+    ? language === 'en'
+      ? bookInfo.nameEn
+      : bookInfo.name
+    : book;
 
   return (
     <View style={[styles.container, {backgroundColor: colors.background}]}>
@@ -383,7 +399,7 @@ export const VersionComparisonScreen: React.FC<
         </View>
 
         <Text style={[styles.reference, {color: colors.textSecondary}]}>
-          {book} {chapter}:
+          {localizedBook} {chapter}:
           {multiSelectMode && selectedVerses.length > 0
             ? selectedVerses.sort((a, b) => a - b).join(',')
             : currentVerse}
@@ -820,7 +836,12 @@ export const VersionComparisonScreen: React.FC<
                           styles.versionListDesc,
                           {color: colors.textSecondary},
                         ]}>
-                        {version.description}
+                        {(
+                          t.versionComparison.versionDescriptions as Record<
+                            string,
+                            string
+                          >
+                        )[version.id] ?? version.description}
                       </Text>
                     </View>
                     <Ionicons
