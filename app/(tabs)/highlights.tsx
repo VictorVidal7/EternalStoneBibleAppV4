@@ -183,7 +183,10 @@ export default function HighlightsScreen() {
               {t.highlights.title}
             </Text>
             <Text style={styles.headerSubtitle}>
-              {t.highlights.count.replace('{{count}}', String(items.length))}
+              {(items.length === 1
+                ? t.highlights.countSingular
+                : t.highlights.count
+              ).replace('{{count}}', String(items.length))}
             </Text>
           </View>
         </View>
@@ -327,7 +330,10 @@ export default function HighlightsScreen() {
                   <View
                     style={[
                       styles.categoryChip,
-                      {backgroundColor: colors.primaryLight},
+                      // Fondo teñido (primary translúcido): legible en cualquier
+                      // tema, claro u oscuro — primaryLight es siempre claro y
+                      // dejaba el texto ilegible en modo oscuro.
+                      {backgroundColor: colors.primary + '22'},
                     ]}>
                     <Text
                       style={[styles.categoryText, {color: colors.primary}]}>

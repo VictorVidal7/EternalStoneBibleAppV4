@@ -16,6 +16,7 @@ import {IllustratedEmptyState} from '@components/IllustratedEmptyState';
 import {useToast} from '@context/ToastContext';
 import {logger} from '@lib/utils/logger';
 import {useFavorites} from '@context/FavoritesContext';
+import {getBookByName} from '@/constants/bible';
 
 export default function FavoritesScreen() {
   const router = useRouter();
@@ -62,6 +63,14 @@ export default function FavoritesScreen() {
     );
   }
 
+  // El nombre del libro se guarda en el idioma activo al crear el favorito;
+  // se relocaliza para que la referencia siga al idioma de la app.
+  function localizeBook(book: string): string {
+    const info = getBookByName(book);
+    if (!info) return book;
+    return language === 'en' ? info.nameEn : info.name;
+  }
+
   if (loading) {
     return (
       <View style={[styles.container, {backgroundColor: colors.background}]} />
@@ -95,7 +104,9 @@ export default function FavoritesScreen() {
             </Text>
             <Text style={styles.headerSubtitle}>
               {favorites.length}{' '}
-              {t.favorites.versesSaved || 'Versículos guardados'}
+              {favorites.length === 1
+                ? t.favorites.verseSaved
+                : t.favorites.versesSaved}
             </Text>
           </View>
         </View>
@@ -119,7 +130,7 @@ export default function FavoritesScreen() {
 
             <View style={styles.favoriteContent}>
               <Text style={[styles.favoriteReference, {color: colors.primary}]}>
-                {item.book} {item.chapter}:{item.verse}
+                {localizeBook(item.book)} {item.chapter}:{item.verse}
               </Text>
               <Text
                 style={[styles.favoriteText, {color: colors.text}]}

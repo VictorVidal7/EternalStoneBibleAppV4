@@ -179,6 +179,7 @@ export const translations = {
       removed: 'Favorito eliminado',
       removedSuccessfully: 'Favorito eliminado exitosamente',
       versesSaved: 'Versículos guardados',
+      verseSaved: 'Versículo guardado',
     },
 
     // Notes Screen
@@ -203,6 +204,7 @@ export const translations = {
       modalTitle: 'Nota para {{book}} {{chapter}}:{{verse}}',
       newNote: 'Nueva Nota',
       countLabel: 'Notas guardadas',
+      countLabelSingular: 'Nota guardada',
     },
 
     // My Highlights Screen
@@ -210,6 +212,7 @@ export const translations = {
       title: 'Mis Resaltados',
       short: 'Resaltados',
       count: '{{count}} versículos resaltados',
+      countSingular: '{{count}} versículo resaltado',
       empty: 'Aún no tienes resaltados',
       emptyHint: 'Selecciona versículos al leer y toca Resaltar',
       noMatch: 'Ningún resaltado coincide con el filtro',
@@ -1237,6 +1240,7 @@ export const translations = {
       removed: 'Favorite removed',
       removedSuccessfully: 'Favorite removed successfully',
       versesSaved: 'Verses saved',
+      verseSaved: 'Verse saved',
     },
 
     // Notes Screen
@@ -1261,6 +1265,7 @@ export const translations = {
       modalTitle: 'Note for {{book}} {{chapter}}:{{verse}}',
       newNote: 'New Note',
       countLabel: 'Notes saved',
+      countLabelSingular: 'Note saved',
     },
 
     // My Highlights Screen
@@ -1268,6 +1273,7 @@ export const translations = {
       title: 'My Highlights',
       short: 'Highlights',
       count: '{{count}} highlighted verses',
+      countSingular: '{{count}} highlighted verse',
       empty: 'No highlights yet',
       emptyHint: 'Select verses while reading and tap Highlight',
       noMatch: 'No highlights match this filter',
