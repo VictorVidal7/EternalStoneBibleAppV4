@@ -22,11 +22,11 @@ import Animated, {
 } from 'react-native-reanimated';
 import * as Haptics from 'expo-haptics';
 import {useTheme} from '../../../hooks/useTheme';
+import {useLanguage} from '../../../hooks/useLanguage';
 import {PlaybackSpeed} from '../types/audio';
 import {
   PLAYBACK_SPEEDS,
   PLAYBACK_SPEED_LABELS,
-  AUDIO_A11Y_LABELS,
 } from '../constants/audioConstants';
 
 interface AudioSpeedSelectorProps {
@@ -43,6 +43,8 @@ export const AudioSpeedSelector: React.FC<AudioSpeedSelectorProps> = ({
   variant = 'chips',
 }) => {
   const {colors} = useTheme();
+  const {t} = useLanguage();
+  const speedLabel = t.audio.a11y.speed;
 
   const handleSpeedSelect = (speed: PlaybackSpeed) => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
@@ -72,7 +74,7 @@ export const AudioSpeedSelector: React.FC<AudioSpeedSelectorProps> = ({
   return (
     <View style={styles.container}>
       <Text style={[styles.label, {color: colors.textSecondary}]}>
-        Velocidad
+        {speedLabel}
       </Text>
       <ScrollView
         horizontal
@@ -93,7 +95,7 @@ export const AudioSpeedSelector: React.FC<AudioSpeedSelectorProps> = ({
                 },
               ]}
               onPress={() => handleSpeedSelect(speed)}
-              accessibilityLabel={`${AUDIO_A11Y_LABELS.speed} ${PLAYBACK_SPEED_LABELS[speed]}`}
+              accessibilityLabel={`${speedLabel} ${PLAYBACK_SPEED_LABELS[speed]}`}
               accessibilityRole="button"
               accessibilityState={{selected: isSelected}}>
               <Text
@@ -127,6 +129,7 @@ const CompactSpeedSelector: React.FC<CompactSelectorProps> = ({
   onSpeedChange,
   colors,
 }) => {
+  const {t} = useLanguage();
   const scale = useSharedValue(1);
 
   const animatedStyle = useAnimatedStyle(() => ({
@@ -151,7 +154,7 @@ const CompactSpeedSelector: React.FC<CompactSelectorProps> = ({
         animatedStyle,
       ]}
       onPress={cycleSpeed}
-      accessibilityLabel={`${AUDIO_A11Y_LABELS.speed} ${PLAYBACK_SPEED_LABELS[currentSpeed]}`}>
+      accessibilityLabel={`${t.audio.a11y.speed} ${PLAYBACK_SPEED_LABELS[currentSpeed]}`}>
       <Text
         style={[styles.compactText, {color: colors.primary}]}
         numberOfLines={1}

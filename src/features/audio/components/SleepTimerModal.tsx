@@ -19,6 +19,7 @@ import {
 import {Ionicons} from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
 import {useTheme} from '../../../hooks/useTheme';
+import {useLanguage} from '../../../hooks/useLanguage';
 import {SleepTimerState} from '../types/audio';
 import {SLEEP_TIMER_OPTIONS} from '../constants/audioConstants';
 
@@ -40,6 +41,8 @@ export const SleepTimerModal: React.FC<SleepTimerModalProps> = ({
   currentTimer,
 }) => {
   const {colors} = useTheme();
+  const {t} = useLanguage();
+  const tSleep = t.audio.sleepTimer;
 
   const handleSetTimer = (minutes: number) => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
@@ -60,10 +63,15 @@ export const SleepTimerModal: React.FC<SleepTimerModalProps> = ({
   };
 
   const formatRemainingTime = (minutes: number): string => {
-    if (minutes < 1) return 'Menos de 1 minuto';
-    if (minutes === 1) return '1 minuto restante';
-    return `${minutes} minutos restantes`;
+    if (minutes < 1) return tSleep.lessThanOne;
+    if (minutes === 1) return tSleep.oneRemaining;
+    return tSleep.minutesRemaining.replace('{{n}}', String(minutes));
   };
+
+  const formatOptionLabel = (minutes: number): string =>
+    minutes === 60
+      ? tSleep.hour1
+      : tSleep.minutesShort.replace('{{n}}', String(minutes));
 
   return (
     <Modal
@@ -80,7 +88,7 @@ export const SleepTimerModal: React.FC<SleepTimerModalProps> = ({
             <View style={styles.headerLeft}>
               <Ionicons name="moon" size={24} color={colors.primary} />
               <Text style={[styles.modalTitle, {color: colors.text}]}>
-                Temporizador de sueño
+                {tSleep.title}
               </Text>
             </View>
             <TouchableOpacity onPress={onClose}>
@@ -99,7 +107,7 @@ export const SleepTimerModal: React.FC<SleepTimerModalProps> = ({
                 <Ionicons name="time" size={20} color={colors.primary} />
                 <Text style={[styles.timerText, {color: colors.primary}]}>
                   {currentTimer.mode === 'end-of-chapter'
-                    ? 'Se detendrá al terminar el capítulo'
+                    ? tSleep.endOfChapterStatus
                     : formatRemainingTime(currentTimer.remainingMinutes)}
                 </Text>
               </View>
@@ -110,7 +118,7 @@ export const SleepTimerModal: React.FC<SleepTimerModalProps> = ({
                 ]}
                 onPress={handleCancelTimer}>
                 <Text style={[styles.cancelButtonText, {color: colors.error}]}>
-                  Cancelar
+                  {tSleep.cancel}
                 </Text>
               </TouchableOpacity>
             </View>
@@ -119,7 +127,7 @@ export const SleepTimerModal: React.FC<SleepTimerModalProps> = ({
           {/* Timer Options */}
           <View style={styles.optionsContainer}>
             <Text style={[styles.sectionTitle, {color: colors.textSecondary}]}>
-              Detener audio en:
+              {tSleep.stopAt}
             </Text>
 
             <View style={styles.optionsGrid}>
@@ -135,7 +143,7 @@ export const SleepTimerModal: React.FC<SleepTimerModalProps> = ({
                   ]}
                   onPress={() => handleSetTimer(option.minutes)}>
                   <Text style={[styles.optionTime, {color: colors.text}]}>
-                    {option.label}
+                    {formatOptionLabel(option.minutes)}
                   </Text>
                 </TouchableOpacity>
               ))}
@@ -156,14 +164,14 @@ export const SleepTimerModal: React.FC<SleepTimerModalProps> = ({
                 <View style={styles.endOfChapterText}>
                   <Text
                     style={[styles.endOfChapterTitle, {color: colors.text}]}>
-                    Fin del capítulo
+                    {tSleep.endOfChapterTitle}
                   </Text>
                   <Text
                     style={[
                       styles.endOfChapterSubtitle,
                       {color: colors.textSecondary},
                     ]}>
-                    Detener al terminar el capítulo actual
+                    {tSleep.endOfChapterSubtitle}
                   </Text>
                 </View>
               </View>
@@ -183,8 +191,7 @@ export const SleepTimerModal: React.FC<SleepTimerModalProps> = ({
               color={colors.textTertiary}
             />
             <Text style={[styles.infoText, {color: colors.textTertiary}]}>
-              El audio se detendrá automáticamente cuando termine el tiempo
-              seleccionado
+              {tSleep.info}
             </Text>
           </View>
         </Pressable>

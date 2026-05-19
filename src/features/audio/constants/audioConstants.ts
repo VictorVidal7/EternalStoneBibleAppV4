@@ -46,12 +46,14 @@ export const DEFAULT_LANGUAGE: AudioLanguage = 'es';
 
 // ==================== SLEEP TIMER ====================
 
+// Minutes — the label is composed from i18n in the modal so it stays
+// localized for both languages (60 → "1 hora" / "1 hour", others → "5 min" …).
 export const SLEEP_TIMER_OPTIONS = [
-  {minutes: 5, label: '5 min'},
-  {minutes: 10, label: '10 min'},
-  {minutes: 15, label: '15 min'},
-  {minutes: 30, label: '30 min'},
-  {minutes: 60, label: '1 hora'},
+  {minutes: 5},
+  {minutes: 10},
+  {minutes: 15},
+  {minutes: 30},
+  {minutes: 60},
 ] as const;
 
 // ==================== PLAYER DIMENSIONS ====================
@@ -126,21 +128,6 @@ export const AUDIO_CONTROL_SIZES = {
 
 export const AUDIO_CONTROL_GAP = 24;
 
-// ==================== ACCESSIBILITY ====================
-
-export const AUDIO_A11Y_LABELS = {
-  play: 'Reproducir audio',
-  pause: 'Pausar audio',
-  stop: 'Detener audio',
-  nextVerse: 'Siguiente versiculo',
-  previousVerse: 'Versiculo anterior',
-  speed: 'Velocidad de reproduccion',
-  timer: 'Temporizador de sueno',
-  voice: 'Seleccionar voz',
-  expand: 'Expandir reproductor',
-  collapse: 'Minimizar reproductor',
-  close: 'Cerrar reproductor',
-};
 // ==================== COLORS ====================
 
 export const AUDIO_COLORS = {

@@ -1717,7 +1717,9 @@ export default function VerseReadingScreen() {
               <View style={styles.modalHeader}>
                 <Text style={[styles.modalTitle, {color: colors.text}]}>
                   {selectedVerseForNote
-                    ? `${selectedVerseForNote.book} ${selectedVerseForNote.chapter}:${selectedVerseForNote.verse}`
+                    ? `${
+                        localizedBookName || selectedVerseForNote.book
+                      } ${selectedVerseForNote.chapter}:${selectedVerseForNote.verse}`
                     : t.notes.add}
                 </Text>
                 <TouchableOpacity onPress={() => setNoteModalVisible(false)}>
