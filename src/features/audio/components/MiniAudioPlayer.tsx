@@ -221,21 +221,17 @@ export const MiniAudioPlayer: React.FC<MiniAudioPlayerProps> = ({
     }
   }, [pathname, state.isExpanded, collapse, expandProgress, translateY]);
 
-  // Determinar si la pantalla actual tiene la barra de pestañas nativa
-  // Incluimos las rutas principales y las nuevas rutas movidas a (tabs)
-  const isTabScreen = useMemo(() => {
-    return (
-      pathname === '/' ||
-      pathname === '/bible' ||
-      pathname === '/search' ||
-      pathname === '/achievements' ||
-      pathname === '/settings' ||
-      pathname.startsWith('/chapter/') ||
-      pathname.startsWith('/verse/') ||
-      pathname === '/favorites' ||
-      pathname === '/notes'
-    );
-  }, [pathname]);
+  // Determinar si la pantalla actual tiene la barra de pestañas inferior.
+  // Todas las rutas del grupo (tabs) la muestran —la barra va posicionada de
+  // forma absoluta sobre cada pantalla—; sólo las pantallas de /features/*,
+  // apiladas en el Stack raíz, no la tienen. Comprobarlo por exclusión evita
+  // que el reproductor se descoloque al añadir rutas a (tabs): la lista
+  // anterior se quedó sin /highlights ni /plan/[id] y el panel tapaba la
+  // barra de pestañas en esas pantallas.
+  const isTabScreen = useMemo(
+    () => !pathname.startsWith('/features'),
+    [pathname],
+  );
 
   // Don't render if not visible or no verses loaded
   if (!isVisible || !currentVerse || verses.length === 0) {
