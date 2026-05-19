@@ -13,6 +13,7 @@ export {
   FloatingParticles,
 } from './ParticleSystem';
 export {IllustratedEmptyState} from './IllustratedEmptyState';
+export {ScreenHeaderBack} from './ScreenHeaderBack';
 export {
   SVGCircularProgress,
   ReadingCircularProgress,
