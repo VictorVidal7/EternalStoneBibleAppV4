@@ -22,6 +22,10 @@ import {VerseSkeleton} from '@components/SkeletonLoader';
 
 type TestamentFilter = 'all' | 'old' | 'new';
 
+// Tope de filas que devuelve searchVerses; al alcanzarlo el conteo se muestra
+// como "200+" porque puede haber más resultados sin cargar.
+const SEARCH_RESULT_LIMIT = 200;
+
 // Libros del Antiguo Testamento (1-39)
 const OLD_TESTAMENT_BOOKS = [
   'Génesis',
@@ -372,7 +376,7 @@ export default function SearchScreen() {
         const searchResults = await bibleDB.searchVerses(
           query,
           selectedVersion.id,
-          200,
+          SEARCH_RESULT_LIMIT,
         );
         setAllResults(searchResults);
         setResults(applyTestamentFilter(searchResults, testamentFilter));
@@ -421,6 +425,10 @@ export default function SearchScreen() {
     [colors, isDark],
   );
 
+  // Se alcanzó el tope de searchVerses: el conteo real puede ser mayor.
+  const capReached = allResults.length >= SEARCH_RESULT_LIMIT;
+  const resultsCountLabel = `${results.length}${capReached ? '+' : ''} ${t.search.results}`;
+
   const renderItem = useCallback(
     ({item}: {item: BibleVerse}) => (
       <VerseResultItem
@@ -461,7 +469,7 @@ export default function SearchScreen() {
             </Text>
             <Text style={styles.headerSubtitle}>
               {results.length > 0
-                ? `${results.length} ${t.search.results}`
+                ? resultsCountLabel
                 : hasSearched
                   ? t.search.noResults
                   : t.search.readyToSearch}
@@ -572,9 +580,7 @@ export default function SearchScreen() {
         <>
           <View style={themedStyles.resultsHeader}>
             <Text style={themedStyles.resultsCount}>
-              {results.length > 0
-                ? `${results.length} ${t.search.results}`
-                : t.search.noResults}
+              {results.length > 0 ? resultsCountLabel : t.search.noResults}
             </Text>
           </View>
 

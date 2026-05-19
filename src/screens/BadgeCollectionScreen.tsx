@@ -29,6 +29,7 @@ import {
   BadgeRarity,
   BadgeCategory,
 } from '../lib/badges/BadgeSystem';
+import {ScreenHeaderBack} from '../components/ScreenHeaderBack';
 
 const {width: SCREEN_WIDTH} = Dimensions.get('window');
 
@@ -160,6 +161,7 @@ export const BadgeCollectionScreen: React.FC<BadgeCollectionScreenProps> = ({
     <View style={[styles.container, {backgroundColor: colors.background}]}>
       {/* Header */}
       <View style={styles.header}>
+        <ScreenHeaderBack style={styles.backButton} />
         <Text style={[styles.title, {color: colors.text}]}>
           {t.badgeSystem.collectionTitle}
         </Text>
@@ -675,6 +677,9 @@ const styles = StyleSheet.create({
   header: {
     padding: 20,
     paddingTop: 60,
+  },
+  backButton: {
+    marginBottom: 14,
   },
   title: {
     fontSize: 28,

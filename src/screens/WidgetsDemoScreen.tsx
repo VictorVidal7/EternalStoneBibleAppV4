@@ -15,6 +15,7 @@ import {VerseWidget} from '../widgets/VerseWidget';
 import {ProgressWidget} from '../widgets/ProgressWidget';
 import {MissionWidget} from '../widgets/MissionWidget';
 import {useRouter} from 'expo-router';
+import {ScreenHeaderBack} from '../components/ScreenHeaderBack';
 
 export const WidgetsDemoScreen: React.FC = () => {
   const {colors} = useTheme();
@@ -26,7 +27,8 @@ export const WidgetsDemoScreen: React.FC = () => {
   };
 
   const handleProgressPress = () => {
-    router.push('/profile');
+    // No existe pantalla de perfil; Logros es el panel de progreso del usuario.
+    router.push('/(tabs)/achievements');
   };
 
   const handleMissionPress = () => {
@@ -39,6 +41,7 @@ export const WidgetsDemoScreen: React.FC = () => {
     <View style={[styles.container, {backgroundColor: colors.background}]}>
       {/* Header */}
       <View style={styles.header}>
+        <ScreenHeaderBack style={styles.backButton} />
         <Text style={[styles.title, {color: colors.text}]}>
           {t.widgets.title}
         </Text>
@@ -160,6 +163,9 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingTop: 60,
     paddingBottom: 20,
+  },
+  backButton: {
+    marginBottom: 14,
   },
   title: {
     fontSize: 32,
