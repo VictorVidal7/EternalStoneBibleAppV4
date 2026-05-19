@@ -10,6 +10,8 @@ import {
   TextInput,
   Share,
   Platform,
+  NativeSyntheticEvent,
+  NativeScrollEvent,
 } from 'react-native';
 import {useState, useEffect, useRef} from 'react';
 import {useLocalSearchParams, useRouter, Stack} from 'expo-router';
@@ -29,6 +31,7 @@ import {useServices} from '@context/ServicesContext';
 import {useToast} from '@context/ToastContext';
 import {useFavorites} from '@context/FavoritesContext';
 import {useReadingPlanProgress} from '@context/ReadingPlanProgressContext';
+import {useReadingProgress} from '@context/ReadingProgressContext';
 import {getReadingPlanById, getLocalizedPlan} from '@/constants/reading-plans';
 import {logger} from '@lib/utils/logger';
 import {ImmersiveReader} from '@components/reading/ImmersiveReader';
@@ -229,9 +232,80 @@ export default function VerseReadingScreen() {
     return () => setBottomOffset(0);
   }, [setBottomOffset]);
 
-  // Bottom nav visibility based on scroll direction (Native tab bar is persistent for now)
-  // const {isVisible: isNavVisible, handleScroll} = useScrollDirection();
-  const handleScroll = () => {};
+  // Reading-progress tracking: how far the reader scrolled through the
+  // chapter, persisted on chapter change / unmount so the chapter grid
+  // can show real "read" indicators.
+  const {updateChapterProgress} = useReadingProgress();
+  // Keep the latest updateChapterProgress so the unmount persist below
+  // never writes through a stale closure.
+  const updateChapterProgressRef = useRef(updateChapterProgress);
+  updateChapterProgressRef.current = updateChapterProgress;
+
+  const maxScrollPctRef = useRef(0);
+  const viewportHeightRef = useRef(0);
+  const contentHeightRef = useRef(0);
+  const lastPersistedPctRef = useRef(0);
+
+  // Effective read-progress %: furthest scroll depth, or 100 when the whole
+  // chapter fits the viewport (there is nothing to scroll).
+  const computeChapterProgress = () => {
+    let pct = maxScrollPctRef.current;
+    if (
+      pct < 100 &&
+      viewportHeightRef.current > 0 &&
+      contentHeightRef.current > 0 &&
+      contentHeightRef.current <= viewportHeightRef.current
+    ) {
+      pct = 100;
+    }
+    return pct;
+  };
+
+  // Persist progress once it advances. Called when a scroll gesture settles
+  // (and as a backstop on chapter change / unmount) so the chapter grid
+  // reflects what was actually read even if the app is killed mid-session.
+  const persistChapterProgress = () => {
+    const pct = computeChapterProgress();
+    if (pct > lastPersistedPctRef.current && bookInfo?.name) {
+      lastPersistedPctRef.current = pct;
+      updateChapterProgressRef.current(bookInfo.name, String(chapterNum), pct);
+    }
+  };
+
+  const handleScroll = (e: NativeSyntheticEvent<NativeScrollEvent>) => {
+    const {contentOffset, layoutMeasurement, contentSize} = e.nativeEvent;
+    if (contentSize.height <= 0) {
+      return;
+    }
+    const pct = Math.min(
+      100,
+      Math.round(
+        ((contentOffset.y + layoutMeasurement.height) / contentSize.height) *
+          100,
+      ),
+    );
+    if (pct > maxScrollPctRef.current) {
+      maxScrollPctRef.current = pct;
+    }
+  };
+
+  // Reset trackers for each new chapter; the cleanup is a final backstop in
+  // case the chapter was left without a scroll gesture settling.
+  useEffect(() => {
+    maxScrollPctRef.current = 0;
+    contentHeightRef.current = 0;
+    lastPersistedPctRef.current = 0;
+    return () => {
+      const pct = computeChapterProgress();
+      if (pct > lastPersistedPctRef.current && bookInfo?.name) {
+        updateChapterProgressRef.current(
+          bookInfo.name,
+          String(chapterNum),
+          pct,
+        );
+      }
+    };
+  }, [book, chapterNum, bookInfo?.name]);
 
   // Use theme colors directly
   const effectiveColors = {
@@ -1052,7 +1126,15 @@ export default function VerseReadingScreen() {
             },
           ]}
           onScroll={handleScroll}
-          scrollEventThrottle={16}>
+          scrollEventThrottle={16}
+          onScrollEndDrag={persistChapterProgress}
+          onMomentumScrollEnd={persistChapterProgress}
+          onLayout={e => {
+            viewportHeightRef.current = e.nativeEvent.layout.height;
+          }}
+          onContentSizeChange={(_w, h) => {
+            contentHeightRef.current = h;
+          }}>
           {verses.map((verse, index) => {
             const isFavorited = favoritedVerses.has(verse.verse);
             const isSelected = selectedVerses.has(verse.verse);
