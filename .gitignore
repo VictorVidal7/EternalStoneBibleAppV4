@@ -26,6 +26,9 @@ npm-debug.*
 yarn-debug.*
 yarn-error.*
 
+# Review scratch dir (emulator screenshots, logs from QA passes)
+.review/
+
 # macOS
 .DS_Store
 *.pem
