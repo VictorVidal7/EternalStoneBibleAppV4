@@ -35,7 +35,7 @@ import bibleDB from '@lib/database';
 import {BibleVerse, ReadingProgress} from '@/types/bible';
 import {READING_PLANS, getLocalizedPlan} from '@/constants/reading-plans';
 import {getDailyVerseRef} from '@/constants/daily-verses';
-import {getBookByName} from '@/constants/bible';
+import {BIBLE_VERSIONS, getBookByName} from '@/constants/bible';
 import {useTheme} from '@hooks/useTheme';
 import {useBibleVersion} from '@hooks/useBibleVersion';
 import {useServices} from '@context/ServicesContext';
@@ -98,6 +98,13 @@ export default function HomeScreen() {
     : withOpacity(colors.primary, isDark ? 0.3 : 0.8);
 
   const [dailyVerse, setDailyVerse] = useState<BibleVerse | null>(null);
+  // Track which version actually produced the daily verse text so the
+  // card can disclose a "translation preview" badge when it differs from
+  // the user's selected version (UI=en + RVR1960 → verse pulled from KJV
+  // so the text reads naturally in English, vs. silently swapping).
+  const [dailyVerseVersionId, setDailyVerseVersionId] = useState<string>(
+    selectedVersion.id,
+  );
   const [lastRead, setLastRead] = useState<ReadingProgress | null>(null);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -130,10 +137,12 @@ export default function HomeScreen() {
 
   // Refresh home data whenever the tab regains focus so "Continue Reading",
   // saved counts and stats reflect activity from the reader and other screens.
+  // Also reloads when the UI language flips so the daily verse re-pulls
+  // from the matching-language version (see loadHomeData).
   useFocusEffect(
     useCallback(() => {
       loadHomeData();
-    }, [selectedVersion.id]),
+    }, [selectedVersion.id, language]),
   );
 
   useEffect(() => {
@@ -172,6 +181,13 @@ export default function HomeScreen() {
       await bibleDB.initialize();
 
       const dailyRef = getDailyVerseRef();
+      // Daily verse is fetched from the version whose language matches
+      // the **UI**, not necessarily the user's selected reading version
+      // — so an English UI + RVR1960 reading version still gets a daily
+      // verse that reads naturally in English. The card badges the
+      // source version when the two diverge.
+      const uiLanguageVersion =
+        BIBLE_VERSIONS.find(v => v.language === language) ?? selectedVersion;
       const [verse, progress, favoritesCount, notesCount, highlightsCount] =
         await Promise.all([
           bibleDB
@@ -179,7 +195,7 @@ export default function HomeScreen() {
               dailyRef.book,
               dailyRef.chapter,
               dailyRef.verse,
-              selectedVersion.id,
+              uiLanguageVersion.id,
             )
             .catch(() => null),
           bibleDB.getReadingProgress(),
@@ -197,8 +213,9 @@ export default function HomeScreen() {
       // the same for everyone and never changes mid-day. Fall back to a
       // random verse only if the reference can't be resolved.
       setDailyVerse(
-        verse ?? (await bibleDB.getRandomVerse(selectedVersion.id)),
+        verse ?? (await bibleDB.getRandomVerse(uiLanguageVersion.id)),
       );
+      setDailyVerseVersionId(uiLanguageVersion.id);
 
       // Get last reading position
       setLastRead(progress);
@@ -467,6 +484,11 @@ export default function HomeScreen() {
                     reference={verseReference}
                     title={t.home.dailyVerse}
                     isDark={isDark}
+                    sourceVersionLabel={
+                      dailyVerseVersionId !== selectedVersion.id
+                        ? dailyVerseVersionId
+                        : undefined
+                    }
                     onPress={() =>
                       handlePress(() =>
                         router.push(

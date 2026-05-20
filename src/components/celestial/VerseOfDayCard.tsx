@@ -59,6 +59,15 @@ interface VerseOfDayCardProps {
    * @default false
    */
   isDark?: boolean;
+
+  /**
+   * Optional version badge — when the daily verse text was pulled from a
+   * Bible version different from the user's currently selected one (so
+   * the text reads in the UI language), the card surfaces this label
+   * next to the reference so the reader knows the source. Pass undefined
+   * to hide.
+   */
+  sourceVersionLabel?: string;
 }
 
 const VerseOfDayCard: React.FC<VerseOfDayCardProps> = ({
@@ -69,6 +78,7 @@ const VerseOfDayCard: React.FC<VerseOfDayCardProps> = ({
   onShare,
   onFavorite,
   isDark = false,
+  sourceVersionLabel,
 }) => {
   const {t} = useLanguage();
   const {colors} = useTheme();
@@ -146,10 +156,33 @@ const VerseOfDayCard: React.FC<VerseOfDayCardProps> = ({
               <Text style={[styles.title, {color: theme.colors.text}]}>
                 {displayTitle}
               </Text>
-              <Text
-                style={[styles.subtitle, {color: theme.colors.textSecondary}]}>
-                {reference}
-              </Text>
+              <View style={styles.subtitleRow}>
+                <Text
+                  style={[
+                    styles.subtitle,
+                    {color: theme.colors.textSecondary},
+                  ]}>
+                  {reference}
+                </Text>
+                {sourceVersionLabel ? (
+                  <View
+                    style={[
+                      styles.versionBadge,
+                      {
+                        backgroundColor: colors.primary + '22',
+                        borderColor: colors.primary,
+                      },
+                    ]}>
+                    <Text
+                      style={[
+                        styles.versionBadgeText,
+                        {color: colors.primary},
+                      ]}>
+                      {sourceVersionLabel}
+                    </Text>
+                  </View>
+                ) : null}
+              </View>
             </View>
           </View>
 
@@ -268,6 +301,23 @@ const styles = StyleSheet.create({
     fontWeight: '500',
     marginTop: 2,
     opacity: 0.7,
+  },
+  subtitleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    marginTop: 2,
+  },
+  versionBadge: {
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 8,
+    borderWidth: 1,
+  },
+  versionBadgeText: {
+    fontSize: 10,
+    fontWeight: '700',
+    letterSpacing: 0.3,
   },
   verseContainer: {
     borderLeftWidth: 4,

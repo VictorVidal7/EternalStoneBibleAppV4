@@ -19,6 +19,7 @@ import {getBookByName} from '@/constants/bible';
 import {useTheme, ThemeColors} from '@hooks/useTheme';
 import {useBibleVersion} from '@hooks/useBibleVersion';
 import {useLanguage} from '@hooks/useLanguage';
+import {translations} from '@/i18n/translations';
 import {IllustratedEmptyState} from '@components/IllustratedEmptyState';
 import {VerseSkeleton} from '@components/SkeletonLoader';
 
@@ -309,6 +310,11 @@ export default function SearchScreen() {
   const [testamentFilter, setTestamentFilter] =
     useState<TestamentFilter>('all');
   const [searchHistory, setSearchHistory] = useState<string[]>([]);
+  // Pagination state: hasMore is "the last fetched page filled the page
+  // size, so there may be more rows behind the cursor"; loadingMore
+  // gates the footer button while the next page is in flight.
+  const [hasMore, setHasMore] = useState(false);
+  const [loadingMore, setLoadingMore] = useState(false);
 
   // Hydrate recent searches from storage on mount.
   useEffect(() => {
@@ -395,6 +401,7 @@ export default function SearchScreen() {
 
       setLoading(true);
       setHasSearched(true);
+      setLoadingMore(false);
 
       try {
         await bibleDB.initialize();
@@ -405,6 +412,10 @@ export default function SearchScreen() {
         );
         setAllResults(searchResults);
         setResults(applyTestamentFilter(searchResults, testamentFilter));
+        // A filled page is the only signal we have that more rows may
+        // exist behind the cursor; a short page tells us we've hit the
+        // end of the result set for this query+version.
+        setHasMore(searchResults.length >= SEARCH_RESULT_LIMIT);
         // Only successful searches earn a slot in history — typos and
         // wrong-version queries (0 results) would just clutter it.
         if (searchResults.length > 0) {
@@ -414,12 +425,50 @@ export default function SearchScreen() {
         console.error('Search error:', error);
         setResults([]);
         setAllResults([]);
+        setHasMore(false);
       } finally {
         setLoading(false);
       }
     },
     [testamentFilter, applyTestamentFilter, selectedVersion.id, recordSearch],
   );
+
+  const loadMoreResults = useCallback(async () => {
+    if (loadingMore || !hasMore) return;
+    if (!searchQuery.trim() || searchQuery.trim().length < 3) return;
+    setLoadingMore(true);
+    try {
+      await bibleDB.initialize();
+      const nextPage = await bibleDB.searchVerses(
+        searchQuery.trim(),
+        selectedVersion.id,
+        SEARCH_RESULT_LIMIT,
+        allResults.length,
+      );
+      if (nextPage.length === 0) {
+        setHasMore(false);
+        return;
+      }
+      const combined = [...allResults, ...nextPage];
+      setAllResults(combined);
+      setResults(applyTestamentFilter(combined, testamentFilter));
+      // A short page means we've drained the result set.
+      setHasMore(nextPage.length >= SEARCH_RESULT_LIMIT);
+    } catch (error) {
+      console.error('Load-more error:', error);
+      setHasMore(false);
+    } finally {
+      setLoadingMore(false);
+    }
+  }, [
+    loadingMore,
+    hasMore,
+    searchQuery,
+    selectedVersion.id,
+    allResults,
+    applyTestamentFilter,
+    testamentFilter,
+  ]);
 
   const debouncedSearch = useDebouncedCallback(performSearch, 500);
 
@@ -455,9 +504,11 @@ export default function SearchScreen() {
     [colors, isDark],
   );
 
-  // Se alcanzó el tope de searchVerses: el conteo real puede ser mayor.
-  const capReached = allResults.length >= SEARCH_RESULT_LIMIT;
-  const resultsCountLabel = `${results.length}${capReached ? '+' : ''} ${t.search.results}`;
+  // While more rows may exist behind the cursor, present the count as
+  // "N+" so the user knows there are unseen matches; once load-more
+  // drains the result set, the suffix vanishes and we show the exact
+  // total they've actually loaded.
+  const resultsCountLabel = `${results.length}${hasMore ? '+' : ''} ${t.search.results}`;
 
   const renderItem = useCallback(
     ({item}: {item: BibleVerse}) => (
@@ -622,6 +673,27 @@ export default function SearchScreen() {
             }
             renderItem={renderItem}
             contentContainerStyle={styles.resultsList}
+            ListFooterComponent={
+              hasMore && results.length > 0 ? (
+                <TouchableOpacity
+                  onPress={loadMoreResults}
+                  disabled={loadingMore}
+                  accessibilityRole="button"
+                  accessibilityLabel={t.search.loadMore}
+                  style={[
+                    styles.loadMoreButton,
+                    {
+                      backgroundColor: colors.primary + (isDark ? '33' : '22'),
+                      borderColor: colors.primary,
+                      opacity: loadingMore ? 0.6 : 1,
+                    },
+                  ]}>
+                  <Text style={[styles.loadMoreLabel, {color: colors.primary}]}>
+                    {loadingMore ? t.loading : t.search.loadMore}
+                  </Text>
+                </TouchableOpacity>
+              ) : null
+            }
             ListEmptyComponent={
               !loading && hasSearched ? (
                 <IllustratedEmptyState
@@ -701,7 +773,20 @@ export default function SearchScreen() {
               {t.search.popularSearches}
             </Text>
             <View style={styles.suggestionsWrap}>
-              {t.search.suggestions.map(suggestion => (
+              {/* Popular chips reflect the **Bible version** the user is
+                  searching — not the UI language. Tapping "love" against a
+                  Spanish version (or "amor" against KJV) previously
+                  returned 0 results; pulling suggestions from the version
+                  language keeps the chips aligned with the actual search
+                  corpus. (BibleVersion.language is typed `string`; cast
+                  to the translations key set with an English fallback.) */}
+              {(
+                translations[
+                  (selectedVersion.language === 'es' ? 'es' : 'en') as
+                    | 'es'
+                    | 'en'
+                ].search.suggestions as readonly string[]
+              ).map(suggestion => (
                 <TouchableOpacity
                   key={suggestion}
                   style={themedStyles.suggestionChip}
@@ -843,5 +928,18 @@ const styles = StyleSheet.create({
     marginLeft: 6,
     paddingHorizontal: 4,
     paddingVertical: 2,
+  },
+  loadMoreButton: {
+    marginTop: 12,
+    marginHorizontal: 16,
+    paddingVertical: 14,
+    borderRadius: 12,
+    borderWidth: 1,
+    alignItems: 'center',
+  },
+  loadMoreLabel: {
+    fontSize: 15,
+    fontWeight: '600',
+    letterSpacing: 0.2,
   },
 });
