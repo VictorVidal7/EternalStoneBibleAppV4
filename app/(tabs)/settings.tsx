@@ -15,6 +15,7 @@ import {LinearGradient} from 'expo-linear-gradient';
 import {useBibleVersion} from '@hooks/useBibleVersion';
 import {useLanguage} from '@hooks/useLanguage';
 import {initializeBibleData, resetBibleData} from '@lib/database/data-loader';
+import {exportBackup} from '@/services/BackupService';
 import DailyVerseSettings from '@components/settings/DailyVerseSettings';
 import * as Haptics from 'expo-haptics';
 import Constants from 'expo-constants';
@@ -46,6 +47,7 @@ export default function SettingsScreen() {
   const {selectedVersion, setVersion, availableVersions} = useBibleVersion();
   const {language, setLanguage, t} = useLanguage();
   const [isResetting, setIsResetting] = useState(false);
+  const [isExporting, setIsExporting] = useState(false);
   const scrollViewRef = useRef<ScrollView>(null);
 
   useFocusEffect(
@@ -105,6 +107,19 @@ export default function SettingsScreen() {
 
   function handleOpenGitHub() {
     Linking.openURL('https://github.com/VictorVidal7/EternalStoneBibleAppV4');
+  }
+
+  async function handleExportBackup() {
+    setIsExporting(true);
+    try {
+      await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+      await exportBackup();
+    } catch (error) {
+      Alert.alert(t.error, t.settings.exportError, [{text: t.ok}]);
+      void error;
+    } finally {
+      setIsExporting(false);
+    }
   }
 
   const themeActiveTextColor = getReadableTextColor(
@@ -466,6 +481,30 @@ export default function SettingsScreen() {
             <Ionicons name="server-outline" size={22} color={colors.primary} />
             <Text style={themedStyles.sectionTitle}>{t.settings.data}</Text>
           </View>
+
+          <TouchableOpacity
+            style={themedStyles.card}
+            onPress={handleExportBackup}
+            disabled={isExporting}
+            accessibilityRole="button"
+            accessibilityLabel={t.settings.exportBackup}>
+            <View style={themedStyles.settingRow}>
+              <View style={styles.settingInfo}>
+                <Text
+                  style={[themedStyles.settingLabel, {color: colors.primary}]}>
+                  {isExporting ? t.settings.exporting : t.settings.exportBackup}
+                </Text>
+                <Text style={themedStyles.settingDescription}>
+                  {t.settings.exportBackupDescription}
+                </Text>
+              </View>
+              <Ionicons
+                name="cloud-upload-outline"
+                size={20}
+                color={colors.primary}
+              />
+            </View>
+          </TouchableOpacity>
 
           <TouchableOpacity
             style={themedStyles.card}
