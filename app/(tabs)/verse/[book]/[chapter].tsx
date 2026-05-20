@@ -7,7 +7,6 @@ import {
   ActivityIndicator,
   Alert,
   Modal,
-  TextInput,
   Share,
   Platform,
   NativeSyntheticEvent,
@@ -41,6 +40,7 @@ import {useReadingProgress} from '@context/ReadingProgressContext';
 import {getReadingPlanById, getLocalizedPlan} from '@/constants/reading-plans';
 import {logger} from '@lib/utils/logger';
 import {ImmersiveReader} from '@components/reading/ImmersiveReader';
+import {NoteEditorModal} from '@components/reading/NoteEditorModal';
 import {getBookTheme} from '@/constants/bookThemes';
 // Audio Bible Feature
 import {useAudioPlayer, AudioVerse} from '@/features/audio';
@@ -1974,79 +1974,22 @@ export default function VerseReadingScreen() {
           </View>
         </Modal>
 
-        {/* Note Modal */}
-        <Modal
+        {/* Note Modal — extracted to NoteEditorModal in Sprint 21 #13. */}
+        <NoteEditorModal
           visible={noteModalVisible}
-          transparent
-          animationType="slide"
-          onRequestClose={() => setNoteModalVisible(false)}>
-          <View
-            style={[styles.modalOverlay, {backgroundColor: colors.overlay}]}>
-            <View
-              style={[styles.modalContent, {backgroundColor: colors.surface}]}>
-              <View style={styles.modalHeader}>
-                <Text style={[styles.modalTitle, {color: colors.text}]}>
-                  {selectedVerseForNote
-                    ? `${
-                        localizedBookName || selectedVerseForNote.book
-                      } ${selectedVerseForNote.chapter}:${selectedVerseForNote.verse}`
-                    : t.notes.add}
-                </Text>
-                <TouchableOpacity
-                  onPress={() => setNoteModalVisible(false)}
-                  accessibilityRole="button"
-                  accessibilityLabel={t.close}>
-                  <Ionicons
-                    name="close"
-                    size={24}
-                    color={colors.textSecondary}
-                  />
-                </TouchableOpacity>
-              </View>
-
-              {selectedVerseForNote && (
-                <Text
-                  style={[
-                    styles.modalVerse,
-                    {
-                      color: colors.textSecondary,
-                      backgroundColor: colors.surfaceVariant,
-                    },
-                  ]}>
-                  "{selectedVerseForNote.text}"
-                </Text>
-              )}
-
-              <TextInput
-                style={[
-                  styles.noteInput,
-                  {color: colors.text, borderColor: colors.border},
-                ]}
-                placeholder={t.notes.placeholder}
-                placeholderTextColor={colors.textTertiary}
-                value={noteText}
-                onChangeText={setNoteText}
-                multiline
-                autoFocus
-                textAlignVertical="top"
-              />
-
-              <TouchableOpacity
-                style={[
-                  styles.saveButton,
-                  {
-                    backgroundColor: noteText.trim()
-                      ? colors.success
-                      : colors.textTertiary,
-                  },
-                ]}
-                onPress={saveNote}
-                disabled={!noteText.trim()}>
-                <Text style={styles.saveButtonText}>{t.notes.saveNote}</Text>
-              </TouchableOpacity>
-            </View>
-          </View>
-        </Modal>
+          verseReference={
+            selectedVerseForNote
+              ? `${
+                  localizedBookName || selectedVerseForNote.book
+                } ${selectedVerseForNote.chapter}:${selectedVerseForNote.verse}`
+              : ''
+          }
+          verseText={selectedVerseForNote?.text ?? ''}
+          value={noteText}
+          onChangeText={setNoteText}
+          onSave={saveNote}
+          onClose={() => setNoteModalVisible(false)}
+        />
 
         {/* Immersive Reading Mode Modal */}
         <Modal
@@ -2272,60 +2215,6 @@ const styles = StyleSheet.create({
     borderWidth: 1.5,
   },
 
-  // MODAL MEJORADO
-  modalOverlay: {
-    flex: 1,
-    justifyContent: 'flex-end',
-  },
-  modalContent: {
-    borderTopLeftRadius: borderRadius['2xl'],
-    borderTopRightRadius: borderRadius['2xl'],
-    padding: spacing.xl,
-    minHeight: 450,
-    ...shadows['3xl'],
-  },
-  modalHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: spacing.lg,
-  },
-  modalTitle: {
-    fontSize: fontSizes.xl,
-    fontWeight: '800',
-    letterSpacing: -0.3,
-  },
-  modalVerse: {
-    fontSize: fontSizes.base,
-    lineHeight: fontSizes.base * 1.6,
-    fontStyle: 'italic',
-    marginBottom: spacing.lg,
-    padding: spacing.lg,
-    borderRadius: borderRadius.lg,
-    opacity: 0.8,
-  },
-  noteInput: {
-    borderWidth: 1.5,
-    borderRadius: borderRadius.lg,
-    padding: spacing.lg,
-    fontSize: fontSizes.base,
-    minHeight: 160,
-    textAlignVertical: 'top',
-  },
-  saveButton: {
-    borderRadius: borderRadius.lg,
-    padding: spacing.lg,
-    alignItems: 'center',
-    marginTop: spacing.lg,
-    ...shadows.md,
-  },
-  saveButtonText: {
-    fontSize: fontSizes.base,
-    fontWeight: '700',
-    color: '#FFFFFF',
-    letterSpacing: 0.5,
-    textTransform: 'uppercase',
-  },
   // IMAGE CREATOR STYLES
   imageCreatorContainer: {
     flex: 1,
