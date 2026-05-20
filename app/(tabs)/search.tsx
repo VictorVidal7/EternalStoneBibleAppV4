@@ -15,15 +15,16 @@ import {useDebouncedCallback} from 'use-debounce';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import bibleDB from '@lib/database';
 import {BibleVerse} from '@/types/bible';
-import {getBookByName} from '@/constants/bible';
 import {useTheme, ThemeColors} from '@hooks/useTheme';
 import {useBibleVersion} from '@hooks/useBibleVersion';
 import {useLanguage} from '@hooks/useLanguage';
 import {translations} from '@/i18n/translations';
 import {IllustratedEmptyState} from '@components/IllustratedEmptyState';
 import {VerseSkeleton} from '@components/SkeletonLoader';
-
-type TestamentFilter = 'all' | 'old' | 'new';
+import {
+  applyTestamentFilter,
+  type TestamentFilter,
+} from '@/lib/search/testamentFilter';
 
 // Tope de filas que devuelve searchVerses; al alcanzarlo el conteo se muestra
 // como "200+" porque puede haber más resultados sin cargar.
@@ -369,26 +370,6 @@ export default function SearchScreen() {
   const clearHistory = useCallback(() => {
     persistHistory([]);
   }, [persistHistory]);
-
-  const applyTestamentFilter = useCallback(
-    (verses: BibleVerse[], filter: TestamentFilter) => {
-      if (filter === 'all') return verses;
-
-      // The stored book name on each verse reflects the Bible-version
-      // language (Spanish for RVR1960, English for KJV). `getBookByName`
-      // matches either, so the OT/NT split stays correct across versions
-      // — an older Spanish-string allowlist silently dropped most OT books
-      // whenever the active version was KJV.
-      const wantOld = filter === 'old';
-      return verses.filter(v => {
-        const info = getBookByName(v.book);
-        // Unknown books fall into NT by default so they remain searchable.
-        const isOld = info?.testament === 'old';
-        return wantOld ? isOld : !isOld;
-      });
-    },
-    [],
-  );
 
   const performSearch = useCallback(
     async (query: string) => {

@@ -25,6 +25,12 @@ import React, {
 } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {logger} from '../lib/utils/logger';
+import {
+  dedupeAndPrepend,
+  isBookmarkedAt,
+  removeById,
+  renameById,
+} from './bookmarkOps';
 
 export interface Bookmark {
   id: string;
@@ -118,18 +124,9 @@ export const BookmarksProvider: FC<BookmarksProviderProps> = ({children}) => {
         label: input.label,
         createdAt: Date.now(),
       };
-      // Dedupe: a second bookmark on the same exact verse replaces the
-      // earlier one (so re-bookmarking updates the label/createdAt
-      // instead of producing duplicates the user has to clean up).
-      const filtered = bookmarks.filter(
-        b =>
-          !(
-            b.book === bookmark.book &&
-            b.chapter === bookmark.chapter &&
-            b.verse === bookmark.verse
-          ),
-      );
-      await persist([bookmark, ...filtered]);
+      // Dedupe + MRU prepend lives in a pure helper (see bookmarkOps.ts)
+      // so it can be unit-tested without rendering the provider.
+      await persist(dedupeAndPrepend(bookmarks, bookmark));
       return bookmark;
     },
     [bookmarks, persist],
@@ -137,14 +134,14 @@ export const BookmarksProvider: FC<BookmarksProviderProps> = ({children}) => {
 
   const removeBookmark = useCallback(
     async (id: string) => {
-      await persist(bookmarks.filter(b => b.id !== id));
+      await persist(removeById(bookmarks, id));
     },
     [bookmarks, persist],
   );
 
   const renameBookmark = useCallback(
     async (id: string, label: string) => {
-      await persist(bookmarks.map(b => (b.id === id ? {...b, label} : b)));
+      await persist(renameById(bookmarks, id, label));
     },
     [bookmarks, persist],
   );
@@ -155,9 +152,7 @@ export const BookmarksProvider: FC<BookmarksProviderProps> = ({children}) => {
 
   const isBookmarked = useCallback(
     (book: string, chapter: number, verse: number) =>
-      bookmarks.some(
-        b => b.book === book && b.chapter === chapter && b.verse === verse,
-      ),
+      isBookmarkedAt(bookmarks, book, chapter, verse),
     [bookmarks],
   );
 
