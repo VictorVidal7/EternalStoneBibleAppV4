@@ -38,6 +38,7 @@ import {ServicesProvider} from '@context/ServicesContext';
 import {ToastProvider} from '@context/ToastContext';
 import {ReadingProgressProvider} from '@context/ReadingProgressContext';
 import {FavoritesProvider} from '@context/FavoritesContext';
+import {BookmarksProvider} from '@context/BookmarksContext';
 import {ReadingPlanProgressProvider} from '@context/ReadingPlanProgressContext';
 import bibleDB from '@lib/database';
 import {logger} from '@lib/utils/logger';
@@ -269,11 +270,13 @@ export default function RootLayout() {
               <ReadingProgressProvider>
                 <ReadingPlanProgressProvider>
                   <FavoritesProvider>
-                    <ToastProvider>
-                      <AudioPlayerProvider>
-                        <AppContent />
-                      </AudioPlayerProvider>
-                    </ToastProvider>
+                    <BookmarksProvider>
+                      <ToastProvider>
+                        <AudioPlayerProvider>
+                          <AppContent />
+                        </AudioPlayerProvider>
+                      </ToastProvider>
+                    </BookmarksProvider>
                   </FavoritesProvider>
                 </ReadingPlanProgressProvider>
               </ReadingProgressProvider>

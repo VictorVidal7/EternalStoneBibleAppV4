@@ -45,6 +45,7 @@ import {logger} from '@lib/utils/logger';
 import {useReadingProgress} from '@context/ReadingProgressContext';
 import {useReadingPlanProgress} from '@context/ReadingPlanProgressContext';
 import {useFavorites} from '@context/FavoritesContext';
+import {useBookmarks} from '@context/BookmarksContext';
 
 // Componentes Celestial
 import {
@@ -68,8 +69,10 @@ import {withOpacity} from '@/styles/modernTheme';
 const {width: SCREEN_WIDTH} = Dimensions.get('window');
 const CONTENT_HORIZONTAL_PADDING = 20;
 const SAVED_CARD_GAP = 12;
+// Saved grid is now 2×2 (Favorites, Notes, Highlights, Bookmarks) so
+// each card spans half the content width minus a single inter-card gap.
 const SAVED_CARD_WIDTH =
-  (SCREEN_WIDTH - CONTENT_HORIZONTAL_PADDING * 2 - SAVED_CARD_GAP * 2) / 3;
+  (SCREEN_WIDTH - CONTENT_HORIZONTAL_PADDING * 2 - SAVED_CARD_GAP) / 2;
 
 export default function HomeScreen() {
   const router = useRouter();
@@ -93,6 +96,8 @@ export default function HomeScreen() {
   const {getChapterProgress} = useReadingProgress();
   const {getCompletedDays} = useReadingPlanProgress();
   const {addFavorite, isFavorite, favorites} = useFavorites();
+  const {bookmarks} = useBookmarks();
+  const bookmarksCount = bookmarks.length;
   const progressTrackColor = isDark
     ? 'transparent'
     : withOpacity(colors.primary, isDark ? 0.3 : 0.8);
@@ -942,6 +947,75 @@ export default function HomeScreen() {
                 </Text>
               </BlurView>
             </TouchableOpacity>
+
+            <TouchableOpacity
+              activeOpacity={0.9}
+              style={styles.savedCardWrapper}
+              onPress={() =>
+                handlePress(() => router.push('/(tabs)/bookmarks' as any))
+              }>
+              <BlurView
+                intensity={isDark ? 28 : 48}
+                tint={isDark ? 'dark' : 'light'}
+                style={[
+                  styles.savedCard,
+                  {
+                    backgroundColor: celestialTheme.colors.surfaceGlass,
+                    borderColor: celestialTheme.colors.glassBorder,
+                  },
+                  celestialTheme.shadows.md,
+                ]}>
+                <View style={styles.savedCardHeader}>
+                  <View
+                    style={[
+                      styles.savedIcon,
+                      {
+                        backgroundColor: withOpacity(
+                          colors.secondary,
+                          isDark ? 0.2 : 0.12,
+                        ),
+                      },
+                    ]}>
+                    <Ionicons
+                      name="bookmark"
+                      size={20}
+                      color={colors.secondary}
+                    />
+                  </View>
+                  <View style={styles.savedMeta}>
+                    <View
+                      style={[
+                        styles.savedBadge,
+                        {
+                          backgroundColor: withOpacity(
+                            colors.secondary,
+                            isDark ? 0.18 : 0.12,
+                          ),
+                        },
+                      ]}>
+                      <Text
+                        style={[
+                          styles.savedBadgeText,
+                          {color: colors.secondary},
+                        ]}>
+                        {formatSavedCount(bookmarksCount)}
+                      </Text>
+                    </View>
+                    <Ionicons
+                      name="chevron-forward"
+                      size={18}
+                      color={colors.textTertiary}
+                    />
+                  </View>
+                </View>
+                <Text
+                  style={[styles.savedLabel, {color: colors.text}]}
+                  numberOfLines={1}
+                  ellipsizeMode="tail">
+                  {t.bookmarks.short}
+                </Text>
+              </BlurView>
+            </TouchableOpacity>
           </View>
         </Animated.View>
 
@@ -1129,11 +1203,14 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
   },
 
-  // Saved shortcuts
+  // Saved shortcuts: 2×2 grid wrapping after two cards so the four
+  // saved-item entry points (Favorites/Notes/Highlights/Bookmarks) all
+  // fit comfortably on a single Home screen.
   savedGrid: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
+    flexWrap: 'wrap',
     columnGap: SAVED_CARD_GAP,
+    rowGap: SAVED_CARD_GAP,
   },
   savedCardWrapper: {
     width: SAVED_CARD_WIDTH,

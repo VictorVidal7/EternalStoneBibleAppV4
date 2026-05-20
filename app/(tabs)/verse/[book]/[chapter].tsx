@@ -13,7 +13,7 @@ import {
   NativeSyntheticEvent,
   NativeScrollEvent,
 } from 'react-native';
-import {useState, useEffect, useRef} from 'react';
+import {useState, useEffect, useRef, useMemo} from 'react';
 import {useLocalSearchParams, useRouter, Stack} from 'expo-router';
 import {Ionicons} from '@expo/vector-icons';
 import * as Clipboard from 'expo-clipboard';
@@ -22,7 +22,8 @@ import * as Sharing from 'expo-sharing';
 import {captureRef} from 'react-native-view-shot';
 import bibleDB from '@lib/database';
 import {BibleVerse} from '@/types/bible';
-import {getBookByName} from '@/constants/bible';
+import {BIBLE_VERSIONS, getBookByName} from '@/constants/bible';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import {
   linkifyReferences,
   type ParsedReference,
@@ -34,6 +35,7 @@ import {useLanguage} from '@hooks/useLanguage';
 import {useServices} from '@context/ServicesContext';
 import {useToast} from '@context/ToastContext';
 import {useFavorites} from '@context/FavoritesContext';
+import {useBookmarks} from '@context/BookmarksContext';
 import {useReadingPlanProgress} from '@context/ReadingPlanProgressContext';
 import {useReadingProgress} from '@context/ReadingProgressContext';
 import {getReadingPlanById, getLocalizedPlan} from '@/constants/reading-plans';
@@ -163,6 +165,7 @@ export default function VerseReadingScreen() {
   const toast = useToast();
   const {achievementService, highlightService} = useServices();
   const {favorites, addFavorite, removeFavorite} = useFavorites();
+  const {addBookmark} = useBookmarks();
   const {markChapterRead} = useReadingPlanProgress();
   // Audio Bible
   const {
@@ -218,6 +221,17 @@ export default function VerseReadingScreen() {
     new Map(),
   );
   const [showHighlightPicker, setShowHighlightPicker] = useState(false);
+  // Side-by-side mode: pairs each verse with its counterpart from the
+  // other available Bible version (RVR1960 ↔ KJV) so users can study
+  // both translations at once without leaving the reader.
+  const [sideBySide, setSideBySide] = useState(false);
+  const [secondaryVerses, setSecondaryVerses] = useState<BibleVerse[]>([]);
+  // The "other" version (whichever one isn't currently active for
+  // reading). Memoized so it survives renders cheaply.
+  const secondaryVersion = useMemo(
+    () => BIBLE_VERSIONS.find(v => v.id !== selectedVersion.id),
+    [selectedVersion.id],
+  );
 
   const imagePreviewRef = useRef<any>(null);
   // Y offset of each verse row within the ScrollView, for audio auto-scroll.
@@ -235,6 +249,44 @@ export default function VerseReadingScreen() {
     setBottomOffset(0);
     return () => setBottomOffset(0);
   }, [setBottomOffset]);
+
+  // Hydrate the side-by-side preference once on mount.
+  useEffect(() => {
+    AsyncStorage.getItem('@reader_side_by_side')
+      .then(v => {
+        if (v === '1') setSideBySide(true);
+      })
+      .catch(() => undefined);
+  }, []);
+
+  async function toggleSideBySide() {
+    await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    const next = !sideBySide;
+    setSideBySide(next);
+    AsyncStorage.setItem('@reader_side_by_side', next ? '1' : '0').catch(
+      () => undefined,
+    );
+    // Going from off → on outside of a chapter (re)load: fetch the
+    // companion chapter inline. Going off → off clears.
+    if (next && secondaryVersion && bookInfo) {
+      try {
+        const secondary = await bibleDB.getChapter(
+          bookInfo.id,
+          chapterNum,
+          secondaryVersion.id,
+        );
+        setSecondaryVerses(secondary);
+      } catch (error) {
+        logger.error('Side-by-side fetch failed', error as Error, {
+          component: 'VerseReadingScreen',
+          action: 'toggleSideBySide',
+        });
+        setSecondaryVerses([]);
+      }
+    } else if (!next) {
+      setSecondaryVerses([]);
+    }
+  }
 
   // Reading-progress tracking: how far the reader scrolled through the
   // chapter, persisted on chapter change / unmount so the chapter grid
@@ -456,6 +508,28 @@ export default function VerseReadingScreen() {
       // Update reading progress
       if (chapterVerses.length > 0) {
         await bibleDB.updateReadingProgress(book, chapterNum, 1);
+      }
+
+      // Side-by-side: also pull the matching chapter from the other
+      // version so each verse can render its counterpart. Fire-and-
+      // forget — the primary reading flow doesn't depend on it.
+      if (sideBySide && secondaryVersion) {
+        try {
+          const secondary = await bibleDB.getChapter(
+            bookInfo.id,
+            chapterNum,
+            secondaryVersion.id,
+          );
+          setSecondaryVerses(secondary);
+        } catch (error) {
+          logger.error('Side-by-side fetch failed', error as Error, {
+            component: 'VerseReadingScreen',
+            action: 'loadChapter.secondary',
+          });
+          setSecondaryVerses([]);
+        }
+      } else {
+        setSecondaryVerses([]);
       }
 
       setLoading(false);
@@ -740,6 +814,35 @@ export default function VerseReadingScreen() {
       return next;
     });
 
+    clearSelection();
+  }
+
+  // Save the selected verses as named bookmarks (one per verse so the
+  // user can come back to a specific point — distinct from the single
+  // "Continue Reading" position the reader auto-tracks).
+  async function handleBookmarkSelected() {
+    if (selectedVerses.size === 0) return;
+    await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+
+    const sortedNums = Array.from(selectedVerses).sort((a, b) => a - b);
+    const selectedVersesData = sortedNums
+      .map(num => verses.find(v => v.verse === num))
+      .filter(Boolean) as BibleVerse[];
+
+    for (const verse of selectedVersesData) {
+      await addBookmark({
+        book: verse.book,
+        chapter: verse.chapter,
+        verse: verse.verse,
+        text: verse.text,
+      });
+    }
+
+    toast.success(
+      sortedNums.length === 1
+        ? t.bookmarks.added
+        : t.bookmarks.addedMany.replace('{{n}}', String(sortedNums.length)),
+    );
     clearSelection();
   }
 
@@ -1092,6 +1195,39 @@ export default function VerseReadingScreen() {
             </Text>
           </TouchableOpacity>
 
+          {secondaryVersion ? (
+            <TouchableOpacity
+              style={[
+                styles.toolbarButton,
+                sideBySide && {
+                  backgroundColor: effectiveColors.primary + '20',
+                },
+              ]}
+              onPress={toggleSideBySide}
+              accessibilityRole="button"
+              accessibilityState={{selected: sideBySide}}
+              accessibilityLabel={t.verse.sideBySide}>
+              <Ionicons
+                name="copy-outline"
+                size={22}
+                color={
+                  sideBySide ? effectiveColors.primary : effectiveColors.text
+                }
+              />
+              <Text
+                style={[
+                  styles.toolbarButtonText,
+                  {
+                    color: sideBySide
+                      ? effectiveColors.primary
+                      : effectiveColors.textSecondary,
+                  },
+                ]}>
+                {t.verse.dualView}
+              </Text>
+            </TouchableOpacity>
+          ) : null}
+
           <TouchableOpacity
             style={styles.toolbarButton}
             onPress={() => {
@@ -1244,6 +1380,51 @@ export default function VerseReadingScreen() {
                       );
                     })()}
                   </Text>
+                  {/* Side-by-side companion: render the matching verse
+                      from the other version directly below the primary
+                      one, separated by a thin divider and styled smaller
+                      / dimmer so it reads as supporting context. The
+                      tap on this region is harmless — selection still
+                      targets the primary verse via the outer Touchable. */}
+                  {sideBySide && secondaryVersion
+                    ? (() => {
+                        const companion = secondaryVerses.find(
+                          v => v.verse === verse.verse,
+                        );
+                        if (!companion) return null;
+                        return (
+                          <View
+                            style={[
+                              styles.sideBySideCompanion,
+                              {
+                                borderTopColor: effectiveColors.border,
+                                borderLeftColor: effectiveColors.primary,
+                              },
+                            ]}>
+                            <Text
+                              style={[
+                                styles.sideBySideLabel,
+                                {color: effectiveColors.primary},
+                              ]}>
+                              {secondaryVersion.abbreviation}
+                            </Text>
+                            <Text
+                              style={[
+                                styles.sideBySideText,
+                                {
+                                  color: userHighlight
+                                    ? '#1A1D2E'
+                                    : effectiveColors.textSecondary,
+                                  fontSize: Math.max(fontSize - 2, 12),
+                                  lineHeight: Math.max(fontSize - 2, 12) * 1.5,
+                                },
+                              ]}>
+                              {companion.text}
+                            </Text>
+                          </View>
+                        );
+                      })()
+                    : null}
                 </View>
                 {isFavorited && (
                   <TouchableOpacity
@@ -1407,6 +1588,24 @@ export default function VerseReadingScreen() {
                       {color: effectiveColors.text},
                     ]}>
                     {t.verse.addFavorite}
+                  </Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={styles.selectionButton}
+                  onPress={handleBookmarkSelected}>
+                  <Ionicons
+                    name="bookmark-outline"
+                    size={22}
+                    color={effectiveColors.primary}
+                  />
+                  <Text
+                    numberOfLines={1}
+                    adjustsFontSizeToFit
+                    style={[
+                      styles.selectionButtonText,
+                      {color: effectiveColors.text},
+                    ]}>
+                    {t.bookmarks.short}
                   </Text>
                 </TouchableOpacity>
                 <TouchableOpacity
@@ -1987,6 +2186,25 @@ const styles = StyleSheet.create({
   },
   verseText: {
     fontSize: fontSizes.base,
+  },
+  sideBySideCompanion: {
+    marginTop: spacing.sm,
+    paddingTop: spacing.xs,
+    paddingLeft: spacing.sm,
+    borderTopWidth: 1,
+    borderLeftWidth: 2,
+    borderTopColor: 'transparent',
+    borderLeftColor: 'transparent',
+  },
+  sideBySideLabel: {
+    fontSize: 10,
+    fontWeight: '700',
+    letterSpacing: 0.5,
+    marginBottom: 2,
+    textTransform: 'uppercase',
+  },
+  sideBySideText: {
+    fontStyle: 'italic',
   },
   favoriteIndicator: {
     marginLeft: spacing.sm,

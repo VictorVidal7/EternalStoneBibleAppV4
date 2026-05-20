@@ -215,6 +215,22 @@ export const translations = {
     },
 
     // My Highlights Screen
+    bookmarks: {
+      title: 'Marcadores',
+      short: 'Marcadores',
+      count: 'marcadores',
+      countSingular: 'marcador',
+      added: 'Marcador añadido',
+      addedMany: '{{n}} marcadores añadidos',
+      emptyMessage: 'Aún no tienes marcadores',
+      openBible: 'Abrir la Biblia',
+      rename: 'Renombrar',
+      renameTitle: 'Nombre del marcador',
+      labelPlaceholder: 'Ej.: Sermón del domingo',
+      deleteTitle: 'Eliminar marcador',
+      deleteMessage: '¿Quieres quitar este marcador?',
+    },
+
     highlights: {
       title: 'Mis Resaltados',
       short: 'Resaltados',
@@ -341,6 +357,8 @@ export const translations = {
       decreaseFontSize: 'Reducir tamaño de letra',
       previousVerse: 'Versículo anterior',
       nextVerse: 'Versículo siguiente',
+      sideBySide: 'Mostrar la otra versión junto a esta',
+      dualView: 'Doble',
       highlightColorNames: {
         yellow: 'amarillo',
         green: 'verde',
@@ -1321,6 +1339,22 @@ export const translations = {
       countLabelSingular: 'Note saved',
     },
 
+    bookmarks: {
+      title: 'Bookmarks',
+      short: 'Bookmarks',
+      count: 'bookmarks',
+      countSingular: 'bookmark',
+      added: 'Bookmark added',
+      addedMany: '{{n}} bookmarks added',
+      emptyMessage: 'No bookmarks yet',
+      openBible: 'Open the Bible',
+      rename: 'Rename',
+      renameTitle: 'Bookmark name',
+      labelPlaceholder: 'e.g. Sunday sermon',
+      deleteTitle: 'Delete bookmark',
+      deleteMessage: 'Remove this bookmark?',
+    },
+
     // My Highlights Screen
     highlights: {
       title: 'My Highlights',
@@ -1447,6 +1481,8 @@ export const translations = {
       decreaseFontSize: 'Decrease font size',
       previousVerse: 'Previous verse',
       nextVerse: 'Next verse',
+      sideBySide: 'Show the other version alongside',
+      dualView: 'Dual',
       highlightColorNames: {
         yellow: 'yellow',
         green: 'green',
