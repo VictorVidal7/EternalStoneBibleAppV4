@@ -155,6 +155,19 @@ export default function TabLayout() {
       />
 
       <Tabs.Screen
+        name="bookmarks"
+        options={{
+          href: null,
+          title: t.bookmarks.title,
+          headerShown: false,
+          tabBarIcon: ({color, size}) => (
+            <Ionicons name="bookmark" size={size} color={color} />
+          ),
+          headerTitle: t.bookmarks.title,
+        }}
+      />
+
+      <Tabs.Screen
         name="chapter/[book]"
         options={{
           href: null,
