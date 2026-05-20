@@ -1,5 +1,49 @@
 import * as SQLite from 'expo-sqlite';
+import {Asset} from 'expo-asset';
+import {Directory, File, Paths} from 'expo-file-system';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import {BibleVerse, Note, ReadingProgress} from '../../types/bible';
+
+/**
+ * Copy the bundled pre-seeded bible.db into expo-sqlite's storage
+ * directory if it isn't already there. Returns true when a copy
+ * actually happened so the caller can log it. Failures degrade
+ * silently — the legacy JS bulk-loader (`initializeBibleData`) will
+ * still run if the seed didn't make it in.
+ *
+ * The seed contains both versions' verses + the FTS5 index so the
+ * first launch finishes in well under a second instead of ~100s.
+ */
+async function seedFromBundleIfMissing(): Promise<boolean> {
+  try {
+    const sqliteDir = new Directory(Paths.document, 'SQLite');
+    const targetFile = new File(sqliteDir, 'bible.db');
+    if (targetFile.exists) return false;
+
+    const asset = Asset.fromModule(require('../../../assets/bible-seed.db'));
+    await asset.downloadAsync();
+    const sourceUri = asset.localUri ?? asset.uri;
+    if (!sourceUri) return false;
+
+    if (!sqliteDir.exists) sqliteDir.create({intermediates: true});
+    const sourceFile = new File(sourceUri);
+    sourceFile.copy(targetFile);
+    // The JS bulk loader keys "this version is loaded" off AsyncStorage;
+    // mark both as loaded so it short-circuits instead of redundantly
+    // re-iterating 62k rows just to hit the UNIQUE constraint.
+    await Promise.all([
+      AsyncStorage.setItem('@bible_data_loaded_rvr1960', 'true'),
+      AsyncStorage.setItem('@bible_data_loaded_kjv', 'true'),
+    ]);
+    return true;
+  } catch (error) {
+    console.warn(
+      '⚠️ Pre-seed DB copy failed, falling back to JS loader',
+      error,
+    );
+    return false;
+  }
+}
 
 class BibleDatabase {
   private db: SQLite.SQLiteDatabase | null = null;
@@ -33,6 +77,12 @@ class BibleDatabase {
     if (this.initialized) return;
 
     try {
+      const seeded = await seedFromBundleIfMissing();
+      if (seeded) {
+        console.log(
+          '🌱 Pre-seeded bible.db copied from bundle — skipping JS verse loader',
+        );
+      }
       this.db = await SQLite.openDatabaseAsync('bible.db');
 
       // Ejecutar cada sentencia SQL por separado para evitar NullPointerException
