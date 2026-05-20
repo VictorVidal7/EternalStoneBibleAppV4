@@ -4,6 +4,7 @@ export const translations = {
     loading: 'Cargando...',
     error: 'Error',
     cancel: 'Cancelar',
+    close: 'Cerrar',
     save: 'Guardar',
     delete: 'Eliminar',
     edit: 'Editar',
@@ -150,6 +151,10 @@ export const translations = {
       initialTitle: 'Busca en toda la Biblia',
       initialSubtitle: 'Encuentra versículos por palabras clave',
       popularSearches: 'Búsquedas populares:',
+      recentSearches: 'Búsquedas recientes:',
+      clearHistory: 'Borrar',
+      searchFor: 'Buscar',
+      removeFromHistory: 'Eliminar del historial',
       suggestions: ['amor', 'fe', 'esperanza', 'paz', 'salvación'],
       testament: {
         all: 'Todos',
@@ -274,11 +279,11 @@ export const translations = {
       resetDescription: 'Elimina y recarga todos los versículos',
       resetTitle: 'Resetear Datos',
       resetMessage:
-        '¿Estás seguro de que quieres resetear todos los datos de la Biblia? La app se recargará automáticamente.',
+        '¿Estás seguro de que quieres resetear todos los datos de la Biblia? Esto borra y vuelve a cargar los 62.000+ versículos. Tus favoritos, notas y resaltados no se ven afectados. La recarga puede tardar un minuto.',
+      resetConfirm: 'Resetear',
       resetSuccess: 'Datos Reseteados',
-      resetSuccessMessage:
-        'Por favor, cierra y vuelve a abrir la aplicación para recargar los datos.',
-      resetting: 'Reseteando...',
+      resetSuccessMessage: 'Los versículos se han recargado correctamente.',
+      resetting: 'Recargando versículos…',
       resetError: 'Error al resetear los datos.',
 
       about: 'Acerca de',
@@ -334,6 +339,19 @@ export const translations = {
       decreaseFontSize: 'Reducir tamaño de letra',
       previousVerse: 'Versículo anterior',
       nextVerse: 'Versículo siguiente',
+      highlightColorNames: {
+        yellow: 'amarillo',
+        green: 'verde',
+        blue: 'azul',
+        purple: 'morado',
+        pink: 'rosa',
+        orange: 'naranja',
+        red: 'rojo',
+        gray: 'gris',
+      },
+      highlightInColor: 'Resaltar en {{color}}',
+      removeHighlight: 'Quitar resaltado',
+      clearSelection: 'Limpiar selección',
     },
 
     // Audio Player
@@ -1092,6 +1110,7 @@ export const translations = {
     loading: 'Loading...',
     error: 'Error',
     cancel: 'Cancel',
+    close: 'Close',
     save: 'Save',
     delete: 'Delete',
     edit: 'Edit',
@@ -1238,6 +1257,10 @@ export const translations = {
       initialTitle: 'Search the entire Bible',
       initialSubtitle: 'Find verses by keywords',
       popularSearches: 'Popular searches:',
+      recentSearches: 'Recent searches:',
+      clearHistory: 'Clear',
+      searchFor: 'Search',
+      removeFromHistory: 'Remove from history',
       suggestions: ['love', 'faith', 'hope', 'peace', 'salvation'],
       testament: {
         all: 'All',
@@ -1361,11 +1384,11 @@ export const translations = {
       resetDescription: 'Delete and reload all verses',
       resetTitle: 'Reset Data',
       resetMessage:
-        'Are you sure you want to reset all Bible data? The app will reload automatically.',
+        'Are you sure you want to reset all Bible data? This deletes and reloads the 62,000+ verses. Your favorites, notes and highlights are not affected. The reload may take a minute.',
+      resetConfirm: 'Reset',
       resetSuccess: 'Data Reset',
-      resetSuccessMessage:
-        'Please close and reopen the app to reload the data.',
-      resetting: 'Resetting...',
+      resetSuccessMessage: 'Verses have been reloaded successfully.',
+      resetting: 'Reloading verses…',
       resetError: 'Error resetting data.',
 
       about: 'About',
@@ -1420,6 +1443,19 @@ export const translations = {
       decreaseFontSize: 'Decrease font size',
       previousVerse: 'Previous verse',
       nextVerse: 'Next verse',
+      highlightColorNames: {
+        yellow: 'yellow',
+        green: 'green',
+        blue: 'blue',
+        purple: 'purple',
+        pink: 'pink',
+        orange: 'orange',
+        red: 'red',
+        gray: 'gray',
+      },
+      highlightInColor: 'Highlight in {{color}}',
+      removeHighlight: 'Remove highlight',
+      clearSelection: 'Clear selection',
     },
 
     // Audio Player

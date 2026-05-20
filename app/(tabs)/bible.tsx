@@ -158,17 +158,7 @@ export default function BibleScreen() {
           start={{x: 0, y: 0}}
           end={{x: 1, y: 1}}
           style={styles.header}>
-          {/* Boton de regreso */}
-          <TouchableOpacity
-            style={[
-              styles.headerBackButton,
-              {backgroundColor: 'rgba(255,255,255,0.15)'},
-            ]}
-            onPress={() => router.back()}
-            accessibilityRole="button"
-            accessibilityLabel={t.bible.back}>
-            <Ionicons name="arrow-back" size={24} color="#ffffff" />
-          </TouchableOpacity>
+          {/* No back button — this is a root tab; bottom bar is the nav. */}
 
           <View style={styles.headerContent}>
             <View
@@ -529,15 +519,6 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.1,
     shadowRadius: 12,
     elevation: 5,
-  },
-  headerBackButton: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: 'rgba(255,255,255,0.2)',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginBottom: 16,
   },
   headerContent: {
     flexDirection: 'row',

@@ -13,7 +13,7 @@ import {
   SafeAreaView,
   TouchableOpacity,
 } from 'react-native';
-import {useRouter, useFocusEffect} from 'expo-router';
+import {useFocusEffect} from 'expo-router';
 import {Ionicons} from '@expo/vector-icons';
 import {LinearGradient} from 'expo-linear-gradient';
 import {AchievementCard} from '../components/achievements/AchievementCard';
@@ -37,7 +37,6 @@ export const AchievementsScreen: React.FC<AchievementsScreenProps> = ({
     useAchievements(database);
   const {colors, isDark, gradient} = useTheme();
   const {t} = useLanguage();
-  const router = useRouter();
 
   // Re-read achievements and stats when the tab regains focus so reading
   // progress made elsewhere is reflected without an app restart.
@@ -146,14 +145,7 @@ export const AchievementsScreen: React.FC<AchievementsScreenProps> = ({
         end={{x: 1, y: 0}}
         style={styles.header}>
         <View style={styles.headerTop}>
-          <TouchableOpacity
-            style={styles.headerBackButton}
-            onPress={() => router.back()}
-            accessibilityRole="button"
-            accessibilityLabel={t.bible.back}>
-            <Ionicons name="arrow-back" size={24} color="#ffffff" />
-          </TouchableOpacity>
-
+          {/* No back button — this is a root tab; bottom bar is the nav. */}
           <Pressable
             style={[
               styles.toggleButton,
@@ -358,17 +350,11 @@ const styles = StyleSheet.create({
   },
   headerTop: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
+    // Stats-view toggle sits in the top-right corner now that the
+    // (root tab) back button has been removed.
+    justifyContent: 'flex-end',
     alignItems: 'center',
     marginBottom: 16,
-  },
-  headerBackButton: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: 'rgba(255,255,255,0.2)',
-    justifyContent: 'center',
-    alignItems: 'center',
   },
   headerContentContainer: {
     flexDirection: 'row',

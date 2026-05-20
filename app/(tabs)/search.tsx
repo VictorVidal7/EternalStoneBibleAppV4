@@ -7,11 +7,12 @@ import {
   TouchableOpacity,
   RefreshControl,
 } from 'react-native';
-import React, {useState, useCallback, useMemo, memo} from 'react';
+import React, {useState, useCallback, useMemo, useEffect, memo} from 'react';
 import {useRouter} from 'expo-router';
 import {Ionicons} from '@expo/vector-icons';
 import {LinearGradient} from 'expo-linear-gradient';
 import {useDebouncedCallback} from 'use-debounce';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import bibleDB from '@lib/database';
 import {BibleVerse} from '@/types/bible';
 import {getBookByName} from '@/constants/bible';
@@ -26,6 +27,11 @@ type TestamentFilter = 'all' | 'old' | 'new';
 // Tope de filas que devuelve searchVerses; al alcanzarlo el conteo se muestra
 // como "200+" porque puede haber más resultados sin cargar.
 const SEARCH_RESULT_LIMIT = 200;
+
+// Recent searches: persisted to AsyncStorage so the chips survive relaunches.
+// Capped at 8 to keep the empty-state screen tidy.
+const SEARCH_HISTORY_KEY = '@bible_search_history';
+const MAX_SEARCH_HISTORY = 8;
 
 /**
  * Create themed styles for the search screen
@@ -302,6 +308,61 @@ export default function SearchScreen() {
   const [hasSearched, setHasSearched] = useState(false);
   const [testamentFilter, setTestamentFilter] =
     useState<TestamentFilter>('all');
+  const [searchHistory, setSearchHistory] = useState<string[]>([]);
+
+  // Hydrate recent searches from storage on mount.
+  useEffect(() => {
+    AsyncStorage.getItem(SEARCH_HISTORY_KEY)
+      .then(raw => {
+        if (!raw) return;
+        try {
+          const parsed = JSON.parse(raw);
+          if (Array.isArray(parsed)) {
+            setSearchHistory(
+              parsed
+                .filter((x): x is string => typeof x === 'string')
+                .slice(0, MAX_SEARCH_HISTORY),
+            );
+          }
+        } catch {
+          // Ignore corrupted history — it's a UX nicety, not critical data.
+        }
+      })
+      .catch(() => undefined);
+  }, []);
+
+  const persistHistory = useCallback((next: string[]) => {
+    setSearchHistory(next);
+    AsyncStorage.setItem(SEARCH_HISTORY_KEY, JSON.stringify(next)).catch(
+      () => undefined,
+    );
+  }, []);
+
+  // Add a query to recent searches: dedupe (case-insensitive), trim, MRU order.
+  const recordSearch = useCallback((rawQuery: string) => {
+    const query = rawQuery.trim();
+    if (query.length < 3) return;
+    setSearchHistory(prev => {
+      const lower = query.toLowerCase();
+      const filtered = prev.filter(q => q.toLowerCase() !== lower);
+      const next = [query, ...filtered].slice(0, MAX_SEARCH_HISTORY);
+      AsyncStorage.setItem(SEARCH_HISTORY_KEY, JSON.stringify(next)).catch(
+        () => undefined,
+      );
+      return next;
+    });
+  }, []);
+
+  const removeHistoryEntry = useCallback(
+    (query: string) => {
+      persistHistory(searchHistory.filter(q => q !== query));
+    },
+    [searchHistory, persistHistory],
+  );
+
+  const clearHistory = useCallback(() => {
+    persistHistory([]);
+  }, [persistHistory]);
 
   const applyTestamentFilter = useCallback(
     (verses: BibleVerse[], filter: TestamentFilter) => {
@@ -344,6 +405,11 @@ export default function SearchScreen() {
         );
         setAllResults(searchResults);
         setResults(applyTestamentFilter(searchResults, testamentFilter));
+        // Only successful searches earn a slot in history — typos and
+        // wrong-version queries (0 results) would just clutter it.
+        if (searchResults.length > 0) {
+          recordSearch(query);
+        }
       } catch (error) {
         console.error('Search error:', error);
         setResults([]);
@@ -352,7 +418,7 @@ export default function SearchScreen() {
         setLoading(false);
       }
     },
-    [testamentFilter, applyTestamentFilter, selectedVersion.id],
+    [testamentFilter, applyTestamentFilter, selectedVersion.id, recordSearch],
   );
 
   const debouncedSearch = useDebouncedCallback(performSearch, 500);
@@ -414,14 +480,7 @@ export default function SearchScreen() {
         start={{x: 0, y: 0}}
         end={{x: 0, y: 1}}
         style={styles.header}>
-        {/* Boton de regreso */}
-        <TouchableOpacity
-          style={styles.headerBackButton}
-          onPress={() => router.back()}
-          accessibilityRole="button"
-          accessibilityLabel={t.bible.back}>
-          <Ionicons name="arrow-back" size={24} color="#ffffff" />
-        </TouchableOpacity>
+        {/* No back button — this is a root tab; bottom bar is the nav. */}
 
         <View style={styles.headerContent}>
           <View style={styles.headerIconContainer}>
@@ -588,6 +647,55 @@ export default function SearchScreen() {
             {t.search.initialSubtitle}
           </Text>
 
+          {/* Recent Searches — only render when the user has any history. */}
+          {searchHistory.length > 0 && (
+            <View style={styles.suggestionsContainer}>
+              <View style={styles.suggestionsHeader}>
+                <Text style={themedStyles.suggestionsTitle}>
+                  {t.search.recentSearches}
+                </Text>
+                <TouchableOpacity
+                  onPress={clearHistory}
+                  accessibilityRole="button"
+                  accessibilityLabel={t.search.clearHistory}>
+                  <Text
+                    style={[
+                      styles.clearHistoryText,
+                      {color: colors.textSecondary},
+                    ]}>
+                    {t.search.clearHistory}
+                  </Text>
+                </TouchableOpacity>
+              </View>
+              <View style={styles.suggestionsWrap}>
+                {searchHistory.map(query => (
+                  <View
+                    key={query}
+                    style={[themedStyles.suggestionChip, styles.historyChip]}>
+                    <TouchableOpacity
+                      onPress={() => handleSearchChange(query)}
+                      accessibilityRole="button"
+                      accessibilityLabel={`${t.search.searchFor} ${query}`}>
+                      <Text style={themedStyles.suggestionText}>{query}</Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity
+                      style={styles.historyChipClose}
+                      onPress={() => removeHistoryEntry(query)}
+                      accessibilityRole="button"
+                      accessibilityLabel={`${t.search.removeFromHistory}: ${query}`}
+                      hitSlop={8}>
+                      <Ionicons
+                        name="close"
+                        size={14}
+                        color={isDark ? colors.primaryDark : colors.primary}
+                      />
+                    </TouchableOpacity>
+                  </View>
+                ))}
+              </View>
+            </View>
+          )}
+
           <View style={styles.suggestionsContainer}>
             <Text style={themedStyles.suggestionsTitle}>
               {t.search.popularSearches}
@@ -624,15 +732,6 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.1,
     shadowRadius: 12,
     elevation: 5,
-  },
-  headerBackButton: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: 'rgba(255,255,255,0.2)',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginBottom: 16,
   },
   headerContent: {
     flexDirection: 'row',
@@ -713,14 +812,36 @@ const styles = StyleSheet.create({
     padding: 20,
   },
   suggestionsContainer: {
-    marginTop: 40,
+    marginTop: 28,
     alignSelf: 'stretch',
     alignItems: 'center',
+  },
+  suggestionsHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    width: '100%',
+    paddingHorizontal: 16,
+    marginBottom: 4,
+  },
+  clearHistoryText: {
+    fontSize: 13,
+    fontWeight: '500',
   },
   suggestionsWrap: {
     flexDirection: 'row',
     flexWrap: 'wrap',
     justifyContent: 'center',
     alignItems: 'center',
+  },
+  historyChip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingRight: 6,
+  },
+  historyChipClose: {
+    marginLeft: 6,
+    paddingHorizontal: 4,
+    paddingVertical: 2,
   },
 });
