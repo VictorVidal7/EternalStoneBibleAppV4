@@ -156,6 +156,7 @@ export const translations = {
       clearHistory: 'Borrar',
       searchFor: 'Buscar',
       removeFromHistory: 'Eliminar del historial',
+      loadMore: 'Cargar más resultados',
       suggestions: ['amor', 'fe', 'esperanza', 'paz', 'salvación'],
       testament: {
         all: 'Todos',
@@ -1263,6 +1264,7 @@ export const translations = {
       clearHistory: 'Clear',
       searchFor: 'Search',
       removeFromHistory: 'Remove from history',
+      loadMore: 'Load more results',
       suggestions: ['love', 'faith', 'hope', 'peace', 'salvation'],
       testament: {
         all: 'All',

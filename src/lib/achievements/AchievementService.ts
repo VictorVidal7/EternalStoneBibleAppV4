@@ -93,7 +93,26 @@ export class AchievementService {
    * Gets user statistics
    */
   async getUserStats(): Promise<UserStats> {
-    if (this.stats) return this.stats;
+    // Always compute the user-visible list counts fresh so the stats
+    // screen doesn't drift from the actual data the user sees. The
+    // `trackHighlight/trackNote/trackFavorite` writers in this service
+    // were never wired into the "add" actions, so the user_stats
+    // columns stay permanently at 0 across an install — counting the
+    // tables directly fixes the desync without touching every call site.
+    const [highlightsCount, notesCount, favoritesCount] = await Promise.all([
+      this.countRowsSafely('highlights'),
+      this.countRowsSafely('notes'),
+      this.countRowsSafely('favorites'),
+    ]);
+
+    if (this.stats) {
+      return {
+        ...this.stats,
+        totalHighlights: highlightsCount,
+        totalNotes: notesCount,
+        totalFavorites: favoritesCount,
+      };
+    }
 
     const sql = 'SELECT * FROM user_stats WHERE id = 1';
     const result = await this.db.executeSql(sql);
@@ -114,9 +133,9 @@ export class AchievementService {
       currentStreak: row.current_streak,
       longestStreak: row.longest_streak,
       lastReadDate: row.last_read_date || '',
-      totalHighlights: row.total_highlights,
-      totalNotes: row.total_notes,
-      totalFavorites: row.total_favorites || 0,
+      totalHighlights: highlightsCount,
+      totalNotes: notesCount,
+      totalFavorites: favoritesCount,
       totalBookmarks: row.total_bookmarks,
       totalSearches: row.total_searches,
       totalShares: row.total_shares,
@@ -128,6 +147,22 @@ export class AchievementService {
     };
 
     return this.stats!;
+  }
+
+  /**
+   * Count rows on a known-name table; returns 0 if the table does not
+   * exist yet (e.g. first launch before HighlightService has run its
+   * own CREATE TABLE).
+   */
+  private async countRowsSafely(table: string): Promise<number> {
+    try {
+      const result = await this.db.executeSql(
+        `SELECT COUNT(*) AS n FROM ${table}`,
+      );
+      return result.rows._array[0]?.n ?? 0;
+    } catch {
+      return 0;
+    }
   }
 
   /**

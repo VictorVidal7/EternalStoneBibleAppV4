@@ -492,18 +492,21 @@ class BibleDatabase {
     query: string,
     version: string = 'RVR1960',
     limit: number = 100,
+    offset: number = 0,
   ): Promise<BibleVerse[]> {
     const db = this.getDb();
 
-    // Use FTS5 for fast full-text search
+    // Use FTS5 for fast full-text search. OFFSET supports the
+    // "Load more" pagination on the search screen — when a query
+    // returns LIMIT rows, the next page is fetched with offset=LIMIT.
     const result = await db.getAllAsync<BibleVerse>(
       `SELECT v.id, v.book_id as bookNumber, v.book_name as book, v.chapter, v.verse, v.text, v.version
        FROM verses v
        INNER JOIN verses_fts fts ON v.id = fts.rowid
        WHERE fts.text MATCH ? AND v.version = ?
        ORDER BY rank
-       LIMIT ?`,
-      [query, version, limit],
+       LIMIT ? OFFSET ?`,
+      [query, version, limit, offset],
     );
 
     return result;
