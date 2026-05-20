@@ -877,7 +877,11 @@ export default function VerseReadingScreen() {
                   audioState.isPlaying && {
                     backgroundColor: 'rgba(255, 255, 255, 0.2)',
                   },
-                ]}>
+                ]}
+                accessibilityRole="button"
+                accessibilityLabel={
+                  audioState.isPlaying ? t.verse.pause : t.verse.audio
+                }>
                 <Ionicons
                   name={audioState.isPlaying ? 'pause' : 'play'}
                   size={24}
@@ -889,7 +893,9 @@ export default function VerseReadingScreen() {
                   Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
                   setImmersiveModeActive(true);
                 }}
-                style={styles.headerButton}>
+                style={styles.headerButton}
+                accessibilityRole="button"
+                accessibilityLabel={t.verse.immersive}>
                 <Ionicons name="expand-outline" size={24} color="#FFFFFF" />
               </TouchableOpacity>
               <TouchableOpacity
@@ -897,7 +903,9 @@ export default function VerseReadingScreen() {
                   Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
                   setFontSize(prev => Math.min(prev + 2, 24));
                 }}
-                style={styles.headerButton}>
+                style={styles.headerButton}
+                accessibilityRole="button"
+                accessibilityLabel={t.verse.increaseFontSize}>
                 <Ionicons name="add-circle-outline" size={24} color="#FFFFFF" />
               </TouchableOpacity>
               <TouchableOpacity
@@ -905,7 +913,9 @@ export default function VerseReadingScreen() {
                   Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
                   setFontSize(prev => Math.max(prev - 2, 12));
                 }}
-                style={styles.headerButton}>
+                style={styles.headerButton}
+                accessibilityRole="button"
+                accessibilityLabel={t.verse.decreaseFontSize}>
                 <Ionicons
                   name="remove-circle-outline"
                   size={24}
@@ -1238,7 +1248,10 @@ export default function VerseReadingScreen() {
                 {selectedVerses.size}{' '}
                 {selectedVerses.size === 1 ? t.verse.singular : t.verse.plural}
               </Text>
-              <TouchableOpacity onPress={clearSelection}>
+              <TouchableOpacity
+                onPress={clearSelection}
+                accessibilityRole="button"
+                accessibilityLabel={t.verse.clearSelection}>
                 <Ionicons
                   name="close"
                   size={22}
@@ -1248,11 +1261,23 @@ export default function VerseReadingScreen() {
             </View>
             {showHighlightPicker ? (
               <View style={styles.highlightPicker}>
-                {Object.values(HighlightColor).map(c => (
+                {(
+                  Object.entries(HighlightColor) as [
+                    keyof typeof HighlightColor,
+                    HighlightColor,
+                  ][]
+                ).map(([key, c]) => (
                   <TouchableOpacity
                     key={c}
                     style={[styles.highlightSwatch, {backgroundColor: c}]}
                     onPress={() => handleApplyHighlight(c)}
+                    accessibilityRole="button"
+                    accessibilityLabel={t.verse.highlightInColor.replace(
+                      '{{color}}',
+                      t.verse.highlightColorNames[
+                        key.toLowerCase() as keyof typeof t.verse.highlightColorNames
+                      ] ?? key.toLowerCase(),
+                    )}
                   />
                 ))}
                 <TouchableOpacity
@@ -1261,7 +1286,9 @@ export default function VerseReadingScreen() {
                     styles.highlightRemoveSwatch,
                     {borderColor: effectiveColors.border},
                   ]}
-                  onPress={() => handleApplyHighlight(null)}>
+                  onPress={() => handleApplyHighlight(null)}
+                  accessibilityRole="button"
+                  accessibilityLabel={t.verse.removeHighlight}>
                   <Ionicons
                     name="close"
                     size={18}
@@ -1430,7 +1457,10 @@ export default function VerseReadingScreen() {
                 styles.imageCreatorHeader,
                 {paddingTop: insets.top + 10},
               ]}>
-              <TouchableOpacity onPress={() => setImageModalVisible(false)}>
+              <TouchableOpacity
+                onPress={() => setImageModalVisible(false)}
+                accessibilityRole="button"
+                accessibilityLabel={t.close}>
                 <Ionicons name="close" size={28} color={colors.text} />
               </TouchableOpacity>
               <Text style={[styles.imageCreatorTitle, {color: colors.text}]}>
@@ -1439,7 +1469,9 @@ export default function VerseReadingScreen() {
               <TouchableOpacity
                 onPress={handleShareImage}
                 disabled={isSharingImage}
-                style={isSharingImage && {opacity: 0.6}}>
+                style={isSharingImage && {opacity: 0.6}}
+                accessibilityRole="button"
+                accessibilityLabel={t.verse.shareVerse}>
                 <Ionicons
                   name="share-outline"
                   size={28}
@@ -1722,7 +1754,10 @@ export default function VerseReadingScreen() {
                       } ${selectedVerseForNote.chapter}:${selectedVerseForNote.verse}`
                     : t.notes.add}
                 </Text>
-                <TouchableOpacity onPress={() => setNoteModalVisible(false)}>
+                <TouchableOpacity
+                  onPress={() => setNoteModalVisible(false)}
+                  accessibilityRole="button"
+                  accessibilityLabel={t.close}>
                   <Ionicons
                     name="close"
                     size={24}

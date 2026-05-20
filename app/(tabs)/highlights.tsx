@@ -345,7 +345,9 @@ export default function HighlightsScreen() {
               <View style={styles.rowActions}>
                 <TouchableOpacity
                   style={styles.iconButton}
-                  onPress={() => openEditor(item)}>
+                  onPress={() => openEditor(item)}
+                  accessibilityRole="button"
+                  accessibilityLabel={t.edit}>
                   <Ionicons
                     name="create-outline"
                     size={20}
@@ -354,7 +356,9 @@ export default function HighlightsScreen() {
                 </TouchableOpacity>
                 <TouchableOpacity
                   style={styles.iconButton}
-                  onPress={() => handleDelete(item)}>
+                  onPress={() => handleDelete(item)}
+                  accessibilityRole="button"
+                  accessibilityLabel={t.delete}>
                   <Ionicons
                     name="trash-outline"
                     size={20}

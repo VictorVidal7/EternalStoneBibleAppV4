@@ -14,7 +14,7 @@ import {useTheme, colorThemes, ColorTheme, ThemeColors} from '@hooks/useTheme';
 import {LinearGradient} from 'expo-linear-gradient';
 import {useBibleVersion} from '@hooks/useBibleVersion';
 import {useLanguage} from '@hooks/useLanguage';
-import {resetBibleData} from '@lib/database/data-loader';
+import {initializeBibleData, resetBibleData} from '@lib/database/data-loader';
 import DailyVerseSettings from '@components/settings/DailyVerseSettings';
 import * as Haptics from 'expo-haptics';
 import Constants from 'expo-constants';
@@ -76,12 +76,18 @@ export default function SettingsScreen() {
     Alert.alert(t.settings.resetTitle, t.settings.resetMessage, [
       {text: t.cancel, style: 'cancel'},
       {
-        text: t.delete,
+        // Confirm verb mirrors the action: this resets/reloads, it does
+        // not delete user content (favorites/notes/highlights survive).
+        text: t.settings.resetConfirm,
         style: 'destructive',
         onPress: async () => {
           setIsResetting(true);
           try {
             await resetBibleData();
+            // The reset clears the verse tables and flags; reload right
+            // away so the user lands on a working app instead of having
+            // to close-and-reopen the way the old success copy demanded.
+            await initializeBibleData();
             Alert.alert(
               t.settings.resetSuccess,
               t.settings.resetSuccessMessage,
@@ -116,14 +122,7 @@ export default function SettingsScreen() {
         start={{x: 0, y: 0}}
         end={{x: 0, y: 1}}
         style={styles.header}>
-        {/* Boton de regreso */}
-        <TouchableOpacity
-          style={styles.headerBackButton}
-          onPress={() => router.back()}
-          accessibilityRole="button"
-          accessibilityLabel={t.bible.back}>
-          <Ionicons name="arrow-back" size={24} color="#ffffff" />
-        </TouchableOpacity>
+        {/* No back button — this is a root tab; bottom bar is the nav. */}
 
         <View style={styles.headerContent}>
           <View style={styles.headerIconContainer}>
@@ -654,15 +653,6 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.1,
     shadowRadius: 12,
     elevation: 5,
-  },
-  headerBackButton: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: 'rgba(255,255,255,0.2)',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginBottom: 16,
   },
   headerContent: {
     flexDirection: 'row',

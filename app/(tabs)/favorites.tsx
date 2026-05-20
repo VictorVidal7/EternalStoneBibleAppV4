@@ -152,7 +152,9 @@ export default function FavoritesScreen() {
 
             <TouchableOpacity
               style={styles.deleteButton}
-              onPress={() => handleDelete(item.id)}>
+              onPress={() => handleDelete(item.id)}
+              accessibilityRole="button"
+              accessibilityLabel={t.delete}>
               <Ionicons name="trash-outline" size={20} color={colors.error} />
             </TouchableOpacity>
           </TouchableOpacity>

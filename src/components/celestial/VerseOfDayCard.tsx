@@ -197,7 +197,9 @@ const VerseOfDayCard: React.FC<VerseOfDayCardProps> = ({
                     styles.iconButton,
                     {backgroundColor: theme.colors.hover},
                   ]}
-                  onPress={onShare}>
+                  onPress={onShare}
+                  accessibilityRole="button"
+                  accessibilityLabel={t.verse.shareVerse}>
                   <Ionicons
                     name="share-outline"
                     size={20}
@@ -212,7 +214,12 @@ const VerseOfDayCard: React.FC<VerseOfDayCardProps> = ({
                     styles.iconButton,
                     {backgroundColor: theme.colors.hover},
                   ]}
-                  onPress={handleFavorite}>
+                  onPress={handleFavorite}
+                  accessibilityRole="button"
+                  accessibilityLabel={
+                    isFavorited ? t.verse.removeFavorite : t.verse.addFavorite
+                  }
+                  accessibilityState={{selected: isFavorited}}>
                   <Ionicons
                     name={isFavorited ? 'heart' : 'heart-outline'}
                     size={20}
