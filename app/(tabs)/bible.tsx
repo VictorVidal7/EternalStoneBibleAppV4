@@ -27,6 +27,7 @@ import {BlurView} from 'expo-blur';
 import * as Haptics from 'expo-haptics';
 
 import {BIBLE_BOOKS} from '@/constants/bible';
+import {parseReference} from '@/lib/references/parseReference';
 import {useTheme} from '@hooks/useTheme';
 import {useLanguage} from '@hooks/useLanguage';
 
@@ -46,7 +47,7 @@ interface BibleBook {
 export default function BibleScreen() {
   const router = useRouter();
   const {colors, isDark, gradient} = useTheme();
-  const {t} = useLanguage();
+  const {t, language} = useLanguage();
 
   const [searchQuery, setSearchQuery] = useState('');
   const [filter, setFilter] = useState<'all' | 'old' | 'new'>('all');
@@ -97,6 +98,34 @@ export default function BibleScreen() {
 
   const oldTestament = filteredBooks.filter(book => book.testament === 'old');
   const newTestament = filteredBooks.filter(book => book.testament === 'new');
+
+  // Quick-jump: if the user types a complete Bible reference into the
+  // book filter ("Juan 3:16", "Gen 1", "1 Sa 16:7"…), surface a banner
+  // above the list so they can jump straight to the verse instead of
+  // navigating book → chapter → verse manually.
+  const parsedRef = useMemo(() => parseReference(searchQuery), [searchQuery]);
+  const quickJumpLabel = useMemo(() => {
+    if (!parsedRef) return null;
+    const name =
+      language === 'en' ? parsedRef.book.nameEn : parsedRef.book.name;
+    let ref = `${name} ${parsedRef.chapter}`;
+    if (parsedRef.verse !== undefined) {
+      ref += `:${parsedRef.verse}`;
+      if (parsedRef.verseEnd !== undefined) ref += `-${parsedRef.verseEnd}`;
+    }
+    return ref;
+  }, [parsedRef, language]);
+
+  function handleQuickJump() {
+    if (!parsedRef) return;
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    const base = `/verse/${parsedRef.book.name}/${parsedRef.chapter}`;
+    router.push(
+      (parsedRef.verse !== undefined
+        ? `${base}?verse=${parsedRef.verse}`
+        : base) as never,
+    );
+  }
 
   const sections = [
     {
@@ -297,6 +326,32 @@ export default function BibleScreen() {
           </View>
         </View>
       </Animated.View>
+
+      {/* Quick-jump banner — only when the query parses as a complete ref. */}
+      {parsedRef && quickJumpLabel && (
+        <TouchableOpacity
+          activeOpacity={0.85}
+          onPress={handleQuickJump}
+          accessibilityRole="button"
+          accessibilityLabel={`${t.bible.goTo} ${quickJumpLabel}`}
+          style={[
+            styles.quickJumpBanner,
+            {
+              backgroundColor: colors.primary + (isDark ? '33' : '22'),
+              borderColor: colors.primary,
+            },
+          ]}>
+          <Ionicons
+            name="arrow-forward-circle"
+            size={20}
+            color={colors.primary}
+          />
+          <Text style={[styles.quickJumpLabel, {color: colors.primary}]}>
+            {t.bible.goTo} {quickJumpLabel}
+          </Text>
+          <Ionicons name="chevron-forward" size={18} color={colors.primary} />
+        </TouchableOpacity>
+      )}
 
       {/* Lista de libros */}
       {filteredBooks.length > 0 ? (
@@ -505,6 +560,25 @@ const EmptyState: React.FC<EmptyStateProps> = ({searchQuery}) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+  },
+
+  // Quick-jump banner — surfaces when the book filter doubles as a
+  // reference input (e.g. typing "Juan 3:16" instead of just "Juan").
+  quickJumpBanner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    marginHorizontal: 20,
+    marginBottom: 12,
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    borderRadius: 12,
+    borderWidth: 1,
+  },
+  quickJumpLabel: {
+    flex: 1,
+    fontSize: 15,
+    fontWeight: '600',
   },
 
   // Header - Estandarizado con todas las pantallas

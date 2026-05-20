@@ -23,6 +23,10 @@ import {captureRef} from 'react-native-view-shot';
 import bibleDB from '@lib/database';
 import {BibleVerse} from '@/types/bible';
 import {getBookByName} from '@/constants/bible';
+import {
+  linkifyReferences,
+  type ParsedReference,
+} from '@/lib/references/parseReference';
 import {HighlightColor} from '@lib/highlights';
 import {useTheme} from '@hooks/useTheme';
 import {useBibleVersion} from '@hooks/useBibleVersion';
@@ -797,6 +801,16 @@ export default function VerseReadingScreen() {
     clearSelection();
   }
 
+  // Cross-reference jump used by inline-linked book/chapter:verse spans
+  // inside the rendered verse text (see #8 of the Sprint-17 plan).
+  function jumpToReference(ref: ParsedReference) {
+    Haptics.selectionAsync();
+    const base = `/verse/${ref.book.name}/${ref.chapter}`;
+    router.push(
+      (ref.verse !== undefined ? `${base}?verse=${ref.verse}` : base) as never,
+    );
+  }
+
   function navigateChapter(direction: 'prev' | 'next') {
     if (!bookInfo) return;
 
@@ -1203,7 +1217,32 @@ export default function VerseReadingScreen() {
                       {verse.verse}
                       {'  '}
                     </Text>
-                    {verse.text}
+                    {/* Linkify inline references ("Isaías 53:5", "John 3:16")
+                        inside the verse text so they become tappable jumps. */}
+                    {(() => {
+                      const segments = linkifyReferences(verse.text);
+                      if (segments.length === 1 && !segments[0].ref) {
+                        return verse.text;
+                      }
+                      const linkColor = userHighlight
+                        ? effectiveColors.primaryDark
+                        : effectiveColors.primary;
+                      return segments.map((seg, i) =>
+                        seg.ref ? (
+                          <Text
+                            key={i}
+                            onPress={() => jumpToReference(seg.ref!)}
+                            style={{
+                              color: linkColor,
+                              textDecorationLine: 'underline',
+                            }}>
+                            {seg.text}
+                          </Text>
+                        ) : (
+                          seg.text
+                        ),
+                      );
+                    })()}
                   </Text>
                 </View>
                 {isFavorited && (
