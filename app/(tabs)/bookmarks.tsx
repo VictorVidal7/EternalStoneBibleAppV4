@@ -170,10 +170,9 @@ export default function BookmarksScreen() {
         )}
         ListEmptyComponent={
           <IllustratedEmptyState
-            type="no-notes"
+            type="no-bookmarks"
             colors={colors}
             isDark={isDark}
-            message={t.bookmarks.emptyMessage}
             onAction={() => router.push('/(tabs)/bible' as never)}
             actionLabel={t.bookmarks.openBible}
           />

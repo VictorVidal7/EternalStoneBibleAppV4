@@ -1528,7 +1528,6 @@ export default function VerseReadingScreen() {
                   />
                   <Text
                     numberOfLines={1}
-                    adjustsFontSizeToFit
                     style={[
                       styles.selectionButtonText,
                       {color: effectiveColors.text},
@@ -1546,7 +1545,6 @@ export default function VerseReadingScreen() {
                   />
                   <Text
                     numberOfLines={1}
-                    adjustsFontSizeToFit
                     style={[
                       styles.selectionButtonText,
                       {color: effectiveColors.text},
@@ -1564,7 +1562,6 @@ export default function VerseReadingScreen() {
                   />
                   <Text
                     numberOfLines={1}
-                    adjustsFontSizeToFit
                     style={[
                       styles.selectionButtonText,
                       {color: effectiveColors.text},
@@ -1582,7 +1579,6 @@ export default function VerseReadingScreen() {
                   />
                   <Text
                     numberOfLines={1}
-                    adjustsFontSizeToFit
                     style={[
                       styles.selectionButtonText,
                       {color: effectiveColors.text},
@@ -1600,7 +1596,6 @@ export default function VerseReadingScreen() {
                   />
                   <Text
                     numberOfLines={1}
-                    adjustsFontSizeToFit
                     style={[
                       styles.selectionButtonText,
                       {color: effectiveColors.text},
@@ -1618,7 +1613,6 @@ export default function VerseReadingScreen() {
                   />
                   <Text
                     numberOfLines={1}
-                    adjustsFontSizeToFit
                     style={[
                       styles.selectionButtonText,
                       {color: effectiveColors.text},
@@ -1649,7 +1643,6 @@ export default function VerseReadingScreen() {
                   />
                   <Text
                     numberOfLines={1}
-                    adjustsFontSizeToFit
                     style={[
                       styles.selectionButtonText,
                       {color: effectiveColors.text},
@@ -1667,7 +1660,6 @@ export default function VerseReadingScreen() {
                   />
                   <Text
                     numberOfLines={1}
-                    adjustsFontSizeToFit
                     style={[
                       styles.selectionButtonText,
                       {color: effectiveColors.text},
@@ -2193,7 +2185,11 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.xs,
   },
   selectionButtonText: {
-    fontSize: 11,
+    // 10pt keeps every label on one line at this 8-action width without
+    // relying on `adjustsFontSizeToFit`, which was shrinking each label
+    // independently and produced visibly inconsistent sizes (worst case ES:
+    // "Nota"/"Imagen" full-size, "Marcadores"/"Resaltar"/"Comparar" smaller).
+    fontSize: 10,
     marginTop: 4,
     fontWeight: '500',
   },
