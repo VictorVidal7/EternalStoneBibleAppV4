@@ -21,7 +21,7 @@ import * as Sharing from 'expo-sharing';
 import {captureRef} from 'react-native-view-shot';
 import bibleDB from '@lib/database';
 import {BibleVerse} from '@/types/bible';
-import {BIBLE_VERSIONS, getBookByName} from '@/constants/bible';
+import {BIBLE_VERSIONS, getBookByName, getBookById} from '@/constants/bible';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {
   linkifyReferences,
@@ -195,6 +195,14 @@ export default function VerseReadingScreen() {
       ? bookInfo.nameEn
       : bookInfo.name
     : '';
+  // Navigation is continuous across books: only Genesis 1 has no previous
+  // chapter and only the final chapter of Revelation has no next chapter.
+  const canGoPrev = bookInfo
+    ? chapterNum > 1 || !!getBookById(bookInfo.id - 1)
+    : false;
+  const canGoNext = bookInfo
+    ? chapterNum < bookInfo.chapters || !!getBookById(bookInfo.id + 1)
+    : false;
 
   const [verses, setVerses] = useState<BibleVerse[]>([]);
   const [loading, setLoading] = useState(true);
@@ -917,21 +925,35 @@ export default function VerseReadingScreen() {
   function navigateChapter(direction: 'prev' | 'next') {
     if (!bookInfo) return;
 
-    const newChapter = chapterNum + (direction === 'next' ? 1 : -1);
+    // Stay within the book when possible; otherwise flow across the book
+    // boundary so the reader works as a continuous Genesis→Revelation scroll
+    // (the last chapter of a book leads into chapter 1 of the next book, and
+    // chapter 1 leads back to the previous book's final chapter).
+    let targetBook = book;
+    let newChapter = chapterNum + (direction === 'next' ? 1 : -1);
 
-    if (newChapter < 1 || newChapter > bookInfo.chapters) {
-      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning);
-      Alert.alert(
-        t.app.endOfBook,
-        direction === 'next'
-          ? t.app.endOfBookMessage
-          : t.app.firstChapterMessage,
-      );
-      return;
+    if (newChapter < 1) {
+      const prevBook = getBookById(bookInfo.id - 1);
+      if (!prevBook) {
+        Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning);
+        Alert.alert(t.app.endOfBook, t.app.firstChapterMessage);
+        return;
+      }
+      targetBook = prevBook.name;
+      newChapter = prevBook.chapters;
+    } else if (newChapter > bookInfo.chapters) {
+      const nextBook = getBookById(bookInfo.id + 1);
+      if (!nextBook) {
+        Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning);
+        Alert.alert(t.app.endOfBook, t.app.endOfBookMessage);
+        return;
+      }
+      targetBook = nextBook.name;
+      newChapter = 1;
     }
 
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    router.replace(`/verse/${book}/${newChapter}` as any);
+    router.replace(`/verse/${targetBook}/${newChapter}` as any);
   }
 
   // Start Audio Bible playback
@@ -1066,12 +1088,12 @@ export default function VerseReadingScreen() {
             <TouchableOpacity
               style={styles.navButton}
               onPress={() => navigateChapter('prev')}
-              disabled={chapterNum === 1}>
+              disabled={!canGoPrev}>
               <Ionicons
                 name="chevron-back"
                 size={24}
                 color={
-                  chapterNum === 1
+                  !canGoPrev
                     ? effectiveColors.textTertiary
                     : effectiveColors.primary
                 }
@@ -1080,10 +1102,9 @@ export default function VerseReadingScreen() {
                 style={[
                   styles.navButtonText,
                   {
-                    color:
-                      chapterNum === 1
-                        ? effectiveColors.textTertiary
-                        : effectiveColors.primary,
+                    color: !canGoPrev
+                      ? effectiveColors.textTertiary
+                      : effectiveColors.primary,
                   },
                 ]}>
                 {t.previous}
@@ -1108,15 +1129,14 @@ export default function VerseReadingScreen() {
             <TouchableOpacity
               style={styles.navButton}
               onPress={() => navigateChapter('next')}
-              disabled={chapterNum === bookInfo.chapters}>
+              disabled={!canGoNext}>
               <Text
                 style={[
                   styles.navButtonText,
                   {
-                    color:
-                      chapterNum === bookInfo.chapters
-                        ? effectiveColors.textTertiary
-                        : effectiveColors.primary,
+                    color: !canGoNext
+                      ? effectiveColors.textTertiary
+                      : effectiveColors.primary,
                   },
                 ]}>
                 {t.next}
@@ -1125,7 +1145,7 @@ export default function VerseReadingScreen() {
                 name="chevron-forward"
                 size={24}
                 color={
-                  chapterNum === bookInfo.chapters
+                  !canGoNext
                     ? effectiveColors.textTertiary
                     : effectiveColors.primary
                 }

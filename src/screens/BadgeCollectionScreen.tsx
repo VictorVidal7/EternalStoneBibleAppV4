@@ -155,7 +155,9 @@ export const BadgeCollectionScreen: React.FC<BadgeCollectionScreenProps> = ({
 
   const unlockedCount = badgesProgress.filter(bp => bp.isUnlocked).length;
   const totalBadges = badgesProgress.length;
-  const completionPercent = Math.round((unlockedCount / totalBadges) * 100);
+  // Guard against the empty/cold-load case (0/0) which would render "NaN%".
+  const completionPercent =
+    totalBadges > 0 ? Math.round((unlockedCount / totalBadges) * 100) : 0;
 
   return (
     <View style={[styles.container, {backgroundColor: colors.background}]}>
@@ -252,7 +254,7 @@ export const BadgeCollectionScreen: React.FC<BadgeCollectionScreenProps> = ({
               styles.toggleText,
               {color: viewMode === 'badges' ? '#FFF' : colors.text},
             ]}>
-            Badges
+            {t.badgeSystem.allBadges}
           </Text>
         </TouchableOpacity>
 
@@ -284,12 +286,11 @@ export const BadgeCollectionScreen: React.FC<BadgeCollectionScreenProps> = ({
       {/* Badges View */}
       {viewMode === 'badges' && (
         <>
-          {/* Category Filter */}
-          <ScrollView
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            style={styles.filterContainer}
-            contentContainerStyle={styles.filterContent}>
+          {/* Category Filter — a wrapping View instead of a horizontal
+              ScrollView: under this app's Fabric renderer the horizontal
+              scroller stretched the chips into full-height bars (same issue
+              fixed for the Achievements filter). */}
+          <View style={styles.filterContainer}>
             <TouchableOpacity
               style={[
                 styles.filterChip,
@@ -344,7 +345,7 @@ export const BadgeCollectionScreen: React.FC<BadgeCollectionScreenProps> = ({
                 </Text>
               </TouchableOpacity>
             ))}
-          </ScrollView>
+          </View>
 
           {/* Badges Grid */}
           <ScrollView
@@ -445,11 +446,11 @@ export const BadgeCollectionScreen: React.FC<BadgeCollectionScreenProps> = ({
             <View style={styles.emptyState}>
               <Text style={styles.emptyIcon}>🏆</Text>
               <Text style={[styles.emptyText, {color: colors.text}]}>
-                Aún no has desbloqueado ningún título
+                {t.badgeSystem.noTitles}
               </Text>
               <Text
                 style={[styles.emptySubtext, {color: colors.textSecondary}]}>
-                Completa logros para obtener títulos especiales
+                {t.badgeSystem.noTitlesDescription}
               </Text>
             </View>
           ) : (
@@ -582,7 +583,7 @@ export const BadgeCollectionScreen: React.FC<BadgeCollectionScreenProps> = ({
                   </View>
                   <Text
                     style={[styles.percentText, {color: colors.textSecondary}]}>
-                    {selectedBadge.percentComplete}% completado
+                    {selectedBadge.percentComplete}% {t.badgeSystem.completed}
                   </Text>
                 </View>
               )}
@@ -659,7 +660,9 @@ export const BadgeCollectionScreen: React.FC<BadgeCollectionScreenProps> = ({
                     {backgroundColor: selectedTitle.color},
                   ]}>
                   <Ionicons name="checkmark-circle" size={20} color="#FFF" />
-                  <Text style={styles.equippedText}>Título Equipado</Text>
+                  <Text style={styles.equippedText}>
+                    {t.badgeSystem.equippedTitle}
+                  </Text>
                 </View>
               )}
             </View>
@@ -751,10 +754,10 @@ const styles = StyleSheet.create({
     fontWeight: '700',
   },
   filterContainer: {
-    marginBottom: 16,
-  },
-  filterContent: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
     paddingHorizontal: 16,
+    marginBottom: 16,
     gap: 8,
   },
   filterChip: {
