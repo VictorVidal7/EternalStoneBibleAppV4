@@ -712,6 +712,12 @@ export const translations = {
         message: 'Elige un plan para guiar tu lectura diaria',
         action: 'Explorar planes',
       },
+      noBookmarks: {
+        title: 'Sin marcadores aún',
+        message:
+          'Marca versículos mientras lees para volver fácilmente a ellos',
+        action: 'Abrir la Biblia',
+      },
     },
 
     // Version Comparison (V5.1)
@@ -1837,6 +1843,11 @@ export const translations = {
         title: 'No active reading plan',
         message: 'Choose a plan to guide your daily reading',
         action: 'Explore plans',
+      },
+      noBookmarks: {
+        title: 'No bookmarks yet',
+        message: 'Bookmark verses while reading to come back to them later',
+        action: 'Open the Bible',
       },
     },
 

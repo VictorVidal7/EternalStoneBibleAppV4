@@ -3,7 +3,7 @@ import type {BibleVerse} from '../src/types/bible';
 
 function verse(book: string, chapter = 1, n = 1): BibleVerse {
   return {
-    id: `${book}-${chapter}-${n}`,
+    id: chapter * 1000 + n,
     book,
     bookNumber: 0,
     chapter,
