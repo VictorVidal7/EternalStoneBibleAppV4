@@ -653,9 +653,34 @@ class BadgeSystemService {
   async getAllBadgesProgress(userId: string): Promise<BadgeProgress[]> {
     await this.initialize();
 
-    const allBadges = await this.db!.getAllAsync<Badge>(
-      `SELECT * FROM badges ORDER BY rarity, requirement_value`,
-    );
+    // Map the snake_case columns to the camelCase Badge shape — otherwise
+    // requirementValue/xpReward/titleUnlock read as undefined at runtime,
+    // which surfaced as "Progreso: N/", "NaN%" and "+ XP" in the detail modal.
+    const rows = await this.db!.getAllAsync<{
+      id: string;
+      name: string;
+      description: string;
+      icon: string;
+      rarity: BadgeRarity;
+      category: BadgeCategory;
+      requirement: string;
+      requirement_value: number;
+      xp_reward: number;
+      title_unlock: string | null;
+    }>(`SELECT * FROM badges ORDER BY rarity, requirement_value`);
+
+    const allBadges: Badge[] = rows.map(row => ({
+      id: row.id,
+      name: row.name,
+      description: row.description,
+      icon: row.icon,
+      rarity: row.rarity,
+      category: row.category,
+      requirement: row.requirement,
+      requirementValue: row.requirement_value,
+      xpReward: row.xp_reward,
+      titleUnlock: row.title_unlock ?? undefined,
+    }));
 
     const userBadges = await this.getUserBadges(userId);
     const userBadgeIds = new Set(userBadges.map(ub => ub.badgeId));
@@ -666,10 +691,13 @@ class BadgeSystemService {
     return allBadges.map(badge => {
       const isUnlocked = userBadgeIds.has(badge.id);
       const currentProgress = stats[badge.requirement] || 0;
-      const percentComplete = Math.min(
-        100,
-        Math.round((currentProgress / badge.requirementValue) * 100),
-      );
+      const percentComplete =
+        badge.requirementValue > 0
+          ? Math.min(
+              100,
+              Math.round((currentProgress / badge.requirementValue) * 100),
+            )
+          : 0;
 
       return {
         badge,
