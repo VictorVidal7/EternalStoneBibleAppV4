@@ -9,6 +9,8 @@
 
 import * as SQLite from 'expo-sqlite';
 import bibleDB from '../lib/database';
+import {getDailyVerseRef} from '../constants/daily-verses';
+import {calculateLevel} from '../lib/achievements/types';
 
 export interface WidgetData {
   type: 'verse' | 'progress' | 'mission';
@@ -68,31 +70,25 @@ class WidgetTaskHandler {
     try {
       await this.initialize();
 
-      // Usar fecha actual como seed para selección aleatoria determinística
-      const today = new Date();
-      const dayOfYear = Math.floor(
-        (today.getTime() - new Date(today.getFullYear(), 0, 0).getTime()) /
-          86400000,
+      // Use the same curated, calendar-deterministic verse the Home screen
+      // shows (getDailyVerseRef) so the widget and the app never disagree on
+      // "today's verse" — the old pseudo-random offset picked a different one.
+      const ref = getDailyVerseRef();
+      const verse = await bibleDB.getVerse(
+        ref.book,
+        ref.chapter,
+        ref.verse,
+        'RVR1960',
       );
 
-      // Seleccionar verso basado en el día del año
-      const totalVerses = 31102;
-      const verseIndex = (dayOfYear * 137) % totalVerses; // Usar número primo para distribución
-
-      const result = await this.db!.getFirstAsync<{
-        book_name: string;
-        chapter: number;
-        verse: number;
-        text: string;
-      }>(
-        `
-      SELECT book_name, chapter, verse, text
-      FROM verses
-      WHERE version = 'RVR1960'
-      LIMIT 1 OFFSET ?
-    `,
-        [verseIndex],
-      );
+      const result = verse
+        ? {
+            book_name: verse.book,
+            chapter: verse.chapter,
+            verse: verse.verse,
+            text: verse.text,
+          }
+        : null;
 
       if (!result) {
         // Fallback a Juan 3:16
@@ -152,27 +148,47 @@ class WidgetTaskHandler {
     try {
       await this.initialize();
 
-      // Por ahora, retornar datos de demostración
-      // En una versión futura, estas tablas serán creadas
+      // Real progress from the same tables the achievement system writes:
+      // lifetime stats live in user_stats, and today's verse count in the
+      // accumulating reading_streak_log row keyed by date.
       const dailyGoal = 10;
-      const versesReadToday = 7; // Demo data
-      const level = 5; // Demo data
-      const currentStreak = 3; // Demo data
-      const longestStreak = 10; // Demo data
+      const statsRow = await this.db!.getFirstAsync<{
+        current_streak: number;
+        longest_streak: number;
+        level: number;
+        total_points: number;
+      }>(
+        `SELECT current_streak, longest_streak, level, total_points
+         FROM user_stats WHERE id = 1`,
+      );
 
-      const nextLevelXp = this.calculateXpForLevel(level + 1);
-      const currentLevelXp = this.calculateXpForLevel(level);
-      const xpNeeded = nextLevelXp - currentLevelXp;
-      const xpProgress = Math.floor(xpNeeded * 0.6); // 60% progress demo
+      const today = new Date().toISOString().split('T')[0];
+      const todayRow = await this.db!.getFirstAsync<{verses_read: number}>(
+        `SELECT verses_read FROM reading_streak_log WHERE date = ?`,
+        [today],
+      );
+
+      const currentStreak = statsRow?.current_streak ?? 0;
+      const longestStreak = statsRow?.longest_streak ?? 0;
+      const totalPoints = statsRow?.total_points ?? 0;
+      const versesReadToday = todayRow?.verses_read ?? 0;
+
+      // Derive level + XP-within-level from the real points-based curve.
+      const levelInfo = calculateLevel(totalPoints);
+      const xp = totalPoints - levelInfo.minPoints;
+      const nextLevelXp =
+        levelInfo.maxPoints === Infinity
+          ? Math.max(xp, 1)
+          : levelInfo.maxPoints - levelInfo.minPoints;
 
       return {
         currentStreak,
         longestStreak,
         versesReadToday,
         dailyGoal,
-        level,
-        xp: xpProgress,
-        nextLevelXp: xpNeeded,
+        level: levelInfo.level,
+        xp,
+        nextLevelXp,
         completionPercentage: Math.min(
           100,
           Math.round((versesReadToday / dailyGoal) * 100),
@@ -208,8 +224,16 @@ class WidgetTaskHandler {
       const missionTranslation =
         await getDailyMissionTranslation('lector_diario');
 
-      // Por ahora, retornar una misión de demostración
-      // En una versión futura, estas tablas serán creadas
+      // The daily mission ("read 10 verses today") tracks the same real
+      // count the progress widget shows, so the two never disagree.
+      const target = 10;
+      const today = new Date().toISOString().split('T')[0];
+      const todayRow = await this.db!.getFirstAsync<{verses_read: number}>(
+        `SELECT verses_read FROM reading_streak_log WHERE date = ?`,
+        [today],
+      );
+      const progress = Math.min(target, todayRow?.verses_read ?? 0);
+
       const tomorrow = new Date();
       tomorrow.setDate(tomorrow.getDate() + 1);
 
@@ -218,8 +242,8 @@ class WidgetTaskHandler {
         description:
           missionTranslation?.description ||
           'Completa tu meta diaria de lectura',
-        progress: 7,
-        target: 10,
+        progress,
+        target,
         reward: {
           xp: 50,
           coins: 25,
@@ -246,13 +270,6 @@ class WidgetTaskHandler {
         difficulty: 'easy',
       };
     }
-  }
-
-  /**
-   * Calcula XP necesario para un nivel específico
-   */
-  private calculateXpForLevel(level: number): number {
-    return Math.floor(100 * Math.pow(1.5, level - 1));
   }
 
   /**
