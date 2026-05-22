@@ -689,8 +689,15 @@ class BadgeSystemService {
     const stats = await this.getUserStats(userId);
 
     return allBadges.map(badge => {
-      const isUnlocked = userBadgeIds.has(badge.id);
       const currentProgress = stats[badge.requirement] || 0;
+      // A badge counts as unlocked if it was explicitly awarded OR the user's
+      // real progress already meets the requirement — otherwise badges the
+      // user has clearly earned (e.g. "read your first verse" after 279 reads)
+      // stayed locked forever because nothing ever wrote to user_badges.
+      const isUnlocked =
+        userBadgeIds.has(badge.id) ||
+        (badge.requirementValue > 0 &&
+          currentProgress >= badge.requirementValue);
       const percentComplete =
         badge.requirementValue > 0
           ? Math.min(
@@ -709,19 +716,54 @@ class BadgeSystemService {
   }
 
   /**
-   * Obtiene estadísticas del usuario para verificar progreso
+   * Obtiene estadísticas del usuario para verificar progreso.
+   *
+   * Reads the real `user_stats` row (the same table the achievement system
+   * writes) so badge progress reflects what the user has actually done.
+   * Requirement types with no tracking yet (quizzes, memorization,
+   * testament/Bible completion, time-of-day reading) report 0 so those
+   * badges stay honestly locked instead of showing fabricated progress.
    */
   private async getUserStats(_userId: string): Promise<Record<string, number>> {
-    // En producción, esto obtendría stats reales de múltiples tablas
-    // Por ahora retornamos valores de ejemplo
-    return {
-      verses_read: 150,
-      streak_days: 12,
-      books_completed: 2,
-      quiz_correct: 25,
-      verses_memorized: 5,
-      verses_shared: 10,
+    const empty: Record<string, number> = {
+      verses_read: 0,
+      streak_days: 0,
+      books_completed: 0,
+      verses_shared: 0,
+      quiz_correct: 0,
+      verses_memorized: 0,
+      new_testament_complete: 0,
+      old_testament_complete: 0,
+      full_bible_complete: 0,
+      early_reading: 0,
+      midnight_reading: 0,
+      christmas_reading: 0,
     };
+
+    try {
+      const row = await this.db!.getFirstAsync<{
+        total_verses_read: number;
+        total_books_completed: number;
+        longest_streak: number;
+        total_shares: number;
+      }>(
+        `SELECT total_verses_read, total_books_completed, longest_streak, total_shares
+         FROM user_stats WHERE id = 1`,
+      );
+
+      if (!row) return empty;
+
+      return {
+        ...empty,
+        verses_read: row.total_verses_read ?? 0,
+        // "N-day streak" badges reward the best streak ever achieved.
+        streak_days: row.longest_streak ?? 0,
+        books_completed: row.total_books_completed ?? 0,
+        verses_shared: row.total_shares ?? 0,
+      };
+    } catch {
+      return empty;
+    }
   }
 
   /**
