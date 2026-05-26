@@ -81,6 +81,11 @@ export const AudioPlayerProvider: React.FC<AudioPlayerProviderProps> = ({
   );
   const [verses, setVerses] = useState<AudioVerse[]>([]);
   const [isVisible, setIsVisible] = useState(false);
+  // Transient flag for screens that show overlay sheets/modals on top of the
+  // mini player — the player draws over them otherwise because its high
+  // elevation+zIndex lifts it above the native modal window. Audio keeps
+  // playing; we only suppress the UI.
+  const [isSuppressed, setIsSuppressed] = useState(false);
 
   // Refs
   const sleepTimerRef = useRef<NodeJS.Timeout | null>(null);
@@ -642,6 +647,7 @@ export const AudioPlayerProvider: React.FC<AudioPlayerProviderProps> = ({
     currentVerse,
     verses,
     isVisible,
+    isSuppressed,
 
     play,
     pause,
@@ -660,6 +666,7 @@ export const AudioPlayerProvider: React.FC<AudioPlayerProviderProps> = ({
     toggleExpanded,
     showPlayer,
     hidePlayer,
+    setSuppressed: setIsSuppressed,
 
     setSleepTimer,
     setSleepTimerEndOfChapter,

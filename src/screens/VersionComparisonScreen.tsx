@@ -24,6 +24,7 @@ import {SaveComparisonDialog} from '../components/comparison/SaveComparisonDialo
 import {useTheme} from '../hooks/useTheme';
 import {useLanguage} from '../hooks/useLanguage';
 import {useToast} from '../context/ToastContext';
+import {useAudioPlayer} from '../features/audio';
 import {getBookByName} from '../constants/bible';
 import {
   versionComparisonService,
@@ -46,6 +47,7 @@ export const VersionComparisonScreen: React.FC<
   const {colors} = useTheme();
   const {t, language} = useLanguage();
   const toast = useToast();
+  const {setSuppressed} = useAudioPlayer();
 
   // State
   const [availableVersions, setAvailableVersions] = useState<BibleVersion[]>(
@@ -66,6 +68,25 @@ export const VersionComparisonScreen: React.FC<
   const [showSaveDialog, setShowSaveDialog] = useState(false);
   const [showSavedComparisons, setShowSavedComparisons] = useState(false);
   const [showVersePicker, setShowVersePicker] = useState(false);
+
+  // Suppress the floating mini player while ANY of this screen's overlay
+  // sheets is open — the player's elevation/zIndex otherwise draws over the
+  // sheet's bottom row. Audio keeps playing; only the UI is hidden.
+  useEffect(() => {
+    const anyOpen =
+      showVersionPicker ||
+      showSaveDialog ||
+      showSavedComparisons ||
+      showVersePicker;
+    setSuppressed(anyOpen);
+    return () => setSuppressed(false);
+  }, [
+    showVersionPicker,
+    showSaveDialog,
+    showSavedComparisons,
+    showVersePicker,
+    setSuppressed,
+  ]);
   const [multiSelectMode, setMultiSelectMode] = useState(false);
   interface SavedComparison {
     id: string;
@@ -358,8 +379,6 @@ export const VersionComparisonScreen: React.FC<
           <Text style={[styles.title, {color: colors.text}]} numberOfLines={1}>
             {t.versionComparison.title}
           </Text>
-
-          <View style={styles.spacer} />
 
           <View style={styles.headerButtons}>
             <TouchableOpacity
@@ -1170,9 +1189,6 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 20,
     fontWeight: '800',
-    flexShrink: 1,
-  },
-  spacer: {
     flex: 1,
   },
   headerButtons: {

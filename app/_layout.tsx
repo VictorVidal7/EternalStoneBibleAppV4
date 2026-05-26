@@ -1,6 +1,6 @@
 import {Stack} from 'expo-router';
 import {useEffect, useState} from 'react';
-import {View, Text, StyleSheet, LogBox} from 'react-native';
+import {View, Text, StyleSheet, LogBox, TouchableOpacity} from 'react-native';
 
 // Ignore specific development warnings
 
@@ -153,6 +153,18 @@ function AppContent() {
       <View style={styles.errorContainer}>
         <Text style={styles.errorTitle}>{t.error}</Text>
         <Text style={styles.errorText}>{error}</Text>
+        <TouchableOpacity
+          style={styles.retryButton}
+          onPress={() => {
+            setError(null);
+            setIsLoading(true);
+            setLoadingProgress({loaded: 0, total: 0});
+            initializeApp();
+          }}
+          accessibilityRole="button"
+          accessibilityLabel={t.app.retry}>
+          <Text style={styles.retryButtonText}>{t.app.retry}</Text>
+        </TouchableOpacity>
         <Text style={styles.errorHint}>{t.app.errorHint}</Text>
       </View>
     );
@@ -257,6 +269,19 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: '#7F8C8D',
     textAlign: 'center',
+    marginTop: 16,
+  },
+  retryButton: {
+    backgroundColor: '#4A90E2',
+    paddingVertical: 12,
+    paddingHorizontal: 32,
+    borderRadius: 8,
+    alignItems: 'center',
+  },
+  retryButtonText: {
+    color: '#FFFFFF',
+    fontSize: 16,
+    fontWeight: '700',
   },
 });
 
