@@ -40,6 +40,7 @@ import {ReadingProgressProvider} from '@context/ReadingProgressContext';
 import {FavoritesProvider} from '@context/FavoritesContext';
 import {BookmarksProvider} from '@context/BookmarksContext';
 import {ReadingPlanProgressProvider} from '@context/ReadingPlanProgressContext';
+import {ReaderPreferencesProvider} from '@context/ReaderPreferencesContext';
 import bibleDB from '@lib/database';
 import {logger} from '@lib/utils/logger';
 import {predictiveCacheService} from '@lib/cache/PredictiveCache';
@@ -296,11 +297,13 @@ export default function RootLayout() {
                 <ReadingPlanProgressProvider>
                   <FavoritesProvider>
                     <BookmarksProvider>
-                      <ToastProvider>
-                        <AudioPlayerProvider>
-                          <AppContent />
-                        </AudioPlayerProvider>
-                      </ToastProvider>
+                      <ReaderPreferencesProvider>
+                        <ToastProvider>
+                          <AudioPlayerProvider>
+                            <AppContent />
+                          </AudioPlayerProvider>
+                        </ToastProvider>
+                      </ReaderPreferencesProvider>
                     </BookmarksProvider>
                   </FavoritesProvider>
                 </ReadingPlanProgressProvider>

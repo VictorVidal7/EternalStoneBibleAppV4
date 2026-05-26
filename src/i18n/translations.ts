@@ -217,6 +217,28 @@ export const translations = {
     },
 
     // My Highlights Screen
+    readerPrefs: {
+      title: 'Preferencias de lectura',
+      openLabel: 'Abrir preferencias de lectura',
+      reset: 'Restablecer',
+      font: 'Tipografía',
+      fontSans: 'Sans',
+      fontSerif: 'Serif',
+      size: 'Tamaño',
+      increaseSize: 'Aumentar tamaño',
+      decreaseSize: 'Reducir tamaño',
+      lineSpacing: 'Interlineado',
+      alignment: 'Alineación',
+      alignLeft: 'Izquierda',
+      alignJustify: 'Justificado',
+      margin: 'Márgenes',
+      marginSmall: 'Reducidos',
+      marginMedium: 'Normales',
+      marginLarge: 'Amplios',
+      sampleText:
+        'En el principio creó Dios los cielos y la tierra. La tierra estaba desordenada y vacía, y las tinieblas estaban sobre la faz del abismo.',
+    },
+
     bookmarks: {
       title: 'Marcadores',
       short: 'Marcadores',
@@ -1356,6 +1378,28 @@ export const translations = {
       newNote: 'New Note',
       countLabel: 'Notes saved',
       countLabelSingular: 'Note saved',
+    },
+
+    readerPrefs: {
+      title: 'Reading preferences',
+      openLabel: 'Open reading preferences',
+      reset: 'Reset',
+      font: 'Typeface',
+      fontSans: 'Sans',
+      fontSerif: 'Serif',
+      size: 'Size',
+      increaseSize: 'Increase size',
+      decreaseSize: 'Decrease size',
+      lineSpacing: 'Line spacing',
+      alignment: 'Alignment',
+      alignLeft: 'Left',
+      alignJustify: 'Justified',
+      margin: 'Margins',
+      marginSmall: 'Compact',
+      marginMedium: 'Standard',
+      marginLarge: 'Spacious',
+      sampleText:
+        'In the beginning God created the heaven and the earth. And the earth was without form, and void; and darkness was upon the face of the deep.',
     },
 
     bookmarks: {
