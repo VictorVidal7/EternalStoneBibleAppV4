@@ -827,6 +827,18 @@ class BadgeSystemService {
   }
 
   /**
+   * Desequipa cualquier título actualmente equipado por el usuario.
+   */
+  async unequipTitle(userId: string) {
+    await this.initialize();
+
+    await this.db!.runAsync(
+      `UPDATE user_titles SET is_equipped = 0 WHERE user_id = ?`,
+      [userId],
+    );
+  }
+
+  /**
    * Obtiene el título equipado del usuario
    */
   async getEquippedTitle(userId: string): Promise<Title | null> {

@@ -163,7 +163,8 @@ export const ProgressWidget: React.FC<ProgressWidgetProps> = ({
                 <Ionicons name="checkmark-circle" size={18} color="#22C55E" />
               </View>
               <Text style={[styles.statValue, {color: colors.text}]}>
-                {progressData.versesReadToday}/{progressData.dailyGoal}
+                {Math.min(progressData.versesReadToday, progressData.dailyGoal)}
+                /{progressData.dailyGoal}
               </Text>
               <Text style={[styles.statLabel, {color: colors.textSecondary}]}>
                 {t.widgets.verses}
