@@ -22,6 +22,7 @@ import {Ionicons} from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
 import {useTheme} from '../hooks/useTheme';
 import {useLanguage} from '../hooks/useLanguage';
+import {useToast} from '../context/ToastContext';
 import {
   badgeSystemService,
   BadgeProgress,
@@ -45,6 +46,7 @@ export const BadgeCollectionScreen: React.FC<BadgeCollectionScreenProps> = ({
 }) => {
   const {colors} = useTheme();
   const {t, language} = useLanguage();
+  const toast = useToast();
 
   // State
   const [viewMode, setViewMode] = useState<ViewMode>('badges');
@@ -65,6 +67,14 @@ export const BadgeCollectionScreen: React.FC<BadgeCollectionScreenProps> = ({
   const loadData = async () => {
     try {
       setLoading(true);
+
+      // Persist any badges the user has earned via real progress but that
+      // weren't yet recorded in user_badges. Returns the freshly-persisted
+      // ones so we can toast them — celebrates the "moment of unlock" the
+      // first time the user opens the screen after meeting the requirement.
+      const newlyUnlocked =
+        await badgeSystemService.persistNewlyUnlockedBadges(userId);
+
       const [badges, titles, equipped] = await Promise.all([
         badgeSystemService.getAllBadgesProgress(userId),
         badgeSystemService.getUserTitles(userId),
@@ -72,8 +82,12 @@ export const BadgeCollectionScreen: React.FC<BadgeCollectionScreenProps> = ({
       ]);
 
       // Translate badges and titles
-      const {translateBadgeProgress, translateTitles, translateTitle} =
-        await import('../lib/badges/BadgeTranslationHelper');
+      const {
+        translateBadge,
+        translateBadgeProgress,
+        translateTitles,
+        translateTitle,
+      } = await import('../lib/badges/BadgeTranslationHelper');
 
       const translatedBadges = await translateBadgeProgress(badges);
       const translatedTitles = await translateTitles(titles);
@@ -84,6 +98,18 @@ export const BadgeCollectionScreen: React.FC<BadgeCollectionScreenProps> = ({
       setBadgesProgress(translatedBadges);
       setUserTitles(translatedTitles);
       setEquippedTitle(translatedEquipped);
+
+      // Toast each newly-unlocked badge (translated to the active language)
+      // — staggered 600ms so multiple unlocks read as a sequence rather
+      // than collapsing into a single toast slot.
+      for (let i = 0; i < newlyUnlocked.length; i++) {
+        const translated = await translateBadge(newlyUnlocked[i]);
+        const message = t.badgeSystem.unlockedToast.replace(
+          '{{name}}',
+          translated.name,
+        );
+        setTimeout(() => toast.success(message, 3500), i * 600);
+      }
     } catch (error) {
       console.error('Error loading badge data:', error);
     } finally {

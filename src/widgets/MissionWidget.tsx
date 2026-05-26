@@ -108,7 +108,9 @@ export const MissionWidget: React.FC<MissionWidgetProps> = ({
   const getTimeRemaining = () => {
     const now = new Date();
     const expiresAt = new Date(missionData.expiresAt);
-    const diff = expiresAt.getTime() - now.getTime();
+    // Clamp at 0 so a stale timer (after midnight, before reload) doesn't
+    // render negative "−1h" text — the widget reloads on next focus.
+    const diff = Math.max(0, expiresAt.getTime() - now.getTime());
     const hours = Math.floor(diff / (1000 * 60 * 60));
     const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
 
@@ -214,7 +216,7 @@ export const MissionWidget: React.FC<MissionWidgetProps> = ({
                 </Text>
               </View>
             )}
-            {missionData.reward.coins > 0 && (
+            {(missionData.reward.coins ?? 0) > 0 && (
               <View style={styles.rewardItem}>
                 <Ionicons name="cash" size={14} color="#F59E0B" />
                 <Text style={[styles.rewardText, {color: colors.text}]}>

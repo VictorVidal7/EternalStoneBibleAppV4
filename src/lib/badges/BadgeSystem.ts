@@ -721,6 +721,71 @@ class BadgeSystemService {
   }
 
   /**
+   * Persist any badge the user has earned via real progress but that isn't
+   * yet recorded in `user_badges`. Returns the freshly-persisted badges so
+   * callers can surface them (toast, modal, haptic).
+   *
+   * Designed to be called when the badges UI gains focus: badges that the
+   * user earned silently between sessions get a "moment of unlock" the next
+   * time they open the screen, instead of just appearing as already-unlocked.
+   * Subsequent calls are no-ops because the rows now exist.
+   */
+  async persistNewlyUnlockedBadges(userId: string): Promise<Badge[]> {
+    await this.initialize();
+
+    const rows = await this.db!.getAllAsync<{
+      id: string;
+      name: string;
+      description: string;
+      icon: string;
+      rarity: BadgeRarity;
+      category: BadgeCategory;
+      requirement: string;
+      requirement_value: number;
+      xp_reward: number;
+      title_unlock: string | null;
+    }>(`SELECT * FROM badges`);
+
+    const userBadges = await this.getUserBadges(userId);
+    const persistedIds = new Set(userBadges.map(ub => ub.badgeId));
+    const stats = await this.getUserStats(userId);
+
+    const newlyUnlocked: Badge[] = [];
+    for (const row of rows) {
+      if (persistedIds.has(row.id)) continue;
+      const progress = stats[row.requirement] ?? 0;
+      if (row.requirement_value <= 0 || progress < row.requirement_value) {
+        continue;
+      }
+
+      await this.db!.runAsync(
+        `INSERT OR IGNORE INTO user_badges (user_id, badge_id, progress)
+         VALUES (?, ?, ?)`,
+        [userId, row.id, progress],
+      );
+
+      if (row.title_unlock) {
+        await this.unlockTitle(userId, row.title_unlock);
+      }
+
+      newlyUnlocked.push({
+        id: row.id,
+        name: row.name,
+        description: row.description,
+        icon: row.icon,
+        rarity: row.rarity,
+        category: row.category,
+        requirement: row.requirement,
+        requirementValue: row.requirement_value,
+        xpReward: row.xp_reward,
+        titleUnlock: row.title_unlock ?? undefined,
+      });
+    }
+
+    return newlyUnlocked;
+  }
+
+  /**
    * Set of badge ids the user has unlocked: those explicitly awarded in
    * user_badges plus any whose real progress already meets the requirement.
    * Used by both the badge grid and the titles view so they never disagree.
