@@ -793,6 +793,7 @@ export const translations = {
       myTitles: 'Mis Títulos',
       allBadges: 'Todas las Insignias',
       equip: 'Equipar',
+      unequip: 'Desequipar',
       equipped: 'Equipada',
       equippedTitle: 'Título equipado',
       noTitles: 'Aún no has desbloqueado ningún título',
@@ -980,7 +981,7 @@ export const translations = {
       daily: {
         lector_diario: {
           title: 'Lector Diario',
-          description: 'Lee al menos 5 versículos hoy',
+          description: 'Lee al menos 10 versículos hoy',
         },
         reflexion_personal: {
           title: 'Reflexión Personal',
@@ -1927,6 +1928,7 @@ export const translations = {
       myTitles: 'My Titles',
       allBadges: 'All Badges',
       equip: 'Equip',
+      unequip: 'Unequip',
       equipped: 'Equipped',
       equippedTitle: 'Equipped title',
       noTitles: "You haven't unlocked any titles yet",
@@ -2114,7 +2116,7 @@ export const translations = {
       daily: {
         lector_diario: {
           title: 'Daily Reader',
-          description: 'Read at least 5 verses today',
+          description: 'Read at least 10 verses today',
         },
         reflexion_personal: {
           title: 'Personal Reflection',

@@ -102,6 +102,17 @@ export const BadgeCollectionScreen: React.FC<BadgeCollectionScreenProps> = ({
     }
   };
 
+  const handleUnequipTitle = async () => {
+    try {
+      await badgeSystemService.unequipTitle(userId);
+      setEquippedTitle(null);
+      setSelectedTitle(null);
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+    } catch (error) {
+      console.error('Error unequipping title:', error);
+    }
+  };
+
   const getRarityColor = (rarity: BadgeRarity): string => {
     const colors = {
       common: '#9CA3AF',
@@ -654,16 +665,32 @@ export const BadgeCollectionScreen: React.FC<BadgeCollectionScreenProps> = ({
               )}
 
               {equippedTitle?.id === selectedTitle.id && (
-                <View
-                  style={[
-                    styles.equippedIndicator,
-                    {backgroundColor: selectedTitle.color},
-                  ]}>
-                  <Ionicons name="checkmark-circle" size={20} color="#FFF" />
-                  <Text style={styles.equippedText}>
-                    {t.badgeSystem.equippedTitle}
-                  </Text>
-                </View>
+                <>
+                  <View
+                    style={[
+                      styles.equippedIndicator,
+                      {backgroundColor: selectedTitle.color},
+                    ]}>
+                    <Ionicons name="checkmark-circle" size={20} color="#FFF" />
+                    <Text style={styles.equippedText}>
+                      {t.badgeSystem.equippedTitle}
+                    </Text>
+                  </View>
+                  <TouchableOpacity
+                    style={[
+                      styles.unequipButton,
+                      {borderColor: selectedTitle.color},
+                    ]}
+                    onPress={handleUnequipTitle}>
+                    <Text
+                      style={[
+                        styles.unequipButtonText,
+                        {color: selectedTitle.color},
+                      ]}>
+                      {t.badgeSystem.unequip}
+                    </Text>
+                  </TouchableOpacity>
+                </>
               )}
             </View>
           </View>
@@ -1025,5 +1052,18 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: '700',
     color: '#FFF',
+  },
+  unequipButton: {
+    width: '100%',
+    padding: 14,
+    borderRadius: 12,
+    borderWidth: 2,
+    alignItems: 'center',
+    marginTop: 8,
+    backgroundColor: 'transparent',
+  },
+  unequipButtonText: {
+    fontSize: 15,
+    fontWeight: '700',
   },
 });
