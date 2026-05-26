@@ -217,6 +217,36 @@ export const translations = {
     },
 
     // My Highlights Screen
+    onboarding: {
+      back: 'Atrás',
+      next: 'Siguiente',
+      start: 'Empezar',
+      step: 'Paso {{current}} de {{total}}',
+      welcome: {
+        title: 'Bienvenido a Eternal Bible',
+        subtitle: 'Tu compañero diario en la Palabra',
+        body: 'Vamos a personalizar tu experiencia en unos pocos pasos. Podrás cambiar todo más adelante en Ajustes.',
+        cta: 'Comenzar',
+      },
+      language: {
+        title: 'Elige tu idioma',
+        subtitle: 'Esto cambia el idioma de la interfaz',
+      },
+      version: {
+        title: 'Elige tu Biblia',
+        subtitle: 'Podrás cambiar de versión en cualquier momento',
+      },
+      theme: {
+        title: 'Elige tu tema de color',
+        subtitle: 'Personaliza el ambiente visual de la app',
+      },
+      done: {
+        title: '¡Todo listo!',
+        body: 'Que la palabra de Dios sea lámpara a tus pies en este camino.',
+        cta: 'Empezar a leer',
+      },
+    },
+
     readerPrefs: {
       title: 'Preferencias de lectura',
       openLabel: 'Abrir preferencias de lectura',
@@ -1378,6 +1408,36 @@ export const translations = {
       newNote: 'New Note',
       countLabel: 'Notes saved',
       countLabelSingular: 'Note saved',
+    },
+
+    onboarding: {
+      back: 'Back',
+      next: 'Next',
+      start: 'Get started',
+      step: 'Step {{current}} of {{total}}',
+      welcome: {
+        title: 'Welcome to Eternal Bible',
+        subtitle: 'Your daily companion in the Word',
+        body: "Let's set up your experience in a few quick steps. You can change everything later from Settings.",
+        cta: 'Get started',
+      },
+      language: {
+        title: 'Choose your language',
+        subtitle: 'This changes the interface language',
+      },
+      version: {
+        title: 'Choose your Bible',
+        subtitle: 'You can switch versions at any time',
+      },
+      theme: {
+        title: 'Pick a color theme',
+        subtitle: 'Set the visual mood for the app',
+      },
+      done: {
+        title: 'All set!',
+        body: 'May the Word of God be a lamp to your feet on this journey.',
+        cta: 'Start reading',
+      },
     },
 
     readerPrefs: {

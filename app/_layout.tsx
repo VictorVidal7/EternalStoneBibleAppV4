@@ -41,6 +41,8 @@ import {FavoritesProvider} from '@context/FavoritesContext';
 import {BookmarksProvider} from '@context/BookmarksContext';
 import {ReadingPlanProgressProvider} from '@context/ReadingPlanProgressContext';
 import {ReaderPreferencesProvider} from '@context/ReaderPreferencesContext';
+import {useOnboarding} from '@hooks/useOnboarding';
+import {OnboardingScreen} from '@components/onboarding/OnboardingScreen';
 import bibleDB from '@lib/database';
 import {logger} from '@lib/utils/logger';
 import {predictiveCacheService} from '@lib/cache/PredictiveCache';
@@ -55,6 +57,8 @@ import {refreshDailyVerseNotifications} from '@lib/notifications/NotificationSer
 function AppContent() {
   const {t, language} = useLanguage();
   const {selectedVersion} = useBibleVersion();
+  const {completed: onboardingCompleted, complete: completeOnboarding} =
+    useOnboarding();
   const [isLoading, setIsLoading] = useState(true);
   const [loadingProgress, setLoadingProgress] = useState({loaded: 0, total: 0});
   const [error, setError] = useState<string | null>(null);
@@ -169,6 +173,16 @@ function AppContent() {
         <Text style={styles.errorHint}>{t.app.errorHint}</Text>
       </View>
     );
+  }
+
+  // Onboarding gate — show the first-run wizard before the tabs ever
+  // mount. `null` = still hydrating the flag, so render a tick of nothing
+  // rather than briefly flashing either UI.
+  if (onboardingCompleted === null) {
+    return <View style={styles.loadingContainer} />;
+  }
+  if (onboardingCompleted === false) {
+    return <OnboardingScreen onDone={completeOnboarding} />;
   }
 
   return (
