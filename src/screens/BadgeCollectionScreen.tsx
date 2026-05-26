@@ -125,12 +125,12 @@ export const BadgeCollectionScreen: React.FC<BadgeCollectionScreenProps> = ({
   };
 
   const getCategoryName = (category: BadgeCategory): string => {
-    const names = {
+    const names: Record<BadgeCategory, string> = {
       reading: t.badgeSystem.category.reading,
       streak: t.badgeSystem.category.streak,
-      completion: t.badgeSystem.category.chapters,
-      knowledge: t.badgeSystem.category.books,
-      social: t.badgeSystem.category.reading,
+      completion: t.badgeSystem.category.completion,
+      knowledge: t.badgeSystem.category.knowledge,
+      social: t.badgeSystem.category.social,
       special: t.badgeSystem.category.special,
     };
     return names[category];
@@ -226,7 +226,7 @@ export const BadgeCollectionScreen: React.FC<BadgeCollectionScreenProps> = ({
               {userTitles.length}
             </Text>
             <Text style={[styles.statLabel, {color: colors.textSecondary}]}>
-              {t.badgeSystem.myBadges}
+              {t.badgeSystem.myTitles}
             </Text>
           </View>
         </View>
@@ -278,7 +278,7 @@ export const BadgeCollectionScreen: React.FC<BadgeCollectionScreenProps> = ({
               styles.toggleText,
               {color: viewMode === 'titles' ? '#FFF' : colors.text},
             ]}>
-            {t.badgeSystem.myBadges}
+            {t.badgeSystem.myTitles}
           </Text>
         </TouchableOpacity>
       </View>
