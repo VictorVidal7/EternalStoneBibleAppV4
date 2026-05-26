@@ -1068,7 +1068,11 @@ export default function HomeScreen() {
                           styles.savedBadgeText,
                           {color: colors.primary},
                         ]}>
-                        {formatSavedCount(memoryStats.due || memoryStats.total)}
+                        {/* Show deck size — consistent with other Saved
+                            cards. "Due today" has context on the deck
+                            screen, but on Home the user expects the
+                            number to grow when they add a card. */}
+                        {formatSavedCount(memoryStats.total)}
                       </Text>
                     </View>
                     <Ionicons
