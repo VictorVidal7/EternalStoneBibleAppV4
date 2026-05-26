@@ -81,6 +81,7 @@ export const MiniAudioPlayer: React.FC<MiniAudioPlayerProps> = ({
     currentVerse,
     verses,
     isVisible,
+    isSuppressed,
     togglePlayPause,
     nextVerse,
     previousVerse,
@@ -234,7 +235,7 @@ export const MiniAudioPlayer: React.FC<MiniAudioPlayerProps> = ({
   );
 
   // Don't render if not visible or no verses loaded
-  if (!isVisible || !currentVerse || verses.length === 0) {
+  if (!isVisible || isSuppressed || !currentVerse || verses.length === 0) {
     return null;
   }
 

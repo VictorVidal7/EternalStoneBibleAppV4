@@ -66,6 +66,8 @@ export interface AudioPlayerContextValue {
   currentVerse: AudioVerse | null;
   verses: AudioVerse[];
   isVisible: boolean;
+  /** Transient: hide the mini player UI without stopping audio. */
+  isSuppressed: boolean;
 
   // Playback controls
   play: () => void;
@@ -87,6 +89,12 @@ export interface AudioPlayerContextValue {
   toggleExpanded: () => void;
   showPlayer: () => void;
   hidePlayer: () => void;
+  /**
+   * Temporarily hide the mini-player without stopping audio. Use when an
+   * overlay (bottom sheet, modal) would otherwise be obscured by the
+   * player's high elevation/z-index. Audio keeps playing.
+   */
+  setSuppressed: (suppressed: boolean) => void;
 
   // Sleep timer
   setSleepTimer: (minutes: number) => void;

@@ -32,7 +32,9 @@ export const translations = {
       preparing: 'Preparando...',
       loadingVerse:
         '"Lámpara es a mis pies tu palabra,\ny lumbrera a mi camino"\n- Salmos 119:105',
-      errorHint: 'Por favor, cierra y vuelve a abrir la aplicación.',
+      errorHint:
+        'Si el problema persiste, cierra y vuelve a abrir la aplicación.',
+      retry: 'Reintentar',
       endOfBook: 'Fin del libro',
       endOfBookMessage: 'Has llegado al final de este libro',
       firstChapterMessage: 'Estás en el primer capítulo de este libro',
@@ -1174,7 +1176,8 @@ export const translations = {
       preparing: 'Preparing...',
       loadingVerse:
         '"Your word is a lamp to my feet\nand a light to my path"\n- Psalm 119:105',
-      errorHint: 'Please close and reopen the application.',
+      errorHint: 'If the problem persists, close and reopen the application.',
+      retry: 'Retry',
       endOfBook: 'End of book',
       endOfBookMessage: 'You have reached the end of this book',
       firstChapterMessage: 'You are at the first chapter of this book',
