@@ -46,6 +46,7 @@ import {useReadingProgress} from '@context/ReadingProgressContext';
 import {useReadingPlanProgress} from '@context/ReadingPlanProgressContext';
 import {useFavorites} from '@context/FavoritesContext';
 import {useBookmarks} from '@context/BookmarksContext';
+import {useMemoryDeck} from '@context/MemoryDeckContext';
 
 // Componentes Celestial
 import {
@@ -98,6 +99,7 @@ export default function HomeScreen() {
   const {addFavorite, isFavorite, favorites} = useFavorites();
   const {bookmarks} = useBookmarks();
   const bookmarksCount = bookmarks.length;
+  const {stats: memoryStats} = useMemoryDeck();
   const progressTrackColor = isDark
     ? 'transparent'
     : withOpacity(colors.primary, isDark ? 0.3 : 0.8);
@@ -1013,6 +1015,74 @@ export default function HomeScreen() {
                   numberOfLines={1}
                   ellipsizeMode="tail">
                   {t.bookmarks.short}
+                </Text>
+              </BlurView>
+            </TouchableOpacity>
+
+            {/* Memory — Sprint 34: badge shows due-today count (or total
+                if nothing is due) so the user sees "what's calling me
+                back" at a glance. */}
+            <TouchableOpacity
+              activeOpacity={0.9}
+              style={styles.savedCardWrapper}
+              onPress={() =>
+                handlePress(() => router.push('/features/memory' as any))
+              }>
+              <BlurView
+                intensity={isDark ? 28 : 48}
+                tint={isDark ? 'dark' : 'light'}
+                style={[
+                  styles.savedCard,
+                  {
+                    backgroundColor: celestialTheme.colors.surfaceGlass,
+                    borderColor: celestialTheme.colors.glassBorder,
+                  },
+                  celestialTheme.shadows.md,
+                ]}>
+                <View style={styles.savedCardHeader}>
+                  <View
+                    style={[
+                      styles.savedIcon,
+                      {
+                        backgroundColor: withOpacity(
+                          colors.primary,
+                          isDark ? 0.2 : 0.12,
+                        ),
+                      },
+                    ]}>
+                    <Ionicons name="school" size={20} color={colors.primary} />
+                  </View>
+                  <View style={styles.savedMeta}>
+                    <View
+                      style={[
+                        styles.savedBadge,
+                        {
+                          backgroundColor: withOpacity(
+                            colors.primary,
+                            isDark ? 0.18 : 0.12,
+                          ),
+                        },
+                      ]}>
+                      <Text
+                        style={[
+                          styles.savedBadgeText,
+                          {color: colors.primary},
+                        ]}>
+                        {formatSavedCount(memoryStats.due || memoryStats.total)}
+                      </Text>
+                    </View>
+                    <Ionicons
+                      name="chevron-forward"
+                      size={18}
+                      color={colors.textTertiary}
+                    />
+                  </View>
+                </View>
+                <Text
+                  style={[styles.savedLabel, {color: colors.text}]}
+                  numberOfLines={1}
+                  ellipsizeMode="tail">
+                  {t.memory.short}
                 </Text>
               </BlurView>
             </TouchableOpacity>

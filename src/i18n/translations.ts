@@ -227,6 +227,55 @@ export const translations = {
       missingMessage: 'Aún no hay introducción disponible para este libro.',
     },
 
+    memory: {
+      title: 'Memorización',
+      short: 'Memoria',
+      homeHint: 'Memoriza la Palabra',
+      empty: 'Tu mazo está vacío',
+      emptyHint:
+        'Marca un versículo como favorito y agrégalo a tu mazo de memoria.',
+      addedToast: 'Versículo agregado a memoria',
+      removedToast: 'Versículo removido de memoria',
+      alreadyInDeck: 'Ya está en tu mazo de memoria',
+      addToDeck: 'Agregar a memoria',
+      removeFromDeck: 'Quitar de memoria',
+      practiceCta: 'Practicar {{count}} tarjetas',
+      practiceCtaSingular: 'Practicar 1 tarjeta',
+      noDueToday: 'No hay tarjetas pendientes',
+      noDueHint: 'Vuelve más tarde — tus tarjetas regresan según su intervalo.',
+      stats: {
+        total: 'En tu mazo',
+        due: 'Pendientes hoy',
+        mastered: 'Dominadas',
+      },
+      box: 'Caja {{n}}',
+      nextReview: 'Próxima revisión',
+      mastered: 'Dominado',
+      practice: {
+        title: 'Práctica',
+        progress: '{{current}} de {{total}}',
+        reveal: 'Mostrar versículo',
+        prompt: '¿Cómo te fue?',
+        again: 'Otra vez',
+        hard: 'Difícil',
+        good: 'Bueno',
+        easy: 'Fácil',
+        done: '¡Sesión completa!',
+        doneBody:
+          'Repasaste {{count}} tarjetas. ¡Que la Palabra habite ricamente en ti!',
+        doneBodySingular:
+          'Repasaste 1 tarjeta. ¡Que la Palabra habite ricamente en ti!',
+        doneCta: 'Volver al mazo',
+      },
+      remove: {
+        title: 'Quitar de memoria',
+        message:
+          '¿Quieres quitar este versículo de tu mazo? Perderás el progreso.',
+        confirm: 'Quitar',
+        cancel: 'Cancelar',
+      },
+    },
+
     // My Highlights Screen
     onboarding: {
       back: 'Atrás',
@@ -1419,6 +1468,56 @@ export const translations = {
       newNote: 'New Note',
       countLabel: 'Notes saved',
       countLabelSingular: 'Note saved',
+    },
+
+    memory: {
+      title: 'Memorization',
+      short: 'Memory',
+      homeHint: 'Memorize the Word',
+      empty: 'Your deck is empty',
+      emptyHint:
+        'Favorite a verse and add it to your memory deck to get started.',
+      addedToast: 'Verse added to memory',
+      removedToast: 'Verse removed from memory',
+      alreadyInDeck: 'Already in your memory deck',
+      addToDeck: 'Add to memory',
+      removeFromDeck: 'Remove from memory',
+      practiceCta: 'Practice {{count}} cards',
+      practiceCtaSingular: 'Practice 1 card',
+      noDueToday: 'No cards due',
+      noDueHint:
+        'Come back later — cards return on their own scheduled interval.',
+      stats: {
+        total: 'In your deck',
+        due: 'Due today',
+        mastered: 'Mastered',
+      },
+      box: 'Box {{n}}',
+      nextReview: 'Next review',
+      mastered: 'Mastered',
+      practice: {
+        title: 'Practice',
+        progress: '{{current}} of {{total}}',
+        reveal: 'Show verse',
+        prompt: 'How did you do?',
+        again: 'Again',
+        hard: 'Hard',
+        good: 'Good',
+        easy: 'Easy',
+        done: 'Session complete!',
+        doneBody:
+          'You reviewed {{count}} cards. May the Word dwell in you richly!',
+        doneBodySingular:
+          'You reviewed 1 card. May the Word dwell in you richly!',
+        doneCta: 'Back to deck',
+      },
+      remove: {
+        title: 'Remove from memory',
+        message:
+          'Remove this verse from your deck? You will lose your progress.',
+        confirm: 'Remove',
+        cancel: 'Cancel',
+      },
     },
 
     bookIntro: {

@@ -16,7 +16,10 @@ import {IllustratedEmptyState} from '@components/IllustratedEmptyState';
 import {useToast} from '@context/ToastContext';
 import {logger} from '@lib/utils/logger';
 import {useFavorites} from '@context/FavoritesContext';
+import {useMemoryDeck} from '@context/MemoryDeckContext';
 import {getBookByName} from '@/constants/bible';
+import {buildVerseKey} from '@lib/memory/srs';
+import {useBibleVersion} from '@hooks/useBibleVersion';
 
 export default function FavoritesScreen() {
   const router = useRouter();
@@ -24,6 +27,8 @@ export default function FavoritesScreen() {
   const {t, language} = useLanguage();
   const toast = useToast();
   const {favorites, removeFavorite, refreshFavorites, loading} = useFavorites();
+  const {hasCard, addCard, removeCard} = useMemoryDeck();
+  const {selectedVersion} = useBibleVersion();
   const headerGradient = useMemo(
     () =>
       (gradient?.headerColors
@@ -61,6 +66,23 @@ export default function FavoritesScreen() {
     router.push(
       `/verse/${favorite.book}/${favorite.chapter}?verse=${favorite.verse}` as any,
     );
+  }
+
+  function toggleMemory(favorite: (typeof favorites)[number]) {
+    const key = buildVerseKey(favorite.book, favorite.chapter, favorite.verse);
+    if (hasCard(key)) {
+      removeCard(key);
+      toast.success(t.memory.removedToast);
+    } else {
+      addCard({
+        bookName: favorite.book,
+        chapter: favorite.chapter,
+        verse: favorite.verse,
+        text: favorite.text,
+        version: selectedVersion.id,
+      });
+      toast.success(t.memory.addedToast);
+    }
   }
 
   // El nombre del libro se guarda en el idioma activo al crear el favorito;
@@ -150,13 +172,36 @@ export default function FavoritesScreen() {
               </Text>
             </View>
 
-            <TouchableOpacity
-              style={styles.deleteButton}
-              onPress={() => handleDelete(item.id)}
-              accessibilityRole="button"
-              accessibilityLabel={t.delete}>
-              <Ionicons name="trash-outline" size={20} color={colors.error} />
-            </TouchableOpacity>
+            <View style={styles.rowActions}>
+              {(() => {
+                const inDeck = hasCard(
+                  buildVerseKey(item.book, item.chapter, item.verse),
+                );
+                return (
+                  <TouchableOpacity
+                    style={styles.deleteButton}
+                    onPress={() => toggleMemory(item)}
+                    accessibilityRole="button"
+                    accessibilityLabel={
+                      inDeck ? t.memory.removeFromDeck : t.memory.addToDeck
+                    }
+                    accessibilityState={{selected: inDeck}}>
+                    <Ionicons
+                      name={inDeck ? 'school' : 'school-outline'}
+                      size={20}
+                      color={inDeck ? colors.primary : colors.textSecondary}
+                    />
+                  </TouchableOpacity>
+                );
+              })()}
+              <TouchableOpacity
+                style={styles.deleteButton}
+                onPress={() => handleDelete(item.id)}
+                accessibilityRole="button"
+                accessibilityLabel={t.delete}>
+                <Ionicons name="trash-outline" size={20} color={colors.error} />
+              </TouchableOpacity>
+            </View>
           </TouchableOpacity>
         )}
         contentContainerStyle={styles.listContent}
@@ -275,6 +320,10 @@ const styles = StyleSheet.create({
   deleteButton: {
     padding: 8,
     marginLeft: 8,
+  },
+  rowActions: {
+    flexDirection: 'row',
+    alignItems: 'center',
   },
   emptyContainer: {
     alignItems: 'center',

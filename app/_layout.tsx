@@ -41,6 +41,7 @@ import {FavoritesProvider} from '@context/FavoritesContext';
 import {BookmarksProvider} from '@context/BookmarksContext';
 import {ReadingPlanProgressProvider} from '@context/ReadingPlanProgressContext';
 import {ReaderPreferencesProvider} from '@context/ReaderPreferencesContext';
+import {MemoryDeckProvider} from '@context/MemoryDeckContext';
 import {useOnboarding} from '@hooks/useOnboarding';
 import {OnboardingScreen} from '@components/onboarding/OnboardingScreen';
 import bibleDB from '@lib/database';
@@ -312,11 +313,13 @@ export default function RootLayout() {
                   <FavoritesProvider>
                     <BookmarksProvider>
                       <ReaderPreferencesProvider>
-                        <ToastProvider>
-                          <AudioPlayerProvider>
-                            <AppContent />
-                          </AudioPlayerProvider>
-                        </ToastProvider>
+                        <MemoryDeckProvider>
+                          <ToastProvider>
+                            <AudioPlayerProvider>
+                              <AppContent />
+                            </AudioPlayerProvider>
+                          </ToastProvider>
+                        </MemoryDeckProvider>
                       </ReaderPreferencesProvider>
                     </BookmarksProvider>
                   </FavoritesProvider>
