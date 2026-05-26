@@ -44,10 +44,17 @@ export interface MissionWidgetData {
   description: string;
   progress: number;
   target: number;
+  /**
+   * Mission reward. Currently only XP is wired up — the coins economy was
+   * scaffolding that never shipped, so the widget no longer fabricates a
+   * coin payout. Kept the field optional so reintroducing it is a one-line
+   * change once a real coins system exists.
+   */
   reward: {
     xp: number;
-    coins: number;
+    coins?: number;
   };
+  /** ISO of next local midnight — the mission resets at the day boundary. */
   expiresAt: string;
   difficulty: 'easy' | 'medium' | 'hard';
 }
@@ -234,8 +241,11 @@ class WidgetTaskHandler {
       );
       const progress = Math.min(target, todayRow?.verses_read ?? 0);
 
-      const tomorrow = new Date();
-      tomorrow.setDate(tomorrow.getDate() + 1);
+      // Daily mission rolls over at local midnight — using "now + 24h" made
+      // the timer drift each day (e.g. at 11pm it said "expires in 23h 59m",
+      // and after midnight it briefly went negative until the widget reloaded).
+      const expiresAt = new Date();
+      expiresAt.setHours(24, 0, 0, 0);
 
       return {
         title: missionTranslation?.title || 'Lee 10 versículos hoy',
@@ -246,27 +256,26 @@ class WidgetTaskHandler {
         target,
         reward: {
           xp: 50,
-          coins: 25,
         },
-        expiresAt: tomorrow.toISOString(),
+        expiresAt: expiresAt.toISOString(),
         difficulty: 'easy',
       };
     } catch (error) {
       console.error('Error loading mission widget:', error);
-      // Return demo mission as fallback
-      const tomorrow = new Date();
-      tomorrow.setDate(tomorrow.getDate() + 1);
+      // Fallback uses the same midnight cutoff so the timer never goes
+      // negative even when the DB read failed.
+      const expiresAt = new Date();
+      expiresAt.setHours(24, 0, 0, 0);
 
       return {
         title: 'Lee 10 versículos hoy',
         description: 'Completa tu meta diaria de lectura',
-        progress: 7,
+        progress: 0,
         target: 10,
         reward: {
           xp: 50,
-          coins: 25,
         },
-        expiresAt: tomorrow.toISOString(),
+        expiresAt: expiresAt.toISOString(),
         difficulty: 'easy',
       };
     }
