@@ -63,6 +63,19 @@ export interface BadgeProgress {
   percentComplete: number;
 }
 
+/** Raw `titles` table row (snake_case columns) before mapping to Title. */
+interface TitleRow {
+  id: string;
+  name: string;
+  description: string;
+  prefix: string | null;
+  suffix: string | null;
+  color: string;
+  icon: string;
+  rarity: BadgeRarity;
+  unlocked_by: string;
+}
+
 class BadgeSystemService {
   private db: SQLite.SQLiteDatabase | null = null;
 
@@ -682,22 +695,14 @@ class BadgeSystemService {
       titleUnlock: row.title_unlock ?? undefined,
     }));
 
-    const userBadges = await this.getUserBadges(userId);
-    const userBadgeIds = new Set(userBadges.map(ub => ub.badgeId));
-
-    // Obtener estadísticas actuales del usuario
+    // Single source of truth shared with the titles view, so an unlocked
+    // badge and the title it grants stay consistent.
+    const unlockedIds = await this.getUnlockedBadgeIds(userId);
     const stats = await this.getUserStats(userId);
 
     return allBadges.map(badge => {
       const currentProgress = stats[badge.requirement] || 0;
-      // A badge counts as unlocked if it was explicitly awarded OR the user's
-      // real progress already meets the requirement — otherwise badges the
-      // user has clearly earned (e.g. "read your first verse" after 279 reads)
-      // stayed locked forever because nothing ever wrote to user_badges.
-      const isUnlocked =
-        userBadgeIds.has(badge.id) ||
-        (badge.requirementValue > 0 &&
-          currentProgress >= badge.requirementValue);
+      const isUnlocked = unlockedIds.has(badge.id);
       const percentComplete =
         badge.requirementValue > 0
           ? Math.min(
@@ -713,6 +718,33 @@ class BadgeSystemService {
         percentComplete,
       };
     });
+  }
+
+  /**
+   * Set of badge ids the user has unlocked: those explicitly awarded in
+   * user_badges plus any whose real progress already meets the requirement.
+   * Used by both the badge grid and the titles view so they never disagree.
+   */
+  private async getUnlockedBadgeIds(userId: string): Promise<Set<string>> {
+    const badgeRows = await this.db!.getAllAsync<{
+      id: string;
+      requirement: string;
+      requirement_value: number;
+    }>(`SELECT id, requirement, requirement_value FROM badges`);
+
+    const userBadges = await this.getUserBadges(userId);
+    const stats = await this.getUserStats(userId);
+
+    const unlocked = new Set(userBadges.map(ub => ub.badgeId));
+    for (const b of badgeRows) {
+      if (
+        b.requirement_value > 0 &&
+        (stats[b.requirement] || 0) >= b.requirement_value
+      ) {
+        unlocked.add(b.id);
+      }
+    }
+    return unlocked;
   }
 
   /**
@@ -772,6 +804,15 @@ class BadgeSystemService {
   async equipTitle(userId: string, titleId: string) {
     await this.initialize();
 
+    // Titles are unlocked implicitly from badge progress, so the chosen one
+    // may not have a user_titles row yet — materialize it before equipping
+    // (otherwise the UPDATEs below would silently match nothing).
+    await this.db!.runAsync(
+      `INSERT OR IGNORE INTO user_titles (user_id, title_id, is_equipped)
+       VALUES (?, ?, 0)`,
+      [userId, titleId],
+    );
+
     // Desequipar todos los títulos
     await this.db!.runAsync(
       `UPDATE user_titles SET is_equipped = 0 WHERE user_id = ?`,
@@ -791,7 +832,7 @@ class BadgeSystemService {
   async getEquippedTitle(userId: string): Promise<Title | null> {
     await this.initialize();
 
-    const result = await this.db!.getFirstAsync<Title>(
+    const row = await this.db!.getFirstAsync<TitleRow>(
       `
       SELECT t.* FROM titles t
       JOIN user_titles ut ON t.id = ut.title_id
@@ -801,27 +842,42 @@ class BadgeSystemService {
       [userId],
     );
 
-    return result || null;
+    return row ? this.mapTitleRow(row) : null;
   }
 
   /**
-   * Obtiene todos los títulos desbloqueados del usuario
+   * Obtiene todos los títulos desbloqueados del usuario.
+   *
+   * A title is unlocked when the badge that grants it (`unlocked_by`) is
+   * unlocked, computed from real progress — nothing ever populated
+   * user_titles, so before this the titles view was permanently empty.
    */
   async getUserTitles(userId: string): Promise<Title[]> {
     await this.initialize();
 
-    const rows = await this.db!.getAllAsync<Title>(
-      `
-      SELECT t.*, ut.is_equipped
-      FROM titles t
-      JOIN user_titles ut ON t.id = ut.title_id
-      WHERE ut.user_id = ?
-      ORDER BY ut.is_equipped DESC, ut.unlocked_at DESC
-    `,
-      [userId],
+    const unlockedBadgeIds = await this.getUnlockedBadgeIds(userId);
+    const rows = await this.db!.getAllAsync<TitleRow>(
+      `SELECT * FROM titles ORDER BY rarity`,
     );
 
-    return rows;
+    return rows
+      .filter(row => unlockedBadgeIds.has(row.unlocked_by))
+      .map(row => this.mapTitleRow(row));
+  }
+
+  /** Maps a snake_case titles row to the camelCase Title shape. */
+  private mapTitleRow(row: TitleRow): Title {
+    return {
+      id: row.id,
+      name: row.name,
+      description: row.description,
+      prefix: row.prefix ?? undefined,
+      suffix: row.suffix ?? undefined,
+      color: row.color,
+      icon: row.icon,
+      rarity: row.rarity,
+      unlockedBy: row.unlocked_by,
+    };
   }
 }
 
