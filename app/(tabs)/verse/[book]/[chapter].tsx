@@ -17,8 +17,6 @@ import {useLocalSearchParams, useRouter, Stack} from 'expo-router';
 import {Ionicons} from '@expo/vector-icons';
 import * as Clipboard from 'expo-clipboard';
 import * as Haptics from 'expo-haptics';
-import * as Sharing from 'expo-sharing';
-import {captureRef} from 'react-native-view-shot';
 import bibleDB from '@lib/database';
 import {BibleVerse} from '@/types/bible';
 import {BIBLE_VERSIONS, getBookByName, getBookById} from '@/constants/bible';
@@ -41,6 +39,7 @@ import {getReadingPlanById, getLocalizedPlan} from '@/constants/reading-plans';
 import {logger} from '@lib/utils/logger';
 import {ImmersiveReader} from '@components/reading/ImmersiveReader';
 import {NoteEditorModal} from '@components/reading/NoteEditorModal';
+import {ImageShareModal} from '@components/reading/ImageShareModal';
 import {getBookTheme} from '@/constants/bookThemes';
 // Audio Bible Feature
 import {useAudioPlayer, AudioVerse} from '@/features/audio';
@@ -54,10 +53,8 @@ import {
   spacing,
   borderRadius,
   fontSize as fontSizes,
-  shadows,
 } from '@/styles/designTokens';
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
-import {LinearGradient} from 'expo-linear-gradient';
 import {useWindowDimensions} from 'react-native';
 
 /**
@@ -82,79 +79,6 @@ function formatVerseList(nums: number[]): string {
   }
   return parts.join(',');
 }
-
-const IMAGE_THEMES = [
-  {
-    id: 'classic',
-    colors: ['#1A1D2E', '#2A2E45'] as const,
-    textColor: '#D4AF37',
-    attributionColor: 'rgba(212, 175, 55, 0.8)',
-    icon: 'book-outline',
-  },
-  {
-    id: 'sunrise',
-    colors: ['#FF8C00', '#F27121'] as const,
-    textColor: '#FFFFFF',
-    attributionColor: 'rgba(255, 255, 255, 0.8)',
-    icon: 'sunny-outline',
-  },
-  {
-    id: 'nature',
-    colors: ['#234D20', '#36802D'] as const,
-    textColor: '#FFFFFF',
-    attributionColor: 'rgba(255, 255, 255, 0.8)',
-    icon: 'leaf-outline',
-  },
-  {
-    id: 'spiritual',
-    colors: ['#4E006E', '#8E24AA'] as const,
-    textColor: '#FFFFFF',
-    attributionColor: 'rgba(255, 255, 255, 0.8)',
-    icon: 'sparkles-outline',
-  },
-  {
-    id: 'ocean',
-    colors: ['#0F2027', '#203A43', '#2C5364'] as const,
-    textColor: '#00D2FF',
-    attributionColor: 'rgba(0, 210, 255, 0.6)',
-    icon: 'water-outline',
-  },
-  {
-    id: 'royal',
-    colors: ['#600000', '#C41E3A'] as const,
-    textColor: '#FFD700',
-    attributionColor: 'rgba(255, 215, 0, 0.7)',
-    icon: 'ribbon-outline',
-  },
-  {
-    id: 'midnight',
-    colors: ['#000000', '#1C1C1C'] as const,
-    textColor: '#E0E0E0',
-    attributionColor: 'rgba(224, 224, 224, 0.6)',
-    icon: 'moon-outline',
-  },
-  {
-    id: 'minimal',
-    colors: ['#FFFFFF', '#F5F5F7'] as const,
-    textColor: '#2C3E50',
-    attributionColor: 'rgba(44, 62, 80, 0.6)',
-    icon: 'document-text-outline',
-  },
-  {
-    id: 'aura',
-    colors: ['#3A1C71', '#D76D77', '#FFAF7B'] as const,
-    textColor: '#FFFFFF',
-    attributionColor: 'rgba(255, 255, 255, 0.8)',
-    icon: 'color-palette-outline',
-  },
-  {
-    id: 'rose',
-    colors: ['#F7CAC9', '#92A8D1'] as const,
-    textColor: '#5D4037',
-    attributionColor: 'rgba(93, 64, 55, 0.6)',
-    icon: 'heart-outline',
-  },
-];
 
 export default function VerseReadingScreen() {
   const router = useRouter();
@@ -216,13 +140,6 @@ export default function VerseReadingScreen() {
   const [favoritedVerses, setFavoritedVerses] = useState<Set<number>>(
     new Set(),
   );
-  const [selectedImageThemeIndex, setSelectedImageThemeIndex] = useState(0);
-  const [imageFontSize, setImageFontSize] = useState(20);
-  const [imageTextAlign, setImageTextAlign] = useState<
-    'center' | 'left' | 'right'
-  >('center');
-  const [isSharingImage, setIsSharingImage] = useState(false);
-  const [useSerifFont, setUseSerifFont] = useState(true);
   const [immersiveModeActive, setImmersiveModeActive] = useState(false);
   // Verse highlights: map of verse number -> highlight color (hex).
   const [verseHighlights, setVerseHighlights] = useState<Map<number, string>>(
@@ -241,14 +158,12 @@ export default function VerseReadingScreen() {
     [selectedVersion.id],
   );
 
-  const imagePreviewRef = useRef<any>(null);
   // Y offset of each verse row within the ScrollView, for audio auto-scroll.
   const verseOffsetsRef = useRef<Map<number, number>>(new Map());
   const {width: windowWidth} = useWindowDimensions();
   const navSideWidth = Math.min(windowWidth * 0.32, 140);
 
   const {setBottomOffset} = useAudioPlayer();
-  const imageSelectedTextColor = isDark ? colors.primaryDark : colors.primary;
 
   // El reproductor de audio conserva su posición; la barra de selección de
   // versículos se dibuja por encima de él (ver estilo `selectionBar`), así
@@ -761,44 +676,6 @@ export default function VerseReadingScreen() {
         component: 'VerseReadingScreen',
         action: 'handleShareSelected',
       });
-    }
-  }
-
-  async function handleShareImage() {
-    if (isSharingImage || !imagePreviewRef.current) return;
-
-    try {
-      setIsSharingImage(true);
-      await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-
-      const uri = await captureRef(imagePreviewRef, {
-        format: 'png',
-        quality: 1,
-        result: 'tmpfile',
-      });
-
-      const canShare = await Sharing.isAvailableAsync();
-      if (!canShare) {
-        toast.error(t.verse.imageShareError);
-        return;
-      }
-
-      await Sharing.shareAsync(uri, {
-        mimeType: 'image/png',
-        dialogTitle: t.share,
-        UTI: 'public.png',
-      });
-
-      toast.success(t.verse.imageReady);
-      setImageModalVisible(false);
-    } catch (error) {
-      logger.error('Error sharing image', error as Error, {
-        component: 'VerseReadingScreen',
-        action: 'handleShareImage',
-      });
-      toast.error(t.verse.imageShareError);
-    } finally {
-      setIsSharingImage(false);
     }
   }
 
@@ -1692,299 +1569,15 @@ export default function VerseReadingScreen() {
           </View>
         )}
 
-        {/* Image Creator Modal */}
-        <Modal
+        {/* Image Creator Modal — extracted to ImageShareModal in Sprint 28. */}
+        <ImageShareModal
           visible={imageModalVisible}
-          animationType="slide"
-          onRequestClose={() => setImageModalVisible(false)}>
-          <View
-            style={[
-              styles.imageCreatorContainer,
-              {backgroundColor: colors.background},
-            ]}>
-            <View
-              style={[
-                styles.imageCreatorHeader,
-                {paddingTop: insets.top + 10},
-              ]}>
-              <TouchableOpacity
-                onPress={() => setImageModalVisible(false)}
-                accessibilityRole="button"
-                accessibilityLabel={t.close}>
-                <Ionicons name="close" size={28} color={colors.text} />
-              </TouchableOpacity>
-              <Text style={[styles.imageCreatorTitle, {color: colors.text}]}>
-                {t.verse.shareAsImage}
-              </Text>
-              <TouchableOpacity
-                onPress={handleShareImage}
-                disabled={isSharingImage}
-                style={isSharingImage && {opacity: 0.6}}
-                accessibilityRole="button"
-                accessibilityLabel={t.verse.shareVerse}>
-                <Ionicons
-                  name="share-outline"
-                  size={28}
-                  color={colors.primary}
-                />
-              </TouchableOpacity>
-            </View>
-
-            <ScrollView
-              style={{flex: 1}}
-              contentContainerStyle={{paddingBottom: spacing['4xl']}}>
-              <View style={styles.imagePreviewContainer}>
-                <LinearGradient
-                  colors={IMAGE_THEMES[selectedImageThemeIndex].colors}
-                  style={[
-                    styles.verseImageCard,
-                    {minHeight: windowWidth - spacing.xl * 2},
-                  ]}
-                  ref={imagePreviewRef}
-                  collapsable={false}
-                  start={{x: 0, y: 0}}
-                  end={{x: 1, y: 1}}>
-                  <View style={styles.imageHeaderArea}>
-                    <Ionicons
-                      name={IMAGE_THEMES[selectedImageThemeIndex].icon as any}
-                      size={32}
-                      color={IMAGE_THEMES[selectedImageThemeIndex].textColor}
-                      style={styles.watermarkIcon}
-                    />
-                  </View>
-
-                  <View style={styles.imageMainArea}>
-                    <Ionicons
-                      name="chatbubble-outline"
-                      size={24}
-                      color={IMAGE_THEMES[selectedImageThemeIndex].textColor}
-                      style={styles.quoteIcon}
-                    />
-                    <Text
-                      style={[
-                        styles.verseImageText,
-                        {
-                          color:
-                            IMAGE_THEMES[selectedImageThemeIndex].textColor,
-                          fontSize: imageFontSize,
-                          textAlign: imageTextAlign,
-                          fontFamily: useSerifFont
-                            ? Platform.OS === 'ios'
-                              ? 'Georgia'
-                              : 'serif'
-                            : undefined,
-                          paddingBottom: spacing.sm,
-                        },
-                      ]}>
-                      {selectedVerses.size > 0
-                        ? getImageVersesText()
-                        : t.verse.selectVersesFirst}
-                    </Text>
-                  </View>
-
-                  <View style={styles.imageBrandContainer}>
-                    <View
-                      style={[
-                        styles.brandDivider,
-                        {
-                          backgroundColor:
-                            IMAGE_THEMES[selectedImageThemeIndex].textColor,
-                        },
-                      ]}
-                    />
-                    <Text
-                      style={[
-                        styles.brandText,
-                        {
-                          color:
-                            IMAGE_THEMES[selectedImageThemeIndex].textColor,
-                        },
-                      ]}>
-                      Eternal Stone Bible
-                    </Text>
-                    <Text
-                      style={[
-                        styles.brandReference,
-                        {
-                          color:
-                            IMAGE_THEMES[selectedImageThemeIndex].textColor,
-                        },
-                      ]}>
-                      {getSelectedReference()}
-                    </Text>
-                  </View>
-                </LinearGradient>
-              </View>
-
-              <View style={styles.imageOptionsContainer}>
-                <Text
-                  style={[styles.optionsTitle, {color: colors.textSecondary}]}>
-                  {t.verse.imageStyle}
-                </Text>
-                <ScrollView
-                  horizontal
-                  showsHorizontalScrollIndicator={false}
-                  style={styles.optionsRow}>
-                  {IMAGE_THEMES.map((theme, index) => (
-                    <TouchableOpacity
-                      key={theme.id}
-                      onPress={() => {
-                        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-                        setSelectedImageThemeIndex(index);
-                      }}
-                      style={[
-                        styles.styleCircle,
-                        index === selectedImageThemeIndex && {
-                          borderColor: colors.primary,
-                          borderWidth: 3,
-                        },
-                      ]}>
-                      <LinearGradient
-                        colors={theme.colors}
-                        style={styles.styleCircleGradient}>
-                        <Ionicons
-                          name={theme.icon as any}
-                          size={20}
-                          color={theme.textColor}
-                        />
-                      </LinearGradient>
-                    </TouchableOpacity>
-                  ))}
-                </ScrollView>
-
-                <View style={styles.optionSection}>
-                  <Text
-                    style={[
-                      styles.optionsTitle,
-                      {color: colors.textSecondary},
-                    ]}>
-                    {t.verse.imageFontSize}
-                  </Text>
-                  <View style={styles.optionsRow}>
-                    {[16, 20, 24, 28].map(size => (
-                      <TouchableOpacity
-                        key={size}
-                        onPress={() => setImageFontSize(size)}
-                        style={[
-                          styles.sizeButton,
-                          imageFontSize === size && {
-                            borderColor: colors.primary,
-                            backgroundColor: colors.primaryLight,
-                          },
-                        ]}>
-                        <Text
-                          style={{
-                            color:
-                              imageFontSize === size
-                                ? imageSelectedTextColor
-                                : colors.text,
-                            fontWeight: 'bold',
-                          }}>
-                          {size}
-                        </Text>
-                      </TouchableOpacity>
-                    ))}
-                  </View>
-                </View>
-
-                <View style={styles.optionSection}>
-                  <Text
-                    style={[
-                      styles.optionsTitle,
-                      {color: colors.textSecondary},
-                    ]}>
-                    {t.verse.imageAlignment}
-                  </Text>
-                  <View style={styles.optionsRow}>
-                    {(['left', 'center', 'right'] as const).map(align => (
-                      <TouchableOpacity
-                        key={align}
-                        onPress={() => setImageTextAlign(align)}
-                        style={[
-                          styles.sizeButton,
-                          styles.flex1,
-                          imageTextAlign === align && {
-                            borderColor: colors.primary,
-                            backgroundColor: colors.primaryLight,
-                          },
-                        ]}>
-                        <Ionicons
-                          name={
-                            align === 'left'
-                              ? 'list-outline'
-                              : align === 'center'
-                                ? 'menu-outline'
-                                : 'reorder-three-outline'
-                          }
-                          size={20}
-                          color={
-                            imageTextAlign === align
-                              ? imageSelectedTextColor
-                              : colors.text
-                          }
-                        />
-                      </TouchableOpacity>
-                    ))}
-                  </View>
-                </View>
-
-                <View style={styles.optionSection}>
-                  <Text
-                    style={[
-                      styles.optionsTitle,
-                      {color: colors.textSecondary},
-                    ]}>
-                    {t.verse.imageFontStyle}
-                  </Text>
-                  <View style={styles.optionsRow}>
-                    <TouchableOpacity
-                      onPress={() => setUseSerifFont(true)}
-                      style={[
-                        styles.sizeButton,
-                        styles.flex1,
-                        useSerifFont && {
-                          borderColor: colors.primary,
-                          backgroundColor: colors.primaryLight,
-                        },
-                      ]}>
-                      <Text
-                        style={{
-                          color: useSerifFont
-                            ? imageSelectedTextColor
-                            : colors.text,
-                          fontWeight: 'bold',
-                          fontFamily:
-                            Platform.OS === 'ios' ? 'Georgia' : 'serif',
-                        }}>
-                        Serif
-                      </Text>
-                    </TouchableOpacity>
-                    <TouchableOpacity
-                      onPress={() => setUseSerifFont(false)}
-                      style={[
-                        styles.sizeButton,
-                        styles.flex1,
-                        !useSerifFont && {
-                          borderColor: colors.primary,
-                          backgroundColor: colors.primaryLight,
-                        },
-                      ]}>
-                      <Text
-                        style={{
-                          color: !useSerifFont
-                            ? imageSelectedTextColor
-                            : colors.text,
-                          fontWeight: 'bold',
-                        }}>
-                        Sans
-                      </Text>
-                    </TouchableOpacity>
-                  </View>
-                </View>
-              </View>
-            </ScrollView>
-          </View>
-        </Modal>
+          verseText={selectedVerses.size > 0 ? getImageVersesText() : ''}
+          verseReference={getSelectedReference()}
+          hasSelection={selectedVerses.size > 0}
+          cardSize={windowWidth - spacing.xl * 2}
+          onClose={() => setImageModalVisible(false)}
+        />
 
         {/* Note Modal — extracted to NoteEditorModal in Sprint 21 #13. */}
         <NoteEditorModal
@@ -2230,133 +1823,5 @@ const styles = StyleSheet.create({
   highlightRemoveSwatch: {
     backgroundColor: 'transparent',
     borderWidth: 1.5,
-  },
-
-  // IMAGE CREATOR STYLES
-  imageCreatorContainer: {
-    flex: 1,
-  },
-  imageCreatorHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingHorizontal: spacing.xl,
-    paddingBottom: spacing.lg,
-  },
-  imageCreatorTitle: {
-    fontSize: fontSizes.lg,
-    fontWeight: '700',
-  },
-  imagePreviewContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: spacing.xl,
-  },
-  verseImageCard: {
-    padding: spacing.xl,
-    borderRadius: borderRadius.xl,
-    width: '100%',
-    // Eliminamos aspectRatio fijo para permitir crecimiento vertical
-    justifyContent: 'center',
-    alignItems: 'center',
-    ...shadows.xl,
-  },
-  verseImageText: {
-    fontSize: fontSizes.lg,
-    textAlign: 'center',
-    fontStyle: 'italic',
-    lineHeight: 34,
-    paddingHorizontal: spacing.sm,
-  },
-  imageOptionsContainer: {
-    padding: spacing.xl,
-    paddingBottom: 40,
-  },
-  optionsTitle: {
-    fontSize: fontSizes.sm,
-    fontWeight: '600',
-    marginBottom: spacing.md,
-  },
-  optionsRow: {
-    flexDirection: 'row',
-  },
-  styleCircle: {
-    width: 60,
-    height: 60,
-    borderRadius: 30,
-    marginRight: spacing.md,
-    borderWidth: 2,
-    borderColor: 'transparent',
-  },
-  styleCircleGradient: {
-    flex: 1,
-    width: '100%',
-    borderRadius: 28,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  imageHeaderArea: {
-    alignItems: 'center',
-    paddingTop: spacing.sm,
-    height: 40,
-  },
-  imageMainArea: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    paddingVertical: spacing.md,
-    width: '100%',
-  },
-  quoteIcon: {
-    opacity: 0.3,
-    marginBottom: spacing.xs,
-  },
-  brandText: {
-    fontSize: fontSizes.xs,
-    fontWeight: '700',
-    textTransform: 'uppercase',
-    letterSpacing: 2,
-  },
-  styleIcon: {
-    opacity: 0.6,
-  },
-  sizeButton: {
-    paddingVertical: spacing.sm,
-    paddingHorizontal: spacing.md,
-    borderRadius: borderRadius.md,
-    borderWidth: 1.5,
-    borderColor: 'transparent',
-    backgroundColor: 'rgba(0,0,0,0.05)',
-    marginRight: spacing.sm,
-    alignItems: 'center',
-    justifyContent: 'center',
-    minWidth: 44,
-  },
-  imageBrandContainer: {
-    width: '100%',
-    alignItems: 'center',
-    paddingBottom: spacing.lg,
-  },
-  brandDivider: {
-    width: 30,
-    height: 2,
-    marginBottom: spacing.md,
-    opacity: 0.2,
-  },
-  brandReference: {
-    fontSize: fontSizes.xs,
-    marginTop: 4,
-    fontWeight: '500',
-    opacity: 0.7,
-  },
-  watermarkIcon: {
-    opacity: 0.4,
-  },
-  optionSection: {
-    marginTop: spacing.lg,
-  },
-  flex1: {
-    flex: 1,
   },
 });
