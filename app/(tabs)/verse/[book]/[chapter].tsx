@@ -2195,21 +2195,22 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   selectionActions: {
+    // 4×2 grid so the longer Spanish labels ("Compartir", "Marcadores",
+    // "Favoritos", "Resaltar", "Comparar") render in full. At the previous
+    // 8-in-one-row layout every label except "Nota" was visibly truncated
+    // with an ellipsis (~136px per cell vs ~148px needed for "Compartir"
+    // at 10pt). With 4 per row each cell gets ~4× the space.
     flexDirection: 'row',
-    justifyContent: 'space-around',
+    flexWrap: 'wrap',
   },
   selectionButton: {
-    flex: 1,
+    width: '25%',
     alignItems: 'center',
-    paddingVertical: spacing.xs,
+    paddingVertical: spacing.sm,
     paddingHorizontal: spacing.xs,
   },
   selectionButtonText: {
-    // 10pt keeps every label on one line at this 8-action width without
-    // relying on `adjustsFontSizeToFit`, which was shrinking each label
-    // independently and produced visibly inconsistent sizes (worst case ES:
-    // "Nota"/"Imagen" full-size, "Marcadores"/"Resaltar"/"Comparar" smaller).
-    fontSize: 10,
+    fontSize: fontSizes.xs,
     marginTop: 4,
     fontWeight: '500',
   },
