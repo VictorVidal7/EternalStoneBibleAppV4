@@ -40,6 +40,15 @@ import {logger} from '@lib/utils/logger';
 import {ImmersiveReader} from '@components/reading/ImmersiveReader';
 import {NoteEditorModal} from '@components/reading/NoteEditorModal';
 import {ImageShareModal} from '@components/reading/ImageShareModal';
+import {ReaderPreferencesSheet} from '@components/reading/ReaderPreferencesSheet';
+import {
+  useReaderPreferences,
+  READER_FONT_SIZE_MIN,
+  READER_FONT_SIZE_MAX,
+  READER_FONT_SIZE_STEP,
+  READER_MARGIN_PADDING,
+} from '@context/ReaderPreferencesContext';
+import {resolveFontFamily} from '@components/reading/ReaderPreferencesSheet';
 import {getBookTheme} from '@/constants/bookThemes';
 // Audio Bible Feature
 import {useAudioPlayer, AudioVerse} from '@/features/audio';
@@ -130,7 +139,14 @@ export default function VerseReadingScreen() {
 
   const [verses, setVerses] = useState<BibleVerse[]>([]);
   const [loading, setLoading] = useState(true);
-  const [fontSize, setFontSize] = useState(16);
+  const {preferences: readerPrefs, setFontSize} = useReaderPreferences();
+  const fontSize = readerPrefs.fontSize;
+  const readerFontFamily = useMemo(
+    () => resolveFontFamily(readerPrefs.fontFamily),
+    [readerPrefs.fontFamily],
+  );
+  const readerPaddingHorizontal = READER_MARGIN_PADDING[readerPrefs.margin];
+  const [readerPrefsVisible, setReaderPrefsVisible] = useState(false);
   const [selectedVerseForNote, setSelectedVerseForNote] =
     useState<BibleVerse | null>(null);
   const [selectedVerses, setSelectedVerses] = useState<Set<number>>(new Set());
@@ -917,7 +933,12 @@ export default function VerseReadingScreen() {
               <TouchableOpacity
                 onPress={() => {
                   Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-                  setFontSize(prev => Math.min(prev + 2, 24));
+                  setFontSize(
+                    Math.min(
+                      fontSize + READER_FONT_SIZE_STEP,
+                      READER_FONT_SIZE_MAX,
+                    ),
+                  );
                 }}
                 style={styles.headerButton}
                 accessibilityRole="button"
@@ -927,7 +948,12 @@ export default function VerseReadingScreen() {
               <TouchableOpacity
                 onPress={() => {
                   Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-                  setFontSize(prev => Math.max(prev - 2, 12));
+                  setFontSize(
+                    Math.max(
+                      fontSize - READER_FONT_SIZE_STEP,
+                      READER_FONT_SIZE_MIN,
+                    ),
+                  );
                 }}
                 style={styles.headerButton}
                 accessibilityRole="button"
@@ -1129,10 +1155,12 @@ export default function VerseReadingScreen() {
             style={styles.toolbarButton}
             onPress={() => {
               Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-              setFontSize(prev => Math.min(prev + 2, 24));
-            }}>
+              setReaderPrefsVisible(true);
+            }}
+            accessibilityRole="button"
+            accessibilityLabel={t.readerPrefs.openLabel}>
             <Ionicons
-              name="add-circle-outline"
+              name="text-outline"
               size={22}
               color={effectiveColors.text}
             />
@@ -1141,27 +1169,7 @@ export default function VerseReadingScreen() {
                 styles.toolbarButtonText,
                 {color: effectiveColors.textSecondary},
               ]}>
-              A+
-            </Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            style={styles.toolbarButton}
-            onPress={() => {
-              Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-              setFontSize(prev => Math.max(prev - 2, 12));
-            }}>
-            <Ionicons
-              name="remove-circle-outline"
-              size={22}
-              color={effectiveColors.text}
-            />
-            <Text
-              style={[
-                styles.toolbarButtonText,
-                {color: effectiveColors.textSecondary},
-              ]}>
-              A-
+              Aa
             </Text>
           </TouchableOpacity>
         </View>
@@ -1173,8 +1181,11 @@ export default function VerseReadingScreen() {
           contentContainerStyle={[
             styles.versesContent,
             {
-              // Leave room so the last verses are never hidden behind the
-              // tab bar, the audio mini-player or the selection action bar.
+              // Sprint 31: horizontal padding now follows the reader's
+              // margin preference; vertical bottom padding leaves room so
+              // the last verses are never hidden behind the tab bar, the
+              // audio mini-player or the selection action bar.
+              paddingHorizontal: readerPaddingHorizontal,
               paddingBottom:
                 insets.bottom +
                 100 +
@@ -1211,8 +1222,10 @@ export default function VerseReadingScreen() {
                     ? effectiveColors.primaryDark
                     : effectiveColors.text,
               fontSize,
-              lineHeight: fontSize * 1.6,
-            };
+              lineHeight: fontSize * readerPrefs.lineHeightMultiplier,
+              textAlign: readerPrefs.textAlign,
+              fontFamily: readerFontFamily,
+            } as const;
 
             const numberStyle = {
               color: isBeingRead
@@ -1608,6 +1621,12 @@ export default function VerseReadingScreen() {
             startIndex={0}
           />
         </Modal>
+
+        {/* Reader Preferences Sheet — Sprint 31 typography + layout knobs. */}
+        <ReaderPreferencesSheet
+          visible={readerPrefsVisible}
+          onClose={() => setReaderPrefsVisible(false)}
+        />
 
         {/* Bottom Navigation - hides on scroll down or when selection is active */}
         {/* Bottom Navigation is now handled by TabLayout */}
