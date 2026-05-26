@@ -216,6 +216,17 @@ export const translations = {
       countLabelSingular: 'Nota guardada',
     },
 
+    bookIntro: {
+      openLabel: 'Acerca de este libro',
+      headerTitle: 'Acerca del libro',
+      author: 'Autor',
+      date: 'Fecha',
+      theme: 'Tema central',
+      context: 'Contexto',
+      keyVerses: 'Versículos clave',
+      missingMessage: 'Aún no hay introducción disponible para este libro.',
+    },
+
     // My Highlights Screen
     onboarding: {
       back: 'Atrás',
@@ -1408,6 +1419,17 @@ export const translations = {
       newNote: 'New Note',
       countLabel: 'Notes saved',
       countLabelSingular: 'Note saved',
+    },
+
+    bookIntro: {
+      openLabel: 'About this book',
+      headerTitle: 'About the book',
+      author: 'Author',
+      date: 'Date',
+      theme: 'Central theme',
+      context: 'Context',
+      keyVerses: 'Key verses',
+      missingMessage: 'No introduction is available for this book yet.',
     },
 
     onboarding: {

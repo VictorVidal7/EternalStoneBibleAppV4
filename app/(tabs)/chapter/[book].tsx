@@ -267,6 +267,22 @@ export default function ChapterSelectionScreen() {
               <Ionicons name="arrow-back" size={24} color="#ffffff" />
             </TouchableOpacity>
 
+            {/* Info button — Sprint 33: opens the per-book devotional intro. */}
+            <TouchableOpacity
+              style={styles.headerInfoButton}
+              onPress={() => {
+                Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                router.push(`/features/about-book/${book}` as any);
+              }}
+              accessibilityRole="button"
+              accessibilityLabel={t.bookIntro.openLabel}>
+              <Ionicons
+                name="information-circle-outline"
+                size={24}
+                color="#ffffff"
+              />
+            </TouchableOpacity>
+
             <View style={styles.headerContent}>
               <View style={styles.headerIconContainer}>
                 <Ionicons name="book-outline" size={32} color="#ffffff" />
@@ -569,6 +585,17 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     marginBottom: 16,
+  },
+  headerInfoButton: {
+    position: 'absolute',
+    top: 60,
+    right: 20,
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: 'rgba(255,255,255,0.2)',
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   headerContent: {
     flexDirection: 'row',
