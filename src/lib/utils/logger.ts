@@ -4,14 +4,19 @@
  * Professional Logging System
  *
  * Features:
- * - Different log levels (debug, info, warn, error)
- * - Automatic Sentry integration for errors
- * - Sensitive data redaction
- * - Development/Production modes
- * - Structured logging
+ *  - Log levels (debug, info, warn, error) — debug/info gated to dev.
+ *  - Automatic Firebase Crashlytics integration for errors (Sprint 40).
+ *  - Sensitive-key redaction before anything leaves the device.
+ *  - Lazy + defensive Crashlytics access so a missing/disabled native
+ *    module never crashes the app (e.g., during Jest unit tests, where
+ *    the native binding doesn't exist).
+ *
+ * Migration note: prior versions routed to @sentry/react-native. Sentry
+ * is no longer wired (Sprint 40 replaced it with Crashlytics for the
+ * Google ecosystem). Sentry remains in package.json for now but
+ * unimported; can be removed once we're confident Crashlytics covers
+ * everything we need.
  */
-
-import * as Sentry from '@sentry/react-native';
 
 export enum LogLevel {
   DEBUG = 'debug',
@@ -28,7 +33,7 @@ interface LogContext {
   [key: string]: any;
 }
 
-// Sensitive keys to redact from logs
+// Sensitive keys to redact from logs before sending to crash reporter.
 const SENSITIVE_KEYS = [
   'password',
   'token',
@@ -42,29 +47,39 @@ const SENSITIVE_KEYS = [
   'creditCard',
 ];
 
-/**
- * Redact sensitive information from objects
- */
+/** Crashlytics native module — loaded lazily so jest + dev hot-reload
+ *  don't bomb when the native binding isn't present. */
+type CrashlyticsModule = {
+  log: (msg: string) => void;
+  recordError: (e: Error, jsErrorName?: string) => void;
+  setAttribute: (key: string, value: string) => void;
+  setAttributes: (attrs: Record<string, string>) => void;
+  setUserId: (id: string) => void;
+};
+let _crashlytics: CrashlyticsModule | null | undefined;
+function getCrashlytics(): CrashlyticsModule | null {
+  if (_crashlytics !== undefined) return _crashlytics;
+  try {
+    const mod = require('@react-native-firebase/crashlytics');
+    // The default export is a callable that returns the instance.
+    _crashlytics = (mod.default || mod)() as CrashlyticsModule;
+  } catch {
+    _crashlytics = null;
+  }
+  return _crashlytics;
+}
+
 function redactSensitive(obj: any): any {
-  if (obj === null || obj === undefined) {
-    return obj;
-  }
-
-  if (typeof obj !== 'object') {
-    return obj;
-  }
-
-  if (Array.isArray(obj)) {
-    return obj.map(redactSensitive);
-  }
+  if (obj === null || obj === undefined) return obj;
+  if (typeof obj !== 'object') return obj;
+  if (Array.isArray(obj)) return obj.map(redactSensitive);
 
   const redacted: any = {};
   for (const [key, value] of Object.entries(obj)) {
     const lowerKey = key.toLowerCase();
-    const isSensitive = SENSITIVE_KEYS.some(sensitiveKey =>
-      lowerKey.includes(sensitiveKey.toLowerCase()),
+    const isSensitive = SENSITIVE_KEYS.some(s =>
+      lowerKey.includes(s.toLowerCase()),
     );
-
     if (isSensitive) {
       redacted[key] = '[REDACTED]';
     } else if (typeof value === 'object' && value !== null) {
@@ -73,13 +88,9 @@ function redactSensitive(obj: any): any {
       redacted[key] = value;
     }
   }
-
   return redacted;
 }
 
-/**
- * Format log message with timestamp and context
- */
 function formatLogMessage(
   level: LogLevel,
   message: string,
@@ -92,114 +103,113 @@ function formatLogMessage(
   return `[${timestamp}] [${level.toUpperCase()}] ${message}${contextStr}`;
 }
 
+/**
+ * Emit a Crashlytics breadcrumb. Crashlytics has a single `log()` method
+ * (not category-tagged like Sentry's breadcrumbs); we serialize the
+ * category + payload into the text so it stays searchable in the
+ * dashboard.
+ */
+function crashlyticsLog(
+  level: LogLevel,
+  category: string,
+  message: string,
+  context?: LogContext,
+): void {
+  const c = getCrashlytics();
+  if (!c) return;
+  const tag = `[${level.toUpperCase()}] [${category}]`;
+  const ctx = context ? ` ${JSON.stringify(redactSensitive(context))}` : '';
+  c.log(`${tag} ${message}${ctx}`);
+}
+
 class Logger {
   private isDevelopment: boolean;
 
   constructor() {
-    this.isDevelopment = __DEV__;
+    this.isDevelopment = typeof __DEV__ !== 'undefined' ? __DEV__ : true;
   }
 
-  /**
-   * Debug level logging - only in development
-   */
   debug(message: string, context?: LogContext): void {
     if (this.isDevelopment) {
       console.log(formatLogMessage(LogLevel.DEBUG, message, context));
     }
   }
 
-  /**
-   * Info level logging - only in development
-   */
   info(message: string, context?: LogContext): void {
     if (this.isDevelopment) {
       console.log(formatLogMessage(LogLevel.INFO, message, context));
     }
+    // Info-level breadcrumbs help reconstruct what the user did right
+    // before a crash. Keep them concise so the Crashlytics log buffer
+    // (last ~64 KB before a crash) stays useful.
+    crashlyticsLog(LogLevel.INFO, 'info', message, context);
   }
 
-  /**
-   * Warning level logging
-   */
   warn(message: string, context?: LogContext): void {
-    const formattedMessage = formatLogMessage(LogLevel.WARN, message, context);
-    console.warn(formattedMessage);
-
-    // Add breadcrumb to Sentry
-    Sentry.addBreadcrumb({
-      category: 'warning',
-      message,
-      level: 'warning',
-      data: redactSensitive(context || {}),
-    });
+    const formatted = formatLogMessage(LogLevel.WARN, message, context);
+    console.warn(formatted);
+    crashlyticsLog(LogLevel.WARN, 'warning', message, context);
   }
 
   /**
-   * Error level logging - always logs and sends to Sentry
+   * Error-level logging. Always logs and records a non-fatal exception
+   * to Crashlytics so it surfaces on the dashboard even if the app
+   * recovered without crashing.
    */
   error(message: string, error?: Error, context?: LogContext): void {
-    const formattedMessage = formatLogMessage(LogLevel.ERROR, message, context);
-    console.error(formattedMessage);
+    const formatted = formatLogMessage(LogLevel.ERROR, message, context);
+    console.error(formatted);
+    if (error) console.error('Error details:', error);
 
-    if (error) {
-      console.error('Error details:', error);
+    const c = getCrashlytics();
+    if (!c) return;
+
+    // Tag the error with structured attributes so Crashlytics can group
+    // by component/screen/action even though the message itself is just
+    // a string. setAttributes is per-session so we set immediately
+    // before recordError.
+    if (context) {
+      const attrs: Record<string, string> = {};
+      if (context.component) attrs.component = String(context.component);
+      if (context.screen) attrs.screen = String(context.screen);
+      if (context.action) attrs.action = String(context.action);
+      if (Object.keys(attrs).length > 0) c.setAttributes(attrs);
     }
-
-    // Send to Sentry
-    Sentry.captureException(error || new Error(message), {
-      tags: {
-        component: context?.component,
-        screen: context?.screen,
-        action: context?.action,
-      },
-      extra: redactSensitive(context || {}),
-    });
+    // recordError treats this as a NON-FATAL — the app keeps running.
+    // For actual crashes the native layer reports them automatically.
+    c.recordError(error || new Error(message));
   }
 
-  /**
-   * Add breadcrumb for tracking user actions
-   */
+  /** Tag the current user id for crash attribution (opt-in). */
+  setUserId(id: string): void {
+    const c = getCrashlytics();
+    if (!c) return;
+    c.setUserId(id);
+  }
+
   breadcrumb(
     message: string,
     category: string,
     data?: Record<string, any>,
   ): void {
-    Sentry.addBreadcrumb({
-      category,
-      message,
-      level: 'info',
-      data: redactSensitive(data || {}),
-    });
-
+    crashlyticsLog(LogLevel.INFO, category, message, data as LogContext);
     if (this.isDevelopment) {
       console.log(`[BREADCRUMB] [${category}] ${message}`, data);
     }
   }
 
-  /**
-   * Performance logging
-   */
   performance(action: string, duration: number, context?: LogContext): void {
     const message = `${action} took ${duration}ms`;
-
     if (this.isDevelopment) {
       console.log(formatLogMessage(LogLevel.INFO, message, context));
     }
-
-    Sentry.addBreadcrumb({
-      category: 'performance',
-      message,
-      level: 'info',
-      data: {
-        action,
-        duration,
-        ...redactSensitive(context || {}),
-      },
+    crashlyticsLog(LogLevel.INFO, 'performance', message, {
+      action,
+      duration,
+      ...(context || {}),
     });
   }
 
-  /**
-   * Measure performance of a function
-   */
   async measurePerformance<T>(
     action: string,
     fn: () => Promise<T>,
@@ -208,8 +218,7 @@ class Logger {
     const startTime = Date.now();
     try {
       const result = await fn();
-      const duration = Date.now() - startTime;
-      this.performance(action, duration, context);
+      this.performance(action, Date.now() - startTime, context);
       return result;
     } catch (error) {
       const duration = Date.now() - startTime;
@@ -221,10 +230,28 @@ class Logger {
       throw error;
     }
   }
+
+  /**
+   * DEV-ONLY: force a fatal native crash so we can prove the
+   * Crashlytics ingestion pipeline end-to-end. Crashes ~5-10 minutes
+   * later show in the Firebase Console dashboard. Should never be
+   * called from production code paths.
+   */
+  testCrash(): void {
+    const c = getCrashlytics();
+    if (!c) {
+      console.error(
+        '[logger.testCrash] Crashlytics module not available — ' +
+          'check google-services.json and native rebuild.',
+      );
+      return;
+    }
+    // @ts-expect-error: `crash()` exists on the native module but isn't
+    // in our minimal type declaration. We only use it from a hidden
+    // debug action, never production code.
+    c.crash();
+  }
 }
 
-// Export singleton instance
 export const logger = new Logger();
-
-// Export for testing
 export {redactSensitive};
