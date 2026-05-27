@@ -1,3 +1,5 @@
+/* eslint-disable react-native/no-color-literals -- bespoke gamified
+   palette (amber/honey gradients) intentional in the light variant. */
 /**
  * User Statistics Panel
  * Displays level, progress, streaks and statistics

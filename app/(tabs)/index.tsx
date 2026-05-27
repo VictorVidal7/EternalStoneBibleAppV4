@@ -25,6 +25,8 @@ import {
   Platform,
   RefreshControl,
 } from 'react-native';
+import {staticColors} from '@/styles/designTokens';
+
 import {useRouter, useFocusEffect} from 'expo-router';
 import {Ionicons} from '@expo/vector-icons';
 import {LinearGradient} from 'expo-linear-gradient';
@@ -101,7 +103,7 @@ export default function HomeScreen() {
   const bookmarksCount = bookmarks.length;
   const {stats: memoryStats} = useMemoryDeck();
   const progressTrackColor = isDark
-    ? 'transparent'
+    ? staticColors.transparent
     : withOpacity(colors.primary, isDark ? 0.3 : 0.8);
 
   const [dailyVerse, setDailyVerse] = useState<BibleVerse | null>(null);
@@ -1164,13 +1166,13 @@ const styles = StyleSheet.create({
   heroTitle: {
     fontSize: 20,
     fontWeight: '700',
-    color: '#ffffff',
+    color: staticColors.white,
     letterSpacing: -0.3,
   },
   heroSubtitle: {
     fontSize: 13,
     fontWeight: '500',
-    color: 'rgba(255,255,255,0.85)',
+    color: staticColors.glassWhite85,
     marginTop: 2,
   },
   statsRow: {
@@ -1184,7 +1186,7 @@ const styles = StyleSheet.create({
   statDivider: {
     width: 1,
     height: 24,
-    backgroundColor: 'rgba(255,255,255,0.2)',
+    backgroundColor: staticColors.glassWhite20,
     marginHorizontal: 8,
   },
 

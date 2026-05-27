@@ -32,6 +32,7 @@ import {
   borderRadius,
   fontSize as fontSizes,
   spacing,
+  staticColors,
 } from '@/styles/designTokens';
 
 export default function AboutBookScreen() {
@@ -251,7 +252,7 @@ const styles = StyleSheet.create({
     width: 44,
     height: 44,
     borderRadius: 22,
-    backgroundColor: 'rgba(255, 255, 255, 0.15)',
+    backgroundColor: staticColors.glassWhite15,
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: spacing.md,
@@ -265,7 +266,7 @@ const styles = StyleSheet.create({
     width: 52,
     height: 52,
     borderRadius: 26,
-    backgroundColor: 'rgba(255, 255, 255, 0.18)',
+    backgroundColor: staticColors.glassWhite18,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -273,13 +274,13 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   headerLabel: {
-    color: 'rgba(255, 255, 255, 0.8)',
+    color: staticColors.glassWhite80,
     fontSize: fontSizes.sm,
     fontWeight: '600',
     marginBottom: 2,
   },
   headerTitle: {
-    color: '#FFFFFF',
+    color: staticColors.white,
     fontSize: fontSizes['2xl'],
     fontWeight: '800',
   },

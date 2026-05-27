@@ -27,6 +27,8 @@ import {
   ViewStyle,
   TextStyle,
 } from 'react-native';
+import {staticColors} from '@/styles/designTokens';
+
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
@@ -193,7 +195,7 @@ export const GlassmorphicHeader: React.FC<GlassmorphicHeaderProps> = ({
         title: {
           fontSize: compact ? 28 : 36,
           fontWeight: '800',
-          color: '#FFFFFF',
+          color: staticColors.white,
           marginBottom: subtitle ? 6 : 0,
           letterSpacing: -0.5,
           ...titleStyle,
@@ -296,13 +298,13 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+    backgroundColor: staticColors.glassWhite20,
     justifyContent: 'center',
     alignItems: 'center',
   },
   backIcon: {
     fontSize: 20,
-    color: '#FFFFFF',
+    color: staticColors.white,
     fontWeight: '600',
   },
   spacer: {
@@ -317,7 +319,7 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+    backgroundColor: staticColors.glassWhite20,
     justifyContent: 'center',
     alignItems: 'center',
   },
