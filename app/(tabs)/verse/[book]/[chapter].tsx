@@ -41,6 +41,7 @@ import {ImmersiveReader} from '@components/reading/ImmersiveReader';
 import {NoteEditorModal} from '@components/reading/NoteEditorModal';
 import {ImageShareModal} from '@components/reading/ImageShareModal';
 import {ReaderPreferencesSheet} from '@components/reading/ReaderPreferencesSheet';
+import {CrossReferencesSheet} from '@components/reading/CrossReferencesSheet';
 import {
   useReaderPreferences,
   READER_FONT_SIZE_MIN,
@@ -152,6 +153,11 @@ export default function VerseReadingScreen() {
   const [selectedVerses, setSelectedVerses] = useState<Set<number>>(new Set());
   const [noteModalVisible, setNoteModalVisible] = useState(false);
   const [imageModalVisible, setImageModalVisible] = useState(false);
+  const [crossRefsVisible, setCrossRefsVisible] = useState(false);
+  const [crossRefsVerse, setCrossRefsVerse] = useState<number | null>(null);
+  // Selection-toolbar overflow ("Más"): study-mode actions that don't
+  // need to live in the top-level 4×2 grid.
+  const [showOverflow, setShowOverflow] = useState(false);
   const [noteText, setNoteText] = useState('');
   const [favoritedVerses, setFavoritedVerses] = useState<Set<number>>(
     new Set(),
@@ -555,6 +561,7 @@ export default function VerseReadingScreen() {
   function clearSelection() {
     setSelectedVerses(new Set());
     setShowHighlightPicker(false);
+    setShowOverflow(false);
   }
 
   // Load saved highlights for the current chapter
@@ -1378,16 +1385,37 @@ export default function VerseReadingScreen() {
                 {selectedVerses.size}{' '}
                 {selectedVerses.size === 1 ? t.verse.singular : t.verse.plural}
               </Text>
-              <TouchableOpacity
-                onPress={clearSelection}
-                accessibilityRole="button"
-                accessibilityLabel={t.verse.clearSelection}>
-                <Ionicons
-                  name="close"
-                  size={22}
-                  color={effectiveColors.textSecondary}
-                />
-              </TouchableOpacity>
+              <View style={styles.selectionHeaderActions}>
+                <TouchableOpacity
+                  onPress={() => {
+                    setShowOverflow(v => !v);
+                    setShowHighlightPicker(false);
+                  }}
+                  accessibilityRole="button"
+                  accessibilityLabel={t.verse.moreActions}
+                  hitSlop={8}>
+                  <Ionicons
+                    name={showOverflow ? 'chevron-back' : 'ellipsis-horizontal'}
+                    size={22}
+                    color={
+                      showOverflow
+                        ? effectiveColors.primary
+                        : effectiveColors.textSecondary
+                    }
+                  />
+                </TouchableOpacity>
+                <TouchableOpacity
+                  onPress={clearSelection}
+                  accessibilityRole="button"
+                  accessibilityLabel={t.verse.clearSelection}
+                  hitSlop={8}>
+                  <Ionicons
+                    name="close"
+                    size={22}
+                    color={effectiveColors.textSecondary}
+                  />
+                </TouchableOpacity>
+              </View>
             </View>
             {showHighlightPicker ? (
               <View style={styles.highlightPicker}>
@@ -1579,6 +1607,33 @@ export default function VerseReadingScreen() {
                 </TouchableOpacity>
               </View>
             )}
+            {showOverflow && (
+              <View style={styles.selectionOverflow}>
+                <TouchableOpacity
+                  style={styles.selectionOverflowButton}
+                  onPress={() => {
+                    const sortedNums = Array.from(selectedVerses).sort(
+                      (a, b) => a - b,
+                    );
+                    setCrossRefsVerse(sortedNums[0] ?? null);
+                    setCrossRefsVisible(true);
+                    setShowOverflow(false);
+                  }}>
+                  <Ionicons
+                    name="git-network-outline"
+                    size={22}
+                    color={effectiveColors.primary}
+                  />
+                  <Text
+                    style={[
+                      styles.selectionOverflowText,
+                      {color: effectiveColors.text},
+                    ]}>
+                    {t.crossRefs.buttonLabel}
+                  </Text>
+                </TouchableOpacity>
+              </View>
+            )}
           </View>
         )}
 
@@ -1590,6 +1645,16 @@ export default function VerseReadingScreen() {
           hasSelection={selectedVerses.size > 0}
           cardSize={windowWidth - spacing.xl * 2}
           onClose={() => setImageModalVisible(false)}
+        />
+
+        {/* Curated parallel passages for the first selected verse. */}
+        <CrossReferencesSheet
+          visible={crossRefsVisible}
+          sourceBook={localizedBookName}
+          sourceChapter={chapterNum}
+          sourceVerse={crossRefsVerse}
+          version={selectedVersion.id}
+          onClose={() => setCrossRefsVisible(false)}
         />
 
         {/* Note Modal — extracted to NoteEditorModal in Sprint 21 #13. */}
@@ -1820,6 +1885,26 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingVertical: spacing.sm,
     paddingHorizontal: spacing.xs,
+  },
+  selectionHeaderActions: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.lg,
+  },
+  selectionOverflow: {
+    paddingTop: spacing.xs,
+    gap: spacing.xs,
+  },
+  selectionOverflowButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: spacing.md,
+    paddingHorizontal: spacing.sm,
+    gap: spacing.md,
+  },
+  selectionOverflowText: {
+    fontSize: fontSizes.sm,
+    fontWeight: '600',
   },
   selectionButtonText: {
     fontSize: fontSizes.xs,

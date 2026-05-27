@@ -332,6 +332,15 @@ export const translations = {
         'En el principio creó Dios los cielos y la tierra. La tierra estaba desordenada y vacía, y las tinieblas estaban sobre la faz del abismo.',
     },
 
+    crossRefs: {
+      buttonLabel: 'Paralelos',
+      title: 'Pasajes paralelos',
+      emptyTitle: 'Sin paralelos curados',
+      emptyBody:
+        'Aún no tenemos referencias cruzadas para este versículo. Por ahora cubrimos los pasajes más estudiados.',
+      missingText: '(texto no disponible)',
+    },
+
     bookmarks: {
       title: 'Marcadores',
       short: 'Marcadores',
@@ -494,6 +503,7 @@ export const translations = {
       highlightInColor: 'Resaltar en {{color}}',
       removeHighlight: 'Quitar resaltado',
       clearSelection: 'Limpiar selección',
+      moreActions: 'Más acciones',
     },
 
     // Audio Player
@@ -1591,6 +1601,15 @@ export const translations = {
         'In the beginning God created the heaven and the earth. And the earth was without form, and void; and darkness was upon the face of the deep.',
     },
 
+    crossRefs: {
+      buttonLabel: 'Parallels',
+      title: 'Parallel passages',
+      emptyTitle: 'No curated parallels',
+      emptyBody:
+        "We don't have cross-references for this verse yet — for now we cover the most-studied passages.",
+      missingText: '(text not available)',
+    },
+
     bookmarks: {
       title: 'Bookmarks',
       short: 'Bookmarks',
@@ -1753,6 +1772,7 @@ export const translations = {
       highlightInColor: 'Highlight in {{color}}',
       removeHighlight: 'Remove highlight',
       clearSelection: 'Clear selection',
+      moreActions: 'More actions',
     },
 
     // Audio Player
