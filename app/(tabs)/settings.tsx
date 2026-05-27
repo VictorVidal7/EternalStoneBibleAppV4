@@ -21,6 +21,7 @@ import {useBibleVersion} from '@hooks/useBibleVersion';
 import {useLanguage} from '@hooks/useLanguage';
 import {initializeBibleData, resetBibleData} from '@lib/database/data-loader';
 import {exportBackup} from '@/services/BackupService';
+import {logger} from '@lib/utils/logger';
 import DailyVerseSettings from '@components/settings/DailyVerseSettings';
 import * as Haptics from 'expo-haptics';
 import Constants from 'expo-constants';
@@ -663,6 +664,36 @@ export default function SettingsScreen() {
               <Ionicons name="logo-github" size={20} color={colors.primary} />
               <Text style={themedStyles.linkText}>{t.settings.viewGitHub}</Text>
             </TouchableOpacity>
+
+            {/* Dev-only Crashlytics smoke test. __DEV__ keeps it out of
+                production builds; the long-press requirement keeps it
+                out of accidental taps during dev. */}
+            {__DEV__ && (
+              <TouchableOpacity
+                style={themedStyles.linkButton}
+                onLongPress={() => {
+                  Alert.alert(
+                    'Crashlytics test',
+                    'Force a native crash now? The app will close and the ' +
+                      'crash should appear in the Firebase Console within ' +
+                      '5-10 minutes.',
+                    [
+                      {text: 'Cancel', style: 'cancel'},
+                      {
+                        text: 'Crash',
+                        style: 'destructive',
+                        onPress: () => logger.testCrash(),
+                      },
+                    ],
+                  );
+                }}
+                delayLongPress={800}>
+                <Ionicons name="bug-outline" size={20} color={colors.error} />
+                <Text style={[themedStyles.linkText, {color: colors.error}]}>
+                  Dev · long-press to test crash
+                </Text>
+              </TouchableOpacity>
+            )}
           </View>
         </View>
 
