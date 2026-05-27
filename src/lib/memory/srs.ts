@@ -161,3 +161,90 @@ export function buildVerseKey(
 ): string {
   return `${bookName}/${chapter}/${verse}`;
 }
+
+/**
+ * Progressive-mask level used by the practice screen to hide a growing
+ * portion of the verse text as the user masters it. Each Leitner box maps
+ * to its own level — newer cards reveal more, mastered cards reveal less.
+ *
+ * Level 0 = nothing hidden (box 1, just added — read it).
+ * Level 1 = every 4th word hidden (~25%).
+ * Level 2 = every other word hidden (~50%).
+ * Level 3 = three of every four words hidden (~75%).
+ * Level 4 = every word hidden, first letter kept as an anchor (box 5).
+ */
+export type MaskLevel = 0 | 1 | 2 | 3 | 4;
+
+export function maskLevelForBox(box: SrsBox): MaskLevel {
+  return (box - 1) as MaskLevel;
+}
+
+/** Approximate fraction of words obscured at each level (UI label cue). */
+export const MASK_LEVEL_PERCENT: Record<MaskLevel, number> = {
+  0: 0,
+  1: 25,
+  2: 50,
+  3: 75,
+  4: 100,
+};
+
+// Unicode-aware: matches any letter or digit across scripts so the mask
+// works for accented Spanish words ("Señor" → "_____") and English alike.
+const LETTER_OR_DIGIT = /[\p{L}\p{N}]/gu;
+const ONE_LETTER_OR_DIGIT = /[\p{L}\p{N}]/u;
+
+function shouldHideWordAt(index: number, level: MaskLevel): boolean {
+  switch (level) {
+    case 0:
+      return false;
+    case 1:
+      return index % 4 === 3;
+    case 2:
+      return index % 2 === 1;
+    case 3:
+      return index % 4 !== 0;
+    case 4:
+      return true;
+    default:
+      return false;
+  }
+}
+
+function maskWord(word: string, mode: 'full' | 'firstLetter'): string {
+  if (mode === 'firstLetter') {
+    let firstIdx = -1;
+    for (let i = 0; i < word.length; i++) {
+      if (ONE_LETTER_OR_DIGIT.test(word[i])) {
+        firstIdx = i;
+        break;
+      }
+    }
+    if (firstIdx === -1) return word;
+    return (
+      word.slice(0, firstIdx + 1) +
+      word.slice(firstIdx + 1).replace(LETTER_OR_DIGIT, '_')
+    );
+  }
+  return word.replace(LETTER_OR_DIGIT, '_');
+}
+
+/**
+ * Obscure a verse string according to a mask level. Whitespace and
+ * punctuation are preserved verbatim so the visual rhythm of the verse is
+ * intact and the user can still see word lengths as anchors.
+ */
+export function applyMask(text: string, level: MaskLevel): string {
+  if (level === 0) return text;
+  // split keeping whitespace runs as their own tokens.
+  const tokens = text.split(/(\s+)/);
+  let wordIndex = 0;
+  return tokens
+    .map(tok => {
+      if (tok === '' || /^\s+$/.test(tok)) return tok;
+      const idx = wordIndex;
+      wordIndex += 1;
+      if (!shouldHideWordAt(idx, level)) return tok;
+      return maskWord(tok, level === 4 ? 'firstLetter' : 'full');
+    })
+    .join('');
+}
