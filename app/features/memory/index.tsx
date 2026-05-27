@@ -12,8 +12,9 @@
  * Para la gloria de Dios Todopoderoso ✨
  */
 
-import React, {useMemo} from 'react';
+import React, {useEffect, useMemo, useRef} from 'react';
 import {
+  Animated,
   View,
   Text,
   ScrollView,
@@ -137,17 +138,15 @@ export default function MemoryDeckScreen() {
           ]}>
           {/* Practice CTA */}
           {dueCount > 0 ? (
-            <TouchableOpacity
-              style={[styles.practiceCta, {backgroundColor: colors.primary}]}
+            <PulsingPracticeCta
               onPress={handlePractice}
-              accessibilityRole="button">
-              <Ionicons name="play" size={22} color="#FFFFFF" />
-              <Text style={styles.practiceCtaText}>
-                {dueCount === 1
+              backgroundColor={colors.primary}
+              label={
+                dueCount === 1
                   ? t.memory.practiceCtaSingular
-                  : t.memory.practiceCta.replace('{{count}}', String(dueCount))}
-              </Text>
-            </TouchableOpacity>
+                  : t.memory.practiceCta.replace('{{count}}', String(dueCount))
+              }
+            />
           ) : !isEmpty ? (
             <View
               style={[
@@ -298,12 +297,89 @@ function formatRelativeDate(iso: string, language: 'es' | 'en'): string {
 const StatBubble: React.FC<{value: number; label: string}> = ({
   value,
   label,
-}) => (
-  <View style={styles.statBubble}>
-    <Text style={styles.statValue}>{value}</Text>
-    <Text style={styles.statLabel}>{label}</Text>
-  </View>
-);
+}) => {
+  // Soft spring-up entrance on mount so the stats feel like they
+  // settle into place rather than appearing instantly.
+  const scale = useRef(new Animated.Value(0.85)).current;
+  const opacity = useRef(new Animated.Value(0)).current;
+  useEffect(() => {
+    Animated.parallel([
+      Animated.spring(scale, {
+        toValue: 1,
+        useNativeDriver: true,
+        speed: 12,
+        bounciness: 7,
+      }),
+      Animated.timing(opacity, {
+        toValue: 1,
+        duration: 220,
+        useNativeDriver: true,
+      }),
+    ]).start();
+  }, [opacity, scale]);
+  return (
+    <Animated.View style={[styles.statBubble, {opacity, transform: [{scale}]}]}>
+      <Text style={styles.statValue}>{value}</Text>
+      <Text style={styles.statLabel}>{label}</Text>
+    </Animated.View>
+  );
+};
+
+/**
+ * Practice call-to-action with a slow breathing pulse — draws the eye
+ * while cards are due. Pulse stops the moment the user taps so the
+ * scale-up isn't competing with the route transition.
+ */
+const PulsingPracticeCta: React.FC<{
+  onPress: () => void;
+  backgroundColor: string;
+  label: string;
+}> = ({onPress, backgroundColor, label}) => {
+  const pulse = useRef(new Animated.Value(1)).current;
+  const stoppedRef = useRef(false);
+
+  useEffect(() => {
+    const loop = Animated.loop(
+      Animated.sequence([
+        Animated.timing(pulse, {
+          toValue: 1.035,
+          duration: 900,
+          useNativeDriver: true,
+        }),
+        Animated.timing(pulse, {
+          toValue: 1,
+          duration: 900,
+          useNativeDriver: true,
+        }),
+      ]),
+    );
+    loop.start();
+    return () => {
+      stoppedRef.current = true;
+      loop.stop();
+    };
+  }, [pulse]);
+
+  const handlePress = () => {
+    if (!stoppedRef.current) {
+      pulse.stopAnimation();
+      stoppedRef.current = true;
+    }
+    onPress();
+  };
+
+  return (
+    <Animated.View style={{transform: [{scale: pulse}]}}>
+      <TouchableOpacity
+        style={[styles.practiceCta, {backgroundColor}]}
+        onPress={handlePress}
+        accessibilityRole="button">
+        <Ionicons name="play" size={22} color="#FFFFFF" />
+        <Text style={styles.practiceCtaText}>{label}</Text>
+      </TouchableOpacity>
+    </Animated.View>
+  );
+};
 
 const styles = StyleSheet.create({
   container: {

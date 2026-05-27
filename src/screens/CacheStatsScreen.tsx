@@ -94,10 +94,13 @@ export const CacheStatsScreen: React.FC<CacheStatsScreenProps> = ({userId}) => {
   const handleCleanup = async () => {
     const removed = await predictiveCacheService.cleanup();
     await handleRefresh();
-    Alert.alert(
-      t.cacheStats.cleanupComplete,
-      t.cacheStats.cleanupMessage.replace('{count}', removed.toString()),
-    );
+    const message =
+      removed === 0
+        ? t.cacheStats.cleanupMessageNone
+        : removed === 1
+          ? t.cacheStats.cleanupMessageSingular
+          : t.cacheStats.cleanupMessage.replace('{count}', removed.toString());
+    Alert.alert(t.cacheStats.cleanupComplete, message);
   };
 
   const getConfidenceColor = (confidence: number): string => {
