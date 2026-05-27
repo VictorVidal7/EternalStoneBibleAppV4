@@ -1194,6 +1194,8 @@ export const translations = {
       warmupSuccess: 'Caché precalentado exitosamente',
       cleanupComplete: '¡Listo!',
       cleanupMessage: 'Se eliminaron {count} entradas expiradas',
+      cleanupMessageSingular: 'Se eliminó 1 entrada expirada',
+      cleanupMessageNone: 'No había entradas para eliminar',
     },
 
     // Widgets (V5.1)
@@ -2447,6 +2449,8 @@ export const translations = {
       warmupSuccess: 'Cache warmed up successfully',
       cleanupComplete: 'Done!',
       cleanupMessage: '{count} expired entries removed',
+      cleanupMessageSingular: '1 expired entry removed',
+      cleanupMessageNone: 'No entries to remove',
     },
 
     // Widgets (V5.1)
