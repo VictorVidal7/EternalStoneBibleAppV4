@@ -325,21 +325,4 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
   },
-  emptyContainer: {
-    alignItems: 'center',
-    paddingVertical: 80,
-  },
-  emptyTitle: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    color: '#2C3E50',
-    marginTop: 20,
-  },
-  emptySubtitle: {
-    fontSize: 15,
-    color: '#7F8C8D',
-    marginTop: 8,
-    textAlign: 'center',
-    paddingHorizontal: 40,
-  },
 });

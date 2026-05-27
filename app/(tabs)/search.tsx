@@ -1,3 +1,5 @@
+/* eslint-disable react-native/no-unused-styles -- styles consumed via a
+   themed-styles factory; the linter cannot trace factory returns. */
 import {
   View,
   Text,

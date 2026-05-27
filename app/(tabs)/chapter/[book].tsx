@@ -521,53 +521,6 @@ const styles = StyleSheet.create({
     color: '#ffffff',
   },
 
-  // Loading State
-  loadingContainer: {
-    justifyContent: 'center',
-    alignItems: 'center',
-    paddingHorizontal: spacing.xl,
-  },
-  loadingCard: {
-    padding: spacing['2xl'],
-    borderRadius: 16,
-    alignItems: 'center',
-    width: SCREEN_WIDTH - spacing.xl * 2,
-    ...shadows.xl,
-  },
-  loadingTitle: {
-    fontSize: fontSize['2xl'],
-    fontWeight: '700',
-    color: '#ffffff',
-    marginTop: spacing.base,
-    textAlign: 'center',
-  },
-  loadingSubtitle: {
-    fontSize: fontSize.base,
-    color: 'rgba(255,255,255,0.9)',
-    marginTop: spacing.xs,
-    textAlign: 'center',
-  },
-  loadingDots: {
-    flexDirection: 'row',
-    gap: spacing.sm,
-    marginTop: spacing.lg,
-  },
-  dot: {
-    width: 12,
-    height: 12,
-    borderRadius: 6,
-    backgroundColor: '#ffffff',
-  },
-  dot1: {
-    opacity: 0.3,
-  },
-  dot2: {
-    opacity: 0.6,
-  },
-  dot3: {
-    opacity: 0.9,
-  },
-
   // Header - Estandarizado con todas las pantallas
   header: {
     paddingTop: 60,

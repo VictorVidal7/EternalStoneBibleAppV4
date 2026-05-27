@@ -1,3 +1,5 @@
+/* eslint-disable no-console -- DB layer dev-mode init/progress logging.
+   Will migrate to logger.* in Sprint 41 alongside Crashlytics wiring. */
 import * as SQLite from 'expo-sqlite';
 import {Asset} from 'expo-asset';
 import {Directory, File, Paths} from 'expo-file-system';

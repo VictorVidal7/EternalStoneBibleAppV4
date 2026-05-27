@@ -367,6 +367,54 @@ export const iconSize = {
   '2xl': 64,
 } as const;
 
+// ==================== STATIC COLORS ====================
+// Theme-independent colors that DO NOT change with light/dark/active theme.
+// Use these for content that always sits over a known background (e.g.,
+// white text on a primary gradient, dimming overlays for modals). For
+// theme-aware colors (text, surface, border, primary…) use `useTheme()`.
+//
+// Centralizing here lets the eslint `react-native/no-color-literals` rule
+// stay strict, and gives a single place to audit non-themed colors.
+export const staticColors = {
+  // Pure tones
+  white: '#FFFFFF',
+  black: '#000000',
+  transparent: 'transparent',
+
+  // White overlays (most common pattern: text/borders on a dark gradient)
+  glassWhite05: 'rgba(255, 255, 255, 0.05)',
+  glassWhite10: 'rgba(255, 255, 255, 0.10)',
+  glassWhite15: 'rgba(255, 255, 255, 0.15)',
+  glassWhite18: 'rgba(255, 255, 255, 0.18)',
+  glassWhite20: 'rgba(255, 255, 255, 0.20)',
+  glassWhite30: 'rgba(255, 255, 255, 0.30)',
+  glassWhite50: 'rgba(255, 255, 255, 0.50)',
+  glassWhite70: 'rgba(255, 255, 255, 0.70)',
+  glassWhite80: 'rgba(255, 255, 255, 0.80)',
+  glassWhite85: 'rgba(255, 255, 255, 0.85)',
+  glassWhite90: 'rgba(255, 255, 255, 0.90)',
+
+  // Black overlays (modal scrims, image scrims)
+  overlayBlack05: 'rgba(0, 0, 0, 0.05)',
+  overlayBlack10: 'rgba(0, 0, 0, 0.10)',
+  overlayBlack15: 'rgba(0, 0, 0, 0.15)',
+  overlayBlack20: 'rgba(0, 0, 0, 0.20)',
+  overlayBlack30: 'rgba(0, 0, 0, 0.30)',
+  overlayBlack45: 'rgba(0, 0, 0, 0.45)',
+  overlayBlack50: 'rgba(0, 0, 0, 0.50)',
+  overlayBlack60: 'rgba(0, 0, 0, 0.60)',
+
+  // Neutral grays used in legacy screens that still mix raw hex
+  // alongside the theme system. Kept here so the literals disappear
+  // without a structural refactor in those screens.
+  grayNeutral: '#1F2937', // slate-800
+  graySecondary: '#6B7280', // slate-500
+  grayTertiary: '#7F8C8D',
+  grayDark: '#2C3E50',
+} as const;
+
+export type StaticColor = keyof typeof staticColors;
+
 // ==================== HELPERS ====================
 /**
  * Obtiene el valor de spacing de manera type-safe

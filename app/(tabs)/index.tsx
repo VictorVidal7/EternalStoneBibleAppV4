@@ -1144,19 +1144,6 @@ const styles = StyleSheet.create({
     paddingTop: Platform.OS === 'ios' ? 68 : 44, // Más espacio superior para mejor visibilidad
     paddingBottom: 100, // Más espacio para el tab bar
   },
-  loadingContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    gap: 16,
-  },
-  loadingText: {
-    marginTop: 12,
-    fontSize: 16,
-    fontWeight: '600',
-    letterSpacing: -0.2,
-  },
-
   // Hero Card - Compact and Professional
   heroCard: {
     overflow: 'hidden',

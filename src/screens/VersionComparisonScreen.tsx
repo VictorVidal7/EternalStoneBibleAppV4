@@ -1449,30 +1449,6 @@ const styles = StyleSheet.create({
     fontSize: 12,
     lineHeight: 16,
   },
-  saveForm: {
-    padding: 20,
-    gap: 12,
-  },
-  input: {
-    borderWidth: 1,
-    borderRadius: 8,
-    padding: 12,
-    fontSize: 15,
-  },
-  textArea: {
-    height: 100,
-    textAlignVertical: 'top',
-  },
-  saveButtonLarge: {
-    padding: 16,
-    borderRadius: 12,
-    alignItems: 'center',
-  },
-  saveButtonText: {
-    fontSize: 16,
-    fontWeight: '700',
-    color: '#FFF',
-  },
   savedList: {
     maxHeight: 500,
   },
