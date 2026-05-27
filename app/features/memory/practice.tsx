@@ -26,6 +26,7 @@ import {useTheme} from '@hooks/useTheme';
 import {useLanguage} from '@hooks/useLanguage';
 import {useMemoryDeck} from '@context/MemoryDeckContext';
 import {getBookByName} from '@/constants/bible';
+import {applyMask, MASK_LEVEL_PERCENT, maskLevelForBox} from '@lib/memory/srs';
 import type {ReviewGrade} from '@lib/memory/srs';
 import {
   borderRadius,
@@ -71,6 +72,17 @@ export default function MemoryPracticeScreen() {
     if (!info) return card.bookName;
     return language === 'en' ? info.nameEn : info.name;
   }, [card, language]);
+
+  const maskLevel = card ? maskLevelForBox(card.box) : 0;
+  const maskPercent = MASK_LEVEL_PERCENT[maskLevel];
+  const maskedText = useMemo(
+    () => (card ? applyMask(card.text, maskLevel) : ''),
+    [card, maskLevel],
+  );
+  const maskHintLabel =
+    maskPercent === 0
+      ? t.memory.practice.maskNone
+      : t.memory.practice.maskHint.replace('{{percent}}', String(maskPercent));
 
   const handleReveal = () => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
@@ -168,21 +180,31 @@ export default function MemoryPracticeScreen() {
                     borderColor: colors.border,
                   },
                 ]}>
+                <View style={styles.cardMetaRow}>
+                  <View
+                    style={[
+                      styles.boxBadge,
+                      {backgroundColor: colors.primary + '22'},
+                    ]}>
+                    <Text
+                      style={[styles.boxBadgeText, {color: colors.primary}]}>
+                      {t.memory.practice.boxLabel.replace(
+                        '{{box}}',
+                        String(card.box),
+                      )}
+                    </Text>
+                  </View>
+                  <Text
+                    style={[styles.maskHintText, {color: colors.textTertiary}]}>
+                    {maskHintLabel}
+                  </Text>
+                </View>
                 <Text style={[styles.reference, {color: colors.primary}]}>
                   {displayBookName} {card.chapter}:{card.verse}
                 </Text>
-                {revealed ? (
-                  <Text style={[styles.verseText, {color: colors.text}]}>
-                    {card.text}
-                  </Text>
-                ) : (
-                  <Text style={[styles.hidden, {color: colors.textTertiary}]}>
-                    {/* Show a few hint dots so the card has visual weight
-                        before reveal; equivalent length helps the user
-                        gauge how long the verse is. */}
-                    {hintDots(card.text)}
-                  </Text>
-                )}
+                <Text style={[styles.verseText, {color: colors.text}]}>
+                  {revealed ? card.text : maskedText}
+                </Text>
               </View>
 
               {!revealed ? (
@@ -248,12 +270,6 @@ const GradeButton: React.FC<{
   </TouchableOpacity>
 );
 
-function hintDots(text: string): string {
-  // Render one dot per word, max 30, so the user gets a sense of length.
-  const words = text.trim().split(/\s+/).length;
-  return '•  '.repeat(Math.min(words, 30)).trim();
-}
-
 const styles = StyleSheet.create({
   container: {
     flex: 1,
@@ -313,6 +329,27 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     marginBottom: spacing.lg,
   },
+  cardMetaRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: spacing.md,
+  },
+  boxBadge: {
+    paddingHorizontal: spacing.sm,
+    paddingVertical: 4,
+    borderRadius: borderRadius.full,
+  },
+  boxBadgeText: {
+    fontSize: fontSizes.xs,
+    fontWeight: '800',
+    letterSpacing: 0.5,
+    textTransform: 'uppercase',
+  },
+  maskHintText: {
+    fontSize: fontSizes.xs,
+    fontWeight: '600',
+  },
   reference: {
     fontSize: fontSizes.lg,
     fontWeight: '800',
@@ -321,12 +358,6 @@ const styles = StyleSheet.create({
   },
   verseText: {
     fontSize: fontSizes.lg,
-    lineHeight: 28,
-    textAlign: 'center',
-  },
-  hidden: {
-    fontSize: fontSizes.base,
-    letterSpacing: 4,
     lineHeight: 28,
     textAlign: 'center',
   },

@@ -266,6 +266,9 @@ export const translations = {
         doneBodySingular:
           'Repasaste 1 tarjeta. ¡Que la Palabra habite ricamente en ti!',
         doneCta: 'Volver al mazo',
+        boxLabel: 'Caja {{box}}',
+        maskHint: '{{percent}}% oculto',
+        maskNone: 'Sin pistas ocultas',
       },
       remove: {
         title: 'Quitar de memoria',
@@ -1510,6 +1513,9 @@ export const translations = {
         doneBodySingular:
           'You reviewed 1 card. May the Word dwell in you richly!',
         doneCta: 'Back to deck',
+        boxLabel: 'Box {{box}}',
+        maskHint: '{{percent}}% hidden',
+        maskNone: 'No words hidden',
       },
       remove: {
         title: 'Remove from memory',
