@@ -1,4 +1,6 @@
-﻿import AsyncStorage from '@react-native-async-storage/async-storage';
+﻿/* eslint-disable no-console -- dev-mode init/progress logging. Will
+   migrate to logger.* in Sprint 41 alongside Crashlytics wiring. */
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import bibleDB from './index';
 
 const DATA_LOADED_KEY_RVR1960 = '@bible_data_loaded_rvr1960';

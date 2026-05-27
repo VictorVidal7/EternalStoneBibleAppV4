@@ -1,3 +1,5 @@
+/* eslint-disable no-console -- this IS the logger; all real
+   console.* calls are intentional and gated by isDevelopment. */
 /**
  * Professional Logging System
  *

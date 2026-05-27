@@ -1,3 +1,4 @@
+/* eslint-disable no-console -- tests intentionally spy on console.* */
 import {logger, redactSensitive} from '../src/lib/utils/logger';
 
 describe('Logger Service', () => {

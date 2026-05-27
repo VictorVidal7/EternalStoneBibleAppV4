@@ -410,12 +410,6 @@ const styles = StyleSheet.create({
     textShadowOffset: {width: 0, height: 1},
     textShadowRadius: 2,
   },
-  verseReference: {
-    fontSize: 13,
-    color: 'rgba(255,255,255,0.85)',
-    textAlign: 'center',
-    fontWeight: '600',
-  },
   bottomDecoration: {
     position: 'absolute',
     bottom: 40,

@@ -43,6 +43,8 @@ export default [
         {
           argsIgnorePattern: '^_',
           varsIgnorePattern: '^_',
+          caughtErrorsIgnorePattern: '^_|^error$|^e$',
+          destructuredArrayIgnorePattern: '^_',
         },
       ],
       '@typescript-eslint/explicit-module-boundary-types': 'off',
@@ -72,6 +74,10 @@ export default [
       'babel.config.js',
       'metro.config.js',
       '.eslintrc.json.backup',
+      // Documentation / scaffolding files — not part of the runtime app
+      'DESIGN_EXAMPLES.tsx',
+      'scripts/**', // CLI tools (data fetchers, migrations); not user-facing
+      'plugins/widget-files/**', // Native Kotlin/XML copied verbatim by the widget plugin
     ],
   },
 ];
