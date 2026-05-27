@@ -19,6 +19,7 @@ import {
   getLocalizedPlan,
   ReadingPlanDay,
 } from '@/constants/reading-plans';
+import {staticColors} from '@/styles/designTokens';
 import {getBookByName} from '@/constants/bible';
 import * as Haptics from 'expo-haptics';
 
@@ -80,7 +81,9 @@ export default function ReadingPlanDetailScreen() {
               styles.checkCircle,
               {
                 borderColor: done ? colors.primary : colors.border,
-                backgroundColor: done ? colors.primary : 'transparent',
+                backgroundColor: done
+                  ? colors.primary
+                  : staticColors.transparent,
               },
             ]}>
             {done && <Ionicons name="checkmark" size={18} color="#fff" />}
@@ -172,7 +175,7 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: 'rgba(255,255,255,0.2)',
+    backgroundColor: staticColors.glassWhite20,
     justifyContent: 'center',
     alignItems: 'center',
     marginBottom: 14,
@@ -180,19 +183,19 @@ const styles = StyleSheet.create({
   headerTitle: {
     fontSize: 26,
     fontWeight: '800',
-    color: '#ffffff',
+    color: staticColors.white,
     letterSpacing: -0.4,
   },
   headerSubtitle: {
     fontSize: 14,
-    color: 'rgba(255,255,255,0.85)',
+    color: staticColors.glassWhite85,
     marginTop: 4,
   },
   progressInfo: {marginTop: 16},
   progressText: {
     fontSize: 13,
     fontWeight: '600',
-    color: '#ffffff',
+    color: staticColors.white,
   },
   progressTrack: {
     height: 6,
@@ -204,7 +207,7 @@ const styles = StyleSheet.create({
   progressFill: {
     height: '100%',
     borderRadius: 3,
-    backgroundColor: '#ffffff',
+    backgroundColor: staticColors.white,
   },
   listContent: {padding: 16, paddingBottom: 110},
   dayRow: {
@@ -214,7 +217,7 @@ const styles = StyleSheet.create({
     padding: 14,
     marginBottom: 10,
     elevation: 2,
-    shadowColor: '#000',
+    shadowColor: staticColors.black,
     shadowOffset: {width: 0, height: 1},
     shadowOpacity: 0.08,
     shadowRadius: 3,

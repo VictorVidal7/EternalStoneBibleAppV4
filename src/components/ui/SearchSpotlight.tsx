@@ -1,3 +1,5 @@
+/* eslint-disable react-native/no-color-literals -- Celestial Premium 2.0
+   spotlight has bespoke glassmorphism colors that aren't theme-driven. */
 /**
  * 🔍 SearchSpotlight - Búsqueda Premium Tipo iOS/macOS
  *

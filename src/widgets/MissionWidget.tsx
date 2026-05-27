@@ -16,6 +16,7 @@ import {
   ActivityIndicator,
 } from 'react-native';
 import {LinearGradient} from 'expo-linear-gradient';
+import {staticColors} from '@/styles/designTokens';
 import {Ionicons} from '@expo/vector-icons';
 import {widgetTaskHandler, MissionWidgetData} from './WidgetTaskHandler';
 import {useTheme} from '../hooks/useTheme';
@@ -180,7 +181,7 @@ export const MissionWidget: React.FC<MissionWidgetProps> = ({
           <View
             style={[
               styles.progressBar,
-              {backgroundColor: 'rgba(0, 0, 0, 0.1)'},
+              {backgroundColor: staticColors.overlayBlack10},
             ]}>
             <View
               style={[
@@ -243,7 +244,7 @@ export const MissionWidget: React.FC<MissionWidgetProps> = ({
           </View>
         ) : (
           <View
-            style={[styles.cta, {backgroundColor: 'rgba(255, 255, 255, 0.2)'}]}>
+            style={[styles.cta, {backgroundColor: staticColors.glassWhite20}]}>
             <Text style={[styles.ctaText, {color: colors.text}]}>
               {t.widgets.continueMission}
             </Text>
@@ -261,7 +262,7 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
     marginVertical: 12,
     marginHorizontal: 16,
-    shadowColor: '#000',
+    shadowColor: staticColors.black,
     shadowOffset: {width: 0, height: 4},
     shadowOpacity: 0.15,
     shadowRadius: 12,
@@ -293,7 +294,7 @@ const styles = StyleSheet.create({
   difficultyText: {
     fontSize: 10,
     fontWeight: '700',
-    color: '#FFF',
+    color: staticColors.white,
     textTransform: 'uppercase',
   },
   missionTitle: {
@@ -341,7 +342,7 @@ const styles = StyleSheet.create({
     width: 16,
     height: 16,
     borderRadius: 8,
-    backgroundColor: 'rgba(255, 255, 255, 0.3)',
+    backgroundColor: staticColors.glassWhite30,
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -368,7 +369,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10,
     paddingVertical: 6,
     borderRadius: 12,
-    backgroundColor: 'rgba(255, 255, 255, 0.15)',
+    backgroundColor: staticColors.glassWhite15,
   },
   rewardText: {
     fontSize: 12,
@@ -407,7 +408,7 @@ const styles = StyleSheet.create({
   ctaTextCompleted: {
     fontSize: 14,
     fontWeight: '700',
-    color: '#FFF',
+    color: staticColors.white,
   },
   emptyState: {
     padding: 40,

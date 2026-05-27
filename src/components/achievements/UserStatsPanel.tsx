@@ -13,6 +13,7 @@ import {
   borderRadius,
   fontSize,
   shadows,
+  staticColors,
 } from '../../styles/designTokens';
 
 interface UserStatsPanelProps {
@@ -236,7 +237,7 @@ export const UserStatsPanel: React.FC<UserStatsPanelProps> = ({stats}) => {
         <Text
           style={[
             styles.sectionTitle,
-            {color: isDark ? colors.text : '#1F2937'},
+            {color: isDark ? colors.text : staticColors.grayNeutral},
           ]}>
           Achievements
         </Text>

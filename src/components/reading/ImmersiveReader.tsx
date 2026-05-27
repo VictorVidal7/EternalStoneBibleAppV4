@@ -1,3 +1,5 @@
+/* eslint-disable react-native/no-color-literals -- immersive reading uses
+   its own theme palette (celestial slates + glass overlays). */
 /**
  * 🌟 IMMERSIVE READING MODE
  *

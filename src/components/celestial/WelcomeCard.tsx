@@ -12,6 +12,7 @@
  */
 
 import React from 'react';
+import {staticColors} from '@/styles/designTokens';
 import {View, Text, StyleSheet, Platform} from 'react-native';
 import {LinearGradient} from 'expo-linear-gradient';
 import {BlurView} from 'expo-blur';
@@ -192,14 +193,14 @@ const styles = StyleSheet.create({
   blurElement: {
     position: 'absolute',
     borderRadius: 9999,
-    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+    backgroundColor: staticColors.glassWhite10,
   },
   blurTopRight: {
     top: -40,
     right: -40,
     width: 120,
     height: 120,
-    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+    backgroundColor: staticColors.glassWhite10,
   },
   blurBottomLeft: {
     bottom: -30,
@@ -226,24 +227,24 @@ const styles = StyleSheet.create({
   userName: {
     fontSize: 28,
     fontWeight: '800',
-    color: '#ffffff',
+    color: staticColors.white,
     letterSpacing: -0.5,
     marginBottom: 6,
   },
   subtitle: {
     fontSize: 16,
     fontWeight: '500',
-    color: 'rgba(255, 255, 255, 0.9)',
+    color: staticColors.glassWhite90,
     letterSpacing: 0.2,
   },
   statsContainer: {
     borderRadius: 24,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.2)',
+    borderColor: staticColors.glassWhite20,
     overflow: 'hidden',
     ...Platform.select({
       ios: {
-        shadowColor: '#000',
+        shadowColor: staticColors.black,
         shadowOffset: {width: 0, height: 4},
         shadowOpacity: 0.3,
         shadowRadius: 12,
@@ -259,7 +260,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingVertical: 20,
     paddingHorizontal: 16,
-    backgroundColor: 'rgba(255, 255, 255, 0.1)', // Fallback para BlurView
+    backgroundColor: staticColors.glassWhite10, // Fallback para BlurView
   },
 });
 

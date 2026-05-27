@@ -63,6 +63,7 @@ import {
   spacing,
   borderRadius,
   fontSize as fontSizes,
+  staticColors,
 } from '@/styles/designTokens';
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
 import {useWindowDimensions} from 'react-native';
@@ -900,7 +901,7 @@ export default function VerseReadingScreen() {
         options={{
           title: `${localizedBookName} ${chapterNum}`,
           headerStyle: {backgroundColor: bookTheme.primary},
-          headerTintColor: '#FFFFFF',
+          headerTintColor: staticColors.white,
           headerRight: () => (
             <View style={styles.headerButtons}>
               <TouchableOpacity
@@ -914,7 +915,7 @@ export default function VerseReadingScreen() {
                 style={[
                   styles.headerButton,
                   audioState.isPlaying && {
-                    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+                    backgroundColor: staticColors.glassWhite20,
                   },
                 ]}
                 accessibilityRole="button"
@@ -1796,7 +1797,7 @@ const styles = StyleSheet.create({
     borderRadius: borderRadius.md,
     flexDirection: 'row',
     alignItems: 'flex-start',
-    backgroundColor: 'transparent',
+    backgroundColor: staticColors.transparent,
   },
   verseSelected: {
     backgroundColor: 'rgba(74, 144, 226, 0.15)',
@@ -1825,8 +1826,8 @@ const styles = StyleSheet.create({
     paddingLeft: spacing.sm,
     borderTopWidth: 1,
     borderLeftWidth: 2,
-    borderTopColor: 'transparent',
-    borderLeftColor: 'transparent',
+    borderTopColor: staticColors.transparent,
+    borderLeftColor: staticColors.transparent,
   },
   sideBySideLabel: {
     fontSize: 10,
@@ -1855,7 +1856,7 @@ const styles = StyleSheet.create({
     paddingTop: spacing.md,
     paddingBottom: spacing.md,
     paddingHorizontal: spacing.md,
-    shadowColor: '#000',
+    shadowColor: staticColors.black,
     shadowOffset: {width: 0, height: 4},
     shadowOpacity: 0.2, // Sombra más pronunciada
     shadowRadius: 16,
@@ -1925,7 +1926,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   highlightRemoveSwatch: {
-    backgroundColor: 'transparent',
+    backgroundColor: staticColors.transparent,
     borderWidth: 1.5,
   },
 });

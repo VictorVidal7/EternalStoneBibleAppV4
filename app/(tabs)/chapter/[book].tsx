@@ -28,7 +28,7 @@ import {useReadingProgress} from '@context/ReadingProgressContext';
 // import {AnimatedBottomNav} from '@components/navigation/AnimatedBottomNav';
 
 // Design tokens
-import {spacing, fontSize, shadows} from '@/styles/designTokens';
+import {spacing, fontSize, shadows, staticColors} from '@/styles/designTokens';
 
 const {width: SCREEN_WIDTH} = Dimensions.get('window');
 const CARDS_PER_ROW = 5;
@@ -408,7 +408,7 @@ const ChapterCard: React.FC<ChapterCardProps> = React.memo(
               style={[
                 styles.card,
                 {
-                  backgroundColor: 'transparent',
+                  backgroundColor: staticColors.transparent,
                   shadowOpacity: 0,
                   shadowRadius: 0,
                   elevation: 0,
@@ -479,13 +479,13 @@ const styles = StyleSheet.create({
   errorTitle: {
     fontSize: fontSize['2xl'],
     fontWeight: '700',
-    color: '#ffffff',
+    color: staticColors.white,
     marginTop: spacing.base,
     textAlign: 'center',
   },
   errorSubtitle: {
     fontSize: fontSize.base,
-    color: 'rgba(255,255,255,0.9)',
+    color: staticColors.glassWhite90,
     marginTop: spacing.xs,
     textAlign: 'center',
   },
@@ -518,7 +518,7 @@ const styles = StyleSheet.create({
   backButtonText: {
     fontSize: fontSize.base,
     fontWeight: '600',
-    color: '#ffffff',
+    color: staticColors.white,
   },
 
   // Header - Estandarizado con todas las pantallas
@@ -534,7 +534,7 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: 'rgba(255,255,255,0.2)',
+    backgroundColor: staticColors.glassWhite20,
     justifyContent: 'center',
     alignItems: 'center',
     marginBottom: 16,
@@ -546,7 +546,7 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: 'rgba(255,255,255,0.2)',
+    backgroundColor: staticColors.glassWhite20,
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -558,38 +558,38 @@ const styles = StyleSheet.create({
     width: 64,
     height: 64,
     borderRadius: 16,
-    backgroundColor: 'rgba(255,255,255,0.2)',
+    backgroundColor: staticColors.glassWhite20,
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: 16,
     borderWidth: 2,
-    borderColor: 'rgba(255,255,255,0.3)',
+    borderColor: staticColors.glassWhite30,
   },
   headerTextContainer: {
     flex: 1,
   },
   headerSubtitle: {
     fontSize: 16,
-    color: 'rgba(255,255,255,0.9)',
+    color: staticColors.glassWhite90,
     fontWeight: '500',
     marginBottom: 4,
-    textShadowColor: 'rgba(0, 0, 0, 0.2)',
+    textShadowColor: staticColors.overlayBlack20,
     textShadowOffset: {width: 0, height: 1},
     textShadowRadius: 3,
   },
   headerTitle: {
     fontSize: 34,
     fontWeight: '700',
-    color: '#ffffff',
+    color: staticColors.white,
     marginBottom: spacing.xs,
-    textShadowColor: 'rgba(0, 0, 0, 0.3)',
+    textShadowColor: staticColors.overlayBlack30,
     textShadowOffset: {width: 0, height: 1},
     textShadowRadius: 4,
   },
   chapterCountBadge: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: 'rgba(255,255,255,0.2)',
+    backgroundColor: staticColors.glassWhite20,
     paddingHorizontal: spacing.md,
     paddingVertical: 4,
     borderRadius: 16,
@@ -598,7 +598,7 @@ const styles = StyleSheet.create({
   },
   chapterCountText: {
     fontSize: fontSize.xs,
-    color: '#ffffff',
+    color: staticColors.white,
     fontWeight: '600',
   },
 

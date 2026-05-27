@@ -8,6 +8,7 @@
  */
 
 import React, {useState} from 'react';
+import {staticColors} from '@/styles/designTokens';
 import {
   View,
   Text,
@@ -163,7 +164,9 @@ export const VoiceSelector: React.FC<VoiceSelectorProps> = ({
                       styles.languageTabText,
                       {
                         color:
-                          currentLanguage === lang ? '#FFFFFF' : colors.text,
+                          currentLanguage === lang
+                            ? staticColors.white
+                            : colors.text,
                       },
                     ]}>
                     {LANGUAGE_LABELS[lang]}
@@ -207,7 +210,7 @@ export const VoiceSelector: React.FC<VoiceSelectorProps> = ({
                         {
                           backgroundColor: isSelected
                             ? colors.primaryLight + '20'
-                            : 'transparent',
+                            : staticColors.transparent,
                           borderColor: isSelected
                             ? colors.primary
                             : colors.border,
@@ -326,7 +329,7 @@ const styles = StyleSheet.create({
   // Modal styles
   modalOverlay: {
     flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.5)',
+    backgroundColor: staticColors.overlayBlack50,
     justifyContent: 'flex-end',
   },
   modalContent: {
@@ -341,7 +344,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     padding: 20,
     borderBottomWidth: 1,
-    borderBottomColor: 'rgba(0,0,0,0.1)',
+    borderBottomColor: staticColors.overlayBlack10,
   },
   modalTitle: {
     fontSize: 18,
@@ -404,7 +407,7 @@ const styles = StyleSheet.create({
   qualityText: {
     fontSize: 10,
     fontWeight: '600',
-    color: '#FFFFFF',
+    color: staticColors.white,
   },
   voiceActions: {
     flexDirection: 'row',

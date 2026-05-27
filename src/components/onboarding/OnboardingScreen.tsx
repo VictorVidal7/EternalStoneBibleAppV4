@@ -36,6 +36,7 @@ import {
   borderRadius,
   fontSize as fontSizes,
   spacing,
+  staticColors,
 } from '../../styles/designTokens';
 
 const TOTAL_STEPS = 5;
@@ -384,7 +385,9 @@ const ColorThemeStep: React.FC<ColorThemeStepProps> = ({
               style={[
                 styles.themeTile,
                 {
-                  borderColor: active ? colors.primary : 'transparent',
+                  borderColor: active
+                    ? colors.primary
+                    : staticColors.transparent,
                   borderWidth: active ? 3 : 0,
                 },
               ]}
@@ -442,7 +445,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   stepIndicator: {
-    color: 'rgba(255, 255, 255, 0.85)',
+    color: staticColors.glassWhite85,
     fontSize: fontSizes.sm,
     fontWeight: '600',
     marginBottom: spacing.sm,
@@ -457,7 +460,7 @@ const styles = StyleSheet.create({
     borderRadius: 2,
   },
   dotActive: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: staticColors.white,
   },
   dotIdle: {
     backgroundColor: 'rgba(255, 255, 255, 0.35)',
@@ -575,6 +578,6 @@ const styles = StyleSheet.create({
   nextText: {
     fontSize: fontSizes.base,
     fontWeight: '800',
-    color: '#FFFFFF',
+    color: staticColors.white,
   },
 });

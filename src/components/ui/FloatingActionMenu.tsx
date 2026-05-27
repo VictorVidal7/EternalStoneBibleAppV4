@@ -27,6 +27,8 @@ import Animated, {
   interpolate,
   Extrapolation,
 } from 'react-native-reanimated';
+import {staticColors} from '@/styles/designTokens';
+
 import {BlurView} from 'expo-blur';
 import * as Haptics from 'expo-haptics';
 import {SPRING_CONFIGS, DURATIONS} from '../../styles/reanimatedAnimations';
@@ -363,8 +365,8 @@ export const FloatingActionMenu: React.FC<FloatingActionMenuProps> = ({
                 StyleSheet.absoluteFill,
                 {
                   backgroundColor: isDark
-                    ? 'rgba(0,0,0,0.5)'
-                    : 'rgba(0,0,0,0.3)',
+                    ? staticColors.overlayBlack50
+                    : staticColors.overlayBlack30,
                 },
               ]}
             />
@@ -441,7 +443,7 @@ const styles = StyleSheet.create({
   mainButton: {
     justifyContent: 'center',
     alignItems: 'center',
-    shadowColor: '#000',
+    shadowColor: staticColors.black,
     shadowOffset: {width: 0, height: 4},
     shadowOpacity: 0.3,
     shadowRadius: 8,
@@ -450,7 +452,7 @@ const styles = StyleSheet.create({
   mainIconText: {
     fontSize: 28,
     fontWeight: '300',
-    color: '#FFFFFF',
+    color: staticColors.white,
     marginTop: -2,
   },
   actionContainer: {
@@ -462,7 +464,7 @@ const styles = StyleSheet.create({
     borderRadius: 26,
     justifyContent: 'center',
     alignItems: 'center',
-    shadowColor: '#000',
+    shadowColor: staticColors.black,
     shadowOffset: {width: 0, height: 2},
     shadowOpacity: 0.25,
     shadowRadius: 4,
@@ -475,8 +477,8 @@ const styles = StyleSheet.create({
     paddingHorizontal: 14,
     paddingVertical: 8,
     borderRadius: 8,
-    backgroundColor: '#FFFFFF',
-    shadowColor: '#000',
+    backgroundColor: staticColors.white,
+    shadowColor: staticColors.black,
     shadowOffset: {width: 0, height: 2},
     shadowOpacity: 0.1,
     shadowRadius: 4,
@@ -495,10 +497,10 @@ const styles = StyleSheet.create({
   labelText: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#1f2937',
+    color: staticColors.grayNeutral,
   },
   labelTextDark: {
-    color: '#FFFFFF',
+    color: staticColors.white,
   },
 });
 

@@ -32,6 +32,7 @@ import {
   borderRadius,
   fontSize as fontSizes,
   spacing,
+  staticColors,
 } from '@/styles/designTokens';
 
 const GRADE_COLORS: Record<ReviewGrade, string> = {
@@ -282,7 +283,7 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: 'rgba(255, 255, 255, 0.18)',
+    backgroundColor: staticColors.glassWhite18,
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: spacing.md,
@@ -294,24 +295,24 @@ const styles = StyleSheet.create({
     marginBottom: spacing.md,
   },
   headerTitle: {
-    color: '#FFFFFF',
+    color: staticColors.white,
     fontSize: fontSizes['2xl'],
     fontWeight: '800',
   },
   headerProgress: {
-    color: 'rgba(255, 255, 255, 0.85)',
+    color: staticColors.glassWhite85,
     fontSize: fontSizes.sm,
     fontWeight: '700',
   },
   progressTrack: {
     height: 6,
-    backgroundColor: 'rgba(255, 255, 255, 0.18)',
+    backgroundColor: staticColors.glassWhite18,
     borderRadius: 3,
     overflow: 'hidden',
   },
   progressFill: {
     height: '100%',
-    backgroundColor: '#FFFFFF',
+    backgroundColor: staticColors.white,
     borderRadius: 3,
   },
   body: {
@@ -370,7 +371,7 @@ const styles = StyleSheet.create({
     gap: spacing.sm,
   },
   revealText: {
-    color: '#FFFFFF',
+    color: staticColors.white,
     fontSize: fontSizes.base,
     fontWeight: '800',
   },
@@ -394,7 +395,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   gradeText: {
-    color: '#FFFFFF',
+    color: staticColors.white,
     fontSize: fontSizes.base,
     fontWeight: '800',
   },
@@ -424,7 +425,7 @@ const styles = StyleSheet.create({
     borderRadius: borderRadius.full,
   },
   doneCtaText: {
-    color: '#FFFFFF',
+    color: staticColors.white,
     fontSize: fontSizes.base,
     fontWeight: '800',
   },

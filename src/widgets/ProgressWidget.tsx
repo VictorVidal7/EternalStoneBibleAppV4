@@ -15,6 +15,8 @@ import {
   TouchableOpacity,
   ActivityIndicator,
 } from 'react-native';
+import {staticColors} from '@/styles/designTokens';
+
 import {LinearGradient} from 'expo-linear-gradient';
 import {Ionicons} from '@expo/vector-icons';
 import {widgetTaskHandler, ProgressWidgetData} from './WidgetTaskHandler';
@@ -186,7 +188,7 @@ export const ProgressWidget: React.FC<ProgressWidgetProps> = ({
           <View
             style={[
               styles.progressBar,
-              {backgroundColor: 'rgba(0, 0, 0, 0.1)'},
+              {backgroundColor: staticColors.overlayBlack10},
             ]}>
             <View
               style={[
@@ -250,7 +252,7 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
     marginVertical: 12,
     marginHorizontal: 16,
-    shadowColor: '#000',
+    shadowColor: staticColors.black,
     shadowOffset: {width: 0, height: 4},
     shadowOpacity: 0.15,
     shadowRadius: 12,

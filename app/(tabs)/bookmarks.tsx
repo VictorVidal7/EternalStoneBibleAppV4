@@ -8,6 +8,8 @@ import {
   TextInput,
   Modal,
 } from 'react-native';
+import {staticColors} from '@/styles/designTokens';
+
 import {useMemo, useState} from 'react';
 import {useRouter} from 'expo-router';
 import {Ionicons} from '@expo/vector-icons';
@@ -216,7 +218,9 @@ export default function BookmarksScreen() {
               <TouchableOpacity
                 style={[styles.modalButton, {backgroundColor: colors.primary}]}
                 onPress={saveRename}>
-                <Text style={{color: '#fff', fontWeight: '600'}}>{t.save}</Text>
+                <Text style={{color: staticColors.white, fontWeight: '600'}}>
+                  {t.save}
+                </Text>
               </TouchableOpacity>
             </View>
           </View>
@@ -239,7 +243,7 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: 'rgba(255,255,255,0.2)',
+    backgroundColor: staticColors.glassWhite20,
     justifyContent: 'center',
     alignItems: 'center',
     marginBottom: 16,
@@ -249,23 +253,23 @@ const styles = StyleSheet.create({
     width: 64,
     height: 64,
     borderRadius: 16,
-    backgroundColor: 'rgba(255,255,255,0.2)',
+    backgroundColor: staticColors.glassWhite20,
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: 16,
     borderWidth: 2,
-    borderColor: 'rgba(255,255,255,0.3)',
+    borderColor: staticColors.glassWhite30,
   },
   headerTextContainer: {flex: 1},
   headerTitle: {
     fontSize: 28,
     fontWeight: '700',
-    color: '#ffffff',
+    color: staticColors.white,
     marginBottom: 4,
   },
   headerSubtitle: {
     fontSize: 14,
-    color: 'rgba(255,255,255,0.9)',
+    color: staticColors.glassWhite90,
     fontWeight: '500',
   },
   listContent: {
@@ -319,6 +323,6 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
     borderRadius: 10,
     borderWidth: 1,
-    borderColor: 'transparent',
+    borderColor: staticColors.transparent,
   },
 });
