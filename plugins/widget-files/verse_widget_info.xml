@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Widget metadata. updatePeriodMillis is set to 24h so the verse rotates
+  daily; the system caps the period at 30 minutes minimum but 24h+ is
+  honored fine. We also refresh on launch from the React Native side
+  (see WidgetRefresher native module wiring on the JS side).
+-->
+<appwidget-provider xmlns:android="http://schemas.android.com/apk/res/android"
+    android:minWidth="250dp"
+    android:minHeight="110dp"
+    android:targetCellWidth="4"
+    android:targetCellHeight="2"
+    android:updatePeriodMillis="86400000"
+    android:initialLayout="@layout/verse_widget"
+    android:resizeMode="horizontal|vertical"
+    android:widgetCategory="home_screen"
+    android:previewLayout="@layout/verse_widget"
+    android:description="@string/verse_widget_description" />

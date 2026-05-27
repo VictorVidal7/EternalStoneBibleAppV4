@@ -18,7 +18,8 @@
           "icon": "./assets/icon.png",
           "color": "#001122"
         }
-      ]
+      ],
+      "./plugins/with-verse-widget"
     ],
     "splash": {
       "image": "./assets/splash-icon.png",
