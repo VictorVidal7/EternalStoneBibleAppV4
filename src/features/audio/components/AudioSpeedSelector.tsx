@@ -15,6 +15,8 @@ import {
   StyleSheet,
   ScrollView,
 } from 'react-native';
+import {staticColors} from '@/styles/designTokens';
+
 import Animated, {
   useAnimatedStyle,
   withSpring,
@@ -102,7 +104,7 @@ export const AudioSpeedSelector: React.FC<AudioSpeedSelectorProps> = ({
                 style={[
                   styles.chipText,
                   {
-                    color: isSelected ? '#FFFFFF' : colors.text,
+                    color: isSelected ? staticColors.white : colors.text,
                     fontWeight: isSelected ? '600' : '400',
                   },
                 ]}>
@@ -186,7 +188,9 @@ const InlineSpeedSelector: React.FC<CompactSelectorProps> = ({
             style={[
               styles.inlineChip,
               {
-                backgroundColor: isSelected ? colors.primary : 'transparent',
+                backgroundColor: isSelected
+                  ? colors.primary
+                  : staticColors.transparent,
               },
             ]}
             onPress={() => onSpeedChange(speed)}>
@@ -194,7 +198,7 @@ const InlineSpeedSelector: React.FC<CompactSelectorProps> = ({
               style={[
                 styles.inlineText,
                 {
-                  color: isSelected ? '#FFFFFF' : colors.textSecondary,
+                  color: isSelected ? staticColors.white : colors.textSecondary,
                   fontWeight: isSelected ? '600' : '400',
                 },
               ]}>

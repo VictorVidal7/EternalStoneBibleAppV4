@@ -1,3 +1,6 @@
+/* eslint-disable react-native/no-color-literals -- error-state UI uses
+   a fixed light-mode palette (intentionally not theme-aware so it works
+   even if the theme provider crashed). */
 /**
  * ErrorBoundary - Componente para capturar y manejar errores en React
  * Proporciona una UI de fallback cuando ocurren errores y logging mejorado

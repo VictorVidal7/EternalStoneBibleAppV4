@@ -17,7 +17,7 @@ import {
 } from 'react-native';
 import {LinearGradient} from 'expo-linear-gradient';
 import {useTheme} from '../hooks/useTheme';
-import {borderRadius, spacing} from '../styles/designTokens';
+import {borderRadius, spacing, staticColors} from '../styles/designTokens';
 
 interface PremiumSkeletonProps {
   width?: DimensionValue;
@@ -91,7 +91,7 @@ export const PremiumSkeleton: React.FC<PremiumSkeletonProps> = ({
   const getSkeletonColors = () => {
     if (isDark) {
       return {
-        base: 'rgba(255, 255, 255, 0.05)',
+        base: staticColors.glassWhite05,
         highlight: 'rgba(255, 255, 255, 0.10)',
         shimmer: 'rgba(255, 255, 255, 0.08)',
       };
@@ -99,7 +99,7 @@ export const PremiumSkeleton: React.FC<PremiumSkeletonProps> = ({
       return {
         base: 'rgba(0, 0, 0, 0.06)',
         highlight: 'rgba(0, 0, 0, 0.08)',
-        shimmer: 'rgba(255, 255, 255, 0.5)',
+        shimmer: staticColors.glassWhite50,
       };
     }
   };
@@ -139,10 +139,10 @@ export const PremiumSkeleton: React.FC<PremiumSkeletonProps> = ({
           ]}>
           <LinearGradient
             colors={[
-              'transparent',
+              staticColors.transparent,
               skeletonColors.shimmer,
               skeletonColors.shimmer,
-              'transparent',
+              staticColors.transparent,
             ]}
             start={{x: 0, y: 0}}
             end={{x: 1, y: 0}}
@@ -310,7 +310,7 @@ const styles = StyleSheet.create({
     height: '100%',
   },
   cardContainer: {
-    backgroundColor: 'transparent',
+    backgroundColor: staticColors.transparent,
   },
   cardHeader: {
     flexDirection: 'row',
@@ -321,7 +321,7 @@ const styles = StyleSheet.create({
     marginLeft: spacing.md,
   },
   verseItem: {
-    backgroundColor: 'transparent',
+    backgroundColor: staticColors.transparent,
   },
   verseHeader: {
     flexDirection: 'row',
@@ -334,7 +334,7 @@ const styles = StyleSheet.create({
   },
   bookItem: {
     width: '48%',
-    backgroundColor: 'transparent',
+    backgroundColor: staticColors.transparent,
   },
 });
 

@@ -13,7 +13,7 @@ import {View, StyleSheet, Animated, ViewStyle} from 'react-native';
 import {Ionicons} from '@expo/vector-icons';
 import {LinearGradient} from 'expo-linear-gradient';
 import PremiumButton from './PremiumButton';
-import {spacing, fontSize} from '../styles/designTokens';
+import {spacing, fontSize, staticColors} from '../styles/designTokens';
 
 interface EmptyStateProps {
   icon?: keyof typeof Ionicons.glyphMap;
@@ -165,7 +165,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   iconBgMinimal: {
-    backgroundColor: 'transparent',
+    backgroundColor: staticColors.transparent,
   },
   iconGradientBg: {
     width: 120,

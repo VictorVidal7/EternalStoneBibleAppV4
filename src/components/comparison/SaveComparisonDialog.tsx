@@ -7,6 +7,8 @@ import {
   TouchableOpacity,
   Modal,
 } from 'react-native';
+import {staticColors} from '@/styles/designTokens';
+
 import {Ionicons} from '@expo/vector-icons';
 import {useTheme} from '../../hooks/useTheme';
 import {useLanguage} from '../../hooks/useLanguage';
@@ -125,7 +127,7 @@ export const SaveComparisonDialog: React.FC<SaveComparisonDialogProps> = ({
 const styles = StyleSheet.create({
   modalOverlay: {
     flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.5)',
+    backgroundColor: staticColors.overlayBlack50,
     justifyContent: 'center',
     padding: 20,
   },
@@ -133,7 +135,7 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     padding: 20,
     maxHeight: '80%',
-    shadowColor: '#000',
+    shadowColor: staticColors.black,
     shadowOffset: {width: 0, height: 10},
     shadowOpacity: 0.25,
     shadowRadius: 10,
@@ -169,7 +171,7 @@ const styles = StyleSheet.create({
     marginTop: 8,
   },
   saveButtonText: {
-    color: '#FFFFFF',
+    color: staticColors.white,
     fontSize: 16,
     fontWeight: '700',
   },

@@ -17,6 +17,8 @@ import {
   RefreshControl,
   Alert,
 } from 'react-native';
+import {staticColors} from '@/styles/designTokens';
+
 import {Ionicons} from '@expo/vector-icons';
 import {useTheme} from '../hooks/useTheme';
 import {useLanguage} from '../hooks/useLanguage';
@@ -562,7 +564,7 @@ const styles = StyleSheet.create({
   confidenceText: {
     fontSize: 12,
     fontWeight: '700',
-    color: '#FFF',
+    color: staticColors.white,
   },
   nextChapter: {
     flexDirection: 'row',
@@ -606,6 +608,6 @@ const styles = StyleSheet.create({
   actionButtonText: {
     fontSize: 15,
     fontWeight: '700',
-    color: '#FFF',
+    color: staticColors.white,
   },
 });
