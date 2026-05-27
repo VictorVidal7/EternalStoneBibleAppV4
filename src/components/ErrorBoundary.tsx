@@ -3,15 +3,26 @@
  * Proporciona una UI de fallback cuando ocurren errores y logging mejorado
  */
 
-import React, { Component, ErrorInfo, ReactNode } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
+import React, {Component, ErrorInfo, ReactNode} from 'react';
+import {
+  View,
+  Text,
+  StyleSheet,
+  TouchableOpacity,
+  ScrollView,
+} from 'react-native';
+import {staticColors} from '../styles/designTokens';
 
 interface ErrorBoundaryProps {
   /** Componentes hijos */
   children: ReactNode;
 
   /** Componente de fallback personalizado */
-  fallback?: (error: Error, errorInfo: ErrorInfo, reset: () => void) => ReactNode;
+  fallback?: (
+    error: Error,
+    errorInfo: ErrorInfo,
+    reset: () => void,
+  ) => ReactNode;
 
   /** Callback cuando ocurre un error */
   onError?: (error: Error, errorInfo: ErrorInfo) => void;
@@ -85,7 +96,7 @@ class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
         return this.props.fallback(
           this.state.error,
           this.state.errorInfo!,
-          this.resetError
+          this.resetError,
         );
       }
 
@@ -105,7 +116,9 @@ class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
             {__DEV__ && (
               <ScrollView style={styles.errorDetails}>
                 <Text style={styles.errorTitle}>Detalles del error:</Text>
-                <Text style={styles.errorText}>{this.state.error.toString()}</Text>
+                <Text style={styles.errorText}>
+                  {this.state.error.toString()}
+                </Text>
 
                 {this.state.errorInfo && (
                   <>
@@ -140,8 +153,8 @@ const styles = StyleSheet.create({
     padding: 24,
     maxWidth: 400,
     width: '100%',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
+    shadowColor: staticColors.black,
+    shadowOffset: {width: 0, height: 2},
     shadowOpacity: 0.1,
     shadowRadius: 8,
     elevation: 4,
@@ -155,7 +168,7 @@ const styles = StyleSheet.create({
   },
   subtitle: {
     fontSize: 16,
-    color: '#6B7280',
+    color: staticColors.graySecondary,
     marginBottom: 24,
     textAlign: 'center',
     lineHeight: 24,

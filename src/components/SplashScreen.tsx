@@ -12,7 +12,7 @@ import React, {useEffect, useRef} from 'react';
 import {View, Text, StyleSheet, Animated, Dimensions} from 'react-native';
 import {LinearGradient} from 'expo-linear-gradient';
 import {Ionicons} from '@expo/vector-icons';
-import {spacing, fontSize} from '../styles/designTokens';
+import {spacing, fontSize, staticColors} from '../styles/designTokens';
 
 const {width, height} = Dimensions.get('window');
 
@@ -229,20 +229,20 @@ const styles = StyleSheet.create({
     width: 160,
     height: 160,
     borderRadius: 80,
-    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+    backgroundColor: staticColors.glassWhite20,
     justifyContent: 'center',
     alignItems: 'center',
     marginBottom: spacing.xl,
     borderWidth: 0,
-    borderColor: 'rgba(255, 255, 255, 0.3)',
+    borderColor: staticColors.glassWhite30,
   },
   title: {
     fontSize: fontSize['4xl'],
     fontWeight: '800',
-    color: '#ffffff',
+    color: staticColors.white,
     textAlign: 'center',
     marginBottom: spacing.xs,
-    textShadowColor: 'rgba(0, 0, 0, 0.3)',
+    textShadowColor: staticColors.overlayBlack30,
     textShadowOffset: {width: 0, height: 2},
     textShadowRadius: 4,
   },
@@ -261,7 +261,7 @@ const styles = StyleSheet.create({
     width: 8,
     height: 8,
     borderRadius: 4,
-    backgroundColor: '#ffffff',
+    backgroundColor: staticColors.white,
   },
   starsContainer: {
     ...StyleSheet.absoluteFillObject,
@@ -269,7 +269,7 @@ const styles = StyleSheet.create({
   },
   star: {
     position: 'absolute',
-    backgroundColor: '#ffffff',
+    backgroundColor: staticColors.white,
     borderRadius: 2,
   },
 });

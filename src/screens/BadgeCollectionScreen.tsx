@@ -23,6 +23,7 @@ import * as Haptics from 'expo-haptics';
 import {useTheme} from '../hooks/useTheme';
 import {useLanguage} from '../hooks/useLanguage';
 import {useToast} from '../context/ToastContext';
+import {staticColors} from '../styles/designTokens';
 import {
   badgeSystemService,
   BadgeProgress,
@@ -284,12 +285,12 @@ export const BadgeCollectionScreen: React.FC<BadgeCollectionScreenProps> = ({
           <Ionicons
             name="trophy"
             size={18}
-            color={viewMode === 'badges' ? '#FFF' : colors.text}
+            color={viewMode === 'badges' ? staticColors.white : colors.text}
           />
           <Text
             style={[
               styles.toggleText,
-              {color: viewMode === 'badges' ? '#FFF' : colors.text},
+              {color: viewMode === 'badges' ? staticColors.white : colors.text},
             ]}>
             {t.badgeSystem.allBadges}
           </Text>
@@ -308,12 +309,12 @@ export const BadgeCollectionScreen: React.FC<BadgeCollectionScreenProps> = ({
           <Ionicons
             name="ribbon"
             size={18}
-            color={viewMode === 'titles' ? '#FFF' : colors.text}
+            color={viewMode === 'titles' ? staticColors.white : colors.text}
           />
           <Text
             style={[
               styles.toggleText,
-              {color: viewMode === 'titles' ? '#FFF' : colors.text},
+              {color: viewMode === 'titles' ? staticColors.white : colors.text},
             ]}>
             {t.badgeSystem.myTitles}
           </Text>
@@ -338,7 +339,12 @@ export const BadgeCollectionScreen: React.FC<BadgeCollectionScreenProps> = ({
               <Text
                 style={[
                   styles.filterChipText,
-                  {color: filterCategory === 'all' ? '#FFF' : colors.text},
+                  {
+                    color:
+                      filterCategory === 'all'
+                        ? staticColors.white
+                        : colors.text,
+                  },
                 ]}>
                 {t.badgeSystem.all}
               </Text>
@@ -369,13 +375,20 @@ export const BadgeCollectionScreen: React.FC<BadgeCollectionScreenProps> = ({
                 <Ionicons
                   name={getCategoryIcon(category) as any}
                   size={14}
-                  color={filterCategory === category ? '#FFF' : colors.text}
+                  color={
+                    filterCategory === category
+                      ? staticColors.white
+                      : colors.text
+                  }
                 />
                 <Text
                   style={[
                     styles.filterChipText,
                     {
-                      color: filterCategory === category ? '#FFF' : colors.text,
+                      color:
+                        filterCategory === category
+                          ? staticColors.white
+                          : colors.text,
                     },
                   ]}>
                   {getCategoryName(category)}
@@ -440,7 +453,7 @@ export const BadgeCollectionScreen: React.FC<BadgeCollectionScreenProps> = ({
                     <View
                       style={[
                         styles.progressBarSmall,
-                        {backgroundColor: 'rgba(0,0,0,0.1)'},
+                        {backgroundColor: staticColors.overlayBlack10},
                       ]}>
                       <View
                         style={[
@@ -604,7 +617,7 @@ export const BadgeCollectionScreen: React.FC<BadgeCollectionScreenProps> = ({
                   <View
                     style={[
                       styles.progressBarLarge,
-                      {backgroundColor: 'rgba(0,0,0,0.1)'},
+                      {backgroundColor: staticColors.overlayBlack10},
                     ]}>
                     <View
                       style={[
@@ -785,7 +798,7 @@ const styles = StyleSheet.create({
   },
   statDivider: {
     width: 1,
-    backgroundColor: 'rgba(0,0,0,0.1)',
+    backgroundColor: staticColors.overlayBlack10,
   },
   toggleContainer: {
     flexDirection: 'row',
@@ -856,7 +869,7 @@ const styles = StyleSheet.create({
   },
   lockOverlay: {
     ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(0,0,0,0.5)',
+    backgroundColor: staticColors.overlayBlack50,
     borderRadius: 30,
     justifyContent: 'center',
     alignItems: 'center',
@@ -886,7 +899,7 @@ const styles = StyleSheet.create({
   rarityTextSmall: {
     fontSize: 8,
     fontWeight: '700',
-    color: '#FFF',
+    color: staticColors.white,
     textTransform: 'uppercase',
   },
   titlesContainer: {
@@ -930,7 +943,7 @@ const styles = StyleSheet.create({
   rarityText: {
     fontSize: 10,
     fontWeight: '700',
-    color: '#FFF',
+    color: staticColors.white,
     textTransform: 'uppercase',
   },
   emptyState: {
@@ -953,7 +966,7 @@ const styles = StyleSheet.create({
   },
   modalOverlay: {
     flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.6)',
+    backgroundColor: staticColors.overlayBlack60,
     justifyContent: 'center',
     alignItems: 'center',
     padding: 20,
@@ -1003,7 +1016,7 @@ const styles = StyleSheet.create({
   rarityTextLarge: {
     fontSize: 12,
     fontWeight: '700',
-    color: '#FFF',
+    color: staticColors.white,
     textTransform: 'uppercase',
   },
   progressSection: {
@@ -1064,7 +1077,7 @@ const styles = StyleSheet.create({
   equipButtonText: {
     fontSize: 16,
     fontWeight: '700',
-    color: '#FFF',
+    color: staticColors.white,
   },
   equippedIndicator: {
     flexDirection: 'row',
@@ -1077,7 +1090,7 @@ const styles = StyleSheet.create({
   equippedText: {
     fontSize: 14,
     fontWeight: '700',
-    color: '#FFF',
+    color: staticColors.white,
   },
   unequipButton: {
     width: '100%',
@@ -1086,7 +1099,7 @@ const styles = StyleSheet.create({
     borderWidth: 2,
     alignItems: 'center',
     marginTop: 8,
-    backgroundColor: 'transparent',
+    backgroundColor: staticColors.transparent,
   },
   unequipButtonText: {
     fontSize: 15,

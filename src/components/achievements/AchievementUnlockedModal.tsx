@@ -12,6 +12,8 @@ import {
   Pressable,
   Dimensions,
 } from 'react-native';
+import {staticColors} from '@/styles/designTokens';
+
 import {
   Achievement,
   ACHIEVEMENT_TIER_COLORS,
@@ -242,12 +244,12 @@ const styles = StyleSheet.create({
     maxWidth: 400,
   },
   card: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: staticColors.white,
     borderRadius: 24,
     padding: 24,
     borderWidth: 0,
     alignItems: 'center',
-    shadowColor: '#000',
+    shadowColor: staticColors.black,
     shadowOffset: {width: 0, height: 10},
     shadowOpacity: 0.1,
     shadowRadius: 20,
@@ -263,7 +265,7 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 20,
     fontWeight: '800',
-    color: '#1F2937',
+    color: staticColors.grayNeutral,
   },
   tierBadge: {
     paddingHorizontal: 10,
@@ -273,7 +275,7 @@ const styles = StyleSheet.create({
   tierText: {
     fontSize: 11,
     fontWeight: '700',
-    color: '#FFFFFF',
+    color: staticColors.white,
   },
   iconContainer: {
     width: 100,
@@ -289,13 +291,13 @@ const styles = StyleSheet.create({
   name: {
     fontSize: 24,
     fontWeight: '700',
-    color: '#1F2937',
+    color: staticColors.grayNeutral,
     marginBottom: 8,
     textAlign: 'center',
   },
   description: {
     fontSize: 16,
-    color: '#6B7280',
+    color: staticColors.graySecondary,
     textAlign: 'center',
     marginBottom: 20,
     lineHeight: 22,
@@ -323,6 +325,6 @@ const styles = StyleSheet.create({
   buttonText: {
     fontSize: 18,
     fontWeight: '700',
-    color: '#FFFFFF',
+    color: staticColors.white,
   },
 });

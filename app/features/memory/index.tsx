@@ -38,6 +38,7 @@ import {
   borderRadius,
   fontSize as fontSizes,
   spacing,
+  staticColors,
 } from '@/styles/designTokens';
 
 export default function MemoryDeckScreen() {
@@ -393,7 +394,7 @@ const styles = StyleSheet.create({
     width: 44,
     height: 44,
     borderRadius: 22,
-    backgroundColor: 'rgba(255, 255, 255, 0.15)',
+    backgroundColor: staticColors.glassWhite15,
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: spacing.md,
@@ -408,7 +409,7 @@ const styles = StyleSheet.create({
     width: 52,
     height: 52,
     borderRadius: 26,
-    backgroundColor: 'rgba(255, 255, 255, 0.18)',
+    backgroundColor: staticColors.glassWhite18,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -416,13 +417,13 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   headerLabel: {
-    color: 'rgba(255, 255, 255, 0.8)',
+    color: staticColors.glassWhite80,
     fontSize: fontSizes.sm,
     fontWeight: '600',
     marginBottom: 2,
   },
   headerTitle: {
-    color: '#FFFFFF',
+    color: staticColors.white,
     fontSize: fontSizes['2xl'],
     fontWeight: '800',
   },
@@ -433,18 +434,18 @@ const styles = StyleSheet.create({
   },
   statBubble: {
     flex: 1,
-    backgroundColor: 'rgba(255, 255, 255, 0.18)',
+    backgroundColor: staticColors.glassWhite18,
     paddingVertical: spacing.md,
     borderRadius: borderRadius.md,
     alignItems: 'center',
   },
   statValue: {
-    color: '#FFFFFF',
+    color: staticColors.white,
     fontSize: fontSizes['2xl'],
     fontWeight: '800',
   },
   statLabel: {
-    color: 'rgba(255, 255, 255, 0.85)',
+    color: staticColors.glassWhite85,
     fontSize: 11,
     fontWeight: '600',
     marginTop: 2,
@@ -467,7 +468,7 @@ const styles = StyleSheet.create({
     marginBottom: spacing.lg,
   },
   practiceCtaText: {
-    color: '#FFFFFF',
+    color: staticColors.white,
     fontSize: fontSizes.base,
     fontWeight: '800',
   },

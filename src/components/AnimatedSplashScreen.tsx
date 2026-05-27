@@ -1,3 +1,5 @@
+/* eslint-disable react-native/no-color-literals -- splash uses bespoke
+   gradient + particle colors, not theme tokens. */
 /**
  * 🎨 ANIMATED SPLASH SCREEN - PREMIUM
  *

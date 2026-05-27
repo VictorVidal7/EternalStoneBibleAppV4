@@ -19,6 +19,7 @@ import {
   Alert,
   ActivityIndicator,
 } from 'react-native';
+import {staticColors} from '@/styles/designTokens';
 import {Ionicons} from '@expo/vector-icons';
 import {SaveComparisonDialog} from '../components/comparison/SaveComparisonDialog';
 import {useTheme} from '../hooks/useTheme';
@@ -1055,12 +1056,12 @@ export const VersionComparisonScreen: React.FC<
                 <Ionicons
                   name={multiSelectMode ? 'checkmark-done' : 'copy-outline'}
                   size={16}
-                  color={multiSelectMode ? '#FFF' : colors.text}
+                  color={multiSelectMode ? staticColors.white : colors.text}
                 />
                 <Text
                   style={[
                     styles.multiSelectText,
-                    {color: multiSelectMode ? '#FFF' : colors.text},
+                    {color: multiSelectMode ? staticColors.white : colors.text},
                   ]}>
                   {multiSelectMode
                     ? t.versionComparison.multiSelectMode
@@ -1130,7 +1131,9 @@ export const VersionComparisonScreen: React.FC<
                         style={[
                           styles.verseGridText,
                           {
-                            color: isSelected ? '#FFF' : colors.text,
+                            color: isSelected
+                              ? staticColors.white
+                              : colors.text,
                           },
                         ]}>
                         {verseNum}
@@ -1209,7 +1212,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginLeft: 4,
     elevation: 2,
-    shadowColor: '#000',
+    shadowColor: staticColors.black,
     shadowOffset: {width: 0, height: 2},
     shadowOpacity: 0.1,
     shadowRadius: 4,
@@ -1234,7 +1237,7 @@ const styles = StyleSheet.create({
   versionPillText: {
     fontSize: 12,
     fontWeight: '700',
-    color: '#FFF',
+    color: staticColors.white,
   },
   addVersionButton: {
     flexDirection: 'row',
@@ -1281,7 +1284,7 @@ const styles = StyleSheet.create({
   versionBadgeText: {
     fontSize: 11,
     fontWeight: '700',
-    color: '#FFF',
+    color: staticColors.white,
   },
   versionName: {
     fontSize: 13,
@@ -1330,7 +1333,7 @@ const styles = StyleSheet.create({
   },
   similarityBar: {
     height: 8,
-    backgroundColor: 'rgba(0,0,0,0.1)',
+    backgroundColor: staticColors.overlayBlack10,
     borderRadius: 4,
     overflow: 'hidden',
     marginBottom: 8,
@@ -1403,7 +1406,7 @@ const styles = StyleSheet.create({
   },
   modalOverlay: {
     flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.5)',
+    backgroundColor: staticColors.overlayBlack50,
     justifyContent: 'flex-end',
   },
   modalContent: {
@@ -1418,7 +1421,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingVertical: 12,
     borderBottomWidth: 1,
-    borderBottomColor: 'rgba(0,0,0,0.05)',
+    borderBottomColor: staticColors.overlayBlack05,
   },
   modalTitle: {
     fontSize: 18,
@@ -1541,7 +1544,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingVertical: 8,
     borderBottomWidth: 1,
-    borderBottomColor: 'rgba(0,0,0,0.05)',
+    borderBottomColor: staticColors.overlayBlack05,
   },
   multiSelectToggle: {
     flexDirection: 'row',
@@ -1563,7 +1566,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingVertical: 12,
     borderBottomWidth: 1,
-    borderBottomColor: 'rgba(0,0,0,0.05)',
+    borderBottomColor: staticColors.overlayBlack05,
   },
   selectionText: {
     fontSize: 14,
@@ -1598,7 +1601,7 @@ const styles = StyleSheet.create({
   applyMultiText: {
     fontSize: 16,
     fontWeight: '700',
-    color: '#FFF',
+    color: staticColors.white,
   },
   multiVerseHeader: {
     paddingVertical: 12,

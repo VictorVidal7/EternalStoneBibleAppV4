@@ -20,6 +20,8 @@ import {
   Animated,
   Platform,
 } from 'react-native';
+import {staticColors} from '@/styles/designTokens';
+
 import {LinearGradient} from 'expo-linear-gradient';
 import {Ionicons} from '@expo/vector-icons';
 import {celestialBorderRadius} from '../../styles/celestialTheme';
@@ -218,14 +220,14 @@ const styles = StyleSheet.create({
   buttonText: {
     fontSize: 20,
     fontWeight: '700',
-    color: '#ffffff',
+    color: staticColors.white,
     letterSpacing: -0.3,
     marginBottom: 4,
   },
   bookInfo: {
     fontSize: 14,
     fontWeight: '500',
-    color: 'rgba(255, 255, 255, 0.9)',
+    color: staticColors.glassWhite90,
     letterSpacing: 0.1,
   },
   percentageContainer: {
@@ -236,13 +238,13 @@ const styles = StyleSheet.create({
   percentage: {
     fontSize: 32,
     fontWeight: '700',
-    color: '#ffffff',
+    color: staticColors.white,
     letterSpacing: -0.5,
   },
   completedText: {
     fontSize: 12,
     fontWeight: '600',
-    color: 'rgba(255, 255, 255, 0.9)',
+    color: staticColors.glassWhite90,
     marginBottom: 8,
     letterSpacing: 0.2,
   },
@@ -256,7 +258,7 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
     ...Platform.select({
       ios: {
-        shadowColor: '#000',
+        shadowColor: staticColors.black,
         shadowOffset: {width: 0, height: 2},
         shadowOpacity: 0.1,
         shadowRadius: 4,
@@ -265,11 +267,11 @@ const styles = StyleSheet.create({
   },
   progressBarFill: {
     height: '100%',
-    backgroundColor: '#ffffff',
+    backgroundColor: staticColors.white,
     borderRadius: 9999,
     ...Platform.select({
       ios: {
-        shadowColor: '#fff',
+        shadowColor: staticColors.white,
         shadowOffset: {width: 0, height: 0},
         shadowOpacity: 0.5,
         shadowRadius: 8,

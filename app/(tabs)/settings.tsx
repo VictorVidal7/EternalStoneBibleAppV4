@@ -10,6 +10,8 @@ import {
   Alert,
   Linking,
 } from 'react-native';
+import {staticColors} from '@/styles/designTokens';
+
 import React, {useState, useMemo, useRef, useCallback} from 'react';
 import {Ionicons} from '@expo/vector-icons';
 import {useRouter, useFocusEffect} from 'expo-router';
@@ -690,7 +692,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     borderBottomLeftRadius: 16,
     borderBottomRightRadius: 16,
-    shadowColor: '#000',
+    shadowColor: staticColors.black,
     shadowOffset: {width: 0, height: 4},
     shadowOpacity: 0.1,
     shadowRadius: 12,
@@ -704,12 +706,12 @@ const styles = StyleSheet.create({
     width: 64,
     height: 64,
     borderRadius: 16,
-    backgroundColor: 'rgba(255,255,255,0.2)',
+    backgroundColor: staticColors.glassWhite20,
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: 16,
     borderWidth: 2,
-    borderColor: 'rgba(255,255,255,0.3)',
+    borderColor: staticColors.glassWhite30,
   },
   headerTextContainer: {
     flex: 1,
@@ -717,12 +719,12 @@ const styles = StyleSheet.create({
   headerTitle: {
     fontSize: 34,
     fontWeight: '700',
-    color: '#ffffff',
+    color: staticColors.white,
     marginBottom: 4,
   },
   headerSubtitle: {
     fontSize: 16,
-    color: 'rgba(255,255,255,0.9)',
+    color: staticColors.glassWhite90,
     fontWeight: '500',
   },
   settingInfo: {
@@ -792,7 +794,7 @@ function createThemedStyles(
       backgroundColor: colors.surface,
       borderRadius: 12,
       padding: 16,
-      shadowColor: '#000',
+      shadowColor: staticColors.black,
       shadowOffset: {width: 0, height: 2},
       shadowOpacity: isDark ? 0.3 : 0.1,
       shadowRadius: 4,
@@ -803,7 +805,7 @@ function createThemedStyles(
       borderRadius: 12,
       padding: 16,
       marginTop: 16,
-      shadowColor: '#000',
+      shadowColor: staticColors.black,
       shadowOffset: {width: 0, height: 2},
       shadowOpacity: isDark ? 0.3 : 0.1,
       shadowRadius: 4,
@@ -1049,7 +1051,7 @@ function createThemedStyles(
       padding: 8,
       borderRadius: 12,
       borderWidth: 2,
-      borderColor: 'transparent',
+      borderColor: staticColors.transparent,
     },
     colorThemeOptionActive: {
       borderColor: colors.primary,
@@ -1087,7 +1089,7 @@ function createThemedStyles(
       padding: 6,
       borderRadius: 10,
       borderWidth: 2,
-      borderColor: 'transparent',
+      borderColor: staticColors.transparent,
     },
     colorThemeOptionCompactActive: {
       borderColor: colors.primary,
@@ -1101,7 +1103,7 @@ function createThemedStyles(
       justifyContent: 'center',
       alignItems: 'center',
       borderWidth: isDark ? 1 : 0,
-      borderColor: isDark ? 'rgba(255,255,255,0.25)' : 'transparent',
+      borderColor: isDark ? 'rgba(255,255,255,0.25)' : staticColors.transparent,
       marginBottom: 4,
     },
     colorThemePreviewCompact: {

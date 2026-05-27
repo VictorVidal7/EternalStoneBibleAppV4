@@ -6,6 +6,8 @@ import {
   TouchableOpacity,
   Alert,
 } from 'react-native';
+import {staticColors} from '@/styles/designTokens';
+
 import {useState, useCallback, useMemo} from 'react';
 import {useRouter, useFocusEffect} from 'expo-router';
 import {Ionicons} from '@expo/vector-icons';
@@ -209,7 +211,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     borderBottomLeftRadius: 16,
     borderBottomRightRadius: 16,
-    shadowColor: '#000',
+    shadowColor: staticColors.black,
     shadowOffset: {width: 0, height: 4},
     shadowOpacity: 0.1,
     shadowRadius: 12,
@@ -219,7 +221,7 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: 'rgba(255,255,255,0.2)',
+    backgroundColor: staticColors.glassWhite20,
     justifyContent: 'center',
     alignItems: 'center',
     marginBottom: 16,
@@ -232,12 +234,12 @@ const styles = StyleSheet.create({
     width: 64,
     height: 64,
     borderRadius: 16,
-    backgroundColor: 'rgba(255,255,255,0.2)',
+    backgroundColor: staticColors.glassWhite20,
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: 16,
     borderWidth: 2,
-    borderColor: 'rgba(255,255,255,0.3)',
+    borderColor: staticColors.glassWhite30,
   },
   headerTextContainer: {
     flex: 1,
@@ -245,12 +247,12 @@ const styles = StyleSheet.create({
   headerTitle: {
     fontSize: 34,
     fontWeight: '700',
-    color: '#ffffff',
+    color: staticColors.white,
     marginBottom: 4,
   },
   headerSubtitle: {
     fontSize: 16,
-    color: 'rgba(255,255,255,0.9)',
+    color: staticColors.glassWhite90,
     fontWeight: '500',
   },
   listContent: {
@@ -258,11 +260,11 @@ const styles = StyleSheet.create({
     paddingBottom: 100, // Espacio para tab bar (88px iOS / 68px Android)
   },
   noteItem: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: staticColors.white,
     borderRadius: 12,
     padding: 16,
     marginBottom: 12,
-    shadowColor: '#000',
+    shadowColor: staticColors.black,
     shadowOffset: {width: 0, height: 1},
     shadowOpacity: 0.08,
     shadowRadius: 3,
@@ -301,7 +303,7 @@ const styles = StyleSheet.create({
   verseText: {
     fontSize: 14,
     lineHeight: 20,
-    color: '#7F8C8D',
+    color: staticColors.grayTertiary,
     fontStyle: 'italic',
     marginBottom: 12,
   },
@@ -313,6 +315,6 @@ const styles = StyleSheet.create({
   noteText: {
     fontSize: 15,
     lineHeight: 22,
-    color: '#2C3E50',
+    color: staticColors.grayDark,
   },
 });

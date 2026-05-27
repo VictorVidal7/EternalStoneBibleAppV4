@@ -32,7 +32,7 @@ import {useTheme} from '@hooks/useTheme';
 import {useLanguage} from '@hooks/useLanguage';
 
 // Design tokens
-import {spacing, fontSize} from '@/styles/designTokens';
+import {spacing, fontSize, staticColors} from '@/styles/designTokens';
 
 interface BibleBook {
   id: number;
@@ -195,7 +195,7 @@ export default function BibleScreen() {
                 styles.headerIconContainer,
                 {
                   backgroundColor: 'rgba(255,255,255,0.12)',
-                  borderColor: 'rgba(255,255,255,0.2)',
+                  borderColor: staticColors.glassWhite20,
                 },
               ]}>
               <Ionicons name="library" size={32} color="#ffffff" />
@@ -232,7 +232,7 @@ export default function BibleScreen() {
               styles.searchBar,
               {
                 backgroundColor: isDark
-                  ? 'rgba(255,255,255,0.05)'
+                  ? staticColors.glassWhite05
                   : 'rgba(0,0,0,0.03)',
                 borderColor: colors.glassBorder,
                 borderWidth: 1,
@@ -278,7 +278,7 @@ export default function BibleScreen() {
                     filter === 'old'
                       ? colors.primary + '40' // Traslúcido activo
                       : isDark
-                        ? 'rgba(255,255,255,0.05)'
+                        ? staticColors.glassWhite05
                         : 'rgba(0,0,0,0.03)',
                   borderColor:
                     filter === 'old' ? colors.primary : colors.glassBorder,
@@ -306,7 +306,7 @@ export default function BibleScreen() {
                     filter === 'new'
                       ? colors.primary + '40' // Traslúcido activo
                       : isDark
-                        ? 'rgba(255,255,255,0.05)'
+                        ? staticColors.glassWhite05
                         : 'rgba(0,0,0,0.03)',
                   borderColor:
                     filter === 'new' ? colors.primary : colors.glassBorder,
@@ -416,7 +416,7 @@ const SectionHeader: React.FC<SectionHeaderProps> = ({
           {
             backgroundColor: isDark
               ? 'rgba(255, 255, 255, 0.08)'
-              : 'rgba(255, 255, 255, 0.85)',
+              : staticColors.glassWhite85,
             borderColor: colors.glassBorder,
             borderWidth: 1,
             borderRadius: 16,
@@ -481,7 +481,7 @@ const BookCard: React.FC<BookCardProps> = ({book, index, onPress}) => {
         style={[
           styles.bookCard,
           {
-            backgroundColor: 'transparent',
+            backgroundColor: staticColors.transparent,
             shadowOpacity: 0,
             shadowRadius: 0,
             elevation: 0,
@@ -588,7 +588,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     borderBottomLeftRadius: 16,
     borderBottomRightRadius: 16,
-    shadowColor: '#000',
+    shadowColor: staticColors.black,
     shadowOffset: {width: 0, height: 4},
     shadowOpacity: 0.1,
     shadowRadius: 12,
@@ -602,12 +602,12 @@ const styles = StyleSheet.create({
     width: 64,
     height: 64,
     borderRadius: 16,
-    backgroundColor: 'rgba(255,255,255,0.2)',
+    backgroundColor: staticColors.glassWhite20,
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: 16,
     borderWidth: 2,
-    borderColor: 'rgba(255,255,255,0.3)',
+    borderColor: staticColors.glassWhite30,
   },
   headerTextContainer: {
     flex: 1,
@@ -615,12 +615,12 @@ const styles = StyleSheet.create({
   headerTitle: {
     fontSize: 34,
     fontWeight: '700',
-    color: '#ffffff',
+    color: staticColors.white,
     marginBottom: 4,
   },
   headerSubtitle: {
     fontSize: 16,
-    color: 'rgba(255,255,255,0.9)',
+    color: staticColors.glassWhite90,
     fontWeight: '500',
   },
   // Search
@@ -678,7 +678,7 @@ const styles = StyleSheet.create({
 
   // Section Header
   sectionHeaderWrapper: {
-    backgroundColor: 'transparent',
+    backgroundColor: staticColors.transparent,
     paddingVertical: 8,
     marginTop: 8,
   },

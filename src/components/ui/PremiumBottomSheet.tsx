@@ -23,6 +23,7 @@ import React, {
   forwardRef,
   useImperativeHandle,
 } from 'react';
+import {staticColors} from '@/styles/designTokens';
 import {View, Text, StyleSheet, Pressable, ViewStyle} from 'react-native';
 import BottomSheet, {
   BottomSheetScrollView,
@@ -274,7 +275,11 @@ const CustomBackdrop: React.FC<CustomBackdropProps> = ({
     <Animated.View
       style={[
         styles.backdrop,
-        {backgroundColor: isDark ? 'rgba(0,0,0,0.7)' : 'rgba(0,0,0,0.5)'},
+        {
+          backgroundColor: isDark
+            ? 'rgba(0,0,0,0.7)'
+            : staticColors.overlayBlack50,
+        },
         style,
         animatedStyle,
       ]}
@@ -389,7 +394,7 @@ export const PremiumBottomSheet = forwardRef<
     // Background style
     const backgroundStyle = useMemo(
       () => ({
-        backgroundColor: isDark ? '#1f2937' : '#FFFFFF',
+        backgroundColor: isDark ? staticColors.grayNeutral : staticColors.white,
         borderTopLeftRadius: 24,
         borderTopRightRadius: 24,
       }),
@@ -437,7 +442,7 @@ PremiumBottomSheet.displayName = 'PremiumBottomSheet';
 
 const styles = StyleSheet.create({
   container: {
-    shadowColor: '#000',
+    shadowColor: staticColors.black,
     shadowOffset: {width: 0, height: -4},
     shadowOpacity: 0.15,
     shadowRadius: 16,
@@ -456,10 +461,10 @@ const styles = StyleSheet.create({
     borderRadius: 3,
   },
   handleLight: {
-    backgroundColor: 'rgba(0,0,0,0.2)',
+    backgroundColor: staticColors.overlayBlack20,
   },
   handleDark: {
-    backgroundColor: 'rgba(255,255,255,0.3)',
+    backgroundColor: staticColors.glassWhite30,
   },
   header: {
     flexDirection: 'row',
@@ -491,21 +496,21 @@ const styles = StyleSheet.create({
   headerTitle: {
     fontSize: 18,
     fontWeight: '700',
-    color: '#1f2937',
+    color: staticColors.grayNeutral,
     textAlign: 'center',
   },
   headerTitleDark: {
-    color: '#FFFFFF',
+    color: staticColors.white,
   },
   headerSubtitle: {
     fontSize: 13,
     fontWeight: '500',
-    color: 'rgba(0,0,0,0.5)',
+    color: staticColors.overlayBlack50,
     marginTop: 2,
     textAlign: 'center',
   },
   headerSubtitleDark: {
-    color: 'rgba(255,255,255,0.5)',
+    color: staticColors.glassWhite50,
   },
   content: {
     flex: 1,

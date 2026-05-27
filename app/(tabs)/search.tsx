@@ -9,6 +9,8 @@ import {
   TouchableOpacity,
   RefreshControl,
 } from 'react-native';
+import {staticColors} from '@/styles/designTokens';
+
 import React, {useState, useCallback, useMemo, useEffect, memo} from 'react';
 import {useRouter} from 'expo-router';
 import {Ionicons} from '@expo/vector-icons';
@@ -88,7 +90,7 @@ function createThemedStyles(colors: ThemeColors, isDark: boolean) {
       color: colors.textSecondary,
     },
     filterTextActive: {
-      color: '#FFFFFF',
+      color: staticColors.white,
     },
     loadingText: {
       fontSize: 16,
@@ -111,7 +113,7 @@ function createThemedStyles(colors: ThemeColors, isDark: boolean) {
       borderRadius: 12,
       padding: 16,
       marginBottom: 12,
-      shadowColor: '#000',
+      shadowColor: staticColors.black,
       shadowOffset: {width: 0, height: 1},
       shadowOpacity: isDark ? 0.3 : 0.08,
       shadowRadius: 3,
@@ -795,7 +797,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     borderBottomLeftRadius: 16,
     borderBottomRightRadius: 16,
-    shadowColor: '#000',
+    shadowColor: staticColors.black,
     shadowOffset: {width: 0, height: 4},
     shadowOpacity: 0.1,
     shadowRadius: 12,
@@ -809,12 +811,12 @@ const styles = StyleSheet.create({
     width: 64,
     height: 64,
     borderRadius: 16,
-    backgroundColor: 'rgba(255,255,255,0.2)',
+    backgroundColor: staticColors.glassWhite20,
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: 16,
     borderWidth: 2,
-    borderColor: 'rgba(255,255,255,0.3)',
+    borderColor: staticColors.glassWhite30,
   },
   headerTextContainer: {
     flex: 1,
@@ -822,12 +824,12 @@ const styles = StyleSheet.create({
   headerTitle: {
     fontSize: 34,
     fontWeight: '700',
-    color: '#ffffff',
+    color: staticColors.white,
     marginBottom: 4,
   },
   headerSubtitle: {
     fontSize: 16,
-    color: 'rgba(255,255,255,0.9)',
+    color: staticColors.glassWhite90,
     fontWeight: '500',
   },
   searchInputContainer: {

@@ -1,3 +1,5 @@
+/* eslint-disable react-native/no-color-literals -- This component IS the
+   color picker; its hex palette is inherent UI content, not theme-driven. */
 /**
  * Selector de Color para Resaltados
  * Permite elegir color y categoría para destacar versículos

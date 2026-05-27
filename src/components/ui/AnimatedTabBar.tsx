@@ -15,6 +15,7 @@
  */
 
 import React, {useMemo, useCallback, useEffect} from 'react';
+import {staticColors} from '@/styles/designTokens';
 import {
   View,
   Text,
@@ -277,10 +278,13 @@ export const AnimatedTabBar: React.FC<AnimatedTabBarProps> = ({
   const colors = useMemo(
     () => ({
       indicator: indicatorColor || (isDark ? '#6366f1' : '#6366f1'),
-      active: activeColor || (isDark ? '#FFFFFF' : '#FFFFFF'),
+      active: activeColor || (isDark ? staticColors.white : staticColors.white),
       inactive:
-        inactiveColor || (isDark ? 'rgba(255,255,255,0.5)' : 'rgba(0,0,0,0.5)'),
-      background: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.05)',
+        inactiveColor ||
+        (isDark ? staticColors.glassWhite50 : staticColors.overlayBlack50),
+      background: isDark
+        ? staticColors.glassWhite10
+        : staticColors.overlayBlack05,
     }),
     [indicatorColor, activeColor, inactiveColor, isDark],
   );
@@ -322,7 +326,7 @@ export const AnimatedTabBar: React.FC<AnimatedTabBarProps> = ({
         variant === 'underline' && styles.containerUnderline,
         {
           backgroundColor:
-            variant === 'pills' ? colors.background : 'transparent',
+            variant === 'pills' ? colors.background : staticColors.transparent,
         },
         containerStyle,
       ]}>
@@ -375,7 +379,7 @@ const styles = StyleSheet.create({
   },
   containerUnderline: {
     borderBottomWidth: 1,
-    borderBottomColor: 'rgba(0,0,0,0.1)',
+    borderBottomColor: staticColors.overlayBlack10,
   },
   tabWrapper: {
     flex: 1,
@@ -431,7 +435,7 @@ const styles = StyleSheet.create({
   badgeText: {
     fontSize: 11,
     fontWeight: '700',
-    color: '#FFFFFF',
+    color: staticColors.white,
   },
   // Indicators
   indicatorPills: {

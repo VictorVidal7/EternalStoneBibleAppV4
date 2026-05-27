@@ -1,6 +1,7 @@
 import {Stack} from 'expo-router';
 import {useEffect, useState} from 'react';
 import {View, Text, StyleSheet, LogBox, TouchableOpacity} from 'react-native';
+import {staticColors} from '@/styles/designTokens';
 
 // Ignore specific development warnings
 
@@ -205,7 +206,7 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#FFFFFF',
+    backgroundColor: staticColors.white,
     padding: 20,
   },
   progressText: {
@@ -218,7 +219,7 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#FFFFFF',
+    backgroundColor: staticColors.white,
     padding: 20,
   },
   errorTitle: {
@@ -229,13 +230,13 @@ const styles = StyleSheet.create({
   },
   errorText: {
     fontSize: 16,
-    color: '#2C3E50',
+    color: staticColors.grayDark,
     textAlign: 'center',
     marginBottom: 24,
   },
   errorHint: {
     fontSize: 14,
-    color: '#7F8C8D',
+    color: staticColors.grayTertiary,
     textAlign: 'center',
     marginTop: 16,
   },
@@ -247,7 +248,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   retryButtonText: {
-    color: '#FFFFFF',
+    color: staticColors.white,
     fontSize: 16,
     fontWeight: '700',
   },
