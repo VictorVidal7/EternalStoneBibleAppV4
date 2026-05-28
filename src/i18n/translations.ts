@@ -341,6 +341,27 @@ export const translations = {
       missingText: '(texto no disponible)',
     },
 
+    auth: {
+      sectionTitle: 'Cuenta',
+      signInWithGoogle: 'Iniciar sesión con Google',
+      signOut: 'Cerrar sesión',
+      signOutConfirmTitle: 'Cerrar sesión',
+      signOutConfirmMessage:
+        'Cerrarás sesión de Google. Tus favoritos, notas, resaltados, marcadores y tarjetas de memoria seguirán en este dispositivo.',
+      signOutConfirmCta: 'Cerrar sesión',
+      signedInAs: 'Sesión iniciada como',
+      notSignedIn:
+        'Inicia sesión para sincronizar tus datos entre dispositivos',
+      notSignedInTitle: 'Sin sesión iniciada',
+      anonymousLabel: 'Invitado',
+      signInError: 'No se pudo iniciar sesión. Inténtalo de nuevo.',
+      signInCancelled: 'Inicio de sesión cancelado',
+      signedInToast: '¡Bienvenido, {{name}}!',
+      signedOutToast: 'Sesión cerrada',
+      avatarA11y: 'Foto de perfil de {{name}}',
+      googleLogoA11y: 'Logo de Google',
+    },
+
     bookmarks: {
       title: 'Marcadores',
       short: 'Marcadores',
@@ -1608,6 +1629,26 @@ export const translations = {
       emptyBody:
         "We don't have cross-references for this verse yet — for now we cover the most-studied passages.",
       missingText: '(text not available)',
+    },
+
+    auth: {
+      sectionTitle: 'Account',
+      signInWithGoogle: 'Sign in with Google',
+      signOut: 'Sign out',
+      signOutConfirmTitle: 'Sign out',
+      signOutConfirmMessage:
+        'You will be signed out of Google. Your favorites, notes, highlights, bookmarks and memory cards will remain on this device.',
+      signOutConfirmCta: 'Sign out',
+      signedInAs: 'Signed in as',
+      notSignedIn: 'Sign in to sync your data across devices',
+      notSignedInTitle: 'Not signed in',
+      anonymousLabel: 'Guest',
+      signInError: 'Could not sign in. Please try again.',
+      signInCancelled: 'Sign-in cancelled',
+      signedInToast: 'Welcome, {{name}}!',
+      signedOutToast: 'Signed out',
+      avatarA11y: 'Profile picture of {{name}}',
+      googleLogoA11y: 'Google logo',
     },
 
     bookmarks: {

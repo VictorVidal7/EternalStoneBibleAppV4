@@ -9,6 +9,8 @@ import {
   TouchableOpacity,
   Alert,
   Linking,
+  Image,
+  ActivityIndicator,
 } from 'react-native';
 import {staticColors} from '@/styles/designTokens';
 
@@ -22,6 +24,8 @@ import {useLanguage} from '@hooks/useLanguage';
 import {initializeBibleData, resetBibleData} from '@lib/database/data-loader';
 import {exportBackup} from '@/services/BackupService';
 import {logger} from '@lib/utils/logger';
+import {useAuth} from '@context/AuthContext';
+import {useToast} from '@context/ToastContext';
 import DailyVerseSettings from '@components/settings/DailyVerseSettings';
 import * as Haptics from 'expo-haptics';
 import Constants from 'expo-constants';
@@ -52,8 +56,11 @@ export default function SettingsScreen() {
   } = useTheme();
   const {selectedVersion, setVersion, availableVersions} = useBibleVersion();
   const {language, setLanguage, t} = useLanguage();
+  const {user, signInWithGoogle, signOut} = useAuth();
+  const toast = useToast();
   const [isResetting, setIsResetting] = useState(false);
   const [isExporting, setIsExporting] = useState(false);
+  const [isAuthenticating, setIsAuthenticating] = useState(false);
   const scrollViewRef = useRef<ScrollView>(null);
 
   useFocusEffect(
@@ -126,6 +133,59 @@ export default function SettingsScreen() {
     } finally {
       setIsExporting(false);
     }
+  }
+
+  async function handleSignInWithGoogle() {
+    if (isAuthenticating) return;
+    setIsAuthenticating(true);
+    try {
+      await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+      await signInWithGoogle();
+      toast.success(
+        t.auth.signedInToast.replace(
+          '{{name}}',
+          user?.displayName ?? user?.email ?? '',
+        ),
+      );
+    } catch (err: any) {
+      // GoogleSignin status codes: SIGN_IN_CANCELLED = '-5' or '12501';
+      // we tolerate cancellations silently and surface real errors.
+      const code = err?.code ?? '';
+      if (code === '-5' || code === '12501' || code === 'SIGN_IN_CANCELLED') {
+        toast.info(t.auth.signInCancelled);
+      } else {
+        logger.error('Google sign-in failed', err as Error, {
+          component: 'SettingsScreen',
+          action: 'handleSignInWithGoogle',
+        });
+        toast.error(t.auth.signInError);
+      }
+    } finally {
+      setIsAuthenticating(false);
+    }
+  }
+
+  async function handleSignOut() {
+    Alert.alert(t.auth.signOutConfirmTitle, t.auth.signOutConfirmMessage, [
+      {text: t.cancel, style: 'cancel'},
+      {
+        text: t.auth.signOutConfirmCta,
+        style: 'destructive',
+        onPress: async () => {
+          try {
+            await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+            await signOut();
+            toast.success(t.auth.signedOutToast);
+          } catch (err) {
+            logger.error('Sign-out failed', err as Error, {
+              component: 'SettingsScreen',
+              action: 'handleSignOut',
+            });
+            toast.error(t.auth.signInError);
+          }
+        },
+      },
+    ]);
   }
 
   const themeActiveTextColor = getReadableTextColor(
@@ -633,6 +693,116 @@ export default function SettingsScreen() {
           </View>
         </View>
 
+        {/* Account Section (Sprint 41 — Firebase Auth) */}
+        <View style={themedStyles.section}>
+          <View style={themedStyles.sectionHeader}>
+            <Ionicons
+              name="person-circle-outline"
+              size={22}
+              color={colors.primary}
+            />
+            <Text style={themedStyles.sectionTitle}>{t.auth.sectionTitle}</Text>
+          </View>
+
+          <View style={themedStyles.card}>
+            {user && !user.isAnonymous ? (
+              <>
+                <View style={styles.accountRow}>
+                  {user.photoURL ? (
+                    <Image
+                      source={{uri: user.photoURL}}
+                      style={styles.accountAvatar}
+                      accessibilityLabel={t.auth.avatarA11y.replace(
+                        '{{name}}',
+                        user.displayName ?? user.email ?? '',
+                      )}
+                    />
+                  ) : (
+                    <View
+                      style={[
+                        styles.accountAvatar,
+                        styles.accountAvatarFallback,
+                        {backgroundColor: colors.primary + '20'},
+                      ]}>
+                      <Ionicons
+                        name="person"
+                        size={28}
+                        color={colors.primary}
+                      />
+                    </View>
+                  )}
+                  <View style={styles.accountInfo}>
+                    <Text style={themedStyles.settingLabel} numberOfLines={1}>
+                      {user.displayName ?? t.auth.anonymousLabel}
+                    </Text>
+                    {user.email ? (
+                      <Text
+                        style={themedStyles.settingDescription}
+                        numberOfLines={1}>
+                        {user.email}
+                      </Text>
+                    ) : null}
+                  </View>
+                </View>
+                <TouchableOpacity
+                  style={[
+                    themedStyles.signOutButton,
+                    {borderColor: colors.error},
+                  ]}
+                  onPress={handleSignOut}
+                  accessibilityRole="button"
+                  accessibilityLabel={t.auth.signOut}>
+                  <Ionicons
+                    name="log-out-outline"
+                    size={20}
+                    color={colors.error}
+                  />
+                  <Text
+                    style={[
+                      themedStyles.signOutButtonText,
+                      {color: colors.error},
+                    ]}>
+                    {t.auth.signOut}
+                  </Text>
+                </TouchableOpacity>
+              </>
+            ) : (
+              <>
+                <Text
+                  style={[
+                    themedStyles.settingDescription,
+                    {marginBottom: 16, marginTop: 0},
+                  ]}>
+                  {t.auth.notSignedIn}
+                </Text>
+                <TouchableOpacity
+                  style={[
+                    themedStyles.googleSignInButton,
+                    isAuthenticating && {opacity: 0.6},
+                  ]}
+                  onPress={handleSignInWithGoogle}
+                  disabled={isAuthenticating}
+                  accessibilityRole="button"
+                  accessibilityLabel={t.auth.signInWithGoogle}>
+                  {isAuthenticating ? (
+                    <ActivityIndicator size="small" color={colors.text} />
+                  ) : (
+                    <Ionicons
+                      name="logo-google"
+                      size={20}
+                      color="#4285F4"
+                      accessibilityLabel={t.auth.googleLogoA11y}
+                    />
+                  )}
+                  <Text style={themedStyles.googleSignInButtonText}>
+                    {t.auth.signInWithGoogle}
+                  </Text>
+                </TouchableOpacity>
+              </>
+            )}
+          </View>
+        </View>
+
         {/* About Section */}
         <View style={themedStyles.section}>
           <View style={themedStyles.sectionHeader}>
@@ -787,6 +957,24 @@ const styles = StyleSheet.create({
     gap: 12,
   },
   featureInfo: {
+    flex: 1,
+  },
+  accountRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    marginBottom: 16,
+  },
+  accountAvatar: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+  },
+  accountAvatarFallback: {
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  accountInfo: {
     flex: 1,
   },
 });
@@ -1010,6 +1198,43 @@ function createThemedStyles(
       color: colors.primary,
       fontWeight: '600',
       marginLeft: 8,
+    },
+    googleSignInButton: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'center',
+      gap: 10,
+      paddingVertical: 14,
+      paddingHorizontal: 20,
+      borderRadius: 10,
+      backgroundColor: isDark ? staticColors.glassWhite90 : staticColors.white,
+      borderWidth: 1,
+      borderColor: colors.border,
+      shadowColor: staticColors.black,
+      shadowOffset: {width: 0, height: 1},
+      shadowOpacity: 0.15,
+      shadowRadius: 2,
+      elevation: 2,
+    },
+    googleSignInButtonText: {
+      fontSize: 15,
+      color: '#3c4043',
+      fontWeight: '600',
+    },
+    signOutButton: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'center',
+      gap: 8,
+      paddingVertical: 12,
+      paddingHorizontal: 16,
+      borderRadius: 8,
+      borderWidth: 1.5,
+      backgroundColor: 'transparent',
+    },
+    signOutButtonText: {
+      fontSize: 15,
+      fontWeight: '600',
     },
     footer: {
       alignItems: 'center',
