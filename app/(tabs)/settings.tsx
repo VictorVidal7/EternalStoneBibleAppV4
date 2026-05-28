@@ -14,7 +14,7 @@ import {
 } from 'react-native';
 import {staticColors} from '@/styles/designTokens';
 
-import React, {useState, useMemo, useRef, useCallback} from 'react';
+import React, {useEffect, useState, useMemo, useRef, useCallback} from 'react';
 import {Ionicons} from '@expo/vector-icons';
 import {useRouter, useFocusEffect} from 'expo-router';
 import {useTheme, colorThemes, ColorTheme, ThemeColors} from '@hooks/useTheme';
@@ -25,6 +25,7 @@ import {initializeBibleData, resetBibleData} from '@lib/database/data-loader';
 import {exportBackup} from '@/services/BackupService';
 import {logger} from '@lib/utils/logger';
 import {useAuth} from '@context/AuthContext';
+import {useSyncEngineOptional} from '@context/SyncEngineContext';
 import {useToast} from '@context/ToastContext';
 import DailyVerseSettings from '@components/settings/DailyVerseSettings';
 import * as Haptics from 'expo-haptics';
@@ -57,11 +58,50 @@ export default function SettingsScreen() {
   const {selectedVersion, setVersion, availableVersions} = useBibleVersion();
   const {language, setLanguage, t} = useLanguage();
   const {user, signInWithGoogle, signOut} = useAuth();
+  const syncCtx = useSyncEngineOptional();
   const toast = useToast();
   const [isResetting, setIsResetting] = useState(false);
   const [isExporting, setIsExporting] = useState(false);
   const [isAuthenticating, setIsAuthenticating] = useState(false);
   const scrollViewRef = useRef<ScrollView>(null);
+
+  // Tick every 10s so the "Synced Xs ago" label stays accurate without
+  // re-rendering every frame.
+  const [nowTick, setNowTick] = useState(() => Date.now());
+  useEffect(() => {
+    if (!user || user.isAnonymous) return;
+    const id = setInterval(() => setNowTick(Date.now()), 10000);
+    return () => clearInterval(id);
+  }, [user]);
+
+  const syncIndicator = useMemo(() => {
+    if (!syncCtx || !user || user.isAnonymous) return null;
+    const {state} = syncCtx;
+    if (state.pendingWrites > 0) {
+      return state.pendingWrites === 1
+        ? t.sync.syncingSingular
+        : t.sync.syncing.replace('{{count}}', String(state.pendingWrites));
+    }
+    if (!state.isOnline) {
+      if (state.pendingWrites === 1) return t.sync.offlineWithQueueSingular;
+      if (state.pendingWrites > 1)
+        return t.sync.offlineWithQueue.replace(
+          '{{count}}',
+          String(state.pendingWrites),
+        );
+      return t.sync.offline;
+    }
+    if (state.lastSyncedAt == null) return t.sync.waiting;
+    const secsAgo = Math.max(
+      0,
+      Math.floor((nowTick - state.lastSyncedAt) / 1000),
+    );
+    if (secsAgo < 5) return t.sync.justNow;
+    if (secsAgo < 60)
+      return t.sync.secondsAgo.replace('{{n}}', String(secsAgo));
+    const minsAgo = Math.floor(secsAgo / 60);
+    return t.sync.minutesAgo.replace('{{n}}', String(minsAgo));
+  }, [syncCtx, user, nowTick, t]);
 
   useFocusEffect(
     useCallback(() => {
@@ -744,6 +784,26 @@ export default function SettingsScreen() {
                     ) : null}
                   </View>
                 </View>
+                {syncIndicator ? (
+                  <View style={styles.syncRow}>
+                    <Ionicons
+                      name={
+                        syncCtx?.state.pendingWrites
+                          ? 'cloud-upload-outline'
+                          : !syncCtx?.state.isOnline
+                            ? 'cloud-offline-outline'
+                            : 'cloud-done-outline'
+                      }
+                      size={14}
+                      color={colors.textSecondary}
+                    />
+                    <Text
+                      style={[styles.syncText, {color: colors.textSecondary}]}
+                      numberOfLines={1}>
+                      {syncIndicator}
+                    </Text>
+                  </View>
+                ) : null}
                 <TouchableOpacity
                   style={[
                     themedStyles.signOutButton,
@@ -975,6 +1035,16 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   accountInfo: {
+    flex: 1,
+  },
+  syncRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    marginBottom: 12,
+  },
+  syncText: {
+    fontSize: 12,
     flex: 1,
   },
 });

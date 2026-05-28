@@ -55,6 +55,10 @@ export interface MemoryCard {
   lastReviewedAt: string | null;
   /** Total number of times this card has been reviewed. */
   reviewCount: number;
+  /** Sprint 42: millis since epoch of the most recent mutation. Used
+   *  by the sync engine for last-write-wins reconciliation. Backfilled
+   *  to addedAt when hydrating cards persisted before this sprint. */
+  updatedAt: number;
 }
 
 /** Build a fresh card seeded at box 1 due immediately. */
@@ -79,6 +83,7 @@ export function createCard(input: {
     addedAt: input.now,
     lastReviewedAt: null,
     reviewCount: 0,
+    updatedAt: Date.parse(input.now) || Date.now(),
   };
 }
 
@@ -120,6 +125,7 @@ export function applyReview(
     dueAt: computeDueDate(nextBox, grade, now).toISOString(),
     lastReviewedAt: now.toISOString(),
     reviewCount: card.reviewCount + 1,
+    updatedAt: now.getTime(),
   };
 }
 

@@ -16,6 +16,7 @@ import React, {
   useState,
   useContext,
   useEffect,
+  useRef,
   ReactNode,
   FC,
 } from 'react';
@@ -23,6 +24,8 @@ import bibleDB from '../lib/database';
 import {logger} from '../lib/utils/logger';
 import {BibleVerse} from '../types/bible';
 import {useServices} from './ServicesContext';
+import {getSyncEngine, type SyncAdapter, type SyncEntity} from '../lib/sync';
+import {useSyncEngineOptional} from './SyncEngineContext';
 
 type FavoriteSourceVerse = Pick<
   BibleVerse,
@@ -79,14 +82,138 @@ const FavoritesContext = createContext<FavoritesContextType | undefined>(
   undefined,
 );
 
+/** Build the Firestore payload for a favorite. Strips React-only
+ *  fields and ensures `updatedAt` is present. */
+function favoriteToRemote(
+  f: Favorite,
+): SyncEntity<Omit<Favorite, 'updatedAt'>> {
+  return {
+    id: f.id,
+    verseId: f.verseId,
+    book: f.book,
+    chapter: f.chapter,
+    verse: f.verse,
+    text: f.text,
+    category: f.category,
+    rating: f.rating,
+    tags: f.tags,
+    note: f.note,
+    createdAt: f.createdAt,
+    updatedAt: f.updatedAt,
+  };
+}
+
 export const FavoritesProvider: FC<{children: ReactNode}> = ({children}) => {
   const [favorites, setFavorites] = useState<Favorite[]>([]);
   const [loading, setLoading] = useState(true);
   const {achievementService} = useServices();
+  const syncCtx = useSyncEngineOptional();
+
+  // Keep an always-fresh ref for the sync adapter's getLocal — it
+  // runs outside React render and can't capture stale state.
+  const favoritesRef = useRef<Favorite[]>([]);
+  useEffect(() => {
+    favoritesRef.current = favorites;
+  }, [favorites]);
 
   useEffect(() => {
     loadFavorites();
   }, []);
+
+  // Register the sync adapter once the engine is mounted. The engine
+  // calls applyRemoteUpsert/Delete with the local-write suppress flag
+  // on, so the setFavorites calls below do NOT bounce back as a push.
+  useEffect(() => {
+    if (!syncCtx) return;
+    const adapter: SyncAdapter<Omit<Favorite, 'updatedAt'>> = {
+      collection: 'favorites',
+      async getLocal(id) {
+        const local = favoritesRef.current.find(f => f.id === id);
+        return local ? favoriteToRemote(local) : null;
+      },
+      async applyRemoteUpsert(id, data) {
+        const incoming: Favorite = {
+          id,
+          verseId: data.verseId,
+          book: data.book,
+          chapter: data.chapter,
+          verse: data.verse,
+          text: data.text,
+          category: data.category,
+          rating: data.rating,
+          tags: Array.isArray(data.tags) ? data.tags : [],
+          note: data.note,
+          createdAt:
+            typeof data.createdAt === 'number' ? data.createdAt : Date.now(),
+          updatedAt:
+            typeof data.updatedAt === 'number' ? data.updatedAt : Date.now(),
+        };
+        try {
+          await bibleDB.initialize();
+          // INSERT OR REPLACE so an inbound update for an existing id
+          // overwrites rather than throwing a UNIQUE violation.
+          await bibleDB.executeSql(
+            `INSERT OR REPLACE INTO favorites
+             (id, verse_id, book_name, chapter, verse, text, category, rating, tags, note, created_at, updated_at)
+             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+            [
+              incoming.id,
+              incoming.verseId,
+              incoming.book,
+              incoming.chapter,
+              incoming.verse,
+              incoming.text,
+              incoming.category,
+              incoming.rating,
+              JSON.stringify(incoming.tags),
+              incoming.note ?? null,
+              incoming.createdAt,
+              incoming.updatedAt,
+            ],
+          );
+        } catch (err) {
+          logger.error(
+            'favorites adapter: applyRemoteUpsert DB write failed',
+            err instanceof Error ? err : new Error(String(err)),
+            {component: 'FavoritesContext', id},
+          );
+          return;
+        }
+        // Mirror into React state so the screen rerenders immediately.
+        setFavorites(prev => {
+          const idx = prev.findIndex(f => f.id === id);
+          if (idx >= 0) {
+            const next = [...prev];
+            next[idx] = incoming;
+            return next;
+          }
+          return [incoming, ...prev];
+        });
+      },
+      async applyRemoteDelete(id) {
+        try {
+          await bibleDB.removeFavorite(id);
+        } catch (err) {
+          logger.warn('favorites adapter: applyRemoteDelete DB failed', {
+            component: 'FavoritesContext',
+            id,
+            error: err instanceof Error ? err.message : String(err),
+          });
+        }
+        setFavorites(prev => prev.filter(f => f.id !== id));
+      },
+      async pullAllLocal() {
+        return favoritesRef.current.map(f => ({
+          id: f.id,
+          data: favoriteToRemote(f),
+        }));
+      },
+    };
+    syncCtx.engine.register(adapter);
+    return () => {
+      syncCtx.engine.unregister('favorites');
+    };
+  }, [syncCtx]);
 
   /**
    * Carga los favoritos desde la base de datos
@@ -160,6 +287,11 @@ export const FavoritesProvider: FC<{children: ReactNode}> = ({children}) => {
         }
       }
       setFavorites(prev => [favorite, ...prev]);
+      getSyncEngine()?.queueWrite(
+        'favorites',
+        favorite.id,
+        favoriteToRemote(favorite),
+      );
 
       logger.info('Favorite added successfully', {
         component: 'FavoritesContext',
@@ -180,8 +312,17 @@ export const FavoritesProvider: FC<{children: ReactNode}> = ({children}) => {
    */
   async function removeFavorite(id: string): Promise<void> {
     try {
+      // Snapshot the doc BEFORE removing so the tombstone written to
+      // Firestore carries the verse identity (useful for S43 conflict
+      // UI and so the other device can show "X removed Genesis 1:1").
+      const lastKnown = favoritesRef.current.find(f => f.id === id);
       await bibleDB.removeFavorite(id);
       setFavorites(prev => prev.filter(f => f.id !== id));
+      getSyncEngine()?.queueDelete(
+        'favorites',
+        id,
+        lastKnown ? favoriteToRemote(lastKnown) : undefined,
+      );
 
       logger.info('Favorite removed successfully', {
         component: 'FavoritesContext',
@@ -211,16 +352,22 @@ export const FavoritesProvider: FC<{children: ReactNode}> = ({children}) => {
 
       await bibleDB.updateFavorite(id, updatedData);
 
+      let mergedForSync: Favorite | undefined;
       setFavorites(prev =>
-        prev.map(f =>
-          f.id === id
-            ? {
-                ...f,
-                ...updatedData,
-              }
-            : f,
-        ),
+        prev.map(f => {
+          if (f.id !== id) return f;
+          const merged = {...f, ...updatedData};
+          mergedForSync = merged;
+          return merged;
+        }),
       );
+      if (mergedForSync) {
+        getSyncEngine()?.queueWrite(
+          'favorites',
+          id,
+          favoriteToRemote(mergedForSync),
+        );
+      }
 
       logger.info('Favorite updated successfully', {
         component: 'FavoritesContext',

@@ -18,6 +18,7 @@ import React, {
   useContext,
   useEffect,
   useMemo,
+  useRef,
   useState,
   ReactNode,
 } from 'react';
@@ -31,6 +32,8 @@ import {
   ReviewGrade,
   selectDueCards,
 } from '../lib/memory/srs';
+import {getSyncEngine, type SyncAdapter, type SyncEntity} from '../lib/sync';
+import {useSyncEngineOptional} from './SyncEngineContext';
 
 const STORAGE_KEY = '@memory_deck';
 
@@ -77,11 +80,21 @@ interface MemoryDeckProviderProps {
   children: ReactNode;
 }
 
+function cardToRemote(c: MemoryCard): SyncEntity<MemoryCard> {
+  return {...c};
+}
+
 export const MemoryDeckProvider: React.FC<MemoryDeckProviderProps> = ({
   children,
 }) => {
   const [deck, setDeck] = useState<Record<string, MemoryCard>>({});
   const [hydrated, setHydrated] = useState(false);
+  const syncCtx = useSyncEngineOptional();
+
+  const deckRef = useRef<Record<string, MemoryCard>>({});
+  useEffect(() => {
+    deckRef.current = deck;
+  }, [deck]);
 
   // Hydrate from storage once.
   useEffect(() => {
@@ -99,7 +112,16 @@ export const MemoryDeckProvider: React.FC<MemoryDeckProviderProps> = ({
                 typeof v.verseKey === 'string' &&
                 typeof v.box === 'number'
               ) {
-                clean[k] = v;
+                // Sprint 42 backfill: cards persisted before this
+                // sprint lack `updatedAt`. Default to addedAt (which
+                // every existing card has) or Date.now().
+                const updatedAt =
+                  typeof v.updatedAt === 'number'
+                    ? v.updatedAt
+                    : v.addedAt
+                      ? Date.parse(v.addedAt) || Date.now()
+                      : Date.now();
+                clean[k] = {...v, updatedAt};
               }
             }
             setDeck(clean);
@@ -119,48 +141,106 @@ export const MemoryDeckProvider: React.FC<MemoryDeckProviderProps> = ({
     );
   }, [deck, hydrated]);
 
+  // Sync adapter — memoria cards use verseKey as their id (stable
+  // across devices because it's derived from the verse identity, not a
+  // generated timestamp).
+  useEffect(() => {
+    if (!syncCtx) return;
+    const adapter: SyncAdapter<MemoryCard> = {
+      collection: 'memoryCards',
+      async getLocal(id) {
+        const c = deckRef.current[id];
+        return c ? cardToRemote(c) : null;
+      },
+      async applyRemoteUpsert(id, data) {
+        const incoming: MemoryCard = {
+          verseKey: data.verseKey || id,
+          bookName: data.bookName,
+          chapter: data.chapter,
+          verse: data.verse,
+          text: data.text,
+          version: data.version,
+          box: data.box,
+          dueAt: data.dueAt,
+          addedAt: data.addedAt,
+          lastReviewedAt: data.lastReviewedAt ?? null,
+          reviewCount: data.reviewCount ?? 0,
+          updatedAt:
+            typeof data.updatedAt === 'number' ? data.updatedAt : Date.now(),
+        };
+        setDeck(prev => ({...prev, [id]: incoming}));
+      },
+      async applyRemoteDelete(id) {
+        setDeck(prev => {
+          if (!prev[id]) return prev;
+          const {[id]: _drop, ...rest} = prev;
+          void _drop;
+          return rest;
+        });
+      },
+      async pullAllLocal() {
+        return Object.values(deckRef.current).map(c => ({
+          id: c.verseKey,
+          data: cardToRemote(c),
+        }));
+      },
+    };
+    syncCtx.engine.register(adapter);
+    return () => {
+      syncCtx.engine.unregister('memoryCards');
+    };
+  }, [syncCtx]);
+
   const addCard = useCallback((input: AddCardInput) => {
     const key = buildVerseKey(input.bookName, input.chapter, input.verse);
-    setDeck(prev => {
-      if (prev[key]) return prev; // already in deck — no-op
-      const now = new Date().toISOString();
-      return {
-        ...prev,
-        [key]: createCard({
-          verseKey: key,
-          bookName: input.bookName,
-          chapter: input.chapter,
-          verse: input.verse,
-          text: input.text,
-          version: input.version,
-          now,
-        }),
-      };
+    if (deckRef.current[key]) return; // already in deck — no-op
+    const now = new Date().toISOString();
+    const card = createCard({
+      verseKey: key,
+      bookName: input.bookName,
+      chapter: input.chapter,
+      verse: input.verse,
+      text: input.text,
+      version: input.version,
+      now,
     });
+    setDeck(prev => (prev[key] ? prev : {...prev, [key]: card}));
+    getSyncEngine()?.queueWrite('memoryCards', key, cardToRemote(card));
   }, []);
 
   const removeCard = useCallback((verseKey: string) => {
+    const existing = deckRef.current[verseKey];
+    if (!existing) return;
     setDeck(prev => {
       if (!prev[verseKey]) return prev;
       const {[verseKey]: _drop, ...rest} = prev;
       void _drop;
       return rest;
     });
+    getSyncEngine()?.queueDelete(
+      'memoryCards',
+      verseKey,
+      cardToRemote(existing),
+    );
   }, []);
 
   const reviewCard = useCallback((verseKey: string, grade: ReviewGrade) => {
-    setDeck(prev => {
-      const existing = prev[verseKey];
-      if (!existing) return prev;
-      return {
-        ...prev,
-        [verseKey]: applyReview(existing, grade, new Date()),
-      };
-    });
+    const existing = deckRef.current[verseKey];
+    if (!existing) return;
+    const updated = applyReview(existing, grade, new Date());
+    setDeck(prev => (prev[verseKey] ? {...prev, [verseKey]: updated} : prev));
+    getSyncEngine()?.queueWrite('memoryCards', verseKey, cardToRemote(updated));
   }, []);
 
   const resetDeck = useCallback(() => {
+    const snapshot = Object.values(deckRef.current);
     setDeck({});
+    const engine = getSyncEngine();
+    if (engine) {
+      for (const card of snapshot) {
+        engine.queueDelete('memoryCards', card.verseKey, cardToRemote(card));
+      }
+    }
   }, []);
 
   const cards = useMemo(() => Object.values(deck), [deck]);

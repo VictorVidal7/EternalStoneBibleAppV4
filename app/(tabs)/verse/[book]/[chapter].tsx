@@ -26,6 +26,9 @@ import {
   type ParsedReference,
 } from '@/lib/references/parseReference';
 import {HighlightColor} from '@lib/highlights';
+import {getSyncEngine} from '@lib/sync';
+import {buildNoteRemotePayload} from '@lib/sync/adapters/notes';
+import {buildHighlightRemotePayload} from '@lib/sync/adapters/highlights';
 import {useTheme} from '@hooks/useTheme';
 import {useBibleVersion} from '@hooks/useBibleVersion';
 import {useLanguage} from '@hooks/useLanguage';
@@ -524,11 +527,19 @@ export default function VerseReadingScreen() {
       selectedVerseForNote.verse,
     );
 
+    let savedNoteId: string | null = null;
+    let savedNote: typeof existingNote = null;
     if (existingNote) {
       await bibleDB.updateNote(existingNote.id, noteText.trim());
+      savedNoteId = existingNote.id;
+      savedNote = {
+        ...existingNote,
+        note: noteText.trim(),
+        updatedAt: new Date().toISOString(),
+      };
     } else {
       const now = new Date().toISOString();
-      await bibleDB.addNote({
+      const noteToAdd = {
         book: selectedVerseForNote.book,
         chapter: selectedVerseForNote.chapter,
         verse: selectedVerseForNote.verse,
@@ -536,7 +547,17 @@ export default function VerseReadingScreen() {
         note: noteText.trim(),
         createdAt: now,
         updatedAt: now,
-      });
+      };
+      savedNoteId = await bibleDB.addNote(noteToAdd);
+      savedNote = {id: savedNoteId, ...noteToAdd};
+    }
+
+    if (savedNote && savedNoteId) {
+      getSyncEngine()?.queueWrite(
+        'notes',
+        savedNoteId,
+        buildNoteRemotePayload(savedNote),
+      );
     }
 
     setNoteModalVisible(false);
@@ -610,14 +631,23 @@ export default function VerseReadingScreen() {
     await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     const nums = Array.from(selectedVerses);
     const next = new Map(verseHighlights);
+    const engine = getSyncEngine();
     try {
       for (const num of nums) {
         const verseId = `${book}:${chapterNum}:${num}`;
         if (color === null) {
+          // Snapshot the current highlight (if any) before removing so
+          // the tombstone can carry the verse identity to other devices.
+          const existing = await highlightService.getHighlightByVerse(verseId);
           await highlightService.removeHighlight(verseId);
           next.delete(num);
+          engine?.queueDelete(
+            'highlights',
+            verseId,
+            existing ? buildHighlightRemotePayload(existing) : undefined,
+          );
         } else {
-          await highlightService.addHighlight(
+          const created = await highlightService.addHighlight(
             verseId,
             book,
             chapterNum,
@@ -625,6 +655,11 @@ export default function VerseReadingScreen() {
             color,
           );
           next.set(num, color);
+          engine?.queueWrite(
+            'highlights',
+            verseId,
+            buildHighlightRemotePayload(created),
+          );
         }
       }
       setVerseHighlights(next);

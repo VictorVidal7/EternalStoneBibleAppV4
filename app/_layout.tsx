@@ -28,6 +28,11 @@ if (!__DEV__) {
     'VirtualizedLists should never',
     'Failed prop type',
     'Warning:',
+    // RNFirebase v23 logs a verbose namespace-API deprecation warning on
+    // every auth/firestore call. Migration to the modular API is queued
+    // for a future sprint; silence the toast so it doesn't cover the
+    // bottom of the screen.
+    'This method is deprecated',
   ]);
 }
 import {GestureHandlerRootView} from 'react-native-gesture-handler';
@@ -44,6 +49,7 @@ import {ReadingPlanProgressProvider} from '@context/ReadingPlanProgressContext';
 import {ReaderPreferencesProvider} from '@context/ReaderPreferencesContext';
 import {MemoryDeckProvider} from '@context/MemoryDeckContext';
 import {AuthProvider} from '@context/AuthContext';
+import {SyncEngineProvider} from '@context/SyncEngineContext';
 import {useOnboarding} from '@hooks/useOnboarding';
 import {OnboardingScreen} from '@components/onboarding/OnboardingScreen';
 import bibleDB from '@lib/database';
@@ -263,23 +269,25 @@ export default function RootLayout() {
           <BibleVersionProvider>
             <ServicesProvider database={bibleDB}>
               <AuthProvider>
-                <ReadingProgressProvider>
-                  <ReadingPlanProgressProvider>
-                    <FavoritesProvider>
-                      <BookmarksProvider>
-                        <ReaderPreferencesProvider>
-                          <MemoryDeckProvider>
-                            <ToastProvider>
-                              <AudioPlayerProvider>
-                                <AppContent />
-                              </AudioPlayerProvider>
-                            </ToastProvider>
-                          </MemoryDeckProvider>
-                        </ReaderPreferencesProvider>
-                      </BookmarksProvider>
-                    </FavoritesProvider>
-                  </ReadingPlanProgressProvider>
-                </ReadingProgressProvider>
+                <SyncEngineProvider>
+                  <ReadingProgressProvider>
+                    <ReadingPlanProgressProvider>
+                      <FavoritesProvider>
+                        <BookmarksProvider>
+                          <ReaderPreferencesProvider>
+                            <MemoryDeckProvider>
+                              <ToastProvider>
+                                <AudioPlayerProvider>
+                                  <AppContent />
+                                </AudioPlayerProvider>
+                              </ToastProvider>
+                            </MemoryDeckProvider>
+                          </ReaderPreferencesProvider>
+                        </BookmarksProvider>
+                      </FavoritesProvider>
+                    </ReadingPlanProgressProvider>
+                  </ReadingProgressProvider>
+                </SyncEngineProvider>
               </AuthProvider>
             </ServicesProvider>
           </BibleVersionProvider>
