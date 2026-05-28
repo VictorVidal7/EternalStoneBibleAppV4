@@ -19,4 +19,7 @@ export type {
   SyncMetadata,
   PendingWrite,
   RemoteChange,
+  ConflictChoice,
+  ConflictRecord,
+  ResolvedConflictRecord,
 } from './types';

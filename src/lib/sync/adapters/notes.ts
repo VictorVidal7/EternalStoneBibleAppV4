@@ -129,6 +129,12 @@ export const notesSyncAdapter: SyncAdapter<RemoteNote> = {
       return [];
     }
   },
+
+  // Sprint 43 — `note` is the user's commentary, `text` is the quoted
+  // verse (rarely edited but possible). Material for conflict detection.
+  getMaterialFields() {
+    return ['note', 'text'] as const;
+  },
 };
 
 /** Helper for call sites: build the remote payload for a queueWrite. */

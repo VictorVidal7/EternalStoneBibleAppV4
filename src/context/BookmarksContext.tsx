@@ -192,6 +192,10 @@ export const BookmarksProvider: FC<BookmarksProviderProps> = ({children}) => {
           data: bookmarkToRemote(b),
         }));
       },
+      // Sprint 43 — only the user-supplied label is editable post-create.
+      getMaterialFields() {
+        return ['label'] as const;
+      },
     };
     syncCtx.engine.register(adapter);
     return () => {

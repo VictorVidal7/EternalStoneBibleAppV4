@@ -33,8 +33,11 @@ import {
 } from './firestore';
 import {getNetInfo, isStateOnline} from './netinfo';
 import type {
+  ConflictChoice,
+  ConflictRecord,
   PendingWrite,
   RemoteChange,
+  ResolvedConflictRecord,
   SyncAdapter,
   SyncEngineListener,
   SyncEngineState,
@@ -44,6 +47,33 @@ import type {
 const QUEUE_STORAGE_KEY = '@sync_queue_v1';
 const BULK_PUSH_FLAG_PREFIX = '@sync_first_push_done:';
 const MAX_RETRY_ATTEMPTS = 8;
+/**
+ * Sprint 43 — when a remote change lands within this many ms of the
+ * local updatedAt, AND material fields differ, the engine surfaces it
+ * as a conflict instead of applying via LWW. 30s matches "two users
+ * actively editing the same doc"; older remote changes are stale and
+ * LWW handles them correctly.
+ */
+const CONFLICT_WINDOW_MS = 30000;
+
+/** Deep equality good enough for our small payloads (text, tags arrays, etc).
+ *  null and undefined are treated as equivalent — SQLite NULL surfaces as
+ *  null locally while an absent Firestore field surfaces as undefined,
+ *  but semantically both mean "no value" for our adapters. */
+function valuesEqual(a: unknown, b: unknown): boolean {
+  if (a === b) return true;
+  if (a == null && b == null) return true;
+  if (a == null || b == null) return false;
+  if (typeof a !== typeof b) return false;
+  if (typeof a === 'object') {
+    try {
+      return JSON.stringify(a) === JSON.stringify(b);
+    } catch {
+      return false;
+    }
+  }
+  return false;
+}
 
 type AnyAdapter = SyncAdapter<unknown>;
 
@@ -60,6 +90,13 @@ export class SyncEngine {
   /** True while we're applying a remote change to local — adapters
    *  should NOT re-queue their writes during this window. */
   private suppressLocalWriteCount = 0;
+  /** Sprint 43 — active conflicts awaiting user resolution. */
+  private conflicts: ConflictRecord[] = [];
+  /** Sprint 43 — when set, the next maybeRunInitialBulkPush persists the
+   *  done-flag without actually queueing any rows. Used by the migration
+   *  flow in AuthContext when the user opts out of migrating anonymous
+   *  data into an existing Google account. */
+  private skipNextBulkPush = false;
   private state: SyncEngineState = {
     isActive: false,
     isOnline: true,
@@ -67,6 +104,7 @@ export class SyncEngine {
     pendingWrites: 0,
     lastSyncedAt: null,
     lastError: null,
+    conflicts: [],
   };
 
   // ---------- public API ----------
@@ -152,9 +190,14 @@ export class SyncEngine {
       this.netUnsub = null;
     }
     this.uid = null;
+    // Conflicts are transient — they snapshot the local doc at detection
+    // time. If the user signs back in, fresh onSnapshot events will
+    // re-detect any still-divergent docs.
+    this.conflicts = [];
     this.updateState({
       isActive: false,
       isSyncing: false,
+      conflicts: [],
       // keep pendingWrites count — the queue is persisted, and if the
       // user signs back in we'll attempt to flush it again.
     });
@@ -392,15 +435,41 @@ export class SyncEngine {
   ): Promise<void> {
     const {id, data, deleted} = change;
     const local = await adapter.getLocal(id);
-    if (local) {
+
+    if (local && data) {
       const localTs = typeof local.updatedAt === 'number' ? local.updatedAt : 0;
-      const remoteTs = typeof data?.updatedAt === 'number' ? data.updatedAt : 0;
+      const remoteTs = typeof data.updatedAt === 'number' ? data.updatedAt : 0;
+      const withinWindow = Math.abs(localTs - remoteTs) < CONFLICT_WINDOW_MS;
+      const materialFields = adapter.getMaterialFields?.() ?? [];
+
+      if (withinWindow && materialFields.length > 0 && !deleted) {
+        const localRec = local as unknown as Record<string, unknown>;
+        const differing = materialFields.filter(
+          f => !valuesEqual(localRec[f], data[f]),
+        );
+        if (differing.length > 0) {
+          // Conflict: both devices touched this doc inside the window
+          // AND at least one material field differs. Hold instead of
+          // applying LWW — user picks the winner via the conflicts UI.
+          this.recordConflict({
+            id: `${adapter.collection}__${id}`,
+            collection: adapter.collection,
+            docId: id,
+            localVersion: local as SyncEntity<Record<string, unknown>>,
+            remoteVersion: data,
+            differingFields: differing,
+            detectedAt: Date.now(),
+          });
+          return;
+        }
+      }
+
       if (remoteTs <= localTs) {
-        // Local is at least as fresh — ignore the remote change.
-        // (LWW. S43 will offer the user a merge UI when this happens.)
+        // LWW: local is at least as fresh, ignore the remote change.
         return;
       }
     }
+
     if (deleted) {
       await this.withLocalWriteSuppressed(() => adapter.applyRemoteDelete(id));
     } else if (data) {
@@ -410,10 +479,178 @@ export class SyncEngine {
     }
   }
 
+  /**
+   * Sprint 43 — snapshot the count per collection of local rows, used
+   * by the AuthContext migration dialog to tell the user "you have X
+   * favorites / Y notes on this device — migrate them?".
+   *
+   * Best-effort: adapters that throw are skipped, not propagated.
+   */
+  async exportLocalData(): Promise<Array<{collection: string; count: number}>> {
+    const out: Array<{collection: string; count: number}> = [];
+    for (const adapter of this.adapters.values()) {
+      try {
+        const rows = await adapter.pullAllLocal();
+        if (rows.length > 0) {
+          out.push({collection: adapter.collection, count: rows.length});
+        }
+      } catch (err) {
+        logger.warn('SyncEngine: exportLocalData adapter failed', {
+          component: 'SyncEngine',
+          collection: adapter.collection,
+          error: err instanceof Error ? err.message : String(err),
+        });
+      }
+    }
+    return out;
+  }
+
+  /**
+   * Sprint 43 — mark the next maybeRunInitialBulkPush to skip queuing
+   * (and persist the done-flag so subsequent sessions skip too). Used
+   * by AuthContext when the user picks "Just sign in" in the migration
+   * dialog.
+   */
+  queueSkipNextBulkPush(): void {
+    this.skipNextBulkPush = true;
+  }
+
+  // ---------- private: conflict bookkeeping ----------
+
+  private recordConflict(record: ConflictRecord): void {
+    // Replace existing record for the same doc with the latest snapshot
+    // so the user always sees the most recent remote version.
+    const idx = this.conflicts.findIndex(c => c.id === record.id);
+    if (idx >= 0) {
+      this.conflicts[idx] = record;
+    } else {
+      this.conflicts.push(record);
+    }
+    this.updateState({conflicts: [...this.conflicts]});
+    logger.info('SyncEngine: conflict detected', {
+      component: 'SyncEngine',
+      conflictId: record.id,
+      differingFields: record.differingFields.join(','),
+    });
+  }
+
+  // ---------- public: conflict resolution ----------
+
+  /** Sprint 43 — current pending conflicts. Snapshot, safe to keep. */
+  getConflicts(): readonly ConflictRecord[] {
+    return [...this.conflicts];
+  }
+
+  /**
+   * Resolve a pending conflict. `keepMine` re-stamps the local doc with
+   * now and pushes (so it wins next sync); `keepTheirs` applies the
+   * remote locally; `merge` applies mergedValue + pushes.
+   *
+   * The resolved record is logged to users/{uid}/conflicts/{id} for
+   * cross-device audit (best-effort, errors are warned not thrown).
+   */
+  async resolveConflict(
+    conflictId: string,
+    choice: ConflictChoice,
+    mergedValue?: SyncEntity<Record<string, unknown>>,
+  ): Promise<void> {
+    const conflict = this.conflicts.find(c => c.id === conflictId);
+    if (!conflict) {
+      logger.warn('SyncEngine: resolveConflict for unknown id', {
+        component: 'SyncEngine',
+        conflictId,
+      });
+      return;
+    }
+    const adapter = this.adapters.get(conflict.collection);
+    if (!adapter) {
+      logger.warn('SyncEngine: no adapter for conflict collection', {
+        component: 'SyncEngine',
+        collection: conflict.collection,
+      });
+      return;
+    }
+
+    const now = Date.now();
+    let resolvedValue: SyncEntity<Record<string, unknown>>;
+
+    if (choice === 'keepMine') {
+      resolvedValue = {...conflict.localVersion, updatedAt: now};
+      // queueWrite handles the push; local store already has this value.
+      this.queueWrite(conflict.collection, conflict.docId, resolvedValue);
+    } else if (choice === 'keepTheirs') {
+      resolvedValue = conflict.remoteVersion;
+      await this.withLocalWriteSuppressed(() =>
+        adapter.applyRemoteUpsert(
+          conflict.docId,
+          resolvedValue as SyncEntity<unknown>,
+        ),
+      );
+    } else {
+      if (!mergedValue) {
+        throw new Error('resolveConflict: merge choice requires mergedValue');
+      }
+      resolvedValue = {...mergedValue, updatedAt: now};
+      await this.withLocalWriteSuppressed(() =>
+        adapter.applyRemoteUpsert(
+          conflict.docId,
+          resolvedValue as SyncEntity<unknown>,
+        ),
+      );
+      this.queueWrite(conflict.collection, conflict.docId, resolvedValue);
+    }
+
+    this.conflicts = this.conflicts.filter(c => c.id !== conflictId);
+    this.updateState({conflicts: [...this.conflicts]});
+
+    void this.logResolvedConflict({
+      ...conflict,
+      resolvedAt: now,
+      choice,
+      resolvedValue,
+    });
+  }
+
+  private async logResolvedConflict(
+    record: ResolvedConflictRecord,
+  ): Promise<void> {
+    if (!this.uid) return;
+    const fn = getFirestore();
+    if (!fn) return;
+    try {
+      await fn()
+        .collection(`users/${this.uid}/conflicts`)
+        .doc(record.id)
+        .set(record);
+    } catch (err) {
+      logger.warn('SyncEngine: logResolvedConflict failed', {
+        component: 'SyncEngine',
+        conflictId: record.id,
+        error: err instanceof Error ? err.message : String(err),
+      });
+    }
+  }
+
   // ---------- private: initial bulk push ----------
 
   private async maybeRunInitialBulkPush(uid: string): Promise<void> {
     const flagKey = `${BULK_PUSH_FLAG_PREFIX}${uid}`;
+    if (this.skipNextBulkPush) {
+      // User opted out of migrating their local-only data into this
+      // (existing) Google account. Persist the flag so subsequent
+      // sessions also skip, then clear the in-memory marker.
+      this.skipNextBulkPush = false;
+      try {
+        await AsyncStorage.setItem(flagKey, '1');
+      } catch {
+        // best-effort
+      }
+      logger.info('SyncEngine: bulk push skipped by user', {
+        component: 'SyncEngine',
+        uid,
+      });
+      return;
+    }
     try {
       const done = await AsyncStorage.getItem(flagKey);
       if (done === '1') return;
@@ -582,5 +819,14 @@ export class SyncEngine {
   __setOnlineForTests(online: boolean): void {
     this.updateState({isOnline: online});
     if (online) void this.flush();
+  }
+
+  __getConflictsForTests(): readonly ConflictRecord[] {
+    return [...this.conflicts];
+  }
+
+  __clearConflictsForTests(): void {
+    this.conflicts = [];
+    this.updateState({conflicts: []});
   }
 }

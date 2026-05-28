@@ -149,6 +149,12 @@ export const highlightsSyncAdapter: SyncAdapter<RemoteHighlight> = {
       return [];
     }
   },
+
+  // Sprint 43 — color/category/note are the user-editable bits of a
+  // highlight. verseId/bookId/chapter/verse are immutable identity.
+  getMaterialFields() {
+    return ['color', 'category', 'note'] as const;
+  },
 };
 
 /** Helper for call sites: build the remote payload for a queueWrite. */

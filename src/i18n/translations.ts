@@ -374,6 +374,37 @@ export const translations = {
       offlineWithQueueSingular: 'Sin conexión — 1 cambio encolado',
     },
 
+    conflicts: {
+      title: 'Conflictos pendientes',
+      empty: 'Sin conflictos',
+      emptyTitle: 'Todo está sincronizado',
+      emptyBody:
+        'Cuando dos dispositivos editen lo mismo a la vez, te lo mostraremos aquí para que elijas qué versión conservar.',
+      badge: '{{count}} conflictos por resolver',
+      badgeSingular: '1 conflicto por resolver',
+      badgeA11y: 'Abrir conflictos pendientes',
+      mine: 'Tu versión',
+      theirs: 'Versión remota',
+      keepMine: 'Mantener mía',
+      keepTheirs: 'Mantener remota',
+      merge: 'Combinar',
+      mergeTitle: 'Combinar versiones',
+      mergeBody:
+        'Edita cada campo para combinar tu versión y la remota. Al guardar, el resultado se enviará a todos tus dispositivos.',
+      mergePlaceholder: 'Edita aquí…',
+      mineHint: 'Tuya',
+      theirsHint: 'Remota',
+      saveMerge: 'Guardar combinación',
+      resolvedToast: 'Conflicto resuelto',
+      resolveError: 'No se pudo resolver el conflicto. Inténtalo de nuevo.',
+      migrationTitle: '¿Migrar este dispositivo?',
+      migrationBody:
+        'Encontramos una cuenta de Google ya registrada. Tienes {{count}} cambios locales en este dispositivo. ¿Quieres migrarlos a esa cuenta?',
+      migrationYes: 'Migrar',
+      migrationNo: 'Solo iniciar sesión',
+      migrationDoneToast: 'Datos locales migrados a tu cuenta',
+    },
+
     bookmarks: {
       title: 'Marcadores',
       short: 'Marcadores',
@@ -1673,6 +1704,37 @@ export const translations = {
       offline: 'Offline',
       offlineWithQueue: 'Offline — {{count}} changes queued',
       offlineWithQueueSingular: 'Offline — 1 change queued',
+    },
+
+    conflicts: {
+      title: 'Pending conflicts',
+      empty: 'No conflicts',
+      emptyTitle: 'Everything is in sync',
+      emptyBody:
+        "When two devices edit the same item at the same time, we'll show it here so you can pick which version to keep.",
+      badge: '{{count}} conflicts to resolve',
+      badgeSingular: '1 conflict to resolve',
+      badgeA11y: 'Open pending conflicts',
+      mine: 'Your version',
+      theirs: 'Remote version',
+      keepMine: 'Keep mine',
+      keepTheirs: 'Keep theirs',
+      merge: 'Merge',
+      mergeTitle: 'Merge versions',
+      mergeBody:
+        'Edit each field to combine your version and the remote one. On save, the result will be sent to all your devices.',
+      mergePlaceholder: 'Edit here…',
+      mineHint: 'Yours',
+      theirsHint: 'Remote',
+      saveMerge: 'Save merge',
+      resolvedToast: 'Conflict resolved',
+      resolveError: 'Could not resolve the conflict. Please try again.',
+      migrationTitle: 'Migrate this device?',
+      migrationBody:
+        'We found an existing Google account. You have {{count}} local changes on this device. Do you want to migrate them to that account?',
+      migrationYes: 'Migrate',
+      migrationNo: 'Just sign in',
+      migrationDoneToast: 'Local data migrated to your account',
     },
 
     bookmarks: {

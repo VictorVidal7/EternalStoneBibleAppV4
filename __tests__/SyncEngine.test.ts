@@ -380,3 +380,349 @@ describe('queue persistence', () => {
     expect(mockDocSets.some(d => d.id === 'persisted')).toBe(true);
   });
 });
+
+// =============================================================
+// Sprint 43 — conflict detection + resolution
+// =============================================================
+
+function fireRemote(uid: string, changes: unknown[]): void {
+  const coll = mockCollections.get(`users/${uid}/test`);
+  if (!coll) throw new Error(`mock collection not registered for ${uid}`);
+  (coll as MockCollRef & {__fire: (c: unknown[]) => void}).__fire(changes);
+}
+
+describe('conflict detection — within window + differing material fields', () => {
+  it('records a conflict instead of applying LWW', async () => {
+    const engine = new SyncEngine();
+    const {adapter, localStore, remoteUpsertCalls} = makeAdapter({
+      getMaterialFields: () => ['value'],
+    });
+    localStore.set('doc-c', {value: 'local-text', updatedAt: 1000});
+    engine.register(adapter);
+    await engine.start('uid-cf');
+    fireRemote('uid-cf', [
+      {
+        type: 'modified',
+        doc: {
+          id: 'doc-c',
+          exists: true,
+          data: () => ({value: 'remote-text', updatedAt: 1005}),
+        },
+      },
+    ]);
+    await flush();
+    expect(remoteUpsertCalls).toHaveLength(0);
+    expect(localStore.get('doc-c')?.value).toBe('local-text');
+    const conflicts = engine.__getConflictsForTests();
+    expect(conflicts).toHaveLength(1);
+    expect(conflicts[0].collection).toBe('test');
+    expect(conflicts[0].docId).toBe('doc-c');
+    expect(conflicts[0].differingFields).toEqual(['value']);
+  });
+});
+
+describe('conflict detection — null/undefined treated as equal', () => {
+  // Real-world case observed in live verification: SQLite NULL surfaces
+  // as `null` from the adapter while an absent Firestore field surfaces
+  // as `undefined`. Both mean "no value"; the engine must not flag this
+  // as a material difference.
+  it('treats local null and remote undefined as the same value', async () => {
+    const engine = new SyncEngine();
+    const {adapter, localStore} = makeAdapter({
+      getMaterialFields: () => ['value'],
+    });
+    localStore.set('doc-nu', {
+      value: null as unknown as string,
+      updatedAt: 1000,
+    });
+    engine.register(adapter);
+    await engine.start('uid-nu');
+    fireRemote('uid-nu', [
+      {
+        type: 'modified',
+        doc: {
+          id: 'doc-nu',
+          exists: true,
+          // value field absent in remote → `undefined` after destructure
+          data: () => ({updatedAt: 1005}),
+        },
+      },
+    ]);
+    await flush();
+    expect(engine.__getConflictsForTests()).toHaveLength(0);
+  });
+});
+
+describe('conflict detection — within window but matching material fields', () => {
+  it('does not record a conflict (no material diff)', async () => {
+    const engine = new SyncEngine();
+    const {adapter, localStore, remoteUpsertCalls} = makeAdapter({
+      getMaterialFields: () => ['value'],
+    });
+    localStore.set('doc-m', {value: 'same', updatedAt: 1000});
+    engine.register(adapter);
+    await engine.start('uid-match');
+    fireRemote('uid-match', [
+      {
+        type: 'modified',
+        doc: {
+          id: 'doc-m',
+          exists: true,
+          data: () => ({value: 'same', updatedAt: 1005}),
+        },
+      },
+    ]);
+    await flush();
+    expect(engine.__getConflictsForTests()).toHaveLength(0);
+    // Remote is newer → LWW applies it.
+    expect(remoteUpsertCalls).toHaveLength(1);
+  });
+});
+
+describe('conflict detection — outside window', () => {
+  it('falls through to plain LWW even if material fields differ', async () => {
+    const engine = new SyncEngine();
+    const {adapter, localStore, remoteUpsertCalls} = makeAdapter({
+      getMaterialFields: () => ['value'],
+    });
+    localStore.set('doc-o', {value: 'local', updatedAt: 1000});
+    engine.register(adapter);
+    await engine.start('uid-out');
+    fireRemote('uid-out', [
+      {
+        type: 'modified',
+        doc: {
+          id: 'doc-o',
+          exists: true,
+          // 60s later — well outside the 30s window
+          data: () => ({value: 'remote', updatedAt: 61000}),
+        },
+      },
+    ]);
+    await flush();
+    expect(engine.__getConflictsForTests()).toHaveLength(0);
+    expect(remoteUpsertCalls).toHaveLength(1);
+    expect(remoteUpsertCalls[0].data.value).toBe('remote');
+  });
+});
+
+describe('conflict detection — adapter opts out via empty material fields', () => {
+  it('is treated as plain LWW when getMaterialFields returns []', async () => {
+    const engine = new SyncEngine();
+    const {adapter, localStore, remoteUpsertCalls} = makeAdapter({
+      getMaterialFields: () => [],
+    });
+    localStore.set('doc-no', {value: 'local', updatedAt: 1000});
+    engine.register(adapter);
+    await engine.start('uid-opt');
+    fireRemote('uid-opt', [
+      {
+        type: 'modified',
+        doc: {
+          id: 'doc-no',
+          exists: true,
+          data: () => ({value: 'remote', updatedAt: 1005}),
+        },
+      },
+    ]);
+    await flush();
+    expect(engine.__getConflictsForTests()).toHaveLength(0);
+    expect(remoteUpsertCalls).toHaveLength(1);
+  });
+});
+
+describe('conflict detection — second remote write replaces the existing conflict', () => {
+  it('keeps a single conflict with the latest remoteVersion', async () => {
+    const engine = new SyncEngine();
+    const {adapter, localStore} = makeAdapter({
+      getMaterialFields: () => ['value'],
+    });
+    localStore.set('doc-r', {value: 'local', updatedAt: 1000});
+    engine.register(adapter);
+    await engine.start('uid-rep');
+    fireRemote('uid-rep', [
+      {
+        type: 'modified',
+        doc: {
+          id: 'doc-r',
+          exists: true,
+          data: () => ({value: 'remote-v1', updatedAt: 1005}),
+        },
+      },
+    ]);
+    await flush();
+    fireRemote('uid-rep', [
+      {
+        type: 'modified',
+        doc: {
+          id: 'doc-r',
+          exists: true,
+          data: () => ({value: 'remote-v2', updatedAt: 1010}),
+        },
+      },
+    ]);
+    await flush();
+    const conflicts = engine.__getConflictsForTests();
+    expect(conflicts).toHaveLength(1);
+    expect(conflicts[0].remoteVersion.value).toBe('remote-v2');
+  });
+});
+
+describe('resolveConflict — keepMine', () => {
+  it('queues a write with local value stamped to now', async () => {
+    const engine = new SyncEngine();
+    const {adapter, localStore} = makeAdapter({
+      getMaterialFields: () => ['value'],
+    });
+    localStore.set('doc-km', {value: 'local', updatedAt: 1000});
+    engine.register(adapter);
+    await engine.start('uid-km');
+    fireRemote('uid-km', [
+      {
+        type: 'modified',
+        doc: {
+          id: 'doc-km',
+          exists: true,
+          data: () => ({value: 'remote', updatedAt: 1005}),
+        },
+      },
+    ]);
+    await flush();
+    const [conflict] = engine.__getConflictsForTests();
+    expect(conflict).toBeDefined();
+    await engine.resolveConflict(conflict.id, 'keepMine');
+    await flush();
+    await engine.__flushForTests();
+    expect(engine.__getConflictsForTests()).toHaveLength(0);
+    const pushed = mockDocSets.find(d => d.id === 'doc-km');
+    expect(pushed).toBeDefined();
+    expect((pushed!.data as {value: string}).value).toBe('local');
+  });
+});
+
+describe('resolveConflict — keepTheirs', () => {
+  it('applies remote locally without queueing a push', async () => {
+    const engine = new SyncEngine();
+    const {adapter, localStore, remoteUpsertCalls} = makeAdapter({
+      getMaterialFields: () => ['value'],
+    });
+    localStore.set('doc-kt', {value: 'local', updatedAt: 1000});
+    engine.register(adapter);
+    await engine.start('uid-kt');
+    // Drain the initial-bulk-push side effects so the assertion below is clean.
+    await flush();
+    await engine.__flushForTests();
+    const setsBefore = mockDocSets.length;
+    fireRemote('uid-kt', [
+      {
+        type: 'modified',
+        doc: {
+          id: 'doc-kt',
+          exists: true,
+          data: () => ({value: 'remote', updatedAt: 1005}),
+        },
+      },
+    ]);
+    await flush();
+    const [conflict] = engine.__getConflictsForTests();
+    await engine.resolveConflict(conflict.id, 'keepTheirs');
+    await flush();
+    expect(localStore.get('doc-kt')?.value).toBe('remote');
+    expect(remoteUpsertCalls.some(c => c.data.value === 'remote')).toBe(true);
+    // No new doc set for doc-kt (the value was already on Firestore).
+    const newSets = mockDocSets
+      .slice(setsBefore)
+      .filter(d => d.id === 'doc-kt');
+    expect(newSets).toHaveLength(0);
+  });
+});
+
+describe('resolveConflict — merge', () => {
+  it('applies merged value locally + queues a push', async () => {
+    const engine = new SyncEngine();
+    const {adapter, localStore, remoteUpsertCalls} = makeAdapter({
+      getMaterialFields: () => ['value'],
+    });
+    localStore.set('doc-mg', {value: 'local', updatedAt: 1000});
+    engine.register(adapter);
+    await engine.start('uid-mg');
+    fireRemote('uid-mg', [
+      {
+        type: 'modified',
+        doc: {
+          id: 'doc-mg',
+          exists: true,
+          data: () => ({value: 'remote', updatedAt: 1005}),
+        },
+      },
+    ]);
+    await flush();
+    const [conflict] = engine.__getConflictsForTests();
+    await engine.resolveConflict(conflict.id, 'merge', {
+      value: 'merged',
+      updatedAt: 9999, // overridden by resolveConflict to Date.now()
+    });
+    await flush();
+    await engine.__flushForTests();
+    expect(localStore.get('doc-mg')?.value).toBe('merged');
+    expect(remoteUpsertCalls.some(c => c.data.value === 'merged')).toBe(true);
+    const pushed = mockDocSets.find(
+      d => d.id === 'doc-mg' && (d.data as {value: string}).value === 'merged',
+    );
+    expect(pushed).toBeDefined();
+  });
+});
+
+describe('stop() clears conflicts', () => {
+  it('drops the in-memory conflicts list when the engine stops', async () => {
+    const engine = new SyncEngine();
+    const {adapter, localStore} = makeAdapter({
+      getMaterialFields: () => ['value'],
+    });
+    localStore.set('doc-st', {value: 'local', updatedAt: 1000});
+    engine.register(adapter);
+    await engine.start('uid-st');
+    fireRemote('uid-st', [
+      {
+        type: 'modified',
+        doc: {
+          id: 'doc-st',
+          exists: true,
+          data: () => ({value: 'remote', updatedAt: 1005}),
+        },
+      },
+    ]);
+    await flush();
+    expect(engine.__getConflictsForTests()).toHaveLength(1);
+    engine.stop();
+    expect(engine.__getConflictsForTests()).toHaveLength(0);
+  });
+});
+
+describe('exportLocalData', () => {
+  it('returns per-adapter row counts (only non-empty)', async () => {
+    const engine = new SyncEngine();
+    const {adapter, localStore} = makeAdapter();
+    localStore.set('a', {value: 'a', updatedAt: 1});
+    localStore.set('b', {value: 'b', updatedAt: 2});
+    engine.register(adapter);
+    const data = await engine.exportLocalData();
+    expect(data).toEqual([{collection: 'test', count: 2}]);
+  });
+});
+
+describe('queueSkipNextBulkPush', () => {
+  it('persists the done-flag without queueing local rows', async () => {
+    const engine = new SyncEngine();
+    const {adapter, localStore} = makeAdapter();
+    localStore.set('only-local', {value: 'x', updatedAt: 1});
+    engine.register(adapter);
+    engine.queueSkipNextBulkPush();
+    await engine.start('uid-skip');
+    await flush();
+    await engine.__flushForTests();
+    expect(mockDocSets.filter(d => d.id === 'only-local')).toHaveLength(0);
+    const flag = await AsyncStorage.getItem('@sync_first_push_done:uid-skip');
+    expect(flag).toBe('1');
+  });
+});

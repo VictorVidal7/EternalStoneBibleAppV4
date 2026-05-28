@@ -184,6 +184,13 @@ export const MemoryDeckProvider: React.FC<MemoryDeckProviderProps> = ({
           data: cardToRemote(c),
         }));
       },
+      // Sprint 43 — SRS reviews aren't user-facing "conflicts": if two
+      // devices review the same card in <30s, both decisions are valid
+      // and LWW (most recent review wins) is the right semantic. Opt out
+      // by returning an empty array — the engine reverts to plain LWW.
+      getMaterialFields() {
+        return [] as const;
+      },
     };
     syncCtx.engine.register(adapter);
     return () => {
