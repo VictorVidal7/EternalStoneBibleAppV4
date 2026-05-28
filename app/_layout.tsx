@@ -43,6 +43,7 @@ import {BookmarksProvider} from '@context/BookmarksContext';
 import {ReadingPlanProgressProvider} from '@context/ReadingPlanProgressContext';
 import {ReaderPreferencesProvider} from '@context/ReaderPreferencesContext';
 import {MemoryDeckProvider} from '@context/MemoryDeckContext';
+import {AuthProvider} from '@context/AuthContext';
 import {useOnboarding} from '@hooks/useOnboarding';
 import {OnboardingScreen} from '@components/onboarding/OnboardingScreen';
 import bibleDB from '@lib/database';
@@ -261,23 +262,25 @@ export default function RootLayout() {
         <ThemeProvider>
           <BibleVersionProvider>
             <ServicesProvider database={bibleDB}>
-              <ReadingProgressProvider>
-                <ReadingPlanProgressProvider>
-                  <FavoritesProvider>
-                    <BookmarksProvider>
-                      <ReaderPreferencesProvider>
-                        <MemoryDeckProvider>
-                          <ToastProvider>
-                            <AudioPlayerProvider>
-                              <AppContent />
-                            </AudioPlayerProvider>
-                          </ToastProvider>
-                        </MemoryDeckProvider>
-                      </ReaderPreferencesProvider>
-                    </BookmarksProvider>
-                  </FavoritesProvider>
-                </ReadingPlanProgressProvider>
-              </ReadingProgressProvider>
+              <AuthProvider>
+                <ReadingProgressProvider>
+                  <ReadingPlanProgressProvider>
+                    <FavoritesProvider>
+                      <BookmarksProvider>
+                        <ReaderPreferencesProvider>
+                          <MemoryDeckProvider>
+                            <ToastProvider>
+                              <AudioPlayerProvider>
+                                <AppContent />
+                              </AudioPlayerProvider>
+                            </ToastProvider>
+                          </MemoryDeckProvider>
+                        </ReaderPreferencesProvider>
+                      </BookmarksProvider>
+                    </FavoritesProvider>
+                  </ReadingPlanProgressProvider>
+                </ReadingProgressProvider>
+              </AuthProvider>
             </ServicesProvider>
           </BibleVersionProvider>
         </ThemeProvider>
