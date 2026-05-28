@@ -102,13 +102,24 @@ export default function MemoryDeckScreen() {
           start={{x: 0, y: 0}}
           end={{x: 0, y: 1}}
           style={[styles.header, {paddingTop: insets.top + spacing.md}]}>
-          <TouchableOpacity
-            style={styles.backButton}
-            onPress={() => router.back()}
-            accessibilityRole="button"
-            accessibilityLabel={t.bible.back}>
-            <Ionicons name="arrow-back" size={24} color="#FFFFFF" />
-          </TouchableOpacity>
+          <View style={styles.headerTopRow}>
+            <TouchableOpacity
+              style={styles.backButton}
+              onPress={() => router.back()}
+              accessibilityRole="button"
+              accessibilityLabel={t.bible.back}>
+              <Ionicons name="arrow-back" size={24} color="#FFFFFF" />
+            </TouchableOpacity>
+            {!isEmpty && (
+              <TouchableOpacity
+                style={styles.insightsButton}
+                onPress={() => router.push('/features/memory/insights' as any)}
+                accessibilityRole="button"
+                accessibilityLabel={t.memory.insights.openLabel}>
+                <Ionicons name="stats-chart" size={22} color="#FFFFFF" />
+              </TouchableOpacity>
+            )}
+          </View>
 
           <View style={styles.headerTextRow}>
             <View style={styles.headerIcon}>
@@ -390,6 +401,12 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.lg,
     paddingBottom: spacing.lg,
   },
+  headerTopRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: spacing.md,
+  },
   backButton: {
     width: 44,
     height: 44,
@@ -397,7 +414,14 @@ const styles = StyleSheet.create({
     backgroundColor: staticColors.glassWhite15,
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: spacing.md,
+  },
+  insightsButton: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: staticColors.glassWhite15,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   headerTextRow: {
     flexDirection: 'row',
