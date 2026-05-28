@@ -17,8 +17,23 @@
  */
 
 import React from 'react';
-import {Text} from 'react-native';
+import {Alert, Text} from 'react-native';
 import {act, render, waitFor} from '@testing-library/react-native';
+
+// Sprint 43 — mock the sync module so the migration block in
+// AuthContext can interrogate a stub engine. We replace getSyncEngine
+// only for tests that opt in by setting mockEngineStub; the default
+// is null so the existing tests behave exactly as before.
+const mockExportLocalData = jest.fn().mockResolvedValue([]);
+const mockQueueSkipNextBulkPush = jest.fn();
+let mockEngineStub: {
+  exportLocalData: jest.Mock;
+  queueSkipNextBulkPush: jest.Mock;
+} | null = null;
+jest.mock('@lib/sync', () => ({
+  __esModule: true,
+  getSyncEngine: () => mockEngineStub,
+}));
 
 // --- Mocks must be set up BEFORE importing AuthContext (which lazily
 // resolves them via require). The factory returns plain jest.fn()s so
@@ -121,6 +136,9 @@ beforeEach(() => {
   mockGoogleSignin.signOut.mockClear();
   mockSetUserId.mockClear();
   mockAuthFn.GoogleAuthProvider.credential.mockClear();
+  mockExportLocalData.mockClear();
+  mockQueueSkipNextBulkPush.mockClear();
+  mockEngineStub = null;
 });
 
 describe('mapFirebaseUser', () => {
@@ -349,6 +367,103 @@ describe('AuthProvider', () => {
 
     expect(mockLinkWithCredential).toHaveBeenCalledTimes(1);
     expect(mockSignInWithCredential).toHaveBeenCalledTimes(1);
+  });
+
+  it('Sprint 43 — credential-already-in-use + user declines migration → queueSkipNextBulkPush', async () => {
+    const {ref, onReady} = captureAuthApi();
+    mockEngineStub = {
+      exportLocalData: mockExportLocalData,
+      queueSkipNextBulkPush: mockQueueSkipNextBulkPush,
+    };
+    mockExportLocalData.mockResolvedValueOnce([
+      {collection: 'favorites', count: 3},
+      {collection: 'notes', count: 1},
+    ]);
+    // Auto-tap the "Just sign in" (cancel) button on the migration alert.
+    const alertSpy = jest
+      .spyOn(Alert, 'alert')
+      .mockImplementation((_title, _msg, buttons) => {
+        const cancel = (buttons ?? []).find(b => b.style === 'cancel');
+        cancel?.onPress?.();
+      });
+
+    render(
+      <AuthProvider>
+        <Probe onReady={onReady} />
+      </AuthProvider>,
+    );
+
+    const collidingErr = Object.assign(new Error('already in use'), {
+      code: 'auth/credential-already-in-use',
+    });
+    mockLinkWithCredential.mockRejectedValueOnce(collidingErr);
+    mockCurrentUser = {
+      uid: 'anon-decline',
+      isAnonymous: true,
+      linkWithCredential: mockLinkWithCredential,
+    };
+    flushListenerWith(mockCurrentUser);
+    await waitFor(() => expect(ref.current?.user?.uid).toBe('anon-decline'));
+
+    await act(async () => {
+      await ref.current!.signInWithGoogle();
+    });
+
+    expect(alertSpy).toHaveBeenCalledTimes(1);
+    expect(mockExportLocalData).toHaveBeenCalledTimes(1);
+    expect(mockQueueSkipNextBulkPush).toHaveBeenCalledTimes(1);
+    expect(mockSignInWithCredential).toHaveBeenCalledTimes(1);
+
+    alertSpy.mockRestore();
+    mockEngineStub = null;
+  });
+
+  it('Sprint 43 — credential-already-in-use + user accepts migration → bulk push NOT skipped', async () => {
+    const {ref, onReady} = captureAuthApi();
+    mockEngineStub = {
+      exportLocalData: mockExportLocalData,
+      queueSkipNextBulkPush: mockQueueSkipNextBulkPush,
+    };
+    mockExportLocalData.mockResolvedValueOnce([
+      {collection: 'favorites', count: 2},
+    ]);
+    // Auto-tap the "Migrate" (non-cancel) button on the migration alert.
+    const alertSpy = jest
+      .spyOn(Alert, 'alert')
+      .mockImplementation((_title, _msg, buttons) => {
+        const migrate = (buttons ?? []).find(b => b.style !== 'cancel');
+        migrate?.onPress?.();
+      });
+
+    render(
+      <AuthProvider>
+        <Probe onReady={onReady} />
+      </AuthProvider>,
+    );
+
+    const collidingErr = Object.assign(new Error('already in use'), {
+      code: 'auth/credential-already-in-use',
+    });
+    mockLinkWithCredential.mockRejectedValueOnce(collidingErr);
+    mockCurrentUser = {
+      uid: 'anon-accept',
+      isAnonymous: true,
+      linkWithCredential: mockLinkWithCredential,
+    };
+    flushListenerWith(mockCurrentUser);
+    await waitFor(() => expect(ref.current?.user?.uid).toBe('anon-accept'));
+
+    await act(async () => {
+      await ref.current!.signInWithGoogle();
+    });
+
+    expect(alertSpy).toHaveBeenCalledTimes(1);
+    expect(mockQueueSkipNextBulkPush).not.toHaveBeenCalled();
+    expect(mockSignInWithCredential).toHaveBeenCalledTimes(1);
+
+    alertSpy.mockRestore();
+    mockEngineStub = null;
+    mockQueueSkipNextBulkPush.mockClear();
   });
 
   it('signOut tears down Google and Firebase sessions', async () => {

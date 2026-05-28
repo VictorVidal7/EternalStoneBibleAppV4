@@ -31,7 +31,12 @@ import React, {
   type ReactNode,
 } from 'react';
 import {useAuth} from './AuthContext';
-import {SyncEngine, setSyncEngine, type SyncEngineState} from '@lib/sync';
+import {
+  SyncEngine,
+  setSyncEngine,
+  type ConflictRecord,
+  type SyncEngineState,
+} from '@lib/sync';
 import {logger} from '@lib/utils/logger';
 import {registerOfflineAdapters} from '@lib/sync/registerOfflineAdapters';
 
@@ -122,4 +127,14 @@ export function useSyncEngine(): SyncEngineContextValue {
  *  during tests without the SyncEngineProvider. */
 export function useSyncEngineOptional(): SyncEngineContextValue | undefined {
   return useContext(SyncEngineCtx);
+}
+
+/**
+ * Sprint 43 — convenience selector for the pending conflicts list.
+ * Returns an empty array outside the provider so the Settings badge
+ * and the conflicts screen can render safely in tests / non-auth flows.
+ */
+export function useConflicts(): readonly ConflictRecord[] {
+  const ctx = useContext(SyncEngineCtx);
+  return ctx?.state.conflicts ?? [];
 }

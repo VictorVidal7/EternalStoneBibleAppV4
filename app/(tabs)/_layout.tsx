@@ -192,6 +192,14 @@ export default function TabLayout() {
       />
 
       <Tabs.Screen
+        name="conflicts"
+        options={{
+          href: null,
+          headerShown: false,
+        }}
+      />
+
+      <Tabs.Screen
         name="settings"
         options={{
           title: t.tabs.settings,

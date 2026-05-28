@@ -25,7 +25,7 @@ import {initializeBibleData, resetBibleData} from '@lib/database/data-loader';
 import {exportBackup} from '@/services/BackupService';
 import {logger} from '@lib/utils/logger';
 import {useAuth} from '@context/AuthContext';
-import {useSyncEngineOptional} from '@context/SyncEngineContext';
+import {useSyncEngineOptional, useConflicts} from '@context/SyncEngineContext';
 import {useToast} from '@context/ToastContext';
 import DailyVerseSettings from '@components/settings/DailyVerseSettings';
 import * as Haptics from 'expo-haptics';
@@ -59,6 +59,7 @@ export default function SettingsScreen() {
   const {language, setLanguage, t} = useLanguage();
   const {user, signInWithGoogle, signOut} = useAuth();
   const syncCtx = useSyncEngineOptional();
+  const conflicts = useConflicts();
   const toast = useToast();
   const [isResetting, setIsResetting] = useState(false);
   const [isExporting, setIsExporting] = useState(false);
@@ -804,6 +805,44 @@ export default function SettingsScreen() {
                     </Text>
                   </View>
                 ) : null}
+                {conflicts.length > 0 ? (
+                  <TouchableOpacity
+                    style={[
+                      styles.conflictsBadge,
+                      {
+                        borderColor: colors.warning ?? colors.error,
+                        backgroundColor:
+                          (colors.warning ?? colors.error) + '15',
+                      },
+                    ]}
+                    onPress={() => router.push('/(tabs)/conflicts')}
+                    accessibilityRole="button"
+                    accessibilityLabel={t.conflicts.badgeA11y}>
+                    <Ionicons
+                      name="alert-circle"
+                      size={18}
+                      color={colors.warning ?? colors.error}
+                    />
+                    <Text
+                      style={[
+                        styles.conflictsBadgeText,
+                        {color: colors.warning ?? colors.error},
+                      ]}
+                      numberOfLines={1}>
+                      {conflicts.length === 1
+                        ? t.conflicts.badgeSingular
+                        : t.conflicts.badge.replace(
+                            '{{count}}',
+                            String(conflicts.length),
+                          )}
+                    </Text>
+                    <Ionicons
+                      name="chevron-forward"
+                      size={16}
+                      color={colors.warning ?? colors.error}
+                    />
+                  </TouchableOpacity>
+                ) : null}
                 <TouchableOpacity
                   style={[
                     themedStyles.signOutButton,
@@ -1045,6 +1084,21 @@ const styles = StyleSheet.create({
   },
   syncText: {
     fontSize: 12,
+    flex: 1,
+  },
+  conflictsBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    borderWidth: 1,
+    borderRadius: 10,
+    paddingVertical: 10,
+    paddingHorizontal: 12,
+    marginBottom: 12,
+  },
+  conflictsBadgeText: {
+    fontSize: 14,
+    fontWeight: '600',
     flex: 1,
   },
 });

@@ -71,6 +71,17 @@ export interface SyncAdapter<T = unknown> {
    * `runInitialBulkPush()`.
    */
   pullAllLocal(): Promise<Array<{id: string; data: SyncEntity<T>}>>;
+
+  /**
+   * Sprint 43 — fields that matter for conflict detection. When the
+   * engine sees a remote change land inside CONFLICT_WINDOW_MS of the
+   * local updatedAt, it compares only these fields; if any differ, the
+   * change is held as a conflict instead of applied via LWW.
+   *
+   * Return an empty array to opt out (= LWW always wins for this
+   * adapter). Omit to inherit the default behaviour (also LWW).
+   */
+  getMaterialFields?(): readonly string[];
 }
 
 /** A pending write the engine is trying to push to Firestore. */
@@ -103,6 +114,42 @@ export interface SyncEngineState {
   lastSyncedAt: number | null;
   /** Last error message, if any (cleared on next success). */
   lastError: string | null;
+  /** Sprint 43 — pending conflicts awaiting user resolution. */
+  conflicts: readonly ConflictRecord[];
+}
+
+/** Sprint 43 — user's choice when resolving a conflict. */
+export type ConflictChoice = 'keepMine' | 'keepTheirs' | 'merge';
+
+/**
+ * Sprint 43 — one detected conflict between a local row and an incoming
+ * remote change. Lives in the engine's queue until the user resolves
+ * it via SyncEngine.resolveConflict(). Surfaced via SyncEngineState.
+ */
+export interface ConflictRecord {
+  /** Stable id = `${collection}__${docId}` so a re-detection replaces. */
+  id: string;
+  collection: string;
+  docId: string;
+  /** Snapshot of the local doc at detection time. */
+  localVersion: SyncEntity<Record<string, unknown>>;
+  /** Snapshot of the remote doc at detection time. */
+  remoteVersion: SyncEntity<Record<string, unknown>>;
+  /** Subset of material fields that actually differed. */
+  differingFields: readonly string[];
+  /** Wall-clock when the conflict was first detected, ms. */
+  detectedAt: number;
+}
+
+/**
+ * Sprint 43 — what we log to Firestore under users/{uid}/conflicts/{id}
+ * once the user resolves a conflict. Lets a 2nd device see the history.
+ */
+export interface ResolvedConflictRecord extends ConflictRecord {
+  resolvedAt: number;
+  choice: ConflictChoice;
+  /** The value that actually got written locally + pushed. */
+  resolvedValue: SyncEntity<Record<string, unknown>>;
 }
 
 /** Engine notifications surfaced to the React layer. */

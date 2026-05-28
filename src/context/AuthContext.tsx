@@ -32,8 +32,11 @@ import React, {
   useState,
   ReactNode,
 } from 'react';
+import {Alert} from 'react-native';
 
 import {logger} from '@lib/utils/logger';
+import {getSyncEngine} from '@lib/sync';
+import {useLanguage} from '@hooks/useLanguage';
 
 // Web OAuth client id from google-services.json (oauth_client where
 // client_type === 3). It is already public in the bundled
@@ -141,6 +144,7 @@ interface AuthProviderProps {
 export function AuthProvider({children}: AuthProviderProps) {
   const [user, setUser] = useState<AuthUser | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const {t} = useLanguage();
   // Track whether we have kicked off the initial anonymous sign-in so
   // we do not loop if the first onAuthStateChanged fires with a null
   // user (which it will on a fresh install). Re-armed on signOut.
@@ -228,11 +232,69 @@ export function AuthProvider({children}: AuthProviderProps) {
           component: 'AuthProvider',
           action: 'signInWithGoogle',
         });
+
+        // Sprint 43 — the Google account already has a different Firebase
+        // uid, so linkWithCredential refused. We're about to drop the
+        // anonymous uid and sign in as that existing user. The local
+        // SQLite/AsyncStorage data on this device would normally get
+        // bulk-pushed to the new uid on engine.start (S42 behaviour).
+        // Ask the user first: if they decline, we mark the bulk-push
+        // flag pre-emptively so the engine treats this device as
+        // already-migrated and only pulls the existing remote data.
+        const engine = getSyncEngine();
+        if (engine) {
+          try {
+            const localData = await engine.exportLocalData();
+            const total = localData.reduce((acc, d) => acc + d.count, 0);
+            if (total > 0) {
+              const wantMigrate = await new Promise<boolean>(resolve => {
+                Alert.alert(
+                  t.conflicts.migrationTitle,
+                  t.conflicts.migrationBody.replace('{{count}}', String(total)),
+                  [
+                    {
+                      text: t.conflicts.migrationNo,
+                      style: 'cancel',
+                      onPress: () => resolve(false),
+                    },
+                    {
+                      text: t.conflicts.migrationYes,
+                      onPress: () => resolve(true),
+                    },
+                  ],
+                  {cancelable: false, onDismiss: () => resolve(false)},
+                );
+              });
+              if (!wantMigrate) {
+                engine.queueSkipNextBulkPush();
+                logger.info('AuthProvider: user declined migration', {
+                  component: 'AuthProvider',
+                  localItems: total,
+                });
+              } else {
+                logger.info('AuthProvider: user accepted migration', {
+                  component: 'AuthProvider',
+                  localItems: total,
+                });
+              }
+            }
+          } catch (exportErr) {
+            // Non-fatal: fall through to the default bulk-push behaviour
+            // (which still does the right thing via LWW).
+            logger.warn('AuthProvider: migration check failed', {
+              component: 'AuthProvider',
+              error:
+                exportErr instanceof Error
+                  ? exportErr.message
+                  : String(exportErr),
+            });
+          }
+        }
       }
     }
 
     await authMod().signInWithCredential(credential);
-  }, []);
+  }, [t]);
 
   const signOut = useCallback(async () => {
     const authMod = getAuth();

@@ -208,6 +208,11 @@ export const FavoritesProvider: FC<{children: ReactNode}> = ({children}) => {
           data: favoriteToRemote(f),
         }));
       },
+      // Sprint 43 — user-editable fields. verseId/text/book/chapter/verse
+      // are immutable identity, so we ignore them for conflict detection.
+      getMaterialFields() {
+        return ['note', 'category', 'rating', 'tags'] as const;
+      },
     };
     syncCtx.engine.register(adapter);
     return () => {
