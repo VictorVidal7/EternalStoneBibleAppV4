@@ -32,6 +32,8 @@ import bibleDB from '@lib/database';
 import {getBookByName} from '@/constants/bible';
 import {Highlight, HighlightCategory} from '@lib/highlights';
 import {logger} from '@lib/utils/logger';
+import {getSyncEngine} from '@lib/sync';
+import {buildHighlightRemotePayload} from '@lib/sync/adapters/highlights';
 
 interface HighlightItem extends Highlight {
   text: string;
@@ -126,6 +128,11 @@ export default function HighlightsScreen() {
           if (!highlightService) return;
           await highlightService.removeHighlight(item.verseId);
           setItems(prev => prev.filter(i => i.verseId !== item.verseId));
+          getSyncEngine()?.queueDelete(
+            'highlights',
+            item.verseId,
+            buildHighlightRemotePayload(item),
+          );
           toast.success(t.highlights.removed);
         },
       },
@@ -145,12 +152,19 @@ export default function HighlightsScreen() {
       note: note || undefined,
       category: categoryDraft,
     });
+    const updated = {
+      ...editing,
+      note: note || undefined,
+      category: categoryDraft,
+      updatedAt: Date.now(),
+    };
     setItems(prev =>
-      prev.map(i =>
-        i.verseId === editing.verseId
-          ? {...i, note: note || undefined, category: categoryDraft}
-          : i,
-      ),
+      prev.map(i => (i.verseId === editing.verseId ? updated : i)),
+    );
+    getSyncEngine()?.queueWrite(
+      'highlights',
+      editing.verseId,
+      buildHighlightRemotePayload(updated),
     );
     setEditing(null);
     toast.success(t.highlights.saved);

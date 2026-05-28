@@ -19,6 +19,7 @@ import React, {
   useContext,
   useEffect,
   useMemo,
+  useRef,
   useState,
   type FC,
   type ReactNode,
@@ -31,6 +32,8 @@ import {
   removeById,
   renameById,
 } from './bookmarkOps';
+import {getSyncEngine, type SyncAdapter, type SyncEntity} from '../lib/sync';
+import {useSyncEngineOptional} from './SyncEngineContext';
 
 export interface Bookmark {
   id: string;
@@ -40,6 +43,9 @@ export interface Bookmark {
   text: string; // verse snippet for the list preview
   label?: string; // optional user-chosen name ("Sunday sermon")
   createdAt: number;
+  /** Sprint 42: required for last-write-wins sync. Backfilled to
+   *  createdAt (or Date.now()) on hydration of older blobs. */
+  updatedAt: number;
 }
 
 export interface BookmarksContextType {
@@ -70,9 +76,19 @@ interface BookmarksProviderProps {
   children: ReactNode;
 }
 
+function bookmarkToRemote(b: Bookmark): SyncEntity<Bookmark> {
+  return {...b, updatedAt: b.updatedAt};
+}
+
 export const BookmarksProvider: FC<BookmarksProviderProps> = ({children}) => {
   const [bookmarks, setBookmarks] = useState<Bookmark[]>([]);
   const [loading, setLoading] = useState(true);
+  const syncCtx = useSyncEngineOptional();
+
+  const bookmarksRef = useRef<Bookmark[]>([]);
+  useEffect(() => {
+    bookmarksRef.current = bookmarks;
+  }, [bookmarks]);
 
   useEffect(() => {
     (async () => {
@@ -81,15 +97,37 @@ export const BookmarksProvider: FC<BookmarksProviderProps> = ({children}) => {
         if (raw) {
           const parsed = JSON.parse(raw);
           if (Array.isArray(parsed)) {
-            setBookmarks(
-              parsed.filter(
-                (b): b is Bookmark =>
-                  typeof b?.id === 'string' &&
-                  typeof b?.book === 'string' &&
-                  typeof b?.chapter === 'number' &&
-                  typeof b?.verse === 'number',
-              ),
-            );
+            const hydrated: Bookmark[] = [];
+            for (const b of parsed) {
+              if (
+                typeof b?.id === 'string' &&
+                typeof b?.book === 'string' &&
+                typeof b?.chapter === 'number' &&
+                typeof b?.verse === 'number'
+              ) {
+                // Sprint 42 backfill: blobs predating this sprint don't
+                // carry `updatedAt`. Fall back to createdAt (or now) so
+                // LWW compares stay deterministic.
+                hydrated.push({
+                  ...(b as Bookmark),
+                  updatedAt:
+                    typeof (b as Bookmark).updatedAt === 'number'
+                      ? (b as Bookmark).updatedAt
+                      : typeof (b as Bookmark).createdAt === 'number'
+                        ? (b as Bookmark).createdAt
+                        : Date.now(),
+                });
+              }
+            }
+            setBookmarks(hydrated);
+            // Persist the backfilled blob immediately so the next
+            // hydrate is a no-op (and so the engine's queue picks up
+            // the correct updatedAt on first sync).
+            try {
+              await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(hydrated));
+            } catch {
+              // Best-effort — the next mutation will persist anyway.
+            }
           }
         }
       } catch (error) {
@@ -101,6 +139,65 @@ export const BookmarksProvider: FC<BookmarksProviderProps> = ({children}) => {
       }
     })();
   }, []);
+
+  // Register sync adapter.
+  useEffect(() => {
+    if (!syncCtx) return;
+    const adapter: SyncAdapter<Bookmark> = {
+      collection: 'bookmarks',
+      async getLocal(id) {
+        const b = bookmarksRef.current.find(x => x.id === id);
+        return b ? bookmarkToRemote(b) : null;
+      },
+      async applyRemoteUpsert(id, data) {
+        const incoming: Bookmark = {
+          id,
+          book: data.book,
+          chapter: data.chapter,
+          verse: data.verse,
+          text: data.text,
+          label: data.label,
+          createdAt:
+            typeof data.createdAt === 'number' ? data.createdAt : Date.now(),
+          updatedAt:
+            typeof data.updatedAt === 'number' ? data.updatedAt : Date.now(),
+        };
+        setBookmarks(prev => {
+          const idx = prev.findIndex(b => b.id === id);
+          let next: Bookmark[];
+          if (idx >= 0) {
+            next = [...prev];
+            next[idx] = incoming;
+          } else {
+            next = [incoming, ...prev];
+          }
+          AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(next)).catch(
+            () => undefined,
+          );
+          return next;
+        });
+      },
+      async applyRemoteDelete(id) {
+        setBookmarks(prev => {
+          const next = prev.filter(b => b.id !== id);
+          AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(next)).catch(
+            () => undefined,
+          );
+          return next;
+        });
+      },
+      async pullAllLocal() {
+        return bookmarksRef.current.map(b => ({
+          id: b.id,
+          data: bookmarkToRemote(b),
+        }));
+      },
+    };
+    syncCtx.engine.register(adapter);
+    return () => {
+      syncCtx.engine.unregister('bookmarks');
+    };
+  }, [syncCtx]);
 
   const persist = useCallback(async (next: Bookmark[]) => {
     setBookmarks(next);
@@ -115,6 +212,7 @@ export const BookmarksProvider: FC<BookmarksProviderProps> = ({children}) => {
 
   const addBookmark: BookmarksContextType['addBookmark'] = useCallback(
     async input => {
+      const now = Date.now();
       const bookmark: Bookmark = {
         id: generateId(),
         book: input.book,
@@ -122,11 +220,17 @@ export const BookmarksProvider: FC<BookmarksProviderProps> = ({children}) => {
         verse: input.verse,
         text: input.text,
         label: input.label,
-        createdAt: Date.now(),
+        createdAt: now,
+        updatedAt: now,
       };
       // Dedupe + MRU prepend lives in a pure helper (see bookmarkOps.ts)
       // so it can be unit-tested without rendering the provider.
       await persist(dedupeAndPrepend(bookmarks, bookmark));
+      getSyncEngine()?.queueWrite(
+        'bookmarks',
+        bookmark.id,
+        bookmarkToRemote(bookmark),
+      );
       return bookmark;
     },
     [bookmarks, persist],
@@ -134,21 +238,45 @@ export const BookmarksProvider: FC<BookmarksProviderProps> = ({children}) => {
 
   const removeBookmark = useCallback(
     async (id: string) => {
+      const lastKnown = bookmarks.find(b => b.id === id);
       await persist(removeById(bookmarks, id));
+      getSyncEngine()?.queueDelete(
+        'bookmarks',
+        id,
+        lastKnown ? bookmarkToRemote(lastKnown) : undefined,
+      );
     },
     [bookmarks, persist],
   );
 
   const renameBookmark = useCallback(
     async (id: string, label: string) => {
-      await persist(renameById(bookmarks, id, label));
+      const next = renameById(bookmarks, id, label).map(b =>
+        b.id === id ? {...b, updatedAt: Date.now()} : b,
+      );
+      await persist(next);
+      const renamed = next.find(b => b.id === id);
+      if (renamed) {
+        getSyncEngine()?.queueWrite(
+          'bookmarks',
+          renamed.id,
+          bookmarkToRemote(renamed),
+        );
+      }
     },
     [bookmarks, persist],
   );
 
   const clearAll = useCallback(async () => {
+    const engine = getSyncEngine();
+    if (engine) {
+      // Queue a tombstone for every bookmark so the clear propagates.
+      for (const b of bookmarks) {
+        engine.queueDelete('bookmarks', b.id, bookmarkToRemote(b));
+      }
+    }
     await persist([]);
-  }, [persist]);
+  }, [bookmarks, persist]);
 
   const isBookmarked = useCallback(
     (book: string, chapter: number, verse: number) =>

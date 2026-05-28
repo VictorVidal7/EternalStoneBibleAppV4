@@ -13,6 +13,7 @@ function bm(over: Partial<Bookmark> & {id: string}): Bookmark {
     verse: 1,
     text: 'In the beginning…',
     createdAt: 0,
+    updatedAt: 0,
     ...over,
   };
 }

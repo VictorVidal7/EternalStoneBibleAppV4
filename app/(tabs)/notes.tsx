@@ -19,6 +19,8 @@ import {useLanguage} from '@hooks/useLanguage';
 import {IllustratedEmptyState} from '@components/IllustratedEmptyState';
 import {logger} from '@lib/utils/logger';
 import {getBookByName} from '@/constants/bible';
+import {getSyncEngine} from '@lib/sync';
+import {buildNoteRemotePayload} from '@lib/sync/adapters/notes';
 
 export default function NotesScreen() {
   const router = useRouter();
@@ -62,7 +64,15 @@ export default function NotesScreen() {
         text: t.delete,
         style: 'destructive',
         onPress: async () => {
+          // Snapshot the note so the tombstone payload pushed to
+          // Firestore carries verse identity (Sprint 42).
+          const last = notes.find(n => n.id === id);
           await bibleDB.removeNote(id);
+          getSyncEngine()?.queueDelete(
+            'notes',
+            id,
+            last ? buildNoteRemotePayload(last) : undefined,
+          );
           loadNotes();
         },
       },

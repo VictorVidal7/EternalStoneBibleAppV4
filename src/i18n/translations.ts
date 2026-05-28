@@ -362,6 +362,18 @@ export const translations = {
       googleLogoA11y: 'Logo de Google',
     },
 
+    sync: {
+      justNow: 'Sincronizado hace un momento',
+      secondsAgo: 'Sincronizado hace {{n}}s',
+      minutesAgo: 'Sincronizado hace {{n}} min',
+      waiting: 'Esperando sincronización',
+      syncing: 'Sincronizando {{count}} cambios…',
+      syncingSingular: 'Sincronizando 1 cambio…',
+      offline: 'Sin conexión',
+      offlineWithQueue: 'Sin conexión — {{count}} cambios encolados',
+      offlineWithQueueSingular: 'Sin conexión — 1 cambio encolado',
+    },
+
     bookmarks: {
       title: 'Marcadores',
       short: 'Marcadores',
@@ -1649,6 +1661,18 @@ export const translations = {
       signedOutToast: 'Signed out',
       avatarA11y: 'Profile picture of {{name}}',
       googleLogoA11y: 'Google logo',
+    },
+
+    sync: {
+      justNow: 'Synced just now',
+      secondsAgo: 'Synced {{n}}s ago',
+      minutesAgo: 'Synced {{n}} min ago',
+      waiting: 'Waiting to sync',
+      syncing: 'Syncing {{count}} changes…',
+      syncingSingular: 'Syncing 1 change…',
+      offline: 'Offline',
+      offlineWithQueue: 'Offline — {{count}} changes queued',
+      offlineWithQueueSingular: 'Offline — 1 change queued',
     },
 
     bookmarks: {
