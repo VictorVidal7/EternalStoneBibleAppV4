@@ -84,6 +84,10 @@ export const BookmarksProvider: FC<BookmarksProviderProps> = ({children}) => {
   const [bookmarks, setBookmarks] = useState<Bookmark[]>([]);
   const [loading, setLoading] = useState(true);
   const syncCtx = useSyncEngineOptional();
+  // Sprint 45 — see FavoritesContext: depend on the stable engine ref,
+  // not the context value, so the adapter registers once instead of
+  // re-subscribing on every engine state tick.
+  const syncEngine = syncCtx?.engine ?? null;
 
   const bookmarksRef = useRef<Bookmark[]>([]);
   useEffect(() => {
@@ -142,7 +146,7 @@ export const BookmarksProvider: FC<BookmarksProviderProps> = ({children}) => {
 
   // Register sync adapter.
   useEffect(() => {
-    if (!syncCtx) return;
+    if (!syncEngine) return;
     const adapter: SyncAdapter<Bookmark> = {
       collection: 'bookmarks',
       async getLocal(id) {
@@ -197,11 +201,11 @@ export const BookmarksProvider: FC<BookmarksProviderProps> = ({children}) => {
         return ['label'] as const;
       },
     };
-    syncCtx.engine.register(adapter);
+    syncEngine.register(adapter);
     return () => {
-      syncCtx.engine.unregister('bookmarks');
+      syncEngine.unregister('bookmarks');
     };
-  }, [syncCtx]);
+  }, [syncEngine]);
 
   const persist = useCallback(async (next: Bookmark[]) => {
     setBookmarks(next);

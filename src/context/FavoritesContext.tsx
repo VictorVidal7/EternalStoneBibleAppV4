@@ -108,6 +108,13 @@ export const FavoritesProvider: FC<{children: ReactNode}> = ({children}) => {
   const [loading, setLoading] = useState(true);
   const {achievementService} = useServices();
   const syncCtx = useSyncEngineOptional();
+  // Sprint 45 — depend on the STABLE engine instance, not the context
+  // value: the context value changes identity on every engine state
+  // update, so a `[syncCtx]` dep made the adapter re-register on every
+  // sync tick → onSnapshot churn (a tight re-subscribe loop). The engine
+  // ref is created once, so registering once is correct (the adapter
+  // reads fresh data via refs, not via the effect closure).
+  const syncEngine = syncCtx?.engine ?? null;
 
   // Keep an always-fresh ref for the sync adapter's getLocal — it
   // runs outside React render and can't capture stale state.
@@ -124,7 +131,7 @@ export const FavoritesProvider: FC<{children: ReactNode}> = ({children}) => {
   // calls applyRemoteUpsert/Delete with the local-write suppress flag
   // on, so the setFavorites calls below do NOT bounce back as a push.
   useEffect(() => {
-    if (!syncCtx) return;
+    if (!syncEngine) return;
     const adapter: SyncAdapter<Omit<Favorite, 'updatedAt'>> = {
       collection: 'favorites',
       async getLocal(id) {
@@ -214,11 +221,11 @@ export const FavoritesProvider: FC<{children: ReactNode}> = ({children}) => {
         return ['note', 'category', 'rating', 'tags'] as const;
       },
     };
-    syncCtx.engine.register(adapter);
+    syncEngine.register(adapter);
     return () => {
-      syncCtx.engine.unregister('favorites');
+      syncEngine.unregister('favorites');
     };
-  }, [syncCtx]);
+  }, [syncEngine]);
 
   /**
    * Carga los favoritos desde la base de datos
