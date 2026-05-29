@@ -323,6 +323,29 @@ export const translations = {
         lapsesBadge: '{{count}} fallos',
         lapsesBadgeSingular: '1 fallo',
       },
+      goal: {
+        heroTitle: 'Tu racha',
+        streakDays: 'Racha de {{count}} días',
+        streakDaysSingular: 'Racha de 1 día',
+        streakNone: 'Empieza tu racha hoy',
+        dailyGoal: 'Meta diaria',
+        todayCount: '{{done}}/{{goal}} hoy',
+        remaining: 'Te faltan {{count}} repasos',
+        remainingSingular: 'Te falta 1 repaso',
+        goalMet: '¡Meta cumplida!',
+        nextTarget: 'Siguiente meta: {{count}} días',
+        settingsTitle: 'Meta diaria de repaso',
+        settingsDesc: 'Cuántas tarjetas quieres repasar cada día',
+        goalUnit: '{{count}}/día',
+        saved: 'Meta actualizada',
+        celebrateStreakTitle: '¡Racha de {{count}} días!',
+        celebrateStreakBody:
+          'Has repasado {{count}} días seguidos. ¡Que la Palabra siga habitando en ti!',
+        celebrateGoalTitle: '¡Meta diaria cumplida!',
+        celebrateGoalBody:
+          'Completaste tus {{count}} repasos de hoy. ¡Bien hecho, buen siervo!',
+        celebrateCta: '¡Amén!',
+      },
     },
 
     // My Highlights Screen
@@ -701,6 +724,10 @@ export const translations = {
       time: 'Hora del recordatorio',
       enabled: 'Recordatorio diario activado',
       disabled: 'Recordatorio diario desactivado',
+      memoryReminder: 'Recordatorio de repaso',
+      memoryReminderDesc: 'Te recordamos repasar tus versículos cada día',
+      memoryReminderEnabled: 'Recordatorio de repaso activado',
+      memoryReminderDisabled: 'Recordatorio de repaso desactivado',
       permissionDeniedTitle: 'Permiso necesario',
       permissionDeniedMessage:
         'Para recibir el versículo diario, activa las notificaciones de la app en los ajustes del sistema.',
@@ -1690,6 +1717,29 @@ export const translations = {
         lapsesBadge: '{{count}} lapses',
         lapsesBadgeSingular: '1 lapse',
       },
+      goal: {
+        heroTitle: 'Your streak',
+        streakDays: '{{count}}-day streak',
+        streakDaysSingular: '1-day streak',
+        streakNone: 'Start your streak today',
+        dailyGoal: 'Daily goal',
+        todayCount: '{{done}}/{{goal}} today',
+        remaining: '{{count}} reviews to go',
+        remainingSingular: '1 review to go',
+        goalMet: 'Goal reached!',
+        nextTarget: 'Next milestone: {{count}} days',
+        settingsTitle: 'Daily review goal',
+        settingsDesc: 'How many cards you want to review each day',
+        goalUnit: '{{count}}/day',
+        saved: 'Goal updated',
+        celebrateStreakTitle: '{{count}}-day streak!',
+        celebrateStreakBody:
+          "You've reviewed {{count}} days in a row. May the Word keep dwelling in you!",
+        celebrateGoalTitle: 'Daily goal reached!',
+        celebrateGoalBody:
+          'You finished your {{count}} reviews today. Well done, good servant!',
+        celebrateCta: 'Amen!',
+      },
     },
 
     bookIntro: {
@@ -2075,6 +2125,10 @@ export const translations = {
       time: 'Reminder time',
       enabled: 'Daily reminder turned on',
       disabled: 'Daily reminder turned off',
+      memoryReminder: 'Review reminder',
+      memoryReminderDesc: 'A daily nudge to review your memory verses',
+      memoryReminderEnabled: 'Review reminder turned on',
+      memoryReminderDisabled: 'Review reminder turned off',
       permissionDeniedTitle: 'Permission needed',
       permissionDeniedMessage:
         'To receive the daily verse, enable notifications for the app in your system settings.',

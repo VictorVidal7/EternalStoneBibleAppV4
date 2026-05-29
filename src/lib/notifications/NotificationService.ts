@@ -22,6 +22,19 @@ const DEFAULT_HOUR = 8;
 const DAYS_AHEAD = 14;
 const ANDROID_CHANNEL_ID = 'daily-verse';
 
+/** Sprint 47 — the memorization review reminder is a SECOND notification
+ *  type with its own prefs + channel, independent of the daily verse so the
+ *  user can enable either, both, or neither. */
+const MEMORY_ENABLED_KEY = '@memory_reminder_enabled';
+const MEMORY_HOUR_KEY = '@memory_reminder_hour';
+const MEMORY_DEFAULT_HOUR = 19;
+const MEMORY_CHANNEL_ID = 'memory-reminder';
+
+/** Discriminator stored on each scheduled notification's `data.type` so we
+ *  can cancel one kind without touching the other. */
+const DAILY_VERSE_TYPE = 'daily-verse';
+const MEMORY_REMINDER_TYPE = 'memory-reminder';
+
 export interface NotificationPreferences {
   enabled: boolean;
   hour: number;
@@ -53,6 +66,10 @@ export async function initNotifications(): Promise<void> {
     try {
       await Notifications.setNotificationChannelAsync(ANDROID_CHANNEL_ID, {
         name: 'Versículo del día',
+        importance: Notifications.AndroidImportance.DEFAULT,
+      });
+      await Notifications.setNotificationChannelAsync(MEMORY_CHANNEL_ID, {
+        name: 'Recordatorio de repaso',
         importance: Notifications.AndroidImportance.DEFAULT,
       });
     } catch (err) {
@@ -104,16 +121,34 @@ export async function requestNotificationPermission(): Promise<boolean> {
   }
 }
 
-/** Cancels every scheduled daily-verse notification. */
-export async function cancelDailyVerseNotifications(): Promise<void> {
+/**
+ * Cancels only the scheduled notifications carrying `data.type === type`.
+ * Sprint 47 — the daily verse and the memory reminder coexist, so we can no
+ * longer `cancelAllScheduledNotificationsAsync()` (that would wipe the other
+ * kind); we filter by the type discriminator and cancel by identifier.
+ */
+async function cancelNotificationsByType(type: string): Promise<void> {
   try {
-    await Notifications.cancelAllScheduledNotificationsAsync();
+    const scheduled = await Notifications.getAllScheduledNotificationsAsync();
+    await Promise.all(
+      scheduled
+        .filter(
+          n => (n.content?.data as {type?: string} | undefined)?.type === type,
+        )
+        .map(n => Notifications.cancelScheduledNotificationAsync(n.identifier)),
+    );
   } catch (err) {
     logger.warn('Could not cancel scheduled notifications', {
       component: 'NotificationService',
+      type,
       error: err,
     });
   }
+}
+
+/** Cancels every scheduled daily-verse notification. */
+export async function cancelDailyVerseNotifications(): Promise<void> {
+  await cancelNotificationsByType(DAILY_VERSE_TYPE);
 }
 
 /**
@@ -174,7 +209,7 @@ export async function scheduleDailyVerseNotifications(
             ? 'Open the app to read today’s verse'
             : 'Abre la app para leer el versículo de hoy'),
         data: {
-          type: 'daily-verse',
+          type: DAILY_VERSE_TYPE,
           book: ref.book,
           chapter: ref.chapter,
           verse: ref.verse,
@@ -237,4 +272,133 @@ export async function refreshDailyVerseNotifications(
   const granted = await requestNotificationPermission();
   if (!granted) return;
   await scheduleDailyVerseNotifications({...opts, hour: prefs.hour});
+}
+
+// ---------------------------------------------------------------------------
+// 🧠 Memorization review reminder (Sprint 47)
+//
+// A second, independent reminder nudging the user to keep their review streak
+// alive. Unlike the daily verse it needs no DB lookup — the copy is a fixed
+// motivational line — so it just schedules a rolling window of dated triggers.
+// ---------------------------------------------------------------------------
+
+export interface MemoryReminderPreferences {
+  enabled: boolean;
+  hour: number;
+}
+
+export interface MemoryReminderOptions {
+  hour: number;
+  language: 'es' | 'en';
+}
+
+/** Reads the saved memory-reminder preferences. */
+export async function getMemoryReminderPreferences(): Promise<MemoryReminderPreferences> {
+  try {
+    const [enabledRaw, hourRaw] = await Promise.all([
+      AsyncStorage.getItem(MEMORY_ENABLED_KEY),
+      AsyncStorage.getItem(MEMORY_HOUR_KEY),
+    ]);
+    const hour = hourRaw != null ? parseInt(hourRaw, 10) : MEMORY_DEFAULT_HOUR;
+    return {
+      enabled: enabledRaw === 'true',
+      hour: Number.isFinite(hour) ? hour : MEMORY_DEFAULT_HOUR,
+    };
+  } catch {
+    return {enabled: false, hour: MEMORY_DEFAULT_HOUR};
+  }
+}
+
+async function saveMemoryReminderPreferences(
+  prefs: MemoryReminderPreferences,
+): Promise<void> {
+  await AsyncStorage.multiSet([
+    [MEMORY_ENABLED_KEY, String(prefs.enabled)],
+    [MEMORY_HOUR_KEY, String(prefs.hour)],
+  ]);
+}
+
+/**
+ * Reschedules the rolling window of memorization reminders. Cancels only the
+ * existing memory reminders first (never the daily verse).
+ */
+export async function scheduleMemoryReminders(
+  opts: MemoryReminderOptions,
+): Promise<number> {
+  await initNotifications();
+  await cancelNotificationsByType(MEMORY_REMINDER_TYPE);
+
+  const now = new Date();
+  let scheduled = 0;
+
+  const title =
+    opts.language === 'en' ? '🧠 Time to review' : '🧠 Hora de repasar';
+  const body =
+    opts.language === 'en'
+      ? 'Keep your memorization streak alive — review today’s verses.'
+      : 'Mantén viva tu racha de memorización — repasa los versículos de hoy.';
+
+  for (let i = 0; i < DAYS_AHEAD; i++) {
+    const triggerDate = new Date(now);
+    triggerDate.setDate(now.getDate() + i);
+    triggerDate.setHours(opts.hour, 0, 0, 0);
+    if (triggerDate.getTime() <= now.getTime()) continue;
+
+    await Notifications.scheduleNotificationAsync({
+      content: {
+        title,
+        body,
+        data: {type: MEMORY_REMINDER_TYPE},
+      },
+      trigger: {
+        type: Notifications.SchedulableTriggerInputTypes.DATE,
+        date: triggerDate,
+        channelId: MEMORY_CHANNEL_ID,
+      },
+    });
+    scheduled++;
+  }
+
+  logger.info('Memory reminders scheduled', {
+    component: 'NotificationService',
+    scheduled,
+    hour: opts.hour,
+  });
+  return scheduled;
+}
+
+/** Turns the memorization reminder on or off (requesting permission on). */
+export async function setMemoryReminderEnabled(
+  enabled: boolean,
+  opts: MemoryReminderOptions,
+): Promise<boolean> {
+  if (enabled) {
+    const granted = await requestNotificationPermission();
+    if (!granted) return false;
+    await scheduleMemoryReminders(opts);
+  } else {
+    await cancelNotificationsByType(MEMORY_REMINDER_TYPE);
+  }
+  await saveMemoryReminderPreferences({enabled, hour: opts.hour});
+  return true;
+}
+
+/** Updates the reminder hour and reschedules if enabled. */
+export async function updateMemoryReminderHour(
+  opts: MemoryReminderOptions,
+): Promise<void> {
+  await saveMemoryReminderPreferences({enabled: true, hour: opts.hour});
+  await scheduleMemoryReminders(opts);
+}
+
+/** Called on app launch: top up the rolling window if the reminder is on. */
+export async function refreshMemoryReminders(
+  opts: Omit<MemoryReminderOptions, 'hour'>,
+): Promise<void> {
+  const prefs = await getMemoryReminderPreferences();
+  await initNotifications();
+  if (!prefs.enabled) return;
+  const granted = await requestNotificationPermission();
+  if (!granted) return;
+  await scheduleMemoryReminders({...opts, hour: prefs.hour});
 }

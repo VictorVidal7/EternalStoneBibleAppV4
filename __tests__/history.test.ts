@@ -172,6 +172,7 @@ describe('historySummary', () => {
     const s = historySummary([], NOW);
     expect(s).toEqual({
       totalReviews: 0,
+      reviewsToday: 0,
       reviewsLast7: 0,
       reviewsLast30: 0,
       activeDays: 0,
@@ -190,6 +191,7 @@ describe('historySummary', () => {
     ];
     const s = historySummary(events, NOW);
     expect(s.totalReviews).toBe(5);
+    expect(s.reviewsToday).toBe(2); // the 2 events on day 0
     expect(s.reviewsLast7).toBe(3); // today(2) + 3-days-ago(1)
     expect(s.reviewsLast30).toBe(4); // + 10-days-ago(1)
     expect(s.activeDays).toBe(4);

@@ -28,6 +28,7 @@ import {useAuth} from '@context/AuthContext';
 import {useSyncEngineOptional, useConflicts} from '@context/SyncEngineContext';
 import {useToast} from '@context/ToastContext';
 import DailyVerseSettings from '@components/settings/DailyVerseSettings';
+import MemoryGoalSettings from '@components/settings/MemoryGoalSettings';
 import * as Haptics from 'expo-haptics';
 import Constants from 'expo-constants';
 
@@ -634,6 +635,9 @@ export default function SettingsScreen() {
 
         {/* Daily Verse Notifications */}
         <DailyVerseSettings />
+
+        {/* Memorization goal + review reminder (Sprint 47) */}
+        <MemoryGoalSettings />
 
         {/* New Features V5.1 Section */}
         <View style={themedStyles.section}>

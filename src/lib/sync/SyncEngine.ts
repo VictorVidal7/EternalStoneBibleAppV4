@@ -48,6 +48,14 @@ const QUEUE_STORAGE_KEY = '@sync_queue_v1';
 const BULK_PUSH_FLAG_PREFIX = '@sync_first_push_done:';
 const MAX_RETRY_ATTEMPTS = 8;
 /**
+ * Sprint 47 — a safety-net flush interval. The queue is normally drained by
+ * queueWrite / NetInfo / the post-hydration flush, but a push that failed on
+ * a transient error (the loop `break`s and leaves it queued) would otherwise
+ * sit until the next external trigger. This periodic tick retries it while
+ * the engine is active + online + has pending work.
+ */
+const FLUSH_INTERVAL_MS = 60000;
+/**
  * Sprint 43 — when a remote change lands within this many ms of the
  * local updatedAt, AND material fields differ, the engine surfaces it
  * as a conflict instead of applying via LWW. 30s matches "two users
@@ -105,6 +113,8 @@ export class SyncEngine {
   /** Active firestore listener teardowns, keyed by collection. */
   private unsubs = new Map<string, () => void>();
   private netUnsub: (() => void) | null = null;
+  /** Sprint 47 — periodic safety-net flush timer (see FLUSH_INTERVAL_MS). */
+  private flushTimer: ReturnType<typeof setInterval> | null = null;
   private uid: string | null = null;
   private queue: PendingWrite[] = [];
   private queueHydrated = false;
@@ -186,6 +196,7 @@ export class SyncEngine {
 
     await this.hydrateQueue();
     this.subscribeNetInfo();
+    this.startPeriodicFlush();
 
     // Attach a listener per already-registered adapter.
     for (const adapter of this.adapters.values()) {
@@ -211,6 +222,7 @@ export class SyncEngine {
       this.netUnsub();
       this.netUnsub = null;
     }
+    this.stopPeriodicFlush();
     this.uid = null;
     // Conflicts are transient — they snapshot the local doc at detection
     // time. If the user signs back in, fresh onSnapshot events will
@@ -348,6 +360,29 @@ export class SyncEngine {
     }
     this.updateState({pendingWrites: this.queue.length});
     void this.persistQueue();
+  }
+
+  // ---------- private: periodic flush (Sprint 47) ----------
+
+  private startPeriodicFlush(): void {
+    if (this.flushTimer) return;
+    const timer = setInterval(() => {
+      if (this.uid && this.state.isOnline && this.queue.length > 0) {
+        void this.flush();
+      }
+    }, FLUSH_INTERVAL_MS);
+    // In Node (jest) the timer would keep the process alive; unref so the
+    // test runner exits cleanly. React Native's setInterval returns a number
+    // with no unref — the optional chaining no-ops there.
+    (timer as unknown as {unref?: () => void}).unref?.();
+    this.flushTimer = timer;
+  }
+
+  private stopPeriodicFlush(): void {
+    if (this.flushTimer) {
+      clearInterval(this.flushTimer);
+      this.flushTimer = null;
+    }
   }
 
   // ---------- private: NetInfo ----------
@@ -738,6 +773,10 @@ export class SyncEngine {
 
     this.flushInFlight = true;
     this.updateState({isSyncing: true});
+    // Sprint 47 — track whether the loop bailed on an error so we know
+    // whether a non-empty queue afterwards is genuinely-new work (safe to
+    // re-flush) vs. a failed push we must NOT hot-loop on.
+    let erroredOut = false;
     try {
       // Snapshot the current queue — flushes that come in mid-loop will
       // be picked up on the next call.
@@ -756,6 +795,7 @@ export class SyncEngine {
             lastError: null,
           });
         } catch (err) {
+          erroredOut = true;
           // Increment attempts; drop only after MAX_RETRY_ATTEMPTS so
           // a poisoned entry can't block the queue forever.
           const idx = this.queue.findIndex(
@@ -793,6 +833,23 @@ export class SyncEngine {
     } finally {
       this.flushInFlight = false;
       this.updateState({isSyncing: false});
+    }
+
+    // Sprint 47 — if the loop completed cleanly but the queue still holds
+    // entries, they were queued DURING this flush: e.g. reviewCard queues
+    // memoryCards and THEN reviewEvents in the same tick, and the second
+    // queueWrite hit the flushInFlight guard so its own flush() returned
+    // early. A clean loop removes every snapshotted item on success, so a
+    // non-empty queue here is genuinely-new work — drain it now instead of
+    // waiting for the next NetInfo event / queueWrite / periodic tick. We do
+    // NOT re-flush after an error (erroredOut) to avoid a hot retry loop.
+    if (
+      !erroredOut &&
+      this.queue.length > 0 &&
+      this.uid &&
+      this.state.isOnline
+    ) {
+      void this.flush();
     }
   }
 
