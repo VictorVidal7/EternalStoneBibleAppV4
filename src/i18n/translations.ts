@@ -302,6 +302,20 @@ export const translations = {
         strugglingEmpty: '¡Ninguno se te resiste! Buen trabajo.',
         reviewsCount: '{{count}} repasos',
         reviewsCountSingular: '1 repaso',
+        heatmapTitle: 'Actividad de repaso',
+        heatmapHint: 'Repasos por día en las últimas semanas',
+        heatmapEmpty:
+          'Aún no has repasado ningún versículo. Tu mapa de actividad aparecerá aquí.',
+        legendLess: 'Menos',
+        legendMore: 'Más',
+        streakCurrent: 'Racha actual',
+        streakLongest: 'Racha máxima',
+        activeDays: 'Días activos',
+        retentionTitle: 'Retención por intervalo',
+        retentionHint: '% de versículos recordados según cuánto esperaste',
+        retentionEmpty:
+          'Repasa versículos en días distintos para ver tu retención.',
+        overallRetention: 'Retención global',
       },
     },
 
@@ -1649,6 +1663,20 @@ export const translations = {
         strugglingEmpty: "Nothing's tripping you up. Great work!",
         reviewsCount: '{{count}} reviews',
         reviewsCountSingular: '1 review',
+        heatmapTitle: 'Review activity',
+        heatmapHint: 'Reviews per day over recent weeks',
+        heatmapEmpty:
+          "You haven't reviewed any verses yet. Your activity map will appear here.",
+        legendLess: 'Less',
+        legendMore: 'More',
+        streakCurrent: 'Current streak',
+        streakLongest: 'Best streak',
+        activeDays: 'Active days',
+        retentionTitle: 'Retention by interval',
+        retentionHint: '% of verses recalled by how long you waited',
+        retentionEmpty:
+          'Review verses on different days to see your retention.',
+        overallRetention: 'Overall retention',
       },
     },
 

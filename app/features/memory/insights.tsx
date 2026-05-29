@@ -13,7 +13,7 @@
  * Para la gloria de Dios Todopoderoso ✨
  */
 
-import React, {useMemo} from 'react';
+import React, {useEffect, useMemo, useState} from 'react';
 import {
   View,
   Text,
@@ -29,9 +29,13 @@ import {useTheme} from '@hooks/useTheme';
 import {useLanguage} from '@hooks/useLanguage';
 import {useMemoryDeck} from '@context/MemoryDeckContext';
 import {computeDeckInsights, type StrugglingCard} from '@lib/memory/insights';
+import {computeReviewHistory} from '@lib/memory/history';
+import {getAllReviewEvents} from '@lib/memory/reviewEventStore';
+import type {ReviewEvent} from '@lib/memory/reviewEvents';
 import {getBookByName} from '@/constants/bible';
 import SVGCircularProgress from '@components/SVGCircularProgress';
 import {MiniBarChart, type BarDatum} from '@components/charts/MiniBarChart';
+import {ContributionHeatmap} from '@components/charts/ContributionHeatmap';
 import {
   borderRadius,
   fontSize as fontSizes,
@@ -41,6 +45,16 @@ import {
 
 const DAY_MS = 24 * 60 * 60 * 1000;
 const MAX_STRUGGLING_ROWS = 5;
+
+/** Compact, language-neutral axis labels for the retention bands. */
+const RETENTION_LABELS: Record<string, string> = {
+  d1: '1d',
+  d2_3: '2-3',
+  d4_7: '4-7',
+  d8_14: '8-14',
+  d15_30: '15-30',
+  d30plus: '30+',
+};
 
 export default function MemoryInsightsScreen() {
   const router = useRouter();
@@ -61,6 +75,29 @@ export default function MemoryInsightsScreen() {
   const now = useMemo(() => new Date(), []);
   const insights = useMemo(() => computeDeckInsights(cards, now), [cards, now]);
 
+  // Sprint 45 — the review-event log lives in SQLite (the deck context
+  // only carries current-state cards), so load it lazily here for the
+  // history section. computeReviewHistory is a pure read over the log.
+  const [events, setEvents] = useState<ReviewEvent[]>([]);
+  const [eventsLoaded, setEventsLoaded] = useState(false);
+  useEffect(() => {
+    let active = true;
+    getAllReviewEvents()
+      .then(rows => {
+        if (active) setEvents(rows);
+      })
+      .finally(() => {
+        if (active) setEventsLoaded(true);
+      });
+    return () => {
+      active = false;
+    };
+  }, []);
+  const history = useMemo(
+    () => computeReviewHistory(events, now),
+    [events, now],
+  );
+
   const i = t.memory.insights;
   const isEmpty = cards.length === 0;
 
@@ -80,6 +117,32 @@ export default function MemoryInsightsScreen() {
   }));
 
   const topStruggling = insights.struggling.slice(0, MAX_STRUGGLING_ROWS);
+
+  // Heatmap intensity ramp: empty = border, then the success color at
+  // four growing opacities (theme colors are hex, so alpha suffixes work).
+  const heatLevelColors = useMemo(
+    () => [
+      colors.border,
+      colors.success + '40',
+      colors.success + '70',
+      colors.success + 'A8',
+      colors.success,
+    ],
+    [colors.border, colors.success],
+  );
+
+  // Retention curve — only bands that actually have reviews; the bar
+  // value is the recall percentage for that elapsed-interval band.
+  const retentionData: BarDatum[] = history.retention
+    .filter(b => b.total > 0)
+    .map(b => ({
+      label: RETENTION_LABELS[b.key] ?? b.key,
+      value: Math.round((b.retention ?? 0) * 100),
+      color: colors.primary,
+    }));
+  const hasEvents = events.length > 0;
+  const hasRetention =
+    history.summary.overallRetention !== null && retentionData.length > 0;
 
   return (
     <>
@@ -213,6 +276,119 @@ export default function MemoryInsightsScreen() {
                   ))
                 )}
               </InsightCard>
+
+              {/* 5 & 6 — History (Sprint 45), shown once the log loads */}
+              {eventsLoaded && (
+                <>
+                  {/* 5 — Review-activity heatmap */}
+                  <InsightCard
+                    title={i.heatmapTitle}
+                    hint={i.heatmapHint}
+                    colors={colors}>
+                    {hasEvents ? (
+                      <>
+                        <ContributionHeatmap
+                          cells={history.heatmap.cells}
+                          levelColors={heatLevelColors}
+                        />
+                        <View style={styles.legendRow}>
+                          <Text
+                            style={[
+                              styles.legendText,
+                              {color: colors.textTertiary},
+                            ]}>
+                            {i.legendLess}
+                          </Text>
+                          {heatLevelColors.map((c, idx) => (
+                            <View
+                              key={idx}
+                              style={[styles.legendCell, {backgroundColor: c}]}
+                            />
+                          ))}
+                          <Text
+                            style={[
+                              styles.legendText,
+                              {color: colors.textTertiary},
+                            ]}>
+                            {i.legendMore}
+                          </Text>
+                        </View>
+                        <View style={styles.miniStatsRow}>
+                          <MiniStat
+                            value={history.summary.currentStreak}
+                            label={i.streakCurrent}
+                            colors={colors}
+                          />
+                          <MiniStat
+                            value={history.summary.longestStreak}
+                            label={i.streakLongest}
+                            colors={colors}
+                          />
+                          <MiniStat
+                            value={history.summary.activeDays}
+                            label={i.activeDays}
+                            colors={colors}
+                          />
+                        </View>
+                      </>
+                    ) : (
+                      <Text
+                        style={[
+                          styles.positiveNote,
+                          {color: colors.textSecondary},
+                        ]}>
+                        {i.heatmapEmpty}
+                      </Text>
+                    )}
+                  </InsightCard>
+
+                  {/* 6 — Retention by interval */}
+                  <InsightCard
+                    title={i.retentionTitle}
+                    hint={i.retentionHint}
+                    colors={colors}>
+                    {hasRetention ? (
+                      <>
+                        <View style={styles.retentionHeadline}>
+                          <Text
+                            style={[
+                              styles.retentionValue,
+                              {color: colors.success},
+                            ]}>
+                            {Math.round(
+                              (history.summary.overallRetention ?? 0) * 100,
+                            )}
+                            %
+                          </Text>
+                          <Text
+                            style={[
+                              styles.retentionLabel,
+                              {color: colors.textSecondary},
+                            ]}>
+                            {i.overallRetention}
+                          </Text>
+                        </View>
+                        <MiniBarChart
+                          data={retentionData}
+                          height={100}
+                          barColor={colors.primary}
+                          trackColor={colors.border}
+                          labelColor={colors.textSecondary}
+                          valueColor={colors.textTertiary}
+                        />
+                      </>
+                    ) : (
+                      <Text
+                        style={[
+                          styles.positiveNote,
+                          {color: colors.textSecondary},
+                        ]}>
+                        {i.retentionEmpty}
+                      </Text>
+                    )}
+                  </InsightCard>
+                </>
+              )}
             </>
           )}
         </ScrollView>
@@ -263,6 +439,22 @@ const HeroStat: React.FC<{
   <View style={styles.heroStat}>
     <Text style={[styles.heroStatValue, {color: colors.text}]}>{value}</Text>
     <Text style={[styles.heroStatLabel, {color: colors.textSecondary}]}>
+      {label}
+    </Text>
+  </View>
+);
+
+/** A compact 1-of-3 stat used beneath the heatmap (streaks / active days). */
+const MiniStat: React.FC<{
+  value: number;
+  label: string;
+  colors: ReturnType<typeof useTheme>['colors'];
+}> = ({value, label, colors}) => (
+  <View style={styles.miniStat}>
+    <Text style={[styles.miniStatValue, {color: colors.text}]}>{value}</Text>
+    <Text
+      style={[styles.miniStatLabel, {color: colors.textSecondary}]}
+      numberOfLines={1}>
       {label}
     </Text>
   </View>
@@ -404,6 +596,53 @@ const styles = StyleSheet.create({
     fontSize: fontSizes.sm,
     fontWeight: '600',
     lineHeight: 20,
+  },
+  legendRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'flex-end',
+    gap: 4,
+    marginTop: spacing.md,
+  },
+  legendText: {
+    fontSize: 10,
+    fontWeight: '600',
+  },
+  legendCell: {
+    width: 12,
+    height: 12,
+    borderRadius: 2,
+  },
+  miniStatsRow: {
+    flexDirection: 'row',
+    marginTop: spacing.md,
+  },
+  miniStat: {
+    flex: 1,
+    alignItems: 'center',
+  },
+  miniStatValue: {
+    fontSize: fontSizes.xl,
+    fontWeight: '800',
+  },
+  miniStatLabel: {
+    fontSize: 11,
+    fontWeight: '600',
+    marginTop: 1,
+  },
+  retentionHeadline: {
+    flexDirection: 'row',
+    alignItems: 'baseline',
+    gap: spacing.sm,
+    marginBottom: spacing.md,
+  },
+  retentionValue: {
+    fontSize: fontSizes['2xl'],
+    fontWeight: '800',
+  },
+  retentionLabel: {
+    fontSize: fontSizes.sm,
+    fontWeight: '600',
   },
   struggleRow: {
     flexDirection: 'row',

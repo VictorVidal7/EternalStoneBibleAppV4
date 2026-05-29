@@ -183,6 +183,21 @@ class BibleDatabase {
         )
       `);
 
+      // Tabla review_events — append-only SRS review log (Sprint 45).
+      // Immutable history powering the insights heatmap + retention curve.
+      await this.db.runAsync(`
+        CREATE TABLE IF NOT EXISTS review_events (
+          id TEXT PRIMARY KEY,
+          verse_key TEXT NOT NULL,
+          book_name TEXT NOT NULL,
+          grade TEXT NOT NULL,
+          box_before INTEGER NOT NULL,
+          box_after INTEGER NOT NULL,
+          interval_days INTEGER,
+          reviewed_at INTEGER NOT NULL
+        )
+      `);
+
       await this.migrateBookmarksToFavorites();
 
       // Índices
@@ -203,6 +218,12 @@ class BibleDatabase {
       );
       await this.db.runAsync(
         'CREATE INDEX IF NOT EXISTS idx_favorites_rating ON favorites(rating)',
+      );
+      await this.db.runAsync(
+        'CREATE INDEX IF NOT EXISTS idx_review_events_reviewed_at ON review_events(reviewed_at)',
+      );
+      await this.db.runAsync(
+        'CREATE INDEX IF NOT EXISTS idx_review_events_verse_key ON review_events(verse_key)',
       );
 
       // Seed the reading_progress row only if it does not exist yet.

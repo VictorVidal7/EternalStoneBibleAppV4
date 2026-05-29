@@ -76,6 +76,19 @@ CREATE TABLE IF NOT EXISTS favorites (
   updated_at INTEGER NOT NULL
 );
 
+-- Review events table (Sprint 45) — append-only SRS review log.
+-- One immutable row per review; powers the insights heatmap + retention.
+CREATE TABLE IF NOT EXISTS review_events (
+  id TEXT PRIMARY KEY,
+  verse_key TEXT NOT NULL,
+  book_name TEXT NOT NULL,
+  grade TEXT NOT NULL,
+  box_before INTEGER NOT NULL,
+  box_after INTEGER NOT NULL,
+  interval_days INTEGER,
+  reviewed_at INTEGER NOT NULL
+);
+
 -- Indexes for faster queries
 CREATE INDEX IF NOT EXISTS idx_verses_book_chapter ON verses(book_id, chapter);
 CREATE INDEX IF NOT EXISTS idx_verses_version ON verses(version);
@@ -83,6 +96,8 @@ CREATE INDEX IF NOT EXISTS idx_notes_reference ON notes(book_name, chapter, vers
 CREATE INDEX IF NOT EXISTS idx_favorites_reference ON favorites(book_name, chapter, verse);
 CREATE INDEX IF NOT EXISTS idx_favorites_category ON favorites(category);
 CREATE INDEX IF NOT EXISTS idx_favorites_rating ON favorites(rating);
+CREATE INDEX IF NOT EXISTS idx_review_events_reviewed_at ON review_events(reviewed_at);
+CREATE INDEX IF NOT EXISTS idx_review_events_verse_key ON review_events(verse_key);
 `;
 
 export const INITIAL_READING_PROGRESS = `

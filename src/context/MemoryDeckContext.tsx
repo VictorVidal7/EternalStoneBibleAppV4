@@ -33,6 +33,11 @@ import {
   selectDueCards,
 } from '../lib/memory/srs';
 import {getSyncEngine, type SyncAdapter, type SyncEntity} from '../lib/sync';
+import {
+  buildReviewEvent,
+  reviewEventToRemote,
+} from '../lib/memory/reviewEvents';
+import {addReviewEvent} from '../lib/memory/reviewEventStore';
 import {useSyncEngineOptional} from './SyncEngineContext';
 
 const STORAGE_KEY = '@memory_deck';
@@ -90,6 +95,10 @@ export const MemoryDeckProvider: React.FC<MemoryDeckProviderProps> = ({
   const [deck, setDeck] = useState<Record<string, MemoryCard>>({});
   const [hydrated, setHydrated] = useState(false);
   const syncCtx = useSyncEngineOptional();
+  // Sprint 45 — see FavoritesContext: depend on the stable engine ref,
+  // not the context value, so the adapter registers once instead of
+  // re-subscribing on every engine state tick.
+  const syncEngine = syncCtx?.engine ?? null;
 
   const deckRef = useRef<Record<string, MemoryCard>>({});
   useEffect(() => {
@@ -145,7 +154,7 @@ export const MemoryDeckProvider: React.FC<MemoryDeckProviderProps> = ({
   // across devices because it's derived from the verse identity, not a
   // generated timestamp).
   useEffect(() => {
-    if (!syncCtx) return;
+    if (!syncEngine) return;
     const adapter: SyncAdapter<MemoryCard> = {
       collection: 'memoryCards',
       async getLocal(id) {
@@ -192,11 +201,11 @@ export const MemoryDeckProvider: React.FC<MemoryDeckProviderProps> = ({
         return [] as const;
       },
     };
-    syncCtx.engine.register(adapter);
+    syncEngine.register(adapter);
     return () => {
-      syncCtx.engine.unregister('memoryCards');
+      syncEngine.unregister('memoryCards');
     };
-  }, [syncCtx]);
+  }, [syncEngine]);
 
   const addCard = useCallback((input: AddCardInput) => {
     const key = buildVerseKey(input.bookName, input.chapter, input.verse);
@@ -234,9 +243,23 @@ export const MemoryDeckProvider: React.FC<MemoryDeckProviderProps> = ({
   const reviewCard = useCallback((verseKey: string, grade: ReviewGrade) => {
     const existing = deckRef.current[verseKey];
     if (!existing) return;
-    const updated = applyReview(existing, grade, new Date());
+    const now = new Date();
+    const updated = applyReview(existing, grade, now);
     setDeck(prev => (prev[verseKey] ? {...prev, [verseKey]: updated} : prev));
-    getSyncEngine()?.queueWrite('memoryCards', verseKey, cardToRemote(updated));
+    const engine = getSyncEngine();
+    engine?.queueWrite('memoryCards', verseKey, cardToRemote(updated));
+    // Sprint 45 — append an immutable review event to the SQLite log and
+    // queue it as the 6th synced dataset. Fire-and-forget: the local card
+    // state above is the source of truth for the deck; the event log is a
+    // separate append-only history feeding the insights heatmap/retention.
+    const event = buildReviewEvent({
+      cardBefore: existing,
+      cardAfter: updated,
+      grade,
+      now,
+    });
+    void addReviewEvent(event);
+    engine?.queueWrite('reviewEvents', event.id, reviewEventToRemote(event));
   }, []);
 
   const resetDeck = useCallback(() => {
