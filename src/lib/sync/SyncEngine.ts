@@ -690,6 +690,45 @@ export class SyncEngine {
     }
   }
 
+  /**
+   * Sprint 49 — one-shot read of the resolved-conflict audit log that
+   * logResolvedConflict writes to users/{uid}/conflicts. Read-only: this
+   * collection is NOT a synced dataset (no adapter, no local store, no
+   * onSnapshot listener), so the analytics dashboard fetches it directly
+   * on demand instead of mirroring it. Returns [] when the engine is
+   * inactive or the native firestore module is unavailable (jest/web).
+   *
+   * Defensive: only docs that carry a resolution (numeric resolvedAt +
+   * string choice) are returned, so a half-written or foreign doc can't
+   * break the aggregation.
+   */
+  async fetchResolvedConflicts(): Promise<ResolvedConflictRecord[]> {
+    if (!this.uid) return [];
+    const fn = getFirestore();
+    if (!fn) return [];
+    try {
+      const snap = await fn().collection(`users/${this.uid}/conflicts`).get();
+      const out: ResolvedConflictRecord[] = [];
+      for (const doc of snap.docs) {
+        const data = doc.data();
+        if (!data) continue;
+        if (
+          typeof data.resolvedAt === 'number' &&
+          typeof data.choice === 'string'
+        ) {
+          out.push(data as unknown as ResolvedConflictRecord);
+        }
+      }
+      return out;
+    } catch (err) {
+      logger.warn('SyncEngine: fetchResolvedConflicts failed', {
+        component: 'SyncEngine',
+        error: err instanceof Error ? err.message : String(err),
+      });
+      return [];
+    }
+  }
+
   // ---------- private: initial bulk push ----------
 
   private async maybeRunInitialBulkPush(uid: string): Promise<void> {

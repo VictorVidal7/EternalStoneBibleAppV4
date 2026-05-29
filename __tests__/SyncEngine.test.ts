@@ -29,11 +29,15 @@ interface MockDocRef {
 interface MockCollRef {
   doc: jest.Mock<MockDocRef, [string]>;
   onSnapshot: jest.Mock;
+  get: jest.Mock;
   __path: string;
 }
 
 const mockCollections = new Map<string, MockCollRef>();
 const mockDocSets: Array<{path: string; id: string; data: unknown}> = [];
+/** Sprint 49 — docs returned by a collection-level `.get()` (one-shot read),
+ *  keyed by collection path. Set per-test for fetchResolvedConflicts. */
+const mockCollDocs = new Map<string, Array<{id: string; data: unknown}>>();
 
 function mockMakeCollection(path: string): MockCollRef {
   const existing = mockCollections.get(path);
@@ -59,6 +63,18 @@ function mockMakeCollection(path: string): MockCollRef {
       snapshotCb = cb;
       return () => {
         snapshotCb = null;
+      };
+    }),
+    get: jest.fn(async () => {
+      const entries = mockCollDocs.get(path) ?? [];
+      return {
+        docs: entries.map(e => ({
+          exists: true,
+          id: e.id,
+          data: () => e.data,
+        })),
+        docChanges: () => [],
+        size: entries.length,
       };
     }),
   };
@@ -157,6 +173,7 @@ beforeEach(async () => {
   await AsyncStorage.clear();
   mockCollections.clear();
   mockDocSets.length = 0;
+  mockCollDocs.clear();
   mockNetListeners.length = 0;
   __resetFirestoreCacheForTests();
   __resetNetInfoCacheForTests();
@@ -802,5 +819,59 @@ describe('queueSkipNextBulkPush', () => {
     expect(mockDocSets.filter(d => d.id === 'only-local')).toHaveLength(0);
     const flag = await AsyncStorage.getItem('@sync_first_push_done:uid-skip');
     expect(flag).toBe('1');
+  });
+});
+
+describe('fetchResolvedConflicts (Sprint 49)', () => {
+  it('returns [] when the engine is inactive (no uid)', async () => {
+    const engine = new SyncEngine();
+    expect(await engine.fetchResolvedConflicts()).toEqual([]);
+  });
+
+  it('reads + maps the audit log from users/{uid}/conflicts', async () => {
+    const engine = new SyncEngine();
+    await engine.start('uid-conf');
+    mockCollDocs.set('users/uid-conf/conflicts', [
+      {
+        id: 'favorites__fav_1',
+        data: {
+          id: 'favorites__fav_1',
+          collection: 'favorites',
+          docId: 'fav_1',
+          choice: 'keepTheirs',
+          differingFields: ['note'],
+          resolvedAt: 1700,
+          detectedAt: 1690,
+        },
+      },
+      {
+        id: 'notes__n1',
+        data: {
+          id: 'notes__n1',
+          collection: 'notes',
+          docId: 'n1',
+          choice: 'merge',
+          differingFields: ['text'],
+          resolvedAt: 1800,
+          detectedAt: 1790,
+        },
+      },
+    ]);
+    const recs = await engine.fetchResolvedConflicts();
+    expect(recs).toHaveLength(2);
+    expect(recs.map(r => r.choice).sort()).toEqual(['keepTheirs', 'merge']);
+  });
+
+  it('skips docs missing a resolution (no resolvedAt / choice)', async () => {
+    const engine = new SyncEngine();
+    await engine.start('uid-conf2');
+    mockCollDocs.set('users/uid-conf2/conflicts', [
+      {id: 'good', data: {choice: 'keepMine', resolvedAt: 10}},
+      {id: 'half', data: {choice: 'keepMine'}}, // no resolvedAt
+      {id: 'foreign', data: {somethingElse: true}}, // not an audit doc
+    ]);
+    const recs = await engine.fetchResolvedConflicts();
+    expect(recs).toHaveLength(1);
+    expect(recs[0].choice).toBe('keepMine');
   });
 });
