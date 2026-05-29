@@ -61,7 +61,10 @@ import {widgetTaskHandler} from '@/widgets/WidgetTaskHandler';
 // Audio Bible Feature
 import {AudioPlayerProvider} from '@/features/audio/context/AudioPlayerContext';
 import {MiniAudioPlayer} from '@/features/audio/components/MiniAudioPlayer';
-import {refreshDailyVerseNotifications} from '@lib/notifications/NotificationService';
+import {
+  refreshDailyVerseNotifications,
+  refreshMemoryReminders,
+} from '@lib/notifications/NotificationService';
 
 function AppContent() {
   const {t, language} = useLanguage();
@@ -87,6 +90,8 @@ function AppContent() {
     }).catch(() => {
       // Notifications are best-effort; never block the app on them.
     });
+    // Sprint 47 — top up the memorization review reminder window too.
+    refreshMemoryReminders({language}).catch(() => {});
   }, [isLoading, language, selectedVersion.id]);
 
   async function initializeApp() {

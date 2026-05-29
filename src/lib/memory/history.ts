@@ -69,6 +69,8 @@ export interface RetentionBucket {
 /** Headline numbers for the history hero. */
 export interface HistorySummary {
   totalReviews: number;
+  /** Reviews recorded today (local calendar day). Powers the daily goal. */
+  reviewsToday: number;
   reviewsLast7: number;
   reviewsLast30: number;
   /** Distinct calendar days with ≥ 1 review. */
@@ -271,11 +273,14 @@ export function historySummary(
   const nowMs = now.getTime();
   const since7 = nowMs - 7 * DAY_MS;
   const since30 = nowMs - 30 * DAY_MS;
+  const todayStart = startOfLocalDay(nowMs);
+  let reviewsToday = 0;
   let reviewsLast7 = 0;
   let reviewsLast30 = 0;
   let recalled = 0;
   let withInterval = 0;
   for (const e of events) {
+    if (startOfLocalDay(e.reviewedAt) === todayStart) reviewsToday += 1;
     if (e.reviewedAt >= since7) reviewsLast7 += 1;
     if (e.reviewedAt >= since30) reviewsLast30 += 1;
     if (e.intervalDays != null) {
@@ -286,6 +291,7 @@ export function historySummary(
   const daySet = reviewDaySet(events);
   return {
     totalReviews: events.length,
+    reviewsToday,
     reviewsLast7,
     reviewsLast30,
     activeDays: daySet.size,

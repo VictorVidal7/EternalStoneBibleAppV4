@@ -13,7 +13,7 @@
  * Para la gloria de Dios Todopoderoso ✨
  */
 
-import React, {useEffect, useMemo, useState} from 'react';
+import React, {useMemo} from 'react';
 import {
   View,
   Text,
@@ -28,10 +28,9 @@ import {useSafeAreaInsets} from 'react-native-safe-area-context';
 import {useTheme} from '@hooks/useTheme';
 import {useLanguage} from '@hooks/useLanguage';
 import {useMemoryDeck} from '@context/MemoryDeckContext';
+import {useMemoryGoal} from '@hooks/useMemoryGoal';
 import {computeDeckInsights, type StrugglingCard} from '@lib/memory/insights';
-import {computeReviewHistory, type LeechCard} from '@lib/memory/history';
-import {getAllReviewEvents} from '@lib/memory/reviewEventStore';
-import type {ReviewEvent} from '@lib/memory/reviewEvents';
+import {type LeechCard} from '@lib/memory/history';
 import {getBookByName} from '@/constants/bible';
 import SVGCircularProgress from '@components/SVGCircularProgress';
 import {MiniBarChart, type BarDatum} from '@components/charts/MiniBarChart';
@@ -63,6 +62,9 @@ export default function MemoryInsightsScreen() {
   const {colors, gradient} = useTheme();
   const {t, language} = useLanguage();
   const {cards} = useMemoryDeck();
+  // Sprint 47 — the review-event log + daily goal load via this hook, which
+  // also refreshes on focus (returning from practice updates the stats).
+  const {loaded: eventsLoaded, history, goal} = useMemoryGoal();
 
   const headerGradient = useMemo(
     () =>
@@ -76,30 +78,8 @@ export default function MemoryInsightsScreen() {
   const now = useMemo(() => new Date(), []);
   const insights = useMemo(() => computeDeckInsights(cards, now), [cards, now]);
 
-  // Sprint 45 — the review-event log lives in SQLite (the deck context
-  // only carries current-state cards), so load it lazily here for the
-  // history section. computeReviewHistory is a pure read over the log.
-  const [events, setEvents] = useState<ReviewEvent[]>([]);
-  const [eventsLoaded, setEventsLoaded] = useState(false);
-  useEffect(() => {
-    let active = true;
-    getAllReviewEvents()
-      .then(rows => {
-        if (active) setEvents(rows);
-      })
-      .finally(() => {
-        if (active) setEventsLoaded(true);
-      });
-    return () => {
-      active = false;
-    };
-  }, []);
-  const history = useMemo(
-    () => computeReviewHistory(events, now),
-    [events, now],
-  );
-
   const i = t.memory.insights;
+  const g = t.memory.goal;
   const isEmpty = cards.length === 0;
 
   // Box distribution — box 5 reads as "mastered" (success), rest primary.
@@ -141,7 +121,7 @@ export default function MemoryInsightsScreen() {
       value: Math.round((b.retention ?? 0) * 100),
       color: colors.primary,
     }));
-  const hasEvents = events.length > 0;
+  const hasEvents = history.summary.totalReviews > 0;
   const hasRetention =
     history.summary.overallRetention !== null && retentionData.length > 0;
   const topLeeches = history.leeches.slice(0, MAX_LEECH_ROWS);
@@ -192,6 +172,63 @@ export default function MemoryInsightsScreen() {
             </View>
           ) : (
             <>
+              {/* 0 — Streak + daily goal hero (Sprint 47) */}
+              <InsightCard title={g.heroTitle} colors={colors}>
+                <View style={styles.masteryRow}>
+                  <SVGCircularProgress
+                    progress={Math.round(goal.fraction * 100)}
+                    size={116}
+                    strokeWidth={12}
+                    color={goal.met ? colors.success : colors.primary}
+                    label={g.dailyGoal}
+                    animated
+                  />
+                  <View style={styles.goalInfo}>
+                    <View style={styles.goalStreakLine}>
+                      <Ionicons
+                        name="flame"
+                        size={22}
+                        color={
+                          history.summary.currentStreak > 0
+                            ? colors.warning
+                            : colors.textTertiary
+                        }
+                      />
+                      <Text
+                        style={[styles.goalStreakValue, {color: colors.text}]}>
+                        {history.summary.currentStreak}
+                      </Text>
+                      <Text
+                        style={[
+                          styles.goalStreakLabel,
+                          {color: colors.textSecondary},
+                        ]}>
+                        {i.streakCurrent}
+                      </Text>
+                    </View>
+                    <Text style={[styles.goalTodayText, {color: colors.text}]}>
+                      {g.todayCount
+                        .replace('{{done}}', String(goal.todayCount))
+                        .replace('{{goal}}', String(goal.goal))}
+                    </Text>
+                    <Text
+                      style={[
+                        styles.goalRemainingText,
+                        {color: goal.met ? colors.success : colors.primary},
+                      ]}>
+                      {goal.met
+                        ? g.goalMet
+                        : goal.remaining === 1
+                          ? g.remainingSingular
+                          : g.remaining.replace(
+                              '{{count}}',
+                              String(goal.remaining),
+                            )}
+                    </Text>
+                  </View>
+                </View>
+              </InsightCard>
+
               {/* 1 — Mastery hero */}
               <InsightCard title={i.masteryTitle} colors={colors}>
                 <View style={styles.masteryRow}>
@@ -644,6 +681,32 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: spacing.md,
+  },
+  goalInfo: {
+    flex: 1,
+    gap: spacing.xs,
+  },
+  goalStreakLine: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.xs,
+  },
+  goalStreakValue: {
+    fontSize: fontSizes['2xl'],
+    fontWeight: '800',
+  },
+  goalStreakLabel: {
+    fontSize: 12,
+    fontWeight: '600',
+    flexShrink: 1,
+  },
+  goalTodayText: {
+    fontSize: fontSizes.base,
+    fontWeight: '700',
+  },
+  goalRemainingText: {
+    fontSize: fontSizes.sm,
+    fontWeight: '700',
   },
   statsGrid: {
     flex: 1,

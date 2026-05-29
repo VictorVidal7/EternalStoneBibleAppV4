@@ -432,6 +432,33 @@ describe('queue persistence', () => {
   });
 });
 
+describe('flush reliability — same-tick double queueWrite (Sprint 47)', () => {
+  it('drains a write queued while a flush is already in flight', async () => {
+    const engine = new SyncEngine();
+    const {adapter} = makeAdapter();
+    engine.register(adapter);
+    await engine.start('uid-reflush');
+    await flush();
+
+    // Mimic MemoryDeckContext.reviewCard: two queueWrites in the SAME tick.
+    // The first triggers a flush() that snapshots [memoryCards]; the second
+    // hits the flushInFlight guard and its own flush() returns early. Before
+    // Sprint 47 the second write sat queued until an external trigger.
+    engine.queueWrite('test', 'doc-a', {value: 'a', updatedAt: 1});
+    engine.queueWrite('test', 'doc-b', {value: 'b', updatedAt: 2});
+
+    // Let the in-flight flush + the residual re-flush drain — NO forced
+    // __flushForTests, so this exercises the real internal re-trigger.
+    for (let k = 0; k < 5; k++) await flush();
+
+    expect(mockDocSets.map(d => d.id)).toEqual(
+      expect.arrayContaining(['doc-a', 'doc-b']),
+    );
+    expect(engine.__getQueueForTests()).toHaveLength(0);
+    engine.stop();
+  });
+});
+
 // =============================================================
 // Sprint 43 — conflict detection + resolution
 // =============================================================

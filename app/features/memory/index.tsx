@@ -21,6 +21,7 @@ import {
   TouchableOpacity,
   StyleSheet,
   Alert,
+  Modal,
 } from 'react-native';
 import {useRouter, Stack} from 'expo-router';
 import {Ionicons} from '@expo/vector-icons';
@@ -31,6 +32,8 @@ import {useTheme} from '@hooks/useTheme';
 import {useLanguage} from '@hooks/useLanguage';
 import {useToast} from '@context/ToastContext';
 import {useMemoryDeck} from '@context/MemoryDeckContext';
+import {useMemoryGoal} from '@hooks/useMemoryGoal';
+import type {GoalProgress, MemoryMilestone} from '@lib/memory/goals';
 import {getBookByName} from '@/constants/bible';
 import type {MemoryCard} from '@lib/memory/srs';
 import {isMastered} from '@lib/memory/srs';
@@ -48,6 +51,7 @@ export default function MemoryDeckScreen() {
   const {t, language} = useLanguage();
   const toast = useToast();
   const {cards, dueCards, stats, removeCard} = useMemoryDeck();
+  const {history, goal, milestone, dismissMilestone} = useMemoryGoal();
 
   const headerGradient = useMemo(
     () =>
@@ -148,6 +152,17 @@ export default function MemoryDeckScreen() {
             styles.bodyContent,
             {paddingBottom: insets.bottom + spacing['4xl']},
           ]}>
+          {/* Streak + daily-goal chip (Sprint 47) */}
+          {!isEmpty && (
+            <StreakGoalChip
+              currentStreak={history.summary.currentStreak}
+              goal={goal}
+              t={t}
+              colors={colors}
+              onPress={() => router.push('/features/memory/insights' as any)}
+            />
+          )}
+
           {/* Practice CTA */}
           {dueCount > 0 ? (
             <PulsingPracticeCta
@@ -205,9 +220,156 @@ export default function MemoryDeckScreen() {
           ))}
         </ScrollView>
       </View>
+
+      {/* In-app milestone celebration (Sprint 47) */}
+      <MilestoneCelebration
+        milestone={milestone}
+        t={t}
+        colors={colors}
+        onClose={dismissMilestone}
+      />
     </>
   );
 }
+
+/**
+ * Compact streak + daily-goal chip shown atop the deck. Left: a flame with
+ * the current streak; right: today's progress toward the review goal with a
+ * thin progress bar. Tapping opens the full Insights breakdown.
+ */
+const StreakGoalChip: React.FC<{
+  currentStreak: number;
+  goal: GoalProgress;
+  t: ReturnType<typeof useLanguage>['t'];
+  colors: ReturnType<typeof useTheme>['colors'];
+  onPress: () => void;
+}> = ({currentStreak, goal, t, colors, onPress}) => {
+  const g = t.memory.goal;
+  const streakLabel =
+    currentStreak <= 0
+      ? g.streakNone
+      : currentStreak === 1
+        ? g.streakDaysSingular
+        : g.streakDays.replace('{{count}}', String(currentStreak));
+  const progressLabel = goal.met
+    ? g.goalMet
+    : g.todayCount
+        .replace('{{done}}', String(goal.todayCount))
+        .replace('{{goal}}', String(goal.goal));
+  const flameColor = currentStreak > 0 ? colors.warning : colors.textTertiary;
+  const barColor = goal.met ? colors.success : colors.primary;
+
+  return (
+    <TouchableOpacity
+      style={[
+        styles.chip,
+        {backgroundColor: colors.surface, borderColor: colors.border},
+      ]}
+      onPress={onPress}
+      accessibilityRole="button"
+      accessibilityLabel={`${streakLabel} · ${progressLabel}`}>
+      <View style={styles.chipStreak}>
+        <Ionicons name="flame" size={22} color={flameColor} />
+        <Text
+          style={[styles.chipStreakText, {color: colors.text}]}
+          numberOfLines={1}>
+          {streakLabel}
+        </Text>
+      </View>
+      <View style={styles.chipGoal}>
+        <Text
+          style={[
+            styles.chipGoalText,
+            {color: goal.met ? colors.success : colors.textSecondary},
+          ]}
+          numberOfLines={1}>
+          {progressLabel}
+        </Text>
+        <View style={[styles.chipBarTrack, {backgroundColor: colors.border}]}>
+          <View
+            style={[
+              styles.chipBarFill,
+              {
+                backgroundColor: barColor,
+                width: `${Math.round(goal.fraction * 100)}%`,
+              },
+            ]}
+          />
+        </View>
+      </View>
+      <Ionicons name="chevron-forward" size={18} color={colors.textTertiary} />
+    </TouchableOpacity>
+  );
+};
+
+/**
+ * Celebration modal for a freshly-earned milestone (streak threshold or daily
+ * goal). In-app only — never a push (you're already here). Springs in, then
+ * an "Amen!" button dismisses it and marks the milestone celebrated.
+ */
+const MilestoneCelebration: React.FC<{
+  milestone: MemoryMilestone | null;
+  t: ReturnType<typeof useLanguage>['t'];
+  colors: ReturnType<typeof useTheme>['colors'];
+  onClose: () => void;
+}> = ({milestone, t, colors, onClose}) => {
+  const scale = useRef(new Animated.Value(0.8)).current;
+  const visible = milestone !== null;
+
+  useEffect(() => {
+    if (visible) {
+      scale.setValue(0.8);
+      Animated.spring(scale, {
+        toValue: 1,
+        useNativeDriver: true,
+        speed: 12,
+        bounciness: 9,
+      }).start();
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(
+        () => undefined,
+      );
+    }
+  }, [visible, scale]);
+
+  if (!milestone) return null;
+
+  const g = t.memory.goal;
+  const isStreak = milestone.type === 'streak';
+  const emoji = isStreak ? '🔥' : '🎯';
+  const title = (
+    isStreak ? g.celebrateStreakTitle : g.celebrateGoalTitle
+  ).replace('{{count}}', String(milestone.value));
+  const body = (isStreak ? g.celebrateStreakBody : g.celebrateGoalBody).replace(
+    '{{count}}',
+    String(milestone.value),
+  );
+
+  return (
+    <Modal visible transparent animationType="fade" onRequestClose={onClose}>
+      <View style={styles.celebrateOverlay}>
+        <Animated.View
+          style={[
+            styles.celebrateCard,
+            {backgroundColor: colors.surface, transform: [{scale}]},
+          ]}>
+          <Text style={styles.celebrateEmoji}>{emoji}</Text>
+          <Text style={[styles.celebrateTitle, {color: colors.text}]}>
+            {title}
+          </Text>
+          <Text style={[styles.celebrateBody, {color: colors.textSecondary}]}>
+            {body}
+          </Text>
+          <TouchableOpacity
+            style={[styles.celebrateCta, {backgroundColor: colors.primary}]}
+            onPress={onClose}
+            accessibilityRole="button">
+            <Text style={styles.celebrateCtaText}>{g.celebrateCta}</Text>
+          </TouchableOpacity>
+        </Animated.View>
+      </View>
+    </Modal>
+  );
+};
 
 interface DeckRowProps {
   card: MemoryCard;
@@ -481,6 +643,85 @@ const styles = StyleSheet.create({
   bodyContent: {
     paddingHorizontal: spacing.lg,
     paddingTop: spacing.lg,
+  },
+  chip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: spacing.md,
+    paddingHorizontal: spacing.md,
+    borderRadius: borderRadius.lg,
+    borderWidth: StyleSheet.hairlineWidth,
+    gap: spacing.md,
+    marginBottom: spacing.lg,
+  },
+  chipStreak: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.xs,
+    flexShrink: 1,
+  },
+  chipStreakText: {
+    fontSize: fontSizes.sm,
+    fontWeight: '800',
+  },
+  chipGoal: {
+    flex: 1,
+    alignItems: 'flex-end',
+    gap: 4,
+  },
+  chipGoalText: {
+    fontSize: 11,
+    fontWeight: '700',
+  },
+  chipBarTrack: {
+    width: '100%',
+    height: 6,
+    borderRadius: 3,
+    overflow: 'hidden',
+  },
+  chipBarFill: {
+    height: '100%',
+    borderRadius: 3,
+  },
+  celebrateOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.55)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: spacing.xl,
+  },
+  celebrateCard: {
+    width: '100%',
+    maxWidth: 360,
+    borderRadius: borderRadius.lg,
+    padding: spacing['2xl'],
+    alignItems: 'center',
+    gap: spacing.sm,
+  },
+  celebrateEmoji: {
+    fontSize: 56,
+    marginBottom: spacing.xs,
+  },
+  celebrateTitle: {
+    fontSize: fontSizes.xl,
+    fontWeight: '800',
+    textAlign: 'center',
+  },
+  celebrateBody: {
+    fontSize: fontSizes.sm,
+    textAlign: 'center',
+    lineHeight: 20,
+    marginBottom: spacing.md,
+  },
+  celebrateCta: {
+    paddingVertical: spacing.md,
+    paddingHorizontal: spacing['2xl'],
+    borderRadius: borderRadius.full,
+  },
+  celebrateCtaText: {
+    color: staticColors.white,
+    fontSize: fontSizes.base,
+    fontWeight: '800',
   },
   practiceCta: {
     flexDirection: 'row',
