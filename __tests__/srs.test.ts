@@ -50,6 +50,25 @@ describe('createCard', () => {
   it('seeds the card at the neutral default ease', () => {
     expect(freshCard().ease).toBe(DEFAULT_EASE);
   });
+
+  it('seeds an explicit (calibrated) ease, normalized/clamped', () => {
+    // Sprint 48 — the deck context passes a calibrated population prior.
+    const base = {
+      verseKey: 'John/3/16',
+      bookName: 'John',
+      chapter: 3,
+      verse: 16,
+      text: 'For God so loved the world…',
+      version: 'KJV',
+      now: T0.toISOString(),
+    };
+    expect(createCard({...base, ease: 1.2}).ease).toBe(1.2);
+    // Out-of-band priors are clamped; junk falls back to the default.
+    expect(createCard({...base, ease: 9}).ease).toBe(MAX_EASE);
+    expect(createCard({...base, ease: NaN}).ease).toBe(DEFAULT_EASE);
+    // Omitting it keeps the neutral default (the S46 invariant).
+    expect(createCard(base).ease).toBe(DEFAULT_EASE);
+  });
 });
 
 describe('applyReview — again', () => {

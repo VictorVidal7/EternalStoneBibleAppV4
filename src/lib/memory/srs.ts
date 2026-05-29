@@ -92,7 +92,17 @@ export interface MemoryCard {
   updatedAt: number;
 }
 
-/** Build a fresh card seeded at box 1 due immediately. */
+/**
+ * Build a fresh card seeded at box 1 due immediately.
+ *
+ * `ease` is optional and defaults to `DEFAULT_EASE` (plain Leitner) — so a
+ * card created without it keeps the Sprint 46 invariant that a brand-new
+ * card's first review is byte-identical to pure Leitner. Sprint 48 lets the
+ * deck context pass a *calibrated population prior* here (derived from the
+ * user's retention history) so a new verse starts at a smarter ease than the
+ * neutral default; the value is normalized/clamped so a bad input can't
+ * corrupt the card.
+ */
 export function createCard(input: {
   verseKey: string;
   bookName: string;
@@ -101,6 +111,7 @@ export function createCard(input: {
   text: string;
   version: string;
   now: string;
+  ease?: number;
 }): MemoryCard {
   return {
     verseKey: input.verseKey,
@@ -114,7 +125,7 @@ export function createCard(input: {
     addedAt: input.now,
     lastReviewedAt: null,
     reviewCount: 0,
-    ease: DEFAULT_EASE,
+    ease: normalizeEase(input.ease),
     updatedAt: Date.parse(input.now) || Date.now(),
   };
 }

@@ -27,6 +27,7 @@ import {
   applyReview,
   buildVerseKey,
   createCard,
+  DEFAULT_EASE,
   isMastered,
   MemoryCard,
   normalizeEase,
@@ -38,7 +39,12 @@ import {
   buildReviewEvent,
   reviewEventToRemote,
 } from '../lib/memory/reviewEvents';
-import {addReviewEvent} from '../lib/memory/reviewEventStore';
+import {
+  addReviewEvent,
+  getAllReviewEvents,
+} from '../lib/memory/reviewEventStore';
+import {historySummary} from '../lib/memory/history';
+import {computeEasePrior} from '../lib/memory/easePrior';
 import {useSyncEngineOptional} from './SyncEngineContext';
 
 const STORAGE_KEY = '@memory_deck';
@@ -57,7 +63,7 @@ export interface MemoryDeckStats {
   mastered: number;
 }
 
-interface MemoryDeckContextValue {
+export interface MemoryDeckContextValue {
   /** All cards in the deck. Stable insertion order isn't guaranteed. */
   cards: MemoryCard[];
   /** True until AsyncStorage hydration completes once. */
@@ -105,6 +111,26 @@ export const MemoryDeckProvider: React.FC<MemoryDeckProviderProps> = ({
   useEffect(() => {
     deckRef.current = deck;
   }, [deck]);
+
+  // Sprint 48 — calibrated ease prior for NEW cards. Derived from the synced
+  // review-event log (so it's the same on every device, no new dataset), it
+  // seeds a new card's starting ease from the user's measured retention
+  // instead of the neutral default. Cached in a ref because `addCard` is
+  // synchronous; refreshed on mount and after every review so it tracks the
+  // latest history. Falls back to DEFAULT_EASE while the log is too sparse.
+  const easePriorRef = useRef<number>(DEFAULT_EASE);
+  const refreshEasePrior = useCallback(async () => {
+    try {
+      const events = await getAllReviewEvents();
+      const summary = historySummary(events, new Date());
+      easePriorRef.current = computeEasePrior(summary).ease;
+    } catch {
+      // Keep the last known prior (or the default) if the log read fails.
+    }
+  }, []);
+  useEffect(() => {
+    void refreshEasePrior();
+  }, [refreshEasePrior]);
 
   // Hydrate from storage once.
   useEffect(() => {
@@ -226,6 +252,9 @@ export const MemoryDeckProvider: React.FC<MemoryDeckProviderProps> = ({
       text: input.text,
       version: input.version,
       now,
+      // Sprint 48 — seed the new card with the calibrated population ease
+      // prior (DEFAULT_EASE until there's enough history to calibrate).
+      ease: easePriorRef.current,
     });
     setDeck(prev => (prev[key] ? prev : {...prev, [key]: card}));
     getSyncEngine()?.queueWrite('memoryCards', key, cardToRemote(card));
@@ -247,27 +276,33 @@ export const MemoryDeckProvider: React.FC<MemoryDeckProviderProps> = ({
     );
   }, []);
 
-  const reviewCard = useCallback((verseKey: string, grade: ReviewGrade) => {
-    const existing = deckRef.current[verseKey];
-    if (!existing) return;
-    const now = new Date();
-    const updated = applyReview(existing, grade, now);
-    setDeck(prev => (prev[verseKey] ? {...prev, [verseKey]: updated} : prev));
-    const engine = getSyncEngine();
-    engine?.queueWrite('memoryCards', verseKey, cardToRemote(updated));
-    // Sprint 45 — append an immutable review event to the SQLite log and
-    // queue it as the 6th synced dataset. Fire-and-forget: the local card
-    // state above is the source of truth for the deck; the event log is a
-    // separate append-only history feeding the insights heatmap/retention.
-    const event = buildReviewEvent({
-      cardBefore: existing,
-      cardAfter: updated,
-      grade,
-      now,
-    });
-    void addReviewEvent(event);
-    engine?.queueWrite('reviewEvents', event.id, reviewEventToRemote(event));
-  }, []);
+  const reviewCard = useCallback(
+    (verseKey: string, grade: ReviewGrade) => {
+      const existing = deckRef.current[verseKey];
+      if (!existing) return;
+      const now = new Date();
+      const updated = applyReview(existing, grade, now);
+      setDeck(prev => (prev[verseKey] ? {...prev, [verseKey]: updated} : prev));
+      const engine = getSyncEngine();
+      engine?.queueWrite('memoryCards', verseKey, cardToRemote(updated));
+      // Sprint 45 — append an immutable review event to the SQLite log and
+      // queue it as the 6th synced dataset. Fire-and-forget: the local card
+      // state above is the source of truth for the deck; the event log is a
+      // separate append-only history feeding the insights heatmap/retention.
+      const event = buildReviewEvent({
+        cardBefore: existing,
+        cardAfter: updated,
+        grade,
+        now,
+      });
+      void addReviewEvent(event);
+      engine?.queueWrite('reviewEvents', event.id, reviewEventToRemote(event));
+      // Sprint 48 — a new review changes the retention history the ease prior
+      // is calibrated from; recompute so the next added card uses fresh data.
+      void refreshEasePrior();
+    },
+    [refreshEasePrior],
+  );
 
   const resetDeck = useCallback(() => {
     const snapshot = Object.values(deckRef.current);
