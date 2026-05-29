@@ -23,3 +23,18 @@ export type {
   ConflictRecord,
   ResolvedConflictRecord,
 } from './types';
+
+// Sprint 49 — conflict-analytics dashboard over the resolved-conflict log.
+export {
+  computeConflictAnalytics,
+  MIN_VERDICT_SAMPLE,
+  ACTIVITY_WEEKS,
+  CHOICE_ORDER,
+} from './conflictAnalytics';
+export type {
+  ConflictAnalytics,
+  ChoiceBreakdown,
+  CollectionTally,
+  FieldTally,
+  WeeklyBucket,
+} from './conflictAnalytics';

@@ -30,6 +30,14 @@ interface CollectionRef {
     onNext: (snapshot: QuerySnapshot) => void,
     onError?: (err: Error) => void,
   ) => () => void;
+  /**
+   * Sprint 49 — one-shot read of every doc in the collection. Used by
+   * the conflict-analytics dashboard to read the resolved-conflict audit
+   * log (users/{uid}/conflicts), which is NOT a synced dataset (no
+   * onSnapshot listener / no local mirror) — just an append-only log we
+   * read on demand.
+   */
+  get: () => Promise<QuerySnapshot>;
 }
 
 interface DocumentRef {
@@ -51,6 +59,8 @@ interface DocumentChange {
 
 interface QuerySnapshot {
   docChanges: () => DocumentChange[];
+  /** Sprint 49 — every doc in the snapshot (used by one-shot `get()`). */
+  docs: DocumentSnapshot[];
   size: number;
 }
 

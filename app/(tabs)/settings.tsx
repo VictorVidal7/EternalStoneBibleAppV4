@@ -848,6 +848,27 @@ export default function SettingsScreen() {
                   </TouchableOpacity>
                 ) : null}
                 <TouchableOpacity
+                  style={[styles.historyRow, {borderColor: colors.border}]}
+                  onPress={() => router.push('/features/conflicts/insights')}
+                  accessibilityRole="button"
+                  accessibilityLabel={t.conflicts.insights.openLabel}>
+                  <Ionicons
+                    name="git-merge-outline"
+                    size={18}
+                    color={colors.textSecondary}
+                  />
+                  <Text
+                    style={[styles.historyRowText, {color: colors.text}]}
+                    numberOfLines={1}>
+                    {t.conflicts.insights.title}
+                  </Text>
+                  <Ionicons
+                    name="chevron-forward"
+                    size={16}
+                    color={colors.textTertiary}
+                  />
+                </TouchableOpacity>
+                <TouchableOpacity
                   style={[
                     themedStyles.signOutButton,
                     {borderColor: colors.error},
@@ -1101,6 +1122,21 @@ const styles = StyleSheet.create({
     marginBottom: 12,
   },
   conflictsBadgeText: {
+    fontSize: 14,
+    fontWeight: '600',
+    flex: 1,
+  },
+  historyRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    borderWidth: 1,
+    borderRadius: 10,
+    paddingVertical: 10,
+    paddingHorizontal: 12,
+    marginBottom: 12,
+  },
+  historyRowText: {
     fontSize: 14,
     fontWeight: '600',
     flex: 1,
