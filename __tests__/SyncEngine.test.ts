@@ -214,6 +214,57 @@ describe('queueDelete', () => {
   });
 });
 
+describe('slashed doc ids — Firestore path sanitization (Sprint 46)', () => {
+  it('writes a slashed logical id to a slash-free Firestore doc id', async () => {
+    const engine = new SyncEngine();
+    const {adapter} = makeAdapter();
+    engine.register(adapter);
+    await engine.start('uid-s');
+    // memoryCards key on the verseKey "Book/Chapter/Verse"; the slash would
+    // otherwise make .doc() write to a NESTED document the collection
+    // listener can't see.
+    engine.queueWrite('test', 'Genesis/1/1', {value: 'card', updatedAt: 100});
+    await flush();
+    await engine.__flushForTests();
+    expect(mockDocSets).toHaveLength(1);
+    expect(mockDocSets[0].id).toBe('Genesis~1~1');
+    expect(mockDocSets[0].id).not.toContain('/');
+  });
+
+  it('decodes a sanitized inbound doc id back to the logical id', async () => {
+    const engine = new SyncEngine();
+    const {adapter, remoteUpsertCalls} = makeAdapter();
+    engine.register(adapter);
+    await engine.start('uid-s2');
+    const coll = mockCollections.get('users/uid-s2/test')!;
+    (coll as MockCollRef & {__fire: (changes: unknown[]) => void}).__fire([
+      {
+        type: 'added',
+        doc: {
+          id: 'Genesis~1~1',
+          exists: true,
+          data: () => ({value: 'remote', updatedAt: 2000}),
+        },
+      },
+    ]);
+    await flush();
+    expect(remoteUpsertCalls).toHaveLength(1);
+    // The adapter sees the real logical id, not the wire form.
+    expect(remoteUpsertCalls[0].id).toBe('Genesis/1/1');
+  });
+
+  it('leaves clean ids untouched on the wire', async () => {
+    const engine = new SyncEngine();
+    const {adapter} = makeAdapter();
+    engine.register(adapter);
+    await engine.start('uid-s3');
+    engine.queueWrite('test', 'fav_123_abc', {value: 'x', updatedAt: 100});
+    await flush();
+    await engine.__flushForTests();
+    expect(mockDocSets[0].id).toBe('fav_123_abc');
+  });
+});
+
 describe('applyRemoteChange — LWW', () => {
   it('ignores a remote change older than local', async () => {
     const engine = new SyncEngine();

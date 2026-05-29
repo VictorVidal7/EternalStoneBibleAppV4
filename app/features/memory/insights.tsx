@@ -29,7 +29,7 @@ import {useTheme} from '@hooks/useTheme';
 import {useLanguage} from '@hooks/useLanguage';
 import {useMemoryDeck} from '@context/MemoryDeckContext';
 import {computeDeckInsights, type StrugglingCard} from '@lib/memory/insights';
-import {computeReviewHistory} from '@lib/memory/history';
+import {computeReviewHistory, type LeechCard} from '@lib/memory/history';
 import {getAllReviewEvents} from '@lib/memory/reviewEventStore';
 import type {ReviewEvent} from '@lib/memory/reviewEvents';
 import {getBookByName} from '@/constants/bible';
@@ -45,6 +45,7 @@ import {
 
 const DAY_MS = 24 * 60 * 60 * 1000;
 const MAX_STRUGGLING_ROWS = 5;
+const MAX_LEECH_ROWS = 5;
 
 /** Compact, language-neutral axis labels for the retention bands. */
 const RETENTION_LABELS: Record<string, string> = {
@@ -143,6 +144,7 @@ export default function MemoryInsightsScreen() {
   const hasEvents = events.length > 0;
   const hasRetention =
     history.summary.overallRetention !== null && retentionData.length > 0;
+  const topLeeches = history.leeches.slice(0, MAX_LEECH_ROWS);
 
   return (
     <>
@@ -387,6 +389,29 @@ export default function MemoryInsightsScreen() {
                       </Text>
                     )}
                   </InsightCard>
+
+                  {/* 7 — Leeches (verses lapsed most often) */}
+                  <InsightCard
+                    title={i.leechesTitle}
+                    hint={i.leechesHint}
+                    colors={colors}>
+                    {topLeeches.length === 0 ? (
+                      <Text
+                        style={[styles.positiveNote, {color: colors.success}]}>
+                        {i.leechesEmpty}
+                      </Text>
+                    ) : (
+                      topLeeches.map(leech => (
+                        <LeechRow
+                          key={leech.verseKey}
+                          leech={leech}
+                          language={language}
+                          t={t}
+                          colors={colors}
+                        />
+                      ))
+                    )}
+                  </InsightCard>
                 </>
               )}
             </>
@@ -496,6 +521,52 @@ const StruggleRow: React.FC<{
         <Text style={[styles.boxBadgeText, {color: colors.primary}]}>
           {t.memory.box.replace('{{n}}', String(card.box))}
         </Text>
+      </View>
+    </View>
+  );
+};
+
+const LeechRow: React.FC<{
+  leech: LeechCard;
+  language: 'es' | 'en';
+  t: ReturnType<typeof useLanguage>['t'];
+  colors: ReturnType<typeof useTheme>['colors'];
+}> = ({leech, language, t, colors}) => {
+  // verseKey is "Book/Chapter/Verse" — the last two segments are the
+  // chapter and verse; the book is localized via the stored book name.
+  const parts = leech.verseKey.split('/');
+  const verse = parts[parts.length - 1] ?? '';
+  const chapter = parts[parts.length - 2] ?? '';
+  const bookInfo = getBookByName(leech.bookName);
+  const displayBook = bookInfo
+    ? language === 'en'
+      ? bookInfo.nameEn
+      : bookInfo.name
+    : leech.bookName;
+  const reference = `${displayBook} ${chapter}:${verse}`;
+  const i = t.memory.insights;
+  const reviewsLabel =
+    leech.totalReviews === 1
+      ? i.reviewsCountSingular
+      : i.reviewsCount.replace('{{count}}', String(leech.totalReviews));
+  const lapsesLabel =
+    leech.lapses === 1
+      ? i.lapsesBadgeSingular
+      : i.lapsesBadge.replace('{{count}}', String(leech.lapses));
+  const warn = colors.warning;
+
+  return (
+    <View style={[styles.struggleRow, {borderTopColor: colors.border}]}>
+      <View style={styles.struggleMain}>
+        <Text style={[styles.struggleRef, {color: colors.text}]}>
+          {reference}
+        </Text>
+        <Text style={[styles.struggleMeta, {color: colors.textTertiary}]}>
+          {reviewsLabel}
+        </Text>
+      </View>
+      <View style={[styles.boxBadge, {backgroundColor: warn + '22'}]}>
+        <Text style={[styles.boxBadgeText, {color: warn}]}>{lapsesLabel}</Text>
       </View>
     </View>
   );

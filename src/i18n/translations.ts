@@ -316,6 +316,12 @@ export const translations = {
         retentionEmpty:
           'Repasa versículos en días distintos para ver tu retención.',
         overallRetention: 'Retención global',
+        leechesTitle: 'Más difíciles de recordar',
+        leechesHint:
+          'Has fallado estos varias veces — quizá vale releerlos con calma.',
+        leechesEmpty: 'Ningún versículo se te atasca. ¡Excelente!',
+        lapsesBadge: '{{count}} fallos',
+        lapsesBadgeSingular: '1 fallo',
       },
     },
 
@@ -1677,6 +1683,12 @@ export const translations = {
         retentionEmpty:
           'Review verses on different days to see your retention.',
         overallRetention: 'Overall retention',
+        leechesTitle: 'Hardest to remember',
+        leechesHint:
+          "You've missed these a few times — maybe re-read them slowly.",
+        leechesEmpty: 'No verses are sticking. Excellent!',
+        lapsesBadge: '{{count}} lapses',
+        lapsesBadgeSingular: '1 lapse',
       },
     },
 

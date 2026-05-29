@@ -9,8 +9,13 @@
  * touching React state, AsyncStorage or the clock — callers pass `now`
  * explicitly so tests can advance time deterministically.
  *
- * The grade vocabulary maps to Anki-style buttons but the math is
- * simpler: no ease factor, no per-card adjustments, just five boxes.
+ * The grade vocabulary maps to Anki-style buttons. On top of the five
+ * boxes, Sprint 46 adds a per-card **ease factor** (history-aware
+ * scheduler): the box still sets the *base* interval, but ease scales it
+ * so a verse you keep recalling stretches its interval (less nagging)
+ * while one you keep lapsing shortens it (more practice). Ease starts at
+ * a neutral default, so a card's *first* review behaves exactly like the
+ * old pure-Leitner scheduler; the adaptation kicks in from review #2.
  *
  * Para la gloria de Dios Todopoderoso ✨
  */
@@ -34,6 +39,29 @@ export const SRS_BOX_INTERVALS_DAYS: Record<SrsBox, number> = {
   5: 30,
 };
 
+/**
+ * Per-card ease factor (Sprint 46). Multiplies the box's base interval to
+ * produce the actual next-review gap, so scheduling responds to how the
+ * card has actually performed over time:
+ *   nextIntervalDays = round(SRS_BOX_INTERVALS_DAYS[box] × ease)
+ *
+ * Starts at `DEFAULT_EASE` (1.0 = "behave exactly like plain Leitner"),
+ * grows on `easy`, holds on `good`, and shrinks on `hard`/`again`. Clamped
+ * to [MIN_EASE, MAX_EASE] so a single bad streak can't collapse a card to
+ * "always due" nor an easy streak push it months out.
+ */
+export const DEFAULT_EASE = 1.0;
+export const MIN_EASE = 0.6;
+export const MAX_EASE = 1.6;
+
+/** How much each grade nudges a card's ease for *future* reviews. */
+export const EASE_DELTA: Record<ReviewGrade, number> = {
+  again: -0.2,
+  hard: -0.05,
+  good: 0,
+  easy: 0.15,
+};
+
 export interface MemoryCard {
   /** Stable verse key, e.g. "Juan/3/16". */
   verseKey: string;
@@ -55,6 +83,9 @@ export interface MemoryCard {
   lastReviewedAt: string | null;
   /** Total number of times this card has been reviewed. */
   reviewCount: number;
+  /** Sprint 46: per-card ease factor scaling the box interval. Seeded to
+   *  DEFAULT_EASE; backfilled on hydration for cards persisted earlier. */
+  ease: number;
   /** Sprint 42: millis since epoch of the most recent mutation. Used
    *  by the sync engine for last-write-wins reconciliation. Backfilled
    *  to addedAt when hydrating cards persisted before this sprint. */
@@ -83,8 +114,31 @@ export function createCard(input: {
     addedAt: input.now,
     lastReviewedAt: null,
     reviewCount: 0,
+    ease: DEFAULT_EASE,
     updatedAt: Date.parse(input.now) || Date.now(),
   };
+}
+
+/** Clamp an ease value into the allowed band. */
+export function clampEase(n: number): number {
+  if (n < MIN_EASE) return MIN_EASE;
+  if (n > MAX_EASE) return MAX_EASE;
+  return n;
+}
+
+/** Coerce a possibly-missing/corrupt ease into a valid number. */
+export function normalizeEase(ease: number | undefined | null): number {
+  return typeof ease === 'number' && Number.isFinite(ease)
+    ? clampEase(ease)
+    : DEFAULT_EASE;
+}
+
+/**
+ * The card's ease *after* a review of the given grade — what scales the
+ * NEXT interval. Pure; clamped to [MIN_EASE, MAX_EASE].
+ */
+export function nextEase(currentEase: number, grade: ReviewGrade): number {
+  return clampEase(normalizeEase(currentEase) + EASE_DELTA[grade]);
 }
 
 /**
@@ -95,6 +149,10 @@ export function createCard(input: {
  * - `hard`:  box stays, due tomorrow (treat box-1 as "today again").
  * - `good`:  +1 box (capped at 5), due per the new box's interval.
  * - `easy`:  +2 boxes (capped at 5), due per the new box's interval.
+ *
+ * The interval is scaled by the card's CURRENT (pre-review) ease, then the
+ * grade updates ease for next time — so a card's first review (ease = 1.0)
+ * matches plain Leitner exactly, and the adaptation compounds from there.
  */
 export function applyReview(
   card: MemoryCard,
@@ -119,10 +177,13 @@ export function applyReview(
       break;
   }
 
+  const currentEase = normalizeEase(card.ease);
+
   return {
     ...card,
     box: nextBox,
-    dueAt: computeDueDate(nextBox, grade, now).toISOString(),
+    ease: nextEase(currentEase, grade),
+    dueAt: computeDueDate(nextBox, grade, currentEase, now).toISOString(),
     lastReviewedAt: now.toISOString(),
     reviewCount: card.reviewCount + 1,
     updatedAt: now.getTime(),
@@ -130,13 +191,26 @@ export function applyReview(
 }
 
 /**
- * Computes the next due date given a target box and the grade that got
- * us there. `again` always means "right now", `hard` means "+1 day"
- * regardless of the box, and `good`/`easy` use the interval table.
+ * Computes the next due date given a target box, the grade that got us
+ * there, and the card's pre-review ease. `again` always means "right
+ * now", `hard` means "+1 day" regardless of box/ease (see it again soon),
+ * and `good`/`easy` scale the box's base interval by ease (floored at 1
+ * day so an ease < 1 can never make a graduated card due immediately).
  */
-function computeDueDate(box: SrsBox, grade: ReviewGrade, now: Date): Date {
+function computeDueDate(
+  box: SrsBox,
+  grade: ReviewGrade,
+  ease: number,
+  now: Date,
+): Date {
   if (grade === 'again') return new Date(now.getTime());
-  const days = grade === 'hard' ? 1 : SRS_BOX_INTERVALS_DAYS[box];
+  let days: number;
+  if (grade === 'hard') {
+    days = 1;
+  } else {
+    const base = SRS_BOX_INTERVALS_DAYS[box];
+    days = Math.max(1, Math.round(base * normalizeEase(ease)));
+  }
   const next = new Date(now.getTime());
   next.setDate(next.getDate() + days);
   return next;

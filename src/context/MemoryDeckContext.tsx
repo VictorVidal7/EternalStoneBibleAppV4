@@ -29,6 +29,7 @@ import {
   createCard,
   isMastered,
   MemoryCard,
+  normalizeEase,
   ReviewGrade,
   selectDueCards,
 } from '../lib/memory/srs';
@@ -130,7 +131,10 @@ export const MemoryDeckProvider: React.FC<MemoryDeckProviderProps> = ({
                     : v.addedAt
                       ? Date.parse(v.addedAt) || Date.now()
                       : Date.now();
-                clean[k] = {...v, updatedAt};
+                // Sprint 46 backfill: cards persisted before the adaptive
+                // scheduler lack `ease` — seed it to the neutral default so
+                // they behave like plain Leitner until reviewed again.
+                clean[k] = {...v, ease: normalizeEase(v.ease), updatedAt};
               }
             }
             setDeck(clean);
@@ -174,6 +178,9 @@ export const MemoryDeckProvider: React.FC<MemoryDeckProviderProps> = ({
           addedAt: data.addedAt,
           lastReviewedAt: data.lastReviewedAt ?? null,
           reviewCount: data.reviewCount ?? 0,
+          // Sprint 46 — remote cards from before the adaptive scheduler
+          // (or from a device that hasn't upgraded) won't carry `ease`.
+          ease: normalizeEase(data.ease),
           updatedAt:
             typeof data.updatedAt === 'number' ? data.updatedAt : Date.now(),
         };
