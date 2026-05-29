@@ -2,11 +2,17 @@ import {
   applyMask,
   applyReview,
   buildVerseKey,
+  clampEase,
   createCard,
+  DEFAULT_EASE,
   isMastered,
   MASK_LEVEL_PERCENT,
   maskLevelForBox,
+  MAX_EASE,
   MemoryCard,
+  MIN_EASE,
+  nextEase,
+  normalizeEase,
   selectDueCards,
   SRS_BOX_INTERVALS_DAYS,
 } from '../src/lib/memory/srs';
@@ -39,6 +45,10 @@ describe('createCard', () => {
     expect(c.dueAt).toBe(T0.toISOString());
     expect(c.lastReviewedAt).toBeNull();
     expect(c.reviewCount).toBe(0);
+  });
+
+  it('seeds the card at the neutral default ease', () => {
+    expect(freshCard().ease).toBe(DEFAULT_EASE);
   });
 });
 
@@ -105,6 +115,97 @@ describe('applyReview — easy', () => {
   it('clamps the +2 jump at box 5', () => {
     const next = applyReview(freshCard({box: 4}), 'easy', T0);
     expect(next.box).toBe(5);
+  });
+});
+
+describe('clampEase / normalizeEase', () => {
+  it('clamps to the [MIN_EASE, MAX_EASE] band', () => {
+    expect(clampEase(0.1)).toBe(MIN_EASE);
+    expect(clampEase(9)).toBe(MAX_EASE);
+    expect(clampEase(1.2)).toBe(1.2);
+  });
+
+  it('normalizes missing/corrupt ease to the default', () => {
+    expect(normalizeEase(undefined)).toBe(DEFAULT_EASE);
+    expect(normalizeEase(null)).toBe(DEFAULT_EASE);
+    expect(normalizeEase(NaN)).toBe(DEFAULT_EASE);
+    // valid values still pass through (clamped)
+    expect(normalizeEase(1.3)).toBe(1.3);
+    expect(normalizeEase(5)).toBe(MAX_EASE);
+  });
+});
+
+describe('nextEase', () => {
+  it('holds on good, grows on easy, shrinks on hard/again', () => {
+    expect(nextEase(1.0, 'good')).toBeCloseTo(1.0, 5);
+    expect(nextEase(1.0, 'easy')).toBeCloseTo(1.15, 5);
+    expect(nextEase(1.0, 'hard')).toBeCloseTo(0.95, 5);
+    expect(nextEase(1.0, 'again')).toBeCloseTo(0.8, 5);
+  });
+
+  it('clamps at both ends', () => {
+    expect(nextEase(1.55, 'easy')).toBe(MAX_EASE); // 1.7 → 1.6
+    expect(nextEase(0.7, 'again')).toBe(MIN_EASE); // 0.5 → 0.6
+  });
+
+  it('treats a missing ease as the default before nudging', () => {
+    // undefined → DEFAULT_EASE (1.0), then 'easy' → 1.15
+    expect(nextEase(undefined as unknown as number, 'easy')).toBeCloseTo(
+      1.15,
+      5,
+    );
+  });
+});
+
+describe('applyReview — adaptive ease scheduling', () => {
+  it('first review of a fresh card matches plain Leitner (ease 1.0)', () => {
+    // box 4 → 5 good = the box-5 base interval, unscaled.
+    const next = applyReview(freshCard({box: 4}), 'good', T0);
+    expect(new Date(next.dueAt).toISOString()).toBe(
+      daysFromT0(SRS_BOX_INTERVALS_DAYS[5]).toISOString(),
+    );
+  });
+
+  it('a high-ease card stretches the box interval', () => {
+    // box 4 → 5 good, ease 1.4 → round(30 × 1.4) = 42 days.
+    const next = applyReview(freshCard({box: 4, ease: 1.4}), 'good', T0);
+    expect(new Date(next.dueAt).toISOString()).toBe(
+      daysFromT0(42).toISOString(),
+    );
+    // 'good' holds ease.
+    expect(next.ease).toBeCloseTo(1.4, 5);
+  });
+
+  it('a low-ease card shrinks the box interval', () => {
+    // box 5 good stays 5, ease 0.6 → round(30 × 0.6) = 18 days.
+    const next = applyReview(freshCard({box: 5, ease: 0.6}), 'good', T0);
+    expect(new Date(next.dueAt).toISOString()).toBe(
+      daysFromT0(18).toISOString(),
+    );
+  });
+
+  it('never schedules a graduated card sooner than +1 day (floor)', () => {
+    // box 1 → 2 good at the minimum ease: round(1 × 0.6)=1, floored to ≥1.
+    const next = applyReview(freshCard({box: 1, ease: MIN_EASE}), 'good', T0);
+    expect(new Date(next.dueAt).toISOString()).toBe(
+      daysFromT0(1).toISOString(),
+    );
+  });
+
+  it('uses the PRE-review ease for the interval, then updates ease', () => {
+    // easy from ease 1.0: interval uses 1.0 (box 3 base = 3 days), ease → 1.15.
+    const next = applyReview(freshCard({box: 1, ease: 1.0}), 'easy', T0);
+    expect(new Date(next.dueAt).toISOString()).toBe(
+      daysFromT0(SRS_BOX_INTERVALS_DAYS[3]).toISOString(),
+    );
+    expect(next.ease).toBeCloseTo(1.15, 5);
+  });
+
+  it('a lapse shrinks ease and resets due to now', () => {
+    const next = applyReview(freshCard({box: 4, ease: 1.0}), 'again', T0);
+    expect(next.box).toBe(1);
+    expect(next.dueAt).toBe(T0.toISOString());
+    expect(next.ease).toBeCloseTo(0.8, 5);
   });
 });
 

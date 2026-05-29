@@ -1,7 +1,9 @@
 import {
   computeReviewHistory,
+  findLeeches,
   HEATMAP_WEEKS,
   historySummary,
+  LEECH_MIN_LAPSES,
   retentionByInterval,
   reviewHeatmap,
   type HeatmapCell,
@@ -234,8 +236,88 @@ describe('historySummary', () => {
   });
 });
 
+describe('findLeeches', () => {
+  /** `count` events for a verse, `lapses` of which are graded "again". */
+  function cardEvents(
+    verseKey: string,
+    bookName: string,
+    total: number,
+    lapses: number,
+  ): ReviewEvent[] {
+    return Array.from({length: total}, (_, k) =>
+      mkEvent({
+        verseKey,
+        bookName,
+        id: `${verseKey}__${k}`,
+        reviewedAt: 1000 + k,
+        grade: k < lapses ? 'again' : 'good',
+      }),
+    );
+  }
+
+  it('returns nothing for an empty log', () => {
+    expect(findLeeches([])).toEqual([]);
+  });
+
+  it('flags only verses at or above the lapse threshold', () => {
+    const events = [
+      ...cardEvents('John/3/16', 'John', 5, LEECH_MIN_LAPSES), // exactly threshold → leech
+      ...cardEvents('Psalms/23/1', 'Psalms', 4, LEECH_MIN_LAPSES - 1), // below → not
+      ...cardEvents('Romans/8/28', 'Romans', 2, 0), // no lapses → not
+    ];
+    const leeches = findLeeches(events);
+    expect(leeches.map(l => l.verseKey)).toEqual(['John/3/16']);
+    expect(leeches[0].totalReviews).toBe(5);
+    expect(leeches[0].lapses).toBe(LEECH_MIN_LAPSES);
+    expect(leeches[0].lapseRate).toBeCloseTo(LEECH_MIN_LAPSES / 5);
+  });
+
+  it('sorts hardest first (lapses → lapse rate → verseKey)', () => {
+    const events = [
+      ...cardEvents('B/1/1', 'B', 10, 4), // 4 lapses, rate 0.4
+      ...cardEvents('A/1/1', 'A', 5, 5), // 5 lapses, rate 1.0
+      ...cardEvents('C/1/1', 'C', 6, 4), // 4 lapses, rate ~0.67
+    ];
+    const leeches = findLeeches(events);
+    // A (5 lapses) first; then C (4 lapses, higher rate) before B (4, lower).
+    expect(leeches.map(l => l.verseKey)).toEqual(['A/1/1', 'C/1/1', 'B/1/1']);
+  });
+
+  it('honors a custom minimum-lapses threshold', () => {
+    const events = cardEvents('John/3/16', 'John', 3, 1);
+    expect(findLeeches(events, 1).map(l => l.verseKey)).toEqual(['John/3/16']);
+    expect(findLeeches(events, 2)).toEqual([]);
+  });
+
+  it('keeps the book name and last-reviewed from the most recent event', () => {
+    const events = [
+      mkEvent({
+        verseKey: 'X/1/1',
+        bookName: 'Old',
+        reviewedAt: 100,
+        grade: 'again',
+      }),
+      mkEvent({
+        verseKey: 'X/1/1',
+        bookName: 'New',
+        reviewedAt: 300,
+        grade: 'again',
+      }),
+      mkEvent({
+        verseKey: 'X/1/1',
+        bookName: 'Mid',
+        reviewedAt: 200,
+        grade: 'again',
+      }),
+    ];
+    const [leech] = findLeeches(events, 3);
+    expect(leech.bookName).toBe('New');
+    expect(leech.lastReviewedAt).toBe(300);
+  });
+});
+
 describe('computeReviewHistory', () => {
-  it('bundles heatmap, retention, and summary consistently', () => {
+  it('bundles heatmap, retention, summary, and leeches consistently', () => {
     const events = [
       ...eventsOnDay(0, 2, 'good'),
       ...eventsOnDay(-1, 1, 'again'),
@@ -248,5 +330,7 @@ describe('computeReviewHistory', () => {
     const d1 = h.retention.find(b => b.key === 'd1');
     expect(d1?.total).toBe(3);
     expect(d1?.recalled).toBe(2); // the two 'good', not the 'again'
+    // Only one 'again' total here → below the leech threshold.
+    expect(h.leeches).toEqual([]);
   });
 });

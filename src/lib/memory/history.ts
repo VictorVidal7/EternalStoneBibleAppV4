@@ -81,11 +81,37 @@ export interface HistorySummary {
   overallRetention: number | null;
 }
 
+/**
+ * A "leech" — a verse the user keeps lapsing on (pressing "again"). Unlike
+ * the current-state "struggling" list in `insights.ts` (which scores box +
+ * reviewCount on the card snapshot), a leech is a *historical* property the
+ * card snapshot can't see: how many times you've actually failed it over
+ * time. Computed purely from the append-only review log.
+ */
+export interface LeechCard {
+  /** "Book/Chapter/Verse" key — also lets the UI rebuild the reference. */
+  verseKey: string;
+  /** Localized book name from the most recent review event. */
+  bookName: string;
+  /** Total reviews logged for this verse. */
+  totalReviews: number;
+  /** Reviews graded "again" (a recall failure). */
+  lapses: number;
+  /** lapses / totalReviews in [0, 1]. */
+  lapseRate: number;
+  /** Millis of the most recent review of this verse. */
+  lastReviewedAt: number;
+}
+
+/** A verse needs at least this many lapses to surface as a leech. */
+export const LEECH_MIN_LAPSES = 3;
+
 /** Everything the history section renders, in one pass. */
 export interface ReviewHistory {
   heatmap: ReviewHeatmap;
   retention: RetentionBucket[];
   summary: HistorySummary;
+  leeches: LeechCard[];
 }
 
 /** Fixed interval bands, narrow→wide. Stable shape so the chart is too. */
@@ -269,6 +295,61 @@ export function historySummary(
   };
 }
 
+/**
+ * Verses the user keeps lapsing on, computed from the review log. A verse
+ * qualifies once its "again" count reaches `minLapses`. Sorted hardest
+ * first (most lapses → highest lapse rate → verseKey for a stable tie
+ * break) so the UI can show the top few.
+ */
+export function findLeeches(
+  events: ReviewEvent[],
+  minLapses: number = LEECH_MIN_LAPSES,
+): LeechCard[] {
+  interface Acc {
+    bookName: string;
+    total: number;
+    lapses: number;
+    last: number;
+  }
+  const byCard = new Map<string, Acc>();
+  for (const e of events) {
+    const acc = byCard.get(e.verseKey) ?? {
+      bookName: e.bookName,
+      total: 0,
+      lapses: 0,
+      last: 0,
+    };
+    acc.total += 1;
+    if (!isRecallSuccess(e.grade)) acc.lapses += 1;
+    // Keep the book name from the most recent event (latest known label).
+    if (e.reviewedAt >= acc.last) {
+      acc.last = e.reviewedAt;
+      acc.bookName = e.bookName;
+    }
+    byCard.set(e.verseKey, acc);
+  }
+
+  const leeches: LeechCard[] = [];
+  for (const [verseKey, acc] of byCard) {
+    if (acc.lapses < minLapses) continue;
+    leeches.push({
+      verseKey,
+      bookName: acc.bookName,
+      totalReviews: acc.total,
+      lapses: acc.lapses,
+      lapseRate: acc.total > 0 ? acc.lapses / acc.total : 0,
+      lastReviewedAt: acc.last,
+    });
+  }
+  leeches.sort(
+    (a, b) =>
+      b.lapses - a.lapses ||
+      b.lapseRate - a.lapseRate ||
+      a.verseKey.localeCompare(b.verseKey),
+  );
+  return leeches;
+}
+
 /** One call bundling every history insight the screen needs. */
 export function computeReviewHistory(
   events: ReviewEvent[],
@@ -279,5 +360,6 @@ export function computeReviewHistory(
     heatmap: reviewHeatmap(events, now, weeks),
     retention: retentionByInterval(events),
     summary: historySummary(events, now),
+    leeches: findLeeches(events),
   };
 }

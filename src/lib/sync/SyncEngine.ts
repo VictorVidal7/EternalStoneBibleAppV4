@@ -56,6 +56,28 @@ const MAX_RETRY_ATTEMPTS = 8;
  */
 const CONFLICT_WINDOW_MS = 30000;
 
+/**
+ * Sprint 46 — map a logical doc id to a Firestore-safe doc id and back.
+ *
+ * Some collections key on ids that contain "/" — memoryCards use the
+ * `verseKey` ("Book/Chapter/Verse") and reviewEvents use `${verseKey}__${ts}`.
+ * Passed straight to `.doc(id)`, a slash is a PATH separator, so the write
+ * lands at a *nested* document (e.g. `memoryCards/Genesis/1/1`) that the
+ * collection's `onSnapshot` listener never sees — silently breaking
+ * cross-device sync for exactly those datasets (the bug surfaced once the
+ * S46 NetInfo fix let outbound writes actually reach the server). We encode
+ * "/" as "~" (a char that never appears in a verseKey or event id) at the
+ * Firestore boundary only — the queue, adapters and local stores keep using
+ * the real id. Clean ids (favorites `fav_…`, etc.) pass through untouched.
+ */
+function toDocId(id: string): string {
+  return id.replace(/\//g, '~');
+}
+
+function fromDocId(docId: string): string {
+  return docId.replace(/~/g, '/');
+}
+
 /** Deep equality good enough for our small payloads (text, tags arrays, etc).
  *  null and undefined are treated as equivalent — SQLite NULL surfaces as
  *  null locally while an absent Firestore field surfaces as undefined,
@@ -396,7 +418,9 @@ export class SyncEngine {
     this.updateState({isSyncing: true});
     try {
       for (const change of changes) {
-        const id = change.doc.id;
+        // Decode the Firestore doc id back to the logical id (see toDocId):
+        // a memoryCards/reviewEvents id carries "/" which we store as "~".
+        const id = fromDocId(change.doc.id);
         const data = change.doc.data();
         if (change.type === 'removed' || !data) {
           // Hard remove (rare — we soft-delete via tombstone). Treat
@@ -779,7 +803,7 @@ export class SyncEngine {
     if (!this.uid) throw new Error('engine inactive during push');
     const ref = firestoreFn()
       .collection(`users/${this.uid}/${item.collection}`)
-      .doc(item.id);
+      .doc(toDocId(item.id));
     await ref.set(item.data, {merge: true});
   }
 
