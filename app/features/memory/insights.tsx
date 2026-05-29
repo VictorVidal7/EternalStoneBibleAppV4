@@ -31,6 +31,8 @@ import {useMemoryDeck} from '@context/MemoryDeckContext';
 import {useMemoryGoal} from '@hooks/useMemoryGoal';
 import {computeDeckInsights, type StrugglingCard} from '@lib/memory/insights';
 import {type LeechCard} from '@lib/memory/history';
+import {DEFAULT_EASE} from '@lib/memory/srs';
+import {computeEasePrior, MIN_CALIBRATION_REVIEWS} from '@lib/memory/easePrior';
 import {getBookByName} from '@/constants/bible';
 import SVGCircularProgress from '@components/SVGCircularProgress';
 import {MiniBarChart, type BarDatum} from '@components/charts/MiniBarChart';
@@ -125,6 +127,17 @@ export default function MemoryInsightsScreen() {
   const hasRetention =
     history.summary.overallRetention !== null && retentionData.length > 0;
   const topLeeches = history.leeches.slice(0, MAX_LEECH_ROWS);
+
+  // Sprint 48 — the calibrated ease prior new cards start at, derived from
+  // the same retention history shown above. Cheap; recompute with the summary.
+  const easePrior = useMemo(
+    () => computeEasePrior(history.summary),
+    [history.summary],
+  );
+  const calibrationRemaining = Math.max(
+    0,
+    MIN_CALIBRATION_REVIEWS - easePrior.sampleSize,
+  );
 
   return (
     <>
@@ -427,7 +440,74 @@ export default function MemoryInsightsScreen() {
                     )}
                   </InsightCard>
 
-                  {/* 7 — Leeches (verses lapsed most often) */}
+                  {/* 7 — Scheduling calibration (Sprint 48) */}
+                  <InsightCard
+                    title={i.calibrationTitle}
+                    hint={i.calibrationHint}
+                    colors={colors}>
+                    {easePrior.calibrated ? (
+                      <>
+                        <View style={styles.retentionHeadline}>
+                          <Text
+                            style={[
+                              styles.retentionValue,
+                              {color: colors.primary},
+                            ]}>
+                            {easePrior.ease.toFixed(2)}×
+                          </Text>
+                          <Text
+                            style={[
+                              styles.retentionLabel,
+                              {color: colors.textSecondary},
+                            ]}>
+                            {i.calibrationPace}
+                          </Text>
+                        </View>
+                        <Text
+                          style={[
+                            styles.calibrationVerdict,
+                            {color: colors.text},
+                          ]}>
+                          {easePrior.ease > DEFAULT_EASE
+                            ? i.calibrationSlower
+                            : easePrior.ease < DEFAULT_EASE
+                              ? i.calibrationFaster
+                              : i.calibrationNeutral}
+                        </Text>
+                        <Text
+                          style={[
+                            styles.calibrationBasis,
+                            {color: colors.textTertiary},
+                          ]}>
+                          {i.calibrationBasis
+                            .replace(
+                              '{{pct}}',
+                              String(
+                                Math.round(
+                                  (easePrior.observedRetention ?? 0) * 100,
+                                ),
+                              ),
+                            )
+                            .replace('{{count}}', String(easePrior.sampleSize))}
+                        </Text>
+                      </>
+                    ) : (
+                      <Text
+                        style={[
+                          styles.positiveNote,
+                          {color: colors.textSecondary},
+                        ]}>
+                        {calibrationRemaining === 1
+                          ? i.calibrationLearningSingular
+                          : i.calibrationLearning.replace(
+                              '{{count}}',
+                              String(calibrationRemaining),
+                            )}
+                      </Text>
+                    )}
+                  </InsightCard>
+
+                  {/* 8 — Leeches (verses lapsed most often) */}
                   <InsightCard
                     title={i.leechesTitle}
                     hint={i.leechesHint}
@@ -777,6 +857,16 @@ const styles = StyleSheet.create({
   retentionLabel: {
     fontSize: fontSizes.sm,
     fontWeight: '600',
+  },
+  calibrationVerdict: {
+    fontSize: fontSizes.base,
+    fontWeight: '700',
+    lineHeight: 20,
+  },
+  calibrationBasis: {
+    fontSize: 11,
+    fontWeight: '600',
+    marginTop: spacing.xs,
   },
   struggleRow: {
     flexDirection: 'row',

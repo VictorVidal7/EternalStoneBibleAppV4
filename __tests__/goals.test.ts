@@ -27,6 +27,7 @@ function mkSummary(over: Partial<HistorySummary> = {}): HistorySummary {
     currentStreak: 0,
     longestStreak: 0,
     overallRetention: null,
+    reviewsWithInterval: 0,
     ...over,
   };
 }

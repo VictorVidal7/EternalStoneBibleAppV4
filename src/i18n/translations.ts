@@ -322,6 +322,20 @@ export const translations = {
         leechesEmpty: 'Ningún versículo se te atasca. ¡Excelente!',
         lapsesBadge: '{{count}} fallos',
         lapsesBadgeSingular: '1 fallo',
+        calibrationTitle: 'Calibración de repaso',
+        calibrationHint:
+          'Ajustamos el ritmo de los versículos nuevos según tu retención real.',
+        calibrationPace: 'Ritmo de versículos nuevos',
+        calibrationBasis: 'Basado en {{pct}}% de retención · {{count}} repasos',
+        calibrationSlower:
+          'Retienes bien, así que espaciamos un poco más los versículos nuevos.',
+        calibrationFaster:
+          'Damos más práctica temprana a los versículos nuevos.',
+        calibrationNeutral: 'Tu ritmo coincide con el estándar.',
+        calibrationLearning:
+          'Aún aprendemos tu ritmo. Te faltan {{count}} repasos con intervalo para calibrar.',
+        calibrationLearningSingular:
+          'Aún aprendemos tu ritmo. Te falta 1 repaso con intervalo para calibrar.',
       },
       goal: {
         heroTitle: 'Tu racha',
@@ -1716,6 +1730,19 @@ export const translations = {
         leechesEmpty: 'No verses are sticking. Excellent!',
         lapsesBadge: '{{count}} lapses',
         lapsesBadgeSingular: '1 lapse',
+        calibrationTitle: 'Scheduling calibration',
+        calibrationHint:
+          'We tune how new verses are paced from your real retention.',
+        calibrationPace: 'New-verse pace',
+        calibrationBasis: 'Based on {{pct}}% retention · {{count}} reviews',
+        calibrationSlower:
+          'You retain well, so we space new verses out a little more.',
+        calibrationFaster: 'We give new verses a bit more early practice.',
+        calibrationNeutral: 'Your pace matches the standard.',
+        calibrationLearning:
+          'Still learning your pace. {{count}} more spaced reviews to calibrate.',
+        calibrationLearningSingular:
+          'Still learning your pace. 1 more spaced review to calibrate.',
       },
       goal: {
         heroTitle: 'Your streak',

@@ -179,6 +179,7 @@ describe('historySummary', () => {
       currentStreak: 0,
       longestStreak: 0,
       overallRetention: null,
+      reviewsWithInterval: 0,
     });
   });
 
@@ -234,7 +235,10 @@ describe('historySummary', () => {
       mkEvent({reviewedAt: dayAt(NOW, -3), intervalDays: 4, grade: 'easy'}),
     ];
     // 3 events have an interval; 2 recalled → 2/3.
-    expect(historySummary(events, NOW).overallRetention).toBeCloseTo(2 / 3);
+    const s = historySummary(events, NOW);
+    expect(s.overallRetention).toBeCloseTo(2 / 3);
+    // The same 3 interval-bearing reviews are the calibration sample size.
+    expect(s.reviewsWithInterval).toBe(3);
   });
 });
 

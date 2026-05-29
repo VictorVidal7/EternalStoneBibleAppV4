@@ -81,6 +81,12 @@ export interface HistorySummary {
   longestStreak: number;
   /** recalled / reviews-with-a-prior-review, [0, 1], or null if none. */
   overallRetention: number | null;
+  /**
+   * Reviews that had a prior review (intervalDays != null) — the denominator
+   * behind `overallRetention`. Sprint 48 uses it as the calibration sample
+   * size: the ease prior is only trusted once enough of these accumulate.
+   */
+  reviewsWithInterval: number;
 }
 
 /**
@@ -298,6 +304,7 @@ export function historySummary(
     currentStreak: currentStreak(daySet, now),
     longestStreak: longestStreak(daySet),
     overallRetention: withInterval > 0 ? recalled / withInterval : null,
+    reviewsWithInterval: withInterval,
   };
 }
 
