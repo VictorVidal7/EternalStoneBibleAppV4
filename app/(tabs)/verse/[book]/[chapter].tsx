@@ -47,9 +47,6 @@ import {ReaderPreferencesSheet} from '@components/reading/ReaderPreferencesSheet
 import {CrossReferencesSheet} from '@components/reading/CrossReferencesSheet';
 import {
   useReaderPreferences,
-  READER_FONT_SIZE_MIN,
-  READER_FONT_SIZE_MAX,
-  READER_FONT_SIZE_STEP,
   READER_MARGIN_PADDING,
 } from '@context/ReaderPreferencesContext';
 import {resolveFontFamily} from '@components/reading/ReaderPreferencesSheet';
@@ -75,6 +72,7 @@ import {
   fontSize as fontSizes,
   staticColors,
 } from '@/styles/designTokens';
+import {resolveReaderTheme} from '@/styles/readerThemes';
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
 import {useWindowDimensions} from 'react-native';
 
@@ -155,7 +153,7 @@ export default function VerseReadingScreen() {
 
   const [verses, setVerses] = useState<BibleVerse[]>([]);
   const [loading, setLoading] = useState(true);
-  const {preferences: readerPrefs, setFontSize} = useReaderPreferences();
+  const {preferences: readerPrefs} = useReaderPreferences();
   const fontSize = readerPrefs.fontSize;
   const readerFontFamily = useMemo(
     () => resolveFontFamily(readerPrefs.fontFamily),
@@ -323,13 +321,24 @@ export default function VerseReadingScreen() {
     };
   }, [book, chapterNum, bookInfo?.name]);
 
-  // Use theme colors directly
+  // The reader follows its own reading theme (paper/sepia/night) layered
+  // over the app theme; 'system' (default) falls through to the live app
+  // colors so an existing user sees no change. `themedColors` also carries
+  // the reader-specific `audioHighlight` (verse being read aloud) and
+  // `onHighlight` (text over a user highlight swatch) extras.
+  const themedColors = resolveReaderTheme(colors, readerPrefs.theme);
   const effectiveColors = {
-    ...colors,
-    favorite: colors.primary,
-    verseHighlight: colors.primaryLight || 'rgba(74, 144, 226, 0.15)',
+    ...themedColors,
+    favorite: themedColors.primary,
+    verseHighlight: themedColors.primaryLight || 'rgba(74, 144, 226, 0.15)',
     warning: colors.warning,
   };
+
+  // Whether the *reading* surface is dark. Drives the floating selection bar
+  // so its `effectiveColors.text` stays legible when the reading theme
+  // differs from the app theme (e.g. a Night reading theme on a light app).
+  const readerIsDark =
+    readerPrefs.theme === 'system' ? isDark : readerPrefs.theme === 'night';
 
   const scrollViewRef = useRef<ScrollView>(null);
   const startTimeRef = useRef<number>(Date.now());
@@ -1027,40 +1036,9 @@ export default function VerseReadingScreen() {
                 accessibilityLabel={t.verse.immersive}>
                 <Ionicons name="expand-outline" size={24} color="#FFFFFF" />
               </TouchableOpacity>
-              <TouchableOpacity
-                onPress={() => {
-                  Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-                  setFontSize(
-                    Math.min(
-                      fontSize + READER_FONT_SIZE_STEP,
-                      READER_FONT_SIZE_MAX,
-                    ),
-                  );
-                }}
-                style={styles.headerButton}
-                accessibilityRole="button"
-                accessibilityLabel={t.verse.increaseFontSize}>
-                <Ionicons name="add-circle-outline" size={24} color="#FFFFFF" />
-              </TouchableOpacity>
-              <TouchableOpacity
-                onPress={() => {
-                  Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-                  setFontSize(
-                    Math.max(
-                      fontSize - READER_FONT_SIZE_STEP,
-                      READER_FONT_SIZE_MIN,
-                    ),
-                  );
-                }}
-                style={styles.headerButton}
-                accessibilityRole="button"
-                accessibilityLabel={t.verse.decreaseFontSize}>
-                <Ionicons
-                  name="remove-circle-outline"
-                  size={24}
-                  color="#FFFFFF"
-                />
-              </TouchableOpacity>
+              {/* Sprint 54: font-size A+/A- retired from the header — size now
+                  lives in the "Aa" reading-preferences sheet (with size, line
+                  spacing, alignment, margins, typeface and reading theme). */}
             </View>
           ),
         }}
@@ -1312,9 +1290,9 @@ export default function VerseReadingScreen() {
 
             const textStyle = {
               color: isBeingRead
-                ? '#D4AF37'
+                ? effectiveColors.audioHighlight
                 : userHighlight
-                  ? '#1A1D2E'
+                  ? effectiveColors.onHighlight
                   : isSelected
                     ? effectiveColors.primaryDark
                     : effectiveColors.text,
@@ -1326,9 +1304,9 @@ export default function VerseReadingScreen() {
 
             const numberStyle = {
               color: isBeingRead
-                ? '#D4AF37'
+                ? effectiveColors.audioHighlight
                 : userHighlight
-                  ? '#1A1D2E'
+                  ? effectiveColors.onHighlight
                   : effectiveColors.primary,
             };
 
@@ -1420,7 +1398,7 @@ export default function VerseReadingScreen() {
                                 styles.sideBySideText,
                                 {
                                   color: userHighlight
-                                    ? '#1A1D2E'
+                                    ? effectiveColors.onHighlight
                                     : effectiveColors.textSecondary,
                                   fontSize: Math.max(fontSize - 2, 12),
                                   lineHeight: Math.max(fontSize - 2, 12) * 1.5,
@@ -1456,7 +1434,7 @@ export default function VerseReadingScreen() {
             style={[
               styles.selectionBar,
               {
-                backgroundColor: isDark
+                backgroundColor: readerIsDark
                   ? 'rgba(26, 29, 46, 0.98)'
                   : 'rgba(255, 255, 255, 0.98)',
                 borderColor: effectiveColors.border,

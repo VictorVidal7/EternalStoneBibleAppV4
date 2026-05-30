@@ -32,6 +32,11 @@ import {
   ReaderTextAlign,
   ReaderMargin,
 } from '../../context/ReaderPreferencesContext';
+import {
+  ReaderTheme,
+  READER_THEME_ORDER,
+  resolveReaderTheme,
+} from '../../styles/readerThemes';
 import {useTheme} from '../../hooks/useTheme';
 import {useLanguage} from '../../hooks/useLanguage';
 import {
@@ -60,6 +65,7 @@ export const ReaderPreferencesSheet: React.FC<ReaderPreferencesSheetProps> = ({
     setLineHeightMultiplier,
     setTextAlign,
     setMargin,
+    setTheme,
     reset,
   } = useReaderPreferences();
 
@@ -67,6 +73,26 @@ export const ReaderPreferencesSheet: React.FC<ReaderPreferencesSheetProps> = ({
     () => resolveFontFamily(preferences.fontFamily),
     [preferences.fontFamily],
   );
+
+  // The preview + reader surface follow the selected reading theme. 'system'
+  // resolves back to the live app colors so the sheet stays consistent.
+  const previewColors = useMemo(
+    () => resolveReaderTheme(colors, preferences.theme),
+    [colors, preferences.theme],
+  );
+
+  const themeOptions: {id: ReaderTheme; label: string}[] =
+    READER_THEME_ORDER.map(id => ({
+      id,
+      label:
+        id === 'system'
+          ? t.readerPrefs.themeSystem
+          : id === 'paper'
+            ? t.readerPrefs.themePaper
+            : id === 'sepia'
+              ? t.readerPrefs.themeSepia
+              : t.readerPrefs.themeNight,
+    }));
 
   const tap = (fn: () => void) => () => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
@@ -145,21 +171,22 @@ export const ReaderPreferencesSheet: React.FC<ReaderPreferencesSheetProps> = ({
             style={[
               styles.preview,
               {
-                backgroundColor: colors.background,
-                borderColor: colors.border,
+                backgroundColor: previewColors.background,
+                borderColor: previewColors.border,
                 paddingHorizontal: READER_MARGIN_PADDING[preferences.margin],
               },
             ]}>
             <Text
               style={{
-                color: colors.text,
+                color: previewColors.text,
                 fontSize: preferences.fontSize,
                 lineHeight:
                   preferences.fontSize * preferences.lineHeightMultiplier,
                 textAlign: preferences.textAlign,
                 fontFamily: previewFontFamily,
               }}>
-              <Text style={[styles.previewNumber, {color: colors.primary}]}>
+              <Text
+                style={[styles.previewNumber, {color: previewColors.primary}]}>
                 1{'  '}
               </Text>
               {t.readerPrefs.sampleText}
@@ -169,6 +196,55 @@ export const ReaderPreferencesSheet: React.FC<ReaderPreferencesSheetProps> = ({
           <ScrollView
             style={styles.options}
             contentContainerStyle={styles.optionsContent}>
+            {/* Reading theme */}
+            <Section title={t.readerPrefs.theme} colors={colors}>
+              <View style={styles.row}>
+                {themeOptions.map(opt => {
+                  const swatch = resolveReaderTheme(colors, opt.id);
+                  const active = preferences.theme === opt.id;
+                  return (
+                    <ChoiceCard
+                      key={opt.id}
+                      active={active}
+                      colors={colors}
+                      onPress={tap(() => setTheme(opt.id))}
+                      accessibilityLabel={opt.label}>
+                      <View
+                        style={[
+                          styles.themeSwatch,
+                          {
+                            backgroundColor: swatch.background,
+                            borderColor: swatch.border,
+                          },
+                        ]}>
+                        <Text
+                          style={[
+                            styles.themeSwatchNumber,
+                            {color: swatch.primary},
+                          ]}>
+                          1
+                        </Text>
+                        <Text
+                          style={[
+                            styles.themeSwatchText,
+                            {color: swatch.text},
+                          ]}>
+                          Aa
+                        </Text>
+                      </View>
+                      <Text
+                        style={[
+                          styles.choiceLabel,
+                          {color: active ? colors.primary : colors.text},
+                        ]}>
+                        {opt.label}
+                      </Text>
+                    </ChoiceCard>
+                  );
+                })}
+              </View>
+            </Section>
+
             {/* Font family */}
             <Section title={t.readerPrefs.font} colors={colors}>
               <View style={styles.row}>
@@ -514,6 +590,24 @@ const styles = StyleSheet.create({
   choiceLabel: {
     fontSize: fontSizes.xs,
     fontWeight: '600',
+  },
+  themeSwatch: {
+    flexDirection: 'row',
+    alignItems: 'baseline',
+    justifyContent: 'center',
+    gap: 4,
+    alignSelf: 'stretch',
+    paddingVertical: spacing.sm,
+    borderRadius: borderRadius.sm,
+    borderWidth: StyleSheet.hairlineWidth,
+  },
+  themeSwatchNumber: {
+    fontSize: 13,
+    fontWeight: '800',
+  },
+  themeSwatchText: {
+    fontSize: 20,
+    fontWeight: '700',
   },
   pill: {
     minWidth: 56,
