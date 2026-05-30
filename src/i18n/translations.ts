@@ -729,6 +729,26 @@ export const translations = {
         previousVerse: 'Versículo anterior',
         speed: 'Velocidad de reproducción',
       },
+      scrub: {
+        preview: 'Versículo {{n}} de {{total}}',
+        a11yLabel: 'Desplazamiento por versículo',
+        a11yHint: 'Desliza para saltar a un versículo',
+      },
+    },
+
+    // Premium (Sprint 50 — local feature flag)
+    premium: {
+      title: 'Premium',
+      featureName: 'Desplazamiento por versículo',
+      lockedHint: 'Arrastra la barra para saltar a cualquier versículo',
+      upsellTap: 'Desbloquéalo en Ajustes',
+      badge: 'PREMIUM',
+      settingsTitle: 'Funciones premium',
+      settingsDesc:
+        'Desbloquea el desplazamiento por versículo del reproductor de audio.',
+      toggleLabel: 'Premium desbloqueado',
+      unlockedToast: 'Premium activado',
+      lockedToast: 'Premium desactivado',
     },
 
     // Reading Plans
@@ -2196,6 +2216,25 @@ export const translations = {
         previousVerse: 'Previous verse',
         speed: 'Playback speed',
       },
+      scrub: {
+        preview: 'Verse {{n}} of {{total}}',
+        a11yLabel: 'Verse scrubber',
+        a11yHint: 'Drag to jump to a verse',
+      },
+    },
+
+    // Premium (Sprint 50 — local feature flag)
+    premium: {
+      title: 'Premium',
+      featureName: 'Verse scrubbing',
+      lockedHint: 'Drag the bar to jump to any verse',
+      upsellTap: 'Unlock it in Settings',
+      badge: 'PREMIUM',
+      settingsTitle: 'Premium features',
+      settingsDesc: 'Unlock verse scrubbing in the audio player.',
+      toggleLabel: 'Premium unlocked',
+      unlockedToast: 'Premium enabled',
+      lockedToast: 'Premium disabled',
     },
 
     // Reading Plans

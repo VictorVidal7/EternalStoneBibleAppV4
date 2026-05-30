@@ -61,6 +61,8 @@ import {widgetTaskHandler} from '@/widgets/WidgetTaskHandler';
 // Audio Bible Feature
 import {AudioPlayerProvider} from '@/features/audio/context/AudioPlayerContext';
 import {MiniAudioPlayer} from '@/features/audio/components/MiniAudioPlayer';
+// Premium entitlement (Sprint 50 — local feature flag)
+import {PremiumProvider} from '@context/PremiumContext';
 import {
   refreshDailyVerseNotifications,
   refreshMemoryReminders,
@@ -282,9 +284,11 @@ export default function RootLayout() {
                           <ReaderPreferencesProvider>
                             <MemoryDeckProvider>
                               <ToastProvider>
-                                <AudioPlayerProvider>
-                                  <AppContent />
-                                </AudioPlayerProvider>
+                                <PremiumProvider>
+                                  <AudioPlayerProvider>
+                                    <AppContent />
+                                  </AudioPlayerProvider>
+                                </PremiumProvider>
                               </ToastProvider>
                             </MemoryDeckProvider>
                           </ReaderPreferencesProvider>
