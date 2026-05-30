@@ -16,6 +16,7 @@ export {
 // Components
 export {
   MiniAudioPlayer,
+  AudioResumeRestorer,
   AudioControls,
   AudioProgressBar,
   MiniProgressDots,
@@ -77,3 +78,10 @@ export type {PlaybackPosition} from './lib/playbackPosition';
 // Immersive ↔ audio bridge — premium audio in the ImmersiveReader (Sprint 52)
 export {toAudioVerses, isSameAudioChapter} from './lib/immersiveAudio';
 export type {VerseLike} from './lib/immersiveAudio';
+
+// Cold-start player restore (Sprint 53)
+export {resolveColdStartRestore} from './lib/coldStartRestore';
+export type {
+  ColdStartRestoreDeps,
+  ColdStartRestoreTarget,
+} from './lib/coldStartRestore';

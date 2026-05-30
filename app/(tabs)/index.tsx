@@ -50,7 +50,7 @@ import {useFavorites} from '@context/FavoritesContext';
 import {useBookmarks} from '@context/BookmarksContext';
 import {useMemoryDeck} from '@context/MemoryDeckContext';
 import {usePremium} from '@context/PremiumContext';
-import {getLastPosition, isResumable} from '@/features/audio';
+import {getLastPosition, isResumable, useAudioPlayer} from '@/features/audio';
 import type {PlaybackPosition} from '@/features/audio';
 
 // Componentes Celestial
@@ -106,6 +106,10 @@ export default function HomeScreen() {
   const bookmarksCount = bookmarks.length;
   const {stats: memoryStats} = useMemoryDeck();
   const {isPremium} = usePremium();
+  // When the floating player is already up (e.g. restored on cold start,
+  // Sprint 53), the "Continue listening" card is a redundant second resume
+  // surface for the same position — defer to the player and hide the card.
+  const {isVisible: audioPlayerVisible} = useAudioPlayer();
   const progressTrackColor = isDark
     ? staticColors.transparent
     : withOpacity(colors.primary, isDark ? 0.3 : 0.8);
@@ -635,7 +639,9 @@ export default function HomeScreen() {
         )}
 
         {/* ============ CONTINUE LISTENING (Premium, Sprint 51) ============ */}
-        {isPremium && audioResumePos && (
+        {/* Hidden when the floating player is already showing this position
+            (cold-start restore, Sprint 53) — no duplicate resume surface. */}
+        {isPremium && audioResumePos && !audioPlayerVisible && (
           <Animated.View
             style={{opacity: fadeAnim, marginTop: celestialSpacing.cardGap}}>
             <TouchableOpacity
