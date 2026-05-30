@@ -55,7 +55,13 @@ import {
 import {resolveFontFamily} from '@components/reading/ReaderPreferencesSheet';
 import {getBookTheme} from '@/constants/bookThemes';
 // Audio Bible Feature
-import {useAudioPlayer, AudioVerse} from '@/features/audio';
+import {
+  useAudioPlayer,
+  AudioVerse,
+  getLastPosition,
+  clampVerseIndex,
+} from '@/features/audio';
+import {usePremium} from '@context/PremiumContext';
 // Navigation
 // import {
 //   AnimatedBottomNav,
@@ -110,17 +116,21 @@ export default function VerseReadingScreen() {
     loadChapter: loadAudioChapter,
     play,
     pause,
+    goToVerse,
     state: audioState,
     isVisible: isAudioVisible,
   } = useAudioPlayer();
+  const {isPremium} = usePremium();
   const {
     book,
     chapter,
     verse: highlightVerse,
+    audioResume,
   } = useLocalSearchParams<{
     book: string;
     chapter: string;
     verse?: string;
+    audioResume?: string;
   }>();
 
   const bookInfo = getBookByName(book);
@@ -893,7 +903,7 @@ export default function VerseReadingScreen() {
   }
 
   // Start Audio Bible playback
-  function startAudioPlayback() {
+  async function startAudioPlayback() {
     if (verses.length === 0) return;
 
     try {
@@ -910,13 +920,60 @@ export default function VerseReadingScreen() {
       text: String(v.text || ''),
     }));
 
+    // Premium "Continue listening": resume where the user last was in THIS
+    // chapter. Free users always start at verse 1 (unchanged behaviour). The
+    // saved book is matched by language-agnostic id so it survives a version /
+    // UI-language switch, and the index is re-clamped to the freshly loaded
+    // chapter in case a different version has a different verse count.
+    // Read the saved position BEFORE loadChapter — loading resets the player to
+    // verse 0 and the persist effect would overwrite our saved index first.
+    let resumeIndex = 0;
+    if (isPremium) {
+      const saved = await getLastPosition();
+      const savedBookInfo = saved ? getBookByName(saved.book) : null;
+      if (
+        saved &&
+        savedBookInfo?.id === bookInfo?.id &&
+        saved.chapter === chapterNum &&
+        saved.verseIndex > 0
+      ) {
+        resumeIndex = clampVerseIndex(saved.verseIndex, audioVerses.length);
+      }
+    }
+
     loadAudioChapter(audioVerses);
 
+    if (resumeIndex > 0) {
+      goToVerse(resumeIndex);
+      const resumeVerse = audioVerses[resumeIndex];
+      if (resumeVerse) {
+        toast.info(
+          t.audio.resume.toast.replace(
+            '{{ref}}',
+            `${localizedBookName} ${chapterNum}:${resumeVerse.verse}`,
+          ),
+        );
+      }
+    }
+
     // Small delay before playing to ensure loading is complete in context
+    // (and that the resume index has propagated to the player's state ref).
     setTimeout(() => {
       play();
     }, 100);
   }
+
+  // Auto-start audio when arriving via the Home "Continue listening" card
+  // (deep-linked with ?audioResume=1). Premium only; fires once, after the
+  // chapter's verses have loaded, then defers to the resume logic above.
+  const audioResumeHandledRef = useRef(false);
+  useEffect(() => {
+    if (audioResumeHandledRef.current) return;
+    if (audioResume !== '1' || !isPremium) return;
+    if (loading || verses.length === 0) return;
+    audioResumeHandledRef.current = true;
+    void startAudioPlayback();
+  }, [audioResume, isPremium, loading, verses.length]);
 
   if (!bookInfo || loading) {
     return (

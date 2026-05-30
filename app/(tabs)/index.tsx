@@ -49,6 +49,9 @@ import {useReadingPlanProgress} from '@context/ReadingPlanProgressContext';
 import {useFavorites} from '@context/FavoritesContext';
 import {useBookmarks} from '@context/BookmarksContext';
 import {useMemoryDeck} from '@context/MemoryDeckContext';
+import {usePremium} from '@context/PremiumContext';
+import {getLastPosition, isResumable} from '@/features/audio';
+import type {PlaybackPosition} from '@/features/audio';
 
 // Componentes Celestial
 import {
@@ -102,6 +105,7 @@ export default function HomeScreen() {
   const {bookmarks} = useBookmarks();
   const bookmarksCount = bookmarks.length;
   const {stats: memoryStats} = useMemoryDeck();
+  const {isPremium} = usePremium();
   const progressTrackColor = isDark
     ? staticColors.transparent
     : withOpacity(colors.primary, isDark ? 0.3 : 0.8);
@@ -115,6 +119,10 @@ export default function HomeScreen() {
     selectedVersion.id,
   );
   const [lastRead, setLastRead] = useState<ReadingProgress | null>(null);
+  // Last audio position for the premium "Continue listening" card (Sprint 51).
+  const [audioResumePos, setAudioResumePos] = useState<PlaybackPosition | null>(
+    null,
+  );
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [chapterProgress, setChapterProgress] = useState(0);
@@ -228,6 +236,12 @@ export default function HomeScreen() {
 
       // Get last reading position
       setLastRead(progress);
+
+      // Get last audio position for the "Continue listening" card (premium).
+      // Only surface a fresh one (isResumable); a stale/closed position is
+      // dropped so the card never resurrects a chapter the user moved on from.
+      const audioPos = await getLastPosition();
+      setAudioResumePos(isResumable(audioPos, Date.now()) ? audioPos : null);
 
       setSavedCounts({
         favorites: favoritesCount,
@@ -611,6 +625,79 @@ export default function HomeScreen() {
                             backgroundColor: colors.primary,
                           },
                         ]}
+                      />
+                    </View>
+                  </View>
+                </View>
+              </ShimmerCard>
+            </TouchableOpacity>
+          </Animated.View>
+        )}
+
+        {/* ============ CONTINUE LISTENING (Premium, Sprint 51) ============ */}
+        {isPremium && audioResumePos && (
+          <Animated.View
+            style={{opacity: fadeAnim, marginTop: celestialSpacing.cardGap}}>
+            <TouchableOpacity
+              activeOpacity={0.9}
+              accessibilityRole="button"
+              accessibilityLabel={t.home.continueListening}
+              onPress={() =>
+                handlePress(() =>
+                  router.push(
+                    `/verse/${audioResumePos.book}/${audioResumePos.chapter}?audioResume=1` as any,
+                  ),
+                )
+              }>
+              <ShimmerCard
+                glowColor={colors.primary}
+                shimmerEnabled={false}
+                cardBackgroundColor={celestialTheme.colors.surfaceGlass}
+                cardBorderColor={celestialTheme.colors.glassBorder}>
+                <View style={styles.continueButton}>
+                  <View style={styles.continueHeader}>
+                    <View
+                      style={[
+                        styles.continueIconContainer,
+                        {
+                          backgroundColor: colors.primary + '20',
+                          borderRadius: 10,
+                        },
+                      ]}>
+                      <Ionicons
+                        name="headset"
+                        size={14}
+                        color={colors.primary}
+                      />
+                    </View>
+                    <View style={styles.continueTextContainer}>
+                      <Text
+                        style={[styles.continueTitle, {color: colors.text}]}
+                        numberOfLines={1}>
+                        {t.home.continueListening}
+                      </Text>
+                      <Text
+                        style={[
+                          styles.continueReference,
+                          {color: colors.textSecondary},
+                        ]}
+                        numberOfLines={1}>
+                        {(() => {
+                          const info = getBookByName(audioResumePos.book);
+                          const name = info
+                            ? language === 'en'
+                              ? info.nameEn
+                              : info.name
+                            : audioResumePos.book;
+                          return `${name} ${audioResumePos.chapter}:${audioResumePos.verse}`;
+                        })()}
+                      </Text>
+                    </View>
+                    <View style={styles.continueProgress}>
+                      <Ionicons
+                        name="play-circle"
+                        size={28}
+                        color={colors.primary}
                       />
                     </View>
                   </View>

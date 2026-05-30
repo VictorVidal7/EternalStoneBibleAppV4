@@ -36,6 +36,8 @@ import {
   AUDIO_STORAGE_KEYS,
   SUPPORTED_LANGUAGES,
 } from '../constants/audioConstants';
+import {createPosition} from '../lib/playbackPosition';
+import {setLastPosition, clearLastPosition} from '../lib/playbackPositionStore';
 
 // ==================== INITIAL STATE ====================
 
@@ -108,6 +110,28 @@ export const AudioPlayerProvider: React.FC<AudioPlayerProviderProps> = ({
   useEffect(() => {
     sleepTimerStateRef.current = sleepTimer;
   }, [sleepTimer]);
+
+  // Persist the current audio position so playback can resume later ("Continue
+  // listening", Sprint 51). Fires whenever the active verse changes while the
+  // player is visible — this single effect captures every path (auto-advance,
+  // next/prev, goToVerse, the premium scrubber). The position is read back only
+  // for premium users; writing it always keeps it ready the moment they unlock.
+  useEffect(() => {
+    if (!isVisible || verses.length === 0) return;
+    const idx = state.currentVerseIndex;
+    const v = verses[idx];
+    if (!v || !v.book || !v.chapter) return;
+    void setLastPosition(
+      createPosition({
+        book: v.book,
+        chapter: v.chapter,
+        verseIndex: idx,
+        verse: v.verse,
+        totalVerses: verses.length,
+        now: Date.now(),
+      }),
+    );
+  }, [state.currentVerseIndex, verses, isVisible]);
 
   // Safe Haptics wrapper to prevent crashes on emulators/devices
   const safeHaptic = useCallback(
@@ -458,7 +482,14 @@ export const AudioPlayerProvider: React.FC<AudioPlayerProviderProps> = ({
         if (currentState.isPlaying) {
           speakVerseByIndex(index);
         } else {
-          setState(prev => ({...prev, currentVerseIndex: index}));
+          // Update the ref synchronously (like nextVerse) so a subsequent
+          // play() — e.g. resuming a saved position — starts at THIS index
+          // instead of the pre-seek one.
+          setState(prev => {
+            const next = {...prev, currentVerseIndex: index};
+            stateRef.current = next;
+            return next;
+          });
         }
       }
     },
@@ -519,6 +550,9 @@ export const AudioPlayerProvider: React.FC<AudioPlayerProviderProps> = ({
     setState(prev => ({...prev, isExpanded: false}));
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
     await stop();
+    // Closing the player is an explicit "I'm done" — drop the saved position so
+    // "Continue listening" doesn't resurrect a chapter the user dismissed.
+    void clearLastPosition();
   }, [stop]);
 
   // ==================== SLEEP TIMER ====================
