@@ -738,6 +738,11 @@ export const translations = {
       resume: {
         toast: 'Reanudado desde {{ref}}',
       },
+      immersive: {
+        listen: 'Escuchar',
+        listening: 'Escuchando',
+        paused: 'En pausa',
+      },
     },
 
     // Premium (Sprint 50 — local feature flag)
@@ -2228,6 +2233,11 @@ export const translations = {
       },
       resume: {
         toast: 'Resumed from {{ref}}',
+      },
+      immersive: {
+        listen: 'Listen',
+        listening: 'Listening',
+        paused: 'Paused',
       },
     },
 

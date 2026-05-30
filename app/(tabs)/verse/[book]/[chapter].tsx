@@ -60,6 +60,7 @@ import {
   AudioVerse,
   getLastPosition,
   clampVerseIndex,
+  toAudioVerses,
 } from '@/features/audio';
 import {usePremium} from '@context/PremiumContext';
 // Navigation
@@ -912,13 +913,9 @@ export default function VerseReadingScreen() {
       // Ignore
     }
 
-    // Convert BibleVerse to AudioVerse format with defensive text check
-    const audioVerses: AudioVerse[] = verses.map(v => ({
-      book: v.book || '',
-      chapter: v.chapter || 0,
-      verse: v.verse || 0,
-      text: String(v.text || ''),
-    }));
+    // Convert BibleVerse to AudioVerse format (shared with the immersive reader's
+    // listen path so both entry points coerce fields identically).
+    const audioVerses: AudioVerse[] = toAudioVerses(verses);
 
     // Premium "Continue listening": resume where the user last was in THIS
     // chapter. Free users always start at verse 1 (unchanged behaviour). The

@@ -73,3 +73,7 @@ export {
   RESUME_MAX_AGE_MS,
 } from './lib/playbackPosition';
 export type {PlaybackPosition} from './lib/playbackPosition';
+
+// Immersive ↔ audio bridge — premium audio in the ImmersiveReader (Sprint 52)
+export {toAudioVerses, isSameAudioChapter} from './lib/immersiveAudio';
+export type {VerseLike} from './lib/immersiveAudio';

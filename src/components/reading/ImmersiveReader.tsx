@@ -13,7 +13,7 @@
  * Para la gloria de Dios Todopoderoso ✨
  */
 
-import React, {useState, useEffect, useRef} from 'react';
+import React, {useState, useEffect, useRef, useCallback, useMemo} from 'react';
 import {
   View,
   Text,
@@ -22,6 +22,8 @@ import {
   Animated,
   Platform,
   StatusBar,
+  GestureResponderEvent,
+  useWindowDimensions,
 } from 'react-native';
 import {LinearGradient} from 'expo-linear-gradient';
 import {Ionicons} from '@expo/vector-icons';
@@ -29,6 +31,18 @@ import * as Haptics from 'expo-haptics';
 import {BibleVerse} from '../../types/bible';
 import {useTheme} from '../../hooks/useTheme';
 import {useLanguage} from '../../hooks/useLanguage';
+import {usePremium} from '../../context/PremiumContext';
+import {getBookByName} from '../../constants/bible';
+import {
+  useAudioPlayer,
+  toAudioVerses,
+  isSameAudioChapter,
+  clampVerseIndex,
+} from '../../features/audio';
+import {
+  indexToFraction,
+  positionToIndex,
+} from '../../features/audio/lib/scrubMath';
 
 // Removed unused dimensions
 
@@ -40,18 +54,142 @@ interface ImmersiveReaderProps {
 
 type BackgroundType = 'celestial' | 'minimal' | 'nature' | 'paper';
 
+const SEEK_THUMB = 16;
+
 export const ImmersiveReader: React.FC<ImmersiveReaderProps> = ({
   verses,
   onClose,
   startIndex = 0,
 }) => {
   const {colors, isDark, gradient} = useTheme();
-  const {t} = useLanguage();
+  const {t, language} = useLanguage();
+  const {isPremium} = usePremium();
+  const {
+    verses: audioVersesLoaded,
+    state: audioState,
+    loadChapter: loadAudioChapter,
+    goToVerse: audioGoToVerse,
+    play: audioPlay,
+    pause: audioPause,
+    setSuppressed,
+  } = useAudioPlayer();
   const [currentIndex, setCurrentIndex] = useState(startIndex);
   const [autoScroll, setAutoScroll] = useState(false);
   const [showControls, setShowControls] = useState(true);
   const [backgroundType] = useState<BackgroundType>('celestial');
   const [fontSize, setFontSize] = useState(22);
+
+  // ==================== PREMIUM AUDIO (Sprint 52) ====================
+  // The immersive reader can host the TTS player for premium users: a "Listen"
+  // control + the draggable VerseScrubber, with the verse following narration.
+  // The audio engine and this reader share the SAME chapter, so their index
+  // spaces stay 1:1 (see immersiveAudio helpers).
+  const audioVerses = useMemo(() => toAudioVerses(verses), [verses]);
+  // True when the audio engine already holds THIS chapter — either we loaded it
+  // here, or it was already playing in the floating player when immersive opened.
+  const audioBound = isSameAudioChapter(audioVersesLoaded, audioVerses);
+  const listening = isPremium && audioBound;
+
+  // Localized reference for the scrubber's drag preview, e.g. "Genesis 1:8".
+  const labelForIndex = useCallback(
+    (index: number) => {
+      const v = verses[index];
+      if (!v) return '';
+      const info = getBookByName(v.book);
+      const name = info
+        ? language === 'es'
+          ? info.name
+          : info.nameEn
+        : v.book;
+      return `${name} ${v.chapter}:${v.verse}`;
+    },
+    [verses, language],
+  );
+
+  // Suppress the floating mini-player while immersive is open so its high
+  // z-index can't draw over this full-screen modal. Audio keeps playing; on
+  // close it re-surfaces in the floating player (continuity).
+  useEffect(() => {
+    setSuppressed(true);
+    return () => setSuppressed(false);
+  }, [setSuppressed]);
+
+  // Follow the narration: when the audio engine advances the active verse,
+  // move the immersive reader to match (one-way; user navigation pushes the
+  // other direction imperatively, so there is no feedback loop).
+  const boundIndex = audioState.currentVerseIndex;
+  useEffect(() => {
+    if (!listening) return;
+    if (boundIndex >= 0 && boundIndex < verses.length) {
+      setCurrentIndex(prev => (prev === boundIndex ? prev : boundIndex));
+    }
+  }, [listening, boundIndex, verses.length]);
+
+  // Start (or resume) listening from the verse the reader is on.
+  const startListening = useCallback(() => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+    setAutoScroll(false); // audio-driven advance supersedes the reading timer
+    const idx = clampVerseIndex(currentIndex, audioVerses.length);
+    if (!isSameAudioChapter(audioVersesLoaded, audioVerses)) {
+      loadAudioChapter(audioVerses);
+    }
+    audioGoToVerse(idx);
+    // Small delay so loadChapter's state ref propagates before play (mirrors the
+    // reader's startAudioPlayback; goToVerse already syncs the ref synchronously).
+    setTimeout(() => audioPlay(), 100);
+  }, [
+    currentIndex,
+    audioVerses,
+    audioVersesLoaded,
+    loadAudioChapter,
+    audioGoToVerse,
+    audioPlay,
+  ]);
+
+  const toggleListen = useCallback(() => {
+    if (audioState.isPlaying) {
+      audioPause();
+    } else {
+      startListening();
+    }
+  }, [audioState.isPlaying, audioPause, startListening]);
+
+  const handleScrubberSeek = useCallback(
+    (index: number) => {
+      setCurrentIndex(index);
+      audioGoToVerse(index);
+    },
+    [audioGoToVerse],
+  );
+
+  // Seek bar implemented with the plain RN responder system + scrubMath, NOT
+  // the reanimated/RNGH VerseScrubber: those do not run inside this full-screen
+  // <Modal>, so the thumb wouldn't track and gestures wouldn't fire there.
+  // The track uses an EXPLICIT width (not `100%` measured via onLayout) — a
+  // percentage width inside the auto-sized verse container measured as 0, which
+  // pinned the thumb and made the touch area zero-width.
+  const {width: windowWidth} = useWindowDimensions();
+  const seekTrackWidth = Math.min(windowWidth - 96, 560);
+  const [seekPreview, setSeekPreview] = useState<number | null>(null);
+  const handleSeekTouch = useCallback(
+    (e: GestureResponderEvent, commit: boolean) => {
+      const idx = positionToIndex(
+        e.nativeEvent.locationX,
+        seekTrackWidth,
+        verses.length,
+      );
+      if (commit) {
+        setSeekPreview(null);
+        handleScrubberSeek(idx);
+      } else {
+        if (seekPreview === null) Haptics.selectionAsync().catch(() => {});
+        setSeekPreview(idx);
+      }
+    },
+    [seekTrackWidth, verses.length, seekPreview, handleScrubberSeek],
+  );
+  const seekIndex = seekPreview ?? currentIndex;
+  const seekFraction = indexToFraction(seekIndex, verses.length);
 
   // Animations
   const fadeAnim = useRef(new Animated.Value(1)).current;
@@ -125,14 +263,20 @@ export const ImmersiveReader: React.FC<ImmersiveReaderProps> = ({
   const goToNext = () => {
     if (currentIndex < verses.length - 1) {
       Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-      animateTransition(() => setCurrentIndex(currentIndex + 1));
+      const next = currentIndex + 1;
+      animateTransition(() => setCurrentIndex(next));
+      // When listening, move the narration too; the follow-effect keeps the
+      // index in sync, so this is the one-way push from a user nav.
+      if (listening) audioGoToVerse(next);
     }
   };
 
   const goToPrevious = () => {
     if (currentIndex > 0) {
       Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-      animateTransition(() => setCurrentIndex(currentIndex - 1));
+      const prev = currentIndex - 1;
+      animateTransition(() => setCurrentIndex(prev));
+      if (listening) audioGoToVerse(prev);
     }
   };
 
@@ -238,12 +382,21 @@ export const ImmersiveReader: React.FC<ImmersiveReaderProps> = ({
         </View>
       )}
 
-      {/* Main Content - Tappable */}
+      {/* Tap layer — toggles the controls. A full-screen layer BEHIND the
+          content (rather than a Touchable wrapping it) so the premium scrubber
+          can own its gestures; a Touchable parent swallows RNGH touches. */}
       <TouchableOpacity
-        style={styles.contentContainer}
+        style={StyleSheet.absoluteFill}
         activeOpacity={1}
-        onPress={handleScreenTap}>
+        onPress={handleScreenTap}
+      />
+
+      {/* Main Content — box-none lets empty-area taps fall through to the tap
+          layer; the verse text/reference are pointerEvents="none" so they fall
+          through too, leaving only the scrubber to capture touches. */}
+      <View style={styles.contentContainer} pointerEvents="box-none">
         <Animated.View
+          pointerEvents="box-none"
           style={[
             styles.verseContainer,
             {
@@ -253,6 +406,7 @@ export const ImmersiveReader: React.FC<ImmersiveReaderProps> = ({
           ]}>
           {/* Verse Text */}
           <Text
+            pointerEvents="none"
             style={[
               styles.verseText,
               {
@@ -268,6 +422,7 @@ export const ImmersiveReader: React.FC<ImmersiveReaderProps> = ({
 
           {/* Reference */}
           <Text
+            pointerEvents="none"
             style={[
               styles.reference,
               {
@@ -277,33 +432,88 @@ export const ImmersiveReader: React.FC<ImmersiveReaderProps> = ({
             {currentVerse.book} {currentVerse.chapter}:{currentVerse.verse}
           </Text>
 
-          {/* Progress indicator */}
-          <View style={styles.progressContainer}>
-            <Text
-              style={[
-                styles.progressText,
-                {color: isDark ? '#94a3b8' : '#94a3b8'},
-              ]}>
-              {currentIndex + 1} / {verses.length}
-            </Text>
-            <View style={styles.progressBar}>
+          {/* Progress indicator — premium: a draggable verse scrubber takes the
+              place of the static bar (Sprint 52); free: the static bar. */}
+          {listening ? (
+            <View style={styles.scrubberWrap}>
+              <View style={[styles.seekLabelsRow, {width: seekTrackWidth}]}>
+                <Text style={styles.seekLabel}>{seekIndex + 1}</Text>
+                <Text style={styles.seekLabel}>{verses.length}</Text>
+              </View>
               <View
+                style={[styles.seekTouch, {width: seekTrackWidth}]}
+                onStartShouldSetResponder={() => true}
+                onMoveShouldSetResponder={() => true}
+                onResponderGrant={e => handleSeekTouch(e, false)}
+                onResponderMove={e => handleSeekTouch(e, false)}
+                onResponderRelease={e => handleSeekTouch(e, true)}
+                onResponderTerminate={e => handleSeekTouch(e, true)}
+                accessibilityRole="adjustable"
+                accessibilityLabel={t.audio.scrub.a11yLabel}
+                accessibilityHint={t.audio.scrub.a11yHint}>
+                <View style={styles.seekTrack}>
+                  <View
+                    style={[
+                      styles.seekFill,
+                      {
+                        width: Math.max(0, seekFraction * seekTrackWidth),
+                        backgroundColor: isDark ? '#60a5fa' : '#3b82f6',
+                      },
+                    ]}
+                  />
+                  <View
+                    style={[
+                      styles.seekThumb,
+                      {
+                        left: seekFraction * seekTrackWidth - SEEK_THUMB / 2,
+                        backgroundColor: isDark ? '#60a5fa' : '#3b82f6',
+                      },
+                    ]}
+                  />
+                </View>
+              </View>
+              <Text
                 style={[
-                  styles.progressFill,
-                  {
-                    width: `${((currentIndex + 1) / verses.length) * 100}%`,
-                    backgroundColor: isDark ? '#60a5fa' : '#3b82f6',
-                  },
+                  styles.seekCaption,
+                  {color: seekPreview != null ? '#93c5fd' : '#94a3b8'},
                 ]}
-              />
+                numberOfLines={1}>
+                {seekPreview != null
+                  ? labelForIndex(seekPreview)
+                  : t.audio.scrub.preview
+                      .replace('{{n}}', String(seekIndex + 1))
+                      .replace('{{total}}', String(verses.length))}
+              </Text>
             </View>
-          </View>
+          ) : (
+            <View style={styles.progressContainer} pointerEvents="none">
+              <Text
+                style={[
+                  styles.progressText,
+                  {color: isDark ? '#94a3b8' : '#94a3b8'},
+                ]}>
+                {currentIndex + 1} / {verses.length}
+              </Text>
+              <View style={styles.progressBar}>
+                <View
+                  style={[
+                    styles.progressFill,
+                    {
+                      width: `${((currentIndex + 1) / verses.length) * 100}%`,
+                      backgroundColor: isDark ? '#60a5fa' : '#3b82f6',
+                    },
+                  ]}
+                />
+              </View>
+            </View>
+          )}
         </Animated.View>
-      </TouchableOpacity>
+      </View>
 
       {/* Controls Overlay */}
       {showControls && (
         <Animated.View
+          pointerEvents="box-none"
           style={[styles.controlsOverlay, {opacity: controlsOpacity}]}>
           {/* Top Controls */}
           <View style={styles.topControls}>
@@ -360,26 +570,66 @@ export const ImmersiveReader: React.FC<ImmersiveReaderProps> = ({
 
             {/* Center Controls */}
             <View style={styles.centerControls}>
-              {/* Auto-scroll toggle */}
-              <TouchableOpacity
-                style={[
-                  styles.actionButton,
-                  autoScroll && styles.actionButtonActive,
-                ]}
-                onPress={toggleAutoScroll}
-                accessibilityRole="button"
-                accessibilityLabel={
-                  autoScroll ? t.verse.pause : t.verse.autoPlay
-                }>
-                <Ionicons
-                  name={autoScroll ? 'pause' : 'play'}
-                  size={24}
-                  color="#fff"
-                />
-                <Text style={styles.actionButtonText}>
-                  {autoScroll ? t.verse.pause : t.verse.autoPlay}
-                </Text>
-              </TouchableOpacity>
+              {listening ? (
+                /* Premium: audio play/pause drives the narration. */
+                <TouchableOpacity
+                  style={[styles.actionButton, styles.actionButtonActive]}
+                  onPress={toggleListen}
+                  accessibilityRole="button"
+                  accessibilityLabel={
+                    audioState.isPlaying
+                      ? t.audio.a11y.pause
+                      : t.audio.a11y.play
+                  }>
+                  <Ionicons
+                    name={audioState.isPlaying ? 'pause' : 'play'}
+                    size={24}
+                    color="#fff"
+                  />
+                  <Text style={styles.actionButtonText}>
+                    {audioState.isPlaying
+                      ? t.audio.immersive.listening
+                      : t.audio.immersive.paused}
+                  </Text>
+                </TouchableOpacity>
+              ) : (
+                <>
+                  {/* Auto-scroll toggle (reading timer) */}
+                  <TouchableOpacity
+                    style={[
+                      styles.actionButton,
+                      autoScroll && styles.actionButtonActive,
+                    ]}
+                    onPress={toggleAutoScroll}
+                    accessibilityRole="button"
+                    accessibilityLabel={
+                      autoScroll ? t.verse.pause : t.verse.autoPlay
+                    }>
+                    <Ionicons
+                      name={autoScroll ? 'pause' : 'play'}
+                      size={24}
+                      color="#fff"
+                    />
+                    <Text style={styles.actionButtonText}>
+                      {autoScroll ? t.verse.pause : t.verse.autoPlay}
+                    </Text>
+                  </TouchableOpacity>
+
+                  {/* Premium: start listening with TTS + verse scrubber */}
+                  {isPremium && (
+                    <TouchableOpacity
+                      style={styles.actionButton}
+                      onPress={startListening}
+                      accessibilityRole="button"
+                      accessibilityLabel={t.audio.immersive.listen}>
+                      <Ionicons name="headset" size={22} color="#fff" />
+                      <Text style={styles.actionButtonText}>
+                        {t.audio.immersive.listen}
+                      </Text>
+                    </TouchableOpacity>
+                  )}
+                </>
+              )}
             </View>
 
             {/* Next */}
@@ -439,6 +689,56 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     width: '100%',
     marginTop: 16,
+  },
+  scrubberWrap: {
+    width: '100%',
+    marginTop: 16,
+    paddingHorizontal: 8,
+  },
+  seekLabelsRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignSelf: 'center',
+    marginBottom: 4,
+  },
+  seekLabel: {
+    fontSize: 12,
+    fontWeight: '500',
+    color: '#cbd5e1',
+  },
+  seekTouch: {
+    alignSelf: 'center',
+    paddingVertical: 14,
+    justifyContent: 'center',
+  },
+  seekTrack: {
+    height: 4,
+    borderRadius: 2,
+    backgroundColor: 'rgba(255,255,255,0.2)',
+    position: 'relative',
+    overflow: 'visible',
+  },
+  seekFill: {
+    position: 'absolute',
+    left: 0,
+    top: 0,
+    height: 4,
+    borderRadius: 2,
+  },
+  seekThumb: {
+    position: 'absolute',
+    top: -(SEEK_THUMB - 4) / 2,
+    width: SEEK_THUMB,
+    height: SEEK_THUMB,
+    borderRadius: SEEK_THUMB / 2,
+    borderWidth: 2,
+    borderColor: 'rgba(255,255,255,0.9)',
+  },
+  seekCaption: {
+    fontSize: 12,
+    fontWeight: '500',
+    textAlign: 'center',
+    marginTop: 6,
   },
   progressText: {
     fontSize: 13,
