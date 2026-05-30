@@ -19,10 +19,12 @@ import React, {
   ReactNode,
 } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import {ReaderTheme, isReaderTheme} from '../styles/readerThemes';
 
 export type ReaderFontFamily = 'sans' | 'serif';
 export type ReaderTextAlign = 'left' | 'justify';
 export type ReaderMargin = 'small' | 'medium' | 'large';
+export type {ReaderTheme};
 
 export interface ReaderPreferences {
   fontFamily: ReaderFontFamily;
@@ -32,6 +34,8 @@ export interface ReaderPreferences {
   lineHeightMultiplier: number;
   textAlign: ReaderTextAlign;
   margin: ReaderMargin;
+  /** Reading-surface palette. 'system' (default) follows the app theme. */
+  theme: ReaderTheme;
 }
 
 interface ReaderPreferencesContextValue {
@@ -44,6 +48,7 @@ interface ReaderPreferencesContextValue {
   setLineHeightMultiplier: (next: number) => void;
   setTextAlign: (next: ReaderTextAlign) => void;
   setMargin: (next: ReaderMargin) => void;
+  setTheme: (next: ReaderTheme) => void;
   /** Reset to defaults. Useful for a "Restore defaults" button. */
   reset: () => void;
 }
@@ -54,6 +59,7 @@ export const DEFAULT_READER_PREFERENCES: ReaderPreferences = {
   lineHeightMultiplier: 1.6,
   textAlign: 'left',
   margin: 'medium',
+  theme: 'system',
 };
 
 export const READER_FONT_SIZE_MIN = 14;
@@ -92,8 +98,13 @@ export const ReaderPreferencesProvider: React.FC<
           try {
             const parsed = JSON.parse(raw) as Partial<ReaderPreferences>;
             // Merge with defaults so new fields added later don't crash an
-            // older persisted blob.
-            setPreferences(prev => ({...prev, ...parsed}));
+            // older persisted blob. Sanitize `theme` so a foreign/corrupt
+            // value falls back to 'system' rather than a broken palette.
+            setPreferences(prev => ({
+              ...prev,
+              ...parsed,
+              theme: isReaderTheme(parsed.theme) ? parsed.theme : prev.theme,
+            }));
           } catch {
             // Corrupt blob — fall through to defaults.
           }
@@ -136,6 +147,13 @@ export const ReaderPreferencesProvider: React.FC<
     setPreferences(prev => ({...prev, margin: next}));
   }, []);
 
+  const setTheme = useCallback((next: ReaderTheme) => {
+    setPreferences(prev => ({
+      ...prev,
+      theme: isReaderTheme(next) ? next : 'system',
+    }));
+  }, []);
+
   const reset = useCallback(() => {
     setPreferences(DEFAULT_READER_PREFERENCES);
   }, []);
@@ -149,6 +167,7 @@ export const ReaderPreferencesProvider: React.FC<
       setLineHeightMultiplier,
       setTextAlign,
       setMargin,
+      setTheme,
       reset,
     }),
     [
@@ -159,6 +178,7 @@ export const ReaderPreferencesProvider: React.FC<
       setLineHeightMultiplier,
       setTextAlign,
       setMargin,
+      setTheme,
       reset,
     ],
   );
