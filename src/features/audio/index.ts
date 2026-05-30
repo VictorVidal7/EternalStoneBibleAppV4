@@ -56,3 +56,20 @@ export {
   AUDIO_STORAGE_KEYS,
   AUDIO_ICONS,
 } from './constants/audioConstants';
+
+// Playback position — "Continue listening" (Sprint 51)
+export {
+  getLastPosition,
+  setLastPosition,
+  clearLastPosition,
+} from './lib/playbackPositionStore';
+export {
+  clampVerseIndex,
+  isResumable,
+  isSameChapter,
+  createPosition,
+  parsePosition,
+  serializePosition,
+  RESUME_MAX_AGE_MS,
+} from './lib/playbackPosition';
+export type {PlaybackPosition} from './lib/playbackPosition';

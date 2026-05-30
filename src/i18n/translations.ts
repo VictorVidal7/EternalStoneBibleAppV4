@@ -78,6 +78,7 @@ export const translations = {
       percentCompleted: '{{percent}}% completado',
       dailyVerse: 'Versículo del Día',
       continueReading: 'Continuar Leyendo',
+      continueListening: 'Continuar Escuchando',
       startReading: 'Comenzar tu Viaje Bíblico',
       readFullChapter: 'Leer Capítulo Completo',
       lastRead: 'Última lectura',
@@ -734,6 +735,9 @@ export const translations = {
         a11yLabel: 'Desplazamiento por versículo',
         a11yHint: 'Desliza para saltar a un versículo',
       },
+      resume: {
+        toast: 'Reanudado desde {{ref}}',
+      },
     },
 
     // Premium (Sprint 50 — local feature flag)
@@ -745,7 +749,7 @@ export const translations = {
       badge: 'PREMIUM',
       settingsTitle: 'Funciones premium',
       settingsDesc:
-        'Desbloquea el desplazamiento por versículo del reproductor de audio.',
+        'Desbloquea el desplazamiento por versículo y continuar escuchando donde lo dejaste en el reproductor de audio.',
       toggleLabel: 'Premium desbloqueado',
       unlockedToast: 'Premium activado',
       lockedToast: 'Premium desactivado',
@@ -1571,6 +1575,7 @@ export const translations = {
       percentCompleted: '{{percent}}% completed',
       dailyVerse: 'Verse of the Day',
       continueReading: 'Continue Reading',
+      continueListening: 'Continue Listening',
       startReading: 'Start Your Bible Journey',
       readFullChapter: 'Read Full Chapter',
       lastRead: 'Last read',
@@ -2221,6 +2226,9 @@ export const translations = {
         a11yLabel: 'Verse scrubber',
         a11yHint: 'Drag to jump to a verse',
       },
+      resume: {
+        toast: 'Resumed from {{ref}}',
+      },
     },
 
     // Premium (Sprint 50 — local feature flag)
@@ -2231,7 +2239,8 @@ export const translations = {
       upsellTap: 'Unlock it in Settings',
       badge: 'PREMIUM',
       settingsTitle: 'Premium features',
-      settingsDesc: 'Unlock verse scrubbing in the audio player.',
+      settingsDesc:
+        'Unlock verse scrubbing and resume-where-you-left-off in the audio player.',
       toggleLabel: 'Premium unlocked',
       unlockedToast: 'Premium enabled',
       lockedToast: 'Premium disabled',
