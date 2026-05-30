@@ -61,6 +61,8 @@ import {widgetTaskHandler} from '@/widgets/WidgetTaskHandler';
 // Audio Bible Feature
 import {AudioPlayerProvider} from '@/features/audio/context/AudioPlayerContext';
 import {MiniAudioPlayer} from '@/features/audio/components/MiniAudioPlayer';
+// Cold-start player restore (Sprint 53)
+import {AudioResumeRestorer} from '@/features/audio/components/AudioResumeRestorer';
 // Premium entitlement (Sprint 50 — local feature flag)
 import {PremiumProvider} from '@context/PremiumContext';
 import {
@@ -211,6 +213,9 @@ function AppContent() {
       </Stack>
       {/* <AchievementNotifications /> */}
       <MiniAudioPlayer />
+      {/* Re-opens the floating player at the last position on cold start
+          (premium, paused) — Sprint 53. Render-less. */}
+      <AudioResumeRestorer />
     </>
   );
 }
