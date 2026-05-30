@@ -25,7 +25,7 @@ import {
   Pressable,
   Platform,
 } from 'react-native';
-import {usePathname} from 'expo-router';
+import {usePathname, router} from 'expo-router';
 import Animated, {
   useAnimatedStyle,
   useSharedValue,
@@ -43,8 +43,10 @@ import {useTheme} from '../../../hooks/useTheme';
 import {useLanguage} from '../../../hooks/useLanguage';
 import {getBookByName} from '../../../constants/bible';
 import {useAudioPlayer} from '../context/AudioPlayerContext';
+import {usePremium} from '../../../context/PremiumContext';
 import {AudioControls} from './AudioControls';
 import {AudioProgressBar, MiniProgressDots} from './AudioProgressBar';
+import {VerseScrubber} from './VerseScrubber';
 import {AudioWaveform} from './AudioWaveform';
 import {AudioSpeedSelector} from './AudioSpeedSelector';
 import {SleepTimerModal} from './SleepTimerModal';
@@ -85,6 +87,7 @@ export const MiniAudioPlayer: React.FC<MiniAudioPlayerProps> = ({
     togglePlayPause,
     nextVerse,
     previousVerse,
+    goToVerse,
     setPlaybackSpeed,
     expand,
     collapse,
@@ -95,6 +98,23 @@ export const MiniAudioPlayer: React.FC<MiniAudioPlayerProps> = ({
     setVoice,
     setLanguage,
   } = useAudioPlayer();
+  const {isPremium} = usePremium();
+
+  // Localized reference for a verse index — fuels the scrubber's drag preview.
+  const labelForIndex = useCallback(
+    (index: number): string => {
+      const v = verses[index];
+      if (!v) return '';
+      const info = getBookByName(v.book);
+      const name = info
+        ? language === 'en'
+          ? info.nameEn
+          : info.name
+        : v.book;
+      return `${name} ${v.chapter}:${v.verse}`;
+    },
+    [verses, language],
+  );
 
   // Animation values
   const expandProgress = useSharedValue(0);
@@ -434,13 +454,47 @@ export const MiniAudioPlayer: React.FC<MiniAudioPlayerProps> = ({
                 />
               </View>
 
-              {/* Progress Bar */}
+              {/* Progress Bar — premium gets a draggable verse scrubber,
+                  free keeps the read-only bar + a discreet upsell. */}
               <View style={styles.progressContainer}>
-                <AudioProgressBar
-                  currentIndex={state.currentVerseIndex}
-                  totalVerses={verses.length}
-                  showLabels={true}
-                />
+                {isPremium ? (
+                  <VerseScrubber
+                    currentIndex={state.currentVerseIndex}
+                    totalVerses={verses.length}
+                    labelForIndex={labelForIndex}
+                    onSeek={goToVerse}
+                  />
+                ) : (
+                  <>
+                    <AudioProgressBar
+                      currentIndex={state.currentVerseIndex}
+                      totalVerses={verses.length}
+                      showLabels={true}
+                    />
+                    <TouchableOpacity
+                      style={styles.premiumUpsell}
+                      onPress={() => {
+                        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                        router.push('/(tabs)/settings');
+                      }}
+                      accessibilityRole="button"
+                      accessibilityLabel={t.premium.featureName}>
+                      <Ionicons
+                        name="lock-closed"
+                        size={11}
+                        color={colors.textTertiary}
+                      />
+                      <Text
+                        style={[
+                          styles.premiumUpsellText,
+                          {color: colors.textTertiary},
+                        ]}
+                        numberOfLines={1}>
+                        {t.premium.featureName} · {t.premium.upsellTap}
+                      </Text>
+                    </TouchableOpacity>
+                  </>
+                )}
               </View>
 
               {/* Controls */}
@@ -647,6 +701,17 @@ const styles = StyleSheet.create({
   },
   progressContainer: {
     marginBottom: 2,
+  },
+  premiumUpsell: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 5,
+    marginTop: 4,
+  },
+  premiumUpsellText: {
+    fontSize: 11,
+    fontWeight: '500',
   },
   waveformContainer: {
     marginBottom: 4,

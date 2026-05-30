@@ -29,6 +29,7 @@ import {useSyncEngineOptional, useConflicts} from '@context/SyncEngineContext';
 import {useToast} from '@context/ToastContext';
 import DailyVerseSettings from '@components/settings/DailyVerseSettings';
 import MemoryGoalSettings from '@components/settings/MemoryGoalSettings';
+import PremiumSettings from '@components/settings/PremiumSettings';
 import * as Haptics from 'expo-haptics';
 import Constants from 'expo-constants';
 
@@ -638,6 +639,9 @@ export default function SettingsScreen() {
 
         {/* Memorization goal + review reminder (Sprint 47) */}
         <MemoryGoalSettings />
+
+        {/* Premium features — local unlock (Sprint 50) */}
+        <PremiumSettings />
 
         {/* New Features V5.1 Section */}
         <View style={themedStyles.section}>

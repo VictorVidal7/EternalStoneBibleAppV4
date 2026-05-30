@@ -60,7 +60,9 @@ export const SLEEP_TIMER_OPTIONS = [
 
 export const PLAYER_DIMENSIONS = {
   collapsedHeight: 64,
-  expandedHeight: 220,
+  // Bumped from 220 in Sprint 50 to fit the taller premium verse scrubber
+  // (draggable track + destination caption) and the free-tier upsell row.
+  expandedHeight: 248,
   borderRadius: 20,
   bottomMargin: 16,
   horizontalPadding: 24,
