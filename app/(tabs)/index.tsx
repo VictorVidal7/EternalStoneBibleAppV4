@@ -713,6 +713,66 @@ export default function HomeScreen() {
           </Animated.View>
         )}
 
+        {/* ==================== TU CAMINO (Wrapped) ==================== */}
+        <Animated.View
+          style={{opacity: fadeAnim, marginTop: celestialSpacing.cardGap}}>
+          <TouchableOpacity
+            activeOpacity={0.9}
+            accessibilityRole="button"
+            accessibilityLabel={t.journey.cardTitle}
+            accessibilityHint={t.journey.cardSubtitle}
+            onPress={() =>
+              handlePress(() => router.push('/features/journey' as any))
+            }>
+            <ShimmerCard
+              glowColor={colors.primary}
+              shimmerEnabled={false}
+              cardBackgroundColor={celestialTheme.colors.surfaceGlass}
+              cardBorderColor={celestialTheme.colors.glassBorder}>
+              <View style={styles.continueButton}>
+                <View style={styles.continueHeader}>
+                  <View
+                    style={[
+                      styles.continueIconContainer,
+                      {
+                        backgroundColor: colors.primary + '20',
+                        borderRadius: 10,
+                      },
+                    ]}>
+                    <Ionicons
+                      name="footsteps"
+                      size={14}
+                      color={colors.primary}
+                    />
+                  </View>
+                  <View style={styles.continueTextContainer}>
+                    <Text
+                      style={[styles.continueTitle, {color: colors.text}]}
+                      numberOfLines={1}>
+                      {t.journey.cardTitle}
+                    </Text>
+                    <Text
+                      style={[
+                        styles.continueReference,
+                        {color: colors.textSecondary},
+                      ]}
+                      numberOfLines={1}>
+                      {t.journey.cardSubtitle}
+                    </Text>
+                  </View>
+                  <View style={styles.continueProgress}>
+                    <Ionicons
+                      name="chevron-forward"
+                      size={24}
+                      color={colors.primary}
+                    />
+                  </View>
+                </View>
+              </View>
+            </ShimmerCard>
+          </TouchableOpacity>
+        </Animated.View>
+
         {/* ==================== READING PLANS ==================== */}
         <Animated.View
           style={{opacity: fadeAnim, marginTop: celestialSpacing.sectionGap}}>
