@@ -19,6 +19,7 @@ import {
   StyleSheet,
   Platform,
   ScrollView,
+  AccessibilityActionEvent,
 } from 'react-native';
 import {Ionicons} from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
@@ -97,6 +98,23 @@ export const ReaderPreferencesSheet: React.FC<ReaderPreferencesSheetProps> = ({
   const tap = (fn: () => void) => () => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     fn();
+  };
+
+  // Lets a screen reader treat the font-size stepper as one "adjustable"
+  // control (swipe up/down), mirroring the audio VerseScrubber.
+  const onFontSizeAction = (e: AccessibilityActionEvent) => {
+    const delta =
+      e.nativeEvent.actionName === 'increment'
+        ? READER_FONT_SIZE_STEP
+        : -READER_FONT_SIZE_STEP;
+    const next = Math.min(
+      READER_FONT_SIZE_MAX,
+      Math.max(READER_FONT_SIZE_MIN, preferences.fontSize + delta),
+    );
+    if (next !== preferences.fontSize) {
+      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+      setFontSize(next);
+    }
   };
 
   const fontFamilyOptions: {
@@ -196,33 +214,38 @@ export const ReaderPreferencesSheet: React.FC<ReaderPreferencesSheetProps> = ({
           <ScrollView
             style={styles.options}
             contentContainerStyle={styles.optionsContent}>
-            {/* Reading theme */}
+            {/* Reading theme — each card IS its palette preview (the whole
+                surface shows the theme), mirroring a YouVersion/Logos theme
+                picker. Content is two flat <Text>s (no nested swatch View) so
+                every card centres identically in any selected/line state. */}
             <Section title={t.readerPrefs.theme} colors={colors}>
               <View style={styles.row}>
                 {themeOptions.map(opt => {
                   const swatch = resolveReaderTheme(colors, opt.id);
                   const active = preferences.theme === opt.id;
                   return (
-                    <ChoiceCard
+                    <TouchableOpacity
                       key={opt.id}
-                      active={active}
-                      colors={colors}
+                      style={[
+                        styles.choiceCard,
+                        styles.themeCard,
+                        {
+                          backgroundColor: swatch.background,
+                          borderColor: active ? colors.primary : swatch.border,
+                          borderWidth: active ? 2 : 1,
+                        },
+                      ]}
                       onPress={tap(() => setTheme(opt.id))}
-                      accessibilityLabel={opt.label}>
-                      <View
-                        style={[
-                          styles.themeSwatch,
-                          {
-                            backgroundColor: swatch.background,
-                            borderColor: swatch.border,
-                          },
-                        ]}>
+                      accessibilityRole="button"
+                      accessibilityLabel={opt.label}
+                      accessibilityState={{selected: active}}>
+                      <Text style={styles.themePreview}>
                         <Text
                           style={[
                             styles.themeSwatchNumber,
                             {color: swatch.primary},
                           ]}>
-                          1
+                          1{'  '}
                         </Text>
                         <Text
                           style={[
@@ -231,15 +254,19 @@ export const ReaderPreferencesSheet: React.FC<ReaderPreferencesSheetProps> = ({
                           ]}>
                           Aa
                         </Text>
-                      </View>
+                      </Text>
                       <Text
                         style={[
                           styles.choiceLabel,
-                          {color: active ? colors.primary : colors.text},
+                          {
+                            color: active
+                              ? swatch.primary
+                              : swatch.textSecondary,
+                          },
                         ]}>
                         {opt.label}
                       </Text>
-                    </ChoiceCard>
+                    </TouchableOpacity>
                   );
                 })}
               </View>
@@ -275,9 +302,23 @@ export const ReaderPreferencesSheet: React.FC<ReaderPreferencesSheetProps> = ({
               </View>
             </Section>
 
-            {/* Font size — stepper */}
+            {/* Font size — stepper (one "adjustable" node for screen readers) */}
             <Section title={t.readerPrefs.size} colors={colors}>
-              <View style={styles.stepperRow}>
+              <View
+                style={styles.stepperRow}
+                accessible
+                accessibilityRole="adjustable"
+                accessibilityLabel={t.readerPrefs.size}
+                accessibilityValue={{
+                  min: READER_FONT_SIZE_MIN,
+                  max: READER_FONT_SIZE_MAX,
+                  now: preferences.fontSize,
+                }}
+                accessibilityActions={[
+                  {name: 'increment'},
+                  {name: 'decrement'},
+                ]}
+                onAccessibilityAction={onFontSizeAction}>
                 <TouchableOpacity
                   style={[
                     styles.stepperButton,
@@ -591,15 +632,15 @@ const styles = StyleSheet.create({
     fontSize: fontSizes.xs,
     fontWeight: '600',
   },
-  themeSwatch: {
-    flexDirection: 'row',
-    alignItems: 'baseline',
-    justifyContent: 'center',
-    gap: 4,
-    alignSelf: 'stretch',
-    paddingVertical: spacing.sm,
-    borderRadius: borderRadius.sm,
-    borderWidth: StyleSheet.hairlineWidth,
+  themeCard: {
+    // Explicit height keeps every theme card out of the flex-line "natural
+    // size" regime, where the tallest/alone card (the selected one, or the
+    // wrapped Night card) was centred lower than its stretched siblings.
+    height: 112,
+  },
+  themePreview: {
+    textAlign: 'center',
+    marginBottom: 2,
   },
   themeSwatchNumber: {
     fontSize: 13,

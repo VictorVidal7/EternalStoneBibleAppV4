@@ -321,7 +321,12 @@ export const MiniAudioPlayer: React.FC<MiniAudioPlayerProps> = ({
                     styles.miniPlayButton,
                     {backgroundColor: colors.primary},
                   ]}
-                  onPress={togglePlayPause}>
+                  onPress={togglePlayPause}
+                  accessibilityRole="button"
+                  accessibilityLabel={
+                    state.isPlaying ? t.audio.a11y.pause : t.audio.a11y.play
+                  }
+                  accessibilityState={{selected: state.isPlaying}}>
                   <Ionicons
                     name={
                       state.isPlaying ? AUDIO_ICONS.pause : AUDIO_ICONS.play
@@ -334,7 +339,10 @@ export const MiniAudioPlayer: React.FC<MiniAudioPlayerProps> = ({
                 <Pressable
                   disabled={state.isExpanded}
                   style={styles.verseInfo}
-                  onPress={handleToggleExpand}>
+                  onPress={handleToggleExpand}
+                  accessibilityRole="button"
+                  accessibilityLabel={verseTitle}
+                  accessibilityHint={t.audio.a11y.expandHint}>
                   <Text
                     style={[styles.verseTitle, {color: colors.text}]}
                     numberOfLines={1}>
@@ -350,7 +358,10 @@ export const MiniAudioPlayer: React.FC<MiniAudioPlayerProps> = ({
                 <TouchableOpacity
                   style={styles.miniNextButton}
                   onPress={nextVerse}
-                  disabled={!canGoNext || state.isExpanded}>
+                  disabled={!canGoNext || state.isExpanded}
+                  accessibilityRole="button"
+                  accessibilityLabel={t.audio.a11y.nextVerse}
+                  accessibilityState={{disabled: !canGoNext}}>
                   <Ionicons
                     name={AUDIO_ICONS.next}
                     size={18}
@@ -374,7 +385,10 @@ export const MiniAudioPlayer: React.FC<MiniAudioPlayerProps> = ({
                           : 1;
                     setPlaybackSpeed(nextSpeed);
                     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-                  }}>
+                  }}
+                  accessibilityRole="button"
+                  accessibilityLabel={t.audio.a11y.speed}
+                  accessibilityValue={{text: `${state.playbackSpeed}x`}}>
                   <Text style={[styles.speedText, {color: colors.primary}]}>
                     {state.playbackSpeed}x
                   </Text>
@@ -384,7 +398,10 @@ export const MiniAudioPlayer: React.FC<MiniAudioPlayerProps> = ({
                 <TouchableOpacity
                   disabled={state.isExpanded}
                   style={styles.expandButton}
-                  onPress={handleToggleExpand}>
+                  onPress={handleToggleExpand}
+                  accessibilityRole="button"
+                  accessibilityLabel={t.audio.a11y.expand}
+                  accessibilityHint={t.audio.a11y.expandHint}>
                   <Ionicons
                     name={AUDIO_ICONS.expand}
                     size={18}
@@ -424,7 +441,9 @@ export const MiniAudioPlayer: React.FC<MiniAudioPlayerProps> = ({
                   <TouchableOpacity
                     style={styles.headerButton}
                     onPress={handleToggleExpand}
-                    hitSlop={{top: 10, bottom: 10, left: 10, right: 10}}>
+                    hitSlop={{top: 10, bottom: 10, left: 10, right: 10}}
+                    accessibilityRole="button"
+                    accessibilityLabel={t.audio.a11y.collapse}>
                     <Ionicons
                       name={AUDIO_ICONS.collapse}
                       size={22}
@@ -438,7 +457,9 @@ export const MiniAudioPlayer: React.FC<MiniAudioPlayerProps> = ({
                       Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
                       hidePlayer();
                     }}
-                    hitSlop={{top: 10, bottom: 10, left: 10, right: 10}}>
+                    hitSlop={{top: 10, bottom: 10, left: 10, right: 10}}
+                    accessibilityRole="button"
+                    accessibilityLabel={t.audio.a11y.close}>
                     <Ionicons name="close" size={22} color={colors.text} />
                   </TouchableOpacity>
                 </View>

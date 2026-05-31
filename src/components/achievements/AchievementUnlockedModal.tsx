@@ -20,6 +20,7 @@ import {
 } from '../../lib/achievements/types';
 import {getLocalizedAchievement} from '../../lib/achievements/definitions';
 import {useLanguage} from '../../hooks/useLanguage';
+import {useReducedMotion} from '../../hooks/useReducedMotion';
 
 interface AchievementUnlockedModalProps {
   visible: boolean;
@@ -31,6 +32,7 @@ export const AchievementUnlockedModal: React.FC<
   AchievementUnlockedModalProps
 > = ({visible, achievement, onClose}) => {
   const {t} = useLanguage();
+  const reduced = useReducedMotion();
   const scaleAnim = useRef(new Animated.Value(0)).current;
   const rotateAnim = useRef(new Animated.Value(0)).current;
   const fadeAnim = useRef(new Animated.Value(0)).current;
@@ -45,6 +47,15 @@ export const AchievementUnlockedModal: React.FC<
 
   useEffect(() => {
     if (visible && achievement) {
+      if (reduced) {
+        // Reduce motion: present the card at rest, no spin/scale, no confetti.
+        scaleAnim.setValue(1);
+        rotateAnim.setValue(0);
+        fadeAnim.setValue(1);
+        confettiAnims.forEach(anim => anim.opacity.setValue(0));
+        return;
+      }
+
       // Reset animations
       scaleAnim.setValue(0);
       rotateAnim.setValue(0);
@@ -112,7 +123,7 @@ export const AchievementUnlockedModal: React.FC<
         ]).start();
       });
     }
-  }, [visible, achievement]);
+  }, [visible, achievement, reduced]);
 
   if (!achievement) return null;
 

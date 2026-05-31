@@ -1310,11 +1310,27 @@ export default function VerseReadingScreen() {
                   : effectiveColors.primary,
             };
 
+            // One coherent screen-reader node per verse: "Verse N, <text>"
+            // (overrides the noisy 🔊/number prefix), with companion text
+            // appended in side-by-side so nothing is hidden from TalkBack.
+            const companionForA11y =
+              sideBySide && secondaryVersion
+                ? secondaryVerses.find(v => v.verse === verse.verse)?.text
+                : undefined;
+            const verseA11yLabel =
+              t.verse.verseA11yLabel
+                .replace('{{n}}', String(verse.verse))
+                .replace('{{text}}', verse.text) +
+              (companionForA11y ? `. ${companionForA11y}` : '');
+
             return (
               <TouchableOpacity
                 key={verse.verse}
                 activeOpacity={0.7}
                 onPress={() => toggleVerseSelection(verse.verse)}
+                accessibilityLabel={verseA11yLabel}
+                accessibilityHint={t.verse.verseA11yHint}
+                accessibilityState={{selected: isSelected}}
                 onLayout={e => {
                   verseOffsetsRef.current.set(
                     verse.verse,
@@ -1526,6 +1542,7 @@ export default function VerseReadingScreen() {
               <View style={styles.selectionActions}>
                 <TouchableOpacity
                   style={styles.selectionButton}
+                  accessibilityRole="button"
                   onPress={handleCopySelected}>
                   <Ionicons
                     name="copy-outline"
@@ -1543,6 +1560,7 @@ export default function VerseReadingScreen() {
                 </TouchableOpacity>
                 <TouchableOpacity
                   style={styles.selectionButton}
+                  accessibilityRole="button"
                   onPress={handleShareSelected}>
                   <Ionicons
                     name="share-outline"
@@ -1560,6 +1578,7 @@ export default function VerseReadingScreen() {
                 </TouchableOpacity>
                 <TouchableOpacity
                   style={styles.selectionButton}
+                  accessibilityRole="button"
                   onPress={handleNoteSelected}>
                   <Ionicons
                     name="create-outline"
@@ -1577,6 +1596,7 @@ export default function VerseReadingScreen() {
                 </TouchableOpacity>
                 <TouchableOpacity
                   style={styles.selectionButton}
+                  accessibilityRole="button"
                   onPress={handleFavoriteSelected}>
                   <Ionicons
                     name="heart-outline"
@@ -1594,6 +1614,7 @@ export default function VerseReadingScreen() {
                 </TouchableOpacity>
                 <TouchableOpacity
                   style={styles.selectionButton}
+                  accessibilityRole="button"
                   onPress={handleBookmarkSelected}>
                   <Ionicons
                     name="bookmark-outline"
@@ -1611,6 +1632,7 @@ export default function VerseReadingScreen() {
                 </TouchableOpacity>
                 <TouchableOpacity
                   style={styles.selectionButton}
+                  accessibilityRole="button"
                   onPress={() => setShowHighlightPicker(true)}>
                   <Ionicons
                     name="color-palette-outline"
@@ -1628,6 +1650,7 @@ export default function VerseReadingScreen() {
                 </TouchableOpacity>
                 <TouchableOpacity
                   style={styles.selectionButton}
+                  accessibilityRole="button"
                   onPress={() => {
                     const sortedNums = Array.from(selectedVerses).sort(
                       (a, b) => a - b,
@@ -1658,6 +1681,7 @@ export default function VerseReadingScreen() {
                 </TouchableOpacity>
                 <TouchableOpacity
                   style={styles.selectionButton}
+                  accessibilityRole="button"
                   onPress={() => setImageModalVisible(true)}>
                   <Ionicons
                     name="image-outline"
