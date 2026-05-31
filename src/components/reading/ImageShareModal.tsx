@@ -13,7 +13,7 @@
  * serif). The parent only feeds in the verse text + reference and gets
  * a single `onClose` callback.
  */
-import React, {useRef, useState} from 'react';
+import React, {useEffect, useRef, useState} from 'react';
 import {
   View,
   Text,
@@ -28,80 +28,28 @@ import {LinearGradient} from 'expo-linear-gradient';
 import {captureRef} from 'react-native-view-shot';
 import * as Sharing from 'expo-sharing';
 import * as Haptics from 'expo-haptics';
+import {useRouter} from 'expo-router';
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
 import {useTheme} from '../../hooks/useTheme';
 import {useLanguage} from '../../hooks/useLanguage';
 import {useToast} from '../../context/ToastContext';
+import {usePremium} from '../../context/PremiumContext';
+import {useReaderPreferences} from '../../context/ReaderPreferencesContext';
 import {logger} from '../../lib/utils/logger';
+import {
+  SHARE_TEMPLATES,
+  SHARE_ASPECTS,
+  isTemplateUnlocked,
+  aspectHeight,
+  type ShareAspect,
+  type ShareTemplate,
+} from '../../features/share/imageTemplates';
 import {
   spacing,
   borderRadius,
   fontSize as fontSizes,
   shadows,
 } from '../../styles/designTokens';
-
-const IMAGE_THEMES = [
-  {
-    id: 'classic',
-    colors: ['#1A1D2E', '#2A2E45'] as const,
-    textColor: '#D4AF37',
-    icon: 'book-outline',
-  },
-  {
-    id: 'sunrise',
-    colors: ['#FF8C00', '#F27121'] as const,
-    textColor: '#FFFFFF',
-    icon: 'sunny-outline',
-  },
-  {
-    id: 'nature',
-    colors: ['#234D20', '#36802D'] as const,
-    textColor: '#FFFFFF',
-    icon: 'leaf-outline',
-  },
-  {
-    id: 'spiritual',
-    colors: ['#4E006E', '#8E24AA'] as const,
-    textColor: '#FFFFFF',
-    icon: 'sparkles-outline',
-  },
-  {
-    id: 'ocean',
-    colors: ['#0F2027', '#203A43', '#2C5364'] as const,
-    textColor: '#00D2FF',
-    icon: 'water-outline',
-  },
-  {
-    id: 'royal',
-    colors: ['#600000', '#C41E3A'] as const,
-    textColor: '#FFD700',
-    icon: 'ribbon-outline',
-  },
-  {
-    id: 'midnight',
-    colors: ['#000000', '#1C1C1C'] as const,
-    textColor: '#E0E0E0',
-    icon: 'moon-outline',
-  },
-  {
-    id: 'minimal',
-    colors: ['#FFFFFF', '#F5F5F7'] as const,
-    textColor: '#2C3E50',
-    icon: 'document-text-outline',
-  },
-  {
-    id: 'aura',
-    colors: ['#3A1C71', '#D76D77', '#FFAF7B'] as const,
-    textColor: '#FFFFFF',
-    icon: 'color-palette-outline',
-  },
-  {
-    id: 'rose',
-    colors: ['#F7CAC9', '#92A8D1'] as const,
-    textColor: '#5D4037',
-    icon: 'heart-outline',
-  },
-];
 
 export interface ImageShareModalProps {
   visible: boolean;
@@ -128,6 +76,9 @@ export const ImageShareModal: React.FC<ImageShareModalProps> = ({
   const {colors, isDark} = useTheme();
   const {t} = useLanguage();
   const toast = useToast();
+  const router = useRouter();
+  const {isPremium} = usePremium();
+  const {preferences} = useReaderPreferences();
 
   const [themeIndex, setThemeIndex] = useState(0);
   const [fontSize, setFontSize] = useState(20);
@@ -135,13 +86,44 @@ export const ImageShareModal: React.FC<ImageShareModalProps> = ({
     'center',
   );
   const [useSerif, setUseSerif] = useState(true);
+  const [aspect, setAspect] = useState<ShareAspect>('square');
   const [isSharing, setIsSharing] = useState(false);
+
+  // Seed the card's typography from how the user actually reads (their
+  // reader preferences) each time the modal opens — the closest size preset
+  // and serif/sans. Depending only on `visible` re-seeds on every open while
+  // letting the user override within the session.
+  useEffect(() => {
+    if (!visible) return;
+    const presets = [16, 20, 24, 28];
+    const closest = presets.reduce((a, b) =>
+      Math.abs(b - preferences.fontSize) < Math.abs(a - preferences.fontSize)
+        ? b
+        : a,
+    );
+    setFontSize(closest);
+    setUseSerif(preferences.fontFamily === 'serif');
+  }, [visible]);
 
   // `captureRef` accepts a ref to any host component; LinearGradient's
   // generated ref type doesn't quite match `useRef<View>`, so we widen.
   const previewRef = useRef<any>(null);
   const selectedTextColor = isDark ? colors.primaryDark : colors.primary;
-  const activeTheme = IMAGE_THEMES[themeIndex];
+  const activeTheme = SHARE_TEMPLATES[themeIndex];
+  const cardHeight = aspectHeight(aspect, cardSize);
+
+  function handleSelectTemplate(template: ShareTemplate, index: number) {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    if (!isTemplateUnlocked(template, isPremium)) {
+      // Locked premium design → send the user to the Settings upsell,
+      // mirroring the S50 verse-scrubber gate. Don't select it.
+      toast.info(`${t.premium.badge} · ${t.premium.upsellTap}`);
+      onClose();
+      router.push('/(tabs)/settings');
+      return;
+    }
+    setThemeIndex(index);
+  }
 
   async function handleShare() {
     if (isSharing || !previewRef.current) return;
@@ -199,7 +181,9 @@ export const ImageShareModal: React.FC<ImageShareModalProps> = ({
             disabled={isSharing}
             style={isSharing && styles.disabled}
             accessibilityRole="button"
-            accessibilityLabel={t.verse.shareVerse}>
+            accessibilityLabel={t.verse.shareVerse}
+            accessibilityHint={t.verse.shareAsImage}
+            accessibilityState={{disabled: isSharing}}>
             <Ionicons name="share-outline" size={28} color={colors.primary} />
           </TouchableOpacity>
         </View>
@@ -210,7 +194,7 @@ export const ImageShareModal: React.FC<ImageShareModalProps> = ({
           <View style={styles.previewContainer}>
             <LinearGradient
               colors={activeTheme.colors}
-              style={[styles.card, {minHeight: cardSize}]}
+              style={[styles.card, {minHeight: cardHeight || cardSize}]}
               ref={previewRef}
               collapsable={false}
               start={{x: 0, y: 0}}
@@ -280,32 +264,104 @@ export const ImageShareModal: React.FC<ImageShareModalProps> = ({
               horizontal
               showsHorizontalScrollIndicator={false}
               style={styles.optionsRow}>
-              {IMAGE_THEMES.map((theme, index) => (
-                <TouchableOpacity
-                  key={theme.id}
-                  onPress={() => {
-                    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-                    setThemeIndex(index);
-                  }}
-                  style={[
-                    styles.styleCircle,
-                    index === themeIndex && {
-                      borderColor: colors.primary,
-                      borderWidth: 3,
-                    },
-                  ]}>
-                  <LinearGradient
-                    colors={theme.colors}
-                    style={styles.styleCircleGradient}>
-                    <Ionicons
-                      name={theme.icon as any}
-                      size={20}
-                      color={theme.textColor}
-                    />
-                  </LinearGradient>
-                </TouchableOpacity>
-              ))}
+              {SHARE_TEMPLATES.map((template, index) => {
+                const unlocked = isTemplateUnlocked(template, isPremium);
+                const selected = index === themeIndex;
+                return (
+                  <TouchableOpacity
+                    key={template.id}
+                    onPress={() => handleSelectTemplate(template, index)}
+                    accessibilityRole="button"
+                    accessibilityState={{selected}}
+                    accessibilityLabel={
+                      t.verse.imageStyleA11y.replace(
+                        '{{n}}',
+                        String(index + 1),
+                      ) + (unlocked ? '' : ` · ${t.premium.badge}`)
+                    }
+                    style={[
+                      styles.styleCircle,
+                      selected && {
+                        borderColor: colors.primary,
+                        borderWidth: 3,
+                      },
+                    ]}>
+                    <LinearGradient
+                      colors={template.colors}
+                      style={styles.styleCircleGradient}>
+                      <Ionicons
+                        name={template.icon as any}
+                        size={20}
+                        color={template.textColor}
+                      />
+                    </LinearGradient>
+                    {!unlocked && (
+                      <View style={styles.lockBadge}>
+                        <Ionicons
+                          name="lock-closed"
+                          size={11}
+                          color="#FFFFFF"
+                        />
+                      </View>
+                    )}
+                  </TouchableOpacity>
+                );
+              })}
             </ScrollView>
+
+            <View style={styles.optionSection}>
+              <Text
+                style={[styles.optionsTitle, {color: colors.textSecondary}]}>
+                {t.verse.imageFormat}
+              </Text>
+              <View style={styles.optionsRow}>
+                {SHARE_ASPECTS.map(option => {
+                  const active = aspect === option;
+                  const label =
+                    option === 'square'
+                      ? t.verse.imageFormatSquare
+                      : option === 'portrait'
+                        ? t.verse.imageFormatPortrait
+                        : t.verse.imageFormatStory;
+                  const icon =
+                    option === 'square'
+                      ? 'square-outline'
+                      : option === 'portrait'
+                        ? 'tablet-portrait-outline'
+                        : 'phone-portrait-outline';
+                  return (
+                    <TouchableOpacity
+                      key={option}
+                      onPress={() => setAspect(option)}
+                      accessibilityRole="button"
+                      accessibilityLabel={label}
+                      accessibilityState={{selected: active}}
+                      style={[
+                        styles.sizeButton,
+                        styles.flex1,
+                        styles.formatButton,
+                        active && {
+                          borderColor: colors.primary,
+                          backgroundColor: colors.primaryLight,
+                        },
+                      ]}>
+                      <Ionicons
+                        name={icon as any}
+                        size={20}
+                        color={active ? selectedTextColor : colors.text}
+                      />
+                      <Text
+                        style={[
+                          styles.formatLabel,
+                          {color: active ? selectedTextColor : colors.text},
+                        ]}>
+                        {label}
+                      </Text>
+                    </TouchableOpacity>
+                  );
+                })}
+              </View>
+            </View>
 
             <View style={styles.optionSection}>
               <Text
@@ -317,6 +373,9 @@ export const ImageShareModal: React.FC<ImageShareModalProps> = ({
                   <TouchableOpacity
                     key={size}
                     onPress={() => setFontSize(size)}
+                    accessibilityRole="button"
+                    accessibilityLabel={`${t.verse.imageFontSize} ${size}`}
+                    accessibilityState={{selected: fontSize === size}}
                     style={[
                       styles.sizeButton,
                       fontSize === size && {
@@ -349,6 +408,15 @@ export const ImageShareModal: React.FC<ImageShareModalProps> = ({
                   <TouchableOpacity
                     key={align}
                     onPress={() => setTextAlign(align)}
+                    accessibilityRole="button"
+                    accessibilityLabel={
+                      align === 'left'
+                        ? t.verse.imageAlignLeft
+                        : align === 'center'
+                          ? t.verse.imageAlignCenter
+                          : t.verse.imageAlignRight
+                    }
+                    accessibilityState={{selected: textAlign === align}}
                     style={[
                       styles.sizeButton,
                       styles.flex1,
@@ -383,6 +451,8 @@ export const ImageShareModal: React.FC<ImageShareModalProps> = ({
               <View style={styles.optionsRow}>
                 <TouchableOpacity
                   onPress={() => setUseSerif(true)}
+                  accessibilityRole="button"
+                  accessibilityState={{selected: useSerif}}
                   style={[
                     styles.sizeButton,
                     styles.flex1,
@@ -404,6 +474,8 @@ export const ImageShareModal: React.FC<ImageShareModalProps> = ({
                 </TouchableOpacity>
                 <TouchableOpacity
                   onPress={() => setUseSerif(false)}
+                  accessibilityRole="button"
+                  accessibilityState={{selected: !useSerif}}
                   style={[
                     styles.sizeButton,
                     styles.flex1,
@@ -546,6 +618,17 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
+  lockBadge: {
+    position: 'absolute',
+    top: -4,
+    right: -4,
+    width: 20,
+    height: 20,
+    borderRadius: 10,
+    backgroundColor: 'rgba(0,0,0,0.65)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
   sizeButton: {
     paddingVertical: spacing.sm,
     paddingHorizontal: spacing.md,
@@ -563,6 +646,15 @@ const styles = StyleSheet.create({
   },
   fontStyleText: {
     fontWeight: 'bold',
+  },
+  formatButton: {
+    flexDirection: 'column',
+    paddingVertical: spacing.md,
+  },
+  formatLabel: {
+    fontSize: 11,
+    fontWeight: '600',
+    marginTop: 4,
   },
   flex1: {
     flex: 1,
