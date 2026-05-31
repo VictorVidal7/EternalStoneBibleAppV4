@@ -485,4 +485,28 @@ export class AchievementService {
       streakDates: dates,
     };
   }
+
+  /**
+   * Full per-day reading log, oldest first. `getReadingStreak` caps at the
+   * most recent 30 days for the streak widget; the "Tu camino" journey recap
+   * (Sprint 57) needs the entire lifetime series to derive active days and
+   * the busiest day, so this read is uncapped. Read-only; never throws (a
+   * missing table on a fresh install yields an empty log).
+   */
+  async getReadingLog(): Promise<
+    {date: string; versesRead: number; timeSpent: number}[]
+  > {
+    try {
+      const result = await this.db.executeSql(
+        'SELECT date, verses_read, time_spent FROM reading_streak_log ORDER BY date ASC',
+      );
+      return result.rows._array.map((row: any) => ({
+        date: row.date,
+        versesRead: row.verses_read ?? 0,
+        timeSpent: row.time_spent ?? 0,
+      }));
+    } catch {
+      return [];
+    }
+  }
 }
