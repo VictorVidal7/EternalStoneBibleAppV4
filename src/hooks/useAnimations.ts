@@ -22,15 +22,21 @@ import {
   DURATIONS,
   EASING_CURVES,
 } from '../styles/reanimatedAnimations';
+import {useReducedMotion} from './useReducedMotion';
 
 // ==================== useFadeIn ====================
 /**
  * Hook para animación de fade in al montar
  */
 export const useFadeIn = (delay = 0, duration = DURATIONS.normal) => {
+  const reduced = useReducedMotion();
   const opacity = useSharedValue(0);
 
   useEffect(() => {
+    if (reduced) {
+      opacity.value = 1;
+      return;
+    }
     opacity.value = withDelay(
       delay,
       withTiming(1, {
@@ -38,7 +44,7 @@ export const useFadeIn = (delay = 0, duration = DURATIONS.normal) => {
         easing: EASING_CURVES.emphasizedDecelerate,
       }),
     );
-  }, [delay, duration, opacity]);
+  }, [delay, duration, opacity, reduced]);
 
   const animatedStyle = useAnimatedStyle(() => ({
     opacity: opacity.value,
@@ -56,16 +62,22 @@ export const useSlideIn = (
   initialOffset = 50,
   config = SPRING_CONFIGS.default,
 ) => {
+  const reduced = useReducedMotion();
   const translateY = useSharedValue(initialOffset);
   const opacity = useSharedValue(0);
 
   useEffect(() => {
+    if (reduced) {
+      translateY.value = 0;
+      opacity.value = 1;
+      return;
+    }
     translateY.value = withDelay(delay, withSpring(0, config));
     opacity.value = withDelay(
       delay,
       withTiming(1, {duration: DURATIONS.normal}),
     );
-  }, [delay, config, translateY, opacity]);
+  }, [delay, config, translateY, opacity, reduced]);
 
   const animatedStyle = useAnimatedStyle(() => ({
     transform: [{translateY: translateY.value}],
@@ -84,16 +96,22 @@ export const useScaleIn = (
   initialScale = 0.8,
   config = SPRING_CONFIGS.snappy,
 ) => {
+  const reduced = useReducedMotion();
   const scale = useSharedValue(initialScale);
   const opacity = useSharedValue(0);
 
   useEffect(() => {
+    if (reduced) {
+      scale.value = 1;
+      opacity.value = 1;
+      return;
+    }
     scale.value = withDelay(delay, withSpring(1, config));
     opacity.value = withDelay(
       delay,
       withTiming(1, {duration: DURATIONS.normal}),
     );
-  }, [delay, config, scale, opacity]);
+  }, [delay, config, scale, opacity, reduced]);
 
   const animatedStyle = useAnimatedStyle(() => ({
     transform: [{scale: scale.value}],
@@ -138,9 +156,14 @@ export const useCardPress = () => {
  * Hook para animación de pulso continuo
  */
 export const usePulse = (minScale = 0.97, maxScale = 1.03, active = true) => {
+  const reduced = useReducedMotion();
   const scale = useSharedValue(1);
 
   useEffect(() => {
+    if (reduced) {
+      scale.value = 1;
+      return;
+    }
     if (active) {
       scale.value = withRepeat(
         withSequence(
@@ -159,7 +182,7 @@ export const usePulse = (minScale = 0.97, maxScale = 1.03, active = true) => {
     } else {
       scale.value = withTiming(1, {duration: DURATIONS.fast});
     }
-  }, [active, minScale, maxScale, scale]);
+  }, [active, minScale, maxScale, scale, reduced]);
 
   const animatedStyle = useAnimatedStyle(() => ({
     transform: [{scale: scale.value}],
@@ -173,9 +196,15 @@ export const usePulse = (minScale = 0.97, maxScale = 1.03, active = true) => {
  * Hook para efecto shimmer en skeleton loaders
  */
 export const useShimmer = (duration = 1500) => {
+  const reduced = useReducedMotion();
   const shimmerValue = useSharedValue(0);
 
   useEffect(() => {
+    if (reduced) {
+      // Park the shimmer offscreen so the skeleton renders as a flat block.
+      shimmerValue.value = 0;
+      return;
+    }
     shimmerValue.value = withRepeat(
       withTiming(1, {
         duration,
@@ -184,7 +213,7 @@ export const useShimmer = (duration = 1500) => {
       -1,
       true,
     );
-  }, [duration, shimmerValue]);
+  }, [duration, shimmerValue, reduced]);
 
   const animatedStyle = useAnimatedStyle(() => {
     const translateX = interpolate(
@@ -206,9 +235,14 @@ export const useShimmer = (duration = 1500) => {
  * Hook para rotación continua (loaders)
  */
 export const useRotate = (duration = 1000, active = true) => {
+  const reduced = useReducedMotion();
   const rotation = useSharedValue(0);
 
   useEffect(() => {
+    if (reduced) {
+      rotation.value = 0;
+      return;
+    }
     if (active) {
       rotation.value = withRepeat(
         withTiming(360, {
@@ -221,7 +255,7 @@ export const useRotate = (duration = 1000, active = true) => {
     } else {
       rotation.value = withTiming(0, {duration: DURATIONS.fast});
     }
-  }, [active, duration, rotation]);
+  }, [active, duration, rotation, reduced]);
 
   const animatedStyle = useAnimatedStyle(() => ({
     transform: [{rotate: `${rotation.value}deg`}],
@@ -235,9 +269,15 @@ export const useRotate = (duration = 1000, active = true) => {
  * Hook para animación de shake (errores)
  */
 export const useShake = () => {
+  const reduced = useReducedMotion();
   const translateX = useSharedValue(0);
 
   const shake = useCallback(() => {
+    if (reduced) {
+      // Skip the lateral shake; callers pair it with haptics/messaging.
+      translateX.value = 0;
+      return;
+    }
     translateX.value = withSequence(
       withTiming(10, {duration: 50}),
       withTiming(-10, {duration: 50}),
@@ -246,7 +286,7 @@ export const useShake = () => {
       withTiming(5, {duration: 50}),
       withTiming(0, {duration: 50}),
     );
-  }, [translateX]);
+  }, [translateX, reduced]);
 
   const animatedStyle = useAnimatedStyle(() => ({
     transform: [{translateX: translateX.value}],
@@ -260,13 +300,19 @@ export const useShake = () => {
  * Hook para animación bouncy de entrada
  */
 export const useBounceIn = (delay = 0) => {
+  const reduced = useReducedMotion();
   const scale = useSharedValue(0);
   const opacity = useSharedValue(0);
 
   useEffect(() => {
+    if (reduced) {
+      scale.value = 1;
+      opacity.value = 1;
+      return;
+    }
     scale.value = withDelay(delay, withSpring(1, SPRING_CONFIGS.bouncy));
     opacity.value = withDelay(delay, withTiming(1, {duration: DURATIONS.fast}));
-  }, [delay, scale, opacity]);
+  }, [delay, scale, opacity, reduced]);
 
   const animatedStyle = useAnimatedStyle(() => ({
     transform: [{scale: scale.value}],
@@ -281,17 +327,23 @@ export const useBounceIn = (delay = 0) => {
  * Hook para animar elementos de lista con stagger
  */
 export const useStaggeredItem = (index: number, delayPerItem = 50) => {
+  const reduced = useReducedMotion();
   const opacity = useSharedValue(0);
   const translateY = useSharedValue(20);
 
   useEffect(() => {
+    if (reduced) {
+      opacity.value = 1;
+      translateY.value = 0;
+      return;
+    }
     const delay = index * delayPerItem;
     opacity.value = withDelay(
       delay,
       withTiming(1, {duration: DURATIONS.normal}),
     );
     translateY.value = withDelay(delay, withSpring(0, SPRING_CONFIGS.default));
-  }, [index, delayPerItem, opacity, translateY]);
+  }, [index, delayPerItem, opacity, translateY, reduced]);
 
   const animatedStyle = useAnimatedStyle(() => ({
     opacity: opacity.value,
@@ -306,10 +358,17 @@ export const useStaggeredItem = (index: number, delayPerItem = 50) => {
  * Hook para animación de celebración (logros)
  */
 export const useCelebration = () => {
+  const reduced = useReducedMotion();
   const scale = useSharedValue(1);
   const rotation = useSharedValue(0);
 
   const celebrate = useCallback(() => {
+    if (reduced) {
+      // No bounce/wiggle; the achievement still surfaces via its modal/haptics.
+      scale.value = 1;
+      rotation.value = 0;
+      return;
+    }
     // Scale bounce
     scale.value = withSequence(
       withSpring(1.3, SPRING_CONFIGS.bouncy),
@@ -323,7 +382,7 @@ export const useCelebration = () => {
       withTiming(5, {duration: 80}),
       withTiming(0, {duration: 80}),
     );
-  }, [scale, rotation]);
+  }, [scale, rotation, reduced]);
 
   const animatedStyle = useAnimatedStyle(() => ({
     transform: [{scale: scale.value}, {rotate: `${rotation.value}deg`}],
@@ -340,14 +399,19 @@ export const useProgressAnimation = (
   targetProgress: number,
   duration = 700,
 ) => {
+  const reduced = useReducedMotion();
   const progress = useSharedValue(0);
 
   useEffect(() => {
+    if (reduced) {
+      progress.value = targetProgress;
+      return;
+    }
     progress.value = withTiming(targetProgress, {
       duration,
       easing: EASING_CURVES.emphasizedDecelerate,
     });
-  }, [targetProgress, duration, progress]);
+  }, [targetProgress, duration, progress, reduced]);
 
   const animatedStyle = useAnimatedStyle(() => ({
     width: `${progress.value * 100}%`,
@@ -369,15 +433,20 @@ export const useCountUp = (
   duration = 1000,
   _onUpdate?: (value: number) => void,
 ) => {
+  const reduced = useReducedMotion();
   const animatedValue = useSharedValue(0);
   const displayValue = useSharedValue(0);
 
   useEffect(() => {
+    if (reduced) {
+      animatedValue.value = targetValue;
+      return;
+    }
     animatedValue.value = withTiming(targetValue, {
       duration,
       easing: EASING_CURVES.emphasizedDecelerate,
     });
-  }, [targetValue, duration, animatedValue]);
+  }, [targetValue, duration, animatedValue, reduced]);
 
   return {animatedValue, displayValue};
 };

@@ -16,6 +16,7 @@ import Animated, {
   withDelay,
 } from 'react-native-reanimated';
 import {useTheme} from '../../../hooks/useTheme';
+import {useReducedMotion} from '../../../hooks/useReducedMotion';
 
 interface AudioWaveformProps {
   isPlaying: boolean;
@@ -28,14 +29,19 @@ interface AudioWaveformProps {
 interface WaveBarProps {
   index: number;
   isPlaying: boolean;
+  reduced: boolean;
   maxHeight: number;
   color: string;
   mutedColor: string;
 }
 
+/** A frozen, varied waveform silhouette for the reduce-motion path. */
+const staticHeight = (index: number) => 0.35 + (index % 5) * 0.13;
+
 const WaveBar: React.FC<WaveBarProps> = ({
   index,
   isPlaying,
+  reduced,
   maxHeight,
   color,
   mutedColor,
@@ -45,6 +51,11 @@ const WaveBar: React.FC<WaveBarProps> = ({
   const delay = index * 50;
 
   useEffect(() => {
+    if (reduced) {
+      // No looping motion: show a static silhouette while playing, flat at rest.
+      heightValue.value = isPlaying ? staticHeight(index) : 0.2;
+      return;
+    }
     if (isPlaying) {
       heightValue.value = withDelay(
         delay,
@@ -57,7 +68,7 @@ const WaveBar: React.FC<WaveBarProps> = ({
     } else {
       heightValue.value = withTiming(0.2, {duration: 300});
     }
-  }, [delay, duration, heightValue, isPlaying]);
+  }, [delay, duration, heightValue, isPlaying, index, reduced]);
 
   const animatedStyle = useAnimatedStyle(() => ({
     height: Math.max(3, maxHeight * heightValue.value),
@@ -85,6 +96,7 @@ export const AudioWaveform: React.FC<AudioWaveformProps> = ({
   mutedColor,
 }) => {
   const {colors} = useTheme();
+  const reduced = useReducedMotion();
   const bars = useMemo(
     () => Array.from({length: barCount}, (_, index) => index),
     [barCount],
@@ -94,12 +106,18 @@ export const AudioWaveform: React.FC<AudioWaveformProps> = ({
   const idleColor = mutedColor ?? colors.border;
 
   return (
-    <View style={[styles.container, {height}]}>
+    <View
+      style={[styles.container, {height}]}
+      // Purely decorative — the play state is conveyed by the labelled
+      // play/pause control, so keep this out of the TalkBack focus order.
+      accessibilityElementsHidden
+      importantForAccessibility="no-hide-descendants">
       {bars.map(index => (
         <WaveBar
           key={index}
           index={index}
           isPlaying={isPlaying}
+          reduced={reduced}
           maxHeight={height}
           color={activeColor}
           mutedColor={idleColor}

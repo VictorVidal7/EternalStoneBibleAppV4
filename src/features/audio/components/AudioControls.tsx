@@ -122,7 +122,9 @@ export const AudioControls: React.FC<AudioControlsProps> = ({
           onPress={handlePrevious}
           disabled={!canGoPrevious}
           accessibilityLabel={a11y.previousVerse}
-          accessibilityRole="button">
+          accessibilityHint={a11y.previousVerseHint}
+          accessibilityRole="button"
+          accessibilityState={{disabled: !canGoPrevious}}>
           <Ionicons
             name={AUDIO_ICONS.previous}
             size={sizeConfig.iconSecondary}
@@ -152,7 +154,9 @@ export const AudioControls: React.FC<AudioControlsProps> = ({
           onPress={handlePlayPause}
           disabled={isLoading}
           accessibilityLabel={isPlaying ? a11y.pause : a11y.play}
-          accessibilityRole="button">
+          accessibilityHint={a11y.playHint}
+          accessibilityRole="button"
+          accessibilityState={{disabled: isLoading, selected: isPlaying}}>
           {isLoading ? (
             <Ionicons
               name="ellipsis-horizontal"
@@ -191,7 +195,9 @@ export const AudioControls: React.FC<AudioControlsProps> = ({
           onPress={handleNext}
           disabled={!canGoNext}
           accessibilityLabel={a11y.nextVerse}
-          accessibilityRole="button">
+          accessibilityHint={a11y.nextVerseHint}
+          accessibilityRole="button"
+          accessibilityState={{disabled: !canGoNext}}>
           <Ionicons
             name={AUDIO_ICONS.next}
             size={sizeConfig.iconSecondary}

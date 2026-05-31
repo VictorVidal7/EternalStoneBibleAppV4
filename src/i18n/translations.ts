@@ -709,6 +709,8 @@ export const translations = {
       removeHighlight: 'Quitar resaltado',
       clearSelection: 'Limpiar selección',
       moreActions: 'Más acciones',
+      verseA11yLabel: 'Versículo {{n}}, {{text}}',
+      verseA11yHint: 'Toca dos veces para seleccionar',
     },
 
     // Audio Player
@@ -731,9 +733,16 @@ export const translations = {
       a11y: {
         play: 'Reproducir audio',
         pause: 'Pausar audio',
+        playHint: 'Reproduce o pausa la lectura del capítulo',
         nextVerse: 'Versículo siguiente',
         previousVerse: 'Versículo anterior',
+        nextVerseHint: 'Salta al siguiente versículo',
+        previousVerseHint: 'Vuelve al versículo anterior',
         speed: 'Velocidad de reproducción',
+        expand: 'Expandir reproductor',
+        expandHint: 'Abre los controles completos del reproductor',
+        collapse: 'Contraer reproductor',
+        close: 'Cerrar reproductor',
       },
       scrub: {
         preview: 'Versículo {{n}} de {{total}}',
@@ -2210,6 +2219,8 @@ export const translations = {
       removeHighlight: 'Remove highlight',
       clearSelection: 'Clear selection',
       moreActions: 'More actions',
+      verseA11yLabel: 'Verse {{n}}, {{text}}',
+      verseA11yHint: 'Double tap to select',
     },
 
     // Audio Player
@@ -2232,9 +2243,16 @@ export const translations = {
       a11y: {
         play: 'Play audio',
         pause: 'Pause audio',
+        playHint: 'Plays or pauses the chapter narration',
         nextVerse: 'Next verse',
         previousVerse: 'Previous verse',
+        nextVerseHint: 'Jumps to the next verse',
+        previousVerseHint: 'Returns to the previous verse',
         speed: 'Playback speed',
+        expand: 'Expand player',
+        expandHint: 'Opens the full player controls',
+        collapse: 'Collapse player',
+        close: 'Close player',
       },
       scrub: {
         preview: 'Verse {{n}} of {{total}}',
