@@ -7,7 +7,12 @@
  */
 
 import React from 'react';
-import {View, Text, StyleSheet, ScrollView} from 'react-native';
+import {View, StyleSheet, ScrollView} from 'react-native';
+// This panel is dense numeric chrome (level/streak/stat tiles) with NO
+// long-form reading text, so every label sits in a fixed box. Alias Text to
+// the capped <AppText> (moderate 1.6 default) so a 200% system font can no
+// longer overflow the tiles — a blanket dynamic-type clamp for the whole panel.
+import {AppText as Text} from '@components/ui/AppText';
 import {UserStats, calculateLevelProgress} from '../../lib/achievements/types';
 import {useTheme} from '../../hooks/useTheme';
 import {useLanguage} from '../../hooks/useLanguage';

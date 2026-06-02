@@ -27,8 +27,14 @@ const appColors = {
 } as const;
 
 describe('READER_THEME_ORDER', () => {
-  it('lists system first then the three palettes', () => {
-    expect(READER_THEME_ORDER).toEqual(['system', 'paper', 'sepia', 'night']);
+  it('lists system first then the reading palettes', () => {
+    expect(READER_THEME_ORDER).toEqual([
+      'system',
+      'paper',
+      'sepia',
+      'night',
+      'high-contrast',
+    ]);
   });
 
   it('every order entry has a defined palette slot', () => {
@@ -43,7 +49,7 @@ describe('READER_THEMES palettes', () => {
     expect(READER_THEMES.system).toBeNull();
   });
 
-  it.each(['paper', 'sepia', 'night'] as ReaderTheme[])(
+  it.each(['paper', 'sepia', 'night', 'high-contrast'] as ReaderTheme[])(
     '%s palette defines every reading-surface key',
     theme => {
       const p = READER_THEMES[theme];

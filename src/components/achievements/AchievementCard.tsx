@@ -7,7 +7,11 @@
  */
 
 import React from 'react';
-import {View, Text, StyleSheet} from 'react-native';
+import {View, StyleSheet} from 'react-native';
+// Fixed-size grid card with no long-form text → cap every label at the
+// moderate <AppText> default so a large system font can't overflow the card.
+// (The emoji icon keeps its own allowFontScaling={false}, which wins.)
+import {AppText as Text} from '@components/ui/AppText';
 import {LinearGradient} from 'expo-linear-gradient';
 import {Ionicons} from '@expo/vector-icons';
 import {

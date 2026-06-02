@@ -18,7 +18,12 @@
  * Para la gloria de Dios Todopoderoso ✨
  */
 
-export type ReaderTheme = 'system' | 'paper' | 'sepia' | 'night';
+export type ReaderTheme =
+  | 'system'
+  | 'paper'
+  | 'sepia'
+  | 'night'
+  | 'high-contrast';
 
 /** Stable display order for the theme picker. */
 export const READER_THEME_ORDER: ReaderTheme[] = [
@@ -26,6 +31,7 @@ export const READER_THEME_ORDER: ReaderTheme[] = [
   'paper',
   'sepia',
   'night',
+  'high-contrast',
 ];
 
 /**
@@ -119,6 +125,24 @@ export const READER_THEMES: Record<ReaderTheme, ReaderThemeColors | null> = {
     audioHighlight: '#E6C77A',
     onHighlight: '#1A1A1A',
   },
+
+  // Maximum-legibility "high contrast" — pure white text on pure black with a
+  // bright amber accent. Every solid text/background pair clears WCAG AAA (7:1)
+  // for low-vision readers; the value is asserted in readerThemesContrast.test.
+  // (A true-dark surface, so readerIsDark treats it like night.)
+  'high-contrast': {
+    background: '#000000',
+    surface: '#0A0A0A',
+    text: '#FFFFFF', // 21:1 on background
+    textSecondary: '#EDEDED', // ~18:1
+    textTertiary: '#C7C7C7', // ~12:1 (still AAA for normal text)
+    border: 'rgba(255, 255, 255, 0.45)', // visible hairline on black
+    primary: '#FFD60A', // amber accent, ~14.8:1 on black
+    primaryDark: '#FFFFFF', // selected-verse text: white, max contrast
+    primaryLight: 'rgba(255, 214, 10, 0.20)', // highlight tint over black
+    audioHighlight: '#FFD60A', // actively-read verse: bright amber
+    onHighlight: '#000000', // black over a user's bright highlight swatch
+  },
 };
 
 /** Type guard for a persisted/foreign `theme` value. */
@@ -127,7 +151,8 @@ export function isReaderTheme(value: unknown): value is ReaderTheme {
     value === 'system' ||
     value === 'paper' ||
     value === 'sepia' ||
-    value === 'night'
+    value === 'night' ||
+    value === 'high-contrast'
   );
 }
 

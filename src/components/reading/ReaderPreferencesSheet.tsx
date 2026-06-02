@@ -83,18 +83,15 @@ export const ReaderPreferencesSheet: React.FC<ReaderPreferencesSheetProps> = ({
     [colors, preferences.theme],
   );
 
+  const themeLabels: Record<ReaderTheme, string> = {
+    system: t.readerPrefs.themeSystem,
+    paper: t.readerPrefs.themePaper,
+    sepia: t.readerPrefs.themeSepia,
+    night: t.readerPrefs.themeNight,
+    'high-contrast': t.readerPrefs.themeHighContrast,
+  };
   const themeOptions: {id: ReaderTheme; label: string}[] =
-    READER_THEME_ORDER.map(id => ({
-      id,
-      label:
-        id === 'system'
-          ? t.readerPrefs.themeSystem
-          : id === 'paper'
-            ? t.readerPrefs.themePaper
-            : id === 'sepia'
-              ? t.readerPrefs.themeSepia
-              : t.readerPrefs.themeNight,
-    }));
+    READER_THEME_ORDER.map(id => ({id, label: themeLabels[id]}));
 
   const tap = (fn: () => void) => () => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
