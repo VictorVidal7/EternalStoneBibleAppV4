@@ -19,6 +19,7 @@ import {
 import {Ionicons} from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
 import {useTheme} from '../../../hooks/useTheme';
+import {staticColors} from '../../../styles/designTokens';
 import {useLanguage} from '../../../hooks/useLanguage';
 import {SleepTimerState} from '../types/audio';
 import {SLEEP_TIMER_OPTIONS} from '../constants/audioConstants';
@@ -203,7 +204,7 @@ export const SleepTimerModal: React.FC<SleepTimerModalProps> = ({
 const styles = StyleSheet.create({
   modalOverlay: {
     flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.5)',
+    backgroundColor: staticColors.overlayBlack50,
     justifyContent: 'flex-end',
   },
   modalContent: {
@@ -217,7 +218,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     padding: 20,
     borderBottomWidth: 1,
-    borderBottomColor: 'rgba(0,0,0,0.1)',
+    borderBottomColor: staticColors.overlayBlack10,
   },
   headerLeft: {
     flexDirection: 'row',

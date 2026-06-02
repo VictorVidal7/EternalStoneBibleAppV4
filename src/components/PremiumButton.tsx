@@ -20,7 +20,13 @@ import {
 import {LinearGradient} from 'expo-linear-gradient';
 import {Ionicons} from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
-import {spacing, borderRadius, fontSize, shadows} from '../styles/designTokens';
+import {
+  spacing,
+  borderRadius,
+  fontSize,
+  shadows,
+  staticColors,
+} from '../styles/designTokens';
 
 type ButtonVariant =
   | 'primary'
@@ -164,10 +170,8 @@ export const PremiumButton: React.FC<PremiumButtonProps> = ({
         style={[
           styles.button,
           getSizeStyles(),
-          {
-            transform: [{scale: scaleAnim}],
-            opacity: disabled ? 0.5 : 1,
-          },
+          disabled && styles.disabledOpacity,
+          {transform: [{scale: scaleAnim}]},
           style,
         ]}>
         <LinearGradient
@@ -187,10 +191,8 @@ export const PremiumButton: React.FC<PremiumButtonProps> = ({
           <Text
             style={[
               styles.text,
-              {
-                fontSize: getTextSize(),
-                fontWeight: '600',
-              },
+              styles.buttonTextWeight,
+              {fontSize: getTextSize()},
               textStyle,
             ]}>
             {loading ? 'Cargando...' : title}
@@ -228,6 +230,8 @@ export const PremiumButton: React.FC<PremiumButtonProps> = ({
 };
 
 const styles = StyleSheet.create({
+  disabledOpacity: {opacity: 0.5},
+  buttonTextWeight: {fontWeight: '600'},
   fullWidth: {
     width: '100%',
   },
@@ -242,7 +246,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   text: {
-    color: '#ffffff',
+    color: staticColors.white,
     textAlign: 'center',
   },
   iconLeft: {
@@ -257,7 +261,7 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     bottom: 0,
-    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+    backgroundColor: staticColors.glassWhite20,
     width: 50,
   },
 });

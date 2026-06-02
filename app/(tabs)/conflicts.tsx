@@ -31,6 +31,7 @@ import {useToast} from '@context/ToastContext';
 import {useSyncEngineOptional, useConflicts} from '@context/SyncEngineContext';
 import type {ConflictChoice, ConflictRecord} from '@lib/sync';
 import {logger} from '@lib/utils/logger';
+import {staticColors} from '@/styles/designTokens';
 
 function formatValue(value: unknown): string {
   if (value == null) return '—';
@@ -372,7 +373,7 @@ export default function ConflictsScreen() {
                 ]}
                 onPress={applyMerge}
                 accessibilityRole="button">
-                <Text style={{color: '#ffffff', fontWeight: '600'}}>
+                <Text style={styles.mergeButtonText}>
                   {t.conflicts.saveMerge}
                 </Text>
               </TouchableOpacity>
@@ -398,7 +399,7 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: 'rgba(255,255,255,0.2)',
+    backgroundColor: staticColors.glassWhite20,
     justifyContent: 'center',
     alignItems: 'center',
     zIndex: 2,
@@ -413,19 +414,19 @@ const styles = StyleSheet.create({
     width: 48,
     height: 48,
     borderRadius: 24,
-    backgroundColor: 'rgba(255,255,255,0.18)',
+    backgroundColor: staticColors.glassWhite18,
     justifyContent: 'center',
     alignItems: 'center',
   },
   headerTextContainer: {flex: 1},
   headerTitle: {
-    color: '#ffffff',
+    color: staticColors.white,
     fontSize: 22,
     fontWeight: '700',
     letterSpacing: -0.4,
   },
   headerSubtitle: {
-    color: 'rgba(255,255,255,0.85)',
+    color: staticColors.glassWhite85,
     fontSize: 13,
     marginTop: 2,
   },
@@ -435,10 +436,14 @@ const styles = StyleSheet.create({
     padding: 14,
     marginBottom: 12,
     elevation: 1,
-    shadowColor: '#000',
+    shadowColor: staticColors.black,
     shadowOpacity: 0.06,
     shadowOffset: {width: 0, height: 2},
     shadowRadius: 4,
+  },
+  mergeButtonText: {
+    color: staticColors.white,
+    fontWeight: '600',
   },
   cardHeader: {
     flexDirection: 'row',

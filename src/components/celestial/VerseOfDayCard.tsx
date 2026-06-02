@@ -143,10 +143,8 @@ const VerseOfDayCard: React.FC<VerseOfDayCardProps> = ({
               <View
                 style={[
                   styles.iconContainerBase,
-                  {
-                    backgroundColor: colors.primary + '20',
-                    borderRadius: 12,
-                  },
+                  styles.iconChipRadius,
+                  {backgroundColor: colors.primary + '20'},
                 ]}>
                 <Ionicons name="sparkles" size={24} color={colors.primary} />
               </View>
@@ -269,6 +267,7 @@ const VerseOfDayCard: React.FC<VerseOfDayCardProps> = ({
 };
 
 const styles = StyleSheet.create({
+  iconChipRadius: {borderRadius: 12},
   card: {
     borderWidth: 1,
     overflow: 'hidden',

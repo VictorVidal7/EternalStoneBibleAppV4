@@ -32,9 +32,8 @@ export const WidgetsDemoScreen: React.FC = () => {
   };
 
   const handleMissionPress = () => {
-    // Por ahora, no hay pantalla de misiones implementada
-    // En el futuro, esto navegará a la pantalla de misiones
-    console.log('Mission widget pressed - missions feature coming soon');
+    // Por ahora, no hay pantalla de misiones implementada.
+    // En el futuro, esto navegará a la pantalla de misiones.
   };
 
   return (

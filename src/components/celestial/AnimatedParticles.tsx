@@ -95,12 +95,12 @@ const ParticleItem = ({
           <View
             style={[
               styles.star,
+              styles.starGlow,
               {
                 width: baseSize,
                 height: baseSize,
                 backgroundColor: color,
                 shadowColor: color,
-                shadowOpacity: 0.8,
                 shadowRadius: baseSize,
               },
             ]}
@@ -112,9 +112,9 @@ const ParticleItem = ({
             <View
               style={[
                 styles.sparkleHorizontal,
+                styles.sparkleThickness,
                 {
                   width: baseSize * 1.5,
-                  height: 2,
                   backgroundColor: color,
                 },
               ]}
@@ -122,8 +122,8 @@ const ParticleItem = ({
             <View
               style={[
                 styles.sparkleVertical,
+                styles.sparkleThicknessV,
                 {
-                  width: 2,
                   height: baseSize * 1.5,
                   backgroundColor: color,
                 },
@@ -136,11 +136,11 @@ const ParticleItem = ({
           <View
             style={[
               styles.cross,
+              styles.crossBorder,
               {
                 width: baseSize,
                 height: baseSize,
                 borderColor: color,
-                borderWidth: 1,
               },
             ]}
           />
@@ -204,6 +204,10 @@ export const AnimatedParticles: React.FC<AnimatedParticlesProps> = ({
 };
 
 const styles = StyleSheet.create({
+  starGlow: {shadowOpacity: 0.8},
+  sparkleThickness: {height: 2},
+  sparkleThicknessV: {width: 2},
+  crossBorder: {borderWidth: 1},
   container: {
     position: 'absolute',
     top: 0,

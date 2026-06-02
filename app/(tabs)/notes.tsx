@@ -81,7 +81,7 @@ export default function NotesScreen() {
 
   function goToVerse(note: Note) {
     router.push(
-      `/verse/${note.book}/${note.chapter}?verse=${note.verse}` as any,
+      `/verse/${note.book}/${note.chapter}?verse=${note.verse}` as never,
     );
   }
 
@@ -203,7 +203,7 @@ export default function NotesScreen() {
             type="no-notes"
             colors={colors}
             isDark={isDark}
-            onAction={() => router.push('/(tabs)/bible' as any)}
+            onAction={() => router.push('/(tabs)/bible' as never)}
           />
         }
       />
@@ -289,7 +289,7 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: '#D5F4E6',
+    backgroundColor: staticColors.greenBgLight,
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: 12,
@@ -300,12 +300,12 @@ const styles = StyleSheet.create({
   noteReference: {
     fontSize: 15,
     fontWeight: '600',
-    color: '#27AE60',
+    color: staticColors.greenSuccess,
     marginBottom: 2,
   },
   noteDate: {
     fontSize: 12,
-    color: '#95A5A6',
+    color: staticColors.grayMuted,
   },
   deleteButton: {
     padding: 8,
@@ -319,7 +319,7 @@ const styles = StyleSheet.create({
   },
   noteDivider: {
     height: 1,
-    backgroundColor: '#ECF0F1',
+    backgroundColor: staticColors.neutralBgLight,
     marginBottom: 12,
   },
   noteText: {

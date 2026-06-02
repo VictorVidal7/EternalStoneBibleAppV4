@@ -11,6 +11,7 @@
 import React, {useRef, ReactNode} from 'react';
 import {Animated, View, StyleSheet, ViewStyle} from 'react-native';
 import {LinearGradient} from 'expo-linear-gradient';
+import {staticColors} from '../styles/designTokens';
 
 interface ParallaxScrollViewProps {
   headerHeight?: number;
@@ -79,8 +80,8 @@ export const ParallaxScrollView: React.FC<ParallaxScrollViewProps> = ({
           {
             height: headerHeight,
             transform: [{translateY: headerTranslate}, {scale: headerScale}],
-            opacity: fadeHeader ? headerOpacity : 1,
           },
+          fadeHeader && {opacity: headerOpacity},
         ]}>
         {headerBackground ? (
           headerBackground
@@ -98,7 +99,7 @@ export const ParallaxScrollView: React.FC<ParallaxScrollViewProps> = ({
           style={[
             StyleSheet.absoluteFill,
             {
-              backgroundColor: 'rgba(0, 0, 0, 0.5)',
+              backgroundColor: staticColors.overlayBlack50,
               opacity: overlayOpacity,
             },
           ]}

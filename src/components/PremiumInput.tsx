@@ -23,7 +23,12 @@ import {
 import {Ionicons} from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
 import {useTheme} from '../hooks/useTheme';
-import {borderRadius, fontSize, spacing} from '../styles/designTokens';
+import {
+  borderRadius,
+  fontSize,
+  spacing,
+  staticColors,
+} from '../styles/designTokens';
 import {SPRING_CONFIGS, DURATIONS, EASING} from '../styles/animations';
 
 interface PremiumInputProps extends TextInputProps {
@@ -247,9 +252,11 @@ export const PremiumInput: React.FC<PremiumInputProps> = ({
         style={[
           styles.inputContainer,
           getBorderStyle(),
+          variant === 'outlined'
+            ? styles.inputRadiusOutlined
+            : styles.inputRadiusFlat,
           {
             height: config.height,
-            borderRadius: variant === 'outlined' ? borderRadius.md : 0,
             paddingHorizontal: config.paddingHorizontal,
           },
         ]}>
@@ -278,11 +285,11 @@ export const PremiumInput: React.FC<PremiumInputProps> = ({
           onChangeText={handleChangeText}
           style={[
             styles.input,
+            icon && styles.inputPadLeft,
+            rightIcon && styles.inputPadRight,
             {
               fontSize: config.fontSize,
               color: colors.text,
-              paddingLeft: icon ? spacing.xs : 0,
-              paddingRight: rightIcon ? spacing.xs : 0,
             },
           ]}
           placeholderTextColor={colors.textTertiary}
@@ -305,7 +312,9 @@ export const PremiumInput: React.FC<PremiumInputProps> = ({
                 styles.labelBackground,
                 {
                   backgroundColor:
-                    variant === 'outlined' ? colors.background : 'transparent',
+                    variant === 'outlined'
+                      ? colors.background
+                      : staticColors.transparent,
                 },
               ]}>
               <Text
@@ -379,6 +388,10 @@ export const PremiumInput: React.FC<PremiumInputProps> = ({
 };
 
 const styles = StyleSheet.create({
+  inputRadiusOutlined: {borderRadius: borderRadius.md},
+  inputRadiusFlat: {borderRadius: 0},
+  inputPadLeft: {paddingLeft: spacing.xs},
+  inputPadRight: {paddingRight: spacing.xs},
   container: {
     marginBottom: spacing.md,
   },

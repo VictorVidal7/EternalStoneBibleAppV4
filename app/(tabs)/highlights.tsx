@@ -224,13 +224,14 @@ export default function HighlightsScreen() {
                 },
               ]}>
               <Text
-                style={{
-                  color: !colorFilter
-                    ? staticColors.white
-                    : colors.textSecondary,
-                  fontWeight: '600',
-                  fontSize: 13,
-                }}>
+                style={[
+                  styles.filterChipText,
+                  {
+                    color: !colorFilter
+                      ? staticColors.white
+                      : colors.textSecondary,
+                  },
+                ]}>
                 {t.highlights.all}
               </Text>
             </TouchableOpacity>
@@ -270,13 +271,14 @@ export default function HighlightsScreen() {
                 },
               ]}>
               <Text
-                style={{
-                  color: !categoryFilter
-                    ? staticColors.white
-                    : colors.textSecondary,
-                  fontWeight: '600',
-                  fontSize: 13,
-                }}>
+                style={[
+                  styles.filterChipText,
+                  {
+                    color: !categoryFilter
+                      ? staticColors.white
+                      : colors.textSecondary,
+                  },
+                ]}>
                 {t.highlights.all}
               </Text>
             </TouchableOpacity>
@@ -294,11 +296,14 @@ export default function HighlightsScreen() {
                     },
                   ]}>
                   <Text
-                    style={{
-                      color: active ? staticColors.white : colors.textSecondary,
-                      fontWeight: '600',
-                      fontSize: 13,
-                    }}>
+                    style={[
+                      styles.filterChipText,
+                      {
+                        color: active
+                          ? staticColors.white
+                          : colors.textSecondary,
+                      },
+                    ]}>
                     {t.highlights.categories[cat]}
                   </Text>
                 </TouchableOpacity>
@@ -468,13 +473,14 @@ export default function HighlightsScreen() {
                       },
                     ]}>
                     <Text
-                      style={{
-                        color: active
-                          ? staticColors.white
-                          : colors.textSecondary,
-                        fontSize: 12,
-                        fontWeight: '600',
-                      }}>
+                      style={[
+                        styles.filterChipTextSmall,
+                        {
+                          color: active
+                            ? staticColors.white
+                            : colors.textSecondary,
+                        },
+                      ]}>
                       {t.highlights.categories[cat]}
                     </Text>
                   </TouchableOpacity>
@@ -486,7 +492,11 @@ export default function HighlightsScreen() {
               <TouchableOpacity
                 style={[styles.modalButton, {borderColor: colors.border}]}
                 onPress={() => setEditing(null)}>
-                <Text style={{color: colors.textSecondary, fontWeight: '600'}}>
+                <Text
+                  style={[
+                    styles.modalButtonText,
+                    {color: colors.textSecondary},
+                  ]}>
                   {t.cancel}
                 </Text>
               </TouchableOpacity>
@@ -499,7 +509,11 @@ export default function HighlightsScreen() {
                   },
                 ]}
                 onPress={saveEditor}>
-                <Text style={{color: staticColors.white, fontWeight: '700'}}>
+                <Text
+                  style={[
+                    styles.modalButtonTextSave,
+                    {color: staticColors.white},
+                  ]}>
                   {t.highlights.save}
                 </Text>
               </TouchableOpacity>
@@ -565,6 +579,10 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     marginRight: 8,
   },
+  filterChipText: {fontWeight: '600', fontSize: 13},
+  filterChipTextSmall: {fontWeight: '600', fontSize: 12},
+  modalButtonText: {fontWeight: '600'},
+  modalButtonTextSave: {fontWeight: '700'},
   filterSwatch: {
     width: 36,
     height: 36,

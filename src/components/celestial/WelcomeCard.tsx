@@ -207,14 +207,14 @@ const styles = StyleSheet.create({
     left: -30,
     width: 100,
     height: 100,
-    backgroundColor: 'rgba(168, 85, 247, 0.3)', // purple-500/30
+    backgroundColor: staticColors.purpleTint30, // purple-500/30
   },
   blurCenterRight: {
     top: '40%',
     right: -20,
     width: 80,
     height: 80,
-    backgroundColor: 'rgba(99, 102, 241, 0.2)', // indigo-400/20
+    backgroundColor: staticColors.indigoTint20, // indigo-400/20
   },
   content: {
     padding: 24,

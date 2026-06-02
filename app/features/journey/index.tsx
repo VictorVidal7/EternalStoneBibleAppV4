@@ -1,7 +1,8 @@
-/* eslint-disable react-native/no-color-literals -- bespoke "Tu camino"
-   Wrapped palette: each slide is a full-bleed branded gradient with white
-   text, intentionally outside the app theme (Spotify-Wrapped convention),
-   mirroring the file-level disable on ImmersiveReader's celestial palette. */
+/* eslint-disable react-native/no-color-literals, react-native/no-inline-styles --
+   bespoke "Tu camino" Wrapped palette: each slide is a full-bleed branded
+   gradient with white text, intentionally outside the app theme
+   (Spotify-Wrapped convention), with the Instagram-style progress segments
+   sized inline per slide index; mirrors ImmersiveReader's celestial palette. */
 /**
  * 🛤️ "TU CAMINO" — Wrapped story screen (Sprint 57)
  *

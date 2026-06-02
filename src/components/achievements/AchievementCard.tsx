@@ -22,6 +22,7 @@ import {
 } from '../../lib/achievements/types';
 import {getLocalizedAchievement} from '../../lib/achievements/definitions';
 import {useTheme} from '../../hooks/useTheme';
+import {staticColors} from '../../styles/designTokens';
 import {useLanguage} from '../../hooks/useLanguage';
 
 // ==================== TYPE COMPATIBILITY ====================
@@ -108,11 +109,12 @@ export function AchievementCard({
       style={[
         styles.container,
         compact && styles.containerCompact,
+        unlocked ? styles.cardUnlocked : styles.cardLocked,
         {
-          backgroundColor: isDark ? '#1f2937' : '#ffffff',
+          backgroundColor: isDark
+            ? staticColors.grayNeutral
+            : staticColors.white,
           borderColor: unlocked ? rarityInfo.color : colors.border,
-          borderWidth: unlocked ? 2 : 1,
-          opacity: unlocked ? 1 : 0.6,
         },
       ]}>
       {/* Glow effect for unlocked legendary/epic */}
@@ -230,12 +232,14 @@ export function AchievementCard({
 }
 
 const styles = StyleSheet.create({
+  cardUnlocked: {borderWidth: 2, opacity: 1},
+  cardLocked: {borderWidth: 1, opacity: 0.6},
   container: {
     flexDirection: 'row',
     padding: 16,
     borderRadius: 16,
     marginBottom: 12,
-    shadowColor: '#000',
+    shadowColor: staticColors.black,
     shadowOffset: {width: 0, height: 2},
     shadowOpacity: 0.1,
     shadowRadius: 8,

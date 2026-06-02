@@ -19,6 +19,7 @@ import Animated, {
 import {Ionicons} from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
 import {useTheme} from '../../../hooks/useTheme';
+import {staticColors} from '../../../styles/designTokens';
 import {useLanguage} from '../../../hooks/useLanguage';
 import {
   AUDIO_ICONS,
@@ -110,12 +111,12 @@ export const AudioControls: React.FC<AudioControlsProps> = ({
         <AnimatedTouchable
           style={[
             styles.secondaryButton,
+            !canGoPrevious && styles.navDisabled,
             {
               width: sizeConfig.secondary,
               height: sizeConfig.secondary,
               borderRadius: sizeConfig.secondary / 2,
               backgroundColor: colors.surfaceVariant,
-              opacity: canGoPrevious ? 1 : 0.4,
             },
             prevButtonStyle,
           ]}
@@ -183,12 +184,12 @@ export const AudioControls: React.FC<AudioControlsProps> = ({
         <AnimatedTouchable
           style={[
             styles.secondaryButton,
+            !canGoNext && styles.navDisabled,
             {
               width: sizeConfig.secondary,
               height: sizeConfig.secondary,
               borderRadius: sizeConfig.secondary / 2,
               backgroundColor: colors.surfaceVariant,
-              opacity: canGoNext ? 1 : 0.4,
             },
             nextButtonStyle,
           ]}
@@ -215,6 +216,7 @@ export const AudioControls: React.FC<AudioControlsProps> = ({
 };
 
 const styles = StyleSheet.create({
+  navDisabled: {opacity: 0.4},
   container: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -226,7 +228,7 @@ const styles = StyleSheet.create({
   mainButton: {
     justifyContent: 'center',
     alignItems: 'center',
-    shadowColor: '#4f46e5',
+    shadowColor: staticColors.indigoShadow,
     shadowOffset: {width: 0, height: 4},
     shadowOpacity: 0.3,
     shadowRadius: 8,

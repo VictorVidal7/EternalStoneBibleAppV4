@@ -77,7 +77,7 @@ export default function AboutBookScreen() {
       ? parseInt(versePart.split('-')[0].split(',')[0], 10)
       : NaN;
     const verseQuery = Number.isNaN(firstVerse) ? '' : `?verse=${firstVerse}`;
-    router.push(`/verse/${bookInfo.name}/${chapter}${verseQuery}` as any);
+    router.push(`/verse/${bookInfo.name}/${chapter}${verseQuery}` as never);
   };
 
   return (

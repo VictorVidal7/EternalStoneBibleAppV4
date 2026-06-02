@@ -27,6 +27,7 @@ import {Ionicons} from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
 import {useTheme} from '@hooks/useTheme';
 import {useLanguage} from '@hooks/useLanguage';
+import {staticColors} from '@/styles/designTokens';
 import {getCrossReferences} from '@/constants/cross-references';
 import {parseReference} from '@lib/references/parseReference';
 import bibleDB from '@lib/database';
@@ -242,7 +243,8 @@ export const CrossReferencesSheet: React.FC<Props> = ({
                       <Text
                         style={[
                           styles.rowText,
-                          {color: colors.textTertiary, fontStyle: 'italic'},
+                          styles.missingText,
+                          {color: colors.textTertiary},
                         ]}>
                         {t.crossRefs.missingText}
                       </Text>
@@ -264,10 +266,11 @@ export const CrossReferencesSheet: React.FC<Props> = ({
 };
 
 const styles = StyleSheet.create({
+  missingText: {fontStyle: 'italic'},
   backdrop: {
     flex: 1,
     justifyContent: 'flex-end',
-    backgroundColor: 'rgba(0, 0, 0, 0.45)',
+    backgroundColor: staticColors.overlayBlack45,
   },
   backdropTouch: {
     flex: 1,

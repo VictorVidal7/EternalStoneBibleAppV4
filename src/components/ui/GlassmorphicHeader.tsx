@@ -203,7 +203,7 @@ export const GlassmorphicHeader: React.FC<GlassmorphicHeaderProps> = ({
         subtitle: {
           fontSize: compact ? 15 : 17,
           fontWeight: '500',
-          color: 'rgba(255, 255, 255, 0.95)',
+          color: staticColors.glassWhite95,
           letterSpacing: 0.2,
           ...subtitleStyle,
         },

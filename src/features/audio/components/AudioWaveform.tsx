@@ -79,10 +79,8 @@ const WaveBar: React.FC<WaveBarProps> = ({
       style={[
         styles.bar,
         animatedStyle,
-        {
-          backgroundColor: isPlaying ? color : mutedColor,
-          opacity: isPlaying ? 1 : 0.4,
-        },
+        !isPlaying && styles.barMuted,
+        {backgroundColor: isPlaying ? color : mutedColor},
       ]}
     />
   );
@@ -128,6 +126,7 @@ export const AudioWaveform: React.FC<AudioWaveformProps> = ({
 };
 
 const styles = StyleSheet.create({
+  barMuted: {opacity: 0.4},
   container: {
     width: '100%',
     flexDirection: 'row',

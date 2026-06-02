@@ -31,6 +31,7 @@ import * as Haptics from 'expo-haptics';
 import {useRouter} from 'expo-router';
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
 import {useTheme} from '../../hooks/useTheme';
+import {staticColors} from '../../styles/designTokens';
 import {useLanguage} from '../../hooks/useLanguage';
 import {useToast} from '../../context/ToastContext';
 import {usePremium} from '../../context/PremiumContext';
@@ -201,7 +202,7 @@ export const ImageShareModal: React.FC<ImageShareModalProps> = ({
               end={{x: 1, y: 1}}>
               <View style={styles.headerArea}>
                 <Ionicons
-                  name={activeTheme.icon as any}
+                  name={activeTheme.icon as keyof typeof Ionicons.glyphMap}
                   size={32}
                   color={activeTheme.textColor}
                   style={styles.watermarkIcon}
@@ -281,16 +282,14 @@ export const ImageShareModal: React.FC<ImageShareModalProps> = ({
                     }
                     style={[
                       styles.styleCircle,
-                      selected && {
-                        borderColor: colors.primary,
-                        borderWidth: 3,
-                      },
+                      selected && styles.styleCircleSelected,
+                      selected && {borderColor: colors.primary},
                     ]}>
                     <LinearGradient
                       colors={template.colors}
                       style={styles.styleCircleGradient}>
                       <Ionicons
-                        name={template.icon as any}
+                        name={template.icon as keyof typeof Ionicons.glyphMap}
                         size={20}
                         color={template.textColor}
                       />
@@ -346,7 +345,7 @@ export const ImageShareModal: React.FC<ImageShareModalProps> = ({
                         },
                       ]}>
                       <Ionicons
-                        name={icon as any}
+                        name={icon as keyof typeof Ionicons.glyphMap}
                         size={20}
                         color={active ? selectedTextColor : colors.text}
                       />
@@ -464,10 +463,8 @@ export const ImageShareModal: React.FC<ImageShareModalProps> = ({
                   <Text
                     style={[
                       styles.fontStyleText,
-                      {
-                        color: useSerif ? selectedTextColor : colors.text,
-                        fontFamily: Platform.OS === 'ios' ? 'Georgia' : 'serif',
-                      },
+                      styles.serifFont,
+                      {color: useSerif ? selectedTextColor : colors.text},
                     ]}>
                     Serif
                   </Text>
@@ -502,6 +499,8 @@ export const ImageShareModal: React.FC<ImageShareModalProps> = ({
 };
 
 const styles = StyleSheet.create({
+  styleCircleSelected: {borderWidth: 3},
+  serifFont: {fontFamily: Platform.OS === 'ios' ? 'Georgia' : 'serif'},
   container: {
     flex: 1,
   },
@@ -609,7 +608,7 @@ const styles = StyleSheet.create({
     borderRadius: 30,
     marginRight: spacing.md,
     borderWidth: 2,
-    borderColor: 'transparent',
+    borderColor: staticColors.transparent,
   },
   styleCircleGradient: {
     flex: 1,
@@ -625,7 +624,7 @@ const styles = StyleSheet.create({
     width: 20,
     height: 20,
     borderRadius: 10,
-    backgroundColor: 'rgba(0,0,0,0.65)',
+    backgroundColor: staticColors.overlayBlack65,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -634,8 +633,8 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.md,
     borderRadius: borderRadius.md,
     borderWidth: 1.5,
-    borderColor: 'transparent',
-    backgroundColor: 'rgba(0,0,0,0.05)',
+    borderColor: staticColors.transparent,
+    backgroundColor: staticColors.overlayBlack05,
     marginRight: spacing.sm,
     alignItems: 'center',
     justifyContent: 'center',

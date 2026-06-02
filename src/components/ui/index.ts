@@ -10,7 +10,6 @@
 // ==================== CORE COMPONENTS ====================
 export {AnimatedCard} from './AnimatedCard';
 export {AnimatedButton} from './AnimatedButton';
-export {SkeletonLoader, SkeletonGroup} from './SkeletonLoader';
 
 // ==================== PREMIUM COMPONENTS ====================
 export {GlassmorphicHeader, HEADER_GRADIENTS} from './GlassmorphicHeader';

@@ -429,14 +429,8 @@ export default function HomeScreen() {
             end={{x: 1, y: 1}}
             style={[
               styles.heroCard,
-              {
-                borderRadius: celestialBorderRadius.xl,
-                shadowColor: colors.primary,
-                shadowOffset: {width: 0, height: 4},
-                shadowOpacity: 0.2,
-                shadowRadius: 8,
-                elevation: 4,
-              },
+              styles.heroCardShadow,
+              {shadowColor: colors.primary},
             ]}>
             <View style={styles.heroContent}>
               {/* Compact header with icon */}
@@ -519,7 +513,7 @@ export default function HomeScreen() {
                     onPress={() =>
                       handlePress(() =>
                         router.push(
-                          `/verse/${dailyVerse.book}/${dailyVerse.chapter}` as any,
+                          `/verse/${dailyVerse.book}/${dailyVerse.chapter}` as never,
                         ),
                       )
                     }
@@ -562,7 +556,7 @@ export default function HomeScreen() {
               onPress={() =>
                 handlePress(() =>
                   router.push(
-                    `/verse/${lastRead.book}/${lastRead.chapter}` as any,
+                    `/verse/${lastRead.book}/${lastRead.chapter}` as never,
                   ),
                 )
               }>
@@ -576,10 +570,8 @@ export default function HomeScreen() {
                     <View
                       style={[
                         styles.continueIconContainer,
-                        {
-                          backgroundColor: colors.primary + '20',
-                          borderRadius: 10,
-                        },
+                        styles.iconChip,
+                        {backgroundColor: colors.primary + '20'},
                       ]}>
                       <Ionicons name="play" size={14} color={colors.primary} />
                     </View>
@@ -651,7 +643,7 @@ export default function HomeScreen() {
               onPress={() =>
                 handlePress(() =>
                   router.push(
-                    `/verse/${audioResumePos.book}/${audioResumePos.chapter}?audioResume=1` as any,
+                    `/verse/${audioResumePos.book}/${audioResumePos.chapter}?audioResume=1` as never,
                   ),
                 )
               }>
@@ -665,10 +657,8 @@ export default function HomeScreen() {
                     <View
                       style={[
                         styles.continueIconContainer,
-                        {
-                          backgroundColor: colors.primary + '20',
-                          borderRadius: 10,
-                        },
+                        styles.iconChip,
+                        {backgroundColor: colors.primary + '20'},
                       ]}>
                       <Ionicons
                         name="headset"
@@ -722,7 +712,7 @@ export default function HomeScreen() {
             accessibilityLabel={t.journey.cardTitle}
             accessibilityHint={t.journey.cardSubtitle}
             onPress={() =>
-              handlePress(() => router.push('/features/journey' as any))
+              handlePress(() => router.push('/features/journey' as never))
             }>
             <ShimmerCard
               glowColor={colors.primary}
@@ -734,10 +724,8 @@ export default function HomeScreen() {
                   <View
                     style={[
                       styles.continueIconContainer,
-                      {
-                        backgroundColor: colors.primary + '20',
-                        borderRadius: 10,
-                      },
+                      styles.iconChip,
+                      {backgroundColor: colors.primary + '20'},
                     ]}>
                     <Ionicons
                       name="footsteps"
@@ -811,7 +799,7 @@ export default function HomeScreen() {
                   duration={plan.duration}
                   daysCompleted={planDaysDone}
                   onPress={() =>
-                    handlePress(() => router.push(`/plan/${plan.id}` as any))
+                    handlePress(() => router.push(`/plan/${plan.id}` as never))
                   }
                   continueText={
                     planDaysDone > 0 ? t.home.continue : t.home.start
@@ -912,7 +900,7 @@ export default function HomeScreen() {
               activeOpacity={0.9}
               style={styles.savedCardWrapper}
               onPress={() =>
-                handlePress(() => router.push('/(tabs)/favorites' as any))
+                handlePress(() => router.push('/(tabs)/favorites' as never))
               }>
               <BlurView
                 intensity={isDark ? 28 : 48}
@@ -977,7 +965,7 @@ export default function HomeScreen() {
               activeOpacity={0.9}
               style={styles.savedCardWrapper}
               onPress={() =>
-                handlePress(() => router.push('/(tabs)/notes' as any))
+                handlePress(() => router.push('/(tabs)/notes' as never))
               }>
               <BlurView
                 intensity={isDark ? 28 : 48}
@@ -1043,7 +1031,7 @@ export default function HomeScreen() {
               activeOpacity={0.9}
               style={styles.savedCardWrapper}
               onPress={() =>
-                handlePress(() => router.push('/(tabs)/highlights' as any))
+                handlePress(() => router.push('/(tabs)/highlights' as never))
               }>
               <BlurView
                 intensity={isDark ? 28 : 48}
@@ -1109,7 +1097,7 @@ export default function HomeScreen() {
               activeOpacity={0.9}
               style={styles.savedCardWrapper}
               onPress={() =>
-                handlePress(() => router.push('/(tabs)/bookmarks' as any))
+                handlePress(() => router.push('/(tabs)/bookmarks' as never))
               }>
               <BlurView
                 intensity={isDark ? 28 : 48}
@@ -1181,7 +1169,7 @@ export default function HomeScreen() {
               activeOpacity={0.9}
               style={styles.savedCardWrapper}
               onPress={() =>
-                handlePress(() => router.push('/features/memory' as any))
+                handlePress(() => router.push('/features/memory' as never))
               }>
               <BlurView
                 intensity={isDark ? 28 : 48}
@@ -1305,6 +1293,16 @@ const styles = StyleSheet.create({
     padding: 16,
     marginBottom: 0,
   },
+  heroCardShadow: {
+    borderRadius: celestialBorderRadius.xl,
+    shadowOffset: {width: 0, height: 4},
+    shadowOpacity: 0.2,
+    shadowRadius: 8,
+    elevation: 4,
+  },
+  iconChip: {
+    borderRadius: 10,
+  },
   heroContent: {
     gap: 12,
   },
@@ -1330,7 +1328,7 @@ const styles = StyleSheet.create({
   },
   statsRow: {
     flexDirection: 'row',
-    backgroundColor: 'rgba(255,255,255,0.12)',
+    backgroundColor: staticColors.glassWhite12,
     borderRadius: 12,
     paddingVertical: 10,
     paddingHorizontal: 16,

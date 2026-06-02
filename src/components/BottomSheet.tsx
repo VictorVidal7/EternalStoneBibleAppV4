@@ -5,7 +5,7 @@
  * y diseño glassmorphism moderno.
  */
 
-import React, { useEffect, useRef } from 'react';
+import React, {useEffect, useRef} from 'react';
 import {
   View,
   StyleSheet,
@@ -16,11 +16,16 @@ import {
   PanResponder,
   Platform,
 } from 'react-native';
-import { BlurView } from 'expo-blur';
-import { spacing, borderRadius, shadows } from '../styles/designTokens';
-import { useTheme } from '../hooks/useTheme';
+import {BlurView} from 'expo-blur';
+import {
+  spacing,
+  borderRadius,
+  shadows,
+  staticColors,
+} from '../styles/designTokens';
+import {useTheme} from '../hooks/useTheme';
 
-const { height: SCREEN_HEIGHT } = Dimensions.get('window');
+const {height: SCREEN_HEIGHT} = Dimensions.get('window');
 const THRESHOLD = 100; // Distancia mínima para cerrar
 
 interface BottomSheetProps {
@@ -44,7 +49,7 @@ export const BottomSheet: React.FC<BottomSheetProps> = ({
   backdropOpacity = 0.5,
   useBlur = Platform.OS === 'ios',
 }) => {
-  const { colors, isDark } = useTheme();
+  const {colors, isDark} = useTheme();
   const translateY = useRef(new Animated.Value(SCREEN_HEIGHT)).current;
   const backdropOpacityAnim = useRef(new Animated.Value(0)).current;
 
@@ -73,7 +78,7 @@ export const BottomSheet: React.FC<BottomSheetProps> = ({
           }).start();
         }
       },
-    })
+    }),
   ).current;
 
   const openSheet = () => {
@@ -128,14 +133,12 @@ export const BottomSheet: React.FC<BottomSheetProps> = ({
       transparent
       animationType="none"
       statusBarTranslucent
-      onRequestClose={closeSheet}
-    >
+      onRequestClose={closeSheet}>
       {/* Backdrop */}
       <TouchableOpacity
         style={styles.backdrop}
         activeOpacity={1}
-        onPress={enableBackdropDismiss ? closeSheet : undefined}
-      >
+        onPress={enableBackdropDismiss ? closeSheet : undefined}>
         <Animated.View
           style={[
             styles.backdropOverlay,
@@ -156,33 +159,27 @@ export const BottomSheet: React.FC<BottomSheetProps> = ({
           styles.sheetContainer,
           {
             height: sheetHeight,
-            transform: [{ translateY }],
+            transform: [{translateY}],
           },
         ]}
-        {...(enableGestureDismiss ? panResponder.panHandlers : {})}
-      >
+        {...(enableGestureDismiss ? panResponder.panHandlers : {})}>
         {useBlur ? (
           <BlurView
             intensity={isDark ? 60 : 85}
             tint={isDark ? 'dark' : 'light'}
-            style={styles.blurContainer}
-          >
+            style={styles.blurContainer}>
             <View
               style={[
                 styles.sheet,
                 {
                   backgroundColor: isDark
-                    ? 'rgba(26, 26, 26, 0.7)'
-                    : 'rgba(255, 255, 255, 0.95)',
+                    ? staticColors.charcoalSurface70
+                    : staticColors.glassWhite95,
                 },
-              ]}
-            >
+              ]}>
               <View style={styles.handleContainer}>
                 <View
-                  style={[
-                    styles.handle,
-                    { backgroundColor: colors.border },
-                  ]}
+                  style={[styles.handle, {backgroundColor: colors.border}]}
                 />
               </View>
               <View style={styles.content}>{children}</View>
@@ -196,13 +193,10 @@ export const BottomSheet: React.FC<BottomSheetProps> = ({
                 backgroundColor: colors.card,
                 ...shadows.xl,
               },
-            ]}
-          >
+            ]}>
             {/* Handle */}
             <View style={styles.handleContainer}>
-              <View
-                style={[styles.handle, { backgroundColor: colors.border }]}
-              />
+              <View style={[styles.handle, {backgroundColor: colors.border}]} />
             </View>
 
             {/* Content */}

@@ -19,6 +19,7 @@ import {
 import {Ionicons} from '@expo/vector-icons';
 import {useTheme} from '../../hooks/useTheme';
 import {useLanguage} from '../../hooks/useLanguage';
+import {staticColors} from '../../styles/designTokens';
 import {
   borderRadius,
   fontSize as fontSizes,
@@ -165,7 +166,7 @@ const styles = StyleSheet.create({
   saveButtonText: {
     fontSize: fontSizes.base,
     fontWeight: '700',
-    color: '#FFFFFF',
+    color: staticColors.white,
     letterSpacing: 0.5,
     textTransform: 'uppercase',
   },

@@ -112,7 +112,7 @@ export default function ChapterSelectionScreen() {
   const navigateToVerse = useCallback(
     (chapter: number) => {
       Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-      router.push(`/verse/${book}/${chapter}` as any);
+      router.push(`/verse/${book}/${chapter}` as never);
     },
     [router, book],
   );
@@ -214,15 +214,7 @@ export default function ChapterSelectionScreen() {
   // Skeleton Grid Component
   const SkeletonGrid = () => (
     <View style={[styles.listContainer, {paddingTop: spacing.lg}]}>
-      <View
-        style={[
-          styles.listContent,
-          {
-            flexDirection: 'row',
-            flexWrap: 'wrap',
-            justifyContent: 'flex-start',
-          },
-        ]}>
+      <View style={[styles.listContent, styles.skeletonGridRow]}>
         {Array.from({length: 20}).map((_, i) => (
           <View key={i} style={styles.cardWrapper}>
             <PremiumSkeleton
@@ -272,7 +264,7 @@ export default function ChapterSelectionScreen() {
               style={styles.headerInfoButton}
               onPress={() => {
                 Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-                router.push(`/features/about-book/${book}` as any);
+                router.push(`/features/about-book/${book}` as never);
               }}
               accessibilityRole="button"
               accessibilityLabel={t.bookIntro.openLabel}>
@@ -321,7 +313,7 @@ export default function ChapterSelectionScreen() {
                 showsVerticalScrollIndicator={false}
                 contentContainerStyle={[
                   styles.listContent,
-                  {paddingBottom: Platform.OS === 'ios' ? 120 : 100},
+                  styles.listContentBottomPad,
                 ]}
               />
             ) : (
@@ -407,12 +399,9 @@ const ChapterCard: React.FC<ChapterCardProps> = React.memo(
             <View
               style={[
                 styles.card,
+                styles.cardFlat,
                 {
                   backgroundColor: staticColors.transparent,
-                  shadowOpacity: 0,
-                  shadowRadius: 0,
-                  elevation: 0,
-                  borderWidth: 1,
                   borderColor: colors.glassBorder,
                 },
               ]}>
@@ -490,11 +479,11 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   errorDetails: {
-    backgroundColor: 'rgba(239, 68, 68, 0.1)',
+    backgroundColor: staticColors.redTint10,
     padding: spacing.base,
     borderRadius: 16,
     borderWidth: 1,
-    borderColor: 'rgba(239, 68, 68, 0.3)',
+    borderColor: staticColors.redTint30,
   },
   errorLabel: {
     fontSize: fontSize.sm,
@@ -612,6 +601,14 @@ const styles = StyleSheet.create({
     paddingBottom: spacing.xl,
     alignItems: 'center',
   },
+  skeletonGridRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'flex-start',
+  },
+  listContentBottomPad: {
+    paddingBottom: Platform.OS === 'ios' ? 120 : 100,
+  },
   emptyContainer: {
     flex: 1,
     justifyContent: 'center',
@@ -648,6 +645,12 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
+  cardFlat: {
+    shadowOpacity: 0,
+    shadowRadius: 0,
+    elevation: 0,
+    borderWidth: 1,
+  },
   chapterNumber: {
     fontSize: 20, // Reducido para 5 por fila
     fontWeight: '600',
@@ -660,7 +663,7 @@ const styles = StyleSheet.create({
     width: 14,
     height: 14,
     borderRadius: 7,
-    backgroundColor: 'rgba(16, 185, 129, 0.15)',
+    backgroundColor: staticColors.emeraldTint15,
     justifyContent: 'center',
     alignItems: 'center',
   },

@@ -480,7 +480,7 @@ export default function SearchScreen() {
 
   function goToVerse(verse: BibleVerse) {
     router.push(
-      `/verse/${verse.book}/${verse.chapter}?verse=${verse.verse}` as any,
+      `/verse/${verse.book}/${verse.chapter}?verse=${verse.verse}` as never,
     );
   }
 
@@ -667,10 +667,10 @@ export default function SearchScreen() {
                   accessibilityLabel={t.search.loadMore}
                   style={[
                     styles.loadMoreButton,
+                    loadingMore && styles.loadMoreButtonBusy,
                     {
                       backgroundColor: colors.primary + (isDark ? '33' : '22'),
                       borderColor: colors.primary,
-                      opacity: loadingMore ? 0.6 : 1,
                     },
                   ]}>
                   <Text style={[styles.loadMoreLabel, {color: colors.primary}]}>
@@ -835,7 +835,7 @@ const styles = StyleSheet.create({
   searchInputContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: 'rgba(127, 140, 141, 0.1)',
+    backgroundColor: staticColors.grayTint10,
     borderRadius: 12,
     paddingHorizontal: 16,
     paddingVertical: 12,
@@ -922,6 +922,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     alignItems: 'center',
   },
+  loadMoreButtonBusy: {opacity: 0.6},
   loadMoreLabel: {
     fontSize: 15,
     fontWeight: '600',

@@ -189,7 +189,10 @@ export const CacheStatsScreen: React.FC<CacheStatsScreenProps> = ({userId}) => {
             <View
               style={[
                 styles.statCard,
-                {backgroundColor: colors.surface, borderColor: '#10B981'},
+                {
+                  backgroundColor: colors.surface,
+                  borderColor: staticColors.emerald,
+                },
               ]}>
               <Ionicons name="checkmark-circle" size={24} color="#10B981" />
               <Text style={[styles.statValue, {color: colors.text}]}>

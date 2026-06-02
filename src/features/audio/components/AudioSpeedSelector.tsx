@@ -103,10 +103,8 @@ export const AudioSpeedSelector: React.FC<AudioSpeedSelectorProps> = ({
               <Text
                 style={[
                   styles.chipText,
-                  {
-                    color: isSelected ? staticColors.white : colors.text,
-                    fontWeight: isSelected ? '600' : '400',
-                  },
+                  isSelected ? styles.weightSelected : styles.weightUnselected,
+                  {color: isSelected ? staticColors.white : colors.text},
                 ]}>
                 {PLAYBACK_SPEED_LABELS[speed]}
               </Text>
@@ -197,10 +195,8 @@ const InlineSpeedSelector: React.FC<CompactSelectorProps> = ({
             <Text
               style={[
                 styles.inlineText,
-                {
-                  color: isSelected ? staticColors.white : colors.textSecondary,
-                  fontWeight: isSelected ? '600' : '400',
-                },
+                isSelected ? styles.weightSelected : styles.weightUnselected,
+                {color: isSelected ? staticColors.white : colors.textSecondary},
               ]}>
               {speed === 1 ? '1x' : `${speed}x`}
             </Text>
@@ -212,6 +208,8 @@ const InlineSpeedSelector: React.FC<CompactSelectorProps> = ({
 };
 
 const styles = StyleSheet.create({
+  weightSelected: {fontWeight: '600'},
+  weightUnselected: {fontWeight: '400'},
   container: {
     width: '100%',
   },

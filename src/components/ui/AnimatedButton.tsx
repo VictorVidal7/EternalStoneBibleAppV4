@@ -202,10 +202,7 @@ export const AnimatedButton: React.FC<AnimatedButtonProps> = ({
         onPressIn={onPressIn}
         onPressOut={onPressOut}
         disabled={disabled || loading}
-        style={[
-          animatedStyle,
-          {borderRadius: borderRadius.md, overflow: 'hidden'},
-        ]}>
+        style={[animatedStyle, styles.buttonClip]}>
         <LinearGradient
           colors={finalGradient as [string, string, ...string[]]}
           start={{x: 0, y: 0}}
@@ -230,6 +227,7 @@ export const AnimatedButton: React.FC<AnimatedButtonProps> = ({
 };
 
 const styles = StyleSheet.create({
+  buttonClip: {borderRadius: borderRadius.md, overflow: 'hidden'},
   text: {
     fontWeight: fontWeight.semibold as TextStyle['fontWeight'],
     textAlign: 'center',

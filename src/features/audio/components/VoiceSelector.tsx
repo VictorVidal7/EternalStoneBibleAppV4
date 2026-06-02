@@ -236,8 +236,8 @@ export const VoiceSelector: React.FC<VoiceSelectorProps> = ({
                                 {
                                   backgroundColor:
                                     voice.quality === 'Premium'
-                                      ? '#10b981'
-                                      : '#f59e0b',
+                                      ? staticColors.emerald
+                                      : staticColors.amber500,
                                 },
                               ]}>
                               <Text style={styles.qualityText}>

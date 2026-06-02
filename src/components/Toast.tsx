@@ -16,7 +16,13 @@ import {
 } from 'react-native';
 import {Ionicons} from '@expo/vector-icons';
 import {BlurView} from 'expo-blur';
-import {spacing, borderRadius, shadows, fontSize} from '../styles/designTokens';
+import {
+  spacing,
+  borderRadius,
+  shadows,
+  fontSize,
+  staticColors,
+} from '../styles/designTokens';
 import {useTheme} from '../hooks/useTheme';
 
 type ToastVariant = 'success' | 'error' | 'warning' | 'info' | 'default';
@@ -173,7 +179,7 @@ export const Toast: React.FC<ToastProps> = ({
           backgroundColor:
             variant === 'default' && !useBlur
               ? variantColors.backgroundColor
-              : 'transparent',
+              : staticColors.transparent,
           ...(variant !== 'default' && {
             backgroundColor: variantColors.backgroundColor,
           }),

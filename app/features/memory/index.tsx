@@ -72,7 +72,7 @@ export default function MemoryDeckScreen() {
 
   const handlePractice = () => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-    router.push('/features/memory/practice' as any);
+    router.push('/features/memory/practice' as never);
   };
 
   const confirmRemove = (card: MemoryCard) => {
@@ -117,7 +117,9 @@ export default function MemoryDeckScreen() {
             {!isEmpty && (
               <TouchableOpacity
                 style={styles.insightsButton}
-                onPress={() => router.push('/features/memory/insights' as any)}
+                onPress={() =>
+                  router.push('/features/memory/insights' as never)
+                }
                 accessibilityRole="button"
                 accessibilityLabel={t.memory.insights.openLabel}>
                 <Ionicons name="stats-chart" size={22} color="#FFFFFF" />
@@ -159,7 +161,7 @@ export default function MemoryDeckScreen() {
               goal={goal}
               t={t}
               colors={colors}
-              onPress={() => router.push('/features/memory/insights' as any)}
+              onPress={() => router.push('/features/memory/insights' as never)}
             />
           )}
 
@@ -399,10 +401,10 @@ const DeckRow: React.FC<DeckRowProps> = ({
     <View
       style={[
         styles.row,
+        mastered ? styles.rowBorderMastered : styles.rowBorderThin,
         {
           backgroundColor: colors.surface,
           borderColor: mastered ? colors.success : colors.border,
-          borderWidth: mastered ? 1.5 : StyleSheet.hairlineWidth,
         },
       ]}>
       <View style={styles.rowMain}>
@@ -685,7 +687,7 @@ const styles = StyleSheet.create({
   },
   celebrateOverlay: {
     flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.55)',
+    backgroundColor: staticColors.overlayBlack55,
     alignItems: 'center',
     justifyContent: 'center',
     padding: spacing.xl,
@@ -779,6 +781,8 @@ const styles = StyleSheet.create({
     marginBottom: spacing.sm,
     gap: spacing.sm,
   },
+  rowBorderThin: {borderWidth: StyleSheet.hairlineWidth},
+  rowBorderMastered: {borderWidth: 1.5},
   rowMain: {
     flex: 1,
   },

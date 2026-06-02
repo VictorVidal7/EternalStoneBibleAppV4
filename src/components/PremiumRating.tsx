@@ -8,7 +8,7 @@
  * - Múltiples tamaños
  */
 
-import React, { useState } from 'react';
+import React, {useState} from 'react';
 import {
   View,
   TouchableOpacity,
@@ -16,9 +16,9 @@ import {
   Animated,
   ViewStyle,
 } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import {Ionicons} from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
-import { spacing } from '../styles/designTokens';
+import {spacing} from '../styles/designTokens';
 
 interface PremiumRatingProps {
   value: number;
@@ -62,7 +62,8 @@ export const PremiumRating: React.FC<PremiumRatingProps> = ({
 
   const renderStar = (index: number) => {
     const filled = index < Math.floor(currentValue);
-    const halfFilled = allowHalf && index < currentValue && index >= Math.floor(currentValue);
+    const halfFilled =
+      allowHalf && index < currentValue && index >= Math.floor(currentValue);
 
     return (
       <TouchableOpacity
@@ -70,22 +71,13 @@ export const PremiumRating: React.FC<PremiumRatingProps> = ({
         onPress={() => handlePress(index)}
         disabled={readonly}
         activeOpacity={0.7}
-        style={styles.starContainer}
-      >
+        style={styles.starContainer}>
         {halfFilled ? (
-          <View style={{ position: 'relative' }}>
+          <View style={styles.relative}>
             {/* Empty star */}
             <Ionicons name="star-outline" size={size} color={emptyColor} />
             {/* Half filled star */}
-            <View
-              style={{
-                position: 'absolute',
-                top: 0,
-                left: 0,
-                width: size / 2,
-                overflow: 'hidden',
-              }}
-            >
+            <View style={[styles.starOverlayClip, {width: size / 2}]}>
               <Ionicons name="star" size={size} color={color} />
             </View>
           </View>
@@ -105,7 +97,7 @@ export const PremiumRating: React.FC<PremiumRatingProps> = ({
 
   return (
     <View style={[styles.container, style]}>
-      {Array.from({ length: maxStars }, (_, i) => renderStar(i))}
+      {Array.from({length: maxStars}, (_, i) => renderStar(i))}
     </View>
   );
 };
@@ -147,20 +139,14 @@ const AnimatedStar: React.FC<AnimatedStarProps> = ({
   }, [filled]);
 
   return (
-    <View style={{ position: 'relative' }}>
+    <View style={styles.relative}>
       {/* Empty star (always visible) */}
       <Ionicons name="star-outline" size={size} color={emptyColor} />
 
       {/* Filled star (animated on top) */}
       {filled && (
         <Animated.View
-          style={{
-            position: 'absolute',
-            top: 0,
-            left: 0,
-            transform: [{ scale: scaleAnim }],
-          }}
-        >
+          style={[styles.starOverlay, {transform: [{scale: scaleAnim}]}]}>
           <Ionicons name="star" size={size} color={color} />
         </Animated.View>
       )}
@@ -169,6 +155,9 @@ const AnimatedStar: React.FC<AnimatedStarProps> = ({
 };
 
 const styles = StyleSheet.create({
+  relative: {position: 'relative'},
+  starOverlay: {position: 'absolute', top: 0, left: 0},
+  starOverlayClip: {position: 'absolute', top: 0, left: 0, overflow: 'hidden'},
   container: {
     flexDirection: 'row',
     alignItems: 'center',

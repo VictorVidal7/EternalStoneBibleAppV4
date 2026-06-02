@@ -253,7 +253,7 @@ const styles = StyleSheet.create({
   },
   progressBarBackground: {
     height: 8,
-    backgroundColor: 'rgba(255, 255, 255, 0.25)',
+    backgroundColor: staticColors.glassWhite25,
     borderRadius: 9999, // full pill shape
     overflow: 'hidden',
     ...Platform.select({

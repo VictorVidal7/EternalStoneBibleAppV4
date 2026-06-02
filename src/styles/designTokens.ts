@@ -382,27 +382,39 @@ export const staticColors = {
   transparent: 'transparent',
 
   // White overlays (most common pattern: text/borders on a dark gradient)
+  glassWhite03: 'rgba(255, 255, 255, 0.03)',
   glassWhite05: 'rgba(255, 255, 255, 0.05)',
+  glassWhite08: 'rgba(255, 255, 255, 0.08)',
   glassWhite10: 'rgba(255, 255, 255, 0.10)',
+  glassWhite12: 'rgba(255, 255, 255, 0.12)',
   glassWhite15: 'rgba(255, 255, 255, 0.15)',
   glassWhite18: 'rgba(255, 255, 255, 0.18)',
   glassWhite20: 'rgba(255, 255, 255, 0.20)',
+  glassWhite25: 'rgba(255, 255, 255, 0.25)',
   glassWhite30: 'rgba(255, 255, 255, 0.30)',
+  glassWhite35: 'rgba(255, 255, 255, 0.35)',
   glassWhite50: 'rgba(255, 255, 255, 0.50)',
   glassWhite70: 'rgba(255, 255, 255, 0.70)',
   glassWhite80: 'rgba(255, 255, 255, 0.80)',
   glassWhite85: 'rgba(255, 255, 255, 0.85)',
   glassWhite90: 'rgba(255, 255, 255, 0.90)',
+  glassWhite95: 'rgba(255, 255, 255, 0.95)',
+  glassWhite98: 'rgba(255, 255, 255, 0.98)',
 
   // Black overlays (modal scrims, image scrims)
+  overlayBlack03: 'rgba(0, 0, 0, 0.03)',
   overlayBlack05: 'rgba(0, 0, 0, 0.05)',
+  overlayBlack08: 'rgba(0, 0, 0, 0.08)',
   overlayBlack10: 'rgba(0, 0, 0, 0.10)',
   overlayBlack15: 'rgba(0, 0, 0, 0.15)',
   overlayBlack20: 'rgba(0, 0, 0, 0.20)',
   overlayBlack30: 'rgba(0, 0, 0, 0.30)',
   overlayBlack45: 'rgba(0, 0, 0, 0.45)',
   overlayBlack50: 'rgba(0, 0, 0, 0.50)',
+  overlayBlack55: 'rgba(0, 0, 0, 0.55)',
   overlayBlack60: 'rgba(0, 0, 0, 0.60)',
+  overlayBlack65: 'rgba(0, 0, 0, 0.65)',
+  overlayBlack70: 'rgba(0, 0, 0, 0.70)',
 
   // Neutral grays used in legacy screens that still mix raw hex
   // alongside the theme system. Kept here so the literals disappear
@@ -411,6 +423,53 @@ export const staticColors = {
   graySecondary: '#6B7280', // slate-500
   grayTertiary: '#7F8C8D',
   grayDark: '#2C3E50',
+  // Additional neutral hexes that recur verbatim across legacy screens.
+  slate600: '#34495E', // headings on light cards (favorites/_layout)
+  grayMuted: '#95A5A6', // muted captions (favorites/notes)
+  gray400: '#9CA3AF', // disabled/secondary text (achievements)
+  gray700: '#374151', // dark FAB surface
+  darkGray: '#3c4043', // settings legacy text
+  neutralBgLight: '#ECF0F1', // light neutral chip background
+
+  // Brand / accent colors that appear as raw literals in non-themed surfaces
+  // (widgets, the animated tab bar, celestial cards). Theme-independent on
+  // purpose — they sit over fixed gradients, not over the app surface.
+  brandBlue: '#4A90E2',
+  brandBlueBg: '#E8F4FD',
+  brandBlueTint10: 'rgba(74, 144, 226, 0.1)',
+  brandBlueTint15: 'rgba(74, 144, 226, 0.15)',
+  blueTint20: 'rgba(59, 130, 246, 0.2)',
+  accentRed: '#E74C3C',
+  red500: '#ef4444',
+  red400: '#f87171',
+  redTint90: 'rgba(239, 68, 68, 0.9)',
+  redTint30: 'rgba(239, 68, 68, 0.3)',
+  redTint10: 'rgba(239, 68, 68, 0.1)',
+  green500: '#22C55E',
+  greenSuccess: '#27AE60',
+  greenBgLight: '#D5F4E6',
+  greenTint20: 'rgba(34, 197, 94, 0.2)',
+  greenTint15: 'rgba(34, 197, 94, 0.15)',
+  emerald: '#10B981',
+  emeraldTint15: 'rgba(16, 185, 129, 0.15)',
+  indigoShadow: '#4f46e5',
+  indigoTint15: 'rgba(99, 102, 241, 0.15)',
+  indigoTint20: 'rgba(99, 102, 241, 0.2)',
+  purpleTint30: 'rgba(168, 85, 247, 0.3)',
+  goldTint08: 'rgba(212, 175, 55, 0.08)',
+  grayTint10: 'rgba(127, 140, 141, 0.1)',
+  orangeTint15: 'rgba(249, 115, 22, 0.15)',
+  amberTint15: 'rgba(252, 211, 77, 0.15)',
+  amber500: '#f59e0b',
+
+  // Bespoke surfaces & borders for the reading/celestial chrome — these sit
+  // over fixed dark/light gradients (nav bar, bottom sheets, selection bar),
+  // not the themed app surface, so they are theme-independent on purpose.
+  navySurface95: 'rgba(26, 29, 46, 0.95)',
+  navySurface98: 'rgba(26, 29, 46, 0.98)',
+  charcoalSurface70: 'rgba(26, 26, 26, 0.7)',
+  slateBorderDark15: 'rgba(71, 85, 105, 0.15)',
+  slateBorderLight60: 'rgba(226, 232, 240, 0.60)',
 } as const;
 
 export type StaticColor = keyof typeof staticColors;

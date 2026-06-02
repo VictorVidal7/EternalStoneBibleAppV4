@@ -295,10 +295,8 @@ export const CardSection: React.FC<CardSectionProps> = ({
     <View
       style={[
         styles.section,
-        divider && {
-          borderBottomWidth: 1,
-          borderBottomColor: colors.divider,
-        },
+        divider && styles.dividerBorder,
+        divider && {borderBottomColor: colors.divider},
         style,
       ]}>
       {children}
@@ -307,6 +305,7 @@ export const CardSection: React.FC<CardSectionProps> = ({
 };
 
 const styles = StyleSheet.create({
+  dividerBorder: {borderBottomWidth: 1},
   glassContainer: {
     overflow: 'hidden',
     borderRadius: borderRadius.xl,

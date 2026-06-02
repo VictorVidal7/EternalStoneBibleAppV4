@@ -221,6 +221,9 @@ function AppContent() {
 }
 
 const styles = StyleSheet.create({
+  root: {
+    flex: 1,
+  },
   loadingContainer: {
     flex: 1,
     justifyContent: 'center',
@@ -230,7 +233,7 @@ const styles = StyleSheet.create({
   },
   progressText: {
     fontSize: 16,
-    color: '#34495E',
+    color: staticColors.slate600,
     marginTop: 16,
     textAlign: 'center',
   },
@@ -244,7 +247,7 @@ const styles = StyleSheet.create({
   errorTitle: {
     fontSize: 24,
     fontWeight: 'bold',
-    color: '#E74C3C',
+    color: staticColors.accentRed,
     marginBottom: 16,
   },
   errorText: {
@@ -260,7 +263,7 @@ const styles = StyleSheet.create({
     marginTop: 16,
   },
   retryButton: {
-    backgroundColor: '#4A90E2',
+    backgroundColor: staticColors.brandBlue,
     paddingVertical: 12,
     paddingHorizontal: 32,
     borderRadius: 8,
@@ -275,7 +278,7 @@ const styles = StyleSheet.create({
 
 export default function RootLayout() {
   return (
-    <GestureHandlerRootView style={{flex: 1}}>
+    <GestureHandlerRootView style={styles.root}>
       <LanguageProvider>
         <ThemeProvider>
           <BibleVersionProvider>

@@ -44,6 +44,7 @@ import {
   borderRadius,
   fontSize as fontSizes,
   spacing,
+  staticColors,
 } from '../../styles/designTokens';
 
 interface ReaderPreferencesSheetProps {
@@ -229,10 +230,10 @@ export const ReaderPreferencesSheet: React.FC<ReaderPreferencesSheetProps> = ({
                       style={[
                         styles.choiceCard,
                         styles.themeCard,
+                        active ? styles.borderActive : styles.borderInactive,
                         {
                           backgroundColor: swatch.background,
                           borderColor: active ? colors.primary : swatch.border,
-                          borderWidth: active ? 2 : 1,
                         },
                       ]}
                       onPress={tap(() => setTheme(opt.id))}
@@ -283,15 +284,16 @@ export const ReaderPreferencesSheet: React.FC<ReaderPreferencesSheetProps> = ({
                     onPress={tap(() => setFontFamily(opt.id))}
                     accessibilityLabel={opt.label}>
                     <Text
-                      style={{
-                        color:
-                          preferences.fontFamily === opt.id
-                            ? colors.primary
-                            : colors.text,
-                        fontSize: 24,
-                        fontWeight: '700',
-                        fontFamily: resolveFontFamily(opt.id),
-                      }}>
+                      style={[
+                        styles.fontPreviewText,
+                        {
+                          color:
+                            preferences.fontFamily === opt.id
+                              ? colors.primary
+                              : colors.text,
+                          fontFamily: resolveFontFamily(opt.id),
+                        },
+                      ]}>
                       {opt.sample}
                     </Text>
                     <Text style={[styles.choiceLabel, {color: colors.text}]}>
@@ -380,14 +382,16 @@ export const ReaderPreferencesSheet: React.FC<ReaderPreferencesSheetProps> = ({
                     onPress={tap(() => setLineHeightMultiplier(value))}
                     accessibilityLabel={`${t.readerPrefs.lineSpacing} ${value}`}>
                     <Text
-                      style={{
-                        color:
-                          Math.abs(preferences.lineHeightMultiplier - value) <
-                          0.05
-                            ? colors.primary
-                            : colors.text,
-                        fontWeight: '700',
-                      }}>
+                      style={[
+                        styles.optionLabelBold,
+                        {
+                          color:
+                            Math.abs(preferences.lineHeightMultiplier - value) <
+                            0.05
+                              ? colors.primary
+                              : colors.text,
+                        },
+                      ]}>
                       {value.toFixed(1)}
                     </Text>
                   </PillButton>
@@ -406,7 +410,7 @@ export const ReaderPreferencesSheet: React.FC<ReaderPreferencesSheetProps> = ({
                     onPress={tap(() => setTextAlign(opt.id))}
                     accessibilityLabel={opt.label}>
                     <Ionicons
-                      name={opt.icon as any}
+                      name={opt.icon as keyof typeof Ionicons.glyphMap}
                       size={22}
                       color={
                         preferences.textAlign === opt.id
@@ -433,13 +437,15 @@ export const ReaderPreferencesSheet: React.FC<ReaderPreferencesSheetProps> = ({
                     onPress={tap(() => setMargin(opt.id))}
                     accessibilityLabel={opt.label}>
                     <Text
-                      style={{
-                        color:
-                          preferences.margin === opt.id
-                            ? colors.primary
-                            : colors.text,
-                        fontWeight: '700',
-                      }}>
+                      style={[
+                        styles.optionLabelBold,
+                        {
+                          color:
+                            preferences.margin === opt.id
+                              ? colors.primary
+                              : colors.text,
+                        },
+                      ]}>
                       {opt.label}
                     </Text>
                   </PillButton>
@@ -496,10 +502,10 @@ const ChoiceCard: React.FC<ChoiceCardProps> = ({
   <TouchableOpacity
     style={[
       styles.choiceCard,
+      active ? styles.borderActive : styles.borderInactive,
       {
         backgroundColor: colors.background,
         borderColor: active ? colors.primary : colors.border,
-        borderWidth: active ? 2 : 1,
       },
     ]}
     onPress={onPress}
@@ -527,10 +533,10 @@ const PillButton: React.FC<PillButtonProps> = ({
   <TouchableOpacity
     style={[
       styles.pill,
+      active ? styles.borderActive : styles.borderInactive,
       {
         backgroundColor: colors.background,
         borderColor: active ? colors.primary : colors.border,
-        borderWidth: active ? 2 : 1,
       },
     ]}
     onPress={onPress}
@@ -542,9 +548,13 @@ const PillButton: React.FC<PillButtonProps> = ({
 );
 
 const styles = StyleSheet.create({
+  borderActive: {borderWidth: 2},
+  borderInactive: {borderWidth: 1},
+  fontPreviewText: {fontSize: 24, fontWeight: '700'},
+  optionLabelBold: {fontWeight: '700'},
   overlay: {
     flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    backgroundColor: staticColors.overlayBlack50,
     justifyContent: 'flex-end',
   },
   overlayDismiss: {
@@ -562,7 +572,7 @@ const styles = StyleSheet.create({
     width: 36,
     height: 4,
     borderRadius: 2,
-    backgroundColor: 'rgba(255, 255, 255, 0.25)',
+    backgroundColor: staticColors.glassWhite25,
     marginTop: spacing.sm,
     marginBottom: spacing.sm,
   },

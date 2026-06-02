@@ -211,7 +211,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingTop: 12,
     borderTopWidth: 1,
-    borderTopColor: 'rgba(0, 0, 0, 0.08)',
+    borderTopColor: staticColors.overlayBlack08,
   },
   reference: {
     fontSize: 14,

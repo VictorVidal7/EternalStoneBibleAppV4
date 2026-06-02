@@ -373,7 +373,9 @@ export const BadgeCollectionScreen: React.FC<BadgeCollectionScreenProps> = ({
                 ]}
                 onPress={() => setFilterCategory(category)}>
                 <Ionicons
-                  name={getCategoryIcon(category) as any}
+                  name={
+                    getCategoryIcon(category) as keyof typeof Ionicons.glyphMap
+                  }
                   size={14}
                   color={
                     filterCategory === category
@@ -429,7 +431,10 @@ export const BadgeCollectionScreen: React.FC<BadgeCollectionScreenProps> = ({
                     end={{x: 1, y: 1}}
                     style={styles.badgeIconContainer}>
                     <Text
-                      style={[styles.badgeIcon, isLocked && {opacity: 0.3}]}>
+                      style={[
+                        styles.badgeIcon,
+                        isLocked && styles.badgeIconLocked,
+                      ]}>
                       {badgeProgress.badge.icon}
                     </Text>
                     {isLocked && (
@@ -512,7 +517,8 @@ export const BadgeCollectionScreen: React.FC<BadgeCollectionScreenProps> = ({
                   style={[
                     styles.titleCard,
                     {backgroundColor: colors.surface},
-                    isEquipped && {borderColor: title.color, borderWidth: 2},
+                    isEquipped && styles.titleCardEquipped,
+                    isEquipped && {borderColor: title.color},
                   ]}
                   onPress={() => setSelectedTitle(title)}
                   activeOpacity={0.8}>
@@ -740,6 +746,8 @@ export const BadgeCollectionScreen: React.FC<BadgeCollectionScreenProps> = ({
 };
 
 const styles = StyleSheet.create({
+  badgeIconLocked: {opacity: 0.3},
+  titleCardEquipped: {borderWidth: 2},
   container: {
     flex: 1,
   },

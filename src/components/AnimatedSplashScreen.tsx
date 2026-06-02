@@ -197,7 +197,11 @@ export const AnimatedSplashScreen: React.FC<AnimatedSplashScreenProps> = ({
               },
             ]}>
             <Ionicons
-              name={['star', 'sparkles', 'heart', 'moon'][index % 4] as any}
+              name={
+                ['star', 'sparkles', 'heart', 'moon'][
+                  index % 4
+                ] as keyof typeof Ionicons.glyphMap
+              }
               size={16}
               color="rgba(255,255,255,0.8)"
             />

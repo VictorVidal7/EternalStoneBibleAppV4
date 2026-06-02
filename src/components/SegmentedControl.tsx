@@ -19,7 +19,13 @@ import {
 } from 'react-native';
 import {LinearGradient} from 'expo-linear-gradient';
 import * as Haptics from 'expo-haptics';
-import {spacing, borderRadius, fontSize, shadows} from '../styles/designTokens';
+import {
+  spacing,
+  borderRadius,
+  fontSize,
+  shadows,
+  staticColors,
+} from '../styles/designTokens';
 
 export interface SegmentOption {
   value: string;
@@ -106,10 +112,10 @@ export const SegmentedControl: React.FC<SegmentedControlProps> = ({
     <View
       style={[
         styles.container,
+        variant === 'outlined' ? styles.outlinedBorder : styles.noBorder,
         {
           backgroundColor:
-            variant === 'outlined' ? 'transparent' : backgroundColor,
-          borderWidth: variant === 'outlined' ? 2 : 0,
+            variant === 'outlined' ? staticColors.transparent : backgroundColor,
           borderColor: gradient[0],
         },
       ]}
@@ -136,7 +142,9 @@ export const SegmentedControl: React.FC<SegmentedControlProps> = ({
               styles.indicatorSolid,
               {
                 backgroundColor:
-                  variant === 'outlined' ? 'transparent' : gradient[0],
+                  variant === 'outlined'
+                    ? staticColors.transparent
+                    : gradient[0],
               },
             ]}
           />
@@ -159,10 +167,8 @@ export const SegmentedControl: React.FC<SegmentedControlProps> = ({
             <Text
               style={[
                 styles.label,
-                {
-                  color: isSelected ? activeTextColor : inactiveTextColor,
-                  fontWeight: isSelected ? '600' : '400',
-                },
+                isSelected ? styles.weightBold : styles.weightRegular,
+                {color: isSelected ? activeTextColor : inactiveTextColor},
               ]}>
               {option.label}
             </Text>
@@ -174,6 +180,10 @@ export const SegmentedControl: React.FC<SegmentedControlProps> = ({
 };
 
 const styles = StyleSheet.create({
+  outlinedBorder: {borderWidth: 2},
+  noBorder: {borderWidth: 0},
+  weightBold: {fontWeight: '600'},
+  weightRegular: {fontWeight: '400'},
   container: {
     flexDirection: 'row',
     borderRadius: borderRadius.lg,

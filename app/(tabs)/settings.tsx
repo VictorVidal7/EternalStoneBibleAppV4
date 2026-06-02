@@ -899,14 +899,14 @@ export default function SettingsScreen() {
                 <Text
                   style={[
                     themedStyles.settingDescription,
-                    {marginBottom: 16, marginTop: 0},
+                    styles.signInPromptSpacing,
                   ]}>
                   {t.auth.notSignedIn}
                 </Text>
                 <TouchableOpacity
                   style={[
                     themedStyles.googleSignInButton,
-                    isAuthenticating && {opacity: 0.6},
+                    isAuthenticating && styles.dimmedWhileBusy,
                   ]}
                   onPress={handleSignInWithGoogle}
                   disabled={isAuthenticating}
@@ -1009,6 +1009,8 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
+  signInPromptSpacing: {marginBottom: 16, marginTop: 0},
+  dimmedWhileBusy: {opacity: 0.6},
   scrollView: {
     flex: 1,
   },
@@ -1386,7 +1388,7 @@ function createThemedStyles(
     },
     googleSignInButtonText: {
       fontSize: 15,
-      color: '#3c4043',
+      color: staticColors.darkGray,
       fontWeight: '600',
     },
     signOutButton: {
@@ -1398,7 +1400,7 @@ function createThemedStyles(
       paddingHorizontal: 16,
       borderRadius: 8,
       borderWidth: 1.5,
-      backgroundColor: 'transparent',
+      backgroundColor: staticColors.transparent,
     },
     signOutButtonText: {
       fontSize: 15,
@@ -1527,7 +1529,9 @@ function createThemedStyles(
       justifyContent: 'center',
       alignItems: 'center',
       borderWidth: isDark ? 1 : 0,
-      borderColor: isDark ? 'rgba(255,255,255,0.25)' : staticColors.transparent,
+      borderColor: isDark
+        ? staticColors.glassWhite25
+        : staticColors.transparent,
       marginBottom: 4,
     },
     colorThemePreviewCompact: {

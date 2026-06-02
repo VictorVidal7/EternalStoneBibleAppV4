@@ -125,7 +125,6 @@ export const PremiumSkeleton: React.FC<PremiumSkeletonProps> = ({
           height: variant === 'circular' ? width : height,
           borderRadius: getBorderRadius(),
           backgroundColor: skeletonColors.base,
-          overflow: 'hidden',
         },
         style,
       ]}>
@@ -298,7 +297,7 @@ export const SkeletonBookGrid: React.FC<{count?: number}> = ({count = 6}) => {
 
 const styles = StyleSheet.create({
   container: {
-    backgroundColor: 'rgba(0, 0, 0, 0.08)',
+    backgroundColor: staticColors.overlayBlack08,
     overflow: 'hidden',
   },
   shimmer: {

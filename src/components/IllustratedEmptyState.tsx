@@ -14,7 +14,12 @@ import {LinearGradient} from 'expo-linear-gradient';
 import {Ionicons} from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
 
-import {spacing, borderRadius, shadows} from '../styles/designTokens';
+import {
+  spacing,
+  borderRadius,
+  shadows,
+  staticColors,
+} from '../styles/designTokens';
 import {typography} from '../styles/typography';
 import {useLanguage} from '../hooks/useLanguage';
 
@@ -228,18 +233,14 @@ export const IllustratedEmptyState: React.FC<IllustratedEmptyStateProps> = ({
 
       {/* Texto */}
       <View style={styles.textContainer}>
-        <Text
-          style={[typography.h4, {color: colors.text, textAlign: 'center'}]}>
+        <Text style={[typography.h4, styles.centerText, {color: colors.text}]}>
           {title || config.defaultTitle}
         </Text>
         <Text
           style={[
             typography.body,
-            {
-              color: colors.textSecondary,
-              textAlign: 'center',
-              marginTop: spacing.md,
-            },
+            styles.centerTextSpaced,
+            {color: colors.textSecondary},
           ]}>
           {message || config.defaultMessage}
         </Text>
@@ -357,6 +358,8 @@ const styles = StyleSheet.create({
     maxWidth: 320,
     marginBottom: spacing.xl,
   },
+  centerText: {textAlign: 'center'},
+  centerTextSpaced: {textAlign: 'center', marginTop: spacing.md},
 
   // Action button
   actionButton: {
@@ -372,7 +375,7 @@ const styles = StyleSheet.create({
   },
   actionButtonText: {
     ...typography.button,
-    color: '#ffffff',
+    color: staticColors.white,
   },
 
   // Bottom decoration

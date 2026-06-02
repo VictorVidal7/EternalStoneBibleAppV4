@@ -693,7 +693,7 @@ export const VersionComparisonScreen: React.FC<
                             width: `${analysis.similarity}%`,
                             backgroundColor:
                               analysis.similarity >= 80
-                                ? '#10B981'
+                                ? staticColors.emerald
                                 : analysis.similarity >= 60
                                   ? colors.warning
                                   : colors.error,
@@ -1356,7 +1356,7 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: 'center',
     padding: 12,
-    backgroundColor: 'rgba(0,0,0,0.03)',
+    backgroundColor: staticColors.overlayBlack03,
     borderRadius: 8,
   },
   statValue: {
@@ -1501,7 +1501,7 @@ const styles = StyleSheet.create({
   actionButton: {
     padding: 8,
     borderRadius: 8,
-    backgroundColor: 'rgba(0,0,0,0.03)',
+    backgroundColor: staticColors.overlayBlack03,
   },
   verseNumberButton: {
     flexDirection: 'row',

@@ -1,5 +1,6 @@
-/* eslint-disable react-native/no-color-literals -- bespoke gamified
-   palette (amber/honey gradients) intentional in the light variant. */
+/* eslint-disable react-native/no-color-literals, react-native/no-inline-styles --
+   bespoke gamified panel: the amber/honey light palette is intentional, and
+   the stat tiles are recolored per isDark inline (theme-conditional chrome). */
 /**
  * User Statistics Panel
  * Displays level, progress, streaks and statistics
