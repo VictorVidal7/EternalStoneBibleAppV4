@@ -8,6 +8,10 @@ import React, {
 } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {logger} from '../lib/utils/logger';
+import {
+  canonicalProgressKey,
+  canonicalizeProgressMap,
+} from '../lib/progress/progressKeys';
 
 /**
  * Interface for last read position tracking
@@ -87,11 +91,21 @@ export const ReadingProgressProvider: FC<{children: ReactNode}> = ({
       const savedProgress = await AsyncStorage.getItem('readingProgress');
       if (savedProgress !== null) {
         const parsedProgress: ReadingProgress = JSON.parse(savedProgress);
-        setProgress(parsedProgress);
+        // Migrate legacy data keyed by the Spanish book name to the canonical
+        // (English) key so the Home "Continue Reading" card — which looks it
+        // up by the route book param — finds it (Sprint 58 follow-up).
+        const canonical = canonicalizeProgressMap(parsedProgress);
+        setProgress(canonical);
+        if (JSON.stringify(canonical) !== savedProgress) {
+          AsyncStorage.setItem(
+            'readingProgress',
+            JSON.stringify(canonical),
+          ).catch(() => undefined);
+        }
         logger.debug('Reading progress loaded successfully', {
           component: 'ReadingProgressProvider',
           action: 'loadProgress',
-          booksLoaded: Object.keys(parsedProgress).length,
+          booksLoaded: Object.keys(canonical).length,
         });
       }
     } catch (error) {
@@ -145,10 +159,14 @@ export const ReadingProgressProvider: FC<{children: ReactNode}> = ({
     chapter: string,
     percentage: number,
   ): void => {
+    // Always key on the canonical (English) book name so reads from the Home
+    // card (which passes the route book param) and the chapter grid (which
+    // passes the Spanish name) hit the same entry (Sprint 58 follow-up).
+    const key = canonicalProgressKey(book);
     const newProgress: ReadingProgress = {
       ...progress,
-      [book]: {
-        ...progress[book],
+      [key]: {
+        ...progress[key],
         [chapter]: percentage,
       },
     };
@@ -176,7 +194,7 @@ export const ReadingProgressProvider: FC<{children: ReactNode}> = ({
    * @returns The progress percentage (0-100), defaults to 0 if not found
    */
   const getChapterProgress = (book: string, chapter: string): number => {
-    return progress[book]?.[chapter] || 0;
+    return progress[canonicalProgressKey(book)]?.[chapter] || 0;
   };
 
   /**
