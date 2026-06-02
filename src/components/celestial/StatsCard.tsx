@@ -8,9 +8,10 @@
  */
 
 import React, {useEffect, useRef} from 'react';
-import {View, Text, StyleSheet, Animated} from 'react-native';
+import {View, StyleSheet, Animated} from 'react-native';
 import {Ionicons} from '@expo/vector-icons';
 import type {ComponentProps} from 'react';
+import {AppText} from '@components/ui/AppText';
 
 type IoniconsName = ComponentProps<typeof Ionicons>['name'];
 
@@ -107,11 +108,21 @@ const StatsCard: React.FC<StatsCardProps> = ({
         <Ionicons name={icon} size={iconSize} color={iconColor} />
       </Animated.View>
 
-      {/* Valor */}
-      <Text style={[styles.value, {color: valueColor}]}>{value}</Text>
+      {/* Valor — display number in a fixed hero column: cap font scaling */}
+      <AppText
+        scaleRole="display"
+        numberOfLines={1}
+        style={[styles.value, {color: valueColor}]}>
+        {value}
+      </AppText>
 
-      {/* Label */}
-      <Text style={[styles.label, {color: labelColor}]}>{label}</Text>
+      {/* Label — compact uppercase caption: tightest cap */}
+      <AppText
+        scaleRole="compact"
+        numberOfLines={1}
+        style={[styles.label, {color: labelColor}]}>
+        {label}
+      </AppText>
     </View>
   );
 };

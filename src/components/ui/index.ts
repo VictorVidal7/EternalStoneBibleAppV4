@@ -11,6 +11,10 @@
 export {AnimatedCard} from './AnimatedCard';
 export {AnimatedButton} from './AnimatedButton';
 
+// ==================== ACCESSIBILITY ====================
+export {AppText} from './AppText';
+export type {AppTextProps} from './AppText';
+
 // ==================== PREMIUM COMPONENTS ====================
 export {GlassmorphicHeader, HEADER_GRADIENTS} from './GlassmorphicHeader';
 export type {GradientPreset} from './GlassmorphicHeader';

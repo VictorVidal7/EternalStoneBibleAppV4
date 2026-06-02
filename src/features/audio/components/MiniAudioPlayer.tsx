@@ -26,6 +26,7 @@ import {
   Platform,
 } from 'react-native';
 import {usePathname, router} from 'expo-router';
+import {AppText} from '@components/ui/AppText';
 import Animated, {
   useAnimatedStyle,
   useSharedValue,
@@ -343,11 +344,12 @@ export const MiniAudioPlayer: React.FC<MiniAudioPlayerProps> = ({
                   accessibilityRole="button"
                   accessibilityLabel={verseTitle}
                   accessibilityHint={t.audio.a11y.expandHint}>
-                  <Text
+                  <AppText
+                    scaleRole="display"
                     style={[styles.verseTitle, {color: colors.text}]}
                     numberOfLines={1}>
                     {verseTitle}
-                  </Text>
+                  </AppText>
                   <MiniProgressDots
                     currentIndex={state.currentVerseIndex}
                     totalVerses={verses.length}
@@ -389,9 +391,11 @@ export const MiniAudioPlayer: React.FC<MiniAudioPlayerProps> = ({
                   accessibilityRole="button"
                   accessibilityLabel={t.audio.a11y.speed}
                   accessibilityValue={{text: `${state.playbackSpeed}x`}}>
-                  <Text style={[styles.speedText, {color: colors.primary}]}>
+                  <AppText
+                    scaleRole="compact"
+                    style={[styles.speedText, {color: colors.primary}]}>
                     {state.playbackSpeed}x
-                  </Text>
+                  </AppText>
                 </TouchableOpacity>
 
                 {/* Expand Button */}
@@ -422,11 +426,12 @@ export const MiniAudioPlayer: React.FC<MiniAudioPlayerProps> = ({
               {/* Header */}
               <View style={styles.expandedHeader}>
                 <View style={styles.expandedTitle}>
-                  <Text
+                  <AppText
+                    scaleRole="display"
                     style={[styles.expandedVerseTitle, {color: colors.text}]}
                     numberOfLines={1}>
                     {verseTitle}
-                  </Text>
+                  </AppText>
                   <Text
                     style={[
                       styles.expandedVerseText,
@@ -567,10 +572,11 @@ export const MiniAudioPlayer: React.FC<MiniAudioPlayerProps> = ({
                       color={sleepTimer.isActive ? colors.primary : colors.text}
                     />
                     {sleepTimer.isActive && (
-                      <Text
+                      <AppText
+                        scaleRole="compact"
                         style={[styles.timerBadge, {color: colors.primary}]}>
                         {sleepTimer.remainingMinutes}m
-                      </Text>
+                      </AppText>
                     )}
                   </TouchableOpacity>
                 </View>
