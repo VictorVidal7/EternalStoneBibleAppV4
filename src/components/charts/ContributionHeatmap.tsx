@@ -52,7 +52,13 @@ export const ContributionHeatmap: React.FC<ContributionHeatmapProps> = ({
   }
 
   const a11y = accessibilityLabel
-    ? ({accessibilityRole: 'image', accessibilityLabel} as const)
+    ? // `accessible` collapses the day-cells into ONE focusable node so the
+      // screen reader announces the summary label (not 100+ empty cells).
+      ({
+        accessible: true,
+        accessibilityRole: 'image',
+        accessibilityLabel,
+      } as const)
     : ({
         accessibilityElementsHidden: true,
         importantForAccessibility: 'no-hide-descendants',
