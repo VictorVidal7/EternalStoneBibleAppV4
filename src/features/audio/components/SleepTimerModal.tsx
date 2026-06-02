@@ -20,6 +20,7 @@ import {Ionicons} from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
 import {useTheme} from '../../../hooks/useTheme';
 import {staticColors} from '../../../styles/designTokens';
+import {focusTrapProps} from '@lib/a11y/focusTrap';
 import {useLanguage} from '../../../hooks/useLanguage';
 import {SleepTimerState} from '../types/audio';
 import {SLEEP_TIMER_OPTIONS} from '../constants/audioConstants';
@@ -83,7 +84,8 @@ export const SleepTimerModal: React.FC<SleepTimerModalProps> = ({
       <Pressable style={styles.modalOverlay} onPress={onClose}>
         <Pressable
           style={[styles.modalContent, {backgroundColor: colors.card}]}
-          onPress={e => e.stopPropagation()}>
+          onPress={e => e.stopPropagation()}
+          {...focusTrapProps()}>
           {/* Header */}
           <View style={styles.modalHeader}>
             <View style={styles.headerLeft}>

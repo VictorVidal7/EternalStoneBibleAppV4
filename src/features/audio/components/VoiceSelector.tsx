@@ -21,6 +21,7 @@ import {
 import {Ionicons} from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
 import {useTheme} from '../../../hooks/useTheme';
+import {focusTrapProps} from '@lib/a11y/focusTrap';
 import {VoiceInfo, AudioLanguage} from '../types/audio';
 import {useVoices} from '../hooks/useVoices';
 import {LANGUAGE_LABELS, LANGUAGE_FLAGS} from '../constants/audioConstants';
@@ -130,7 +131,8 @@ export const VoiceSelector: React.FC<VoiceSelectorProps> = ({
         <Pressable style={styles.modalOverlay} onPress={handleCloseModal}>
           <Pressable
             style={[styles.modalContent, {backgroundColor: colors.card}]}
-            onPress={e => e.stopPropagation()}>
+            onPress={e => e.stopPropagation()}
+            {...focusTrapProps()}>
             {/* Header */}
             <View style={styles.modalHeader}>
               <Text style={[styles.modalTitle, {color: colors.text}]}>

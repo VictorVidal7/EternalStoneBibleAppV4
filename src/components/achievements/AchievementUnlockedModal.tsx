@@ -13,6 +13,7 @@ import {
   Dimensions,
 } from 'react-native';
 import {staticColors} from '@/styles/designTokens';
+import {focusTrapProps, a11yHiddenProps} from '@lib/a11y/focusTrap';
 
 import {
   Achievement,
@@ -144,7 +145,11 @@ export const AchievementUnlockedModal: React.FC<
       animationType="fade"
       onRequestClose={onClose}>
       <View style={styles.overlay}>
-        <Pressable style={styles.backdrop} onPress={onClose} />
+        <Pressable
+          style={styles.backdrop}
+          onPress={onClose}
+          {...a11yHiddenProps()}
+        />
 
         {/* Confetti */}
         {confettiAnims.map((anim, index) => (
@@ -185,7 +190,9 @@ export const AchievementUnlockedModal: React.FC<
               opacity: fadeAnim,
             },
           ]}>
-          <View style={[styles.card, {borderColor: tierColor}]}>
+          <View
+            style={[styles.card, {borderColor: tierColor}]}
+            {...focusTrapProps()}>
             {/* Header */}
             <View style={styles.header}>
               <Text style={styles.title}>{t.achievements.unlockTitle}</Text>

@@ -40,6 +40,7 @@ import {
 } from '../../styles/readerThemes';
 import {useTheme} from '../../hooks/useTheme';
 import {useLanguage} from '../../hooks/useLanguage';
+import {focusTrapProps, a11yHiddenProps} from '@lib/a11y/focusTrap';
 import {
   borderRadius,
   fontSize as fontSizes,
@@ -146,11 +147,11 @@ export const ReaderPreferencesSheet: React.FC<ReaderPreferencesSheetProps> = ({
           style={styles.overlayDismiss}
           onPress={onClose}
           activeOpacity={1}
-          accessibilityRole="button"
-          accessibilityLabel={t.close}
+          {...a11yHiddenProps()}
         />
 
         <View
+          {...focusTrapProps()}
           style={[
             styles.sheet,
             {

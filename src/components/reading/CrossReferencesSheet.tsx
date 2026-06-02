@@ -26,6 +26,7 @@ import {useRouter} from 'expo-router';
 import {Ionicons} from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
 import {useTheme} from '@hooks/useTheme';
+import {focusTrapProps, a11yHiddenProps} from '@lib/a11y/focusTrap';
 import {useLanguage} from '@hooks/useLanguage';
 import {staticColors} from '@/styles/designTokens';
 import {getCrossReferences} from '@/constants/cross-references';
@@ -166,12 +167,14 @@ export const CrossReferencesSheet: React.FC<Props> = ({
           style={styles.backdropTouch}
           activeOpacity={1}
           onPress={onClose}
+          {...a11yHiddenProps()}
         />
         <View
           style={[
             styles.sheet,
             {backgroundColor: colors.surface, borderColor: colors.border},
-          ]}>
+          ]}
+          {...focusTrapProps()}>
           <View style={styles.header}>
             <View style={styles.headerText}>
               <Text style={[styles.title, {color: colors.text}]}>

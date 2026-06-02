@@ -21,6 +21,7 @@ import {
   HIGHLIGHT_CATEGORY_NAMES,
   HIGHLIGHT_CATEGORY_ICONS,
 } from '../../lib/highlights';
+import {focusTrapProps, a11yHiddenProps} from '@lib/a11y/focusTrap';
 
 interface HighlightColorPickerProps {
   visible: boolean;
@@ -61,9 +62,13 @@ export const HighlightColorPicker: React.FC<HighlightColorPickerProps> = ({
       transparent
       onRequestClose={onClose}>
       <View style={styles.overlay}>
-        <Pressable style={styles.backdrop} onPress={onClose} />
+        <Pressable
+          style={styles.backdrop}
+          onPress={onClose}
+          {...a11yHiddenProps()}
+        />
 
-        <View style={styles.container}>
+        <View style={styles.container} {...focusTrapProps()}>
           {/* Header */}
           <View style={styles.header}>
             <Text style={styles.title}>Resaltar Versículo</Text>
