@@ -19,6 +19,7 @@ import {
 import {Ionicons} from '@expo/vector-icons';
 import {useTheme} from '../../hooks/useTheme';
 import {useLanguage} from '../../hooks/useLanguage';
+import {focusTrapProps} from '@lib/a11y/focusTrap';
 import {staticColors} from '../../styles/designTokens';
 import {
   borderRadius,
@@ -59,7 +60,9 @@ export const NoteEditorModal: React.FC<NoteEditorModalProps> = ({
       animationType="slide"
       onRequestClose={onClose}>
       <View style={[styles.overlay, {backgroundColor: colors.overlay}]}>
-        <View style={[styles.content, {backgroundColor: colors.surface}]}>
+        <View
+          style={[styles.content, {backgroundColor: colors.surface}]}
+          {...focusTrapProps()}>
           <View style={styles.header}>
             <Text style={[styles.title, {color: colors.text}]}>
               {verseReference || t.notes.add}

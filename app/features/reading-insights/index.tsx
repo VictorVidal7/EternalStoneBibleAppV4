@@ -34,6 +34,10 @@ import {useReadingProgress} from '@context/ReadingProgressContext';
 import {AppText} from '@components/ui/AppText';
 import {ContributionHeatmap} from '@components/charts/ContributionHeatmap';
 import {
+  summarizeHeatmapCells,
+  buildHeatmapA11yLabel,
+} from '@lib/a11y/heatmapSummary';
+import {
   buildReadingInsights,
   type ReadingInsights,
 } from '@/features/reading-insights/readingInsights';
@@ -216,14 +220,18 @@ export default function ReadingInsightsScreen() {
                   style={[styles.cardHint, {color: colors.textTertiary}]}>
                   {ri.heatmapHint}
                 </AppText>
-                <View
-                  accessibilityRole="image"
-                  accessibilityLabel={`${ri.heatmapTitle}: ${insights.windowVerses} ${ri.versesUnit}, ${insights.activeDays} ${ri.daysUnit}`}>
-                  <ContributionHeatmap
-                    cells={insights.heatmap}
-                    levelColors={heatLevelColors}
-                  />
-                </View>
+                <ContributionHeatmap
+                  cells={insights.heatmap}
+                  levelColors={heatLevelColors}
+                  accessibilityLabel={buildHeatmapA11yLabel({
+                    title: ri.heatmapTitle,
+                    activeDays: summarizeHeatmapCells(insights.heatmap)
+                      .activeDays,
+                    daysWord: ri.daysUnit,
+                    total: insights.windowVerses,
+                    totalWord: ri.versesUnit,
+                  })}
+                />
                 <View style={styles.legendRow}>
                   <AppText
                     scaleRole="compact"

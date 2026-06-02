@@ -35,6 +35,8 @@ import {useTheme} from '../../hooks/useTheme';
 import {useLanguage} from '../../hooks/useLanguage';
 import {usePremium} from '../../context/PremiumContext';
 import {localizedVerseReference} from '../../lib/reading/verseReference';
+import {useReaderPreferences} from '../../context/ReaderPreferencesContext';
+import {immersiveHighContrastColors} from '../../lib/reading/immersiveTheme';
 import {
   useAudioPlayer,
   toAudioVerses,
@@ -64,6 +66,11 @@ export const ImmersiveReader: React.FC<ImmersiveReaderProps> = ({
   startIndex = 0,
 }) => {
   const {colors, isDark, gradient} = useTheme();
+  // ♿ When the reader's WCAG-AAA High-Contrast theme (S60) is active, the
+  // immersive surface drops its celestial chrome for pure black/white/amber.
+  const {preferences: readerPrefs} = useReaderPreferences();
+  const isHighContrast = readerPrefs.theme === 'high-contrast';
+  const hcColors = immersiveHighContrastColors();
   const {t, language} = useLanguage();
   const {isPremium} = usePremium();
   const {
@@ -322,6 +329,9 @@ export const ImmersiveReader: React.FC<ImmersiveReaderProps> = ({
   };
 
   const getBackgroundGradient = (): readonly string[] => {
+    if (isHighContrast) {
+      return [hcColors.background, hcColors.background];
+    }
     if (backgroundType === 'celestial') {
       return (
         gradient?.colors ||
@@ -353,8 +363,9 @@ export const ImmersiveReader: React.FC<ImmersiveReaderProps> = ({
         style={StyleSheet.absoluteFill}
       />
 
-      {/* Floating stars/particles for celestial mode */}
-      {backgroundType === 'celestial' && (
+      {/* Floating stars/particles for celestial mode (hidden in High Contrast
+          — decorative stars would only muddy the pure-black AAA surface) */}
+      {!isHighContrast && backgroundType === 'celestial' && (
         <View style={styles.starsContainer}>
           <Ionicons
             name="star"
@@ -412,7 +423,11 @@ export const ImmersiveReader: React.FC<ImmersiveReaderProps> = ({
               styles.verseText,
               {
                 fontSize,
-                color: isDark ? '#f1f5f9' : '#1e293b',
+                color: isHighContrast
+                  ? hcColors.text
+                  : isDark
+                    ? '#f1f5f9'
+                    : '#1e293b',
                 textShadowColor: isDark
                   ? 'rgba(0,0,0,0.5)'
                   : 'rgba(255,255,255,0.8)',
@@ -427,7 +442,11 @@ export const ImmersiveReader: React.FC<ImmersiveReaderProps> = ({
             style={[
               styles.reference,
               {
-                color: isDark ? '#cbd5e1' : '#64748b',
+                color: isHighContrast
+                  ? hcColors.reference
+                  : isDark
+                    ? '#cbd5e1'
+                    : '#64748b',
               },
             ]}>
             {localizedReference(currentVerse)}
@@ -458,7 +477,11 @@ export const ImmersiveReader: React.FC<ImmersiveReaderProps> = ({
                       styles.seekFill,
                       {
                         width: Math.max(0, seekFraction * seekTrackWidth),
-                        backgroundColor: isDark ? '#60a5fa' : '#3b82f6',
+                        backgroundColor: isHighContrast
+                          ? hcColors.accent
+                          : isDark
+                            ? '#60a5fa'
+                            : '#3b82f6',
                       },
                     ]}
                   />
@@ -467,7 +490,11 @@ export const ImmersiveReader: React.FC<ImmersiveReaderProps> = ({
                       styles.seekThumb,
                       {
                         left: seekFraction * seekTrackWidth - SEEK_THUMB / 2,
-                        backgroundColor: isDark ? '#60a5fa' : '#3b82f6',
+                        backgroundColor: isHighContrast
+                          ? hcColors.accent
+                          : isDark
+                            ? '#60a5fa'
+                            : '#3b82f6',
                       },
                     ]}
                   />
@@ -476,7 +503,15 @@ export const ImmersiveReader: React.FC<ImmersiveReaderProps> = ({
               <Text
                 style={[
                   styles.seekCaption,
-                  {color: seekPreview != null ? '#93c5fd' : '#94a3b8'},
+                  {
+                    color: isHighContrast
+                      ? seekPreview != null
+                        ? hcColors.accent
+                        : hcColors.caption
+                      : seekPreview != null
+                        ? '#93c5fd'
+                        : '#94a3b8',
+                  },
                 ]}
                 numberOfLines={1}>
                 {seekPreview != null
@@ -491,7 +526,7 @@ export const ImmersiveReader: React.FC<ImmersiveReaderProps> = ({
               <Text
                 style={[
                   styles.progressText,
-                  {color: isDark ? '#94a3b8' : '#94a3b8'},
+                  {color: isHighContrast ? hcColors.caption : '#94a3b8'},
                 ]}>
                 {currentIndex + 1} / {verses.length}
               </Text>
@@ -501,7 +536,11 @@ export const ImmersiveReader: React.FC<ImmersiveReaderProps> = ({
                     styles.progressFill,
                     {
                       width: `${((currentIndex + 1) / verses.length) * 100}%`,
-                      backgroundColor: isDark ? '#60a5fa' : '#3b82f6',
+                      backgroundColor: isHighContrast
+                        ? hcColors.accent
+                        : isDark
+                          ? '#60a5fa'
+                          : '#3b82f6',
                     },
                   ]}
                 />

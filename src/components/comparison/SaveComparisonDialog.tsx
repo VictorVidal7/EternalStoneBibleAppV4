@@ -11,6 +11,7 @@ import {staticColors} from '@/styles/designTokens';
 
 import {Ionicons} from '@expo/vector-icons';
 import {useTheme} from '../../hooks/useTheme';
+import {focusTrapProps} from '@lib/a11y/focusTrap';
 import {useLanguage} from '../../hooks/useLanguage';
 
 interface SaveComparisonDialogProps {
@@ -53,7 +54,9 @@ export const SaveComparisonDialog: React.FC<SaveComparisonDialogProps> = ({
       transparent
       onRequestClose={onClose}>
       <View style={styles.modalOverlay}>
-        <View style={[styles.modalContent, {backgroundColor: colors.surface}]}>
+        <View
+          style={[styles.modalContent, {backgroundColor: colors.surface}]}
+          {...focusTrapProps()}>
           <View style={styles.modalHeader}>
             <Text style={[styles.modalTitle, {color: colors.text}]}>
               {isEditing

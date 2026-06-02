@@ -25,6 +25,14 @@ interface ContributionHeatmapProps {
   levelColors: readonly string[];
   /** Gap in dp between cells and columns. */
   gap?: number;
+  /**
+   * One-sentence summary for screen readers (e.g. "Reading activity: 1422
+   * verses, 3 active days" via `buildHeatmapA11yLabel`). When provided, the
+   * grid announces as a single labelled `image`; when omitted, the grid is
+   * treated as DECORATIVE (hidden from the screen reader) so it never becomes
+   * an empty "image" focus stop next to a labelled wrapper.
+   */
+  accessibilityLabel?: string;
 }
 
 const DAYS_PER_WEEK = 7;
@@ -33,6 +41,7 @@ export const ContributionHeatmap: React.FC<ContributionHeatmapProps> = ({
   cells,
   levelColors,
   gap = 3,
+  accessibilityLabel,
 }) => {
   // Chunk the contiguous days into week columns of up to 7 (the final
   // column — this week — may be short; trailing slots render transparent
@@ -42,8 +51,21 @@ export const ContributionHeatmap: React.FC<ContributionHeatmapProps> = ({
     weeks.push(cells.slice(i, i + DAYS_PER_WEEK));
   }
 
+  const a11y = accessibilityLabel
+    ? // `accessible` collapses the day-cells into ONE focusable node so the
+      // screen reader announces the summary label (not 100+ empty cells).
+      ({
+        accessible: true,
+        accessibilityRole: 'image',
+        accessibilityLabel,
+      } as const)
+    : ({
+        accessibilityElementsHidden: true,
+        importantForAccessibility: 'no-hide-descendants',
+      } as const);
+
   return (
-    <View style={[styles.row, {gap}]} accessibilityRole="image">
+    <View style={[styles.row, {gap}]} {...a11y}>
       {weeks.map((week, wi) => (
         <View key={wi} style={[styles.col, {gap}]}>
           {Array.from({length: DAYS_PER_WEEK}, (_, di) => {

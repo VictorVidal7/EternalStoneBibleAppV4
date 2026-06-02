@@ -38,6 +38,10 @@ import SVGCircularProgress from '@components/SVGCircularProgress';
 import {MiniBarChart, type BarDatum} from '@components/charts/MiniBarChart';
 import {ContributionHeatmap} from '@components/charts/ContributionHeatmap';
 import {
+  summarizeHeatmapCells,
+  buildHeatmapA11yLabel,
+} from '@lib/a11y/heatmapSummary';
+import {
   borderRadius,
   fontSize as fontSizes,
   spacing,
@@ -342,6 +346,13 @@ export default function MemoryInsightsScreen() {
                         <ContributionHeatmap
                           cells={history.heatmap.cells}
                           levelColors={heatLevelColors}
+                          accessibilityLabel={buildHeatmapA11yLabel({
+                            title: i.heatmapTitle,
+                            activeDays: summarizeHeatmapCells(
+                              history.heatmap.cells,
+                            ).activeDays,
+                            daysWord: i.activeDays,
+                          })}
                         />
                         <View style={styles.legendRow}>
                           <Text

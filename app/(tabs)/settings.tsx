@@ -3,7 +3,6 @@
    returns through the `themedStyles.<x>` variable name. */
 import {
   View,
-  Text,
   StyleSheet,
   ScrollView,
   TouchableOpacity,
@@ -12,6 +11,8 @@ import {
   Image,
   ActivityIndicator,
 } from 'react-native';
+// ♿ Dynamic-type: cap OS font-scale on the settings chrome (labels/rows).
+import {AppText as Text} from '@components/ui/AppText';
 import {staticColors} from '@/styles/designTokens';
 
 import React, {useEffect, useState, useMemo, useRef, useCallback} from 'react';

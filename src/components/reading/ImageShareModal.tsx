@@ -32,6 +32,7 @@ import {useRouter} from 'expo-router';
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
 import {useTheme} from '../../hooks/useTheme';
 import {staticColors} from '../../styles/designTokens';
+import {focusTrapProps} from '@lib/a11y/focusTrap';
 import {useLanguage} from '../../hooks/useLanguage';
 import {useToast} from '../../context/ToastContext';
 import {usePremium} from '../../context/PremiumContext';
@@ -166,7 +167,9 @@ export const ImageShareModal: React.FC<ImageShareModalProps> = ({
 
   return (
     <Modal visible={visible} animationType="slide" onRequestClose={onClose}>
-      <View style={[styles.container, {backgroundColor: colors.background}]}>
+      <View
+        style={[styles.container, {backgroundColor: colors.background}]}
+        {...focusTrapProps()}>
         <View style={[styles.header, {paddingTop: insets.top + 10}]}>
           <TouchableOpacity
             onPress={onClose}
