@@ -43,7 +43,7 @@ export const FONT_SCALE_CAP = {
 
 export type FontScaleRole = keyof typeof FONT_SCALE_CAP;
 
-/** The moderate default applied by `<AppText>` and the global safety net. */
+/** The moderate default cap `<AppText>` applies when no role is given. */
 export const DEFAULT_MAX_FONT_SCALE = FONT_SCALE_CAP.default;
 
 /**

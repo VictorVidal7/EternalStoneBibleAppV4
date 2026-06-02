@@ -553,6 +553,8 @@ export default function HomeScreen() {
             style={{opacity: fadeAnim, marginTop: celestialSpacing.cardGap}}>
             <TouchableOpacity
               activeOpacity={0.9}
+              accessibilityRole="button"
+              accessible={true}
               onPress={() =>
                 handlePress(() =>
                   router.push(
@@ -831,6 +833,8 @@ export default function HomeScreen() {
 
           <TouchableOpacity
             activeOpacity={0.9}
+            accessibilityRole="button"
+            accessible={true}
             onPress={() =>
               handlePress(() => router.push('/features/version-comparison'))
             }>
@@ -964,6 +968,8 @@ export default function HomeScreen() {
             <TouchableOpacity
               activeOpacity={0.9}
               style={styles.savedCardWrapper}
+              accessibilityRole="button"
+              accessible={true}
               onPress={() =>
                 handlePress(() => router.push('/(tabs)/notes' as never))
               }>
@@ -1030,6 +1036,8 @@ export default function HomeScreen() {
             <TouchableOpacity
               activeOpacity={0.9}
               style={styles.savedCardWrapper}
+              accessibilityRole="button"
+              accessible={true}
               onPress={() =>
                 handlePress(() => router.push('/(tabs)/highlights' as never))
               }>
@@ -1096,6 +1104,8 @@ export default function HomeScreen() {
             <TouchableOpacity
               activeOpacity={0.9}
               style={styles.savedCardWrapper}
+              accessibilityRole="button"
+              accessible={true}
               onPress={() =>
                 handlePress(() => router.push('/(tabs)/bookmarks' as never))
               }>
@@ -1168,6 +1178,8 @@ export default function HomeScreen() {
             <TouchableOpacity
               activeOpacity={0.9}
               style={styles.savedCardWrapper}
+              accessibilityRole="button"
+              accessible={true}
               onPress={() =>
                 handlePress(() => router.push('/features/memory' as never))
               }>

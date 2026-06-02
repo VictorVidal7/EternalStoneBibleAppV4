@@ -78,8 +78,12 @@ import {
   staticColors,
 } from '@/styles/designTokens';
 import {resolveReaderTheme} from '@/styles/readerThemes';
+import {hitSlopToMinTarget} from '@lib/a11y/touchTarget';
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
 import {useWindowDimensions} from 'react-native';
+
+// The chapter nav row is ~40dp tall; expand its tap target to the 48dp minimum.
+const NAV_HIT_SLOP = hitSlopToMinTarget(40);
 
 /**
  * Builds a compact verse list, collapsing consecutive runs into ranges.
@@ -1088,7 +1092,11 @@ export default function VerseReadingScreen() {
             <TouchableOpacity
               style={styles.navButton}
               onPress={() => navigateChapter('prev')}
-              disabled={!canGoPrev}>
+              disabled={!canGoPrev}
+              accessibilityRole="button"
+              accessibilityState={{disabled: !canGoPrev}}
+              accessibilityLabel={t.previous}
+              hitSlop={NAV_HIT_SLOP}>
               <Ionicons
                 name="chevron-back"
                 size={24}
@@ -1129,7 +1137,11 @@ export default function VerseReadingScreen() {
             <TouchableOpacity
               style={styles.navButton}
               onPress={() => navigateChapter('next')}
-              disabled={!canGoNext}>
+              disabled={!canGoNext}
+              accessibilityRole="button"
+              accessibilityState={{disabled: !canGoNext}}
+              accessibilityLabel={t.next}
+              hitSlop={NAV_HIT_SLOP}>
               <Text
                 style={[
                   styles.navButtonText,

@@ -519,7 +519,9 @@ interface ThemeContextType {
 }
 
 // Colores Celestial Sereno Light - Paleta Indigo/Purple profesional
-const lightColors: ThemeColors = {
+// Exported so the WCAG contrast audit (themeContrast.test) can lock the core
+// text/background pairs against the real source of truth.
+export const lightColors: ThemeColors = {
   background: '#ffffff',
   surface: 'rgba(255, 255, 255, 0.95)',
   surfaceVariant: '#f8f9fc',
@@ -556,7 +558,7 @@ const lightColors: ThemeColors = {
 };
 
 // Colores Celestial Sereno Dark - Paleta Indigo/Purple vibrante
-const darkColors: ThemeColors = {
+export const darkColors: ThemeColors = {
   background: '#0a0d1a', // Casi negro con tinte azul
   surface: 'rgba(26, 29, 46, 0.70)',
   surfaceVariant: '#1a1d2e',
