@@ -14,7 +14,12 @@ import {LinearGradient} from 'expo-linear-gradient';
 import {Ionicons} from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
 
-import {spacing, borderRadius, shadows} from '../styles/designTokens';
+import {
+  spacing,
+  borderRadius,
+  shadows,
+  staticColors,
+} from '../styles/designTokens';
 import {typography} from '../styles/typography';
 import {useLanguage} from '../hooks/useLanguage';
 
@@ -372,7 +377,7 @@ const styles = StyleSheet.create({
   },
   actionButtonText: {
     ...typography.button,
-    color: '#ffffff',
+    color: staticColors.white,
   },
 
   // Bottom decoration

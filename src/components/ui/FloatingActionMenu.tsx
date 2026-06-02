@@ -486,7 +486,7 @@ const styles = StyleSheet.create({
     position: 'absolute',
   },
   labelContainerDark: {
-    backgroundColor: '#374151',
+    backgroundColor: staticColors.gray700,
   },
   labelLeft: {
     right: 64,

@@ -277,7 +277,7 @@ const CustomBackdrop: React.FC<CustomBackdropProps> = ({
         styles.backdrop,
         {
           backgroundColor: isDark
-            ? 'rgba(0,0,0,0.7)'
+            ? staticColors.overlayBlack70
             : staticColors.overlayBlack50,
         },
         style,
@@ -473,7 +473,7 @@ const styles = StyleSheet.create({
     paddingTop: 8,
     paddingBottom: 16,
     borderBottomWidth: 1,
-    borderBottomColor: 'rgba(0,0,0,0.08)',
+    borderBottomColor: staticColors.overlayBlack08,
   },
   headerAction: {
     width: 80,

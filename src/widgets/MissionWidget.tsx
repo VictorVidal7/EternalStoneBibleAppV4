@@ -188,7 +188,9 @@ export const MissionWidget: React.FC<MissionWidgetProps> = ({
                 styles.progressFill,
                 {
                   width: `${progressPercentage}%`,
-                  backgroundColor: isCompleted ? '#22C55E' : colors.accent,
+                  backgroundColor: isCompleted
+                    ? staticColors.green500
+                    : colors.accent,
                 },
               ]}>
               {isCompleted && (
@@ -238,7 +240,11 @@ export const MissionWidget: React.FC<MissionWidgetProps> = ({
 
         {/* CTA */}
         {isCompleted ? (
-          <View style={[styles.ctaCompleted, {backgroundColor: '#22C55E'}]}>
+          <View
+            style={[
+              styles.ctaCompleted,
+              {backgroundColor: staticColors.green500},
+            ]}>
             <Ionicons name="checkmark-circle" size={18} color="#FFF" />
             <Text style={styles.ctaTextCompleted}>{t.widgets.completed}</Text>
           </View>

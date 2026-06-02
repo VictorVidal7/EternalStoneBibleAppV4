@@ -22,6 +22,7 @@ import {
 } from '../../lib/achievements/types';
 import {getLocalizedAchievement} from '../../lib/achievements/definitions';
 import {useTheme} from '../../hooks/useTheme';
+import {staticColors} from '../../styles/designTokens';
 import {useLanguage} from '../../hooks/useLanguage';
 
 // ==================== TYPE COMPATIBILITY ====================
@@ -109,7 +110,9 @@ export function AchievementCard({
         styles.container,
         compact && styles.containerCompact,
         {
-          backgroundColor: isDark ? '#1f2937' : '#ffffff',
+          backgroundColor: isDark
+            ? staticColors.grayNeutral
+            : staticColors.white,
           borderColor: unlocked ? rarityInfo.color : colors.border,
           borderWidth: unlocked ? 2 : 1,
           opacity: unlocked ? 1 : 0.6,
@@ -235,7 +238,7 @@ const styles = StyleSheet.create({
     padding: 16,
     borderRadius: 16,
     marginBottom: 12,
-    shadowColor: '#000',
+    shadowColor: staticColors.black,
     shadowOffset: {width: 0, height: 2},
     shadowOpacity: 0.1,
     shadowRadius: 8,

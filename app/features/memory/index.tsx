@@ -685,7 +685,7 @@ const styles = StyleSheet.create({
   },
   celebrateOverlay: {
     flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.55)',
+    backgroundColor: staticColors.overlayBlack55,
     alignItems: 'center',
     justifyContent: 'center',
     padding: spacing.xl,

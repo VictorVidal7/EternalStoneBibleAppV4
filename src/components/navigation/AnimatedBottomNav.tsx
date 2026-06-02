@@ -17,6 +17,7 @@ import {
 import {Ionicons} from '@expo/vector-icons';
 import {useRouter} from 'expo-router';
 import {useTheme} from '../../hooks/useTheme';
+import {staticColors} from '../../styles/designTokens';
 import {useLanguage} from '../../hooks/useLanguage';
 
 interface AnimatedBottomNavProps {
@@ -79,11 +80,11 @@ export const AnimatedBottomNav: React.FC<AnimatedBottomNavProps> = ({
         styles.container,
         {
           backgroundColor: isDark
-            ? 'rgba(26, 29, 46, 0.95)'
-            : 'rgba(255, 255, 255, 0.98)',
+            ? staticColors.navySurface95
+            : staticColors.glassWhite98,
           borderTopColor: isDark
-            ? 'rgba(71, 85, 105, 0.15)'
-            : 'rgba(226, 232, 240, 0.60)',
+            ? staticColors.slateBorderDark15
+            : staticColors.slateBorderLight60,
           transform: [{translateY}],
         },
       ]}>
@@ -155,7 +156,7 @@ const styles = StyleSheet.create({
     paddingBottom: Platform.OS === 'ios' ? 24 : 12,
     paddingTop: 10,
     height: Platform.OS === 'ios' ? 88 : 68,
-    shadowColor: '#000',
+    shadowColor: staticColors.black,
     shadowOffset: {width: 0, height: -2},
     shadowOpacity: 0.08,
     shadowRadius: 16,

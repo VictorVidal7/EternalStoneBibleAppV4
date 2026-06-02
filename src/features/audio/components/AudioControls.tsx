@@ -19,6 +19,7 @@ import Animated, {
 import {Ionicons} from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
 import {useTheme} from '../../../hooks/useTheme';
+import {staticColors} from '../../../styles/designTokens';
 import {useLanguage} from '../../../hooks/useLanguage';
 import {
   AUDIO_ICONS,
@@ -226,7 +227,7 @@ const styles = StyleSheet.create({
   mainButton: {
     justifyContent: 'center',
     alignItems: 'center',
-    shadowColor: '#4f46e5',
+    shadowColor: staticColors.indigoShadow,
     shadowOffset: {width: 0, height: 4},
     shadowOpacity: 0.3,
     shadowRadius: 8,

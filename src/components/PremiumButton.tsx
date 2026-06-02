@@ -20,7 +20,13 @@ import {
 import {LinearGradient} from 'expo-linear-gradient';
 import {Ionicons} from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
-import {spacing, borderRadius, fontSize, shadows} from '../styles/designTokens';
+import {
+  spacing,
+  borderRadius,
+  fontSize,
+  shadows,
+  staticColors,
+} from '../styles/designTokens';
 
 type ButtonVariant =
   | 'primary'
@@ -242,7 +248,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   text: {
-    color: '#ffffff',
+    color: staticColors.white,
     textAlign: 'center',
   },
   iconLeft: {
@@ -257,7 +263,7 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     bottom: 0,
-    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+    backgroundColor: staticColors.glassWhite20,
     width: 50,
   },
 });

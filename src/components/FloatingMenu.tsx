@@ -13,7 +13,7 @@ import {View, StyleSheet, TouchableOpacity, Animated} from 'react-native';
 import {Ionicons} from '@expo/vector-icons';
 import {LinearGradient} from 'expo-linear-gradient';
 import * as Haptics from 'expo-haptics';
-import {spacing, shadows} from '../styles/designTokens';
+import {spacing, shadows, staticColors} from '../styles/designTokens';
 
 export interface MenuAction {
   icon: keyof typeof Ionicons.glyphMap;
@@ -280,7 +280,7 @@ export const FloatingMenu: React.FC<FloatingMenuProps> = ({
           style={[
             StyleSheet.absoluteFill,
             {
-              backgroundColor: 'rgba(0, 0, 0, 0.3)',
+              backgroundColor: staticColors.overlayBlack30,
               opacity: rotation,
             },
           ]}>

@@ -298,7 +298,7 @@ export const SkeletonBookGrid: React.FC<{count?: number}> = ({count = 6}) => {
 
 const styles = StyleSheet.create({
   container: {
-    backgroundColor: 'rgba(0, 0, 0, 0.08)',
+    backgroundColor: staticColors.overlayBlack08,
     overflow: 'hidden',
   },
   shimmer: {

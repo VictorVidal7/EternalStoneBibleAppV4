@@ -21,6 +21,7 @@ import {Ionicons} from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
 import {useTheme} from '@hooks/useTheme';
 import {useLanguage} from '@hooks/useLanguage';
+import {staticColors} from '@/styles/designTokens';
 import {useToast} from '@context/ToastContext';
 import {getDailyGoal, setDailyGoal} from '@lib/memory/goalStore';
 import {
@@ -158,7 +159,7 @@ export default function MemoryGoalSettings() {
                 ]}>
                 <Text
                   style={{
-                    color: active ? '#ffffff' : colors.text,
+                    color: active ? staticColors.white : colors.text,
                     fontWeight: '700',
                     fontSize: 14,
                   }}>
@@ -222,7 +223,7 @@ export default function MemoryGoalSettings() {
                     ]}>
                     <Text
                       style={{
-                        color: active ? '#ffffff' : colors.text,
+                        color: active ? staticColors.white : colors.text,
                         fontWeight: '700',
                         fontSize: 14,
                       }}>
@@ -258,7 +259,7 @@ const styles = StyleSheet.create({
   card: {
     borderRadius: 12,
     padding: 16,
-    shadowColor: '#000',
+    shadowColor: staticColors.black,
     shadowOffset: {width: 0, height: 2},
     shadowRadius: 4,
     elevation: 3,

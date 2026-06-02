@@ -1386,7 +1386,7 @@ function createThemedStyles(
     },
     googleSignInButtonText: {
       fontSize: 15,
-      color: '#3c4043',
+      color: staticColors.darkGray,
       fontWeight: '600',
     },
     signOutButton: {
@@ -1398,7 +1398,7 @@ function createThemedStyles(
       paddingHorizontal: 16,
       borderRadius: 8,
       borderWidth: 1.5,
-      backgroundColor: 'transparent',
+      backgroundColor: staticColors.transparent,
     },
     signOutButtonText: {
       fontSize: 15,
@@ -1527,7 +1527,9 @@ function createThemedStyles(
       justifyContent: 'center',
       alignItems: 'center',
       borderWidth: isDark ? 1 : 0,
-      borderColor: isDark ? 'rgba(255,255,255,0.25)' : staticColors.transparent,
+      borderColor: isDark
+        ? staticColors.glassWhite25
+        : staticColors.transparent,
       marginBottom: 4,
     },
     colorThemePreviewCompact: {

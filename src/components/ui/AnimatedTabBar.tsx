@@ -397,7 +397,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   tabItemFilledActive: {
-    backgroundColor: 'rgba(99, 102, 241, 0.15)',
+    backgroundColor: staticColors.indigoTint15,
   },
   tabItemDisabled: {
     opacity: 0.4,
@@ -420,17 +420,17 @@ const styles = StyleSheet.create({
     minWidth: 18,
     height: 18,
     borderRadius: 9,
-    backgroundColor: 'rgba(239, 68, 68, 0.9)',
+    backgroundColor: staticColors.redTint90,
     justifyContent: 'center',
     alignItems: 'center',
     paddingHorizontal: 5,
     marginLeft: 6,
   },
   badgeActive: {
-    backgroundColor: '#ef4444',
+    backgroundColor: staticColors.red500,
   },
   badgeDark: {
-    backgroundColor: '#f87171',
+    backgroundColor: staticColors.red400,
   },
   badgeText: {
     fontSize: 11,

@@ -1330,7 +1330,7 @@ const styles = StyleSheet.create({
   },
   statsRow: {
     flexDirection: 'row',
-    backgroundColor: 'rgba(255,255,255,0.12)',
+    backgroundColor: staticColors.glassWhite12,
     borderRadius: 12,
     paddingVertical: 10,
     paddingHorizontal: 16,

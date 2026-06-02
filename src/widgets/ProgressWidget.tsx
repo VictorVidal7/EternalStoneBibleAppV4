@@ -143,7 +143,7 @@ export const ProgressWidget: React.FC<ProgressWidgetProps> = ({
               <View
                 style={[
                   styles.statIcon,
-                  {backgroundColor: 'rgba(249, 115, 22, 0.15)'},
+                  {backgroundColor: staticColors.orangeTint15},
                 ]}>
                 <Ionicons name="flame" size={18} color="#F97316" />
               </View>
@@ -160,7 +160,7 @@ export const ProgressWidget: React.FC<ProgressWidgetProps> = ({
               <View
                 style={[
                   styles.statIcon,
-                  {backgroundColor: 'rgba(34, 197, 94, 0.15)'},
+                  {backgroundColor: staticColors.greenTint15},
                 ]}>
                 <Ionicons name="checkmark-circle" size={18} color="#22C55E" />
               </View>
@@ -221,8 +221,8 @@ export const ProgressWidget: React.FC<ProgressWidgetProps> = ({
               {
                 backgroundColor:
                   progressData.completionPercentage >= 100
-                    ? 'rgba(34, 197, 94, 0.2)'
-                    : 'rgba(59, 130, 246, 0.2)',
+                    ? staticColors.greenTint20
+                    : staticColors.blueTint20,
               },
             ]}>
             <Text
@@ -231,7 +231,7 @@ export const ProgressWidget: React.FC<ProgressWidgetProps> = ({
                 {
                   color:
                     progressData.completionPercentage >= 100
-                      ? '#22C55E'
+                      ? staticColors.green500
                       : colors.primary,
                 },
               ]}>
@@ -351,7 +351,7 @@ const styles = StyleSheet.create({
   achievementBadge: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: 'rgba(252, 211, 77, 0.15)',
+    backgroundColor: staticColors.amberTint15,
     paddingHorizontal: 12,
     paddingVertical: 8,
     borderRadius: 12,

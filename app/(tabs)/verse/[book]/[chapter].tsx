@@ -1471,8 +1471,8 @@ export default function VerseReadingScreen() {
               styles.selectionBar,
               {
                 backgroundColor: readerIsDark
-                  ? 'rgba(26, 29, 46, 0.98)'
-                  : 'rgba(255, 255, 255, 0.98)',
+                  ? staticColors.navySurface98
+                  : staticColors.glassWhite98,
                 borderColor: effectiveColors.border,
                 // Float clear above the tab bar (which now includes the
                 // system inset). When the audio mini-player is visible, sit
@@ -1911,15 +1911,15 @@ const styles = StyleSheet.create({
     backgroundColor: staticColors.transparent,
   },
   verseSelected: {
-    backgroundColor: 'rgba(74, 144, 226, 0.15)',
+    backgroundColor: staticColors.brandBlueTint15,
   },
   verseHighlighted: {
-    backgroundColor: 'rgba(74, 144, 226, 0.1)',
+    backgroundColor: staticColors.brandBlueTint10,
     borderLeftWidth: 3,
-    borderLeftColor: '#4A90E2',
+    borderLeftColor: staticColors.brandBlue,
   },
   verseBeingRead: {
-    backgroundColor: 'rgba(212, 175, 55, 0.08)',
+    backgroundColor: staticColors.goldTint08,
   },
   verseContent: {
     flex: 1,

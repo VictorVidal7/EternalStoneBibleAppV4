@@ -463,7 +463,7 @@ const styles = StyleSheet.create({
     backgroundColor: staticColors.white,
   },
   dotIdle: {
-    backgroundColor: 'rgba(255, 255, 255, 0.35)',
+    backgroundColor: staticColors.glassWhite35,
   },
   body: {
     flex: 1,

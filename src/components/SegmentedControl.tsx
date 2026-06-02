@@ -19,7 +19,13 @@ import {
 } from 'react-native';
 import {LinearGradient} from 'expo-linear-gradient';
 import * as Haptics from 'expo-haptics';
-import {spacing, borderRadius, fontSize, shadows} from '../styles/designTokens';
+import {
+  spacing,
+  borderRadius,
+  fontSize,
+  shadows,
+  staticColors,
+} from '../styles/designTokens';
 
 export interface SegmentOption {
   value: string;
@@ -108,7 +114,7 @@ export const SegmentedControl: React.FC<SegmentedControlProps> = ({
         styles.container,
         {
           backgroundColor:
-            variant === 'outlined' ? 'transparent' : backgroundColor,
+            variant === 'outlined' ? staticColors.transparent : backgroundColor,
           borderWidth: variant === 'outlined' ? 2 : 0,
           borderColor: gradient[0],
         },
@@ -136,7 +142,9 @@ export const SegmentedControl: React.FC<SegmentedControlProps> = ({
               styles.indicatorSolid,
               {
                 backgroundColor:
-                  variant === 'outlined' ? 'transparent' : gradient[0],
+                  variant === 'outlined'
+                    ? staticColors.transparent
+                    : gradient[0],
               },
             ]}
           />

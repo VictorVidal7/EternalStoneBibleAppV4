@@ -237,7 +237,7 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: 'rgba(0, 0, 0, 0.7)',
+    backgroundColor: staticColors.overlayBlack70,
   },
   backdrop: {
     ...StyleSheet.absoluteFillObject,
@@ -319,7 +319,7 @@ const styles = StyleSheet.create({
   },
   pointsLabel: {
     fontSize: 14,
-    color: '#9CA3AF',
+    color: staticColors.gray400,
     marginBottom: 4,
   },
   points: {

@@ -490,11 +490,11 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   errorDetails: {
-    backgroundColor: 'rgba(239, 68, 68, 0.1)',
+    backgroundColor: staticColors.redTint10,
     padding: spacing.base,
     borderRadius: 16,
     borderWidth: 1,
-    borderColor: 'rgba(239, 68, 68, 0.3)',
+    borderColor: staticColors.redTint30,
   },
   errorLabel: {
     fontSize: fontSize.sm,
@@ -660,7 +660,7 @@ const styles = StyleSheet.create({
     width: 14,
     height: 14,
     borderRadius: 7,
-    backgroundColor: 'rgba(16, 185, 129, 0.15)',
+    backgroundColor: staticColors.emeraldTint15,
     justifyContent: 'center',
     alignItems: 'center',
   },

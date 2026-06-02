@@ -44,6 +44,7 @@ import {
   borderRadius,
   fontSize as fontSizes,
   spacing,
+  staticColors,
 } from '../../styles/designTokens';
 
 interface ReaderPreferencesSheetProps {
@@ -544,7 +545,7 @@ const PillButton: React.FC<PillButtonProps> = ({
 const styles = StyleSheet.create({
   overlay: {
     flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    backgroundColor: staticColors.overlayBlack50,
     justifyContent: 'flex-end',
   },
   overlayDismiss: {
@@ -562,7 +563,7 @@ const styles = StyleSheet.create({
     width: 36,
     height: 4,
     borderRadius: 2,
-    backgroundColor: 'rgba(255, 255, 255, 0.25)',
+    backgroundColor: staticColors.glassWhite25,
     marginTop: spacing.sm,
     marginBottom: spacing.sm,
   },

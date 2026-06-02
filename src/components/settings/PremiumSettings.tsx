@@ -14,6 +14,7 @@ import {Ionicons} from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
 import {useTheme} from '@hooks/useTheme';
 import {useLanguage} from '@hooks/useLanguage';
+import {staticColors} from '@/styles/designTokens';
 import {useToast} from '@context/ToastContext';
 import {usePremium} from '@context/PremiumContext';
 
@@ -87,7 +88,7 @@ const styles = StyleSheet.create({
   card: {
     borderRadius: 12,
     padding: 16,
-    shadowColor: '#000',
+    shadowColor: staticColors.black,
     shadowOffset: {width: 0, height: 2},
     shadowRadius: 4,
     elevation: 3,

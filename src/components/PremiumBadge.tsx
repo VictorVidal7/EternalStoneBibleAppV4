@@ -19,7 +19,12 @@ import {
 } from 'react-native';
 import {LinearGradient} from 'expo-linear-gradient';
 import {Ionicons} from '@expo/vector-icons';
-import {spacing, borderRadius, fontSize} from '../styles/designTokens';
+import {
+  spacing,
+  borderRadius,
+  fontSize,
+  staticColors,
+} from '../styles/designTokens';
 
 type BadgeVariant =
   | 'primary'
@@ -218,7 +223,7 @@ export const PremiumBadge: React.FC<PremiumBadgeProps> = ({
               style={[
                 styles.text,
                 {
-                  color: '#ffffff',
+                  color: staticColors.white,
                   fontSize: sizeStyles.fontSize,
                   fontWeight: '600',
                 },

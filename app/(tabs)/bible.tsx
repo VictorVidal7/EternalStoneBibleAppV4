@@ -194,7 +194,7 @@ export default function BibleScreen() {
               style={[
                 styles.headerIconContainer,
                 {
-                  backgroundColor: 'rgba(255,255,255,0.12)',
+                  backgroundColor: staticColors.glassWhite12,
                   borderColor: staticColors.glassWhite20,
                 },
               ]}>
@@ -233,7 +233,7 @@ export default function BibleScreen() {
               {
                 backgroundColor: isDark
                   ? staticColors.glassWhite05
-                  : 'rgba(0,0,0,0.03)',
+                  : staticColors.overlayBlack03,
                 borderColor: colors.glassBorder,
                 borderWidth: 1,
                 flex: 1,
@@ -415,7 +415,7 @@ const SectionHeader: React.FC<SectionHeaderProps> = ({
           styles.sectionHeader,
           {
             backgroundColor: isDark
-              ? 'rgba(255, 255, 255, 0.08)'
+              ? staticColors.glassWhite08
               : staticColors.glassWhite85,
             borderColor: colors.glassBorder,
             borderWidth: 1,

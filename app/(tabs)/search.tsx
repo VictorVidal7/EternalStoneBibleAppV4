@@ -835,7 +835,7 @@ const styles = StyleSheet.create({
   searchInputContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: 'rgba(127, 140, 141, 0.1)',
+    backgroundColor: staticColors.grayTint10,
     borderRadius: 12,
     paddingHorizontal: 16,
     paddingVertical: 12,

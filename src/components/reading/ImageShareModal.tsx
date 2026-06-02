@@ -31,6 +31,7 @@ import * as Haptics from 'expo-haptics';
 import {useRouter} from 'expo-router';
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
 import {useTheme} from '../../hooks/useTheme';
+import {staticColors} from '../../styles/designTokens';
 import {useLanguage} from '../../hooks/useLanguage';
 import {useToast} from '../../context/ToastContext';
 import {usePremium} from '../../context/PremiumContext';
@@ -609,7 +610,7 @@ const styles = StyleSheet.create({
     borderRadius: 30,
     marginRight: spacing.md,
     borderWidth: 2,
-    borderColor: 'transparent',
+    borderColor: staticColors.transparent,
   },
   styleCircleGradient: {
     flex: 1,
@@ -625,7 +626,7 @@ const styles = StyleSheet.create({
     width: 20,
     height: 20,
     borderRadius: 10,
-    backgroundColor: 'rgba(0,0,0,0.65)',
+    backgroundColor: staticColors.overlayBlack65,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -634,8 +635,8 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.md,
     borderRadius: borderRadius.md,
     borderWidth: 1.5,
-    borderColor: 'transparent',
-    backgroundColor: 'rgba(0,0,0,0.05)',
+    borderColor: staticColors.transparent,
+    backgroundColor: staticColors.overlayBlack05,
     marginRight: spacing.sm,
     alignItems: 'center',
     justifyContent: 'center',

@@ -295,7 +295,7 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: '#E8F4FD',
+    backgroundColor: staticColors.brandBlueBg,
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: 12,
@@ -306,18 +306,18 @@ const styles = StyleSheet.create({
   favoriteReference: {
     fontSize: 15,
     fontWeight: '600',
-    color: '#4A90E2',
+    color: staticColors.brandBlue,
     marginBottom: 6,
   },
   favoriteText: {
     fontSize: 14,
     lineHeight: 20,
-    color: '#34495E',
+    color: staticColors.slate600,
     marginBottom: 6,
   },
   favoriteDate: {
     fontSize: 12,
-    color: '#95A5A6',
+    color: staticColors.grayMuted,
   },
   deleteButton: {
     padding: 8,

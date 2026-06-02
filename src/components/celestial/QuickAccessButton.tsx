@@ -30,6 +30,7 @@ import {
   celestialBorderRadius,
 } from '../../styles/celestialTheme';
 import {useTheme} from '../../hooks/useTheme';
+import {staticColors} from '../../styles/designTokens';
 
 type IoniconsName = ComponentProps<typeof Ionicons>['name'];
 
@@ -210,7 +211,7 @@ const QuickAccessButton: React.FC<QuickAccessButtonProps> = ({
             styles.card,
             {
               backgroundColor: isDark
-                ? 'rgba(255,255,255,0.03)'
+                ? staticColors.glassWhite03
                 : lightModeBackground,
               borderColor: theme.colors.border,
               borderRadius: celestialBorderRadius.cardSmall, // 20px

@@ -248,7 +248,7 @@ const styles = StyleSheet.create({
   },
   subtitle: {
     fontSize: fontSize.lg,
-    color: 'rgba(255, 255, 255, 0.95)',
+    color: staticColors.glassWhite95,
     textAlign: 'center',
     marginBottom: spacing.xl,
   },
