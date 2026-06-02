@@ -32,7 +32,7 @@ import {BibleVerse} from '../../types/bible';
 import {useTheme} from '../../hooks/useTheme';
 import {useLanguage} from '../../hooks/useLanguage';
 import {usePremium} from '../../context/PremiumContext';
-import {getBookByName} from '../../constants/bible';
+import {localizedVerseReference} from '../../lib/reading/verseReference';
 import {
   useAudioPlayer,
   toAudioVerses,
@@ -90,20 +90,19 @@ export const ImmersiveReader: React.FC<ImmersiveReaderProps> = ({
   const audioBound = isSameAudioChapter(audioVersesLoaded, audioVerses);
   const listening = isPremium && audioBound;
 
-  // Localized reference for the scrubber's drag preview, e.g. "Genesis 1:8".
+  // Localized verse reference, e.g. "Genesis 1:8" / "Génesis 1:8". The DB stores
+  // the book name in the reading version's language (RVR1960 → Spanish "Juan"),
+  // so we resolve it to the UI language to match the normal reader's header
+  // (was showing the raw DB "Juan 3:1" while the header said "John 3").
+  const localizedReference = useCallback(
+    (v: BibleVerse | undefined) => localizedVerseReference(v, language),
+    [language],
+  );
+
+  // Reference for the scrubber's drag preview.
   const labelForIndex = useCallback(
-    (index: number) => {
-      const v = verses[index];
-      if (!v) return '';
-      const info = getBookByName(v.book);
-      const name = info
-        ? language === 'es'
-          ? info.name
-          : info.nameEn
-        : v.book;
-      return `${name} ${v.chapter}:${v.verse}`;
-    },
-    [verses, language],
+    (index: number) => localizedReference(verses[index]),
+    [verses, localizedReference],
   );
 
   // Suppress the floating mini-player while immersive is open so its high
@@ -429,7 +428,7 @@ export const ImmersiveReader: React.FC<ImmersiveReaderProps> = ({
                 color: isDark ? '#cbd5e1' : '#64748b',
               },
             ]}>
-            {currentVerse.book} {currentVerse.chapter}:{currentVerse.verse}
+            {localizedReference(currentVerse)}
           </Text>
 
           {/* Progress indicator — premium: a draggable verse scrubber takes the
