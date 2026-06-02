@@ -350,7 +350,9 @@ export default function VerseReadingScreen() {
   // so its `effectiveColors.text` stays legible when the reading theme
   // differs from the app theme (e.g. a Night reading theme on a light app).
   const readerIsDark =
-    readerPrefs.theme === 'system' ? isDark : readerPrefs.theme === 'night';
+    readerPrefs.theme === 'system'
+      ? isDark
+      : readerPrefs.theme === 'night' || readerPrefs.theme === 'high-contrast';
 
   const scrollViewRef = useRef<ScrollView>(null);
   const startTimeRef = useRef<number>(Date.now());

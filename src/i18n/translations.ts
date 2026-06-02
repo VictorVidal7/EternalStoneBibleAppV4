@@ -468,6 +468,7 @@ export const translations = {
       themePaper: 'Papel',
       themeSepia: 'Sepia',
       themeNight: 'Noche',
+      themeHighContrast: 'Alto contraste',
       sampleText:
         'En el principio creó Dios los cielos y la tierra. La tierra estaba desordenada y vacía, y las tinieblas estaban sobre la faz del abismo.',
     },
@@ -2040,6 +2041,7 @@ export const translations = {
       themePaper: 'Paper',
       themeSepia: 'Sepia',
       themeNight: 'Night',
+      themeHighContrast: 'High contrast',
       sampleText:
         'In the beginning God created the heaven and the earth. And the earth was without form, and void; and darkness was upon the face of the deep.',
     },
