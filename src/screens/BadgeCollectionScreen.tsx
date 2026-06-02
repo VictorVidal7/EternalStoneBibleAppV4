@@ -373,7 +373,9 @@ export const BadgeCollectionScreen: React.FC<BadgeCollectionScreenProps> = ({
                 ]}
                 onPress={() => setFilterCategory(category)}>
                 <Ionicons
-                  name={getCategoryIcon(category) as any}
+                  name={
+                    getCategoryIcon(category) as keyof typeof Ionicons.glyphMap
+                  }
                   size={14}
                   color={
                     filterCategory === category

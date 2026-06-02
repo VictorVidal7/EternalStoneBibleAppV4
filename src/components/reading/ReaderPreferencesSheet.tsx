@@ -410,7 +410,7 @@ export const ReaderPreferencesSheet: React.FC<ReaderPreferencesSheetProps> = ({
                     onPress={tap(() => setTextAlign(opt.id))}
                     accessibilityLabel={opt.label}>
                     <Ionicons
-                      name={opt.icon as any}
+                      name={opt.icon as keyof typeof Ionicons.glyphMap}
                       size={22}
                       color={
                         preferences.textAlign === opt.id

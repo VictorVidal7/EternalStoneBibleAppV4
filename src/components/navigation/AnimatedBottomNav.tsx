@@ -97,7 +97,11 @@ export const AnimatedBottomNav: React.FC<AnimatedBottomNavProps> = ({
             style={styles.tabButton}
             onPress={() => handleTabPress(tab.route)}
             activeOpacity={0.7}>
-            <Ionicons name={tab.icon as any} size={22} color={tabColor} />
+            <Ionicons
+              name={tab.icon as keyof typeof Ionicons.glyphMap}
+              size={22}
+              color={tabColor}
+            />
             <Text
               style={[styles.tabLabel, {color: tabColor}]}
               numberOfLines={1}>

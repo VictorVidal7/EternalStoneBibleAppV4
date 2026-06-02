@@ -480,7 +480,7 @@ export default function SearchScreen() {
 
   function goToVerse(verse: BibleVerse) {
     router.push(
-      `/verse/${verse.book}/${verse.chapter}?verse=${verse.verse}` as any,
+      `/verse/${verse.book}/${verse.chapter}?verse=${verse.verse}` as never,
     );
   }
 

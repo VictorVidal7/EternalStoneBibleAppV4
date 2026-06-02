@@ -112,7 +112,7 @@ export default function ChapterSelectionScreen() {
   const navigateToVerse = useCallback(
     (chapter: number) => {
       Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-      router.push(`/verse/${book}/${chapter}` as any);
+      router.push(`/verse/${book}/${chapter}` as never);
     },
     [router, book],
   );
@@ -264,7 +264,7 @@ export default function ChapterSelectionScreen() {
               style={styles.headerInfoButton}
               onPress={() => {
                 Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-                router.push(`/features/about-book/${book}` as any);
+                router.push(`/features/about-book/${book}` as never);
               }}
               accessibilityRole="button"
               accessibilityLabel={t.bookIntro.openLabel}>

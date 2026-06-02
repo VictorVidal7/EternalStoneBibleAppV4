@@ -161,7 +161,7 @@ export default function BibleScreen() {
 
   function goToChapterSelection(bookName: string) {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    router.push(`/chapter/${bookName}` as any);
+    router.push(`/chapter/${bookName}` as never);
   }
   function toggleFilter(newFilter: 'old' | 'new') {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);

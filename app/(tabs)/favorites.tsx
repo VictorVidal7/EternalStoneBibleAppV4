@@ -66,7 +66,7 @@ export default function FavoritesScreen() {
 
   function goToVerse(favorite: (typeof favorites)[number]) {
     router.push(
-      `/verse/${favorite.book}/${favorite.chapter}?verse=${favorite.verse}` as any,
+      `/verse/${favorite.book}/${favorite.chapter}?verse=${favorite.verse}` as never,
     );
   }
 
@@ -212,7 +212,7 @@ export default function FavoritesScreen() {
             type="no-favorites"
             colors={colors}
             isDark={isDark}
-            onAction={() => router.push('/(tabs)/bible' as any)}
+            onAction={() => router.push('/(tabs)/bible' as never)}
           />
         }
       />

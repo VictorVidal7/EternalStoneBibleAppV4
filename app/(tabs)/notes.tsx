@@ -81,7 +81,7 @@ export default function NotesScreen() {
 
   function goToVerse(note: Note) {
     router.push(
-      `/verse/${note.book}/${note.chapter}?verse=${note.verse}` as any,
+      `/verse/${note.book}/${note.chapter}?verse=${note.verse}` as never,
     );
   }
 
@@ -203,7 +203,7 @@ export default function NotesScreen() {
             type="no-notes"
             colors={colors}
             isDark={isDark}
-            onAction={() => router.push('/(tabs)/bible' as any)}
+            onAction={() => router.push('/(tabs)/bible' as never)}
           />
         }
       />

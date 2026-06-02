@@ -72,7 +72,7 @@ export default function MemoryDeckScreen() {
 
   const handlePractice = () => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-    router.push('/features/memory/practice' as any);
+    router.push('/features/memory/practice' as never);
   };
 
   const confirmRemove = (card: MemoryCard) => {
@@ -117,7 +117,9 @@ export default function MemoryDeckScreen() {
             {!isEmpty && (
               <TouchableOpacity
                 style={styles.insightsButton}
-                onPress={() => router.push('/features/memory/insights' as any)}
+                onPress={() =>
+                  router.push('/features/memory/insights' as never)
+                }
                 accessibilityRole="button"
                 accessibilityLabel={t.memory.insights.openLabel}>
                 <Ionicons name="stats-chart" size={22} color="#FFFFFF" />
@@ -159,7 +161,7 @@ export default function MemoryDeckScreen() {
               goal={goal}
               t={t}
               colors={colors}
-              onPress={() => router.push('/features/memory/insights' as any)}
+              onPress={() => router.push('/features/memory/insights' as never)}
             />
           )}
 

@@ -513,7 +513,7 @@ export default function HomeScreen() {
                     onPress={() =>
                       handlePress(() =>
                         router.push(
-                          `/verse/${dailyVerse.book}/${dailyVerse.chapter}` as any,
+                          `/verse/${dailyVerse.book}/${dailyVerse.chapter}` as never,
                         ),
                       )
                     }
@@ -556,7 +556,7 @@ export default function HomeScreen() {
               onPress={() =>
                 handlePress(() =>
                   router.push(
-                    `/verse/${lastRead.book}/${lastRead.chapter}` as any,
+                    `/verse/${lastRead.book}/${lastRead.chapter}` as never,
                   ),
                 )
               }>
@@ -643,7 +643,7 @@ export default function HomeScreen() {
               onPress={() =>
                 handlePress(() =>
                   router.push(
-                    `/verse/${audioResumePos.book}/${audioResumePos.chapter}?audioResume=1` as any,
+                    `/verse/${audioResumePos.book}/${audioResumePos.chapter}?audioResume=1` as never,
                   ),
                 )
               }>
@@ -712,7 +712,7 @@ export default function HomeScreen() {
             accessibilityLabel={t.journey.cardTitle}
             accessibilityHint={t.journey.cardSubtitle}
             onPress={() =>
-              handlePress(() => router.push('/features/journey' as any))
+              handlePress(() => router.push('/features/journey' as never))
             }>
             <ShimmerCard
               glowColor={colors.primary}
@@ -799,7 +799,7 @@ export default function HomeScreen() {
                   duration={plan.duration}
                   daysCompleted={planDaysDone}
                   onPress={() =>
-                    handlePress(() => router.push(`/plan/${plan.id}` as any))
+                    handlePress(() => router.push(`/plan/${plan.id}` as never))
                   }
                   continueText={
                     planDaysDone > 0 ? t.home.continue : t.home.start
@@ -900,7 +900,7 @@ export default function HomeScreen() {
               activeOpacity={0.9}
               style={styles.savedCardWrapper}
               onPress={() =>
-                handlePress(() => router.push('/(tabs)/favorites' as any))
+                handlePress(() => router.push('/(tabs)/favorites' as never))
               }>
               <BlurView
                 intensity={isDark ? 28 : 48}
@@ -965,7 +965,7 @@ export default function HomeScreen() {
               activeOpacity={0.9}
               style={styles.savedCardWrapper}
               onPress={() =>
-                handlePress(() => router.push('/(tabs)/notes' as any))
+                handlePress(() => router.push('/(tabs)/notes' as never))
               }>
               <BlurView
                 intensity={isDark ? 28 : 48}
@@ -1031,7 +1031,7 @@ export default function HomeScreen() {
               activeOpacity={0.9}
               style={styles.savedCardWrapper}
               onPress={() =>
-                handlePress(() => router.push('/(tabs)/highlights' as any))
+                handlePress(() => router.push('/(tabs)/highlights' as never))
               }>
               <BlurView
                 intensity={isDark ? 28 : 48}
@@ -1097,7 +1097,7 @@ export default function HomeScreen() {
               activeOpacity={0.9}
               style={styles.savedCardWrapper}
               onPress={() =>
-                handlePress(() => router.push('/(tabs)/bookmarks' as any))
+                handlePress(() => router.push('/(tabs)/bookmarks' as never))
               }>
               <BlurView
                 intensity={isDark ? 28 : 48}
@@ -1169,7 +1169,7 @@ export default function HomeScreen() {
               activeOpacity={0.9}
               style={styles.savedCardWrapper}
               onPress={() =>
-                handlePress(() => router.push('/features/memory' as any))
+                handlePress(() => router.push('/features/memory' as never))
               }>
               <BlurView
                 intensity={isDark ? 28 : 48}

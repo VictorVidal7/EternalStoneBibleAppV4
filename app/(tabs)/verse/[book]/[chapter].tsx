@@ -929,7 +929,7 @@ export default function VerseReadingScreen() {
     }
 
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    router.replace(`/verse/${targetBook}/${newChapter}` as any);
+    router.replace(`/verse/${targetBook}/${newChapter}` as never);
   }
 
   // Start Audio Bible playback

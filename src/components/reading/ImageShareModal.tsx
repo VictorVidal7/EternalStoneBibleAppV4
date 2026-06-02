@@ -202,7 +202,7 @@ export const ImageShareModal: React.FC<ImageShareModalProps> = ({
               end={{x: 1, y: 1}}>
               <View style={styles.headerArea}>
                 <Ionicons
-                  name={activeTheme.icon as any}
+                  name={activeTheme.icon as keyof typeof Ionicons.glyphMap}
                   size={32}
                   color={activeTheme.textColor}
                   style={styles.watermarkIcon}
@@ -289,7 +289,7 @@ export const ImageShareModal: React.FC<ImageShareModalProps> = ({
                       colors={template.colors}
                       style={styles.styleCircleGradient}>
                       <Ionicons
-                        name={template.icon as any}
+                        name={template.icon as keyof typeof Ionicons.glyphMap}
                         size={20}
                         color={template.textColor}
                       />
@@ -345,7 +345,7 @@ export const ImageShareModal: React.FC<ImageShareModalProps> = ({
                         },
                       ]}>
                       <Ionicons
-                        name={icon as any}
+                        name={icon as keyof typeof Ionicons.glyphMap}
                         size={20}
                         color={active ? selectedTextColor : colors.text}
                       />
