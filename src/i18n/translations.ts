@@ -508,6 +508,21 @@ export const translations = {
       missingText: '(texto no disponible)',
     },
 
+    study: {
+      title: 'Modo estudio',
+      subtitle: 'Conexiones del versículo',
+      referencesTitle: 'Referencias',
+      referencesHint: 'Pasajes a los que apunta este versículo',
+      referencedByTitle: 'Referenciado por',
+      referencedByHint: 'Versículos que apuntan a este',
+      connections: 'Conexiones',
+      empty: 'Sin conexiones curadas',
+      emptyHint: 'Aún no tenemos referencias cruzadas para este versículo.',
+      missingText: '(texto no disponible)',
+      openHint: 'Abrir pasaje',
+      error: 'No se pudo cargar el estudio',
+    },
+
     auth: {
       sectionTitle: 'Cuenta',
       signInWithGoogle: 'Iniciar sesión con Google',
@@ -2105,6 +2120,21 @@ export const translations = {
       emptyBody:
         "We don't have cross-references for this verse yet — for now we cover the most-studied passages.",
       missingText: '(text not available)',
+    },
+
+    study: {
+      title: 'Study mode',
+      subtitle: 'Verse connections',
+      referencesTitle: 'References',
+      referencesHint: 'Passages this verse points to',
+      referencedByTitle: 'Referenced by',
+      referencedByHint: 'Verses that point to this one',
+      connections: 'Connections',
+      empty: 'No curated connections',
+      emptyHint: "We don't have cross-references for this verse yet.",
+      missingText: '(text not available)',
+      openHint: 'Open passage',
+      error: 'Could not load study',
     },
 
     auth: {

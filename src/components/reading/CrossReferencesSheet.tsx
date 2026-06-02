@@ -151,6 +151,22 @@ export const CrossReferencesSheet: React.FC<Props> = ({
     });
   };
 
+  // Promote the quick peek into the full Study-mode route (two-way connections).
+  const handleOpenStudy = () => {
+    if (sourceVerse == null) return;
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    onClose();
+    router.push({
+      pathname: '/features/study' as never,
+      params: {
+        book: sourceBook,
+        chapter: String(sourceChapter),
+        verse: String(sourceVerse),
+        version,
+      },
+    });
+  };
+
   const sourceLabel =
     sourceVerse != null
       ? `${sourceBook} ${sourceChapter}:${sourceVerse}`
@@ -262,6 +278,25 @@ export const CrossReferencesSheet: React.FC<Props> = ({
               ))}
             </ScrollView>
           )}
+
+          {refs.length > 0 && (
+            <TouchableOpacity
+              style={[styles.studyButton, {borderColor: colors.primary}]}
+              onPress={handleOpenStudy}
+              accessibilityRole="button"
+              accessibilityLabel={t.study.title}
+              accessibilityHint={t.study.subtitle}>
+              <Ionicons
+                name="git-network-outline"
+                size={18}
+                color={colors.primary}
+              />
+              <Text style={[styles.studyButtonText, {color: colors.primary}]}>
+                {t.study.title}
+              </Text>
+              <Ionicons name="arrow-forward" size={16} color={colors.primary} />
+            </TouchableOpacity>
+          )}
         </View>
       </View>
     </Modal>
@@ -270,6 +305,20 @@ export const CrossReferencesSheet: React.FC<Props> = ({
 
 const styles = StyleSheet.create({
   missingText: {fontStyle: 'italic'},
+  studyButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: spacing.sm,
+    marginTop: spacing.md,
+    paddingVertical: spacing.md,
+    borderRadius: borderRadius.lg,
+    borderWidth: 1.5,
+  },
+  studyButtonText: {
+    fontSize: fontSizes.md,
+    fontWeight: '700',
+  },
   backdrop: {
     flex: 1,
     justifyContent: 'flex-end',
