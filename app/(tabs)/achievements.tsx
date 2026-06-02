@@ -6,7 +6,9 @@
 import React from 'react';
 import {AchievementsScreen} from '@screens/AchievementsScreen';
 import {useServices} from '@context/ServicesContext';
-import {View, Text, ActivityIndicator, StyleSheet} from 'react-native';
+import {View, ActivityIndicator, StyleSheet} from 'react-native';
+// ♿ Dynamic-type: cap OS font-scale on the achievements tab chrome.
+import {AppText as Text} from '@components/ui/AppText';
 import {useLanguage} from '@hooks/useLanguage';
 import {useTheme} from '@hooks/useTheme';
 

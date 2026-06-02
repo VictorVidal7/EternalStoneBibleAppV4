@@ -2,13 +2,14 @@
    themed-styles factory; the linter cannot trace factory returns. */
 import {
   View,
-  Text,
   StyleSheet,
   TextInput,
   FlatList,
   TouchableOpacity,
   RefreshControl,
 } from 'react-native';
+// ♿ Dynamic-type: cap OS font-scale on the search chrome (labels + result rows).
+import {AppText as Text} from '@components/ui/AppText';
 import {staticColors} from '@/styles/designTokens';
 
 import React, {useState, useCallback, useMemo, useEffect, memo} from 'react';

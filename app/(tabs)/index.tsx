@@ -16,7 +16,6 @@
 import React, {useEffect, useState, useRef, useCallback} from 'react';
 import {
   View,
-  Text,
   StyleSheet,
   ScrollView,
   TouchableOpacity,
@@ -25,6 +24,9 @@ import {
   Platform,
   RefreshControl,
 } from 'react-native';
+// ♿ Dynamic-type: cap OS font-scale on this screen's chrome (reading content
+// lives in the reader, which stays uncapped). See src/lib/a11y/fontScale.ts.
+import {AppText as Text} from '@components/ui/AppText';
 import {staticColors} from '@/styles/designTokens';
 
 import {useRouter, useFocusEffect} from 'expo-router';
