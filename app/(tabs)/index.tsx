@@ -763,6 +763,66 @@ export default function HomeScreen() {
           </TouchableOpacity>
         </Animated.View>
 
+        {/* ==================== MI LECTURA (reading insights) ============= */}
+        <Animated.View
+          style={{opacity: fadeAnim, marginTop: celestialSpacing.cardGap}}>
+          <TouchableOpacity
+            activeOpacity={0.9}
+            accessibilityRole="button"
+            accessibilityLabel={t.readingInsights.cardTitle}
+            accessibilityHint={t.readingInsights.cardSubtitle}
+            onPress={() =>
+              handlePress(() =>
+                router.push('/features/reading-insights' as never),
+              )
+            }>
+            <ShimmerCard
+              glowColor={colors.primary}
+              shimmerEnabled={false}
+              cardBackgroundColor={celestialTheme.colors.surfaceGlass}
+              cardBorderColor={celestialTheme.colors.glassBorder}>
+              <View style={styles.continueButton}>
+                <View style={styles.continueHeader}>
+                  <View
+                    style={[
+                      styles.continueIconContainer,
+                      styles.iconChip,
+                      {backgroundColor: colors.primary + '20'},
+                    ]}>
+                    <Ionicons
+                      name="stats-chart"
+                      size={14}
+                      color={colors.primary}
+                    />
+                  </View>
+                  <View style={styles.continueTextContainer}>
+                    <Text
+                      style={[styles.continueTitle, {color: colors.text}]}
+                      numberOfLines={1}>
+                      {t.readingInsights.cardTitle}
+                    </Text>
+                    <Text
+                      style={[
+                        styles.continueReference,
+                        {color: colors.textSecondary},
+                      ]}
+                      numberOfLines={1}>
+                      {t.readingInsights.cardSubtitle}
+                    </Text>
+                  </View>
+                  <View style={styles.continueProgress}>
+                    <Ionicons
+                      name="chevron-forward"
+                      size={24}
+                      color={colors.primary}
+                    />
+                  </View>
+                </View>
+              </View>
+            </ShimmerCard>
+          </TouchableOpacity>
+        </Animated.View>
+
         {/* ==================== READING PLANS ==================== */}
         <Animated.View
           style={{opacity: fadeAnim, marginTop: celestialSpacing.sectionGap}}>
