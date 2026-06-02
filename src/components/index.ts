@@ -32,7 +32,6 @@ export {default as ParallaxScrollView} from './ParallaxScrollView';
 export {default as FloatingMenu} from './FloatingMenu';
 export {default as SegmentedControl} from './SegmentedControl';
 export {default as PremiumBadge} from './PremiumBadge';
-export {default as EmptyState} from './EmptyState';
 export {default as PremiumRating} from './PremiumRating';
 
 // Existing Components
