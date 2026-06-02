@@ -12,6 +12,7 @@ import {
 } from './types';
 import {ACHIEVEMENT_DEFINITIONS} from './definitions';
 import {calculateLevel} from './types';
+import {computeStreaks} from './streak';
 
 export class AchievementService {
   private db: BibleDatabase;
@@ -73,6 +74,12 @@ export class AchievementService {
     );
 
     await this.initializeAchievements();
+
+    // Self-heal the reading streak from the per-day log on every launch. This
+    // recovers users whose streak was pinned at 0 by the old incremental
+    // updater (Sprint 58 bug) and resets `current_streak` to 0 when a day was
+    // missed between sessions, without needing a new read to trigger it.
+    await this.recomputeReadingStreak();
   }
 
   /**
@@ -187,10 +194,9 @@ export class AchievementService {
       [count, timeSpent, today, now],
     );
 
-    // Update streak
-    await this.updateReadingStreak(today);
-
-    // Register in streak log
+    // Register in streak log BEFORE recomputing the streak — the streak is
+    // derived from this log, not from an incremental counter (the old counter
+    // ran before `last_read_date` was read and so never advanced).
     await this.db.executeSql(
       `INSERT INTO reading_streak_log (date, verses_read, time_spent)
        VALUES (?, ?, ?)
@@ -199,6 +205,9 @@ export class AchievementService {
          time_spent = time_spent + excluded.time_spent`,
       [today, count, timeSpent],
     );
+
+    // Recompute current/longest streak from the log now that today is in it.
+    await this.recomputeReadingStreak(today);
 
     // Check unlocked achievements
     return await this.checkAchievements();
@@ -240,43 +249,35 @@ export class AchievementService {
   }
 
   /**
-   * Updates reading streak
+   * Recompute `current_streak` / `longest_streak` from `reading_streak_log`,
+   * the authoritative per-day record of which calendar days the user read,
+   * and persist them. Replaces the old incremental updater that was a no-op
+   * because it read `last_read_date` only after it had been set to today
+   * (Sprint 58 bug), leaving both columns at 0 forever.
+   *
+   * @param today Optional `YYYY-MM-DD` anchor for the "current" streak;
+   *              defaults to the current UTC day (same basis as the log keys).
    */
-  private async updateReadingStreak(today: string): Promise<void> {
-    const stats = await this.getUserStats();
-    const lastRead = stats.lastReadDate;
-
-    if (!lastRead) {
-      // First reading
-      await this.db.executeSql(
-        'UPDATE user_stats SET current_streak = 1, longest_streak = 1 WHERE id = 1',
+  private async recomputeReadingStreak(today?: string): Promise<void> {
+    const anchor = today ?? new Date().toISOString().split('T')[0];
+    let dates: string[] = [];
+    try {
+      const result = await this.db.executeSql(
+        'SELECT date FROM reading_streak_log',
       );
+      dates = result.rows._array.map((row: {date: string}) => row.date);
+    } catch {
+      // Log table not ready yet (fresh install) — nothing to compute.
       return;
     }
 
-    const lastDate = new Date(lastRead);
-    const todayDate = new Date(today);
-    const diffDays = Math.floor(
-      (todayDate.getTime() - lastDate.getTime()) / (1000 * 60 * 60 * 24),
+    const {currentStreak, longestStreak} = computeStreaks(dates, anchor);
+    await this.db.executeSql(
+      'UPDATE user_stats SET current_streak = ?, longest_streak = ? WHERE id = 1',
+      [currentStreak, longestStreak],
     );
-
-    if (diffDays === 0) {
-      // Already read today
-      return;
-    } else if (diffDays === 1) {
-      // Consecutive day
-      const newStreak = stats.currentStreak + 1;
-      const newLongest = Math.max(newStreak, stats.longestStreak);
-      await this.db.executeSql(
-        'UPDATE user_stats SET current_streak = ?, longest_streak = ? WHERE id = 1',
-        [newStreak, newLongest],
-      );
-    } else {
-      // Streak broken
-      await this.db.executeSql(
-        'UPDATE user_stats SET current_streak = 1 WHERE id = 1',
-      );
-    }
+    // Invalidate the cache so the next read reflects the new streak.
+    this.stats = null;
   }
 
   /**

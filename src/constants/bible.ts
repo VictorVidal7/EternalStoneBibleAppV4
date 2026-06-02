@@ -628,3 +628,20 @@ export const getBookByName = (name: string): BibleBook | undefined => {
 export const getBookById = (id: number): BibleBook | undefined => {
   return BIBLE_BOOKS.find(book => book.id === id);
 };
+
+/**
+ * Canonical, language-agnostic book identity used for keying user data
+ * (favorites / highlights / notes). The same verse can arrive labelled with
+ * the Spanish DB name ("Génesis", from the RVR1960 verse rows), the English
+ * name ("Genesis", from a KJV daily verse), or whatever a deep-link / the
+ * book grid passed — so storing or comparing by the raw name made a favorite
+ * heart appear or disappear depending on how you navigated (Sprint 58 bug).
+ *
+ * We canonicalize to the English name (`nameEn`) because the real synced
+ * favorites are already stored that way, so their Firestore doc ids are
+ * preserved. Unknown names pass through unchanged (defensive).
+ */
+export const canonicalBookName = (name: string): string => {
+  if (!name) return name;
+  return getBookByName(name)?.nameEn ?? name;
+};

@@ -19,7 +19,12 @@ import * as Clipboard from 'expo-clipboard';
 import * as Haptics from 'expo-haptics';
 import bibleDB from '@lib/database';
 import {BibleVerse} from '@/types/bible';
-import {BIBLE_VERSIONS, getBookByName, getBookById} from '@/constants/bible';
+import {
+  BIBLE_VERSIONS,
+  getBookByName,
+  getBookById,
+  canonicalBookName,
+} from '@/constants/bible';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {
   linkifyReferences,
@@ -134,6 +139,13 @@ export default function VerseReadingScreen() {
 
   const bookInfo = getBookByName(book);
   const chapterNum = parseInt(chapter);
+  // Canonical, language-agnostic book identity for keying user data
+  // (favorites / highlights / notes). The route `book` param can be Spanish
+  // ("Génesis", from the book grid) or English ("Genesis", from a deep-link),
+  // and the DB verse rows use the reading version's language — so all of these
+  // must collapse to one key or a favorite/highlight silently fails to match
+  // (Sprint 58 bug). See canonicalBookName.
+  const canonicalBook = canonicalBookName(book);
   const bookTheme = getBookTheme(bookInfo?.name || '');
   // Display name follows the UI language so it stays consistent with the
   // Bible library (e.g. "Genesis" in English, not "Génesis").
@@ -354,11 +366,13 @@ export default function VerseReadingScreen() {
   useEffect(() => {
     const currentChapterFavorites = favorites
       .filter(
-        favorite => favorite.book === book && favorite.chapter === chapterNum,
+        favorite =>
+          canonicalBookName(favorite.book) === canonicalBook &&
+          favorite.chapter === chapterNum,
       )
       .map(favorite => favorite.verse);
     setFavoritedVerses(new Set(currentChapterFavorites));
-  }, [favorites, book, chapterNum]);
+  }, [favorites, book, canonicalBook, chapterNum]);
 
   // ✨ Track reading progress after 5 seconds
   useEffect(() => {
@@ -560,7 +574,9 @@ export default function VerseReadingScreen() {
     } else {
       const now = new Date().toISOString();
       const noteToAdd = {
-        book: selectedVerseForNote.book,
+        // Canonical book so the stored note and the synced payload match what
+        // getNoteForVerse looks up, across versions/devices (Sprint 58).
+        book: canonicalBookName(selectedVerseForNote.book),
         chapter: selectedVerseForNote.chapter,
         verse: selectedVerseForNote.verse,
         text: selectedVerseForNote.text,
@@ -613,7 +629,7 @@ export default function VerseReadingScreen() {
       if (!highlightService) return;
       try {
         const chapterHighlights = await highlightService.getHighlightsByChapter(
-          book,
+          canonicalBook,
           chapterNum,
         );
         if (!active) return;
@@ -629,7 +645,7 @@ export default function VerseReadingScreen() {
     return () => {
       active = false;
     };
-  }, [highlightService, book, chapterNum]);
+  }, [highlightService, canonicalBook, chapterNum]);
 
   // Auto-scroll so the verse currently read aloud stays visible
   useEffect(() => {
@@ -654,7 +670,10 @@ export default function VerseReadingScreen() {
     const engine = getSyncEngine();
     try {
       for (const num of nums) {
-        const verseId = `${book}:${chapterNum}:${num}`;
+        // Key highlights (and their Firestore doc id) on the canonical book so
+        // the same verse highlights/unhighlights consistently across versions
+        // and nav paths (Sprint 58).
+        const verseId = `${canonicalBook}:${chapterNum}:${num}`;
         if (color === null) {
           // Snapshot the current highlight (if any) before removing so
           // the tombstone can carry the verse identity to other devices.
@@ -669,7 +688,7 @@ export default function VerseReadingScreen() {
         } else {
           const created = await highlightService.addHighlight(
             verseId,
-            book,
+            canonicalBook,
             chapterNum,
             num,
             color,
@@ -814,9 +833,10 @@ export default function VerseReadingScreen() {
   async function handleToggleSingleFavorite(verseObj: BibleVerse) {
     await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
 
+    const verseCanonicalBook = canonicalBookName(verseObj.book);
     const existingFav = favorites.find(
       f =>
-        f.book === verseObj.book &&
+        canonicalBookName(f.book) === verseCanonicalBook &&
         f.chapter === verseObj.chapter &&
         f.verse === verseObj.verse,
     );
