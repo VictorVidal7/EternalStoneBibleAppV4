@@ -80,8 +80,8 @@ export const ParallaxScrollView: React.FC<ParallaxScrollViewProps> = ({
           {
             height: headerHeight,
             transform: [{translateY: headerTranslate}, {scale: headerScale}],
-            opacity: fadeHeader ? headerOpacity : 1,
           },
+          fadeHeader && {opacity: headerOpacity},
         ]}>
         {headerBackground ? (
           headerBackground

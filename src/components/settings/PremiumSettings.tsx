@@ -45,7 +45,8 @@ export default function PremiumSettings() {
       <View
         style={[
           styles.card,
-          {backgroundColor: colors.surface, shadowOpacity: isDark ? 0.3 : 0.1},
+          isDark ? styles.cardShadowDark : styles.cardShadowLight,
+          {backgroundColor: colors.surface},
         ]}>
         <View style={styles.row}>
           <View style={styles.rowInfo}>
@@ -93,6 +94,8 @@ const styles = StyleSheet.create({
     shadowRadius: 4,
     elevation: 3,
   },
+  cardShadowDark: {shadowOpacity: 0.3},
+  cardShadowLight: {shadowOpacity: 0.1},
   row: {
     flexDirection: 'row',
     alignItems: 'center',

@@ -125,7 +125,6 @@ export const PremiumSkeleton: React.FC<PremiumSkeletonProps> = ({
           height: variant === 'circular' ? width : height,
           borderRadius: getBorderRadius(),
           backgroundColor: skeletonColors.base,
-          overflow: 'hidden',
         },
         style,
       ]}>

@@ -399,10 +399,10 @@ const DeckRow: React.FC<DeckRowProps> = ({
     <View
       style={[
         styles.row,
+        mastered ? styles.rowBorderMastered : styles.rowBorderThin,
         {
           backgroundColor: colors.surface,
           borderColor: mastered ? colors.success : colors.border,
-          borderWidth: mastered ? 1.5 : StyleSheet.hairlineWidth,
         },
       ]}>
       <View style={styles.rowMain}>
@@ -779,6 +779,8 @@ const styles = StyleSheet.create({
     marginBottom: spacing.sm,
     gap: spacing.sm,
   },
+  rowBorderThin: {borderWidth: StyleSheet.hairlineWidth},
+  rowBorderMastered: {borderWidth: 1.5},
   rowMain: {
     flex: 1,
   },

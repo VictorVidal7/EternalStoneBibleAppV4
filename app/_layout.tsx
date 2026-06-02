@@ -221,6 +221,9 @@ function AppContent() {
 }
 
 const styles = StyleSheet.create({
+  root: {
+    flex: 1,
+  },
   loadingContainer: {
     flex: 1,
     justifyContent: 'center',
@@ -275,7 +278,7 @@ const styles = StyleSheet.create({
 
 export default function RootLayout() {
   return (
-    <GestureHandlerRootView style={{flex: 1}}>
+    <GestureHandlerRootView style={styles.root}>
       <LanguageProvider>
         <ThemeProvider>
           <BibleVersionProvider>

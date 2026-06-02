@@ -233,18 +233,14 @@ export const IllustratedEmptyState: React.FC<IllustratedEmptyStateProps> = ({
 
       {/* Texto */}
       <View style={styles.textContainer}>
-        <Text
-          style={[typography.h4, {color: colors.text, textAlign: 'center'}]}>
+        <Text style={[typography.h4, styles.centerText, {color: colors.text}]}>
           {title || config.defaultTitle}
         </Text>
         <Text
           style={[
             typography.body,
-            {
-              color: colors.textSecondary,
-              textAlign: 'center',
-              marginTop: spacing.md,
-            },
+            styles.centerTextSpaced,
+            {color: colors.textSecondary},
           ]}>
           {message || config.defaultMessage}
         </Text>
@@ -362,6 +358,8 @@ const styles = StyleSheet.create({
     maxWidth: 320,
     marginBottom: spacing.xl,
   },
+  centerText: {textAlign: 'center'},
+  centerTextSpaced: {textAlign: 'center', marginTop: spacing.md},
 
   // Action button
   actionButton: {

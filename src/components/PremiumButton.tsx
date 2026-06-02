@@ -170,10 +170,8 @@ export const PremiumButton: React.FC<PremiumButtonProps> = ({
         style={[
           styles.button,
           getSizeStyles(),
-          {
-            transform: [{scale: scaleAnim}],
-            opacity: disabled ? 0.5 : 1,
-          },
+          disabled && styles.disabledOpacity,
+          {transform: [{scale: scaleAnim}]},
           style,
         ]}>
         <LinearGradient
@@ -193,10 +191,8 @@ export const PremiumButton: React.FC<PremiumButtonProps> = ({
           <Text
             style={[
               styles.text,
-              {
-                fontSize: getTextSize(),
-                fontWeight: '600',
-              },
+              styles.buttonTextWeight,
+              {fontSize: getTextSize()},
               textStyle,
             ]}>
             {loading ? 'Cargando...' : title}
@@ -234,6 +230,8 @@ export const PremiumButton: React.FC<PremiumButtonProps> = ({
 };
 
 const styles = StyleSheet.create({
+  disabledOpacity: {opacity: 0.5},
+  buttonTextWeight: {fontWeight: '600'},
   fullWidth: {
     width: '100%',
   },

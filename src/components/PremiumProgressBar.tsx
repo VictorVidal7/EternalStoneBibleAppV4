@@ -202,11 +202,8 @@ export const PremiumProgressBar: React.FC<PremiumProgressBarProps> = ({
             <Text
               style={[
                 styles.percentage,
-                {
-                  color: colors.text,
-                  fontSize: config.fontSize,
-                  fontWeight: '700',
-                },
+                styles.valueTextWeight,
+                {color: colors.text, fontSize: config.fontSize},
               ]}>
               {Math.round(clampedProgress)}%
             </Text>
@@ -243,13 +240,8 @@ export const PremiumProgressBar: React.FC<PremiumProgressBarProps> = ({
                   height: config.height,
                   borderRadius: config.borderRadius,
                 },
-                glow && {
-                  shadowColor: gradient[0],
-                  shadowOffset: {width: 0, height: 0},
-                  shadowOpacity: glowOpacity,
-                  shadowRadius: 8,
-                  elevation: 6,
-                },
+                glow && styles.glowShadowBase,
+                glow && {shadowColor: gradient[0], shadowOpacity: glowOpacity},
                 barStyle,
               ]}
             />
@@ -264,13 +256,10 @@ export const PremiumProgressBar: React.FC<PremiumProgressBarProps> = ({
                 borderRadius: config.borderRadius,
                 backgroundColor: variantColors.color,
               },
-              glow && {
-                shadowColor: variantColors.color,
-                shadowOffset: {width: 0, height: 0},
-                shadowOpacity: isDark ? 0.6 : 0.4,
-                shadowRadius: 8,
-                elevation: 6,
-              },
+              glow && styles.glowShadowBase,
+              glow &&
+                (isDark ? styles.glowOpacityDark : styles.glowOpacityLight),
+              glow && {shadowColor: variantColors.color},
               barStyle,
             ]}
           />
@@ -387,13 +376,12 @@ export const CircularProgress: React.FC<{
       <View
         style={[
           styles.circularPlaceholder,
+          styles.circleTrack,
           {
             width: size,
             height: size,
             borderRadius: size / 2,
-            borderWidth: 8,
             borderColor: color || colors.primary,
-            opacity: 0.3,
           },
         ]}
       />
@@ -403,6 +391,15 @@ export const CircularProgress: React.FC<{
 };
 
 const styles = StyleSheet.create({
+  valueTextWeight: {fontWeight: '700'},
+  glowShadowBase: {
+    shadowOffset: {width: 0, height: 0},
+    shadowRadius: 8,
+    elevation: 6,
+  },
+  glowOpacityDark: {shadowOpacity: 0.6},
+  glowOpacityLight: {shadowOpacity: 0.4},
+  circleTrack: {borderWidth: 8, opacity: 0.3},
   container: {
     width: '100%',
   },

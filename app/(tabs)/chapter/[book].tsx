@@ -214,15 +214,7 @@ export default function ChapterSelectionScreen() {
   // Skeleton Grid Component
   const SkeletonGrid = () => (
     <View style={[styles.listContainer, {paddingTop: spacing.lg}]}>
-      <View
-        style={[
-          styles.listContent,
-          {
-            flexDirection: 'row',
-            flexWrap: 'wrap',
-            justifyContent: 'flex-start',
-          },
-        ]}>
+      <View style={[styles.listContent, styles.skeletonGridRow]}>
         {Array.from({length: 20}).map((_, i) => (
           <View key={i} style={styles.cardWrapper}>
             <PremiumSkeleton
@@ -321,7 +313,7 @@ export default function ChapterSelectionScreen() {
                 showsVerticalScrollIndicator={false}
                 contentContainerStyle={[
                   styles.listContent,
-                  {paddingBottom: Platform.OS === 'ios' ? 120 : 100},
+                  styles.listContentBottomPad,
                 ]}
               />
             ) : (
@@ -407,12 +399,9 @@ const ChapterCard: React.FC<ChapterCardProps> = React.memo(
             <View
               style={[
                 styles.card,
+                styles.cardFlat,
                 {
                   backgroundColor: staticColors.transparent,
-                  shadowOpacity: 0,
-                  shadowRadius: 0,
-                  elevation: 0,
-                  borderWidth: 1,
                   borderColor: colors.glassBorder,
                 },
               ]}>
@@ -612,6 +601,14 @@ const styles = StyleSheet.create({
     paddingBottom: spacing.xl,
     alignItems: 'center',
   },
+  skeletonGridRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'flex-start',
+  },
+  listContentBottomPad: {
+    paddingBottom: Platform.OS === 'ios' ? 120 : 100,
+  },
   emptyContainer: {
     flex: 1,
     justifyContent: 'center',
@@ -647,6 +644,12 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     justifyContent: 'center',
     alignItems: 'center',
+  },
+  cardFlat: {
+    shadowOpacity: 0,
+    shadowRadius: 0,
+    elevation: 0,
+    borderWidth: 1,
   },
   chapterNumber: {
     fontSize: 20, // Reducido para 5 por fila

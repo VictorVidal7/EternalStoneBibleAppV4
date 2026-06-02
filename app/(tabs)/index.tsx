@@ -429,14 +429,8 @@ export default function HomeScreen() {
             end={{x: 1, y: 1}}
             style={[
               styles.heroCard,
-              {
-                borderRadius: celestialBorderRadius.xl,
-                shadowColor: colors.primary,
-                shadowOffset: {width: 0, height: 4},
-                shadowOpacity: 0.2,
-                shadowRadius: 8,
-                elevation: 4,
-              },
+              styles.heroCardShadow,
+              {shadowColor: colors.primary},
             ]}>
             <View style={styles.heroContent}>
               {/* Compact header with icon */}
@@ -576,10 +570,8 @@ export default function HomeScreen() {
                     <View
                       style={[
                         styles.continueIconContainer,
-                        {
-                          backgroundColor: colors.primary + '20',
-                          borderRadius: 10,
-                        },
+                        styles.iconChip,
+                        {backgroundColor: colors.primary + '20'},
                       ]}>
                       <Ionicons name="play" size={14} color={colors.primary} />
                     </View>
@@ -665,10 +657,8 @@ export default function HomeScreen() {
                     <View
                       style={[
                         styles.continueIconContainer,
-                        {
-                          backgroundColor: colors.primary + '20',
-                          borderRadius: 10,
-                        },
+                        styles.iconChip,
+                        {backgroundColor: colors.primary + '20'},
                       ]}>
                       <Ionicons
                         name="headset"
@@ -734,10 +724,8 @@ export default function HomeScreen() {
                   <View
                     style={[
                       styles.continueIconContainer,
-                      {
-                        backgroundColor: colors.primary + '20',
-                        borderRadius: 10,
-                      },
+                      styles.iconChip,
+                      {backgroundColor: colors.primary + '20'},
                     ]}>
                     <Ionicons
                       name="footsteps"
@@ -1304,6 +1292,16 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
     padding: 16,
     marginBottom: 0,
+  },
+  heroCardShadow: {
+    borderRadius: celestialBorderRadius.xl,
+    shadowOffset: {width: 0, height: 4},
+    shadowOpacity: 0.2,
+    shadowRadius: 8,
+    elevation: 4,
+  },
+  iconChip: {
+    borderRadius: 10,
   },
   heroContent: {
     gap: 12,

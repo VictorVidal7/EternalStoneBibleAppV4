@@ -1362,10 +1362,8 @@ export default function VerseReadingScreen() {
                   isSelected && styles.verseSelected,
                   isHighlighted && styles.verseHighlighted,
                   isBeingRead && styles.verseBeingRead,
-                  userHighlight && {
-                    backgroundColor: userHighlight,
-                    borderRadius: 10,
-                  },
+                  userHighlight && styles.verseUserHighlightRadius,
+                  userHighlight && {backgroundColor: userHighlight},
                 ]}>
                 <View style={styles.verseContent}>
                   <Text style={[styles.verseText, textStyle]}>
@@ -1389,10 +1387,7 @@ export default function VerseReadingScreen() {
                           <Text
                             key={i}
                             onPress={() => jumpToReference(seg.ref!)}
-                            style={{
-                              color: linkColor,
-                              textDecorationLine: 'underline',
-                            }}>
+                            style={[styles.crossRefLink, {color: linkColor}]}>
                             {seg.text}
                           </Text>
                         ) : (
@@ -1920,6 +1915,12 @@ const styles = StyleSheet.create({
   },
   verseBeingRead: {
     backgroundColor: staticColors.goldTint08,
+  },
+  verseUserHighlightRadius: {
+    borderRadius: 10,
+  },
+  crossRefLink: {
+    textDecorationLine: 'underline',
   },
   verseContent: {
     flex: 1,

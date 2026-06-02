@@ -114,9 +114,9 @@ export const BookItemSkeleton: React.FC = () => {
         variant="circular"
         width={24}
         height={24}
-        style={{marginRight: 16}}
+        style={styles.circleSpacer}
       />
-      <View style={{flex: 1}}>
+      <View style={styles.fill}>
         <Skeleton width="60%" height={16} />
       </View>
       <Skeleton variant="circular" width={24} height={24} />
@@ -167,11 +167,11 @@ export const VerseSkeleton: React.FC = () => {
         variant="circular"
         width={24}
         height={24}
-        style={{marginRight: 8}}
+        style={styles.iconSpacer}
       />
-      <View style={{flex: 1}}>
-        <Skeleton width="100%" height={14} style={{marginBottom: 4}} />
-        <Skeleton width="90%" height={14} style={{marginBottom: 4}} />
+      <View style={styles.fill}>
+        <Skeleton width="100%" height={14} style={styles.lineGap} />
+        <Skeleton width="90%" height={14} style={styles.lineGap} />
         <Skeleton width="80%" height={14} />
       </View>
     </View>
@@ -203,10 +203,10 @@ export const AchievementCardSkeleton: React.FC = () => {
         variant="circular"
         width={60}
         height={60}
-        style={{marginBottom: 12}}
+        style={styles.blockGapLg}
       />
-      <Skeleton width="80%" height={18} style={{marginBottom: 8}} />
-      <Skeleton width="100%" height={14} style={{marginBottom: 8}} />
+      <Skeleton width="80%" height={18} style={styles.blockGap} />
+      <Skeleton width="100%" height={14} style={styles.blockGap} />
       <Skeleton width="60%" height={12} />
     </View>
   );
@@ -220,7 +220,7 @@ export const StatsSkeleton: React.FC = () => {
     <View style={styles.statsContainer}>
       {Array.from({length: 4}).map((_, index) => (
         <View key={index} style={styles.statItem}>
-          <Skeleton width={60} height={32} style={{marginBottom: 8}} />
+          <Skeleton width={60} height={32} style={styles.blockGap} />
           <Skeleton width={80} height={14} />
         </View>
       ))}
@@ -232,6 +232,12 @@ const styles = StyleSheet.create({
   skeleton: {
     overflow: 'hidden',
   },
+  fill: {flex: 1},
+  circleSpacer: {marginRight: 16},
+  iconSpacer: {marginRight: 8},
+  lineGap: {marginBottom: 4},
+  blockGap: {marginBottom: 8},
+  blockGapLg: {marginBottom: 12},
   container: {
     flex: 1,
   },

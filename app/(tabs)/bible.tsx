@@ -235,8 +235,6 @@ export default function BibleScreen() {
                   ? staticColors.glassWhite05
                   : staticColors.overlayBlack03,
                 borderColor: colors.glassBorder,
-                borderWidth: 1,
-                flex: 1,
               },
             ]}>
             <Ionicons
@@ -418,8 +416,6 @@ const SectionHeader: React.FC<SectionHeaderProps> = ({
               ? staticColors.glassWhite08
               : staticColors.glassWhite85,
             borderColor: colors.glassBorder,
-            borderWidth: 1,
-            borderRadius: 16,
           },
         ]}>
         <View
@@ -480,12 +476,9 @@ const BookCard: React.FC<BookCardProps> = ({book, index, onPress}) => {
       <TouchableOpacity
         style={[
           styles.bookCard,
+          styles.bookCardFlat,
           {
             backgroundColor: staticColors.transparent,
-            shadowOpacity: 0,
-            shadowRadius: 0,
-            elevation: 0,
-            borderWidth: 1,
             borderColor: colors.glassBorder,
           },
         ]}
@@ -639,6 +632,8 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     paddingHorizontal: 12,
     height: 44,
+    borderWidth: 1,
+    flex: 1,
   },
   searchIcon: {
     marginRight: 8,
@@ -688,6 +683,8 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     paddingHorizontal: 16,
     overflow: 'hidden',
+    borderWidth: 1,
+    borderRadius: 16,
   },
   sectionIconContainer: {
     width: 36,
@@ -724,6 +721,12 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10,
     marginBottom: 6,
     overflow: 'hidden',
+  },
+  bookCardFlat: {
+    shadowOpacity: 0,
+    shadowRadius: 0,
+    elevation: 0,
+    borderWidth: 1,
   },
   accentLine: {
     position: 'absolute',

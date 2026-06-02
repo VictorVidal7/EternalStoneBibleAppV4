@@ -252,9 +252,11 @@ export const PremiumInput: React.FC<PremiumInputProps> = ({
         style={[
           styles.inputContainer,
           getBorderStyle(),
+          variant === 'outlined'
+            ? styles.inputRadiusOutlined
+            : styles.inputRadiusFlat,
           {
             height: config.height,
-            borderRadius: variant === 'outlined' ? borderRadius.md : 0,
             paddingHorizontal: config.paddingHorizontal,
           },
         ]}>
@@ -283,11 +285,11 @@ export const PremiumInput: React.FC<PremiumInputProps> = ({
           onChangeText={handleChangeText}
           style={[
             styles.input,
+            icon && styles.inputPadLeft,
+            rightIcon && styles.inputPadRight,
             {
               fontSize: config.fontSize,
               color: colors.text,
-              paddingLeft: icon ? spacing.xs : 0,
-              paddingRight: rightIcon ? spacing.xs : 0,
             },
           ]}
           placeholderTextColor={colors.textTertiary}
@@ -386,6 +388,10 @@ export const PremiumInput: React.FC<PremiumInputProps> = ({
 };
 
 const styles = StyleSheet.create({
+  inputRadiusOutlined: {borderRadius: borderRadius.md},
+  inputRadiusFlat: {borderRadius: 0},
+  inputPadLeft: {paddingLeft: spacing.xs},
+  inputPadRight: {paddingRight: spacing.xs},
   container: {
     marginBottom: spacing.md,
   },

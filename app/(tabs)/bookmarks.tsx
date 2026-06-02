@@ -211,14 +211,19 @@ export default function BookmarksScreen() {
               <TouchableOpacity
                 style={[styles.modalButton, {borderColor: colors.border}]}
                 onPress={() => setEditingId(null)}>
-                <Text style={{color: colors.textSecondary, fontWeight: '600'}}>
+                <Text
+                  style={[
+                    styles.modalButtonText,
+                    {color: colors.textSecondary},
+                  ]}>
                   {t.cancel}
                 </Text>
               </TouchableOpacity>
               <TouchableOpacity
                 style={[styles.modalButton, {backgroundColor: colors.primary}]}
                 onPress={saveRename}>
-                <Text style={{color: staticColors.white, fontWeight: '600'}}>
+                <Text
+                  style={[styles.modalButtonText, {color: staticColors.white}]}>
                   {t.save}
                 </Text>
               </TouchableOpacity>
@@ -324,5 +329,8 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     borderWidth: 1,
     borderColor: staticColors.transparent,
+  },
+  modalButtonText: {
+    fontWeight: '600',
   },
 });

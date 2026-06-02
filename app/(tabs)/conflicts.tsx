@@ -373,7 +373,7 @@ export default function ConflictsScreen() {
                 ]}
                 onPress={applyMerge}
                 accessibilityRole="button">
-                <Text style={{color: staticColors.white, fontWeight: '600'}}>
+                <Text style={styles.mergeButtonText}>
                   {t.conflicts.saveMerge}
                 </Text>
               </TouchableOpacity>
@@ -440,6 +440,10 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.06,
     shadowOffset: {width: 0, height: 2},
     shadowRadius: 4,
+  },
+  mergeButtonText: {
+    color: staticColors.white,
+    fontWeight: '600',
   },
   cardHeader: {
     flexDirection: 'row',

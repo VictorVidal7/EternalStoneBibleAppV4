@@ -12,7 +12,7 @@ import {LinearGradient} from 'expo-linear-gradient';
 import {BlurView} from 'expo-blur';
 import {useTheme} from '../../context/ThemeContext';
 import {useCardPress, useStaggeredItem} from '../../hooks/useAnimations';
-import {borderRadius, shadows} from '../../styles/designTokens';
+import {borderRadius, shadows, staticColors} from '../../styles/designTokens';
 
 const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
 
@@ -108,10 +108,10 @@ export const AnimatedCard: React.FC<AnimatedCardProps> = ({
           <Animated.View
             style={[
               styles.cardContent,
+              styles.cardBorderWidth,
               {
-                backgroundColor: colors?.surface || '#fff',
-                borderWidth: 1,
-                borderColor: colors?.border || 'rgba(0,0,0,0.1)',
+                backgroundColor: colors?.surface || staticColors.white,
+                borderColor: colors?.border || staticColors.overlayBlack10,
               },
               style,
             ]}>
@@ -134,6 +134,7 @@ export const AnimatedCard: React.FC<AnimatedCardProps> = ({
 };
 
 const styles = StyleSheet.create({
+  cardBorderWidth: {borderWidth: 1},
   cardContent: {
     padding: 20,
     borderRadius: borderRadius.xl,

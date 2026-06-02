@@ -111,12 +111,12 @@ export const AudioControls: React.FC<AudioControlsProps> = ({
         <AnimatedTouchable
           style={[
             styles.secondaryButton,
+            !canGoPrevious && styles.navDisabled,
             {
               width: sizeConfig.secondary,
               height: sizeConfig.secondary,
               borderRadius: sizeConfig.secondary / 2,
               backgroundColor: colors.surfaceVariant,
-              opacity: canGoPrevious ? 1 : 0.4,
             },
             prevButtonStyle,
           ]}
@@ -184,12 +184,12 @@ export const AudioControls: React.FC<AudioControlsProps> = ({
         <AnimatedTouchable
           style={[
             styles.secondaryButton,
+            !canGoNext && styles.navDisabled,
             {
               width: sizeConfig.secondary,
               height: sizeConfig.secondary,
               borderRadius: sizeConfig.secondary / 2,
               backgroundColor: colors.surfaceVariant,
-              opacity: canGoNext ? 1 : 0.4,
             },
             nextButtonStyle,
           ]}
@@ -216,6 +216,7 @@ export const AudioControls: React.FC<AudioControlsProps> = ({
 };
 
 const styles = StyleSheet.create({
+  navDisabled: {opacity: 0.4},
   container: {
     flexDirection: 'row',
     alignItems: 'center',

@@ -667,10 +667,10 @@ export default function SearchScreen() {
                   accessibilityLabel={t.search.loadMore}
                   style={[
                     styles.loadMoreButton,
+                    loadingMore && styles.loadMoreButtonBusy,
                     {
                       backgroundColor: colors.primary + (isDark ? '33' : '22'),
                       borderColor: colors.primary,
-                      opacity: loadingMore ? 0.6 : 1,
                     },
                   ]}>
                   <Text style={[styles.loadMoreLabel, {color: colors.primary}]}>
@@ -922,6 +922,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     alignItems: 'center',
   },
+  loadMoreButtonBusy: {opacity: 0.6},
   loadMoreLabel: {
     fontSize: 15,
     fontWeight: '600',

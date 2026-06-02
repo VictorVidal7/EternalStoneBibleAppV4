@@ -205,11 +205,8 @@ export default function AnimatedButton({
       <Text
         style={[
           styles.text,
-          {
-            color: buttonColors.text,
-            fontSize: sizeStyles.fontSize,
-            fontWeight: '600',
-          },
+          styles.textWeight,
+          {color: buttonColors.text, fontSize: sizeStyles.fontSize},
           textStyle,
         ]}>
         {loading ? 'Cargando...' : title}
@@ -290,6 +287,7 @@ export default function AnimatedButton({
 }
 
 const styles = StyleSheet.create({
+  textWeight: {fontWeight: '600'},
   container: {
     flexDirection: 'row',
     alignItems: 'center',

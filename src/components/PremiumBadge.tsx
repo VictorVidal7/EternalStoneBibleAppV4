@@ -147,10 +147,13 @@ export const PremiumBadge: React.FC<PremiumBadgeProps> = ({
       <Animated.View
         style={[
           styles.dot,
+          size === 'small'
+            ? styles.dotSmall
+            : size === 'large'
+              ? styles.dotLarge
+              : styles.dotMedium,
           {
             backgroundColor: colors.background,
-            width: size === 'small' ? 8 : size === 'large' ? 16 : 12,
-            height: size === 'small' ? 8 : size === 'large' ? 16 : 12,
             transform: [{scale: pulse ? pulseAnim : 1}],
           },
           style,
@@ -182,11 +185,8 @@ export const PremiumBadge: React.FC<PremiumBadgeProps> = ({
         <Text
           style={[
             styles.text,
-            {
-              color: colors.text,
-              fontSize: sizeStyles.fontSize,
-              fontWeight: '600',
-            },
+            styles.badgeLabelWeight,
+            {color: colors.text, fontSize: sizeStyles.fontSize},
             textStyle,
           ]}>
           {displayText}
@@ -222,11 +222,8 @@ export const PremiumBadge: React.FC<PremiumBadgeProps> = ({
             <Text
               style={[
                 styles.text,
-                {
-                  color: staticColors.white,
-                  fontSize: sizeStyles.fontSize,
-                  fontWeight: '600',
-                },
+                styles.badgeLabelWeight,
+                {color: staticColors.white, fontSize: sizeStyles.fontSize},
                 textStyle,
               ]}>
               {displayText}
@@ -245,6 +242,10 @@ export const PremiumBadge: React.FC<PremiumBadgeProps> = ({
 };
 
 const styles = StyleSheet.create({
+  dotSmall: {width: 8, height: 8},
+  dotMedium: {width: 12, height: 12},
+  dotLarge: {width: 16, height: 16},
+  badgeLabelWeight: {fontWeight: '600'},
   badge: {
     flexDirection: 'row',
     alignItems: 'center',

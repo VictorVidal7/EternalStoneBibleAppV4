@@ -899,14 +899,14 @@ export default function SettingsScreen() {
                 <Text
                   style={[
                     themedStyles.settingDescription,
-                    {marginBottom: 16, marginTop: 0},
+                    styles.signInPromptSpacing,
                   ]}>
                   {t.auth.notSignedIn}
                 </Text>
                 <TouchableOpacity
                   style={[
                     themedStyles.googleSignInButton,
-                    isAuthenticating && {opacity: 0.6},
+                    isAuthenticating && styles.dimmedWhileBusy,
                   ]}
                   onPress={handleSignInWithGoogle}
                   disabled={isAuthenticating}
@@ -1009,6 +1009,8 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
+  signInPromptSpacing: {marginBottom: 16, marginTop: 0},
+  dimmedWhileBusy: {opacity: 0.6},
   scrollView: {
     flex: 1,
   },

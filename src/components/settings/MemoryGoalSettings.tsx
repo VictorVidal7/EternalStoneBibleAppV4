@@ -128,7 +128,8 @@ export default function MemoryGoalSettings() {
       <View
         style={[
           styles.card,
-          {backgroundColor: colors.surface, shadowOpacity: isDark ? 0.3 : 0.1},
+          isDark ? styles.cardShadowDark : styles.cardShadowLight,
+          {backgroundColor: colors.surface},
         ]}>
         <View style={styles.row}>
           <View style={styles.rowInfo}>
@@ -158,11 +159,10 @@ export default function MemoryGoalSettings() {
                   },
                 ]}>
                 <Text
-                  style={{
-                    color: active ? staticColors.white : colors.text,
-                    fontWeight: '700',
-                    fontSize: 14,
-                  }}>
+                  style={[
+                    styles.optionChipText,
+                    {color: active ? staticColors.white : colors.text},
+                  ]}>
                   {g}
                 </Text>
               </TouchableOpacity>
@@ -175,11 +175,9 @@ export default function MemoryGoalSettings() {
       <View
         style={[
           styles.card,
-          {
-            backgroundColor: colors.surface,
-            shadowOpacity: isDark ? 0.3 : 0.1,
-            marginTop: 12,
-          },
+          styles.cardSpacedTop,
+          isDark ? styles.cardShadowDark : styles.cardShadowLight,
+          {backgroundColor: colors.surface},
         ]}>
         <View style={styles.row}>
           <View style={styles.rowInfo}>
@@ -222,11 +220,10 @@ export default function MemoryGoalSettings() {
                       },
                     ]}>
                     <Text
-                      style={{
-                        color: active ? staticColors.white : colors.text,
-                        fontWeight: '700',
-                        fontSize: 14,
-                      }}>
+                      style={[
+                        styles.optionChipText,
+                        {color: active ? staticColors.white : colors.text},
+                      ]}>
                       {String(h).padStart(2, '0')}:00
                     </Text>
                   </TouchableOpacity>
@@ -264,6 +261,10 @@ const styles = StyleSheet.create({
     shadowRadius: 4,
     elevation: 3,
   },
+  cardShadowDark: {shadowOpacity: 0.3},
+  cardShadowLight: {shadowOpacity: 0.1},
+  cardSpacedTop: {marginTop: 12},
+  optionChipText: {fontWeight: '700', fontSize: 14},
   row: {
     flexDirection: 'row',
     alignItems: 'center',

@@ -282,10 +282,8 @@ export const ImageShareModal: React.FC<ImageShareModalProps> = ({
                     }
                     style={[
                       styles.styleCircle,
-                      selected && {
-                        borderColor: colors.primary,
-                        borderWidth: 3,
-                      },
+                      selected && styles.styleCircleSelected,
+                      selected && {borderColor: colors.primary},
                     ]}>
                     <LinearGradient
                       colors={template.colors}
@@ -465,10 +463,8 @@ export const ImageShareModal: React.FC<ImageShareModalProps> = ({
                   <Text
                     style={[
                       styles.fontStyleText,
-                      {
-                        color: useSerif ? selectedTextColor : colors.text,
-                        fontFamily: Platform.OS === 'ios' ? 'Georgia' : 'serif',
-                      },
+                      styles.serifFont,
+                      {color: useSerif ? selectedTextColor : colors.text},
                     ]}>
                     Serif
                   </Text>
@@ -503,6 +499,8 @@ export const ImageShareModal: React.FC<ImageShareModalProps> = ({
 };
 
 const styles = StyleSheet.create({
+  styleCircleSelected: {borderWidth: 3},
+  serifFont: {fontFamily: Platform.OS === 'ios' ? 'Georgia' : 'serif'},
   container: {
     flex: 1,
   },

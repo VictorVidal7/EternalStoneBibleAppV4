@@ -259,9 +259,9 @@ const LanguageStep: React.FC<LanguageStepProps> = ({
               key={id}
               style={[
                 styles.optionRow,
+                active ? styles.borderActive : styles.borderInactive,
                 {
                   borderColor: active ? colors.primary : colors.border,
-                  borderWidth: active ? 2 : 1,
                   backgroundColor: colors.surface,
                 },
               ]}
@@ -317,9 +317,9 @@ const VersionStep: React.FC<VersionStepProps> = ({
               key={v.id}
               style={[
                 styles.optionRow,
+                active ? styles.borderActive : styles.borderInactive,
                 {
                   borderColor: active ? colors.primary : colors.border,
-                  borderWidth: active ? 2 : 1,
                   backgroundColor: colors.surface,
                 },
               ]}
@@ -384,11 +384,11 @@ const ColorThemeStep: React.FC<ColorThemeStepProps> = ({
               key={id}
               style={[
                 styles.themeTile,
+                active ? styles.dotBorderActive : styles.dotBorderInactive,
                 {
                   borderColor: active
                     ? colors.primary
                     : staticColors.transparent,
-                  borderWidth: active ? 3 : 0,
                 },
               ]}
               onPress={() => onSelect(id)}
@@ -436,6 +436,10 @@ const DoneStep: React.FC = () => {
 };
 
 const styles = StyleSheet.create({
+  borderActive: {borderWidth: 2},
+  borderInactive: {borderWidth: 1},
+  dotBorderActive: {borderWidth: 3},
+  dotBorderInactive: {borderWidth: 0},
   root: {
     flex: 1,
   },

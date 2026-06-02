@@ -1,5 +1,7 @@
-/* eslint-disable react-native/no-color-literals -- immersive reading uses
-   its own theme palette (celestial slates + glass overlays). */
+/* eslint-disable react-native/no-color-literals, react-native/no-inline-styles --
+   immersive reading uses its own theme palette (celestial slates + glass
+   overlays) and positions decorative stars + recolors chrome inline per
+   isDark / playback state (dynamic full-screen chrome). */
 /**
  * 🌟 IMMERSIVE READING MODE
  *

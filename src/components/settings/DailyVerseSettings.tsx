@@ -115,9 +115,9 @@ export default function DailyVerseSettings() {
       <View
         style={[
           styles.card,
+          isDark ? styles.cardShadowDark : styles.cardShadowLight,
           {
             backgroundColor: colors.surface,
-            shadowOpacity: isDark ? 0.3 : 0.1,
           },
         ]}>
         <View style={styles.row}>
@@ -161,11 +161,10 @@ export default function DailyVerseSettings() {
                       },
                     ]}>
                     <Text
-                      style={{
-                        color: active ? staticColors.white : colors.text,
-                        fontWeight: '700',
-                        fontSize: 14,
-                      }}>
+                      style={[
+                        styles.optionChipText,
+                        {color: active ? staticColors.white : colors.text},
+                      ]}>
                       {String(h).padStart(2, '0')}:00
                     </Text>
                   </TouchableOpacity>
@@ -203,6 +202,9 @@ const styles = StyleSheet.create({
     shadowRadius: 4,
     elevation: 3,
   },
+  cardShadowDark: {shadowOpacity: 0.3},
+  cardShadowLight: {shadowOpacity: 0.1},
+  optionChipText: {fontWeight: '700', fontSize: 14},
   row: {
     flexDirection: 'row',
     alignItems: 'center',
