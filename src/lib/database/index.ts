@@ -5,6 +5,7 @@ import {Asset} from 'expo-asset';
 import {Directory, File, Paths} from 'expo-file-system';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {BibleVerse, Note, ReadingProgress} from '../../types/bible';
+import {canonicalBookName} from '../../constants/bible';
 
 /**
  * Copy the bundled pre-seeded bible.db into expo-sqlite's storage
@@ -51,6 +52,9 @@ class BibleDatabase {
   private db: SQLite.SQLiteDatabase | null = null;
   private initialized = false;
   private initializationPromise: Promise<void> | null = null;
+  // One-time flag for the Sprint 58 canonical book-key normalization.
+  private static readonly CANONICAL_BOOK_MIGRATION_KEY =
+    '@migration_canonical_book_keys_v1';
 
   async initialize(): Promise<void> {
     // Si ya está inicializado, retornar inmediatamente
@@ -615,7 +619,9 @@ class BibleDatabase {
        VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
       [
         id,
-        note.book,
+        // Canonical book identity so a note is found regardless of the
+        // version/nav language the verse arrived with (Sprint 58).
+        canonicalBookName(note.book),
         note.chapter,
         note.verse,
         note.text,
@@ -677,10 +683,98 @@ class BibleDatabase {
               created_at as createdAt, updated_at as updatedAt
        FROM notes
        WHERE book_name = ? AND chapter = ? AND verse = ?`,
-      [bookName, chapter, verse],
+      [canonicalBookName(bookName), chapter, verse],
     );
 
     return result || null;
+  }
+
+  /**
+   * One-shot migration (Sprint 58): normalize the book identity stored for
+   * favorites / highlights / notes to the canonical English name, so a verse
+   * keyed under "Génesis" (RVR1960) and one keyed under "Genesis" (KJV) become
+   * the same key. Rebuilds each row's `verse_id` from its own
+   * book/chapter/verse columns (no string parsing). Idempotent and guarded by
+   * a one-time flag; non-fatal on error because read paths already
+   * canonicalize on the fly. Must run AFTER the highlights table exists
+   * (see ServicesContext).
+   */
+  async migrateCanonicalBookKeys(): Promise<void> {
+    try {
+      const done = await AsyncStorage.getItem(
+        BibleDatabase.CANONICAL_BOOK_MIGRATION_KEY,
+      );
+      if (done === '1') return;
+      const db = this.getDb();
+
+      // favorites: book_name + verse_id ("book_chapter_verse")
+      const favs = await db.getAllAsync<{
+        id: string;
+        book_name: string;
+        chapter: number;
+        verse: number;
+      }>('SELECT id, book_name, chapter, verse FROM favorites');
+      for (const f of favs) {
+        const canonical = canonicalBookName(f.book_name);
+        if (canonical !== f.book_name) {
+          await db.runAsync(
+            'UPDATE favorites SET book_name = ?, verse_id = ? WHERE id = ?',
+            [canonical, `${canonical}_${f.chapter}_${f.verse}`, f.id],
+          );
+        }
+      }
+
+      // notes: book_name
+      const notes = await db.getAllAsync<{id: string; book_name: string}>(
+        'SELECT id, book_name FROM notes',
+      );
+      for (const n of notes) {
+        const canonical = canonicalBookName(n.book_name);
+        if (canonical !== n.book_name) {
+          await db.runAsync('UPDATE notes SET book_name = ? WHERE id = ?', [
+            canonical,
+            n.id,
+          ]);
+        }
+      }
+
+      // highlights: book_id + verse_id ("book:chapter:verse"). verse_id is
+      // UNIQUE, so a collision (same verse highlighted under two language
+      // names) drops the redundant non-canonical row in favour of the
+      // canonical one.
+      try {
+        const highlights = await db.getAllAsync<{
+          id: string;
+          book_id: string;
+          chapter: number;
+          verse: number;
+        }>('SELECT id, book_id, chapter, verse FROM highlights');
+        for (const h of highlights) {
+          const canonical = canonicalBookName(h.book_id);
+          if (canonical === h.book_id) continue;
+          const newVerseId = `${canonical}:${h.chapter}:${h.verse}`;
+          try {
+            await db.runAsync(
+              'UPDATE highlights SET book_id = ?, verse_id = ? WHERE id = ?',
+              [canonical, newVerseId, h.id],
+            );
+          } catch {
+            // UNIQUE(verse_id) collision: a canonical row already exists.
+            await db.runAsync('DELETE FROM highlights WHERE id = ?', [h.id]);
+          }
+        }
+      } catch {
+        // highlights table not present yet — nothing to migrate.
+      }
+
+      await AsyncStorage.setItem(
+        BibleDatabase.CANONICAL_BOOK_MIGRATION_KEY,
+        '1',
+      );
+    } catch {
+      // Non-fatal: read paths canonicalize on the fly, so correctness holds
+      // even if this normalization could not complete.
+    }
   }
 
   // ========== FAVORITE OPERATIONS ==========

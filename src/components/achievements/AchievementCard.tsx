@@ -138,11 +138,19 @@ export function AchievementCard({
               : colors.surface,
           },
         ]}>
-        <Ionicons
-          name={achievement.icon as any}
-          size={compact ? 24 : 32}
-          color={unlocked ? rarityInfo.color : colors.textTertiary}
-        />
+        {/* Achievement icons are emoji (see definitions.ts), so they must be
+            rendered as Text — passing them to <Ionicons name> yields the
+            font's missing-glyph "?" (this is how AchievementUnlockedModal
+            already renders them). */}
+        <Text
+          style={[
+            styles.iconEmoji,
+            compact && styles.iconEmojiCompact,
+            !unlocked && styles.iconEmojiLocked,
+          ]}
+          allowFontScaling={false}>
+          {achievement.icon}
+        </Text>
       </View>
 
       {/* Content */}
@@ -257,6 +265,15 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: 12,
+  },
+  iconEmoji: {
+    fontSize: 30,
+  },
+  iconEmojiCompact: {
+    fontSize: 22,
+  },
+  iconEmojiLocked: {
+    opacity: 0.45,
   },
   content: {
     flex: 1,

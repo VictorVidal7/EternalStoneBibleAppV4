@@ -79,6 +79,11 @@ export const ServicesProvider: React.FC<ServicesProviderProps> = ({
 
         await Promise.all([achievements.initialize(), highlights.initialize()]);
 
+        // One-shot normalization of book identities for favorites/highlights/
+        // notes (Sprint 58). Runs here, after every table exists (the
+        // highlights table is created by HighlightService.initialize above).
+        await database.migrateCanonicalBookKeys();
+
         setAchievementService(achievements);
         setHighlightService(highlights);
         setInitialized(true);

@@ -23,6 +23,7 @@ import React, {
 import bibleDB from '../lib/database';
 import {logger} from '../lib/utils/logger';
 import {BibleVerse} from '../types/bible';
+import {canonicalBookName} from '../constants/bible';
 import {useServices} from './ServicesContext';
 import {getSyncEngine, type SyncAdapter, type SyncEntity} from '../lib/sync';
 import {useSyncEngineOptional} from './SyncEngineContext';
@@ -260,7 +261,12 @@ export const FavoritesProvider: FC<{children: ReactNode}> = ({children}) => {
     note?: string,
   ): Promise<void> {
     try {
-      const verseId = `${verse.book}_${verse.chapter}_${verse.verse}`;
+      // Canonicalize the book identity so a verse is keyed the same way no
+      // matter how the user got here (RVR1960 "Génesis" vs KJV "Genesis" vs a
+      // book-grid/deep-link name) — see canonicalBookName. The Firestore doc
+      // id is `favorite.id` (random), so this never disturbs sync.
+      const book = canonicalBookName(verse.book);
+      const verseId = `${book}_${verse.chapter}_${verse.verse}`;
 
       // Verificar si ya existe
       const existing = favorites.find(f => f.verseId === verseId);
@@ -275,7 +281,7 @@ export const FavoritesProvider: FC<{children: ReactNode}> = ({children}) => {
       const favorite: Favorite = {
         id: `fav_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
         verseId,
-        book: verse.book,
+        book,
         chapter: verse.chapter,
         verse: verse.verse,
         text: verse.text,
@@ -398,8 +404,14 @@ export const FavoritesProvider: FC<{children: ReactNode}> = ({children}) => {
    * Verifica si un versículo es favorito
    */
   function isFavorite(book: string, chapter: number, verse: number): boolean {
+    // Compare on the canonical book identity so a favorite is recognized
+    // regardless of the name the caller passes ("Génesis"/"Genesis"/…).
+    const canonical = canonicalBookName(book);
     return favorites.some(
-      f => f.book === book && f.chapter === chapter && f.verse === verse,
+      f =>
+        canonicalBookName(f.book) === canonical &&
+        f.chapter === chapter &&
+        f.verse === verse,
     );
   }
 
