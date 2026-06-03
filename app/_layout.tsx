@@ -58,6 +58,8 @@ import {predictiveCacheService} from '@lib/cache/PredictiveCache';
 import {badgeSystemService} from '@lib/badges/BadgeSystem';
 import {versionComparisonService} from '@lib/comparison/VersionComparison';
 import {widgetTaskHandler} from '@/widgets/WidgetTaskHandler';
+// Achievement unlock celebration modal (driven by ServicesContext.notifyAchievements)
+import {AchievementNotifications} from '@/components/AchievementNotifications';
 // Audio Bible Feature
 import {AudioPlayerProvider} from '@/features/audio/context/AudioPlayerContext';
 import {MiniAudioPlayer} from '@/features/audio/components/MiniAudioPlayer';
@@ -211,7 +213,11 @@ function AppContent() {
         }}>
         <Stack.Screen name="(tabs)" />
       </Stack>
-      {/* <AchievementNotifications /> */}
+      {/* Celebrates freshly-earned achievements app-wide. Inert until
+          ServicesContext.notifyAchievements is called (Sprint 64 wired it — the
+          modal was previously a no-op because setNewAchievements was never
+          invoked, so it had been left commented out). */}
+      <AchievementNotifications />
       <MiniAudioPlayer />
       {/* Re-opens the floating player at the last position on cold start
           (premium, paused) — Sprint 53. Render-less. */}
