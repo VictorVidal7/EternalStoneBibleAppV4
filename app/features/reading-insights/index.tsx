@@ -32,6 +32,7 @@ import {useLanguage} from '@hooks/useLanguage';
 import {useServices} from '@context/ServicesContext';
 import {useReadingProgress} from '@context/ReadingProgressContext';
 import {AppText} from '@components/ui/AppText';
+import {CountUpText} from '@components/ui/CountUpText';
 import {ContributionHeatmap} from '@components/charts/ContributionHeatmap';
 import {
   summarizeHeatmapCells,
@@ -473,11 +474,11 @@ const Stat: React.FC<{
     style={styles.stat}
     accessible={true}
     accessibilityLabel={`${value} ${label}`}>
-    <AppText
+    <CountUpText
+      value={value}
       scaleRole="display"
-      style={[styles.statValue, {color: colors.text}]}>
-      {value.toLocaleString()}
-    </AppText>
+      style={[styles.statValue, {color: colors.text}]}
+    />
     <AppText
       scaleRole="compact"
       numberOfLines={2}
