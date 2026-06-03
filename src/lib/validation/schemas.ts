@@ -3,7 +3,7 @@
  * Proporciona validación type-safe para datos críticos
  */
 
-import { z } from 'zod';
+import {z} from 'zod';
 
 /**
  * Schema para un versículo bíblico individual
@@ -57,17 +57,28 @@ export const HighlightSchema = z.object({
   book: z.string().min(1),
   chapter: z.number().int().positive(),
   verse: z.number().int().positive(),
-  color: z.enum(['yellow', 'green', 'blue', 'purple', 'pink', 'orange', 'red', 'gray']),
-  category: z.enum([
-    'promise',
-    'prayer',
-    'commandment',
-    'wisdom',
-    'prophecy',
-    'favorite',
-    'memorize',
-    'study',
-  ]).optional(),
+  color: z.enum([
+    'yellow',
+    'green',
+    'blue',
+    'purple',
+    'pink',
+    'orange',
+    'red',
+    'gray',
+  ]),
+  category: z
+    .enum([
+      'promise',
+      'prayer',
+      'commandment',
+      'wisdom',
+      'prophecy',
+      'favorite',
+      'memorize',
+      'study',
+    ])
+    .optional(),
   note: z.string().optional(),
   createdAt: z.date().or(z.string()),
 });
@@ -171,7 +182,9 @@ export function validate<T>(schema: z.ZodSchema<T>, data: unknown): T {
     return schema.parse(data);
   } catch (error) {
     if (error instanceof z.ZodError) {
-      const errorMessages = error.errors.map((err) => `${err.path.join('.')}: ${err.message}`);
+      const errorMessages = error.errors.map(
+        err => `${err.path.join('.')}: ${err.message}`,
+      );
       throw new Error(`Error de validación:\n${errorMessages.join('\n')}`);
     }
     throw error;
@@ -183,16 +196,18 @@ export function validate<T>(schema: z.ZodSchema<T>, data: unknown): T {
  */
 export function safeValidate<T>(
   schema: z.ZodSchema<T>,
-  data: unknown
-): { success: true; data: T } | { success: false; error: string } {
+  data: unknown,
+): {success: true; data: T} | {success: false; error: string} {
   try {
     const result = schema.parse(data);
-    return { success: true, data: result };
+    return {success: true, data: result};
   } catch (error) {
     if (error instanceof z.ZodError) {
-      const errorMessages = error.errors.map((err) => `${err.path.join('.')}: ${err.message}`);
-      return { success: false, error: errorMessages.join(', ') };
+      const errorMessages = error.errors.map(
+        err => `${err.path.join('.')}: ${err.message}`,
+      );
+      return {success: false, error: errorMessages.join(', ')};
     }
-    return { success: false, error: 'Error de validación desconocido' };
+    return {success: false, error: 'Error de validación desconocido'};
   }
 }

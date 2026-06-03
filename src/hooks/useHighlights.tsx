@@ -2,10 +2,10 @@
  * Hook personalizado para gestionar resaltados
  */
 
-import { useState, useEffect, useCallback } from 'react';
-import { HighlightService } from '../lib/highlights/HighlightService';
-import { Highlight, HighlightColor, HighlightCategory } from '../lib/highlights';
-import { BibleDatabase } from '../lib/database';
+import {useState, useEffect, useCallback} from 'react';
+import {HighlightService} from '../lib/highlights/HighlightService';
+import {Highlight, HighlightColor, HighlightCategory} from '../lib/highlights';
+import {BibleDatabase} from '../lib/database';
 
 export function useHighlights(database: BibleDatabase | null) {
   const [service, setService] = useState<HighlightService | null>(null);
@@ -34,7 +34,7 @@ export function useHighlights(database: BibleDatabase | null) {
       verse: number,
       color: HighlightColor,
       category?: HighlightCategory,
-      note?: string
+      note?: string,
     ): Promise<Highlight | null> => {
       if (!service) return null;
 
@@ -46,12 +46,12 @@ export function useHighlights(database: BibleDatabase | null) {
           verse,
           color,
           category,
-          note
+          note,
         );
 
         // Actualizar lista local
-        setHighlights((prev) => {
-          const filtered = prev.filter((h) => h.verseId !== verseId);
+        setHighlights(prev => {
+          const filtered = prev.filter(h => h.verseId !== verseId);
           return [...filtered, highlight];
         });
 
@@ -61,7 +61,7 @@ export function useHighlights(database: BibleDatabase | null) {
         return null;
       }
     },
-    [service]
+    [service],
   );
 
   /**
@@ -70,7 +70,7 @@ export function useHighlights(database: BibleDatabase | null) {
   const updateHighlight = useCallback(
     async (
       verseId: string,
-      updates: Partial<Pick<Highlight, 'color' | 'category' | 'note'>>
+      updates: Partial<Pick<Highlight, 'color' | 'category' | 'note'>>,
     ): Promise<boolean> => {
       if (!service) return false;
 
@@ -78,12 +78,12 @@ export function useHighlights(database: BibleDatabase | null) {
         await service.updateHighlight(verseId, updates);
 
         // Actualizar lista local
-        setHighlights((prev) =>
-          prev.map((h) =>
+        setHighlights(prev =>
+          prev.map(h =>
             h.verseId === verseId
-              ? { ...h, ...updates, updatedAt: Date.now() }
-              : h
-          )
+              ? {...h, ...updates, updatedAt: Date.now()}
+              : h,
+          ),
         );
 
         return true;
@@ -92,7 +92,7 @@ export function useHighlights(database: BibleDatabase | null) {
         return false;
       }
     },
-    [service]
+    [service],
   );
 
   /**
@@ -106,7 +106,7 @@ export function useHighlights(database: BibleDatabase | null) {
         await service.removeHighlight(verseId);
 
         // Actualizar lista local
-        setHighlights((prev) => prev.filter((h) => h.verseId !== verseId));
+        setHighlights(prev => prev.filter(h => h.verseId !== verseId));
 
         return true;
       } catch (error) {
@@ -114,7 +114,7 @@ export function useHighlights(database: BibleDatabase | null) {
         return false;
       }
     },
-    [service]
+    [service],
   );
 
   /**
@@ -131,7 +131,7 @@ export function useHighlights(database: BibleDatabase | null) {
         return null;
       }
     },
-    [service]
+    [service],
   );
 
   /**
@@ -148,7 +148,7 @@ export function useHighlights(database: BibleDatabase | null) {
         console.error('Error loading highlights by book:', error);
       }
     },
-    [service]
+    [service],
   );
 
   /**
@@ -159,13 +159,16 @@ export function useHighlights(database: BibleDatabase | null) {
       if (!service) return;
 
       try {
-        const chapterHighlights = await service.getHighlightsByChapter(bookId, chapter);
+        const chapterHighlights = await service.getHighlightsByChapter(
+          bookId,
+          chapter,
+        );
         setHighlights(chapterHighlights);
       } catch (error) {
         console.error('Error loading highlights by chapter:', error);
       }
     },
-    [service]
+    [service],
   );
 
   /**
@@ -176,13 +179,14 @@ export function useHighlights(database: BibleDatabase | null) {
       if (!service) return;
 
       try {
-        const categoryHighlights = await service.getHighlightsByCategory(category);
+        const categoryHighlights =
+          await service.getHighlightsByCategory(category);
         setHighlights(categoryHighlights);
       } catch (error) {
         console.error('Error loading highlights by category:', error);
       }
     },
-    [service]
+    [service],
   );
 
   /**
@@ -243,7 +247,7 @@ export function useHighlights(database: BibleDatabase | null) {
         return 0;
       }
     },
-    [service, loadAllHighlights]
+    [service, loadAllHighlights],
   );
 
   return {

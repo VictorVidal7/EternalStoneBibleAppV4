@@ -8,7 +8,13 @@
  * - Colores semánticos completos
  */
 
-import { borderRadius, shadows, spacing, fontSize, gradients } from './designTokens';
+import {
+  borderRadius,
+  shadows,
+  spacing,
+  fontSize,
+  gradients,
+} from './designTokens';
 
 // ==================== COLOR PALETTES ====================
 
@@ -80,7 +86,7 @@ export const lightTheme = {
   secondaryDark: secondaryPalette[600],
 
   // Backgrounds - Elegantes y espaciosos con mejor separación
-  background: '#fafbfc',  // Gris ultra suave - mejor contraste
+  background: '#fafbfc', // Gris ultra suave - mejor contraste
   backgroundSecondary: '#f5f7fa',
   backgroundTertiary: '#eef1f5',
   surface: '#ffffff',
@@ -162,9 +168,9 @@ export const darkTheme = {
 
   // Backgrounds - True Black premium para OLED con gradación más sutil
   background: '#000000',
-  backgroundSecondary: '#0f0f0f',  // Separación más sutil
+  backgroundSecondary: '#0f0f0f', // Separación más sutil
   backgroundTertiary: '#1a1a1a',
-  surface: '#121212',  // Material Design Dark Theme estándar
+  surface: '#121212', // Material Design Dark Theme estándar
   surfaceElevated: '#1e1e1e',
 
   // Cards & Components
@@ -369,7 +375,7 @@ export const a11yColors = {
 export const getThemedColor = (
   lightColor: string,
   darkColor: string,
-  isDark: boolean
+  isDark: boolean,
 ) => (isDark ? darkColor : lightColor);
 
 /**

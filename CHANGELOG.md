@@ -15,6 +15,7 @@ mejor rendimiento y una experiencia de usuario superior.
 ### ✨ Añadido
 
 #### Componentes y UI
+
 - ✅ **CustomButton.tsx** - Botón completamente reescrito en TypeScript con:
   - 4 variantes (primary, secondary, danger, ghost)
   - 3 tamaños (small, medium, large)
@@ -39,6 +40,7 @@ mejor rendimiento y una experiencia de usuario superior.
   - Botón de "Intentar de nuevo"
 
 #### Validación y Type Safety
+
 - ✅ **Zod Integration** - Sistema completo de validación:
   - `schemas.ts` con 13+ schemas comprehensivos
   - Validación de versículos, capítulos y libros
@@ -49,6 +51,7 @@ mejor rendimiento y una experiencia de usuario superior.
   - Funciones helper: `validate()` y `safeValidate()`
 
 #### Monitoreo y Crash Reporting
+
 - ✅ **Sentry Integration** - Crash reporting completo:
   - `sentry.ts` con configuración lista para producción
   - Filtrado automático de datos sensibles
@@ -59,6 +62,7 @@ mejor rendimiento y una experiencia de usuario superior.
   - Wrapper `withErrorTracking()` para funciones async
 
 #### Pantallas Migradas
+
 - ✅ **BibleListScreen.tsx** - Reescrita completamente:
   - Migrada a TypeScript con interfaces completas
   - Implementación de FlashList (60% más rápido)
@@ -75,11 +79,13 @@ mejor rendimiento y una experiencia de usuario superior.
   - Header mejorado con contador de capítulos
 
 #### Dependencias
+
 - ✅ `@shopify/flash-list` - Listas 60% más rápidas
 - ✅ `zod` - Validación type-safe
 - ✅ `@sentry/react-native` - Error tracking profesional
 
 #### Documentación
+
 - ✅ **README.md** completamente reescrito:
   - Badges actualizados
   - Secciones detalladas de características
@@ -189,11 +195,13 @@ mejor rendimiento y una experiencia de usuario superior.
 Si estás actualizando desde V3:
 
 1. **Instalar nuevas dependencias**:
+
    ```bash
    npm install @shopify/flash-list zod @sentry/react-native
    ```
 
 2. **Actualizar imports** (si usas componentes migrados):
+
    ```typescript
    // Antes
    import CustomButton from '../components/CustomButton';
@@ -216,6 +224,7 @@ Si estás actualizando desde V3:
 ## [3.0.0] - 2024-XX-XX
 
 ### Añadido
+
 - Sistema de logros completo con 47+ logros
 - Sistema de resaltado inteligente con 8 colores y categorías
 - Analíticas avanzadas con heatmap
@@ -223,6 +232,7 @@ Si estás actualizando desde V3:
 - PerformanceOptimizer con utilidades
 
 ### Características
+
 - 31,102 versículos completos RVR1960
 - 66 libros bíblicos
 - Búsqueda FTS5 ultra-rápida
@@ -234,6 +244,7 @@ Si estás actualizando desde V3:
 ## [2.0.0] - Anterior
 
 ### Características iniciales
+
 - Lectura básica de la Biblia
 - Sistema de marcadores
 - Notas personales

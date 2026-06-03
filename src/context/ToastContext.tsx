@@ -5,8 +5,14 @@
  * en cualquier parte de la app
  */
 
-import React, { createContext, useContext, useState, useCallback, ReactNode } from 'react';
-import { StyleSheet, View } from 'react-native';
+import React, {
+  createContext,
+  useContext,
+  useState,
+  useCallback,
+  ReactNode,
+} from 'react';
+import {StyleSheet, View} from 'react-native';
 import Toast from '../components/Toast';
 
 type ToastVariant = 'success' | 'error' | 'warning' | 'info' | 'default';
@@ -37,7 +43,7 @@ interface ToastProviderProps {
   children: ReactNode;
 }
 
-export const ToastProvider: React.FC<ToastProviderProps> = ({ children }) => {
+export const ToastProvider: React.FC<ToastProviderProps> = ({children}) => {
   const [toastConfig, setToastConfig] = useState<ToastOptions | null>(null);
   const [visible, setVisible] = useState(false);
 
@@ -46,28 +52,40 @@ export const ToastProvider: React.FC<ToastProviderProps> = ({ children }) => {
     setVisible(true);
   }, []);
 
-  const success = useCallback((message: string, duration = 3000) => {
-    show({ message, variant: 'success', duration });
-  }, [show]);
+  const success = useCallback(
+    (message: string, duration = 3000) => {
+      show({message, variant: 'success', duration});
+    },
+    [show],
+  );
 
-  const error = useCallback((message: string, duration = 3000) => {
-    show({ message, variant: 'error', duration });
-  }, [show]);
+  const error = useCallback(
+    (message: string, duration = 3000) => {
+      show({message, variant: 'error', duration});
+    },
+    [show],
+  );
 
-  const warning = useCallback((message: string, duration = 3000) => {
-    show({ message, variant: 'warning', duration });
-  }, [show]);
+  const warning = useCallback(
+    (message: string, duration = 3000) => {
+      show({message, variant: 'warning', duration});
+    },
+    [show],
+  );
 
-  const info = useCallback((message: string, duration = 3000) => {
-    show({ message, variant: 'info', duration });
-  }, [show]);
+  const info = useCallback(
+    (message: string, duration = 3000) => {
+      show({message, variant: 'info', duration});
+    },
+    [show],
+  );
 
   const handleDismiss = useCallback(() => {
     setVisible(false);
   }, []);
 
   return (
-    <ToastContext.Provider value={{ show, success, error, warning, info }}>
+    <ToastContext.Provider value={{show, success, error, warning, info}}>
       {children}
       {toastConfig && (
         <View style={styles.toastContainer}>

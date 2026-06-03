@@ -1,0 +1,23 @@
+# Normalize all text files to LF in the repo (git stores LF; checkout is LF too,
+# regardless of a contributor's core.autocrlf). This keeps `prettier --check`
+# (default endOfLine: "lf") deterministic across Windows and the Linux CI, and
+# stops a Windows working tree from showing every file as "needs formatting".
+* text=auto eol=lf
+
+# Binary files — never normalize line endings or diff as text.
+*.png  binary
+*.jpg  binary
+*.jpeg binary
+*.gif  binary
+*.ico  binary
+*.webp binary
+*.ttf  binary
+*.otf  binary
+*.woff  binary
+*.woff2 binary
+*.db   binary
+*.keystore binary
+*.jks  binary
+*.jar  binary
+*.aab  binary
+*.apk  binary
