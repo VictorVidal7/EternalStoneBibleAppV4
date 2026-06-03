@@ -534,6 +534,46 @@ export const translations = {
       error: 'No se pudo cargar el estudio',
     },
 
+    themes: {
+      title: 'Explora por tema',
+      subtitle: 'Pasajes por tema',
+      cardTitle: 'Explora por tema',
+      cardSubtitle: 'Encuentra pasajes por tema',
+      browseHint: 'Elige un tema para ver sus pasajes',
+      verses: 'versículos',
+      openHint: 'Abrir pasaje',
+      missingText: '(texto no disponible)',
+      error: 'No se pudieron cargar los pasajes',
+      list: {
+        faith: {name: 'Fe', description: 'Confía en lo que aún no ves'},
+        love: {name: 'Amor', description: 'El amor de Dios y al prójimo'},
+        hope: {
+          name: 'Esperanza',
+          description: 'Esperanza firme en toda circunstancia',
+        },
+        peace: {name: 'Paz', description: 'Calma para el corazón ansioso'},
+        strength: {
+          name: 'Fortaleza',
+          description: 'Fuerzas renovadas en la debilidad',
+        },
+        forgiveness: {name: 'Perdón', description: 'Perdonar y ser perdonado'},
+        wisdom: {name: 'Sabiduría', description: 'Sabiduría para decidir bien'},
+        prayer: {name: 'Oración', description: 'Acércate a Dios en oración'},
+        courage: {name: 'Valor', description: 'Valor frente al temor'},
+        comfort: {
+          name: 'Consuelo',
+          description: 'Consuelo en el dolor y la pérdida',
+        },
+        joy: {name: 'Gozo', description: 'Gozo y gratitud en el Señor'},
+        grace: {name: 'Gracia', description: 'La gracia inmerecida de Dios'},
+        salvation: {
+          name: 'Salvación',
+          description: 'El camino de la salvación',
+        },
+        guidance: {name: 'Guía', description: 'Dirección para tu camino'},
+      },
+    },
+
     auth: {
       sectionTitle: 'Cuenta',
       signInWithGoogle: 'Iniciar sesión con Google',
@@ -2157,6 +2197,40 @@ export const translations = {
       missingText: '(text not available)',
       openHint: 'Open passage',
       error: 'Could not load study',
+    },
+
+    themes: {
+      title: 'Explore by Theme',
+      subtitle: 'Passages by topic',
+      cardTitle: 'Explore by Theme',
+      cardSubtitle: 'Find passages by topic',
+      browseHint: 'Pick a theme to see its passages',
+      verses: 'verses',
+      openHint: 'Open passage',
+      missingText: '(text not available)',
+      error: 'Could not load the passages',
+      list: {
+        faith: {name: 'Faith', description: 'Trust in what you cannot yet see'},
+        love: {name: 'Love', description: "God's love and loving others"},
+        hope: {name: 'Hope', description: 'Steadfast hope in every season'},
+        peace: {name: 'Peace', description: 'Calm for an anxious heart'},
+        strength: {
+          name: 'Strength',
+          description: 'Renewed strength in weakness',
+        },
+        forgiveness: {
+          name: 'Forgiveness',
+          description: 'Forgiving and being forgiven',
+        },
+        wisdom: {name: 'Wisdom', description: 'Wisdom for living well'},
+        prayer: {name: 'Prayer', description: 'Drawing near to God in prayer'},
+        courage: {name: 'Courage', description: 'Courage in the face of fear'},
+        comfort: {name: 'Comfort', description: 'Comfort in grief and loss'},
+        joy: {name: 'Joy', description: 'Joy and gratitude in the Lord'},
+        grace: {name: 'Grace', description: "God's unmerited grace"},
+        salvation: {name: 'Salvation', description: 'The way of salvation'},
+        guidance: {name: 'Guidance', description: 'Direction for your path'},
+      },
     },
 
     auth: {
