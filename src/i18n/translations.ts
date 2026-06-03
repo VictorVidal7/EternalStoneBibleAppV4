@@ -283,6 +283,11 @@ export const translations = {
       chaptersBooksTitle: 'Has recorrido',
       chaptersLabel: 'capítulos',
       booksLabel: 'libros completados',
+      booksReadTitle: 'Libros completados',
+      booksReadCaption:
+        '{{done}} de {{total}} libros de la Biblia · {{pct}}% 📚',
+      mostReadTitle: 'Tu libro más leído',
+      mostReadCaption: '{{time}} entre sus páginas ✨',
       streakTitle: 'Tu constancia',
       longestStreakLabel: 'racha más larga (días)',
       currentStreakLabel: 'racha actual',
@@ -1941,6 +1946,11 @@ export const translations = {
       chaptersBooksTitle: 'You have journeyed',
       chaptersLabel: 'chapters',
       booksLabel: 'books completed',
+      booksReadTitle: 'Books completed',
+      booksReadCaption:
+        '{{done}} of {{total}} books of the Bible · {{pct}}% 📚',
+      mostReadTitle: 'Your most-read book',
+      mostReadCaption: '{{time}} in its pages ✨',
       streakTitle: 'Your consistency',
       longestStreakLabel: 'longest streak (days)',
       currentStreakLabel: 'current streak',

@@ -102,6 +102,7 @@ describe('buildJourneyRecap', () => {
     expect(r.activeDays).toBe(0);
     expect(r.busiestDay).toBeNull();
     expect(r.favoriteBook).toBeNull();
+    expect(r.mostReadBook).toBeNull();
     expect(r.cardsTotal).toBe(0);
     expect(r.versesMastered).toBe(0);
     expect(r.memoryReviews).toBe(0);
@@ -175,6 +176,37 @@ describe('buildJourneyRecap', () => {
     expect(r.favoritesCount).toBe(5);
     // Génesis and Salmos both have 2; Génesis sorts first.
     expect(r.favoriteBook).toEqual({book: 'Génesis', count: 2});
+  });
+
+  it('derives the REAL most-read book from the per-book log (verses → time)', () => {
+    const r = buildJourneyRecap(
+      {
+        ...emptyInput,
+        bookReadingLog: [
+          {book: 'John', versesRead: 40, timeSpent: 600, lastReadAt: 2},
+          {book: 'Genesis', versesRead: 120, timeSpent: 300, lastReadAt: 1},
+        ],
+      },
+      NOW,
+    );
+    expect(r.mostReadBook).toEqual({
+      book: 'Genesis',
+      versesRead: 120,
+      timeSpent: 300,
+    });
+  });
+
+  it('leaves mostReadBook null when the per-book log is empty / all-zero', () => {
+    const r = buildJourneyRecap(
+      {
+        ...emptyInput,
+        bookReadingLog: [
+          {book: 'John', versesRead: 0, timeSpent: 90, lastReadAt: 1},
+        ],
+      },
+      NOW,
+    );
+    expect(r.mostReadBook).toBeNull();
   });
 
   it('composes deck mastery from masterySummary', () => {
