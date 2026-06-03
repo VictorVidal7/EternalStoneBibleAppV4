@@ -168,6 +168,18 @@ class VersionComparisonService {
         isPremium: false,
       },
       {
+        // Sprint 66: WEB is bundled + seeded like RVR1960/KJV, so it compares
+        // for free with proper metadata (compareVerse matches case-insensitively
+        // against the uppercase 'WEB' rows in the verses table).
+        id: 'web',
+        name: 'World English Bible',
+        abbreviation: 'WEB',
+        language: 'en',
+        description: 'Modern, readable public-domain English',
+        year: 2000,
+        isPremium: false,
+      },
+      {
         id: 'nlt',
         name: 'New Living Translation',
         abbreviation: 'NLT',

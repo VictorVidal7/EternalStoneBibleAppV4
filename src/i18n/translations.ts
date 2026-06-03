@@ -854,6 +854,7 @@ export const translations = {
       nextVerse: 'Versículo siguiente',
       sideBySide: 'Mostrar la otra versión junto a esta',
       dualView: 'Doble',
+      dualCompanionLabel: 'Junto a:',
       highlightColorNames: {
         yellow: 'amarillo',
         green: 'verde',
@@ -2518,6 +2519,7 @@ export const translations = {
       nextVerse: 'Next verse',
       sideBySide: 'Show the other version alongside',
       dualView: 'Dual',
+      dualCompanionLabel: 'Alongside:',
       highlightColorNames: {
         yellow: 'yellow',
         green: 'green',

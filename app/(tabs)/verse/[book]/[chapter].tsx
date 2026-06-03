@@ -82,6 +82,10 @@ import {
   staticColors,
 } from '@/styles/designTokens';
 import {resolveReaderTheme} from '@/styles/readerThemes';
+import {
+  resolveSecondaryVersion,
+  secondaryVersionChoices,
+} from '@lib/reading/secondaryVersion';
 import {hitSlopToMinTarget} from '@lib/a11y/touchTarget';
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
 import {useWindowDimensions} from 'react-native';
@@ -202,15 +206,31 @@ export default function VerseReadingScreen() {
     new Map(),
   );
   const [showHighlightPicker, setShowHighlightPicker] = useState(false);
-  // Side-by-side mode: pairs each verse with its counterpart from the
-  // other available Bible version (RVR1960 ↔ KJV) so users can study
-  // both translations at once without leaving the reader.
+  // Side-by-side mode: pairs each verse with its counterpart from a SECOND
+  // translation so users can study two at once without leaving the reader.
   const [sideBySide, setSideBySide] = useState(false);
   const [secondaryVerses, setSecondaryVerses] = useState<BibleVerse[]>([]);
-  // The "other" version (whichever one isn't currently active for
-  // reading). Memoized so it survives renders cheaply.
+  // The user's chosen companion translation (persisted). With three versions
+  // (RVR1960 / KJV / WEB) the companion is no longer "the other one" — it's a
+  // real choice; null means "not chosen yet → first available" (Sprint 66).
+  const [preferredSecondaryId, setPreferredSecondaryId] = useState<
+    string | null
+  >(null);
+  // The companion to actually render: the preference when it's a real,
+  // non-primary version, else the first available one (pure + tested).
   const secondaryVersion = useMemo(
-    () => BIBLE_VERSIONS.find(v => v.id !== selectedVersion.id),
+    () =>
+      resolveSecondaryVersion(
+        selectedVersion.id,
+        preferredSecondaryId,
+        BIBLE_VERSIONS,
+      ),
+    [selectedVersion.id, preferredSecondaryId],
+  );
+  // The companion candidates (everything but the version being read) — the
+  // chips shown in the dual-mode picker.
+  const secondaryChoices = useMemo(
+    () => secondaryVersionChoices(selectedVersion.id, BIBLE_VERSIONS),
     [selectedVersion.id],
   );
 
@@ -229,43 +249,73 @@ export default function VerseReadingScreen() {
     return () => setBottomOffset(0);
   }, [setBottomOffset]);
 
-  // Hydrate the side-by-side preference once on mount.
+  // Hydrate the dual-mode preferences once on mount: whether it's on, and
+  // which companion translation was last chosen.
   useEffect(() => {
     AsyncStorage.getItem('@reader_side_by_side')
       .then(v => {
         if (v === '1') setSideBySide(true);
       })
       .catch(() => undefined);
+    AsyncStorage.getItem('@reader_secondary_version')
+      .then(v => {
+        if (v) setPreferredSecondaryId(v);
+      })
+      .catch(() => undefined);
   }, []);
 
-  async function toggleSideBySide() {
+  function toggleSideBySide() {
     haptics.tap();
     const next = !sideBySide;
     setSideBySide(next);
     AsyncStorage.setItem('@reader_side_by_side', next ? '1' : '0').catch(
       () => undefined,
     );
-    // Going from off → on outside of a chapter (re)load: fetch the
-    // companion chapter inline. Going off → off clears.
-    if (next && secondaryVersion && bookInfo) {
+    // The companion chapter is fetched by the effect below, which reacts to
+    // sideBySide / the chosen secondary version / the chapter.
+  }
+
+  // Switch which translation is shown alongside the one being read, and
+  // remember it. The fetch effect below reloads the companion chapter.
+  function changeSecondaryVersion(versionId: string) {
+    haptics.tap();
+    setPreferredSecondaryId(versionId);
+    AsyncStorage.setItem('@reader_secondary_version', versionId).catch(
+      () => undefined,
+    );
+  }
+
+  // (Re)fetch the companion chapter whenever dual mode, the chosen secondary
+  // version, or the chapter changes; clear it when dual mode is off. This is
+  // the single source of the side-by-side text (previously duplicated inline
+  // in the toggle and in loadChapter).
+  useEffect(() => {
+    if (!sideBySide || !secondaryVersion || !bookInfo) {
+      setSecondaryVerses([]);
+      return;
+    }
+    let active = true;
+    (async () => {
       try {
         const secondary = await bibleDB.getChapter(
           bookInfo.id,
           chapterNum,
           secondaryVersion.id,
         );
-        setSecondaryVerses(secondary);
+        if (active) setSecondaryVerses(secondary);
       } catch (error) {
         logger.error('Side-by-side fetch failed', error as Error, {
           component: 'VerseReadingScreen',
-          action: 'toggleSideBySide',
+          action: 'secondaryFetch',
         });
-        setSecondaryVerses([]);
+        if (active) setSecondaryVerses([]);
       }
-    } else if (!next) {
-      setSecondaryVerses([]);
-    }
-  }
+    })();
+    return () => {
+      active = false;
+    };
+    // bookInfo is derived from `book`, so `book` in the deps covers it.
+  }, [sideBySide, secondaryVersion?.id, book, chapterNum]);
 
   // Reading-progress tracking: how far the reader scrolled through the
   // chapter, persisted on chapter change / unmount so the chapter grid
@@ -558,27 +608,9 @@ export default function VerseReadingScreen() {
         await bibleDB.updateReadingProgress(book, chapterNum, 1);
       }
 
-      // Side-by-side: also pull the matching chapter from the other
-      // version so each verse can render its counterpart. Fire-and-
-      // forget — the primary reading flow doesn't depend on it.
-      if (sideBySide && secondaryVersion) {
-        try {
-          const secondary = await bibleDB.getChapter(
-            bookInfo.id,
-            chapterNum,
-            secondaryVersion.id,
-          );
-          setSecondaryVerses(secondary);
-        } catch (error) {
-          logger.error('Side-by-side fetch failed', error as Error, {
-            component: 'VerseReadingScreen',
-            action: 'loadChapter.secondary',
-          });
-          setSecondaryVerses([]);
-        }
-      } else {
-        setSecondaryVerses([]);
-      }
+      // The side-by-side companion chapter is loaded by its own effect (which
+      // reacts to dual mode / the chosen secondary version / the chapter), so
+      // it no longer needs to be fetched here.
 
       setLoading(false);
 
@@ -1342,6 +1374,63 @@ export default function VerseReadingScreen() {
           </TouchableOpacity>
         </View>
 
+        {/* Dual-mode companion picker: choose WHICH translation sits alongside
+            the one being read (Sprint 66). Only shown when dual mode is on and
+            more than one companion exists. A wrapping row (not a horizontal
+            scroller) so the chip labels actually paint on this app. */}
+        {sideBySide && secondaryChoices.length > 1 ? (
+          <View
+            style={[
+              styles.secondaryPicker,
+              {
+                backgroundColor: effectiveColors.surface,
+                borderBottomColor: effectiveColors.border,
+              },
+            ]}>
+            <Text
+              style={[
+                styles.secondaryPickerLabel,
+                {color: effectiveColors.textSecondary},
+              ]}>
+              {t.verse.dualCompanionLabel}
+            </Text>
+            {secondaryChoices.map(v => {
+              const active = secondaryVersion?.id === v.id;
+              return (
+                <TouchableOpacity
+                  key={v.id}
+                  onPress={() => changeSecondaryVersion(v.id)}
+                  accessibilityRole="button"
+                  accessibilityState={{selected: active}}
+                  accessibilityLabel={v.name}
+                  style={[
+                    styles.secondaryChip,
+                    {
+                      borderColor: active
+                        ? effectiveColors.primary
+                        : effectiveColors.border,
+                      backgroundColor: active
+                        ? effectiveColors.primary + '20'
+                        : staticColors.transparent,
+                    },
+                  ]}>
+                  <Text
+                    style={[
+                      styles.secondaryChipText,
+                      {
+                        color: active
+                          ? effectiveColors.primary
+                          : effectiveColors.textSecondary,
+                      },
+                    ]}>
+                    {v.abbreviation}
+                  </Text>
+                </TouchableOpacity>
+              );
+            })}
+          </View>
+        ) : null}
+
         {/* Verses - Clean inline format */}
         <ScrollView
           ref={scrollViewRef}
@@ -2023,6 +2112,29 @@ const styles = StyleSheet.create({
   },
   sideBySideText: {
     fontStyle: 'italic',
+  },
+  secondaryPicker: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flexWrap: 'wrap',
+    paddingHorizontal: spacing.base,
+    paddingVertical: spacing.xs,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    gap: spacing.xs,
+  },
+  secondaryPickerLabel: {
+    fontSize: fontSizes.xs,
+    marginRight: spacing['0.5'],
+  },
+  secondaryChip: {
+    paddingHorizontal: spacing.sm,
+    paddingVertical: 4,
+    borderRadius: borderRadius.full,
+    borderWidth: 1,
+  },
+  secondaryChipText: {
+    fontSize: fontSizes.xs,
+    fontWeight: '600',
   },
   favoriteIndicator: {
     marginLeft: spacing.sm,
