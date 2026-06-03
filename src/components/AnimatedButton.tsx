@@ -25,6 +25,7 @@ import {haptics} from '@lib/haptics';
 
 import {spacing, borderRadius, fontSize, shadows} from '../styles/designTokens';
 import {useTheme} from '../hooks/useTheme';
+import {usePressScale} from '../hooks/usePressScale';
 
 type ButtonVariant = 'primary' | 'secondary' | 'outline' | 'ghost' | 'gradient';
 type ButtonSize = 'small' | 'medium' | 'large';
@@ -61,25 +62,21 @@ export default function AnimatedButton({
   hapticFeedback = true,
 }: AnimatedButtonProps) {
   const {colors, isDark} = useTheme();
-  const scaleAnim = useRef(new Animated.Value(1)).current;
+  // Sprint 67: shared, reduce-motion-aware press depress (see usePressScale).
+  // The opacity dip stays local — it's a fade, not motion, so it's fine to keep
+  // under reduced motion.
+  const press = usePressScale();
   const opacityAnim = useRef(new Animated.Value(1)).current;
 
   const handlePressIn = () => {
     if (disabled || loading) return;
 
-    Animated.parallel([
-      Animated.spring(scaleAnim, {
-        toValue: 0.96,
-        tension: 300,
-        friction: 10,
-        useNativeDriver: true,
-      }),
-      Animated.timing(opacityAnim, {
-        toValue: 0.8,
-        duration: 100,
-        useNativeDriver: true,
-      }),
-    ]).start();
+    press.onPressIn();
+    Animated.timing(opacityAnim, {
+      toValue: 0.8,
+      duration: 100,
+      useNativeDriver: true,
+    }).start();
 
     if (hapticFeedback) {
       haptics.tap();
@@ -89,19 +86,12 @@ export default function AnimatedButton({
   const handlePressOut = () => {
     if (disabled || loading) return;
 
-    Animated.parallel([
-      Animated.spring(scaleAnim, {
-        toValue: 1,
-        tension: 300,
-        friction: 10,
-        useNativeDriver: true,
-      }),
-      Animated.timing(opacityAnim, {
-        toValue: 1,
-        duration: 100,
-        useNativeDriver: true,
-      }),
-    ]).start();
+    press.onPressOut();
+    Animated.timing(opacityAnim, {
+      toValue: 1,
+      duration: 100,
+      useNativeDriver: true,
+    }).start();
   };
 
   const getButtonColors = () => {
@@ -240,7 +230,7 @@ export default function AnimatedButton({
     return (
       <Animated.View
         style={{
-          transform: [{scale: scaleAnim}],
+          transform: [{scale: press.scale}],
           opacity: opacityAnim,
         }}>
         <TouchableOpacity
@@ -264,7 +254,7 @@ export default function AnimatedButton({
   return (
     <Animated.View
       style={{
-        transform: [{scale: scaleAnim}],
+        transform: [{scale: press.scale}],
         opacity: opacityAnim,
       }}>
       <TouchableOpacity

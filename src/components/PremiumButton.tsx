@@ -20,6 +20,7 @@ import {
 import {LinearGradient} from 'expo-linear-gradient';
 import {Ionicons} from '@expo/vector-icons';
 import {haptics} from '@lib/haptics';
+import {usePressScale} from '@hooks/usePressScale';
 import {
   spacing,
   borderRadius,
@@ -67,7 +68,8 @@ export const PremiumButton: React.FC<PremiumButtonProps> = ({
   fullWidth = false,
   haptic = true,
 }) => {
-  const scaleAnim = useRef(new Animated.Value(1)).current;
+  // Sprint 67: shared, reduce-motion-aware press depress (see usePressScale).
+  const press = usePressScale();
   const shineAnim = useRef(new Animated.Value(-1)).current;
 
   useEffect(() => {
@@ -85,22 +87,11 @@ export const PremiumButton: React.FC<PremiumButtonProps> = ({
     if (haptic) {
       haptics.press();
     }
-
-    Animated.spring(scaleAnim, {
-      toValue: 0.96,
-      tension: 300,
-      friction: 10,
-      useNativeDriver: true,
-    }).start();
+    press.onPressIn();
   };
 
   const handlePressOut = () => {
-    Animated.spring(scaleAnim, {
-      toValue: 1,
-      tension: 300,
-      friction: 10,
-      useNativeDriver: true,
-    }).start();
+    press.onPressOut();
   };
 
   const handlePress = () => {
@@ -171,7 +162,7 @@ export const PremiumButton: React.FC<PremiumButtonProps> = ({
           styles.button,
           getSizeStyles(),
           disabled && styles.disabledOpacity,
-          {transform: [{scale: scaleAnim}]},
+          {transform: [{scale: press.scale}]},
           style,
         ]}>
         <LinearGradient

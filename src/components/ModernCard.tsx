@@ -20,6 +20,7 @@ import {BlurView} from 'expo-blur';
 import {haptics} from '@lib/haptics';
 import {spacing, borderRadius, shadows, fontSize} from '../styles/designTokens';
 import {useTheme} from '../hooks/useTheme';
+import {usePressScale} from '../hooks/usePressScale';
 
 type CardVariant = 'elevated' | 'outlined' | 'filled' | 'glass' | 'gradient';
 type CardPadding = 'none' | 'small' | 'medium' | 'large';
@@ -56,7 +57,9 @@ export const ModernCard: React.FC<ModernCardProps> = ({
   useBlur = Platform.OS === 'ios',
 }) => {
   const {colors, isDark} = useTheme();
-  const scaleAnim = useRef(new Animated.Value(1)).current;
+  // Sprint 67: shared, reduce-motion-aware press depress (see usePressScale).
+  // The entry fade stays on its own opacity channel.
+  const press = usePressScale();
   const fadeAnim = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
@@ -77,22 +80,12 @@ export const ModernCard: React.FC<ModernCardProps> = ({
 
   const handlePressIn = () => {
     if (disabled) return;
-    Animated.spring(scaleAnim, {
-      toValue: 0.97,
-      tension: 300,
-      friction: 10,
-      useNativeDriver: true,
-    }).start();
+    press.onPressIn();
   };
 
   const handlePressOut = () => {
     if (disabled) return;
-    Animated.spring(scaleAnim, {
-      toValue: 1,
-      tension: 300,
-      friction: 10,
-      useNativeDriver: true,
-    }).start();
+    press.onPressOut();
   };
 
   const handlePress = () => {
@@ -198,7 +191,7 @@ export const ModernCard: React.FC<ModernCardProps> = ({
     return (
       <Animated.View
         style={{
-          transform: [{scale: scaleAnim}],
+          transform: [{scale: press.scale}],
           opacity: fadeAnim,
         }}>
         <TouchableOpacity
