@@ -68,6 +68,19 @@ interface VerseOfDayCardProps {
    * to hide.
    */
   sourceVersionLabel?: string;
+
+  /**
+   * Callback to open Study mode (S61) for this verse. When provided AND
+   * {@link studyConnectionsCount} > 0, the card shows a "study web" CTA that
+   * invites the reader into the verse's two-way connection web.
+   */
+  onStudy?: () => void;
+
+  /**
+   * Number of study connections (references + referenced-by) this verse has.
+   * Drives the badge on the study CTA; the CTA is hidden when this is 0.
+   */
+  studyConnectionsCount?: number;
 }
 
 const VerseOfDayCard: React.FC<VerseOfDayCardProps> = ({
@@ -79,6 +92,8 @@ const VerseOfDayCard: React.FC<VerseOfDayCardProps> = ({
   onFavorite,
   isDark = false,
   sourceVersionLabel,
+  onStudy,
+  studyConnectionsCount = 0,
 }) => {
   const {t} = useLanguage();
   const {colors} = useTheme();
@@ -260,6 +275,38 @@ const VerseOfDayCard: React.FC<VerseOfDayCardProps> = ({
               )}
             </View>
           </View>
+
+          {/* Study web CTA (S62) — invites the reader into the verse's two-way
+              study connections (S61). Hidden when the verse has no connections. */}
+          {onStudy && studyConnectionsCount > 0 ? (
+            <TouchableOpacity
+              style={[
+                styles.studyCta,
+                {borderTopColor: theme.colors.glassBorder},
+              ]}
+              onPress={onStudy}
+              accessibilityRole="button"
+              accessibilityLabel={`${t.home.studyVerse}, ${studyConnectionsCount}`}>
+              <Ionicons
+                name="git-network-outline"
+                size={18}
+                color={colors.primary}
+              />
+              <Text style={[styles.studyCtaText, {color: colors.primary}]}>
+                {t.home.studyVerse}
+              </Text>
+              <View
+                style={[
+                  styles.studyBadge,
+                  {backgroundColor: colors.primary + '22'},
+                ]}>
+                <Text style={[styles.studyBadgeText, {color: colors.primary}]}>
+                  {studyConnectionsCount}
+                </Text>
+              </View>
+              <Ionicons name="arrow-forward" size={16} color={colors.primary} />
+            </TouchableOpacity>
+          ) : null}
         </BlurView>
       </TouchableOpacity>
     </Animated.View>
@@ -356,6 +403,32 @@ const styles = StyleSheet.create({
     borderRadius: 18,
     justifyContent: 'center',
     alignItems: 'center',
+  },
+  studyCta: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    marginTop: 16,
+    paddingTop: 16,
+    borderTopWidth: 1,
+  },
+  studyCtaText: {
+    fontSize: 15,
+    fontWeight: '700',
+    letterSpacing: 0.2,
+    flex: 1,
+  },
+  studyBadge: {
+    minWidth: 22,
+    height: 22,
+    borderRadius: 11,
+    paddingHorizontal: 6,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  studyBadgeText: {
+    fontSize: 12,
+    fontWeight: '800',
   },
 });
 

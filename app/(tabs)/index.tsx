@@ -54,6 +54,7 @@ import {useMemoryDeck} from '@context/MemoryDeckContext';
 import {usePremium} from '@context/PremiumContext';
 import {getLastPosition, isResumable, useAudioPlayer} from '@/features/audio';
 import type {PlaybackPosition} from '@/features/audio';
+import {getStudyConnections} from '@/features/study/studyConnections';
 
 // Componentes Celestial
 import {
@@ -495,6 +496,13 @@ export default function HomeScreen() {
                 : verseBookInfo.name
               : dailyVerse.book;
             const verseReference = `${verseBookName} ${dailyVerse.chapter}:${dailyVerse.verse}`;
+            // Innovation (S62): how many study connections this verse has, so
+            // the card can invite the reader into the two-way study web (S61).
+            const studyConnectionsCount = getStudyConnections(
+              dailyVerse.book,
+              dailyVerse.chapter,
+              dailyVerse.verse,
+            ).totalConnections;
             return (
               <Animated.View
                 style={{
@@ -517,6 +525,20 @@ export default function HomeScreen() {
                         router.push(
                           `/verse/${dailyVerse.book}/${dailyVerse.chapter}` as never,
                         ),
+                      )
+                    }
+                    studyConnectionsCount={studyConnectionsCount}
+                    onStudy={() =>
+                      handlePress(() =>
+                        router.push({
+                          pathname: '/features/study' as never,
+                          params: {
+                            book: dailyVerse.book,
+                            chapter: String(dailyVerse.chapter),
+                            verse: String(dailyVerse.verse),
+                            version: dailyVerseVersionId,
+                          },
+                        } as never),
                       )
                     }
                     onShare={async () => {
