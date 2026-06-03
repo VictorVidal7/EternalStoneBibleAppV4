@@ -128,11 +128,13 @@ describe('buildJourneyRecap', () => {
           totalAchievements: 50,
           level: 4,
           totalPoints: 640,
+          totalReadingTime: 9131, // seconds
         }),
       },
       NOW,
     );
     expect(r.versesRead).toBe(1234);
+    expect(r.readingTimeSeconds).toBe(9131);
     expect(r.chaptersRead).toBe(89);
     expect(r.booksCompleted).toBe(3);
     expect(r.currentStreak).toBe(5);

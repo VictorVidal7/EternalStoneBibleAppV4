@@ -88,6 +88,44 @@ describe('buildReadingInsights', () => {
     expect(todayCell.level).toBe(2);
   });
 
+  it('derives reading-time metrics from the per-day log + lifetime totals', () => {
+    const input: ReadingInsightsInput = {
+      readingLog: [
+        {date: '2026-06-02', versesRead: 30, timeSpent: 300}, // today
+        {date: '2026-06-01', versesRead: 50, timeSpent: 600}, // yesterday
+        {date: '2026-05-31', versesRead: 10, timeSpent: 120}, // 2 days ago
+        {date: '2026-05-20', versesRead: 100, timeSpent: 900}, // 13 days ago
+      ],
+      totals: {
+        totalVersesRead: 1422,
+        totalChaptersRead: 46,
+        totalBooksCompleted: 2,
+        totalReadingSeconds: 9131,
+      },
+      bookProgress: {},
+    };
+    const r = buildReadingInsights(input, NOW);
+    // Lifetime time comes from the authoritative UserStats total.
+    expect(r.totalReadingSeconds).toBe(9131);
+    // This-week = the three days within 7 days; the 13-days-ago day is excluded.
+    expect(r.thisWeekReadingSeconds).toBe(1020); // 300 + 600 + 120
+    // Best single day, ever (includes the out-of-week day).
+    expect(r.bestDayReadingSeconds).toBe(900);
+  });
+
+  it('defaults reading-time to zero when totals omit it / log has no seconds', () => {
+    const r = buildReadingInsights(
+      {
+        ...emptyInput,
+        readingLog: [{date: '2026-06-02', versesRead: 10, timeSpent: 0}],
+      },
+      NOW,
+    );
+    expect(r.totalReadingSeconds).toBe(0);
+    expect(r.thisWeekReadingSeconds).toBe(0);
+    expect(r.bestDayReadingSeconds).toBe(0);
+  });
+
   it('marks hasData via lifetime totals even when the daily log is empty', () => {
     const r = buildReadingInsights(
       {...emptyInput, totals: {...emptyInput.totals, totalVersesRead: 500}},
