@@ -27,7 +27,7 @@ import {Ionicons} from '@expo/vector-icons';
 import {LinearGradient} from 'expo-linear-gradient';
 import {captureRef} from 'react-native-view-shot';
 import * as Sharing from 'expo-sharing';
-import * as Haptics from 'expo-haptics';
+import {haptics} from '@lib/haptics';
 import {useRouter} from 'expo-router';
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
 import {useTheme} from '../../hooks/useTheme';
@@ -115,7 +115,7 @@ export const ImageShareModal: React.FC<ImageShareModalProps> = ({
   const cardHeight = aspectHeight(aspect, cardSize);
 
   function handleSelectTemplate(template: ShareTemplate, index: number) {
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    haptics.tap();
     if (!isTemplateUnlocked(template, isPremium)) {
       // Locked premium design → send the user to the Settings upsell,
       // mirroring the S50 verse-scrubber gate. Don't select it.
@@ -132,7 +132,7 @@ export const ImageShareModal: React.FC<ImageShareModalProps> = ({
 
     try {
       setIsSharing(true);
-      await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+      haptics.press();
 
       const uri = await captureRef(previewRef, {
         format: 'png',

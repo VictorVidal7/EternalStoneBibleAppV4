@@ -11,7 +11,7 @@
 import React, {useCallback} from 'react';
 import {View, Text, StyleSheet, Switch} from 'react-native';
 import {Ionicons} from '@expo/vector-icons';
-import * as Haptics from 'expo-haptics';
+import {haptics} from '@lib/haptics';
 import {useTheme} from '@hooks/useTheme';
 import {useLanguage} from '@hooks/useLanguage';
 import {staticColors} from '@/styles/designTokens';
@@ -26,7 +26,7 @@ export default function PremiumSettings() {
 
   const handleToggle = useCallback(
     async (value: boolean) => {
-      await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+      haptics.tap();
       await setPremium(value);
       toast.success(value ? t.premium.unlockedToast : t.premium.lockedToast);
     },

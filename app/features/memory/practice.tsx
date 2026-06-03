@@ -21,7 +21,7 @@ import {useRouter, Stack} from 'expo-router';
 import {Ionicons} from '@expo/vector-icons';
 import {LinearGradient} from 'expo-linear-gradient';
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
-import * as Haptics from 'expo-haptics';
+import {haptics} from '@lib/haptics';
 import {useTheme} from '@hooks/useTheme';
 import {useLanguage} from '@hooks/useLanguage';
 import {useMemoryDeck} from '@context/MemoryDeckContext';
@@ -86,17 +86,14 @@ export default function MemoryPracticeScreen() {
       : t.memory.practice.maskHint.replace('{{percent}}', String(maskPercent));
 
   const handleReveal = () => {
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    haptics.tap();
     setRevealed(true);
   };
 
   const handleGrade = (grade: ReviewGrade) => {
     if (!card) return;
-    Haptics.notificationAsync(
-      grade === 'again'
-        ? Haptics.NotificationFeedbackType.Warning
-        : Haptics.NotificationFeedbackType.Success,
-    );
+    if (grade === 'again') haptics.warning();
+    else haptics.success();
     reviewCard(card.verseKey, grade);
     // Advance to the next card. We don't pull from `dueCards` again on
     // purpose — see the queue-freeze rationale at the top.

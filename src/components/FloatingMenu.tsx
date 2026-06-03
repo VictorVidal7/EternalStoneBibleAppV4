@@ -12,7 +12,7 @@ import React, {useRef, useState} from 'react';
 import {View, StyleSheet, TouchableOpacity, Animated} from 'react-native';
 import {Ionicons} from '@expo/vector-icons';
 import {LinearGradient} from 'expo-linear-gradient';
-import * as Haptics from 'expo-haptics';
+import {haptics} from '@lib/haptics';
 import {spacing, shadows, staticColors} from '../styles/designTokens';
 
 export interface MenuAction {
@@ -68,7 +68,7 @@ export const FloatingMenu: React.FC<FloatingMenuProps> = ({
   const actionButtonSize = buttonSize * 0.75;
 
   const toggleMenu = () => {
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+    haptics.press();
 
     const toValue = isOpen ? 0 : 1;
     const newState = !isOpen;
@@ -139,7 +139,7 @@ export const FloatingMenu: React.FC<FloatingMenuProps> = ({
   };
 
   const handleActionPress = (action: MenuAction) => {
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    haptics.tap();
     action.onPress();
     toggleMenu();
   };

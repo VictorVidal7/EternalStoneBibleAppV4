@@ -19,7 +19,7 @@ import {
 } from 'react-native';
 import {LinearGradient} from 'expo-linear-gradient';
 import {Ionicons} from '@expo/vector-icons';
-import * as Haptics from 'expo-haptics';
+import {haptics} from '@lib/haptics';
 import {
   spacing,
   borderRadius,
@@ -83,7 +83,7 @@ export const PremiumButton: React.FC<PremiumButtonProps> = ({
 
   const handlePressIn = () => {
     if (haptic) {
-      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+      haptics.press();
     }
 
     Animated.spring(scaleAnim, {

@@ -24,7 +24,7 @@ import {useRouter} from 'expo-router';
 import {Ionicons} from '@expo/vector-icons';
 import {LinearGradient} from 'expo-linear-gradient';
 import {BlurView} from 'expo-blur';
-import * as Haptics from 'expo-haptics';
+import {haptics} from '@lib/haptics';
 
 import {BIBLE_BOOKS} from '@/constants/bible';
 import {parseReference} from '@/lib/references/parseReference';
@@ -118,7 +118,7 @@ export default function BibleScreen() {
 
   function handleQuickJump() {
     if (!parsedRef) return;
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    haptics.tap();
     const base = `/verse/${parsedRef.book.name}/${parsedRef.chapter}`;
     router.push(
       (parsedRef.verse !== undefined
@@ -145,7 +145,7 @@ export default function BibleScreen() {
 
   async function onRefresh() {
     setRefreshing(true);
-    await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    haptics.tap();
 
     // Reset search and filter if there is one
     if (searchQuery || filter !== 'all') {
@@ -160,11 +160,11 @@ export default function BibleScreen() {
   }
 
   function goToChapterSelection(bookName: string) {
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    haptics.tap();
     router.push(`/chapter/${bookName}` as never);
   }
   function toggleFilter(newFilter: 'old' | 'new') {
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+    haptics.press();
     setFilter(prev => (prev === newFilter ? 'all' : newFilter));
   }
   return (

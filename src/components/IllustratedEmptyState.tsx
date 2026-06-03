@@ -12,7 +12,7 @@ import React, {useEffect, useRef} from 'react';
 import {View, Text, StyleSheet, Animated, TouchableOpacity} from 'react-native';
 import {LinearGradient} from 'expo-linear-gradient';
 import {Ionicons} from '@expo/vector-icons';
-import * as Haptics from 'expo-haptics';
+import {haptics} from '@lib/haptics';
 
 import {
   spacing,
@@ -91,7 +91,7 @@ export const IllustratedEmptyState: React.FC<IllustratedEmptyStateProps> = ({
   };
 
   const handleAction = () => {
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+    haptics.press();
     onAction?.();
   };
 

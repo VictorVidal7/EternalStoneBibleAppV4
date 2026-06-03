@@ -39,7 +39,7 @@ import Animated, {
   SlideOutDown,
   Layout,
 } from 'react-native-reanimated';
-import * as Haptics from 'expo-haptics';
+import {haptics} from '@lib/haptics';
 import {SPRING_CONFIGS, DURATIONS} from '../../styles/reanimatedAnimations';
 
 // ==================== TYPES ====================
@@ -246,7 +246,7 @@ export const SearchSpotlight: React.FC<SearchSpotlightProps> = ({
   const handleFocus = useCallback(() => {
     setIsFocused(true);
     if (enableHaptics) {
-      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+      haptics.tap();
     }
 
     if (showCancelButton) {
@@ -296,7 +296,7 @@ export const SearchSpotlight: React.FC<SearchSpotlightProps> = ({
   // Handle clear
   const handleClear = useCallback(() => {
     if (enableHaptics) {
-      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+      haptics.tap();
     }
     setInternalValue('');
     onChangeText?.('');
@@ -307,7 +307,7 @@ export const SearchSpotlight: React.FC<SearchSpotlightProps> = ({
   // Handle cancel
   const handleCancel = useCallback(() => {
     if (enableHaptics) {
-      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+      haptics.tap();
     }
     setInternalValue('');
     onChangeText?.('');
@@ -318,7 +318,7 @@ export const SearchSpotlight: React.FC<SearchSpotlightProps> = ({
   // Handle submit
   const handleSubmit = useCallback(() => {
     if (enableHaptics) {
-      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+      haptics.press();
     }
     onSubmit?.(internalValue);
     Keyboard.dismiss();
@@ -328,7 +328,7 @@ export const SearchSpotlight: React.FC<SearchSpotlightProps> = ({
   const handleSuggestionPress = useCallback(
     (suggestion: SearchSuggestion) => {
       if (enableHaptics) {
-        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+        haptics.tap();
       }
       setInternalValue(suggestion.text);
       onChangeText?.(suggestion.text);

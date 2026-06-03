@@ -17,7 +17,7 @@ import {
   Pressable,
 } from 'react-native';
 import {Ionicons} from '@expo/vector-icons';
-import * as Haptics from 'expo-haptics';
+import {haptics} from '@lib/haptics';
 import {useTheme} from '../../../hooks/useTheme';
 import {staticColors} from '../../../styles/designTokens';
 import {focusTrapProps} from '@lib/a11y/focusTrap';
@@ -47,19 +47,19 @@ export const SleepTimerModal: React.FC<SleepTimerModalProps> = ({
   const tSleep = t.audio.sleepTimer;
 
   const handleSetTimer = (minutes: number) => {
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+    haptics.press();
     onSetTimer(minutes);
     onClose();
   };
 
   const handleSetEndOfChapter = () => {
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+    haptics.press();
     onSetEndOfChapter();
     onClose();
   };
 
   const handleCancelTimer = () => {
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    haptics.tap();
     onCancelTimer();
     onClose();
   };

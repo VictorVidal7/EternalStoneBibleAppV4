@@ -17,7 +17,7 @@ import Animated, {
   withTiming,
 } from 'react-native-reanimated';
 import {Ionicons} from '@expo/vector-icons';
-import * as Haptics from 'expo-haptics';
+import {haptics} from '@lib/haptics';
 import {useTheme} from '../../../hooks/useTheme';
 import {staticColors} from '../../../styles/designTokens';
 import {useLanguage} from '../../../hooks/useLanguage';
@@ -80,7 +80,7 @@ export const AudioControls: React.FC<AudioControlsProps> = ({
       withTiming(0.85, {duration: 100}),
       withSpring(1, {damping: 15, stiffness: 300}),
     );
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+    haptics.press();
     onPlayPause();
   };
 
@@ -90,7 +90,7 @@ export const AudioControls: React.FC<AudioControlsProps> = ({
       withTiming(0.85, {duration: 100}),
       withSpring(1, {damping: 15, stiffness: 300}),
     );
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    haptics.tap();
     onPrevious();
   };
 
@@ -100,7 +100,7 @@ export const AudioControls: React.FC<AudioControlsProps> = ({
       withTiming(0.85, {duration: 100}),
       withSpring(1, {damping: 15, stiffness: 300}),
     );
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    haptics.tap();
     onNext();
   };
 

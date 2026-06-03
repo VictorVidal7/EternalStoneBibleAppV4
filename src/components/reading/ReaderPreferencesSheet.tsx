@@ -22,7 +22,7 @@ import {
   AccessibilityActionEvent,
 } from 'react-native';
 import {Ionicons} from '@expo/vector-icons';
-import * as Haptics from 'expo-haptics';
+import {haptics} from '@lib/haptics';
 import {
   useReaderPreferences,
   READER_FONT_SIZE_MIN,
@@ -95,7 +95,7 @@ export const ReaderPreferencesSheet: React.FC<ReaderPreferencesSheetProps> = ({
     READER_THEME_ORDER.map(id => ({id, label: themeLabels[id]}));
 
   const tap = (fn: () => void) => () => {
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    haptics.tap();
     fn();
   };
 
@@ -111,7 +111,7 @@ export const ReaderPreferencesSheet: React.FC<ReaderPreferencesSheetProps> = ({
       Math.max(READER_FONT_SIZE_MIN, preferences.fontSize + delta),
     );
     if (next !== preferences.fontSize) {
-      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+      haptics.tap();
       setFontSize(next);
     }
   };

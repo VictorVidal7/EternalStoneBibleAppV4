@@ -23,7 +23,7 @@ import {useLocalSearchParams, useRouter, Stack} from 'expo-router';
 import {Ionicons} from '@expo/vector-icons';
 import {LinearGradient} from 'expo-linear-gradient';
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
-import * as Haptics from 'expo-haptics';
+import {haptics} from '@lib/haptics';
 import {useTheme} from '@hooks/useTheme';
 import {useLanguage} from '@hooks/useLanguage';
 import {getBookByName} from '@/constants/bible';
@@ -69,7 +69,7 @@ export default function AboutBookScreen() {
   // we just open at the first verse and the user can scan the rest.
   const handleKeyVerseTap = (ref: string) => {
     if (!bookInfo) return;
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    haptics.tap();
     const [chapterPart, versePart] = ref.split(':');
     const chapter = parseInt(chapterPart, 10);
     if (Number.isNaN(chapter)) return;

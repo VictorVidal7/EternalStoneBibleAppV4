@@ -19,7 +19,7 @@ import {
 } from 'react-native';
 import {LinearGradient} from 'expo-linear-gradient';
 import {Ionicons} from '@expo/vector-icons';
-import * as Haptics from 'expo-haptics';
+import {haptics} from '@lib/haptics';
 import {useTheme} from '../hooks/useTheme';
 import {useLanguage} from '../hooks/useLanguage';
 import {focusTrapProps} from '@lib/a11y/focusTrap';
@@ -124,7 +124,7 @@ export const BadgeCollectionScreen: React.FC<BadgeCollectionScreenProps> = ({
       await badgeSystemService.equipTitle(userId, title.id);
       setEquippedTitle(title);
       setSelectedTitle(null);
-      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+      haptics.success();
     } catch (error) {
       console.error('Error equipping title:', error);
     }
@@ -135,7 +135,7 @@ export const BadgeCollectionScreen: React.FC<BadgeCollectionScreenProps> = ({
       await badgeSystemService.unequipTitle(userId);
       setEquippedTitle(null);
       setSelectedTitle(null);
-      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+      haptics.success();
     } catch (error) {
       console.error('Error unequipping title:', error);
     }
@@ -415,7 +415,7 @@ export const BadgeCollectionScreen: React.FC<BadgeCollectionScreenProps> = ({
                     isLocked && styles.badgeCardLocked,
                   ]}
                   onPress={() => {
-                    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                    haptics.tap();
                     setSelectedBadge(badgeProgress);
                   }}
                   activeOpacity={0.8}>

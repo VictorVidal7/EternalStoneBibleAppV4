@@ -33,7 +33,7 @@ import {useRouter, useFocusEffect} from 'expo-router';
 import {Ionicons} from '@expo/vector-icons';
 import {LinearGradient} from 'expo-linear-gradient';
 import {BlurView} from 'expo-blur';
-import * as Haptics from 'expo-haptics';
+import {haptics} from '@lib/haptics';
 
 import bibleDB from '@lib/database';
 import {BibleVerse, ReadingProgress} from '@/types/bible';
@@ -290,7 +290,7 @@ export default function HomeScreen() {
     setRefreshing(true);
 
     try {
-      await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+      haptics.tap();
       await loadHomeData();
 
       logger.info('Home screen refreshed', {
@@ -308,7 +308,7 @@ export default function HomeScreen() {
   }
 
   const handlePress = (callback: () => void) => {
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    haptics.tap();
     callback();
   };
 
@@ -559,9 +559,7 @@ export default function HomeScreen() {
 
                         if (!alreadyFavorite) {
                           await addFavorite(dailyVerse, 'worship', 5);
-                          await Haptics.notificationAsync(
-                            Haptics.NotificationFeedbackType.Success,
-                          );
+                          haptics.success();
                         }
                       }
                     }}

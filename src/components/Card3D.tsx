@@ -10,7 +10,7 @@
 
 import React, {useRef} from 'react';
 import {StyleSheet, TouchableOpacity, Animated, ViewStyle} from 'react-native';
-import * as Haptics from 'expo-haptics';
+import {haptics} from '@lib/haptics';
 import {borderRadius} from '../styles/designTokens';
 
 interface Card3DProps {
@@ -37,7 +37,7 @@ export const Card3D: React.FC<Card3DProps> = ({
 
   const handlePressIn = () => {
     if (hapticFeedback) {
-      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+      haptics.tap();
     }
 
     Animated.parallel([

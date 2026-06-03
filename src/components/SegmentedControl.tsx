@@ -18,7 +18,7 @@ import {
   LayoutChangeEvent,
 } from 'react-native';
 import {LinearGradient} from 'expo-linear-gradient';
-import * as Haptics from 'expo-haptics';
+import {haptics} from '@lib/haptics';
 import {
   spacing,
   borderRadius,
@@ -78,7 +78,7 @@ export const SegmentedControl: React.FC<SegmentedControlProps> = ({
   }, [selectedIndex]);
 
   const handlePress = (value: string, _index: number) => {
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    haptics.tap();
 
     // Animate scale
     Animated.sequence([

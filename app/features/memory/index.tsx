@@ -27,7 +27,7 @@ import {useRouter, Stack} from 'expo-router';
 import {Ionicons} from '@expo/vector-icons';
 import {LinearGradient} from 'expo-linear-gradient';
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
-import * as Haptics from 'expo-haptics';
+import {haptics} from '@lib/haptics';
 import {useTheme} from '@hooks/useTheme';
 import {useLanguage} from '@hooks/useLanguage';
 import {useToast} from '@context/ToastContext';
@@ -71,7 +71,7 @@ export default function MemoryDeckScreen() {
   }, [cards]);
 
   const handlePractice = () => {
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+    haptics.press();
     router.push('/features/memory/practice' as never);
   };
 
@@ -327,9 +327,7 @@ const MilestoneCelebration: React.FC<{
         speed: 12,
         bounciness: 9,
       }).start();
-      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(
-        () => undefined,
-      );
+      haptics.success();
     }
   }, [visible, scale]);
 

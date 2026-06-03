@@ -21,7 +21,7 @@ import {
 } from 'react-native';
 import {LinearGradient} from 'expo-linear-gradient';
 import {Ionicons} from '@expo/vector-icons';
-import * as Haptics from 'expo-haptics';
+import {haptics} from '@lib/haptics';
 
 import {spacing, borderRadius, fontSize, shadows} from '../styles/designTokens';
 import {useTheme} from '../hooks/useTheme';
@@ -82,7 +82,7 @@ export default function AnimatedButton({
     ]).start();
 
     if (hapticFeedback) {
-      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+      haptics.tap();
     }
   };
 

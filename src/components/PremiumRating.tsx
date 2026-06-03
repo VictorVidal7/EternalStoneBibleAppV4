@@ -17,7 +17,7 @@ import {
   ViewStyle,
 } from 'react-native';
 import {Ionicons} from '@expo/vector-icons';
-import * as Haptics from 'expo-haptics';
+import {haptics} from '@lib/haptics';
 import {spacing} from '../styles/designTokens';
 
 interface PremiumRatingProps {
@@ -57,7 +57,7 @@ export const PremiumRating: React.FC<PremiumRatingProps> = ({
       onRatingChange(newValue);
     }
 
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    haptics.tap();
   };
 
   const renderStar = (index: number) => {

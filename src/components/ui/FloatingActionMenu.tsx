@@ -30,7 +30,7 @@ import Animated, {
 import {staticColors} from '@/styles/designTokens';
 
 import {BlurView} from 'expo-blur';
-import * as Haptics from 'expo-haptics';
+import {haptics} from '@lib/haptics';
 import {SPRING_CONFIGS, DURATIONS} from '../../styles/reanimatedAnimations';
 
 // ==================== TYPES ====================
@@ -280,7 +280,7 @@ export const FloatingActionMenu: React.FC<FloatingActionMenuProps> = ({
   // Toggle menu
   const toggleMenu = useCallback(() => {
     if (enableHaptics) {
-      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+      haptics.press();
     }
 
     const newState = !isOpen;
@@ -384,7 +384,7 @@ export const FloatingActionMenu: React.FC<FloatingActionMenuProps> = ({
               ...action,
               onPress: () => {
                 if (enableHaptics) {
-                  Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                  haptics.tap();
                 }
                 action.onPress();
                 closeMenu();

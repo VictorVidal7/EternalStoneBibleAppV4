@@ -16,7 +16,7 @@ import {
 } from 'react-native';
 import Animated from 'react-native-reanimated';
 import {LinearGradient} from 'expo-linear-gradient';
-import * as Haptics from 'expo-haptics';
+import {haptics} from '@lib/haptics';
 import {useTheme} from '../../context/ThemeContext';
 import {usePressAnimation} from '../../hooks/useAnimations';
 import {borderRadius, fontSize, fontWeight} from '../../styles/designTokens';
@@ -143,7 +143,7 @@ export const AnimatedButton: React.FC<AnimatedButtonProps> = ({
   const handlePress = () => {
     if (disabled || loading) return;
     if (hapticFeedback) {
-      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+      haptics.tap();
     }
     onPress?.();
   };

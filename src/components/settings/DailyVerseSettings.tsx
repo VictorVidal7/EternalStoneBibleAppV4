@@ -15,7 +15,7 @@ import {
   Alert,
 } from 'react-native';
 import {Ionicons} from '@expo/vector-icons';
-import * as Haptics from 'expo-haptics';
+import {haptics} from '@lib/haptics';
 import {useTheme} from '@hooks/useTheme';
 import {useLanguage} from '@hooks/useLanguage';
 import {useBibleVersion} from '@hooks/useBibleVersion';
@@ -51,7 +51,7 @@ export default function DailyVerseSettings() {
     async (value: boolean) => {
       if (busy) return;
       setBusy(true);
-      await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+      haptics.tap();
       try {
         const ok = await setDailyVerseEnabled(value, {
           hour,
@@ -81,7 +81,7 @@ export default function DailyVerseSettings() {
     async (selected: number) => {
       if (busy || selected === hour) return;
       setHour(selected);
-      await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+      haptics.tap();
       if (enabled) {
         setBusy(true);
         try {

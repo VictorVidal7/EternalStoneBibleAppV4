@@ -29,7 +29,7 @@ import {
 } from 'react-native';
 import {LinearGradient} from 'expo-linear-gradient';
 import {Ionicons} from '@expo/vector-icons';
-import * as Haptics from 'expo-haptics';
+import {haptics} from '@lib/haptics';
 import {BibleVerse} from '../../types/bible';
 import {useTheme} from '../../hooks/useTheme';
 import {useLanguage} from '../../hooks/useLanguage';
@@ -141,7 +141,7 @@ export const ImmersiveReader: React.FC<ImmersiveReaderProps> = ({
 
   // Start (or resume) listening from the verse the reader is on.
   const startListening = useCallback(() => {
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+    haptics.press();
     setAutoScroll(false); // audio-driven advance supersedes the reading timer
     const idx = clampVerseIndex(currentIndex, audioVerses.length);
     if (!isSameAudioChapter(audioVersesLoaded, audioVerses)) {
@@ -196,7 +196,7 @@ export const ImmersiveReader: React.FC<ImmersiveReaderProps> = ({
         setSeekPreview(null);
         handleScrubberSeek(idx);
       } else {
-        if (seekPreview === null) Haptics.selectionAsync().catch(() => {});
+        if (seekPreview === null) haptics.selection();
         setSeekPreview(idx);
       }
     },
@@ -288,7 +288,7 @@ export const ImmersiveReader: React.FC<ImmersiveReaderProps> = ({
 
   const goToNext = () => {
     if (currentIndex < verses.length - 1) {
-      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+      haptics.tap();
       const next = currentIndex + 1;
       animateTransition(() => setCurrentIndex(next));
       // When listening, move the narration too; the follow-effect keeps the
@@ -299,7 +299,7 @@ export const ImmersiveReader: React.FC<ImmersiveReaderProps> = ({
 
   const goToPrevious = () => {
     if (currentIndex > 0) {
-      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+      haptics.tap();
       const prev = currentIndex - 1;
       animateTransition(() => setCurrentIndex(prev));
       if (listening) audioGoToVerse(prev);
@@ -308,7 +308,7 @@ export const ImmersiveReader: React.FC<ImmersiveReaderProps> = ({
 
   const toggleAutoScroll = () => {
     setAutoScroll(!autoScroll);
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+    haptics.press();
   };
 
   const hideControls = () => {
@@ -338,12 +338,12 @@ export const ImmersiveReader: React.FC<ImmersiveReaderProps> = ({
 
   const increaseFontSize = () => {
     setFontSize(Math.min(fontSize + 2, 32));
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    haptics.tap();
   };
 
   const decreaseFontSize = () => {
     setFontSize(Math.max(fontSize - 2, 16));
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    haptics.tap();
   };
 
   const getBackgroundGradient = (): readonly string[] => {

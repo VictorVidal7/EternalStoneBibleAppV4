@@ -42,7 +42,7 @@ import {Ionicons} from '@expo/vector-icons';
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
 import {captureRef} from 'react-native-view-shot';
 import * as Sharing from 'expo-sharing';
-import * as Haptics from 'expo-haptics';
+import {haptics} from '@lib/haptics';
 import {useTheme} from '@hooks/useTheme';
 import {useLanguage} from '@hooks/useLanguage';
 import {useReducedMotion} from '@hooks/useReducedMotion';
@@ -519,7 +519,7 @@ export default function JourneyScreen() {
     if (sharing || !shareCardRef.current) return;
     try {
       setSharing(true);
-      await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+      haptics.press();
       const uri = await captureRef(shareCardRef, {
         format: 'png',
         quality: 1,

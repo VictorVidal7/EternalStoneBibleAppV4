@@ -31,7 +31,7 @@ import {useToast} from '@context/ToastContext';
 import DailyVerseSettings from '@components/settings/DailyVerseSettings';
 import MemoryGoalSettings from '@components/settings/MemoryGoalSettings';
 import PremiumSettings from '@components/settings/PremiumSettings';
-import * as Haptics from 'expo-haptics';
+import {haptics} from '@lib/haptics';
 import Constants from 'expo-constants';
 
 type ThemeOption = 'light' | 'dark' | 'auto';
@@ -122,12 +122,12 @@ export default function SettingsScreen() {
   );
 
   async function handleThemeChange(newMode: ThemeOption) {
-    await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    haptics.tap();
     await setThemeMode(newMode);
   }
 
   async function handleColorThemeChange(newColorTheme: ColorTheme) {
-    await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+    haptics.press();
     await setColorTheme(newColorTheme);
   }
 
@@ -169,7 +169,7 @@ export default function SettingsScreen() {
   async function handleExportBackup() {
     setIsExporting(true);
     try {
-      await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+      haptics.press();
       await exportBackup();
     } catch (error) {
       Alert.alert(t.error, t.settings.exportError, [{text: t.ok}]);
@@ -183,7 +183,7 @@ export default function SettingsScreen() {
     if (isAuthenticating) return;
     setIsAuthenticating(true);
     try {
-      await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+      haptics.press();
       await signInWithGoogle();
       toast.success(
         t.auth.signedInToast.replace(
@@ -217,7 +217,7 @@ export default function SettingsScreen() {
         style: 'destructive',
         onPress: async () => {
           try {
-            await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+            haptics.press();
             await signOut();
             toast.success(t.auth.signedOutToast);
           } catch (err) {
@@ -427,9 +427,7 @@ export default function SettingsScreen() {
                       themedStyles.versionOptionActive,
                   ]}
                   onPress={async () => {
-                    await Haptics.impactAsync(
-                      Haptics.ImpactFeedbackStyle.Light,
-                    );
+                    haptics.tap();
                     await setVersion(version.id);
                   }}>
                   <View style={styles.versionOptionContent}>
@@ -532,7 +530,7 @@ export default function SettingsScreen() {
                   language === 'es' && themedStyles.languageOptionActive,
                 ]}
                 onPress={async () => {
-                  await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                  haptics.tap();
                   await setLanguage('es');
                 }}>
                 <View style={styles.languageContent}>
@@ -560,7 +558,7 @@ export default function SettingsScreen() {
                   language === 'en' && themedStyles.languageOptionActive,
                 ]}
                 onPress={async () => {
-                  await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                  haptics.tap();
                   await setLanguage('en');
                 }}>
                 <View style={styles.languageContent}>
@@ -656,7 +654,7 @@ export default function SettingsScreen() {
             <TouchableOpacity
               style={themedStyles.featureItem}
               onPress={async () => {
-                await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                haptics.tap();
                 router.push('/features/widgets');
               }}>
               <View style={styles.featureContent}>
@@ -687,7 +685,7 @@ export default function SettingsScreen() {
             <TouchableOpacity
               style={themedStyles.featureItem}
               onPress={async () => {
-                await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                haptics.tap();
                 router.push('/features/badges');
               }}>
               <View style={styles.featureContent}>
@@ -718,7 +716,7 @@ export default function SettingsScreen() {
             <TouchableOpacity
               style={themedStyles.featureItemLast}
               onPress={async () => {
-                await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                haptics.tap();
                 router.push('/features/cache-stats');
               }}>
               <View style={styles.featureContent}>

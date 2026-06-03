@@ -16,7 +16,7 @@ import {useState, useEffect, useRef, useMemo} from 'react';
 import {useLocalSearchParams, useRouter, Stack} from 'expo-router';
 import {Ionicons} from '@expo/vector-icons';
 import * as Clipboard from 'expo-clipboard';
-import * as Haptics from 'expo-haptics';
+import {haptics} from '@lib/haptics';
 import bibleDB from '@lib/database';
 import {BibleVerse} from '@/types/bible';
 import {
@@ -239,7 +239,7 @@ export default function VerseReadingScreen() {
   }, []);
 
   async function toggleSideBySide() {
-    await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    haptics.tap();
     const next = !sideBySide;
     setSideBySide(next);
     AsyncStorage.setItem('@reader_side_by_side', next ? '1' : '0').catch(
@@ -618,7 +618,7 @@ export default function VerseReadingScreen() {
   async function saveNote() {
     if (!selectedVerseForNote || !noteText.trim()) return;
 
-    await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    haptics.tap();
 
     const existingNote = await bibleDB.getNoteForVerse(
       selectedVerseForNote.book,
@@ -668,7 +668,7 @@ export default function VerseReadingScreen() {
 
   // Toggle verse selection
   function toggleVerseSelection(verseNum: number) {
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    haptics.tap();
     setSelectedVerses(prev => {
       const newSet = new Set(prev);
       if (newSet.has(verseNum)) {
@@ -729,7 +729,7 @@ export default function VerseReadingScreen() {
   // Apply or remove a highlight color on the selected verses
   async function handleApplyHighlight(color: HighlightColor | null) {
     if (!highlightService || selectedVerses.size === 0) return;
-    await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    haptics.tap();
     const nums = Array.from(selectedVerses);
     const next = new Map(verseHighlights);
     const engine = getSyncEngine();
@@ -821,7 +821,7 @@ export default function VerseReadingScreen() {
   // Copy selected verses
   async function handleCopySelected() {
     if (selectedVerses.size === 0) return;
-    await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    haptics.tap();
     await Clipboard.setStringAsync(getSelectedVersesText());
     toast.success(t.verse.verseCopied);
     clearSelection();
@@ -830,7 +830,7 @@ export default function VerseReadingScreen() {
   // Share selected verses
   async function handleShareSelected() {
     if (selectedVerses.size === 0) return;
-    await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    haptics.tap();
     try {
       await Share.share({message: getSelectedVersesText()});
       clearSelection();
@@ -845,7 +845,7 @@ export default function VerseReadingScreen() {
   // Favorite selected verses (save individually for indicators)
   async function handleFavoriteSelected() {
     if (selectedVerses.size === 0) return;
-    await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+    haptics.press();
 
     const sortedNums = Array.from(selectedVerses).sort((a, b) => a - b);
     const selectedVersesData = sortedNums
@@ -870,7 +870,7 @@ export default function VerseReadingScreen() {
   // "Continue Reading" position the reader auto-tracks).
   async function handleBookmarkSelected() {
     if (selectedVerses.size === 0) return;
-    await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+    haptics.press();
 
     const sortedNums = Array.from(selectedVerses).sort((a, b) => a - b);
     const selectedVersesData = sortedNums
@@ -896,7 +896,7 @@ export default function VerseReadingScreen() {
 
   // Toggle favorite for a single verse (when clicking the heart icon)
   async function handleToggleSingleFavorite(verseObj: BibleVerse) {
-    await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+    haptics.press();
 
     const verseCanonicalBook = canonicalBookName(verseObj.book);
     const existingFav = favorites.find(
@@ -956,7 +956,7 @@ export default function VerseReadingScreen() {
   // Cross-reference jump used by inline-linked book/chapter:verse spans
   // inside the rendered verse text (see #8 of the Sprint-17 plan).
   function jumpToReference(ref: ParsedReference) {
-    Haptics.selectionAsync();
+    haptics.selection();
     const base = `/verse/${ref.book.name}/${ref.chapter}`;
     router.push(
       (ref.verse !== undefined ? `${base}?verse=${ref.verse}` : base) as never,
@@ -976,7 +976,7 @@ export default function VerseReadingScreen() {
     if (newChapter < 1) {
       const prevBook = getBookById(bookInfo.id - 1);
       if (!prevBook) {
-        Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning);
+        haptics.warning();
         Alert.alert(t.app.endOfBook, t.app.firstChapterMessage);
         return;
       }
@@ -985,7 +985,7 @@ export default function VerseReadingScreen() {
     } else if (newChapter > bookInfo.chapters) {
       const nextBook = getBookById(bookInfo.id + 1);
       if (!nextBook) {
-        Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning);
+        haptics.warning();
         Alert.alert(t.app.endOfBook, t.app.endOfBookMessage);
         return;
       }
@@ -993,7 +993,7 @@ export default function VerseReadingScreen() {
       newChapter = 1;
     }
 
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    haptics.tap();
     router.replace(`/verse/${targetBook}/${newChapter}` as never);
   }
 
@@ -1002,7 +1002,7 @@ export default function VerseReadingScreen() {
     if (verses.length === 0) return;
 
     try {
-      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+      haptics.press();
     } catch (_err) {
       // Ignore
     }
@@ -1113,7 +1113,7 @@ export default function VerseReadingScreen() {
               </TouchableOpacity>
               <TouchableOpacity
                 onPress={() => {
-                  Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+                  haptics.press();
                   setImmersiveModeActive(true);
                 }}
                 style={styles.headerButton}
@@ -1269,7 +1269,7 @@ export default function VerseReadingScreen() {
           <TouchableOpacity
             style={styles.toolbarButton}
             onPress={() => {
-              Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+              haptics.tap();
               setImmersiveModeActive(true);
             }}>
             <Ionicons
@@ -1322,7 +1322,7 @@ export default function VerseReadingScreen() {
           <TouchableOpacity
             style={styles.toolbarButton}
             onPress={() => {
-              Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+              haptics.tap();
               setReaderPrefsVisible(true);
             }}
             accessibilityRole="button"

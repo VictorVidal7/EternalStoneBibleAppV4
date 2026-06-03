@@ -22,7 +22,7 @@ import {
 } from '@/constants/reading-plans';
 import {staticColors} from '@/styles/designTokens';
 import {getBookByName} from '@/constants/bible';
-import * as Haptics from 'expo-haptics';
+import {haptics} from '@lib/haptics';
 
 export default function ReadingPlanDetailScreen() {
   const router = useRouter();
@@ -74,7 +74,7 @@ export default function ReadingPlanDetailScreen() {
         <TouchableOpacity
           style={styles.dayCheck}
           onPress={() => {
-            Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+            haptics.tap();
             toggleDay(plan!.id, item.day);
           }}>
           <View
