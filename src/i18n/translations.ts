@@ -855,6 +855,9 @@ export const translations = {
       sideBySide: 'Mostrar la otra versión junto a esta',
       dualView: 'Doble',
       dualCompanionLabel: 'Junto a:',
+      swapVersions: 'Intercambiar versiones',
+      dualLayoutColumns: 'Ver en columnas a igual tamaño',
+      dualLayoutStacked: 'Ver la versión acompañante debajo',
       highlightColorNames: {
         yellow: 'amarillo',
         green: 'verde',
@@ -2520,6 +2523,9 @@ export const translations = {
       sideBySide: 'Show the other version alongside',
       dualView: 'Dual',
       dualCompanionLabel: 'Alongside:',
+      swapVersions: 'Swap versions',
+      dualLayoutColumns: 'Show as equal-size columns',
+      dualLayoutStacked: 'Show the companion below',
       highlightColorNames: {
         yellow: 'yellow',
         green: 'green',

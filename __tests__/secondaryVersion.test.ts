@@ -1,6 +1,9 @@
 import {
   resolveSecondaryVersion,
   secondaryVersionChoices,
+  normalizeDualLayout,
+  toggleDualLayout,
+  swapVersions,
 } from '../src/lib/reading/secondaryVersion';
 
 const VERSIONS = [{id: 'RVR1960'}, {id: 'KJV'}, {id: 'WEB'}];
@@ -58,5 +61,53 @@ describe('resolveSecondaryVersion', () => {
     expect(
       resolveSecondaryVersion('RVR1960', 'KJV', [{id: 'RVR1960'}]),
     ).toBeUndefined();
+  });
+});
+
+describe('normalizeDualLayout', () => {
+  it('keeps "columns"', () => {
+    expect(normalizeDualLayout('columns')).toBe('columns');
+  });
+
+  it('defaults anything else to "stacked"', () => {
+    expect(normalizeDualLayout('stacked')).toBe('stacked');
+    expect(normalizeDualLayout(null)).toBe('stacked');
+    expect(normalizeDualLayout(undefined)).toBe('stacked');
+    expect(normalizeDualLayout('garbage')).toBe('stacked');
+  });
+});
+
+describe('toggleDualLayout', () => {
+  it('flips between the two layouts', () => {
+    expect(toggleDualLayout('stacked')).toBe('columns');
+    expect(toggleDualLayout('columns')).toBe('stacked');
+  });
+});
+
+describe('swapVersions', () => {
+  it('swaps primary and companion', () => {
+    expect(swapVersions('RVR1960', 'KJV')).toEqual({
+      primaryId: 'KJV',
+      secondaryId: 'RVR1960',
+    });
+  });
+
+  it('is its own inverse', () => {
+    const once = swapVersions('RVR1960', 'WEB');
+    expect(swapVersions(once.primaryId, once.secondaryId)).toEqual({
+      primaryId: 'RVR1960',
+      secondaryId: 'WEB',
+    });
+  });
+
+  it('is a no-op when there is no companion to swap with', () => {
+    expect(swapVersions('RVR1960', null)).toEqual({
+      primaryId: 'RVR1960',
+      secondaryId: 'RVR1960',
+    });
+    expect(swapVersions('RVR1960', 'RVR1960')).toEqual({
+      primaryId: 'RVR1960',
+      secondaryId: 'RVR1960',
+    });
   });
 });

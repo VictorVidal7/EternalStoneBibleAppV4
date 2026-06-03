@@ -22,6 +22,45 @@ export interface VersionLike {
 }
 
 /**
+ * How the dual ("side-by-side") reader lays the two translations out:
+ *  - `stacked` — the companion sits UNDER each verse, smaller + dimmer, as
+ *    supporting context (the original Sprint 66 behavior, still the default).
+ *  - `columns` — the two translations sit in equal-weight columns, same font
+ *    size, so neither reads as secondary (Sprint 67).
+ */
+export type DualLayout = 'stacked' | 'columns';
+
+export const DEFAULT_DUAL_LAYOUT: DualLayout = 'stacked';
+
+/** Normalize a persisted/unknown value to a valid {@link DualLayout}. */
+export function normalizeDualLayout(
+  value: string | null | undefined,
+): DualLayout {
+  return value === 'columns' ? 'columns' : 'stacked';
+}
+
+/** The other layout — for a single toggle control. */
+export function toggleDualLayout(layout: DualLayout): DualLayout {
+  return layout === 'columns' ? 'stacked' : 'columns';
+}
+
+/**
+ * Swap which translation is primary (read full-size / app-wide) and which is
+ * the companion. Returns the new {primaryId, secondaryId} pair, or the input
+ * unchanged when there is no companion to swap with (defensive: a
+ * single-version install has nothing to swap).
+ */
+export function swapVersions(
+  primaryId: string,
+  secondaryId: string | null | undefined,
+): {primaryId: string; secondaryId: string} {
+  if (!secondaryId || secondaryId === primaryId) {
+    return {primaryId, secondaryId: secondaryId ?? primaryId};
+  }
+  return {primaryId: secondaryId, secondaryId: primaryId};
+}
+
+/**
  * The translations eligible to sit alongside `primaryId` (everything except the
  * one currently being read), preserving the input order.
  */
