@@ -6,8 +6,9 @@
  * reflected on the home screen.
  */
 
-import {View, Text, StyleSheet, FlatList, TouchableOpacity} from 'react-native';
+import {View, StyleSheet, FlatList, TouchableOpacity} from 'react-native';
 import React from 'react';
+import {AppText as Text} from '@components/ui/AppText';
 import {useLocalSearchParams, useRouter} from 'expo-router';
 import {Ionicons} from '@expo/vector-icons';
 import {LinearGradient} from 'expo-linear-gradient';

@@ -16,13 +16,13 @@ import React, {useEffect, useMemo, useRef} from 'react';
 import {
   Animated,
   View,
-  Text,
   ScrollView,
   TouchableOpacity,
   StyleSheet,
   Alert,
   Modal,
 } from 'react-native';
+import {AppText as Text} from '@components/ui/AppText';
 import {useRouter, Stack} from 'expo-router';
 import {Ionicons} from '@expo/vector-icons';
 import {LinearGradient} from 'expo-linear-gradient';
