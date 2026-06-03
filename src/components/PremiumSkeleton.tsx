@@ -17,6 +17,7 @@ import {
 } from 'react-native';
 import {LinearGradient} from 'expo-linear-gradient';
 import {useTheme} from '../hooks/useTheme';
+import {useReducedMotion} from '../hooks/useReducedMotion';
 import {borderRadius, spacing, staticColors} from '../styles/designTokens';
 
 interface PremiumSkeletonProps {
@@ -37,10 +38,14 @@ export const PremiumSkeleton: React.FC<PremiumSkeletonProps> = ({
   animation = 'wave',
 }) => {
   const {isDark} = useTheme();
+  const reducedMotion = useReducedMotion();
+  // Honor the OS "reduce motion" setting (Sprint 55/63): a reduced user gets the
+  // static base block (no shimmer sweep / pulse), matching SkeletonLoader.
+  const effectiveAnimation = reducedMotion ? 'none' : animation;
   const animatedValue = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
-    if (animation === 'wave') {
+    if (effectiveAnimation === 'wave') {
       Animated.loop(
         Animated.sequence([
           Animated.timing(animatedValue, {
@@ -55,7 +60,7 @@ export const PremiumSkeleton: React.FC<PremiumSkeletonProps> = ({
           }),
         ]),
       ).start();
-    } else if (animation === 'pulse') {
+    } else if (effectiveAnimation === 'pulse') {
       Animated.loop(
         Animated.sequence([
           Animated.timing(animatedValue, {
@@ -71,7 +76,7 @@ export const PremiumSkeleton: React.FC<PremiumSkeletonProps> = ({
         ]),
       ).start();
     }
-  }, [animation]);
+  }, [effectiveAnimation, animatedValue]);
 
   const getBorderRadius = () => {
     if (customBorderRadius !== undefined) return customBorderRadius;
@@ -128,7 +133,7 @@ export const PremiumSkeleton: React.FC<PremiumSkeletonProps> = ({
         },
         style,
       ]}>
-      {animation === 'wave' && (
+      {effectiveAnimation === 'wave' && (
         <Animated.View
           style={[
             styles.shimmer,
@@ -149,7 +154,7 @@ export const PremiumSkeleton: React.FC<PremiumSkeletonProps> = ({
           />
         </Animated.View>
       )}
-      {animation === 'pulse' && (
+      {effectiveAnimation === 'pulse' && (
         <Animated.View
           style={[
             StyleSheet.absoluteFill,

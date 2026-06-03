@@ -18,10 +18,10 @@ import {View, ScrollView, TouchableOpacity, StyleSheet} from 'react-native';
 import {Stack, useRouter} from 'expo-router';
 import {Ionicons} from '@expo/vector-icons';
 import {LinearGradient} from 'expo-linear-gradient';
-import * as Haptics from 'expo-haptics';
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
 import {useTheme} from '@hooks/useTheme';
 import {useLanguage} from '@hooks/useLanguage';
+import {haptics} from '@lib/haptics';
 import {AppText} from '@components/ui/AppText';
 import {getAllThemes} from '@/features/study/themes';
 import type {BibleTheme} from '@/features/study/themes';
@@ -45,7 +45,7 @@ export default function ThemesBrowseScreen() {
 
   const handleOpen = useCallback(
     (theme: BibleTheme) => {
-      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+      haptics.tap();
       router.push(`/features/themes/${theme.id}` as never);
     },
     [router],

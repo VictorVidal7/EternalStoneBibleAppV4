@@ -12,6 +12,7 @@ import {
   DimensionValue,
 } from 'react-native';
 import {useTheme} from '../hooks/useTheme';
+import {useReducedMotion} from '../hooks/useReducedMotion';
 
 interface SkeletonProps {
   /** Ancho del skeleton */
@@ -41,9 +42,13 @@ export const Skeleton: React.FC<SkeletonProps> = ({
   variant = 'rectangular',
 }) => {
   const {colors} = useTheme();
+  const reducedMotion = useReducedMotion();
   const animatedValue = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
+    // Honor the OS "reduce motion" setting (Sprint 55/63): freeze to a static
+    // placeholder instead of pulsing forever.
+    if (reducedMotion) return;
     const animation = Animated.loop(
       Animated.sequence([
         Animated.timing(animatedValue, {
@@ -60,12 +65,14 @@ export const Skeleton: React.FC<SkeletonProps> = ({
     );
     animation.start();
     return () => animation.stop();
-  }, [animatedValue]);
+  }, [animatedValue, reducedMotion]);
 
-  const opacity = animatedValue.interpolate({
-    inputRange: [0, 1],
-    outputRange: [0.3, 0.7],
-  });
+  const opacity = reducedMotion
+    ? 0.5
+    : animatedValue.interpolate({
+        inputRange: [0, 1],
+        outputRange: [0.3, 0.7],
+      });
 
   const getVariantStyles = (): ViewStyle => {
     switch (variant) {

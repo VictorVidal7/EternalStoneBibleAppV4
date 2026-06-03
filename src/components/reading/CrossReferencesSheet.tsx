@@ -24,7 +24,7 @@ import {
 } from 'react-native';
 import {useRouter} from 'expo-router';
 import {Ionicons} from '@expo/vector-icons';
-import * as Haptics from 'expo-haptics';
+import {haptics} from '@lib/haptics';
 import {useTheme} from '@hooks/useTheme';
 import {focusTrapProps, a11yHiddenProps} from '@lib/a11y/focusTrap';
 import {useLanguage} from '@hooks/useLanguage';
@@ -143,7 +143,7 @@ export const CrossReferencesSheet: React.FC<Props> = ({
 
   const handleJump = (row: RefRow) => {
     if (row.bookId == null) return;
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    haptics.tap();
     onClose();
     router.push({
       pathname: `/verse/${row.bookDisplay}/${row.chapter}` as never,
@@ -154,7 +154,7 @@ export const CrossReferencesSheet: React.FC<Props> = ({
   // Promote the quick peek into the full Study-mode route (two-way connections).
   const handleOpenStudy = () => {
     if (sourceVerse == null) return;
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    haptics.tap();
     onClose();
     router.push({
       pathname: '/features/study' as never,
@@ -169,7 +169,7 @@ export const CrossReferencesSheet: React.FC<Props> = ({
 
   // Pivot from this verse's connections to the topical index (browse by theme).
   const handleOpenThemes = () => {
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    haptics.tap();
     onClose();
     router.push('/features/themes' as never);
   };

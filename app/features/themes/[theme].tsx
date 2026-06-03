@@ -25,11 +25,11 @@ import {
 import {Stack, useLocalSearchParams, useRouter} from 'expo-router';
 import {Ionicons} from '@expo/vector-icons';
 import {LinearGradient} from 'expo-linear-gradient';
-import * as Haptics from 'expo-haptics';
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {useTheme} from '@hooks/useTheme';
 import {useLanguage} from '@hooks/useLanguage';
+import {haptics} from '@lib/haptics';
 import {AppText} from '@components/ui/AppText';
 import bibleDB from '@lib/database';
 import {getBookByName} from '@/constants/bible';
@@ -163,7 +163,7 @@ export default function ThemeDetailScreen() {
   const handleJump = useCallback(
     (row: ThemeVerseRow) => {
       if (row.bookId == null) return;
-      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+      haptics.tap();
       router.push({
         pathname: `/verse/${row.bookDisplay}/${row.chapter}` as never,
         params: {verse: row.verse},
