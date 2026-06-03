@@ -24,6 +24,7 @@ import {getBookByName} from '@/constants/bible';
 import {useTheme} from '@hooks/useTheme';
 import {useLanguage} from '@hooks/useLanguage';
 import {PremiumSkeleton} from '@components/PremiumSkeleton';
+import {PressableScale} from '@components/ui/PressableScale';
 import {useReadingProgress} from '@context/ReadingProgressContext';
 // import {AnimatedBottomNav} from '@components/navigation/AnimatedBottomNav';
 
@@ -364,81 +365,58 @@ const ChapterCard: React.FC<ChapterCardProps> = React.memo(
     isCompleted,
     progressPercentage,
   }) => {
-    const scaleAnim = useRef(new Animated.Value(1)).current;
-
-    const handlePressIn = () => {
-      Animated.spring(scaleAnim, {
-        toValue: 0.95,
-        tension: 100,
-        friction: 5,
-        useNativeDriver: true,
-      }).start();
-    };
-
-    const handlePressOut = () => {
-      Animated.spring(scaleAnim, {
-        toValue: 1,
-        tension: 100,
-        friction: 5,
-        useNativeDriver: true,
-      }).start();
-    };
-
+    // Sprint 66: the bespoke press-scale (and 11 like it) is now the shared,
+    // reduce-motion-aware PressableScale for one cohesive tap feel app-wide.
     return (
       <View style={styles.cardWrapper}>
-        <Animated.View style={{transform: [{scale: scaleAnim}]}}>
-          <TouchableOpacity
-            activeOpacity={0.7}
-            onPress={onPress}
-            onPressIn={handlePressIn}
-            onPressOut={handlePressOut}
-            accessibilityRole="button"
-            accessibilityLabel={`${t.bible.chapter} ${chapter} ${t.bible.of} ${bookName}`}
-            accessibilityHint={`${t.bible.openChapter} ${chapter} ${t.bible.of} ${bookName}`}
-            style={styles.cardTouchable}>
-            <View
+        <PressableScale
+          onPress={onPress}
+          accessibilityRole="button"
+          accessibilityLabel={`${t.bible.chapter} ${chapter} ${t.bible.of} ${bookName}`}
+          accessibilityHint={`${t.bible.openChapter} ${chapter} ${t.bible.of} ${bookName}`}
+          style={styles.cardTouchable}>
+          <View
+            style={[
+              styles.card,
+              styles.cardFlat,
+              {
+                backgroundColor: staticColors.transparent,
+                borderColor: colors.glassBorder,
+              },
+            ]}>
+            {/* Numero del capitulo */}
+            <Text
               style={[
-                styles.card,
-                styles.cardFlat,
+                styles.chapterNumber,
                 {
-                  backgroundColor: staticColors.transparent,
-                  borderColor: colors.glassBorder,
+                  color: colors.primary,
                 },
               ]}>
-              {/* Numero del capitulo */}
-              <Text
-                style={[
-                  styles.chapterNumber,
-                  {
-                    color: colors.primary,
-                  },
-                ]}>
-                {chapter}
-              </Text>
+              {chapter}
+            </Text>
 
-              {/* Indicador de completado */}
-              {isCompleted && (
-                <View style={styles.completedIndicator}>
-                  <Ionicons name="checkmark" size={12} color="#10b981" />
-                </View>
-              )}
+            {/* Indicador de completado */}
+            {isCompleted && (
+              <View style={styles.completedIndicator}>
+                <Ionicons name="checkmark" size={12} color="#10b981" />
+              </View>
+            )}
 
-              {/* Indicador de progreso (si tiene progreso pero no esta completado) */}
-              {!isCompleted && progressPercentage > 0 && (
-                <View style={styles.progressIndicator}>
-                  <View
-                    style={[
-                      styles.progressDot,
-                      {
-                        backgroundColor: colors.primary,
-                      },
-                    ]}
-                  />
-                </View>
-              )}
-            </View>
-          </TouchableOpacity>
-        </Animated.View>
+            {/* Indicador de progreso (si tiene progreso pero no esta completado) */}
+            {!isCompleted && progressPercentage > 0 && (
+              <View style={styles.progressIndicator}>
+                <View
+                  style={[
+                    styles.progressDot,
+                    {
+                      backgroundColor: colors.primary,
+                    },
+                  ]}
+                />
+              </View>
+            )}
+          </View>
+        </PressableScale>
       </View>
     );
   },
