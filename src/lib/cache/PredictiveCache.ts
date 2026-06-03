@@ -12,7 +12,7 @@ import bibleDB from '../database';
 
 export interface CacheEntry {
   key: string;
-  data: any;
+  data: unknown;
   timestamp: number;
   ttl: number; // Time to live in milliseconds
   priority: number; // 1-10, higher = more important
@@ -106,7 +106,7 @@ class PredictiveCacheService {
    */
   async set(
     key: string,
-    data: any,
+    data: unknown,
     options: {
       ttl?: number;
       priority?: number;
@@ -150,7 +150,7 @@ class PredictiveCacheService {
   /**
    * Recupera un elemento de caché
    */
-  async get<T = any>(key: string): Promise<T | null> {
+  async get<T = unknown>(key: string): Promise<T | null> {
     // Check memory cache first
     const memEntry = this.memoryCache.get(key);
     if (memEntry) {

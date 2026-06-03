@@ -12,7 +12,7 @@ export interface CacheEntry<T> {
 }
 
 export class CacheManager {
-  private memoryCache: Map<string, CacheEntry<any>> = new Map();
+  private memoryCache: Map<string, CacheEntry<unknown>> = new Map();
   private readonly maxMemoryCacheSize = 100; // Máximo de entradas en memoria
   private readonly defaultTTL = 5 * 60 * 1000; // 5 minutos por defecto
 
@@ -57,7 +57,7 @@ export class CacheManager {
     const memoryEntry = this.memoryCache.get(key);
 
     if (memoryEntry && !this.isExpired(memoryEntry)) {
-      return memoryEntry.data;
+      return memoryEntry.data as T;
     }
 
     // Si no está en memoria o está expirado, buscar en disco
@@ -160,7 +160,7 @@ export class CacheManager {
   /**
    * Verifica si una entrada está expirada
    */
-  private isExpired(entry: CacheEntry<any>): boolean {
+  private isExpired(entry: CacheEntry<unknown>): boolean {
     return Date.now() - entry.timestamp > entry.expiresIn;
   }
 

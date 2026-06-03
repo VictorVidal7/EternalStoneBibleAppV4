@@ -16,7 +16,7 @@ interface UseCacheOptions {
   autoRefresh?: boolean;
 }
 
-export function useCache<T = any>(
+export function useCache<T = unknown>(
   key: string,
   fetcher: () => Promise<T>,
   options: UseCacheOptions = {},
@@ -87,7 +87,7 @@ export function useCache<T = any>(
  */
 export function usePrefetch() {
   const prefetch = useCallback(
-    async <T = any>(
+    async <T = unknown>(
       key: string,
       fetcher: () => Promise<T>,
       options: UseCacheOptions = {},

@@ -611,10 +611,15 @@ export class AchievementService {
   async getAllAchievements(): Promise<Achievement[]> {
     const sql = 'SELECT * FROM user_achievements';
     const result = await this.db.executeSql(sql);
-    const rows = result.rows._array;
+    const rows = result.rows._array as Array<{
+      id: string;
+      current_progress?: number;
+      is_unlocked?: number;
+      unlocked_at?: number;
+    }>;
 
     return ACHIEVEMENT_DEFINITIONS.map(def => {
-      const row = rows.find((r: any) => r.id === def.id);
+      const row = rows.find(r => r.id === def.id);
       return {
         ...def,
         currentProgress: row?.current_progress || 0,
@@ -650,7 +655,7 @@ export class AchievementService {
     const sql =
       'SELECT date FROM reading_streak_log ORDER BY date DESC LIMIT 30';
     const result = await this.db.executeSql(sql);
-    const dates = result.rows._array.map((row: any) => row.date);
+    const dates = result.rows._array.map((row: {date: string}) => row.date);
 
     return {
       currentStreak: stats.currentStreak,
@@ -674,11 +679,13 @@ export class AchievementService {
       const result = await this.db.executeSql(
         'SELECT date, verses_read, time_spent FROM reading_streak_log ORDER BY date ASC',
       );
-      return result.rows._array.map((row: any) => ({
-        date: row.date,
-        versesRead: row.verses_read ?? 0,
-        timeSpent: row.time_spent ?? 0,
-      }));
+      return result.rows._array.map(
+        (row: {date: string; verses_read?: number; time_spent?: number}) => ({
+          date: row.date,
+          versesRead: row.verses_read ?? 0,
+          timeSpent: row.time_spent ?? 0,
+        }),
+      );
     } catch {
       return [];
     }
