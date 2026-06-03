@@ -44,6 +44,10 @@ import {useBookmarks} from '@context/BookmarksContext';
 import {useReadingPlanProgress} from '@context/ReadingPlanProgressContext';
 import {useReadingProgress} from '@context/ReadingProgressContext';
 import {getReadingPlanById, getLocalizedPlan} from '@/constants/reading-plans';
+import {
+  isBookComplete,
+  detectCompletedBooks,
+} from '@lib/achievements/bookCompletion';
 import {logger} from '@lib/utils/logger';
 import {ImmersiveReader} from '@components/reading/ImmersiveReader';
 import {NoteEditorModal} from '@components/reading/NoteEditorModal';
@@ -115,7 +119,8 @@ export default function VerseReadingScreen() {
   const {selectedVersion} = useBibleVersion();
   const {t, language} = useLanguage();
   const toast = useToast();
-  const {achievementService, highlightService} = useServices();
+  const {achievementService, highlightService, notifyAchievements} =
+    useServices();
   const {favorites, addFavorite, removeFavorite} = useFavorites();
   const {addBookmark} = useBookmarks();
   const {markChapterRead} = useReadingPlanProgress();
@@ -265,11 +270,14 @@ export default function VerseReadingScreen() {
   // Reading-progress tracking: how far the reader scrolled through the
   // chapter, persisted on chapter change / unmount so the chapter grid
   // can show real "read" indicators.
-  const {updateChapterProgress} = useReadingProgress();
+  const {progress, updateChapterProgress} = useReadingProgress();
   // Keep the latest updateChapterProgress so the unmount persist below
   // never writes through a stale closure.
   const updateChapterProgressRef = useRef(updateChapterProgress);
   updateChapterProgressRef.current = updateChapterProgress;
+  // Books already reconciled in THIS screen session — guards the completion
+  // sync from re-running on every scroll tick once a book is finished.
+  const syncedBooksRef = useRef<Set<string>>(new Set());
 
   const maxScrollPctRef = useRef(0);
   const viewportHeightRef = useRef(0);
@@ -437,6 +445,10 @@ export default function VerseReadingScreen() {
               a => a.name || (a as {title?: string}).title,
             ),
           });
+          // Celebrate them via the global modal. Pre-Sprint-64 these were
+          // computed and dropped (the modal's setter was never wired), so
+          // reader unlocks only ever showed in the Achievements tab.
+          notifyAchievements(newAchievements);
         }
       } catch (error) {
         logger.error('Error tracking reading progress', error as Error, {
@@ -454,9 +466,54 @@ export default function VerseReadingScreen() {
     book,
     chapterNum,
     markChapterRead,
+    notifyAchievements,
     t,
     toast,
   ]);
+
+  // 📚 Book-completion detection (Sprint 64). When the reading-progress map
+  // shows the CURRENT book is now fully read (every chapter past the
+  // threshold), reconcile the completed-books ledger — this unlocks the BOOKS
+  // chain (first_book … books_66) and the per-book SPECIAL badges
+  // (Psalms/Proverbs/the 4 Gospels) that were unreachable while the dead
+  // `trackBookCompleted` was never called. Gated on the book actually being
+  // complete + a per-session guard so it never re-runs on each scroll tick;
+  // the heavy sync only fires the moment a book flips to done.
+  useEffect(() => {
+    if (!achievementService || !canonicalBook) return;
+    const totalChapters = getBookByName(canonicalBook)?.chapters;
+    if (!isBookComplete(progress[canonicalBook], totalChapters)) return;
+    if (syncedBooksRef.current.has(canonicalBook)) return;
+    syncedBooksRef.current.add(canonicalBook);
+
+    let cancelled = false;
+    (async () => {
+      try {
+        const completed = detectCompletedBooks(
+          progress,
+          name => getBookByName(name)?.chapters,
+        );
+        const unlocked = await achievementService.syncBookCompletion(completed);
+        if (!cancelled && unlocked.length > 0) {
+          logger.info('Book completed — achievements unlocked', {
+            component: 'VerseReadingScreen',
+            book: canonicalBook,
+            achievements: unlocked.map(a => a.id),
+          });
+          notifyAchievements(unlocked);
+        }
+      } catch (err) {
+        logger.warn('Book-completion sync failed', {
+          component: 'VerseReadingScreen',
+          error: err,
+        });
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [progress, canonicalBook, achievementService, notifyAchievements]);
 
   async function loadChapter() {
     try {
