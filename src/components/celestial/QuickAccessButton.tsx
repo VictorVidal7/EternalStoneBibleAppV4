@@ -30,6 +30,7 @@ import {
   celestialBorderRadius,
 } from '../../styles/celestialTheme';
 import {useTheme} from '../../hooks/useTheme';
+import {usePressScale} from '../../hooks/usePressScale';
 import {staticColors} from '../../styles/designTokens';
 
 type IoniconsName = ComponentProps<typeof Ionicons>['name'];
@@ -129,6 +130,9 @@ const QuickAccessButton: React.FC<QuickAccessButtonProps> = ({
   const scaleAnim = useRef(new Animated.Value(0.9)).current;
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const pulseAnim = useRef(new Animated.Value(1)).current;
+  // Sprint 66: shared, reduce-motion-aware press-scale, composed with the
+  // entry scale below so both still run on the native driver.
+  const press = usePressScale();
 
   // Obtener gradiente y background para modo claro
   const gradientColors = getGradientForColor(color);
@@ -173,37 +177,20 @@ const QuickAccessButton: React.FC<QuickAccessButtonProps> = ({
     }
   }, [recentlyAccessed]);
 
-  // Interacciones
-  const handlePressIn = () => {
-    Animated.spring(scaleAnim, {
-      toValue: 0.98,
-      useNativeDriver: true,
-    }).start();
-  };
-
-  const handlePressOut = () => {
-    Animated.spring(scaleAnim, {
-      toValue: 1,
-      tension: 100,
-      friction: 3,
-      useNativeDriver: true,
-    }).start();
-  };
-
   return (
     <Animated.View
       style={[
         styles.container,
         {
           opacity: fadeAnim,
-          transform: [{scale: scaleAnim}],
+          transform: [{scale: Animated.multiply(scaleAnim, press.scale)}],
         },
       ]}>
       <TouchableOpacity
         activeOpacity={0.7}
         onPress={onPress}
-        onPressIn={handlePressIn}
-        onPressOut={handlePressOut}>
+        onPressIn={press.onPressIn}
+        onPressOut={press.onPressOut}>
         <BlurView
           intensity={isDark ? 20 : 40}
           tint={isDark ? 'dark' : 'light'}
