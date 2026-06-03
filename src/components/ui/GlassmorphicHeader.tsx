@@ -17,7 +17,7 @@
  * Para la gloria de Dios - Eternal Bible App
  */
 
-import React, {useMemo, useCallback} from 'react';
+import React, {useMemo} from 'react';
 import {
   View,
   Text,
@@ -29,16 +29,11 @@ import {
 } from 'react-native';
 import {staticColors} from '@/styles/designTokens';
 
-import Animated, {
-  useSharedValue,
-  useAnimatedStyle,
-  withSpring,
-  FadeIn,
-} from 'react-native-reanimated';
+import Animated, {FadeIn} from 'react-native-reanimated';
 import {LinearGradient} from 'expo-linear-gradient';
 import {BlurView} from 'expo-blur';
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
-import {SPRING_CONFIGS} from '../../styles/reanimatedAnimations';
+import {usePressAnimation} from '../../hooks/useAnimations';
 
 // ==================== GRADIENT PRESETS ====================
 
@@ -91,25 +86,14 @@ interface BackButtonProps {
 }
 
 const BackButton: React.FC<BackButtonProps> = ({onPress, icon}) => {
-  const scale = useSharedValue(1);
-
-  const animatedStyle = useAnimatedStyle(() => ({
-    transform: [{scale: scale.value}],
-  }));
-
-  const handlePressIn = useCallback(() => {
-    scale.value = withSpring(0.9, SPRING_CONFIGS.snappy);
-  }, [scale]);
-
-  const handlePressOut = useCallback(() => {
-    scale.value = withSpring(1, SPRING_CONFIGS.snappy);
-  }, [scale]);
+  // Sprint 67: shared, reduce-motion-aware press depress (see usePressAnimation).
+  const {onPressIn, onPressOut, animatedStyle} = usePressAnimation(0.9);
 
   return (
     <AnimatedPressable
       onPress={onPress}
-      onPressIn={handlePressIn}
-      onPressOut={handlePressOut}
+      onPressIn={onPressIn}
+      onPressOut={onPressOut}
       style={[styles.backButton, animatedStyle]}
       accessibilityRole="button"
       accessibilityLabel="Volver"
@@ -126,25 +110,14 @@ interface ActionButtonProps {
 }
 
 const ActionButton: React.FC<ActionButtonProps> = ({action}) => {
-  const scale = useSharedValue(1);
-
-  const animatedStyle = useAnimatedStyle(() => ({
-    transform: [{scale: scale.value}],
-  }));
-
-  const handlePressIn = useCallback(() => {
-    scale.value = withSpring(0.9, SPRING_CONFIGS.snappy);
-  }, [scale]);
-
-  const handlePressOut = useCallback(() => {
-    scale.value = withSpring(1, SPRING_CONFIGS.snappy);
-  }, [scale]);
+  // Sprint 67: shared, reduce-motion-aware press depress (see usePressAnimation).
+  const {onPressIn, onPressOut, animatedStyle} = usePressAnimation(0.9);
 
   return (
     <AnimatedPressable
       onPress={action.onPress}
-      onPressIn={handlePressIn}
-      onPressOut={handlePressOut}
+      onPressIn={onPressIn}
+      onPressOut={onPressOut}
       style={[styles.actionButton, animatedStyle]}
       accessibilityRole="button"
       accessibilityLabel={action.accessibilityLabel}

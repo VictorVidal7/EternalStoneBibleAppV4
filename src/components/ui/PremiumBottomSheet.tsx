@@ -41,6 +41,8 @@ import Animated, {
 import {BlurView} from 'expo-blur';
 import {haptics} from '@lib/haptics';
 import {SPRING_CONFIGS} from '../../styles/reanimatedAnimations';
+import {useReducedMotion} from '../../hooks/useReducedMotion';
+import {pressTargetScale} from '../../lib/animation/springs';
 import {focusTrapProps, a11yHiddenProps} from '../../lib/a11y/focusTrap';
 import {useLanguage} from '../../hooks/useLanguage';
 
@@ -160,6 +162,8 @@ const Header: React.FC<HeaderProps> = ({
   if (!title && !headerLeft && !headerRight) return null;
 
   const scale = useSharedValue(1);
+  // Sprint 67: shared reduce-motion press policy (see pressTargetScale).
+  const reduced = useReducedMotion();
 
   const createPressHandlers = useCallback(
     (action?: HeaderAction) => {
@@ -167,15 +171,21 @@ const Header: React.FC<HeaderProps> = ({
 
       return {
         onPressIn: () => {
-          scale.value = withSpring(0.95, SPRING_CONFIGS.snappy);
+          scale.value = withSpring(
+            pressTargetScale(true, reduced, 0.95),
+            SPRING_CONFIGS.snappy,
+          );
         },
         onPressOut: () => {
-          scale.value = withSpring(1, SPRING_CONFIGS.snappy);
+          scale.value = withSpring(
+            pressTargetScale(false, reduced, 0.95),
+            SPRING_CONFIGS.snappy,
+          );
         },
         onPress: action.onPress,
       };
     },
-    [scale],
+    [scale, reduced],
   );
 
   const animatedStyle = useAnimatedStyle(() => ({

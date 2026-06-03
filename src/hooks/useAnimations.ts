@@ -23,6 +23,7 @@ import {
   EASING_CURVES,
 } from '../styles/reanimatedAnimations';
 import {useReducedMotion} from './useReducedMotion';
+import {PRESS_SCALE, pressTargetScale} from '../lib/animation/springs';
 
 // ==================== useFadeIn ====================
 /**
@@ -123,18 +124,31 @@ export const useScaleIn = (
 
 // ==================== usePressAnimation ====================
 /**
- * Hook para animación de presión de botón/card
+ * Hook para animación de presión de botón/card.
+ *
+ * Sprint 67: shares the app-wide PRESS_SCALE default + the pure
+ * `pressTargetScale` reduce-motion policy with the RN-Animated `usePressScale`
+ * hook, so both animation engines depress to the same target and BOTH suppress
+ * the shrink under reduced motion (this is the Reanimated half of the press
+ * unification — usePressScale covers the RN-Animated half).
  */
-export const usePressAnimation = (pressedScale = 0.95) => {
+export const usePressAnimation = (pressedScale = PRESS_SCALE) => {
+  const reduced = useReducedMotion();
   const scale = useSharedValue(1);
 
   const onPressIn = useCallback(() => {
-    scale.value = withSpring(pressedScale, SPRING_CONFIGS.snappy);
-  }, [pressedScale, scale]);
+    scale.value = withSpring(
+      pressTargetScale(true, reduced, pressedScale),
+      SPRING_CONFIGS.snappy,
+    );
+  }, [pressedScale, scale, reduced]);
 
   const onPressOut = useCallback(() => {
-    scale.value = withSpring(1, SPRING_CONFIGS.snappy);
-  }, [scale]);
+    scale.value = withSpring(
+      pressTargetScale(false, reduced, pressedScale),
+      SPRING_CONFIGS.snappy,
+    );
+  }, [pressedScale, scale, reduced]);
 
   const animatedStyle = useAnimatedStyle(() => ({
     transform: [{scale: scale.value}],

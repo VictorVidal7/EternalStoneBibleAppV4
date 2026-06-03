@@ -38,6 +38,7 @@ import {
   DURATIONS,
   EASING_CURVES,
 } from '../../styles/reanimatedAnimations';
+import {usePressAnimation} from '../../hooks/useAnimations';
 
 // ==================== TYPES ====================
 
@@ -98,7 +99,12 @@ const TabItem: React.FC<TabItemProps> = ({
   tabStyle,
   fullWidth,
 }) => {
-  const scale = useSharedValue(1);
+  // Sprint 67: shared, reduce-motion-aware press depress (see usePressAnimation).
+  const {
+    onPressIn,
+    onPressOut,
+    animatedStyle: animatedContainerStyle,
+  } = usePressAnimation(0.95);
   const colorProgress = useSharedValue(isSelected ? 1 : 0);
 
   useEffect(() => {
@@ -107,10 +113,6 @@ const TabItem: React.FC<TabItemProps> = ({
       easing: EASING_CURVES.standard,
     });
   }, [isSelected, colorProgress]);
-
-  const animatedContainerStyle = useAnimatedStyle(() => ({
-    transform: [{scale: scale.value}],
-  }));
 
   const animatedLabelStyle = useAnimatedStyle(() => {
     const color = interpolateColor(
@@ -121,21 +123,11 @@ const TabItem: React.FC<TabItemProps> = ({
     return {color};
   });
 
-  const handlePressIn = useCallback(() => {
-    if (!tab.disabled) {
-      scale.value = withSpring(0.95, SPRING_CONFIGS.snappy);
-    }
-  }, [tab.disabled, scale]);
-
-  const handlePressOut = useCallback(() => {
-    scale.value = withSpring(1, SPRING_CONFIGS.snappy);
-  }, [scale]);
-
   return (
     <AnimatedPressable
       onPress={onPress}
-      onPressIn={handlePressIn}
-      onPressOut={handlePressOut}
+      onPressIn={onPressIn}
+      onPressOut={onPressOut}
       disabled={tab.disabled}
       style={[
         styles.tabItem,

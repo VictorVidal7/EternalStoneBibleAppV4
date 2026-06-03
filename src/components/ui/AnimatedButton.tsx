@@ -60,7 +60,8 @@ export const AnimatedButton: React.FC<AnimatedButtonProps> = ({
   hapticFeedback = true,
 }) => {
   const {colors, isDarkMode} = useTheme();
-  const {onPressIn, onPressOut, animatedStyle} = usePressAnimation(0.96);
+  // Sprint 67: use the shared PRESS_SCALE default (now reduce-motion-aware).
+  const {onPressIn, onPressOut, animatedStyle} = usePressAnimation();
 
   // Tamaños
   const sizeStyles: Record<

@@ -33,6 +33,8 @@ import {staticColors} from '@/styles/designTokens';
 import {BlurView} from 'expo-blur';
 import {haptics} from '@lib/haptics';
 import {SPRING_CONFIGS, DURATIONS} from '../../styles/reanimatedAnimations';
+import {useReducedMotion} from '../../hooks/useReducedMotion';
+import {pressTargetScale} from '../../lib/animation/springs';
 
 // ==================== TYPES ====================
 
@@ -104,6 +106,7 @@ const ActionButton: React.FC<ActionButtonProps> = ({
   isDark,
   position,
 }) => {
+  const reduced = useReducedMotion();
   const openProgress = useSharedValue(0);
   const scale = useSharedValue(1);
   const labelOpacity = useSharedValue(0);
@@ -205,13 +208,23 @@ const ActionButton: React.FC<ActionButtonProps> = ({
     ],
   }));
 
+  // Sprint 67: gate the depress through the shared reduce-motion policy (the
+  // press scale is composed with the open animation below, so we keep the
+  // shared value inline and just gate its target — the Reanimated analog of
+  // QuickAccessButton's Animated.multiply).
   const handlePressIn = useCallback(() => {
-    scale.value = withSpring(0.9, SPRING_CONFIGS.snappy);
-  }, [scale]);
+    scale.value = withSpring(
+      pressTargetScale(true, reduced, 0.9),
+      SPRING_CONFIGS.snappy,
+    );
+  }, [scale, reduced]);
 
   const handlePressOut = useCallback(() => {
-    scale.value = withSpring(1, SPRING_CONFIGS.snappy);
-  }, [scale]);
+    scale.value = withSpring(
+      pressTargetScale(false, reduced, 0.9),
+      SPRING_CONFIGS.snappy,
+    );
+  }, [scale, reduced]);
 
   const bgColor = action.color || '#6366f1';
   const isLabelLeft = position.includes('right');
@@ -276,6 +289,7 @@ export const FloatingActionMenu: React.FC<FloatingActionMenuProps> = ({
   containerStyle,
 }) => {
   const [isOpen, setIsOpen] = useState(false);
+  const reduced = useReducedMotion();
   const openProgress = useSharedValue(0);
   const mainRotation = useSharedValue(0);
   const mainScale = useSharedValue(1);
@@ -318,13 +332,20 @@ export const FloatingActionMenu: React.FC<FloatingActionMenuProps> = ({
     pointerEvents: isOpen ? 'auto' : 'none',
   }));
 
+  // Sprint 67: reduce-motion-aware depress (composed with the rotate below).
   const handleMainPressIn = useCallback(() => {
-    mainScale.value = withSpring(0.92, SPRING_CONFIGS.snappy);
-  }, [mainScale]);
+    mainScale.value = withSpring(
+      pressTargetScale(true, reduced, 0.92),
+      SPRING_CONFIGS.snappy,
+    );
+  }, [mainScale, reduced]);
 
   const handleMainPressOut = useCallback(() => {
-    mainScale.value = withSpring(1, SPRING_CONFIGS.snappy);
-  }, [mainScale]);
+    mainScale.value = withSpring(
+      pressTargetScale(false, reduced, 0.92),
+      SPRING_CONFIGS.snappy,
+    );
+  }, [mainScale, reduced]);
 
   // Position styles
   const positionStyle = useMemo<ViewStyle>(() => {
