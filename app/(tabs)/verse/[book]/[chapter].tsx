@@ -409,10 +409,12 @@ export default function VerseReadingScreen() {
           timeSpent,
         });
 
-        // Track verses read
+        // Track verses read — pass the canonical book so the read is also
+        // accumulated in the per-book log (powers the REAL "most-read book").
         const newAchievements = await achievementService.trackVersesRead(
           verses.length,
           timeSpent,
+          canonicalBook,
         );
 
         // Track chapter completed
