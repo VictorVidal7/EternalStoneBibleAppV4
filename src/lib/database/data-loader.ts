@@ -5,6 +5,7 @@ import bibleDB from './index';
 
 const DATA_LOADED_KEY_RVR1960 = '@bible_data_loaded_rvr1960';
 const DATA_LOADED_KEY_KJV = '@bible_data_loaded_kjv';
+const DATA_LOADED_KEY_WEB = '@bible_data_loaded_web';
 
 export async function initializeBibleData(
   onProgress?: (loaded: number, total: number) => void,
@@ -28,6 +29,17 @@ export async function initializeBibleData(
       'KJV',
       DATA_LOADED_KEY_KJV,
       async () => (await import('./bible-data-kjv')).KJV_DATA,
+      onProgress,
+    );
+
+    // Load WEB (World English Bible, public domain — Sprint 66). Same runtime
+    // JS→SQLite path as the others: guarded by its own AsyncStorage flag, so a
+    // device that already seeded RVR1960 + KJV only pays the one-time additive
+    // ~31k-verse load for WEB on the next launch and leaves the rest untouched.
+    await loadBibleVersion(
+      'WEB',
+      DATA_LOADED_KEY_WEB,
+      async () => (await import('./bible-data-web')).WEB_DATA,
       onProgress,
     );
 
@@ -102,7 +114,9 @@ export async function checkDataStatus(): Promise<{
     (await AsyncStorage.getItem(DATA_LOADED_KEY_RVR1960)) === 'true';
   const kjvLoaded =
     (await AsyncStorage.getItem(DATA_LOADED_KEY_KJV)) === 'true';
-  const isLoaded = rvr1960Loaded || kjvLoaded;
+  const webLoaded =
+    (await AsyncStorage.getItem(DATA_LOADED_KEY_WEB)) === 'true';
+  const isLoaded = rvr1960Loaded || kjvLoaded || webLoaded;
 
   if (isLoaded) {
     try {
@@ -137,6 +151,7 @@ export async function resetBibleData(): Promise<void> {
   // Limpiar flags de AsyncStorage para todas las versiones
   await AsyncStorage.removeItem(DATA_LOADED_KEY_RVR1960);
   await AsyncStorage.removeItem(DATA_LOADED_KEY_KJV);
+  await AsyncStorage.removeItem(DATA_LOADED_KEY_WEB);
 
   // Limpiar la base de datos
   try {

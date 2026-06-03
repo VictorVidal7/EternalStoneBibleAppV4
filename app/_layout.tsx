@@ -36,7 +36,7 @@ if (!__DEV__) {
   ]);
 }
 import {GestureHandlerRootView} from 'react-native-gesture-handler';
-import {initializeBibleData, checkDataStatus} from '@lib/database/data-loader';
+import {initializeBibleData} from '@lib/database/data-loader';
 import {ThemeProvider} from '@hooks/useTheme';
 import {BibleVersionProvider, useBibleVersion} from '@hooks/useBibleVersion';
 import {LanguageProvider, useLanguage} from '@hooks/useLanguage';
@@ -102,14 +102,17 @@ function AppContent() {
 
   async function initializeApp() {
     try {
-      const status = await checkDataStatus();
-
-      if (!status.isLoaded) {
-        // Load Bible data with progress tracking
-        await initializeBibleData((loaded, total) => {
-          setLoadingProgress({loaded, total});
-        });
-      }
+      // initializeBibleData is idempotent + INCREMENTAL: bibleDB.initialize() is
+      // safe to re-run and each version is guarded by its own AsyncStorage flag,
+      // so an install that already has RVR1960 + KJV only pays the one-time
+      // additive load of any newly bundled version (WEB, Sprint 66) and a fully
+      // up-to-date install just does a few cheap flag reads. (Until Sprint 66
+      // this was gated on checkDataStatus().isLoaded, which short-circuited the
+      // WHOLE init the moment ANY version was present — so a newly added version
+      // would never seed on an existing device.)
+      await initializeBibleData((loaded, total) => {
+        setLoadingProgress({loaded, total});
+      });
 
       // ✨ Inicializar servicios V5.1
       logger.info('Inicializando servicios V5.1', {

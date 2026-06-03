@@ -15,6 +15,13 @@ export const BIBLE_VERSIONS: BibleVersion[] = [
     language: 'en',
     year: '1611',
   },
+  {
+    id: 'WEB',
+    name: 'World English Bible',
+    abbreviation: 'WEB',
+    language: 'en',
+    year: '2000',
+  },
 ];
 
 export const BIBLE_BOOKS: BibleBook[] = [
