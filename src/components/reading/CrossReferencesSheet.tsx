@@ -167,6 +167,13 @@ export const CrossReferencesSheet: React.FC<Props> = ({
     });
   };
 
+  // Pivot from this verse's connections to the topical index (browse by theme).
+  const handleOpenThemes = () => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    onClose();
+    router.push('/features/themes' as never);
+  };
+
   const sourceLabel =
     sourceVerse != null
       ? `${sourceBook} ${sourceChapter}:${sourceVerse}`
@@ -297,6 +304,28 @@ export const CrossReferencesSheet: React.FC<Props> = ({
               <Ionicons name="arrow-forward" size={16} color={colors.primary} />
             </TouchableOpacity>
           )}
+
+          <TouchableOpacity
+            style={[styles.themesButton, {borderColor: colors.border}]}
+            onPress={handleOpenThemes}
+            accessibilityRole="button"
+            accessibilityLabel={t.themes.title}
+            accessibilityHint={t.themes.cardSubtitle}>
+            <Ionicons
+              name="grid-outline"
+              size={18}
+              color={colors.textSecondary}
+            />
+            <Text
+              style={[styles.themesButtonText, {color: colors.textSecondary}]}>
+              {t.themes.title}
+            </Text>
+            <Ionicons
+              name="arrow-forward"
+              size={16}
+              color={colors.textSecondary}
+            />
+          </TouchableOpacity>
         </View>
       </View>
     </Modal>
@@ -318,6 +347,20 @@ const styles = StyleSheet.create({
   studyButtonText: {
     fontSize: fontSizes.md,
     fontWeight: '700',
+  },
+  themesButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: spacing.sm,
+    marginTop: spacing.sm,
+    paddingVertical: spacing.md,
+    borderRadius: borderRadius.lg,
+    borderWidth: 1,
+  },
+  themesButtonText: {
+    fontSize: fontSizes.md,
+    fontWeight: '600',
   },
   backdrop: {
     flex: 1,
