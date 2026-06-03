@@ -4,15 +4,11 @@
  */
 
 import {BibleDatabase} from '../database';
-import {
-  Achievement,
-  UserStats,
-  ReadingStreak,
-  AchievementCategory,
-} from './types';
+import {Achievement, UserStats, ReadingStreak} from './types';
 import {ACHIEVEMENT_DEFINITIONS} from './definitions';
 import {calculateLevel} from './types';
 import {computeStreaks} from './streak';
+import {getCategoryProgress} from './progress';
 
 export class AchievementService {
   private db: BibleDatabase;
@@ -367,27 +363,7 @@ export class AchievementService {
   ): number {
     const def = ACHIEVEMENT_DEFINITIONS.find(a => a.id === achievementId);
     if (!def) return 0;
-
-    switch (def.category) {
-      case AchievementCategory.READING:
-        return stats.totalVersesRead;
-      case AchievementCategory.STREAK:
-        return Math.max(stats.currentStreak, stats.longestStreak);
-      case AchievementCategory.CHAPTERS:
-        return stats.totalChaptersRead;
-      case AchievementCategory.BOOKS:
-        return stats.totalBooksCompleted;
-      case AchievementCategory.HIGHLIGHTS:
-        return stats.totalHighlights;
-      case AchievementCategory.NOTES:
-        return stats.totalNotes;
-      case AchievementCategory.SEARCH:
-        return stats.totalSearches;
-      case AchievementCategory.TIME:
-        return stats.totalReadingTime;
-      default:
-        return 0;
-    }
+    return getCategoryProgress(def.category, stats);
   }
 
   /**

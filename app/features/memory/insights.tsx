@@ -14,13 +14,8 @@
  */
 
 import React, {useMemo} from 'react';
-import {
-  View,
-  Text,
-  ScrollView,
-  TouchableOpacity,
-  StyleSheet,
-} from 'react-native';
+import {View, ScrollView, TouchableOpacity, StyleSheet} from 'react-native';
+import {AppText as Text} from '@components/ui/AppText';
 import {useRouter, Stack} from 'expo-router';
 import {Ionicons} from '@expo/vector-icons';
 import {LinearGradient} from 'expo-linear-gradient';

@@ -81,6 +81,8 @@ export interface JourneyRecap {
   /** Distinct calendar days with ≥ 1 verse read. */
   activeDays: number;
   busiestDay: BusiestDay | null;
+  /** Lifetime accumulated reading time, in SECONDS (UserStats.totalReadingTime). */
+  readingTimeSeconds: number;
 
   // Streaks (reading)
   currentStreak: number;
@@ -260,6 +262,7 @@ export function buildJourneyRecap(
     booksCompleted,
     activeDays: reading.activeDays,
     busiestDay: reading.busiestDay,
+    readingTimeSeconds: safeCount(stats?.totalReadingTime),
 
     currentStreak: safeCount(stats?.currentStreak),
     longestStreak: safeCount(stats?.longestStreak),

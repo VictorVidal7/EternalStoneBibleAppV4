@@ -24,6 +24,7 @@ import {Ionicons} from '@expo/vector-icons';
 import {SaveComparisonDialog} from '../components/comparison/SaveComparisonDialog';
 import {useTheme} from '../hooks/useTheme';
 import {useLanguage} from '../hooks/useLanguage';
+import {focusTrapProps} from '@lib/a11y/focusTrap';
 import {useToast} from '../context/ToastContext';
 import {useAudioPlayer} from '../features/audio';
 import {getBookByName} from '../constants/bible';
@@ -815,7 +816,8 @@ export const VersionComparisonScreen: React.FC<
         onRequestClose={() => setShowVersionPicker(false)}>
         <View style={styles.modalOverlay}>
           <View
-            style={[styles.modalContent, {backgroundColor: colors.surface}]}>
+            style={[styles.modalContent, {backgroundColor: colors.surface}]}
+            {...focusTrapProps()}>
             <View style={styles.modalHeader}>
               <Text style={[styles.modalTitle, {color: colors.text}]}>
                 {t.versionComparison.selectVersions}
@@ -903,7 +905,8 @@ export const VersionComparisonScreen: React.FC<
         onRequestClose={() => setShowSavedComparisons(false)}>
         <View style={styles.modalOverlay}>
           <View
-            style={[styles.modalContent, {backgroundColor: colors.surface}]}>
+            style={[styles.modalContent, {backgroundColor: colors.surface}]}
+            {...focusTrapProps()}>
             <View style={styles.modalHeader}>
               <Text style={[styles.modalTitle, {color: colors.text}]}>
                 {t.versionComparison.savedComparisons}
@@ -1022,7 +1025,8 @@ export const VersionComparisonScreen: React.FC<
         onRequestClose={() => setShowVersePicker(false)}>
         <View style={styles.modalOverlay}>
           <View
-            style={[styles.modalContent, {backgroundColor: colors.surface}]}>
+            style={[styles.modalContent, {backgroundColor: colors.surface}]}
+            {...focusTrapProps()}>
             <View style={styles.modalHeader}>
               <Text style={[styles.modalTitle, {color: colors.text}]}>
                 {t.versionComparison.selectVerse}

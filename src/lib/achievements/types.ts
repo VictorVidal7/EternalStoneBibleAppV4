@@ -43,7 +43,7 @@ export interface UserStats {
   totalVersesRead: number;
   totalChaptersRead: number;
   totalBooksCompleted: number;
-  totalReadingTime: number; // in minutes
+  totalReadingTime: number; // accumulated reading time, in SECONDS
 
   // Streaks
   currentStreak: number;

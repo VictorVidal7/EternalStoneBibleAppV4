@@ -41,6 +41,7 @@ import {
   buildReadingInsights,
   type ReadingInsights,
 } from '@/features/reading-insights/readingInsights';
+import {formatReadingTime} from '@lib/utils/formatReadingTime';
 import {getBookByName} from '@/constants/bible';
 import {logger} from '@lib/utils/logger';
 import {
@@ -78,6 +79,7 @@ export default function ReadingInsightsScreen() {
           totalVersesRead: stats.totalVersesRead,
           totalChaptersRead: stats.totalChaptersRead,
           totalBooksCompleted: stats.totalBooksCompleted,
+          totalReadingSeconds: stats.totalReadingTime,
         },
         bookProgress: progress,
       });
@@ -115,6 +117,16 @@ export default function ReadingInsightsScreen() {
     if (!book) return key;
     return language === 'en' ? book.nameEn : book.name;
   }, [insights?.mostReadBook, language]);
+
+  // Localized unit words for formatReadingTime ("2h 32m" / "2 h 32 min").
+  const timeLabels = useMemo(
+    () => ({
+      hour: ri.hourUnit,
+      minute: ri.minuteUnit,
+      lessThanMinute: ri.lessThanMinute,
+    }),
+    [ri.hourUnit, ri.minuteUnit, ri.lessThanMinute],
+  );
 
   const headerGradient: [string, string] = [colors.primary, colors.primaryDark];
 
@@ -295,6 +307,41 @@ export default function ReadingInsightsScreen() {
                 </View>
               </View>
 
+              {/* Time in the Word — reading time was tracked but never shown. */}
+              <View style={[styles.card, {backgroundColor: colors.card}]}>
+                <AppText
+                  scaleRole="display"
+                  style={[styles.cardTitle, {color: colors.text}]}>
+                  {ri.timeTitle}
+                </AppText>
+                <View style={styles.weekRow}>
+                  <TextStat
+                    value={formatReadingTime(
+                      insights.totalReadingSeconds,
+                      timeLabels,
+                    )}
+                    label={ri.timeTotal}
+                    colors={colors}
+                  />
+                  <TextStat
+                    value={formatReadingTime(
+                      insights.thisWeekReadingSeconds,
+                      timeLabels,
+                    )}
+                    label={ri.timeWeek}
+                    colors={colors}
+                  />
+                  <TextStat
+                    value={formatReadingTime(
+                      insights.bestDayReadingSeconds,
+                      timeLabels,
+                    )}
+                    label={ri.timeBestDay}
+                    colors={colors}
+                  />
+                </View>
+              </View>
+
               {/* Most-read book */}
               {mostReadLabel && insights.mostReadBook && (
                 <View style={[styles.card, {backgroundColor: colors.card}]}>
@@ -356,6 +403,31 @@ const Stat: React.FC<{
       scaleRole="display"
       style={[styles.statValue, {color: colors.text}]}>
       {value.toLocaleString()}
+    </AppText>
+    <AppText
+      scaleRole="compact"
+      numberOfLines={2}
+      style={[styles.statLabel, {color: colors.textSecondary}]}>
+      {label}
+    </AppText>
+  </View>
+);
+
+/** Like {@link Stat} but for a pre-formatted string value (e.g. "2h 32m"). */
+const TextStat: React.FC<{
+  value: string;
+  label: string;
+  colors: ReturnType<typeof useTheme>['colors'];
+}> = ({value, label, colors}) => (
+  <View
+    style={styles.stat}
+    accessible={true}
+    accessibilityLabel={`${value} ${label}`}>
+    <AppText
+      scaleRole="display"
+      numberOfLines={1}
+      style={[styles.statValue, {color: colors.text}]}>
+      {value}
     </AppText>
     <AppText
       scaleRole="compact"

@@ -37,6 +37,8 @@ export interface ReadingTotals {
   totalVersesRead: number;
   totalChaptersRead: number;
   totalBooksCompleted: number;
+  /** Accumulated reading time, in SECONDS (UserStats.totalReadingTime). */
+  totalReadingSeconds?: number;
 }
 
 /** ReadingProgress: canonical book → chapter number → percent (0–100). */
@@ -80,6 +82,12 @@ export interface ReadingInsights {
   lastWeekVerses: number;
   /** The book with the most chapters touched, or null when none. */
   mostReadBook: MostReadBook | null;
+  /** Lifetime accumulated reading time, in SECONDS (from UserStats). */
+  totalReadingSeconds: number;
+  /** Reading time in the last 7 days (incl. today), in SECONDS (from the log). */
+  thisWeekReadingSeconds: number;
+  /** Most reading time recorded in a single day, ever, in SECONDS. */
+  bestDayReadingSeconds: number;
 }
 
 /** UTC day-number for a `YYYY-MM-DD` string, or null if unparseable. */
@@ -182,19 +190,27 @@ export function buildReadingInsights(
 
   const todayNum = dayNumberFromMs(now);
 
-  // Tally verses per UTC day, and collect active-day strings for the streak.
+  // Tally verses + seconds per UTC day, and collect active-day strings for the
+  // streak. Reading time (seconds) rides alongside the verse count per day.
   const versesByDay = new Map<number, number>();
+  const secondsByDay = new Map<number, number>();
   const activeDayStrings: string[] = [];
   let bestDayVerses = 0;
+  let bestDayReadingSeconds = 0;
   for (const entry of log) {
     const dayNum = dayNumberFromDateStr(entry?.date);
     if (dayNum === null) continue;
     const verses = Math.max(0, Number(entry?.versesRead) || 0);
+    const seconds = Math.max(0, Number(entry?.timeSpent) || 0);
     versesByDay.set(dayNum, (versesByDay.get(dayNum) ?? 0) + verses);
+    secondsByDay.set(dayNum, (secondsByDay.get(dayNum) ?? 0) + seconds);
     if (verses > 0) activeDayStrings.push(entry.date);
   }
   for (const v of versesByDay.values()) {
     if (v > bestDayVerses) bestDayVerses = v;
+  }
+  for (const s of secondsByDay.values()) {
+    if (s > bestDayReadingSeconds) bestDayReadingSeconds = s;
   }
 
   const activeDays = new Set(
@@ -208,6 +224,11 @@ export function buildReadingInsights(
     const ago = todayNum - dayNum;
     if (ago >= 0 && ago < 7) thisWeekVerses += verses;
     else if (ago >= 7 && ago < 14) lastWeekVerses += verses;
+  }
+  let thisWeekReadingSeconds = 0;
+  for (const [dayNum, seconds] of secondsByDay.entries()) {
+    const ago = todayNum - dayNum;
+    if (ago >= 0 && ago < 7) thisWeekReadingSeconds += seconds;
   }
 
   const {cells, windowVerses} = buildReadingHeatmap(
@@ -244,5 +265,8 @@ export function buildReadingInsights(
     thisWeekVerses,
     lastWeekVerses,
     mostReadBook,
+    totalReadingSeconds: Math.max(0, totals.totalReadingSeconds || 0),
+    thisWeekReadingSeconds,
+    bestDayReadingSeconds,
   };
 }

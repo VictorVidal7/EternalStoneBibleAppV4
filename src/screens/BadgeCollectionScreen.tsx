@@ -22,6 +22,7 @@ import {Ionicons} from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
 import {useTheme} from '../hooks/useTheme';
 import {useLanguage} from '../hooks/useLanguage';
+import {focusTrapProps} from '@lib/a11y/focusTrap';
 import {useToast} from '../context/ToastContext';
 import {staticColors} from '../styles/designTokens';
 import {
@@ -572,7 +573,8 @@ export const BadgeCollectionScreen: React.FC<BadgeCollectionScreenProps> = ({
           onRequestClose={() => setSelectedBadge(null)}>
           <View style={styles.modalOverlay}>
             <View
-              style={[styles.modalContent, {backgroundColor: colors.surface}]}>
+              style={[styles.modalContent, {backgroundColor: colors.surface}]}
+              {...focusTrapProps()}>
               <TouchableOpacity
                 style={styles.closeButton}
                 onPress={() => setSelectedBadge(null)}>
@@ -664,7 +666,8 @@ export const BadgeCollectionScreen: React.FC<BadgeCollectionScreenProps> = ({
           onRequestClose={() => setSelectedTitle(null)}>
           <View style={styles.modalOverlay}>
             <View
-              style={[styles.modalContent, {backgroundColor: colors.surface}]}>
+              style={[styles.modalContent, {backgroundColor: colors.surface}]}
+              {...focusTrapProps()}>
               <TouchableOpacity
                 style={styles.closeButton}
                 onPress={() => setSelectedTitle(null)}>

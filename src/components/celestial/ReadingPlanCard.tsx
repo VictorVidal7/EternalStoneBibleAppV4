@@ -12,7 +12,8 @@
  */
 
 import React, {useRef} from 'react';
-import {View, Text, StyleSheet, TouchableOpacity, Animated} from 'react-native';
+import {View, StyleSheet, TouchableOpacity, Animated} from 'react-native';
+import {AppText as Text} from '@components/ui/AppText';
 import {Ionicons} from '@expo/vector-icons';
 import {BlurView} from 'expo-blur';
 import type {ComponentProps} from 'react';

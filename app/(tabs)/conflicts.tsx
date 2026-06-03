@@ -27,6 +27,7 @@ import {Ionicons} from '@expo/vector-icons';
 import {LinearGradient} from 'expo-linear-gradient';
 import {useTheme} from '@hooks/useTheme';
 import {useLanguage} from '@hooks/useLanguage';
+import {focusTrapProps} from '@lib/a11y/focusTrap';
 import {useToast} from '@context/ToastContext';
 import {useSyncEngineOptional, useConflicts} from '@context/SyncEngineContext';
 import type {ConflictChoice, ConflictRecord} from '@lib/sync';
@@ -312,7 +313,9 @@ export default function ConflictsScreen() {
         animationType="fade"
         onRequestClose={closeMerge}>
         <View style={[styles.modalOverlay, {backgroundColor: colors.overlay}]}>
-          <View style={[styles.modalCard, {backgroundColor: colors.surface}]}>
+          <View
+            style={[styles.modalCard, {backgroundColor: colors.surface}]}
+            {...focusTrapProps()}>
             <Text style={[styles.modalTitle, {color: colors.text}]}>
               {t.conflicts.mergeTitle}
             </Text>

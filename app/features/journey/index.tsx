@@ -52,6 +52,7 @@ import {useMemoryDeck} from '@context/MemoryDeckContext';
 import {useFavorites} from '@context/FavoritesContext';
 import {getAllReviewEvents} from '@lib/memory/reviewEventStore';
 import {logger} from '@lib/utils/logger';
+import {formatReadingTime} from '@lib/utils/formatReadingTime';
 import {getBookByName} from '@/constants/bible';
 import {
   buildJourneyRecap,
@@ -68,6 +69,7 @@ type SlideKey =
   | 'verses'
   | 'chapters'
   | 'streak'
+  | 'time'
   | 'favorite'
   | 'engagement'
   | 'memory'
@@ -93,6 +95,7 @@ const SLIDE_GRADIENTS: Record<SlideKey, [string, string, string]> = {
   verses: ['#0ea5e9', '#2563eb', '#1e3a8a'],
   chapters: ['#10b981', '#0d9488', '#115e59'],
   streak: ['#f59e0b', '#ea580c', '#b91c1c'],
+  time: ['#0f766e', '#0e7490', '#0c4a6e'],
   favorite: ['#ec4899', '#be185d', '#831843'],
   engagement: ['#8b5cf6', '#6d28d9', '#4c1d95'],
   memory: ['#06b6d4', '#0e7490', '#155e75'],
@@ -118,6 +121,7 @@ export default function JourneyScreen() {
   const {width} = useWindowDimensions();
 
   const j = t.journey;
+  const ri = t.readingInsights; // reuses the reading-time unit words
 
   const [recap, setRecap] = useState<JourneyRecap | null>(null);
   const [status, setStatus] = useState<'loading' | 'ready' | 'error'>(
@@ -261,7 +265,36 @@ export default function JourneyScreen() {
       });
     }
 
-    // 5 — Favorite book
+    // 5 — Time in the Word (reading time, finally surfaced — Sprint 62)
+    if (recap.readingTimeSeconds > 0) {
+      const timeStr = formatReadingTime(recap.readingTimeSeconds, {
+        hour: ri.hourUnit,
+        minute: ri.minuteUnit,
+        lessThanMinute: ri.lessThanMinute,
+      });
+      list.push({
+        key: 'time',
+        gradient: SLIDE_GRADIENTS.time,
+        icon: 'hourglass',
+        a11y: `${j.timeTitle}. ${timeStr} ${j.timeReadLabel}`,
+        render: () => (
+          <SlideBody
+            icon="hourglass"
+            title={j.timeTitle}
+            big={timeStr}
+            bigLabel={j.timeReadLabel}
+            bigIsText
+            caption={
+              recap.activeDays > 0
+                ? j.timeCaption.replace('{{days}}', num(recap.activeDays))
+                : undefined
+            }
+          />
+        ),
+      });
+    }
+
+    // 6 — Favorite book
     if (recap.favoriteBook) {
       const fav = recap.favoriteBook;
       const info = getBookByName(fav.book);
@@ -287,7 +320,7 @@ export default function JourneyScreen() {
       });
     }
 
-    // 6 — Highlights & notes
+    // 7 — Highlights & notes
     if (recap.highlightsCount > 0 || recap.notesCount > 0) {
       list.push({
         key: 'engagement',
@@ -308,7 +341,7 @@ export default function JourneyScreen() {
       });
     }
 
-    // 7 — Memorization
+    // 8 — Memorization
     if (recap.cardsTotal > 0 || recap.memoryReviews > 0) {
       const rows: SecondaryRow[] = [
         {label: j.masteredLabel, value: num(recap.versesMastered)},
@@ -336,7 +369,7 @@ export default function JourneyScreen() {
       });
     }
 
-    // 8 — Achievements & level
+    // 9 — Achievements & level
     if (recap.achievementsUnlocked > 0 || recap.totalPoints > 0) {
       list.push({
         key: 'achievements',
@@ -362,7 +395,7 @@ export default function JourneyScreen() {
       });
     }
 
-    // 9 — Finale (shareable)
+    // 10 — Finale (shareable)
     list.push({
       key: 'finale',
       gradient: SLIDE_GRADIENTS.finale,
@@ -378,7 +411,7 @@ export default function JourneyScreen() {
     // capture then fails with "No view found"); the share button lives
     // outside this memo so only it re-renders while sharing. (This eslint has
     // no react-hooks/exhaustive-deps rule, so a disable directive would error.)
-  }, [recap, j, language, width]);
+  }, [recap, j, ri, language, width]);
 
   // Clamp the cursor if the slide set shrinks (defensive).
   useEffect(() => {
