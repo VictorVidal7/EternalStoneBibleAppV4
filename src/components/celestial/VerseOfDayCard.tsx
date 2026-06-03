@@ -12,7 +12,8 @@
  */
 
 import React, {useRef, useState} from 'react';
-import {View, Text, StyleSheet, TouchableOpacity, Animated} from 'react-native';
+import {View, StyleSheet, TouchableOpacity, Animated} from 'react-native';
+import {AppText as Text} from '../ui/AppText';
 import {BlurView} from 'expo-blur';
 import {Ionicons} from '@expo/vector-icons';
 import {
@@ -166,11 +167,14 @@ const VerseOfDayCard: React.FC<VerseOfDayCardProps> = ({
             </View>
 
             <View style={styles.titleContainer}>
-              <Text style={[styles.title, {color: theme.colors.text}]}>
+              <Text
+                scaleRole="display"
+                style={[styles.title, {color: theme.colors.text}]}>
                 {displayTitle}
               </Text>
               <View style={styles.subtitleRow}>
                 <Text
+                  scaleRole="compact"
                   style={[
                     styles.subtitle,
                     {color: theme.colors.textSecondary},
@@ -187,6 +191,7 @@ const VerseOfDayCard: React.FC<VerseOfDayCardProps> = ({
                       },
                     ]}>
                     <Text
+                      scaleRole="compact"
                       style={[
                         styles.versionBadgeText,
                         {color: colors.primary},
@@ -208,6 +213,7 @@ const VerseOfDayCard: React.FC<VerseOfDayCardProps> = ({
               },
             ]}>
             <Text
+              scaleRole="body"
               style={[
                 styles.verseText,
                 {
@@ -224,7 +230,9 @@ const VerseOfDayCard: React.FC<VerseOfDayCardProps> = ({
             {/* Botón leer capítulo completo */}
             {onPress && (
               <TouchableOpacity style={styles.actionButton} onPress={onPress}>
-                <Text style={[styles.actionText, {color: colors.primary}]}>
+                <Text
+                  scaleRole="compact"
+                  style={[styles.actionText, {color: colors.primary}]}>
                   {t.home.readFullChapter}
                 </Text>
                 <Ionicons
@@ -292,7 +300,9 @@ const VerseOfDayCard: React.FC<VerseOfDayCardProps> = ({
                 size={18}
                 color={colors.primary}
               />
-              <Text style={[styles.studyCtaText, {color: colors.primary}]}>
+              <Text
+                scaleRole="compact"
+                style={[styles.studyCtaText, {color: colors.primary}]}>
                 {t.home.studyVerse}
               </Text>
               <View
@@ -300,7 +310,9 @@ const VerseOfDayCard: React.FC<VerseOfDayCardProps> = ({
                   styles.studyBadge,
                   {backgroundColor: colors.primary + '22'},
                 ]}>
-                <Text style={[styles.studyBadgeText, {color: colors.primary}]}>
+                <Text
+                  scaleRole="compact"
+                  style={[styles.studyBadgeText, {color: colors.primary}]}>
                   {studyConnectionsCount}
                 </Text>
               </View>

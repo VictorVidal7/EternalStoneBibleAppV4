@@ -17,7 +17,8 @@
  */
 
 import React, {useState, useCallback, useMemo} from 'react';
-import {View, Text, StyleSheet, Pressable, ViewStyle} from 'react-native';
+import {View, StyleSheet, Pressable, ViewStyle} from 'react-native';
+import {AppText as Text} from './AppText';
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
@@ -226,7 +227,9 @@ const ActionButton: React.FC<ActionButtonProps> = ({
             isDark && styles.labelContainerDark,
             animatedLabelStyle,
           ]}>
-          <Text style={[styles.labelText, isDark && styles.labelTextDark]}>
+          <Text
+            scaleRole="compact"
+            style={[styles.labelText, isDark && styles.labelTextDark]}>
             {action.label}
           </Text>
         </Animated.View>
@@ -344,7 +347,11 @@ export const FloatingActionMenu: React.FC<FloatingActionMenuProps> = ({
   }, [position]);
 
   // Default icons
-  const defaultMainIcon = <Text style={styles.mainIconText}>+</Text>;
+  const defaultMainIcon = (
+    <Text scaleRole="compact" style={styles.mainIconText}>
+      +
+    </Text>
+  );
 
   return (
     <>
