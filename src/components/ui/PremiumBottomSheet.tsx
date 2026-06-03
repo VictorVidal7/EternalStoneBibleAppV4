@@ -41,6 +41,8 @@ import Animated, {
 import {BlurView} from 'expo-blur';
 import * as Haptics from 'expo-haptics';
 import {SPRING_CONFIGS} from '../../styles/reanimatedAnimations';
+import {focusTrapProps, a11yHiddenProps} from '../../lib/a11y/focusTrap';
+import {useLanguage} from '../../hooks/useLanguage';
 
 // ==================== TYPES ====================
 
@@ -90,12 +92,20 @@ interface HandleProps {
   isDark: boolean;
   animatedIndex: SharedValue<number>;
   style?: ViewStyle;
+  /** When the sheet is dismissable, the grab handle doubles as an accessible
+   *  "Close" button so screen-reader users (who can't perform the pan-down
+   *  gesture) always have a reachable way out — the safety the content
+   *  focus-trap relies on. */
+  onClose?: () => void;
+  closeLabel?: string;
 }
 
 const AnimatedHandle: React.FC<HandleProps> = ({
   isDark,
   animatedIndex,
   style,
+  onClose,
+  closeLabel,
 }) => {
   const animatedHandleStyle = useAnimatedStyle(() => {
     const width = interpolate(
@@ -111,7 +121,12 @@ const AnimatedHandle: React.FC<HandleProps> = ({
   });
 
   return (
-    <View style={[styles.handleContainer, style]}>
+    <Pressable
+      style={[styles.handleContainer, style]}
+      onPress={onClose}
+      disabled={!onClose}
+      accessibilityRole={onClose ? 'button' : undefined}
+      accessibilityLabel={onClose ? closeLabel : undefined}>
       <Animated.View
         style={[
           styles.handle,
@@ -119,7 +134,7 @@ const AnimatedHandle: React.FC<HandleProps> = ({
           animatedHandleStyle,
         ]}
       />
-    </View>
+    </Pressable>
   );
 };
 
@@ -261,7 +276,9 @@ const CustomBackdrop: React.FC<CustomBackdropProps> = ({
 
   if (enableBlur) {
     return (
-      <Animated.View style={[styles.backdrop, style, animatedStyle]}>
+      <Animated.View
+        style={[styles.backdrop, style, animatedStyle]}
+        {...a11yHiddenProps()}>
         <BlurView
           intensity={20}
           tint={isDark ? 'dark' : 'light'}
@@ -283,6 +300,7 @@ const CustomBackdrop: React.FC<CustomBackdropProps> = ({
         style,
         animatedStyle,
       ]}
+      {...a11yHiddenProps()}
     />
   );
 };
@@ -321,6 +339,7 @@ export const PremiumBottomSheet = forwardRef<
   ) => {
     const bottomSheetRef = useRef<BottomSheet>(null);
     const animatedIndex = useSharedValue(initialIndex);
+    const {t} = useLanguage();
 
     // Default snap points
     const snapPoints = useMemo(
@@ -378,7 +397,9 @@ export const PremiumBottomSheet = forwardRef<
       [enableBlurBackdrop, backdropOpacity, isDark],
     );
 
-    // Render handle
+    // Render handle. When the sheet is dismissable, the handle doubles as an
+    // accessible Close button so the content focus-trap below never strands a
+    // screen-reader user (who can't perform the pan-down-to-close gesture).
     const renderHandle = useCallback(() => {
       if (!showHandle) return null;
 
@@ -387,9 +408,22 @@ export const PremiumBottomSheet = forwardRef<
           isDark={isDark}
           animatedIndex={animatedIndex}
           style={handleStyle}
+          onClose={
+            enablePanDownToClose
+              ? () => bottomSheetRef.current?.close()
+              : undefined
+          }
+          closeLabel={t.close}
         />
       );
-    }, [showHandle, isDark, animatedIndex, handleStyle]);
+    }, [
+      showHandle,
+      isDark,
+      animatedIndex,
+      handleStyle,
+      enablePanDownToClose,
+      t.close,
+    ]);
 
     // Background style
     const backgroundStyle = useMemo(
@@ -427,8 +461,12 @@ export const PremiumBottomSheet = forwardRef<
           style={headerStyle}
         />
 
-        {/* Content */}
-        <ContentWrapper style={[styles.content, contentStyle]}>
+        {/* Content — focus-trapped so a screen reader can't wander out of the
+            sheet into the page behind it (the dismissable handle above is the
+            reachable way back out). */}
+        <ContentWrapper
+          style={[styles.content, contentStyle]}
+          {...focusTrapProps()}>
           {children}
         </ContentWrapper>
       </BottomSheet>
