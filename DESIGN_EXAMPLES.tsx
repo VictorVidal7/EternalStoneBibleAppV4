@@ -7,8 +7,8 @@
  */
 
 import React from 'react';
-import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
-import { useTheme } from './hooks/useTheme';
+import {View, Text, TouchableOpacity, StyleSheet} from 'react-native';
+import {useTheme} from './hooks/useTheme';
 
 // ============================================================================
 // DESIGN TOKENS - Centralizados
@@ -44,14 +44,14 @@ const DESIGN_TOKENS = {
     level1: {
       light: {
         shadowColor: '#000000',
-        shadowOffset: { width: 0, height: 1 },
+        shadowOffset: {width: 0, height: 1},
         shadowOpacity: 0.04,
         shadowRadius: 4,
         elevation: 1,
       },
       dark: {
         shadowColor: '#000000',
-        shadowOffset: { width: 0, height: 1 },
+        shadowOffset: {width: 0, height: 1},
         shadowOpacity: 0.2,
         shadowRadius: 4,
         elevation: 1,
@@ -60,14 +60,14 @@ const DESIGN_TOKENS = {
     level2: {
       light: {
         shadowColor: '#000000',
-        shadowOffset: { width: 0, height: 2 },
+        shadowOffset: {width: 0, height: 2},
         shadowOpacity: 0.06,
         shadowRadius: 8,
         elevation: 2,
       },
       dark: {
         shadowColor: '#000000',
-        shadowOffset: { width: 0, height: 2 },
+        shadowOffset: {width: 0, height: 2},
         shadowOpacity: 0.25,
         shadowRadius: 8,
         elevation: 2,
@@ -76,14 +76,14 @@ const DESIGN_TOKENS = {
     level3: {
       light: {
         shadowColor: '#000000',
-        shadowOffset: { width: 0, height: 4 },
+        shadowOffset: {width: 0, height: 4},
         shadowOpacity: 0.1,
         shadowRadius: 12,
         elevation: 4,
       },
       dark: {
         shadowColor: '#000000',
-        shadowOffset: { width: 0, height: 4 },
+        shadowOffset: {width: 0, height: 4},
         shadowOpacity: 0.35,
         shadowRadius: 12,
         elevation: 4,
@@ -110,30 +110,31 @@ export const VerseCard: React.FC<VerseCardProps> = ({
   reference,
   onPress,
 }) => {
-  const { colors, isDark } = useTheme();
+  const {colors, isDark} = useTheme();
 
   return (
     <TouchableOpacity
       style={[
         styles.verseCard,
-        { backgroundColor: colors.card },
-        isDark ? DESIGN_TOKENS.elevation.level2.dark : DESIGN_TOKENS.elevation.level2.light,
+        {backgroundColor: colors.card},
+        isDark
+          ? DESIGN_TOKENS.elevation.level2.dark
+          : DESIGN_TOKENS.elevation.level2.light,
       ]}
       onPress={onPress}
-      activeOpacity={0.7}
-    >
+      activeOpacity={0.7}>
       {/* Título */}
-      <Text style={[styles.verseCardTitle, { color: colors.primary }]}>
+      <Text style={[styles.verseCardTitle, {color: colors.primary}]}>
         {title}
       </Text>
 
       {/* Texto del versículo */}
-      <Text style={[styles.verseCardText, { color: colors.text }]}>
+      <Text style={[styles.verseCardText, {color: colors.text}]}>
         "{verseText}"
       </Text>
 
       {/* Referencia */}
-      <Text style={[styles.verseCardReference, { color: colors.secondary }]}>
+      <Text style={[styles.verseCardReference, {color: colors.secondary}]}>
         {reference}
       </Text>
     </TouchableOpacity>
@@ -145,10 +146,10 @@ const styles = StyleSheet.create({
   verseCard: {
     // Layout
     borderRadius: DESIGN_TOKENS.radius.lg, // 16dp
-    paddingHorizontal: DESIGN_TOKENS.base,  // 20dp
-    paddingVertical: DESIGN_TOKENS.base,    // 20dp
-    marginHorizontal: DESIGN_TOKENS.md,     // 16dp
-    marginVertical: DESIGN_TOKENS.sm,       // 12dp
+    paddingHorizontal: DESIGN_TOKENS.base, // 20dp
+    paddingVertical: DESIGN_TOKENS.base, // 20dp
+    marginHorizontal: DESIGN_TOKENS.md, // 16dp
+    marginVertical: DESIGN_TOKENS.sm, // 12dp
 
     // NO border (solo sombra)
     borderWidth: 0,
@@ -193,70 +194,78 @@ export const QuickAccessCard: React.FC<QuickAccessCardProps> = ({
   title,
   onPress,
 }) => {
-  const { colors, isDark } = useTheme();
+  const {colors, isDark} = useTheme();
 
   return (
     <TouchableOpacity
       style={[
         styles.quickAccessCard,
-        { backgroundColor: colors.card },
-        isDark ? DESIGN_TOKENS.elevation.level2.dark : DESIGN_TOKENS.elevation.level2.light,
+        {backgroundColor: colors.card},
+        isDark
+          ? DESIGN_TOKENS.elevation.level2.dark
+          : DESIGN_TOKENS.elevation.level2.light,
       ]}
       onPress={onPress}
-      activeOpacity={0.7}
-    >
+      activeOpacity={0.7}>
       {/* Icon container (NO circular, redondeado) */}
-      <View style={[styles.quickAccessIcon, { backgroundColor: colors.primary + '15' }]}>
+      <View
+        style={[
+          styles.quickAccessIcon,
+          {backgroundColor: colors.primary + '15'},
+        ]}>
         <Text style={styles.quickAccessEmoji}>{icon}</Text>
       </View>
 
       {/* Título */}
-      <Text style={[styles.quickAccessTitle, { color: colors.text }]}>
+      <Text style={[styles.quickAccessTitle, {color: colors.text}]}>
         {title}
       </Text>
     </TouchableOpacity>
   );
 };
 
-Object.assign(styles, StyleSheet.create({
-  // ==================== QUICK ACCESS CARD ====================
-  quickAccessCard: {
-    // Layout - Aspecto cuadrado
-    width: '48%',
-    aspectRatio: 1,
-    borderRadius: DESIGN_TOKENS.radius.lg, // 16dp
-    padding: DESIGN_TOKENS.base,           // 20dp
-    marginBottom: DESIGN_TOKENS.base,      // 20dp
+Object.assign(
+  styles,
+  StyleSheet.create({
+    // ==================== QUICK ACCESS CARD ====================
+    quickAccessCard: {
+      // Layout - Aspecto cuadrado
+      width: '48%',
+      aspectRatio: 1,
+      borderRadius: DESIGN_TOKENS.radius.lg, // 16dp
+      padding: DESIGN_TOKENS.base, // 20dp
+      marginBottom: DESIGN_TOKENS.base, // 20dp
 
-    // Flexbox
-    justifyContent: 'center',
-    alignItems: 'center',
+      // Flexbox
+      justifyContent: 'center',
+      alignItems: 'center',
 
-    // NO border
-    borderWidth: 0,
-  },
+      // NO border
+      borderWidth: 0,
+    },
 
-  quickAccessIcon: {
-    // Contenedor redondeado (NO circular)
-    width: 56,
-    height: 56,
-    borderRadius: DESIGN_TOKENS.radius.md, // 12dp
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginBottom: DESIGN_TOKENS.md, // 16dp
-  },
+    quickAccessIcon: {
+      // Contenedor redondeado (NO circular)
+      width: 56,
+      height: 56,
+      borderRadius: DESIGN_TOKENS.radius.md, // 12dp
+      justifyContent: 'center',
+      alignItems: 'center',
+      marginBottom: DESIGN_TOKENS.md, // 16dp
+    },
 
-  quickAccessEmoji: {
-    fontSize: 28,
-  },
+    quickAccessEmoji: {
+      fontSize: 28,
+    },
 
-  quickAccessTitle: {
-    fontSize: 15,
-    fontWeight: '600',
-    letterSpacing: -0.2,
-    textAlign: 'center',
-  },
-}));
+    quickAccessTitle: {
+      fontSize: 15,
+      fontWeight: '600',
+      letterSpacing: -0.2,
+      textAlign: 'center',
+    },
+  }),
+);
 
 // ============================================================================
 // EJEMPLO 3: BIBLE BOOK CARD (Lista de libros)
@@ -274,7 +283,7 @@ export const BibleBookCard: React.FC<BibleBookCardProps> = ({
   testament,
   onPress,
 }) => {
-  const { colors, isDark } = useTheme();
+  const {colors, isDark} = useTheme();
 
   return (
     <TouchableOpacity
@@ -288,68 +297,66 @@ export const BibleBookCard: React.FC<BibleBookCardProps> = ({
         isDark ? DESIGN_TOKENS.elevation.level1.dark : {},
       ]}
       onPress={onPress}
-      activeOpacity={0.7}
-    >
+      activeOpacity={0.7}>
       {/* Icon container */}
-      <View style={[styles.bookIcon, { backgroundColor: colors.primary + '15' }]}>
+      <View style={[styles.bookIcon, {backgroundColor: colors.primary + '15'}]}>
         <Text style={styles.bookEmoji}>📖</Text>
       </View>
 
       {/* Book name */}
-      <Text style={[styles.bookName, { color: colors.text }]}>
-        {bookName}
-      </Text>
+      <Text style={[styles.bookName, {color: colors.text}]}>{bookName}</Text>
 
       {/* Chevron */}
-      <Text style={[styles.bookChevron, { color: colors.textSecondary }]}>
-        ›
-      </Text>
+      <Text style={[styles.bookChevron, {color: colors.textSecondary}]}>›</Text>
     </TouchableOpacity>
   );
 };
 
-Object.assign(styles, StyleSheet.create({
-  // ==================== BIBLE BOOK CARD ====================
-  bibleBookCard: {
-    // Layout - Item de lista
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: DESIGN_TOKENS.md,   // 16dp
-    paddingVertical: DESIGN_TOKENS.md,     // 16dp
+Object.assign(
+  styles,
+  StyleSheet.create({
+    // ==================== BIBLE BOOK CARD ====================
+    bibleBookCard: {
+      // Layout - Item de lista
+      flexDirection: 'row',
+      alignItems: 'center',
+      paddingHorizontal: DESIGN_TOKENS.md, // 16dp
+      paddingVertical: DESIGN_TOKENS.md, // 16dp
 
-    // Separador hairline (solo en light mode)
-    borderBottomWidth: StyleSheet.hairlineWidth,
+      // Separador hairline (solo en light mode)
+      borderBottomWidth: StyleSheet.hairlineWidth,
 
-    // NO border radius (item de lista)
-    // NO sombra en light mode (solo hairline separator)
-  },
+      // NO border radius (item de lista)
+      // NO sombra en light mode (solo hairline separator)
+    },
 
-  bookIcon: {
-    width: 48,
-    height: 48,
-    borderRadius: DESIGN_TOKENS.radius.md, // 12dp (redondeado, NO circular)
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginRight: DESIGN_TOKENS.md, // 16dp
-  },
+    bookIcon: {
+      width: 48,
+      height: 48,
+      borderRadius: DESIGN_TOKENS.radius.md, // 12dp (redondeado, NO circular)
+      justifyContent: 'center',
+      alignItems: 'center',
+      marginRight: DESIGN_TOKENS.md, // 16dp
+    },
 
-  bookEmoji: {
-    fontSize: 22,
-  },
+    bookEmoji: {
+      fontSize: 22,
+    },
 
-  bookName: {
-    flex: 1,
-    fontSize: 17,
-    fontWeight: '600',
-    letterSpacing: -0.2,
-  },
+    bookName: {
+      flex: 1,
+      fontSize: 17,
+      fontWeight: '600',
+      letterSpacing: -0.2,
+    },
 
-  bookChevron: {
-    fontSize: 28,
-    fontWeight: '300',
-    opacity: 0.6,
-  },
-}));
+    bookChevron: {
+      fontSize: 28,
+      fontWeight: '300',
+      opacity: 0.6,
+    },
+  }),
+);
 
 // ============================================================================
 // EJEMPLO 4: ACHIEVEMENT CARD (Logros)
@@ -375,7 +382,7 @@ export const AchievementCard: React.FC<AchievementCardProps> = ({
   tierColor,
   onPress,
 }) => {
-  const { colors, isDark } = useTheme();
+  const {colors, isDark} = useTheme();
 
   return (
     <TouchableOpacity
@@ -383,20 +390,27 @@ export const AchievementCard: React.FC<AchievementCardProps> = ({
         styles.achievementCard,
         {
           backgroundColor: isUnlocked
-            ? (isDark ? colors.primary + '15' : colors.primary + '08')
+            ? isDark
+              ? colors.primary + '15'
+              : colors.primary + '08'
             : colors.card,
         },
         // Sombra adaptativa según estado
         isUnlocked
-          ? (isDark ? DESIGN_TOKENS.elevation.level2.dark : DESIGN_TOKENS.elevation.level2.light)
-          : (isDark ? DESIGN_TOKENS.elevation.level1.dark : DESIGN_TOKENS.elevation.level1.light),
+          ? isDark
+            ? DESIGN_TOKENS.elevation.level2.dark
+            : DESIGN_TOKENS.elevation.level2.light
+          : isDark
+            ? DESIGN_TOKENS.elevation.level1.dark
+            : DESIGN_TOKENS.elevation.level1.light,
       ]}
       onPress={onPress}
-      activeOpacity={0.7}
-    >
+      activeOpacity={0.7}>
       {/* Icon container */}
-      <View style={[styles.achievementIcon, { backgroundColor: tierColor + '20' }]}>
-        <Text style={[styles.achievementEmoji, { opacity: isUnlocked ? 1 : 0.4 }]}>
+      <View
+        style={[styles.achievementIcon, {backgroundColor: tierColor + '20'}]}>
+        <Text
+          style={[styles.achievementEmoji, {opacity: isUnlocked ? 1 : 0.4}]}>
           {icon}
         </Text>
       </View>
@@ -404,26 +418,32 @@ export const AchievementCard: React.FC<AchievementCardProps> = ({
       {/* Content */}
       <View style={styles.achievementContent}>
         {/* Title */}
-        <Text style={[
-          styles.achievementTitle,
-          { color: isUnlocked ? colors.primary : colors.text }
-        ]}>
+        <Text
+          style={[
+            styles.achievementTitle,
+            {color: isUnlocked ? colors.primary : colors.text},
+          ]}>
           {title}
         </Text>
 
         {/* Description */}
-        <Text style={[styles.achievementDescription, { color: colors.textSecondary }]}>
+        <Text
+          style={[
+            styles.achievementDescription,
+            {color: colors.textSecondary},
+          ]}>
           {description}
         </Text>
 
         {/* Progress bar (solo si no está desbloqueado) */}
         {!isUnlocked && (
           <View style={styles.achievementProgress}>
-            <View style={[styles.progressBar, { backgroundColor: colors.border }]}>
+            <View
+              style={[styles.progressBar, {backgroundColor: colors.border}]}>
               <View
                 style={[
                   styles.progressFill,
-                  { backgroundColor: tierColor, width: `${progress}%` }
+                  {backgroundColor: tierColor, width: `${progress}%`},
                 ]}
               />
             </View>
@@ -433,7 +453,8 @@ export const AchievementCard: React.FC<AchievementCardProps> = ({
 
       {/* Unlocked badge */}
       {isUnlocked && (
-        <View style={[styles.unlockedBadge, { backgroundColor: colors.secondary }]}>
+        <View
+          style={[styles.unlockedBadge, {backgroundColor: colors.secondary}]}>
           <Text style={styles.unlockedText}>✓</Text>
         </View>
       )}
@@ -441,82 +462,85 @@ export const AchievementCard: React.FC<AchievementCardProps> = ({
   );
 };
 
-Object.assign(styles, StyleSheet.create({
-  // ==================== ACHIEVEMENT CARD ====================
-  achievementCard: {
-    // Layout
-    flexDirection: 'row',
-    borderRadius: DESIGN_TOKENS.radius.lg,  // 16dp
-    padding: DESIGN_TOKENS.lg,              // 24dp (generoso)
-    marginHorizontal: DESIGN_TOKENS.md,     // 16dp
-    marginBottom: DESIGN_TOKENS.md,         // 16dp
+Object.assign(
+  styles,
+  StyleSheet.create({
+    // ==================== ACHIEVEMENT CARD ====================
+    achievementCard: {
+      // Layout
+      flexDirection: 'row',
+      borderRadius: DESIGN_TOKENS.radius.lg, // 16dp
+      padding: DESIGN_TOKENS.lg, // 24dp (generoso)
+      marginHorizontal: DESIGN_TOKENS.md, // 16dp
+      marginBottom: DESIGN_TOKENS.md, // 16dp
 
-    // NO border (solo sombra según estado)
-    borderWidth: 0,
-  },
+      // NO border (solo sombra según estado)
+      borderWidth: 0,
+    },
 
-  achievementIcon: {
-    width: 56,
-    height: 56,
-    borderRadius: DESIGN_TOKENS.radius.md, // 12dp
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginRight: DESIGN_TOKENS.md, // 16dp
-  },
+    achievementIcon: {
+      width: 56,
+      height: 56,
+      borderRadius: DESIGN_TOKENS.radius.md, // 12dp
+      justifyContent: 'center',
+      alignItems: 'center',
+      marginRight: DESIGN_TOKENS.md, // 16dp
+    },
 
-  achievementEmoji: {
-    fontSize: 28,
-  },
+    achievementEmoji: {
+      fontSize: 28,
+    },
 
-  achievementContent: {
-    flex: 1,
-  },
+    achievementContent: {
+      flex: 1,
+    },
 
-  achievementTitle: {
-    fontSize: 16,
-    fontWeight: '700',
-    letterSpacing: -0.2,
-    marginBottom: DESIGN_TOKENS.xs, // 8dp
-  },
+    achievementTitle: {
+      fontSize: 16,
+      fontWeight: '700',
+      letterSpacing: -0.2,
+      marginBottom: DESIGN_TOKENS.xs, // 8dp
+    },
 
-  achievementDescription: {
-    fontSize: 14,
-    lineHeight: 20,
-    marginBottom: DESIGN_TOKENS.sm, // 12dp
-  },
+    achievementDescription: {
+      fontSize: 14,
+      lineHeight: 20,
+      marginBottom: DESIGN_TOKENS.sm, // 12dp
+    },
 
-  achievementProgress: {
-    marginTop: DESIGN_TOKENS.xs, // 8dp
-  },
+    achievementProgress: {
+      marginTop: DESIGN_TOKENS.xs, // 8dp
+    },
 
-  progressBar: {
-    height: 6,
-    borderRadius: DESIGN_TOKENS.radius.xs, // 4dp
-    overflow: 'hidden',
-  },
+    progressBar: {
+      height: 6,
+      borderRadius: DESIGN_TOKENS.radius.xs, // 4dp
+      overflow: 'hidden',
+    },
 
-  progressFill: {
-    height: '100%',
-    borderRadius: DESIGN_TOKENS.radius.xs,
-  },
+    progressFill: {
+      height: '100%',
+      borderRadius: DESIGN_TOKENS.radius.xs,
+    },
 
-  unlockedBadge: {
-    position: 'absolute',
-    top: DESIGN_TOKENS.sm,
-    right: DESIGN_TOKENS.sm,
-    width: 24,
-    height: 24,
-    borderRadius: 12, // circular OK para badge pequeño
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
+    unlockedBadge: {
+      position: 'absolute',
+      top: DESIGN_TOKENS.sm,
+      right: DESIGN_TOKENS.sm,
+      width: 24,
+      height: 24,
+      borderRadius: 12, // circular OK para badge pequeño
+      justifyContent: 'center',
+      alignItems: 'center',
+    },
 
-  unlockedText: {
-    color: '#FFFFFF',
-    fontSize: 14,
-    fontWeight: '700',
-  },
-}));
+    unlockedText: {
+      color: '#FFFFFF',
+      fontSize: 14,
+      fontWeight: '700',
+    },
+  }),
+);
 
 // ============================================================================
 // EJEMPLO 5: SUMMARY CARD (Estadísticas resumen)
@@ -530,27 +554,30 @@ interface SummaryCardProps {
   }>;
 }
 
-export const SummaryCard: React.FC<SummaryCardProps> = ({ items }) => {
-  const { colors, isDark } = useTheme();
+export const SummaryCard: React.FC<SummaryCardProps> = ({items}) => {
+  const {colors, isDark} = useTheme();
 
   return (
     <View
       style={[
         styles.summaryCard,
-        { backgroundColor: colors.card },
-        isDark ? DESIGN_TOKENS.elevation.level2.dark : DESIGN_TOKENS.elevation.level2.light,
-      ]}
-    >
+        {backgroundColor: colors.card},
+        isDark
+          ? DESIGN_TOKENS.elevation.level2.dark
+          : DESIGN_TOKENS.elevation.level2.light,
+      ]}>
       {items.map((item, index) => (
         <React.Fragment key={index}>
           {index > 0 && (
-            <View style={[styles.summaryDivider, { backgroundColor: colors.divider }]} />
+            <View
+              style={[styles.summaryDivider, {backgroundColor: colors.divider}]}
+            />
           )}
           <View style={styles.summaryItem}>
-            <Text style={[styles.summaryValue, { color: colors.primary }]}>
+            <Text style={[styles.summaryValue, {color: colors.primary}]}>
               {item.value}
             </Text>
-            <Text style={[styles.summaryLabel, { color: colors.textSecondary }]}>
+            <Text style={[styles.summaryLabel, {color: colors.textSecondary}]}>
               {item.label}
             </Text>
           </View>
@@ -560,44 +587,47 @@ export const SummaryCard: React.FC<SummaryCardProps> = ({ items }) => {
   );
 };
 
-Object.assign(styles, StyleSheet.create({
-  // ==================== SUMMARY CARD ====================
-  summaryCard: {
-    // Layout
-    flexDirection: 'row',
-    borderRadius: DESIGN_TOKENS.radius.lg,  // 16dp
-    padding: DESIGN_TOKENS.xl,              // 32dp (extra generoso)
-    marginHorizontal: DESIGN_TOKENS.md,     // 16dp
-    marginVertical: DESIGN_TOKENS.sm,       // 12dp
+Object.assign(
+  styles,
+  StyleSheet.create({
+    // ==================== SUMMARY CARD ====================
+    summaryCard: {
+      // Layout
+      flexDirection: 'row',
+      borderRadius: DESIGN_TOKENS.radius.lg, // 16dp
+      padding: DESIGN_TOKENS.xl, // 32dp (extra generoso)
+      marginHorizontal: DESIGN_TOKENS.md, // 16dp
+      marginVertical: DESIGN_TOKENS.sm, // 12dp
 
-    // NO border
-    borderWidth: 0,
-  },
+      // NO border
+      borderWidth: 0,
+    },
 
-  summaryItem: {
-    flex: 1,
-    alignItems: 'center',
-    paddingVertical: DESIGN_TOKENS.xs, // 8dp
-  },
+    summaryItem: {
+      flex: 1,
+      alignItems: 'center',
+      paddingVertical: DESIGN_TOKENS.xs, // 8dp
+    },
 
-  summaryValue: {
-    fontSize: 30, // 2xl
-    fontWeight: '800',
-    letterSpacing: -0.5,
-    marginBottom: DESIGN_TOKENS.xs, // 8dp
-  },
+    summaryValue: {
+      fontSize: 30, // 2xl
+      fontWeight: '800',
+      letterSpacing: -0.5,
+      marginBottom: DESIGN_TOKENS.xs, // 8dp
+    },
 
-  summaryLabel: {
-    fontSize: 14,
-    textAlign: 'center',
-    letterSpacing: -0.1,
-  },
+    summaryLabel: {
+      fontSize: 14,
+      textAlign: 'center',
+      letterSpacing: -0.1,
+    },
 
-  summaryDivider: {
-    width: 1,
-    marginHorizontal: DESIGN_TOKENS.md, // 16dp (separación generosa)
-  },
-}));
+    summaryDivider: {
+      width: 1,
+      marginHorizontal: DESIGN_TOKENS.md, // 16dp (separación generosa)
+    },
+  }),
+);
 
 // ============================================================================
 // EJEMPLO 6: CHAPTER BUTTON (Grid de capítulos)
@@ -613,47 +643,49 @@ export const ChapterButton: React.FC<ChapterButtonProps> = ({
   chapter,
   onPress,
 }) => {
-  const { colors, isDark } = useTheme();
+  const {colors, isDark} = useTheme();
 
   return (
     <TouchableOpacity
       style={[
         styles.chapterButton,
-        { backgroundColor: colors.surface },
+        {backgroundColor: colors.surface},
         // Nivel 1 muy sutil solo en dark
         isDark ? DESIGN_TOKENS.elevation.level1.dark : {},
       ]}
       onPress={onPress}
-      activeOpacity={0.7}
-    >
-      <Text style={[styles.chapterNumber, { color: colors.text }]}>
+      activeOpacity={0.7}>
+      <Text style={[styles.chapterNumber, {color: colors.text}]}>
         {chapter}
       </Text>
     </TouchableOpacity>
   );
 };
 
-Object.assign(styles, StyleSheet.create({
-  // ==================== CHAPTER BUTTON ====================
-  chapterButton: {
-    // Layout - Elemento pequeño
-    width: 56,
-    height: 56,
-    borderRadius: DESIGN_TOKENS.radius.md, // 12dp
-    justifyContent: 'center',
-    alignItems: 'center',
-    margin: DESIGN_TOKENS.xs, // 8dp
+Object.assign(
+  styles,
+  StyleSheet.create({
+    // ==================== CHAPTER BUTTON ====================
+    chapterButton: {
+      // Layout - Elemento pequeño
+      width: 56,
+      height: 56,
+      borderRadius: DESIGN_TOKENS.radius.md, // 12dp
+      justifyContent: 'center',
+      alignItems: 'center',
+      margin: DESIGN_TOKENS.xs, // 8dp
 
-    // NO border
-    borderWidth: 0,
-  },
+      // NO border
+      borderWidth: 0,
+    },
 
-  chapterNumber: {
-    fontSize: 18,
-    fontWeight: '600',
-    letterSpacing: -0.2,
-  },
-}));
+    chapterNumber: {
+      fontSize: 18,
+      fontWeight: '600',
+      letterSpacing: -0.2,
+    },
+  }),
+);
 
 // ============================================================================
 // COMPARACIÓN: ANTES vs DESPUÉS

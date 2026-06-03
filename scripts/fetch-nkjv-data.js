@@ -8,102 +8,109 @@ const https = require('https');
  */
 
 const BOOKS = [
-  { id: 1, name: 'Génesis', file: 'Genesis' },
-  { id: 2, name: 'Éxodo', file: 'Exodus' },
-  { id: 3, name: 'Levítico', file: 'Leviticus' },
-  { id: 4, name: 'Números', file: 'Numbers' },
-  { id: 5, name: 'Deuteronomio', file: 'Deuteronomy' },
-  { id: 6, name: 'Josué', file: 'Joshua' },
-  { id: 7, name: 'Jueces', file: 'Judges' },
-  { id: 8, name: 'Rut', file: 'Ruth' },
-  { id: 9, name: '1 Samuel', file: '1Samuel' },
-  { id: 10, name: '2 Samuel', file: '2Samuel' },
-  { id: 11, name: '1 Reyes', file: '1Kings' },
-  { id: 12, name: '2 Reyes', file: '2Kings' },
-  { id: 13, name: '1 Crónicas', file: '1Chronicles' },
-  { id: 14, name: '2 Crónicas', file: '2Chronicles' },
-  { id: 15, name: 'Esdras', file: 'Ezra' },
-  { id: 16, name: 'Nehemías', file: 'Nehemiah' },
-  { id: 17, name: 'Ester', file: 'Esther' },
-  { id: 18, name: 'Job', file: 'Job' },
-  { id: 19, name: 'Salmos', file: 'Psalms' },
-  { id: 20, name: 'Proverbios', file: 'Proverbs' },
-  { id: 21, name: 'Eclesiastés', file: 'Ecclesiastes' },
-  { id: 22, name: 'Cantares', file: 'SongofSolomon' },
-  { id: 23, name: 'Isaías', file: 'Isaiah' },
-  { id: 24, name: 'Jeremías', file: 'Jeremiah' },
-  { id: 25, name: 'Lamentaciones', file: 'Lamentations' },
-  { id: 26, name: 'Ezequiel', file: 'Ezekiel' },
-  { id: 27, name: 'Daniel', file: 'Daniel' },
-  { id: 28, name: 'Oseas', file: 'Hosea' },
-  { id: 29, name: 'Joel', file: 'Joel' },
-  { id: 30, name: 'Amós', file: 'Amos' },
-  { id: 31, name: 'Abdías', file: 'Obadiah' },
-  { id: 32, name: 'Jonás', file: 'Jonah' },
-  { id: 33, name: 'Miqueas', file: 'Micah' },
-  { id: 34, name: 'Nahúm', file: 'Nahum' },
-  { id: 35, name: 'Habacuc', file: 'Habakkuk' },
-  { id: 36, name: 'Sofonías', file: 'Zephaniah' },
-  { id: 37, name: 'Hageo', file: 'Haggai' },
-  { id: 38, name: 'Zacarías', file: 'Zechariah' },
-  { id: 39, name: 'Malaquías', file: 'Malachi' },
-  { id: 40, name: 'Mateo', file: 'Matthew' },
-  { id: 41, name: 'Marcos', file: 'Mark' },
-  { id: 42, name: 'Lucas', file: 'Luke' },
-  { id: 43, name: 'Juan', file: 'John' },
-  { id: 44, name: 'Hechos', file: 'Acts' },
-  { id: 45, name: 'Romanos', file: 'Romans' },
-  { id: 46, name: '1 Corintios', file: '1Corinthians' },
-  { id: 47, name: '2 Corintios', file: '2Corinthians' },
-  { id: 48, name: 'Gálatas', file: 'Galatians' },
-  { id: 49, name: 'Efesios', file: 'Ephesians' },
-  { id: 50, name: 'Filipenses', file: 'Philippians' },
-  { id: 51, name: 'Colosenses', file: 'Colossians' },
-  { id: 52, name: '1 Tesalonicenses', file: '1Thessalonians' },
-  { id: 53, name: '2 Tesalonicenses', file: '2Thessalonians' },
-  { id: 54, name: '1 Timoteo', file: '1Timothy' },
-  { id: 55, name: '2 Timoteo', file: '2Timothy' },
-  { id: 56, name: 'Tito', file: 'Titus' },
-  { id: 57, name: 'Filemón', file: 'Philemon' },
-  { id: 58, name: 'Hebreos', file: 'Hebrews' },
-  { id: 59, name: 'Santiago', file: 'James' },
-  { id: 60, name: '1 Pedro', file: '1Peter' },
-  { id: 61, name: '2 Pedro', file: '2Peter' },
-  { id: 62, name: '1 Juan', file: '1John' },
-  { id: 63, name: '2 Juan', file: '2John' },
-  { id: 64, name: '3 Juan', file: '3John' },
-  { id: 65, name: 'Judas', file: 'Jude' },
-  { id: 66, name: 'Apocalipsis', file: 'Revelation' }
+  {id: 1, name: 'Génesis', file: 'Genesis'},
+  {id: 2, name: 'Éxodo', file: 'Exodus'},
+  {id: 3, name: 'Levítico', file: 'Leviticus'},
+  {id: 4, name: 'Números', file: 'Numbers'},
+  {id: 5, name: 'Deuteronomio', file: 'Deuteronomy'},
+  {id: 6, name: 'Josué', file: 'Joshua'},
+  {id: 7, name: 'Jueces', file: 'Judges'},
+  {id: 8, name: 'Rut', file: 'Ruth'},
+  {id: 9, name: '1 Samuel', file: '1Samuel'},
+  {id: 10, name: '2 Samuel', file: '2Samuel'},
+  {id: 11, name: '1 Reyes', file: '1Kings'},
+  {id: 12, name: '2 Reyes', file: '2Kings'},
+  {id: 13, name: '1 Crónicas', file: '1Chronicles'},
+  {id: 14, name: '2 Crónicas', file: '2Chronicles'},
+  {id: 15, name: 'Esdras', file: 'Ezra'},
+  {id: 16, name: 'Nehemías', file: 'Nehemiah'},
+  {id: 17, name: 'Ester', file: 'Esther'},
+  {id: 18, name: 'Job', file: 'Job'},
+  {id: 19, name: 'Salmos', file: 'Psalms'},
+  {id: 20, name: 'Proverbios', file: 'Proverbs'},
+  {id: 21, name: 'Eclesiastés', file: 'Ecclesiastes'},
+  {id: 22, name: 'Cantares', file: 'SongofSolomon'},
+  {id: 23, name: 'Isaías', file: 'Isaiah'},
+  {id: 24, name: 'Jeremías', file: 'Jeremiah'},
+  {id: 25, name: 'Lamentaciones', file: 'Lamentations'},
+  {id: 26, name: 'Ezequiel', file: 'Ezekiel'},
+  {id: 27, name: 'Daniel', file: 'Daniel'},
+  {id: 28, name: 'Oseas', file: 'Hosea'},
+  {id: 29, name: 'Joel', file: 'Joel'},
+  {id: 30, name: 'Amós', file: 'Amos'},
+  {id: 31, name: 'Abdías', file: 'Obadiah'},
+  {id: 32, name: 'Jonás', file: 'Jonah'},
+  {id: 33, name: 'Miqueas', file: 'Micah'},
+  {id: 34, name: 'Nahúm', file: 'Nahum'},
+  {id: 35, name: 'Habacuc', file: 'Habakkuk'},
+  {id: 36, name: 'Sofonías', file: 'Zephaniah'},
+  {id: 37, name: 'Hageo', file: 'Haggai'},
+  {id: 38, name: 'Zacarías', file: 'Zechariah'},
+  {id: 39, name: 'Malaquías', file: 'Malachi'},
+  {id: 40, name: 'Mateo', file: 'Matthew'},
+  {id: 41, name: 'Marcos', file: 'Mark'},
+  {id: 42, name: 'Lucas', file: 'Luke'},
+  {id: 43, name: 'Juan', file: 'John'},
+  {id: 44, name: 'Hechos', file: 'Acts'},
+  {id: 45, name: 'Romanos', file: 'Romans'},
+  {id: 46, name: '1 Corintios', file: '1Corinthians'},
+  {id: 47, name: '2 Corintios', file: '2Corinthians'},
+  {id: 48, name: 'Gálatas', file: 'Galatians'},
+  {id: 49, name: 'Efesios', file: 'Ephesians'},
+  {id: 50, name: 'Filipenses', file: 'Philippians'},
+  {id: 51, name: 'Colosenses', file: 'Colossians'},
+  {id: 52, name: '1 Tesalonicenses', file: '1Thessalonians'},
+  {id: 53, name: '2 Tesalonicenses', file: '2Thessalonians'},
+  {id: 54, name: '1 Timoteo', file: '1Timothy'},
+  {id: 55, name: '2 Timoteo', file: '2Timothy'},
+  {id: 56, name: 'Tito', file: 'Titus'},
+  {id: 57, name: 'Filemón', file: 'Philemon'},
+  {id: 58, name: 'Hebreos', file: 'Hebrews'},
+  {id: 59, name: 'Santiago', file: 'James'},
+  {id: 60, name: '1 Pedro', file: '1Peter'},
+  {id: 61, name: '2 Pedro', file: '2Peter'},
+  {id: 62, name: '1 Juan', file: '1John'},
+  {id: 63, name: '2 Juan', file: '2John'},
+  {id: 64, name: '3 Juan', file: '3John'},
+  {id: 65, name: 'Judas', file: 'Jude'},
+  {id: 66, name: 'Apocalipsis', file: 'Revelation'},
 ];
 
-const GITHUB_BASE_URL = 'https://raw.githubusercontent.com/aruljohn/Bible-kjv/master';
+const GITHUB_BASE_URL =
+  'https://raw.githubusercontent.com/aruljohn/Bible-kjv/master';
 
 function httpsGet(url) {
   return new Promise((resolve, reject) => {
-    https.get(url, {
-      headers: {
-        'User-Agent': 'Mozilla/5.0',
-        'Accept': 'application/json'
-      }
-    }, (res) => {
-      let data = '';
+    https
+      .get(
+        url,
+        {
+          headers: {
+            'User-Agent': 'Mozilla/5.0',
+            Accept: 'application/json',
+          },
+        },
+        res => {
+          let data = '';
 
-      res.on('data', (chunk) => {
-        data += chunk;
-      });
+          res.on('data', chunk => {
+            data += chunk;
+          });
 
-      res.on('end', () => {
-        if (res.statusCode === 200) {
-          // Remove BOM if present
-          if (data.charCodeAt(0) === 0xFEFF) {
-            data = data.slice(1);
-          }
-          resolve(data);
-        } else {
-          reject(new Error(`HTTP ${res.statusCode}: ${res.statusMessage}`));
-        }
-      });
-    }).on('error', reject);
+          res.on('end', () => {
+            if (res.statusCode === 200) {
+              // Remove BOM if present
+              if (data.charCodeAt(0) === 0xfeff) {
+                data = data.slice(1);
+              }
+              resolve(data);
+            } else {
+              reject(new Error(`HTTP ${res.statusCode}: ${res.statusMessage}`));
+            }
+          });
+        },
+      )
+      .on('error', reject);
   });
 }
 
@@ -133,7 +140,7 @@ async function fetchBook(bookInfo) {
               chapter: chapterNum,
               verse: parseInt(verseData.verse),
               text: verseData.text,
-              version: 'NKJV'
+              version: 'NKJV',
             });
           }
         }
@@ -158,7 +165,9 @@ async function fetchAllBooks() {
   let booksProcessed = 0;
 
   for (const bookInfo of BOOKS) {
-    process.stdout.write(`📚 [${(booksProcessed + 1).toString().padStart(2)}/${BOOKS.length}] ${bookInfo.name.padEnd(20)}... `);
+    process.stdout.write(
+      `📚 [${(booksProcessed + 1).toString().padStart(2)}/${BOOKS.length}] ${bookInfo.name.padEnd(20)}... `,
+    );
 
     const verses = await fetchBook(bookInfo);
 
@@ -176,20 +185,25 @@ async function fetchAllBooks() {
     await delay(100);
   }
 
-  return { allVerses, totalVerses };
+  return {allVerses, totalVerses};
 }
 
 async function generateNKJVFile() {
   try {
-    const { allVerses, totalVerses } = await fetchAllBooks();
+    const {allVerses, totalVerses} = await fetchAllBooks();
 
     if (allVerses.length === 0) {
-      console.error('\n❌ No verses were fetched. Please check your internet connection.');
+      console.error(
+        '\n❌ No verses were fetched. Please check your internet connection.',
+      );
       process.exit(1);
     }
 
     // Generate TypeScript file
-    const outputFile = path.join(__dirname, '../src/lib/database/bible-data-nkjv.ts');
+    const outputFile = path.join(
+      __dirname,
+      '../src/lib/database/bible-data-nkjv.ts',
+    );
 
     // Back up existing file if it exists
     if (fs.existsSync(outputFile)) {
@@ -225,11 +239,15 @@ export const NKJV_DATA = ${JSON.stringify(allVerses, null, 2)};
     console.log(`📁 Output file: ${path.basename(outputFile)}`);
     console.log(`💾 File size: ${fileSizeMB} MB`);
     console.log('='.repeat(60));
-    console.log('\n✅ Success! You can now use the app with full KJV Bible text.');
+    console.log(
+      '\n✅ Success! You can now use the app with full KJV Bible text.',
+    );
     console.log('   The NKJV version selector will display this text.\n');
   } catch (error) {
     console.error('\n❌ Error generating file:', error.message);
-    console.error('\n💡 The app will continue to work with the sample NKJV data already included.');
+    console.error(
+      '\n💡 The app will continue to work with the sample NKJV data already included.',
+    );
     process.exit(1);
   }
 }
@@ -241,6 +259,8 @@ console.log('\n');
 
 generateNKJVFile().catch(error => {
   console.error('\n❌ Fatal error:', error.message);
-  console.error('\n📝 Note: The app already has sample NKJV data that works for testing.');
+  console.error(
+    '\n📝 Note: The app already has sample NKJV data that works for testing.',
+  );
   process.exit(1);
 });

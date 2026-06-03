@@ -11,9 +11,9 @@
  * - Optimizado para React Native
  */
 
-import React, { useEffect, useRef } from 'react';
-import { View, Animated, StyleSheet } from 'react-native';
-import Svg, { Circle, Defs, LinearGradient, Stop } from 'react-native-svg';
+import React, {useEffect, useRef} from 'react';
+import {View, Animated, StyleSheet} from 'react-native';
+import Svg, {Circle, Defs, LinearGradient, Stop} from 'react-native-svg';
 
 const AnimatedCircle = Animated.createAnimatedComponent(Circle);
 
@@ -95,11 +95,16 @@ const ProgressCircle: React.FC<ProgressCircleProps> = ({
   });
 
   return (
-    <View style={[styles.container, { width: size, height: size }]}>
+    <View style={[styles.container, {width: size, height: size}]}>
       <Svg width={size} height={size}>
         {/* Definir gradiente lineal */}
         <Defs>
-          <LinearGradient id="progressGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+          <LinearGradient
+            id="progressGradient"
+            x1="0%"
+            y1="0%"
+            x2="100%"
+            y2="100%">
             <Stop offset="0%" stopColor={gradientColors[0]} stopOpacity="1" />
             <Stop offset="100%" stopColor={gradientColors[1]} stopOpacity="1" />
           </LinearGradient>

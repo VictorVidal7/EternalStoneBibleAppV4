@@ -1,0 +1,21 @@
+# Dependencies & build output
+node_modules
+coverage
+android
+ios
+.expo
+dist
+build
+
+# Lockfiles
+package-lock.json
+yarn.lock
+
+# Generated / bundled data — not hand-edited source, so not prettier's concern
+# (the whole RVR1960 text is embedded as a ~250k-line TS data module, and each
+# Bible book ships as a data JSON; formatting them only churns large diffs).
+src/data/bible_books
+src/lib/database/bible-data-rvr1960.ts
+
+# Binary asset bundles (images, fonts, the seeded SQLite db, etc.)
+assets

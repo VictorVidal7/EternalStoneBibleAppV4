@@ -8,8 +8,8 @@
  * - Estilos predefinidos para todos los casos de uso
  */
 
-import { TextStyle, Platform } from 'react-native';
-import { fontSize, fontWeight, lineHeight, letterSpacing } from './designTokens';
+import {TextStyle, Platform} from 'react-native';
+import {fontSize, fontWeight, lineHeight, letterSpacing} from './designTokens';
 
 // ==================== FONT FAMILIES ====================
 
@@ -347,7 +347,7 @@ export const accessibilityTextScale = {
  */
 export const scaleFont = (
   baseFontSize: number,
-  scale: keyof typeof accessibilityTextScale = 'normal'
+  scale: keyof typeof accessibilityTextScale = 'normal',
 ): number => {
   return baseFontSize * accessibilityTextScale[scale];
 };
@@ -365,7 +365,7 @@ export const combineTextStyles = (...styles: TextStyle[]): TextStyle => {
  * Crea un estilo de texto con color
  */
 export const withColor = (style: TextStyle, color: string): TextStyle => {
-  return { ...style, color };
+  return {...style, color};
 };
 
 /**
@@ -373,9 +373,9 @@ export const withColor = (style: TextStyle, color: string): TextStyle => {
  */
 export const withWeight = (
   style: TextStyle,
-  weight: keyof typeof fontWeight
+  weight: keyof typeof fontWeight,
 ): TextStyle => {
-  return { ...style, fontWeight: fontWeight[weight] };
+  return {...style, fontWeight: fontWeight[weight]};
 };
 
 // ==================== EXPORTS ====================

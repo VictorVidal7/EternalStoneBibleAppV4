@@ -1,5 +1,5 @@
-import { useState, useEffect } from 'react';
-import { AccessibilityInfo } from 'react-native';
+import {useState, useEffect} from 'react';
+import {AccessibilityInfo} from 'react-native';
 
 /**
  * Hook personalizado para detectar si el lector de pantalla está habilitado
@@ -10,18 +10,16 @@ export const useScreenReaderListener = () => {
 
   useEffect(() => {
     // Verificar estado inicial
-    AccessibilityInfo.isScreenReaderEnabled().then(
-      enabled => {
-        setScreenReaderEnabled(enabled);
-      }
-    );
+    AccessibilityInfo.isScreenReaderEnabled().then(enabled => {
+      setScreenReaderEnabled(enabled);
+    });
 
     // Agregar listener para cambios
     const listener = AccessibilityInfo.addEventListener(
       'screenReaderChanged',
       enabled => {
         setScreenReaderEnabled(enabled);
-      }
+      },
     );
 
     // Cleanup

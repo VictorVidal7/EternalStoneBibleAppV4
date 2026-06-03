@@ -3,8 +3,8 @@
  * Maneja todas las operaciones CRUD para highlights en la base de datos
  */
 
-import { BibleDatabase } from '../database';
-import { Highlight, HighlightColor, HighlightCategory } from './index';
+import {BibleDatabase} from '../database';
+import {Highlight, HighlightColor, HighlightCategory} from './index';
 
 export class HighlightService {
   private db: BibleDatabase;
@@ -36,10 +36,18 @@ export class HighlightService {
       )
     `);
 
-    await db.execAsync('CREATE INDEX IF NOT EXISTS idx_highlights_verse ON highlights(verse_id)');
-    await db.execAsync('CREATE INDEX IF NOT EXISTS idx_highlights_book ON highlights(book_id)');
-    await db.execAsync('CREATE INDEX IF NOT EXISTS idx_highlights_category ON highlights(category)');
-    await db.execAsync('CREATE INDEX IF NOT EXISTS idx_highlights_color ON highlights(color)');
+    await db.execAsync(
+      'CREATE INDEX IF NOT EXISTS idx_highlights_verse ON highlights(verse_id)',
+    );
+    await db.execAsync(
+      'CREATE INDEX IF NOT EXISTS idx_highlights_book ON highlights(book_id)',
+    );
+    await db.execAsync(
+      'CREATE INDEX IF NOT EXISTS idx_highlights_category ON highlights(category)',
+    );
+    await db.execAsync(
+      'CREATE INDEX IF NOT EXISTS idx_highlights_color ON highlights(color)',
+    );
   }
 
   /**
@@ -52,7 +60,7 @@ export class HighlightService {
     verse: number,
     color: HighlightColor,
     category?: HighlightCategory,
-    note?: string
+    note?: string,
   ): Promise<Highlight> {
     const now = Date.now();
     const id = `highlight_${verseId}_${now}`;
@@ -97,7 +105,7 @@ export class HighlightService {
    */
   async updateHighlight(
     verseId: string,
-    updates: Partial<Pick<Highlight, 'color' | 'category' | 'note'>>
+    updates: Partial<Pick<Highlight, 'color' | 'category' | 'note'>>,
   ): Promise<void> {
     const existing = await this.getHighlightByVerse(verseId);
     if (!existing) {
@@ -156,7 +164,8 @@ export class HighlightService {
    * Obtiene todos los resaltados de un libro
    */
   async getHighlightsByBook(bookId: string): Promise<Highlight[]> {
-    const sql = 'SELECT * FROM highlights WHERE book_id = ? ORDER BY chapter, verse';
+    const sql =
+      'SELECT * FROM highlights WHERE book_id = ? ORDER BY chapter, verse';
     const result = await this.db.executeSql(sql, [bookId]);
 
     return result.rows._array.map(this.rowToHighlight);
@@ -165,8 +174,12 @@ export class HighlightService {
   /**
    * Obtiene todos los resaltados de un capítulo
    */
-  async getHighlightsByChapter(bookId: string, chapter: number): Promise<Highlight[]> {
-    const sql = 'SELECT * FROM highlights WHERE book_id = ? AND chapter = ? ORDER BY verse';
+  async getHighlightsByChapter(
+    bookId: string,
+    chapter: number,
+  ): Promise<Highlight[]> {
+    const sql =
+      'SELECT * FROM highlights WHERE book_id = ? AND chapter = ? ORDER BY verse';
     const result = await this.db.executeSql(sql, [bookId, chapter]);
 
     return result.rows._array.map(this.rowToHighlight);
@@ -175,8 +188,11 @@ export class HighlightService {
   /**
    * Obtiene todos los resaltados por categoría
    */
-  async getHighlightsByCategory(category: HighlightCategory): Promise<Highlight[]> {
-    const sql = 'SELECT * FROM highlights WHERE category = ? ORDER BY created_at DESC';
+  async getHighlightsByCategory(
+    category: HighlightCategory,
+  ): Promise<Highlight[]> {
+    const sql =
+      'SELECT * FROM highlights WHERE category = ? ORDER BY created_at DESC';
     const result = await this.db.executeSql(sql, [category]);
 
     return result.rows._array.map(this.rowToHighlight);
@@ -186,7 +202,8 @@ export class HighlightService {
    * Obtiene todos los resaltados por color
    */
   async getHighlightsByColor(color: HighlightColor): Promise<Highlight[]> {
-    const sql = 'SELECT * FROM highlights WHERE color = ? ORDER BY created_at DESC';
+    const sql =
+      'SELECT * FROM highlights WHERE color = ? ORDER BY created_at DESC';
     const result = await this.db.executeSql(sql, [color]);
 
     return result.rows._array.map(this.rowToHighlight);
@@ -215,10 +232,11 @@ export class HighlightService {
     const byColor: Record<string, number> = {};
     const byCategory: Record<string, number> = {};
 
-    allHighlights.forEach((highlight) => {
+    allHighlights.forEach(highlight => {
       byColor[highlight.color] = (byColor[highlight.color] || 0) + 1;
       if (highlight.category) {
-        byCategory[highlight.category] = (byCategory[highlight.category] || 0) + 1;
+        byCategory[highlight.category] =
+          (byCategory[highlight.category] || 0) + 1;
       }
     });
 
@@ -253,7 +271,7 @@ export class HighlightService {
           highlight.verse,
           highlight.color,
           highlight.category,
-          highlight.note
+          highlight.note,
         );
         imported++;
       } catch (error) {

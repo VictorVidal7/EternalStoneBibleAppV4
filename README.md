@@ -19,6 +19,7 @@
 ## ✨ Características Principales
 
 ### 📚 Contenido Bíblico Completo
+
 - ✅ **31,102 versículos** de la Biblia RVR1960 (100% completa y verificada)
 - ✅ **66 libros** (39 Antiguo Testamento + 27 Nuevo Testamento)
 - ✅ **1,189 capítulos** totalmente indexados
@@ -26,6 +27,7 @@
 - ✅ Navegación fluida entre libros, capítulos y versículos
 
 ### 🎮 Sistema de Gamificación
+
 - 🏆 **47+ logros únicos** en 8 categorías
 - 📊 Sistema de **10 niveles** (Aprendiz → Leyenda)
 - 🔥 **Rachas de lectura** diaria con seguimiento
@@ -33,6 +35,7 @@
 - 🎉 Animaciones celebratorias al desbloquear logros
 
 ### 🎨 Experiencia de Usuario Mejorada (V4)
+
 - 🌓 **3 modos de tema**: Claro, Oscuro, Automático
 - 📱 Diseño **responsive** para móviles y tablets
 - ⚡ Rendimiento optimizado con **FlashList** (60% más rápido)
@@ -42,6 +45,7 @@
 - 🔥 **Sentry** integrado para crash reporting
 
 ### 🖍️ Sistema de Resaltado Inteligente
+
 - 🎨 **8 colores** predefinidos (Amarillo, Verde, Azul, Morado, Rosa, Naranja, Rojo, Gris)
 - 🏷️ **8 categorías temáticas** (Promesa, Oración, Mandamiento, Sabiduría, Profecía, Favorito, Memorizar, Estudio)
 - 📝 Notas personalizadas por resaltado
@@ -49,6 +53,7 @@
 - 💾 Exportar/Importar en JSON
 
 ### 📊 Analíticas Avanzadas
+
 - 📅 **Heatmap de lectura** (365 días)
 - 🕐 Análisis de **horarios pico** de lectura
 - 📖 **Libros favoritos** con estadísticas
@@ -57,6 +62,7 @@
 - 📊 Exportación completa de datos
 
 ### 🔧 Tecnología de Vanguardia (V4)
+
 - ⚛️ **React Native 0.81.5** con React 19.1.0
 - 🧭 **Expo Router v6** (file-based routing)
 - 🔷 **TypeScript 5.9.2** con strict mode
@@ -206,27 +212,28 @@ EternalStoneBibleAppV4/
 
 ### Stack Tecnológico (V4)
 
-| Tecnología | Versión | Propósito |
-|-----------|---------|-----------|
-| **React Native** | 0.81.5 | Framework móvil |
-| **React** | 19.1.0 | Biblioteca UI |
-| **Expo** | ~54.0 | Toolchain y SDK |
-| **TypeScript** | 5.9.2 | Type safety |
-| **Expo Router** | 6.0.14 | Navegación file-based |
-| **SQLite** | 16.0.9 | Base de datos local con FTS5 |
-| **Zustand** | 5.0.8 | Estado global ligero |
-| **Zod** | latest | Validación de datos type-safe |
-| **@shopify/flash-list** | latest | Listas optimizadas (60% más rápido) |
-| **@sentry/react-native** | latest | Error tracking y monitoring |
-| **AsyncStorage** | 2.2.0 | Persistencia local |
-| **Expo Haptics** | 15.0.7 | Feedback háptico |
-| **use-debounce** | 10.0.0 | Debouncing optimizado |
+| Tecnología               | Versión | Propósito                           |
+| ------------------------ | ------- | ----------------------------------- |
+| **React Native**         | 0.81.5  | Framework móvil                     |
+| **React**                | 19.1.0  | Biblioteca UI                       |
+| **Expo**                 | ~54.0   | Toolchain y SDK                     |
+| **TypeScript**           | 5.9.2   | Type safety                         |
+| **Expo Router**          | 6.0.14  | Navegación file-based               |
+| **SQLite**               | 16.0.9  | Base de datos local con FTS5        |
+| **Zustand**              | 5.0.8   | Estado global ligero                |
+| **Zod**                  | latest  | Validación de datos type-safe       |
+| **@shopify/flash-list**  | latest  | Listas optimizadas (60% más rápido) |
+| **@sentry/react-native** | latest  | Error tracking y monitoring         |
+| **AsyncStorage**         | 2.2.0   | Persistencia local                  |
+| **Expo Haptics**         | 15.0.7  | Feedback háptico                    |
+| **use-debounce**         | 10.0.0  | Debouncing optimizado               |
 
 ---
 
 ## 🎯 Mejoras Implementadas en V4
 
 ### ✅ Migración a TypeScript
+
 - ✅ Componentes críticos migrados (CustomButton, SkeletonLoader, ErrorBoundary)
 - ✅ Pantallas principales (BibleListScreen, ChapterScreen)
 - ✅ Schemas de validación comprehensivos con Zod
@@ -234,6 +241,7 @@ EternalStoneBibleAppV4/
 - ✅ Strict mode habilitado
 
 ### ⚡ Optimizaciones de Performance
+
 - ✅ **FlashList** implementado en pantallas principales (60% más rápido que FlatList)
 - ✅ **Skeleton screens** en todas las pantallas de lista
 - ✅ Memoización agresiva con React.memo
@@ -241,6 +249,7 @@ EternalStoneBibleAppV4/
 - ✅ Estimación de tamaños de items para mejor rendimiento
 
 ### 🛡️ Mejoras de Calidad y Robustez
+
 - ✅ **ErrorBoundary** para captura de errores en React
 - ✅ **Sentry** configurado y listo para producción
 - ✅ **Zod** para validación type-safe de datos críticos
@@ -248,6 +257,7 @@ EternalStoneBibleAppV4/
 - ✅ Manejo unificado de errores
 
 ### 🎨 Mejoras de UX
+
 - ✅ Skeleton loaders profesionales en todas las pantallas
 - ✅ Feedback háptico consistente con Expo Haptics
 - ✅ Animaciones suaves y fluidas
@@ -255,6 +265,7 @@ EternalStoneBibleAppV4/
 - ✅ Estados de loading y error bien definidos
 
 ### 📚 Documentación
+
 - ✅ README completo y actualizado con V4
 - ✅ JSDoc/TSDoc en funciones clave
 - ✅ Comentarios descriptivos en código
@@ -284,6 +295,7 @@ node scripts/analyze-bible-integrity.js
 ```
 
 **Resultado esperado (V4):**
+
 ```
 ✅ ¡EXCELENTE! La Biblia RVR1960 está 100% correcta.
 ✅ No se encontraron errores ni advertencias.
@@ -297,18 +309,18 @@ node scripts/analyze-bible-integrity.js
 
 ## 📊 Estadísticas del Proyecto (V4)
 
-| Métrica | Valor |
-|---------|-------|
-| **Versículos** | 31,102 ✅ (100% completa) |
-| **Libros** | 66 ✅ |
-| **Capítulos** | 1,189 ✅ |
-| **Logros** | 47+ 🏆 |
-| **Líneas de código** | ~18,000+ |
-| **Componentes** | 25+ |
-| **Pantallas** | 10+ |
-| **Hooks personalizados** | 7+ |
-| **Servicios** | 10+ |
-| **Cobertura TypeScript** | ~40% (en crecimiento) |
+| Métrica                  | Valor                     |
+| ------------------------ | ------------------------- |
+| **Versículos**           | 31,102 ✅ (100% completa) |
+| **Libros**               | 66 ✅                     |
+| **Capítulos**            | 1,189 ✅                  |
+| **Logros**               | 47+ 🏆                    |
+| **Líneas de código**     | ~18,000+                  |
+| **Componentes**          | 25+                       |
+| **Pantallas**            | 10+                       |
+| **Hooks personalizados** | 7+                        |
+| **Servicios**            | 10+                       |
+| **Cobertura TypeScript** | ~40% (en crecimiento)     |
 
 ---
 
@@ -327,9 +339,9 @@ export default {
   expo: {
     extra: {
       sentryDsn: 'tu-sentry-dsn-aqui',
-    }
-  }
-}
+    },
+  },
+};
 ```
 
 4. Reinicia la aplicación
@@ -344,20 +356,21 @@ El sistema detectará automáticamente el DSN y habilitará Sentry en producció
 
 **10 Niveles de Usuario:**
 
-| Nivel | Nombre | Puntos Requeridos | Emoji |
-|-------|--------|-------------------|-------|
-| 1 | Aprendiz | 0-100 | 🌱 |
-| 2 | Lector | 100-250 | 📖 |
-| 3 | Estudiante | 250-500 | 📚 |
-| 4 | Discípulo | 500-1,000 | ✝️ |
-| 5 | Maestro | 1,000-2,000 | 👨‍🏫 |
-| 6 | Erudito | 2,000-4,000 | 🎓 |
-| 7 | Sabio | 4,000-8,000 | 🧙 |
-| 8 | Profeta | 8,000-15,000 | 🔮 |
-| 9 | Apóstol | 15,000-30,000 | ⚡ |
-| 10 | Leyenda | 30,000+ | 👑 |
+| Nivel | Nombre     | Puntos Requeridos | Emoji |
+| ----- | ---------- | ----------------- | ----- |
+| 1     | Aprendiz   | 0-100             | 🌱    |
+| 2     | Lector     | 100-250           | 📖    |
+| 3     | Estudiante | 250-500           | 📚    |
+| 4     | Discípulo  | 500-1,000         | ✝️    |
+| 5     | Maestro    | 1,000-2,000       | 👨‍🏫    |
+| 6     | Erudito    | 2,000-4,000       | 🎓    |
+| 7     | Sabio      | 4,000-8,000       | 🧙    |
+| 8     | Profeta    | 8,000-15,000      | 🔮    |
+| 9     | Apóstol    | 15,000-30,000     | ⚡    |
+| 10    | Leyenda    | 30,000+           | 👑    |
 
 **Categorías de Logros:**
+
 - 📖 **Lectura**: Basados en versículos leídos
 - 🔥 **Rachas**: Días consecutivos de lectura
 - 📚 **Capítulos**: Capítulos completados
@@ -370,12 +383,14 @@ El sistema detectará automáticamente el DSN y habilitará Sentry en producció
 ### Sistema de Resaltado
 
 **Colores Disponibles:**
+
 ```
 🟡 Amarillo  🟢 Verde  🔵 Azul  🟣 Morado
 🌸 Rosa  🟠 Naranja  🔴 Rojo  ⚪ Gris
 ```
 
 **Categorías:**
+
 ```
 🤝 Promesa      🙏 Oración      📜 Mandamiento  💡 Sabiduría
 🔮 Profecía     ⭐ Favorito     🧠 Memorizar    📖 Estudio
@@ -408,6 +423,7 @@ El sistema detectará automáticamente el DSN y habilitará Sentry en producció
 ## 📝 Roadmap
 
 ### ✅ Completado (V4.0)
+
 - ✅ Migración parcial a TypeScript
 - ✅ FlashList para performance
 - ✅ Skeleton screens profesionales
@@ -418,12 +434,14 @@ El sistema detectará automáticamente el DSN y habilitará Sentry en producció
 - ✅ Datos bíblicos 100% completos y verificados
 
 ### 🚧 En Progreso (V4.1)
+
 - 🚧 Completar migración a TypeScript (100%)
 - 🚧 Tests unitarios comprehensivos
 - 🚧 Tests E2E con Detox
 - 🚧 CI/CD con GitHub Actions
 
 ### 📋 Planificado (V4.2+)
+
 - ☁️ Sincronización en la nube (Firebase/Supabase)
 - 🌍 Múltiples versiones de la Biblia (NVI, NTV, KJV, etc.)
 - 🔊 Audio de la Biblia

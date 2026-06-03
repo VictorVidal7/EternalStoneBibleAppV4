@@ -8,11 +8,11 @@
  * - Interactive effects
  */
 
-import React, { useEffect, useRef } from 'react';
-import { View, StyleSheet, Animated, Dimensions } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import React, {useEffect, useRef} from 'react';
+import {View, StyleSheet, Animated, Dimensions} from 'react-native';
+import {Ionicons} from '@expo/vector-icons';
 
-const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
+const {width: SCREEN_WIDTH, height: SCREEN_HEIGHT} = Dimensions.get('window');
 
 interface ParticleSystemProps {
   type?: 'confetti' | 'stars' | 'hearts' | 'sparkles';
@@ -32,13 +32,13 @@ export const ParticleSystem: React.FC<ParticleSystemProps> = ({
   onComplete,
 }) => {
   const particles = useRef(
-    Array.from({ length: count }, () => ({
+    Array.from({length: count}, () => ({
       translateX: new Animated.Value(0),
       translateY: new Animated.Value(0),
       rotate: new Animated.Value(0),
       scale: new Animated.Value(0),
       opacity: new Animated.Value(0),
-    }))
+    })),
   ).current;
 
   useEffect(() => {
@@ -51,7 +51,10 @@ export const ParticleSystem: React.FC<ParticleSystemProps> = ({
     const animations = particles.map((particle, index) => {
       const delay = index * 50;
       const randomX = (Math.random() - 0.5) * SCREEN_WIDTH * 1.5;
-      const randomY = -(Math.random() * SCREEN_HEIGHT * 0.8 + SCREEN_HEIGHT * 0.2);
+      const randomY = -(
+        Math.random() * SCREEN_HEIGHT * 0.8 +
+        SCREEN_HEIGHT * 0.2
+      );
       const randomRotate = Math.random() * 720 - 360;
 
       return Animated.sequence([
@@ -127,19 +130,18 @@ export const ParticleSystem: React.FC<ParticleSystemProps> = ({
               {
                 opacity: particle.opacity,
                 transform: [
-                  { translateX: particle.translateX },
-                  { translateY: particle.translateY },
+                  {translateX: particle.translateX},
+                  {translateY: particle.translateY},
                   {
                     rotate: particle.rotate.interpolate({
                       inputRange: [0, 360],
                       outputRange: ['0deg', '360deg'],
                     }),
                   },
-                  { scale: particle.scale },
+                  {scale: particle.scale},
                 ],
               },
-            ]}
-          >
+            ]}>
             <Ionicons name={icon} size={24} color={color} />
           </Animated.View>
         );
@@ -155,7 +157,10 @@ interface ConfettiProps {
   onComplete?: () => void;
 }
 
-export const Confetti: React.FC<ConfettiProps> = ({ active = false, onComplete }) => {
+export const Confetti: React.FC<ConfettiProps> = ({
+  active = false,
+  onComplete,
+}) => {
   if (!active) return null;
 
   return (
@@ -222,12 +227,12 @@ export const FloatingParticles: React.FC<FloatingParticlesProps> = ({
   speed = 'normal',
 }) => {
   const particles = useRef(
-    Array.from({ length: count }, () => ({
+    Array.from({length: count}, () => ({
       translateY: new Animated.Value(0),
       translateX: new Animated.Value(0),
       opacity: new Animated.Value(0),
       scale: new Animated.Value(0),
-    }))
+    })),
   ).current;
 
   useEffect(() => {
@@ -249,7 +254,10 @@ export const FloatingParticles: React.FC<FloatingParticlesProps> = ({
     particles.forEach((particle, index) => {
       const delay = index * 300;
       const randomX = (Math.random() - 0.5) * SCREEN_WIDTH * 0.8;
-      const randomY = -(Math.random() * SCREEN_HEIGHT * 0.5 + SCREEN_HEIGHT * 0.3);
+      const randomY = -(
+        Math.random() * SCREEN_HEIGHT * 0.5 +
+        SCREEN_HEIGHT * 0.3
+      );
       const baseDuration = getDuration();
       const duration = baseDuration + Math.random() * 1000;
 
@@ -298,7 +306,7 @@ export const FloatingParticles: React.FC<FloatingParticlesProps> = ({
                 useNativeDriver: true,
               }),
             ]),
-          ])
+          ]),
         ).start();
       };
 
@@ -324,9 +332,9 @@ export const FloatingParticles: React.FC<FloatingParticlesProps> = ({
                 backgroundColor: color,
                 opacity: particle.opacity,
                 transform: [
-                  { translateX: particle.translateX },
-                  { translateY: particle.translateY },
-                  { scale: particle.scale },
+                  {translateX: particle.translateX},
+                  {translateY: particle.translateY},
+                  {scale: particle.scale},
                 ],
               },
             ]}

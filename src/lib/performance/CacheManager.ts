@@ -23,7 +23,7 @@ export class CacheManager {
     key: string,
     data: T,
     ttl: number = this.defaultTTL,
-    persistToDisk: boolean = false
+    persistToDisk: boolean = false,
   ): Promise<void> {
     const entry: CacheEntry<T> = {
       data,
@@ -112,7 +112,7 @@ export class CacheManager {
     try {
       const allKeys = await AsyncStorage.getAllKeys();
       const cacheKeys = allKeys.filter(
-        (k) => k.startsWith('cache:') && pattern.test(k.replace('cache:', ''))
+        k => k.startsWith('cache:') && pattern.test(k.replace('cache:', '')),
       );
 
       if (cacheKeys.length > 0) {
@@ -131,7 +131,7 @@ export class CacheManager {
 
     try {
       const allKeys = await AsyncStorage.getAllKeys();
-      const cacheKeys = allKeys.filter((k) => k.startsWith('cache:'));
+      const cacheKeys = allKeys.filter(k => k.startsWith('cache:'));
 
       if (cacheKeys.length > 0) {
         await AsyncStorage.multiRemove(cacheKeys);
@@ -144,16 +144,16 @@ export class CacheManager {
   /**
    * Obtiene el tamaño de la caché
    */
-  async getSize(): Promise<{ memory: number; disk: number }> {
+  async getSize(): Promise<{memory: number; disk: number}> {
     const memorySize = this.memoryCache.size;
 
     try {
       const allKeys = await AsyncStorage.getAllKeys();
-      const cacheKeys = allKeys.filter((k) => k.startsWith('cache:'));
-      return { memory: memorySize, disk: cacheKeys.length };
+      const cacheKeys = allKeys.filter(k => k.startsWith('cache:'));
+      return {memory: memorySize, disk: cacheKeys.length};
     } catch (error) {
       console.error('Error getting cache size:', error);
-      return { memory: memorySize, disk: 0 };
+      return {memory: memorySize, disk: 0};
     }
   }
 
@@ -184,7 +184,11 @@ export class CacheManager {
   /**
    * Precarga datos en caché
    */
-  async preload<T>(key: string, dataFetcher: () => Promise<T>, ttl?: number): Promise<T> {
+  async preload<T>(
+    key: string,
+    dataFetcher: () => Promise<T>,
+    ttl?: number,
+  ): Promise<T> {
     const cached = await this.get<T>(key);
 
     if (cached !== null) {

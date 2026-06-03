@@ -1,4 +1,4 @@
-import { DefaultTheme, DarkTheme } from '@react-navigation/native';
+import {DefaultTheme, DarkTheme} from '@react-navigation/native';
 
 export const lightColors = {
   primary: '#3498db',
@@ -66,7 +66,7 @@ export const theme = {
   },
 };
 
-export const getTheme = (isDark) => (isDark ? theme.dark : theme.light);
+export const getTheme = isDark => (isDark ? theme.dark : theme.light);
 
 export const getStyle = (componentStyles, theme) => {
   if (typeof componentStyles === 'function') {
