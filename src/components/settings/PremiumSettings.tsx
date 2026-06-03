@@ -9,9 +9,10 @@
  */
 
 import React, {useCallback} from 'react';
-import {View, Text, StyleSheet, Switch} from 'react-native';
+import {View, StyleSheet, Switch} from 'react-native';
+import {AppText as Text} from '@components/ui/AppText';
 import {Ionicons} from '@expo/vector-icons';
-import * as Haptics from 'expo-haptics';
+import {haptics} from '@lib/haptics';
 import {useTheme} from '@hooks/useTheme';
 import {useLanguage} from '@hooks/useLanguage';
 import {staticColors} from '@/styles/designTokens';
@@ -26,7 +27,7 @@ export default function PremiumSettings() {
 
   const handleToggle = useCallback(
     async (value: boolean) => {
-      await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+      haptics.tap();
       await setPremium(value);
       toast.success(value ? t.premium.unlockedToast : t.premium.lockedToast);
     },
@@ -37,7 +38,9 @@ export default function PremiumSettings() {
     <View style={styles.section}>
       <View style={styles.sectionHeader}>
         <Ionicons name="diamond-outline" size={22} color={colors.primary} />
-        <Text style={[styles.sectionTitle, {color: colors.text}]}>
+        <Text
+          scaleRole="display"
+          style={[styles.sectionTitle, {color: colors.text}]}>
           {t.premium.settingsTitle}
         </Text>
       </View>
@@ -50,10 +53,14 @@ export default function PremiumSettings() {
         ]}>
         <View style={styles.row}>
           <View style={styles.rowInfo}>
-            <Text style={[styles.label, {color: colors.text}]}>
+            <Text
+              scaleRole="compact"
+              style={[styles.label, {color: colors.text}]}>
               {t.premium.toggleLabel}
             </Text>
-            <Text style={[styles.description, {color: colors.textSecondary}]}>
+            <Text
+              scaleRole="compact"
+              style={[styles.description, {color: colors.textSecondary}]}>
               {t.premium.settingsDesc}
             </Text>
           </View>

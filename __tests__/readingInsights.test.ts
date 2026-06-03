@@ -80,7 +80,12 @@ describe('buildReadingInsights', () => {
     expect(r.totalVersesRead).toBe(1422);
     expect(r.totalChaptersRead).toBe(46);
     expect(r.totalBooksCompleted).toBe(2);
-    expect(r.mostReadBook).toEqual({book: 'John', chapters: 2});
+    // No real per-book log here → the chapters-touched PROXY (source 'progress').
+    expect(r.mostReadBook).toEqual({
+      book: 'John',
+      chapters: 2,
+      source: 'progress',
+    });
 
     // Today's cell carries today's verses and the matching intensity level.
     const todayCell = r.heatmap[r.heatmap.length - 1];
@@ -160,5 +165,47 @@ describe('buildReadingInsights', () => {
       bookProgress: null,
     } as unknown as ReadingInsightsInput;
     expect(() => buildReadingInsights(bad, NOW)).not.toThrow();
+  });
+
+  describe('most-read book — real per-book log vs proxy', () => {
+    it('prefers the REAL log (by verses) over the chapters-touched proxy', () => {
+      const r = buildReadingInsights(
+        {
+          ...emptyInput,
+          // Proxy would pick John (more chapters); the real log says Genesis.
+          bookProgress: {John: {1: 100, 2: 100, 3: 100}, Genesis: {1: 100}},
+          bookReadingLog: [
+            {book: 'John', versesRead: 40, timeSpent: 120, lastReadAt: 2},
+            {book: 'Genesis', versesRead: 200, timeSpent: 600, lastReadAt: 1},
+          ],
+        },
+        NOW,
+      );
+      expect(r.mostReadBook).toEqual({
+        book: 'Genesis',
+        chapters: 1, // chapters touched, carried alongside the real metrics
+        versesRead: 200,
+        timeSpent: 600,
+        source: 'log',
+      });
+    });
+
+    it('falls back to the proxy when the real log is empty / all-zero', () => {
+      const r = buildReadingInsights(
+        {
+          ...emptyInput,
+          bookProgress: {Mark: {1: 100, 2: 50}},
+          bookReadingLog: [
+            {book: 'Mark', versesRead: 0, timeSpent: 30, lastReadAt: 1},
+          ],
+        },
+        NOW,
+      );
+      expect(r.mostReadBook).toEqual({
+        book: 'Mark',
+        chapters: 2,
+        source: 'progress',
+      });
+    });
   });
 });

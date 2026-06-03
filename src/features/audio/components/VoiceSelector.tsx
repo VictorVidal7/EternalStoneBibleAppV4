@@ -19,7 +19,7 @@ import {
   Pressable,
 } from 'react-native';
 import {Ionicons} from '@expo/vector-icons';
-import * as Haptics from 'expo-haptics';
+import {haptics} from '@lib/haptics';
 import {useTheme} from '../../../hooks/useTheme';
 import {focusTrapProps} from '@lib/a11y/focusTrap';
 import {VoiceInfo, AudioLanguage} from '../types/audio';
@@ -50,7 +50,7 @@ export const VoiceSelector: React.FC<VoiceSelectorProps> = ({
   const isCompact = variant === 'compact';
 
   const handleOpenModal = () => {
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    haptics.tap();
     setModalVisible(true);
   };
 
@@ -60,18 +60,18 @@ export const VoiceSelector: React.FC<VoiceSelectorProps> = ({
   };
 
   const handleVoiceSelect = (voice: VoiceInfo) => {
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+    haptics.press();
     onVoiceSelect(voice);
     handleCloseModal();
   };
 
   const handlePreview = (voice: VoiceInfo) => {
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    haptics.tap();
     previewVoice(voice);
   };
 
   const handleLanguageSwitch = (lang: AudioLanguage) => {
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    haptics.tap();
     onLanguageChange(lang);
   };
 

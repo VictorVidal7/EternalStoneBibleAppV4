@@ -22,7 +22,7 @@ import Animated, {
   withSpring,
   useSharedValue,
 } from 'react-native-reanimated';
-import * as Haptics from 'expo-haptics';
+import {haptics} from '@lib/haptics';
 import {useTheme} from '../../../hooks/useTheme';
 import {useLanguage} from '../../../hooks/useLanguage';
 import {PlaybackSpeed} from '../types/audio';
@@ -49,7 +49,7 @@ export const AudioSpeedSelector: React.FC<AudioSpeedSelectorProps> = ({
   const speedLabel = t.audio.a11y.speed;
 
   const handleSpeedSelect = (speed: PlaybackSpeed) => {
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    haptics.tap();
     onSpeedChange(speed);
   };
 

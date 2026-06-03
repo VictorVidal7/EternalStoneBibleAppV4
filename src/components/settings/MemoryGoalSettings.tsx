@@ -18,7 +18,7 @@ import {
   Alert,
 } from 'react-native';
 import {Ionicons} from '@expo/vector-icons';
-import * as Haptics from 'expo-haptics';
+import {haptics} from '@lib/haptics';
 import {useTheme} from '@hooks/useTheme';
 import {useLanguage} from '@hooks/useLanguage';
 import {staticColors} from '@/styles/designTokens';
@@ -59,7 +59,7 @@ export default function MemoryGoalSettings() {
     async (selected: number) => {
       if (busy || selected === goal) return;
       setGoal(selected);
-      await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+      haptics.tap();
       await setDailyGoal(selected);
       toast.success(t.memory.goal.saved);
     },
@@ -70,7 +70,7 @@ export default function MemoryGoalSettings() {
     async (value: boolean) => {
       if (busy) return;
       setBusy(true);
-      await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+      haptics.tap();
       try {
         const ok = await setMemoryReminderEnabled(value, {
           hour: reminderHour,
@@ -101,7 +101,7 @@ export default function MemoryGoalSettings() {
     async (selected: number) => {
       if (busy || selected === reminderHour) return;
       setReminderHour(selected);
-      await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+      haptics.tap();
       if (reminderEnabled) {
         setBusy(true);
         try {

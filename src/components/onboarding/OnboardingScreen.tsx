@@ -25,7 +25,7 @@ import {
 } from 'react-native';
 import {Ionicons} from '@expo/vector-icons';
 import {LinearGradient} from 'expo-linear-gradient';
-import * as Haptics from 'expo-haptics';
+import {haptics} from '@lib/haptics';
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
 import {colorThemes, useTheme, ColorTheme} from '../../hooks/useTheme';
 import {useLanguage} from '../../hooks/useLanguage';
@@ -56,7 +56,7 @@ export const OnboardingScreen: React.FC<OnboardingScreenProps> = ({onDone}) => {
   const isLast = step === TOTAL_STEPS - 1;
 
   const goNext = () => {
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    haptics.tap();
     if (isLast) {
       onDone();
     } else {
@@ -66,22 +66,22 @@ export const OnboardingScreen: React.FC<OnboardingScreenProps> = ({onDone}) => {
 
   const goBack = () => {
     if (isFirst) return;
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    haptics.tap();
     setStep(step - 1);
   };
 
   const handleLanguage = async (next: Language) => {
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    haptics.tap();
     await setLanguage(next);
   };
 
   const handleVersion = async (id: string) => {
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    haptics.tap();
     await setVersion(id);
   };
 
   const handleColorTheme = async (id: ColorTheme) => {
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    haptics.tap();
     await setColorTheme(id);
   };
 

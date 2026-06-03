@@ -17,7 +17,7 @@ import {
 } from 'react-native';
 import {LinearGradient} from 'expo-linear-gradient';
 import {BlurView} from 'expo-blur';
-import * as Haptics from 'expo-haptics';
+import {haptics} from '@lib/haptics';
 import {spacing, borderRadius, shadows, fontSize} from '../styles/designTokens';
 import {useTheme} from '../hooks/useTheme';
 
@@ -98,7 +98,7 @@ export const ModernCard: React.FC<ModernCardProps> = ({
   const handlePress = () => {
     if (disabled) return;
     if (hapticFeedback) {
-      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+      haptics.tap();
     }
     onPress?.();
   };
@@ -106,7 +106,7 @@ export const ModernCard: React.FC<ModernCardProps> = ({
   const handleLongPress = () => {
     if (disabled) return;
     if (hapticFeedback) {
-      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+      haptics.press();
     }
     onLongPress?.();
   };

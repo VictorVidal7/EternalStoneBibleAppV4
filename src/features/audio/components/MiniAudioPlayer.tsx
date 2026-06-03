@@ -39,7 +39,7 @@ import {Gesture, GestureDetector} from 'react-native-gesture-handler';
 import {BlurView} from 'expo-blur';
 import {Ionicons} from '@expo/vector-icons';
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
-import * as Haptics from 'expo-haptics';
+import {haptics} from '@lib/haptics';
 import {useTheme} from '../../../hooks/useTheme';
 import {useLanguage} from '../../../hooks/useLanguage';
 import {getBookByName} from '../../../constants/bible';
@@ -143,7 +143,7 @@ export const MiniAudioPlayer: React.FC<MiniAudioPlayerProps> = ({
     if (isAnimatingRef.current) return;
     isAnimatingRef.current = true;
 
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    haptics.tap();
     if (state.isExpanded) {
       expandProgress.value = withSpring(0, SPRING_CONFIGS.snappy);
       collapse();
@@ -386,7 +386,7 @@ export const MiniAudioPlayer: React.FC<MiniAudioPlayerProps> = ({
                           ? 2
                           : 1;
                     setPlaybackSpeed(nextSpeed);
-                    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                    haptics.tap();
                   }}
                   accessibilityRole="button"
                   accessibilityLabel={t.audio.a11y.speed}
@@ -459,7 +459,7 @@ export const MiniAudioPlayer: React.FC<MiniAudioPlayerProps> = ({
                   <TouchableOpacity
                     style={styles.headerButton}
                     onPress={() => {
-                      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+                      haptics.press();
                       hidePlayer();
                     }}
                     hitSlop={{top: 10, bottom: 10, left: 10, right: 10}}
@@ -500,7 +500,7 @@ export const MiniAudioPlayer: React.FC<MiniAudioPlayerProps> = ({
                     <TouchableOpacity
                       style={styles.premiumUpsell}
                       onPress={() => {
-                        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                        haptics.tap();
                         router.push('/(tabs)/settings');
                       }}
                       accessibilityRole="button"

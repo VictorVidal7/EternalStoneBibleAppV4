@@ -25,6 +25,10 @@ import type {MemoryCard} from '../../lib/memory/srs';
 import type {ReviewEvent} from '../../lib/memory/reviewEvents';
 import {masterySummary} from '../../lib/memory/insights';
 import {computeReviewHistory} from '../../lib/memory/history';
+import {
+  topBookReading,
+  type BookReadingEntry,
+} from '../../lib/reading/bookReadingLog';
 
 const DAY_MS = 24 * 60 * 60 * 1000;
 
@@ -53,6 +57,17 @@ export interface JourneyInput {
   reviewEvents: ReviewEvent[];
   cards: MemoryCard[];
   favorites: JourneyFavoriteLike[];
+  /** REAL per-book reading aggregates (book_reading_log); optional. */
+  bookReadingLog?: BookReadingEntry[];
+}
+
+/** The most-read book by REAL verses + time, or null when none yet. */
+export interface MostReadBookRecap {
+  /** Canonical (English) book key — the screen localizes it. */
+  book: string;
+  versesRead: number;
+  /** Accumulated reading time for the book, in SECONDS. */
+  timeSpent: number;
 }
 
 /** A book paired with how many times it appears (favorites / cards). */
@@ -95,6 +110,8 @@ export interface JourneyRecap {
   bookmarksCount: number;
   /** Most-favorited book, or null when there are no favorites. */
   favoriteBook: BookTally | null;
+  /** REAL most-read book (by verses, with time), or null when none yet. */
+  mostReadBook: MostReadBookRecap | null;
 
   // Memorization
   cardsTotal: number;
@@ -211,13 +228,24 @@ export function buildJourneyRecap(
   input: JourneyInput,
   now: Date = new Date(),
 ): JourneyRecap {
-  const {stats, readingLog, reviewEvents, cards, favorites} = input;
+  const {stats, readingLog, reviewEvents, cards, favorites, bookReadingLog} =
+    input;
 
   const reading = summarizeReadingLog(readingLog ?? []);
   const favs = favorites ?? [];
   const deck = masterySummary(cards ?? [], now);
   const history = computeReviewHistory(reviewEvents ?? [], now);
   const favoriteBook = mostFavoritedBook(favs);
+
+  // REAL most-read book (verses → time), null until the per-book log has data.
+  const topRead = topBookReading(bookReadingLog ?? []);
+  const mostReadBook: MostReadBookRecap | null = topRead
+    ? {
+        book: topRead.book,
+        versesRead: topRead.versesRead,
+        timeSpent: topRead.timeSpent,
+      }
+    : null;
 
   const versesRead = safeCount(stats?.totalVersesRead);
   const chaptersRead = safeCount(stats?.totalChaptersRead);
@@ -272,6 +300,7 @@ export function buildJourneyRecap(
     highlightsCount,
     bookmarksCount,
     favoriteBook,
+    mostReadBook,
 
     cardsTotal: deck.total,
     versesMastered: deck.mastered,

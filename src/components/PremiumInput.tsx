@@ -21,7 +21,7 @@ import {
   Platform,
 } from 'react-native';
 import {Ionicons} from '@expo/vector-icons';
-import * as Haptics from 'expo-haptics';
+import {haptics} from '@lib/haptics';
 import {useTheme} from '../hooks/useTheme';
 import {
   borderRadius,
@@ -121,7 +121,7 @@ export const PremiumInput: React.FC<PremiumInputProps> = ({
       ]).start();
 
       if (Platform.OS !== 'web') {
-        Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
+        haptics.error();
       }
     }
   }, [error]);
@@ -129,7 +129,7 @@ export const PremiumInput: React.FC<PremiumInputProps> = ({
   const handleFocus = (e: any) => {
     setIsFocused(true);
     if (Platform.OS !== 'web') {
-      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+      haptics.tap();
     }
     onFocus?.(e);
   };

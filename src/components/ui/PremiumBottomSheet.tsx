@@ -39,7 +39,7 @@ import Animated, {
   SharedValue,
 } from 'react-native-reanimated';
 import {BlurView} from 'expo-blur';
-import * as Haptics from 'expo-haptics';
+import {haptics} from '@lib/haptics';
 import {SPRING_CONFIGS} from '../../styles/reanimatedAnimations';
 import {focusTrapProps, a11yHiddenProps} from '../../lib/a11y/focusTrap';
 import {useLanguage} from '../../hooks/useLanguage';
@@ -372,7 +372,7 @@ export const PremiumBottomSheet = forwardRef<
         animatedIndex.value = index;
 
         if (enableHaptics) {
-          Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+          haptics.tap();
         }
 
         onChange?.(index);

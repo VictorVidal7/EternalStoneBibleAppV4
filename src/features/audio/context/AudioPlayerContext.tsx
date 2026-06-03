@@ -18,7 +18,7 @@ import React, {
 } from 'react';
 import * as Speech from 'expo-speech';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import * as Haptics from 'expo-haptics';
+import {haptics} from '@lib/haptics';
 import {logger} from '@lib/utils/logger';
 import {
   AudioPlayerState,
@@ -133,19 +133,12 @@ export const AudioPlayerProvider: React.FC<AudioPlayerProviderProps> = ({
     );
   }, [state.currentVerseIndex, verses, isVisible]);
 
-  // Safe Haptics wrapper to prevent crashes on emulators/devices
-  const safeHaptic = useCallback(
-    async (
-      style: Haptics.ImpactFeedbackStyle = Haptics.ImpactFeedbackStyle.Light,
-    ) => {
-      try {
-        await Haptics.impactAsync(style);
-      } catch (_e) {
-        // Ignore haptic errors
-      }
-    },
-    [],
-  );
+  // Safe Haptics wrapper to prevent crashes on emulators/devices.
+  // Delegates to the shared `haptics` helper (already swallows unsupported-
+  // device rejections); kept as a stable callback referenced in deps arrays.
+  const safeHaptic = useCallback(() => {
+    haptics.tap();
+  }, []);
 
   // ==================== LOAD PREFERENCES ====================
 
@@ -387,12 +380,12 @@ export const AudioPlayerProvider: React.FC<AudioPlayerProviderProps> = ({
       return;
     }
 
-    safeHaptic(Haptics.ImpactFeedbackStyle.Light);
+    safeHaptic();
     speakVerseByIndex(currentIdx);
   }, [speakVerseByIndex, isVisible, safeHaptic]);
 
   const pause = useCallback(async () => {
-    safeHaptic(Haptics.ImpactFeedbackStyle.Light);
+    safeHaptic();
     // Update ref immediately so callbacks see paused state synchronously
     const nextState = {
       ...stateRef.current,
@@ -411,7 +404,7 @@ export const AudioPlayerProvider: React.FC<AudioPlayerProviderProps> = ({
   }, [safeHaptic]);
 
   const stop = useCallback(async () => {
-    safeHaptic(Haptics.ImpactFeedbackStyle.Light);
+    safeHaptic();
     // Update ref immediately so callbacks see stopped state synchronously
     const nextState = {
       ...stateRef.current,
@@ -443,7 +436,7 @@ export const AudioPlayerProvider: React.FC<AudioPlayerProviderProps> = ({
     const currentState = stateRef.current;
     const currentVerses = versesRef.current;
     if (currentState.currentVerseIndex < currentVerses.length - 1) {
-      safeHaptic(Haptics.ImpactFeedbackStyle.Light);
+      safeHaptic();
       const nextIndex = currentState.currentVerseIndex + 1;
 
       if (currentState.isPlaying) {
@@ -461,7 +454,7 @@ export const AudioPlayerProvider: React.FC<AudioPlayerProviderProps> = ({
   const previousVerse = useCallback(() => {
     const currentState = stateRef.current;
     if (currentState.currentVerseIndex > 0) {
-      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+      haptics.tap();
       const prevIndex = currentState.currentVerseIndex - 1;
 
       if (currentState.isPlaying) {
@@ -477,7 +470,7 @@ export const AudioPlayerProvider: React.FC<AudioPlayerProviderProps> = ({
       const currentState = stateRef.current;
       const currentVerses = versesRef.current;
       if (index >= 0 && index < currentVerses.length) {
-        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+        haptics.tap();
 
         if (currentState.isPlaying) {
           speakVerseByIndex(index);
@@ -499,19 +492,19 @@ export const AudioPlayerProvider: React.FC<AudioPlayerProviderProps> = ({
   // ==================== SETTINGS ====================
 
   const setPlaybackSpeed = useCallback((speed: PlaybackSpeed) => {
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    haptics.tap();
     setState(prev => ({...prev, playbackSpeed: speed}));
     savePreferences({playbackSpeed: speed});
   }, []);
 
   const setVoice = useCallback((voice: VoiceInfo) => {
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    haptics.tap();
     setState(prev => ({...prev, selectedVoice: voice}));
     savePreferences({selectedVoiceId: voice.identifier});
   }, []);
 
   const setLanguage = useCallback((language: AudioLanguage) => {
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    haptics.tap();
     setState(prev => ({
       ...prev,
       selectedLanguage: language,
@@ -523,17 +516,17 @@ export const AudioPlayerProvider: React.FC<AudioPlayerProviderProps> = ({
   // ==================== PLAYER UI ====================
 
   const expand = useCallback(() => {
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    haptics.tap();
     setState(prev => ({...prev, isExpanded: true}));
   }, []);
 
   const collapse = useCallback(() => {
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    haptics.tap();
     setState(prev => ({...prev, isExpanded: false}));
   }, []);
 
   const toggleExpanded = useCallback(() => {
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    haptics.tap();
     setState(prev => ({...prev, isExpanded: !prev.isExpanded}));
   }, []);
 
@@ -548,7 +541,7 @@ export const AudioPlayerProvider: React.FC<AudioPlayerProviderProps> = ({
   const hidePlayer = useCallback(async () => {
     setIsVisible(false);
     setState(prev => ({...prev, isExpanded: false}));
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+    haptics.press();
     await stop();
     // Closing the player is an explicit "I'm done" — drop the saved position so
     // "Continue listening" doesn't resurrect a chapter the user dismissed.
@@ -559,7 +552,7 @@ export const AudioPlayerProvider: React.FC<AudioPlayerProviderProps> = ({
 
   const setSleepTimer = useCallback(
     (minutes: number) => {
-      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+      haptics.press();
 
       // Clear existing timers
       if (sleepTimerRef.current) clearTimeout(sleepTimerRef.current);
@@ -599,7 +592,7 @@ export const AudioPlayerProvider: React.FC<AudioPlayerProviderProps> = ({
   );
 
   const setSleepTimerEndOfChapter = useCallback(() => {
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+    haptics.press();
 
     // Clear existing timers
     if (sleepTimerRef.current) clearTimeout(sleepTimerRef.current);

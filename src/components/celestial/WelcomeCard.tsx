@@ -13,7 +13,8 @@
 
 import React from 'react';
 import {staticColors} from '@/styles/designTokens';
-import {View, Text, StyleSheet, Platform} from 'react-native';
+import {View, StyleSheet, Platform} from 'react-native';
+import {AppText as Text} from '../ui/AppText';
 import {LinearGradient} from 'expo-linear-gradient';
 import {BlurView} from 'expo-blur';
 import StatsCard from './StatsCard';
@@ -127,8 +128,12 @@ const WelcomeCard: React.FC<WelcomeCardProps> = ({
         <View style={styles.content}>
           {/* Header */}
           <View style={styles.header}>
-            <Text style={styles.userName}>{userName}</Text>
-            <Text style={styles.subtitle}>{subtitle}</Text>
+            <Text scaleRole="display" style={styles.userName}>
+              {userName}
+            </Text>
+            <Text scaleRole="compact" style={styles.subtitle}>
+              {subtitle}
+            </Text>
           </View>
 
           {/* Stats container con glassmorphism */}

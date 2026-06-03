@@ -32,7 +32,7 @@ import Animated, {
   withTiming,
   interpolateColor,
 } from 'react-native-reanimated';
-import * as Haptics from 'expo-haptics';
+import {haptics} from '@lib/haptics';
 import {
   SPRING_CONFIGS,
   DURATIONS,
@@ -311,7 +311,7 @@ export const AnimatedTabBar: React.FC<AnimatedTabBarProps> = ({
   const handleTabPress = useCallback(
     (key: string) => {
       if (enableHaptics) {
-        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+        haptics.tap();
       }
       onTabChange(key);
     },

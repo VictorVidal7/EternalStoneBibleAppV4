@@ -30,7 +30,7 @@ interface LogContext {
   screen?: string;
   action?: string;
   userId?: string;
-  [key: string]: any;
+  [key: string]: unknown;
 }
 
 // Sensitive keys to redact from logs before sending to crash reporter.
@@ -69,12 +69,12 @@ function getCrashlytics(): CrashlyticsModule | null {
   return _crashlytics;
 }
 
-function redactSensitive(obj: any): any {
+function redactSensitive(obj: unknown): unknown {
   if (obj === null || obj === undefined) return obj;
   if (typeof obj !== 'object') return obj;
   if (Array.isArray(obj)) return obj.map(redactSensitive);
 
-  const redacted: any = {};
+  const redacted: Record<string, unknown> = {};
   for (const [key, value] of Object.entries(obj)) {
     const lowerKey = key.toLowerCase();
     const isSensitive = SENSITIVE_KEYS.some(s =>
@@ -190,7 +190,7 @@ class Logger {
   breadcrumb(
     message: string,
     category: string,
-    data?: Record<string, any>,
+    data?: Record<string, unknown>,
   ): void {
     crashlyticsLog(LogLevel.INFO, category, message, data as LogContext);
     if (this.isDevelopment) {

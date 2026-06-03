@@ -14,7 +14,8 @@
  */
 
 import React from 'react';
-import {View, Text, StyleSheet} from 'react-native';
+import {View, StyleSheet} from 'react-native';
+import {AppText as Text} from '../ui/AppText';
 
 export interface BarDatum {
   /** Short label rendered beneath the bar. */
@@ -56,7 +57,11 @@ export const MiniBarChart: React.FC<MiniBarChartProps> = ({
           d.value <= 0 ? 0 : Math.max(MIN_BAR_FRACTION, d.value / max);
         return (
           <View key={`${d.label}-${i}`} style={styles.column}>
-            <Text style={[styles.value, {color: valueColor}]}>{d.value}</Text>
+            <Text
+              scaleRole="compact"
+              style={[styles.value, {color: valueColor}]}>
+              {d.value}
+            </Text>
             <View style={[styles.track, {height, backgroundColor: trackColor}]}>
               {d.value > 0 && (
                 <View
@@ -70,7 +75,10 @@ export const MiniBarChart: React.FC<MiniBarChartProps> = ({
                 />
               )}
             </View>
-            <Text style={[styles.label, {color: labelColor}]} numberOfLines={1}>
+            <Text
+              scaleRole="compact"
+              style={[styles.label, {color: labelColor}]}
+              numberOfLines={1}>
               {d.label}
             </Text>
           </View>

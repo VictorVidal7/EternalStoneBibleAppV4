@@ -32,6 +32,7 @@ import {useLanguage} from '@hooks/useLanguage';
 import {useServices} from '@context/ServicesContext';
 import {useReadingProgress} from '@context/ReadingProgressContext';
 import {AppText} from '@components/ui/AppText';
+import {CountUpText} from '@components/ui/CountUpText';
 import {ContributionHeatmap} from '@components/charts/ContributionHeatmap';
 import {
   summarizeHeatmapCells,
@@ -70,9 +71,10 @@ export default function ReadingInsightsScreen() {
     if (!achievementService) return;
     try {
       setStatus('loading');
-      const [stats, readingLog] = await Promise.all([
+      const [stats, readingLog, bookReadingLog] = await Promise.all([
         achievementService.getUserStats(),
         achievementService.getReadingLog(),
+        achievementService.getBookReadingLog(),
       ]);
       const built = buildReadingInsights({
         readingLog,
@@ -83,6 +85,7 @@ export default function ReadingInsightsScreen() {
           totalReadingSeconds: stats.totalReadingTime,
         },
         bookProgress: progress,
+        bookReadingLog,
       });
       setInsights(built);
       setStatus('ready');
@@ -128,6 +131,21 @@ export default function ReadingInsightsScreen() {
     }),
     [ri.hourUnit, ri.minuteUnit, ri.lessThanMinute],
   );
+
+  // The most-read meta line: REAL "{verses} · {time}" when the per-book log
+  // has data, else the legacy "{chapters} chapters" proxy.
+  const mostReadMeta = useMemo(() => {
+    const mr = insights?.mostReadBook;
+    if (!mr) return null;
+    if (mr.source === 'log') {
+      const verses = `${(mr.versesRead ?? 0).toLocaleString()} ${ri.versesUnit}`;
+      const time = mr.timeSpent
+        ? ` · ${formatReadingTime(mr.timeSpent, timeLabels)}`
+        : '';
+      return `${verses}${time}`;
+    }
+    return `${mr.chapters} ${ri.chaptersUnit}`;
+  }, [insights?.mostReadBook, ri.versesUnit, ri.chaptersUnit, timeLabels]);
 
   // Completion progress toward the whole 66-book canon (0 when not loaded yet).
   const booksPct = insights
@@ -432,7 +450,7 @@ export default function ReadingInsightsScreen() {
                           styles.mostReadMeta,
                           {color: colors.textSecondary},
                         ]}>
-                        {insights.mostReadBook.chapters} {ri.chaptersUnit}
+                        {mostReadMeta}
                       </AppText>
                     </View>
                   </View>
@@ -456,11 +474,11 @@ const Stat: React.FC<{
     style={styles.stat}
     accessible={true}
     accessibilityLabel={`${value} ${label}`}>
-    <AppText
+    <CountUpText
+      value={value}
       scaleRole="display"
-      style={[styles.statValue, {color: colors.text}]}>
-      {value.toLocaleString()}
-    </AppText>
+      style={[styles.statValue, {color: colors.text}]}
+    />
     <AppText
       scaleRole="compact"
       numberOfLines={2}

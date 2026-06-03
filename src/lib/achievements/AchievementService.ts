@@ -15,6 +15,10 @@ import {specialAchievementsForHour} from './specialAchievements';
 import {detectCompletedBooks, gospelsComplete} from './bookCompletion';
 import {canonicalizeProgressMap} from '../progress/progressKeys';
 import {canonicalBookName, getBookByName} from '../../constants/bible';
+import {
+  normalizeBookReadingLog,
+  type BookReadingEntry,
+} from '../reading/bookReadingLog';
 
 export class AchievementService {
   private db: BibleDatabase;
@@ -78,6 +82,20 @@ export class AchievementService {
       CREATE TABLE IF NOT EXISTS completed_books (
         book_name TEXT PRIMARY KEY,
         completed_at INTEGER NOT NULL
+      )
+    `);
+
+    // Forward-only REAL per-book reading aggregates, keyed by canonical English
+    // name. Fed from the reader hot path (trackVersesRead) so "most-read book"
+    // can rank by actual verses + time instead of the chapters-touched proxy.
+    // Additive (CREATE IF NOT EXISTS), so no migration of existing installs and
+    // no rebuild. Sprint 65.
+    await db.execAsync(`
+      CREATE TABLE IF NOT EXISTS book_reading_log (
+        book_name TEXT PRIMARY KEY,
+        verses_read INTEGER DEFAULT 0,
+        time_spent INTEGER DEFAULT 0,
+        last_read_at INTEGER NOT NULL DEFAULT 0
       )
     `);
 
@@ -217,11 +235,17 @@ export class AchievementService {
   }
 
   /**
-   * Tracks verses read
+   * Tracks verses read.
+   *
+   * `bookNameEn` (optional) is the book the verses belong to; when present the
+   * read is also accumulated in the per-book `book_reading_log` so "most-read
+   * book" can rank by REAL verses + time. Omitting it keeps the prior behavior
+   * byte-identical (the lifetime counters + streak are unchanged). Sprint 65.
    */
   async trackVersesRead(
     count: number,
     timeSpent: number = 0,
+    bookNameEn?: string,
   ): Promise<Achievement[]> {
     this.stats = null; // Invalidate cache
     const today = new Date().toISOString().split('T')[0];
@@ -237,6 +261,27 @@ export class AchievementService {
        WHERE id = 1`,
       [count, timeSpent, today, now],
     );
+
+    // Accumulate the REAL per-book aggregate (canonical English key). Upsert so
+    // re-reading the same book keeps adding up; same dwell-credit semantics as
+    // the lifetime counter above. Best-effort — a failure here must not block
+    // the streak/achievement path below.
+    const canonicalBook = bookNameEn ? canonicalBookName(bookNameEn) : '';
+    if (canonicalBook) {
+      try {
+        await this.db.executeSql(
+          `INSERT INTO book_reading_log (book_name, verses_read, time_spent, last_read_at)
+           VALUES (?, ?, ?, ?)
+           ON CONFLICT(book_name) DO UPDATE SET
+             verses_read = verses_read + excluded.verses_read,
+             time_spent = time_spent + excluded.time_spent,
+             last_read_at = excluded.last_read_at`,
+          [canonicalBook, count, timeSpent, now],
+        );
+      } catch {
+        // Non-fatal: the per-book log is an enrichment, not a correctness req.
+      }
+    }
 
     // Register in streak log BEFORE recomputing the streak — the streak is
     // derived from this log, not from an incremental counter (the old counter
@@ -566,10 +611,15 @@ export class AchievementService {
   async getAllAchievements(): Promise<Achievement[]> {
     const sql = 'SELECT * FROM user_achievements';
     const result = await this.db.executeSql(sql);
-    const rows = result.rows._array;
+    const rows = result.rows._array as Array<{
+      id: string;
+      current_progress?: number;
+      is_unlocked?: number;
+      unlocked_at?: number;
+    }>;
 
     return ACHIEVEMENT_DEFINITIONS.map(def => {
-      const row = rows.find((r: any) => r.id === def.id);
+      const row = rows.find(r => r.id === def.id);
       return {
         ...def,
         currentProgress: row?.current_progress || 0,
@@ -605,7 +655,7 @@ export class AchievementService {
     const sql =
       'SELECT date FROM reading_streak_log ORDER BY date DESC LIMIT 30';
     const result = await this.db.executeSql(sql);
-    const dates = result.rows._array.map((row: any) => row.date);
+    const dates = result.rows._array.map((row: {date: string}) => row.date);
 
     return {
       currentStreak: stats.currentStreak,
@@ -629,11 +679,46 @@ export class AchievementService {
       const result = await this.db.executeSql(
         'SELECT date, verses_read, time_spent FROM reading_streak_log ORDER BY date ASC',
       );
-      return result.rows._array.map((row: any) => ({
-        date: row.date,
-        versesRead: row.verses_read ?? 0,
-        timeSpent: row.time_spent ?? 0,
-      }));
+      return result.rows._array.map(
+        (row: {date: string; verses_read?: number; time_spent?: number}) => ({
+          date: row.date,
+          versesRead: row.verses_read ?? 0,
+          timeSpent: row.time_spent ?? 0,
+        }),
+      );
+    } catch {
+      return [];
+    }
+  }
+
+  /**
+   * Reads the REAL per-book reading aggregates (`book_reading_log`), one row per
+   * book the user has read with verses + accumulated seconds + last-read time.
+   * Powers the "most-read book" surfaces (Mi lectura / Tu camino) via the pure
+   * [[rankBookReading]] / [[topBookReading]]. Read-only; never throws (a missing
+   * table on an install that predates Sprint 65 yields an empty log until the
+   * next read creates it). Sprint 65.
+   */
+  async getBookReadingLog(): Promise<BookReadingEntry[]> {
+    try {
+      const result = await this.db.executeSql(
+        'SELECT book_name, verses_read, time_spent, last_read_at FROM book_reading_log',
+      );
+      return normalizeBookReadingLog(
+        result.rows._array.map(
+          (row: {
+            book_name?: string;
+            verses_read?: number;
+            time_spent?: number;
+            last_read_at?: number;
+          }) => ({
+            book: row.book_name,
+            versesRead: row.verses_read ?? 0,
+            timeSpent: row.time_spent ?? 0,
+            lastReadAt: row.last_read_at ?? 0,
+          }),
+        ),
+      );
     } catch {
       return [];
     }

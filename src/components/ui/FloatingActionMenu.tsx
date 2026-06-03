@@ -17,7 +17,8 @@
  */
 
 import React, {useState, useCallback, useMemo} from 'react';
-import {View, Text, StyleSheet, Pressable, ViewStyle} from 'react-native';
+import {View, StyleSheet, Pressable, ViewStyle} from 'react-native';
+import {AppText as Text} from './AppText';
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
@@ -30,7 +31,7 @@ import Animated, {
 import {staticColors} from '@/styles/designTokens';
 
 import {BlurView} from 'expo-blur';
-import * as Haptics from 'expo-haptics';
+import {haptics} from '@lib/haptics';
 import {SPRING_CONFIGS, DURATIONS} from '../../styles/reanimatedAnimations';
 
 // ==================== TYPES ====================
@@ -226,7 +227,9 @@ const ActionButton: React.FC<ActionButtonProps> = ({
             isDark && styles.labelContainerDark,
             animatedLabelStyle,
           ]}>
-          <Text style={[styles.labelText, isDark && styles.labelTextDark]}>
+          <Text
+            scaleRole="compact"
+            style={[styles.labelText, isDark && styles.labelTextDark]}>
             {action.label}
           </Text>
         </Animated.View>
@@ -280,7 +283,7 @@ export const FloatingActionMenu: React.FC<FloatingActionMenuProps> = ({
   // Toggle menu
   const toggleMenu = useCallback(() => {
     if (enableHaptics) {
-      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+      haptics.press();
     }
 
     const newState = !isOpen;
@@ -344,7 +347,11 @@ export const FloatingActionMenu: React.FC<FloatingActionMenuProps> = ({
   }, [position]);
 
   // Default icons
-  const defaultMainIcon = <Text style={styles.mainIconText}>+</Text>;
+  const defaultMainIcon = (
+    <Text scaleRole="compact" style={styles.mainIconText}>
+      +
+    </Text>
+  );
 
   return (
     <>
@@ -384,7 +391,7 @@ export const FloatingActionMenu: React.FC<FloatingActionMenuProps> = ({
               ...action,
               onPress: () => {
                 if (enableHaptics) {
-                  Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                  haptics.tap();
                 }
                 action.onPress();
                 closeMenu();

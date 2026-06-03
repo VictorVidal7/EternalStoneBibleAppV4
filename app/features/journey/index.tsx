@@ -42,7 +42,7 @@ import {Ionicons} from '@expo/vector-icons';
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
 import {captureRef} from 'react-native-view-shot';
 import * as Sharing from 'expo-sharing';
-import * as Haptics from 'expo-haptics';
+import {haptics} from '@lib/haptics';
 import {useTheme} from '@hooks/useTheme';
 import {useLanguage} from '@hooks/useLanguage';
 import {useReducedMotion} from '@hooks/useReducedMotion';
@@ -54,6 +54,7 @@ import {getAllReviewEvents} from '@lib/memory/reviewEventStore';
 import {logger} from '@lib/utils/logger';
 import {formatReadingTime} from '@lib/utils/formatReadingTime';
 import {getBookByName} from '@/constants/bible';
+import {TOTAL_BIBLE_BOOKS} from '@lib/achievements/bookCompletion';
 import {
   buildJourneyRecap,
   type JourneyRecap,
@@ -68,8 +69,10 @@ type SlideKey =
   | 'intro'
   | 'verses'
   | 'chapters'
+  | 'books'
   | 'streak'
   | 'time'
+  | 'mostRead'
   | 'favorite'
   | 'engagement'
   | 'memory'
@@ -94,8 +97,10 @@ const SLIDE_GRADIENTS: Record<SlideKey, [string, string, string]> = {
   intro: ['#4f46e5', '#7c3aed', '#a855f7'],
   verses: ['#0ea5e9', '#2563eb', '#1e3a8a'],
   chapters: ['#10b981', '#0d9488', '#115e59'],
+  books: ['#16a34a', '#15803d', '#14532d'],
   streak: ['#f59e0b', '#ea580c', '#b91c1c'],
   time: ['#0f766e', '#0e7490', '#0c4a6e'],
+  mostRead: ['#d97706', '#b45309', '#78350f'],
   favorite: ['#ec4899', '#be185d', '#831843'],
   engagement: ['#8b5cf6', '#6d28d9', '#4c1d95'],
   memory: ['#06b6d4', '#0e7490', '#155e75'],
@@ -137,11 +142,13 @@ export default function JourneyScreen() {
     if (!achievementService) return;
     try {
       setStatus('loading');
-      const [stats, readingLog, reviewEvents] = await Promise.all([
-        achievementService.getUserStats(),
-        achievementService.getReadingLog(),
-        getAllReviewEvents(),
-      ]);
+      const [stats, readingLog, reviewEvents, bookReadingLog] =
+        await Promise.all([
+          achievementService.getUserStats(),
+          achievementService.getReadingLog(),
+          getAllReviewEvents(),
+          achievementService.getBookReadingLog(),
+        ]);
       const built = buildJourneyRecap(
         {
           stats,
@@ -152,6 +159,7 @@ export default function JourneyScreen() {
             book: f.book,
             createdAt: f.createdAt,
           })),
+          bookReadingLog,
         },
         new Date(),
       );
@@ -222,22 +230,48 @@ export default function JourneyScreen() {
       ),
     });
 
-    // 3 — Chapters & books
-    if (recap.chaptersRead > 0 || recap.booksCompleted > 0) {
+    // 3 — Chapters
+    if (recap.chaptersRead > 0) {
       list.push({
         key: 'chapters',
         gradient: SLIDE_GRADIENTS.chapters,
         icon: 'library',
-        a11y: `${num(recap.chaptersRead)} ${j.chaptersLabel}, ${num(
-          recap.booksCompleted,
-        )} ${j.booksLabel}`,
+        a11y: `${num(recap.chaptersRead)} ${j.chaptersLabel}`,
         render: () => (
           <SlideBody
             icon="library"
             title={j.chaptersBooksTitle}
             big={num(recap.chaptersRead)}
             bigLabel={j.chaptersLabel}
-            rows={[{label: j.booksLabel, value: num(recap.booksCompleted)}]}
+          />
+        ),
+      });
+    }
+
+    // 3b — Books of the Bible completed (dedicated; the count is REAL since the
+    // Sprint 64 completion ledger, framed against the whole 66-book canon).
+    if (recap.booksCompleted > 0) {
+      const pct = Math.min(
+        100,
+        Math.round((recap.booksCompleted / TOTAL_BIBLE_BOOKS) * 100),
+      );
+      list.push({
+        key: 'books',
+        gradient: SLIDE_GRADIENTS.books,
+        icon: 'book',
+        a11y: `${j.booksReadTitle}. ${num(recap.booksCompleted)} / ${num(
+          TOTAL_BIBLE_BOOKS,
+        )}`,
+        render: () => (
+          <SlideBody
+            icon="book"
+            title={j.booksReadTitle}
+            big={num(recap.booksCompleted)}
+            bigLabel={j.booksLabel}
+            caption={j.booksReadCaption
+              .replace('{{done}}', num(recap.booksCompleted))
+              .replace('{{total}}', num(TOTAL_BIBLE_BOOKS))
+              .replace('{{pct}}', `${pct}`)}
           />
         ),
       });
@@ -287,6 +321,45 @@ export default function JourneyScreen() {
             caption={
               recap.activeDays > 0
                 ? j.timeCaption.replace('{{days}}', num(recap.activeDays))
+                : undefined
+            }
+          />
+        ),
+      });
+    }
+
+    // 5b — Most-read book (REAL, by verses + time — Sprint 65). Distinct from
+    // the favorite-book slide below (which counts hearts, not reading).
+    if (recap.mostReadBook) {
+      const mr = recap.mostReadBook;
+      const info = getBookByName(mr.book);
+      const bookName = info
+        ? language === 'en'
+          ? info.nameEn
+          : info.name
+        : mr.book;
+      const timeStr = formatReadingTime(mr.timeSpent, {
+        hour: ri.hourUnit,
+        minute: ri.minuteUnit,
+        lessThanMinute: ri.lessThanMinute,
+      });
+      list.push({
+        key: 'mostRead',
+        gradient: SLIDE_GRADIENTS.mostRead,
+        icon: 'bookmarks',
+        a11y: `${j.mostReadTitle}: ${bookName}. ${num(mr.versesRead)} ${
+          j.versesReadLabel
+        }`,
+        render: () => (
+          <SlideBody
+            icon="bookmarks"
+            title={j.mostReadTitle}
+            big={bookName}
+            bigLabel={`${num(mr.versesRead)} ${j.versesReadLabel}`}
+            bigIsText
+            caption={
+              mr.timeSpent > 0
+                ? j.mostReadCaption.replace('{{time}}', timeStr)
                 : undefined
             }
           />
@@ -446,7 +519,7 @@ export default function JourneyScreen() {
     if (sharing || !shareCardRef.current) return;
     try {
       setSharing(true);
-      await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+      haptics.press();
       const uri = await captureRef(shareCardRef, {
         format: 'png',
         quality: 1,

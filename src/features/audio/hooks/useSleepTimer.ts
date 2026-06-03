@@ -8,7 +8,7 @@
  */
 
 import {useState, useCallback, useRef, useEffect} from 'react';
-import * as Haptics from 'expo-haptics';
+import {haptics} from '@lib/haptics';
 
 export type SleepTimerMode = 'time' | 'end-of-chapter' | null;
 
@@ -66,7 +66,7 @@ export const useSleepTimer = (
   // Set timer for X minutes
   const setTimer = useCallback(
     (minutes: number) => {
-      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+      haptics.press();
       clearTimers();
 
       const totalSeconds = minutes * 60;
@@ -83,7 +83,7 @@ export const useSleepTimer = (
       timerRef.current = setTimeout(() => {
         setState(initialState);
         onTimerEnd?.();
-        Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning);
+        haptics.warning();
       }, totalSeconds * 1000);
 
       // Countdown interval
@@ -105,7 +105,7 @@ export const useSleepTimer = (
 
   // Set timer to end at chapter completion
   const setEndOfChapterTimer = useCallback(() => {
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+    haptics.press();
     clearTimers();
 
     setState({
@@ -118,7 +118,7 @@ export const useSleepTimer = (
 
   // Cancel timer
   const cancelTimer = useCallback(() => {
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    haptics.tap();
     clearTimers();
     setState(initialState);
   }, [clearTimers]);

@@ -8,7 +8,7 @@
 import React, {useRef, useState} from 'react';
 import {View, StyleSheet, TouchableOpacity, Animated} from 'react-native';
 import {Ionicons} from '@expo/vector-icons';
-import * as Haptics from 'expo-haptics';
+import {haptics} from '@lib/haptics';
 import {LinearGradient} from 'expo-linear-gradient';
 import {spacing, borderRadius, shadows, iconSize} from '../styles/designTokens';
 import {useTheme} from '../hooks/useTheme';
@@ -60,7 +60,7 @@ export const FloatingActionButton: React.FC<FloatingActionButtonProps> = ({
   const fabIconSize = iconSizeMap[size];
 
   const handlePress = () => {
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+    haptics.press();
 
     if (actions && actions.length > 0) {
       toggleMenu();
@@ -135,7 +135,7 @@ export const FloatingActionButton: React.FC<FloatingActionButtonProps> = ({
               index={index}
               isExpanded={isExpanded}
               onPress={() => {
-                Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                haptics.tap();
                 action.onPress();
                 toggleMenu();
               }}

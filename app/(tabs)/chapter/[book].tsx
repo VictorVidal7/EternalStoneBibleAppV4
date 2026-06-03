@@ -18,7 +18,7 @@ import {FlatList} from 'react-native';
 import {useRouter, useLocalSearchParams, Stack} from 'expo-router';
 import {LinearGradient} from 'expo-linear-gradient';
 import {Ionicons} from '@expo/vector-icons';
-import * as Haptics from 'expo-haptics';
+import {haptics} from '@lib/haptics';
 
 import {getBookByName} from '@/constants/bible';
 import {useTheme} from '@hooks/useTheme';
@@ -111,7 +111,7 @@ export default function ChapterSelectionScreen() {
    */
   const navigateToVerse = useCallback(
     (chapter: number) => {
-      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+      haptics.press();
       router.push(`/verse/${book}/${chapter}` as never);
     },
     [router, book],
@@ -121,7 +121,7 @@ export default function ChapterSelectionScreen() {
    * Navegar hacia atras
    */
   const handleBack = useCallback(() => {
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    haptics.tap();
     router.back();
   }, [router]);
 
@@ -263,7 +263,7 @@ export default function ChapterSelectionScreen() {
             <TouchableOpacity
               style={styles.headerInfoButton}
               onPress={() => {
-                Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                haptics.tap();
                 router.push(`/features/about-book/${book}` as never);
               }}
               accessibilityRole="button"

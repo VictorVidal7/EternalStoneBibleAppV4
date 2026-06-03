@@ -14,7 +14,7 @@
 import * as Sharing from 'expo-sharing';
 import * as Clipboard from 'expo-clipboard';
 import {Alert} from 'react-native';
-import * as Haptics from 'expo-haptics';
+import {haptics} from '@lib/haptics';
 import {BibleVerse} from '../types/bible';
 import {logger} from '../lib/utils/logger';
 
@@ -34,7 +34,7 @@ export class ShareService {
     options: ShareOptions = {},
   ): Promise<boolean> {
     try {
-      await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+      haptics.tap();
 
       const message = this.formatVerseMessage(verse, reference, options);
 
@@ -84,7 +84,7 @@ export class ShareService {
     options: ShareOptions = {},
   ): Promise<boolean> {
     try {
-      await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+      haptics.tap();
 
       const message = this.formatMultipleVersesMessage(
         verses,
@@ -133,7 +133,7 @@ export class ShareService {
     planDescription: string,
   ): Promise<boolean> {
     try {
-      await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+      haptics.tap();
 
       const message = `📖 Plan de Lectura: ${planName}\n\n${planDescription}\n\n¡Únete a mí en este viaje espiritual!\n\n✨ Descarga Eternal Bible y empieza tu plan hoy.`;
 
@@ -163,7 +163,7 @@ export class ShareService {
     achievementDescription: string,
   ): Promise<boolean> {
     try {
-      await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+      haptics.press();
 
       const message = `🏆 ¡Logro Desbloqueado!\n\n${achievementTitle}\n${achievementDescription}\n\n✨ Eternal Bible - Tu viaje espiritual`;
 
@@ -262,7 +262,7 @@ export class ShareService {
   private static async copyToClipboard(text: string): Promise<void> {
     try {
       await Clipboard.setStringAsync(text);
-      await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+      haptics.success();
 
       Alert.alert('📋 Copiado', 'El contenido se ha copiado al portapapeles', [
         {text: 'OK'},

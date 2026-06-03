@@ -21,6 +21,10 @@
 import type {HeatmapCell, HeatmapLevel} from '@lib/memory/history';
 import {HEATMAP_WEEKS} from '@lib/memory/history';
 import {computeStreaks} from '@lib/achievements/streak';
+import {
+  topBookReading,
+  type BookReadingEntry,
+} from '@lib/reading/bookReadingLog';
 
 const MS_PER_DAY = 86_400_000;
 
@@ -47,8 +51,14 @@ export type BookProgressMap = Record<string, Record<string | number, number>>;
 export interface ReadingInsightsInput {
   readingLog: ReadingLogEntry[];
   totals: ReadingTotals;
-  /** Per-book chapter progress, used to derive the most-read book. */
+  /** Per-book chapter progress, used as the most-read FALLBACK (proxy). */
   bookProgress: BookProgressMap;
+  /**
+   * REAL per-book reading aggregates (book_reading_log). When present and
+   * non-empty this is the authoritative source for the most-read book; the
+   * chapters-touched proxy is only used when this is empty (pre-S65 readers).
+   */
+  bookReadingLog?: BookReadingEntry[];
 }
 
 export interface MostReadBook {
@@ -56,6 +66,16 @@ export interface MostReadBook {
   book: string;
   /** Number of chapters with any recorded progress. */
   chapters: number;
+  /** REAL verses read for this book (only when `source === 'log'`). */
+  versesRead?: number;
+  /** REAL accumulated reading time, in SECONDS (only when `source === 'log'`). */
+  timeSpent?: number;
+  /**
+   * 'log' = the real per-book aggregate (verses + time); 'progress' = the
+   * legacy chapters-touched proxy. The screen renders verses + time for 'log'
+   * and chapter count for 'progress'.
+   */
+  source: 'log' | 'progress';
 }
 
 export interface ReadingInsights {
@@ -154,17 +174,40 @@ function buildReadingHeatmap(
   return {cells, windowVerses};
 }
 
-/** Most-read book = the book with the most chapters that have any progress. */
+/** Chapters with any recorded progress for a book (the proxy metric). */
+function chaptersTouched(bookProgress: BookProgressMap, book: string): number {
+  return Object.values(bookProgress?.[book] ?? {}).filter(
+    pct => typeof pct === 'number' && pct > 0,
+  ).length;
+}
+
+/**
+ * Most-read book — REAL when the per-book reading log has data (ranked by
+ * verses, with time), else the legacy chapters-touched proxy. Falling back
+ * keeps the card populated for readers who finished books before Sprint 65
+ * wired the per-book log.
+ */
 function deriveMostReadBook(
   bookProgress: BookProgressMap,
+  bookReadingLog: BookReadingEntry[] | undefined,
 ): MostReadBook | null {
+  const real = topBookReading(bookReadingLog ?? []);
+  if (real) {
+    return {
+      book: real.book,
+      chapters: chaptersTouched(bookProgress, real.book),
+      versesRead: real.versesRead,
+      timeSpent: real.timeSpent,
+      source: 'log',
+    };
+  }
+
+  // Fallback: most chapters touched.
   let best: MostReadBook | null = null;
   for (const book of Object.keys(bookProgress ?? {})) {
-    const chapters = Object.values(bookProgress[book] ?? {}).filter(
-      pct => typeof pct === 'number' && pct > 0,
-    ).length;
+    const chapters = chaptersTouched(bookProgress, book);
     if (chapters > 0 && (best === null || chapters > best.chapters)) {
-      best = {book, chapters};
+      best = {book, chapters, source: 'progress'};
     }
   }
   return best;
@@ -242,7 +285,10 @@ export function buildReadingInsights(
     dateStrFromDayNumber(todayNum),
   );
 
-  const mostReadBook = deriveMostReadBook(input?.bookProgress ?? {});
+  const mostReadBook = deriveMostReadBook(
+    input?.bookProgress ?? {},
+    input?.bookReadingLog,
+  );
 
   const hasData =
     activeDays > 0 ||

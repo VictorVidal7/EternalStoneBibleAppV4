@@ -27,7 +27,7 @@ describe('Logger Service', () => {
         email: 'john@example.com',
       };
 
-      const result = redactSensitive(input);
+      const result = redactSensitive(input) as Record<string, string>;
 
       expect(result.username).toBe('john');
       expect(result.password).toBe('[REDACTED]');
@@ -42,7 +42,9 @@ describe('Logger Service', () => {
         },
       };
 
-      const result = redactSensitive(input);
+      const result = redactSensitive(input) as {
+        user: {name: string; apiKey: string};
+      };
 
       expect(result.user.name).toBe('John');
       expect(result.user.apiKey).toBe('[REDACTED]');
@@ -54,7 +56,10 @@ describe('Logger Service', () => {
         {name: 'User2', token: 'token2'},
       ];
 
-      const result = redactSensitive(input);
+      const result = redactSensitive(input) as Array<{
+        name: string;
+        token: string;
+      }>;
 
       expect(result[0].name).toBe('User1');
       expect(result[0].token).toBe('[REDACTED]');

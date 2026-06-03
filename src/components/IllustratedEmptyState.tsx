@@ -9,10 +9,11 @@
  */
 
 import React, {useEffect, useRef} from 'react';
-import {View, Text, StyleSheet, Animated, TouchableOpacity} from 'react-native';
+import {View, StyleSheet, Animated, TouchableOpacity} from 'react-native';
+import {AppText as Text} from './ui/AppText';
 import {LinearGradient} from 'expo-linear-gradient';
 import {Ionicons} from '@expo/vector-icons';
-import * as Haptics from 'expo-haptics';
+import {haptics} from '@lib/haptics';
 
 import {
   spacing,
@@ -91,7 +92,7 @@ export const IllustratedEmptyState: React.FC<IllustratedEmptyStateProps> = ({
   };
 
   const handleAction = () => {
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+    haptics.press();
     onAction?.();
   };
 
@@ -233,7 +234,9 @@ export const IllustratedEmptyState: React.FC<IllustratedEmptyStateProps> = ({
 
       {/* Texto */}
       <View style={styles.textContainer}>
-        <Text style={[typography.h4, styles.centerText, {color: colors.text}]}>
+        <Text
+          scaleRole="display"
+          style={[typography.h4, styles.centerText, {color: colors.text}]}>
           {title || config.defaultTitle}
         </Text>
         <Text
@@ -257,7 +260,7 @@ export const IllustratedEmptyState: React.FC<IllustratedEmptyStateProps> = ({
             start={{x: 0, y: 0}}
             end={{x: 1, y: 0}}
             style={[styles.actionButtonGradient, shadows.md]}>
-            <Text style={styles.actionButtonText}>
+            <Text scaleRole="compact" style={styles.actionButtonText}>
               {actionLabel || config.defaultAction}
             </Text>
             <Ionicons name="heart" size={20} color="#ffffff" />
