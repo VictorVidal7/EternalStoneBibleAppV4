@@ -85,6 +85,10 @@ import {resolveReaderTheme} from '@/styles/readerThemes';
 import {
   resolveSecondaryVersion,
   secondaryVersionChoices,
+  normalizeDualLayout,
+  toggleDualLayout as nextDualLayout,
+  swapVersions,
+  type DualLayout,
 } from '@lib/reading/secondaryVersion';
 import {hitSlopToMinTarget} from '@lib/a11y/touchTarget';
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
@@ -120,7 +124,7 @@ export default function VerseReadingScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const {colors, isDark} = useTheme();
-  const {selectedVersion} = useBibleVersion();
+  const {selectedVersion, setVersion} = useBibleVersion();
   const {t, language} = useLanguage();
   const toast = useToast();
   const {achievementService, highlightService, notifyAchievements} =
@@ -233,6 +237,10 @@ export default function VerseReadingScreen() {
     () => secondaryVersionChoices(selectedVersion.id, BIBLE_VERSIONS),
     [selectedVersion.id],
   );
+  // How the two translations are laid out in dual mode: the companion stacked
+  // under each verse (default) or two equal-weight columns (Sprint 67),
+  // persisted so the reader's choice sticks.
+  const [dualLayout, setDualLayout] = useState<DualLayout>('stacked');
 
   // Y offset of each verse row within the ScrollView, for audio auto-scroll.
   const verseOffsetsRef = useRef<Map<number, number>>(new Map());
@@ -262,6 +270,9 @@ export default function VerseReadingScreen() {
         if (v) setPreferredSecondaryId(v);
       })
       .catch(() => undefined);
+    AsyncStorage.getItem('@reader_dual_layout')
+      .then(v => setDualLayout(normalizeDualLayout(v)))
+      .catch(() => undefined);
   }, []);
 
   function toggleSideBySide() {
@@ -283,6 +294,34 @@ export default function VerseReadingScreen() {
     AsyncStorage.setItem('@reader_secondary_version', versionId).catch(
       () => undefined,
     );
+  }
+
+  // Swap primary ↔ companion without a trip to Settings. The "primary" is the
+  // app-wide reading version (setVersion persists @bible_version), so swapping
+  // flips the whole app's version and pins the previous primary as the
+  // companion — the honest meaning of "primary" (Sprint 67).
+  function swapPrimaryAndSecondary() {
+    if (!secondaryVersion) return;
+    haptics.tap();
+    const swapped = swapVersions(selectedVersion.id, secondaryVersion.id);
+    setPreferredSecondaryId(swapped.secondaryId);
+    AsyncStorage.setItem(
+      '@reader_secondary_version',
+      swapped.secondaryId,
+    ).catch(() => undefined);
+    // setVersion is async + persists @bible_version; the primary/companion
+    // chapter effects react to the new selectedVersion.id / secondary id.
+    void setVersion(swapped.primaryId);
+  }
+
+  // Toggle the dual layout (companion stacked vs equal-weight columns) + persist.
+  function changeDualLayout() {
+    haptics.tap();
+    setDualLayout(prev => {
+      const next = nextDualLayout(prev);
+      AsyncStorage.setItem('@reader_dual_layout', next).catch(() => undefined);
+      return next;
+    });
   }
 
   // (Re)fetch the companion chapter whenever dual mode, the chosen secondary
@@ -1374,11 +1413,13 @@ export default function VerseReadingScreen() {
           </TouchableOpacity>
         </View>
 
-        {/* Dual-mode companion picker: choose WHICH translation sits alongside
-            the one being read (Sprint 66). Only shown when dual mode is on and
-            more than one companion exists. A wrapping row (not a horizontal
-            scroller) so the chip labels actually paint on this app. */}
-        {sideBySide && secondaryChoices.length > 1 ? (
+        {/* Dual-mode controls (Sprint 66 picker + Sprint 67 swap/layout):
+            choose WHICH translation sits alongside the one being read (chips,
+            only when >1 companion exists), swap primary ↔ companion, and switch
+            between the stacked companion and equal-weight columns. Shown
+            whenever dual mode is on. A wrapping row (not a horizontal scroller)
+            so the chip labels actually paint on this app. */}
+        {sideBySide && secondaryVersion ? (
           <View
             style={[
               styles.secondaryPicker,
@@ -1394,40 +1435,104 @@ export default function VerseReadingScreen() {
               ]}>
               {t.verse.dualCompanionLabel}
             </Text>
-            {secondaryChoices.map(v => {
-              const active = secondaryVersion?.id === v.id;
-              return (
-                <TouchableOpacity
-                  key={v.id}
-                  onPress={() => changeSecondaryVersion(v.id)}
-                  accessibilityRole="button"
-                  accessibilityState={{selected: active}}
-                  accessibilityLabel={v.name}
-                  style={[
-                    styles.secondaryChip,
-                    {
-                      borderColor: active
-                        ? effectiveColors.primary
-                        : effectiveColors.border,
-                      backgroundColor: active
-                        ? effectiveColors.primary + '20'
-                        : staticColors.transparent,
-                    },
-                  ]}>
-                  <Text
+            {secondaryChoices.length > 1 ? (
+              secondaryChoices.map(v => {
+                const active = secondaryVersion?.id === v.id;
+                return (
+                  <TouchableOpacity
+                    key={v.id}
+                    onPress={() => changeSecondaryVersion(v.id)}
+                    accessibilityRole="button"
+                    accessibilityState={{selected: active}}
+                    accessibilityLabel={v.name}
                     style={[
-                      styles.secondaryChipText,
+                      styles.secondaryChip,
                       {
-                        color: active
+                        borderColor: active
                           ? effectiveColors.primary
-                          : effectiveColors.textSecondary,
+                          : effectiveColors.border,
+                        backgroundColor: active
+                          ? effectiveColors.primary + '20'
+                          : staticColors.transparent,
                       },
                     ]}>
-                    {v.abbreviation}
-                  </Text>
-                </TouchableOpacity>
-              );
-            })}
+                    <Text
+                      style={[
+                        styles.secondaryChipText,
+                        {
+                          color: active
+                            ? effectiveColors.primary
+                            : effectiveColors.textSecondary,
+                        },
+                      ]}>
+                      {v.abbreviation}
+                    </Text>
+                  </TouchableOpacity>
+                );
+              })
+            ) : (
+              <Text
+                style={[
+                  styles.secondaryChipText,
+                  {color: effectiveColors.primary},
+                ]}>
+                {secondaryVersion.abbreviation}
+              </Text>
+            )}
+
+            {/* Swap primary ↔ companion + layout toggle */}
+            <View style={styles.dualControls}>
+              <TouchableOpacity
+                onPress={swapPrimaryAndSecondary}
+                accessibilityRole="button"
+                accessibilityLabel={t.verse.swapVersions}
+                style={[
+                  styles.dualControlChip,
+                  {borderColor: effectiveColors.border},
+                ]}>
+                <Ionicons
+                  name="swap-horizontal"
+                  size={16}
+                  color={effectiveColors.textSecondary}
+                />
+              </TouchableOpacity>
+              <TouchableOpacity
+                onPress={changeDualLayout}
+                accessibilityRole="button"
+                accessibilityState={{selected: dualLayout === 'columns'}}
+                accessibilityLabel={
+                  dualLayout === 'columns'
+                    ? t.verse.dualLayoutStacked
+                    : t.verse.dualLayoutColumns
+                }
+                style={[
+                  styles.dualControlChip,
+                  {
+                    borderColor:
+                      dualLayout === 'columns'
+                        ? effectiveColors.primary
+                        : effectiveColors.border,
+                    backgroundColor:
+                      dualLayout === 'columns'
+                        ? effectiveColors.primary + '20'
+                        : staticColors.transparent,
+                  },
+                ]}>
+                <Ionicons
+                  name={
+                    dualLayout === 'columns'
+                      ? 'browsers-outline'
+                      : 'reorder-four-outline'
+                  }
+                  size={16}
+                  color={
+                    dualLayout === 'columns'
+                      ? effectiveColors.primary
+                      : effectiveColors.textSecondary
+                  }
+                />
+              </TouchableOpacity>
+            </View>
           </View>
         ) : null}
 
@@ -1505,6 +1610,12 @@ export default function VerseReadingScreen() {
                 .replace('{{text}}', verse.text) +
               (companionForA11y ? `. ${companionForA11y}` : '');
 
+            // Equal-weight two-column dual layout (Sprint 67): primary and
+            // companion sit side by side at the same font size, vs the default
+            // stacked/dimmed companion.
+            const dualColumns =
+              sideBySide && !!secondaryVersion && dualLayout === 'columns';
+
             return (
               <TouchableOpacity
                 key={verse.verse}
@@ -1527,8 +1638,17 @@ export default function VerseReadingScreen() {
                   userHighlight && styles.verseUserHighlightRadius,
                   userHighlight && {backgroundColor: userHighlight},
                 ]}>
-                <View style={styles.verseContent}>
-                  <Text style={[styles.verseText, textStyle]}>
+                <View
+                  style={[
+                    styles.verseContent,
+                    dualColumns && styles.verseContentColumns,
+                  ]}>
+                  <Text
+                    style={[
+                      styles.verseText,
+                      textStyle,
+                      dualColumns && styles.dualColumn,
+                    ]}>
                     <Text style={[styles.verseNumber, numberStyle]}>
                       {isBeingRead ? '🔊 ' : ''}
                       {verse.verse}
@@ -1558,18 +1678,49 @@ export default function VerseReadingScreen() {
                       );
                     })()}
                   </Text>
-                  {/* Side-by-side companion: render the matching verse
-                      from the other version directly below the primary
-                      one, separated by a thin divider and styled smaller
-                      / dimmer so it reads as supporting context. The
-                      tap on this region is harmless — selection still
-                      targets the primary verse via the outer Touchable. */}
+                  {/* Side-by-side companion: the matching verse from the other
+                      version. In STACKED layout it sits below the primary one,
+                      smaller/dimmer, as supporting context. In COLUMNS layout
+                      it sits in an equal-weight column at the SAME font size, so
+                      neither reads as secondary (Sprint 67). The tap on this
+                      region is harmless — selection still targets the primary
+                      verse via the outer Touchable. */}
                   {sideBySide && secondaryVersion
                     ? (() => {
                         const companion = secondaryVerses.find(
                           v => v.verse === verse.verse,
                         );
                         if (!companion) return null;
+                        if (dualColumns) {
+                          return (
+                            <View
+                              style={[
+                                styles.dualColumn,
+                                styles.dualColumnCompanion,
+                                {borderLeftColor: effectiveColors.border},
+                              ]}>
+                              <Text
+                                style={[
+                                  styles.sideBySideLabel,
+                                  {color: effectiveColors.primary},
+                                ]}>
+                                {secondaryVersion.abbreviation}
+                              </Text>
+                              <Text
+                                style={[
+                                  styles.verseText,
+                                  textStyle,
+                                  {
+                                    color: userHighlight
+                                      ? effectiveColors.onHighlight
+                                      : effectiveColors.text,
+                                  },
+                                ]}>
+                                {companion.text}
+                              </Text>
+                            </View>
+                          );
+                        }
                         return (
                           <View
                             style={[
@@ -2135,6 +2286,33 @@ const styles = StyleSheet.create({
   secondaryChipText: {
     fontSize: fontSizes.xs,
     fontWeight: '600',
+  },
+  // Sprint 67 — dual-mode control chips (swap + layout toggle) + the
+  // equal-weight column layout.
+  dualControls: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginLeft: 'auto',
+    gap: spacing.xs,
+  },
+  dualControlChip: {
+    paddingHorizontal: spacing.xs,
+    paddingVertical: 4,
+    borderRadius: borderRadius.full,
+    borderWidth: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  verseContentColumns: {
+    flexDirection: 'row',
+    gap: spacing.base,
+  },
+  dualColumn: {
+    flex: 1,
+  },
+  dualColumnCompanion: {
+    paddingLeft: spacing.sm,
+    borderLeftWidth: 1,
   },
   favoriteIndicator: {
     marginLeft: spacing.sm,
