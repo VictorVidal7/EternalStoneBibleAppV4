@@ -99,29 +99,6 @@ export function useAchievements(database: BibleDatabase | null) {
   }, [service]);
 
   /**
-   * Registra libro completado
-   */
-  const trackBookCompleted = useCallback(
-    async (bookId: string) => {
-      if (!service) return;
-
-      const unlocked = await service.trackBookCompleted(bookId);
-      if (unlocked.length > 0) {
-        setNewUnlocks(unlocked);
-      }
-
-      const [updatedAchievements, updatedStats] = await Promise.all([
-        service.getAllAchievements(),
-        service.getUserStats(),
-      ]);
-
-      setAchievements(updatedAchievements);
-      setStats(updatedStats);
-    },
-    [service],
-  );
-
-  /**
    * Registra highlight
    */
   const trackHighlight = useCallback(async () => {
@@ -177,7 +154,6 @@ export function useAchievements(database: BibleDatabase | null) {
     reload,
     trackVersesRead,
     trackChapterCompleted,
-    trackBookCompleted,
     trackHighlight,
     trackNote,
     trackSearch,
