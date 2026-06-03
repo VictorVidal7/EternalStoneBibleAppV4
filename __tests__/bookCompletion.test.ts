@@ -2,6 +2,7 @@ import {
   isBookComplete,
   detectCompletedBooks,
   gospelsComplete,
+  bookCanonProgressPct,
   GOSPELS,
   TOTAL_BIBLE_BOOKS,
   CHAPTER_COMPLETE_THRESHOLD,
@@ -118,5 +119,31 @@ describe('canonical sanity', () => {
 
   it('TOTAL_BIBLE_BOOKS matches the static book table', () => {
     expect(TOTAL_BIBLE_BOOKS).toBe(BIBLE_BOOKS.length);
+  });
+});
+
+describe('bookCanonProgressPct', () => {
+  it('maps 0 → 0% and the full canon → 100%', () => {
+    expect(bookCanonProgressPct(0)).toBe(0);
+    expect(bookCanonProgressPct(TOTAL_BIBLE_BOOKS)).toBe(100);
+  });
+
+  it('rounds intermediate counts to whole percents', () => {
+    // 33/66 = 50%, 1/66 ≈ 1.5% → rounds to 2.
+    expect(bookCanonProgressPct(33)).toBe(50);
+    expect(bookCanonProgressPct(1)).toBe(2);
+    expect(bookCanonProgressPct(50)).toBe(76); // 75.7…
+  });
+
+  it('clamps an over-count to 100 (never overflows the bar)', () => {
+    expect(bookCanonProgressPct(TOTAL_BIBLE_BOOKS + 10)).toBe(100);
+    expect(bookCanonProgressPct(1000)).toBe(100);
+  });
+
+  it('treats missing / non-finite / negative counts as 0%', () => {
+    expect(bookCanonProgressPct(undefined)).toBe(0);
+    expect(bookCanonProgressPct(null)).toBe(0);
+    expect(bookCanonProgressPct(NaN)).toBe(0);
+    expect(bookCanonProgressPct(-5)).toBe(0);
   });
 });

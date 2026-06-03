@@ -38,6 +38,23 @@ export const GOSPELS = ['Matthew', 'Mark', 'Luke', 'John'] as const;
 /** Total number of books in the Protestant canon (BOOKS milestones cap here). */
 export const TOTAL_BIBLE_BOOKS = 66;
 
+/**
+ * Completion percentage (0–100, rounded) toward the whole {@link TOTAL_BIBLE_BOOKS}
+ * canon. Used by the "Books of the Bible N/66" insights card (the number, the
+ * progress bar width, and the a11y label all share this so they never disagree).
+ * Defensive: a missing / non-finite / negative count reads as 0, and the result
+ * is clamped to 100 so an over-count can never overflow the bar.
+ */
+export function bookCanonProgressPct(
+  booksCompleted: number | null | undefined,
+): number {
+  if (typeof booksCompleted !== 'number' || !Number.isFinite(booksCompleted)) {
+    return 0;
+  }
+  const safe = Math.max(0, booksCompleted);
+  return Math.min(100, Math.round((safe / TOTAL_BIBLE_BOOKS) * 100));
+}
+
 /** A book's chapter → percent map (a single entry of the ReadingProgress map). */
 export type ChapterProgress = Record<string | number, number>;
 

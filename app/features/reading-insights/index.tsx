@@ -43,7 +43,10 @@ import {
   type ReadingInsights,
 } from '@/features/reading-insights/readingInsights';
 import {formatReadingTime} from '@lib/utils/formatReadingTime';
-import {TOTAL_BIBLE_BOOKS} from '@lib/achievements/bookCompletion';
+import {
+  TOTAL_BIBLE_BOOKS,
+  bookCanonProgressPct,
+} from '@lib/achievements/bookCompletion';
 import {getBookByName} from '@/constants/bible';
 import {logger} from '@lib/utils/logger';
 import {
@@ -149,10 +152,7 @@ export default function ReadingInsightsScreen() {
 
   // Completion progress toward the whole 66-book canon (0 when not loaded yet).
   const booksPct = insights
-    ? Math.min(
-        100,
-        Math.round((insights.totalBooksCompleted / TOTAL_BIBLE_BOOKS) * 100),
-      )
+    ? bookCanonProgressPct(insights.totalBooksCompleted)
     : 0;
 
   const headerGradient: [string, string] = [colors.primary, colors.primaryDark];
@@ -347,10 +347,15 @@ export default function ReadingInsightsScreen() {
                   {ri.booksTitle}
                 </AppText>
                 <View style={styles.booksHeaderRow}>
-                  <AppText
-                    scaleRole="display"
-                    style={[styles.booksValue, {color: colors.text}]}>
-                    {insights.totalBooksCompleted}
+                  {/* Baseline row so the hero number can count up (Sprint 66):
+                      the "/66" used to nest INSIDE the number's <AppText>, which
+                      blocked a <CountUpText> swap — split into baseline siblings. */}
+                  <View style={styles.booksValueRow}>
+                    <CountUpText
+                      value={insights.totalBooksCompleted}
+                      scaleRole="display"
+                      style={[styles.booksValue, {color: colors.text}]}
+                    />
                     <AppText
                       scaleRole="compact"
                       style={[
@@ -359,7 +364,7 @@ export default function ReadingInsightsScreen() {
                       ]}>
                       {` / ${TOTAL_BIBLE_BOOKS}`}
                     </AppText>
-                  </AppText>
+                  </View>
                   <AppText
                     scaleRole="display"
                     style={[styles.booksPct, {color: colors.primary}]}>
@@ -585,6 +590,10 @@ const styles = StyleSheet.create({
     alignItems: 'flex-end',
     justifyContent: 'space-between',
     marginTop: spacing.xs,
+  },
+  booksValueRow: {
+    flexDirection: 'row',
+    alignItems: 'baseline',
   },
   booksValue: {
     fontSize: fontSizes['3xl'],
