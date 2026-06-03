@@ -490,13 +490,19 @@ export default function SettingsScreen() {
                         </>
                       )}
                     </View>
-                    {version.id !== 'RVR1960' && version.id !== 'KJV' && (
-                      <View style={themedStyles.comingSoonBadge}>
-                        <Text style={themedStyles.comingSoonBadgeText}>
-                          {t.settings.comingSoon}
-                        </Text>
-                      </View>
-                    )}
+                    {/* All bundled versions (RVR1960 + KJV + WEB as of
+                        Sprint 66) are fully seeded and selectable; the
+                        "coming soon" badge is reserved for any future,
+                        not-yet-bundled translation. */}
+                    {version.id !== 'RVR1960' &&
+                      version.id !== 'KJV' &&
+                      version.id !== 'WEB' && (
+                        <View style={themedStyles.comingSoonBadge}>
+                          <Text style={themedStyles.comingSoonBadgeText}>
+                            {t.settings.comingSoon}
+                          </Text>
+                        </View>
+                      )}
                   </View>
                 </TouchableOpacity>
               ))}
