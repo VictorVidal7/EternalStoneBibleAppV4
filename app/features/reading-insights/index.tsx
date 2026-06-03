@@ -42,6 +42,7 @@ import {
   type ReadingInsights,
 } from '@/features/reading-insights/readingInsights';
 import {formatReadingTime} from '@lib/utils/formatReadingTime';
+import {TOTAL_BIBLE_BOOKS} from '@lib/achievements/bookCompletion';
 import {getBookByName} from '@/constants/bible';
 import {logger} from '@lib/utils/logger';
 import {
@@ -127,6 +128,14 @@ export default function ReadingInsightsScreen() {
     }),
     [ri.hourUnit, ri.minuteUnit, ri.lessThanMinute],
   );
+
+  // Completion progress toward the whole 66-book canon (0 when not loaded yet).
+  const booksPct = insights
+    ? Math.min(
+        100,
+        Math.round((insights.totalBooksCompleted / TOTAL_BIBLE_BOOKS) * 100),
+      )
+    : 0;
 
   const headerGradient: [string, string] = [colors.primary, colors.primaryDark];
 
@@ -305,6 +314,54 @@ export default function ReadingInsightsScreen() {
                     colors={colors}
                   />
                 </View>
+              </View>
+
+              {/* Books of the Bible — real completion progress toward the whole
+                  canon. The number was 0 for everyone until Sprint 64 wired the
+                  book-completion ledger; now it reflects books actually read. */}
+              <View
+                style={[styles.card, {backgroundColor: colors.card}]}
+                accessible={true}
+                accessibilityLabel={`${ri.booksTitle}: ${insights.totalBooksCompleted} / ${TOTAL_BIBLE_BOOKS}, ${booksPct}%`}>
+                <AppText
+                  scaleRole="display"
+                  style={[styles.cardTitle, {color: colors.text}]}>
+                  {ri.booksTitle}
+                </AppText>
+                <View style={styles.booksHeaderRow}>
+                  <AppText
+                    scaleRole="display"
+                    style={[styles.booksValue, {color: colors.text}]}>
+                    {insights.totalBooksCompleted}
+                    <AppText
+                      scaleRole="compact"
+                      style={[
+                        styles.booksTotal,
+                        {color: colors.textSecondary},
+                      ]}>
+                      {` / ${TOTAL_BIBLE_BOOKS}`}
+                    </AppText>
+                  </AppText>
+                  <AppText
+                    scaleRole="display"
+                    style={[styles.booksPct, {color: colors.primary}]}>
+                    {booksPct}%
+                  </AppText>
+                </View>
+                <View
+                  style={[styles.booksTrack, {backgroundColor: colors.border}]}>
+                  <View
+                    style={[
+                      styles.booksFill,
+                      {width: `${booksPct}%`, backgroundColor: colors.primary},
+                    ]}
+                  />
+                </View>
+                <AppText
+                  scaleRole="compact"
+                  style={[styles.booksCaption, {color: colors.textSecondary}]}>
+                  {ri.booksCaption}
+                </AppText>
               </View>
 
               {/* Time in the Word — reading time was tracked but never shown. */}
@@ -504,6 +561,38 @@ const styles = StyleSheet.create({
   },
   cardHint: {
     fontSize: fontSizes.xs,
+  },
+  booksHeaderRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-end',
+    justifyContent: 'space-between',
+    marginTop: spacing.xs,
+  },
+  booksValue: {
+    fontSize: fontSizes['3xl'],
+    fontWeight: '800',
+  },
+  booksTotal: {
+    fontSize: fontSizes.lg,
+    fontWeight: '700',
+  },
+  booksPct: {
+    fontSize: fontSizes.xl,
+    fontWeight: '800',
+  },
+  booksTrack: {
+    height: 8,
+    borderRadius: borderRadius.full,
+    overflow: 'hidden',
+    marginTop: spacing.sm,
+  },
+  booksFill: {
+    height: '100%',
+    borderRadius: borderRadius.full,
+  },
+  booksCaption: {
+    fontSize: fontSizes.xs,
+    marginTop: spacing.xs,
   },
   statRow: {
     flexDirection: 'row',
