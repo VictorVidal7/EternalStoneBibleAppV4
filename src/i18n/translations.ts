@@ -253,6 +253,13 @@ export const translations = {
       chaptersUnit: 'capítulos',
       versesUnit: 'versículos',
       daysUnit: 'días',
+      timeTitle: 'Tiempo en la Palabra',
+      timeTotal: 'Tiempo total',
+      timeWeek: 'Esta semana',
+      timeBestDay: 'Mejor día',
+      hourUnit: 'h',
+      minuteUnit: 'min',
+      lessThanMinute: '<1 min',
     },
     journey: {
       // Home entry card + chrome
@@ -1858,6 +1865,13 @@ export const translations = {
       chaptersUnit: 'chapters',
       versesUnit: 'verses',
       daysUnit: 'days',
+      timeTitle: 'Time in the Word',
+      timeTotal: 'Total time',
+      timeWeek: 'This week',
+      timeBestDay: 'Best day',
+      hourUnit: 'h',
+      minuteUnit: 'm',
+      lessThanMinute: '<1m',
     },
     journey: {
       // Home entry card + chrome
