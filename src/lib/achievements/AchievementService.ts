@@ -3,6 +3,7 @@
  * Handles tracking, unlocking and notification of achievements
  */
 
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import {BibleDatabase} from '../database';
 import {Achievement, UserStats, ReadingStreak} from './types';
 import {AchievementCategory} from './types';
@@ -11,6 +12,9 @@ import {calculateLevel} from './types';
 import {computeStreaks} from './streak';
 import {getCategoryProgress} from './progress';
 import {specialAchievementsForHour} from './specialAchievements';
+import {detectCompletedBooks, gospelsComplete} from './bookCompletion';
+import {canonicalizeProgressMap} from '../progress/progressKeys';
+import {canonicalBookName, getBookByName} from '../../constants/bible';
 
 export class AchievementService {
   private db: BibleDatabase;
@@ -66,6 +70,17 @@ export class AchievementService {
       )
     `);
 
+    // Forward-only ledger of which books the user has read to completion, keyed
+    // by canonical English name. Authoritative source for `total_books_completed`
+    // so the count can never double-count or drift; additive (CREATE IF NOT
+    // EXISTS), so no migration of existing installs. Sprint 64.
+    await db.execAsync(`
+      CREATE TABLE IF NOT EXISTS completed_books (
+        book_name TEXT PRIMARY KEY,
+        completed_at INTEGER NOT NULL
+      )
+    `);
+
     await db.runAsync(
       'INSERT OR IGNORE INTO user_stats (id, updated_at) VALUES (?, ?)',
       [1, Date.now()],
@@ -78,6 +93,37 @@ export class AchievementService {
     // updater (Sprint 58 bug) and resets `current_streak` to 0 when a day was
     // missed between sessions, without needing a new read to trigger it.
     await this.recomputeReadingStreak();
+
+    // Backfill book completion from the existing reading footprint so users who
+    // had already finished books before this feature shipped get credited (and
+    // the BOOKS achievement chain unlocks) on first launch. Silent: the unlock
+    // list is intentionally discarded here — there is no UI listening at init,
+    // and the achievements are marked unlocked in the DB regardless.
+    await this.backfillBookCompletion();
+  }
+
+  /**
+   * One-time-per-launch reconciliation of the completed-books ledger with the
+   * ReadingProgress map (AsyncStorage, the same `{book:{chapter:pct}}` the
+   * reader writes). Idempotent and best-effort — a failure here never blocks
+   * startup, and the reader's live detection still credits books as they are
+   * read. Sprint 64.
+   */
+  private async backfillBookCompletion(): Promise<void> {
+    try {
+      const raw = await AsyncStorage.getItem('readingProgress');
+      if (!raw) return;
+      const map = canonicalizeProgressMap(JSON.parse(raw));
+      const completed = detectCompletedBooks(
+        map,
+        name => getBookByName(name)?.chapters,
+      );
+      if (completed.length > 0) {
+        await this.syncBookCompletion(completed);
+      }
+    } catch {
+      // Non-fatal: backfill is a convenience, not a correctness requirement.
+    }
   }
 
   /**
@@ -232,26 +278,110 @@ export class AchievementService {
   }
 
   /**
-   * Tracks completed book
+   * Credit every book the user has read to completion and unlock the
+   * book-completion chain. Replaces the old `trackBookCompleted` (which simply
+   * incremented a counter and was DEAD — never called anywhere — so the BOOKS
+   * category + psalms/proverbs/gospels_complete were all unreachable, Sprint 63).
+   *
+   * `completedBookNames` is the FULL set of currently-complete books (canonical
+   * English names, from the pure `detectCompletedBooks`). This is idempotent and
+   * authoritative:
+   *   1. persist each not-yet-credited book in `completed_books`,
+   *   2. set `total_books_completed` to the row COUNT (never double-counts/drifts),
+   *   3. unlock the per-book SPECIAL badges Psalms / Proverbs / the 4 Gospels
+   *      (the generic loop skips SPECIAL — it has no backing stat),
+   *   4. run the generic loop so the BOOKS milestones (first_book … books_66) fire.
+   *
+   * Returns the achievements newly unlocked by THIS call so a live caller can
+   * show the unlock modal; the init backfill discards the result. Sprint 64.
    */
-  async trackBookCompleted(bookId: string): Promise<Achievement[]> {
+  async syncBookCompletion(
+    completedBookNames: string[],
+  ): Promise<Achievement[]> {
+    if (!Array.isArray(completedBookNames) || completedBookNames.length === 0) {
+      return [];
+    }
     this.stats = null;
-    await this.db.executeSql(
-      'UPDATE user_stats SET total_books_completed = total_books_completed + 1, updated_at = ? WHERE id = 1',
-      [Date.now()],
+
+    // Canonicalize + de-dupe (callers pass English names already; defensive).
+    const wanted = Array.from(
+      new Set(
+        completedBookNames
+          .map(name => canonicalBookName(name))
+          .filter((name): name is string => !!name),
+      ),
     );
 
-    // Check special book achievements
-    const achievements = await this.checkAchievements();
+    // Which books are already credited?
+    const existing = await this.db.executeSql(
+      'SELECT book_name FROM completed_books',
+    );
+    const credited = new Set<string>(
+      existing.rows._array.map((row: {book_name: string}) => row.book_name),
+    );
 
-    // Check special achievements for specific book
-    if (bookId === 'Psalms') {
-      await this.unlockAchievement('psalms_complete');
-    } else if (bookId === 'Proverbs') {
-      await this.unlockAchievement('proverbs_complete');
+    const now = Date.now();
+    const newlyCredited: string[] = [];
+    for (const name of wanted) {
+      if (credited.has(name)) continue;
+      await this.db.executeSql(
+        'INSERT OR IGNORE INTO completed_books (book_name, completed_at) VALUES (?, ?)',
+        [name, now],
+      );
+      credited.add(name);
+      newlyCredited.push(name);
     }
 
-    return achievements;
+    if (newlyCredited.length === 0) {
+      // Nothing new — keep the count consistent (cheap) and return early so we
+      // don't re-run the achievement loop on every reader progress tick.
+      return [];
+    }
+
+    // Authoritative count from the ledger — can't drift or double-count.
+    await this.db.executeSql(
+      'UPDATE user_stats SET total_books_completed = (SELECT COUNT(*) FROM completed_books), updated_at = ? WHERE id = 1',
+      [now],
+    );
+    this.stats = null;
+
+    const newlyUnlocked: Achievement[] = [];
+    const pushUnlocked = (id: string): void => {
+      const def = ACHIEVEMENT_DEFINITIONS.find(a => a.id === id);
+      if (def) {
+        newlyUnlocked.push({
+          ...def,
+          currentProgress: def.requirement,
+          isUnlocked: true,
+          unlockedAt: now,
+        });
+      }
+    };
+
+    // Per-book SPECIAL badges (skipped by the generic loop, no backing stat).
+    const specialForBook: Record<string, string> = {
+      Psalms: 'psalms_complete',
+      Proverbs: 'proverbs_complete',
+    };
+    for (const name of newlyCredited) {
+      const id = specialForBook[name];
+      if (id && (await this.unlockAchievement(id))) {
+        pushUnlocked(id);
+      }
+    }
+
+    // Gospels: needs ALL four — derive from the full credited set.
+    if (
+      gospelsComplete(credited) &&
+      (await this.unlockAchievement('gospels_complete'))
+    ) {
+      pushUnlocked('gospels_complete');
+    }
+
+    // BOOKS milestones now that total_books_completed reflects reality.
+    const fromLoop = await this.checkAchievements();
+
+    return [...newlyUnlocked, ...fromLoop];
   }
 
   /**

@@ -8,6 +8,7 @@ import React, {
   useContext,
   useState,
   useEffect,
+  useCallback,
   ReactNode,
 } from 'react';
 import {BibleDatabase} from '../lib/database';
@@ -23,6 +24,15 @@ interface ServicesContextType {
   initialized: boolean;
   newAchievements: Achievement[];
   clearNewAchievements: () => void;
+  /**
+   * Surface freshly-unlocked achievements so the global
+   * [[AchievementNotifications]] modal can celebrate them. Until Sprint 64
+   * `setNewAchievements` was never called, so reader-driven unlocks (verse /
+   * chapter milestones, and now book completion) unlocked silently in the DB
+   * and only ever appeared in the Achievements tab. Idempotent unlocks already
+   * return [], so this only ever fires for genuinely new achievements.
+   */
+  notifyAchievements: (achievements: Achievement[]) => void;
 }
 
 const ServicesContext = createContext<ServicesContextType>({
@@ -32,6 +42,7 @@ const ServicesContext = createContext<ServicesContextType>({
   initialized: false,
   newAchievements: [],
   clearNewAchievements: () => {},
+  notifyAchievements: () => {},
 });
 
 export const useServices = () => {
@@ -104,6 +115,12 @@ export const ServicesProvider: React.FC<ServicesProviderProps> = ({
     setNewAchievements([]);
   };
 
+  const notifyAchievements = useCallback((achievements: Achievement[]) => {
+    if (achievements.length > 0) {
+      setNewAchievements(prev => [...prev, ...achievements]);
+    }
+  }, []);
+
   const value: ServicesContextType = {
     database,
     achievementService,
@@ -111,6 +128,7 @@ export const ServicesProvider: React.FC<ServicesProviderProps> = ({
     initialized,
     newAchievements,
     clearNewAchievements,
+    notifyAchievements,
   };
 
   return (

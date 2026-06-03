@@ -37,6 +37,8 @@ import {usePremium} from '../../context/PremiumContext';
 import {localizedVerseReference} from '../../lib/reading/verseReference';
 import {useReaderPreferences} from '../../context/ReaderPreferencesContext';
 import {immersiveHighContrastColors} from '../../lib/reading/immersiveTheme';
+import {focusTrapProps, a11yHiddenProps} from '../../lib/a11y/focusTrap';
+import {useScreenReaderListener} from '../../hooks/useScreenReaderListener';
 import {
   useAudioPlayer,
   toAudioVerses,
@@ -85,6 +87,10 @@ export const ImmersiveReader: React.FC<ImmersiveReaderProps> = ({
   const [currentIndex, setCurrentIndex] = useState(startIndex);
   const [autoScroll, setAutoScroll] = useState(false);
   const [showControls, setShowControls] = useState(true);
+  // ♿ Drives the focus-trap safety: never auto-hide the controls (which hold
+  // the labeled Close button) while a screen reader is active, so a trapped SR
+  // user is never stranded — the exact risk S61 deferred this surface for.
+  const screenReaderEnabled = useScreenReaderListener();
   const [backgroundType] = useState<BackgroundType>('celestial');
   const [fontSize, setFontSize] = useState(22);
 
@@ -206,16 +212,28 @@ export const ImmersiveReader: React.FC<ImmersiveReaderProps> = ({
 
   const currentVerse = verses[currentIndex];
 
-  // Auto-hide controls after 3 seconds
+  // Auto-hide controls after 3 seconds — but NOT while a screen reader is on:
+  // the Close button lives in this overlay, so hiding it would trap an SR user
+  // inside the focus-trapped surface with no reachable way out.
   useEffect(() => {
-    if (showControls) {
+    if (showControls && !screenReaderEnabled) {
       const timer = setTimeout(() => {
         hideControls();
       }, 3000);
       return () => clearTimeout(timer);
     }
     return undefined;
-  }, [showControls]);
+  }, [showControls, screenReaderEnabled]);
+
+  // If a screen reader turns on while the controls are hidden, bring them back
+  // so the Close button (and its label) is reachable again. Keyed on the SR
+  // flag alone — this eslint has no react-hooks/exhaustive-deps rule (a disable
+  // directive would itself error), so no suppression is needed.
+  useEffect(() => {
+    if (screenReaderEnabled && !showControls) {
+      revealControls();
+    }
+  }, [screenReaderEnabled]);
 
   // Auto-scroll logic
   useEffect(() => {
@@ -352,7 +370,7 @@ export const ImmersiveReader: React.FC<ImmersiveReaderProps> = ({
   };
 
   return (
-    <View style={styles.container}>
+    <View style={styles.container} {...focusTrapProps()}>
       <StatusBar hidden />
 
       {/* Animated Background */}
@@ -366,7 +384,7 @@ export const ImmersiveReader: React.FC<ImmersiveReaderProps> = ({
       {/* Floating stars/particles for celestial mode (hidden in High Contrast
           — decorative stars would only muddy the pure-black AAA surface) */}
       {!isHighContrast && backgroundType === 'celestial' && (
-        <View style={styles.starsContainer}>
+        <View style={styles.starsContainer} {...a11yHiddenProps()}>
           <Ionicons
             name="star"
             size={20}
@@ -401,6 +419,7 @@ export const ImmersiveReader: React.FC<ImmersiveReaderProps> = ({
         style={StyleSheet.absoluteFill}
         activeOpacity={1}
         onPress={handleScreenTap}
+        {...a11yHiddenProps()}
       />
 
       {/* Main Content — box-none lets empty-area taps fall through to the tap
