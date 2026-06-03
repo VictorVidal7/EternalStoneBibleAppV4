@@ -16,6 +16,7 @@ import {Ionicons} from '@expo/vector-icons';
 import {LinearGradient} from 'expo-linear-gradient';
 import {useTheme} from '@hooks/useTheme';
 import {useLanguage} from '@hooks/useLanguage';
+import {focusTrapProps} from '@lib/a11y/focusTrap';
 import {useBookmarks, type Bookmark} from '@context/BookmarksContext';
 import {IllustratedEmptyState} from '@components/IllustratedEmptyState';
 import {getBookByName} from '@/constants/bible';
@@ -187,7 +188,9 @@ export default function BookmarksScreen() {
         animationType="fade"
         onRequestClose={() => setEditingId(null)}>
         <View style={[styles.modalOverlay, {backgroundColor: colors.overlay}]}>
-          <View style={[styles.modalCard, {backgroundColor: colors.surface}]}>
+          <View
+            style={[styles.modalCard, {backgroundColor: colors.surface}]}
+            {...focusTrapProps()}>
             <Text style={[styles.modalTitle, {color: colors.text}]}>
               {t.bookmarks.renameTitle}
             </Text>
