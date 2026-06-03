@@ -5,10 +5,12 @@
 
 import {BibleDatabase} from '../database';
 import {Achievement, UserStats, ReadingStreak} from './types';
+import {AchievementCategory} from './types';
 import {ACHIEVEMENT_DEFINITIONS} from './definitions';
 import {calculateLevel} from './types';
 import {computeStreaks} from './streak';
 import {getCategoryProgress} from './progress';
+import {specialAchievementsForHour} from './specialAchievements';
 
 export class AchievementService {
   private db: BibleDatabase;
@@ -205,6 +207,14 @@ export class AchievementService {
     // Recompute current/longest streak from the log now that today is in it.
     await this.recomputeReadingStreak(today);
 
+    // Unlock the time-of-day SPECIAL badges (early_bird / night_owl). These have
+    // no backing stat counter so the generic checkAchievements loop can never
+    // unlock them (getCategoryProgress(SPECIAL) === 0); they are event-driven by
+    // the hour of THIS reading. Idempotent: unlocking an unlocked badge no-ops.
+    for (const id of specialAchievementsForHour(new Date().getHours())) {
+      await this.unlockAchievement(id);
+    }
+
     // Check unlocked achievements
     return await this.checkAchievements();
   }
@@ -330,6 +340,18 @@ export class AchievementService {
     const newlyUnlocked: Achievement[] = [];
 
     for (const def of ACHIEVEMENT_DEFINITIONS) {
+      // SPECIAL/SHARING have no backing stat — getCategoryProgress maps them to
+      // 0, so this generic loop can neither unlock them (0 < requirement) NOR
+      // hold their progress. Skip them entirely; they are driven by dedicated
+      // event hooks (e.g. specialAchievementsForHour, trackBookCompleted) and
+      // skipping prevents this loop from clobbering a hook-set progress back to 0.
+      if (
+        def.category === AchievementCategory.SPECIAL ||
+        def.category === AchievementCategory.SHARING
+      ) {
+        continue;
+      }
+
       const progress = this.getProgressForAchievement(def.id, stats);
 
       if (progress >= def.requirement) {
