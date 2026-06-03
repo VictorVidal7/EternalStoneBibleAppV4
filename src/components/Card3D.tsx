@@ -12,6 +12,7 @@ import React, {useRef} from 'react';
 import {StyleSheet, TouchableOpacity, Animated, ViewStyle} from 'react-native';
 import {haptics} from '@lib/haptics';
 import {borderRadius} from '../styles/designTokens';
+import {usePressScale} from '../hooks/usePressScale';
 
 interface Card3DProps {
   children: React.ReactNode;
@@ -32,7 +33,9 @@ export const Card3D: React.FC<Card3DProps> = ({
   backgroundColor = '#ffffff',
   hapticFeedback = true,
 }) => {
-  const scaleAnim = useRef(new Animated.Value(1)).current;
+  // Sprint 67: shared, reduce-motion-aware press depress (see usePressScale);
+  // the shadow-softening on press stays local.
+  const press = usePressScale();
   const elevationAnim = useRef(new Animated.Value(1)).current;
 
   const handlePressIn = () => {
@@ -40,35 +43,21 @@ export const Card3D: React.FC<Card3DProps> = ({
       haptics.tap();
     }
 
-    Animated.parallel([
-      Animated.spring(scaleAnim, {
-        toValue: 0.98,
-        tension: 300,
-        friction: 10,
-        useNativeDriver: true,
-      }),
-      Animated.timing(elevationAnim, {
-        toValue: 0.6,
-        duration: 100,
-        useNativeDriver: false,
-      }),
-    ]).start();
+    press.onPressIn();
+    Animated.timing(elevationAnim, {
+      toValue: 0.6,
+      duration: 100,
+      useNativeDriver: false,
+    }).start();
   };
 
   const handlePressOut = () => {
-    Animated.parallel([
-      Animated.spring(scaleAnim, {
-        toValue: 1,
-        tension: 300,
-        friction: 10,
-        useNativeDriver: true,
-      }),
-      Animated.timing(elevationAnim, {
-        toValue: 1,
-        duration: 200,
-        useNativeDriver: false,
-      }),
-    ]).start();
+    press.onPressOut();
+    Animated.timing(elevationAnim, {
+      toValue: 1,
+      duration: 200,
+      useNativeDriver: false,
+    }).start();
   };
 
   // Crear sombras 3D sutiles y modernas
@@ -108,7 +97,7 @@ export const Card3D: React.FC<Card3DProps> = ({
             {
               backgroundColor,
               borderRadius: customBorderRadius,
-              transform: [{scale: scaleAnim}],
+              transform: [{scale: press.scale}],
             },
             animatedShadow,
             style,

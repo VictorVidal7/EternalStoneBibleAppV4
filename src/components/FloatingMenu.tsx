@@ -14,6 +14,7 @@ import {Ionicons} from '@expo/vector-icons';
 import {LinearGradient} from 'expo-linear-gradient';
 import {haptics} from '@lib/haptics';
 import {spacing, shadows, staticColors} from '../styles/designTokens';
+import {usePressScale} from '../hooks/usePressScale';
 
 export interface MenuAction {
   icon: keyof typeof Ionicons.glyphMap;
@@ -40,7 +41,10 @@ export const FloatingMenu: React.FC<FloatingMenuProps> = ({
 }) => {
   const [isOpen, setIsOpen] = useState(false);
   const rotation = useRef(new Animated.Value(0)).current;
-  const scale = useRef(new Animated.Value(1)).current;
+  // Sprint 67: shared, reduce-motion-aware press depress. A FAB's deeper 0.9
+  // depress is intentional, so we pass it explicitly while still inheriting the
+  // shared spring + reduce-motion suppression (see usePressScale).
+  const press = usePressScale(0.9);
 
   // Animaciones para cada acción
   const actionAnimations = useRef(
@@ -233,27 +237,13 @@ export const FloatingMenu: React.FC<FloatingMenuProps> = ({
       {/* Main Button */}
       <Animated.View
         style={{
-          transform: [{scale}, {rotate: rotationDegrees}],
+          transform: [{scale: press.scale}, {rotate: rotationDegrees}],
         }}>
         <TouchableOpacity
           activeOpacity={0.9}
           onPress={toggleMenu}
-          onPressIn={() => {
-            Animated.spring(scale, {
-              toValue: 0.9,
-              tension: 200,
-              friction: 10,
-              useNativeDriver: true,
-            }).start();
-          }}
-          onPressOut={() => {
-            Animated.spring(scale, {
-              toValue: 1,
-              tension: 200,
-              friction: 10,
-              useNativeDriver: true,
-            }).start();
-          }}>
+          onPressIn={press.onPressIn}
+          onPressOut={press.onPressOut}>
           <LinearGradient
             colors={mainGradient}
             style={[

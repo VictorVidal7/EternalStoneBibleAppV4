@@ -26,6 +26,7 @@ import {LinearGradient} from 'expo-linear-gradient';
 import {Ionicons} from '@expo/vector-icons';
 import {celestialBorderRadius} from '../../styles/celestialTheme';
 import {useTheme} from '../../hooks/useTheme';
+import {usePressScale} from '../../hooks/usePressScale';
 
 interface ContinueReadingButtonProps {
   /**
@@ -69,7 +70,9 @@ const ContinueReadingButton: React.FC<ContinueReadingButtonProps> = ({
   buttonText = 'Continuar Leyendo',
 }) => {
   const {colors: themeColors} = useTheme();
-  const scaleAnim = useRef(new Animated.Value(1)).current;
+  // Sprint 67: shared, reduce-motion-aware press depress (see usePressScale).
+  // The chevron nudge stays coupled to the same press gesture below.
+  const press = usePressScale();
   const chevronAnim = useRef(new Animated.Value(0)).current;
   const progressAnim = useRef(new Animated.Value(0)).current;
 
@@ -83,33 +86,21 @@ const ContinueReadingButton: React.FC<ContinueReadingButtonProps> = ({
   }, [progress]);
 
   const handlePressIn = () => {
-    Animated.parallel([
-      Animated.spring(scaleAnim, {
-        toValue: 0.98,
-        useNativeDriver: true,
-      }),
-      Animated.timing(chevronAnim, {
-        toValue: 4,
-        duration: 200,
-        useNativeDriver: true,
-      }),
-    ]).start();
+    press.onPressIn();
+    Animated.timing(chevronAnim, {
+      toValue: 4,
+      duration: 200,
+      useNativeDriver: true,
+    }).start();
   };
 
   const handlePressOut = () => {
-    Animated.parallel([
-      Animated.spring(scaleAnim, {
-        toValue: 1,
-        tension: 100,
-        friction: 3,
-        useNativeDriver: true,
-      }),
-      Animated.timing(chevronAnim, {
-        toValue: 0,
-        duration: 200,
-        useNativeDriver: true,
-      }),
-    ]).start();
+    press.onPressOut();
+    Animated.timing(chevronAnim, {
+      toValue: 0,
+      duration: 200,
+      useNativeDriver: true,
+    }).start();
   };
 
   const progressWidth = progressAnim.interpolate({
@@ -122,7 +113,7 @@ const ContinueReadingButton: React.FC<ContinueReadingButtonProps> = ({
       style={[
         styles.container,
         {
-          transform: [{scale: scaleAnim}],
+          transform: [{scale: press.scale}],
         },
       ]}>
       <TouchableOpacity

@@ -11,7 +11,7 @@
  * Para la gloria de Dios - Eternal Bible App
  */
 
-import React, {useRef} from 'react';
+import React from 'react';
 import {View, StyleSheet, TouchableOpacity, Animated} from 'react-native';
 import {AppText as Text} from '@components/ui/AppText';
 import {Ionicons} from '@expo/vector-icons';
@@ -24,6 +24,7 @@ import {
 import {withOpacity} from '../../styles/modernTheme';
 import {useTheme} from '../../hooks/useTheme';
 import {useLanguage} from '../../hooks/useLanguage';
+import {usePressScale} from '../../hooks/usePressScale';
 import ProgressCircle from './ProgressCircle';
 
 type IoniconsName = ComponentProps<typeof Ionicons>['name'];
@@ -107,27 +108,11 @@ const ReadingPlanCard: React.FC<ReadingPlanCardProps> = ({
   });
   const accentColor = themeColors.primary;
   const accentSoft = withOpacity(accentColor, isDark ? 0.2 : 0.12);
-  const scaleAnim = useRef(new Animated.Value(1)).current;
+  // Sprint 67: shared, reduce-motion-aware press depress (see usePressScale).
+  const press = usePressScale();
 
   // Calcular progreso
   const progress = Math.round((daysCompleted / duration) * 100);
-
-  // Interacciones
-  const handlePressIn = () => {
-    Animated.spring(scaleAnim, {
-      toValue: 0.97,
-      useNativeDriver: true,
-    }).start();
-  };
-
-  const handlePressOut = () => {
-    Animated.spring(scaleAnim, {
-      toValue: 1,
-      tension: 100,
-      friction: 3,
-      useNativeDriver: true,
-    }).start();
-  };
 
   return (
     <Animated.View
@@ -135,14 +120,14 @@ const ReadingPlanCard: React.FC<ReadingPlanCardProps> = ({
         styles.container,
         {
           width,
-          transform: [{scale: scaleAnim}],
+          transform: [{scale: press.scale}],
         },
       ]}>
       <TouchableOpacity
         activeOpacity={0.7}
         onPress={onPress}
-        onPressIn={handlePressIn}
-        onPressOut={handlePressOut}>
+        onPressIn={press.onPressIn}
+        onPressOut={press.onPressOut}>
         <BlurView
           intensity={isDark ? 30 : 60}
           tint={isDark ? 'dark' : 'light'}

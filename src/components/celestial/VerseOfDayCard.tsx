@@ -11,7 +11,7 @@
  * Para la gloria de Dios - Eternal Bible App
  */
 
-import React, {useRef, useState} from 'react';
+import React, {useState} from 'react';
 import {View, StyleSheet, TouchableOpacity, Animated} from 'react-native';
 import {AppText as Text} from '../ui/AppText';
 import {BlurView} from 'expo-blur';
@@ -22,6 +22,7 @@ import {
 } from '../../styles/celestialTheme';
 import {useLanguage} from '../../hooks/useLanguage';
 import {useTheme} from '../../hooks/useTheme';
+import {usePressScale} from '../../hooks/usePressScale';
 
 interface VerseOfDayCardProps {
   /**
@@ -105,28 +106,12 @@ const VerseOfDayCard: React.FC<VerseOfDayCardProps> = ({
     primaryDark: colors.primaryDark,
     info: colors.info,
   });
-  const scaleAnim = useRef(new Animated.Value(1)).current;
+  // Sprint 67: shared, reduce-motion-aware press depress (see usePressScale).
+  const press = usePressScale();
   const [isFavorited, setIsFavorited] = useState(false);
 
   // Use translation if title not provided
   const displayTitle = title || t.home.dailyVerse;
-
-  // Animaciones de interacción
-  const handlePressIn = () => {
-    Animated.spring(scaleAnim, {
-      toValue: 0.98,
-      useNativeDriver: true,
-    }).start();
-  };
-
-  const handlePressOut = () => {
-    Animated.spring(scaleAnim, {
-      toValue: 1,
-      tension: 100,
-      friction: 3,
-      useNativeDriver: true,
-    }).start();
-  };
 
   const handleFavorite = () => {
     setIsFavorited(!isFavorited);
@@ -134,12 +119,12 @@ const VerseOfDayCard: React.FC<VerseOfDayCardProps> = ({
   };
 
   return (
-    <Animated.View style={{transform: [{scale: scaleAnim}]}}>
+    <Animated.View style={{transform: [{scale: press.scale}]}}>
       <TouchableOpacity
         activeOpacity={0.9}
         onPress={onPress}
-        onPressIn={handlePressIn}
-        onPressOut={handlePressOut}
+        onPressIn={press.onPressIn}
+        onPressOut={press.onPressOut}
         disabled={!onPress}>
         <BlurView
           intensity={isDark ? 30 : 60}
