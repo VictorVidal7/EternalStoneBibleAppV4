@@ -50,6 +50,23 @@ describe('usePressAnimation', () => {
     expect(result.current.scale.value).toBe(1);
   });
 
+  // Sprint 68: SearchSpotlight's suggestion rows were the last bespoke
+  // Reanimated press (a raw withSpring(0.98)) and were NOT reduce-motion-aware.
+  // They now call usePressAnimation(0.98); lock that exact contract here.
+  it('honors the SearchSpotlight 0.98 press and suppresses it under reduced motion', () => {
+    mockReduced.mockReturnValue(false);
+    const {result} = renderHook(() => usePressAnimation(0.98));
+    act(() => result.current.onPressIn());
+    expect(result.current.scale.value).toBe(0.98);
+    act(() => result.current.onPressOut());
+    expect(result.current.scale.value).toBe(1);
+
+    mockReduced.mockReturnValue(true);
+    const {result: reduced} = renderHook(() => usePressAnimation(0.98));
+    act(() => reduced.current.onPressIn());
+    expect(reduced.current.scale.value).toBe(1);
+  });
+
   it('useCardPress is a subtler 0.98 press, also reduce-motion-aware', () => {
     mockReduced.mockReturnValue(false);
     const {result} = renderHook(() => useCardPress());

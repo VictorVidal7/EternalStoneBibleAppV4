@@ -40,6 +40,7 @@ import Animated, {
   Layout,
 } from 'react-native-reanimated';
 import {haptics} from '@lib/haptics';
+import {usePressAnimation} from '../../hooks/useAnimations';
 import {SPRING_CONFIGS, DURATIONS} from '../../styles/reanimatedAnimations';
 
 // ==================== TYPES ====================
@@ -96,19 +97,10 @@ const SuggestionItem: React.FC<SuggestionItemProps> = ({
   isDark,
   index,
 }) => {
-  const scale = useSharedValue(1);
-
-  const animatedStyle = useAnimatedStyle(() => ({
-    transform: [{scale: scale.value}],
-  }));
-
-  const handlePressIn = useCallback(() => {
-    scale.value = withSpring(0.98, SPRING_CONFIGS.snappy);
-  }, [scale]);
-
-  const handlePressOut = useCallback(() => {
-    scale.value = withSpring(1, SPRING_CONFIGS.snappy);
-  }, [scale]);
+  // Sprint 68: shared reduce-motion-aware press scale (the Reanimated half of
+  // the unification — same PRESS policy as usePressScale, gating the depress
+  // under reduced motion). Keeps the bespoke 0.98 feel this item had.
+  const {onPressIn, onPressOut, animatedStyle} = usePressAnimation(0.98);
 
   // Highlight matching text
   const highlightedText = useMemo(() => {
@@ -150,8 +142,8 @@ const SuggestionItem: React.FC<SuggestionItemProps> = ({
     <AnimatedPressable
       entering={FadeIn.delay(index * 30).duration(200)}
       onPress={onPress}
-      onPressIn={handlePressIn}
-      onPressOut={handlePressOut}
+      onPressIn={onPressIn}
+      onPressOut={onPressOut}
       style={[
         styles.suggestionItem,
         isDark && styles.suggestionItemDark,
