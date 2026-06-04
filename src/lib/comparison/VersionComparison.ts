@@ -10,6 +10,7 @@
 import * as SQLite from 'expo-sqlite';
 import bibleDB from '../database';
 import type {TranslationKeys} from '../../i18n/translations';
+import {normalizeWord} from './wordContrast';
 
 export interface BibleVersion {
   id: string;
@@ -418,12 +419,7 @@ class VersionComparisonService {
 
     // Base version (primera en la lista)
     const baseVersion = versions[0];
-    const baseWords = new Set(
-      baseVersion.text
-        .toLowerCase()
-        .split(/\s+/)
-        .map(w => w.replace(/[.,;:!?¿¡()"""]/g, '')),
-    );
+    const baseWords = new Set(baseVersion.text.split(/\s+/).map(normalizeWord));
 
     const differences = new Map<string, ComparisonDifference[]>();
     const allWords = new Set<string>();
@@ -434,10 +430,7 @@ class VersionComparisonService {
       if (index === 0) return; // Skip base version
 
       const versionWords = new Set(
-        version.text
-          .toLowerCase()
-          .split(/\s+/)
-          .map(w => w.replace(/[.,;:!?¿¡()"""]/g, '')),
+        version.text.split(/\s+/).map(normalizeWord),
       );
 
       // Agregar todas las palabras

@@ -1317,6 +1317,9 @@ export const translations = {
       similarity: 'Similaridad',
       commonWords: 'Palabras comunes',
       uniqueWords: 'Palabras únicas',
+      highlightDifferences: 'Resaltar diferencias',
+      contrastSameLangHint:
+        'Funciona mejor entre versiones del mismo idioma (KJV ↔ WEB)',
       observations: 'Observaciones',
       verse: 'Verso',
       words: 'palabras',
@@ -3029,6 +3032,9 @@ export const translations = {
       similarity: 'Similarity',
       commonWords: 'Common words',
       uniqueWords: 'Unique words',
+      highlightDifferences: 'Highlight differences',
+      contrastSameLangHint:
+        'Works best between versions in the same language (KJV ↔ WEB)',
       observations: 'Observations',
       verse: 'Verse',
       words: 'words',
