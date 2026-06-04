@@ -586,6 +586,7 @@ export const translations = {
       addAction: 'Añadir a colección',
       removeFromCollection: 'Quitar de la colección',
       share: 'Compartir colección',
+      shareImage: 'Compartir como imagen',
       shareHeader: 'Colección',
     },
     themes: {
@@ -2309,6 +2310,7 @@ export const translations = {
       addAction: 'Add to collection',
       removeFromCollection: 'Remove from collection',
       share: 'Share collection',
+      shareImage: 'Share as image',
       shareHeader: 'Collection',
     },
     themes: {
