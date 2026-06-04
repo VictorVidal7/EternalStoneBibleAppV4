@@ -54,6 +54,8 @@ import {NoteEditorModal} from '@components/reading/NoteEditorModal';
 import {ImageShareModal} from '@components/reading/ImageShareModal';
 import {ReaderPreferencesSheet} from '@components/reading/ReaderPreferencesSheet';
 import {CrossReferencesSheet} from '@components/reading/CrossReferencesSheet';
+import {AddToCollectionSheet} from '@/features/collections/AddToCollectionSheet';
+import {favoriteVerseId} from '@/features/collections/collections';
 import {
   useReaderPreferences,
   READER_MARGIN_PADDING,
@@ -197,6 +199,25 @@ export default function VerseReadingScreen() {
   const [imageModalVisible, setImageModalVisible] = useState(false);
   const [crossRefsVisible, setCrossRefsVisible] = useState(false);
   const [crossRefsVerse, setCrossRefsVerse] = useState<number | null>(null);
+  // "Add to collection" target (Sprint 68): the canonical verseId of the verse
+  // whose collections the AddToCollectionSheet is editing. We track the verseId
+  // (deterministic) rather than the random favorite id so the sheet opens
+  // robustly the moment the favorite exists in the live store (it may be
+  // created on demand when the verse wasn't a favorite yet).
+  const [collectionVerseId, setCollectionVerseId] = useState<string | null>(
+    null,
+  );
+  // The live favorite id for the verse being added to a collection — resolved
+  // from the store by verseId, so it appears as soon as the favorite exists
+  // (whether it pre-existed or was just created on demand). null keeps the
+  // sheet closed.
+  const collectionFavoriteId = useMemo(
+    () =>
+      collectionVerseId
+        ? (favorites.find(f => f.verseId === collectionVerseId)?.id ?? null)
+        : null,
+    [collectionVerseId, favorites],
+  );
   // Selection-toolbar overflow ("Más"): study-mode actions that don't
   // need to live in the top-level 4×2 grid.
   const [showOverflow, setShowOverflow] = useState(false);
@@ -933,6 +954,34 @@ export default function VerseReadingScreen() {
       return next;
     });
 
+    clearSelection();
+  }
+
+  // Add the FIRST selected verse to a collection (Sprint 68). A collection is a
+  // favorite tag, so the verse must be a favorite first — favorite it on demand
+  // if it isn't one, then open the AddToCollectionSheet keyed to its canonical
+  // verseId (the sheet resolves the live favorite and edits its tags). Operating
+  // on the first selected verse keeps the dense selection bar simple.
+  async function handleAddToCollectionSelected() {
+    if (selectedVerses.size === 0) return;
+    haptics.tap();
+
+    const firstNum = Array.from(selectedVerses).sort((a, b) => a - b)[0];
+    const verse = verses.find(v => v.verse === firstNum);
+    if (!verse) return;
+
+    const verseId = favoriteVerseId(
+      canonicalBookName(verse.book),
+      verse.chapter,
+      verse.verse,
+    );
+    if (!favorites.some(f => f.verseId === verseId)) {
+      await addFavorite(verse, 'other', 5);
+      setFavoritedVerses(prev => new Set(prev).add(firstNum));
+    }
+
+    setCollectionVerseId(verseId);
+    setShowOverflow(false);
     clearSelection();
   }
 
@@ -2052,6 +2101,24 @@ export default function VerseReadingScreen() {
                     {t.crossRefs.buttonLabel}
                   </Text>
                 </TouchableOpacity>
+                <TouchableOpacity
+                  style={styles.selectionOverflowButton}
+                  accessibilityRole="button"
+                  accessibilityLabel={t.collections.addAction}
+                  onPress={handleAddToCollectionSelected}>
+                  <Ionicons
+                    name="albums-outline"
+                    size={22}
+                    color={effectiveColors.primary}
+                  />
+                  <Text
+                    style={[
+                      styles.selectionOverflowText,
+                      {color: effectiveColors.text},
+                    ]}>
+                    {t.collections.addAction}
+                  </Text>
+                </TouchableOpacity>
               </View>
             )}
           </View>
@@ -2075,6 +2142,12 @@ export default function VerseReadingScreen() {
           sourceVerse={crossRefsVerse}
           version={selectedVersion.id}
           onClose={() => setCrossRefsVisible(false)}
+        />
+
+        {/* Add the first selected verse to a collection (Sprint 68). */}
+        <AddToCollectionSheet
+          favoriteId={collectionFavoriteId}
+          onClose={() => setCollectionVerseId(null)}
         />
 
         {/* Note Modal — extracted to NoteEditorModal in Sprint 21 #13. */}

@@ -146,3 +146,19 @@ export function isInCollection(
   const name = normalizeCollectionName(rawName);
   return (tags ?? []).some(t => sameName(t, name));
 }
+
+/**
+ * The canonical favorite key for a verse — mirrors FavoritesContext's `verseId`
+ * (`<canonicalBook>_<chapter>_<verse>`). Callers pass an already-canonical book
+ * name (e.g. via `canonicalBookName`) so the key is stable across versions and
+ * UI languages. Sprint 68 uses this to resolve (or create on demand) the
+ * favorite when adding a verse to a collection straight from the reader; it
+ * MUST match the FavoritesContext format or that lookup silently misses.
+ */
+export function favoriteVerseId(
+  canonicalBook: string,
+  chapter: number,
+  verse: number,
+): string {
+  return `${canonicalBook}_${chapter}_${verse}`;
+}
