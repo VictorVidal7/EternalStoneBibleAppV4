@@ -56,6 +56,7 @@ import {ReaderPreferencesSheet} from '@components/reading/ReaderPreferencesSheet
 import {CrossReferencesSheet} from '@components/reading/CrossReferencesSheet';
 import {AddToCollectionSheet} from '@/features/collections/AddToCollectionSheet';
 import {favoriteVerseId} from '@/features/collections/collections';
+import {spotlightOpacity} from '@/lib/reader/spotlight';
 import {
   useReaderPreferences,
   READER_MARGIN_PADDING,
@@ -1686,6 +1687,10 @@ export default function VerseReadingScreen() {
                   isBeingRead && styles.verseBeingRead,
                   userHighlight && styles.verseUserHighlightRadius,
                   userHighlight && {backgroundColor: userHighlight},
+                  // Reading focus/spotlight (Sprint 69): dim the verses around
+                  // the active selection so it "pops". Static opacity (not a
+                  // fade) → reduce-motion-safe; full opacity with no selection.
+                  {opacity: spotlightOpacity(verse.verse, selectedVerses)},
                 ]}>
                 <View
                   style={[
