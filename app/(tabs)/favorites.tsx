@@ -8,7 +8,7 @@ import {
 } from 'react-native';
 import {staticColors} from '@/styles/designTokens';
 
-import React, {useCallback, useMemo} from 'react';
+import React, {useCallback, useMemo, useState} from 'react';
 import {useRouter, useFocusEffect} from 'expo-router';
 import {Ionicons} from '@expo/vector-icons';
 import {LinearGradient} from 'expo-linear-gradient';
@@ -17,8 +17,10 @@ import {useLanguage} from '@hooks/useLanguage';
 import {IllustratedEmptyState} from '@components/IllustratedEmptyState';
 import {useToast} from '@context/ToastContext';
 import {logger} from '@lib/utils/logger';
+import {haptics} from '@lib/haptics';
 import {useFavorites} from '@context/FavoritesContext';
 import {useMemoryDeck} from '@context/MemoryDeckContext';
+import {AddToCollectionSheet} from '@/features/collections/AddToCollectionSheet';
 import {getBookByName} from '@/constants/bible';
 import {buildVerseKey} from '@lib/memory/srs';
 import {useBibleVersion} from '@hooks/useBibleVersion';
@@ -30,6 +32,8 @@ export default function FavoritesScreen() {
   const toast = useToast();
   const {favorites, removeFavorite, refreshFavorites, loading} = useFavorites();
   const {hasCard, addCard, removeCard} = useMemoryDeck();
+  // The favorite whose collections sheet is open (null = closed).
+  const [collectionsFor, setCollectionsFor] = useState<string | null>(null);
   const {selectedVersion} = useBibleVersion();
   const headerGradient = useMemo(
     () =>
@@ -118,6 +122,18 @@ export default function FavoritesScreen() {
           <Ionicons name="arrow-back" size={24} color="#ffffff" />
         </TouchableOpacity>
 
+        {/* Entrada a Colecciones (Sprint 67) */}
+        <TouchableOpacity
+          style={styles.headerCollectionsButton}
+          onPress={() => {
+            haptics.tap();
+            router.push('/features/collections' as never);
+          }}
+          accessibilityRole="button"
+          accessibilityLabel={t.collections.manage}>
+          <Ionicons name="bookmarks-outline" size={24} color="#ffffff" />
+        </TouchableOpacity>
+
         <View style={styles.headerContent}>
           <View style={styles.headerIconContainer}>
             <Ionicons name="heart" size={32} color="#ffffff" />
@@ -198,6 +214,26 @@ export default function FavoritesScreen() {
               })()}
               <TouchableOpacity
                 style={styles.deleteButton}
+                onPress={() => setCollectionsFor(item.id)}
+                accessibilityRole="button"
+                accessibilityLabel={t.collections.manage}
+                accessibilityState={{selected: (item.tags?.length ?? 0) > 0}}>
+                <Ionicons
+                  name={
+                    (item.tags?.length ?? 0) > 0
+                      ? 'bookmark'
+                      : 'bookmark-outline'
+                  }
+                  size={20}
+                  color={
+                    (item.tags?.length ?? 0) > 0
+                      ? colors.primary
+                      : colors.textSecondary
+                  }
+                />
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={styles.deleteButton}
                 onPress={() => handleDelete(item.id)}
                 accessibilityRole="button"
                 accessibilityLabel={t.delete}>
@@ -215,6 +251,11 @@ export default function FavoritesScreen() {
             onAction={() => router.push('/(tabs)/bible' as never)}
           />
         }
+      />
+
+      <AddToCollectionSheet
+        favoriteId={collectionsFor}
+        onClose={() => setCollectionsFor(null)}
       />
     </View>
   );
@@ -244,6 +285,17 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     marginBottom: 16,
+  },
+  headerCollectionsButton: {
+    position: 'absolute',
+    right: 20,
+    top: 60,
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: staticColors.glassWhite20,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   headerContent: {
     flexDirection: 'row',

@@ -541,6 +541,26 @@ export const translations = {
       error: 'No se pudo cargar el estudio',
     },
 
+    collections: {
+      title: 'Colecciones',
+      subtitle: 'Tus listas de versículos',
+      cardTitle: 'Colecciones',
+      cardSubtitle: 'Agrupa tus versículos guardados',
+      browseHint: 'Agrupa tus favoritos en listas con nombre',
+      verses: 'versículos',
+      empty: 'Aún no tienes colecciones',
+      emptyHint:
+        'Etiqueta un favorito con el icono de marcador para crear tu primera colección',
+      openHint: 'Abrir colección',
+      addTitle: 'Añadir a una colección',
+      newPlaceholder: 'Nueva colección…',
+      create: 'Crear',
+      done: 'Listo',
+      manage: 'Colecciones',
+      removeFromCollection: 'Quitar de la colección',
+      share: 'Compartir colección',
+      shareHeader: 'Colección',
+    },
     themes: {
       title: 'Explora por tema',
       subtitle: 'Pasajes por tema',
@@ -2217,6 +2237,26 @@ export const translations = {
       error: 'Could not load study',
     },
 
+    collections: {
+      title: 'Collections',
+      subtitle: 'Your verse lists',
+      cardTitle: 'Collections',
+      cardSubtitle: 'Group your saved verses',
+      browseHint: 'Group your favorites into named lists',
+      verses: 'verses',
+      empty: 'No collections yet',
+      emptyHint:
+        'Tag a favorite with the bookmark icon to create your first collection',
+      openHint: 'Open collection',
+      addTitle: 'Add to a collection',
+      newPlaceholder: 'New collection…',
+      create: 'Create',
+      done: 'Done',
+      manage: 'Collections',
+      removeFromCollection: 'Remove from collection',
+      share: 'Share collection',
+      shareHeader: 'Collection',
+    },
     themes: {
       title: 'Explore by Theme',
       subtitle: 'Passages by topic',
