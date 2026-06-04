@@ -18,14 +18,21 @@ import {
   Modal,
   Alert,
   ActivityIndicator,
+  Dimensions,
 } from 'react-native';
 import {staticColors} from '@/styles/designTokens';
 import {Ionicons} from '@expo/vector-icons';
 import {SaveComparisonDialog} from '../components/comparison/SaveComparisonDialog';
+import {CompareImageModal} from '../components/comparison/CompareImageModal';
+import {
+  buildComparisonCard,
+  type ComparisonCardModel,
+} from '../lib/comparison/comparisonCard';
 import {useTheme} from '../hooks/useTheme';
 import {useLanguage} from '../hooks/useLanguage';
 import {focusTrapProps} from '@lib/a11y/focusTrap';
 import {useToast} from '../context/ToastContext';
+import {haptics} from '@lib/haptics';
 import {useAudioPlayer} from '../features/audio';
 import {getBookByName} from '../constants/bible';
 import {
@@ -75,6 +82,8 @@ export const VersionComparisonScreen: React.FC<
   const [showSaveDialog, setShowSaveDialog] = useState(false);
   const [showSavedComparisons, setShowSavedComparisons] = useState(false);
   const [showVersePicker, setShowVersePicker] = useState(false);
+  // Share-as-image (Sprint 69): the built card model + the modal visibility.
+  const [shareCard, setShareCard] = useState<ComparisonCardModel | null>(null);
 
   // Suppress the floating mini player while ANY of this screen's overlay
   // sheets is open — the player's elevation/zIndex otherwise draws over the
@@ -84,7 +93,8 @@ export const VersionComparisonScreen: React.FC<
       showVersionPicker ||
       showSaveDialog ||
       showSavedComparisons ||
-      showVersePicker;
+      showVersePicker ||
+      shareCard !== null;
     setSuppressed(anyOpen);
     return () => setSuppressed(false);
   }, [
@@ -92,6 +102,7 @@ export const VersionComparisonScreen: React.FC<
     showSaveDialog,
     showSavedComparisons,
     showVersePicker,
+    shareCard,
     setSuppressed,
   ]);
   const [multiSelectMode, setMultiSelectMode] = useState(false);
@@ -208,6 +219,33 @@ export const VersionComparisonScreen: React.FC<
       )}
     </View>
   );
+
+  // Build a shareable comparison card from the ACTIVE comparison (the focused
+  // single verse, or the first verse in multi-verse mode) and open the image
+  // modal. Needs ≥2 versions for a meaningful card. The divergent-word
+  // highlighting is baked into the card per the same-language policy. (Sprint 69)
+  const handleShareImage = () => {
+    const comp = multiSelectMode ? comparisons[0] : comparison;
+    if (!comp || comp.versions.length < 2) {
+      toast.warning(t.versionComparison.minVersionsError);
+      return;
+    }
+    haptics.tap();
+    // Reuse the live single-verse analysis; compute on demand for the
+    // multi-verse path (analysis is only kept for single mode).
+    const similarity = multiSelectMode
+      ? versionComparisonService.analyzeComparison(comp, t).similarity
+      : (analysis?.similarity ?? 0);
+    const reference = `${localizedBook} ${chapter}:${comp.verseNumber}`;
+    setShareCard(
+      buildComparisonCard(
+        reference,
+        similarity,
+        isSameLanguage,
+        comp.versions.map(v => ({abbr: v.versionAbbr, text: v.text})),
+      ),
+    );
+  };
 
   useEffect(() => {
     if (selectedVersions.length > 0) {
@@ -495,6 +533,18 @@ export const VersionComparisonScreen: React.FC<
               }}>
               <Ionicons
                 name="bookmarks-outline"
+                size={22}
+                color={colors.textSecondary}
+              />
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={styles.iconActionButton}
+              onPress={handleShareImage}
+              accessibilityRole="button"
+              accessibilityLabel={t.versionComparison.shareImage}>
+              <Ionicons
+                name="share-outline"
                 size={22}
                 color={colors.textSecondary}
               />
@@ -1009,6 +1059,16 @@ export const VersionComparisonScreen: React.FC<
             : ''
         }
         isEditing={!!editingComparisonId}
+      />
+
+      {/* Share-as-image (Sprint 69): a designer card of the active comparison
+          with the divergent words highlighted, captured via the view-shot
+          pipeline. */}
+      <CompareImageModal
+        visible={shareCard !== null}
+        card={shareCard}
+        cardSize={Dimensions.get('window').width - 80}
+        onClose={() => setShareCard(null)}
       />
 
       {/* Saved Comparisons Modal */}
