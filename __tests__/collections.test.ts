@@ -5,6 +5,7 @@ import {
   removeFromCollection,
   isInCollection,
   normalizeCollectionName,
+  favoriteVerseId,
   type CollectionFavoriteLike,
 } from '../src/features/collections/collections';
 
@@ -114,5 +115,33 @@ describe('normalizeCollectionName', () => {
   it('trims and collapses whitespace', () => {
     expect(normalizeCollectionName('  My   List ')).toBe('My List');
     expect(normalizeCollectionName('   ')).toBe('');
+  });
+});
+
+describe('favoriteVerseId (reader add-to-collection flow, Sprint 68)', () => {
+  it('matches the FavoritesContext verseId format', () => {
+    // FavoritesContext keys favorites as `${canonicalBook}_${chapter}_${verse}`;
+    // the reader must compose the same string to resolve/create the favorite.
+    expect(favoriteVerseId('John', 3, 16)).toBe('John_3_16');
+    expect(favoriteVerseId('Genesis', 1, 1)).toBe('Genesis_1_1');
+  });
+
+  it('resolves a favorite by verseId and adds a tag to a fresh favorite', () => {
+    // Simulate adding the first selected verse to a collection from the reader:
+    // a just-favorited (untagged) verse is found by its verseId, then tagged.
+    const store = [
+      {
+        id: 'fav_1',
+        verseId: favoriteVerseId('John', 3, 16),
+        tags: [] as string[],
+      },
+    ];
+    const target = favoriteVerseId('John', 3, 16);
+    const fav = store.find(f => f.verseId === target);
+    expect(fav).toBeDefined();
+
+    const nextTags = addToCollection(fav!.tags, 'Promises');
+    expect(nextTags).toEqual(['Promises']);
+    expect(isInCollection(nextTags, 'promises')).toBe(true);
   });
 });
