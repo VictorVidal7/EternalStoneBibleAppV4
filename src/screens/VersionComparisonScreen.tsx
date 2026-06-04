@@ -34,6 +34,7 @@ import {
   VerseComparison,
   ComparisonAnalysis,
 } from '../lib/comparison/VersionComparison';
+import {markDivergentWords, sameLanguage} from '../lib/comparison/wordContrast';
 
 interface VersionComparisonScreenProps {
   book: string;
@@ -112,10 +113,51 @@ export const VersionComparisonScreen: React.FC<
   const [editingComparisonId, setEditingComparisonId] = useState<string | null>(
     null,
   );
+  // Word-level translation contrast (Sprint 68): inline-highlight the words that
+  // differ between the compared versions (the `analysis.commonWords` complement).
+  const [showContrast, setShowContrast] = useState(false);
+
+  // Are all the compared versions in one language? Word contrast is meaningful
+  // for same-language pairs (KJV ↔ WEB) and noise across languages (KJV vs
+  // RVR1960, where nearly every word differs) — so we default it accordingly.
+  const comparisonLanguages = selectedVersions
+    .map(id => availableVersions.find(v => v.id === id)?.language ?? '')
+    .filter(Boolean);
+  const isSameLanguage = sameLanguage(comparisonLanguages);
 
   useEffect(() => {
     loadVersions();
   }, []);
+
+  // Default contrast on for same-language comparisons, off for cross-language
+  // ones. Keyed on the language composition so it never fights a manual toggle
+  // made within the same set of versions.
+  useEffect(() => {
+    setShowContrast(isSameLanguage);
+  }, [isSameLanguage]);
+
+  // Render a version's verse, inline-highlighting the divergent words when the
+  // contrast toggle is on (single-verse mode, where `analysis` exists). Returns
+  // a plain string otherwise so nothing changes for the default view.
+  const renderVerseBody = (text: string): React.ReactNode => {
+    // Single-verse mode only: `analysis` (and its commonWords) tracks the
+    // displayed comparison there; in multi-verse mode it can be stale.
+    if (multiSelectMode || !showContrast || !analysis) return text;
+    return markDivergentWords(text, analysis.commonWords).map((tok, i) =>
+      tok.divergent ? (
+        <Text
+          key={i}
+          style={[
+            styles.divergentWord,
+            {color: colors.accent, backgroundColor: colors.accent + '22'},
+          ]}>
+          {tok.text}
+        </Text>
+      ) : (
+        tok.text
+      ),
+    );
+  };
 
   useEffect(() => {
     if (selectedVersions.length > 0) {
@@ -542,7 +584,7 @@ export const VersionComparisonScreen: React.FC<
                           {color: colors.text},
                         ]}
                         numberOfLines={viewMode === 'grid' ? 6 : undefined}>
-                        {version.text}
+                        {renderVerseBody(version.text)}
                       </Text>
 
                       {viewMode === 'list' && (
@@ -631,7 +673,7 @@ export const VersionComparisonScreen: React.FC<
                         {color: colors.text},
                       ]}
                       numberOfLines={viewMode === 'grid' ? 6 : undefined}>
-                      {version.text}
+                      {renderVerseBody(version.text)}
                     </Text>
 
                     {viewMode === 'list' && (
@@ -655,6 +697,56 @@ export const VersionComparisonScreen: React.FC<
                   </View>
                 ))}
               </View>
+
+              {/* Word-contrast toggle (Sprint 68) — highlights the words that
+                  differ across the versions above. */}
+              {analysis && (
+                <View style={styles.contrastRow}>
+                  <TouchableOpacity
+                    style={[
+                      styles.contrastToggle,
+                      {
+                        borderColor: showContrast
+                          ? colors.accent
+                          : colors.border,
+                        backgroundColor: showContrast
+                          ? colors.accent + '15'
+                          : staticColors.transparent,
+                      },
+                    ]}
+                    onPress={() => setShowContrast(v => !v)}
+                    accessibilityRole="switch"
+                    accessibilityState={{checked: showContrast}}
+                    accessibilityLabel={
+                      t.versionComparison.highlightDifferences
+                    }>
+                    <Ionicons
+                      name={showContrast ? 'checkbox' : 'square-outline'}
+                      size={20}
+                      color={
+                        showContrast ? colors.accent : colors.textSecondary
+                      }
+                    />
+                    <Text
+                      style={[
+                        styles.contrastLabel,
+                        {color: showContrast ? colors.accent : colors.text},
+                      ]}>
+                      {t.versionComparison.highlightDifferences}
+                    </Text>
+                  </TouchableOpacity>
+                  {!isSameLanguage && (
+                    <Text
+                      style={[
+                        styles.contrastHint,
+                        {color: colors.textTertiary},
+                      ]}
+                      numberOfLines={2}>
+                      {t.versionComparison.contrastSameLangHint}
+                    </Text>
+                  )}
+                </View>
+              )}
 
               {/* Analysis Section */}
               {analysis && (
@@ -1298,6 +1390,33 @@ const styles = StyleSheet.create({
     fontSize: 16,
     lineHeight: 24,
     marginBottom: 12,
+  },
+  divergentWord: {
+    fontWeight: '700',
+    borderRadius: 4,
+  },
+  contrastRow: {
+    marginBottom: 12,
+    gap: 6,
+  },
+  contrastToggle: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    alignSelf: 'flex-start',
+    gap: 8,
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    borderRadius: 10,
+    borderWidth: 1,
+  },
+  contrastLabel: {
+    fontSize: 14,
+    fontWeight: '600',
+  },
+  contrastHint: {
+    fontSize: 12,
+    fontStyle: 'italic',
+    paddingHorizontal: 2,
   },
   versionMeta: {
     flexDirection: 'row',
