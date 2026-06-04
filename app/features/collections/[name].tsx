@@ -10,13 +10,14 @@
  * Para la gloria de Dios Todopoderoso ✨
  */
 
-import React, {useCallback, useMemo} from 'react';
+import React, {useCallback, useMemo, useState} from 'react';
 import {
   View,
   ScrollView,
   TouchableOpacity,
   StyleSheet,
   Share,
+  useWindowDimensions,
 } from 'react-native';
 import {Stack, useRouter, useLocalSearchParams} from 'expo-router';
 import {Ionicons} from '@expo/vector-icons';
@@ -31,6 +32,8 @@ import {
   isInCollection,
   removeFromCollection,
 } from '@/features/collections/collections';
+import {buildCollectionCard} from '@/features/collections/collectionCard';
+import {CollectionImageModal} from '@/features/collections/CollectionImageModal';
 import {getBookByName} from '@/constants/bible';
 import {
   borderRadius,
@@ -46,6 +49,8 @@ export default function CollectionDetailScreen() {
   const {t, language} = useLanguage();
   const tc = t.collections;
   const {favorites, updateFavorite} = useFavorites();
+  const {width: windowWidth} = useWindowDimensions();
+  const [imageVisible, setImageVisible] = useState(false);
 
   const params = useLocalSearchParams<{name?: string}>();
   const name = useMemo(
@@ -70,6 +75,20 @@ export default function CollectionDetailScreen() {
         .filter(f => isInCollection(f.tags, name))
         .sort((a, b) => (b.updatedAt ?? 0) - (a.updatedAt ?? 0)),
     [favorites, name],
+  );
+
+  // The render-ready card for the share-as-image modal (pure builder: count +
+  // a few truncated preview verses with localized references).
+  const card = useMemo(
+    () =>
+      buildCollectionCard(
+        name,
+        verses.map(v => ({
+          reference: `${localizeBook(v.book)} ${v.chapter}:${v.verse}`,
+          text: v.text,
+        })),
+      ),
+    [name, verses, localizeBook],
   );
 
   const goToVerse = useCallback(
@@ -124,17 +143,33 @@ export default function CollectionDetailScreen() {
               />
             </TouchableOpacity>
             {verses.length > 0 ? (
-              <TouchableOpacity
-                style={styles.shareButton}
-                onPress={handleShare}
-                accessibilityRole="button"
-                accessibilityLabel={tc.share}>
-                <Ionicons
-                  name="share-outline"
-                  size={22}
-                  color={staticColors.white}
-                />
-              </TouchableOpacity>
+              <View style={styles.headerActions}>
+                <TouchableOpacity
+                  style={styles.shareButton}
+                  onPress={() => {
+                    haptics.tap();
+                    setImageVisible(true);
+                  }}
+                  accessibilityRole="button"
+                  accessibilityLabel={tc.shareImage}>
+                  <Ionicons
+                    name="image-outline"
+                    size={22}
+                    color={staticColors.white}
+                  />
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={styles.shareButton}
+                  onPress={handleShare}
+                  accessibilityRole="button"
+                  accessibilityLabel={tc.share}>
+                  <Ionicons
+                    name="share-outline"
+                    size={22}
+                    color={staticColors.white}
+                  />
+                </TouchableOpacity>
+              </View>
             ) : null}
           </View>
           <View style={styles.headerTextRow}>
@@ -196,6 +231,13 @@ export default function CollectionDetailScreen() {
             </View>
           ))}
         </ScrollView>
+
+        <CollectionImageModal
+          visible={imageVisible}
+          card={card}
+          cardSize={windowWidth - spacing.lg * 2}
+          onClose={() => setImageVisible(false)}
+        />
       </View>
     </>
   );
@@ -215,6 +257,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
   },
   backButton: {width: 40, height: 40, justifyContent: 'center'},
+  headerActions: {flexDirection: 'row', alignItems: 'center', gap: spacing.xs},
   shareButton: {
     width: 40,
     height: 40,
