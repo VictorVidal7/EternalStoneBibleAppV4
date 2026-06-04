@@ -3,6 +3,7 @@ import {
   markDivergentWords,
   sameLanguage,
   divergentWordCount,
+  commonWordsForVersions,
 } from '../src/lib/comparison/wordContrast';
 
 describe('normalizeWord', () => {
@@ -78,5 +79,57 @@ describe('divergentWordCount', () => {
     const common = new Set(['the', 'world']);
     const tokens = markDivergentWords('the whole world now', common);
     expect(divergentWordCount(tokens)).toBe(2); // "whole" + "now"
+  });
+});
+
+describe('commonWordsForVersions', () => {
+  it('returns the words shared by every version (KJV ∩ WEB), normalized', () => {
+    const common = commonWordsForVersions([
+      'For God so loved the world, that he gave his only begotten Son',
+      'For God so loved the world, that he gave his one and only Son',
+    ]);
+    // shared words survive (lower-cased, punctuation stripped)
+    expect(common.has('god')).toBe(true);
+    expect(common.has('world')).toBe(true);
+    expect(common.has('only')).toBe(true);
+    // each version's divergent words are excluded
+    expect(common.has('begotten')).toBe(false); // KJV only
+    expect(common.has('one')).toBe(false); // WEB only
+    expect(common.has('and')).toBe(false); // WEB only
+  });
+
+  it('intersects across three versions', () => {
+    const common = commonWordsForVersions([
+      'the quick fox',
+      'the slow fox',
+      'the red fox',
+    ]);
+    expect([...common].sort()).toEqual(['fox', 'the']);
+  });
+
+  it('returns an empty set for no versions', () => {
+    expect(commonWordsForVersions([]).size).toBe(0);
+  });
+
+  it('treats a single version as all-shared (its own words)', () => {
+    const common = commonWordsForVersions(['Love, joy; PEACE!']);
+    expect([...common].sort()).toEqual(['joy', 'love', 'peace']);
+  });
+
+  it('feeds markDivergentWords so each verse highlights its non-shared words (multi-verse)', () => {
+    // The exact pipeline the multi-verse mode uses per comparison row.
+    const kjv = 'whosoever believeth in him';
+    const web = 'whoever believes in him';
+    const common = commonWordsForVersions([kjv, web]);
+
+    const divergentOf = (text: string) =>
+      markDivergentWords(text, common)
+        .filter(tok => tok.divergent)
+        .map(tok => tok.text);
+
+    // SYMMETRIC: both versions highlight only their own divergent words;
+    // "in him" is shared so it stays plain.
+    expect(divergentOf(kjv)).toEqual(['whosoever', 'believeth']);
+    expect(divergentOf(web)).toEqual(['whoever', 'believes']);
   });
 });

@@ -64,6 +64,30 @@ export function markDivergentWords(
 }
 
 /**
+ * The set of words SHARED by every compared version's verse text — the
+ * intersection of each version's normalized word set. This is the exact policy
+ * `analyzeComparison` uses to build `ComparisonAnalysis.commonWords` (base ∩
+ * every other version), extracted here so the SAME set can be computed
+ * standalone per verse in multi-verse mode (where no full `analysis` exists)
+ * and fed to `markDivergentWords`. Sharing this with `analyzeComparison` keeps
+ * the single-verse and multi-verse highlights byte-identical.
+ *
+ * Empty input → empty set; a single version → all of its words (every word is
+ * trivially "shared"), matching `analyzeComparison`'s base-only seed.
+ */
+export function commonWordsForVersions(texts: string[]): Set<string> {
+  if (texts.length === 0) return new Set();
+  const common = new Set(texts[0].split(/\s+/).map(normalizeWord));
+  for (let i = 1; i < texts.length; i++) {
+    const words = new Set(texts[i].split(/\s+/).map(normalizeWord));
+    for (const word of common) {
+      if (!words.has(word)) common.delete(word);
+    }
+  }
+  return common;
+}
+
+/**
  * Whether every compared version shares one language — the case where a
  * word-level contrast is meaningful. Cross-language pairs (e.g. KJV vs RVR1960)
  * make virtually every word "divergent", so callers use this to default the

@@ -34,7 +34,11 @@ import {
   VerseComparison,
   ComparisonAnalysis,
 } from '../lib/comparison/VersionComparison';
-import {markDivergentWords, sameLanguage} from '../lib/comparison/wordContrast';
+import {
+  markDivergentWords,
+  sameLanguage,
+  commonWordsForVersions,
+} from '../lib/comparison/wordContrast';
 
 interface VersionComparisonScreenProps {
   book: string;
@@ -136,14 +140,18 @@ export const VersionComparisonScreen: React.FC<
     setShowContrast(isSameLanguage);
   }, [isSameLanguage]);
 
-  // Render a version's verse, inline-highlighting the divergent words when the
-  // contrast toggle is on (single-verse mode, where `analysis` exists). Returns
-  // a plain string otherwise so nothing changes for the default view.
-  const renderVerseBody = (text: string): React.ReactNode => {
-    // Single-verse mode only: `analysis` (and its commonWords) tracks the
-    // displayed comparison there; in multi-verse mode it can be stale.
-    if (multiSelectMode || !showContrast || !analysis) return text;
-    return markDivergentWords(text, analysis.commonWords).map((tok, i) =>
+  // Render a version's verse, inline-highlighting the divergent words (those
+  // not in `commonWords`) when the contrast toggle is on. Works for BOTH modes:
+  // single-verse passes `analysis.commonWords`; multi-verse passes the set
+  // computed per comparison (Sprint 69). Returns a plain string when contrast
+  // is off or no common set is available, so nothing changes for the default
+  // view.
+  const renderVerseBody = (
+    text: string,
+    commonWords?: Set<string>,
+  ): React.ReactNode => {
+    if (!showContrast || !commonWords) return text;
+    return markDivergentWords(text, commonWords).map((tok, i) =>
       tok.divergent ? (
         <Text
           key={i}
@@ -158,6 +166,48 @@ export const VersionComparisonScreen: React.FC<
       ),
     );
   };
+
+  // Inline word-contrast toggle row (Sprint 68/69). Shown in both single- and
+  // multi-verse mode whenever ≥2 versions are compared. The same-language
+  // default + hint policy is identical across modes.
+  const renderContrastToggle = () => (
+    <View style={styles.contrastRow}>
+      <TouchableOpacity
+        style={[
+          styles.contrastToggle,
+          {
+            borderColor: showContrast ? colors.accent : colors.border,
+            backgroundColor: showContrast
+              ? colors.accent + '15'
+              : staticColors.transparent,
+          },
+        ]}
+        onPress={() => setShowContrast(v => !v)}
+        accessibilityRole="switch"
+        accessibilityState={{checked: showContrast}}
+        accessibilityLabel={t.versionComparison.highlightDifferences}>
+        <Ionicons
+          name={showContrast ? 'checkbox' : 'square-outline'}
+          size={20}
+          color={showContrast ? colors.accent : colors.textSecondary}
+        />
+        <Text
+          style={[
+            styles.contrastLabel,
+            {color: showContrast ? colors.accent : colors.text},
+          ]}>
+          {t.versionComparison.highlightDifferences}
+        </Text>
+      </TouchableOpacity>
+      {!isSameLanguage && (
+        <Text
+          style={[styles.contrastHint, {color: colors.textTertiary}]}
+          numberOfLines={2}>
+          {t.versionComparison.contrastSameLangHint}
+        </Text>
+      )}
+    </View>
+  );
 
   useEffect(() => {
     if (selectedVersions.length > 0) {
@@ -520,106 +570,124 @@ export const VersionComparisonScreen: React.FC<
           contentContainerStyle={styles.scrollContent}>
           {/* Multi-Verse Mode */}
           {multiSelectMode && comparisons.length > 0 ? (
-            comparisons.map((comp, compIndex) => (
-              <View key={`comparison-${comp.verseNumber}`}>
-                {/* Verse Number Header */}
-                <View
-                  style={[
-                    styles.multiVerseHeader,
-                    {backgroundColor: colors.primaryLight},
-                  ]}>
-                  <Text style={[styles.multiVerseTitle, {color: colors.text}]}>
-                    {t.versionComparison.verse} {comp.verseNumber}
-                  </Text>
-                </View>
-
-                {/* Versions for this verse */}
-                <View style={viewMode === 'grid' ? styles.gridContainer : null}>
-                  {comp.versions.map((version, index) => (
+            <>
+              {/* Word-contrast toggle (Sprint 69) — now available in multi-verse
+                  mode, highlighting per-verse divergent words below. */}
+              {(comparisons[0]?.versions.length ?? 0) >= 2 &&
+                renderContrastToggle()}
+              {comparisons.map((comp, compIndex) => {
+                // Words shared by every version of THIS verse (Sprint 69). Each
+                // verse gets its own common-word set so the inline highlight is
+                // correct per row, mirroring the single-verse `analysis`.
+                const commonWords =
+                  comp.versions.length >= 2
+                    ? commonWordsForVersions(comp.versions.map(v => v.text))
+                    : undefined;
+                return (
+                  <View key={`comparison-${comp.verseNumber}`}>
+                    {/* Verse Number Header */}
                     <View
-                      key={`${comp.verseNumber}-${version.versionId}`}
                       style={[
-                        viewMode === 'grid'
-                          ? styles.gridCard
-                          : styles.versionCard,
-                        {
-                          backgroundColor: colors.surface,
-                          borderLeftColor:
-                            viewMode === 'list'
-                              ? getVersionColor(index)
-                              : undefined,
-                          borderTopColor:
-                            viewMode === 'grid'
-                              ? getVersionColor(index)
-                              : undefined,
-                        },
+                        styles.multiVerseHeader,
+                        {backgroundColor: colors.primaryLight},
                       ]}>
-                      <View style={styles.versionHeader}>
+                      <Text
+                        style={[styles.multiVerseTitle, {color: colors.text}]}>
+                        {t.versionComparison.verse} {comp.verseNumber}
+                      </Text>
+                    </View>
+
+                    {/* Versions for this verse */}
+                    <View
+                      style={viewMode === 'grid' ? styles.gridContainer : null}>
+                      {comp.versions.map((version, index) => (
                         <View
+                          key={`${comp.verseNumber}-${version.versionId}`}
                           style={[
-                            styles.versionBadge,
-                            {backgroundColor: getVersionColor(index)},
+                            viewMode === 'grid'
+                              ? styles.gridCard
+                              : styles.versionCard,
+                            {
+                              backgroundColor: colors.surface,
+                              borderLeftColor:
+                                viewMode === 'list'
+                                  ? getVersionColor(index)
+                                  : undefined,
+                              borderTopColor:
+                                viewMode === 'grid'
+                                  ? getVersionColor(index)
+                                  : undefined,
+                            },
                           ]}>
-                          <Text style={styles.versionBadgeText}>
-                            {version.versionAbbr}
-                          </Text>
-                        </View>
-                        {version.versionName !== version.versionAbbr && (
+                          <View style={styles.versionHeader}>
+                            <View
+                              style={[
+                                styles.versionBadge,
+                                {backgroundColor: getVersionColor(index)},
+                              ]}>
+                              <Text style={styles.versionBadgeText}>
+                                {version.versionAbbr}
+                              </Text>
+                            </View>
+                            {version.versionName !== version.versionAbbr && (
+                              <Text
+                                style={[
+                                  styles.versionName,
+                                  {color: colors.textSecondary},
+                                ]}
+                                numberOfLines={1}>
+                                {version.versionName}
+                              </Text>
+                            )}
+                          </View>
+
                           <Text
                             style={[
-                              styles.versionName,
-                              {color: colors.textSecondary},
+                              viewMode === 'grid'
+                                ? styles.gridVerseText
+                                : styles.verseText,
+                              {color: colors.text},
                             ]}
-                            numberOfLines={1}>
-                            {version.versionName}
+                            numberOfLines={viewMode === 'grid' ? 6 : undefined}>
+                            {renderVerseBody(version.text, commonWords)}
                           </Text>
-                        )}
-                      </View>
 
-                      <Text
-                        style={[
-                          viewMode === 'grid'
-                            ? styles.gridVerseText
-                            : styles.verseText,
-                          {color: colors.text},
-                        ]}
-                        numberOfLines={viewMode === 'grid' ? 6 : undefined}>
-                        {renderVerseBody(version.text)}
-                      </Text>
-
-                      {viewMode === 'list' && (
-                        <View style={styles.versionMeta}>
-                          <View style={styles.metaItem}>
-                            <Ionicons
-                              name="text"
-                              size={12}
-                              color={colors.textTertiary}
-                            />
-                            <Text
-                              style={[
-                                styles.metaText,
-                                {color: colors.textTertiary},
-                              ]}>
-                              {version.wordCount} {t.versionComparison.words}
-                            </Text>
-                          </View>
+                          {viewMode === 'list' && (
+                            <View style={styles.versionMeta}>
+                              <View style={styles.metaItem}>
+                                <Ionicons
+                                  name="text"
+                                  size={12}
+                                  color={colors.textTertiary}
+                                />
+                                <Text
+                                  style={[
+                                    styles.metaText,
+                                    {color: colors.textTertiary},
+                                  ]}>
+                                  {version.wordCount}{' '}
+                                  {t.versionComparison.words}
+                                </Text>
+                              </View>
+                            </View>
+                          )}
                         </View>
-                      )}
+                      ))}
                     </View>
-                  ))}
-                </View>
 
-                {/* Divider between verses */}
-                {compIndex < comparisons.length - 1 && (
-                  <View
-                    style={[
-                      styles.verseDivider,
-                      {backgroundColor: colors.border},
-                    ]}
-                  />
-                )}
-              </View>
-            ))
+                    {/* Divider between verses */}
+                    {compIndex < comparisons.length - 1 && (
+                      <View
+                        style={[
+                          styles.verseDivider,
+                          {backgroundColor: colors.border},
+                        ]}
+                      />
+                    )}
+                  </View>
+                );
+              })}
+            </>
           ) : (
             <>
               {/* Single Verse Mode - Versions Comparison */}
@@ -673,7 +741,7 @@ export const VersionComparisonScreen: React.FC<
                         {color: colors.text},
                       ]}
                       numberOfLines={viewMode === 'grid' ? 6 : undefined}>
-                      {renderVerseBody(version.text)}
+                      {renderVerseBody(version.text, analysis?.commonWords)}
                     </Text>
 
                     {viewMode === 'list' && (
@@ -698,55 +766,9 @@ export const VersionComparisonScreen: React.FC<
                 ))}
               </View>
 
-              {/* Word-contrast toggle (Sprint 68) — highlights the words that
+              {/* Word-contrast toggle (Sprint 68/69) — highlights the words that
                   differ across the versions above. */}
-              {analysis && (
-                <View style={styles.contrastRow}>
-                  <TouchableOpacity
-                    style={[
-                      styles.contrastToggle,
-                      {
-                        borderColor: showContrast
-                          ? colors.accent
-                          : colors.border,
-                        backgroundColor: showContrast
-                          ? colors.accent + '15'
-                          : staticColors.transparent,
-                      },
-                    ]}
-                    onPress={() => setShowContrast(v => !v)}
-                    accessibilityRole="switch"
-                    accessibilityState={{checked: showContrast}}
-                    accessibilityLabel={
-                      t.versionComparison.highlightDifferences
-                    }>
-                    <Ionicons
-                      name={showContrast ? 'checkbox' : 'square-outline'}
-                      size={20}
-                      color={
-                        showContrast ? colors.accent : colors.textSecondary
-                      }
-                    />
-                    <Text
-                      style={[
-                        styles.contrastLabel,
-                        {color: showContrast ? colors.accent : colors.text},
-                      ]}>
-                      {t.versionComparison.highlightDifferences}
-                    </Text>
-                  </TouchableOpacity>
-                  {!isSameLanguage && (
-                    <Text
-                      style={[
-                        styles.contrastHint,
-                        {color: colors.textTertiary},
-                      ]}
-                      numberOfLines={2}>
-                      {t.versionComparison.contrastSameLangHint}
-                    </Text>
-                  )}
-                </View>
-              )}
+              {analysis && renderContrastToggle()}
 
               {/* Analysis Section */}
               {analysis && (

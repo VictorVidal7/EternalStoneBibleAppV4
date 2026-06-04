@@ -10,7 +10,7 @@
 import * as SQLite from 'expo-sqlite';
 import bibleDB from '../database';
 import type {TranslationKeys} from '../../i18n/translations';
-import {normalizeWord} from './wordContrast';
+import {normalizeWord, commonWordsForVersions} from './wordContrast';
 
 export interface BibleVersion {
   id: string;
@@ -423,7 +423,10 @@ class VersionComparisonService {
 
     const differences = new Map<string, ComparisonDifference[]>();
     const allWords = new Set<string>();
-    const commonWords = new Set<string>(baseWords);
+    // Palabras compartidas por TODAS las versiones (base ∩ cada otra). La misma
+    // política pura que usa el modo multi-verso del screen, para que el
+    // resaltado inline coincida en single y multi (ver wordContrast).
+    const commonWords = commonWordsForVersions(versions.map(v => v.text));
 
     // Analizar cada versión
     versions.forEach((version, index) => {
@@ -435,16 +438,6 @@ class VersionComparisonService {
 
       // Agregar todas las palabras
       versionWords.forEach(word => allWords.add(word));
-
-      // Encontrar palabras comunes
-      const wordsInCommon = new Set(
-        [...versionWords].filter(w => baseWords.has(w)),
-      );
-      commonWords.forEach(word => {
-        if (!wordsInCommon.has(word)) {
-          commonWords.delete(word);
-        }
-      });
 
       // Detectar diferencias usando algoritmo simple
       const diffs: ComparisonDifference[] = [];
