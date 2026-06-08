@@ -26,6 +26,7 @@ import {SaveComparisonDialog} from '../components/comparison/SaveComparisonDialo
 import {CompareImageModal} from '../components/comparison/CompareImageModal';
 import {
   buildComparisonCard,
+  buildComparisonCards,
   type ComparisonCardModel,
 } from '../lib/comparison/comparisonCard';
 import {useTheme} from '../hooks/useTheme';
@@ -82,8 +83,10 @@ export const VersionComparisonScreen: React.FC<
   const [showSaveDialog, setShowSaveDialog] = useState(false);
   const [showSavedComparisons, setShowSavedComparisons] = useState(false);
   const [showVersePicker, setShowVersePicker] = useState(false);
-  // Share-as-image (Sprint 69): the built card model + the modal visibility.
-  const [shareCard, setShareCard] = useState<ComparisonCardModel | null>(null);
+  // Share-as-image (Sprint 69): the built card model(s) + the modal visibility.
+  // Sprint 70: an ARRAY — one card per selected verse (single-verse mode keeps a
+  // 1-element array, rendered without carousel chrome). Open ⇔ length > 0.
+  const [shareCards, setShareCards] = useState<ComparisonCardModel[]>([]);
 
   // Suppress the floating mini player while ANY of this screen's overlay
   // sheets is open — the player's elevation/zIndex otherwise draws over the
@@ -94,7 +97,7 @@ export const VersionComparisonScreen: React.FC<
       showSaveDialog ||
       showSavedComparisons ||
       showVersePicker ||
-      shareCard !== null;
+      shareCards.length > 0;
     setSuppressed(anyOpen);
     return () => setSuppressed(false);
   }, [
@@ -102,7 +105,7 @@ export const VersionComparisonScreen: React.FC<
     showSaveDialog,
     showSavedComparisons,
     showVersePicker,
-    shareCard,
+    shareCards,
     setSuppressed,
   ]);
   const [multiSelectMode, setMultiSelectMode] = useState(false);
@@ -220,31 +223,53 @@ export const VersionComparisonScreen: React.FC<
     </View>
   );
 
-  // Build a shareable comparison card from the ACTIVE comparison (the focused
-  // single verse, or the first verse in multi-verse mode) and open the image
-  // modal. Needs ≥2 versions for a meaningful card. The divergent-word
-  // highlighting is baked into the card per the same-language policy. (Sprint 69)
+  // Build the shareable comparison card(s) and open the image modal. Needs ≥2
+  // versions per verse for a meaningful card. The divergent-word highlighting is
+  // baked into each card per the same-language policy. (Sprint 69 → 70)
+  //
+  // Single-verse mode → one card (reusing the live `analysis`). Multi-verse mode
+  // → ONE card per selected verse (Sprint 70), computing each verse's similarity
+  // on demand (analysis is only kept for single mode); the modal shows them as a
+  // swipeable carousel and shares whichever card the user is viewing.
   const handleShareImage = () => {
-    const comp = multiSelectMode ? comparisons[0] : comparison;
+    if (multiSelectMode) {
+      const valid = comparisons.filter(c => c.versions.length >= 2);
+      if (valid.length === 0) {
+        toast.warning(t.versionComparison.minVersionsError);
+        return;
+      }
+      haptics.tap();
+      setShareCards(
+        buildComparisonCards(
+          valid.map(comp => ({
+            reference: `${localizedBook} ${chapter}:${comp.verseNumber}`,
+            similarity: versionComparisonService.analyzeComparison(comp, t)
+              .similarity,
+            highlight: isSameLanguage,
+            versions: comp.versions.map(v => ({
+              abbr: v.versionAbbr,
+              text: v.text,
+            })),
+          })),
+        ),
+      );
+      return;
+    }
+
+    const comp = comparison;
     if (!comp || comp.versions.length < 2) {
       toast.warning(t.versionComparison.minVersionsError);
       return;
     }
     haptics.tap();
-    // Reuse the live single-verse analysis; compute on demand for the
-    // multi-verse path (analysis is only kept for single mode).
-    const similarity = multiSelectMode
-      ? versionComparisonService.analyzeComparison(comp, t).similarity
-      : (analysis?.similarity ?? 0);
-    const reference = `${localizedBook} ${chapter}:${comp.verseNumber}`;
-    setShareCard(
+    setShareCards([
       buildComparisonCard(
-        reference,
-        similarity,
+        `${localizedBook} ${chapter}:${comp.verseNumber}`,
+        analysis?.similarity ?? 0,
         isSameLanguage,
         comp.versions.map(v => ({abbr: v.versionAbbr, text: v.text})),
       ),
-    );
+    ]);
   };
 
   useEffect(() => {
@@ -1065,10 +1090,10 @@ export const VersionComparisonScreen: React.FC<
           with the divergent words highlighted, captured via the view-shot
           pipeline. */}
       <CompareImageModal
-        visible={shareCard !== null}
-        card={shareCard}
+        visible={shareCards.length > 0}
+        cards={shareCards}
         cardSize={Dimensions.get('window').width - 80}
-        onClose={() => setShareCard(null)}
+        onClose={() => setShareCards([])}
       />
 
       {/* Saved Comparisons Modal */}

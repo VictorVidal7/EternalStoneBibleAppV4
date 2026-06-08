@@ -1,5 +1,6 @@
 import {
   buildComparisonCard,
+  buildComparisonCards,
   type ComparisonCardModel,
 } from '../src/lib/comparison/comparisonCard';
 
@@ -62,5 +63,68 @@ describe('buildComparisonCard', () => {
     ]);
     const rebuilt = card.versions[0].tokens.map(tok => tok.text).join('');
     expect(rebuilt).toBe(KJV);
+  });
+});
+
+describe('buildComparisonCards (multi-verse carousel)', () => {
+  const WEB17 = 'For God did not send his Son into the world to condemn';
+  const KJV17 = 'For God sent not his Son into the world to condemn';
+
+  it('builds one card per verse input, in order', () => {
+    const cards = buildComparisonCards([
+      {
+        reference: 'John 3:16',
+        similarity: 80,
+        highlight: true,
+        versions: [
+          {abbr: 'KJV', text: KJV},
+          {abbr: 'WEB', text: WEB},
+        ],
+      },
+      {
+        reference: 'John 3:17',
+        similarity: 90,
+        highlight: true,
+        versions: [
+          {abbr: 'KJV', text: KJV17},
+          {abbr: 'WEB', text: WEB17},
+        ],
+      },
+    ]);
+    expect(cards).toHaveLength(2);
+    expect(cards.map(c => c.reference)).toEqual(['John 3:16', 'John 3:17']);
+    expect(cards.map(c => c.similarity)).toEqual([80, 90]);
+  });
+
+  it('gives each verse its OWN divergent set (per-verse common words)', () => {
+    const cards = buildComparisonCards([
+      {
+        reference: 'John 3:16',
+        similarity: 80,
+        highlight: true,
+        versions: [
+          {abbr: 'KJV', text: KJV},
+          {abbr: 'WEB', text: WEB},
+        ],
+      },
+      {
+        reference: 'John 3:17',
+        similarity: 90,
+        highlight: true,
+        versions: [
+          {abbr: 'KJV', text: KJV17},
+          {abbr: 'WEB', text: WEB17},
+        ],
+      },
+    ]);
+    // v16's KJV divergent word vs v17's KJV divergent word differ — proving the
+    // per-verse common set (not a single shared set across all verses).
+    // v17: KJV "sent" vs WEB "did send" — "not" is shared, only "sent" diverges.
+    expect(divergentTextsOf(cards[0], 0)).toEqual(['begotten']);
+    expect(divergentTextsOf(cards[1], 0)).toEqual(['sent']);
+  });
+
+  it('returns an empty array for no inputs', () => {
+    expect(buildComparisonCards([])).toEqual([]);
   });
 });
