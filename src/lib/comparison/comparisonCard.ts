@@ -78,3 +78,33 @@ export function buildComparisonCard(
     })),
   };
 }
+
+/** One verse's worth of card inputs (Sprint 70, multi-verse carousel). */
+export interface ComparisonCardInput {
+  reference: string;
+  similarity: number;
+  highlight: boolean;
+  versions: ComparisonCardVersionInput[];
+}
+
+/**
+ * Build ONE card per selected verse (Sprint 70). The multi-verse Compare screen
+ * shares a swipeable carousel of cards — one per `VerseComparison` — so this
+ * just maps each verse's inputs through `buildComparisonCard`. Each verse keeps
+ * its OWN common-word set (computed inside `buildComparisonCard`), so the
+ * divergent highlight on every card matches that verse's inline highlight.
+ * Kept as a thin pure mapper so the per-verse cards are unit-tested in isolation
+ * (the impure similarity computation stays in the screen).
+ */
+export function buildComparisonCards(
+  inputs: ComparisonCardInput[],
+): ComparisonCardModel[] {
+  return inputs.map(input =>
+    buildComparisonCard(
+      input.reference,
+      input.similarity,
+      input.highlight,
+      input.versions,
+    ),
+  );
+}

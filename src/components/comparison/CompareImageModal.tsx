@@ -12,7 +12,7 @@
  * Para la gloria de Dios Todopoderoso ✨
  */
 
-import React, {useRef, useState} from 'react';
+import React, {useEffect, useRef, useState} from 'react';
 import {
   View,
   Text,
@@ -20,6 +20,9 @@ import {
   ScrollView,
   TouchableOpacity,
   StyleSheet,
+  useWindowDimensions,
+  type NativeSyntheticEvent,
+  type NativeScrollEvent,
 } from 'react-native';
 import {Ionicons} from '@expo/vector-icons';
 import {LinearGradient} from 'expo-linear-gradient';
@@ -44,8 +47,12 @@ import {
 
 export interface CompareImageModalProps {
   visible: boolean;
-  /** The render-ready card (reference + similarity + tokenized versions). */
-  card: ComparisonCardModel | null;
+  /**
+   * The render-ready cards (reference + similarity + tokenized versions). One
+   * per selected verse — a single-element array in single-verse mode (no
+   * carousel chrome), a swipeable carousel when there are ≥2 (Sprint 70).
+   */
+  cards: ComparisonCardModel[];
   /** Inner card width (px) used for the preview min height. */
   cardSize: number;
   onClose: () => void;
@@ -53,31 +60,56 @@ export interface CompareImageModalProps {
 
 export const CompareImageModal: React.FC<CompareImageModalProps> = ({
   visible,
-  card,
+  cards,
   cardSize,
   onClose,
 }) => {
   const insets = useSafeAreaInsets();
+  const {width: screenWidth} = useWindowDimensions();
   const {colors} = useTheme();
   const {t} = useLanguage();
   const toast = useToast();
 
   const [templateIndex, setTemplateIndex] = useState(0);
   const [isSharing, setIsSharing] = useState(false);
+  // Which verse's card is currently centered in the carousel (Sprint 70) — the
+  // one captured + shared. Reset to the first card whenever the modal opens.
+  const [currentPage, setCurrentPage] = useState(0);
 
   // captureRef accepts a ref to any host component; LinearGradient's generated
   // ref type doesn't match useRef<View>, so we widen (as in ImageShareModal).
+  // One capturable ref PER card so we share exactly the card on screen.
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const previewRef = useRef<any>(null);
+  const cardRefs = useRef<any[]>([]);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const scrollRef = useRef<any>(null);
   const template = FREE_TEMPLATES[templateIndex];
+  const hasCarousel = cards.length > 1;
+
+  // Reopen always starts on the first verse (the carousel retains scroll
+  // position across opens otherwise).
+  useEffect(() => {
+    if (visible) {
+      setCurrentPage(0);
+      requestAnimationFrame(() =>
+        scrollRef.current?.scrollTo({x: 0, animated: false}),
+      );
+    }
+  }, [visible]);
+
+  function handleScrollEnd(e: NativeSyntheticEvent<NativeScrollEvent>) {
+    const page = Math.round(e.nativeEvent.contentOffset.x / screenWidth);
+    setCurrentPage(Math.max(0, Math.min(page, cards.length - 1)));
+  }
 
   async function handleShare() {
-    if (isSharing || !previewRef.current) return;
+    const target = cardRefs.current[currentPage];
+    if (isSharing || !target) return;
     try {
       setIsSharing(true);
       haptics.press();
 
-      const uri = await captureRef(previewRef, {
+      const uri = await captureRef(target, {
         format: 'png',
         quality: 1,
         result: 'tmpfile',
@@ -124,11 +156,13 @@ export const CompareImageModal: React.FC<CompareImageModalProps> = ({
           </Text>
           <TouchableOpacity
             onPress={handleShare}
-            disabled={isSharing || !card}
-            style={isSharing || !card ? styles.disabled : undefined}
+            disabled={isSharing || cards.length === 0}
+            style={
+              isSharing || cards.length === 0 ? styles.disabled : undefined
+            }
             accessibilityRole="button"
             accessibilityLabel={t.versionComparison.shareImage}
-            accessibilityState={{disabled: isSharing || !card}}>
+            accessibilityState={{disabled: isSharing || cards.length === 0}}>
             <Ionicons name="share-outline" size={28} color={colors.primary} />
           </TouchableOpacity>
         </View>
@@ -136,77 +170,130 @@ export const CompareImageModal: React.FC<CompareImageModalProps> = ({
         <ScrollView
           style={styles.flex}
           contentContainerStyle={styles.scrollContent}>
-          {card && (
-            <View style={styles.previewContainer}>
-              <LinearGradient
-                colors={template.colors}
-                style={[styles.card, {minHeight: cardSize}]}
-                ref={previewRef}
-                collapsable={false}
-                start={{x: 0, y: 0}}
-                end={{x: 1, y: 1}}>
-                <Ionicons
-                  name={template.icon as keyof typeof Ionicons.glyphMap}
-                  size={30}
-                  color={template.textColor}
-                  style={styles.watermark}
-                />
-                <Text
-                  style={[styles.cardRef, {color: template.textColor}]}
-                  numberOfLines={2}>
-                  {card.reference}
-                </Text>
-                <Text
-                  style={[styles.cardSimilarity, {color: template.textColor}]}>
-                  {`${card.similarity}% ${t.versionComparison.similarity}`}
-                </Text>
-
-                <View style={styles.cardVersions}>
-                  {card.versions.map((v, vi) => (
-                    <View key={`${v.abbr}-${vi}`} style={styles.cardVersion}>
-                      <View
+          {cards.length > 0 && (
+            <>
+              <ScrollView
+                ref={scrollRef}
+                horizontal
+                pagingEnabled
+                scrollEnabled={hasCarousel}
+                showsHorizontalScrollIndicator={false}
+                onMomentumScrollEnd={handleScrollEnd}>
+                {cards.map((card, ci) => (
+                  <View
+                    key={`${card.reference}-${ci}`}
+                    style={[styles.previewContainer, {width: screenWidth}]}>
+                    <LinearGradient
+                      colors={template.colors}
+                      style={[styles.card, {minHeight: cardSize}]}
+                      ref={el => {
+                        cardRefs.current[ci] = el;
+                      }}
+                      collapsable={false}
+                      start={{x: 0, y: 0}}
+                      end={{x: 1, y: 1}}>
+                      <Ionicons
+                        name={template.icon as keyof typeof Ionicons.glyphMap}
+                        size={30}
+                        color={template.textColor}
+                        style={styles.watermark}
+                      />
+                      <Text
+                        style={[styles.cardRef, {color: template.textColor}]}
+                        numberOfLines={2}>
+                        {card.reference}
+                      </Text>
+                      <Text
                         style={[
-                          styles.abbrBadge,
-                          {borderColor: template.textColor},
+                          styles.cardSimilarity,
+                          {color: template.textColor},
                         ]}>
+                        {`${card.similarity}% ${t.versionComparison.similarity}`}
+                      </Text>
+
+                      <View style={styles.cardVersions}>
+                        {card.versions.map((v, vi) => (
+                          <View
+                            key={`${v.abbr}-${vi}`}
+                            style={styles.cardVersion}>
+                            <View
+                              style={[
+                                styles.abbrBadge,
+                                {borderColor: template.textColor},
+                              ]}>
+                              <Text
+                                style={[
+                                  styles.abbrText,
+                                  {color: template.textColor},
+                                ]}>
+                                {v.abbr}
+                              </Text>
+                            </View>
+                            <Text
+                              style={[
+                                styles.cardText,
+                                {color: template.textColor},
+                              ]}
+                              numberOfLines={4}>
+                              {v.tokens.map((tok, i) =>
+                                card.highlight && tok.divergent ? (
+                                  <Text key={i} style={styles.divergent}>
+                                    {tok.text}
+                                  </Text>
+                                ) : (
+                                  tok.text
+                                ),
+                              )}
+                            </Text>
+                          </View>
+                        ))}
+                      </View>
+
+                      <View style={styles.brand}>
+                        <View
+                          style={[
+                            styles.brandDivider,
+                            {backgroundColor: template.textColor},
+                          ]}
+                        />
                         <Text
                           style={[
-                            styles.abbrText,
+                            styles.brandText,
                             {color: template.textColor},
                           ]}>
-                          {v.abbr}
+                          Eternal Stone Bible
                         </Text>
                       </View>
-                      <Text
-                        style={[styles.cardText, {color: template.textColor}]}
-                        numberOfLines={4}>
-                        {v.tokens.map((tok, i) =>
-                          card.highlight && tok.divergent ? (
-                            <Text key={i} style={styles.divergent}>
-                              {tok.text}
-                            </Text>
-                          ) : (
-                            tok.text
-                          ),
-                        )}
-                      </Text>
-                    </View>
+                    </LinearGradient>
+                  </View>
+                ))}
+              </ScrollView>
+
+              {/* Carousel page indicator — only when there's more than one
+                  verse. The dots track the centered card; the share button
+                  captures whichever card is in view. */}
+              {hasCarousel && (
+                <View
+                  style={styles.pager}
+                  accessibilityRole="adjustable"
+                  accessible
+                  accessibilityLabel={`${currentPage + 1} / ${cards.length}`}>
+                  {cards.map((card, ci) => (
+                    <View
+                      key={`dot-${card.reference}-${ci}`}
+                      style={[
+                        styles.dot,
+                        ci === currentPage && styles.dotActive,
+                        {
+                          backgroundColor:
+                            ci === currentPage ? colors.primary : colors.border,
+                        },
+                      ]}
+                    />
                   ))}
                 </View>
-
-                <View style={styles.brand}>
-                  <View
-                    style={[
-                      styles.brandDivider,
-                      {backgroundColor: template.textColor},
-                    ]}
-                  />
-                  <Text style={[styles.brandText, {color: template.textColor}]}>
-                    Eternal Stone Bible
-                  </Text>
-                </View>
-              </LinearGradient>
-            </View>
+              )}
+            </>
           )}
 
           <View style={styles.options}>
@@ -270,10 +357,25 @@ const styles = StyleSheet.create({
   },
   title: {fontSize: fontSizes.lg, fontWeight: '700'},
   previewContainer: {
-    flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
     padding: spacing.xl,
+  },
+  pager: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    gap: spacing.xs,
+    marginTop: -spacing.sm,
+    marginBottom: spacing.md,
+  },
+  dot: {
+    height: 8,
+    width: 8,
+    borderRadius: 4,
+  },
+  dotActive: {
+    width: 20,
   },
   card: {
     width: '100%',
