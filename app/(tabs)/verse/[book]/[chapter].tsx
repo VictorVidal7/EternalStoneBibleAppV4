@@ -1704,7 +1704,19 @@ export default function VerseReadingScreen() {
                       dualColumns && styles.dualColumn,
                     ]}>
                     <Text style={[styles.verseNumber, numberStyle]}>
-                      {isBeingRead ? '🔊 ' : ''}
+                      {/* "Now playing" cue for the verse being read aloud.
+                          A vector glyph (not the old color emoji 🔊) — Android
+                          mis-measures a color emoji's advance at the start of a
+                          wrapping Text, which clipped the first line's right
+                          edge; an icon-font glyph measures correctly. */}
+                      {isBeingRead ? (
+                        <Ionicons
+                          name="volume-high"
+                          size={fontSizes.sm}
+                          color={effectiveColors.audioHighlight}
+                        />
+                      ) : null}
+                      {isBeingRead ? '  ' : ''}
                       {verse.verse}
                       {'  '}
                     </Text>
