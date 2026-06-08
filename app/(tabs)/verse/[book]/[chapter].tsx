@@ -56,7 +56,11 @@ import {ReaderPreferencesSheet} from '@components/reading/ReaderPreferencesSheet
 import {CrossReferencesSheet} from '@components/reading/CrossReferencesSheet';
 import {AddToCollectionSheet} from '@/features/collections/AddToCollectionSheet';
 import {favoriteVerseId} from '@/features/collections/collections';
-import {spotlightOpacity} from '@/lib/reader/spotlight';
+import {
+  spotlightOpacity,
+  focusVerseOpacity,
+  focusedVerseFromOffsets,
+} from '@/lib/reader/spotlight';
 import {
   useReaderPreferences,
   READER_MARGIN_PADDING,
@@ -264,8 +268,17 @@ export default function VerseReadingScreen() {
   // persisted so the reader's choice sticks.
   const [dualLayout, setDualLayout] = useState<DualLayout>('stacked');
 
-  // Y offset of each verse row within the ScrollView, for audio auto-scroll.
+  // Dedicated Focus mode (Sprint 70): a toolbar toggle that spotlights the verse
+  // centered in the viewport (dimming the rest) for distraction-free reading.
+  // Persisted; reuses the pure spotlight model. `focusedVerse` follows scroll.
+  const [focusMode, setFocusMode] = useState(false);
+  const [focusedVerse, setFocusedVerse] = useState<number | null>(null);
+
+  // Y offset of each verse row within the ScrollView, for audio auto-scroll
+  // (Sprint 70 also reads them to find the centered verse for Focus mode).
   const verseOffsetsRef = useRef<Map<number, number>>(new Map());
+  // Latest scroll Y, so toggling Focus mode ON can spotlight immediately.
+  const lastScrollYRef = useRef(0);
   const {width: windowWidth} = useWindowDimensions();
   const navSideWidth = Math.min(windowWidth * 0.32, 140);
 
@@ -295,6 +308,9 @@ export default function VerseReadingScreen() {
     AsyncStorage.getItem('@reader_dual_layout')
       .then(v => setDualLayout(normalizeDualLayout(v)))
       .catch(() => undefined);
+    AsyncStorage.getItem('@reader_focus_mode')
+      .then(v => setFocusMode(v === '1'))
+      .catch(() => undefined);
   }, []);
 
   function toggleSideBySide() {
@@ -306,6 +322,33 @@ export default function VerseReadingScreen() {
     );
     // The companion chapter is fetched by the effect below, which reacts to
     // sideBySide / the chosen secondary version / the chapter.
+  }
+
+  // Toggle Focus mode (Sprint 70). Turning it ON spotlights the centered verse
+  // immediately (computed from the last known scroll position); turning it OFF
+  // clears the focused verse so every row returns to full opacity. Persisted.
+  function toggleFocusMode() {
+    haptics.tap();
+    const next = !focusMode;
+    setFocusMode(next);
+    AsyncStorage.setItem('@reader_focus_mode', next ? '1' : '0').catch(
+      () => undefined,
+    );
+    if (next) {
+      const offsets = Array.from(verseOffsetsRef.current, ([verse, y]) => ({
+        verse,
+        y,
+      }));
+      setFocusedVerse(
+        focusedVerseFromOffsets(
+          offsets,
+          lastScrollYRef.current,
+          viewportHeightRef.current,
+        ),
+      );
+    } else {
+      setFocusedVerse(null);
+    }
   }
 
   // Switch which translation is shown alongside the one being read, and
@@ -423,6 +466,7 @@ export default function VerseReadingScreen() {
 
   const handleScroll = (e: NativeSyntheticEvent<NativeScrollEvent>) => {
     const {contentOffset, layoutMeasurement, contentSize} = e.nativeEvent;
+    lastScrollYRef.current = contentOffset.y;
     if (contentSize.height <= 0) {
       return;
     }
@@ -435,6 +479,23 @@ export default function VerseReadingScreen() {
     );
     if (pct > maxScrollPctRef.current) {
       maxScrollPctRef.current = pct;
+    }
+
+    // Focus mode (Sprint 70): spotlight the verse crossing the viewport center,
+    // following the scroll. Only re-render when the centered verse changes.
+    if (focusMode) {
+      const offsets = Array.from(verseOffsetsRef.current, ([verse, y]) => ({
+        verse,
+        y,
+      }));
+      const next = focusedVerseFromOffsets(
+        offsets,
+        contentOffset.y,
+        layoutMeasurement.height,
+      );
+      if (next !== focusedVerse) {
+        setFocusedVerse(next);
+      }
     }
   };
 
@@ -1407,6 +1468,35 @@ export default function VerseReadingScreen() {
             </Text>
           </TouchableOpacity>
 
+          <TouchableOpacity
+            style={[
+              styles.toolbarButton,
+              focusMode && {
+                backgroundColor: effectiveColors.primary + '20',
+              },
+            ]}
+            onPress={toggleFocusMode}
+            accessibilityRole="button"
+            accessibilityState={{selected: focusMode}}
+            accessibilityLabel={t.verse.focusMode}>
+            <Ionicons
+              name="scan-outline"
+              size={22}
+              color={focusMode ? effectiveColors.primary : effectiveColors.text}
+            />
+            <Text
+              style={[
+                styles.toolbarButtonText,
+                {
+                  color: focusMode
+                    ? effectiveColors.primary
+                    : effectiveColors.textSecondary,
+                },
+              ]}>
+              {t.verse.focusMode}
+            </Text>
+          </TouchableOpacity>
+
           {secondaryVersion ? (
             <TouchableOpacity
               style={[
@@ -1687,10 +1777,17 @@ export default function VerseReadingScreen() {
                   isBeingRead && styles.verseBeingRead,
                   userHighlight && styles.verseUserHighlightRadius,
                   userHighlight && {backgroundColor: userHighlight},
-                  // Reading focus/spotlight (Sprint 69): dim the verses around
-                  // the active selection so it "pops". Static opacity (not a
-                  // fade) → reduce-motion-safe; full opacity with no selection.
-                  {opacity: spotlightOpacity(verse.verse, selectedVerses)},
+                  // Reading focus/spotlight: dim the verses around the active
+                  // selection (Sprint 69) and, in Focus mode, around the verse
+                  // centered in the viewport (Sprint 70). Static opacity (not a
+                  // fade) → reduce-motion-safe; the dimmer of the two wins, and
+                  // each is a no-op when its driver is inactive.
+                  {
+                    opacity: Math.min(
+                      spotlightOpacity(verse.verse, selectedVerses),
+                      focusVerseOpacity(verse.verse, focusedVerse, focusMode),
+                    ),
+                  },
                 ]}>
                 <View
                   style={[
