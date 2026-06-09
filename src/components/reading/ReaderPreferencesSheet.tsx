@@ -38,6 +38,11 @@ import {
   READER_THEME_ORDER,
   resolveReaderTheme,
 } from '../../styles/readerThemes';
+import {
+  READER_TYPEFACES,
+  READER_FONT_FAMILY_ORDER,
+  resolveTypeface,
+} from '../../lib/reader/typefaces';
 import {useTheme} from '../../hooks/useTheme';
 import {useLanguage} from '../../hooks/useLanguage';
 import {focusTrapProps, a11yHiddenProps} from '@lib/a11y/focusTrap';
@@ -120,10 +125,11 @@ export const ReaderPreferencesSheet: React.FC<ReaderPreferencesSheetProps> = ({
     id: ReaderFontFamily;
     label: string;
     sample: string;
-  }[] = [
-    {id: 'sans', label: t.readerPrefs.fontSans, sample: 'Aa'},
-    {id: 'serif', label: t.readerPrefs.fontSerif, sample: 'Aa'},
-  ];
+  }[] = READER_FONT_FAMILY_ORDER.map(id => ({
+    id,
+    label: t.readerPrefs[READER_TYPEFACES[id].labelKey],
+    sample: READER_TYPEFACES[id].sample,
+  }));
 
   const alignOptions: {id: ReaderTextAlign; icon: string; label: string}[] = [
     {id: 'left', icon: 'list-outline', label: t.readerPrefs.alignLeft},
@@ -457,16 +463,16 @@ export const ReaderPreferencesSheet: React.FC<ReaderPreferencesSheetProps> = ({
   );
 };
 
-/** Resolve a `fontFamily` value safe to set on RN Text per platform. */
+/**
+ * Resolve a reader `fontFamily` value safe to set on RN Text for the current
+ * platform. Thin wrapper over the pure, tested `resolveTypeface` catalog
+ * (Sprint 71) — kept here so existing importers (the reader screen) need no
+ * change. `sans` (and any unknown id) → undefined → the platform's native sans.
+ */
 export function resolveFontFamily(
   family: ReaderFontFamily,
 ): string | undefined {
-  if (family === 'serif') {
-    return Platform.OS === 'ios' ? 'Georgia' : 'serif';
-  }
-  // sans → undefined uses the platform's default system sans, which already
-  // looks native on each OS.
-  return undefined;
+  return resolveTypeface(family, Platform.OS === 'ios' ? 'ios' : 'android');
 }
 
 interface SectionProps {
