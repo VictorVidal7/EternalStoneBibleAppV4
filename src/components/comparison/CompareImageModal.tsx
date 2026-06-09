@@ -12,7 +12,7 @@
  * Para la gloria de Dios Todopoderoso ✨
  */
 
-import React, {useEffect, useRef, useState} from 'react';
+import React, {forwardRef, useEffect, useRef, useState} from 'react';
 import {
   View,
   Text,
@@ -35,7 +35,10 @@ import {useToast} from '@context/ToastContext';
 import {haptics} from '@lib/haptics';
 import {logger} from '@lib/utils/logger';
 import {focusTrapProps} from '@lib/a11y/focusTrap';
-import {FREE_TEMPLATES} from '@/features/share/imageTemplates';
+import {
+  FREE_TEMPLATES,
+  type ShareTemplate,
+} from '@/features/share/imageTemplates';
 import {type ComparisonCardModel} from '@/lib/comparison/comparisonCard';
 import {
   spacing,
@@ -57,6 +60,83 @@ export interface CompareImageModalProps {
   cardSize: number;
   onClose: () => void;
 }
+
+interface CompareCardProps {
+  card: ComparisonCardModel;
+  template: ShareTemplate;
+  similarityLabel: string;
+  /** Min height — the full preview height in the carousel, 0 (natural) in the collage. */
+  minHeight: number;
+}
+
+/**
+ * One comparison card (reference + similarity + each version's tokenized verse,
+ * divergent words highlighted). Forwards its ref to the capturable LinearGradient
+ * host so the same card renders in the swipeable carousel AND, with natural
+ * height, in the off-screen "share all" collage (Sprint 71).
+ */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const CompareCard = forwardRef<any, CompareCardProps>(
+  ({card, template, similarityLabel, minHeight}, ref) => (
+    <LinearGradient
+      colors={template.colors}
+      style={[styles.card, {minHeight}]}
+      ref={ref}
+      collapsable={false}
+      start={{x: 0, y: 0}}
+      end={{x: 1, y: 1}}>
+      <Ionicons
+        name={template.icon as keyof typeof Ionicons.glyphMap}
+        size={30}
+        color={template.textColor}
+        style={styles.watermark}
+      />
+      <Text
+        style={[styles.cardRef, {color: template.textColor}]}
+        numberOfLines={2}>
+        {card.reference}
+      </Text>
+      <Text style={[styles.cardSimilarity, {color: template.textColor}]}>
+        {`${card.similarity}% ${similarityLabel}`}
+      </Text>
+
+      <View style={styles.cardVersions}>
+        {card.versions.map((v, vi) => (
+          <View key={`${v.abbr}-${vi}`} style={styles.cardVersion}>
+            <View style={[styles.abbrBadge, {borderColor: template.textColor}]}>
+              <Text style={[styles.abbrText, {color: template.textColor}]}>
+                {v.abbr}
+              </Text>
+            </View>
+            <Text
+              style={[styles.cardText, {color: template.textColor}]}
+              numberOfLines={4}>
+              {v.tokens.map((tok, i) =>
+                card.highlight && tok.divergent ? (
+                  <Text key={i} style={styles.divergent}>
+                    {tok.text}
+                  </Text>
+                ) : (
+                  tok.text
+                ),
+              )}
+            </Text>
+          </View>
+        ))}
+      </View>
+
+      <View style={styles.brand}>
+        <View
+          style={[styles.brandDivider, {backgroundColor: template.textColor}]}
+        />
+        <Text style={[styles.brandText, {color: template.textColor}]}>
+          Eternal Stone Bible
+        </Text>
+      </View>
+    </LinearGradient>
+  ),
+);
+CompareCard.displayName = 'CompareCard';
 
 export const CompareImageModal: React.FC<CompareImageModalProps> = ({
   visible,
@@ -83,6 +163,10 @@ export const CompareImageModal: React.FC<CompareImageModalProps> = ({
   const cardRefs = useRef<any[]>([]);
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const scrollRef = useRef<any>(null);
+  // The off-screen vertical collage of every card — one capturable host for
+  // the "share all" action (Sprint 71).
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const collageRef = useRef<any>(null);
   const template = FREE_TEMPLATES[templateIndex];
   const hasCarousel = cards.length > 1;
 
@@ -102,8 +186,10 @@ export const CompareImageModal: React.FC<CompareImageModalProps> = ({
     setCurrentPage(Math.max(0, Math.min(page, cards.length - 1)));
   }
 
-  async function handleShare() {
-    const target = cardRefs.current[currentPage];
+  // Capture a single host view → PNG → system share sheet. Shared by the
+  // single-card share (the centered carousel card) and the "share all" collage.
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  async function shareTarget(target: any) {
     if (isSharing || !target) return;
     try {
       setIsSharing(true);
@@ -138,6 +224,13 @@ export const CompareImageModal: React.FC<CompareImageModalProps> = ({
       setIsSharing(false);
     }
   }
+
+  // Share the card currently centered in the carousel (or the only card).
+  const handleShare = () => shareTarget(cardRefs.current[currentPage]);
+
+  // Share ALL verses as one tall PNG — the off-screen collage stacking every
+  // card vertically (Sprint 71). Only offered in multi-verse mode.
+  const handleShareAll = () => shareTarget(collageRef.current);
 
   return (
     <Modal visible={visible} animationType="slide" onRequestClose={onClose}>
@@ -183,88 +276,15 @@ export const CompareImageModal: React.FC<CompareImageModalProps> = ({
                   <View
                     key={`${card.reference}-${ci}`}
                     style={[styles.previewContainer, {width: screenWidth}]}>
-                    <LinearGradient
-                      colors={template.colors}
-                      style={[styles.card, {minHeight: cardSize}]}
+                    <CompareCard
                       ref={el => {
                         cardRefs.current[ci] = el;
                       }}
-                      collapsable={false}
-                      start={{x: 0, y: 0}}
-                      end={{x: 1, y: 1}}>
-                      <Ionicons
-                        name={template.icon as keyof typeof Ionicons.glyphMap}
-                        size={30}
-                        color={template.textColor}
-                        style={styles.watermark}
-                      />
-                      <Text
-                        style={[styles.cardRef, {color: template.textColor}]}
-                        numberOfLines={2}>
-                        {card.reference}
-                      </Text>
-                      <Text
-                        style={[
-                          styles.cardSimilarity,
-                          {color: template.textColor},
-                        ]}>
-                        {`${card.similarity}% ${t.versionComparison.similarity}`}
-                      </Text>
-
-                      <View style={styles.cardVersions}>
-                        {card.versions.map((v, vi) => (
-                          <View
-                            key={`${v.abbr}-${vi}`}
-                            style={styles.cardVersion}>
-                            <View
-                              style={[
-                                styles.abbrBadge,
-                                {borderColor: template.textColor},
-                              ]}>
-                              <Text
-                                style={[
-                                  styles.abbrText,
-                                  {color: template.textColor},
-                                ]}>
-                                {v.abbr}
-                              </Text>
-                            </View>
-                            <Text
-                              style={[
-                                styles.cardText,
-                                {color: template.textColor},
-                              ]}
-                              numberOfLines={4}>
-                              {v.tokens.map((tok, i) =>
-                                card.highlight && tok.divergent ? (
-                                  <Text key={i} style={styles.divergent}>
-                                    {tok.text}
-                                  </Text>
-                                ) : (
-                                  tok.text
-                                ),
-                              )}
-                            </Text>
-                          </View>
-                        ))}
-                      </View>
-
-                      <View style={styles.brand}>
-                        <View
-                          style={[
-                            styles.brandDivider,
-                            {backgroundColor: template.textColor},
-                          ]}
-                        />
-                        <Text
-                          style={[
-                            styles.brandText,
-                            {color: template.textColor},
-                          ]}>
-                          Eternal Stone Bible
-                        </Text>
-                      </View>
-                    </LinearGradient>
+                      card={card}
+                      template={template}
+                      similarityLabel={t.versionComparison.similarity}
+                      minHeight={cardSize}
+                    />
                   </View>
                 ))}
               </ScrollView>
@@ -292,6 +312,31 @@ export const CompareImageModal: React.FC<CompareImageModalProps> = ({
                     />
                   ))}
                 </View>
+              )}
+
+              {/* Share EVERY verse as one tall PNG (the off-screen collage),
+                  in addition to the single-card share in the header. */}
+              {hasCarousel && (
+                <TouchableOpacity
+                  onPress={handleShareAll}
+                  disabled={isSharing}
+                  style={[
+                    styles.shareAllBtn,
+                    {borderColor: colors.primary},
+                    isSharing && styles.disabled,
+                  ]}
+                  accessibilityRole="button"
+                  accessibilityLabel={t.versionComparison.shareAllImage}
+                  accessibilityState={{disabled: isSharing}}>
+                  <Ionicons
+                    name="images-outline"
+                    size={18}
+                    color={colors.primary}
+                  />
+                  <Text style={[styles.shareAllText, {color: colors.primary}]}>
+                    {`${t.versionComparison.shareAllImage} (${cards.length})`}
+                  </Text>
+                </TouchableOpacity>
               )}
             </>
           )}
@@ -336,6 +381,31 @@ export const CompareImageModal: React.FC<CompareImageModalProps> = ({
             </ScrollView>
           </View>
         </ScrollView>
+
+        {/* Off-screen collage: every card stacked vertically, captured as one
+            tall PNG by "share all". Laid out at full size but positioned off the
+            visible area (full opacity so the capture isn't transparent). */}
+        {hasCarousel && (
+          <View style={styles.collageWrap} pointerEvents="none">
+            <View
+              ref={collageRef}
+              collapsable={false}
+              style={[
+                styles.collageInner,
+                {width: screenWidth, backgroundColor: colors.background},
+              ]}>
+              {cards.map((card, ci) => (
+                <CompareCard
+                  key={`collage-${card.reference}-${ci}`}
+                  card={card}
+                  template={template}
+                  similarityLabel={t.versionComparison.similarity}
+                  minHeight={0}
+                />
+              ))}
+            </View>
+          </View>
+        )}
       </View>
     </Modal>
   );
@@ -376,6 +446,30 @@ const styles = StyleSheet.create({
   },
   dotActive: {
     width: 20,
+  },
+  shareAllBtn: {
+    flexDirection: 'row',
+    alignSelf: 'center',
+    alignItems: 'center',
+    gap: spacing.xs,
+    borderWidth: 1.5,
+    borderRadius: borderRadius.full,
+    paddingHorizontal: spacing.lg,
+    paddingVertical: spacing.sm,
+    marginBottom: spacing.md,
+  },
+  shareAllText: {
+    fontSize: fontSizes.sm,
+    fontWeight: '700',
+  },
+  collageWrap: {
+    position: 'absolute',
+    left: -10000,
+    top: 0,
+  },
+  collageInner: {
+    padding: spacing.xl,
+    gap: spacing.lg,
   },
   card: {
     width: '100%',
