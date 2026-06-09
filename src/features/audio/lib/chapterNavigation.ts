@@ -24,7 +24,7 @@
  * Para la gloria de Dios Todopoderoso ✨
  */
 
-import {BIBLE_BOOKS, getBookByName} from '@/constants/bible';
+import {BIBLE_BOOKS, getBookByName, getBookById} from '@/constants/bible';
 import type {SleepTimerState} from '../types/audio';
 
 /** A concrete chapter to load next: a numeric book id + 1-based chapter. */
@@ -107,6 +107,26 @@ export function shouldAdvanceChapter(params: {
  * the immersive never gets hijacked; it only ever rides a continuous-playback
  * boundary crossing.
  */
+/**
+ * The localized title of the chapter that continuous playback will roll into
+ * next — "Salmos 119" / "Psalms 119" (Sprint 73). Returns `null` at the end of
+ * the canon (nothing comes next) so the floating player can hide the "up next"
+ * peek there. Composes {@link chapterLocationFromVerse} + {@link
+ * nextChapterLocation}; localized off the canonical book table.
+ */
+export function nextChapterTitle(
+  verse: VerseChapterRef | undefined | null,
+  language: 'es' | 'en',
+): string | null {
+  const here = chapterLocationFromVerse(verse);
+  const next = here ? nextChapterLocation(here.bookId, here.chapter) : null;
+  if (!next) return null;
+  const book = getBookById(next.bookId);
+  if (!book) return null;
+  const name = language === 'es' ? book.name : book.nameEn;
+  return `${name} ${next.chapter}`;
+}
+
 export function shouldFollowAudioChapter(
   displayed: ChapterLocation | null,
   engine: ChapterLocation | null,

@@ -984,6 +984,7 @@ export const translations = {
       resume: {
         toast: 'Reanudado desde {{ref}}',
       },
+      nextChapterUp: 'Sigue: {{chapter}}',
       immersive: {
         listen: 'Escuchar',
         listening: 'Escuchando',
@@ -2728,6 +2729,7 @@ export const translations = {
       resume: {
         toast: 'Resumed from {{ref}}',
       },
+      nextChapterUp: 'Up next: {{chapter}}',
       immersive: {
         listen: 'Listen',
         listening: 'Listening',

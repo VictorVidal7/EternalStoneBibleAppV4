@@ -93,6 +93,7 @@ export {
   shouldAdvanceChapter,
   chapterLocationFromVerse,
   shouldFollowAudioChapter,
+  nextChapterTitle,
 } from './lib/chapterNavigation';
 export type {ChapterLocation, VerseChapterRef} from './lib/chapterNavigation';
 

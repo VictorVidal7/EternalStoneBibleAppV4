@@ -9,6 +9,7 @@ import {
   shouldAdvanceChapter,
   chapterLocationFromVerse,
   shouldFollowAudioChapter,
+  nextChapterTitle,
 } from '../src/features/audio/lib/chapterNavigation';
 
 describe('nextChapterLocation', () => {
@@ -114,5 +115,34 @@ describe('shouldFollowAudioChapter', () => {
     expect(shouldFollowAudioChapter(null, loc(19, 118))).toBe(false);
     expect(shouldFollowAudioChapter(loc(19, 117), null)).toBe(false);
     expect(shouldFollowAudioChapter(null, null)).toBe(false);
+  });
+});
+
+describe('nextChapterTitle', () => {
+  it('localizes the next chapter title (es/en)', () => {
+    expect(nextChapterTitle({book: 'Salmos', chapter: 118}, 'es')).toBe(
+      'Salmos 119',
+    );
+    expect(nextChapterTitle({book: 'Salmos', chapter: 118}, 'en')).toBe(
+      'Psalms 119',
+    );
+  });
+
+  it('rolls over a book boundary (Génesis 50 → Éxodo 1)', () => {
+    expect(nextChapterTitle({book: 'Génesis', chapter: 50}, 'es')).toBe(
+      'Éxodo 1',
+    );
+    expect(nextChapterTitle({book: 'Genesis', chapter: 50}, 'en')).toBe(
+      'Exodus 1',
+    );
+  });
+
+  it('returns null at the end of the canon and for unknown input', () => {
+    // Apocalipsis 22 is the last chapter.
+    expect(
+      nextChapterTitle({book: 'Apocalipsis', chapter: 22}, 'es'),
+    ).toBeNull();
+    expect(nextChapterTitle({book: 'Nope', chapter: 1}, 'en')).toBeNull();
+    expect(nextChapterTitle(undefined, 'es')).toBeNull();
   });
 });
