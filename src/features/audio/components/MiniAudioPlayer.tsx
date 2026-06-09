@@ -43,6 +43,7 @@ import {haptics} from '@lib/haptics';
 import {useTheme} from '../../../hooks/useTheme';
 import {useLanguage} from '../../../hooks/useLanguage';
 import {getBookByName} from '../../../constants/bible';
+import {nextChapterTitle} from '../lib/chapterNavigation';
 import {useAudioPlayer} from '../context/AudioPlayerContext';
 import {usePremium} from '../../../context/PremiumContext';
 import {AudioControls} from './AudioControls';
@@ -273,6 +274,12 @@ export const MiniAudioPlayer: React.FC<MiniAudioPlayerProps> = ({
   const verseTitle = `${verseBookName} ${currentVerse.chapter}:${currentVerse.verse}`;
   const canGoPrevious = state.currentVerseIndex > 0;
   const canGoNext = state.currentVerseIndex < verses.length - 1;
+  // "Up next" peek — only while continuous playback is ON and a next chapter
+  // exists (hidden at the end of the canon). Makes the ∞ toggle's effect concrete
+  // by naming exactly where audio will roll into (Sprint 73).
+  const nextChapterPeek = autoAdvanceChapter
+    ? nextChapterTitle(currentVerse, language === 'en' ? 'en' : 'es')
+    : null;
 
   const TAB_BAR_HEIGHT = isTabScreen ? (Platform.OS === 'ios' ? 88 : 68) : 0;
   const finalBottomOffset =
@@ -494,6 +501,25 @@ export const MiniAudioPlayer: React.FC<MiniAudioPlayerProps> = ({
                   </TouchableOpacity>
                 </View>
               </View>
+
+              {/* ♾️ Up-next peek (Sprint 73) — names the chapter continuous
+                  playback will roll into; hidden at the end of the canon. */}
+              {nextChapterPeek && (
+                <View style={styles.nextChapterRow}>
+                  <Ionicons name="infinite" size={12} color={colors.primary} />
+                  <Text
+                    style={[
+                      styles.nextChapterText,
+                      {color: colors.textSecondary},
+                    ]}
+                    numberOfLines={1}>
+                    {t.audio.nextChapterUp.replace(
+                      '{{chapter}}',
+                      nextChapterPeek,
+                    )}
+                  </Text>
+                </View>
+              )}
 
               <View style={styles.waveformContainer}>
                 <AudioWaveform
@@ -764,6 +790,17 @@ const styles = StyleSheet.create({
   premiumUpsellText: {
     fontSize: 11,
     fontWeight: '500',
+  },
+  nextChapterRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 5,
+    marginBottom: 2,
+  },
+  nextChapterText: {
+    fontSize: 11,
+    fontWeight: '600',
   },
   waveformContainer: {
     marginBottom: 4,

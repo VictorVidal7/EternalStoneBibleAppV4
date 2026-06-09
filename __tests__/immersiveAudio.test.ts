@@ -5,6 +5,7 @@
 import {
   toAudioVerses,
   isSameAudioChapter,
+  bibleVersesFromAudio,
   VerseLike,
 } from '../src/features/audio/lib/immersiveAudio';
 import type {AudioVerse} from '../src/features/audio/types/audio';
@@ -102,5 +103,50 @@ describe('isSameAudioChapter', () => {
 
   it('rejects when the candidate is empty but the loaded list is not', () => {
     expect(isSameAudioChapter(loaded, [])).toBe(false);
+  });
+});
+
+describe('bibleVersesFromAudio (S73 — immersive cross-chapter follow)', () => {
+  it('reconstructs BibleVerse rows from the engine AudioVerse[] with the live version', () => {
+    const audio: AudioVerse[] = [
+      av('Salmos', 118, 1, 'Alabad a Jehová'),
+      av('Salmos', 118, 2, 'Diga ahora Israel'),
+    ];
+    expect(bibleVersesFromAudio(audio, 'RVR1960')).toEqual([
+      {
+        id: 0,
+        book: 'Salmos',
+        bookNumber: 19,
+        chapter: 118,
+        verse: 1,
+        text: 'Alabad a Jehová',
+        version: 'RVR1960',
+      },
+      {
+        id: 0,
+        book: 'Salmos',
+        bookNumber: 19,
+        chapter: 118,
+        verse: 2,
+        text: 'Diga ahora Israel',
+        version: 'RVR1960',
+      },
+    ]);
+  });
+
+  it('round-trips with toAudioVerses (same chapter detection holds afterwards)', () => {
+    const audio: AudioVerse[] = [av('Génesis', 2, 1), av('Génesis', 2, 2)];
+    const back = toAudioVerses(bibleVersesFromAudio(audio, 'RVR1960'));
+    expect(isSameAudioChapter(audio, back)).toBe(true);
+  });
+
+  it('defends against an unknown book (bookNumber → 0)', () => {
+    expect(bibleVersesFromAudio([av('???', 1, 1)], 'KJV')[0].bookNumber).toBe(
+      0,
+    );
+  });
+
+  it('returns an empty array for empty input', () => {
+    expect(bibleVersesFromAudio([], 'WEB')).toEqual([]);
   });
 });

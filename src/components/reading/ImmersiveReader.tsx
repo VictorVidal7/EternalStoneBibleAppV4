@@ -26,6 +26,7 @@ import {
   StatusBar,
   GestureResponderEvent,
   useWindowDimensions,
+  AccessibilityInfo,
 } from 'react-native';
 import {LinearGradient} from 'expo-linear-gradient';
 import {Ionicons} from '@expo/vector-icons';
@@ -34,21 +35,29 @@ import {BibleVerse} from '../../types/bible';
 import {useTheme} from '../../hooks/useTheme';
 import {useLanguage} from '../../hooks/useLanguage';
 import {usePremium} from '../../context/PremiumContext';
-import {localizedVerseReference} from '../../lib/reading/verseReference';
+import {
+  localizedVerseReference,
+  localizedChapterReference,
+} from '../../lib/reading/verseReference';
 import {useReaderPreferences} from '../../context/ReaderPreferencesContext';
 import {immersiveHighContrastColors} from '../../lib/reading/immersiveTheme';
 import {focusTrapProps, a11yHiddenProps} from '../../lib/a11y/focusTrap';
 import {useScreenReaderListener} from '../../hooks/useScreenReaderListener';
+import {useReducedMotion} from '../../hooks/useReducedMotion';
 import {
   useAudioPlayer,
   toAudioVerses,
   isSameAudioChapter,
+  bibleVersesFromAudio,
   clampVerseIndex,
+  chapterLocationFromVerse,
+  shouldFollowAudioChapter,
 } from '../../features/audio';
 import {
   indexToFraction,
   positionToIndex,
 } from '../../features/audio/lib/scrubMath';
+import {useBibleVersion} from '../../hooks/useBibleVersion';
 
 // Removed unused dimensions
 
@@ -63,7 +72,7 @@ type BackgroundType = 'celestial' | 'minimal' | 'nature' | 'paper';
 const SEEK_THUMB = 16;
 
 export const ImmersiveReader: React.FC<ImmersiveReaderProps> = ({
-  verses,
+  verses: propVerses,
   onClose,
   startIndex = 0,
 }) => {
@@ -75,6 +84,7 @@ export const ImmersiveReader: React.FC<ImmersiveReaderProps> = ({
   const hcColors = immersiveHighContrastColors();
   const {t, language} = useLanguage();
   const {isPremium} = usePremium();
+  const {selectedVersion} = useBibleVersion();
   const {
     verses: audioVersesLoaded,
     state: audioState,
@@ -84,6 +94,26 @@ export const ImmersiveReader: React.FC<ImmersiveReaderProps> = ({
     pause: audioPause,
     setSuppressed,
   } = useAudioPlayer();
+
+  // Internal copy of the chapter on screen. Starts at the host reader's chapter
+  // (the `verses` prop); when continuous audio (S72) auto-advances across a
+  // chapter boundary, the immersive RE-KEYS this to the engine's new chapter so
+  // it keeps following the narration instead of stranding on the old one (S73).
+  const [displayVerses, setDisplayVerses] = useState<BibleVerse[]>(propVerses);
+  // Latch: have we bound to the audio engine for THIS displayed chapter at least
+  // once? The cross-chapter follow only fires after binding, so the immersive is
+  // never hijacked to an unrelated chapter the floating player may already hold.
+  const audioBoundOnceRef = useRef(false);
+  // Re-sync if the host reader changes chapter (immersive reopened on a new
+  // passage) — reset the displayed chapter and clear the bind latch.
+  useEffect(() => {
+    setDisplayVerses(propVerses);
+    audioBoundOnceRef.current = false;
+  }, [propVerses]);
+  // Everything below reads `verses`; it now points at the internal copy so the
+  // whole surface follows the auto-advanced chapter with no further changes.
+  const verses = displayVerses;
+
   const [currentIndex, setCurrentIndex] = useState(startIndex);
   const [autoScroll, setAutoScroll] = useState(false);
   const [showControls, setShowControls] = useState(true);
@@ -91,6 +121,7 @@ export const ImmersiveReader: React.FC<ImmersiveReaderProps> = ({
   // the labeled Close button) while a screen reader is active, so a trapped SR
   // user is never stranded — the exact risk S61 deferred this surface for.
   const screenReaderEnabled = useScreenReaderListener();
+  const reduceMotion = useReducedMotion();
   const [backgroundType] = useState<BackgroundType>('celestial');
   const [fontSize, setFontSize] = useState(22);
 
@@ -138,6 +169,53 @@ export const ImmersiveReader: React.FC<ImmersiveReaderProps> = ({
       setCurrentIndex(prev => (prev === boundIndex ? prev : boundIndex));
     }
   }, [listening, boundIndex, verses.length]);
+
+  // Latch that we've bound to the engine for the current displayed chapter — the
+  // gate for the cross-chapter follow below.
+  useEffect(() => {
+    if (audioBound) audioBoundOnceRef.current = true;
+  }, [audioBound]);
+
+  // ♾️ FOLLOW CONTINUOUS PLAYBACK ACROSS A CHAPTER BOUNDARY (Sprint 73).
+  // When S72's AudioChapterAdvancer auto-advances, the engine swaps its loaded
+  // verses to the next chapter; this re-keys the immersive to that exact chapter
+  // — derived from the engine's own AudioVerse[] (the single source of truth for
+  // what's being narrated) — and snaps to the verse now playing. One-way
+  // (engine → immersive): it fires only on chapter IDENTITY change, never on the
+  // verse index or the user's manual prev/next, so there is no feedback loop.
+  const displayLocation = useMemo(
+    () => chapterLocationFromVerse(displayVerses[0]),
+    [displayVerses],
+  );
+  const engineLocation = useMemo(
+    () => chapterLocationFromVerse(audioVersesLoaded[0]),
+    [audioVersesLoaded],
+  );
+  useEffect(() => {
+    if (!isPremium || !audioBoundOnceRef.current) return;
+    if (!shouldFollowAudioChapter(displayLocation, engineLocation)) return;
+    const nextVerses = bibleVersesFromAudio(
+      audioVersesLoaded,
+      selectedVersion.abbreviation,
+    );
+    if (nextVerses.length === 0) return;
+    setDisplayVerses(nextVerses);
+    setCurrentIndex(
+      clampVerseIndex(audioState.currentVerseIndex, nextVerses.length),
+    );
+    // Announce + flash the chapter banner. `showChapterTransition` is declared
+    // further down; the effect body runs post-commit so it's already bound (kept
+    // out of the deps array to avoid a TDZ at render time — this eslint config
+    // has no react-hooks/exhaustive-deps rule, so no suppression is needed).
+    showChapterTransition(localizedChapterReference(nextVerses[0], language));
+  }, [
+    isPremium,
+    displayLocation,
+    engineLocation,
+    audioVersesLoaded,
+    selectedVersion.abbreviation,
+    language,
+  ]);
 
   // Start (or resume) listening from the verse the reader is on.
   const startListening = useCallback(() => {
@@ -209,6 +287,56 @@ export const ImmersiveReader: React.FC<ImmersiveReaderProps> = ({
   const fadeAnim = useRef(new Animated.Value(1)).current;
   const slideAnim = useRef(new Animated.Value(0)).current;
   const controlsOpacity = useRef(new Animated.Value(1)).current;
+
+  // ♾️ Chapter-transition banner (Sprint 73). When continuous audio auto-advances
+  // into the next chapter, a brief "Salmos 118 · ∞ continuo" banner fades in and
+  // out so the listener knows the immersive crossed a boundary (and keeps going).
+  const [transitionTitle, setTransitionTitle] = useState<string | null>(null);
+  const transitionOpacity = useRef(new Animated.Value(0)).current;
+  const transitionTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const showChapterTransition = useCallback(
+    (title: string) => {
+      // Name the new chapter for screen-reader users — re-keying the verse text
+      // alone wouldn't be announced on a silent, audio-driven change.
+      AccessibilityInfo.announceForAccessibility(
+        t.audio.immersive.chapterAdvanced.replace('{{chapter}}', title),
+      );
+      setTransitionTitle(title);
+      if (transitionTimerRef.current) clearTimeout(transitionTimerRef.current);
+      if (reduceMotion) {
+        // Motion-free: show it statically, then clear after a readable beat.
+        transitionOpacity.setValue(1);
+        transitionTimerRef.current = setTimeout(
+          () => setTransitionTitle(null),
+          1800,
+        );
+        return;
+      }
+      transitionOpacity.setValue(0);
+      Animated.sequence([
+        Animated.timing(transitionOpacity, {
+          toValue: 1,
+          duration: 450,
+          useNativeDriver: true,
+        }),
+        Animated.delay(1100),
+        Animated.timing(transitionOpacity, {
+          toValue: 0,
+          duration: 500,
+          useNativeDriver: true,
+        }),
+      ]).start(({finished}) => {
+        if (finished) setTransitionTitle(null);
+      });
+    },
+    [reduceMotion, transitionOpacity, t.audio.immersive.chapterAdvanced],
+  );
+  useEffect(
+    () => () => {
+      if (transitionTimerRef.current) clearTimeout(transitionTimerRef.current);
+    },
+    [],
+  );
 
   const currentVerse = verses[currentIndex];
 
@@ -569,6 +697,26 @@ export const ImmersiveReader: React.FC<ImmersiveReaderProps> = ({
         </Animated.View>
       </View>
 
+      {/* ♾️ Chapter-transition banner — fades in/out when continuous audio
+          crosses into a new chapter (Sprint 73). pointerEvents none so it never
+          blocks the verse/tap layer; SR-hidden (announced via AccessibilityInfo). */}
+      {transitionTitle && (
+        <Animated.View
+          pointerEvents="none"
+          style={[styles.transitionBanner, {opacity: transitionOpacity}]}
+          {...a11yHiddenProps()}>
+          <View style={styles.transitionPill}>
+            <Text style={styles.transitionTitle}>{transitionTitle}</Text>
+            <View style={styles.transitionBadge}>
+              <Ionicons name="infinite" size={14} color="#cbd5e1" />
+              <Text style={styles.transitionBadgeText}>
+                {t.audio.immersive.continuous}
+              </Text>
+            </View>
+          </View>
+        </Animated.View>
+      )}
+
       {/* Controls Overlay */}
       {showControls && (
         <Animated.View
@@ -803,6 +951,39 @@ const styles = StyleSheet.create({
     fontSize: 13,
     fontWeight: '500',
     marginBottom: 8,
+  },
+  transitionBanner: {
+    position: 'absolute',
+    top: '20%',
+    left: 0,
+    right: 0,
+    alignItems: 'center',
+  },
+  transitionPill: {
+    backgroundColor: 'rgba(0,0,0,0.55)',
+    paddingHorizontal: 24,
+    paddingVertical: 14,
+    borderRadius: 20,
+    alignItems: 'center',
+    gap: 6,
+  },
+  transitionTitle: {
+    color: '#f8fafc',
+    fontSize: 22,
+    fontWeight: '700',
+    letterSpacing: 0.5,
+  },
+  transitionBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 5,
+  },
+  transitionBadgeText: {
+    color: '#cbd5e1',
+    fontSize: 12,
+    fontWeight: '600',
+    letterSpacing: 1,
+    textTransform: 'uppercase',
   },
   progressBar: {
     width: 200,

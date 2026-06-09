@@ -24,13 +24,34 @@
  * Para la gloria de Dios Todopoderoso ✨
  */
 
-import {BIBLE_BOOKS} from '@/constants/bible';
+import {BIBLE_BOOKS, getBookByName, getBookById} from '@/constants/bible';
 import type {SleepTimerState} from '../types/audio';
 
 /** A concrete chapter to load next: a numeric book id + 1-based chapter. */
 export interface ChapterLocation {
   bookId: number;
   chapter: number;
+}
+
+/** Minimal shape we read off a verse to resolve its chapter location. */
+export interface VerseChapterRef {
+  book?: string | null;
+  chapter?: number | null;
+}
+
+/**
+ * Resolve a verse (whose `book` is a localized name like "Salmos"/"Psalms") to a
+ * canonical {@link ChapterLocation}. Returns `null` when the book is unknown or
+ * the chapter is missing, so callers can treat "no location" uniformly. The
+ * book-name lookup is language-agnostic (matches `name` or `nameEn`), so the
+ * reading version's spelling never matters.
+ */
+export function chapterLocationFromVerse(
+  verse: VerseChapterRef | undefined | null,
+): ChapterLocation | null {
+  if (!verse || !verse.book || !verse.chapter) return null;
+  const info = getBookByName(verse.book);
+  return info ? {bookId: info.id, chapter: verse.chapter} : null;
 }
 
 /**
@@ -69,4 +90,57 @@ export function shouldAdvanceChapter(params: {
   if (!params.autoAdvance) return false;
   if (params.sleepMode === 'end-of-chapter') return false;
   return true;
+}
+
+/**
+ * Whether the immersive reader should FOLLOW the audio engine into a chapter it
+ * just auto-advanced into (Sprint 73). The immersive renders its own
+ * `BibleVerse[]`; when continuous playback (S72) crosses a chapter boundary the
+ * engine swaps the loaded chapter underneath it, so the immersive must re-key to
+ * the new chapter to keep following the narration instead of stranding on the
+ * previous one.
+ *
+ * Returns `true` ONLY when the engine holds exactly the NEXT chapter of what the
+ * immersive currently displays — a natural forward advance. This deliberately
+ * rejects an unrelated chapter the floating player might hold (e.g. the user
+ * opened the immersive on a different passage than what was already playing), so
+ * the immersive never gets hijacked; it only ever rides a continuous-playback
+ * boundary crossing.
+ */
+/**
+ * The localized title of the chapter that continuous playback will roll into
+ * next — "Salmos 119" / "Psalms 119" (Sprint 73). Returns `null` at the end of
+ * the canon (nothing comes next) so the floating player can hide the "up next"
+ * peek there. Composes {@link chapterLocationFromVerse} + {@link
+ * nextChapterLocation}; localized off the canonical book table.
+ */
+export function nextChapterTitle(
+  verse: VerseChapterRef | undefined | null,
+  language: 'es' | 'en',
+): string | null {
+  const here = chapterLocationFromVerse(verse);
+  const next = here ? nextChapterLocation(here.bookId, here.chapter) : null;
+  if (!next) return null;
+  const book = getBookById(next.bookId);
+  if (!book) return null;
+  const name = language === 'es' ? book.name : book.nameEn;
+  return `${name} ${next.chapter}`;
+}
+
+export function shouldFollowAudioChapter(
+  displayed: ChapterLocation | null,
+  engine: ChapterLocation | null,
+): boolean {
+  if (!displayed || !engine) return false;
+  // Already on the same chapter — nothing to follow.
+  if (
+    displayed.bookId === engine.bookId &&
+    displayed.chapter === engine.chapter
+  ) {
+    return false;
+  }
+  const next = nextChapterLocation(displayed.bookId, displayed.chapter);
+  return (
+    !!next && next.bookId === engine.bookId && next.chapter === engine.chapter
+  );
 }

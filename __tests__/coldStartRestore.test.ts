@@ -125,4 +125,55 @@ describe('resolveColdStartRestore', () => {
     expect(target?.verses).toHaveLength(10);
     expect(target?.index).toBe(9); // clamped to last verse
   });
+
+  // ── Continuity with S72 continuous playback (S73 regression lock) ──
+  // The position-save effect is chapter-agnostic: when continuous playback
+  // auto-advances (S72), the LAST saved position is simply the chapter it rolled
+  // INTO. So a cold-start restore (S53) resumes the auto-advanced chapter with no
+  // special handling — these lock that integration so neither side can regress.
+  it('restores the chapter continuous playback auto-advanced INTO (same book)', async () => {
+    // Was listening to Salmos 117, continuous rolled into 118; killed at 118:6.
+    const advanced: PlaybackPosition = {
+      book: 'Salmos',
+      chapter: 118,
+      verseIndex: 5,
+      verse: 6,
+      totalVerses: 29,
+      updatedAt: NOW - 30_000,
+    };
+    const target = await resolveColdStartRestore(
+      deps({
+        position: advanced,
+        bookId: 19,
+        getChapter: async (_id, ch) => makeChapter(29, 'Salmos', ch),
+      }),
+    );
+    expect(target?.index).toBe(5);
+    expect(target?.verses[5]).toEqual({
+      book: 'Salmos',
+      chapter: 118,
+      verse: 6,
+      text: 'verse 6',
+    });
+  });
+
+  it('restores across a book boundary continuous playback crossed (Génesis 50 → Éxodo 1)', async () => {
+    const advanced: PlaybackPosition = {
+      book: 'Éxodo',
+      chapter: 1,
+      verseIndex: 3,
+      verse: 4,
+      totalVerses: 22,
+      updatedAt: NOW - 30_000,
+    };
+    const target = await resolveColdStartRestore(
+      deps({
+        position: advanced,
+        bookId: 2,
+        getChapter: async (_id, ch) => makeChapter(22, 'Éxodo', ch),
+      }),
+    );
+    expect(target?.index).toBe(3);
+    expect(target?.verses[0].book).toBe('Éxodo');
+  });
 });

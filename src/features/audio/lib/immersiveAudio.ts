@@ -15,6 +15,8 @@
  * Para la gloria de Dios - Eternal Stone Bible App
  */
 
+import {getBookByName} from '@/constants/bible';
+import type {BibleVerse} from '@/types/bible';
 import type {AudioVerse} from '../types/audio';
 
 /**
@@ -61,4 +63,33 @@ export function isSameAudioChapter(
   const a = loaded[0];
   const b = candidate[0];
   return !!a && !!b && a.book === b.book && a.chapter === b.chapter;
+}
+
+/**
+ * Inverse of {@link toAudioVerses} — reconstruct reader `BibleVerse[]` from the
+ * audio engine's own `AudioVerse[]` (Sprint 73). When continuous playback
+ * auto-advances into the next chapter, the immersive reader re-keys to the
+ * chapter the engine is ALREADY narrating; deriving the verses straight from the
+ * engine (rather than re-querying the DB) keeps a single source of truth — the
+ * immersive shows exactly what is being read aloud, with no risk of a verse-count
+ * mismatch from a different version row.
+ *
+ * `id` is synthetic (these rows aren't a DB read) and `bookNumber` is resolved
+ * from the canonical book table; the immersive only consumes `text` + the
+ * reference fields, so the synthetic id is never surfaced. Empty `book` →
+ * `bookNumber` 0 (defensive, mirrors `toAudioVerses`).
+ */
+export function bibleVersesFromAudio(
+  audio: readonly AudioVerse[],
+  versionAbbr: string,
+): BibleVerse[] {
+  return audio.map(v => ({
+    id: 0,
+    book: v.book,
+    bookNumber: getBookByName(v.book)?.id ?? 0,
+    chapter: v.chapter,
+    verse: v.verse,
+    text: v.text,
+    version: versionAbbr,
+  }));
 }

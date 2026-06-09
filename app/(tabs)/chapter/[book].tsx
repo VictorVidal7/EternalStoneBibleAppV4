@@ -26,6 +26,7 @@ import {useLanguage} from '@hooks/useLanguage';
 import {PremiumSkeleton} from '@components/PremiumSkeleton';
 import {PressableScale} from '@components/ui/PressableScale';
 import {useReadingProgress} from '@context/ReadingProgressContext';
+import {summarizeChapterProgress} from '@lib/reading/chapterProgress';
 // import {AnimatedBottomNav} from '@components/navigation/AnimatedBottomNav';
 
 // Design tokens
@@ -82,6 +83,18 @@ export default function ChapterSelectionScreen() {
 
     return chapterList;
   }, [bookInfo, book]);
+
+  // Book-level reading-progress summary (Sprint 73) — rolls the same per-chapter
+  // values the grid already paints into a "X/N · Y%" header + a one-tap Continue
+  // into the first unfinished chapter. Keyed on the canonical book name (the
+  // progress store's key), recomputes when progress changes.
+  const progressSummary = useMemo(
+    () =>
+      summarizeChapterProgress(bookInfo?.chapters ?? 0, ch =>
+        getChapterProgress(bookInfo?.name || '', String(ch)),
+      ),
+    [bookInfo, getChapterProgress],
+  );
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -296,6 +309,66 @@ export default function ChapterSelectionScreen() {
                 </View>
               </View>
             </View>
+
+            {/* Reading-progress summary + Continue CTA (Sprint 73) — elevates the
+                per-chapter progress the grid already shows into a book overview
+                and a one-tap jump to where the reader left off. */}
+            {progressSummary.total > 0 && (
+              <View style={styles.progressSummary}>
+                <View style={styles.progressSummaryBarTrack}>
+                  <View
+                    style={[
+                      styles.progressSummaryBarFill,
+                      {width: `${progressSummary.percentComplete}%`},
+                    ]}
+                  />
+                </View>
+                <View style={styles.progressSummaryRow}>
+                  <Text style={styles.progressSummaryText}>
+                    {t.bible.chaptersReadOf
+                      .replace(
+                        '{{completed}}',
+                        String(progressSummary.completed),
+                      )
+                      .replace('{{total}}', String(progressSummary.total))
+                      .replace(
+                        '{{percent}}',
+                        String(progressSummary.percentComplete),
+                      )}
+                  </Text>
+                  {progressSummary.nextUnreadChapter !== null && (
+                    <TouchableOpacity
+                      style={styles.continueButton}
+                      onPress={() =>
+                        navigateToVerse(progressSummary.nextUnreadChapter ?? 1)
+                      }
+                      hitSlop={{top: 8, bottom: 8, left: 8, right: 8}}
+                      accessibilityRole="button"
+                      accessibilityLabel={
+                        progressSummary.read > 0
+                          ? t.bible.continueReading
+                          : t.bible.startReading
+                      }
+                      accessibilityHint={t.bible.continueChapterHint.replace(
+                        '{{chapter}}',
+                        String(progressSummary.nextUnreadChapter),
+                      )}>
+                      <Ionicons
+                        name={progressSummary.read > 0 ? 'play' : 'book'}
+                        size={14}
+                        color="#ffffff"
+                      />
+                      <Text style={styles.continueButtonText}>
+                        {progressSummary.read > 0
+                          ? t.bible.continueReading
+                          : t.bible.startReading}{' '}
+                        {progressSummary.nextUnreadChapter}
+                      </Text>
+                    </TouchableOpacity>
+                  )}
+                </View>
+              </View>
+            )}
           </LinearGradient>
         </Animated.View>
 
@@ -567,6 +640,47 @@ const styles = StyleSheet.create({
     fontSize: fontSize.xs,
     color: staticColors.white,
     fontWeight: '600',
+  },
+
+  // Reading-progress summary (Sprint 73)
+  progressSummary: {
+    marginTop: 16,
+  },
+  progressSummaryBarTrack: {
+    height: 6,
+    borderRadius: 3,
+    backgroundColor: staticColors.glassWhite20,
+    overflow: 'hidden',
+  },
+  progressSummaryBarFill: {
+    height: 6,
+    borderRadius: 3,
+    backgroundColor: staticColors.white,
+  },
+  progressSummaryRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginTop: 8,
+  },
+  progressSummaryText: {
+    fontSize: fontSize.sm,
+    color: staticColors.white,
+    fontWeight: '600',
+  },
+  continueButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 5,
+    backgroundColor: staticColors.glassWhite20,
+    paddingHorizontal: spacing.md,
+    paddingVertical: 6,
+    borderRadius: 16,
+  },
+  continueButtonText: {
+    fontSize: fontSize.xs,
+    color: staticColors.white,
+    fontWeight: '700',
   },
 
   // List

@@ -136,6 +136,10 @@ export const translations = {
       tapToView: 'Toca para ver los capítulos de',
       tapToRead: 'Toca para leer el capítulo',
       of: 'de',
+      continueReading: 'Continuar',
+      startReading: 'Comenzar',
+      chaptersReadOf: '{{completed}}/{{total}} · {{percent}}%',
+      continueChapterHint: 'Ir al capítulo {{chapter}}',
       noResultsFound: 'No se encontraron resultados',
       noMatchingBooks: 'No hay libros que coincidan con',
       bookNotFound: 'Libro no encontrado',
@@ -984,10 +988,13 @@ export const translations = {
       resume: {
         toast: 'Reanudado desde {{ref}}',
       },
+      nextChapterUp: 'Sigue: {{chapter}}',
       immersive: {
         listen: 'Escuchar',
         listening: 'Escuchando',
         paused: 'En pausa',
+        continuous: 'Continuo',
+        chapterAdvanced: 'Continuando en {{chapter}}',
       },
     },
 
@@ -1889,6 +1896,10 @@ export const translations = {
       tapToView: 'Tap to view chapters of',
       tapToRead: 'Tap to read chapter',
       of: 'of',
+      continueReading: 'Continue',
+      startReading: 'Start',
+      chaptersReadOf: '{{completed}}/{{total}} · {{percent}}%',
+      continueChapterHint: 'Go to chapter {{chapter}}',
       noResultsFound: 'No results found',
       noMatchingBooks: 'No books match',
       bookNotFound: 'Book not found',
@@ -2726,10 +2737,13 @@ export const translations = {
       resume: {
         toast: 'Resumed from {{ref}}',
       },
+      nextChapterUp: 'Up next: {{chapter}}',
       immersive: {
         listen: 'Listen',
         listening: 'Listening',
         paused: 'Paused',
+        continuous: 'Continuous',
+        chapterAdvanced: 'Now reading {{chapter}}',
       },
     },
 

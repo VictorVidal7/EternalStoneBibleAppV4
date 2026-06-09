@@ -30,6 +30,7 @@ import {useSafeAreaInsets} from 'react-native-safe-area-context';
 import {haptics} from '@lib/haptics';
 import {useTheme} from '@hooks/useTheme';
 import {useLanguage} from '@hooks/useLanguage';
+import {focusTrapProps} from '@lib/a11y/focusTrap';
 import {useToast} from '@context/ToastContext';
 import {useMemoryDeck} from '@context/MemoryDeckContext';
 import {useMemoryGoal} from '@hooks/useMemoryGoal';
@@ -351,7 +352,8 @@ const MilestoneCelebration: React.FC<{
           style={[
             styles.celebrateCard,
             {backgroundColor: colors.surface, transform: [{scale}]},
-          ]}>
+          ]}
+          {...focusTrapProps()}>
           <Text style={styles.celebrateEmoji}>{emoji}</Text>
           <Text style={[styles.celebrateTitle, {color: colors.text}]}>
             {title}
