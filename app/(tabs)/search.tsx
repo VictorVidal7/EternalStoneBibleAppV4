@@ -7,6 +7,7 @@ import {
   FlatList,
   TouchableOpacity,
   RefreshControl,
+  ScrollView,
 } from 'react-native';
 // ♿ Dynamic-type: cap OS font-scale on the search chrome (labels + result rows).
 import {AppText as Text} from '@components/ui/AppText';
@@ -30,6 +31,8 @@ import {
   applyTestamentFilter,
   type TestamentFilter,
 } from '@/lib/search/testamentFilter';
+import {highlightMatches} from '@/lib/search/highlightMatches';
+import {applyBookFilter, booksInResults} from '@/lib/search/bookFilter';
 
 // Tope de filas que devuelve searchVerses; al alcanzarlo el conteo se muestra
 // como "200+" porque puede haber más resultados sin cargar.
@@ -91,6 +94,26 @@ function createThemedStyles(colors: ThemeColors, isDark: boolean) {
       color: colors.textSecondary,
     },
     filterTextActive: {
+      color: staticColors.white,
+    },
+    bookChip: {
+      paddingVertical: 6,
+      paddingHorizontal: 12,
+      borderRadius: 16,
+      backgroundColor: colors.surfaceVariant,
+      borderWidth: 1,
+      borderColor: colors.border,
+    },
+    bookChipActive: {
+      backgroundColor: colors.primary,
+      borderColor: colors.primary,
+    },
+    bookChipText: {
+      fontSize: 13,
+      fontWeight: '600' as const,
+      color: colors.textSecondary,
+    },
+    bookChipTextActive: {
       color: staticColors.white,
     },
     loadingText: {
@@ -188,67 +211,6 @@ function createThemedStyles(colors: ThemeColors, isDark: boolean) {
 }
 
 /**
- * Optimized highlighting function
- */
-function getHighlightedText(text: string, query: string) {
-  if (!query.trim()) return [{text, highlight: false}];
-
-  const words = query
-    .toLowerCase()
-    .split(' ')
-    .filter(w => w.length > 0);
-  const parts: {text: string; highlight: boolean}[] = [];
-  let lastIndex = 0;
-  const lowerText = text.toLowerCase();
-
-  // Encontrar todas las coincidencias
-  const matches: {start: number; end: number}[] = [];
-  words.forEach(word => {
-    let index = 0;
-    while ((index = lowerText.indexOf(word, index)) !== -1) {
-      matches.push({start: index, end: index + word.length});
-      index += word.length;
-    }
-  });
-
-  if (matches.length === 0) return [{text, highlight: false}];
-
-  // Ordenar y fusionar coincidencias superpuestas
-  matches.sort((a, b) => a.start - b.start);
-  const mergedMatches: {start: number; end: number}[] = [];
-  matches.forEach(match => {
-    if (mergedMatches.length === 0) {
-      mergedMatches.push(match);
-    } else {
-      const last = mergedMatches[mergedMatches.length - 1];
-      if (match.start <= last.end) {
-        last.end = Math.max(last.end, match.end);
-      } else {
-        mergedMatches.push(match);
-      }
-    }
-  });
-
-  // Crear partes con highlights
-  mergedMatches.forEach(match => {
-    if (match.start > lastIndex) {
-      parts.push({
-        text: text.slice(lastIndex, match.start),
-        highlight: false,
-      });
-    }
-    parts.push({text: text.slice(match.start, match.end), highlight: true});
-    lastIndex = match.end;
-  });
-
-  if (lastIndex < text.length) {
-    parts.push({text: text.slice(lastIndex), highlight: false});
-  }
-
-  return parts;
-}
-
-/**
  * Memoized list item to prevent re-renders during search
  */
 const VerseResultItem = memo(
@@ -282,7 +244,7 @@ const VerseResultItem = memo(
         </View>
 
         <Text style={themedStyles.resultText} numberOfLines={3}>
-          {getHighlightedText(item.text, searchQuery).map((part, index) => (
+          {highlightMatches(item.text, searchQuery).map((part, index) => (
             <Text
               key={index}
               style={part.highlight ? themedStyles.highlightedText : undefined}>
@@ -308,14 +270,32 @@ export default function SearchScreen() {
   const {selectedVersion} = useBibleVersion();
   const {t} = useLanguage();
   const [searchQuery, setSearchQuery] = useState('');
-  const [results, setResults] = useState<BibleVerse[]>([]);
   const [allResults, setAllResults] = useState<BibleVerse[]>([]);
   const [loading, setLoading] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
   const [hasSearched, setHasSearched] = useState(false);
   const [testamentFilter, setTestamentFilter] =
     useState<TestamentFilter>('all');
+  // Per-book narrowing (Sprint 70): null ⇒ all books. Reset on every new search
+  // and whenever the testament filter changes (the available books change).
+  const [bookFilter, setBookFilter] = useState<string | null>(null);
   const [searchHistory, setSearchHistory] = useState<string[]>([]);
+
+  // Results are DERIVED from the fetched rows through the two filters, so the
+  // displayed list, the count and the book chips can never drift out of sync.
+  const testamentResults = useMemo(
+    () => applyTestamentFilter(allResults, testamentFilter),
+    [allResults, testamentFilter],
+  );
+  const results = useMemo(
+    () => applyBookFilter(testamentResults, bookFilter),
+    [testamentResults, bookFilter],
+  );
+  // Book chips reflect the testament-filtered set (so OT/NT narrows them too).
+  const bookBuckets = useMemo(
+    () => booksInResults(testamentResults),
+    [testamentResults],
+  );
   // Pagination state: hasMore is "the last fetched page filled the page
   // size, so there may be more rows behind the cursor"; loadingMore
   // gates the footer button while the next page is in flight.
@@ -379,7 +359,6 @@ export default function SearchScreen() {
   const performSearch = useCallback(
     async (query: string) => {
       if (query.trim().length < 3) {
-        setResults([]);
         setAllResults([]);
         setHasSearched(false);
         return;
@@ -388,6 +367,8 @@ export default function SearchScreen() {
       setLoading(true);
       setHasSearched(true);
       setLoadingMore(false);
+      // A fresh query may not contain the previously-picked book.
+      setBookFilter(null);
 
       try {
         await bibleDB.initialize();
@@ -397,7 +378,6 @@ export default function SearchScreen() {
           SEARCH_RESULT_LIMIT,
         );
         setAllResults(searchResults);
-        setResults(applyTestamentFilter(searchResults, testamentFilter));
         // A filled page is the only signal we have that more rows may
         // exist behind the cursor; a short page tells us we've hit the
         // end of the result set for this query+version.
@@ -409,14 +389,13 @@ export default function SearchScreen() {
         }
       } catch (error) {
         console.error('Search error:', error);
-        setResults([]);
         setAllResults([]);
         setHasMore(false);
       } finally {
         setLoading(false);
       }
     },
-    [testamentFilter, applyTestamentFilter, selectedVersion.id, recordSearch],
+    [selectedVersion.id, recordSearch],
   );
 
   const loadMoreResults = useCallback(async () => {
@@ -435,9 +414,7 @@ export default function SearchScreen() {
         setHasMore(false);
         return;
       }
-      const combined = [...allResults, ...nextPage];
-      setAllResults(combined);
-      setResults(applyTestamentFilter(combined, testamentFilter));
+      setAllResults(prev => [...prev, ...nextPage]);
       // A short page means we've drained the result set.
       setHasMore(nextPage.length >= SEARCH_RESULT_LIMIT);
     } catch (error) {
@@ -446,15 +423,7 @@ export default function SearchScreen() {
     } finally {
       setLoadingMore(false);
     }
-  }, [
-    loadingMore,
-    hasMore,
-    searchQuery,
-    selectedVersion.id,
-    allResults,
-    applyTestamentFilter,
-    testamentFilter,
-  ]);
+  }, [loadingMore, hasMore, searchQuery, selectedVersion.id, allResults]);
 
   const debouncedSearch = useDebouncedCallback(performSearch, 500);
 
@@ -465,7 +434,13 @@ export default function SearchScreen() {
 
   function handleFilterChange(filter: TestamentFilter) {
     setTestamentFilter(filter);
-    setResults(applyTestamentFilter(allResults, filter));
+    // The available books differ between testaments — reset the narrowing.
+    setBookFilter(null);
+  }
+
+  // Toggle the per-book narrowing: tapping the active book clears it.
+  function handleBookFilter(book: string) {
+    setBookFilter(prev => (prev === book ? null : book));
   }
 
   async function onRefresh() {
@@ -623,6 +598,57 @@ export default function SearchScreen() {
               </Text>
             </TouchableOpacity>
           </View>
+        )}
+
+        {/* Per-book filter (Sprint 70): a contextual chip row of the books
+            actually present in the results (only worth showing when they span
+            more than one book). Tapping a chip narrows; tapping it again clears. */}
+        {hasSearched && bookBuckets.length > 1 && (
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            style={styles.bookFilterRow}
+            contentContainerStyle={styles.bookFilterContent}>
+            <TouchableOpacity
+              style={[
+                themedStyles.bookChip,
+                bookFilter === null && themedStyles.bookChipActive,
+              ]}
+              onPress={() => setBookFilter(null)}
+              accessibilityRole="button"
+              accessibilityState={{selected: bookFilter === null}}>
+              <Text
+                style={[
+                  themedStyles.bookChipText,
+                  bookFilter === null && themedStyles.bookChipTextActive,
+                ]}>
+                {t.search.allBooks}
+              </Text>
+            </TouchableOpacity>
+            {bookBuckets.map(bucket => {
+              const active = bookFilter === bucket.book;
+              return (
+                <TouchableOpacity
+                  key={bucket.bookNumber}
+                  style={[
+                    themedStyles.bookChip,
+                    active && themedStyles.bookChipActive,
+                  ]}
+                  onPress={() => handleBookFilter(bucket.book)}
+                  accessibilityRole="button"
+                  accessibilityState={{selected: active}}
+                  accessibilityLabel={`${bucket.book} (${bucket.count})`}>
+                  <Text
+                    style={[
+                      themedStyles.bookChipText,
+                      active && themedStyles.bookChipTextActive,
+                    ]}>
+                    {bucket.book} ({bucket.count})
+                  </Text>
+                </TouchableOpacity>
+              );
+            })}
+          </ScrollView>
         )}
       </View>
 
@@ -856,6 +882,13 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     marginTop: 12,
     gap: 8,
+  },
+  bookFilterRow: {
+    marginTop: 10,
+  },
+  bookFilterContent: {
+    gap: 8,
+    paddingRight: 16,
   },
   loadingContainer: {
     flex: 1,

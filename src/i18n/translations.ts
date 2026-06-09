@@ -161,6 +161,7 @@ export const translations = {
       searchFor: 'Buscar',
       removeFromHistory: 'Eliminar del historial',
       loadMore: 'Cargar más resultados',
+      allBooks: 'Todos los libros',
       suggestions: ['amor', 'fe', 'esperanza', 'paz', 'salvación'],
       testament: {
         all: 'Todos',
@@ -1894,6 +1895,7 @@ export const translations = {
       searchFor: 'Search',
       removeFromHistory: 'Remove from history',
       loadMore: 'Load more results',
+      allBooks: 'All books',
       suggestions: ['love', 'faith', 'hope', 'peace', 'salvation'],
       testament: {
         all: 'All',
