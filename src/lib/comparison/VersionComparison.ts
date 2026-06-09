@@ -11,6 +11,7 @@ import * as SQLite from 'expo-sqlite';
 import bibleDB from '../database';
 import type {TranslationKeys} from '../../i18n/translations';
 import {normalizeWord, commonWordsForVersions} from './wordContrast';
+import {buildVersionList, type VersionMetaRow} from './versionList';
 
 export interface BibleVersion {
   id: string;
@@ -224,82 +225,20 @@ class VersionComparisonService {
     );
     const existingVersionIds = versesResult.map(r => r.version);
 
-    // 2. Obtener metadatos de 'bible_versions'
-    const query = language
-      ? `SELECT * FROM bible_versions WHERE language = ?`
-      : `SELECT * FROM bible_versions`;
-
-    const params = language ? [language] : [];
-    const metaRows = await this.db!.getAllAsync<{
-      id: string;
-      name: string;
-      abbreviation: string;
-      language: string;
-      description: string;
-      year: number;
-      is_premium: number;
-    }>(query, params);
-
-    const metaMap = new Map(metaRows.map(row => [row.id.toLowerCase(), row]));
-    const metaMapByAbbr = new Map(
-      metaRows.map(row => [row.abbreviation.toLowerCase(), row]),
+    // 2. Obtener metadatos de TODAS las versiones (sin filtrar por idioma).
+    //    Sprint 71: filtrar por idioma aquí descartaba las filas de las
+    //    versiones en inglés (KJV/WEB), que SÍ están en `verses`; al no
+    //    resolver su metadata caían a la entrada genérica y se estampaban con
+    //    el idioma de la UI, haciendo que un par cross-idioma (RVR1960+KJV)
+    //    pareciera "mismo idioma" y encendiera el contraste de palabras.
+    const metaRows = await this.db!.getAllAsync<VersionMetaRow>(
+      'SELECT * FROM bible_versions',
     );
 
-    // 3. Construir la lista final priorizando lo que el usuario "realmente tiene"
-    const finalVersions: BibleVersion[] = [];
-    const processedIds = new Set<string>();
-
-    // Añadir versiones que existen en 'verses'
-    for (const vId of existingVersionIds) {
-      const lowerId = vId.toLowerCase();
-      const meta = metaMap.get(lowerId) || metaMapByAbbr.get(lowerId);
-
-      if (meta) {
-        finalVersions.push({
-          id: meta.id,
-          name: meta.name,
-          abbreviation: meta.abbreviation,
-          language: meta.language,
-          description: meta.description || '',
-          year: meta.year,
-          isPremium: meta.is_premium === 1,
-        });
-        processedIds.add(meta.id.toLowerCase());
-        processedIds.add(meta.abbreviation.toLowerCase());
-      } else {
-        // Si no hay metadatos, crear entrada genérica
-        finalVersions.push({
-          id: vId.toLowerCase(),
-          name: vId,
-          abbreviation: vId,
-          language: language || 'es',
-          description: 'Versión local cargada en memoria',
-          year: new Date().getFullYear(),
-          isPremium: false,
-        });
-        processedIds.add(vId.toLowerCase());
-      }
-    }
-
-    // Opcional: Añadir versiones por defecto que NO están en verses pero podrían interesarle al usuario
-    // (comentado si el usuario solo quiere ver lo que "realmente tiene")
-    /*
-    for (const [id, meta] of metaMap) {
-      if (!processedIds.has(id)) {
-        finalVersions.push({
-          id: meta.id,
-          name: meta.name,
-          abbreviation: meta.abbreviation,
-          language: meta.language,
-          description: (meta.description || '') + ' (No descargada)',
-          year: meta.year,
-          isPremium: meta.is_premium === 1,
-        });
-      }
-    }
-    */
-
-    return finalVersions.sort((a, b) => a.name.localeCompare(b.name));
+    // 3. Construir la lista final (pura) priorizando lo que el usuario
+    //    "realmente tiene"; el idioma de la UI solo se usa como fallback para
+    //    versiones sin metadata.
+    return buildVersionList(existingVersionIds, metaRows, language || 'es');
   }
 
   /**
