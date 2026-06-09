@@ -20,6 +20,8 @@ import {
   Platform,
   ScrollView,
   AccessibilityActionEvent,
+  type StyleProp,
+  type ViewStyle,
 } from 'react-native';
 import {Ionicons} from '@expo/vector-icons';
 import {haptics} from '@lib/haptics';
@@ -286,7 +288,8 @@ export const ReaderPreferencesSheet: React.FC<ReaderPreferencesSheetProps> = ({
                     active={preferences.fontFamily === opt.id}
                     colors={colors}
                     onPress={tap(() => setFontFamily(opt.id))}
-                    accessibilityLabel={opt.label}>
+                    accessibilityLabel={opt.label}
+                    cardStyle={styles.fontFamilyCard}>
                     <Text
                       style={[
                         styles.fontPreviewText,
@@ -495,6 +498,8 @@ interface ChoiceCardProps {
   onPress: () => void;
   accessibilityLabel: string;
   children: React.ReactNode;
+  /** Optional per-instance layout override (e.g. a 2-per-row basis). */
+  cardStyle?: StyleProp<ViewStyle>;
 }
 const ChoiceCard: React.FC<ChoiceCardProps> = ({
   active,
@@ -502,11 +507,13 @@ const ChoiceCard: React.FC<ChoiceCardProps> = ({
   onPress,
   accessibilityLabel,
   children,
+  cardStyle,
 }) => (
   <TouchableOpacity
     style={[
       styles.choiceCard,
       active ? styles.borderActive : styles.borderInactive,
+      cardStyle,
       {
         backgroundColor: colors.background,
         borderColor: active ? colors.primary : colors.border,
@@ -645,6 +652,13 @@ const styles = StyleSheet.create({
   choiceLabel: {
     fontSize: fontSizes.xs,
     fontWeight: '600',
+  },
+  // Typeface cards: a ~half-width basis so the 4 reading faces wrap into a
+  // clean 2×2 grid (the shared flex:1 choiceCard packed 4 onto one line and
+  // pushed the 4th off-screen). flexBasis overrides the basis:0 from flex:1.
+  fontFamilyCard: {
+    flexBasis: '47%',
+    minWidth: 0,
   },
   themeCard: {
     // Explicit height keeps every theme card out of the flex-line "natural
