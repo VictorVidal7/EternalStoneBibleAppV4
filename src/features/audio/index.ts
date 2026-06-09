@@ -17,9 +17,11 @@ export {
 export {
   MiniAudioPlayer,
   AudioResumeRestorer,
+  AudioChapterAdvancer,
   AudioControls,
   AudioProgressBar,
   MiniProgressDots,
+  MiniVerseProgress,
   AudioSpeedSelector,
   VoiceSelector,
   SleepTimerModal,
@@ -78,6 +80,13 @@ export type {PlaybackPosition} from './lib/playbackPosition';
 // Immersive ↔ audio bridge — premium audio in the ImmersiveReader (Sprint 52)
 export {toAudioVerses, isSameAudioChapter} from './lib/immersiveAudio';
 export type {VerseLike} from './lib/immersiveAudio';
+
+// Continuous playback across chapters (Sprint 72)
+export {
+  nextChapterLocation,
+  shouldAdvanceChapter,
+} from './lib/chapterNavigation';
+export type {ChapterLocation} from './lib/chapterNavigation';
 
 // Cold-start player restore (Sprint 53)
 export {resolveColdStartRestore} from './lib/coldStartRestore';

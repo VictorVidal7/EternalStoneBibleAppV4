@@ -52,6 +52,7 @@ const initialPlayerState: AudioPlayerState = {
   selectedLanguage: DEFAULT_LANGUAGE,
   isExpanded: false,
   bottomOffset: 0,
+  chapterEndCount: 0,
 };
 
 const initialSleepTimerState: SleepTimerState = {
@@ -83,6 +84,10 @@ export const AudioPlayerProvider: React.FC<AudioPlayerProviderProps> = ({
   );
   const [verses, setVerses] = useState<AudioVerse[]>([]);
   const [isVisible, setIsVisible] = useState(false);
+  // Continuous playback across chapters (Sprint 72). Defaults ON so listening
+  // flows past the end of a chapter; persisted in AudioPreferences and stopped
+  // explicitly by a "end of chapter" sleep timer.
+  const [autoAdvanceChapter, setAutoAdvanceChapterState] = useState(true);
   // Transient flag for screens that show overlay sheets/modals on top of the
   // mini player — the player draws over them otherwise because its high
   // elevation+zIndex lifts it above the native modal window. Audio keeps
@@ -156,6 +161,11 @@ export const AudioPlayerProvider: React.FC<AudioPlayerProviderProps> = ({
           playbackSpeed: prefs.playbackSpeed || DEFAULT_PLAYBACK_SPEED,
           selectedLanguage: prefs.selectedLanguage || DEFAULT_LANGUAGE,
         }));
+        // Continuous playback (Sprint 72) — only override the ON default when a
+        // boolean was explicitly saved (older prefs without the field keep ON).
+        if (typeof prefs.autoAdvanceChapter === 'boolean') {
+          setAutoAdvanceChapterState(prefs.autoAdvanceChapter);
+        }
 
         // Load voice if saved
         if (prefs.selectedVoiceId) {
@@ -194,6 +204,7 @@ export const AudioPlayerProvider: React.FC<AudioPlayerProviderProps> = ({
             selectedLanguage: DEFAULT_LANGUAGE,
             autoPlay: false,
             continueFromLastPosition: true,
+            autoAdvanceChapter: true,
           };
 
       const updated = {...currentPrefs, ...prefs};
@@ -303,10 +314,15 @@ export const AudioPlayerProvider: React.FC<AudioPlayerProviderProps> = ({
               if (freshSleepTimer.mode === 'end-of-chapter') {
                 cancelSleepTimer();
               }
+              // Stop here; bump chapterEndCount so AudioChapterAdvancer can pick
+              // up continuous playback into the next chapter (Sprint 72). If
+              // continuous is off (or a end-of-chapter timer fired) the advancer
+              // ignores the bump and the player simply stays stopped.
               const finalState = {
                 ...freshState,
                 isPlaying: false,
                 isPaused: false,
+                chapterEndCount: freshState.chapterEndCount + 1,
               };
               stateRef.current = finalState;
               setState(finalState);
@@ -513,6 +529,12 @@ export const AudioPlayerProvider: React.FC<AudioPlayerProviderProps> = ({
     savePreferences({selectedLanguage: language, selectedVoiceId: null});
   }, []);
 
+  const setAutoAdvanceChapter = useCallback((enabled: boolean) => {
+    haptics.tap();
+    setAutoAdvanceChapterState(enabled);
+    savePreferences({autoAdvanceChapter: enabled});
+  }, []);
+
   // ==================== PLAYER UI ====================
 
   const expand = useCallback(() => {
@@ -687,6 +709,9 @@ export const AudioPlayerProvider: React.FC<AudioPlayerProviderProps> = ({
     setPlaybackSpeed,
     setVoice,
     setLanguage,
+
+    autoAdvanceChapter,
+    setAutoAdvanceChapter,
 
     expand,
     collapse,

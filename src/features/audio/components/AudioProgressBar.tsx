@@ -167,6 +167,50 @@ export const MiniProgressDots: React.FC<MiniProgressDotsProps> = ({
   );
 };
 
+// ============== MINI VERSE PROGRESS (collapsed player) ==============
+
+interface MiniVerseProgressProps {
+  currentIndex: number;
+  totalVerses: number;
+}
+
+/**
+ * Compact chapter-position indicator for the COLLAPSED floating player
+ * (Sprint 72). Replaces the older 5-dot sliding window — which only ever showed
+ * a moving 5-verse slice and read as ambiguous — with an at-a-glance thin
+ * progress fill plus an exact "current / total" verse counter. Static width (no
+ * reanimated) keeps it reduce-motion-safe and cheap to update per verse.
+ */
+export const MiniVerseProgress: React.FC<MiniVerseProgressProps> = ({
+  currentIndex,
+  totalVerses,
+}) => {
+  const {colors} = useTheme();
+  const safeTotal = Math.max(totalVerses, 1);
+  const current = Math.min(currentIndex + 1, safeTotal);
+  const progress = (current / safeTotal) * 100;
+
+  return (
+    <View style={styles.verseProgressRow}>
+      <View
+        style={[styles.verseProgressTrack, {backgroundColor: colors.border}]}>
+        <View
+          style={[
+            styles.verseProgressFill,
+            {backgroundColor: colors.primary, width: `${progress}%`},
+          ]}
+        />
+      </View>
+      <Text
+        style={[styles.verseProgressLabel, {color: colors.textTertiary}]}
+        numberOfLines={1}
+        maxFontSizeMultiplier={1.4}>
+        {current}/{totalVerses}
+      </Text>
+    </View>
+  );
+};
+
 const styles = StyleSheet.create({
   container: {
     width: '100%',
@@ -230,6 +274,27 @@ const styles = StyleSheet.create({
     width: 6,
     height: 6,
     borderRadius: 3,
+  },
+  // Mini verse progress (collapsed player) — bar + "current/total" counter
+  verseProgressRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+  },
+  verseProgressTrack: {
+    flex: 1,
+    height: 3,
+    borderRadius: 1.5,
+    overflow: 'hidden',
+  },
+  verseProgressFill: {
+    height: '100%',
+    borderRadius: 1.5,
+  },
+  verseProgressLabel: {
+    fontSize: 10,
+    fontWeight: '600',
+    fontVariant: ['tabular-nums'],
   },
 });
 
