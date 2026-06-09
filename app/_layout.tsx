@@ -65,6 +65,8 @@ import {AudioPlayerProvider} from '@/features/audio/context/AudioPlayerContext';
 import {MiniAudioPlayer} from '@/features/audio/components/MiniAudioPlayer';
 // Cold-start player restore (Sprint 53)
 import {AudioResumeRestorer} from '@/features/audio/components/AudioResumeRestorer';
+// Continuous playback across chapters (Sprint 72)
+import {AudioChapterAdvancer} from '@/features/audio/components/AudioChapterAdvancer';
 // Premium entitlement (Sprint 50 — local feature flag)
 import {PremiumProvider} from '@context/PremiumContext';
 import {
@@ -225,6 +227,9 @@ function AppContent() {
       {/* Re-opens the floating player at the last position on cold start
           (premium, paused) — Sprint 53. Render-less. */}
       <AudioResumeRestorer />
+      {/* Continuous playback: auto-advances into the next chapter when the
+          current one finishes (Sprint 72). Render-less. */}
+      <AudioChapterAdvancer />
     </>
   );
 }

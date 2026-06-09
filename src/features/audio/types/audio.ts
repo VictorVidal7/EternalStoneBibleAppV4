@@ -32,6 +32,14 @@ export interface AudioPlayerState {
   selectedLanguage: AudioLanguage;
   isExpanded: boolean;
   bottomOffset?: number;
+  /**
+   * Monotonic counter bumped each time a chapter finishes playing naturally
+   * (the last verse's narration completes). The `AudioChapterAdvancer`
+   * orchestrator watches this to load + play the next chapter for continuous
+   * playback (Sprint 72); a counter (not a boolean) so back-to-back chapter
+   * ends each fire exactly once.
+   */
+  chapterEndCount: number;
 }
 
 export interface SleepTimerState {
@@ -82,6 +90,14 @@ export interface AudioPlayerContextValue {
   setPlaybackSpeed: (speed: PlaybackSpeed) => void;
   setVoice: (voice: VoiceInfo) => void;
   setLanguage: (language: AudioLanguage) => void;
+
+  /**
+   * Continuous playback — when on, the player auto-advances into the next
+   * chapter once the current one finishes (Sprint 72). Persisted in
+   * `AudioPreferences`; a sleep timer set to "end of chapter" still stops.
+   */
+  autoAdvanceChapter: boolean;
+  setAutoAdvanceChapter: (enabled: boolean) => void;
 
   // Player UI
   expand: () => void;
@@ -158,6 +174,8 @@ export interface AudioPreferences {
   selectedLanguage: AudioLanguage;
   autoPlay: boolean;
   continueFromLastPosition: boolean;
+  /** Continuous playback across chapters (Sprint 72). Defaults to true. */
+  autoAdvanceChapter: boolean;
 }
 
 // ==================== EVENTS ====================

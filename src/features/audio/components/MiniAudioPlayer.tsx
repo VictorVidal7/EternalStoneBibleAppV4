@@ -46,7 +46,7 @@ import {getBookByName} from '../../../constants/bible';
 import {useAudioPlayer} from '../context/AudioPlayerContext';
 import {usePremium} from '../../../context/PremiumContext';
 import {AudioControls} from './AudioControls';
-import {AudioProgressBar, MiniProgressDots} from './AudioProgressBar';
+import {AudioProgressBar, MiniVerseProgress} from './AudioProgressBar';
 import {VerseScrubber} from './VerseScrubber';
 import {AudioWaveform} from './AudioWaveform';
 import {AudioSpeedSelector} from './AudioSpeedSelector';
@@ -98,6 +98,8 @@ export const MiniAudioPlayer: React.FC<MiniAudioPlayerProps> = ({
     cancelSleepTimer,
     setVoice,
     setLanguage,
+    autoAdvanceChapter,
+    setAutoAdvanceChapter,
   } = useAudioPlayer();
   const {isPremium} = usePremium();
 
@@ -350,7 +352,7 @@ export const MiniAudioPlayer: React.FC<MiniAudioPlayerProps> = ({
                     numberOfLines={1}>
                     {verseTitle}
                   </AppText>
-                  <MiniProgressDots
+                  <MiniVerseProgress
                     currentIndex={state.currentVerseIndex}
                     totalVerses={verses.length}
                   />
@@ -442,6 +444,29 @@ export const MiniAudioPlayer: React.FC<MiniAudioPlayerProps> = ({
                   </Text>
                 </View>
                 <View style={styles.headerButtons}>
+                  {/* Continuous-playback toggle — when on, audio rolls into the
+                      next chapter instead of stopping (Sprint 72). */}
+                  <TouchableOpacity
+                    style={styles.headerButton}
+                    onPress={() => {
+                      haptics.tap();
+                      setAutoAdvanceChapter(!autoAdvanceChapter);
+                    }}
+                    hitSlop={{top: 10, bottom: 10, left: 10, right: 10}}
+                    accessibilityRole="button"
+                    accessibilityLabel={t.audio.a11y.autoAdvance}
+                    accessibilityHint={t.audio.a11y.autoAdvanceHint}
+                    accessibilityState={{selected: autoAdvanceChapter}}>
+                    <Ionicons
+                      name="infinite"
+                      size={22}
+                      color={
+                        autoAdvanceChapter
+                          ? colors.primary
+                          : colors.textTertiary
+                      }
+                    />
+                  </TouchableOpacity>
                   {/* Collapse Button */}
                   <TouchableOpacity
                     style={styles.headerButton}

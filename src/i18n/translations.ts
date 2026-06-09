@@ -966,6 +966,9 @@ export const translations = {
         expandHint: 'Abre los controles completos del reproductor',
         collapse: 'Contraer reproductor',
         close: 'Cerrar reproductor',
+        autoAdvance: 'Reproducción continua',
+        autoAdvanceHint:
+          'Al terminar el capítulo, continúa automáticamente con el siguiente',
       },
       scrub: {
         preview: 'Versículo {{n}} de {{total}}',
@@ -2699,6 +2702,9 @@ export const translations = {
         expandHint: 'Opens the full player controls',
         collapse: 'Collapse player',
         close: 'Close player',
+        autoAdvance: 'Continuous playback',
+        autoAdvanceHint:
+          'When the chapter ends, automatically continue with the next one',
       },
       scrub: {
         preview: 'Verse {{n}} of {{total}}',
