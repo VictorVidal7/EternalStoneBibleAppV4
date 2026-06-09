@@ -20,8 +20,9 @@ import React, {
 } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {ReaderTheme, isReaderTheme} from '../styles/readerThemes';
+import {ReaderFontFamily, isReaderFontFamily} from '../lib/reader/typefaces';
 
-export type ReaderFontFamily = 'sans' | 'serif';
+export type {ReaderFontFamily};
 export type ReaderTextAlign = 'left' | 'justify';
 export type ReaderMargin = 'small' | 'medium' | 'large';
 export type {ReaderTheme};
@@ -104,6 +105,9 @@ export const ReaderPreferencesProvider: React.FC<
               ...prev,
               ...parsed,
               theme: isReaderTheme(parsed.theme) ? parsed.theme : prev.theme,
+              fontFamily: isReaderFontFamily(parsed.fontFamily)
+                ? parsed.fontFamily
+                : prev.fontFamily,
             }));
           } catch {
             // Corrupt blob — fall through to defaults.
