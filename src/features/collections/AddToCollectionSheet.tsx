@@ -25,6 +25,7 @@ import {useLanguage} from '@hooks/useLanguage';
 import {haptics} from '@lib/haptics';
 import {AppText} from '@components/ui/AppText';
 import {useFavorites} from '@context/FavoritesContext';
+import {focusTrapProps, a11yHiddenProps} from '@lib/a11y/focusTrap';
 import {
   collectionNames,
   addToCollection,
@@ -88,10 +89,17 @@ export const AddToCollectionSheet: React.FC<Props> = ({
       transparent
       animationType="fade"
       onRequestClose={onClose}>
-      <Pressable style={styles.backdrop} onPress={onClose}>
+      <View style={styles.backdrop}>
+        {/* Decorative dismiss layer — a sibling (not a parent) of the sheet so
+            screen readers can skip it without hiding the sheet's contents. */}
         <Pressable
+          style={styles.backdropTouch}
+          onPress={onClose}
+          {...a11yHiddenProps()}
+        />
+        <View
           style={[styles.sheet, {backgroundColor: colors.card}]}
-          onPress={e => e.stopPropagation()}>
+          {...focusTrapProps()}>
           <View style={styles.handle} />
           <AppText
             scaleRole="display"
@@ -178,8 +186,8 @@ export const AddToCollectionSheet: React.FC<Props> = ({
               {tc.done}
             </AppText>
           </TouchableOpacity>
-        </Pressable>
-      </Pressable>
+        </View>
+      </View>
     </Modal>
   );
 };
@@ -191,6 +199,9 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: staticColors.overlayBlack30,
     justifyContent: 'flex-end',
+  },
+  backdropTouch: {
+    ...StyleSheet.absoluteFillObject,
   },
   sheet: {
     borderTopLeftRadius: borderRadius.xl,

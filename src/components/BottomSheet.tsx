@@ -24,6 +24,7 @@ import {
   staticColors,
 } from '../styles/designTokens';
 import {useTheme} from '../hooks/useTheme';
+import {focusTrapProps, a11yHiddenProps} from '../lib/a11y/focusTrap';
 
 const {height: SCREEN_HEIGHT} = Dimensions.get('window');
 const THRESHOLD = 100; // Distancia mínima para cerrar
@@ -134,11 +135,13 @@ export const BottomSheet: React.FC<BottomSheetProps> = ({
       animationType="none"
       statusBarTranslucent
       onRequestClose={closeSheet}>
-      {/* Backdrop */}
+      {/* Backdrop — decorative dismiss layer, hidden from screen readers (the
+          sheet's own close controls + the system back gesture stay reachable). */}
       <TouchableOpacity
         style={styles.backdrop}
         activeOpacity={1}
-        onPress={enableBackdropDismiss ? closeSheet : undefined}>
+        onPress={enableBackdropDismiss ? closeSheet : undefined}
+        {...a11yHiddenProps()}>
         <Animated.View
           style={[
             styles.backdropOverlay,
@@ -153,7 +156,7 @@ export const BottomSheet: React.FC<BottomSheetProps> = ({
         />
       </TouchableOpacity>
 
-      {/* Bottom Sheet */}
+      {/* Bottom Sheet — content container traps screen-reader focus inside it. */}
       <Animated.View
         style={[
           styles.sheetContainer,
@@ -162,6 +165,7 @@ export const BottomSheet: React.FC<BottomSheetProps> = ({
             transform: [{translateY}],
           },
         ]}
+        {...focusTrapProps()}
         {...(enableGestureDismiss ? panResponder.panHandlers : {})}>
         {useBlur ? (
           <BlurView
