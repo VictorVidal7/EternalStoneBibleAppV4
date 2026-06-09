@@ -55,6 +55,7 @@ import {usePremium} from '@context/PremiumContext';
 import {getLastPosition, isResumable, useAudioPlayer} from '@/features/audio';
 import type {PlaybackPosition} from '@/features/audio';
 import {getStudyConnections} from '@/features/study/studyConnections';
+import {timeOfDay, homeNudge} from '@/lib/home/homeGreeting';
 
 // Componentes Celestial
 import {
@@ -386,6 +387,39 @@ export default function HomeScreen() {
     );
   }
 
+  // Personalized hero (Sprint 71): a time-of-day greeting + a single
+  // contextual nudge (active streak → continue reading → today's verse),
+  // both derived from a pure tested module.
+  const greetingKey = timeOfDay(new Date().getHours());
+  const heroGreeting =
+    greetingKey === 'morning'
+      ? t.home.greetingMorning
+      : greetingKey === 'afternoon'
+        ? t.home.greetingAfternoon
+        : greetingKey === 'evening'
+          ? t.home.greetingEvening
+          : t.home.greetingNight;
+  const nudge = homeNudge({
+    streak: userStats.streak,
+    hasLastRead: !!lastRead,
+  });
+  const heroSubtitle =
+    nudge.kind === 'streak'
+      ? t.home.nudgeStreak.replace('{{days}}', String(nudge.days))
+      : nudge.kind === 'continue' && lastRead
+        ? t.home.nudgeContinue.replace(
+            '{{book}}',
+            (() => {
+              const info = getBookByName(lastRead.book);
+              return info
+                ? language === 'en'
+                  ? info.nameEn
+                  : info.name
+                : lastRead.book;
+            })(),
+          )
+        : t.home.nudgeDaily;
+
   return (
     <View style={styles.container}>
       {/* Gradiente de fondo */}
@@ -440,9 +474,9 @@ export default function HomeScreen() {
               <View style={styles.heroHeader}>
                 <Ionicons name="book" size={28} color="#ffffff" />
                 <View style={styles.heroTextContainer}>
-                  <Text style={styles.heroTitle}>{t.home.welcomeShort}</Text>
-                  <Text style={styles.heroSubtitle}>
-                    {t.home.journeyContinues}
+                  <Text style={styles.heroTitle}>{heroGreeting}</Text>
+                  <Text style={styles.heroSubtitle} numberOfLines={2}>
+                    {heroSubtitle}
                   </Text>
                 </View>
               </View>
