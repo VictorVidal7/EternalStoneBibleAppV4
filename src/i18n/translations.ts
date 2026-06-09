@@ -1326,6 +1326,7 @@ export const translations = {
       contrastSameLangHint:
         'Funciona mejor entre versiones del mismo idioma (KJV ↔ WEB)',
       shareImage: 'Compartir como imagen',
+      shareAllImage: 'Compartir todas',
       observations: 'Observaciones',
       verse: 'Verso',
       words: 'palabras',
@@ -3047,6 +3048,7 @@ export const translations = {
       contrastSameLangHint:
         'Works best between versions in the same language (KJV ↔ WEB)',
       shareImage: 'Share as image',
+      shareAllImage: 'Share all',
       observations: 'Observations',
       verse: 'Verse',
       words: 'words',
