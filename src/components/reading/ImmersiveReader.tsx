@@ -43,12 +43,16 @@ import {
   useAudioPlayer,
   toAudioVerses,
   isSameAudioChapter,
+  bibleVersesFromAudio,
   clampVerseIndex,
+  chapterLocationFromVerse,
+  shouldFollowAudioChapter,
 } from '../../features/audio';
 import {
   indexToFraction,
   positionToIndex,
 } from '../../features/audio/lib/scrubMath';
+import {useBibleVersion} from '../../hooks/useBibleVersion';
 
 // Removed unused dimensions
 
@@ -63,7 +67,7 @@ type BackgroundType = 'celestial' | 'minimal' | 'nature' | 'paper';
 const SEEK_THUMB = 16;
 
 export const ImmersiveReader: React.FC<ImmersiveReaderProps> = ({
-  verses,
+  verses: propVerses,
   onClose,
   startIndex = 0,
 }) => {
@@ -75,6 +79,7 @@ export const ImmersiveReader: React.FC<ImmersiveReaderProps> = ({
   const hcColors = immersiveHighContrastColors();
   const {t, language} = useLanguage();
   const {isPremium} = usePremium();
+  const {selectedVersion} = useBibleVersion();
   const {
     verses: audioVersesLoaded,
     state: audioState,
@@ -84,6 +89,26 @@ export const ImmersiveReader: React.FC<ImmersiveReaderProps> = ({
     pause: audioPause,
     setSuppressed,
   } = useAudioPlayer();
+
+  // Internal copy of the chapter on screen. Starts at the host reader's chapter
+  // (the `verses` prop); when continuous audio (S72) auto-advances across a
+  // chapter boundary, the immersive RE-KEYS this to the engine's new chapter so
+  // it keeps following the narration instead of stranding on the old one (S73).
+  const [displayVerses, setDisplayVerses] = useState<BibleVerse[]>(propVerses);
+  // Latch: have we bound to the audio engine for THIS displayed chapter at least
+  // once? The cross-chapter follow only fires after binding, so the immersive is
+  // never hijacked to an unrelated chapter the floating player may already hold.
+  const audioBoundOnceRef = useRef(false);
+  // Re-sync if the host reader changes chapter (immersive reopened on a new
+  // passage) — reset the displayed chapter and clear the bind latch.
+  useEffect(() => {
+    setDisplayVerses(propVerses);
+    audioBoundOnceRef.current = false;
+  }, [propVerses]);
+  // Everything below reads `verses`; it now points at the internal copy so the
+  // whole surface follows the auto-advanced chapter with no further changes.
+  const verses = displayVerses;
+
   const [currentIndex, setCurrentIndex] = useState(startIndex);
   const [autoScroll, setAutoScroll] = useState(false);
   const [showControls, setShowControls] = useState(true);
@@ -138,6 +163,47 @@ export const ImmersiveReader: React.FC<ImmersiveReaderProps> = ({
       setCurrentIndex(prev => (prev === boundIndex ? prev : boundIndex));
     }
   }, [listening, boundIndex, verses.length]);
+
+  // Latch that we've bound to the engine for the current displayed chapter — the
+  // gate for the cross-chapter follow below.
+  useEffect(() => {
+    if (audioBound) audioBoundOnceRef.current = true;
+  }, [audioBound]);
+
+  // ♾️ FOLLOW CONTINUOUS PLAYBACK ACROSS A CHAPTER BOUNDARY (Sprint 73).
+  // When S72's AudioChapterAdvancer auto-advances, the engine swaps its loaded
+  // verses to the next chapter; this re-keys the immersive to that exact chapter
+  // — derived from the engine's own AudioVerse[] (the single source of truth for
+  // what's being narrated) — and snaps to the verse now playing. One-way
+  // (engine → immersive): it fires only on chapter IDENTITY change, never on the
+  // verse index or the user's manual prev/next, so there is no feedback loop.
+  const displayLocation = useMemo(
+    () => chapterLocationFromVerse(displayVerses[0]),
+    [displayVerses],
+  );
+  const engineLocation = useMemo(
+    () => chapterLocationFromVerse(audioVersesLoaded[0]),
+    [audioVersesLoaded],
+  );
+  useEffect(() => {
+    if (!isPremium || !audioBoundOnceRef.current) return;
+    if (!shouldFollowAudioChapter(displayLocation, engineLocation)) return;
+    const nextVerses = bibleVersesFromAudio(
+      audioVersesLoaded,
+      selectedVersion.abbreviation,
+    );
+    if (nextVerses.length === 0) return;
+    setDisplayVerses(nextVerses);
+    setCurrentIndex(
+      clampVerseIndex(audioState.currentVerseIndex, nextVerses.length),
+    );
+  }, [
+    isPremium,
+    displayLocation,
+    engineLocation,
+    audioVersesLoaded,
+    selectedVersion.abbreviation,
+  ]);
 
   // Start (or resume) listening from the verse the reader is on.
   const startListening = useCallback(() => {

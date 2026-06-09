@@ -77,16 +77,24 @@ export {
 } from './lib/playbackPosition';
 export type {PlaybackPosition} from './lib/playbackPosition';
 
-// Immersive ↔ audio bridge — premium audio in the ImmersiveReader (Sprint 52)
-export {toAudioVerses, isSameAudioChapter} from './lib/immersiveAudio';
+// Immersive ↔ audio bridge — premium audio in the ImmersiveReader (Sprint 52);
+// bibleVersesFromAudio added in S73 for immersive cross-chapter following.
+export {
+  toAudioVerses,
+  isSameAudioChapter,
+  bibleVersesFromAudio,
+} from './lib/immersiveAudio';
 export type {VerseLike} from './lib/immersiveAudio';
 
-// Continuous playback across chapters (Sprint 72)
+// Continuous playback across chapters (Sprint 72); cross-chapter following
+// helpers added in S73 (chapterLocationFromVerse / shouldFollowAudioChapter).
 export {
   nextChapterLocation,
   shouldAdvanceChapter,
+  chapterLocationFromVerse,
+  shouldFollowAudioChapter,
 } from './lib/chapterNavigation';
-export type {ChapterLocation} from './lib/chapterNavigation';
+export type {ChapterLocation, VerseChapterRef} from './lib/chapterNavigation';
 
 // Cold-start player restore (Sprint 53)
 export {resolveColdStartRestore} from './lib/coldStartRestore';
