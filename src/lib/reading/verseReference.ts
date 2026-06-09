@@ -33,3 +33,18 @@ export function localizedVerseReference(
   const name = info ? (language === 'es' ? info.name : info.nameEn) : v.book;
   return `${name} ${v.chapter}:${v.verse}`;
 }
+
+/**
+ * Like {@link localizedVerseReference} but chapter-level — "Genesis 1" /
+ * "Génesis 1" (no verse). Used by the immersive reader's chapter-transition
+ * banner when continuous audio crosses into a new chapter (Sprint 73).
+ */
+export function localizedChapterReference(
+  v: {book: string; chapter: number} | undefined | null,
+  language: 'es' | 'en',
+): string {
+  if (!v) return '';
+  const info = getBookByName(v.book);
+  const name = info ? (language === 'es' ? info.name : info.nameEn) : v.book;
+  return `${name} ${v.chapter}`;
+}

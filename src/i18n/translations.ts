@@ -988,6 +988,8 @@ export const translations = {
         listen: 'Escuchar',
         listening: 'Escuchando',
         paused: 'En pausa',
+        continuous: 'Continuo',
+        chapterAdvanced: 'Continuando en {{chapter}}',
       },
     },
 
@@ -2730,6 +2732,8 @@ export const translations = {
         listen: 'Listen',
         listening: 'Listening',
         paused: 'Paused',
+        continuous: 'Continuous',
+        chapterAdvanced: 'Now reading {{chapter}}',
       },
     },
 

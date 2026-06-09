@@ -1,4 +1,7 @@
-import {localizedVerseReference} from '../src/lib/reading/verseReference';
+import {
+  localizedVerseReference,
+  localizedChapterReference,
+} from '../src/lib/reading/verseReference';
 
 describe('localizedVerseReference', () => {
   it('localizes a Spanish-stored book name to English when language=en', () => {
@@ -36,5 +39,24 @@ describe('localizedVerseReference', () => {
   it('returns an empty string for a missing verse', () => {
     expect(localizedVerseReference(undefined, 'en')).toBe('');
     expect(localizedVerseReference(null, 'es')).toBe('');
+  });
+});
+
+describe('localizedChapterReference', () => {
+  it('formats a chapter-level reference without the verse', () => {
+    expect(
+      localizedChapterReference({book: 'Salmos', chapter: 118}, 'es'),
+    ).toBe('Salmos 118');
+    expect(
+      localizedChapterReference({book: 'Salmos', chapter: 118}, 'en'),
+    ).toBe('Psalms 118');
+  });
+
+  it('falls back to the raw name and handles a missing verse', () => {
+    expect(localizedChapterReference({book: 'Nephi', chapter: 2}, 'en')).toBe(
+      'Nephi 2',
+    );
+    expect(localizedChapterReference(undefined, 'en')).toBe('');
+    expect(localizedChapterReference(null, 'es')).toBe('');
   });
 });
