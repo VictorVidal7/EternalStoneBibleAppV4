@@ -97,35 +97,16 @@ import {
   swapVersions,
   type DualLayout,
 } from '@lib/reading/secondaryVersion';
+import {
+  formatVerseList,
+  buildPassageReference,
+} from '@lib/reading/passageReference';
 import {hitSlopToMinTarget} from '@lib/a11y/touchTarget';
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
 import {useWindowDimensions} from 'react-native';
 
 // The chapter nav row is ~40dp tall; expand its tap target to the 48dp minimum.
 const NAV_HIT_SLOP = hitSlopToMinTarget(40);
-
-/**
- * Builds a compact verse list, collapsing consecutive runs into ranges.
- * e.g. [16] -> "16", [16,17,18] -> "16-18", [1,4,5] -> "1,4-5".
- */
-function formatVerseList(nums: number[]): string {
-  if (nums.length === 0) return '';
-  const sorted = [...nums].sort((a, b) => a - b);
-  const parts: string[] = [];
-  let runStart = sorted[0];
-  let prev = sorted[0];
-  for (let i = 1; i <= sorted.length; i++) {
-    const current = sorted[i];
-    if (current === prev + 1) {
-      prev = current;
-      continue;
-    }
-    parts.push(runStart === prev ? `${runStart}` : `${runStart}-${prev}`);
-    runStart = current;
-    prev = current;
-  }
-  return parts.join(',');
-}
 
 export default function VerseReadingScreen() {
   const router = useRouter();
@@ -965,11 +946,11 @@ export default function VerseReadingScreen() {
 
   // Reference label for the selected verses, e.g. "John 3:16" or "John 3:16-18"
   function getSelectedReference(): string {
-    const sortedNums = Array.from(selectedVerses).sort((a, b) => a - b);
-    if (sortedNums.length === 0) {
-      return `${localizedBookName} ${chapterNum}`;
-    }
-    return `${localizedBookName} ${chapterNum}:${formatVerseList(sortedNums)}`;
+    return buildPassageReference(
+      localizedBookName,
+      chapterNum,
+      Array.from(selectedVerses),
+    );
   }
 
   // Copy selected verses
@@ -2243,6 +2224,8 @@ export default function VerseReadingScreen() {
           visible={imageModalVisible}
           verseText={selectedVerses.size > 0 ? getImageVersesText() : ''}
           verseReference={getSelectedReference()}
+          versionAbbr={selectedVersion.abbreviation}
+          verseCount={selectedVerses.size}
           hasSelection={selectedVerses.size > 0}
           cardSize={windowWidth - spacing.xl * 2}
           onClose={() => setImageModalVisible(false)}

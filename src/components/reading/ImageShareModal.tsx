@@ -46,6 +46,7 @@ import {
   type ShareAspect,
   type ShareTemplate,
 } from '../../features/share/imageTemplates';
+import {passageMetaLine} from '@lib/reading/passageReference';
 import {
   spacing,
   borderRadius,
@@ -59,6 +60,10 @@ export interface ImageShareModalProps {
   verseText: string;
   /** Pretty reference shown under the verse text (e.g. "John 3:16"). */
   verseReference: string;
+  /** Version abbreviation credited on the card (e.g. "RVR1960"). */
+  versionAbbr?: string;
+  /** How many verses are selected — appended to the version when > 1. */
+  verseCount?: number;
   /** True when the user has at least one verse selected — drives the preview. */
   hasSelection: boolean;
   /** Inner card width (in px) used for the verse preview minHeight. */
@@ -70,6 +75,8 @@ export const ImageShareModal: React.FC<ImageShareModalProps> = ({
   visible,
   verseText,
   verseReference,
+  versionAbbr,
+  verseCount = 0,
   hasSelection,
   cardSize,
   onClose,
@@ -256,6 +263,16 @@ export const ImageShareModal: React.FC<ImageShareModalProps> = ({
                   ]}>
                   {verseReference}
                 </Text>
+                {hasSelection && versionAbbr ? (
+                  <Text
+                    style={[styles.brandMeta, {color: activeTheme.textColor}]}>
+                    {passageMetaLine(
+                      versionAbbr,
+                      verseCount,
+                      t.verse.imageVersesWord,
+                    )}
+                  </Text>
+                ) : null}
               </View>
             </LinearGradient>
           </View>
@@ -589,6 +606,13 @@ const styles = StyleSheet.create({
     marginTop: 4,
     fontWeight: '500',
     opacity: 0.7,
+  },
+  brandMeta: {
+    fontSize: fontSizes.xs,
+    marginTop: 2,
+    fontWeight: '600',
+    letterSpacing: 0.5,
+    opacity: 0.55,
   },
   optionsContainer: {
     padding: spacing.xl,
