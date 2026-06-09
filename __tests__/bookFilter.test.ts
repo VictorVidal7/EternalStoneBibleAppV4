@@ -1,4 +1,9 @@
-import {booksInResults, applyBookFilter} from '../src/lib/search/bookFilter';
+import {
+  booksInResults,
+  applyBookFilter,
+  shouldFetchFullBook,
+  resolveDisplayedResults,
+} from '../src/lib/search/bookFilter';
 
 type Row = {book: string; bookNumber: number};
 
@@ -39,5 +44,57 @@ describe('applyBookFilter', () => {
 
   it('yields nothing for a book not in the results', () => {
     expect(applyBookFilter(rows, 'Romans')).toEqual([]);
+  });
+});
+
+describe('shouldFetchFullBook', () => {
+  it('fetches only when a book is selected AND more rows may exist', () => {
+    expect(shouldFetchFullBook('John', true)).toBe(true);
+  });
+
+  it('does not fetch when no book is selected', () => {
+    expect(shouldFetchFullBook(null, true)).toBe(false);
+  });
+
+  it('does not fetch when the result set is fully loaded', () => {
+    // !hasMore ⇒ the loaded set is complete, so narrowing it is already global.
+    expect(shouldFetchFullBook('John', false)).toBe(false);
+  });
+});
+
+describe('resolveDisplayedResults', () => {
+  const johnFull: Row[] = [
+    {book: 'John', bookNumber: 43},
+    {book: 'John', bookNumber: 43},
+    {book: 'John', bookNumber: 43},
+    {book: 'John', bookNumber: 43}, // more than the 3 loaded
+  ];
+
+  it('returns all loaded results when no book is selected', () => {
+    expect(resolveDisplayedResults(rows, null, null)).toHaveLength(rows.length);
+  });
+
+  it('narrows the loaded set when no full set is fetched yet', () => {
+    const out = resolveDisplayedResults(rows, 'John', null);
+    expect(out).toHaveLength(3);
+  });
+
+  it('shows the FULL DB set when it matches the selected book', () => {
+    const out = resolveDisplayedResults(rows, 'John', {
+      book: 'John',
+      verses: johnFull,
+    });
+    expect(out).toHaveLength(4); // reaches the match beyond the loaded pages
+    expect(out).not.toBe(johnFull); // returns a copy
+  });
+
+  it('ignores a stale full set fetched for a different book', () => {
+    // User switched from John → Psalms before the John fetch resolved.
+    const out = resolveDisplayedResults(rows, 'Psalms', {
+      book: 'John',
+      verses: johnFull,
+    });
+    expect(out).toHaveLength(1); // falls back to narrowing the loaded set
+    expect(out[0].book).toBe('Psalms');
   });
 });

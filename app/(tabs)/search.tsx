@@ -32,7 +32,12 @@ import {
   type TestamentFilter,
 } from '@/lib/search/testamentFilter';
 import {highlightMatches} from '@/lib/search/highlightMatches';
-import {applyBookFilter, booksInResults} from '@/lib/search/bookFilter';
+import {
+  booksInResults,
+  shouldFetchFullBook,
+  resolveDisplayedResults,
+  type FullBookResults,
+} from '@/lib/search/bookFilter';
 
 // Tope de filas que devuelve searchVerses; al alcanzarlo el conteo se muestra
 // como "200+" porque puede haber más resultados sin cargar.
@@ -280,6 +285,17 @@ export default function SearchScreen() {
   // and whenever the testament filter changes (the available books change).
   const [bookFilter, setBookFilter] = useState<string | null>(null);
   const [searchHistory, setSearchHistory] = useState<string[]>([]);
+  // The selected book's COMPLETE match set, fetched from the DB when the loaded
+  // pages might be incomplete (Sprint 71) — lets the per-book filter reach
+  // matches beyond the loaded pages, not just narrow what's on screen.
+  const [fullBookResults, setFullBookResults] =
+    useState<FullBookResults<BibleVerse> | null>(null);
+
+  // Pagination state: hasMore is "the last fetched page filled the page
+  // size, so there may be more rows behind the cursor"; loadingMore
+  // gates the footer button while the next page is in flight.
+  const [hasMore, setHasMore] = useState(false);
+  const [loadingMore, setLoadingMore] = useState(false);
 
   // Results are DERIVED from the fetched rows through the two filters, so the
   // displayed list, the count and the book chips can never drift out of sync.
@@ -287,20 +303,22 @@ export default function SearchScreen() {
     () => applyTestamentFilter(allResults, testamentFilter),
     [allResults, testamentFilter],
   );
+  // When a book is selected and its full DB set was fetched, show that
+  // (global); otherwise narrow the loaded results (instant fallback).
   const results = useMemo(
-    () => applyBookFilter(testamentResults, bookFilter),
-    [testamentResults, bookFilter],
+    () =>
+      resolveDisplayedResults(testamentResults, bookFilter, fullBookResults),
+    [testamentResults, bookFilter, fullBookResults],
   );
+  // True when the displayed list is a book's COMPLETE, DB-fetched set — used to
+  // suppress the "load more" footer and the "N+" suffix (nothing more to load).
+  const isShowingFullBook =
+    bookFilter !== null && fullBookResults?.book === bookFilter;
   // Book chips reflect the testament-filtered set (so OT/NT narrows them too).
   const bookBuckets = useMemo(
     () => booksInResults(testamentResults),
     [testamentResults],
   );
-  // Pagination state: hasMore is "the last fetched page filled the page
-  // size, so there may be more rows behind the cursor"; loadingMore
-  // gates the footer button while the next page is in flight.
-  const [hasMore, setHasMore] = useState(false);
-  const [loadingMore, setLoadingMore] = useState(false);
 
   // Hydrate recent searches from storage on mount.
   useEffect(() => {
@@ -425,6 +443,40 @@ export default function SearchScreen() {
     }
   }, [loadingMore, hasMore, searchQuery, selectedVersion.id, allResults]);
 
+  // When a book is selected and the paginated search may have more rows behind
+  // the cursor, fetch that book's COMPLETE match set from the DB so the filter
+  // reaches matches beyond the loaded pages (Sprint 71). When the full set is
+  // already loaded (no `hasMore`) or no book is selected, clear it and let the
+  // pure loaded-set narrowing answer. (exhaustive-deps isn't linted here.)
+  useEffect(() => {
+    if (!shouldFetchFullBook(bookFilter, hasMore)) {
+      setFullBookResults(null);
+      return;
+    }
+    const bucket = bookBuckets.find(b => b.book === bookFilter);
+    const query = searchQuery.trim();
+    if (!bucket || query.length < 3) return;
+
+    let cancelled = false;
+    (async () => {
+      try {
+        await bibleDB.initialize();
+        const verses = await bibleDB.searchByBook(
+          bucket.bookNumber,
+          query,
+          selectedVersion.id,
+        );
+        if (!cancelled) setFullBookResults({book: bucket.book, verses});
+      } catch (error) {
+        console.error('Per-book full search error:', error);
+        if (!cancelled) setFullBookResults(null);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [bookFilter, hasMore, bookBuckets, searchQuery, selectedVersion.id]);
+
   const debouncedSearch = useDebouncedCallback(performSearch, 500);
 
   function handleSearchChange(text: string) {
@@ -469,7 +521,7 @@ export default function SearchScreen() {
   // "N+" so the user knows there are unseen matches; once load-more
   // drains the result set, the suffix vanishes and we show the exact
   // total they've actually loaded.
-  const resultsCountLabel = `${results.length}${hasMore ? '+' : ''} ${t.search.results}`;
+  const resultsCountLabel = `${results.length}${hasMore && !isShowingFullBook ? '+' : ''} ${t.search.results}`;
 
   const renderItem = useCallback(
     ({item}: {item: BibleVerse}) => (
@@ -686,7 +738,7 @@ export default function SearchScreen() {
             renderItem={renderItem}
             contentContainerStyle={styles.resultsList}
             ListFooterComponent={
-              hasMore && results.length > 0 ? (
+              hasMore && results.length > 0 && !isShowingFullBook ? (
                 <TouchableOpacity
                   onPress={loadMoreResults}
                   disabled={loadingMore}

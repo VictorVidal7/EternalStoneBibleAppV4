@@ -53,3 +53,43 @@ export function applyBookFilter<T extends Pick<BibleVerse, 'book'>>(
   if (!book) return [...verses];
   return verses.filter(v => v.book === book);
 }
+
+/** A book's FULL match set fetched straight from the DB (Sprint 71). */
+export interface FullBookResults<T> {
+  /** The stored book name these results belong to. */
+  book: string;
+  /** Every match in that book for the query+version, ordered chapter:verse. */
+  verses: T[];
+}
+
+/**
+ * Whether to query the DB for a book's COMPLETE match set rather than narrowing
+ * the loaded pages. Only worth it when a book is selected AND the loaded pages
+ * might be incomplete — i.e. the paginated search hit its page cap (`hasMore`).
+ * When everything for the query is already loaded, `applyBookFilter` over the
+ * loaded set is itself global, so no extra fetch is needed. (Sprint 71)
+ */
+export function shouldFetchFullBook(
+  book: string | null,
+  hasMore: boolean,
+): boolean {
+  return book !== null && hasMore;
+}
+
+/**
+ * Pick the results to display for the per-book filter. When a book is selected
+ * and its FULL DB set has been fetched (beyond the loaded pages), show that;
+ * otherwise narrow the loaded results to the book — which is also the instant
+ * fallback while the full fetch is in flight, or the complete answer when the
+ * search wasn't paginated. `null` book ⇒ all loaded results. (Sprint 71)
+ */
+export function resolveDisplayedResults<T extends Pick<BibleVerse, 'book'>>(
+  loaded: readonly T[],
+  book: string | null,
+  fullBook: FullBookResults<T> | null,
+): T[] {
+  if (book && fullBook && fullBook.book === book) {
+    return [...fullBook.verses];
+  }
+  return applyBookFilter(loaded, book);
+}
