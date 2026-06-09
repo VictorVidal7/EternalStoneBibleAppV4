@@ -1,10 +1,12 @@
 import {
   View,
   Text,
+  TextInput,
   StyleSheet,
   FlatList,
   TouchableOpacity,
   Alert,
+  useWindowDimensions,
 } from 'react-native';
 import {staticColors} from '@/styles/designTokens';
 
@@ -16,11 +18,20 @@ import bibleDB from '@lib/database';
 import {Note} from '@/types/bible';
 import {useTheme} from '@hooks/useTheme';
 import {useLanguage} from '@hooks/useLanguage';
+import {haptics} from '@lib/haptics';
 import {IllustratedEmptyState} from '@components/IllustratedEmptyState';
+import {NoteImageModal} from '@components/reading/NoteImageModal';
+import {
+  searchNotes,
+  sortNotes,
+  type NoteSortOrder,
+} from '@lib/notes/noteFilter';
 import {logger} from '@lib/utils/logger';
 import {getBookByName} from '@/constants/bible';
 import {getSyncEngine} from '@lib/sync';
 import {buildNoteRemotePayload} from '@lib/sync/adapters/notes';
+
+const SORT_ORDERS: NoteSortOrder[] = ['recent', 'oldest', 'book'];
 
 export default function NotesScreen() {
   const router = useRouter();
@@ -33,8 +44,12 @@ export default function NotesScreen() {
     [gradient?.headerColors],
   );
   const {t, language} = useLanguage();
+  const {width} = useWindowDimensions();
   const [notes, setNotes] = useState<Note[]>([]);
   const [loading, setLoading] = useState(true);
+  const [query, setQuery] = useState('');
+  const [sortOrder, setSortOrder] = useState<NoteSortOrder>('recent');
+  const [shareNote, setShareNote] = useState<Note | null>(null);
 
   useFocusEffect(
     useCallback(() => {
@@ -93,6 +108,34 @@ export default function NotesScreen() {
     return language === 'en' ? info.nameEn : info.name;
   }
 
+  function referenceOf(note: Note): string {
+    return `${localizeBook(note.book)} ${note.chapter}:${note.verse}`;
+  }
+
+  // Lista mostrada: búsqueda (acento-insensible, sobre referencia + versículo +
+  // nota) y orden, derivadas vía useMemo — sin estado que pueda desincronizarse.
+  const displayedNotes = useMemo(() => {
+    const filtered = searchNotes(
+      notes,
+      query,
+      n => `${referenceOf(n)} ${n.text} ${n.note}`,
+    );
+    return sortNotes(
+      filtered,
+      sortOrder,
+      n => new Date(n.updatedAt).getTime(),
+      n => getBookByName(n.book)?.id ?? 999,
+    );
+    // (referenceOf depends on `language`, which is in the deps below, so a
+    // UI-language switch re-derives the localized search haystack.)
+  }, [notes, query, sortOrder, language]);
+
+  const sortLabel: Record<NoteSortOrder, string> = {
+    recent: t.notes.sortRecent,
+    oldest: t.notes.sortOldest,
+    book: t.notes.sortByBook,
+  };
+
   if (loading) {
     return (
       <View style={[styles.container, {backgroundColor: colors.background}]} />
@@ -134,8 +177,79 @@ export default function NotesScreen() {
         </View>
       </LinearGradient>
 
+      {/* Search + sort controls (only once there are notes to filter). */}
+      {notes.length > 0 && (
+        <View style={styles.controls}>
+          <View
+            style={[
+              styles.searchBar,
+              {backgroundColor: colors.surface, borderColor: colors.border},
+            ]}>
+            <Ionicons name="search" size={18} color={colors.textSecondary} />
+            <TextInput
+              style={[styles.searchInput, {color: colors.text}]}
+              value={query}
+              onChangeText={setQuery}
+              placeholder={t.notes.searchPlaceholder}
+              placeholderTextColor={colors.textTertiary}
+              returnKeyType="search"
+              accessibilityLabel={t.notes.searchPlaceholder}
+            />
+            {query.length > 0 && (
+              <TouchableOpacity
+                onPress={() => setQuery('')}
+                hitSlop={{top: 8, bottom: 8, left: 8, right: 8}}
+                accessibilityRole="button"
+                accessibilityLabel={t.cancel}>
+                <Ionicons
+                  name="close-circle"
+                  size={18}
+                  color={colors.textTertiary}
+                />
+              </TouchableOpacity>
+            )}
+          </View>
+
+          <View style={styles.sortRow}>
+            {SORT_ORDERS.map(order => {
+              const active = order === sortOrder;
+              return (
+                <TouchableOpacity
+                  key={order}
+                  onPress={() => {
+                    haptics.tap();
+                    setSortOrder(order);
+                  }}
+                  style={[
+                    styles.sortChip,
+                    {
+                      backgroundColor: active ? colors.primary : colors.surface,
+                      borderColor: active ? colors.primary : colors.border,
+                    },
+                  ]}
+                  accessibilityRole="button"
+                  accessibilityState={{selected: active}}
+                  accessibilityLabel={sortLabel[order]}>
+                  <Text
+                    style={[
+                      styles.sortChipText,
+                      {
+                        color: active
+                          ? staticColors.white
+                          : colors.textSecondary,
+                      },
+                    ]}>
+                    {sortLabel[order]}
+                  </Text>
+                </TouchableOpacity>
+              );
+            })}
+          </View>
+        </View>
+      )}
+
       <FlatList
-        data={notes}
+        data={displayedNotes}
         keyExtractor={item => item.id}
         renderItem={({item}) => (
           <TouchableOpacity
@@ -172,7 +286,22 @@ export default function NotesScreen() {
               </View>
 
               <TouchableOpacity
-                style={styles.deleteButton}
+                style={styles.noteAction}
+                onPress={() => {
+                  haptics.tap();
+                  setShareNote(item);
+                }}
+                accessibilityRole="button"
+                accessibilityLabel={t.notes.shareImage}>
+                <Ionicons
+                  name="share-outline"
+                  size={20}
+                  color={colors.primary}
+                />
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={styles.noteAction}
                 onPress={() => handleDelete(item.id)}
                 accessibilityRole="button"
                 accessibilityLabel={t.delete}>
@@ -198,15 +327,37 @@ export default function NotesScreen() {
           </TouchableOpacity>
         )}
         contentContainerStyle={styles.listContent}
+        keyboardShouldPersistTaps="handled"
         ListEmptyComponent={
-          <IllustratedEmptyState
-            type="no-notes"
-            colors={colors}
-            isDark={isDark}
-            onAction={() => router.push('/(tabs)/bible' as never)}
-          />
+          query.trim().length > 0 ? (
+            <View style={styles.noResults}>
+              <Ionicons name="search" size={40} color={colors.textTertiary} />
+              <Text
+                style={[styles.noResultsText, {color: colors.textSecondary}]}>
+                {t.notes.noResults}
+              </Text>
+            </View>
+          ) : (
+            <IllustratedEmptyState
+              type="no-notes"
+              colors={colors}
+              isDark={isDark}
+              onAction={() => router.push('/(tabs)/bible' as never)}
+            />
+          )
         }
       />
+
+      {shareNote && (
+        <NoteImageModal
+          visible={shareNote !== null}
+          reference={referenceOf(shareNote)}
+          verseText={shareNote.text}
+          note={shareNote.note}
+          cardSize={Math.min(width - 48, 400)}
+          onClose={() => setShareNote(null)}
+        />
+      )}
     </View>
   );
 }
@@ -214,6 +365,49 @@ export default function NotesScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+  },
+  controls: {
+    paddingHorizontal: 16,
+    paddingTop: 12,
+    gap: 10,
+  },
+  searchBar: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    paddingHorizontal: 12,
+    height: 44,
+    borderRadius: 12,
+    borderWidth: 1,
+  },
+  searchInput: {
+    flex: 1,
+    fontSize: 15,
+    paddingVertical: 0,
+  },
+  sortRow: {
+    flexDirection: 'row',
+    gap: 8,
+  },
+  sortChip: {
+    paddingHorizontal: 14,
+    paddingVertical: 7,
+    borderRadius: 999,
+    borderWidth: 1,
+  },
+  sortChipText: {
+    fontSize: 13,
+    fontWeight: '600',
+  },
+  noResults: {
+    alignItems: 'center',
+    paddingTop: 64,
+    gap: 12,
+  },
+  noResultsText: {
+    fontSize: 15,
+    fontWeight: '500',
+    textAlign: 'center',
   },
   header: {
     paddingTop: 60,
@@ -307,7 +501,7 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: staticColors.grayMuted,
   },
-  deleteButton: {
+  noteAction: {
     padding: 8,
   },
   verseText: {

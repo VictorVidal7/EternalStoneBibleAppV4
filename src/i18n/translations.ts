@@ -225,6 +225,11 @@ export const translations = {
       newNote: 'Nueva Nota',
       countLabel: 'Notas guardadas',
       countLabelSingular: 'Nota guardada',
+      searchPlaceholder: 'Buscar en tus notas...',
+      sortRecent: 'Recientes',
+      sortOldest: 'Antiguas',
+      sortByBook: 'Por libro',
+      noResults: 'Ninguna nota coincide con tu búsqueda',
     },
 
     bookIntro: {
@@ -1971,6 +1976,11 @@ export const translations = {
       newNote: 'New Note',
       countLabel: 'Notes saved',
       countLabelSingular: 'Note saved',
+      searchPlaceholder: 'Search your notes...',
+      sortRecent: 'Recent',
+      sortOldest: 'Oldest',
+      sortByBook: 'By book',
+      noResults: 'No notes match your search',
     },
 
     readingInsights: {

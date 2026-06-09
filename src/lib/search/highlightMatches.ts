@@ -36,6 +36,15 @@ function fold(s: string): string {
 }
 
 /**
+ * Public, length-preserving diacritic fold (lower-case + strip combining marks)
+ * — shared so other search surfaces (e.g. the Notes-tab filter, Sprint 72) match
+ * accents identically without re-implementing the fold.
+ */
+export function foldDiacritics(s: string): string {
+  return fold(s);
+}
+
+/**
  * Split `text` into highlighted / plain segments for every whitespace-separated
  * word of `query` (substring, diacritic-insensitive). Overlapping matches are
  * merged. Returns a single non-highlighted segment when the query is empty or
