@@ -7,7 +7,7 @@
  * the modal owns its own styles + theme glue and exposes a minimal
  * controlled-input surface to the parent.
  */
-import React from 'react';
+import React, {useState} from 'react';
 import {
   View,
   Text,
@@ -15,11 +15,13 @@ import {
   TextInput,
   TouchableOpacity,
   StyleSheet,
+  useWindowDimensions,
 } from 'react-native';
 import {Ionicons} from '@expo/vector-icons';
 import {useTheme} from '../../hooks/useTheme';
 import {useLanguage} from '../../hooks/useLanguage';
 import {focusTrapProps} from '@lib/a11y/focusTrap';
+import {NoteImageModal} from './NoteImageModal';
 import {staticColors} from '../../styles/designTokens';
 import {
   borderRadius,
@@ -51,7 +53,10 @@ export const NoteEditorModal: React.FC<NoteEditorModalProps> = ({
 }) => {
   const {colors} = useTheme();
   const {t} = useLanguage();
+  const {width: screenWidth} = useWindowDimensions();
   const trimmed = value.trim();
+  // Share-as-image (Sprint 70): a designer card of the verse + this note.
+  const [shareVisible, setShareVisible] = useState(false);
 
   return (
     <Modal
@@ -64,15 +69,33 @@ export const NoteEditorModal: React.FC<NoteEditorModalProps> = ({
           style={[styles.content, {backgroundColor: colors.surface}]}
           {...focusTrapProps()}>
           <View style={styles.header}>
-            <Text style={[styles.title, {color: colors.text}]}>
+            <Text
+              style={[styles.title, {color: colors.text}]}
+              numberOfLines={1}>
               {verseReference || t.notes.add}
             </Text>
-            <TouchableOpacity
-              onPress={onClose}
-              accessibilityRole="button"
-              accessibilityLabel={t.close}>
-              <Ionicons name="close" size={24} color={colors.textSecondary} />
-            </TouchableOpacity>
+            <View style={styles.headerActions}>
+              {/* Share the verse + this note as a designer image (Sprint 70).
+                  Only when there's note content to draw. */}
+              {trimmed ? (
+                <TouchableOpacity
+                  onPress={() => setShareVisible(true)}
+                  accessibilityRole="button"
+                  accessibilityLabel={t.notes.shareImage}>
+                  <Ionicons
+                    name="share-outline"
+                    size={22}
+                    color={colors.primary}
+                  />
+                </TouchableOpacity>
+              ) : null}
+              <TouchableOpacity
+                onPress={onClose}
+                accessibilityRole="button"
+                accessibilityLabel={t.close}>
+                <Ionicons name="close" size={24} color={colors.textSecondary} />
+              </TouchableOpacity>
+            </View>
           </View>
 
           {verseText ? (
@@ -114,6 +137,15 @@ export const NoteEditorModal: React.FC<NoteEditorModalProps> = ({
             <Text style={styles.saveButtonText}>{t.notes.saveNote}</Text>
           </TouchableOpacity>
         </View>
+
+        <NoteImageModal
+          visible={shareVisible}
+          reference={verseReference}
+          verseText={verseText}
+          note={value}
+          cardSize={screenWidth - 80}
+          onClose={() => setShareVisible(false)}
+        />
       </View>
     </Modal>
   );
@@ -137,10 +169,17 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: spacing.lg,
   },
+  headerActions: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.lg,
+  },
   title: {
+    flex: 1,
     fontSize: fontSizes.xl,
     fontWeight: '800',
     letterSpacing: -0.3,
+    marginRight: spacing.md,
   },
   versePreview: {
     fontSize: fontSizes.base,
