@@ -40,6 +40,7 @@ import {BlurView} from 'expo-blur';
 import {Ionicons} from '@expo/vector-icons';
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
 import {haptics} from '@lib/haptics';
+import {hitSlopToMinTarget} from '../../../lib/a11y/touchTarget';
 import {useTheme} from '../../../hooks/useTheme';
 import {useLanguage} from '../../../hooks/useLanguage';
 import {getBookByName} from '../../../constants/bible';
@@ -70,6 +71,13 @@ const EXPANDED_CONTROLS_WIDTH =
   AUDIO_CONTROL_SIZES.small.secondary * 2 +
   AUDIO_CONTROL_SIZES.small.main +
   AUDIO_CONTROL_GAP * 2;
+
+// Collapsed-bar controls render well under the 48dp minimum touch target
+// (S74 hit-target audit) — expand the touchable area, not the visuals.
+const MINI_PLAY_HIT_SLOP = hitSlopToMinTarget(32); // 32dp round play button
+const MINI_NEXT_HIT_SLOP = hitSlopToMinTarget(30); // 18 icon + 6dp padding
+const SPEED_BADGE_HIT_SLOP = hitSlopToMinTarget(20); // ~13dp text + 2dp pad
+const MINI_EXPAND_HIT_SLOP = hitSlopToMinTarget(22); // 18 icon + 2dp padding
 
 export const MiniAudioPlayer: React.FC<MiniAudioPlayerProps> = ({
   bottomOffset = 0,
@@ -334,6 +342,7 @@ export const MiniAudioPlayer: React.FC<MiniAudioPlayerProps> = ({
                     {backgroundColor: colors.primary},
                   ]}
                   onPress={togglePlayPause}
+                  hitSlop={MINI_PLAY_HIT_SLOP}
                   accessibilityRole="button"
                   accessibilityLabel={
                     state.isPlaying ? t.audio.a11y.pause : t.audio.a11y.play
@@ -379,6 +388,7 @@ export const MiniAudioPlayer: React.FC<MiniAudioPlayerProps> = ({
                   style={styles.miniNextButton}
                   onPress={nextVerse}
                   disabled={!canGoNext || state.isExpanded}
+                  hitSlop={MINI_NEXT_HIT_SLOP}
                   accessibilityRole="button"
                   accessibilityLabel={t.audio.a11y.nextVerse}
                   accessibilityState={{disabled: !canGoNext}}>
@@ -406,6 +416,7 @@ export const MiniAudioPlayer: React.FC<MiniAudioPlayerProps> = ({
                     setPlaybackSpeed(nextSpeed);
                     haptics.tap();
                   }}
+                  hitSlop={SPEED_BADGE_HIT_SLOP}
                   accessibilityRole="button"
                   accessibilityLabel={t.audio.a11y.speed}
                   accessibilityValue={{text: `${state.playbackSpeed}x`}}>
@@ -421,6 +432,7 @@ export const MiniAudioPlayer: React.FC<MiniAudioPlayerProps> = ({
                   disabled={state.isExpanded}
                   style={styles.expandButton}
                   onPress={handleToggleExpand}
+                  hitSlop={MINI_EXPAND_HIT_SLOP}
                   accessibilityRole="button"
                   accessibilityLabel={t.audio.a11y.expand}
                   accessibilityHint={t.audio.a11y.expandHint}>

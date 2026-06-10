@@ -27,6 +27,7 @@ import {PremiumSkeleton} from '@components/PremiumSkeleton';
 import {PressableScale} from '@components/ui/PressableScale';
 import {useReadingProgress} from '@context/ReadingProgressContext';
 import {summarizeChapterProgress} from '@lib/reading/chapterProgress';
+import {hitSlopToMinTarget} from '@lib/a11y/touchTarget';
 // import {AnimatedBottomNav} from '@components/navigation/AnimatedBottomNav';
 
 // Design tokens
@@ -35,6 +36,11 @@ import {spacing, fontSize, shadows, staticColors} from '@/styles/designTokens';
 const {width: SCREEN_WIDTH} = Dimensions.get('window');
 const CARDS_PER_ROW = 5;
 const CARD_SIZE = (SCREEN_WIDTH - spacing.lg * 2) / CARDS_PER_ROW;
+
+// 40dp header buttons + the ~28dp-tall Continue pill fall short of the 48dp
+// minimum touch target (S74 hit-target audit).
+const HEADER_BUTTON_HIT_SLOP = hitSlopToMinTarget(40);
+const CONTINUE_HIT_SLOP = hitSlopToMinTarget(28);
 
 interface ChapterItem {
   chapter: number;
@@ -268,6 +274,7 @@ export default function ChapterSelectionScreen() {
             <TouchableOpacity
               style={styles.headerBackButton}
               onPress={handleBack}
+              hitSlop={HEADER_BUTTON_HIT_SLOP}
               accessibilityRole="button"
               accessibilityLabel={t.bible.back}>
               <Ionicons name="arrow-back" size={24} color="#ffffff" />
@@ -280,6 +287,7 @@ export default function ChapterSelectionScreen() {
                 haptics.tap();
                 router.push(`/features/about-book/${book}` as never);
               }}
+              hitSlop={HEADER_BUTTON_HIT_SLOP}
               accessibilityRole="button"
               accessibilityLabel={t.bookIntro.openLabel}>
               <Ionicons
@@ -369,7 +377,7 @@ export default function ChapterSelectionScreen() {
                       onPress={() =>
                         navigateToVerse(progressSummary.nextUnreadChapter ?? 1)
                       }
-                      hitSlop={{top: 8, bottom: 8, left: 8, right: 8}}
+                      hitSlop={CONTINUE_HIT_SLOP}
                       accessibilityRole="button"
                       accessibilityLabel={
                         progressSummary.read > 0

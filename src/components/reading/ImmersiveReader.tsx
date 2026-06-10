@@ -42,6 +42,7 @@ import {
 import {useReaderPreferences} from '../../context/ReaderPreferencesContext';
 import {immersiveHighContrastColors} from '../../lib/reading/immersiveTheme';
 import {focusTrapProps, a11yHiddenProps} from '../../lib/a11y/focusTrap';
+import {hitSlopToMinTarget} from '../../lib/a11y/touchTarget';
 import {useScreenReaderListener} from '../../hooks/useScreenReaderListener';
 import {useReducedMotion} from '../../hooks/useReducedMotion';
 import {
@@ -70,6 +71,8 @@ interface ImmersiveReaderProps {
 type BackgroundType = 'celestial' | 'minimal' | 'nature' | 'paper';
 
 const SEEK_THUMB = 16;
+// The 44dp top controls (close / font size) fall short of the 48dp minimum.
+const CONTROL_HIT_SLOP = hitSlopToMinTarget(44);
 
 export const ImmersiveReader: React.FC<ImmersiveReaderProps> = ({
   verses: propVerses,
@@ -730,6 +733,7 @@ export const ImmersiveReader: React.FC<ImmersiveReaderProps> = ({
                 {backgroundColor: 'rgba(0,0,0,0.5)'},
               ]}
               onPress={onClose}
+              hitSlop={CONTROL_HIT_SLOP}
               accessibilityRole="button"
               accessibilityLabel={t.verse.closeImmersive}>
               <Ionicons name="close" size={24} color="#fff" />
@@ -743,6 +747,7 @@ export const ImmersiveReader: React.FC<ImmersiveReaderProps> = ({
                   {backgroundColor: 'rgba(0,0,0,0.5)'},
                 ]}
                 onPress={decreaseFontSize}
+                hitSlop={CONTROL_HIT_SLOP}
                 accessibilityRole="button"
                 accessibilityLabel={t.verse.decreaseFontSize}>
                 <Ionicons name="remove" size={20} color="#fff" />
@@ -753,6 +758,7 @@ export const ImmersiveReader: React.FC<ImmersiveReaderProps> = ({
                   {backgroundColor: 'rgba(0,0,0,0.5)'},
                 ]}
                 onPress={increaseFontSize}
+                hitSlop={CONTROL_HIT_SLOP}
                 accessibilityRole="button"
                 accessibilityLabel={t.verse.increaseFontSize}>
                 <Ionicons name="add" size={20} color="#fff" />

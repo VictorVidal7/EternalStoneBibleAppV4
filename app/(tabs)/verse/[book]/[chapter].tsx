@@ -118,6 +118,8 @@ import {useWindowDimensions} from 'react-native';
 
 // The chapter nav row is ~40dp tall; expand its tap target to the 48dp minimum.
 const NAV_HIT_SLOP = hitSlopToMinTarget(40);
+// Dual-mode companion/layout chips are only ~24dp tall (S74 hit-target audit).
+const DUAL_CHIP_HIT_SLOP = hitSlopToMinTarget(24);
 
 export default function VerseReadingScreen() {
   const router = useRouter();
@@ -1669,6 +1671,7 @@ export default function VerseReadingScreen() {
                   <TouchableOpacity
                     key={v.id}
                     onPress={() => changeSecondaryVersion(v.id)}
+                    hitSlop={DUAL_CHIP_HIT_SLOP}
                     accessibilityRole="button"
                     accessibilityState={{selected: active}}
                     accessibilityLabel={v.name}
@@ -1711,6 +1714,7 @@ export default function VerseReadingScreen() {
             <View style={styles.dualControls}>
               <TouchableOpacity
                 onPress={swapPrimaryAndSecondary}
+                hitSlop={DUAL_CHIP_HIT_SLOP}
                 accessibilityRole="button"
                 accessibilityLabel={t.verse.swapVersions}
                 style={[
@@ -1725,6 +1729,7 @@ export default function VerseReadingScreen() {
               </TouchableOpacity>
               <TouchableOpacity
                 onPress={changeDualLayout}
+                hitSlop={DUAL_CHIP_HIT_SLOP}
                 accessibilityRole="button"
                 accessibilityState={{selected: dualLayout === 'columns'}}
                 accessibilityLabel={
