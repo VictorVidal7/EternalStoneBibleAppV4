@@ -5,6 +5,7 @@ import {
   ScrollView,
   TouchableOpacity,
   ActivityIndicator,
+  AccessibilityInfo,
   Alert,
   Modal,
   Share,
@@ -12,8 +13,13 @@ import {
   NativeSyntheticEvent,
   NativeScrollEvent,
 } from 'react-native';
-import {useState, useEffect, useRef, useMemo} from 'react';
-import {useLocalSearchParams, useRouter, Stack} from 'expo-router';
+import {useState, useEffect, useRef, useMemo, useCallback} from 'react';
+import {
+  useLocalSearchParams,
+  useRouter,
+  useFocusEffect,
+  Stack,
+} from 'expo-router';
 import {Ionicons} from '@expo/vector-icons';
 import * as Clipboard from 'expo-clipboard';
 import {haptics} from '@lib/haptics';
@@ -74,7 +80,12 @@ import {
   getLastPosition,
   clampVerseIndex,
   toAudioVerses,
+  chapterLocationFromVerse,
+  sameChapterLocation,
+  shouldReaderFollowAudio,
+  type ChapterLocation,
 } from '@/features/audio';
+import {localizedChapterReference} from '@lib/reading/verseReference';
 import {usePremium} from '@context/PremiumContext';
 // Navigation
 // import {
@@ -128,6 +139,8 @@ export default function VerseReadingScreen() {
     goToVerse,
     state: audioState,
     isVisible: isAudioVisible,
+    verses: audioEngineVerses,
+    readerFollowsAudio,
   } = useAudioPlayer();
   const {isPremium} = usePremium();
   const {
@@ -860,6 +873,99 @@ export default function VerseReadingScreen() {
       });
     }
   }, [audioState.currentVerseIndex, audioState.isPlaying, verses]);
+
+  // ── Reader follows continuous audio (Sprint 74, opt-in) ──────────────────
+  // When S72's continuous playback auto-advances the engine into the next
+  // chapter, navigate the reader there too — via the same router.replace the
+  // manual prev/next arrows use, so header/favorites/highlights/tracking all
+  // re-key naturally. Guarded by the pure shouldReaderFollowAudio policy:
+  // opt-in toggle + screen focused + immersive closed (it follows on its own,
+  // and a replace would remount the screen and close it) + the synced-chapter
+  // latch so the user's own navigation is never hijacked.
+  const [screenFocused, setScreenFocused] = useState(true);
+  useFocusEffect(
+    useCallback(() => {
+      setScreenFocused(true);
+      return () => setScreenFocused(false);
+    }, []),
+  );
+
+  // The chapter this screen displays (route identity) and the chapter the
+  // audio engine currently holds (its loaded verses — single source of truth).
+  const displayedLocation = useMemo<ChapterLocation | null>(
+    () => (bookInfo ? {bookId: bookInfo.id, chapter: chapterNum} : null),
+    [bookInfo, chapterNum],
+  );
+  const audioEngineLocation = useMemo(
+    () => chapterLocationFromVerse(audioEngineVerses[0]),
+    [audioEngineVerses],
+  );
+
+  // Latch: the chapter the reader was showing WHILE the engine played that
+  // same chapter. Only a chapter the user actually listened to from here can
+  // be followed out of, so a manual jump near the playing chapter never drags
+  // the reader along. Re-arms automatically after each follow (displayed and
+  // engine line up again on the new chapter).
+  const audioSyncedChapterRef = useRef<ChapterLocation | null>(null);
+  useEffect(() => {
+    if (
+      isAudioVisible &&
+      sameChapterLocation(displayedLocation, audioEngineLocation)
+    ) {
+      audioSyncedChapterRef.current = displayedLocation;
+    }
+  }, [isAudioVisible, displayedLocation, audioEngineLocation]);
+
+  // One replace per engine chapter — the effect can re-run with the same
+  // engine location (focus flips, re-renders) before the new route mounts.
+  const followHandledRef = useRef<ChapterLocation | null>(null);
+  useEffect(() => {
+    if (!audioEngineLocation) return;
+    if (
+      !shouldReaderFollowAudio({
+        enabled: readerFollowsAudio,
+        focused: screenFocused,
+        immersiveOpen: immersiveModeActive,
+        displayed: displayedLocation,
+        engine: audioEngineLocation,
+        syncedWith: audioSyncedChapterRef.current,
+      })
+    ) {
+      return;
+    }
+    if (sameChapterLocation(followHandledRef.current, audioEngineLocation)) {
+      return;
+    }
+    const targetBook = getBookById(audioEngineLocation.bookId);
+    if (!targetBook) return;
+    followHandledRef.current = audioEngineLocation;
+
+    const title = localizedChapterReference(audioEngineVerses[0], language);
+    toast.info(t.audio.readerFollowToast.replace('{{chapter}}', title));
+    // A silent route swap isn't announced to screen readers — name the chapter.
+    AccessibilityInfo.announceForAccessibility(
+      t.audio.immersive.chapterAdvanced.replace('{{chapter}}', title),
+    );
+    logger.info('Reader following continuous audio into next chapter', {
+      component: 'VerseReadingScreen',
+      bookId: audioEngineLocation.bookId,
+      chapter: audioEngineLocation.chapter,
+    });
+    router.replace(
+      `/verse/${targetBook.name}/${audioEngineLocation.chapter}` as never,
+    );
+  }, [
+    audioEngineLocation,
+    displayedLocation,
+    readerFollowsAudio,
+    screenFocused,
+    immersiveModeActive,
+    audioEngineVerses,
+    language,
+    router,
+    t,
+    toast,
+  ]);
 
   // Apply or remove a highlight color on the selected verses
   async function handleApplyHighlight(color: HighlightColor | null) {

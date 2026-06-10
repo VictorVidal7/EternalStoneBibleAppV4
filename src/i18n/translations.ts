@@ -979,6 +979,9 @@ export const translations = {
         autoAdvance: 'Reproducción continua',
         autoAdvanceHint:
           'Al terminar el capítulo, continúa automáticamente con el siguiente',
+        readerFollow: 'El lector sigue al audio',
+        readerFollowHint:
+          'Cuando la reproducción continua avanza de capítulo, el lector navega con ella',
       },
       scrub: {
         preview: 'Versículo {{n}} de {{total}}',
@@ -989,6 +992,7 @@ export const translations = {
         toast: 'Reanudado desde {{ref}}',
       },
       nextChapterUp: 'Sigue: {{chapter}}',
+      readerFollowToast: '∞ {{chapter}}',
       immersive: {
         listen: 'Escuchar',
         listening: 'Escuchando',
@@ -2728,6 +2732,9 @@ export const translations = {
         autoAdvance: 'Continuous playback',
         autoAdvanceHint:
           'When the chapter ends, automatically continue with the next one',
+        readerFollow: 'Reader follows audio',
+        readerFollowHint:
+          'When continuous playback advances to the next chapter, the reader navigates with it',
       },
       scrub: {
         preview: 'Verse {{n}} of {{total}}',
@@ -2738,6 +2745,7 @@ export const translations = {
         toast: 'Resumed from {{ref}}',
       },
       nextChapterUp: 'Up next: {{chapter}}',
+      readerFollowToast: '∞ {{chapter}}',
       immersive: {
         listen: 'Listen',
         listening: 'Listening',

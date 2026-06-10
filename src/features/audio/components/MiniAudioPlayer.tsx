@@ -101,6 +101,8 @@ export const MiniAudioPlayer: React.FC<MiniAudioPlayerProps> = ({
     setLanguage,
     autoAdvanceChapter,
     setAutoAdvanceChapter,
+    readerFollowsAudio,
+    setReaderFollowsAudio,
   } = useAudioPlayer();
   const {isPremium} = usePremium();
 
@@ -474,6 +476,33 @@ export const MiniAudioPlayer: React.FC<MiniAudioPlayerProps> = ({
                       }
                     />
                   </TouchableOpacity>
+                  {/* Reader-follow toggle — when on, the reader screen
+                      navigates along with the continuous auto-advance
+                      (Sprint 74, opt-in). Only meaningful while continuous
+                      playback is on, so it hides when ∞ is off. */}
+                  {autoAdvanceChapter && (
+                    <TouchableOpacity
+                      style={styles.headerButton}
+                      onPress={() => {
+                        haptics.tap();
+                        setReaderFollowsAudio(!readerFollowsAudio);
+                      }}
+                      hitSlop={{top: 10, bottom: 10, left: 10, right: 10}}
+                      accessibilityRole="button"
+                      accessibilityLabel={t.audio.a11y.readerFollow}
+                      accessibilityHint={t.audio.a11y.readerFollowHint}
+                      accessibilityState={{selected: readerFollowsAudio}}>
+                      <Ionicons
+                        name="book"
+                        size={20}
+                        color={
+                          readerFollowsAudio
+                            ? colors.primary
+                            : colors.textTertiary
+                        }
+                      />
+                    </TouchableOpacity>
+                  )}
                   {/* Collapse Button */}
                   <TouchableOpacity
                     style={styles.headerButton}
