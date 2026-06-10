@@ -920,7 +920,14 @@ export default function VerseReadingScreen() {
 
   // One replace per engine chapter — the effect can re-run with the same
   // engine location (focus flips, re-renders) before the new route mounts.
+  // Reset whenever the displayed chapter changes: expo-router can REUSE this
+  // screen instance across navigations (deep-link / replace land as new params
+  // on the same component), and a stale handled-location from a previous
+  // chapter would silently block the next follow.
   const followHandledRef = useRef<ChapterLocation | null>(null);
+  useEffect(() => {
+    followHandledRef.current = null;
+  }, [displayedLocation]);
   useEffect(() => {
     if (!audioEngineLocation) return;
     if (
