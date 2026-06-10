@@ -53,6 +53,7 @@ import {VerseScrubber} from './VerseScrubber';
 import {AudioWaveform} from './AudioWaveform';
 import {AudioSpeedSelector} from './AudioSpeedSelector';
 import {SleepTimerModal} from './SleepTimerModal';
+import {AudioQueueSheet} from './AudioQueueSheet';
 import {VoiceSelector} from './VoiceSelector';
 import {
   PLAYER_DIMENSIONS,
@@ -86,6 +87,7 @@ export const MiniAudioPlayer: React.FC<MiniAudioPlayerProps> = ({
   const {language, t} = useLanguage();
   const insets = useSafeAreaInsets();
   const [sleepTimerModalVisible, setSleepTimerModalVisible] = useState(false);
+  const [queueSheetVisible, setQueueSheetVisible] = useState(false);
 
   const {
     state,
@@ -551,9 +553,19 @@ export const MiniAudioPlayer: React.FC<MiniAudioPlayerProps> = ({
               </View>
 
               {/* ♾️ Up-next peek (Sprint 73) — names the chapter continuous
-                  playback will roll into; hidden at the end of the canon. */}
+                  playback will roll into; hidden at the end of the canon.
+                  Tappable since Sprint 75: opens the listening-queue sheet. */}
               {nextChapterPeek && (
-                <View style={styles.nextChapterRow}>
+                <TouchableOpacity
+                  style={styles.nextChapterRow}
+                  onPress={() => {
+                    haptics.tap();
+                    setQueueSheetVisible(true);
+                  }}
+                  hitSlop={{top: 8, bottom: 8, left: 12, right: 12}}
+                  accessibilityRole="button"
+                  accessibilityLabel={t.audio.queue.openLabel}
+                  accessibilityHint={t.audio.queue.openHint}>
                   <Ionicons name="infinite" size={12} color={colors.primary} />
                   <Text
                     style={[
@@ -566,7 +578,12 @@ export const MiniAudioPlayer: React.FC<MiniAudioPlayerProps> = ({
                       nextChapterPeek,
                     )}
                   </Text>
-                </View>
+                  <Ionicons
+                    name="chevron-forward"
+                    size={12}
+                    color={colors.textTertiary}
+                  />
+                </TouchableOpacity>
               )}
 
               <View style={styles.waveformContainer}>
@@ -703,6 +720,12 @@ export const MiniAudioPlayer: React.FC<MiniAudioPlayerProps> = ({
           onSetEndOfChapter={setSleepTimerEndOfChapter}
           onCancelTimer={cancelSleepTimer}
           currentTimer={sleepTimer}
+        />
+
+        {/* Listening queue (Sprint 75) */}
+        <AudioQueueSheet
+          visible={queueSheetVisible}
+          onClose={() => setQueueSheetVisible(false)}
         />
       </Animated.View>
     </GestureDetector>

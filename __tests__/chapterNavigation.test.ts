@@ -4,6 +4,8 @@
  * cross-chapter following).
  * Sprint 74 — sameChapterLocation / shouldReaderFollowAudio (the NORMAL reader
  * navigating along with continuous playback).
+ * Sprint 75 — localizedChapterTitle / upcomingChapters (the listening-queue
+ * sheet's chapter walker).
  */
 
 import {
@@ -14,6 +16,8 @@ import {
   nextChapterTitle,
   sameChapterLocation,
   shouldReaderFollowAudio,
+  localizedChapterTitle,
+  upcomingChapters,
 } from '../src/features/audio/lib/chapterNavigation';
 
 describe('nextChapterLocation', () => {
@@ -256,5 +260,55 @@ describe('shouldReaderFollowAudio', () => {
         syncedWith: salmos118,
       }),
     ).toBe(false);
+  });
+});
+
+describe('localizedChapterTitle', () => {
+  it('localizes a chapter location in both languages', () => {
+    expect(localizedChapterTitle({bookId: 19, chapter: 118}, 'es')).toBe(
+      'Salmos 118',
+    );
+    expect(localizedChapterTitle({bookId: 19, chapter: 118}, 'en')).toBe(
+      'Psalms 118',
+    );
+  });
+
+  it('returns null for a missing or unknown location', () => {
+    expect(localizedChapterTitle(null, 'es')).toBeNull();
+    expect(localizedChapterTitle({bookId: 999, chapter: 1}, 'en')).toBeNull();
+  });
+});
+
+describe('upcomingChapters', () => {
+  it('walks the next N chapters within a book', () => {
+    expect(upcomingChapters({book: 'Salmos', chapter: 100}, 3)).toEqual([
+      {bookId: 19, chapter: 101},
+      {bookId: 19, chapter: 102},
+      {bookId: 19, chapter: 103},
+    ]);
+  });
+
+  it('rolls over a book boundary mid-queue', () => {
+    // Génesis (id 1) has 50 chapters; Éxodo is id 2.
+    expect(upcomingChapters({book: 'Génesis', chapter: 49}, 3)).toEqual([
+      {bookId: 1, chapter: 50},
+      {bookId: 2, chapter: 1},
+      {bookId: 2, chapter: 2},
+    ]);
+  });
+
+  it('returns fewer entries near the end of the canon', () => {
+    // Apocalipsis (id 66) has 22 chapters; nothing follows 22.
+    expect(upcomingChapters({book: 'Apocalipsis', chapter: 20}, 5)).toEqual([
+      {bookId: 66, chapter: 21},
+      {bookId: 66, chapter: 22},
+    ]);
+  });
+
+  it('returns [] at the very end of the canon, for unknown verses, and for a non-positive count', () => {
+    expect(upcomingChapters({book: 'Apocalipsis', chapter: 22}, 5)).toEqual([]);
+    expect(upcomingChapters({book: 'Atlantis', chapter: 1}, 5)).toEqual([]);
+    expect(upcomingChapters(null, 5)).toEqual([]);
+    expect(upcomingChapters({book: 'Salmos', chapter: 1}, 0)).toEqual([]);
   });
 });

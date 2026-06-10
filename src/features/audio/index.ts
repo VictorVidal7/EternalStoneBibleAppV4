@@ -25,6 +25,7 @@ export {
   AudioSpeedSelector,
   VoiceSelector,
   SleepTimerModal,
+  AudioQueueSheet,
 } from './components';
 
 // Hooks
@@ -97,6 +98,8 @@ export {
   nextChapterTitle,
   sameChapterLocation,
   shouldReaderFollowAudio,
+  localizedChapterTitle,
+  upcomingChapters,
 } from './lib/chapterNavigation';
 export type {ChapterLocation, VerseChapterRef} from './lib/chapterNavigation';
 

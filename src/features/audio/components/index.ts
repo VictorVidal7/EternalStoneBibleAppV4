@@ -17,3 +17,4 @@ export {VerseScrubber} from './VerseScrubber';
 export {AudioSpeedSelector} from './AudioSpeedSelector';
 export {VoiceSelector} from './VoiceSelector';
 export {SleepTimerModal} from './SleepTimerModal';
+export {AudioQueueSheet} from './AudioQueueSheet';

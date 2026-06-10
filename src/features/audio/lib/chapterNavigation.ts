@@ -120,11 +120,48 @@ export function nextChapterTitle(
 ): string | null {
   const here = chapterLocationFromVerse(verse);
   const next = here ? nextChapterLocation(here.bookId, here.chapter) : null;
-  if (!next) return null;
-  const book = getBookById(next.bookId);
+  return localizedChapterTitle(next, language);
+}
+
+/**
+ * The localized display title for a chapter location — "Salmos 119" /
+ * "Psalms 119" — or `null` when the location is missing/unknown (Sprint 75,
+ * extracted from {@link nextChapterTitle} so the listening-queue sheet can
+ * title every upcoming chapter, not just the immediate next one).
+ */
+export function localizedChapterTitle(
+  location: ChapterLocation | null,
+  language: 'es' | 'en',
+): string | null {
+  if (!location) return null;
+  const book = getBookById(location.bookId);
   if (!book) return null;
   const name = language === 'es' ? book.name : book.nameEn;
-  return `${name} ${next.chapter}`;
+  return `${name} ${location.chapter}`;
+}
+
+/**
+ * The next `count` chapters continuous playback will roll through, starting
+ * after the chapter the given verse belongs to (Sprint 75 — fuels the
+ * listening-queue sheet). Walks {@link nextChapterLocation} so book boundaries
+ * roll over naturally; returns fewer than `count` entries near the end of the
+ * canon and `[]` when the verse is unknown or nothing follows.
+ */
+export function upcomingChapters(
+  verse: VerseChapterRef | undefined | null,
+  count: number,
+): ChapterLocation[] {
+  const here = chapterLocationFromVerse(verse);
+  if (!here || count <= 0) return [];
+  const out: ChapterLocation[] = [];
+  let cursor = here;
+  for (let i = 0; i < count; i++) {
+    const next = nextChapterLocation(cursor.bookId, cursor.chapter);
+    if (!next) break;
+    out.push(next);
+    cursor = next;
+  }
+  return out;
 }
 
 export function shouldFollowAudioChapter(

@@ -56,6 +56,11 @@ export const SLEEP_TIMER_OPTIONS = [
   {minutes: 60},
 ] as const;
 
+// ==================== LISTENING QUEUE ====================
+
+// How many upcoming chapters the listening-queue sheet previews (Sprint 75).
+export const AUDIO_QUEUE_LENGTH = 5;
+
 // ==================== PLAYER DIMENSIONS ====================
 
 export const PLAYER_DIMENSIONS = {

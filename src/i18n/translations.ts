@@ -996,6 +996,16 @@ export const translations = {
       resume: {
         toast: 'Reanudado desde {{ref}}',
       },
+      queue: {
+        title: 'Cola de escucha',
+        nowPlaying: 'Sonando ahora',
+        upNextSection: 'A continuación',
+        jumpHint: 'Salta la reproducción a este capítulo',
+        openLabel: 'Abrir la cola de escucha',
+        openHint: 'Muestra los próximos capítulos de la sesión',
+        endOfCanon: 'Fin de la Biblia',
+        info: 'Con la reproducción continua ∞, el audio avanza solo por estos capítulos.',
+      },
       nextChapterUp: 'Sigue: {{chapter}}',
       readerFollowToast: '∞ {{chapter}}',
       immersive: {
@@ -2753,6 +2763,16 @@ export const translations = {
       },
       resume: {
         toast: 'Resumed from {{ref}}',
+      },
+      queue: {
+        title: 'Listening queue',
+        nowPlaying: 'Now playing',
+        upNextSection: 'Up next',
+        jumpHint: 'Jump playback to this chapter',
+        openLabel: 'Open the listening queue',
+        openHint: 'Shows the upcoming chapters of this session',
+        endOfCanon: 'End of the Bible',
+        info: 'With continuous playback ∞, audio rolls through these chapters on its own.',
       },
       nextChapterUp: 'Up next: {{chapter}}',
       readerFollowToast: '∞ {{chapter}}',
