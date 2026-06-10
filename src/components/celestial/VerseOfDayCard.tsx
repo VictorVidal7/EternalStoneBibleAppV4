@@ -63,13 +63,11 @@ interface VerseOfDayCardProps {
   isDark?: boolean;
 
   /**
-   * Optional version badge — when the daily verse text was pulled from a
-   * Bible version different from the user's currently selected one (so
-   * the text reads in the UI language), the card surfaces this label
-   * next to the reference so the reader knows the source. Pass undefined
-   * to hide.
+   * Small version tag rendered next to the reference (e.g. "RVR1960") —
+   * names the Bible version the verse text comes from (the user's selected
+   * reading version). Pass undefined to hide.
    */
-  sourceVersionLabel?: string;
+  versionLabel?: string;
 
   /**
    * Callback to open Study mode (S61) for this verse. When provided AND
@@ -93,7 +91,7 @@ const VerseOfDayCard: React.FC<VerseOfDayCardProps> = ({
   onShare,
   onFavorite,
   isDark = false,
-  sourceVersionLabel,
+  versionLabel,
   onStudy,
   studyConnectionsCount = 0,
 }) => {
@@ -166,7 +164,7 @@ const VerseOfDayCard: React.FC<VerseOfDayCardProps> = ({
                   ]}>
                   {reference}
                 </Text>
-                {sourceVersionLabel ? (
+                {versionLabel ? (
                   <View
                     style={[
                       styles.versionBadge,
@@ -181,7 +179,7 @@ const VerseOfDayCard: React.FC<VerseOfDayCardProps> = ({
                         styles.versionBadgeText,
                         {color: colors.primary},
                       ]}>
-                      {sourceVersionLabel}
+                      {versionLabel}
                     </Text>
                   </View>
                 ) : null}
