@@ -1,7 +1,0 @@
-PASS __tests__/usePressAnimation.test.ts
-
-Test Suites: 74 passed, 74 total
-Tests:       764 passed, 764 total
-Snapshots:   0 total
-Time:        3.729 s
-done
