@@ -129,6 +129,25 @@ export interface AudioPlayerContextValue {
   loadChapter: (verses: AudioVerse[]) => void;
   clearChapter: () => void;
   setBottomOffset: (offset: number) => void;
+
+  /**
+   * Subscribe to word-boundary events from the TTS engine (Sprint 75 —
+   * karaoke word highlight). The callback fires on each word the engine is
+   * about to voice; returns an unsubscribe. Ref-based fan-out: emitting does
+   * NOT re-render the provider, so per-word events stay cheap. Engines that
+   * never emit boundaries simply never call back (graceful fallback).
+   */
+  subscribeToBoundary: (cb: (boundary: SpeechBoundary) => void) => () => void;
+}
+
+/** A word boundary voiced by the TTS engine (Sprint 75 — karaoke). */
+export interface SpeechBoundary {
+  /** Engine index of the verse being spoken when the boundary fired. */
+  verseIndex: number;
+  /** Char offset of the word inside that verse's text. */
+  charIndex: number;
+  /** Char length of the word (0 when the engine omits it). */
+  charLength: number;
 }
 
 // ==================== COMPONENT PROPS ====================

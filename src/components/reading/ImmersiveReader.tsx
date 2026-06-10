@@ -53,7 +53,10 @@ import {
   clampVerseIndex,
   chapterLocationFromVerse,
   shouldFollowAudioChapter,
+  tokenizeForKaraoke,
+  activeTokenIndex,
 } from '../../features/audio';
+import type {SpeechBoundary} from '../../features/audio';
 import {
   indexToFraction,
   positionToIndex,
@@ -96,6 +99,7 @@ export const ImmersiveReader: React.FC<ImmersiveReaderProps> = ({
     play: audioPlay,
     pause: audioPause,
     setSuppressed,
+    subscribeToBoundary,
   } = useAudioPlayer();
 
   // Internal copy of the chapter on screen. Starts at the host reader's chapter
@@ -138,6 +142,17 @@ export const ImmersiveReader: React.FC<ImmersiveReaderProps> = ({
   // here, or it was already playing in the floating player when immersive opened.
   const audioBound = isSameAudioChapter(audioVersesLoaded, audioVerses);
   const listening = isPremium && audioBound;
+
+  // 🎤 Karaoke (Sprint 75): the TTS word boundary last voiced. Subscribed only
+  // while this surface is listening; the provider fans out via refs, so the
+  // per-word updates re-render just this component.
+  const [karaokeBoundary, setKaraokeBoundary] = useState<SpeechBoundary | null>(
+    null,
+  );
+  useEffect(() => {
+    if (!listening) return undefined;
+    return subscribeToBoundary(setKaraokeBoundary);
+  }, [listening, subscribeToBoundary]);
 
   // Localized verse reference, e.g. "Genesis 1:8" / "Génesis 1:8". The DB stores
   // the book name in the reading version's language (RVR1960 → Spanish "Juan"),
@@ -342,6 +357,33 @@ export const ImmersiveReader: React.FC<ImmersiveReaderProps> = ({
   );
 
   const currentVerse = verses[currentIndex];
+
+  // Drop a stale karaoke boundary the moment the verse on screen (or the verse
+  // the engine speaks) changes — the next word of the new verse re-arms it.
+  useEffect(() => {
+    setKaraokeBoundary(null);
+  }, [boundIndex, currentIndex]);
+
+  // The word being voiced right now, resolved against the DISPLAYED verse.
+  // Null (no highlight) unless actively listening to this very verse — a user
+  // who browsed away mid-playback reads undisturbed, and engines that never
+  // emit boundaries simply never light a word.
+  const karaokeWord = useMemo(() => {
+    if (!listening || !audioState.isPlaying || !karaokeBoundary) return null;
+    if (karaokeBoundary.verseIndex !== boundIndex) return null;
+    if (currentIndex !== boundIndex) return null;
+    if (!currentVerse?.text) return null;
+    const tokens = tokenizeForKaraoke(currentVerse.text);
+    const idx = activeTokenIndex(tokens, karaokeBoundary.charIndex);
+    return idx >= 0 ? tokens[idx] : null;
+  }, [
+    listening,
+    audioState.isPlaying,
+    karaokeBoundary,
+    boundIndex,
+    currentIndex,
+    currentVerse,
+  ]);
 
   // Auto-hide controls after 3 seconds — but NOT while a screen reader is on:
   // the Close button lives in this overlay, so hiding it would trap an SR user
@@ -566,7 +608,10 @@ export const ImmersiveReader: React.FC<ImmersiveReaderProps> = ({
               transform: [{translateY: slideAnim}],
             },
           ]}>
-          {/* Verse Text */}
+          {/* Verse Text — while narration voices THIS verse, the word being
+              spoken is painted karaoke-style (Sprint 75): three runs (before /
+              active word / after), static color+weight only, reduce-motion
+              safe by construction. */}
           <Text
             pointerEvents="none"
             style={[
@@ -583,7 +628,27 @@ export const ImmersiveReader: React.FC<ImmersiveReaderProps> = ({
                   : 'rgba(255,255,255,0.8)',
               },
             ]}>
-            {currentVerse.text}
+            {karaokeWord ? (
+              <>
+                {currentVerse.text.slice(0, karaokeWord.start)}
+                <Text
+                  style={[
+                    styles.karaokeWord,
+                    {
+                      color: isHighContrast
+                        ? hcColors.accent
+                        : isDark
+                          ? '#fbbf24'
+                          : '#b45309',
+                    },
+                  ]}>
+                  {currentVerse.text.slice(karaokeWord.start, karaokeWord.end)}
+                </Text>
+                {currentVerse.text.slice(karaokeWord.end)}
+              </>
+            ) : (
+              currentVerse.text
+            )}
           </Text>
 
           {/* Reference */}
@@ -891,6 +956,11 @@ const styles = StyleSheet.create({
     marginBottom: 32,
     textShadowOffset: {width: 0, height: 1},
     textShadowRadius: 3,
+  },
+  // The word narration is voicing right now (Sprint 75 karaoke) — bold + an
+  // accent color, no motion (static restyle of one run).
+  karaokeWord: {
+    fontWeight: '700',
   },
   reference: {
     fontSize: 16,

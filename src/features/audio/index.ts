@@ -108,6 +108,18 @@ export type {ChapterLocation, VerseChapterRef} from './lib/chapterNavigation';
 export {resumeCardMode} from './lib/resumeCard';
 export type {ResumeCardMode, ResumeCardParams} from './lib/resumeCard';
 
+// Karaoke word highlight (Sprint 75 — TTS word boundaries → text spans).
+export {tokenizeForKaraoke, activeTokenIndex} from './lib/karaoke';
+export type {KaraokeToken} from './lib/karaoke';
+export type {SpeechBoundary} from './types/audio';
+
+// Collapsed-bar swipe policy (Sprint 75).
+export {
+  resolveHorizontalSwipe,
+  swipeDisplacement,
+} from './lib/miniPlayerGestures';
+export type {SwipeAction} from './lib/miniPlayerGestures';
+
 // Cold-start player restore (Sprint 53)
 export {resolveColdStartRestore} from './lib/coldStartRestore';
 export type {
