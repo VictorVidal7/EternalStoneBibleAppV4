@@ -88,6 +88,9 @@ export const AudioPlayerProvider: React.FC<AudioPlayerProviderProps> = ({
   // flows past the end of a chapter; persisted in AudioPreferences and stopped
   // explicitly by a "end of chapter" sleep timer.
   const [autoAdvanceChapter, setAutoAdvanceChapterState] = useState(true);
+  // Reader follow (Sprint 74). Defaults OFF (opt-in): when on, the reader
+  // screen navigates along with continuous playback across a chapter boundary.
+  const [readerFollowsAudio, setReaderFollowsAudioState] = useState(false);
   // Transient flag for screens that show overlay sheets/modals on top of the
   // mini player — the player draws over them otherwise because its high
   // elevation+zIndex lifts it above the native modal window. Audio keeps
@@ -165,6 +168,10 @@ export const AudioPlayerProvider: React.FC<AudioPlayerProviderProps> = ({
         // boolean was explicitly saved (older prefs without the field keep ON).
         if (typeof prefs.autoAdvanceChapter === 'boolean') {
           setAutoAdvanceChapterState(prefs.autoAdvanceChapter);
+        }
+        // Reader follow (Sprint 74) — opt-in, so only a saved true turns it on.
+        if (typeof prefs.readerFollowsAudio === 'boolean') {
+          setReaderFollowsAudioState(prefs.readerFollowsAudio);
         }
 
         // Load voice if saved
@@ -535,6 +542,12 @@ export const AudioPlayerProvider: React.FC<AudioPlayerProviderProps> = ({
     savePreferences({autoAdvanceChapter: enabled});
   }, []);
 
+  const setReaderFollowsAudio = useCallback((enabled: boolean) => {
+    haptics.tap();
+    setReaderFollowsAudioState(enabled);
+    savePreferences({readerFollowsAudio: enabled});
+  }, []);
+
   // ==================== PLAYER UI ====================
 
   const expand = useCallback(() => {
@@ -712,6 +725,9 @@ export const AudioPlayerProvider: React.FC<AudioPlayerProviderProps> = ({
 
     autoAdvanceChapter,
     setAutoAdvanceChapter,
+
+    readerFollowsAudio,
+    setReaderFollowsAudio,
 
     expand,
     collapse,

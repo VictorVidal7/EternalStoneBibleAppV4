@@ -87,13 +87,16 @@ export {
 export type {VerseLike} from './lib/immersiveAudio';
 
 // Continuous playback across chapters (Sprint 72); cross-chapter following
-// helpers added in S73 (chapterLocationFromVerse / shouldFollowAudioChapter).
+// helpers added in S73 (chapterLocationFromVerse / shouldFollowAudioChapter);
+// reader-follow policy added in S74 (shouldReaderFollowAudio).
 export {
   nextChapterLocation,
   shouldAdvanceChapter,
   chapterLocationFromVerse,
   shouldFollowAudioChapter,
   nextChapterTitle,
+  sameChapterLocation,
+  shouldReaderFollowAudio,
 } from './lib/chapterNavigation';
 export type {ChapterLocation, VerseChapterRef} from './lib/chapterNavigation';
 

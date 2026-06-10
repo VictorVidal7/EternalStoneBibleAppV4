@@ -40,6 +40,7 @@ import {BlurView} from 'expo-blur';
 import {Ionicons} from '@expo/vector-icons';
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
 import {haptics} from '@lib/haptics';
+import {hitSlopToMinTarget} from '../../../lib/a11y/touchTarget';
 import {useTheme} from '../../../hooks/useTheme';
 import {useLanguage} from '../../../hooks/useLanguage';
 import {getBookByName} from '../../../constants/bible';
@@ -71,6 +72,13 @@ const EXPANDED_CONTROLS_WIDTH =
   AUDIO_CONTROL_SIZES.small.main +
   AUDIO_CONTROL_GAP * 2;
 
+// Collapsed-bar controls render well under the 48dp minimum touch target
+// (S74 hit-target audit) — expand the touchable area, not the visuals.
+const MINI_PLAY_HIT_SLOP = hitSlopToMinTarget(32); // 32dp round play button
+const MINI_NEXT_HIT_SLOP = hitSlopToMinTarget(30); // 18 icon + 6dp padding
+const SPEED_BADGE_HIT_SLOP = hitSlopToMinTarget(20); // ~13dp text + 2dp pad
+const MINI_EXPAND_HIT_SLOP = hitSlopToMinTarget(22); // 18 icon + 2dp padding
+
 export const MiniAudioPlayer: React.FC<MiniAudioPlayerProps> = ({
   bottomOffset = 0,
 }) => {
@@ -101,6 +109,8 @@ export const MiniAudioPlayer: React.FC<MiniAudioPlayerProps> = ({
     setLanguage,
     autoAdvanceChapter,
     setAutoAdvanceChapter,
+    readerFollowsAudio,
+    setReaderFollowsAudio,
   } = useAudioPlayer();
   const {isPremium} = usePremium();
 
@@ -332,6 +342,7 @@ export const MiniAudioPlayer: React.FC<MiniAudioPlayerProps> = ({
                     {backgroundColor: colors.primary},
                   ]}
                   onPress={togglePlayPause}
+                  hitSlop={MINI_PLAY_HIT_SLOP}
                   accessibilityRole="button"
                   accessibilityLabel={
                     state.isPlaying ? t.audio.a11y.pause : t.audio.a11y.play
@@ -352,7 +363,14 @@ export const MiniAudioPlayer: React.FC<MiniAudioPlayerProps> = ({
                   onPress={handleToggleExpand}
                   accessibilityRole="button"
                   accessibilityLabel={verseTitle}
-                  accessibilityHint={t.audio.a11y.expandHint}>
+                  accessibilityHint={t.audio.a11y.expandHint}
+                  // The visual progress counter ("1/29") is grouped under this
+                  // label — voice it as a value so TalkBack hears it too.
+                  accessibilityValue={{
+                    text: t.audio.scrub.preview
+                      .replace('{{n}}', String(state.currentVerseIndex + 1))
+                      .replace('{{total}}', String(verses.length)),
+                  }}>
                   <AppText
                     scaleRole="display"
                     style={[styles.verseTitle, {color: colors.text}]}
@@ -370,6 +388,7 @@ export const MiniAudioPlayer: React.FC<MiniAudioPlayerProps> = ({
                   style={styles.miniNextButton}
                   onPress={nextVerse}
                   disabled={!canGoNext || state.isExpanded}
+                  hitSlop={MINI_NEXT_HIT_SLOP}
                   accessibilityRole="button"
                   accessibilityLabel={t.audio.a11y.nextVerse}
                   accessibilityState={{disabled: !canGoNext}}>
@@ -397,6 +416,7 @@ export const MiniAudioPlayer: React.FC<MiniAudioPlayerProps> = ({
                     setPlaybackSpeed(nextSpeed);
                     haptics.tap();
                   }}
+                  hitSlop={SPEED_BADGE_HIT_SLOP}
                   accessibilityRole="button"
                   accessibilityLabel={t.audio.a11y.speed}
                   accessibilityValue={{text: `${state.playbackSpeed}x`}}>
@@ -412,6 +432,7 @@ export const MiniAudioPlayer: React.FC<MiniAudioPlayerProps> = ({
                   disabled={state.isExpanded}
                   style={styles.expandButton}
                   onPress={handleToggleExpand}
+                  hitSlop={MINI_EXPAND_HIT_SLOP}
                   accessibilityRole="button"
                   accessibilityLabel={t.audio.a11y.expand}
                   accessibilityHint={t.audio.a11y.expandHint}>
@@ -474,6 +495,33 @@ export const MiniAudioPlayer: React.FC<MiniAudioPlayerProps> = ({
                       }
                     />
                   </TouchableOpacity>
+                  {/* Reader-follow toggle — when on, the reader screen
+                      navigates along with the continuous auto-advance
+                      (Sprint 74, opt-in). Only meaningful while continuous
+                      playback is on, so it hides when ∞ is off. */}
+                  {autoAdvanceChapter && (
+                    <TouchableOpacity
+                      style={styles.headerButton}
+                      onPress={() => {
+                        haptics.tap();
+                        setReaderFollowsAudio(!readerFollowsAudio);
+                      }}
+                      hitSlop={{top: 10, bottom: 10, left: 10, right: 10}}
+                      accessibilityRole="button"
+                      accessibilityLabel={t.audio.a11y.readerFollow}
+                      accessibilityHint={t.audio.a11y.readerFollowHint}
+                      accessibilityState={{selected: readerFollowsAudio}}>
+                      <Ionicons
+                        name="book"
+                        size={20}
+                        color={
+                          readerFollowsAudio
+                            ? colors.primary
+                            : colors.textTertiary
+                        }
+                      />
+                    </TouchableOpacity>
+                  )}
                   {/* Collapse Button */}
                   <TouchableOpacity
                     style={styles.headerButton}

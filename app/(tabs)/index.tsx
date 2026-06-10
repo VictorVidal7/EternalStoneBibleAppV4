@@ -52,7 +52,12 @@ import {useFavorites} from '@context/FavoritesContext';
 import {useBookmarks} from '@context/BookmarksContext';
 import {useMemoryDeck} from '@context/MemoryDeckContext';
 import {usePremium} from '@context/PremiumContext';
-import {getLastPosition, isResumable, useAudioPlayer} from '@/features/audio';
+import {
+  getLastPosition,
+  isResumable,
+  nextChapterTitle,
+  useAudioPlayer,
+} from '@/features/audio';
 import type {PlaybackPosition} from '@/features/audio';
 import {getStudyConnections} from '@/features/study/studyConnections';
 import {timeOfDay, homeNudge} from '@/lib/home/homeGreeting';
@@ -113,7 +118,7 @@ export default function HomeScreen() {
   // When the floating player is already up (e.g. restored on cold start,
   // Sprint 53), the "Continue listening" card is a redundant second resume
   // surface for the same position — defer to the player and hide the card.
-  const {isVisible: audioPlayerVisible} = useAudioPlayer();
+  const {isVisible: audioPlayerVisible, autoAdvanceChapter} = useAudioPlayer();
   const progressTrackColor = isDark
     ? staticColors.transparent
     : withOpacity(colors.primary, isDark ? 0.3 : 0.8);
@@ -746,6 +751,28 @@ export default function HomeScreen() {
                           return `${name} ${audioResumePos.chapter}:${audioResumePos.verse}`;
                         })()}
                       </Text>
+                      {/* Continuous playback peek (S74): when ∞ is on, resuming
+                          here won't stop at the chapter's end — surface what
+                          comes next, mirroring the expanded player's peek. */}
+                      {(() => {
+                        const upNext = autoAdvanceChapter
+                          ? nextChapterTitle(audioResumePos, language)
+                          : null;
+                        return upNext ? (
+                          <Text
+                            style={[
+                              styles.continueUpNext,
+                              {color: colors.primary},
+                            ]}
+                            numberOfLines={1}>
+                            {'∞ '}
+                            {t.audio.nextChapterUp.replace(
+                              '{{chapter}}',
+                              upNext,
+                            )}
+                          </Text>
+                        ) : null;
+                      })()}
                     </View>
                     <View style={styles.continueProgress}>
                       <Ionicons
@@ -1608,6 +1635,11 @@ const styles = StyleSheet.create({
   continueReference: {
     fontSize: 13,
     fontWeight: '500',
+    marginTop: 2,
+  },
+  continueUpNext: {
+    fontSize: 11,
+    fontWeight: '600',
     marginTop: 2,
   },
   continueProgress: {

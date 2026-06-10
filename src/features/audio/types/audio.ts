@@ -99,6 +99,14 @@ export interface AudioPlayerContextValue {
   autoAdvanceChapter: boolean;
   setAutoAdvanceChapter: (enabled: boolean) => void;
 
+  /**
+   * Reader follow — when on, the NORMAL reader screen navigates along with
+   * continuous playback when it auto-advances into the next chapter
+   * (Sprint 74). Opt-in (defaults off); persisted in `AudioPreferences`.
+   */
+  readerFollowsAudio: boolean;
+  setReaderFollowsAudio: (enabled: boolean) => void;
+
   // Player UI
   expand: () => void;
   collapse: () => void;
@@ -176,6 +184,8 @@ export interface AudioPreferences {
   continueFromLastPosition: boolean;
   /** Continuous playback across chapters (Sprint 72). Defaults to true. */
   autoAdvanceChapter: boolean;
+  /** The reader navigates along with continuous playback (Sprint 74). Opt-in. */
+  readerFollowsAudio?: boolean;
 }
 
 // ==================== EVENTS ====================

@@ -26,7 +26,11 @@ import {useLanguage} from '@hooks/useLanguage';
 import {PremiumSkeleton} from '@components/PremiumSkeleton';
 import {PressableScale} from '@components/ui/PressableScale';
 import {useReadingProgress} from '@context/ReadingProgressContext';
-import {summarizeChapterProgress} from '@lib/reading/chapterProgress';
+import {
+  summarizeChapterProgress,
+  gridScrollOffsetForChapter,
+} from '@lib/reading/chapterProgress';
+import {hitSlopToMinTarget} from '@lib/a11y/touchTarget';
 // import {AnimatedBottomNav} from '@components/navigation/AnimatedBottomNav';
 
 // Design tokens
@@ -35,6 +39,11 @@ import {spacing, fontSize, shadows, staticColors} from '@/styles/designTokens';
 const {width: SCREEN_WIDTH} = Dimensions.get('window');
 const CARDS_PER_ROW = 5;
 const CARD_SIZE = (SCREEN_WIDTH - spacing.lg * 2) / CARDS_PER_ROW;
+
+// 40dp header buttons + the ~28dp-tall Continue pill fall short of the 48dp
+// minimum touch target (S74 hit-target audit).
+const HEADER_BUTTON_HIT_SLOP = hitSlopToMinTarget(40);
+const CONTINUE_HIT_SLOP = hitSlopToMinTarget(28);
 
 interface ChapterItem {
   chapter: number;
@@ -103,6 +112,25 @@ export default function ChapterSelectionScreen() {
     }, 100);
     return () => clearTimeout(timer);
   }, [book, bookInfo, chapters]);
+
+  // Auto-scroll the grid to the Continue/Start target (Sprint 74): opening a
+  // big book (Salmos, 150 chapters) used to land at chapter 1 even when the
+  // reader left off 20 rows down. One instant jump per book, only once the
+  // grid is mounted; early chapters resolve to offset 0 (no movement), so a
+  // fresh book is untouched.
+  const gridRef = useRef<FlatList<ChapterItem>>(null);
+  const autoScrolledBookRef = useRef<string | null>(null);
+  useEffect(() => {
+    if (isLoading || !bookInfo) return;
+    if (autoScrolledBookRef.current === book) return;
+    autoScrolledBookRef.current = book;
+    const target = progressSummary.nextUnreadChapter;
+    if (target === null || progressSummary.read === 0) return;
+    const offset = gridScrollOffsetForChapter(target, CARDS_PER_ROW, CARD_SIZE);
+    if (offset <= 0) return;
+    // Non-animated: an initial position, not a transition (reduce-motion-safe).
+    gridRef.current?.scrollToOffset({offset, animated: false});
+  }, [isLoading, book, bookInfo, progressSummary]);
 
   const startAnimations = () => {
     Animated.parallel([
@@ -268,6 +296,7 @@ export default function ChapterSelectionScreen() {
             <TouchableOpacity
               style={styles.headerBackButton}
               onPress={handleBack}
+              hitSlop={HEADER_BUTTON_HIT_SLOP}
               accessibilityRole="button"
               accessibilityLabel={t.bible.back}>
               <Ionicons name="arrow-back" size={24} color="#ffffff" />
@@ -280,6 +309,7 @@ export default function ChapterSelectionScreen() {
                 haptics.tap();
                 router.push(`/features/about-book/${book}` as never);
               }}
+              hitSlop={HEADER_BUTTON_HIT_SLOP}
               accessibilityRole="button"
               accessibilityLabel={t.bookIntro.openLabel}>
               <Ionicons
@@ -291,7 +321,15 @@ export default function ChapterSelectionScreen() {
 
             <View style={styles.headerContent}>
               <View style={styles.headerIconContainer}>
-                <Ionicons name="book-outline" size={32} color="#ffffff" />
+                {/* Decorative — the header title right after carries the
+                    meaning, so keep TalkBack from landing on the glyph. */}
+                <Ionicons
+                  name="book-outline"
+                  size={32}
+                  color="#ffffff"
+                  accessible={false}
+                  importantForAccessibility="no"
+                />
               </View>
               <View style={styles.headerTextContainer}>
                 <Text style={styles.headerSubtitle}>
@@ -301,7 +339,13 @@ export default function ChapterSelectionScreen() {
                   {language === 'en' ? bookInfo.nameEn : bookInfo.name}
                 </Text>
                 <View style={styles.chapterCountBadge}>
-                  <Ionicons name="document-text" size={14} color="#fbbf24" />
+                  <Ionicons
+                    name="document-text"
+                    size={14}
+                    color="#fbbf24"
+                    accessible={false}
+                    importantForAccessibility="no"
+                  />
                   <Text style={styles.chapterCountText}>
                     {chapters.length}{' '}
                     {chapters.length === 1 ? t.bible.chapter : t.bible.chapters}
@@ -324,7 +368,20 @@ export default function ChapterSelectionScreen() {
                   />
                 </View>
                 <View style={styles.progressSummaryRow}>
-                  <Text style={styles.progressSummaryText}>
+                  <Text
+                    style={styles.progressSummaryText}
+                    // The compact "12/150 · 8%" is cryptic when read aloud —
+                    // give screen readers the full sentence instead.
+                    accessibilityLabel={t.bible.chaptersReadOfA11y
+                      .replace(
+                        '{{completed}}',
+                        String(progressSummary.completed),
+                      )
+                      .replace('{{total}}', String(progressSummary.total))
+                      .replace(
+                        '{{percent}}',
+                        String(progressSummary.percentComplete),
+                      )}>
                     {t.bible.chaptersReadOf
                       .replace(
                         '{{completed}}',
@@ -342,7 +399,7 @@ export default function ChapterSelectionScreen() {
                       onPress={() =>
                         navigateToVerse(progressSummary.nextUnreadChapter ?? 1)
                       }
-                      hitSlop={{top: 8, bottom: 8, left: 8, right: 8}}
+                      hitSlop={CONTINUE_HIT_SLOP}
                       accessibilityRole="button"
                       accessibilityLabel={
                         progressSummary.read > 0
@@ -379,6 +436,7 @@ export default function ChapterSelectionScreen() {
           <View style={styles.listContainer}>
             {chapters.length > 0 ? (
               <FlatList
+                ref={gridRef}
                 data={chapters}
                 renderItem={renderItem}
                 keyExtractor={item => item.id}
@@ -445,7 +503,16 @@ const ChapterCard: React.FC<ChapterCardProps> = React.memo(
         <PressableScale
           onPress={onPress}
           accessibilityRole="button"
-          accessibilityLabel={`${t.bible.chapter} ${chapter} ${t.bible.of} ${bookName}`}
+          // Surface the read-state the card paints visually (checkmark / dot)
+          // so TalkBack hears "Chapter 12 of Psalms, read" too.
+          accessibilityLabel={
+            `${t.bible.chapter} ${chapter} ${t.bible.of} ${bookName}` +
+            (isCompleted
+              ? `, ${t.bible.chapterReadA11y}`
+              : progressPercentage > 0
+                ? `, ${t.bible.chapterInProgressA11y}`
+                : '')
+          }
           accessibilityHint={`${t.bible.openChapter} ${chapter} ${t.bible.of} ${bookName}`}
           style={styles.cardTouchable}>
           <View

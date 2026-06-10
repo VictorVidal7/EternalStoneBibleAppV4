@@ -2,6 +2,8 @@
  * Sprint 72 — pure next-chapter resolution for continuous audio playback.
  * Sprint 73 — chapterLocationFromVerse / shouldFollowAudioChapter (immersive
  * cross-chapter following).
+ * Sprint 74 — sameChapterLocation / shouldReaderFollowAudio (the NORMAL reader
+ * navigating along with continuous playback).
  */
 
 import {
@@ -10,6 +12,8 @@ import {
   chapterLocationFromVerse,
   shouldFollowAudioChapter,
   nextChapterTitle,
+  sameChapterLocation,
+  shouldReaderFollowAudio,
 } from '../src/features/audio/lib/chapterNavigation';
 
 describe('nextChapterLocation', () => {
@@ -144,5 +148,113 @@ describe('nextChapterTitle', () => {
     ).toBeNull();
     expect(nextChapterTitle({book: 'Nope', chapter: 1}, 'en')).toBeNull();
     expect(nextChapterTitle(undefined, 'es')).toBeNull();
+  });
+});
+
+describe('sameChapterLocation', () => {
+  it('matches only identical locations and never null', () => {
+    expect(
+      sameChapterLocation(
+        {bookId: 19, chapter: 117},
+        {bookId: 19, chapter: 117},
+      ),
+    ).toBe(true);
+    expect(
+      sameChapterLocation(
+        {bookId: 19, chapter: 117},
+        {bookId: 19, chapter: 118},
+      ),
+    ).toBe(false);
+    expect(
+      sameChapterLocation(
+        {bookId: 19, chapter: 117},
+        {bookId: 20, chapter: 117},
+      ),
+    ).toBe(false);
+    expect(sameChapterLocation(null, {bookId: 19, chapter: 117})).toBe(false);
+    expect(sameChapterLocation({bookId: 19, chapter: 117}, null)).toBe(false);
+    expect(sameChapterLocation(null, null)).toBe(false);
+  });
+});
+
+describe('shouldReaderFollowAudio', () => {
+  const salmos117 = {bookId: 19, chapter: 117};
+  const salmos118 = {bookId: 19, chapter: 118};
+  // The happy path: reader synced on 117, engine auto-advanced to 118.
+  const followBase = {
+    enabled: true,
+    focused: true,
+    immersiveOpen: false,
+    displayed: salmos117,
+    engine: salmos118,
+    syncedWith: salmos117,
+  };
+
+  it('follows a natural advance when enabled, focused, synced, no immersive', () => {
+    expect(shouldReaderFollowAudio(followBase)).toBe(true);
+  });
+
+  it('follows across a book boundary (Génesis 50 → Éxodo 1)', () => {
+    expect(
+      shouldReaderFollowAudio({
+        ...followBase,
+        displayed: {bookId: 1, chapter: 50},
+        engine: {bookId: 2, chapter: 1},
+        syncedWith: {bookId: 1, chapter: 50},
+      }),
+    ).toBe(true);
+  });
+
+  it('never follows when the opt-in toggle is off', () => {
+    expect(shouldReaderFollowAudio({...followBase, enabled: false})).toBe(
+      false,
+    );
+  });
+
+  it('never follows while the reader screen is not focused', () => {
+    expect(shouldReaderFollowAudio({...followBase, focused: false})).toBe(
+      false,
+    );
+  });
+
+  it('never follows while the immersive overlay is open (it follows on its own)', () => {
+    expect(shouldReaderFollowAudio({...followBase, immersiveOpen: true})).toBe(
+      false,
+    );
+  });
+
+  it('does NOT follow after a manual jump — the displayed chapter left the synced one', () => {
+    // User navigated to Salmos 117 manually while the engine played elsewhere:
+    // engine is exactly next of displayed, but the reader never synced on 117.
+    expect(
+      shouldReaderFollowAudio({
+        ...followBase,
+        syncedWith: {bookId: 19, chapter: 50},
+      }),
+    ).toBe(false);
+    expect(shouldReaderFollowAudio({...followBase, syncedWith: null})).toBe(
+      false,
+    );
+  });
+
+  it('does NOT follow an unrelated engine chapter (floating-player hijack guard)', () => {
+    expect(
+      shouldReaderFollowAudio({
+        ...followBase,
+        engine: {bookId: 43, chapter: 3},
+        syncedWith: salmos117,
+      }),
+    ).toBe(false);
+  });
+
+  it('is idle when already on the engine chapter (no feedback loop after a follow)', () => {
+    expect(
+      shouldReaderFollowAudio({
+        ...followBase,
+        displayed: salmos118,
+        engine: salmos118,
+        syncedWith: salmos118,
+      }),
+    ).toBe(false);
   });
 });
