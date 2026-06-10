@@ -45,7 +45,9 @@ import {
 import {
   getListeningStats,
   summarizeListening,
+  listeningStreaks,
   type ListeningSummary,
+  type ListeningStreaks,
 } from '@/features/audio';
 import {formatReadingTime} from '@lib/utils/formatReadingTime';
 import {
@@ -76,6 +78,11 @@ export default function ReadingInsightsScreen() {
   // Listening time (Sprint 75) — audio was never tracked before; per-day
   // buckets live in AsyncStorage, summarized by the pure summarizeListening.
   const [listening, setListening] = useState<ListeningSummary | null>(null);
+  // Listening streak (Sprint 76) — same buckets, day math shared with the
+  // reading streak (computeStreaks).
+  const [listenStreaks, setListenStreaks] = useState<ListeningStreaks | null>(
+    null,
+  );
   const [status, setStatus] = useState<LoadStatus>('loading');
 
   const load = useCallback(async () => {
@@ -90,6 +97,7 @@ export default function ReadingInsightsScreen() {
           getListeningStats(),
         ]);
       setListening(summarizeListening(listeningStats, Date.now()));
+      setListenStreaks(listeningStreaks(listeningStats, Date.now()));
       const built = buildReadingInsights({
         readingLog,
         totals: {
@@ -525,6 +533,11 @@ export default function ReadingInsightsScreen() {
                 <Stat
                   value={listening.daysListened}
                   label={ri.listeningDays}
+                  colors={colors}
+                />
+                <Stat
+                  value={listenStreaks?.currentStreak ?? 0}
+                  label={ri.listeningStreak}
                   colors={colors}
                 />
               </View>

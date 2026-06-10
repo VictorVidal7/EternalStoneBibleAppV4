@@ -20,6 +20,11 @@
  * Para la gloria de Dios Todopoderoso ✨
  */
 
+import {
+  computeStreaks,
+  type StreakResult,
+} from '../../../lib/achievements/streak';
+
 /** One local calendar day of listening. */
 export interface ListeningDay {
   /** Milliseconds of active playback. */
@@ -169,3 +174,21 @@ export function summarizeListening(
 
   return {todayMs, weekMs, totalMs, totalVerses, daysListened};
 }
+
+/**
+ * Consecutive-day listening streaks (Sprint 76): the run ending today (or
+ * yesterday — today simply hasn't happened yet) and the longest run ever.
+ * Reuses the reading-streak day math (`computeStreaks`) over this module's
+ * local day keys; empty buckets (0 ms / 0 verses) don't count as listening.
+ */
+export function listeningStreaks(
+  stats: ListeningStats,
+  now: number,
+): StreakResult {
+  const days = Object.entries(stats.days)
+    .filter(([, day]) => day.ms > 0 || day.verses > 0)
+    .map(([key]) => key);
+  return computeStreaks(days, listeningDateKey(now));
+}
+
+export type {StreakResult as ListeningStreaks};

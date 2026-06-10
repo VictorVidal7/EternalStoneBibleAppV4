@@ -291,6 +291,7 @@ export const translations = {
       listeningToday: 'Hoy',
       listeningVerses: 'Versículos oídos',
       listeningDays: 'Días de escucha',
+      listeningStreak: 'Racha (días)',
     },
     journey: {
       // Home entry card + chrome
@@ -323,6 +324,11 @@ export const translations = {
       timeTitle: 'Tiempo en la Palabra',
       timeReadLabel: 'de lectura',
       timeCaption: 'A lo largo de {{days}} días con Dios ✨',
+      listeningTitle: 'Tu tiempo de escucha',
+      listeningLabel: 'escuchando la Palabra',
+      listeningCaption: '{{verses}} versículos escuchados 🎧',
+      listeningStreakCaption:
+        '{{verses}} versículos escuchados · {{streak}} días seguidos 🎧',
       favoriteBookTitle: 'Tu libro favorito',
       favoritesLabel: 'favoritos',
       favoriteBookShort: 'Libro favorito',
@@ -2062,6 +2068,7 @@ export const translations = {
       listeningToday: 'Today',
       listeningVerses: 'Verses heard',
       listeningDays: 'Listening days',
+      listeningStreak: 'Streak (days)',
       hourUnit: 'h',
       minuteUnit: 'm',
       lessThanMinute: '<1m',
@@ -2097,6 +2104,11 @@ export const translations = {
       timeTitle: 'Time in the Word',
       timeReadLabel: 'of reading',
       timeCaption: 'Across {{days}} days with God ✨',
+      listeningTitle: 'Your listening time',
+      listeningLabel: 'listening to the Word',
+      listeningCaption: '{{verses}} verses heard 🎧',
+      listeningStreakCaption:
+        '{{verses}} verses heard · {{streak}} days in a row 🎧',
       favoriteBookTitle: 'Your favorite book',
       favoritesLabel: 'favorites',
       favoriteBookShort: 'Favorite book',

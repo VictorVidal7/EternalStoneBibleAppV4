@@ -23,6 +23,7 @@ import {
 import type {UserStats} from '../src/lib/achievements/types';
 import type {MemoryCard} from '../src/lib/memory/srs';
 import type {ReviewEvent} from '../src/lib/memory/reviewEvents';
+import {listeningDateKey} from '../src/features/audio/lib/listeningStats';
 
 const DAY = 24 * 60 * 60 * 1000;
 const NOW = new Date(2026, 4, 30, 12, 0, 0); // fixed local noon
@@ -303,5 +304,38 @@ describe('buildJourneyRecap', () => {
     // Two rows have positive verses (the empty-date one and the 'not-a-date' one).
     expect(r.activeDays).toBe(2);
     expect(typeof r.versesRead).toBe('number');
+  });
+
+  describe('listening (Sprint 76)', () => {
+    it('degrades to zeros when listeningStats is absent', () => {
+      const r = buildJourneyRecap(emptyInput, NOW);
+      expect(r.listeningTimeMs).toBe(0);
+      expect(r.versesHeard).toBe(0);
+      expect(r.listeningDays).toBe(0);
+      expect(r.listeningCurrentStreak).toBe(0);
+      expect(r.listeningLongestStreak).toBe(0);
+    });
+
+    it('surfaces totals + streaks from the per-day buckets', () => {
+      const dayKey = (n: number): string => listeningDateKey(daysAgoMs(n));
+      const r = buildJourneyRecap(
+        {
+          ...emptyInput,
+          listeningStats: {
+            days: {
+              [dayKey(0)]: {ms: 60_000, verses: 12},
+              [dayKey(1)]: {ms: 30_000, verses: 6},
+              [dayKey(5)]: {ms: 10_000, verses: 2},
+            },
+          },
+        },
+        NOW,
+      );
+      expect(r.listeningTimeMs).toBe(100_000);
+      expect(r.versesHeard).toBe(20);
+      expect(r.listeningDays).toBe(3);
+      expect(r.listeningCurrentStreak).toBe(2); // today + yesterday
+      expect(r.listeningLongestStreak).toBe(2);
+    });
   });
 });
