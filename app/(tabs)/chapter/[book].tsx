@@ -26,7 +26,10 @@ import {useLanguage} from '@hooks/useLanguage';
 import {PremiumSkeleton} from '@components/PremiumSkeleton';
 import {PressableScale} from '@components/ui/PressableScale';
 import {useReadingProgress} from '@context/ReadingProgressContext';
-import {summarizeChapterProgress} from '@lib/reading/chapterProgress';
+import {
+  summarizeChapterProgress,
+  gridScrollOffsetForChapter,
+} from '@lib/reading/chapterProgress';
 import {hitSlopToMinTarget} from '@lib/a11y/touchTarget';
 // import {AnimatedBottomNav} from '@components/navigation/AnimatedBottomNav';
 
@@ -109,6 +112,25 @@ export default function ChapterSelectionScreen() {
     }, 100);
     return () => clearTimeout(timer);
   }, [book, bookInfo, chapters]);
+
+  // Auto-scroll the grid to the Continue/Start target (Sprint 74): opening a
+  // big book (Salmos, 150 chapters) used to land at chapter 1 even when the
+  // reader left off 20 rows down. One instant jump per book, only once the
+  // grid is mounted; early chapters resolve to offset 0 (no movement), so a
+  // fresh book is untouched.
+  const gridRef = useRef<FlatList<ChapterItem>>(null);
+  const autoScrolledBookRef = useRef<string | null>(null);
+  useEffect(() => {
+    if (isLoading || !bookInfo) return;
+    if (autoScrolledBookRef.current === book) return;
+    autoScrolledBookRef.current = book;
+    const target = progressSummary.nextUnreadChapter;
+    if (target === null || progressSummary.read === 0) return;
+    const offset = gridScrollOffsetForChapter(target, CARDS_PER_ROW, CARD_SIZE);
+    if (offset <= 0) return;
+    // Non-animated: an initial position, not a transition (reduce-motion-safe).
+    gridRef.current?.scrollToOffset({offset, animated: false});
+  }, [isLoading, book, bookInfo, progressSummary]);
 
   const startAnimations = () => {
     Animated.parallel([
@@ -414,6 +436,7 @@ export default function ChapterSelectionScreen() {
           <View style={styles.listContainer}>
             {chapters.length > 0 ? (
               <FlatList
+                ref={gridRef}
                 data={chapters}
                 renderItem={renderItem}
                 keyExtractor={item => item.id}

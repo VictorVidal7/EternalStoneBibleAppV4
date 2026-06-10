@@ -1,8 +1,12 @@
 /**
  * Sprint 73 — pure book-level chapter-progress summary for the chapter picker.
+ * Sprint 74 — gridScrollOffsetForChapter (auto-scroll to the Continue target).
  */
 
-import {summarizeChapterProgress} from '../src/lib/reading/chapterProgress';
+import {
+  summarizeChapterProgress,
+  gridScrollOffsetForChapter,
+} from '../src/lib/reading/chapterProgress';
 
 describe('summarizeChapterProgress', () => {
   it('counts completed / in-progress / read and the completion percent', () => {
@@ -44,5 +48,34 @@ describe('summarizeChapterProgress', () => {
     expect(s.total).toBe(0);
     expect(s.percentComplete).toBe(0);
     expect(s.nextUnreadChapter).toBeNull();
+  });
+});
+
+describe('gridScrollOffsetForChapter', () => {
+  // The live grid: 5 cards per row.
+  it('scrolls to the target row minus one row of context', () => {
+    // Chapter 23 → row 4 (0-based); minus 1 context row → 3 rows down.
+    expect(gridScrollOffsetForChapter(23, 5, 80)).toBe(240);
+  });
+
+  it('keeps early chapters at the top (no scroll)', () => {
+    // Rows 0 and 1 resolve to offset 0 — already visible.
+    expect(gridScrollOffsetForChapter(1, 5, 80)).toBe(0);
+    expect(gridScrollOffsetForChapter(5, 5, 80)).toBe(0);
+    expect(gridScrollOffsetForChapter(10, 5, 80)).toBe(0);
+    // First chapter of row 2 is the first that scrolls.
+    expect(gridScrollOffsetForChapter(11, 5, 80)).toBe(80);
+  });
+
+  it('honors a custom context-row count', () => {
+    expect(gridScrollOffsetForChapter(23, 5, 80, 0)).toBe(320);
+    expect(gridScrollOffsetForChapter(23, 5, 80, 2)).toBe(160);
+  });
+
+  it('is 0 for invalid geometry or chapter', () => {
+    expect(gridScrollOffsetForChapter(0, 5, 80)).toBe(0);
+    expect(gridScrollOffsetForChapter(-3, 5, 80)).toBe(0);
+    expect(gridScrollOffsetForChapter(10, 0, 80)).toBe(0);
+    expect(gridScrollOffsetForChapter(10, 5, 0)).toBe(0);
   });
 });

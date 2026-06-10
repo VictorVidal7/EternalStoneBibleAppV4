@@ -70,3 +70,29 @@ export function summarizeChapterProgress(
     nextUnreadChapter,
   };
 }
+
+/**
+ * Scroll offset that brings a target chapter's grid row into view (Sprint 74).
+ *
+ * The chapter grid lays cards out in fixed-size rows of `perRow`; opening a
+ * big book (Salmos, 150 chapters) lands at the top even when the "Continue"
+ * target sits 20 rows down. This returns the content offset for the target's
+ * row minus `contextRows` rows of context above it, floored at 0 — so early
+ * chapters (already visible) scroll nowhere and the result is always a valid
+ * offset.
+ *
+ * @param chapter     1-based target chapter (e.g. `nextUnreadChapter`).
+ * @param perRow      cards per grid row (> 0).
+ * @param rowHeight   rendered row height in dp (> 0).
+ * @param contextRows rows of context to keep above the target (default 1).
+ */
+export function gridScrollOffsetForChapter(
+  chapter: number,
+  perRow: number,
+  rowHeight: number,
+  contextRows: number = 1,
+): number {
+  if (chapter <= 0 || perRow <= 0 || rowHeight <= 0) return 0;
+  const row = Math.floor((chapter - 1) / perRow);
+  return Math.max(0, (row - contextRows) * rowHeight);
+}
