@@ -90,6 +90,7 @@ export const AUDIO_STORAGE_KEYS = {
   preferences: '@audio_preferences',
   lastPosition: '@audio_last_position',
   selectedVoice: '@audio_selected_voice',
+  listeningStats: '@audio_listening_stats',
 } as const;
 
 // ==================== ICONS ====================

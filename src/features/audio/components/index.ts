@@ -7,6 +7,7 @@
 export {MiniAudioPlayer} from './MiniAudioPlayer';
 export {AudioResumeRestorer} from './AudioResumeRestorer';
 export {AudioChapterAdvancer} from './AudioChapterAdvancer';
+export {AudioListeningTracker} from './AudioListeningTracker';
 export {AudioControls} from './AudioControls';
 export {
   AudioProgressBar,

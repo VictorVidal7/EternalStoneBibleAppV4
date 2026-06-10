@@ -18,6 +18,7 @@ export {
   MiniAudioPlayer,
   AudioResumeRestorer,
   AudioChapterAdvancer,
+  AudioListeningTracker,
   AudioControls,
   AudioProgressBar,
   MiniProgressDots,
@@ -119,6 +120,22 @@ export {
   swipeDisplacement,
 } from './lib/miniPlayerGestures';
 export type {SwipeAction} from './lib/miniPlayerGestures';
+
+// Listening time (Sprint 75 — per-day buckets + the "Mi lectura" summary).
+export {
+  listeningDateKey,
+  parseListeningStats,
+  serializeListeningStats,
+  recordListening,
+  summarizeListening,
+  LISTENING_RETENTION_DAYS,
+} from './lib/listeningStats';
+export type {
+  ListeningStats,
+  ListeningDay,
+  ListeningSummary,
+} from './lib/listeningStats';
+export {getListeningStats, appendListening} from './lib/listeningStatsStore';
 
 // Cold-start player restore (Sprint 53)
 export {resolveColdStartRestore} from './lib/coldStartRestore';

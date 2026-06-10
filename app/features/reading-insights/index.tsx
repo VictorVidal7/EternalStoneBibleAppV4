@@ -42,6 +42,11 @@ import {
   buildReadingInsights,
   type ReadingInsights,
 } from '@/features/reading-insights/readingInsights';
+import {
+  getListeningStats,
+  summarizeListening,
+  type ListeningSummary,
+} from '@/features/audio';
 import {formatReadingTime} from '@lib/utils/formatReadingTime';
 import {
   TOTAL_BIBLE_BOOKS,
@@ -68,17 +73,23 @@ export default function ReadingInsightsScreen() {
   const {progress} = useReadingProgress();
 
   const [insights, setInsights] = useState<ReadingInsights | null>(null);
+  // Listening time (Sprint 75) — audio was never tracked before; per-day
+  // buckets live in AsyncStorage, summarized by the pure summarizeListening.
+  const [listening, setListening] = useState<ListeningSummary | null>(null);
   const [status, setStatus] = useState<LoadStatus>('loading');
 
   const load = useCallback(async () => {
     if (!achievementService) return;
     try {
       setStatus('loading');
-      const [stats, readingLog, bookReadingLog] = await Promise.all([
-        achievementService.getUserStats(),
-        achievementService.getReadingLog(),
-        achievementService.getBookReadingLog(),
-      ]);
+      const [stats, readingLog, bookReadingLog, listeningStats] =
+        await Promise.all([
+          achievementService.getUserStats(),
+          achievementService.getReadingLog(),
+          achievementService.getBookReadingLog(),
+          getListeningStats(),
+        ]);
+      setListening(summarizeListening(listeningStats, Date.now()));
       const built = buildReadingInsights({
         readingLog,
         totals: {
@@ -462,6 +473,62 @@ export default function ReadingInsightsScreen() {
                 </View>
               )}
             </>
+          )}
+
+          {/* Listening time (Sprint 75) — independent of reading data: a
+              listener-first user gets their card even before reading insights
+              accumulate. Hidden until any listening exists. */}
+          {status === 'ready' && listening && listening.totalMs > 0 && (
+            <View style={[styles.card, {backgroundColor: colors.card}]}>
+              <AppText
+                scaleRole="display"
+                style={[styles.cardTitle, {color: colors.text}]}>
+                {ri.listeningTitle}
+              </AppText>
+              <AppText
+                scaleRole="compact"
+                style={[styles.cardHint, {color: colors.textTertiary}]}>
+                {ri.listeningHint}
+              </AppText>
+              <View style={styles.weekRow}>
+                <TextStat
+                  value={formatReadingTime(
+                    Math.round(listening.todayMs / 1000),
+                    timeLabels,
+                  )}
+                  label={ri.listeningToday}
+                  colors={colors}
+                />
+                <TextStat
+                  value={formatReadingTime(
+                    Math.round(listening.weekMs / 1000),
+                    timeLabels,
+                  )}
+                  label={ri.timeWeek}
+                  colors={colors}
+                />
+                <TextStat
+                  value={formatReadingTime(
+                    Math.round(listening.totalMs / 1000),
+                    timeLabels,
+                  )}
+                  label={ri.timeTotal}
+                  colors={colors}
+                />
+              </View>
+              <View style={styles.weekRow}>
+                <Stat
+                  value={listening.totalVerses}
+                  label={ri.listeningVerses}
+                  colors={colors}
+                />
+                <Stat
+                  value={listening.daysListened}
+                  label={ri.listeningDays}
+                  colors={colors}
+                />
+              </View>
+            </View>
           )}
         </ScrollView>
       </View>

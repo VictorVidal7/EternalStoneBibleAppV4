@@ -286,6 +286,11 @@ export const translations = {
       hourUnit: 'h',
       minuteUnit: 'min',
       lessThanMinute: '<1 min',
+      listeningTitle: 'Tiempo de escucha',
+      listeningHint: 'Tu tiempo oyendo la Palabra narrada',
+      listeningToday: 'Hoy',
+      listeningVerses: 'Versículos oídos',
+      listeningDays: 'Días de escucha',
     },
     journey: {
       // Home entry card + chrome
@@ -2050,6 +2055,11 @@ export const translations = {
       timeTotal: 'Total time',
       timeWeek: 'This week',
       timeBestDay: 'Best day',
+      listeningTitle: 'Listening time',
+      listeningHint: 'Your time hearing the Word narrated',
+      listeningToday: 'Today',
+      listeningVerses: 'Verses heard',
+      listeningDays: 'Listening days',
       hourUnit: 'h',
       minuteUnit: 'm',
       lessThanMinute: '<1m',
