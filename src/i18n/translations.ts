@@ -139,6 +139,10 @@ export const translations = {
       continueReading: 'Continuar',
       startReading: 'Comenzar',
       chaptersReadOf: '{{completed}}/{{total}} · {{percent}}%',
+      chaptersReadOfA11y:
+        '{{completed}} de {{total}} capítulos leídos, {{percent}} por ciento',
+      chapterReadA11y: 'leído',
+      chapterInProgressA11y: 'en progreso',
       continueChapterHint: 'Ir al capítulo {{chapter}}',
       noResultsFound: 'No se encontraron resultados',
       noMatchingBooks: 'No hay libros que coincidan con',
@@ -1903,6 +1907,10 @@ export const translations = {
       continueReading: 'Continue',
       startReading: 'Start',
       chaptersReadOf: '{{completed}}/{{total}} · {{percent}}%',
+      chaptersReadOfA11y:
+        '{{completed}} of {{total}} chapters read, {{percent}} percent',
+      chapterReadA11y: 'read',
+      chapterInProgressA11y: 'in progress',
       continueChapterHint: 'Go to chapter {{chapter}}',
       noResultsFound: 'No results found',
       noMatchingBooks: 'No books match',

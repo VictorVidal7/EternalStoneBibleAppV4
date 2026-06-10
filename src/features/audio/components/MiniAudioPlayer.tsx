@@ -354,7 +354,14 @@ export const MiniAudioPlayer: React.FC<MiniAudioPlayerProps> = ({
                   onPress={handleToggleExpand}
                   accessibilityRole="button"
                   accessibilityLabel={verseTitle}
-                  accessibilityHint={t.audio.a11y.expandHint}>
+                  accessibilityHint={t.audio.a11y.expandHint}
+                  // The visual progress counter ("1/29") is grouped under this
+                  // label — voice it as a value so TalkBack hears it too.
+                  accessibilityValue={{
+                    text: t.audio.scrub.preview
+                      .replace('{{n}}', String(state.currentVerseIndex + 1))
+                      .replace('{{total}}', String(verses.length)),
+                  }}>
                   <AppText
                     scaleRole="display"
                     style={[styles.verseTitle, {color: colors.text}]}

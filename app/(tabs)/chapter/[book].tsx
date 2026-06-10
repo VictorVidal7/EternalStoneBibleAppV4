@@ -291,7 +291,15 @@ export default function ChapterSelectionScreen() {
 
             <View style={styles.headerContent}>
               <View style={styles.headerIconContainer}>
-                <Ionicons name="book-outline" size={32} color="#ffffff" />
+                {/* Decorative — the header title right after carries the
+                    meaning, so keep TalkBack from landing on the glyph. */}
+                <Ionicons
+                  name="book-outline"
+                  size={32}
+                  color="#ffffff"
+                  accessible={false}
+                  importantForAccessibility="no"
+                />
               </View>
               <View style={styles.headerTextContainer}>
                 <Text style={styles.headerSubtitle}>
@@ -301,7 +309,13 @@ export default function ChapterSelectionScreen() {
                   {language === 'en' ? bookInfo.nameEn : bookInfo.name}
                 </Text>
                 <View style={styles.chapterCountBadge}>
-                  <Ionicons name="document-text" size={14} color="#fbbf24" />
+                  <Ionicons
+                    name="document-text"
+                    size={14}
+                    color="#fbbf24"
+                    accessible={false}
+                    importantForAccessibility="no"
+                  />
                   <Text style={styles.chapterCountText}>
                     {chapters.length}{' '}
                     {chapters.length === 1 ? t.bible.chapter : t.bible.chapters}
@@ -324,7 +338,20 @@ export default function ChapterSelectionScreen() {
                   />
                 </View>
                 <View style={styles.progressSummaryRow}>
-                  <Text style={styles.progressSummaryText}>
+                  <Text
+                    style={styles.progressSummaryText}
+                    // The compact "12/150 · 8%" is cryptic when read aloud —
+                    // give screen readers the full sentence instead.
+                    accessibilityLabel={t.bible.chaptersReadOfA11y
+                      .replace(
+                        '{{completed}}',
+                        String(progressSummary.completed),
+                      )
+                      .replace('{{total}}', String(progressSummary.total))
+                      .replace(
+                        '{{percent}}',
+                        String(progressSummary.percentComplete),
+                      )}>
                     {t.bible.chaptersReadOf
                       .replace(
                         '{{completed}}',
@@ -445,7 +472,16 @@ const ChapterCard: React.FC<ChapterCardProps> = React.memo(
         <PressableScale
           onPress={onPress}
           accessibilityRole="button"
-          accessibilityLabel={`${t.bible.chapter} ${chapter} ${t.bible.of} ${bookName}`}
+          // Surface the read-state the card paints visually (checkmark / dot)
+          // so TalkBack hears "Chapter 12 of Psalms, read" too.
+          accessibilityLabel={
+            `${t.bible.chapter} ${chapter} ${t.bible.of} ${bookName}` +
+            (isCompleted
+              ? `, ${t.bible.chapterReadA11y}`
+              : progressPercentage > 0
+                ? `, ${t.bible.chapterInProgressA11y}`
+                : '')
+          }
           accessibilityHint={`${t.bible.openChapter} ${chapter} ${t.bible.of} ${bookName}`}
           style={styles.cardTouchable}>
           <View
