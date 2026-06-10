@@ -144,3 +144,43 @@ export function shouldFollowAudioChapter(
     !!next && next.bookId === engine.bookId && next.chapter === engine.chapter
   );
 }
+
+/** Value equality for two (possibly null) chapter locations. */
+export function sameChapterLocation(
+  a: ChapterLocation | null,
+  b: ChapterLocation | null,
+): boolean {
+  return !!a && !!b && a.bookId === b.bookId && a.chapter === b.chapter;
+}
+
+/**
+ * Whether the NORMAL reader screen should navigate to the chapter the audio
+ * engine just auto-advanced into (Sprint 74). Stricter than the immersive's
+ * {@link shouldFollowAudioChapter} because the reader is a full route — a
+ * follow runs `router.replace` (the same path as the manual prev/next arrows),
+ * so it must never fire against the user's own navigation:
+ *
+ *   - `enabled`        — the opt-in "reader follows audio" preference is on.
+ *   - `focused`        — the reader is the active screen (no background jumps).
+ *   - `immersiveOpen`  — the immersive overlay follows on its own (S73); a
+ *                        route replace would remount the screen and close it.
+ *   - `syncedWith`     — the latch: the chapter the reader was last showing
+ *                        WHILE the engine played that same chapter. Following
+ *                        requires `displayed` to still be that chapter, so a
+ *                        manual jump to an unrelated chapter (even one that
+ *                        happens to precede the engine's) never gets hijacked.
+ *   - displayed/engine — must be a natural forward advance (exactly the next
+ *                        chapter), per {@link shouldFollowAudioChapter}.
+ */
+export function shouldReaderFollowAudio(params: {
+  enabled: boolean;
+  focused: boolean;
+  immersiveOpen: boolean;
+  displayed: ChapterLocation | null;
+  engine: ChapterLocation | null;
+  syncedWith: ChapterLocation | null;
+}): boolean {
+  if (!params.enabled || !params.focused || params.immersiveOpen) return false;
+  if (!sameChapterLocation(params.displayed, params.syncedWith)) return false;
+  return shouldFollowAudioChapter(params.displayed, params.engine);
+}
