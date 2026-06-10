@@ -100,6 +100,11 @@ export {
 } from './lib/chapterNavigation';
 export type {ChapterLocation, VerseChapterRef} from './lib/chapterNavigation';
 
+// Home "Continue listening" card policy (Sprint 75 — revives the card the
+// S53 cold-start restore had effectively killed; see resumeCard.ts).
+export {resumeCardMode} from './lib/resumeCard';
+export type {ResumeCardMode, ResumeCardParams} from './lib/resumeCard';
+
 // Cold-start player restore (Sprint 53)
 export {resolveColdStartRestore} from './lib/coldStartRestore';
 export type {
