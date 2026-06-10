@@ -83,6 +83,7 @@ import {
   chapterLocationFromVerse,
   sameChapterLocation,
   shouldReaderFollowAudio,
+  KaraokeText,
   type ChapterLocation,
 } from '@/features/audio';
 import {localizedChapterReference} from '@lib/reading/verseReference';
@@ -862,9 +863,22 @@ export default function VerseReadingScreen() {
     };
   }, [highlightService, canonicalBook, chapterNum]);
 
-  // Auto-scroll so the verse currently read aloud stays visible
+  // Auto-scroll so the verse currently read aloud stays visible. Only while
+  // the engine actually holds THIS chapter — under ∞ continuous playback the
+  // engine may have advanced to the next chapter while the reader stayed
+  // (the S74 follow is opt-in), and the raw engine index would then point at
+  // the wrong verse here.
   useEffect(() => {
-    if (!audioState.isPlaying) return;
+    if (!audioState.isPlaying || !bookInfo) return;
+    const engineLocation = chapterLocationFromVerse(audioEngineVerses[0]);
+    if (
+      !sameChapterLocation(
+        {bookId: bookInfo.id, chapter: chapterNum},
+        engineLocation,
+      )
+    ) {
+      return;
+    }
     const verseNum = verses[audioState.currentVerseIndex]?.verse;
     if (verseNum == null) return;
     const offset = verseOffsetsRef.current.get(verseNum);
@@ -874,7 +888,14 @@ export default function VerseReadingScreen() {
         animated: true,
       });
     }
-  }, [audioState.currentVerseIndex, audioState.isPlaying, verses]);
+  }, [
+    audioState.currentVerseIndex,
+    audioState.isPlaying,
+    verses,
+    audioEngineVerses,
+    bookInfo,
+    chapterNum,
+  ]);
 
   // ── Reader follows continuous audio (Sprint 74, opt-in) ──────────────────
   // When S72's continuous playback auto-advances the engine into the next
@@ -901,6 +922,13 @@ export default function VerseReadingScreen() {
   const audioEngineLocation = useMemo(
     () => chapterLocationFromVerse(audioEngineVerses[0]),
     [audioEngineVerses],
+  );
+  // The engine voices THIS chapter — gates the per-verse "being read"
+  // highlight (and the Sprint 76 karaoke) so an ∞-advanced engine on the
+  // next chapter never lights a phantom verse here.
+  const audioBoundToReader = sameChapterLocation(
+    displayedLocation,
+    audioEngineLocation,
   );
 
   // Latch: the chapter the reader was showing WHILE the engine played that
@@ -1811,7 +1839,9 @@ export default function VerseReadingScreen() {
               highlightVerse &&
               parseInt(highlightVerse as string) === verse.verse;
             const isBeingRead =
-              audioState.isPlaying && audioState.currentVerseIndex === index;
+              audioBoundToReader &&
+              audioState.isPlaying &&
+              audioState.currentVerseIndex === index;
             const userHighlight = verseHighlights.get(verse.verse);
 
             const textStyle = {
@@ -1916,29 +1946,48 @@ export default function VerseReadingScreen() {
                       {verse.verse}
                       {'  '}
                     </Text>
-                    {/* Linkify inline references ("Isaías 53:5", "John 3:16")
-                        inside the verse text so they become tappable jumps. */}
-                    {(() => {
-                      const segments = linkifyReferences(verse.text);
-                      if (segments.length === 1 && !segments[0].ref) {
-                        return verse.text;
-                      }
-                      const linkColor = userHighlight
-                        ? effectiveColors.primaryDark
-                        : effectiveColors.primary;
-                      return segments.map((seg, i) =>
-                        seg.ref ? (
-                          <Text
-                            key={i}
-                            onPress={() => jumpToReference(seg.ref!)}
-                            style={[styles.crossRefLink, {color: linkColor}]}>
-                            {seg.text}
-                          </Text>
-                        ) : (
-                          seg.text
-                        ),
-                      );
-                    })()}
+                    {/* Karaoke (Sprint 76): while the engine voices THIS
+                        verse, light the spoken word (bold + a soft tint of
+                        the audio-highlight hue). Until a boundary arrives —
+                        or when not being read — falls through to the
+                        linkified body below, so reference links stay
+                        tappable. */}
+                    <KaraokeText
+                      text={verse.text}
+                      verseIndex={index}
+                      active={isBeingRead}
+                      wordStyle={[
+                        styles.karaokeWord,
+                        {
+                          backgroundColor:
+                            effectiveColors.audioHighlight + '26',
+                        },
+                      ]}>
+                      {/* Linkify inline references ("Isaías 53:5",
+                          "John 3:16") inside the verse text so they become
+                          tappable jumps. */}
+                      {(() => {
+                        const segments = linkifyReferences(verse.text);
+                        if (segments.length === 1 && !segments[0].ref) {
+                          return verse.text;
+                        }
+                        const linkColor = userHighlight
+                          ? effectiveColors.primaryDark
+                          : effectiveColors.primary;
+                        return segments.map((seg, i) =>
+                          seg.ref ? (
+                            <Text
+                              key={i}
+                              onPress={() => jumpToReference(seg.ref!)}
+                              style={[styles.crossRefLink, {color: linkColor}]}>
+                              {seg.text}
+                            </Text>
+                          ) : (
+                            seg.text
+                          ),
+                        );
+                      })()}
+                    </KaraokeText>
                   </Text>
                   {/* Side-by-side companion: the matching verse from the other
                       version. In STACKED layout it sits below the primary one,
@@ -2522,6 +2571,12 @@ const styles = StyleSheet.create({
   },
   crossRefLink: {
     textDecorationLine: 'underline',
+  },
+  // The word the narration voices right now (Sprint 76 karaoke) — bold over
+  // a soft tint of the audio-highlight hue; static restyle, reduce-motion
+  // safe (mirrors the immersive's S75 karaokeWord).
+  karaokeWord: {
+    fontWeight: '700',
   },
   verseContent: {
     flex: 1,

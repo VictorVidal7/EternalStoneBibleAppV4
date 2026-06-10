@@ -27,6 +27,7 @@ export {
   VoiceSelector,
   SleepTimerModal,
   AudioQueueSheet,
+  KaraokeText,
 } from './components';
 
 // Hooks
@@ -128,12 +129,15 @@ export {
   serializeListeningStats,
   recordListening,
   summarizeListening,
+  listeningStreaks,
+  EMPTY_LISTENING_STATS,
   LISTENING_RETENTION_DAYS,
 } from './lib/listeningStats';
 export type {
   ListeningStats,
   ListeningDay,
   ListeningSummary,
+  ListeningStreaks,
 } from './lib/listeningStats';
 export {getListeningStats, appendListening} from './lib/listeningStatsStore';
 

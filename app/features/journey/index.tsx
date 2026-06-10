@@ -51,6 +51,7 @@ import {useServices} from '@context/ServicesContext';
 import {useMemoryDeck} from '@context/MemoryDeckContext';
 import {useFavorites} from '@context/FavoritesContext';
 import {getAllReviewEvents} from '@lib/memory/reviewEventStore';
+import {getListeningStats} from '@/features/audio';
 import {logger} from '@lib/utils/logger';
 import {formatReadingTime} from '@lib/utils/formatReadingTime';
 import {getBookByName} from '@/constants/bible';
@@ -72,6 +73,7 @@ type SlideKey =
   | 'books'
   | 'streak'
   | 'time'
+  | 'listening'
   | 'mostRead'
   | 'favorite'
   | 'engagement'
@@ -100,6 +102,7 @@ const SLIDE_GRADIENTS: Record<SlideKey, [string, string, string]> = {
   books: ['#16a34a', '#15803d', '#14532d'],
   streak: ['#f59e0b', '#ea580c', '#b91c1c'],
   time: ['#0f766e', '#0e7490', '#0c4a6e'],
+  listening: ['#7c3aed', '#6d28d9', '#312e81'],
   mostRead: ['#d97706', '#b45309', '#78350f'],
   favorite: ['#ec4899', '#be185d', '#831843'],
   engagement: ['#8b5cf6', '#6d28d9', '#4c1d95'],
@@ -142,12 +145,13 @@ export default function JourneyScreen() {
     if (!achievementService) return;
     try {
       setStatus('loading');
-      const [stats, readingLog, reviewEvents, bookReadingLog] =
+      const [stats, readingLog, reviewEvents, bookReadingLog, listeningStats] =
         await Promise.all([
           achievementService.getUserStats(),
           achievementService.getReadingLog(),
           getAllReviewEvents(),
           achievementService.getBookReadingLog(),
+          getListeningStats(),
         ]);
       const built = buildJourneyRecap(
         {
@@ -160,6 +164,7 @@ export default function JourneyScreen() {
             createdAt: f.createdAt,
           })),
           bookReadingLog,
+          listeningStats,
         },
         new Date(),
       );
@@ -323,6 +328,42 @@ export default function JourneyScreen() {
                 ? j.timeCaption.replace('{{days}}', num(recap.activeDays))
                 : undefined
             }
+          />
+        ),
+      });
+    }
+
+    // 5a — Listening time (Sprint 76 — from the S75 buckets). Skipped until
+    // the user has ever listened; the caption celebrates the streak when one
+    // is alive (≥ 2 days), otherwise just the verses heard.
+    if (recap.listeningTimeMs > 0) {
+      const listenStr = formatReadingTime(
+        Math.round(recap.listeningTimeMs / 1000),
+        {
+          hour: ri.hourUnit,
+          minute: ri.minuteUnit,
+          lessThanMinute: ri.lessThanMinute,
+        },
+      );
+      const caption =
+        recap.listeningCurrentStreak >= 2
+          ? j.listeningStreakCaption
+              .replace('{{verses}}', num(recap.versesHeard))
+              .replace('{{streak}}', num(recap.listeningCurrentStreak))
+          : j.listeningCaption.replace('{{verses}}', num(recap.versesHeard));
+      list.push({
+        key: 'listening',
+        gradient: SLIDE_GRADIENTS.listening,
+        icon: 'headset',
+        a11y: `${j.listeningTitle}. ${listenStr} ${j.listeningLabel}. ${caption}`,
+        render: () => (
+          <SlideBody
+            icon="headset"
+            title={j.listeningTitle}
+            big={listenStr}
+            bigLabel={j.listeningLabel}
+            bigIsText
+            caption={caption}
           />
         ),
       });

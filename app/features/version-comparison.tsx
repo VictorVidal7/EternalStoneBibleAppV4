@@ -17,6 +17,11 @@ export default function VersionComparisonRoute() {
 
   return (
     <VersionComparisonScreen
+      // expo-router REUSES this route's instance across navigations, so a
+      // deep link with new params would otherwise land on the previous
+      // comparison's state (the screen captures initialVerse at mount).
+      // Re-keying by target forces a fresh mount whenever the params change.
+      key={`${book}:${chapter}:${verse}`}
       book={book}
       chapter={chapter}
       initialVerse={verse}

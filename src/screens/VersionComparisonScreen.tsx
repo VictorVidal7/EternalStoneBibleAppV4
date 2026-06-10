@@ -36,6 +36,7 @@ import {useToast} from '../context/ToastContext';
 import {haptics} from '@lib/haptics';
 import {useAudioPlayer} from '../features/audio';
 import {getBookByName} from '../constants/bible';
+import bibleDB from '../lib/database';
 import {
   versionComparisonService,
   BibleVersion,
@@ -149,7 +150,11 @@ export const VersionComparisonScreen: React.FC<
   const [savedComparisons, setSavedComparisons] = useState<SavedComparison[]>(
     [],
   );
-  const [totalVerses] = useState(31); // Default, se actualizará dinámicamente
+  // Real verse count of the compared chapter (Sprint 76). Starts on a safe
+  // default until the COUNT query lands — it used to be PINNED there, which
+  // truncated the picker grid on long chapters (Psalms 119 has 176) and let
+  // the next-verse arrow walk past the chapter's end.
+  const [totalVerses, setTotalVerses] = useState(31);
   const [viewMode, setViewMode] = useState<'list' | 'grid'>('list');
   const [editingComparisonId, setEditingComparisonId] = useState<string | null>(
     null,
@@ -169,6 +174,39 @@ export const VersionComparisonScreen: React.FC<
   useEffect(() => {
     loadVersions();
   }, []);
+
+  // Load the real verse count for the compared chapter (cheap COUNT against
+  // the primary selected version — verse numbering matches across versions).
+  // Also clamps a deep-linked verse that points past the chapter's end.
+  useEffect(() => {
+    const info = getBookByName(book);
+    const version = selectedVersions[0];
+    if (!info || !version) return;
+    let cancelled = false;
+    (async () => {
+      try {
+        await bibleDB.initialize();
+        const count = await bibleDB.getChapterVerseCount(
+          info.id,
+          chapter,
+          version,
+        );
+        if (cancelled || count <= 0) return;
+        setTotalVerses(count);
+        setCurrentVerse(prev => Math.min(prev, count));
+        setSelectedVerses(prev =>
+          prev.some(v => v > count)
+            ? [...new Set(prev.map(v => Math.min(v, count)))]
+            : prev,
+        );
+      } catch (error) {
+        console.error('Error loading chapter verse count:', error);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [book, chapter, selectedVersions]);
 
   // Default contrast on for same-language comparisons, off for cross-language
   // ones. Keyed on the language composition so it never fights a manual toggle
@@ -295,11 +333,21 @@ export const VersionComparisonScreen: React.FC<
     ]);
   };
 
+  // book/chapter are in the deps defensively: the route wrapper re-keys this
+  // screen per target, but a reload on prop change keeps the comparison
+  // coherent even if that key is ever removed.
   useEffect(() => {
     if (selectedVersions.length > 0) {
       loadComparison();
     }
-  }, [currentVerse, selectedVersions, selectedVerses, multiSelectMode]);
+  }, [
+    book,
+    chapter,
+    currentVerse,
+    selectedVersions,
+    selectedVerses,
+    multiSelectMode,
+  ]);
 
   const loadVersions = async () => {
     try {
@@ -1014,9 +1062,21 @@ export const VersionComparisonScreen: React.FC<
         </TouchableOpacity>
 
         <TouchableOpacity
-          style={styles.navButton}
-          onPress={() => setCurrentVerse(prev => prev + 1)}>
-          <Ionicons name="chevron-forward" size={24} color={colors.primary} />
+          style={[
+            styles.navButton,
+            currentVerse >= totalVerses && styles.navButtonDisabled,
+          ]}
+          onPress={() =>
+            setCurrentVerse(prev => Math.min(totalVerses, prev + 1))
+          }
+          disabled={currentVerse >= totalVerses}>
+          <Ionicons
+            name="chevron-forward"
+            size={24}
+            color={
+              currentVerse >= totalVerses ? colors.textTertiary : colors.primary
+            }
+          />
         </TouchableOpacity>
       </View>
 

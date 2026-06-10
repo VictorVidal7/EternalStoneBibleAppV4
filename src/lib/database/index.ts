@@ -546,6 +546,65 @@ class BibleDatabase {
     return result || null;
   }
 
+  /**
+   * Verse count of a single chapter — COUNT only, no verse payloads, so
+   * surfaces that just need sizes (the comparison verse picker, the
+   * listening queue) don't pull a whole chapter to measure it.
+   */
+  async getChapterVerseCount(
+    bookId: number,
+    chapter: number,
+    version: string,
+  ): Promise<number> {
+    const db = this.getDb();
+
+    // LOWER(version) — the verses table stores 'RVR1960' while version IDs
+    // travel lowercase ('rvr1960'); mirrors compareVerse's tolerance.
+    const result = await db.getFirstAsync<{count: number}>(
+      `SELECT COUNT(*) as count FROM verses
+       WHERE book_id = ? AND chapter = ? AND LOWER(version) = LOWER(?)`,
+      [bookId, chapter, version],
+    );
+
+    return result?.count ?? 0;
+  }
+
+  /**
+   * Batch verse counts for several chapters in ONE grouped query — the
+   * listening-queue sheet sizes its upcoming rows at once. Keyed by
+   * {@link chapterCountKey}; chapters absent from `verses` have no entry.
+   */
+  async getChapterVerseCounts(
+    locations: Array<{bookId: number; chapter: number}>,
+    version: string,
+  ): Promise<Map<string, number>> {
+    const counts = new Map<string, number>();
+    if (locations.length === 0) return counts;
+
+    const db = this.getDb();
+    const pairClause = locations
+      .map(() => '(book_id = ? AND chapter = ?)')
+      .join(' OR ');
+    const params: (number | string)[] = [version];
+    for (const loc of locations) params.push(loc.bookId, loc.chapter);
+
+    const rows = await db.getAllAsync<{
+      book_id: number;
+      chapter: number;
+      count: number;
+    }>(
+      `SELECT book_id, chapter, COUNT(*) as count FROM verses
+       WHERE LOWER(version) = LOWER(?) AND (${pairClause})
+       GROUP BY book_id, chapter`,
+      params,
+    );
+
+    for (const row of rows) {
+      counts.set(chapterCountKey(row.book_id, row.chapter), row.count);
+    }
+    return counts;
+  }
+
   async getRandomVerse(
     version: string = 'RVR1960',
   ): Promise<BibleVerse | null> {
@@ -943,6 +1002,11 @@ class BibleDatabase {
       await db.runAsync('DELETE FROM notes');
     });
   }
+}
+
+/** Map key for {@link BibleDatabase.getChapterVerseCounts} results. */
+export function chapterCountKey(bookId: number, chapter: number): string {
+  return `${bookId}:${chapter}`;
 }
 
 export {BibleDatabase};

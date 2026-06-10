@@ -10,6 +10,7 @@ import {
   serializeListeningStats,
   recordListening,
   summarizeListening,
+  listeningStreaks,
   EMPTY_LISTENING_STATS,
   LISTENING_RETENTION_DAYS,
   type ListeningStats,
@@ -114,6 +115,55 @@ describe('summarizeListening', () => {
       totalMs: 0,
       totalVerses: 0,
       daysListened: 0,
+    });
+  });
+});
+
+describe('listeningStreaks (Sprint 76)', () => {
+  const day = (offset: number): string => listeningDateKey(NOON + offset * DAY);
+  const make = (offsets: number[]): ListeningStats => ({
+    days: Object.fromEntries(offsets.map(o => [day(o), {ms: 1000, verses: 1}])),
+  });
+
+  it('counts the run ending today and the longest run ever', () => {
+    // Today + the 2 prior days, plus an older 4-day run with a gap between.
+    const stats = make([0, -1, -2, -5, -6, -7, -8]);
+    expect(listeningStreaks(stats, NOON)).toEqual({
+      currentStreak: 3,
+      longestStreak: 4,
+    });
+  });
+
+  it('keeps the current streak alive when today has not happened yet', () => {
+    const stats = make([-1, -2]);
+    expect(listeningStreaks(stats, NOON)).toEqual({
+      currentStreak: 2,
+      longestStreak: 2,
+    });
+  });
+
+  it('breaks the current streak after a missed day', () => {
+    const stats = make([-2, -3]);
+    expect(listeningStreaks(stats, NOON)).toEqual({
+      currentStreak: 0,
+      longestStreak: 2,
+    });
+  });
+
+  it('ignores empty buckets and empty stats', () => {
+    const stats: ListeningStats = {
+      days: {
+        [day(0)]: {ms: 0, verses: 0}, // zero bucket — not a listening day
+        [day(-1)]: {ms: 500, verses: 1},
+      },
+    };
+    expect(listeningStreaks(stats, NOON)).toEqual({
+      currentStreak: 1,
+      longestStreak: 1,
+    });
+    expect(listeningStreaks(EMPTY_LISTENING_STATS, NOON)).toEqual({
+      currentStreak: 0,
+      longestStreak: 0,
     });
   });
 });

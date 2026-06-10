@@ -29,6 +29,12 @@ import {
   topBookReading,
   type BookReadingEntry,
 } from '../../lib/reading/bookReadingLog';
+import {
+  summarizeListening,
+  listeningStreaks,
+  EMPTY_LISTENING_STATS,
+  type ListeningStats,
+} from '../audio/lib/listeningStats';
 
 const DAY_MS = 24 * 60 * 60 * 1000;
 
@@ -59,6 +65,8 @@ export interface JourneyInput {
   favorites: JourneyFavoriteLike[];
   /** REAL per-book reading aggregates (book_reading_log); optional. */
   bookReadingLog?: BookReadingEntry[];
+  /** Per-day listening buckets (S75 audio tracking); optional. */
+  listeningStats?: ListeningStats;
 }
 
 /** The most-read book by REAL verses + time, or null when none yet. */
@@ -112,6 +120,17 @@ export interface JourneyRecap {
   favoriteBook: BookTally | null;
   /** REAL most-read book (by verses, with time), or null when none yet. */
   mostReadBook: MostReadBookRecap | null;
+
+  // Listening (Sprint 76 — from the S75 per-day buckets)
+  /** Lifetime listening time, in MILLISECONDS (0 = never listened). */
+  listeningTimeMs: number;
+  /** Verses that began voicing, lifetime. */
+  versesHeard: number;
+  /** Distinct local days with any listening. */
+  listeningDays: number;
+  /** Consecutive listening days ending today (or yesterday). */
+  listeningCurrentStreak: number;
+  listeningLongestStreak: number;
 
   // Memorization
   cardsTotal: number;
@@ -275,6 +294,11 @@ export function buildJourneyRecap(
       ? null
       : Math.round(history.summary.overallRetention * 100);
 
+  // Listening (optional input — degrades to zeros like everything else).
+  const lStats = input.listeningStats ?? EMPTY_LISTENING_STATS;
+  const listening = summarizeListening(lStats, now.getTime());
+  const lStreaks = listeningStreaks(lStats, now.getTime());
+
   const hasData =
     versesRead > 0 ||
     chaptersRead > 0 ||
@@ -301,6 +325,12 @@ export function buildJourneyRecap(
     bookmarksCount,
     favoriteBook,
     mostReadBook,
+
+    listeningTimeMs: listening.totalMs,
+    versesHeard: listening.totalVerses,
+    listeningDays: listening.daysListened,
+    listeningCurrentStreak: lStreaks.currentStreak,
+    listeningLongestStreak: lStreaks.longestStreak,
 
     cardsTotal: deck.total,
     versesMastered: deck.mastered,
