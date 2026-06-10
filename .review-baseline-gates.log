@@ -1,0 +1,8 @@
+---TSC done---
+C:\projects\EternalStoneBibleAppV4\src\widgets\WidgetTaskHandler.ts
+  18:9  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+✖ 59 problems (0 errors, 59 warnings)
+
+---ESLINT done---
+---PRETTIER done---
