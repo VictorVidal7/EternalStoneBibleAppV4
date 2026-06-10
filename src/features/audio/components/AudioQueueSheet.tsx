@@ -18,7 +18,7 @@
  * Para la gloria de Dios - Eternal Stone Bible App
  */
 
-import React from 'react';
+import React, {useEffect, useState} from 'react';
 import {
   View,
   Text,
@@ -30,7 +30,7 @@ import {
 } from 'react-native';
 import {Ionicons} from '@expo/vector-icons';
 import {haptics} from '@lib/haptics';
-import bibleDB from '@lib/database';
+import bibleDB, {chapterCountKey} from '@lib/database';
 import {logger} from '@lib/utils/logger';
 import {useTheme} from '../../../hooks/useTheme';
 import {useLanguage} from '../../../hooks/useLanguage';
@@ -45,6 +45,13 @@ import {
   localizedChapterTitle,
   type ChapterLocation,
 } from '../lib/chapterNavigation';
+import {summarizeListening} from '../lib/listeningStats';
+import {getListeningStats} from '../lib/listeningStatsStore';
+import {
+  averageMsPerVerse,
+  queueRowMeta,
+  formatQueueRowMeta,
+} from '../lib/queueMeta';
 import {AUDIO_QUEUE_LENGTH} from '../constants/audioConstants';
 
 interface AudioQueueSheetProps {
@@ -78,6 +85,57 @@ export const AudioQueueSheet: React.FC<AudioQueueSheetProps> = ({
   const queue = upcomingChapters(currentVerse, AUDIO_QUEUE_LENGTH);
   // Fewer upcoming chapters than asked for = the canon ends inside the queue.
   const reachesEndOfCanon = queue.length < AUDIO_QUEUE_LENGTH;
+
+  // Row meta (Sprint 76): real verse counts for the upcoming chapters (one
+  // batched COUNT) + the user's own listening pace for an honest "~N min".
+  // Keyed on the queue's chapter signature, NOT `queue` itself — the walker
+  // returns a fresh array per render, but the chapters only change when the
+  // session crosses a chapter boundary.
+  const [chapterCounts, setChapterCounts] = useState<Map<
+    string,
+    number
+  > | null>(null);
+  const [msPerVerse, setMsPerVerse] = useState<number | null>(null);
+  const queueKey = queue
+    .map(target => chapterCountKey(target.bookId, target.chapter))
+    .join(',');
+
+  useEffect(() => {
+    if (!visible || queue.length === 0) return;
+    let cancelled = false;
+    void (async () => {
+      try {
+        await bibleDB.initialize();
+        const counts = await bibleDB.getChapterVerseCounts(
+          queue.map(target => ({
+            bookId: target.bookId,
+            chapter: target.chapter,
+          })),
+          selectedVersion.id,
+        );
+        if (!cancelled) setChapterCounts(counts);
+      } catch (error) {
+        logger.warn('Queue verse counts failed', {error: String(error)});
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+    // queueKey stands in for `queue` (fresh array identity every render).
+  }, [visible, queueKey, selectedVersion.id]);
+
+  useEffect(() => {
+    if (!visible) return;
+    let cancelled = false;
+    void (async () => {
+      const stats = await getListeningStats();
+      if (cancelled) return;
+      setMsPerVerse(averageMsPerVerse(summarizeListening(stats, Date.now())));
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [visible]);
 
   const handleJump = (target: ChapterLocation) => {
     haptics.press();
@@ -188,23 +246,43 @@ export const AudioQueueSheet: React.FC<AudioQueueSheetProps> = ({
             {queue.map((target, i) => {
               const title = localizedChapterTitle(target, lang);
               if (!title) return null;
+              const meta = queueRowMeta(
+                chapterCounts?.get(
+                  chapterCountKey(target.bookId, target.chapter),
+                ),
+                msPerVerse,
+              );
+              const metaLine = meta
+                ? formatQueueRowMeta(
+                    meta,
+                    tQueue.versesMeta,
+                    tQueue.minutesMeta,
+                  )
+                : ' '; // reserved slot — the row never jumps when counts land
               return (
                 <TouchableOpacity
                   key={`${target.bookId}-${target.chapter}`}
                   style={[styles.queueRow, {borderBottomColor: colors.border}]}
                   onPress={() => handleJump(target)}
                   accessibilityRole="button"
-                  accessibilityLabel={title}
+                  accessibilityLabel={meta ? `${title}, ${metaLine}` : title}
                   accessibilityHint={tQueue.jumpHint}>
                   <Text
                     style={[styles.queueIndex, {color: colors.textTertiary}]}>
                     {i + 1}
                   </Text>
-                  <Text
-                    style={[styles.queueTitle, {color: colors.text}]}
-                    numberOfLines={1}>
-                    {title}
-                  </Text>
+                  <View style={styles.queueTitleWrap}>
+                    <Text
+                      style={[styles.queueTitle, {color: colors.text}]}
+                      numberOfLines={1}>
+                      {title}
+                    </Text>
+                    <Text
+                      style={[styles.queueMeta, {color: colors.textTertiary}]}
+                      numberOfLines={1}>
+                      {metaLine}
+                    </Text>
+                  </View>
                   <Ionicons
                     name="play"
                     size={16}
@@ -312,10 +390,17 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     textAlign: 'center',
   },
-  queueTitle: {
+  queueTitleWrap: {
     flex: 1,
+    gap: 1,
+  },
+  queueTitle: {
     fontSize: 15,
     fontWeight: '500',
+  },
+  queueMeta: {
+    fontSize: 12,
+    lineHeight: 15,
   },
   endRow: {
     flexDirection: 'row',
