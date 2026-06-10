@@ -27,6 +27,7 @@ export {
   VoiceSelector,
   SleepTimerModal,
   AudioQueueSheet,
+  KaraokeText,
 } from './components';
 
 // Hooks
