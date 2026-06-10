@@ -6,6 +6,7 @@
 import {
   summarizeChapterProgress,
   gridScrollOffsetForChapter,
+  wrappedGridPerRow,
 } from '../src/lib/reading/chapterProgress';
 
 describe('summarizeChapterProgress', () => {
@@ -77,5 +78,23 @@ describe('gridScrollOffsetForChapter', () => {
     expect(gridScrollOffsetForChapter(-3, 5, 80)).toBe(0);
     expect(gridScrollOffsetForChapter(10, 0, 80)).toBe(0);
     expect(gridScrollOffsetForChapter(10, 5, 0)).toBe(0);
+  });
+});
+
+describe('wrappedGridPerRow', () => {
+  it('fits items by width, gap and padding', () => {
+    // Verse picker: 46dp chips, 12dp gap, 16dp side padding. A 320dp-wide
+    // sheet has 288 usable → 5 chips (5*46 + 4*12 = 278 ≤ 288).
+    expect(wrappedGridPerRow(320, 46, 12, 16)).toBe(5);
+    expect(wrappedGridPerRow(400, 46, 12, 16)).toBe(6);
+  });
+
+  it('never returns less than one item for a measured container', () => {
+    expect(wrappedGridPerRow(40, 46, 12, 16)).toBe(1);
+  });
+
+  it('returns 0 while the container is unmeasured', () => {
+    expect(wrappedGridPerRow(0, 46, 12, 16)).toBe(0);
+    expect(wrappedGridPerRow(-1, 46, 12, 16)).toBe(0);
   });
 });

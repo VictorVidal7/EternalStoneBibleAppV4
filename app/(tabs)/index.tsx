@@ -53,9 +53,12 @@ import {useBookmarks} from '@context/BookmarksContext';
 import {useMemoryDeck} from '@context/MemoryDeckContext';
 import {usePremium} from '@context/PremiumContext';
 import {
+  chapterLocationFromVerse,
   getLastPosition,
   isResumable,
+  MiniVerseProgress,
   nextChapterTitle,
+  resumeCardMode,
   useAudioPlayer,
 } from '@/features/audio';
 import type {PlaybackPosition} from '@/features/audio';
@@ -115,10 +118,18 @@ export default function HomeScreen() {
   const bookmarksCount = bookmarks.length;
   const {stats: memoryStats} = useMemoryDeck();
   const {isPremium} = usePremium();
-  // When the floating player is already up (e.g. restored on cold start,
-  // Sprint 53), the "Continue listening" card is a redundant second resume
-  // surface for the same position — defer to the player and hide the card.
-  const {isVisible: audioPlayerVisible, autoAdvanceChapter} = useAudioPlayer();
+  // The "Continue listening" card now COMPOSES with the floating player
+  // (Sprint 75): while the cold-start-restored player sits paused-collapsed on
+  // the saved chapter, the card stays up as a one-tap resume surface; once
+  // audio plays (or the player holds another chapter) it defers to the player.
+  const {
+    isVisible: audioPlayerVisible,
+    autoAdvanceChapter,
+    state: audioState,
+    currentVerse: audioCurrentVerse,
+    verses: audioVerses,
+    play: resumeAudioPlayback,
+  } = useAudioPlayer();
   const progressTrackColor = isDark
     ? staticColors.transparent
     : withOpacity(colors.primary, isDark ? 0.3 : 0.8);
@@ -181,6 +192,23 @@ export default function HomeScreen() {
       favorites: favorites.length,
     }));
   }, [favorites.length]);
+
+  // Re-resolve the saved audio position whenever the floating player appears
+  // or disappears: closing the player CLEARS the stored position (hidePlayer),
+  // and the cold-start restore flips visibility right after Home's first load —
+  // both must refresh the "Continue listening" card instead of trusting a
+  // stale focus-time snapshot.
+  useEffect(() => {
+    let cancelled = false;
+    void getLastPosition().then(pos => {
+      if (!cancelled) {
+        setAudioResumePos(isResumable(pos, Date.now()) ? pos : null);
+      }
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [audioPlayerVisible]);
 
   const startAnimations = () => {
     Animated.stagger(80, [
@@ -317,6 +345,27 @@ export default function HomeScreen() {
     haptics.tap();
     callback();
   };
+
+  // "Continue listening" card mode (Sprint 75): 'navigate' deep-links into the
+  // reader (no player up), 'resume' plays the paused restored player in place,
+  // 'hidden' defers to an active session. Pure policy in resumeCardMode.
+  const audioResumeMode = resumeCardMode({
+    isPremium,
+    position: audioResumePos,
+    now: Date.now(),
+    playerVisible: audioPlayerVisible,
+    playerPlaying: audioState.isPlaying,
+    playerLocation: chapterLocationFromVerse(audioCurrentVerse),
+  });
+  // In resume mode the LIVE player state is the truth (the saved snapshot can
+  // trail a scrub); in navigate mode only the snapshot exists.
+  const audioResumeLive = audioResumeMode === 'resume' && audioCurrentVerse;
+  const audioResumeIndex = audioResumeLive
+    ? audioState.currentVerseIndex
+    : (audioResumePos?.verseIndex ?? 0);
+  const audioResumeTotal = audioResumeLive
+    ? audioVerses.length
+    : (audioResumePos?.totalVerses ?? 1);
 
   if (loading) {
     return (
@@ -696,20 +745,34 @@ export default function HomeScreen() {
         {/* ============ CONTINUE LISTENING (Premium, Sprint 51) ============ */}
         {/* Hidden when the floating player is already showing this position
             (cold-start restore, Sprint 53) — no duplicate resume surface. */}
-        {isPremium && audioResumePos && !audioPlayerVisible && (
+        {audioResumeMode !== 'hidden' && audioResumePos && (
           <Animated.View
             style={{opacity: fadeAnim, marginTop: celestialSpacing.cardGap}}>
             <TouchableOpacity
               activeOpacity={0.9}
               accessibilityRole="button"
               accessibilityLabel={t.home.continueListening}
-              onPress={() =>
+              accessibilityHint={
+                audioResumeMode === 'resume' ? t.home.tapToResume : undefined
+              }
+              accessibilityValue={{
+                text: t.audio.scrub.preview
+                  .replace('{{n}}', String(audioResumeIndex + 1))
+                  .replace('{{total}}', String(audioResumeTotal)),
+              }}
+              onPress={() => {
+                if (audioResumeMode === 'resume') {
+                  // One-tap resume of the paused restored player — play()
+                  // haptics + announces state on its own.
+                  resumeAudioPlayback();
+                  return;
+                }
                 handlePress(() =>
                   router.push(
                     `/verse/${audioResumePos.book}/${audioResumePos.chapter}?audioResume=1` as never,
                   ),
-                )
-              }>
+                );
+              }}>
               <ShimmerCard
                 glowColor={colors.primary}
                 shimmerEnabled={false}
@@ -742,15 +805,30 @@ export default function HomeScreen() {
                         ]}
                         numberOfLines={1}>
                         {(() => {
-                          const info = getBookByName(audioResumePos.book);
+                          // Resume mode shows the LIVE player verse (the saved
+                          // snapshot can trail it); navigate mode shows the
+                          // snapshot — the only thing there is.
+                          const shown = audioResumeLive
+                            ? audioCurrentVerse
+                            : audioResumePos;
+                          const info = getBookByName(shown.book);
                           const name = info
                             ? language === 'en'
                               ? info.nameEn
                               : info.name
-                            : audioResumePos.book;
-                          return `${name} ${audioResumePos.chapter}:${audioResumePos.verse}`;
+                            : shown.book;
+                          return `${name} ${shown.chapter}:${shown.verse}`;
                         })()}
                       </Text>
+                      {/* Verse progress — same bar + counter the collapsed
+                          player shows, so both resume surfaces read alike
+                          (Sprint 75). */}
+                      <View style={styles.continueVerseProgress}>
+                        <MiniVerseProgress
+                          currentIndex={audioResumeIndex}
+                          totalVerses={audioResumeTotal}
+                        />
+                      </View>
                       {/* Continuous playback peek (S74): when ∞ is on, resuming
                           here won't stop at the chapter's end — surface what
                           comes next, mirroring the expanded player's peek. */}
@@ -773,6 +851,16 @@ export default function HomeScreen() {
                           </Text>
                         ) : null;
                       })()}
+                      {audioResumeMode === 'resume' && (
+                        <Text
+                          style={[
+                            styles.continueResumeHint,
+                            {color: colors.primary},
+                          ]}
+                          numberOfLines={1}>
+                          {t.home.tapToResume}
+                        </Text>
+                      )}
                     </View>
                     <View style={styles.continueProgress}>
                       <Ionicons
@@ -1641,6 +1729,14 @@ const styles = StyleSheet.create({
     fontSize: 11,
     fontWeight: '600',
     marginTop: 2,
+  },
+  continueVerseProgress: {
+    marginTop: 4,
+  },
+  continueResumeHint: {
+    fontSize: 11,
+    fontWeight: '700',
+    marginTop: 4,
   },
   continueProgress: {
     flexDirection: 'row',

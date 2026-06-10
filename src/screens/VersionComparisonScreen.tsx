@@ -7,7 +7,7 @@
  * Para la gloria de Dios Todopoderoso ✨
  */
 
-import React, {useState, useEffect} from 'react';
+import React, {useState, useEffect, useRef} from 'react';
 import {useRouter} from 'expo-router';
 import {
   View,
@@ -47,6 +47,17 @@ import {
   sameLanguage,
   commonWordsForVersions,
 } from '../lib/comparison/wordContrast';
+import {
+  gridScrollOffsetForChapter,
+  wrappedGridPerRow,
+} from '../lib/reading/chapterProgress';
+
+// Verse-picker grid metrics — mirror styles.verseGridItem / verseGridContent
+// so the auto-scroll row math matches the rendered layout (Sprint 75).
+const VERSE_GRID_ITEM = 46;
+const VERSE_GRID_GAP = 12;
+const VERSE_GRID_PADDING = 16;
+const VERSE_GRID_ROW = VERSE_GRID_ITEM + VERSE_GRID_GAP;
 
 interface VersionComparisonScreenProps {
   book: string;
@@ -109,6 +120,18 @@ export const VersionComparisonScreen: React.FC<
     setSuppressed,
   ]);
   const [multiSelectMode, setMultiSelectMode] = useState(false);
+
+  // Verse-picker auto-scroll (Sprint 75): jump the grid to the active verse's
+  // row once per open — a 150-verse psalm no longer starts at verse 1 when
+  // you're comparing verse 119. Width lives in a ref (onLayout fires before
+  // onContentSizeChange, where the one-shot scroll runs).
+  const verseGridScrollRef = useRef<ScrollView>(null);
+  const verseGridWidthRef = useRef(0);
+  const versePickerScrolledRef = useRef(false);
+  useEffect(() => {
+    if (!showVersePicker) versePickerScrolledRef.current = false;
+  }, [showVersePicker]);
+
   interface SavedComparison {
     id: string;
     name: string;
@@ -1297,8 +1320,41 @@ export const VersionComparisonScreen: React.FC<
             )}
 
             <ScrollView
+              ref={verseGridScrollRef}
               style={styles.verseGrid}
-              contentContainerStyle={styles.verseGridContent}>
+              contentContainerStyle={styles.verseGridContent}
+              onLayout={e => {
+                verseGridWidthRef.current = e.nativeEvent.layout.width;
+              }}
+              onContentSizeChange={() => {
+                // One non-animated jump per open to the active verse's row —
+                // mirrors the S74 chapter-grid auto-scroll (RM-safe initial
+                // position, no motion).
+                if (versePickerScrolledRef.current) return;
+                const width = verseGridWidthRef.current;
+                if (width <= 0) return;
+                versePickerScrolledRef.current = true;
+                const target = multiSelectMode
+                  ? (selectedVerses[0] ?? currentVerse)
+                  : currentVerse;
+                const perRow = wrappedGridPerRow(
+                  width,
+                  VERSE_GRID_ITEM,
+                  VERSE_GRID_GAP,
+                  VERSE_GRID_PADDING,
+                );
+                const offset = gridScrollOffsetForChapter(
+                  target,
+                  perRow,
+                  VERSE_GRID_ROW,
+                );
+                if (offset > 0) {
+                  verseGridScrollRef.current?.scrollTo({
+                    y: offset,
+                    animated: false,
+                  });
+                }
+              }}>
               {Array.from({length: totalVerses}, (_, i) => i + 1).map(
                 verseNum => {
                   const isSelected = multiSelectMode

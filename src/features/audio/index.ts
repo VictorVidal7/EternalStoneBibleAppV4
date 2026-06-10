@@ -18,6 +18,7 @@ export {
   MiniAudioPlayer,
   AudioResumeRestorer,
   AudioChapterAdvancer,
+  AudioListeningTracker,
   AudioControls,
   AudioProgressBar,
   MiniProgressDots,
@@ -25,6 +26,7 @@ export {
   AudioSpeedSelector,
   VoiceSelector,
   SleepTimerModal,
+  AudioQueueSheet,
 } from './components';
 
 // Hooks
@@ -97,8 +99,43 @@ export {
   nextChapterTitle,
   sameChapterLocation,
   shouldReaderFollowAudio,
+  localizedChapterTitle,
+  upcomingChapters,
 } from './lib/chapterNavigation';
 export type {ChapterLocation, VerseChapterRef} from './lib/chapterNavigation';
+
+// Home "Continue listening" card policy (Sprint 75 — revives the card the
+// S53 cold-start restore had effectively killed; see resumeCard.ts).
+export {resumeCardMode} from './lib/resumeCard';
+export type {ResumeCardMode, ResumeCardParams} from './lib/resumeCard';
+
+// Karaoke word highlight (Sprint 75 — TTS word boundaries → text spans).
+export {tokenizeForKaraoke, activeTokenIndex} from './lib/karaoke';
+export type {KaraokeToken} from './lib/karaoke';
+export type {SpeechBoundary} from './types/audio';
+
+// Collapsed-bar swipe policy (Sprint 75).
+export {
+  resolveHorizontalSwipe,
+  swipeDisplacement,
+} from './lib/miniPlayerGestures';
+export type {SwipeAction} from './lib/miniPlayerGestures';
+
+// Listening time (Sprint 75 — per-day buckets + the "Mi lectura" summary).
+export {
+  listeningDateKey,
+  parseListeningStats,
+  serializeListeningStats,
+  recordListening,
+  summarizeListening,
+  LISTENING_RETENTION_DAYS,
+} from './lib/listeningStats';
+export type {
+  ListeningStats,
+  ListeningDay,
+  ListeningSummary,
+} from './lib/listeningStats';
+export {getListeningStats, appendListening} from './lib/listeningStatsStore';
 
 // Cold-start player restore (Sprint 53)
 export {resolveColdStartRestore} from './lib/coldStartRestore';

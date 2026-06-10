@@ -96,3 +96,28 @@ export function gridScrollOffsetForChapter(
   const row = Math.floor((chapter - 1) / perRow);
   return Math.max(0, (row - contextRows) * rowHeight);
 }
+
+/**
+ * How many fixed-size items a wrapped flex grid fits per row (Sprint 75).
+ *
+ * For a `flexWrap` row grid of `itemSize`-wide items separated by `gap`
+ * inside `horizontalPadding` on each side: n items occupy
+ * `n*itemSize + (n-1)*gap`, so the row fits while that stays within the
+ * usable width. Returns at least 1 (a too-narrow container still renders one
+ * item per row) and 0 only when the container hasn't been measured yet —
+ * callers should skip scroll math until a real width arrives.
+ *
+ * Pairs with {@link gridScrollOffsetForChapter} (which is index-agnostic:
+ * "chapter" is any 1-based position in a wrapped grid) to auto-scroll the
+ * verse-picker grid to the active verse.
+ */
+export function wrappedGridPerRow(
+  containerWidth: number,
+  itemSize: number,
+  gap: number,
+  horizontalPadding: number,
+): number {
+  if (containerWidth <= 0 || itemSize <= 0) return 0;
+  const usable = containerWidth - 2 * horizontalPadding;
+  return Math.max(1, Math.floor((usable + gap) / (itemSize + gap)));
+}

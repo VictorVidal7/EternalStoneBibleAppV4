@@ -67,6 +67,7 @@ import {MiniAudioPlayer} from '@/features/audio/components/MiniAudioPlayer';
 import {AudioResumeRestorer} from '@/features/audio/components/AudioResumeRestorer';
 // Continuous playback across chapters (Sprint 72)
 import {AudioChapterAdvancer} from '@/features/audio/components/AudioChapterAdvancer';
+import {AudioListeningTracker} from '@/features/audio/components/AudioListeningTracker';
 // Premium entitlement (Sprint 50 — local feature flag)
 import {PremiumProvider} from '@context/PremiumContext';
 import {
@@ -230,6 +231,9 @@ function AppContent() {
       {/* Continuous playback: auto-advances into the next chapter when the
           current one finishes (Sprint 72). Render-less. */}
       <AudioChapterAdvancer />
+      {/* Tracks listening time + voiced verses into per-day buckets for the
+          "Mi lectura" listening card (Sprint 75). Render-less. */}
+      <AudioListeningTracker />
     </>
   );
 }

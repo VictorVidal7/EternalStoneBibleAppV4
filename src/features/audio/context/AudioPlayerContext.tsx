@@ -29,6 +29,7 @@ import {
   AudioLanguage,
   SleepTimerState,
   AudioPreferences,
+  SpeechBoundary,
 } from '../types/audio';
 import {
   DEFAULT_PLAYBACK_SPEED,
@@ -100,6 +101,22 @@ export const AudioPlayerProvider: React.FC<AudioPlayerProviderProps> = ({
   // Refs
   const sleepTimerRef = useRef<NodeJS.Timeout | null>(null);
   const sleepCountdownRef = useRef<NodeJS.Timeout | null>(null);
+
+  // Word-boundary fan-out (Sprint 75 — karaoke). Listeners live in a ref so
+  // per-word events never re-render the provider; only subscribers (the
+  // immersive reader) update their own local state.
+  const boundaryListenersRef = useRef(
+    new Set<(boundary: SpeechBoundary) => void>(),
+  );
+  const subscribeToBoundary = useCallback(
+    (cb: (boundary: SpeechBoundary) => void) => {
+      boundaryListenersRef.current.add(cb);
+      return () => {
+        boundaryListenersRef.current.delete(cb);
+      };
+    },
+    [],
+  );
 
   // Refs for avoiding stale closures in speech callbacks
   const stateRef = useRef(state);
@@ -350,6 +367,21 @@ export const AudioPlayerProvider: React.FC<AudioPlayerProviderProps> = ({
               isPaused: true,
               isLoading: false,
             }));
+          },
+          // Word boundary (Sprint 75 — karaoke). Fan out through the ref so a
+          // per-word event never re-renders the provider tree. Engines that
+          // don't emit boundaries simply never fire this.
+          onBoundary: (ev: {charIndex: number; charLength: number}) => {
+            const listeners = boundaryListenersRef.current;
+            if (listeners.size === 0 || typeof ev?.charIndex !== 'number') {
+              return;
+            }
+            const boundary: SpeechBoundary = {
+              verseIndex: index,
+              charIndex: ev.charIndex,
+              charLength: typeof ev.charLength === 'number' ? ev.charLength : 0,
+            };
+            listeners.forEach(listener => listener(boundary));
           },
           onError: err => {
             logger.error(
@@ -743,6 +775,8 @@ export const AudioPlayerProvider: React.FC<AudioPlayerProviderProps> = ({
     loadChapter,
     clearChapter,
     setBottomOffset,
+
+    subscribeToBoundary,
   };
 
   return (
