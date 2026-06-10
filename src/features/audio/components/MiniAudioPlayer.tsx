@@ -24,6 +24,7 @@ import {
   StyleSheet,
   Pressable,
   Platform,
+  AccessibilityInfo,
 } from 'react-native';
 import {usePathname, router} from 'expo-router';
 import {AppText} from '@components/ui/AppText';
@@ -43,8 +44,13 @@ import {haptics} from '@lib/haptics';
 import {hitSlopToMinTarget} from '../../../lib/a11y/touchTarget';
 import {useTheme} from '../../../hooks/useTheme';
 import {useLanguage} from '../../../hooks/useLanguage';
+import {useReducedMotion} from '../../../hooks/useReducedMotion';
 import {getBookByName} from '../../../constants/bible';
 import {nextChapterTitle} from '../lib/chapterNavigation';
+import {
+  resolveHorizontalSwipe,
+  swipeDisplacement,
+} from '../lib/miniPlayerGestures';
 import {useAudioPlayer} from '../context/AudioPlayerContext';
 import {usePremium} from '../../../context/PremiumContext';
 import {AudioControls} from './AudioControls';
@@ -136,6 +142,9 @@ export const MiniAudioPlayer: React.FC<MiniAudioPlayerProps> = ({
   const expandProgress = useSharedValue(0);
   const translateY = useSharedValue(0);
   const startY = useSharedValue(0);
+  // Horizontal rubber-band of the collapsed bar while swiping (Sprint 75).
+  const collapsedTranslateX = useSharedValue(0);
+  const reduceMotion = useReducedMotion();
 
   // Ref to prevent accidental taps during animation
   const isAnimatingRef = useRef(false);
@@ -197,6 +206,51 @@ export const MiniAudioPlayer: React.FC<MiniAudioPlayerProps> = ({
       }
     });
 
+  // Resolve a finished collapsed-bar drag (Sprint 75): swipe left = next
+  // verse, right = previous. nextVerse/previousVerse haptic on their own; the
+  // announce tells a screen-reader user where the bar landed (the swipe is a
+  // shortcut — the equivalent buttons remain for TalkBack navigation).
+  const handleCollapsedSwipe = useCallback(
+    (translationX: number, velocityX: number) => {
+      const action = resolveHorizontalSwipe({translationX, velocityX});
+      if (!action) return;
+      const index = state.currentVerseIndex;
+      if (action === 'next' && index < verses.length - 1) {
+        nextVerse();
+        AccessibilityInfo.announceForAccessibility(labelForIndex(index + 1));
+      } else if (action === 'previous' && index > 0) {
+        previousVerse();
+        AccessibilityInfo.announceForAccessibility(labelForIndex(index - 1));
+      }
+    },
+    [
+      state.currentVerseIndex,
+      verses.length,
+      nextVerse,
+      previousVerse,
+      labelForIndex,
+    ],
+  );
+
+  // Collapsed-bar horizontal swipe (Sprint 75) — verse prev/next, Spotify
+  // mini-player style. Horizontal activation + vertical fail keep it clear of
+  // the inner taps (which need no travel) and of the expanded panel's
+  // swipe-down (enabled only while expanded, so the two never overlap).
+  const collapsedSwipeGesture = Gesture.Pan()
+    .enabled(!state.isExpanded)
+    .activeOffsetX([-20, 20])
+    .failOffsetY([-12, 12])
+    .onUpdate(event => {
+      // Rubber-band hint; zeroed under reduce-motion (the action still fires).
+      collapsedTranslateX.value = reduceMotion
+        ? 0
+        : swipeDisplacement(event.translationX);
+    })
+    .onEnd(event => {
+      collapsedTranslateX.value = withSpring(0, SPRING_CONFIGS.snappy);
+      runOnJS(handleCollapsedSwipe)(event.translationX, event.velocityX);
+    });
+
   // Animated styles
   const containerStyle = useAnimatedStyle(() => {
     const height = interpolate(
@@ -219,6 +273,8 @@ export const MiniAudioPlayer: React.FC<MiniAudioPlayerProps> = ({
       [1, 0],
       Extrapolation.CLAMP,
     ),
+    // Horizontal rubber-band while swiping verse prev/next (Sprint 75).
+    transform: [{translateX: collapsedTranslateX.value}],
   }));
 
   const dynamicStyles = useMemo(() => {
@@ -298,7 +354,7 @@ export const MiniAudioPlayer: React.FC<MiniAudioPlayerProps> = ({
     (state.bottomOffset || 0) + bottomOffset + TAB_BAR_HEIGHT;
 
   return (
-    <GestureDetector gesture={panGesture}>
+    <GestureDetector gesture={Gesture.Race(panGesture, collapsedSwipeGesture)}>
       <Animated.View
         style={[
           styles.container,
