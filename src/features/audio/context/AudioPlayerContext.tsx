@@ -30,6 +30,8 @@ import {
   SleepTimerState,
   AudioPreferences,
   SpeechBoundary,
+  AudioQueueInfo,
+  LoadQueueOptions,
 } from '../types/audio';
 import {
   DEFAULT_PLAYBACK_SPEED,
@@ -97,6 +99,13 @@ export const AudioPlayerProvider: React.FC<AudioPlayerProviderProps> = ({
   // elevation+zIndex lifts it above the native modal window. Audio keeps
   // playing; we only suppress the UI.
   const [isSuppressed, setIsSuppressed] = useState(false);
+  // What kind of queue the engine holds (Sprint 79 — verse playlists). A plain
+  // loadChapter resets it to chapter mode, so every historical call site keeps
+  // its contract by construction.
+  const [queueInfo, setQueueInfo] = useState<AudioQueueInfo>({
+    mode: 'chapter',
+    label: null,
+  });
 
   // Refs
   const sleepTimerRef = useRef<NodeJS.Timeout | null>(null);
@@ -143,6 +152,10 @@ export const AudioPlayerProvider: React.FC<AudioPlayerProviderProps> = ({
   // for premium users; writing it always keeps it ready the moment they unlock.
   useEffect(() => {
     if (!isVisible || verses.length === 0) return;
+    // A playlist (Sprint 79) is a mixed-verse queue — restoring it as a
+    // "chapter position" would resurrect the wrong thing, so the last CHAPTER
+    // position is left untouched while one plays.
+    if (queueInfo.mode === 'playlist') return;
     const idx = state.currentVerseIndex;
     const v = verses[idx];
     if (!v || !v.book || !v.chapter) return;
@@ -156,7 +169,7 @@ export const AudioPlayerProvider: React.FC<AudioPlayerProviderProps> = ({
         now: Date.now(),
       }),
     );
-  }, [state.currentVerseIndex, verses, isVisible]);
+  }, [state.currentVerseIndex, verses, isVisible, queueInfo.mode]);
 
   // Safe Haptics wrapper to prevent crashes on emulators/devices.
   // Delegates to the shared `haptics` helper (already swallows unsupported-
@@ -697,44 +710,52 @@ export const AudioPlayerProvider: React.FC<AudioPlayerProviderProps> = ({
 
   // ==================== CHAPTER LOADING ====================
 
-  const loadChapter = useCallback((newVerses: AudioVerse[]) => {
-    logger.info('Loading new chapter for audio', {
-      versesCount: newVerses.length,
-      firstVerse:
-        newVerses[0]?.book +
-        ' ' +
-        newVerses[0]?.chapter +
-        ':' +
-        newVerses[0]?.verse,
-    });
+  const loadChapter = useCallback(
+    (newVerses: AudioVerse[], options?: LoadQueueOptions) => {
+      logger.info('Loading new chapter for audio', {
+        versesCount: newVerses.length,
+        queueMode: options?.mode ?? 'chapter',
+        firstVerse:
+          newVerses[0]?.book +
+          ' ' +
+          newVerses[0]?.chapter +
+          ':' +
+          newVerses[0]?.verse,
+      });
 
-    // Stop any current speech immediately
-    Speech.stop().catch(e =>
-      logger.warn('Error stopping speech during loadChapter', e),
-    );
+      // Stop any current speech immediately
+      Speech.stop().catch(e =>
+        logger.warn('Error stopping speech during loadChapter', e),
+      );
 
-    // Update refs immediately for synchronous access (before async setState)
-    versesRef.current = newVerses;
-    stateRef.current = {
-      ...stateRef.current,
-      currentVerseIndex: 0,
-      totalVerses: newVerses.length,
-      isPlaying: false,
-      isPaused: false,
-      isLoading: false,
-    };
-    // Then update React state
-    setVerses(newVerses);
-    setState(prev => ({
-      ...prev,
-      currentVerseIndex: 0,
-      totalVerses: newVerses.length,
-      isPlaying: false,
-      isPaused: false,
-      isLoading: false,
-    }));
-    setIsVisible(true);
-  }, []);
+      // Update refs immediately for synchronous access (before async setState)
+      versesRef.current = newVerses;
+      stateRef.current = {
+        ...stateRef.current,
+        currentVerseIndex: 0,
+        totalVerses: newVerses.length,
+        isPlaying: false,
+        isPaused: false,
+        isLoading: false,
+      };
+      // Then update React state
+      setVerses(newVerses);
+      setState(prev => ({
+        ...prev,
+        currentVerseIndex: 0,
+        totalVerses: newVerses.length,
+        isPlaying: false,
+        isPaused: false,
+        isLoading: false,
+      }));
+      setQueueInfo({
+        mode: options?.mode ?? 'chapter',
+        label: options?.mode === 'playlist' ? (options?.label ?? null) : null,
+      });
+      setIsVisible(true);
+    },
+    [],
+  );
 
   const clearChapter = useCallback(async () => {
     await stop();
@@ -744,6 +765,7 @@ export const AudioPlayerProvider: React.FC<AudioPlayerProviderProps> = ({
       currentVerseIndex: 0,
       totalVerses: 0,
     }));
+    setQueueInfo({mode: 'chapter', label: null});
     setIsVisible(false);
   }, [stop]);
 
@@ -789,6 +811,7 @@ export const AudioPlayerProvider: React.FC<AudioPlayerProviderProps> = ({
     loadChapter,
     clearChapter,
     setBottomOffset,
+    queueInfo,
 
     subscribeToBoundary,
   };

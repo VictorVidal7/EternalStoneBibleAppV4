@@ -31,8 +31,15 @@ import {
 } from '../lib/chapterNavigation';
 
 export const AudioChapterAdvancer: React.FC = () => {
-  const {state, verses, autoAdvanceChapter, sleepTimer, loadChapter, play} =
-    useAudioPlayer();
+  const {
+    state,
+    verses,
+    autoAdvanceChapter,
+    sleepTimer,
+    loadChapter,
+    play,
+    queueInfo,
+  } = useAudioPlayer();
   const {selectedVersion} = useBibleVersion();
 
   // Dedup: each chapter-end bump is handled exactly once (back-to-back chapter
@@ -48,6 +55,7 @@ export const AudioChapterAdvancer: React.FC = () => {
       !shouldAdvanceChapter({
         autoAdvance: autoAdvanceChapter,
         sleepMode: sleepTimer.mode,
+        queueMode: queueInfo.mode,
       })
     ) {
       return;
@@ -98,6 +106,7 @@ export const AudioChapterAdvancer: React.FC = () => {
     state.chapterEndCount,
     autoAdvanceChapter,
     sleepTimer.mode,
+    queueInfo.mode,
     verses,
     selectedVersion,
     loadChapter,

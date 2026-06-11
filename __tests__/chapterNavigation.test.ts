@@ -65,6 +65,28 @@ describe('shouldAdvanceChapter', () => {
       shouldAdvanceChapter({autoAdvance: true, sleepMode: 'end-of-chapter'}),
     ).toBe(false);
   });
+
+  // Sprint 79 — a verse playlist's last verse is the end of the list, not a
+  // chapter boundary: continuous playback never rolls past it.
+  it('never advances while a verse playlist is loaded', () => {
+    expect(
+      shouldAdvanceChapter({
+        autoAdvance: true,
+        sleepMode: null,
+        queueMode: 'playlist',
+      }),
+    ).toBe(false);
+  });
+
+  it('keeps advancing for an explicit chapter queue', () => {
+    expect(
+      shouldAdvanceChapter({
+        autoAdvance: true,
+        sleepMode: null,
+        queueMode: 'chapter',
+      }),
+    ).toBe(true);
+  });
 });
 
 describe('chapterLocationFromVerse', () => {

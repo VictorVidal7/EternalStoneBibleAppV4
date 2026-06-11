@@ -219,6 +219,8 @@ export const translations = {
       removedSuccessfully: 'Favorito eliminado exitosamente',
       versesSaved: 'Versículos guardados',
       verseSaved: 'Versículo guardado',
+      listenAll: 'Escuchar tus favoritos',
+      playlistLabel: 'Mis favoritos',
     },
 
     // Notes Screen
@@ -658,6 +660,7 @@ export const translations = {
       share: 'Compartir colección',
       shareImage: 'Compartir como imagen',
       shareHeader: 'Colección',
+      listen: 'Escuchar la colección',
     },
     themes: {
       title: 'Explora por tema',
@@ -1151,7 +1154,15 @@ export const translations = {
         bookmarkJumpHint: 'Reanuda la escucha en este verso',
         bookmarkDelete: 'Eliminar marcador',
         bookmarkPinned: 'Marcador guardado: {{verse}}',
+        playlistTitle: 'Lista de escucha',
+        playlistUpNext: 'Siguiente en la lista',
+        playlistJumpHint: 'Salta la reproducción a este verso',
+        playlistEnd: 'Fin de la lista',
+        playlistInfo:
+          'Estás escuchando una lista de versos guardados. El audio se detiene al terminar la lista.',
+        playlistQueued: 'Lista de escucha: {{label}} · {{n}} versículos',
       },
+      playlistRow: 'Lista: {{label}}',
       nextChapterUp: 'Sigue: {{chapter}}',
       readerFollowToast: '∞ {{chapter}}',
       immersive: {
@@ -2143,6 +2154,8 @@ export const translations = {
       removedSuccessfully: 'Favorite removed successfully',
       versesSaved: 'Verses saved',
       verseSaved: 'Verse saved',
+      listenAll: 'Listen to your favorites',
+      playlistLabel: 'My favorites',
     },
 
     // Notes Screen
@@ -2580,6 +2593,7 @@ export const translations = {
       share: 'Share collection',
       shareImage: 'Share as image',
       shareHeader: 'Collection',
+      listen: 'Listen to the collection',
     },
     themes: {
       title: 'Explore by Theme',
@@ -3065,7 +3079,15 @@ export const translations = {
         bookmarkJumpHint: 'Resume listening at this verse',
         bookmarkDelete: 'Delete bookmark',
         bookmarkPinned: 'Bookmark saved: {{verse}}',
+        playlistTitle: 'Listening list',
+        playlistUpNext: 'Next on the list',
+        playlistJumpHint: 'Jump playback to this verse',
+        playlistEnd: 'End of the list',
+        playlistInfo:
+          'You are listening to a list of saved verses. Audio stops when the list ends.',
+        playlistQueued: 'Listening list: {{label}} · {{n}} verses',
       },
+      playlistRow: 'List: {{label}}',
       nextChapterUp: 'Up next: {{chapter}}',
       readerFollowToast: '∞ {{chapter}}',
       immersive: {

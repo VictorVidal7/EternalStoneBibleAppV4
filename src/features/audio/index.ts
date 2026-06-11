@@ -143,6 +143,13 @@ export type {
 } from './lib/listeningStats';
 export {getListeningStats, appendListening} from './lib/listeningStatsStore';
 
+// Verse playlists (Sprint 79 — listen to favorites / a collection).
+export {buildVersePlaylist, playlistUpNext} from './lib/versePlaylist';
+export type {
+  PlaylistSourceVerse,
+  PlaylistUpNextEntry,
+} from './lib/versePlaylist';
+
 // Saved listening positions (Sprint 77 — "retomar en este verso").
 export {
   createAudioBookmark,

@@ -58,6 +58,29 @@ export interface AudioVerse {
   text: string;
 }
 
+// ==================== QUEUE TYPES (Sprint 79) ====================
+
+/**
+ * What kind of queue the engine is holding. `chapter` is the historical
+ * contract (one contiguous Bible chapter; continuous playback may roll into
+ * the next one). `playlist` is an arbitrary mixed-verse queue (favorites, a
+ * collection, a plan day) — continuous playback does NOT roll past its end and
+ * the saved "continue listening" position is not overwritten.
+ */
+export type AudioQueueMode = 'chapter' | 'playlist';
+
+export interface AudioQueueInfo {
+  mode: AudioQueueMode;
+  /** Display label for a playlist ("Mis favoritos", a collection name); null in chapter mode. */
+  label: string | null;
+}
+
+/** Optional `loadChapter` queue metadata; omitted = a plain chapter load. */
+export interface LoadQueueOptions {
+  mode?: AudioQueueMode;
+  label?: string;
+}
+
 export interface AudioChapter {
   book: string;
   chapter: number;
@@ -126,9 +149,16 @@ export interface AudioPlayerContextValue {
   cancelSleepTimer: () => void;
 
   // Chapter loading
-  loadChapter: (verses: AudioVerse[]) => void;
+  loadChapter: (verses: AudioVerse[], options?: LoadQueueOptions) => void;
   clearChapter: () => void;
   setBottomOffset: (offset: number) => void;
+
+  /**
+   * What the engine's queue currently is (Sprint 79 — verse playlists). A
+   * plain `loadChapter(verses)` resets it to `{mode: 'chapter', label: null}`,
+   * so every historical call site stays a chapter load by construction.
+   */
+  queueInfo: AudioQueueInfo;
 
   /**
    * Subscribe to word-boundary events from the TTS engine (Sprint 75 —

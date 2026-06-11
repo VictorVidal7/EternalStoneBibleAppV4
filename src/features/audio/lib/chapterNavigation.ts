@@ -25,7 +25,7 @@
  */
 
 import {BIBLE_BOOKS, getBookByName, getBookById} from '@/constants/bible';
-import type {SleepTimerState} from '../types/audio';
+import type {AudioQueueMode, SleepTimerState} from '../types/audio';
 
 /** A concrete chapter to load next: a numeric book id + 1-based chapter. */
 export interface ChapterLocation {
@@ -82,11 +82,15 @@ export function nextChapterLocation(
  * Whether the player should auto-advance into the next chapter when the current
  * one finishes. Continuous playback must be enabled, and a sleep timer set to
  * "end of chapter" overrides it (that mode is an explicit "stop here").
+ * A verse PLAYLIST (Sprint 79 — favorites/collections) never advances either:
+ * its last verse is the end of the list, not a chapter boundary to roll past.
  */
 export function shouldAdvanceChapter(params: {
   autoAdvance: boolean;
   sleepMode: SleepTimerState['mode'];
+  queueMode?: AudioQueueMode;
 }): boolean {
+  if (params.queueMode === 'playlist') return false;
   if (!params.autoAdvance) return false;
   if (params.sleepMode === 'end-of-chapter') return false;
   return true;
