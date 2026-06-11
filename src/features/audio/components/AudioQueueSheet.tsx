@@ -48,6 +48,17 @@ import {
 import {summarizeListening} from '../lib/listeningStats';
 import {getListeningStats} from '../lib/listeningStatsStore';
 import {
+  addAudioBookmark,
+  bookmarkAtVerse,
+  createAudioBookmark,
+  removeAudioBookmark,
+  type AudioBookmark,
+} from '../lib/audioBookmarks';
+import {
+  getAudioBookmarks,
+  saveAudioBookmarks,
+} from '../lib/audioBookmarksStore';
+import {
   averageMsPerVerse,
   queueRowMeta,
   formatQueueRowMeta,
@@ -66,7 +77,8 @@ export const AudioQueueSheet: React.FC<AudioQueueSheetProps> = ({
   const {colors} = useTheme();
   const {t, language} = useLanguage();
   const {selectedVersion} = useBibleVersion();
-  const {state, currentVerse, verses, loadChapter, play} = useAudioPlayer();
+  const {state, currentVerse, verses, loadChapter, play, goToVerse} =
+    useAudioPlayer();
   const tQueue = t.audio.queue;
   const lang = language === 'en' ? 'en' : 'es';
 
@@ -136,6 +148,93 @@ export const AudioQueueSheet: React.FC<AudioQueueSheetProps> = ({
       cancelled = true;
     };
   }, [visible]);
+
+  // 🔖 Saved listening positions (Sprint 77) — loaded when the sheet opens;
+  // mutations go through the pure model and persist via the serialized store.
+  const [bookmarks, setBookmarks] = useState<AudioBookmark[]>([]);
+  useEffect(() => {
+    if (!visible) return;
+    let cancelled = false;
+    void (async () => {
+      const stored = await getAudioBookmarks();
+      if (!cancelled) setBookmarks(stored);
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [visible]);
+
+  const currentBookmark = currentVerse
+    ? bookmarkAtVerse(bookmarks, currentVerse)
+    : undefined;
+
+  const handleToggleBookmark = () => {
+    if (!currentVerse) return;
+    if (currentBookmark) {
+      haptics.tap();
+      const next = removeAudioBookmark(bookmarks, currentBookmark.id);
+      setBookmarks(next);
+      void saveAudioBookmarks(next);
+      return;
+    }
+    const created = createAudioBookmark(currentVerse, Date.now());
+    if (!created) return;
+    haptics.success();
+    const next = addAudioBookmark(bookmarks, created);
+    setBookmarks(next);
+    void saveAudioBookmarks(next);
+  };
+
+  const handleDeleteBookmark = (id: string) => {
+    haptics.tap();
+    const next = removeAudioBookmark(bookmarks, id);
+    setBookmarks(next);
+    void saveAudioBookmarks(next);
+  };
+
+  // Localized "Salmos 118:2" label for a pin (canonical book stored).
+  const bookmarkLabel = (bm: AudioBookmark): string => {
+    const info = getBookByName(bm.book);
+    const name = info ? (language === 'en' ? info.nameEn : info.name) : bm.book;
+    return `${name} ${bm.chapter}:${bm.verse}`;
+  };
+
+  // Jump straight to a pinned verse: load its chapter in the LIVE version,
+  // then seek + play. goToVerse syncs the engine ref eagerly (S77), so the
+  // same-tick play() resumes at the pin, not at verse 1.
+  const handleBookmarkJump = (bm: AudioBookmark) => {
+    haptics.press();
+    onClose();
+    void (async () => {
+      try {
+        await bibleDB.initialize();
+        const raw = await bibleDB.getChapter(
+          bm.bookId,
+          bm.chapter,
+          selectedVersion.id,
+        );
+        if (raw.length === 0) return;
+
+        logger.info('Bookmark jump', {
+          bookId: bm.bookId,
+          chapter: bm.chapter,
+          verse: bm.verse,
+        });
+
+        const audioVerses = toAudioVerses(raw);
+        loadChapter(audioVerses);
+        const index = audioVerses.findIndex(v => v.verse === bm.verse);
+        setTimeout(() => {
+          goToVerse(Math.max(0, index));
+          play();
+        }, 150);
+
+        AccessibilityInfo.announceForAccessibility(bookmarkLabel(bm));
+      } catch (error) {
+        logger.warn('Bookmark jump failed', {error: String(error)});
+      }
+    })();
+  };
 
   const handleJump = (target: ChapterLocation) => {
     haptics.press();
@@ -234,7 +333,77 @@ export const AudioQueueSheet: React.FC<AudioQueueSheetProps> = ({
                   style={[styles.nowPlayingCounter, {color: colors.primary}]}>
                   {state.currentVerseIndex + 1}/{verses.length}
                 </Text>
+                {/* 🔖 Pin/unpin the verse being heard (Sprint 77). */}
+                <TouchableOpacity
+                  onPress={handleToggleBookmark}
+                  hitSlop={{top: 10, bottom: 10, left: 10, right: 10}}
+                  accessibilityRole="button"
+                  accessibilityLabel={
+                    currentBookmark ? tQueue.bookmarkRemove : tQueue.bookmarkAdd
+                  }
+                  accessibilityState={{selected: !!currentBookmark}}>
+                  <Ionicons
+                    name={currentBookmark ? 'bookmark' : 'bookmark-outline'}
+                    size={18}
+                    color={colors.primary}
+                  />
+                </TouchableOpacity>
               </View>
+            </View>
+          )}
+
+          {/* 🔖 Saved listening positions (Sprint 77) */}
+          {bookmarks.length > 0 && (
+            <View style={styles.section}>
+              <Text
+                style={[styles.sectionTitle, {color: colors.textSecondary}]}>
+                {tQueue.bookmarksSection}
+              </Text>
+              {bookmarks.map(bm => {
+                const label = bookmarkLabel(bm);
+                return (
+                  <View
+                    key={bm.id}
+                    style={[
+                      styles.queueRow,
+                      {borderBottomColor: colors.border},
+                    ]}>
+                    <Ionicons
+                      name="bookmark"
+                      size={14}
+                      color={colors.primary}
+                    />
+                    <TouchableOpacity
+                      style={styles.bookmarkJump}
+                      onPress={() => handleBookmarkJump(bm)}
+                      accessibilityRole="button"
+                      accessibilityLabel={label}
+                      accessibilityHint={tQueue.bookmarkJumpHint}>
+                      <Text
+                        style={[styles.queueTitle, {color: colors.text}]}
+                        numberOfLines={1}>
+                        {label}
+                      </Text>
+                      <Ionicons
+                        name="play"
+                        size={16}
+                        color={colors.textSecondary}
+                      />
+                    </TouchableOpacity>
+                    <TouchableOpacity
+                      onPress={() => handleDeleteBookmark(bm.id)}
+                      hitSlop={{top: 8, bottom: 8, left: 8, right: 8}}
+                      accessibilityRole="button"
+                      accessibilityLabel={`${tQueue.bookmarkDelete}, ${label}`}>
+                      <Ionicons
+                        name="trash-outline"
+                        size={16}
+                        color={colors.textTertiary}
+                      />
+                    </TouchableOpacity>
+                  </View>
+                );
+              })}
             </View>
           )}
 
@@ -393,6 +562,12 @@ const styles = StyleSheet.create({
   queueTitleWrap: {
     flex: 1,
     gap: 1,
+  },
+  bookmarkJump: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
   },
   queueTitle: {
     fontSize: 15,

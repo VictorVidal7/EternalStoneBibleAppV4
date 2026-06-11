@@ -19,6 +19,7 @@ import {
   StyleSheet,
   Platform,
   ScrollView,
+  Switch,
   AccessibilityActionEvent,
   type StyleProp,
   type ViewStyle,
@@ -76,6 +77,7 @@ export const ReaderPreferencesSheet: React.FC<ReaderPreferencesSheetProps> = ({
     setTextAlign,
     setMargin,
     setTheme,
+    setAutoImmersiveOnListen,
     reset,
   } = useReaderPreferences();
 
@@ -459,6 +461,42 @@ export const ReaderPreferencesSheet: React.FC<ReaderPreferencesSheetProps> = ({
                 ))}
               </View>
             </Section>
+
+            {/* 🎧 Auto-immersive on listen (Sprint 77, opt-in): tapping the
+                reader's Audio button also opens the immersive reader, which
+                binds it to the engine before the first ∞ advance. */}
+            <Section title={t.readerPrefs.audioSection} colors={colors}>
+              <View style={styles.switchRow}>
+                <View style={styles.switchTextWrap}>
+                  <Text style={[styles.optionLabelBold, {color: colors.text}]}>
+                    {t.readerPrefs.autoImmersive}
+                  </Text>
+                  <Text
+                    style={[styles.switchHint, {color: colors.textSecondary}]}>
+                    {t.readerPrefs.autoImmersiveHint}
+                  </Text>
+                </View>
+                <Switch
+                  value={preferences.autoImmersiveOnListen}
+                  onValueChange={tap(() =>
+                    setAutoImmersiveOnListen(
+                      !preferences.autoImmersiveOnListen,
+                    ),
+                  )}
+                  trackColor={{
+                    false: colors.border,
+                    true: colors.primary + '70',
+                  }}
+                  thumbColor={
+                    preferences.autoImmersiveOnListen
+                      ? colors.primary
+                      : colors.surfaceVariant
+                  }
+                  accessibilityLabel={t.readerPrefs.autoImmersive}
+                  accessibilityHint={t.readerPrefs.autoImmersiveHint}
+                />
+              </View>
+            </Section>
           </ScrollView>
         </View>
       </View>
@@ -626,6 +664,19 @@ const styles = StyleSheet.create({
   },
   section: {
     marginTop: spacing.lg,
+  },
+  switchRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.md,
+  },
+  switchTextWrap: {
+    flex: 1,
+    gap: 2,
+  },
+  switchHint: {
+    fontSize: fontSizes.xs,
+    lineHeight: 16,
   },
   sectionTitle: {
     fontSize: fontSizes.xs,

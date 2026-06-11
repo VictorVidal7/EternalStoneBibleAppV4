@@ -11,8 +11,14 @@
  * Para la gloria de Dios - Eternal Bible App
  */
 
-import React, {useState} from 'react';
-import {View, StyleSheet, TouchableOpacity, Animated} from 'react-native';
+import React, {useState, useEffect} from 'react';
+import {
+  View,
+  StyleSheet,
+  TouchableOpacity,
+  Animated,
+  ActivityIndicator,
+} from 'react-native';
 import {AppText as Text} from '../ui/AppText';
 import {BlurView} from 'expo-blur';
 import {Ionicons} from '@expo/vector-icons';
@@ -23,6 +29,15 @@ import {
 import {useLanguage} from '../../hooks/useLanguage';
 import {useTheme} from '../../hooks/useTheme';
 import {usePressScale} from '../../hooks/usePressScale';
+import {alsoChipLabel} from '../../lib/home/alsoInVersions';
+
+/** A translation offered by the "see it in …" chips (Sprint 77). */
+export interface AlternateVersionOption {
+  id: string;
+  name: string;
+  abbreviation: string;
+  language: string;
+}
 
 interface VerseOfDayCardProps {
   /**
@@ -81,6 +96,36 @@ interface VerseOfDayCardProps {
    * Drives the badge on the study CTA; the CTA is hidden when this is 0.
    */
   studyConnectionsCount?: number;
+
+  /**
+   * Other translations to offer as "see it in …" chips (Sprint 77) —
+   * cross-language first (see orderAlsoVersions). Hidden when empty or when
+   * {@link loadAlternateText} is missing.
+   */
+  alternates?: AlternateVersionOption[];
+
+  /**
+   * Lazily fetches this daily verse's text in another version. Resolves null
+   * when the verse is missing there; results are cached per version for the
+   * card's lifetime.
+   */
+  loadAlternateText?: (versionId: string) => Promise<string | null>;
+
+  /**
+   * Opens the full version-comparison screen on this verse — the natural
+   * "go deeper" exit from the inline peek.
+   */
+  onCompare?: () => void;
+
+  /**
+   * Whether the "see it in …" chip row is shown. OFF by default — the card
+   * stays minimal; a footer globe button (see {@link onToggleAlternates})
+   * reveals the chips for readers who want the cross-version peek.
+   */
+  alternatesVisible?: boolean;
+
+  /** Toggles {@link alternatesVisible}; the owner persists the choice. */
+  onToggleAlternates?: () => void;
 }
 
 const VerseOfDayCard: React.FC<VerseOfDayCardProps> = ({
@@ -94,6 +139,11 @@ const VerseOfDayCard: React.FC<VerseOfDayCardProps> = ({
   versionLabel,
   onStudy,
   studyConnectionsCount = 0,
+  alternates,
+  loadAlternateText,
+  onCompare,
+  alternatesVisible = false,
+  onToggleAlternates,
 }) => {
   const {t} = useLanguage();
   const {colors} = useTheme();
@@ -108,6 +158,14 @@ const VerseOfDayCard: React.FC<VerseOfDayCardProps> = ({
   const press = usePressScale();
   const [isFavorited, setIsFavorited] = useState(false);
 
+  // "See it in …" inline peek (Sprint 77): which alternate version is open,
+  // plus a per-version text cache so each translation loads at most once.
+  const [openAlternateId, setOpenAlternateId] = useState<string | null>(null);
+  const [alternateTexts, setAlternateTexts] = useState<
+    Record<string, string | null>
+  >({});
+  const [alternateLoading, setAlternateLoading] = useState(false);
+
   // Use translation if title not provided
   const displayTitle = title || t.home.dailyVerse;
 
@@ -115,6 +173,41 @@ const VerseOfDayCard: React.FC<VerseOfDayCardProps> = ({
     setIsFavorited(!isFavorited);
     onFavorite?.();
   };
+
+  const languageName = (code: string) =>
+    code === 'en' ? t.home.alsoLanguageEn : t.home.alsoLanguageEs;
+
+  // Hiding the section also collapses any open peek, so re-revealing starts
+  // from the clean chip row.
+  useEffect(() => {
+    if (!alternatesVisible) {
+      setOpenAlternateId(null);
+    }
+  }, [alternatesVisible]);
+
+  const handleAlternateChip = async (versionId: string) => {
+    if (openAlternateId === versionId) {
+      setOpenAlternateId(null);
+      return;
+    }
+    setOpenAlternateId(versionId);
+    if (alternateTexts[versionId] === undefined && loadAlternateText) {
+      setAlternateLoading(true);
+      try {
+        const text = await loadAlternateText(versionId);
+        setAlternateTexts(prev => ({...prev, [versionId]: text}));
+      } catch {
+        setAlternateTexts(prev => ({...prev, [versionId]: null}));
+      } finally {
+        setAlternateLoading(false);
+      }
+    }
+  };
+
+  const openAlternate = alternates?.find(v => v.id === openAlternateId);
+  const openAlternateText = openAlternateId
+    ? alternateTexts[openAlternateId]
+    : undefined;
 
   return (
     <Animated.View style={{transform: [{scale: press.scale}]}}>
@@ -208,6 +301,128 @@ const VerseOfDayCard: React.FC<VerseOfDayCardProps> = ({
             </Text>
           </View>
 
+          {/* "Ver también en…" — el mismo verso en otra lengua/versión, como
+              vistazo inline sin salir del Home (Sprint 77). Oculto hasta que
+              el lector lo activa con el globo del footer. */}
+          {alternatesVisible &&
+          alternates &&
+          alternates.length > 0 &&
+          loadAlternateText ? (
+            <View style={styles.alsoSection}>
+              <View style={styles.alsoChipRow}>
+                {alternates.map(v => {
+                  const isOpen = openAlternateId === v.id;
+                  return (
+                    <TouchableOpacity
+                      key={v.id}
+                      style={[
+                        styles.alsoChip,
+                        {
+                          borderColor: isOpen
+                            ? colors.primary
+                            : theme.colors.glassBorder,
+                          backgroundColor: isOpen
+                            ? colors.primary + '22'
+                            : theme.colors.hover,
+                        },
+                      ]}
+                      onPress={() => handleAlternateChip(v.id)}
+                      accessibilityRole="button"
+                      accessibilityLabel={`${t.home.alsoIn} ${v.name} (${languageName(v.language)})`}
+                      accessibilityState={{expanded: isOpen}}>
+                      <Ionicons
+                        name="language"
+                        size={12}
+                        color={
+                          isOpen ? colors.primary : theme.colors.textSecondary
+                        }
+                      />
+                      <Text
+                        scaleRole="compact"
+                        style={[
+                          styles.alsoChipText,
+                          {
+                            color: isOpen
+                              ? colors.primary
+                              : theme.colors.textSecondary,
+                          },
+                        ]}>
+                        {alsoChipLabel(v)}
+                      </Text>
+                    </TouchableOpacity>
+                  );
+                })}
+              </View>
+
+              {openAlternate ? (
+                <View
+                  style={[
+                    styles.alsoVerseContainer,
+                    {borderLeftColor: colors.info},
+                  ]}>
+                  {alternateLoading && openAlternateText === undefined ? (
+                    <ActivityIndicator size="small" color={colors.primary} />
+                  ) : openAlternateText ? (
+                    <Text
+                      scaleRole="body"
+                      style={[
+                        styles.alsoVerseText,
+                        {
+                          color: theme.colors.text,
+                          fontFamily: theme.typography.fontFamily.serif,
+                        },
+                      ]}>
+                      "{openAlternateText}"
+                    </Text>
+                  ) : (
+                    <Text
+                      scaleRole="compact"
+                      style={[
+                        styles.alsoUnavailable,
+                        {color: theme.colors.textSecondary},
+                      ]}>
+                      {t.home.alsoUnavailable.replace(
+                        '{{version}}',
+                        openAlternate.abbreviation,
+                      )}
+                    </Text>
+                  )}
+                  <View style={styles.alsoMetaRow}>
+                    <Text
+                      scaleRole="compact"
+                      style={[
+                        styles.alsoMetaVersion,
+                        {color: theme.colors.textSecondary},
+                      ]}>
+                      {openAlternate.name}
+                    </Text>
+                    {onCompare && (
+                      <TouchableOpacity
+                        style={styles.alsoCompareButton}
+                        onPress={onCompare}
+                        accessibilityRole="button"
+                        accessibilityLabel={t.home.alsoCompare}>
+                        <Text
+                          scaleRole="compact"
+                          style={[
+                            styles.alsoCompareText,
+                            {color: colors.primary},
+                          ]}>
+                          {t.home.alsoCompare}
+                        </Text>
+                        <Ionicons
+                          name="arrow-forward"
+                          size={13}
+                          color={colors.primary}
+                        />
+                      </TouchableOpacity>
+                    )}
+                  </View>
+                </View>
+              ) : null}
+            </View>
+          ) : null}
+
           {/* Footer con botones de acción */}
           <View style={styles.footer}>
             {/* Botón leer capítulo completo */}
@@ -228,6 +443,32 @@ const VerseOfDayCard: React.FC<VerseOfDayCardProps> = ({
 
             {/* Botones de share y favorite */}
             <View style={styles.iconButtons}>
+              {alternates &&
+                alternates.length > 0 &&
+                loadAlternateText &&
+                onToggleAlternates && (
+                  <TouchableOpacity
+                    style={[
+                      styles.iconButton,
+                      {
+                        backgroundColor: alternatesVisible
+                          ? colors.primary + '22'
+                          : theme.colors.hover,
+                      },
+                    ]}
+                    onPress={onToggleAlternates}
+                    accessibilityRole="button"
+                    accessibilityLabel={t.home.alsoToggle}
+                    accessibilityState={{selected: alternatesVisible}}>
+                    <Ionicons
+                      name="language"
+                      size={20}
+                      color={
+                        alternatesVisible ? colors.primary : theme.colors.text
+                      }
+                    />
+                  </TouchableOpacity>
+                )}
               {onShare && (
                 <TouchableOpacity
                   style={[
@@ -370,6 +611,65 @@ const styles = StyleSheet.create({
     lineHeight: 25.6, // 16 * 1.6
     fontStyle: 'italic',
     opacity: 0.95,
+  },
+  alsoSection: {
+    marginBottom: 4,
+  },
+  alsoChipRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+  },
+  alsoChip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 5,
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    borderRadius: 14,
+    borderWidth: 1,
+  },
+  alsoChipText: {
+    fontSize: 11,
+    fontWeight: '700',
+    letterSpacing: 0.3,
+  },
+  alsoVerseContainer: {
+    borderLeftWidth: 3,
+    paddingLeft: 14,
+    marginTop: 12,
+    gap: 8,
+  },
+  alsoVerseText: {
+    fontSize: 14,
+    lineHeight: 22.4, // 14 * 1.6 — mirrors the main quote's rhythm
+    fontStyle: 'italic',
+    opacity: 0.9,
+  },
+  alsoUnavailable: {
+    fontSize: 12,
+    fontStyle: 'italic',
+  },
+  alsoMetaRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: 8,
+  },
+  alsoMetaVersion: {
+    fontSize: 11,
+    fontWeight: '600',
+    opacity: 0.8,
+    flexShrink: 1,
+  },
+  alsoCompareButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+  },
+  alsoCompareText: {
+    fontSize: 12,
+    fontWeight: '700',
   },
   footer: {
     flexDirection: 'row',

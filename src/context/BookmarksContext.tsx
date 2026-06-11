@@ -32,7 +32,12 @@ import {
   removeById,
   renameById,
 } from './bookmarkOps';
-import {getSyncEngine, type SyncAdapter, type SyncEntity} from '../lib/sync';
+import {
+  getSyncEngine,
+  withoutUndefined,
+  type SyncAdapter,
+  type SyncEntity,
+} from '../lib/sync';
 import {useSyncEngineOptional} from './SyncEngineContext';
 
 export interface Bookmark {
@@ -76,8 +81,11 @@ interface BookmarksProviderProps {
   children: ReactNode;
 }
 
+// withoutUndefined drops an absent `label` — addBookmark builds the row with
+// `label: input.label`, so a label-less bookmark carried the key explicitly
+// and Firestore rejected every push (same flaw as favorites' note, S77).
 function bookmarkToRemote(b: Bookmark): SyncEntity<Bookmark> {
-  return {...b, updatedAt: b.updatedAt};
+  return withoutUndefined({...b, updatedAt: b.updatedAt});
 }
 
 export const BookmarksProvider: FC<BookmarksProviderProps> = ({children}) => {

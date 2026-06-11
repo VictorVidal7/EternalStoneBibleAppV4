@@ -46,10 +46,15 @@ import {useTheme} from '../../../hooks/useTheme';
 import {useLanguage} from '../../../hooks/useLanguage';
 import {useReducedMotion} from '../../../hooks/useReducedMotion';
 import {getBookByName} from '../../../constants/bible';
+import {useFavorites} from '../../../context/FavoritesContext';
+import {matchingFavorite} from '../lib/playingFavorite';
+import {staticColors} from '../../../styles/designTokens';
 import {nextChapterTitle} from '../lib/chapterNavigation';
 import {
   resolveHorizontalSwipe,
   swipeDisplacement,
+  swipeTargetIndex,
+  PAUSED_SWIPE_FLASH_MS,
 } from '../lib/miniPlayerGestures';
 import {useAudioPlayer} from '../context/AudioPlayerContext';
 import {usePremium} from '../../../context/PremiumContext';
@@ -121,6 +126,7 @@ export const MiniAudioPlayer: React.FC<MiniAudioPlayerProps> = ({
     setReaderFollowsAudio,
   } = useAudioPlayer();
   const {isPremium} = usePremium();
+  const {favorites, addFavorite, removeFavorite, isFavorite} = useFavorites();
 
   // Localized reference for a verse index — fuels the scrubber's drag preview.
   const labelForIndex = useCallback(
@@ -206,6 +212,49 @@ export const MiniAudioPlayer: React.FC<MiniAudioPlayerProps> = ({
       }
     });
 
+  // Post-swipe confirmation while PAUSED (Sprint 77): a paused swipe moves
+  // the resume point with no audible cue, so the bar briefly tints the title
+  // primary with a ▶ glyph. A static color swap — already reduce-motion-safe.
+  const [pausedSwipeFlash, setPausedSwipeFlash] = useState(false);
+  const pausedSwipeFlashTimer = useRef<NodeJS.Timeout | null>(null);
+  useEffect(
+    () => () => {
+      if (pausedSwipeFlashTimer.current) {
+        clearTimeout(pausedSwipeFlashTimer.current);
+      }
+    },
+    [],
+  );
+
+  // ♥ Quick-favorite of the verse being heard (Sprint 77): the expanded
+  // player gains a one-tap save of the CURRENT verse — favorites canonicalize
+  // the book name and queue to the existing sync, no new storage. Toggling
+  // off removes the matching favorite (canonical-book match, like isFavorite).
+  const currentIsFavorite = currentVerse
+    ? isFavorite(currentVerse.book, currentVerse.chapter, currentVerse.verse)
+    : false;
+  const handleToggleFavorite = useCallback(async () => {
+    const verse = currentVerse;
+    if (!verse) return;
+    const existing = matchingFavorite(favorites, verse);
+    if (existing) {
+      haptics.tap();
+      await removeFavorite(existing.id);
+    } else {
+      haptics.success();
+      await addFavorite(
+        {
+          book: verse.book,
+          chapter: verse.chapter,
+          verse: verse.verse,
+          text: verse.text,
+        },
+        'other',
+        5,
+      );
+    }
+  }, [currentVerse, favorites, addFavorite, removeFavorite]);
+
   // Resolve a finished collapsed-bar drag (Sprint 75): swipe left = next
   // verse, right = previous. nextVerse/previousVerse haptic on their own; the
   // announce tells a screen-reader user where the bar landed (the swipe is a
@@ -213,18 +262,31 @@ export const MiniAudioPlayer: React.FC<MiniAudioPlayerProps> = ({
   const handleCollapsedSwipe = useCallback(
     (translationX: number, velocityX: number) => {
       const action = resolveHorizontalSwipe({translationX, velocityX});
-      if (!action) return;
-      const index = state.currentVerseIndex;
-      if (action === 'next' && index < verses.length - 1) {
+      const target = swipeTargetIndex({
+        action,
+        currentIndex: state.currentVerseIndex,
+        totalVerses: verses.length,
+      });
+      if (target === null) return;
+      if (action === 'next') {
         nextVerse();
-        AccessibilityInfo.announceForAccessibility(labelForIndex(index + 1));
-      } else if (action === 'previous' && index > 0) {
+      } else {
         previousVerse();
-        AccessibilityInfo.announceForAccessibility(labelForIndex(index - 1));
+      }
+      AccessibilityInfo.announceForAccessibility(labelForIndex(target));
+      if (!state.isPlaying) {
+        setPausedSwipeFlash(true);
+        if (pausedSwipeFlashTimer.current) {
+          clearTimeout(pausedSwipeFlashTimer.current);
+        }
+        pausedSwipeFlashTimer.current = setTimeout(() => {
+          setPausedSwipeFlash(false);
+        }, PAUSED_SWIPE_FLASH_MS);
       }
     },
     [
       state.currentVerseIndex,
+      state.isPlaying,
       verses.length,
       nextVerse,
       previousVerse,
@@ -340,6 +402,9 @@ export const MiniAudioPlayer: React.FC<MiniAudioPlayerProps> = ({
       : verseBookInfo.name
     : currentVerse.book;
   const verseTitle = `${verseBookName} ${currentVerse.chapter}:${currentVerse.verse}`;
+  // Resuming makes the paused-swipe confirmation moot — drop it immediately
+  // instead of letting the timeout run out (Sprint 77).
+  const showSwipeFlash = pausedSwipeFlash && !state.isPlaying;
   const canGoPrevious = state.currentVerseIndex > 0;
   const canGoNext = state.currentVerseIndex < verses.length - 1;
   // "Up next" peek — only while continuous playback is ON and a next chapter
@@ -431,8 +496,20 @@ export const MiniAudioPlayer: React.FC<MiniAudioPlayerProps> = ({
                   }}>
                   <AppText
                     scaleRole="display"
-                    style={[styles.verseTitle, {color: colors.text}]}
+                    style={[
+                      styles.verseTitle,
+                      {color: showSwipeFlash ? colors.primary : colors.text},
+                    ]}
                     numberOfLines={1}>
+                    {showSwipeFlash ? (
+                      <>
+                        <Ionicons
+                          name="play"
+                          size={12}
+                          color={colors.primary}
+                        />{' '}
+                      </>
+                    ) : null}
                     {verseTitle}
                   </AppText>
                   <MiniVerseProgress
@@ -530,6 +607,28 @@ export const MiniAudioPlayer: React.FC<MiniAudioPlayerProps> = ({
                   </Text>
                 </View>
                 <View style={styles.headerButtons}>
+                  {/* ♥ Quick-favorite of the verse being heard (Sprint 77). */}
+                  <TouchableOpacity
+                    style={styles.headerButton}
+                    onPress={handleToggleFavorite}
+                    hitSlop={{top: 10, bottom: 10, left: 10, right: 10}}
+                    accessibilityRole="button"
+                    accessibilityLabel={
+                      currentIsFavorite
+                        ? t.verse.removeFavorite
+                        : t.verse.addFavorite
+                    }
+                    accessibilityState={{selected: currentIsFavorite}}>
+                    <Ionicons
+                      name={currentIsFavorite ? 'heart' : 'heart-outline'}
+                      size={20}
+                      color={
+                        currentIsFavorite
+                          ? staticColors.red500
+                          : colors.textTertiary
+                      }
+                    />
+                  </TouchableOpacity>
                   {/* Continuous-playback toggle — when on, audio rolls into the
                       next chapter instead of stopping (Sprint 72). */}
                   <TouchableOpacity

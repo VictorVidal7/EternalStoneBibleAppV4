@@ -37,6 +37,13 @@ export interface ReaderPreferences {
   margin: ReaderMargin;
   /** Reading-surface palette. 'system' (default) follows the app theme. */
   theme: ReaderTheme;
+  /**
+   * Open the immersive reader automatically when audio starts from the
+   * reader's Audio button (Sprint 77, opt-in). Also guarantees the immersive
+   * binds to the engine before the first ∞ chapter advance (the S73 follow
+   * needs an early bind).
+   */
+  autoImmersiveOnListen: boolean;
 }
 
 interface ReaderPreferencesContextValue {
@@ -50,6 +57,7 @@ interface ReaderPreferencesContextValue {
   setTextAlign: (next: ReaderTextAlign) => void;
   setMargin: (next: ReaderMargin) => void;
   setTheme: (next: ReaderTheme) => void;
+  setAutoImmersiveOnListen: (next: boolean) => void;
   /** Reset to defaults. Useful for a "Restore defaults" button. */
   reset: () => void;
 }
@@ -61,6 +69,7 @@ export const DEFAULT_READER_PREFERENCES: ReaderPreferences = {
   textAlign: 'left',
   margin: 'medium',
   theme: 'system',
+  autoImmersiveOnListen: false,
 };
 
 export const READER_FONT_SIZE_MIN = 14;
@@ -158,6 +167,10 @@ export const ReaderPreferencesProvider: React.FC<
     }));
   }, []);
 
+  const setAutoImmersiveOnListen = useCallback((next: boolean) => {
+    setPreferences(prev => ({...prev, autoImmersiveOnListen: !!next}));
+  }, []);
+
   const reset = useCallback(() => {
     setPreferences(DEFAULT_READER_PREFERENCES);
   }, []);
@@ -172,6 +185,7 @@ export const ReaderPreferencesProvider: React.FC<
       setTextAlign,
       setMargin,
       setTheme,
+      setAutoImmersiveOnListen,
       reset,
     }),
     [
@@ -183,6 +197,7 @@ export const ReaderPreferencesProvider: React.FC<
       setTextAlign,
       setMargin,
       setTheme,
+      setAutoImmersiveOnListen,
       reset,
     ],
   );

@@ -25,7 +25,12 @@ import {logger} from '../lib/utils/logger';
 import {BibleVerse} from '../types/bible';
 import {canonicalBookName} from '../constants/bible';
 import {useServices} from './ServicesContext';
-import {getSyncEngine, type SyncAdapter, type SyncEntity} from '../lib/sync';
+import {
+  getSyncEngine,
+  withoutUndefined,
+  type SyncAdapter,
+  type SyncEntity,
+} from '../lib/sync';
 import {useSyncEngineOptional} from './SyncEngineContext';
 
 type FavoriteSourceVerse = Pick<
@@ -84,11 +89,14 @@ const FavoritesContext = createContext<FavoritesContextType | undefined>(
 );
 
 /** Build the Firestore payload for a favorite. Strips React-only
- *  fields and ensures `updatedAt` is present. */
+ *  fields and ensures `updatedAt` is present. withoutUndefined drops an
+ *  absent `note` — Firestore rejects `undefined` field values, so a
+ *  note-less favorite failed every push (8 retries → dropped) and NEVER
+ *  synced before (live-caught S77). */
 function favoriteToRemote(
   f: Favorite,
 ): SyncEntity<Omit<Favorite, 'updatedAt'>> {
-  return {
+  return withoutUndefined({
     id: f.id,
     verseId: f.verseId,
     book: f.book,
@@ -101,7 +109,7 @@ function favoriteToRemote(
     note: f.note,
     createdAt: f.createdAt,
     updatedAt: f.updatedAt,
-  };
+  });
 }
 
 export const FavoritesProvider: FC<{children: ReactNode}> = ({children}) => {
