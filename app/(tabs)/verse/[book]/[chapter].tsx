@@ -60,6 +60,8 @@ import {NoteEditorModal} from '@components/reading/NoteEditorModal';
 import {ImageShareModal} from '@components/reading/ImageShareModal';
 import {ReaderPreferencesSheet} from '@components/reading/ReaderPreferencesSheet';
 import {CrossReferencesSheet} from '@components/reading/CrossReferencesSheet';
+import {AlsoInVersionsPanel} from '@components/reading/AlsoInVersionsPanel';
+import {orderAlsoVersions} from '@/lib/home/alsoInVersions';
 import {AddToCollectionSheet} from '@/features/collections/AddToCollectionSheet';
 import {favoriteVerseId} from '@/features/collections/collections';
 import {
@@ -223,6 +225,9 @@ export default function VerseReadingScreen() {
   // Selection-toolbar overflow ("Más"): study-mode actions that don't
   // need to live in the top-level 4×2 grid.
   const [showOverflow, setShowOverflow] = useState(false);
+  // "Ver también en…" (Sprint 78): swaps the selection actions for the
+  // first selected verse peeked in another translation (S77 card idiom).
+  const [showAlsoPanel, setShowAlsoPanel] = useState(false);
   const [noteText, setNoteText] = useState('');
   const [favoritedVerses, setFavoritedVerses] = useState<Set<number>>(
     new Set(),
@@ -259,6 +264,17 @@ export default function VerseReadingScreen() {
   const secondaryChoices = useMemo(
     () => secondaryVersionChoices(selectedVersion.id, BIBLE_VERSIONS),
     [selectedVersion.id],
+  );
+  // "Ver también" chips (Sprint 78): every other catalog version, cross-
+  // language first — the same policy as the Home daily verse (S77).
+  const alsoAlternates = useMemo(
+    () => orderAlsoVersions(selectedVersion, BIBLE_VERSIONS),
+    [selectedVersion],
+  );
+  // The verse the also-panel (and compare/cross-refs/collections) acts on.
+  const firstSelectedVerse = useMemo(
+    () => (selectedVerses.size > 0 ? Math.min(...selectedVerses) : null),
+    [selectedVerses],
   );
   // How the two translations are laid out in dual mode: the companion stacked
   // under each verse (default) or two equal-weight columns (Sprint 67),
@@ -836,6 +852,7 @@ export default function VerseReadingScreen() {
     setSelectedVerses(new Set());
     setShowHighlightPicker(false);
     setShowOverflow(false);
+    setShowAlsoPanel(false);
   }
 
   // Load saved highlights for the current chapter
@@ -2120,6 +2137,7 @@ export default function VerseReadingScreen() {
                   onPress={() => {
                     setShowOverflow(v => !v);
                     setShowHighlightPicker(false);
+                    setShowAlsoPanel(false);
                   }}
                   accessibilityRole="button"
                   accessibilityLabel={t.verse.moreActions}
@@ -2184,6 +2202,41 @@ export default function VerseReadingScreen() {
                   />
                 </TouchableOpacity>
               </View>
+            ) : showAlsoPanel && firstSelectedVerse !== null && bookInfo ? (
+              <AlsoInVersionsPanel
+                verseReference={`${localizedBookName} ${chapterNum}:${firstSelectedVerse}`}
+                verseKey={`${bookInfo.id}:${chapterNum}:${firstSelectedVerse}`}
+                alternates={alsoAlternates}
+                loadVerseText={async versionId => {
+                  // getVerse takes the NUMERIC bookId — the book-name string
+                  // silently nulls (S77 gotcha).
+                  const alt = await bibleDB.getVerse(
+                    bookInfo.id,
+                    chapterNum,
+                    firstSelectedVerse,
+                    versionId,
+                  );
+                  return alt?.text ?? null;
+                }}
+                colors={{
+                  text: effectiveColors.text,
+                  textSecondary: effectiveColors.textSecondary,
+                  primary: effectiveColors.primary,
+                  border: effectiveColors.border,
+                }}
+                onCompare={() => {
+                  router.push({
+                    pathname: '/features/version-comparison',
+                    params: {
+                      book,
+                      chapter,
+                      verse: firstSelectedVerse,
+                    },
+                  });
+                  clearSelection();
+                }}
+                onClose={() => setShowAlsoPanel(false)}
+              />
             ) : (
               <View style={styles.selectionActions}>
                 <TouchableOpacity
@@ -2388,6 +2441,30 @@ export default function VerseReadingScreen() {
                     {t.collections.addAction}
                   </Text>
                 </TouchableOpacity>
+                {alsoAlternates.length > 0 && (
+                  <TouchableOpacity
+                    style={styles.selectionOverflowButton}
+                    accessibilityRole="button"
+                    accessibilityLabel={t.verse.alsoPanelA11y}
+                    onPress={() => {
+                      setShowAlsoPanel(true);
+                      setShowOverflow(false);
+                      setShowHighlightPicker(false);
+                    }}>
+                    <Ionicons
+                      name="language"
+                      size={22}
+                      color={effectiveColors.primary}
+                    />
+                    <Text
+                      style={[
+                        styles.selectionOverflowText,
+                        {color: effectiveColors.text},
+                      ]}>
+                      {t.verse.alsoSee}
+                    </Text>
+                  </TouchableOpacity>
+                )}
               </View>
             )}
           </View>

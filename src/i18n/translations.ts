@@ -980,6 +980,9 @@ export const translations = {
       moreActions: 'Más acciones',
       verseA11yLabel: 'Versículo {{n}}, {{text}}',
       verseA11yHint: 'Toca dos veces para seleccionar',
+      alsoSee: 'Ver también',
+      alsoPanelA11y: 'Ver este versículo en otras versiones',
+      alsoClose: 'Cerrar ver también',
     },
 
     // Audio Player
@@ -2786,6 +2789,9 @@ export const translations = {
       moreActions: 'More actions',
       verseA11yLabel: 'Verse {{n}}, {{text}}',
       verseA11yHint: 'Double tap to select',
+      alsoSee: 'See also',
+      alsoPanelA11y: 'See this verse in other versions',
+      alsoClose: 'Close see also',
     },
 
     // Audio Player
