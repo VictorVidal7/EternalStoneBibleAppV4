@@ -76,6 +76,7 @@ import {
 import type {PlaybackPosition} from '@/features/audio';
 import {getStudyConnections} from '@/features/study/studyConnections';
 import {timeOfDay, homeNudge} from '@/lib/home/homeGreeting';
+import {planPace, formatDayReadings} from '@/lib/reading/planPace';
 
 // Componentes Celestial
 import {
@@ -87,6 +88,9 @@ import {
 
 // Skeleton Loaders
 import {Skeleton} from '@components/SkeletonLoader';
+
+// Emotional check-in (Sprint 79)
+import {FeelingChips} from '@components/FeelingChips';
 
 // Tema Celestial
 import {
@@ -124,7 +128,7 @@ export default function HomeScreen() {
   } = useServices();
   const {t, language} = useLanguage();
   const {getChapterProgress} = useReadingProgress();
-  const {getCompletedDays} = useReadingPlanProgress();
+  const {getCompletedDays, getStartedAt} = useReadingPlanProgress();
   const {addFavorite, isFavorite, favorites} = useFavorites();
   const {bookmarks} = useBookmarks();
   const bookmarksCount = bookmarks.length;
@@ -777,6 +781,21 @@ export default function HomeScreen() {
             );
           })()}
 
+        {/* ==================== HOW ARE YOU FEELING (Sprint 79) ==================== */}
+        <Animated.View
+          style={{opacity: fadeAnim, marginTop: celestialSpacing.cardGap}}>
+          <FeelingChips
+            onOpenFeeling={feelingId =>
+              handlePress(() =>
+                router.push(`/features/feelings/${feelingId}` as never),
+              )
+            }
+            onOpenAll={() =>
+              handlePress(() => router.push('/features/feelings' as never))
+            }
+          />
+        </Animated.View>
+
         {/* ==================== CONTINUE READING (Compact) ==================== */}
         {lastRead && (
           <Animated.View
@@ -1222,6 +1241,64 @@ export default function HomeScreen() {
           </TouchableOpacity>
         </Animated.View>
 
+        {/* ==================== HOW ARE YOU FEELING (browse) ==================== */}
+        <Animated.View
+          style={{opacity: fadeAnim, marginTop: celestialSpacing.cardGap}}>
+          <TouchableOpacity
+            activeOpacity={0.9}
+            accessibilityRole="button"
+            accessibilityLabel={t.feelings.cardTitle}
+            accessibilityHint={t.feelings.cardSubtitle}
+            onPress={() =>
+              handlePress(() => router.push('/features/feelings' as never))
+            }>
+            <ShimmerCard
+              glowColor={colors.primary}
+              shimmerEnabled={false}
+              cardBackgroundColor={celestialTheme.colors.surfaceGlass}
+              cardBorderColor={celestialTheme.colors.glassBorder}>
+              <View style={styles.continueButton}>
+                <View style={styles.continueHeader}>
+                  <View
+                    style={[
+                      styles.continueIconContainer,
+                      styles.iconChip,
+                      {backgroundColor: colors.primary + '20'},
+                    ]}>
+                    <Ionicons
+                      name="heart-half"
+                      size={14}
+                      color={colors.primary}
+                    />
+                  </View>
+                  <View style={styles.continueTextContainer}>
+                    <Text
+                      style={[styles.continueTitle, {color: colors.text}]}
+                      numberOfLines={1}>
+                      {t.feelings.cardTitle}
+                    </Text>
+                    <Text
+                      style={[
+                        styles.continueReference,
+                        {color: colors.textSecondary},
+                      ]}
+                      numberOfLines={1}>
+                      {t.feelings.cardSubtitle}
+                    </Text>
+                  </View>
+                  <View style={styles.continueProgress}>
+                    <Ionicons
+                      name="chevron-forward"
+                      size={24}
+                      color={colors.primary}
+                    />
+                  </View>
+                </View>
+              </View>
+            </ShimmerCard>
+          </TouchableOpacity>
+        </Animated.View>
+
         {/* ==================== READING PLANS ==================== */}
         <Animated.View
           style={{opacity: fadeAnim, marginTop: celestialSpacing.sectionGap}}>
@@ -1245,17 +1322,45 @@ export default function HomeScreen() {
             showsHorizontalScrollIndicator={false}
             contentContainerStyle={styles.plansScroll}>
             {READING_PLANS.slice(0, 3).map(plan => {
-              const planDaysDone = getCompletedDays(plan.id).length;
+              const planDays = getCompletedDays(plan.id);
+              const planDaysDone = planDays.length;
               const localizedPlan = getLocalizedPlan(plan, t);
+              // "Día 4 · Mateo 9–10" once the plan is underway (Sprint 79);
+              // the static duration label before the first interaction.
+              const pace = planPace({
+                startedAt: getStartedAt(plan.id),
+                completedDays: planDays,
+                duration: plan.duration,
+                now: new Date(),
+              });
+              const nextDayReadings =
+                pace.nextDay != null
+                  ? plan.days.find(d => d.day === pace.nextDay)?.readings
+                  : undefined;
+              const planSubtitle =
+                pace.status === 'complete'
+                  ? t.readingPlan.planCompletedShort
+                  : pace.status !== 'notStarted' && nextDayReadings
+                    ? t.readingPlan.planNextUp
+                        .replace('{{day}}', String(pace.nextDay))
+                        .replace(
+                          '{{readings}}',
+                          formatDayReadings(nextDayReadings, book => {
+                            const info = getBookByName(book);
+                            if (!info) return book;
+                            return language === 'en' ? info.nameEn : info.name;
+                          }),
+                        )
+                    : t.home.planDays.replace(
+                        '{{days}}',
+                        plan.duration.toString(),
+                      );
               return (
                 <ReadingPlanCard
                   key={plan.id}
                   name={localizedPlan.name}
                   description={localizedPlan.description}
-                  subtitle={t.home.planDays.replace(
-                    '{{days}}',
-                    plan.duration.toString(),
-                  )}
+                  subtitle={planSubtitle}
                   icon="book-outline"
                   duration={plan.duration}
                   daysCompleted={planDaysDone}
@@ -1338,6 +1443,66 @@ export default function HomeScreen() {
               </View>
             </ShimmerCard>
           </TouchableOpacity>
+
+          {/* 🕯️ Lectio Divina on the daily verse (Sprint 79) */}
+          {dailyVerse && (
+            <TouchableOpacity
+              activeOpacity={0.9}
+              style={{marginTop: celestialSpacing.cardGap}}
+              accessibilityRole="button"
+              accessible={true}
+              accessibilityLabel={t.lectio.cardTitle}
+              accessibilityHint={t.lectio.cardSubtitle}
+              onPress={() =>
+                handlePress(() =>
+                  router.push({
+                    pathname: '/features/lectio' as never,
+                    params: {
+                      book: dailyVerse.book,
+                      chapter: String(dailyVerse.chapter),
+                      verse: String(dailyVerse.verse),
+                    },
+                  } as never),
+                )
+              }>
+              <ShimmerCard
+                glowColor={colors.primary}
+                shimmerEnabled={false}
+                cardBackgroundColor={celestialTheme.colors.surfaceGlass}
+                cardBorderColor={celestialTheme.colors.glassBorder}>
+                <View style={styles.toolCard}>
+                  <View
+                    style={[
+                      styles.toolIconContainer,
+                      {backgroundColor: colors.primary + '20'},
+                    ]}>
+                    <Ionicons name="flame" size={28} color={colors.primary} />
+                  </View>
+                  <View style={styles.toolInfo}>
+                    <Text
+                      style={[
+                        styles.toolTitle,
+                        {color: celestialTheme.colors.text},
+                      ]}>
+                      {t.lectio.cardTitle}
+                    </Text>
+                    <Text
+                      style={[
+                        styles.toolDescription,
+                        {color: celestialTheme.colors.textSecondary},
+                      ]}>
+                      {t.lectio.cardSubtitle}
+                    </Text>
+                  </View>
+                  <Ionicons
+                    name="chevron-forward"
+                    size={24}
+                    color={colors.textTertiary}
+                  />
+                </View>
+              </ShimmerCard>
+            </TouchableOpacity>
+          )}
         </Animated.View>
 
         {/* ==================== SAVED SHORTCUTS ==================== */}

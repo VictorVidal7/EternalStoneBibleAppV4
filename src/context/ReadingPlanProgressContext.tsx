@@ -55,6 +55,10 @@ interface ReadingPlanProgressContextType {
     book: string | number,
     chapter: number,
   ) => Promise<AutoCompletedDay[]>;
+  /** Whether a chapter has been read (powers per-chapter ticks, Sprint 79). */
+  isChapterRead: (book: string | number, chapter: number) => boolean;
+  /** ISO timestamp of the plan's first interaction; null = never started. */
+  getStartedAt: (planId: string) => string | null;
 }
 
 const ReadingPlanProgressContext = createContext<
@@ -213,9 +217,29 @@ export function ReadingPlanProgressProvider({children}: {children: ReactNode}) {
     [persist],
   );
 
+  const isChapterRead = useCallback(
+    (book: string | number, chapter: number) => {
+      const key = chapterKey(book, chapter);
+      return key != null && !!readChapters[key];
+    },
+    [readChapters],
+  );
+
+  const getStartedAt = useCallback(
+    (planId: string) => progress[planId]?.startedAt ?? null,
+    [progress],
+  );
+
   return (
     <ReadingPlanProgressContext.Provider
-      value={{getCompletedDays, isDayComplete, toggleDay, markChapterRead}}>
+      value={{
+        getCompletedDays,
+        isDayComplete,
+        toggleDay,
+        markChapterRead,
+        isChapterRead,
+        getStartedAt,
+      }}>
       {children}
     </ReadingPlanProgressContext.Provider>
   );

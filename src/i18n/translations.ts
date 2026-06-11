@@ -219,6 +219,8 @@ export const translations = {
       removedSuccessfully: 'Favorito eliminado exitosamente',
       versesSaved: 'Versículos guardados',
       verseSaved: 'Versículo guardado',
+      listenAll: 'Escuchar tus favoritos',
+      playlistLabel: 'Mis favoritos',
     },
 
     // Notes Screen
@@ -658,6 +660,7 @@ export const translations = {
       share: 'Compartir colección',
       shareImage: 'Compartir como imagen',
       shareHeader: 'Colección',
+      listen: 'Escuchar la colección',
     },
     themes: {
       title: 'Explora por tema',
@@ -697,6 +700,140 @@ export const translations = {
         },
         guidance: {name: 'Guía', description: 'Dirección para tu camino'},
       },
+    },
+
+    feelings: {
+      title: '¿Cómo te sientes hoy?',
+      subtitle: 'Palabra para tu corazón',
+      cardTitle: '¿Cómo te sientes?',
+      cardSubtitle: 'Versículos para lo que sientes hoy',
+      browseHint: 'Elige cómo te sientes y deja que la Palabra te responda',
+      homePrompt: '¿Cómo te sientes hoy?',
+      seeAll: 'Ver todos',
+      verses: 'versículos',
+      openHint: 'Abrir pasaje',
+      missingText: '(texto no disponible)',
+      error: 'No se pudieron cargar los pasajes',
+      prayerTitle: 'Una oración breve',
+      relatedTheme: 'Explora el tema: {{theme}}',
+      list: {
+        anxious: {
+          name: 'Ansioso',
+          description: 'Cuando la preocupación no te suelta',
+          prayer:
+            'Señor, pongo en tus manos lo que no puedo controlar. Dame tu paz que sobrepasa todo entendimiento. Amén.',
+        },
+        overwhelmed: {
+          name: 'Abrumado',
+          description: 'Cuando todo parece demasiado',
+          prayer:
+            'Dios mío, cuando mi corazón desmaye, llévame a la roca que es más alta que yo. Sé tú mi refugio. Amén.',
+        },
+        sad: {
+          name: 'Triste',
+          description: 'Cuando el corazón está quebrantado',
+          prayer:
+            'Padre, tú estás cerca de los quebrantados de corazón. Consuélame y sana mis heridas. Amén.',
+        },
+        tired: {
+          name: 'Cansado',
+          description: 'Cuando ya no te quedan fuerzas',
+          prayer:
+            'Jesús, vengo a ti trabajado y cargado. Dame tu descanso y renueva mis fuerzas. Amén.',
+        },
+        afraid: {
+          name: 'Con miedo',
+          description: 'Cuando el temor pesa más que la fe',
+          prayer:
+            'Señor, en el día que temo, yo en ti confío. Toma mi mano y dame tu valor. Amén.',
+        },
+        lonely: {
+          name: 'Solo',
+          description: 'Cuando nadie parece estar cerca',
+          prayer:
+            'Padre, gracias porque nunca me dejas ni me desamparas. Hazme sentir tu compañía hoy. Amén.',
+        },
+        guilty: {
+          name: 'Culpable',
+          description: 'Cuando el pasado te acusa',
+          prayer:
+            'Dios mío, confieso mi pecado y recibo tu perdón. Crea en mí un corazón limpio. Amén.',
+        },
+        angry: {
+          name: 'Enojado',
+          description: 'Cuando la ira quiere ganar',
+          prayer:
+            'Señor, calma mi enojo antes de que haga daño. Dame un corazón pronto para perdonar. Amén.',
+        },
+        confused: {
+          name: 'Confundido',
+          description: 'Cuando no sabes qué camino tomar',
+          prayer:
+            'Padre, no me apoyo en mi propia prudencia. Endereza tú mis pasos y guíame. Amén.',
+        },
+        hopeful: {
+          name: 'Esperanzado',
+          description: 'Cuando esperas lo que Dios hará',
+          prayer:
+            'Dios de esperanza, lléname de todo gozo y paz en el creer. Tus misericordias son nuevas cada mañana. Amén.',
+        },
+        grateful: {
+          name: 'Agradecido',
+          description: 'Cuando quieres dar gracias',
+          prayer:
+            'Padre, toda buena dádiva viene de ti. Gracias por tu fidelidad de hoy y de siempre. Amén.',
+        },
+        joyful: {
+          name: 'Alegre',
+          description: 'Cuando el gozo desborda',
+          prayer:
+            'Señor, este es el día que tú hiciste. Me gozaré y me alegraré en él. Amén.',
+        },
+      },
+    },
+
+    lectio: {
+      title: 'Lectio Divina',
+      subtitle: 'Lectura orante de la Palabra',
+      cardTitle: 'Lectio Divina',
+      cardSubtitle: 'Lee, medita, ora y contempla un pasaje',
+      stepLabels: {
+        lectio: 'Lee',
+        meditatio: 'Medita',
+        oratio: 'Ora',
+        contemplatio: 'Contempla',
+      },
+      stepIntros: {
+        lectio: 'Lee el pasaje despacio. Deja que las palabras respiren.',
+        meditatio: 'Léelo otra vez. Quédate donde el corazón se detenga.',
+        oratio: 'Respóndele a Dios con tus propias palabras.',
+        contemplatio: 'Guarda silencio. Quédate en su presencia.',
+      },
+      meditationPrompts: [
+        '¿Qué palabra o frase te detiene? ¿Por qué?',
+        '¿Qué revela este verso del corazón de Dios?',
+        'Si Dios te dijera esto hoy al oído, ¿qué cambiaría?',
+        '¿Qué te invita este verso a soltar… o a abrazar?',
+        '¿Dónde necesitas esta verdad esta semana?',
+        'Repite lentamente la frase que más te toque, dos veces.',
+      ],
+      listen: 'Escuchar',
+      prayerPlaceholder: 'Escribe aquí tu oración…',
+      prayerHint: 'Al terminar, tu oración se guardará en tus notas.',
+      timerStart: 'Comenzar el silencio',
+      timerPause: 'Pausar',
+      timerDone: 'El silencio terminó. Permanece un momento más si quieres.',
+      minutesOption: '{{n}} min',
+      next: 'Siguiente',
+      back: 'Anterior',
+      finish: 'Terminar',
+      finishedTitle: 'Sesión completa',
+      finishedMessage: 'Que su Palabra permanezca en ti el resto del día.',
+      shareImage: 'Compartir como imagen',
+      done: 'Listo',
+      prayerSaved: 'Tu oración se guardó en tus notas',
+      error: 'No se pudo cargar el pasaje',
+      exitA11y: 'Salir de Lectio Divina',
     },
 
     auth: {
@@ -1061,7 +1198,15 @@ export const translations = {
         bookmarkJumpHint: 'Reanuda la escucha en este verso',
         bookmarkDelete: 'Eliminar marcador',
         bookmarkPinned: 'Marcador guardado: {{verse}}',
+        playlistTitle: 'Lista de escucha',
+        playlistUpNext: 'Siguiente en la lista',
+        playlistJumpHint: 'Salta la reproducción a este verso',
+        playlistEnd: 'Fin de la lista',
+        playlistInfo:
+          'Estás escuchando una lista de versos guardados. El audio se detiene al terminar la lista.',
+        playlistQueued: 'Lista de escucha: {{label}} · {{n}} versículos',
       },
+      playlistRow: 'Lista: {{label}}',
       nextChapterUp: 'Sigue: {{chapter}}',
       readerFollowToast: '∞ {{chapter}}',
       immersive: {
@@ -1137,6 +1282,23 @@ export const translations = {
       availablePlans: 'Planes de Lectura Disponibles',
       listLabel: 'Lista de planes de lectura',
       dayAutoCompleted: '✅ Día {{day}} de "{{plan}}" completado',
+      todaySection: 'Hoy te toca',
+      readDay: 'Leer',
+      listenDay: 'Escuchar este día',
+      chapterReadHint: 'Capítulo leído',
+      paceNotStarted: 'Empieza hoy — el Día 1 te espera',
+      paceOnTrack: 'Vas al día 🙌',
+      paceAhead: 'Llevas {{n}} días de ventaja',
+      paceAheadOne: 'Llevas 1 día de ventaja',
+      paceBehind: 'Te esperan {{n}} días — a tu ritmo, sin prisa',
+      paceBehindOne: 'Te espera 1 día — a tu ritmo, sin prisa',
+      planCompleted: '¡Plan completado!',
+      planCompletedShort: '¡Completado! 🎉',
+      planCompletedMessage:
+        'Terminaste «{{plan}}». Que su Palabra siga habitando en ti.',
+      planCompletedCta: 'Amén',
+      planNextUp: 'Día {{day}} · {{readings}}',
+      playlistDayLabel: 'Día {{day}} · {{plan}}',
     },
 
     // Daily Verse Notifications
@@ -2053,6 +2215,8 @@ export const translations = {
       removedSuccessfully: 'Favorite removed successfully',
       versesSaved: 'Verses saved',
       verseSaved: 'Verse saved',
+      listenAll: 'Listen to your favorites',
+      playlistLabel: 'My favorites',
     },
 
     // Notes Screen
@@ -2490,6 +2654,7 @@ export const translations = {
       share: 'Share collection',
       shareImage: 'Share as image',
       shareHeader: 'Collection',
+      listen: 'Listen to the collection',
     },
     themes: {
       title: 'Explore by Theme',
@@ -2523,6 +2688,140 @@ export const translations = {
         salvation: {name: 'Salvation', description: 'The way of salvation'},
         guidance: {name: 'Guidance', description: 'Direction for your path'},
       },
+    },
+
+    feelings: {
+      title: 'How are you feeling today?',
+      subtitle: 'A word for your heart',
+      cardTitle: 'How are you feeling?',
+      cardSubtitle: 'Verses for what you feel today',
+      browseHint: 'Pick how you feel and let the Word answer',
+      homePrompt: 'How are you feeling today?',
+      seeAll: 'See all',
+      verses: 'verses',
+      openHint: 'Open passage',
+      missingText: '(text not available)',
+      error: 'Could not load the passages',
+      prayerTitle: 'A short prayer',
+      relatedTheme: 'Explore the theme: {{theme}}',
+      list: {
+        anxious: {
+          name: 'Anxious',
+          description: "When worry won't let go",
+          prayer:
+            'Lord, I place in your hands what I cannot control. Give me your peace that passes all understanding. Amen.',
+        },
+        overwhelmed: {
+          name: 'Overwhelmed',
+          description: 'When everything feels like too much',
+          prayer:
+            'My God, when my heart is faint, lead me to the rock that is higher than I. Be my refuge. Amen.',
+        },
+        sad: {
+          name: 'Sad',
+          description: 'When your heart is broken',
+          prayer:
+            'Father, you are near to the brokenhearted. Comfort me and heal my wounds. Amen.',
+        },
+        tired: {
+          name: 'Tired',
+          description: 'When you have no strength left',
+          prayer:
+            'Jesus, I come to you weary and burdened. Give me your rest and renew my strength. Amen.',
+        },
+        afraid: {
+          name: 'Afraid',
+          description: 'When fear weighs more than faith',
+          prayer:
+            'Lord, when I am afraid, I put my trust in you. Take my hand and give me your courage. Amen.',
+        },
+        lonely: {
+          name: 'Lonely',
+          description: 'When no one seems near',
+          prayer:
+            'Father, thank you that you never leave me nor forsake me. Let me feel your presence today. Amen.',
+        },
+        guilty: {
+          name: 'Guilty',
+          description: 'When the past accuses you',
+          prayer:
+            'My God, I confess my sin and receive your forgiveness. Create in me a clean heart. Amen.',
+        },
+        angry: {
+          name: 'Angry',
+          description: 'When anger wants to win',
+          prayer:
+            'Lord, calm my anger before it does harm. Give me a heart quick to forgive. Amen.',
+        },
+        confused: {
+          name: 'Confused',
+          description: "When you don't know which way to go",
+          prayer:
+            'Father, I will not lean on my own understanding. Make my paths straight and guide me. Amen.',
+        },
+        hopeful: {
+          name: 'Hopeful',
+          description: 'When you await what God will do',
+          prayer:
+            'God of hope, fill me with all joy and peace in believing. Your mercies are new every morning. Amen.',
+        },
+        grateful: {
+          name: 'Grateful',
+          description: 'When you want to give thanks',
+          prayer:
+            'Father, every good gift comes from you. Thank you for your faithfulness, today and always. Amen.',
+        },
+        joyful: {
+          name: 'Joyful',
+          description: 'When joy overflows',
+          prayer:
+            'Lord, this is the day that you have made. I will rejoice and be glad in it. Amen.',
+        },
+      },
+    },
+
+    lectio: {
+      title: 'Lectio Divina',
+      subtitle: 'Praying the Word',
+      cardTitle: 'Lectio Divina',
+      cardSubtitle: 'Read, meditate, pray and contemplate a passage',
+      stepLabels: {
+        lectio: 'Read',
+        meditatio: 'Meditate',
+        oratio: 'Pray',
+        contemplatio: 'Contemplate',
+      },
+      stepIntros: {
+        lectio: 'Read the passage slowly. Let the words breathe.',
+        meditatio: 'Read it again. Stay where your heart pauses.',
+        oratio: 'Answer God in your own words.',
+        contemplatio: 'Keep silence. Rest in His presence.',
+      },
+      meditationPrompts: [
+        'Which word or phrase stops you? Why?',
+        "What does this verse reveal about God's heart?",
+        'If God whispered this to you today, what would change?',
+        'What does this verse invite you to release… or to embrace?',
+        'Where do you need this truth this week?',
+        'Slowly repeat the phrase that touches you most, twice.',
+      ],
+      listen: 'Listen',
+      prayerPlaceholder: 'Write your prayer here…',
+      prayerHint: 'When you finish, your prayer is saved to your notes.',
+      timerStart: 'Begin the silence',
+      timerPause: 'Pause',
+      timerDone: 'The silence has ended. Stay a moment longer if you wish.',
+      minutesOption: '{{n}} min',
+      next: 'Next',
+      back: 'Back',
+      finish: 'Finish',
+      finishedTitle: 'Session complete',
+      finishedMessage: 'May His Word remain in you the rest of the day.',
+      shareImage: 'Share as image',
+      done: 'Done',
+      prayerSaved: 'Your prayer was saved to your notes',
+      error: 'Could not load the passage',
+      exitA11y: 'Exit Lectio Divina',
     },
 
     auth: {
@@ -2885,7 +3184,15 @@ export const translations = {
         bookmarkJumpHint: 'Resume listening at this verse',
         bookmarkDelete: 'Delete bookmark',
         bookmarkPinned: 'Bookmark saved: {{verse}}',
+        playlistTitle: 'Listening list',
+        playlistUpNext: 'Next on the list',
+        playlistJumpHint: 'Jump playback to this verse',
+        playlistEnd: 'End of the list',
+        playlistInfo:
+          'You are listening to a list of saved verses. Audio stops when the list ends.',
+        playlistQueued: 'Listening list: {{label}} · {{n}} verses',
       },
+      playlistRow: 'List: {{label}}',
       nextChapterUp: 'Up next: {{chapter}}',
       readerFollowToast: '∞ {{chapter}}',
       immersive: {
@@ -2959,6 +3266,23 @@ export const translations = {
       availablePlans: 'Available Reading Plans',
       listLabel: 'Reading plans list',
       dayAutoCompleted: '✅ Day {{day}} of "{{plan}}" completed',
+      todaySection: 'Up today',
+      readDay: 'Read',
+      listenDay: 'Listen to this day',
+      chapterReadHint: 'Chapter read',
+      paceNotStarted: 'Start today — Day 1 awaits',
+      paceOnTrack: "You're on track 🙌",
+      paceAhead: "You're {{n}} days ahead",
+      paceAheadOne: "You're 1 day ahead",
+      paceBehind: '{{n}} days to catch up — at your pace, no rush',
+      paceBehindOne: '1 day to catch up — at your pace, no rush',
+      planCompleted: 'Plan completed!',
+      planCompletedShort: 'Completed! 🎉',
+      planCompletedMessage:
+        'You finished "{{plan}}". May His Word keep dwelling in you.',
+      planCompletedCta: 'Amen',
+      planNextUp: 'Day {{day}} · {{readings}}',
+      playlistDayLabel: 'Day {{day}} · {{plan}}',
     },
 
     // Daily Verse Notifications

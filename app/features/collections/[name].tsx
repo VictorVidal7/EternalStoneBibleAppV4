@@ -28,6 +28,11 @@ import {useLanguage} from '@hooks/useLanguage';
 import {haptics} from '@lib/haptics';
 import {AppText} from '@components/ui/AppText';
 import {useFavorites} from '@context/FavoritesContext';
+import {useToast} from '@context/ToastContext';
+import {useBibleVersion} from '@hooks/useBibleVersion';
+import {buildVersePlaylist, useAudioPlayer} from '@/features/audio';
+import bibleDB from '@lib/database';
+import {logger} from '@lib/utils/logger';
 import {
   isInCollection,
   removeFromCollection,
@@ -51,6 +56,9 @@ export default function CollectionDetailScreen() {
   const {favorites, updateFavorite} = useFavorites();
   const {width: windowWidth} = useWindowDimensions();
   const [imageVisible, setImageVisible] = useState(false);
+  const toast = useToast();
+  const {selectedVersion} = useBibleVersion();
+  const {loadChapter, play} = useAudioPlayer();
 
   const params = useLocalSearchParams<{name?: string}>();
   const name = useMemo(
@@ -119,6 +127,50 @@ export default function CollectionDetailScreen() {
     Share.share({message}).catch(() => undefined);
   }, [verses, name, localizeBook, tc.shareHeader]);
 
+  // 🎧 Listen to the collection (Sprint 79): re-resolve each verse against the
+  // ACTIVE reading version and queue the named list as a verse playlist.
+  const handleListen = useCallback(async () => {
+    if (verses.length === 0) return;
+    haptics.press();
+    try {
+      await bibleDB.initialize();
+      const resolved = await Promise.all(
+        verses.map(async fav => {
+          const info = getBookByName(fav.book);
+          const live = info
+            ? await bibleDB
+                .getVerse(info.id, fav.chapter, fav.verse, selectedVersion.id)
+                .catch(() => null)
+            : null;
+          return {
+            book: fav.book,
+            chapter: fav.chapter,
+            verse: fav.verse,
+            text: live?.text ?? fav.text,
+          };
+        }),
+      );
+      const playlist = buildVersePlaylist(resolved);
+      if (playlist.length === 0) return;
+      logger.info('Collection playlist queued', {
+        collection: name,
+        count: playlist.length,
+      });
+      loadChapter(playlist, {mode: 'playlist', label: name});
+      setTimeout(() => play(), 150);
+      toast.success(
+        t.audio.queue.playlistQueued
+          .replace('{{label}}', name)
+          .replace('{{n}}', String(playlist.length)),
+      );
+    } catch (error) {
+      logger.error('Collection playlist failed', error as Error, {
+        component: 'CollectionDetailScreen',
+        action: 'handleListen',
+      });
+    }
+  }, [verses, name, selectedVersion.id, loadChapter, play, toast, t]);
+
   const headerGradient: [string, string] = [colors.primary, colors.primaryDark];
 
   return (
@@ -144,6 +196,17 @@ export default function CollectionDetailScreen() {
             </TouchableOpacity>
             {verses.length > 0 ? (
               <View style={styles.headerActions}>
+                <TouchableOpacity
+                  style={styles.shareButton}
+                  onPress={() => void handleListen()}
+                  accessibilityRole="button"
+                  accessibilityLabel={tc.listen}>
+                  <Ionicons
+                    name="headset-outline"
+                    size={22}
+                    color={staticColors.white}
+                  />
+                </TouchableOpacity>
                 <TouchableOpacity
                   style={styles.shareButton}
                   onPress={() => {

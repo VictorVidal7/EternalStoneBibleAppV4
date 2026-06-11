@@ -131,6 +131,7 @@ export const MiniAudioPlayer: React.FC<MiniAudioPlayerProps> = ({
     setAutoAdvanceChapter,
     readerFollowsAudio,
     setReaderFollowsAudio,
+    queueInfo,
   } = useAudioPlayer();
   const {isPremium} = usePremium();
   const {favorites, addFavorite, removeFavorite, isFavorite} = useFavorites();
@@ -463,9 +464,19 @@ export const MiniAudioPlayer: React.FC<MiniAudioPlayerProps> = ({
   // "Up next" peek — only while continuous playback is ON and a next chapter
   // exists (hidden at the end of the canon). Makes the ∞ toggle's effect concrete
   // by naming exactly where audio will roll into (Sprint 73).
-  const nextChapterPeek = autoAdvanceChapter
-    ? nextChapterTitle(currentVerse, language === 'en' ? 'en' : 'es')
+  // A verse playlist (Sprint 79) replaces it with its own identity row — the
+  // queue sheet entry stays reachable regardless of the ∞ toggle.
+  const isPlaylistQueue = queueInfo.mode === 'playlist';
+  const playlistPeek = isPlaylistQueue
+    ? t.audio.playlistRow.replace(
+        '{{label}}',
+        queueInfo.label ?? t.audio.queue.playlistTitle,
+      )
     : null;
+  const nextChapterPeek =
+    !isPlaylistQueue && autoAdvanceChapter
+      ? nextChapterTitle(currentVerse, language === 'en' ? 'en' : 'es')
+      : null;
 
   const TAB_BAR_HEIGHT = isTabScreen ? (Platform.OS === 'ios' ? 88 : 68) : 0;
   const finalBottomOffset =
@@ -786,8 +797,9 @@ export const MiniAudioPlayer: React.FC<MiniAudioPlayerProps> = ({
 
               {/* ♾️ Up-next peek (Sprint 73) — names the chapter continuous
                   playback will roll into; hidden at the end of the canon.
-                  Tappable since Sprint 75: opens the listening-queue sheet. */}
-              {nextChapterPeek && (
+                  Tappable since Sprint 75: opens the listening-queue sheet.
+                  A playlist (Sprint 79) shows its identity here instead. */}
+              {(playlistPeek || nextChapterPeek) && (
                 <TouchableOpacity
                   style={styles.nextChapterRow}
                   onPress={() => {
@@ -798,17 +810,22 @@ export const MiniAudioPlayer: React.FC<MiniAudioPlayerProps> = ({
                   accessibilityRole="button"
                   accessibilityLabel={t.audio.queue.openLabel}
                   accessibilityHint={t.audio.queue.openHint}>
-                  <Ionicons name="infinite" size={12} color={colors.primary} />
+                  <Ionicons
+                    name={playlistPeek ? 'list' : 'infinite'}
+                    size={12}
+                    color={colors.primary}
+                  />
                   <Text
                     style={[
                       styles.nextChapterText,
                       {color: colors.textSecondary},
                     ]}
                     numberOfLines={1}>
-                    {t.audio.nextChapterUp.replace(
-                      '{{chapter}}',
-                      nextChapterPeek,
-                    )}
+                    {playlistPeek ??
+                      t.audio.nextChapterUp.replace(
+                        '{{chapter}}',
+                        nextChapterPeek ?? '',
+                      )}
                   </Text>
                   <Ionicons
                     name="chevron-forward"

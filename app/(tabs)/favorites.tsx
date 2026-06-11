@@ -24,6 +24,8 @@ import {AddToCollectionSheet} from '@/features/collections/AddToCollectionSheet'
 import {getBookByName} from '@/constants/bible';
 import {buildVerseKey} from '@lib/memory/srs';
 import {useBibleVersion} from '@hooks/useBibleVersion';
+import {buildVersePlaylist, useAudioPlayer} from '@/features/audio';
+import bibleDB from '@lib/database';
 
 export default function FavoritesScreen() {
   const router = useRouter();
@@ -35,6 +37,7 @@ export default function FavoritesScreen() {
   // The favorite whose collections sheet is open (null = closed).
   const [collectionsFor, setCollectionsFor] = useState<string | null>(null);
   const {selectedVersion} = useBibleVersion();
+  const {loadChapter, play} = useAudioPlayer();
   const headerGradient = useMemo(
     () =>
       (gradient?.headerColors
@@ -99,6 +102,53 @@ export default function FavoritesScreen() {
     return language === 'en' ? info.nameEn : info.name;
   }
 
+  // 🎧 Listen to your favorites (Sprint 79): re-resolve each verse against the
+  // ACTIVE reading version (favorites keep the text of whichever version they
+  // were saved in) and queue them as a verse playlist — canonical Bible order,
+  // deduped, ∞ never rolls past the end of the list.
+  async function handleListenAll() {
+    if (favorites.length === 0) return;
+    haptics.press();
+    try {
+      await bibleDB.initialize();
+      const resolved = await Promise.all(
+        favorites.map(async fav => {
+          const info = getBookByName(fav.book);
+          const live = info
+            ? await bibleDB
+                .getVerse(info.id, fav.chapter, fav.verse, selectedVersion.id)
+                .catch(() => null)
+            : null;
+          return {
+            book: fav.book,
+            chapter: fav.chapter,
+            verse: fav.verse,
+            text: live?.text ?? fav.text,
+          };
+        }),
+      );
+      const playlist = buildVersePlaylist(resolved);
+      if (playlist.length === 0) return;
+      logger.info('Favorites playlist queued', {count: playlist.length});
+      loadChapter(playlist, {
+        mode: 'playlist',
+        label: t.favorites.playlistLabel,
+      });
+      // Let loadChapter's eager refs settle before play (the engine idiom).
+      setTimeout(() => play(), 150);
+      toast.success(
+        t.audio.queue.playlistQueued
+          .replace('{{label}}', t.favorites.playlistLabel)
+          .replace('{{n}}', String(playlist.length)),
+      );
+    } catch (error) {
+      logger.error('Favorites playlist failed', error as Error, {
+        component: 'FavoritesScreen',
+        action: 'handleListenAll',
+      });
+    }
+  }
+
   if (loading) {
     return (
       <View style={[styles.container, {backgroundColor: colors.background}]} />
@@ -133,6 +183,17 @@ export default function FavoritesScreen() {
           accessibilityLabel={t.collections.manage}>
           <Ionicons name="bookmarks-outline" size={24} color="#ffffff" />
         </TouchableOpacity>
+
+        {/* 🎧 Escuchar favoritos (Sprint 79) */}
+        {favorites.length > 0 && (
+          <TouchableOpacity
+            style={styles.headerListenButton}
+            onPress={() => void handleListenAll()}
+            accessibilityRole="button"
+            accessibilityLabel={t.favorites.listenAll}>
+            <Ionicons name="headset-outline" size={24} color="#ffffff" />
+          </TouchableOpacity>
+        )}
 
         <View style={styles.headerContent}>
           <View style={styles.headerIconContainer}>
@@ -289,6 +350,17 @@ const styles = StyleSheet.create({
   headerCollectionsButton: {
     position: 'absolute',
     right: 20,
+    top: 60,
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: staticColors.glassWhite20,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  headerListenButton: {
+    position: 'absolute',
+    right: 68,
     top: 60,
     width: 40,
     height: 40,

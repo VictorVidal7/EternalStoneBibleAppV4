@@ -63,6 +63,7 @@ import {
   queueRowMeta,
   formatQueueRowMeta,
 } from '../lib/queueMeta';
+import {playlistUpNext} from '../lib/versePlaylist';
 import {AUDIO_QUEUE_LENGTH} from '../constants/audioConstants';
 
 interface AudioQueueSheetProps {
@@ -77,14 +78,25 @@ export const AudioQueueSheet: React.FC<AudioQueueSheetProps> = ({
   const {colors} = useTheme();
   const {t, language} = useLanguage();
   const {selectedVersion} = useBibleVersion();
-  const {state, currentVerse, verses, loadChapter, play, goToVerse} =
+  const {state, currentVerse, verses, loadChapter, play, goToVerse, queueInfo} =
     useAudioPlayer();
   const tQueue = t.audio.queue;
   const lang = language === 'en' ? 'en' : 'es';
+  // A verse playlist (Sprint 79) lists its own next VERSES, not chapters.
+  const isPlaylist = queueInfo.mode === 'playlist';
 
-  // Localized "Salmos 118" title of the chapter playing now.
+  // Localized "Salmos 118:2" reference for any queue verse.
+  const verseLabel = (v: {book: string; chapter: number; verse: number}) => {
+    const info = getBookByName(v.book);
+    const name = info ? (language === 'en' ? info.nameEn : info.name) : v.book;
+    return `${name} ${v.chapter}:${v.verse}`;
+  };
+
+  // Title of what's playing now: the chapter ("Salmos 118") for a chapter
+  // queue, the exact verse for a playlist.
   const nowPlayingTitle = (() => {
     if (!currentVerse) return null;
+    if (isPlaylist) return verseLabel(currentVerse);
     const info = getBookByName(currentVerse.book);
     const name = info
       ? language === 'en'
@@ -94,9 +106,18 @@ export const AudioQueueSheet: React.FC<AudioQueueSheetProps> = ({
     return `${name} ${currentVerse.chapter}`;
   })();
 
-  const queue = upcomingChapters(currentVerse, AUDIO_QUEUE_LENGTH);
+  const queue = isPlaylist
+    ? []
+    : upcomingChapters(currentVerse, AUDIO_QUEUE_LENGTH);
   // Fewer upcoming chapters than asked for = the canon ends inside the queue.
-  const reachesEndOfCanon = queue.length < AUDIO_QUEUE_LENGTH;
+  const reachesEndOfCanon = !isPlaylist && queue.length < AUDIO_QUEUE_LENGTH;
+
+  const playlistQueue = isPlaylist
+    ? playlistUpNext(verses, state.currentVerseIndex, AUDIO_QUEUE_LENGTH)
+    : [];
+  const playlistEnds =
+    isPlaylist &&
+    state.currentVerseIndex + playlistQueue.length >= verses.length - 1;
 
   // Row meta (Sprint 76): real verse counts for the upcoming chapters (one
   // batched COUNT) + the user's own listening pace for an honest "~N min".
@@ -236,6 +257,19 @@ export const AudioQueueSheet: React.FC<AudioQueueSheetProps> = ({
     })();
   };
 
+  // Jump inside a playlist (Sprint 79): the queue is already loaded, so seek
+  // the engine to the tapped verse. While playing, goToVerse re-speaks at the
+  // new index; while paused, its eager ref sync (S77) makes the same-tick
+  // play() land exactly there.
+  const handlePlaylistJump = (index: number, label: string) => {
+    haptics.press();
+    onClose();
+    logger.info('Playlist jump to verse', {index});
+    goToVerse(index);
+    if (!state.isPlaying) play();
+    AccessibilityInfo.announceForAccessibility(label);
+  };
+
   const handleJump = (target: ChapterLocation) => {
     haptics.press();
     onClose();
@@ -284,12 +318,20 @@ export const AudioQueueSheet: React.FC<AudioQueueSheetProps> = ({
           style={[styles.modalContent, {backgroundColor: colors.card}]}
           onPress={e => e.stopPropagation()}
           {...focusTrapProps()}>
-          {/* Header */}
+          {/* Header — a playlist shows its own identity (list icon + label) */}
           <View style={styles.modalHeader}>
             <View style={styles.headerLeft}>
-              <Ionicons name="infinite" size={24} color={colors.primary} />
-              <Text style={[styles.modalTitle, {color: colors.text}]}>
-                {tQueue.title}
+              <Ionicons
+                name={isPlaylist ? 'list' : 'infinite'}
+                size={24}
+                color={colors.primary}
+              />
+              <Text
+                style={[styles.modalTitle, {color: colors.text}]}
+                numberOfLines={1}>
+                {isPlaylist
+                  ? (queueInfo.label ?? tQueue.playlistTitle)
+                  : tQueue.title}
               </Text>
             </View>
             <TouchableOpacity
@@ -407,72 +449,137 @@ export const AudioQueueSheet: React.FC<AudioQueueSheetProps> = ({
             </View>
           )}
 
-          {/* Upcoming chapters */}
-          <View style={styles.section}>
-            <Text style={[styles.sectionTitle, {color: colors.textSecondary}]}>
-              {tQueue.upNextSection}
-            </Text>
-            {queue.map((target, i) => {
-              const title = localizedChapterTitle(target, lang);
-              if (!title) return null;
-              const meta = queueRowMeta(
-                chapterCounts?.get(
-                  chapterCountKey(target.bookId, target.chapter),
-                ),
-                msPerVerse,
-              );
-              const metaLine = meta
-                ? formatQueueRowMeta(
-                    meta,
-                    tQueue.versesMeta,
-                    tQueue.minutesMeta,
-                  )
-                : ' '; // reserved slot — the row never jumps when counts land
-              return (
-                <TouchableOpacity
-                  key={`${target.bookId}-${target.chapter}`}
-                  style={[styles.queueRow, {borderBottomColor: colors.border}]}
-                  onPress={() => handleJump(target)}
-                  accessibilityRole="button"
-                  accessibilityLabel={meta ? `${title}, ${metaLine}` : title}
-                  accessibilityHint={tQueue.jumpHint}>
-                  <Text
-                    style={[styles.queueIndex, {color: colors.textTertiary}]}>
-                    {i + 1}
-                  </Text>
-                  <View style={styles.queueTitleWrap}>
+          {/* Up next — playlist verses (Sprint 79) */}
+          {isPlaylist && (
+            <View style={styles.section}>
+              <Text
+                style={[styles.sectionTitle, {color: colors.textSecondary}]}>
+                {tQueue.playlistUpNext}
+              </Text>
+              {playlistQueue.map((entry, i) => {
+                const label = verseLabel(entry.verse);
+                return (
+                  <TouchableOpacity
+                    key={`${entry.index}`}
+                    style={[
+                      styles.queueRow,
+                      {borderBottomColor: colors.border},
+                    ]}
+                    onPress={() => handlePlaylistJump(entry.index, label)}
+                    accessibilityRole="button"
+                    accessibilityLabel={label}
+                    accessibilityHint={tQueue.playlistJumpHint}>
                     <Text
-                      style={[styles.queueTitle, {color: colors.text}]}
-                      numberOfLines={1}>
-                      {title}
+                      style={[styles.queueIndex, {color: colors.textTertiary}]}>
+                      {i + 1}
                     </Text>
-                    <Text
-                      style={[styles.queueMeta, {color: colors.textTertiary}]}
-                      numberOfLines={1}>
-                      {metaLine}
-                    </Text>
-                  </View>
+                    <View style={styles.queueTitleWrap}>
+                      <Text
+                        style={[styles.queueTitle, {color: colors.text}]}
+                        numberOfLines={1}>
+                        {label}
+                      </Text>
+                      <Text
+                        style={[styles.queueMeta, {color: colors.textTertiary}]}
+                        numberOfLines={1}>
+                        {entry.verse.text}
+                      </Text>
+                    </View>
+                    <Ionicons
+                      name="play"
+                      size={16}
+                      color={colors.textSecondary}
+                    />
+                  </TouchableOpacity>
+                );
+              })}
+              {playlistEnds && (
+                <View style={styles.endRow}>
                   <Ionicons
-                    name="play"
-                    size={16}
-                    color={colors.textSecondary}
+                    name="flag-outline"
+                    size={14}
+                    color={colors.textTertiary}
                   />
-                </TouchableOpacity>
-              );
-            })}
-            {reachesEndOfCanon && (
-              <View style={styles.endRow}>
-                <Ionicons
-                  name="flag-outline"
-                  size={14}
-                  color={colors.textTertiary}
-                />
-                <Text style={[styles.endText, {color: colors.textTertiary}]}>
-                  {tQueue.endOfCanon}
-                </Text>
-              </View>
-            )}
-          </View>
+                  <Text style={[styles.endText, {color: colors.textTertiary}]}>
+                    {tQueue.playlistEnd}
+                  </Text>
+                </View>
+              )}
+            </View>
+          )}
+
+          {/* Upcoming chapters */}
+          {!isPlaylist && (
+            <View style={styles.section}>
+              <Text
+                style={[styles.sectionTitle, {color: colors.textSecondary}]}>
+                {tQueue.upNextSection}
+              </Text>
+              {queue.map((target, i) => {
+                const title = localizedChapterTitle(target, lang);
+                if (!title) return null;
+                const meta = queueRowMeta(
+                  chapterCounts?.get(
+                    chapterCountKey(target.bookId, target.chapter),
+                  ),
+                  msPerVerse,
+                );
+                const metaLine = meta
+                  ? formatQueueRowMeta(
+                      meta,
+                      tQueue.versesMeta,
+                      tQueue.minutesMeta,
+                    )
+                  : ' '; // reserved slot — the row never jumps when counts land
+                return (
+                  <TouchableOpacity
+                    key={`${target.bookId}-${target.chapter}`}
+                    style={[
+                      styles.queueRow,
+                      {borderBottomColor: colors.border},
+                    ]}
+                    onPress={() => handleJump(target)}
+                    accessibilityRole="button"
+                    accessibilityLabel={meta ? `${title}, ${metaLine}` : title}
+                    accessibilityHint={tQueue.jumpHint}>
+                    <Text
+                      style={[styles.queueIndex, {color: colors.textTertiary}]}>
+                      {i + 1}
+                    </Text>
+                    <View style={styles.queueTitleWrap}>
+                      <Text
+                        style={[styles.queueTitle, {color: colors.text}]}
+                        numberOfLines={1}>
+                        {title}
+                      </Text>
+                      <Text
+                        style={[styles.queueMeta, {color: colors.textTertiary}]}
+                        numberOfLines={1}>
+                        {metaLine}
+                      </Text>
+                    </View>
+                    <Ionicons
+                      name="play"
+                      size={16}
+                      color={colors.textSecondary}
+                    />
+                  </TouchableOpacity>
+                );
+              })}
+              {reachesEndOfCanon && (
+                <View style={styles.endRow}>
+                  <Ionicons
+                    name="flag-outline"
+                    size={14}
+                    color={colors.textTertiary}
+                  />
+                  <Text style={[styles.endText, {color: colors.textTertiary}]}>
+                    {tQueue.endOfCanon}
+                  </Text>
+                </View>
+              )}
+            </View>
+          )}
 
           {/* Info */}
           <View style={styles.infoContainer}>
@@ -482,7 +589,7 @@ export const AudioQueueSheet: React.FC<AudioQueueSheetProps> = ({
               color={colors.textTertiary}
             />
             <Text style={[styles.infoText, {color: colors.textTertiary}]}>
-              {tQueue.info}
+              {isPlaylist ? tQueue.playlistInfo : tQueue.info}
             </Text>
           </View>
         </Pressable>
