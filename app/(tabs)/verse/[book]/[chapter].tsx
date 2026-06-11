@@ -1358,6 +1358,13 @@ export default function VerseReadingScreen() {
     setTimeout(() => {
       play();
     }, 100);
+
+    // Opt-in "auto-immersive on listen" (Sprint 77): opening the immersive
+    // right as audio starts also BINDS it to the engine before the first ∞
+    // chapter advance (the S73 follow requires an early bind).
+    if (readerPrefs.autoImmersiveOnListen) {
+      setImmersiveModeActive(true);
+    }
   }
 
   // Auto-start audio when arriving via the Home "Continue listening" card

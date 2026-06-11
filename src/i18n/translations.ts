@@ -565,6 +565,10 @@ export const translations = {
       themeSepia: 'Sepia',
       themeNight: 'Noche',
       themeHighContrast: 'Alto contraste',
+      audioSection: 'Audio',
+      autoImmersive: 'Abrir el modo inmersivo al escuchar',
+      autoImmersiveHint:
+        'Al tocar Audio, la lectura inmersiva se abre sola y sigue la voz',
       sampleText:
         'En el principio creó Dios los cielos y la tierra. La tierra estaba desordenada y vacía, y las tinieblas estaban sobre la faz del abismo.',
     },
@@ -2375,6 +2379,10 @@ export const translations = {
       themeSepia: 'Sepia',
       themeNight: 'Night',
       themeHighContrast: 'High contrast',
+      audioSection: 'Audio',
+      autoImmersive: 'Open immersive mode when listening',
+      autoImmersiveHint:
+        'Tapping Audio opens the immersive reader, following the voice',
       sampleText:
         'In the beginning God created the heaven and the earth. And the earth was without form, and void; and darkness was upon the face of the deep.',
     },
