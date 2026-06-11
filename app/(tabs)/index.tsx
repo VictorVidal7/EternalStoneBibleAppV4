@@ -76,6 +76,7 @@ import {
 import type {PlaybackPosition} from '@/features/audio';
 import {getStudyConnections} from '@/features/study/studyConnections';
 import {timeOfDay, homeNudge} from '@/lib/home/homeGreeting';
+import {planPace, formatDayReadings} from '@/lib/reading/planPace';
 
 // Componentes Celestial
 import {
@@ -127,7 +128,7 @@ export default function HomeScreen() {
   } = useServices();
   const {t, language} = useLanguage();
   const {getChapterProgress} = useReadingProgress();
-  const {getCompletedDays} = useReadingPlanProgress();
+  const {getCompletedDays, getStartedAt} = useReadingPlanProgress();
   const {addFavorite, isFavorite, favorites} = useFavorites();
   const {bookmarks} = useBookmarks();
   const bookmarksCount = bookmarks.length;
@@ -1321,17 +1322,45 @@ export default function HomeScreen() {
             showsHorizontalScrollIndicator={false}
             contentContainerStyle={styles.plansScroll}>
             {READING_PLANS.slice(0, 3).map(plan => {
-              const planDaysDone = getCompletedDays(plan.id).length;
+              const planDays = getCompletedDays(plan.id);
+              const planDaysDone = planDays.length;
               const localizedPlan = getLocalizedPlan(plan, t);
+              // "Día 4 · Mateo 9–10" once the plan is underway (Sprint 79);
+              // the static duration label before the first interaction.
+              const pace = planPace({
+                startedAt: getStartedAt(plan.id),
+                completedDays: planDays,
+                duration: plan.duration,
+                now: new Date(),
+              });
+              const nextDayReadings =
+                pace.nextDay != null
+                  ? plan.days.find(d => d.day === pace.nextDay)?.readings
+                  : undefined;
+              const planSubtitle =
+                pace.status === 'complete'
+                  ? t.readingPlan.planCompletedShort
+                  : pace.status !== 'notStarted' && nextDayReadings
+                    ? t.readingPlan.planNextUp
+                        .replace('{{day}}', String(pace.nextDay))
+                        .replace(
+                          '{{readings}}',
+                          formatDayReadings(nextDayReadings, book => {
+                            const info = getBookByName(book);
+                            if (!info) return book;
+                            return language === 'en' ? info.nameEn : info.name;
+                          }),
+                        )
+                    : t.home.planDays.replace(
+                        '{{days}}',
+                        plan.duration.toString(),
+                      );
               return (
                 <ReadingPlanCard
                   key={plan.id}
                   name={localizedPlan.name}
                   description={localizedPlan.description}
-                  subtitle={t.home.planDays.replace(
-                    '{{days}}',
-                    plan.duration.toString(),
-                  )}
+                  subtitle={planSubtitle}
                   icon="book-outline"
                   duration={plan.duration}
                   daysCompleted={planDaysDone}
