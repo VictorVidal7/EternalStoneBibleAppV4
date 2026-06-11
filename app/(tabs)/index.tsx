@@ -1443,6 +1443,66 @@ export default function HomeScreen() {
               </View>
             </ShimmerCard>
           </TouchableOpacity>
+
+          {/* 🕯️ Lectio Divina on the daily verse (Sprint 79) */}
+          {dailyVerse && (
+            <TouchableOpacity
+              activeOpacity={0.9}
+              style={{marginTop: celestialSpacing.cardGap}}
+              accessibilityRole="button"
+              accessible={true}
+              accessibilityLabel={t.lectio.cardTitle}
+              accessibilityHint={t.lectio.cardSubtitle}
+              onPress={() =>
+                handlePress(() =>
+                  router.push({
+                    pathname: '/features/lectio' as never,
+                    params: {
+                      book: dailyVerse.book,
+                      chapter: String(dailyVerse.chapter),
+                      verse: String(dailyVerse.verse),
+                    },
+                  } as never),
+                )
+              }>
+              <ShimmerCard
+                glowColor={colors.primary}
+                shimmerEnabled={false}
+                cardBackgroundColor={celestialTheme.colors.surfaceGlass}
+                cardBorderColor={celestialTheme.colors.glassBorder}>
+                <View style={styles.toolCard}>
+                  <View
+                    style={[
+                      styles.toolIconContainer,
+                      {backgroundColor: colors.primary + '20'},
+                    ]}>
+                    <Ionicons name="flame" size={28} color={colors.primary} />
+                  </View>
+                  <View style={styles.toolInfo}>
+                    <Text
+                      style={[
+                        styles.toolTitle,
+                        {color: celestialTheme.colors.text},
+                      ]}>
+                      {t.lectio.cardTitle}
+                    </Text>
+                    <Text
+                      style={[
+                        styles.toolDescription,
+                        {color: celestialTheme.colors.textSecondary},
+                      ]}>
+                      {t.lectio.cardSubtitle}
+                    </Text>
+                  </View>
+                  <Ionicons
+                    name="chevron-forward"
+                    size={24}
+                    color={colors.textTertiary}
+                  />
+                </View>
+              </ShimmerCard>
+            </TouchableOpacity>
+          )}
         </Animated.View>
 
         {/* ==================== SAVED SHORTCUTS ==================== */}

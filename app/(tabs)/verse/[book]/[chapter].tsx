@@ -2465,6 +2465,38 @@ export default function VerseReadingScreen() {
                     </Text>
                   </TouchableOpacity>
                 )}
+                {/* 🕯️ Lectio Divina on the first selected verse (Sprint 79) */}
+                <TouchableOpacity
+                  style={styles.selectionOverflowButton}
+                  accessibilityRole="button"
+                  accessibilityLabel={t.lectio.cardTitle}
+                  onPress={() => {
+                    const sortedNums = Array.from(selectedVerses).sort(
+                      (a, b) => a - b,
+                    );
+                    router.push({
+                      pathname: '/features/lectio' as never,
+                      params: {
+                        book,
+                        chapter,
+                        verse: sortedNums[0],
+                      },
+                    } as never);
+                    clearSelection();
+                  }}>
+                  <Ionicons
+                    name="flame-outline"
+                    size={22}
+                    color={effectiveColors.primary}
+                  />
+                  <Text
+                    style={[
+                      styles.selectionOverflowText,
+                      {color: effectiveColors.text},
+                    ]}>
+                    {t.lectio.cardTitle}
+                  </Text>
+                </TouchableOpacity>
               </View>
             )}
           </View>
