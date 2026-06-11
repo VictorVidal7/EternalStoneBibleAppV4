@@ -115,10 +115,12 @@ export {tokenizeForKaraoke, activeTokenIndex} from './lib/karaoke';
 export type {KaraokeToken} from './lib/karaoke';
 export type {SpeechBoundary} from './types/audio';
 
-// Collapsed-bar swipe policy (Sprint 75).
+// Collapsed-bar swipe policy (Sprint 75; landing bounds + paused flash S77).
 export {
   resolveHorizontalSwipe,
   swipeDisplacement,
+  swipeTargetIndex,
+  PAUSED_SWIPE_FLASH_MS,
 } from './lib/miniPlayerGestures';
 export type {SwipeAction} from './lib/miniPlayerGestures';
 

@@ -50,6 +50,12 @@ import {
   type ListeningStreaks,
 } from '@/features/audio';
 import {formatReadingTime} from '@lib/utils/formatReadingTime';
+import {haptics} from '@lib/haptics';
+import {
+  buildWeeklyRecap,
+  type WeeklyRecap,
+} from '@/features/reading-insights/weeklyRecap';
+import {WeeklyRecapModal} from '@components/insights/WeeklyRecapModal';
 import {
   TOTAL_BIBLE_BOOKS,
   bookCanonProgressPct,
@@ -83,6 +89,10 @@ export default function ReadingInsightsScreen() {
   const [listenStreaks, setListenStreaks] = useState<ListeningStreaks | null>(
     null,
   );
+  // Shareable 7-day recap (Sprint 77) — composed once per load from the same
+  // raw logs the cards render.
+  const [weekRecap, setWeekRecap] = useState<WeeklyRecap | null>(null);
+  const [weekModalVisible, setWeekModalVisible] = useState(false);
   const [status, setStatus] = useState<LoadStatus>('loading');
 
   const load = useCallback(async () => {
@@ -96,8 +106,10 @@ export default function ReadingInsightsScreen() {
           achievementService.getBookReadingLog(),
           getListeningStats(),
         ]);
-      setListening(summarizeListening(listeningStats, Date.now()));
-      setListenStreaks(listeningStreaks(listeningStats, Date.now()));
+      const now = Date.now();
+      const listenStreakResult = listeningStreaks(listeningStats, now);
+      setListening(summarizeListening(listeningStats, now));
+      setListenStreaks(listenStreakResult);
       const built = buildReadingInsights({
         readingLog,
         totals: {
@@ -110,6 +122,15 @@ export default function ReadingInsightsScreen() {
         bookReadingLog,
       });
       setInsights(built);
+      setWeekRecap(
+        buildWeeklyRecap({
+          readingLog,
+          listening: listeningStats,
+          readingStreak: built.currentStreak,
+          listeningStreak: listenStreakResult.currentStreak,
+          now,
+        }),
+      );
       setStatus('ready');
     } catch (err) {
       logger.error('Reading insights load failed', err as Error, {
@@ -265,6 +286,37 @@ export default function ReadingInsightsScreen() {
                   colors={colors}
                 />
               </View>
+
+              {/* Shareable weekly recap (Sprint 77) */}
+              {weekRecap?.hasActivity && (
+                <TouchableOpacity
+                  style={[
+                    styles.weekShareButton,
+                    {backgroundColor: colors.card, borderColor: colors.border},
+                  ]}
+                  onPress={() => {
+                    haptics.tap();
+                    setWeekModalVisible(true);
+                  }}
+                  accessibilityRole="button"
+                  accessibilityLabel={ri.weekShare}
+                  accessibilityHint={ri.weekShareHint}>
+                  <Ionicons
+                    name="share-social"
+                    size={18}
+                    color={colors.primary}
+                  />
+                  <AppText
+                    style={[styles.weekShareText, {color: colors.primary}]}>
+                    {ri.weekShare}
+                  </AppText>
+                  <Ionicons
+                    name="chevron-forward"
+                    size={16}
+                    color={colors.textTertiary}
+                  />
+                </TouchableOpacity>
+              )}
 
               {/* Heatmap */}
               <View style={[styles.card, {backgroundColor: colors.card}]}>
@@ -544,6 +596,15 @@ export default function ReadingInsightsScreen() {
             </View>
           )}
         </ScrollView>
+
+        {/* Share "My week in the Word" as an image (Sprint 77). */}
+        {weekRecap && (
+          <WeeklyRecapModal
+            visible={weekModalVisible}
+            recap={weekRecap}
+            onClose={() => setWeekModalVisible(false)}
+          />
+        )}
       </View>
     </>
   );
@@ -657,6 +718,21 @@ const styles = StyleSheet.create({
     borderRadius: borderRadius.xl,
     padding: spacing.lg,
     gap: spacing.sm,
+  },
+  weekShareButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: spacing.sm,
+    borderRadius: borderRadius.xl,
+    borderWidth: 1,
+    paddingVertical: spacing.md,
+    paddingHorizontal: spacing.lg,
+  },
+  weekShareText: {
+    fontSize: fontSizes.md,
+    fontWeight: '700',
+    flexShrink: 1,
   },
   cardTitle: {
     fontSize: fontSizes.lg,
