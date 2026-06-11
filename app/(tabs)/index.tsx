@@ -88,6 +88,9 @@ import {
 // Skeleton Loaders
 import {Skeleton} from '@components/SkeletonLoader';
 
+// Emotional check-in (Sprint 79)
+import {FeelingChips} from '@components/FeelingChips';
+
 // Tema Celestial
 import {
   createCelestialTheme,
@@ -777,6 +780,21 @@ export default function HomeScreen() {
             );
           })()}
 
+        {/* ==================== HOW ARE YOU FEELING (Sprint 79) ==================== */}
+        <Animated.View
+          style={{opacity: fadeAnim, marginTop: celestialSpacing.cardGap}}>
+          <FeelingChips
+            onOpenFeeling={feelingId =>
+              handlePress(() =>
+                router.push(`/features/feelings/${feelingId}` as never),
+              )
+            }
+            onOpenAll={() =>
+              handlePress(() => router.push('/features/feelings' as never))
+            }
+          />
+        </Animated.View>
+
         {/* ==================== CONTINUE READING (Compact) ==================== */}
         {lastRead && (
           <Animated.View
@@ -1207,6 +1225,64 @@ export default function HomeScreen() {
                       ]}
                       numberOfLines={1}>
                       {t.themes.cardSubtitle}
+                    </Text>
+                  </View>
+                  <View style={styles.continueProgress}>
+                    <Ionicons
+                      name="chevron-forward"
+                      size={24}
+                      color={colors.primary}
+                    />
+                  </View>
+                </View>
+              </View>
+            </ShimmerCard>
+          </TouchableOpacity>
+        </Animated.View>
+
+        {/* ==================== HOW ARE YOU FEELING (browse) ==================== */}
+        <Animated.View
+          style={{opacity: fadeAnim, marginTop: celestialSpacing.cardGap}}>
+          <TouchableOpacity
+            activeOpacity={0.9}
+            accessibilityRole="button"
+            accessibilityLabel={t.feelings.cardTitle}
+            accessibilityHint={t.feelings.cardSubtitle}
+            onPress={() =>
+              handlePress(() => router.push('/features/feelings' as never))
+            }>
+            <ShimmerCard
+              glowColor={colors.primary}
+              shimmerEnabled={false}
+              cardBackgroundColor={celestialTheme.colors.surfaceGlass}
+              cardBorderColor={celestialTheme.colors.glassBorder}>
+              <View style={styles.continueButton}>
+                <View style={styles.continueHeader}>
+                  <View
+                    style={[
+                      styles.continueIconContainer,
+                      styles.iconChip,
+                      {backgroundColor: colors.primary + '20'},
+                    ]}>
+                    <Ionicons
+                      name="heart-half"
+                      size={14}
+                      color={colors.primary}
+                    />
+                  </View>
+                  <View style={styles.continueTextContainer}>
+                    <Text
+                      style={[styles.continueTitle, {color: colors.text}]}
+                      numberOfLines={1}>
+                      {t.feelings.cardTitle}
+                    </Text>
+                    <Text
+                      style={[
+                        styles.continueReference,
+                        {color: colors.textSecondary},
+                      ]}
+                      numberOfLines={1}>
+                      {t.feelings.cardSubtitle}
                     </Text>
                   </View>
                   <View style={styles.continueProgress}>

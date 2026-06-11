@@ -699,6 +699,96 @@ export const translations = {
       },
     },
 
+    feelings: {
+      title: '¿Cómo te sientes hoy?',
+      subtitle: 'Palabra para tu corazón',
+      cardTitle: '¿Cómo te sientes?',
+      cardSubtitle: 'Versículos para lo que sientes hoy',
+      browseHint: 'Elige cómo te sientes y deja que la Palabra te responda',
+      homePrompt: '¿Cómo te sientes hoy?',
+      seeAll: 'Ver todos',
+      verses: 'versículos',
+      openHint: 'Abrir pasaje',
+      missingText: '(texto no disponible)',
+      error: 'No se pudieron cargar los pasajes',
+      prayerTitle: 'Una oración breve',
+      relatedTheme: 'Explora el tema: {{theme}}',
+      list: {
+        anxious: {
+          name: 'Ansioso',
+          description: 'Cuando la preocupación no te suelta',
+          prayer:
+            'Señor, pongo en tus manos lo que no puedo controlar. Dame tu paz que sobrepasa todo entendimiento. Amén.',
+        },
+        overwhelmed: {
+          name: 'Abrumado',
+          description: 'Cuando todo parece demasiado',
+          prayer:
+            'Dios mío, cuando mi corazón desmaye, llévame a la roca que es más alta que yo. Sé tú mi refugio. Amén.',
+        },
+        sad: {
+          name: 'Triste',
+          description: 'Cuando el corazón está quebrantado',
+          prayer:
+            'Padre, tú estás cerca de los quebrantados de corazón. Consuélame y sana mis heridas. Amén.',
+        },
+        tired: {
+          name: 'Cansado',
+          description: 'Cuando ya no te quedan fuerzas',
+          prayer:
+            'Jesús, vengo a ti trabajado y cargado. Dame tu descanso y renueva mis fuerzas. Amén.',
+        },
+        afraid: {
+          name: 'Con miedo',
+          description: 'Cuando el temor pesa más que la fe',
+          prayer:
+            'Señor, en el día que temo, yo en ti confío. Toma mi mano y dame tu valor. Amén.',
+        },
+        lonely: {
+          name: 'Solo',
+          description: 'Cuando nadie parece estar cerca',
+          prayer:
+            'Padre, gracias porque nunca me dejas ni me desamparas. Hazme sentir tu compañía hoy. Amén.',
+        },
+        guilty: {
+          name: 'Culpable',
+          description: 'Cuando el pasado te acusa',
+          prayer:
+            'Dios mío, confieso mi pecado y recibo tu perdón. Crea en mí un corazón limpio. Amén.',
+        },
+        angry: {
+          name: 'Enojado',
+          description: 'Cuando la ira quiere ganar',
+          prayer:
+            'Señor, calma mi enojo antes de que haga daño. Dame un corazón pronto para perdonar. Amén.',
+        },
+        confused: {
+          name: 'Confundido',
+          description: 'Cuando no sabes qué camino tomar',
+          prayer:
+            'Padre, no me apoyo en mi propia prudencia. Endereza tú mis pasos y guíame. Amén.',
+        },
+        hopeful: {
+          name: 'Esperanzado',
+          description: 'Cuando esperas lo que Dios hará',
+          prayer:
+            'Dios de esperanza, lléname de todo gozo y paz en el creer. Tus misericordias son nuevas cada mañana. Amén.',
+        },
+        grateful: {
+          name: 'Agradecido',
+          description: 'Cuando quieres dar gracias',
+          prayer:
+            'Padre, toda buena dádiva viene de ti. Gracias por tu fidelidad de hoy y de siempre. Amén.',
+        },
+        joyful: {
+          name: 'Alegre',
+          description: 'Cuando el gozo desborda',
+          prayer:
+            'Señor, este es el día que tú hiciste. Me gozaré y me alegraré en él. Amén.',
+        },
+      },
+    },
+
     auth: {
       sectionTitle: 'Cuenta',
       signInWithGoogle: 'Iniciar sesión con Google',
@@ -2522,6 +2612,96 @@ export const translations = {
         grace: {name: 'Grace', description: "God's unmerited grace"},
         salvation: {name: 'Salvation', description: 'The way of salvation'},
         guidance: {name: 'Guidance', description: 'Direction for your path'},
+      },
+    },
+
+    feelings: {
+      title: 'How are you feeling today?',
+      subtitle: 'A word for your heart',
+      cardTitle: 'How are you feeling?',
+      cardSubtitle: 'Verses for what you feel today',
+      browseHint: 'Pick how you feel and let the Word answer',
+      homePrompt: 'How are you feeling today?',
+      seeAll: 'See all',
+      verses: 'verses',
+      openHint: 'Open passage',
+      missingText: '(text not available)',
+      error: 'Could not load the passages',
+      prayerTitle: 'A short prayer',
+      relatedTheme: 'Explore the theme: {{theme}}',
+      list: {
+        anxious: {
+          name: 'Anxious',
+          description: "When worry won't let go",
+          prayer:
+            'Lord, I place in your hands what I cannot control. Give me your peace that passes all understanding. Amen.',
+        },
+        overwhelmed: {
+          name: 'Overwhelmed',
+          description: 'When everything feels like too much',
+          prayer:
+            'My God, when my heart is faint, lead me to the rock that is higher than I. Be my refuge. Amen.',
+        },
+        sad: {
+          name: 'Sad',
+          description: 'When your heart is broken',
+          prayer:
+            'Father, you are near to the brokenhearted. Comfort me and heal my wounds. Amen.',
+        },
+        tired: {
+          name: 'Tired',
+          description: 'When you have no strength left',
+          prayer:
+            'Jesus, I come to you weary and burdened. Give me your rest and renew my strength. Amen.',
+        },
+        afraid: {
+          name: 'Afraid',
+          description: 'When fear weighs more than faith',
+          prayer:
+            'Lord, when I am afraid, I put my trust in you. Take my hand and give me your courage. Amen.',
+        },
+        lonely: {
+          name: 'Lonely',
+          description: 'When no one seems near',
+          prayer:
+            'Father, thank you that you never leave me nor forsake me. Let me feel your presence today. Amen.',
+        },
+        guilty: {
+          name: 'Guilty',
+          description: 'When the past accuses you',
+          prayer:
+            'My God, I confess my sin and receive your forgiveness. Create in me a clean heart. Amen.',
+        },
+        angry: {
+          name: 'Angry',
+          description: 'When anger wants to win',
+          prayer:
+            'Lord, calm my anger before it does harm. Give me a heart quick to forgive. Amen.',
+        },
+        confused: {
+          name: 'Confused',
+          description: "When you don't know which way to go",
+          prayer:
+            'Father, I will not lean on my own understanding. Make my paths straight and guide me. Amen.',
+        },
+        hopeful: {
+          name: 'Hopeful',
+          description: 'When you await what God will do',
+          prayer:
+            'God of hope, fill me with all joy and peace in believing. Your mercies are new every morning. Amen.',
+        },
+        grateful: {
+          name: 'Grateful',
+          description: 'When you want to give thanks',
+          prayer:
+            'Father, every good gift comes from you. Thank you for your faithfulness, today and always. Amen.',
+        },
+        joyful: {
+          name: 'Joyful',
+          description: 'When joy overflows',
+          prayer:
+            'Lord, this is the day that you have made. I will rejoice and be glad in it. Amen.',
+        },
       },
     },
 
