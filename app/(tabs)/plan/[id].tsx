@@ -100,29 +100,24 @@ export default function ReadingPlanDetailScreen() {
     [language],
   );
 
-  // One-shot auto-scroll to the next day, reset when the plan changes
-  // (expo-router reuses the route instance — S74).
-  const listRef = useRef<FlatList<ReadingPlanDay>>(null);
-  const scrolledForRef = useRef<string | null>(null);
-  useEffect(() => {
-    if (!plan || pace.nextDay == null) return;
-    if (scrolledForRef.current === plan.id) return;
-    scrolledForRef.current = plan.id;
-    if (pace.nextDay <= 1) return;
-    const index = pace.nextDay - 1;
-    const timer = setTimeout(() => {
-      listRef.current?.scrollToIndex({
-        index,
-        viewPosition: 0.15,
-        animated: false,
-      });
-    }, 200);
-    return () => clearTimeout(timer);
-  }, [plan, pace.nextDay]);
-
   // Celebrate the moment the FINAL day flips done in this session.
   const [celebrate, setCelebrate] = useState(false);
   const prevCompletedRef = useRef<number | null>(null);
+
+  // Route instances are REUSED across plan ids (S74/S76) — reset the one-shot
+  // celebration tracking when the plan changes, or a still-open `celebrate`
+  // from the previous plan replays over the new one with the new plan's name
+  // (live-caught in S79). Declared BEFORE the detection effect so the reset
+  // wins the same render.
+  const planIdRef = useRef<string | null>(null);
+  useEffect(() => {
+    const id = plan?.id ?? null;
+    if (planIdRef.current === id) return;
+    planIdRef.current = id;
+    prevCompletedRef.current = null;
+    setCelebrate(false);
+  }, [plan]);
+
   useEffect(() => {
     if (!plan) return;
     const prev = prevCompletedRef.current;
@@ -132,6 +127,31 @@ export default function ReadingPlanDetailScreen() {
       setCelebrate(true);
     }
   }, [plan, completed]);
+
+  // One-shot auto-scroll to the next day, reset when the plan changes
+  // (expo-router reuses the route instance — S74). A plan whose pointer is at
+  // day 1 (or already complete) scrolls back to the TOP, so the offset left
+  // behind by the previously viewed plan doesn't linger.
+  const listRef = useRef<FlatList<ReadingPlanDay>>(null);
+  const scrolledForRef = useRef<string | null>(null);
+  useEffect(() => {
+    if (!plan) return;
+    if (scrolledForRef.current === plan.id) return;
+    scrolledForRef.current = plan.id;
+    const target = pace.nextDay;
+    const timer = setTimeout(() => {
+      if (target == null || target <= 1) {
+        listRef.current?.scrollToOffset({offset: 0, animated: false});
+      } else {
+        listRef.current?.scrollToIndex({
+          index: target - 1,
+          viewPosition: 0.15,
+          animated: false,
+        });
+      }
+    }, 200);
+    return () => clearTimeout(timer);
+  }, [plan, pace.nextDay]);
 
   // 🎧 Queue one plan day's chapters as a labeled verse playlist — the ∞
   // advancer never rolls past the end of the day (Sprint 79 queue contract).
