@@ -7,6 +7,7 @@
 import {
   resolveHorizontalSwipe,
   swipeDisplacement,
+  swipeTargetIndex,
   SWIPE_DISTANCE_THRESHOLD,
   SWIPE_VELOCITY_THRESHOLD,
 } from '../src/features/audio/lib/miniPlayerGestures';
@@ -63,6 +64,41 @@ describe('resolveHorizontalSwipe', () => {
       null,
     );
     expect(resolveHorizontalSwipe({translationX: 0, velocityX: 0})).toBeNull();
+  });
+});
+
+describe('swipeTargetIndex', () => {
+  it('advances and retreats within the chapter bounds', () => {
+    expect(
+      swipeTargetIndex({action: 'next', currentIndex: 3, totalVerses: 10}),
+    ).toBe(4);
+    expect(
+      swipeTargetIndex({action: 'previous', currentIndex: 3, totalVerses: 10}),
+    ).toBe(2);
+  });
+
+  it('returns null at the chapter edges', () => {
+    expect(
+      swipeTargetIndex({action: 'next', currentIndex: 9, totalVerses: 10}),
+    ).toBeNull();
+    expect(
+      swipeTargetIndex({action: 'previous', currentIndex: 0, totalVerses: 10}),
+    ).toBeNull();
+  });
+
+  it('returns null when the swipe resolved to no action', () => {
+    expect(
+      swipeTargetIndex({action: null, currentIndex: 3, totalVerses: 10}),
+    ).toBeNull();
+  });
+
+  it('handles a single-verse chapter (nowhere to go)', () => {
+    expect(
+      swipeTargetIndex({action: 'next', currentIndex: 0, totalVerses: 1}),
+    ).toBeNull();
+    expect(
+      swipeTargetIndex({action: 'previous', currentIndex: 0, totalVerses: 1}),
+    ).toBeNull();
   });
 });
 

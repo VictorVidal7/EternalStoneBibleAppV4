@@ -497,11 +497,18 @@ export const AudioPlayerProvider: React.FC<AudioPlayerProviderProps> = ({
       if (currentState.isPlaying) {
         speakVerseByIndex(nextIndex);
       } else {
-        setState(prev => {
-          const next = {...prev, currentVerseIndex: nextIndex};
-          stateRef.current = next;
-          return next;
+        // Paused: TTS stays silent, so leave a trace — silent index moves
+        // (e.g. an accidental collapsed-bar swipe) were undiagnosable (S77).
+        logger.info('Verse index moved while paused', {
+          from: currentState.currentVerseIndex,
+          to: nextIndex,
         });
+        // Eager state + ref (the pause()/stop() pattern): a functional
+        // updater only runs at React's flush, so a play() in the same tick
+        // would still read the pre-move index through the ref (S77).
+        const next = {...currentState, currentVerseIndex: nextIndex};
+        stateRef.current = next;
+        setState(next);
       }
     }
   }, [speakVerseByIndex, safeHaptic]);
@@ -515,7 +522,15 @@ export const AudioPlayerProvider: React.FC<AudioPlayerProviderProps> = ({
       if (currentState.isPlaying) {
         speakVerseByIndex(prevIndex);
       } else {
-        setState(prev => ({...prev, currentVerseIndex: prevIndex}));
+        logger.info('Verse index moved while paused', {
+          from: currentState.currentVerseIndex,
+          to: prevIndex,
+        });
+        // Eager state + ref so a play() landing before the next render
+        // resumes from THIS verse, not the pre-swipe one (S77).
+        const next = {...currentState, currentVerseIndex: prevIndex};
+        stateRef.current = next;
+        setState(next);
       }
     }
   }, [speakVerseByIndex]);
@@ -530,14 +545,13 @@ export const AudioPlayerProvider: React.FC<AudioPlayerProviderProps> = ({
         if (currentState.isPlaying) {
           speakVerseByIndex(index);
         } else {
-          // Update the ref synchronously (like nextVerse) so a subsequent
-          // play() — e.g. resuming a saved position — starts at THIS index
-          // instead of the pre-seek one.
-          setState(prev => {
-            const next = {...prev, currentVerseIndex: index};
-            stateRef.current = next;
-            return next;
-          });
+          // Eager state + ref so a subsequent play() — e.g. resuming a saved
+          // position — starts at THIS index instead of the pre-seek one. A
+          // functional updater is NOT synchronous (it runs at React's flush),
+          // so a same-tick play() would read the stale index (S77).
+          const next = {...currentState, currentVerseIndex: index};
+          stateRef.current = next;
+          setState(next);
         }
       }
     },

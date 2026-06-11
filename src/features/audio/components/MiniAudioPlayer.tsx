@@ -50,6 +50,8 @@ import {nextChapterTitle} from '../lib/chapterNavigation';
 import {
   resolveHorizontalSwipe,
   swipeDisplacement,
+  swipeTargetIndex,
+  PAUSED_SWIPE_FLASH_MS,
 } from '../lib/miniPlayerGestures';
 import {useAudioPlayer} from '../context/AudioPlayerContext';
 import {usePremium} from '../../../context/PremiumContext';
@@ -206,6 +208,20 @@ export const MiniAudioPlayer: React.FC<MiniAudioPlayerProps> = ({
       }
     });
 
+  // Post-swipe confirmation while PAUSED (Sprint 77): a paused swipe moves
+  // the resume point with no audible cue, so the bar briefly tints the title
+  // primary with a ▶ glyph. A static color swap — already reduce-motion-safe.
+  const [pausedSwipeFlash, setPausedSwipeFlash] = useState(false);
+  const pausedSwipeFlashTimer = useRef<NodeJS.Timeout | null>(null);
+  useEffect(
+    () => () => {
+      if (pausedSwipeFlashTimer.current) {
+        clearTimeout(pausedSwipeFlashTimer.current);
+      }
+    },
+    [],
+  );
+
   // Resolve a finished collapsed-bar drag (Sprint 75): swipe left = next
   // verse, right = previous. nextVerse/previousVerse haptic on their own; the
   // announce tells a screen-reader user where the bar landed (the swipe is a
@@ -213,18 +229,31 @@ export const MiniAudioPlayer: React.FC<MiniAudioPlayerProps> = ({
   const handleCollapsedSwipe = useCallback(
     (translationX: number, velocityX: number) => {
       const action = resolveHorizontalSwipe({translationX, velocityX});
-      if (!action) return;
-      const index = state.currentVerseIndex;
-      if (action === 'next' && index < verses.length - 1) {
+      const target = swipeTargetIndex({
+        action,
+        currentIndex: state.currentVerseIndex,
+        totalVerses: verses.length,
+      });
+      if (target === null) return;
+      if (action === 'next') {
         nextVerse();
-        AccessibilityInfo.announceForAccessibility(labelForIndex(index + 1));
-      } else if (action === 'previous' && index > 0) {
+      } else {
         previousVerse();
-        AccessibilityInfo.announceForAccessibility(labelForIndex(index - 1));
+      }
+      AccessibilityInfo.announceForAccessibility(labelForIndex(target));
+      if (!state.isPlaying) {
+        setPausedSwipeFlash(true);
+        if (pausedSwipeFlashTimer.current) {
+          clearTimeout(pausedSwipeFlashTimer.current);
+        }
+        pausedSwipeFlashTimer.current = setTimeout(() => {
+          setPausedSwipeFlash(false);
+        }, PAUSED_SWIPE_FLASH_MS);
       }
     },
     [
       state.currentVerseIndex,
+      state.isPlaying,
       verses.length,
       nextVerse,
       previousVerse,
@@ -340,6 +369,9 @@ export const MiniAudioPlayer: React.FC<MiniAudioPlayerProps> = ({
       : verseBookInfo.name
     : currentVerse.book;
   const verseTitle = `${verseBookName} ${currentVerse.chapter}:${currentVerse.verse}`;
+  // Resuming makes the paused-swipe confirmation moot — drop it immediately
+  // instead of letting the timeout run out (Sprint 77).
+  const showSwipeFlash = pausedSwipeFlash && !state.isPlaying;
   const canGoPrevious = state.currentVerseIndex > 0;
   const canGoNext = state.currentVerseIndex < verses.length - 1;
   // "Up next" peek — only while continuous playback is ON and a next chapter
@@ -431,8 +463,20 @@ export const MiniAudioPlayer: React.FC<MiniAudioPlayerProps> = ({
                   }}>
                   <AppText
                     scaleRole="display"
-                    style={[styles.verseTitle, {color: colors.text}]}
+                    style={[
+                      styles.verseTitle,
+                      {color: showSwipeFlash ? colors.primary : colors.text},
+                    ]}
                     numberOfLines={1}>
+                    {showSwipeFlash ? (
+                      <>
+                        <Ionicons
+                          name="play"
+                          size={12}
+                          color={colors.primary}
+                        />{' '}
+                      </>
+                    ) : null}
                     {verseTitle}
                   </AppText>
                   <MiniVerseProgress

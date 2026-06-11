@@ -52,6 +52,35 @@ export function resolveHorizontalSwipe(params: {
 }
 
 /**
+ * Where a resolved swipe should land, bounded to the loaded chapter: `null`
+ * when there is nothing to do (no action, or already at the first/last verse).
+ * Owning the bounds here keeps the gesture handler and the paused-swipe
+ * feedback (Sprint 77) agreeing on whether a move actually happened.
+ */
+export function swipeTargetIndex(params: {
+  action: SwipeAction;
+  currentIndex: number;
+  totalVerses: number;
+}): number | null {
+  const {action, currentIndex, totalVerses} = params;
+  if (action === 'next') {
+    return currentIndex < totalVerses - 1 ? currentIndex + 1 : null;
+  }
+  if (action === 'previous') {
+    return currentIndex > 0 ? currentIndex - 1 : null;
+  }
+  return null;
+}
+
+/**
+ * How long the collapsed bar keeps the post-swipe confirmation tint while
+ * PAUSED (Sprint 77). While playing the moved verse is immediately audible;
+ * paused, this transient highlight is the only unmissable cue that the
+ * resume point changed.
+ */
+export const PAUSED_SWIPE_FLASH_MS = 1600;
+
+/**
  * Rubber-band displacement for the bar while the finger drags: a third of the
  * travel, clamped, so the bar hints at the action without leaving its slot.
  * The caller zeroes it under reduce-motion.
