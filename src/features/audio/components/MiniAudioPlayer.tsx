@@ -46,6 +46,9 @@ import {useTheme} from '../../../hooks/useTheme';
 import {useLanguage} from '../../../hooks/useLanguage';
 import {useReducedMotion} from '../../../hooks/useReducedMotion';
 import {getBookByName} from '../../../constants/bible';
+import {useFavorites} from '../../../context/FavoritesContext';
+import {matchingFavorite} from '../lib/playingFavorite';
+import {staticColors} from '../../../styles/designTokens';
 import {nextChapterTitle} from '../lib/chapterNavigation';
 import {
   resolveHorizontalSwipe,
@@ -123,6 +126,7 @@ export const MiniAudioPlayer: React.FC<MiniAudioPlayerProps> = ({
     setReaderFollowsAudio,
   } = useAudioPlayer();
   const {isPremium} = usePremium();
+  const {favorites, addFavorite, removeFavorite, isFavorite} = useFavorites();
 
   // Localized reference for a verse index — fuels the scrubber's drag preview.
   const labelForIndex = useCallback(
@@ -221,6 +225,35 @@ export const MiniAudioPlayer: React.FC<MiniAudioPlayerProps> = ({
     },
     [],
   );
+
+  // ♥ Quick-favorite of the verse being heard (Sprint 77): the expanded
+  // player gains a one-tap save of the CURRENT verse — favorites canonicalize
+  // the book name and queue to the existing sync, no new storage. Toggling
+  // off removes the matching favorite (canonical-book match, like isFavorite).
+  const currentIsFavorite = currentVerse
+    ? isFavorite(currentVerse.book, currentVerse.chapter, currentVerse.verse)
+    : false;
+  const handleToggleFavorite = useCallback(async () => {
+    const verse = currentVerse;
+    if (!verse) return;
+    const existing = matchingFavorite(favorites, verse);
+    if (existing) {
+      haptics.tap();
+      await removeFavorite(existing.id);
+    } else {
+      haptics.success();
+      await addFavorite(
+        {
+          book: verse.book,
+          chapter: verse.chapter,
+          verse: verse.verse,
+          text: verse.text,
+        },
+        'other',
+        5,
+      );
+    }
+  }, [currentVerse, favorites, addFavorite, removeFavorite]);
 
   // Resolve a finished collapsed-bar drag (Sprint 75): swipe left = next
   // verse, right = previous. nextVerse/previousVerse haptic on their own; the
@@ -574,6 +607,28 @@ export const MiniAudioPlayer: React.FC<MiniAudioPlayerProps> = ({
                   </Text>
                 </View>
                 <View style={styles.headerButtons}>
+                  {/* ♥ Quick-favorite of the verse being heard (Sprint 77). */}
+                  <TouchableOpacity
+                    style={styles.headerButton}
+                    onPress={handleToggleFavorite}
+                    hitSlop={{top: 10, bottom: 10, left: 10, right: 10}}
+                    accessibilityRole="button"
+                    accessibilityLabel={
+                      currentIsFavorite
+                        ? t.verse.removeFavorite
+                        : t.verse.addFavorite
+                    }
+                    accessibilityState={{selected: currentIsFavorite}}>
+                    <Ionicons
+                      name={currentIsFavorite ? 'heart' : 'heart-outline'}
+                      size={20}
+                      color={
+                        currentIsFavorite
+                          ? staticColors.red500
+                          : colors.textTertiary
+                      }
+                    />
+                  </TouchableOpacity>
                   {/* Continuous-playback toggle — when on, audio rolls into the
                       next chapter instead of stopping (Sprint 72). */}
                   <TouchableOpacity
