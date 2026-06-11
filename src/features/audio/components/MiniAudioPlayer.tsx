@@ -55,7 +55,14 @@ import {
   swipeDisplacement,
   swipeTargetIndex,
   PAUSED_SWIPE_FLASH_MS,
+  BOOKMARK_PIN_FLASH_MS,
 } from '../lib/miniPlayerGestures';
+import {addAudioBookmark, createAudioBookmark} from '../lib/audioBookmarks';
+import {
+  getAudioBookmarks,
+  saveAudioBookmarks,
+} from '../lib/audioBookmarksStore';
+import {logger} from '@lib/utils/logger';
 import {useAudioPlayer} from '../context/AudioPlayerContext';
 import {usePremium} from '../../../context/PremiumContext';
 import {AudioControls} from './AudioControls';
@@ -225,6 +232,52 @@ export const MiniAudioPlayer: React.FC<MiniAudioPlayerProps> = ({
     },
     [],
   );
+
+  // 🔖 Long-press on the collapsed bar pins the PLAYING verse as an audio
+  // bookmark without opening the queue sheet (Sprint 78). Always pins —
+  // dedupe replaces an existing pin on the same verse; removal lives in the
+  // queue sheet. Confirmation = the S77 flash idiom (static tint, RM-safe)
+  // + haptic + SR announce.
+  const [bookmarkFlash, setBookmarkFlash] = useState(false);
+  const bookmarkFlashTimer = useRef<NodeJS.Timeout | null>(null);
+  useEffect(
+    () => () => {
+      if (bookmarkFlashTimer.current) {
+        clearTimeout(bookmarkFlashTimer.current);
+      }
+    },
+    [],
+  );
+  const handleLongPressBookmark = useCallback(async () => {
+    const verse = currentVerse;
+    if (!verse) return;
+    const created = createAudioBookmark(verse, Date.now());
+    if (!created) return;
+    haptics.success();
+    const stored = await getAudioBookmarks();
+    await saveAudioBookmarks(addAudioBookmark(stored, created));
+    const info = getBookByName(verse.book);
+    const localizedBook = info
+      ? language === 'en'
+        ? info.nameEn
+        : info.name
+      : verse.book;
+    const pinnedTitle = `${localizedBook} ${verse.chapter}:${verse.verse}`;
+    AccessibilityInfo.announceForAccessibility(
+      t.audio.queue.bookmarkPinned.replace('{{verse}}', pinnedTitle),
+    );
+    logger.info('Audio bookmark pinned from collapsed bar', {
+      component: 'MiniAudioPlayer',
+      verse: `${created.book} ${created.chapter}:${created.verse}`,
+    });
+    setBookmarkFlash(true);
+    if (bookmarkFlashTimer.current) {
+      clearTimeout(bookmarkFlashTimer.current);
+    }
+    bookmarkFlashTimer.current = setTimeout(() => {
+      setBookmarkFlash(false);
+    }, BOOKMARK_PIN_FLASH_MS);
+  }, [currentVerse, language, t]);
 
   // ♥ Quick-favorite of the verse being heard (Sprint 77): the expanded
   // player gains a one-tap save of the CURRENT verse — favorites canonicalize
@@ -484,6 +537,17 @@ export const MiniAudioPlayer: React.FC<MiniAudioPlayerProps> = ({
                   disabled={state.isExpanded}
                   style={styles.verseInfo}
                   onPress={handleToggleExpand}
+                  // Long-press pins the playing verse as an audio bookmark
+                  // (Sprint 78) — exposed to TalkBack as a custom action.
+                  onLongPress={handleLongPressBookmark}
+                  accessibilityActions={[
+                    {name: 'longpress', label: t.audio.queue.bookmarkAdd},
+                  ]}
+                  onAccessibilityAction={event => {
+                    if (event.nativeEvent.actionName === 'longpress') {
+                      void handleLongPressBookmark();
+                    }
+                  }}
                   accessibilityRole="button"
                   accessibilityLabel={verseTitle}
                   accessibilityHint={t.audio.a11y.expandHint}
@@ -498,10 +562,23 @@ export const MiniAudioPlayer: React.FC<MiniAudioPlayerProps> = ({
                     scaleRole="display"
                     style={[
                       styles.verseTitle,
-                      {color: showSwipeFlash ? colors.primary : colors.text},
+                      {
+                        color:
+                          bookmarkFlash || showSwipeFlash
+                            ? colors.primary
+                            : colors.text,
+                      },
                     ]}
                     numberOfLines={1}>
-                    {showSwipeFlash ? (
+                    {bookmarkFlash ? (
+                      <>
+                        <Ionicons
+                          name="bookmark"
+                          size={12}
+                          color={colors.primary}
+                        />{' '}
+                      </>
+                    ) : showSwipeFlash ? (
                       <>
                         <Ionicons
                           name="play"

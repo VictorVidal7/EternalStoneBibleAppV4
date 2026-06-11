@@ -81,6 +81,13 @@ export function swipeTargetIndex(params: {
 export const PAUSED_SWIPE_FLASH_MS = 1600;
 
 /**
+ * How long the collapsed bar tints after a LONG-PRESS pins the playing verse
+ * as an audio bookmark (Sprint 78). Same static-color-swap idiom as the
+ * paused-swipe flash — reduce-motion-safe by construction.
+ */
+export const BOOKMARK_PIN_FLASH_MS = 1600;
+
+/**
  * Rubber-band displacement for the bar while the finger drags: a third of the
  * travel, clamped, so the bar hints at the action without leaving its slot.
  * The caller zeroes it under reduce-motion.
