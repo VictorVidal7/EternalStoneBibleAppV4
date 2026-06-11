@@ -143,6 +143,19 @@ export type {
 } from './lib/listeningStats';
 export {getListeningStats, appendListening} from './lib/listeningStatsStore';
 
+// Saved listening positions (Sprint 77 — "retomar en este verso").
+export {
+  createAudioBookmark,
+  addAudioBookmark,
+  removeAudioBookmark,
+  bookmarkAtVerse,
+  parseAudioBookmarks,
+  serializeAudioBookmarks,
+  MAX_AUDIO_BOOKMARKS,
+} from './lib/audioBookmarks';
+export type {AudioBookmark} from './lib/audioBookmarks';
+export {getAudioBookmarks, saveAudioBookmarks} from './lib/audioBookmarksStore';
+
 // Cold-start player restore (Sprint 53)
 export {resolveColdStartRestore} from './lib/coldStartRestore';
 export type {
