@@ -21,6 +21,7 @@
  */
 
 import type {MemoryCard, ReviewGrade, SrsBox} from './srs';
+import {withoutUndefined} from '../sync/sanitize';
 import type {SyncEntity} from '../sync/types';
 
 const DAY_MS = 24 * 60 * 60 * 1000;
@@ -106,11 +107,16 @@ export function buildReviewEvent(input: {
   };
 }
 
-/** Reshape a local event into the sync transport payload. */
+/**
+ * Reshape a local event into the sync transport payload. Every field is
+ * required (`intervalDays` is `null`, never `undefined`), but per the S77
+ * lesson every *ToRemote builder sanitizes by construction — one future
+ * optional field must not wedge the sync queue.
+ */
 export function reviewEventToRemote(
   event: ReviewEvent,
 ): SyncEntity<RemoteReviewEvent> {
-  return {
+  return withoutUndefined({
     verseKey: event.verseKey,
     bookName: event.bookName,
     grade: event.grade,
@@ -119,7 +125,7 @@ export function reviewEventToRemote(
     intervalDays: event.intervalDays,
     reviewedAt: event.reviewedAt,
     updatedAt: event.reviewedAt,
-  };
+  });
 }
 
 /** Rebuild a local event from a remote doc id + payload (inbound sync). */

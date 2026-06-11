@@ -19,6 +19,7 @@ import bibleDB from '@lib/database';
 import {logger} from '@lib/utils/logger';
 import type {Note} from '@/types/bible';
 import {millisToIso, toMillis} from '../timeUtils';
+import {withoutUndefined} from '../sanitize';
 import type {SyncAdapter, SyncEntity} from '../types';
 
 interface RemoteNote {
@@ -31,8 +32,11 @@ interface RemoteNote {
   // updatedAt + deleted live on SyncMetadata
 }
 
+// Sprint 78 — every Note field is required today, but the S77 lesson stands:
+// one optional field emitting `undefined` silently blocks the entity from
+// ever syncing, so every *ToRemote builder sanitizes by construction.
 function noteToRemote(n: Note): SyncEntity<RemoteNote> {
-  return {
+  return withoutUndefined({
     book: n.book,
     chapter: n.chapter,
     verse: n.verse,
@@ -40,7 +44,7 @@ function noteToRemote(n: Note): SyncEntity<RemoteNote> {
     note: n.note,
     createdAt: toMillis(n.createdAt) || Date.now(),
     updatedAt: toMillis(n.updatedAt) || Date.now(),
-  };
+  });
 }
 
 async function findNoteById(id: string): Promise<Note | null> {

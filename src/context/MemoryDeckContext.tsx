@@ -34,7 +34,12 @@ import {
   ReviewGrade,
   selectDueCards,
 } from '../lib/memory/srs';
-import {getSyncEngine, type SyncAdapter, type SyncEntity} from '../lib/sync';
+import {
+  getSyncEngine,
+  withoutUndefined,
+  type SyncAdapter,
+  type SyncEntity,
+} from '../lib/sync';
 import {
   buildReviewEvent,
   reviewEventToRemote,
@@ -92,8 +97,12 @@ interface MemoryDeckProviderProps {
   children: ReactNode;
 }
 
+// Sprint 78 — every MemoryCard field is required (lastReviewedAt is null,
+// never undefined), but per the S77 lesson every *ToRemote builder
+// sanitizes by construction: one optional field emitting `undefined` would
+// silently block the card from ever syncing.
 function cardToRemote(c: MemoryCard): SyncEntity<MemoryCard> {
-  return {...c};
+  return withoutUndefined({...c});
 }
 
 export const MemoryDeckProvider: React.FC<MemoryDeckProviderProps> = ({

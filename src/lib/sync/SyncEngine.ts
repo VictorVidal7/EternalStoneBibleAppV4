@@ -32,6 +32,7 @@ import {
   type FirestoreFn,
 } from './firestore';
 import {getNetInfo, isStateOnline} from './netinfo';
+import {deepWithoutUndefined} from './sanitize';
 import type {
   ConflictChoice,
   ConflictRecord,
@@ -46,6 +47,21 @@ import type {
 
 const QUEUE_STORAGE_KEY = '@sync_queue_v1';
 const BULK_PUSH_FLAG_PREFIX = '@sync_first_push_done:';
+/**
+ * Sprint 78 — the done-marker is VERSIONED. The S77/S78 `undefined` fix
+ * revealed that entities whose payload carried an undefined field were
+ * silently DROPPED from the queue for months (note-less favorites,
+ * label-less bookmarks, note-less/category-less highlights), so devices
+ * whose flag holds the legacy '1' re-run the initial bulk push ONCE to
+ * heal them — idempotent (stable doc ids + merge:true), cost is bandwidth.
+ * A user opt-out ("Just sign in") is recorded as 'skip' from now on and is
+ * honored permanently; a legacy '1' written by a pre-v2 opt-out can't be
+ * told apart from a pre-v2 done, and the healing push deliberately wins —
+ * every post-opt-out edit already re-uploads its entity via queueWrite, so
+ * the migration skip was never a durable privacy boundary.
+ */
+const BULK_PUSH_DONE_VALUE = '2';
+const BULK_PUSH_SKIP_VALUE = 'skip';
 const MAX_RETRY_ATTEMPTS = 8;
 /**
  * Sprint 47 — a safety-net flush interval. The queue is normally drained by
@@ -677,10 +693,13 @@ export class SyncEngine {
     const fn = getFirestore();
     if (!fn) return;
     try {
+      // Sprint 78 — the record NESTS whole entities (localVersion/
+      // remoteVersion/resolvedValue); a single undefined field anywhere in
+      // them would make Firestore reject the whole audit write.
       await fn()
         .collection(`users/${this.uid}/conflicts`)
         .doc(record.id)
-        .set(record);
+        .set(deepWithoutUndefined(record));
     } catch (err) {
       logger.warn('SyncEngine: logResolvedConflict failed', {
         component: 'SyncEngine',
@@ -739,7 +758,7 @@ export class SyncEngine {
       // sessions also skip, then clear the in-memory marker.
       this.skipNextBulkPush = false;
       try {
-        await AsyncStorage.setItem(flagKey, '1');
+        await AsyncStorage.setItem(flagKey, BULK_PUSH_SKIP_VALUE);
       } catch {
         // best-effort
       }
@@ -751,7 +770,11 @@ export class SyncEngine {
     }
     try {
       const done = await AsyncStorage.getItem(flagKey);
-      if (done === '1') return;
+      // Legacy '1' deliberately falls through: re-push once to heal the
+      // entries the pre-fix engine dropped (see BULK_PUSH_DONE_VALUE).
+      if (done === BULK_PUSH_DONE_VALUE || done === BULK_PUSH_SKIP_VALUE) {
+        return;
+      }
     } catch {
       // If we can't read the flag, do the push — duplicate writes are
       // idempotent (the doc id is stable), so the worst case is
@@ -782,7 +805,7 @@ export class SyncEngine {
       }
     }
     try {
-      await AsyncStorage.setItem(flagKey, '1');
+      await AsyncStorage.setItem(flagKey, BULK_PUSH_DONE_VALUE);
     } catch {
       // best-effort; if we can't persist, next session retries the push
     }
@@ -900,7 +923,12 @@ export class SyncEngine {
     const ref = firestoreFn()
       .collection(`users/${this.uid}/${item.collection}`)
       .doc(toDocId(item.id));
-    await ref.set(item.data, {merge: true});
+    // Sprint 78 — defense-in-depth: Firestore rejects `undefined` field
+    // values and a rejected write would retry until the queue DROPS it
+    // (the S77 silent-loss bug). Builders sanitize at the source; this
+    // engine-boundary sweep covers what they can't (conflict-resolution
+    // merges typed in the UI, future adapters).
+    await ref.set(deepWithoutUndefined(item.data), {merge: true});
   }
 
   // ---------- private: state plumbing ----------
