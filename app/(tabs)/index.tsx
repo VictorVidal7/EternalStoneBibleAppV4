@@ -13,7 +13,7 @@
  * - Tipografía dual (Serif para versículos, Sans para UI)
  */
 
-import React, {useEffect, useState, useRef, useCallback} from 'react';
+import React, {useEffect, useState, useRef, useCallback, useMemo} from 'react';
 import {
   View,
   StyleSheet,
@@ -42,6 +42,13 @@ import {getDailyVerseRef} from '@/constants/daily-verses';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {getBookByName, BIBLE_VERSIONS} from '@/constants/bible';
 import {orderAlsoVersions} from '@/lib/home/alsoInVersions';
+import {
+  shiftDaysBack,
+  clampDayOffset,
+  dayCaptionKind,
+  canGoBack,
+  canGoForward,
+} from '@/lib/home/dailyVerseHistory';
 
 // Persisted visibility of the daily verse's "see it in …" chips (Sprint 77).
 const HOME_ALSO_VERSIONS_KEY = '@home_also_versions';
@@ -179,6 +186,61 @@ export default function HomeScreen() {
     });
   }, []);
 
+  // Daily verse history (Sprint 78): 0 = today, up to DAILY_HISTORY_MAX_BACK
+  // days into the past — the verse is deterministic per calendar day, so a
+  // past day recomputes purely. The ref mirrors the state so loadHomeData
+  // (focus refresh) keeps honoring the browsed day instead of resetting it.
+  const [dailyDayOffset, setDailyDayOffset] = useState(0);
+  const dailyDayOffsetRef = useRef(0);
+  const dailyHistoryTouchedRef = useRef(false);
+  useEffect(() => {
+    dailyDayOffsetRef.current = dailyDayOffset;
+    // Skip the mount run — loadHomeData already loads today's verse.
+    if (!dailyHistoryTouchedRef.current) {
+      dailyHistoryTouchedRef.current = true;
+      return;
+    }
+    let active = true;
+    (async () => {
+      const ref = getDailyVerseRef(shiftDaysBack(new Date(), dailyDayOffset));
+      const verse = await bibleDB
+        .getVerse(ref.book, ref.chapter, ref.verse, selectedVersion.id)
+        .catch(() => null);
+      if (active) {
+        setDailyVerse(
+          verse ?? (await bibleDB.getRandomVerse(selectedVersion.id)),
+        );
+      }
+    })();
+    return () => {
+      active = false;
+    };
+  }, [dailyDayOffset, selectedVersion.id]);
+
+  const goPrevDailyDay = useCallback(() => {
+    haptics.tap();
+    setDailyDayOffset(o => clampDayOffset(o + 1));
+  }, []);
+  const goNextDailyDay = useCallback(() => {
+    haptics.tap();
+    setDailyDayOffset(o => clampDayOffset(o - 1));
+  }, []);
+  const goTodayDaily = useCallback(() => {
+    haptics.tap();
+    setDailyDayOffset(0);
+  }, []);
+  // Caption for the browsed day: null = today (the card shows "Hoy"),
+  // "Ayer" for 1, a localized "lunes, 8 jun" beyond that.
+  const dailyHistoryLabel = useMemo(() => {
+    const kind = dayCaptionKind(dailyDayOffset);
+    if (kind === 'today') return null;
+    if (kind === 'yesterday') return t.home.dailyYesterday;
+    return shiftDaysBack(new Date(), dailyDayOffset).toLocaleDateString(
+      language === 'en' ? 'en-US' : 'es-ES',
+      {weekday: 'long', day: 'numeric', month: 'short'},
+    );
+  }, [dailyDayOffset, t, language]);
+
   // Animaciones
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const slideAnim = useRef(new Animated.Value(50)).current;
@@ -254,7 +316,11 @@ export default function HomeScreen() {
     try {
       await bibleDB.initialize();
 
-      const dailyRef = getDailyVerseRef();
+      // Honor the browsed history day (Sprint 78) — a focus refresh while
+      // the user is reading yesterday's verse must not snap back to today.
+      const dailyRef = getDailyVerseRef(
+        shiftDaysBack(new Date(), dailyDayOffsetRef.current),
+      );
       // Daily verse comes from the user's SELECTED reading version — the
       // same text the reader opens in when the card is tapped, and the same
       // version the daily-verse notification already uses. (It used to pull
@@ -613,11 +679,26 @@ export default function HomeScreen() {
                 }}>
                 <ShimmerCard glowColor={colors.primary}>
                   <VerseOfDayCard
+                    // Re-key per browsed day (Sprint 78) so the S77 per-
+                    // version peek cache + local favorite flash reset with
+                    // the verse they describe.
+                    key={`daily-${dailyDayOffset}`}
                     verseText={dailyVerse.text}
                     reference={verseReference}
                     title={t.home.dailyVerse}
                     isDark={isDark}
                     versionLabel={selectedVersion.abbreviation}
+                    historyEnabled
+                    historyLabel={dailyHistoryLabel}
+                    onPrevDay={
+                      canGoBack(dailyDayOffset) ? goPrevDailyDay : undefined
+                    }
+                    onNextDay={
+                      canGoForward(dailyDayOffset) ? goNextDailyDay : undefined
+                    }
+                    onToday={
+                      canGoForward(dailyDayOffset) ? goTodayDaily : undefined
+                    }
                     onPress={() =>
                       handlePress(() =>
                         router.push(
