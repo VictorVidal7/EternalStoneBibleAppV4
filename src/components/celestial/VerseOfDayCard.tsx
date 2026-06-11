@@ -126,6 +126,31 @@ interface VerseOfDayCardProps {
 
   /** Toggles {@link alternatesVisible}; the owner persists the choice. */
   onToggleAlternates?: () => void;
+
+  /**
+   * Caption naming the displayed day while browsing previous days
+   * (Sprint 78) — "Ayer" or a formatted date. Null/absent means today.
+   */
+  historyLabel?: string | null;
+
+  /**
+   * Steps one day further back through previous daily verses. Absent =
+   * the history window's end (the back chevron disables).
+   */
+  onPrevDay?: () => void;
+
+  /** Steps one day toward today; only meaningful while in the past. */
+  onNextDay?: () => void;
+
+  /** Jumps straight back to today's verse; only shown while in the past. */
+  onToday?: () => void;
+
+  /**
+   * Whether the history navigation row renders at all. The owner keeps
+   * the chevrons mounted even at the window edges (disabled), so this
+   * gates the whole affordance instead.
+   */
+  historyEnabled?: boolean;
 }
 
 const VerseOfDayCard: React.FC<VerseOfDayCardProps> = ({
@@ -144,6 +169,11 @@ const VerseOfDayCard: React.FC<VerseOfDayCardProps> = ({
   onCompare,
   alternatesVisible = false,
   onToggleAlternates,
+  historyLabel,
+  onPrevDay,
+  onNextDay,
+  onToday,
+  historyEnabled = false,
 }) => {
   const {t} = useLanguage();
   const {colors} = useTheme();
@@ -279,6 +309,75 @@ const VerseOfDayCard: React.FC<VerseOfDayCardProps> = ({
               </View>
             </View>
           </View>
+
+          {/* Historial de días anteriores (Sprint 78): el verso del día es
+              determinista por fecha, así que los días pasados se recomputan
+              puros — chevrons acotados a la ventana + caption del día. */}
+          {historyEnabled ? (
+            <View style={styles.historyRow}>
+              <TouchableOpacity
+                onPress={onPrevDay}
+                disabled={!onPrevDay}
+                accessibilityRole="button"
+                accessibilityLabel={t.home.dailyPrevDay}
+                accessibilityState={{disabled: !onPrevDay}}
+                hitSlop={8}>
+                <Ionicons
+                  name="chevron-back-circle-outline"
+                  size={22}
+                  color={
+                    onPrevDay ? colors.primary : theme.colors.textSecondary
+                  }
+                />
+              </TouchableOpacity>
+              <Text
+                scaleRole="compact"
+                style={[
+                  styles.historyLabel,
+                  {
+                    color: historyLabel
+                      ? colors.primary
+                      : theme.colors.textSecondary,
+                  },
+                ]}>
+                {historyLabel ?? t.home.dailyToday}
+              </Text>
+              <TouchableOpacity
+                onPress={onNextDay}
+                disabled={!onNextDay}
+                accessibilityRole="button"
+                accessibilityLabel={t.home.dailyNextDay}
+                accessibilityState={{disabled: !onNextDay}}
+                hitSlop={8}>
+                <Ionicons
+                  name="chevron-forward-circle-outline"
+                  size={22}
+                  color={
+                    onNextDay ? colors.primary : theme.colors.textSecondary
+                  }
+                />
+              </TouchableOpacity>
+              {onToday ? (
+                <TouchableOpacity
+                  style={[
+                    styles.historyTodayPill,
+                    {
+                      backgroundColor: colors.primary + '22',
+                      borderColor: colors.primary,
+                    },
+                  ]}
+                  onPress={onToday}
+                  accessibilityRole="button"
+                  accessibilityLabel={t.home.dailyBackToToday}>
+                  <Text
+                    scaleRole="compact"
+                    style={[styles.historyTodayText, {color: colors.primary}]}>
+                    {t.home.dailyToday}
+                  </Text>
+                </TouchableOpacity>
+              ) : null}
+            </View>
+          ) : null}
 
           {/* Verso con tipografía serif y border-left */}
           <View
@@ -669,6 +768,28 @@ const styles = StyleSheet.create({
   },
   alsoCompareText: {
     fontSize: 12,
+    fontWeight: '700',
+  },
+  historyRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    marginBottom: 12,
+  },
+  historyLabel: {
+    fontSize: 12,
+    fontWeight: '600',
+    textTransform: 'capitalize',
+  },
+  historyTodayPill: {
+    borderWidth: 1,
+    borderRadius: 999,
+    paddingHorizontal: 10,
+    paddingVertical: 3,
+    marginLeft: 'auto',
+  },
+  historyTodayText: {
+    fontSize: 11,
     fontWeight: '700',
   },
   footer: {

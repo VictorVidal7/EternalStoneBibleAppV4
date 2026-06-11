@@ -30,6 +30,7 @@ import {
   type Highlight,
 } from '@lib/highlights';
 import {logger} from '@lib/utils/logger';
+import {withoutUndefined} from '../sanitize';
 import type {SyncAdapter, SyncEntity} from '../types';
 
 interface RemoteHighlight {
@@ -49,8 +50,12 @@ function getService(): HighlightService {
   return _service;
 }
 
+// Sprint 78 — withoutUndefined drops the absent optionals: a highlight
+// without a category/note carried `undefined` here, Firestore rejected the
+// doc and the SyncEngine dropped it after its retries, so such highlights
+// NEVER synced (the same S77 pattern that hit note-less favorites).
 function highlightToRemote(h: Highlight): SyncEntity<RemoteHighlight> {
-  return {
+  return withoutUndefined({
     verseId: h.verseId,
     bookId: h.bookId,
     chapter: h.chapter,
@@ -60,7 +65,7 @@ function highlightToRemote(h: Highlight): SyncEntity<RemoteHighlight> {
     note: h.note,
     createdAt: h.createdAt,
     updatedAt: h.updatedAt,
-  };
+  });
 }
 
 export const highlightsSyncAdapter: SyncAdapter<RemoteHighlight> = {

@@ -12,7 +12,8 @@
 export {SyncEngine} from './SyncEngine';
 export {getSyncEngine, setSyncEngine} from './instance';
 // Sprint 77 — every *ToRemote payload must strip `undefined` values.
-export {withoutUndefined} from './sanitize';
+// Sprint 78 — deep variant for nested payloads (engine boundary).
+export {withoutUndefined, deepWithoutUndefined} from './sanitize';
 export type {
   SyncAdapter,
   SyncEngineState,

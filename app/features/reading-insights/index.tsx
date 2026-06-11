@@ -53,8 +53,14 @@ import {formatReadingTime} from '@lib/utils/formatReadingTime';
 import {haptics} from '@lib/haptics';
 import {
   buildWeeklyRecap,
+  RECAP_WINDOW_DAYS,
   type WeeklyRecap,
 } from '@/features/reading-insights/weeklyRecap';
+import {
+  compareWeeks,
+  type WeekComparison,
+  type WeekMetricDelta,
+} from '@/features/reading-insights/weekComparison';
 import {WeeklyRecapModal} from '@components/insights/WeeklyRecapModal';
 import {
   TOTAL_BIBLE_BOOKS,
@@ -92,6 +98,8 @@ export default function ReadingInsightsScreen() {
   // Shareable 7-day recap (Sprint 77) — composed once per load from the same
   // raw logs the cards render.
   const [weekRecap, setWeekRecap] = useState<WeeklyRecap | null>(null);
+  // Week-over-week deltas (Sprint 78) — same logs, two recap windows.
+  const [weekCompare, setWeekCompare] = useState<WeekComparison | null>(null);
   const [weekModalVisible, setWeekModalVisible] = useState(false);
   const [status, setStatus] = useState<LoadStatus>('loading');
 
@@ -130,6 +138,9 @@ export default function ReadingInsightsScreen() {
           listeningStreak: listenStreakResult.currentStreak,
           now,
         }),
+      );
+      setWeekCompare(
+        compareWeeks({readingLog, listening: listeningStats, now}),
       );
       setStatus('ready');
     } catch (err) {
@@ -316,6 +327,65 @@ export default function ReadingInsightsScreen() {
                     color={colors.textTertiary}
                   />
                 </TouchableOpacity>
+              )}
+
+              {/* Week vs previous week (Sprint 78) — honest deltas over the
+                  same logs, two recap windows. Hidden when both are empty. */}
+              {weekCompare?.hasAnyActivity && (
+                <View style={[styles.card, {backgroundColor: colors.card}]}>
+                  <AppText
+                    scaleRole="display"
+                    style={[styles.cardTitle, {color: colors.text}]}>
+                    {ri.weekVsTitle}
+                  </AppText>
+                  <AppText
+                    scaleRole="compact"
+                    style={[styles.cardHint, {color: colors.textTertiary}]}>
+                    {ri.weekVsHint}
+                  </AppText>
+                  <WeekDeltaRow
+                    label={ri.weekVsVerses}
+                    delta={weekCompare.versesRead}
+                    format={n => n.toLocaleString()}
+                    a11yTemplate={ri.weekVsA11y}
+                    colors={colors}
+                  />
+                  <WeekDeltaRow
+                    label={ri.weekVsReadingTime}
+                    delta={weekCompare.readingSeconds}
+                    format={s => formatReadingTime(s, timeLabels)}
+                    a11yTemplate={ri.weekVsA11y}
+                    colors={colors}
+                  />
+                  {weekCompare.hasListening && (
+                    <WeekDeltaRow
+                      label={ri.weekVsListening}
+                      delta={weekCompare.listeningMs}
+                      format={ms =>
+                        formatReadingTime(Math.round(ms / 1000), timeLabels)
+                      }
+                      a11yTemplate={ri.weekVsA11y}
+                      colors={colors}
+                    />
+                  )}
+                  <WeekDeltaRow
+                    label={ri.weekVsDays}
+                    delta={weekCompare.daysActive}
+                    format={n => `${n}/${RECAP_WINDOW_DAYS}`}
+                    a11yTemplate={ri.weekVsA11y}
+                    colors={colors}
+                  />
+                  {!weekCompare.previousHasActivity && (
+                    <AppText
+                      scaleRole="compact"
+                      style={[
+                        styles.weekVsEmptyPrev,
+                        {color: colors.textTertiary},
+                      ]}>
+                      {ri.weekVsEmptyPrev}
+                    </AppText>
+                  )}
+                </View>
               )}
 
               {/* Heatmap */}
@@ -634,6 +704,61 @@ const Stat: React.FC<{
   </View>
 );
 
+/**
+ * One "this week vs last week" line (Sprint 78): label, previous → current,
+ * and a trend glyph. Trend colors stay encouraging — green up, muted down.
+ */
+const WeekDeltaRow: React.FC<{
+  label: string;
+  delta: WeekMetricDelta;
+  format: (value: number) => string;
+  a11yTemplate: string;
+  colors: ReturnType<typeof useTheme>['colors'];
+}> = ({label, delta, format, a11yTemplate, colors}) => {
+  const trendIcon =
+    delta.trend === 'up'
+      ? 'trending-up'
+      : delta.trend === 'down'
+        ? 'trending-down'
+        : 'remove';
+  const trendColor =
+    delta.trend === 'up'
+      ? colors.success
+      : delta.trend === 'down'
+        ? colors.textSecondary
+        : colors.textTertiary;
+  return (
+    <View
+      style={styles.weekVsRow}
+      accessible={true}
+      accessibilityLabel={a11yTemplate
+        .replace('{{label}}', label)
+        .replace('{{previous}}', format(delta.previous))
+        .replace('{{current}}', format(delta.current))}>
+      <AppText
+        scaleRole="compact"
+        numberOfLines={1}
+        style={[styles.weekVsLabel, {color: colors.textSecondary}]}>
+        {label}
+      </AppText>
+      <View style={styles.weekVsValues}>
+        <AppText
+          scaleRole="compact"
+          style={[styles.weekVsPrev, {color: colors.textTertiary}]}>
+          {format(delta.previous)}
+        </AppText>
+        <Ionicons name="arrow-forward" size={12} color={colors.textTertiary} />
+        <AppText
+          scaleRole="compact"
+          style={[styles.weekVsCurrent, {color: colors.text}]}>
+          {format(delta.current)}
+        </AppText>
+        <Ionicons name={trendIcon} size={16} color={trendColor} />
+      </View>
+    </View>
+  );
+};
+
 /** Like {@link Stat} but for a pre-formatted string value (e.g. "2h 32m"). */
 const TextStat: React.FC<{
   value: string;
@@ -733,6 +858,34 @@ const styles = StyleSheet.create({
     fontSize: fontSizes.md,
     fontWeight: '700',
     flexShrink: 1,
+  },
+  weekVsRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: spacing.sm,
+    marginTop: spacing.md,
+  },
+  weekVsLabel: {
+    fontSize: fontSizes.sm,
+    flexShrink: 1,
+  },
+  weekVsValues: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.xs,
+  },
+  weekVsPrev: {
+    fontSize: fontSizes.sm,
+  },
+  weekVsCurrent: {
+    fontSize: fontSizes.sm,
+    fontWeight: '700',
+  },
+  weekVsEmptyPrev: {
+    fontSize: fontSizes.xs,
+    marginTop: spacing.md,
+    fontStyle: 'italic',
   },
   cardTitle: {
     fontSize: fontSizes.lg,

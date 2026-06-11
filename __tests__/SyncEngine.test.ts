@@ -370,13 +370,13 @@ describe('initial bulk push', () => {
     await engine.__flushForTests();
     const paths = mockDocSets.map(d => `${d.id}`);
     expect(paths.sort()).toEqual(['a', 'b']);
-    // Flag persisted so a second start skips the bulk push.
+    // Versioned done-marker persisted so a second start skips the push.
     const flag = await AsyncStorage.getItem('@sync_first_push_done:uid-bulk');
-    expect(flag).toBe('1');
+    expect(flag).toBe('2');
   });
 
-  it('skips bulk push when the per-uid flag is already set', async () => {
-    await AsyncStorage.setItem('@sync_first_push_done:uid-bulk2', '1');
+  it('skips bulk push when the per-uid flag holds the current version', async () => {
+    await AsyncStorage.setItem('@sync_first_push_done:uid-bulk2', '2');
     const engine = new SyncEngine();
     const {adapter, localStore} = makeAdapter();
     localStore.set('a', {value: 'a', updatedAt: 1});
@@ -385,6 +385,59 @@ describe('initial bulk push', () => {
     await flush();
     await engine.__flushForTests();
     expect(mockDocSets).toHaveLength(0);
+  });
+
+  it('re-pushes ONCE when the flag holds the legacy value (S78 healing)', async () => {
+    // Pre-fix devices hold '1'; their queue silently dropped any entity
+    // whose payload carried an undefined field, so the bulk push re-runs
+    // to heal them (idempotent: stable ids + merge:true).
+    await AsyncStorage.setItem('@sync_first_push_done:uid-heal', '1');
+    const engine = new SyncEngine();
+    const {adapter, localStore} = makeAdapter();
+    localStore.set('dropped', {value: 'finally-syncs', updatedAt: 1});
+    engine.register(adapter);
+    await engine.start('uid-heal');
+    await flush();
+    await engine.__flushForTests();
+    expect(mockDocSets.map(d => d.id)).toEqual(['dropped']);
+    const flag = await AsyncStorage.getItem('@sync_first_push_done:uid-heal');
+    expect(flag).toBe('2');
+  });
+
+  it('honors a recorded opt-out permanently (skip marker)', async () => {
+    await AsyncStorage.setItem('@sync_first_push_done:uid-optout', 'skip');
+    const engine = new SyncEngine();
+    const {adapter, localStore} = makeAdapter();
+    localStore.set('private', {value: 'stays-local', updatedAt: 1});
+    engine.register(adapter);
+    await engine.start('uid-optout');
+    await flush();
+    await engine.__flushForTests();
+    expect(mockDocSets).toHaveLength(0);
+  });
+});
+
+describe('engine boundary sanitization (Sprint 78)', () => {
+  it('strips undefined fields before the Firestore set so the write lands', async () => {
+    const engine = new SyncEngine();
+    const {adapter} = makeAdapter();
+    engine.register(adapter);
+    await engine.start('uid-clean');
+    // Simulates a payload that skipped its builder's withoutUndefined —
+    // pre-fix this wedged the queue until the entry was DROPPED.
+    engine.queueWrite('test', 'doc-u', {
+      value: 'kept',
+      note: undefined,
+      meta: {label: undefined, ok: true},
+      updatedAt: 100,
+    } as unknown as object);
+    await flush();
+    await engine.__flushForTests();
+    expect(mockDocSets).toHaveLength(1);
+    const data = mockDocSets[0].data as Record<string, unknown>;
+    expect('note' in data).toBe(false);
+    expect(data.meta).toEqual({ok: true});
+    expect(engine.__getQueueForTests()).toHaveLength(0);
   });
 });
 
@@ -807,7 +860,7 @@ describe('exportLocalData', () => {
 });
 
 describe('queueSkipNextBulkPush', () => {
-  it('persists the done-flag without queueing local rows', async () => {
+  it('persists the skip marker without queueing local rows', async () => {
     const engine = new SyncEngine();
     const {adapter, localStore} = makeAdapter();
     localStore.set('only-local', {value: 'x', updatedAt: 1});
@@ -817,8 +870,10 @@ describe('queueSkipNextBulkPush', () => {
     await flush();
     await engine.__flushForTests();
     expect(mockDocSets.filter(d => d.id === 'only-local')).toHaveLength(0);
+    // Sprint 78 — opt-outs record a distinct marker so the versioned
+    // healing re-push can never override the user's choice.
     const flag = await AsyncStorage.getItem('@sync_first_push_done:uid-skip');
-    expect(flag).toBe('1');
+    expect(flag).toBe('skip');
   });
 });
 
