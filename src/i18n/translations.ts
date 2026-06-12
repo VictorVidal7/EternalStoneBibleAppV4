@@ -672,6 +672,7 @@ export const translations = {
       openHint: 'Abrir pasaje',
       missingText: '(texto no disponible)',
       error: 'No se pudieron cargar los pasajes',
+      listenAll: 'Escuchar este tema',
       list: {
         faith: {name: 'Fe', description: 'Confía en lo que aún no ves'},
         love: {name: 'Amor', description: 'El amor de Dios y al prójimo'},
@@ -714,6 +715,7 @@ export const translations = {
       openHint: 'Abrir pasaje',
       missingText: '(texto no disponible)',
       error: 'No se pudieron cargar los pasajes',
+      listenAll: 'Escuchar estos versos',
       prayerTitle: 'Una oración breve',
       relatedTheme: 'Explora el tema: {{theme}}',
       list: {
@@ -1205,6 +1207,9 @@ export const translations = {
         playlistInfo:
           'Estás escuchando una lista de versos guardados. El audio se detiene al terminar la lista.',
         playlistQueued: 'Lista de escucha: {{label}} · {{n}} versículos',
+        shuffle: 'Aleatorio',
+        repeat: 'Repetir lista',
+        playlistRepeats: 'La lista se repite desde el inicio',
       },
       playlistRow: 'Lista: {{label}}',
       nextChapterUp: 'Sigue: {{chapter}}',
@@ -2666,6 +2671,7 @@ export const translations = {
       openHint: 'Open passage',
       missingText: '(text not available)',
       error: 'Could not load the passages',
+      listenAll: 'Listen to this theme',
       list: {
         faith: {name: 'Faith', description: 'Trust in what you cannot yet see'},
         love: {name: 'Love', description: "God's love and loving others"},
@@ -2702,6 +2708,7 @@ export const translations = {
       openHint: 'Open passage',
       missingText: '(text not available)',
       error: 'Could not load the passages',
+      listenAll: 'Listen to these verses',
       prayerTitle: 'A short prayer',
       relatedTheme: 'Explore the theme: {{theme}}',
       list: {
@@ -3191,6 +3198,9 @@ export const translations = {
         playlistInfo:
           'You are listening to a list of saved verses. Audio stops when the list ends.',
         playlistQueued: 'Listening list: {{label}} · {{n}} verses',
+        shuffle: 'Shuffle',
+        repeat: 'Repeat list',
+        playlistRepeats: 'The list repeats from the start',
       },
       playlistRow: 'List: {{label}}',
       nextChapterUp: 'Up next: {{chapter}}',

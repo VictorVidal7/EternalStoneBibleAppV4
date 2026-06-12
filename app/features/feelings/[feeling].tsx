@@ -39,6 +39,8 @@ import {getBookByName} from '@/constants/bible';
 import {getFeeling} from '@/features/study/feelings';
 import {parseThemeRef} from '@/features/study/themes';
 import type {ThemeRefKey} from '@/features/study/themes';
+import {buildVersePlaylist, useAudioPlayer} from '@/features/audio';
+import {useToast} from '@context/ToastContext';
 import {logger} from '@lib/utils/logger';
 import {
   borderRadius,
@@ -129,6 +131,8 @@ export default function FeelingDetailScreen() {
   const tf = t.feelings;
 
   const params = useLocalSearchParams<{feeling?: string}>();
+  const {loadChapter, play} = useAudioPlayer();
+  const toast = useToast();
   const feeling = useMemo(() => getFeeling(params.feeling), [params.feeling]);
   const localized = feeling
     ? (
@@ -191,6 +195,35 @@ export default function FeelingDetailScreen() {
     router.push(`/features/themes/${feeling.relatedThemeId}` as never);
   }, [router, feeling]);
 
+  // 🎧 Listen to these verses (Sprint 80): the feeling's resolved rows queue
+  // as a labeled verse playlist — the same composition as the theme detail.
+  const handleListenAll = useCallback(() => {
+    const playlist = buildVersePlaylist(
+      rows
+        .filter(r => r.bookId != null && r.text)
+        .map(r => ({
+          book: r.bookDisplay,
+          chapter: r.chapter,
+          verse: r.verse,
+          text: r.text as string,
+        })),
+    );
+    if (playlist.length === 0) return;
+    haptics.press();
+    logger.info('Feeling playlist queued', {
+      feeling: feeling?.id,
+      count: playlist.length,
+    });
+    loadChapter(playlist, {mode: 'playlist', label: name});
+    // Let loadChapter's eager refs settle before play (the engine idiom).
+    setTimeout(() => play(), 150);
+    toast.success(
+      t.audio.queue.playlistQueued
+        .replace('{{label}}', name)
+        .replace('{{n}}', String(playlist.length)),
+    );
+  }, [rows, feeling?.id, name, loadChapter, play, toast, t]);
+
   const accent = feeling?.accent ?? colors.primary;
   const headerGradient: [string, string] = [accent, colors.primaryDark];
 
@@ -229,6 +262,20 @@ export default function FeelingDetailScreen() {
                 {name}
               </AppText>
             </View>
+            {/* 🎧 Queue these verses as a playlist (Sprint 80). */}
+            {status === 'ready' && (
+              <TouchableOpacity
+                style={styles.listenButton}
+                onPress={handleListenAll}
+                accessibilityRole="button"
+                accessibilityLabel={tf.listenAll}>
+                <Ionicons
+                  name="headset-outline"
+                  size={22}
+                  color={staticColors.white}
+                />
+              </TouchableOpacity>
+            )}
           </View>
           {localized?.description ? (
             <AppText scaleRole="compact" style={styles.headerDesc}>
@@ -371,6 +418,14 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   headerInfo: {flex: 1},
+  listenButton: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: staticColors.glassWhite25,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
   headerLabel: {
     color: staticColors.glassWhite95,
     fontSize: fontSizes.sm,

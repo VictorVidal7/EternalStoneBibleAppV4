@@ -75,6 +75,18 @@ export interface AudioQueueInfo {
   label: string | null;
 }
 
+/**
+ * Runtime toggles of the playing queue (Sprint 80). Only playlists honour
+ * them; a plain `loadChapter` resets both to off, so every historical call
+ * site keeps its contract by construction.
+ */
+export interface AudioQueueOptions {
+  /** Upcoming verses play in a random devotional order. */
+  shuffle: boolean;
+  /** The list wraps back to its start instead of stopping at the end. */
+  repeat: boolean;
+}
+
 /** Optional `loadChapter` queue metadata; omitted = a plain chapter load. */
 export interface LoadQueueOptions {
   mode?: AudioQueueMode;
@@ -159,6 +171,16 @@ export interface AudioPlayerContextValue {
    * so every historical call site stays a chapter load by construction.
    */
   queueInfo: AudioQueueInfo;
+
+  /**
+   * Runtime queue toggles (Sprint 80 — devotional shuffle + repeat-the-list).
+   * Playlist-only: the setters no-op in chapter mode and a plain
+   * `loadChapter` resets both to off. Shuffle/un-shuffle only permute the
+   * verses AFTER the one playing, so in-flight indexes stay valid.
+   */
+  queueOptions: AudioQueueOptions;
+  setQueueShuffle: (on: boolean) => void;
+  setQueueRepeat: (on: boolean) => void;
 
   /**
    * Subscribe to word-boundary events from the TTS engine (Sprint 75 —
