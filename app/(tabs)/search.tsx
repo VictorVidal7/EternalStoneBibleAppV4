@@ -38,6 +38,7 @@ import {
   resolveDisplayedResults,
   type FullBookResults,
 } from '@/lib/search/bookFilter';
+import {useServices} from '@context/ServicesContext';
 
 // Tope de filas que devuelve searchVerses; al alcanzarlo el conteo se muestra
 // como "200+" porque puede haber más resultados sin cargar.
@@ -274,6 +275,10 @@ export default function SearchScreen() {
   );
   const {selectedVersion} = useBibleVersion();
   const {t} = useLanguage();
+  // Search achievements (first_search / searches_50) were unreachable until
+  // Sprint 81: total_searches has no backing table and nothing ever called
+  // trackSearch, so the column sat at 0 across the whole install.
+  const {achievementService, notifyAchievements} = useServices();
   const [searchQuery, setSearchQuery] = useState('');
   const [allResults, setAllResults] = useState<BibleVerse[]>([]);
   const [loading, setLoading] = useState(false);
@@ -401,9 +406,14 @@ export default function SearchScreen() {
         // end of the result set for this query+version.
         setHasMore(searchResults.length >= SEARCH_RESULT_LIMIT);
         // Only successful searches earn a slot in history — typos and
-        // wrong-version queries (0 results) would just clutter it.
+        // wrong-version queries (0 results) would just clutter it. The same
+        // "real search" signal feeds the search achievements (Sprint 81).
         if (searchResults.length > 0) {
           recordSearch(query);
+          achievementService
+            ?.trackSearch()
+            .then(notifyAchievements)
+            .catch(() => undefined);
         }
       } catch (error) {
         console.error('Search error:', error);
@@ -413,7 +423,7 @@ export default function SearchScreen() {
         setLoading(false);
       }
     },
-    [selectedVersion.id, recordSearch],
+    [selectedVersion.id, recordSearch, achievementService, notifyAchievements],
   );
 
   const loadMoreResults = useCallback(async () => {

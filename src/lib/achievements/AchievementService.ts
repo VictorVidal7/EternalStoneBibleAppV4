@@ -462,24 +462,33 @@ export class AchievementService {
   }
 
   /**
-   * Tracks other actions
+   * Tracks other actions. Each returns the achievements newly unlocked by its
+   * own check run (Sprint 81) so call sites can pipe them into the global
+   * `notifyAchievements` modal — before, the first note/highlight unlocked
+   * either silently or only on the NEXT reading event, because nothing called
+   * these and `checkAchievements` only ran from the reader hot path. The
+   * highlight/note counts themselves come from live table counts in
+   * `getUserStats` (their column bumps are cosmetic, double-counting is
+   * impossible); `total_searches` has no backing table, so its column IS the
+   * counter — which is why never calling trackSearch left first_search and
+   * searches_50 permanently unreachable.
    */
-  async trackHighlight(): Promise<void> {
+  async trackHighlight(): Promise<Achievement[]> {
     this.stats = null;
     await this.db.executeSql(
       'UPDATE user_stats SET total_highlights = total_highlights + 1, updated_at = ? WHERE id = 1',
       [Date.now()],
     );
-    await this.checkAchievements();
+    return await this.checkAchievements();
   }
 
-  async trackNote(): Promise<void> {
+  async trackNote(): Promise<Achievement[]> {
     this.stats = null;
     await this.db.executeSql(
       'UPDATE user_stats SET total_notes = total_notes + 1, updated_at = ? WHERE id = 1',
       [Date.now()],
     );
-    await this.checkAchievements();
+    return await this.checkAchievements();
   }
 
   async trackBookmark(): Promise<void> {
@@ -490,13 +499,13 @@ export class AchievementService {
     );
   }
 
-  async trackSearch(): Promise<void> {
+  async trackSearch(): Promise<Achievement[]> {
     this.stats = null;
     await this.db.executeSql(
       'UPDATE user_stats SET total_searches = total_searches + 1, updated_at = ? WHERE id = 1',
       [Date.now()],
     );
-    await this.checkAchievements();
+    return await this.checkAchievements();
   }
 
   async trackShare(): Promise<void> {

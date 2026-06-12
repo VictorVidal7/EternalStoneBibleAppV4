@@ -1383,6 +1383,9 @@ export const translations = {
       pointsNeeded: 'puntos para',
       pts: 'pts',
       achievementsUnlocked: 'Desbloqueados',
+      almostThere: 'A punto de lograrse',
+      almostThereA11y:
+        '{{name}}: {{current}} de {{requirement}} para desbloquear',
       categories: {
         reading: 'Lectura',
         streak: 'Rachas',
@@ -1391,6 +1394,7 @@ export const translations = {
         highlights: 'Destacados',
         notes: 'Notas',
         search: 'Búsqueda',
+        time: 'Tiempo',
         special: 'Especiales',
       },
       rarities: {
@@ -3393,6 +3397,8 @@ export const translations = {
       pointsNeeded: 'points to',
       pts: 'pts',
       achievementsUnlocked: 'Unlocked',
+      almostThere: 'Almost there',
+      almostThereA11y: '{{name}}: {{current}} of {{requirement}} to unlock',
       categories: {
         reading: 'Reading',
         streak: 'Streaks',
@@ -3401,6 +3407,7 @@ export const translations = {
         highlights: 'Highlights',
         notes: 'Notes',
         search: 'Search',
+        time: 'Time',
         special: 'Special',
       },
       rarities: {

@@ -819,6 +819,13 @@ export default function VerseReadingScreen() {
       };
       savedNoteId = await bibleDB.addNote(noteToAdd);
       savedNote = {id: savedNoteId, ...noteToAdd};
+      // First-note / notes_50 used to unlock only on the NEXT reading event
+      // (nothing checked achievements when a note was created) — check now
+      // and celebrate through the global modal (Sprint 81).
+      achievementService
+        ?.trackNote()
+        .then(notifyAchievements)
+        .catch(() => undefined);
     }
 
     if (savedNote && savedNoteId) {
@@ -1073,6 +1080,15 @@ export default function VerseReadingScreen() {
         }
       }
       setVerseHighlights(next);
+      // Highlight milestones used to unlock only on the NEXT reading event;
+      // one check per apply covers every verse just written (the count is a
+      // live table count). Removals need no check — unlocks never revert.
+      if (color !== null) {
+        achievementService
+          ?.trackHighlight()
+          .then(notifyAchievements)
+          .catch(() => undefined);
+      }
     } catch (err) {
       logger.error('Error applying highlight', err as Error, {
         component: 'VerseReadingScreen',
