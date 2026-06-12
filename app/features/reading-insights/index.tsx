@@ -69,7 +69,12 @@ import {
 import {getBookByName} from '@/constants/bible';
 import {getFeeling} from '@/features/study/feelings';
 import {getFeelingsLog} from '@/features/study/feelingsLogStore';
-import {weekMood, hasAnyMood, type MoodDay} from '@/features/study/feelingsLog';
+import {
+  weekMood,
+  hasAnyMood,
+  moodForDateKeys,
+  type MoodDay,
+} from '@/features/study/feelingsLog';
 import {logger} from '@lib/utils/logger';
 import {
   borderRadius,
@@ -110,6 +115,10 @@ export default function ReadingInsightsScreen() {
   const [weekModalVisible, setWeekModalVisible] = useState(false);
   // Mood line (Sprint 80) — the week's emotional check-ins, device-local.
   const [moodDays, setMoodDays] = useState<MoodDay[] | null>(null);
+  // Mood strip (Sprint 81) — one representative feeling per heatmap week
+  // column (last-wins within the week), aligned with the grid by chunking
+  // the SAME cells. Null feeling = no check-in that week.
+  const [moodStrip, setMoodStrip] = useState<(string | null)[] | null>(null);
   const [status, setStatus] = useState<LoadStatus>('loading');
 
   const load = useCallback(async () => {
@@ -141,6 +150,18 @@ export default function ReadingInsightsScreen() {
         bookReadingLog,
       });
       setInsights(built);
+      // One mood slot per heatmap week column: chunk the SAME cells the grid
+      // chunks (7 per column) and take each chunk's last-wins feeling. Cell
+      // dateMs is a UTC day stamp, so its ISO date IS the cell's day key.
+      const weekChunks: string[][] = [];
+      for (let i = 0; i < built.heatmap.length; i += 7) {
+        weekChunks.push(
+          built.heatmap
+            .slice(i, i + 7)
+            .map(cell => new Date(cell.dateMs).toISOString().slice(0, 10)),
+        );
+      }
+      setMoodStrip(weekChunks.map(keys => moodForDateKeys(feelingsLog, keys)));
       setWeekRecap(
         buildWeeklyRecap({
           readingLog,
@@ -538,6 +559,53 @@ export default function ReadingInsightsScreen() {
                     totalWord: ri.versesUnit,
                   })}
                 />
+                {/* Mood strip (Sprint 81): one dot per week column, tinted by
+                    that week's last-recorded feeling — the check-in history
+                    walking right under the activity it accompanied. Same
+                    flex-per-column + gap as the grid, so the slots align with
+                    the week columns by construction. Hidden until any
+                    check-in exists in the window (honest gate). */}
+                {moodStrip && moodStrip.some(id => id !== null) ? (
+                  <View
+                    accessible={true}
+                    accessibilityLabel={ri.heatmapMoodA11y
+                      .replace(
+                        '{{n}}',
+                        String(moodStrip.filter(id => id !== null).length),
+                      )
+                      .replace('{{total}}', String(moodStrip.length))}>
+                    <View style={styles.moodStripRow}>
+                      {moodStrip.map((feelingId, idx) => {
+                        const feeling = feelingId
+                          ? getFeeling(feelingId)
+                          : undefined;
+                        return (
+                          <View key={idx} style={styles.moodStripSlot}>
+                            <View
+                              style={[
+                                styles.moodStripDot,
+                                feeling
+                                  ? {backgroundColor: feeling.accent}
+                                  : [
+                                      styles.moodStripDotEmpty,
+                                      {borderColor: colors.border},
+                                    ],
+                              ]}
+                            />
+                          </View>
+                        );
+                      })}
+                    </View>
+                    <AppText
+                      scaleRole="compact"
+                      style={[
+                        styles.moodStripLabel,
+                        {color: colors.textTertiary},
+                      ]}>
+                      {ri.heatmapMoodLabel}
+                    </AppText>
+                  </View>
+                ) : null}
                 <View style={styles.legendRow}>
                   <AppText
                     scaleRole="compact"
@@ -1123,6 +1191,30 @@ const styles = StyleSheet.create({
     justifyContent: 'flex-end',
     gap: spacing['0.5'],
     marginTop: spacing.xs,
+  },
+  // Mood strip (Sprint 81): gap mirrors the ContributionHeatmap default (3)
+  // and flex:1 slots mirror its week columns, so dots sit under their weeks.
+  moodStripRow: {
+    flexDirection: 'row',
+    gap: 3,
+    marginTop: spacing.xs,
+  },
+  moodStripSlot: {
+    flex: 1,
+    alignItems: 'center',
+  },
+  moodStripDot: {
+    width: 9,
+    height: 9,
+    borderRadius: 5,
+  },
+  moodStripDotEmpty: {
+    borderWidth: 1,
+    opacity: 0.5,
+  },
+  moodStripLabel: {
+    fontSize: fontSizes['2xs'],
+    marginTop: 2,
   },
   legendText: {
     fontSize: fontSizes['2xs'],

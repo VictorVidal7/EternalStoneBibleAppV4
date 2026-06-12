@@ -7,6 +7,7 @@ import {
   recordFeeling,
   serializeFeelingsLog,
   weekMood,
+  moodForDateKeys,
 } from '../src/features/study/feelingsLog';
 import {getAllFeelings} from '../src/features/study/feelings';
 
@@ -117,5 +118,40 @@ describe('feelingsLog (Sprint 80 — emotional check-in history)', () => {
       const reparsed = parseFeelingsLog(serializeFeelingsLog(log));
       expect(reparsed.days[feelingsDateKey(now)]).toBe(feeling.id);
     }
+  });
+});
+
+describe('moodForDateKeys (Sprint 81 — heatmap mood strip)', () => {
+  it('returns the LAST recorded feeling among the keys (last-wins week)', () => {
+    const log = {
+      days: {
+        '2026-06-08': 'anxious',
+        '2026-06-10': 'grateful',
+        '2026-06-09': 'tired',
+      },
+    };
+    expect(
+      moodForDateKeys(log, [
+        '2026-06-07',
+        '2026-06-08',
+        '2026-06-09',
+        '2026-06-10',
+        '2026-06-11',
+      ]),
+    ).toBe('grateful');
+  });
+
+  it('returns null when none of the keys has a check-in', () => {
+    const log = {days: {'2026-06-01': 'joyful'}};
+    expect(moodForDateKeys(log, ['2026-06-10', '2026-06-11'])).toBeNull();
+  });
+
+  it('handles an empty key window', () => {
+    expect(moodForDateKeys({days: {}}, [])).toBeNull();
+  });
+
+  it('ignores days outside the requested keys', () => {
+    const log = {days: {'2026-06-12': 'sad', '2026-06-05': 'hopeful'}};
+    expect(moodForDateKeys(log, ['2026-06-04', '2026-06-05'])).toBe('hopeful');
   });
 });

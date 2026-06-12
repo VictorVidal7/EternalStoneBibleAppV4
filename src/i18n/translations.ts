@@ -274,6 +274,9 @@ export const translations = {
       emptyHint: 'Lee un capítulo y vuelve para ver tu progreso',
       heatmapTitle: 'Tu actividad',
       heatmapHint: 'Versículos leídos por día (últimos meses)',
+      heatmapMoodLabel: 'Tu ánimo',
+      heatmapMoodA11y:
+        'Ánimo por semana: {{n}} de {{total}} semanas con un registro',
       legendLess: 'Menos',
       legendMore: 'Más',
       streakCurrent: 'Racha actual',
@@ -2290,6 +2293,8 @@ export const translations = {
       emptyHint: 'Read a chapter and come back to see your progress',
       heatmapTitle: 'Your activity',
       heatmapHint: 'Verses read per day (recent months)',
+      heatmapMoodLabel: 'Your mood',
+      heatmapMoodA11y: 'Mood by week: {{n}} of {{total}} weeks with a check-in',
       legendLess: 'Less',
       legendMore: 'More',
       streakCurrent: 'Current streak',
