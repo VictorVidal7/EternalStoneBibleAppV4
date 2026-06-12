@@ -316,6 +316,10 @@ export const translations = {
       weekVsEmptyPrev: 'La semana anterior no tuvo actividad',
       weekVsA11y:
         '{{label}}: {{previous}} la semana anterior, {{current}} esta semana',
+      moodTitle: 'Tu ánimo esta semana',
+      moodHint: 'El sentimiento que registraste cada día',
+      moodNone: 'Sin registro',
+      moodDayA11y: '{{day}}: {{feeling}}',
       weekCardTitle: 'Mi semana en la Palabra',
       weekCardSubtitle: 'Últimos 7 días',
       weekVersesRead: '{{n}} versículos leídos',
@@ -2303,6 +2307,10 @@ export const translations = {
       weekVsEmptyPrev: 'The week before had no activity',
       weekVsA11y:
         '{{label}}: {{previous}} the week before, {{current}} this week',
+      moodTitle: 'Your mood this week',
+      moodHint: 'The feeling you checked in each day',
+      moodNone: 'No check-in',
+      moodDayA11y: '{{day}}: {{feeling}}',
       weekCardTitle: 'My week in the Word',
       weekCardSubtitle: 'Last 7 days',
       weekVersesRead: '{{n}} verses read',
