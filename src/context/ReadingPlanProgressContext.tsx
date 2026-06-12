@@ -23,6 +23,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import {logger} from '../lib/utils/logger';
 import {READING_PLANS} from '../constants/reading-plans';
 import {getBookByName} from '../constants/bible';
+import {withCompletionStamp} from '../lib/reading/planCompletion';
 
 const STORAGE_KEY = '@reading_plan_progress';
 const READ_CHAPTERS_KEY = '@reading_plan_read_chapters';
@@ -30,6 +31,12 @@ const READ_CHAPTERS_KEY = '@reading_plan_read_chapters';
 export interface PlanProgress {
   completedDays: number[];
   startedAt: string;
+  /**
+   * ISO stamp of the FIRST time the plan reached full completion (Sprint 81).
+   * Conserve-once-earned: never cleared by un-toggling, never moved by
+   * re-completing. Plans finished before this sprint have no stamp.
+   */
+  completedAt?: string;
 }
 
 type ProgressMap = Record<string, PlanProgress>;
@@ -59,6 +66,8 @@ interface ReadingPlanProgressContextType {
   isChapterRead: (book: string | number, chapter: number) => boolean;
   /** ISO timestamp of the plan's first interaction; null = never started. */
   getStartedAt: (planId: string) => string | null;
+  /** ISO timestamp of the plan's FIRST full completion; null = none yet. */
+  getCompletedAt: (planId: string) => string | null;
 }
 
 const ReadingPlanProgressContext = createContext<
@@ -145,9 +154,17 @@ export function ReadingPlanProgressProvider({children}: {children: ReactNode}) {
       const completedDays = has
         ? current.completedDays.filter(d => d !== day)
         : [...current.completedDays, day].sort((a, b) => a - b);
+      // Stamp completedAt the first time the plan covers all its days
+      // (conserve-once-earned — see planCompletion).
+      const duration =
+        READING_PLANS.find(p => p.id === planId)?.days.length ?? 0;
       await persist({
         ...progress,
-        [planId]: {...current, completedDays},
+        [planId]: withCompletionStamp(
+          {...current, completedDays},
+          duration,
+          new Date().toISOString(),
+        ),
       });
     },
     [progress, persist],
@@ -203,10 +220,20 @@ export function ReadingPlanProgressProvider({children}: {children: ReactNode}) {
             startedAt: new Date().toISOString(),
           };
           if (!cur.completedDays.includes(day)) {
-            nextProgress[planId] = {
-              ...cur,
-              completedDays: [...cur.completedDays, day].sort((a, b) => a - b),
-            };
+            // The auto-complete path can also finish a plan (reading the
+            // last listed chapter) — stamp it here too (Sprint 81).
+            const duration =
+              READING_PLANS.find(p => p.id === planId)?.days.length ?? 0;
+            nextProgress[planId] = withCompletionStamp(
+              {
+                ...cur,
+                completedDays: [...cur.completedDays, day].sort(
+                  (a, b) => a - b,
+                ),
+              },
+              duration,
+              new Date().toISOString(),
+            );
           }
         }
         await persist(nextProgress);
@@ -230,6 +257,11 @@ export function ReadingPlanProgressProvider({children}: {children: ReactNode}) {
     [progress],
   );
 
+  const getCompletedAt = useCallback(
+    (planId: string) => progress[planId]?.completedAt ?? null,
+    [progress],
+  );
+
   return (
     <ReadingPlanProgressContext.Provider
       value={{
@@ -239,6 +271,7 @@ export function ReadingPlanProgressProvider({children}: {children: ReactNode}) {
         markChapterRead,
         isChapterRead,
         getStartedAt,
+        getCompletedAt,
       }}>
       {children}
     </ReadingPlanProgressContext.Provider>

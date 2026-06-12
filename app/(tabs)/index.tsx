@@ -91,6 +91,7 @@ import {Skeleton} from '@components/SkeletonLoader';
 
 // Emotional check-in (Sprint 79)
 import {FeelingChips} from '@components/FeelingChips';
+import {MoodVerseCard} from '@components/MoodVerseCard';
 
 // Tema Celestial
 import {
@@ -792,6 +793,19 @@ export default function HomeScreen() {
             }
             onOpenAll={() =>
               handlePress(() => router.push('/features/feelings' as never))
+            }
+          />
+          {/* A verse for TODAY's check-in (Sprint 81) — renders nothing
+              until the reader names a feeling today. */}
+          <MoodVerseCard
+            onOpenVerse={(book, chapter, verse) =>
+              handlePress(() =>
+                // `verse` is the reader's highlight-and-scroll param (it
+                // renames it to highlightVerse internally).
+                router.push(
+                  `/verse/${book}/${chapter}?verse=${verse}` as never,
+                ),
+              )
             }
           />
         </Animated.View>

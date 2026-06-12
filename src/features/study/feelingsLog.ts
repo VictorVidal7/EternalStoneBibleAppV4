@@ -114,3 +114,31 @@ export function weekMood(log: FeelingsLog, now: number): MoodDay[] {
 export function hasAnyMood(days: MoodDay[]): boolean {
   return days.some(day => day.feelingId !== null);
 }
+
+/**
+ * The representative feeling among a set of day keys (Sprint 81): the LAST
+ * recorded one, extending the store's last-wins day semantics to any window
+ * ("how the week ended"). Keys are local `YYYY-MM-DD`, so the lexicographic
+ * max IS the latest day. Null when none of the keys has a check-in.
+ *
+ * Powers the mood strip under the activity heatmap: the screen passes each
+ * heatmap week-column's day keys, so the strip aligns with the grid BY
+ * CONSTRUCTION (same cells, same chunking — retention 84d = the heatmap's
+ * 12-week window).
+ */
+export function moodForDateKeys(
+  log: FeelingsLog,
+  dateKeys: ReadonlyArray<string>,
+): string | null {
+  let bestKey: string | null = null;
+  let bestFeeling: string | null = null;
+  for (const key of dateKeys) {
+    const feeling = log.days[key];
+    if (feeling === undefined) continue;
+    if (bestKey === null || key > bestKey) {
+      bestKey = key;
+      bestFeeling = feeling;
+    }
+  }
+  return bestFeeling;
+}

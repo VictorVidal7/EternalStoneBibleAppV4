@@ -40,6 +40,7 @@ import {
   localizedChapterReference,
 } from '../../lib/reading/verseReference';
 import {useReaderPreferences} from '../../context/ReaderPreferencesContext';
+import {resolveTypeface, immersiveLineHeight} from '../../lib/reader/typefaces';
 import {immersiveHighContrastColors} from '../../lib/reading/immersiveTheme';
 import {focusTrapProps, a11yHiddenProps} from '../../lib/a11y/focusTrap';
 import {hitSlopToMinTarget} from '../../lib/a11y/touchTarget';
@@ -88,6 +89,18 @@ export const ImmersiveReader: React.FC<ImmersiveReaderProps> = ({
   const {preferences: readerPrefs} = useReaderPreferences();
   const isHighContrast = readerPrefs.theme === 'high-contrast';
   const hcColors = immersiveHighContrastColors();
+  // The reader's typeface preference applies HERE too (Sprint 81) — this
+  // surface used to hardcode Georgia/serif, so the picker silently did
+  // nothing for anyone reading (or auto-immersing) in immersive mode.
+  // 'sans' resolves to undefined → the platform default, same as the reader.
+  const verseFontFamily = useMemo(
+    () =>
+      resolveTypeface(
+        readerPrefs.fontFamily,
+        Platform.OS === 'ios' ? 'ios' : 'android',
+      ),
+    [readerPrefs.fontFamily],
+  );
   const {t, language} = useLanguage();
   const {isPremium} = usePremium();
   const {selectedVersion} = useBibleVersion();
@@ -621,6 +634,10 @@ export const ImmersiveReader: React.FC<ImmersiveReaderProps> = ({
               styles.verseText,
               {
                 fontSize,
+                // Scaled with the user's font size — the old fixed 36 cramped
+                // descenders at 32 and floated at 16.
+                lineHeight: immersiveLineHeight(fontSize),
+                fontFamily: verseFontFamily,
                 color: isHighContrast
                   ? hcColors.text
                   : isDark
@@ -956,9 +973,14 @@ const styles = StyleSheet.create({
     maxWidth: 700,
   },
   verseText: {
-    fontFamily: Platform.select({ios: 'Georgia', android: 'serif'}),
+    // fontFamily/lineHeight live inline: they follow the reader's typeface
+    // preference and the adjustable font size (Sprint 81).
     textAlign: 'center',
-    lineHeight: 36,
+    // Stretch the canvas to the container: a centered Text shrink-wraps to
+    // its MEASURED width, so a karaoke line painted 1–2px wider (Android
+    // span rounding) clipped at the glyph edge. Full-width canvas gives the
+    // centered lines slack on both sides (Sprint 81).
+    alignSelf: 'stretch',
     marginBottom: 32,
     textShadowOffset: {width: 0, height: 1},
     textShadowRadius: 3,

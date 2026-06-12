@@ -10,8 +10,9 @@
  *   · reading_streak_log runs           → "Nueva racha récord: N días"
  *   · @reading_plan_progress startedAt  → "Comenzaste el plan …"
  *
- * Plan COMPLETION carries no date in its store, so the feed honestly omits
- * it rather than inventing one. Streak records walk the per-day log: a run's
+ * Plan COMPLETION is stamped from Sprint 81 on (`completedAt`, conserve-once
+ * -earned); plans finished BEFORE the stamp existed carry no date and stay
+ * honestly omitted. Streak records walk the per-day log: a run's
  * final length becomes an event only when it beats every previous run and is
  * at least {@link STREAK_RECORD_MIN} days (a 1-day "record" is noise).
  *
@@ -31,7 +32,8 @@ export type TimelineEventType =
   | 'first-note'
   | 'first-highlight'
   | 'streak-record'
-  | 'plan-started';
+  | 'plan-started'
+  | 'plan-completed';
 
 export interface TimelineEvent {
   /** Stable key for lists ("book:Genesis", "achievement:first_verse"…). */
@@ -73,8 +75,16 @@ export interface TimelineInputs {
   favorites: VerseStamp[];
   notes: VerseStamp[];
   highlights: VerseStamp[];
-  /** Plans with their first-interaction ISO stamp (null = never started). */
-  plans: {planId: string; startedAt: string | null}[];
+  /**
+   * Plans with their first-interaction ISO stamp (null = never started) and
+   * their first-completion ISO stamp (null/absent = not completed since the
+   * stamp exists — Sprint 81).
+   */
+  plans: {
+    planId: string;
+    startedAt: string | null;
+    completedAt?: string | null;
+  }[];
   /** reading_streak_log dates ascending, local 'YYYY-MM-DD'. */
   readingLog: {date: string}[];
 }
@@ -219,15 +229,28 @@ export function buildTimeline(inputs: TimelineInputs): TimelineEvent[] {
   }
 
   for (const plan of inputs.plans) {
-    if (!plan.startedAt) continue;
-    const stamp = Date.parse(plan.startedAt);
-    if (!isValidStamp(stamp)) continue;
-    events.push({
-      id: `plan:${plan.planId}`,
-      type: 'plan-started',
-      timestamp: stamp,
-      subject: plan.planId,
-    });
+    if (plan.startedAt) {
+      const stamp = Date.parse(plan.startedAt);
+      if (isValidStamp(stamp)) {
+        events.push({
+          id: `plan:${plan.planId}`,
+          type: 'plan-started',
+          timestamp: stamp,
+          subject: plan.planId,
+        });
+      }
+    }
+    if (plan.completedAt) {
+      const stamp = Date.parse(plan.completedAt);
+      if (isValidStamp(stamp)) {
+        events.push({
+          id: `plan-completed:${plan.planId}`,
+          type: 'plan-completed',
+          timestamp: stamp,
+          subject: plan.planId,
+        });
+      }
+    }
   }
 
   events.push(...streakRecordEvents(inputs.readingLog));

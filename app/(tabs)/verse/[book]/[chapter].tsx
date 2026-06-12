@@ -68,6 +68,7 @@ import {
   spotlightOpacity,
   focusVerseOpacity,
   focusedVerseFromOffsets,
+  focusTargetVerse,
 } from '@/lib/reader/spotlight';
 import {
   useReaderPreferences,
@@ -344,6 +345,8 @@ export default function VerseReadingScreen() {
     haptics.tap();
     const next = !focusMode;
     setFocusMode(next);
+    // Icon-only toggle — say what it now does (Sprint 81).
+    toast.info(next ? t.verse.focusModeOnToast : t.verse.focusModeOffToast);
     AsyncStorage.setItem('@reader_focus_mode', next ? '1' : '0').catch(
       () => undefined,
     );
@@ -736,6 +739,13 @@ export default function VerseReadingScreen() {
         versesCount: chapterVerses.length,
       });
 
+      // expo-router REUSES this route instance across chapter navigations
+      // (S79 lesson), so the offsets map still holds the PREVIOUS chapter's
+      // row positions — the highlight scroll below would land on a stale
+      // offset (live-caught: Home mood card → Colossians 3:17 stayed at the
+      // top because John 4's verse 17 answered first). Clear; the new rows
+      // re-report through onLayout immediately (Sprint 81).
+      verseOffsetsRef.current.clear();
       setVerses(chapterVerses);
 
       // Update reading progress
@@ -818,6 +828,13 @@ export default function VerseReadingScreen() {
       };
       savedNoteId = await bibleDB.addNote(noteToAdd);
       savedNote = {id: savedNoteId, ...noteToAdd};
+      // First-note / notes_50 used to unlock only on the NEXT reading event
+      // (nothing checked achievements when a note was created) — check now
+      // and celebrate through the global modal (Sprint 81).
+      achievementService
+        ?.trackNote()
+        .then(notifyAchievements)
+        .catch(() => undefined);
     }
 
     if (savedNote && savedNoteId) {
@@ -948,6 +965,16 @@ export default function VerseReadingScreen() {
     audioEngineLocation,
   );
 
+  // Focus mode + audio (Sprint 81): while the engine voices THIS chapter, the
+  // spotlight follows the SPOKEN verse instead of the viewport center — the
+  // audio auto-scroll pins the spoken verse near the TOP, so the center-driven
+  // focus dimmed the very verse being read aloud and lit one below it. Pauses
+  // fall back to the scroll-centered verse via `focusTargetVerse`.
+  const audioFocusVerse =
+    audioBoundToReader && audioState.isPlaying
+      ? (verses[audioState.currentVerseIndex]?.verse ?? null)
+      : null;
+
   // Latch: the chapter the reader was showing WHILE the engine played that
   // same chapter. Only a chapter the user actually listened to from here can
   // be followed out of, so a manual jump near the playing chapter never drags
@@ -1062,6 +1089,15 @@ export default function VerseReadingScreen() {
         }
       }
       setVerseHighlights(next);
+      // Highlight milestones used to unlock only on the NEXT reading event;
+      // one check per apply covers every verse just written (the count is a
+      // live table count). Removals need no check — unlocks never revert.
+      if (color !== null) {
+        achievementService
+          ?.trackHighlight()
+          .then(notifyAchievements)
+          .catch(() => undefined);
+      }
     } catch (err) {
       logger.error('Error applying highlight', err as Error, {
         component: 'VerseReadingScreen',
@@ -1890,6 +1926,17 @@ export default function VerseReadingScreen() {
                   : effectiveColors.primary,
             };
 
+            // Centers the 🔊 badge on the verse's FIRST text line (its slot
+            // sits beside the paragraph, so it must mimic the line box).
+            const nowPlayingBadgeStyle = {
+              marginRight: spacing.xs,
+              paddingTop: Math.max(
+                0,
+                (fontSize * readerPrefs.lineHeightMultiplier - fontSizes.sm) /
+                  2,
+              ),
+            };
+
             // One coherent screen-reader node per verse: "Verse N, <text>"
             // (overrides the noisy 🔊/number prefix), with companion text
             // appended in side-by-side so nothing is hidden from TalkBack.
@@ -1938,10 +1985,33 @@ export default function VerseReadingScreen() {
                   {
                     opacity: Math.min(
                       spotlightOpacity(verse.verse, selectedVerses),
-                      focusVerseOpacity(verse.verse, focusedVerse, focusMode),
+                      focusVerseOpacity(
+                        verse.verse,
+                        focusTargetVerse(focusedVerse, audioFocusVerse),
+                        focusMode,
+                      ),
                     ),
                   },
                 ]}>
+                {/* "Now playing" cue for the verse being read aloud. It lives
+                    OUTSIDE the wrapping Text, in its own row slot (Sprint 81):
+                    ANY foreign-font run at the start of a wrapping paragraph
+                    (the old color emoji, then the S76 icon-font glyph) gets
+                    its advance slightly mis-measured by Android, so a tight
+                    first line painted wider than measured and its last glyphs
+                    clipped off the right edge — live-reproduced on John 4:2
+                    ("…sino sus" flush against the boundary only while lit).
+                    As a sibling View it shifts layout by plain view geometry
+                    and the paragraph re-wraps correctly by construction. */}
+                {isBeingRead ? (
+                  <View style={nowPlayingBadgeStyle}>
+                    <Ionicons
+                      name="volume-high"
+                      size={fontSizes.sm}
+                      color={effectiveColors.audioHighlight}
+                    />
+                  </View>
+                ) : null}
                 <View
                   style={[
                     styles.verseContent,
@@ -1954,19 +2024,6 @@ export default function VerseReadingScreen() {
                       dualColumns && styles.dualColumn,
                     ]}>
                     <Text style={[styles.verseNumber, numberStyle]}>
-                      {/* "Now playing" cue for the verse being read aloud.
-                          A vector glyph (not the old color emoji 🔊) — Android
-                          mis-measures a color emoji's advance at the start of a
-                          wrapping Text, which clipped the first line's right
-                          edge; an icon-font glyph measures correctly. */}
-                      {isBeingRead ? (
-                        <Ionicons
-                          name="volume-high"
-                          size={fontSizes.sm}
-                          color={effectiveColors.audioHighlight}
-                        />
-                      ) : null}
-                      {isBeingRead ? '  ' : ''}
                       {verse.verse}
                       {'  '}
                     </Text>
@@ -2697,6 +2754,11 @@ const styles = StyleSheet.create({
   },
   verseText: {
     fontSize: fontSizes.base,
+    // A hair of slack for Android's painted-vs-measured rounding: with the
+    // karaoke span splitting the paragraph into runs, a tight line can paint
+    // 1–3px wider than its measured wrap and the canvas clips the last glyph.
+    // Painted overflow lands in this padding instead (Sprint 81).
+    paddingRight: 3,
   },
   sideBySideCompanion: {
     marginTop: spacing.sm,

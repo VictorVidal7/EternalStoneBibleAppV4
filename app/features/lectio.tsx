@@ -33,6 +33,7 @@ import {useSafeAreaInsets} from 'react-native-safe-area-context';
 import {useTheme} from '@hooks/useTheme';
 import {useLanguage} from '@hooks/useLanguage';
 import {useToast} from '@context/ToastContext';
+import {useServices} from '@context/ServicesContext';
 import {useBibleVersion} from '@hooks/useBibleVersion';
 import {haptics} from '@lib/haptics';
 import {AppText} from '@components/ui/AppText';
@@ -66,6 +67,7 @@ export default function LectioScreen() {
   const {colors} = useTheme();
   const {t, language} = useLanguage();
   const toast = useToast();
+  const {achievementService, notifyAchievements} = useServices();
   const {selectedVersion} = useBibleVersion();
   const {loadChapter, play} = useAudioPlayer();
   const {width: windowWidth} = useWindowDimensions();
@@ -219,7 +221,7 @@ export default function LectioScreen() {
           language === 'en' ? 'en-US' : 'es-ES',
           {year: 'numeric', month: 'long', day: 'numeric'},
         );
-        const block = buildLectioPrayerBlock(trimmed, dateLabel);
+        const block = buildLectioPrayerBlock(trimmed, dateLabel, tl.title);
         const existing = await bibleDB.getNoteForVerse(
           canonical,
           chapterNum,
@@ -249,6 +251,12 @@ export default function LectioScreen() {
           };
           savedId = await bibleDB.addNote(noteToAdd);
           savedNote = {id: savedId, ...noteToAdd};
+          // A lectio prayer that creates a NEW note counts toward the note
+          // achievements like any other note (Sprint 81).
+          achievementService
+            ?.trackNote()
+            .then(notifyAchievements)
+            .catch(() => undefined);
         }
         getSyncEngine()?.queueWrite(
           'notes',
@@ -281,6 +289,9 @@ export default function LectioScreen() {
     reference,
     toast,
     tl.prayerSaved,
+    tl.title,
+    achievementService,
+    notifyAchievements,
   ]);
 
   const goNext = () => {

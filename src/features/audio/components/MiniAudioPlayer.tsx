@@ -64,6 +64,7 @@ import {
   saveAudioBookmarks,
 } from '../lib/audioBookmarksStore';
 import {logger} from '@lib/utils/logger';
+import {useToast} from '../../../context/ToastContext';
 import {useAudioPlayer} from '../context/AudioPlayerContext';
 import {usePremium} from '../../../context/PremiumContext';
 import {AudioControls} from './AudioControls';
@@ -104,6 +105,7 @@ export const MiniAudioPlayer: React.FC<MiniAudioPlayerProps> = ({
 }) => {
   const {colors, isDark} = useTheme();
   const {language, t} = useLanguage();
+  const toast = useToast();
   const insets = useSafeAreaInsets();
   const [sleepTimerModalVisible, setSleepTimerModalVisible] = useState(false);
   const [queueSheetVisible, setQueueSheetVisible] = useState(false);
@@ -721,7 +723,14 @@ export const MiniAudioPlayer: React.FC<MiniAudioPlayerProps> = ({
                     style={styles.headerButton}
                     onPress={() => {
                       haptics.tap();
-                      setAutoAdvanceChapter(!autoAdvanceChapter);
+                      const next = !autoAdvanceChapter;
+                      setAutoAdvanceChapter(next);
+                      // Icon-only toggle — say what it now does (Sprint 81).
+                      toast.info(
+                        next
+                          ? t.audio.autoAdvanceOnToast
+                          : t.audio.autoAdvanceOffToast,
+                      );
                     }}
                     hitSlop={{top: 10, bottom: 10, left: 10, right: 10}}
                     accessibilityRole="button"
@@ -747,7 +756,14 @@ export const MiniAudioPlayer: React.FC<MiniAudioPlayerProps> = ({
                       style={styles.headerButton}
                       onPress={() => {
                         haptics.tap();
-                        setReaderFollowsAudio(!readerFollowsAudio);
+                        const next = !readerFollowsAudio;
+                        setReaderFollowsAudio(next);
+                        // Icon-only toggle — say what it now does (Sprint 81).
+                        toast.info(
+                          next
+                            ? t.audio.readerFollowOnToast
+                            : t.audio.readerFollowOffToast,
+                        );
                       }}
                       hitSlop={{top: 10, bottom: 10, left: 10, right: 10}}
                       accessibilityRole="button"

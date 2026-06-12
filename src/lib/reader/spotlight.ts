@@ -57,6 +57,21 @@ export function focusVerseOpacity(
 }
 
 /**
+ * Which verse the Focus spotlight should light (Sprint 81). While the audio
+ * engine voices this chapter, the SPOKEN verse wins: the audio auto-scroll
+ * pins the spoken verse near the TOP of the viewport, so the center-driven
+ * focus used to dim the very verse being read aloud and light one below it.
+ * With no audio verse (not playing / other chapter) it falls back to the
+ * scroll-centered one.
+ */
+export function focusTargetVerse(
+  scrollFocused: number | null,
+  audioVerse: number | null,
+): number | null {
+  return audioVerse ?? scrollFocused;
+}
+
+/**
  * The verse to spotlight in Focus mode: the one whose row crosses the vertical
  * CENTER of the viewport. `offsets` are each verse's row-top Y within the scroll
  * content (the reader already records these for audio auto-scroll). Returns the

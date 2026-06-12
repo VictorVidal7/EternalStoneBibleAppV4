@@ -274,6 +274,9 @@ export const translations = {
       emptyHint: 'Lee un capítulo y vuelve para ver tu progreso',
       heatmapTitle: 'Tu actividad',
       heatmapHint: 'Versículos leídos por día (últimos meses)',
+      heatmapMoodLabel: 'Tu ánimo',
+      heatmapMoodA11y:
+        'Ánimo por semana: {{n}} de {{total}} semanas con un registro',
       legendLess: 'Menos',
       legendMore: 'Más',
       streakCurrent: 'Racha actual',
@@ -335,7 +338,10 @@ export const translations = {
         firstHighlight: 'Tu primer subrayado · {{ref}}',
         streakRecord: 'Nueva racha récord: {{n}} días',
         planStarted: 'Comenzaste el plan {{plan}}',
+        planCompleted: 'Completaste el plan {{plan}}',
         error: 'No se pudo cargar tu línea de tiempo',
+        shareImage: 'Compartir como imagen',
+        shareCount: '{{n}} hitos en tu camino',
       },
       weekCardTitle: 'Mi semana en la Palabra',
       weekCardSubtitle: 'Últimos 7 días',
@@ -733,6 +739,8 @@ export const translations = {
       homePrompt: '¿Cómo te sientes hoy?',
       seeAll: 'Ver todos',
       verses: 'versículos',
+      moodVerseTitle: 'Para tu ánimo de hoy',
+      moodVerseHint: 'Toca para leerlo en su capítulo',
       openHint: 'Abrir pasaje',
       missingText: '(texto no disponible)',
       error: 'No se pudieron cargar los pasajes',
@@ -816,9 +824,9 @@ export const translations = {
     },
 
     lectio: {
-      title: 'Lectio Divina',
+      title: 'Momento con Dios',
       subtitle: 'Lectura orante de la Palabra',
-      cardTitle: 'Lectio Divina',
+      cardTitle: 'Momento con Dios',
       cardSubtitle: 'Lee, medita, ora y contempla un pasaje',
       stepLabels: {
         lectio: 'Lee',
@@ -856,7 +864,7 @@ export const translations = {
       done: 'Listo',
       prayerSaved: 'Tu oración se guardó en tus notas',
       error: 'No se pudo cargar el pasaje',
-      exitA11y: 'Salir de Lectio Divina',
+      exitA11y: 'Salir de Momento con Dios',
     },
 
     auth: {
@@ -1134,6 +1142,9 @@ export const translations = {
       sideBySide: 'Mostrar la otra versión junto a esta',
       dualView: 'Doble',
       focusMode: 'Foco',
+      focusModeOnToast:
+        'Modo foco: se resalta el versículo del centro (o el que se está escuchando) y el resto se atenúa',
+      focusModeOffToast: 'Modo foco desactivado',
       dualCompanionLabel: 'Junto a:',
       swapVersions: 'Intercambiar versiones',
       dualLayoutColumns: 'Ver en columnas a igual tamaño',
@@ -1235,6 +1246,14 @@ export const translations = {
       playlistRow: 'Lista: {{label}}',
       nextChapterUp: 'Sigue: {{chapter}}',
       readerFollowToast: '∞ {{chapter}}',
+      autoAdvanceOnToast:
+        '∞ Avance automático: al terminar seguirá el siguiente capítulo',
+      autoAdvanceOffToast:
+        'Avance automático desactivado: el audio se detendrá al final del capítulo',
+      readerFollowOnToast:
+        '📖 El lector te llevará al capítulo que se esté escuchando',
+      readerFollowOffToast:
+        'El lector se quedará donde estás mientras el audio avanza',
       immersive: {
         listen: 'Escuchar',
         listening: 'Escuchando',
@@ -1383,6 +1402,9 @@ export const translations = {
       pointsNeeded: 'puntos para',
       pts: 'pts',
       achievementsUnlocked: 'Desbloqueados',
+      almostThere: 'A punto de lograrse',
+      almostThereA11y:
+        '{{name}}: {{current}} de {{requirement}} para desbloquear',
       categories: {
         reading: 'Lectura',
         streak: 'Rachas',
@@ -1391,6 +1413,7 @@ export const translations = {
         highlights: 'Destacados',
         notes: 'Notas',
         search: 'Búsqueda',
+        time: 'Tiempo',
         special: 'Especiales',
       },
       rarities: {
@@ -2285,6 +2308,8 @@ export const translations = {
       emptyHint: 'Read a chapter and come back to see your progress',
       heatmapTitle: 'Your activity',
       heatmapHint: 'Verses read per day (recent months)',
+      heatmapMoodLabel: 'Your mood',
+      heatmapMoodA11y: 'Mood by week: {{n}} of {{total}} weeks with a check-in',
       legendLess: 'Less',
       legendMore: 'More',
       streakCurrent: 'Current streak',
@@ -2343,7 +2368,10 @@ export const translations = {
         firstHighlight: 'Your first highlight · {{ref}}',
         streakRecord: 'New record streak: {{n}} days',
         planStarted: 'You started the plan {{plan}}',
+        planCompleted: 'You completed the plan {{plan}}',
         error: 'Could not load your timeline',
+        shareImage: 'Share as image',
+        shareCount: '{{n}} milestones on your walk',
       },
       weekCardTitle: 'My week in the Word',
       weekCardSubtitle: 'Last 7 days',
@@ -2747,6 +2775,8 @@ export const translations = {
       homePrompt: 'How are you feeling today?',
       seeAll: 'See all',
       verses: 'verses',
+      moodVerseTitle: 'For your mood today',
+      moodVerseHint: 'Tap to read it in its chapter',
       openHint: 'Open passage',
       missingText: '(text not available)',
       error: 'Could not load the passages',
@@ -2830,9 +2860,9 @@ export const translations = {
     },
 
     lectio: {
-      title: 'Lectio Divina',
+      title: 'Moment with God',
       subtitle: 'Praying the Word',
-      cardTitle: 'Lectio Divina',
+      cardTitle: 'Moment with God',
       cardSubtitle: 'Read, meditate, pray and contemplate a passage',
       stepLabels: {
         lectio: 'Read',
@@ -2870,7 +2900,7 @@ export const translations = {
       done: 'Done',
       prayerSaved: 'Your prayer was saved to your notes',
       error: 'Could not load the passage',
-      exitA11y: 'Exit Lectio Divina',
+      exitA11y: 'Exit Moment with God',
     },
 
     auth: {
@@ -3146,6 +3176,9 @@ export const translations = {
       sideBySide: 'Show the other version alongside',
       dualView: 'Dual',
       focusMode: 'Focus',
+      focusModeOnToast:
+        'Focus mode: the centered verse (or the one being read aloud) stands out, the rest dims',
+      focusModeOffToast: 'Focus mode off',
       dualCompanionLabel: 'Alongside:',
       swapVersions: 'Swap versions',
       dualLayoutColumns: 'Show as equal-size columns',
@@ -3247,6 +3280,13 @@ export const translations = {
       playlistRow: 'List: {{label}}',
       nextChapterUp: 'Up next: {{chapter}}',
       readerFollowToast: '∞ {{chapter}}',
+      autoAdvanceOnToast:
+        '∞ Auto-advance: audio will continue into the next chapter',
+      autoAdvanceOffToast:
+        'Auto-advance off: audio stops at the end of this chapter',
+      readerFollowOnToast:
+        '📖 The reader will follow the audio into each chapter',
+      readerFollowOffToast: 'The reader stays put while the audio moves on',
       immersive: {
         listen: 'Listen',
         listening: 'Listening',
@@ -3393,6 +3433,8 @@ export const translations = {
       pointsNeeded: 'points to',
       pts: 'pts',
       achievementsUnlocked: 'Unlocked',
+      almostThere: 'Almost there',
+      almostThereA11y: '{{name}}: {{current}} of {{requirement}} to unlock',
       categories: {
         reading: 'Reading',
         streak: 'Streaks',
@@ -3401,6 +3443,7 @@ export const translations = {
         highlights: 'Highlights',
         notes: 'Notes',
         search: 'Search',
+        time: 'Time',
         special: 'Special',
       },
       rarities: {

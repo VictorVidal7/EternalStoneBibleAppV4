@@ -24,6 +24,8 @@ import {useTheme} from '../hooks/useTheme';
 import {useLanguage} from '../hooks/useLanguage';
 import {BibleDatabase} from '../lib/database';
 import {Achievement, AchievementCategory} from '../lib/achievements/types';
+import {nearestAchievements} from '../lib/achievements/nearby';
+import {getLocalizedAchievement} from '../lib/achievements/definitions';
 import {
   spacing,
   borderRadius,
@@ -73,6 +75,14 @@ export const AchievementsScreen: React.FC<AchievementsScreenProps> = ({
       selectedCategory === 'all' || achievement.category === selectedCategory,
   );
 
+  // "Almost there" (Sprint 81): the locked achievements closest to unlocking,
+  // shown only on the unfiltered view so the strip never contradicts the
+  // category filter below it.
+  const almostThere = useMemo(
+    () => (selectedCategory === 'all' ? nearestAchievements(achievements) : []),
+    [achievements, selectedCategory],
+  );
+
   // Sort: unlocked first, then by progress
   const sortedAchievements = [...filteredAchievements].sort((a, b) => {
     if (a.isUnlocked && !b.isUnlocked) return -1;
@@ -120,6 +130,18 @@ export const AchievementsScreen: React.FC<AchievementsScreenProps> = ({
       id: AchievementCategory.NOTES,
       name: t.achievements.categories.notes,
       icon: '📝',
+    },
+    // SEARCH and TIME achievements existed since day one but had no filter
+    // chip, so they were only reachable through "All" (Sprint 81).
+    {
+      id: AchievementCategory.SEARCH,
+      name: t.achievements.categories.search,
+      icon: '🔍',
+    },
+    {
+      id: AchievementCategory.TIME,
+      name: t.achievements.categories.time,
+      icon: '⏱️',
     },
     {
       id: AchievementCategory.SPECIAL,
@@ -287,6 +309,73 @@ export const AchievementsScreen: React.FC<AchievementsScreenProps> = ({
           <FlatList
             data={sortedAchievements}
             keyExtractor={item => item.id}
+            ListHeaderComponent={
+              almostThere.length > 0 ? (
+                <View
+                  style={[
+                    styles.almostCard,
+                    {backgroundColor: colors.card},
+                    isDark ? shadows.md : shadows.sm,
+                  ]}>
+                  <Text
+                    style={[styles.almostTitle, {color: colors.textSecondary}]}>
+                    ✨ {t.achievements.almostThere}
+                  </Text>
+                  {almostThere.map(a => {
+                    const {name} = getLocalizedAchievement(a, t);
+                    const pct = Math.min(
+                      100,
+                      Math.round((a.currentProgress / a.requirement) * 100),
+                    );
+                    return (
+                      <View
+                        key={a.id}
+                        style={styles.almostRow}
+                        accessible={true}
+                        accessibilityLabel={t.achievements.almostThereA11y
+                          .replace('{{name}}', name)
+                          .replace('{{current}}', String(a.currentProgress))
+                          .replace('{{requirement}}', String(a.requirement))}>
+                        {/* Catalog icons are EMOJIS — standalone Text, never
+                            Ionicons (renders '?'), per the S80 lesson. */}
+                        <Text style={styles.almostIcon}>{a.icon}</Text>
+                        <View style={styles.almostBody}>
+                          <View style={styles.almostLabelRow}>
+                            <Text
+                              style={[styles.almostName, {color: colors.text}]}
+                              numberOfLines={1}>
+                              {name}
+                            </Text>
+                            <Text
+                              style={[
+                                styles.almostCount,
+                                {color: colors.textTertiary},
+                              ]}>
+                              {a.currentProgress}/{a.requirement}
+                            </Text>
+                          </View>
+                          <View
+                            style={[
+                              styles.almostTrack,
+                              {backgroundColor: colors.surfaceVariant},
+                            ]}>
+                            <View
+                              style={[
+                                styles.almostFill,
+                                {
+                                  backgroundColor: colors.primary,
+                                  width: `${pct}%`,
+                                },
+                              ]}
+                            />
+                          </View>
+                        </View>
+                      </View>
+                    );
+                  })}
+                </View>
+              ) : null
+            }
             renderItem={({item}) => (
               <TouchableOpacity onPress={() => setSelectedAchievement(item)}>
                 <AchievementCard
@@ -457,6 +546,56 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.base,
     paddingTop: spacing.sm,
     paddingBottom: 100, // Espacio para tab bar (88px iOS / 68px Android)
+  },
+  // "Almost there" strip (Sprint 81)
+  almostCard: {
+    borderRadius: borderRadius.md,
+    padding: spacing.base,
+    marginBottom: spacing.sm,
+  },
+  almostTitle: {
+    fontSize: fontSize.xs,
+    fontWeight: '700',
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+    marginBottom: spacing.sm,
+  },
+  almostRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: spacing.sm,
+  },
+  almostIcon: {
+    fontSize: fontSize.xl,
+    marginRight: spacing.sm,
+  },
+  almostBody: {
+    flex: 1,
+  },
+  almostLabelRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'baseline',
+    marginBottom: 4,
+  },
+  almostName: {
+    fontSize: fontSize.sm,
+    fontWeight: '600',
+    flexShrink: 1,
+    marginRight: spacing.sm,
+  },
+  almostCount: {
+    fontSize: fontSize.xs,
+    fontVariant: ['tabular-nums'],
+  },
+  almostTrack: {
+    height: 6,
+    borderRadius: 3,
+    overflow: 'hidden',
+  },
+  almostFill: {
+    height: '100%',
+    borderRadius: 3,
   },
   emptyContainer: {
     padding: spacing['2xl'],

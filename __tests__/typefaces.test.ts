@@ -3,6 +3,8 @@ import {
   READER_FONT_FAMILY_ORDER,
   resolveTypeface,
   isReaderFontFamily,
+  immersiveLineHeight,
+  IMMERSIVE_LINE_HEIGHT_RATIO,
   type ReaderFontFamily,
 } from '../src/lib/reader/typefaces';
 
@@ -69,6 +71,22 @@ describe('reader typefaces catalog', () => {
       expect(isReaderFontFamily('comic')).toBe(false);
       expect(isReaderFontFamily(undefined)).toBe(false);
       expect(isReaderFontFamily(3)).toBe(false);
+    });
+  });
+
+  describe('immersiveLineHeight (Sprint 81)', () => {
+    it('keeps the old default look at the default size (22 → ~36)', () => {
+      expect(immersiveLineHeight(22)).toBe(35);
+    });
+
+    it('scales with the user-chosen size across the 16–32 range', () => {
+      for (const size of [16, 18, 20, 22, 24, 26, 28, 30, 32]) {
+        const lh = immersiveLineHeight(size);
+        expect(lh).toBe(Math.round(size * IMMERSIVE_LINE_HEIGHT_RATIO));
+        // Never below the font size — the old fixed 36 collapsed to ~1.1×
+        // at size 32 and clipped descenders.
+        expect(lh).toBeGreaterThanOrEqual(Math.round(size * 1.5));
+      }
     });
   });
 });
