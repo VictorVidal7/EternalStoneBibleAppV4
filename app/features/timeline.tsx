@@ -58,6 +58,7 @@ const TYPE_ICONS: Record<TimelineEvent['type'], string> = {
   'first-highlight': 'color-palette',
   'streak-record': 'flame',
   'plan-started': 'calendar',
+  'plan-completed': 'ribbon',
 };
 
 export default function TimelineScreen() {
@@ -68,7 +69,7 @@ export default function TimelineScreen() {
   const tl = t.readingInsights.timeline;
   const {achievementService, highlightService} = useServices();
   const {favorites} = useFavorites();
-  const {getStartedAt} = useReadingPlanProgress();
+  const {getStartedAt, getCompletedAt} = useReadingPlanProgress();
 
   const [events, setEvents] = useState<TimelineEvent[] | null>(null);
   const [status, setStatus] = useState<LoadStatus>('loading');
@@ -103,6 +104,8 @@ export default function TimelineScreen() {
           plans: READING_PLANS.map(plan => ({
             planId: plan.id,
             startedAt: getStartedAt(plan.id),
+            // Stamped from S81 on; older completions stay honestly omitted.
+            completedAt: getCompletedAt(plan.id),
           })),
           readingLog,
         }),
@@ -115,7 +118,13 @@ export default function TimelineScreen() {
       });
       setStatus('error');
     }
-  }, [achievementService, highlightService, favorites, getStartedAt]);
+  }, [
+    achievementService,
+    highlightService,
+    favorites,
+    getStartedAt,
+    getCompletedAt,
+  ]);
 
   useEffect(() => {
     load();
@@ -164,6 +173,11 @@ export default function TimelineScreen() {
           const plan = READING_PLANS.find(p => p.id === event.subject);
           const name = plan ? getLocalizedPlan(plan, t).name : event.subject;
           return tl.planStarted.replace('{{plan}}', name);
+        }
+        case 'plan-completed': {
+          const plan = READING_PLANS.find(p => p.id === event.subject);
+          const name = plan ? getLocalizedPlan(plan, t).name : event.subject;
+          return tl.planCompleted.replace('{{plan}}', name);
         }
       }
     },

@@ -166,3 +166,61 @@ describe('timeline (Sprint 80 — Tu línea de tiempo)', () => {
     expect(timelineMonthKey(at(2026, 11, 1))).toBe('2026-11');
   });
 });
+
+describe('plan-completed (Sprint 81)', () => {
+  const at = (y: number, m: number, d: number) =>
+    new Date(y, m - 1, d, 12).getTime();
+
+  it('emits a completion event when the stamp exists, after its start', () => {
+    const feed = buildTimeline({
+      completedBooks: [],
+      achievements: [],
+      favorites: [],
+      notes: [],
+      highlights: [],
+      plans: [
+        {
+          planId: 'gospels-30',
+          startedAt: new Date(at(2026, 5, 1)).toISOString(),
+          completedAt: new Date(at(2026, 6, 10)).toISOString(),
+        },
+      ],
+      readingLog: [],
+    });
+    expect(feed.map(e => e.type)).toEqual(['plan-completed', 'plan-started']);
+    expect(feed[0].subject).toBe('gospels-30');
+    expect(feed[0].id).toBe('plan-completed:gospels-30');
+  });
+
+  it('honestly omits plans completed before the stamp existed', () => {
+    const feed = buildTimeline({
+      completedBooks: [],
+      achievements: [],
+      favorites: [],
+      notes: [],
+      highlights: [],
+      plans: [
+        {
+          planId: 'pre-s81',
+          startedAt: new Date(at(2026, 1, 1)).toISOString(),
+          completedAt: null,
+        },
+      ],
+      readingLog: [],
+    });
+    expect(feed.map(e => e.type)).toEqual(['plan-started']);
+  });
+
+  it('ignores a malformed completion stamp', () => {
+    const feed = buildTimeline({
+      completedBooks: [],
+      achievements: [],
+      favorites: [],
+      notes: [],
+      highlights: [],
+      plans: [{planId: 'bad', startedAt: null, completedAt: 'garbage'}],
+      readingLog: [],
+    });
+    expect(feed).toEqual([]);
+  });
+});
