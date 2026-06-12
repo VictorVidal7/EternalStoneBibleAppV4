@@ -39,6 +39,9 @@ import {
   timelineMonthKey,
   type TimelineEvent,
 } from '@/features/reading-insights/timeline';
+import {buildTimelineCard} from '@/features/reading-insights/timelineCard';
+import {TimelineImageModal} from '@components/insights/TimelineImageModal';
+import {haptics} from '@lib/haptics';
 import {logger} from '@lib/utils/logger';
 import {
   borderRadius,
@@ -73,6 +76,8 @@ export default function TimelineScreen() {
 
   const [events, setEvents] = useState<TimelineEvent[] | null>(null);
   const [status, setStatus] = useState<LoadStatus>('loading');
+  // Share-as-image modal (Sprint 81) — the S56 view-shot pipeline.
+  const [shareVisible, setShareVisible] = useState(false);
 
   const load = useCallback(async () => {
     if (!achievementService || !highlightService) return;
@@ -225,6 +230,25 @@ export default function TimelineScreen() {
 
   const headerGradient: [string, string] = [colors.primary, colors.primaryDark];
 
+  // Render-ready share card: the newest milestones, already localized (the
+  // feed arrives newest-first). Uniform Ionicons glyphs — achievement events
+  // carry EMOJI icons that belong to Text, not to the card's glyph circles.
+  const shareCard = useMemo(
+    () =>
+      buildTimelineCard(
+        (events ?? []).map(event => ({
+          title: eventTitle(event),
+          dateLabel: new Date(event.timestamp).toLocaleDateString(locale, {
+            day: 'numeric',
+            month: 'short',
+            year: 'numeric',
+          }),
+          icon: TYPE_ICONS[event.type],
+        })),
+      ),
+    [events, eventTitle, locale],
+  );
+
   return (
     <>
       <Stack.Screen options={{headerShown: false}} />
@@ -234,13 +258,37 @@ export default function TimelineScreen() {
           start={{x: 0, y: 0}}
           end={{x: 0, y: 1}}
           style={[styles.header, {paddingTop: insets.top + spacing.md}]}>
-          <TouchableOpacity
-            style={styles.backButton}
-            onPress={() => router.back()}
-            accessibilityRole="button"
-            accessibilityLabel={t.bible.back}>
-            <Ionicons name="arrow-back" size={24} color={staticColors.white} />
-          </TouchableOpacity>
+          <View style={styles.headerTopRow}>
+            <TouchableOpacity
+              style={styles.backButton}
+              onPress={() => router.back()}
+              accessibilityRole="button"
+              accessibilityLabel={t.bible.back}>
+              <Ionicons
+                name="arrow-back"
+                size={24}
+                color={staticColors.white}
+              />
+            </TouchableOpacity>
+            {/* Share the recent milestones as an image (Sprint 81) — hidden
+                for empty feeds: nothing to compose, honest gate. */}
+            {events && events.length > 0 ? (
+              <TouchableOpacity
+                style={styles.backButton}
+                onPress={() => {
+                  haptics.tap();
+                  setShareVisible(true);
+                }}
+                accessibilityRole="button"
+                accessibilityLabel={tl.shareImage}>
+                <Ionicons
+                  name="share-outline"
+                  size={22}
+                  color={staticColors.white}
+                />
+              </TouchableOpacity>
+            ) : null}
+          </View>
           <View style={styles.headerTextRow}>
             <View style={styles.headerIcon}>
               <Ionicons name="footsteps" size={26} color={staticColors.white} />
@@ -375,6 +423,15 @@ export default function TimelineScreen() {
               </View>
             ))}
         </ScrollView>
+
+        {/* Share-as-image (Sprint 81) — only mounted with content behind it. */}
+        {shareVisible && shareCard.milestones.length > 0 ? (
+          <TimelineImageModal
+            visible={shareVisible}
+            card={shareCard}
+            onClose={() => setShareVisible(false)}
+          />
+        ) : null}
       </View>
     </>
   );
@@ -387,6 +444,11 @@ const styles = StyleSheet.create({
     paddingBottom: spacing.lg,
     borderBottomLeftRadius: borderRadius['2xl'],
     borderBottomRightRadius: borderRadius['2xl'],
+  },
+  headerTopRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
   },
   backButton: {
     width: 44,
