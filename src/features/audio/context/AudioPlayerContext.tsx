@@ -224,7 +224,8 @@ export const AudioPlayerProvider: React.FC<AudioPlayerProviderProps> = ({
         }
       }
     } catch (error) {
-      console.error('Error loading audio preferences:', error);
+      // Defaults already cover a failed load — warn, don't LogBox-toast.
+      logger.warn('Error loading audio preferences', {error: String(error)});
     }
   };
 
@@ -250,7 +251,7 @@ export const AudioPlayerProvider: React.FC<AudioPlayerProviderProps> = ({
         JSON.stringify(updated),
       );
     } catch (error) {
-      console.error('Error saving audio preferences:', error);
+      logger.warn('Error saving audio preferences', {error: String(error)});
     }
   };
 
