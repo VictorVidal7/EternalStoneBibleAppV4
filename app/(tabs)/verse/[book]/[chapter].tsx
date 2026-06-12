@@ -345,6 +345,8 @@ export default function VerseReadingScreen() {
     haptics.tap();
     const next = !focusMode;
     setFocusMode(next);
+    // Icon-only toggle — say what it now does (Sprint 81).
+    toast.info(next ? t.verse.focusModeOnToast : t.verse.focusModeOffToast);
     AsyncStorage.setItem('@reader_focus_mode', next ? '1' : '0').catch(
       () => undefined,
     );
@@ -737,6 +739,13 @@ export default function VerseReadingScreen() {
         versesCount: chapterVerses.length,
       });
 
+      // expo-router REUSES this route instance across chapter navigations
+      // (S79 lesson), so the offsets map still holds the PREVIOUS chapter's
+      // row positions — the highlight scroll below would land on a stale
+      // offset (live-caught: Home mood card → Colossians 3:17 stayed at the
+      // top because John 4's verse 17 answered first). Clear; the new rows
+      // re-report through onLayout immediately (Sprint 81).
+      verseOffsetsRef.current.clear();
       setVerses(chapterVerses);
 
       // Update reading progress

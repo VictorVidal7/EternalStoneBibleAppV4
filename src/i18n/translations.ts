@@ -739,6 +739,8 @@ export const translations = {
       homePrompt: '¿Cómo te sientes hoy?',
       seeAll: 'Ver todos',
       verses: 'versículos',
+      moodVerseTitle: 'Para tu ánimo de hoy',
+      moodVerseHint: 'Toca para leerlo en su capítulo',
       openHint: 'Abrir pasaje',
       missingText: '(texto no disponible)',
       error: 'No se pudieron cargar los pasajes',
@@ -1140,6 +1142,9 @@ export const translations = {
       sideBySide: 'Mostrar la otra versión junto a esta',
       dualView: 'Doble',
       focusMode: 'Foco',
+      focusModeOnToast:
+        'Modo foco: se resalta el versículo del centro (o el que se está escuchando) y el resto se atenúa',
+      focusModeOffToast: 'Modo foco desactivado',
       dualCompanionLabel: 'Junto a:',
       swapVersions: 'Intercambiar versiones',
       dualLayoutColumns: 'Ver en columnas a igual tamaño',
@@ -1241,6 +1246,14 @@ export const translations = {
       playlistRow: 'Lista: {{label}}',
       nextChapterUp: 'Sigue: {{chapter}}',
       readerFollowToast: '∞ {{chapter}}',
+      autoAdvanceOnToast:
+        '∞ Avance automático: al terminar seguirá el siguiente capítulo',
+      autoAdvanceOffToast:
+        'Avance automático desactivado: el audio se detendrá al final del capítulo',
+      readerFollowOnToast:
+        '📖 El lector te llevará al capítulo que se esté escuchando',
+      readerFollowOffToast:
+        'El lector se quedará donde estás mientras el audio avanza',
       immersive: {
         listen: 'Escuchar',
         listening: 'Escuchando',
@@ -2762,6 +2775,8 @@ export const translations = {
       homePrompt: 'How are you feeling today?',
       seeAll: 'See all',
       verses: 'verses',
+      moodVerseTitle: 'For your mood today',
+      moodVerseHint: 'Tap to read it in its chapter',
       openHint: 'Open passage',
       missingText: '(text not available)',
       error: 'Could not load the passages',
@@ -3161,6 +3176,9 @@ export const translations = {
       sideBySide: 'Show the other version alongside',
       dualView: 'Dual',
       focusMode: 'Focus',
+      focusModeOnToast:
+        'Focus mode: the centered verse (or the one being read aloud) stands out, the rest dims',
+      focusModeOffToast: 'Focus mode off',
       dualCompanionLabel: 'Alongside:',
       swapVersions: 'Swap versions',
       dualLayoutColumns: 'Show as equal-size columns',
@@ -3262,6 +3280,13 @@ export const translations = {
       playlistRow: 'List: {{label}}',
       nextChapterUp: 'Up next: {{chapter}}',
       readerFollowToast: '∞ {{chapter}}',
+      autoAdvanceOnToast:
+        '∞ Auto-advance: audio will continue into the next chapter',
+      autoAdvanceOffToast:
+        'Auto-advance off: audio stops at the end of this chapter',
+      readerFollowOnToast:
+        '📖 The reader will follow the audio into each chapter',
+      readerFollowOffToast: 'The reader stays put while the audio moves on',
       immersive: {
         listen: 'Listen',
         listening: 'Listening',
