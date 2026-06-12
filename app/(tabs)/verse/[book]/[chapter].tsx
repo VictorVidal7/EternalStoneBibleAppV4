@@ -68,6 +68,7 @@ import {
   spotlightOpacity,
   focusVerseOpacity,
   focusedVerseFromOffsets,
+  focusTargetVerse,
 } from '@/lib/reader/spotlight';
 import {
   useReaderPreferences,
@@ -947,6 +948,16 @@ export default function VerseReadingScreen() {
     displayedLocation,
     audioEngineLocation,
   );
+
+  // Focus mode + audio (Sprint 81): while the engine voices THIS chapter, the
+  // spotlight follows the SPOKEN verse instead of the viewport center — the
+  // audio auto-scroll pins the spoken verse near the TOP, so the center-driven
+  // focus dimmed the very verse being read aloud and lit one below it. Pauses
+  // fall back to the scroll-centered verse via `focusTargetVerse`.
+  const audioFocusVerse =
+    audioBoundToReader && audioState.isPlaying
+      ? (verses[audioState.currentVerseIndex]?.verse ?? null)
+      : null;
 
   // Latch: the chapter the reader was showing WHILE the engine played that
   // same chapter. Only a chapter the user actually listened to from here can
@@ -1938,7 +1949,11 @@ export default function VerseReadingScreen() {
                   {
                     opacity: Math.min(
                       spotlightOpacity(verse.verse, selectedVerses),
-                      focusVerseOpacity(verse.verse, focusedVerse, focusMode),
+                      focusVerseOpacity(
+                        verse.verse,
+                        focusTargetVerse(focusedVerse, audioFocusVerse),
+                        focusMode,
+                      ),
                     ),
                   },
                 ]}>

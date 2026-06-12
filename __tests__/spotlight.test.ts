@@ -2,6 +2,7 @@ import {
   spotlightOpacity,
   focusVerseOpacity,
   focusedVerseFromOffsets,
+  focusTargetVerse,
   SPOTLIGHT_DIM,
   SPOTLIGHT_FULL,
 } from '../src/lib/reader/spotlight';
@@ -94,5 +95,23 @@ describe('focusedVerseFromOffsets', () => {
   it('focuses the topmost verse before any row reaches center', () => {
     // tiny viewport at the very top: center = 10, no row top <= 10 except v1(0).
     expect(focusedVerseFromOffsets(offsets, 0, 20)).toBe(1);
+  });
+});
+
+describe('focusTargetVerse (Sprint 81 — Focus follows audio)', () => {
+  it('prefers the spoken verse while audio voices the chapter', () => {
+    expect(focusTargetVerse(7, 12)).toBe(12);
+  });
+
+  it('falls back to the scroll-centered verse when audio is silent', () => {
+    expect(focusTargetVerse(7, null)).toBe(7);
+  });
+
+  it('stays null when neither driver has a verse', () => {
+    expect(focusTargetVerse(null, null)).toBeNull();
+  });
+
+  it('lights the spoken verse even before any scroll settled a center', () => {
+    expect(focusTargetVerse(null, 3)).toBe(3);
   });
 });

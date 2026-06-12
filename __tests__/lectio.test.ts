@@ -81,8 +81,17 @@ describe('formatCountdown', () => {
 describe('prayer-note composition', () => {
   it('builds a dated prayer block, trimming the prayer', () => {
     expect(buildLectioPrayerBlock('  Gracias, Padre.  ', '11 jun 2026')).toBe(
-      '🙏 Lectio Divina — 11 jun 2026\nGracias, Padre.',
+      '🙏 Momento con Dios — 11 jun 2026\nGracias, Padre.',
     );
+  });
+
+  it('heads the block with the localized session label (Sprint 81 rename)', () => {
+    expect(
+      buildLectioPrayerBlock('Amén.', 'hoy', translations.es.lectio.title),
+    ).toBe('🙏 Momento con Dios — hoy\nAmén.');
+    expect(
+      buildLectioPrayerBlock('Amen.', 'today', translations.en.lectio.title),
+    ).toBe('🙏 Moment with God — today\nAmen.');
   });
 
   it('appends to an existing note instead of clobbering it', () => {

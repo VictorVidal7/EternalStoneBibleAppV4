@@ -82,6 +82,21 @@ export function isReaderFontFamily(value: unknown): value is ReaderFontFamily {
 }
 
 /**
+ * Line-height ratio for the immersive reader's verse text (Sprint 81). The
+ * immersive Text shipped a FIXED lineHeight of 36 under a font size the user
+ * scales 16–32: at 32 the ratio collapsed to ~1.1 (descenders touching the
+ * next line), at 16 the lines floated apart. One ratio scaled with the chosen
+ * size keeps the default look (22 → 35 ≈ the old 36) and stays airy at the
+ * extremes.
+ */
+export const IMMERSIVE_LINE_HEIGHT_RATIO = 1.6;
+
+/** The immersive verse lineHeight for a given fontSize (whole dp). */
+export function immersiveLineHeight(fontSize: number): number {
+  return Math.round(fontSize * IMMERSIVE_LINE_HEIGHT_RATIO);
+}
+
+/**
  * Resolve a typeface id to a `fontFamily` value safe to set on an RN `Text`,
  * for the given platform ('ios' | 'android'). `sans` (and any unknown id)
  * resolves to `undefined` → the platform's native default sans. Pure: the

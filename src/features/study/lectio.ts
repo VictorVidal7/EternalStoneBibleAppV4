@@ -61,12 +61,20 @@ export function formatCountdown(totalSeconds: number): string {
   return `${minutes}:${String(seconds).padStart(2, '0')}`;
 }
 
-/** The block a finished session appends to the verse's note. */
+/**
+ * The block a finished session appends to the verse's note. `sessionLabel` is
+ * the localized feature name shown as the block header (the screen passes
+ * `t.lectio.title` — "Momento con Dios" / "Moment with God"); the default
+ * keeps the function safe to call without UI context. Notes saved before the
+ * Sprint 81 rename keep their original "Lectio Divina" header — they are the
+ * user's data, never rewritten.
+ */
 export function buildLectioPrayerBlock(
   prayer: string,
   dateLabel: string,
+  sessionLabel: string = 'Momento con Dios',
 ): string {
-  return `🙏 Lectio Divina — ${dateLabel}\n${prayer.trim()}`;
+  return `🙏 ${sessionLabel} — ${dateLabel}\n${prayer.trim()}`;
 }
 
 /**

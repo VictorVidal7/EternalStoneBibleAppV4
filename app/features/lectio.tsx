@@ -219,7 +219,7 @@ export default function LectioScreen() {
           language === 'en' ? 'en-US' : 'es-ES',
           {year: 'numeric', month: 'long', day: 'numeric'},
         );
-        const block = buildLectioPrayerBlock(trimmed, dateLabel);
+        const block = buildLectioPrayerBlock(trimmed, dateLabel, tl.title);
         const existing = await bibleDB.getNoteForVerse(
           canonical,
           chapterNum,
@@ -281,6 +281,7 @@ export default function LectioScreen() {
     reference,
     toast,
     tl.prayerSaved,
+    tl.title,
   ]);
 
   const goNext = () => {

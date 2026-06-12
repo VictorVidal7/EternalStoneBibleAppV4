@@ -816,9 +816,9 @@ export const translations = {
     },
 
     lectio: {
-      title: 'Lectio Divina',
+      title: 'Momento con Dios',
       subtitle: 'Lectura orante de la Palabra',
-      cardTitle: 'Lectio Divina',
+      cardTitle: 'Momento con Dios',
       cardSubtitle: 'Lee, medita, ora y contempla un pasaje',
       stepLabels: {
         lectio: 'Lee',
@@ -856,7 +856,7 @@ export const translations = {
       done: 'Listo',
       prayerSaved: 'Tu oración se guardó en tus notas',
       error: 'No se pudo cargar el pasaje',
-      exitA11y: 'Salir de Lectio Divina',
+      exitA11y: 'Salir de Momento con Dios',
     },
 
     auth: {
@@ -2830,9 +2830,9 @@ export const translations = {
     },
 
     lectio: {
-      title: 'Lectio Divina',
+      title: 'Moment with God',
       subtitle: 'Praying the Word',
-      cardTitle: 'Lectio Divina',
+      cardTitle: 'Moment with God',
       cardSubtitle: 'Read, meditate, pray and contemplate a passage',
       stepLabels: {
         lectio: 'Read',
@@ -2870,7 +2870,7 @@ export const translations = {
       done: 'Done',
       prayerSaved: 'Your prayer was saved to your notes',
       error: 'Could not load the passage',
-      exitA11y: 'Exit Lectio Divina',
+      exitA11y: 'Exit Moment with God',
     },
 
     auth: {
