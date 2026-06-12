@@ -1,0 +1,116 @@
+/**
+ * Emotional check-in history (Sprint 80) — the pure model.
+ *
+ * One feeling per LOCAL day, last write wins: tapping "Ansioso" in the
+ * morning and "Agradecido" at night keeps the evening's word — the log reads
+ * as "how the day ended", not a minute-by-minute diary. Privacy-first: the
+ * log never leaves the device (the [[listeningStats]] rule) and retention is
+ * BOUNDED — entries older than {@link FEELINGS_RETENTION_DAYS} fall off on
+ * every write, so the store can't grow unboundedly.
+ *
+ * Day SHIFTS go through setDate (the S78 DST rule); date keys are LOCAL
+ * `YYYY-MM-DD`, so lexicographic comparison is chronological by construction.
+ *
+ * Storage-free mirror of [[listeningStats]]; AsyncStorage I/O lives in
+ * [[feelingsLogStore]].
+ *
+ * Para la gloria de Dios Todopoderoso ✨
+ */
+
+/** dateKey (local YYYY-MM-DD) → feelingId for that day. */
+export interface FeelingsLog {
+  days: Record<string, string>;
+}
+
+/** 12 weeks of history — enough for a quarter's mood line, small forever. */
+export const FEELINGS_RETENTION_DAYS = 84;
+
+/** Local-day key for a timestamp (the listeningStats key format). */
+export function feelingsDateKey(now: number): string {
+  const d = new Date(now);
+  const month = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  return `${d.getFullYear()}-${month}-${day}`;
+}
+
+export function emptyFeelingsLog(): FeelingsLog {
+  return {days: {}};
+}
+
+/** Defensively parse a raw storage blob (malformed anything → empty log). */
+export function parseFeelingsLog(raw: string | null): FeelingsLog {
+  if (!raw) return emptyFeelingsLog();
+  try {
+    const parsed: unknown = JSON.parse(raw);
+    if (typeof parsed !== 'object' || parsed === null) {
+      return emptyFeelingsLog();
+    }
+    const days = (parsed as {days?: unknown}).days;
+    if (typeof days !== 'object' || days === null) return emptyFeelingsLog();
+    const clean: Record<string, string> = {};
+    for (const [key, value] of Object.entries(days)) {
+      if (/^\d{4}-\d{2}-\d{2}$/.test(key) && typeof value === 'string') {
+        clean[key] = value;
+      }
+    }
+    return {days: clean};
+  } catch {
+    return emptyFeelingsLog();
+  }
+}
+
+export function serializeFeelingsLog(log: FeelingsLog): string {
+  return JSON.stringify(log);
+}
+
+/**
+ * Record the day's feeling (last write wins) and prune anything that fell
+ * out of the retention window relative to `now`. Pure — returns a new log.
+ */
+export function recordFeeling(
+  log: FeelingsLog,
+  feelingId: string,
+  now: number,
+): FeelingsLog {
+  const cutoff = new Date(now);
+  cutoff.setDate(cutoff.getDate() - (FEELINGS_RETENTION_DAYS - 1));
+  const cutoffKey = feelingsDateKey(cutoff.getTime());
+  const days: Record<string, string> = {};
+  for (const [key, value] of Object.entries(log.days)) {
+    if (key >= cutoffKey) days[key] = value;
+  }
+  days[feelingsDateKey(now)] = feelingId;
+  return {days};
+}
+
+/** One slot of the 7-day mood line (oldest → today). */
+export interface MoodDay {
+  dateKey: string;
+  /** The day's recorded feeling, or null when none was checked in. */
+  feelingId: string | null;
+  isToday: boolean;
+  /** Local weekday index, 0 = Sunday (for initials). */
+  weekday: number;
+}
+
+/** The last 7 LOCAL days of the log (setDate shifts — DST-safe). */
+export function weekMood(log: FeelingsLog, now: number): MoodDay[] {
+  const days: MoodDay[] = [];
+  for (let offset = 6; offset >= 0; offset--) {
+    const d = new Date(now);
+    d.setDate(d.getDate() - offset);
+    const dateKey = feelingsDateKey(d.getTime());
+    days.push({
+      dateKey,
+      feelingId: log.days[dateKey] ?? null,
+      isToday: offset === 0,
+      weekday: d.getDay(),
+    });
+  }
+  return days;
+}
+
+/** Honest gate: hide the mood line until any check-in exists in the window. */
+export function hasAnyMood(days: MoodDay[]): boolean {
+  return days.some(day => day.feelingId !== null);
+}

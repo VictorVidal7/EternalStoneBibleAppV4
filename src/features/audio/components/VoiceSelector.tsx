@@ -167,7 +167,7 @@ export const VoiceSelector: React.FC<VoiceSelectorProps> = ({
                       {
                         color:
                           currentLanguage === lang
-                            ? staticColors.white
+                            ? colors.onPrimary
                             : colors.text,
                       },
                     ]}>

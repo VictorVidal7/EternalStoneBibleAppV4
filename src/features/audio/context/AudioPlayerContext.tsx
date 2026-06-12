@@ -31,6 +31,7 @@ import {
   AudioPreferences,
   SpeechBoundary,
   AudioQueueInfo,
+  AudioQueueOptions,
   LoadQueueOptions,
 } from '../types/audio';
 import {
@@ -41,6 +42,11 @@ import {
 } from '../constants/audioConstants';
 import {createPosition} from '../lib/playbackPosition';
 import {setLastPosition, clearLastPosition} from '../lib/playbackPositionStore';
+import {
+  DEFAULT_QUEUE_OPTIONS,
+  shuffleUpcoming,
+  restoreUpcomingOrder,
+} from '../lib/playlistQueueOptions';
 
 // ==================== INITIAL STATE ====================
 
@@ -106,6 +112,11 @@ export const AudioPlayerProvider: React.FC<AudioPlayerProviderProps> = ({
     mode: 'chapter',
     label: null,
   });
+  // Runtime queue toggles (Sprint 80 — shuffle + repeat). Playlist-only; a
+  // plain loadChapter resets them with the rest of the queue identity.
+  const [queueOptions, setQueueOptionsState] = useState<AudioQueueOptions>(
+    DEFAULT_QUEUE_OPTIONS,
+  );
 
   // Refs
   const sleepTimerRef = useRef<NodeJS.Timeout | null>(null);
@@ -131,6 +142,13 @@ export const AudioPlayerProvider: React.FC<AudioPlayerProviderProps> = ({
   const stateRef = useRef(state);
   const versesRef = useRef(verses);
   const sleepTimerStateRef = useRef(sleepTimer);
+  // Queue identity/options mirrors for the onDone end-of-queue branch (the
+  // repeat decision) — updated EAGERLY in their setters, never via effects,
+  // so a toggle right before the last verse ends is always honoured.
+  const queueInfoRef = useRef(queueInfo);
+  const queueOptionsRef = useRef(queueOptions);
+  // The playlist's order as loaded — what "un-shuffle" restores to.
+  const originalOrderRef = useRef<AudioVerse[]>([]);
 
   // Keep refs in sync with state
   useEffect(() => {
@@ -224,7 +242,8 @@ export const AudioPlayerProvider: React.FC<AudioPlayerProviderProps> = ({
         }
       }
     } catch (error) {
-      console.error('Error loading audio preferences:', error);
+      // Defaults already cover a failed load — warn, don't LogBox-toast.
+      logger.warn('Error loading audio preferences', {error: String(error)});
     }
   };
 
@@ -250,7 +269,7 @@ export const AudioPlayerProvider: React.FC<AudioPlayerProviderProps> = ({
         JSON.stringify(updated),
       );
     } catch (error) {
-      console.error('Error saving audio preferences:', error);
+      logger.warn('Error saving audio preferences', {error: String(error)});
     }
   };
 
@@ -347,6 +366,19 @@ export const AudioPlayerProvider: React.FC<AudioPlayerProviderProps> = ({
             }
 
             if (index >= freshVerses.length - 1) {
+              // Repeat-the-list (Sprint 80): a repeating playlist wraps to
+              // its start instead of stopping. An end-of-chapter sleep timer
+              // is an explicit "stop here", so it wins (the same rule
+              // shouldAdvanceChapter applies to continuous playback).
+              if (
+                queueInfoRef.current.mode === 'playlist' &&
+                queueOptionsRef.current.repeat &&
+                freshSleepTimer.mode !== 'end-of-chapter'
+              ) {
+                logger.info('Playlist repeating from the start');
+                setTimeout(() => speakVerseByIndex(0), 50);
+                return;
+              }
               logger.info('Reached end of chapter');
               if (freshSleepTimer.mode === 'end-of-chapter') {
                 cancelSleepTimer();
@@ -748,10 +780,17 @@ export const AudioPlayerProvider: React.FC<AudioPlayerProviderProps> = ({
         isPaused: false,
         isLoading: false,
       }));
-      setQueueInfo({
+      const nextQueueInfo: AudioQueueInfo = {
         mode: options?.mode ?? 'chapter',
         label: options?.mode === 'playlist' ? (options?.label ?? null) : null,
-      });
+      };
+      queueInfoRef.current = nextQueueInfo;
+      setQueueInfo(nextQueueInfo);
+      // Every load starts an un-shuffled, non-repeating queue, and remembers
+      // the loaded order as what "un-shuffle" restores to (Sprint 80).
+      originalOrderRef.current = newVerses;
+      queueOptionsRef.current = DEFAULT_QUEUE_OPTIONS;
+      setQueueOptionsState(DEFAULT_QUEUE_OPTIONS);
       setIsVisible(true);
     },
     [],
@@ -765,9 +804,43 @@ export const AudioPlayerProvider: React.FC<AudioPlayerProviderProps> = ({
       currentVerseIndex: 0,
       totalVerses: 0,
     }));
+    queueInfoRef.current = {mode: 'chapter', label: null};
     setQueueInfo({mode: 'chapter', label: null});
+    originalOrderRef.current = [];
+    queueOptionsRef.current = DEFAULT_QUEUE_OPTIONS;
+    setQueueOptionsState(DEFAULT_QUEUE_OPTIONS);
     setIsVisible(false);
   }, [stop]);
+
+  // ==================== QUEUE OPTIONS (Sprint 80) ====================
+
+  /**
+   * Toggle devotional shuffle. Only the verses AFTER the one playing are
+   * permuted (history + current stay put), so every index captured by an
+   * in-flight speech callback stays valid — nothing restarts, nothing skips.
+   */
+  const setQueueShuffle = useCallback((on: boolean) => {
+    if (queueInfoRef.current.mode !== 'playlist') return;
+    const idx = stateRef.current.currentVerseIndex;
+    const reordered = on
+      ? shuffleUpcoming(versesRef.current, idx)
+      : restoreUpcomingOrder(versesRef.current, idx, originalOrderRef.current);
+    versesRef.current = reordered;
+    setVerses(reordered);
+    const next = {...queueOptionsRef.current, shuffle: on};
+    queueOptionsRef.current = next;
+    setQueueOptionsState(next);
+    logger.info('Playlist shuffle toggled', {on, fromIndex: idx});
+  }, []);
+
+  /** Toggle repeat-the-list; honoured by the onDone end-of-queue branch. */
+  const setQueueRepeat = useCallback((on: boolean) => {
+    if (queueInfoRef.current.mode !== 'playlist') return;
+    const next = {...queueOptionsRef.current, repeat: on};
+    queueOptionsRef.current = next;
+    setQueueOptionsState(next);
+    logger.info('Playlist repeat toggled', {on});
+  }, []);
 
   // ==================== CONTEXT VALUE ====================
 
@@ -812,6 +885,9 @@ export const AudioPlayerProvider: React.FC<AudioPlayerProviderProps> = ({
     clearChapter,
     setBottomOffset,
     queueInfo,
+    queueOptions,
+    setQueueShuffle,
+    setQueueRepeat,
 
     subscribeToBoundary,
   };

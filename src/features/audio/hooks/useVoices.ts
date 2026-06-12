@@ -9,6 +9,7 @@
 
 import {useState, useEffect, useCallback} from 'react';
 import * as Speech from 'expo-speech';
+import {logger} from '@lib/utils/logger';
 import {VoiceInfo, AudioLanguage} from '../types/audio';
 import {SUPPORTED_LANGUAGES} from '../constants/audioConstants';
 
@@ -67,7 +68,10 @@ export const useVoices = (): UseVoicesReturn => {
 
       setVoices(filteredVoices);
     } catch (err) {
-      console.error('Error fetching voices:', err);
+      // Recoverable (the selector shows its empty/error state and the next
+      // open refetches) — logger.warn, not console.error, so a flaky TTS
+      // service doesn't pop a dev LogBox pill over devotional screens.
+      logger.warn('Error fetching voices', {error: String(err)});
       setError('No se pudieron cargar las voces disponibles');
     } finally {
       setIsLoading(false);

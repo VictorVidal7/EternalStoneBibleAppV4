@@ -67,6 +67,9 @@ import {
   bookCanonProgressPct,
 } from '@lib/achievements/bookCompletion';
 import {getBookByName} from '@/constants/bible';
+import {getFeeling} from '@/features/study/feelings';
+import {getFeelingsLog} from '@/features/study/feelingsLogStore';
+import {weekMood, hasAnyMood, type MoodDay} from '@/features/study/feelingsLog';
 import {logger} from '@lib/utils/logger';
 import {
   borderRadius,
@@ -83,6 +86,10 @@ export default function ReadingInsightsScreen() {
   const {colors} = useTheme();
   const {t, language} = useLanguage();
   const ri = t.readingInsights;
+  // Mood line lookups: localized feeling names + the one shared weekday
+  // array (the memory-insights forecast already owns it — same calendar).
+  const feelingNames = t.feelings.list as Record<string, {name: string}>;
+  const weekdaysShort = t.memory.insights.weekdaysShort;
   const {achievementService} = useServices();
   const {progress} = useReadingProgress();
 
@@ -101,20 +108,24 @@ export default function ReadingInsightsScreen() {
   // Week-over-week deltas (Sprint 78) — same logs, two recap windows.
   const [weekCompare, setWeekCompare] = useState<WeekComparison | null>(null);
   const [weekModalVisible, setWeekModalVisible] = useState(false);
+  // Mood line (Sprint 80) — the week's emotional check-ins, device-local.
+  const [moodDays, setMoodDays] = useState<MoodDay[] | null>(null);
   const [status, setStatus] = useState<LoadStatus>('loading');
 
   const load = useCallback(async () => {
     if (!achievementService) return;
     try {
       setStatus('loading');
-      const [stats, readingLog, bookReadingLog, listeningStats] =
+      const [stats, readingLog, bookReadingLog, listeningStats, feelingsLog] =
         await Promise.all([
           achievementService.getUserStats(),
           achievementService.getReadingLog(),
           achievementService.getBookReadingLog(),
           getListeningStats(),
+          getFeelingsLog(),
         ]);
       const now = Date.now();
+      setMoodDays(weekMood(feelingsLog, now));
       const listenStreakResult = listeningStreaks(listeningStats, now);
       setListening(summarizeListening(listeningStats, now));
       setListenStreaks(listenStreakResult);
@@ -387,6 +398,121 @@ export default function ReadingInsightsScreen() {
                   )}
                 </View>
               )}
+
+              {/* Mood line (Sprint 80) — the feeling checked in each of the
+                  last 7 local days ([[feelingsLog]], device-only). Hidden
+                  until any check-in exists in the window (honest gate). */}
+              {moodDays && hasAnyMood(moodDays) && (
+                <View style={[styles.card, {backgroundColor: colors.card}]}>
+                  <AppText
+                    scaleRole="display"
+                    style={[styles.cardTitle, {color: colors.text}]}>
+                    {ri.moodTitle}
+                  </AppText>
+                  <AppText
+                    scaleRole="compact"
+                    style={[styles.cardHint, {color: colors.textTertiary}]}>
+                    {ri.moodHint}
+                  </AppText>
+                  <View style={styles.moodRow}>
+                    {moodDays.map(day => {
+                      const feeling = day.feelingId
+                        ? getFeeling(day.feelingId)
+                        : undefined;
+                      const feelingName = feeling
+                        ? (feelingNames[feeling.id]?.name ?? feeling.id)
+                        : ri.moodNone;
+                      const dayInitial = weekdaysShort[day.weekday] ?? '';
+                      return (
+                        <View
+                          key={day.dateKey}
+                          style={styles.moodDay}
+                          accessible={true}
+                          accessibilityLabel={ri.moodDayA11y
+                            .replace('{{day}}', dayInitial)
+                            .replace('{{feeling}}', feelingName)}>
+                          <View
+                            style={[
+                              styles.moodGlyph,
+                              {
+                                backgroundColor: feeling
+                                  ? feeling.accent + '26'
+                                  : colors.surfaceVariant,
+                                borderColor: day.isToday
+                                  ? colors.primary
+                                  : staticColors.transparent,
+                              },
+                            ]}>
+                            {feeling ? (
+                              <Ionicons
+                                name={
+                                  feeling.icon as keyof typeof Ionicons.glyphMap
+                                }
+                                size={18}
+                                color={feeling.accent}
+                              />
+                            ) : (
+                              <View
+                                style={[
+                                  styles.moodEmptyDot,
+                                  {backgroundColor: colors.textTertiary},
+                                ]}
+                              />
+                            )}
+                          </View>
+                          <AppText
+                            scaleRole="compact"
+                            style={[
+                              styles.moodDayLabel,
+                              {
+                                color: day.isToday
+                                  ? colors.primary
+                                  : colors.textTertiary,
+                              },
+                            ]}>
+                            {dayInitial}
+                          </AppText>
+                        </View>
+                      );
+                    })}
+                  </View>
+                </View>
+              )}
+
+              {/* Tu línea de tiempo (Sprint 80) — the milestone feed. */}
+              <TouchableOpacity
+                style={[
+                  styles.weekShareButton,
+                  {backgroundColor: colors.card, borderColor: colors.border},
+                ]}
+                onPress={() => {
+                  haptics.tap();
+                  router.push('/features/timeline' as never);
+                }}
+                accessibilityRole="button"
+                accessibilityLabel={ri.timeline.cardTitle}
+                accessibilityHint={ri.timeline.cardHint}>
+                <Ionicons name="footsteps" size={18} color={colors.primary} />
+                <View style={styles.timelineCardText}>
+                  <AppText
+                    style={[styles.weekShareText, {color: colors.primary}]}>
+                    {ri.timeline.cardTitle}
+                  </AppText>
+                  <AppText
+                    scaleRole="compact"
+                    style={[
+                      styles.timelineCardHint,
+                      {color: colors.textTertiary},
+                    ]}>
+                    {ri.timeline.cardHint}
+                  </AppText>
+                </View>
+                <Ionicons
+                  name="chevron-forward"
+                  size={16}
+                  color={colors.textTertiary}
+                />
+              </TouchableOpacity>
 
               {/* Heatmap */}
               <View style={[styles.card, {backgroundColor: colors.card}]}>
@@ -859,6 +985,14 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     flexShrink: 1,
   },
+  // Tu línea de tiempo entry card (Sprint 80) — title + hint stack.
+  timelineCardText: {
+    flex: 1,
+    gap: 2,
+  },
+  timelineCardHint: {
+    fontSize: fontSizes.xs,
+  },
   weekVsRow: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -886,6 +1020,35 @@ const styles = StyleSheet.create({
     fontSize: fontSizes.xs,
     marginTop: spacing.md,
     fontStyle: 'italic',
+  },
+  // Mood line (Sprint 80) — one glyph per local day, oldest → today.
+  moodRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginTop: spacing.md,
+  },
+  moodDay: {
+    flex: 1,
+    alignItems: 'center',
+    gap: 6,
+  },
+  moodGlyph: {
+    width: 38,
+    height: 38,
+    borderRadius: 19,
+    borderWidth: 2,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  moodEmptyDot: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+    opacity: 0.5,
+  },
+  moodDayLabel: {
+    fontSize: fontSizes.xs,
+    fontWeight: '600',
   },
   cardTitle: {
     fontSize: fontSizes.lg,

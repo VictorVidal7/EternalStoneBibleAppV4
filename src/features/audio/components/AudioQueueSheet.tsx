@@ -78,8 +78,18 @@ export const AudioQueueSheet: React.FC<AudioQueueSheetProps> = ({
   const {colors} = useTheme();
   const {t, language} = useLanguage();
   const {selectedVersion} = useBibleVersion();
-  const {state, currentVerse, verses, loadChapter, play, goToVerse, queueInfo} =
-    useAudioPlayer();
+  const {
+    state,
+    currentVerse,
+    verses,
+    loadChapter,
+    play,
+    goToVerse,
+    queueInfo,
+    queueOptions,
+    setQueueShuffle,
+    setQueueRepeat,
+  } = useAudioPlayer();
   const tQueue = t.audio.queue;
   const lang = language === 'en' ? 'en' : 'es';
   // A verse playlist (Sprint 79) lists its own next VERSES, not chapters.
@@ -449,6 +459,86 @@ export const AudioQueueSheet: React.FC<AudioQueueSheetProps> = ({
             </View>
           )}
 
+          {/* Queue options (Sprint 80) — devotional shuffle + repeat-the-list.
+              Selected pills paint primary + onPrimary (never white literals;
+              dark themes ship light primaries). */}
+          {isPlaylist && (
+            <View style={styles.optionsRow}>
+              <TouchableOpacity
+                style={[
+                  styles.optionPill,
+                  {
+                    backgroundColor: queueOptions.shuffle
+                      ? colors.primary
+                      : colors.surfaceVariant,
+                    borderColor: queueOptions.shuffle
+                      ? colors.primary
+                      : colors.border,
+                  },
+                ]}
+                onPress={() => {
+                  haptics.tap();
+                  setQueueShuffle(!queueOptions.shuffle);
+                }}
+                accessibilityRole="button"
+                accessibilityLabel={tQueue.shuffle}
+                accessibilityState={{selected: queueOptions.shuffle}}>
+                <Ionicons
+                  name="shuffle"
+                  size={16}
+                  color={queueOptions.shuffle ? colors.onPrimary : colors.text}
+                />
+                <Text
+                  style={[
+                    styles.optionText,
+                    {
+                      color: queueOptions.shuffle
+                        ? colors.onPrimary
+                        : colors.text,
+                    },
+                  ]}>
+                  {tQueue.shuffle}
+                </Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[
+                  styles.optionPill,
+                  {
+                    backgroundColor: queueOptions.repeat
+                      ? colors.primary
+                      : colors.surfaceVariant,
+                    borderColor: queueOptions.repeat
+                      ? colors.primary
+                      : colors.border,
+                  },
+                ]}
+                onPress={() => {
+                  haptics.tap();
+                  setQueueRepeat(!queueOptions.repeat);
+                }}
+                accessibilityRole="button"
+                accessibilityLabel={tQueue.repeat}
+                accessibilityState={{selected: queueOptions.repeat}}>
+                <Ionicons
+                  name="repeat"
+                  size={16}
+                  color={queueOptions.repeat ? colors.onPrimary : colors.text}
+                />
+                <Text
+                  style={[
+                    styles.optionText,
+                    {
+                      color: queueOptions.repeat
+                        ? colors.onPrimary
+                        : colors.text,
+                    },
+                  ]}>
+                  {tQueue.repeat}
+                </Text>
+              </TouchableOpacity>
+            </View>
+          )}
+
           {/* Up next — playlist verses (Sprint 79) */}
           {isPlaylist && (
             <View style={styles.section}>
@@ -496,12 +586,14 @@ export const AudioQueueSheet: React.FC<AudioQueueSheetProps> = ({
               {playlistEnds && (
                 <View style={styles.endRow}>
                   <Ionicons
-                    name="flag-outline"
+                    name={queueOptions.repeat ? 'repeat' : 'flag-outline'}
                     size={14}
                     color={colors.textTertiary}
                   />
                   <Text style={[styles.endText, {color: colors.textTertiary}]}>
-                    {tQueue.playlistEnd}
+                    {queueOptions.repeat
+                      ? tQueue.playlistRepeats
+                      : tQueue.playlistEnd}
                   </Text>
                 </View>
               )}
@@ -690,6 +782,26 @@ const styles = StyleSheet.create({
     gap: 6,
     paddingVertical: 12,
     paddingHorizontal: 4,
+  },
+  // Queue option pills (Sprint 80 — shuffle / repeat).
+  optionsRow: {
+    flexDirection: 'row',
+    gap: 8,
+    paddingHorizontal: 20,
+    paddingTop: 12,
+  },
+  optionPill: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    borderRadius: 16,
+    borderWidth: 1,
+    paddingHorizontal: 12,
+    paddingVertical: 7,
+  },
+  optionText: {
+    fontSize: 13,
+    fontWeight: '600',
   },
   endText: {
     fontSize: 12,

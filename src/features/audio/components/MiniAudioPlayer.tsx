@@ -50,6 +50,7 @@ import {useFavorites} from '../../../context/FavoritesContext';
 import {matchingFavorite} from '../lib/playingFavorite';
 import {staticColors} from '../../../styles/designTokens';
 import {nextChapterTitle} from '../lib/chapterNavigation';
+import {nextPlaybackSpeed} from '../lib/playbackSpeed';
 import {
   resolveHorizontalSwipe,
   swipeDisplacement,
@@ -540,7 +541,7 @@ export const MiniAudioPlayer: React.FC<MiniAudioPlayerProps> = ({
                       state.isPlaying ? AUDIO_ICONS.pause : AUDIO_ICONS.play
                     }
                     size={16}
-                    color={AUDIO_COLORS.white}
+                    color={colors.onPrimary}
                   />
                 </TouchableOpacity>
 
@@ -630,13 +631,10 @@ export const MiniAudioPlayer: React.FC<MiniAudioPlayerProps> = ({
                     {backgroundColor: colors.surfaceVariant},
                   ]}
                   onPress={() => {
-                    const nextSpeed =
-                      state.playbackSpeed === 1
-                        ? 1.5
-                        : state.playbackSpeed === 1.5
-                          ? 2
-                          : 1;
-                    setPlaybackSpeed(nextSpeed);
+                    // Walk the FULL speed list (shared with the expanded
+                    // player's selector) — a hardcoded 1→1.5→2 cycle here
+                    // used to reset 1.25x listeners straight back to 1x.
+                    setPlaybackSpeed(nextPlaybackSpeed(state.playbackSpeed));
                     haptics.tap();
                   }}
                   hitSlop={SPEED_BADGE_HIT_SLOP}

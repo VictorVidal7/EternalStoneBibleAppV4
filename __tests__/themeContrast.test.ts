@@ -1,5 +1,9 @@
 import {contrastRatio, meetsAA, meetsAAA} from '../src/lib/a11y/contrast';
-import {lightColors, darkColors} from '../src/hooks/useTheme';
+import {
+  lightColors,
+  darkColors,
+  themePrimaryColors,
+} from '../src/hooks/useTheme';
 
 /**
  * WCAG AA regression lock for the app's core text/background pairs. These all
@@ -44,5 +48,32 @@ describe('themeContrast — core app theme meets WCAG', () => {
       expect(meetsAA(contrastRatio(c.error, c.background), true)).toBe(true);
       expect(meetsAA(contrastRatio(c.success, c.background), true)).toBe(true);
     });
+
+    it('onPrimary ink clears AA (large/UI) on the primary fill', () => {
+      expect(meetsAA(contrastRatio(c.onPrimary, c.primary), true)).toBe(true);
+    });
   });
+});
+
+/**
+ * Sprint 80 — `onPrimary` is the ink for icons/labels drawn ON a
+ * primary-filled control. Dark themes ship LIGHT primaries (midnight dark =
+ * slate-300, café dark = yellow-400…), where a white glyph washes out; this
+ * locks every theme × mode pair so a palette tweak can't silently reintroduce
+ * white-on-light.
+ */
+describe('themeContrast — onPrimary ink across all color themes', () => {
+  const pairs = Object.entries(themePrimaryColors).flatMap(([theme, modes]) => [
+    {name: `${theme} light`, set: modes.light},
+    {name: `${theme} dark`, set: modes.dark},
+  ]);
+
+  it.each(pairs)(
+    '$name: onPrimary clears AA (large/UI) on primary',
+    ({set}) => {
+      expect(meetsAA(contrastRatio(set.onPrimary, set.primary), true)).toBe(
+        true,
+      );
+    },
+  );
 });

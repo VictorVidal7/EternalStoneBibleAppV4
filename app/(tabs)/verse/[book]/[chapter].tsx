@@ -1971,22 +1971,22 @@ export default function VerseReadingScreen() {
                       {'  '}
                     </Text>
                     {/* Karaoke (Sprint 76): while the engine voices THIS
-                        verse, light the spoken word (bold + a soft tint of
-                        the audio-highlight hue). Until a boundary arrives —
-                        or when not being read — falls through to the
-                        linkified body below, so reference links stay
-                        tappable. */}
+                        verse, light the spoken word with a deeper tint of
+                        the audio-highlight hue. The emphasis must be
+                        METRICS-NEUTRAL (Sprint 80): a bold run widens the
+                        line AFTER Android measured the wrap, and the line's
+                        last word clips off the right edge — background paint
+                        changes no glyph advance, so nothing reflows or
+                        clips. Until a boundary arrives — or when not being
+                        read — falls through to the linkified body below, so
+                        reference links stay tappable. */}
                     <KaraokeText
                       text={verse.text}
                       verseIndex={index}
                       active={isBeingRead}
-                      wordStyle={[
-                        styles.karaokeWord,
-                        {
-                          backgroundColor:
-                            effectiveColors.audioHighlight + '26',
-                        },
-                      ]}>
+                      wordStyle={{
+                        backgroundColor: effectiveColors.audioHighlight + '4D',
+                      }}>
                       {/* Linkify inline references ("Isaías 53:5",
                           "John 3:16") inside the verse text so they become
                           tappable jumps. */}
@@ -2687,12 +2687,6 @@ const styles = StyleSheet.create({
   },
   crossRefLink: {
     textDecorationLine: 'underline',
-  },
-  // The word the narration voices right now (Sprint 76 karaoke) — bold over
-  // a soft tint of the audio-highlight hue; static restyle, reduce-motion
-  // safe (mirrors the immersive's S75 karaokeWord).
-  karaokeWord: {
-    fontWeight: '700',
   },
   verseContent: {
     flex: 1,

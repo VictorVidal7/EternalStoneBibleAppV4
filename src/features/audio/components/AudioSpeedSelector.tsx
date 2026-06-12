@@ -30,6 +30,7 @@ import {
   PLAYBACK_SPEEDS,
   PLAYBACK_SPEED_LABELS,
 } from '../constants/audioConstants';
+import {nextPlaybackSpeed} from '../lib/playbackSpeed';
 
 interface AudioSpeedSelectorProps {
   currentSpeed: PlaybackSpeed;
@@ -104,7 +105,7 @@ export const AudioSpeedSelector: React.FC<AudioSpeedSelectorProps> = ({
                 style={[
                   styles.chipText,
                   isSelected ? styles.weightSelected : styles.weightUnselected,
-                  {color: isSelected ? staticColors.white : colors.text},
+                  {color: isSelected ? colors.onPrimary : colors.text},
                 ]}>
                 {PLAYBACK_SPEED_LABELS[speed]}
               </Text>
@@ -141,9 +142,7 @@ const CompactSpeedSelector: React.FC<CompactSelectorProps> = ({
       scale.value = withSpring(1);
     });
 
-    const currentIndex = PLAYBACK_SPEEDS.indexOf(currentSpeed);
-    const nextIndex = (currentIndex + 1) % PLAYBACK_SPEEDS.length;
-    onSpeedChange(PLAYBACK_SPEEDS[nextIndex]);
+    onSpeedChange(nextPlaybackSpeed(currentSpeed));
   };
 
   return (
@@ -196,7 +195,7 @@ const InlineSpeedSelector: React.FC<CompactSelectorProps> = ({
               style={[
                 styles.inlineText,
                 isSelected ? styles.weightSelected : styles.weightUnselected,
-                {color: isSelected ? staticColors.white : colors.textSecondary},
+                {color: isSelected ? colors.onPrimary : colors.textSecondary},
               ]}>
               {speed === 1 ? '1x' : `${speed}x`}
             </Text>

@@ -35,6 +35,8 @@ import bibleDB from '@lib/database';
 import {getBookByName} from '@/constants/bible';
 import {getTheme, parseThemeRef} from '@/features/study/themes';
 import type {ThemeRefKey} from '@/features/study/themes';
+import {buildVersePlaylist, useAudioPlayer} from '@/features/audio';
+import {useToast} from '@context/ToastContext';
 import {logger} from '@lib/utils/logger';
 import {
   borderRadius,
@@ -125,6 +127,8 @@ export default function ThemeDetailScreen() {
   const tt = t.themes;
 
   const params = useLocalSearchParams<{theme?: string}>();
+  const {loadChapter, play} = useAudioPlayer();
+  const toast = useToast();
   const theme = useMemo(() => getTheme(params.theme), [params.theme]);
   const localized = theme
     ? (tt.list as Record<string, {name: string; description: string}>)[theme.id]
@@ -172,6 +176,36 @@ export default function ThemeDetailScreen() {
     [router],
   );
 
+  // 🎧 Listen to this theme (Sprint 80): the rows are already resolved
+  // against the ACTIVE version, so they queue directly as a labeled verse
+  // playlist (canonical order, deduped — the S79 favorites idiom).
+  const handleListenAll = useCallback(() => {
+    const playlist = buildVersePlaylist(
+      rows
+        .filter(r => r.bookId != null && r.text)
+        .map(r => ({
+          book: r.bookDisplay,
+          chapter: r.chapter,
+          verse: r.verse,
+          text: r.text as string,
+        })),
+    );
+    if (playlist.length === 0) return;
+    haptics.press();
+    logger.info('Theme playlist queued', {
+      theme: theme?.id,
+      count: playlist.length,
+    });
+    loadChapter(playlist, {mode: 'playlist', label: name});
+    // Let loadChapter's eager refs settle before play (the engine idiom).
+    setTimeout(() => play(), 150);
+    toast.success(
+      t.audio.queue.playlistQueued
+        .replace('{{label}}', name)
+        .replace('{{n}}', String(playlist.length)),
+    );
+  }, [rows, theme?.id, name, loadChapter, play, toast, t]);
+
   const accent = theme?.accent ?? colors.primary;
   const headerGradient: [string, string] = [accent, colors.primaryDark];
 
@@ -207,6 +241,20 @@ export default function ThemeDetailScreen() {
                 {name}
               </AppText>
             </View>
+            {/* 🎧 Queue this theme as a verse playlist (Sprint 80). */}
+            {status === 'ready' && (
+              <TouchableOpacity
+                style={styles.listenButton}
+                onPress={handleListenAll}
+                accessibilityRole="button"
+                accessibilityLabel={tt.listenAll}>
+                <Ionicons
+                  name="headset-outline"
+                  size={22}
+                  color={staticColors.white}
+                />
+              </TouchableOpacity>
+            )}
           </View>
           {localized?.description ? (
             <AppText scaleRole="compact" style={styles.headerDesc}>
@@ -307,6 +355,14 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   headerInfo: {flex: 1},
+  listenButton: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: staticColors.glassWhite25,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
   headerLabel: {
     color: staticColors.glassWhite95,
     fontSize: fontSizes.sm,
