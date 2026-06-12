@@ -1901,6 +1901,17 @@ export default function VerseReadingScreen() {
                   : effectiveColors.primary,
             };
 
+            // Centers the 🔊 badge on the verse's FIRST text line (its slot
+            // sits beside the paragraph, so it must mimic the line box).
+            const nowPlayingBadgeStyle = {
+              marginRight: spacing.xs,
+              paddingTop: Math.max(
+                0,
+                (fontSize * readerPrefs.lineHeightMultiplier - fontSizes.sm) /
+                  2,
+              ),
+            };
+
             // One coherent screen-reader node per verse: "Verse N, <text>"
             // (overrides the noisy 🔊/number prefix), with companion text
             // appended in side-by-side so nothing is hidden from TalkBack.
@@ -1957,6 +1968,25 @@ export default function VerseReadingScreen() {
                     ),
                   },
                 ]}>
+                {/* "Now playing" cue for the verse being read aloud. It lives
+                    OUTSIDE the wrapping Text, in its own row slot (Sprint 81):
+                    ANY foreign-font run at the start of a wrapping paragraph
+                    (the old color emoji, then the S76 icon-font glyph) gets
+                    its advance slightly mis-measured by Android, so a tight
+                    first line painted wider than measured and its last glyphs
+                    clipped off the right edge — live-reproduced on John 4:2
+                    ("…sino sus" flush against the boundary only while lit).
+                    As a sibling View it shifts layout by plain view geometry
+                    and the paragraph re-wraps correctly by construction. */}
+                {isBeingRead ? (
+                  <View style={nowPlayingBadgeStyle}>
+                    <Ionicons
+                      name="volume-high"
+                      size={fontSizes.sm}
+                      color={effectiveColors.audioHighlight}
+                    />
+                  </View>
+                ) : null}
                 <View
                   style={[
                     styles.verseContent,
@@ -1969,19 +1999,6 @@ export default function VerseReadingScreen() {
                       dualColumns && styles.dualColumn,
                     ]}>
                     <Text style={[styles.verseNumber, numberStyle]}>
-                      {/* "Now playing" cue for the verse being read aloud.
-                          A vector glyph (not the old color emoji 🔊) — Android
-                          mis-measures a color emoji's advance at the start of a
-                          wrapping Text, which clipped the first line's right
-                          edge; an icon-font glyph measures correctly. */}
-                      {isBeingRead ? (
-                        <Ionicons
-                          name="volume-high"
-                          size={fontSizes.sm}
-                          color={effectiveColors.audioHighlight}
-                        />
-                      ) : null}
-                      {isBeingRead ? '  ' : ''}
                       {verse.verse}
                       {'  '}
                     </Text>
@@ -2712,6 +2729,11 @@ const styles = StyleSheet.create({
   },
   verseText: {
     fontSize: fontSizes.base,
+    // A hair of slack for Android's painted-vs-measured rounding: with the
+    // karaoke span splitting the paragraph into runs, a tight line can paint
+    // 1–3px wider than its measured wrap and the canvas clips the last glyph.
+    // Painted overflow lands in this padding instead (Sprint 81).
+    paddingRight: 3,
   },
   sideBySideCompanion: {
     marginTop: spacing.sm,

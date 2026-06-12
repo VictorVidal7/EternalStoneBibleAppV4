@@ -976,6 +976,11 @@ const styles = StyleSheet.create({
     // fontFamily/lineHeight live inline: they follow the reader's typeface
     // preference and the adjustable font size (Sprint 81).
     textAlign: 'center',
+    // Stretch the canvas to the container: a centered Text shrink-wraps to
+    // its MEASURED width, so a karaoke line painted 1–2px wider (Android
+    // span rounding) clipped at the glyph edge. Full-width canvas gives the
+    // centered lines slack on both sides (Sprint 81).
+    alignSelf: 'stretch',
     marginBottom: 32,
     textShadowOffset: {width: 0, height: 1},
     textShadowRadius: 3,
