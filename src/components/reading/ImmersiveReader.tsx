@@ -610,8 +610,11 @@ export const ImmersiveReader: React.FC<ImmersiveReaderProps> = ({
           ]}>
           {/* Verse Text — while narration voices THIS verse, the word being
               spoken is painted karaoke-style (Sprint 75): three runs (before /
-              active word / after), static color+weight only, reduce-motion
-              safe by construction. */}
+              active word / after), static color+tint only, reduce-motion
+              safe by construction. The emphasis is METRICS-NEUTRAL (Sprint
+              80): a bold run widens the line after the wrap was measured and
+              Android clips that line's last word — color and background
+              change no glyph advance. */}
           <Text
             pointerEvents="none"
             style={[
@@ -632,16 +635,19 @@ export const ImmersiveReader: React.FC<ImmersiveReaderProps> = ({
               <>
                 {currentVerse.text.slice(0, karaokeWord.start)}
                 <Text
-                  style={[
-                    styles.karaokeWord,
-                    {
-                      color: isHighContrast
+                  style={{
+                    color: isHighContrast
+                      ? hcColors.accent
+                      : isDark
+                        ? '#fbbf24'
+                        : '#b45309',
+                    backgroundColor:
+                      (isHighContrast
                         ? hcColors.accent
                         : isDark
                           ? '#fbbf24'
-                          : '#b45309',
-                    },
-                  ]}>
+                          : '#b45309') + '26',
+                  }}>
                   {currentVerse.text.slice(karaokeWord.start, karaokeWord.end)}
                 </Text>
                 {currentVerse.text.slice(karaokeWord.end)}
@@ -956,11 +962,6 @@ const styles = StyleSheet.create({
     marginBottom: 32,
     textShadowOffset: {width: 0, height: 1},
     textShadowRadius: 3,
-  },
-  // The word narration is voicing right now (Sprint 75 karaoke) — bold + an
-  // accent color, no motion (static restyle of one run).
-  karaokeWord: {
-    fontWeight: '700',
   },
   reference: {
     fontSize: 16,

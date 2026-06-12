@@ -162,13 +162,13 @@ export const AudioControls: React.FC<AudioControlsProps> = ({
             <Ionicons
               name="ellipsis-horizontal"
               size={sizeConfig.iconMain}
-              color="#FFFFFF"
+              color={colors.onPrimary}
             />
           ) : (
             <Ionicons
               name={isPlaying ? AUDIO_ICONS.pause : AUDIO_ICONS.play}
               size={sizeConfig.iconMain}
-              color="#FFFFFF"
+              color={colors.onPrimary}
             />
           )}
         </AnimatedTouchable>

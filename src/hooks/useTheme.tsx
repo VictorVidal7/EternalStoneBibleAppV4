@@ -257,6 +257,7 @@ export const themePrimaryColors = {
       secondary: '#0ea5e9',
       accent: '#06b6d4',
       info: '#0284c7',
+      onPrimary: '#ffffff', // dark-enough light-mode primary
     },
     dark: {
       primary: '#38bdf8', // sky-400
@@ -265,6 +266,7 @@ export const themePrimaryColors = {
       secondary: '#0ea5e9',
       accent: '#22d3ee',
       info: '#38bdf8',
+      onPrimary: '#0f172a', // dark ink: dark-mode primaries are LIGHT hues
     },
   },
   celestial: {
@@ -275,6 +277,7 @@ export const themePrimaryColors = {
       secondary: '#7c3aed',
       accent: '#9333ea',
       info: '#7c3aed',
+      onPrimary: '#ffffff', // dark-enough light-mode primary
     },
     dark: {
       primary: '#a78bfa', // violet-400
@@ -283,6 +286,7 @@ export const themePrimaryColors = {
       secondary: '#a78bfa',
       accent: '#c084fc',
       info: '#a78bfa',
+      onPrimary: '#0f172a', // dark ink: dark-mode primaries are LIGHT hues
     },
   },
   forest: {
@@ -293,6 +297,7 @@ export const themePrimaryColors = {
       secondary: '#166534',
       accent: '#10b981',
       info: '#16a34a',
+      onPrimary: '#ffffff', // dark-enough light-mode primary
     },
     dark: {
       primary: '#4ade80', // green-400
@@ -301,6 +306,7 @@ export const themePrimaryColors = {
       secondary: '#22c55e',
       accent: '#34d399',
       info: '#4ade80',
+      onPrimary: '#0f172a', // dark ink: dark-mode primaries are LIGHT hues
     },
   },
   sunset: {
@@ -311,6 +317,7 @@ export const themePrimaryColors = {
       secondary: '#f97316',
       accent: '#fbbf24',
       info: '#ea580c',
+      onPrimary: '#ffffff', // dark-enough light-mode primary
     },
     dark: {
       primary: '#fb923c', // orange-400
@@ -319,6 +326,7 @@ export const themePrimaryColors = {
       secondary: '#f97316',
       accent: '#fbbf24',
       info: '#fb923c',
+      onPrimary: '#0f172a', // dark ink: dark-mode primaries are LIGHT hues
     },
   },
   graphite: {
@@ -329,6 +337,7 @@ export const themePrimaryColors = {
       secondary: '#3f3f46',
       accent: '#71717a',
       info: '#52525b',
+      onPrimary: '#ffffff', // dark-enough light-mode primary
     },
     dark: {
       primary: '#a1a1aa', // zinc-400
@@ -337,6 +346,7 @@ export const themePrimaryColors = {
       secondary: '#71717a',
       accent: '#52525b',
       info: '#a1a1aa',
+      onPrimary: '#0f172a', // dark ink: dark-mode primaries are LIGHT hues
     },
   },
   royal: {
@@ -347,6 +357,7 @@ export const themePrimaryColors = {
       secondary: '#1d4ed8',
       accent: '#3b82f6',
       info: '#2563eb',
+      onPrimary: '#ffffff', // dark-enough light-mode primary
     },
     dark: {
       primary: '#60a5fa', // blue-400
@@ -355,6 +366,7 @@ export const themePrimaryColors = {
       secondary: '#3b82f6',
       accent: '#93c5fd',
       info: '#60a5fa',
+      onPrimary: '#0f172a', // dark ink: dark-mode primaries are LIGHT hues
     },
   },
   midnight: {
@@ -365,6 +377,7 @@ export const themePrimaryColors = {
       secondary: '#475569',
       accent: '#64748b',
       info: '#334155',
+      onPrimary: '#ffffff', // dark-enough light-mode primary
     },
     dark: {
       primary: '#cbd5e1', // slate-300 - neutral gray
@@ -373,6 +386,7 @@ export const themePrimaryColors = {
       secondary: '#94a3b8',
       accent: '#475569',
       info: '#cbd5e1',
+      onPrimary: '#0f172a', // dark ink: dark-mode primaries are LIGHT hues
     },
   },
   cafe: {
@@ -383,6 +397,7 @@ export const themePrimaryColors = {
       secondary: '#b45309',
       accent: '#d97706',
       info: '#92400e',
+      onPrimary: '#ffffff', // dark-enough light-mode primary
     },
     dark: {
       primary: '#fbbf24', // yellow-400
@@ -391,6 +406,7 @@ export const themePrimaryColors = {
       secondary: '#fbbf24',
       accent: '#f59e0b',
       info: '#fbbf24',
+      onPrimary: '#0f172a', // dark ink: dark-mode primaries are LIGHT hues
     },
   },
 };
@@ -475,6 +491,13 @@ export interface ThemeColors {
   primary: string;
   primaryLight: string;
   primaryDark: string;
+  /**
+   * Ink for icons/labels drawn ON a `primary`-filled control. Dark themes use
+   * LIGHT primaries (e.g. midnight dark = slate-300, café dark = yellow-400),
+   * so a hardcoded white glyph washes out there — always pair primary
+   * backgrounds with this token, never with a white literal.
+   */
+  onPrimary: string;
 
   // Secondary colors
   secondary: string;
@@ -534,6 +557,7 @@ export const lightColors: ThemeColors = {
   primary: '#4f46e5', // indigo-600 - Color principal celestial
   primaryLight: '#e0e7ff', // indigo-100
   primaryDark: '#4338ca', // indigo-700
+  onPrimary: '#ffffff', // white ink on indigo-600 fills
 
   secondary: '#059669', // emerald-600
 
@@ -571,6 +595,7 @@ export const darkColors: ThemeColors = {
   primary: '#6366f1', // indigo-500 - Mas brillante en dark
   primaryLight: '#818cf8', // indigo-400
   primaryDark: '#4f46e5', // indigo-600
+  onPrimary: '#ffffff', // indigo-500 is still dark enough for white ink
 
   secondary: '#10b981', // emerald-500
 
@@ -687,6 +712,7 @@ export function ThemeProvider({children}: {children: ReactNode}) {
     primary: themeColorsSet.primary,
     primaryLight: themeColorsSet.primaryLight,
     primaryDark: themeColorsSet.primaryDark,
+    onPrimary: themeColorsSet.onPrimary,
     secondary: themeColorsSet.secondary,
     accent: themeColorsSet.accent,
     info: themeColorsSet.info,
