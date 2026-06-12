@@ -692,6 +692,30 @@ export class AchievementService {
   }
 
   /**
+   * Reads the completed books WITH their completion stamps (`completed_books`
+   * has carried `completed_at` since its creation — the timeline, Sprint 80,
+   * is the first reader). Read-only; never throws (a fresh install yields an
+   * empty list).
+   */
+  async getCompletedBooks(): Promise<
+    {bookName: string; completedAt: number}[]
+  > {
+    try {
+      const result = await this.db.executeSql(
+        'SELECT book_name, completed_at FROM completed_books ORDER BY completed_at ASC',
+      );
+      return result.rows._array.map(
+        (row: {book_name: string; completed_at?: number}) => ({
+          bookName: row.book_name,
+          completedAt: row.completed_at ?? 0,
+        }),
+      );
+    } catch {
+      return [];
+    }
+  }
+
+  /**
    * Reads the REAL per-book reading aggregates (`book_reading_log`), one row per
    * book the user has read with verses + accumulated seconds + last-read time.
    * Powers the "most-read book" surfaces (Mi lectura / Tu camino) via the pure

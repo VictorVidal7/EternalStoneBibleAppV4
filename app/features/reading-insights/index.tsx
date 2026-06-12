@@ -479,6 +479,41 @@ export default function ReadingInsightsScreen() {
                 </View>
               )}
 
+              {/* Tu línea de tiempo (Sprint 80) — the milestone feed. */}
+              <TouchableOpacity
+                style={[
+                  styles.weekShareButton,
+                  {backgroundColor: colors.card, borderColor: colors.border},
+                ]}
+                onPress={() => {
+                  haptics.tap();
+                  router.push('/features/timeline' as never);
+                }}
+                accessibilityRole="button"
+                accessibilityLabel={ri.timeline.cardTitle}
+                accessibilityHint={ri.timeline.cardHint}>
+                <Ionicons name="footsteps" size={18} color={colors.primary} />
+                <View style={styles.timelineCardText}>
+                  <AppText
+                    style={[styles.weekShareText, {color: colors.primary}]}>
+                    {ri.timeline.cardTitle}
+                  </AppText>
+                  <AppText
+                    scaleRole="compact"
+                    style={[
+                      styles.timelineCardHint,
+                      {color: colors.textTertiary},
+                    ]}>
+                    {ri.timeline.cardHint}
+                  </AppText>
+                </View>
+                <Ionicons
+                  name="chevron-forward"
+                  size={16}
+                  color={colors.textTertiary}
+                />
+              </TouchableOpacity>
+
               {/* Heatmap */}
               <View style={[styles.card, {backgroundColor: colors.card}]}>
                 <AppText
@@ -949,6 +984,14 @@ const styles = StyleSheet.create({
     fontSize: fontSizes.md,
     fontWeight: '700',
     flexShrink: 1,
+  },
+  // Tu línea de tiempo entry card (Sprint 80) — title + hint stack.
+  timelineCardText: {
+    flex: 1,
+    gap: 2,
+  },
+  timelineCardHint: {
+    fontSize: fontSizes.xs,
   },
   weekVsRow: {
     flexDirection: 'row',
