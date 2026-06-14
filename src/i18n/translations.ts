@@ -880,10 +880,26 @@ export const translations = {
       finishedTitle: 'Sesión completa',
       finishedMessage: 'Que su Palabra permanezca en ti el resto del día.',
       shareImage: 'Compartir como imagen',
+      memorize: 'Memorizar este versículo',
+      memorized: 'Añadido a tu mazo de memorización',
+      memorizedAlready: 'Ya está en tu mazo de memorización',
       done: 'Listo',
       prayerSaved: 'Tu oración se guardó en tus notas',
       error: 'No se pudo cargar el pasaje',
       exitA11y: 'Salir de Momento con Dios',
+    },
+
+    guided: {
+      title: 'Devoción guiada',
+      subtitle: 'Un momento con Dios, paso a paso',
+      cardTitle: 'Devoción guiada',
+      cardSubtitle: 'Empieza por cómo está tu corazón hoy',
+      breathePrompt: 'Respira hondo. ¿Cómo está tu corazón hoy?',
+      revealLabel: 'Para cuando te sientes así · {{feeling}}',
+      begin: 'Comenzar Momento con Dios',
+      another: 'Elegir otro ánimo',
+      error: 'No se pudo preparar tu devoción',
+      exitA11y: 'Cerrar devoción guiada',
     },
 
     auth: {
@@ -2938,10 +2954,26 @@ export const translations = {
       finishedTitle: 'Session complete',
       finishedMessage: 'May His Word remain in you the rest of the day.',
       shareImage: 'Share as image',
+      memorize: 'Memorize this verse',
+      memorized: 'Added to your memory deck',
+      memorizedAlready: 'Already in your memory deck',
       done: 'Done',
       prayerSaved: 'Your prayer was saved to your notes',
       error: 'Could not load the passage',
       exitA11y: 'Exit Moment with God',
+    },
+
+    guided: {
+      title: 'Guided devotion',
+      subtitle: 'A moment with God, step by step',
+      cardTitle: 'Guided devotion',
+      cardSubtitle: 'Begin with how your heart is today',
+      breathePrompt: 'Take a deep breath. How is your heart today?',
+      revealLabel: 'For when you feel like this · {{feeling}}',
+      begin: 'Begin your Moment with God',
+      another: 'Choose another feeling',
+      error: 'Could not prepare your devotion',
+      exitA11y: 'Close guided devotion',
     },
 
     auth: {

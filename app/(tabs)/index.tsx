@@ -1517,6 +1517,55 @@ export default function HomeScreen() {
               </ShimmerCard>
             </TouchableOpacity>
           )}
+
+          {/* 🕊️ Guided devotion — begins with how your heart is today (S83) */}
+          <TouchableOpacity
+            activeOpacity={0.9}
+            style={{marginTop: celestialSpacing.cardGap}}
+            accessibilityRole="button"
+            accessible={true}
+            accessibilityLabel={t.guided.cardTitle}
+            accessibilityHint={t.guided.cardSubtitle}
+            onPress={() =>
+              handlePress(() => router.push('/features/guided' as never))
+            }>
+            <ShimmerCard
+              glowColor={colors.primary}
+              shimmerEnabled={false}
+              cardBackgroundColor={celestialTheme.colors.surfaceGlass}
+              cardBorderColor={celestialTheme.colors.glassBorder}>
+              <View style={styles.toolCard}>
+                <View
+                  style={[
+                    styles.toolIconContainer,
+                    {backgroundColor: colors.primary + '20'},
+                  ]}>
+                  <Ionicons name="leaf" size={28} color={colors.primary} />
+                </View>
+                <View style={styles.toolInfo}>
+                  <Text
+                    style={[
+                      styles.toolTitle,
+                      {color: celestialTheme.colors.text},
+                    ]}>
+                    {t.guided.cardTitle}
+                  </Text>
+                  <Text
+                    style={[
+                      styles.toolDescription,
+                      {color: celestialTheme.colors.textSecondary},
+                    ]}>
+                    {t.guided.cardSubtitle}
+                  </Text>
+                </View>
+                <Ionicons
+                  name="chevron-forward"
+                  size={24}
+                  color={colors.textTertiary}
+                />
+              </View>
+            </ShimmerCard>
+          </TouchableOpacity>
         </Animated.View>
 
         {/* ==================== SAVED SHORTCUTS ==================== */}

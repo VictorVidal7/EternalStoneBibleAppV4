@@ -2,6 +2,8 @@ import {
   FEELINGS,
   getAllFeelings,
   getFeeling,
+  isBrightFeeling,
+  feelingVerseRefForDay,
 } from '../src/features/study/feelings';
 import {BIBLE_THEMES, parseThemeRef} from '../src/features/study/themes';
 import {getBookByName} from '../src/constants/bible';
@@ -112,6 +114,43 @@ describe('feelings — emotional check-in taxonomy', () => {
 
     it('getAllFeelings returns the full taxonomy', () => {
       expect(getAllFeelings()).toBe(FEELINGS);
+    });
+  });
+
+  describe('isBrightFeeling (Sprint 83 valence)', () => {
+    it('marks the brighter feelings and not the heavier ones', () => {
+      expect(isBrightFeeling('grateful')).toBe(true);
+      expect(isBrightFeeling('hopeful')).toBe(true);
+      expect(isBrightFeeling('joyful')).toBe(true);
+      expect(isBrightFeeling('anxious')).toBe(false);
+      expect(isBrightFeeling('sad')).toBe(false);
+      expect(isBrightFeeling('nope')).toBe(false);
+    });
+  });
+
+  describe('feelingVerseRefForDay (Sprint 83 guided devotion)', () => {
+    const grateful = getFeeling('grateful')!;
+
+    it('is deterministic for the same feeling + day', () => {
+      const a = feelingVerseRefForDay(grateful, '2026-06-14');
+      const b = feelingVerseRefForDay(grateful, '2026-06-14');
+      expect(a).toBe(b);
+      expect(grateful.verseRefs).toContain(a!);
+    });
+
+    it('rotates across days (not always the same ref)', () => {
+      const refs = new Set(
+        ['2026-06-14', '2026-06-15', '2026-06-16', '2026-06-17'].map(d =>
+          feelingVerseRefForDay(grateful, d),
+        ),
+      );
+      expect(refs.size).toBeGreaterThan(1);
+    });
+
+    it('returns null when a feeling has no refs', () => {
+      expect(
+        feelingVerseRefForDay({...grateful, verseRefs: []}, '2026-06-14'),
+      ).toBeNull();
     });
   });
 });

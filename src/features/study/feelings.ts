@@ -20,6 +20,7 @@
  */
 
 import type {ThemeRefKey} from './themes';
+import {meditationPromptIndex} from './lectio';
 
 export interface Feeling {
   /** Stable key — the route param `[feeling]` AND the i18n key `t.feelings.list[id]`. */
@@ -235,4 +236,21 @@ export function getFeeling(id: string | null | undefined): Feeling | null {
 /** The full check-in taxonomy, in display order. */
 export function getAllFeelings(): readonly Feeling[] {
   return FEELINGS;
+}
+
+/**
+ * The curated verse ref to surface for a feeling on a given LOCAL day —
+ * deterministic per (feeling, day) via the shared lectio rolling hash, so it is
+ * stable within a day yet rotates across days. Null if the feeling has no refs.
+ * Shared by the Home mood verse card (Sprint 81) and the guided devotion
+ * (Sprint 83), so both surface the SAME verse for the same feeling+day.
+ */
+export function feelingVerseRefForDay(
+  feeling: Feeling,
+  dateKey: string,
+): ThemeRefKey | null {
+  if (feeling.verseRefs.length === 0) return null;
+  return feeling.verseRefs[
+    meditationPromptIndex(feeling.id, dateKey, feeling.verseRefs.length)
+  ];
 }
