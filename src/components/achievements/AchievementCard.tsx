@@ -1,8 +1,10 @@
 /**
  * 🏆 ACHIEVEMENT CARD COMPONENT
  *
- * Tarjeta visual para mostrar logros con raridades
- * Soporta ambos sistemas de logros (types.ts y expandedDefinitions.ts)
+ * Tarjeta visual para mostrar logros con raridades. Recibe el logro REAL del
+ * sistema vivo (types.ts / definitions.ts) y mapea su tier a una rareza para
+ * elegir el color del badge/glow (paleta en `rarityColors.ts`). El catálogo
+ * expandido paralelo se retiró en Sprint 83 (era código muerto).
  * Para la gloria de Dios y del Rey Jesús
  */
 
@@ -15,29 +17,20 @@ import {AppText as Text} from '@components/ui/AppText';
 import {LinearGradient} from 'expo-linear-gradient';
 import {Ionicons} from '@expo/vector-icons';
 import {
-  Achievement as ExpandedAchievement,
   AchievementRarity,
   getRarityInfo,
   RARITY_COLORS,
-} from '../../lib/achievements/expandedDefinitions';
-import {
-  Achievement as BaseAchievement,
-  AchievementTier,
-} from '../../lib/achievements/types';
+} from '../../lib/achievements/rarityColors';
+import {Achievement, AchievementTier} from '../../lib/achievements/types';
 import {getLocalizedAchievement} from '../../lib/achievements/definitions';
 import {useTheme} from '../../hooks/useTheme';
 import {staticColors} from '../../styles/designTokens';
 import {useLanguage} from '../../hooks/useLanguage';
 
-// ==================== TYPE COMPATIBILITY ====================
+// ==================== TIER → RARITY ====================
 
 /**
- * Union type to support both achievement systems
- */
-type AnyAchievement = ExpandedAchievement | BaseAchievement;
-
-/**
- * Map tier (from types.ts) to rarity (from expandedDefinitions.ts)
+ * Map the real achievement tier (types.ts) onto a rarity hue.
  */
 const tierToRarity: Record<AchievementTier, AchievementRarity> = {
   [AchievementTier.BRONZE]: 'common',
@@ -47,20 +40,8 @@ const tierToRarity: Record<AchievementTier, AchievementRarity> = {
   [AchievementTier.DIAMOND]: 'legendary',
 };
 
-/**
- * Helper to get rarity from any achievement type
- */
-function getAchievementRarity(achievement: AnyAchievement): AchievementRarity {
-  // Check for rarity field (expandedDefinitions format)
-  if ('rarity' in achievement && achievement.rarity) {
-    return achievement.rarity;
-  }
-  // Check for tier field (types.ts format)
-  if ('tier' in achievement && achievement.tier) {
-    return tierToRarity[achievement.tier] || 'common';
-  }
-  // Default fallback
-  return 'common';
+function getAchievementRarity(achievement: Achievement): AchievementRarity {
+  return tierToRarity[achievement.tier] || 'common';
 }
 
 /**
@@ -70,20 +51,10 @@ function isHighRarity(rarity: AchievementRarity): boolean {
   return rarity === 'legendary' || rarity === 'epic';
 }
 
-/**
- * Helper to get reward from any achievement type
- */
-function getAchievementReward(achievement: AnyAchievement) {
-  if ('reward' in achievement && achievement.reward) {
-    return achievement.reward;
-  }
-  return null;
-}
-
 // ==================== COMPONENT ====================
 
 interface AchievementCardProps {
-  achievement: AnyAchievement;
+  achievement: Achievement;
   unlocked: boolean;
   progress?: number;
   compact?: boolean;
@@ -98,13 +69,11 @@ export function AchievementCard({
   const {isDark, colors} = useTheme();
   const {t} = useLanguage();
 
-  // Get normalized values that work with both achievement types
   const rarity = getAchievementRarity(achievement);
   const localized = getLocalizedAchievement(achievement, t);
   const title = localized.name;
-  const reward = getAchievementReward(achievement);
 
-  // Get rarity info and colors (now safe since rarity is guaranteed)
+  // Get rarity info and colors
   const rarityInfo = getRarityInfo(rarity, isDark);
   const rarityColors = RARITY_COLORS[rarity];
 
@@ -212,7 +181,7 @@ export function AchievementCard({
           </View>
         )}
 
-        {/* Points and Reward */}
+        {/* Points */}
         <View style={styles.footer}>
           <View style={styles.pointsBadge}>
             <Ionicons name="star" size={14} color="#fbbf24" />
@@ -220,15 +189,6 @@ export function AchievementCard({
               {achievement.points} pts
             </Text>
           </View>
-
-          {unlocked && reward && (
-            <View style={styles.rewardBadge}>
-              <Ionicons name="gift" size={14} color={rarityInfo.color} />
-              <Text style={[styles.rewardText, {color: rarityInfo.color}]}>
-                {reward.name}
-              </Text>
-            </View>
-          )}
         </View>
       </View>
     </View>
@@ -352,15 +312,6 @@ const styles = StyleSheet.create({
   },
   pointsText: {
     fontSize: 12,
-    fontWeight: '600',
-  },
-  rewardBadge: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
-  },
-  rewardText: {
-    fontSize: 11,
     fontWeight: '600',
   },
 });
