@@ -91,14 +91,11 @@ export const ImmersiveReader: React.FC<ImmersiveReaderProps> = ({
   const hcColors = immersiveHighContrastColors();
   // The reader's typeface preference applies HERE too (Sprint 81) — this
   // surface used to hardcode Georgia/serif, so the picker silently did
-  // nothing for anyone reading (or auto-immersing) in immersive mode.
-  // 'sans' resolves to undefined → the platform default, same as the reader.
+  // nothing for anyone reading (or auto-immersing) in immersive mode. Since
+  // Sprint 82 the faces are bundled fonts, so the family name is the same on
+  // both platforms (no platform branch).
   const verseFontFamily = useMemo(
-    () =>
-      resolveTypeface(
-        readerPrefs.fontFamily,
-        Platform.OS === 'ios' ? 'ios' : 'android',
-      ),
+    () => resolveTypeface(readerPrefs.fontFamily),
     [readerPrefs.fontFamily],
   );
   const {t, language} = useLanguage();

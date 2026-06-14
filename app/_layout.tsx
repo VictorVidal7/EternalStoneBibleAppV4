@@ -37,6 +37,7 @@ if (!__DEV__) {
 }
 import {GestureHandlerRootView} from 'react-native-gesture-handler';
 import {initializeBibleData} from '@lib/database/data-loader';
+import {loadReaderFonts} from '@lib/reader/fontAssets';
 import {ThemeProvider} from '@hooks/useTheme';
 import {BibleVersionProvider, useBibleVersion} from '@hooks/useBibleVersion';
 import {LanguageProvider, useLanguage} from '@hooks/useLanguage';
@@ -128,6 +129,11 @@ function AppContent() {
           badgeSystemService.initialize(),
           versionComparisonService.initialize(),
           widgetTaskHandler.initialize(),
+          // Register the bundled reader typefaces (Sprint 82) so the reader's
+          // first paint already has the chosen face. Best-effort: a font load
+          // failure must never abort the other services or the app, and the
+          // text falls back to the system default until a later load lands.
+          loadReaderFonts().catch(() => undefined),
         ]);
 
         // Precalentar caché con contenido popular

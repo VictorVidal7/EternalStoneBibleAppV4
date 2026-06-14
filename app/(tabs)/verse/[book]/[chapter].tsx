@@ -74,7 +74,10 @@ import {
   useReaderPreferences,
   READER_MARGIN_PADDING,
 } from '@context/ReaderPreferencesContext';
-import {resolveFontFamily} from '@components/reading/ReaderPreferencesSheet';
+import {
+  resolveFontFamily,
+  resolveFontFamilyBold,
+} from '@components/reading/ReaderPreferencesSheet';
 import {getBookTheme} from '@/constants/bookThemes';
 // Audio Bible Feature
 import {
@@ -193,6 +196,12 @@ export default function VerseReadingScreen() {
   const fontSize = readerPrefs.fontSize;
   const readerFontFamily = useMemo(
     () => resolveFontFamily(readerPrefs.fontFamily),
+    [readerPrefs.fontFamily],
+  );
+  // Bold-weight family for the verse number: the bundled faces are static, so
+  // fontWeight:'700' alone wouldn't bold them (Sprint 82) — switch the family.
+  const readerFontFamilyBold = useMemo(
+    () => resolveFontFamilyBold(readerPrefs.fontFamily),
     [readerPrefs.fontFamily],
   );
   const readerPaddingHorizontal = READER_MARGIN_PADDING[readerPrefs.margin];
@@ -1924,6 +1933,7 @@ export default function VerseReadingScreen() {
                 : userHighlight
                   ? effectiveColors.onHighlight
                   : effectiveColors.primary,
+              fontFamily: readerFontFamilyBold,
             };
 
             // Centers the 🔊 badge on the verse's FIRST text line (its slot

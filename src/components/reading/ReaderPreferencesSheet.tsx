@@ -17,7 +17,6 @@ import {
   Text,
   TouchableOpacity,
   StyleSheet,
-  Platform,
   ScrollView,
   Switch,
   AccessibilityActionEvent,
@@ -45,6 +44,7 @@ import {
   READER_TYPEFACES,
   READER_FONT_FAMILY_ORDER,
   resolveTypeface,
+  resolveTypefaceBold,
 } from '../../lib/reader/typefaces';
 import {useTheme} from '../../hooks/useTheme';
 import {useLanguage} from '../../hooks/useLanguage';
@@ -83,6 +83,10 @@ export const ReaderPreferencesSheet: React.FC<ReaderPreferencesSheetProps> = ({
 
   const previewFontFamily = useMemo(
     () => resolveFontFamily(preferences.fontFamily),
+    [preferences.fontFamily],
+  );
+  const previewFontFamilyBold = useMemo(
+    () => resolveFontFamilyBold(preferences.fontFamily),
     [preferences.fontFamily],
   );
 
@@ -213,7 +217,13 @@ export const ReaderPreferencesSheet: React.FC<ReaderPreferencesSheetProps> = ({
                 fontFamily: previewFontFamily,
               }}>
               <Text
-                style={[styles.previewNumber, {color: previewColors.primary}]}>
+                style={[
+                  styles.previewNumber,
+                  {
+                    color: previewColors.primary,
+                    fontFamily: previewFontFamilyBold,
+                  },
+                ]}>
                 1{'  '}
               </Text>
               {t.readerPrefs.sampleText}
@@ -300,7 +310,7 @@ export const ReaderPreferencesSheet: React.FC<ReaderPreferencesSheetProps> = ({
                             preferences.fontFamily === opt.id
                               ? colors.primary
                               : colors.text,
-                          fontFamily: resolveFontFamily(opt.id),
+                          fontFamily: resolveFontFamilyBold(opt.id),
                         },
                       ]}>
                       {opt.sample}
@@ -505,15 +515,19 @@ export const ReaderPreferencesSheet: React.FC<ReaderPreferencesSheetProps> = ({
 };
 
 /**
- * Resolve a reader `fontFamily` value safe to set on RN Text for the current
- * platform. Thin wrapper over the pure, tested `resolveTypeface` catalog
- * (Sprint 71) — kept here so existing importers (the reader screen) need no
- * change. `sans` (and any unknown id) → undefined → the platform's native sans.
+ * Resolve a reader `fontFamily` value to set on RN Text. Thin wrapper over the
+ * pure, tested `resolveTypeface` catalog — kept here so existing importers (the
+ * reader screen) need no change. Since Sprint 82 every face is a bundled font
+ * (the family name is identical on iOS and Android), so there is no platform
+ * branch and the result is always a defined family.
  */
-export function resolveFontFamily(
-  family: ReaderFontFamily,
-): string | undefined {
-  return resolveTypeface(family, Platform.OS === 'ios' ? 'ios' : 'android');
+export function resolveFontFamily(family: ReaderFontFamily): string {
+  return resolveTypeface(family);
+}
+
+/** The bold-weight (700) `fontFamily` for a face — for verse numbers/samples. */
+export function resolveFontFamilyBold(family: ReaderFontFamily): string {
+  return resolveTypefaceBold(family);
 }
 
 interface SectionProps {
