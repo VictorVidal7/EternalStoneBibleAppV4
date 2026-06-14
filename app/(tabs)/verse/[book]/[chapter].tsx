@@ -351,11 +351,11 @@ export default function VerseReadingScreen() {
   // immediately (computed from the last known scroll position); turning it OFF
   // clears the focused verse so every row returns to full opacity. Persisted.
   function toggleFocusMode() {
+    // Tap toggles quietly (Sprint 82) — the per-tap caption was noisy;
+    // long-press (explainFocusMode) describes it instead.
     haptics.tap();
     const next = !focusMode;
     setFocusMode(next);
-    // Icon-only toggle — say what it now does (Sprint 81).
-    toast.info(next ? t.verse.focusModeOnToast : t.verse.focusModeOffToast);
     AsyncStorage.setItem('@reader_focus_mode', next ? '1' : '0').catch(
       () => undefined,
     );
@@ -374,6 +374,15 @@ export default function VerseReadingScreen() {
     } else {
       setFocusedVerse(null);
     }
+  }
+
+  // Long-press on Focus = a tooltip describing what it does in its CURRENT
+  // state, without toggling it (Sprint 82).
+  function explainFocusMode() {
+    haptics.tap();
+    toast.info(
+      focusMode ? t.verse.focusModeOnToast : t.verse.focusModeOffToast,
+    );
   }
 
   // Switch which translation is shown alongside the one being read, and
@@ -1669,6 +1678,7 @@ export default function VerseReadingScreen() {
               },
             ]}
             onPress={toggleFocusMode}
+            onLongPress={explainFocusMode}
             accessibilityRole="button"
             accessibilityState={{selected: focusMode}}
             accessibilityLabel={t.verse.focusMode}>
