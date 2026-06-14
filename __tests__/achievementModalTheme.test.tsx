@@ -1,11 +1,13 @@
 /**
- * Sprint 82 — the achievement-unlock celebration follows the SELECTED app theme.
+ * Sprint 82/83 — the achievement-unlock celebration follows the SELECTED app
+ * theme.
  *
- * The modal used to be a hard white card with grey text (staticColors.white /
- * grayNeutral), which glared in dark mode regardless of the user's theme. It now
- * pulls its surface + text colours from useTheme, keeping the tier hue only as
- * the celebratory accent. This pins that wiring so a future refactor can't
- * silently revert to the static white card.
+ * S82 moved the card off a hard white surface onto useTheme. S83 made the
+ * accent HYBRID: the big celebratory accents (border ring, icon halo, points,
+ * button) follow the theme primary, and only a small tier badge keeps its own
+ * hue as the rarity signal — the user read the all-tier-coloured S82 modal as
+ * "not my theme" on the daily build. This pins that wiring so a refactor can't
+ * silently revert to the static white card or re-tint everything with the tier.
  */
 import React from 'react';
 import {render} from '@testing-library/react-native';
@@ -25,6 +27,7 @@ const mockColors = {
   textSecondary: '#94a3b8',
   textTertiary: '#64748b',
   primary: '#38bdf8',
+  onPrimary: '#0f172a',
   border: '#374151',
 };
 
@@ -61,6 +64,21 @@ const achievement = {
 const colorOf = (node: {props: {style?: unknown}}): string | undefined =>
   (StyleSheet.flatten(node.props.style) as {color?: string})?.color;
 
+// Climb from a text node to the nearest ancestor that paints a background.
+const bgOfNearestAncestor = (
+  node: {props?: {style?: unknown}; parent?: unknown} | null,
+): string | undefined => {
+  let cur = node;
+  while (cur) {
+    const bg = (
+      StyleSheet.flatten(cur.props?.style) as {backgroundColor?: string}
+    )?.backgroundColor;
+    if (bg) return bg;
+    cur = cur.parent as typeof cur;
+  }
+  return undefined;
+};
+
 describe('AchievementUnlockedModal theming (Sprint 82)', () => {
   it('paints its text with the active theme colours, not the old greys', () => {
     const t = translations.es;
@@ -87,7 +105,7 @@ describe('AchievementUnlockedModal theming (Sprint 82)', () => {
     );
   });
 
-  it('keeps the tier hue as the points accent', () => {
+  it('uses the theme primary for the big accents (points + button ink)', () => {
     const t = translations.es;
     const {getByText} = render(
       <AchievementUnlockedModal
@@ -96,8 +114,29 @@ describe('AchievementUnlockedModal theming (Sprint 82)', () => {
         onClose={jest.fn()}
       />,
     );
+    // Points were the tier hue in S82; the hybrid moves them to the theme.
     const pointsText = `+${achievement.points} ${t.achievements.points}`;
-    expect(colorOf(getByText(pointsText))).toBe(
+    expect(colorOf(getByText(pointsText))).toBe(mockColors.primary);
+    // The CTA ink is the locked onPrimary contrast colour (button bg = primary).
+    expect(colorOf(getByText(t.achievements.awesome))).toBe(
+      mockColors.onPrimary,
+    );
+  });
+
+  it('keeps the small tier badge in its own tier hue (the rarity signal)', () => {
+    const t = translations.es;
+    const tierLabel = (t.achievements.tiers as Record<string, string>)[
+      achievement.tier
+    ].toUpperCase();
+    const {getByText} = render(
+      <AchievementUnlockedModal
+        visible
+        achievement={achievement}
+        onClose={jest.fn()}
+      />,
+    );
+    // The badge text sits inside the tier-coloured pill (an ancestor View).
+    expect(bgOfNearestAncestor(getByText(tierLabel))).toBe(
       ACHIEVEMENT_TIER_COLORS[achievement.tier],
     );
   });

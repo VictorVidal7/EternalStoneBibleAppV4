@@ -35,6 +35,11 @@ export const AchievementUnlockedModal: React.FC<
 > = ({visible, achievement, onClose}) => {
   const {t} = useLanguage();
   const {colors} = useTheme();
+  // Hybrid theming (Sprint 83): the big celebratory accents (border ring, icon
+  // halo, points, button) follow the SELECTED theme's primary so the modal
+  // reads as part of the app, while a small tier badge keeps its own hue as the
+  // rarity signal. Sprint 82 had tinted everything with the tier colour, which
+  // the user read as "not my theme" on the daily build.
   const reduced = useReducedMotion();
   const scaleAnim = useRef(new Animated.Value(0)).current;
   const rotateAnim = useRef(new Animated.Value(0)).current;
@@ -196,11 +201,9 @@ export const AchievementUnlockedModal: React.FC<
             style={[
               styles.card,
               {
-                // Follow the selected app theme (Sprint 82) instead of a hard
-                // white card that glared in dark mode — keep the tier hue as the
-                // celebratory accent (border, badge, icon ring, points, button).
+                // Theme surface + theme-primary accent ring (Sprint 83 hybrid).
                 backgroundColor: colors.surface,
-                borderColor: tierColor,
+                borderColor: colors.primary,
               },
             ]}
             {...focusTrapProps()}>
@@ -209,6 +212,7 @@ export const AchievementUnlockedModal: React.FC<
               <Text style={[styles.title, {color: colors.text}]}>
                 {t.achievements.unlockTitle}
               </Text>
+              {/* The tier badge keeps its own hue — the one rarity signal. */}
               <View style={[styles.tierBadge, {backgroundColor: tierColor}]}>
                 <Text style={styles.tierText}>{tierLabel.toUpperCase()}</Text>
               </View>
@@ -218,7 +222,7 @@ export const AchievementUnlockedModal: React.FC<
             <View
               style={[
                 styles.iconContainer,
-                {backgroundColor: tierColor + '20'},
+                {backgroundColor: colors.primary + '20'},
               ]}>
               <Text style={styles.icon}>{achievement.icon}</Text>
             </View>
@@ -236,16 +240,18 @@ export const AchievementUnlockedModal: React.FC<
               <Text style={[styles.pointsLabel, {color: colors.textTertiary}]}>
                 {t.achievements.pointsEarned}
               </Text>
-              <Text style={[styles.points, {color: tierColor}]}>
+              <Text style={[styles.points, {color: colors.primary}]}>
                 +{achievement.points} {t.achievements.points}
               </Text>
             </View>
 
             {/* Button */}
             <Pressable
-              style={[styles.button, {backgroundColor: tierColor}]}
+              style={[styles.button, {backgroundColor: colors.primary}]}
               onPress={onClose}>
-              <Text style={styles.buttonText}>{t.achievements.awesome}</Text>
+              <Text style={[styles.buttonText, {color: colors.onPrimary}]}>
+                {t.achievements.awesome}
+              </Text>
             </Pressable>
           </View>
         </Animated.View>
