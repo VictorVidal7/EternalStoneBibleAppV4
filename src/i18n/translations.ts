@@ -277,6 +277,11 @@ export const translations = {
       heatmapMoodLabel: 'Tu ánimo',
       heatmapMoodA11y:
         'Ánimo por semana: {{n}} de {{total}} semanas con un registro',
+      moodMonthTitle: 'Tu mes emocional',
+      moodMonthDominant: 'Tu ánimo del mes',
+      moodMonthDays: '{{n}} de {{total}} días registrados',
+      moodMonthA11y:
+        'Tu mes emocional: ánimo predominante {{mood}}, {{n}} de {{total}} días registrados',
       legendLess: 'Menos',
       legendMore: 'Más',
       streakCurrent: 'Racha actual',
@@ -1049,6 +1054,10 @@ export const translations = {
         royal: 'Royal',
         midnight: 'Midnight',
         cafe: 'Café',
+        vino: 'Vino',
+        esmeralda: 'Esmeralda',
+        arena: 'Arena',
+        aurora: 'Aurora',
       },
 
       bibleVersion: 'Versión de la Biblia',
@@ -2310,6 +2319,11 @@ export const translations = {
       heatmapHint: 'Verses read per day (recent months)',
       heatmapMoodLabel: 'Your mood',
       heatmapMoodA11y: 'Mood by week: {{n}} of {{total}} weeks with a check-in',
+      moodMonthTitle: 'Your emotional month',
+      moodMonthDominant: 'Your mood this month',
+      moodMonthDays: '{{n}} of {{total}} days logged',
+      moodMonthA11y:
+        'Your emotional month: prevailing mood {{mood}}, {{n}} of {{total}} days logged',
       legendLess: 'Less',
       legendMore: 'More',
       streakCurrent: 'Current streak',
@@ -3084,6 +3098,10 @@ export const translations = {
         royal: 'Royal',
         midnight: 'Midnight',
         cafe: 'Café',
+        vino: 'Wine',
+        esmeralda: 'Emerald',
+        arena: 'Sand',
+        aurora: 'Aurora',
       },
 
       bibleVersion: 'Bible Version',

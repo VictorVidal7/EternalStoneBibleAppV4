@@ -722,12 +722,17 @@ export const MiniAudioPlayer: React.FC<MiniAudioPlayerProps> = ({
                   <TouchableOpacity
                     style={styles.headerButton}
                     onPress={() => {
+                      // Tap just toggles, quietly (Sprint 82) — the per-tap
+                      // caption was noisy; long-press explains it instead.
                       haptics.tap();
-                      const next = !autoAdvanceChapter;
-                      setAutoAdvanceChapter(next);
-                      // Icon-only toggle — say what it now does (Sprint 81).
+                      setAutoAdvanceChapter(!autoAdvanceChapter);
+                    }}
+                    onLongPress={() => {
+                      // Long-press = a tooltip describing what the control does
+                      // in its CURRENT state, without changing it (Sprint 82).
+                      haptics.tap();
                       toast.info(
-                        next
+                        autoAdvanceChapter
                           ? t.audio.autoAdvanceOnToast
                           : t.audio.autoAdvanceOffToast,
                       );
@@ -755,12 +760,14 @@ export const MiniAudioPlayer: React.FC<MiniAudioPlayerProps> = ({
                     <TouchableOpacity
                       style={styles.headerButton}
                       onPress={() => {
+                        // Tap toggles quietly; long-press explains (Sprint 82).
                         haptics.tap();
-                        const next = !readerFollowsAudio;
-                        setReaderFollowsAudio(next);
-                        // Icon-only toggle — say what it now does (Sprint 81).
+                        setReaderFollowsAudio(!readerFollowsAudio);
+                      }}
+                      onLongPress={() => {
+                        haptics.tap();
                         toast.info(
-                          next
+                          readerFollowsAudio
                             ? t.audio.readerFollowOnToast
                             : t.audio.readerFollowOffToast,
                         );

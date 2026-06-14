@@ -142,3 +142,56 @@ export function moodForDateKeys(
   }
   return bestFeeling;
 }
+
+/** A rolling-month emotional summary (Sprint 82) — "Tu mes emocional". */
+export interface MoodMonthSummary {
+  /** Length of the window walked, in days. */
+  windowDays: number;
+  /** How many of those days carry a check-in. */
+  daysLogged: number;
+  /** Per-feeling tallies, richest first (count-ties → the more recently felt). */
+  counts: {feelingId: string; count: number}[];
+  /** The month's defining feeling — `counts[0]`, or null when nothing logged. */
+  dominant: string | null;
+}
+
+/** Default window for the monthly mood summary — a rolling 30 local days. */
+export const MOOD_MONTH_DAYS = 30;
+
+/**
+ * Tally the feelings checked in over the last `windowDays` LOCAL days (Sprint
+ * 82). Day walks use setDate (DST-safe, the S78 rule). Pure; `dominant` is null
+ * until at least one day is logged. Both the dominant feeling and the
+ * distribution break count-ties toward the MORE RECENTLY felt one — matching
+ * the store's last-wins philosophy — so the dominant is always the head of
+ * `counts`.
+ */
+export function monthMood(
+  log: FeelingsLog,
+  now: number,
+  windowDays: number = MOOD_MONTH_DAYS,
+): MoodMonthSummary {
+  const tally = new Map<string, {count: number; lastKey: string}>();
+  let daysLogged = 0;
+  for (let offset = windowDays - 1; offset >= 0; offset--) {
+    const d = new Date(now);
+    d.setDate(d.getDate() - offset);
+    const key = feelingsDateKey(d.getTime());
+    const feeling = log.days[key];
+    if (feeling === undefined) continue;
+    daysLogged++;
+    const prev = tally.get(feeling);
+    // We iterate oldest → newest, so the last write holds the latest key.
+    tally.set(feeling, {count: (prev?.count ?? 0) + 1, lastKey: key});
+  }
+  const counts = [...tally.entries()]
+    .map(([feelingId, v]) => ({feelingId, count: v.count, lastKey: v.lastKey}))
+    .sort((a, b) => b.count - a.count || (a.lastKey < b.lastKey ? 1 : -1))
+    .map(({feelingId, count}) => ({feelingId, count}));
+  return {
+    windowDays,
+    daysLogged,
+    counts,
+    dominant: counts.length ? counts[0].feelingId : null,
+  };
+}

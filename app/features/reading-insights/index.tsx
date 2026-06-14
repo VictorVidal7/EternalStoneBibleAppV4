@@ -73,7 +73,9 @@ import {
   weekMood,
   hasAnyMood,
   moodForDateKeys,
+  monthMood,
   type MoodDay,
+  type MoodMonthSummary,
 } from '@/features/study/feelingsLog';
 import {logger} from '@lib/utils/logger';
 import {
@@ -119,6 +121,10 @@ export default function ReadingInsightsScreen() {
   // column (last-wins within the week), aligned with the grid by chunking
   // the SAME cells. Null feeling = no check-in that week.
   const [moodStrip, setMoodStrip] = useState<(string | null)[] | null>(null);
+  // Tu mes emocional (Sprint 82) — a rolling-30-day tally of the check-ins.
+  const [monthSummary, setMonthSummary] = useState<MoodMonthSummary | null>(
+    null,
+  );
   const [status, setStatus] = useState<LoadStatus>('loading');
 
   const load = useCallback(async () => {
@@ -162,6 +168,7 @@ export default function ReadingInsightsScreen() {
         );
       }
       setMoodStrip(weekChunks.map(keys => moodForDateKeys(feelingsLog, keys)));
+      setMonthSummary(monthMood(feelingsLog, now));
       setWeekRecap(
         buildWeeklyRecap({
           readingLog,
@@ -642,6 +649,134 @@ export default function ReadingInsightsScreen() {
                   />
                 </View>
               </View>
+
+              {/* Tu mes emocional (Sprint 82) — a rolling-30-day tally of the
+                  emotional check-ins: the month's prevailing feeling, how many
+                  days were logged, and the distribution. Pure monthMood over the
+                  SAME device-only feelings log; hidden until a day is logged. */}
+              {monthSummary && monthSummary.daysLogged > 0
+                ? (() => {
+                    const dominantFeeling = getFeeling(monthSummary.dominant);
+                    const maxCount = monthSummary.counts[0]?.count ?? 1;
+                    const dominantName = dominantFeeling
+                      ? (feelingNames[dominantFeeling.id]?.name ??
+                        dominantFeeling.id)
+                      : '';
+                    const daysLine = ri.moodMonthDays
+                      .replace('{{n}}', String(monthSummary.daysLogged))
+                      .replace('{{total}}', String(monthSummary.windowDays));
+                    return (
+                      <View
+                        style={[styles.card, {backgroundColor: colors.card}]}
+                        accessible={true}
+                        accessibilityLabel={ri.moodMonthA11y
+                          .replace('{{mood}}', dominantName)
+                          .replace('{{n}}', String(monthSummary.daysLogged))
+                          .replace(
+                            '{{total}}',
+                            String(monthSummary.windowDays),
+                          )}>
+                        <AppText
+                          style={[styles.cardTitle, {color: colors.text}]}>
+                          {ri.moodMonthTitle}
+                        </AppText>
+                        {dominantFeeling ? (
+                          <View style={styles.moodMonthDominantRow}>
+                            <View
+                              style={[
+                                styles.moodMonthDominantDot,
+                                {backgroundColor: dominantFeeling.accent},
+                              ]}>
+                              <Ionicons
+                                name={
+                                  dominantFeeling.icon as keyof typeof Ionicons.glyphMap
+                                }
+                                size={20}
+                                color={staticColors.white}
+                              />
+                            </View>
+                            <View style={styles.moodMonthDominantText}>
+                              <AppText
+                                scaleRole="compact"
+                                style={[
+                                  styles.moodMonthLabel,
+                                  {color: colors.textTertiary},
+                                ]}>
+                                {ri.moodMonthDominant}
+                              </AppText>
+                              <AppText
+                                style={[
+                                  styles.moodMonthDominantName,
+                                  {color: colors.text},
+                                ]}>
+                                {dominantName}
+                              </AppText>
+                            </View>
+                            <AppText
+                              scaleRole="compact"
+                              style={[
+                                styles.moodMonthDays,
+                                {color: colors.textSecondary},
+                              ]}>
+                              {daysLine}
+                            </AppText>
+                          </View>
+                        ) : null}
+                        <View style={styles.moodMonthBars}>
+                          {monthSummary.counts.slice(0, 5).map(c => {
+                            const f = getFeeling(c.feelingId);
+                            if (!f) return null;
+                            const pct = Math.max(0.06, c.count / maxCount);
+                            return (
+                              <View
+                                key={c.feelingId}
+                                style={styles.moodMonthBarRow}>
+                                <View
+                                  style={[
+                                    styles.moodMonthBarDot,
+                                    {backgroundColor: f.accent},
+                                  ]}
+                                />
+                                <AppText
+                                  scaleRole="compact"
+                                  numberOfLines={1}
+                                  style={[
+                                    styles.moodMonthBarName,
+                                    {color: colors.textSecondary},
+                                  ]}>
+                                  {feelingNames[f.id]?.name ?? f.id}
+                                </AppText>
+                                <View
+                                  style={[
+                                    styles.moodMonthBarTrack,
+                                    {backgroundColor: colors.border},
+                                  ]}>
+                                  <View
+                                    style={[
+                                      styles.moodMonthBarFill,
+                                      {
+                                        backgroundColor: f.accent,
+                                        width: `${pct * 100}%`,
+                                      },
+                                    ]}
+                                  />
+                                </View>
+                                <AppText
+                                  scaleRole="compact"
+                                  style={[
+                                    styles.moodMonthBarCount,
+                                    {color: colors.textTertiary},
+                                  ]}>
+                                  {c.count}
+                                </AppText>
+                              </View>
+                            );
+                          })}
+                        </View>
+                      </View>
+                    );
+                  })()
+                : null}
 
               {/* Lifetime totals */}
               <View style={[styles.card, {backgroundColor: colors.card}]}>
@@ -1215,6 +1350,72 @@ const styles = StyleSheet.create({
   moodStripLabel: {
     fontSize: fontSizes['2xs'],
     marginTop: 2,
+  },
+  // Tu mes emocional (Sprint 82)
+  moodMonthDominantRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.sm,
+    marginTop: spacing.sm,
+    marginBottom: spacing.md,
+  },
+  moodMonthDominantDot: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  moodMonthDominantText: {
+    flex: 1,
+  },
+  moodMonthLabel: {
+    fontSize: fontSizes['2xs'],
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+  },
+  moodMonthDominantName: {
+    fontSize: fontSizes.lg,
+    fontWeight: '800',
+  },
+  moodMonthDays: {
+    fontSize: fontSizes.xs,
+    fontWeight: '600',
+    textAlign: 'right',
+  },
+  moodMonthBars: {
+    gap: spacing.xs,
+    marginTop: spacing.xs,
+  },
+  moodMonthBarRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.sm,
+  },
+  moodMonthBarDot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+  },
+  moodMonthBarName: {
+    width: 84,
+    fontSize: fontSizes.xs,
+  },
+  moodMonthBarTrack: {
+    flex: 1,
+    height: 8,
+    borderRadius: 4,
+    overflow: 'hidden',
+  },
+  moodMonthBarFill: {
+    height: 8,
+    borderRadius: 4,
+  },
+  moodMonthBarCount: {
+    width: 20,
+    fontSize: fontSizes.xs,
+    fontWeight: '700',
+    textAlign: 'right',
   },
   legendText: {
     fontSize: fontSizes['2xs'],

@@ -22,7 +22,8 @@
           "color": "#001122"
         }
       ],
-      "./plugins/with-verse-widget"
+      "./plugins/with-verse-widget",
+      "expo-font"
     ],
     "splash": {
       "image": "./assets/splash-icon.png",

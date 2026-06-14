@@ -22,6 +22,7 @@ import {
 import {getLocalizedAchievement} from '../../lib/achievements/definitions';
 import {useLanguage} from '../../hooks/useLanguage';
 import {useReducedMotion} from '../../hooks/useReducedMotion';
+import {useTheme} from '../../hooks/useTheme';
 
 interface AchievementUnlockedModalProps {
   visible: boolean;
@@ -33,6 +34,7 @@ export const AchievementUnlockedModal: React.FC<
   AchievementUnlockedModalProps
 > = ({visible, achievement, onClose}) => {
   const {t} = useLanguage();
+  const {colors} = useTheme();
   const reduced = useReducedMotion();
   const scaleAnim = useRef(new Animated.Value(0)).current;
   const rotateAnim = useRef(new Animated.Value(0)).current;
@@ -191,11 +193,22 @@ export const AchievementUnlockedModal: React.FC<
             },
           ]}>
           <View
-            style={[styles.card, {borderColor: tierColor}]}
+            style={[
+              styles.card,
+              {
+                // Follow the selected app theme (Sprint 82) instead of a hard
+                // white card that glared in dark mode — keep the tier hue as the
+                // celebratory accent (border, badge, icon ring, points, button).
+                backgroundColor: colors.surface,
+                borderColor: tierColor,
+              },
+            ]}
             {...focusTrapProps()}>
             {/* Header */}
             <View style={styles.header}>
-              <Text style={styles.title}>{t.achievements.unlockTitle}</Text>
+              <Text style={[styles.title, {color: colors.text}]}>
+                {t.achievements.unlockTitle}
+              </Text>
               <View style={[styles.tierBadge, {backgroundColor: tierColor}]}>
                 <Text style={styles.tierText}>{tierLabel.toUpperCase()}</Text>
               </View>
@@ -211,12 +224,16 @@ export const AchievementUnlockedModal: React.FC<
             </View>
 
             {/* Name and description */}
-            <Text style={styles.name}>{localized.name}</Text>
-            <Text style={styles.description}>{localized.description}</Text>
+            <Text style={[styles.name, {color: colors.text}]}>
+              {localized.name}
+            </Text>
+            <Text style={[styles.description, {color: colors.textSecondary}]}>
+              {localized.description}
+            </Text>
 
             {/* Points */}
             <View style={styles.pointsContainer}>
-              <Text style={styles.pointsLabel}>
+              <Text style={[styles.pointsLabel, {color: colors.textTertiary}]}>
                 {t.achievements.pointsEarned}
               </Text>
               <Text style={[styles.points, {color: tierColor}]}>
@@ -265,7 +282,8 @@ const styles = StyleSheet.create({
     backgroundColor: staticColors.white,
     borderRadius: 24,
     padding: 24,
-    borderWidth: 0,
+    // Tier-hued accent ring; the colour is themed inline at render (Sprint 82).
+    borderWidth: 1.5,
     alignItems: 'center',
     shadowColor: staticColors.black,
     shadowOffset: {width: 0, height: 10},

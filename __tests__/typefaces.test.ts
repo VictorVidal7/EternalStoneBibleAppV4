@@ -2,6 +2,7 @@ import {
   READER_TYPEFACES,
   READER_FONT_FAMILY_ORDER,
   resolveTypeface,
+  resolveTypefaceBold,
   isReaderFontFamily,
   immersiveLineHeight,
   IMMERSIVE_LINE_HEIGHT_RATIO,
@@ -16,47 +17,59 @@ describe('reader typefaces catalog', () => {
     expect(READER_FONT_FAMILY_ORDER[0]).toBe('sans');
   });
 
-  it('each spec carries a label key and sample', () => {
+  it('each spec carries a label key, sample, and both weights', () => {
     for (const id of READER_FONT_FAMILY_ORDER) {
       const spec = READER_TYPEFACES[id];
       expect(spec.id).toBe(id);
       expect(spec.labelKey).toMatch(/^font/);
       expect(spec.sample.length).toBeGreaterThan(0);
+      expect(spec.family).toBe(resolveTypeface(id));
+      expect(spec.familyBold).toBe(resolveTypefaceBold(id));
     }
   });
 
-  describe('resolveTypeface', () => {
-    it('keeps the original sans/serif resolution (back-compat)', () => {
-      // sans → platform default (undefined) on both.
-      expect(resolveTypeface('sans', 'ios')).toBeUndefined();
-      expect(resolveTypeface('sans', 'android')).toBeUndefined();
-      // serif was Georgia (iOS) / 'serif' (Android) before the sprint.
-      expect(resolveTypeface('serif', 'ios')).toBe('Georgia');
-      expect(resolveTypeface('serif', 'android')).toBe('serif');
+  describe('resolveTypeface (Sprint 82 — bundled faces)', () => {
+    it('maps every id to its bundled regular family', () => {
+      // Device-independent: the same family name on iOS and Android.
+      expect(resolveTypeface('sans')).toBe('Inter_400Regular');
+      expect(resolveTypeface('serif')).toBe('Lora_400Regular');
+      expect(resolveTypeface('condensed')).toBe('ArchivoNarrow_400Regular');
+      expect(resolveTypeface('mono')).toBe('JetBrainsMono_400Regular');
     });
 
-    it('maps the new faces to system-guaranteed families per platform', () => {
-      expect(resolveTypeface('condensed', 'ios')).toBe('Avenir Next Condensed');
-      expect(resolveTypeface('condensed', 'android')).toBe(
-        'sans-serif-condensed',
-      );
-      expect(resolveTypeface('mono', 'ios')).toBe('Courier New');
-      expect(resolveTypeface('mono', 'android')).toBe('monospace');
+    it('maps every id to its bundled bold (700) family', () => {
+      expect(resolveTypefaceBold('sans')).toBe('Inter_700Bold');
+      expect(resolveTypefaceBold('serif')).toBe('Lora_700Bold');
+      expect(resolveTypefaceBold('condensed')).toBe('ArchivoNarrow_700Bold');
+      expect(resolveTypefaceBold('mono')).toBe('JetBrainsMono_700Bold');
+    });
+
+    it('regular and bold are different families for every face', () => {
+      // RN cannot fake-bold a static asset family, so they MUST differ.
+      for (const id of READER_FONT_FAMILY_ORDER) {
+        expect(resolveTypeface(id)).not.toBe(resolveTypefaceBold(id));
+      }
+    });
+
+    it('every face resolves to a DISTINCT family (the whole point)', () => {
+      const regulars = READER_FONT_FAMILY_ORDER.map(id => resolveTypeface(id));
+      expect(new Set(regulars).size).toBe(regulars.length);
     });
 
     it('never returns an empty string (would break RN Text)', () => {
       for (const id of READER_FONT_FAMILY_ORDER) {
-        for (const p of ['ios', 'android'] as const) {
-          const f = resolveTypeface(id, p);
-          expect(f === undefined || f.length > 0).toBe(true);
-        }
+        expect(resolveTypeface(id).length).toBeGreaterThan(0);
+        expect(resolveTypefaceBold(id).length).toBeGreaterThan(0);
       }
     });
 
-    it('falls back to default for an unknown id', () => {
-      expect(
-        resolveTypeface('garbage' as ReaderFontFamily, 'android'),
-      ).toBeUndefined();
+    it('falls back to the default sans face for an unknown id', () => {
+      expect(resolveTypeface('garbage' as ReaderFontFamily)).toBe(
+        'Inter_400Regular',
+      );
+      expect(resolveTypefaceBold('garbage' as ReaderFontFamily)).toBe(
+        'Inter_700Bold',
+      );
     });
   });
 
