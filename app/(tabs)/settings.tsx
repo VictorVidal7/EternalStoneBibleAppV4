@@ -379,7 +379,7 @@ export default function SettingsScreen() {
                         {isSelected && (
                           <Ionicons
                             name="checkmark"
-                            size={14}
+                            size={13}
                             color="#FFFFFF"
                           />
                         )}
@@ -1511,13 +1511,15 @@ function createThemedStyles(
       flexDirection: 'row',
       flexWrap: 'wrap',
       marginTop: 12,
-      gap: 8,
-      justifyContent: 'flex-start',
+      rowGap: 12,
+      // 6 swatches per row → the 12 themes sit in a tidy 2 rows (Sprint 82),
+      // evenly spread instead of three roomy rows of four.
+      justifyContent: 'space-between',
     },
     colorThemeOptionCompact: {
-      width: '23%',
+      width: '15%',
       alignItems: 'center',
-      padding: 6,
+      paddingVertical: 4,
       borderRadius: 10,
       borderWidth: 2,
       borderColor: staticColors.transparent,
@@ -1528,9 +1530,9 @@ function createThemedStyles(
     },
     // Wrapper con borde circular para que el círculo sea visible en modo oscuro
     colorThemeCircleWrapper: {
-      width: 40,
-      height: 40,
-      borderRadius: 20,
+      width: 34,
+      height: 34,
+      borderRadius: 17,
       justifyContent: 'center',
       alignItems: 'center',
       borderWidth: isDark ? 1 : 0,
@@ -1540,14 +1542,14 @@ function createThemedStyles(
       marginBottom: 4,
     },
     colorThemePreviewCompact: {
-      width: 36,
-      height: 36,
-      borderRadius: 18,
+      width: 30,
+      height: 30,
+      borderRadius: 15,
       justifyContent: 'center',
       alignItems: 'center',
     },
     colorThemeNameCompact: {
-      fontSize: 10,
+      fontSize: 9,
       fontWeight: '600',
       color: colors.textSecondary,
       textAlign: 'center',
