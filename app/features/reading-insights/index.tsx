@@ -67,15 +67,17 @@ import {
   bookCanonProgressPct,
 } from '@lib/achievements/bookCompletion';
 import {getBookByName} from '@/constants/bible';
-import {getFeeling} from '@/features/study/feelings';
+import {getFeeling, isBrightFeeling} from '@/features/study/feelings';
 import {getFeelingsLog} from '@/features/study/feelingsLogStore';
 import {
   weekMood,
   hasAnyMood,
   moodForDateKeys,
   monthMood,
+  moodTrend,
   type MoodDay,
   type MoodMonthSummary,
+  type MoodTrendSummary,
 } from '@/features/study/feelingsLog';
 import {logger} from '@lib/utils/logger';
 import {
@@ -125,6 +127,9 @@ export default function ReadingInsightsScreen() {
   const [monthSummary, setMonthSummary] = useState<MoodMonthSummary | null>(
     null,
   );
+  // Tu tendencia emocional (Sprint 83) — this 30-day window vs the prior one.
+  const [moodTrendSummary, setMoodTrendSummary] =
+    useState<MoodTrendSummary | null>(null);
   const [status, setStatus] = useState<LoadStatus>('loading');
 
   const load = useCallback(async () => {
@@ -169,6 +174,7 @@ export default function ReadingInsightsScreen() {
       }
       setMoodStrip(weekChunks.map(keys => moodForDateKeys(feelingsLog, keys)));
       setMonthSummary(monthMood(feelingsLog, now));
+      setMoodTrendSummary(moodTrend(feelingsLog, now));
       setWeekRecap(
         buildWeeklyRecap({
           readingLog,
@@ -773,6 +779,140 @@ export default function ReadingInsightsScreen() {
                             );
                           })}
                         </View>
+                      </View>
+                    );
+                  })()
+                : null}
+
+              {/* Tu tendencia emocional (Sprint 83): this 30-day window vs the
+                  one before it. Pure moodTrend over the SAME device-only log;
+                  shown only when BOTH windows carry a check-in (else there is
+                  nothing honest to compare). Direction is gentle + pastoral:
+                  rising bright feelings or easing heavy ones read as "lifting",
+                  the reverse as "harder days" — never a judgement. */}
+              {moodTrendSummary && moodTrendSummary.hasComparison
+                ? (() => {
+                    const dir = moodTrendSummary.direction;
+                    const dirText =
+                      dir === 'lighter'
+                        ? ri.moodTrendLighter
+                        : dir === 'heavier'
+                          ? ri.moodTrendHeavier
+                          : ri.moodTrendSteady;
+                    const dirColor =
+                      dir === 'lighter'
+                        ? colors.success
+                        : dir === 'heavier'
+                          ? colors.warning
+                          : colors.textSecondary;
+                    const dirIcon =
+                      dir === 'lighter'
+                        ? 'trending-up'
+                        : dir === 'heavier'
+                          ? 'trending-down'
+                          : 'remove';
+                    // Top movers: up to 2 rising + 2 easing, biggest swing first.
+                    const movers = [
+                      ...moodTrendSummary.rising.slice(0, 2),
+                      ...moodTrendSummary.easing.slice(0, 2),
+                    ];
+                    return (
+                      <View
+                        style={[styles.card, {backgroundColor: colors.card}]}
+                        accessible={true}
+                        accessibilityLabel={ri.moodTrendA11y.replace(
+                          '{{direction}}',
+                          dirText,
+                        )}>
+                        <AppText
+                          style={[styles.cardTitle, {color: colors.text}]}>
+                          {ri.moodTrendTitle}
+                        </AppText>
+                        <AppText
+                          scaleRole="compact"
+                          style={[
+                            styles.moodTrendSubtitle,
+                            {color: colors.textTertiary},
+                          ]}>
+                          {ri.moodTrendSubtitle}
+                        </AppText>
+                        <View style={styles.moodTrendDirRow}>
+                          <View
+                            style={[
+                              styles.moodTrendDirIcon,
+                              {backgroundColor: dirColor + '1F'},
+                            ]}>
+                            <Ionicons
+                              name={dirIcon as keyof typeof Ionicons.glyphMap}
+                              size={18}
+                              color={dirColor}
+                            />
+                          </View>
+                          <AppText
+                            style={[
+                              styles.moodTrendDirText,
+                              {color: colors.text},
+                            ]}>
+                            {dirText}
+                          </AppText>
+                        </View>
+                        {movers.length > 0 ? (
+                          <View style={styles.moodTrendMovers}>
+                            {movers.map(mv => {
+                              const f = getFeeling(mv.feelingId);
+                              if (!f) return null;
+                              const up = mv.delta > 0;
+                              const deltaText = (
+                                up
+                                  ? ri.moodTrendMoreDays
+                                  : ri.moodTrendFewerDays
+                              ).replace('{{n}}', String(Math.abs(mv.delta)));
+                              // A rising bright feeling / easing heavy one is
+                              // encouraging → success; the reverse → warning.
+                              const good = up === isBrightFeeling(mv.feelingId);
+                              return (
+                                <View
+                                  key={mv.feelingId}
+                                  style={styles.moodTrendMoverRow}>
+                                  <View
+                                    style={[
+                                      styles.moodTrendMoverDot,
+                                      {backgroundColor: f.accent},
+                                    ]}
+                                  />
+                                  <AppText
+                                    scaleRole="compact"
+                                    numberOfLines={1}
+                                    style={[
+                                      styles.moodTrendMoverName,
+                                      {color: colors.textSecondary},
+                                    ]}>
+                                    {feelingNames[f.id]?.name ?? f.id}
+                                  </AppText>
+                                  <Ionicons
+                                    name={up ? 'arrow-up' : 'arrow-down'}
+                                    size={13}
+                                    color={
+                                      good ? colors.success : colors.warning
+                                    }
+                                  />
+                                  <AppText
+                                    scaleRole="compact"
+                                    style={[
+                                      styles.moodTrendMoverDelta,
+                                      {
+                                        color: good
+                                          ? colors.success
+                                          : colors.warning,
+                                      },
+                                    ]}>
+                                    {deltaText}
+                                  </AppText>
+                                </View>
+                              );
+                            })}
+                          </View>
+                        ) : null}
                       </View>
                     );
                   })()
@@ -1415,6 +1555,53 @@ const styles = StyleSheet.create({
     width: 20,
     fontSize: fontSizes.xs,
     fontWeight: '700',
+    textAlign: 'right',
+  },
+  // Tu tendencia emocional (Sprint 83)
+  moodTrendSubtitle: {
+    fontSize: fontSizes.xs,
+    marginTop: 2,
+    marginBottom: spacing.sm,
+  },
+  moodTrendDirRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.sm,
+  },
+  moodTrendDirIcon: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  moodTrendDirText: {
+    flex: 1,
+    fontSize: fontSizes.base,
+    fontWeight: '700',
+  },
+  moodTrendMovers: {
+    gap: spacing.xs,
+    marginTop: spacing.md,
+  },
+  moodTrendMoverRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.xs,
+  },
+  moodTrendMoverDot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+  },
+  moodTrendMoverName: {
+    flex: 1,
+    fontSize: fontSizes.xs,
+  },
+  moodTrendMoverDelta: {
+    fontSize: fontSizes.xs,
+    fontWeight: '700',
+    minWidth: 56,
     textAlign: 'right',
   },
   legendText: {

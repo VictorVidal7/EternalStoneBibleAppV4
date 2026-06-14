@@ -23,6 +23,8 @@
   },
   "dependencies": {
     "@expo-google-fonts/archivo-narrow": "^0.4.2",
+    "@expo-google-fonts/atkinson-hyperlegible": "^0.4.1",
+    "@expo-google-fonts/eb-garamond": "^0.4.2",
     "@expo-google-fonts/inter": "^0.4.2",
     "@expo-google-fonts/jetbrains-mono": "^0.4.1",
     "@expo-google-fonts/lora": "^0.4.2",

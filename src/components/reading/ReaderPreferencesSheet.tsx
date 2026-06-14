@@ -718,9 +718,10 @@ const styles = StyleSheet.create({
     fontSize: fontSizes.xs,
     fontWeight: '600',
   },
-  // Typeface cards: a ~half-width basis so the 4 reading faces wrap into a
-  // clean 2×2 grid (the shared flex:1 choiceCard packed 4 onto one line and
-  // pushed the 4th off-screen). flexBasis overrides the basis:0 from flex:1.
+  // Typeface cards: a ~half-width basis so the six reading faces (Sprint 83)
+  // wrap into a clean 2-per-row grid (the shared flex:1 choiceCard packed them
+  // onto one line and pushed the rest off-screen). flexBasis overrides the
+  // basis:0 from flex:1.
   fontFamilyCard: {
     flexBasis: '47%',
     minWidth: 0,

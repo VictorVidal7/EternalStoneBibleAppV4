@@ -26,10 +26,13 @@ import {haptics} from '@lib/haptics';
 import {logger} from '@lib/utils/logger';
 import bibleDB from '@lib/database';
 import {getBookByName} from '@/constants/bible';
-import {getFeeling, type Feeling} from '@/features/study/feelings';
+import {
+  getFeeling,
+  feelingVerseRefForDay,
+  type Feeling,
+} from '@/features/study/feelings';
 import {getFeelingsLog} from '@/features/study/feelingsLogStore';
 import {feelingsDateKey} from '@/features/study/feelingsLog';
-import {meditationPromptIndex} from '@/features/study/lectio';
 import {parseThemeRef} from '@/features/study/themes';
 import {
   borderRadius,
@@ -75,16 +78,9 @@ export const MoodVerseCard: React.FC<MoodVerseCardProps> = ({onOpenVerse}) => {
             if (!cancelled) setMoodVerse(null);
             return;
           }
-          // Deterministic per (feeling, local day) — the lectio prompt hash.
-          const ref =
-            feeling.verseRefs[
-              meditationPromptIndex(
-                feeling.id,
-                todayKey,
-                feeling.verseRefs.length,
-              )
-            ];
-          const parsed = parseThemeRef(ref);
+          // Deterministic per (feeling, local day) — the shared lectio hash.
+          const ref = feelingVerseRefForDay(feeling, todayKey);
+          const parsed = ref ? parseThemeRef(ref) : null;
           const book = parsed ? getBookByName(parsed.book) : null;
           if (!parsed || !book) {
             if (!cancelled) setMoodVerse(null);

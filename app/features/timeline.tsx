@@ -39,7 +39,10 @@ import {
   timelineMonthKey,
   type TimelineEvent,
 } from '@/features/reading-insights/timeline';
-import {buildTimelineCard} from '@/features/reading-insights/timelineCard';
+import {
+  buildTimelineCard,
+  type TimelineCardModel,
+} from '@/features/reading-insights/timelineCard';
 import {TimelineImageModal} from '@components/insights/TimelineImageModal';
 import {haptics} from '@lib/haptics';
 import {logger} from '@lib/utils/logger';
@@ -76,8 +79,14 @@ export default function TimelineScreen() {
 
   const [events, setEvents] = useState<TimelineEvent[] | null>(null);
   const [status, setStatus] = useState<LoadStatus>('loading');
-  // Share-as-image modal (Sprint 81) — the S56 view-shot pipeline.
-  const [shareVisible, setShareVisible] = useState(false);
+  // Share-as-image modal (Sprint 81/83) — the S56 view-shot pipeline. The
+  // target is either the recent-milestones card (header button) or a SINGLE
+  // milestone (long-press a row); each carries its own headline/caption.
+  const [share, setShare] = useState<{
+    card: TimelineCardModel;
+    headline?: string;
+    caption?: string;
+  } | null>(null);
 
   const load = useCallback(async () => {
     if (!achievementService || !highlightService) return;
@@ -249,6 +258,30 @@ export default function TimelineScreen() {
     [events, eventTitle, locale],
   );
 
+  // Share ONE milestone (Sprint 83): long-press a row → a focused single-
+  // milestone card (the same view-shot pipeline, headline + the milestone's
+  // full date instead of a "1 hito" count). Haptic confirms the long-press.
+  const shareSingle = useCallback(
+    (event: TimelineEvent) => {
+      haptics.press();
+      const milestone = {
+        title: eventTitle(event),
+        dateLabel: new Date(event.timestamp).toLocaleDateString(locale, {
+          day: 'numeric',
+          month: 'long',
+          year: 'numeric',
+        }),
+        icon: TYPE_ICONS[event.type],
+      };
+      setShare({
+        card: buildTimelineCard([milestone], {maxItems: 1}),
+        headline: tl.shareOneTitle,
+        caption: milestone.dateLabel,
+      });
+    },
+    [eventTitle, locale, tl.shareOneTitle],
+  );
+
   return (
     <>
       <Stack.Screen options={{headerShown: false}} />
@@ -277,7 +310,7 @@ export default function TimelineScreen() {
                 style={styles.backButton}
                 onPress={() => {
                   haptics.tap();
-                  setShareVisible(true);
+                  setShare({card: shareCard});
                 }}
                 accessibilityRole="button"
                 accessibilityLabel={tl.shareImage}>
@@ -367,8 +400,11 @@ export default function TimelineScreen() {
                       month: 'short',
                     });
                     return (
-                      <View
+                      <TouchableOpacity
                         key={event.id}
+                        activeOpacity={0.6}
+                        onLongPress={() => shareSingle(event)}
+                        delayLongPress={300}
                         style={[
                           styles.eventRow,
                           index < section.events.length - 1 && [
@@ -377,7 +413,16 @@ export default function TimelineScreen() {
                           ],
                         ]}
                         accessible={true}
-                        accessibilityLabel={`${eventTitle(event)}, ${dateCaption}`}>
+                        accessibilityLabel={`${eventTitle(event)}, ${dateCaption}`}
+                        accessibilityHint={tl.shareOneHint}
+                        accessibilityActions={[
+                          {name: 'longpress', label: tl.shareOneA11y},
+                        ]}
+                        onAccessibilityAction={e => {
+                          if (e.nativeEvent.actionName === 'longpress') {
+                            shareSingle(event);
+                          }
+                        }}>
                         <View
                           style={[
                             styles.eventGlyph,
@@ -416,7 +461,7 @@ export default function TimelineScreen() {
                           ]}>
                           {dateCaption}
                         </AppText>
-                      </View>
+                      </TouchableOpacity>
                     );
                   })}
                 </View>
@@ -424,12 +469,15 @@ export default function TimelineScreen() {
             ))}
         </ScrollView>
 
-        {/* Share-as-image (Sprint 81) — only mounted with content behind it. */}
-        {shareVisible && shareCard.milestones.length > 0 ? (
+        {/* Share-as-image (Sprint 81/83) — recent milestones (header button)
+            or a single milestone (row long-press). Mounted only with content. */}
+        {share && share.card.milestones.length > 0 ? (
           <TimelineImageModal
-            visible={shareVisible}
-            card={shareCard}
-            onClose={() => setShareVisible(false)}
+            visible
+            card={share.card}
+            headline={share.headline}
+            caption={share.caption}
+            onClose={() => setShare(null)}
           />
         ) : null}
       </View>

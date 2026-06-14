@@ -20,6 +20,7 @@
  */
 
 import type {ThemeRefKey} from './themes';
+import {meditationPromptIndex} from './lectio';
 
 export interface Feeling {
   /** Stable key — the route param `[feeling]` AND the i18n key `t.feelings.list[id]`. */
@@ -208,6 +209,24 @@ export const FEELINGS: readonly Feeling[] = [
   },
 ];
 
+/**
+ * The "brighter" feelings that close the check-in row (see the FEELINGS order
+ * note: the heavier states come first, the brighter ones close it). Used to
+ * read an emotional TREND's direction (Sprint 83) — a rise in these, or an
+ * easing of the heavier ones, reads as the spirit lifting. Kept EXPLICIT so a
+ * future reordering of the taxonomy can't silently flip a derived valence.
+ */
+export const BRIGHT_FEELING_IDS: ReadonlySet<string> = new Set([
+  'hopeful',
+  'grateful',
+  'joyful',
+]);
+
+/** Whether a feeling is one of the brighter states (see BRIGHT_FEELING_IDS). */
+export function isBrightFeeling(id: string): boolean {
+  return BRIGHT_FEELING_IDS.has(id);
+}
+
 /** Look up one feeling by id; null for unknown/empty ids. */
 export function getFeeling(id: string | null | undefined): Feeling | null {
   if (!id) return null;
@@ -217,4 +236,21 @@ export function getFeeling(id: string | null | undefined): Feeling | null {
 /** The full check-in taxonomy, in display order. */
 export function getAllFeelings(): readonly Feeling[] {
   return FEELINGS;
+}
+
+/**
+ * The curated verse ref to surface for a feeling on a given LOCAL day —
+ * deterministic per (feeling, day) via the shared lectio rolling hash, so it is
+ * stable within a day yet rotates across days. Null if the feeling has no refs.
+ * Shared by the Home mood verse card (Sprint 81) and the guided devotion
+ * (Sprint 83), so both surface the SAME verse for the same feeling+day.
+ */
+export function feelingVerseRefForDay(
+  feeling: Feeling,
+  dateKey: string,
+): ThemeRefKey | null {
+  if (feeling.verseRefs.length === 0) return null;
+  return feeling.verseRefs[
+    meditationPromptIndex(feeling.id, dateKey, feeling.verseRefs.length)
+  ];
 }

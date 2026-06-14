@@ -35,6 +35,8 @@ import {useLanguage} from '@hooks/useLanguage';
 import {useToast} from '@context/ToastContext';
 import {useServices} from '@context/ServicesContext';
 import {useBibleVersion} from '@hooks/useBibleVersion';
+import {useMemoryDeck} from '@context/MemoryDeckContext';
+import {buildVerseKey} from '@lib/memory/srs';
 import {haptics} from '@lib/haptics';
 import {AppText} from '@components/ui/AppText';
 import bibleDB from '@lib/database';
@@ -69,6 +71,7 @@ export default function LectioScreen() {
   const toast = useToast();
   const {achievementService, notifyAchievements} = useServices();
   const {selectedVersion} = useBibleVersion();
+  const {addCard, hasCard} = useMemoryDeck();
   const {loadChapter, play} = useAudioPlayer();
   const {width: windowWidth} = useWindowDimensions();
   const tl = t.lectio;
@@ -206,6 +209,40 @@ export default function LectioScreen() {
     );
     setTimeout(() => play(), 150);
   }, [verseText, params.book, chapterNum, verseNum, loadChapter, play, tl]);
+
+  // Memorize the verse (Sprint 83): the finale's closing step of the guided
+  // arc. Adds it to the SRS deck (de-duped by verse key — a no-op if already
+  // there, so we toast "already in your deck" instead of silently doing
+  // nothing). bookName/version match the favorites add path.
+  const handleMemorize = useCallback(() => {
+    if (!verseText || !paramsValid) return;
+    haptics.tap();
+    const key = buildVerseKey(bookDisplay, chapterNum, verseNum);
+    if (hasCard(key)) {
+      toast.info(tl.memorizedAlready);
+      return;
+    }
+    addCard({
+      bookName: bookDisplay,
+      chapter: chapterNum,
+      verse: verseNum,
+      text: verseText,
+      version: selectedVersion.id,
+    });
+    toast.success(tl.memorized);
+  }, [
+    verseText,
+    paramsValid,
+    bookDisplay,
+    chapterNum,
+    verseNum,
+    hasCard,
+    addCard,
+    selectedVersion.id,
+    toast,
+    tl.memorized,
+    tl.memorizedAlready,
+  ]);
 
   // Finish: append the prayer (if any) to the verse's note + sync, then show
   // the finale.
@@ -532,6 +569,18 @@ export default function LectioScreen() {
           <Ionicons name="image-outline" size={16} color={staticColors.white} />
           <AppText scaleRole="compact" style={styles.finaleActionText}>
             {tl.shareImage}
+          </AppText>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={[styles.finaleSecondary, {borderColor: colors.primary}]}
+          onPress={handleMemorize}
+          accessibilityRole="button"
+          accessibilityLabel={tl.memorize}>
+          <Ionicons name="bulb-outline" size={16} color={colors.primary} />
+          <AppText
+            scaleRole="compact"
+            style={[styles.finaleSecondaryText, {color: colors.primary}]}>
+            {tl.memorize}
           </AppText>
         </TouchableOpacity>
         <TouchableOpacity
@@ -903,6 +952,19 @@ const styles = StyleSheet.create({
     fontSize: fontSizes.sm,
     fontWeight: '700',
     color: staticColors.white,
+  },
+  finaleSecondary: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.xs,
+    borderWidth: 1.5,
+    borderRadius: borderRadius.lg,
+    paddingHorizontal: spacing.lg,
+    paddingVertical: spacing.sm,
+  },
+  finaleSecondaryText: {
+    fontSize: fontSizes.sm,
+    fontWeight: '700',
   },
   finaleGhost: {
     borderWidth: 1,

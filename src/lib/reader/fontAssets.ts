@@ -13,34 +13,35 @@
  * We load Regular + Bold per face: the verse number and the picker sample are
  * bold runs, and RN won't fake-bold a static asset family.
  *
+ * BUNDLE SIZE (Sprint 83): we `require` each `.ttf` by its DIRECT path instead
+ * of `import {Inter_400Regular} from '@expo-google-fonts/inter'`. The package
+ * index re-exports ALL ~18 weights, so importing from it dragged every unused
+ * weight into the APK (~50 stray `.ttf`). The per-weight path ships only the
+ * eight regular/bold files actually registered here — Metro resolves `.ttf`
+ * through its asset plugin, so each `require` is just the one font module.
+ *
  * Para la gloria de Dios Todopoderoso ✨
  */
 
 import * as Font from 'expo-font';
-import {Inter_400Regular, Inter_700Bold} from '@expo-google-fonts/inter';
-import {Lora_400Regular, Lora_700Bold} from '@expo-google-fonts/lora';
-import {
-  ArchivoNarrow_400Regular,
-  ArchivoNarrow_700Bold,
-} from '@expo-google-fonts/archivo-narrow';
-import {
-  JetBrainsMono_400Regular,
-  JetBrainsMono_700Bold,
-} from '@expo-google-fonts/jetbrains-mono';
 
 /**
  * The `Font.loadAsync` map: family name → bundled `.ttf` module. Every name
  * here matches a `family`/`familyBold` in `READER_TYPEFACES`.
  */
 export const READER_FONT_ASSETS = {
-  Inter_400Regular,
-  Inter_700Bold,
-  Lora_400Regular,
-  Lora_700Bold,
-  ArchivoNarrow_400Regular,
-  ArchivoNarrow_700Bold,
-  JetBrainsMono_400Regular,
-  JetBrainsMono_700Bold,
+  Inter_400Regular: require('@expo-google-fonts/inter/400Regular/Inter_400Regular.ttf'),
+  Inter_700Bold: require('@expo-google-fonts/inter/700Bold/Inter_700Bold.ttf'),
+  Lora_400Regular: require('@expo-google-fonts/lora/400Regular/Lora_400Regular.ttf'),
+  Lora_700Bold: require('@expo-google-fonts/lora/700Bold/Lora_700Bold.ttf'),
+  AtkinsonHyperlegible_400Regular: require('@expo-google-fonts/atkinson-hyperlegible/400Regular/AtkinsonHyperlegible_400Regular.ttf'),
+  AtkinsonHyperlegible_700Bold: require('@expo-google-fonts/atkinson-hyperlegible/700Bold/AtkinsonHyperlegible_700Bold.ttf'),
+  EBGaramond_400Regular: require('@expo-google-fonts/eb-garamond/400Regular/EBGaramond_400Regular.ttf'),
+  EBGaramond_700Bold: require('@expo-google-fonts/eb-garamond/700Bold/EBGaramond_700Bold.ttf'),
+  ArchivoNarrow_400Regular: require('@expo-google-fonts/archivo-narrow/400Regular/ArchivoNarrow_400Regular.ttf'),
+  ArchivoNarrow_700Bold: require('@expo-google-fonts/archivo-narrow/700Bold/ArchivoNarrow_700Bold.ttf'),
+  JetBrainsMono_400Regular: require('@expo-google-fonts/jetbrains-mono/400Regular/JetBrainsMono_400Regular.ttf'),
+  JetBrainsMono_700Bold: require('@expo-google-fonts/jetbrains-mono/700Bold/JetBrainsMono_700Bold.ttf'),
 } as const;
 
 /**

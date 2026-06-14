@@ -24,12 +24,20 @@
  */
 
 /** A reader typeface id. Persisted in `@reader_preferences.fontFamily`. */
-export type ReaderFontFamily = 'sans' | 'serif' | 'condensed' | 'mono';
+export type ReaderFontFamily =
+  | 'sans'
+  | 'legible'
+  | 'serif'
+  | 'classic'
+  | 'condensed'
+  | 'mono';
 
-/** Order the typefaces appear in the picker. */
+/** Order the typefaces appear in the picker (paired: two sans, two serif…). */
 export const READER_FONT_FAMILY_ORDER: ReaderFontFamily[] = [
   'sans',
+  'legible',
   'serif',
+  'classic',
   'condensed',
   'mono',
 ];
@@ -37,7 +45,13 @@ export const READER_FONT_FAMILY_ORDER: ReaderFontFamily[] = [
 interface TypefaceSpec {
   id: ReaderFontFamily;
   /** Key under `t.readerPrefs` for the human label. */
-  labelKey: 'fontSans' | 'fontSerif' | 'fontCondensed' | 'fontMono';
+  labelKey:
+    | 'fontSans'
+    | 'fontLegible'
+    | 'fontSerif'
+    | 'fontClassic'
+    | 'fontCondensed'
+    | 'fontMono';
   /** Glyph sample shown on the picker card. */
   sample: string;
   /**
@@ -55,11 +69,13 @@ interface TypefaceSpec {
 }
 
 /**
- * The curated catalog — four visibly distinct, freely-licensed reading faces:
- *   - sans      → Inter           (humanist, the new default body face)
- *   - serif     → Lora            (calm book serif, ideal for scripture)
- *   - condensed → Archivo Narrow  (genuinely narrow — fits more per line)
- *   - mono      → JetBrains Mono  (even-width, study/technical feel)
+ * The curated catalog — six visibly distinct, freely-licensed reading faces:
+ *   - sans      → Inter                (humanist, the default body face)
+ *   - legible   → Atkinson Hyperlegible(designed for low vision — a11y-first)
+ *   - serif     → Lora                 (calm book serif, ideal for scripture)
+ *   - classic   → EB Garamond          (a classic Garamond — old-book warmth)
+ *   - condensed → Archivo Narrow       (genuinely narrow — fits more per line)
+ *   - mono      → JetBrains Mono        (even-width, study/technical feel)
  */
 export const READER_TYPEFACES: Record<ReaderFontFamily, TypefaceSpec> = {
   sans: {
@@ -69,12 +85,26 @@ export const READER_TYPEFACES: Record<ReaderFontFamily, TypefaceSpec> = {
     family: 'Inter_400Regular',
     familyBold: 'Inter_700Bold',
   },
+  legible: {
+    id: 'legible',
+    labelKey: 'fontLegible',
+    sample: 'Aa',
+    family: 'AtkinsonHyperlegible_400Regular',
+    familyBold: 'AtkinsonHyperlegible_700Bold',
+  },
   serif: {
     id: 'serif',
     labelKey: 'fontSerif',
     sample: 'Aa',
     family: 'Lora_400Regular',
     familyBold: 'Lora_700Bold',
+  },
+  classic: {
+    id: 'classic',
+    labelKey: 'fontClassic',
+    sample: 'Aa',
+    family: 'EBGaramond_400Regular',
+    familyBold: 'EBGaramond_700Bold',
   },
   condensed: {
     id: 'condensed',
@@ -96,7 +126,9 @@ export const READER_TYPEFACES: Record<ReaderFontFamily, TypefaceSpec> = {
 export function isReaderFontFamily(value: unknown): value is ReaderFontFamily {
   return (
     value === 'sans' ||
+    value === 'legible' ||
     value === 'serif' ||
+    value === 'classic' ||
     value === 'condensed' ||
     value === 'mono'
   );

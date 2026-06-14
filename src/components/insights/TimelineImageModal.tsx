@@ -43,12 +43,21 @@ export interface TimelineImageModalProps {
   visible: boolean;
   /** The render-ready card (newest milestones), built by the screen. */
   card: TimelineCardModel;
+  /** Card headline; defaults to the timeline title (recent-milestones share). */
+  headline?: string;
+  /**
+   * Caption under the headline; defaults to "N milestones". A single-milestone
+   * share (Sprint 83) passes the milestone's date instead of a "1 hito" count.
+   */
+  caption?: string;
   onClose: () => void;
 }
 
 export const TimelineImageModal: React.FC<TimelineImageModalProps> = ({
   visible,
   card,
+  headline,
+  caption,
   onClose,
 }) => {
   const insets = useSafeAreaInsets();
@@ -148,10 +157,11 @@ export const TimelineImageModal: React.FC<TimelineImageModalProps> = ({
               <Text
                 style={[styles.cardName, {color: template.textColor}]}
                 numberOfLines={2}>
-                {tl.title}
+                {headline ?? tl.title}
               </Text>
               <Text style={[styles.cardCount, {color: template.textColor}]}>
-                {tl.shareCount.replace('{{n}}', String(card.totalCount))}
+                {caption ??
+                  tl.shareCount.replace('{{n}}', String(card.totalCount))}
               </Text>
 
               <View style={styles.cardMilestones}>
