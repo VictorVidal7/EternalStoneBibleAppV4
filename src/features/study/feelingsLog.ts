@@ -17,6 +17,8 @@
  * Para la gloria de Dios Todopoderoso ✨
  */
 
+import {isBrightFeeling} from './feelings';
+
 /** dateKey (local YYYY-MM-DD) → feelingId for that day. */
 export interface FeelingsLog {
   days: Record<string, string>;
@@ -193,5 +195,93 @@ export function monthMood(
     daysLogged,
     counts,
     dominant: counts.length ? counts[0].feelingId : null,
+  };
+}
+
+/** How one feeling moved between the current and the previous month window. */
+export interface FeelingTrend {
+  feelingId: string;
+  /** Days felt in the recent window. */
+  current: number;
+  /** Days felt in the window before that. */
+  previous: number;
+  /** current − previous (positive = felt more often lately). */
+  delta: number;
+}
+
+/** The overall emotional direction across the two windows. */
+export type MoodDirection = 'lighter' | 'steady' | 'heavier';
+
+/** A month-vs-month emotional trend (Sprint 83) — "Tu tendencia emocional". */
+export interface MoodTrendSummary {
+  /** Length of each window, in days (both windows are this long). */
+  windowDays: number;
+  /** The recent window's full summary (reuses {@link monthMood}). */
+  current: MoodMonthSummary;
+  daysLoggedCurrent: number;
+  daysLoggedPrevious: number;
+  /** Only meaningful when BOTH windows carry a check-in. */
+  hasComparison: boolean;
+  /** Feelings felt MORE than last window, steepest rise first. */
+  rising: FeelingTrend[];
+  /** Feelings felt LESS than last window, steepest drop first. */
+  easing: FeelingTrend[];
+  /** Net valence shift: a rise in bright feelings (or easing of the heavier
+   *  ones) reads as `lighter`; the reverse as `heavier`; no net change as
+   *  `steady`. Always `steady` when there is no comparison. */
+  direction: MoodDirection;
+}
+
+/**
+ * Compare the last `windowDays` LOCAL days against the `windowDays` before them
+ * (Sprint 83). The two windows are contiguous and non-overlapping by
+ * construction (the previous window is anchored `windowDays` back via setDate,
+ * the S78 DST rule). Pure; both `rising`/`easing` exclude unchanged feelings
+ * and break delta-ties alphabetically for a deterministic order. `direction`
+ * weights each feeling's delta by its valence ({@link isBrightFeeling}).
+ */
+export function moodTrend(
+  log: FeelingsLog,
+  now: number,
+  windowDays: number = MOOD_MONTH_DAYS,
+): MoodTrendSummary {
+  const current = monthMood(log, now, windowDays);
+  const prevAnchor = new Date(now);
+  prevAnchor.setDate(prevAnchor.getDate() - windowDays);
+  const previous = monthMood(log, prevAnchor.getTime(), windowDays);
+
+  const currentMap = new Map(current.counts.map(c => [c.feelingId, c.count]));
+  const previousMap = new Map(previous.counts.map(c => [c.feelingId, c.count]));
+  const allIds = new Set([...currentMap.keys(), ...previousMap.keys()]);
+
+  const trends: FeelingTrend[] = [...allIds].map(feelingId => {
+    const cur = currentMap.get(feelingId) ?? 0;
+    const prev = previousMap.get(feelingId) ?? 0;
+    return {feelingId, current: cur, previous: prev, delta: cur - prev};
+  });
+
+  const byDeltaDesc = (a: FeelingTrend, b: FeelingTrend) =>
+    b.delta - a.delta || (a.feelingId < b.feelingId ? -1 : 1);
+  const rising = trends.filter(t => t.delta > 0).sort(byDeltaDesc);
+  const easing = trends
+    .filter(t => t.delta < 0)
+    .sort((a, b) => -byDeltaDesc(a, b));
+
+  const hasComparison = current.daysLogged > 0 && previous.daysLogged > 0;
+  let net = 0;
+  for (const t of trends)
+    net += isBrightFeeling(t.feelingId) ? t.delta : -t.delta;
+  const direction: MoodDirection =
+    !hasComparison || net === 0 ? 'steady' : net > 0 ? 'lighter' : 'heavier';
+
+  return {
+    windowDays,
+    current,
+    daysLoggedCurrent: current.daysLogged,
+    daysLoggedPrevious: previous.daysLogged,
+    hasComparison,
+    rising,
+    easing,
+    direction,
   };
 }

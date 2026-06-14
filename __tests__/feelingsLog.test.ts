@@ -9,6 +9,7 @@ import {
   weekMood,
   moodForDateKeys,
   monthMood,
+  moodTrend,
   MOOD_MONTH_DAYS,
 } from '../src/features/study/feelingsLog';
 import {getAllFeelings} from '../src/features/study/feelings';
@@ -204,5 +205,90 @@ describe('monthMood (Sprint 82 — Tu mes emocional)', () => {
     const log = {days: {'2026-06-29': 'joyful', '2026-06-20': 'sad'}};
     expect(monthMood(log, now, 7).daysLogged).toBe(1);
     expect(monthMood(log, now, 14).daysLogged).toBe(2);
+  });
+});
+
+describe('moodTrend (Sprint 83 — Tu tendencia emocional)', () => {
+  const now = at(2026, 6, 30); // "today"
+  // With window 5: current = 06-26..06-30, previous = 06-21..06-25 (contiguous).
+  const W = 5;
+
+  it('has no comparison when the previous window is empty', () => {
+    const log = {days: {'2026-06-28': 'grateful', '2026-06-27': 'anxious'}};
+    const s = moodTrend(log, now, W);
+    expect(s.daysLoggedCurrent).toBe(2);
+    expect(s.daysLoggedPrevious).toBe(0);
+    expect(s.hasComparison).toBe(false);
+    expect(s.direction).toBe('steady');
+  });
+
+  it('lifts when bright feelings rise and heavy ones ease', () => {
+    const log = {
+      days: {
+        // current: grateful×3, anxious×1
+        '2026-06-30': 'grateful',
+        '2026-06-29': 'grateful',
+        '2026-06-28': 'grateful',
+        '2026-06-26': 'anxious',
+        // previous: grateful×1, anxious×3
+        '2026-06-25': 'grateful',
+        '2026-06-24': 'anxious',
+        '2026-06-23': 'anxious',
+        '2026-06-22': 'anxious',
+      },
+    };
+    const s = moodTrend(log, now, W);
+    expect(s.hasComparison).toBe(true);
+    expect(s.current.dominant).toBe('grateful');
+    expect(s.rising[0]).toEqual({
+      feelingId: 'grateful',
+      current: 3,
+      previous: 1,
+      delta: 2,
+    });
+    expect(s.easing[0]).toEqual({
+      feelingId: 'anxious',
+      current: 1,
+      previous: 3,
+      delta: -2,
+    });
+    expect(s.direction).toBe('lighter');
+  });
+
+  it('reads heavier when a hard feeling rises and a bright one fades', () => {
+    const log = {
+      days: {
+        // current: anxious×2
+        '2026-06-30': 'anxious',
+        '2026-06-29': 'anxious',
+        // previous: joyful×2
+        '2026-06-25': 'joyful',
+        '2026-06-24': 'joyful',
+      },
+    };
+    const s = moodTrend(log, now, W);
+    expect(s.hasComparison).toBe(true);
+    expect(s.rising[0].feelingId).toBe('anxious');
+    expect(s.easing[0].feelingId).toBe('joyful');
+    expect(s.direction).toBe('heavier');
+  });
+
+  it('is steady when nothing changed between the windows', () => {
+    const log = {
+      days: {'2026-06-30': 'anxious', '2026-06-25': 'anxious'},
+    };
+    const s = moodTrend(log, now, W);
+    expect(s.hasComparison).toBe(true);
+    expect(s.rising).toEqual([]);
+    expect(s.easing).toEqual([]);
+    expect(s.direction).toBe('steady');
+  });
+
+  it('uses the two windows contiguously (no overlap, no gap)', () => {
+    // 06-26 is the oldest current day; 06-25 the newest previous day.
+    const log = {days: {'2026-06-26': 'joyful', '2026-06-25': 'sad'}};
+    const s = moodTrend(log, now, W);
+    expect(s.daysLoggedCurrent).toBe(1);
+    expect(s.daysLoggedPrevious).toBe(1);
   });
 });

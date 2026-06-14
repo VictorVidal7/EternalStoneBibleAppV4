@@ -208,6 +208,24 @@ export const FEELINGS: readonly Feeling[] = [
   },
 ];
 
+/**
+ * The "brighter" feelings that close the check-in row (see the FEELINGS order
+ * note: the heavier states come first, the brighter ones close it). Used to
+ * read an emotional TREND's direction (Sprint 83) — a rise in these, or an
+ * easing of the heavier ones, reads as the spirit lifting. Kept EXPLICIT so a
+ * future reordering of the taxonomy can't silently flip a derived valence.
+ */
+export const BRIGHT_FEELING_IDS: ReadonlySet<string> = new Set([
+  'hopeful',
+  'grateful',
+  'joyful',
+]);
+
+/** Whether a feeling is one of the brighter states (see BRIGHT_FEELING_IDS). */
+export function isBrightFeeling(id: string): boolean {
+  return BRIGHT_FEELING_IDS.has(id);
+}
+
 /** Look up one feeling by id; null for unknown/empty ids. */
 export function getFeeling(id: string | null | undefined): Feeling | null {
   if (!id) return null;
