@@ -2004,8 +2004,20 @@ export default function VerseReadingScreen() {
                 }}
                 style={[
                   styles.verseItem,
+                  // Selection + arrive-with-highlight tints follow the active
+                  // theme (Sprint 82) — they used a FIXED brand blue, so under
+                  // any non-blue theme a selected/opened verse clashed. Layered
+                  // before verseBeingRead so the gold now-playing tint still
+                  // wins; the primary alpha (26/1A) matches the old 15%/10%.
                   isSelected && styles.verseSelected,
+                  isSelected && {
+                    backgroundColor: effectiveColors.primary + '26',
+                  },
                   isHighlighted && styles.verseHighlighted,
+                  isHighlighted && {
+                    backgroundColor: effectiveColors.primary + '1A',
+                    borderLeftColor: effectiveColors.primary,
+                  },
                   isBeingRead && styles.verseBeingRead,
                   userHighlight && styles.verseUserHighlightRadius,
                   userHighlight && {backgroundColor: userHighlight},
