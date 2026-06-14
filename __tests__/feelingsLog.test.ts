@@ -8,6 +8,8 @@ import {
   serializeFeelingsLog,
   weekMood,
   moodForDateKeys,
+  monthMood,
+  MOOD_MONTH_DAYS,
 } from '../src/features/study/feelingsLog';
 import {getAllFeelings} from '../src/features/study/feelings';
 
@@ -153,5 +155,54 @@ describe('moodForDateKeys (Sprint 81 — heatmap mood strip)', () => {
   it('ignores days outside the requested keys', () => {
     const log = {days: {'2026-06-12': 'sad', '2026-06-05': 'hopeful'}};
     expect(moodForDateKeys(log, ['2026-06-04', '2026-06-05'])).toBe('hopeful');
+  });
+});
+
+describe('monthMood (Sprint 82 — Tu mes emocional)', () => {
+  const now = at(2026, 6, 30); // "today"
+
+  it('is empty for an empty log', () => {
+    const s = monthMood(emptyFeelingsLog(), now);
+    expect(s.daysLogged).toBe(0);
+    expect(s.counts).toEqual([]);
+    expect(s.dominant).toBeNull();
+    expect(s.windowDays).toBe(MOOD_MONTH_DAYS);
+  });
+
+  it('tallies the window richest-first and names the dominant feeling', () => {
+    const log = {
+      days: {
+        '2026-06-28': 'grateful',
+        '2026-06-27': 'grateful',
+        '2026-06-26': 'grateful',
+        '2026-06-25': 'anxious',
+        '2026-06-24': 'tired',
+      },
+    };
+    const s = monthMood(log, now);
+    expect(s.daysLogged).toBe(5);
+    expect(s.dominant).toBe('grateful');
+    expect(s.counts[0]).toEqual({feelingId: 'grateful', count: 3});
+    expect(s.counts.map(c => c.count)).toEqual([3, 1, 1]);
+  });
+
+  it('breaks count ties toward the more recently felt', () => {
+    const log = {days: {'2026-06-10': 'anxious', '2026-06-20': 'hopeful'}};
+    const s = monthMood(log, now);
+    expect(s.dominant).toBe('hopeful');
+    expect(s.counts[0].feelingId).toBe('hopeful');
+  });
+
+  it('ignores days older than the window', () => {
+    const log = {days: {'2026-06-29': 'joyful', '2026-05-01': 'sad'}};
+    const s = monthMood(log, now);
+    expect(s.daysLogged).toBe(1);
+    expect(s.dominant).toBe('joyful');
+  });
+
+  it('honors a custom window length', () => {
+    const log = {days: {'2026-06-29': 'joyful', '2026-06-20': 'sad'}};
+    expect(monthMood(log, now, 7).daysLogged).toBe(1);
+    expect(monthMood(log, now, 14).daysLogged).toBe(2);
   });
 });
