@@ -1049,6 +1049,10 @@ export const translations = {
         royal: 'Royal',
         midnight: 'Midnight',
         cafe: 'Café',
+        vino: 'Vino',
+        esmeralda: 'Esmeralda',
+        arena: 'Arena',
+        aurora: 'Aurora',
       },
 
       bibleVersion: 'Versión de la Biblia',
@@ -3084,6 +3088,10 @@ export const translations = {
         royal: 'Royal',
         midnight: 'Midnight',
         cafe: 'Café',
+        vino: 'Wine',
+        esmeralda: 'Emerald',
+        arena: 'Sand',
+        aurora: 'Aurora',
       },
 
       bibleVersion: 'Bible Version',
