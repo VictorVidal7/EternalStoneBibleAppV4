@@ -1935,6 +1935,18 @@ export default function VerseReadingScreen() {
               lineHeight: fontSize * readerPrefs.lineHeightMultiplier,
               textAlign: readerPrefs.textAlign,
               fontFamily: readerFontFamily,
+              // Right-edge slack for Android's painted-vs-measured rounding
+              // (Sprint 81/83): a tight line can paint a couple px wider than
+              // its measured wrap and the canvas clips the last glyph — worst
+              // on the verse being read, whose paragraph mixes a bold-face
+              // verse number + the karaoke background run + the now-playing
+              // spacer. Scaled with the font (the overflow grows with glyph
+              // advance) and DERIVED ONLY from fontSize so it's identical for
+              // the read/idle verse → no reflow when playback reaches a verse.
+              // The bundled S82 faces have different metrics than the old
+              // system fonts, so the prior fixed 3px went marginal on OEM
+              // devices.
+              paddingRight: Math.max(8, Math.round(fontSize * 0.4)),
             } as const;
 
             const numberStyle = {
@@ -2803,11 +2815,9 @@ const styles = StyleSheet.create({
   },
   verseText: {
     fontSize: fontSizes.base,
-    // A hair of slack for Android's painted-vs-measured rounding: with the
-    // karaoke span splitting the paragraph into runs, a tight line can paint
-    // 1–3px wider than its measured wrap and the canvas clips the last glyph.
-    // Painted overflow lands in this padding instead (Sprint 81).
-    paddingRight: 3,
+    // The right-edge anti-clip slack now lives inline in `textStyle` (Sprint
+    // 83): it scales with the reader font size and is derived solely from it,
+    // so the read/idle verse measure identically (no reflow on playback).
   },
   sideBySideCompanion: {
     marginTop: spacing.sm,

@@ -89,6 +89,13 @@ export const ImmersiveReader: React.FC<ImmersiveReaderProps> = ({
   const {preferences: readerPrefs} = useReaderPreferences();
   const isHighContrast = readerPrefs.theme === 'high-contrast';
   const hcColors = immersiveHighContrastColors();
+  // The interactive accent (scrubber fill/thumb, progress bar, the active
+  // Listen/auto-scroll button) follows the selected app theme (Sprint 83) —
+  // it used to be a fixed brand blue, so under any non-blue theme the
+  // immersive chrome clashed with the themed celestial gradient behind it.
+  // `colors.primary` is already light/dark-aware. The karaoke now-playing
+  // hue stays gold (it's the audio cue, semantic — not the theme accent).
+  const accent = isHighContrast ? hcColors.accent : colors.primary;
   // The reader's typeface preference applies HERE too (Sprint 81) — this
   // surface used to hardcode Georgia/serif, so the picker silently did
   // nothing for anyone reading (or auto-immersing) in immersive mode. Since
@@ -712,11 +719,7 @@ export const ImmersiveReader: React.FC<ImmersiveReaderProps> = ({
                       styles.seekFill,
                       {
                         width: Math.max(0, seekFraction * seekTrackWidth),
-                        backgroundColor: isHighContrast
-                          ? hcColors.accent
-                          : isDark
-                            ? '#60a5fa'
-                            : '#3b82f6',
+                        backgroundColor: accent,
                       },
                     ]}
                   />
@@ -725,11 +728,7 @@ export const ImmersiveReader: React.FC<ImmersiveReaderProps> = ({
                       styles.seekThumb,
                       {
                         left: seekFraction * seekTrackWidth - SEEK_THUMB / 2,
-                        backgroundColor: isHighContrast
-                          ? hcColors.accent
-                          : isDark
-                            ? '#60a5fa'
-                            : '#3b82f6',
+                        backgroundColor: accent,
                       },
                     ]}
                   />
@@ -744,7 +743,7 @@ export const ImmersiveReader: React.FC<ImmersiveReaderProps> = ({
                         ? hcColors.accent
                         : hcColors.caption
                       : seekPreview != null
-                        ? '#93c5fd'
+                        ? accent
                         : '#94a3b8',
                   },
                 ]}
@@ -771,11 +770,7 @@ export const ImmersiveReader: React.FC<ImmersiveReaderProps> = ({
                     styles.progressFill,
                     {
                       width: `${((currentIndex + 1) / verses.length) * 100}%`,
-                      backgroundColor: isHighContrast
-                        ? hcColors.accent
-                        : isDark
-                          ? '#60a5fa'
-                          : '#3b82f6',
+                      backgroundColor: accent,
                     },
                   ]}
                 />
@@ -871,7 +866,7 @@ export const ImmersiveReader: React.FC<ImmersiveReaderProps> = ({
               {listening ? (
                 /* Premium: audio play/pause drives the narration. */
                 <TouchableOpacity
-                  style={[styles.actionButton, styles.actionButtonActive]}
+                  style={[styles.actionButton, {backgroundColor: accent}]}
                   onPress={toggleListen}
                   accessibilityRole="button"
                   accessibilityLabel={
@@ -896,7 +891,7 @@ export const ImmersiveReader: React.FC<ImmersiveReaderProps> = ({
                   <TouchableOpacity
                     style={[
                       styles.actionButton,
-                      autoScroll && styles.actionButtonActive,
+                      autoScroll && {backgroundColor: accent},
                     ]}
                     onPress={toggleAutoScroll}
                     accessibilityRole="button"
@@ -1140,9 +1135,6 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
-  },
-  actionButtonActive: {
-    backgroundColor: 'rgba(59,130,246,0.8)',
   },
   actionButtonText: {
     color: '#fff',
