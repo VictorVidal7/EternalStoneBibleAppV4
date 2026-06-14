@@ -32,14 +32,22 @@ describe('reader typefaces catalog', () => {
     it('maps every id to its bundled regular family', () => {
       // Device-independent: the same family name on iOS and Android.
       expect(resolveTypeface('sans')).toBe('Inter_400Regular');
+      expect(resolveTypeface('legible')).toBe(
+        'AtkinsonHyperlegible_400Regular',
+      );
       expect(resolveTypeface('serif')).toBe('Lora_400Regular');
+      expect(resolveTypeface('classic')).toBe('EBGaramond_400Regular');
       expect(resolveTypeface('condensed')).toBe('ArchivoNarrow_400Regular');
       expect(resolveTypeface('mono')).toBe('JetBrainsMono_400Regular');
     });
 
     it('maps every id to its bundled bold (700) family', () => {
       expect(resolveTypefaceBold('sans')).toBe('Inter_700Bold');
+      expect(resolveTypefaceBold('legible')).toBe(
+        'AtkinsonHyperlegible_700Bold',
+      );
       expect(resolveTypefaceBold('serif')).toBe('Lora_700Bold');
+      expect(resolveTypefaceBold('classic')).toBe('EBGaramond_700Bold');
       expect(resolveTypefaceBold('condensed')).toBe('ArchivoNarrow_700Bold');
       expect(resolveTypefaceBold('mono')).toBe('JetBrainsMono_700Bold');
     });
