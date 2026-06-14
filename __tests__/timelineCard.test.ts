@@ -49,4 +49,16 @@ describe('buildTimelineCard', () => {
     const card = buildTimelineCard([m('Uno'), m('Dos')], {maxItems: 0});
     expect(card.milestones).toHaveLength(1);
   });
+
+  it('builds a single-milestone card for the long-press share (Sprint 83)', () => {
+    // The timeline screen long-press passes exactly one milestone with
+    // maxItems:1 → a focused card with totalCount 1.
+    const card = buildTimelineCard([m('Terminaste Génesis', '14 jun 2026')], {
+      maxItems: 1,
+    });
+    expect(card.milestones).toHaveLength(1);
+    expect(card.milestones[0].title).toBe('Terminaste Génesis');
+    expect(card.milestones[0].dateLabel).toBe('14 jun 2026');
+    expect(card.totalCount).toBe(1);
+  });
 });
