@@ -7,7 +7,6 @@ import {
   ScrollView,
   TouchableOpacity,
   Alert,
-  Linking,
   Image,
   ActivityIndicator,
 } from 'react-native';
@@ -160,10 +159,6 @@ export default function SettingsScreen() {
         },
       },
     ]);
-  }
-
-  function handleOpenGitHub() {
-    Linking.openURL('https://github.com/VictorVidal7/EternalStoneBibleAppV4');
   }
 
   async function handleExportBackup() {
@@ -960,13 +955,6 @@ export default function SettingsScreen() {
                 {t.settings.description}
               </Text>
             </View>
-
-            <TouchableOpacity
-              style={themedStyles.linkButton}
-              onPress={handleOpenGitHub}>
-              <Ionicons name="logo-github" size={20} color={colors.primary} />
-              <Text style={themedStyles.linkText}>{t.settings.viewGitHub}</Text>
-            </TouchableOpacity>
 
             {/* Dev-only Crashlytics smoke test. __DEV__ keeps it out of
                 production builds; the long-press requirement keeps it
