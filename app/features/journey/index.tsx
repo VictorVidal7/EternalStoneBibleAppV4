@@ -62,6 +62,8 @@ import {
   buildJourneyRecap,
   type JourneyRecap,
 } from '@/features/journey/journeyRecap';
+import type {PeriodInput} from '@/features/journey/periodRecap';
+import {PeriodRecapModal} from '@components/insights/PeriodRecapModal';
 import {
   spacing,
   fontSize as fontSizes,
@@ -141,6 +143,10 @@ export default function JourneyScreen() {
   );
   const [index, setIndex] = useState(0);
   const [sharing, setSharing] = useState(false);
+  // The per-day/per-event sources, kept so the period recap (Sprint 87) can be
+  // rebuilt for any scope without reloading.
+  const [periodInput, setPeriodInput] = useState<PeriodInput | null>(null);
+  const [periodVisible, setPeriodVisible] = useState(false);
 
   const shareCardRef = useRef<any>(null);
 
@@ -181,6 +187,14 @@ export default function JourneyScreen() {
         new Date(),
       );
       setRecap(built);
+      setPeriodInput({
+        readingLog,
+        reviewEvents,
+        cards,
+        favorites: favorites.map(f => ({book: f.book, createdAt: f.createdAt})),
+        listeningStats,
+        feelingsLog,
+      });
       setStatus('ready');
     } catch (err) {
       logger.error('Journey recap load failed', err as Error, {
@@ -875,15 +889,38 @@ export default function JourneyScreen() {
               </View>
             ))}
           </View>
-          <Pressable
-            onPress={() => router.back()}
-            accessibilityRole="button"
-            accessibilityLabel={t.close}
-            hitSlop={12}
-            style={styles.closeButton}>
-            <Ionicons name="close" size={26} color={WHITE} />
-          </Pressable>
+          <View style={styles.chromeButtons}>
+            {periodInput && (
+              <Pressable
+                onPress={() => {
+                  haptics.tap();
+                  setPeriodVisible(true);
+                }}
+                accessibilityRole="button"
+                accessibilityLabel={t.periodRecap.yearTitle}
+                hitSlop={12}
+                style={styles.chromeButton}>
+                <Ionicons name="calendar-outline" size={22} color={WHITE} />
+              </Pressable>
+            )}
+            <Pressable
+              onPress={() => router.back()}
+              accessibilityRole="button"
+              accessibilityLabel={t.close}
+              hitSlop={12}
+              style={styles.chromeButton}>
+              <Ionicons name="close" size={26} color={WHITE} />
+            </Pressable>
+          </View>
         </View>
+
+        {periodInput && (
+          <PeriodRecapModal
+            visible={periodVisible}
+            input={periodInput}
+            onClose={() => setPeriodVisible(false)}
+          />
+        )}
       </View>
     </>
   );
@@ -1053,11 +1090,14 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
   },
   progressFill: {height: '100%', borderRadius: 2, backgroundColor: WHITE},
-  closeButton: {
+  chromeButtons: {
+    flexDirection: 'row',
     alignSelf: 'flex-end',
+    alignItems: 'center',
+    gap: spacing.md,
     marginTop: spacing.sm,
-    padding: spacing.xs,
   },
+  chromeButton: {padding: spacing.xs},
   // Finale
   finaleWrap: {alignItems: 'center', justifyContent: 'center', width: '100%'},
   shareDock: {
