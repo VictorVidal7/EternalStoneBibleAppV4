@@ -937,6 +937,7 @@ export const translations = {
       shareCardTitle: 'Mi constancia',
       shareCardSubtitle: 'Cerrando mis anillos cada día',
       shareToday: 'Hoy',
+      shareStreakDay: '1 día',
       shareStreakDays: '{{n}} días',
     },
 
@@ -3059,6 +3060,7 @@ export const translations = {
       shareCardTitle: 'My constancy',
       shareCardSubtitle: 'Closing my rings each day',
       shareToday: 'Today',
+      shareStreakDay: '1 day',
       shareStreakDays: '{{n}} days',
     },
 

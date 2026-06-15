@@ -81,4 +81,15 @@ describe('ConstancyImageModal (Sprint 85)', () => {
     // Memory (no streak, not done) and mood (no activity) both show the dot.
     expect(getAllByText('·').length).toBeGreaterThan(0);
   });
+
+  it('uses the singular day form for a one-day streak', () => {
+    const oneDay = buildConstancySummary([
+      {key: 'reading', done: false, fraction: 0.2, streak: 1},
+    ]);
+    const {getByText, queryByText} = render(
+      <ConstancyImageModal visible summary={oneDay} onClose={jest.fn()} />,
+    );
+    expect(getByText(tc.shareStreakDay)).toBeTruthy();
+    expect(queryByText(tc.shareStreakDays.replace('{{n}}', '1'))).toBeNull();
+  });
 });

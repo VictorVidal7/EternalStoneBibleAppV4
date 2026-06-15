@@ -85,7 +85,9 @@ export const ConstancyImageModal: React.FC<ConstancyImageModalProps> = ({
   const statusFor = (key: HabitKey): string => {
     const ring = summary.rings.find(r => r.key === key);
     if (ring && ring.streak > 0) {
-      return tc.shareStreakDays.replace('{{n}}', String(ring.streak));
+      return ring.streak === 1
+        ? tc.shareStreakDay
+        : tc.shareStreakDays.replace('{{n}}', String(ring.streak));
     }
     if (ring?.done) return tc.shareToday;
     return '·';
