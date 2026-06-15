@@ -16,6 +16,7 @@ import {
   TouchableOpacity,
   Modal,
   Dimensions,
+  ActivityIndicator,
 } from 'react-native';
 import {LinearGradient} from 'expo-linear-gradient';
 import {Ionicons} from '@expo/vector-icons';
@@ -60,7 +61,11 @@ export const BadgeCollectionScreen: React.FC<BadgeCollectionScreenProps> = ({
     null,
   );
   const [selectedTitle, setSelectedTitle] = useState<Title | null>(null);
-  const [, setLoading] = useState(true);
+  // Tracks the FIRST load so the stats card never flashes a fabricated "0/0
+  // · 0% · 0" while the real progress is still reading from SQLite (Sprint
+  // 91). Re-loads on language change don't re-show the spinner because the
+  // data is already populated.
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     loadData();
@@ -197,6 +202,23 @@ export const BadgeCollectionScreen: React.FC<BadgeCollectionScreenProps> = ({
   // Guard against the empty/cold-load case (0/0) which would render "NaN%".
   const completionPercent =
     totalBadges > 0 ? Math.round((unlockedCount / totalBadges) * 100) : 0;
+
+  // First load: show a spinner under the title instead of a "0/0" stats card.
+  if (loading && badgesProgress.length === 0) {
+    return (
+      <View style={[styles.container, {backgroundColor: colors.background}]}>
+        <View style={styles.header}>
+          <ScreenHeaderBack style={styles.backButton} />
+          <Text style={[styles.title, {color: colors.text}]}>
+            {t.badgeSystem.collectionTitle}
+          </Text>
+        </View>
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="large" color={colors.primary} />
+        </View>
+      </View>
+    );
+  }
 
   return (
     <View style={[styles.container, {backgroundColor: colors.background}]}>
@@ -335,18 +357,27 @@ export const BadgeCollectionScreen: React.FC<BadgeCollectionScreenProps> = ({
       {/* Badges View */}
       {viewMode === 'badges' && (
         <>
-          {/* Category Filter — a wrapping View instead of a horizontal
-              ScrollView: under this app's Fabric renderer the horizontal
-              scroller stretched the chips into full-height bars (same issue
-              fixed for the Achievements filter). */}
-          <View style={styles.filterContainer}>
+          {/* Category Filter — ONE horizontal row (Sprint 91). It used to be a
+              wrapping View because an earlier horizontal scroller stretched the
+              chips into full-height bars; that was a flex bug, not an inherent
+              one — a ScrollView with no flex (chips sized by their own padding,
+              same proven pattern as the Achievements filter and Home feelings
+              strip) keeps them to a single tidy row. */}
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            style={styles.filterScroll}
+            contentContainerStyle={styles.filterContainer}>
             <TouchableOpacity
               style={[
                 styles.filterChip,
                 filterCategory === 'all' && {backgroundColor: colors.primary},
                 filterCategory !== 'all' && {backgroundColor: colors.surface},
               ]}
-              onPress={() => setFilterCategory('all')}>
+              onPress={() => setFilterCategory('all')}
+              accessibilityRole="button"
+              accessibilityState={{selected: filterCategory === 'all'}}
+              accessibilityLabel={t.badgeSystem.all}>
               <Text
                 style={[
                   styles.filterChipText,
@@ -382,7 +413,10 @@ export const BadgeCollectionScreen: React.FC<BadgeCollectionScreenProps> = ({
                     backgroundColor: colors.surface,
                   },
                 ]}
-                onPress={() => setFilterCategory(category)}>
+                onPress={() => setFilterCategory(category)}
+                accessibilityRole="button"
+                accessibilityState={{selected: filterCategory === category}}
+                accessibilityLabel={getCategoryName(category)}>
                 <Ionicons
                   name={
                     getCategoryIcon(category) as keyof typeof Ionicons.glyphMap
@@ -408,7 +442,7 @@ export const BadgeCollectionScreen: React.FC<BadgeCollectionScreenProps> = ({
                 </Text>
               </TouchableOpacity>
             ))}
-          </View>
+          </ScrollView>
 
           {/* Badges Grid */}
           <ScrollView
@@ -428,7 +462,15 @@ export const BadgeCollectionScreen: React.FC<BadgeCollectionScreenProps> = ({
                     haptics.tap();
                     setSelectedBadge(badgeProgress);
                   }}
-                  activeOpacity={0.8}>
+                  activeOpacity={0.8}
+                  accessibilityRole="button"
+                  accessibilityLabel={`${badgeProgress.badge.name}, ${getRarityName(
+                    badgeProgress.badge.rarity,
+                  )}, ${
+                    isLocked
+                      ? `${badgeProgress.percentComplete}%`
+                      : t.badgeSystem.unlocked
+                  }`}>
                   <LinearGradient
                     colors={
                       isLocked
@@ -532,7 +574,12 @@ export const BadgeCollectionScreen: React.FC<BadgeCollectionScreenProps> = ({
                     isEquipped && {borderColor: title.color},
                   ]}
                   onPress={() => setSelectedTitle(title)}
-                  activeOpacity={0.8}>
+                  activeOpacity={0.8}
+                  accessibilityRole="button"
+                  accessibilityState={{selected: isEquipped}}
+                  accessibilityLabel={`${title.prefix || title.suffix}, ${getRarityName(
+                    title.rarity,
+                  )}${isEquipped ? `, ${t.badgeSystem.equippedTitle}` : ''}`}>
                   <View style={styles.titleHeader}>
                     <Text style={styles.titleIcon}>{title.icon}</Text>
                     <View style={styles.titleInfo}>
@@ -840,12 +887,23 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: '700',
   },
+  // flexGrow:0 keeps the horizontal scroller sized to the chip height (it
+  // sits in a flex column, so without this it could stretch — the bug the
+  // old wrapping View worked around).
+  filterScroll: {
+    flexGrow: 0,
+    marginBottom: 16,
+  },
   filterContainer: {
     flexDirection: 'row',
-    flexWrap: 'wrap',
+    alignItems: 'center',
     paddingHorizontal: 16,
-    marginBottom: 16,
     gap: 8,
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   filterChip: {
     flexDirection: 'row',
