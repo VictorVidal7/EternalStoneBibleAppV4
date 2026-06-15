@@ -1238,6 +1238,7 @@ export const translations = {
         'Genera un archivo JSON con favoritos, notas, resaltados, marcadores, progreso y preferencias.',
       exporting: 'Generando copia…',
       exportError: 'No se pudo exportar la copia. Inténtalo de nuevo.',
+      backupDialogTitle: 'Eternal Stone Bible · Copia de seguridad',
 
       about: 'Acerca de',
       version: 'Versión',
@@ -3437,6 +3438,7 @@ export const translations = {
         'Generate a JSON file with favorites, notes, highlights, bookmarks, progress and preferences.',
       exporting: 'Generating backup…',
       exportError: 'Backup export failed. Please try again.',
+      backupDialogTitle: 'Eternal Stone Bible · Backup',
 
       about: 'About',
       version: 'Version',
