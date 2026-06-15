@@ -28,6 +28,8 @@ import {useDevotionStreak} from '@hooks/useDevotionStreak';
 import {computeStreaks} from '@lib/achievements/streak';
 import {getFeelingsLog} from '@/features/study/feelingsLogStore';
 import {feelingsDateKey} from '@/features/study/feelingsLog';
+import {getReadingGoal} from '@lib/reading/readingGoalStore';
+import {computeReadingGoalProgress} from '@lib/reading/readingGoal';
 import {logger} from '@lib/utils/logger';
 import {
   buildConstancySummary,
@@ -83,15 +85,25 @@ export function useConstancyRings(): ConstancyRingsState {
       void (async () => {
         try {
           // Reading — the streak service owns "today" (UTC day key, matching
-          // the reading_streak_log the streak is built from).
+          // the reading_streak_log the streak is built from). The ring fills by
+          // today's verses against the device-local daily reading goal, so it
+          // grades rather than just snapping closed (Sprint 85 T3).
           const todayUtc = new Date().toISOString().split('T')[0];
           let next = EMPTY_READING;
           if (achievementService) {
-            const stats = await achievementService.getUserStats();
-            const done = stats.lastReadDate === todayUtc;
+            const [stats, log, goal] = await Promise.all([
+              achievementService.getUserStats(),
+              achievementService.getReadingLog(),
+              getReadingGoal(),
+            ]);
+            const todayRow = log.find(d => d.date === todayUtc);
+            const progress = computeReadingGoalProgress(
+              todayRow?.versesRead ?? 0,
+              goal,
+            );
             next = {
-              done,
-              fraction: done ? 1 : 0,
+              done: progress.met,
+              fraction: progress.fraction,
               streak: Math.max(0, stats.currentStreak ?? 0),
               everRead: (stats.totalVersesRead ?? 0) > 0,
             };

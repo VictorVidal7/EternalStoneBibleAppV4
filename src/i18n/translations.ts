@@ -934,6 +934,13 @@ export const translations = {
       cardHint: 'Toca para ver tus hábitos del día',
     },
 
+    readingGoal: {
+      title: 'Meta de lectura',
+      settingsTitle: 'Meta de lectura diaria',
+      settingsDesc: 'Versículos por día para cerrar tu anillo de lectura',
+      saved: 'Meta guardada',
+    },
+
     auth: {
       sectionTitle: 'Cuenta',
       signInWithGoogle: 'Iniciar sesión con Google',
@@ -3041,6 +3048,13 @@ export const translations = {
       habitDevotion: 'Devotion',
       habitMood: 'Mood',
       cardHint: "Tap to see today's habits",
+    },
+
+    readingGoal: {
+      title: 'Reading goal',
+      settingsTitle: 'Daily reading goal',
+      settingsDesc: 'Verses a day to close your reading ring',
+      saved: 'Goal saved',
     },
 
     auth: {

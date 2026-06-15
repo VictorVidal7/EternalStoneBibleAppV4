@@ -29,6 +29,7 @@ import {useSyncEngineOptional, useConflicts} from '@context/SyncEngineContext';
 import {useToast} from '@context/ToastContext';
 import DailyVerseSettings from '@components/settings/DailyVerseSettings';
 import MemoryGoalSettings from '@components/settings/MemoryGoalSettings';
+import ReadingGoalSettings from '@components/settings/ReadingGoalSettings';
 import PremiumSettings from '@components/settings/PremiumSettings';
 import {haptics} from '@lib/haptics';
 import Constants from 'expo-constants';
@@ -636,6 +637,9 @@ export default function SettingsScreen() {
 
         {/* Daily Verse Notifications */}
         <DailyVerseSettings />
+
+        {/* Daily reading goal — grades the Leer constancy ring (Sprint 85) */}
+        <ReadingGoalSettings />
 
         {/* Memorization goal + review reminder (Sprint 47) */}
         <MemoryGoalSettings />
