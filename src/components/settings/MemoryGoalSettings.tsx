@@ -24,6 +24,8 @@ import {useLanguage} from '@hooks/useLanguage';
 import {staticColors} from '@/styles/designTokens';
 import {useToast} from '@context/ToastContext';
 import {getDailyGoal, setDailyGoal} from '@lib/memory/goalStore';
+import {getWeeklyTarget, setWeeklyTarget} from '@lib/memory/weeklyTargetStore';
+import {WEEKLY_TARGET_OPTIONS} from '@lib/memory/weeklyChallenge';
 import {
   getMemoryReminderPreferences,
   setMemoryReminderEnabled,
@@ -39,17 +41,20 @@ export default function MemoryGoalSettings() {
   const toast = useToast();
 
   const [goal, setGoal] = useState(10);
+  const [weeklyTarget, setWeeklyTargetState] = useState(3);
   const [reminderEnabled, setReminderEnabled] = useState(false);
   const [reminderHour, setReminderHour] = useState(19);
   const [busy, setBusy] = useState(false);
 
   useEffect(() => {
     (async () => {
-      const [g, prefs] = await Promise.all([
+      const [g, wt, prefs] = await Promise.all([
         getDailyGoal(),
+        getWeeklyTarget(),
         getMemoryReminderPreferences(),
       ]);
       setGoal(g);
+      setWeeklyTargetState(wt);
       setReminderEnabled(prefs.enabled);
       setReminderHour(prefs.hour);
     })();
@@ -64,6 +69,17 @@ export default function MemoryGoalSettings() {
       toast.success(t.memory.goal.saved);
     },
     [busy, goal, t, toast],
+  );
+
+  const handleWeeklyTargetSelect = useCallback(
+    async (selected: number) => {
+      if (busy || selected === weeklyTarget) return;
+      setWeeklyTargetState(selected);
+      haptics.tap();
+      await setWeeklyTarget(selected);
+      toast.success(t.weeklyChallenge.saved);
+    },
+    [busy, weeklyTarget, t, toast],
   );
 
   const handleReminderToggle = useCallback(
@@ -164,6 +180,56 @@ export default function MemoryGoalSettings() {
                     {color: active ? staticColors.white : colors.text},
                   ]}>
                   {g}
+                </Text>
+              </TouchableOpacity>
+            );
+          })}
+        </View>
+      </View>
+
+      {/* Weekly mastery challenge target (Sprint 86) */}
+      <View
+        style={[
+          styles.card,
+          styles.cardSpacedTop,
+          isDark ? styles.cardShadowDark : styles.cardShadowLight,
+          {backgroundColor: colors.surface},
+        ]}>
+        <View style={styles.row}>
+          <View style={styles.rowInfo}>
+            <Text style={[styles.label, {color: colors.text}]}>
+              {t.weeklyChallenge.settingsTitle}
+            </Text>
+            <Text style={[styles.description, {color: colors.textSecondary}]}>
+              {t.weeklyChallenge.settingsDesc}
+            </Text>
+          </View>
+        </View>
+        <View style={styles.hourGrid}>
+          {WEEKLY_TARGET_OPTIONS.map(wt => {
+            const active = wt === weeklyTarget;
+            return (
+              <TouchableOpacity
+                key={wt}
+                onPress={() => handleWeeklyTargetSelect(wt)}
+                disabled={busy}
+                accessibilityRole="button"
+                accessibilityState={{selected: active}}
+                style={[
+                  styles.hourChip,
+                  {
+                    backgroundColor: active
+                      ? colors.primary
+                      : colors.surfaceVariant,
+                    borderColor: active ? colors.primary : colors.border,
+                  },
+                ]}>
+                <Text
+                  style={[
+                    styles.optionChipText,
+                    {color: active ? staticColors.white : colors.text},
+                  ]}>
+                  {wt}
                 </Text>
               </TouchableOpacity>
             );
