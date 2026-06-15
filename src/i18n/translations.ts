@@ -661,6 +661,27 @@ export const translations = {
       start: 'Seguir el hilo',
     },
 
+    verseArt: {
+      title: 'Arte de versículo',
+      typeface: 'Tipografía',
+      create: 'Crear arte',
+    },
+
+    periodRecap: {
+      yearTitle: 'Tu año en la Palabra',
+      quarterTitle: 'Tu trimestre en la Palabra',
+      scopeYear: 'Año',
+      scopeQuarter: 'Trimestre',
+      quarterLabel: 'T{{q}} · {{year}}',
+      versesRead: '{{n}} versículos leídos',
+      activeDays: '{{n}} días de lectura',
+      mastered: '{{n}} versículos dominados',
+      listened: '{{n}} versículos escuchados',
+      favorites: '{{n}} favoritos nuevos',
+      mood: 'Tu ánimo: {{feeling}}',
+      empty: 'Aún no hay actividad en este periodo',
+    },
+
     study: {
       title: 'Modo estudio',
       subtitle: 'Conexiones del versículo',
@@ -2828,6 +2849,27 @@ export const translations = {
       continueLabel: 'Continue the thread',
       threadEnds: 'The thread ends here',
       start: 'Follow the thread',
+    },
+
+    verseArt: {
+      title: 'Verse art',
+      typeface: 'Typeface',
+      create: 'Create art',
+    },
+
+    periodRecap: {
+      yearTitle: 'Your year in the Word',
+      quarterTitle: 'Your quarter in the Word',
+      scopeYear: 'Year',
+      scopeQuarter: 'Quarter',
+      quarterLabel: 'Q{{q}} · {{year}}',
+      versesRead: '{{n}} verses read',
+      activeDays: '{{n}} reading days',
+      mastered: '{{n}} verses mastered',
+      listened: '{{n}} verses heard',
+      favorites: '{{n}} new favorites',
+      mood: 'Your mood: {{feeling}}',
+      empty: 'No activity in this period yet',
     },
 
     study: {
