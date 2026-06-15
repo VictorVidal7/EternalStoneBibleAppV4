@@ -14,12 +14,13 @@
  */
 
 import React from 'react';
-import {View, StyleSheet, type ViewStyle} from 'react-native';
+import {View, StyleSheet, TouchableOpacity, type ViewStyle} from 'react-native';
 import Svg, {Circle} from 'react-native-svg';
 import {Ionicons} from '@expo/vector-icons';
 import {AppText} from '@components/ui/AppText';
 import {useTheme} from '@hooks/useTheme';
 import {useLanguage} from '@hooks/useLanguage';
+import {haptics} from '@lib/haptics';
 import {
   HABIT_ORDER,
   HABIT_RING_COLORS,
@@ -38,7 +39,7 @@ import {
 } from '@/styles/designTokens';
 
 /** Ionicon per habit for the legend (the rings themselves are color-coded). */
-const HABIT_ICONS: Record<HabitKey, keyof typeof Ionicons.glyphMap> = {
+export const HABIT_ICONS: Record<HabitKey, keyof typeof Ionicons.glyphMap> = {
   reading: 'book',
   memory: 'sparkles',
   devotion: 'flame',
@@ -123,13 +124,19 @@ export const ConstancyRingsGraphic: React.FC<GraphicProps> = ({
 
 interface ConstancyRingsProps {
   summary: ConstancySummary;
+  /** When provided, a small share icon appears in the header (opens the
+   *  share image). Optional so the card is usable without sharing. */
+  onShare?: () => void;
 }
 
 /**
  * The Home card BODY (rings + legend). Router-free and store-free — the owner
  * (S85 T2) passes the already-derived `summary` and wraps it in a pressable.
  */
-export const ConstancyRings: React.FC<ConstancyRingsProps> = ({summary}) => {
+export const ConstancyRings: React.FC<ConstancyRingsProps> = ({
+  summary,
+  onShare,
+}) => {
   const {colors, isDark} = useTheme();
   const {t} = useLanguage();
   const tc = t.constancy;
@@ -162,11 +169,29 @@ export const ConstancyRings: React.FC<ConstancyRingsProps> = ({summary}) => {
           style={[styles.title, {color: colors.text}]}>
           {tc.title}
         </AppText>
-        <AppText
-          scaleRole="compact"
-          style={[styles.summary, {color: colors.primary}]}>
-          {summaryLine}
-        </AppText>
+        <View style={styles.headerRight}>
+          <AppText
+            scaleRole="compact"
+            style={[styles.summary, {color: colors.primary}]}>
+            {summaryLine}
+          </AppText>
+          {onShare && (
+            <TouchableOpacity
+              onPress={() => {
+                haptics.tap();
+                onShare();
+              }}
+              hitSlop={8}
+              accessibilityRole="button"
+              accessibilityLabel={tc.share}>
+              <Ionicons
+                name="share-outline"
+                size={16}
+                color={colors.textSecondary}
+              />
+            </TouchableOpacity>
+          )}
+        </View>
       </View>
 
       <View style={styles.body}>
@@ -280,6 +305,7 @@ const styles = StyleSheet.create({
     textTransform: 'uppercase',
     letterSpacing: 0.4,
   },
+  headerRight: {flexDirection: 'row', alignItems: 'center', gap: spacing.sm},
   summary: {fontSize: fontSizes.xs, fontWeight: '800'},
   body: {
     flexDirection: 'row',

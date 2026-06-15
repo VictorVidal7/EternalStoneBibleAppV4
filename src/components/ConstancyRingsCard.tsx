@@ -9,12 +9,13 @@
  * Para la gloria de Dios Todopoderoso ✨
  */
 
-import React from 'react';
+import React, {useState} from 'react';
 import {TouchableOpacity} from 'react-native';
 import {useLanguage} from '@hooks/useLanguage';
 import {haptics} from '@lib/haptics';
 import {useConstancyRings} from '@hooks/useConstancyRings';
 import {ConstancyRings} from '@components/ConstancyRings';
+import {ConstancyImageModal} from '@components/insights/ConstancyImageModal';
 
 interface ConstancyRingsCardProps {
   /** Open the rings detail (Home injects the route push). */
@@ -26,6 +27,7 @@ export const ConstancyRingsCard: React.FC<ConstancyRingsCardProps> = ({
 }) => {
   const {t} = useLanguage();
   const {loaded, summary, hasHistory} = useConstancyRings();
+  const [shareVisible, setShareVisible] = useState(false);
 
   // Honest gate: nothing until the reader has engaged any habit at least once.
   if (!loaded || !hasHistory) return null;
@@ -35,17 +37,27 @@ export const ConstancyRingsCard: React.FC<ConstancyRingsCardProps> = ({
     .replace('{{total}}', String(summary.total));
 
   return (
-    <TouchableOpacity
-      activeOpacity={0.9}
-      onPress={() => {
-        haptics.tap();
-        onPress();
-      }}
-      accessibilityRole="button"
-      accessibilityLabel={`${t.constancy.title}: ${summaryLine}`}
-      accessibilityHint={t.constancy.cardHint}>
-      <ConstancyRings summary={summary} />
-    </TouchableOpacity>
+    <>
+      <TouchableOpacity
+        activeOpacity={0.9}
+        onPress={() => {
+          haptics.tap();
+          onPress();
+        }}
+        accessibilityRole="button"
+        accessibilityLabel={`${t.constancy.title}: ${summaryLine}`}
+        accessibilityHint={t.constancy.cardHint}>
+        <ConstancyRings
+          summary={summary}
+          onShare={() => setShareVisible(true)}
+        />
+      </TouchableOpacity>
+      <ConstancyImageModal
+        visible={shareVisible}
+        summary={summary}
+        onClose={() => setShareVisible(false)}
+      />
+    </>
   );
 };
 

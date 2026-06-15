@@ -932,6 +932,12 @@ export const translations = {
       habitDevotion: 'Devoción',
       habitMood: 'Ánimo',
       cardHint: 'Toca para ver tus hábitos del día',
+      share: 'Compartir tus anillos',
+      shareTitle: 'Comparte tu constancia',
+      shareCardTitle: 'Mi constancia',
+      shareCardSubtitle: 'Cerrando mis anillos cada día',
+      shareToday: 'Hoy',
+      shareStreakDays: '{{n}} días',
     },
 
     readingGoal: {
@@ -3048,6 +3054,12 @@ export const translations = {
       habitDevotion: 'Devotion',
       habitMood: 'Mood',
       cardHint: "Tap to see today's habits",
+      share: 'Share your rings',
+      shareTitle: 'Share your constancy',
+      shareCardTitle: 'My constancy',
+      shareCardSubtitle: 'Closing my rings each day',
+      shareToday: 'Today',
+      shareStreakDays: '{{n}} days',
     },
 
     readingGoal: {

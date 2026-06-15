@@ -38,11 +38,29 @@ jest.mock('../src/hooks/useLanguage', () => ({
 }));
 
 jest.mock('../src/lib/haptics', () => ({
-  haptics: {tap: jest.fn()},
+  haptics: {tap: jest.fn(), press: jest.fn()},
 }));
 
 jest.mock('../src/hooks/useConstancyRings', () => ({
   useConstancyRings: () => mockState,
+}));
+
+// The card nests ConstancyImageModal, which pulls these in even while hidden.
+jest.mock('../src/context/ToastContext', () => ({
+  useToast: () => ({success: jest.fn(), error: jest.fn()}),
+}));
+
+jest.mock('react-native-view-shot', () => ({
+  captureRef: jest.fn(() => Promise.resolve('file://constancy.png')),
+}));
+
+jest.mock('expo-sharing', () => ({
+  isAvailableAsync: jest.fn(() => Promise.resolve(true)),
+  shareAsync: jest.fn(() => Promise.resolve()),
+}));
+
+jest.mock('react-native-safe-area-context', () => ({
+  useSafeAreaInsets: () => ({top: 0, bottom: 0, left: 0, right: 0}),
 }));
 
 const tc = translations.es.constancy;
@@ -68,12 +86,13 @@ describe('ConstancyRingsCard', () => {
   it('shows the rings and fires onPress when tapped', () => {
     mockState = {loaded: true, summary: someSummary, hasHistory: true};
     const onPress = jest.fn();
-    const {getByText, getByRole} = render(
+    const {getByText, getByLabelText} = render(
       <ConstancyRingsCard onPress={onPress} />,
     );
     expect(getByText(tc.title)).toBeTruthy();
     expect(getByText('1 de 4 hoy')).toBeTruthy();
-    fireEvent.press(getByRole('button'));
+    // The card's own button (the share icon is a separate nested button).
+    fireEvent.press(getByLabelText(`${tc.title}: 1 de 4 hoy`));
     expect(onPress).toHaveBeenCalledTimes(1);
   });
 });
