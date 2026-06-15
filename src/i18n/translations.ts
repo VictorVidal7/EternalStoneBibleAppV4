@@ -24,6 +24,22 @@ export const translations = {
     optional: 'Opcional',
     coins: 'monedas',
 
+    // Share Service (native share dialogs + clipboard fallback)
+    shareService: {
+      verseDialogTitle: 'Compartir versículo',
+      versesDialogTitle: 'Compartir versículos',
+      planDialogTitle: 'Compartir plan de lectura',
+      achievementDialogTitle: 'Compartir logro',
+      promo: '✨ Compartido desde Eternal Bible',
+      planMessage:
+        '📖 Plan de lectura: {{name}}\n\n{{description}}\n\n¡Únete a mí en este viaje espiritual!\n\n✨ Descarga Eternal Bible y empieza tu plan hoy.',
+      achievementMessage:
+        '🏆 ¡Logro desbloqueado!\n\n{{title}}\n{{description}}\n\n✨ Eternal Bible · Tu viaje espiritual',
+      copiedTitle: 'Copiado',
+      copiedMessage: 'El contenido se ha copiado al portapapeles',
+      copyErrorMessage: 'No se pudo copiar al portapapeles',
+    },
+
     // App Loading
     app: {
       subtitle: 'La Palabra de Dios',
@@ -2219,6 +2235,22 @@ export const translations = {
     range: 'Range',
     optional: 'Optional',
     coins: 'coins',
+
+    // Share Service (native share dialogs + clipboard fallback)
+    shareService: {
+      verseDialogTitle: 'Share verse',
+      versesDialogTitle: 'Share verses',
+      planDialogTitle: 'Share reading plan',
+      achievementDialogTitle: 'Share achievement',
+      promo: '✨ Shared from Eternal Bible',
+      planMessage:
+        '📖 Reading plan: {{name}}\n\n{{description}}\n\nJoin me on this spiritual journey!\n\n✨ Download Eternal Bible and start your plan today.',
+      achievementMessage:
+        '🏆 Achievement unlocked!\n\n{{title}}\n{{description}}\n\n✨ Eternal Bible · Your spiritual journey',
+      copiedTitle: 'Copied',
+      copiedMessage: 'The content was copied to the clipboard',
+      copyErrorMessage: 'Could not copy to the clipboard',
+    },
 
     // App Loading
     app: {
