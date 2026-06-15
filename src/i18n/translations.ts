@@ -922,6 +922,18 @@ export const translations = {
       streakHint: 'Abre la devoción guiada',
     },
 
+    constancy: {
+      title: 'Tu constancia hoy',
+      summary: '{{closed}} de {{total}} hoy',
+      caption: 'Cierra tus anillos cada día',
+      allClosed: '¡Cerraste tus anillos hoy!',
+      habitReading: 'Leer',
+      habitMemory: 'Memoria',
+      habitDevotion: 'Devoción',
+      habitMood: 'Ánimo',
+      cardHint: 'Toca para ver tus hábitos del día',
+    },
+
     auth: {
       sectionTitle: 'Cuenta',
       signInWithGoogle: 'Iniciar sesión con Google',
@@ -3017,6 +3029,18 @@ export const translations = {
       streakTodayPending: "Today's moment awaits",
       streakLapsed: 'Pick your walk back up',
       streakHint: 'Open the guided devotion',
+    },
+
+    constancy: {
+      title: 'Your constancy today',
+      summary: '{{closed}} of {{total}} today',
+      caption: 'Close your rings each day',
+      allClosed: 'You closed your rings today!',
+      habitReading: 'Read',
+      habitMemory: 'Memory',
+      habitDevotion: 'Devotion',
+      habitMood: 'Mood',
+      cardHint: "Tap to see today's habits",
     },
 
     auth: {
