@@ -46,8 +46,8 @@ import {
   getLocalizedPlan,
   ReadingPlanDay,
 } from '@/constants/reading-plans';
-import {planPace, formatDayReadings} from '@/lib/reading/planPace';
-import type {PlanPace} from '@/lib/reading/planPace';
+import {planPace, planCatchUp, formatDayReadings} from '@/lib/reading/planPace';
+import type {PlanPace, PlanCatchUp} from '@/lib/reading/planPace';
 import {staticColors} from '@/styles/designTokens';
 import {getBookByName} from '@/constants/bible';
 import {haptics} from '@lib/haptics';
@@ -89,6 +89,15 @@ export default function ReadingPlanDetailScreen() {
     // completedDays is a fresh array per render; its length + the plan are
     // the actual change signals (this eslint has no exhaustive-deps rule).
     [plan, completed, getStartedAt],
+  );
+
+  // "Ponte al día" (Sprint 84): the readings between the reader and today, and
+  // the honest finish date if they keep one-a-day from here. Pure; only the
+  // screen decides to SHOW it (when behind).
+  const catchUp: PlanCatchUp = useMemo(
+    () => planCatchUp(pace, plan?.duration ?? 0, completedDays, new Date()),
+    // Same change signals as `pace` (completedDays is a fresh array per render).
+    [pace, plan, completed],
   );
 
   const bookLabel = useCallback(
@@ -289,6 +298,49 @@ export default function ReadingPlanDetailScreen() {
     );
   }
 
+  /**
+   * "Ponte al día" (Sprint 84): only when behind. Shows the readings standing
+   * between the reader and today (collapsed into ranges) and the honest finish
+   * date if they keep one-a-day from here — an invitation, never a scold.
+   */
+  function renderCatchUpCard() {
+    if (pace.status !== 'behind' || catchUp.catchUpDays.length === 0) {
+      return null;
+    }
+    const readings = catchUp.catchUpDays.flatMap(
+      dayNum => plan!.days.find(d => d.day === dayNum)?.readings ?? [],
+    );
+    const readingsLabel = formatDayReadings(readings, bookLabel);
+    const finishLabel = catchUp.projectedFinish
+      ? catchUp.projectedFinish.toLocaleDateString(
+          language === 'en' ? 'en-US' : 'es-ES',
+          {month: 'long', day: 'numeric'},
+        )
+      : null;
+    return (
+      <View
+        style={[
+          styles.catchUpCard,
+          {backgroundColor: colors.surface, borderColor: colors.warning},
+        ]}>
+        <View style={styles.todayHeader}>
+          <Ionicons name="rocket" size={18} color={colors.warning} />
+          <Text style={[styles.todayTitle, {color: colors.warning}]}>
+            {t.readingPlan.catchUpTitle}
+          </Text>
+        </View>
+        <Text style={[styles.catchUpReadings, {color: colors.text}]}>
+          {t.readingPlan.catchUpToday.replace('{{readings}}', readingsLabel)}
+        </Text>
+        {finishLabel ? (
+          <Text style={[styles.catchUpFinish, {color: colors.textSecondary}]}>
+            {t.readingPlan.catchUpFinish.replace('{{date}}', finishLabel)}
+          </Text>
+        ) : null}
+      </View>
+    );
+  }
+
   function renderTodayCard() {
     if (!todayDay) {
       return (
@@ -442,7 +494,12 @@ export default function ReadingPlanDetailScreen() {
         data={plan.days}
         keyExtractor={item => String(item.day)}
         renderItem={renderDay}
-        ListHeaderComponent={renderTodayCard()}
+        ListHeaderComponent={
+          <>
+            {renderCatchUpCard()}
+            {renderTodayCard()}
+          </>
+        }
         contentContainerStyle={styles.listContent}
         onScrollToIndexFailed={info => {
           // Rows have variable height (chips wrap): jump near the target by
@@ -560,6 +617,15 @@ const styles = StyleSheet.create({
     marginBottom: 14,
     gap: 10,
   },
+  catchUpCard: {
+    borderRadius: 14,
+    borderWidth: 1.5,
+    padding: 16,
+    marginBottom: 14,
+    gap: 8,
+  },
+  catchUpReadings: {fontSize: 14, lineHeight: 20, fontWeight: '600'},
+  catchUpFinish: {fontSize: 13, lineHeight: 18},
   todayHeader: {
     flexDirection: 'row',
     alignItems: 'center',

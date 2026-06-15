@@ -142,6 +142,62 @@ export function planPace(input: PlanPaceInput): PlanPace {
   };
 }
 
+/**
+ * A "get back on track" plan (Sprint 84) — only meaningful while behind.
+ * Composes the {@link planPace} result with the completed-day set: which days
+ * you'd read to be fully current TODAY, how much of the plan is left, and when
+ * you'd finish reading one plan-day per calendar day from today. Never shames —
+ * the catch-up days are simply the honest answer to "what's left to today".
+ */
+export interface PlanCatchUp {
+  /**
+   * Uncompleted plan days from day 1 through today's scheduled day, in order —
+   * the readings to do to be fully caught up (today included). Empty unless the
+   * pace status is `behind`.
+   */
+  catchUpDays: number[];
+  /** Plan days still uncompleted in total (duration − completed). */
+  remainingDays: number;
+  /**
+   * Local-midnight date the reader finishes reading ONE plan-day per calendar
+   * day STARTING TODAY (today is day 1 of the run), or null when nothing
+   * remains. This is the honest re-projection if they keep the plan's cadence
+   * from here without trying to make up the lost days.
+   */
+  projectedFinish: Date | null;
+}
+
+/** Build the catch-up view from a pace result + the completed-day set. Pure. */
+export function planCatchUp(
+  pace: PlanPace,
+  duration: number,
+  completedDays: readonly number[],
+  now: Date,
+): PlanCatchUp {
+  const done = new Set(
+    completedDays.filter(d => Number.isInteger(d) && d >= 1 && d <= duration),
+  );
+  const remainingDays = Math.max(0, duration - done.size);
+
+  const catchUpDays: number[] = [];
+  if (pace.status === 'behind' && pace.scheduledDay !== null) {
+    for (let day = 1; day <= pace.scheduledDay; day++) {
+      if (!done.has(day)) catchUpDays.push(day);
+    }
+  }
+
+  const projectedFinish =
+    remainingDays > 0
+      ? new Date(
+          now.getFullYear(),
+          now.getMonth(),
+          now.getDate() + (remainingDays - 1),
+        )
+      : null;
+
+  return {catchUpDays, remainingDays, projectedFinish};
+}
+
 /** One reading of a plan day (a whole chapter). */
 export interface PlanReadingRef {
   book: string;

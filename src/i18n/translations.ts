@@ -1396,6 +1396,9 @@ export const translations = {
       paceAheadOne: 'Llevas 1 día de ventaja',
       paceBehind: 'Te esperan {{n}} días — a tu ritmo, sin prisa',
       paceBehindOne: 'Te espera 1 día — a tu ritmo, sin prisa',
+      catchUpTitle: 'Ponte al día',
+      catchUpToday: 'Para ponerte al día: {{readings}}',
+      catchUpFinish: 'A un día por jornada desde hoy, terminas el {{date}}',
       planCompleted: '¡Plan completado!',
       planCompletedShort: '¡Completado! 🎉',
       planCompletedMessage:
@@ -3485,6 +3488,9 @@ export const translations = {
       paceAheadOne: "You're 1 day ahead",
       paceBehind: '{{n}} days to catch up — at your pace, no rush',
       paceBehindOne: '1 day to catch up — at your pace, no rush',
+      catchUpTitle: 'Catch up',
+      catchUpToday: 'To get current: {{readings}}',
+      catchUpFinish: 'At one day per day from today, you finish {{date}}',
       planCompleted: 'Plan completed!',
       planCompletedShort: 'Completed! 🎉',
       planCompletedMessage:
