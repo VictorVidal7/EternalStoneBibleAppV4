@@ -87,6 +87,14 @@ export default function ReferenceChainScreen() {
   const [nextRefs, setNextRefs] = useState<NextRef[]>([]);
   const [loading, setLoading] = useState(true);
 
+  // Deep-link params can arrive AFTER the first render, when the useState
+  // initializer already saw a null seed → seed (or re-seed) the thread whenever
+  // the seed verse resolves/changes.
+  const seedKey = seed ? chainStepKey(seed) : null;
+  useEffect(() => {
+    if (seed) setTrail([seed]);
+  }, [seedKey]);
+
   const current = currentStep(trail);
 
   const localize = (book: string) => {
