@@ -215,7 +215,9 @@ export default function DailyLightScreen() {
             <Ionicons name="flame" size={14} color={staticColors.white} />
             <AppText scaleRole="compact" style={styles.streakText}>
               {content && content.streak > 0
-                ? td.streak.replace('{{n}}', String(content.streak))
+                ? content.streak === 1
+                  ? td.streakOne
+                  : td.streak.replace('{{n}}', String(content.streak))
                 : td.streakNone}
             </AppText>
           </View>
