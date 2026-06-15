@@ -922,6 +922,32 @@ export const translations = {
       streakHint: 'Abre la devoción guiada',
     },
 
+    constancy: {
+      title: 'Tu constancia hoy',
+      summary: '{{closed}} de {{total}} hoy',
+      caption: 'Cierra tus anillos cada día',
+      allClosed: '¡Cerraste tus anillos hoy!',
+      habitReading: 'Leer',
+      habitMemory: 'Memoria',
+      habitDevotion: 'Devoción',
+      habitMood: 'Ánimo',
+      cardHint: 'Toca para ver tus hábitos del día',
+      share: 'Compartir tus anillos',
+      shareTitle: 'Comparte tu constancia',
+      shareCardTitle: 'Mi constancia',
+      shareCardSubtitle: 'Cerrando mis anillos cada día',
+      shareToday: 'Hoy',
+      shareStreakDay: '1 día',
+      shareStreakDays: '{{n}} días',
+    },
+
+    readingGoal: {
+      title: 'Meta de lectura',
+      settingsTitle: 'Meta de lectura diaria',
+      settingsDesc: 'Versículos por día para cerrar tu anillo de lectura',
+      saved: 'Meta guardada',
+    },
+
     auth: {
       sectionTitle: 'Cuenta',
       signInWithGoogle: 'Iniciar sesión con Google',
@@ -3017,6 +3043,32 @@ export const translations = {
       streakTodayPending: "Today's moment awaits",
       streakLapsed: 'Pick your walk back up',
       streakHint: 'Open the guided devotion',
+    },
+
+    constancy: {
+      title: 'Your constancy today',
+      summary: '{{closed}} of {{total}} today',
+      caption: 'Close your rings each day',
+      allClosed: 'You closed your rings today!',
+      habitReading: 'Read',
+      habitMemory: 'Memory',
+      habitDevotion: 'Devotion',
+      habitMood: 'Mood',
+      cardHint: "Tap to see today's habits",
+      share: 'Share your rings',
+      shareTitle: 'Share your constancy',
+      shareCardTitle: 'My constancy',
+      shareCardSubtitle: 'Closing my rings each day',
+      shareToday: 'Today',
+      shareStreakDay: '1 day',
+      shareStreakDays: '{{n}} days',
+    },
+
+    readingGoal: {
+      title: 'Reading goal',
+      settingsTitle: 'Daily reading goal',
+      settingsDesc: 'Verses a day to close your reading ring',
+      saved: 'Goal saved',
     },
 
     auth: {

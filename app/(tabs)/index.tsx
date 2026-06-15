@@ -93,6 +93,7 @@ import {Skeleton} from '@components/SkeletonLoader';
 import {FeelingChips} from '@components/FeelingChips';
 import {MoodVerseCard} from '@components/MoodVerseCard';
 import {DevotionStreakCard} from '@components/DevotionStreakCard';
+import {ConstancyRingsCard} from '@components/ConstancyRingsCard';
 
 // Tema Celestial
 import {
@@ -815,6 +816,21 @@ export default function HomeScreen() {
           <DevotionStreakCard
             onPress={() =>
               handlePress(() => router.push('/features/guided' as never))
+            }
+          />
+        </Animated.View>
+
+        {/* ==================== TU CONSTANCIA HOY (rings, Sprint 85) ========== */}
+        {/* Apple-Watch-style rings composing today's reading, memorization,
+            devotion and emotional check-in. Renders nothing until the reader
+            has any footprint in any habit. Tapping opens Mi lectura. */}
+        <Animated.View
+          style={{opacity: fadeAnim, marginTop: celestialSpacing.cardGap}}>
+          <ConstancyRingsCard
+            onPress={() =>
+              handlePress(() =>
+                router.push('/features/reading-insights' as never),
+              )
             }
           />
         </Animated.View>
