@@ -1944,11 +1944,20 @@ export default function VerseReadingScreen() {
               // face verse number with the karaoke background run. Scaled with
               // the font (the overflow grows with glyph advance) and DERIVED
               // ONLY from fontSize so it's identical for the read/idle verse →
-              // no reflow when playback reaches a verse. Sprint 84 also removed
-              // the leading now-playing spacer box (the bigger clip cause — a
-              // leading replacement span shifted the whole first line right);
-              // this slack now only absorbs the remaining sub-pixel rounding.
-              paddingRight: Math.max(8, Math.round(fontSize * 0.4)),
+              // no reflow when playback reaches a verse. Sprint 84 removed the
+              // leading now-playing spacer box (the bigger clip cause), which
+              // fixed the audio-verse clip the user confirmed gone.
+              //
+              // Sprint 91: the user still saw a faint clip on IDLE verses on
+              // their OEM device (the Pixel emulator's huge ragged-right margin
+              // never reproduces it — OEM font metrics paint a wider right side
+              // bearing than the measured advance). The slack was 8px at the
+              // default size; widened the floor to 14 and the slope to 0.6 so
+              // the reserved gutter comfortably clears that overhang at every
+              // size. Still derived solely from fontSize → read/idle parity and
+              // no playback reflow are preserved; a few px of extra ragged-right
+              // margin is imperceptible on devices that never clipped.
+              paddingRight: Math.max(14, Math.round(fontSize * 0.6)),
             } as const;
 
             const numberStyle = {
