@@ -69,10 +69,8 @@ export const ConstancyImageModal: React.FC<ConstancyImageModalProps> = ({
   const [templateIndex, setTemplateIndex] = useState(0);
   const [isSharing, setIsSharing] = useState(false);
 
-  // captureRef accepts any host ref; LinearGradient's generated ref type does
-  // not match useRef<View>, so we widen (as in the sibling share modals).
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const previewRef = useRef<any>(null);
+  // captureRef accepts the host LinearGradient instance ref directly.
+  const previewRef = useRef<LinearGradient>(null);
   const template = FREE_TEMPLATES[templateIndex];
 
   const habitLabel: Record<HabitKey, string> = {
