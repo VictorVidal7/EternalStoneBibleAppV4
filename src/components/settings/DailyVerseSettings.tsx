@@ -151,6 +151,9 @@ export default function DailyVerseSettings() {
                     key={h}
                     onPress={() => handleHourSelect(h)}
                     disabled={busy}
+                    accessibilityRole="button"
+                    accessibilityState={{selected: active, disabled: busy}}
+                    accessibilityLabel={`${String(h).padStart(2, '0')}:00`}
                     style={[
                       styles.hourChip,
                       {

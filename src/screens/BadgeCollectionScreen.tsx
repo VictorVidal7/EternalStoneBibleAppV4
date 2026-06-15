@@ -214,7 +214,11 @@ export const BadgeCollectionScreen: React.FC<BadgeCollectionScreenProps> = ({
               styles.equippedTitleCard,
               {backgroundColor: colors.surface},
             ]}
-            onPress={() => setViewMode('titles')}>
+            onPress={() => setViewMode('titles')}
+            accessibilityRole="button"
+            accessibilityLabel={`${
+              equippedTitle.prefix || equippedTitle.suffix
+            }, ${t.badgeSystem.equippedTitle}`}>
             <Text style={styles.equippedTitleIcon}>{equippedTitle.icon}</Text>
             <View style={styles.equippedTitleInfo}>
               <Text
@@ -282,7 +286,10 @@ export const BadgeCollectionScreen: React.FC<BadgeCollectionScreenProps> = ({
             ],
             viewMode !== 'badges' && {backgroundColor: colors.surface},
           ]}
-          onPress={() => setViewMode('badges')}>
+          onPress={() => setViewMode('badges')}
+          accessibilityRole="button"
+          accessibilityState={{selected: viewMode === 'badges'}}
+          accessibilityLabel={t.badgeSystem.allBadges}>
           <Ionicons
             name="trophy"
             size={18}
@@ -306,7 +313,10 @@ export const BadgeCollectionScreen: React.FC<BadgeCollectionScreenProps> = ({
             ],
             viewMode !== 'titles' && {backgroundColor: colors.surface},
           ]}
-          onPress={() => setViewMode('titles')}>
+          onPress={() => setViewMode('titles')}
+          accessibilityRole="button"
+          accessibilityState={{selected: viewMode === 'titles'}}
+          accessibilityLabel={t.badgeSystem.myTitles}>
           <Ionicons
             name="ribbon"
             size={18}
