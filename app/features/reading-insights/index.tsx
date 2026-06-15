@@ -62,6 +62,7 @@ import {
   type WeekMetricDelta,
 } from '@/features/reading-insights/weekComparison';
 import {WeeklyRecapModal} from '@components/insights/WeeklyRecapModal';
+import {MoodImageModal} from '@components/insights/MoodImageModal';
 import {
   TOTAL_BIBLE_BOOKS,
   bookCanonProgressPct,
@@ -117,6 +118,9 @@ export default function ReadingInsightsScreen() {
   // Week-over-week deltas (Sprint 78) — same logs, two recap windows.
   const [weekCompare, setWeekCompare] = useState<WeekComparison | null>(null);
   const [weekModalVisible, setWeekModalVisible] = useState(false);
+  // Share "Mi mes emocional" as an image (Sprint 84) — composes the month +
+  // trend summaries into one card via the existing view-shot pipeline.
+  const [moodShareVisible, setMoodShareVisible] = useState(false);
   // Mood line (Sprint 80) — the week's emotional check-ins, device-local.
   const [moodDays, setMoodDays] = useState<MoodDay[] | null>(null);
   // Mood strip (Sprint 81) — one representative feeling per heatmap week
@@ -918,6 +922,40 @@ export default function ReadingInsightsScreen() {
                   })()
                 : null}
 
+              {/* Share "Mi mes emocional" as an image (Sprint 84) — composes
+                  the month tally + the trend line into one card. Shown once
+                  the month carries a check-in (the trend section folds in only
+                  when both windows do, inside the modal). */}
+              {monthSummary && monthSummary.daysLogged > 0 && (
+                <TouchableOpacity
+                  style={[
+                    styles.weekShareButton,
+                    {backgroundColor: colors.card, borderColor: colors.border},
+                  ]}
+                  onPress={() => {
+                    haptics.tap();
+                    setMoodShareVisible(true);
+                  }}
+                  accessibilityRole="button"
+                  accessibilityLabel={ri.moodShare}
+                  accessibilityHint={ri.moodShareHint}>
+                  <Ionicons
+                    name="share-social"
+                    size={18}
+                    color={colors.primary}
+                  />
+                  <AppText
+                    style={[styles.weekShareText, {color: colors.primary}]}>
+                    {ri.moodShare}
+                  </AppText>
+                  <Ionicons
+                    name="chevron-forward"
+                    size={16}
+                    color={colors.textTertiary}
+                  />
+                </TouchableOpacity>
+              )}
+
               {/* Lifetime totals */}
               <View style={[styles.card, {backgroundColor: colors.card}]}>
                 <AppText
@@ -1142,6 +1180,16 @@ export default function ReadingInsightsScreen() {
             visible={weekModalVisible}
             recap={weekRecap}
             onClose={() => setWeekModalVisible(false)}
+          />
+        )}
+
+        {/* Share "Mi mes emocional" as an image (Sprint 84). */}
+        {monthSummary && (
+          <MoodImageModal
+            visible={moodShareVisible}
+            month={monthSummary}
+            trend={moodTrendSummary}
+            onClose={() => setMoodShareVisible(false)}
           />
         )}
       </View>
