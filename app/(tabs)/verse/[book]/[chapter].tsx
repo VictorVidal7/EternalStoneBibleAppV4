@@ -1936,16 +1936,16 @@ export default function VerseReadingScreen() {
               textAlign: readerPrefs.textAlign,
               fontFamily: readerFontFamily,
               // Right-edge slack for Android's painted-vs-measured rounding
-              // (Sprint 81/83): a tight line can paint a couple px wider than
-              // its measured wrap and the canvas clips the last glyph — worst
-              // on the verse being read, whose paragraph mixes a bold-face
-              // verse number + the karaoke background run + the now-playing
-              // spacer. Scaled with the font (the overflow grows with glyph
-              // advance) and DERIVED ONLY from fontSize so it's identical for
-              // the read/idle verse → no reflow when playback reaches a verse.
-              // The bundled S82 faces have different metrics than the old
-              // system fonts, so the prior fixed 3px went marginal on OEM
-              // devices.
+              // (Sprint 81/83/84): a tight line can paint a couple px wider
+              // than its measured wrap and the canvas clips the last glyph —
+              // worst on the verse being read, whose paragraph mixes a bold-
+              // face verse number with the karaoke background run. Scaled with
+              // the font (the overflow grows with glyph advance) and DERIVED
+              // ONLY from fontSize so it's identical for the read/idle verse →
+              // no reflow when playback reaches a verse. Sprint 84 also removed
+              // the leading now-playing spacer box (the bigger clip cause — a
+              // leading replacement span shifted the whole first line right);
+              // this slack now only absorbs the remaining sub-pixel rounding.
               paddingRight: Math.max(8, Math.round(fontSize * 0.4)),
             } as const;
 
@@ -1958,22 +1958,26 @@ export default function VerseReadingScreen() {
               fontFamily: readerFontFamilyBold,
             };
 
-            // 🔊 Now-playing cue (Sprint 82): the speaker icon sits in the
-            // verse's OWN left gutter (absolutely placed) and ONLY the first
-            // line is indented to clear it — a zero-content inline spacer inside
-            // the paragraph Text, so wrapped lines AND the side-by-side
-            // companion never shift (Sprint 81 hung the badge as a row sibling,
-            // which pushed the whole block including the comparison version).
-            // The spacer carries no glyph, so Android measures it as a plain
-            // replacement box — no foreign-font advance mis-measure, no clip.
-            const nowPlayingIndent = fontSizes.sm + spacing.sm;
-            const nowPlayingSpacerStyle = {
-              width: nowPlayingIndent,
-              height: fontSize,
-            };
+            // 🔊 Now-playing cue (Sprint 84): the speaker icon sits in this
+            // verse's OWN left PADDING gutter — a small negative offset that
+            // tucks it just left of the verse number, on top of the gold
+            // now-playing tint (verseItem has spacing.md of left padding, the
+            // reader margin adds more) — so the verse text starts flush at
+            // column 0 EXACTLY like an idle verse: NO first-line indent.
+            //
+            // Sprint 82 instead indented only the first line with an inline
+            // glyph-less spacer box. On several OEM line-break engines a
+            // LEADING replacement box at the start of a wrapping paragraph
+            // shifts the whole first line right by its width (~26px) and the
+            // last word clips off the right edge — far more than the S83 right
+            // slack (8–13px) could absorb, which is why that report persisted.
+            // Dropping the spacer makes the now-playing first line measure
+            // byte-for-byte like the idle verse (which never clips), and there
+            // is no read↔idle reflow at all. The icon is absolute (out of
+            // flow), so the side-by-side companion still never shifts.
             const nowPlayingIconStyle = {
               position: 'absolute' as const,
-              left: 0,
+              left: -(fontSizes.sm + spacing['0.5']),
               top: Math.max(
                 0,
                 (fontSize * readerPrefs.lineHeightMultiplier - fontSizes.sm) /
@@ -2055,12 +2059,15 @@ export default function VerseReadingScreen() {
                     dualColumns && styles.verseContentColumns,
                   ]}>
                   {/* "Now playing" cue for the verse being read aloud (Sprint
-                      82). The speaker icon is absolutely placed in this verse's
-                      OWN left gutter and only the first line is indented to
-                      clear it (the inline spacer in the Text below). Sprint 81
-                      hung it as a row sibling, which pushed the ENTIRE block —
-                      including the side-by-side companion — to the right; the
-                      user asked for just the first line to nudge. */}
+                      84). The speaker icon is absolutely placed in this verse's
+                      OWN left padding gutter, just left of the verse number, so
+                      the verse text starts flush at column 0 like an idle verse
+                      — NO first-line indent (Sprint 82 indented the first line
+                      with an inline spacer, but a leading replacement box made
+                      some OEM engines clip the first line's last word; see the
+                      icon-style comment above). Sprint 81 hung it as a row
+                      sibling, which pushed the ENTIRE block including the
+                      companion; this icon is out of flow, so nothing shifts. */}
                   {isBeingRead ? (
                     <View style={nowPlayingIconStyle} pointerEvents="none">
                       <Ionicons
@@ -2076,14 +2083,6 @@ export default function VerseReadingScreen() {
                       textStyle,
                       dualColumns && styles.dualColumn,
                     ]}>
-                    {/* Inline spacer: a glyph-less replacement box that indents
-                        ONLY the first line so its text clears the icon above —
-                        wrapped lines stay flush left, and because it carries no
-                        font Android can't mis-measure its advance (the S76/S81
-                        clip cause). */}
-                    {isBeingRead ? (
-                      <View style={nowPlayingSpacerStyle} />
-                    ) : null}
                     <Text style={[styles.verseNumber, numberStyle]}>
                       {verse.verse}
                       {'  '}
