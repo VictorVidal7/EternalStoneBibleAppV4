@@ -3,9 +3,18 @@ import {useEffect, useState} from 'react';
 import {View, Text, StyleSheet, LogBox, TouchableOpacity} from 'react-native';
 import {staticColors} from '@/styles/designTokens';
 
-// Ignore specific development warnings
-
-// Ignore specific development warnings
+// React Native Firebase v22+ emits a verbose namespaced-API deprecation
+// warning on EVERY firestore/crashlytics call (collection/onSnapshot/log…),
+// which buries genuine warnings in the LogBox. The namespaced API still works
+// correctly — a full modular-API migration of the live sync layer is queued
+// for a dedicated effort (it touches the user's synced data, so it needs real
+// Firestore testing). Until then, use RNFirebase's own sanctioned flag to
+// silence the advisory noise AT THE SOURCE (no console spam, no perf cost),
+// so the LogBox only surfaces warnings that actually matter. Must run before
+// any Firebase call (contexts mount after this module loads).
+(
+  globalThis as {RNFB_SILENCE_MODULAR_DEPRECATION_WARNINGS?: boolean}
+).RNFB_SILENCE_MODULAR_DEPRECATION_WARNINGS = true;
 
 // En produccion ignorar todo, en desarrollo ignorar warnings no criticos
 if (!__DEV__) {
@@ -28,11 +37,13 @@ if (!__DEV__) {
     'VirtualizedLists should never',
     'Failed prop type',
     'Warning:',
-    // RNFirebase v23 logs a verbose namespace-API deprecation warning on
-    // every auth/firestore call. Migration to the modular API is queued
-    // for a future sprint; silence the toast so it doesn't cover the
-    // bottom of the screen.
+    // Defensive belt-and-suspenders for the RNFirebase deprecation warning
+    // (the source-level flag above is the primary silencer).
     'This method is deprecated',
+    // Reanimated logs this in dev whenever the OS "reduce motion" a11y
+    // setting is on (emulators default it on); it's informational only and
+    // never affects production — the app already honors reduced motion.
+    '[Reanimated] Reduced motion',
   ]);
 }
 import {GestureHandlerRootView} from 'react-native-gesture-handler';
