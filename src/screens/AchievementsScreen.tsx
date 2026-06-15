@@ -11,6 +11,7 @@ import {
   FlatList,
   Pressable,
   SafeAreaView,
+  ScrollView,
   TouchableOpacity,
 } from 'react-native';
 import {useFocusEffect} from 'expo-router';
@@ -214,7 +215,13 @@ export const AchievementsScreen: React.FC<AchievementsScreenProps> = ({
       ) : (
         // Achievements view
         <>
-          {/* Category filters */}
+          {/* Category filters — ONE horizontal row (Sprint 91). The old
+              wrapping View pushed the 10 chips onto four rows, eating ~210px
+              of vertical space so only a thin strip at the bottom was left to
+              scroll the achievements. A horizontal ScrollView keeps them to a
+              single, always-reachable row; mirrors the Home FeelingChips strip
+              (no flex on the ScrollView → it sizes to chip height, never
+              stretching under Fabric). */}
           <View
             style={[
               styles.categoryScroll,
@@ -223,7 +230,10 @@ export const AchievementsScreen: React.FC<AchievementsScreenProps> = ({
                 borderBottomColor: colors.border,
               },
             ]}>
-            <View style={styles.categoryList}>
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={styles.categoryList}>
               {categories.map(item => {
                 const isActive = selectedCategory === item.id;
                 return (
@@ -238,7 +248,10 @@ export const AchievementsScreen: React.FC<AchievementsScreenProps> = ({
                         borderColor: colors.border,
                       },
                     ]}
-                    onPress={() => setSelectedCategory(item.id)}>
+                    onPress={() => setSelectedCategory(item.id)}
+                    accessibilityRole="button"
+                    accessibilityState={{selected: isActive}}
+                    accessibilityLabel={item.name}>
                     <Text style={styles.categoryIcon}>{item.icon}</Text>
                     <Text
                       style={[
@@ -250,131 +263,155 @@ export const AchievementsScreen: React.FC<AchievementsScreenProps> = ({
                   </Pressable>
                 );
               })}
-            </View>
+            </ScrollView>
           </View>
 
-          {/* Summary - Optimized without double borders */}
-          {stats && (
-            <View
-              style={[
-                styles.summary,
-                {backgroundColor: colors.card},
-                isDark ? shadows.md : shadows.sm,
-              ]}>
-              <View style={styles.summaryItem}>
-                <Text style={[styles.summaryValue, {color: colors.primary}]}>
-                  {achievements.filter(a => a.isUnlocked).length}
-                </Text>
-                <Text
-                  style={[styles.summaryLabel, {color: colors.textSecondary}]}>
-                  {t.achievements.achievementsUnlocked}
-                </Text>
-              </View>
-              <View
-                style={[
-                  styles.summaryDivider,
-                  {backgroundColor: colors.divider},
-                ]}
-              />
-              <View style={styles.summaryItem}>
-                <Text style={[styles.summaryValue, {color: colors.secondary}]}>
-                  {stats.totalPoints}
-                </Text>
-                <Text
-                  style={[styles.summaryLabel, {color: colors.textSecondary}]}>
-                  {t.achievements.totalPoints}
-                </Text>
-              </View>
-              <View
-                style={[
-                  styles.summaryDivider,
-                  {backgroundColor: colors.divider},
-                ]}
-              />
-              <View style={styles.summaryItem}>
-                <Text style={[styles.summaryValue, {color: colors.text}]}>
-                  {t.achievements.level} {stats.level}
-                </Text>
-                <Text
-                  style={[styles.summaryLabel, {color: colors.textSecondary}]}>
-                  {stats.level >= 10
-                    ? `👑 ${t.achievements.legend}`
-                    : t.achievements.inProgress}
-                </Text>
-              </View>
-            </View>
-          )}
-
-          {/* Achievements list */}
+          {/* Achievements list. The summary + "almost there" cards ride in the
+              ListHeaderComponent (Sprint 91) so they scroll WITH the list
+              instead of pinning ~150px of fixed chrome above it — the whole
+              screen below the filter row now scrolls. */}
           <FlatList
             data={sortedAchievements}
             keyExtractor={item => item.id}
             ListHeaderComponent={
-              almostThere.length > 0 ? (
-                <View
-                  style={[
-                    styles.almostCard,
-                    {backgroundColor: colors.card},
-                    isDark ? shadows.md : shadows.sm,
-                  ]}>
-                  <Text
-                    style={[styles.almostTitle, {color: colors.textSecondary}]}>
-                    ✨ {t.achievements.almostThere}
-                  </Text>
-                  {almostThere.map(a => {
-                    const {name} = getLocalizedAchievement(a, t);
-                    const pct = Math.min(
-                      100,
-                      Math.round((a.currentProgress / a.requirement) * 100),
-                    );
-                    return (
-                      <View
-                        key={a.id}
-                        style={styles.almostRow}
-                        accessible={true}
-                        accessibilityLabel={t.achievements.almostThereA11y
-                          .replace('{{name}}', name)
-                          .replace('{{current}}', String(a.currentProgress))
-                          .replace('{{requirement}}', String(a.requirement))}>
-                        {/* Catalog icons are EMOJIS — standalone Text, never
+              <>
+                {/* Summary - Optimized without double borders */}
+                {stats && (
+                  <View
+                    style={[
+                      styles.summary,
+                      {backgroundColor: colors.card},
+                      isDark ? shadows.md : shadows.sm,
+                    ]}>
+                    <View style={styles.summaryItem}>
+                      <Text
+                        style={[styles.summaryValue, {color: colors.primary}]}>
+                        {achievements.filter(a => a.isUnlocked).length}
+                      </Text>
+                      <Text
+                        style={[
+                          styles.summaryLabel,
+                          {color: colors.textSecondary},
+                        ]}>
+                        {t.achievements.achievementsUnlocked}
+                      </Text>
+                    </View>
+                    <View
+                      style={[
+                        styles.summaryDivider,
+                        {backgroundColor: colors.divider},
+                      ]}
+                    />
+                    <View style={styles.summaryItem}>
+                      <Text
+                        style={[
+                          styles.summaryValue,
+                          {color: colors.secondary},
+                        ]}>
+                        {stats.totalPoints}
+                      </Text>
+                      <Text
+                        style={[
+                          styles.summaryLabel,
+                          {color: colors.textSecondary},
+                        ]}>
+                        {t.achievements.totalPoints}
+                      </Text>
+                    </View>
+                    <View
+                      style={[
+                        styles.summaryDivider,
+                        {backgroundColor: colors.divider},
+                      ]}
+                    />
+                    <View style={styles.summaryItem}>
+                      <Text style={[styles.summaryValue, {color: colors.text}]}>
+                        {t.achievements.level} {stats.level}
+                      </Text>
+                      <Text
+                        style={[
+                          styles.summaryLabel,
+                          {color: colors.textSecondary},
+                        ]}>
+                        {stats.level >= 10
+                          ? `👑 ${t.achievements.legend}`
+                          : t.achievements.inProgress}
+                      </Text>
+                    </View>
+                  </View>
+                )}
+                {almostThere.length > 0 ? (
+                  <View
+                    style={[
+                      styles.almostCard,
+                      {backgroundColor: colors.card},
+                      isDark ? shadows.md : shadows.sm,
+                    ]}>
+                    <Text
+                      style={[
+                        styles.almostTitle,
+                        {color: colors.textSecondary},
+                      ]}>
+                      ✨ {t.achievements.almostThere}
+                    </Text>
+                    {almostThere.map(a => {
+                      const {name} = getLocalizedAchievement(a, t);
+                      const pct = Math.min(
+                        100,
+                        Math.round((a.currentProgress / a.requirement) * 100),
+                      );
+                      return (
+                        <View
+                          key={a.id}
+                          style={styles.almostRow}
+                          accessible={true}
+                          accessibilityLabel={t.achievements.almostThereA11y
+                            .replace('{{name}}', name)
+                            .replace('{{current}}', String(a.currentProgress))
+                            .replace('{{requirement}}', String(a.requirement))}>
+                          {/* Catalog icons are EMOJIS — standalone Text, never
                             Ionicons (renders '?'), per the S80 lesson. */}
-                        <Text style={styles.almostIcon}>{a.icon}</Text>
-                        <View style={styles.almostBody}>
-                          <View style={styles.almostLabelRow}>
-                            <Text
-                              style={[styles.almostName, {color: colors.text}]}
-                              numberOfLines={1}>
-                              {name}
-                            </Text>
-                            <Text
-                              style={[
-                                styles.almostCount,
-                                {color: colors.textTertiary},
-                              ]}>
-                              {a.currentProgress}/{a.requirement}
-                            </Text>
-                          </View>
-                          <View
-                            style={[
-                              styles.almostTrack,
-                              {backgroundColor: colors.surfaceVariant},
-                            ]}>
+                          <Text style={styles.almostIcon}>{a.icon}</Text>
+                          <View style={styles.almostBody}>
+                            <View style={styles.almostLabelRow}>
+                              <Text
+                                style={[
+                                  styles.almostName,
+                                  {color: colors.text},
+                                ]}
+                                numberOfLines={1}>
+                                {name}
+                              </Text>
+                              <Text
+                                style={[
+                                  styles.almostCount,
+                                  {color: colors.textTertiary},
+                                ]}>
+                                {a.currentProgress}/{a.requirement}
+                              </Text>
+                            </View>
                             <View
                               style={[
-                                styles.almostFill,
-                                {
-                                  backgroundColor: colors.primary,
-                                  width: `${pct}%`,
-                                },
-                              ]}
-                            />
+                                styles.almostTrack,
+                                {backgroundColor: colors.surfaceVariant},
+                              ]}>
+                              <View
+                                style={[
+                                  styles.almostFill,
+                                  {
+                                    backgroundColor: colors.primary,
+                                    width: `${pct}%`,
+                                  },
+                                ]}
+                              />
+                            </View>
                           </View>
                         </View>
-                      </View>
-                    );
-                  })}
-                </View>
-              ) : null
+                      );
+                    })}
+                  </View>
+                ) : null}
+              </>
             }
             renderItem={({item}) => (
               <TouchableOpacity onPress={() => setSelectedAchievement(item)}>
@@ -495,7 +532,7 @@ const styles = StyleSheet.create({
   },
   categoryList: {
     flexDirection: 'row',
-    flexWrap: 'wrap',
+    alignItems: 'center',
     paddingHorizontal: spacing.base,
     paddingVertical: spacing.sm,
     gap: spacing.xs,
@@ -519,9 +556,9 @@ const styles = StyleSheet.create({
   summary: {
     flexDirection: 'row',
     padding: spacing.xl,
-    marginHorizontal: spacing.base,
-    marginTop: spacing.base,
-    marginBottom: spacing.xs,
+    // No horizontal margin: the summary now rides inside the FlatList content
+    // padding (Sprint 91), so it spans the same width as the cards below it.
+    marginBottom: spacing.sm,
     borderRadius: borderRadius.lg,
   },
   summaryItem: {
