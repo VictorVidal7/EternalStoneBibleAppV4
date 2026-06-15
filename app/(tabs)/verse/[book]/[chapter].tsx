@@ -58,6 +58,7 @@ import {logger} from '@lib/utils/logger';
 import {ImmersiveReader} from '@components/reading/ImmersiveReader';
 import {NoteEditorModal} from '@components/reading/NoteEditorModal';
 import {ImageShareModal} from '@components/reading/ImageShareModal';
+import {VerseArtModal} from '@components/insights/VerseArtModal';
 import {ReaderPreferencesSheet} from '@components/reading/ReaderPreferencesSheet';
 import {CrossReferencesSheet} from '@components/reading/CrossReferencesSheet';
 import {AlsoInVersionsPanel} from '@components/reading/AlsoInVersionsPanel';
@@ -211,6 +212,7 @@ export default function VerseReadingScreen() {
   const [selectedVerses, setSelectedVerses] = useState<Set<number>>(new Set());
   const [noteModalVisible, setNoteModalVisible] = useState(false);
   const [imageModalVisible, setImageModalVisible] = useState(false);
+  const [verseArtVisible, setVerseArtVisible] = useState(false);
   const [crossRefsVisible, setCrossRefsVisible] = useState(false);
   const [crossRefsVerse, setCrossRefsVerse] = useState<number | null>(null);
   // "Add to collection" target (Sprint 68): the canonical verseId of the verse
@@ -2540,6 +2542,28 @@ export default function VerseReadingScreen() {
                     {t.crossRefs.buttonLabel}
                   </Text>
                 </TouchableOpacity>
+                {/* 🎨 Verse art composer (Sprint 87) */}
+                <TouchableOpacity
+                  style={styles.selectionOverflowButton}
+                  accessibilityRole="button"
+                  accessibilityLabel={t.verseArt.create}
+                  onPress={() => {
+                    setVerseArtVisible(true);
+                    setShowOverflow(false);
+                  }}>
+                  <Ionicons
+                    name="color-wand-outline"
+                    size={22}
+                    color={effectiveColors.primary}
+                  />
+                  <Text
+                    style={[
+                      styles.selectionOverflowText,
+                      {color: effectiveColors.text},
+                    ]}>
+                    {t.verseArt.create}
+                  </Text>
+                </TouchableOpacity>
                 <TouchableOpacity
                   style={styles.selectionOverflowButton}
                   accessibilityRole="button"
@@ -2629,6 +2653,14 @@ export default function VerseReadingScreen() {
           hasSelection={selectedVerses.size > 0}
           cardSize={windowWidth - spacing.xl * 2}
           onClose={() => setImageModalVisible(false)}
+        />
+
+        {/* 🎨 Verse-art composer — same selection as the image share (S87). */}
+        <VerseArtModal
+          visible={verseArtVisible}
+          verseText={selectedVerses.size > 0 ? getImageVersesText() : ''}
+          reference={getSelectedReference()}
+          onClose={() => setVerseArtVisible(false)}
         />
 
         {/* Curated parallel passages for the first selected verse. */}
