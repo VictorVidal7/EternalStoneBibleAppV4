@@ -2,6 +2,7 @@ import {
   buildTimeline,
   timelineMonthKey,
   STREAK_RECORD_MIN,
+  DEVOTION_STREAK_RECORD_MIN,
   type TimelineInputs,
 } from '../src/features/reading-insights/timeline';
 
@@ -17,6 +18,7 @@ const empty: TimelineInputs = {
   highlights: [],
   plans: [],
   readingLog: [],
+  devotionLog: [],
 };
 
 describe('timeline (Sprint 80 — Tu línea de tiempo)', () => {
@@ -56,6 +58,7 @@ describe('timeline (Sprint 80 — Tu línea de tiempo)', () => {
         {planId: 'never-started', startedAt: null},
       ],
       readingLog: [],
+      devotionLog: [],
     });
 
     expect(feed.map(e => e.type)).toEqual([
@@ -186,6 +189,7 @@ describe('plan-completed (Sprint 81)', () => {
         },
       ],
       readingLog: [],
+      devotionLog: [],
     });
     expect(feed.map(e => e.type)).toEqual(['plan-completed', 'plan-started']);
     expect(feed[0].subject).toBe('gospels-30');
@@ -207,6 +211,7 @@ describe('plan-completed (Sprint 81)', () => {
         },
       ],
       readingLog: [],
+      devotionLog: [],
     });
     expect(feed.map(e => e.type)).toEqual(['plan-started']);
   });
@@ -220,7 +225,36 @@ describe('plan-completed (Sprint 81)', () => {
       highlights: [],
       plans: [{planId: 'bad', startedAt: null, completedAt: 'garbage'}],
       readingLog: [],
+      devotionLog: [],
     });
     expect(feed).toEqual([]);
+  });
+});
+
+describe('devotion-streak (Sprint 84)', () => {
+  it('emits a record event for a qualifying devotion run (sorts unordered input)', () => {
+    // Three consecutive days, deliberately out of order.
+    const feed = buildTimeline({
+      ...empty,
+      devotionLog: [
+        {date: '2026-06-14'},
+        {date: '2026-06-12'},
+        {date: '2026-06-13'},
+      ],
+    });
+    expect(feed).toHaveLength(1);
+    expect(feed[0].type).toBe('devotion-streak');
+    expect(feed[0].subject).toBe('3');
+    expect(feed[0].id).toBe('devotion:2026-06-14');
+  });
+
+  it('stays silent below the record minimum', () => {
+    const days = Array.from(
+      {length: DEVOTION_STREAK_RECORD_MIN - 1},
+      (_, i) => ({
+        date: `2026-06-${String(10 + i).padStart(2, '0')}`,
+      }),
+    );
+    expect(buildTimeline({...empty, devotionLog: days})).toEqual([]);
   });
 });

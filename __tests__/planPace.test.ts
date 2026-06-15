@@ -7,6 +7,7 @@ import {
   localDaysBetween,
   nextPlanDay,
   planPace,
+  planCatchUp,
   formatDayReadings,
 } from '../src/lib/reading/planPace';
 
@@ -194,5 +195,63 @@ describe('formatDayReadings', () => {
 
   it('is empty for no readings', () => {
     expect(formatDayReadings([], b => b)).toBe('');
+  });
+});
+
+describe('planCatchUp (Sprint 84)', () => {
+  const now = new Date(2026, 5, 11, 12); // 2026-06-11 local noon
+  const startedDaysAgo = (n: number) =>
+    new Date(2026, 5, 11 - n, 9).toISOString();
+
+  it('lists the uncompleted days through today when behind', () => {
+    // Started 5 days ago → scheduled day 6; only day 1 done → behind.
+    const pace = planPace({
+      startedAt: startedDaysAgo(5),
+      completedDays: [1],
+      duration: 30,
+      now,
+    });
+    expect(pace.status).toBe('behind');
+    const catchUp = planCatchUp(pace, 30, [1], now);
+    expect(catchUp.catchUpDays).toEqual([2, 3, 4, 5, 6]);
+    expect(catchUp.remainingDays).toBe(29);
+  });
+
+  it('projects the finish reading one plan-day per calendar day from today', () => {
+    const pace = planPace({
+      startedAt: startedDaysAgo(5),
+      completedDays: [1],
+      duration: 30,
+      now,
+    });
+    // 29 left → today (day 1) … +28 days = 2026-07-09 (local midnight).
+    const catchUp = planCatchUp(pace, 30, [1], now);
+    expect(catchUp.projectedFinish).toEqual(new Date(2026, 6, 9));
+  });
+
+  it('offers no catch-up days when on track or ahead', () => {
+    const onTrack = planPace({
+      startedAt: startedDaysAgo(2),
+      completedDays: [1, 2, 3],
+      duration: 30,
+      now,
+    });
+    const catchUp = planCatchUp(onTrack, 30, [1, 2, 3], now);
+    expect(catchUp.catchUpDays).toEqual([]);
+    expect(catchUp.remainingDays).toBe(27);
+  });
+
+  it('has a null projection and no catch-up once complete', () => {
+    const all = Array.from({length: 30}, (_, i) => i + 1);
+    const done = planPace({
+      startedAt: startedDaysAgo(40),
+      completedDays: all,
+      duration: 30,
+      now,
+    });
+    const catchUp = planCatchUp(done, 30, all, now);
+    expect(catchUp.catchUpDays).toEqual([]);
+    expect(catchUp.remainingDays).toBe(0);
+    expect(catchUp.projectedFinish).toBeNull();
   });
 });

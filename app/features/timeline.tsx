@@ -44,6 +44,7 @@ import {
   type TimelineCardModel,
 } from '@/features/reading-insights/timelineCard';
 import {TimelineImageModal} from '@components/insights/TimelineImageModal';
+import {getDevotionLog} from '@/features/study/devotionLogStore';
 import {haptics} from '@lib/haptics';
 import {logger} from '@lib/utils/logger';
 import {
@@ -63,6 +64,7 @@ const TYPE_ICONS: Record<TimelineEvent['type'], string> = {
   'first-note': 'create',
   'first-highlight': 'color-palette',
   'streak-record': 'flame',
+  'devotion-streak': 'sparkles',
   'plan-started': 'calendar',
   'plan-completed': 'ribbon',
 };
@@ -93,15 +95,23 @@ export default function TimelineScreen() {
     try {
       setStatus('loading');
       await bibleDB.initialize();
-      const [completedBooks, achievements, readingLog, highlights, notes] =
-        await Promise.all([
-          achievementService.getCompletedBooks(),
-          achievementService.getAllAchievements(),
-          achievementService.getReadingLog(),
-          highlightService.getAllHighlights(),
-          // Notes live in bible.db (the NotesContext store is legacy).
-          bibleDB.getNotes(),
-        ]);
+      const [
+        completedBooks,
+        achievements,
+        readingLog,
+        highlights,
+        notes,
+        devotionLog,
+      ] = await Promise.all([
+        achievementService.getCompletedBooks(),
+        achievementService.getAllAchievements(),
+        achievementService.getReadingLog(),
+        highlightService.getAllHighlights(),
+        // Notes live in bible.db (the NotesContext store is legacy).
+        bibleDB.getNotes(),
+        // Devotion habit log (Sprint 84) — device-local, never synced.
+        getDevotionLog(),
+      ]);
       setEvents(
         buildTimeline({
           completedBooks,
@@ -122,6 +132,7 @@ export default function TimelineScreen() {
             completedAt: getCompletedAt(plan.id),
           })),
           readingLog,
+          devotionLog: Object.keys(devotionLog.days).map(date => ({date})),
         }),
       );
       setStatus('ready');
@@ -183,6 +194,8 @@ export default function TimelineScreen() {
           return tl.firstHighlight.replace('{{ref}}', localizedRef(event));
         case 'streak-record':
           return tl.streakRecord.replace('{{n}}', event.subject);
+        case 'devotion-streak':
+          return tl.devotionStreak.replace('{{n}}', event.subject);
         case 'plan-started': {
           const plan = READING_PLANS.find(p => p.id === event.subject);
           const name = plan ? getLocalizedPlan(plan, t).name : event.subject;
@@ -206,6 +219,8 @@ export default function TimelineScreen() {
         case 'achievement':
         case 'streak-record':
           return colors.warning;
+        case 'devotion-streak':
+          return colors.primary;
         case 'first-favorite':
           return colors.error;
         case 'first-highlight':

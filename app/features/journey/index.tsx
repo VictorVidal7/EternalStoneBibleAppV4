@@ -52,6 +52,8 @@ import {useMemoryDeck} from '@context/MemoryDeckContext';
 import {useFavorites} from '@context/FavoritesContext';
 import {getAllReviewEvents} from '@lib/memory/reviewEventStore';
 import {getListeningStats} from '@/features/audio';
+import {getFeelingsLog} from '@/features/study/feelingsLogStore';
+import {getFeeling} from '@/features/study/feelings';
 import {logger} from '@lib/utils/logger';
 import {formatReadingTime} from '@lib/utils/formatReadingTime';
 import {getBookByName} from '@/constants/bible';
@@ -77,6 +79,7 @@ type SlideKey =
   | 'mostRead'
   | 'favorite'
   | 'engagement'
+  | 'mood'
   | 'memory'
   | 'achievements'
   | 'finale';
@@ -106,6 +109,7 @@ const SLIDE_GRADIENTS: Record<SlideKey, [string, string, string]> = {
   mostRead: ['#d97706', '#b45309', '#78350f'],
   favorite: ['#ec4899', '#be185d', '#831843'],
   engagement: ['#8b5cf6', '#6d28d9', '#4c1d95'],
+  mood: ['#f472b6', '#db2777', '#9d174d'],
   memory: ['#06b6d4', '#0e7490', '#155e75'],
   achievements: ['#eab308', '#a16207', '#713f12'],
   finale: ['#6366f1', '#7c3aed', '#1e1b4b'],
@@ -145,14 +149,21 @@ export default function JourneyScreen() {
     if (!achievementService) return;
     try {
       setStatus('loading');
-      const [stats, readingLog, reviewEvents, bookReadingLog, listeningStats] =
-        await Promise.all([
-          achievementService.getUserStats(),
-          achievementService.getReadingLog(),
-          getAllReviewEvents(),
-          achievementService.getBookReadingLog(),
-          getListeningStats(),
-        ]);
+      const [
+        stats,
+        readingLog,
+        reviewEvents,
+        bookReadingLog,
+        listeningStats,
+        feelingsLog,
+      ] = await Promise.all([
+        achievementService.getUserStats(),
+        achievementService.getReadingLog(),
+        getAllReviewEvents(),
+        achievementService.getBookReadingLog(),
+        getListeningStats(),
+        getFeelingsLog(),
+      ]);
       const built = buildJourneyRecap(
         {
           stats,
@@ -165,6 +176,7 @@ export default function JourneyScreen() {
           })),
           bookReadingLog,
           listeningStats,
+          feelingsLog,
         },
         new Date(),
       );
@@ -450,6 +462,34 @@ export default function JourneyScreen() {
             big={num(recap.highlightsCount)}
             bigLabel={j.highlightsLabel}
             rows={[{label: j.notesLabel, value: num(recap.notesCount)}]}
+          />
+        ),
+      });
+    }
+
+    // 7.5 — Emotional check-ins (Sprint 84): the journey's prevailing feeling
+    // and how many days the reader named how their heart was. Composes the
+    // device-only feelings log; skipped entirely when nothing was logged.
+    if (recap.mood) {
+      const mood = recap.mood;
+      const feeling = getFeeling(mood.dominantFeelingId);
+      const feelingNames = t.feelings.list as Record<string, {name: string}>;
+      const moodName =
+        feelingNames[mood.dominantFeelingId]?.name ?? mood.dominantFeelingId;
+      const moodIcon = (feeling?.icon ??
+        'heart') as keyof typeof Ionicons.glyphMap;
+      list.push({
+        key: 'mood',
+        gradient: SLIDE_GRADIENTS.mood,
+        icon: moodIcon,
+        a11y: `${j.moodTitle}. ${moodName}. ${num(mood.daysLogged)}`,
+        render: () => (
+          <SlideBody
+            icon={moodIcon}
+            title={j.moodTitle}
+            big={moodName}
+            bigLabel={j.moodMostFelt}
+            rows={[{label: j.moodCheckinsLabel, value: num(mood.daysLogged)}]}
           />
         ),
       });

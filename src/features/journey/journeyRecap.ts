@@ -35,6 +35,12 @@ import {
   EMPTY_LISTENING_STATS,
   type ListeningStats,
 } from '../audio/lib/listeningStats';
+import {
+  monthMood,
+  emptyFeelingsLog,
+  FEELINGS_RETENTION_DAYS,
+  type FeelingsLog,
+} from '../study/feelingsLog';
 
 const DAY_MS = 24 * 60 * 60 * 1000;
 
@@ -67,6 +73,8 @@ export interface JourneyInput {
   bookReadingLog?: BookReadingEntry[];
   /** Per-day listening buckets (S75 audio tracking); optional. */
   listeningStats?: ListeningStats;
+  /** Device-only emotional check-in log (Sprint 84); optional. */
+  feelingsLog?: FeelingsLog;
 }
 
 /** The most-read book by REAL verses + time, or null when none yet. */
@@ -89,6 +97,14 @@ export interface BookTally {
 export interface BusiestDay {
   date: string;
   versesRead: number;
+}
+
+/** The journey's emotional tenor over the retained check-in window. */
+export interface MoodRecap {
+  /** Most-felt feeling id across the log (the screen localizes it). */
+  dominantFeelingId: string;
+  /** Distinct local days the reader named how their heart was. */
+  daysLogged: number;
 }
 
 /**
@@ -140,6 +156,10 @@ export interface JourneyRecap {
   retentionPercent: number | null;
   /** Consecutive memorization-review days ending today. */
   memoryStreak: number;
+
+  // Emotional check-ins (Sprint 84 — from the device-only feelings log)
+  /** The journey's prevailing feeling + check-in days, or null when none. */
+  mood: MoodRecap | null;
 
   // Achievements / level
   achievementsUnlocked: number;
@@ -299,6 +319,22 @@ export function buildJourneyRecap(
   const listening = summarizeListening(lStats, now.getTime());
   const lStreaks = listeningStreaks(lStats, now.getTime());
 
+  // Emotional tenor (Sprint 84): the most-felt feeling across the WHOLE
+  // retained check-in window, plus how many days were named. Reuses the pure
+  // monthMood tally over the full retention span — null until a day is logged.
+  const moodSummary = monthMood(
+    input.feelingsLog ?? emptyFeelingsLog(),
+    now.getTime(),
+    FEELINGS_RETENTION_DAYS,
+  );
+  const mood: MoodRecap | null =
+    moodSummary.dominant && moodSummary.daysLogged > 0
+      ? {
+          dominantFeelingId: moodSummary.dominant,
+          daysLogged: moodSummary.daysLogged,
+        }
+      : null;
+
   const hasData =
     versesRead > 0 ||
     chaptersRead > 0 ||
@@ -337,6 +373,8 @@ export function buildJourneyRecap(
     memoryReviews: history.summary.totalReviews,
     retentionPercent,
     memoryStreak: history.summary.currentStreak,
+
+    mood,
 
     achievementsUnlocked: safeCount(stats?.achievementsUnlocked),
     totalAchievements: safeCount(stats?.totalAchievements),

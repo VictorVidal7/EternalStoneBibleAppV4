@@ -92,6 +92,7 @@ import {Skeleton} from '@components/SkeletonLoader';
 // Emotional check-in (Sprint 79)
 import {FeelingChips} from '@components/FeelingChips';
 import {MoodVerseCard} from '@components/MoodVerseCard';
+import {DevotionStreakCard} from '@components/DevotionStreakCard';
 
 // Tema Celestial
 import {
@@ -806,6 +807,14 @@ export default function HomeScreen() {
                   `/verse/${book}/${chapter}?verse=${verse}` as never,
                 ),
               )
+            }
+          />
+          {/* 🕯️ Devotion streak (Sprint 84) — renders nothing until the
+              reader has completed at least one "Momento con Dios". Tapping it
+              opens the guided devotion to continue today. */}
+          <DevotionStreakCard
+            onPress={() =>
+              handlePress(() => router.push('/features/guided' as never))
             }
           />
         </Animated.View>

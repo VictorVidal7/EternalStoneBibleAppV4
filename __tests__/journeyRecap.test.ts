@@ -24,6 +24,7 @@ import type {UserStats} from '../src/lib/achievements/types';
 import type {MemoryCard} from '../src/lib/memory/srs';
 import type {ReviewEvent} from '../src/lib/memory/reviewEvents';
 import {listeningDateKey} from '../src/features/audio/lib/listeningStats';
+import {feelingsDateKey} from '../src/features/study/feelingsLog';
 
 const DAY = 24 * 60 * 60 * 1000;
 const NOW = new Date(2026, 4, 30, 12, 0, 0); // fixed local noon
@@ -336,6 +337,23 @@ describe('buildJourneyRecap', () => {
       expect(r.listeningDays).toBe(3);
       expect(r.listeningCurrentStreak).toBe(2); // today + yesterday
       expect(r.listeningLongestStreak).toBe(2);
+    });
+  });
+
+  describe('mood (Sprint 84 — emotional check-ins)', () => {
+    it('is null when there is no feelings log', () => {
+      expect(buildJourneyRecap(emptyInput, NOW).mood).toBeNull();
+    });
+
+    it('surfaces the prevailing feeling and distinct check-in days', () => {
+      const days: Record<string, string> = {
+        [feelingsDateKey(daysAgoMs(1))]: 'grateful',
+        [feelingsDateKey(daysAgoMs(2))]: 'grateful',
+        [feelingsDateKey(daysAgoMs(3))]: 'grateful',
+        [feelingsDateKey(daysAgoMs(4))]: 'joyful',
+      };
+      const r = buildJourneyRecap({...emptyInput, feelingsLog: {days}}, NOW);
+      expect(r.mood).toEqual({dominantFeelingId: 'grateful', daysLogged: 4});
     });
   });
 });
