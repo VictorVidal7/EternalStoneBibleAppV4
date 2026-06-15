@@ -653,6 +653,14 @@ export const translations = {
       missingText: '(texto no disponible)',
     },
 
+    referenceChain: {
+      title: 'Hilo de referencias',
+      subtitle: 'Sigue un versículo a otro',
+      continueLabel: 'Continúa el hilo',
+      threadEnds: 'El hilo termina aquí',
+      start: 'Seguir el hilo',
+    },
+
     study: {
       title: 'Modo estudio',
       subtitle: 'Conexiones del versículo',
@@ -2812,6 +2820,14 @@ export const translations = {
       emptyBody:
         "We don't have cross-references for this verse yet — for now we cover the most-studied passages.",
       missingText: '(text not available)',
+    },
+
+    referenceChain: {
+      title: 'Reference thread',
+      subtitle: 'Follow one verse to another',
+      continueLabel: 'Continue the thread',
+      threadEnds: 'The thread ends here',
+      start: 'Follow the thread',
     },
 
     study: {
