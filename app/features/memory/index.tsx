@@ -38,6 +38,7 @@ import type {GoalProgress, MemoryMilestone} from '@lib/memory/goals';
 import {getBookByName} from '@/constants/bible';
 import type {MemoryCard} from '@lib/memory/srs';
 import {isMastered} from '@lib/memory/srs';
+import {WeeklyChallengeCard} from '@components/WeeklyChallengeCard';
 import {
   borderRadius,
   fontSize as fontSizes,
@@ -165,6 +166,10 @@ export default function MemoryDeckScreen() {
               onPress={() => router.push('/features/memory/insights' as never)}
             />
           )}
+
+          {/* Weekly mastery challenge (Sprint 86) — hides itself when the
+              deck is empty; tapping it starts a practice session. */}
+          <WeeklyChallengeCard onPractice={handlePractice} />
 
           {/* Practice CTA */}
           {dueCount > 0 ? (

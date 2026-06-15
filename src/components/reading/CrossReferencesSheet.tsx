@@ -174,6 +174,21 @@ export const CrossReferencesSheet: React.FC<Props> = ({
     router.push('/features/themes' as never);
   };
 
+  // Begin a guided verse→verse thread seeded at this verse (Sprint 86).
+  const handleOpenChain = () => {
+    if (sourceVerse == null) return;
+    haptics.tap();
+    onClose();
+    router.push({
+      pathname: '/features/reference-chain' as never,
+      params: {
+        book: sourceBook,
+        chapter: String(sourceChapter),
+        verse: String(sourceVerse),
+      },
+    } as never);
+  };
+
   const sourceLabel =
     sourceVerse != null
       ? `${sourceBook} ${sourceChapter}:${sourceVerse}`
@@ -305,6 +320,25 @@ export const CrossReferencesSheet: React.FC<Props> = ({
             </TouchableOpacity>
           )}
 
+          {refs.length > 0 && (
+            <TouchableOpacity
+              style={[styles.chainButton, {borderColor: colors.primary}]}
+              onPress={handleOpenChain}
+              accessibilityRole="button"
+              accessibilityLabel={t.referenceChain.start}
+              accessibilityHint={t.referenceChain.subtitle}>
+              <Ionicons
+                name="git-network-outline"
+                size={18}
+                color={colors.primary}
+              />
+              <Text style={[styles.studyButtonText, {color: colors.primary}]}>
+                {t.referenceChain.start}
+              </Text>
+              <Ionicons name="arrow-forward" size={16} color={colors.primary} />
+            </TouchableOpacity>
+          )}
+
           <TouchableOpacity
             style={[styles.themesButton, {borderColor: colors.border}]}
             onPress={handleOpenThemes}
@@ -347,6 +381,16 @@ const styles = StyleSheet.create({
   studyButtonText: {
     fontSize: fontSizes.md,
     fontWeight: '700',
+  },
+  chainButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: spacing.sm,
+    marginTop: spacing.sm,
+    paddingVertical: spacing.md,
+    borderRadius: borderRadius.lg,
+    borderWidth: 1.5,
   },
   themesButton: {
     flexDirection: 'row',

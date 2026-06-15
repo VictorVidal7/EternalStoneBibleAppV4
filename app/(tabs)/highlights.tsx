@@ -19,7 +19,7 @@ import {
 } from 'react-native';
 import {staticColors} from '@/styles/designTokens';
 
-import React, {useCallback, useState} from 'react';
+import React, {useCallback, useMemo, useState} from 'react';
 import {useRouter, useFocusEffect} from 'expo-router';
 import {Ionicons} from '@expo/vector-icons';
 import {LinearGradient} from 'expo-linear-gradient';
@@ -31,7 +31,13 @@ import {useServices} from '@context/ServicesContext';
 import {useToast} from '@context/ToastContext';
 import bibleDB from '@lib/database';
 import {getBookByName} from '@/constants/bible';
-import {Highlight, HighlightCategory} from '@lib/highlights';
+import {Highlight, HighlightCategory, HighlightColor} from '@lib/highlights';
+import {
+  groupHighlightsByColor,
+  highlightGalleryStats,
+  searchHighlights,
+} from '@lib/highlights/highlightGallery';
+import {HighlightsImageModal} from '@components/insights/HighlightsImageModal';
 import {logger} from '@lib/utils/logger';
 import {getSyncEngine} from '@lib/sync';
 import {buildHighlightRemotePayload} from '@lib/sync/adapters/highlights';
@@ -40,6 +46,11 @@ interface HighlightItem extends Highlight {
   text: string;
   bookName: string;
 }
+
+/** A FlatList row: either a color-group header or a highlight (Sprint 86). */
+type HighlightRow =
+  | {kind: 'group'; color: HighlightColor; count: number}
+  | {kind: 'item'; item: HighlightItem};
 
 const CATEGORY_KEYS: HighlightCategory[] = Object.values(HighlightCategory);
 
@@ -61,6 +72,9 @@ export default function HighlightsScreen() {
   const [categoryDraft, setCategoryDraft] = useState<
     HighlightCategory | undefined
   >(undefined);
+  const [query, setQuery] = useState('');
+  const [grouped, setGrouped] = useState(false);
+  const [shareVisible, setShareVisible] = useState(false);
 
   const headerGradient = (
     gradient?.headerColors
@@ -113,11 +127,36 @@ export default function HighlightsScreen() {
   const usedCategories = CATEGORY_KEYS.filter(cat =>
     items.some(i => i.category === cat),
   );
-  const filtered = items.filter(
-    i =>
-      (!colorFilter || i.color === colorFilter) &&
-      (!categoryFilter || i.category === categoryFilter),
+
+  // color/category chips → text search → optional group-by-color (Sprint 86).
+  const filtered = useMemo(
+    () =>
+      items.filter(
+        i =>
+          (!colorFilter || i.color === colorFilter) &&
+          (!categoryFilter || i.category === categoryFilter),
+      ),
+    [items, colorFilter, categoryFilter],
   );
+  const searched = useMemo(
+    () =>
+      searchHighlights(
+        filtered,
+        query,
+        i => `${i.bookName} ${i.chapter}:${i.verse} ${i.text} ${i.note ?? ''}`,
+      ),
+    [filtered, query],
+  );
+  const galleryStats = useMemo(() => highlightGalleryStats(items), [items]);
+  // Flatten into one FlatList: in grouped mode, a color-header row precedes
+  // each color's highlights; otherwise just the highlights.
+  const rows = useMemo<HighlightRow[]>(() => {
+    if (!grouped) return searched.map(item => ({kind: 'item', item}));
+    return groupHighlightsByColor(searched).flatMap(g => [
+      {kind: 'group' as const, color: g.color, count: g.count},
+      ...g.items.map(item => ({kind: 'item' as const, item})),
+    ]);
+  }, [grouped, searched]);
 
   function handleDelete(item: HighlightItem) {
     Alert.alert(t.highlights.deleteTitle, t.highlights.deleteMessage, [
@@ -314,88 +353,180 @@ export default function HighlightsScreen() {
         </View>
       )}
 
+      {/* Search + gallery toolbar (Sprint 86) */}
+      {items.length > 0 && (
+        <>
+          <View style={[styles.searchRow, {borderColor: colors.border}]}>
+            <Ionicons name="search" size={18} color={colors.textTertiary} />
+            <TextInput
+              value={query}
+              onChangeText={setQuery}
+              placeholder={t.highlights.searchPlaceholder}
+              placeholderTextColor={colors.textTertiary}
+              style={[styles.searchInput, {color: colors.text}]}
+              returnKeyType="search"
+            />
+            {query.length > 0 && (
+              <TouchableOpacity
+                onPress={() => setQuery('')}
+                accessibilityRole="button"
+                accessibilityLabel={t.cancel}>
+                <Ionicons
+                  name="close-circle"
+                  size={18}
+                  color={colors.textTertiary}
+                />
+              </TouchableOpacity>
+            )}
+          </View>
+          <View style={styles.toolbarRow}>
+            <TouchableOpacity
+              onPress={() => setGrouped(g => !g)}
+              accessibilityRole="button"
+              accessibilityState={{selected: grouped}}
+              accessibilityLabel={t.highlights.groupByColor}
+              style={[
+                styles.toolbarChip,
+                {
+                  backgroundColor: grouped ? colors.primary : colors.surface,
+                  borderColor: colors.border,
+                },
+              ]}>
+              <Ionicons
+                name={grouped ? 'apps' : 'list'}
+                size={15}
+                color={grouped ? staticColors.white : colors.textSecondary}
+              />
+              <Text
+                style={[
+                  styles.toolbarChipText,
+                  {color: grouped ? staticColors.white : colors.textSecondary},
+                ]}>
+                {grouped ? t.highlights.groupByColor : t.highlights.listView}
+              </Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              onPress={() => setShareVisible(true)}
+              accessibilityRole="button"
+              accessibilityLabel={t.highlights.galleryShare}
+              style={[
+                styles.toolbarChip,
+                {backgroundColor: colors.surface, borderColor: colors.border},
+              ]}>
+              <Ionicons
+                name="share-outline"
+                size={15}
+                color={colors.textSecondary}
+              />
+              <Text
+                style={[styles.toolbarChipText, {color: colors.textSecondary}]}>
+                {t.share}
+              </Text>
+            </TouchableOpacity>
+          </View>
+        </>
+      )}
+
       {loading ? (
         <View style={styles.centerBox}>
           <ActivityIndicator size="large" color={colors.primary} />
         </View>
       ) : (
         <FlatList
-          data={filtered}
-          keyExtractor={item => item.id}
+          data={rows}
+          keyExtractor={row =>
+            row.kind === 'group' ? `g-${row.color}` : row.item.id
+          }
           contentContainerStyle={styles.listContent}
-          renderItem={({item}) => (
-            <TouchableOpacity
-              activeOpacity={0.7}
-              onPress={() => goToVerse(item)}
-              style={[styles.row, {backgroundColor: colors.surface}]}>
-              <View
-                style={[styles.colorStripe, {backgroundColor: item.color}]}
-              />
-              <View style={styles.rowContent}>
-                <Text style={[styles.rowRef, {color: colors.primary}]}>
-                  {item.bookName} {item.chapter}:{item.verse}
-                </Text>
-                <Text
-                  style={[styles.rowText, {color: colors.text}]}
-                  numberOfLines={2}>
-                  {item.text}
-                </Text>
-                {!!item.note && (
-                  <View style={styles.noteRow}>
+          renderItem={({item: row}) => {
+            if (row.kind === 'group') {
+              return (
+                <View style={styles.groupHeader}>
+                  <View
+                    style={[styles.groupSwatch, {backgroundColor: row.color}]}
+                  />
+                  <Text
+                    style={[styles.groupCount, {color: colors.textSecondary}]}>
+                    {row.count}
+                  </Text>
+                </View>
+              );
+            }
+            const item = row.item;
+            return (
+              <TouchableOpacity
+                activeOpacity={0.7}
+                onPress={() => goToVerse(item)}
+                style={[styles.row, {backgroundColor: colors.surface}]}>
+                <View
+                  style={[styles.colorStripe, {backgroundColor: item.color}]}
+                />
+                <View style={styles.rowContent}>
+                  <Text style={[styles.rowRef, {color: colors.primary}]}>
+                    {item.bookName} {item.chapter}:{item.verse}
+                  </Text>
+                  <Text
+                    style={[styles.rowText, {color: colors.text}]}
+                    numberOfLines={2}>
+                    {item.text}
+                  </Text>
+                  {!!item.note && (
+                    <View style={styles.noteRow}>
+                      <Ionicons
+                        name="document-text-outline"
+                        size={13}
+                        color={colors.textSecondary}
+                      />
+                      <Text
+                        style={[styles.noteText, {color: colors.textSecondary}]}
+                        numberOfLines={2}>
+                        {item.note}
+                      </Text>
+                    </View>
+                  )}
+                  {!!item.category && (
+                    <View
+                      style={[
+                        styles.categoryChip,
+                        // Fondo teñido (primary translúcido): legible en cualquier
+                        // tema, claro u oscuro — primaryLight es siempre claro y
+                        // dejaba el texto ilegible en modo oscuro.
+                        {backgroundColor: colors.primary + '22'},
+                      ]}>
+                      <Text
+                        style={[styles.categoryText, {color: colors.primary}]}>
+                        {t.highlights.categories[item.category]}
+                      </Text>
+                    </View>
+                  )}
+                </View>
+                <View style={styles.rowActions}>
+                  <TouchableOpacity
+                    style={styles.iconButton}
+                    onPress={() => openEditor(item)}
+                    accessibilityRole="button"
+                    accessibilityLabel={t.edit}>
                     <Ionicons
-                      name="document-text-outline"
-                      size={13}
+                      name="create-outline"
+                      size={20}
                       color={colors.textSecondary}
                     />
-                    <Text
-                      style={[styles.noteText, {color: colors.textSecondary}]}
-                      numberOfLines={2}>
-                      {item.note}
-                    </Text>
-                  </View>
-                )}
-                {!!item.category && (
-                  <View
-                    style={[
-                      styles.categoryChip,
-                      // Fondo teñido (primary translúcido): legible en cualquier
-                      // tema, claro u oscuro — primaryLight es siempre claro y
-                      // dejaba el texto ilegible en modo oscuro.
-                      {backgroundColor: colors.primary + '22'},
-                    ]}>
-                    <Text
-                      style={[styles.categoryText, {color: colors.primary}]}>
-                      {t.highlights.categories[item.category]}
-                    </Text>
-                  </View>
-                )}
-              </View>
-              <View style={styles.rowActions}>
-                <TouchableOpacity
-                  style={styles.iconButton}
-                  onPress={() => openEditor(item)}
-                  accessibilityRole="button"
-                  accessibilityLabel={t.edit}>
-                  <Ionicons
-                    name="create-outline"
-                    size={20}
-                    color={colors.textSecondary}
-                  />
-                </TouchableOpacity>
-                <TouchableOpacity
-                  style={styles.iconButton}
-                  onPress={() => handleDelete(item)}
-                  accessibilityRole="button"
-                  accessibilityLabel={t.delete}>
-                  <Ionicons
-                    name="trash-outline"
-                    size={20}
-                    color={colors.error}
-                  />
-                </TouchableOpacity>
-              </View>
-            </TouchableOpacity>
-          )}
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    style={styles.iconButton}
+                    onPress={() => handleDelete(item)}
+                    accessibilityRole="button"
+                    accessibilityLabel={t.delete}>
+                    <Ionicons
+                      name="trash-outline"
+                      size={20}
+                      color={colors.error}
+                    />
+                  </TouchableOpacity>
+                </View>
+              </TouchableOpacity>
+            );
+          }}
           ListEmptyComponent={
             <View style={styles.centerBox}>
               <Ionicons
@@ -524,12 +655,56 @@ export default function HighlightsScreen() {
           </View>
         </View>
       </Modal>
+
+      {/* Share my highlights gallery (Sprint 86) */}
+      <HighlightsImageModal
+        visible={shareVisible}
+        stats={galleryStats}
+        onClose={() => setShareVisible(false)}
+      />
     </View>
   );
 }
 
 const styles = StyleSheet.create({
   container: {flex: 1},
+  searchRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    marginHorizontal: 16,
+    marginTop: 12,
+    paddingHorizontal: 12,
+    height: 44,
+    borderRadius: 12,
+    borderWidth: 1,
+  },
+  searchInput: {flex: 1, fontSize: 15, paddingVertical: 0},
+  toolbarRow: {
+    flexDirection: 'row',
+    gap: 8,
+    paddingHorizontal: 16,
+    paddingTop: 10,
+  },
+  toolbarChip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    paddingHorizontal: 14,
+    height: 34,
+    borderRadius: 17,
+    borderWidth: 1,
+  },
+  toolbarChipText: {fontWeight: '700', fontSize: 13},
+  groupHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    paddingVertical: 6,
+    paddingHorizontal: 2,
+  },
+  groupSwatch: {width: 18, height: 18, borderRadius: 9},
+  groupCount: {fontSize: 13, fontWeight: '700'},
   header: {
     paddingTop: 60,
     paddingBottom: 24,
