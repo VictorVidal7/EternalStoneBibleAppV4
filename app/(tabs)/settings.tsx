@@ -688,7 +688,7 @@ export default function SettingsScreen() {
 
             {/* Badges & Titles */}
             <TouchableOpacity
-              style={themedStyles.featureItem}
+              style={themedStyles.featureItemLast}
               onPress={async () => {
                 haptics.tap();
                 router.push('/features/badges');
@@ -707,33 +707,6 @@ export default function SettingsScreen() {
                   </Text>
                   <Text style={themedStyles.featureDescription}>
                     {t.settingsV51.badgesDesc}
-                  </Text>
-                </View>
-              </View>
-              <Ionicons
-                name="chevron-forward"
-                size={20}
-                color={colors.textTertiary}
-              />
-            </TouchableOpacity>
-
-            {/* Cache Stats */}
-            <TouchableOpacity
-              style={themedStyles.featureItemLast}
-              onPress={async () => {
-                haptics.tap();
-                router.push('/features/cache-stats');
-              }}>
-              <View style={styles.featureContent}>
-                <View style={themedStyles.featureIconSuccess}>
-                  <Ionicons name="flash" size={24} color={colors.success} />
-                </View>
-                <View style={styles.featureInfo}>
-                  <Text style={themedStyles.featureTitle}>
-                    {t.settingsV51.cacheStats}
-                  </Text>
-                  <Text style={themedStyles.featureDescription}>
-                    {t.settingsV51.cacheStatsDesc}
                   </Text>
                 </View>
               </View>
@@ -1443,14 +1416,6 @@ function createThemedStyles(
       borderRadius: 12,
       alignItems: 'center',
       justifyContent: 'center',
-    },
-    featureIconSuccess: {
-      width: 48,
-      height: 48,
-      borderRadius: 12,
-      alignItems: 'center',
-      justifyContent: 'center',
-      backgroundColor: colors.success + '20',
     },
     featureTitle: {
       fontSize: 15,

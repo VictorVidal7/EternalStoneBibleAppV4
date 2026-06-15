@@ -33,7 +33,7 @@ export const VerseWidget: React.FC<VerseWidgetProps> = ({
   compact = false,
 }) => {
   const {colors, isDark} = useTheme();
-  const {t} = useLanguage();
+  const {t, language} = useLanguage();
   const [verseData, setVerseData] = useState<VerseWidgetData | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -95,10 +95,13 @@ export const VerseWidget: React.FC<VerseWidgetProps> = ({
           </Text>
           <View style={styles.dateContainer}>
             <Text style={[styles.dateText, {color: colors.textSecondary}]}>
-              {new Date().toLocaleDateString('es-ES', {
-                day: 'numeric',
-                month: 'short',
-              })}
+              {new Date().toLocaleDateString(
+                language === 'en' ? 'en-US' : 'es-ES',
+                {
+                  day: 'numeric',
+                  month: 'short',
+                },
+              )}
             </Text>
           </View>
         </View>

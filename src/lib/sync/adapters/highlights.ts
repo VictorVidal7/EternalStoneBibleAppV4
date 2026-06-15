@@ -2,9 +2,8 @@
  * Sprint 42 — highlights SyncAdapter.
  *
  * Highlights live in SQLite (`highlights` table via HighlightService).
- * There's no HighlightsContext in the provider tree either — screens
- * call `useHighlights(database)` which creates its own per-component
- * service instance.
+ * There's no HighlightsContext in the provider tree either — screens read
+ * highlights straight from the shared bibleDB / ServicesContext on focus.
  *
  * Strategy: this adapter owns its own HighlightService instance bound
  * to the singleton bibleDB. The screen-local services stay
