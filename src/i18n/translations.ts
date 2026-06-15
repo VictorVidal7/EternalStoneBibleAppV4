@@ -661,6 +661,12 @@ export const translations = {
       start: 'Seguir el hilo',
     },
 
+    verseArt: {
+      title: 'Arte de versículo',
+      typeface: 'Tipografía',
+      create: 'Crear arte',
+    },
+
     study: {
       title: 'Modo estudio',
       subtitle: 'Conexiones del versículo',
@@ -2828,6 +2834,12 @@ export const translations = {
       continueLabel: 'Continue the thread',
       threadEnds: 'The thread ends here',
       start: 'Follow the thread',
+    },
+
+    verseArt: {
+      title: 'Verse art',
+      typeface: 'Typeface',
+      create: 'Create art',
     },
 
     study: {
