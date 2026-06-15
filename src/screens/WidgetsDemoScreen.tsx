@@ -1,8 +1,11 @@
 /**
- * 📱 WIDGETS DEMO SCREEN
+ * 📱 WIDGETS SCREEN
  *
- * Pantalla para probar y visualizar todos los widgets
- * Muestra cómo integrar los widgets en diferentes contextos
+ * Showcases the real, installable Android home-screen widget — the daily
+ * verse (VerseWidgetProvider, native) — and explains how to add it to the
+ * home screen. The two demo-only previews (progress/mission) that had no
+ * native counterpart were retired in Sprint 91 so the screen no longer
+ * promises widgets the user cannot actually place.
  *
  * Para la gloria de Dios Todopoderoso ✨
  */
@@ -12,9 +15,8 @@ import {View, Text, StyleSheet, ScrollView} from 'react-native';
 import {useTheme} from '../hooks/useTheme';
 import {useLanguage} from '../hooks/useLanguage';
 import {VerseWidget} from '../widgets/VerseWidget';
-import {ProgressWidget} from '../widgets/ProgressWidget';
-import {MissionWidget} from '../widgets/MissionWidget';
 import {useRouter} from 'expo-router';
+import {Ionicons} from '@expo/vector-icons';
 import {ScreenHeaderBack} from '../components/ScreenHeaderBack';
 
 export const WidgetsDemoScreen: React.FC = () => {
@@ -26,15 +28,13 @@ export const WidgetsDemoScreen: React.FC = () => {
     router.push(`/verse/${book}/${chapter}?highlight=${verse}`);
   };
 
-  const handleProgressPress = () => {
-    // No existe pantalla de perfil; Logros es el panel de progreso del usuario.
-    router.push('/(tabs)/achievements');
-  };
-
-  const handleMissionPress = () => {
-    // Por ahora, no hay pantalla de misiones implementada.
-    // En el futuro, esto navegará a la pantalla de misiones.
-  };
+  const steps = [
+    t.widgets.howToUseSteps.step1,
+    t.widgets.howToUseSteps.step2,
+    t.widgets.howToUseSteps.step3,
+    t.widgets.howToUseSteps.step4,
+    t.widgets.howToUseSteps.step5,
+  ];
 
   return (
     <View style={[styles.container, {backgroundColor: colors.background}]}>
@@ -49,12 +49,11 @@ export const WidgetsDemoScreen: React.FC = () => {
         </Text>
       </View>
 
-      {/* Widgets Showcase */}
       <ScrollView
         style={styles.scrollView}
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}>
-        {/* Verse Widget */}
+        {/* Verse of the Day — the real, installable widget */}
         <View style={styles.widgetSection}>
           <Text style={[styles.sectionTitle, {color: colors.text}]}>
             📖 {t.widgets.verseOfDay}
@@ -65,87 +64,42 @@ export const WidgetsDemoScreen: React.FC = () => {
           <VerseWidget onPress={handleVersePress} />
         </View>
 
-        {/* Progress Widget */}
-        <View style={styles.widgetSection}>
-          <Text style={[styles.sectionTitle, {color: colors.text}]}>
-            📊 {t.widgets.progressTitle}
-          </Text>
-          <Text style={[styles.sectionDesc, {color: colors.textSecondary}]}>
-            {t.widgets.progressDesc}
-          </Text>
-          <ProgressWidget userId="demo-user" onPress={handleProgressPress} />
-        </View>
-
-        {/* Mission Widget */}
-        <View style={styles.widgetSection}>
-          <Text style={[styles.sectionTitle, {color: colors.text}]}>
-            🎯 {t.widgets.missionTitle}
-          </Text>
-          <Text style={[styles.sectionDesc, {color: colors.textSecondary}]}>
-            {t.widgets.missionDesc}
-          </Text>
-          <MissionWidget userId="demo-user" onPress={handleMissionPress} />
-        </View>
-
-        {/* Info Section */}
+        {/* How to add it to the home screen */}
         <View style={[styles.infoCard, {backgroundColor: colors.surface}]}>
           <Text style={[styles.infoTitle, {color: colors.text}]}>
             💡 {t.widgets.howToUse}
           </Text>
           <View style={styles.infoList}>
-            <Text style={[styles.infoItem, {color: colors.textSecondary}]}>
-              1. {t.widgets.howToUseSteps.step1}
-            </Text>
-            <Text style={[styles.infoItem, {color: colors.textSecondary}]}>
-              2. {t.widgets.howToUseSteps.step2}
-            </Text>
-            <Text style={[styles.infoItem, {color: colors.textSecondary}]}>
-              3. {t.widgets.howToUseSteps.step3}
-            </Text>
-            <Text style={[styles.infoItem, {color: colors.textSecondary}]}>
-              4. {t.widgets.howToUseSteps.step4}
-            </Text>
-            <Text style={[styles.infoItem, {color: colors.textSecondary}]}>
-              5. {t.widgets.howToUseSteps.step5}
-            </Text>
+            {steps.map((step, index) => (
+              <View key={index} style={styles.stepRow}>
+                <View
+                  style={[
+                    styles.stepBadge,
+                    {backgroundColor: colors.primary + '20'},
+                  ]}>
+                  <Text style={[styles.stepNumber, {color: colors.primary}]}>
+                    {index + 1}
+                  </Text>
+                </View>
+                <Text style={[styles.infoItem, {color: colors.textSecondary}]}>
+                  {step}
+                </Text>
+              </View>
+            ))}
           </View>
         </View>
 
-        {/* Feature Highlights */}
-        <View style={styles.featuresSection}>
-          <Text style={[styles.featureTitle, {color: colors.text}]}>
-            ✨ {t.widgets.features}
+        {/* Honest note: the widget refreshes once a day and adapts to the
+            system light/dark theme — no overpromising. */}
+        <View style={styles.noteRow}>
+          <Ionicons
+            name="information-circle-outline"
+            size={18}
+            color={colors.textTertiary}
+          />
+          <Text style={[styles.noteText, {color: colors.textTertiary}]}>
+            {t.widgets.note}
           </Text>
-          <View style={styles.featuresList}>
-            <View
-              style={[styles.featureCard, {backgroundColor: colors.surface}]}>
-              <Text style={styles.featureEmoji}>🔄</Text>
-              <Text style={[styles.featureText, {color: colors.text}]}>
-                {t.widgets.autoUpdate}
-              </Text>
-            </View>
-            <View
-              style={[styles.featureCard, {backgroundColor: colors.surface}]}>
-              <Text style={styles.featureEmoji}>🎨</Text>
-              <Text style={[styles.featureText, {color: colors.text}]}>
-                {t.widgets.adaptiveDesign}
-              </Text>
-            </View>
-            <View
-              style={[styles.featureCard, {backgroundColor: colors.surface}]}>
-              <Text style={styles.featureEmoji}>⚡</Text>
-              <Text style={[styles.featureText, {color: colors.text}]}>
-                {t.widgets.optimizedPerformance}
-              </Text>
-            </View>
-            <View
-              style={[styles.featureCard, {backgroundColor: colors.surface}]}>
-              <Text style={styles.featureEmoji}>📱</Text>
-              <Text style={[styles.featureText, {color: colors.text}]}>
-                {t.widgets.multipleSizes}
-              </Text>
-            </View>
-          </View>
         </View>
 
         <View style={styles.bottomPadding} />
@@ -183,7 +137,7 @@ const styles = StyleSheet.create({
     paddingBottom: 40,
   },
   widgetSection: {
-    marginBottom: 32,
+    marginBottom: 24,
   },
   sectionTitle: {
     fontSize: 20,
@@ -200,7 +154,7 @@ const styles = StyleSheet.create({
     marginHorizontal: 16,
     padding: 20,
     borderRadius: 16,
-    marginBottom: 24,
+    marginBottom: 16,
   },
   infoTitle: {
     fontSize: 18,
@@ -208,40 +162,40 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   infoList: {
-    gap: 10,
+    gap: 14,
+  },
+  stepRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+  },
+  stepBadge: {
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  stepNumber: {
+    fontSize: 14,
+    fontWeight: '800',
   },
   infoItem: {
+    flex: 1,
     fontSize: 14,
     lineHeight: 20,
   },
-  featuresSection: {
+  noteRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: 8,
     paddingHorizontal: 20,
     marginBottom: 24,
   },
-  featureTitle: {
-    fontSize: 20,
-    fontWeight: '700',
-    marginBottom: 16,
-  },
-  featuresList: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 12,
-  },
-  featureCard: {
-    flexBasis: '48%',
-    padding: 16,
-    borderRadius: 12,
-    alignItems: 'center',
-  },
-  featureEmoji: {
-    fontSize: 32,
-    marginBottom: 8,
-  },
-  featureText: {
-    fontSize: 12,
-    fontWeight: '600',
-    textAlign: 'center',
+  noteText: {
+    flex: 1,
+    fontSize: 13,
+    lineHeight: 19,
   },
   bottomPadding: {
     height: 20,
