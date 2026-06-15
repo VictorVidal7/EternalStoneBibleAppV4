@@ -23,6 +23,8 @@ import {
 } from '../styles/designTokens';
 import {typography} from '../styles/typography';
 import {useLanguage} from '../hooks/useLanguage';
+import type {ThemeColors} from '../hooks/useTheme';
+import {a11yHiddenProps} from '../lib/a11y/focusTrap';
 
 interface IllustratedEmptyStateProps {
   type:
@@ -37,7 +39,7 @@ interface IllustratedEmptyStateProps {
   message?: string;
   actionLabel?: string;
   onAction?: () => void;
-  colors: any;
+  colors: ThemeColors;
   isDark: boolean;
 }
 
@@ -167,7 +169,7 @@ export const IllustratedEmptyState: React.FC<IllustratedEmptyStateProps> = ({
         style={{
           transform: [{translateY: bounceAnim}],
         }}>
-        <View style={styles.illustrationContainer}>
+        <View style={styles.illustrationContainer} {...a11yHiddenProps()}>
           {/* Círculos decorativos de fondo */}
           <View style={styles.decorativeCircles}>
             <View
@@ -254,6 +256,8 @@ export const IllustratedEmptyState: React.FC<IllustratedEmptyStateProps> = ({
         <TouchableOpacity
           onPress={handleAction}
           activeOpacity={0.8}
+          accessibilityRole="button"
+          accessibilityLabel={actionLabel || config.defaultAction}
           style={styles.actionButton}>
           <LinearGradient
             colors={themeGradient}

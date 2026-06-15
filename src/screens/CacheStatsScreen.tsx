@@ -403,7 +403,9 @@ export const CacheStatsScreen: React.FC<CacheStatsScreenProps> = ({userId}) => {
 
           <TouchableOpacity
             style={[styles.actionButton, {backgroundColor: colors.primary}]}
-            onPress={handleWarmup}>
+            onPress={handleWarmup}
+            accessibilityRole="button"
+            accessibilityLabel={t.cacheStats.warmupCache}>
             <Ionicons name="flame" size={20} color="#FFF" />
             <Text style={styles.actionButtonText}>
               {t.cacheStats.warmupCache}
@@ -412,7 +414,9 @@ export const CacheStatsScreen: React.FC<CacheStatsScreenProps> = ({userId}) => {
 
           <TouchableOpacity
             style={[styles.actionButton, {backgroundColor: colors.accent}]}
-            onPress={handleCleanup}>
+            onPress={handleCleanup}
+            accessibilityRole="button"
+            accessibilityLabel={t.cacheStats.cleanupExpired}>
             <Ionicons name="trash-outline" size={20} color="#FFF" />
             <Text style={styles.actionButtonText}>
               {t.cacheStats.cleanupExpired}
@@ -421,7 +425,9 @@ export const CacheStatsScreen: React.FC<CacheStatsScreenProps> = ({userId}) => {
 
           <TouchableOpacity
             style={[styles.actionButton, {backgroundColor: colors.error}]}
-            onPress={handleClearCache}>
+            onPress={handleClearCache}
+            accessibilityRole="button"
+            accessibilityLabel={t.cacheStats.clearAllCache}>
             <Ionicons name="close-circle" size={20} color="#FFF" />
             <Text style={styles.actionButtonText}>
               {t.cacheStats.clearAllCache}

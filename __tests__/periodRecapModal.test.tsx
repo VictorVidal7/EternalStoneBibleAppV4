@@ -74,6 +74,17 @@ describe('PeriodRecapModal (Sprint 87)', () => {
     expect(getByText(tp.favorites.replace('{{n}}', '1'))).toBeTruthy();
   });
 
+  it('labels the share button with the share verb, not the period title', () => {
+    // S89 audit: the share button must announce "Compartir" (not the modal
+    // title, which is shown separately in the header) like every sibling
+    // share modal.
+    const {getByLabelText} = render(
+      <PeriodRecapModal visible input={input} onClose={jest.fn()} />,
+    );
+    const shareButton = getByLabelText(translations.es.share);
+    expect(shareButton.props.accessibilityRole).toBe('button');
+  });
+
   it('switches to the quarter scope on toggle', () => {
     const {getByText, getAllByText} = render(
       <PeriodRecapModal visible input={input} onClose={jest.fn()} />,

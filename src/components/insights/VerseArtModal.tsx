@@ -138,7 +138,7 @@ export const VerseArtModal: React.FC<VerseArtModalProps> = ({
             disabled={isSharing}
             style={isSharing ? styles.disabled : undefined}
             accessibilityRole="button"
-            accessibilityLabel={va.title}
+            accessibilityLabel={t.share}
             accessibilityState={{disabled: isSharing}}>
             <Ionicons name="share-outline" size={28} color={colors.primary} />
           </TouchableOpacity>

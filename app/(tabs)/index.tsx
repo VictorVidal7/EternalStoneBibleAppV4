@@ -546,7 +546,9 @@ export default function HomeScreen() {
   });
   const heroSubtitle =
     nudge.kind === 'streak'
-      ? t.home.nudgeStreak.replace('{{days}}', String(nudge.days))
+      ? nudge.days === 1
+        ? t.home.nudgeStreakOne
+        : t.home.nudgeStreak.replace('{{days}}', String(nudge.days))
       : nudge.kind === 'continue' && lastRead
         ? t.home.nudgeContinue.replace(
             '{{book}}',

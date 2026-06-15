@@ -181,7 +181,7 @@ export const PeriodRecapModal: React.FC<PeriodRecapModalProps> = ({
             disabled={isSharing || !recap.hasData}
             style={isSharing || !recap.hasData ? styles.disabled : undefined}
             accessibilityRole="button"
-            accessibilityLabel={title}
+            accessibilityLabel={t.share}
             accessibilityState={{disabled: isSharing || !recap.hasData}}>
             <Ionicons name="share-outline" size={28} color={colors.primary} />
           </TouchableOpacity>

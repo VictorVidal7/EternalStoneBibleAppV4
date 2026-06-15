@@ -127,7 +127,12 @@ const ReadingPlanCard: React.FC<ReadingPlanCardProps> = ({
         activeOpacity={0.7}
         onPress={onPress}
         onPressIn={press.onPressIn}
-        onPressOut={press.onPressOut}>
+        onPressOut={press.onPressOut}
+        accessibilityRole="button"
+        accessibilityLabel={[name, subtitle, `${daysCompleted}/${duration}`]
+          .filter(Boolean)
+          .join(', ')}
+        accessibilityHint={continueText}>
         <BlurView
           intensity={isDark ? 30 : 60}
           tint={isDark ? 'dark' : 'light'}
