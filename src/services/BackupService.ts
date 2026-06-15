@@ -17,6 +17,7 @@ import * as Sharing from 'expo-sharing';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import bibleDB from '../lib/database';
 import {logger} from '../lib/utils/logger';
+import {getTranslations} from '../i18n/languageUtils';
 
 // Storage keys mirrored from the various contexts/screens so the
 // service stays decoupled from the React tree.
@@ -166,9 +167,10 @@ export async function exportBackup(): Promise<string> {
     throw new Error('Sharing is not available on this device');
   }
 
+  const t = await getTranslations();
   await Sharing.shareAsync(target.uri, {
     mimeType: 'application/json',
-    dialogTitle: 'Eternal Stone Bible — Backup',
+    dialogTitle: t.settings.backupDialogTitle,
     UTI: 'public.json',
   });
 

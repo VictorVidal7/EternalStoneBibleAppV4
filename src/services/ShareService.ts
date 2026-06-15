@@ -17,6 +17,8 @@ import {Alert} from 'react-native';
 import {haptics} from '@lib/haptics';
 import {BibleVerse} from '../types/bible';
 import {logger} from '../lib/utils/logger';
+import {getTranslations} from '../i18n/languageUtils';
+import type {TranslationKeys} from '../i18n/translations';
 
 export interface ShareOptions {
   includeAppPromo?: boolean;
@@ -33,10 +35,10 @@ export class ShareService {
     reference: string,
     options: ShareOptions = {},
   ): Promise<boolean> {
+    const t = await getTranslations();
+    const message = this.formatVerseMessage(verse, reference, options, t);
     try {
       haptics.tap();
-
-      const message = this.formatVerseMessage(verse, reference, options);
 
       // Intentar compartir nativamente
       const canShare = await Sharing.isAvailableAsync();
@@ -44,7 +46,7 @@ export class ShareService {
       if (canShare) {
         await Sharing.shareAsync(message, {
           mimeType: 'text/plain',
-          dialogTitle: 'Compartir Versículo',
+          dialogTitle: t.shareService.verseDialogTitle,
         });
 
         logger.info('Verse shared successfully', {
@@ -56,7 +58,7 @@ export class ShareService {
         return true;
       } else {
         // Fallback: copiar al portapapeles
-        await this.copyToClipboard(message);
+        await this.copyToClipboard(message, t);
         return true;
       }
     } catch (error) {
@@ -67,9 +69,7 @@ export class ShareService {
       });
 
       // Fallback en caso de error
-      await this.copyToClipboard(
-        this.formatVerseMessage(verse, reference, options),
-      );
+      await this.copyToClipboard(message, t);
       return false;
     }
   }
@@ -83,22 +83,23 @@ export class ShareService {
     chapter: number,
     options: ShareOptions = {},
   ): Promise<boolean> {
+    const t = await getTranslations();
+    const message = this.formatMultipleVersesMessage(
+      verses,
+      bookName,
+      chapter,
+      options,
+      t,
+    );
     try {
       haptics.tap();
-
-      const message = this.formatMultipleVersesMessage(
-        verses,
-        bookName,
-        chapter,
-        options,
-      );
 
       const canShare = await Sharing.isAvailableAsync();
 
       if (canShare) {
         await Sharing.shareAsync(message, {
           mimeType: 'text/plain',
-          dialogTitle: 'Compartir Versículos',
+          dialogTitle: t.shareService.versesDialogTitle,
         });
 
         logger.info('Multiple verses shared successfully', {
@@ -109,7 +110,7 @@ export class ShareService {
 
         return true;
       } else {
-        await this.copyToClipboard(message);
+        await this.copyToClipboard(message, t);
         return true;
       }
     } catch (error) {
@@ -118,9 +119,7 @@ export class ShareService {
         action: 'shareMultipleVerses',
       });
 
-      await this.copyToClipboard(
-        this.formatMultipleVersesMessage(verses, bookName, chapter, options),
-      );
+      await this.copyToClipboard(message, t);
       return false;
     }
   }
@@ -132,21 +131,23 @@ export class ShareService {
     planName: string,
     planDescription: string,
   ): Promise<boolean> {
+    const t = await getTranslations();
+    const message = t.shareService.planMessage
+      .replace('{{name}}', planName)
+      .replace('{{description}}', planDescription);
     try {
       haptics.tap();
-
-      const message = `📖 Plan de Lectura: ${planName}\n\n${planDescription}\n\n¡Únete a mí en este viaje espiritual!\n\n✨ Descarga Eternal Bible y empieza tu plan hoy.`;
 
       const canShare = await Sharing.isAvailableAsync();
 
       if (canShare) {
         await Sharing.shareAsync(message, {
           mimeType: 'text/plain',
-          dialogTitle: 'Compartir Plan de Lectura',
+          dialogTitle: t.shareService.planDialogTitle,
         });
         return true;
       } else {
-        await this.copyToClipboard(message);
+        await this.copyToClipboard(message, t);
         return true;
       }
     } catch (error) {
@@ -162,21 +163,23 @@ export class ShareService {
     achievementTitle: string,
     achievementDescription: string,
   ): Promise<boolean> {
+    const t = await getTranslations();
+    const message = t.shareService.achievementMessage
+      .replace('{{title}}', achievementTitle)
+      .replace('{{description}}', achievementDescription);
     try {
       haptics.press();
-
-      const message = `🏆 ¡Logro Desbloqueado!\n\n${achievementTitle}\n${achievementDescription}\n\n✨ Eternal Bible - Tu viaje espiritual`;
 
       const canShare = await Sharing.isAvailableAsync();
 
       if (canShare) {
         await Sharing.shareAsync(message, {
           mimeType: 'text/plain',
-          dialogTitle: 'Compartir Logro',
+          dialogTitle: t.shareService.achievementDialogTitle,
         });
         return true;
       } else {
-        await this.copyToClipboard(message);
+        await this.copyToClipboard(message, t);
         return true;
       }
     } catch (error) {
@@ -192,6 +195,7 @@ export class ShareService {
     verse: BibleVerse,
     reference: string,
     options: ShareOptions,
+    t: TranslationKeys,
   ): string {
     const {
       includeAppPromo = true,
@@ -218,7 +222,7 @@ export class ShareService {
 
     // Promo de la app (opcional)
     if (includeAppPromo) {
-      message += `\n\n✨ Compartido desde Eternal Bible`;
+      message += `\n\n${t.shareService.promo}`;
     }
 
     return message;
@@ -232,6 +236,7 @@ export class ShareService {
     bookName: string,
     chapter: number,
     options: ShareOptions,
+    t: TranslationKeys,
   ): string {
     const {includeAppPromo = true, customMessage} = options;
 
@@ -250,7 +255,7 @@ export class ShareService {
     message += `— ${bookName} ${chapter}:${verses[0]?.verse}-${verses[verses.length - 1]?.verse}`;
 
     if (includeAppPromo) {
-      message += `\n\n✨ Compartido desde Eternal Bible`;
+      message += `\n\n${t.shareService.promo}`;
     }
 
     return message;
@@ -259,13 +264,16 @@ export class ShareService {
   /**
    * Copia texto al portapapeles con feedback
    */
-  private static async copyToClipboard(text: string): Promise<void> {
+  private static async copyToClipboard(
+    text: string,
+    t: TranslationKeys,
+  ): Promise<void> {
     try {
       await Clipboard.setStringAsync(text);
       haptics.success();
 
-      Alert.alert('📋 Copiado', 'El contenido se ha copiado al portapapeles', [
-        {text: 'OK'},
+      Alert.alert(t.shareService.copiedTitle, t.shareService.copiedMessage, [
+        {text: t.ok},
       ]);
 
       logger.info('Content copied to clipboard', {
@@ -275,7 +283,7 @@ export class ShareService {
     } catch (error) {
       logger.error('Error copying to clipboard', error as Error);
 
-      Alert.alert('Error', 'No se pudo copiar al portapapeles', [{text: 'OK'}]);
+      Alert.alert(t.error, t.shareService.copyErrorMessage, [{text: t.ok}]);
     }
   }
 

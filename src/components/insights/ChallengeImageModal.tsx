@@ -61,8 +61,8 @@ export const ChallengeImageModal: React.FC<ChallengeImageModalProps> = ({
   const [templateIndex, setTemplateIndex] = useState(0);
   const [isSharing, setIsSharing] = useState(false);
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const previewRef = useRef<any>(null);
+  // captureRef accepts the host LinearGradient instance ref directly.
+  const previewRef = useRef<LinearGradient>(null);
   const template = FREE_TEMPLATES[templateIndex];
 
   const masteredLine =

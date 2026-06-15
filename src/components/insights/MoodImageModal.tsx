@@ -78,10 +78,8 @@ export const MoodImageModal: React.FC<MoodImageModalProps> = ({
   const [templateIndex, setTemplateIndex] = useState(0);
   const [isSharing, setIsSharing] = useState(false);
 
-  // captureRef accepts a ref to any host component; LinearGradient's generated
-  // ref type doesn't match useRef<View>, so we widen (as in WeeklyRecapModal).
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const previewRef = useRef<any>(null);
+  // captureRef accepts the host LinearGradient instance ref directly.
+  const previewRef = useRef<LinearGradient>(null);
   const template = FREE_TEMPLATES[templateIndex];
 
   const hasData = month.daysLogged > 0;

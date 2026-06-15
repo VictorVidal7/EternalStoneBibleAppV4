@@ -75,8 +75,7 @@ interface CompareCardProps {
  * host so the same card renders in the swipeable carousel AND, with natural
  * height, in the off-screen "share all" collage (Sprint 71).
  */
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const CompareCard = forwardRef<any, CompareCardProps>(
+const CompareCard = forwardRef<LinearGradient, CompareCardProps>(
   ({card, template, similarityLabel, minHeight}, ref) => (
     <LinearGradient
       colors={template.colors}
@@ -156,17 +155,13 @@ export const CompareImageModal: React.FC<CompareImageModalProps> = ({
   // one captured + shared. Reset to the first card whenever the modal opens.
   const [currentPage, setCurrentPage] = useState(0);
 
-  // captureRef accepts a ref to any host component; LinearGradient's generated
-  // ref type doesn't match useRef<View>, so we widen (as in ImageShareModal).
-  // One capturable ref PER card so we share exactly the card on screen.
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const cardRefs = useRef<any[]>([]);
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const scrollRef = useRef<any>(null);
-  // The off-screen vertical collage of every card — one capturable host for
-  // the "share all" action (Sprint 71).
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const collageRef = useRef<any>(null);
+  // One capturable LinearGradient ref PER card so we share exactly the card
+  // currently on screen.
+  const cardRefs = useRef<(LinearGradient | null)[]>([]);
+  const scrollRef = useRef<ScrollView>(null);
+  // The off-screen vertical collage of every card — one capturable View host
+  // for the "share all" action (Sprint 71).
+  const collageRef = useRef<View>(null);
   const template = FREE_TEMPLATES[templateIndex];
   const hasCarousel = cards.length > 1;
 
@@ -188,8 +183,7 @@ export const CompareImageModal: React.FC<CompareImageModalProps> = ({
 
   // Capture a single host view → PNG → system share sheet. Shared by the
   // single-card share (the centered carousel card) and the "share all" collage.
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  async function shareTarget(target: any) {
+  async function shareTarget(target: LinearGradient | View | null) {
     if (isSharing || !target) return;
     try {
       setIsSharing(true);

@@ -114,9 +114,8 @@ export const ImageShareModal: React.FC<ImageShareModalProps> = ({
     setUseSerif(preferences.fontFamily === 'serif');
   }, [visible]);
 
-  // `captureRef` accepts a ref to any host component; LinearGradient's
-  // generated ref type doesn't quite match `useRef<View>`, so we widen.
-  const previewRef = useRef<any>(null);
+  // captureRef accepts the host LinearGradient instance ref directly.
+  const previewRef = useRef<LinearGradient>(null);
   const selectedTextColor = isDark ? colors.primaryDark : colors.primary;
   const activeTheme = SHARE_TEMPLATES[themeIndex];
   const cardHeight = aspectHeight(aspect, cardSize);
