@@ -356,6 +356,7 @@ export const translations = {
         firstNote: 'Tu primera nota · {{ref}}',
         firstHighlight: 'Tu primer subrayado · {{ref}}',
         streakRecord: 'Nueva racha récord: {{n}} días',
+        devotionStreak: 'Racha de devoción: {{n}} días con Dios',
         planStarted: 'Comenzaste el plan {{plan}}',
         planCompleted: 'Completaste el plan {{plan}}',
         error: 'No se pudo cargar tu línea de tiempo',
@@ -905,6 +906,17 @@ export const translations = {
       another: 'Elegir otro ánimo',
       error: 'No se pudo preparar tu devoción',
       exitA11y: 'Cerrar devoción guiada',
+    },
+
+    devotion: {
+      streakTitle: 'Tu constancia con Dios',
+      streakDays: '{{n}} días con Dios',
+      streakOneDay: '1 día con Dios',
+      streakBest: 'Tu mejor racha: {{n}}',
+      streakTodayDone: 'Hoy ya tuviste tu momento',
+      streakTodayPending: 'Tu momento de hoy te espera',
+      streakLapsed: 'Retoma tu constancia',
+      streakHint: 'Abre la devoción guiada',
     },
 
     auth: {
@@ -2429,6 +2441,7 @@ export const translations = {
         firstNote: 'Your first note · {{ref}}',
         firstHighlight: 'Your first highlight · {{ref}}',
         streakRecord: 'New record streak: {{n}} days',
+        devotionStreak: 'Devotion streak: {{n}} days with God',
         planStarted: 'You started the plan {{plan}}',
         planCompleted: 'You completed the plan {{plan}}',
         error: 'Could not load your timeline',
@@ -2984,6 +2997,17 @@ export const translations = {
       another: 'Choose another feeling',
       error: 'Could not prepare your devotion',
       exitA11y: 'Close guided devotion',
+    },
+
+    devotion: {
+      streakTitle: 'Your constancy with God',
+      streakDays: '{{n}} days with God',
+      streakOneDay: '1 day with God',
+      streakBest: 'Your best: {{n}}',
+      streakTodayDone: "You've had your moment today",
+      streakTodayPending: "Today's moment awaits",
+      streakLapsed: 'Pick your walk back up',
+      streakHint: 'Open the guided devotion',
     },
 
     auth: {

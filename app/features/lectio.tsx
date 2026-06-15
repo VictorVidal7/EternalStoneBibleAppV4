@@ -44,6 +44,7 @@ import {logger} from '@lib/utils/logger';
 import {getSyncEngine} from '@lib/sync';
 import {buildNoteRemotePayload} from '@lib/sync/adapters/notes';
 import {getBookByName, canonicalBookName} from '@/constants/bible';
+import {recordTodayDevotion} from '@/features/study/devotionLogStore';
 import {useAudioPlayer} from '@/features/audio';
 import {ImageShareModal} from '@components/reading/ImageShareModal';
 import {
@@ -147,6 +148,15 @@ export default function LectioScreen() {
   const [prayer, setPrayer] = useState('');
   const [shareVisible, setShareVisible] = useState(false);
   const step = LECTIO_STEPS[stepIndex];
+
+  // Stamp the day's "Momento con Dios" the moment the journey closes (Sprint
+  // 84). `finished` only ever flips false→true (handleFinish, both the saved-
+  // prayer and the error path), so this records exactly once per completion.
+  // DEVICE-LOCAL — recordTodayDevotion writes only the @devotion_log; unlike
+  // the prayer-as-note or the Memorize button, it never touches Firestore.
+  useEffect(() => {
+    if (finished) void recordTodayDevotion();
+  }, [finished]);
 
   // Deterministic meditation prompt: same passage + same local day = same
   // question; a new day rotates it.

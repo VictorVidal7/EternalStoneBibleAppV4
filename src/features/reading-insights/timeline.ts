@@ -32,6 +32,7 @@ export type TimelineEventType =
   | 'first-note'
   | 'first-highlight'
   | 'streak-record'
+  | 'devotion-streak'
   | 'plan-started'
   | 'plan-completed';
 
@@ -54,6 +55,9 @@ export interface TimelineEvent {
 
 /** A streak only reads as a record from this length on. */
 export const STREAK_RECORD_MIN = 3;
+
+/** A devotion streak only reads as a record from this length on (Sprint 84). */
+export const DEVOTION_STREAK_RECORD_MIN = 3;
 
 interface VerseStamp {
   book: string;
@@ -87,6 +91,8 @@ export interface TimelineInputs {
   }[];
   /** reading_streak_log dates ascending, local 'YYYY-MM-DD'. */
   readingLog: {date: string}[];
+  /** Devotion-completed dates (any order), local 'YYYY-MM-DD' (Sprint 84). */
+  devotionLog: {date: string}[];
 }
 
 function isValidStamp(value: unknown): value is number {
@@ -133,11 +139,20 @@ function verseRef(stamp: VerseStamp): string {
 }
 
 /**
- * Walk the ascending per-day log and emit one event per RECORD run: the day
- * a consecutive run ends longer than every run before it (and at least
- * {@link STREAK_RECORD_MIN} days). The event's subject is the new length.
+ * Walk a per-day log and emit one event per RECORD run: the day a consecutive
+ * run ends longer than every run before it (and at least `min` days). The
+ * event's subject is the new length. Parametric over event `type` and id
+ * `prefix` so the SAME run-walker serves the reading streak ('streak'/
+ * 'streak-record') and the devotion streak ('devotion'/'devotion-streak',
+ * Sprint 84). The log is sorted ascending first, so an unordered devotion log
+ * (derived from a key set) is handled identically to the ascending reading log.
  */
-function streakRecordEvents(readingLog: {date: string}[]): TimelineEvent[] {
+function streakRecordEvents(
+  log: {date: string}[],
+  type: TimelineEventType,
+  prefix: string,
+  min: number,
+): TimelineEvent[] {
   const events: TimelineEvent[] = [];
   let best = 0;
   let runLength = 0;
@@ -145,12 +160,12 @@ function streakRecordEvents(readingLog: {date: string}[]): TimelineEvent[] {
   let runEndKey = '';
 
   const closeRun = () => {
-    if (runLength >= STREAK_RECORD_MIN && runLength > best) {
+    if (runLength >= min && runLength > best) {
       const stamp = localNoon(runEndKey);
       if (stamp !== null) {
         events.push({
-          id: `streak:${runEndKey}`,
-          type: 'streak-record',
+          id: `${prefix}:${runEndKey}`,
+          type,
           timestamp: stamp,
           subject: String(runLength),
         });
@@ -159,7 +174,10 @@ function streakRecordEvents(readingLog: {date: string}[]): TimelineEvent[] {
     best = Math.max(best, runLength);
   };
 
-  for (const entry of readingLog) {
+  const sorted = [...log].sort((a, b) =>
+    a.date < b.date ? -1 : a.date > b.date ? 1 : 0,
+  );
+  for (const entry of sorted) {
     const noon = localNoon(entry.date);
     if (noon === null) continue;
     const day = new Date(noon);
@@ -253,7 +271,22 @@ export function buildTimeline(inputs: TimelineInputs): TimelineEvent[] {
     }
   }
 
-  events.push(...streakRecordEvents(inputs.readingLog));
+  events.push(
+    ...streakRecordEvents(
+      inputs.readingLog,
+      'streak-record',
+      'streak',
+      STREAK_RECORD_MIN,
+    ),
+  );
+  events.push(
+    ...streakRecordEvents(
+      inputs.devotionLog,
+      'devotion-streak',
+      'devotion',
+      DEVOTION_STREAK_RECORD_MIN,
+    ),
+  );
 
   return events.sort(
     (a, b) => b.timestamp - a.timestamp || a.id.localeCompare(b.id),
