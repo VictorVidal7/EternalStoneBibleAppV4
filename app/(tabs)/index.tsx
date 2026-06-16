@@ -1232,7 +1232,13 @@ export default function HomeScreen() {
           </ScrollView>
         </Animated.View>
 
-        {/* ==================== STUDY TOOLS ==================== */}
+        {/* ==================== GROW WITH GOD (Sprint 94 follow-up) ======== */}
+        {/* Was "Study Tools" — but 3 of 4 entries are devotional/relational
+            practices (guided devotion, lectio, guided prayer) and only one is
+            an analytical study aid (version comparison), so the label
+            mislabeled the section. Renamed to "Crece con Dios"/"Grow with God"
+            (echoes 2 Pe 3:18) and reordered devotion-first; the study aid
+            (version comparison) closes the section. */}
         <Animated.View
           style={{opacity: fadeAnim, marginTop: celestialSpacing.sectionGap}}>
           <View style={styles.sectionHeader}>
@@ -1241,21 +1247,24 @@ export default function HomeScreen() {
                 styles.sectionTitle,
                 {color: celestialTheme.colors.text},
               ]}>
-              {t.home.studyTools}
+              {t.home.growTitle}
             </Text>
             <Ionicons
-              name="construct-outline"
+              name="sparkles-outline"
               size={24}
               color={colors.primary}
             />
           </View>
 
+          {/* 🕊️ Guided devotion — begins with how your heart is today (S83) */}
           <TouchableOpacity
             activeOpacity={0.9}
             accessibilityRole="button"
             accessible={true}
+            accessibilityLabel={t.guided.cardTitle}
+            accessibilityHint={t.guided.cardSubtitle}
             onPress={() =>
-              handlePress(() => router.push('/features/version-comparison'))
+              handlePress(() => router.push('/features/guided' as never))
             }>
             <ShimmerCard
               glowColor={colors.primary}
@@ -1268,11 +1277,7 @@ export default function HomeScreen() {
                     styles.toolIconContainer,
                     {backgroundColor: colors.primary + '20'},
                   ]}>
-                  <Ionicons
-                    name="git-compare-outline"
-                    size={28}
-                    color={colors.primary}
-                  />
+                  <Ionicons name="leaf" size={28} color={colors.primary} />
                 </View>
                 <View style={styles.toolInfo}>
                   <Text
@@ -1280,14 +1285,14 @@ export default function HomeScreen() {
                       styles.toolTitle,
                       {color: celestialTheme.colors.text},
                     ]}>
-                    {t.settingsV51.versionComparison}
+                    {t.guided.cardTitle}
                   </Text>
                   <Text
                     style={[
                       styles.toolDescription,
                       {color: celestialTheme.colors.textSecondary},
                     ]}>
-                    {t.settingsV51.versionComparisonDesc}
+                    {t.guided.cardSubtitle}
                   </Text>
                 </View>
                 <Ionicons
@@ -1299,7 +1304,7 @@ export default function HomeScreen() {
             </ShimmerCard>
           </TouchableOpacity>
 
-          {/* 🕯️ Lectio Divina on the daily verse (Sprint 79) */}
+          {/* 🕯️ Moment with God — lectio on the daily verse (Sprint 79) */}
           {dailyVerse && (
             <TouchableOpacity
               activeOpacity={0.9}
@@ -1359,55 +1364,6 @@ export default function HomeScreen() {
             </TouchableOpacity>
           )}
 
-          {/* 🕊️ Guided devotion — begins with how your heart is today (S83) */}
-          <TouchableOpacity
-            activeOpacity={0.9}
-            style={{marginTop: celestialSpacing.cardGap}}
-            accessibilityRole="button"
-            accessible={true}
-            accessibilityLabel={t.guided.cardTitle}
-            accessibilityHint={t.guided.cardSubtitle}
-            onPress={() =>
-              handlePress(() => router.push('/features/guided' as never))
-            }>
-            <ShimmerCard
-              glowColor={colors.primary}
-              shimmerEnabled={false}
-              cardBackgroundColor={celestialTheme.colors.surfaceGlass}
-              cardBorderColor={celestialTheme.colors.glassBorder}>
-              <View style={styles.toolCard}>
-                <View
-                  style={[
-                    styles.toolIconContainer,
-                    {backgroundColor: colors.primary + '20'},
-                  ]}>
-                  <Ionicons name="leaf" size={28} color={colors.primary} />
-                </View>
-                <View style={styles.toolInfo}>
-                  <Text
-                    style={[
-                      styles.toolTitle,
-                      {color: celestialTheme.colors.text},
-                    ]}>
-                    {t.guided.cardTitle}
-                  </Text>
-                  <Text
-                    style={[
-                      styles.toolDescription,
-                      {color: celestialTheme.colors.textSecondary},
-                    ]}>
-                    {t.guided.cardSubtitle}
-                  </Text>
-                </View>
-                <Ionicons
-                  name="chevron-forward"
-                  size={24}
-                  color={colors.textTertiary}
-                />
-              </View>
-            </ShimmerCard>
-          </TouchableOpacity>
-
           {/* 🙏 Guided prayer — the ACTS path (Sprint 93) */}
           <TouchableOpacity
             activeOpacity={0.9}
@@ -1446,6 +1402,59 @@ export default function HomeScreen() {
                       {color: celestialTheme.colors.textSecondary},
                     ]}>
                     {t.prayer.studyToolSubtitle}
+                  </Text>
+                </View>
+                <Ionicons
+                  name="chevron-forward"
+                  size={24}
+                  color={colors.textTertiary}
+                />
+              </View>
+            </ShimmerCard>
+          </TouchableOpacity>
+
+          {/* 🔀 Version comparison — the study aid (S51), closes the section */}
+          <TouchableOpacity
+            activeOpacity={0.9}
+            style={{marginTop: celestialSpacing.cardGap}}
+            accessibilityRole="button"
+            accessible={true}
+            accessibilityLabel={t.settingsV51.versionComparison}
+            accessibilityHint={t.settingsV51.versionComparisonDesc}
+            onPress={() =>
+              handlePress(() => router.push('/features/version-comparison'))
+            }>
+            <ShimmerCard
+              glowColor={colors.primary}
+              shimmerEnabled={false}
+              cardBackgroundColor={celestialTheme.colors.surfaceGlass}
+              cardBorderColor={celestialTheme.colors.glassBorder}>
+              <View style={styles.toolCard}>
+                <View
+                  style={[
+                    styles.toolIconContainer,
+                    {backgroundColor: colors.primary + '20'},
+                  ]}>
+                  <Ionicons
+                    name="git-compare-outline"
+                    size={28}
+                    color={colors.primary}
+                  />
+                </View>
+                <View style={styles.toolInfo}>
+                  <Text
+                    style={[
+                      styles.toolTitle,
+                      {color: celestialTheme.colors.text},
+                    ]}>
+                    {t.settingsV51.versionComparison}
+                  </Text>
+                  <Text
+                    style={[
+                      styles.toolDescription,
+                      {color: celestialTheme.colors.textSecondary},
+                    ]}>
+                    {t.settingsV51.versionComparisonDesc}
                   </Text>
                 </View>
                 <Ionicons
