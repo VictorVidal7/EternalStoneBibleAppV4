@@ -1578,6 +1578,9 @@ export const translations = {
       shareTitle: 'Compartir logro',
       shareUnlockedLabel: 'Logro desbloqueado',
       shareLongPressA11y: 'Mantén pulsado para compartir este logro',
+      nextMilestone: 'Próximo hito',
+      nextMilestoneA11y:
+        'Próximo hito: {{name}}, {{current}} de {{requirement}}. Ver logros.',
       categories: {
         reading: 'Lectura',
         streak: 'Rachas',
@@ -3701,6 +3704,9 @@ export const translations = {
       shareTitle: 'Share achievement',
       shareUnlockedLabel: 'Achievement unlocked',
       shareLongPressA11y: 'Long-press to share this achievement',
+      nextMilestone: 'Next milestone',
+      nextMilestoneA11y:
+        'Next milestone: {{name}}, {{current}} of {{requirement}}. View achievements.',
       categories: {
         reading: 'Reading',
         streak: 'Streaks',

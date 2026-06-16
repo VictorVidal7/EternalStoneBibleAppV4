@@ -94,6 +94,7 @@ import {FeelingChips} from '@components/FeelingChips';
 import {MoodVerseCard} from '@components/MoodVerseCard';
 import {DevotionStreakCard} from '@components/DevotionStreakCard';
 import {ConstancyRingsCard} from '@components/ConstancyRingsCard';
+import {NextMilestoneCard} from '@components/NextMilestoneCard';
 
 // Tema Celestial
 import {
@@ -833,6 +834,19 @@ export default function HomeScreen() {
               handlePress(() =>
                 router.push('/features/reading-insights' as never),
               )
+            }
+          />
+        </Animated.View>
+
+        {/* ==================== PRÓXIMO HITO (Sprint 92) ===================== */}
+        {/* The single achievement the reader is closest to unlocking, bridging
+            Home to the Trophy tab. Renders nothing until they are measurably
+            walking toward one. Tapping opens the Achievements tab. */}
+        <Animated.View
+          style={{opacity: fadeAnim, marginTop: celestialSpacing.cardGap}}>
+          <NextMilestoneCard
+            onPress={() =>
+              handlePress(() => router.push('/(tabs)/achievements' as never))
             }
           />
         </Animated.View>
