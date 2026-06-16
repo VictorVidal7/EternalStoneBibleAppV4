@@ -222,13 +222,20 @@ export class AchievementService {
    * Count rows on a known-name table; returns 0 if the table does not
    * exist yet (e.g. first launch before HighlightService has run its
    * own CREATE TABLE).
+   *
+   * Goes straight to the raw expo-sqlite handle via getFirstAsync rather
+   * than the executeSql wrapper: when the table is missing, expo throws a
+   * confusing native error and the wrapper console.error's it (surfacing a
+   * red LogBox "Open debugger" pill for an EXPECTED, already-handled miss).
+   * The local try/catch keeps the same safe "return 0" contract silently.
    */
   private async countRowsSafely(table: string): Promise<number> {
     try {
-      const result = await this.db.executeSql(
+      const db = await this.db.getDatabase();
+      const row = await db.getFirstAsync<{n: number}>(
         `SELECT COUNT(*) AS n FROM ${table}`,
       );
-      return result.rows._array[0]?.n ?? 0;
+      return row?.n ?? 0;
     } catch {
       return 0;
     }

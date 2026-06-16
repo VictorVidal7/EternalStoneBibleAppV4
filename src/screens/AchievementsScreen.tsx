@@ -10,14 +10,24 @@ import {
   StyleSheet,
   FlatList,
   Pressable,
-  SafeAreaView,
   ScrollView,
   TouchableOpacity,
 } from 'react-native';
-import {useFocusEffect} from 'expo-router';
+// react-native's SafeAreaView is deprecated; use the safe-area-context one,
+// matching the rest of the app and silencing the RN deprecation warning.
+import {SafeAreaView} from 'react-native-safe-area-context';
+import {useFocusEffect, router} from 'expo-router';
 import {Ionicons} from '@expo/vector-icons';
 import {LinearGradient} from 'expo-linear-gradient';
-import {AchievementCard} from '../components/achievements/AchievementCard';
+import {
+  AchievementCard,
+  getAchievementRarity,
+} from '../components/achievements/AchievementCard';
+import {
+  AchievementImageModal,
+  type ShareableAccomplishment,
+} from '../components/insights/AchievementImageModal';
+import {haptics} from '@lib/haptics';
 import {UserStatsPanel} from '../components/achievements/UserStatsPanel';
 import {AchievementUnlockedModal} from '../components/achievements/AchievementUnlockedModal';
 import {useAchievements} from '../hooks/useAchievements';
@@ -69,6 +79,28 @@ export const AchievementsScreen: React.FC<AchievementsScreenProps> = ({
   const [showStats, setShowStats] = useState(false);
   const [selectedAchievement, setSelectedAchievement] =
     useState<Achievement | null>(null);
+  const [shareItem, setShareItem] = useState<ShareableAccomplishment | null>(
+    null,
+  );
+
+  // Long-press an UNLOCKED card to share it as an image (you share what you
+  // have earned, mirroring the timeline long-press in Sprint 83).
+  const handleShareAchievement = useCallback(
+    (achievement: Achievement) => {
+      if (!achievement.isUnlocked) return;
+      const localized = getLocalizedAchievement(achievement, t);
+      const rarity = getAchievementRarity(achievement);
+      haptics.press();
+      setShareItem({
+        icon: achievement.icon,
+        title: localized.name,
+        description: localized.description,
+        tierLabel: t.achievements.rarities[rarity].toUpperCase(),
+        points: achievement.points,
+      });
+    },
+    [t],
+  );
 
   // Filter achievements by category
   const filteredAchievements = achievements.filter(
@@ -174,7 +206,24 @@ export const AchievementsScreen: React.FC<AchievementsScreenProps> = ({
         end={{x: 1, y: 0}}
         style={styles.header}>
         <View style={styles.headerTop}>
-          {/* No back button — this is a root tab; bottom bar is the nav. */}
+          {/* No back button — this is a root tab; bottom bar is the nav.
+              Cross-link to the equippable Titles screen: Achievements is the
+              single source of truth (same user_stats row), Titles are the
+              reward layer, so we bridge the two systems instead of leaving
+              them disconnected (Sprint 92). */}
+          <Pressable
+            style={[
+              styles.titlesLink,
+              {backgroundColor: staticColors.glassWhite20},
+            ]}
+            onPress={() => router.push('/features/badges')}
+            accessibilityRole="button"
+            accessibilityLabel={t.achievements.viewMyTitlesA11y}>
+            <Ionicons name="ribbon" size={16} color="#ffffff" />
+            <Text style={styles.titlesLinkText}>
+              {t.achievements.viewMyTitles}
+            </Text>
+          </Pressable>
           <Pressable
             style={[
               styles.toggleButton,
@@ -414,7 +463,18 @@ export const AchievementsScreen: React.FC<AchievementsScreenProps> = ({
               </>
             }
             renderItem={({item}) => (
-              <TouchableOpacity onPress={() => setSelectedAchievement(item)}>
+              <TouchableOpacity
+                onPress={() => setSelectedAchievement(item)}
+                onLongPress={
+                  item.isUnlocked
+                    ? () => handleShareAchievement(item)
+                    : undefined
+                }
+                accessibilityHint={
+                  item.isUnlocked
+                    ? t.achievements.shareLongPressA11y
+                    : undefined
+                }>
                 <AchievementCard
                   achievement={item}
                   unlocked={item.isUnlocked}
@@ -452,6 +512,17 @@ export const AchievementsScreen: React.FC<AchievementsScreenProps> = ({
           onClose={clearNewUnlocks}
         />
       )}
+
+      {/* Share an unlocked achievement as an image (long-press a card) */}
+      {shareItem && (
+        <AchievementImageModal
+          visible
+          item={shareItem}
+          headerTitle={t.achievements.shareTitle}
+          eyebrow={t.achievements.shareUnlockedLabel}
+          onClose={() => setShareItem(null)}
+        />
+      )}
     </SafeAreaView>
   );
 };
@@ -482,11 +553,23 @@ const styles = StyleSheet.create({
   },
   headerTop: {
     flexDirection: 'row',
-    // Stats-view toggle sits in the top-right corner now that the
-    // (root tab) back button has been removed.
-    justifyContent: 'flex-end',
+    // Titles cross-link on the left, stats-view toggle on the right.
+    justifyContent: 'space-between',
     alignItems: 'center',
     marginBottom: 16,
+  },
+  titlesLink: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    height: 44,
+    paddingHorizontal: 14,
+    borderRadius: 22,
+  },
+  titlesLinkText: {
+    color: staticColors.white,
+    fontSize: 13,
+    fontWeight: '700',
   },
   headerContentContainer: {
     flexDirection: 'row',

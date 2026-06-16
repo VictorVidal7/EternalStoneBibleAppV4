@@ -2,10 +2,10 @@
  * ♿ useReducedMotion — honor the OS "reduce / remove animations" setting.
  *
  * Mirrors [[useScreenReaderListener]]: it reads the initial value from
- * `AccessibilityInfo` and subscribes to changes. Consumers — the shared
- * animation hooks in [[useAnimations]] plus a few high-visibility motion
- * sites (audio waveform, achievement celebration) — use the returned boolean
- * to fall back to an instant, motion-free end state. The SharedValue still
+ * `AccessibilityInfo` and subscribes to changes. Consumers — high-visibility
+ * motion sites (skeleton shimmer, achievement celebration, immersive reader,
+ * count-up text) — use the returned boolean to fall back to an instant,
+ * motion-free end state. The SharedValue still
  * lands on its final value, so nothing breaks visually; the only thing that
  * changes is whether the transition is animated.
  *
