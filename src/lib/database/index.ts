@@ -375,29 +375,28 @@ class BibleDatabase {
     const isSelect = sql.trim().toUpperCase().startsWith('SELECT');
 
     if (isSelect) {
-      // Para SELECT, usar prepared statement
+      // For SELECT, use expo-sqlite's ATOMIC getAllAsync for both the
+      // param'd and bare cases. The previous manual
+      // prepareAsync → executeAsync → getAllAsync → finalizeAsync dance is a
+      // multi-step sequence that is NOT covered by expo-sqlite's
+      // per-database serialization, so when two of them interleave (e.g.
+      // the Promise.all reads on the achievements/Home load) the native
+      // handle is corrupted mid-flight — surfacing the intermittent
+      // "argument cannot be cast to NativeDatabase/NativeStatement
+      // (received Integer)" errors (caught downstream, but noisy in the
+      // LogBox). getAllAsync(sql, params) performs the whole
+      // prepare/bind/read/finalize as one serialized operation.
       try {
-        if (sanitizedParams && sanitizedParams.length > 0) {
-          const statement = await db.prepareAsync(sql);
-          const result = await statement.executeAsync(sanitizedParams);
-          const rows = await result.getAllAsync();
-          await statement.finalizeAsync();
-
-          return {
-            rows: {
-              _array: rows,
-              length: rows.length,
-            },
-          };
-        } else {
-          const rows = await db.getAllAsync(sql);
-          return {
-            rows: {
-              _array: rows,
-              length: rows.length,
-            },
-          };
-        }
+        const rows =
+          sanitizedParams && sanitizedParams.length > 0
+            ? await db.getAllAsync(sql, sanitizedParams)
+            : await db.getAllAsync(sql);
+        return {
+          rows: {
+            _array: rows,
+            length: rows.length,
+          },
+        };
       } catch (error) {
         console.error(
           '❌ Error executing SELECT query:',
