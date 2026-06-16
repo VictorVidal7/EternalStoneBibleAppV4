@@ -10,10 +10,12 @@ import {
   StyleSheet,
   FlatList,
   Pressable,
-  SafeAreaView,
   ScrollView,
   TouchableOpacity,
 } from 'react-native';
+// react-native's SafeAreaView is deprecated; use the safe-area-context one,
+// matching the rest of the app and silencing the RN deprecation warning.
+import {SafeAreaView} from 'react-native-safe-area-context';
 import {useFocusEffect, router} from 'expo-router';
 import {Ionicons} from '@expo/vector-icons';
 import {LinearGradient} from 'expo-linear-gradient';
