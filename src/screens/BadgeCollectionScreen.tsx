@@ -927,7 +927,10 @@ const styles = StyleSheet.create({
     gap: 12,
   },
   badgeCard: {
-    width: (SCREEN_WIDTH - 52) / 3,
+    // 3-column grid: subtract the grid's 32px horizontal padding (16×2) + the
+    // two 12px gaps between cards (24), plus 2px slack so subpixel rounding
+    // never pushes the third card onto a second row.
+    width: (SCREEN_WIDTH - 58) / 3,
     padding: 12,
     borderRadius: 12,
     alignItems: 'center',
