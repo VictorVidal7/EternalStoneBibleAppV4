@@ -43,6 +43,7 @@ import {
   fontSize as fontSizes,
   spacing,
   staticColors,
+  verseTextRightSlack,
 } from '@/styles/designTokens';
 
 interface NextRef {
@@ -395,6 +396,8 @@ const styles = StyleSheet.create({
     fontSize: fontSizes.md,
     lineHeight: fontSizes.md * 1.5,
     marginTop: spacing.sm,
+    // Right-edge anti-clip slack (Sprint 94).
+    paddingRight: verseTextRightSlack(fontSizes.md),
   },
   sectionLabel: {
     fontSize: fontSizes.xs,

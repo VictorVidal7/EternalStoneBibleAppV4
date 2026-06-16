@@ -36,6 +36,7 @@ import {
   borderRadius,
   fontSize as fontSizes,
   spacing,
+  verseTextRightSlack,
 } from '@/styles/designTokens';
 
 interface Props {
@@ -496,5 +497,7 @@ const styles = StyleSheet.create({
   rowText: {
     fontSize: fontSizes.sm,
     lineHeight: 18,
+    // Right-edge anti-clip slack for the verse preview (Sprint 94).
+    paddingRight: verseTextRightSlack(fontSizes.sm),
   },
 });

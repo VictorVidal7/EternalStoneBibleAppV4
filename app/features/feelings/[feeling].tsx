@@ -48,6 +48,7 @@ import {
   fontSize as fontSizes,
   spacing,
   staticColors,
+  verseTextRightSlack,
 } from '@/styles/designTokens';
 
 type LoadStatus = 'loading' | 'ready' | 'error' | 'unknown';
@@ -505,6 +506,8 @@ const styles = StyleSheet.create({
   verseText: {
     fontSize: fontSizes.md,
     lineHeight: fontSizes.md * 1.5,
+    // Right-edge anti-clip slack (Sprint 94).
+    paddingRight: verseTextRightSlack(fontSizes.md),
   },
   themeCta: {
     flexDirection: 'row',

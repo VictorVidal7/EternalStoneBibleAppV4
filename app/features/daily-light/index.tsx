@@ -44,6 +44,7 @@ import {
   fontSize as fontSizes,
   spacing,
   staticColors,
+  verseTextRightSlack,
 } from '@/styles/designTokens';
 
 const VERSION_KEY = '@bible_version';
@@ -436,7 +437,12 @@ const styles = StyleSheet.create({
     letterSpacing: 0.5,
     textTransform: 'uppercase',
   },
-  verseText: {fontSize: fontSizes.lg, lineHeight: fontSizes.lg * 1.5},
+  verseText: {
+    fontSize: fontSizes.lg,
+    lineHeight: fontSizes.lg * 1.5,
+    // Right-edge anti-clip slack (Sprint 94).
+    paddingRight: verseTextRightSlack(fontSizes.lg),
+  },
   verseRef: {fontSize: fontSizes.sm, fontWeight: '600'},
   promptText: {fontSize: fontSizes.md, lineHeight: fontSizes.md * 1.5},
   themeCard: {

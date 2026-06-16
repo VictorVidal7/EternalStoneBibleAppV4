@@ -60,6 +60,7 @@ import {
   fontSize as fontSizes,
   spacing,
   staticColors,
+  verseTextRightSlack,
 } from '@/styles/designTokens';
 
 type LoadStatus = 'loading' | 'ready' | 'error';
@@ -838,10 +839,13 @@ const styles = StyleSheet.create({
   verseTextLarge: {
     fontSize: fontSizes.xl,
     lineHeight: fontSizes.xl * 1.6,
+    // Right-edge anti-clip slack (Sprint 94).
+    paddingRight: verseTextRightSlack(fontSizes.xl),
   },
   verseTextCompact: {
     fontSize: fontSizes.md,
     lineHeight: fontSizes.md * 1.55,
+    paddingRight: verseTextRightSlack(fontSizes.md),
   },
   listenButton: {
     flexDirection: 'row',
