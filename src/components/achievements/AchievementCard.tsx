@@ -40,7 +40,9 @@ const tierToRarity: Record<AchievementTier, AchievementRarity> = {
   [AchievementTier.DIAMOND]: 'legendary',
 };
 
-function getAchievementRarity(achievement: Achievement): AchievementRarity {
+export function getAchievementRarity(
+  achievement: Achievement,
+): AchievementRarity {
   return tierToRarity[achievement.tier] || 'common';
 }
 

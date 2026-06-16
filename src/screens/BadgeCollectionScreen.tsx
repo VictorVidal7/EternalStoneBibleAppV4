@@ -35,6 +35,10 @@ import {
 } from '../lib/badges/BadgeSystem';
 import {ScreenHeaderBack} from '../components/ScreenHeaderBack';
 import {router} from 'expo-router';
+import {
+  AchievementImageModal,
+  type ShareableAccomplishment,
+} from '../components/insights/AchievementImageModal';
 
 const {width: SCREEN_WIDTH} = Dimensions.get('window');
 
@@ -62,6 +66,8 @@ export const BadgeCollectionScreen: React.FC<BadgeCollectionScreenProps> = ({
     null,
   );
   const [selectedTitle, setSelectedTitle] = useState<Title | null>(null);
+  const [shareAccomplishment, setShareAccomplishment] =
+    useState<ShareableAccomplishment | null>(null);
   // Tracks the FIRST load so the stats card never flashes a fabricated "0/0
   // · 0% · 0" while the real progress is still reading from SQLite (Sprint
   // 91). Re-loads on language change don't re-show the spinner because the
@@ -169,6 +175,18 @@ export const BadgeCollectionScreen: React.FC<BadgeCollectionScreenProps> = ({
     return names[rarity];
   };
 
+  // Long-press a title to share it as an image (same captureRef pipeline as
+  // the achievements/constancy/etc. share modals — Sprint 92).
+  const handleShareTitle = (title: Title) => {
+    haptics.press();
+    setShareAccomplishment({
+      icon: title.icon,
+      title: title.prefix || title.suffix || '',
+      description: title.description,
+      tierLabel: getRarityName(title.rarity).toUpperCase(),
+    });
+  };
+
   const getCategoryName = (category: BadgeCategory): string => {
     const names: Record<BadgeCategory, string> = {
       reading: t.badgeSystem.category.reading,
@@ -254,7 +272,9 @@ export const BadgeCollectionScreen: React.FC<BadgeCollectionScreenProps> = ({
               {backgroundColor: colors.surface},
             ]}
             onPress={() => setViewMode('titles')}
+            onLongPress={() => handleShareTitle(equippedTitle)}
             accessibilityRole="button"
+            accessibilityHint={t.badgeSystem.shareTitleA11y}
             accessibilityLabel={`${
               equippedTitle.prefix || equippedTitle.suffix
             }, ${t.badgeSystem.equippedTitle}`}>
@@ -591,9 +611,11 @@ export const BadgeCollectionScreen: React.FC<BadgeCollectionScreenProps> = ({
                     isEquipped && {borderColor: title.color},
                   ]}
                   onPress={() => setSelectedTitle(title)}
+                  onLongPress={() => handleShareTitle(title)}
                   activeOpacity={0.8}
                   accessibilityRole="button"
                   accessibilityState={{selected: isEquipped}}
+                  accessibilityHint={t.badgeSystem.shareTitleA11y}
                   accessibilityLabel={`${title.prefix || title.suffix}, ${getRarityName(
                     title.rarity,
                   )}${isEquipped ? `, ${t.badgeSystem.equippedTitle}` : ''}`}>
@@ -817,6 +839,17 @@ export const BadgeCollectionScreen: React.FC<BadgeCollectionScreenProps> = ({
             </View>
           </View>
         </Modal>
+      )}
+
+      {/* Share a title as an image (long-press a title card) */}
+      {shareAccomplishment && (
+        <AchievementImageModal
+          visible
+          item={shareAccomplishment}
+          headerTitle={t.badgeSystem.shareTitleAction}
+          eyebrow={t.badgeSystem.shareEarnedLabel}
+          onClose={() => setShareAccomplishment(null)}
+        />
       )}
     </View>
   );
