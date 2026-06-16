@@ -34,6 +34,7 @@ import {
   BadgeCategory,
 } from '../lib/badges/BadgeSystem';
 import {ScreenHeaderBack} from '../components/ScreenHeaderBack';
+import {router} from 'expo-router';
 
 const {width: SCREEN_WIDTH} = Dimensions.get('window');
 
@@ -228,6 +229,22 @@ export const BadgeCollectionScreen: React.FC<BadgeCollectionScreenProps> = ({
         <Text style={[styles.title, {color: colors.text}]}>
           {t.badgeSystem.collectionTitle}
         </Text>
+
+        {/* Cross-link back to the Achievements tab. Badges/titles share the
+            same user_stats milestones as the 35 achievements; this bridges
+            the two gamification surfaces instead of leaving them isolated
+            (Sprint 92). */}
+        <TouchableOpacity
+          style={styles.achievementsLink}
+          onPress={() => router.push('/(tabs)/achievements')}
+          accessibilityRole="button"
+          accessibilityLabel={t.badgeSystem.viewAllAchievementsA11y}>
+          <Ionicons name="trophy-outline" size={16} color={colors.primary} />
+          <Text style={[styles.achievementsLinkText, {color: colors.primary}]}>
+            {t.badgeSystem.viewAllAchievements}
+          </Text>
+          <Ionicons name="chevron-forward" size={14} color={colors.primary} />
+        </TouchableOpacity>
 
         {/* Equipped Title Display */}
         {equippedTitle && (
@@ -821,7 +838,18 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 28,
     fontWeight: '800',
+    marginBottom: 10,
+  },
+  achievementsLink: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    alignSelf: 'flex-start',
+    gap: 6,
     marginBottom: 16,
+  },
+  achievementsLinkText: {
+    fontSize: 14,
+    fontWeight: '700',
   },
   equippedTitleCard: {
     flexDirection: 'row',

@@ -1573,6 +1573,8 @@ export const translations = {
       almostThere: 'A punto de lograrse',
       almostThereA11y:
         '{{name}}: {{current}} de {{requirement}} para desbloquear',
+      viewMyTitles: 'Mis títulos',
+      viewMyTitlesA11y: 'Ver mis insignias y títulos equipables',
       categories: {
         reading: 'Lectura',
         streak: 'Rachas',
@@ -1870,6 +1872,8 @@ export const translations = {
       unlockedToast: '🏆 ¡Insignia desbloqueada: {{name}}!',
       noTitles: 'Aún no has desbloqueado ningún título',
       noTitlesDescription: 'Completa logros para obtener títulos especiales',
+      viewAllAchievements: 'Ver todos los logros',
+      viewAllAchievementsA11y: 'Ir a la pantalla de logros',
       unlock: 'Desbloquear',
       locked: 'Bloqueada',
       unlocked: 'Desbloqueados',
@@ -3686,6 +3690,8 @@ export const translations = {
       achievementsUnlocked: 'Unlocked',
       almostThere: 'Almost there',
       almostThereA11y: '{{name}}: {{current}} of {{requirement}} to unlock',
+      viewMyTitles: 'My titles',
+      viewMyTitlesA11y: 'View my badges and equippable titles',
       categories: {
         reading: 'Reading',
         streak: 'Streaks',
@@ -3981,6 +3987,8 @@ export const translations = {
       unlockedToast: '🏆 Badge unlocked: {{name}}!',
       noTitles: "You haven't unlocked any titles yet",
       noTitlesDescription: 'Complete achievements to earn special titles',
+      viewAllAchievements: 'View all achievements',
+      viewAllAchievementsA11y: 'Go to the achievements screen',
       unlock: 'Unlock',
       locked: 'Locked',
       unlocked: 'Unlocked',

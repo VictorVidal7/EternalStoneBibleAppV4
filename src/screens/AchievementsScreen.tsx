@@ -14,7 +14,7 @@ import {
   ScrollView,
   TouchableOpacity,
 } from 'react-native';
-import {useFocusEffect} from 'expo-router';
+import {useFocusEffect, router} from 'expo-router';
 import {Ionicons} from '@expo/vector-icons';
 import {LinearGradient} from 'expo-linear-gradient';
 import {AchievementCard} from '../components/achievements/AchievementCard';
@@ -174,7 +174,24 @@ export const AchievementsScreen: React.FC<AchievementsScreenProps> = ({
         end={{x: 1, y: 0}}
         style={styles.header}>
         <View style={styles.headerTop}>
-          {/* No back button — this is a root tab; bottom bar is the nav. */}
+          {/* No back button — this is a root tab; bottom bar is the nav.
+              Cross-link to the equippable Titles screen: Achievements is the
+              single source of truth (same user_stats row), Titles are the
+              reward layer, so we bridge the two systems instead of leaving
+              them disconnected (Sprint 92). */}
+          <Pressable
+            style={[
+              styles.titlesLink,
+              {backgroundColor: staticColors.glassWhite20},
+            ]}
+            onPress={() => router.push('/features/badges')}
+            accessibilityRole="button"
+            accessibilityLabel={t.achievements.viewMyTitlesA11y}>
+            <Ionicons name="ribbon" size={16} color="#ffffff" />
+            <Text style={styles.titlesLinkText}>
+              {t.achievements.viewMyTitles}
+            </Text>
+          </Pressable>
           <Pressable
             style={[
               styles.toggleButton,
@@ -482,11 +499,23 @@ const styles = StyleSheet.create({
   },
   headerTop: {
     flexDirection: 'row',
-    // Stats-view toggle sits in the top-right corner now that the
-    // (root tab) back button has been removed.
-    justifyContent: 'flex-end',
+    // Titles cross-link on the left, stats-view toggle on the right.
+    justifyContent: 'space-between',
     alignItems: 'center',
     marginBottom: 16,
+  },
+  titlesLink: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    height: 44,
+    paddingHorizontal: 14,
+    borderRadius: 22,
+  },
+  titlesLinkText: {
+    color: staticColors.white,
+    fontSize: 13,
+    fontWeight: '700',
   },
   headerContentContainer: {
     flexDirection: 'row',
