@@ -96,6 +96,7 @@ import {DevotionStreakCard} from '@components/DevotionStreakCard';
 import {ConstancyRingsCard} from '@components/ConstancyRingsCard';
 import {NextMilestoneCard} from '@components/NextMilestoneCard';
 import {PrayerCard} from '@components/PrayerCard';
+import {DiscoverTile} from '@components/home/DiscoverTile';
 
 // Tema Celestial
 import {
@@ -1080,288 +1081,77 @@ export default function HomeScreen() {
           </Animated.View>
         )}
 
-        {/* ==================== TU CAMINO (Wrapped) ==================== */}
+        {/* ==================== EXPLORAR (discover grid, Sprint 94) ======== */}
+        {/* The four discover surfaces (Tu camino / Mi lectura / Luz diaria /
+            Temas) used to stack as four near-identical full-width cards, which
+            made Home long and monotonous. They now share a tidy 2×2 glass grid
+            (same visual language as "Guardados") so the discover entries read
+            as ONE organized block. The redundant standalone "How are you
+            feeling" browse card was removed — the FeelingChips at the top of
+            Home already open the full feelings browser (onOpenAll). */}
         <Animated.View
-          style={{opacity: fadeAnim, marginTop: celestialSpacing.cardGap}}>
-          <TouchableOpacity
-            activeOpacity={0.9}
-            accessibilityRole="button"
-            accessibilityLabel={t.journey.cardTitle}
-            accessibilityHint={t.journey.cardSubtitle}
-            onPress={() =>
-              handlePress(() => router.push('/features/journey' as never))
-            }>
-            <ShimmerCard
-              glowColor={colors.primary}
-              shimmerEnabled={false}
-              cardBackgroundColor={celestialTheme.colors.surfaceGlass}
-              cardBorderColor={celestialTheme.colors.glassBorder}>
-              <View style={styles.continueButton}>
-                <View style={styles.continueHeader}>
-                  <View
-                    style={[
-                      styles.continueIconContainer,
-                      styles.iconChip,
-                      {backgroundColor: colors.primary + '20'},
-                    ]}>
-                    <Ionicons
-                      name="footsteps"
-                      size={14}
-                      color={colors.primary}
-                    />
-                  </View>
-                  <View style={styles.continueTextContainer}>
-                    <Text
-                      style={[styles.continueTitle, {color: colors.text}]}
-                      numberOfLines={1}>
-                      {t.journey.cardTitle}
-                    </Text>
-                    <Text
-                      style={[
-                        styles.continueReference,
-                        {color: colors.textSecondary},
-                      ]}
-                      numberOfLines={1}>
-                      {t.journey.cardSubtitle}
-                    </Text>
-                  </View>
-                  <View style={styles.continueProgress}>
-                    <Ionicons
-                      name="chevron-forward"
-                      size={24}
-                      color={colors.primary}
-                    />
-                  </View>
-                </View>
-              </View>
-            </ShimmerCard>
-          </TouchableOpacity>
-        </Animated.View>
+          style={{opacity: fadeAnim, marginTop: celestialSpacing.sectionGap}}>
+          <View style={styles.sectionHeader}>
+            <Text
+              style={[
+                styles.sectionTitle,
+                {color: celestialTheme.colors.text},
+              ]}>
+              {t.home.exploreTitle}
+            </Text>
+            <Ionicons
+              name="compass"
+              size={26}
+              color={celestialTheme.colors.accent}
+            />
+          </View>
 
-        {/* ==================== MI LECTURA (reading insights) ============= */}
-        <Animated.View
-          style={{opacity: fadeAnim, marginTop: celestialSpacing.cardGap}}>
-          <TouchableOpacity
-            activeOpacity={0.9}
-            accessibilityRole="button"
-            accessibilityLabel={t.readingInsights.cardTitle}
-            accessibilityHint={t.readingInsights.cardSubtitle}
-            onPress={() =>
-              handlePress(() =>
-                router.push('/features/reading-insights' as never),
-              )
-            }>
-            <ShimmerCard
-              glowColor={colors.primary}
-              shimmerEnabled={false}
-              cardBackgroundColor={celestialTheme.colors.surfaceGlass}
-              cardBorderColor={celestialTheme.colors.glassBorder}>
-              <View style={styles.continueButton}>
-                <View style={styles.continueHeader}>
-                  <View
-                    style={[
-                      styles.continueIconContainer,
-                      styles.iconChip,
-                      {backgroundColor: colors.primary + '20'},
-                    ]}>
-                    <Ionicons
-                      name="stats-chart"
-                      size={14}
-                      color={colors.primary}
-                    />
-                  </View>
-                  <View style={styles.continueTextContainer}>
-                    <Text
-                      style={[styles.continueTitle, {color: colors.text}]}
-                      numberOfLines={1}>
-                      {t.readingInsights.cardTitle}
-                    </Text>
-                    <Text
-                      style={[
-                        styles.continueReference,
-                        {color: colors.textSecondary},
-                      ]}
-                      numberOfLines={1}>
-                      {t.readingInsights.cardSubtitle}
-                    </Text>
-                  </View>
-                  <View style={styles.continueProgress}>
-                    <Ionicons
-                      name="chevron-forward"
-                      size={24}
-                      color={colors.primary}
-                    />
-                  </View>
-                </View>
-              </View>
-            </ShimmerCard>
-          </TouchableOpacity>
-        </Animated.View>
-
-        {/* ==================== DAILY LIGHT ==================== */}
-        <Animated.View
-          style={{opacity: fadeAnim, marginTop: celestialSpacing.cardGap}}>
-          <TouchableOpacity
-            activeOpacity={0.9}
-            accessibilityRole="button"
-            accessibilityLabel={t.dailyLight.cardTitle}
-            accessibilityHint={t.dailyLight.cardSubtitle}
-            onPress={() =>
-              handlePress(() => router.push('/features/daily-light' as never))
-            }>
-            <ShimmerCard
-              glowColor={colors.primary}
-              shimmerEnabled={false}
-              cardBackgroundColor={celestialTheme.colors.surfaceGlass}
-              cardBorderColor={celestialTheme.colors.glassBorder}>
-              <View style={styles.continueButton}>
-                <View style={styles.continueHeader}>
-                  <View
-                    style={[
-                      styles.continueIconContainer,
-                      styles.iconChip,
-                      {backgroundColor: colors.primary + '20'},
-                    ]}>
-                    <Ionicons name="sunny" size={14} color={colors.primary} />
-                  </View>
-                  <View style={styles.continueTextContainer}>
-                    <Text
-                      style={[styles.continueTitle, {color: colors.text}]}
-                      numberOfLines={1}>
-                      {t.dailyLight.cardTitle}
-                    </Text>
-                    <Text
-                      style={[
-                        styles.continueReference,
-                        {color: colors.textSecondary},
-                      ]}
-                      numberOfLines={1}>
-                      {t.dailyLight.cardSubtitle}
-                    </Text>
-                  </View>
-                  <View style={styles.continueProgress}>
-                    <Ionicons
-                      name="chevron-forward"
-                      size={24}
-                      color={colors.primary}
-                    />
-                  </View>
-                </View>
-              </View>
-            </ShimmerCard>
-          </TouchableOpacity>
-        </Animated.View>
-
-        {/* ==================== EXPLORE BY THEME ==================== */}
-        <Animated.View
-          style={{opacity: fadeAnim, marginTop: celestialSpacing.cardGap}}>
-          <TouchableOpacity
-            activeOpacity={0.9}
-            accessibilityRole="button"
-            accessibilityLabel={t.themes.cardTitle}
-            accessibilityHint={t.themes.cardSubtitle}
-            onPress={() =>
-              handlePress(() => router.push('/features/themes' as never))
-            }>
-            <ShimmerCard
-              glowColor={colors.primary}
-              shimmerEnabled={false}
-              cardBackgroundColor={celestialTheme.colors.surfaceGlass}
-              cardBorderColor={celestialTheme.colors.glassBorder}>
-              <View style={styles.continueButton}>
-                <View style={styles.continueHeader}>
-                  <View
-                    style={[
-                      styles.continueIconContainer,
-                      styles.iconChip,
-                      {backgroundColor: colors.primary + '20'},
-                    ]}>
-                    <Ionicons name="grid" size={14} color={colors.primary} />
-                  </View>
-                  <View style={styles.continueTextContainer}>
-                    <Text
-                      style={[styles.continueTitle, {color: colors.text}]}
-                      numberOfLines={1}>
-                      {t.themes.cardTitle}
-                    </Text>
-                    <Text
-                      style={[
-                        styles.continueReference,
-                        {color: colors.textSecondary},
-                      ]}
-                      numberOfLines={1}>
-                      {t.themes.cardSubtitle}
-                    </Text>
-                  </View>
-                  <View style={styles.continueProgress}>
-                    <Ionicons
-                      name="chevron-forward"
-                      size={24}
-                      color={colors.primary}
-                    />
-                  </View>
-                </View>
-              </View>
-            </ShimmerCard>
-          </TouchableOpacity>
-        </Animated.View>
-
-        {/* ==================== HOW ARE YOU FEELING (browse) ==================== */}
-        <Animated.View
-          style={{opacity: fadeAnim, marginTop: celestialSpacing.cardGap}}>
-          <TouchableOpacity
-            activeOpacity={0.9}
-            accessibilityRole="button"
-            accessibilityLabel={t.feelings.cardTitle}
-            accessibilityHint={t.feelings.cardSubtitle}
-            onPress={() =>
-              handlePress(() => router.push('/features/feelings' as never))
-            }>
-            <ShimmerCard
-              glowColor={colors.primary}
-              shimmerEnabled={false}
-              cardBackgroundColor={celestialTheme.colors.surfaceGlass}
-              cardBorderColor={celestialTheme.colors.glassBorder}>
-              <View style={styles.continueButton}>
-                <View style={styles.continueHeader}>
-                  <View
-                    style={[
-                      styles.continueIconContainer,
-                      styles.iconChip,
-                      {backgroundColor: colors.primary + '20'},
-                    ]}>
-                    <Ionicons
-                      name="heart-half"
-                      size={14}
-                      color={colors.primary}
-                    />
-                  </View>
-                  <View style={styles.continueTextContainer}>
-                    <Text
-                      style={[styles.continueTitle, {color: colors.text}]}
-                      numberOfLines={1}>
-                      {t.feelings.cardTitle}
-                    </Text>
-                    <Text
-                      style={[
-                        styles.continueReference,
-                        {color: colors.textSecondary},
-                      ]}
-                      numberOfLines={1}>
-                      {t.feelings.cardSubtitle}
-                    </Text>
-                  </View>
-                  <View style={styles.continueProgress}>
-                    <Ionicons
-                      name="chevron-forward"
-                      size={24}
-                      color={colors.primary}
-                    />
-                  </View>
-                </View>
-              </View>
-            </ShimmerCard>
-          </TouchableOpacity>
+          <View style={styles.savedGrid}>
+            <View style={styles.savedCardWrapper}>
+              <DiscoverTile
+                icon="footsteps"
+                title={t.journey.cardTitle}
+                subtitle={t.journey.cardSubtitle}
+                onPress={() =>
+                  handlePress(() => router.push('/features/journey' as never))
+                }
+              />
+            </View>
+            <View style={styles.savedCardWrapper}>
+              <DiscoverTile
+                icon="stats-chart"
+                title={t.readingInsights.cardTitle}
+                subtitle={t.readingInsights.cardSubtitle}
+                onPress={() =>
+                  handlePress(() =>
+                    router.push('/features/reading-insights' as never),
+                  )
+                }
+              />
+            </View>
+            <View style={styles.savedCardWrapper}>
+              <DiscoverTile
+                icon="sunny"
+                title={t.dailyLight.cardTitle}
+                subtitle={t.dailyLight.cardSubtitle}
+                onPress={() =>
+                  handlePress(() =>
+                    router.push('/features/daily-light' as never),
+                  )
+                }
+              />
+            </View>
+            <View style={styles.savedCardWrapper}>
+              <DiscoverTile
+                icon="grid"
+                title={t.themes.cardTitle}
+                subtitle={t.themes.cardSubtitle}
+                onPress={() =>
+                  handlePress(() => router.push('/features/themes' as never))
+                }
+              />
+            </View>
+          </View>
         </Animated.View>
 
         {/* ==================== READING PLANS ==================== */}
