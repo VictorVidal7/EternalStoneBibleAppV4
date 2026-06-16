@@ -1049,6 +1049,10 @@ export const translations = {
       prayNow: 'Orar ahora',
       studyToolTitle: 'Oración guiada',
       studyToolSubtitle: 'Adora, confiesa, agradece, pide',
+      testimony: {
+        share: 'Compartir testimonio',
+        eyebrow: 'Dios fue fiel',
+      },
       acts: {
         title: 'Oración guiada',
         subtitle: 'El camino ACTS',
@@ -3273,6 +3277,10 @@ export const translations = {
       prayNow: 'Pray now',
       studyToolTitle: 'Guided prayer',
       studyToolSubtitle: 'Adore, confess, give thanks, ask',
+      testimony: {
+        share: 'Share testimony',
+        eyebrow: 'God was faithful',
+      },
       acts: {
         title: 'Guided prayer',
         subtitle: 'The ACTS path',
