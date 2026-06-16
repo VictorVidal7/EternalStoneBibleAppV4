@@ -95,6 +95,7 @@ import {MoodVerseCard} from '@components/MoodVerseCard';
 import {DevotionStreakCard} from '@components/DevotionStreakCard';
 import {ConstancyRingsCard} from '@components/ConstancyRingsCard';
 import {NextMilestoneCard} from '@components/NextMilestoneCard';
+import {PrayerCard} from '@components/PrayerCard';
 
 // Tema Celestial
 import {
@@ -819,6 +820,15 @@ export default function HomeScreen() {
           <DevotionStreakCard
             onPress={() =>
               handlePress(() => router.push('/features/guided' as never))
+            }
+          />
+
+          {/* 🙏 Prayer (Sprint 93) — renders nothing until the reader has kept
+              a request in the journal OR completed a guided prayer. Shows the
+              prayer streak + what's before God now; taps open the journal. */}
+          <PrayerCard
+            onPress={() =>
+              handlePress(() => router.push('/features/prayer' as never))
             }
           />
         </Animated.View>
@@ -1597,6 +1607,55 @@ export default function HomeScreen() {
                       {color: celestialTheme.colors.textSecondary},
                     ]}>
                     {t.guided.cardSubtitle}
+                  </Text>
+                </View>
+                <Ionicons
+                  name="chevron-forward"
+                  size={24}
+                  color={colors.textTertiary}
+                />
+              </View>
+            </ShimmerCard>
+          </TouchableOpacity>
+
+          {/* 🙏 Guided prayer — the ACTS path (Sprint 93) */}
+          <TouchableOpacity
+            activeOpacity={0.9}
+            style={{marginTop: celestialSpacing.cardGap}}
+            accessibilityRole="button"
+            accessible={true}
+            accessibilityLabel={t.prayer.studyToolTitle}
+            accessibilityHint={t.prayer.studyToolSubtitle}
+            onPress={() =>
+              handlePress(() => router.push('/features/prayer/acts' as never))
+            }>
+            <ShimmerCard
+              glowColor={colors.primary}
+              shimmerEnabled={false}
+              cardBackgroundColor={celestialTheme.colors.surfaceGlass}
+              cardBorderColor={celestialTheme.colors.glassBorder}>
+              <View style={styles.toolCard}>
+                <View
+                  style={[
+                    styles.toolIconContainer,
+                    {backgroundColor: colors.primary + '20'},
+                  ]}>
+                  <Ionicons name="rose" size={28} color={colors.primary} />
+                </View>
+                <View style={styles.toolInfo}>
+                  <Text
+                    style={[
+                      styles.toolTitle,
+                      {color: celestialTheme.colors.text},
+                    ]}>
+                    {t.prayer.studyToolTitle}
+                  </Text>
+                  <Text
+                    style={[
+                      styles.toolDescription,
+                      {color: celestialTheme.colors.textSecondary},
+                    ]}>
+                    {t.prayer.studyToolSubtitle}
                   </Text>
                 </View>
                 <Ionicons
