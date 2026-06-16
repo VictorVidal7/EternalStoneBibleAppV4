@@ -8,7 +8,7 @@ import {
   Alert,
   useWindowDimensions,
 } from 'react-native';
-import {staticColors} from '@/styles/designTokens';
+import {staticColors, verseTextRightSlack} from '@/styles/designTokens';
 
 import {useState, useCallback, useMemo} from 'react';
 import {useRouter, useFocusEffect} from 'expo-router';
@@ -510,6 +510,8 @@ const styles = StyleSheet.create({
     color: staticColors.grayTertiary,
     fontStyle: 'italic',
     marginBottom: 12,
+    // Right-edge anti-clip slack for italic scripture preview (Sprint 94).
+    paddingRight: verseTextRightSlack(14),
   },
   noteDivider: {
     height: 1,

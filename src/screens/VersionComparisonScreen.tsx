@@ -20,7 +20,7 @@ import {
   ActivityIndicator,
   Dimensions,
 } from 'react-native';
-import {staticColors} from '@/styles/designTokens';
+import {staticColors, verseTextRightSlack} from '@/styles/designTokens';
 import {Ionicons} from '@expo/vector-icons';
 import {SaveComparisonDialog} from '../components/comparison/SaveComparisonDialog';
 import {CompareImageModal} from '../components/comparison/CompareImageModal';
@@ -1613,6 +1613,8 @@ const styles = StyleSheet.create({
     fontSize: 16,
     lineHeight: 24,
     marginBottom: 12,
+    // Right-edge anti-clip slack (Sprint 94).
+    paddingRight: verseTextRightSlack(16),
   },
   divergentWord: {
     fontWeight: '700',

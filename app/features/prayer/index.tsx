@@ -35,6 +35,7 @@ import {useLanguage} from '@hooks/useLanguage';
 import {useToast} from '@context/ToastContext';
 import {haptics} from '@lib/haptics';
 import {AppText} from '@components/ui/AppText';
+import {TestimonyImageModal} from '@components/insights/TestimonyImageModal';
 import {usePrayerJournal} from '@hooks/usePrayerJournal';
 import {
   activeRequests,
@@ -79,6 +80,8 @@ export default function PrayerJournalScreen() {
   // Answer modal.
   const [answerId, setAnswerId] = useState<string | null>(null);
   const [answerNote, setAnswerNote] = useState('');
+  // Share-as-testimony modal (Sprint 94) — the answered request being shared.
+  const [shareReq, setShareReq] = useState<PrayerRequest | null>(null);
 
   const stats = useMemo(() => prayerStats(requests), [requests]);
   const active = useMemo(
@@ -332,25 +335,44 @@ export default function PrayerJournalScreen() {
             {r.answeredNote}
           </AppText>
         )}
-        <TouchableOpacity
-          style={styles.reopenBtn}
-          onPress={() => {
-            haptics.tap();
-            void reopen(r.id);
-          }}
-          accessibilityRole="button"
-          accessibilityLabel={tp.reopen}>
-          <Ionicons
-            name="refresh-outline"
-            size={15}
-            color={colors.textTertiary}
-          />
-          <AppText
-            scaleRole="compact"
-            style={[styles.reopenText, {color: colors.textTertiary}]}>
-            {tp.reopen}
-          </AppText>
-        </TouchableOpacity>
+        <View style={styles.answeredFooter}>
+          <TouchableOpacity
+            style={styles.reopenBtn}
+            onPress={() => {
+              haptics.tap();
+              void reopen(r.id);
+            }}
+            accessibilityRole="button"
+            accessibilityLabel={tp.reopen}>
+            <Ionicons
+              name="refresh-outline"
+              size={15}
+              color={colors.textTertiary}
+            />
+            <AppText
+              scaleRole="compact"
+              style={[styles.reopenText, {color: colors.textTertiary}]}>
+              {tp.reopen}
+            </AppText>
+          </TouchableOpacity>
+          {/* Share this answer as a testimony image (Sprint 94) — turning a
+              private record of God's faithfulness into a witness. */}
+          <TouchableOpacity
+            style={styles.reopenBtn}
+            onPress={() => {
+              haptics.tap();
+              setShareReq(r);
+            }}
+            accessibilityRole="button"
+            accessibilityLabel={tp.testimony.share}>
+            <Ionicons name="share-outline" size={15} color={meta.accent} />
+            <AppText
+              scaleRole="compact"
+              style={[styles.reopenText, {color: meta.accent}]}>
+              {tp.testimony.share}
+            </AppText>
+          </TouchableOpacity>
+        </View>
       </View>
     );
   };
@@ -671,6 +693,20 @@ export default function PrayerJournalScreen() {
             </View>
           </View>
         </Modal>
+
+        {/* Share an answered prayer as a testimony image (Sprint 94) */}
+        <TestimonyImageModal
+          visible={shareReq !== null}
+          title={shareReq?.title ?? ''}
+          testimony={shareReq?.answeredNote || undefined}
+          answeredLine={tp.answeredOn.replace(
+            '{{date}}',
+            formatDate(
+              shareReq?.answeredAt ?? shareReq?.createdAt ?? Date.now(),
+            ),
+          )}
+          onClose={() => setShareReq(null)}
+        />
       </View>
     </>
   );
@@ -814,12 +850,18 @@ const styles = StyleSheet.create({
   },
   actionText: {fontSize: fontSizes.sm, fontWeight: '700'},
   iconAction: {padding: spacing.xs},
+  answeredFooter: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: spacing.md,
+    marginTop: spacing.xs,
+    flexWrap: 'wrap',
+  },
   reopenBtn: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: spacing.xs,
-    alignSelf: 'flex-start',
-    marginTop: spacing.xs,
   },
   reopenText: {fontSize: fontSizes.xs, fontWeight: '600'},
   modalOverlay: {

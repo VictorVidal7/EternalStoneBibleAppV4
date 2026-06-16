@@ -59,6 +59,27 @@ export const fontSize = {
   '9xl': 80,
 } as const;
 
+/**
+ * Right-edge anti-clip slack for scripture-quote text (Sprint 94).
+ *
+ * On several Android OEM font engines the painted right side bearing of the
+ * last glyph on a tight line exceeds its MEASURED advance — most visibly with
+ * italic serif scripture quotes — so the line's final character clips off the
+ * right edge (the user kept reporting "se corta un poquito la parte derecha de
+ * los versículos en general"). The Pixel emulator's wide ragged-right margin
+ * never reproduces it, so it can't be screenshot-verified there; reserving a
+ * few px of right padding scaled with the font reliably clears the overhang.
+ *
+ * The reader (app/(tabs)/verse) keeps its own, more generous fontSize-derived
+ * slack inline (it is user-resizable and mixes a bold verse number + karaoke
+ * run); this helper centralizes a modest, tidy gutter for the FIXED-size
+ * scripture cards/quotes elsewhere (daily verse, mood verse, feelings, lectio,
+ * daily light, themes, guided, cross-references, version comparison…), so they
+ * all share one documented rationale instead of clipping inconsistently.
+ */
+export const verseTextRightSlack = (fontSize: number): number =>
+  Math.max(8, Math.round(fontSize * 0.5));
+
 export const fontWeight = {
   light: '300',
   regular: '400',

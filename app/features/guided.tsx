@@ -49,6 +49,7 @@ import {
   fontSize as fontSizes,
   spacing,
   staticColors,
+  verseTextRightSlack,
 } from '@/styles/designTokens';
 
 type Phase = 'choose' | 'resolving' | 'reveal' | 'error';
@@ -450,6 +451,8 @@ const styles = StyleSheet.create({
   verseText: {
     fontSize: fontSizes.xl,
     lineHeight: fontSizes.xl * 1.6,
+    // Right-edge anti-clip slack (Sprint 94).
+    paddingRight: verseTextRightSlack(fontSizes.xl),
   },
   beginButton: {
     flexDirection: 'row',

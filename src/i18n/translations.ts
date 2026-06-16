@@ -121,6 +121,7 @@ export const translations = {
       lastRead: 'Última lectura',
       readingPlans: 'Planes de Lectura',
       studyTools: 'Herramientas de Estudio',
+      exploreTitle: 'Explorar',
       savedTitle: 'Guardados',
       viewPlan: 'Ver Plan',
       continue: 'Continuar',
@@ -1048,6 +1049,10 @@ export const translations = {
       prayNow: 'Orar ahora',
       studyToolTitle: 'Oración guiada',
       studyToolSubtitle: 'Adora, confiesa, agradece, pide',
+      testimony: {
+        share: 'Compartir testimonio',
+        eyebrow: 'Dios fue fiel',
+      },
       acts: {
         title: 'Oración guiada',
         subtitle: 'El camino ACTS',
@@ -2354,6 +2359,7 @@ export const translations = {
       lastRead: 'Last read',
       readingPlans: 'Reading Plans',
       studyTools: 'Study Tools',
+      exploreTitle: 'Explore',
       savedTitle: 'Saved',
       viewPlan: 'View Plan',
       continue: 'Continue',
@@ -3271,6 +3277,10 @@ export const translations = {
       prayNow: 'Pray now',
       studyToolTitle: 'Guided prayer',
       studyToolSubtitle: 'Adore, confess, give thanks, ask',
+      testimony: {
+        share: 'Share testimony',
+        eyebrow: 'God was faithful',
+      },
       acts: {
         title: 'Guided prayer',
         subtitle: 'The ACTS path',

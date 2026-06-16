@@ -38,6 +38,7 @@ import {
   borderRadius,
   fontSize as fontSizes,
   spacing,
+  verseTextRightSlack,
 } from '@/styles/designTokens';
 
 interface MoodVerseCardProps {
@@ -199,6 +200,8 @@ const styles = StyleSheet.create({
     fontSize: fontSizes.sm,
     lineHeight: fontSizes.sm * 1.55,
     fontStyle: 'italic',
+    // Right-edge anti-clip slack for italic scripture on some OEMs (S94).
+    paddingRight: verseTextRightSlack(fontSizes.sm),
   },
   footerRow: {
     flexDirection: 'row',

@@ -26,6 +26,7 @@ import {
   createCelestialTheme,
   celestialBorderRadius,
 } from '../../styles/celestialTheme';
+import {verseTextRightSlack} from '../../styles/designTokens';
 import {useLanguage} from '../../hooks/useLanguage';
 import {useTheme} from '../../hooks/useTheme';
 import {usePressScale} from '../../hooks/usePressScale';
@@ -710,6 +711,9 @@ const styles = StyleSheet.create({
     lineHeight: 25.6, // 16 * 1.6
     fontStyle: 'italic',
     opacity: 0.95,
+    // Italic serif clips its last glyph on some OEMs (Sprint 94) — reserve a
+    // few px so the painted right bearing clears the card's inner edge.
+    paddingRight: verseTextRightSlack(16),
   },
   alsoSection: {
     marginBottom: 4,
@@ -744,6 +748,7 @@ const styles = StyleSheet.create({
     lineHeight: 22.4, // 14 * 1.6 — mirrors the main quote's rhythm
     fontStyle: 'italic',
     opacity: 0.9,
+    paddingRight: verseTextRightSlack(14),
   },
   alsoUnavailable: {
     fontSize: 12,
