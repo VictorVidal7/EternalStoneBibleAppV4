@@ -37,12 +37,18 @@ import {AppText} from '@components/ui/AppText';
 import bibleDB from '@lib/database';
 import {getBookByName} from '@/constants/bible';
 import {getStudyConnections} from '@/features/study/studyConnections';
+import {
+  getChristConnectionById,
+  parseChristRef,
+  formatChristRefLabel,
+} from '@/features/study/christConnections';
 import {logger} from '@lib/utils/logger';
 import {
   borderRadius,
   fontSize as fontSizes,
   spacing,
   staticColors,
+  verseTextRightSlack,
 } from '@/styles/designTokens';
 
 type LoadStatus = 'loading' | 'ready' | 'error';
@@ -123,6 +129,14 @@ export default function StudyScreen() {
   const [focusRow, setFocusRow] = useState<StudyRow | null>(null);
   const [references, setReferences] = useState<StudyRow[]>([]);
   const [referencedBy, setReferencedBy] = useState<StudyRow[]>([]);
+  // "Christ in this passage" (Sprint 98) — a curated, faithful note for the
+  // focus verse, with the fulfillment verse text in the selected version.
+  const [christ, setChrist] = useState<{
+    note: string;
+    pointsTo?: string;
+    fulfillmentText?: string;
+    nav?: {book: string; chapter: number; verse: number};
+  } | null>(null);
 
   const load = useCallback(async () => {
     try {
@@ -144,6 +158,43 @@ export default function StudyScreen() {
       setFocusRow(focus);
       setReferences(refs);
       setReferencedBy(refBy);
+
+      // "Christ in this passage" for the focus verse, when curated (S98).
+      const lang = language === 'es' ? 'es' : 'en';
+      const focusBook = getBookByName(book);
+      const conn = focusBook
+        ? getChristConnectionById(focusBook.id, chapter, verse)
+        : null;
+      const note = conn
+        ? (t.christConnections.notes as Record<string, string>)[conn.id]
+        : undefined;
+      if (conn && note) {
+        let pointsTo: string | undefined;
+        let fulfillmentText: string | undefined;
+        let nav: {book: string; chapter: number; verse: number} | undefined;
+        if (conn.fulfillment) {
+          const fp = parseChristRef(conn.fulfillment);
+          const fbook = fp ? getBookByName(fp.book) : undefined;
+          if (fp && fbook) {
+            pointsTo = formatChristRefLabel(conn.fulfillment, lang);
+            nav = {
+              book: lang === 'en' ? fbook.nameEn : fbook.name,
+              chapter: fp.chapter,
+              verse: fp.verse,
+            };
+            const frow = await bibleDB.getVerse(
+              fbook.id,
+              fp.chapter,
+              fp.verse,
+              version,
+            );
+            fulfillmentText = frow?.text ?? undefined;
+          }
+        }
+        setChrist({note, pointsTo, fulfillmentText, nav});
+      } else {
+        setChrist(null);
+      }
       setStatus('ready');
     } catch (err) {
       logger.error('Study load failed', err as Error, {
@@ -152,7 +203,15 @@ export default function StudyScreen() {
       });
       setStatus('error');
     }
-  }, [connections, params.version, book, chapter, verse, language]);
+  }, [
+    connections,
+    params.version,
+    book,
+    chapter,
+    verse,
+    language,
+    t.christConnections.notes,
+  ]);
 
   useEffect(() => {
     load();
@@ -299,6 +358,85 @@ export default function StudyScreen() {
                 </View>
               )}
 
+              {/* Christ in this passage (S98) — faithful note + the fulfillment
+                  verse in the selected version + a tap to open it. */}
+              {christ && (
+                <View
+                  style={[
+                    styles.christCard,
+                    {backgroundColor: colors.card, borderColor: colors.border},
+                  ]}>
+                  <View style={styles.christHeader}>
+                    <Ionicons
+                      name="sparkles"
+                      size={16}
+                      color={colors.primary}
+                    />
+                    <AppText
+                      scaleRole="compact"
+                      style={[styles.christLabel, {color: colors.primary}]}>
+                      {t.christConnections.cardTitle}
+                    </AppText>
+                  </View>
+                  <Text style={[styles.christNote, {color: colors.text}]}>
+                    {christ.note}
+                  </Text>
+                  {christ.fulfillmentText && christ.pointsTo ? (
+                    <View
+                      style={[
+                        styles.christVerse,
+                        {borderLeftColor: colors.primary + '55'},
+                      ]}>
+                      <Text
+                        style={[styles.christVerseText, {color: colors.text}]}>
+                        {`“${christ.fulfillmentText}”`}
+                      </Text>
+                      <AppText
+                        scaleRole="compact"
+                        style={[
+                          styles.christVerseRef,
+                          {color: colors.textSecondary},
+                        ]}>
+                        {`— ${christ.pointsTo}`}
+                      </AppText>
+                    </View>
+                  ) : null}
+                  {christ.pointsTo && christ.nav ? (
+                    <TouchableOpacity
+                      style={[
+                        styles.christChip,
+                        {
+                          borderColor: colors.primary + '55',
+                          backgroundColor: colors.primary + '12',
+                        },
+                      ]}
+                      onPress={() => {
+                        if (!christ.nav) return;
+                        haptics.tap();
+                        router.push(
+                          `/verse/${christ.nav.book}/${christ.nav.chapter}?verse=${christ.nav.verse}` as never,
+                        );
+                      }}
+                      accessibilityRole="button"
+                      accessibilityLabel={`${t.christConnections.pointsTo}: ${christ.pointsTo}`}>
+                      <Ionicons
+                        name="arrow-forward"
+                        size={14}
+                        color={colors.primary}
+                      />
+                      <AppText
+                        scaleRole="compact"
+                        style={[
+                          styles.christChipText,
+                          {color: colors.primary},
+                        ]}>
+                        {`${t.christConnections.pointsTo} · ${christ.pointsTo}`}
+                      </AppText>
+                    </TouchableOpacity>
+                  ) : null}
+                </View>
+              )}
+
               {!hasConnections && (
                 <View style={styles.centerState}>
                   <Ionicons
@@ -442,6 +580,49 @@ const styles = StyleSheet.create({
     fontSize: fontSizes.sm,
     fontWeight: '600',
   },
+  christCard: {
+    borderRadius: borderRadius.lg,
+    borderWidth: 1,
+    padding: spacing.lg,
+    gap: spacing.sm,
+  },
+  christHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing['1.5'],
+  },
+  christLabel: {
+    fontSize: fontSizes.xs,
+    fontWeight: '700',
+    letterSpacing: 0.5,
+    textTransform: 'uppercase',
+  },
+  christNote: {fontSize: fontSizes.md, lineHeight: fontSizes.md * 1.55},
+  christVerse: {
+    borderLeftWidth: 3,
+    paddingLeft: spacing.md,
+    marginTop: spacing.xs,
+    gap: spacing['0.5'],
+  },
+  christVerseText: {
+    fontSize: fontSizes.md,
+    lineHeight: fontSizes.md * 1.5,
+    fontStyle: 'italic',
+    paddingRight: verseTextRightSlack(fontSizes.md),
+  },
+  christVerseRef: {fontSize: fontSizes.sm, fontWeight: '600'},
+  christChip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    alignSelf: 'flex-start',
+    gap: 6,
+    marginTop: spacing.xs,
+    paddingHorizontal: spacing.sm,
+    paddingVertical: 6,
+    borderRadius: borderRadius.full,
+    borderWidth: 1,
+  },
+  christChipText: {fontSize: fontSizes.xs, fontWeight: '700'},
   section: {gap: spacing.sm},
   sectionTitle: {
     fontSize: fontSizes.lg,
