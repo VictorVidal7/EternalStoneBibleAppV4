@@ -21,6 +21,7 @@ import {
   Dimensions,
 } from 'react-native';
 import {staticColors, verseTextRightSlack} from '@/styles/designTokens';
+import {centeredMaxWidth} from '@/styles/responsive';
 import {Ionicons} from '@expo/vector-icons';
 import {SaveComparisonDialog} from '../components/comparison/SaveComparisonDialog';
 import {CompareImageModal} from '../components/comparison/CompareImageModal';
@@ -713,7 +714,7 @@ export const VersionComparisonScreen: React.FC<
       ) : (
         <ScrollView
           style={styles.scrollView}
-          contentContainerStyle={styles.scrollContent}>
+          contentContainerStyle={[styles.scrollContent, centeredMaxWidth()]}>
           {/* Multi-Verse Mode */}
           {multiSelectMode && comparisons.length > 0 ? (
             <>

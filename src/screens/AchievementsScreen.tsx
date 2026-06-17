@@ -32,6 +32,7 @@ import {UserStatsPanel} from '../components/achievements/UserStatsPanel';
 import {AchievementUnlockedModal} from '../components/achievements/AchievementUnlockedModal';
 import {useAchievements} from '../hooks/useAchievements';
 import {useTheme} from '../hooks/useTheme';
+import {centeredMaxWidth} from '../styles/responsive';
 import {useLanguage} from '../hooks/useLanguage';
 import {BibleDatabase} from '../lib/database';
 import {Achievement, AchievementCategory} from '../lib/achievements/types';
@@ -482,7 +483,7 @@ export const AchievementsScreen: React.FC<AchievementsScreenProps> = ({
                 />
               </TouchableOpacity>
             )}
-            contentContainerStyle={styles.list}
+            contentContainerStyle={[styles.list, centeredMaxWidth()]}
             showsVerticalScrollIndicator={false}
             ListEmptyComponent={
               <View style={styles.emptyContainer}>
