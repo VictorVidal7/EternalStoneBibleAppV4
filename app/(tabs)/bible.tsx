@@ -29,6 +29,7 @@ import {haptics} from '@lib/haptics';
 import {BIBLE_BOOKS} from '@/constants/bible';
 import {parseReference} from '@/lib/references/parseReference';
 import {useTheme} from '@hooks/useTheme';
+import {centeredMaxWidth} from '@/styles/responsive';
 import {useLanguage} from '@hooks/useLanguage';
 
 // Design tokens
@@ -669,6 +670,7 @@ const styles = StyleSheet.create({
   listContent: {
     paddingHorizontal: spacing.lg,
     paddingBottom: 100, // Espacio para tab bar (88px iOS / 68px Android)
+    ...centeredMaxWidth(),
   },
 
   // Section Header

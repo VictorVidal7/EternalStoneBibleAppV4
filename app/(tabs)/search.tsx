@@ -22,6 +22,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import bibleDB from '@lib/database';
 import {BibleVerse} from '@/types/bible';
 import {useTheme, ThemeColors} from '@hooks/useTheme';
+import {centeredMaxWidth} from '@/styles/responsive';
 import {useBibleVersion} from '@hooks/useBibleVersion';
 import {useLanguage} from '@hooks/useLanguage';
 import {translations} from '@/i18n/translations';
@@ -960,6 +961,7 @@ const styles = StyleSheet.create({
   resultsList: {
     padding: 16,
     paddingBottom: 100, // Espacio para tab bar (88px iOS / 68px Android)
+    ...centeredMaxWidth(),
   },
   resultHeader: {
     flexDirection: 'row',

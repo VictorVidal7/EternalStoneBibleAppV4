@@ -105,14 +105,21 @@ import {
   celestialSpacing,
 } from '@/styles/celestialTheme';
 import {withOpacity} from '@/styles/modernTheme';
+import {CONTENT_MAX_WIDTH} from '@/styles/responsive';
 
 const {width: SCREEN_WIDTH} = Dimensions.get('window');
 const CONTENT_HORIZONTAL_PADDING = 20;
 const SAVED_CARD_GAP = 12;
+// Sprint 96: on wide screens the Home column is capped at CONTENT_MAX_WIDTH,
+// so 2-up grid card widths must derive from the CAPPED width — using the full
+// screen width would size the cards too wide for the column and they'd wrap to
+// a single column. On phones this is a no-op (screen is narrower than the cap).
+const EFFECTIVE_CONTENT_WIDTH = Math.min(SCREEN_WIDTH, CONTENT_MAX_WIDTH);
 // Saved grid is now 2×2 (Favorites, Notes, Highlights, Bookmarks) so
 // each card spans half the content width minus a single inter-card gap.
 const SAVED_CARD_WIDTH =
-  (SCREEN_WIDTH - CONTENT_HORIZONTAL_PADDING * 2 - SAVED_CARD_GAP) / 2;
+  (EFFECTIVE_CONTENT_WIDTH - CONTENT_HORIZONTAL_PADDING * 2 - SAVED_CARD_GAP) /
+  2;
 
 export default function HomeScreen() {
   const router = useRouter();
@@ -509,7 +516,11 @@ export default function HomeScreen() {
                 {[1, 2, 3, 4].map(i => (
                   <Skeleton
                     key={i}
-                    width={(SCREEN_WIDTH - celestialSpacing.sectionGap * 3) / 2}
+                    width={
+                      (EFFECTIVE_CONTENT_WIDTH -
+                        celestialSpacing.sectionGap * 3) /
+                      2
+                    }
                     height={100}
                     borderRadius={celestialBorderRadius.xl}
                   />
@@ -1889,6 +1900,12 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20, // Más ajustado para pantallas pequeñas
     paddingTop: Platform.OS === 'ios' ? 68 : 44, // Más espacio superior para mejor visibilidad
     paddingBottom: 100, // Más espacio para el tab bar
+    // Sprint 96: cap + center the Home column on wide screens (foldable /
+    // tablet / landscape) so cards don't stretch edge-to-edge. No-op on
+    // phones (narrower than the cap).
+    width: '100%',
+    maxWidth: CONTENT_MAX_WIDTH,
+    alignSelf: 'center',
   },
   // Hero Card - Compact and Professional
   heroCard: {

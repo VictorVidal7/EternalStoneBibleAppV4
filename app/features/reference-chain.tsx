@@ -25,6 +25,7 @@ import {LinearGradient} from 'expo-linear-gradient';
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
 import {haptics} from '@lib/haptics';
 import {useTheme} from '@hooks/useTheme';
+import {centeredMaxWidth} from '@/styles/responsive';
 import {useLanguage} from '@hooks/useLanguage';
 import {useBibleVersion} from '@hooks/useBibleVersion';
 import {getBookByName} from '@/constants/bible';
@@ -380,7 +381,11 @@ const styles = StyleSheet.create({
     marginHorizontal: 2,
   },
   crumbText: {fontSize: fontSizes.xs, fontWeight: '700', maxWidth: 140},
-  body: {padding: spacing.lg, paddingBottom: spacing['4xl']},
+  body: {
+    padding: spacing.lg,
+    paddingBottom: spacing['4xl'],
+    ...centeredMaxWidth(),
+  },
   currentCard: {
     borderRadius: borderRadius.lg,
     borderWidth: 1.5,

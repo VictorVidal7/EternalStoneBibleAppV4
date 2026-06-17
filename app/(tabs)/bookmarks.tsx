@@ -15,6 +15,7 @@ import {useRouter} from 'expo-router';
 import {Ionicons} from '@expo/vector-icons';
 import {LinearGradient} from 'expo-linear-gradient';
 import {useTheme} from '@hooks/useTheme';
+import {centeredMaxWidth} from '@/styles/responsive';
 import {useLanguage} from '@hooks/useLanguage';
 import {focusTrapProps} from '@lib/a11y/focusTrap';
 import {useBookmarks, type Bookmark} from '@context/BookmarksContext';
@@ -283,6 +284,7 @@ const styles = StyleSheet.create({
   listContent: {
     padding: 16,
     paddingBottom: 100,
+    ...centeredMaxWidth(),
   },
   itemCard: {
     flexDirection: 'row',

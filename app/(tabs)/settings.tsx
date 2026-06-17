@@ -13,6 +13,7 @@ import {
 // ♿ Dynamic-type: cap OS font-scale on the settings chrome (labels/rows).
 import {AppText as Text} from '@components/ui/AppText';
 import {staticColors} from '@/styles/designTokens';
+import {centeredMaxWidth} from '@/styles/responsive';
 
 import React, {useEffect, useState, useMemo, useRef, useCallback} from 'react';
 import {Ionicons} from '@expo/vector-icons';
@@ -990,6 +991,8 @@ const styles = StyleSheet.create({
   },
   scrollViewContent: {
     flexGrow: 1,
+    // Sprint 96: center + cap the settings column on wide screens.
+    ...centeredMaxWidth(),
   },
   header: {
     paddingTop: 60,
