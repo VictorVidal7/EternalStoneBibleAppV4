@@ -108,6 +108,7 @@ export const CHRIST_CONNECTIONS: readonly ChristConnection[] = [
   {id: '2peter-3-9', ref: '2 Peter/3/9'},
   {id: '2peter-3-18', ref: '2 Peter/3/18'},
   {id: '1john-1-9', ref: '1 John/1/9'},
+  {id: '1john-4-7', ref: '1 John/4/7', fulfillment: '1 John/4/9'},
   {id: '1john-4-10', ref: '1 John/4/10'},
   {id: '1john-4-19', ref: '1 John/4/19'},
   {id: 'jude-1-24', ref: 'Jude/1/24'},

@@ -859,6 +859,8 @@ export const translations = {
           '«Creced en la gracia y el conocimiento de nuestro Señor y Salvador Jesucristo.» Esta es la meta de toda la vida cristiana, y el corazón de esta app.',
         '1john-1-9':
           '«Si confesamos nuestros pecados, él es fiel y justo para perdonarnos.» El perdón es seguro porque descansa en la sangre de Jesús, no en nuestro mérito.',
+        '1john-4-7':
+          '«Amémonos unos a otros, porque el amor es de Dios.» ¿Y dónde se ve ese amor? En que Dios envió a su Hijo unigénito al mundo para que vivamos por él. Amamos porque Él nos amó primero.',
         '1john-4-10':
           '«No que nosotros hayamos amado a Dios, sino que él nos amó... y envió a su Hijo en propiciación por nuestros pecados.» El amor verdadero empezó en la cruz.',
         '1john-4-19':
@@ -3248,6 +3250,8 @@ export const translations = {
           '"Grow in grace, and in the knowledge of our Lord and Saviour Jesus Christ." This is the goal of the whole Christian life—and the heart of this app.',
         '1john-1-9':
           '"If we confess our sins, he is faithful and just to forgive us." Forgiveness is sure because it rests on the blood of Jesus, not on our merit.',
+        '1john-4-7':
+          '"Let us love one another: for love is of God." And where is that love seen? In that God sent his only Son into the world that we might live through him. We love because He first loved us.',
         '1john-4-10':
           '"Not that we loved God, but that he loved us, and sent his Son to be the propitiation for our sins." True love began at the cross.',
         '1john-4-19':

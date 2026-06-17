@@ -35,10 +35,15 @@ import {useToast} from '@context/ToastContext';
 import {useMemoryDeck} from '@context/MemoryDeckContext';
 import {useServices} from '@context/ServicesContext';
 import bibleDB from '@lib/database';
-import {getBookById} from '@/constants/bible';
+import {getBookById, getBookByName} from '@/constants/bible';
 import {DAILY_VERSE_REFS} from '@/constants/daily-verses';
 import {getAllThemes} from '@/features/study/themes';
 import {buildDailyLight} from '@/features/daily-light/dailyLight';
+import {
+  getChristConnectionById,
+  parseChristRef,
+  formatChristRefLabel,
+} from '@/features/study/christConnections';
 import {buildVerseKey} from '@lib/memory/srs';
 import {
   borderRadius,
@@ -63,6 +68,12 @@ interface DailyContent {
   themeAccent: string;
   themeIcon: string;
   streak: number;
+  // "Christ in this passage" — present only when the day's verse is curated.
+  christNote?: string;
+  christPointsTo?: string; // localized fulfillment label, e.g. "Juan 10:11"
+  christNavBook?: string; // localized book name for navigation
+  christNavChapter?: number;
+  christNavVerse?: number;
 }
 
 export default function DailyLightScreen() {
@@ -120,6 +131,29 @@ export default function DailyLightScreen() {
         theme.id
       ];
 
+      // "Christ in this passage" — look up a curated insight for this verse.
+      const conn = getChristConnectionById(ref.book, ref.chapter, ref.verse);
+      const lang = language === 'es' ? 'es' : 'en';
+      let christNote: string | undefined;
+      let christPointsTo: string | undefined;
+      let christNavBook: string | undefined;
+      let christNavChapter: number | undefined;
+      let christNavVerse: number | undefined;
+      if (conn) {
+        const notes = t.christConnections.notes as Record<string, string>;
+        christNote = notes[conn.id];
+        if (conn.fulfillment) {
+          const fp = parseChristRef(conn.fulfillment);
+          const fbook = fp ? getBookByName(fp.book) : undefined;
+          if (fp && fbook) {
+            christPointsTo = formatChristRefLabel(conn.fulfillment, lang);
+            christNavBook = lang === 'en' ? fbook.nameEn : fbook.name;
+            christNavChapter = fp.chapter;
+            christNavVerse = fp.verse;
+          }
+        }
+      }
+
       setContent({
         book: display,
         bookId: ref.book,
@@ -133,12 +167,23 @@ export default function DailyLightScreen() {
         themeAccent: theme.accent,
         themeIcon: theme.icon,
         streak,
+        christNote,
+        christPointsTo,
+        christNavBook,
+        christNavChapter,
+        christNavVerse,
       });
       setStatus('ready');
     } catch {
       setStatus('error');
     }
-  }, [td.prompts, language, achievementService, t.themes.list]);
+  }, [
+    td.prompts,
+    language,
+    achievementService,
+    t.themes.list,
+    t.christConnections.notes,
+  ]);
 
   useEffect(() => {
     load();
@@ -175,6 +220,20 @@ export default function DailyLightScreen() {
     if (!content) return;
     haptics.tap();
     router.push(`/features/themes/${content.themeId}` as never);
+  }, [content, router]);
+
+  const handleOpenFulfillment = useCallback(() => {
+    if (
+      !content?.christNavBook ||
+      !content.christNavChapter ||
+      !content.christNavVerse
+    ) {
+      return;
+    }
+    haptics.tap();
+    router.push(
+      `/verse/${content.christNavBook}/${content.christNavChapter}?verse=${content.christNavVerse}` as never,
+    );
   }, [content, router]);
 
   const dateLabel = new Date().toLocaleDateString(
@@ -261,6 +320,59 @@ export default function DailyLightScreen() {
                 {content.reference}
               </AppText>
             </View>
+
+            {/* Christ in this passage — only when the verse is curated */}
+            {content.christNote ? (
+              <View
+                style={[
+                  styles.card,
+                  {backgroundColor: colors.card, borderColor: colors.border},
+                ]}>
+                <View style={styles.christHeader}>
+                  <Ionicons name="sparkles" size={16} color={colors.primary} />
+                  <AppText
+                    scaleRole="compact"
+                    style={[
+                      styles.cardLabel,
+                      {color: colors.primary, marginLeft: spacing['1.5']},
+                    ]}>
+                    {t.christConnections.cardTitle}
+                  </AppText>
+                </View>
+                <AppText
+                  scaleRole="body"
+                  style={[styles.christText, {color: colors.text}]}>
+                  {content.christNote}
+                </AppText>
+                {content.christPointsTo ? (
+                  <TouchableOpacity
+                    style={[
+                      styles.christPointsTo,
+                      {
+                        borderColor: colors.primary + '55',
+                        backgroundColor: colors.primary + '12',
+                      },
+                    ]}
+                    onPress={handleOpenFulfillment}
+                    accessibilityRole="button"
+                    accessibilityLabel={`${t.christConnections.pointsTo}: ${content.christPointsTo}`}>
+                    <Ionicons
+                      name="arrow-forward"
+                      size={14}
+                      color={colors.primary}
+                    />
+                    <AppText
+                      scaleRole="compact"
+                      style={[
+                        styles.christPointsToText,
+                        {color: colors.primary},
+                      ]}>
+                      {`${t.christConnections.pointsTo} · ${content.christPointsTo}`}
+                    </AppText>
+                  </TouchableOpacity>
+                ) : null}
+              </View>
+            ) : null}
 
             {/* Reflection */}
             <View
@@ -447,6 +559,20 @@ const styles = StyleSheet.create({
   },
   verseRef: {fontSize: fontSizes.sm, fontWeight: '600'},
   promptText: {fontSize: fontSizes.md, lineHeight: fontSizes.md * 1.5},
+  christHeader: {flexDirection: 'row', alignItems: 'center'},
+  christText: {fontSize: fontSizes.md, lineHeight: fontSizes.md * 1.55},
+  christPointsTo: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    alignSelf: 'flex-start',
+    gap: 6,
+    marginTop: spacing.xs,
+    paddingHorizontal: spacing.sm,
+    paddingVertical: 6,
+    borderRadius: borderRadius.full,
+    borderWidth: 1,
+  },
+  christPointsToText: {fontSize: fontSizes.xs, fontWeight: '700'},
   themeCard: {
     flexDirection: 'row',
     alignItems: 'center',
