@@ -49,6 +49,7 @@ import {
 import {planPace, planCatchUp, formatDayReadings} from '@/lib/reading/planPace';
 import type {PlanPace, PlanCatchUp} from '@/lib/reading/planPace';
 import {staticColors} from '@/styles/designTokens';
+import {centeredMaxWidth} from '@/styles/responsive';
 import {getBookByName} from '@/constants/bible';
 import {haptics} from '@lib/haptics';
 
@@ -609,7 +610,7 @@ const styles = StyleSheet.create({
     color: staticColors.glassWhite90,
     marginTop: 10,
   },
-  listContent: {padding: 16, paddingBottom: 110},
+  listContent: {padding: 16, paddingBottom: 110, ...centeredMaxWidth()},
   todayCard: {
     borderRadius: 14,
     borderWidth: 1.5,
