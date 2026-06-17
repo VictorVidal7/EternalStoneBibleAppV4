@@ -62,7 +62,7 @@ interface DailyContent {
   verse: number;
   text: string;
   reference: string;
-  prompt: string;
+  applyQuestions: string[];
   themeId: string;
   themeName: string;
   themeAccent: string;
@@ -131,6 +131,11 @@ export default function DailyLightScreen() {
         theme.id
       ];
 
+      // Theme-tied application questions (S97). Fall back to one rotating
+      // generic prompt if a theme somehow has none curated.
+      const applyMap = td.applyByTheme as Record<string, string[]>;
+      const applyQuestions = applyMap[theme.id] ?? [prompts[sel.promptIndex]];
+
       // "Christ in this passage" — look up a curated insight for this verse.
       const conn = getChristConnectionById(ref.book, ref.chapter, ref.verse);
       const lang = language === 'es' ? 'es' : 'en';
@@ -161,7 +166,7 @@ export default function DailyLightScreen() {
         verse: ref.verse,
         text: row?.text ?? '',
         reference: `${display} ${ref.chapter}:${ref.verse}`,
-        prompt: prompts[sel.promptIndex],
+        applyQuestions,
         themeId: theme.id,
         themeName: localizedTheme?.name ?? theme.id,
         themeAccent: theme.accent,
@@ -179,6 +184,7 @@ export default function DailyLightScreen() {
     }
   }, [
     td.prompts,
+    td.applyByTheme,
     language,
     achievementService,
     t.themes.list,
@@ -374,7 +380,7 @@ export default function DailyLightScreen() {
               </View>
             ) : null}
 
-            {/* Reflection */}
+            {/* Reflection — theme-tied application questions (S97) */}
             <View
               style={[
                 styles.card,
@@ -383,13 +389,23 @@ export default function DailyLightScreen() {
               <AppText
                 scaleRole="compact"
                 style={[styles.cardLabel, {color: colors.primary}]}>
-                {td.reflectLabel}
+                {td.applyTitle}
               </AppText>
-              <AppText
-                scaleRole="body"
-                style={[styles.promptText, {color: colors.text}]}>
-                {content.prompt}
-              </AppText>
+              {content.applyQuestions.map((q, i) => (
+                <View key={i} style={styles.applyRow}>
+                  <View
+                    style={[
+                      styles.applyBullet,
+                      {backgroundColor: colors.primary},
+                    ]}
+                  />
+                  <AppText
+                    scaleRole="body"
+                    style={[styles.applyText, {color: colors.text}]}>
+                    {q}
+                  </AppText>
+                </View>
+              ))}
             </View>
 
             {/* Theme of the day */}
@@ -558,7 +574,14 @@ const styles = StyleSheet.create({
     paddingRight: verseTextRightSlack(fontSizes.lg),
   },
   verseRef: {fontSize: fontSizes.sm, fontWeight: '600'},
-  promptText: {fontSize: fontSizes.md, lineHeight: fontSizes.md * 1.5},
+  applyRow: {flexDirection: 'row', alignItems: 'flex-start', gap: spacing.sm},
+  applyBullet: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+    marginTop: fontSizes.md * 0.6,
+  },
+  applyText: {flex: 1, fontSize: fontSizes.md, lineHeight: fontSizes.md * 1.5},
   christHeader: {flexDirection: 'row', alignItems: 'center'},
   christText: {fontSize: fontSizes.md, lineHeight: fontSizes.md * 1.55},
   christPointsTo: {

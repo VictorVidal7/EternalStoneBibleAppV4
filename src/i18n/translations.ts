@@ -741,6 +741,79 @@ export const translations = {
         '¿Qué promesa de Dios ves aquí?',
         'Quédate un momento en silencio con esta palabra.',
       ],
+      applyTitle: 'Para aplicar',
+      applyByTheme: {
+        faith: [
+          '¿En qué área de tu vida Dios te llama a confiar en lo que aún no ves?',
+          '¿Qué paso de obediencia darías hoy si creyeras de verdad su promesa?',
+          'Habla con Dios sobre la duda que más te cuesta entregarle.',
+        ],
+        love: [
+          '¿A quién pondrá Dios hoy en tu camino para amar como Él te ama?',
+          '¿Hay alguien a quien te cueste amar? Pide gracia para dar el primer paso.',
+          '¿Cómo has experimentado el amor de Dios esta semana?',
+        ],
+        hope: [
+          '¿Qué circunstancia necesitas mirar hoy a la luz de la esperanza en Cristo?',
+          '¿Dónde has puesto tu esperanza últimamente? Vuélvela a poner en Él.',
+          'Da gracias por una promesa de Dios que sostiene tu esperanza.',
+        ],
+        peace: [
+          '¿Qué preocupación puedes entregar a Dios ahora mismo en oración?',
+          '¿Qué cambiaría en tu día si descansaras en la paz de Cristo?',
+          'Respira hondo y descansa: «En paz me acostaré y dormiré» (Salmos 4:8).',
+        ],
+        strength: [
+          '¿En qué debilidad necesitas hoy la fuerza de Dios, y no la tuya?',
+          '¿A quién podrías pedir ayuda, reconociendo que no estás solo?',
+          'Pídele a Dios fuerzas para lo que tienes por delante hoy.',
+        ],
+        forgiveness: [
+          '¿Hay alguien a quien necesitas perdonar, como Cristo te perdonó?',
+          '¿Qué necesitas confesar y soltar delante de Dios hoy?',
+          'Agradece a Dios por el perdón que tienes en Jesús.',
+        ],
+        wisdom: [
+          '¿Qué decisión tienes por delante? Pídele a Dios sabiduría (Santiago 1:5).',
+          '¿En qué consejo estás confiando más que en la Palabra de Dios?',
+          '¿Qué te enseña este pasaje sobre cómo vivir sabiamente hoy?',
+        ],
+        prayer: [
+          '¿Qué le quieres decir a Dios ahora mismo, con tus propias palabras?',
+          '¿Por quién podrías interceder hoy?',
+          'Tómate un momento en silencio para escuchar a Dios.',
+        ],
+        courage: [
+          '¿Qué temor te está frenando? Entrégaselo a Dios.',
+          '¿Qué acto de valentía te pide hoy seguir a Jesús?',
+          'Recuerda una vez en que Dios estuvo contigo y dale gracias.',
+        ],
+        comfort: [
+          '¿Dónde necesitas el consuelo de Dios hoy?',
+          '¿A quién que sufre podrías consolar con el consuelo que has recibido?',
+          'Derrama tu corazón delante de Dios; Él te escucha.',
+        ],
+        joy: [
+          '¿Por qué tres cosas puedes dar gracias a Dios hoy?',
+          '¿Cómo puedes buscar tu gozo en el Señor y no en las circunstancias?',
+          'Comparte hoy una palabra de aliento con alguien.',
+        ],
+        grace: [
+          '¿Dónde estás intentando ganar lo que Dios ya te da por gracia?',
+          '¿Cómo puedes extender a otros la gracia que has recibido?',
+          'Descansa hoy en que el amor de Dios no depende de tu desempeño.',
+        ],
+        salvation: [
+          '¿Has puesto tu confianza en Cristo para tu salvación?',
+          '¿Con quién podrías compartir la esperanza del evangelio?',
+          'Da gracias a Dios por el don de la vida eterna en Jesús.',
+        ],
+        guidance: [
+          '¿En qué decisión necesitas hoy la dirección de Dios?',
+          '¿Estás dispuesto a seguir el camino de Dios aunque sea distinto al tuyo?',
+          'Pídele a Dios que alumbre tus pasos con su Palabra (Salmos 119:105).',
+        ],
+      },
     },
     christConnections: {
       cardTitle: 'Cristo en este pasaje',
@@ -3132,6 +3205,79 @@ export const translations = {
         'What promise of God do you see here?',
         'Sit quietly with this word for a moment.',
       ],
+      applyTitle: 'To apply',
+      applyByTheme: {
+        faith: [
+          'In what area of your life is God calling you to trust what you cannot yet see?',
+          'What step of obedience would you take today if you truly believed His promise?',
+          'Talk with God about the doubt you find hardest to hand over.',
+        ],
+        love: [
+          'Who will God place in your path today to love as He loves you?',
+          'Is there someone you find hard to love? Ask for grace to take the first step.',
+          'How have you experienced the love of God this week?',
+        ],
+        hope: [
+          'What circumstance do you need to see today in the light of hope in Christ?',
+          'Where have you been placing your hope lately? Set it again on Him.',
+          'Give thanks for a promise of God that holds up your hope.',
+        ],
+        peace: [
+          'What worry can you hand to God in prayer right now?',
+          'What would change in your day if you rested in the peace of Christ?',
+          'Breathe deeply and rest: "I will both lay me down in peace, and sleep" (Psalm 4:8).',
+        ],
+        strength: [
+          "In what weakness do you need God's strength today, not your own?",
+          'Whom could you ask for help, admitting you are not alone?',
+          'Ask God for strength for what lies ahead of you today.',
+        ],
+        forgiveness: [
+          'Is there someone you need to forgive, as Christ forgave you?',
+          'What do you need to confess and let go before God today?',
+          'Thank God for the forgiveness you have in Jesus.',
+        ],
+        wisdom: [
+          'What decision is before you? Ask God for wisdom (James 1:5).',
+          'What counsel are you trusting more than the Word of God?',
+          'What does this passage teach you about living wisely today?',
+        ],
+        prayer: [
+          'What do you want to say to God right now, in your own words?',
+          'Whom could you intercede for today?',
+          'Take a quiet moment to listen to God.',
+        ],
+        courage: [
+          'What fear is holding you back? Hand it over to God.',
+          'What act of courage is following Jesus asking of you today?',
+          'Remember a time God was with you, and give Him thanks.',
+        ],
+        comfort: [
+          'Where do you need the comfort of God today?',
+          'Who that is hurting could you comfort with the comfort you have received?',
+          'Pour out your heart before God; He hears you.',
+        ],
+        joy: [
+          'What three things can you thank God for today?',
+          'How can you seek your joy in the Lord and not in circumstances?',
+          'Share a word of encouragement with someone today.',
+        ],
+        grace: [
+          'Where are you trying to earn what God already gives you by grace?',
+          'How can you extend to others the grace you have received?',
+          "Rest today in the truth that God's love does not depend on your performance.",
+        ],
+        salvation: [
+          'Have you placed your trust in Christ for your salvation?',
+          'With whom could you share the hope of the gospel?',
+          'Thank God for the gift of eternal life in Jesus.',
+        ],
+        guidance: [
+          "In what decision do you need God's direction today?",
+          "Are you willing to follow God's way even when it differs from yours?",
+          'Ask God to light your steps with His Word (Psalm 119:105).',
+        ],
+      },
     },
     christConnections: {
       cardTitle: 'Christ in this passage',
