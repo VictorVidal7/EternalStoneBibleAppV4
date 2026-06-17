@@ -44,7 +44,10 @@ import {
   getChristConnectionById,
   parseChristRef,
   formatChristRefLabel,
+  christLangForVersion,
+  versionAbbrev,
 } from '@/features/study/christConnections';
+import {translations} from '@/i18n/translations';
 import {buildVerseKey} from '@lib/memory/srs';
 import {
   borderRadius,
@@ -74,9 +77,13 @@ interface DailyContent {
   bookDate?: string;
   bookTheme?: string;
   // "Christ in this passage" — present only when the day's verse is curated.
+  // Labels follow the Bible version's language (S98), not the UI language.
   christNote?: string;
+  christCardTitle?: string; // localized "Christ in this passage" (version lang)
+  christPointsToWord?: string; // localized "Points to Christ" (version lang)
   christPointsTo?: string; // localized fulfillment label, e.g. "Juan 10:11"
   christFulfillmentText?: string; // fulfillment verse text in the selected version
+  christVersionAbbrev?: string; // selected version label, e.g. "RVR1960"
   christNavBook?: string; // localized book name for navigation
   christNavChapter?: number;
   christNavVerse?: number;
@@ -151,8 +158,12 @@ export default function DailyLightScreen() {
       const applyQuestions = applyMap[theme.id] ?? [prompts[sel.promptIndex]];
 
       // "Christ in this passage" — look up a curated insight for this verse.
+      // The card speaks the language of the SELECTED Bible version (S98), so
+      // its note + labels match the verse beside them, even when the app's
+      // interface language differs (e.g. English UI + RVR1960).
       const conn = getChristConnectionById(ref.book, ref.chapter, ref.verse);
-      const lang = language === 'es' ? 'es' : 'en';
+      const christLang = christLangForVersion(version);
+      const cc = translations[christLang].christConnections;
       let christNote: string | undefined;
       let christPointsTo: string | undefined;
       let christFulfillmentText: string | undefined;
@@ -160,14 +171,14 @@ export default function DailyLightScreen() {
       let christNavChapter: number | undefined;
       let christNavVerse: number | undefined;
       if (conn) {
-        const notes = t.christConnections.notes as Record<string, string>;
+        const notes = cc.notes as Record<string, string>;
         christNote = notes[conn.id];
         if (conn.fulfillment) {
           const fp = parseChristRef(conn.fulfillment);
           const fbook = fp ? getBookByName(fp.book) : undefined;
           if (fp && fbook) {
-            christPointsTo = formatChristRefLabel(conn.fulfillment, lang);
-            christNavBook = lang === 'en' ? fbook.nameEn : fbook.name;
+            christPointsTo = formatChristRefLabel(conn.fulfillment, christLang);
+            christNavBook = christLang === 'en' ? fbook.nameEn : fbook.name;
             christNavChapter = fp.chapter;
             christNavVerse = fp.verse;
             // Ground the connection in the reader's OWN Bible version: show the
@@ -201,8 +212,11 @@ export default function DailyLightScreen() {
         bookDate: intro?.date,
         bookTheme: intro?.theme,
         christNote,
+        christCardTitle: cc.cardTitle,
+        christPointsToWord: cc.pointsTo,
         christPointsTo,
         christFulfillmentText,
+        christVersionAbbrev: versionAbbrev(version),
         christNavBook,
         christNavChapter,
         christNavVerse,
@@ -410,7 +424,7 @@ export default function DailyLightScreen() {
                       styles.cardLabel,
                       {color: colors.primary, marginLeft: spacing['1.5']},
                     ]}>
-                    {t.christConnections.cardTitle}
+                    {content.christCardTitle ?? t.christConnections.cardTitle}
                   </AppText>
                 </View>
                 <AppText
@@ -435,7 +449,9 @@ export default function DailyLightScreen() {
                         styles.christVerseRef,
                         {color: colors.textSecondary},
                       ]}>
-                      {`— ${content.christPointsTo}`}
+                      {content.christVersionAbbrev
+                        ? `— ${content.christPointsTo} · ${content.christVersionAbbrev}`
+                        : `— ${content.christPointsTo}`}
                     </AppText>
                   </View>
                 ) : null}
@@ -450,7 +466,7 @@ export default function DailyLightScreen() {
                     ]}
                     onPress={handleOpenFulfillment}
                     accessibilityRole="button"
-                    accessibilityLabel={`${t.christConnections.pointsTo}: ${content.christPointsTo}`}>
+                    accessibilityLabel={`${content.christPointsToWord ?? t.christConnections.pointsTo}: ${content.christPointsTo}`}>
                     <Ionicons
                       name="arrow-forward"
                       size={14}
@@ -462,7 +478,7 @@ export default function DailyLightScreen() {
                         styles.christPointsToText,
                         {color: colors.primary},
                       ]}>
-                      {`${t.christConnections.pointsTo} · ${content.christPointsTo}`}
+                      {`${content.christPointsToWord ?? t.christConnections.pointsTo} · ${content.christPointsTo}`}
                     </AppText>
                   </TouchableOpacity>
                 ) : null}

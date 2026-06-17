@@ -80,6 +80,7 @@ import {
   parseChristRef,
   formatChristRefLabel,
 } from '@/features/study/christConnections';
+import {translations} from '@/i18n/translations';
 import {timeOfDay, homeNudge} from '@/lib/home/homeGreeting';
 import {planPace, formatDayReadings} from '@/lib/reading/planPace';
 
@@ -752,11 +753,12 @@ export default function HomeScreen() {
                   dailyVerse.verse,
                 )
               : null;
-            const lang = language === 'es' ? 'es' : 'en';
+            // The card speaks the SELECTED Bible version's language (S98), so
+            // its note + labels match the verse, even with a different UI lang.
+            const christLang = selectedVersion.language === 'es' ? 'es' : 'en';
+            const christCC = translations[christLang].christConnections;
             const christNote = christConn
-              ? (t.christConnections.notes as Record<string, string>)[
-                  christConn.id
-                ]
+              ? (christCC.notes as Record<string, string>)[christConn.id]
               : undefined;
             let christPointsTo: string | undefined;
             let christNav:
@@ -768,10 +770,10 @@ export default function HomeScreen() {
               if (fp && fbook) {
                 christPointsTo = formatChristRefLabel(
                   christConn.fulfillment,
-                  lang,
+                  christLang,
                 );
                 christNav = {
-                  book: lang === 'en' ? fbook.nameEn : fbook.name,
+                  book: christLang === 'en' ? fbook.nameEn : fbook.name,
                   chapter: fp.chapter,
                   verse: fp.verse,
                 };
@@ -880,6 +882,9 @@ export default function HomeScreen() {
                     christNote={christNote}
                     christPointsTo={christPointsTo}
                     christFulfillmentText={christFulfillmentText}
+                    christCardTitle={christCC.cardTitle}
+                    christPointsToLabel={christCC.pointsTo}
+                    christVersionAbbrev={selectedVersion.abbreviation}
                     onChristPointsTo={
                       christNav
                         ? () =>

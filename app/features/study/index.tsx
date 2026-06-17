@@ -41,7 +41,10 @@ import {
   getChristConnectionById,
   parseChristRef,
   formatChristRefLabel,
+  christLangForVersion,
+  versionAbbrev,
 } from '@/features/study/christConnections';
+import {translations} from '@/i18n/translations';
 import {logger} from '@lib/utils/logger';
 import {
   borderRadius,
@@ -133,8 +136,11 @@ export default function StudyScreen() {
   // focus verse, with the fulfillment verse text in the selected version.
   const [christ, setChrist] = useState<{
     note: string;
+    cardTitle: string;
+    pointsToWord: string;
     pointsTo?: string;
     fulfillmentText?: string;
+    versionAbbrev?: string;
     nav?: {book: string; chapter: number; verse: number};
   } | null>(null);
 
@@ -159,14 +165,17 @@ export default function StudyScreen() {
       setReferences(refs);
       setReferencedBy(refBy);
 
-      // "Christ in this passage" for the focus verse, when curated (S98).
-      const lang = language === 'es' ? 'es' : 'en';
+      // "Christ in this passage" for the focus verse, when curated (S98). The
+      // card speaks the SELECTED Bible version's language so it matches the
+      // verse, even when the app interface language differs.
+      const christLang = christLangForVersion(version);
+      const cc = translations[christLang].christConnections;
       const focusBook = getBookByName(book);
       const conn = focusBook
         ? getChristConnectionById(focusBook.id, chapter, verse)
         : null;
       const note = conn
-        ? (t.christConnections.notes as Record<string, string>)[conn.id]
+        ? (cc.notes as Record<string, string>)[conn.id]
         : undefined;
       if (conn && note) {
         let pointsTo: string | undefined;
@@ -176,9 +185,9 @@ export default function StudyScreen() {
           const fp = parseChristRef(conn.fulfillment);
           const fbook = fp ? getBookByName(fp.book) : undefined;
           if (fp && fbook) {
-            pointsTo = formatChristRefLabel(conn.fulfillment, lang);
+            pointsTo = formatChristRefLabel(conn.fulfillment, christLang);
             nav = {
-              book: lang === 'en' ? fbook.nameEn : fbook.name,
+              book: christLang === 'en' ? fbook.nameEn : fbook.name,
               chapter: fp.chapter,
               verse: fp.verse,
             };
@@ -191,7 +200,15 @@ export default function StudyScreen() {
             fulfillmentText = frow?.text ?? undefined;
           }
         }
-        setChrist({note, pointsTo, fulfillmentText, nav});
+        setChrist({
+          note,
+          cardTitle: cc.cardTitle,
+          pointsToWord: cc.pointsTo,
+          pointsTo,
+          fulfillmentText,
+          versionAbbrev: versionAbbrev(version),
+          nav,
+        });
       } else {
         setChrist(null);
       }
@@ -203,15 +220,7 @@ export default function StudyScreen() {
       });
       setStatus('error');
     }
-  }, [
-    connections,
-    params.version,
-    book,
-    chapter,
-    verse,
-    language,
-    t.christConnections.notes,
-  ]);
+  }, [connections, params.version, book, chapter, verse, language]);
 
   useEffect(() => {
     load();
@@ -375,7 +384,7 @@ export default function StudyScreen() {
                     <AppText
                       scaleRole="compact"
                       style={[styles.christLabel, {color: colors.primary}]}>
-                      {t.christConnections.cardTitle}
+                      {christ.cardTitle}
                     </AppText>
                   </View>
                   <Text style={[styles.christNote, {color: colors.text}]}>
@@ -397,7 +406,9 @@ export default function StudyScreen() {
                           styles.christVerseRef,
                           {color: colors.textSecondary},
                         ]}>
-                        {`— ${christ.pointsTo}`}
+                        {christ.versionAbbrev
+                          ? `— ${christ.pointsTo} · ${christ.versionAbbrev}`
+                          : `— ${christ.pointsTo}`}
                       </AppText>
                     </View>
                   ) : null}
@@ -418,7 +429,7 @@ export default function StudyScreen() {
                         );
                       }}
                       accessibilityRole="button"
-                      accessibilityLabel={`${t.christConnections.pointsTo}: ${christ.pointsTo}`}>
+                      accessibilityLabel={`${christ.pointsToWord}: ${christ.pointsTo}`}>
                       <Ionicons
                         name="arrow-forward"
                         size={14}
@@ -430,7 +441,7 @@ export default function StudyScreen() {
                           styles.christChipText,
                           {color: colors.primary},
                         ]}>
-                        {`${t.christConnections.pointsTo} · ${christ.pointsTo}`}
+                        {`${christ.pointsToWord} · ${christ.pointsTo}`}
                       </AppText>
                     </TouchableOpacity>
                   ) : null}

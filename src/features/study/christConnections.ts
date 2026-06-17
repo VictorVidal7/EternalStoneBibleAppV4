@@ -25,7 +25,7 @@
  * Para la gloria de Dios Todopoderoso ✨
  */
 
-import {getBookById, getBookByName} from '@/constants/bible';
+import {getBookById, getBookByName, BIBLE_VERSIONS} from '@/constants/bible';
 
 /** A canonical "EnglishBook/Chapter/Verse" reference key. */
 export type ChristRefKey = string;
@@ -116,6 +116,25 @@ export const CHRIST_CONNECTIONS: readonly ChristConnection[] = [
   {id: 'revelation-21-4', ref: 'Revelation/21/4'},
   {id: 'revelation-21-5', ref: 'Revelation/21/5'},
 ];
+
+/**
+ * The language the "Christ in this passage" card should speak (Sprint 98). The
+ * card sits right beside Scripture shown in the SELECTED Bible version, so its
+ * note + labels follow that version's language (RVR1960 → 'es', KJV/WEB →
+ * 'en') — keeping the whole card coherent even when the app's interface
+ * language differs from the Bible version. Falls back to 'en' for an unknown id.
+ */
+export function christLangForVersion(
+  versionId: string | null | undefined,
+): 'es' | 'en' {
+  const v = BIBLE_VERSIONS.find(x => x.id === versionId);
+  return v?.language === 'es' ? 'es' : 'en';
+}
+
+/** The display abbreviation for a Bible version id, or '' if unknown. */
+export function versionAbbrev(versionId: string | null | undefined): string {
+  return BIBLE_VERSIONS.find(x => x.id === versionId)?.abbreviation ?? '';
+}
 
 /** Parse a "Book/Chapter/Verse" key into its parts, or null if malformed. */
 export function parseChristRef(key: ChristRefKey): {
