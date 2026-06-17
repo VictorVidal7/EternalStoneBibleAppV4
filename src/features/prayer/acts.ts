@@ -69,6 +69,8 @@ export const ACTS_STEPS: Record<ActsStep, ActsStepMeta> = {
       'Revelation/4/11',
       'Psalms/103/1',
       '1 Chronicles/29/11',
+      'Psalms/96/4',
+      'Isaiah/6/3',
     ],
   },
   confession: {
@@ -83,6 +85,8 @@ export const ACTS_STEPS: Record<ActsStep, ActsStepMeta> = {
       'Proverbs/28/13',
       'Psalms/32/5',
       'James/5/16',
+      'Psalms/51/1',
+      'Isaiah/55/7',
     ],
   },
   thanksgiving: {
@@ -97,6 +101,8 @@ export const ACTS_STEPS: Record<ActsStep, ActsStepMeta> = {
       'Colossians/3/17',
       'Psalms/136/1',
       'Ephesians/5/20',
+      'Psalms/103/2',
+      'Psalms/118/1',
     ],
   },
   supplication: {
@@ -111,6 +117,8 @@ export const ACTS_STEPS: Record<ActsStep, ActsStepMeta> = {
       'John/15/7',
       'James/1/5',
       '1 John/5/14',
+      'Matthew/6/8',
+      '1 Thessalonians/5/17',
     ],
   },
 };
