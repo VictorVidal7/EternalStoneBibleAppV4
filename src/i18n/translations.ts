@@ -1562,6 +1562,25 @@ export const translations = {
         name: 'Génesis - El Principio',
         description: 'Descubre el origen de todo en el libro de Génesis',
       },
+      bibleYear: {
+        name: 'Toda la Biblia en un Año',
+        description: 'Recorre toda la Escritura en 365 días, en orden canónico',
+      },
+      redemption: {
+        name: 'Cristo en toda la Biblia',
+        description:
+          'La historia de la redención: 31 pasajes clave que apuntan a Jesús, de Génesis a Apocalipsis',
+      },
+      wisdom: {
+        name: 'Sabiduría Diaria: Salmo y Proverbio',
+        description:
+          'Cada día un Salmo y un capítulo de Proverbios, para empezar o cerrar el día',
+      },
+      firstSteps: {
+        name: 'Primeros pasos con Jesús',
+        description:
+          'Un camino suave de 21 días para nuevos creyentes y para volver a empezar',
+      },
     },
 
     // Reading Plan Screen
@@ -1621,6 +1640,12 @@ export const translations = {
       memoryReminderDesc: 'Te recordamos repasar tus versículos cada día',
       memoryReminderEnabled: 'Recordatorio de repaso activado',
       memoryReminderDisabled: 'Recordatorio de repaso desactivado',
+      prayerReminderTitle: 'Recordatorio de oración',
+      prayerReminder: 'Recordatorio de oración',
+      prayerReminderDesc:
+        'Una invitación gentil a orar cada día, a la hora que elijas',
+      prayerReminderEnabled: 'Recordatorio de oración activado',
+      prayerReminderDisabled: 'Recordatorio de oración desactivado',
       permissionDeniedTitle: 'Permiso necesario',
       permissionDeniedMessage:
         'Para recibir el versículo diario, activa las notificaciones de la app en los ajustes del sistema.',
@@ -3786,6 +3811,26 @@ export const translations = {
         name: 'Genesis - The Beginning',
         description: 'Discover the origin of everything in the book of Genesis',
       },
+      bibleYear: {
+        name: 'The Whole Bible in a Year',
+        description:
+          'Journey through all of Scripture in 365 days, in canonical order',
+      },
+      redemption: {
+        name: 'Christ in All of Scripture',
+        description:
+          'The story of redemption: 31 key passages that point to Jesus, from Genesis to Revelation',
+      },
+      wisdom: {
+        name: 'Daily Wisdom: a Psalm and a Proverb',
+        description:
+          'A Psalm and a chapter of Proverbs each day, to begin or end your day',
+      },
+      firstSteps: {
+        name: 'First Steps with Jesus',
+        description:
+          'A gentle 21-day path for new believers and for beginning again',
+      },
     },
 
     // Reading Plan Screen
@@ -3844,6 +3889,12 @@ export const translations = {
       memoryReminderDesc: 'A daily nudge to review your memory verses',
       memoryReminderEnabled: 'Review reminder turned on',
       memoryReminderDisabled: 'Review reminder turned off',
+      prayerReminderTitle: 'Prayer reminder',
+      prayerReminder: 'Prayer reminder',
+      prayerReminderDesc:
+        'A gentle daily invitation to pray, at the time you choose',
+      prayerReminderEnabled: 'Prayer reminder turned on',
+      prayerReminderDisabled: 'Prayer reminder turned off',
       permissionDeniedTitle: 'Permission needed',
       permissionDeniedMessage:
         'To receive the daily verse, enable notifications for the app in your system settings.',

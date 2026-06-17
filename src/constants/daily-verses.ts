@@ -195,6 +195,32 @@ export const DAILY_VERSE_REFS: DailyVerseRef[] = [
   {book: 66, chapter: 3, verse: 20}, // Revelation 3:20
   {book: 66, chapter: 21, verse: 4}, // Revelation 21:4
   {book: 66, chapter: 21, verse: 5}, // Revelation 21:5
+
+  // Sprint 95 — Christ-centred additions, so the most-seen verse leans the
+  // reader toward the Lord Jesus (2 Pet 3:18). The day pick is index-based and
+  // order-independent, so these are appended rather than re-sorted in place.
+  {book: 23, chapter: 9, verse: 6}, // Isaiah 9:6 — unto us a child is born
+  {book: 40, chapter: 28, verse: 6}, // Matthew 28:6 — He is risen
+  {book: 42, chapter: 19, verse: 10}, // Luke 19:10 — to seek and to save the lost
+  {book: 43, chapter: 1, verse: 14}, // John 1:14 — the Word made flesh
+  {book: 43, chapter: 6, verse: 35}, // John 6:35 — I am the bread of life
+  {book: 43, chapter: 10, verse: 11}, // John 10:11 — I am the good shepherd
+  {book: 43, chapter: 11, verse: 25}, // John 11:25 — I am the resurrection
+  {book: 44, chapter: 4, verse: 12}, // Acts 4:12 — no other name
+  {book: 44, chapter: 16, verse: 31}, // Acts 16:31 — believe on the Lord Jesus
+  {book: 45, chapter: 8, verse: 32}, // Romans 8:32 — he that spared not his own Son
+  {book: 47, chapter: 5, verse: 21}, // 2 Corinthians 5:21 — made him to be sin for us
+  {book: 48, chapter: 6, verse: 14}, // Galatians 6:14 — glory in the cross
+  {book: 49, chapter: 1, verse: 7}, // Ephesians 1:7 — redemption through his blood
+  {book: 50, chapter: 2, verse: 9}, // Philippians 2:9 — God hath highly exalted him
+  {book: 51, chapter: 1, verse: 16}, // Colossians 1:16 — by him all things created
+  {book: 54, chapter: 1, verse: 15}, // 1 Timothy 1:15 — Christ came to save sinners
+  {book: 56, chapter: 2, verse: 11}, // Titus 2:11 — the grace of God that bringeth salvation
+  {book: 58, chapter: 7, verse: 25}, // Hebrews 7:25 — able to save to the uttermost
+  {book: 60, chapter: 2, verse: 24}, // 1 Peter 2:24 — bore our sins in his own body
+  {book: 61, chapter: 3, verse: 18}, // 2 Peter 3:18 — grow in grace and knowledge
+  {book: 62, chapter: 4, verse: 10}, // 1 John 4:10 — he loved us, the propitiation
+  {book: 66, chapter: 1, verse: 8}, // Revelation 1:8 — Alpha and Omega
 ];
 
 /** Day of the year (1-366) for the given date, in local time. */

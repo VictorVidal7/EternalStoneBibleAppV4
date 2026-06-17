@@ -85,6 +85,7 @@ import {PremiumProvider} from '@context/PremiumContext';
 import {
   refreshDailyVerseNotifications,
   refreshMemoryReminders,
+  refreshPrayerReminders,
 } from '@lib/notifications/NotificationService';
 
 function AppContent() {
@@ -113,6 +114,8 @@ function AppContent() {
     });
     // Sprint 47 — top up the memorization review reminder window too.
     refreshMemoryReminders({language}).catch(() => {});
+    // Sprint 95 — and the gentle prayer reminder window.
+    refreshPrayerReminders({language}).catch(() => {});
   }, [isLoading, language, selectedVersion.id]);
 
   async function initializeApp() {

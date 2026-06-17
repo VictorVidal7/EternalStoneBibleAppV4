@@ -1,6 +1,7 @@
 // Planes de lectura bíblica
 
 import type {TranslationKeys} from '../i18n/translations';
+import {BIBLE_BOOKS} from './bible';
 
 export interface ReadingPlanDay {
   day: number;
@@ -17,7 +18,11 @@ export type ReadingPlanI18nKey =
   | 'psalms'
   | 'gospels'
   | 'newTestament'
-  | 'genesis';
+  | 'genesis'
+  | 'bibleYear'
+  | 'redemption'
+  | 'wisdom'
+  | 'firstSteps';
 
 export interface ReadingPlan {
   id: string;
@@ -632,12 +637,168 @@ const genesisMonth: ReadingPlan = {
   }),
 };
 
+// Plan: Toda la Biblia en un año (365 días, orden canónico).
+// Generado a partir de la tabla canónica de libros para no duplicar datos: se
+// aplanan los 1189 capítulos en orden y se reparten lo más uniformemente
+// posible en 365 días (≈3-4 capítulos diarios). El reparto usa límites
+// proporcionales (floor) para no perder ni repetir capítulos; un día puede
+// cerrar un libro y abrir el siguiente, lo cual es natural en un plan anual.
+const BIBLE_YEAR_DAYS = 365;
+const allCanonicalChapters: {book: string; chapter: number}[] = [...BIBLE_BOOKS]
+  .sort((a, b) => a.id - b.id)
+  .flatMap(b =>
+    Array.from({length: b.chapters}, (_, i) => ({
+      book: b.name,
+      chapter: i + 1,
+    })),
+  );
+const bibleInAYear: ReadingPlan = {
+  id: 'bible-year',
+  name: 'Toda la Biblia en un Año',
+  description: 'Recorre toda la Escritura en 365 días, en orden canónico',
+  i18nKey: 'bibleYear',
+  duration: BIBLE_YEAR_DAYS,
+  icon: 'calendar-outline',
+  color: '#1D4ED8',
+  days: Array.from({length: BIBLE_YEAR_DAYS}, (_, i) => {
+    const total = allCanonicalChapters.length;
+    const start = Math.floor((i * total) / BIBLE_YEAR_DAYS);
+    const end = Math.floor(((i + 1) * total) / BIBLE_YEAR_DAYS);
+    return {day: i + 1, readings: allCanonicalChapters.slice(start, end)};
+  }),
+};
+
+// Plan: Cristo en toda la Biblia (la historia de la redención).
+// Un capítulo clave por día, de Génesis a Apocalipsis, trazando el hilo del
+// evangelio: cómo toda la Escritura apunta al Señor Jesús (Lc 24:27). No es
+// un recorrido completo de un libro, sino las cumbres de la promesa cumplida
+// en Cristo — para crecer en el conocimiento de Él (2 Pe 3:18).
+const REDEMPTION_CHAPTERS: {book: string; chapter: number}[] = [
+  {book: 'Génesis', chapter: 1}, // La creación por la Palabra
+  {book: 'Génesis', chapter: 3}, // La caída y la primera promesa (3:15)
+  {book: 'Génesis', chapter: 22}, // Abraham e Isaac: la sustitución
+  {book: 'Éxodo', chapter: 12}, // El cordero de la Pascua
+  {book: 'Levítico', chapter: 16}, // El día de la expiación
+  {book: 'Números', chapter: 21}, // La serpiente de bronce (Jn 3:14)
+  {book: 'Deuteronomio', chapter: 18}, // El profeta como Moisés
+  {book: '2 Samuel', chapter: 7}, // El pacto con David: trono eterno
+  {book: 'Salmos', chapter: 22}, // La cruz anunciada
+  {book: 'Salmos', chapter: 110}, // El Señor a la diestra: sacerdote y rey
+  {book: 'Isaías', chapter: 7}, // Emanuel
+  {book: 'Isaías', chapter: 9}, // Un niño nos es nacido
+  {book: 'Isaías', chapter: 53}, // El siervo sufriente
+  {book: 'Jeremías', chapter: 31}, // El nuevo pacto
+  {book: 'Ezequiel', chapter: 36}, // Un corazón nuevo
+  {book: 'Daniel', chapter: 7}, // El Hijo del Hombre
+  {book: 'Miqueas', chapter: 5}, // Belén
+  {book: 'Zacarías', chapter: 9}, // Tu rey viene, humilde
+  {book: 'Lucas', chapter: 1}, // La anunciación
+  {book: 'Lucas', chapter: 2}, // El nacimiento de Jesús
+  {book: 'Juan', chapter: 1}, // El Verbo hecho carne
+  {book: 'Juan', chapter: 3}, // De tal manera amó Dios
+  {book: 'Mateo', chapter: 5}, // El reino del Rey
+  {book: 'Marcos', chapter: 10}, // Rescate por muchos (10:45)
+  {book: 'Juan', chapter: 19}, // La crucifixión
+  {book: 'Lucas', chapter: 24}, // La resurrección y "todas las Escrituras"
+  {book: 'Hechos', chapter: 2}, // El Señor exaltado, Pentecostés
+  {book: 'Romanos', chapter: 8}, // Ninguna condenación, más que vencedores
+  {book: 'Hebreos', chapter: 9}, // El sacrificio de una vez para siempre
+  {book: 'Apocalipsis', chapter: 5}, // El Cordero que fue inmolado
+  {book: 'Apocalipsis', chapter: 21}, // Cielo nuevo y tierra nueva
+];
+const redemptionStory: ReadingPlan = {
+  id: 'redemption-31',
+  name: 'Cristo en toda la Biblia',
+  description:
+    'La historia de la redención: 31 pasajes clave que apuntan a Jesús, de Génesis a Apocalipsis',
+  i18nKey: 'redemption',
+  duration: REDEMPTION_CHAPTERS.length,
+  icon: 'sparkles-outline',
+  color: '#9D174D',
+  days: REDEMPTION_CHAPTERS.map((reading, i) => ({
+    day: i + 1,
+    readings: [reading],
+  })),
+};
+
+// Plan: Sabiduría diaria (un Salmo y un Proverbio cada día).
+// Empareja un Salmo escogido con el capítulo de Proverbios del día (1..31) —
+// la oración cantada de los Salmos junto a la sabiduría práctica de los
+// Proverbios, una combinación devocional muy querida.
+const WISDOM_PSALMS = [
+  1, 8, 16, 19, 23, 27, 32, 34, 37, 40, 42, 46, 51, 63, 73, 84, 90, 91, 96, 100,
+  103, 107, 111, 116, 121, 126, 130, 138, 139, 145, 150,
+];
+const wisdomDaily: ReadingPlan = {
+  id: 'wisdom-31',
+  name: 'Sabiduría Diaria: Salmo y Proverbio',
+  description:
+    'Cada día un Salmo y un capítulo de Proverbios, para empezar o cerrar el día',
+  i18nKey: 'wisdom',
+  duration: WISDOM_PSALMS.length,
+  icon: 'leaf-outline',
+  color: '#D97706',
+  days: WISDOM_PSALMS.map((psalm, i) => ({
+    day: i + 1,
+    readings: [
+      {book: 'Salmos', chapter: psalm},
+      {book: 'Proverbios', chapter: i + 1},
+    ],
+  })),
+};
+
+// Plan: Primeros pasos con Jesús (21 días).
+// Un camino suave para nuevos creyentes y para volver a empezar: quién es
+// Jesús, el amor del Padre, el Sermón del Monte, la cruz y la resurrección, y
+// la vida nueva en el Espíritu. Un capítulo manejable por día.
+const FIRST_STEPS_CHAPTERS: {book: string; chapter: number}[] = [
+  {book: 'Juan', chapter: 1}, // Quién es Jesús
+  {book: 'Juan', chapter: 3}, // Nacer de nuevo / de tal manera amó Dios
+  {book: 'Lucas', chapter: 15}, // El amor del Padre por el perdido
+  {book: 'Juan', chapter: 4}, // La mujer junto al pozo
+  {book: 'Marcos', chapter: 1}, // Jesús comienza su ministerio
+  {book: 'Mateo', chapter: 5}, // El Sermón del Monte (I)
+  {book: 'Mateo', chapter: 6}, // El Sermón del Monte (II): oración
+  {book: 'Mateo', chapter: 7}, // El Sermón del Monte (III)
+  {book: 'Salmos', chapter: 23}, // El Señor es mi pastor
+  {book: 'Salmos', chapter: 1}, // Los dos caminos
+  {book: 'Juan', chapter: 6}, // El pan de vida
+  {book: 'Juan', chapter: 10}, // El buen pastor
+  {book: 'Lucas', chapter: 24}, // La resurrección
+  {book: 'Hechos', chapter: 2}, // Nace la iglesia
+  {book: 'Romanos', chapter: 5}, // Paz con Dios
+  {book: 'Romanos', chapter: 6}, // Muertos al pecado, vivos para Dios
+  {book: 'Romanos', chapter: 8}, // La vida en el Espíritu
+  {book: '1 Corintios', chapter: 13}, // El amor
+  {book: 'Filipenses', chapter: 4}, // Gozo, oración, contentamiento
+  {book: 'Efesios', chapter: 2}, // Salvos por gracia
+  {book: 'Juan', chapter: 15}, // Permaneced en mí
+];
+const firstSteps: ReadingPlan = {
+  id: 'first-steps-21',
+  name: 'Primeros pasos con Jesús',
+  description:
+    'Un camino suave de 21 días para nuevos creyentes y para volver a empezar',
+  i18nKey: 'firstSteps',
+  duration: FIRST_STEPS_CHAPTERS.length,
+  icon: 'footsteps-outline',
+  color: '#0891B2',
+  days: FIRST_STEPS_CHAPTERS.map((reading, i) => ({
+    day: i + 1,
+    readings: [reading],
+  })),
+};
+
 export const READING_PLANS: ReadingPlan[] = [
-  proverbsMonth,
-  psalms30Days,
+  firstSteps,
+  redemptionStory,
   gospels40Days,
   newTestament30Days,
+  wisdomDaily,
+  psalms30Days,
+  proverbsMonth,
   genesisMonth,
+  bibleInAYear,
 ];
 
 export function getReadingPlanById(id: string): ReadingPlan | undefined {

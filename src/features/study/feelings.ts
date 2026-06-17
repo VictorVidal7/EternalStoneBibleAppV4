@@ -53,6 +53,9 @@ export const FEELINGS: readonly Feeling[] = [
       'John/14/27',
       'Psalms/55/22',
       'Psalms/94/19',
+      'Philippians/4/7',
+      'Isaiah/26/3',
+      'Matthew/6/25',
     ],
   },
   {
@@ -66,6 +69,10 @@ export const FEELINGS: readonly Feeling[] = [
       'Psalms/46/10',
       'Philippians/4/13',
       'Psalms/121/1',
+      'Matthew/11/28',
+      '2 Corinthians/4/8',
+      'Psalms/142/3',
+      'Deuteronomy/33/27',
     ],
   },
   {
@@ -80,6 +87,9 @@ export const FEELINGS: readonly Feeling[] = [
       'Revelation/21/4',
       '2 Corinthians/1/3',
       'John/16/22',
+      'Psalms/30/5',
+      'Isaiah/61/3',
+      'Lamentations/3/32',
     ],
   },
   {
@@ -94,6 +104,9 @@ export const FEELINGS: readonly Feeling[] = [
       '2 Corinthians/12/9',
       'Galatians/6/9',
       'Exodus/33/14',
+      'Isaiah/40/29',
+      'Matthew/11/29',
+      'Psalms/116/7',
     ],
   },
   {
@@ -108,6 +121,9 @@ export const FEELINGS: readonly Feeling[] = [
       '2 Timothy/1/7',
       'Psalms/27/1',
       'Deuteronomy/31/6',
+      'Psalms/34/4',
+      'Isaiah/43/1',
+      '1 John/4/18',
     ],
   },
   {
@@ -122,6 +138,9 @@ export const FEELINGS: readonly Feeling[] = [
       'Psalms/68/6',
       'Isaiah/43/2',
       'Hebrews/13/5',
+      'John/14/18',
+      'Psalms/27/10',
+      'Psalms/139/7',
     ],
   },
   {
@@ -136,6 +155,9 @@ export const FEELINGS: readonly Feeling[] = [
       'Isaiah/1/18',
       'Micah/7/19',
       'Psalms/51/10',
+      'Romans/5/8',
+      'Psalms/32/1',
+      'Hebrews/8/12',
     ],
   },
   {
@@ -150,6 +172,9 @@ export const FEELINGS: readonly Feeling[] = [
       'Psalms/37/8',
       'Proverbs/16/32',
       'Colossians/3/13',
+      'Ephesians/4/31',
+      'Proverbs/19/11',
+      'Romans/12/19',
     ],
   },
   {
@@ -164,6 +189,9 @@ export const FEELINGS: readonly Feeling[] = [
       'Isaiah/55/8',
       'Psalms/119/105',
       'Proverbs/16/9',
+      'Proverbs/3/6',
+      'Isaiah/30/21',
+      'Psalms/25/4',
     ],
   },
   {
@@ -177,6 +205,10 @@ export const FEELINGS: readonly Feeling[] = [
       'Lamentations/3/22',
       'Psalms/42/11',
       'Romans/8/28',
+      'Lamentations/3/23',
+      'Hebrews/6/19',
+      'Psalms/31/24',
+      'Romans/5/5',
     ],
   },
   {
@@ -191,6 +223,9 @@ export const FEELINGS: readonly Feeling[] = [
       'Colossians/3/17',
       'James/1/17',
       'Psalms/136/1',
+      'Psalms/103/2',
+      'Ephesians/5/20',
+      'Psalms/9/1',
     ],
   },
   {
@@ -205,6 +240,9 @@ export const FEELINGS: readonly Feeling[] = [
       'Nehemiah/8/10',
       'John/15/11',
       'Psalms/126/3',
+      '1 Peter/1/8',
+      'Psalms/28/7',
+      'Habakkuk/3/18',
     ],
   },
 ];

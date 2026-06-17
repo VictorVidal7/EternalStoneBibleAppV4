@@ -20,11 +20,14 @@ describe('feelings — emotional check-in taxonomy', () => {
       expect(new Set(ids).size).toBe(ids.length);
     });
 
-    it('every feeling has an icon, a hex accent and at least 4 verses', () => {
+    it('every feeling has an icon, a hex accent and a rich verse pool', () => {
+      // Sprint 95 widened every pool to ~9 curated refs so the per-day
+      // rotation has more breathing room before it repeats; lock the richer
+      // floor so a future trim is caught.
       for (const feeling of FEELINGS) {
         expect(feeling.icon).toBeTruthy();
         expect(feeling.accent).toMatch(/^#[0-9A-Fa-f]{6}$/);
-        expect(feeling.verseRefs.length).toBeGreaterThanOrEqual(4);
+        expect(feeling.verseRefs.length).toBeGreaterThanOrEqual(8);
       }
     });
 
