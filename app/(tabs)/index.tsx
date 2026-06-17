@@ -1176,7 +1176,12 @@ export default function HomeScreen() {
             horizontal
             showsHorizontalScrollIndicator={false}
             contentContainerStyle={styles.plansScroll}>
-            {READING_PLANS.slice(0, 3).map(plan => {
+            {/* Show the WHOLE catalogue (Sprint 95): this horizontal carousel
+                was capped at slice(0, 3), which hid every plan past the third —
+                so the 4 new plans (and 2 older ones) were unreachable, as the
+                user noticed. The carousel scrolls, so it comfortably carries
+                all of them. */}
+            {READING_PLANS.map(plan => {
               const planDays = getCompletedDays(plan.id);
               const planDaysDone = planDays.length;
               const localizedPlan = getLocalizedPlan(plan, t);
