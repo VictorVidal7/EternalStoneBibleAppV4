@@ -29,6 +29,7 @@ import {useMemoryDeck} from '@context/MemoryDeckContext';
 import {getBookByName} from '@/constants/bible';
 import {applyMask, MASK_LEVEL_PERCENT, maskLevelForBox} from '@lib/memory/srs';
 import type {ReviewGrade} from '@lib/memory/srs';
+import {MemoryGuideModal} from '@components/MemoryGuideModal';
 import {
   borderRadius,
   fontSize as fontSizes,
@@ -55,6 +56,7 @@ export default function MemoryPracticeScreen() {
   const [queue] = useState(() => [...dueCards]);
   const [index, setIndex] = useState(0);
   const [revealed, setRevealed] = useState(false);
+  const [guideVisible, setGuideVisible] = useState(false);
 
   const total = queue.length;
   const card = queue[index];
@@ -111,13 +113,25 @@ export default function MemoryPracticeScreen() {
           start={{x: 0, y: 0}}
           end={{x: 0, y: 1}}
           style={[styles.header, {paddingTop: insets.top + spacing.md}]}>
-          <TouchableOpacity
-            style={styles.backButton}
-            onPress={() => router.back()}
-            accessibilityRole="button"
-            accessibilityLabel={t.bible.back}>
-            <Ionicons name="close" size={24} color="#FFFFFF" />
-          </TouchableOpacity>
+          <View style={styles.headerTopRow}>
+            <TouchableOpacity
+              style={styles.backButton}
+              onPress={() => router.back()}
+              accessibilityRole="button"
+              accessibilityLabel={t.bible.back}>
+              <Ionicons name="close" size={24} color="#FFFFFF" />
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.backButton}
+              onPress={() => {
+                haptics.tap();
+                setGuideVisible(true);
+              }}
+              accessibilityRole="button"
+              accessibilityLabel={t.memory.guide.openLabel}>
+              <Ionicons name="help-circle-outline" size={24} color="#FFFFFF" />
+            </TouchableOpacity>
+          </View>
 
           <View style={styles.headerTextRow}>
             <Text style={styles.headerTitle}>{t.memory.practice.title}</Text>
@@ -251,6 +265,12 @@ export default function MemoryPracticeScreen() {
             </>
           ) : null}
         </ScrollView>
+
+        {/* "How memorization works" explainer (Sprint 98) */}
+        <MemoryGuideModal
+          visible={guideVisible}
+          onClose={() => setGuideVisible(false)}
+        />
       </View>
     </>
   );
@@ -278,6 +298,12 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.lg,
     paddingBottom: spacing.lg,
   },
+  headerTopRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: spacing.md,
+  },
   backButton: {
     width: 40,
     height: 40,
@@ -285,7 +311,6 @@ const styles = StyleSheet.create({
     backgroundColor: staticColors.glassWhite18,
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: spacing.md,
   },
   headerTextRow: {
     flexDirection: 'row',

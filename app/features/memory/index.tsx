@@ -12,7 +12,7 @@
  * Para la gloria de Dios Todopoderoso ✨
  */
 
-import React, {useEffect, useMemo, useRef} from 'react';
+import React, {useEffect, useMemo, useRef, useState} from 'react';
 import {
   Animated,
   View,
@@ -40,6 +40,7 @@ import {getBookByName} from '@/constants/bible';
 import type {MemoryCard} from '@lib/memory/srs';
 import {isMastered} from '@lib/memory/srs';
 import {WeeklyChallengeCard} from '@components/WeeklyChallengeCard';
+import {MemoryGuideModal} from '@components/MemoryGuideModal';
 import {
   borderRadius,
   fontSize as fontSizes,
@@ -55,6 +56,7 @@ export default function MemoryDeckScreen() {
   const toast = useToast();
   const {cards, dueCards, stats, removeCard} = useMemoryDeck();
   const {history, goal, milestone, dismissMilestone} = useMemoryGoal();
+  const [guideVisible, setGuideVisible] = useState(false);
 
   const headerGradient = useMemo(
     () =>
@@ -117,17 +119,33 @@ export default function MemoryDeckScreen() {
               accessibilityLabel={t.bible.back}>
               <Ionicons name="arrow-back" size={24} color="#FFFFFF" />
             </TouchableOpacity>
-            {!isEmpty && (
+            <View style={styles.headerActions}>
               <TouchableOpacity
                 style={styles.insightsButton}
-                onPress={() =>
-                  router.push('/features/memory/insights' as never)
-                }
+                onPress={() => {
+                  haptics.tap();
+                  setGuideVisible(true);
+                }}
                 accessibilityRole="button"
-                accessibilityLabel={t.memory.insights.openLabel}>
-                <Ionicons name="stats-chart" size={22} color="#FFFFFF" />
+                accessibilityLabel={t.memory.guide.openLabel}>
+                <Ionicons
+                  name="help-circle-outline"
+                  size={24}
+                  color="#FFFFFF"
+                />
               </TouchableOpacity>
-            )}
+              {!isEmpty && (
+                <TouchableOpacity
+                  style={styles.insightsButton}
+                  onPress={() =>
+                    router.push('/features/memory/insights' as never)
+                  }
+                  accessibilityRole="button"
+                  accessibilityLabel={t.memory.insights.openLabel}>
+                  <Ionicons name="stats-chart" size={22} color="#FFFFFF" />
+                </TouchableOpacity>
+              )}
+            </View>
           </View>
 
           <View style={styles.headerTextRow}>
@@ -237,6 +255,12 @@ export default function MemoryDeckScreen() {
         t={t}
         colors={colors}
         onClose={dismissMilestone}
+      />
+
+      {/* "How memorization works" explainer (Sprint 98) */}
+      <MemoryGuideModal
+        visible={guideVisible}
+        onClose={() => setGuideVisible(false)}
       />
     </>
   );
@@ -585,6 +609,11 @@ const styles = StyleSheet.create({
     backgroundColor: staticColors.glassWhite15,
     alignItems: 'center',
     justifyContent: 'center',
+  },
+  headerActions: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.sm,
   },
   insightsButton: {
     width: 44,

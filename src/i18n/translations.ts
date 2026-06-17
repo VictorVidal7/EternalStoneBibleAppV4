@@ -501,7 +501,23 @@ export const translations = {
         doneCta: 'Volver al mazo',
         boxLabel: 'Caja {{box}}',
         maskHint: '{{percent}}% oculto',
-        maskNone: 'Sin pistas ocultas',
+        maskNone: 'Versículo completo',
+      },
+      guide: {
+        openLabel: 'Cómo funciona la memorización',
+        title: 'Cómo funciona la memoria',
+        intro:
+          'Memoriza la Palabra con repetición espaciada: repasas cada versículo justo antes de olvidarlo, así se queda contigo sin agobios.',
+        boxesTitle: 'Cajas 1 → 5',
+        boxesBody:
+          'Cada versículo vive en una caja. Cuando lo recuerdas bien sube de caja y tarda más en volver; si te cuesta, baja y vuelve pronto. En la Caja 5 está dominado.',
+        maskTitle: 'Palabras ocultas',
+        maskBody:
+          'En las primeras cajas ves el versículo completo para aprenderlo. A medida que sube de caja se ocultan más palabras, para que lo recuerdes de memoria.',
+        gradeTitle: '¿Cómo te fue?',
+        gradeBody:
+          'Tras revelar el versículo, calificas tu recuerdo: «Otra vez» y «Difícil» lo traen pronto; «Bueno» y «Fácil» lo espacian más. Así el repaso se ajusta a ti.',
+        close: 'Entendido',
       },
       remove: {
         title: 'Quitar de memoria',
@@ -2967,7 +2983,23 @@ export const translations = {
         doneCta: 'Back to deck',
         boxLabel: 'Box {{box}}',
         maskHint: '{{percent}}% hidden',
-        maskNone: 'No words hidden',
+        maskNone: 'Full verse',
+      },
+      guide: {
+        openLabel: 'How memorization works',
+        title: 'How memorization works',
+        intro:
+          'Memorize the Word with spaced repetition: you review each verse just before you would forget it, so it stays with you without strain.',
+        boxesTitle: 'Boxes 1 → 5',
+        boxesBody:
+          'Each verse lives in a box. Recall it well and it moves up a box and comes back less often; struggle and it moves down and returns soon. In Box 5 it is mastered.',
+        maskTitle: 'Hidden words',
+        maskBody:
+          'In the early boxes you see the full verse to learn it. As it climbs the boxes, more words are hidden so you recall it from memory.',
+        gradeTitle: 'How did it go?',
+        gradeBody:
+          'After revealing the verse, you rate your recall: "Again" and "Hard" bring it back soon; "Good" and "Easy" space it out further. The review adapts to you.',
+        close: 'Got it',
       },
       remove: {
         title: 'Remove from memory',
