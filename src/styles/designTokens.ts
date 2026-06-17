@@ -78,7 +78,7 @@ export const fontSize = {
  * all share one documented rationale instead of clipping inconsistently.
  */
 export const verseTextRightSlack = (fontSize: number): number =>
-  Math.max(8, Math.round(fontSize * 0.5));
+  Math.max(10, Math.round(fontSize * 0.6));
 
 export const fontWeight = {
   light: '300',

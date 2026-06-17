@@ -990,7 +990,7 @@ const styles = StyleSheet.create({
     fontSize: 15,
     lineHeight: 15 * 1.5,
     fontStyle: 'italic',
-    paddingRight: 8,
+    paddingRight: verseTextRightSlack(15),
   },
   christVerseRef: {
     fontSize: 13,
