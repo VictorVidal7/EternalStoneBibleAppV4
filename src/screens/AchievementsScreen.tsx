@@ -78,6 +78,9 @@ export const AchievementsScreen: React.FC<AchievementsScreenProps> = ({
     AchievementCategory | 'all'
   >('all');
   const [showStats, setShowStats] = useState(false);
+  // Which "almost there" row has its description revealed (tap to toggle) — so
+  // readers can see what an upcoming achievement actually asks for (Sprint 98).
+  const [expandedAlmostId, setExpandedAlmostId] = useState<string | null>(null);
   const [selectedAchievement, setSelectedAchievement] =
     useState<Achievement | null>(null);
   const [shareItem, setShareItem] = useState<ShareableAccomplishment | null>(
@@ -405,16 +408,24 @@ export const AchievementsScreen: React.FC<AchievementsScreenProps> = ({
                       ✨ {t.achievements.almostThere}
                     </Text>
                     {almostThere.map(a => {
-                      const {name} = getLocalizedAchievement(a, t);
+                      const {name, description} = getLocalizedAchievement(a, t);
                       const pct = Math.min(
                         100,
                         Math.round((a.currentProgress / a.requirement) * 100),
                       );
+                      const expanded = expandedAlmostId === a.id;
                       return (
-                        <View
+                        <TouchableOpacity
                           key={a.id}
                           style={styles.almostRow}
-                          accessible={true}
+                          activeOpacity={0.7}
+                          onPress={() => {
+                            haptics.tap();
+                            setExpandedAlmostId(expanded ? null : a.id);
+                          }}
+                          accessibilityRole="button"
+                          accessibilityState={{expanded}}
+                          accessibilityHint={t.achievements.almostThereHint}
                           accessibilityLabel={t.achievements.almostThereA11y
                             .replace('{{name}}', name)
                             .replace('{{current}}', String(a.currentProgress))
@@ -439,6 +450,12 @@ export const AchievementsScreen: React.FC<AchievementsScreenProps> = ({
                                 ]}>
                                 {a.currentProgress}/{a.requirement}
                               </Text>
+                              <Ionicons
+                                name={expanded ? 'chevron-up' : 'chevron-down'}
+                                size={14}
+                                color={colors.textTertiary}
+                                style={styles.almostChevron}
+                              />
                             </View>
                             <View
                               style={[
@@ -455,8 +472,17 @@ export const AchievementsScreen: React.FC<AchievementsScreenProps> = ({
                                 ]}
                               />
                             </View>
+                            {expanded ? (
+                              <Text
+                                style={[
+                                  styles.almostDescription,
+                                  {color: colors.textSecondary},
+                                ]}>
+                                {description}
+                              </Text>
+                            ) : null}
                           </View>
-                        </View>
+                        </TouchableOpacity>
                       );
                     })}
                   </View>
@@ -695,19 +721,21 @@ const styles = StyleSheet.create({
   },
   almostLabelRow: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'baseline',
+    alignItems: 'center',
     marginBottom: 4,
   },
   almostName: {
     fontSize: fontSize.sm,
     fontWeight: '600',
-    flexShrink: 1,
+    flex: 1,
     marginRight: spacing.sm,
   },
   almostCount: {
     fontSize: fontSize.xs,
     fontVariant: ['tabular-nums'],
+  },
+  almostChevron: {
+    marginLeft: spacing.xs,
   },
   almostTrack: {
     height: 6,
@@ -717,6 +745,11 @@ const styles = StyleSheet.create({
   almostFill: {
     height: '100%',
     borderRadius: 3,
+  },
+  almostDescription: {
+    fontSize: fontSize.xs,
+    lineHeight: fontSize.xs * 1.5,
+    marginTop: spacing.sm,
   },
   emptyContainer: {
     padding: spacing['2xl'],

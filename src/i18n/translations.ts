@@ -1924,6 +1924,7 @@ export const translations = {
       almostThere: 'A punto de lograrse',
       almostThereA11y:
         '{{name}}: {{current}} de {{requirement}} para desbloquear',
+      almostThereHint: 'Toca para ver de qué se trata',
       viewMyTitles: 'Mis títulos',
       viewMyTitlesA11y: 'Ver mis insignias y títulos equipables',
       shareTitle: 'Compartir logro',
@@ -4400,6 +4401,7 @@ export const translations = {
       achievementsUnlocked: 'Unlocked',
       almostThere: 'Almost there',
       almostThereA11y: '{{name}}: {{current}} of {{requirement}} to unlock',
+      almostThereHint: 'Tap to see what it takes',
       viewMyTitles: 'My titles',
       viewMyTitlesA11y: 'View my badges and equippable titles',
       shareTitle: 'Share achievement',
