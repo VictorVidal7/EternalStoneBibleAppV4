@@ -64,6 +64,7 @@ export const BIBLE_THEMES: readonly BibleTheme[] = [
       'Matthew/17/20',
       'James/1/6',
       'Hebrews/11/6',
+      'Habakkuk/2/4',
     ],
   },
   {
@@ -77,6 +78,7 @@ export const BIBLE_THEMES: readonly BibleTheme[] = [
       'Romans/5/8',
       'John/13/34',
       '1 Peter/4/8',
+      '1 John/3/16',
     ],
   },
   {
@@ -90,6 +92,7 @@ export const BIBLE_THEMES: readonly BibleTheme[] = [
       'Romans/5/5',
       'Lamentations/3/24',
       'Psalms/39/7',
+      'Hebrews/6/19',
     ],
   },
   {
@@ -103,6 +106,7 @@ export const BIBLE_THEMES: readonly BibleTheme[] = [
       'Isaiah/26/3',
       'Matthew/11/28',
       'Colossians/3/15',
+      'John/16/33',
     ],
   },
   {
@@ -168,6 +172,7 @@ export const BIBLE_THEMES: readonly BibleTheme[] = [
       'Deuteronomy/31/6',
       'Psalms/56/3',
       'Isaiah/43/1',
+      'Psalms/118/6',
     ],
   },
   {
@@ -181,6 +186,7 @@ export const BIBLE_THEMES: readonly BibleTheme[] = [
       'Revelation/21/4',
       'Psalms/147/3',
       'John/14/1',
+      'Isaiah/41/10',
     ],
   },
   {
