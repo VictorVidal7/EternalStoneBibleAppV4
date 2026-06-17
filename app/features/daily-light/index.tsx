@@ -71,6 +71,7 @@ interface DailyContent {
   // "Christ in this passage" — present only when the day's verse is curated.
   christNote?: string;
   christPointsTo?: string; // localized fulfillment label, e.g. "Juan 10:11"
+  christFulfillmentText?: string; // fulfillment verse text in the selected version
   christNavBook?: string; // localized book name for navigation
   christNavChapter?: number;
   christNavVerse?: number;
@@ -145,6 +146,7 @@ export default function DailyLightScreen() {
       const lang = language === 'es' ? 'es' : 'en';
       let christNote: string | undefined;
       let christPointsTo: string | undefined;
+      let christFulfillmentText: string | undefined;
       let christNavBook: string | undefined;
       let christNavChapter: number | undefined;
       let christNavVerse: number | undefined;
@@ -159,6 +161,16 @@ export default function DailyLightScreen() {
             christNavBook = lang === 'en' ? fbook.nameEn : fbook.name;
             christNavChapter = fp.chapter;
             christNavVerse = fp.verse;
+            // Ground the connection in the reader's OWN Bible version: show the
+            // fulfillment verse text in the selected version, so it matches the
+            // day's passage above (Sprint 98).
+            const frow = await bibleDB.getVerse(
+              fbook.id,
+              fp.chapter,
+              fp.verse,
+              version,
+            );
+            christFulfillmentText = frow?.text ?? undefined;
           }
         }
       }
@@ -178,6 +190,7 @@ export default function DailyLightScreen() {
         streak,
         christNote,
         christPointsTo,
+        christFulfillmentText,
         christNavBook,
         christNavChapter,
         christNavVerse,
@@ -354,6 +367,27 @@ export default function DailyLightScreen() {
                   style={[styles.christText, {color: colors.text}]}>
                   {content.christNote}
                 </AppText>
+                {content.christFulfillmentText && content.christPointsTo ? (
+                  <View
+                    style={[
+                      styles.christVerse,
+                      {borderLeftColor: colors.primary + '55'},
+                    ]}>
+                    <AppText
+                      scaleRole="body"
+                      style={[styles.christVerseText, {color: colors.text}]}>
+                      {`“${content.christFulfillmentText}”`}
+                    </AppText>
+                    <AppText
+                      scaleRole="compact"
+                      style={[
+                        styles.christVerseRef,
+                        {color: colors.textSecondary},
+                      ]}>
+                      {`— ${content.christPointsTo}`}
+                    </AppText>
+                  </View>
+                ) : null}
                 {content.christPointsTo ? (
                   <TouchableOpacity
                     style={[
@@ -588,6 +622,19 @@ const styles = StyleSheet.create({
   applyText: {flex: 1, fontSize: fontSizes.md, lineHeight: fontSizes.md * 1.5},
   christHeader: {flexDirection: 'row', alignItems: 'center'},
   christText: {fontSize: fontSizes.md, lineHeight: fontSizes.md * 1.55},
+  christVerse: {
+    borderLeftWidth: 3,
+    paddingLeft: spacing.md,
+    marginTop: spacing.xs,
+    gap: spacing['0.5'],
+  },
+  christVerseText: {
+    fontSize: fontSizes.md,
+    lineHeight: fontSizes.md * 1.5,
+    fontStyle: 'italic',
+    paddingRight: verseTextRightSlack(fontSizes.md),
+  },
+  christVerseRef: {fontSize: fontSizes.sm, fontWeight: '600'},
   christPointsTo: {
     flexDirection: 'row',
     alignItems: 'center',

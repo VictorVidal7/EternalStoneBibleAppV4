@@ -166,6 +166,14 @@ interface VerseOfDayCardProps {
    */
   christPointsTo?: string;
 
+  /**
+   * The fulfillment verse text in the reader's SELECTED Bible version (Sprint
+   * 98) — shown inline under the note so the connection is grounded in the same
+   * version as the verse above, not just a reference chip. Paired with
+   * {@link christPointsTo}.
+   */
+  christFulfillmentText?: string;
+
   /** Opens the fulfillment verse in the reader; paired with {@link christPointsTo}. */
   onChristPointsTo?: () => void;
 }
@@ -193,6 +201,7 @@ const VerseOfDayCard: React.FC<VerseOfDayCardProps> = ({
   historyEnabled = false,
   christNote,
   christPointsTo,
+  christFulfillmentText,
   onChristPointsTo,
 }) => {
   const {t} = useLanguage();
@@ -701,6 +710,30 @@ const VerseOfDayCard: React.FC<VerseOfDayCardProps> = ({
                     style={[styles.christNoteText, {color: theme.colors.text}]}>
                     {christNote}
                   </Text>
+                  {christFulfillmentText && christPointsTo ? (
+                    <View
+                      style={[
+                        styles.christVerse,
+                        {borderLeftColor: colors.primary + '55'},
+                      ]}>
+                      <Text
+                        scaleRole="body"
+                        style={[
+                          styles.christVerseText,
+                          {color: theme.colors.text},
+                        ]}>
+                        {`“${christFulfillmentText}”`}
+                      </Text>
+                      <Text
+                        scaleRole="compact"
+                        style={[
+                          styles.christVerseRef,
+                          {color: theme.colors.textSecondary},
+                        ]}>
+                        {`— ${christPointsTo}`}
+                      </Text>
+                    </View>
+                  ) : null}
                   {christPointsTo && onChristPointsTo ? (
                     <TouchableOpacity
                       style={[
@@ -947,6 +980,21 @@ const styles = StyleSheet.create({
   christNoteText: {
     fontSize: 15,
     lineHeight: 15 * 1.55,
+  },
+  christVerse: {
+    borderLeftWidth: 3,
+    paddingLeft: 12,
+    gap: 2,
+  },
+  christVerseText: {
+    fontSize: 15,
+    lineHeight: 15 * 1.5,
+    fontStyle: 'italic',
+    paddingRight: 8,
+  },
+  christVerseRef: {
+    fontSize: 13,
+    fontWeight: '600',
   },
   christPointsTo: {
     flexDirection: 'row',

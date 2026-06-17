@@ -174,6 +174,11 @@ export default function HomeScreen() {
     : withOpacity(colors.primary, isDark ? 0.3 : 0.8);
 
   const [dailyVerse, setDailyVerse] = useState<BibleVerse | null>(null);
+  // Fulfillment verse text for the "Christ in this passage" reveal, in the
+  // SELECTED Bible version, so it matches the day's verse (Sprint 98).
+  const [christFulfillmentText, setChristFulfillmentText] = useState<
+    string | undefined
+  >(undefined);
   const [lastRead, setLastRead] = useState<ReadingProgress | null>(null);
   // Last audio position for the premium "Continue listening" card (Sprint 51).
   const [audioResumePos, setAudioResumePos] = useState<PlaybackPosition | null>(
@@ -297,6 +302,40 @@ export default function HomeScreen() {
       favorites: favorites.length,
     }));
   }, [favorites.length]);
+
+  // Resolve the "Christ in this passage" fulfillment verse text in the SELECTED
+  // version (Sprint 98), so the Home reveal shows real scripture in the same
+  // version as the verse above — not just a reference chip.
+  useEffect(() => {
+    let cancelled = false;
+    const bn = dailyVerse?.bookNumber;
+    if (!bn) {
+      setChristFulfillmentText(undefined);
+      return;
+    }
+    const conn = getChristConnectionById(
+      bn,
+      dailyVerse.chapter,
+      dailyVerse.verse,
+    );
+    const fp = conn?.fulfillment ? parseChristRef(conn.fulfillment) : null;
+    const fbook = fp ? getBookByName(fp.book) : undefined;
+    if (!fp || !fbook) {
+      setChristFulfillmentText(undefined);
+      return;
+    }
+    void bibleDB
+      .getVerse(fbook.id, fp.chapter, fp.verse, selectedVersion.id)
+      .then(row => {
+        if (!cancelled) setChristFulfillmentText(row?.text ?? undefined);
+      })
+      .catch(() => {
+        if (!cancelled) setChristFulfillmentText(undefined);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [dailyVerse, selectedVersion.id]);
 
   // Re-resolve the saved audio position whenever the floating player appears
   // or disappears: closing the player CLEARS the stored position (hidePlayer),
@@ -840,6 +879,7 @@ export default function HomeScreen() {
                     }}
                     christNote={christNote}
                     christPointsTo={christPointsTo}
+                    christFulfillmentText={christFulfillmentText}
                     onChristPointsTo={
                       christNav
                         ? () =>
