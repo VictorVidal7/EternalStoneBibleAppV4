@@ -197,30 +197,36 @@ export const MoodImageModal: React.FC<MoodImageModalProps> = ({
                 {subtitle}
               </Text>
 
-              {/* Dominant-feeling hero — the month's defining state. */}
+              {/* Dominant-feeling hero — the month's defining state. The days
+                  line sits on its OWN row below so the feeling name keeps the
+                  full width and never truncates (e.g. "Grat…" — Sprint 98). */}
               {dominant ? (
-                <View style={styles.heroRow}>
-                  <View
-                    style={[
-                      styles.heroIcon,
-                      {borderColor: template.textColor},
-                    ]}>
-                    <Ionicons
-                      name={dominant.icon as keyof typeof Ionicons.glyphMap}
-                      size={28}
-                      color={template.textColor}
-                    />
-                  </View>
-                  <View style={styles.heroText}>
-                    <Text
-                      style={[styles.heroLabel, {color: template.textColor}]}>
-                      {ri.moodMonthDominant}
-                    </Text>
-                    <Text
-                      style={[styles.heroName, {color: template.textColor}]}
-                      numberOfLines={1}>
-                      {dominantName}
-                    </Text>
+                <View style={styles.hero}>
+                  <View style={styles.heroRow}>
+                    <View
+                      style={[
+                        styles.heroIcon,
+                        {borderColor: template.textColor},
+                      ]}>
+                      <Ionicons
+                        name={dominant.icon as keyof typeof Ionicons.glyphMap}
+                        size={28}
+                        color={template.textColor}
+                      />
+                    </View>
+                    <View style={styles.heroText}>
+                      <Text
+                        style={[styles.heroLabel, {color: template.textColor}]}>
+                        {ri.moodMonthDominant}
+                      </Text>
+                      <Text
+                        style={[styles.heroName, {color: template.textColor}]}
+                        numberOfLines={2}
+                        adjustsFontSizeToFit
+                        minimumFontScale={0.7}>
+                        {dominantName}
+                      </Text>
+                    </View>
                   </View>
                   <Text style={[styles.heroDays, {color: template.textColor}]}>
                     {daysLine}
@@ -415,11 +421,10 @@ const styles = StyleSheet.create({
     opacity: 0.85,
     marginTop: spacing.xs,
   },
+  hero: {marginTop: spacing.lg, marginBottom: spacing.sm},
   heroRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginTop: spacing.lg,
-    marginBottom: spacing.sm,
   },
   heroIcon: {
     width: 48,
@@ -443,7 +448,7 @@ const styles = StyleSheet.create({
     fontSize: fontSizes.sm,
     fontWeight: '600',
     opacity: 0.9,
-    marginLeft: spacing.sm,
+    marginTop: spacing.sm,
   },
   bars: {marginTop: spacing.md, gap: spacing.sm},
   barRow: {flexDirection: 'row', alignItems: 'center'},
