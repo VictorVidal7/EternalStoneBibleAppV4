@@ -244,7 +244,12 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     padding: 16,
     paddingHorizontal: 14, // Más espacio horizontal para el texto
-    minHeight: 220,
+    // FIXED height (Sprint 95) so every plan card in the Home carousel is the
+    // exact same size: `minHeight` let cards grow with their text (1- vs 2-line
+    // name / description), so they looked uneven. The `content` block is
+    // flex:1, so it absorbs the slack and the progress circle + footer stay
+    // anchored; text is already capped with numberOfLines so nothing clips.
+    height: 288,
     justifyContent: 'space-between',
     overflow: 'hidden',
   },
