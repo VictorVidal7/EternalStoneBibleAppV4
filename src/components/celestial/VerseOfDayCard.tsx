@@ -152,6 +152,22 @@ interface VerseOfDayCardProps {
    * gates the whole affordance instead.
    */
   historyEnabled?: boolean;
+
+  /**
+   * "Christ in this passage" (Sprint 97) — a brief, faithful note showing how
+   * today's verse points to / reveals Jesus, already localized by the owner.
+   * When present the card shows a collapsible "Christ in this passage" reveal.
+   */
+  christNote?: string;
+
+  /**
+   * Localized fulfillment ref label for the reveal's "Points to Christ" chip
+   * (e.g. "John 10:11"). Omit for NT verses that reveal Christ directly.
+   */
+  christPointsTo?: string;
+
+  /** Opens the fulfillment verse in the reader; paired with {@link christPointsTo}. */
+  onChristPointsTo?: () => void;
 }
 
 const VerseOfDayCard: React.FC<VerseOfDayCardProps> = ({
@@ -175,6 +191,9 @@ const VerseOfDayCard: React.FC<VerseOfDayCardProps> = ({
   onNextDay,
   onToday,
   historyEnabled = false,
+  christNote,
+  christPointsTo,
+  onChristPointsTo,
 }) => {
   const {t} = useLanguage();
   const {colors} = useTheme();
@@ -188,6 +207,12 @@ const VerseOfDayCard: React.FC<VerseOfDayCardProps> = ({
   // Sprint 67: shared, reduce-motion-aware press depress (see usePressScale).
   const press = usePressScale();
   const [isFavorited, setIsFavorited] = useState(false);
+  // "Christ in this passage" reveal — collapsed by default to keep the card
+  // minimal; resets whenever the day's note changes (history nav / new day).
+  const [christExpanded, setChristExpanded] = useState(false);
+  useEffect(() => {
+    setChristExpanded(false);
+  }, [christNote]);
 
   // "See it in …" inline peek (Sprint 77): which alternate version is open,
   // plus a per-version text cache so each translation loads at most once.
@@ -643,6 +668,70 @@ const VerseOfDayCard: React.FC<VerseOfDayCardProps> = ({
               <Ionicons name="arrow-forward" size={16} color={colors.primary} />
             </TouchableOpacity>
           ) : null}
+
+          {/* Christ in this passage (S97) — a collapsible reveal so the card
+              stays minimal; only rendered when today's verse is curated. */}
+          {christNote ? (
+            <View>
+              <TouchableOpacity
+                style={[
+                  styles.studyCta,
+                  {borderTopColor: theme.colors.glassBorder},
+                ]}
+                onPress={() => setChristExpanded(v => !v)}
+                accessibilityRole="button"
+                accessibilityLabel={t.christConnections.cardTitle}
+                accessibilityState={{expanded: christExpanded}}>
+                <Ionicons name="sparkles" size={18} color={colors.primary} />
+                <Text
+                  scaleRole="compact"
+                  style={[styles.studyCtaText, {color: colors.primary}]}>
+                  {t.christConnections.cardTitle}
+                </Text>
+                <Ionicons
+                  name={christExpanded ? 'chevron-up' : 'chevron-down'}
+                  size={16}
+                  color={colors.primary}
+                />
+              </TouchableOpacity>
+              {christExpanded ? (
+                <View style={styles.christBody}>
+                  <Text
+                    scaleRole="body"
+                    style={[styles.christNoteText, {color: theme.colors.text}]}>
+                    {christNote}
+                  </Text>
+                  {christPointsTo && onChristPointsTo ? (
+                    <TouchableOpacity
+                      style={[
+                        styles.christPointsTo,
+                        {
+                          borderColor: colors.primary + '55',
+                          backgroundColor: colors.primary + '12',
+                        },
+                      ]}
+                      onPress={onChristPointsTo}
+                      accessibilityRole="button"
+                      accessibilityLabel={`${t.christConnections.pointsTo}: ${christPointsTo}`}>
+                      <Ionicons
+                        name="arrow-forward"
+                        size={14}
+                        color={colors.primary}
+                      />
+                      <Text
+                        scaleRole="compact"
+                        style={[
+                          styles.christPointsToText,
+                          {color: colors.primary},
+                        ]}>
+                        {`${t.christConnections.pointsTo} · ${christPointsTo}`}
+                      </Text>
+                    </TouchableOpacity>
+                  ) : null}
+                </View>
+              ) : null}
+            </View>
+          ) : null}
         </BlurView>
       </TouchableOpacity>
     </Animated.View>
@@ -850,6 +939,28 @@ const styles = StyleSheet.create({
   studyBadgeText: {
     fontSize: 12,
     fontWeight: '800',
+  },
+  christBody: {
+    marginTop: 12,
+    gap: 12,
+  },
+  christNoteText: {
+    fontSize: 15,
+    lineHeight: 15 * 1.55,
+  },
+  christPointsTo: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    alignSelf: 'flex-start',
+    gap: 6,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 999,
+    borderWidth: 1,
+  },
+  christPointsToText: {
+    fontSize: 12,
+    fontWeight: '700',
   },
 });
 

@@ -75,6 +75,11 @@ import {
 } from '@/features/audio';
 import type {PlaybackPosition} from '@/features/audio';
 import {getStudyConnections} from '@/features/study/studyConnections';
+import {
+  getChristConnectionById,
+  parseChristRef,
+  formatChristRefLabel,
+} from '@/features/study/christConnections';
 import {timeOfDay, homeNudge} from '@/lib/home/homeGreeting';
 import {planPace, formatDayReadings} from '@/lib/reading/planPace';
 
@@ -694,6 +699,40 @@ export default function HomeScreen() {
               dailyVerse.chapter,
               dailyVerse.verse,
             ).totalConnections;
+            // "Christ in this passage" (S97) — a curated, faithful note when
+            // today's verse points to / reveals Jesus.
+            const christConn = dailyVerse.bookNumber
+              ? getChristConnectionById(
+                  dailyVerse.bookNumber,
+                  dailyVerse.chapter,
+                  dailyVerse.verse,
+                )
+              : null;
+            const lang = language === 'es' ? 'es' : 'en';
+            const christNote = christConn
+              ? (t.christConnections.notes as Record<string, string>)[
+                  christConn.id
+                ]
+              : undefined;
+            let christPointsTo: string | undefined;
+            let christNav:
+              | {book: string; chapter: number; verse: number}
+              | undefined;
+            if (christConn?.fulfillment) {
+              const fp = parseChristRef(christConn.fulfillment);
+              const fbook = fp ? getBookByName(fp.book) : undefined;
+              if (fp && fbook) {
+                christPointsTo = formatChristRefLabel(
+                  christConn.fulfillment,
+                  lang,
+                );
+                christNav = {
+                  book: lang === 'en' ? fbook.nameEn : fbook.name,
+                  chapter: fp.chapter,
+                  verse: fp.verse,
+                };
+              }
+            }
             return (
               <Animated.View
                 style={{
@@ -794,6 +833,18 @@ export default function HomeScreen() {
                         }
                       }
                     }}
+                    christNote={christNote}
+                    christPointsTo={christPointsTo}
+                    onChristPointsTo={
+                      christNav
+                        ? () =>
+                            handlePress(() =>
+                              router.push(
+                                `/verse/${christNav.book}/${christNav.chapter}?verse=${christNav.verse}` as never,
+                              ),
+                            )
+                        : undefined
+                    }
                   />
                 </ShimmerCard>
               </Animated.View>

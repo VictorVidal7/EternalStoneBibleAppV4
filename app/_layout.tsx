@@ -86,6 +86,7 @@ import {
   refreshDailyVerseNotifications,
   refreshMemoryReminders,
   refreshPrayerReminders,
+  refreshDevotionReminders,
 } from '@lib/notifications/NotificationService';
 
 function AppContent() {
@@ -116,6 +117,8 @@ function AppContent() {
     refreshMemoryReminders({language}).catch(() => {});
     // Sprint 95 — and the gentle prayer reminder window.
     refreshPrayerReminders({language}).catch(() => {});
+    // Sprint 97 — and the gentle "time in the Word" devotion reminder window.
+    refreshDevotionReminders({language}).catch(() => {});
   }, [isLoading, language, selectedVersion.id]);
 
   async function initializeApp() {
