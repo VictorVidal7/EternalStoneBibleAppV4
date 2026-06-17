@@ -120,11 +120,16 @@ const SAVED_CARD_GAP = 12;
 // screen width would size the cards too wide for the column and they'd wrap to
 // a single column. On phones this is a no-op (screen is narrower than the cap).
 const EFFECTIVE_CONTENT_WIDTH = Math.min(SCREEN_WIDTH, CONTENT_MAX_WIDTH);
-// Saved grid is now 2×2 (Favorites, Notes, Highlights, Bookmarks) so
-// each card spans half the content width minus a single inter-card gap.
-const SAVED_CARD_WIDTH =
+// Saved/Explore grids are 2×2, so each card spans half the content width minus
+// a single inter-card gap. FLOOR the width: the exact half + gap fills the
+// available row to the pixel, and Yoga's subpixel rounding then tips the second
+// card onto its own row (collapsing the grid to ONE column on some densities,
+// e.g. the Pixel 9 Pro @ 480dpi). Flooring leaves a sub-dp of slack so two
+// cards + the gap always fit and the 2-column layout holds.
+const SAVED_CARD_WIDTH = Math.floor(
   (EFFECTIVE_CONTENT_WIDTH - CONTENT_HORIZONTAL_PADDING * 2 - SAVED_CARD_GAP) /
-  2;
+    2,
+);
 
 export default function HomeScreen() {
   const router = useRouter();
