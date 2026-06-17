@@ -785,7 +785,9 @@ export default function HomeScreen() {
                   opacity: fadeAnim,
                   marginTop: celestialSpacing.cardGap,
                 }}>
-                <ShimmerCard glowColor={colors.primary}>
+                {/* Glow-only (S98): the calm pulsing glow, no left-to-right
+                    sweep — homologated with every other Home card. */}
+                <ShimmerCard glowColor={colors.primary} shimmerEnabled={false}>
                   <VerseOfDayCard
                     // Re-key per browsed day (Sprint 78) so the S77 per-
                     // version peek cache + local favorite flash reset with
