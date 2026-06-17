@@ -205,8 +205,8 @@ const ReadingPlanCard: React.FC<ReadingPlanCardProps> = ({
           <View style={styles.progressContainer}>
             <ProgressCircle
               progress={progress}
-              size={60}
-              strokeWidth={5}
+              size={52}
+              strokeWidth={4}
               gradientColors={[
                 accentColor,
                 themeColors.primaryDark || accentColor,
@@ -249,7 +249,10 @@ const styles = StyleSheet.create({
     // name / description), so they looked uneven. The `content` block is
     // flex:1, so it absorbs the slack and the progress circle + footer stay
     // anchored; text is already capped with numberOfLines so nothing clips.
-    height: 288,
+    // Kept as compact as the tallest content allows (2-line name + subtitle +
+    // 2-line description); a smaller progress circle + tighter margins let it
+    // drop from 288 → 262.
+    height: 262,
     justifyContent: 'space-between',
     overflow: 'hidden',
   },
@@ -257,7 +260,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    marginBottom: 10,
+    marginBottom: 8,
   },
   iconContainer: {
     width: 36,
@@ -277,7 +280,7 @@ const styles = StyleSheet.create({
   },
   content: {
     flex: 1,
-    marginBottom: 8,
+    marginBottom: 6,
     paddingRight: 4, // Espacio extra para evitar que el texto toque el borde
   },
   name: {
@@ -300,7 +303,7 @@ const styles = StyleSheet.create({
   },
   progressContainer: {
     alignItems: 'center',
-    marginVertical: 12,
+    marginVertical: 8,
     position: 'relative',
   },
   progressTextContainer: {
