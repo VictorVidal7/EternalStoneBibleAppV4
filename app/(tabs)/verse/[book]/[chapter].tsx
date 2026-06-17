@@ -1957,7 +1957,22 @@ export default function VerseReadingScreen() {
               // size. Still derived solely from fontSize → read/idle parity and
               // no playback reflow are preserved; a few px of extra ragged-right
               // margin is imperceptible on devices that never clipped.
-              paddingRight: Math.max(14, Math.round(fontSize * 0.6)),
+              //
+              // Sprint 95: this gutter is a MARGIN, not paddingRight. Two
+              // reasons the user surfaced: (1) with `textAlign: 'justify'`,
+              // internal right PADDING on an Android <Text> disables the native
+              // inter-word justification — lines fall back to ragged-left, so
+              // justified mode "looked like it wasn't justified". A margin lives
+              // OUTSIDE the text box, so Android still justifies the content
+              // normally. (2) For justified text, padding can't prevent the
+              // clip anyway — justify fills to the content-box right edge, so
+              // shrinking the box with padding just relocates the same edge-
+              // clip inward. A margin reserves real space to the RIGHT of the
+              // box where a glyph's overhanging side-bearing can paint without
+              // being canvas-clipped. Identical gutter width, still fontSize-
+              // derived (read/idle parity, no playback reflow); now it protects
+              // BOTH alignments and keeps justify rendering as justify.
+              marginRight: Math.max(14, Math.round(fontSize * 0.6)),
             } as const;
 
             const numberStyle = {
