@@ -742,6 +742,137 @@ export const translations = {
         'Quédate un momento en silencio con esta palabra.',
       ],
     },
+    christConnections: {
+      cardTitle: 'Cristo en este pasaje',
+      cardSubtitle: 'Toda la Escritura habla de Él (Lucas 24:27)',
+      pointsTo: 'Apunta a Cristo',
+      notes: {
+        'genesis-1-1':
+          'En el principio Dios creó todo. Y todo fue hecho por medio de su Hijo, la Palabra eterna; sin Él nada de lo que existe llegó a ser.',
+        'exodus-15-2':
+          '«El Señor es mi salvación.» El nombre Jesús significa «el Señor salva»: lo que Israel cantó junto al mar se cumple en Cristo, en quien Dios nos rescata para siempre.',
+        'numbers-6-24':
+          'La bendición sacerdotal —que el Señor te guarde y te dé paz— se derrama plenamente en Cristo, de cuya plenitud todos recibimos gracia sobre gracia.',
+        'psalms-23-1':
+          '«El Señor es mi pastor.» Jesús dijo: «Yo soy el buen pastor», y dio su vida por las ovejas. El Pastor del salmo tiene rostro: es Cristo.',
+        'psalms-34-18':
+          'Dios está cerca de los quebrantados de corazón. En Jesús, Dios mismo se acercó y llama: «Venid a mí todos los que estáis cansados, y yo os haré descansar».',
+        'isaiah-9-6':
+          '«Un niño nos ha nacido, hijo nos ha sido dado... Príncipe de paz.» Esta profecía se cumple en el nacimiento de Jesús, el Salvador, Cristo el Señor.',
+        'isaiah-12-2':
+          '«Dios es mi salvación.» El profeta espera al Salvador que vendría; ese Salvador es Jesús, cuyo nombre mismo proclama que el Señor salva.',
+        'isaiah-40-31':
+          'Los que esperan en el Señor renuevan sus fuerzas. Esa fuerza tiene un nombre: Jesús invita a los cansados a venir a Él para hallar descanso.',
+        'isaiah-53-5':
+          '«Herido fue por nuestras rebeliones... por su llaga fuimos nosotros curados.» Siglos antes, Isaías describió la cruz: el siervo sufriente es Cristo, que llevó nuestros pecados.',
+        'lamentations-3-22':
+          'Las misericordias del Señor nunca se acaban. Esa fidelidad se hizo carne: la gracia y la verdad vinieron por medio de Jesucristo.',
+        'lamentations-3-23':
+          '«Nuevas son cada mañana; grande es tu fidelidad.» La fidelidad inmutable de Dios resplandece en Cristo, el mismo ayer, hoy y por los siglos.',
+        'micah-6-8':
+          'Hacer justicia, amar misericordia y caminar humildemente con Dios: lo que el Señor pide, Jesús lo vivió perfectamente. «Misericordia quiero, y no sacrificio», dijo Él.',
+        'matthew-11-28':
+          'Jesús mismo invita: «Venid a mí... y yo os haré descansar». El descanso del alma no es un método, sino una Persona: el Señor que carga lo que tú no puedes.',
+        'matthew-28-6':
+          '«No está aquí, pues ha resucitado.» La tumba vacía lo cambia todo: Cristo vive, y en Él la muerte ha sido vencida.',
+        'matthew-28-19':
+          'El Señor resucitado envía a hacer discípulos de todas las naciones. Toda la misión de la iglesia brota de su autoridad y de su promesa: «Yo estoy con vosotros todos los días».',
+        'luke-1-37':
+          '«Nada hay imposible para Dios.» Se dijo del nacimiento de Jesús: Dios mismo entró en el mundo como hombre. El Imposible se hizo niño.',
+        'luke-19-10':
+          '«El Hijo del Hombre vino a buscar y a salvar lo que se había perdido.» En una frase, la misión de Jesús: vino por ti.',
+        'john-1-1':
+          '«En el principio era el Verbo, y el Verbo era con Dios, y el Verbo era Dios.» Jesús no es un profeta más: es Dios eterno hecho hombre.',
+        'john-1-14':
+          '«Aquel Verbo fue hecho carne, y habitó entre nosotros.» El Dios infinito se hizo uno de nosotros para salvarnos: este es el corazón del evangelio.',
+        'john-3-16':
+          'El evangelio en un versículo: el amor del Padre, el don del Hijo, y la vida eterna para todo el que cree en Jesús.',
+        'john-6-35':
+          '«Yo soy el pan de vida.» Lo que el alma más necesita no es una cosa, sino Cristo mismo; quien viene a Él nunca más tendrá hambre.',
+        'john-8-12':
+          '«Yo soy la luz del mundo.» En un mundo a oscuras, seguir a Jesús es caminar en la luz de la vida.',
+        'john-10-10':
+          '«Yo he venido para que tengan vida, y para que la tengan en abundancia.» Cristo no vino a quitarte la vida, sino a dártela plena.',
+        'john-10-11':
+          '«Yo soy el buen pastor; el buen pastor su vida da por las ovejas.» El Pastor de los salmos es Jesús, que muere por ti para llevarte a casa.',
+        'john-11-25':
+          '«Yo soy la resurrección y la vida.» Frente a la tumba de su amigo, Jesús no ofreció una doctrina, sino su propia persona como la victoria sobre la muerte.',
+        'john-14-1':
+          '«No se turbe vuestro corazón; creéis en Dios, creed también en mí.» Jesús pone la confianza en Él al nivel de la confianza en Dios: descansar en Cristo es descansar en Dios.',
+        'john-14-6':
+          '«Yo soy el camino, la verdad y la vida; nadie viene al Padre, sino por mí.» No uno de muchos caminos: Cristo es el único y suficiente camino a Dios.',
+        'john-15-5':
+          '«Yo soy la vid, vosotros los pámpanos.» Toda vida y todo fruto vienen de permanecer unidos a Jesús; separados de Él nada podemos hacer.',
+        'john-16-33':
+          '«En el mundo tendréis aflicción; pero confiad, yo he vencido al mundo.» La paz de Cristo no niega el dolor: descansa en su victoria.',
+        'acts-4-12':
+          '«En ningún otro hay salvación.» No hay otro nombre dado a los hombres en que podamos ser salvos: solo Jesús.',
+        'acts-16-31':
+          '«Cree en el Señor Jesucristo, y serás salvo.» La salvación no se gana: se recibe confiando en Cristo.',
+        'romans-5-1':
+          'Justificados por la fe, tenemos paz para con Dios por medio de nuestro Señor Jesucristo. La guerra terminó: la cruz hizo la paz.',
+        'romans-5-8':
+          '«Siendo aún pecadores, Cristo murió por nosotros.» El amor de Dios no esperó a que mejoráramos: se demostró en la cruz.',
+        'romans-6-23':
+          '«La paga del pecado es muerte, mas la dádiva de Dios es vida eterna en Cristo Jesús.» Lo que merecíamos lo cambió por lo que Él nos regala.',
+        'romans-8-1':
+          '«Ninguna condenación hay para los que están en Cristo Jesús.» En Él, el veredicto sobre el creyente ya no es «culpable», sino «hijo amado».',
+        'romans-8-32':
+          '«El que no escatimó ni a su propio Hijo... ¿cómo no nos dará también con él todas las cosas?» La cruz es la garantía de toda otra bondad de Dios.',
+        'romans-10-9':
+          '«Si confesares con tu boca que Jesús es el Señor, y creyeres... serás salvo.» El señorío y la resurrección de Cristo son el centro de la fe que salva.',
+        '2corinthians-5-17':
+          '«Si alguno está en Cristo, nueva criatura es.» Unido a Jesús no eres una versión mejorada: eres una creación nueva.',
+        '2corinthians-5-21':
+          '«Al que no conoció pecado, lo hizo pecado por nosotros, para que fuéramos hechos justicia de Dios en él.» El gran intercambio: nuestro pecado por su justicia.',
+        'galatians-2-20':
+          '«Con Cristo estoy juntamente crucificado... y vive Cristo en mí.» La vida cristiana no es imitar a Jesús desde lejos, sino que Él viva en ti por la fe.',
+        'galatians-6-14':
+          '«Lejos esté de mí gloriarme, sino en la cruz de nuestro Señor Jesucristo.» Lo único digno de jactancia es lo que Cristo hizo por nosotros.',
+        'ephesians-1-7':
+          '«En él tenemos redención por su sangre, el perdón de pecados.» El perdón no es barato ni automático: costó la sangre del Hijo.',
+        'ephesians-2-8':
+          '«Por gracia sois salvos por medio de la fe... es don de Dios.» La salvación es regalo, de principio a fin obra de Cristo.',
+        'philippians-2-9':
+          '«Dios también le exaltó hasta lo sumo, y le dio un nombre que es sobre todo nombre.» El que se humilló hasta la cruz reina hoy como Señor de todo.',
+        'philippians-4-19':
+          '«Mi Dios suplirá todo lo que os falta conforme a sus riquezas... en Cristo Jesús.» La provisión de Dios fluye de las riquezas que tenemos en su Hijo.',
+        'colossians-1-16':
+          '«Todo fue creado por medio de él y para él.» Jesús no es una criatura más: es el Creador, anterior a todo, y en Él todo subsiste.',
+        '1timothy-1-15':
+          '«Cristo Jesús vino al mundo para salvar a los pecadores.» Palabra fiel y digna de ser recibida: vino por los pecadores, y eso te incluye.',
+        'titus-2-11':
+          '«La gracia de Dios se ha manifestado para salvación a todos los hombres.» Esa gracia tiene rostro y nombre: apareció en Jesús.',
+        'hebrews-7-25':
+          '«Puede salvar perpetuamente a los que por él se acercan a Dios, viviendo siempre para interceder.» Cristo no solo salvó una vez: vive hoy orando por los suyos.',
+        'hebrews-12-2':
+          '«Puestos los ojos en Jesús, el autor y consumador de la fe.» La carrera cristiana se corre mirando a Cristo, no a uno mismo.',
+        'hebrews-13-8':
+          '«Jesucristo es el mismo ayer, hoy y por los siglos.» En un mundo que cambia, Él es la roca que no cambia.',
+        '1peter-1-3':
+          '«Nos hizo renacer para una esperanza viva, por la resurrección de Jesucristo.» Nuestra esperanza está viva porque el Señor está vivo.',
+        '1peter-2-24':
+          '«Llevó él mismo nuestros pecados en su cuerpo sobre el madero.» La profecía de Isaías 53 se cumple aquí: por su herida fuimos curados.',
+        '2peter-3-9':
+          '«El Señor es paciente, no queriendo que ninguno perezca, sino que todos procedan al arrepentimiento.» Su demora no es olvido: es misericordia que da tiempo para volver a Cristo.',
+        '2peter-3-18':
+          '«Creced en la gracia y el conocimiento de nuestro Señor y Salvador Jesucristo.» Esta es la meta de toda la vida cristiana, y el corazón de esta app.',
+        '1john-1-9':
+          '«Si confesamos nuestros pecados, él es fiel y justo para perdonarnos.» El perdón es seguro porque descansa en la sangre de Jesús, no en nuestro mérito.',
+        '1john-4-10':
+          '«No que nosotros hayamos amado a Dios, sino que él nos amó... y envió a su Hijo en propiciación por nuestros pecados.» El amor verdadero empezó en la cruz.',
+        '1john-4-19':
+          '«Nosotros le amamos a él, porque él nos amó primero.» Todo amor cristiano es respuesta al amor que Cristo derramó primero.',
+        'jude-1-24':
+          '«A aquel que es poderoso para guardaros sin caída, y presentaros... irreprensibles.» Tu perseverancia final no descansa en tu fuerza, sino en Cristo que te sostiene.',
+        'revelation-3-20':
+          '«He aquí, yo estoy a la puerta y llamo.» El Señor del universo no fuerza la entrada: busca comunión contigo y espera tu respuesta.',
+        'revelation-21-4':
+          '«Enjugará Dios toda lágrima... ya no habrá muerte.» La obra de Cristo termina aquí: un mundo nuevo sin dolor, para siempre con Él.',
+        'revelation-21-5':
+          '«He aquí, yo hago nuevas todas las cosas.» El que venció la muerte tendrá la última palabra: no el fin, sino todo hecho nuevo en Cristo.',
+      },
+    },
     collections: {
       title: 'Colecciones',
       subtitle: 'Tus listas de versículos',
@@ -2999,6 +3130,137 @@ export const translations = {
         'What promise of God do you see here?',
         'Sit quietly with this word for a moment.',
       ],
+    },
+    christConnections: {
+      cardTitle: 'Christ in this passage',
+      cardSubtitle: 'All of Scripture speaks of Him (Luke 24:27)',
+      pointsTo: 'Points to Christ',
+      notes: {
+        'genesis-1-1':
+          'In the beginning God created everything. And all things were made through His Son, the eternal Word; without Him nothing that exists came to be.',
+        'exodus-15-2':
+          '"The LORD is my salvation." The name Jesus means "the LORD saves": what Israel sang by the sea is fulfilled in Christ, in whom God rescues us forever.',
+        'numbers-6-24':
+          'The priestly blessing—that the LORD keep you and give you peace—is poured out fully in Christ, of whose fullness we have all received grace upon grace.',
+        'psalms-23-1':
+          '"The LORD is my shepherd." Jesus said, "I am the good shepherd," and laid down His life for the sheep. The Shepherd of the psalm has a face: He is Christ.',
+        'psalms-34-18':
+          'God is near to the brokenhearted. In Jesus, God Himself drew near and calls: "Come to me, all who are weary, and I will give you rest."',
+        'isaiah-9-6':
+          '"For unto us a child is born, unto us a son is given... Prince of Peace." This prophecy is fulfilled in the birth of Jesus, the Savior, Christ the Lord.',
+        'isaiah-12-2':
+          '"God is my salvation." The prophet waits for the Savior to come; that Savior is Jesus, whose very name proclaims that the LORD saves.',
+        'isaiah-40-31':
+          'Those who wait on the LORD renew their strength. That strength has a name: Jesus invites the weary to come to Him and find rest.',
+        'isaiah-53-5':
+          '"He was wounded for our transgressions... and by his stripes we are healed." Centuries early, Isaiah described the cross: the suffering Servant is Christ, who bore our sins.',
+        'lamentations-3-22':
+          "The LORD's mercies never come to an end. That faithfulness became flesh: grace and truth came through Jesus Christ.",
+        'lamentations-3-23':
+          '"They are new every morning; great is your faithfulness." The unchanging faithfulness of God shines in Christ, the same yesterday, today, and forever.',
+        'micah-6-8':
+          'To do justice, love mercy, and walk humbly with God: what the LORD requires, Jesus lived perfectly. "I desire mercy, and not sacrifice," He said.',
+        'matthew-11-28':
+          'Jesus Himself invites: "Come to me... and I will give you rest." Rest for the soul is not a method but a Person: the Lord who carries what you cannot.',
+        'matthew-28-6':
+          '"He is not here, for he is risen." The empty tomb changes everything: Christ is alive, and in Him death has been defeated.',
+        'matthew-28-19':
+          'The risen Lord sends us to make disciples of all nations. The whole mission of the church flows from His authority and His promise: "I am with you always."',
+        'luke-1-37':
+          '"For with God nothing shall be impossible." It was said of the birth of Jesus: God Himself entered the world as a man. The Impossible became a child.',
+        'luke-19-10':
+          '"The Son of Man came to seek and to save that which was lost." In one sentence, the mission of Jesus: He came for you.',
+        'john-1-1':
+          '"In the beginning was the Word, and the Word was with God, and the Word was God." Jesus is no mere prophet: He is the eternal God made man.',
+        'john-1-14':
+          '"And the Word was made flesh, and dwelt among us." The infinite God became one of us to save us: this is the heart of the gospel.',
+        'john-3-16':
+          'The gospel in one verse: the love of the Father, the gift of the Son, and eternal life for everyone who believes in Jesus.',
+        'john-6-35':
+          '"I am the bread of life." What the soul needs most is not a thing but Christ Himself; whoever comes to Him will never hunger again.',
+        'john-8-12':
+          '"I am the light of the world." In a world in darkness, to follow Jesus is to walk in the light of life.',
+        'john-10-10':
+          '"I am come that they might have life, and that they might have it more abundantly." Christ did not come to take your life, but to give it in full.',
+        'john-10-11':
+          '"I am the good shepherd: the good shepherd giveth his life for the sheep." The Shepherd of the psalms is Jesus, who dies for you to bring you home.',
+        'john-11-25':
+          '"I am the resurrection, and the life." At His friend\'s tomb, Jesus offered not a doctrine but His own person as the victory over death.',
+        'john-14-1':
+          '"Let not your heart be troubled: ye believe in God, believe also in me." Jesus sets trust in Him on the level of trust in God: to rest in Christ is to rest in God.',
+        'john-14-6':
+          '"I am the way, the truth, and the life: no man cometh unto the Father, but by me." Not one of many paths: Christ is the only and sufficient way to God.',
+        'john-15-5':
+          '"I am the vine, ye are the branches." All life and fruit come from abiding in Jesus; apart from Him we can do nothing.',
+        'john-16-33':
+          '"In the world ye shall have tribulation: but be of good cheer; I have overcome the world." The peace of Christ does not deny pain: it rests in His victory.',
+        'acts-4-12':
+          '"Neither is there salvation in any other." There is no other name given among men by which we must be saved: only Jesus.',
+        'acts-16-31':
+          '"Believe on the Lord Jesus Christ, and thou shalt be saved." Salvation is not earned: it is received by trusting in Christ.',
+        'romans-5-1':
+          'Being justified by faith, we have peace with God through our Lord Jesus Christ. The war is over: the cross made peace.',
+        'romans-5-8':
+          '"While we were yet sinners, Christ died for us." God\'s love did not wait for us to improve: it was proven at the cross.',
+        'romans-6-23':
+          '"The wages of sin is death; but the gift of God is eternal life through Jesus Christ." He traded what we deserved for what He freely gives.',
+        'romans-8-1':
+          '"There is therefore now no condemnation to them which are in Christ Jesus." In Him, the verdict over the believer is no longer "guilty" but "beloved child."',
+        'romans-8-32':
+          '"He that spared not his own Son... how shall he not with him also freely give us all things?" The cross is the guarantee of every other goodness of God.',
+        'romans-10-9':
+          '"If thou shalt confess with thy mouth the Lord Jesus, and shalt believe... thou shalt be saved." The lordship and resurrection of Christ are the center of saving faith.',
+        '2corinthians-5-17':
+          '"If any man be in Christ, he is a new creature." Joined to Jesus, you are not an improved version: you are a new creation.',
+        '2corinthians-5-21':
+          '"He hath made him to be sin for us... that we might be made the righteousness of God in him." The great exchange: our sin for His righteousness.',
+        'galatians-2-20':
+          '"I am crucified with Christ... Christ liveth in me." The Christian life is not imitating Jesus from afar, but Christ living in you by faith.',
+        'galatians-6-14':
+          '"God forbid that I should glory, save in the cross of our Lord Jesus Christ." The only thing worth boasting in is what Christ did for us.',
+        'ephesians-1-7':
+          '"In whom we have redemption through his blood, the forgiveness of sins." Forgiveness is neither cheap nor automatic: it cost the blood of the Son.',
+        'ephesians-2-8':
+          '"For by grace are ye saved through faith... it is the gift of God." Salvation is a gift, from start to finish the work of Christ.',
+        'philippians-2-9':
+          '"God also hath highly exalted him, and given him a name which is above every name." The One who humbled Himself to the cross now reigns as Lord of all.',
+        'philippians-4-19':
+          '"My God shall supply all your need according to his riches... by Christ Jesus." God\'s provision flows from the riches we have in His Son.',
+        'colossians-1-16':
+          '"All things were created by him, and for him." Jesus is no mere creature: He is the Creator, before all things, and in Him all things hold together.',
+        '1timothy-1-15':
+          '"Christ Jesus came into the world to save sinners." A faithful saying, worthy of all acceptance: He came for sinners, and that includes you.',
+        'titus-2-11':
+          '"The grace of God that bringeth salvation hath appeared to all men." That grace has a face and a name: it appeared in Jesus.',
+        'hebrews-7-25':
+          '"He is able also to save them to the uttermost... seeing he ever liveth to make intercession." Christ did not just save once: He lives today praying for His own.',
+        'hebrews-12-2':
+          '"Looking unto Jesus the author and finisher of our faith." The Christian race is run looking to Christ, not to oneself.',
+        'hebrews-13-8':
+          '"Jesus Christ the same yesterday, and to day, and for ever." In a world that changes, He is the rock that does not change.',
+        '1peter-1-3':
+          '"Begotten us again unto a lively hope by the resurrection of Jesus Christ." Our hope is alive because the Lord is alive.',
+        '1peter-2-24':
+          '"Who his own self bare our sins in his own body on the tree." The prophecy of Isaiah 53 is fulfilled here: by His stripes we were healed.',
+        '2peter-3-9':
+          '"The Lord is... longsuffering, not willing that any should perish, but that all should come to repentance." His delay is not forgetfulness: it is mercy giving time to turn to Christ.',
+        '2peter-3-18':
+          '"Grow in grace, and in the knowledge of our Lord and Saviour Jesus Christ." This is the goal of the whole Christian life—and the heart of this app.',
+        '1john-1-9':
+          '"If we confess our sins, he is faithful and just to forgive us." Forgiveness is sure because it rests on the blood of Jesus, not on our merit.',
+        '1john-4-10':
+          '"Not that we loved God, but that he loved us, and sent his Son to be the propitiation for our sins." True love began at the cross.',
+        '1john-4-19':
+          '"We love him, because he first loved us." All Christian love is a response to the love Christ poured out first.',
+        'jude-1-24':
+          '"Unto him that is able to keep you from falling, and to present you faultless..." Your final perseverance rests not on your strength but on Christ who holds you.',
+        'revelation-3-20':
+          '"Behold, I stand at the door, and knock." The Lord of the universe does not force His way in: He seeks fellowship with you and waits for your answer.',
+        'revelation-21-4':
+          '"God shall wipe away all tears... and there shall be no more death." The work of Christ ends here: a new world without pain, forever with Him.',
+        'revelation-21-5':
+          '"Behold, I make all things new." The One who conquered death will have the last word: not the end, but everything made new in Christ.',
+      },
     },
     collections: {
       title: 'Collections',
