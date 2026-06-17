@@ -37,13 +37,17 @@ import {useServices} from '@context/ServicesContext';
 import bibleDB from '@lib/database';
 import {getBookById, getBookByName} from '@/constants/bible';
 import {DAILY_VERSE_REFS} from '@/constants/daily-verses';
+import {BOOK_INTROS} from '@/constants/book-intros';
 import {getAllThemes} from '@/features/study/themes';
 import {buildDailyLight} from '@/features/daily-light/dailyLight';
 import {
   getChristConnectionById,
   parseChristRef,
   formatChristRefLabel,
+  christLangForVersion,
+  versionAbbrev,
 } from '@/features/study/christConnections';
+import {translations} from '@/i18n/translations';
 import {buildVerseKey} from '@lib/memory/srs';
 import {
   borderRadius,
@@ -68,9 +72,18 @@ interface DailyContent {
   themeAccent: string;
   themeIcon: string;
   streak: number;
+  // Brief, faithful background for the verse's book (who/when/why) — S98.
+  bookAuthor?: string;
+  bookDate?: string;
+  bookTheme?: string;
   // "Christ in this passage" — present only when the day's verse is curated.
+  // Labels follow the Bible version's language (S98), not the UI language.
   christNote?: string;
+  christCardTitle?: string; // localized "Christ in this passage" (version lang)
+  christPointsToWord?: string; // localized "Points to Christ" (version lang)
   christPointsTo?: string; // localized fulfillment label, e.g. "Juan 10:11"
+  christFulfillmentText?: string; // fulfillment verse text in the selected version
+  christVersionAbbrev?: string; // selected version label, e.g. "RVR1960"
   christNavBook?: string; // localized book name for navigation
   christNavChapter?: number;
   christNavVerse?: number;
@@ -103,7 +116,11 @@ export default function DailyLightScreen() {
         prompts.length,
       );
       const ref = DAILY_VERSE_REFS[sel.verseIndex];
-      const theme = themes[sel.themeIndex];
+      // The theme — and so the "To apply" questions — follows the DAY'S VERSE
+      // (Sprint 98), so a love verse never lands beside wisdom questions. The
+      // salted themeIndex stays as a defensive fallback for an unknown tag.
+      const theme =
+        themes.find(thm => thm.id === ref.theme) ?? themes[sel.themeIndex];
       const version = (await AsyncStorage.getItem(VERSION_KEY)) ?? 'RVR1960';
 
       const row = await bibleDB.getVerse(
@@ -131,30 +148,49 @@ export default function DailyLightScreen() {
         theme.id
       ];
 
+      // Brief, faithful background for the verse's book (S98) — reuses the
+      // curated, conservative BOOK_INTROS (who wrote it, when, its theme).
+      const intro = BOOK_INTROS[ref.book]?.[language === 'es' ? 'es' : 'en'];
+
       // Theme-tied application questions (S97). Fall back to one rotating
       // generic prompt if a theme somehow has none curated.
       const applyMap = td.applyByTheme as Record<string, string[]>;
       const applyQuestions = applyMap[theme.id] ?? [prompts[sel.promptIndex]];
 
       // "Christ in this passage" — look up a curated insight for this verse.
+      // The card speaks the language of the SELECTED Bible version (S98), so
+      // its note + labels match the verse beside them, even when the app's
+      // interface language differs (e.g. English UI + RVR1960).
       const conn = getChristConnectionById(ref.book, ref.chapter, ref.verse);
-      const lang = language === 'es' ? 'es' : 'en';
+      const christLang = christLangForVersion(version);
+      const cc = translations[christLang].christConnections;
       let christNote: string | undefined;
       let christPointsTo: string | undefined;
+      let christFulfillmentText: string | undefined;
       let christNavBook: string | undefined;
       let christNavChapter: number | undefined;
       let christNavVerse: number | undefined;
       if (conn) {
-        const notes = t.christConnections.notes as Record<string, string>;
+        const notes = cc.notes as Record<string, string>;
         christNote = notes[conn.id];
         if (conn.fulfillment) {
           const fp = parseChristRef(conn.fulfillment);
           const fbook = fp ? getBookByName(fp.book) : undefined;
           if (fp && fbook) {
-            christPointsTo = formatChristRefLabel(conn.fulfillment, lang);
-            christNavBook = lang === 'en' ? fbook.nameEn : fbook.name;
+            christPointsTo = formatChristRefLabel(conn.fulfillment, christLang);
+            christNavBook = christLang === 'en' ? fbook.nameEn : fbook.name;
             christNavChapter = fp.chapter;
             christNavVerse = fp.verse;
+            // Ground the connection in the reader's OWN Bible version: show the
+            // fulfillment verse text in the selected version, so it matches the
+            // day's passage above (Sprint 98).
+            const frow = await bibleDB.getVerse(
+              fbook.id,
+              fp.chapter,
+              fp.verse,
+              version,
+            );
+            christFulfillmentText = frow?.text ?? undefined;
           }
         }
       }
@@ -172,8 +208,15 @@ export default function DailyLightScreen() {
         themeAccent: theme.accent,
         themeIcon: theme.icon,
         streak,
+        bookAuthor: intro?.author,
+        bookDate: intro?.date,
+        bookTheme: intro?.theme,
         christNote,
+        christCardTitle: cc.cardTitle,
+        christPointsToWord: cc.pointsTo,
         christPointsTo,
+        christFulfillmentText,
+        christVersionAbbrev: versionAbbrev(version),
         christNavBook,
         christNavChapter,
         christNavVerse,
@@ -327,6 +370,45 @@ export default function DailyLightScreen() {
               </AppText>
             </View>
 
+            {/* Brief, faithful background for the verse's book (S98) */}
+            {content.bookTheme ? (
+              <View
+                style={[
+                  styles.card,
+                  {backgroundColor: colors.card, borderColor: colors.border},
+                ]}>
+                <View style={styles.christHeader}>
+                  <Ionicons
+                    name="book-outline"
+                    size={16}
+                    color={colors.textSecondary}
+                  />
+                  <AppText
+                    scaleRole="compact"
+                    style={[
+                      styles.cardLabel,
+                      {color: colors.textSecondary, marginLeft: spacing['1.5']},
+                    ]}>
+                    {td.contextTitle}
+                  </AppText>
+                </View>
+                {content.bookAuthor || content.bookDate ? (
+                  <AppText
+                    scaleRole="compact"
+                    style={[styles.contextMeta, {color: colors.textTertiary}]}>
+                    {[content.bookAuthor, content.bookDate]
+                      .filter(Boolean)
+                      .join(' · ')}
+                  </AppText>
+                ) : null}
+                <AppText
+                  scaleRole="body"
+                  style={[styles.contextTheme, {color: colors.text}]}>
+                  {content.bookTheme}
+                </AppText>
+              </View>
+            ) : null}
+
             {/* Christ in this passage — only when the verse is curated */}
             {content.christNote ? (
               <View
@@ -342,7 +424,7 @@ export default function DailyLightScreen() {
                       styles.cardLabel,
                       {color: colors.primary, marginLeft: spacing['1.5']},
                     ]}>
-                    {t.christConnections.cardTitle}
+                    {content.christCardTitle ?? t.christConnections.cardTitle}
                   </AppText>
                 </View>
                 <AppText
@@ -350,6 +432,29 @@ export default function DailyLightScreen() {
                   style={[styles.christText, {color: colors.text}]}>
                   {content.christNote}
                 </AppText>
+                {content.christFulfillmentText && content.christPointsTo ? (
+                  <View
+                    style={[
+                      styles.christVerse,
+                      {borderLeftColor: colors.primary + '55'},
+                    ]}>
+                    <AppText
+                      scaleRole="body"
+                      style={[styles.christVerseText, {color: colors.text}]}>
+                      {`“${content.christFulfillmentText}”`}
+                    </AppText>
+                    <AppText
+                      scaleRole="compact"
+                      style={[
+                        styles.christVerseRef,
+                        {color: colors.textSecondary},
+                      ]}>
+                      {content.christVersionAbbrev
+                        ? `— ${content.christPointsTo} · ${content.christVersionAbbrev}`
+                        : `— ${content.christPointsTo}`}
+                    </AppText>
+                  </View>
+                ) : null}
                 {content.christPointsTo ? (
                   <TouchableOpacity
                     style={[
@@ -361,7 +466,7 @@ export default function DailyLightScreen() {
                     ]}
                     onPress={handleOpenFulfillment}
                     accessibilityRole="button"
-                    accessibilityLabel={`${t.christConnections.pointsTo}: ${content.christPointsTo}`}>
+                    accessibilityLabel={`${content.christPointsToWord ?? t.christConnections.pointsTo}: ${content.christPointsTo}`}>
                     <Ionicons
                       name="arrow-forward"
                       size={14}
@@ -373,7 +478,7 @@ export default function DailyLightScreen() {
                         styles.christPointsToText,
                         {color: colors.primary},
                       ]}>
-                      {`${t.christConnections.pointsTo} · ${content.christPointsTo}`}
+                      {`${content.christPointsToWord ?? t.christConnections.pointsTo} · ${content.christPointsTo}`}
                     </AppText>
                   </TouchableOpacity>
                 ) : null}
@@ -583,7 +688,25 @@ const styles = StyleSheet.create({
   },
   applyText: {flex: 1, fontSize: fontSizes.md, lineHeight: fontSizes.md * 1.5},
   christHeader: {flexDirection: 'row', alignItems: 'center'},
+  contextMeta: {
+    fontSize: fontSizes.sm,
+    fontWeight: '600',
+  },
+  contextTheme: {fontSize: fontSizes.md, lineHeight: fontSizes.md * 1.55},
   christText: {fontSize: fontSizes.md, lineHeight: fontSizes.md * 1.55},
+  christVerse: {
+    borderLeftWidth: 3,
+    paddingLeft: spacing.md,
+    marginTop: spacing.xs,
+    gap: spacing['0.5'],
+  },
+  christVerseText: {
+    fontSize: fontSizes.md,
+    lineHeight: fontSizes.md * 1.5,
+    fontStyle: 'italic',
+    paddingRight: verseTextRightSlack(fontSizes.md),
+  },
+  christVerseRef: {fontSize: fontSizes.sm, fontWeight: '600'},
   christPointsTo: {
     flexDirection: 'row',
     alignItems: 'center',

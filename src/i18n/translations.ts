@@ -501,7 +501,23 @@ export const translations = {
         doneCta: 'Volver al mazo',
         boxLabel: 'Caja {{box}}',
         maskHint: '{{percent}}% oculto',
-        maskNone: 'Sin pistas ocultas',
+        maskNone: 'Versículo completo',
+      },
+      guide: {
+        openLabel: 'Cómo funciona la memorización',
+        title: 'Cómo funciona la memoria',
+        intro:
+          'Memoriza la Palabra con repetición espaciada: repasas cada versículo justo antes de olvidarlo, así se queda contigo sin agobios.',
+        boxesTitle: 'Cajas 1 → 5',
+        boxesBody:
+          'Cada versículo vive en una caja. Cuando lo recuerdas bien sube de caja y tarda más en volver; si te cuesta, baja y vuelve pronto. En la Caja 5 está dominado.',
+        maskTitle: 'Palabras ocultas',
+        maskBody:
+          'En las primeras cajas ves el versículo completo para aprenderlo. A medida que sube de caja se ocultan más palabras, para que lo recuerdes de memoria.',
+        gradeTitle: '¿Cómo te fue?',
+        gradeBody:
+          'Tras revelar el versículo, calificas tu recuerdo: «Otra vez» y «Difícil» lo traen pronto; «Bueno» y «Fácil» lo espacian más. Así el repaso se ajusta a ti.',
+        close: 'Entendido',
       },
       remove: {
         title: 'Quitar de memoria',
@@ -723,6 +739,7 @@ export const translations = {
       verseLabel: 'Versículo de hoy',
       reflectLabel: 'Para reflexionar',
       themeLabel: 'Tema de hoy',
+      contextTitle: 'Sobre este libro',
       streak: 'Racha de {{n}} días',
       streakOne: 'Racha de 1 día',
       streakNone: 'Comienza tu racha hoy',
@@ -946,6 +963,18 @@ export const translations = {
           '«Enjugará Dios toda lágrima... ya no habrá muerte.» La obra de Cristo termina aquí: un mundo nuevo sin dolor, para siempre con Él.',
         'revelation-21-5':
           '«He aquí, yo hago nuevas todas las cosas.» El que venció la muerte tendrá la última palabra: no el fin, sino todo hecho nuevo en Cristo.',
+        'isaiah-41-10':
+          '«No temas, porque yo estoy contigo.» La promesa de la presencia de Dios halla su rostro en Jesús, que prometió: «He aquí, yo estoy con vosotros todos los días».',
+        'jeremiah-29-11':
+          'Dios tiene pensamientos de paz, de darte un futuro y una esperanza. Esa esperanza viva y segura nos es dada en Cristo, resucitado de entre los muertos.',
+        'psalms-51-10':
+          '«Crea en mí un corazón limpio.» Lo que David pide, Cristo lo cumple: por su sangre nos acercamos a Dios con el corazón purificado y la conciencia limpia.',
+        'john-14-27':
+          '«La paz os dejo, mi paz os doy.» No es una paz cualquiera, sino la paz propia de Cristo, comprada en la cruz; por eso añade: «No se turbe vuestro corazón».',
+        'romans-8-28':
+          'Dios hace que todo coopere para bien de los suyos, y ese bien tiene una meta: ser hechos conformes a la imagen de su Hijo. Todo nos lleva hacia Cristo.',
+        'philippians-4-13':
+          '«Todo lo puedo en Cristo que me fortalece.» La fuerza no es nuestra: es la de Cristo en nosotros, suficiente tanto en la abundancia como en la escasez.',
       },
     },
     collections: {
@@ -1261,7 +1290,10 @@ export const translations = {
       },
       acts: {
         title: 'Oración guiada',
-        subtitle: 'El camino ACTS',
+        // ACTS is an English mnemonic (Adoration·Confession·Thanksgiving·
+        // Supplication) that doesn't carry into Spanish, so name the four
+        // movements plainly instead (Sprint 98).
+        subtitle: 'Adora · Confiesa · Agradece · Pide',
         intro:
           'Un momento para venir a Dios paso a paso: adóralo, confiésate, dale gracias y preséntale tus peticiones.',
         begin: 'Comenzar',
@@ -1905,6 +1937,7 @@ export const translations = {
       almostThere: 'A punto de lograrse',
       almostThereA11y:
         '{{name}}: {{current}} de {{requirement}} para desbloquear',
+      almostThereHint: 'Toca para ver de qué se trata',
       viewMyTitles: 'Mis títulos',
       viewMyTitlesA11y: 'Ver mis insignias y títulos equipables',
       shareTitle: 'Compartir logro',
@@ -2964,7 +2997,23 @@ export const translations = {
         doneCta: 'Back to deck',
         boxLabel: 'Box {{box}}',
         maskHint: '{{percent}}% hidden',
-        maskNone: 'No words hidden',
+        maskNone: 'Full verse',
+      },
+      guide: {
+        openLabel: 'How memorization works',
+        title: 'How memorization works',
+        intro:
+          'Memorize the Word with spaced repetition: you review each verse just before you would forget it, so it stays with you without strain.',
+        boxesTitle: 'Boxes 1 → 5',
+        boxesBody:
+          'Each verse lives in a box. Recall it well and it moves up a box and comes back less often; struggle and it moves down and returns soon. In Box 5 it is mastered.',
+        maskTitle: 'Hidden words',
+        maskBody:
+          'In the early boxes you see the full verse to learn it. As it climbs the boxes, more words are hidden so you recall it from memory.',
+        gradeTitle: 'How did it go?',
+        gradeBody:
+          'After revealing the verse, you rate your recall: "Again" and "Hard" bring it back soon; "Good" and "Easy" space it out further. The review adapts to you.',
+        close: 'Got it',
       },
       remove: {
         title: 'Remove from memory',
@@ -3193,6 +3242,7 @@ export const translations = {
       verseLabel: "Today's verse",
       reflectLabel: 'Reflect',
       themeLabel: "Today's theme",
+      contextTitle: 'About this book',
       streak: '{{n}}-day streak',
       streakOne: '1-day streak',
       streakNone: 'Start your streak today',
@@ -3416,6 +3466,18 @@ export const translations = {
           '"God shall wipe away all tears... and there shall be no more death." The work of Christ ends here: a new world without pain, forever with Him.',
         'revelation-21-5':
           '"Behold, I make all things new." The One who conquered death will have the last word: not the end, but everything made new in Christ.',
+        'isaiah-41-10':
+          '"Fear not, for I am with you." The promise of God\'s presence finds its face in Jesus, who said: "Lo, I am with you always, even unto the end of the world."',
+        'jeremiah-29-11':
+          'God has thoughts of peace, to give you a future and a hope. That living, certain hope is given to us in Christ, raised from the dead.',
+        'psalms-51-10':
+          '"Create in me a clean heart." What David asks, Christ fulfills: by His blood we draw near to God with a purified heart and a cleansed conscience.',
+        'john-14-27':
+          '"Peace I leave with you, my peace I give unto you." Not just any peace, but Christ\'s own peace, bought at the cross — so He adds: "Let not your heart be troubled."',
+        'romans-8-28':
+          'God works all things together for good for His people, and that good has a goal: to be conformed to the image of His Son. Everything leads us toward Christ.',
+        'philippians-4-13':
+          '"I can do all things through Christ who strengthens me." The strength is not our own: it is Christ\'s in us, enough in plenty and in want alike.',
       },
     },
     collections: {
@@ -4365,6 +4427,7 @@ export const translations = {
       achievementsUnlocked: 'Unlocked',
       almostThere: 'Almost there',
       almostThereA11y: '{{name}}: {{current}} of {{requirement}} to unlock',
+      almostThereHint: 'Tap to see what it takes',
       viewMyTitles: 'My titles',
       viewMyTitlesA11y: 'View my badges and equippable titles',
       shareTitle: 'Share achievement',

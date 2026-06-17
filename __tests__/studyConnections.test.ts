@@ -47,16 +47,18 @@ describe('studyConnections — two-way scripture web', () => {
     });
     const outgoing = () => ['Genesis/1/1', 'Revelation/1/8'];
 
-    it('combines outgoing references and incoming referencedBy', () => {
+    it('combines outgoing references and incoming referencedBy, never both', () => {
       const web = getStudyConnections('John', 1, 1, {reverseIndex, outgoing});
       expect(web.focus).toBe('John/1/1');
       expect(web.references).toEqual(['Genesis/1/1', 'Revelation/1/8']);
-      expect(web.referencedBy).toEqual([
-        'Genesis/1/1',
-        'Hebrews/11/3',
-        'Colossians/1/16',
-      ]);
-      // union: Genesis/1/1 (both), Revelation/1/8, Hebrews/11/3, Colossians/1/16
+      // Genesis/1/1 is a MUTUAL cross-reference (in both directions) but must
+      // appear only ONCE — under "References" — not duplicated in referencedBy
+      // (Sprint 98).
+      expect(web.referencedBy).toEqual(['Hebrews/11/3', 'Colossians/1/16']);
+      // No verse appears in both lists.
+      const overlap = web.references.filter(r => web.referencedBy.includes(r));
+      expect(overlap).toEqual([]);
+      // union: Genesis/1/1, Revelation/1/8, Hebrews/11/3, Colossians/1/16
       expect(web.totalConnections).toBe(4);
     });
 
@@ -86,11 +88,17 @@ describe('studyConnections — two-way scripture web', () => {
   });
 
   describe('getStudyConnections (real shipped data)', () => {
-    it('finds real incoming references for a popular target verse', () => {
-      // John 1:1 is a curated parallel of Genesis 1:1 in the shipped map.
+    it('finds a real connection for a popular verse, listed only once', () => {
+      // John 1:1 and Genesis 1:1 cross-reference each other (mutual), so since
+      // Sprint 98 Genesis 1:1 appears once — under outgoing "references" — and
+      // is NOT duplicated into referencedBy.
       const web = getStudyConnections('John', 1, 1);
       expect(web.focus).toBe('John/1/1');
-      expect(web.referencedBy).toContain('Genesis/1/1');
+      const all = [...web.references, ...web.referencedBy];
+      expect(all).toContain('Genesis/1/1');
+      // Never in both lists.
+      const overlap = web.references.filter(r => web.referencedBy.includes(r));
+      expect(overlap).toEqual([]);
       expect(web.totalConnections).toBeGreaterThan(0);
     });
 

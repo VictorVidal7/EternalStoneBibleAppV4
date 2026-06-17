@@ -106,9 +106,15 @@ export function getStudyConnections(
   // Outgoing: dedupe and drop any self-reference.
   const references = uniqueExcept(outgoingFn(book, chapter, verse), focus);
 
-  // Incoming: look the focus key up in the reverse index.
+  // Incoming: look the focus key up in the reverse index, then drop any verse
+  // already shown under "References" — a MUTUAL cross-reference (A→B and B→A)
+  // would otherwise list the same verse in both sections, which reads like a
+  // duplicate. Keep it once, in the curated outgoing direction (Sprint 98).
+  const referenceSet = new Set<RefKey>(references);
   const referencedBy = focus
-    ? uniqueExcept(reverseIndex.get(focus) ?? [], focus)
+    ? uniqueExcept(reverseIndex.get(focus) ?? [], focus).filter(
+        key => !referenceSet.has(key),
+      )
     : [];
 
   const union = new Set<RefKey>([...references, ...referencedBy]);

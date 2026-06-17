@@ -166,6 +166,24 @@ interface VerseOfDayCardProps {
    */
   christPointsTo?: string;
 
+  /**
+   * The fulfillment verse text in the reader's SELECTED Bible version (Sprint
+   * 98) — shown inline under the note so the connection is grounded in the same
+   * version as the verse above, not just a reference chip. Paired with
+   * {@link christPointsTo}.
+   */
+  christFulfillmentText?: string;
+
+  /**
+   * Localized labels for the reveal in the BIBLE VERSION's language (Sprint 98)
+   * — so the whole "Christ in this passage" card matches the verse beside it,
+   * even when the app interface language differs. Fall back to the UI language.
+   */
+  christCardTitle?: string;
+  christPointsToLabel?: string;
+  /** Selected version abbreviation shown on the fulfillment verse (e.g. "WEB"). */
+  christVersionAbbrev?: string;
+
   /** Opens the fulfillment verse in the reader; paired with {@link christPointsTo}. */
   onChristPointsTo?: () => void;
 }
@@ -193,10 +211,19 @@ const VerseOfDayCard: React.FC<VerseOfDayCardProps> = ({
   historyEnabled = false,
   christNote,
   christPointsTo,
+  christFulfillmentText,
+  christCardTitle,
+  christPointsToLabel,
+  christVersionAbbrev,
   onChristPointsTo,
 }) => {
   const {t} = useLanguage();
   const {colors} = useTheme();
+  // "Christ in this passage" labels follow the Bible version's language when
+  // the owner provides them (Sprint 98), else the UI language.
+  const christTitle = christCardTitle ?? t.christConnections.cardTitle;
+  const christPointsToWord =
+    christPointsToLabel ?? t.christConnections.pointsTo;
   // Pasar colores dinámicos del tema seleccionado
   const theme = createCelestialTheme(isDark, {
     primary: colors.primary,
@@ -680,13 +707,13 @@ const VerseOfDayCard: React.FC<VerseOfDayCardProps> = ({
                 ]}
                 onPress={() => setChristExpanded(v => !v)}
                 accessibilityRole="button"
-                accessibilityLabel={t.christConnections.cardTitle}
+                accessibilityLabel={christTitle}
                 accessibilityState={{expanded: christExpanded}}>
                 <Ionicons name="sparkles" size={18} color={colors.primary} />
                 <Text
                   scaleRole="compact"
                   style={[styles.studyCtaText, {color: colors.primary}]}>
-                  {t.christConnections.cardTitle}
+                  {christTitle}
                 </Text>
                 <Ionicons
                   name={christExpanded ? 'chevron-up' : 'chevron-down'}
@@ -701,6 +728,32 @@ const VerseOfDayCard: React.FC<VerseOfDayCardProps> = ({
                     style={[styles.christNoteText, {color: theme.colors.text}]}>
                     {christNote}
                   </Text>
+                  {christFulfillmentText && christPointsTo ? (
+                    <View
+                      style={[
+                        styles.christVerse,
+                        {borderLeftColor: colors.primary + '55'},
+                      ]}>
+                      <Text
+                        scaleRole="body"
+                        style={[
+                          styles.christVerseText,
+                          {color: theme.colors.text},
+                        ]}>
+                        {`“${christFulfillmentText}”`}
+                      </Text>
+                      <Text
+                        scaleRole="compact"
+                        style={[
+                          styles.christVerseRef,
+                          {color: theme.colors.textSecondary},
+                        ]}>
+                        {christVersionAbbrev
+                          ? `— ${christPointsTo} · ${christVersionAbbrev}`
+                          : `— ${christPointsTo}`}
+                      </Text>
+                    </View>
+                  ) : null}
                   {christPointsTo && onChristPointsTo ? (
                     <TouchableOpacity
                       style={[
@@ -712,7 +765,7 @@ const VerseOfDayCard: React.FC<VerseOfDayCardProps> = ({
                       ]}
                       onPress={onChristPointsTo}
                       accessibilityRole="button"
-                      accessibilityLabel={`${t.christConnections.pointsTo}: ${christPointsTo}`}>
+                      accessibilityLabel={`${christPointsToWord}: ${christPointsTo}`}>
                       <Ionicons
                         name="arrow-forward"
                         size={14}
@@ -724,7 +777,7 @@ const VerseOfDayCard: React.FC<VerseOfDayCardProps> = ({
                           styles.christPointsToText,
                           {color: colors.primary},
                         ]}>
-                        {`${t.christConnections.pointsTo} · ${christPointsTo}`}
+                        {`${christPointsToWord} · ${christPointsTo}`}
                       </Text>
                     </TouchableOpacity>
                   ) : null}
@@ -947,6 +1000,21 @@ const styles = StyleSheet.create({
   christNoteText: {
     fontSize: 15,
     lineHeight: 15 * 1.55,
+  },
+  christVerse: {
+    borderLeftWidth: 3,
+    paddingLeft: 12,
+    gap: 2,
+  },
+  christVerseText: {
+    fontSize: 15,
+    lineHeight: 15 * 1.5,
+    fontStyle: 'italic',
+    paddingRight: verseTextRightSlack(15),
+  },
+  christVerseRef: {
+    fontSize: 13,
+    fontWeight: '600',
   },
   christPointsTo: {
     flexDirection: 'row',

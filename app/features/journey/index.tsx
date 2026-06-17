@@ -502,6 +502,7 @@ export default function JourneyScreen() {
             icon={moodIcon}
             title={j.moodTitle}
             big={moodName}
+            bigIsText
             bigLabel={j.moodMostFelt}
             rows={[{label: j.moodCheckinsLabel, value: num(mood.daysLogged)}]}
           />

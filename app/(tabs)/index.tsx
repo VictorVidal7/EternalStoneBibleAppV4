@@ -80,6 +80,7 @@ import {
   parseChristRef,
   formatChristRefLabel,
 } from '@/features/study/christConnections';
+import {translations} from '@/i18n/translations';
 import {timeOfDay, homeNudge} from '@/lib/home/homeGreeting';
 import {planPace, formatDayReadings} from '@/lib/reading/planPace';
 
@@ -174,6 +175,11 @@ export default function HomeScreen() {
     : withOpacity(colors.primary, isDark ? 0.3 : 0.8);
 
   const [dailyVerse, setDailyVerse] = useState<BibleVerse | null>(null);
+  // Fulfillment verse text for the "Christ in this passage" reveal, in the
+  // SELECTED Bible version, so it matches the day's verse (Sprint 98).
+  const [christFulfillmentText, setChristFulfillmentText] = useState<
+    string | undefined
+  >(undefined);
   const [lastRead, setLastRead] = useState<ReadingProgress | null>(null);
   // Last audio position for the premium "Continue listening" card (Sprint 51).
   const [audioResumePos, setAudioResumePos] = useState<PlaybackPosition | null>(
@@ -297,6 +303,40 @@ export default function HomeScreen() {
       favorites: favorites.length,
     }));
   }, [favorites.length]);
+
+  // Resolve the "Christ in this passage" fulfillment verse text in the SELECTED
+  // version (Sprint 98), so the Home reveal shows real scripture in the same
+  // version as the verse above — not just a reference chip.
+  useEffect(() => {
+    let cancelled = false;
+    const bn = dailyVerse?.bookNumber;
+    if (!bn) {
+      setChristFulfillmentText(undefined);
+      return;
+    }
+    const conn = getChristConnectionById(
+      bn,
+      dailyVerse.chapter,
+      dailyVerse.verse,
+    );
+    const fp = conn?.fulfillment ? parseChristRef(conn.fulfillment) : null;
+    const fbook = fp ? getBookByName(fp.book) : undefined;
+    if (!fp || !fbook) {
+      setChristFulfillmentText(undefined);
+      return;
+    }
+    void bibleDB
+      .getVerse(fbook.id, fp.chapter, fp.verse, selectedVersion.id)
+      .then(row => {
+        if (!cancelled) setChristFulfillmentText(row?.text ?? undefined);
+      })
+      .catch(() => {
+        if (!cancelled) setChristFulfillmentText(undefined);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [dailyVerse, selectedVersion.id]);
 
   // Re-resolve the saved audio position whenever the floating player appears
   // or disappears: closing the player CLEARS the stored position (hidePlayer),
@@ -713,11 +753,12 @@ export default function HomeScreen() {
                   dailyVerse.verse,
                 )
               : null;
-            const lang = language === 'es' ? 'es' : 'en';
+            // The card speaks the SELECTED Bible version's language (S98), so
+            // its note + labels match the verse, even with a different UI lang.
+            const christLang = selectedVersion.language === 'es' ? 'es' : 'en';
+            const christCC = translations[christLang].christConnections;
             const christNote = christConn
-              ? (t.christConnections.notes as Record<string, string>)[
-                  christConn.id
-                ]
+              ? (christCC.notes as Record<string, string>)[christConn.id]
               : undefined;
             let christPointsTo: string | undefined;
             let christNav:
@@ -729,10 +770,10 @@ export default function HomeScreen() {
               if (fp && fbook) {
                 christPointsTo = formatChristRefLabel(
                   christConn.fulfillment,
-                  lang,
+                  christLang,
                 );
                 christNav = {
-                  book: lang === 'en' ? fbook.nameEn : fbook.name,
+                  book: christLang === 'en' ? fbook.nameEn : fbook.name,
                   chapter: fp.chapter,
                   verse: fp.verse,
                 };
@@ -744,7 +785,9 @@ export default function HomeScreen() {
                   opacity: fadeAnim,
                   marginTop: celestialSpacing.cardGap,
                 }}>
-                <ShimmerCard glowColor={colors.primary}>
+                {/* Glow-only (S98): the calm pulsing glow, no left-to-right
+                    sweep — homologated with every other Home card. */}
+                <ShimmerCard glowColor={colors.primary} shimmerEnabled={false}>
                   <VerseOfDayCard
                     // Re-key per browsed day (Sprint 78) so the S77 per-
                     // version peek cache + local favorite flash reset with
@@ -840,6 +883,10 @@ export default function HomeScreen() {
                     }}
                     christNote={christNote}
                     christPointsTo={christPointsTo}
+                    christFulfillmentText={christFulfillmentText}
+                    christCardTitle={christCC.cardTitle}
+                    christPointsToLabel={christCC.pointsTo}
+                    christVersionAbbrev={selectedVersion.abbreviation}
                     onChristPointsTo={
                       christNav
                         ? () =>

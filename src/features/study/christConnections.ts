@@ -25,7 +25,7 @@
  * Para la gloria de Dios Todopoderoso ✨
  */
 
-import {getBookById, getBookByName} from '@/constants/bible';
+import {getBookById, getBookByName, BIBLE_VERSIONS} from '@/constants/bible';
 
 /** A canonical "EnglishBook/Chapter/Verse" reference key. */
 export type ChristRefKey = string;
@@ -62,6 +62,9 @@ export const CHRIST_CONNECTIONS: readonly ChristConnection[] = [
     fulfillment: 'Hebrews/13/8',
   },
   {id: 'micah-6-8', ref: 'Micah/6/8', fulfillment: 'Matthew/9/13'},
+  {id: 'isaiah-41-10', ref: 'Isaiah/41/10', fulfillment: 'Matthew/28/20'},
+  {id: 'jeremiah-29-11', ref: 'Jeremiah/29/11', fulfillment: '1 Peter/1/3'},
+  {id: 'psalms-51-10', ref: 'Psalms/51/10', fulfillment: 'Hebrews/10/22'},
 
   // ── New Testament: passages that reveal who Christ is and what He did ──
   {id: 'matthew-11-28', ref: 'Matthew/11/28'},
@@ -79,6 +82,7 @@ export const CHRIST_CONNECTIONS: readonly ChristConnection[] = [
   {id: 'john-11-25', ref: 'John/11/25'},
   {id: 'john-14-1', ref: 'John/14/1'},
   {id: 'john-14-6', ref: 'John/14/6'},
+  {id: 'john-14-27', ref: 'John/14/27'},
   {id: 'john-15-5', ref: 'John/15/5'},
   {id: 'john-16-33', ref: 'John/16/33'},
   {id: 'acts-4-12', ref: 'Acts/4/12'},
@@ -87,6 +91,7 @@ export const CHRIST_CONNECTIONS: readonly ChristConnection[] = [
   {id: 'romans-5-8', ref: 'Romans/5/8'},
   {id: 'romans-6-23', ref: 'Romans/6/23'},
   {id: 'romans-8-1', ref: 'Romans/8/1'},
+  {id: 'romans-8-28', ref: 'Romans/8/28'},
   {id: 'romans-8-32', ref: 'Romans/8/32'},
   {id: 'romans-10-9', ref: 'Romans/10/9'},
   {id: '2corinthians-5-17', ref: '2 Corinthians/5/17'},
@@ -96,6 +101,7 @@ export const CHRIST_CONNECTIONS: readonly ChristConnection[] = [
   {id: 'ephesians-1-7', ref: 'Ephesians/1/7'},
   {id: 'ephesians-2-8', ref: 'Ephesians/2/8'},
   {id: 'philippians-2-9', ref: 'Philippians/2/9'},
+  {id: 'philippians-4-13', ref: 'Philippians/4/13'},
   {id: 'philippians-4-19', ref: 'Philippians/4/19'},
   {id: 'colossians-1-16', ref: 'Colossians/1/16'},
   {id: '1timothy-1-15', ref: '1 Timothy/1/15'},
@@ -116,6 +122,25 @@ export const CHRIST_CONNECTIONS: readonly ChristConnection[] = [
   {id: 'revelation-21-4', ref: 'Revelation/21/4'},
   {id: 'revelation-21-5', ref: 'Revelation/21/5'},
 ];
+
+/**
+ * The language the "Christ in this passage" card should speak (Sprint 98). The
+ * card sits right beside Scripture shown in the SELECTED Bible version, so its
+ * note + labels follow that version's language (RVR1960 → 'es', KJV/WEB →
+ * 'en') — keeping the whole card coherent even when the app's interface
+ * language differs from the Bible version. Falls back to 'en' for an unknown id.
+ */
+export function christLangForVersion(
+  versionId: string | null | undefined,
+): 'es' | 'en' {
+  const v = BIBLE_VERSIONS.find(x => x.id === versionId);
+  return v?.language === 'es' ? 'es' : 'en';
+}
+
+/** The display abbreviation for a Bible version id, or '' if unknown. */
+export function versionAbbrev(versionId: string | null | undefined): string {
+  return BIBLE_VERSIONS.find(x => x.id === versionId)?.abbreviation ?? '';
+}
 
 /** Parse a "Book/Chapter/Verse" key into its parts, or null if malformed. */
 export function parseChristRef(key: ChristRefKey): {
