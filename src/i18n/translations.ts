@@ -963,6 +963,18 @@ export const translations = {
           '«Enjugará Dios toda lágrima... ya no habrá muerte.» La obra de Cristo termina aquí: un mundo nuevo sin dolor, para siempre con Él.',
         'revelation-21-5':
           '«He aquí, yo hago nuevas todas las cosas.» El que venció la muerte tendrá la última palabra: no el fin, sino todo hecho nuevo en Cristo.',
+        'isaiah-41-10':
+          '«No temas, porque yo estoy contigo.» La promesa de la presencia de Dios halla su rostro en Jesús, que prometió: «He aquí, yo estoy con vosotros todos los días».',
+        'jeremiah-29-11':
+          'Dios tiene pensamientos de paz, de darte un futuro y una esperanza. Esa esperanza viva y segura nos es dada en Cristo, resucitado de entre los muertos.',
+        'psalms-51-10':
+          '«Crea en mí un corazón limpio.» Lo que David pide, Cristo lo cumple: por su sangre nos acercamos a Dios con el corazón purificado y la conciencia limpia.',
+        'john-14-27':
+          '«La paz os dejo, mi paz os doy.» No es una paz cualquiera, sino la paz propia de Cristo, comprada en la cruz; por eso añade: «No se turbe vuestro corazón».',
+        'romans-8-28':
+          'Dios hace que todo coopere para bien de los suyos, y ese bien tiene una meta: ser hechos conformes a la imagen de su Hijo. Todo nos lleva hacia Cristo.',
+        'philippians-4-13':
+          '«Todo lo puedo en Cristo que me fortalece.» La fuerza no es nuestra: es la de Cristo en nosotros, suficiente tanto en la abundancia como en la escasez.',
       },
     },
     collections: {
@@ -3454,6 +3466,18 @@ export const translations = {
           '"God shall wipe away all tears... and there shall be no more death." The work of Christ ends here: a new world without pain, forever with Him.',
         'revelation-21-5':
           '"Behold, I make all things new." The One who conquered death will have the last word: not the end, but everything made new in Christ.',
+        'isaiah-41-10':
+          '"Fear not, for I am with you." The promise of God\'s presence finds its face in Jesus, who said: "Lo, I am with you always, even unto the end of the world."',
+        'jeremiah-29-11':
+          'God has thoughts of peace, to give you a future and a hope. That living, certain hope is given to us in Christ, raised from the dead.',
+        'psalms-51-10':
+          '"Create in me a clean heart." What David asks, Christ fulfills: by His blood we draw near to God with a purified heart and a cleansed conscience.',
+        'john-14-27':
+          '"Peace I leave with you, my peace I give unto you." Not just any peace, but Christ\'s own peace, bought at the cross — so He adds: "Let not your heart be troubled."',
+        'romans-8-28':
+          'God works all things together for good for His people, and that good has a goal: to be conformed to the image of His Son. Everything leads us toward Christ.',
+        'philippians-4-13':
+          '"I can do all things through Christ who strengthens me." The strength is not our own: it is Christ\'s in us, enough in plenty and in want alike.',
       },
     },
     collections: {
