@@ -1261,7 +1261,10 @@ export const translations = {
       },
       acts: {
         title: 'Oración guiada',
-        subtitle: 'El camino ACTS',
+        // ACTS is an English mnemonic (Adoration·Confession·Thanksgiving·
+        // Supplication) that doesn't carry into Spanish, so name the four
+        // movements plainly instead (Sprint 98).
+        subtitle: 'Adora · Confiesa · Agradece · Pide',
         intro:
           'Un momento para venir a Dios paso a paso: adóralo, confiésate, dale gracias y preséntale tus peticiones.',
         begin: 'Comenzar',
