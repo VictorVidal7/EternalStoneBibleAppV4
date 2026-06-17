@@ -29,6 +29,7 @@ import {LinearGradient} from 'expo-linear-gradient';
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
 import {haptics} from '@lib/haptics';
 import {useTheme} from '@hooks/useTheme';
+import {centeredMaxWidth} from '@/styles/responsive';
 import {useLanguage} from '@hooks/useLanguage';
 import {focusTrapProps} from '@lib/a11y/focusTrap';
 import {useToast} from '@context/ToastContext';
@@ -155,6 +156,7 @@ export default function MemoryDeckScreen() {
           contentContainerStyle={[
             styles.bodyContent,
             {paddingBottom: insets.bottom + spacing['4xl']},
+            centeredMaxWidth(),
           ]}>
           {/* Streak + daily-goal chip (Sprint 47) */}
           {!isEmpty && (

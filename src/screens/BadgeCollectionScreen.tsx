@@ -26,6 +26,7 @@ import {useLanguage} from '../hooks/useLanguage';
 import {focusTrapProps} from '@lib/a11y/focusTrap';
 import {useToast} from '../context/ToastContext';
 import {staticColors} from '../styles/designTokens';
+import {centeredMaxWidth, CONTENT_MAX_WIDTH} from '../styles/responsive';
 import {
   badgeSystemService,
   BadgeProgress,
@@ -41,6 +42,9 @@ import {
 } from '../components/insights/AchievementImageModal';
 
 const {width: SCREEN_WIDTH} = Dimensions.get('window');
+// Sprint 96: derive the 3-up badge card width from the CAPPED content width on
+// wide screens so the grid stays a comfortable size; no-op on phones.
+const EFFECTIVE_CONTENT_WIDTH = Math.min(SCREEN_WIDTH, CONTENT_MAX_WIDTH);
 
 interface BadgeCollectionScreenProps {
   userId: string;
@@ -484,7 +488,7 @@ export const BadgeCollectionScreen: React.FC<BadgeCollectionScreenProps> = ({
           {/* Badges Grid */}
           <ScrollView
             style={styles.scrollView}
-            contentContainerStyle={styles.badgesGrid}>
+            contentContainerStyle={[styles.badgesGrid, centeredMaxWidth()]}>
             {filteredBadges.map(badgeProgress => {
               const isLocked = !badgeProgress.isUnlocked;
               return (
@@ -586,7 +590,7 @@ export const BadgeCollectionScreen: React.FC<BadgeCollectionScreenProps> = ({
       {viewMode === 'titles' && (
         <ScrollView
           style={styles.scrollView}
-          contentContainerStyle={styles.titlesContainer}>
+          contentContainerStyle={[styles.titlesContainer, centeredMaxWidth()]}>
           {userTitles.length === 0 ? (
             <View style={styles.emptyState}>
               <Text style={styles.emptyIcon}>🏆</Text>
@@ -991,7 +995,7 @@ const styles = StyleSheet.create({
     // 3-column grid: subtract the grid's 32px horizontal padding (16×2) + the
     // two 12px gaps between cards (24), plus 2px slack so subpixel rounding
     // never pushes the third card onto a second row.
-    width: (SCREEN_WIDTH - 58) / 3,
+    width: (EFFECTIVE_CONTENT_WIDTH - 58) / 3,
     padding: 12,
     borderRadius: 12,
     alignItems: 'center',

@@ -25,6 +25,7 @@ import {LinearGradient} from 'expo-linear-gradient';
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
 import {haptics} from '@lib/haptics';
 import {useTheme} from '@hooks/useTheme';
+import {centeredMaxWidth} from '@/styles/responsive';
 import {useLanguage} from '@hooks/useLanguage';
 import {getBookByName} from '@/constants/bible';
 import {getBookIntro} from '@/constants/book-intros';
@@ -115,6 +116,7 @@ export default function AboutBookScreen() {
           contentContainerStyle={[
             styles.bodyContent,
             {paddingBottom: insets.bottom + spacing['4xl']},
+            centeredMaxWidth(),
           ]}>
           {intro ? (
             <>

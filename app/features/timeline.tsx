@@ -26,6 +26,7 @@ import {Ionicons} from '@expo/vector-icons';
 import {LinearGradient} from 'expo-linear-gradient';
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
 import {useTheme} from '@hooks/useTheme';
+import {centeredMaxWidth} from '@/styles/responsive';
 import {useLanguage} from '@hooks/useLanguage';
 import {useServices} from '@context/ServicesContext';
 import {useFavorites} from '@context/FavoritesContext';
@@ -353,7 +354,7 @@ export default function TimelineScreen() {
         </LinearGradient>
 
         <ScrollView
-          contentContainerStyle={styles.content}
+          contentContainerStyle={[styles.content, centeredMaxWidth()]}
           showsVerticalScrollIndicator={false}>
           {status === 'loading' && (
             <View style={styles.centerState}>

@@ -26,6 +26,7 @@ import {useRouter} from 'expo-router';
 import {Ionicons} from '@expo/vector-icons';
 import {LinearGradient} from 'expo-linear-gradient';
 import {useTheme} from '@hooks/useTheme';
+import {centeredMaxWidth} from '@/styles/responsive';
 import {useLanguage} from '@hooks/useLanguage';
 import {focusTrapProps} from '@lib/a11y/focusTrap';
 import {useToast} from '@context/ToastContext';
@@ -177,7 +178,7 @@ export default function ConflictsScreen() {
       <FlatList
         data={conflicts}
         keyExtractor={c => c.id}
-        contentContainerStyle={styles.listContent}
+        contentContainerStyle={[styles.listContent, centeredMaxWidth()]}
         renderItem={({item}) => (
           <View
             style={[styles.card, {backgroundColor: colors.surface}]}

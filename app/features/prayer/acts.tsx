@@ -29,6 +29,7 @@ import {Ionicons} from '@expo/vector-icons';
 import {LinearGradient} from 'expo-linear-gradient';
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
 import {useTheme} from '@hooks/useTheme';
+import {centeredMaxWidth} from '@/styles/responsive';
 import {useLanguage} from '@hooks/useLanguage';
 import {useBibleVersion} from '@hooks/useBibleVersion';
 import {haptics} from '@lib/haptics';
@@ -164,6 +165,7 @@ export default function GuidedPrayerScreen() {
           contentContainerStyle={[
             styles.content,
             {paddingBottom: insets.bottom + spacing['2xl']},
+            centeredMaxWidth(),
           ]}
           showsVerticalScrollIndicator={false}>
           {status === 'loading' && (

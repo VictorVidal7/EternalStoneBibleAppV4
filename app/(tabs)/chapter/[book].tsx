@@ -35,10 +35,16 @@ import {hitSlopToMinTarget} from '@lib/a11y/touchTarget';
 
 // Design tokens
 import {spacing, fontSize, shadows, staticColors} from '@/styles/designTokens';
+import {centeredMaxWidth, CONTENT_MAX_WIDTH} from '@/styles/responsive';
 
 const {width: SCREEN_WIDTH} = Dimensions.get('window');
 const CARDS_PER_ROW = 5;
-const CARD_SIZE = (SCREEN_WIDTH - spacing.lg * 2) / CARDS_PER_ROW;
+// Sprint 96: size the chapter-number cards from the CAPPED content width on
+// wide screens (foldable/tablet) so the 5-up grid stays a comfortable size and
+// the row centers, instead of 5 huge cards stretched across the full width.
+// No-op on phones (screen narrower than the cap).
+const EFFECTIVE_CONTENT_WIDTH = Math.min(SCREEN_WIDTH, CONTENT_MAX_WIDTH);
+const CARD_SIZE = (EFFECTIVE_CONTENT_WIDTH - spacing.lg * 2) / CARDS_PER_ROW;
 
 // 40dp header buttons + the ~28dp-tall Continue pill fall short of the 48dp
 // minimum touch target (S74 hit-target audit).
@@ -446,6 +452,7 @@ export default function ChapterSelectionScreen() {
                 contentContainerStyle={[
                   styles.listContent,
                   styles.listContentBottomPad,
+                  centeredMaxWidth(CONTENT_MAX_WIDTH),
                 ]}
               />
             ) : (
