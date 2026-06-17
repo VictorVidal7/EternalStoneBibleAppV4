@@ -13,6 +13,7 @@ import {useRouter, useFocusEffect} from 'expo-router';
 import {Ionicons} from '@expo/vector-icons';
 import {LinearGradient} from 'expo-linear-gradient';
 import {useTheme} from '@hooks/useTheme';
+import {centeredMaxWidth} from '@/styles/responsive';
 import {useLanguage} from '@hooks/useLanguage';
 import {IllustratedEmptyState} from '@components/IllustratedEmptyState';
 import {useToast} from '@context/ToastContext';
@@ -401,6 +402,7 @@ const styles = StyleSheet.create({
   listContent: {
     padding: 16,
     paddingBottom: 100, // Espacio para tab bar (88px iOS / 68px Android)
+    ...centeredMaxWidth(),
   },
   favoriteItem: {
     flexDirection: 'row',

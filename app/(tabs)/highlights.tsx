@@ -24,6 +24,7 @@ import {useRouter, useFocusEffect} from 'expo-router';
 import {Ionicons} from '@expo/vector-icons';
 import {LinearGradient} from 'expo-linear-gradient';
 import {useTheme} from '@hooks/useTheme';
+import {centeredMaxWidth} from '@/styles/responsive';
 import {useLanguage} from '@hooks/useLanguage';
 import {focusTrapProps} from '@lib/a11y/focusTrap';
 import {useBibleVersion} from '@hooks/useBibleVersion';
@@ -776,7 +777,7 @@ const styles = StyleSheet.create({
   },
   emptyTitle: {fontSize: 18, fontWeight: '700', marginTop: 12},
   emptyHint: {fontSize: 14, textAlign: 'center', paddingHorizontal: 40},
-  listContent: {padding: 16, paddingBottom: 110},
+  listContent: {padding: 16, paddingBottom: 110, ...centeredMaxWidth()},
   row: {
     flexDirection: 'row',
     borderRadius: 12,
