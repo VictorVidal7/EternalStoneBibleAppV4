@@ -108,6 +108,7 @@ import {
   staticColors,
 } from '@/styles/designTokens';
 import {resolveReaderTheme} from '@/styles/readerThemes';
+import {centeredMaxWidth, READER_MAX_WIDTH} from '@/styles/responsive';
 import {
   resolveSecondaryVersion,
   secondaryVersionChoices,
@@ -1901,6 +1902,14 @@ export default function VerseReadingScreen() {
                 100 +
                 (isAudioVisible ? 80 : 0) +
                 (selectedVerses.size > 0 ? 130 : 0),
+              // Sprint 96: cap + center the reading column on wide screens
+              // (foldable inner display / tablet / landscape) so verse lines
+              // stay a comfortable length. No-op on phones (narrower than the
+              // cap). The cap includes the reader margin so the TEXT column is
+              // ~READER_MAX_WIDTH regardless of the chosen margin.
+              ...centeredMaxWidth(
+                READER_MAX_WIDTH + readerPaddingHorizontal * 2,
+              ),
             },
           ]}
           onScroll={handleScroll}
