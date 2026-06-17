@@ -13,6 +13,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import bibleDB from '../database';
 import {getDailyVerseRef} from '../../constants/daily-verses';
 import {getBookById} from '../../constants/bible';
+import {pickPrayerReminderCopy} from './prayerReminderCopy';
 import {logger} from '../utils/logger';
 
 const ENABLED_KEY = '@daily_notifications_enabled';
@@ -30,10 +31,20 @@ const MEMORY_HOUR_KEY = '@memory_reminder_hour';
 const MEMORY_DEFAULT_HOUR = 19;
 const MEMORY_CHANNEL_ID = 'memory-reminder';
 
+/** Sprint 95 — a gentle daily prayer reminder, a THIRD independent reminder
+ *  type. The prayer companion (Sprint 93) had no nudge; this is a calm,
+ *  pastoral invitation (NEVER a scold) whose copy rotates by day so it stays
+ *  fresh. Like the memory reminder it needs no DB lookup. */
+const PRAYER_ENABLED_KEY = '@prayer_reminder_enabled';
+const PRAYER_HOUR_KEY = '@prayer_reminder_hour';
+const PRAYER_DEFAULT_HOUR = 20;
+const PRAYER_CHANNEL_ID = 'prayer-reminder';
+
 /** Discriminator stored on each scheduled notification's `data.type` so we
  *  can cancel one kind without touching the other. */
 const DAILY_VERSE_TYPE = 'daily-verse';
 const MEMORY_REMINDER_TYPE = 'memory-reminder';
+const PRAYER_REMINDER_TYPE = 'prayer-reminder';
 
 export interface NotificationPreferences {
   enabled: boolean;
@@ -70,6 +81,10 @@ export async function initNotifications(): Promise<void> {
       });
       await Notifications.setNotificationChannelAsync(MEMORY_CHANNEL_ID, {
         name: 'Recordatorio de repaso',
+        importance: Notifications.AndroidImportance.DEFAULT,
+      });
+      await Notifications.setNotificationChannelAsync(PRAYER_CHANNEL_ID, {
+        name: 'Recordatorio de oración',
         importance: Notifications.AndroidImportance.DEFAULT,
       });
     } catch (err) {
@@ -401,4 +416,129 @@ export async function refreshMemoryReminders(
   const granted = await requestNotificationPermission();
   if (!granted) return;
   await scheduleMemoryReminders({...opts, hour: prefs.hour});
+}
+
+// ---------------------------------------------------------------------------
+// 🙏 Prayer reminder (Sprint 95)
+//
+// A gentle daily invitation to pray, mirroring the memory reminder's shape but
+// with PASTORAL, rotating copy — never a scold, always an open door. The line
+// is chosen deterministically by day-of-year (so every notification on a given
+// day matches and it refreshes tomorrow), reusing the pure dailyLight rotation.
+// ---------------------------------------------------------------------------
+
+export interface PrayerReminderPreferences {
+  enabled: boolean;
+  hour: number;
+}
+
+export interface PrayerReminderOptions {
+  hour: number;
+  language: 'es' | 'en';
+}
+
+/** Reads the saved prayer-reminder preferences. */
+export async function getPrayerReminderPreferences(): Promise<PrayerReminderPreferences> {
+  try {
+    const [enabledRaw, hourRaw] = await Promise.all([
+      AsyncStorage.getItem(PRAYER_ENABLED_KEY),
+      AsyncStorage.getItem(PRAYER_HOUR_KEY),
+    ]);
+    const hour = hourRaw != null ? parseInt(hourRaw, 10) : PRAYER_DEFAULT_HOUR;
+    return {
+      enabled: enabledRaw === 'true',
+      hour: Number.isFinite(hour) ? hour : PRAYER_DEFAULT_HOUR,
+    };
+  } catch {
+    return {enabled: false, hour: PRAYER_DEFAULT_HOUR};
+  }
+}
+
+async function savePrayerReminderPreferences(
+  prefs: PrayerReminderPreferences,
+): Promise<void> {
+  await AsyncStorage.multiSet([
+    [PRAYER_ENABLED_KEY, String(prefs.enabled)],
+    [PRAYER_HOUR_KEY, String(prefs.hour)],
+  ]);
+}
+
+/**
+ * Reschedules the rolling window of prayer reminders. Cancels only the
+ * existing prayer reminders first (never the daily verse or memory reminder).
+ */
+export async function schedulePrayerReminders(
+  opts: PrayerReminderOptions,
+): Promise<number> {
+  await initNotifications();
+  await cancelNotificationsByType(PRAYER_REMINDER_TYPE);
+
+  const now = new Date();
+  let scheduled = 0;
+
+  for (let i = 0; i < DAYS_AHEAD; i++) {
+    const triggerDate = new Date(now);
+    triggerDate.setDate(now.getDate() + i);
+    triggerDate.setHours(opts.hour, 0, 0, 0);
+    if (triggerDate.getTime() <= now.getTime()) continue;
+
+    const copy = pickPrayerReminderCopy(opts.language, triggerDate);
+
+    await Notifications.scheduleNotificationAsync({
+      content: {
+        title: copy.title,
+        body: copy.body,
+        data: {type: PRAYER_REMINDER_TYPE},
+      },
+      trigger: {
+        type: Notifications.SchedulableTriggerInputTypes.DATE,
+        date: triggerDate,
+        channelId: PRAYER_CHANNEL_ID,
+      },
+    });
+    scheduled++;
+  }
+
+  logger.info('Prayer reminders scheduled', {
+    component: 'NotificationService',
+    scheduled,
+    hour: opts.hour,
+  });
+  return scheduled;
+}
+
+/** Turns the prayer reminder on or off (requesting permission on enable). */
+export async function setPrayerReminderEnabled(
+  enabled: boolean,
+  opts: PrayerReminderOptions,
+): Promise<boolean> {
+  if (enabled) {
+    const granted = await requestNotificationPermission();
+    if (!granted) return false;
+    await schedulePrayerReminders(opts);
+  } else {
+    await cancelNotificationsByType(PRAYER_REMINDER_TYPE);
+  }
+  await savePrayerReminderPreferences({enabled, hour: opts.hour});
+  return true;
+}
+
+/** Updates the reminder hour and reschedules if enabled. */
+export async function updatePrayerReminderHour(
+  opts: PrayerReminderOptions,
+): Promise<void> {
+  await savePrayerReminderPreferences({enabled: true, hour: opts.hour});
+  await schedulePrayerReminders(opts);
+}
+
+/** Called on app launch: top up the rolling window if the reminder is on. */
+export async function refreshPrayerReminders(
+  opts: Omit<PrayerReminderOptions, 'hour'>,
+): Promise<void> {
+  const prefs = await getPrayerReminderPreferences();
+  await initNotifications();
+  if (!prefs.enabled) return;
+  const granted = await requestNotificationPermission();
+  if (!granted) return;
+  await schedulePrayerReminders({...opts, hour: prefs.hour});
 }

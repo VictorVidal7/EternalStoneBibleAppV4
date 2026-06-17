@@ -1640,6 +1640,12 @@ export const translations = {
       memoryReminderDesc: 'Te recordamos repasar tus versículos cada día',
       memoryReminderEnabled: 'Recordatorio de repaso activado',
       memoryReminderDisabled: 'Recordatorio de repaso desactivado',
+      prayerReminderTitle: 'Recordatorio de oración',
+      prayerReminder: 'Recordatorio de oración',
+      prayerReminderDesc:
+        'Una invitación gentil a orar cada día, a la hora que elijas',
+      prayerReminderEnabled: 'Recordatorio de oración activado',
+      prayerReminderDisabled: 'Recordatorio de oración desactivado',
       permissionDeniedTitle: 'Permiso necesario',
       permissionDeniedMessage:
         'Para recibir el versículo diario, activa las notificaciones de la app en los ajustes del sistema.',
@@ -3883,6 +3889,12 @@ export const translations = {
       memoryReminderDesc: 'A daily nudge to review your memory verses',
       memoryReminderEnabled: 'Review reminder turned on',
       memoryReminderDisabled: 'Review reminder turned off',
+      prayerReminderTitle: 'Prayer reminder',
+      prayerReminder: 'Prayer reminder',
+      prayerReminderDesc:
+        'A gentle daily invitation to pray, at the time you choose',
+      prayerReminderEnabled: 'Prayer reminder turned on',
+      prayerReminderDisabled: 'Prayer reminder turned off',
       permissionDeniedTitle: 'Permission needed',
       permissionDeniedMessage:
         'To receive the daily verse, enable notifications for the app in your system settings.',

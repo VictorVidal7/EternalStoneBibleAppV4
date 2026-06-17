@@ -28,6 +28,7 @@ import {useAuth} from '@context/AuthContext';
 import {useSyncEngineOptional, useConflicts} from '@context/SyncEngineContext';
 import {useToast} from '@context/ToastContext';
 import DailyVerseSettings from '@components/settings/DailyVerseSettings';
+import PrayerReminderSettings from '@components/settings/PrayerReminderSettings';
 import MemoryGoalSettings from '@components/settings/MemoryGoalSettings';
 import ReadingGoalSettings from '@components/settings/ReadingGoalSettings';
 import PremiumSettings from '@components/settings/PremiumSettings';
@@ -637,6 +638,9 @@ export default function SettingsScreen() {
 
         {/* Daily Verse Notifications */}
         <DailyVerseSettings />
+
+        {/* Gentle daily prayer reminder (Sprint 95) */}
+        <PrayerReminderSettings />
 
         {/* Daily reading goal — grades the Leer constancy ring (Sprint 85) */}
         <ReadingGoalSettings />
