@@ -37,6 +37,7 @@ import {useServices} from '@context/ServicesContext';
 import bibleDB from '@lib/database';
 import {getBookById, getBookByName} from '@/constants/bible';
 import {DAILY_VERSE_REFS} from '@/constants/daily-verses';
+import {BOOK_INTROS} from '@/constants/book-intros';
 import {getAllThemes} from '@/features/study/themes';
 import {buildDailyLight} from '@/features/daily-light/dailyLight';
 import {
@@ -68,6 +69,10 @@ interface DailyContent {
   themeAccent: string;
   themeIcon: string;
   streak: number;
+  // Brief, faithful background for the verse's book (who/when/why) — S98.
+  bookAuthor?: string;
+  bookDate?: string;
+  bookTheme?: string;
   // "Christ in this passage" — present only when the day's verse is curated.
   christNote?: string;
   christPointsTo?: string; // localized fulfillment label, e.g. "Juan 10:11"
@@ -136,6 +141,10 @@ export default function DailyLightScreen() {
         theme.id
       ];
 
+      // Brief, faithful background for the verse's book (S98) — reuses the
+      // curated, conservative BOOK_INTROS (who wrote it, when, its theme).
+      const intro = BOOK_INTROS[ref.book]?.[language === 'es' ? 'es' : 'en'];
+
       // Theme-tied application questions (S97). Fall back to one rotating
       // generic prompt if a theme somehow has none curated.
       const applyMap = td.applyByTheme as Record<string, string[]>;
@@ -188,6 +197,9 @@ export default function DailyLightScreen() {
         themeAccent: theme.accent,
         themeIcon: theme.icon,
         streak,
+        bookAuthor: intro?.author,
+        bookDate: intro?.date,
+        bookTheme: intro?.theme,
         christNote,
         christPointsTo,
         christFulfillmentText,
@@ -343,6 +355,45 @@ export default function DailyLightScreen() {
                 {content.reference}
               </AppText>
             </View>
+
+            {/* Brief, faithful background for the verse's book (S98) */}
+            {content.bookTheme ? (
+              <View
+                style={[
+                  styles.card,
+                  {backgroundColor: colors.card, borderColor: colors.border},
+                ]}>
+                <View style={styles.christHeader}>
+                  <Ionicons
+                    name="book-outline"
+                    size={16}
+                    color={colors.textSecondary}
+                  />
+                  <AppText
+                    scaleRole="compact"
+                    style={[
+                      styles.cardLabel,
+                      {color: colors.textSecondary, marginLeft: spacing['1.5']},
+                    ]}>
+                    {td.contextTitle}
+                  </AppText>
+                </View>
+                {content.bookAuthor || content.bookDate ? (
+                  <AppText
+                    scaleRole="compact"
+                    style={[styles.contextMeta, {color: colors.textTertiary}]}>
+                    {[content.bookAuthor, content.bookDate]
+                      .filter(Boolean)
+                      .join(' · ')}
+                  </AppText>
+                ) : null}
+                <AppText
+                  scaleRole="body"
+                  style={[styles.contextTheme, {color: colors.text}]}>
+                  {content.bookTheme}
+                </AppText>
+              </View>
+            ) : null}
 
             {/* Christ in this passage — only when the verse is curated */}
             {content.christNote ? (
@@ -621,6 +672,11 @@ const styles = StyleSheet.create({
   },
   applyText: {flex: 1, fontSize: fontSizes.md, lineHeight: fontSizes.md * 1.5},
   christHeader: {flexDirection: 'row', alignItems: 'center'},
+  contextMeta: {
+    fontSize: fontSizes.sm,
+    fontWeight: '600',
+  },
+  contextTheme: {fontSize: fontSizes.md, lineHeight: fontSizes.md * 1.55},
   christText: {fontSize: fontSizes.md, lineHeight: fontSizes.md * 1.55},
   christVerse: {
     borderLeftWidth: 3,
