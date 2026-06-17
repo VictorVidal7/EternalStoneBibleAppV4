@@ -18,7 +18,7 @@ import {translations} from '../src/i18n/translations';
 
 describe('READING_PLANS integrity', () => {
   it('ships the expected catalogue with unique ids', () => {
-    expect(READING_PLANS.length).toBeGreaterThanOrEqual(6);
+    expect(READING_PLANS.length).toBeGreaterThanOrEqual(9);
     const ids = READING_PLANS.map(p => p.id);
     expect(new Set(ids).size).toBe(ids.length);
   });

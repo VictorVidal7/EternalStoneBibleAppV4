@@ -1566,6 +1566,21 @@ export const translations = {
         name: 'Toda la Biblia en un Año',
         description: 'Recorre toda la Escritura en 365 días, en orden canónico',
       },
+      redemption: {
+        name: 'Cristo en toda la Biblia',
+        description:
+          'La historia de la redención: 31 pasajes clave que apuntan a Jesús, de Génesis a Apocalipsis',
+      },
+      wisdom: {
+        name: 'Sabiduría Diaria: Salmo y Proverbio',
+        description:
+          'Cada día un Salmo y un capítulo de Proverbios, para empezar o cerrar el día',
+      },
+      firstSteps: {
+        name: 'Primeros pasos con Jesús',
+        description:
+          'Un camino suave de 21 días para nuevos creyentes y para volver a empezar',
+      },
     },
 
     // Reading Plan Screen
@@ -3794,6 +3809,21 @@ export const translations = {
         name: 'The Whole Bible in a Year',
         description:
           'Journey through all of Scripture in 365 days, in canonical order',
+      },
+      redemption: {
+        name: 'Christ in All of Scripture',
+        description:
+          'The story of redemption: 31 key passages that point to Jesus, from Genesis to Revelation',
+      },
+      wisdom: {
+        name: 'Daily Wisdom: a Psalm and a Proverb',
+        description:
+          'A Psalm and a chapter of Proverbs each day, to begin or end your day',
+      },
+      firstSteps: {
+        name: 'First Steps with Jesus',
+        description:
+          'A gentle 21-day path for new believers and for beginning again',
       },
     },
 
