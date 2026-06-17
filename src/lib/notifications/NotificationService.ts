@@ -14,6 +14,7 @@ import bibleDB from '../database';
 import {getDailyVerseRef} from '../../constants/daily-verses';
 import {getBookById} from '../../constants/bible';
 import {pickPrayerReminderCopy} from './prayerReminderCopy';
+import {pickDevotionReminderCopy} from './devotionReminderCopy';
 import {logger} from '../utils/logger';
 
 const ENABLED_KEY = '@daily_notifications_enabled';
@@ -40,11 +41,21 @@ const PRAYER_HOUR_KEY = '@prayer_reminder_hour';
 const PRAYER_DEFAULT_HOUR = 20;
 const PRAYER_CHANNEL_ID = 'prayer-reminder';
 
+/** Sprint 97 — a gentle daily invitation to spend time in the Word / Daily
+ *  Light devotional, a FOURTH independent reminder type. Defaults to the
+ *  morning (08:00) since devotions are most often a morning habit. Like the
+ *  prayer reminder it needs no DB lookup and the copy is never a scold. */
+const DEVOTION_ENABLED_KEY = '@devotion_reminder_enabled';
+const DEVOTION_HOUR_KEY = '@devotion_reminder_hour';
+const DEVOTION_DEFAULT_HOUR = 8;
+const DEVOTION_CHANNEL_ID = 'devotion-reminder';
+
 /** Discriminator stored on each scheduled notification's `data.type` so we
  *  can cancel one kind without touching the other. */
 const DAILY_VERSE_TYPE = 'daily-verse';
 const MEMORY_REMINDER_TYPE = 'memory-reminder';
 const PRAYER_REMINDER_TYPE = 'prayer-reminder';
+const DEVOTION_REMINDER_TYPE = 'devotion-reminder';
 
 export interface NotificationPreferences {
   enabled: boolean;
@@ -85,6 +96,10 @@ export async function initNotifications(): Promise<void> {
       });
       await Notifications.setNotificationChannelAsync(PRAYER_CHANNEL_ID, {
         name: 'Recordatorio de oración',
+        importance: Notifications.AndroidImportance.DEFAULT,
+      });
+      await Notifications.setNotificationChannelAsync(DEVOTION_CHANNEL_ID, {
+        name: 'Recordatorio de devoción',
         importance: Notifications.AndroidImportance.DEFAULT,
       });
     } catch (err) {
@@ -541,4 +556,130 @@ export async function refreshPrayerReminders(
   const granted = await requestNotificationPermission();
   if (!granted) return;
   await schedulePrayerReminders({...opts, hour: prefs.hour});
+}
+
+// ---------------------------------------------------------------------------
+// 📖 Devotion reminder (Sprint 97)
+//
+// A gentle daily invitation to spend time in the Word / the Daily Light
+// devotional, mirroring the prayer reminder's shape with its own pastoral,
+// rotating copy (never a scold). The line is chosen deterministically by
+// day-of-year, reusing the pure dailyLight rotation.
+// ---------------------------------------------------------------------------
+
+export interface DevotionReminderPreferences {
+  enabled: boolean;
+  hour: number;
+}
+
+export interface DevotionReminderOptions {
+  hour: number;
+  language: 'es' | 'en';
+}
+
+/** Reads the saved devotion-reminder preferences. */
+export async function getDevotionReminderPreferences(): Promise<DevotionReminderPreferences> {
+  try {
+    const [enabledRaw, hourRaw] = await Promise.all([
+      AsyncStorage.getItem(DEVOTION_ENABLED_KEY),
+      AsyncStorage.getItem(DEVOTION_HOUR_KEY),
+    ]);
+    const hour =
+      hourRaw != null ? parseInt(hourRaw, 10) : DEVOTION_DEFAULT_HOUR;
+    return {
+      enabled: enabledRaw === 'true',
+      hour: Number.isFinite(hour) ? hour : DEVOTION_DEFAULT_HOUR,
+    };
+  } catch {
+    return {enabled: false, hour: DEVOTION_DEFAULT_HOUR};
+  }
+}
+
+async function saveDevotionReminderPreferences(
+  prefs: DevotionReminderPreferences,
+): Promise<void> {
+  await AsyncStorage.multiSet([
+    [DEVOTION_ENABLED_KEY, String(prefs.enabled)],
+    [DEVOTION_HOUR_KEY, String(prefs.hour)],
+  ]);
+}
+
+/**
+ * Reschedules the rolling window of devotion reminders. Cancels only the
+ * existing devotion reminders first (never the other reminder types).
+ */
+export async function scheduleDevotionReminders(
+  opts: DevotionReminderOptions,
+): Promise<number> {
+  await initNotifications();
+  await cancelNotificationsByType(DEVOTION_REMINDER_TYPE);
+
+  const now = new Date();
+  let scheduled = 0;
+
+  for (let i = 0; i < DAYS_AHEAD; i++) {
+    const triggerDate = new Date(now);
+    triggerDate.setDate(now.getDate() + i);
+    triggerDate.setHours(opts.hour, 0, 0, 0);
+    if (triggerDate.getTime() <= now.getTime()) continue;
+
+    const copy = pickDevotionReminderCopy(opts.language, triggerDate);
+
+    await Notifications.scheduleNotificationAsync({
+      content: {
+        title: copy.title,
+        body: copy.body,
+        data: {type: DEVOTION_REMINDER_TYPE},
+      },
+      trigger: {
+        type: Notifications.SchedulableTriggerInputTypes.DATE,
+        date: triggerDate,
+        channelId: DEVOTION_CHANNEL_ID,
+      },
+    });
+    scheduled++;
+  }
+
+  logger.info('Devotion reminders scheduled', {
+    component: 'NotificationService',
+    scheduled,
+    hour: opts.hour,
+  });
+  return scheduled;
+}
+
+/** Turns the devotion reminder on or off (requesting permission on enable). */
+export async function setDevotionReminderEnabled(
+  enabled: boolean,
+  opts: DevotionReminderOptions,
+): Promise<boolean> {
+  if (enabled) {
+    const granted = await requestNotificationPermission();
+    if (!granted) return false;
+    await scheduleDevotionReminders(opts);
+  } else {
+    await cancelNotificationsByType(DEVOTION_REMINDER_TYPE);
+  }
+  await saveDevotionReminderPreferences({enabled, hour: opts.hour});
+  return true;
+}
+
+/** Updates the reminder hour and reschedules if enabled. */
+export async function updateDevotionReminderHour(
+  opts: DevotionReminderOptions,
+): Promise<void> {
+  await saveDevotionReminderPreferences({enabled: true, hour: opts.hour});
+  await scheduleDevotionReminders(opts);
+}
+
+/** Called on app launch: top up the rolling window if the reminder is on. */
+export async function refreshDevotionReminders(
+  opts: Omit<DevotionReminderOptions, 'hour'>,
+): Promise<void> {
+  const prefs = await getDevotionReminderPreferences();
+  await initNotifications();
+  if (!prefs.enabled) return;
+  const granted = await requestNotificationPermission();
+  if (!granted) return;
+  await scheduleDevotionReminders({...opts, hour: prefs.hour});
 }

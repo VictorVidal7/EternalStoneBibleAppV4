@@ -1852,6 +1852,12 @@ export const translations = {
         'Una invitación gentil a orar cada día, a la hora que elijas',
       prayerReminderEnabled: 'Recordatorio de oración activado',
       prayerReminderDisabled: 'Recordatorio de oración desactivado',
+      devotionReminderTitle: 'Recordatorio de devoción',
+      devotionReminder: 'Tiempo en la Palabra',
+      devotionReminderDesc:
+        'Una invitación gentil a pasar tiempo en la Palabra cada día, a la hora que elijas',
+      devotionReminderEnabled: 'Recordatorio de devoción activado',
+      devotionReminderDisabled: 'Recordatorio de devoción desactivado',
       permissionDeniedTitle: 'Permiso necesario',
       permissionDeniedMessage:
         'Para recibir el versículo diario, activa las notificaciones de la app en los ajustes del sistema.',
@@ -4307,6 +4313,12 @@ export const translations = {
         'A gentle daily invitation to pray, at the time you choose',
       prayerReminderEnabled: 'Prayer reminder turned on',
       prayerReminderDisabled: 'Prayer reminder turned off',
+      devotionReminderTitle: 'Devotion reminder',
+      devotionReminder: 'Time in the Word',
+      devotionReminderDesc:
+        'A gentle daily invitation to spend time in the Word, at the time you choose',
+      devotionReminderEnabled: 'Devotion reminder turned on',
+      devotionReminderDisabled: 'Devotion reminder turned off',
       permissionDeniedTitle: 'Permission needed',
       permissionDeniedMessage:
         'To receive the daily verse, enable notifications for the app in your system settings.',
