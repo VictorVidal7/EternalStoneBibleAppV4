@@ -1,6 +1,7 @@
 // Planes de lectura bíblica
 
 import type {TranslationKeys} from '../i18n/translations';
+import {BIBLE_BOOKS} from './bible';
 
 export interface ReadingPlanDay {
   day: number;
@@ -17,7 +18,8 @@ export type ReadingPlanI18nKey =
   | 'psalms'
   | 'gospels'
   | 'newTestament'
-  | 'genesis';
+  | 'genesis'
+  | 'bibleYear';
 
 export interface ReadingPlan {
   id: string;
@@ -632,12 +634,44 @@ const genesisMonth: ReadingPlan = {
   }),
 };
 
+// Plan: Toda la Biblia en un año (365 días, orden canónico).
+// Generado a partir de la tabla canónica de libros para no duplicar datos: se
+// aplanan los 1189 capítulos en orden y se reparten lo más uniformemente
+// posible en 365 días (≈3-4 capítulos diarios). El reparto usa límites
+// proporcionales (floor) para no perder ni repetir capítulos; un día puede
+// cerrar un libro y abrir el siguiente, lo cual es natural en un plan anual.
+const BIBLE_YEAR_DAYS = 365;
+const allCanonicalChapters: {book: string; chapter: number}[] = [...BIBLE_BOOKS]
+  .sort((a, b) => a.id - b.id)
+  .flatMap(b =>
+    Array.from({length: b.chapters}, (_, i) => ({
+      book: b.name,
+      chapter: i + 1,
+    })),
+  );
+const bibleInAYear: ReadingPlan = {
+  id: 'bible-year',
+  name: 'Toda la Biblia en un Año',
+  description: 'Recorre toda la Escritura en 365 días, en orden canónico',
+  i18nKey: 'bibleYear',
+  duration: BIBLE_YEAR_DAYS,
+  icon: 'calendar-outline',
+  color: '#1D4ED8',
+  days: Array.from({length: BIBLE_YEAR_DAYS}, (_, i) => {
+    const total = allCanonicalChapters.length;
+    const start = Math.floor((i * total) / BIBLE_YEAR_DAYS);
+    const end = Math.floor(((i + 1) * total) / BIBLE_YEAR_DAYS);
+    return {day: i + 1, readings: allCanonicalChapters.slice(start, end)};
+  }),
+};
+
 export const READING_PLANS: ReadingPlan[] = [
   proverbsMonth,
   psalms30Days,
   gospels40Days,
   newTestament30Days,
   genesisMonth,
+  bibleInAYear,
 ];
 
 export function getReadingPlanById(id: string): ReadingPlan | undefined {

@@ -1562,6 +1562,10 @@ export const translations = {
         name: 'Génesis - El Principio',
         description: 'Descubre el origen de todo en el libro de Génesis',
       },
+      bibleYear: {
+        name: 'Toda la Biblia en un Año',
+        description: 'Recorre toda la Escritura en 365 días, en orden canónico',
+      },
     },
 
     // Reading Plan Screen
@@ -3785,6 +3789,11 @@ export const translations = {
       genesis: {
         name: 'Genesis - The Beginning',
         description: 'Discover the origin of everything in the book of Genesis',
+      },
+      bibleYear: {
+        name: 'The Whole Bible in a Year',
+        description:
+          'Journey through all of Scripture in 365 days, in canonical order',
       },
     },
 
