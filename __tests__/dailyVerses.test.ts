@@ -14,6 +14,7 @@ import {
   getDailyVerseRef,
 } from '../src/constants/daily-verses';
 import {getBookById} from '../src/constants/bible';
+import {getAllThemes} from '../src/features/study/themes';
 
 describe('DAILY_VERSE_REFS integrity', () => {
   it('ships a rich, de-duplicated pool', () => {
@@ -39,6 +40,17 @@ describe('DAILY_VERSE_REFS integrity', () => {
         bad.push(`${book.nameEn} ${ref.chapter}: bad verse ${ref.verse}`);
       }
     }
+    expect(bad).toEqual([]);
+  });
+
+  it('every ref carries a theme that is a real theme id (Sprint 98)', () => {
+    // Daily Light derives its "To apply" questions from the verse's theme, so a
+    // dangling/typo theme would land a verse beside the wrong questions (or the
+    // fallback). Lock every theme to the topical index.
+    const themeIds = new Set(getAllThemes().map(t => t.id));
+    const bad = DAILY_VERSE_REFS.filter(r => !themeIds.has(r.theme)).map(
+      r => `${r.book}/${r.chapter}/${r.verse} → ${r.theme}`,
+    );
     expect(bad).toEqual([]);
   });
 

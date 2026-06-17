@@ -103,7 +103,11 @@ export default function DailyLightScreen() {
         prompts.length,
       );
       const ref = DAILY_VERSE_REFS[sel.verseIndex];
-      const theme = themes[sel.themeIndex];
+      // The theme — and so the "To apply" questions — follows the DAY'S VERSE
+      // (Sprint 98), so a love verse never lands beside wisdom questions. The
+      // salted themeIndex stays as a defensive fallback for an unknown tag.
+      const theme =
+        themes.find(thm => thm.id === ref.theme) ?? themes[sel.themeIndex];
       const version = (await AsyncStorage.getItem(VERSION_KEY)) ?? 'RVR1960';
 
       const row = await bibleDB.getVerse(
