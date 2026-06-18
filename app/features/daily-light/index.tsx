@@ -39,7 +39,10 @@ import {getBookById, getBookByName} from '@/constants/bible';
 import {DAILY_VERSE_REFS} from '@/constants/daily-verses';
 import {BOOK_INTROS} from '@/constants/book-intros';
 import {getAllThemes} from '@/features/study/themes';
-import {buildDailyLight} from '@/features/daily-light/dailyLight';
+import {
+  buildDailyLight,
+  rotateApplyQuestions,
+} from '@/features/daily-light/dailyLight';
 import {
   getChristConnectionById,
   parseChristRef,
@@ -122,10 +125,11 @@ export default function DailyLightScreen() {
       setDevLang(vlang);
       const vt = translations[vlang].dailyLight;
 
+      const now = new Date();
       const themes = getAllThemes();
       const prompts = vt.prompts;
       const sel = buildDailyLight(
-        new Date(),
+        now,
         DAILY_VERSE_REFS.length,
         themes.length,
         prompts.length,
@@ -166,10 +170,13 @@ export default function DailyLightScreen() {
       // curated, conservative BOOK_INTROS (who wrote it, when, its theme).
       const intro = BOOK_INTROS[ref.book]?.[vlang];
 
-      // Theme-tied application questions (S97). Fall back to one rotating
+      // Theme-tied application questions (S97). Each theme keeps a pool of
+      // prompts; show a rotating window of three so a reader who returns to the
+      // same theme on different days finds fresh ones (S99). Fall back to one
       // generic prompt if a theme somehow has none curated.
       const applyMap = vt.applyByTheme as Record<string, string[]>;
-      const applyQuestions = applyMap[theme.id] ?? [prompts[sel.promptIndex]];
+      const pool = applyMap[theme.id] ?? [prompts[sel.promptIndex]];
+      const applyQuestions = rotateApplyQuestions(pool, now, 3);
 
       // "Christ in this passage" — look up a curated insight for this verse
       // (S98), in the same version language as the rest of the devotional.

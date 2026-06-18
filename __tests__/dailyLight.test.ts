@@ -2,6 +2,7 @@ import {
   dayOfYear,
   dailyIndex,
   buildDailyLight,
+  rotateApplyQuestions,
 } from '../src/features/daily-light/dailyLight';
 
 describe('dayOfYear', () => {
@@ -61,5 +62,54 @@ describe('buildDailyLight', () => {
     expect(sel.verseIndex).toBe(0);
     expect(sel.themeIndex).toBe(7); // salt 7
     expect(sel.promptIndex).toBe(13 % 8); // salt 13 → 5
+  });
+});
+
+describe('rotateApplyQuestions', () => {
+  const pool = ['a', 'b', 'c', 'd', 'e'];
+
+  it('returns the whole list (in order) when the pool is at or below count', () => {
+    expect(
+      rotateApplyQuestions(['a', 'b', 'c'], new Date(2026, 5, 3), 3),
+    ).toEqual(['a', 'b', 'c']);
+    expect(rotateApplyQuestions(['a', 'b'], new Date(2026, 5, 3), 3)).toEqual([
+      'a',
+      'b',
+    ]);
+  });
+
+  it('returns a rotating window of count, wrapping around', () => {
+    // day 0 → dailyIndex(5, salt 5) = 5 % 5 = 0 → a,b,c
+    expect(rotateApplyQuestions(pool, new Date(2026, 0, 1), 3)).toEqual([
+      'a',
+      'b',
+      'c',
+    ]);
+    // day 1 → (1 + 5) % 5 = 1 → b,c,d
+    expect(rotateApplyQuestions(pool, new Date(2026, 0, 2), 3)).toEqual([
+      'b',
+      'c',
+      'd',
+    ]);
+    // day 4 → (4 + 5) % 5 = 4 → e,a,b (wraps)
+    expect(rotateApplyQuestions(pool, new Date(2026, 0, 5), 3)).toEqual([
+      'e',
+      'a',
+      'b',
+    ]);
+  });
+
+  it('is deterministic for a given date and never exceeds count', () => {
+    for (let d = 0; d < 366; d++) {
+      const date = new Date(2026, 0, 1 + d);
+      const out = rotateApplyQuestions(pool, date, 3);
+      expect(out).toHaveLength(3);
+      expect(new Set(out).size).toBe(3); // no repeats within a window
+      expect(rotateApplyQuestions(pool, date, 3)).toEqual(out);
+    }
+  });
+
+  it('is defensive against a non-positive count', () => {
+    expect(rotateApplyQuestions(pool, new Date(2026, 0, 1), 0)).toEqual([]);
   });
 });

@@ -32,6 +32,28 @@ export function dailyIndex(length: number, date: Date, salt = 0): number {
   return i < 0 ? i + length : i;
 }
 
+/**
+ * A rotating window of up to `count` application questions from a theme's pool
+ * (Sprint 99). The window starts at a day-derived offset and wraps, so a reader
+ * who returns to the same theme on different days sees fresh prompts without the
+ * card growing long. Returns the whole list in order when the pool has `count`
+ * or fewer; a non-positive `count` yields an empty list.
+ */
+export function rotateApplyQuestions(
+  questions: readonly string[],
+  date: Date,
+  count = 3,
+): string[] {
+  if (count <= 0) return [];
+  if (questions.length <= count) return [...questions];
+  const start = dailyIndex(questions.length, date, 5);
+  const out: string[] = [];
+  for (let i = 0; i < count; i++) {
+    out.push(questions[(start + i) % questions.length]);
+  }
+  return out;
+}
+
 export interface DailyLightSelection {
   verseIndex: number;
   themeIndex: number;
