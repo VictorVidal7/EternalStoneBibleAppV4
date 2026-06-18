@@ -1025,6 +1025,90 @@ export const translations = {
           '«Un mandamiento nuevo os doy: Que os améis unos a otros; como yo os he amado.» La medida del amor cristiano es el amor de Cristo, que se entregó por nosotros.',
         'revelation-1-8':
           '«Yo soy el Alfa y la Omega... el que es y que era y que ha de venir.» El eterno Señor del principio y del fin es Jesús, el mismo que vino y que volverá (cf. Ap 22:13).',
+        'exodus-14-14':
+          '«Jehová peleará por vosotros, y vosotros estaréis tranquilos.» La batalla que no podíamos ganar la ganó Cristo: en la cruz desarmó a los principados y triunfó sobre ellos.',
+        'deuteronomy-31-6':
+          '«No te dejará, ni te desamparará.» Esa promesa es nuestra en Cristo; por eso Hebreos la repite a los creyentes: el Señor mismo nos acompaña.',
+        'joshua-1-9':
+          '«Esfuérzate y sé valiente... porque Jehová tu Dios estará contigo.» El valor no nace de nosotros, sino de su presencia: el Cristo resucitado dice «yo estoy con vosotros todos los días».',
+        '1samuel-16-7':
+          '«Jehová mira el corazón.» Cristo conocía lo que había en el hombre; ante Él no hay máscaras, y aun así nos ama y nos llama.',
+        'psalms-18-2':
+          '«Jehová, roca mía y castillo mío.» Pablo dice que aquella roca que acompañó a Israel era Cristo: nuestro refugio firme tiene rostro.',
+        'psalms-19-1':
+          '«Los cielos cuentan la gloria de Dios.» Y esos cielos fueron hechos por medio del Hijo: en Él fueron creadas todas las cosas, y todo proclama su gloria.',
+        'psalms-28-7':
+          '«Jehová es mi fortaleza y mi escudo.» Esa fuerza se nos da en Cristo, que dijo: «todo lo puedo en Cristo que me fortalece».',
+        'psalms-46-1':
+          '«Dios es nuestro amparo y fortaleza, nuestro pronto auxilio en las tribulaciones.» Ese amparo se acercó en Jesús, que invita: «Venid a mí... y yo os haré descansar».',
+        'psalms-46-10':
+          '«Estad quietos, y conoced que yo soy Dios.» El mismo que calma el alma calmó la tormenta con su voz: «Calla, enmudece», dijo Jesús, y todo se aquietó.',
+        'psalms-55-22':
+          '«Echa sobre Jehová tu carga, y él te sustentará.» Pedro lo repite señalando a Cristo: «echando toda vuestra ansiedad sobre él, porque él tiene cuidado de vosotros».',
+        'psalms-103-2':
+          '«Bendice, alma mía, a Jehová... él es quien perdona todas tus iniquidades.» Ese perdón pleno nos llega en Cristo, en quien tenemos redención por su sangre.',
+        'psalms-118-24':
+          '«Este es el día que hizo Jehová.» Es el salmo de la piedra que desecharon los edificadores y vino a ser cabeza del ángulo: Cristo, motivo de nuestro gozo.',
+        'psalms-119-105':
+          '«Lámpara es a mis pies tu palabra, y lumbrera a mi camino.» Esa Palabra se hizo carne: Jesús, la Palabra viva y la luz del mundo, alumbra el camino.',
+        'psalms-147-3':
+          '«Él sana a los quebrantados de corazón.» Jesús abrió su ministerio con esa promesa: fue ungido para sanar a los quebrantados de corazón.',
+        'proverbs-3-5':
+          '«Fíate de Jehová de todo tu corazón, y no te apoyes en tu propia prudencia.» Esa confianza halla su descanso en Cristo, el camino seguro al Padre.',
+        'isaiah-64-8':
+          '«Nosotros barro, y tú el que nos formaste.» En Cristo somos nueva creación: el Alfarero rehace en su Hijo lo que el pecado quebró.',
+        'jeremiah-33-3':
+          '«Clama a mí, y yo te responderé.» Jesús ensancha esa promesa: «todo lo que pidiereis al Padre en mi nombre, os lo dará».',
+        'nahum-1-7':
+          '«Jehová es bueno, fortaleza en el día de la angustia.» Esa fortaleza es Cristo, en quien tenemos paz en medio de la aflicción: «yo he vencido al mundo».',
+        'matthew-5-14':
+          '«Vosotros sois la luz del mundo.» Brillamos solo como reflejo de Aquel que es la Luz: «Yo soy la luz del mundo», dijo Jesús.',
+        'matthew-6-33':
+          '«Buscad primeramente el reino de Dios y su justicia.» Buscar el reino es buscar al Rey: en Cristo viene el reino, y en Él se nos da la justicia que no podíamos ganar.',
+        'matthew-19-26':
+          '«Para los hombres esto es imposible; mas para Dios todo es posible.» Lo dijo de la salvación: lo que el hombre no puede, lo hace Dios en Cristo, que vino a salvar a los perdidos.',
+        'matthew-22-37':
+          '«Amarás al Señor tu Dios con todo tu corazón.» Solo Uno cumplió perfectamente este mandamiento: Cristo, que ahora nos da su Espíritu para amar.',
+        'mark-10-27':
+          '«Para los hombres es imposible, mas para Dios no; porque todas las cosas son posibles para Dios.» La salvación es obra suya de principio a fin, lograda en Cristo.',
+        'luke-6-31':
+          '«Haced con los hombres como queréis que ellos hagan con vosotros.» Jesús no solo lo enseñó: lo vivió, entregándose por nosotros cuando nada merecíamos.',
+        'acts-1-8':
+          '«Me seréis testigos.» El centro del testimonio cristiano es una Persona: el Cristo resucitado, anunciado hasta lo último de la tierra.',
+        'romans-8-31':
+          '«Si Dios es por nosotros, ¿quién contra nosotros?» La prueba de que Dios está de nuestro lado es que entregó a su propio Hijo por nosotros.',
+        'romans-8-38':
+          '«Ni lo presente ni lo por venir... nos podrá separar del amor de Dios, que es en Cristo Jesús.» El amor que nos sostiene no es una idea: tiene nombre, Cristo Jesús.',
+        'romans-12-2':
+          '«Transformaos por medio de la renovación de vuestro entendimiento.» Esa transformación es ser conformados a la imagen de su Hijo: llegar a parecernos a Cristo.',
+        'romans-15-13':
+          '«El Dios de esperanza os llene de todo gozo y paz en el creer.» Toda esa esperanza descansa en Cristo resucitado, nuestra esperanza de gloria.',
+        '1corinthians-10-13':
+          '«Dios... dará también juntamente con la tentación la salida.» Esa salida es Cristo, que fue tentado en todo y venció, y socorre a los que son tentados.',
+        '1corinthians-13-13':
+          '«Y ahora permanecen la fe, la esperanza y el amor; pero el mayor de ellos es el amor.» Ese amor que todo lo soporta lo vemos en su forma más pura en la cruz de Cristo.',
+        '2corinthians-4-16':
+          '«El hombre interior no obstante se renueva de día en día.» Esa vida nueva es la vida de Cristo en nosotros, que ni la muerte podrá apagar.',
+        '2corinthians-12-9':
+          '«Bástate mi gracia; porque mi poder se perfecciona en la debilidad.» Es la voz de Cristo: su poder reposa sobre los débiles que confían en Él.',
+        'galatians-5-22':
+          '«El fruto del Espíritu es amor, gozo, paz...» Ese fruto es el carácter mismo de Cristo formándose en quien permanece en Él.',
+        'ephesians-3-20':
+          '«Aquel que es poderoso para hacer todas las cosas mucho más abundantemente.» Ese poder obra en nosotros por Cristo, según su Espíritu que mora en el creyente.',
+        'ephesians-4-32':
+          '«Perdonándoos unos a otros, como Dios os perdonó a vosotros en Cristo.» La medida de nuestro perdón es el perdón que recibimos en la cruz.',
+        'ephesians-6-10':
+          '«Fortaleceos en el Señor, y en el poder de su fuerza.» No nos pide fuerza propia, sino la suya: estar firmes en Cristo y en su victoria.',
+        'philippians-1-6':
+          '«El que comenzó en vosotros la buena obra, la perfeccionará.» Cristo es el autor y consumador de la fe: lo que Él empieza, Él lo termina.',
+        'hebrews-4-12':
+          '«La palabra de Dios es viva y eficaz.» La Palabra que escudriña el corazón es la misma que se hizo carne: Cristo, vivo y poderoso para salvar.',
+        'james-1-5':
+          '«Si alguno de vosotros tiene falta de sabiduría, pídala a Dios.» Y Cristo nos ha sido hecho sabiduría de Dios: en Él están escondidos todos los tesoros de la sabiduría.',
+        '1john-3-1':
+          '«Mirad cuál amor nos ha dado el Padre, para que seamos llamados hijos de Dios.» Ese amor se mostró enviando a su Hijo, para que vivamos por Él.',
+        '1john-4-8':
+          '«Dios es amor.» No lo sabemos por una definición, sino por un hecho: «en esto se mostró el amor de Dios... en que Dios envió a su Hijo» para que vivamos por Él.',
       },
     },
     collections: {
@@ -3592,6 +3676,90 @@ export const translations = {
           '"A new commandment I give unto you, That ye love one another; as I have loved you." The measure of Christian love is the love of Christ, who gave Himself for us.',
         'revelation-1-8':
           '"I am Alpha and Omega... which is, and which was, and which is to come." The eternal Lord of the beginning and the end is Jesus, who came and who will return (cf. Rev 22:13).',
+        'exodus-14-14':
+          '"The LORD shall fight for you, and ye shall hold your peace." The battle we could not win, Christ won: at the cross He disarmed the powers and triumphed over them.',
+        'deuteronomy-31-6':
+          '"He will not fail thee, nor forsake thee." That promise is ours in Christ; Hebrews repeats it to believers, for the Lord Himself goes with us.',
+        'joshua-1-9':
+          '"Be strong and of a good courage... for the LORD thy God is with thee." Courage is not from us but from His presence: the risen Christ says, "I am with you always."',
+        '1samuel-16-7':
+          '"The LORD looketh on the heart." Christ knew what was in man; before Him there are no masks, and still He loves us and calls us.',
+        'psalms-18-2':
+          '"The LORD is my rock, and my fortress." Paul says the rock that followed Israel was Christ: our sure refuge has a face.',
+        'psalms-19-1':
+          '"The heavens declare the glory of God." And those heavens were made through the Son: in Him all things were created, and everything proclaims His glory.',
+        'psalms-28-7':
+          '"The LORD is my strength and my shield." That strength is given to us in Christ, who said, "I can do all things through Christ which strengtheneth me."',
+        'psalms-46-1':
+          '"God is our refuge and strength, a very present help in trouble." That refuge drew near in Jesus, who invites: "Come unto me... and I will give you rest."',
+        'psalms-46-10':
+          '"Be still, and know that I am God." The One who stills the soul stilled the storm with His voice: "Peace, be still," said Jesus, and all grew calm.',
+        'psalms-55-22':
+          '"Cast thy burden upon the LORD, and he shall sustain thee." Peter echoes it pointing to Christ: "casting all your care upon him; for he careth for you."',
+        'psalms-103-2':
+          '"Bless the LORD, O my soul... who forgiveth all thine iniquities." That full forgiveness reaches us in Christ, in whom we have redemption through His blood.',
+        'psalms-118-24':
+          '"This is the day which the LORD hath made." It is the psalm of the stone the builders rejected, become the head of the corner: Christ, the cause of our joy.',
+        'psalms-119-105':
+          '"Thy word is a lamp unto my feet, and a light unto my path." That Word became flesh: Jesus, the living Word and the light of the world, lights the way.',
+        'psalms-147-3':
+          '"He healeth the broken in heart." Jesus opened His ministry with that promise: He was anointed to heal the brokenhearted.',
+        'proverbs-3-5':
+          '"Trust in the LORD with all thine heart; and lean not unto thine own understanding." That trust finds its rest in Christ, the sure way to the Father.',
+        'isaiah-64-8':
+          '"We are the clay, and thou our potter." In Christ we are a new creation: the Potter remakes in His Son what sin had broken.',
+        'jeremiah-33-3':
+          '"Call unto me, and I will answer thee." Jesus widens that promise: "whatsoever ye shall ask the Father in my name, he will give it you."',
+        'nahum-1-7':
+          '"The LORD is good, a strong hold in the day of trouble." That stronghold is Christ, in whom we have peace amid affliction: "I have overcome the world."',
+        'matthew-5-14':
+          '"Ye are the light of the world." We shine only as a reflection of the One who is the Light: "I am the light of the world," said Jesus.',
+        'matthew-6-33':
+          '"Seek ye first the kingdom of God, and his righteousness." To seek the kingdom is to seek the King: in Christ the kingdom comes, and in Him the righteousness we could not earn is given.',
+        'matthew-19-26':
+          '"With men this is impossible; but with God all things are possible." He said it of salvation: what man cannot do, God does in Christ, who came to save the lost.',
+        'matthew-22-37':
+          '"Thou shalt love the Lord thy God with all thy heart." Only One kept this command perfectly: Christ, who now gives us His Spirit to love.',
+        'mark-10-27':
+          '"With men it is impossible, but not with God: for with God all things are possible." Salvation is His work from first to last, accomplished in Christ.',
+        'luke-6-31':
+          '"As ye would that men should do to you, do ye also to them likewise." Jesus not only taught it: He lived it, giving Himself for us when we deserved nothing.',
+        'acts-1-8':
+          '"Ye shall be witnesses unto me." The heart of Christian witness is a Person: the risen Christ, proclaimed to the ends of the earth.',
+        'romans-8-31':
+          '"If God be for us, who can be against us?" The proof that God is on our side is that He gave His own Son for us.',
+        'romans-8-38':
+          '"Neither things present, nor things to come... shall be able to separate us from the love of God, which is in Christ Jesus." The love that holds us is no idea: its name is Christ Jesus.',
+        'romans-12-2':
+          '"Be ye transformed by the renewing of your mind." That transformation is being conformed to the image of His Son: growing to look like Christ.',
+        'romans-15-13':
+          '"Now the God of hope fill you with all joy and peace in believing." All that hope rests on the risen Christ, our hope of glory.',
+        '1corinthians-10-13':
+          '"God... will with the temptation also make a way to escape." That way of escape is Christ, who was tempted in every way yet overcame, and helps those who are tempted.',
+        '1corinthians-13-13':
+          '"And now abideth faith, hope, charity... but the greatest of these is charity." That love which bears all things we see in its purest form at the cross of Christ.',
+        '2corinthians-4-16':
+          '"The inward man is renewed day by day." That new life is the life of Christ in us, which not even death can put out.',
+        '2corinthians-12-9':
+          '"My grace is sufficient for thee: for my strength is made perfect in weakness." It is the voice of Christ: His power rests upon the weak who trust in Him.',
+        'galatians-5-22':
+          '"The fruit of the Spirit is love, joy, peace..." That fruit is the very character of Christ being formed in those who abide in Him.',
+        'ephesians-3-20':
+          '"Him that is able to do exceeding abundantly above all that we ask or think." That power works in us through Christ, by His Spirit dwelling in the believer.',
+        'ephesians-4-32':
+          '"Forgiving one another, even as God for Christ’s sake hath forgiven you." The measure of our forgiving is the forgiveness we received at the cross.',
+        'ephesians-6-10':
+          '"Be strong in the Lord, and in the power of his might." He asks not for our own strength but His: to stand firm in Christ and in His victory.',
+        'philippians-1-6':
+          '"He which hath begun a good work in you will perform it." Christ is the author and finisher of faith: what He begins, He completes.',
+        'hebrews-4-12':
+          '"The word of God is quick, and powerful." The Word that searches the heart is the same that became flesh: Christ, living and mighty to save.',
+        'james-1-5':
+          '"If any of you lack wisdom, let him ask of God." And Christ is made unto us wisdom from God: in Him are hidden all the treasures of wisdom.',
+        '1john-3-1':
+          '"Behold, what manner of love the Father hath bestowed upon us, that we should be called the sons of God." That love was shown by sending His Son, that we might live through Him.',
+        '1john-4-8':
+          '"God is love." We know it not by a definition but by an act: "In this was manifested the love of God... that God sent his only begotten Son" that we might live through Him.',
       },
     },
     collections: {
