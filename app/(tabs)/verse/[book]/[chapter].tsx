@@ -1981,7 +1981,14 @@ export default function VerseReadingScreen() {
               // being canvas-clipped. Identical gutter width, still fontSize-
               // derived (read/idle parity, no playback reflow); now it protects
               // BOTH alignments and keeps justify rendering as justify.
-              marginRight: Math.max(14, Math.round(fontSize * 0.6)),
+              //
+              // Sprint 100: the user still saw a faint residual clip in rare
+              // cases on their OEM device (never reproducible on the emulator).
+              // Nudged the floor 14→16 and the slope 0.6→0.65 so the reserved
+              // gutter clears the overhang a touch more at every size; the few
+              // extra px of ragged-right margin stay imperceptible on devices
+              // that never clipped.
+              marginRight: Math.max(16, Math.round(fontSize * 0.65)),
             } as const;
 
             const numberStyle = {
