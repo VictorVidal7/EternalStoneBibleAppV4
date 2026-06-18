@@ -1967,6 +1967,53 @@ export const translations = {
           '«Yo soy la vid verdadera.» Permanecer en Él da fruto que permanece.',
         ],
       },
+      parables: {
+        name: 'Las parábolas de Jesús',
+        description:
+          'Diez días entre las historias con que Jesús enseñó el reino de Dios',
+        context: [
+          '«El hijo pródigo.» El Padre corre a recibir al que vuelve: así es el corazón de Dios.',
+          '«El buen samaritano.» El amor verdadero cruza la calle y se ensucia las manos por el necesitado.',
+          '«El sembrador.» La misma Palabra cae en distintos corazones; pide ser buena tierra.',
+          '«El trigo y la cizaña.» Dios es paciente; la separación final es suya, no nuestra.',
+          '«La oveja y la moneda perdidas.» El cielo hace fiesta por un solo pecador que se arrepiente.',
+          '«El siervo que no perdonó.» Perdonados de una deuda impagable, somos llamados a perdonar.',
+          '«Las diez vírgenes.» Vela y prepárate: el Esposo viene a una hora que no esperas.',
+          '«Los talentos.» Lo que Dios te confía es para usarlo con fidelidad, no para esconderlo.',
+          '«El fariseo y el publicano.» Dios resiste al orgulloso y justifica al humilde que pide misericordia.',
+          '«La gran cena.» La invitación de Dios es amplia; no la dejes para después.',
+        ],
+      },
+      miracles: {
+        name: 'Los milagros de Jesús',
+        description: 'Diez días ante las señales con que Jesús mostró quién es',
+        context: [
+          '«Agua en vino.» Su primera señal: la abundancia y el gozo que Jesús trae.',
+          '«Calma la tempestad.» El viento y el mar le obedecen; también tu tormenta.',
+          '«Alimenta a los cinco mil.» En sus manos, lo poco basta y sobra.',
+          '«Camina sobre el mar.» «No temáis; yo soy.» Su presencia sostiene en lo imposible.',
+          '«La hija de Jairo.» Ni la enfermedad ni la muerte detienen su poder y su ternura.',
+          '«Sana al ciego de nacimiento.» El que abre los ojos del cuerpo abre también los del alma.',
+          '«El hijo de la viuda de Naín.» Movido a compasión, devuelve la vida y el consuelo.',
+          '«Sana al paralítico.» Primero perdona el pecado y luego sana: tiene autoridad para ambas cosas.',
+          '«Los diez leprosos.» Diez son limpiados; solo uno vuelve a dar gracias. ¿Y tú?',
+          '«Resucita a Lázaro.» «Yo soy la resurrección y la vida»: la muerte no tiene la última palabra.',
+        ],
+      },
+      namesOfGod: {
+        name: 'Los nombres de Dios',
+        description:
+          'Siete días conociendo a Dios por los nombres con que se revela',
+        context: [
+          '«Jehová proveerá» (Jehová-jireh). En el monte, Dios provee el cordero: anuncio del Cordero que Él daría.',
+          '«YO SOY EL QUE SOY.» El Dios eterno, que se basta a sí mismo, se da a conocer y envía.',
+          '«Jehová es mi bandera» (Jehová-nisi). La victoria del pueblo está en el Señor, no en su propia fuerza.',
+          '«Jehová es mi pastor» (Jehová-roi). El que cuida, guía y restaura: nada nos faltará a su lado.',
+          '«Jehová es paz» (Jehová-salom). Donde Dios habla, el temor cede: Él es nuestra paz.',
+          '«Jehová que sana» (Jehová-rafa). El que sanó las aguas amargas sigue siendo el Dios que sana.',
+          '«El Altísimo, mi refugio» (Elyón). Quien habita al abrigo del Altísimo descansa seguro bajo su sombra.',
+        ],
+      },
     },
 
     // Reading Plan Screen
@@ -4605,6 +4652,54 @@ export const translations = {
           '"I am the resurrection and the life." In Him, death is not the end.',
           '"I am the way, the truth, and the life." The only way to the Father.',
           '"I am the true vine." Abiding in Him bears fruit that lasts.',
+        ],
+      },
+      parables: {
+        name: 'The Parables of Jesus',
+        description:
+          'Ten days among the stories Jesus used to teach the kingdom of God',
+        context: [
+          '"The prodigal son." The Father runs to welcome the one who returns — that is the heart of God.',
+          '"The good Samaritan." Real love crosses the road and gets its hands dirty for the one in need.',
+          '"The sower." The same Word falls on different hearts; ask to be good soil.',
+          '"The wheat and the tares." God is patient; the final separation is His to make, not ours.',
+          '"The lost sheep and coin." Heaven rejoices over one sinner who repents.',
+          '"The unforgiving servant." Forgiven an unpayable debt, we are called to forgive.',
+          '"The ten virgins." Watch and be ready: the Bridegroom comes at an hour you do not expect.',
+          '"The talents." What God entrusts to you is to be used faithfully, not buried.',
+          '"The Pharisee and the tax collector." God resists the proud and justifies the humble who cries for mercy.',
+          '"The great banquet." God’s invitation is wide; do not put it off.',
+        ],
+      },
+      miracles: {
+        name: 'The Miracles of Jesus',
+        description:
+          'Ten days before the signs by which Jesus showed who He is',
+        context: [
+          '"Water into wine." His first sign: the abundance and joy that Jesus brings.',
+          '"Calming the storm." Wind and sea obey Him — and so will your storm.',
+          '"Feeding the five thousand." In His hands, a little is more than enough.',
+          '"Walking on the water." "Be not afraid; it is I." His presence holds us in the impossible.',
+          '"Jairus’ daughter." Neither sickness nor death stops His power and tenderness.',
+          '"Healing the man born blind." The One who opens the body’s eyes opens the soul’s as well.',
+          '"The widow’s son at Nain." Moved with compassion, He gives back life and comfort.',
+          '"Healing the paralytic." First He forgives the sin, then heals — He has authority for both.',
+          '"The ten lepers." Ten are cleansed; only one returns to give thanks. And you?',
+          '"Raising Lazarus." "I am the resurrection and the life": death does not have the last word.',
+        ],
+      },
+      namesOfGod: {
+        name: 'The Names of God',
+        description:
+          'Seven days knowing God by the names through which He reveals Himself',
+        context: [
+          '"The LORD will provide" (Jehovah-jireh). On the mountain God provides the lamb — a sign of the Lamb He would give.',
+          '"I AM THAT I AM." The eternal, self-sufficient God makes Himself known and sends.',
+          '"The LORD is my banner" (Jehovah-nissi). The people’s victory is in the Lord, not in their own strength.',
+          '"The LORD is my shepherd" (Jehovah-rohi). The One who tends, guides and restores: at His side we lack nothing.',
+          '"The LORD is peace" (Jehovah-shalom). Where God speaks, fear gives way: He is our peace.',
+          '"The LORD who heals" (Jehovah-rapha). The One who healed the bitter waters is still the God who heals.',
+          '"The Most High, my refuge" (Elyon). Whoever dwells in the shelter of the Most High rests safe in His shadow.',
         ],
       },
     },

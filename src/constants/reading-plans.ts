@@ -23,7 +23,10 @@ export type ReadingPlanI18nKey =
   | 'redemption'
   | 'wisdom'
   | 'firstSteps'
-  | 'iam';
+  | 'iam'
+  | 'parables'
+  | 'miracles'
+  | 'namesOfGod';
 
 export interface ReadingPlan {
   id: string;
@@ -813,9 +816,82 @@ const iamSayings: ReadingPlan = {
   ],
 };
 
+// Plan: Las parábolas de Jesús — una parábola por día, cada una con un breve
+// contexto fiel (Sprint 100). Las historias con que el Señor enseñó el reino.
+const parablesOfJesus: ReadingPlan = {
+  id: 'parables-10',
+  name: 'Las parábolas de Jesús',
+  description:
+    'Diez días entre las historias con que Jesús enseñó el reino de Dios',
+  i18nKey: 'parables',
+  duration: 10,
+  icon: 'leaf-outline',
+  color: '#0EA5A4',
+  days: [
+    {day: 1, readings: [{book: 'Lucas', chapter: 15, verses: '11-32'}]},
+    {day: 2, readings: [{book: 'Lucas', chapter: 10, verses: '25-37'}]},
+    {day: 3, readings: [{book: 'Mateo', chapter: 13, verses: '1-23'}]},
+    {day: 4, readings: [{book: 'Mateo', chapter: 13, verses: '24-43'}]},
+    {day: 5, readings: [{book: 'Lucas', chapter: 15, verses: '1-10'}]},
+    {day: 6, readings: [{book: 'Mateo', chapter: 18, verses: '21-35'}]},
+    {day: 7, readings: [{book: 'Mateo', chapter: 25, verses: '1-13'}]},
+    {day: 8, readings: [{book: 'Mateo', chapter: 25, verses: '14-30'}]},
+    {day: 9, readings: [{book: 'Lucas', chapter: 18, verses: '9-14'}]},
+    {day: 10, readings: [{book: 'Lucas', chapter: 14, verses: '15-24'}]},
+  ],
+};
+
+// Plan: Los milagros de Jesús — una señal por día (Sprint 100). Las obras con
+// que el Señor mostró su poder y su compasión, y reveló quién es.
+const miraclesOfJesus: ReadingPlan = {
+  id: 'miracles-10',
+  name: 'Los milagros de Jesús',
+  description: 'Diez días ante las señales con que Jesús mostró quién es',
+  i18nKey: 'miracles',
+  duration: 10,
+  icon: 'flash-outline',
+  color: '#2563EB',
+  days: [
+    {day: 1, readings: [{book: 'Juan', chapter: 2, verses: '1-11'}]},
+    {day: 2, readings: [{book: 'Marcos', chapter: 4, verses: '35-41'}]},
+    {day: 3, readings: [{book: 'Juan', chapter: 6, verses: '1-15'}]},
+    {day: 4, readings: [{book: 'Mateo', chapter: 14, verses: '22-33'}]},
+    {day: 5, readings: [{book: 'Marcos', chapter: 5, verses: '21-43'}]},
+    {day: 6, readings: [{book: 'Juan', chapter: 9, verses: '1-12'}]},
+    {day: 7, readings: [{book: 'Lucas', chapter: 7, verses: '11-17'}]},
+    {day: 8, readings: [{book: 'Marcos', chapter: 2, verses: '1-12'}]},
+    {day: 9, readings: [{book: 'Lucas', chapter: 17, verses: '11-19'}]},
+    {day: 10, readings: [{book: 'Juan', chapter: 11, verses: '1-44'}]},
+  ],
+};
+
+// Plan: Los nombres de Dios — siete días conociendo a Dios por los nombres con
+// que se revela en su Palabra (Sprint 100), cada uno con un breve contexto.
+const namesOfGod: ReadingPlan = {
+  id: 'names-of-god-7',
+  name: 'Los nombres de Dios',
+  description: 'Siete días conociendo a Dios por los nombres con que se revela',
+  i18nKey: 'namesOfGod',
+  duration: 7,
+  icon: 'flame-outline',
+  color: '#B45309',
+  days: [
+    {day: 1, readings: [{book: 'Génesis', chapter: 22, verses: '1-14'}]},
+    {day: 2, readings: [{book: 'Éxodo', chapter: 3, verses: '1-15'}]},
+    {day: 3, readings: [{book: 'Éxodo', chapter: 17, verses: '8-16'}]},
+    {day: 4, readings: [{book: 'Salmos', chapter: 23}]},
+    {day: 5, readings: [{book: 'Jueces', chapter: 6, verses: '11-24'}]},
+    {day: 6, readings: [{book: 'Éxodo', chapter: 15, verses: '22-27'}]},
+    {day: 7, readings: [{book: 'Salmos', chapter: 91}]},
+  ],
+};
+
 export const READING_PLANS: ReadingPlan[] = [
   firstSteps,
   iamSayings,
+  parablesOfJesus,
+  miraclesOfJesus,
+  namesOfGod,
   redemptionStory,
   gospels40Days,
   newTestament30Days,
