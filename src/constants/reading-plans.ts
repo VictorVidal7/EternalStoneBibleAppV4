@@ -22,7 +22,8 @@ export type ReadingPlanI18nKey =
   | 'bibleYear'
   | 'redemption'
   | 'wisdom'
-  | 'firstSteps';
+  | 'firstSteps'
+  | 'iam';
 
 export interface ReadingPlan {
   id: string;
@@ -789,8 +790,32 @@ const firstSteps: ReadingPlan = {
   })),
 };
 
+// Plan: Los "Yo soy" de Jesús — siete declaraciones de Cristo en Juan, una por
+// día, cada una con un breve contexto fiel (Sprint 99). Un plan corto y
+// profundamente cristocéntrico: quién es Jesús, dicho por Él mismo.
+const iamSayings: ReadingPlan = {
+  id: 'iam-7',
+  name: 'Los "Yo soy" de Jesús',
+  description:
+    'Siete días en el Evangelio de Juan: quién es Jesús, dicho por Él mismo',
+  i18nKey: 'iam',
+  duration: 7,
+  icon: 'sparkles-outline',
+  color: '#7C3AED',
+  days: [
+    {day: 1, readings: [{book: 'Juan', chapter: 6, verses: '25-40'}]},
+    {day: 2, readings: [{book: 'Juan', chapter: 8, verses: '12-30'}]},
+    {day: 3, readings: [{book: 'Juan', chapter: 10, verses: '1-10'}]},
+    {day: 4, readings: [{book: 'Juan', chapter: 10, verses: '11-30'}]},
+    {day: 5, readings: [{book: 'Juan', chapter: 11, verses: '17-44'}]},
+    {day: 6, readings: [{book: 'Juan', chapter: 14, verses: '1-14'}]},
+    {day: 7, readings: [{book: 'Juan', chapter: 15, verses: '1-17'}]},
+  ],
+};
+
 export const READING_PLANS: ReadingPlan[] = [
   firstSteps,
+  iamSayings,
   redemptionStory,
   gospels40Days,
   newTestament30Days,
@@ -818,4 +843,22 @@ export function getLocalizedPlan(
     name: localized?.name ?? plan.name,
     description: localized?.description ?? plan.description,
   };
+}
+
+/**
+ * A brief, faithful one-line context for a plan's given day, in the active UI
+ * language, or undefined when the plan carries none (Sprint 99). Topical plans
+ * (e.g. the "I am" sayings) add a `context` array to their i18n entry, indexed
+ * by day; most plans have no per-day note. Typed loosely so only the plans that
+ * opt in carry the field.
+ */
+export function getPlanDayContext(
+  plan: ReadingPlan,
+  day: number,
+  t: TranslationKeys,
+): string | undefined {
+  const entry = t.readingPlans?.[plan.i18nKey] as
+    | {context?: readonly string[]}
+    | undefined;
+  return entry?.context?.[day - 1];
 }

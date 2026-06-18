@@ -44,6 +44,7 @@ import {focusTrapProps} from '@lib/a11y/focusTrap';
 import {
   getReadingPlanById,
   getLocalizedPlan,
+  getPlanDayContext,
   ReadingPlanDay,
 } from '@/constants/reading-plans';
 import {planPace, planCatchUp, formatDayReadings} from '@/lib/reading/planPace';
@@ -420,6 +421,9 @@ export default function ReadingPlanDetailScreen() {
 
   function renderDay({item}: {item: ReadingPlanDay}) {
     const done = isDayComplete(plan!.id, item.day);
+    // Brief, faithful one-line context for topical plans (S99); undefined here
+    // for plans that carry none.
+    const dayContext = getPlanDayContext(plan!, item.day, t);
     return (
       <View style={[styles.dayRow, {backgroundColor: colors.surface}]}>
         <TouchableOpacity
@@ -453,6 +457,11 @@ export default function ReadingPlanDetailScreen() {
             {t.readingPlan.dayLabel} {item.day}
           </Text>
           {renderReadingChips(item, colors.primary)}
+          {dayContext ? (
+            <Text style={[styles.dayContext, {color: colors.textSecondary}]}>
+              {dayContext}
+            </Text>
+          ) : null}
         </View>
       </View>
     );
@@ -702,6 +711,7 @@ const styles = StyleSheet.create({
   },
   dayContent: {flex: 1, gap: 7},
   dayTitle: {fontSize: 15, fontWeight: '700'},
+  dayContext: {fontSize: 13, lineHeight: 18, fontStyle: 'italic'},
   celebrateOverlay: {
     flex: 1,
     backgroundColor: staticColors.overlayBlack50,

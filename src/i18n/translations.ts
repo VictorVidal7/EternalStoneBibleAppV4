@@ -1869,6 +1869,20 @@ export const translations = {
         description:
           'Un camino suave de 21 días para nuevos creyentes y para volver a empezar',
       },
+      iam: {
+        name: 'Los "Yo soy" de Jesús',
+        description:
+          'Siete días en el Evangelio de Juan: quién es Jesús, dicho por Él mismo',
+        context: [
+          '«Yo soy el pan de vida.» Jesús sacia el hambre más profunda del alma.',
+          '«Yo soy la luz del mundo.» Quien le sigue nunca anda en tinieblas.',
+          '«Yo soy la puerta.» Solo por Él entramos a la salvación y al buen pasto.',
+          '«Yo soy el buen pastor.» El Pastor que da su vida por las ovejas.',
+          '«Yo soy la resurrección y la vida.» En Él, la muerte no es el final.',
+          '«Yo soy el camino, la verdad y la vida.» El único camino al Padre.',
+          '«Yo soy la vid verdadera.» Permanecer en Él da fruto que permanece.',
+        ],
+      },
     },
 
     // Reading Plan Screen
@@ -4410,6 +4424,20 @@ export const translations = {
         name: 'First Steps with Jesus',
         description:
           'A gentle 21-day path for new believers and for beginning again',
+      },
+      iam: {
+        name: 'The "I Am" Sayings of Jesus',
+        description:
+          'Seven days in the Gospel of John: who Jesus is, in His own words',
+        context: [
+          '"I am the bread of life." Jesus satisfies the deepest hunger of the soul.',
+          '"I am the light of the world." Whoever follows Him never walks in darkness.',
+          '"I am the door." Only through Him do we enter salvation and good pasture.',
+          '"I am the good shepherd." The Shepherd who lays down His life for the sheep.',
+          '"I am the resurrection and the life." In Him, death is not the end.',
+          '"I am the way, the truth, and the life." The only way to the Father.',
+          '"I am the true vine." Abiding in Him bears fruit that lasts.',
+        ],
       },
     },
 
