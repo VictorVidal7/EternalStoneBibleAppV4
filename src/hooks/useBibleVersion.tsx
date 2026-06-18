@@ -109,3 +109,13 @@ export function useBibleVersion() {
   }
   return context;
 }
+
+/**
+ * Non-throwing variant for code that lives ABOVE the version provider in some
+ * trees (or renders without it in unit tests) — returns undefined when there is
+ * no provider. The audio engine uses it to follow the selected version's
+ * language without hard-coupling to the provider (Sprint 100).
+ */
+export function useBibleVersionOptional() {
+  return useContext(BibleVersionContext);
+}

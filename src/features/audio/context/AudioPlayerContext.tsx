@@ -38,7 +38,6 @@ import {
   DEFAULT_PLAYBACK_SPEED,
   DEFAULT_LANGUAGE,
   AUDIO_STORAGE_KEYS,
-  SUPPORTED_LANGUAGES,
 } from '../constants/audioConstants';
 import {createPosition} from '../lib/playbackPosition';
 import {setLastPosition, clearLastPosition} from '../lib/playbackPositionStore';
@@ -47,6 +46,8 @@ import {
   shuffleUpcoming,
   restoreUpcomingOrder,
 } from '../lib/playlistQueueOptions';
+import {resolveNarration, toAudioLanguage} from '../lib/narrationVoice';
+import {useBibleVersionOptional} from '@hooks/useBibleVersion';
 
 // ==================== INITIAL STATE ====================
 
@@ -149,6 +150,21 @@ export const AudioPlayerProvider: React.FC<AudioPlayerProviderProps> = ({
   const queueOptionsRef = useRef(queueOptions);
   // The playlist's order as loaded — what "un-shuffle" restores to.
   const originalOrderRef = useRef<AudioVerse[]>([]);
+  // The language of the text currently loaded in the engine (its Bible
+  // version's language). Captured at load time so the TTS narration always
+  // speaks the language of the text — switching the Bible version mid-listen
+  // never leaves a wrong-language voice reading the verses (Sprint 100). Null =
+  // unknown (legacy load) → fall back to the manual audio-language preference.
+  const contentLanguageRef = useRef<AudioLanguage | null>(null);
+  // Mirror of the live selected Bible version's language, so a plain
+  // loadChapter (no explicit `language`) still tags its text correctly. The
+  // optional hook returns undefined in trees/tests without the version provider
+  // (then content language is unknown and the old behaviour stands).
+  const versionCtx = useBibleVersionOptional();
+  const versionLangRef = useRef<AudioLanguage | null>(null);
+  versionLangRef.current = versionCtx
+    ? toAudioLanguage(versionCtx.selectedVersion.language)
+    : null;
 
   // Keep refs in sync with state
   useEffect(() => {
@@ -315,17 +331,22 @@ export const AudioPlayerProvider: React.FC<AudioPlayerProviderProps> = ({
       }
 
       const currentState = stateRef.current;
-      // Map language code correctly
-      const languageCodes = SUPPORTED_LANGUAGES[
-        currentState.selectedLanguage
-      ] || ['es-ES'];
-      const language = currentState.selectedVoice?.language || languageCodes[0];
+      // Narrate in the language of the TEXT (its Bible version's language), and
+      // only use the user's chosen voice when it matches that language — so a
+      // Spanish chapter is never read by an English voice and vice versa
+      // (Sprint 100). Falls back to the manual audio-language preference when
+      // the loaded text's language is unknown (legacy loads).
+      const {language, voiceId} = resolveNarration({
+        contentLanguage: contentLanguageRef.current,
+        selectedLanguage: currentState.selectedLanguage,
+        voice: currentState.selectedVoice,
+      });
 
       logger.info('Attempting to speak verse', {
         index,
         reference: `${verse.book} ${verse.chapter}:${verse.verse}`,
         textLength: verse.text.length,
-        voice: currentState.selectedVoice?.identifier,
+        voice: voiceId,
         language,
       });
 
@@ -339,7 +360,7 @@ export const AudioPlayerProvider: React.FC<AudioPlayerProviderProps> = ({
 
         await Speech.speak(verse.text, {
           language,
-          voice: currentState.selectedVoice?.identifier,
+          voice: voiceId,
           rate: currentState.playbackSpeed,
           pitch: 1.0,
           onStart: () => {
@@ -760,6 +781,11 @@ export const AudioPlayerProvider: React.FC<AudioPlayerProviderProps> = ({
         logger.warn('Error stopping speech during loadChapter', e),
       );
 
+      // Tag the loaded text with its language so narration speaks it correctly
+      // (Sprint 100): the explicit option wins; otherwise the live selected
+      // version's language (the version these verses were just fetched from).
+      contentLanguageRef.current = options?.language ?? versionLangRef.current;
+
       // Update refs immediately for synchronous access (before async setState)
       versesRef.current = newVerses;
       stateRef.current = {
@@ -806,6 +832,7 @@ export const AudioPlayerProvider: React.FC<AudioPlayerProviderProps> = ({
     }));
     queueInfoRef.current = {mode: 'chapter', label: null};
     setQueueInfo({mode: 'chapter', label: null});
+    contentLanguageRef.current = null;
     originalOrderRef.current = [];
     queueOptionsRef.current = DEFAULT_QUEUE_OPTIONS;
     setQueueOptionsState(DEFAULT_QUEUE_OPTIONS);
