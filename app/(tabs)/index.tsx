@@ -1371,7 +1371,7 @@ export default function HomeScreen() {
             <Ionicons
               name="sparkles-outline"
               size={24}
-              color={colors.primary}
+              color={celestialTheme.colors.accent}
             />
           </View>
 
