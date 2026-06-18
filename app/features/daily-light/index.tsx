@@ -39,7 +39,10 @@ import {getBookById, getBookByName} from '@/constants/bible';
 import {DAILY_VERSE_REFS} from '@/constants/daily-verses';
 import {BOOK_INTROS} from '@/constants/book-intros';
 import {getAllThemes} from '@/features/study/themes';
-import {buildDailyLight} from '@/features/daily-light/dailyLight';
+import {
+  buildDailyLight,
+  rotateApplyQuestions,
+} from '@/features/daily-light/dailyLight';
 import {
   getChristConnectionById,
   parseChristRef,
@@ -94,7 +97,14 @@ export default function DailyLightScreen() {
   const insets = useSafeAreaInsets();
   const {colors} = useTheme();
   const {t, language} = useLanguage();
-  const td = t.dailyLight;
+  // Daily Light speaks the language of the SELECTED Bible version (S99), so the
+  // whole devotional reads in one language alongside the verse — even when the
+  // app's interface language differs (e.g. English UI + RVR1960). devLang is
+  // set from the version once it's read in load(); until then it mirrors the UI.
+  const [devLang, setDevLang] = useState<'es' | 'en'>(
+    language === 'en' ? 'en' : 'es',
+  );
+  const dl = translations[devLang].dailyLight;
   const toast = useToast();
   const {hasCard, addCard} = useMemoryDeck();
   const {achievementService} = useServices();
@@ -107,10 +117,19 @@ export default function DailyLightScreen() {
   const load = useCallback(async () => {
     try {
       setStatus('loading');
+      // Resolve the devotional language from the selected Bible version (S99)
+      // before anything else, so the verse, book intro, reflection, theme and
+      // the Christ card all read in one coherent language.
+      const version = (await AsyncStorage.getItem(VERSION_KEY)) ?? 'RVR1960';
+      const vlang = christLangForVersion(version);
+      setDevLang(vlang);
+      const vt = translations[vlang].dailyLight;
+
+      const now = new Date();
       const themes = getAllThemes();
-      const prompts = td.prompts;
+      const prompts = vt.prompts;
       const sel = buildDailyLight(
-        new Date(),
+        now,
         DAILY_VERSE_REFS.length,
         themes.length,
         prompts.length,
@@ -121,7 +140,6 @@ export default function DailyLightScreen() {
       // salted themeIndex stays as a defensive fallback for an unknown tag.
       const theme =
         themes.find(thm => thm.id === ref.theme) ?? themes[sel.themeIndex];
-      const version = (await AsyncStorage.getItem(VERSION_KEY)) ?? 'RVR1960';
 
       const row = await bibleDB.getVerse(
         ref.book,
@@ -131,7 +149,7 @@ export default function DailyLightScreen() {
       );
       const book = getBookById(ref.book);
       const display = book
-        ? language === 'en'
+        ? vlang === 'en'
           ? book.nameEn
           : book.name
         : (row?.book ?? String(ref.book));
@@ -144,25 +162,26 @@ export default function DailyLightScreen() {
         streak = 0;
       }
 
-      const localizedTheme = (t.themes.list as Record<string, {name: string}>)[
-        theme.id
-      ];
+      const localizedTheme = (
+        translations[vlang].themes.list as Record<string, {name: string}>
+      )[theme.id];
 
       // Brief, faithful background for the verse's book (S98) — reuses the
       // curated, conservative BOOK_INTROS (who wrote it, when, its theme).
-      const intro = BOOK_INTROS[ref.book]?.[language === 'es' ? 'es' : 'en'];
+      const intro = BOOK_INTROS[ref.book]?.[vlang];
 
-      // Theme-tied application questions (S97). Fall back to one rotating
+      // Theme-tied application questions (S97). Each theme keeps a pool of
+      // prompts; show a rotating window of three so a reader who returns to the
+      // same theme on different days finds fresh ones (S99). Fall back to one
       // generic prompt if a theme somehow has none curated.
-      const applyMap = td.applyByTheme as Record<string, string[]>;
-      const applyQuestions = applyMap[theme.id] ?? [prompts[sel.promptIndex]];
+      const applyMap = vt.applyByTheme as Record<string, string[]>;
+      const pool = applyMap[theme.id] ?? [prompts[sel.promptIndex]];
+      const applyQuestions = rotateApplyQuestions(pool, now, 3);
 
-      // "Christ in this passage" — look up a curated insight for this verse.
-      // The card speaks the language of the SELECTED Bible version (S98), so
-      // its note + labels match the verse beside them, even when the app's
-      // interface language differs (e.g. English UI + RVR1960).
+      // "Christ in this passage" — look up a curated insight for this verse
+      // (S98), in the same version language as the rest of the devotional.
       const conn = getChristConnectionById(ref.book, ref.chapter, ref.verse);
-      const christLang = christLangForVersion(version);
+      const christLang = vlang;
       const cc = translations[christLang].christConnections;
       let christNote: string | undefined;
       let christPointsTo: string | undefined;
@@ -225,14 +244,10 @@ export default function DailyLightScreen() {
     } catch {
       setStatus('error');
     }
-  }, [
-    td.prompts,
-    td.applyByTheme,
-    language,
-    achievementService,
-    t.themes.list,
-    t.christConnections.notes,
-  ]);
+    // Content resolves from the selected version's language via the static
+    // `translations` import (read fresh inside load), so the only reactive
+    // input is the achievement service for the streak.
+  }, [achievementService]);
 
   useEffect(() => {
     load();
@@ -286,7 +301,7 @@ export default function DailyLightScreen() {
   }, [content, router]);
 
   const dateLabel = new Date().toLocaleDateString(
-    language === 'es' ? 'es-ES' : 'en-US',
+    devLang === 'es' ? 'es-ES' : 'en-US',
     {weekday: 'long', month: 'long', day: 'numeric'},
   );
 
@@ -317,7 +332,7 @@ export default function DailyLightScreen() {
                 {dateLabel}
               </AppText>
               <AppText scaleRole="display" style={styles.headerTitle}>
-                {td.title}
+                {dl.title}
               </AppText>
             </View>
           </View>
@@ -326,9 +341,9 @@ export default function DailyLightScreen() {
             <AppText scaleRole="compact" style={styles.streakText}>
               {content && content.streak > 0
                 ? content.streak === 1
-                  ? td.streakOne
-                  : td.streak.replace('{{n}}', String(content.streak))
-                : td.streakNone}
+                  ? dl.streakOne
+                  : dl.streak.replace('{{n}}', String(content.streak))
+                : dl.streakNone}
             </AppText>
           </View>
         </LinearGradient>
@@ -340,7 +355,7 @@ export default function DailyLightScreen() {
         ) : status === 'error' || !content ? (
           <View style={styles.center}>
             <AppText scaleRole="body" style={{color: colors.textSecondary}}>
-              {td.error}
+              {dl.error}
             </AppText>
           </View>
         ) : (
@@ -356,7 +371,7 @@ export default function DailyLightScreen() {
               <AppText
                 scaleRole="compact"
                 style={[styles.cardLabel, {color: colors.primary}]}>
-                {td.verseLabel}
+                {dl.verseLabel}
               </AppText>
               <AppText
                 scaleRole="body"
@@ -389,7 +404,7 @@ export default function DailyLightScreen() {
                       styles.cardLabel,
                       {color: colors.textSecondary, marginLeft: spacing['1.5']},
                     ]}>
-                    {td.contextTitle}
+                    {dl.contextTitle}
                   </AppText>
                 </View>
                 {content.bookAuthor || content.bookDate ? (
@@ -494,7 +509,7 @@ export default function DailyLightScreen() {
               <AppText
                 scaleRole="compact"
                 style={[styles.cardLabel, {color: colors.primary}]}>
-                {td.applyTitle}
+                {dl.applyTitle}
               </AppText>
               {content.applyQuestions.map((q, i) => (
                 <View key={i} style={styles.applyRow}>
@@ -524,7 +539,7 @@ export default function DailyLightScreen() {
               ]}
               onPress={handleExploreTheme}
               accessibilityRole="button"
-              accessibilityLabel={`${td.themeLabel}: ${content.themeName}`}>
+              accessibilityLabel={`${dl.themeLabel}: ${content.themeName}`}>
               <View
                 style={[
                   styles.themeIcon,
@@ -540,7 +555,7 @@ export default function DailyLightScreen() {
                 <AppText
                   scaleRole="compact"
                   style={[styles.cardLabel, {color: content.themeAccent}]}>
-                  {td.themeLabel}
+                  {dl.themeLabel}
                 </AppText>
                 <AppText
                   scaleRole="display"
@@ -560,14 +575,14 @@ export default function DailyLightScreen() {
               style={[styles.primaryAction, {backgroundColor: colors.primary}]}
               onPress={handleRead}
               accessibilityRole="button"
-              accessibilityLabel={td.readInContext}>
+              accessibilityLabel={dl.readInContext}>
               <Ionicons
                 name="book-outline"
                 size={20}
                 color={staticColors.white}
               />
               <AppText scaleRole="compact" style={styles.primaryActionText}>
-                {td.readInContext}
+                {dl.readInContext}
               </AppText>
             </TouchableOpacity>
 
@@ -580,7 +595,7 @@ export default function DailyLightScreen() {
               disabled={inDeck}
               accessibilityRole="button"
               accessibilityState={{disabled: inDeck}}
-              accessibilityLabel={inDeck ? td.memorized : td.memorize}>
+              accessibilityLabel={inDeck ? dl.memorized : dl.memorize}>
               <Ionicons
                 name={inDeck ? 'school' : 'school-outline'}
                 size={20}
@@ -592,7 +607,7 @@ export default function DailyLightScreen() {
                   styles.secondaryActionText,
                   {color: inDeck ? colors.primary : colors.text},
                 ]}>
-                {inDeck ? td.memorized : td.memorize}
+                {inDeck ? dl.memorized : dl.memorize}
               </AppText>
             </TouchableOpacity>
           </ScrollView>

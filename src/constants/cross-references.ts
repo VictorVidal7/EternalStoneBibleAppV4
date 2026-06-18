@@ -202,6 +202,47 @@ export const CROSS_REFERENCES: Record<string, string[]> = {
 
   'Revelation/3/20': ['Luke/12/36', 'Song of Solomon/5/2'],
   'Revelation/21/4': ['Isaiah/25/8', '1 Corinthians/15/26'],
+
+  // ── Sprint 99: parallels for well-known daily verses that had none ───
+  'Psalms/34/18': [
+    'Psalms/147/3',
+    'Isaiah/61/1',
+    'Matthew/5/4',
+    'Psalms/51/17',
+  ],
+  'Psalms/103/1': ['Psalms/104/1', 'Psalms/146/1', 'Ephesians/1/3'],
+  'Isaiah/43/2': [
+    'Psalms/23/4',
+    'Daniel/3/25',
+    '2 Corinthians/4/8',
+    'Deuteronomy/31/6',
+  ],
+  'Lamentations/3/23': [
+    'Lamentations/3/22',
+    '1 Corinthians/1/9',
+    'Hebrews/13/8',
+  ],
+  'Micah/6/8': ['Hosea/6/6', 'Matthew/23/23', 'Deuteronomy/10/12'],
+  'Zephaniah/3/17': ['Isaiah/62/5', 'Deuteronomy/30/9', 'Matthew/1/23'],
+  'John/13/34': ['John/15/12', '1 John/3/23', 'Romans/13/8', 'Ephesians/5/2'],
+  'John/16/33': ['John/14/27', 'Romans/8/37', '1 John/5/4', '2 Timothy/3/12'],
+  'Romans/5/1': [
+    'Romans/3/28',
+    'Ephesians/2/8',
+    'Colossians/1/20',
+    'Isaiah/53/5',
+  ],
+  'Romans/8/31': ['Romans/8/37', 'Psalms/118/6', 'Hebrews/13/6'],
+  'Romans/15/13': ['Romans/5/5', 'Romans/12/12', 'Hebrews/6/19'],
+  'Ephesians/4/32': ['Colossians/3/13', 'Matthew/6/14', 'Luke/6/37'],
+  'Philippians/1/6': [
+    '1 Thessalonians/5/24',
+    'Philippians/2/13',
+    '1 Corinthians/1/8',
+    'Jude/1/24',
+  ],
+  'James/1/17': ['Matthew/7/11', '1 Corinthians/4/7', 'Numbers/23/19'],
+  '1 Peter/1/3': ['John/3/3', 'Titus/3/5', '1 Corinthians/15/20', 'Romans/6/4'],
 };
 
 /**

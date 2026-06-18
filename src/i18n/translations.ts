@@ -764,71 +764,99 @@ export const translations = {
           '¿En qué área de tu vida Dios te llama a confiar en lo que aún no ves?',
           '¿Qué paso de obediencia darías hoy si creyeras de verdad su promesa?',
           'Habla con Dios sobre la duda que más te cuesta entregarle.',
+          '¿Qué promesa de Dios quieres sostener en tu memoria esta semana?',
+          'Recuerda una ocasión en que Dios fue fiel, y deja que fortalezca tu fe hoy.',
         ],
         love: [
           '¿A quién pondrá Dios hoy en tu camino para amar como Él te ama?',
           '¿Hay alguien a quien te cueste amar? Pide gracia para dar el primer paso.',
           '¿Cómo has experimentado el amor de Dios esta semana?',
+          '¿De qué manera concreta puedes mostrar el amor de Cristo a tu familia hoy?',
+          'Pídele a Dios que llene tu corazón de su amor para darlo a otros.',
         ],
         hope: [
           '¿Qué circunstancia necesitas mirar hoy a la luz de la esperanza en Cristo?',
           '¿Dónde has puesto tu esperanza últimamente? Vuélvela a poner en Él.',
           'Da gracias por una promesa de Dios que sostiene tu esperanza.',
+          '¿Qué te roba la esperanza hoy? Entrégaselo al Dios de toda esperanza.',
+          'Escribe una promesa de Dios y tenla presente cuando llegue el desánimo.',
         ],
         peace: [
           '¿Qué preocupación puedes entregar a Dios ahora mismo en oración?',
           '¿Qué cambiaría en tu día si descansaras en la paz de Cristo?',
           'Respira hondo y descansa: «En paz me acostaré y dormiré» (Salmos 4:8).',
+          '¿Qué pensamiento ansioso necesitas rendir a Dios en este momento?',
+          'Agradece a Dios por un lugar o momento donde has hallado su paz.',
         ],
         strength: [
           '¿En qué debilidad necesitas hoy la fuerza de Dios, y no la tuya?',
           '¿A quién podrías pedir ayuda, reconociendo que no estás solo?',
           'Pídele a Dios fuerzas para lo que tienes por delante hoy.',
+          '¿Qué carga llevas solo que podrías poner hoy en las manos de Dios?',
+          'Descansa en que su poder se perfecciona en tu debilidad (2 Corintios 12:9).',
         ],
         forgiveness: [
           '¿Hay alguien a quien necesitas perdonar, como Cristo te perdonó?',
           '¿Qué necesitas confesar y soltar delante de Dios hoy?',
           'Agradece a Dios por el perdón que tienes en Jesús.',
+          '¿Hay un rencor que estás guardando? Pídele a Dios libertad para soltarlo.',
+          'Recibe hoy, sin condenación, el perdón completo que Cristo ya compró.',
         ],
         wisdom: [
           '¿Qué decisión tienes por delante? Pídele a Dios sabiduría (Santiago 1:5).',
           '¿En qué consejo estás confiando más que en la Palabra de Dios?',
           '¿Qué te enseña este pasaje sobre cómo vivir sabiamente hoy?',
+          '¿A quién sabio y temeroso de Dios podrías pedir consejo esta semana?',
+          'Antes de decidir hoy, haz una pausa y pregunta: «Señor, ¿qué quieres tú?».',
         ],
         prayer: [
           '¿Qué le quieres decir a Dios ahora mismo, con tus propias palabras?',
           '¿Por quién podrías interceder hoy?',
           'Tómate un momento en silencio para escuchar a Dios.',
+          '¿Qué petición has dejado de traer a Dios? Vuélvela a poner delante de Él.',
+          'Da gracias por una oración que Dios ya ha respondido.',
         ],
         courage: [
           '¿Qué temor te está frenando? Entrégaselo a Dios.',
           '¿Qué acto de valentía te pide hoy seguir a Jesús?',
           'Recuerda una vez en que Dios estuvo contigo y dale gracias.',
+          '¿Qué conversación o paso has estado evitando por miedo?',
+          'Repite con calma: «Esfuérzate y sé valiente; el Señor va contigo» (Josué 1:9).',
         ],
         comfort: [
           '¿Dónde necesitas el consuelo de Dios hoy?',
           '¿A quién que sufre podrías consolar con el consuelo que has recibido?',
           'Derrama tu corazón delante de Dios; Él te escucha.',
+          '¿Qué pérdida o dolor necesitas llevar hoy ante el Dios de toda consolación?',
+          'Escríbele a alguien que sufre una palabra breve de aliento.',
         ],
         joy: [
           '¿Por qué tres cosas puedes dar gracias a Dios hoy?',
           '¿Cómo puedes buscar tu gozo en el Señor y no en las circunstancias?',
           'Comparte hoy una palabra de aliento con alguien.',
+          '¿Dónde puedes ver hoy una señal pequeña de la bondad de Dios?',
+          'Canta o escucha una canción que levante tu corazón al Señor.',
         ],
         grace: [
           '¿Dónde estás intentando ganar lo que Dios ya te da por gracia?',
           '¿Cómo puedes extender a otros la gracia que has recibido?',
           'Descansa hoy en que el amor de Dios no depende de tu desempeño.',
+          '¿A quién necesitas tratar con más gracia, como Dios te trata a ti?',
+          'Agradece por algo bueno en tu vida que no ganaste, sino que recibiste.',
         ],
         salvation: [
           '¿Has puesto tu confianza en Cristo para tu salvación?',
           '¿Con quién podrías compartir la esperanza del evangelio?',
           'Da gracias a Dios por el don de la vida eterna en Jesús.',
+          '¿Recuerdas el momento o el camino por el que llegaste a confiar en Jesús?',
+          'Ora por una persona que aún no conoce a Cristo.',
         ],
         guidance: [
           '¿En qué decisión necesitas hoy la dirección de Dios?',
           '¿Estás dispuesto a seguir el camino de Dios aunque sea distinto al tuyo?',
           'Pídele a Dios que alumbre tus pasos con su Palabra (Salmos 119:105).',
+          '¿Qué próximo paso pequeño y obediente puedes dar hoy?',
+          'Entrega tus planes a Dios y pídele que dirija tus pasos (Proverbios 16:9).',
         ],
       },
     },
@@ -975,6 +1003,28 @@ export const translations = {
           'Dios hace que todo coopere para bien de los suyos, y ese bien tiene una meta: ser hechos conformes a la imagen de su Hijo. Todo nos lleva hacia Cristo.',
         'philippians-4-13':
           '«Todo lo puedo en Cristo que me fortalece.» La fuerza no es nuestra: es la de Cristo en nosotros, suficiente tanto en la abundancia como en la escasez.',
+        'job-19-25':
+          '«Yo sé que mi Redentor vive.» En medio del sufrimiento, Job confía en un Redentor viviente; ese Redentor es Cristo, que dijo: «Yo soy la resurrección y la vida».',
+        'psalms-16-11':
+          '«Me mostrarás la senda de la vida.» Pedro citó este salmo en Pentecostés referido a la resurrección de Cristo: la muerte no pudo retenerlo, y en Él hallamos la senda de la vida.',
+        'psalms-27-1':
+          '«Jehová es mi luz y mi salvación.» Lo que el salmista confiesa, Jesús lo declara de sí mismo: «Yo soy la luz del mundo». En Él no hay a quién temer.',
+        'psalms-34-8':
+          '«Gustad, y ved que es bueno Jehová.» Pedro toma estas palabras y las aplica a Cristo: «si es que habéis gustado la benignidad del Señor». Probarlo es conocerlo.',
+        'proverbs-18-10':
+          '«Torre fuerte es el nombre de Jehová.» Ese nombre que salva nos es dado en Jesús, «porque no hay otro nombre... en que podamos ser salvos».',
+        'isaiah-26-3':
+          '«Tú guardarás en completa paz a aquel cuyo pensamiento en ti persevera.» Esa paz tiene nombre: Cristo, que dijo «mi paz os doy».',
+        'isaiah-43-2':
+          '«Cuando pases por las aguas, yo estaré contigo.» La presencia prometida es la de Cristo, que asegura: «He aquí, yo estoy con vosotros todos los días».',
+        'zephaniah-3-17':
+          '«Jehová está en medio de ti, poderoso, él salvará.» Dios en medio de su pueblo para salvar: ese es Emanuel, «Dios con nosotros», Jesús.',
+        'matthew-28-20':
+          '«He aquí, yo estoy con vosotros todos los días, hasta el fin del mundo.» El Cristo resucitado no nos deja solos: su presencia acompaña cada día.',
+        'john-13-34':
+          '«Un mandamiento nuevo os doy: Que os améis unos a otros; como yo os he amado.» La medida del amor cristiano es el amor de Cristo, que se entregó por nosotros.',
+        'revelation-1-8':
+          '«Yo soy el Alfa y la Omega... el que es y que era y que ha de venir.» El eterno Señor del principio y del fin es Jesús, el mismo que vino y que volverá (cf. Ap 22:13).',
       },
     },
     collections: {
@@ -1818,6 +1868,20 @@ export const translations = {
         name: 'Primeros pasos con Jesús',
         description:
           'Un camino suave de 21 días para nuevos creyentes y para volver a empezar',
+      },
+      iam: {
+        name: 'Los "Yo soy" de Jesús',
+        description:
+          'Siete días en el Evangelio de Juan: quién es Jesús, dicho por Él mismo',
+        context: [
+          '«Yo soy el pan de vida.» Jesús sacia el hambre más profunda del alma.',
+          '«Yo soy la luz del mundo.» Quien le sigue nunca anda en tinieblas.',
+          '«Yo soy la puerta.» Solo por Él entramos a la salvación y al buen pasto.',
+          '«Yo soy el buen pastor.» El Pastor que da su vida por las ovejas.',
+          '«Yo soy la resurrección y la vida.» En Él, la muerte no es el final.',
+          '«Yo soy el camino, la verdad y la vida.» El único camino al Padre.',
+          '«Yo soy la vid verdadera.» Permanecer en Él da fruto que permanece.',
+        ],
       },
     },
 
@@ -3267,71 +3331,99 @@ export const translations = {
           'In what area of your life is God calling you to trust what you cannot yet see?',
           'What step of obedience would you take today if you truly believed His promise?',
           'Talk with God about the doubt you find hardest to hand over.',
+          'What promise of God do you want to hold in your memory this week?',
+          'Recall a time God was faithful, and let it strengthen your faith today.',
         ],
         love: [
           'Who will God place in your path today to love as He loves you?',
           'Is there someone you find hard to love? Ask for grace to take the first step.',
           'How have you experienced the love of God this week?',
+          'In what concrete way could you show the love of Christ to your family today?',
+          'Ask God to fill your heart with His love so you can give it to others.',
         ],
         hope: [
           'What circumstance do you need to see today in the light of hope in Christ?',
           'Where have you been placing your hope lately? Set it again on Him.',
           'Give thanks for a promise of God that holds up your hope.',
+          'What is stealing your hope today? Hand it to the God of all hope.',
+          'Write down a promise of God to keep close when discouragement comes.',
         ],
         peace: [
           'What worry can you hand to God in prayer right now?',
           'What would change in your day if you rested in the peace of Christ?',
           'Breathe deeply and rest: "I will both lay me down in peace, and sleep" (Psalm 4:8).',
+          'What anxious thought do you need to surrender to God right now?',
+          'Thank God for a place or moment where you have found His peace.',
         ],
         strength: [
           "In what weakness do you need God's strength today, not your own?",
           'Whom could you ask for help, admitting you are not alone?',
           'Ask God for strength for what lies ahead of you today.',
+          'What burden are you carrying alone that you could place in God’s hands today?',
+          'Rest in the truth that His power is made perfect in weakness (2 Corinthians 12:9).',
         ],
         forgiveness: [
           'Is there someone you need to forgive, as Christ forgave you?',
           'What do you need to confess and let go before God today?',
           'Thank God for the forgiveness you have in Jesus.',
+          'Is there a grudge you are holding? Ask God for freedom to release it.',
+          'Receive today, without condemnation, the full forgiveness Christ has already bought.',
         ],
         wisdom: [
           'What decision is before you? Ask God for wisdom (James 1:5).',
           'What counsel are you trusting more than the Word of God?',
           'What does this passage teach you about living wisely today?',
+          'Whom that is wise and God-fearing could you ask for counsel this week?',
+          'Before you decide today, pause and ask: "Lord, what do You want?"',
         ],
         prayer: [
           'What do you want to say to God right now, in your own words?',
           'Whom could you intercede for today?',
           'Take a quiet moment to listen to God.',
+          'What request have you stopped bringing to God? Set it before Him again.',
+          'Give thanks for a prayer God has already answered.',
         ],
         courage: [
           'What fear is holding you back? Hand it over to God.',
           'What act of courage is following Jesus asking of you today?',
           'Remember a time God was with you, and give Him thanks.',
+          'What conversation or step have you been avoiding out of fear?',
+          'Say it calmly: "Be strong and courageous; the Lord goes with you" (Joshua 1:9).',
         ],
         comfort: [
           'Where do you need the comfort of God today?',
           'Who that is hurting could you comfort with the comfort you have received?',
           'Pour out your heart before God; He hears you.',
+          'What loss or pain do you need to bring today to the God of all comfort?',
+          'Write someone who is hurting a short word of encouragement.',
         ],
         joy: [
           'What three things can you thank God for today?',
           'How can you seek your joy in the Lord and not in circumstances?',
           'Share a word of encouragement with someone today.',
+          'Where can you notice a small sign of God’s goodness today?',
+          'Sing or listen to a song that lifts your heart to the Lord.',
         ],
         grace: [
           'Where are you trying to earn what God already gives you by grace?',
           'How can you extend to others the grace you have received?',
           "Rest today in the truth that God's love does not depend on your performance.",
+          'Whom do you need to treat with more grace, as God treats you?',
+          'Give thanks for something good in your life you did not earn, but received.',
         ],
         salvation: [
           'Have you placed your trust in Christ for your salvation?',
           'With whom could you share the hope of the gospel?',
           'Thank God for the gift of eternal life in Jesus.',
+          'Do you remember the moment or the path by which you came to trust Jesus?',
+          'Pray for one person who does not yet know Christ.',
         ],
         guidance: [
           "In what decision do you need God's direction today?",
           "Are you willing to follow God's way even when it differs from yours?",
           'Ask God to light your steps with His Word (Psalm 119:105).',
+          'What next small step of obedience can you take today?',
+          'Commit your plans to God and ask Him to direct your steps (Proverbs 16:9).',
         ],
       },
     },
@@ -3478,6 +3570,28 @@ export const translations = {
           'God works all things together for good for His people, and that good has a goal: to be conformed to the image of His Son. Everything leads us toward Christ.',
         'philippians-4-13':
           '"I can do all things through Christ who strengthens me." The strength is not our own: it is Christ\'s in us, enough in plenty and in want alike.',
+        'job-19-25':
+          '"I know that my Redeemer lives." In the depths of suffering, Job trusts in a living Redeemer; that Redeemer is Christ, who said: "I am the resurrection and the life."',
+        'psalms-16-11':
+          '"You will show me the path of life." Peter quoted this psalm at Pentecost of Christ\'s resurrection: death could not hold Him, and in Him we find the path of life.',
+        'psalms-27-1':
+          '"The LORD is my light and my salvation." What the psalmist confesses, Jesus declares of Himself: "I am the light of the world." In Him there is no one to fear.',
+        'psalms-34-8':
+          '"O taste and see that the LORD is good." Peter takes these words and applies them to Christ: "if so be ye have tasted that the Lord is gracious." To taste Him is to know Him.',
+        'proverbs-18-10':
+          '"The name of the LORD is a strong tower." That saving name is given to us in Jesus, "for there is none other name... whereby we must be saved."',
+        'isaiah-26-3':
+          '"You will keep him in perfect peace, whose mind is stayed on You." That peace has a name: Christ, who said, "my peace I give unto you."',
+        'isaiah-43-2':
+          '"When you pass through the waters, I will be with you." The promised presence is Christ\'s, who assures us: "Lo, I am with you always."',
+        'zephaniah-3-17':
+          '"The LORD your God in the midst of you is mighty; He will save." God in the midst of His people to save: that is Immanuel, "God with us," Jesus.',
+        'matthew-28-20':
+          '"Lo, I am with you always, even unto the end of the world." The risen Christ does not leave us alone: His presence goes with us every single day.',
+        'john-13-34':
+          '"A new commandment I give unto you, That ye love one another; as I have loved you." The measure of Christian love is the love of Christ, who gave Himself for us.',
+        'revelation-1-8':
+          '"I am Alpha and Omega... which is, and which was, and which is to come." The eternal Lord of the beginning and the end is Jesus, who came and who will return (cf. Rev 22:13).',
       },
     },
     collections: {
@@ -4310,6 +4424,20 @@ export const translations = {
         name: 'First Steps with Jesus',
         description:
           'A gentle 21-day path for new believers and for beginning again',
+      },
+      iam: {
+        name: 'The "I Am" Sayings of Jesus',
+        description:
+          'Seven days in the Gospel of John: who Jesus is, in His own words',
+        context: [
+          '"I am the bread of life." Jesus satisfies the deepest hunger of the soul.',
+          '"I am the light of the world." Whoever follows Him never walks in darkness.',
+          '"I am the door." Only through Him do we enter salvation and good pasture.',
+          '"I am the good shepherd." The Shepherd who lays down His life for the sheep.',
+          '"I am the resurrection and the life." In Him, death is not the end.',
+          '"I am the way, the truth, and the life." The only way to the Father.',
+          '"I am the true vine." Abiding in Him bears fruit that lasts.',
+        ],
       },
     },
 
