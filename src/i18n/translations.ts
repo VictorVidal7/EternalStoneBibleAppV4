@@ -975,6 +975,28 @@ export const translations = {
           'Dios hace que todo coopere para bien de los suyos, y ese bien tiene una meta: ser hechos conformes a la imagen de su Hijo. Todo nos lleva hacia Cristo.',
         'philippians-4-13':
           '«Todo lo puedo en Cristo que me fortalece.» La fuerza no es nuestra: es la de Cristo en nosotros, suficiente tanto en la abundancia como en la escasez.',
+        'job-19-25':
+          '«Yo sé que mi Redentor vive.» En medio del sufrimiento, Job confía en un Redentor viviente; ese Redentor es Cristo, que dijo: «Yo soy la resurrección y la vida».',
+        'psalms-16-11':
+          '«Me mostrarás la senda de la vida.» Pedro citó este salmo en Pentecostés referido a la resurrección de Cristo: la muerte no pudo retenerlo, y en Él hallamos la senda de la vida.',
+        'psalms-27-1':
+          '«Jehová es mi luz y mi salvación.» Lo que el salmista confiesa, Jesús lo declara de sí mismo: «Yo soy la luz del mundo». En Él no hay a quién temer.',
+        'psalms-34-8':
+          '«Gustad, y ved que es bueno Jehová.» Pedro toma estas palabras y las aplica a Cristo: «si es que habéis gustado la benignidad del Señor». Probarlo es conocerlo.',
+        'proverbs-18-10':
+          '«Torre fuerte es el nombre de Jehová.» Ese nombre que salva nos es dado en Jesús, «porque no hay otro nombre... en que podamos ser salvos».',
+        'isaiah-26-3':
+          '«Tú guardarás en completa paz a aquel cuyo pensamiento en ti persevera.» Esa paz tiene nombre: Cristo, que dijo «mi paz os doy».',
+        'isaiah-43-2':
+          '«Cuando pases por las aguas, yo estaré contigo.» La presencia prometida es la de Cristo, que asegura: «He aquí, yo estoy con vosotros todos los días».',
+        'zephaniah-3-17':
+          '«Jehová está en medio de ti, poderoso, él salvará.» Dios en medio de su pueblo para salvar: ese es Emanuel, «Dios con nosotros», Jesús.',
+        'matthew-28-20':
+          '«He aquí, yo estoy con vosotros todos los días, hasta el fin del mundo.» El Cristo resucitado no nos deja solos: su presencia acompaña cada día.',
+        'john-13-34':
+          '«Un mandamiento nuevo os doy: Que os améis unos a otros; como yo os he amado.» La medida del amor cristiano es el amor de Cristo, que se entregó por nosotros.',
+        'revelation-1-8':
+          '«Yo soy el Alfa y la Omega... el que es y que era y que ha de venir.» El eterno Señor del principio y del fin es Jesús, el mismo que vino y que volverá (cf. Ap 22:13).',
       },
     },
     collections: {
@@ -3478,6 +3500,28 @@ export const translations = {
           'God works all things together for good for His people, and that good has a goal: to be conformed to the image of His Son. Everything leads us toward Christ.',
         'philippians-4-13':
           '"I can do all things through Christ who strengthens me." The strength is not our own: it is Christ\'s in us, enough in plenty and in want alike.',
+        'job-19-25':
+          '"I know that my Redeemer lives." In the depths of suffering, Job trusts in a living Redeemer; that Redeemer is Christ, who said: "I am the resurrection and the life."',
+        'psalms-16-11':
+          '"You will show me the path of life." Peter quoted this psalm at Pentecost of Christ\'s resurrection: death could not hold Him, and in Him we find the path of life.',
+        'psalms-27-1':
+          '"The LORD is my light and my salvation." What the psalmist confesses, Jesus declares of Himself: "I am the light of the world." In Him there is no one to fear.',
+        'psalms-34-8':
+          '"O taste and see that the LORD is good." Peter takes these words and applies them to Christ: "if so be ye have tasted that the Lord is gracious." To taste Him is to know Him.',
+        'proverbs-18-10':
+          '"The name of the LORD is a strong tower." That saving name is given to us in Jesus, "for there is none other name... whereby we must be saved."',
+        'isaiah-26-3':
+          '"You will keep him in perfect peace, whose mind is stayed on You." That peace has a name: Christ, who said, "my peace I give unto you."',
+        'isaiah-43-2':
+          '"When you pass through the waters, I will be with you." The promised presence is Christ\'s, who assures us: "Lo, I am with you always."',
+        'zephaniah-3-17':
+          '"The LORD your God in the midst of you is mighty; He will save." God in the midst of His people to save: that is Immanuel, "God with us," Jesus.',
+        'matthew-28-20':
+          '"Lo, I am with you always, even unto the end of the world." The risen Christ does not leave us alone: His presence goes with us every single day.',
+        'john-13-34':
+          '"A new commandment I give unto you, That ye love one another; as I have loved you." The measure of Christian love is the love of Christ, who gave Himself for us.',
+        'revelation-1-8':
+          '"I am Alpha and Omega... which is, and which was, and which is to come." The eternal Lord of the beginning and the end is Jesus, who came and who will return (cf. Rev 22:13).',
       },
     },
     collections: {
