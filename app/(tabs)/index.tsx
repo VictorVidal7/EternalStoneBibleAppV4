@@ -30,6 +30,7 @@ import {AppText as Text} from '@components/ui/AppText';
 import {staticColors} from '@/styles/designTokens';
 
 import {useRouter, useFocusEffect} from 'expo-router';
+import {useSafeAreaInsets} from 'react-native-safe-area-context';
 import {Ionicons} from '@expo/vector-icons';
 import {LinearGradient} from 'expo-linear-gradient';
 import {BlurView} from 'expo-blur';
@@ -134,6 +135,7 @@ const SAVED_CARD_WIDTH = Math.floor(
 
 export default function HomeScreen() {
   const router = useRouter();
+  const insets = useSafeAreaInsets();
   const {isDark, colors, gradient} = useTheme();
   // Pasar colores dinámicos del tema seleccionado a celestialTheme
   const celestialTheme = createCelestialTheme(isDark, {
@@ -1982,6 +1984,20 @@ export default function HomeScreen() {
           </Text>
         </View>
       </ScrollView>
+
+      {/* Sprint 99: a soft top scrim so content stays legible as it scrolls
+          under the translucent status bar / camera cutout. It just extends the
+          theme's own background colour over the status-bar band and fades to
+          transparent; theme-derived, never blocks touches, no-op visual at the
+          very top (the content already starts below it). */}
+      <LinearGradient
+        colors={[
+          celestialTheme.colors.backgroundGradient[0],
+          staticColors.transparent,
+        ]}
+        style={[styles.topScrim, {height: insets.top + 12}]}
+        pointerEvents="none"
+      />
     </View>
   );
 }
@@ -2003,6 +2019,12 @@ const styles = StyleSheet.create({
     right: 0,
     top: 0,
     bottom: 0,
+  },
+  topScrim: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    top: 0,
   },
   scrollView: {
     flex: 1,
