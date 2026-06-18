@@ -1608,6 +1608,8 @@ export default function HomeScreen() {
             <TouchableOpacity
               activeOpacity={0.9}
               style={styles.savedCardWrapper}
+              accessibilityRole="button"
+              accessible={true}
               onPress={() =>
                 handlePress(() => router.push('/(tabs)/favorites' as never))
               }>
@@ -1695,7 +1697,7 @@ export default function HomeScreen() {
                       styles.savedIcon,
                       {
                         backgroundColor: withOpacity(
-                          colors.accent,
+                          colors.primary,
                           isDark ? 0.2 : 0.12,
                         ),
                       },
@@ -1703,7 +1705,7 @@ export default function HomeScreen() {
                     <Ionicons
                       name="document-text"
                       size={20}
-                      color={colors.accent}
+                      color={colors.primary}
                     />
                   </View>
                   <View style={styles.savedMeta}>
@@ -1712,13 +1714,16 @@ export default function HomeScreen() {
                         styles.savedBadge,
                         {
                           backgroundColor: withOpacity(
-                            colors.accent,
+                            colors.primary,
                             isDark ? 0.18 : 0.12,
                           ),
                         },
                       ]}>
                       <Text
-                        style={[styles.savedBadgeText, {color: colors.accent}]}>
+                        style={[
+                          styles.savedBadgeText,
+                          {color: colors.primary},
+                        ]}>
                         {formatSavedCount(savedCounts.notes)}
                       </Text>
                     </View>
@@ -1763,7 +1768,7 @@ export default function HomeScreen() {
                       styles.savedIcon,
                       {
                         backgroundColor: withOpacity(
-                          colors.info,
+                          colors.primary,
                           isDark ? 0.2 : 0.12,
                         ),
                       },
@@ -1771,7 +1776,7 @@ export default function HomeScreen() {
                     <Ionicons
                       name="color-palette"
                       size={20}
-                      color={colors.info}
+                      color={colors.primary}
                     />
                   </View>
                   <View style={styles.savedMeta}>
@@ -1780,13 +1785,16 @@ export default function HomeScreen() {
                         styles.savedBadge,
                         {
                           backgroundColor: withOpacity(
-                            colors.info,
+                            colors.primary,
                             isDark ? 0.18 : 0.12,
                           ),
                         },
                       ]}>
                       <Text
-                        style={[styles.savedBadgeText, {color: colors.info}]}>
+                        style={[
+                          styles.savedBadgeText,
+                          {color: colors.primary},
+                        ]}>
                         {formatSavedCount(savedCounts.highlights)}
                       </Text>
                     </View>
@@ -1831,7 +1839,7 @@ export default function HomeScreen() {
                       styles.savedIcon,
                       {
                         backgroundColor: withOpacity(
-                          colors.secondary,
+                          colors.primary,
                           isDark ? 0.2 : 0.12,
                         ),
                       },
@@ -1839,7 +1847,7 @@ export default function HomeScreen() {
                     <Ionicons
                       name="bookmark"
                       size={20}
-                      color={colors.secondary}
+                      color={colors.primary}
                     />
                   </View>
                   <View style={styles.savedMeta}>
@@ -1848,7 +1856,7 @@ export default function HomeScreen() {
                         styles.savedBadge,
                         {
                           backgroundColor: withOpacity(
-                            colors.secondary,
+                            colors.primary,
                             isDark ? 0.18 : 0.12,
                           ),
                         },
@@ -1856,7 +1864,7 @@ export default function HomeScreen() {
                       <Text
                         style={[
                           styles.savedBadgeText,
-                          {color: colors.secondary},
+                          {color: colors.primary},
                         ]}>
                         {formatSavedCount(bookmarksCount)}
                       </Text>
