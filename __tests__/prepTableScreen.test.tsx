@@ -73,6 +73,7 @@ jest.mock('@lib/database', () => ({
     getVerse: jest.fn(async (_b: number, _c: number, v: number) => ({
       text: `Texto del versículo ${v}`,
     })),
+    getChapterVerseCount: jest.fn(async () => 36),
   },
 }));
 
@@ -102,5 +103,9 @@ describe('Mesa de preparación — screen', () => {
 
     // The export (copy outline) action is offered.
     expect(getByText(p.exportLabel)).toBeTruthy();
+
+    // The in-screen verse-range picker is present.
+    expect(getByText(p.rangeStartLabel)).toBeTruthy();
+    expect(getByText(p.rangeEndLabel)).toBeTruthy();
   });
 });
