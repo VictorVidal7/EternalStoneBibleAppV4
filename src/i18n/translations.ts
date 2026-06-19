@@ -1137,6 +1137,78 @@ export const translations = {
           '«Mirad cuál amor nos ha dado el Padre, para que seamos llamados hijos de Dios.» Ese amor se mostró enviando a su Hijo, para que vivamos por Él.',
         '1john-4-8':
           '«Dios es amor.» No lo sabemos por una definición, sino por un hecho: «en esto se mostró el amor de Dios... en que Dios envió a su Hijo» para que vivamos por Él.',
+        'deuteronomy-31-8':
+          '«El Señor va delante de ti; él estará contigo, no te dejará, ni te desamparará.» Esa promesa tiene rostro en Jesús, el Emanuel —Dios con nosotros— que dijo: «Yo estoy con vosotros todos los días».',
+        'nehemiah-8-10':
+          '«El gozo del Señor es vuestra fuerza.» Ese gozo se hizo nuestro en Cristo: «estas cosas os he hablado, para que mi gozo esté en vosotros, y vuestro gozo sea cumplido».',
+        'psalms-30-5':
+          '«Por la noche durará el lloro, y a la mañana vendrá la alegría.» Es la mañana de la resurrección: Jesús prometió que nuestra tristeza se convertiría en gozo que nadie nos quitará.',
+        'psalms-94-19':
+          '«Tus consolaciones alegraban mi alma.» Ese consuelo de Dios tomó cuerpo en Jesús, a quien Simeón abrazó como «la consolación de Israel».',
+        'psalms-139-14':
+          '«Formidables y maravillosas son tus obras.» Cada vida fue tejida por medio del Hijo, pues todo fue creado por Él y para Él.',
+        'psalms-145-18':
+          '«Cercano está el Señor a todos los que le invocan.» En Cristo esa cercanía es salvación: «todo aquel que invocare el nombre del Señor, será salvo».',
+        'proverbs-3-6':
+          '«Reconócelo en todos tus caminos, y él enderezará tus veredas.» El que endereza nuestro camino es Cristo, hecho por Dios nuestra sabiduría: confiar en Él es andar derecho.',
+        'ecclesiastes-3-1':
+          '«Todo tiene su tiempo.» El tiempo señalado llegó cuando, «venido el cumplimiento del tiempo, Dios envió a su Hijo»: en Cristo la historia halla su sentido.',
+        'isaiah-55-8':
+          '«Mis pensamientos no son vuestros pensamientos.» La sabiduría de Dios, tan alta sobre la nuestra, se reveló en Cristo, «sabiduría de Dios» para los que se salvan.',
+        'habakkuk-3-19':
+          '«El Señor es mi fortaleza.» Esa fuerza tiene un nombre: «todo lo puedo en Cristo que me fortalece», la fortaleza que nos sostiene en las alturas.',
+        'matthew-5-16':
+          '«Alumbre vuestra luz delante de los hombres.» Solo brillamos porque reflejamos a Aquel que dijo: «Yo soy la luz del mundo»; nuestra luz es Cristo en nosotros.',
+        'matthew-7-7':
+          '«Pedid, y se os dará.» Jesús nos enseña a pedir y nos da acceso al Padre: «pedid en mi nombre... para que vuestro gozo sea cumplido».',
+        'romans-12-12':
+          '«Gozosos en la esperanza.» Nuestra esperanza no es una idea, sino una Persona: «Cristo en vosotros, la esperanza de gloria».',
+        '1corinthians-13-4':
+          '«El amor es sufrido, es benigno.» Es el retrato de Cristo: pon su nombre donde dice «amor» y verás la cruz, donde Él puso su vida por nosotros.',
+        '1corinthians-15-58':
+          '«Vuestro trabajo en el Señor no es en vano.» No lo es porque Cristo resucitó: «primicias de los que durmieron», su victoria garantiza la nuestra.',
+        '2corinthians-5-7':
+          '«Por fe andamos, no por vista.» Caminamos con los ojos puestos en Jesús, «el autor y consumador de la fe», aunque aún no le veamos.',
+        '2corinthians-9-7':
+          '«Dios ama al dador alegre.» Damos con alegría porque primero recibimos: «¡Gracias a Dios por su don inefable!»: Cristo, el Regalo que lo dio todo.',
+        'galatians-6-9':
+          '«No nos cansemos de hacer bien.» Miramos a Jesús, que sufrió la cruz «para que vuestro ánimo no se canse hasta desmayar»: Él no se cansó de amarnos.',
+        'philippians-4-6':
+          '«Por nada estéis afanosos... presentad vuestras peticiones.» Y la paz que entonces guarda el corazón es «en Cristo Jesús»: la oración nos lleva a su paz.',
+        'philippians-4-7':
+          '«La paz de Dios, que sobrepasa todo entendimiento.» Esa paz tiene un nombre, porque «él es nuestra paz»: Cristo reconcilió lo que estaba separado.',
+        'colossians-3-2':
+          '«Poned la mira en las cosas de arriba.» Allí está el corazón del creyente, «donde está Cristo sentado a la diestra de Dios».',
+        'colossians-3-15':
+          '«La paz de Cristo gobierne en vuestros corazones.» No es una calma cualquiera: es la paz que Él compró y reparte, gobernando como Señor en su pueblo.',
+        'colossians-3-23':
+          '«Todo lo que hagáis, hacedlo de corazón, como para el Señor.» Porque en realidad servimos a Cristo: hasta el trabajo más sencillo se vuelve adoración a Él.',
+        '2timothy-3-16':
+          '«Toda la Escritura es inspirada por Dios.» Y toda ella habla de Cristo: Él mismo dijo que las Escrituras «son las que dan testimonio de mí».',
+        'hebrews-11-1':
+          '«Es, pues, la fe la certeza de lo que se espera.» Toda esa fe mira a uno solo: a Jesús, «el autor y consumador de la fe», en quien lo esperado se hace seguro.',
+        'hebrews-11-6':
+          '«Sin fe es imposible agradar a Dios.» Y nos acercamos a Dios por un solo camino: «Yo soy el camino», dijo Jesús; la fe que agrada al Padre se apoya en el Hijo.',
+        'hebrews-12-1':
+          '«Corramos con paciencia la carrera.» El versículo siguiente nos dice cómo: «puestos los ojos en Jesús», que ya corrió y venció antes que nosotros.',
+        'hebrews-13-5':
+          '«No te desampararé, ni te dejaré.» Es la voz del Señor que se hizo carne: «yo estoy con vosotros todos los días, hasta el fin del mundo».',
+        'james-1-12':
+          '«Recibirá la corona de vida.» Es la corona que Cristo promete: «Sé fiel hasta la muerte, y yo te daré la corona de la vida».',
+        'james-1-17':
+          '«Toda buena dádiva... desciende de lo alto.» La mayor dádiva del Padre es su Hijo: «de tal manera amó Dios al mundo, que ha dado a su Hijo unigénito».',
+        'james-4-8':
+          '«Acercaos a Dios, y él se acercará a vosotros.» Podemos acercarnos con confianza porque Cristo abrió el camino: por su sangre entramos «con corazón sincero».',
+        '1peter-4-8':
+          '«El amor cubrirá multitud de pecados.» El amor que de veras cubre el pecado es el de Cristo, que «llevó él mismo nuestros pecados en su cuerpo sobre el madero».',
+        '1peter-5-6':
+          '«Humillaos... para que él os exalte a su debido tiempo.» Es el camino que Jesús recorrió primero: «se humilló a sí mismo... por lo cual Dios también le exaltó hasta lo sumo».',
+        '1peter-5-7':
+          '«Echando toda vuestra ansiedad sobre él, porque él tiene cuidado de vosotros.» El que cuida de ti es Cristo, que llama: «Venid a mí... y yo os haré descansar».',
+        '1john-4-18':
+          '«El perfecto amor echa fuera el temor.» Ese amor perfecto es Cristo: «en esto consiste el amor... en que él nos amó, y envió a su Hijo en propiciación por nuestros pecados».',
+        '1john-5-14':
+          '«Si pedimos alguna cosa conforme a su voluntad, él nos oye.» Tenemos esa confianza porque Cristo «vive siempre para interceder» por nosotros ante el Padre.',
       },
     },
     collections: {
@@ -3863,6 +3935,78 @@ export const translations = {
           '"Behold, what manner of love the Father hath bestowed upon us, that we should be called the sons of God." That love was shown by sending His Son, that we might live through Him.',
         '1john-4-8':
           '"God is love." We know it not by a definition but by an act: "In this was manifested the love of God... that God sent his only begotten Son" that we might live through Him.',
+        'deuteronomy-31-8':
+          '"The LORD goes before you; He will be with you, He will not leave you nor forsake you." That promise has a face in Jesus, Immanuel—God with us—who said, "I am with you always."',
+        'nehemiah-8-10':
+          '"The joy of the LORD is your strength." That joy became ours in Christ: "These things I have spoken to you, that my joy may be in you, and your joy may be full."',
+        'psalms-30-5':
+          '"Weeping may endure for a night, but joy comes in the morning." It is resurrection morning: Jesus promised that our sorrow would turn into joy that no one can take away.',
+        'psalms-94-19':
+          '"Your comforts delight my soul." That comfort of God took on a body in Jesus, whom Simeon embraced as "the consolation of Israel."',
+        'psalms-139-14':
+          '"I am fearfully and wonderfully made." Every life was woven through the Son, for all things were created through Him and for Him.',
+        'psalms-145-18':
+          '"The LORD is near to all who call upon Him." In Christ that nearness is salvation: "everyone who calls on the name of the Lord will be saved."',
+        'proverbs-3-6':
+          '"In all your ways acknowledge Him, and He will make your paths straight." The one who straightens our path is Christ, made unto us wisdom from God: to trust Him is to walk straight.',
+        'ecclesiastes-3-1':
+          '"To everything there is a season." The appointed time came when, "in the fullness of time, God sent forth His Son": in Christ history finds its meaning.',
+        'isaiah-55-8':
+          '"My thoughts are not your thoughts." The wisdom of God, so far above ours, was revealed in Christ, "the wisdom of God" to those who are saved.',
+        'habakkuk-3-19':
+          '"The Lord GOD is my strength." That strength has a name: "I can do all things through Christ who strengthens me," the strength that holds us on the heights.',
+        'matthew-5-16':
+          '"Let your light shine before men." We shine only by reflecting the One who said, "I am the light of the world"; our light is Christ within us.',
+        'matthew-7-7':
+          '"Ask, and it will be given to you." Jesus teaches us to ask and gives us access to the Father: "ask in my name... that your joy may be full."',
+        'romans-12-12':
+          '"Rejoicing in hope." Our hope is not an idea but a Person: "Christ in you, the hope of glory."',
+        '1corinthians-13-4':
+          '"Love is patient, love is kind." It is the portrait of Christ: put His name where it says "love" and you will see the cross, where He laid down His life for us.',
+        '1corinthians-15-58':
+          '"Your labor in the Lord is not in vain." It is not, because Christ is risen, "the firstfruits of those who have fallen asleep": His victory secures ours.',
+        '2corinthians-5-7':
+          '"We walk by faith, not by sight." We walk with our eyes fixed on Jesus, "the author and finisher of faith," even while we do not yet see Him.',
+        '2corinthians-9-7':
+          '"God loves a cheerful giver." We give cheerfully because we first received: "Thanks be to God for His indescribable gift!"—Christ, the Gift who gave all.',
+        'galatians-6-9':
+          '"Let us not grow weary in doing good." We look to Jesus, who "endured the cross... lest you grow weary and lose heart": He never tired of loving us.',
+        'philippians-4-6':
+          '"Be anxious for nothing... present your requests." And the peace that then guards the heart is "in Christ Jesus": prayer brings us to His peace.',
+        'philippians-4-7':
+          '"The peace of God, which surpasses all understanding." That peace has a name, for "He Himself is our peace": Christ reconciled what was divided.',
+        'colossians-3-2':
+          '"Set your mind on things above." There the believer’s heart rests, "where Christ is, seated at the right hand of God."',
+        'colossians-3-15':
+          '"Let the peace of Christ rule in your hearts." It is no ordinary calm: it is the peace He bought and shares, ruling as Lord among His people.',
+        'colossians-3-23':
+          '"Whatever you do, do it heartily, as for the Lord." For in truth we serve Christ: even the humblest work becomes worship offered to Him.',
+        '2timothy-3-16':
+          '"All Scripture is breathed out by God." And all of it speaks of Christ: He Himself said the Scriptures "are they which testify of me."',
+        'hebrews-11-1':
+          '"Faith is the assurance of things hoped for." All that faith looks to one alone: Jesus, "the author and finisher of faith," in whom what is hoped for becomes sure.',
+        'hebrews-11-6':
+          '"Without faith it is impossible to please God." And we come to God by one road: "I am the way," said Jesus; the faith that pleases the Father rests on the Son.',
+        'hebrews-12-1':
+          '"Let us run with endurance the race." The next verse tells us how: "looking unto Jesus," who ran and won before us.',
+        'hebrews-13-5':
+          '"I will never leave you nor forsake you." It is the voice of the Lord who became flesh: "I am with you always, even to the end of the age."',
+        'james-1-12':
+          '"He will receive the crown of life." It is the crown Christ promises: "Be faithful unto death, and I will give you the crown of life."',
+        'james-1-17':
+          '"Every good gift... comes down from above." The Father’s greatest gift is His Son: "God so loved the world that He gave His only begotten Son."',
+        'james-4-8':
+          '"Draw near to God, and He will draw near to you." We can draw near with confidence because Christ opened the way: through His blood we enter "with a true heart."',
+        '1peter-4-8':
+          '"Love covers a multitude of sins." The love that truly covers sin is Christ’s, who "Himself bore our sins in His body on the tree."',
+        '1peter-5-6':
+          '"Humble yourselves... that He may exalt you in due time." It is the path Jesus walked first: "He humbled Himself... therefore God has highly exalted Him."',
+        '1peter-5-7':
+          '"Casting all your care upon Him, for He cares for you." The One who cares for you is Christ, who calls: "Come to me... and I will give you rest."',
+        '1john-4-18':
+          '"Perfect love casts out fear." That perfect love is Christ: "in this is love... that He loved us and sent His Son to be the propitiation for our sins."',
+        '1john-5-14':
+          '"If we ask anything according to His will, He hears us." We have that confidence because Christ "ever lives to make intercession" for us before the Father.',
       },
     },
     collections: {
