@@ -1349,6 +1349,38 @@ export const translations = {
           '«Resistid al diablo, y huirá de vosotros.» Resistimos firmes porque Cristo ya venció: «para esto apareció el Hijo de Dios, para deshacer las obras del diablo».',
         '1peter-3-15':
           '«Santificad a Dios el Señor en vuestros corazones... dad razón de vuestra esperanza.» Esa esperanza es Él mismo en nosotros: «Cristo en vosotros, la esperanza de gloria».',
+        'psalms-91-2':
+          '«Mi esperanza y mi castillo; mi Dios, en quien confiaré.» Tenemos a quién huir: «nos acogimos a la esperanza puesta delante», ancla del alma firme y segura en Cristo.',
+        'psalms-103-1':
+          '«Bendice, alma mía, a Jehová... bendiga todo mi ser su santo nombre.» El nombre que sobre todo bendecimos es el de Jesús, «un nombre que es sobre todo nombre», ante quien toda rodilla se doblará.',
+        'psalms-121-1':
+          '«Alzaré mis ojos a los montes; ¿de dónde vendrá mi socorro?» El socorro tiene nombre: «el Señor es mi ayudador; no temeré», porque Cristo está con los suyos.',
+        'psalms-143-8':
+          '«Hazme oír por la mañana tu misericordia... el camino por donde ande.» Esa misericordia se mostró en la cruz: «siendo aún pecadores, Cristo murió por nosotros».',
+        'proverbs-4-23':
+          '«Guarda tu corazón, porque de él mana la vida.» La fuente de vida que el corazón necesita es Cristo: «de su interior correrán ríos de agua viva», dijo Jesús del Espíritu.',
+        'proverbs-16-3':
+          '«Encomienda a Jehová tus obras, y tus pensamientos serán afirmados.» Quien afirma y termina la obra es Él: «el que comenzó en vosotros la buena obra, la perfeccionará» hasta el día de Cristo.',
+        'proverbs-22-6':
+          '«Instruye al niño en su camino.» El camino en que criamos a los hijos es el del Señor: «criadlos en disciplina y amonestación del Señor», para que conozcan a Cristo.',
+        'proverbs-27-17':
+          '«Hierro con hierro se aguza; así el hombre aguza... a su amigo.» Nos afilamos unos a otros para un fin: «crecer en todo en aquel que es la cabeza, esto es, Cristo».',
+        'proverbs-31-25':
+          '«Fuerza y honor son su vestidura; y se ríe de lo por venir.» Esa fuerza para mirar el futuro sin temor tiene una fuente: «todo lo puedo en Cristo que me fortalece».',
+        'matthew-6-21':
+          '«Donde esté vuestro tesoro, allí estará también vuestro corazón.» El tesoro que ancla el corazón está arriba: «buscad las cosas de arriba, donde está Cristo»; Él es nuestro tesoro.',
+        '1corinthians-16-14':
+          '«Todas vuestras cosas sean hechas con amor.» Amamos según un modelo nuevo: «que os améis unos a otros; como yo os he amado», dijo Jesús.',
+        '1thessalonians-5-16':
+          '«Estad siempre gozosos.» El gozo que permanece es el suyo: «para que mi gozo esté en vosotros, y vuestro gozo sea cumplido».',
+        '1thessalonians-5-18':
+          '«Dad gracias en todo.» El mismo verso lo enraíza en Cristo: es «la voluntad de Dios para con vosotros en Cristo Jesús»; en su nombre damos gracias.',
+        '1timothy-4-12':
+          '«Sé ejemplo de los creyentes.» Solo lo somos siguiendo al Ejemplo: «Cristo padeció por nosotros, dejándonos ejemplo, para que sigáis sus pisadas».',
+        'hebrews-10-23':
+          '«Mantengamos firme la profesión de nuestra esperanza, porque fiel es el que prometió.» Esa fidelidad tiene rostro: «todas las promesas de Dios son en él Sí, y en él Amén».',
+        'james-1-2':
+          '«Tened por sumo gozo cuando os halléis en diversas pruebas.» Podemos gozarnos porque la fe probada conduce a la gloria: nos alegramos «aunque ahora... seáis afligidos», con los ojos en Cristo.',
       },
     },
     collections: {
@@ -4318,6 +4350,38 @@ export const translations = {
           '"Resist the devil, and he will flee from you." We stand firm because Christ already won: "the Son of God appeared to destroy the works of the devil."',
         '1peter-3-15':
           '"Honor Christ the Lord as holy... give a reason for the hope that is in you." That hope is Himself in us: "Christ in you, the hope of glory."',
+        'psalms-91-2':
+          '"My refuge and my fortress, my God, in whom I trust." We have One to flee to: we have "fled for refuge to lay hold of the hope set before us" — an anchor of the soul, sure and steadfast in Christ.',
+        'psalms-103-1':
+          '"Bless the LORD, O my soul... bless his holy name." The name we bless above all is Jesus\' — "a name that is above every name," before whom every knee will bow.',
+        'psalms-121-1':
+          '"I lift up my eyes to the hills. From where does my help come?" The help has a name: "the Lord is my helper; I will not fear," for Christ is with His own.',
+        'psalms-143-8':
+          '"Let me hear of your steadfast love in the morning... the way I should go." That love was shown at the cross: "while we were still sinners, Christ died for us."',
+        'proverbs-4-23':
+          '"Keep your heart, for from it flow the springs of life." The spring of life the heart needs is Christ: "out of his heart will flow rivers of living water," Jesus said of the Spirit.',
+        'proverbs-16-3':
+          '"Commit your works to the LORD, and your plans will be established." The One who establishes and finishes the work is He: "he who began a good work in you will complete it" at the day of Christ.',
+        'proverbs-22-6':
+          '"Train up a child in the way he should go." The way we raise children is the Lord\'s: "bring them up in the discipline and instruction of the Lord," that they may know Christ.',
+        'proverbs-27-17':
+          '"Iron sharpens iron; so one man sharpens another." We sharpen one another toward one end: to "grow up... into him who is the head, Christ."',
+        'proverbs-31-25':
+          '"Strength and dignity are her clothing, and she laughs at the time to come." Such strength to face the future without fear has one source: "I can do all things through Christ who strengthens me."',
+        'matthew-6-21':
+          '"Where your treasure is, there your heart will be also." The treasure that anchors the heart is above: "seek the things that are above, where Christ is"; He is our treasure.',
+        '1corinthians-16-14':
+          '"Let all that you do be done in love." We love by a new pattern: "love one another; as I have loved you," said Jesus.',
+        '1thessalonians-5-16':
+          '"Rejoice always." The joy that remains is His: "that my joy may be in you, and that your joy may be full."',
+        '1thessalonians-5-18':
+          '"Give thanks in all circumstances." The verse itself roots it in Christ: it is "the will of God in Christ Jesus for you"; in His name we give thanks.',
+        '1timothy-4-12':
+          '"Be an example to the believers." We are so only by following the Example: "Christ suffered for you, leaving you an example, that you should follow in his steps."',
+        'hebrews-10-23':
+          '"Hold fast the confession of our hope, for he who promised is faithful." That faithfulness has a face: "all the promises of God find their Yes in him."',
+        'james-1-2':
+          '"Count it all joy when you meet trials." We can rejoice because tested faith leads to glory: we rejoice "though now... grieved by trials," looking to Christ.',
       },
     },
     collections: {
