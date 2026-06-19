@@ -24,6 +24,7 @@ import {useTheme} from '../../../hooks/useTheme';
 import {focusTrapProps} from '@lib/a11y/focusTrap';
 import {VoiceInfo, AudioLanguage} from '../types/audio';
 import {useVoices} from '../hooks/useVoices';
+import {voiceSelectorLanguage} from '../lib/narrationVoice';
 import {LANGUAGE_LABELS, LANGUAGE_FLAGS} from '../constants/audioConstants';
 
 interface VoiceSelectorProps {
@@ -31,6 +32,13 @@ interface VoiceSelectorProps {
   currentLanguage: AudioLanguage;
   onVoiceSelect: (voice: VoiceInfo) => void;
   onLanguageChange: (language: AudioLanguage) => void;
+  /**
+   * Language of the loaded text (Sprint 100). When set, the narration speaks
+   * this language, so the selector locks its list to it and hides the es/en
+   * toggle — offering the other language would only let the user pick a voice
+   * that would be dropped for not matching the spoken language (Sprint 101).
+   */
+  contentLanguage?: AudioLanguage | null;
   variant?: 'default' | 'compact';
 }
 
@@ -39,6 +47,7 @@ export const VoiceSelector: React.FC<VoiceSelectorProps> = ({
   currentLanguage,
   onVoiceSelect,
   onLanguageChange,
+  contentLanguage = null,
   variant = 'default',
 }) => {
   const {colors} = useTheme();
@@ -46,7 +55,13 @@ export const VoiceSelector: React.FC<VoiceSelectorProps> = ({
   const {spanishVoices, englishVoices, isLoading, previewVoice, stopPreview} =
     useVoices();
 
-  const voices = currentLanguage === 'es' ? spanishVoices : englishVoices;
+  // The narration follows the loaded text's language, so lock the list to it
+  // when content is loaded (hiding the toggle); otherwise honour the manual pick.
+  const {language: listLanguage, locked} = voiceSelectorLanguage({
+    contentLanguage,
+    selectedLanguage: currentLanguage,
+  });
+  const voices = listLanguage === 'es' ? spanishVoices : englishVoices;
   const isCompact = variant === 'compact';
 
   const handleOpenModal = () => {
@@ -99,7 +114,7 @@ export const VoiceSelector: React.FC<VoiceSelectorProps> = ({
                 styles.languageLabelCompact,
                 {color: colors.textSecondary},
               ]}>
-              {currentLanguage.toUpperCase()}
+              {listLanguage.toUpperCase()}
             </Text>
           ) : (
             <>
@@ -115,7 +130,7 @@ export const VoiceSelector: React.FC<VoiceSelectorProps> = ({
                 </Text>
               </View>
               <Text style={styles.languageFlag}>
-                {LANGUAGE_FLAGS[currentLanguage]}
+                {LANGUAGE_FLAGS[listLanguage]}
               </Text>
             </>
           )}
@@ -143,39 +158,51 @@ export const VoiceSelector: React.FC<VoiceSelectorProps> = ({
               </TouchableOpacity>
             </View>
 
-            {/* Language Tabs */}
-            <View style={styles.languageTabs}>
-              {(['es', 'en'] as AudioLanguage[]).map(lang => (
-                <TouchableOpacity
-                  key={lang}
-                  style={[
-                    styles.languageTab,
-                    {
-                      backgroundColor:
-                        currentLanguage === lang
-                          ? colors.primary
-                          : colors.surfaceVariant,
-                    },
-                  ]}
-                  onPress={() => handleLanguageSwitch(lang)}>
-                  <Text style={styles.languageTabFlag}>
-                    {LANGUAGE_FLAGS[lang]}
-                  </Text>
-                  <Text
+            {/* Language Tabs — hidden when the loaded text locks the language
+                (the narration follows it, so the other language is unusable). */}
+            {locked ? (
+              <View style={styles.lockedLanguage}>
+                <Text style={styles.languageTabFlag}>
+                  {LANGUAGE_FLAGS[listLanguage]}
+                </Text>
+                <Text style={[styles.lockedLanguageText, {color: colors.text}]}>
+                  {LANGUAGE_LABELS[listLanguage]}
+                </Text>
+              </View>
+            ) : (
+              <View style={styles.languageTabs}>
+                {(['es', 'en'] as AudioLanguage[]).map(lang => (
+                  <TouchableOpacity
+                    key={lang}
                     style={[
-                      styles.languageTabText,
+                      styles.languageTab,
                       {
-                        color:
+                        backgroundColor:
                           currentLanguage === lang
-                            ? colors.onPrimary
-                            : colors.text,
+                            ? colors.primary
+                            : colors.surfaceVariant,
                       },
-                    ]}>
-                    {LANGUAGE_LABELS[lang]}
-                  </Text>
-                </TouchableOpacity>
-              ))}
-            </View>
+                    ]}
+                    onPress={() => handleLanguageSwitch(lang)}>
+                    <Text style={styles.languageTabFlag}>
+                      {LANGUAGE_FLAGS[lang]}
+                    </Text>
+                    <Text
+                      style={[
+                        styles.languageTabText,
+                        {
+                          color:
+                            currentLanguage === lang
+                              ? colors.onPrimary
+                              : colors.text,
+                        },
+                      ]}>
+                      {LANGUAGE_LABELS[lang]}
+                    </Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
+            )}
 
             {/* Voice List */}
             <ScrollView
@@ -356,6 +383,18 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     padding: 16,
     gap: 12,
+  },
+  lockedLanguage: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    gap: 8,
+  },
+  lockedLanguageText: {
+    fontSize: 14,
+    fontWeight: '600',
   },
   languageTab: {
     flex: 1,

@@ -30,6 +30,14 @@ export interface AudioPlayerState {
   playbackSpeed: PlaybackSpeed;
   selectedVoice: VoiceInfo | null;
   selectedLanguage: AudioLanguage;
+  /**
+   * Language of the text currently loaded in the engine (its Bible version's
+   * language), captured at load time — what the narration actually speaks
+   * (Sprint 100). Null when nothing is loaded / a legacy load without version
+   * info. The voice selector locks its list to this so the UI never offers a
+   * voice that would be dropped for not matching the spoken language (S101).
+   */
+  contentLanguage: AudioLanguage | null;
   isExpanded: boolean;
   bottomOffset?: number;
   /**

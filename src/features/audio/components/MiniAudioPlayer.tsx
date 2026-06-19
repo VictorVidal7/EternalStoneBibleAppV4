@@ -972,6 +972,7 @@ export const MiniAudioPlayer: React.FC<MiniAudioPlayerProps> = ({
                   <VoiceSelector
                     currentVoice={state.selectedVoice}
                     currentLanguage={state.selectedLanguage}
+                    contentLanguage={state.contentLanguage}
                     onVoiceSelect={setVoice}
                     onLanguageChange={setLanguage}
                     variant="compact"
