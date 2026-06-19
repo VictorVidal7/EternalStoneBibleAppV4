@@ -1301,6 +1301,54 @@ export const translations = {
           '«El perfecto amor echa fuera el temor.» Ese amor perfecto es Cristo: «en esto consiste el amor... en que él nos amó, y envió a su Hijo en propiciación por nuestros pecados».',
         '1john-5-14':
           '«Si pedimos alguna cosa conforme a su voluntad, él nos oye.» Tenemos esa confianza porque Cristo «vive siempre para interceder» por nosotros ante el Padre.',
+        'joshua-24-15':
+          '«Yo y mi casa serviremos a Jehová.» El Señor a quien servimos tiene rostro: «a Cristo el Señor servís», dice Pablo; elegirle a Él es servir al Salvador.',
+        '1chronicles-16-11':
+          '«Buscad a Jehová... buscad su rostro continuamente.» Ese rostro se nos descubrió en Cristo: Dios resplandeció en nuestros corazones «en la faz de Jesucristo».',
+        '2chronicles-7-14':
+          '«Si se humillare mi pueblo... yo perdonaré.» El perdón prometido fluye de la cruz: «si confesamos nuestros pecados, él es fiel y justo para perdonar».',
+        'psalms-1-1':
+          '«Bienaventurado el varón que no anduvo en consejo de malos.» El único Hombre perfectamente justo es Cristo; en Él, que «no conoció pecado», somos hechos justicia de Dios.',
+        'psalms-32-8':
+          '«Te enseñaré el camino en que debes andar.» Ese camino es una Persona: «Yo soy el camino», dijo Jesús; Él mismo nos guía al Padre.',
+        'psalms-37-4':
+          '«Deléitate asimismo en Jehová.» El mayor deleite es conocerle a Él: Pablo lo estimó todo como pérdida «por la excelencia del conocimiento de Cristo Jesús».',
+        'psalms-42-11':
+          '«¿Por qué te abates, oh alma mía? Espera en Dios.» A esa alma cansada Jesús dice: «Venid a mí... y yo os haré descansar»; nuestra esperanza es Él.',
+        'psalms-56-3':
+          '«En el día que temo, yo en ti confío.» La paz que vence el miedo la da Cristo: «mi paz os doy; no se turbe vuestro corazón, ni tenga miedo».',
+        'psalms-62-1':
+          '«En Dios solamente está acallada mi alma; de él viene mi salvación.» Esa salvación tiene nombre: «en ningún otro hay salvación», sino en Jesús, el único nombre que salva.',
+        'psalms-73-26':
+          '«Mi porción es Dios para siempre.» Tener a Dios por porción eterna es tener a Cristo, que dice: «Yo soy la resurrección y la vida».',
+        'psalms-90-12':
+          '«Enséñanos a contar nuestros días, que traigamos al corazón sabiduría.» La sabiduría que necesitamos nos «ha sido hecha» en Cristo, «sabiduría de Dios».',
+        'psalms-91-1':
+          '«El que habita al abrigo del Altísimo.» Nuestro escondedero seguro es Cristo: «vuestra vida está escondida con Cristo en Dios».',
+        'psalms-100-4':
+          '«Entrad por sus puertas con acción de gracias.» Entramos a la presencia del Padre por uno solo: «por medio de él... tenemos entrada... al Padre».',
+        'psalms-121-2':
+          '«Mi socorro viene de Jehová, que hizo los cielos y la tierra.» Ese Hacedor es Cristo: «en él fueron creadas todas las cosas»; el Creador mismo es nuestro auxilio.',
+        'proverbs-15-1':
+          '«La blanda respuesta quita la ira.» La mansedumbre tiene su modelo en Jesús: «aprended de mí, que soy manso y humilde de corazón».',
+        'proverbs-17-17':
+          '«En todo tiempo ama el amigo.» El Amigo que ama hasta el fin es Cristo: «nadie tiene mayor amor que este, que uno ponga su vida por sus amigos».',
+        'matthew-6-34':
+          '«No os afanéis por el día de mañana.» Podemos no afanarnos porque Otro nos cuida: «echando toda vuestra ansiedad sobre él, porque él tiene cuidado de vosotros».',
+        'mark-11-24':
+          '«Todo lo que pidiereis orando, creed que lo recibiréis.» Jesús nos abre el acceso al Padre: «todo lo que pidiereis al Padre en mi nombre, lo haré».',
+        'mark-12-30':
+          '«Amarás al Señor tu Dios con todo tu corazón.» Solo amamos así porque Él amó primero: «nosotros le amamos a él, porque él nos amó primero».',
+        'philippians-4-8':
+          '«Todo lo que es verdadero... en esto pensad.» La mente halla descanso al fijarse en Jesús, «puestos los ojos en Jesús, el autor y consumador de la fe».',
+        '1thessalonians-5-17':
+          '«Orad sin cesar.» Podemos hacerlo porque Cristo nunca cesa de orar: «vive siempre para interceder» por los que se acercan a Dios por Él.',
+        '2timothy-1-7':
+          '«No nos ha dado Dios espíritu de cobardía, sino de poder, de amor y de dominio propio.» Es el Espíritu que Cristo da: «espíritu de adopción» que clama «¡Abba, Padre!», no de temor.',
+        'james-4-7':
+          '«Resistid al diablo, y huirá de vosotros.» Resistimos firmes porque Cristo ya venció: «para esto apareció el Hijo de Dios, para deshacer las obras del diablo».',
+        '1peter-3-15':
+          '«Santificad a Dios el Señor en vuestros corazones... dad razón de vuestra esperanza.» Esa esperanza es Él mismo en nosotros: «Cristo en vosotros, la esperanza de gloria».',
       },
     },
     collections: {
@@ -4222,6 +4270,54 @@ export const translations = {
           '"Perfect love casts out fear." That perfect love is Christ: "in this is love... that He loved us and sent His Son to be the propitiation for our sins."',
         '1john-5-14':
           '"If we ask anything according to His will, He hears us." We have that confidence because Christ "ever lives to make intercession" for us before the Father.',
+        'joshua-24-15':
+          '"As for me and my house, we will serve the LORD." The Lord we serve has a face: "you serve the Lord Christ," says Paul — to choose Him is to serve the Savior.',
+        '1chronicles-16-11':
+          '"Seek the LORD... seek his face continually." That face was unveiled in Christ: God shone in our hearts "in the face of Jesus Christ."',
+        '2chronicles-7-14':
+          '"If my people humble themselves... I will forgive." The promised pardon flows from the cross: "if we confess our sins, he is faithful and just to forgive."',
+        'psalms-1-1':
+          '"Blessed is the man who walks not in the counsel of the wicked." The one perfectly righteous Man is Christ; in Him "who knew no sin" we are made the righteousness of God.',
+        'psalms-32-8':
+          '"I will teach you the way you should go." That way is a Person: "I am the way," said Jesus; He himself leads us to the Father.',
+        'psalms-37-4':
+          '"Delight yourself in the LORD." The greatest delight is to know Him: Paul counted all things loss "for the surpassing worth of knowing Christ Jesus."',
+        'psalms-42-11':
+          '"Why are you cast down, O my soul? Hope in God." To that weary soul Jesus says, "Come to me... and I will give you rest"; our hope is Him.',
+        'psalms-56-3':
+          '"When I am afraid, I put my trust in you." The peace that conquers fear is Christ\'s: "my peace I give to you; let not your heart be troubled or afraid."',
+        'psalms-62-1':
+          '"For God alone my soul waits; from him comes my salvation." That salvation has a name: "there is salvation in no one else" but Jesus, the only name that saves.',
+        'psalms-73-26':
+          '"God is my portion forever." To have God as our eternal portion is to have Christ, who says, "I am the resurrection and the life."',
+        'psalms-90-12':
+          '"Teach us to number our days, that we may get a heart of wisdom." The wisdom we need has been "made unto us" in Christ, "the wisdom of God."',
+        'psalms-91-1':
+          '"He who dwells in the shelter of the Most High." Our safe hiding place is Christ: "your life is hidden with Christ in God."',
+        'psalms-100-4':
+          '"Enter his gates with thanksgiving." We enter the Father\'s presence through one alone: "through him... we have access... to the Father."',
+        'psalms-121-2':
+          '"My help comes from the LORD, who made heaven and earth." That Maker is Christ: "by him all things were created"; the Creator himself is our help.',
+        'proverbs-15-1':
+          '"A soft answer turns away wrath." Gentleness has its model in Jesus: "learn from me, for I am gentle and lowly in heart."',
+        'proverbs-17-17':
+          '"A friend loves at all times." The Friend who loves to the end is Christ: "greater love has no one than this, that he lay down his life for his friends."',
+        'matthew-6-34':
+          '"Do not be anxious about tomorrow." We can lay anxiety down because Another cares for us: "casting all your care on him, for he cares for you."',
+        'mark-11-24':
+          '"Whatever you ask in prayer, believe that you have received it." Jesus opens our access to the Father: "whatever you ask the Father in my name, I will do it."',
+        'mark-12-30':
+          '"Love the Lord your God with all your heart." We love like this only because He loved first: "we love him, because he first loved us."',
+        'philippians-4-8':
+          '"Whatever is true... think about these things." The mind finds its rest fixed on Jesus, "looking to Jesus, the author and finisher of our faith."',
+        '1thessalonians-5-17':
+          '"Pray without ceasing." We can, because Christ never ceases to pray: He "ever lives to make intercession" for those who come to God through Him.',
+        '2timothy-1-7':
+          '"God gave us a spirit not of fear, but of power and love and self-control." It is the Spirit Christ gives: "the Spirit of adoption" who cries "Abba, Father," not of fear.',
+        'james-4-7':
+          '"Resist the devil, and he will flee from you." We stand firm because Christ already won: "the Son of God appeared to destroy the works of the devil."',
+        '1peter-3-15':
+          '"Honor Christ the Lord as holy... give a reason for the hope that is in you." That hope is Himself in us: "Christ in you, the hope of glory."',
       },
     },
     collections: {
