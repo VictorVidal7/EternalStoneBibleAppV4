@@ -90,6 +90,7 @@ import {
   chapterLocationFromVerse,
   sameChapterLocation,
   shouldReaderFollowAudio,
+  shouldResyncAudioToVersion,
   KaraokeText,
   type ChapterLocation,
 } from '@/features/audio';
@@ -985,6 +986,70 @@ export default function VerseReadingScreen() {
     displayedLocation,
     audioEngineLocation,
   );
+
+  // Mid-listen version switch (Sprint 102): when the user changes the reading
+  // version while the engine is voicing THIS chapter, the on-screen text
+  // reloads in the new version but the engine still holds the OLD version's
+  // verses — so it keeps narrating the previous text/language (e.g. WEB English
+  // audio under a freshly-selected RVR1960 chapter; the user reported the text
+  // switching while the audio stayed on WEB). Re-sync the queue to the verses
+  // now on screen, preserving the spoken verse and play/pause state, so the
+  // narration switches text/language in place. The engine's loaded version id
+  // (captured at load time) distinguishes a true version switch from a normal
+  // continuous-playback chapter advance (same version → no re-sync, no
+  // restart). The guard ref blocks re-entry during the state-propagation
+  // window before the engine reports the new version id.
+  const audioVersionResyncRef = useRef<string | null>(null);
+  useEffect(() => {
+    const loadedVersionId = audioState.contentVersionId;
+    if (
+      !shouldResyncAudioToVersion({
+        isAudioVisible,
+        audioBoundToReader,
+        versesLength: verses.length,
+        loadedVersionId,
+        displayedVersionId: selectedVersion.id,
+      })
+    ) {
+      return;
+    }
+    const syncKey = `${displayedLocation?.bookId}/${chapterNum}/${selectedVersion.id}`;
+    if (audioVersionResyncRef.current === syncKey) return;
+    audioVersionResyncRef.current = syncKey;
+
+    const wasPlaying = audioState.isPlaying;
+    const newAudioVerses = toAudioVerses(verses);
+    const resumeIndex = clampVerseIndex(
+      audioState.currentVerseIndex,
+      newAudioVerses.length,
+    );
+    logger.info('Re-syncing audio to switched reading version', {
+      from: loadedVersionId,
+      to: selectedVersion.id,
+      resumeIndex,
+      wasPlaying,
+    });
+    loadAudioChapter(newAudioVerses);
+    if (resumeIndex > 0) goToVerse(resumeIndex);
+    // Resume in place only if it was actually narrating; a paused queue stays
+    // paused at the same verse, now ready to resume in the new version.
+    if (wasPlaying) {
+      setTimeout(() => play(), 100);
+    }
+  }, [
+    isAudioVisible,
+    audioBoundToReader,
+    verses,
+    selectedVersion.id,
+    audioState.contentVersionId,
+    audioState.isPlaying,
+    audioState.currentVerseIndex,
+    chapterNum,
+    displayedLocation?.bookId,
+    loadAudioChapter,
+    goToVerse,
+    play,
+  ]);
 
   // Focus mode + audio (Sprint 81): while the engine voices THIS chapter, the
   // spotlight follows the SPOKEN verse instead of the viewport center — the

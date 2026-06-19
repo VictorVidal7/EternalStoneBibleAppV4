@@ -16,6 +16,7 @@ import {
   nextChapterTitle,
   sameChapterLocation,
   shouldReaderFollowAudio,
+  shouldResyncAudioToVersion,
   localizedChapterTitle,
   upcomingChapters,
 } from '../src/features/audio/lib/chapterNavigation';
@@ -332,5 +333,53 @@ describe('upcomingChapters', () => {
     expect(upcomingChapters({book: 'Atlantis', chapter: 1}, 5)).toEqual([]);
     expect(upcomingChapters(null, 5)).toEqual([]);
     expect(upcomingChapters({book: 'Salmos', chapter: 1}, 0)).toEqual([]);
+  });
+});
+
+describe('shouldResyncAudioToVersion (Sprint 102)', () => {
+  const base = {
+    isAudioVisible: true,
+    audioBoundToReader: true,
+    versesLength: 31,
+    loadedVersionId: 'WEB',
+    displayedVersionId: 'RVR1960',
+  };
+
+  it('re-syncs when the engine holds a different version than the reader shows', () => {
+    // The reported bug: WEB audio still playing under a freshly-selected
+    // RVR1960 chapter → reload the engine to the on-screen version.
+    expect(shouldResyncAudioToVersion(base)).toBe(true);
+    // Same chapter, the other direction (es → en) too.
+    expect(
+      shouldResyncAudioToVersion({
+        ...base,
+        loadedVersionId: 'RVR1960',
+        displayedVersionId: 'KJV',
+      }),
+    ).toBe(true);
+  });
+
+  it('does nothing when the engine already holds the displayed version', () => {
+    // A normal continuous-playback chapter advance stays in the same version,
+    // so the loaded id equals the displayed id and the chapter is NOT restarted.
+    expect(
+      shouldResyncAudioToVersion({...base, loadedVersionId: 'RVR1960'}),
+    ).toBe(false);
+  });
+
+  it('leaves a legacy load with an unknown version id untouched', () => {
+    expect(shouldResyncAudioToVersion({...base, loadedVersionId: null})).toBe(
+      false,
+    );
+  });
+
+  it('only fires while the player is up, bound to the reader, and has verses', () => {
+    expect(shouldResyncAudioToVersion({...base, isAudioVisible: false})).toBe(
+      false,
+    );
+    expect(
+      shouldResyncAudioToVersion({...base, audioBoundToReader: false}),
+    ).toBe(false);
+    expect(shouldResyncAudioToVersion({...base, versesLength: 0})).toBe(false);
   });
 });
