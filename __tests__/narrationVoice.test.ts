@@ -10,6 +10,7 @@ import {
   toAudioLanguage,
   voiceLanguageFamily,
   resolveNarration,
+  voiceSelectorLanguage,
 } from '../src/features/audio/lib/narrationVoice';
 import type {VoiceInfo} from '../src/features/audio/types/audio';
 
@@ -114,5 +115,28 @@ describe('resolveNarration', () => {
         voice: null,
       }),
     ).toEqual({language: 'es-ES', voiceId: undefined});
+  });
+});
+
+describe('voiceSelectorLanguage (Sprint 101)', () => {
+  it('locks to the loaded content language and ignores the manual pick', () => {
+    // Spanish text loaded while the manual preference is still English: the
+    // selector must show Spanish voices and hide the toggle — an English voice
+    // would be dropped by resolveNarration anyway.
+    expect(
+      voiceSelectorLanguage({contentLanguage: 'es', selectedLanguage: 'en'}),
+    ).toEqual({language: 'es', locked: true});
+    expect(
+      voiceSelectorLanguage({contentLanguage: 'en', selectedLanguage: 'es'}),
+    ).toEqual({language: 'en', locked: true});
+  });
+
+  it('falls back to the manual selectedLanguage with nothing loaded', () => {
+    expect(
+      voiceSelectorLanguage({contentLanguage: null, selectedLanguage: 'es'}),
+    ).toEqual({language: 'es', locked: false});
+    expect(
+      voiceSelectorLanguage({contentLanguage: null, selectedLanguage: 'en'}),
+    ).toEqual({language: 'en', locked: false});
   });
 });

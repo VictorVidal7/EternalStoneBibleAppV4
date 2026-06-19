@@ -60,6 +60,7 @@ const initialPlayerState: AudioPlayerState = {
   playbackSpeed: DEFAULT_PLAYBACK_SPEED,
   selectedVoice: null,
   selectedLanguage: DEFAULT_LANGUAGE,
+  contentLanguage: null,
   isExpanded: false,
   bottomOffset: 0,
   chapterEndCount: 0,
@@ -795,6 +796,7 @@ export const AudioPlayerProvider: React.FC<AudioPlayerProviderProps> = ({
         isPlaying: false,
         isPaused: false,
         isLoading: false,
+        contentLanguage: contentLanguageRef.current,
       };
       // Then update React state
       setVerses(newVerses);
@@ -805,6 +807,7 @@ export const AudioPlayerProvider: React.FC<AudioPlayerProviderProps> = ({
         isPlaying: false,
         isPaused: false,
         isLoading: false,
+        contentLanguage: contentLanguageRef.current,
       }));
       const nextQueueInfo: AudioQueueInfo = {
         mode: options?.mode ?? 'chapter',
@@ -829,6 +832,7 @@ export const AudioPlayerProvider: React.FC<AudioPlayerProviderProps> = ({
       ...prev,
       currentVerseIndex: 0,
       totalVerses: 0,
+      contentLanguage: null,
     }));
     queueInfoRef.current = {mode: 'chapter', label: null};
     setQueueInfo({mode: 'chapter', label: null});

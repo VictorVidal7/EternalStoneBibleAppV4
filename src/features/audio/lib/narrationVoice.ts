@@ -80,3 +80,32 @@ export function resolveNarration(params: {
   }
   return {language: SUPPORTED_LANGUAGES[targetLang][0], voiceId: undefined};
 }
+
+export interface VoiceSelectorLanguage {
+  /** The language whose voices the selector should list. */
+  language: AudioLanguage;
+  /**
+   * True when the language is dictated by the loaded content (so the selector
+   * hides its language toggle): offering the other language would only let the
+   * user pick a voice that {@link resolveNarration} would drop.
+   */
+  locked: boolean;
+}
+
+/**
+ * Decide which language's voices the voice selector should show (Sprint 101).
+ *
+ * Because the spoken language follows the loaded text (see {@link resolveNarration}),
+ * a voice from any other language is never used. So when content is loaded the
+ * selector LOCKS to that language and hides the es/en toggle; only with nothing
+ * loaded (`contentLanguage` null) does it fall back to the manual preference.
+ */
+export function voiceSelectorLanguage(params: {
+  contentLanguage: AudioLanguage | null;
+  selectedLanguage: AudioLanguage;
+}): VoiceSelectorLanguage {
+  if (params.contentLanguage) {
+    return {language: params.contentLanguage, locked: true};
+  }
+  return {language: params.selectedLanguage, locked: false};
+}
