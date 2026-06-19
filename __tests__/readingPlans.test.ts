@@ -72,7 +72,13 @@ describe('READING_PLANS integrity', () => {
     // Plans that opt into a `context` array (the "I am" sayings, parables,
     // miracles, names of God) must cover every day, so getPlanDayContext never
     // returns undefined mid-plan and the two locales stay in lockstep.
-    const topical = ['iam', 'parables', 'miracles', 'namesOfGod'] as const;
+    const topical = [
+      'iam',
+      'parables',
+      'miracles',
+      'namesOfGod',
+      'fruitOfSpirit',
+    ] as const;
     for (const plan of READING_PLANS) {
       if (!topical.includes(plan.i18nKey as (typeof topical)[number])) continue;
       for (const lang of ['es', 'en'] as const) {

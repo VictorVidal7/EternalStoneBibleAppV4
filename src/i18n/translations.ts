@@ -2114,6 +2114,22 @@ export const translations = {
           '«El Altísimo, mi refugio» (Elyón). Quien habita al abrigo del Altísimo descansa seguro bajo su sombra.',
         ],
       },
+      fruitOfSpirit: {
+        name: 'El fruto del Espíritu',
+        description:
+          'Nueve días por el fruto que el Espíritu cultiva en el creyente (Gálatas 5:22-23)',
+        context: [
+          'Amor: «El amor es sufrido, es benigno.» El primer fruto es el retrato de Cristo: amar como Él nos amó.',
+          'Gozo: «Regocijaos en el Señor siempre.» Un gozo que no depende de las circunstancias, sino del Señor.',
+          'Paz: «La paz os dejo, mi paz os doy.» No como la da el mundo: la paz que Cristo mismo nos deja.',
+          'Paciencia: «Tened paciencia hasta la venida del Señor.» Como el labrador que espera el fruto, confiando en Dios.',
+          'Benignidad: «Sed benignos unos con otros, como Dios os perdonó.» La amabilidad que nace de haber sido perdonados.',
+          'Bondad: «No seas vencido de lo malo, sino vence con el bien el mal.» La bondad activa que devuelve bien por mal.',
+          'Fidelidad: «Bien, buen siervo y fiel.» Ser fiel en lo poco es agradar al Señor que volverá.',
+          'Mansedumbre: «Aprended de mí, que soy manso y humilde de corazón.» La gentileza de Cristo, que da descanso al alma.',
+          'Templanza: «Todo aquel que lucha, de todo se abstiene.» El dominio propio que corre para ganar el premio incorruptible.',
+        ],
+      },
     },
 
     // Reading Plan Screen
@@ -4900,6 +4916,22 @@ export const translations = {
           '"The LORD is peace" (Jehovah-shalom). Where God speaks, fear gives way: He is our peace.',
           '"The LORD who heals" (Jehovah-rapha). The One who healed the bitter waters is still the God who heals.',
           '"The Most High, my refuge" (Elyon). Whoever dwells in the shelter of the Most High rests safe in His shadow.',
+        ],
+      },
+      fruitOfSpirit: {
+        name: 'The Fruit of the Spirit',
+        description:
+          'Nine days through the fruit the Spirit grows in the believer (Galatians 5:22-23)',
+        context: [
+          'Love: "Love is patient, love is kind." The first fruit is a portrait of Christ: to love as He loved us.',
+          'Joy: "Rejoice in the Lord always." A joy that rests not on circumstances but on the Lord.',
+          'Peace: "Peace I leave with you, my peace I give to you." Not as the world gives: the peace Christ Himself leaves us.',
+          'Patience: "Be patient until the coming of the Lord." Like the farmer who waits for the fruit, trusting God.',
+          'Kindness: "Be kind to one another, as God forgave you." The kindness born of having been forgiven.',
+          'Goodness: "Do not be overcome by evil, but overcome evil with good." The active goodness that returns good for evil.',
+          'Faithfulness: "Well done, good and faithful servant." To be faithful in little is to please the Lord who will return.',
+          'Gentleness: "Learn from me, for I am gentle and lowly in heart." The gentleness of Christ, who gives rest to the soul.',
+          'Self-control: "Everyone who competes exercises self-control in all things." The self-control that runs to win the imperishable prize.',
         ],
       },
     },

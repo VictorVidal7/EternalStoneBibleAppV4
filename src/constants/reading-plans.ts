@@ -26,7 +26,8 @@ export type ReadingPlanI18nKey =
   | 'iam'
   | 'parables'
   | 'miracles'
-  | 'namesOfGod';
+  | 'namesOfGod'
+  | 'fruitOfSpirit';
 
 export interface ReadingPlan {
   id: string;
@@ -886,12 +887,38 @@ const namesOfGod: ReadingPlan = {
   ],
 };
 
+// Plan: El fruto del Espíritu — una gracia por día (Sprint 101). Las nueve
+// facetas del fruto que el Espíritu cultiva en el creyente (Gálatas 5:22-23),
+// cada una leída en un pasaje que la encarna y la cumple en Cristo.
+const fruitOfSpirit: ReadingPlan = {
+  id: 'fruit-of-spirit-9',
+  name: 'El fruto del Espíritu',
+  description:
+    'Nueve días por el fruto que el Espíritu cultiva en el creyente (Gálatas 5:22-23)',
+  i18nKey: 'fruitOfSpirit',
+  duration: 9,
+  icon: 'flower-outline',
+  color: '#16A34A',
+  days: [
+    {day: 1, readings: [{book: '1 Corintios', chapter: 13, verses: '1-13'}]},
+    {day: 2, readings: [{book: 'Filipenses', chapter: 4, verses: '4-9'}]},
+    {day: 3, readings: [{book: 'Juan', chapter: 14, verses: '25-27'}]},
+    {day: 4, readings: [{book: 'Santiago', chapter: 5, verses: '7-11'}]},
+    {day: 5, readings: [{book: 'Efesios', chapter: 4, verses: '29-32'}]},
+    {day: 6, readings: [{book: 'Romanos', chapter: 12, verses: '9-21'}]},
+    {day: 7, readings: [{book: 'Mateo', chapter: 25, verses: '14-23'}]},
+    {day: 8, readings: [{book: 'Mateo', chapter: 11, verses: '28-30'}]},
+    {day: 9, readings: [{book: '1 Corintios', chapter: 9, verses: '24-27'}]},
+  ],
+};
+
 export const READING_PLANS: ReadingPlan[] = [
   firstSteps,
   iamSayings,
   parablesOfJesus,
   miraclesOfJesus,
   namesOfGod,
+  fruitOfSpirit,
   redemptionStory,
   gospels40Days,
   newTestament30Days,
