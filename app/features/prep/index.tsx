@@ -21,7 +21,7 @@
  * Para la gloria de Dios Todopoderoso ✨
  */
 
-import React, {useCallback, useEffect, useMemo, useState} from 'react';
+import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {
   View,
   Text,
@@ -64,6 +64,15 @@ import {
   buildPrepMarkdown,
   type PrepMarkdownSection,
 } from '@/features/study/prepMarkdown';
+import {
+  type VerseRange,
+  adjustStart,
+  adjustEnd,
+  canDecreaseStart,
+  canIncreaseStart,
+  canDecreaseEnd,
+  canIncreaseEnd,
+} from '@/features/study/prepRange';
 import {translations} from '@/i18n/translations';
 import {logger} from '@lib/utils/logger';
 import {
@@ -111,6 +120,40 @@ const SECTION_ICONS: Record<PrepSection, keyof typeof Ionicons.glyphMap> = {
   questions: 'help-circle-outline',
 };
 
+/** One +/− button in the verse-range stepper. */
+function StepButton({
+  icon,
+  onPress,
+  disabled,
+  color,
+  disabledColor,
+  label,
+}: {
+  icon: keyof typeof Ionicons.glyphMap;
+  onPress: () => void;
+  disabled: boolean;
+  color: string;
+  disabledColor: string;
+  label: string;
+}) {
+  return (
+    <TouchableOpacity
+      onPress={onPress}
+      disabled={disabled}
+      accessibilityRole="button"
+      accessibilityLabel={label}
+      accessibilityState={{disabled}}
+      hitSlop={{top: 8, bottom: 8, left: 8, right: 8}}
+      style={styles.stepButton}>
+      <Ionicons
+        name={icon}
+        size={20}
+        color={disabled ? disabledColor : color}
+      />
+    </TouchableOpacity>
+  );
+}
+
 export default function PrepTableScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
@@ -128,15 +171,35 @@ export default function PrepTableScreen() {
   }>();
   const book = params.book ?? '';
   const chapter = Number(params.chapter ?? 0);
-  const startVerse = Number(params.startVerse ?? params.verse ?? 0);
-  const endVerse = params.endVerse ? Number(params.endVerse) : undefined;
+  const paramStart = Number(params.startVerse ?? params.verse ?? 0);
+  const paramEnd = params.endVerse ? Number(params.endVerse) : paramStart;
+
+  // The verse range is editable in-screen (the range picker), seeded from the
+  // incoming params and reset whenever a new passage arrives via navigation.
+  const [range, setRange] = useState<VerseRange>(() => ({
+    start: paramStart >= 1 ? paramStart : 1,
+    end:
+      Math.max(paramStart, paramEnd) >= 1 ? Math.max(paramStart, paramEnd) : 1,
+  }));
+  useEffect(() => {
+    setRange({
+      start: paramStart >= 1 ? paramStart : 1,
+      end:
+        Math.max(paramStart, paramEnd) >= 1
+          ? Math.max(paramStart, paramEnd)
+          : 1,
+    });
+  }, [book, chapter, paramStart, paramEnd]);
 
   const table: PrepTable | null = useMemo(
-    () => buildPrepTable(book, chapter, startVerse, endVerse),
-    [book, chapter, startVerse, endVerse],
+    () => buildPrepTable(book, chapter, range.start, range.end),
+    [book, chapter, range.start, range.end],
   );
 
   const [status, setStatus] = useState<LoadStatus>('loading');
+  const [reloading, setReloading] = useState(false);
+  const hasLoadedRef = useRef(false);
+  const [maxVerse, setMaxVerse] = useState(0);
   const [lines, setLines] = useState<VerseLine[]>([]);
   const [crossRows, setCrossRows] = useState<CrossRow[]>([]);
   const [christRows, setChristRows] = useState<ChristRow[]>([]);
@@ -157,13 +220,31 @@ export default function PrepTableScreen() {
       setStatus('empty');
       return;
     }
-    try {
+    // First open shows the spinner; later range tweaks keep the content on
+    // screen and show a subtle inline indicator instead of blanking it.
+    if (hasLoadedRef.current) {
+      setReloading(true);
+    } else {
       setStatus('loading');
+    }
+    try {
       const version =
         params.version ??
         (await AsyncStorage.getItem(VERSION_KEY)) ??
         'RVR1960';
       const lang = christLangForVersion(version);
+
+      // The chapter's verse count bounds the range picker.
+      try {
+        const count = await bibleDB.getChapterVerseCount(
+          table.bookId,
+          table.chapter,
+          version,
+        );
+        if (count > 0) setMaxVerse(count);
+      } catch {
+        // Leave maxVerse open (0) — the picker still works, just unbounded up.
+      }
 
       // Passage text (each verse in the range).
       const verseNums: number[] = [];
@@ -266,13 +347,16 @@ export default function PrepTableScreen() {
       setIntro(bookIntro);
       setDrafts(saved.sections);
       setVersionLabel(versionAbbrev(version));
+      hasLoadedRef.current = true;
       setStatus('ready');
     } catch (err) {
       logger.error('Prep table load failed', err as Error, {
         component: 'PrepTableScreen',
         action: 'load',
       });
-      setStatus('error');
+      if (!hasLoadedRef.current) setStatus('error');
+    } finally {
+      setReloading(false);
     }
   }, [table, params.version]);
 
@@ -291,6 +375,11 @@ export default function PrepTableScreen() {
     },
     [router],
   );
+
+  const handleRange = useCallback((next: VerseRange) => {
+    haptics.tap();
+    setRange(next);
+  }, []);
 
   const handleNoteChange = useCallback(
     (section: PrepSection, value: string) => {
@@ -594,6 +683,103 @@ export default function PrepTableScreen() {
             showsVerticalScrollIndicator={false}
             keyboardShouldPersistTaps="handled">
             <View style={centeredMaxWidth()}>
+              {/* Verse-range picker — widen the passage in place. */}
+              <View
+                style={[
+                  styles.rangeCard,
+                  {backgroundColor: colors.card, borderColor: colors.border},
+                ]}>
+                <View style={styles.rangeHeaderRow}>
+                  <Text
+                    style={[styles.rangeTitle, {color: colors.textSecondary}]}>
+                    {p.passageLabel}
+                  </Text>
+                  {reloading && (
+                    <ActivityIndicator size="small" color={colors.primary} />
+                  )}
+                </View>
+                <View style={styles.rangeRow}>
+                  <View style={styles.stepperGroup}>
+                    <Text
+                      style={[
+                        styles.stepperLabel,
+                        {color: colors.textTertiary},
+                      ]}>
+                      {p.rangeStartLabel}
+                    </Text>
+                    <View style={styles.stepper}>
+                      <StepButton
+                        icon="remove-circle-outline"
+                        onPress={() =>
+                          handleRange(adjustStart(range, -1, maxVerse))
+                        }
+                        disabled={!canDecreaseStart(range)}
+                        color={colors.primary}
+                        disabledColor={colors.textTertiary}
+                        label={`${p.decrease} ${p.rangeStartLabel}`}
+                      />
+                      <Text
+                        style={[styles.stepperValue, {color: colors.text}]}
+                        accessibilityLabel={`${p.rangeStartLabel} ${range.start}`}>
+                        {range.start}
+                      </Text>
+                      <StepButton
+                        icon="add-circle-outline"
+                        onPress={() =>
+                          handleRange(adjustStart(range, 1, maxVerse))
+                        }
+                        disabled={!canIncreaseStart(range)}
+                        color={colors.primary}
+                        disabledColor={colors.textTertiary}
+                        label={`${p.increase} ${p.rangeStartLabel}`}
+                      />
+                    </View>
+                  </View>
+
+                  <Text
+                    style={[styles.rangeDash, {color: colors.textTertiary}]}>
+                    –
+                  </Text>
+
+                  <View style={styles.stepperGroup}>
+                    <Text
+                      style={[
+                        styles.stepperLabel,
+                        {color: colors.textTertiary},
+                      ]}>
+                      {p.rangeEndLabel}
+                    </Text>
+                    <View style={styles.stepper}>
+                      <StepButton
+                        icon="remove-circle-outline"
+                        onPress={() =>
+                          handleRange(adjustEnd(range, -1, maxVerse))
+                        }
+                        disabled={!canDecreaseEnd(range)}
+                        color={colors.primary}
+                        disabledColor={colors.textTertiary}
+                        label={`${p.decrease} ${p.rangeEndLabel}`}
+                      />
+                      <Text
+                        style={[styles.stepperValue, {color: colors.text}]}
+                        accessibilityLabel={`${p.rangeEndLabel} ${range.end}`}>
+                        {range.end}
+                      </Text>
+                      <StepButton
+                        icon="add-circle-outline"
+                        onPress={() =>
+                          handleRange(adjustEnd(range, 1, maxVerse))
+                        }
+                        disabled={!canIncreaseEnd(range, maxVerse)}
+                        color={colors.primary}
+                        disabledColor={colors.textTertiary}
+                        label={`${p.increase} ${p.rangeEndLabel}`}
+                      />
+                    </View>
+                  </View>
+                </View>
+              </View>
+
               {/* The passage itself. */}
               <View
                 style={[
@@ -749,6 +935,41 @@ const styles = StyleSheet.create({
   },
   stateText: {fontSize: fontSizes.md, textAlign: 'center'},
   content: {padding: spacing.lg},
+  rangeCard: {
+    borderRadius: borderRadius.lg,
+    borderWidth: StyleSheet.hairlineWidth,
+    padding: spacing.md,
+    marginBottom: spacing.md,
+  },
+  rangeHeaderRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: spacing.sm,
+  },
+  rangeTitle: {
+    fontSize: fontSizes.xs,
+    fontWeight: '700',
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+  },
+  rangeRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-end',
+    justifyContent: 'center',
+    gap: spacing.md,
+  },
+  stepperGroup: {alignItems: 'center', gap: spacing.xs},
+  stepperLabel: {fontSize: fontSizes.xs},
+  stepper: {flexDirection: 'row', alignItems: 'center', gap: spacing.sm},
+  stepButton: {padding: spacing.xs},
+  stepperValue: {
+    fontSize: fontSizes.lg,
+    fontWeight: '700',
+    minWidth: 28,
+    textAlign: 'center',
+  },
+  rangeDash: {fontSize: fontSizes.lg, marginBottom: spacing.sm},
   passageCard: {
     borderRadius: borderRadius.lg,
     borderWidth: StyleSheet.hairlineWidth,
