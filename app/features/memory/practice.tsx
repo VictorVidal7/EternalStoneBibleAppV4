@@ -88,6 +88,13 @@ export default function MemoryPracticeScreen() {
       ? t.memory.practice.maskNone
       : t.memory.practice.maskHint.replace('{{percent}}', String(maskPercent));
 
+  // Box-1 cards (a verse's first time in the deck) are shown in full — the
+  // mask hides nothing — so there is nothing to "reveal". Skip the reveal
+  // step and grade straight from the visible verse, otherwise the
+  // "Show verse" button does nothing on an already-complete verse.
+  const nothingMasked = maskLevel === 0;
+  const showAnswer = revealed || nothingMasked;
+
   const handleReveal = () => {
     haptics.tap();
     setRevealed(true);
@@ -217,11 +224,11 @@ export default function MemoryPracticeScreen() {
                   {displayBookName} {card.chapter}:{card.verse}
                 </Text>
                 <Text style={[styles.verseText, {color: colors.text}]}>
-                  {revealed ? card.text : maskedText}
+                  {showAnswer ? card.text : maskedText}
                 </Text>
               </View>
 
-              {!revealed ? (
+              {!showAnswer ? (
                 <TouchableOpacity
                   style={[
                     styles.revealButton,
@@ -236,7 +243,9 @@ export default function MemoryPracticeScreen() {
               ) : (
                 <>
                   <Text style={[styles.prompt, {color: colors.textSecondary}]}>
-                    {t.memory.practice.prompt}
+                    {nothingMasked
+                      ? t.memory.practice.promptFullVerse
+                      : t.memory.practice.prompt}
                   </Text>
                   <View style={styles.gradeRow}>
                     <GradeButton
