@@ -768,6 +768,8 @@ export const translations = {
           'Recuerda una ocasión en que Dios fue fiel, y deja que fortalezca tu fe hoy.',
           '¿Qué temor desaparecería si confiaras plenamente en que Dios tiene el control?',
           'Pon por escrito una cosa que vas a confiarle a Dios esta semana.',
+          '¿Qué pequeño acto de confianza puedes ofrecerle hoy a Dios antes de ver el resultado?',
+          'Dale gracias a Dios de antemano por aquello que aún esperas de su mano.',
         ],
         love: [
           '¿A quién pondrá Dios hoy en tu camino para amar como Él te ama?',
@@ -777,6 +779,8 @@ export const translations = {
           'Pídele a Dios que llene tu corazón de su amor para darlo a otros.',
           '¿De qué forma puedes amar hoy a alguien sin esperar nada a cambio?',
           'Pídele a Dios que te ayude a ver a las personas como Él las ve.',
+          '¿Qué gesto sencillo de servicio puedes hacer hoy por alguien cercano?',
+          'Pídele a Dios que hoy ames de obra y en verdad, no solo de palabra (1 Juan 3:18).',
         ],
         hope: [
           '¿Qué circunstancia necesitas mirar hoy a la luz de la esperanza en Cristo?',
@@ -786,6 +790,8 @@ export const translations = {
           'Escribe una promesa de Dios y tenla presente cuando llegue el desánimo.',
           '¿Qué esperas con anhelo que solo Dios puede darte? Tráelo a Él.',
           'Recuerda que lo mejor está por venir en Cristo, y deja que eso aligere tu día.',
+          '¿Qué luz pequeña puedes agradecer hoy en medio de lo que aún esperas?',
+          'Cuéntale a Dios aquello por lo que esperas, y déjalo en sus manos buenas.',
         ],
         peace: [
           '¿Qué preocupación puedes entregar a Dios ahora mismo en oración?',
@@ -795,6 +801,8 @@ export const translations = {
           'Agradece a Dios por un lugar o momento donde has hallado su paz.',
           '¿Qué relación tensa necesita hoy un paso tuyo hacia la paz?',
           'Antes de dormir, entrega a Dios lo que quedó sin resolver del día.',
+          '¿Qué necesitas dejar de cargar para descansar hoy en el cuidado de Dios?',
+          'Antes de empezar tu día, entrégale a Dios lo que más te inquieta.',
         ],
         strength: [
           '¿En qué debilidad necesitas hoy la fuerza de Dios, y no la tuya?',
@@ -804,6 +812,8 @@ export const translations = {
           'Descansa en que su poder se perfecciona en tu debilidad (2 Corintios 12:9).',
           '¿Qué tarea te parece demasiado grande? Pídele a Dios que la haga contigo.',
           'Apóyate hoy en una promesa de Dios cuando sientas que faltan las fuerzas.',
+          '¿Dónde estás corriendo con tus propias fuerzas y necesitas detenerte a orar?',
+          'Agradece a Dios por una manera en que te ha sostenido esta semana.',
         ],
         forgiveness: [
           '¿Hay alguien a quien necesitas perdonar, como Cristo te perdonó?',
@@ -813,6 +823,8 @@ export const translations = {
           'Recibe hoy, sin condenación, el perdón completo que Cristo ya compró.',
           'Ora por la persona que te hirió, pidiendo bien para ella.',
           '¿Te cuesta perdonarte a ti mismo? Recibe el perdón que Dios ya te dio.',
+          '¿Qué primer paso, por pequeño que sea, puedes dar hoy hacia la reconciliación?',
+          'Dale gracias a Cristo porque en su cruz tu deuda quedó pagada por completo.',
         ],
         wisdom: [
           '¿Qué decisión tienes por delante? Pídele a Dios sabiduría (Santiago 1:5).',
@@ -822,6 +834,8 @@ export const translations = {
           'Antes de decidir hoy, haz una pausa y pregunta: «Señor, ¿qué quieres tú?».',
           'Pide a Dios discernir entre lo bueno y lo mejor en lo que hoy tienes delante.',
           'Lee un proverbio y elige una sola verdad para vivir hoy.',
+          '¿Qué hábito pequeño podrías cambiar hoy para vivir con más sabiduría?',
+          'Pídele a Dios un corazón que ame su verdad más que tener la razón.',
         ],
         prayer: [
           '¿Qué le quieres decir a Dios ahora mismo, con tus propias palabras?',
@@ -831,6 +845,8 @@ export const translations = {
           'Da gracias por una oración que Dios ya ha respondido.',
           'Aparta cinco minutos hoy solo para estar con Dios, sin pedir nada.',
           'Convierte tu mayor preocupación de hoy en una oración concreta.',
+          '¿Qué motivo de gratitud puedes convertir hoy en una oración de alabanza?',
+          'Escribe una breve oración por alguien y ora por esa persona durante el día.',
         ],
         courage: [
           '¿Qué temor te está frenando? Entrégaselo a Dios.',
@@ -840,6 +856,8 @@ export const translations = {
           'Repite con calma: «Esfuérzate y sé valiente; el Señor va contigo» (Josué 1:9).',
           'Da hoy ese primer paso pequeño que has estado posponiendo.',
           '¿En qué necesitas ser valiente para hacer lo correcto, aunque cueste?',
+          '¿Qué verdad necesitas creer hoy para vencer el miedo a lo que viene?',
+          'Pídele a Dios valor para decir o hacer lo correcto con amor.',
         ],
         comfort: [
           '¿Dónde necesitas el consuelo de Dios hoy?',
@@ -849,6 +867,8 @@ export const translations = {
           'Escríbele a alguien que sufre una palabra breve de aliento.',
           'Permítete llorar delante de Dios; Él recoge cada una de tus lágrimas (Salmos 56:8).',
           'Busca hoy la compañía de alguien que te recuerde el amor de Dios.',
+          '¿Qué palabra de Dios puedes sostener cuando llegue hoy la tristeza?',
+          'Acércate a Dios tal como estás; no necesitas tener las palabras perfectas.',
         ],
         joy: [
           '¿Por qué tres cosas puedes dar gracias a Dios hoy?',
@@ -858,6 +878,8 @@ export const translations = {
           'Canta o escucha una canción que levante tu corazón al Señor.',
           'Haz hoy algo, por pequeño que sea, que celebre la bondad de Dios.',
           'Da gracias en voz alta por una bendición que sueles dar por sentada.',
+          '¿Qué cosa buena y sencilla de hoy puedes recibir como un regalo de Dios?',
+          'Comparte tu gozo: cuéntale a alguien algo bueno que Dios ha hecho.',
         ],
         grace: [
           '¿Dónde estás intentando ganar lo que Dios ya te da por gracia?',
@@ -867,6 +889,8 @@ export const translations = {
           'Agradece por algo bueno en tu vida que no ganaste, sino que recibiste.',
           'Recibe hoy el día como un regalo inmerecido de Dios.',
           'Ofrece una palabra amable a alguien que no «se la haya ganado».',
+          '¿A quién podrías sorprender hoy con una bondad que no espera recibir?',
+          'Descansa en que ya eres amado por Dios, antes de hacer nada por Él.',
         ],
         salvation: [
           '¿Has puesto tu confianza en Cristo para tu salvación?',
@@ -876,6 +900,8 @@ export const translations = {
           'Ora por una persona que aún no conoce a Cristo.',
           'Medita en lo que Cristo pagó para darte vida, y dale gracias.',
           'Vive hoy como hijo amado y libre, no como esclavo del temor.',
+          '¿Cómo cambiaría tu día si lo vivieras como alguien profundamente amado y rescatado?',
+          'Dale gracias a Jesús por haber hecho por ti lo que tú no podías hacer.',
         ],
         guidance: [
           '¿En qué decisión necesitas hoy la dirección de Dios?',
@@ -885,6 +911,8 @@ export const translations = {
           'Entrega tus planes a Dios y pídele que dirija tus pasos (Proverbios 16:9).',
           'Antes de actuar hoy, pregúntale a Dios en oración cuál es su camino.',
           'Confía en que Dios endereza tus pasos aunque no veas todo el camino.',
+          '¿Qué área de tu vida necesitas poner hoy bajo la dirección de Dios?',
+          'Pídele a Dios un corazón dispuesto a seguirle, aun antes de conocer el camino.',
         ],
       },
     },
@@ -3597,6 +3625,8 @@ export const translations = {
           'Recall a time God was faithful, and let it strengthen your faith today.',
           'What fear would fade if you fully trusted that God is in control?',
           'Write down one thing you will entrust to God this week.',
+          'What small act of trust can you offer God today, before you see the outcome?',
+          'Thank God in advance for what you are still waiting to receive from His hand.',
         ],
         love: [
           'Who will God place in your path today to love as He loves you?',
@@ -3606,6 +3636,8 @@ export const translations = {
           'Ask God to fill your heart with His love so you can give it to others.',
           'In what way can you love someone today expecting nothing in return?',
           'Ask God to help you see people the way He sees them.',
+          'What simple act of service can you do today for someone close to you?',
+          'Ask God to help you love today in deed and truth, not only in word (1 John 3:18).',
         ],
         hope: [
           'What circumstance do you need to see today in the light of hope in Christ?',
@@ -3615,6 +3647,8 @@ export const translations = {
           'Write down a promise of God to keep close when discouragement comes.',
           'What do you long for that only God can give? Bring it to Him.',
           'Remember that the best is yet to come in Christ, and let it lighten your day.',
+          'What small light can you give thanks for today, in the middle of what you still await?',
+          'Tell God what you are hoping for, and leave it in His good hands.',
         ],
         peace: [
           'What worry can you hand to God in prayer right now?',
@@ -3624,6 +3658,8 @@ export const translations = {
           'Thank God for a place or moment where you have found His peace.',
           'What strained relationship needs a step from you toward peace today?',
           'Before sleep, hand God whatever was left unresolved in your day.',
+          'What do you need to stop carrying so you can rest today in God’s care?',
+          'Before your day begins, hand God the thing that unsettles you most.',
         ],
         strength: [
           "In what weakness do you need God's strength today, not your own?",
@@ -3633,6 +3669,8 @@ export const translations = {
           'Rest in the truth that His power is made perfect in weakness (2 Corinthians 12:9).',
           'What task feels too big? Ask God to do it with you.',
           'Lean on a promise of God today when your strength runs low.',
+          'Where are you running on your own strength and need to stop and pray?',
+          'Thank God for one way He has held you up this week.',
         ],
         forgiveness: [
           'Is there someone you need to forgive, as Christ forgave you?',
@@ -3642,6 +3680,8 @@ export const translations = {
           'Receive today, without condemnation, the full forgiveness Christ has already bought.',
           'Pray for the person who hurt you, asking good for them.',
           'Do you struggle to forgive yourself? Receive the forgiveness God already gave.',
+          'What first step, however small, can you take today toward reconciliation?',
+          'Thank Christ that at His cross your debt was paid in full.',
         ],
         wisdom: [
           'What decision is before you? Ask God for wisdom (James 1:5).',
@@ -3651,6 +3691,8 @@ export const translations = {
           'Before you decide today, pause and ask: "Lord, what do You want?"',
           'Ask God to discern between the good and the best in what is before you today.',
           'Read a proverb and choose one truth to live out today.',
+          'What small habit could you change today to live more wisely?',
+          'Ask God for a heart that loves His truth more than being right.',
         ],
         prayer: [
           'What do you want to say to God right now, in your own words?',
@@ -3660,6 +3702,8 @@ export const translations = {
           'Give thanks for a prayer God has already answered.',
           'Set aside five minutes today just to be with God, asking for nothing.',
           'Turn your biggest worry today into one concrete prayer.',
+          'What reason for gratitude can you turn into a prayer of praise today?',
+          'Write a short prayer for someone, and pray for them through the day.',
         ],
         courage: [
           'What fear is holding you back? Hand it over to God.',
@@ -3669,6 +3713,8 @@ export const translations = {
           'Say it calmly: "Be strong and courageous; the Lord goes with you" (Joshua 1:9).',
           'Take that first small step today that you have been putting off.',
           'Where do you need courage to do the right thing, even when it costs?',
+          'What truth do you need to believe today to overcome the fear of what lies ahead?',
+          'Ask God for courage to say or do the right thing in love.',
         ],
         comfort: [
           'Where do you need the comfort of God today?',
@@ -3678,6 +3724,8 @@ export const translations = {
           'Write someone who is hurting a short word of encouragement.',
           'Let yourself weep before God; He keeps every one of your tears (Psalm 56:8).',
           'Seek out today the company of someone who reminds you of God’s love.',
+          'What word of God can you hold on to when sorrow comes today?',
+          'Come to God just as you are; you do not need the perfect words.',
         ],
         joy: [
           'What three things can you thank God for today?',
@@ -3687,6 +3735,8 @@ export const translations = {
           'Sing or listen to a song that lifts your heart to the Lord.',
           'Do something today, however small, that celebrates the goodness of God.',
           'Give thanks aloud for a blessing you usually take for granted.',
+          'What good and simple thing today can you receive as a gift from God?',
+          'Share your joy: tell someone something good God has done.',
         ],
         grace: [
           'Where are you trying to earn what God already gives you by grace?',
@@ -3696,6 +3746,8 @@ export const translations = {
           'Give thanks for something good in your life you did not earn, but received.',
           'Receive today as an undeserved gift from God.',
           'Offer a kind word to someone who has not “earned” it.',
+          'Whom could you surprise today with a kindness they do not expect?',
+          'Rest in being already loved by God, before you do anything for Him.',
         ],
         salvation: [
           'Have you placed your trust in Christ for your salvation?',
@@ -3705,6 +3757,8 @@ export const translations = {
           'Pray for one person who does not yet know Christ.',
           'Meditate on what Christ paid to give you life, and thank Him.',
           'Live today as a beloved, free child, not a slave to fear.',
+          'How would your day change if you lived it as someone deeply loved and rescued?',
+          'Thank Jesus for doing for you what you could never do for yourself.',
         ],
         guidance: [
           "In what decision do you need God's direction today?",
@@ -3714,6 +3768,8 @@ export const translations = {
           'Commit your plans to God and ask Him to direct your steps (Proverbs 16:9).',
           'Before you act today, ask God in prayer what His way is.',
           'Trust that God straightens your steps even when you cannot see the whole path.',
+          'What area of your life do you need to place under God’s direction today?',
+          'Ask God for a heart willing to follow Him, even before you know the way.',
         ],
       },
     },
