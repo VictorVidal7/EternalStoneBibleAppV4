@@ -367,6 +367,57 @@ export default function StudyScreen() {
                 </View>
               )}
 
+              {/* Entry to the "Mesa de preparación" — gather everything for
+                  teaching/preaching this passage (Sprint 103). */}
+              <TouchableOpacity
+                style={[
+                  styles.prepEntry,
+                  {
+                    backgroundColor: colors.primary + '14',
+                    borderColor: colors.primary,
+                  },
+                ]}
+                onPress={() => {
+                  haptics.tap();
+                  router.push({
+                    pathname: '/features/prep' as never,
+                    params: {
+                      book,
+                      chapter,
+                      startVerse: verse,
+                      version: params.version,
+                    },
+                  });
+                }}
+                accessibilityRole="button"
+                accessibilityLabel={t.prepTable.title}
+                accessibilityHint={t.prepTable.cardSubtitle}>
+                <Ionicons
+                  name="reader-outline"
+                  size={20}
+                  color={colors.primary}
+                />
+                <View style={styles.prepEntryBody}>
+                  <AppText
+                    scaleRole="compact"
+                    style={[styles.prepEntryTitle, {color: colors.primary}]}>
+                    {t.prepTable.title}
+                  </AppText>
+                  <Text
+                    style={[
+                      styles.prepEntrySub,
+                      {color: colors.textSecondary},
+                    ]}>
+                    {t.prepTable.cardSubtitle}
+                  </Text>
+                </View>
+                <Ionicons
+                  name="chevron-forward"
+                  size={18}
+                  color={colors.primary}
+                />
+              </TouchableOpacity>
+
               {/* Christ in this passage (S98) — faithful note + the fulfillment
                   verse in the selected version + a tap to open it. */}
               {christ && (
@@ -591,6 +642,18 @@ const styles = StyleSheet.create({
     fontSize: fontSizes.sm,
     fontWeight: '600',
   },
+  prepEntry: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.md,
+    borderRadius: borderRadius.lg,
+    borderWidth: StyleSheet.hairlineWidth,
+    padding: spacing.md,
+    marginBottom: spacing.md,
+  },
+  prepEntryBody: {flex: 1},
+  prepEntryTitle: {fontWeight: '700', fontSize: fontSizes.md},
+  prepEntrySub: {fontSize: fontSizes.sm, marginTop: 2},
   christCard: {
     borderRadius: borderRadius.lg,
     borderWidth: 1,

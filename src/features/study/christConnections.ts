@@ -257,6 +257,40 @@ export const CHRIST_CONNECTIONS: readonly ChristConnection[] = [
   {id: '1peter-5-7', ref: '1 Peter/5/7', fulfillment: 'Matthew/11/28'},
   {id: '1john-4-18', ref: '1 John/4/18', fulfillment: '1 John/4/10'},
   {id: '1john-5-14', ref: '1 John/5/14', fulfillment: 'Hebrews/7/25'},
+
+  // ── Sprint 103: +24 daily-verse connections (coverage ~80% → ~92%) ──────
+  {id: 'joshua-24-15', ref: 'Joshua/24/15', fulfillment: 'Colossians/3/24'},
+  {
+    id: '1chronicles-16-11',
+    ref: '1 Chronicles/16/11',
+    fulfillment: '2 Corinthians/4/6',
+  },
+  {id: '2chronicles-7-14', ref: '2 Chronicles/7/14', fulfillment: '1 John/1/9'},
+  {id: 'psalms-1-1', ref: 'Psalms/1/1', fulfillment: '2 Corinthians/5/21'},
+  {id: 'psalms-32-8', ref: 'Psalms/32/8', fulfillment: 'John/14/6'},
+  {id: 'psalms-37-4', ref: 'Psalms/37/4', fulfillment: 'Philippians/3/8'},
+  {id: 'psalms-42-11', ref: 'Psalms/42/11', fulfillment: 'Matthew/11/28'},
+  {id: 'psalms-56-3', ref: 'Psalms/56/3', fulfillment: 'John/14/27'},
+  {id: 'psalms-62-1', ref: 'Psalms/62/1', fulfillment: 'Acts/4/12'},
+  {id: 'psalms-73-26', ref: 'Psalms/73/26', fulfillment: 'John/11/25'},
+  {id: 'psalms-90-12', ref: 'Psalms/90/12', fulfillment: '1 Corinthians/1/30'},
+  {id: 'psalms-91-1', ref: 'Psalms/91/1', fulfillment: 'Colossians/3/3'},
+  {id: 'psalms-100-4', ref: 'Psalms/100/4', fulfillment: 'Ephesians/2/18'},
+  {id: 'psalms-121-2', ref: 'Psalms/121/2', fulfillment: 'Colossians/1/16'},
+  {id: 'proverbs-15-1', ref: 'Proverbs/15/1', fulfillment: 'Matthew/11/29'},
+  {id: 'proverbs-17-17', ref: 'Proverbs/17/17', fulfillment: 'John/15/13'},
+  {id: 'matthew-6-34', ref: 'Matthew/6/34', fulfillment: '1 Peter/5/7'},
+  {id: 'mark-11-24', ref: 'Mark/11/24', fulfillment: 'John/14/13'},
+  {id: 'mark-12-30', ref: 'Mark/12/30', fulfillment: '1 John/4/19'},
+  {id: 'philippians-4-8', ref: 'Philippians/4/8', fulfillment: 'Hebrews/12/2'},
+  {
+    id: '1thessalonians-5-17',
+    ref: '1 Thessalonians/5/17',
+    fulfillment: 'Hebrews/7/25',
+  },
+  {id: '2timothy-1-7', ref: '2 Timothy/1/7', fulfillment: 'Romans/8/15'},
+  {id: 'james-4-7', ref: 'James/4/7', fulfillment: '1 John/3/8'},
+  {id: '1peter-3-15', ref: '1 Peter/3/15', fulfillment: 'Colossians/1/27'},
 ];
 
 /**
