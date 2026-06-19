@@ -7,21 +7,24 @@ import {verseTextRightSlack} from '@/styles/designTokens';
  * fixed-size scripture surface (daily verse, mood verse, feelings, lectio…).
  */
 describe('verseTextRightSlack', () => {
-  it('never returns less than the 12px floor, even at tiny sizes', () => {
+  it('never returns less than the 16px floor, even at tiny sizes', () => {
     // Sprint 98 widened the floor (8→10) and multiplier (0.5→0.6) to match the
     // reader's gutter; Sprint 100 nudged it again (floor 10→12, slope 0.6→0.65)
-    // after the user still saw a faint residual OEM right clip in rare cases.
-    expect(verseTextRightSlack(0)).toBe(12);
-    expect(verseTextRightSlack(10)).toBe(12);
-    expect(verseTextRightSlack(14)).toBe(12); // round(9.1) -> 9, floored to 12
-    expect(verseTextRightSlack(16)).toBe(12); // round(10.4) -> 10, floored to 12
+    // after the user still saw a faint residual OEM right clip in rare cases;
+    // Sprint 102 raised the floor 12→16 and slope 0.65→0.7 after a few card
+    // verses still clipped "un poquito" on the user's real phone (the floor is
+    // the lever that moves the common card sizes).
+    expect(verseTextRightSlack(0)).toBe(16);
+    expect(verseTextRightSlack(10)).toBe(16);
+    expect(verseTextRightSlack(14)).toBe(16); // round(9.8) -> 10, floored to 16
+    expect(verseTextRightSlack(16)).toBe(16); // round(11.2) -> 11, floored to 16
   });
 
   it('grows with the font size past the floor', () => {
-    expect(verseTextRightSlack(18)).toBe(12); // round(11.7) -> 12
-    expect(verseTextRightSlack(20)).toBe(13); // round(13) -> 13
-    expect(verseTextRightSlack(24)).toBe(16); // round(15.6) -> 16
-    expect(verseTextRightSlack(28)).toBe(18); // round(18.2) -> 18
+    expect(verseTextRightSlack(18)).toBe(16); // round(12.6) -> 13, floored to 16
+    expect(verseTextRightSlack(20)).toBe(16); // round(14) -> 14, floored to 16
+    expect(verseTextRightSlack(24)).toBe(17); // round(16.8) -> 17
+    expect(verseTextRightSlack(28)).toBe(20); // round(19.6) -> 20
   });
 
   it('is monotonic non-decreasing across the reader/card range', () => {
@@ -29,7 +32,7 @@ describe('verseTextRightSlack', () => {
     for (let fs = 8; fs <= 48; fs += 1) {
       const slack = verseTextRightSlack(fs);
       expect(slack).toBeGreaterThanOrEqual(prev);
-      expect(slack).toBeGreaterThanOrEqual(12);
+      expect(slack).toBeGreaterThanOrEqual(16);
       prev = slack;
     }
   });

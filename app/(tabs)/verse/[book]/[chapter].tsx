@@ -1988,7 +1988,14 @@ export default function VerseReadingScreen() {
               // gutter clears the overhang a touch more at every size; the few
               // extra px of ragged-right margin stay imperceptible on devices
               // that never clipped.
-              marginRight: Math.max(16, Math.round(fontSize * 0.65)),
+              //
+              // Sprint 102: a few verses still clipped "un poquito" on the
+              // user's real phone. Within the reader's whole font range (14-26)
+              // round(fontSize·0.65) never exceeds 17, so the FLOOR is the only
+              // lever that actually moves the reserve — bumped it 16→20 (the
+              // slope is moot here and stays 0.65). Still derived solely from
+              // fontSize → read/idle parity and no playback reflow preserved.
+              marginRight: Math.max(20, Math.round(fontSize * 0.65)),
             } as const;
 
             const numberStyle = {
