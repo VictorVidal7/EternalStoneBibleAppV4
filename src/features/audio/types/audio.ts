@@ -38,6 +38,14 @@ export interface AudioPlayerState {
    * voice that would be dropped for not matching the spoken language (S101).
    */
   contentLanguage: AudioLanguage | null;
+  /**
+   * Bible version id of the text currently loaded in the engine, captured at
+   * load time (Sprint 102). Lets a screen detect that the user switched the
+   * reading version mid-listen — the engine still holds the OLD version's
+   * text/language — and re-sync the queue to the version now on screen. Null
+   * when nothing is loaded / a legacy load without version info.
+   */
+  contentVersionId: string | null;
   isExpanded: boolean;
   bottomOffset?: number;
   /**

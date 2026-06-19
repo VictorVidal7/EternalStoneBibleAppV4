@@ -82,7 +82,17 @@ export const verseTextRightSlack = (fontSize: number): number =>
   // reader's own bump, after the user still saw a faint residual OEM clip in
   // rare cases. A couple px more reserved gutter, still font-scaled and
   // imperceptible where it never clipped.
-  Math.max(12, Math.round(fontSize * 0.65));
+  //
+  // Sprint 102: the user still saw a few verses clip "un poquito" on their
+  // real phone (never reproducible on the emulator). The reader already
+  // reserves a generous floor (16) + the row's own horizontal padding, so the
+  // remaining culprit is these FIXED-size cards, whose floor (12) was the
+  // weakest in the app. Raised the floor 12→16 (the only lever that moves the
+  // common card sizes — round(fontSize·slope) stays below it until ~fontSize
+  // 23) and the slope 0.65→0.7 (clears the overhang on the larger hero
+  // quotes). Still monotonic, font-scaled and imperceptible where it never
+  // clipped.
+  Math.max(16, Math.round(fontSize * 0.7));
 
 export const fontWeight = {
   light: '300',

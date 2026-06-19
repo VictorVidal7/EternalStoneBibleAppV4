@@ -186,6 +186,38 @@ export function shouldFollowAudioChapter(
   );
 }
 
+/**
+ * Whether the reader should RE-SYNC the audio engine to the reading version now
+ * on screen (Sprint 102). When the user switches the Bible version mid-listen,
+ * the on-screen text reloads in the new version but the engine keeps the OLD
+ * version's verses — so it narrates the previous text/language until reloaded.
+ *
+ * Returns `true` only when the player is up, the engine is bound to the chapter
+ * the reader is showing, there is text to load, and the engine's loaded version
+ * differs from the displayed one. A `null` loaded version (legacy load without
+ * version info) is treated as "unknown, leave it" so a pre-S102 queue is never
+ * yanked. Comparing the loaded version id (not just the language) is what keeps
+ * a normal continuous-playback chapter advance — same version → equal ids — from
+ * being mistaken for a version switch and needlessly restarting the chapter.
+ */
+export function shouldResyncAudioToVersion(params: {
+  isAudioVisible: boolean;
+  audioBoundToReader: boolean;
+  versesLength: number;
+  loadedVersionId: string | null;
+  displayedVersionId: string;
+}): boolean {
+  if (
+    !params.isAudioVisible ||
+    !params.audioBoundToReader ||
+    params.versesLength === 0
+  ) {
+    return false;
+  }
+  if (!params.loadedVersionId) return false;
+  return params.loadedVersionId !== params.displayedVersionId;
+}
+
 /** Value equality for two (possibly null) chapter locations. */
 export function sameChapterLocation(
   a: ChapterLocation | null,

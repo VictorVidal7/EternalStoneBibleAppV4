@@ -61,6 +61,7 @@ const initialPlayerState: AudioPlayerState = {
   selectedVoice: null,
   selectedLanguage: DEFAULT_LANGUAGE,
   contentLanguage: null,
+  contentVersionId: null,
   isExpanded: false,
   bottomOffset: 0,
   chapterEndCount: 0,
@@ -166,6 +167,11 @@ export const AudioPlayerProvider: React.FC<AudioPlayerProviderProps> = ({
   versionLangRef.current = versionCtx
     ? toAudioLanguage(versionCtx.selectedVersion.language)
     : null;
+  // Mirror of the live selected Bible version's id, captured into the engine
+  // state at load time so a screen can tell the loaded text apart from the
+  // version now on screen and re-sync after a mid-listen version switch (S102).
+  const versionIdRef = useRef<string | null>(null);
+  versionIdRef.current = versionCtx ? versionCtx.selectedVersion.id : null;
 
   // Keep refs in sync with state
   useEffect(() => {
@@ -797,6 +803,7 @@ export const AudioPlayerProvider: React.FC<AudioPlayerProviderProps> = ({
         isPaused: false,
         isLoading: false,
         contentLanguage: contentLanguageRef.current,
+        contentVersionId: versionIdRef.current,
       };
       // Then update React state
       setVerses(newVerses);
@@ -808,6 +815,7 @@ export const AudioPlayerProvider: React.FC<AudioPlayerProviderProps> = ({
         isPaused: false,
         isLoading: false,
         contentLanguage: contentLanguageRef.current,
+        contentVersionId: versionIdRef.current,
       }));
       const nextQueueInfo: AudioQueueInfo = {
         mode: options?.mode ?? 'chapter',
@@ -833,6 +841,7 @@ export const AudioPlayerProvider: React.FC<AudioPlayerProviderProps> = ({
       currentVerseIndex: 0,
       totalVerses: 0,
       contentLanguage: null,
+      contentVersionId: null,
     }));
     queueInfoRef.current = {mode: 'chapter', label: null};
     setQueueInfo({mode: 'chapter', label: null});

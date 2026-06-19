@@ -100,6 +100,7 @@ export {
   nextChapterTitle,
   sameChapterLocation,
   shouldReaderFollowAudio,
+  shouldResyncAudioToVersion,
   localizedChapterTitle,
   upcomingChapters,
 } from './lib/chapterNavigation';
