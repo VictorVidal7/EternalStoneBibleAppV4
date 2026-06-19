@@ -145,6 +145,12 @@ export default function AboutBookScreen() {
                 body={intro.context}
                 colors={colors}
               />
+              <SectionCard
+                icon="sparkles-outline"
+                title={t.bookIntro.christ}
+                body={intro.christ}
+                colors={colors}
+              />
 
               <View style={[styles.card, {backgroundColor: colors.surface}]}>
                 <View style={styles.cardHeader}>

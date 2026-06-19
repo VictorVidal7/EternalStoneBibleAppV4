@@ -291,6 +291,44 @@ export const CHRIST_CONNECTIONS: readonly ChristConnection[] = [
   {id: '2timothy-1-7', ref: '2 Timothy/1/7', fulfillment: 'Romans/8/15'},
   {id: 'james-4-7', ref: 'James/4/7', fulfillment: '1 John/3/8'},
   {id: '1peter-3-15', ref: '1 Peter/3/15', fulfillment: 'Colossians/1/27'},
+
+  // ── Sprint 104: +16 final daily-verse connections (coverage ~92% → 99%) ──
+  {id: 'psalms-91-2', ref: 'Psalms/91/2', fulfillment: 'Hebrews/6/18'},
+  {id: 'psalms-103-1', ref: 'Psalms/103/1', fulfillment: 'Philippians/2/9'},
+  {id: 'psalms-121-1', ref: 'Psalms/121/1', fulfillment: 'Hebrews/13/6'},
+  {id: 'psalms-143-8', ref: 'Psalms/143/8', fulfillment: 'Romans/5/8'},
+  {id: 'proverbs-4-23', ref: 'Proverbs/4/23', fulfillment: 'John/7/38'},
+  {id: 'proverbs-16-3', ref: 'Proverbs/16/3', fulfillment: 'Philippians/1/6'},
+  {id: 'proverbs-22-6', ref: 'Proverbs/22/6', fulfillment: 'Ephesians/6/4'},
+  {id: 'proverbs-27-17', ref: 'Proverbs/27/17', fulfillment: 'Ephesians/4/15'},
+  {
+    id: 'proverbs-31-25',
+    ref: 'Proverbs/31/25',
+    fulfillment: 'Philippians/4/13',
+  },
+  {id: 'matthew-6-21', ref: 'Matthew/6/21', fulfillment: 'Colossians/3/1'},
+  {
+    id: '1corinthians-16-14',
+    ref: '1 Corinthians/16/14',
+    fulfillment: 'John/13/34',
+  },
+  {
+    id: '1thessalonians-5-16',
+    ref: '1 Thessalonians/5/16',
+    fulfillment: 'John/15/11',
+  },
+  {
+    id: '1thessalonians-5-18',
+    ref: '1 Thessalonians/5/18',
+    fulfillment: 'Colossians/3/17',
+  },
+  {id: '1timothy-4-12', ref: '1 Timothy/4/12', fulfillment: '1 Peter/2/21'},
+  {
+    id: 'hebrews-10-23',
+    ref: 'Hebrews/10/23',
+    fulfillment: '2 Corinthians/1/20',
+  },
+  {id: 'james-1-2', ref: 'James/1/2', fulfillment: '1 Peter/1/6'},
 ];
 
 /**

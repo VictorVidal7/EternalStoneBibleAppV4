@@ -21,6 +21,13 @@ export interface BookIntro {
   theme: string;
   context: string;
   keyVerses: string[]; // e.g. ["1:1", "3:16"]
+  /**
+   * "Cristo en este libro" — one faithful sentence on how the WHOLE book
+   * points to, reveals or is fulfilled in Christ (Lucas 24:27). Conservative,
+   * widely-held readings only — the book-level lens that complements the
+   * verse-level christConnections. Guarded by bookIntros.test (all 66 books).
+   */
+  christ: string;
 }
 
 export interface LocalizedBookIntro {
@@ -40,6 +47,8 @@ export const BOOK_INTROS: Record<number, LocalizedBookIntro> = {
       context:
         'Génesis narra desde la creación hasta el final del periodo patriarcal (Abraham, Isaac, Jacob, José), preparando el escenario para el éxodo. Es el libro fundacional sobre el origen del cosmos y del pueblo escogido.',
       keyVerses: ['1:1', '3:15', '12:3', '50:20'],
+      christ:
+        'El protoevangelio (3:15) promete la simiente que aplastará a la serpiente; las promesas a Abraham hallan su «sí» en Cristo (Gá 3:16).',
     },
     en: {
       author: 'Moses (traditional)',
@@ -49,6 +58,8 @@ export const BOOK_INTROS: Record<number, LocalizedBookIntro> = {
       context:
         'Genesis spans from creation to the end of the patriarchal era (Abraham, Isaac, Jacob, Joseph), setting the stage for the Exodus. It is the foundational book on the origin of the cosmos and of the chosen people.',
       keyVerses: ['1:1', '3:15', '12:3', '50:20'],
+      christ:
+        'The protoevangelium (3:15) promises the seed who will crush the serpent; the promises to Abraham find their Yes in Christ (Gal 3:16).',
     },
   },
   2: {
@@ -60,6 +71,8 @@ export const BOOK_INTROS: Record<number, LocalizedBookIntro> = {
       context:
         'Tras 400 años en Egipto, Dios levanta a Moisés para liberar a su pueblo mediante diez plagas y el cruce del Mar Rojo. En el Sinaí entrega los Diez Mandamientos y las instrucciones para el tabernáculo.',
       keyVerses: ['3:14', '12:13', '20:1-3', '34:6-7'],
+      christ:
+        'El cordero pascual, el éxodo y el maná anuncian a Cristo, «nuestra Pascua», que nos saca de la esclavitud del pecado (1 Co 5:7).',
     },
     en: {
       author: 'Moses (traditional)',
@@ -69,6 +82,8 @@ export const BOOK_INTROS: Record<number, LocalizedBookIntro> = {
       context:
         'After 400 years in Egypt, God raises Moses to free his people through ten plagues and the crossing of the Red Sea. At Sinai he delivers the Ten Commandments and the tabernacle instructions.',
       keyVerses: ['3:14', '12:13', '20:1-3', '34:6-7'],
+      christ:
+        'The Passover lamb, the exodus and the manna foreshadow Christ, «our Passover», who frees us from slavery to sin (1 Cor 5:7).',
     },
   },
   3: {
@@ -80,6 +95,8 @@ export const BOOK_INTROS: Record<number, LocalizedBookIntro> = {
       context:
         'Manual sacerdotal para los levitas y todo Israel. Detalla los cinco sacrificios, las festividades anuales, las leyes de pureza y el Día de la Expiación. Cristo cumple todo este sistema en Hebreos.',
       keyVerses: ['11:44', '16:30', '17:11', '19:18'],
+      christ:
+        'Cada sacrificio y el Día de la Expiación apuntan al sacrificio único de Cristo, nuestro sumo sacerdote (Heb 9-10).',
     },
     en: {
       author: 'Moses',
@@ -89,6 +106,8 @@ export const BOOK_INTROS: Record<number, LocalizedBookIntro> = {
       context:
         'A priestly handbook for the Levites and all Israel. It details the five sacrifices, the annual feasts, purity laws and the Day of Atonement. Christ fulfills this whole system in Hebrews.',
       keyVerses: ['11:44', '16:30', '17:11', '19:18'],
+      christ:
+        'Every sacrifice and the Day of Atonement point to the once-for-all sacrifice of Christ, our high priest (Heb 9-10).',
     },
   },
   4: {
@@ -100,6 +119,8 @@ export const BOOK_INTROS: Record<number, LocalizedBookIntro> = {
       context:
         'Sigue dos censos del pueblo (de ahí su nombre) y la transición de la generación incrédula a la nueva generación que entrará a la tierra prometida.',
       keyVerses: ['6:24-26', '14:18', '21:9', '23:19'],
+      christ:
+        'La serpiente de bronce levantada en el desierto prefigura a Cristo levantado en la cruz para que todo el que cree viva (Jn 3:14-15).',
     },
     en: {
       author: 'Moses',
@@ -109,6 +130,8 @@ export const BOOK_INTROS: Record<number, LocalizedBookIntro> = {
       context:
         'It follows two censuses of the people (hence the name) and the transition from the unbelieving generation to the new generation that will enter the promised land.',
       keyVerses: ['6:24-26', '14:18', '21:9', '23:19'],
+      christ:
+        'The bronze serpent lifted in the wilderness foreshadows Christ lifted on the cross so all who believe may live (John 3:14-15).',
     },
   },
   5: {
@@ -120,6 +143,8 @@ export const BOOK_INTROS: Record<number, LocalizedBookIntro> = {
       context:
         'Consta de tres discursos de Moisés a la nueva generación. Contiene el Shemá (6:4-5), citado por Jesús como el primer mandamiento. Cierra con la muerte de Moisés.',
       keyVerses: ['6:4-5', '8:3', '18:15', '30:19'],
+      christ:
+        'Moisés anuncia un Profeta como él a quien hay que oír: Jesús, el Profeta mayor que Moisés (Hch 3:22).',
     },
     en: {
       author: 'Moses (with a later epilogue)',
@@ -129,6 +154,8 @@ export const BOOK_INTROS: Record<number, LocalizedBookIntro> = {
       context:
         "Three sermons from Moses to the new generation. It contains the Shema (6:4-5), cited by Jesus as the greatest commandment. It closes with Moses' death.",
       keyVerses: ['6:4-5', '8:3', '18:15', '30:19'],
+      christ:
+        'Moses foretells a Prophet like himself to whom we must listen: Jesus, the Prophet greater than Moses (Acts 3:22).',
     },
   },
 
@@ -142,6 +169,8 @@ export const BOOK_INTROS: Record<number, LocalizedBookIntro> = {
       context:
         'Tres secciones: conquista (caps. 1-12), reparto entre las tribus (13-22), y el discurso final de Josué llamando al pueblo a servir solo a Yahvé.',
       keyVerses: ['1:8-9', '6:20', '24:15'],
+      christ:
+        'Josué (mismo nombre que «Jesús») introduce al pueblo en el reposo de la tierra, sombra del reposo eterno que da Cristo (Heb 4:8-9).',
     },
     en: {
       author: 'Joshua (traditional), with later material',
@@ -151,6 +180,8 @@ export const BOOK_INTROS: Record<number, LocalizedBookIntro> = {
       context:
         "Three sections: conquest (chs. 1-12), division among the tribes (13-22), and Joshua's farewell speech calling the people to serve Yahweh alone.",
       keyVerses: ['1:8-9', '6:20', '24:15'],
+      christ:
+        'Joshua (the same name as «Jesus») leads the people into the rest of the land, a shadow of the eternal rest Christ gives (Heb 4:8-9).',
     },
   },
   7: {
@@ -162,6 +193,8 @@ export const BOOK_INTROS: Record<number, LocalizedBookIntro> = {
       context:
         'Cubre el periodo entre Josué y la monarquía. Doce jueces (Otoniel, Aod, Débora, Gedeón, Sansón, etc.) son levantados por Dios pero el pueblo cae una y otra vez en idolatría.',
       keyVerses: ['2:16', '6:12', '21:25'],
+      christ:
+        'El ciclo de pecado y liberación clama por un Salvador perfecto y un Rey justo: Cristo, el Libertador definitivo.',
     },
     en: {
       author: 'Anonymous (Samuel, traditional)',
@@ -171,6 +204,8 @@ export const BOOK_INTROS: Record<number, LocalizedBookIntro> = {
       context:
         'Covers the period between Joshua and the monarchy. Twelve judges (Othniel, Ehud, Deborah, Gideon, Samson, etc.) are raised up, yet the people fall into idolatry again and again.',
       keyVerses: ['2:16', '6:12', '21:25'],
+      christ:
+        'The cycle of sin and rescue cries out for a perfect Savior and a righteous King: Christ, the final Deliverer.',
     },
   },
   8: {
@@ -182,6 +217,8 @@ export const BOOK_INTROS: Record<number, LocalizedBookIntro> = {
       context:
         'En la época de los jueces, Rut deja Moab para seguir a su suegra Noemí y al Dios de Israel. Booz, el pariente redentor, la toma por esposa y son bisabuelos del rey David.',
       keyVerses: ['1:16', '4:14'],
+      christ:
+        'El pariente redentor que rescata a Rut prefigura a Cristo, nuestro Redentor que nos hace suyos; y de su linaje vienen David y Jesús.',
     },
     en: {
       author: 'Anonymous (Samuel, traditional)',
@@ -191,6 +228,8 @@ export const BOOK_INTROS: Record<number, LocalizedBookIntro> = {
       context:
         "In the era of the judges, Ruth leaves Moab to follow her mother-in-law Naomi and Israel's God. Boaz, the kinsman-redeemer, marries her — they become King David's great-grandparents.",
       keyVerses: ['1:16', '4:14'],
+      christ:
+        'The kinsman-redeemer who rescues Ruth foreshadows Christ, our Redeemer who makes us his own; and from her line come David and Jesus.',
     },
   },
   9: {
@@ -202,6 +241,8 @@ export const BOOK_INTROS: Record<number, LocalizedBookIntro> = {
       context:
         'Cubre los reinados del último juez (Samuel), el primer rey rechazado (Saúl), y el rey según el corazón de Dios (David), unido a Jonatán por un pacto de amistad.',
       keyVerses: ['15:22', '16:7', '17:45'],
+      christ:
+        'El ungimiento de David como rey según el corazón de Dios anticipa al Ungido, el Hijo de David: Cristo (Mt 1:1).',
     },
     en: {
       author: 'Samuel, Nathan and Gad (traditional)',
@@ -211,6 +252,8 @@ export const BOOK_INTROS: Record<number, LocalizedBookIntro> = {
       context:
         "Covers the last judge (Samuel), the first rejected king (Saul), and the king after God's own heart (David), bound to Jonathan by a covenant of friendship.",
       keyVerses: ['15:22', '16:7', '17:45'],
+      christ:
+        "David's anointing as the king after God's heart anticipates the Anointed One, the Son of David: Christ (Matt 1:1).",
     },
   },
   10: {
@@ -222,6 +265,8 @@ export const BOOK_INTROS: Record<number, LocalizedBookIntro> = {
       context:
         'Continuación natural de 1 Samuel. Dios promete a David una dinastía perpetua (cap. 7), promesa cumplida en Cristo, hijo de David.',
       keyVerses: ['7:12-13', '7:16', '22:31'],
+      christ:
+        'El pacto davídico promete un trono eterno (7:12-16), cumplido en Cristo, el Hijo de David que reina para siempre (Lc 1:32-33).',
     },
     en: {
       author: 'Anonymous compiler',
@@ -231,6 +276,8 @@ export const BOOK_INTROS: Record<number, LocalizedBookIntro> = {
       context:
         'Natural continuation of 1 Samuel. God promises David a perpetual dynasty (ch. 7), a promise fulfilled in Christ, son of David.',
       keyVerses: ['7:12-13', '7:16', '22:31'],
+      christ:
+        'The Davidic covenant promises an everlasting throne (7:12-16), fulfilled in Christ, the Son of David who reigns forever (Luke 1:32-33).',
     },
   },
   11: {
@@ -242,6 +289,8 @@ export const BOOK_INTROS: Record<number, LocalizedBookIntro> = {
       context:
         'Empieza con la sucesión de Salomón y la construcción del templo, y termina con la caída de Israel (722 a.C.) y el cautiverio de Judá en Babilonia (586 a.C.).',
       keyVerses: ['3:9', '8:27', '18:21'],
+      christ:
+        'El templo de Salomón y su sabiduría señalan a Cristo, «mayor que Salomón» y el verdadero templo donde mora Dios (Mt 12:42; Jn 2:19-21).',
     },
     en: {
       author: 'Anonymous compiler (traditional: Jeremiah)',
@@ -251,6 +300,8 @@ export const BOOK_INTROS: Record<number, LocalizedBookIntro> = {
       context:
         "Opens with Solomon's accession and the temple's construction; closes with Israel's fall (722 BC) and Judah's Babylonian captivity (586 BC).",
       keyVerses: ['3:9', '8:27', '18:21'],
+      christ:
+        "Solomon's temple and wisdom point to Christ, «greater than Solomon» and the true temple where God dwells (Matt 12:42; John 2:19-21).",
     },
   },
   12: {
@@ -262,6 +313,8 @@ export const BOOK_INTROS: Record<number, LocalizedBookIntro> = {
       context:
         'Documenta los ministerios de Elías y Eliseo, y los reinados que llevaron al exilio. Concluye con Joaquín liberado de la prisión en Babilonia, una señal de esperanza.',
       keyVerses: ['17:13', '23:25', '25:21'],
+      christ:
+        'El fracaso de los reyes y el exilio muestran la necesidad de un Rey fiel: Cristo, que nunca quebranta el pacto.',
     },
     en: {
       author: 'Anonymous compiler (traditional: Jeremiah)',
@@ -271,6 +324,8 @@ export const BOOK_INTROS: Record<number, LocalizedBookIntro> = {
       context:
         'Records the ministries of Elijah and Elisha and the reigns that led to exile. Closes with Jehoiachin freed from a Babylonian prison — a sign of hope.',
       keyVerses: ['17:13', '23:25', '25:21'],
+      christ:
+        'The failure of the kings and the exile show the need for a faithful King: Christ, who never breaks the covenant.',
     },
   },
   13: {
@@ -282,6 +337,8 @@ export const BOOK_INTROS: Record<number, LocalizedBookIntro> = {
       context:
         'Empieza con Adán y termina con la muerte de David. Resalta las genealogías, el culto en el templo y la promesa mesiánica para animar a los repatriados.',
       keyVerses: ['16:34', '17:11-14', '29:11'],
+      christ:
+        'La historia se relee en torno al trono de David y la adoración, apuntando al Hijo de David, Cristo, cuyo reino no tendrá fin.',
     },
     en: {
       author: 'Ezra (traditional)',
@@ -291,6 +348,8 @@ export const BOOK_INTROS: Record<number, LocalizedBookIntro> = {
       context:
         "Spans from Adam to David's death. It foregrounds genealogies, temple worship and the messianic promise to encourage the returned exiles.",
       keyVerses: ['16:34', '17:11-14', '29:11'],
+      christ:
+        "History is retold around David's throne and worship, pointing to the Son of David, Christ, whose kingdom will have no end.",
     },
   },
   14: {
@@ -302,6 +361,8 @@ export const BOOK_INTROS: Record<number, LocalizedBookIntro> = {
       context:
         'Continúa 1 Crónicas desde Salomón hasta el edicto de Ciro que permite el regreso del exilio. Cierra con esperanza: la diáspora puede volver.',
       keyVerses: ['7:14', '20:15', '36:23'],
+      christ:
+        'El templo y los avivamientos anticipan a Cristo, que limpia el templo y se ofrece como el lugar del encuentro con Dios.',
     },
     en: {
       author: 'Ezra (traditional)',
@@ -311,6 +372,8 @@ export const BOOK_INTROS: Record<number, LocalizedBookIntro> = {
       context:
         'Continues 1 Chronicles from Solomon to the edict of Cyrus that allows the return from exile. It closes with hope: the diaspora can come home.',
       keyVerses: ['7:14', '20:15', '36:23'],
+      christ:
+        'The temple and the revivals anticipate Christ, who cleanses the temple and offers himself as the place of meeting with God.',
     },
   },
   15: {
@@ -322,6 +385,8 @@ export const BOOK_INTROS: Record<number, LocalizedBookIntro> = {
       context:
         'Dos olas de retorno: la primera bajo Zorobabel reconstruye el templo (caps. 1-6); la segunda bajo Esdras restaura la enseñanza de la Ley (7-10).',
       keyVerses: ['1:3', '7:10', '9:6'],
+      christ:
+        'La restauración del templo tras el exilio prefigura la obra de Cristo que reedifica y reúne a su pueblo.',
     },
     en: {
       author: 'Ezra',
@@ -331,6 +396,8 @@ export const BOOK_INTROS: Record<number, LocalizedBookIntro> = {
       context:
         'Two waves of return: the first under Zerubbabel rebuilds the temple (chs. 1-6); the second under Ezra restores teaching of the Law (7-10).',
       keyVerses: ['1:3', '7:10', '9:6'],
+      christ:
+        "The restoration of the temple after exile foreshadows Christ's work of rebuilding and gathering his people.",
     },
   },
   16: {
@@ -342,6 +409,8 @@ export const BOOK_INTROS: Record<number, LocalizedBookIntro> = {
       context:
         'Nehemías abandona la corte persa para reconstruir el muro en 52 días pese a la oposición. Esdras lee la Ley y el pueblo se compromete de nuevo a obedecer.',
       keyVerses: ['1:11', '4:14', '8:10'],
+      christ:
+        'Nehemías reconstruye los muros; Cristo edifica y guarda a su pueblo, haciéndolos ciudad de Dios.',
     },
     en: {
       author: 'Nehemiah (with Ezra compilation)',
@@ -351,6 +420,8 @@ export const BOOK_INTROS: Record<number, LocalizedBookIntro> = {
       context:
         'Nehemiah leaves the Persian court to rebuild the wall in 52 days despite opposition. Ezra reads the Law and the people recommit to obedience.',
       keyVerses: ['1:11', '4:14', '8:10'],
+      christ:
+        'Nehemiah rebuilds the walls; Christ builds and guards his people, making them the city of God.',
     },
   },
   17: {
@@ -362,6 +433,8 @@ export const BOOK_INTROS: Record<number, LocalizedBookIntro> = {
       context:
         'No se nombra a Dios explícitamente en todo el libro, pero su mano se ve en cada giro. Funda la fiesta de Purim que los judíos siguen celebrando.',
       keyVerses: ['4:14', '4:16', '7:3-4'],
+      christ:
+        'Dios obra de forma oculta para salvar a su pueblo de la destrucción, como en la cruz obra para salvar a los suyos por medio de Cristo.',
     },
     en: {
       author: 'Anonymous (traditional: Mordecai)',
@@ -371,6 +444,8 @@ export const BOOK_INTROS: Record<number, LocalizedBookIntro> = {
       context:
         'God is never named explicitly in the book, yet his hand is seen at every turn. It founds the feast of Purim, which Jews still celebrate.',
       keyVerses: ['4:14', '4:16', '7:3-4'],
+      christ:
+        'God works unseen to save his people from destruction, as at the cross he works to save his own through Christ.',
     },
   },
 
@@ -384,6 +459,8 @@ export const BOOK_INTROS: Record<number, LocalizedBookIntro> = {
       context:
         'Job pierde todo en un día. Tres amigos intentan explicar su sufrimiento con teología insuficiente. Al final, Dios mismo responde desde la tempestad sin "justificarse".',
       keyVerses: ['1:21', '19:25', '42:5-6'],
+      christ:
+        'El clamor de Job por un mediador y su confesión «yo sé que mi Redentor vive» (19:25) hallan respuesta en Cristo.',
     },
     en: {
       author: 'Anonymous (perhaps Moses or a patriarch-era sage)',
@@ -393,6 +470,8 @@ export const BOOK_INTROS: Record<number, LocalizedBookIntro> = {
       context:
         'Job loses everything in a day. Three friends try to explain his suffering with inadequate theology. In the end, God himself answers from the whirlwind without "justifying" himself.',
       keyVerses: ['1:21', '19:25', '42:5-6'],
+      christ:
+        "Job's cry for a mediator and his confession «I know that my Redeemer lives» (19:25) find their answer in Christ.",
     },
   },
   19: {
@@ -404,6 +483,8 @@ export const BOOK_INTROS: Record<number, LocalizedBookIntro> = {
       context:
         '150 salmos agrupados en cinco libros que reflejan el Pentateuco. Cubren toda emoción humana llevada ante Dios, desde la desesperación hasta el éxtasis.',
       keyVerses: ['23:1', '46:10', '51:10', '119:105'],
+      christ:
+        'Los salmos cantan al Rey ungido, al pastor y al que sufre: muchos son citados de Jesús (Sal 22, 110, 118), que es su cumplimiento.',
     },
     en: {
       author: 'David and others (Asaph, Korah, Solomon, Moses)',
@@ -413,6 +494,8 @@ export const BOOK_INTROS: Record<number, LocalizedBookIntro> = {
       context:
         '150 psalms grouped into five books that mirror the Pentateuch. They cover every human emotion brought before God, from despair to ecstasy.',
       keyVerses: ['23:1', '46:10', '51:10', '119:105'],
+      christ:
+        'The Psalms sing of the anointed King, the Shepherd and the Sufferer: many are quoted of Jesus (Ps 22, 110, 118), who is their fulfillment.',
     },
   },
   20: {
@@ -424,6 +507,8 @@ export const BOOK_INTROS: Record<number, LocalizedBookIntro> = {
       context:
         'Colección de proverbios cortos sobre trabajo, palabras, dinero, amistad, familia y carácter. Personifica la Sabiduría como mujer que llama desde las plazas.',
       keyVerses: ['1:7', '3:5-6', '16:9', '22:6'],
+      christ:
+        'La Sabiduría que clama y da vida halla su plenitud en Cristo, «hecho por Dios sabiduría» para nosotros (1 Co 1:30).',
     },
     en: {
       author: 'Solomon (mainly), Agur, Lemuel',
@@ -433,6 +518,8 @@ export const BOOK_INTROS: Record<number, LocalizedBookIntro> = {
       context:
         'A collection of short proverbs on work, speech, money, friendship, family and character. It personifies Wisdom as a woman calling from the streets.',
       keyVerses: ['1:7', '3:5-6', '16:9', '22:6'],
+      christ:
+        'The Wisdom that calls and gives life finds its fullness in Christ, «made unto us wisdom from God» (1 Cor 1:30).',
     },
   },
   21: {
@@ -444,6 +531,8 @@ export const BOOK_INTROS: Record<number, LocalizedBookIntro> = {
       context:
         'Filosófico y existencial. Un rey sabio explora el placer, la riqueza, el trabajo y la sabiduría como respuestas al sentido de la vida, y los encuentra a todos insuficientes.',
       keyVerses: ['1:2', '3:1', '12:13'],
+      christ:
+        'El vacío de todo «bajo el sol» señala la necesidad de Aquel que da sentido eterno: la vida hallada en Cristo.',
     },
     en: {
       author: 'Solomon (traditional)',
@@ -453,6 +542,8 @@ export const BOOK_INTROS: Record<number, LocalizedBookIntro> = {
       context:
         'Philosophical and existential. A wise king explores pleasure, wealth, work and wisdom as answers to the meaning of life — and finds them all insufficient.',
       keyVerses: ['1:2', '3:1', '12:13'],
+      christ:
+        'The emptiness of all «under the sun» points to the need for the One who gives eternal meaning: the life found in Christ.',
     },
   },
   22: {
@@ -464,6 +555,8 @@ export const BOOK_INTROS: Record<number, LocalizedBookIntro> = {
       context:
         'Diálogo poético entre el amado y la amada (con un coro). El libro vindica la dignidad y belleza del amor humano dentro del pacto.',
       keyVerses: ['2:4', '6:3', '8:6-7'],
+      christ:
+        'El amor entre los esposos es figura del amor de Cristo por su iglesia, su amada esposa (Ef 5:25-32).',
     },
     en: {
       author: 'Solomon (traditional)',
@@ -473,6 +566,8 @@ export const BOOK_INTROS: Record<number, LocalizedBookIntro> = {
       context:
         'A poetic dialogue between the lover and the beloved (with a chorus). The book vindicates the dignity and beauty of human love within the covenant.',
       keyVerses: ['2:4', '6:3', '8:6-7'],
+      christ:
+        'The love between the spouses pictures the love of Christ for his church, his beloved bride (Eph 5:25-32).',
     },
   },
 
@@ -486,6 +581,8 @@ export const BOOK_INTROS: Record<number, LocalizedBookIntro> = {
       context:
         'Profetizó durante los reinados de Uzías, Jotam, Acaz y Ezequías. Su libro tiene dos grandes secciones: juicio (1-39) y consuelo (40-66, incluyendo los Cantos del Siervo).',
       keyVerses: ['6:8', '7:14', '53:5-6', '55:6-7'],
+      christ:
+        'El siervo sufriente (cap. 53) y el niño que nace «Dios fuerte» (9:6) describen a Cristo con asombrosa claridad siglos antes.',
     },
     en: {
       author: 'Isaiah',
@@ -495,6 +592,8 @@ export const BOOK_INTROS: Record<number, LocalizedBookIntro> = {
       context:
         'Prophesied during the reigns of Uzziah, Jotham, Ahaz and Hezekiah. His book has two great sections: judgment (1-39) and comfort (40-66, including the Servant Songs).',
       keyVerses: ['6:8', '7:14', '53:5-6', '55:6-7'],
+      christ:
+        'The suffering servant (ch. 53) and the child born «Mighty God» (9:6) describe Christ with stunning clarity centuries beforehand.',
     },
   },
   24: {
@@ -506,6 +605,8 @@ export const BOOK_INTROS: Record<number, LocalizedBookIntro> = {
       context:
         'Sirvió 40 años durante el colapso de Judá. Fue rechazado, encarcelado y exiliado a Egipto. Su mensaje fue duro pero su esperanza profunda.',
       keyVerses: ['1:5', '29:11', '31:33', '33:3'],
+      christ:
+        'Jeremías anuncia el nuevo pacto (31:31-34) que Cristo sella con su sangre (Lc 22:20).',
     },
     en: {
       author: 'Jeremiah',
@@ -515,6 +616,8 @@ export const BOOK_INTROS: Record<number, LocalizedBookIntro> = {
       context:
         "He served 40 years through Judah's collapse. He was rejected, imprisoned and exiled to Egypt. His message was hard, but his hope ran deep.",
       keyVerses: ['1:5', '29:11', '31:33', '33:3'],
+      christ:
+        'Jeremiah announces the new covenant (31:31-34) that Christ seals with his blood (Luke 22:20).',
     },
   },
   25: {
@@ -526,6 +629,8 @@ export const BOOK_INTROS: Record<number, LocalizedBookIntro> = {
       context:
         'Acrósticos hebreos que reflejan la devastación tras la conquista babilónica. El capítulo 3 es el corazón del libro.',
       keyVerses: ['3:22-23', '5:21'],
+      christ:
+        'En medio del juicio brillan las misericordias «nuevas cada mañana» (3:22-23), fieles en Cristo, el mismo ayer, hoy y siempre.',
     },
     en: {
       author: 'Jeremiah (traditional)',
@@ -535,6 +640,8 @@ export const BOOK_INTROS: Record<number, LocalizedBookIntro> = {
       context:
         'Hebrew acrostics reflecting the devastation after the Babylonian conquest. Chapter 3 is the heart of the book.',
       keyVerses: ['3:22-23', '5:21'],
+      christ:
+        'Amid judgment shine the mercies «new every morning» (3:22-23), faithful in Christ, the same yesterday, today and forever.',
     },
   },
   26: {
@@ -546,6 +653,8 @@ export const BOOK_INTROS: Record<number, LocalizedBookIntro> = {
       context:
         'Sacerdote-profeta entre los exiliados en Babilonia. Sus visiones (ruedas, valle de huesos secos, templo restaurado) son icónicas. Habla de un corazón nuevo (36:26).',
       keyVerses: ['11:19', '18:23', '36:26', '37:14'],
+      christ:
+        'La promesa de un corazón nuevo y un pastor como David (34, 36) se cumple en Cristo, el buen Pastor que da su Espíritu.',
     },
     en: {
       author: 'Ezekiel',
@@ -555,6 +664,8 @@ export const BOOK_INTROS: Record<number, LocalizedBookIntro> = {
       context:
         'Priest-prophet among the Babylonian exiles. His visions (wheels, valley of dry bones, restored temple) are iconic. He speaks of a new heart (36:26).',
       keyVerses: ['11:19', '18:23', '36:26', '37:14'],
+      christ:
+        'The promise of a new heart and a shepherd like David (34, 36) is fulfilled in Christ, the good Shepherd who gives his Spirit.',
     },
   },
   27: {
@@ -566,6 +677,8 @@ export const BOOK_INTROS: Record<number, LocalizedBookIntro> = {
       context:
         'Daniel sirve en las cortes de Babilonia y Persia. Mitad narrativa (caps. 1-6: horno de fuego, foso de leones), mitad apocalíptica (7-12: visiones del futuro).',
       keyVerses: ['2:21', '3:17-18', '7:13-14'],
+      christ:
+        'El «Hijo del Hombre» que recibe un reino eterno (7:13-14) es el título que Jesús toma para sí.',
     },
     en: {
       author: 'Daniel',
@@ -575,6 +688,8 @@ export const BOOK_INTROS: Record<number, LocalizedBookIntro> = {
       context:
         "Daniel serves in the courts of Babylon and Persia. Half narrative (chs. 1-6: fiery furnace, lions' den), half apocalyptic (7-12: visions of the future).",
       keyVerses: ['2:21', '3:17-18', '7:13-14'],
+      christ:
+        'The «Son of Man» who receives an everlasting kingdom (7:13-14) is the title Jesus takes for himself.',
     },
   },
 
@@ -588,6 +703,8 @@ export const BOOK_INTROS: Record<number, LocalizedBookIntro> = {
       context:
         'Profetizó al reino del norte antes de su caída ante Asiria. Su vida personal se convierte en parábola viviente del amor pactual de Dios.',
       keyVerses: ['6:6', '11:8', '14:4'],
+      christ:
+        'El amor fiel que rescata a la esposa infiel retrata a Cristo, que ama y compra a su pueblo descarriado.',
     },
     en: {
       author: 'Hosea',
@@ -597,6 +714,8 @@ export const BOOK_INTROS: Record<number, LocalizedBookIntro> = {
       context:
         "He prophesied to the northern kingdom before its fall to Assyria. His personal life becomes a living parable of God's covenantal love.",
       keyVerses: ['6:6', '11:8', '14:4'],
+      christ:
+        'The faithful love that rescues the unfaithful wife portrays Christ, who loves and buys back his wayward people.',
     },
   },
   29: {
@@ -608,6 +727,8 @@ export const BOOK_INTROS: Record<number, LocalizedBookIntro> = {
       context:
         'Joel ve una invasión de langostas como advertencia del juicio venidero. Su profecía del Espíritu derramado se cumple en Pentecostés (Hechos 2).',
       keyVerses: ['2:13', '2:28-29', '3:14'],
+      christ:
+        'La promesa del Espíritu derramado «sobre toda carne» (2:28) se cumple en Pentecostés por la obra de Cristo (Hch 2:16-21).',
     },
     en: {
       author: 'Joel',
@@ -617,6 +738,8 @@ export const BOOK_INTROS: Record<number, LocalizedBookIntro> = {
       context:
         'Joel sees a locust invasion as a warning of coming judgment. His prophecy of the outpoured Spirit is fulfilled at Pentecost (Acts 2).',
       keyVerses: ['2:13', '2:28-29', '3:14'],
+      christ:
+        "The promise of the Spirit poured out «on all flesh» (2:28) is fulfilled at Pentecost through Christ's work (Acts 2:16-21).",
     },
   },
   30: {
@@ -628,6 +751,8 @@ export const BOOK_INTROS: Record<number, LocalizedBookIntro> = {
       context:
         'Pastor de Tecoa enviado al próspero reino del norte. Atacó la complacencia de los ricos y la corrupción de la adoración.',
       keyVerses: ['5:24', '8:11'],
+      christ:
+        'El clamor por justicia y la promesa de levantar «el tabernáculo caído de David» (9:11) apuntan al reino de Cristo (Hch 15:16).',
     },
     en: {
       author: 'Amos',
@@ -637,6 +762,8 @@ export const BOOK_INTROS: Record<number, LocalizedBookIntro> = {
       context:
         'A shepherd from Tekoa sent to the prosperous northern kingdom. He attacked the complacency of the rich and the corruption of worship.',
       keyVerses: ['5:24', '8:11'],
+      christ:
+        "The cry for justice and the promise to raise «David's fallen tent» (9:11) point to Christ's kingdom (Acts 15:16).",
     },
   },
   31: {
@@ -648,6 +775,8 @@ export const BOOK_INTROS: Record<number, LocalizedBookIntro> = {
       context:
         'Libro más corto del AT (21 versículos). Edom traicionó a su hermano Judá durante la invasión babilónica.',
       keyVerses: ['1:15', '1:17'],
+      christ:
+        'El juicio sobre el orgullo y la promesa de que «el reino será de Jehová» anuncian el reino de Cristo que prevalece.',
     },
     en: {
       author: 'Obadiah',
@@ -657,6 +786,8 @@ export const BOOK_INTROS: Record<number, LocalizedBookIntro> = {
       context:
         'The shortest OT book (21 verses). Edom betrayed its brother Judah during the Babylonian invasion.',
       keyVerses: ['1:15', '1:17'],
+      christ:
+        "The judgment on pride and the promise that «the kingdom shall be the LORD's» announce Christ's prevailing kingdom.",
     },
   },
   32: {
@@ -668,6 +799,8 @@ export const BOOK_INTROS: Record<number, LocalizedBookIntro> = {
       context:
         'El profeta huye de su llamado y es tragado por un gran pez. Eventualmente predica a Nínive, que se arrepiente. Jonás se enoja porque Dios es misericordioso.',
       keyVerses: ['2:9', '4:2', '4:11'],
+      christ:
+        'Tres días en el vientre del pez son la «señal de Jonás» que Jesús aplica a su muerte y resurrección (Mt 12:40).',
     },
     en: {
       author: 'Jonah',
@@ -677,6 +810,8 @@ export const BOOK_INTROS: Record<number, LocalizedBookIntro> = {
       context:
         'The prophet flees his calling and is swallowed by a great fish. He eventually preaches to Nineveh, which repents. Jonah resents that God is merciful.',
       keyVerses: ['2:9', '4:2', '4:11'],
+      christ:
+        'Three days in the fish are the «sign of Jonah» that Jesus applies to his death and resurrection (Matt 12:40).',
     },
   },
   33: {
@@ -688,6 +823,8 @@ export const BOOK_INTROS: Record<number, LocalizedBookIntro> = {
       context:
         'Contemporáneo de Isaías. Profetizó tanto al reino del norte como al sur. Contiene la profecía del lugar de nacimiento del Mesías (5:2).',
       keyVerses: ['5:2', '6:8'],
+      christ:
+        'Anuncia que de Belén saldrá el gobernante eterno (5:2), cumplido en el nacimiento de Jesús (Mt 2:5-6).',
     },
     en: {
       author: 'Micah',
@@ -697,6 +834,8 @@ export const BOOK_INTROS: Record<number, LocalizedBookIntro> = {
       context:
         "Contemporary of Isaiah. He prophesied to both the northern and southern kingdoms. Contains the prophecy of the Messiah's birthplace (5:2).",
       keyVerses: ['5:2', '6:8'],
+      christ:
+        "It foretells that from Bethlehem will come the eternal ruler (5:2), fulfilled in Jesus' birth (Matt 2:5-6).",
     },
   },
   34: {
@@ -708,6 +847,8 @@ export const BOOK_INTROS: Record<number, LocalizedBookIntro> = {
       context:
         'Mensaje de consuelo para Judá oprimida por Asiria. Nínive caería ante Babilonia en el 612 a.C.',
       keyVerses: ['1:3', '1:7'],
+      christ:
+        'El juicio sobre Nínive declara que Dios es justo; en Cristo se encuentran la justicia y la misericordia.',
     },
     en: {
       author: 'Nahum',
@@ -717,6 +858,8 @@ export const BOOK_INTROS: Record<number, LocalizedBookIntro> = {
       context:
         'A message of comfort to Judah, oppressed by Assyria. Nineveh would fall to Babylon in 612 BC.',
       keyVerses: ['1:3', '1:7'],
+      christ:
+        'The judgment on Nineveh declares that God is just; in Christ justice and mercy meet.',
     },
   },
   35: {
@@ -728,6 +871,8 @@ export const BOOK_INTROS: Record<number, LocalizedBookIntro> = {
       context:
         'Único libro profético que es enteramente un diálogo con Dios sobre el problema del mal. Cierra con un cántico de confianza.',
       keyVerses: ['2:4', '3:17-18'],
+      christ:
+        '«El justo por su fe vivirá» (2:4) es el corazón del evangelio que Pablo cita (Ro 1:17): vida por la fe en Cristo.',
     },
     en: {
       author: 'Habakkuk',
@@ -737,6 +882,8 @@ export const BOOK_INTROS: Record<number, LocalizedBookIntro> = {
       context:
         'The only prophetic book that is entirely a dialogue with God about the problem of evil. It closes with a song of trust.',
       keyVerses: ['2:4', '3:17-18'],
+      christ:
+        '«The righteous shall live by his faith» (2:4) is the heart of the gospel Paul quotes (Rom 1:17): life by faith in Christ.',
     },
   },
   36: {
@@ -748,6 +895,8 @@ export const BOOK_INTROS: Record<number, LocalizedBookIntro> = {
       context:
         'Profetizó bajo Josías. Su esperanza final culmina en una declaración asombrosa: Dios se regocijará sobre su pueblo con cánticos (3:17).',
       keyVerses: ['2:3', '3:17'],
+      christ:
+        'El Dios que «se gozará sobre ti con cánticos» (3:17) muestra el corazón de Cristo, el Salvador que se regocija en rescatar a los suyos.',
     },
     en: {
       author: 'Zephaniah',
@@ -757,6 +906,8 @@ export const BOOK_INTROS: Record<number, LocalizedBookIntro> = {
       context:
         'He prophesied under Josiah. His final hope crests in a startling declaration: God will rejoice over his people with singing (3:17).',
       keyVerses: ['2:3', '3:17'],
+      christ:
+        'The God who «will rejoice over you with singing» (3:17) reveals the heart of Christ, the Savior who delights to rescue his own.',
     },
   },
   37: {
@@ -768,6 +919,8 @@ export const BOOK_INTROS: Record<number, LocalizedBookIntro> = {
       context:
         'Los repatriados habían pausado el templo por 16 años para construir sus propias casas. Hageo los exhorta y la obra se completa en cuatro años.',
       keyVerses: ['1:5', '2:9'],
+      christ:
+        'La promesa de llenar el templo de gloria (2:7-9) apunta a Cristo, cuya presencia honra la casa de Dios.',
     },
     en: {
       author: 'Haggai',
@@ -777,6 +930,8 @@ export const BOOK_INTROS: Record<number, LocalizedBookIntro> = {
       context:
         'The returnees had paused the temple for 16 years to build their own houses. Haggai stirs them up and the work is completed in four years.',
       keyVerses: ['1:5', '2:9'],
+      christ:
+        'The promise to fill the temple with glory (2:7-9) points to Christ, whose presence honors the house of God.',
     },
   },
   38: {
@@ -788,6 +943,8 @@ export const BOOK_INTROS: Record<number, LocalizedBookIntro> = {
       context:
         'Contemporáneo de Hageo. Contiene profecías muy específicas del Mesías: el Rey en burrito (9:9), vendido por 30 piezas (11:12), traspasado (12:10).',
       keyVerses: ['4:6', '9:9', '12:10'],
+      christ:
+        'El Rey humilde que entra «montado sobre asno» (9:9) y el traspasado a quien mirarán (12:10) son Cristo (Mt 21:5; Jn 19:37).',
     },
     en: {
       author: 'Zechariah',
@@ -797,6 +954,8 @@ export const BOOK_INTROS: Record<number, LocalizedBookIntro> = {
       context:
         'Contemporary of Haggai. Contains highly specific messianic prophecies: the King on a donkey (9:9), sold for 30 pieces (11:12), pierced (12:10).',
       keyVerses: ['4:6', '9:9', '12:10'],
+      christ:
+        'The humble King who enters «on a donkey» (9:9) and the pierced one they will look on (12:10) are Christ (Matt 21:5; John 19:37).',
     },
   },
   39: {
@@ -808,6 +967,8 @@ export const BOOK_INTROS: Record<number, LocalizedBookIntro> = {
       context:
         'Cierra el AT con un diálogo entre Dios y su pueblo apático. Anuncia a Juan el Bautista como precursor (4:5) — luego siguen 400 años de silencio.',
       keyVerses: ['3:6', '3:10', '4:2'],
+      christ:
+        'Promete al mensajero que prepara el camino y al «Sol de justicia» (4:2): Juan el Bautista y Cristo (Mt 11:10).',
     },
     en: {
       author: 'Malachi',
@@ -817,6 +978,8 @@ export const BOOK_INTROS: Record<number, LocalizedBookIntro> = {
       context:
         'Closes the OT with a dialogue between God and his apathetic people. It announces John the Baptist as forerunner (4:5) — then 400 years of silence.',
       keyVerses: ['3:6', '3:10', '4:2'],
+      christ:
+        'It promises the messenger who prepares the way and the «Sun of righteousness» (4:2): John the Baptist and Christ (Matt 11:10).',
     },
   },
 
@@ -830,6 +993,8 @@ export const BOOK_INTROS: Record<number, LocalizedBookIntro> = {
       context:
         'Evangelio orientado a lectores judíos. Cita el AT más que cualquier otro Evangelio. Organizado en cinco grandes discursos que recuerdan el Pentateuco.',
       keyVerses: ['1:23', '5:17', '16:16', '28:19-20'],
+      christ:
+        'Presenta a Jesús como el Mesías Rey, hijo de David e hijo de Abraham, que cumple la ley y los profetas.',
     },
     en: {
       author: 'Matthew (Levi), apostle and former tax collector',
@@ -839,6 +1004,8 @@ export const BOOK_INTROS: Record<number, LocalizedBookIntro> = {
       context:
         'Gospel aimed at Jewish readers. It quotes the OT more than any other Gospel. Organized around five great discourses that echo the Pentateuch.',
       keyVerses: ['1:23', '5:17', '16:16', '28:19-20'],
+      christ:
+        'It presents Jesus as the Messiah King, son of David and son of Abraham, who fulfills the Law and the Prophets.',
     },
   },
   41: {
@@ -850,6 +1017,8 @@ export const BOOK_INTROS: Record<number, LocalizedBookIntro> = {
       context:
         'Probablemente refleja los recuerdos de Pedro. Escrito para creyentes romanos. Enfatiza lo que Jesús hizo más que lo que enseñó.',
       keyVerses: ['1:15', '8:34-35', '10:45'],
+      christ:
+        'Muestra a Jesús como el Siervo que obra con poder y «vino para dar su vida en rescate por muchos» (10:45).',
     },
     en: {
       author: 'John Mark (assistant to Peter and Paul)',
@@ -859,6 +1028,8 @@ export const BOOK_INTROS: Record<number, LocalizedBookIntro> = {
       context:
         "Likely reflects Peter's memories. Written for Roman believers. It emphasizes what Jesus did more than what he taught.",
       keyVerses: ['1:15', '8:34-35', '10:45'],
+      christ:
+        'It shows Jesus as the Servant who works in power and «came to give his life as a ransom for many» (10:45).',
     },
   },
   42: {
@@ -870,6 +1041,8 @@ export const BOOK_INTROS: Record<number, LocalizedBookIntro> = {
       context:
         'Lucas-Hechos forma una historia en dos volúmenes. Lucas investiga cuidadosamente las fuentes. Da especial atención a mujeres, pobres y marginados.',
       keyVerses: ['1:1-4', '4:18-19', '19:10', '24:46-47'],
+      christ:
+        'Retrata a Jesús como el Salvador del mundo que «vino a buscar y a salvar lo que se había perdido» (19:10).',
     },
     en: {
       author: 'Luke, physician and companion of Paul',
@@ -879,6 +1052,8 @@ export const BOOK_INTROS: Record<number, LocalizedBookIntro> = {
       context:
         'Luke-Acts is a two-volume history. Luke carefully investigates his sources. He gives special attention to women, the poor and the marginalized.',
       keyVerses: ['1:1-4', '4:18-19', '19:10', '24:46-47'],
+      christ:
+        'It portrays Jesus as the Savior of the world who «came to seek and to save the lost» (19:10).',
     },
   },
   43: {
@@ -890,6 +1065,8 @@ export const BOOK_INTROS: Record<number, LocalizedBookIntro> = {
       context:
         'Evangelio teológico y meditativo. Selecciona pocos eventos pero los profundiza. Cierra con un propósito explícito: "para que creáis" (20:31).',
       keyVerses: ['1:14', '3:16', '14:6', '20:31'],
+      christ:
+        'Declara que Jesús es el Verbo eterno hecho carne, el Hijo de Dios, para que creyendo tengamos vida en su nombre (20:31).',
     },
     en: {
       author: 'John, the beloved apostle',
@@ -899,6 +1076,8 @@ export const BOOK_INTROS: Record<number, LocalizedBookIntro> = {
       context:
         "A theological, meditative Gospel. It selects fewer events but goes deeper into each. It closes with an explicit purpose: 'that you may believe' (20:31).",
       keyVerses: ['1:14', '3:16', '14:6', '20:31'],
+      christ:
+        'It declares that Jesus is the eternal Word made flesh, the Son of God, that by believing we may have life in his name (20:31).',
     },
   },
 
@@ -912,6 +1091,8 @@ export const BOOK_INTROS: Record<number, LocalizedBookIntro> = {
       context:
         'Hechos cubre 30 años de historia de la iglesia primitiva. La primera mitad sigue a Pedro; la segunda a Pablo en tres viajes misioneros más su llegada a Roma.',
       keyVerses: ['1:8', '2:38', '4:12', '16:31'],
+      christ:
+        'El Cristo resucitado y ascendido envía su Espíritu y, por su iglesia, lleva el evangelio «hasta lo último de la tierra» (1:8).',
     },
     en: {
       author: 'Luke',
@@ -921,6 +1102,8 @@ export const BOOK_INTROS: Record<number, LocalizedBookIntro> = {
       context:
         'Acts covers 30 years of early-church history. The first half follows Peter; the second follows Paul through three missionary journeys plus his arrival in Rome.',
       keyVerses: ['1:8', '2:38', '4:12', '16:31'],
+      christ:
+        'The risen and ascended Christ sends his Spirit and, through his church, carries the gospel «to the ends of the earth» (1:8).',
     },
   },
 
@@ -934,6 +1117,8 @@ export const BOOK_INTROS: Record<number, LocalizedBookIntro> = {
       context:
         'La carta más extensa y teológica de Pablo, escrita a una iglesia que no había visitado. Se considera el manifiesto del Evangelio.',
       keyVerses: ['1:16-17', '3:23-24', '8:28', '12:1-2'],
+      christ:
+        'Expone el evangelio: todos pecaron, pero somos justificados gratuitamente por la fe en Cristo y su sangre (3:23-24).',
     },
     en: {
       author: 'Paul',
@@ -943,6 +1128,8 @@ export const BOOK_INTROS: Record<number, LocalizedBookIntro> = {
       context:
         "Paul's longest and most theological letter, written to a church he had never visited. Widely regarded as the gospel's manifesto.",
       keyVerses: ['1:16-17', '3:23-24', '8:28', '12:1-2'],
+      christ:
+        'It expounds the gospel: all have sinned, yet we are justified freely by faith in Christ and his blood (3:23-24).',
     },
   },
   46: {
@@ -954,6 +1141,8 @@ export const BOOK_INTROS: Record<number, LocalizedBookIntro> = {
       context:
         'Corinto era una ciudad portuaria cosmopolita y moralmente laxa. Pablo aborda problemas concretos uno por uno. El capítulo 13 (el amor) es famoso.',
       keyVerses: ['13:13', '15:3-4', '15:58'],
+      christ:
+        'Centra la vida de la iglesia en «Cristo crucificado» (2:2) y proclama su resurrección como primicias (cap. 15).',
     },
     en: {
       author: 'Paul',
@@ -963,6 +1152,8 @@ export const BOOK_INTROS: Record<number, LocalizedBookIntro> = {
       context:
         'Corinth was a cosmopolitan, morally lax port city. Paul addresses concrete problems one by one. Chapter 13 (love) is famous.',
       keyVerses: ['13:13', '15:3-4', '15:58'],
+      christ:
+        "It centers the church's life on «Christ crucified» (2:2) and proclaims his resurrection as the firstfruits (ch. 15).",
     },
   },
   47: {
@@ -974,6 +1165,8 @@ export const BOOK_INTROS: Record<number, LocalizedBookIntro> = {
       context:
         'La carta más personal de Pablo. Defiende su apostolado frente a falsos maestros. Habla de su "aguijón en la carne" y de Cristo como su suficiencia.',
       keyVerses: ['4:7', '5:17', '12:9'],
+      christ:
+        'El poder de Cristo se perfecciona en la debilidad (12:9); por Él, siendo rico, se hizo pobre para enriquecernos (8:9).',
     },
     en: {
       author: 'Paul',
@@ -983,6 +1176,8 @@ export const BOOK_INTROS: Record<number, LocalizedBookIntro> = {
       context:
         "Paul's most personal letter. He defends his apostleship against false teachers. He speaks of his 'thorn in the flesh' and of Christ as his sufficiency.",
       keyVerses: ['4:7', '5:17', '12:9'],
+      christ:
+        "Christ's power is made perfect in weakness (12:9); though rich, he became poor to make us rich (8:9).",
     },
   },
   48: {
@@ -994,6 +1189,8 @@ export const BOOK_INTROS: Record<number, LocalizedBookIntro> = {
       context:
         'Probablemente la primera carta de Pablo. Argumenta que añadir cualquier cosa al Evangelio lo destruye. Cierra con el fruto del Espíritu (5:22-23).',
       keyVerses: ['2:20', '3:13', '5:22-23'],
+      christ:
+        'Defiende que somos justificados por la fe en Cristo, no por la ley: «con Cristo estoy juntamente crucificado» (2:20).',
     },
     en: {
       author: 'Paul',
@@ -1003,6 +1200,8 @@ export const BOOK_INTROS: Record<number, LocalizedBookIntro> = {
       context:
         "Likely Paul's earliest letter. He argues that adding anything to the gospel destroys it. It closes with the fruit of the Spirit (5:22-23).",
       keyVerses: ['2:20', '3:13', '5:22-23'],
+      christ:
+        'It defends justification by faith in Christ, not the law: «I have been crucified with Christ» (2:20).',
     },
   },
   49: {
@@ -1014,6 +1213,8 @@ export const BOOK_INTROS: Record<number, LocalizedBookIntro> = {
       context:
         'Escrita desde la prisión. Mitad doctrinal (cap. 1-3), mitad práctica (4-6). Termina con la armadura de Dios (6:10-18).',
       keyVerses: ['2:8-9', '4:1', '6:10-12'],
+      christ:
+        'Celebra las riquezas que tenemos «en Cristo»: escogidos, redimidos, sellados y unidos como un cuerpo bajo su cabeza.',
     },
     en: {
       author: 'Paul',
@@ -1023,6 +1224,8 @@ export const BOOK_INTROS: Record<number, LocalizedBookIntro> = {
       context:
         'Written from prison. Half doctrinal (chs. 1-3), half practical (4-6). It ends with the armor of God (6:10-18).',
       keyVerses: ['2:8-9', '4:1', '6:10-12'],
+      christ:
+        'It celebrates the riches we have «in Christ»: chosen, redeemed, sealed and united as one body under his headship.',
     },
   },
   50: {
@@ -1034,6 +1237,8 @@ export const BOOK_INTROS: Record<number, LocalizedBookIntro> = {
       context:
         'Pablo escribe a una iglesia que le envió ayuda. La palabra "gozo" aparece 16 veces. Contiene el himno de la humillación de Cristo (2:5-11).',
       keyVerses: ['1:21', '2:5-11', '4:6-7', '4:13'],
+      christ:
+        'Exalta el camino de Cristo, que se humilló hasta la cruz y fue exaltado sobre todo nombre (2:5-11): nuestro gozo es Él.',
     },
     en: {
       author: 'Paul',
@@ -1043,6 +1248,8 @@ export const BOOK_INTROS: Record<number, LocalizedBookIntro> = {
       context:
         "Paul writes to a church that sent him help. The word 'joy' appears 16 times. It contains the hymn of Christ's humiliation (2:5-11).",
       keyVerses: ['1:21', '2:5-11', '4:6-7', '4:13'],
+      christ:
+        'It exalts the way of Christ, who humbled himself to the cross and was exalted above every name (2:5-11): our joy is him.',
     },
   },
   51: {
@@ -1054,6 +1261,8 @@ export const BOOK_INTROS: Record<number, LocalizedBookIntro> = {
       context:
         'Combate el sincretismo religioso que minimizaba a Cristo. Presenta el retrato más alto de Cristo en el NT.',
       keyVerses: ['1:15-20', '2:9-10', '3:1-3'],
+      christ:
+        'Proclama la supremacía de Cristo: en Él habita toda la plenitud, todo fue creado por Él y en Él tenemos redención (1:15-20).',
     },
     en: {
       author: 'Paul',
@@ -1063,6 +1272,8 @@ export const BOOK_INTROS: Record<number, LocalizedBookIntro> = {
       context:
         "He combats religious syncretism that minimized Christ. Presents the NT's loftiest portrait of Christ.",
       keyVerses: ['1:15-20', '2:9-10', '3:1-3'],
+      christ:
+        'It proclaims the supremacy of Christ: in him all fullness dwells, all was created through him, and in him we have redemption (1:15-20).',
     },
   },
   52: {
@@ -1074,6 +1285,8 @@ export const BOOK_INTROS: Record<number, LocalizedBookIntro> = {
       context:
         'Una de las cartas más tempranas de Pablo, escrita pocos meses después de fundar la iglesia. La segunda venida se menciona en cada capítulo.',
       keyVerses: ['4:13-18', '5:16-18'],
+      christ:
+        'Anima a vivir esperando el regreso de Cristo, que rescata a los suyos y los reúne consigo (4:16-17).',
     },
     en: {
       author: 'Paul',
@@ -1083,6 +1296,8 @@ export const BOOK_INTROS: Record<number, LocalizedBookIntro> = {
       context:
         "One of Paul's earliest letters, written a few months after planting the church. The second coming is mentioned in every chapter.",
       keyVerses: ['4:13-18', '5:16-18'],
+      christ:
+        "It encourages living in hope of Christ's return, who rescues his own and gathers them to himself (4:16-17).",
     },
   },
   53: {
@@ -1094,6 +1309,8 @@ export const BOOK_INTROS: Record<number, LocalizedBookIntro> = {
       context:
         'Tras 1 Tesalonicenses, algunos abandonaron el trabajo creyendo que Cristo regresaría inmediatamente. Pablo los corrige.',
       keyVerses: ['2:3-4', '3:10'],
+      christ:
+        'Afirma la venida gloriosa de Cristo y llama a permanecer firmes mientras tanto, sostenidos por Él.',
     },
     en: {
       author: 'Paul',
@@ -1103,6 +1320,8 @@ export const BOOK_INTROS: Record<number, LocalizedBookIntro> = {
       context:
         'After 1 Thessalonians, some had quit working in the belief that Christ would return immediately. Paul corrects them.',
       keyVerses: ['2:3-4', '3:10'],
+      christ:
+        "It affirms Christ's glorious coming and calls believers to stand firm meanwhile, upheld by him.",
     },
   },
   54: {
@@ -1114,6 +1333,8 @@ export const BOOK_INTROS: Record<number, LocalizedBookIntro> = {
       context:
         'Primera de las cartas pastorales. Timoteo era hijo espiritual de Pablo y pastor en Éfeso.',
       keyVerses: ['1:15', '2:5', '4:12', '6:6'],
+      christ:
+        'Resume el evangelio: «Cristo Jesús vino al mundo para salvar a los pecadores» (1:15), único mediador entre Dios y los hombres (2:5).',
     },
     en: {
       author: 'Paul',
@@ -1123,6 +1344,8 @@ export const BOOK_INTROS: Record<number, LocalizedBookIntro> = {
       context:
         "The first of the Pastoral Epistles. Timothy was Paul's spiritual son and a pastor in Ephesus.",
       keyVerses: ['1:15', '2:5', '4:12', '6:6'],
+      christ:
+        'It sums up the gospel: «Christ Jesus came into the world to save sinners» (1:15), the one mediator between God and men (2:5).',
     },
   },
   55: {
@@ -1134,6 +1357,8 @@ export const BOOK_INTROS: Record<number, LocalizedBookIntro> = {
       context:
         'Carta final, escrita desde una prisión romana esperando ejecución. Pablo sabe que el fin está cerca.',
       keyVerses: ['3:16-17', '4:7-8'],
+      christ:
+        'Cristo «quitó la muerte y sacó a luz la vida» (1:10); su evangelio merece toda fidelidad hasta el fin.',
     },
     en: {
       author: 'Paul',
@@ -1143,6 +1368,8 @@ export const BOOK_INTROS: Record<number, LocalizedBookIntro> = {
       context:
         "Paul's final letter, written from a Roman prison while awaiting execution. He knows the end is near.",
       keyVerses: ['3:16-17', '4:7-8'],
+      christ:
+        'Christ «abolished death and brought life to light» (1:10); his gospel is worth all faithfulness to the end.',
     },
   },
   56: {
@@ -1154,6 +1381,8 @@ export const BOOK_INTROS: Record<number, LocalizedBookIntro> = {
       context:
         'Tito ministraba en Creta. La carta es breve pero densa en aplicaciones prácticas.',
       keyVerses: ['2:11-14', '3:5'],
+      christ:
+        'La gracia de Dios «se ha manifestado para salvación» en Cristo, que se dio por nosotros para purificar un pueblo suyo (2:11-14).',
     },
     en: {
       author: 'Paul',
@@ -1163,6 +1392,8 @@ export const BOOK_INTROS: Record<number, LocalizedBookIntro> = {
       context:
         'Titus was ministering in Crete. The letter is short but dense with practical application.',
       keyVerses: ['2:11-14', '3:5'],
+      christ:
+        'The grace of God «has appeared for salvation» in Christ, who gave himself for us to purify a people of his own (2:11-14).',
     },
   },
   57: {
@@ -1174,6 +1405,8 @@ export const BOOK_INTROS: Record<number, LocalizedBookIntro> = {
       context:
         'La epístola más corta de Pablo. Onésimo había robado a Filemón y huido; conoció a Pablo en prisión y se convirtió. Pablo lo envía de vuelta.',
       keyVerses: ['1:15-16', '1:18'],
+      christ:
+        'La intercesión de Pablo por Onésimo, recibiéndolo como a sí mismo, es un cuadro vivo de cómo Cristo nos reconcilia con el Padre.',
     },
     en: {
       author: 'Paul',
@@ -1183,6 +1416,8 @@ export const BOOK_INTROS: Record<number, LocalizedBookIntro> = {
       context:
         "Paul's shortest letter. Onesimus had stolen from Philemon and fled; he met Paul in prison and was converted. Paul sends him back.",
       keyVerses: ['1:15-16', '1:18'],
+      christ:
+        "Paul's intercession for Onesimus, receiving him as himself, is a living picture of how Christ reconciles us to the Father.",
     },
   },
 
@@ -1196,6 +1431,8 @@ export const BOOK_INTROS: Record<number, LocalizedBookIntro> = {
       context:
         'Carta a cristianos judíos tentados a abandonar la fe y volver al judaísmo. Argumenta la superioridad definitiva de Cristo.',
       keyVerses: ['1:3', '4:12', '11:1', '12:1-2'],
+      christ:
+        'Muestra a Cristo superior a todo: mejor que los ángeles, Moisés y los sacerdotes; nuestro sumo sacerdote y sacrificio perfecto.',
     },
     en: {
       author: 'Anonymous (proposed: Paul, Barnabas, Apollos, Priscilla)',
@@ -1205,6 +1442,8 @@ export const BOOK_INTROS: Record<number, LocalizedBookIntro> = {
       context:
         "A letter to Jewish Christians tempted to abandon the faith and return to Judaism. It argues Christ's definitive superiority.",
       keyVerses: ['1:3', '4:12', '11:1', '12:1-2'],
+      christ:
+        'It shows Christ superior to all: better than the angels, Moses and the priests; our perfect high priest and sacrifice.',
     },
   },
   59: {
@@ -1216,6 +1455,8 @@ export const BOOK_INTROS: Record<number, LocalizedBookIntro> = {
       context:
         'Probablemente el primer libro del NT escrito. Práctico y sapiencial, eco de los Proverbios y del Sermón del Monte.',
       keyVerses: ['1:22', '2:17', '5:16'],
+      christ:
+        'La fe viva en «nuestro glorioso Señor Jesucristo» (2:1) se demuestra en obras de amor y en paciencia.',
     },
     en: {
       author: "James, the Lord's brother",
@@ -1225,6 +1466,8 @@ export const BOOK_INTROS: Record<number, LocalizedBookIntro> = {
       context:
         'Likely the earliest NT book written. Practical and wisdom-flavored, echoing Proverbs and the Sermon on the Mount.',
       keyVerses: ['1:22', '2:17', '5:16'],
+      christ:
+        'Living faith in «our glorious Lord Jesus Christ» (2:1) is shown in works of love and in patience.',
     },
   },
   60: {
@@ -1236,6 +1479,8 @@ export const BOOK_INTROS: Record<number, LocalizedBookIntro> = {
       context:
         'Escrita a creyentes dispersos enfrentando persecución. Pedro los anima recordándoles la esperanza eterna.',
       keyVerses: ['1:3', '2:9', '5:7'],
+      christ:
+        'Anima a los que sufren a poner su esperanza en Cristo, que llevó nuestros pecados en la cruz y resucitó (2:24; 1:3).',
     },
     en: {
       author: 'Peter, apostle',
@@ -1245,6 +1490,8 @@ export const BOOK_INTROS: Record<number, LocalizedBookIntro> = {
       context:
         'Written to scattered believers facing persecution. Peter encourages them by recalling their eternal hope.',
       keyVerses: ['1:3', '2:9', '5:7'],
+      christ:
+        'It encourages the suffering to set their hope on Christ, who bore our sins on the cross and rose again (2:24; 1:3).',
     },
   },
   61: {
@@ -1256,6 +1503,8 @@ export const BOOK_INTROS: Record<number, LocalizedBookIntro> = {
       context:
         'Última carta de Pedro, escrita poco antes de su martirio. Anticipa que algunos torcerán las cartas de Pablo (3:16).',
       keyVerses: ['1:3', '3:9', '3:18'],
+      christ:
+        'Llama a crecer «en la gracia y el conocimiento de nuestro Señor y Salvador Jesucristo» (3:18) y a esperar su venida.',
     },
     en: {
       author: 'Peter',
@@ -1265,6 +1514,8 @@ export const BOOK_INTROS: Record<number, LocalizedBookIntro> = {
       context:
         "Peter's last letter, written shortly before his martyrdom. He anticipates that some will twist Paul's letters (3:16).",
       keyVerses: ['1:3', '3:9', '3:18'],
+      christ:
+        'It calls believers to grow «in the grace and knowledge of our Lord and Savior Jesus Christ» (3:18) and to await his coming.',
     },
   },
   62: {
@@ -1276,6 +1527,8 @@ export const BOOK_INTROS: Record<number, LocalizedBookIntro> = {
       context:
         'Escrita contra el gnosticismo incipiente que negaba la encarnación. Asegura a los creyentes que pueden saber que tienen vida eterna.',
       keyVerses: ['1:9', '4:7-8', '5:13'],
+      christ:
+        'Asegura la vida eterna a quienes creen en el Hijo de Dios, Cristo, propiciación por nuestros pecados (5:13; 4:10).',
     },
     en: {
       author: 'John, the apostle',
@@ -1285,6 +1538,8 @@ export const BOOK_INTROS: Record<number, LocalizedBookIntro> = {
       context:
         'Written against incipient Gnosticism that denied the incarnation. It assures believers they can know they have eternal life.',
       keyVerses: ['1:9', '4:7-8', '5:13'],
+      christ:
+        'It assures eternal life to those who believe in the Son of God, Christ, the propitiation for our sins (5:13; 4:10).',
     },
   },
   63: {
@@ -1296,6 +1551,8 @@ export const BOOK_INTROS: Record<number, LocalizedBookIntro> = {
       context:
         'Breve carta de 13 versículos. Llama a la verdad y al amor en equilibrio.',
       keyVerses: ['1:6', '1:9'],
+      christ:
+        'Llama a permanecer en la verdad y el amor, en «la doctrina de Cristo» que tiene al Padre y al Hijo (v.9).',
     },
     en: {
       author: 'John',
@@ -1305,6 +1562,8 @@ export const BOOK_INTROS: Record<number, LocalizedBookIntro> = {
       context:
         'A short 13-verse letter. It calls for truth and love in balance.',
       keyVerses: ['1:6', '1:9'],
+      christ:
+        'It calls believers to abide in truth and love, in «the doctrine of Christ» that holds both Father and Son (v.9).',
     },
   },
   64: {
@@ -1316,6 +1575,8 @@ export const BOOK_INTROS: Record<number, LocalizedBookIntro> = {
       context:
         '14 versículos. Muestra la dinámica de iglesias caseras y la hospitalidad cristiana.',
       keyVerses: ['1:4', '1:11'],
+      christ:
+        'Anima a andar en la verdad y a recibir a los hermanos por amor al Nombre de Cristo (v.7).',
     },
     en: {
       author: 'John',
@@ -1325,6 +1586,8 @@ export const BOOK_INTROS: Record<number, LocalizedBookIntro> = {
       context:
         '14 verses. It shows the dynamics of house churches and Christian hospitality.',
       keyVerses: ['1:4', '1:11'],
+      christ:
+        "It encourages walking in the truth and welcoming the brothers for the sake of Christ's Name (v.7).",
     },
   },
   65: {
@@ -1336,6 +1599,8 @@ export const BOOK_INTROS: Record<number, LocalizedBookIntro> = {
       context:
         'Una carta urgente. Cita tradiciones extrabíblicas (Enoc, Asunción de Moisés) para ilustrar el juicio.',
       keyVerses: ['1:3', '1:24-25'],
+      christ:
+        'Exhorta a contender por la fe y a descansar en Aquel «poderoso para guardaros sin caída» (v.24): Cristo.',
     },
     en: {
       author: 'Jude, brother of James (and Jesus)',
@@ -1345,6 +1610,8 @@ export const BOOK_INTROS: Record<number, LocalizedBookIntro> = {
       context:
         'An urgent letter. It cites extra-biblical traditions (Enoch, the Assumption of Moses) to illustrate judgment.',
       keyVerses: ['1:3', '1:24-25'],
+      christ:
+        'It urges contending for the faith and resting in the One «able to keep you from stumbling» (v.24): Christ.',
     },
   },
 
@@ -1358,6 +1625,8 @@ export const BOOK_INTROS: Record<number, LocalizedBookIntro> = {
       context:
         'Escrita en la isla de Patmos durante el exilio. Apocalíptica densa en simbolismo del AT. Ánimo para iglesias perseguidas bajo Roma.',
       keyVerses: ['1:7-8', '5:9-10', '21:1-4', '22:20'],
+      christ:
+        'Revela a Jesucristo glorificado, el Cordero que fue inmolado y el Rey que vence, que hace «nuevas todas las cosas» (21:5).',
     },
     en: {
       author: 'John, the apostle',
@@ -1367,6 +1636,8 @@ export const BOOK_INTROS: Record<number, LocalizedBookIntro> = {
       context:
         'Written on the island of Patmos during exile. Apocalyptic, dense with OT symbolism. Comfort for churches persecuted under Rome.',
       keyVerses: ['1:7-8', '5:9-10', '21:1-4', '22:20'],
+      christ:
+        'It reveals the glorified Jesus Christ, the Lamb who was slain and the King who conquers, who makes «all things new» (21:5).',
     },
   },
 };
