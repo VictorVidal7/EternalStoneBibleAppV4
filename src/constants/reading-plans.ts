@@ -27,7 +27,8 @@ export type ReadingPlanI18nKey =
   | 'parables'
   | 'miracles'
   | 'namesOfGod'
-  | 'fruitOfSpirit';
+  | 'fruitOfSpirit'
+  | 'heroesOfFaith';
 
 export interface ReadingPlan {
   id: string;
@@ -912,6 +913,30 @@ const fruitOfSpirit: ReadingPlan = {
   ],
 };
 
+// Plan: Los héroes de la fe — un recorrido por los testigos de Hebreos 11
+// (Sprint 101), de Abel a la cruz. Cada día lee la historia de un creyente que
+// confió en Dios, y el plan termina puestos los ojos en Jesús, meta de la fe.
+const heroesOfFaith: ReadingPlan = {
+  id: 'heroes-of-faith-8',
+  name: 'Los héroes de la fe',
+  description:
+    'Ocho días entre los testigos de la fe de Hebreos 11, de Abel a Cristo',
+  i18nKey: 'heroesOfFaith',
+  duration: 8,
+  icon: 'shield-outline',
+  color: '#9333EA',
+  days: [
+    {day: 1, readings: [{book: 'Génesis', chapter: 4, verses: '1-10'}]},
+    {day: 2, readings: [{book: 'Génesis', chapter: 6, verses: '11-22'}]},
+    {day: 3, readings: [{book: 'Génesis', chapter: 12, verses: '1-9'}]},
+    {day: 4, readings: [{book: 'Génesis', chapter: 22, verses: '1-18'}]},
+    {day: 5, readings: [{book: 'Éxodo', chapter: 14, verses: '10-31'}]},
+    {day: 6, readings: [{book: 'Josué', chapter: 6, verses: '1-20'}]},
+    {day: 7, readings: [{book: 'Hebreos', chapter: 11}]},
+    {day: 8, readings: [{book: 'Hebreos', chapter: 12, verses: '1-3'}]},
+  ],
+};
+
 export const READING_PLANS: ReadingPlan[] = [
   firstSteps,
   iamSayings,
@@ -919,6 +944,7 @@ export const READING_PLANS: ReadingPlan[] = [
   miraclesOfJesus,
   namesOfGod,
   fruitOfSpirit,
+  heroesOfFaith,
   redemptionStory,
   gospels40Days,
   newTestament30Days,

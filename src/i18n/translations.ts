@@ -2130,6 +2130,21 @@ export const translations = {
           'Templanza: «Todo aquel que lucha, de todo se abstiene.» El dominio propio que corre para ganar el premio incorruptible.',
         ],
       },
+      heroesOfFaith: {
+        name: 'Los héroes de la fe',
+        description:
+          'Ocho días entre los testigos de la fe de Hebreos 11, de Abel a Cristo',
+        context: [
+          'Abel: «Por la fe ofreció un más excelente sacrificio.» El primero en adorar de corazón; su sangre clama, pero la de Cristo habla mejor.',
+          'Noé: «Por la fe preparó el arca.» Creyó a Dios contra toda evidencia y halló gracia para la salvación de su casa.',
+          'Abraham llamado: «Por la fe salió sin saber a dónde iba.» Dejó tierra y parentela confiando solo en la promesa de Dios.',
+          'Abraham e Isaac: «Por la fe ofreció a Isaac.» En el monte, una sombra del Padre que no escatimó a su propio Hijo.',
+          'Moisés y el mar: «Por la fe pasaron el Mar Rojo.» Donde no había camino, Dios abrió uno: la salvación es del Señor.',
+          'Josué y Jericó: «Por la fe cayeron los muros de Jericó.» La victoria vino por confiar y obedecer, no por la espada.',
+          'Los testigos: «Una nube tan grande de testigos.» Todos murieron en fe, esperando algo mejor: al Cristo prometido.',
+          'Puestos los ojos en Jesús: «Mirando a Jesús, el autor y consumador de la fe.» Toda esta fe mira a Él, la meta de la carrera.',
+        ],
+      },
     },
 
     // Reading Plan Screen
@@ -4932,6 +4947,21 @@ export const translations = {
           'Faithfulness: "Well done, good and faithful servant." To be faithful in little is to please the Lord who will return.',
           'Gentleness: "Learn from me, for I am gentle and lowly in heart." The gentleness of Christ, who gives rest to the soul.',
           'Self-control: "Everyone who competes exercises self-control in all things." The self-control that runs to win the imperishable prize.',
+        ],
+      },
+      heroesOfFaith: {
+        name: 'Heroes of the Faith',
+        description:
+          'Eight days among the witnesses of faith in Hebrews 11, from Abel to Christ',
+        context: [
+          'Abel: "By faith he offered a more excellent sacrifice." The first to worship from the heart; his blood cries out, but Christ’s speaks better things.',
+          'Noah: "By faith he prepared an ark." He believed God against all evidence and found grace for the saving of his house.',
+          'Abraham called: "By faith he went out, not knowing where he was going." He left land and kindred, trusting God’s promise alone.',
+          'Abraham and Isaac: "By faith he offered up Isaac." On the mountain, a shadow of the Father who did not spare His own Son.',
+          'Moses and the sea: "By faith they passed through the Red Sea." Where there was no way, God made one: salvation belongs to the Lord.',
+          'Joshua and Jericho: "By faith the walls of Jericho fell." The victory came by trusting and obeying, not by the sword.',
+          'The witnesses: "So great a cloud of witnesses." They all died in faith, awaiting something better: the promised Christ.',
+          'Looking to Jesus: "Looking unto Jesus, the author and finisher of faith." All this faith looks to Him, the goal of the race.',
         ],
       },
     },

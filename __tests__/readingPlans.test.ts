@@ -78,6 +78,7 @@ describe('READING_PLANS integrity', () => {
       'miracles',
       'namesOfGod',
       'fruitOfSpirit',
+      'heroesOfFaith',
     ] as const;
     for (const plan of READING_PLANS) {
       if (!topical.includes(plan.i18nKey as (typeof topical)[number])) continue;
