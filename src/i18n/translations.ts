@@ -766,6 +766,8 @@ export const translations = {
           'Habla con Dios sobre la duda que más te cuesta entregarle.',
           '¿Qué promesa de Dios quieres sostener en tu memoria esta semana?',
           'Recuerda una ocasión en que Dios fue fiel, y deja que fortalezca tu fe hoy.',
+          '¿Qué temor desaparecería si confiaras plenamente en que Dios tiene el control?',
+          'Pon por escrito una cosa que vas a confiarle a Dios esta semana.',
         ],
         love: [
           '¿A quién pondrá Dios hoy en tu camino para amar como Él te ama?',
@@ -773,6 +775,8 @@ export const translations = {
           '¿Cómo has experimentado el amor de Dios esta semana?',
           '¿De qué manera concreta puedes mostrar el amor de Cristo a tu familia hoy?',
           'Pídele a Dios que llene tu corazón de su amor para darlo a otros.',
+          '¿De qué forma puedes amar hoy a alguien sin esperar nada a cambio?',
+          'Pídele a Dios que te ayude a ver a las personas como Él las ve.',
         ],
         hope: [
           '¿Qué circunstancia necesitas mirar hoy a la luz de la esperanza en Cristo?',
@@ -780,6 +784,8 @@ export const translations = {
           'Da gracias por una promesa de Dios que sostiene tu esperanza.',
           '¿Qué te roba la esperanza hoy? Entrégaselo al Dios de toda esperanza.',
           'Escribe una promesa de Dios y tenla presente cuando llegue el desánimo.',
+          '¿Qué esperas con anhelo que solo Dios puede darte? Tráelo a Él.',
+          'Recuerda que lo mejor está por venir en Cristo, y deja que eso aligere tu día.',
         ],
         peace: [
           '¿Qué preocupación puedes entregar a Dios ahora mismo en oración?',
@@ -787,6 +793,8 @@ export const translations = {
           'Respira hondo y descansa: «En paz me acostaré y dormiré» (Salmos 4:8).',
           '¿Qué pensamiento ansioso necesitas rendir a Dios en este momento?',
           'Agradece a Dios por un lugar o momento donde has hallado su paz.',
+          '¿Qué relación tensa necesita hoy un paso tuyo hacia la paz?',
+          'Antes de dormir, entrega a Dios lo que quedó sin resolver del día.',
         ],
         strength: [
           '¿En qué debilidad necesitas hoy la fuerza de Dios, y no la tuya?',
@@ -794,6 +802,8 @@ export const translations = {
           'Pídele a Dios fuerzas para lo que tienes por delante hoy.',
           '¿Qué carga llevas solo que podrías poner hoy en las manos de Dios?',
           'Descansa en que su poder se perfecciona en tu debilidad (2 Corintios 12:9).',
+          '¿Qué tarea te parece demasiado grande? Pídele a Dios que la haga contigo.',
+          'Apóyate hoy en una promesa de Dios cuando sientas que faltan las fuerzas.',
         ],
         forgiveness: [
           '¿Hay alguien a quien necesitas perdonar, como Cristo te perdonó?',
@@ -801,6 +811,8 @@ export const translations = {
           'Agradece a Dios por el perdón que tienes en Jesús.',
           '¿Hay un rencor que estás guardando? Pídele a Dios libertad para soltarlo.',
           'Recibe hoy, sin condenación, el perdón completo que Cristo ya compró.',
+          'Ora por la persona que te hirió, pidiendo bien para ella.',
+          '¿Te cuesta perdonarte a ti mismo? Recibe el perdón que Dios ya te dio.',
         ],
         wisdom: [
           '¿Qué decisión tienes por delante? Pídele a Dios sabiduría (Santiago 1:5).',
@@ -808,6 +820,8 @@ export const translations = {
           '¿Qué te enseña este pasaje sobre cómo vivir sabiamente hoy?',
           '¿A quién sabio y temeroso de Dios podrías pedir consejo esta semana?',
           'Antes de decidir hoy, haz una pausa y pregunta: «Señor, ¿qué quieres tú?».',
+          'Pide a Dios discernir entre lo bueno y lo mejor en lo que hoy tienes delante.',
+          'Lee un proverbio y elige una sola verdad para vivir hoy.',
         ],
         prayer: [
           '¿Qué le quieres decir a Dios ahora mismo, con tus propias palabras?',
@@ -815,6 +829,8 @@ export const translations = {
           'Tómate un momento en silencio para escuchar a Dios.',
           '¿Qué petición has dejado de traer a Dios? Vuélvela a poner delante de Él.',
           'Da gracias por una oración que Dios ya ha respondido.',
+          'Aparta cinco minutos hoy solo para estar con Dios, sin pedir nada.',
+          'Convierte tu mayor preocupación de hoy en una oración concreta.',
         ],
         courage: [
           '¿Qué temor te está frenando? Entrégaselo a Dios.',
@@ -822,6 +838,8 @@ export const translations = {
           'Recuerda una vez en que Dios estuvo contigo y dale gracias.',
           '¿Qué conversación o paso has estado evitando por miedo?',
           'Repite con calma: «Esfuérzate y sé valiente; el Señor va contigo» (Josué 1:9).',
+          'Da hoy ese primer paso pequeño que has estado posponiendo.',
+          '¿En qué necesitas ser valiente para hacer lo correcto, aunque cueste?',
         ],
         comfort: [
           '¿Dónde necesitas el consuelo de Dios hoy?',
@@ -829,6 +847,8 @@ export const translations = {
           'Derrama tu corazón delante de Dios; Él te escucha.',
           '¿Qué pérdida o dolor necesitas llevar hoy ante el Dios de toda consolación?',
           'Escríbele a alguien que sufre una palabra breve de aliento.',
+          'Permítete llorar delante de Dios; Él recoge cada una de tus lágrimas (Salmos 56:8).',
+          'Busca hoy la compañía de alguien que te recuerde el amor de Dios.',
         ],
         joy: [
           '¿Por qué tres cosas puedes dar gracias a Dios hoy?',
@@ -836,6 +856,8 @@ export const translations = {
           'Comparte hoy una palabra de aliento con alguien.',
           '¿Dónde puedes ver hoy una señal pequeña de la bondad de Dios?',
           'Canta o escucha una canción que levante tu corazón al Señor.',
+          'Haz hoy algo, por pequeño que sea, que celebre la bondad de Dios.',
+          'Da gracias en voz alta por una bendición que sueles dar por sentada.',
         ],
         grace: [
           '¿Dónde estás intentando ganar lo que Dios ya te da por gracia?',
@@ -843,6 +865,8 @@ export const translations = {
           'Descansa hoy en que el amor de Dios no depende de tu desempeño.',
           '¿A quién necesitas tratar con más gracia, como Dios te trata a ti?',
           'Agradece por algo bueno en tu vida que no ganaste, sino que recibiste.',
+          'Recibe hoy el día como un regalo inmerecido de Dios.',
+          'Ofrece una palabra amable a alguien que no «se la haya ganado».',
         ],
         salvation: [
           '¿Has puesto tu confianza en Cristo para tu salvación?',
@@ -850,6 +874,8 @@ export const translations = {
           'Da gracias a Dios por el don de la vida eterna en Jesús.',
           '¿Recuerdas el momento o el camino por el que llegaste a confiar en Jesús?',
           'Ora por una persona que aún no conoce a Cristo.',
+          'Medita en lo que Cristo pagó para darte vida, y dale gracias.',
+          'Vive hoy como hijo amado y libre, no como esclavo del temor.',
         ],
         guidance: [
           '¿En qué decisión necesitas hoy la dirección de Dios?',
@@ -857,6 +883,8 @@ export const translations = {
           'Pídele a Dios que alumbre tus pasos con su Palabra (Salmos 119:105).',
           '¿Qué próximo paso pequeño y obediente puedes dar hoy?',
           'Entrega tus planes a Dios y pídele que dirija tus pasos (Proverbios 16:9).',
+          'Antes de actuar hoy, pregúntale a Dios en oración cuál es su camino.',
+          'Confía en que Dios endereza tus pasos aunque no veas todo el camino.',
         ],
       },
     },
@@ -1025,6 +1053,90 @@ export const translations = {
           '«Un mandamiento nuevo os doy: Que os améis unos a otros; como yo os he amado.» La medida del amor cristiano es el amor de Cristo, que se entregó por nosotros.',
         'revelation-1-8':
           '«Yo soy el Alfa y la Omega... el que es y que era y que ha de venir.» El eterno Señor del principio y del fin es Jesús, el mismo que vino y que volverá (cf. Ap 22:13).',
+        'exodus-14-14':
+          '«Jehová peleará por vosotros, y vosotros estaréis tranquilos.» La batalla que no podíamos ganar la ganó Cristo: en la cruz desarmó a los principados y triunfó sobre ellos.',
+        'deuteronomy-31-6':
+          '«No te dejará, ni te desamparará.» Esa promesa es nuestra en Cristo; por eso Hebreos la repite a los creyentes: el Señor mismo nos acompaña.',
+        'joshua-1-9':
+          '«Esfuérzate y sé valiente... porque Jehová tu Dios estará contigo.» El valor no nace de nosotros, sino de su presencia: el Cristo resucitado dice «yo estoy con vosotros todos los días».',
+        '1samuel-16-7':
+          '«Jehová mira el corazón.» Cristo conocía lo que había en el hombre; ante Él no hay máscaras, y aun así nos ama y nos llama.',
+        'psalms-18-2':
+          '«Jehová, roca mía y castillo mío.» Pablo dice que aquella roca que acompañó a Israel era Cristo: nuestro refugio firme tiene rostro.',
+        'psalms-19-1':
+          '«Los cielos cuentan la gloria de Dios.» Y esos cielos fueron hechos por medio del Hijo: en Él fueron creadas todas las cosas, y todo proclama su gloria.',
+        'psalms-28-7':
+          '«Jehová es mi fortaleza y mi escudo.» Esa fuerza se nos da en Cristo, que dijo: «todo lo puedo en Cristo que me fortalece».',
+        'psalms-46-1':
+          '«Dios es nuestro amparo y fortaleza, nuestro pronto auxilio en las tribulaciones.» Ese amparo se acercó en Jesús, que invita: «Venid a mí... y yo os haré descansar».',
+        'psalms-46-10':
+          '«Estad quietos, y conoced que yo soy Dios.» El mismo que calma el alma calmó la tormenta con su voz: «Calla, enmudece», dijo Jesús, y todo se aquietó.',
+        'psalms-55-22':
+          '«Echa sobre Jehová tu carga, y él te sustentará.» Pedro lo repite señalando a Cristo: «echando toda vuestra ansiedad sobre él, porque él tiene cuidado de vosotros».',
+        'psalms-103-2':
+          '«Bendice, alma mía, a Jehová... él es quien perdona todas tus iniquidades.» Ese perdón pleno nos llega en Cristo, en quien tenemos redención por su sangre.',
+        'psalms-118-24':
+          '«Este es el día que hizo Jehová.» Es el salmo de la piedra que desecharon los edificadores y vino a ser cabeza del ángulo: Cristo, motivo de nuestro gozo.',
+        'psalms-119-105':
+          '«Lámpara es a mis pies tu palabra, y lumbrera a mi camino.» Esa Palabra se hizo carne: Jesús, la Palabra viva y la luz del mundo, alumbra el camino.',
+        'psalms-147-3':
+          '«Él sana a los quebrantados de corazón.» Jesús abrió su ministerio con esa promesa: fue ungido para sanar a los quebrantados de corazón.',
+        'proverbs-3-5':
+          '«Fíate de Jehová de todo tu corazón, y no te apoyes en tu propia prudencia.» Esa confianza halla su descanso en Cristo, el camino seguro al Padre.',
+        'isaiah-64-8':
+          '«Nosotros barro, y tú el que nos formaste.» En Cristo somos nueva creación: el Alfarero rehace en su Hijo lo que el pecado quebró.',
+        'jeremiah-33-3':
+          '«Clama a mí, y yo te responderé.» Jesús ensancha esa promesa: «todo lo que pidiereis al Padre en mi nombre, os lo dará».',
+        'nahum-1-7':
+          '«Jehová es bueno, fortaleza en el día de la angustia.» Esa fortaleza es Cristo, en quien tenemos paz en medio de la aflicción: «yo he vencido al mundo».',
+        'matthew-5-14':
+          '«Vosotros sois la luz del mundo.» Brillamos solo como reflejo de Aquel que es la Luz: «Yo soy la luz del mundo», dijo Jesús.',
+        'matthew-6-33':
+          '«Buscad primeramente el reino de Dios y su justicia.» Buscar el reino es buscar al Rey: en Cristo viene el reino, y en Él se nos da la justicia que no podíamos ganar.',
+        'matthew-19-26':
+          '«Para los hombres esto es imposible; mas para Dios todo es posible.» Lo dijo de la salvación: lo que el hombre no puede, lo hace Dios en Cristo, que vino a salvar a los perdidos.',
+        'matthew-22-37':
+          '«Amarás al Señor tu Dios con todo tu corazón.» Solo Uno cumplió perfectamente este mandamiento: Cristo, que ahora nos da su Espíritu para amar.',
+        'mark-10-27':
+          '«Para los hombres es imposible, mas para Dios no; porque todas las cosas son posibles para Dios.» La salvación es obra suya de principio a fin, lograda en Cristo.',
+        'luke-6-31':
+          '«Haced con los hombres como queréis que ellos hagan con vosotros.» Jesús no solo lo enseñó: lo vivió, entregándose por nosotros cuando nada merecíamos.',
+        'acts-1-8':
+          '«Me seréis testigos.» El centro del testimonio cristiano es una Persona: el Cristo resucitado, anunciado hasta lo último de la tierra.',
+        'romans-8-31':
+          '«Si Dios es por nosotros, ¿quién contra nosotros?» La prueba de que Dios está de nuestro lado es que entregó a su propio Hijo por nosotros.',
+        'romans-8-38':
+          '«Ni lo presente ni lo por venir... nos podrá separar del amor de Dios, que es en Cristo Jesús.» El amor que nos sostiene no es una idea: tiene nombre, Cristo Jesús.',
+        'romans-12-2':
+          '«Transformaos por medio de la renovación de vuestro entendimiento.» Esa transformación es ser conformados a la imagen de su Hijo: llegar a parecernos a Cristo.',
+        'romans-15-13':
+          '«El Dios de esperanza os llene de todo gozo y paz en el creer.» Toda esa esperanza descansa en Cristo resucitado, nuestra esperanza de gloria.',
+        '1corinthians-10-13':
+          '«Dios... dará también juntamente con la tentación la salida.» Esa salida es Cristo, que fue tentado en todo y venció, y socorre a los que son tentados.',
+        '1corinthians-13-13':
+          '«Y ahora permanecen la fe, la esperanza y el amor; pero el mayor de ellos es el amor.» Ese amor que todo lo soporta lo vemos en su forma más pura en la cruz de Cristo.',
+        '2corinthians-4-16':
+          '«El hombre interior no obstante se renueva de día en día.» Esa vida nueva es la vida de Cristo en nosotros, que ni la muerte podrá apagar.',
+        '2corinthians-12-9':
+          '«Bástate mi gracia; porque mi poder se perfecciona en la debilidad.» Es la voz de Cristo: su poder reposa sobre los débiles que confían en Él.',
+        'galatians-5-22':
+          '«El fruto del Espíritu es amor, gozo, paz...» Ese fruto es el carácter mismo de Cristo formándose en quien permanece en Él.',
+        'ephesians-3-20':
+          '«Aquel que es poderoso para hacer todas las cosas mucho más abundantemente.» Ese poder obra en nosotros por Cristo, según su Espíritu que mora en el creyente.',
+        'ephesians-4-32':
+          '«Perdonándoos unos a otros, como Dios os perdonó a vosotros en Cristo.» La medida de nuestro perdón es el perdón que recibimos en la cruz.',
+        'ephesians-6-10':
+          '«Fortaleceos en el Señor, y en el poder de su fuerza.» No nos pide fuerza propia, sino la suya: estar firmes en Cristo y en su victoria.',
+        'philippians-1-6':
+          '«El que comenzó en vosotros la buena obra, la perfeccionará.» Cristo es el autor y consumador de la fe: lo que Él empieza, Él lo termina.',
+        'hebrews-4-12':
+          '«La palabra de Dios es viva y eficaz.» La Palabra que escudriña el corazón es la misma que se hizo carne: Cristo, vivo y poderoso para salvar.',
+        'james-1-5':
+          '«Si alguno de vosotros tiene falta de sabiduría, pídala a Dios.» Y Cristo nos ha sido hecho sabiduría de Dios: en Él están escondidos todos los tesoros de la sabiduría.',
+        '1john-3-1':
+          '«Mirad cuál amor nos ha dado el Padre, para que seamos llamados hijos de Dios.» Ese amor se mostró enviando a su Hijo, para que vivamos por Él.',
+        '1john-4-8':
+          '«Dios es amor.» No lo sabemos por una definición, sino por un hecho: «en esto se mostró el amor de Dios... en que Dios envió a su Hijo» para que vivamos por Él.',
       },
     },
     collections: {
@@ -1881,6 +1993,53 @@ export const translations = {
           '«Yo soy la resurrección y la vida.» En Él, la muerte no es el final.',
           '«Yo soy el camino, la verdad y la vida.» El único camino al Padre.',
           '«Yo soy la vid verdadera.» Permanecer en Él da fruto que permanece.',
+        ],
+      },
+      parables: {
+        name: 'Las parábolas de Jesús',
+        description:
+          'Diez días entre las historias con que Jesús enseñó el reino de Dios',
+        context: [
+          '«El hijo pródigo.» El Padre corre a recibir al que vuelve: así es el corazón de Dios.',
+          '«El buen samaritano.» El amor verdadero cruza la calle y se ensucia las manos por el necesitado.',
+          '«El sembrador.» La misma Palabra cae en distintos corazones; pide ser buena tierra.',
+          '«El trigo y la cizaña.» Dios es paciente; la separación final es suya, no nuestra.',
+          '«La oveja y la moneda perdidas.» El cielo hace fiesta por un solo pecador que se arrepiente.',
+          '«El siervo que no perdonó.» Perdonados de una deuda impagable, somos llamados a perdonar.',
+          '«Las diez vírgenes.» Vela y prepárate: el Esposo viene a una hora que no esperas.',
+          '«Los talentos.» Lo que Dios te confía es para usarlo con fidelidad, no para esconderlo.',
+          '«El fariseo y el publicano.» Dios resiste al orgulloso y justifica al humilde que pide misericordia.',
+          '«La gran cena.» La invitación de Dios es amplia; no la dejes para después.',
+        ],
+      },
+      miracles: {
+        name: 'Los milagros de Jesús',
+        description: 'Diez días ante las señales con que Jesús mostró quién es',
+        context: [
+          '«Agua en vino.» Su primera señal: la abundancia y el gozo que Jesús trae.',
+          '«Calma la tempestad.» El viento y el mar le obedecen; también tu tormenta.',
+          '«Alimenta a los cinco mil.» En sus manos, lo poco basta y sobra.',
+          '«Camina sobre el mar.» «No temáis; yo soy.» Su presencia sostiene en lo imposible.',
+          '«La hija de Jairo.» Ni la enfermedad ni la muerte detienen su poder y su ternura.',
+          '«Sana al ciego de nacimiento.» El que abre los ojos del cuerpo abre también los del alma.',
+          '«El hijo de la viuda de Naín.» Movido a compasión, devuelve la vida y el consuelo.',
+          '«Sana al paralítico.» Primero perdona el pecado y luego sana: tiene autoridad para ambas cosas.',
+          '«Los diez leprosos.» Diez son limpiados; solo uno vuelve a dar gracias. ¿Y tú?',
+          '«Resucita a Lázaro.» «Yo soy la resurrección y la vida»: la muerte no tiene la última palabra.',
+        ],
+      },
+      namesOfGod: {
+        name: 'Los nombres de Dios',
+        description:
+          'Siete días conociendo a Dios por los nombres con que se revela',
+        context: [
+          '«Jehová proveerá» (Jehová-jireh). En el monte, Dios provee el cordero: anuncio del Cordero que Él daría.',
+          '«YO SOY EL QUE SOY.» El Dios eterno, que se basta a sí mismo, se da a conocer y envía.',
+          '«Jehová es mi bandera» (Jehová-nisi). La victoria del pueblo está en el Señor, no en su propia fuerza.',
+          '«Jehová es mi pastor» (Jehová-roi). El que cuida, guía y restaura: nada nos faltará a su lado.',
+          '«Jehová es paz» (Jehová-salom). Donde Dios habla, el temor cede: Él es nuestra paz.',
+          '«Jehová que sana» (Jehová-rafa). El que sanó las aguas amargas sigue siendo el Dios que sana.',
+          '«El Altísimo, mi refugio» (Elyón). Quien habita al abrigo del Altísimo descansa seguro bajo su sombra.',
         ],
       },
     },
@@ -3333,6 +3492,8 @@ export const translations = {
           'Talk with God about the doubt you find hardest to hand over.',
           'What promise of God do you want to hold in your memory this week?',
           'Recall a time God was faithful, and let it strengthen your faith today.',
+          'What fear would fade if you fully trusted that God is in control?',
+          'Write down one thing you will entrust to God this week.',
         ],
         love: [
           'Who will God place in your path today to love as He loves you?',
@@ -3340,6 +3501,8 @@ export const translations = {
           'How have you experienced the love of God this week?',
           'In what concrete way could you show the love of Christ to your family today?',
           'Ask God to fill your heart with His love so you can give it to others.',
+          'In what way can you love someone today expecting nothing in return?',
+          'Ask God to help you see people the way He sees them.',
         ],
         hope: [
           'What circumstance do you need to see today in the light of hope in Christ?',
@@ -3347,6 +3510,8 @@ export const translations = {
           'Give thanks for a promise of God that holds up your hope.',
           'What is stealing your hope today? Hand it to the God of all hope.',
           'Write down a promise of God to keep close when discouragement comes.',
+          'What do you long for that only God can give? Bring it to Him.',
+          'Remember that the best is yet to come in Christ, and let it lighten your day.',
         ],
         peace: [
           'What worry can you hand to God in prayer right now?',
@@ -3354,6 +3519,8 @@ export const translations = {
           'Breathe deeply and rest: "I will both lay me down in peace, and sleep" (Psalm 4:8).',
           'What anxious thought do you need to surrender to God right now?',
           'Thank God for a place or moment where you have found His peace.',
+          'What strained relationship needs a step from you toward peace today?',
+          'Before sleep, hand God whatever was left unresolved in your day.',
         ],
         strength: [
           "In what weakness do you need God's strength today, not your own?",
@@ -3361,6 +3528,8 @@ export const translations = {
           'Ask God for strength for what lies ahead of you today.',
           'What burden are you carrying alone that you could place in God’s hands today?',
           'Rest in the truth that His power is made perfect in weakness (2 Corinthians 12:9).',
+          'What task feels too big? Ask God to do it with you.',
+          'Lean on a promise of God today when your strength runs low.',
         ],
         forgiveness: [
           'Is there someone you need to forgive, as Christ forgave you?',
@@ -3368,6 +3537,8 @@ export const translations = {
           'Thank God for the forgiveness you have in Jesus.',
           'Is there a grudge you are holding? Ask God for freedom to release it.',
           'Receive today, without condemnation, the full forgiveness Christ has already bought.',
+          'Pray for the person who hurt you, asking good for them.',
+          'Do you struggle to forgive yourself? Receive the forgiveness God already gave.',
         ],
         wisdom: [
           'What decision is before you? Ask God for wisdom (James 1:5).',
@@ -3375,6 +3546,8 @@ export const translations = {
           'What does this passage teach you about living wisely today?',
           'Whom that is wise and God-fearing could you ask for counsel this week?',
           'Before you decide today, pause and ask: "Lord, what do You want?"',
+          'Ask God to discern between the good and the best in what is before you today.',
+          'Read a proverb and choose one truth to live out today.',
         ],
         prayer: [
           'What do you want to say to God right now, in your own words?',
@@ -3382,6 +3555,8 @@ export const translations = {
           'Take a quiet moment to listen to God.',
           'What request have you stopped bringing to God? Set it before Him again.',
           'Give thanks for a prayer God has already answered.',
+          'Set aside five minutes today just to be with God, asking for nothing.',
+          'Turn your biggest worry today into one concrete prayer.',
         ],
         courage: [
           'What fear is holding you back? Hand it over to God.',
@@ -3389,6 +3564,8 @@ export const translations = {
           'Remember a time God was with you, and give Him thanks.',
           'What conversation or step have you been avoiding out of fear?',
           'Say it calmly: "Be strong and courageous; the Lord goes with you" (Joshua 1:9).',
+          'Take that first small step today that you have been putting off.',
+          'Where do you need courage to do the right thing, even when it costs?',
         ],
         comfort: [
           'Where do you need the comfort of God today?',
@@ -3396,6 +3573,8 @@ export const translations = {
           'Pour out your heart before God; He hears you.',
           'What loss or pain do you need to bring today to the God of all comfort?',
           'Write someone who is hurting a short word of encouragement.',
+          'Let yourself weep before God; He keeps every one of your tears (Psalm 56:8).',
+          'Seek out today the company of someone who reminds you of God’s love.',
         ],
         joy: [
           'What three things can you thank God for today?',
@@ -3403,6 +3582,8 @@ export const translations = {
           'Share a word of encouragement with someone today.',
           'Where can you notice a small sign of God’s goodness today?',
           'Sing or listen to a song that lifts your heart to the Lord.',
+          'Do something today, however small, that celebrates the goodness of God.',
+          'Give thanks aloud for a blessing you usually take for granted.',
         ],
         grace: [
           'Where are you trying to earn what God already gives you by grace?',
@@ -3410,6 +3591,8 @@ export const translations = {
           "Rest today in the truth that God's love does not depend on your performance.",
           'Whom do you need to treat with more grace, as God treats you?',
           'Give thanks for something good in your life you did not earn, but received.',
+          'Receive today as an undeserved gift from God.',
+          'Offer a kind word to someone who has not “earned” it.',
         ],
         salvation: [
           'Have you placed your trust in Christ for your salvation?',
@@ -3417,6 +3600,8 @@ export const translations = {
           'Thank God for the gift of eternal life in Jesus.',
           'Do you remember the moment or the path by which you came to trust Jesus?',
           'Pray for one person who does not yet know Christ.',
+          'Meditate on what Christ paid to give you life, and thank Him.',
+          'Live today as a beloved, free child, not a slave to fear.',
         ],
         guidance: [
           "In what decision do you need God's direction today?",
@@ -3424,6 +3609,8 @@ export const translations = {
           'Ask God to light your steps with His Word (Psalm 119:105).',
           'What next small step of obedience can you take today?',
           'Commit your plans to God and ask Him to direct your steps (Proverbs 16:9).',
+          'Before you act today, ask God in prayer what His way is.',
+          'Trust that God straightens your steps even when you cannot see the whole path.',
         ],
       },
     },
@@ -3592,6 +3779,90 @@ export const translations = {
           '"A new commandment I give unto you, That ye love one another; as I have loved you." The measure of Christian love is the love of Christ, who gave Himself for us.',
         'revelation-1-8':
           '"I am Alpha and Omega... which is, and which was, and which is to come." The eternal Lord of the beginning and the end is Jesus, who came and who will return (cf. Rev 22:13).',
+        'exodus-14-14':
+          '"The LORD shall fight for you, and ye shall hold your peace." The battle we could not win, Christ won: at the cross He disarmed the powers and triumphed over them.',
+        'deuteronomy-31-6':
+          '"He will not fail thee, nor forsake thee." That promise is ours in Christ; Hebrews repeats it to believers, for the Lord Himself goes with us.',
+        'joshua-1-9':
+          '"Be strong and of a good courage... for the LORD thy God is with thee." Courage is not from us but from His presence: the risen Christ says, "I am with you always."',
+        '1samuel-16-7':
+          '"The LORD looketh on the heart." Christ knew what was in man; before Him there are no masks, and still He loves us and calls us.',
+        'psalms-18-2':
+          '"The LORD is my rock, and my fortress." Paul says the rock that followed Israel was Christ: our sure refuge has a face.',
+        'psalms-19-1':
+          '"The heavens declare the glory of God." And those heavens were made through the Son: in Him all things were created, and everything proclaims His glory.',
+        'psalms-28-7':
+          '"The LORD is my strength and my shield." That strength is given to us in Christ, who said, "I can do all things through Christ which strengtheneth me."',
+        'psalms-46-1':
+          '"God is our refuge and strength, a very present help in trouble." That refuge drew near in Jesus, who invites: "Come unto me... and I will give you rest."',
+        'psalms-46-10':
+          '"Be still, and know that I am God." The One who stills the soul stilled the storm with His voice: "Peace, be still," said Jesus, and all grew calm.',
+        'psalms-55-22':
+          '"Cast thy burden upon the LORD, and he shall sustain thee." Peter echoes it pointing to Christ: "casting all your care upon him; for he careth for you."',
+        'psalms-103-2':
+          '"Bless the LORD, O my soul... who forgiveth all thine iniquities." That full forgiveness reaches us in Christ, in whom we have redemption through His blood.',
+        'psalms-118-24':
+          '"This is the day which the LORD hath made." It is the psalm of the stone the builders rejected, become the head of the corner: Christ, the cause of our joy.',
+        'psalms-119-105':
+          '"Thy word is a lamp unto my feet, and a light unto my path." That Word became flesh: Jesus, the living Word and the light of the world, lights the way.',
+        'psalms-147-3':
+          '"He healeth the broken in heart." Jesus opened His ministry with that promise: He was anointed to heal the brokenhearted.',
+        'proverbs-3-5':
+          '"Trust in the LORD with all thine heart; and lean not unto thine own understanding." That trust finds its rest in Christ, the sure way to the Father.',
+        'isaiah-64-8':
+          '"We are the clay, and thou our potter." In Christ we are a new creation: the Potter remakes in His Son what sin had broken.',
+        'jeremiah-33-3':
+          '"Call unto me, and I will answer thee." Jesus widens that promise: "whatsoever ye shall ask the Father in my name, he will give it you."',
+        'nahum-1-7':
+          '"The LORD is good, a strong hold in the day of trouble." That stronghold is Christ, in whom we have peace amid affliction: "I have overcome the world."',
+        'matthew-5-14':
+          '"Ye are the light of the world." We shine only as a reflection of the One who is the Light: "I am the light of the world," said Jesus.',
+        'matthew-6-33':
+          '"Seek ye first the kingdom of God, and his righteousness." To seek the kingdom is to seek the King: in Christ the kingdom comes, and in Him the righteousness we could not earn is given.',
+        'matthew-19-26':
+          '"With men this is impossible; but with God all things are possible." He said it of salvation: what man cannot do, God does in Christ, who came to save the lost.',
+        'matthew-22-37':
+          '"Thou shalt love the Lord thy God with all thy heart." Only One kept this command perfectly: Christ, who now gives us His Spirit to love.',
+        'mark-10-27':
+          '"With men it is impossible, but not with God: for with God all things are possible." Salvation is His work from first to last, accomplished in Christ.',
+        'luke-6-31':
+          '"As ye would that men should do to you, do ye also to them likewise." Jesus not only taught it: He lived it, giving Himself for us when we deserved nothing.',
+        'acts-1-8':
+          '"Ye shall be witnesses unto me." The heart of Christian witness is a Person: the risen Christ, proclaimed to the ends of the earth.',
+        'romans-8-31':
+          '"If God be for us, who can be against us?" The proof that God is on our side is that He gave His own Son for us.',
+        'romans-8-38':
+          '"Neither things present, nor things to come... shall be able to separate us from the love of God, which is in Christ Jesus." The love that holds us is no idea: its name is Christ Jesus.',
+        'romans-12-2':
+          '"Be ye transformed by the renewing of your mind." That transformation is being conformed to the image of His Son: growing to look like Christ.',
+        'romans-15-13':
+          '"Now the God of hope fill you with all joy and peace in believing." All that hope rests on the risen Christ, our hope of glory.',
+        '1corinthians-10-13':
+          '"God... will with the temptation also make a way to escape." That way of escape is Christ, who was tempted in every way yet overcame, and helps those who are tempted.',
+        '1corinthians-13-13':
+          '"And now abideth faith, hope, charity... but the greatest of these is charity." That love which bears all things we see in its purest form at the cross of Christ.',
+        '2corinthians-4-16':
+          '"The inward man is renewed day by day." That new life is the life of Christ in us, which not even death can put out.',
+        '2corinthians-12-9':
+          '"My grace is sufficient for thee: for my strength is made perfect in weakness." It is the voice of Christ: His power rests upon the weak who trust in Him.',
+        'galatians-5-22':
+          '"The fruit of the Spirit is love, joy, peace..." That fruit is the very character of Christ being formed in those who abide in Him.',
+        'ephesians-3-20':
+          '"Him that is able to do exceeding abundantly above all that we ask or think." That power works in us through Christ, by His Spirit dwelling in the believer.',
+        'ephesians-4-32':
+          '"Forgiving one another, even as God for Christ’s sake hath forgiven you." The measure of our forgiving is the forgiveness we received at the cross.',
+        'ephesians-6-10':
+          '"Be strong in the Lord, and in the power of his might." He asks not for our own strength but His: to stand firm in Christ and in His victory.',
+        'philippians-1-6':
+          '"He which hath begun a good work in you will perform it." Christ is the author and finisher of faith: what He begins, He completes.',
+        'hebrews-4-12':
+          '"The word of God is quick, and powerful." The Word that searches the heart is the same that became flesh: Christ, living and mighty to save.',
+        'james-1-5':
+          '"If any of you lack wisdom, let him ask of God." And Christ is made unto us wisdom from God: in Him are hidden all the treasures of wisdom.',
+        '1john-3-1':
+          '"Behold, what manner of love the Father hath bestowed upon us, that we should be called the sons of God." That love was shown by sending His Son, that we might live through Him.',
+        '1john-4-8':
+          '"God is love." We know it not by a definition but by an act: "In this was manifested the love of God... that God sent his only begotten Son" that we might live through Him.',
       },
     },
     collections: {
@@ -4437,6 +4708,54 @@ export const translations = {
           '"I am the resurrection and the life." In Him, death is not the end.',
           '"I am the way, the truth, and the life." The only way to the Father.',
           '"I am the true vine." Abiding in Him bears fruit that lasts.',
+        ],
+      },
+      parables: {
+        name: 'The Parables of Jesus',
+        description:
+          'Ten days among the stories Jesus used to teach the kingdom of God',
+        context: [
+          '"The prodigal son." The Father runs to welcome the one who returns — that is the heart of God.',
+          '"The good Samaritan." Real love crosses the road and gets its hands dirty for the one in need.',
+          '"The sower." The same Word falls on different hearts; ask to be good soil.',
+          '"The wheat and the tares." God is patient; the final separation is His to make, not ours.',
+          '"The lost sheep and coin." Heaven rejoices over one sinner who repents.',
+          '"The unforgiving servant." Forgiven an unpayable debt, we are called to forgive.',
+          '"The ten virgins." Watch and be ready: the Bridegroom comes at an hour you do not expect.',
+          '"The talents." What God entrusts to you is to be used faithfully, not buried.',
+          '"The Pharisee and the tax collector." God resists the proud and justifies the humble who cries for mercy.',
+          '"The great banquet." God’s invitation is wide; do not put it off.',
+        ],
+      },
+      miracles: {
+        name: 'The Miracles of Jesus',
+        description:
+          'Ten days before the signs by which Jesus showed who He is',
+        context: [
+          '"Water into wine." His first sign: the abundance and joy that Jesus brings.',
+          '"Calming the storm." Wind and sea obey Him — and so will your storm.',
+          '"Feeding the five thousand." In His hands, a little is more than enough.',
+          '"Walking on the water." "Be not afraid; it is I." His presence holds us in the impossible.',
+          '"Jairus’ daughter." Neither sickness nor death stops His power and tenderness.',
+          '"Healing the man born blind." The One who opens the body’s eyes opens the soul’s as well.',
+          '"The widow’s son at Nain." Moved with compassion, He gives back life and comfort.',
+          '"Healing the paralytic." First He forgives the sin, then heals — He has authority for both.',
+          '"The ten lepers." Ten are cleansed; only one returns to give thanks. And you?',
+          '"Raising Lazarus." "I am the resurrection and the life": death does not have the last word.',
+        ],
+      },
+      namesOfGod: {
+        name: 'The Names of God',
+        description:
+          'Seven days knowing God by the names through which He reveals Himself',
+        context: [
+          '"The LORD will provide" (Jehovah-jireh). On the mountain God provides the lamb — a sign of the Lamb He would give.',
+          '"I AM THAT I AM." The eternal, self-sufficient God makes Himself known and sends.',
+          '"The LORD is my banner" (Jehovah-nissi). The people’s victory is in the Lord, not in their own strength.',
+          '"The LORD is my shepherd" (Jehovah-rohi). The One who tends, guides and restores: at His side we lack nothing.',
+          '"The LORD is peace" (Jehovah-shalom). Where God speaks, fear gives way: He is our peace.',
+          '"The LORD who heals" (Jehovah-rapha). The One who healed the bitter waters is still the God who heals.',
+          '"The Most High, my refuge" (Elyon). Whoever dwells in the shelter of the Most High rests safe in His shadow.',
         ],
       },
     },

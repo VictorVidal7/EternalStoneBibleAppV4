@@ -91,6 +91,14 @@ export interface AudioQueueOptions {
 export interface LoadQueueOptions {
   mode?: AudioQueueMode;
   label?: string;
+  /**
+   * The language of the loaded text (its Bible version's language). Drives the
+   * TTS narration so the voice matches the text — a Spanish chapter is never
+   * read by an English voice (Sprint 100). Omitted: the engine falls back to
+   * the live selected version's language, then to the manual audio-language
+   * preference, preserving the historical behaviour.
+   */
+  language?: AudioLanguage;
 }
 
 export interface AudioChapter {

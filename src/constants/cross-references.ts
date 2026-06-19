@@ -243,6 +243,34 @@ export const CROSS_REFERENCES: Record<string, string[]> = {
   ],
   'James/1/17': ['Matthew/7/11', '1 Corinthians/4/7', 'Numbers/23/19'],
   '1 Peter/1/3': ['John/3/3', 'Titus/3/5', '1 Corinthians/15/20', 'Romans/6/4'],
+
+  // ── Sprint 100: cross-references for well-known daily verses (all targets
+  // DB-verified RVR1960+KJV by book_id) ──
+  'Psalms/16/11': ['Acts/2/28', 'Psalms/17/15', 'John/14/6'],
+  'Psalms/55/22': ['1 Peter/5/7', 'Matthew/11/28', 'Psalms/37/5'],
+  'Psalms/103/2': ['Psalms/103/3', 'Isaiah/43/25', 'Deuteronomy/8/2'],
+  'Psalms/121/1': ['Psalms/121/2', 'Psalms/123/1', 'Jeremiah/3/23'],
+  'Psalms/121/2': ['Psalms/124/8', 'Psalms/146/6', 'Genesis/1/1'],
+  'Psalms/147/3': ['Psalms/34/18', 'Isaiah/61/1', 'Luke/4/18'],
+  'Proverbs/17/17': ['Proverbs/18/24', 'John/15/13', '1 Corinthians/13/7'],
+  'Proverbs/18/10': ['Psalms/61/3', 'Proverbs/29/25', 'Psalms/18/2'],
+  'Matthew/6/34': ['Matthew/6/25', '1 Peter/5/7', 'Philippians/4/6'],
+  'Matthew/19/26': ['Mark/10/27', 'Luke/1/37', 'Jeremiah/32/17'],
+  'Mark/10/27': ['Matthew/19/26', 'Luke/18/27', 'Genesis/18/14'],
+  'Luke/1/37': ['Genesis/18/14', 'Jeremiah/32/17', 'Matthew/19/26'],
+  'John/6/35': ['John/4/14', 'Isaiah/55/1', 'John/7/37'],
+  'Romans/8/32': ['Romans/5/8', 'Isaiah/53/6', 'John/3/16'],
+  '1 Corinthians/15/58': [
+    'Galatians/6/9',
+    '1 Corinthians/15/57',
+    '2 Chronicles/15/7',
+  ],
+  '2 Corinthians/5/7': ['Hebrews/11/1', 'Romans/8/24', '1 Peter/1/8'],
+  'Ephesians/6/10': ['Philippians/4/13', 'Isaiah/40/31', '2 Timothy/2/1'],
+  'Philippians/4/8': ['Colossians/3/2', 'Romans/12/2', 'Philippians/4/9'],
+  'Colossians/1/16': ['John/1/3', 'Hebrews/1/2', 'Revelation/4/11'],
+  'Hebrews/12/1': ['Hebrews/12/2', '1 Corinthians/9/24', 'Hebrews/11/1'],
+  'James/4/8': ['Zechariah/1/3', 'Isaiah/55/6', 'Psalms/145/18'],
 };
 
 /**

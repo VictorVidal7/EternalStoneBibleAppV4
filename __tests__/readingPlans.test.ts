@@ -68,6 +68,26 @@ describe('READING_PLANS integrity', () => {
     }
   });
 
+  it('topical plans carry one per-day context line per day in both locales', () => {
+    // Plans that opt into a `context` array (the "I am" sayings, parables,
+    // miracles, names of God) must cover every day, so getPlanDayContext never
+    // returns undefined mid-plan and the two locales stay in lockstep.
+    const topical = ['iam', 'parables', 'miracles', 'namesOfGod'] as const;
+    for (const plan of READING_PLANS) {
+      if (!topical.includes(plan.i18nKey as (typeof topical)[number])) continue;
+      for (const lang of ['es', 'en'] as const) {
+        const entry = translations[lang].readingPlans[plan.i18nKey] as {
+          context?: readonly string[];
+        };
+        expect(entry.context).toBeDefined();
+        expect(entry.context!.length).toBe(plan.duration);
+        entry.context!.forEach(line =>
+          expect(line.trim().length).toBeGreaterThan(0),
+        );
+      }
+    }
+  });
+
   it('getReadingPlanById finds plans and misses gracefully', () => {
     expect(getReadingPlanById(READING_PLANS[0].id)?.id).toBe(
       READING_PLANS[0].id,

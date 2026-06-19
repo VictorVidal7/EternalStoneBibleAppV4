@@ -78,7 +78,11 @@ export const fontSize = {
  * all share one documented rationale instead of clipping inconsistently.
  */
 export const verseTextRightSlack = (fontSize: number): number =>
-  Math.max(10, Math.round(fontSize * 0.6));
+  // Sprint 100: nudged the floor 10→12 and slope 0.6→0.65 alongside the
+  // reader's own bump, after the user still saw a faint residual OEM clip in
+  // rare cases. A couple px more reserved gutter, still font-scaled and
+  // imperceptible where it never clipped.
+  Math.max(12, Math.round(fontSize * 0.65));
 
 export const fontWeight = {
   light: '300',
