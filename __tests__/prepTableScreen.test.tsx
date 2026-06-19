@@ -32,7 +32,13 @@ jest.mock('react-native-safe-area-context', () => ({
   useSafeAreaInsets: () => ({top: 0, bottom: 0, left: 0, right: 0}),
 }));
 
-jest.mock('@lib/haptics', () => ({haptics: {tap: jest.fn()}}));
+jest.mock('@lib/haptics', () => ({
+  haptics: {tap: jest.fn(), success: jest.fn()},
+}));
+
+jest.mock('expo-clipboard', () => ({
+  setStringAsync: jest.fn(async () => true),
+}));
 
 jest.mock('@hooks/useTheme', () => ({
   useTheme: () => ({
@@ -93,5 +99,8 @@ describe('Mesa de preparación — screen', () => {
 
     // The pastoral guardrail is present.
     expect(getByText(p.guardrail)).toBeTruthy();
+
+    // The export (copy outline) action is offered.
+    expect(getByText(p.exportLabel)).toBeTruthy();
   });
 });

@@ -36,6 +36,7 @@ import {Ionicons} from '@expo/vector-icons';
 import {LinearGradient} from 'expo-linear-gradient';
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import * as Clipboard from 'expo-clipboard';
 import {useTheme} from '@hooks/useTheme';
 import {centeredMaxWidth} from '@/styles/responsive';
 import {useLanguage} from '@hooks/useLanguage';
@@ -59,6 +60,10 @@ import {
   type PrepTable,
 } from '@/features/study/prepTable';
 import {getPrepNotes, savePrepNote} from '@/features/study/prepNotesStore';
+import {
+  buildPrepMarkdown,
+  type PrepMarkdownSection,
+} from '@/features/study/prepMarkdown';
 import {translations} from '@/i18n/translations';
 import {logger} from '@lib/utils/logger';
 import {
@@ -144,6 +149,8 @@ export default function PrepTableScreen() {
   const [drafts, setDrafts] = useState<Partial<Record<PrepSection, string>>>(
     {},
   );
+  const [versionLabel, setVersionLabel] = useState('');
+  const [copied, setCopied] = useState(false);
 
   const load = useCallback(async () => {
     if (!table) {
@@ -258,6 +265,7 @@ export default function PrepTableScreen() {
       setChristRows(christResolved.filter(r => Boolean(r.note)));
       setIntro(bookIntro);
       setDrafts(saved.sections);
+      setVersionLabel(versionAbbrev(version));
       setStatus('ready');
     } catch (err) {
       logger.error('Prep table load failed', err as Error, {
@@ -303,6 +311,71 @@ export default function PrepTableScreen() {
   const passageLabel = table
     ? formatPassageLabel(table, language as 'es' | 'en')
     : '';
+
+  const handleExport = useCallback(async () => {
+    if (!table) return;
+    haptics.tap();
+    const themeLabel = (id: string) =>
+      (t.themes.list as Record<string, {name: string; description: string}>)[id]
+        ?.name ?? id;
+    const sections: PrepMarkdownSection[] = PREP_SECTIONS.map(section => {
+      let helps: string[] = [];
+      if (section === 'context' && intro) {
+        helps = [
+          `${p.bookIntroTitle} — ${intro.author} · ${intro.date}`,
+          intro.context,
+        ];
+      } else if (section === 'interpretation') {
+        helps = [
+          ...crossRows.map(r =>
+            r.text
+              ? `${r.bookDisplay} ${r.chapter}:${r.verse} — ${r.text}`
+              : `${r.bookDisplay} ${r.chapter}:${r.verse}`,
+          ),
+          ...(table.themeIds.length > 0
+            ? [`${p.themesTitle}: ${table.themeIds.map(themeLabel).join(', ')}`]
+            : []),
+        ];
+      } else if (section === 'christ') {
+        helps = christRows.map(r =>
+          r.pointsTo ? `${r.note} (→ ${r.pointsTo})` : r.note,
+        );
+      }
+      return {
+        label: p.sections[section].label,
+        prompt: p.sections[section].prompt,
+        note: drafts[section],
+        helps,
+      };
+    });
+    const markdown = buildPrepMarkdown({
+      passageLabel,
+      versionLabel,
+      passageText: lines.map(l => ({verse: l.verse, text: l.text ?? ''})),
+      sections,
+      guardrail: p.guardrail,
+      generatedWith: p.title,
+    });
+    try {
+      await Clipboard.setStringAsync(markdown);
+      haptics.success();
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch (err) {
+      logger.warn('Prep export copy failed', {error: String(err)});
+    }
+  }, [
+    table,
+    intro,
+    crossRows,
+    christRows,
+    drafts,
+    lines,
+    passageLabel,
+    versionLabel,
+    p,
+    t,
+  ]);
 
   const renderHelpsForSection = (section: PrepSection) => {
     if (section === 'context' && intro) {
@@ -594,6 +667,27 @@ export default function PrepTableScreen() {
                 );
               })}
 
+              {/* Export the assembled outline + the preparer's notes. */}
+              <TouchableOpacity
+                style={[
+                  styles.exportButton,
+                  {backgroundColor: colors.card, borderColor: colors.primary},
+                ]}
+                onPress={handleExport}
+                accessibilityRole="button"
+                accessibilityLabel={p.exportLabel}>
+                <Ionicons
+                  name={copied ? 'checkmark' : 'copy-outline'}
+                  size={18}
+                  color={colors.primary}
+                />
+                <AppText
+                  scaleRole="compact"
+                  style={[styles.exportText, {color: colors.primary}]}>
+                  {copied ? p.copied : p.exportLabel}
+                </AppText>
+              </TouchableOpacity>
+
               {/* Pastoral guardrail. */}
               <View style={styles.guardrailWrap}>
                 <Ionicons
@@ -742,6 +836,17 @@ const styles = StyleSheet.create({
     fontSize: fontSizes.md,
     lineHeight: fontSizes.md * 1.4,
   },
+  exportButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: spacing.sm,
+    paddingVertical: spacing.md,
+    borderRadius: borderRadius.md,
+    borderWidth: StyleSheet.hairlineWidth,
+    marginTop: spacing.sm,
+  },
+  exportText: {fontWeight: '700', fontSize: fontSizes.md},
   guardrailWrap: {
     flexDirection: 'row',
     gap: spacing.sm,

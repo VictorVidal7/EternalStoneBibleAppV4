@@ -751,6 +751,8 @@ export const translations = {
       guardrail:
         'Esta es tu mesa de estudio: la app reúne el material, pero las palabras y la dirección son tuyas, delante del Señor. Examínalo todo a la luz de la Escritura (Hch 17:11; 1 Ts 5:21).',
       savedHint: 'Tus notas se guardan solo en este dispositivo.',
+      exportLabel: 'Copiar bosquejo',
+      copied: '¡Copiado!',
       openHint: 'Abrir pasaje',
       error: 'No se pudo abrir la mesa de preparación',
       missingPassage: 'Elige un pasaje para comenzar.',
@@ -3670,6 +3672,8 @@ export const translations = {
       guardrail:
         'This is your study table: the app gathers the material, but the words and the direction are yours, before the Lord. Examine everything in light of Scripture (Acts 17:11; 1 Thess 5:21).',
       savedHint: 'Your notes are saved on this device only.',
+      exportLabel: 'Copy outline',
+      copied: 'Copied!',
       openHint: 'Open passage',
       error: 'Could not open the preparation table',
       missingPassage: 'Choose a passage to begin.',
