@@ -732,6 +732,67 @@ export const translations = {
       error: 'No se pudo cargar el estudio',
     },
 
+    prepTable: {
+      title: 'Mesa de preparación',
+      subtitle: 'Prepara tu enseñanza',
+      cardTitle: 'Mesa de preparación',
+      cardSubtitle: 'Reúne todo para enseñar un pasaje',
+      passageLabel: 'Pasaje',
+      helpsTitle: 'Lo que la app reúne',
+      helpsCount: '{{n}} ayudas reunidas',
+      crossRefsTitle: 'Pasajes paralelos',
+      crossRefsHint:
+        'Compáralos para leer el texto a la luz de toda la Escritura (Hch 17:11).',
+      themesTitle: 'Temas del pasaje',
+      bookIntroTitle: 'Sobre este libro',
+      christTitle: 'Cristo en este pasaje',
+      noHelps: 'Aún no reunimos ayudas para este pasaje.',
+      notePlaceholder: 'Escribe aquí, en oración…',
+      guardrail:
+        'Esta es tu mesa de estudio: la app reúne el material, pero las palabras y la dirección son tuyas, delante del Señor. Examínalo todo a la luz de la Escritura (Hch 17:11; 1 Ts 5:21).',
+      savedHint: 'Tus notas se guardan solo en este dispositivo.',
+      openHint: 'Abrir pasaje',
+      error: 'No se pudo abrir la mesa de preparación',
+      missingPassage: 'Elige un pasaje para comenzar.',
+      sections: {
+        context: {
+          label: 'Contexto',
+          prompt:
+            '¿Quién escribió, a quién y por qué? ¿Dónde encaja este pasaje en el libro y en la historia de la redención?',
+        },
+        observation: {
+          label: 'Observación',
+          prompt:
+            'Lee despacio. ¿Qué dice el texto? Anota palabras que se repiten, contrastes, mandatos y promesas. Aún no interpretes.',
+        },
+        interpretation: {
+          label: 'Interpretación',
+          prompt:
+            '¿Qué significó para sus primeros lectores y qué significa? Deja que el pasaje hable y compáralo con los paralelos.',
+        },
+        bigIdea: {
+          label: 'Idea central',
+          prompt:
+            'En una sola frase: ¿cuál es la idea dominante del pasaje? Todo el bosquejo debe servir a esta única verdad.',
+        },
+        christ: {
+          label: 'Conexión con Cristo',
+          prompt:
+            '¿Cómo apunta, revela o se cumple este pasaje en Cristo? Predica el texto, no a ti mismo (Lc 24:27; 2 Co 4:5).',
+        },
+        application: {
+          label: 'Aplicación',
+          prompt:
+            '¿Cómo cambia esta verdad la mente, el corazón y las manos? Sé concreto y pastoral, nunca solo moralista.',
+        },
+        questions: {
+          label: 'Preguntas para el grupo',
+          prompt:
+            '¿Qué preguntas ayudarán al grupo a descubrir y vivir esta verdad por sí mismos?',
+        },
+      },
+    },
+
     dailyLight: {
       cardTitle: 'Luz diaria',
       cardSubtitle: 'Tu devocional de hoy',
@@ -3588,6 +3649,67 @@ export const translations = {
       missingText: '(text not available)',
       openHint: 'Open passage',
       error: 'Could not load study',
+    },
+
+    prepTable: {
+      title: 'Preparation table',
+      subtitle: 'Prepare your teaching',
+      cardTitle: 'Preparation table',
+      cardSubtitle: 'Gather everything to teach a passage',
+      passageLabel: 'Passage',
+      helpsTitle: 'What the app gathers',
+      helpsCount: '{{n}} helps gathered',
+      crossRefsTitle: 'Parallel passages',
+      crossRefsHint:
+        'Compare them to read the text in light of all Scripture (Acts 17:11).',
+      themesTitle: 'Passage themes',
+      bookIntroTitle: 'About this book',
+      christTitle: 'Christ in this passage',
+      noHelps: "We haven't gathered helps for this passage yet.",
+      notePlaceholder: 'Write here, in prayer…',
+      guardrail:
+        'This is your study table: the app gathers the material, but the words and the direction are yours, before the Lord. Examine everything in light of Scripture (Acts 17:11; 1 Thess 5:21).',
+      savedHint: 'Your notes are saved on this device only.',
+      openHint: 'Open passage',
+      error: 'Could not open the preparation table',
+      missingPassage: 'Choose a passage to begin.',
+      sections: {
+        context: {
+          label: 'Context',
+          prompt:
+            'Who wrote it, to whom, and why? Where does this passage sit in the book and in the story of redemption?',
+        },
+        observation: {
+          label: 'Observation',
+          prompt:
+            "Read slowly. What does the text say? Note repeated words, contrasts, commands and promises. Don't interpret yet.",
+        },
+        interpretation: {
+          label: 'Interpretation',
+          prompt:
+            'What did it mean to its first readers, and what does it mean? Let the passage speak, and compare the parallels.',
+        },
+        bigIdea: {
+          label: 'Big idea',
+          prompt:
+            "In one sentence: what is the passage's single dominant thought? The whole outline should serve this one truth.",
+        },
+        christ: {
+          label: 'Connection to Christ',
+          prompt:
+            'How does this passage point to, reveal, or find fulfillment in Christ? Preach the text, not yourself (Luke 24:27; 2 Cor 4:5).',
+        },
+        application: {
+          label: 'Application',
+          prompt:
+            'How does this truth change the mind, the heart and the hands? Be concrete and pastoral, never merely moralistic.',
+        },
+        questions: {
+          label: 'Questions for the group',
+          prompt:
+            'What questions will help the group discover and live this truth for themselves?',
+        },
+      },
     },
 
     dailyLight: {
