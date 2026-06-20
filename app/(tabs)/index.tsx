@@ -901,6 +901,19 @@ export default function HomeScreen() {
                             )
                         : undefined
                     }
+                    onPrep={() =>
+                      handlePress(() =>
+                        router.push({
+                          pathname: '/features/prep' as never,
+                          params: {
+                            book: dailyVerse.book,
+                            chapter: String(dailyVerse.chapter),
+                            startVerse: String(dailyVerse.verse),
+                            endVerse: String(dailyVerse.verse),
+                          },
+                        } as never),
+                      )
+                    }
                   />
                 </ShimmerCard>
               </Animated.View>
