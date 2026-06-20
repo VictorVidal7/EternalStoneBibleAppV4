@@ -3070,6 +3070,22 @@ export const translations = {
       deletePlanConfirm:
         'Se quitará de tus planes. Podrás volver a importarlo o crearlo de nuevo.',
       planDeleted: 'Plan eliminado',
+      shareStudyTitle: 'Compartir este estudio',
+      shareStudyIntro:
+        'Comparte tu bosquejo por enlace. Quien lo reciba lo verá como estudio navegable (solo lectura), en su propio idioma.',
+      shareStudyMessage:
+        '📖 Te comparto un estudio de {{passage}}.\n\nÁbrelo en Eternal Bible:\n{{link}}',
+      shareStudy: 'Compartir estudio',
+    },
+    sharedStudy: {
+      title: 'Estudio compartido',
+      banner: 'Te lo compartió alguien · solo lectura',
+      by: 'Compartido por {{who}}',
+      invalid: 'No pudimos abrir este estudio.',
+      empty:
+        'Este estudio no trae notas. Abre el pasaje en tu Mesa para estudiarlo.',
+      openInPrep: 'Abrir en mi Mesa',
+      teacherNote: 'Nota del autor',
     },
     planBuilder: {
       title: 'Crear un plan',
@@ -6148,6 +6164,22 @@ export const translations = {
       deletePlanConfirm:
         'It will be removed from your plans. You can import or create it again.',
       planDeleted: 'Plan deleted',
+      shareStudyTitle: 'Share this study',
+      shareStudyIntro:
+        'Share your outline by link. Whoever gets it sees a navigable, read-only study, in their own language.',
+      shareStudyMessage:
+        '📖 Here is a study of {{passage}} I made.\n\nOpen it in Eternal Bible:\n{{link}}',
+      shareStudy: 'Share study',
+    },
+    sharedStudy: {
+      title: 'Shared study',
+      banner: 'Shared with you · read-only',
+      by: 'Shared by {{who}}',
+      invalid: "We couldn't open this study.",
+      empty:
+        'This study has no notes. Open the passage in your Prep Table to study it.',
+      openInPrep: 'Open in my Prep Table',
+      teacherNote: "Author's note",
     },
     planBuilder: {
       title: 'Create a plan',
