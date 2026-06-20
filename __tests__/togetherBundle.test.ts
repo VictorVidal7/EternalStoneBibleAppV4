@@ -20,8 +20,10 @@ import {
   decodeTogetherParam,
   encodeBundleLink,
   encodeBundleParam,
+  encodeHttpsLink,
   encodePlanCode,
   encodeStudyLink,
+  ETERNAL_WEB_BASE,
   makeCustomPlanBundle,
   makePlanBundle,
   makeStudyBundle,
@@ -95,6 +97,30 @@ describe('encodeBundleLink / decodeTogetherParam', () => {
     const link = encodeBundleLink(makePlanBundle('nt-30', '2026-06-22', 'Hi'));
     expect(link.startsWith(`${TOGETHER_LINK_PREFIX}?d=`)).toBe(true);
     expect(param(link)).toMatch(/^[A-Za-z0-9_-]+$/);
+  });
+
+  it('encodeHttpsLink puts the same payload in the #fragment (clickable share)', () => {
+    const bundle = makePlanBundle('nt-30', '2026-06-22', 'Familia');
+    const link = encodeHttpsLink(bundle);
+    expect(link.startsWith(`${ETERNAL_WEB_BASE}#d=`)).toBe(true);
+    // The host only ever sees the path — the payload lives after the # so it is
+    // never sent to the server (zero-knowledge).
+    expect(link.indexOf('?')).toBe(-1);
+    const frag = link.slice(link.indexOf('#d=') + 3);
+    expect(frag).toMatch(/^[A-Za-z0-9_-]+$/);
+    expect(decodeTogetherParam(frag)).toEqual({ok: true, bundle});
+  });
+
+  it('encodeHttpsLink round-trips a study bundle through the same redirector', () => {
+    const study = makeStudyBundle(
+      {bookId: 43, chapter: 3, startVerse: 16, endVerse: 21},
+      'Pastor Daniel',
+      {bigIdea: 'Dios amó al mundo'},
+    );
+    const link = encodeHttpsLink(study);
+    expect(link.startsWith(`${ETERNAL_WEB_BASE}#d=`)).toBe(true);
+    const res = decodeTogetherParam(link.slice(link.indexOf('#d=') + 3));
+    expect(res).toEqual({ok: true, bundle: study});
   });
 
   it('rejects empty / garbage / non-base64 input', () => {

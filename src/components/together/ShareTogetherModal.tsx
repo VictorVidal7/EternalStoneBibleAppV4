@@ -32,7 +32,7 @@ import {focusTrapProps} from '@lib/a11y/focusTrap';
 import {
   GROUP_NAME_MAX,
   addDaysISO,
-  encodeBundleLink,
+  encodeHttpsLink,
   encodePlanCode,
   makePlanBundle,
   todayDateISO,
@@ -107,7 +107,7 @@ export function ShareTogetherModal({
     () => makePlanBundle(planId, startDate, groupName),
     [planId, startDate, groupName],
   );
-  const link = useMemo(() => encodeBundleLink(bundle), [bundle]);
+  const link = useMemo(() => encodeHttpsLink(bundle), [bundle]);
   const code = useMemo(
     () => encodePlanCode(planId, startDate),
     [planId, startDate],

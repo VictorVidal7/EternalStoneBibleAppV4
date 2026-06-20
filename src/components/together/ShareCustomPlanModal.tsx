@@ -22,7 +22,7 @@ import {useToast} from '@context/ToastContext';
 import {haptics} from '@lib/haptics';
 import {staticColors} from '@/styles/designTokens';
 import {focusTrapProps} from '@lib/a11y/focusTrap';
-import {encodeBundleLink} from '@lib/together';
+import {encodeHttpsLink} from '@lib/together';
 import {bundleFromCustomPlan} from '@lib/reading/customPlans';
 import type {ReadingPlan} from '@/constants/reading-plans';
 
@@ -39,7 +39,7 @@ export function ShareCustomPlanModal({visible, plan, onClose}: Props) {
   const toast = useToast();
 
   const link = useMemo(
-    () => encodeBundleLink(bundleFromCustomPlan(plan)),
+    () => encodeHttpsLink(bundleFromCustomPlan(plan)),
     [plan],
   );
   const message = tt.shareCustomMessage

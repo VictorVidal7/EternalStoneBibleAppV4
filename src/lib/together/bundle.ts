@@ -412,6 +412,24 @@ export function encodeBundleLink(bundle: TogetherBundle): string {
   return `${TOGETHER_LINK_PREFIX}?d=${encodeBundleParam(bundle)}`;
 }
 
+/**
+ * Public GitHub Pages redirector that makes a share TAPPABLE in messengers —
+ * WhatsApp & friends only linkify `http(s)://`, never the `eternalbible://`
+ * scheme. The payload rides in the URL **#fragment**, so the host never
+ * receives it (zero-knowledge, still 100% peer-to-peer / $0). The page bounces
+ * to `eternalbible://features/together?d=…`, which the app already handles for
+ * plans and custom plans and which also forwards shared studies to their
+ * viewer — so one link shape covers every bundle type.
+ *
+ * One constant: if the Pages org/repo name differs, change it HERE only.
+ */
+export const ETERNAL_WEB_BASE = 'https://eternalstonebible.github.io/o/';
+
+/** Any bundle → a tappable https share link (preferred over the raw scheme). */
+export function encodeHttpsLink(bundle: TogetherBundle): string {
+  return `${ETERNAL_WEB_BASE}#d=${encodeBundleParam(bundle)}`;
+}
+
 /** The deep-link route the read-only shared-study viewer lives at (S109). */
 export const STUDY_LINK_PREFIX = 'eternalbible://features/study-shared';
 

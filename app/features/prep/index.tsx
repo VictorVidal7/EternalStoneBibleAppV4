@@ -63,7 +63,7 @@ import {
   type PrepTable,
 } from '@/features/study/prepTable';
 import {getPrepNotes, savePrepNote} from '@/features/study/prepNotesStore';
-import {encodeStudyLink, makeStudyBundle} from '@lib/together';
+import {encodeHttpsLink, makeStudyBundle} from '@lib/together';
 import {
   buildPrepMarkdown,
   type PrepMarkdownSection,
@@ -486,7 +486,7 @@ export default function PrepTableScreen() {
       undefined,
       drafts,
     );
-    const link = encodeStudyLink(bundle);
+    const link = encodeHttpsLink(bundle);
     const message = t.together.shareStudyMessage
       .replace('{{passage}}', passageLabel)
       .replace('{{link}}', link);
