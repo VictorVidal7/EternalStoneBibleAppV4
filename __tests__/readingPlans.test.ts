@@ -61,7 +61,9 @@ describe('READING_PLANS integrity', () => {
         expect(localized.name).toBeTruthy();
         expect(localized.description).toBeTruthy();
         // i18n entry (not just the Spanish fallback) must exist for the key.
-        const entry = translations[lang].readingPlans[plan.i18nKey];
+        // Curated plans always carry an i18nKey (custom plans, which don't, are
+        // not in READING_PLANS).
+        const entry = translations[lang].readingPlans[plan.i18nKey!];
         expect(entry?.name).toBeTruthy();
         expect(entry?.description).toBeTruthy();
       }
@@ -83,7 +85,7 @@ describe('READING_PLANS integrity', () => {
     for (const plan of READING_PLANS) {
       if (!topical.includes(plan.i18nKey as (typeof topical)[number])) continue;
       for (const lang of ['es', 'en'] as const) {
-        const entry = translations[lang].readingPlans[plan.i18nKey] as {
+        const entry = translations[lang].readingPlans[plan.i18nKey!] as {
           context?: readonly string[];
         };
         expect(entry.context).toBeDefined();

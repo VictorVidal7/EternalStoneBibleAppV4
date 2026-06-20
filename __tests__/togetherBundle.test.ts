@@ -3,7 +3,14 @@
  * Round trips, untrusted-input hardening, and code typo-tolerance.
  */
 
-import {TOGETHER_BUNDLE_VERSION, GROUP_NAME_MAX} from '@/lib/together/types';
+import {
+  TOGETHER_BUNDLE_VERSION,
+  GROUP_NAME_MAX,
+  PLAN_NAME_MAX,
+  MAX_PLAN_DAYS,
+  MAX_DAY_READINGS,
+  type CustomReading,
+} from '@/lib/together/types';
 import {
   TOGETHER_LINK_PREFIX,
   addDaysISO,
@@ -12,8 +19,10 @@ import {
   encodeBundleLink,
   encodeBundleParam,
   encodePlanCode,
+  makeCustomPlanBundle,
   makePlanBundle,
   sanitizeGroupName,
+  sanitizePlanName,
   todayDateISO,
 } from '@/lib/together/bundle';
 
@@ -62,7 +71,8 @@ describe('encodeBundleLink / decodeTogetherParam', () => {
     );
     const res = decodeTogetherParam(param(encodeBundleLink(bundle)));
     expect(res).toEqual({ok: true, bundle});
-    if (res.ok) expect(res.bundle.g).toBe('Célula 🙏 Galilea');
+    if (res.ok && res.bundle.t === 'plan')
+      expect(res.bundle.g).toBe('Célula 🙏 Galilea');
   });
 
   it('encodeBundleParam yields the same payload the link carries', () => {
@@ -141,7 +151,7 @@ describe('encodeBundleLink / decodeTogetherParam', () => {
     } as never);
     const res = decodeTogetherParam(param(link));
     expect(res.ok).toBe(true);
-    if (res.ok) {
+    if (res.ok && res.bundle.t === 'plan') {
       expect(res.bundle.g).toBe('A'.repeat(GROUP_NAME_MAX));
     }
   });
@@ -201,7 +211,133 @@ describe('encodePlanCode / decodePlanCode', () => {
   it('matches plan tokens regardless of dashes in the id', () => {
     const code = encodePlanCode('bible-year', '2026-06-22')!;
     const res = decodePlanCode(code, PLAN_IDS);
-    expect(res.ok && res.bundle.p).toBe('bible-year');
+    expect(res.ok && res.bundle.t === 'plan' && res.bundle.p).toBe(
+      'bible-year',
+    );
+  });
+});
+
+describe('makeCustomPlanBundle', () => {
+  it('builds a versioned cplan bundle with a sanitized name', () => {
+    const b = makeCustomPlanBundle('  Juan en 7 días  ', [
+      [
+        [43, 1],
+        [43, 2],
+      ],
+      [[43, 3]],
+    ]);
+    expect(b).toEqual({
+      v: TOGETHER_BUNDLE_VERSION,
+      t: 'cplan',
+      n: 'Juan en 7 días',
+      d: [
+        [
+          [43, 1],
+          [43, 2],
+        ],
+        [[43, 3]],
+      ],
+    });
+  });
+
+  it('drops empty days and caps days/readings', () => {
+    const longDay: CustomReading[] = Array.from(
+      {length: MAX_DAY_READINGS + 10},
+      (_, i) => [1, (i % 50) + 1] as CustomReading,
+    );
+    const b = makeCustomPlanBundle('X', [[], longDay, []]);
+    expect(b.d).toHaveLength(1); // both empty days dropped
+    expect(b.d[0]).toHaveLength(MAX_DAY_READINGS); // readings capped
+  });
+});
+
+describe('custom plan round-trip / hardening', () => {
+  const sample = makeCustomPlanBundle('Mi plan', [
+    [
+      [1, 1],
+      [1, 2],
+    ],
+    [[19, 23]],
+  ]);
+
+  it('round-trips through the link', () => {
+    const res = decodeTogetherParam(param(encodeBundleLink(sample)));
+    expect(res).toEqual({ok: true, bundle: sample});
+  });
+
+  it('encodeBundleParam matches the link payload', () => {
+    expect(decodeTogetherParam(encodeBundleParam(sample))).toEqual({
+      ok: true,
+      bundle: sample,
+    });
+  });
+
+  it('re-sanitizes a malicious plan name on decode', () => {
+    const evil = 'Z'.repeat(200) + String.fromCharCode(0, 31, 127) + '  x';
+    const link = encodeBundleLink({
+      v: 1,
+      t: 'cplan',
+      n: evil,
+      d: [[[1, 1]]],
+    } as never);
+    const res = decodeTogetherParam(param(link));
+    expect(res.ok).toBe(true);
+    if (res.ok && res.bundle.t === 'cplan') {
+      expect(res.bundle.n).toBe('Z'.repeat(PLAN_NAME_MAX));
+    }
+  });
+
+  it('rejects an empty plan, empty day, or empty name', () => {
+    const mk = (d: unknown, n = 'Ok') =>
+      decodeTogetherParam(
+        param(encodeBundleLink({v: 1, t: 'cplan', n, d} as never)),
+      );
+    expect(mk([]).ok).toBe(false); // no days
+    expect(mk([[]]).ok).toBe(false); // empty day
+    expect(mk([[[1, 1]]], '   ').ok).toBe(false); // name sanitizes to empty
+  });
+
+  it('rejects malformed or out-of-range readings', () => {
+    const mk = (reading: unknown) =>
+      decodeTogetherParam(
+        param(
+          encodeBundleLink({
+            v: 1,
+            t: 'cplan',
+            n: 'Ok',
+            d: [[reading]],
+          } as never),
+        ),
+      );
+    expect(mk([1]).ok).toBe(false); // not a pair
+    expect(mk([0, 1]).ok).toBe(false); // book id < 1
+    expect(mk([67, 1]).ok).toBe(false); // book id > 66
+    expect(mk([1, 0]).ok).toBe(false); // chapter < 1
+    expect(mk([1, 151]).ok).toBe(false); // chapter > 150
+    expect(mk([1, 1.5]).ok).toBe(false); // non-integer chapter
+    expect(mk('Genesis 1').ok).toBe(false); // not even an array
+  });
+
+  it('rejects too many days', () => {
+    const tooMany = Array.from(
+      {length: MAX_PLAN_DAYS + 1},
+      () => [[1, 1]] as CustomReading[],
+    );
+    const link = encodeBundleLink({
+      v: 1,
+      t: 'cplan',
+      n: 'Ok',
+      d: tooMany,
+    } as never);
+    expect(decodeTogetherParam(param(link)).ok).toBe(false);
+  });
+});
+
+describe('sanitizePlanName', () => {
+  it('strips controls, collapses whitespace, trims, and caps length', () => {
+    expect(sanitizePlanName('  a' + TAB + 'b  ')).toBe('a b');
+    expect(sanitizePlanName('y'.repeat(200)).length).toBe(PLAN_NAME_MAX);
+    expect(sanitizePlanName('a' + CTRL + 'b')).toBe('ab');
   });
 });
 

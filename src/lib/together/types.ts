@@ -21,6 +21,18 @@ export const TOGETHER_BUNDLE_VERSION = 1;
 /** Max length of a creator-typed group label (sanitized, plain text). */
 export const GROUP_NAME_MAX = 40;
 
+/** Max length of a creator-typed custom-plan name (sanitized, plain text). */
+export const PLAN_NAME_MAX = 60;
+
+/** Caps that bound a decoded custom plan (untrusted input — Sprint 108). */
+export const MAX_PLAN_DAYS = 400;
+export const MAX_DAY_READINGS = 50;
+export const MAX_PLAN_READINGS = 1500;
+/** A reading's book id is the canonical 1..66 Bible book number. */
+export const BOOK_ID_MAX = 66;
+/** A reading's chapter, bounded above the largest real book (Psalms = 150). */
+export const CHAPTER_MAX = 150;
+
 /**
  * A shared **curated** reading plan (Sprint 107). The members all follow the
  * SAME curated plan (one of the bundled, reviewed plans) starting on the SAME
@@ -41,10 +53,36 @@ export interface SharedPlanBundle {
 }
 
 /**
- * The decoded bundle. A discriminated union (by `t`) that grows as later
- * sprints add custom plans / shared studies / baked calendars.
+ * A single chapter reading inside a custom plan: the tuple `[bookId, chapter]`,
+ * whole chapters only (Sprint 108). Stored as a numeric book id (not a name) so
+ * it resolves identically in any UI/version language, and stays compact in the
+ * link.
  */
-export type TogetherBundle = SharedPlanBundle;
+export type CustomReading = [bookId: number, chapter: number];
+
+/**
+ * A user-built **custom** reading plan (Sprint 108). Unlike {@link
+ * SharedPlanBundle} (which only names one of the curated plans), this carries
+ * the WHOLE plan — its name and the chapters of every day — self-contained in
+ * the link, so the catalogue can be extended peer-to-peer with zero backend.
+ * Bounded by the `MAX_*` caps above since it arrives as untrusted input.
+ */
+export interface CustomPlanBundle {
+  /** Format version. */
+  v: number;
+  /** Discriminant. */
+  t: 'cplan';
+  /** Plan name (creator's free text, already sanitized). */
+  n: string;
+  /** Days, each an ordered list of chapter readings. */
+  d: CustomReading[][];
+}
+
+/**
+ * The decoded bundle. A discriminated union (by `t`) that grows as later
+ * sprints add shared studies / baked calendars.
+ */
+export type TogetherBundle = SharedPlanBundle | CustomPlanBundle;
 
 /** Why a decode failed — drives a friendly, localized message in the UI. */
 export type DecodeFailure =

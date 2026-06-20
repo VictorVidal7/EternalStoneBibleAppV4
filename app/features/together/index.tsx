@@ -32,20 +32,43 @@ import {useToast} from '@context/ToastContext';
 import {haptics} from '@lib/haptics';
 import {staticColors} from '@/styles/designTokens';
 import {useTogether} from '@context/TogetherContext';
+import {useCustomPlans} from '@context/CustomPlansContext';
 import {useReadingPlanProgress} from '@context/ReadingPlanProgressContext';
 import {
   READING_PLANS,
   getLocalizedPlan,
   getReadingPlanById,
+  type ReadingPlan,
 } from '@/constants/reading-plans';
 import {
   decodePlanCode,
   decodeTogetherParam,
   type DecodeFailure,
+  type DecodeResult,
   type SharedPlanBundle,
 } from '@lib/together';
+import {customPlanFromBundle} from '@lib/reading/customPlans';
 
 const PLAN_IDS = READING_PLANS.map(p => p.id);
+
+/**
+ * Decode whatever the user pasted/typed: a full invite link, a raw `d=`
+ * payload, or a short curated code. Returns a normal DecodeResult.
+ */
+function decodeJoinInput(raw: string): DecodeResult {
+  const trimmed = raw.trim();
+  const at = trimmed.indexOf('?d=');
+  if (at >= 0) return decodeTogetherParam(trimmed.slice(at + 3));
+  if (/^eb1[- ]/i.test(trimmed)) return decodePlanCode(trimmed, PLAN_IDS);
+  // Try as a raw bundle payload first, then fall back to a curated code.
+  const asPayload = decodeTogetherParam(trimmed);
+  return asPayload.ok ? asPayload : decodePlanCode(trimmed, PLAN_IDS);
+}
+
+/** Total chapters across a plan's days — for the custom-plan meta line. */
+function countPlanChapters(plan: ReadingPlan): number {
+  return plan.days.reduce((sum, d) => sum + d.readings.length, 0);
+}
 
 /** ISO timestamp at LOCAL midnight of a `YYYY-MM-DD` calendar date. */
 function dateToISO(calendarDate: string): string {
@@ -75,43 +98,69 @@ export default function TogetherJoinScreen() {
   const tt = t.together;
   const toast = useToast();
   const {joinPlan} = useTogether();
+  const {saveCustomPlan} = useCustomPlans();
   const {setPlanStart} = useReadingPlanProgress();
 
   const params = useLocalSearchParams<{d?: string}>();
 
-  const [bundle, setBundle] = useState<SharedPlanBundle | null>(null);
+  // A confirmation is either a curated shared plan (carries start/group) or a
+  // resolved custom plan (carries its own content); at most one is set.
+  const [shared, setShared] = useState<SharedPlanBundle | null>(null);
+  const [custom, setCustom] = useState<ReadingPlan | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [codeInput, setCodeInput] = useState('');
 
   /** Map a decode failure to a friendly, localized message. */
-  const messageFor = (reason: DecodeFailure): string => {
+  const messageFor = (reason: DecodeFailure, fromLink: boolean): string => {
     switch (reason) {
       case 'version':
         return tt.linkVersion;
       case 'unknown-plan':
         return tt.codeUnknownPlan;
+      case 'unsupported':
+        return tt.linkVersion;
       default:
-        return tt.linkInvalid;
+        return fromLink ? tt.linkInvalid : tt.codeInvalid;
     }
+  };
+
+  /** Accept a decoded bundle into the right confirmation state. */
+  const applyResult = (res: DecodeResult, fromLink: boolean) => {
+    if (!res.ok) {
+      setError(messageFor(res.reason, fromLink));
+      return;
+    }
+    if (res.bundle.t === 'plan') {
+      if (!getReadingPlanById(res.bundle.p)) {
+        setError(tt.codeUnknownPlan);
+        return;
+      }
+      setShared(res.bundle);
+      setCustom(null);
+      setError(null);
+      return;
+    }
+    if (res.bundle.t === 'cplan') {
+      const plan = customPlanFromBundle(res.bundle);
+      if (!plan) {
+        setError(tt.linkInvalid);
+        return;
+      }
+      setCustom(plan);
+      setShared(null);
+      setError(null);
+      return;
+    }
+    setError(tt.linkInvalid);
   };
 
   // Decode the deep-link payload once, when present.
   useEffect(() => {
     if (!params.d) return;
-    const res = decodeTogetherParam(params.d);
-    if (!res.ok) {
-      setError(messageFor(res.reason));
-      return;
-    }
-    if (!getReadingPlanById(res.bundle.p)) {
-      setError(tt.codeUnknownPlan);
-      return;
-    }
-    setBundle(res.bundle);
-    setError(null);
+    applyResult(decodeTogetherParam(params.d), true);
   }, [params.d]);
 
-  const plan = bundle ? getReadingPlanById(bundle.p) : undefined;
+  const plan = shared ? getReadingPlanById(shared.p) : undefined;
   const planName = useMemo(
     () => (plan ? getLocalizedPlan(plan, t).name : ''),
     [plan, t],
@@ -119,30 +168,27 @@ export default function TogetherJoinScreen() {
 
   const submitCode = () => {
     haptics.tap();
-    const res = decodePlanCode(codeInput, PLAN_IDS);
-    if (!res.ok) {
-      setError(
-        res.reason === 'unknown-plan' ? tt.codeUnknownPlan : tt.codeInvalid,
-      );
-      return;
-    }
-    if (!getReadingPlanById(res.bundle.p)) {
-      setError(tt.codeUnknownPlan);
-      return;
-    }
-    setBundle(res.bundle);
-    setError(null);
+    applyResult(decodeJoinInput(codeInput), false);
   };
 
   const onJoin = async () => {
-    if (!bundle || !plan) return;
+    if (!shared || !plan) return;
     haptics.success();
     await Promise.all([
-      joinPlan(bundle.p, {name: bundle.g, startDate: bundle.s}),
-      setPlanStart(bundle.p, dateToISO(bundle.s)),
+      joinPlan(shared.p, {name: shared.g, startDate: shared.s}),
+      setPlanStart(shared.p, dateToISO(shared.s)),
     ]);
     toast.success(tt.joinedToast);
-    router.replace(`/plan/${bundle.p}` as never);
+    router.replace(`/plan/${shared.p}` as never);
+  };
+
+  const onImport = async () => {
+    if (!custom) return;
+    haptics.success();
+    await saveCustomPlan(custom);
+    await setPlanStart(custom.id, new Date().toISOString());
+    toast.success(tt.importedToast);
+    router.replace(`/plan/${custom.id}` as never);
   };
 
   return (
@@ -160,15 +206,15 @@ export default function TogetherJoinScreen() {
           <Ionicons name="arrow-back" size={22} color={colors.text} />
         </TouchableOpacity>
         <Text style={[styles.headerTitle, {color: colors.text}]}>
-          {bundle ? tt.importTitle : tt.enterCode}
+          {shared ? tt.importTitle : custom ? tt.customInvitedTo : tt.enterCode}
         </Text>
       </View>
 
       <ScrollView
         contentContainerStyle={styles.body}
         keyboardShouldPersistTaps="handled">
-        {bundle && plan ? (
-          // ── Confirmation ──
+        {shared && plan ? (
+          // ── Curated plan confirmation (date + optional group) ──
           <View style={[styles.card, {backgroundColor: colors.card}]}>
             <Ionicons
               name="people-circle-outline"
@@ -182,7 +228,7 @@ export default function TogetherJoinScreen() {
             <Text style={[styles.planName, {color: colors.text}]}>
               {planName}
             </Text>
-            {bundle.g ? (
+            {shared.g ? (
               <View style={styles.metaRow}>
                 <Ionicons
                   name="people-outline"
@@ -190,7 +236,7 @@ export default function TogetherJoinScreen() {
                   color={colors.primary}
                 />
                 <Text style={[styles.metaText, {color: colors.text}]}>
-                  {tt.withGroup.replace('{{group}}', bundle.g)}
+                  {tt.withGroup.replace('{{group}}', shared.g)}
                 </Text>
               </View>
             ) : null}
@@ -203,7 +249,7 @@ export default function TogetherJoinScreen() {
               <Text style={[styles.metaText, {color: colors.text}]}>
                 {tt.willStart.replace(
                   '{{date}}',
-                  formatDate(bundle.s, language),
+                  formatDate(shared.s, language),
                 )}
               </Text>
             </View>
@@ -226,8 +272,54 @@ export default function TogetherJoinScreen() {
               </Text>
             </TouchableOpacity>
           </View>
+        ) : custom ? (
+          // ── Custom plan confirmation (its own content) ──
+          <View style={[styles.card, {backgroundColor: colors.card}]}>
+            <Ionicons
+              name="create-outline"
+              size={48}
+              color={colors.primary}
+              style={styles.cardIcon}
+            />
+            <Text style={[styles.invitedTo, {color: colors.textSecondary}]}>
+              {tt.customInvitedTo}
+            </Text>
+            <Text style={[styles.planName, {color: colors.text}]}>
+              {custom.name}
+            </Text>
+            <View style={styles.metaRow}>
+              <Ionicons
+                name="calendar-outline"
+                size={16}
+                color={colors.primary}
+              />
+              <Text style={[styles.metaText, {color: colors.text}]}>
+                {tt.customMeta
+                  .replace('{{days}}', String(custom.duration))
+                  .replace('{{chapters}}', String(countPlanChapters(custom)))}
+              </Text>
+            </View>
+            <Text style={[styles.privacyNote, {color: colors.textSecondary}]}>
+              {tt.privateProgress}
+            </Text>
+            <TouchableOpacity
+              style={[styles.primaryBtn, {backgroundColor: colors.primary}]}
+              onPress={onImport}
+              accessibilityRole="button"
+              accessibilityLabel={tt.importPlan}>
+              <Ionicons
+                name="download-outline"
+                size={20}
+                color={staticColors.white}
+              />
+              <Text
+                style={[styles.primaryBtnText, {color: staticColors.white}]}>
+                {tt.importPlan}
+              </Text>
+            </TouchableOpacity>
+          </View>
         ) : (
-          // ── Code entry ──
+          // ── Code / link entry ──
           <View style={[styles.card, {backgroundColor: colors.card}]}>
             <Ionicons
               name="key-outline"
@@ -236,7 +328,7 @@ export default function TogetherJoinScreen() {
               style={styles.cardIcon}
             />
             <Text style={[styles.intro, {color: colors.textSecondary}]}>
-              {tt.enterCodeIntro}
+              {tt.pasteOrCodeIntro}
             </Text>
             <TextInput
               style={[
@@ -252,9 +344,11 @@ export default function TogetherJoinScreen() {
                 setCodeInput(text);
                 if (error) setError(null);
               }}
-              placeholder={tt.enterCodePlaceholder}
+              placeholder={tt.pasteOrCodePlaceholder}
               placeholderTextColor={colors.textSecondary}
-              autoCapitalize="characters"
+              // A pasted link/payload is case-sensitive (base64url); curated
+              // codes are upper-cased on decode anyway, so don't auto-capitalize.
+              autoCapitalize="none"
               autoCorrect={false}
               returnKeyType="go"
               onSubmitEditing={submitCode}

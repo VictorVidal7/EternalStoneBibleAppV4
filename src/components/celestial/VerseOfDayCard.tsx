@@ -186,6 +186,14 @@ interface VerseOfDayCardProps {
 
   /** Opens the fulfillment verse in the reader; paired with {@link christPointsTo}. */
   onChristPointsTo?: () => void;
+
+  /**
+   * Opens the Mesa de preparación (prep table) on this verse (Sprint 108).
+   * Unlike the study-web CTA, this is shown ALWAYS when provided — even for a
+   * verse with zero study connections — so there is always a path to study the
+   * day's passage more deeply (2 Timoteo 2:15).
+   */
+  onPrep?: () => void;
 }
 
 const VerseOfDayCard: React.FC<VerseOfDayCardProps> = ({
@@ -216,6 +224,7 @@ const VerseOfDayCard: React.FC<VerseOfDayCardProps> = ({
   christPointsToLabel,
   christVersionAbbrev,
   onChristPointsTo,
+  onPrep,
 }) => {
   const {t} = useLanguage();
   const {colors} = useTheme();
@@ -692,6 +701,32 @@ const VerseOfDayCard: React.FC<VerseOfDayCardProps> = ({
                   {studyConnectionsCount}
                 </Text>
               </View>
+              <Ionicons name="arrow-forward" size={16} color={colors.primary} />
+            </TouchableOpacity>
+          ) : null}
+
+          {/* Mesa de preparación (S108) — always offered when wired, so even a
+              verse with no curated study connections has a way into deeper
+              study of the day's passage. */}
+          {onPrep ? (
+            <TouchableOpacity
+              style={[
+                styles.studyCta,
+                {borderTopColor: theme.colors.glassBorder},
+              ]}
+              onPress={onPrep}
+              accessibilityRole="button"
+              accessibilityLabel={t.home.prepFromVerse}>
+              <Ionicons
+                name="clipboard-outline"
+                size={18}
+                color={colors.primary}
+              />
+              <Text
+                scaleRole="compact"
+                style={[styles.studyCtaText, {color: colors.primary}]}>
+                {t.home.prepFromVerse}
+              </Text>
               <Ionicons name="arrow-forward" size={16} color={colors.primary} />
             </TouchableOpacity>
           ) : null}

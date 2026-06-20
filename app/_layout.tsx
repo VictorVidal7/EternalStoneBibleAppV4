@@ -59,6 +59,7 @@ import {FavoritesProvider} from '@context/FavoritesContext';
 import {BookmarksProvider} from '@context/BookmarksContext';
 import {ReadingPlanProgressProvider} from '@context/ReadingPlanProgressContext';
 import {TogetherProvider} from '@context/TogetherContext';
+import {CustomPlansProvider} from '@context/CustomPlansContext';
 import {ReaderPreferencesProvider} from '@context/ReaderPreferencesContext';
 import {MemoryDeckProvider} from '@context/MemoryDeckContext';
 import {AuthProvider} from '@context/AuthContext';
@@ -329,23 +330,25 @@ export default function RootLayout() {
                 <SyncEngineProvider>
                   <ReadingProgressProvider>
                     <ReadingPlanProgressProvider>
-                      <TogetherProvider>
-                        <FavoritesProvider>
-                          <BookmarksProvider>
-                            <ReaderPreferencesProvider>
-                              <MemoryDeckProvider>
-                                <ToastProvider>
-                                  <PremiumProvider>
-                                    <AudioPlayerProvider>
-                                      <AppContent />
-                                    </AudioPlayerProvider>
-                                  </PremiumProvider>
-                                </ToastProvider>
-                              </MemoryDeckProvider>
-                            </ReaderPreferencesProvider>
-                          </BookmarksProvider>
-                        </FavoritesProvider>
-                      </TogetherProvider>
+                      <CustomPlansProvider>
+                        <TogetherProvider>
+                          <FavoritesProvider>
+                            <BookmarksProvider>
+                              <ReaderPreferencesProvider>
+                                <MemoryDeckProvider>
+                                  <ToastProvider>
+                                    <PremiumProvider>
+                                      <AudioPlayerProvider>
+                                        <AppContent />
+                                      </AudioPlayerProvider>
+                                    </PremiumProvider>
+                                  </ToastProvider>
+                                </MemoryDeckProvider>
+                              </ReaderPreferencesProvider>
+                            </BookmarksProvider>
+                          </FavoritesProvider>
+                        </TogetherProvider>
+                      </CustomPlansProvider>
                     </ReadingPlanProgressProvider>
                   </ReadingProgressProvider>
                 </SyncEngineProvider>

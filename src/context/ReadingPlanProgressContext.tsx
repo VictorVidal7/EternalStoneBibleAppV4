@@ -23,7 +23,13 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import {logger} from '../lib/utils/logger';
 import {READING_PLANS} from '../constants/reading-plans';
 import {getBookByName} from '../constants/bible';
+import {getRegisteredCustomPlans} from '../lib/reading/customPlans';
 import {withCompletionStamp} from '../lib/reading/planCompletion';
+
+/** Curated + user-created plans, so progress treats custom plans alike (S108). */
+function allPlans() {
+  return [...READING_PLANS, ...getRegisteredCustomPlans()];
+}
 
 const STORAGE_KEY = '@reading_plan_progress';
 const READ_CHAPTERS_KEY = '@reading_plan_read_chapters';
@@ -163,8 +169,7 @@ export function ReadingPlanProgressProvider({children}: {children: ReactNode}) {
         : [...current.completedDays, day].sort((a, b) => a - b);
       // Stamp completedAt the first time the plan covers all its days
       // (conserve-once-earned — see planCompletion).
-      const duration =
-        READING_PLANS.find(p => p.id === planId)?.days.length ?? 0;
+      const duration = allPlans().find(p => p.id === planId)?.days.length ?? 0;
       await persist({
         ...progress,
         [planId]: withCompletionStamp(
@@ -216,7 +221,7 @@ export function ReadingPlanProgressProvider({children}: {children: ReactNode}) {
       // Find every plan day not yet completed whose chapters are all read.
       const currentProgress = progressRef.current;
       const newlyCompleted: AutoCompletedDay[] = [];
-      for (const plan of READING_PLANS) {
+      for (const plan of allPlans()) {
         const completedDays = currentProgress[plan.id]?.completedDays ?? [];
         for (const planDay of plan.days) {
           if (completedDays.includes(planDay.day)) continue;
@@ -241,7 +246,7 @@ export function ReadingPlanProgressProvider({children}: {children: ReactNode}) {
             // The auto-complete path can also finish a plan (reading the
             // last listed chapter) — stamp it here too (Sprint 81).
             const duration =
-              READING_PLANS.find(p => p.id === planId)?.days.length ?? 0;
+              allPlans().find(p => p.id === planId)?.days.length ?? 0;
             nextProgress[planId] = withCompletionStamp(
               {
                 ...cur,
