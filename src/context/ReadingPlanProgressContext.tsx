@@ -54,6 +54,13 @@ interface ReadingPlanProgressContextType {
   isDayComplete: (planId: string, day: number) => boolean;
   toggleDay: (planId: string, day: number) => Promise<void>;
   /**
+   * Seeds (or re-aligns) a plan's `startedAt` to an explicit ISO timestamp.
+   * Used when JOINING a shared "together" plan so everyone's "Day N" lines up
+   * on the agreed calendar date (Sprint 107). Existing `completedDays` and the
+   * once-earned `completedAt` stamp are preserved.
+   */
+  setPlanStart: (planId: string, startedAtISO: string) => Promise<void>;
+  /**
    * Records that a chapter was read and auto-completes any plan day whose
    * chapters are now all read. Returns the days that just became complete so
    * the caller can surface feedback (e.g. a toast).
@@ -170,6 +177,17 @@ export function ReadingPlanProgressProvider({children}: {children: ReactNode}) {
     [progress, persist],
   );
 
+  const setPlanStart = useCallback(
+    async (planId: string, startedAtISO: string) => {
+      const current = progress[planId];
+      const next: PlanProgress = current
+        ? {...current, startedAt: startedAtISO}
+        : {completedDays: [], startedAt: startedAtISO};
+      await persist({...progress, [planId]: next});
+    },
+    [progress, persist],
+  );
+
   const markChapterRead = useCallback(
     async (
       book: string | number,
@@ -268,6 +286,7 @@ export function ReadingPlanProgressProvider({children}: {children: ReactNode}) {
         getCompletedDays,
         isDayComplete,
         toggleDay,
+        setPlanStart,
         markChapterRead,
         isChapterRead,
         getStartedAt,
