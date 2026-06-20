@@ -24,6 +24,7 @@ import {
   encodePlanCode,
   encodeStudyLink,
   ETERNAL_WEB_BASE,
+  extractSharedLinkPayload,
   makeCustomPlanBundle,
   makePlanBundle,
   makeStudyBundle,
@@ -187,6 +188,60 @@ describe('encodeBundleLink / decodeTogetherParam', () => {
     if (res.ok && res.bundle.t === 'plan') {
       expect(res.bundle.g).toBe('A'.repeat(GROUP_NAME_MAX));
     }
+  });
+});
+
+describe('extractSharedLinkPayload (App Link autoVerify)', () => {
+  it('recovers the #fragment payload from a direct App Link open', () => {
+    const bundle = makePlanBundle('nt-30', '2026-06-22', 'Familia');
+    const link = encodeHttpsLink(bundle); // https://…/o/#d=<payload>
+    const payload = extractSharedLinkPayload(link);
+    expect(payload).not.toBeNull();
+    expect(decodeTogetherParam(payload as string)).toEqual({ok: true, bundle});
+  });
+
+  it('round-trips a study bundle through a direct App Link open', () => {
+    const study = makeStudyBundle(
+      {bookId: 43, chapter: 3, startVerse: 16, endVerse: 21},
+      'Pastor Daniel',
+      {bigIdea: 'Dios amó al mundo'},
+    );
+    const payload = extractSharedLinkPayload(encodeHttpsLink(study));
+    expect(decodeTogetherParam(payload as string)).toEqual({
+      ok: true,
+      bundle: study,
+    });
+  });
+
+  it('accepts a ?d= query variant and a missing trailing slash', () => {
+    const base = ETERNAL_WEB_BASE.replace(/\/+$/, ''); // …/o
+    expect(extractSharedLinkPayload(`${base}#d=ABC-_123`)).toBe('ABC-_123');
+    expect(extractSharedLinkPayload(`${base}/?d=ABC-_123`)).toBe('ABC-_123');
+    expect(extractSharedLinkPayload(`${base}/index.html#d=XYZ`)).toBe('XYZ');
+  });
+
+  it('leaves the eternalbible:// scheme links and foreign URLs untouched', () => {
+    // Scheme links are routed natively by Expo Router — never rewrite them.
+    expect(
+      extractSharedLinkPayload('eternalbible://features/together?d=ABC'),
+    ).toBeNull();
+    expect(
+      extractSharedLinkPayload('eternalbible://features/study-shared?d=ABC'),
+    ).toBeNull();
+    // A look-alike host must not match.
+    expect(
+      extractSharedLinkPayload('https://evil.example.com/o/#d=ABC'),
+    ).toBeNull();
+    expect(
+      extractSharedLinkPayload('https://eternalstonebible.github.io/'),
+    ).toBe(null);
+  });
+
+  it('returns null for an empty payload or non-string input', () => {
+    const base = ETERNAL_WEB_BASE.replace(/\/+$/, '');
+    expect(extractSharedLinkPayload(`${base}/#d=`)).toBeNull();
+    // @ts-expect-error — defends against a non-string at the JS boundary.
+    expect(extractSharedLinkPayload(undefined)).toBeNull();
   });
 });
 
