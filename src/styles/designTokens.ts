@@ -92,7 +92,13 @@ export const verseTextRightSlack = (fontSize: number): number =>
   // 23) and the slope 0.65→0.7 (clears the overhang on the larger hero
   // quotes). Still monotonic, font-scaled and imperceptible where it never
   // clipped.
-  Math.max(16, Math.round(fontSize * 0.7));
+  //
+  // Sprint 106 (8th report): the user STILL caught a few verses clipping "un
+  // poquito" on their real phone (the emulator's wide ragged-right margin
+  // never repros it). The floor is still the only lever at the common fixed
+  // card sizes (14–20), so raised it 16→20 and the slope 0.7→0.75 so the
+  // larger hero quotes gain a touch more too. Still monotonic & font-scaled.
+  Math.max(20, Math.round(fontSize * 0.75));
 
 export const fontWeight = {
   light: '300',

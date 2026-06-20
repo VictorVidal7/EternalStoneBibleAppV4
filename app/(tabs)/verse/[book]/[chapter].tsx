@@ -2060,7 +2060,11 @@ export default function VerseReadingScreen() {
               // lever that actually moves the reserve — bumped it 16→20 (the
               // slope is moot here and stays 0.65). Still derived solely from
               // fontSize → read/idle parity and no playback reflow preserved.
-              marginRight: Math.max(20, Math.round(fontSize * 0.65)),
+              //
+              // Sprint 106 (8th report): still a faint clip on the user's phone.
+              // Floor 20→24 (the lever in-range) + slope 0.65→0.7 so the larger
+              // reader sizes gain a little too. Still derived only from fontSize.
+              marginRight: Math.max(24, Math.round(fontSize * 0.7)),
             } as const;
 
             const numberStyle = {
