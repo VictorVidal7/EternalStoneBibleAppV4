@@ -43,6 +43,7 @@ import {
 import {
   decodePlanCode,
   decodeTogetherParam,
+  encodeBundleParam,
   type DecodeFailure,
   type DecodeResult,
   type SharedPlanBundle,
@@ -149,6 +150,13 @@ export default function TogetherJoinScreen() {
       setCustom(plan);
       setShared(null);
       setError(null);
+      return;
+    }
+    if (res.bundle.t === 'study') {
+      // A shared study isn't a group to join — open the read-only viewer.
+      router.replace(
+        `/features/study-shared?d=${encodeBundleParam(res.bundle)}` as never,
+      );
       return;
     }
     setError(tt.linkInvalid);

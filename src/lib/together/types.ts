@@ -32,6 +32,19 @@ export const MAX_PLAN_READINGS = 1500;
 export const BOOK_ID_MAX = 66;
 /** A reading's chapter, bounded above the largest real book (Psalms = 150). */
 export const CHAPTER_MAX = 150;
+/** A verse number, bounded above the longest chapter (Psalm 119 = 176). */
+export const VERSE_MAX = 200;
+
+/** Caps that bound a decoded shared study (untrusted input — Sprint 109). */
+export const STUDY_TITLE_MAX = 80;
+/** Max characters of one section's note (the teacher's prose). */
+export const STUDY_NOTE_MAX = 4000;
+/** Max total characters across all notes (bounds the whole payload). */
+export const STUDY_NOTES_TOTAL_MAX = 20000;
+/** Max number of note entries (the prep outline has 7; allow head-room). */
+export const STUDY_NOTE_KEYS_MAX = 20;
+/** Max length of a note's section-key. */
+export const STUDY_KEY_MAX = 24;
 
 /**
  * A shared **curated** reading plan (Sprint 107). The members all follow the
@@ -79,10 +92,38 @@ export interface CustomPlanBundle {
 }
 
 /**
- * The decoded bundle. A discriminated union (by `t`) that grows as later
- * sprints add shared studies / baked calendars.
+ * A shared **study** — a teacher's "Mesa de preparación" outline (Sprint 109),
+ * carried READ-ONLY peer-to-peer. The bundle holds only the passage + the
+ * teacher's own prose per outline section; the curated helps (cross-refs, Christ
+ * notes, themes, book intro) are NOT shipped — the recipient's app re-assembles
+ * them from the same passage, in the recipient's own language. `n` is kept a
+ * generic `{sectionKey: note}` map so the codec stays domain-free; the viewer
+ * renders only the keys it knows.
  */
-export type TogetherBundle = SharedPlanBundle | CustomPlanBundle;
+export interface StudyBundle {
+  /** Format version. */
+  v: number;
+  /** Discriminant. */
+  t: 'study';
+  /** Book id (1..66). */
+  b: number;
+  /** Chapter. */
+  c: number;
+  /** Start verse. */
+  sv: number;
+  /** End verse (>= start). */
+  ev: number;
+  /** Optional title / attribution the teacher typed (sanitized). */
+  ti?: string;
+  /** The teacher's prose per outline section (already sanitized). */
+  n: Record<string, string>;
+}
+
+/**
+ * The decoded bundle. A discriminated union (by `t`) that grows as later
+ * sprints add a baked calendar.
+ */
+export type TogetherBundle = SharedPlanBundle | CustomPlanBundle | StudyBundle;
 
 /** Why a decode failed — drives a friendly, localized message in the UI. */
 export type DecodeFailure =

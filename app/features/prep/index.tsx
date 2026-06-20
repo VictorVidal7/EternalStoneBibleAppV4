@@ -32,6 +32,7 @@ import {
   TextInput,
   ActivityIndicator,
   StyleSheet,
+  Share,
 } from 'react-native';
 import {Stack, useLocalSearchParams, useRouter} from 'expo-router';
 import {Ionicons} from '@expo/vector-icons';
@@ -62,6 +63,7 @@ import {
   type PrepTable,
 } from '@/features/study/prepTable';
 import {getPrepNotes, savePrepNote} from '@/features/study/prepNotesStore';
+import {encodeStudyLink, makeStudyBundle} from '@lib/together';
 import {
   buildPrepMarkdown,
   type PrepMarkdownSection,
@@ -468,6 +470,29 @@ export default function PrepTableScreen() {
     t,
   ]);
 
+  // Share the outline as a read-only study LINK (Sprint 109): the passage + the
+  // preparer's per-section prose, carried in the link; the recipient's app
+  // re-assembles the curated helps locally. Peer-to-peer, nothing stored.
+  const handleShareStudy = useCallback(async () => {
+    if (!table) return;
+    haptics.tap();
+    const bundle = makeStudyBundle(
+      {
+        bookId: table.bookId,
+        chapter: table.chapter,
+        startVerse: table.startVerse,
+        endVerse: table.endVerse,
+      },
+      undefined,
+      drafts,
+    );
+    const link = encodeStudyLink(bundle);
+    const message = t.together.shareStudyMessage
+      .replace('{{passage}}', passageLabel)
+      .replace('{{link}}', link);
+    Share.share({message}).catch(() => undefined);
+  }, [table, drafts, passageLabel, t]);
+
   const renderHelpsForSection = (section: PrepSection) => {
     if (section === 'context' && intro) {
       return (
@@ -873,6 +898,30 @@ export default function PrepTableScreen() {
                   scaleRole="compact"
                   style={[styles.exportText, {color: colors.primary}]}>
                   {copied ? p.copied : p.exportLabel}
+                </AppText>
+              </TouchableOpacity>
+
+              {/* Share the outline as a read-only study LINK (Sprint 109). */}
+              <TouchableOpacity
+                style={[
+                  styles.exportButton,
+                  {
+                    backgroundColor: colors.primary,
+                    borderColor: colors.primary,
+                  },
+                ]}
+                onPress={handleShareStudy}
+                accessibilityRole="button"
+                accessibilityLabel={t.together.shareStudy}>
+                <Ionicons
+                  name="share-social-outline"
+                  size={18}
+                  color={staticColors.white}
+                />
+                <AppText
+                  scaleRole="compact"
+                  style={[styles.exportText, {color: staticColors.white}]}>
+                  {t.together.shareStudy}
                 </AppText>
               </TouchableOpacity>
 
