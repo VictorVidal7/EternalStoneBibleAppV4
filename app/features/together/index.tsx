@@ -23,6 +23,7 @@ import {
 } from 'react-native';
 import {Stack, useLocalSearchParams, useRouter} from 'expo-router';
 import {Ionicons} from '@expo/vector-icons';
+import * as Clipboard from 'expo-clipboard';
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
 
 import {AppText as Text} from '@components/ui/AppText';
@@ -167,6 +168,35 @@ export default function TogetherJoinScreen() {
     if (!params.d) return;
     applyResult(decodeTogetherParam(params.d), true);
   }, [params.d]);
+
+  // On the manual code-entry screen, peek the clipboard once: many users land
+  // here right after copying a non-clickable `eternalbible://` link from
+  // WhatsApp. If it already holds a valid invitation (pasted link, raw payload
+  // or EB1 code) offer a one-tap paste so they don't fight the keyboard.
+  const [pasteCandidate, setPasteCandidate] = useState<string | null>(null);
+  useEffect(() => {
+    if (params.d) return; // arrived via deep link — no manual entry needed
+    let alive = true;
+    (async () => {
+      try {
+        const clip = (await Clipboard.getStringAsync()).trim();
+        if (alive && clip && decodeJoinInput(clip).ok) setPasteCandidate(clip);
+      } catch {
+        // clipboard unavailable — skip the hint, no harm
+      }
+    })();
+    return () => {
+      alive = false;
+    };
+  }, [params.d]);
+
+  const usePasteCandidate = () => {
+    if (!pasteCandidate) return;
+    haptics.tap();
+    setCodeInput(pasteCandidate);
+    setError(null);
+    applyResult(decodeJoinInput(pasteCandidate), false);
+  };
 
   const plan = shared ? getReadingPlanById(shared.p) : undefined;
   const planName = useMemo(
@@ -338,6 +368,28 @@ export default function TogetherJoinScreen() {
             <Text style={[styles.intro, {color: colors.textSecondary}]}>
               {tt.pasteOrCodeIntro}
             </Text>
+            {pasteCandidate && !codeInput.trim() ? (
+              <TouchableOpacity
+                style={[
+                  styles.pasteHint,
+                  {
+                    borderColor: colors.primary,
+                    backgroundColor: colors.primary + '14',
+                  },
+                ]}
+                onPress={usePasteCandidate}
+                accessibilityRole="button"
+                accessibilityLabel={tt.pasteDetected}>
+                <Ionicons
+                  name="clipboard-outline"
+                  size={18}
+                  color={colors.primary}
+                />
+                <Text style={[styles.pasteHintText, {color: colors.primary}]}>
+                  {tt.pasteDetected}
+                </Text>
+              </TouchableOpacity>
+            ) : null}
             <TextInput
               style={[
                 styles.codeInput,
@@ -440,6 +492,19 @@ const styles = StyleSheet.create({
     marginBottom: 4,
   },
   intro: {fontSize: 14, lineHeight: 20, textAlign: 'center', marginBottom: 18},
+  pasteHint: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    borderWidth: 1.5,
+    borderRadius: 12,
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    marginBottom: 14,
+    alignSelf: 'stretch',
+  },
+  pasteHintText: {fontSize: 15, fontWeight: '700'},
   codeInput: {
     width: '100%',
     borderWidth: 1,
