@@ -430,6 +430,38 @@ export function encodeHttpsLink(bundle: TogetherBundle): string {
   return `${ETERNAL_WEB_BASE}#d=${encodeBundleParam(bundle)}`;
 }
 
+// The redirector origin+path, lowercased and without the trailing slash, so an
+// incoming App Link to `…/o/#d=…` or `…/o#d=…` both match. Derived from the one
+// constant above so a future org/repo change only needs editing ETERNAL_WEB_BASE.
+const REDIRECT_MATCH = ETERNAL_WEB_BASE.replace(/\/+$/, '').toLowerCase();
+const REDIRECT_MATCH_INSECURE = REDIRECT_MATCH.replace(/^https:/, 'http:');
+
+/**
+ * When an Android App Link opens the redirector URL directly (autoVerify),
+ * Expo Router hands us the RAW incoming URL — and the payload lives in the
+ * `#fragment`, which is not a query param. This recovers that payload so the
+ * app can route it to the join screen, exactly as the in-browser redirect
+ * would. Returns the opaque base64url payload, or `null` for ANY URL that is
+ * not our https redirector (notably the `eternalbible://` scheme links, which
+ * Expo Router already routes natively and must be left untouched).
+ */
+export function extractSharedLinkPayload(url: string): string | null {
+  if (typeof url !== 'string') return null;
+  const lower = url.toLowerCase();
+  if (
+    !lower.startsWith(REDIRECT_MATCH) &&
+    !lower.startsWith(REDIRECT_MATCH_INSECURE)
+  ) {
+    return null;
+  }
+  // The payload rides after `?d=` (query) or `#d=` (fragment); the redirector
+  // uses the fragment, but accept either for robustness.
+  const marker = url.search(/[?#]d=/);
+  if (marker < 0) return null;
+  const payload = url.slice(marker + 3).trim();
+  return payload.length > 0 ? payload : null;
+}
+
 /** The deep-link route the read-only shared-study viewer lives at (S109). */
 export const STUDY_LINK_PREFIX = 'eternalbible://features/study-shared';
 
