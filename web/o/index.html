@@ -1,0 +1,107 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="robots" content="noindex, nofollow" />
+    <title>Eternal Stone Bible</title>
+    <!-- The shared content travels in the URL #fragment, so it is NEVER sent to
+         GitHub's servers — this page only ever sees a bare path. Zero-knowledge,
+         100% peer-to-peer. -->
+    <meta property="og:title" content="Eternal Stone Bible" />
+    <meta
+      property="og:description"
+      content="Toca para abrir esto en la app Eternal Stone Bible."
+    />
+    <style>
+      :root {
+        color-scheme: dark;
+      }
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: #0b1220;
+        color: #e7eaf0;
+        font-family:
+          -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, system-ui,
+          sans-serif;
+        padding: 24px;
+      }
+      main {
+        max-width: 420px;
+        width: 100%;
+        text-align: center;
+      }
+      .logo {
+        font-size: 40px;
+        margin-bottom: 8px;
+      }
+      h1 {
+        font-size: 22px;
+        margin: 0 0 6px;
+      }
+      #msg {
+        color: #aab3c5;
+        margin: 0 0 24px;
+        font-size: 15px;
+      }
+      .btn {
+        display: inline-block;
+        width: 100%;
+        padding: 16px 20px;
+        border-radius: 14px;
+        background: #2563eb;
+        color: #fff;
+        font-size: 16px;
+        font-weight: 700;
+        text-decoration: none;
+      }
+      .hint {
+        margin-top: 18px;
+        color: #8a94a8;
+        font-size: 13px;
+        line-height: 1.5;
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <div class="logo">📖</div>
+      <h1>Eternal Stone Bible</h1>
+      <p id="msg">Abriendo en la app…</p>
+      <a id="open" class="btn" href="#">Abrir en Eternal Stone Bible</a>
+      <p class="hint">
+        ¿No se abrió? Copia este enlace y pégalo en la app:
+        <b>Ajustes → Unirse a un grupo</b>.
+      </p>
+    </main>
+    <script>
+      (function () {
+        // Read the payload from the #fragment (kept off the server on purpose).
+        var raw = (location.hash || "").replace(/^#/, "");
+        if (raw.indexOf("d=") === 0) raw = raw.slice(2);
+        var msg = document.getElementById("msg");
+        var open = document.getElementById("open");
+        if (!raw) {
+          msg.textContent = "Este enlace está incompleto.";
+          open.style.display = "none";
+          return;
+        }
+        // The plan-join route also forwards shared studies to their viewer, so a
+        // single target works for plans, custom plans and studies alike.
+        var target = "eternalbible://features/together?d=" + raw;
+        open.setAttribute("href", target);
+        // Give the page a beat to paint the manual button, then bounce.
+        setTimeout(function () {
+          window.location.href = target;
+        }, 80);
+      })();
+    </script>
+  </body>
+</html>

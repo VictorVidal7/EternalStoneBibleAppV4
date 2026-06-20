@@ -59,8 +59,11 @@ const PLAN_IDS = READING_PLANS.map(p => p.id);
  */
 function decodeJoinInput(raw: string): DecodeResult {
   const trimmed = raw.trim();
-  const at = trimmed.indexOf('?d=');
-  if (at >= 0) return decodeTogetherParam(trimmed.slice(at + 3));
+  // A pasted invite carries its payload after `?d=` (the eternalbible:// scheme
+  // link) or `#d=` (the https redirector keeps it in the fragment). Either way
+  // everything past the marker is the opaque base64url payload.
+  const marker = trimmed.search(/[?#]d=/);
+  if (marker >= 0) return decodeTogetherParam(trimmed.slice(marker + 3));
   if (/^eb1[- ]/i.test(trimmed)) return decodePlanCode(trimmed, PLAN_IDS);
   // Try as a raw bundle payload first, then fall back to a curated code.
   const asPayload = decodeTogetherParam(trimmed);
