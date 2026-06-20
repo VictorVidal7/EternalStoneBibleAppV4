@@ -574,6 +574,8 @@ export default function ReadingPlanDetailScreen() {
         planId={plan.id}
         planName={localizedPlan.name}
         onClose={() => setShareOpen(false)}
+        initialStartDate={membership?.startDate}
+        initialGroupName={membership?.name}
       />
 
       {/* 🎉 Completion celebration (RM-safe: no bespoke animation) */}

@@ -9,7 +9,7 @@
  * Para la gloria de Dios Todopoderoso ✨
  */
 
-import React, {useMemo, useState} from 'react';
+import React, {useEffect, useMemo, useState} from 'react';
 import {
   Modal,
   ScrollView,
@@ -43,6 +43,15 @@ interface Props {
   planId: string;
   planName: string;
   onClose: () => void;
+  /**
+   * Pre-fill the start date when re-sharing a plan the user is ALREADY reading
+   * with a group (Sprint 108) — keep the group's agreed start so a late joiner
+   * lands on the same "Day N". May be in the past; the stepper's floor relaxes
+   * to honor it.
+   */
+  initialStartDate?: string;
+  /** Pre-fill the group label from the existing membership (Sprint 108). */
+  initialGroupName?: string;
 }
 
 /** Format an ISO calendar date `YYYY-MM-DD` as a friendly localized string. */
@@ -65,6 +74,8 @@ export function ShareTogetherModal({
   planId,
   planName,
   onClose,
+  initialStartDate,
+  initialGroupName,
 }: Props) {
   const {colors} = useTheme();
   const {t, language} = useLanguage();
@@ -72,8 +83,25 @@ export function ShareTogetherModal({
   const tt = t.together;
 
   const today = todayDateISO();
-  const [startDate, setStartDate] = useState(today);
-  const [groupName, setGroupName] = useState('');
+  const [startDate, setStartDate] = useState(initialStartDate ?? today);
+  const [groupName, setGroupName] = useState(initialGroupName ?? '');
+
+  // Re-seed each time the sheet opens so it reflects the CURRENT membership
+  // (the user may have joined/changed groups since it was last mounted). Keyed
+  // on `visible` only, so it never clobbers edits made while the sheet is open.
+  useEffect(() => {
+    if (!visible) return;
+    setStartDate(initialStartDate ?? today);
+    setGroupName(initialGroupName ?? '');
+    // Keyed on `visible` only (this eslint config has no exhaustive-deps rule):
+    // re-seeding on every prop change would fight the user's in-sheet edits.
+  }, [visible]);
+
+  // The earliest selectable date. Normally "today", but if we pre-filled an
+  // already-agreed start in the PAST, relax the floor to it so re-sharing keeps
+  // the group aligned instead of silently jumping the date forward.
+  const floor =
+    initialStartDate && initialStartDate < today ? initialStartDate : today;
 
   const bundle = useMemo(
     () => makePlanBundle(planId, startDate, groupName),
@@ -86,7 +114,7 @@ export function ShareTogetherModal({
   );
 
   const dateLabel = formatDate(startDate, language);
-  const canGoBack = startDate > today;
+  const canGoBack = startDate > floor;
 
   const message = useMemo(
     () =>
@@ -113,7 +141,7 @@ export function ShareTogetherModal({
     haptics.tap();
     setStartDate(prev => {
       const next = addDaysISO(prev, delta);
-      return next < today ? today : next;
+      return next < floor ? floor : next;
     });
   };
 
