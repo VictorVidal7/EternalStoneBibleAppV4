@@ -62,6 +62,7 @@ import {logger} from '@lib/utils/logger';
 import {useReadingProgress} from '@context/ReadingProgressContext';
 import {useReadingPlanProgress} from '@context/ReadingPlanProgressContext';
 import {useTogether} from '@context/TogetherContext';
+import {useCustomPlans} from '@context/CustomPlansContext';
 import {useFavorites} from '@context/FavoritesContext';
 import {useBookmarks} from '@context/BookmarksContext';
 import {useMemoryDeck} from '@context/MemoryDeckContext';
@@ -157,6 +158,7 @@ export default function HomeScreen() {
   const {getChapterProgress} = useReadingProgress();
   const {getCompletedDays, getStartedAt} = useReadingPlanProgress();
   const {getMembership} = useTogether();
+  const {customPlans} = useCustomPlans();
   const {addFavorite, isFavorite, favorites} = useFavorites();
   const {bookmarks} = useBookmarks();
   const bookmarksCount = bookmarks.length;
@@ -1368,6 +1370,100 @@ export default function HomeScreen() {
               );
             })}
           </ScrollView>
+        </Animated.View>
+
+        {/* ==================== MIS PLANES (Sprint 108) ==================== */}
+        {/* The user's own plans (built in the editor or imported from a shared
+            cplan link) live in their own section, headed by a "create" entry —
+            so the catalogue extends peer-to-peer with zero backend. */}
+        <Animated.View
+          style={{opacity: fadeAnim, marginTop: celestialSpacing.sectionGap}}>
+          <View style={styles.sectionHeader}>
+            <Text
+              style={[
+                styles.sectionTitle,
+                {color: celestialTheme.colors.text},
+              ]}>
+              {t.home.myPlans}
+            </Text>
+            <Ionicons
+              name="create"
+              size={24}
+              color={celestialTheme.colors.accent}
+            />
+          </View>
+
+          <DiscoverTile
+            icon="add-circle"
+            title={t.planBuilder.cardTitle}
+            subtitle={t.planBuilder.cardSubtitle}
+            onPress={() =>
+              handlePress(() => router.push('/features/plan-builder' as never))
+            }
+          />
+
+          {customPlans.length > 0 ? (
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={styles.plansScroll}
+              style={{marginTop: celestialSpacing.cardGap}}>
+              {customPlans.map(plan => {
+                const planDays = getCompletedDays(plan.id);
+                const planDaysDone = planDays.length;
+                const pace = planPace({
+                  startedAt: getStartedAt(plan.id),
+                  completedDays: planDays,
+                  duration: plan.duration,
+                  now: new Date(),
+                });
+                const nextDayReadings =
+                  pace.nextDay != null
+                    ? plan.days.find(d => d.day === pace.nextDay)?.readings
+                    : undefined;
+                const planSubtitle =
+                  pace.status === 'complete'
+                    ? t.readingPlan.planCompletedShort
+                    : pace.status !== 'notStarted' && nextDayReadings
+                      ? t.readingPlan.planNextUp
+                          .replace('{{day}}', String(pace.nextDay))
+                          .replace(
+                            '{{readings}}',
+                            formatDayReadings(nextDayReadings, book => {
+                              const info = getBookByName(book);
+                              if (!info) return book;
+                              return language === 'en'
+                                ? info.nameEn
+                                : info.name;
+                            }),
+                          )
+                      : t.home.planDays.replace(
+                          '{{days}}',
+                          plan.duration.toString(),
+                        );
+                return (
+                  <ReadingPlanCard
+                    key={plan.id}
+                    name={plan.name}
+                    description={plan.description}
+                    subtitle={planSubtitle}
+                    icon="create-outline"
+                    duration={plan.duration}
+                    daysCompleted={planDaysDone}
+                    onPress={() =>
+                      handlePress(() =>
+                        router.push(`/plan/${plan.id}` as never),
+                      )
+                    }
+                    continueText={
+                      planDaysDone > 0 ? t.home.continue : t.home.start
+                    }
+                    isDark={isDark}
+                  />
+                );
+              })}
+            </ScrollView>
+          ) : null}
         </Animated.View>
 
         {/* ==================== GROW WITH GOD (Sprint 94 follow-up) ======== */}
