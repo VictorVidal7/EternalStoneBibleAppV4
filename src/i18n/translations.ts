@@ -3009,6 +3009,45 @@ export const translations = {
       badges: 'Insignias y Títulos',
       badgesDesc: 'Sistema de logros con insignias coleccionables',
     },
+    // 🤝 "Juntos sin servidor" — shared reading plans (Sprint 107)
+    together: {
+      shareTitle: 'Leer en grupo',
+      shareIntro:
+        'Invita a otros a leer este plan contigo. Cada quien lo sigue en su propio dispositivo, con su progreso privado — sin cuentas ni servidores.',
+      startsOn: 'Empieza el',
+      today: 'Hoy',
+      groupNameLabel: 'Nombre del grupo (opcional)',
+      groupNamePlaceholder: 'Ej: Familia, Célula, 3.º B',
+      yourCode: 'Código',
+      share: 'Compartir invitación',
+      copyLink: 'Copiar enlace',
+      copyCode: 'Copiar código',
+      copied: 'Copiado',
+      inviteMessage:
+        '📖 Te invito a leer juntos: {{plan}}, empezando el {{date}}.\n\nÁbrelo en Eternal Bible:\n{{link}}\n\n¿No te abre el enlace? Usa el código {{code}} en Ajustes → Unirme a un grupo.',
+      importTitle: 'Unirte a un grupo',
+      invitedTo: 'Te invitaron a leer juntos',
+      willStart: 'Comienza el {{date}}',
+      withGroup: 'con {{group}}',
+      privateProgress:
+        'Tu progreso es privado y queda en tu dispositivo. Puedes salir cuando quieras.',
+      join: 'Unirme y empezar',
+      joinedToast: '¡Listo! Encontrarás el plan en tu inicio.',
+      enterCode: 'Unirme a un grupo',
+      enterCodeIntro:
+        'Ingresa el código que te compartieron para leer un plan en grupo.',
+      enterCodePlaceholder: 'EB1-…',
+      continueLabel: 'Continuar',
+      codeInvalid: 'Ese código no es válido. Revisa que esté completo.',
+      codeUnknownPlan:
+        'Ese plan no existe en esta versión de la app. Actualízala e inténtalo de nuevo.',
+      linkInvalid: 'No pudimos leer esa invitación.',
+      linkVersion:
+        'Esta invitación es de una versión más nueva. Actualiza la app.',
+      readingWith: 'Leyendo con {{group}}',
+      readingTogether: 'Leyendo en grupo',
+      leaveGroup: 'Salir del grupo',
+    },
   },
 
   en: {
@@ -5999,6 +6038,45 @@ export const translations = {
       versionComparisonDesc: 'Compare verses in different translations',
       badges: 'Badges and Titles',
       badgesDesc: 'Achievement system with collectible badges',
+    },
+    // 🤝 "Together without a server" — shared reading plans (Sprint 107)
+    together: {
+      shareTitle: 'Read together',
+      shareIntro:
+        'Invite others to read this plan with you. Everyone follows it on their own device, with private progress — no accounts, no servers.',
+      startsOn: 'Starts on',
+      today: 'Today',
+      groupNameLabel: 'Group name (optional)',
+      groupNamePlaceholder: 'e.g. Family, Small group, Grade 3B',
+      yourCode: 'Code',
+      share: 'Share invitation',
+      copyLink: 'Copy link',
+      copyCode: 'Copy code',
+      copied: 'Copied',
+      inviteMessage:
+        "📖 Let's read together: {{plan}}, starting {{date}}.\n\nOpen it in Eternal Bible:\n{{link}}\n\nLink not opening? Use code {{code}} in Settings → Join a group.",
+      importTitle: 'Join a group',
+      invitedTo: "You're invited to read together",
+      willStart: 'Starts {{date}}',
+      withGroup: 'with {{group}}',
+      privateProgress:
+        'Your progress is private and stays on your device. You can leave anytime.',
+      join: 'Join and start',
+      joinedToast: "Done! You'll find the plan on your home screen.",
+      enterCode: 'Join a group',
+      enterCodeIntro:
+        'Enter the code someone shared with you to read a plan together.',
+      enterCodePlaceholder: 'EB1-…',
+      continueLabel: 'Continue',
+      codeInvalid: "That code isn't valid. Check that it's complete.",
+      codeUnknownPlan:
+        "That plan doesn't exist in this version of the app. Please update and try again.",
+      linkInvalid: "We couldn't read that invitation.",
+      linkVersion:
+        'This invitation is from a newer version. Please update the app.',
+      readingWith: 'Reading with {{group}}',
+      readingTogether: 'Reading together',
+      leaveGroup: 'Leave group',
     },
   },
 };

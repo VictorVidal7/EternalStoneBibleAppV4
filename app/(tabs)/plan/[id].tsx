@@ -29,6 +29,7 @@ import {
 } from 'react-native';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {AppText as Text} from '@components/ui/AppText';
+import {ShareTogetherModal} from '@components/together/ShareTogetherModal';
 import {useLocalSearchParams, useRouter} from 'expo-router';
 import {Ionicons} from '@expo/vector-icons';
 import {LinearGradient} from 'expo-linear-gradient';
@@ -113,6 +114,7 @@ export default function ReadingPlanDetailScreen() {
 
   // Celebrate the moment the FINAL day flips done in this session.
   const [celebrate, setCelebrate] = useState(false);
+  const [shareOpen, setShareOpen] = useState(false);
   const prevCompletedRef = useRef<number | null>(null);
 
   // Route instances are REUSED across plan ids (S74/S76) — reset the one-shot
@@ -474,13 +476,25 @@ export default function ReadingPlanDetailScreen() {
         start={{x: 0, y: 0}}
         end={{x: 0, y: 1}}
         style={styles.header}>
-        <TouchableOpacity
-          style={styles.headerBackButton}
-          onPress={() => router.back()}
-          accessibilityRole="button"
-          accessibilityLabel={t.bible.back}>
-          <Ionicons name="arrow-back" size={24} color="#ffffff" />
-        </TouchableOpacity>
+        <View style={styles.headerTopRow}>
+          <TouchableOpacity
+            style={styles.headerBackButton}
+            onPress={() => router.back()}
+            accessibilityRole="button"
+            accessibilityLabel={t.bible.back}>
+            <Ionicons name="arrow-back" size={24} color="#ffffff" />
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={styles.headerBackButton}
+            onPress={() => {
+              haptics.tap();
+              setShareOpen(true);
+            }}
+            accessibilityRole="button"
+            accessibilityLabel={t.together.shareTitle}>
+            <Ionicons name="people-outline" size={22} color="#ffffff" />
+          </TouchableOpacity>
+        </View>
         <Text style={styles.headerTitle} numberOfLines={2}>
           {localizedPlan.name}
         </Text>
@@ -526,6 +540,14 @@ export default function ReadingPlanDetailScreen() {
             });
           }, 120);
         }}
+      />
+
+      {/* 🤝 "Read together" invitation (Sprint 107) */}
+      <ShareTogetherModal
+        visible={shareOpen}
+        planId={plan.id}
+        planName={localizedPlan.name}
+        onClose={() => setShareOpen(false)}
       />
 
       {/* 🎉 Completion celebration (RM-safe: no bespoke animation) */}
@@ -574,6 +596,11 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     borderBottomLeftRadius: 16,
     borderBottomRightRadius: 16,
+  },
+  headerTopRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
   },
   headerBackButton: {
     width: 40,
