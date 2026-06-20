@@ -61,6 +61,7 @@ import ShareService from '@/services/ShareService';
 import {logger} from '@lib/utils/logger';
 import {useReadingProgress} from '@context/ReadingProgressContext';
 import {useReadingPlanProgress} from '@context/ReadingPlanProgressContext';
+import {useTogether} from '@context/TogetherContext';
 import {useFavorites} from '@context/FavoritesContext';
 import {useBookmarks} from '@context/BookmarksContext';
 import {useMemoryDeck} from '@context/MemoryDeckContext';
@@ -155,6 +156,7 @@ export default function HomeScreen() {
   const {t, language} = useLanguage();
   const {getChapterProgress} = useReadingProgress();
   const {getCompletedDays, getStartedAt} = useReadingPlanProgress();
+  const {getMembership} = useTogether();
   const {addFavorite, isFavorite, favorites} = useFavorites();
   const {bookmarks} = useBookmarks();
   const bookmarksCount = bookmarks.length;
@@ -1347,6 +1349,8 @@ export default function HomeScreen() {
                     planDaysDone > 0 ? t.home.continue : t.home.start
                   }
                   isDark={isDark}
+                  inGroup={getMembership(plan.id) !== null}
+                  groupLabel={getMembership(plan.id)?.name}
                 />
               );
             })}

@@ -83,6 +83,16 @@ interface ReadingPlanCardProps {
    * @default 240
    */
   width?: number;
+
+  /**
+   * When this plan is being read "together" (Sprint 107), the group label to
+   * surface on the card. Undefined = solo. Empty string = in a group with no
+   * name → shows a generic "together" pill.
+   */
+  groupLabel?: string;
+
+  /** True when joined as a group (controls the pill even with no name). */
+  inGroup?: boolean;
 }
 
 const ReadingPlanCard: React.FC<ReadingPlanCardProps> = ({
@@ -96,6 +106,8 @@ const ReadingPlanCard: React.FC<ReadingPlanCardProps> = ({
   continueText = 'Continuar',
   isDark = false,
   width = 240,
+  groupLabel,
+  inGroup = false,
 }) => {
   const {colors: themeColors} = useTheme();
   const {t} = useLanguage();
@@ -157,16 +169,31 @@ const ReadingPlanCard: React.FC<ReadingPlanCardProps> = ({
               <Ionicons name={icon} size={24} color={accentColor} />
             </View>
 
-            <View
-              style={[
-                styles.durationBadge,
-                {
-                  backgroundColor: accentSoft,
-                },
-              ]}>
-              <Text style={[styles.durationText, {color: accentColor}]}>
-                {duration} {t.readingPlans.days}
-              </Text>
+            <View style={styles.headerRight}>
+              {inGroup ? (
+                <View style={[styles.groupPill, {backgroundColor: accentSoft}]}>
+                  <Ionicons name="people" size={11} color={accentColor} />
+                  {groupLabel ? (
+                    <Text
+                      style={[styles.groupPillText, {color: accentColor}]}
+                      numberOfLines={1}
+                      ellipsizeMode="tail">
+                      {groupLabel}
+                    </Text>
+                  ) : null}
+                </View>
+              ) : null}
+              <View
+                style={[
+                  styles.durationBadge,
+                  {
+                    backgroundColor: accentSoft,
+                  },
+                ]}>
+                <Text style={[styles.durationText, {color: accentColor}]}>
+                  {duration} {t.readingPlans.days}
+                </Text>
+              </View>
             </View>
           </View>
 
@@ -268,6 +295,26 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     justifyContent: 'center',
     alignItems: 'center',
+  },
+  headerRight: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    flexShrink: 1,
+  },
+  groupPill: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 12,
+    flexShrink: 1,
+  },
+  groupPillText: {
+    fontSize: 10,
+    fontWeight: '700',
+    maxWidth: 86,
   },
   durationBadge: {
     paddingHorizontal: 10,
