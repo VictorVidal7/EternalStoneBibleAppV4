@@ -30,6 +30,7 @@ import {
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {AppText as Text} from '@components/ui/AppText';
 import {ShareTogetherModal} from '@components/together/ShareTogetherModal';
+import {useTogether} from '@context/TogetherContext';
 import {useLocalSearchParams, useRouter} from 'expo-router';
 import {Ionicons} from '@expo/vector-icons';
 import {LinearGradient} from 'expo-linear-gradient';
@@ -70,6 +71,7 @@ export default function ReadingPlanDetailScreen() {
     isChapterRead,
     getStartedAt,
   } = useReadingPlanProgress();
+  const {getMembership, leavePlan} = useTogether();
 
   const plan = getReadingPlanById(id ?? '');
 
@@ -228,6 +230,12 @@ export default function ReadingPlanDetailScreen() {
 
   const percent = Math.round((completed / plan.duration) * 100);
   const localizedPlan = getLocalizedPlan(plan, t);
+  const membership = getMembership(plan.id);
+  const onLeaveGroup = () => {
+    haptics.tap();
+    leavePlan(plan.id);
+    toast.success(t.together.leaveGroup);
+  };
 
   const paceCaption = (() => {
     switch (pace.status) {
@@ -511,6 +519,24 @@ export default function ReadingPlanDetailScreen() {
           <View style={[styles.progressFill, {width: `${percent}%`}]} />
         </View>
         <Text style={styles.paceText}>{paceCaption}</Text>
+
+        {membership ? (
+          <View style={styles.groupChip}>
+            <Ionicons name="people" size={14} color="#ffffff" />
+            <Text style={styles.groupChipText} numberOfLines={1}>
+              {membership.name
+                ? t.together.readingWith.replace('{{group}}', membership.name)
+                : t.together.readingTogether}
+            </Text>
+            <TouchableOpacity
+              onPress={onLeaveGroup}
+              accessibilityRole="button"
+              accessibilityLabel={t.together.leaveGroup}
+              hitSlop={{top: 8, bottom: 8, left: 8, right: 8}}>
+              <Ionicons name="close-circle" size={16} color="#ffffff" />
+            </TouchableOpacity>
+          </View>
+        ) : null}
       </LinearGradient>
 
       <FlatList
@@ -601,6 +627,24 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
+  },
+  groupChip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    alignSelf: 'flex-start',
+    marginTop: 12,
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: 14,
+    backgroundColor: staticColors.glassWhite20,
+    maxWidth: '100%',
+  },
+  groupChipText: {
+    flexShrink: 1,
+    color: staticColors.white,
+    fontSize: 13,
+    fontWeight: '600',
   },
   headerBackButton: {
     width: 40,
