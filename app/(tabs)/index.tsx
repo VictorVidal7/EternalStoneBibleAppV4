@@ -970,9 +970,11 @@ export default function HomeScreen() {
         {/* ==================== TU CONSTANCIA HOY (rings, Sprint 85) ========== */}
         {/* Apple-Watch-style rings composing today's reading, memorization,
             devotion and emotional check-in. Renders nothing until the reader
-            has any footprint in any habit. Tapping opens Mi lectura. */}
-        <Animated.View
-          style={{opacity: fadeAnim, marginTop: celestialSpacing.cardGap}}>
+            has any footprint in any habit. Tapping opens Mi lectura. The card
+            owns its own top gap so it collapses cleanly when it renders null —
+            an opacity-only wrapper here leaves no phantom space on an empty
+            Home (e.g. a fresh install with no habit footprint yet). */}
+        <Animated.View style={{opacity: fadeAnim}}>
           <ConstancyRingsCard
             onPress={() =>
               handlePress(() =>
@@ -985,9 +987,10 @@ export default function HomeScreen() {
         {/* ==================== PRÓXIMO HITO (Sprint 92) ===================== */}
         {/* The single achievement the reader is closest to unlocking, bridging
             Home to the Trophy tab. Renders nothing until they are measurably
-            walking toward one. Tapping opens the Achievements tab. */}
-        <Animated.View
-          style={{opacity: fadeAnim, marginTop: celestialSpacing.cardGap}}>
+            walking toward one. Tapping opens the Achievements tab. The card
+            owns its own top gap (opacity-only wrapper) so it leaves no phantom
+            space when it renders null. */}
+        <Animated.View style={{opacity: fadeAnim}}>
           <NextMilestoneCard
             onPress={() =>
               handlePress(() => router.push('/(tabs)/achievements' as never))

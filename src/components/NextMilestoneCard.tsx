@@ -127,7 +127,10 @@ export default NextMilestoneCard;
 
 const styles = StyleSheet.create({
   card: {
-    marginTop: spacing.md,
+    // Owns the top gap to the previous Home card (24px, matching the other
+    // Home cards) so it collapses with the card when the gate returns null —
+    // its Home wrapper is opacity-only, leaving no phantom space on empty Home.
+    marginTop: spacing.lg,
     padding: spacing.base,
     borderRadius: borderRadius.lg,
     borderWidth: 1,
