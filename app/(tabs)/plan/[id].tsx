@@ -30,6 +30,7 @@ import {
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {AppText as Text} from '@components/ui/AppText';
 import {ShareTogetherModal} from '@components/together/ShareTogetherModal';
+import {ShareCustomPlanModal} from '@components/together/ShareCustomPlanModal';
 import {useTogether} from '@context/TogetherContext';
 import {useCustomPlans} from '@context/CustomPlansContext';
 import {useLocalSearchParams, useRouter} from 'expo-router';
@@ -503,8 +504,14 @@ export default function ReadingPlanDetailScreen() {
               setShareOpen(true);
             }}
             accessibilityRole="button"
-            accessibilityLabel={t.together.shareTitle}>
-            <Ionicons name="people-outline" size={22} color="#ffffff" />
+            accessibilityLabel={
+              plan.custom ? t.together.shareCustomTitle : t.together.shareTitle
+            }>
+            <Ionicons
+              name={plan.custom ? 'share-social-outline' : 'people-outline'}
+              size={22}
+              color="#ffffff"
+            />
           </TouchableOpacity>
         </View>
         <Text style={styles.headerTitle} numberOfLines={2}>
@@ -572,15 +579,24 @@ export default function ReadingPlanDetailScreen() {
         }}
       />
 
-      {/* 🤝 "Read together" invitation (Sprint 107) */}
-      <ShareTogetherModal
-        visible={shareOpen}
-        planId={plan.id}
-        planName={localizedPlan.name}
-        onClose={() => setShareOpen(false)}
-        initialStartDate={membership?.startDate}
-        initialGroupName={membership?.name}
-      />
+      {/* 🤝 Share invitation — curated plans align on a date+group (S107);
+          a custom plan ships its whole content in the link (S108). */}
+      {plan.custom ? (
+        <ShareCustomPlanModal
+          visible={shareOpen}
+          plan={plan}
+          onClose={() => setShareOpen(false)}
+        />
+      ) : (
+        <ShareTogetherModal
+          visible={shareOpen}
+          planId={plan.id}
+          planName={localizedPlan.name}
+          onClose={() => setShareOpen(false)}
+          initialStartDate={membership?.startDate}
+          initialGroupName={membership?.name}
+        />
+      )}
 
       {/* 🎉 Completion celebration (RM-safe: no bespoke animation) */}
       <Modal

@@ -3051,6 +3051,19 @@ export const translations = {
       leaveGroup: 'Salir del grupo',
       joinFeatureDesc:
         'Lee un plan con tu familia o grupo, cada quien en su app',
+      shareCustomTitle: 'Compartir mi plan',
+      shareCustomIntro:
+        'Comparte tu plan por enlace. Quien lo reciba lo lee en su propia app, a su ritmo.',
+      shareCustomMessage:
+        '📖 Te comparto un plan de lectura que armé: {{plan}}.\n\nÁbrelo en Eternal Bible:\n{{link}}',
+      customLinkNote: 'Se comparte por enlace (no tiene código corto).',
+      customInvitedTo: 'Te compartieron un plan',
+      customMeta: '{{days}} días · {{chapters}} capítulos',
+      importPlan: 'Importar y empezar',
+      importedToast: '¡Plan importado! Lo encontrarás en tu inicio.',
+      pasteOrCodeIntro:
+        'Pega el enlace o ingresa el código que te compartieron.',
+      pasteOrCodePlaceholder: 'Enlace o EB1-…',
     },
     planBuilder: {
       title: 'Crear un plan',
@@ -6111,6 +6124,18 @@ export const translations = {
       leaveGroup: 'Leave group',
       joinFeatureDesc:
         'Read a plan with your family or group, each in their app',
+      shareCustomTitle: 'Share my plan',
+      shareCustomIntro:
+        'Share your plan by link. Whoever gets it reads it in their own app, at their own pace.',
+      shareCustomMessage:
+        "📖 Here's a reading plan I made: {{plan}}.\n\nOpen it in Eternal Bible:\n{{link}}",
+      customLinkNote: 'Shared by link (no short code).',
+      customInvitedTo: 'A plan was shared with you',
+      customMeta: '{{days}} days · {{chapters}} chapters',
+      importPlan: 'Import and start',
+      importedToast: "Plan imported! You'll find it on your home screen.",
+      pasteOrCodeIntro: 'Paste the link or enter the code you were given.',
+      pasteOrCodePlaceholder: 'Link or EB1-…',
     },
     planBuilder: {
       title: 'Create a plan',
