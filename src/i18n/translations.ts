@@ -3057,7 +3057,7 @@ export const translations = {
       shareCustomIntro:
         'Comparte tu plan por enlace. Quien lo reciba lo lee en su propia app, a su ritmo.',
       shareCustomMessage:
-        '📖 Te comparto un plan de lectura que armé: {{plan}}.\n\nÁbrelo en Eternal Bible:\n{{link}}',
+        '📖 Te comparto un plan de lectura que armé: {{plan}}.\n\nÁbrelo en Eternal Bible:\n{{link}}\n\n¿No te abre el enlace? Copia este mensaje y pégalo en Ajustes → Unirme a un grupo.',
       customLinkNote: 'Se comparte por enlace (no tiene código corto).',
       customInvitedTo: 'Te compartieron un plan',
       customMeta: '{{days}} días · {{chapters}} capítulos',
@@ -3066,6 +3066,7 @@ export const translations = {
       pasteOrCodeIntro:
         'Pega el enlace o ingresa el código que te compartieron.',
       pasteOrCodePlaceholder: 'Enlace o EB1-…',
+      pasteDetected: 'Pegar invitación copiada',
       deletePlan: 'Eliminar plan',
       deletePlanConfirm:
         'Se quitará de tus planes. Podrás volver a importarlo o crearlo de nuevo.',
@@ -3074,7 +3075,7 @@ export const translations = {
       shareStudyIntro:
         'Comparte tu bosquejo por enlace. Quien lo reciba lo verá como estudio navegable (solo lectura), en su propio idioma.',
       shareStudyMessage:
-        '📖 Te comparto un estudio de {{passage}}.\n\nÁbrelo en Eternal Bible:\n{{link}}',
+        '📖 Te comparto un estudio de {{passage}}.\n\nÁbrelo en Eternal Bible:\n{{link}}\n\n¿No te abre el enlace? Copia este mensaje y pégalo en Ajustes → Unirme a un grupo.',
       shareStudy: 'Compartir estudio',
     },
     sharedStudy: {
@@ -6152,7 +6153,7 @@ export const translations = {
       shareCustomIntro:
         'Share your plan by link. Whoever gets it reads it in their own app, at their own pace.',
       shareCustomMessage:
-        "📖 Here's a reading plan I made: {{plan}}.\n\nOpen it in Eternal Bible:\n{{link}}",
+        "📖 Here's a reading plan I made: {{plan}}.\n\nOpen it in Eternal Bible:\n{{link}}\n\nLink not opening? Copy this message and paste it in Settings → Join a group.",
       customLinkNote: 'Shared by link (no short code).',
       customInvitedTo: 'A plan was shared with you',
       customMeta: '{{days}} days · {{chapters}} chapters',
@@ -6160,6 +6161,7 @@ export const translations = {
       importedToast: "Plan imported! You'll find it on your home screen.",
       pasteOrCodeIntro: 'Paste the link or enter the code you were given.',
       pasteOrCodePlaceholder: 'Link or EB1-…',
+      pasteDetected: 'Paste copied invitation',
       deletePlan: 'Delete plan',
       deletePlanConfirm:
         'It will be removed from your plans. You can import or create it again.',
@@ -6168,7 +6170,7 @@ export const translations = {
       shareStudyIntro:
         'Share your outline by link. Whoever gets it sees a navigable, read-only study, in their own language.',
       shareStudyMessage:
-        '📖 Here is a study of {{passage}} I made.\n\nOpen it in Eternal Bible:\n{{link}}',
+        '📖 Here is a study of {{passage}} I made.\n\nOpen it in Eternal Bible:\n{{link}}\n\nLink not opening? Copy this message and paste it in Settings → Join a group.',
       shareStudy: 'Share study',
     },
     sharedStudy: {

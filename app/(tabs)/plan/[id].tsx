@@ -26,10 +26,10 @@ import {
   FlatList,
   TouchableOpacity,
   Modal,
-  Alert,
 } from 'react-native';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {AppText as Text} from '@components/ui/AppText';
+import {ConfirmDialog} from '@components/ui/ConfirmDialog';
 import {ShareTogetherModal} from '@components/together/ShareTogetherModal';
 import {ShareCustomPlanModal} from '@components/together/ShareCustomPlanModal';
 import {useTogether} from '@context/TogetherContext';
@@ -122,6 +122,8 @@ export default function ReadingPlanDetailScreen() {
 
   // Celebrate the moment the FINAL day flips done in this session.
   const [celebrate, setCelebrate] = useState(false);
+  // Themed confirm for removing a custom plan (replaces the bare native alert).
+  const [confirmDelete, setConfirmDelete] = useState(false);
   const [shareOpen, setShareOpen] = useState(false);
   const prevCompletedRef = useRef<number | null>(null);
 
@@ -259,18 +261,15 @@ export default function ReadingPlanDetailScreen() {
   const onDeletePlan = () => {
     if (!plan?.custom) return;
     haptics.tap();
-    Alert.alert(plan.name, t.together.deletePlanConfirm, [
-      {text: t.cancel, style: 'cancel'},
-      {
-        text: t.together.deletePlan,
-        style: 'destructive',
-        onPress: async () => {
-          await deleteCustomPlan(plan.id);
-          toast.success(t.together.planDeleted);
-          router.back();
-        },
-      },
-    ]);
+    setConfirmDelete(true);
+  };
+
+  const onConfirmDelete = async () => {
+    if (!plan?.custom) return;
+    setConfirmDelete(false);
+    await deleteCustomPlan(plan.id);
+    toast.success(t.together.planDeleted);
+    router.back();
   };
 
   const paceCaption = (() => {
@@ -641,6 +640,18 @@ export default function ReadingPlanDetailScreen() {
           initialGroupName={membership?.name}
         />
       )}
+
+      {/* 🗑️ Themed delete confirm for custom plans (S110 polish) */}
+      <ConfirmDialog
+        visible={confirmDelete}
+        title={plan.name}
+        message={t.together.deletePlanConfirm}
+        confirmLabel={t.together.deletePlan}
+        cancelLabel={t.cancel}
+        onConfirm={onConfirmDelete}
+        onCancel={() => setConfirmDelete(false)}
+        destructive
+      />
 
       {/* 🎉 Completion celebration (RM-safe: no bespoke animation) */}
       <Modal
