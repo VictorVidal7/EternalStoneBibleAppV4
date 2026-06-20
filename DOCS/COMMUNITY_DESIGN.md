@@ -175,6 +175,53 @@ los datos privados del estudio personal **no** entran a Firestore.
 Esto entrega "hagámoslo juntos" con **cero** riesgo de moderación, privacidad o
 costo de servidor. Es el 20 % de esfuerzo que da el 80 % del bien pastoral.
 
+### 9.1 ¿Hasta dónde podemos llegar SIN moderador (y sin riesgo)?
+
+La pregunta clave: **el riesgo de moderación nace en un solo punto — cuando
+nuestro sistema GUARDA contenido libre de un usuario y se lo MUESTRA a otro.**
+Mientras nunca hagamos eso, el riesgo de moderación es prácticamente nulo. Por
+eso se puede llegar sorprendentemente lejos sin moderador:
+
+- **Nivel 0 — Compartir hacia afuera (riesgo cero, sin backend).** El usuario
+  crea algo (bosquejo, imagen de versículo, invitación a un plan) y lo envía por
+  **sus propios canales** (WhatsApp, correo). Nunca lo alojamos ni lo
+  retransmitimos. Es ilimitado y ya está parcialmente hecho (export de la Mesa,
+  imágenes de versículos).
+- **Nivel 1 — Contenido de solo-lectura que NOSOTROS publicamos, seguido en
+  local (riesgo casi nulo).** Un "grupo" es simplemente un **plan compartido**:
+  un líder elige uno de los planes (que nosotros curamos y revisamos) + una
+  fecha de inicio y genera un **código/enlace**; los miembros lo introducen y la
+  app les agenda el MISMO plan, cada quien con su **progreso privado en su
+  dispositivo**. No fluye contenido de un usuario a otro. El código/plan puede ir
+  **codificado en el propio enlace** → 100 % offline, sin servidor de datos de
+  usuarios. Esto ya es "leer juntos" de verdad, sin moderación.
+- **Nivel 1.5 — Señales agregadas y anónimas (riesgo bajo, backend mínimo).**
+  P. ej. "N personas están leyendo la Biblia ahora" o "N personas oraron hoy":
+  números **agregados**, nunca el contenido de nadie. Mínimo backend (un
+  contador), sin UGC visible. ⚠️ roza la vanidad — usar con cautela o evitar.
+
+**La línea que NO se puede cruzar sin moderador** es cualquier función donde el
+**texto libre de un usuario se muestre a otro**: peticiones de oración,
+mensajes de ánimo, comentarios, testimonios, biografías, incluso el _nombre_ que
+alguien teclea para un grupo. En cuanto eso ocurre, nos volvemos **publicadores
+de contenido de usuarios** y hacen falta: reportar, bloquear, revisar y retirar
+contenido (exposición legal: acoso, contenido ilícito, protección de menores).
+Eso **exige un responsable humano**, sí o sí.
+
+**El umbral, en concreto:** la forma más ligera de cruzarlo es _"el líder modera
+su propio grupo privado"_ (reportar → al líder; el líder retira contenido y
+miembros). No es un equipo de moderación, pero **sigue siendo** una
+responsabilidad real + un backend (auth + Firestore + reportes) y nos vuelve la
+plataforma de registro de ese contenido. No es gratis.
+
+**Resumen:** sin moderador llegamos hasta **Nivel 0 + Nivel 1** (compartir hacia
+afuera + planes compartidos seguidos en local) — que es bastante y entrega el
+"juntos" de Hebreos 10:24-25. El **primer** paso que pide un moderador es mostrar
+el texto de un usuario a otro; ahí empieza, como mínimo, la moderación por
+líder. Recomendación: construir el **plan compartido por enlace (Nivel 1)** como
+siguiente paso si se quiere "comunidad" ya, y reservar todo lo de UGC para
+cuando exista compromiso de moderación humana.
+
 ---
 
 ## 10. Plan por fases (si se decide avanzar a backend)
