@@ -735,9 +735,9 @@ export const translations = {
 
     prepTable: {
       title: 'Mesa de preparación',
-      subtitle: 'Prepara tu enseñanza',
+      subtitle: 'Estudia y comparte la Palabra',
       cardTitle: 'Mesa de preparación',
-      cardSubtitle: 'Reúne todo para enseñar un pasaje',
+      cardSubtitle: 'Reúne todo para estudiar y compartir un pasaje',
       passageLabel: 'Pasaje',
       helpsTitle: 'Lo que la app reúne',
       helpsCount: '{{n}} ayudas reunidas',
@@ -785,17 +785,17 @@ export const translations = {
         christ: {
           label: 'Conexión con Cristo',
           prompt:
-            '¿Cómo apunta, revela o se cumple este pasaje en Cristo? Predica el texto, no a ti mismo (Lc 24:27; 2 Co 4:5).',
+            '¿Cómo apunta, revela o se cumple este pasaje en Cristo? Que hable de Cristo, no de ti (Lc 24:27; 2 Co 4:5).',
         },
         application: {
           label: 'Aplicación',
           prompt:
-            '¿Cómo cambia esta verdad la mente, el corazón y las manos? Sé concreto y pastoral, nunca solo moralista.',
+            '¿Cómo cambia esta verdad la mente, el corazón y las manos? Sé concreto y sincero, nunca solo moralista.',
         },
         questions: {
-          label: 'Preguntas para el grupo',
+          label: 'Preguntas para reflexionar o conversar',
           prompt:
-            '¿Qué preguntas ayudarán al grupo a descubrir y vivir esta verdad por sí mismos?',
+            '¿Qué preguntas ayudan a descubrir y vivir esta verdad, a solas o en grupo?',
         },
       },
     },
@@ -3741,9 +3741,9 @@ export const translations = {
 
     prepTable: {
       title: 'Preparation table',
-      subtitle: 'Prepare your teaching',
+      subtitle: 'Study and share the Word',
       cardTitle: 'Preparation table',
-      cardSubtitle: 'Gather everything to teach a passage',
+      cardSubtitle: 'Gather everything to study and share a passage',
       passageLabel: 'Passage',
       helpsTitle: 'What the app gathers',
       helpsCount: '{{n}} helps gathered',
@@ -3791,17 +3791,17 @@ export const translations = {
         christ: {
           label: 'Connection to Christ',
           prompt:
-            'How does this passage point to, reveal, or find fulfillment in Christ? Preach the text, not yourself (Luke 24:27; 2 Cor 4:5).',
+            'How does this passage point to, reveal, or find fulfillment in Christ? Let it speak of Christ, not of you (Luke 24:27; 2 Cor 4:5).',
         },
         application: {
           label: 'Application',
           prompt:
-            'How does this truth change the mind, the heart and the hands? Be concrete and pastoral, never merely moralistic.',
+            'How does this truth change the mind, the heart and the hands? Be concrete and honest, never merely moralistic.',
         },
         questions: {
-          label: 'Questions for the group',
+          label: 'Questions to reflect on or discuss',
           prompt:
-            'What questions will help the group discover and live this truth for themselves?',
+            'What questions help you discover and live this truth, alone or in a group?',
         },
       },
     },
