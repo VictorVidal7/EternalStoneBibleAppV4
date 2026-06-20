@@ -10,6 +10,7 @@ import {
   decodePlanCode,
   decodeTogetherParam,
   encodeBundleLink,
+  encodeBundleParam,
   encodePlanCode,
   makePlanBundle,
   sanitizeGroupName,
@@ -62,6 +63,17 @@ describe('encodeBundleLink / decodeTogetherParam', () => {
     const res = decodeTogetherParam(param(encodeBundleLink(bundle)));
     expect(res).toEqual({ok: true, bundle});
     if (res.ok) expect(res.bundle.g).toBe('Célula 🙏 Galilea');
+  });
+
+  it('encodeBundleParam yields the same payload the link carries', () => {
+    const bundle = makePlanBundle('nt-30', '2026-06-22', 'Familia');
+    expect(`${TOGETHER_LINK_PREFIX}?d=${encodeBundleParam(bundle)}`).toBe(
+      encodeBundleLink(bundle),
+    );
+    expect(decodeTogetherParam(encodeBundleParam(bundle))).toEqual({
+      ok: true,
+      bundle,
+    });
   });
 
   it('produces a URL-safe link (scheme + only base64url chars)', () => {

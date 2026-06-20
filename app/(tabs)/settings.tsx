@@ -664,6 +664,37 @@ export default function SettingsScreen() {
           </View>
 
           <View style={themedStyles.card}>
+            {/* 🤝 Join a group — shared reading plans (Sprint 107) */}
+            <TouchableOpacity
+              style={themedStyles.featureItem}
+              onPress={async () => {
+                haptics.tap();
+                router.push('/features/together');
+              }}>
+              <View style={styles.featureContent}>
+                <View
+                  style={[
+                    themedStyles.featureIcon,
+                    {backgroundColor: colors.primary + '15'},
+                  ]}>
+                  <Ionicons name="people" size={24} color={colors.primary} />
+                </View>
+                <View style={styles.featureInfo}>
+                  <Text style={themedStyles.featureTitle}>
+                    {t.together.enterCode}
+                  </Text>
+                  <Text style={themedStyles.featureDescription}>
+                    {t.together.joinFeatureDesc}
+                  </Text>
+                </View>
+              </View>
+              <Ionicons
+                name="chevron-forward"
+                size={20}
+                color={colors.textTertiary}
+              />
+            </TouchableOpacity>
+
             {/* Widgets */}
             <TouchableOpacity
               style={themedStyles.featureItem}

@@ -251,9 +251,14 @@ export function makePlanBundle(
 
 // ───────────────────────────── encode ───────────────────────────────────────
 
+/** Full bundle → the opaque `d=` payload (base64url JSON). */
+export function encodeBundleParam(bundle: TogetherBundle): string {
+  return base64urlEncode(JSON.stringify(bundle));
+}
+
 /** Full bundle → tappable deep link (carries everything, incl. group name). */
 export function encodeBundleLink(bundle: TogetherBundle): string {
-  return `${TOGETHER_LINK_PREFIX}?d=${base64urlEncode(JSON.stringify(bundle))}`;
+  return `${TOGETHER_LINK_PREFIX}?d=${encodeBundleParam(bundle)}`;
 }
 
 /**

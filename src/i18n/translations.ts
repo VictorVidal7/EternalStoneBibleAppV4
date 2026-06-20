@@ -3047,6 +3047,8 @@ export const translations = {
       readingWith: 'Leyendo con {{group}}',
       readingTogether: 'Leyendo en grupo',
       leaveGroup: 'Salir del grupo',
+      joinFeatureDesc:
+        'Lee un plan con tu familia o grupo, cada quien en su app',
     },
   },
 
@@ -6077,6 +6079,8 @@ export const translations = {
       readingWith: 'Reading with {{group}}',
       readingTogether: 'Reading together',
       leaveGroup: 'Leave group',
+      joinFeatureDesc:
+        'Read a plan with your family or group, each in their app',
     },
   },
 };
