@@ -21,7 +21,6 @@ import {
   ScrollView,
   TouchableOpacity,
   StyleSheet,
-  Platform,
 } from 'react-native';
 import {Ionicons} from '@expo/vector-icons';
 import {LinearGradient} from 'expo-linear-gradient';
@@ -47,6 +46,13 @@ import {
   type ShareTemplate,
 } from '../../features/share/imageTemplates';
 import {passageMetaLine} from '@lib/reading/passageReference';
+import {
+  READER_FONT_FAMILY_ORDER,
+  READER_TYPEFACES,
+  resolveTypeface,
+  isReaderFontFamily,
+  type ReaderFontFamily,
+} from '@lib/reader/typefaces';
 import {
   spacing,
   borderRadius,
@@ -94,14 +100,14 @@ export const ImageShareModal: React.FC<ImageShareModalProps> = ({
   const [textAlign, setTextAlign] = useState<'center' | 'left' | 'right'>(
     'center',
   );
-  const [useSerif, setUseSerif] = useState(true);
+  const [fontFamilyId, setFontFamilyId] = useState<ReaderFontFamily>('serif');
   const [aspect, setAspect] = useState<ShareAspect>('square');
   const [isSharing, setIsSharing] = useState(false);
 
   // Seed the card's typography from how the user actually reads (their
   // reader preferences) each time the modal opens — the closest size preset
-  // and serif/sans. Depending only on `visible` re-seeds on every open while
-  // letting the user override within the session.
+  // and the chosen reading typeface. Depending only on `visible` re-seeds on
+  // every open while letting the user override within the session.
   useEffect(() => {
     if (!visible) return;
     const presets = [16, 20, 24, 28];
@@ -111,7 +117,11 @@ export const ImageShareModal: React.FC<ImageShareModalProps> = ({
         : a,
     );
     setFontSize(closest);
-    setUseSerif(preferences.fontFamily === 'serif');
+    setFontFamilyId(
+      isReaderFontFamily(preferences.fontFamily)
+        ? preferences.fontFamily
+        : 'serif',
+    );
   }, [visible]);
 
   // captureRef accepts the host LinearGradient instance ref directly.
@@ -232,11 +242,7 @@ export const ImageShareModal: React.FC<ImageShareModalProps> = ({
                       color: activeTheme.textColor,
                       fontSize,
                       textAlign,
-                      fontFamily: useSerif
-                        ? Platform.OS === 'ios'
-                          ? 'Georgia'
-                          : 'serif'
-                        : undefined,
+                      fontFamily: resolveTypeface(fontFamilyId),
                       paddingBottom: spacing.sm,
                     },
                   ]}>
@@ -466,48 +472,44 @@ export const ImageShareModal: React.FC<ImageShareModalProps> = ({
                 style={[styles.optionsTitle, {color: colors.textSecondary}]}>
                 {t.verse.imageFontStyle}
               </Text>
-              <View style={styles.optionsRow}>
-                <TouchableOpacity
-                  onPress={() => setUseSerif(true)}
-                  accessibilityRole="button"
-                  accessibilityState={{selected: useSerif}}
-                  style={[
-                    styles.sizeButton,
-                    styles.flex1,
-                    useSerif && {
-                      borderColor: colors.primary,
-                      backgroundColor: colors.primaryLight,
-                    },
-                  ]}>
-                  <Text
-                    style={[
-                      styles.fontStyleText,
-                      styles.serifFont,
-                      {color: useSerif ? selectedTextColor : colors.text},
-                    ]}>
-                    Serif
-                  </Text>
-                </TouchableOpacity>
-                <TouchableOpacity
-                  onPress={() => setUseSerif(false)}
-                  accessibilityRole="button"
-                  accessibilityState={{selected: !useSerif}}
-                  style={[
-                    styles.sizeButton,
-                    styles.flex1,
-                    !useSerif && {
-                      borderColor: colors.primary,
-                      backgroundColor: colors.primaryLight,
-                    },
-                  ]}>
-                  <Text
-                    style={[
-                      styles.fontStyleText,
-                      {color: !useSerif ? selectedTextColor : colors.text},
-                    ]}>
-                    Sans
-                  </Text>
-                </TouchableOpacity>
+              <View style={styles.fontPickerRow}>
+                {READER_FONT_FAMILY_ORDER.map(id => {
+                  const spec = READER_TYPEFACES[id];
+                  const selected = fontFamilyId === id;
+                  const label = (t.readerPrefs as Record<string, string>)[
+                    spec.labelKey
+                  ];
+                  return (
+                    <TouchableOpacity
+                      key={id}
+                      onPress={() => {
+                        haptics.tap();
+                        setFontFamilyId(id);
+                      }}
+                      accessibilityRole="button"
+                      accessibilityLabel={label}
+                      accessibilityState={{selected}}
+                      style={[
+                        styles.fontSwatch,
+                        {borderColor: colors.border},
+                        selected && {
+                          borderColor: colors.primary,
+                          backgroundColor: colors.primaryLight,
+                        },
+                      ]}>
+                      <Text
+                        style={[
+                          styles.fontSwatchSample,
+                          {
+                            fontFamily: spec.family,
+                            color: selected ? selectedTextColor : colors.text,
+                          },
+                        ]}>
+                        {spec.sample}
+                      </Text>
+                    </TouchableOpacity>
+                  );
+                })}
               </View>
             </View>
           </View>
@@ -519,7 +521,6 @@ export const ImageShareModal: React.FC<ImageShareModalProps> = ({
 
 const styles = StyleSheet.create({
   styleCircleSelected: {borderWidth: 3},
-  serifFont: {fontFamily: Platform.OS === 'ios' ? 'Georgia' : 'serif'},
   container: {
     flex: 1,
   },
@@ -669,8 +670,21 @@ const styles = StyleSheet.create({
   sizeButtonText: {
     fontWeight: 'bold',
   },
-  fontStyleText: {
-    fontWeight: 'bold',
+  fontPickerRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: spacing.sm,
+  },
+  fontSwatch: {
+    width: 52,
+    height: 52,
+    borderRadius: borderRadius.md,
+    borderWidth: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  fontSwatchSample: {
+    fontSize: fontSizes.lg,
   },
   formatButton: {
     flexDirection: 'column',

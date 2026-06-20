@@ -1,8 +1,10 @@
 /**
  * 📋 MESA DE PREPARACIÓN — teaching / sermon prep table (Sprint 103)
  *
- * A local "study desk" for pastors and teachers. Give it a passage and it
- * gathers everything the app already curates for it — the parallel cross-
+ * A local "study desk" for ANY believer who wants to study and share the Word
+ * (a dedicated, deeper pastors-and-teachers toolkit is planned separately).
+ * Give it a passage and it gathers everything the app already curates for it —
+ * the parallel cross-
  * references, the topical themes, the "Cristo en este pasaje" note, the "Sobre
  * este libro" intro — and lays out the widely-held evangelical study scaffold
  * (Context → Observation → Interpretation → Big Idea → Christ → Application →
