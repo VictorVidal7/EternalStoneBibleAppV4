@@ -122,6 +122,8 @@ export const translations = {
       lastRead: 'Última lectura',
       readingPlans: 'Planes de Lectura',
       myPlans: 'Mis planes',
+      createPlanShort: 'Crear',
+      noPlansYet: 'Crea tu propio plan de lectura.',
       growTitle: 'Crece con Dios',
       exploreTitle: 'Explorar',
       savedTitle: 'Guardados',
@@ -3064,6 +3066,10 @@ export const translations = {
       pasteOrCodeIntro:
         'Pega el enlace o ingresa el código que te compartieron.',
       pasteOrCodePlaceholder: 'Enlace o EB1-…',
+      deletePlan: 'Eliminar plan',
+      deletePlanConfirm:
+        'Se quitará de tus planes. Podrás volver a importarlo o crearlo de nuevo.',
+      planDeleted: 'Plan eliminado',
     },
     planBuilder: {
       title: 'Crear un plan',
@@ -3215,6 +3221,8 @@ export const translations = {
       lastRead: 'Last read',
       readingPlans: 'Reading Plans',
       myPlans: 'My plans',
+      createPlanShort: 'Create',
+      noPlansYet: 'Create your own reading plan.',
       growTitle: 'Grow with God',
       exploreTitle: 'Explore',
       savedTitle: 'Saved',
@@ -6136,6 +6144,10 @@ export const translations = {
       importedToast: "Plan imported! You'll find it on your home screen.",
       pasteOrCodeIntro: 'Paste the link or enter the code you were given.',
       pasteOrCodePlaceholder: 'Link or EB1-…',
+      deletePlan: 'Delete plan',
+      deletePlanConfirm:
+        'It will be removed from your plans. You can import or create it again.',
+      planDeleted: 'Plan deleted',
     },
     planBuilder: {
       title: 'Create a plan',

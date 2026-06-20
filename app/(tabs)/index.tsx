@@ -1374,8 +1374,9 @@ export default function HomeScreen() {
 
         {/* ==================== MIS PLANES (Sprint 108) ==================== */}
         {/* The user's own plans (built in the editor or imported from a shared
-            cplan link) live in their own section, headed by a "create" entry —
-            so the catalogue extends peer-to-peer with zero backend. */}
+            cplan link) live in their own section. "Create" is a compact button
+            in the header (it's just an action — it shouldn't claim a big card),
+            and the plans themselves use the SAME card as the curated carousel. */}
         <Animated.View
           style={{opacity: fadeAnim, marginTop: celestialSpacing.sectionGap}}>
           <View style={styles.sectionHeader}>
@@ -1386,28 +1387,37 @@ export default function HomeScreen() {
               ]}>
               {t.home.myPlans}
             </Text>
-            <Ionicons
-              name="create"
-              size={24}
-              color={celestialTheme.colors.accent}
-            />
+            <TouchableOpacity
+              style={[
+                styles.createPlanButton,
+                {
+                  backgroundColor: withOpacity(
+                    colors.primary,
+                    isDark ? 0.2 : 0.12,
+                  ),
+                  borderColor: colors.primary,
+                },
+              ]}
+              onPress={() =>
+                handlePress(() =>
+                  router.push('/features/plan-builder' as never),
+                )
+              }
+              accessibilityRole="button"
+              accessibilityLabel={t.planBuilder.cardTitle}>
+              <Ionicons name="add" size={18} color={colors.primary} />
+              <Text
+                style={[styles.createPlanButtonText, {color: colors.primary}]}>
+                {t.home.createPlanShort}
+              </Text>
+            </TouchableOpacity>
           </View>
-
-          <DiscoverTile
-            icon="add-circle"
-            title={t.planBuilder.cardTitle}
-            subtitle={t.planBuilder.cardSubtitle}
-            onPress={() =>
-              handlePress(() => router.push('/features/plan-builder' as never))
-            }
-          />
 
           {customPlans.length > 0 ? (
             <ScrollView
               horizontal
               showsHorizontalScrollIndicator={false}
-              contentContainerStyle={styles.plansScroll}
-              style={{marginTop: celestialSpacing.cardGap}}>
+              contentContainerStyle={styles.plansScroll}>
               {customPlans.map(plan => {
                 const planDays = getCompletedDays(plan.id);
                 const planDaysDone = planDays.length;
@@ -1441,13 +1451,22 @@ export default function HomeScreen() {
                           '{{days}}',
                           plan.duration.toString(),
                         );
+                // Localized "N days · M chapters" — a custom plan bakes no
+                // language, so describe it in the active UI language (S108).
+                const chapters = plan.days.reduce(
+                  (sum, d) => sum + d.readings.length,
+                  0,
+                );
+                const planDescription = t.together.customMeta
+                  .replace('{{days}}', String(plan.duration))
+                  .replace('{{chapters}}', String(chapters));
                 return (
                   <ReadingPlanCard
                     key={plan.id}
                     name={plan.name}
-                    description={plan.description}
+                    description={planDescription}
                     subtitle={planSubtitle}
-                    icon="create-outline"
+                    icon="book-outline"
                     duration={plan.duration}
                     daysCompleted={planDaysDone}
                     onPress={() =>
@@ -1463,7 +1482,15 @@ export default function HomeScreen() {
                 );
               })}
             </ScrollView>
-          ) : null}
+          ) : (
+            <Text
+              style={[
+                styles.noPlansText,
+                {color: celestialTheme.colors.textSecondary},
+              ]}>
+              {t.home.noPlansYet}
+            </Text>
+          )}
         </Animated.View>
 
         {/* ==================== GROW WITH GOD (Sprint 94 follow-up) ======== */}
@@ -2287,6 +2314,25 @@ const styles = StyleSheet.create({
     fontSize: 26, // MÁS GRANDE - de 22 a 26
     fontWeight: '800', // Más bold
     letterSpacing: -0.5,
+  },
+  // Compact "create a plan" button in the "Mis planes" header (Sprint 108).
+  createPlanButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    paddingHorizontal: 12,
+    paddingVertical: 7,
+    borderRadius: 999,
+    borderWidth: 1,
+  },
+  createPlanButtonText: {
+    fontSize: 14,
+    fontWeight: '700',
+  },
+  noPlansText: {
+    fontSize: 14,
+    lineHeight: 20,
+    fontStyle: 'italic',
   },
 
   // Quick Access Grid

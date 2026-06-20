@@ -69,7 +69,6 @@ export function customPlanFromBundle(
   bundle: CustomPlanBundle,
 ): ReadingPlan | null {
   const days: ReadingPlanDay[] = [];
-  let totalChapters = 0;
   for (const rawDay of bundle.d) {
     const readings: ReadingPlanDay['readings'] = [];
     for (const [bookId, chapter] of rawDay) {
@@ -77,17 +76,16 @@ export function customPlanFromBundle(
       if (!book || chapter < 1 || chapter > book.chapters) continue;
       readings.push({book: book.name, chapter});
     }
-    if (readings.length > 0) {
-      days.push({day: days.length + 1, readings});
-      totalChapters += readings.length;
-    }
+    if (readings.length > 0) days.push({day: days.length + 1, readings});
   }
   if (days.length === 0) return null;
   const id = customPlanId(bundle);
   return {
     id,
     name: bundle.n,
-    description: `${days.length} días · ${totalChapters} capítulos`,
+    // No baked description: a custom plan carries no language, so screens
+    // render a localized "N days · M chapters" line themselves (Sprint 108).
+    description: '',
     duration: days.length,
     icon: 'create-outline',
     color: customPlanColor(id),

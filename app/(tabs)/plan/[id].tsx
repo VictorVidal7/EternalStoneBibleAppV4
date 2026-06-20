@@ -26,6 +26,7 @@ import {
   FlatList,
   TouchableOpacity,
   Modal,
+  Alert,
 } from 'react-native';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {AppText as Text} from '@components/ui/AppText';
@@ -74,7 +75,7 @@ export default function ReadingPlanDetailScreen() {
     getStartedAt,
   } = useReadingPlanProgress();
   const {getMembership, leavePlan} = useTogether();
-  const {getCustomPlanById} = useCustomPlans();
+  const {getCustomPlanById, deleteCustomPlan} = useCustomPlans();
 
   // Resolve curated plans statically and custom plans from the context, so the
   // screen re-renders once the device-local custom plans have loaded (S108).
@@ -235,11 +236,41 @@ export default function ReadingPlanDetailScreen() {
 
   const percent = Math.round((completed / plan.duration) * 100);
   const localizedPlan = getLocalizedPlan(plan, t);
+  // A custom plan carries no localized tagline (S108) — describe it by its
+  // shape in the active language instead of an empty subtitle.
+  const headerSubtitle = plan.custom
+    ? t.together.customMeta
+        .replace('{{days}}', String(plan.duration))
+        .replace(
+          '{{chapters}}',
+          String(plan.days.reduce((s, d) => s + d.readings.length, 0)),
+        )
+    : localizedPlan.description;
   const membership = getMembership(plan.id);
   const onLeaveGroup = () => {
     haptics.tap();
     leavePlan(plan.id);
     toast.success(t.together.leaveGroup);
+  };
+
+  // Custom plans can be removed (curated ones cannot). Confirm first, since it
+  // drops the plan from the device; the reading progress stays keyed by id, so
+  // re-importing the same plan restores it.
+  const onDeletePlan = () => {
+    if (!plan?.custom) return;
+    haptics.tap();
+    Alert.alert(plan.name, t.together.deletePlanConfirm, [
+      {text: t.cancel, style: 'cancel'},
+      {
+        text: t.together.deletePlan,
+        style: 'destructive',
+        onPress: async () => {
+          await deleteCustomPlan(plan.id);
+          toast.success(t.together.planDeleted);
+          router.back();
+        },
+      },
+    ]);
   };
 
   const paceCaption = (() => {
@@ -497,27 +528,40 @@ export default function ReadingPlanDetailScreen() {
             accessibilityLabel={t.bible.back}>
             <Ionicons name="arrow-back" size={24} color="#ffffff" />
           </TouchableOpacity>
-          <TouchableOpacity
-            style={styles.headerBackButton}
-            onPress={() => {
-              haptics.tap();
-              setShareOpen(true);
-            }}
-            accessibilityRole="button"
-            accessibilityLabel={
-              plan.custom ? t.together.shareCustomTitle : t.together.shareTitle
-            }>
-            <Ionicons
-              name={plan.custom ? 'share-social-outline' : 'people-outline'}
-              size={22}
-              color="#ffffff"
-            />
-          </TouchableOpacity>
+          <View style={styles.headerActions}>
+            {plan.custom ? (
+              <TouchableOpacity
+                style={styles.headerBackButton}
+                onPress={onDeletePlan}
+                accessibilityRole="button"
+                accessibilityLabel={t.together.deletePlan}>
+                <Ionicons name="trash-outline" size={21} color="#ffffff" />
+              </TouchableOpacity>
+            ) : null}
+            <TouchableOpacity
+              style={styles.headerBackButton}
+              onPress={() => {
+                haptics.tap();
+                setShareOpen(true);
+              }}
+              accessibilityRole="button"
+              accessibilityLabel={
+                plan.custom
+                  ? t.together.shareCustomTitle
+                  : t.together.shareTitle
+              }>
+              <Ionicons
+                name={plan.custom ? 'share-social-outline' : 'people-outline'}
+                size={22}
+                color="#ffffff"
+              />
+            </TouchableOpacity>
+          </View>
         </View>
         <Text style={styles.headerTitle} numberOfLines={2}>
           {localizedPlan.name}
         </Text>
-        <Text style={styles.headerSubtitle}>{localizedPlan.description}</Text>
+        <Text style={styles.headerSubtitle}>{headerSubtitle}</Text>
 
         {/* Progress bar + honest pace line (Sprint 79) */}
         <View style={styles.progressInfo}>
@@ -649,6 +693,11 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
+  },
+  headerActions: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
   },
   groupChip: {
     flexDirection: 'row',
