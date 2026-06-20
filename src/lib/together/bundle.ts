@@ -19,8 +19,16 @@
  */
 
 import {
+  BOOK_ID_MAX,
+  CHAPTER_MAX,
   GROUP_NAME_MAX,
+  MAX_DAY_READINGS,
+  MAX_PLAN_DAYS,
+  MAX_PLAN_READINGS,
+  PLAN_NAME_MAX,
   TOGETHER_BUNDLE_VERSION,
+  type CustomPlanBundle,
+  type CustomReading,
   type DecodeFailure,
   type DecodeResult,
   type SharedPlanBundle,
@@ -214,6 +222,41 @@ function planToken(planId: string): string {
   return planId.toUpperCase().replace(/[^A-Z0-9]/g, '');
 }
 
+// ───────────────────────────── labels ──────────────────────────────────────
+
+/**
+ * Plain-text, length-capped label. Whitespace controls (tab/newline) become a
+ * space; other C0 controls + DEL are dropped; runs of whitespace collapse; the
+ * result is trimmed and capped. Implemented char-by-char (no control-char
+ * regex) so the source stays free of literal control bytes. Used at BOTH encode
+ * and decode (untrusted input).
+ */
+function sanitizeLabel(raw: string, cap: number): string {
+  let out = '';
+  for (let i = 0; i < raw.length; i++) {
+    const code = raw.charCodeAt(i);
+    if (
+      code === 9 ||
+      code === 10 ||
+      code === 11 ||
+      code === 12 ||
+      code === 13
+    ) {
+      out += ' '; // tab/newline/vertical-tab/form-feed/carriage-return
+    } else if (code < 0x20 || code === 0x7f) {
+      // drop the remaining C0 controls + DEL
+    } else {
+      out += raw[i];
+    }
+  }
+  return out.replace(/\s+/g, ' ').trim().slice(0, cap);
+}
+
+/** Plain-text, length-capped custom-plan name (Sprint 108). */
+export function sanitizePlanName(raw: string): string {
+  return sanitizeLabel(raw, PLAN_NAME_MAX);
+}
+
 // ───────────────────────────── group name ──────────────────────────────────
 
 /** Plain-text, length-capped group label. Used at BOTH encode and decode. */
@@ -247,6 +290,34 @@ export function makePlanBundle(
   const g = groupName ? sanitizeGroupName(groupName) : '';
   if (g) bundle.g = g;
   return bundle;
+}
+
+/**
+ * Build a custom-plan bundle from a name and the per-day chapter readings
+ * (Sprint 108). Days/readings beyond the caps are dropped here too, so a bundle
+ * we hand out is always within the same bounds the decoder enforces.
+ */
+export function makeCustomPlanBundle(
+  name: string,
+  days: CustomReading[][],
+): CustomPlanBundle {
+  const clean: CustomReading[][] = [];
+  let total = 0;
+  for (const day of days.slice(0, MAX_PLAN_DAYS)) {
+    const readings: CustomReading[] = [];
+    for (const r of day.slice(0, MAX_DAY_READINGS)) {
+      if (total >= MAX_PLAN_READINGS) break;
+      readings.push([r[0], r[1]]);
+      total++;
+    }
+    if (readings.length > 0) clean.push(readings);
+  }
+  return {
+    v: TOGETHER_BUNDLE_VERSION,
+    t: 'cplan',
+    n: sanitizePlanName(name),
+    d: clean,
+  };
 }
 
 // ───────────────────────────── encode ───────────────────────────────────────
@@ -300,9 +371,55 @@ function validateBundle(raw: unknown): DecodeResult {
     }
     return {ok: true, bundle};
   }
+  if (o.t === 'cplan') {
+    return validateCustomPlan(o);
+  }
   // A structurally-valid object with an unknown/missing type tag: either a
   // newer bundle kind, or garbage. Treat as unsupported, not malformed.
   return fail(typeof o.t === 'string' ? 'unsupported' : 'format');
+}
+
+/** Validate an untrusted custom-plan object against every cap (Sprint 108). */
+function validateCustomPlan(o: Record<string, unknown>): DecodeResult {
+  if (typeof o.n !== 'string') return fail('format');
+  const name = sanitizePlanName(o.n); // re-sanitize untrusted input
+  if (!name) return fail('format');
+  if (!Array.isArray(o.d) || o.d.length === 0 || o.d.length > MAX_PLAN_DAYS) {
+    return fail('format');
+  }
+  const days: CustomReading[][] = [];
+  let total = 0;
+  for (const rawDay of o.d) {
+    if (
+      !Array.isArray(rawDay) ||
+      rawDay.length === 0 ||
+      rawDay.length > MAX_DAY_READINGS
+    ) {
+      return fail('format');
+    }
+    const readings: CustomReading[] = [];
+    for (const r of rawDay) {
+      if (
+        !Array.isArray(r) ||
+        r.length !== 2 ||
+        !Number.isInteger(r[0]) ||
+        !Number.isInteger(r[1]) ||
+        r[0] < 1 ||
+        r[0] > BOOK_ID_MAX ||
+        r[1] < 1 ||
+        r[1] > CHAPTER_MAX
+      ) {
+        return fail('format');
+      }
+      if (++total > MAX_PLAN_READINGS) return fail('format');
+      readings.push([r[0], r[1]]);
+    }
+    days.push(readings);
+  }
+  return {
+    ok: true,
+    bundle: {v: TOGETHER_BUNDLE_VERSION, t: 'cplan', n: name, d: days},
+  };
 }
 
 /** Decode the `d=` query value from a together deep link. */

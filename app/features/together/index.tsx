@@ -103,6 +103,11 @@ export default function TogetherJoinScreen() {
       setError(messageFor(res.reason));
       return;
     }
+    if (res.bundle.t !== 'plan') {
+      // Custom plans (cplan) get their own import path (Sprint 108, later step).
+      setError(tt.linkInvalid);
+      return;
+    }
     if (!getReadingPlanById(res.bundle.p)) {
       setError(tt.codeUnknownPlan);
       return;
@@ -124,6 +129,10 @@ export default function TogetherJoinScreen() {
       setError(
         res.reason === 'unknown-plan' ? tt.codeUnknownPlan : tt.codeInvalid,
       );
+      return;
+    }
+    if (res.bundle.t !== 'plan') {
+      setError(tt.codeInvalid);
       return;
     }
     if (!getReadingPlanById(res.bundle.p)) {
