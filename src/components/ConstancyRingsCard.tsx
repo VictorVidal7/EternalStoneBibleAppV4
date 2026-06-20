@@ -10,12 +10,13 @@
  */
 
 import React, {useState} from 'react';
-import {TouchableOpacity} from 'react-native';
+import {StyleSheet, TouchableOpacity} from 'react-native';
 import {useLanguage} from '@hooks/useLanguage';
 import {haptics} from '@lib/haptics';
 import {useConstancyRings} from '@hooks/useConstancyRings';
 import {ConstancyRings} from '@components/ConstancyRings';
 import {ConstancyImageModal} from '@components/insights/ConstancyImageModal';
+import {spacing} from '@/styles/designTokens';
 
 interface ConstancyRingsCardProps {
   /** Open the rings detail (Home injects the route push). */
@@ -39,6 +40,9 @@ export const ConstancyRingsCard: React.FC<ConstancyRingsCardProps> = ({
   return (
     <>
       <TouchableOpacity
+        // Owns the top gap to the previous Home card so it collapses with the
+        // card when the honest gate above returns null (no phantom space).
+        style={styles.card}
         activeOpacity={0.9}
         onPress={() => {
           haptics.tap();
@@ -60,5 +64,9 @@ export const ConstancyRingsCard: React.FC<ConstancyRingsCardProps> = ({
     </>
   );
 };
+
+const styles = StyleSheet.create({
+  card: {marginTop: spacing.lg},
+});
 
 export default ConstancyRingsCard;
