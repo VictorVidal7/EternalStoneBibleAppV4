@@ -2,6 +2,7 @@
 
 import type {TranslationKeys} from '../i18n/translations';
 import {BIBLE_BOOKS} from './bible';
+import {getRegisteredCustomPlanById} from '../lib/reading/customPlans';
 
 export interface ReadingPlanDay {
   day: number;
@@ -36,12 +37,18 @@ export interface ReadingPlan {
   name: string;
   /** Descripción por defecto (español). Para mostrarla usa `getLocalizedPlan`. */
   description: string;
-  /** Clave para resolver nombre/descripción traducidos vía i18n. */
-  i18nKey: ReadingPlanI18nKey;
+  /**
+   * Clave para resolver nombre/descripción traducidos vía i18n. Ausente en los
+   * planes personalizados del usuario (Sprint 108), que no tienen traducción y
+   * muestran su nombre tal cual.
+   */
+  i18nKey?: ReadingPlanI18nKey;
   duration: number; // días
   icon: string;
   color: string;
   days: ReadingPlanDay[];
+  /** Plan creado por el usuario (no curado), resuelto desde el registro local. */
+  custom?: boolean;
 }
 
 // Plan: Nuevo Testamento en 30 días
@@ -956,7 +963,10 @@ export const READING_PLANS: ReadingPlan[] = [
 ];
 
 export function getReadingPlanById(id: string): ReadingPlan | undefined {
-  return READING_PLANS.find(plan => plan.id === id);
+  return (
+    READING_PLANS.find(plan => plan.id === id) ??
+    getRegisteredCustomPlanById(id)
+  );
 }
 
 /**
@@ -967,7 +977,7 @@ export function getLocalizedPlan(
   plan: ReadingPlan,
   t: TranslationKeys,
 ): {name: string; description: string} {
-  const localized = t.readingPlans?.[plan.i18nKey];
+  const localized = plan.i18nKey ? t.readingPlans?.[plan.i18nKey] : undefined;
   return {
     name: localized?.name ?? plan.name,
     description: localized?.description ?? plan.description,
@@ -986,8 +996,10 @@ export function getPlanDayContext(
   day: number,
   t: TranslationKeys,
 ): string | undefined {
-  const entry = t.readingPlans?.[plan.i18nKey] as
-    | {context?: readonly string[]}
-    | undefined;
+  const entry = plan.i18nKey
+    ? (t.readingPlans?.[plan.i18nKey] as
+        | {context?: readonly string[]}
+        | undefined)
+    : undefined;
   return entry?.context?.[day - 1];
 }

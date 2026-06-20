@@ -31,6 +31,7 @@ import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {AppText as Text} from '@components/ui/AppText';
 import {ShareTogetherModal} from '@components/together/ShareTogetherModal';
 import {useTogether} from '@context/TogetherContext';
+import {useCustomPlans} from '@context/CustomPlansContext';
 import {useLocalSearchParams, useRouter} from 'expo-router';
 import {Ionicons} from '@expo/vector-icons';
 import {LinearGradient} from 'expo-linear-gradient';
@@ -72,8 +73,11 @@ export default function ReadingPlanDetailScreen() {
     getStartedAt,
   } = useReadingPlanProgress();
   const {getMembership, leavePlan} = useTogether();
+  const {getCustomPlanById} = useCustomPlans();
 
-  const plan = getReadingPlanById(id ?? '');
+  // Resolve curated plans statically and custom plans from the context, so the
+  // screen re-renders once the device-local custom plans have loaded (S108).
+  const plan = getReadingPlanById(id ?? '') ?? getCustomPlanById(id ?? '');
 
   const headerGradient = (
     gradient?.headerColors
