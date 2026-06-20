@@ -26,12 +26,19 @@ import {
   MAX_PLAN_DAYS,
   MAX_PLAN_READINGS,
   PLAN_NAME_MAX,
+  STUDY_KEY_MAX,
+  STUDY_NOTE_KEYS_MAX,
+  STUDY_NOTE_MAX,
+  STUDY_NOTES_TOTAL_MAX,
+  STUDY_TITLE_MAX,
   TOGETHER_BUNDLE_VERSION,
+  VERSE_MAX,
   type CustomPlanBundle,
   type CustomReading,
   type DecodeFailure,
   type DecodeResult,
   type SharedPlanBundle,
+  type StudyBundle,
   type TogetherBundle,
 } from './types';
 
@@ -257,6 +264,32 @@ export function sanitizePlanName(raw: string): string {
   return sanitizeLabel(raw, PLAN_NAME_MAX);
 }
 
+/**
+ * Multi-line note sanitizer for shared studies (Sprint 109). Unlike a label, a
+ * note KEEPS its line breaks (the teacher's outline prose); tabs become a
+ * space, other C0 controls + DEL are dropped, and the whole is length-capped.
+ * Char-by-char (no control-char regex) to avoid literal control bytes.
+ */
+export function sanitizeNote(
+  raw: string,
+  cap: number = STUDY_NOTE_MAX,
+): string {
+  let out = '';
+  for (let i = 0; i < raw.length; i++) {
+    const code = raw.charCodeAt(i);
+    if (code === 10) {
+      out += '\n'; // keep line breaks
+    } else if (code === 9 || code === 11 || code === 12 || code === 13) {
+      out += ' '; // tab / vertical-tab / form-feed / carriage-return -> space
+    } else if (code < 0x20 || code === 0x7f) {
+      // drop the remaining C0 controls + DEL
+    } else {
+      out += raw[i];
+    }
+  }
+  return out.trim().slice(0, cap);
+}
+
 // ───────────────────────────── group name ──────────────────────────────────
 
 /** Plain-text, length-capped group label. Used at BOTH encode and decode. */
@@ -320,6 +353,53 @@ export function makeCustomPlanBundle(
   };
 }
 
+/**
+ * Build a shared-study bundle from a passage, optional title, and the teacher's
+ * per-section notes (Sprint 109). Blank notes are dropped, keys/values are
+ * sanitized, and the caps are applied here too so a built bundle is always
+ * within the bounds the decoder enforces.
+ */
+export function makeStudyBundle(
+  passage: {
+    bookId: number;
+    chapter: number;
+    startVerse: number;
+    endVerse: number;
+  },
+  title: string | undefined,
+  notes: Record<string, string>,
+): StudyBundle {
+  const sv = Math.min(passage.startVerse, passage.endVerse);
+  const ev = Math.max(passage.startVerse, passage.endVerse);
+  const n: Record<string, string> = {};
+  let total = 0;
+  let keys = 0;
+  for (const [rawKey, rawVal] of Object.entries(notes)) {
+    if (keys >= STUDY_NOTE_KEYS_MAX || total >= STUDY_NOTES_TOTAL_MAX) break;
+    const key = rawKey.slice(0, STUDY_KEY_MAX);
+    const val = sanitizeNote(
+      typeof rawVal === 'string' ? rawVal : '',
+      Math.min(STUDY_NOTE_MAX, STUDY_NOTES_TOTAL_MAX - total),
+    );
+    if (!key || !val) continue;
+    n[key] = val;
+    total += val.length;
+    keys++;
+  }
+  const bundle: StudyBundle = {
+    v: TOGETHER_BUNDLE_VERSION,
+    t: 'study',
+    b: passage.bookId,
+    c: passage.chapter,
+    sv,
+    ev,
+    n,
+  };
+  const ti = title ? sanitizeLabel(title, STUDY_TITLE_MAX) : '';
+  if (ti) bundle.ti = ti;
+  return bundle;
+}
+
 // ───────────────────────────── encode ───────────────────────────────────────
 
 /** Full bundle → the opaque `d=` payload (base64url JSON). */
@@ -374,9 +454,63 @@ function validateBundle(raw: unknown): DecodeResult {
   if (o.t === 'cplan') {
     return validateCustomPlan(o);
   }
+  if (o.t === 'study') {
+    return validateStudy(o);
+  }
   // A structurally-valid object with an unknown/missing type tag: either a
   // newer bundle kind, or garbage. Treat as unsupported, not malformed.
   return fail(typeof o.t === 'string' ? 'unsupported' : 'format');
+}
+
+function isInt(x: unknown, lo: number, hi: number): boolean {
+  return typeof x === 'number' && Number.isInteger(x) && x >= lo && x <= hi;
+}
+
+/** Validate an untrusted shared-study object against every cap (Sprint 109). */
+function validateStudy(o: Record<string, unknown>): DecodeResult {
+  if (
+    !isInt(o.b, 1, BOOK_ID_MAX) ||
+    !isInt(o.c, 1, CHAPTER_MAX) ||
+    !isInt(o.sv, 1, VERSE_MAX) ||
+    !isInt(o.ev, 1, VERSE_MAX)
+  ) {
+    return fail('format');
+  }
+  const sv = Math.min(o.sv as number, o.ev as number);
+  const ev = Math.max(o.sv as number, o.ev as number);
+  if (typeof o.n !== 'object' || o.n === null) return fail('format');
+  const rawNotes = o.n as Record<string, unknown>;
+  const n: Record<string, string> = {};
+  let total = 0;
+  let keys = 0;
+  for (const [rawKey, rawVal] of Object.entries(rawNotes)) {
+    if (keys >= STUDY_NOTE_KEYS_MAX) break;
+    if (typeof rawVal !== 'string') continue;
+    const key = rawKey.slice(0, STUDY_KEY_MAX);
+    const val = sanitizeNote(
+      rawVal,
+      Math.min(STUDY_NOTE_MAX, STUDY_NOTES_TOTAL_MAX - total),
+    );
+    if (!key || !val) continue;
+    n[key] = val;
+    total += val.length;
+    keys++;
+    if (total >= STUDY_NOTES_TOTAL_MAX) break;
+  }
+  const bundle: StudyBundle = {
+    v: TOGETHER_BUNDLE_VERSION,
+    t: 'study',
+    b: o.b as number,
+    c: o.c as number,
+    sv,
+    ev,
+    n,
+  };
+  if (typeof o.ti === 'string') {
+    const ti = sanitizeLabel(o.ti, STUDY_TITLE_MAX);
+    if (ti) bundle.ti = ti;
+  }
+  return {ok: true, bundle};
 }
 
 /** Validate an untrusted custom-plan object against every cap (Sprint 108). */

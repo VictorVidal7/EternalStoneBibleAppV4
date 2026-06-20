@@ -9,6 +9,8 @@ import {
   PLAN_NAME_MAX,
   MAX_PLAN_DAYS,
   MAX_DAY_READINGS,
+  STUDY_TITLE_MAX,
+  STUDY_NOTE_KEYS_MAX,
   type CustomReading,
 } from '@/lib/together/types';
 import {
@@ -21,7 +23,9 @@ import {
   encodePlanCode,
   makeCustomPlanBundle,
   makePlanBundle,
+  makeStudyBundle,
   sanitizeGroupName,
+  sanitizeNote,
   sanitizePlanName,
   todayDateISO,
 } from '@/lib/together/bundle';
@@ -120,7 +124,9 @@ describe('encodeBundleLink / decodeTogetherParam', () => {
   });
 
   it('flags a known-shaped-but-unsupported future type', () => {
-    const link = encodeBundleLink({v: 1, t: 'study', x: 1} as never);
+    // 'cal' (the baked-calendar bundle) isn't built yet — a structurally valid
+    // object with an unknown type tag reads as unsupported, not malformed.
+    const link = encodeBundleLink({v: 1, t: 'cal', x: 1} as never);
     expect(decodeTogetherParam(param(link))).toEqual({
       ok: false,
       reason: 'unsupported',
@@ -338,6 +344,142 @@ describe('sanitizePlanName', () => {
     expect(sanitizePlanName('  a' + TAB + 'b  ')).toBe('a b');
     expect(sanitizePlanName('y'.repeat(200)).length).toBe(PLAN_NAME_MAX);
     expect(sanitizePlanName('a' + CTRL + 'b')).toBe('ab');
+  });
+});
+
+describe('makeStudyBundle', () => {
+  const passage = {bookId: 43, chapter: 3, startVerse: 16, endVerse: 21};
+
+  it('builds a versioned study bundle, drops blank notes, sanitizes title', () => {
+    const b = makeStudyBundle(passage, '  Pastor A  ', {
+      context: 'Nicodemo de noche.',
+      bigIdea: '   ',
+      christ: 'El Hijo levantado.',
+    });
+    expect(b).toEqual({
+      v: TOGETHER_BUNDLE_VERSION,
+      t: 'study',
+      b: 43,
+      c: 3,
+      sv: 16,
+      ev: 21,
+      ti: 'Pastor A',
+      n: {context: 'Nicodemo de noche.', christ: 'El Hijo levantado.'},
+    });
+  });
+
+  it('swaps a reversed verse range', () => {
+    const b = makeStudyBundle(
+      {bookId: 1, chapter: 1, startVerse: 5, endVerse: 1},
+      undefined,
+      {context: 'x'},
+    );
+    expect([b.sv, b.ev]).toEqual([1, 5]);
+    expect(b.ti).toBeUndefined();
+  });
+});
+
+describe('study round-trip / hardening', () => {
+  const sample = makeStudyBundle(
+    {bookId: 43, chapter: 3, startVerse: 16, endVerse: 16},
+    'Estudio de Juan',
+    {context: 'Línea 1\nLínea 2', application: 'Cree y vive.'},
+  );
+
+  it('round-trips through the link, keeping note line breaks', () => {
+    const res = decodeTogetherParam(param(encodeBundleLink(sample)));
+    expect(res).toEqual({ok: true, bundle: sample});
+    if (res.ok && res.bundle.t === 'study') {
+      expect(res.bundle.n.context).toContain('\n');
+    }
+  });
+
+  it('re-sanitizes a malicious title + notes on decode', () => {
+    const link = encodeBundleLink({
+      v: 1,
+      t: 'study',
+      b: 43,
+      c: 3,
+      sv: 16,
+      ev: 16,
+      ti: 'T'.repeat(200) + CTRL,
+      n: {context: 'ok' + CTRL + '\nkeep', evil: 'a'.repeat(99999)},
+    } as never);
+    const res = decodeTogetherParam(param(link));
+    expect(res.ok).toBe(true);
+    if (res.ok && res.bundle.t === 'study') {
+      expect(res.bundle.ti).toBe('T'.repeat(STUDY_TITLE_MAX));
+      expect(res.bundle.n.context).toBe('ok\nkeep'); // control byte stripped, \n kept
+      expect(res.bundle.n.evil.length).toBeLessThanOrEqual(20000);
+    }
+  });
+
+  it('rejects out-of-range book / chapter / verse', () => {
+    const mk = (o: object) =>
+      decodeTogetherParam(param(encodeBundleLink(o as never))).ok;
+    expect(mk({v: 1, t: 'study', b: 0, c: 3, sv: 1, ev: 1, n: {}})).toBe(false);
+    expect(mk({v: 1, t: 'study', b: 67, c: 3, sv: 1, ev: 1, n: {}})).toBe(
+      false,
+    );
+    expect(mk({v: 1, t: 'study', b: 43, c: 0, sv: 1, ev: 1, n: {}})).toBe(
+      false,
+    );
+    expect(mk({v: 1, t: 'study', b: 43, c: 3, sv: 0, ev: 1, n: {}})).toBe(
+      false,
+    );
+    expect(mk({v: 1, t: 'study', b: 43, c: 3, sv: 1, ev: 999, n: {}})).toBe(
+      false,
+    );
+    expect(mk({v: 1, t: 'study', b: 43, c: 3, sv: 1, ev: 1, n: 5})).toBe(false);
+  });
+
+  it('caps the number of note entries', () => {
+    const many: Record<string, string> = {};
+    for (let i = 0; i < STUDY_NOTE_KEYS_MAX + 10; i++) many['k' + i] = 'x';
+    const res = decodeTogetherParam(
+      param(
+        encodeBundleLink({
+          v: 1,
+          t: 'study',
+          b: 1,
+          c: 1,
+          sv: 1,
+          ev: 1,
+          n: many,
+        } as never),
+      ),
+    );
+    expect(res.ok).toBe(true);
+    if (res.ok && res.bundle.t === 'study') {
+      expect(Object.keys(res.bundle.n).length).toBeLessThanOrEqual(
+        STUDY_NOTE_KEYS_MAX,
+      );
+    }
+  });
+
+  it('accepts a study with no notes (empty outline still shares the passage)', () => {
+    const res = decodeTogetherParam(
+      param(
+        encodeBundleLink({
+          v: 1,
+          t: 'study',
+          b: 1,
+          c: 1,
+          sv: 1,
+          ev: 1,
+          n: {},
+        } as never),
+      ),
+    );
+    expect(res.ok).toBe(true);
+  });
+});
+
+describe('sanitizeNote', () => {
+  it('keeps newlines, turns tabs to spaces, strips controls, caps', () => {
+    expect(sanitizeNote('a\nb' + TAB + 'c')).toBe('a\nb c');
+    expect(sanitizeNote('x' + CTRL + 'y')).toBe('xy');
+    expect(sanitizeNote('z'.repeat(50), 10)).toHaveLength(10);
   });
 });
 
