@@ -412,6 +412,17 @@ export function encodeBundleLink(bundle: TogetherBundle): string {
   return `${TOGETHER_LINK_PREFIX}?d=${encodeBundleParam(bundle)}`;
 }
 
+/** The deep-link route the read-only shared-study viewer lives at (S109). */
+export const STUDY_LINK_PREFIX = 'eternalbible://features/study-shared';
+
+/**
+ * Shared study → a tappable deep link that opens the READ-ONLY viewer directly
+ * (its own route, not the plan-join screen). Same opaque `d=` payload.
+ */
+export function encodeStudyLink(bundle: StudyBundle): string {
+  return `${STUDY_LINK_PREFIX}?d=${encodeBundleParam(bundle)}`;
+}
+
 /**
  * Curated plan → short human code `EB1-<date32>-<PLAN>`. Returns null only for
  * an out-of-range date. The group name is NOT carried by a code (use the link).

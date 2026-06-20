@@ -21,6 +21,7 @@ import {
   encodeBundleLink,
   encodeBundleParam,
   encodePlanCode,
+  encodeStudyLink,
   makeCustomPlanBundle,
   makePlanBundle,
   makeStudyBundle,
@@ -392,6 +393,17 @@ describe('study round-trip / hardening', () => {
     if (res.ok && res.bundle.t === 'study') {
       expect(res.bundle.n.context).toContain('\n');
     }
+  });
+
+  it('encodeStudyLink targets the study-shared route and round-trips', () => {
+    const link = encodeStudyLink(sample);
+    expect(link.startsWith('eternalbible://features/study-shared?d=')).toBe(
+      true,
+    );
+    expect(decodeTogetherParam(param(link))).toEqual({
+      ok: true,
+      bundle: sample,
+    });
   });
 
   it('re-sanitizes a malicious title + notes on decode', () => {
