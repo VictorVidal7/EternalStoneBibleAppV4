@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="es">
+<html lang="en">
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -7,11 +7,12 @@
     <title>Eternal Stone Bible</title>
     <!-- The shared content travels in the URL #fragment, so it is NEVER sent to
          GitHub's servers — this page only ever sees a bare path. Zero-knowledge,
-         100% peer-to-peer. -->
+         100% peer-to-peer. The visible copy follows the visitor's browser
+         language (Spanish or English). -->
     <meta property="og:title" content="Eternal Stone Bible" />
     <meta
       property="og:description"
-      content="Toca para abrir esto en la app Eternal Stone Bible."
+      content="Open this in the Eternal Stone Bible app."
     />
     <style>
       :root {
@@ -74,28 +75,50 @@
     <main>
       <div class="logo">📖</div>
       <h1>Eternal Stone Bible</h1>
-      <p id="msg">Abriendo en la app…</p>
-      <a id="open" class="btn" href="#">Abrir en Eternal Stone Bible</a>
-      <p class="hint">
-        ¿No se abrió? Copia este enlace y pégalo en la app:
-        <b>Ajustes → Unirse a un grupo</b>.
-      </p>
+      <p id="msg">Opening in the app…</p>
+      <a id="open" class="btn" href="#">Open in Eternal Stone Bible</a>
+      <p class="hint" id="hint"></p>
     </main>
     <script>
       (function () {
+        // Pick the copy from the visitor's browser language (es → Spanish).
+        var es =
+          (navigator.language || "en").toLowerCase().indexOf("es") === 0;
+        var T = es
+          ? {
+              opening: "Abriendo en la app…",
+              open: "Abrir en Eternal Stone Bible",
+              hint:
+                "¿No se abrió? Copia este enlace y pégalo en la app: " +
+                "<b>Ajustes → Unirse a un grupo</b>.",
+              bad: "Este enlace está incompleto.",
+            }
+          : {
+              opening: "Opening in the app…",
+              open: "Open in Eternal Stone Bible",
+              hint:
+                "Didn't open? Copy this link and paste it in the app: " +
+                "<b>Settings → Join a group</b>.",
+              bad: "This link is incomplete.",
+            };
+        document.documentElement.lang = es ? "es" : "en";
+        var msg = document.getElementById("msg");
+        var open = document.getElementById("open");
+        var hint = document.getElementById("hint");
         // Read the payload from the #fragment (kept off the server on purpose).
         var raw = (location.hash || "").replace(/^#/, "");
         if (raw.indexOf("d=") === 0) raw = raw.slice(2);
-        var msg = document.getElementById("msg");
-        var open = document.getElementById("open");
         if (!raw) {
-          msg.textContent = "Este enlace está incompleto.";
+          msg.textContent = T.bad;
           open.style.display = "none";
           return;
         }
         // The plan-join route also forwards shared studies to their viewer, so a
         // single target works for plans, custom plans and studies alike.
         var target = "eternalbible://features/together?d=" + raw;
+        msg.textContent = T.opening;
+        open.textContent = T.open;
+        hint.innerHTML = T.hint;
         open.setAttribute("href", target);
         // Give the page a beat to paint the manual button, then bounce.
         setTimeout(function () {

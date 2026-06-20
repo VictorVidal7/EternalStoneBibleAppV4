@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="es">
+<html lang="en">
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -39,10 +39,21 @@
     <main>
       <div class="logo">📖</div>
       <h1>Eternal Stone Bible</h1>
-      <p>
-        Esta página solo abre los enlaces de planes y estudios que la app
-        comparte. Pídele a quien te invitó que te pase un enlace.
+      <p id="blurb">
+        This page only opens the reading-plan and study links the app shares. Ask
+        whoever invited you to send you a link.
       </p>
     </main>
+    <script>
+      (function () {
+        var es = (navigator.language || "en").toLowerCase().indexOf("es") === 0;
+        if (es) {
+          document.documentElement.lang = "es";
+          document.getElementById("blurb").textContent =
+            "Esta página solo abre los enlaces de planes y estudios que la app " +
+            "comparte. Pídele a quien te invitó que te pase un enlace.";
+        }
+      })();
+    </script>
   </body>
 </html>
