@@ -7,15 +7,15 @@ import {BIBLE_VERSIONS, installedVersions} from '@/constants/bible';
 describe('installedVersions', () => {
   it('always includes the bundled versions, even with no installed ids', () => {
     const ids = installedVersions([]).map(v => v.id);
-    expect(ids).toEqual(expect.arrayContaining(['RVR1960', 'KJV']));
+    expect(ids).toEqual(expect.arrayContaining(['RVR1960', 'WEB']));
     // The downloadable ones are NOT offered until present (the old WEB bug).
-    expect(ids).not.toContain('WEB');
+    expect(ids).not.toContain('KJV');
     expect(ids).not.toContain('BSB');
   });
 
   it('adds a downloadable version once its verses are present', () => {
-    const ids = installedVersions(['RVR1960', 'KJV', 'WEB']).map(v => v.id);
-    expect(ids).toContain('WEB');
+    const ids = installedVersions(['RVR1960', 'WEB', 'KJV']).map(v => v.id);
+    expect(ids).toContain('KJV');
     expect(ids).not.toContain('BSB');
   });
 
@@ -32,7 +32,7 @@ describe('installedVersions', () => {
   });
 
   it('preserves the catalog order', () => {
-    expect(installedVersions(['WEB', 'BSB']).map(v => v.id)).toEqual(
+    expect(installedVersions(['KJV', 'BSB']).map(v => v.id)).toEqual(
       BIBLE_VERSIONS.map(v => v.id),
     );
   });

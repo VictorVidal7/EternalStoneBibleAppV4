@@ -123,9 +123,7 @@ function sortRows(rows) {
     }))
     .sort(
       (a, b) =>
-        a.book_id - b.book_id ||
-        a.chapter - b.chapter ||
-        a.verse - b.verse,
+        a.book_id - b.book_id || a.chapter - b.chapter || a.verse - b.verse,
     );
 }
 
@@ -175,8 +173,9 @@ function verifySeed(file, expectRvr, expectWeb) {
       .all()
       .map(r => [r.version, r.c]),
   );
-  const books = db.prepare('SELECT COUNT(DISTINCT book_id) b FROM verses').get()
-    .b;
+  const books = db
+    .prepare('SELECT COUNT(DISTINCT book_id) b FROM verses')
+    .get().b;
   const fts = db.prepare('SELECT COUNT(*) c FROM verses_fts').get().c;
   const total = db.prepare('SELECT COUNT(*) c FROM verses').get().c;
   const jRvr = db
@@ -191,14 +190,10 @@ function verifySeed(file, expectRvr, expectWeb) {
     .get();
   // FTS round-trip: a Spanish query hits RVR1960, an English query hits WEB.
   const ftsEs = db
-    .prepare(
-      "SELECT COUNT(*) c FROM verses_fts WHERE verses_fts MATCH 'amó'",
-    )
+    .prepare("SELECT COUNT(*) c FROM verses_fts WHERE verses_fts MATCH 'amó'")
     .get().c;
   const ftsEn = db
-    .prepare(
-      "SELECT COUNT(*) c FROM verses_fts WHERE verses_fts MATCH 'loved'",
-    )
+    .prepare("SELECT COUNT(*) c FROM verses_fts WHERE verses_fts MATCH 'loved'")
     .get().c;
   db.close();
   const ok =
@@ -223,10 +218,13 @@ function verifySeed(file, expectRvr, expectWeb) {
 function verifyKjvPack(file, expect) {
   const db = new DatabaseSync(file, {readOnly: true});
   const n = db.prepare('SELECT COUNT(*) c FROM verses').get().c;
-  const books = db.prepare('SELECT COUNT(DISTINCT book_id) b FROM verses').get()
-    .b;
+  const books = db
+    .prepare('SELECT COUNT(DISTINCT book_id) b FROM verses')
+    .get().b;
   const j = db
-    .prepare('SELECT text FROM verses WHERE book_id=43 AND chapter=3 AND verse=16')
+    .prepare(
+      'SELECT text FROM verses WHERE book_id=43 AND chapter=3 AND verse=16',
+    )
     .get();
   db.close();
   const ok = n === expect && books === 66 && !!j;
@@ -238,8 +236,12 @@ function verifyKjvPack(file, expect) {
 
 function main() {
   console.log('Loading sources…');
-  const rvr = sortRows(parseTsArray(path.join(ROOT, 'src/lib/database/bible-data-rvr1960.ts')));
-  const web = sortRows(parseTsArray(path.join(ROOT, 'src/lib/database/bible-data-web.ts')));
+  const rvr = sortRows(
+    parseTsArray(path.join(ROOT, 'src/lib/database/bible-data-rvr1960.ts')),
+  );
+  const web = sortRows(
+    parseTsArray(path.join(ROOT, 'src/lib/database/bible-data-web.ts')),
+  );
   const kjv = sortRows(loadKjvRows());
   console.log(`  RVR1960=${rvr.length} WEB=${web.length} KJV=${kjv.length}`);
 
@@ -285,7 +287,9 @@ function main() {
 
   console.log('\nDone.');
   console.log(`  ${SEED} (${fs.statSync(SEED).size} bytes)`);
-  console.log(`  ${kjvFile} (${kjvBuf.length} bytes, sha256 ${sha.slice(0, 16)}…)`);
+  console.log(
+    `  ${kjvFile} (${kjvBuf.length} bytes, sha256 ${sha.slice(0, 16)}…)`,
+  );
   console.log(`  ${kjvFile}.gz (${fs.statSync(kjvFile + '.gz').size} bytes)`);
   console.log(`  ${VERSIONS_JSON} updated (KJV added, WEB removed)`);
 }

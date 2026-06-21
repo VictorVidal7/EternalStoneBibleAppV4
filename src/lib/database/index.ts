@@ -37,12 +37,14 @@ async function seedFromBundleIfMissing(): Promise<boolean> {
     if (!sqliteDir.exists) sqliteDir.create({intermediates: true});
     const sourceFile = new File(sourceUri);
     sourceFile.copy(targetFile);
-    // The JS bulk loader keys "this version is loaded" off AsyncStorage;
-    // mark both as loaded so it short-circuits instead of redundantly
-    // re-iterating 62k rows just to hit the UNIQUE constraint.
+    // The JS bulk loader keys "this version is loaded" off AsyncStorage; mark
+    // the two BUNDLED versions (RVR1960 + WEB) as loaded so it short-circuits
+    // instead of redundantly re-iterating 62k rows just to hit the UNIQUE
+    // constraint. KJV/BSB are downloadable packs — their flags get set by
+    // importVersionPack, not here.
     await Promise.all([
       AsyncStorage.setItem('@bible_data_loaded_rvr1960', 'true'),
-      AsyncStorage.setItem('@bible_data_loaded_kjv', 'true'),
+      AsyncStorage.setItem('@bible_data_loaded_web', 'true'),
     ]);
     return true;
   } catch (error) {
