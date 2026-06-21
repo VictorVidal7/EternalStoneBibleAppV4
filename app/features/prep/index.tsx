@@ -1031,7 +1031,10 @@ const styles = StyleSheet.create({
   passageText: {
     fontSize: fontSizes.md,
     lineHeight: fontSizes.md * 1.5,
-    marginRight: verseTextRightSlack(fontSizes.md),
+    // paddingRight (not marginRight) so Android's Text clip rect extends to give
+    // an overhanging last glyph room to paint — left-aligned here, so no justify
+    // concern (see the reader's Sprint 110 rationale).
+    paddingRight: verseTextRightSlack(fontSizes.md),
   },
   sectionCard: {
     borderRadius: borderRadius.lg,
@@ -1087,7 +1090,8 @@ const styles = StyleSheet.create({
   refText: {
     fontSize: fontSizes.sm,
     lineHeight: fontSizes.sm * 1.45,
-    marginRight: verseTextRightSlack(fontSizes.sm),
+    // paddingRight (see passageText): extends the Android Text clip rect.
+    paddingRight: verseTextRightSlack(fontSizes.sm),
   },
   chipWrap: {flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm},
   chip: {

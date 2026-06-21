@@ -1999,6 +1999,13 @@ export default function VerseReadingScreen() {
               audioState.currentVerseIndex === index;
             const userHighlight = verseHighlights.get(verse.verse);
 
+            // Right-edge anti-clip reserve, derived SOLELY from fontSize so the
+            // now-playing and idle verse measure identically (no playback
+            // reflow). See the lever rationale on `paddingRight`/`marginRight`
+            // in the style below.
+            const rightSlack = Math.max(24, Math.round(fontSize * 0.7));
+            const isJustified = readerPrefs.textAlign === 'justify';
+
             const textStyle = {
               color: isBeingRead
                 ? effectiveColors.audioHighlight
@@ -2064,7 +2071,24 @@ export default function VerseReadingScreen() {
               // Sprint 106 (8th report): still a faint clip on the user's phone.
               // Floor 20→24 (the lever in-range) + slope 0.65→0.7 so the larger
               // reader sizes gain a little too. Still derived only from fontSize.
-              marginRight: Math.max(24, Math.round(fontSize * 0.7)),
+              //
+              // Sprint 110 (root cause, not another bump — the user STILL caught
+              // a faint right-edge clip on their OEM phone): reserve the gutter
+              // as paddingRight for LEFT-aligned text instead of marginRight. On
+              // Android a <Text> clips its glyphs to its OWN content box;
+              // paddingRight EXTENDS that clip rect so an overhanging last-glyph
+              // side-bearing paints INSIDE the bounds, whereas marginRight only
+              // narrows the box (lines wrap a hair earlier) — a probabilistic
+              // mitigation that never fully clears the clip, which is why the 8
+              // margin bumps above never landed it AND why every FIXED-size
+              // scripture card (which already uses paddingRight) was never
+              // reported. The reserve width is unchanged, so the wrap — and thus
+              // the read/idle parity above — is identical. JUSTIFIED text keeps
+              // the margin: paddingRight disables Android's native inter-word
+              // justification (Sprint 95 rationale), and justify fills to the
+              // content-box edge anyway, so the margin is the best lever there.
+              marginRight: isJustified ? rightSlack : 0,
+              paddingRight: isJustified ? 0 : rightSlack,
             } as const;
 
             const numberStyle = {
