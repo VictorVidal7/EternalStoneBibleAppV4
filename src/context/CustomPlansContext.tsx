@@ -36,6 +36,13 @@ export interface CustomPlansContextValue {
   getCustomPlanById: (id: string) => ReadingPlan | undefined;
   /** Add or replace a custom plan (dedup by its content-derived id). */
   saveCustomPlan: (plan: ReadingPlan) => Promise<void>;
+  /**
+   * Replace the plan `oldId` with `plan` in ONE write (Sprint 110 — editing a
+   * custom plan rebuilds it under a fresh content-derived id). Drops both
+   * `oldId` and any stale copy of the new id, then puts the edited plan at the
+   * front. Atomic so the two ids can't clobber each other across renders.
+   */
+  replaceCustomPlan: (oldId: string, plan: ReadingPlan) => Promise<void>;
   /** Remove a custom plan. Does not touch its reading progress. */
   deleteCustomPlan: (id: string) => Promise<void>;
 }
@@ -89,6 +96,16 @@ export function CustomPlansProvider({children}: {children: ReactNode}) {
     [customPlans, persist],
   );
 
+  const replaceCustomPlan = useCallback(
+    async (oldId: string, plan: ReadingPlan) => {
+      await persist([
+        plan,
+        ...customPlans.filter(p => p.id !== oldId && p.id !== plan.id),
+      ]);
+    },
+    [customPlans, persist],
+  );
+
   const deleteCustomPlan = useCallback(
     async (id: string) => {
       await persist(customPlans.filter(p => p.id !== id));
@@ -102,8 +119,20 @@ export function CustomPlansProvider({children}: {children: ReactNode}) {
   );
 
   const value = useMemo<CustomPlansContextValue>(
-    () => ({customPlans, getCustomPlanById, saveCustomPlan, deleteCustomPlan}),
-    [customPlans, getCustomPlanById, saveCustomPlan, deleteCustomPlan],
+    () => ({
+      customPlans,
+      getCustomPlanById,
+      saveCustomPlan,
+      replaceCustomPlan,
+      deleteCustomPlan,
+    }),
+    [
+      customPlans,
+      getCustomPlanById,
+      saveCustomPlan,
+      replaceCustomPlan,
+      deleteCustomPlan,
+    ],
   );
 
   return (

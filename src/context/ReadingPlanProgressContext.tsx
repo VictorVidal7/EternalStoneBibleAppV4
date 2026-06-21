@@ -67,6 +67,15 @@ interface ReadingPlanProgressContextType {
    */
   setPlanStart: (planId: string, startedAtISO: string) => Promise<void>;
   /**
+   * Move a plan's progress to a NEW id (Sprint 110). Editing a custom plan
+   * rebuilds it under a fresh content-derived id, so its completedDays /
+   * startedAt / completedAt are carried over to `toId` (only if `toId` has none
+   * yet) and `fromId` is dropped. No-op when the ids match or `fromId` has no
+   * progress — so a rename keeps your streak while a structural edit keeps
+   * whatever days you'd already ticked.
+   */
+  migratePlanProgress: (fromId: string, toId: string) => Promise<void>;
+  /**
    * Records that a chapter was read and auto-completes any plan day whose
    * chapters are now all read. Returns the days that just became complete so
    * the caller can surface feedback (e.g. a toast).
@@ -193,6 +202,21 @@ export function ReadingPlanProgressProvider({children}: {children: ReactNode}) {
     [progress, persist],
   );
 
+  const migratePlanProgress = useCallback(
+    async (fromId: string, toId: string) => {
+      if (fromId === toId) return;
+      const current = progress[fromId];
+      if (!current) return;
+      const next = {...progress};
+      // Don't clobber an existing target (e.g. an edit that lands back on a
+      // plan id that already has progress) — only seed it when empty.
+      if (!next[toId]) next[toId] = current;
+      delete next[fromId];
+      await persist(next);
+    },
+    [progress, persist],
+  );
+
   const markChapterRead = useCallback(
     async (
       book: string | number,
@@ -292,6 +316,7 @@ export function ReadingPlanProgressProvider({children}: {children: ReactNode}) {
         isDayComplete,
         toggleDay,
         setPlanStart,
+        migratePlanProgress,
         markChapterRead,
         isChapterRead,
         getStartedAt,

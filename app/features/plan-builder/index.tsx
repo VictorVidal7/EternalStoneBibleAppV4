@@ -10,7 +10,7 @@
  * Para la gloria de Dios Todopoderoso ✨
  */
 
-import React, {useMemo, useState} from 'react';
+import React, {useEffect, useMemo, useRef, useState} from 'react';
 import {
   FlatList,
   Modal,
@@ -20,7 +20,7 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-import {Stack, useRouter} from 'expo-router';
+import {Stack, useLocalSearchParams, useRouter} from 'expo-router';
 import {Ionicons} from '@expo/vector-icons';
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
 
@@ -38,12 +38,17 @@ import {BIBLE_BOOKS, getBookById} from '@/constants/bible';
 import {
   buildCustomPlan,
   countChapters,
+  daysToPassages,
   distributeChapters,
+  inferPerDay,
   passagesToChapters,
   type PlanPace,
   type PlanPassage,
 } from '@/lib/reading/customPlanBuild';
-import {customPlanFromBundle} from '@/lib/reading/customPlans';
+import {
+  bundleFromCustomPlan,
+  customPlanFromBundle,
+} from '@/lib/reading/customPlans';
 
 export default function PlanBuilderScreen() {
   const router = useRouter();
@@ -52,14 +57,37 @@ export default function PlanBuilderScreen() {
   const {t, language} = useLanguage();
   const tb = t.planBuilder;
   const toast = useToast();
-  const {saveCustomPlan} = useCustomPlans();
-  const {setPlanStart} = useReadingPlanProgress();
+  const {getCustomPlanById, saveCustomPlan, replaceCustomPlan} =
+    useCustomPlans();
+  const {setPlanStart, migratePlanProgress} = useReadingPlanProgress();
+
+  // When opened with `?editId=<planId>` the screen edits that custom plan in
+  // place instead of creating a new one (Sprint 110, completing S108).
+  const {editId} = useLocalSearchParams<{editId?: string}>();
+  const isEdit = Boolean(editId);
 
   const [name, setName] = useState('');
   const [passages, setPassages] = useState<PlanPassage[]>([]);
   const [paceMode, setPaceMode] = useState<PlanPace['mode']>('perDay');
   const [perDay, setPerDay] = useState(3);
   const [totalDays, setTotalDays] = useState(7);
+
+  // Pre-fill ONCE from the plan being edited. The custom-plan list loads
+  // asynchronously, so this runs in an effect (guarded by a ref) rather than in
+  // useState initializers, and reconstructs the editor passages from the saved
+  // days (which is all a custom plan stores).
+  const prefilled = useRef(false);
+  useEffect(() => {
+    if (!editId || prefilled.current) return;
+    const plan = getCustomPlanById(editId);
+    if (!plan) return;
+    prefilled.current = true;
+    const days = bundleFromCustomPlan(plan).d;
+    setName(plan.name);
+    setPassages(daysToPassages(days));
+    setPaceMode('perDay');
+    setPerDay(inferPerDay(days));
+  }, [editId, getCustomPlanById]);
 
   // Add-passage modal state.
   const [pickerOpen, setPickerOpen] = useState(false);
@@ -130,10 +158,19 @@ export default function PlanBuilderScreen() {
       return;
     }
     haptics.success();
-    await saveCustomPlan(plan);
-    // Seed today's start so the plan opens already guiding "Day 1".
-    await setPlanStart(plan.id, new Date().toISOString());
-    toast.success(tb.created);
+    if (isEdit && editId) {
+      // Editing rebuilds the plan under a fresh content-derived id. Carry the
+      // progress (and its original start date) to the new id, then replace the
+      // old entry in one atomic write so the two ids can't clobber each other.
+      if (plan.id !== editId) await migratePlanProgress(editId, plan.id);
+      await replaceCustomPlan(editId, plan);
+      toast.success(tb.updated);
+    } else {
+      await saveCustomPlan(plan);
+      // Seed today's start so the plan opens already guiding "Day 1".
+      await setPlanStart(plan.id, new Date().toISOString());
+      toast.success(tb.created);
+    }
     router.replace(`/plan/${plan.id}` as never);
   };
 
@@ -174,7 +211,7 @@ export default function PlanBuilderScreen() {
           <Ionicons name="arrow-back" size={22} color={colors.text} />
         </TouchableOpacity>
         <Text style={[styles.headerTitle, {color: colors.text}]}>
-          {tb.title}
+          {isEdit ? tb.editTitle : tb.title}
         </Text>
       </View>
 
@@ -332,13 +369,15 @@ export default function PlanBuilderScreen() {
           disabled={!canCreate}
           onPress={onCreate}
           accessibilityRole="button"
-          accessibilityLabel={tb.create}>
+          accessibilityLabel={isEdit ? tb.save : tb.create}>
           <Ionicons
             name="checkmark-circle-outline"
             size={20}
             color={staticColors.white}
           />
-          <Text style={styles.createBtnText}>{tb.create}</Text>
+          <Text style={styles.createBtnText}>
+            {isEdit ? tb.save : tb.create}
+          </Text>
         </TouchableOpacity>
       </ScrollView>
 
