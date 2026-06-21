@@ -80,10 +80,13 @@ export function nextChapterLocation(
 
 /**
  * Whether the player should auto-advance into the next chapter when the current
- * one finishes. Continuous playback must be enabled, and a sleep timer set to
- * "end of chapter" overrides it (that mode is an explicit "stop here").
- * A verse PLAYLIST (Sprint 79 — favorites/collections) never advances either:
- * its last verse is the end of the list, not a chapter boundary to roll past.
+ * one finishes. A sleep timer set to "end of chapter" overrides everything (an
+ * explicit "stop here"). A sleep timer set to "end of book" is the opposite — an
+ * explicit "keep going until the book ends" — so it advances even when the
+ * continuous-playback preference is off; the stop is enforced at the book
+ * boundary by {@link isBookEnd} in the advancer, not here. Otherwise continuous
+ * playback must be enabled. A verse PLAYLIST (Sprint 79 — favorites/collections)
+ * never advances: its last verse is the end of the list, not a chapter boundary.
  */
 export function shouldAdvanceChapter(params: {
   autoAdvance: boolean;
@@ -91,9 +94,22 @@ export function shouldAdvanceChapter(params: {
   queueMode?: AudioQueueMode;
 }): boolean {
   if (params.queueMode === 'playlist') return false;
-  if (!params.autoAdvance) return false;
   if (params.sleepMode === 'end-of-chapter') return false;
+  if (params.sleepMode === 'end-of-book') return true;
+  if (!params.autoAdvance) return false;
   return true;
+}
+
+/**
+ * Whether `chapter` is the LAST chapter of book `bookId` — i.e. the next chapter
+ * rolls into a different book, or there is none (the end of the canon). Used by
+ * an "end of book" sleep timer: continuous playback rolls through the book's
+ * chapters and stops the moment it would cross into the next book. Composes
+ * {@link nextChapterLocation} so the per-book chapter counts stay in one place.
+ */
+export function isBookEnd(bookId: number, chapter: number): boolean {
+  const next = nextChapterLocation(bookId, chapter);
+  return !next || next.bookId !== bookId;
 }
 
 /**

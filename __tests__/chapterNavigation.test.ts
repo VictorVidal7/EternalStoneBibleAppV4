@@ -11,6 +11,7 @@
 import {
   nextChapterLocation,
   shouldAdvanceChapter,
+  isBookEnd,
   chapterLocationFromVerse,
   shouldFollowAudioChapter,
   nextChapterTitle,
@@ -87,6 +88,46 @@ describe('shouldAdvanceChapter', () => {
         queueMode: 'chapter',
       }),
     ).toBe(true);
+  });
+
+  // End-of-book sleep timer: advance through the book's chapters EVEN with the
+  // continuous-playback preference off (the book-end stop is enforced by
+  // isBookEnd in the advancer, not here). end-of-chapter still wins.
+  it('advances for an end-of-book timer even when continuous is off', () => {
+    expect(
+      shouldAdvanceChapter({autoAdvance: false, sleepMode: 'end-of-book'}),
+    ).toBe(true);
+  });
+
+  it('a playlist still never advances, even with an end-of-book timer', () => {
+    expect(
+      shouldAdvanceChapter({
+        autoAdvance: true,
+        sleepMode: 'end-of-book',
+        queueMode: 'playlist',
+      }),
+    ).toBe(false);
+  });
+});
+
+describe('isBookEnd', () => {
+  it('is true on a book’s last chapter (next rolls into a new book)', () => {
+    expect(isBookEnd(1, 50)).toBe(true); // Genesis 50 -> Exodus 1
+    expect(isBookEnd(19, 150)).toBe(true); // Psalms 150 -> Proverbs 1
+  });
+
+  it('is false mid-book (more chapters remain)', () => {
+    expect(isBookEnd(1, 49)).toBe(false); // Genesis 49 -> Genesis 50
+    expect(isBookEnd(19, 1)).toBe(false);
+  });
+
+  it('is true at the very end of the canon (no next chapter)', () => {
+    expect(isBookEnd(66, 22)).toBe(true); // Revelation 22 -> nothing
+  });
+
+  it('is true for a single-chapter book', () => {
+    expect(isBookEnd(31, 1)).toBe(true); // Obadiah (1 chapter)
+    expect(isBookEnd(57, 1)).toBe(true); // Philemon (1 chapter)
   });
 });
 

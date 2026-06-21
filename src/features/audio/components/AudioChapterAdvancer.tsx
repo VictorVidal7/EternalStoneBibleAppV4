@@ -26,6 +26,7 @@ import {useBibleVersion} from '@hooks/useBibleVersion';
 import {useAudioPlayer} from '../context/AudioPlayerContext';
 import {toAudioVerses} from '../lib/immersiveAudio';
 import {
+  isBookEnd,
   nextChapterLocation,
   shouldAdvanceChapter,
 } from '../lib/chapterNavigation';
@@ -39,6 +40,7 @@ export const AudioChapterAdvancer: React.FC = () => {
     loadChapter,
     play,
     queueInfo,
+    cancelSleepTimer,
   } = useAudioPlayer();
   const {selectedVersion} = useBibleVersion();
 
@@ -66,6 +68,22 @@ export const AudioChapterAdvancer: React.FC = () => {
     if (!last) return;
     const bookInfo = getBookByName(last.book);
     if (!bookInfo) return;
+
+    // "End of book" sleep timer: stop the instant the finished chapter is the
+    // book's last (the next chapter would cross into a different book, or the
+    // canon ended) and clear the timer, instead of rolling into the next book.
+    if (
+      sleepTimer.mode === 'end-of-book' &&
+      isBookEnd(bookInfo.id, last.chapter)
+    ) {
+      logger.info('End-of-book sleep timer reached — stopping at book end', {
+        bookId: bookInfo.id,
+        chapter: last.chapter,
+      });
+      cancelSleepTimer();
+      return;
+    }
+
     const target = nextChapterLocation(bookInfo.id, last.chapter);
     if (!target) return; // end of the canon — stay stopped
 
@@ -111,6 +129,7 @@ export const AudioChapterAdvancer: React.FC = () => {
     selectedVersion,
     loadChapter,
     play,
+    cancelSleepTimer,
   ]);
 
   return null;
