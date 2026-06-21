@@ -166,6 +166,15 @@ export interface AudioPlayerContextValue {
   readerFollowsAudio: boolean;
   setReaderFollowsAudio: (enabled: boolean) => void;
 
+  /**
+   * Memorization "repeat verse" loop — when on, the engine re-speaks the CURRENT
+   * verse when it finishes instead of advancing, so a single verse loops while
+   * the user memorizes it (pairs with the SRS). Runtime-only (not persisted);
+   * defaults off. Takes precedence over continuous advance / playlist repeat.
+   */
+  repeatVerse: boolean;
+  setRepeatVerse: (enabled: boolean) => void;
+
   // Player UI
   expand: () => void;
   collapse: () => void;

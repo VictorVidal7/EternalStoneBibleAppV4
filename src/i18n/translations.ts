@@ -2150,6 +2150,9 @@ export const translations = {
         readerFollow: 'El lector sigue al audio',
         readerFollowHint:
           'Cuando la reproducción continua avanza de capítulo, el lector navega con ella',
+        repeatVerse: 'Repetir versículo',
+        repeatVerseHint:
+          'Repite en bucle el versículo actual para memorizarlo, hasta que lo desactives',
       },
       scrub: {
         preview: 'Versículo {{n}} de {{total}}',
@@ -2198,6 +2201,10 @@ export const translations = {
         '📖 El lector te llevará al capítulo que se esté escuchando',
       readerFollowOffToast:
         'El lector se quedará donde estás mientras el audio avanza',
+      repeatVerseOnToast:
+        '🔁 Repetir versículo: este versículo sonará en bucle para memorizarlo',
+      repeatVerseOffToast:
+        'Repetición desactivada: el audio seguirá con el siguiente versículo',
       immersive: {
         listen: 'Escuchar',
         listening: 'Escuchando',
@@ -5323,6 +5330,9 @@ export const translations = {
         readerFollow: 'Reader follows audio',
         readerFollowHint:
           'When continuous playback advances to the next chapter, the reader navigates with it',
+        repeatVerse: 'Repeat verse',
+        repeatVerseHint:
+          'Loops the current verse so you can memorize it, until you turn it off',
       },
       scrub: {
         preview: 'Verse {{n}} of {{total}}',
@@ -5370,6 +5380,10 @@ export const translations = {
       readerFollowOnToast:
         '📖 The reader will follow the audio into each chapter',
       readerFollowOffToast: 'The reader stays put while the audio moves on',
+      repeatVerseOnToast:
+        '🔁 Repeat verse: this verse will loop so you can memorize it',
+      repeatVerseOffToast:
+        'Repeat off: audio will continue with the next verse',
       immersive: {
         listen: 'Listen',
         listening: 'Listening',
