@@ -35,6 +35,15 @@ export const CHAPTER_MAX = 150;
 /** A verse number, bounded above the longest chapter (Psalm 119 = 176). */
 export const VERSE_MAX = 200;
 
+/** Caps that bound a decoded baked devotional calendar (untrusted — Sprint 110). */
+export const CAL_TITLE_MAX = 60;
+/** Max characters of one day's short note. */
+export const CAL_NOTE_MAX = 280;
+/** Max total characters across every day's note (bounds the whole link). */
+export const CAL_NOTES_TOTAL_MAX = 12000;
+/** Max number of days a baked calendar can carry (~6 months of devotionals). */
+export const MAX_CAL_DAYS = 184;
+
 /** Caps that bound a decoded shared study (untrusted input — Sprint 109). */
 export const STUDY_TITLE_MAX = 80;
 /** Max characters of one section's note (the teacher's prose). */
@@ -120,10 +129,51 @@ export interface StudyBundle {
 }
 
 /**
- * The decoded bundle. A discriminated union (by `t`) that grows as later
- * sprints add a baked calendar.
+ * One day of a baked devotional calendar (Sprint 110): a single verse reference
+ * `[bookId, chapter, verse]` and an optional short note from the creator. Stored
+ * as a numeric tuple (not a name) so it resolves identically in any UI/version
+ * language and stays compact in the link.
  */
-export type TogetherBundle = SharedPlanBundle | CustomPlanBundle | StudyBundle;
+export interface CalReading {
+  /** `[bookId(1..66), chapter, verse]`. */
+  r: [bookId: number, chapter: number, verse: number];
+  /** Optional short note for the day (already sanitized). */
+  n?: string;
+}
+
+/**
+ * A baked **devotional calendar** (Sprint 110) — the LAST of the four
+ * "juntos sin servidor" community capabilities. A creator hand-picks a verse
+ * (plus an optional short reflection) for each of N consecutive days and bakes
+ * the whole sequence into ONE shareable link, with an agreed start date. Anyone
+ * who opens it sees the SAME verse for the SAME calendar day (today = start +
+ * elapsed days), 100% offline, zero backend/cost. The verse text itself is NOT
+ * shipped — only the reference — so each recipient reads it in their OWN Bible
+ * version; only the creator's notes travel. Bounded by the `CAL_*` / `MAX_CAL_*`
+ * caps above since it arrives as untrusted input.
+ */
+export interface CalBundle {
+  /** Format version. */
+  v: number;
+  /** Discriminant. */
+  t: 'cal';
+  /** Agreed start date, ISO calendar date `YYYY-MM-DD` (day 1). */
+  s: string;
+  /** Optional title / attribution the creator typed (sanitized). */
+  ti?: string;
+  /** Days in order; day index `i` falls on `s + i` days. */
+  d: CalReading[];
+}
+
+/**
+ * The decoded bundle. A discriminated union (by `t`) covering every community
+ * capability: shared curated plan, custom plan, shared study, baked calendar.
+ */
+export type TogetherBundle =
+  | SharedPlanBundle
+  | CustomPlanBundle
+  | StudyBundle
+  | CalBundle;
 
 /** Why a decode failed — drives a friendly, localized message in the UI. */
 export type DecodeFailure =

@@ -11,6 +11,9 @@ import {
   MAX_DAY_READINGS,
   STUDY_TITLE_MAX,
   STUDY_NOTE_KEYS_MAX,
+  CAL_TITLE_MAX,
+  CAL_NOTE_MAX,
+  MAX_CAL_DAYS,
   type CustomReading,
 } from '@/lib/together/types';
 import {
@@ -20,11 +23,13 @@ import {
   decodeTogetherParam,
   encodeBundleLink,
   encodeBundleParam,
+  encodeCalLink,
   encodeHttpsLink,
   encodePlanCode,
   encodeStudyLink,
   ETERNAL_WEB_BASE,
   extractSharedLinkPayload,
+  makeCalBundle,
   makeCustomPlanBundle,
   makePlanBundle,
   makeStudyBundle,
@@ -152,9 +157,10 @@ describe('encodeBundleLink / decodeTogetherParam', () => {
   });
 
   it('flags a known-shaped-but-unsupported future type', () => {
-    // 'cal' (the baked-calendar bundle) isn't built yet — a structurally valid
-    // object with an unknown type tag reads as unsupported, not malformed.
-    const link = encodeBundleLink({v: 1, t: 'cal', x: 1} as never);
+    // A structurally valid object whose type tag this build doesn't know yet
+    // (a future bundle kind) reads as unsupported, not malformed. ('cal' is
+    // now implemented — Sprint 110 — so use a not-yet-built tag here.)
+    const link = encodeBundleLink({v: 1, t: 'memorize', x: 1} as never);
     expect(decodeTogetherParam(param(link))).toEqual({
       ok: false,
       reason: 'unsupported',
@@ -585,5 +591,154 @@ describe('date helpers', () => {
     expect(addDaysISO('2026-06-22', 1)).toBe('2026-06-23');
     expect(addDaysISO('2026-06-30', 1)).toBe('2026-07-01');
     expect(addDaysISO('2026-06-22', -1)).toBe('2026-06-21');
+  });
+});
+
+describe('makeCalBundle (Sprint 110)', () => {
+  it('builds a versioned calendar, keeps notes, sanitizes title', () => {
+    const b = makeCalBundle('2026-06-22', '  Adviento  ', [
+      {bookId: 43, chapter: 3, verse: 16, note: '  Dios amó al mundo  '},
+      {bookId: 19, chapter: 23, verse: 1},
+    ]);
+    expect(b).toEqual({
+      v: TOGETHER_BUNDLE_VERSION,
+      t: 'cal',
+      s: '2026-06-22',
+      ti: 'Adviento',
+      d: [{r: [43, 3, 16], n: 'Dios amó al mundo'}, {r: [19, 23, 1]}],
+    });
+  });
+
+  it('returns null for an invalid date or when no valid day remains', () => {
+    expect(
+      makeCalBundle('not-a-date', undefined, [
+        {bookId: 1, chapter: 1, verse: 1},
+      ]),
+    ).toBeNull();
+    expect(makeCalBundle('2026-06-22', undefined, [])).toBeNull();
+    // every day out of range -> nothing valid left
+    expect(
+      makeCalBundle('2026-06-22', undefined, [
+        {bookId: 99, chapter: 1, verse: 1},
+      ]),
+    ).toBeNull();
+  });
+
+  it('drops out-of-range days but keeps the valid ones', () => {
+    const b = makeCalBundle('2026-06-22', undefined, [
+      {bookId: 67, chapter: 1, verse: 1}, // bad book
+      {bookId: 1, chapter: 1, verse: 1}, // good
+      {bookId: 1, chapter: 1, verse: 999}, // bad verse
+    ]);
+    expect(b?.d).toEqual([{r: [1, 1, 1]}]);
+  });
+
+  it('caps the number of days', () => {
+    const many = Array.from({length: MAX_CAL_DAYS + 25}, () => ({
+      bookId: 1,
+      chapter: 1,
+      verse: 1,
+    }));
+    const b = makeCalBundle('2026-06-22', undefined, many);
+    expect(b?.d.length).toBe(MAX_CAL_DAYS);
+  });
+});
+
+describe('cal round-trip / hardening (Sprint 110)', () => {
+  const sample = makeCalBundle('2026-06-22', 'Una semana en los Salmos', [
+    {
+      bookId: 19,
+      chapter: 23,
+      verse: 1,
+      note: 'El Señor es mi pastor.\nNada me faltará.',
+    },
+    {bookId: 43, chapter: 3, verse: 16},
+  ])!;
+
+  it('round-trips through the link, keeping note line breaks', () => {
+    const res = decodeTogetherParam(param(encodeBundleLink(sample)));
+    expect(res).toEqual({ok: true, bundle: sample});
+    if (res.ok && res.bundle.t === 'cal') {
+      expect(res.bundle.d[0].n).toContain('\n');
+    }
+  });
+
+  it('encodeCalLink targets the devotional-shared route and round-trips', () => {
+    const link = encodeCalLink(sample);
+    expect(
+      link.startsWith('eternalbible://features/devotional-shared?d='),
+    ).toBe(true);
+    expect(decodeTogetherParam(param(link))).toEqual({
+      ok: true,
+      bundle: sample,
+    });
+  });
+
+  it('is shareable as an https redirector link', () => {
+    const link = encodeHttpsLink(sample);
+    expect(link.startsWith(ETERNAL_WEB_BASE)).toBe(true);
+    const payload = extractSharedLinkPayload(link)!;
+    expect(decodeTogetherParam(payload)).toEqual({ok: true, bundle: sample});
+  });
+
+  it('re-sanitizes a malicious title + note on decode', () => {
+    const link = encodeBundleLink({
+      v: 1,
+      t: 'cal',
+      s: '2026-06-22',
+      ti: 'T'.repeat(200) + CTRL,
+      d: [{r: [1, 1, 1], n: 'ok' + CTRL + '\nkeep'}],
+    } as never);
+    const res = decodeTogetherParam(param(link));
+    expect(res.ok).toBe(true);
+    if (res.ok && res.bundle.t === 'cal') {
+      expect(res.bundle.ti).toBe('T'.repeat(CAL_TITLE_MAX));
+      expect(res.bundle.d[0].n).toBe('ok\nkeep'); // control byte stripped, \n kept
+    }
+  });
+
+  it('rejects a bad date, empty days, or out-of-range refs', () => {
+    const mk = (o: object) =>
+      decodeTogetherParam(param(encodeBundleLink(o as never))).ok;
+    expect(mk({v: 1, t: 'cal', s: 'nope', d: [{r: [1, 1, 1]}]})).toBe(false);
+    expect(mk({v: 1, t: 'cal', s: '2026-06-22', d: []})).toBe(false);
+    expect(mk({v: 1, t: 'cal', s: '2026-06-22', d: [{r: [0, 1, 1]}]})).toBe(
+      false,
+    );
+    expect(mk({v: 1, t: 'cal', s: '2026-06-22', d: [{r: [1, 151, 1]}]})).toBe(
+      false,
+    );
+    expect(mk({v: 1, t: 'cal', s: '2026-06-22', d: [{r: [1, 1, 201]}]})).toBe(
+      false,
+    );
+    expect(mk({v: 1, t: 'cal', s: '2026-06-22', d: [{r: [1, 1]}]})).toBe(false);
+    expect(mk({v: 1, t: 'cal', s: '2026-06-22', d: [{note: 'x'}]})).toBe(false);
+  });
+
+  it('caps a too-long note on decode', () => {
+    const link = encodeBundleLink({
+      v: 1,
+      t: 'cal',
+      s: '2026-06-22',
+      d: [{r: [1, 1, 1], n: 'a'.repeat(CAL_NOTE_MAX + 500)}],
+    } as never);
+    const res = decodeTogetherParam(param(link));
+    expect(res.ok).toBe(true);
+    if (res.ok && res.bundle.t === 'cal') {
+      expect(res.bundle.d[0].n!.length).toBeLessThanOrEqual(CAL_NOTE_MAX);
+    }
+  });
+
+  it('rejects too many days', () => {
+    const tooMany = Array.from({length: MAX_CAL_DAYS + 1}, () => ({
+      r: [1, 1, 1],
+    }));
+    const link = encodeBundleLink({
+      v: 1,
+      t: 'cal',
+      s: '2026-06-22',
+      d: tooMany,
+    } as never);
+    expect(decodeTogetherParam(param(link)).ok).toBe(false);
   });
 });

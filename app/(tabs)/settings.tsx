@@ -695,6 +695,37 @@ export default function SettingsScreen() {
               />
             </TouchableOpacity>
 
+            {/* 🗓️ Create a devotional — baked verse-a-day calendar (Sprint 110) */}
+            <TouchableOpacity
+              style={themedStyles.featureItem}
+              onPress={async () => {
+                haptics.tap();
+                router.push('/features/devotional');
+              }}>
+              <View style={styles.featureContent}>
+                <View
+                  style={[
+                    themedStyles.featureIcon,
+                    {backgroundColor: colors.primary + '15'},
+                  ]}>
+                  <Ionicons name="calendar" size={24} color={colors.primary} />
+                </View>
+                <View style={styles.featureInfo}>
+                  <Text style={themedStyles.featureTitle}>
+                    {t.devotionalBuilder.entryTitle}
+                  </Text>
+                  <Text style={themedStyles.featureDescription}>
+                    {t.devotionalBuilder.entryDesc}
+                  </Text>
+                </View>
+              </View>
+              <Ionicons
+                name="chevron-forward"
+                size={20}
+                color={colors.textTertiary}
+              />
+            </TouchableOpacity>
+
             {/* Widgets */}
             <TouchableOpacity
               style={themedStyles.featureItem}
