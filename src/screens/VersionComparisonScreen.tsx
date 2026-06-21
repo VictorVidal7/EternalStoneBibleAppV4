@@ -243,6 +243,43 @@ export const VersionComparisonScreen: React.FC<
     );
   };
 
+  // When a SELECTED version has no row for this verse it simply drops out of the
+  // comparison — which looks like a glitch. This happens for the ~16 verses the
+  // critical text omits (Matt 17:21, Mark 7:16, John 5:4, Acts 8:37 …): a
+  // version like BSB keeps the numbering but leaves them blank. Render a clear,
+  // pastoral note for each omitting version so a blank is never mistaken for a
+  // missing download — and so the reader learns it's a textual-variant choice.
+  const renderOmittedNotes = (comp: VerseComparison): React.ReactNode => {
+    const present = new Set(comp.versions.map(v => v.versionId.toLowerCase()));
+    const omitted = selectedVersions.filter(
+      id => !present.has(id.toLowerCase()),
+    );
+    if (omitted.length === 0) return null;
+    return omitted.map(id => {
+      const meta = availableVersions.find(
+        v => v.id.toLowerCase() === id.toLowerCase(),
+      );
+      const abbr = meta?.abbreviation ?? id.toUpperCase();
+      return (
+        <View
+          key={`omit-${comp.verseNumber}-${id}`}
+          style={[
+            styles.omittedCard,
+            {backgroundColor: colors.surface, borderColor: colors.border},
+          ]}>
+          <Ionicons
+            name="information-circle-outline"
+            size={16}
+            color={colors.textTertiary}
+          />
+          <Text style={[styles.omittedText, {color: colors.textSecondary}]}>
+            {t.versionComparison.verseOmitted.replace('{{version}}', abbr)}
+          </Text>
+        </View>
+      );
+    });
+  };
+
   // Inline word-contrast toggle row (Sprint 68/69). Shown in both single- and
   // multi-verse mode whenever ≥2 versions are compared. The same-language
   // default + hint policy is identical across modes.
@@ -820,6 +857,7 @@ export const VersionComparisonScreen: React.FC<
                           )}
                         </View>
                       ))}
+                      {renderOmittedNotes(comp)}
                     </View>
 
                     {/* Divider between verses */}
@@ -911,6 +949,7 @@ export const VersionComparisonScreen: React.FC<
                     )}
                   </View>
                 ))}
+                {comparison && renderOmittedNotes(comparison)}
               </View>
 
               {/* Word-contrast toggle (Sprint 68/69) — highlights the words that
@@ -1590,6 +1629,17 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     borderLeftWidth: 4,
   },
+  omittedCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    padding: 12,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderStyle: 'dashed',
+    marginTop: 8,
+  },
+  omittedText: {flex: 1, fontSize: 13.5, lineHeight: 19, fontStyle: 'italic'},
   versionHeader: {
     flexDirection: 'row',
     alignItems: 'center',

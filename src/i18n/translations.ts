@@ -2687,6 +2687,8 @@ export const translations = {
       observations: 'Observaciones',
       verse: 'Verso',
       words: 'palabras',
+      verseOmitted:
+        'Este versículo no aparece en {{version}} (omitido en el texto crítico).',
       selectVerse: 'Seleccionar Versículo',
       multiSelectMode: 'Múltiple',
       simpleMode: 'Simple',
@@ -5824,6 +5826,8 @@ export const translations = {
       observations: 'Observations',
       verse: 'Verse',
       words: 'words',
+      verseOmitted:
+        "This verse isn't in {{version}} (omitted in the critical text).",
       selectVerse: 'Select Verse',
       multiSelectMode: 'Multiple',
       simpleMode: 'Simple',
