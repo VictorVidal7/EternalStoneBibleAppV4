@@ -5,7 +5,9 @@
 import {
   buildCustomPlan,
   countChapters,
+  daysToPassages,
   distributeChapters,
+  inferPerDay,
   passagesToChapters,
   type PlanPassage,
 } from '@/lib/reading/customPlanBuild';
@@ -107,5 +109,76 @@ describe('buildCustomPlan', () => {
     expect(bundle.n).toBe('Juan en una semana');
     expect(bundle.d).toHaveLength(7);
     expect(bundle.d.flat()).toHaveLength(21);
+  });
+});
+
+describe('daysToPassages (Sprint 110 — editor reconstruction)', () => {
+  it('coalesces consecutive chapters of one book across day boundaries', () => {
+    const days: CustomReading[][] = [
+      [
+        [43, 1],
+        [43, 2],
+      ],
+      [[43, 3]],
+    ];
+    expect(daysToPassages(days)).toEqual([
+      {bookId: 43, fromChapter: 1, toChapter: 3},
+    ]);
+  });
+
+  it('splits on a book change and on a chapter gap', () => {
+    const days: CustomReading[][] = [
+      [
+        [1, 1],
+        [2, 1],
+        [2, 2],
+        [2, 5],
+      ],
+    ];
+    expect(daysToPassages(days)).toEqual([
+      {bookId: 1, fromChapter: 1, toChapter: 1},
+      {bookId: 2, fromChapter: 1, toChapter: 2},
+      {bookId: 2, fromChapter: 5, toChapter: 5},
+    ]);
+  });
+
+  it('round-trips passages -> chapters -> days -> passages', () => {
+    const passages: PlanPassage[] = [
+      {bookId: 43, fromChapter: 1, toChapter: 5},
+      {bookId: 19, fromChapter: 23, toChapter: 24},
+    ];
+    const days = distributeChapters(passagesToChapters(passages), {
+      mode: 'perDay',
+      chaptersPerDay: 3,
+    });
+    expect(daysToPassages(days)).toEqual(passages);
+  });
+
+  it('returns [] for no days', () => {
+    expect(daysToPassages([])).toEqual([]);
+  });
+});
+
+describe('inferPerDay', () => {
+  it('returns the largest day length (>= 1)', () => {
+    expect(
+      inferPerDay([
+        [
+          [1, 1],
+          [1, 2],
+          [1, 3],
+        ],
+        [[1, 4]],
+      ]),
+    ).toBe(3);
+    expect(inferPerDay([])).toBe(1);
+  });
+
+  it('matches the per-day count a plan was built with', () => {
+    const days = distributeChapters(passagesToChapters([john]), {
+      mode: 'perDay',
+      chaptersPerDay: 4,
+    });
+    expect(inferPerDay(days)).toBe(4);
   });
 });

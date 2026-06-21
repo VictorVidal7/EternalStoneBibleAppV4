@@ -81,6 +81,42 @@ export function countChapters(passages: PlanPassage[]): number {
 }
 
 /**
+ * Reconstruct editor passages from a built plan's distributed days (Sprint 110,
+ * for EDITING a custom plan). Flattens the days back to their ordered
+ * `[bookId, chapter]` list and coalesces each run of the same book's consecutive
+ * chapters into one contiguous {@link PlanPassage}. The exact inverse of
+ * {@link passagesToChapters} for the common case of forward contiguous ranges;
+ * a non-contiguous or out-of-order sequence simply yields more (still correct)
+ * shorter passages, so the round-trip never loses a chapter.
+ */
+export function daysToPassages(days: CustomReading[][]): PlanPassage[] {
+  const passages: PlanPassage[] = [];
+  let cur: PlanPassage | null = null;
+  for (const day of days) {
+    for (const [bookId, chapter] of day) {
+      if (cur && cur.bookId === bookId && chapter === cur.toChapter + 1) {
+        cur.toChapter = chapter;
+      } else {
+        cur = {bookId, fromChapter: chapter, toChapter: chapter};
+        passages.push(cur);
+      }
+    }
+  }
+  return passages;
+}
+
+/**
+ * A sensible default pace to PRE-FILL the editor with when re-opening an
+ * existing plan: "chapters per day" sized so the rebuild reproduces roughly the
+ * same number of days. For a plan originally built per-day this is exactly the
+ * per-day count; for an even `totalDays` split it's the largest day, which keeps
+ * the day count within one. Always ≥ 1.
+ */
+export function inferPerDay(days: CustomReading[][]): number {
+  return days.reduce((max, day) => Math.max(max, day.length), 1);
+}
+
+/**
  * End-to-end: ordered passages + pace + name → a shareable custom-plan bundle.
  * The bundle's own caps still apply, so an over-long plan is clamped, not
  * rejected.
