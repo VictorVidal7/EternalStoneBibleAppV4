@@ -5,7 +5,7 @@ import {Asset} from 'expo-asset';
 import {Directory, File, Paths} from 'expo-file-system';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {BibleVerse, Note, ReadingProgress} from '../../types/bible';
-import {canonicalBookName} from '../../constants/bible';
+import {BIBLE_VERSIONS, canonicalBookName} from '../../constants/bible';
 import {
   normalizePackPath,
   packLoadedKey,
@@ -37,12 +37,14 @@ async function seedFromBundleIfMissing(): Promise<boolean> {
     if (!sqliteDir.exists) sqliteDir.create({intermediates: true});
     const sourceFile = new File(sourceUri);
     sourceFile.copy(targetFile);
-    // The JS bulk loader keys "this version is loaded" off AsyncStorage;
-    // mark both as loaded so it short-circuits instead of redundantly
-    // re-iterating 62k rows just to hit the UNIQUE constraint.
+    // The JS bulk loader keys "this version is loaded" off AsyncStorage; mark
+    // the two BUNDLED versions (RVR1960 + WEB) as loaded so it short-circuits
+    // instead of redundantly re-iterating 62k rows just to hit the UNIQUE
+    // constraint. KJV/BSB are downloadable packs — their flags get set by
+    // importVersionPack, not here.
     await Promise.all([
       AsyncStorage.setItem('@bible_data_loaded_rvr1960', 'true'),
-      AsyncStorage.setItem('@bible_data_loaded_kjv', 'true'),
+      AsyncStorage.setItem('@bible_data_loaded_web', 'true'),
     ]);
     return true;
   } catch (error) {
@@ -522,6 +524,48 @@ class BibleDatabase {
     await AsyncStorage.setItem(packLoadedKey(id), 'true');
     console.log(`📦 Imported ${inserted} verses for version "${id}"`);
     return inserted;
+  }
+
+  /**
+   * Remove a downloaded translation pack's verses (translation packs, phase 4).
+   * `DELETE FROM verses WHERE version = ?` fires the `verses_ad` trigger so the
+   * matching `verses_fts` rows are removed too, then clears the
+   * `@bible_data_loaded_<id>` flag. Case-insensitive to match how versions are
+   * compared elsewhere. Returns the number of verses removed. The CALLER
+   * refreshes the version registry afterwards so the picker drops it.
+   *
+   * Guard: refuses to delete a BUNDLED version — those live in the seed and
+   * can't be re-downloaded, so wiping them would strand the user.
+   */
+  async deleteVersion(versionId: string): Promise<number> {
+    const id = versionId.trim();
+    if (!id) {
+      throw new Error('deleteVersion: versionId is required');
+    }
+    if (
+      BIBLE_VERSIONS.some(
+        v => v.bundled && v.id.toLowerCase() === id.toLowerCase(),
+      )
+    ) {
+      throw new Error(
+        `deleteVersion: "${id}" is bundled and cannot be removed`,
+      );
+    }
+
+    await this.initialize();
+    const db = this.getDb();
+    let removed = 0;
+    await db.withTransactionAsync(async () => {
+      const result = await db.runAsync(
+        'DELETE FROM verses WHERE version = ? COLLATE NOCASE',
+        [id],
+      );
+      removed = result.changes;
+    });
+
+    await AsyncStorage.removeItem(packLoadedKey(id));
+    console.log(`🗑️ Removed ${removed} verses for version "${id}"`);
+    return removed;
   }
 
   async getChapter(

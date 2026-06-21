@@ -32,6 +32,7 @@ import DailyVerseSettings from '@components/settings/DailyVerseSettings';
 import PrayerReminderSettings from '@components/settings/PrayerReminderSettings';
 import DevotionReminderSettings from '@components/settings/DevotionReminderSettings';
 import MemoryGoalSettings from '@components/settings/MemoryGoalSettings';
+import ManageVersionsSection from '@components/settings/ManageVersionsSection';
 import ReadingGoalSettings from '@components/settings/ReadingGoalSettings';
 import PremiumSettings from '@components/settings/PremiumSettings';
 import {haptics} from '@lib/haptics';
@@ -500,6 +501,9 @@ export default function SettingsScreen() {
               ))}
             </View>
           </View>
+
+          {/* Manage versions — download/remove translation packs (KJV, BSB) */}
+          <ManageVersionsSection />
         </View>
 
         {/* Language Section */}

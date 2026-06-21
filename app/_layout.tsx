@@ -126,13 +126,13 @@ function AppContent() {
   async function initializeApp() {
     try {
       // initializeBibleData is idempotent + INCREMENTAL: bibleDB.initialize() is
-      // safe to re-run and each version is guarded by its own AsyncStorage flag,
-      // so an install that already has RVR1960 + KJV only pays the one-time
-      // additive load of any newly bundled version (WEB, Sprint 66) and a fully
-      // up-to-date install just does a few cheap flag reads. (Until Sprint 66
-      // this was gated on checkDataStatus().isLoaded, which short-circuited the
-      // WHOLE init the moment ANY version was present — so a newly added version
-      // would never seed on an existing device.)
+      // safe to re-run and each bundled version (RVR1960 + WEB) is guarded by
+      // its own AsyncStorage flag, so a normally-seeded install just does a few
+      // cheap flag reads, while a fallback (seed copy failed / Settings reset)
+      // rebuilds the base from the in-repo JS data. KJV/BSB are downloadable
+      // packs imported separately — not part of this startup load. (Until
+      // Sprint 66 this was gated on checkDataStatus().isLoaded, which
+      // short-circuited the WHOLE init the moment ANY version was present.)
       await initializeBibleData((loaded, total) => {
         setLoadingProgress({loaded, total});
       });

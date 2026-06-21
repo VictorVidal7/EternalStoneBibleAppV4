@@ -17,19 +17,19 @@ export const BIBLE_VERSIONS: BibleVersion[] = [
     bundled: true,
   },
   {
-    id: 'KJV',
-    name: 'King James Version',
-    abbreviation: 'KJV',
-    language: 'en',
-    year: '1611',
-    bundled: true,
-  },
-  {
     id: 'WEB',
     name: 'World English Bible',
     abbreviation: 'WEB',
     language: 'en',
     year: '2000',
+    bundled: true,
+  },
+  {
+    id: 'KJV',
+    name: 'King James Version',
+    abbreviation: 'KJV',
+    language: 'en',
+    year: '1611',
     bundled: false,
   },
   {

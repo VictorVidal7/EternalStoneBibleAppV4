@@ -30,7 +30,7 @@ const KEYS = {
   searchHistory: '@bible_search_history',
   sideBySide: '@reader_side_by_side',
   dataLoadedRVR: '@bible_data_loaded_rvr1960',
-  dataLoadedKJV: '@bible_data_loaded_kjv',
+  dataLoadedWEB: '@bible_data_loaded_web',
 } as const;
 
 export const BACKUP_FORMAT_VERSION = 1;

@@ -1968,6 +1968,33 @@ export const translations = {
       versionDescription: 'Elige la traducción de la Biblia que prefieres',
       comingSoon: 'Próximamente',
 
+      manageVersions: 'Gestionar versiones',
+      manageVersionsDescription:
+        'Descarga más traducciones para leerlas y buscarlas sin conexión.',
+      manageVersionsLoading: 'Buscando versiones disponibles…',
+      manageVersionsError:
+        'No se pudo cargar el catálogo. Revisa tu conexión e inténtalo de nuevo.',
+      manageVersionsEmpty: 'No hay versiones nuevas para descargar.',
+      manageVersionsRetry: 'Reintentar',
+      versionInstalled: 'Instalada',
+      versionDownload: 'Descargar',
+      versionDownloading: 'Descargando…',
+      versionImporting: 'Instalando…',
+      versionDelete: 'Eliminar',
+      versionDeleteTitle: 'Eliminar versión',
+      versionDeleteMessage:
+        '¿Eliminar {version}? Podrás volver a descargarla cuando quieras. Tus favoritos, notas y resaltados no se ven afectados.',
+      versionDeleteConfirm: 'Eliminar',
+      versionDownloadSuccess: '{version} lista para leer',
+      versionDeleteSuccess: '{version} eliminada',
+      versionErrorSpace:
+        'No hay espacio suficiente para descargar esta versión.',
+      versionErrorChecksum:
+        'La descarga se dañó durante la transferencia. Inténtalo de nuevo.',
+      versionErrorNetwork:
+        'Error de red durante la descarga. Revisa tu conexión.',
+      versionErrorGeneric: 'No se pudo descargar. Inténtalo de nuevo.',
+
       language: 'Idioma',
       selectLanguage: 'Selecciona tu idioma',
       languageDescription: 'Cambia el idioma de la aplicación',
@@ -5111,6 +5138,32 @@ export const translations = {
       selectVersion: 'Select your version',
       versionDescription: 'Choose your preferred Bible translation',
       comingSoon: 'Coming Soon',
+
+      manageVersions: 'Manage versions',
+      manageVersionsDescription:
+        'Download more translations to read and search them offline.',
+      manageVersionsLoading: 'Looking for available versions…',
+      manageVersionsError:
+        'Couldn’t load the catalog. Check your connection and try again.',
+      manageVersionsEmpty: 'No new versions to download.',
+      manageVersionsRetry: 'Retry',
+      versionInstalled: 'Installed',
+      versionDownload: 'Download',
+      versionDownloading: 'Downloading…',
+      versionImporting: 'Installing…',
+      versionDelete: 'Remove',
+      versionDeleteTitle: 'Remove version',
+      versionDeleteMessage:
+        'Remove {version}? You can download it again anytime. Your favorites, notes and highlights are unaffected.',
+      versionDeleteConfirm: 'Remove',
+      versionDownloadSuccess: '{version} ready to read',
+      versionDeleteSuccess: '{version} removed',
+      versionErrorSpace: 'Not enough space to download this version.',
+      versionErrorChecksum:
+        'The download was corrupted in transfer. Please try again.',
+      versionErrorNetwork:
+        'Network error during download. Check your connection.',
+      versionErrorGeneric: 'Download failed. Please try again.',
 
       language: 'Language',
       selectLanguage: 'Select your language',

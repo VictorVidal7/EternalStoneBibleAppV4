@@ -1,11 +1,15 @@
-﻿/* eslint-disable no-console -- dev-mode init/progress logging. Will
+/* eslint-disable no-console -- dev-mode init/progress logging. Will
    migrate to logger.* in Sprint 41 alongside Crashlytics wiring. */
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import bibleDB from './index';
+import {packLoadedKey} from './pack-import';
+import {BIBLE_VERSIONS} from '../../constants/bible';
 
-const DATA_LOADED_KEY_RVR1960 = '@bible_data_loaded_rvr1960';
-const DATA_LOADED_KEY_KJV = '@bible_data_loaded_kjv';
-const DATA_LOADED_KEY_WEB = '@bible_data_loaded_web';
+// The BUNDLED base seeded into bible-seed.db: RVR1960 (es) + WEB (en). KJV/BSB
+// are downloadable translation packs (imported via importVersionPack), NOT
+// JS-loaded here — so the 8 MB KJV JS blob no longer ships in the bundle.
+const DATA_LOADED_KEY_RVR1960 = packLoadedKey('RVR1960');
+const DATA_LOADED_KEY_WEB = packLoadedKey('WEB');
 
 export async function initializeBibleData(
   onProgress?: (loaded: number, total: number) => void,
@@ -16,7 +20,12 @@ export async function initializeBibleData(
     console.log('🟡 Initializing database schema...');
     await bibleDB.initialize();
 
-    // Load RVR1960
+    // Load the bundled base. On a normal launch the pre-seeded bible.db already
+    // holds these (their flags set in seedFromBundleIfMissing), so each call is
+    // a cheap flag read. This JS path is the fallback when the seed copy failed
+    // (or after a Settings "reset"): it rebuilds the base from the in-repo data.
+
+    // RVR1960 (Spanish base)
     await loadBibleVersion(
       'RVR1960',
       DATA_LOADED_KEY_RVR1960,
@@ -24,18 +33,7 @@ export async function initializeBibleData(
       onProgress,
     );
 
-    // Load KJV
-    await loadBibleVersion(
-      'KJV',
-      DATA_LOADED_KEY_KJV,
-      async () => (await import('./bible-data-kjv')).KJV_DATA,
-      onProgress,
-    );
-
-    // Load WEB (World English Bible, public domain — Sprint 66). Same runtime
-    // JS→SQLite path as the others: guarded by its own AsyncStorage flag, so a
-    // device that already seeded RVR1960 + KJV only pays the one-time additive
-    // ~31k-verse load for WEB on the next launch and leaves the rest untouched.
+    // WEB (World English Bible — English base). Public domain.
     await loadBibleVersion(
       'WEB',
       DATA_LOADED_KEY_WEB,
@@ -109,14 +107,12 @@ export async function checkDataStatus(): Promise<{
   isLoaded: boolean;
   stats?: {totalVerses: number; versions: string[]};
 }> {
-  // Check if at least one version is loaded
+  // Check if at least one of the bundled base versions is loaded.
   const rvr1960Loaded =
     (await AsyncStorage.getItem(DATA_LOADED_KEY_RVR1960)) === 'true';
-  const kjvLoaded =
-    (await AsyncStorage.getItem(DATA_LOADED_KEY_KJV)) === 'true';
   const webLoaded =
     (await AsyncStorage.getItem(DATA_LOADED_KEY_WEB)) === 'true';
-  const isLoaded = rvr1960Loaded || kjvLoaded || webLoaded;
+  const isLoaded = rvr1960Loaded || webLoaded;
 
   if (isLoaded) {
     try {
@@ -148,10 +144,12 @@ export async function checkDataStatus(): Promise<{
 export async function resetBibleData(): Promise<void> {
   console.log('🔄 Resetting Bible data...');
 
-  // Limpiar flags de AsyncStorage para todas las versiones
-  await AsyncStorage.removeItem(DATA_LOADED_KEY_RVR1960);
-  await AsyncStorage.removeItem(DATA_LOADED_KEY_KJV);
-  await AsyncStorage.removeItem(DATA_LOADED_KEY_WEB);
+  // Clear the "loaded" flag for EVERY known version (bundled base + any
+  // downloaded pack), so the next initializeBibleData rebuilds the bundled base
+  // from scratch and a wiped pack isn't left falsely marked as installed.
+  await Promise.all(
+    BIBLE_VERSIONS.map(v => AsyncStorage.removeItem(packLoadedKey(v.id))),
+  );
 
   // Limpiar la base de datos
   try {
