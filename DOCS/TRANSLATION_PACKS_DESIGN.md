@@ -1,10 +1,26 @@
 # 📦 Packs de traducciones descargables — Documento de diseño
 
-**Estado:** Diseño aprobado, pendiente de construir (2026-06-20)
-**Decisiones tomadas (AskUserQuestion):** versiones **WEB + BSB**; **mantener** el
-bundle por defecto (RVR1960 + KJV) y **añadir** las nuevas como descargables;
-**hospedar** los packs en el sitio Pages existente.
+**Estado:** Construido (fases 1–5) + live-verificado (2026-06-21).
 **Autor:** revisión profunda Eternal Bible · _Para la gloria de Dios Todopoderoso ✨_
+
+> **⚠️ ACTUALIZACIÓN 2026-06-21 — reestructuración del bundle (decisión del
+> usuario, vigente).** El reparto base/descargable se **invirtió** respecto a la
+> decisión original de abajo:
+>
+> - **BASE embebida (seed):** **RVR1960 (es) + WEB (en)**.
+> - **DESCARGABLES (packs):** **KJV (en) + BSB (en)**.
+>
+> Motivos: reconcilia la inconsistencia de WEB (era `bundled:false` pero el
+> data-loader lo cargaba igual en cada arranque) y libera ~8 MB del bundle al
+> borrar `bible-data-kjv.ts` (KJV ahora viaja como `kjv.sqlite`). Todo lo demás
+> del diseño (esquema, ATTACH+INSERT idempotente, FTS por trigger, selector
+> instaladas-only, hosting en Pages) se mantiene igual; solo cambian qué ids son
+> `bundled:true` y el contenido de `assets/bible-seed.db` + `versions.json`.
+> Reconstruir con `node --experimental-sqlite scripts/rebuild-seed.js`.
+
+**Decisión ORIGINAL (2026-06-20, superseded por la de arriba):** versiones
+**WEB + BSB** descargables; **mantener** el bundle por defecto (RVR1960 + KJV);
+**hospedar** los packs en el sitio Pages existente.
 
 > "Toda la Escritura es inspirada por Dios, y útil para enseñar." — 2 Timoteo 3:16
 
