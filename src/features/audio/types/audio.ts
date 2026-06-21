@@ -62,7 +62,7 @@ export interface SleepTimerState {
   isActive: boolean;
   remainingMinutes: number;
   endTime: Date | null;
-  mode: 'time' | 'end-of-chapter' | null;
+  mode: 'time' | 'end-of-chapter' | 'end-of-book' | null;
 }
 
 // ==================== VERSE TYPES ====================
@@ -182,6 +182,7 @@ export interface AudioPlayerContextValue {
   // Sleep timer
   setSleepTimer: (minutes: number) => void;
   setSleepTimerEndOfChapter: () => void;
+  setSleepTimerEndOfBook: () => void;
   cancelSleepTimer: () => void;
 
   // Chapter loading

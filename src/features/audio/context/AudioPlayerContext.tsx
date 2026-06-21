@@ -783,6 +783,25 @@ export const AudioPlayerProvider: React.FC<AudioPlayerProviderProps> = ({
     });
   }, []);
 
+  // "Stop at the end of the BOOK" — continuous playback keeps rolling through the
+  // book's chapters (even if the auto-advance preference is off; see
+  // shouldAdvanceChapter) and AudioChapterAdvancer stops + cancels this timer the
+  // moment the next chapter would cross into a different book (isBookEnd).
+  const setSleepTimerEndOfBook = useCallback(() => {
+    haptics.press();
+
+    // Clear existing timers
+    if (sleepTimerRef.current) clearTimeout(sleepTimerRef.current);
+    if (sleepCountdownRef.current) clearInterval(sleepCountdownRef.current);
+
+    setSleepTimerState({
+      isActive: true,
+      remainingMinutes: 0,
+      endTime: null,
+      mode: 'end-of-book',
+    });
+  }, []);
+
   // Cleanup timers on unmount
   useEffect(() => {
     return () => {
@@ -942,6 +961,7 @@ export const AudioPlayerProvider: React.FC<AudioPlayerProviderProps> = ({
 
     setSleepTimer,
     setSleepTimerEndOfChapter,
+    setSleepTimerEndOfBook,
     cancelSleepTimer,
 
     loadChapter,

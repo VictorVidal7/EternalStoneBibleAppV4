@@ -30,6 +30,7 @@ interface SleepTimerModalProps {
   onClose: () => void;
   onSetTimer: (minutes: number) => void;
   onSetEndOfChapter: () => void;
+  onSetEndOfBook: () => void;
   onCancelTimer: () => void;
   currentTimer: SleepTimerState;
 }
@@ -39,6 +40,7 @@ export const SleepTimerModal: React.FC<SleepTimerModalProps> = ({
   onClose,
   onSetTimer,
   onSetEndOfChapter,
+  onSetEndOfBook,
   onCancelTimer,
   currentTimer,
 }) => {
@@ -55,6 +57,12 @@ export const SleepTimerModal: React.FC<SleepTimerModalProps> = ({
   const handleSetEndOfChapter = () => {
     haptics.press();
     onSetEndOfChapter();
+    onClose();
+  };
+
+  const handleSetEndOfBook = () => {
+    haptics.press();
+    onSetEndOfBook();
     onClose();
   };
 
@@ -111,7 +119,9 @@ export const SleepTimerModal: React.FC<SleepTimerModalProps> = ({
                 <Text style={[styles.timerText, {color: colors.primary}]}>
                   {currentTimer.mode === 'end-of-chapter'
                     ? tSleep.endOfChapterStatus
-                    : formatRemainingTime(currentTimer.remainingMinutes)}
+                    : currentTimer.mode === 'end-of-book'
+                      ? tSleep.endOfBookStatus
+                      : formatRemainingTime(currentTimer.remainingMinutes)}
                 </Text>
               </View>
               <TouchableOpacity
@@ -175,6 +185,41 @@ export const SleepTimerModal: React.FC<SleepTimerModalProps> = ({
                       {color: colors.textSecondary},
                     ]}>
                     {tSleep.endOfChapterSubtitle}
+                  </Text>
+                </View>
+              </View>
+              <Ionicons
+                name="chevron-forward"
+                size={20}
+                color={colors.textSecondary}
+              />
+            </TouchableOpacity>
+
+            {/* End of Book Option — continuous playback rolls through the book's
+                chapters, then stops at the book's end. */}
+            <TouchableOpacity
+              style={[
+                styles.endOfChapterButton,
+                styles.endOfBookSpacing,
+                {
+                  backgroundColor: colors.surfaceVariant,
+                  borderColor: colors.primary,
+                },
+              ]}
+              onPress={handleSetEndOfBook}>
+              <View style={styles.endOfChapterContent}>
+                <Ionicons name="library" size={20} color={colors.primary} />
+                <View style={styles.endOfChapterText}>
+                  <Text
+                    style={[styles.endOfChapterTitle, {color: colors.text}]}>
+                    {tSleep.endOfBookTitle}
+                  </Text>
+                  <Text
+                    style={[
+                      styles.endOfChapterSubtitle,
+                      {color: colors.textSecondary},
+                    ]}>
+                    {tSleep.endOfBookSubtitle}
                   </Text>
                 </View>
               </View>
@@ -291,6 +336,9 @@ const styles = StyleSheet.create({
     padding: 16,
     borderRadius: 12,
     borderWidth: 1.5,
+  },
+  endOfBookSpacing: {
+    marginTop: 12,
   },
   endOfChapterContent: {
     flexDirection: 'row',

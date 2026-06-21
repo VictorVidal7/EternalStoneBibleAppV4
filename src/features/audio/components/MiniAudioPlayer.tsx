@@ -127,6 +127,7 @@ export const MiniAudioPlayer: React.FC<MiniAudioPlayerProps> = ({
     hidePlayer,
     setSleepTimer,
     setSleepTimerEndOfChapter,
+    setSleepTimerEndOfBook,
     cancelSleepTimer,
     setVoice,
     setLanguage,
@@ -989,6 +990,7 @@ export const MiniAudioPlayer: React.FC<MiniAudioPlayerProps> = ({
           onClose={() => setSleepTimerModalVisible(false)}
           onSetTimer={setSleepTimer}
           onSetEndOfChapter={setSleepTimerEndOfChapter}
+          onSetEndOfBook={setSleepTimerEndOfBook}
           onCancelTimer={cancelSleepTimer}
           currentTimer={sleepTimer}
         />
