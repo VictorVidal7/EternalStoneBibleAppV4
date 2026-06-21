@@ -41,7 +41,7 @@ import {BibleVerse, ReadingProgress} from '@/types/bible';
 import {READING_PLANS, getLocalizedPlan} from '@/constants/reading-plans';
 import {getDailyVerseRef} from '@/constants/daily-verses';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import {getBookByName, BIBLE_VERSIONS} from '@/constants/bible';
+import {getBookByName} from '@/constants/bible';
 import {orderAlsoVersions} from '@/lib/home/alsoInVersions';
 import {
   shiftDaysBack,
@@ -148,7 +148,7 @@ export default function HomeScreen() {
     accent: colors.accent,
     info: colors.info,
   });
-  const {selectedVersion} = useBibleVersion();
+  const {selectedVersion, availableVersions} = useBibleVersion();
   const {
     achievementService,
     highlightService,
@@ -838,7 +838,7 @@ export default function HomeScreen() {
                     }
                     alternates={orderAlsoVersions(
                       selectedVersion,
-                      BIBLE_VERSIONS,
+                      availableVersions,
                     )}
                     alternatesVisible={alsoVersionsVisible}
                     onToggleAlternates={toggleAlsoVersions}

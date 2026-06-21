@@ -31,7 +31,7 @@ import {colorThemes, useTheme, ColorTheme} from '../../hooks/useTheme';
 import {useLanguage} from '../../hooks/useLanguage';
 import type {Language} from '../../i18n/translations';
 import {useBibleVersion} from '../../hooks/useBibleVersion';
-import {BIBLE_VERSIONS} from '../../constants/bible';
+import type {BibleVersion} from '../../types/bible';
 import {
   borderRadius,
   fontSize as fontSizes,
@@ -49,7 +49,7 @@ export const OnboardingScreen: React.FC<OnboardingScreenProps> = ({onDone}) => {
   const insets = useSafeAreaInsets();
   const {colors, gradient, colorTheme, setColorTheme} = useTheme();
   const {language, setLanguage, t} = useLanguage();
-  const {selectedVersion, setVersion} = useBibleVersion();
+  const {selectedVersion, setVersion, availableVersions} = useBibleVersion();
 
   const [step, setStep] = useState(0);
   const isFirst = step === 0;
@@ -134,6 +134,7 @@ export const OnboardingScreen: React.FC<OnboardingScreenProps> = ({onDone}) => {
           <VersionStep
             currentId={selectedVersion.id}
             onSelect={handleVersion}
+            versions={availableVersions}
             colors={colors}
             t={t}
           />
@@ -291,12 +292,15 @@ const LanguageStep: React.FC<LanguageStepProps> = ({
 interface VersionStepProps {
   currentId: string;
   onSelect: (id: string) => void;
+  /** Installed versions to offer (bundled during onboarding). */
+  versions: BibleVersion[];
   colors: LanguageStepProps['colors'];
   t: ReturnType<typeof useLanguage>['t'];
 }
 const VersionStep: React.FC<VersionStepProps> = ({
   currentId,
   onSelect,
+  versions,
   colors,
   t,
 }) => {
@@ -310,7 +314,7 @@ const VersionStep: React.FC<VersionStepProps> = ({
       </Text>
 
       <View style={styles.optionList}>
-        {BIBLE_VERSIONS.map(v => {
+        {versions.map(v => {
           const active = currentId === v.id;
           return (
             <TouchableOpacity
