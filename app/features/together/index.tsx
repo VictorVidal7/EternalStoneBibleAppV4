@@ -163,6 +163,13 @@ export default function TogetherJoinScreen() {
       );
       return;
     }
+    if (res.bundle.t === 'cal') {
+      // A baked devotional calendar isn't a group either — open its viewer.
+      router.replace(
+        `/features/devotional-shared?d=${encodeBundleParam(res.bundle)}` as never,
+      );
+      return;
+    }
     setError(tt.linkInvalid);
   };
 
