@@ -1255,6 +1255,22 @@ export default function VerseReadingScreen() {
     }
   }
 
+  // Start narration from the FIRST selected verse ("Listen from here"). Loads
+  // this chapter into the engine and seeks to the chosen verse, then plays —
+  // reusing startAudioPlayback's load → goToVerse → delayed play pattern (the
+  // delay lets loadChapter's refs settle so play() reads the seeked index).
+  function handleListenFromSelected() {
+    if (firstSelectedVerse == null || verses.length === 0) return;
+    const startIndex = verses.findIndex(v => v.verse === firstSelectedVerse);
+    if (startIndex < 0) return;
+    haptics.press();
+    loadAudioChapter(toAudioVerses(verses));
+    goToVerse(startIndex);
+    setTimeout(() => play(), 100);
+    if (readerPrefs.autoImmersiveOnListen) setImmersiveModeActive(true);
+    clearSelection();
+  }
+
   // Favorite selected verses (save individually for indicators)
   async function handleFavoriteSelected() {
     if (selectedVerses.size === 0) return;
@@ -2494,6 +2510,25 @@ export default function VerseReadingScreen() {
               />
             ) : (
               <View style={styles.selectionActions}>
+                <TouchableOpacity
+                  style={styles.selectionButton}
+                  accessibilityRole="button"
+                  accessibilityLabel={t.verse.listenFromHere}
+                  onPress={handleListenFromSelected}>
+                  <Ionicons
+                    name="headset-outline"
+                    size={22}
+                    color={effectiveColors.primary}
+                  />
+                  <Text
+                    numberOfLines={1}
+                    style={[
+                      styles.selectionButtonText,
+                      {color: effectiveColors.text},
+                    ]}>
+                    {t.verse.listenFromHere}
+                  </Text>
+                </TouchableOpacity>
                 <TouchableOpacity
                   style={styles.selectionButton}
                   accessibilityRole="button"
