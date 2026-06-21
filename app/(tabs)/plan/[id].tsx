@@ -264,6 +264,14 @@ export default function ReadingPlanDetailScreen() {
     setConfirmDelete(true);
   };
 
+  // Edit a custom plan: reopen the builder pre-filled with this plan (S110,
+  // completing S108). Curated plans aren't editable.
+  const onEditPlan = () => {
+    if (!plan?.custom) return;
+    haptics.tap();
+    router.push(`/features/plan-builder?editId=${plan.id}` as never);
+  };
+
   const onConfirmDelete = async () => {
     if (!plan?.custom) return;
     setConfirmDelete(false);
@@ -528,6 +536,15 @@ export default function ReadingPlanDetailScreen() {
             <Ionicons name="arrow-back" size={24} color="#ffffff" />
           </TouchableOpacity>
           <View style={styles.headerActions}>
+            {plan.custom ? (
+              <TouchableOpacity
+                style={styles.headerBackButton}
+                onPress={onEditPlan}
+                accessibilityRole="button"
+                accessibilityLabel={t.planBuilder.editTitle}>
+                <Ionicons name="create-outline" size={21} color="#ffffff" />
+              </TouchableOpacity>
+            ) : null}
             {plan.custom ? (
               <TouchableOpacity
                 style={styles.headerBackButton}
