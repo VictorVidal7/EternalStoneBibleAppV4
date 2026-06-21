@@ -1,5 +1,12 @@
 import {BibleBook, BibleVersion} from '../types/bible';
 
+/**
+ * The KNOWN-versions catalog. `bundled` versions ship in the seeded DB and are
+ * always available; the rest (translation packs) become available only once the
+ * user downloads + imports them. Use {@link installedVersions} to filter this to
+ * what's actually usable right now (never offer an un-downloaded version — that
+ * was the old "WEB shown but empty" bug).
+ */
 export const BIBLE_VERSIONS: BibleVersion[] = [
   {
     id: 'RVR1960',
@@ -7,6 +14,7 @@ export const BIBLE_VERSIONS: BibleVersion[] = [
     abbreviation: 'RVR1960',
     language: 'es',
     year: '1960',
+    bundled: true,
   },
   {
     id: 'KJV',
@@ -14,6 +22,7 @@ export const BIBLE_VERSIONS: BibleVersion[] = [
     abbreviation: 'KJV',
     language: 'en',
     year: '1611',
+    bundled: true,
   },
   {
     id: 'WEB',
@@ -21,8 +30,32 @@ export const BIBLE_VERSIONS: BibleVersion[] = [
     abbreviation: 'WEB',
     language: 'en',
     year: '2000',
+    bundled: false,
+  },
+  {
+    id: 'BSB',
+    name: 'Berean Standard Bible',
+    abbreviation: 'BSB',
+    language: 'en',
+    year: '2022',
+    bundled: false,
   },
 ];
+
+/**
+ * The versions usable RIGHT NOW: every bundled version (always present) plus any
+ * non-bundled version whose verses are already in the DB (passed in as the
+ * DISTINCT `version` ids from the `verses` table, case-insensitive). Pure — the
+ * caller supplies the installed ids so this stays React/DB-free and testable.
+ */
+export function installedVersions(
+  installedIds: readonly string[] = [],
+): BibleVersion[] {
+  const present = new Set(installedIds.map(id => id.toLowerCase()));
+  return BIBLE_VERSIONS.filter(
+    v => v.bundled || present.has(v.id.toLowerCase()),
+  );
+}
 
 export const BIBLE_BOOKS: BibleBook[] = [
   // Old Testament

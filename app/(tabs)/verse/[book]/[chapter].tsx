@@ -25,12 +25,7 @@ import * as Clipboard from 'expo-clipboard';
 import {haptics} from '@lib/haptics';
 import bibleDB from '@lib/database';
 import {BibleVerse} from '@/types/bible';
-import {
-  BIBLE_VERSIONS,
-  getBookByName,
-  getBookById,
-  canonicalBookName,
-} from '@/constants/bible';
+import {getBookByName, getBookById, canonicalBookName} from '@/constants/bible';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {
   linkifyReferences,
@@ -135,7 +130,7 @@ export default function VerseReadingScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const {colors, isDark} = useTheme();
-  const {selectedVersion, setVersion} = useBibleVersion();
+  const {selectedVersion, setVersion, availableVersions} = useBibleVersion();
   const {t, language} = useLanguage();
   const toast = useToast();
   const {achievementService, highlightService, notifyAchievements} =
@@ -269,21 +264,22 @@ export default function VerseReadingScreen() {
       resolveSecondaryVersion(
         selectedVersion.id,
         preferredSecondaryId,
-        BIBLE_VERSIONS,
+        availableVersions,
       ),
-    [selectedVersion.id, preferredSecondaryId],
+    [selectedVersion.id, preferredSecondaryId, availableVersions],
   );
   // The companion candidates (everything but the version being read) — the
-  // chips shown in the dual-mode picker.
+  // chips shown in the dual-mode picker. Installed-only, so an un-downloaded
+  // version is never offered.
   const secondaryChoices = useMemo(
-    () => secondaryVersionChoices(selectedVersion.id, BIBLE_VERSIONS),
-    [selectedVersion.id],
+    () => secondaryVersionChoices(selectedVersion.id, availableVersions),
+    [selectedVersion.id, availableVersions],
   );
-  // "Ver también" chips (Sprint 78): every other catalog version, cross-
+  // "Ver también" chips (Sprint 78): every other INSTALLED version, cross-
   // language first — the same policy as the Home daily verse (S77).
   const alsoAlternates = useMemo(
-    () => orderAlsoVersions(selectedVersion, BIBLE_VERSIONS),
-    [selectedVersion],
+    () => orderAlsoVersions(selectedVersion, availableVersions),
+    [selectedVersion, availableVersions],
   );
   // The verse the also-panel (and compare/cross-refs/collections) acts on.
   const firstSelectedVerse = useMemo(
