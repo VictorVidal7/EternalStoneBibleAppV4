@@ -4,16 +4,16 @@
   "note": "Per-version SQLite packs for Eternal Bible. Each pack has a single verses table (book_id,book_name,chapter,verse,text). Imported via ATTACH+INSERT; FTS auto-indexes on device. Public domain.",
   "versions": [
     {
-      "id": "WEB",
-      "name": "World English Bible",
-      "abbreviation": "WEB",
+      "id": "KJV",
+      "name": "King James Version",
+      "abbreviation": "KJV",
       "language": "en",
-      "year": "2000",
+      "year": "1611",
       "license": "Public Domain",
-      "url": "https://eternalstonebible.github.io/packs/web.sqlite",
-      "bytes": 4866048,
-      "sha256": "08e75859bc309237f2f0fa35e5731ff221ab6ff0b62bee5fa5076396e8fc85ed",
-      "verseCount": 31095
+      "url": "https://eternalstonebible.github.io/packs/kjv.sqlite",
+      "bytes": 4968448,
+      "sha256": "11d0a2fd46ec111cc3878a4b037ada4add6e27f0cf0c880c2d46c04a38a886ab",
+      "verseCount": 31102
     },
     {
       "id": "BSB",
