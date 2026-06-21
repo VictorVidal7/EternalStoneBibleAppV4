@@ -489,19 +489,12 @@ export default function SettingsScreen() {
                         </>
                       )}
                     </View>
-                    {/* All bundled versions (RVR1960 + KJV + WEB as of
-                        Sprint 66) are fully seeded and selectable; the
-                        "coming soon" badge is reserved for any future,
-                        not-yet-bundled translation. */}
-                    {version.id !== 'RVR1960' &&
-                      version.id !== 'KJV' &&
-                      version.id !== 'WEB' && (
-                        <View style={themedStyles.comingSoonBadge}>
-                          <Text style={themedStyles.comingSoonBadgeText}>
-                            {t.settings.comingSoon}
-                          </Text>
-                        </View>
-                      )}
+                    {/* Every version listed here comes from `availableVersions`
+                        (installed-only — bundled versions + any imported
+                        translation pack), so each one is fully readable and
+                        selectable. The old "coming soon" badge is gone: a
+                        not-yet-downloaded version simply isn't offered here.
+                        Downloading packs lives in the Manage-versions UI. */}
                   </View>
                 </TouchableOpacity>
               ))}
@@ -1293,21 +1286,6 @@ function createThemedStyles(
     themeOptionTextActive: {
       color: themeActiveTextColor,
     },
-    comingSoon: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      marginTop: 12,
-      padding: 12,
-      backgroundColor: colors.warning + '15',
-      borderRadius: 8,
-    },
-    comingSoonText: {
-      fontSize: 13,
-      color: colors.warning,
-      marginLeft: 8,
-      flex: 1,
-      lineHeight: 18,
-    },
     versionOptions: {
       marginTop: 16,
       gap: 12,
@@ -1350,19 +1328,6 @@ function createThemedStyles(
     versionMetaActive: {
       // Color primario para coincidir con el estilo del botón GitHub
       color: colors.primary,
-    },
-    comingSoonBadge: {
-      marginTop: 10,
-      paddingVertical: 4,
-      paddingHorizontal: 10,
-      backgroundColor: colors.warning + '20',
-      borderRadius: 6,
-      alignSelf: 'flex-start',
-    },
-    comingSoonBadgeText: {
-      fontSize: 11,
-      fontWeight: '600',
-      color: colors.warning,
     },
     languageOptions: {
       marginTop: 16,
