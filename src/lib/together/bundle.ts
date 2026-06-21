@@ -20,8 +20,12 @@
 
 import {
   BOOK_ID_MAX,
+  CAL_NOTE_MAX,
+  CAL_NOTES_TOTAL_MAX,
+  CAL_TITLE_MAX,
   CHAPTER_MAX,
   GROUP_NAME_MAX,
+  MAX_CAL_DAYS,
   MAX_DAY_READINGS,
   MAX_PLAN_DAYS,
   MAX_PLAN_READINGS,
@@ -33,6 +37,8 @@ import {
   STUDY_TITLE_MAX,
   TOGETHER_BUNDLE_VERSION,
   VERSE_MAX,
+  type CalBundle,
+  type CalReading,
   type CustomPlanBundle,
   type CustomReading,
   type DecodeFailure,
@@ -400,6 +406,66 @@ export function makeStudyBundle(
   return bundle;
 }
 
+/**
+ * Build a baked devotional-calendar bundle from a start date, optional title,
+ * and the per-day verse + optional note (Sprint 110). Days beyond the cap are
+ * dropped, refs out of range are skipped, notes are sanitized + length-capped,
+ * and the total-notes budget is enforced here too — so a built bundle is always
+ * within the bounds the decoder enforces. Returns null if no valid day remains
+ * or the start date is invalid (the caller shows a friendly message).
+ */
+export function makeCalBundle(
+  startDate: string,
+  title: string | undefined,
+  days: Array<{
+    bookId: number;
+    chapter: number;
+    verse: number;
+    note?: string;
+  }>,
+): CalBundle | null {
+  if (dateToDays(startDate) === null) return null;
+  const d: CalReading[] = [];
+  let total = 0;
+  for (const day of days.slice(0, MAX_CAL_DAYS)) {
+    if (
+      !Number.isInteger(day.bookId) ||
+      day.bookId < 1 ||
+      day.bookId > BOOK_ID_MAX ||
+      !Number.isInteger(day.chapter) ||
+      day.chapter < 1 ||
+      day.chapter > CHAPTER_MAX ||
+      !Number.isInteger(day.verse) ||
+      day.verse < 1 ||
+      day.verse > VERSE_MAX
+    ) {
+      continue;
+    }
+    const reading: CalReading = {r: [day.bookId, day.chapter, day.verse]};
+    if (day.note) {
+      const note = sanitizeNote(
+        day.note,
+        Math.min(CAL_NOTE_MAX, CAL_NOTES_TOTAL_MAX - total),
+      );
+      if (note) {
+        reading.n = note;
+        total += note.length;
+      }
+    }
+    d.push(reading);
+  }
+  if (d.length === 0) return null;
+  const bundle: CalBundle = {
+    v: TOGETHER_BUNDLE_VERSION,
+    t: 'cal',
+    s: startDate,
+    d,
+  };
+  const ti = title ? sanitizeLabel(title, CAL_TITLE_MAX) : '';
+  if (ti) bundle.ti = ti;
+  return bundle;
+}
+
 // ───────────────────────────── encode ───────────────────────────────────────
 
 /** Full bundle → the opaque `d=` payload (base64url JSON). */
@@ -473,6 +539,19 @@ export function encodeStudyLink(bundle: StudyBundle): string {
   return `${STUDY_LINK_PREFIX}?d=${encodeBundleParam(bundle)}`;
 }
 
+/** The deep-link route the read-only devotional-calendar viewer lives at (S110). */
+export const CAL_LINK_PREFIX = 'eternalbible://features/devotional-shared';
+
+/**
+ * Baked calendar → a tappable deep link that opens the READ-ONLY viewer directly
+ * (its own route, not the plan-join screen). Same opaque `d=` payload. Prefer
+ * {@link encodeHttpsLink} for sharing (tappable in messengers); this is the raw
+ * scheme link the in-app routing also accepts.
+ */
+export function encodeCalLink(bundle: CalBundle): string {
+  return `${CAL_LINK_PREFIX}?d=${encodeBundleParam(bundle)}`;
+}
+
 /**
  * Curated plan → short human code `EB1-<date32>-<PLAN>`. Returns null only for
  * an out-of-range date. The group name is NOT carried by a code (use the link).
@@ -517,6 +596,9 @@ function validateBundle(raw: unknown): DecodeResult {
   }
   if (o.t === 'study') {
     return validateStudy(o);
+  }
+  if (o.t === 'cal') {
+    return validateCal(o);
   }
   // A structurally-valid object with an unknown/missing type tag: either a
   // newer bundle kind, or garbage. Treat as unsupported, not malformed.
@@ -569,6 +651,54 @@ function validateStudy(o: Record<string, unknown>): DecodeResult {
   };
   if (typeof o.ti === 'string') {
     const ti = sanitizeLabel(o.ti, STUDY_TITLE_MAX);
+    if (ti) bundle.ti = ti;
+  }
+  return {ok: true, bundle};
+}
+
+/** Validate an untrusted baked-calendar object against every cap (Sprint 110). */
+function validateCal(o: Record<string, unknown>): DecodeResult {
+  if (typeof o.s !== 'string' || dateToDays(o.s) === null)
+    return fail('format');
+  if (!Array.isArray(o.d) || o.d.length === 0 || o.d.length > MAX_CAL_DAYS) {
+    return fail('format');
+  }
+  const d: CalReading[] = [];
+  let total = 0;
+  for (const rawDay of o.d) {
+    if (typeof rawDay !== 'object' || rawDay === null) return fail('format');
+    const day = rawDay as Record<string, unknown>;
+    const r = day.r;
+    if (
+      !Array.isArray(r) ||
+      r.length !== 3 ||
+      !isInt(r[0], 1, BOOK_ID_MAX) ||
+      !isInt(r[1], 1, CHAPTER_MAX) ||
+      !isInt(r[2], 1, VERSE_MAX)
+    ) {
+      return fail('format');
+    }
+    const reading: CalReading = {r: [r[0], r[1], r[2]]};
+    if (typeof day.n === 'string') {
+      const note = sanitizeNote(
+        day.n,
+        Math.min(CAL_NOTE_MAX, CAL_NOTES_TOTAL_MAX - total),
+      );
+      if (note) {
+        reading.n = note;
+        total += note.length;
+      }
+    }
+    d.push(reading);
+  }
+  const bundle: CalBundle = {
+    v: TOGETHER_BUNDLE_VERSION,
+    t: 'cal',
+    s: o.s,
+    d,
+  };
+  if (typeof o.ti === 'string') {
+    const ti = sanitizeLabel(o.ti, CAL_TITLE_MAX);
     if (ti) bundle.ti = ti;
   }
   return {ok: true, bundle};
