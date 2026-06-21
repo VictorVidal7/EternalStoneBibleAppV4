@@ -3,6 +3,7 @@
  * (versions.json), translation packs phase 4.
  */
 import {
+  formatBytes,
   parsePackVersion,
   parseVersionCatalog,
   PackDownloadError,
@@ -73,6 +74,17 @@ describe('parseVersionCatalog', () => {
     expect(parseVersionCatalog('not json')).toEqual([]);
     expect(parseVersionCatalog({})).toEqual([]);
     expect(parseVersionCatalog({versions: 'nope'})).toEqual([]);
+  });
+});
+
+describe('formatBytes', () => {
+  it('formats MB and KB, and guards junk', () => {
+    expect(formatBytes(4968448)).toBe('4.7 MB');
+    expect(formatBytes(1024 * 1024)).toBe('1.0 MB');
+    expect(formatBytes(2048)).toBe('2 KB');
+    expect(formatBytes(0)).toBe('—');
+    expect(formatBytes(-5)).toBe('—');
+    expect(formatBytes(NaN)).toBe('—');
   });
 });
 

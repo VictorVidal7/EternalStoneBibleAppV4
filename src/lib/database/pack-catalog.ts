@@ -94,6 +94,15 @@ export function parseVersionCatalog(json: unknown): RemotePackVersion[] {
   return out;
 }
 
+/** Human-readable size like "4.7 MB" for the catalog UI. */
+export function formatBytes(bytes: number): string {
+  if (!Number.isFinite(bytes) || bytes <= 0) return '—';
+  const mb = bytes / (1024 * 1024);
+  if (mb >= 1) return `${mb.toFixed(1)} MB`;
+  const kb = bytes / 1024;
+  return `${Math.max(1, Math.round(kb))} KB`;
+}
+
 /** Error codes the download service throws, so the UI can localize each case. */
 export type PackDownloadErrorCode =
   | 'network'
