@@ -19,6 +19,20 @@ describe('installedVersions', () => {
     expect(ids).not.toContain('BSB');
   });
 
+  it('offers the Spanish packs only once downloaded', () => {
+    // Not present by default (they are downloadable, not bundled).
+    const base = installedVersions([]).map(v => v.id);
+    expect(base).not.toContain('RV1909');
+    expect(base).not.toContain('SSE1569');
+    // Present once imported.
+    const ids = installedVersions(['RVR1960', 'WEB', 'RV1909', 'SSE1569']).map(
+      v => v.id,
+    );
+    expect(ids).toEqual(
+      expect.arrayContaining(['RV1909', 'SSE1569', 'RVR1960', 'WEB']),
+    );
+  });
+
   it('matches installed ids case-insensitively', () => {
     expect(installedVersions(['web', 'bsb']).map(v => v.id)).toEqual(
       expect.arrayContaining(['WEB', 'BSB']),
@@ -32,7 +46,12 @@ describe('installedVersions', () => {
   });
 
   it('preserves the catalog order', () => {
-    expect(installedVersions(['KJV', 'BSB']).map(v => v.id)).toEqual(
+    // Install every downloadable version so the filtered list equals the
+    // full catalog, then assert the order is preserved.
+    const allDownloadable = BIBLE_VERSIONS.filter(v => !v.bundled).map(
+      v => v.id,
+    );
+    expect(installedVersions(allDownloadable).map(v => v.id)).toEqual(
       BIBLE_VERSIONS.map(v => v.id),
     );
   });

@@ -26,6 +26,30 @@
       "bytes": 4702208,
       "sha256": "8c052fc15f93f8869820da05e5ec2669f850d4a7aa052988b07712defca6df16",
       "verseCount": 31086
+    },
+    {
+      "id": "RV1909",
+      "name": "Reina Valera 1909",
+      "abbreviation": "RV1909",
+      "language": "es",
+      "year": "1909",
+      "license": "Public Domain",
+      "url": "https://eternalstonebible.github.io/packs/rv1909.sqlite",
+      "bytes": 4751360,
+      "sha256": "c5417fe82b43e4348180653c6bf223b16b976c56f10692d8a0c50616dcc49a61",
+      "verseCount": 31084
+    },
+    {
+      "id": "SSE1569",
+      "name": "Sagradas Escrituras 1569",
+      "abbreviation": "SSE1569",
+      "language": "es",
+      "year": "1569",
+      "license": "Public Domain",
+      "url": "https://eternalstonebible.github.io/packs/sse1569.sqlite",
+      "bytes": 4739072,
+      "sha256": "1189a838074a6710feb2c98e714a22415d034372997e2e2d092de7b16d446b4c",
+      "verseCount": 31098
     }
   ]
 }

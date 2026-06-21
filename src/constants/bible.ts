@@ -40,6 +40,22 @@ export const BIBLE_VERSIONS: BibleVersion[] = [
     year: '2022',
     bundled: false,
   },
+  {
+    id: 'RV1909',
+    name: 'Reina Valera 1909',
+    abbreviation: 'RV1909',
+    language: 'es',
+    year: '1909',
+    bundled: false,
+  },
+  {
+    id: 'SSE1569',
+    name: 'Sagradas Escrituras 1569',
+    abbreviation: 'SSE1569',
+    language: 'es',
+    year: '1569',
+    bundled: false,
+  },
 ];
 
 /**
