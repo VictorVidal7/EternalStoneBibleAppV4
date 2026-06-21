@@ -6,6 +6,12 @@ import {Directory, File, Paths} from 'expo-file-system';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {BibleVerse, Note, ReadingProgress} from '../../types/bible';
 import {canonicalBookName} from '../../constants/bible';
+import {
+  normalizePackPath,
+  packLoadedKey,
+  PACK_IMPORT_SQL,
+  PACK_SCHEMA,
+} from './pack-import';
 
 /**
  * Copy the bundled pre-seeded bible.db into expo-sqlite's storage
@@ -462,6 +468,60 @@ class BibleDatabase {
         );
       }
     });
+  }
+
+  /**
+   * Import a downloaded translation pack as a new Bible version (translation
+   * packs, phase 3). The pack is a standalone SQLite file with a single
+   * `verses(book_id, book_name, chapter, verse, text)` table (no `version`
+   * column, no FTS).
+   *
+   * Additive + idempotent: ATTACH the pack, `INSERT OR IGNORE` its rows tagged
+   * with `versionId` — the `verses_ai` trigger indexes each newly inserted row
+   * into `verses_fts` on THIS device (so search works), and the
+   * `UNIQUE(book_id, chapter, verse, version)` constraint makes a re-import a
+   * no-op. Returns the number of verses actually inserted (0 on a re-import).
+   *
+   * ATTACH/DETACH run OUTSIDE the transaction (SQLite forbids ATTACH within
+   * one); only the main DB is written, so the cross-database transaction is
+   * atomic even with WAL on the main DB. On success the
+   * `@bible_data_loaded_<id>` flag is set so a relaunch's JS bulk-loader
+   * short-circuits. The CALLER refreshes the version registry afterwards
+   * (`BibleVersionContext.refreshInstalledVersions`) so the picker offers the
+   * new version.
+   */
+  async importVersionPack(packUri: string, versionId: string): Promise<number> {
+    const id = versionId.trim();
+    if (!id) {
+      throw new Error('importVersionPack: versionId is required');
+    }
+
+    await this.initialize();
+    const db = this.getDb();
+    const path = normalizePackPath(packUri);
+
+    // Defensively clear any stale attachment left by a prior failed import on
+    // this long-lived connection (SQLite errors if `pack` is already in use).
+    try {
+      await db.execAsync(`DETACH DATABASE ${PACK_SCHEMA}`);
+    } catch {
+      // Not attached — nothing to detach.
+    }
+
+    await db.runAsync(`ATTACH DATABASE ? AS ${PACK_SCHEMA}`, [path]);
+    let inserted = 0;
+    try {
+      await db.withTransactionAsync(async () => {
+        const result = await db.runAsync(PACK_IMPORT_SQL, [id]);
+        inserted = result.changes;
+      });
+    } finally {
+      await db.execAsync(`DETACH DATABASE ${PACK_SCHEMA}`);
+    }
+
+    await AsyncStorage.setItem(packLoadedKey(id), 'true');
+    console.log(`📦 Imported ${inserted} verses for version "${id}"`);
+    return inserted;
   }
 
   async getChapter(
