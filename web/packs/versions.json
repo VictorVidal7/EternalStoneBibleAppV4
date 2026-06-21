@@ -1,0 +1,31 @@
+{
+  "schema": 1,
+  "generated": "2026-06-21",
+  "note": "Per-version SQLite packs for Eternal Bible. Each pack has a single verses table (book_id,book_name,chapter,verse,text). Imported via ATTACH+INSERT; FTS auto-indexes on device. Public domain.",
+  "versions": [
+    {
+      "id": "WEB",
+      "name": "World English Bible",
+      "abbreviation": "WEB",
+      "language": "en",
+      "year": "2000",
+      "license": "Public Domain",
+      "url": "https://eternalstonebible.github.io/packs/web.sqlite",
+      "bytes": 4866048,
+      "sha256": "08e75859bc309237f2f0fa35e5731ff221ab6ff0b62bee5fa5076396e8fc85ed",
+      "verseCount": 31095
+    },
+    {
+      "id": "BSB",
+      "name": "Berean Standard Bible",
+      "abbreviation": "BSB",
+      "language": "en",
+      "year": "2022",
+      "license": "Public Domain (2023-04-30)",
+      "url": "https://eternalstonebible.github.io/packs/bsb.sqlite",
+      "bytes": 4702208,
+      "sha256": "8c052fc15f93f8869820da05e5ec2669f850d4a7aa052988b07712defca6df16",
+      "verseCount": 31086
+    }
+  ]
+}
