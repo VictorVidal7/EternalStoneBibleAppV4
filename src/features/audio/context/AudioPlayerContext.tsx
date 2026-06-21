@@ -16,6 +16,7 @@ import React, {
   useEffect,
   ReactNode,
 } from 'react';
+import {AppState} from 'react-native';
 import * as Speech from 'expo-speech';
 import {activateKeepAwakeAsync, deactivateKeepAwake} from 'expo-keep-awake';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -50,6 +51,7 @@ import {
   restoreUpcomingOrder,
 } from '../lib/playlistQueueOptions';
 import {resolveNarration, toAudioLanguage} from '../lib/narrationVoice';
+import {reconcileSleepTimer} from '../lib/sleepTimer';
 import {useBibleVersionOptional} from '@hooks/useBibleVersion';
 
 // ==================== INITIAL STATE ====================
@@ -727,45 +729,58 @@ export const AudioPlayerProvider: React.FC<AudioPlayerProviderProps> = ({
 
   // ==================== SLEEP TIMER ====================
 
-  const setSleepTimer = useCallback(
-    (minutes: number) => {
-      haptics.press();
-
-      // Clear existing timers
+  // Arm (or RE-arm) the timed-sleep timers against an absolute wall-clock
+  // endTime (epoch ms). The one-shot timeout stops playback at endTime; the
+  // interval refreshes the displayed minutes by RECOMPUTING from endTime each
+  // tick (never blind-decrementing), so a throttled/late tick can't drift the
+  // countdown. Reused by setSleepTimer and by the foreground reconciliation.
+  const armSleepTimers = useCallback(
+    (endTimeMs: number) => {
       if (sleepTimerRef.current) clearTimeout(sleepTimerRef.current);
       if (sleepCountdownRef.current) clearInterval(sleepCountdownRef.current);
 
-      const endTime = new Date(Date.now() + minutes * 60 * 1000);
+      const remaining = endTimeMs - Date.now();
+      if (remaining <= 0) {
+        stop();
+        cancelSleepTimer();
+        return;
+      }
 
+      sleepTimerRef.current = setTimeout(() => {
+        stop();
+        cancelSleepTimer();
+      }, remaining);
+
+      sleepCountdownRef.current = setInterval(() => {
+        const r = reconcileSleepTimer(endTimeMs, Date.now());
+        if (r.expired) {
+          if (sleepCountdownRef.current)
+            clearInterval(sleepCountdownRef.current);
+          return;
+        }
+        setSleepTimerState(prev =>
+          prev.mode === 'time'
+            ? {...prev, remainingMinutes: r.remainingMinutes}
+            : prev,
+        );
+      }, 30 * 1000);
+    },
+    [stop, cancelSleepTimer],
+  );
+
+  const setSleepTimer = useCallback(
+    (minutes: number) => {
+      haptics.press();
+      const endTime = new Date(Date.now() + minutes * 60 * 1000);
       setSleepTimerState({
         isActive: true,
         remainingMinutes: minutes,
         endTime,
         mode: 'time',
       });
-
-      // Set main timer
-      sleepTimerRef.current = setTimeout(
-        () => {
-          stop();
-          cancelSleepTimer();
-        },
-        minutes * 60 * 1000,
-      );
-
-      // Set countdown interval
-      sleepCountdownRef.current = setInterval(() => {
-        setSleepTimerState(prev => {
-          if (prev.remainingMinutes <= 1) {
-            if (sleepCountdownRef.current)
-              clearInterval(sleepCountdownRef.current);
-            return prev;
-          }
-          return {...prev, remainingMinutes: prev.remainingMinutes - 1};
-        });
-      }, 60 * 1000);
+      armSleepTimers(endTime.getTime());
     },
-    [stop],
+    [armSleepTimers],
   );
 
   const setSleepTimerEndOfChapter = useCallback(() => {
@@ -801,6 +816,34 @@ export const AudioPlayerProvider: React.FC<AudioPlayerProviderProps> = ({
       mode: 'end-of-book',
     });
   }, []);
+
+  // Reconcile the TIMED sleep timer against the wall clock whenever the app
+  // returns to the foreground. JS timers are throttled/suspended while
+  // backgrounded (screen off / home button), so without this the countdown
+  // drifts and the stop fires late. On 'active' we recompute from the stored
+  // endTime: fire + cancel if it already elapsed, otherwise re-arm the timers
+  // for the true remaining time and resync the displayed minutes. Only 'time'
+  // mode uses a wall clock (end-of-chapter / end-of-book are event-driven).
+  useEffect(() => {
+    const sub = AppState.addEventListener('change', next => {
+      if (next !== 'active') return;
+      const timer = sleepTimerStateRef.current;
+      if (timer.mode !== 'time' || !timer.endTime) return;
+      const r = reconcileSleepTimer(timer.endTime.getTime(), Date.now());
+      if (r.expired) {
+        stop();
+        cancelSleepTimer();
+        return;
+      }
+      setSleepTimerState(prev =>
+        prev.mode === 'time'
+          ? {...prev, remainingMinutes: r.remainingMinutes}
+          : prev,
+      );
+      armSleepTimers(timer.endTime.getTime());
+    });
+    return () => sub.remove();
+  }, [stop, cancelSleepTimer, armSleepTimers]);
 
   // Cleanup timers on unmount
   useEffect(() => {
