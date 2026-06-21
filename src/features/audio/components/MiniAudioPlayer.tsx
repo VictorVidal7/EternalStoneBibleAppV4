@@ -135,6 +135,8 @@ export const MiniAudioPlayer: React.FC<MiniAudioPlayerProps> = ({
     setAutoAdvanceChapter,
     readerFollowsAudio,
     setReaderFollowsAudio,
+    repeatVerse,
+    setRepeatVerse,
     queueInfo,
   } = useAudioPlayer();
   const {isPremium} = usePremium();
@@ -789,6 +791,34 @@ export const MiniAudioPlayer: React.FC<MiniAudioPlayerProps> = ({
                       />
                     </TouchableOpacity>
                   )}
+                  {/* Repeat-verse toggle (memorization) — when on, the current
+                      verse loops instead of advancing, so it can be memorized.
+                      Tap toggles quietly; long-press explains (mirrors ∞). */}
+                  <TouchableOpacity
+                    style={styles.headerButton}
+                    onPress={() => {
+                      haptics.tap();
+                      setRepeatVerse(!repeatVerse);
+                    }}
+                    onLongPress={() => {
+                      haptics.tap();
+                      toast.info(
+                        repeatVerse
+                          ? t.audio.repeatVerseOnToast
+                          : t.audio.repeatVerseOffToast,
+                      );
+                    }}
+                    hitSlop={{top: 10, bottom: 10, left: 10, right: 10}}
+                    accessibilityRole="button"
+                    accessibilityLabel={t.audio.a11y.repeatVerse}
+                    accessibilityHint={t.audio.a11y.repeatVerseHint}
+                    accessibilityState={{selected: repeatVerse}}>
+                    <Ionicons
+                      name="repeat"
+                      size={22}
+                      color={repeatVerse ? colors.primary : colors.textTertiary}
+                    />
+                  </TouchableOpacity>
                   {/* Collapse Button */}
                   <TouchableOpacity
                     style={styles.headerButton}

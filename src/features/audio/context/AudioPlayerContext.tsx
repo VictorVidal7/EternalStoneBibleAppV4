@@ -52,6 +52,7 @@ import {
 } from '../lib/playlistQueueOptions';
 import {resolveNarration, toAudioLanguage} from '../lib/narrationVoice';
 import {reconcileSleepTimer} from '../lib/sleepTimer';
+import {shouldReplayVerse} from '../lib/verseRepeat';
 import {useBibleVersionOptional} from '@hooks/useBibleVersion';
 
 // ==================== INITIAL STATE ====================
@@ -108,6 +109,10 @@ export const AudioPlayerProvider: React.FC<AudioPlayerProviderProps> = ({
   // Reader follow (Sprint 74). Defaults OFF (opt-in): when on, the reader
   // screen navigates along with continuous playback across a chapter boundary.
   const [readerFollowsAudio, setReaderFollowsAudioState] = useState(false);
+  // Memorization "repeat verse" loop. Runtime-only (NOT persisted) so it never
+  // surprises a fresh session; defaults off. When on, a finished verse replays
+  // instead of advancing.
+  const [repeatVerse, setRepeatVerseState] = useState(false);
   // Transient flag for screens that show overlay sheets/modals on top of the
   // mini player — the player draws over them otherwise because its high
   // elevation+zIndex lifts it above the native modal window. Audio keeps
@@ -150,6 +155,9 @@ export const AudioPlayerProvider: React.FC<AudioPlayerProviderProps> = ({
   const stateRef = useRef(state);
   const versesRef = useRef(verses);
   const sleepTimerStateRef = useRef(sleepTimer);
+  // Mirror of the repeat-verse toggle, read by the speech onDone callback so a
+  // toggle mid-verse is honoured the instant the current verse finishes.
+  const repeatVerseRef = useRef(repeatVerse);
   // Queue identity/options mirrors for the onDone end-of-queue branch (the
   // repeat decision) — updated EAGERLY in their setters, never via effects,
   // so a toggle right before the last verse ends is always honoured.
@@ -415,6 +423,21 @@ export const AudioPlayerProvider: React.FC<AudioPlayerProviderProps> = ({
             // Don't auto-advance if paused or not playing
             if (freshState.isPaused || !freshState.isPlaying) {
               logger.info('Auto-advance skipped (paused or stopped)');
+              return;
+            }
+
+            // Memorization loop: re-speak the SAME verse instead of advancing.
+            // Takes precedence over chapter advance / playlist repeat so a single
+            // verse loops until the user toggles it off (or pauses/stops).
+            if (
+              shouldReplayVerse(
+                repeatVerseRef.current,
+                freshState.isPlaying,
+                freshState.isPaused,
+              )
+            ) {
+              logger.info('Repeating verse for memorization', {index});
+              setTimeout(() => speakVerseByIndex(index), 50);
               return;
             }
 
@@ -690,6 +713,15 @@ export const AudioPlayerProvider: React.FC<AudioPlayerProviderProps> = ({
     haptics.tap();
     setReaderFollowsAudioState(enabled);
     savePreferences({readerFollowsAudio: enabled});
+  }, []);
+
+  // Toggle the memorization "repeat verse" loop. Eager ref update (like the
+  // pause/stop pattern) so the speech onDone — which may fire in the same tick —
+  // sees the new value immediately. Runtime-only, so nothing is persisted.
+  const setRepeatVerse = useCallback((enabled: boolean) => {
+    haptics.tap();
+    repeatVerseRef.current = enabled;
+    setRepeatVerseState(enabled);
   }, []);
 
   // ==================== PLAYER UI ====================
@@ -994,6 +1026,9 @@ export const AudioPlayerProvider: React.FC<AudioPlayerProviderProps> = ({
 
     readerFollowsAudio,
     setReaderFollowsAudio,
+
+    repeatVerse,
+    setRepeatVerse,
 
     expand,
     collapse,
