@@ -17,6 +17,7 @@ import React, {
   ReactNode,
 } from 'react';
 import * as Speech from 'expo-speech';
+import {activateKeepAwakeAsync, deactivateKeepAwake} from 'expo-keep-awake';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {haptics} from '@lib/haptics';
 import {logger} from '@lib/utils/logger';
@@ -38,7 +39,9 @@ import {
   DEFAULT_PLAYBACK_SPEED,
   DEFAULT_LANGUAGE,
   AUDIO_STORAGE_KEYS,
+  AUDIO_KEEP_AWAKE_TAG,
 } from '../constants/audioConstants';
+import {shouldKeepScreenAwake} from '../lib/keepAwake';
 import {createPosition} from '../lib/playbackPosition';
 import {setLastPosition, clearLastPosition} from '../lib/playbackPositionStore';
 import {
@@ -211,6 +214,26 @@ export const AudioPlayerProvider: React.FC<AudioPlayerProviderProps> = ({
       }),
     );
   }, [state.currentVerseIndex, verses, isVisible, queueInfo.mode]);
+
+  // Hold the screen awake WHILE narration is actively playing, so the OS
+  // screen-timeout never sleeps the device mid-chapter and kills expo-speech
+  // (it only narrates in the foreground with the screen on) — what made
+  // continuous chapter/book listening stop silently when the phone rested. The
+  // lock is released the instant playback pauses/stops (and on unmount), so the
+  // device sleeps normally otherwise. Best-effort: a device/emulator lacking the
+  // capability simply no-ops (errors are swallowed, never surfaced).
+  const keepScreenAwake = shouldKeepScreenAwake(state);
+  useEffect(() => {
+    if (!keepScreenAwake) return;
+    activateKeepAwakeAsync(AUDIO_KEEP_AWAKE_TAG).catch(err =>
+      logger.warn('Error activating keep-awake', {error: String(err)}),
+    );
+    return () => {
+      deactivateKeepAwake(AUDIO_KEEP_AWAKE_TAG).catch(err =>
+        logger.warn('Error deactivating keep-awake', {error: String(err)}),
+      );
+    };
+  }, [keepScreenAwake]);
 
   // Safe Haptics wrapper to prevent crashes on emulators/devices.
   // Delegates to the shared `haptics` helper (already swallows unsupported-

@@ -61,6 +61,15 @@ export const SLEEP_TIMER_OPTIONS = [
 // How many upcoming chapters the listening-queue sheet previews (Sprint 75).
 export const AUDIO_QUEUE_LENGTH = 5;
 
+// ==================== KEEP-AWAKE ====================
+
+// Tag for the screen wake-lock held WHILE narration is actively playing, so the
+// device screen never times out mid-chapter and kills expo-speech (which only
+// runs in the foreground). Released the moment playback pauses/stops. A unique
+// tag scopes the lock to the audio engine — no other feature's keep-awake is
+// affected when we release ours.
+export const AUDIO_KEEP_AWAKE_TAG = 'eternal-bible-audio-playback';
+
 // ==================== PLAYER DIMENSIONS ====================
 
 export const PLAYER_DIMENSIONS = {
