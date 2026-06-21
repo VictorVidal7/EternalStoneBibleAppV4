@@ -57,4 +57,10 @@ export interface BibleVersion {
   abbreviation: string;
   language: string;
   year?: string;
+  /**
+   * Whether this version ships inside the app (its verses are in the seeded DB).
+   * Bundled versions are ALWAYS available; non-bundled ones (translation packs)
+   * become available only once downloaded + imported (translation-packs feature).
+   */
+  bundled?: boolean;
 }
