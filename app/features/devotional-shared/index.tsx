@@ -254,9 +254,6 @@ export default function SharedDevotionalScreen() {
         <Text style={styles.meta}>
           {dv.daysMeta.replace('{{n}}', String(bundle.d.length))}
         </Text>
-        {bundle.ti ? (
-          <Text style={styles.meta}>{dv.by.replace('{{who}}', bundle.ti)}</Text>
-        ) : null}
       </LinearGradient>
 
       <ScrollView contentContainerStyle={[styles.body, centeredMaxWidth()]}>
