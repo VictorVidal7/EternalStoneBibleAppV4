@@ -12,8 +12,7 @@
     <meta property="og:title" content="Eternal Stone Bible" />
     <meta
       property="og:description"
-      content="Open this in the Eternal Stone Bible app."
-    />
+      content="Open this in the Eternal Stone Bible app." />
     <style>
       :root {
         color-scheme: dark;
@@ -30,7 +29,7 @@
         background: #0b1220;
         color: #e7eaf0;
         font-family:
-          -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, system-ui,
+          -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, system-ui,
           sans-serif;
         padding: 24px;
       }
@@ -63,11 +62,35 @@
         font-weight: 700;
         text-decoration: none;
       }
+      .btn.secondary {
+        background: transparent;
+        color: #e7eaf0;
+        border: 1px solid #2b3650;
+      }
       .hint {
         margin-top: 18px;
         color: #8a94a8;
         font-size: 13px;
         line-height: 1.5;
+      }
+      /* The "you don't have the app" panel stays hidden until we are fairly
+         sure the app did not open (the tab is still in the foreground after a
+         beat); installed users get bounced away before they ever see it. */
+      #noapp {
+        display: none;
+        margin-top: 26px;
+        padding-top: 22px;
+        border-top: 1px solid #1c2740;
+      }
+      #noapp h2 {
+        font-size: 16px;
+        margin: 0 0 6px;
+      }
+      #noapp p {
+        color: #aab3c5;
+        font-size: 14px;
+        line-height: 1.5;
+        margin: 0 0 16px;
       }
     </style>
   </head>
@@ -78,52 +101,122 @@
       <p id="msg">Opening in the app…</p>
       <a id="open" class="btn" href="#">Open in Eternal Stone Bible</a>
       <p class="hint" id="hint"></p>
+
+      <!-- Fallback for visitors who don't have the app installed. -->
+      <section id="noapp">
+        <h2 id="noapp-title"></h2>
+        <p id="noapp-msg"></p>
+        <a id="download" class="btn" href="#" style="display: none"></a>
+      </section>
     </main>
     <script>
       (function () {
+        // Where someone WITHOUT the app can get it. The app is not on a public
+        // store, so this is empty by default and the page shows a "ask whoever
+        // shared this" message instead. Set it to a hosted APK / store URL (e.g.
+        // a GitHub Release asset) to offer a one-tap install — that single line
+        // is the only change needed to turn on the download button below.
+        var DOWNLOAD_URL = '';
+
         // Pick the copy from the visitor's browser language (es → Spanish).
-        var es =
-          (navigator.language || "en").toLowerCase().indexOf("es") === 0;
+        var es = (navigator.language || 'en').toLowerCase().indexOf('es') === 0;
         var T = es
           ? {
-              opening: "Abriendo en la app…",
-              open: "Abrir en Eternal Stone Bible",
+              opening: 'Abriendo en la app…',
+              open: 'Abrir en Eternal Stone Bible',
               hint:
-                "¿No se abrió? Copia este enlace y pégalo en la app: " +
-                "<b>Ajustes → Unirse a un grupo</b>.",
-              bad: "Este enlace está incompleto.",
+                '¿No se abrió? Si ya tienes la app, copia este enlace y pégalo ' +
+                'en <b>Ajustes → Unirse a un grupo</b>.',
+              bad: 'Este enlace está incompleto.',
+              noAppTitle: '¿No tienes la app todavía?',
+              noAppAsk:
+                'Necesitas la app Eternal Stone Bible para abrir lo que te ' +
+                'compartieron. Pídele a quien te lo envió que también te pase ' +
+                'la app.',
+              noAppGet:
+                'Necesitas la app Eternal Stone Bible para abrir lo que te ' +
+                'compartieron.',
+              download: 'Descargar la app',
             }
           : {
-              opening: "Opening in the app…",
-              open: "Open in Eternal Stone Bible",
+              opening: 'Opening in the app…',
+              open: 'Open in Eternal Stone Bible',
               hint:
-                "Didn't open? Copy this link and paste it in the app: " +
-                "<b>Settings → Join a group</b>.",
-              bad: "This link is incomplete.",
+                "Didn't open? If you already have the app, copy this link and " +
+                'paste it in <b>Settings → Join a group</b>.',
+              bad: 'This link is incomplete.',
+              noAppTitle: "Don't have the app yet?",
+              noAppAsk:
+                'You need the Eternal Stone Bible app to open what was shared ' +
+                'with you. Ask whoever sent it to share the app with you too.',
+              noAppGet:
+                'You need the Eternal Stone Bible app to open what was shared ' +
+                'with you.',
+              download: 'Get the app',
             };
-        document.documentElement.lang = es ? "es" : "en";
-        var msg = document.getElementById("msg");
-        var open = document.getElementById("open");
-        var hint = document.getElementById("hint");
+        document.documentElement.lang = es ? 'es' : 'en';
+        var msg = document.getElementById('msg');
+        var open = document.getElementById('open');
+        var hint = document.getElementById('hint');
+        var noapp = document.getElementById('noapp');
+        var noappTitle = document.getElementById('noapp-title');
+        var noappMsg = document.getElementById('noapp-msg');
+        var download = document.getElementById('download');
+
         // Read the payload from the #fragment (kept off the server on purpose).
-        var raw = (location.hash || "").replace(/^#/, "");
-        if (raw.indexOf("d=") === 0) raw = raw.slice(2);
+        var raw = (location.hash || '').replace(/^#/, '');
+        if (raw.indexOf('d=') === 0) raw = raw.slice(2);
         if (!raw) {
           msg.textContent = T.bad;
-          open.style.display = "none";
+          open.style.display = 'none';
           return;
         }
         // The plan-join route also forwards shared studies to their viewer, so a
         // single target works for plans, custom plans and studies alike.
-        var target = "eternalbible://features/together?d=" + raw;
+        var target = 'eternalbible://features/together?d=' + raw;
         msg.textContent = T.opening;
         open.textContent = T.open;
         hint.innerHTML = T.hint;
-        open.setAttribute("href", target);
+        open.setAttribute('href', target);
+
+        // Pre-fill the "no app" panel (revealed below only if the app doesn't
+        // open). A download button appears when DOWNLOAD_URL is configured;
+        // otherwise we just tell the visitor to ask whoever shared the link.
+        noappTitle.textContent = T.noAppTitle;
+        if (DOWNLOAD_URL) {
+          noappMsg.textContent = T.noAppGet;
+          download.textContent = T.download;
+          download.setAttribute('href', DOWNLOAD_URL);
+          download.style.display = 'inline-block';
+        } else {
+          noappMsg.textContent = T.noAppAsk;
+        }
+
+        // If the app opens, the browser tab is backgrounded (visibility/blur),
+        // so we suppress the fallback. If nothing handles the scheme (app not
+        // installed), the tab stays in the foreground and we reveal the panel.
+        var appLikelyOpened = false;
+        function markOpened() {
+          appLikelyOpened = true;
+        }
+        document.addEventListener('visibilitychange', function () {
+          if (document.hidden) markOpened();
+        });
+        window.addEventListener('pagehide', markOpened);
+        window.addEventListener('blur', markOpened);
+
         // Give the page a beat to paint the manual button, then bounce.
         setTimeout(function () {
           window.location.href = target;
         }, 80);
+
+        // Still here after the bounce had time to fire? The app isn't installed
+        // (or couldn't be launched) → surface the get-the-app fallback.
+        setTimeout(function () {
+          if (!appLikelyOpened && !document.hidden) {
+            noapp.style.display = 'block';
+          }
+        }, 1400);
       })();
     </script>
   </body>
