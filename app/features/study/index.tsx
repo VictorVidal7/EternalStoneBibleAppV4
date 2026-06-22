@@ -555,6 +555,14 @@ export default function StudyScreen() {
                   {referencedBy.map(row => renderRow(row, 'by'))}
                 </View>
               )}
+
+              {hasConnections && (
+                <AppText
+                  scaleRole="compact"
+                  style={[styles.attribution, {color: colors.textTertiary}]}>
+                  {t.crossRefs.attribution}
+                </AppText>
+              )}
             </>
           )}
         </ScrollView>
@@ -731,5 +739,10 @@ const styles = StyleSheet.create({
   refText: {
     fontSize: fontSizes.sm,
     lineHeight: fontSizes.sm * 1.5,
+  },
+  attribution: {
+    fontSize: fontSizes.xs,
+    textAlign: 'center',
+    marginTop: spacing.sm,
   },
 });

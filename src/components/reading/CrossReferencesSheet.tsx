@@ -364,6 +364,12 @@ export const CrossReferencesSheet: React.FC<Props> = ({
               color={colors.textSecondary}
             />
           </TouchableOpacity>
+
+          {rows.length > 0 && (
+            <Text style={[styles.attribution, {color: colors.textTertiary}]}>
+              {t.crossRefs.attribution}
+            </Text>
+          )}
         </View>
       </View>
     </Modal>
@@ -409,6 +415,12 @@ const styles = StyleSheet.create({
   themesButtonText: {
     fontSize: fontSizes.md,
     fontWeight: '600',
+  },
+  attribution: {
+    fontSize: fontSizes.xs,
+    textAlign: 'center',
+    marginTop: spacing.md,
+    paddingHorizontal: spacing.lg,
   },
   backdrop: {
     flex: 1,
