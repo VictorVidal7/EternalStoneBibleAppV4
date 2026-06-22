@@ -31,6 +31,39 @@ export interface CrossRefIn {
   votes: number;
 }
 
+/** One original-language word of a verse (Hebrew/Greek), with its Strong's. */
+export interface OriginalWord {
+  position: number;
+  lang: string;
+  word: string;
+  translit: string | null;
+  gloss_en: string | null;
+  gloss_es: string | null;
+  strongs: string | null;
+  grammar: string | null;
+}
+
+/** A Strong's lexicon entry (definition for a Strong's number). */
+export interface StrongsEntry {
+  strongs: string;
+  lang: string;
+  lemma: string | null;
+  translit: string | null;
+  definition: string | null;
+  kjv_def: string | null;
+}
+
+/** One occurrence of a Strong's number (for the concordance). */
+export interface StrongsOccurrence {
+  book_id: number;
+  chapter: number;
+  verse: number;
+  word: string;
+}
+
+/** Schema name the downloaded originals pack is attached under at import. */
+const ORIGINALS_SCHEMA = 'orig';
+
 /** Schema name the bundled cross-reference asset is attached under at import. */
 const XREF_SCHEMA = 'xref';
 
@@ -96,6 +129,8 @@ class BibleDatabase {
     '@migration_canonical_book_keys_v1';
   // One-time flag marking the bundled cross-reference web as imported (RUMBO #3).
   private static readonly CROSS_REFS_LOADED_KEY = '@cross_refs_loaded_v1';
+  // Flag marking the downloaded original-languages pack as imported.
+  private static readonly ORIGINALS_LOADED_KEY = '@originals_loaded_v1';
 
   async initialize(): Promise<void> {
     // Si ya está inicializado, retornar inmediatamente
@@ -260,6 +295,35 @@ class BibleDatabase {
         )
       `);
 
+      // Tablas de idiomas originales — Hebrew/Greek words + Strong's lexicon
+      // (ORIGINAL LANGUAGES). Empty until the user downloads the originals pack
+      // (importOriginalsPack); the verse panel + lexicon read from here.
+      await this.db.runAsync(`
+        CREATE TABLE IF NOT EXISTS original_words (
+          book_id INTEGER NOT NULL,
+          chapter INTEGER NOT NULL,
+          verse INTEGER NOT NULL,
+          position INTEGER NOT NULL,
+          lang TEXT NOT NULL,
+          word TEXT NOT NULL,
+          translit TEXT,
+          gloss_en TEXT,
+          gloss_es TEXT,
+          strongs TEXT,
+          grammar TEXT
+        )
+      `);
+      await this.db.runAsync(`
+        CREATE TABLE IF NOT EXISTS strongs_lexicon (
+          strongs TEXT PRIMARY KEY,
+          lang TEXT NOT NULL,
+          lemma TEXT,
+          translit TEXT,
+          definition TEXT,
+          kjv_def TEXT
+        )
+      `);
+
       await this.migrateBookmarksToFavorites();
 
       // Índices
@@ -292,6 +356,12 @@ class BibleDatabase {
       );
       await this.db.runAsync(
         'CREATE INDEX IF NOT EXISTS idx_xref_to ON cross_references(to_book, to_chapter, to_verse)',
+      );
+      await this.db.runAsync(
+        'CREATE INDEX IF NOT EXISTS idx_original_words_ref ON original_words(book_id, chapter, verse, position)',
+      );
+      await this.db.runAsync(
+        'CREATE INDEX IF NOT EXISTS idx_original_words_strongs ON original_words(strongs)',
       );
 
       // Seed the reading_progress row only if it does not exist yet.
@@ -420,6 +490,124 @@ class BibleDatabase {
        LIMIT ${XREF_INCOMING_LIMIT}`,
       [bookId, chapter, verse],
     );
+  }
+
+  // ── Original languages (Hebrew/Greek + Strong's) ──────────────────────
+
+  /** Whether the downloaded original-languages pack has been imported. */
+  async originalsInstalled(): Promise<boolean> {
+    await this.initialize();
+    if (
+      (await AsyncStorage.getItem(BibleDatabase.ORIGINALS_LOADED_KEY)) ===
+      'true'
+    ) {
+      return true;
+    }
+    // Flag-less fallback: trust a populated table (e.g. a reinstalled flag).
+    const row = await this.getDb().getFirstAsync<{n: number}>(
+      'SELECT EXISTS(SELECT 1 FROM original_words LIMIT 1) AS n',
+    );
+    return (row?.n ?? 0) === 1;
+  }
+
+  /**
+   * Import a downloaded originals pack (ATTACH + INSERT into original_words +
+   * strongs_lexicon, then DETACH). Idempotent: clears the tables first so a
+   * re-import (e.g. a newer pack) is clean. Sets the @originals_loaded flag.
+   * Returns the number of original words imported.
+   */
+  async importOriginalsPack(packUri: string): Promise<number> {
+    await this.initialize();
+    const db = this.getDb();
+    const attachPath = normalizePackPath(packUri);
+
+    try {
+      await db.execAsync(`DETACH DATABASE ${ORIGINALS_SCHEMA}`);
+    } catch {
+      // Not attached — nothing to detach.
+    }
+    await db.runAsync(`ATTACH DATABASE ? AS ${ORIGINALS_SCHEMA}`, [attachPath]);
+    let words = 0;
+    try {
+      await db.withTransactionAsync(async () => {
+        await db.runAsync('DELETE FROM original_words');
+        await db.runAsync('DELETE FROM strongs_lexicon');
+        const result = await db.runAsync(
+          `INSERT INTO original_words
+             (book_id, chapter, verse, position, lang, word, translit, gloss_en, gloss_es, strongs, grammar)
+           SELECT book_id, chapter, verse, position, lang, word, translit, gloss_en, gloss_es, strongs, grammar
+           FROM ${ORIGINALS_SCHEMA}.original_words`,
+        );
+        words = result.changes;
+        await db.runAsync(
+          `INSERT OR IGNORE INTO strongs_lexicon
+             (strongs, lang, lemma, translit, definition, kjv_def)
+           SELECT strongs, lang, lemma, translit, definition, kjv_def
+           FROM ${ORIGINALS_SCHEMA}.strongs_lexicon`,
+        );
+      });
+    } finally {
+      await db.execAsync(`DETACH DATABASE ${ORIGINALS_SCHEMA}`);
+    }
+    await AsyncStorage.setItem(BibleDatabase.ORIGINALS_LOADED_KEY, 'true');
+    console.log(`📜 Imported ${words} original-language words`);
+    return words;
+  }
+
+  /** The original-language words of a verse, in reading order. */
+  async getOriginalWords(
+    bookId: number,
+    chapter: number,
+    verse: number,
+  ): Promise<OriginalWord[]> {
+    await this.initialize();
+    return this.getDb().getAllAsync<OriginalWord>(
+      `SELECT position, lang, word, translit, gloss_en, gloss_es, strongs, grammar
+       FROM original_words
+       WHERE book_id = ? AND chapter = ? AND verse = ?
+       ORDER BY position`,
+      [bookId, chapter, verse],
+    );
+  }
+
+  /** A Strong's lexicon entry, or null when not found / not installed. */
+  async getStrongsEntry(strongs: string): Promise<StrongsEntry | null> {
+    await this.initialize();
+    const row = await this.getDb().getFirstAsync<StrongsEntry>(
+      `SELECT strongs, lang, lemma, translit, definition, kjv_def
+       FROM strongs_lexicon WHERE strongs = ?`,
+      [strongs.trim()],
+    );
+    return row ?? null;
+  }
+
+  /**
+   * Occurrences of a Strong's number across the text (the concordance), in
+   * canonical order, bounded by `limit`. Powers "every other place it appears".
+   */
+  async getStrongsOccurrences(
+    strongs: string,
+    limit = 200,
+  ): Promise<StrongsOccurrence[]> {
+    await this.initialize();
+    return this.getDb().getAllAsync<StrongsOccurrence>(
+      `SELECT book_id, chapter, verse, word
+       FROM original_words
+       WHERE strongs = ?
+       ORDER BY book_id, chapter, verse, position
+       LIMIT ?`,
+      [strongs.trim(), limit],
+    );
+  }
+
+  /** Total occurrence count of a Strong's number (for the concordance header). */
+  async getStrongsOccurrenceCount(strongs: string): Promise<number> {
+    await this.initialize();
+    const row = await this.getDb().getFirstAsync<{n: number}>(
+      'SELECT COUNT(*) AS n FROM original_words WHERE strongs = ?',
+      [strongs.trim()],
+    );
+    return row?.n ?? 0;
   }
 
   private async migrateBookmarksToFavorites(): Promise<void> {
