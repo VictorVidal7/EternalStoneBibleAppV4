@@ -13,6 +13,37 @@ import {
   PACK_SCHEMA,
 } from './pack-import';
 
+/** An outgoing cross-reference row (the verse a focus verse points TO). */
+export interface CrossRefOut {
+  to_book: number;
+  to_chapter: number;
+  to_verse: number;
+  /** End verse of a same-chapter target range (e.g. "1:1-5"), else null. */
+  to_verse_end: number | null;
+  votes: number;
+}
+
+/** An incoming cross-reference row (a verse that points AT the focus verse). */
+export interface CrossRefIn {
+  from_book: number;
+  from_chapter: number;
+  from_verse: number;
+  votes: number;
+}
+
+/** Schema name the bundled cross-reference asset is attached under at import. */
+const XREF_SCHEMA = 'xref';
+
+/** Max incoming ("referenced by") rows surfaced for a verse, by votes. */
+const XREF_INCOMING_LIMIT = 25;
+
+/** Bulk import statement for the bundled cross-reference web (RUMBO #3). */
+const XREF_IMPORT_SQL =
+  `INSERT INTO cross_references ` +
+  `(from_book, from_chapter, from_verse, to_book, to_chapter, to_verse, to_verse_end, votes) ` +
+  `SELECT from_book, from_chapter, from_verse, to_book, to_chapter, to_verse, to_verse_end, votes ` +
+  `FROM ${XREF_SCHEMA}.cross_references`;
+
 /**
  * Copy the bundled pre-seeded bible.db into expo-sqlite's storage
  * directory if it isn't already there. Returns true when a copy
@@ -63,6 +94,8 @@ class BibleDatabase {
   // One-time flag for the Sprint 58 canonical book-key normalization.
   private static readonly CANONICAL_BOOK_MIGRATION_KEY =
     '@migration_canonical_book_keys_v1';
+  // One-time flag marking the bundled cross-reference web as imported (RUMBO #3).
+  private static readonly CROSS_REFS_LOADED_KEY = '@cross_refs_loaded_v1';
 
   async initialize(): Promise<void> {
     // Si ya está inicializado, retornar inmediatamente
@@ -210,6 +243,23 @@ class BibleDatabase {
         )
       `);
 
+      // Tabla cross_references — the broad, faithful cross-reference web
+      // (RUMBO #3). Populated once from the bundled `cross-references.db` asset
+      // (see seedCrossReferencesIfMissing); the curated set in
+      // `src/constants/cross-references.ts` stays the runtime PRIORITY layer.
+      await this.db.runAsync(`
+        CREATE TABLE IF NOT EXISTS cross_references (
+          from_book INTEGER NOT NULL,
+          from_chapter INTEGER NOT NULL,
+          from_verse INTEGER NOT NULL,
+          to_book INTEGER NOT NULL,
+          to_chapter INTEGER NOT NULL,
+          to_verse INTEGER NOT NULL,
+          to_verse_end INTEGER,
+          votes INTEGER NOT NULL
+        )
+      `);
+
       await this.migrateBookmarksToFavorites();
 
       // Índices
@@ -237,6 +287,12 @@ class BibleDatabase {
       await this.db.runAsync(
         'CREATE INDEX IF NOT EXISTS idx_review_events_verse_key ON review_events(verse_key)',
       );
+      await this.db.runAsync(
+        'CREATE INDEX IF NOT EXISTS idx_xref_from ON cross_references(from_book, from_chapter, from_verse)',
+      );
+      await this.db.runAsync(
+        'CREATE INDEX IF NOT EXISTS idx_xref_to ON cross_references(to_book, to_chapter, to_verse)',
+      );
 
       // Seed the reading_progress row only if it does not exist yet.
       // INSERT OR IGNORE (not OR REPLACE) so a returning user's real
@@ -246,6 +302,11 @@ class BibleDatabase {
          VALUES (?, ?, ?, ?, datetime('now'))`,
         [1, 'Juan', 3, 16],
       );
+
+      // Populate the cross-reference web from the bundled asset on first run
+      // (fresh installs AND existing ones — the seed copy never carried it).
+      // Graceful: a failure just leaves the curated layer doing the work.
+      await this.seedCrossReferencesIfMissing();
 
       this.initialized = true;
       console.log('✅ Database initialized successfully');
@@ -260,6 +321,105 @@ class BibleDatabase {
       throw new Error('Database not initialized. Call initialize() first.');
     }
     return this.db;
+  }
+
+  /**
+   * Import the bundled cross-reference web (RUMBO #3) once, the first time the
+   * app runs against a DB that has not yet received it. Both fresh installs
+   * (the seed copy never carried the table) and existing installs go through
+   * here, gated by the `@cross_refs_loaded_v1` flag with a row-count fallback
+   * so a lost flag never double-inserts. ATTACH the read-only asset, bulk
+   * `INSERT … SELECT` (no FTS triggers on this table → fast), DETACH. Graceful:
+   * a failure just leaves the curated layer doing the work, never crashes init.
+   */
+  private async seedCrossReferencesIfMissing(): Promise<void> {
+    const db = this.getDb();
+    try {
+      if (
+        (await AsyncStorage.getItem(BibleDatabase.CROSS_REFS_LOADED_KEY)) ===
+        'true'
+      ) {
+        return;
+      }
+      const existing = await db.getFirstAsync<{n: number}>(
+        'SELECT COUNT(*) AS n FROM cross_references',
+      );
+      if ((existing?.n ?? 0) > 0) {
+        await AsyncStorage.setItem(BibleDatabase.CROSS_REFS_LOADED_KEY, 'true');
+        return;
+      }
+      const asset = Asset.fromModule(
+        require('../../../assets/cross-references.db'),
+      );
+      await asset.downloadAsync();
+      const sourceUri = asset.localUri ?? asset.uri;
+      if (!sourceUri) return;
+      const attachPath = normalizePackPath(sourceUri);
+
+      try {
+        await db.execAsync(`DETACH DATABASE ${XREF_SCHEMA}`);
+      } catch {
+        // Not attached — nothing to detach.
+      }
+      await db.runAsync(`ATTACH DATABASE ? AS ${XREF_SCHEMA}`, [attachPath]);
+      try {
+        await db.withTransactionAsync(async () => {
+          await db.runAsync(XREF_IMPORT_SQL);
+        });
+      } finally {
+        await db.execAsync(`DETACH DATABASE ${XREF_SCHEMA}`);
+      }
+      await AsyncStorage.setItem(BibleDatabase.CROSS_REFS_LOADED_KEY, 'true');
+      console.log('🔗 Cross-reference web imported from bundle');
+    } catch (error) {
+      console.warn(
+        '⚠️ Cross-reference seed failed (curated layer still active)',
+        error,
+      );
+    }
+  }
+
+  /**
+   * Outgoing cross-references for a verse — the parallels it points TO, from
+   * the broad bundled web (RUMBO #3), ranked by community votes. Empty when the
+   * web is unavailable; the merge facade layers the curated set on top.
+   */
+  async getCrossReferencesFromDb(
+    bookId: number,
+    chapter: number,
+    verse: number,
+  ): Promise<CrossRefOut[]> {
+    await this.initialize();
+    return this.getDb().getAllAsync<CrossRefOut>(
+      `SELECT to_book, to_chapter, to_verse, to_verse_end, votes
+       FROM cross_references
+       WHERE from_book = ? AND from_chapter = ? AND from_verse = ?
+       ORDER BY votes DESC`,
+      [bookId, chapter, verse],
+    );
+  }
+
+  /**
+   * Incoming cross-references for a verse — the verses that point AT it, by
+   * querying the `to_*` columns (idx_xref_to). Powers Study mode's "referenced
+   * by" side without inverting the whole map in memory.
+   */
+  async getReferencedByFromDb(
+    bookId: number,
+    chapter: number,
+    verse: number,
+  ): Promise<CrossRefIn[]> {
+    await this.initialize();
+    // A popular verse is the TARGET of many sources (incoming is uncapped in
+    // the data, unlike outgoing's top-10), so bound to the strongest by votes.
+    return this.getDb().getAllAsync<CrossRefIn>(
+      `SELECT from_book, from_chapter, from_verse, votes
+       FROM cross_references
+       WHERE to_book = ? AND to_chapter = ? AND to_verse = ?
+       ORDER BY votes DESC
+       LIMIT ${XREF_INCOMING_LIMIT}`,
+      [bookId, chapter, verse],
+    );
   }
 
   private async migrateBookmarksToFavorites(): Promise<void> {

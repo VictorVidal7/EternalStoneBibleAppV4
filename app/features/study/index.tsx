@@ -9,13 +9,14 @@
  *
  * Reached from the cross-references sheet ("Study mode →") and via the deep link
  * eternalbible://features/study?book=John&chapter=3&verse=16. 100% JS: connection
- * math is the pure src/features/study/studyConnections.ts; verse text is fetched
- * from the SQLite Bible DB; zero new native, zero Firestore.
+ * math is the curated pure src/features/study/studyConnections.ts merged with the
+ * broad bundled cross-reference web via getMergedStudyConnections (RUMBO #3);
+ * verse text is fetched from the SQLite Bible DB; zero new native, zero Firestore.
  *
  * Para la gloria de Dios Todopoderoso ✨
  */
 
-import React, {useCallback, useEffect, useMemo, useState} from 'react';
+import React, {useCallback, useEffect, useState} from 'react';
 import {
   View,
   Text,
@@ -36,7 +37,8 @@ import {haptics} from '@lib/haptics';
 import {AppText} from '@components/ui/AppText';
 import bibleDB from '@lib/database';
 import {getBookByName} from '@/constants/bible';
-import {getStudyConnections} from '@/features/study/studyConnections';
+import type {StudyConnections} from '@/features/study/studyConnections';
+import {getMergedStudyConnections} from '@/features/study/crossReferences';
 import {
   getChristConnectionById,
   parseChristRef,
@@ -123,10 +125,12 @@ export default function StudyScreen() {
   const chapter = Number(params.chapter ?? 0);
   const verse = Number(params.verse ?? 0);
 
-  const connections = useMemo(
-    () => getStudyConnections(book, chapter, verse),
-    [book, chapter, verse],
-  );
+  const [connections, setConnections] = useState<StudyConnections>({
+    focus: null,
+    references: [],
+    referencedBy: [],
+    totalConnections: 0,
+  });
 
   const [status, setStatus] = useState<LoadStatus>('loading');
   const [focusRow, setFocusRow] = useState<StudyRow | null>(null);
@@ -151,14 +155,17 @@ export default function StudyScreen() {
         params.version ??
         (await AsyncStorage.getItem(VERSION_KEY)) ??
         'RVR1960';
-      const focusKey = connections.focus ?? `${book}/${chapter}/${verse}`;
+      // Curated two-way web + the broad bundled cross-reference web (RUMBO #3).
+      const conns = await getMergedStudyConnections(book, chapter, verse);
+      setConnections(conns);
+      const focusKey = conns.focus ?? `${book}/${chapter}/${verse}`;
       const [focus, refs, refBy] = await Promise.all([
         resolveRow(focusKey, version, language),
         Promise.all(
-          connections.references.map(k => resolveRow(k, version, language)),
+          conns.references.map(k => resolveRow(k, version, language)),
         ),
         Promise.all(
-          connections.referencedBy.map(k => resolveRow(k, version, language)),
+          conns.referencedBy.map(k => resolveRow(k, version, language)),
         ),
       ]);
       setFocusRow(focus);
@@ -220,7 +227,7 @@ export default function StudyScreen() {
       });
       setStatus('error');
     }
-  }, [connections, params.version, book, chapter, verse, language]);
+  }, [params.version, book, chapter, verse, language]);
 
   useEffect(() => {
     load();
