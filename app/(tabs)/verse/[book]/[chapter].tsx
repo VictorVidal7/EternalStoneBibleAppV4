@@ -56,6 +56,7 @@ import {ImageShareModal} from '@components/reading/ImageShareModal';
 import {VerseArtModal} from '@components/insights/VerseArtModal';
 import {ReaderPreferencesSheet} from '@components/reading/ReaderPreferencesSheet';
 import {CrossReferencesSheet} from '@components/reading/CrossReferencesSheet';
+import {OriginalLanguagesSheet} from '@components/reading/OriginalLanguagesSheet';
 import {AlsoInVersionsPanel} from '@components/reading/AlsoInVersionsPanel';
 import {orderAlsoVersions} from '@/lib/home/alsoInVersions';
 import {AddToCollectionSheet} from '@/features/collections/AddToCollectionSheet';
@@ -212,6 +213,8 @@ export default function VerseReadingScreen() {
   const [verseArtVisible, setVerseArtVisible] = useState(false);
   const [crossRefsVisible, setCrossRefsVisible] = useState(false);
   const [crossRefsVerse, setCrossRefsVerse] = useState<number | null>(null);
+  const [originalsVisible, setOriginalsVisible] = useState(false);
+  const [originalsVerse, setOriginalsVerse] = useState<number | null>(null);
   // "Add to collection" target (Sprint 68): the canonical verseId of the verse
   // whose collections the AddToCollectionSheet is editing. We track the verseId
   // (deterministic) rather than the random favorite id so the sheet opens
@@ -2713,6 +2716,32 @@ export default function VerseReadingScreen() {
                     {t.crossRefs.buttonLabel}
                   </Text>
                 </TouchableOpacity>
+                {/* 📜 Original languages — Hebrew/Greek + Strong's */}
+                <TouchableOpacity
+                  style={styles.selectionOverflowButton}
+                  accessibilityRole="button"
+                  accessibilityLabel={t.originals.buttonLabel}
+                  onPress={() => {
+                    const sortedNums = Array.from(selectedVerses).sort(
+                      (a, b) => a - b,
+                    );
+                    setOriginalsVerse(sortedNums[0] ?? null);
+                    setOriginalsVisible(true);
+                    setShowOverflow(false);
+                  }}>
+                  <Ionicons
+                    name="language-outline"
+                    size={22}
+                    color={effectiveColors.primary}
+                  />
+                  <Text
+                    style={[
+                      styles.selectionOverflowText,
+                      {color: effectiveColors.text},
+                    ]}>
+                    {t.originals.buttonLabel}
+                  </Text>
+                </TouchableOpacity>
                 {/* 🎨 Verse art composer (Sprint 87) */}
                 <TouchableOpacity
                   style={styles.selectionOverflowButton}
@@ -2842,6 +2871,15 @@ export default function VerseReadingScreen() {
           sourceVerse={crossRefsVerse}
           version={selectedVersion.id}
           onClose={() => setCrossRefsVisible(false)}
+        />
+
+        {/* 📜 Original Hebrew/Greek words + Strong's for the first selected verse. */}
+        <OriginalLanguagesSheet
+          visible={originalsVisible}
+          sourceBook={localizedBookName}
+          sourceChapter={chapterNum}
+          sourceVerse={originalsVerse}
+          onClose={() => setOriginalsVisible(false)}
         />
 
         {/* Add the first selected verse to a collection (Sprint 68). */}
