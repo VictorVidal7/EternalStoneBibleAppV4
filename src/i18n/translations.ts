@@ -693,6 +693,29 @@ export const translations = {
       attribution: 'Referencias cruzadas: openbible.info (CC BY)',
     },
 
+    originals: {
+      buttonLabel: 'Idiomas originales',
+      title: 'Idiomas originales',
+      subtitle: 'Hebreo y griego, palabra por palabra',
+      hebrew: 'Hebreo',
+      greek: 'Griego',
+      notInstalledTitle: 'Paquete no instalado',
+      notInstalledBody:
+        'Descarga el paquete de idiomas originales para ver el hebreo y el griego de cada versículo, con número Strong y definición.',
+      download: 'Descargar (~30 MB)',
+      downloading: 'Descargando…',
+      importing: 'Instalando…',
+      downloadError: 'No se pudo descargar el paquete. Inténtalo de nuevo.',
+      empty: 'No hay datos originales para este versículo.',
+      lemma: 'Forma léxica',
+      definition: 'Definición',
+      occurrences: 'apariciones',
+      occurrencesOne: 'aparición',
+      viewOccurrences: 'Ver dónde más aparece',
+      openHint: 'Ver definición',
+      attribution: 'Hebreo/griego: STEPBible (CC BY) · Léxico: Strong',
+    },
+
     referenceChain: {
       title: 'Hilo de referencias',
       subtitle: 'Sigue un versículo a otro',
@@ -3882,6 +3905,29 @@ export const translations = {
       emptyBody: "We couldn't find cross-references for this verse.",
       missingText: '(text not available)',
       attribution: 'Cross-references: openbible.info (CC BY)',
+    },
+
+    originals: {
+      buttonLabel: 'Original languages',
+      title: 'Original languages',
+      subtitle: 'Hebrew & Greek, word by word',
+      hebrew: 'Hebrew',
+      greek: 'Greek',
+      notInstalledTitle: 'Pack not installed',
+      notInstalledBody:
+        'Download the original-languages pack to see the Hebrew and Greek behind every verse, with Strong’s number and definition.',
+      download: 'Download (~30 MB)',
+      downloading: 'Downloading…',
+      importing: 'Installing…',
+      downloadError: 'Could not download the pack. Please try again.',
+      empty: 'No original-language data for this verse.',
+      lemma: 'Dictionary form',
+      definition: 'Definition',
+      occurrences: 'occurrences',
+      occurrencesOne: 'occurrence',
+      viewOccurrences: 'See where else it appears',
+      openHint: 'View definition',
+      attribution: 'Hebrew/Greek: STEPBible (CC BY) · Lexicon: Strong’s',
     },
 
     referenceChain: {
