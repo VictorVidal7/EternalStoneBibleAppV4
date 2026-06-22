@@ -5,14 +5,15 @@
  * Each row renders the parallel reference + a snippet of its text;
  * tapping deep-links into the reader via `parseReference`.
  *
- * Data lives in `src/constants/cross-references.ts`. Verse text is
- * fetched lazily from the SQLite Bible DB on open (cached per session
- * in component state so reopening the sheet is instant).
+ * References come from `getMergedCrossReferences` — the curated set in
+ * `src/constants/cross-references.ts` first, then the broad bundled web
+ * (RUMBO #3). Verse text is fetched lazily from the SQLite Bible DB on
+ * open (cached per session in component state so reopening is instant).
  *
  * Para la gloria de Dios Todopoderoso ✨
  */
 
-import React, {useEffect, useMemo, useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import {
   Modal,
   View,
@@ -29,7 +30,7 @@ import {useTheme} from '@hooks/useTheme';
 import {focusTrapProps, a11yHiddenProps} from '@lib/a11y/focusTrap';
 import {useLanguage} from '@hooks/useLanguage';
 import {staticColors} from '@/styles/designTokens';
-import {getCrossReferences} from '@/constants/cross-references';
+import {getMergedCrossReferences} from '@/features/study/crossReferences';
 import {parseReference} from '@lib/references/parseReference';
 import bibleDB from '@lib/database';
 import {
@@ -71,22 +72,24 @@ export const CrossReferencesSheet: React.FC<Props> = ({
   const {colors} = useTheme();
   const {t, language} = useLanguage();
 
-  const refs = useMemo(() => {
-    if (sourceVerse == null) return [];
-    return getCrossReferences(sourceBook, sourceChapter, sourceVerse);
-  }, [sourceBook, sourceChapter, sourceVerse]);
-
   const [rows, setRows] = useState<RefRow[]>([]);
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
-    if (!visible || refs.length === 0) {
+    if (!visible || sourceVerse == null) {
       setRows([]);
       return;
     }
     setLoading(true);
     (async () => {
+      // Curated parallels first, then the broad bundled web (RUMBO #3).
+      const refs = await getMergedCrossReferences(
+        sourceBook,
+        sourceChapter,
+        sourceVerse,
+      );
+      if (cancelled) return;
       const resolved: RefRow[] = await Promise.all(
         refs.map(async raw => {
           // raw is "EnglishBook/Chapter/Verse" — feed it to parseReference
@@ -140,7 +143,7 @@ export const CrossReferencesSheet: React.FC<Props> = ({
     return () => {
       cancelled = true;
     };
-  }, [visible, refs, language, version]);
+  }, [visible, sourceBook, sourceChapter, sourceVerse, language, version]);
 
   const handleJump = (row: RefRow) => {
     if (row.bookId == null) return;
@@ -234,7 +237,11 @@ export const CrossReferencesSheet: React.FC<Props> = ({
             </TouchableOpacity>
           </View>
 
-          {refs.length === 0 ? (
+          {loading ? (
+            <View style={styles.loading}>
+              <ActivityIndicator color={colors.primary} />
+            </View>
+          ) : rows.length === 0 ? (
             <View style={styles.empty}>
               <Ionicons
                 name="link-outline"
@@ -247,10 +254,6 @@ export const CrossReferencesSheet: React.FC<Props> = ({
               <Text style={[styles.emptyBody, {color: colors.textSecondary}]}>
                 {t.crossRefs.emptyBody}
               </Text>
-            </View>
-          ) : loading ? (
-            <View style={styles.loading}>
-              <ActivityIndicator color={colors.primary} />
             </View>
           ) : (
             <ScrollView
@@ -302,7 +305,7 @@ export const CrossReferencesSheet: React.FC<Props> = ({
             </ScrollView>
           )}
 
-          {refs.length > 0 && (
+          {rows.length > 0 && (
             <TouchableOpacity
               style={[styles.studyButton, {borderColor: colors.primary}]}
               onPress={handleOpenStudy}
@@ -321,7 +324,7 @@ export const CrossReferencesSheet: React.FC<Props> = ({
             </TouchableOpacity>
           )}
 
-          {refs.length > 0 && (
+          {rows.length > 0 && (
             <TouchableOpacity
               style={[styles.chainButton, {borderColor: colors.primary}]}
               onPress={handleOpenChain}
@@ -361,6 +364,12 @@ export const CrossReferencesSheet: React.FC<Props> = ({
               color={colors.textSecondary}
             />
           </TouchableOpacity>
+
+          {rows.length > 0 && (
+            <Text style={[styles.attribution, {color: colors.textTertiary}]}>
+              {t.crossRefs.attribution}
+            </Text>
+          )}
         </View>
       </View>
     </Modal>
@@ -406,6 +415,12 @@ const styles = StyleSheet.create({
   themesButtonText: {
     fontSize: fontSizes.md,
     fontWeight: '600',
+  },
+  attribution: {
+    fontSize: fontSizes.xs,
+    textAlign: 'center',
+    marginTop: spacing.md,
+    paddingHorizontal: spacing.lg,
   },
   backdrop: {
     flex: 1,

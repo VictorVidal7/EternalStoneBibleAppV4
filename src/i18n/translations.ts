@@ -687,10 +687,10 @@ export const translations = {
     crossRefs: {
       buttonLabel: 'Paralelos',
       title: 'Pasajes paralelos',
-      emptyTitle: 'Sin paralelos curados',
-      emptyBody:
-        'Aún no tenemos referencias cruzadas para este versículo. Por ahora cubrimos los pasajes más estudiados.',
+      emptyTitle: 'Sin paralelos',
+      emptyBody: 'No encontramos referencias cruzadas para este versículo.',
       missingText: '(texto no disponible)',
+      attribution: 'Referencias cruzadas: openbible.info (CC BY)',
     },
 
     referenceChain: {
@@ -730,8 +730,8 @@ export const translations = {
       referencedByTitle: 'Referenciado por',
       referencedByHint: 'Versículos que apuntan a este',
       connections: 'Conexiones',
-      empty: 'Sin conexiones curadas',
-      emptyHint: 'Aún no tenemos referencias cruzadas para este versículo.',
+      empty: 'Sin conexiones',
+      emptyHint: 'No encontramos referencias cruzadas para este versículo.',
       missingText: '(texto no disponible)',
       openHint: 'Abrir pasaje',
       error: 'No se pudo cargar el estudio',
@@ -3878,10 +3878,10 @@ export const translations = {
     crossRefs: {
       buttonLabel: 'Parallels',
       title: 'Parallel passages',
-      emptyTitle: 'No curated parallels',
-      emptyBody:
-        "We don't have cross-references for this verse yet — for now we cover the most-studied passages.",
+      emptyTitle: 'No parallels',
+      emptyBody: "We couldn't find cross-references for this verse.",
       missingText: '(text not available)',
+      attribution: 'Cross-references: openbible.info (CC BY)',
     },
 
     referenceChain: {
@@ -3921,8 +3921,8 @@ export const translations = {
       referencedByTitle: 'Referenced by',
       referencedByHint: 'Verses that point to this one',
       connections: 'Connections',
-      empty: 'No curated connections',
-      emptyHint: "We don't have cross-references for this verse yet.",
+      empty: 'No connections',
+      emptyHint: "We couldn't find cross-references for this verse.",
       missingText: '(text not available)',
       openHint: 'Open passage',
       error: 'Could not load study',

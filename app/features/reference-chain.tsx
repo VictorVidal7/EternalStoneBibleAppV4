@@ -4,8 +4,9 @@
  * Seeded with a verse, it shows that verse, a breadcrumb of the thread so far,
  * and the verse's cross-references as the next steps. Tapping a reference
  * advances the thread (pure {@link advanceChain}); tapping a breadcrumb retraces
- * to it. The cross-reference graph + verse text reuse the SAME `getCrossReferences`
- * + `bibleDB` the CrossReferencesSheet uses — this only adds the journey on top.
+ * to it. The cross-reference graph + verse text reuse the SAME
+ * `getMergedCrossReferences` (curated + broad web, RUMBO #3) + `bibleDB` the
+ * CrossReferencesSheet uses — this only adds the journey on top.
  *
  * Para la gloria de Dios Todopoderoso ✨
  */
@@ -29,7 +30,7 @@ import {centeredMaxWidth} from '@/styles/responsive';
 import {useLanguage} from '@hooks/useLanguage';
 import {useBibleVersion} from '@hooks/useBibleVersion';
 import {getBookByName} from '@/constants/bible';
-import {getCrossReferences} from '@/constants/cross-references';
+import {getMergedCrossReferences} from '@/features/study/crossReferences';
 import {parseReference} from '@lib/references/parseReference';
 import bibleDB from '@lib/database';
 import {
@@ -129,7 +130,8 @@ export default function ReferenceChainScreen() {
           )?.text ?? null)
         : null;
 
-      const raws = getCrossReferences(
+      // Curated parallels first, then the broad bundled web (RUMBO #3).
+      const raws = await getMergedCrossReferences(
         current.book,
         current.chapter,
         current.verse,
