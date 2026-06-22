@@ -23,21 +23,26 @@ import {
   StyleSheet,
   ActivityIndicator,
 } from 'react-native';
+import {useRouter} from 'expo-router';
 import {Ionicons} from '@expo/vector-icons';
 import {haptics} from '@lib/haptics';
 import {useTheme} from '@hooks/useTheme';
 import {focusTrapProps, a11yHiddenProps} from '@lib/a11y/focusTrap';
 import {useLanguage} from '@hooks/useLanguage';
+import {getBookById} from '@/constants/bible';
 import {staticColors} from '@/styles/designTokens';
 import {
   getVerseOriginal,
   getStrongsDetail,
+  getStrongsConcordance,
   isOriginalsInstalled,
   pickGloss,
   hasLexicon,
   strongsLabel,
+  occurrenceRef,
   type OriginalWord,
   type StrongsEntry,
+  type StrongsOccurrence,
 } from '@/features/study/originals';
 import {
   downloadAndImportOriginals,
@@ -66,6 +71,7 @@ export const OriginalLanguagesSheet: React.FC<Props> = ({
   sourceVerse,
   onClose,
 }) => {
+  const router = useRouter();
   const {colors} = useTheme();
   const {t, language} = useLanguage();
   const o = t.originals;
@@ -74,6 +80,10 @@ export const OriginalLanguagesSheet: React.FC<Props> = ({
   const [words, setWords] = useState<OriginalWord[]>([]);
   const [expanded, setExpanded] = useState<number | null>(null);
   const [lex, setLex] = useState<StrongsEntry | null>(null);
+  const [concordance, setConcordance] = useState<{
+    count: number;
+    occurrences: StrongsOccurrence[];
+  } | null>(null);
   const [downloading, setDownloading] = useState(false);
   const [progress, setProgress] = useState(0);
 
@@ -124,15 +134,34 @@ export const OriginalLanguagesSheet: React.FC<Props> = ({
       if (expanded === word.position) {
         setExpanded(null);
         setLex(null);
+        setConcordance(null);
         return;
       }
       setExpanded(word.position);
       setLex(null);
+      setConcordance(null);
       if (hasLexicon(word.strongs)) {
         setLex(await getStrongsDetail(word.strongs));
       }
     },
     [expanded],
+  );
+
+  const handleShowConcordance = useCallback(async (strongs: string) => {
+    haptics.tap();
+    setConcordance(await getStrongsConcordance(strongs));
+  }, []);
+
+  const handleJumpToOccurrence = useCallback(
+    (occ: StrongsOccurrence) => {
+      const book = getBookById(occ.book_id);
+      if (!book) return;
+      haptics.tap();
+      onClose();
+      const name = language === 'en' ? book.nameEn : book.name;
+      router.push(`/verse/${name}/${occ.chapter}?verse=${occ.verse}` as never);
+    },
+    [onClose, router, language],
   );
 
   const sourceLabel =
@@ -207,6 +236,53 @@ export const OriginalLanguagesSheet: React.FC<Props> = ({
               <Text style={[styles.lexDef, {color: colors.textSecondary}]}>
                 {lex.definition}
               </Text>
+            ) : null}
+
+            {word.strongs && !concordance ? (
+              <TouchableOpacity
+                style={styles.concordanceLink}
+                onPress={() => handleShowConcordance(word.strongs as string)}
+                accessibilityRole="button"
+                accessibilityLabel={o.viewOccurrences}>
+                <Ionicons name="search" size={14} color={colors.primary} />
+                <Text
+                  style={[styles.concordanceLinkText, {color: colors.primary}]}>
+                  {o.viewOccurrences}
+                </Text>
+              </TouchableOpacity>
+            ) : null}
+
+            {concordance ? (
+              <View style={styles.concordance}>
+                <Text
+                  style={[
+                    styles.concordanceCount,
+                    {color: colors.textTertiary},
+                  ]}>
+                  {`${concordance.count} ${
+                    concordance.count === 1 ? o.occurrencesOne : o.occurrences
+                  }`}
+                </Text>
+                {concordance.occurrences.map((occ, i) => (
+                  <TouchableOpacity
+                    key={`${occ.book_id}-${occ.chapter}-${occ.verse}-${i}`}
+                    style={[styles.occRow, {borderTopColor: colors.border}]}
+                    onPress={() => handleJumpToOccurrence(occ)}
+                    accessibilityRole="button"
+                    accessibilityLabel={occurrenceRef(occ, language)}>
+                    <Text
+                      style={[styles.occRef, {color: colors.primary}]}
+                      numberOfLines={1}>
+                      {occurrenceRef(occ, language)}
+                    </Text>
+                    <Text
+                      style={[styles.occWord, {color: colors.textSecondary}]}
+                      numberOfLines={1}>
+                      {occ.word}
+                    </Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
             ) : null}
           </View>
         ) : null}
@@ -433,6 +509,31 @@ const styles = StyleSheet.create({
   },
   lexLemma: {fontSize: fontSizes.md, fontWeight: '700'},
   lexDef: {fontSize: fontSizes.sm, lineHeight: 20},
+  concordanceLink: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    marginTop: spacing.xs,
+  },
+  concordanceLinkText: {fontSize: fontSizes.sm, fontWeight: '700'},
+  concordance: {marginTop: spacing.xs},
+  concordanceCount: {
+    fontSize: fontSizes.xs,
+    fontWeight: '700',
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+    marginBottom: spacing.xs,
+  },
+  occRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingVertical: spacing.xs,
+    borderTopWidth: StyleSheet.hairlineWidth,
+    gap: spacing.sm,
+  },
+  occRef: {fontSize: fontSizes.sm, fontWeight: '700'},
+  occWord: {fontSize: fontSizes.sm, flexShrink: 1, textAlign: 'right'},
   attribution: {
     fontSize: fontSizes.xs,
     textAlign: 'center',
