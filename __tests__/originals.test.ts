@@ -1,11 +1,28 @@
 import {
   pickGloss,
+  glossLanguage,
   hasLexicon,
   strongsLabel,
   occurrenceRef,
 } from '../src/features/study/originals';
 
 describe('originals — pure helpers', () => {
+  describe('glossLanguage', () => {
+    it('is Spanish whenever the UI is Spanish', () => {
+      expect(glossLanguage('es', 'KJV')).toBe('es');
+      expect(glossLanguage('es', undefined)).toBe('es');
+    });
+    it('follows a Spanish version even with an English UI', () => {
+      expect(glossLanguage('en', 'RVR1960')).toBe('es');
+    });
+    it('is English for an English UI + English/unknown version', () => {
+      expect(glossLanguage('en', 'KJV')).toBe('en');
+      expect(glossLanguage('en', 'WEB')).toBe('en');
+      expect(glossLanguage('en', undefined)).toBe('en');
+      expect(glossLanguage('en', 'NOPE')).toBe('en');
+    });
+  });
+
   describe('pickGloss', () => {
     it('prefers the Spanish gloss for a Spanish UI', () => {
       expect(pickGloss({gloss_es: 'amó', gloss_en: 'to love'}, 'es')).toBe(

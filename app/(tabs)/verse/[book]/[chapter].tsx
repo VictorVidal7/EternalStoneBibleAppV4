@@ -2879,6 +2879,7 @@ export default function VerseReadingScreen() {
           sourceBook={localizedBookName}
           sourceChapter={chapterNum}
           sourceVerse={originalsVerse}
+          version={selectedVersion.id}
           onClose={() => setOriginalsVisible(false)}
         />
 

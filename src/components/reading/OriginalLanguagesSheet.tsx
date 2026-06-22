@@ -37,6 +37,7 @@ import {
   getStrongsConcordance,
   isOriginalsInstalled,
   pickGloss,
+  glossLanguage,
   hasLexicon,
   strongsLabel,
   occurrenceRef,
@@ -59,6 +60,8 @@ interface Props {
   sourceBook: string;
   sourceChapter: number;
   sourceVerse: number | null;
+  /** Reading version id — glosses follow its language (e.g. RVR1960 → Spanish). */
+  version?: string;
   onClose: () => void;
 }
 
@@ -69,12 +72,16 @@ export const OriginalLanguagesSheet: React.FC<Props> = ({
   sourceBook,
   sourceChapter,
   sourceVerse,
+  version,
   onClose,
 }) => {
   const router = useRouter();
   const {colors} = useTheme();
   const {t, language} = useLanguage();
   const o = t.originals;
+  // Gloss in the language of what's being read (RVR1960 → Spanish), not just
+  // the UI language; sheet chrome + references stay in the UI language.
+  const glossLang = glossLanguage(language, version);
 
   const [status, setStatus] = useState<Status>('loading');
   const [words, setWords] = useState<OriginalWord[]>([]);
@@ -170,7 +177,7 @@ export const OriginalLanguagesSheet: React.FC<Props> = ({
       : `${sourceBook} ${sourceChapter}`;
 
   const renderWord = (word: OriginalWord) => {
-    const gloss = pickGloss(word, language);
+    const gloss = pickGloss(word, glossLang);
     const isOpen = expanded === word.position;
     return (
       <View key={word.position}>
