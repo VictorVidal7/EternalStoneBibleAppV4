@@ -17,7 +17,7 @@ import bibleDB, {
   type StrongsEntry,
   type StrongsOccurrence,
 } from '@lib/database';
-import {getBookByName, getBookById} from '@/constants/bible';
+import {getBookByName, getBookById, BIBLE_VERSIONS} from '@/constants/bible';
 
 export type {OriginalWord, StrongsEntry, StrongsOccurrence};
 
@@ -25,9 +25,28 @@ export type {OriginalWord, StrongsEntry, StrongsOccurrence};
 export type Lang = 'es' | 'en';
 
 /**
- * The best gloss for the UI language: Spanish prefers the Spanish gloss and
- * falls back to English (Hebrew rows carry English only); English prefers the
- * English gloss. Empty/whitespace glosses are treated as absent.
+ * Which language to gloss the original words in: Spanish whenever the user is in
+ * a Spanish CONTEXT — either the app UI is Spanish OR they're reading a Spanish
+ * version (e.g. RVR1960) — else English. So a Spanish reader sees Spanish
+ * glosses for the Greek NT even with an English UI; the Hebrew OT source only
+ * carries English glosses, so those fall back to English regardless.
+ */
+export function glossLanguage(
+  uiLanguage: Lang,
+  versionId?: string | null,
+): Lang {
+  if (uiLanguage === 'es') return 'es';
+  const version = versionId
+    ? BIBLE_VERSIONS.find(v => v.id === versionId)
+    : undefined;
+  return version?.language === 'es' ? 'es' : 'en';
+}
+
+/**
+ * The best gloss for the preferred language (see {@link glossLanguage}):
+ * Spanish prefers the Spanish gloss and falls back to English (Hebrew rows
+ * carry English only); English prefers the English gloss. Empty/whitespace
+ * glosses are treated as absent.
  */
 export function pickGloss(
   word: Pick<OriginalWord, 'gloss_es' | 'gloss_en'>,
