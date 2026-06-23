@@ -50,6 +50,8 @@ export interface StrongsEntry {
   lemma: string | null;
   translit: string | null;
   definition: string | null;
+  /** Faithful Spanish translation of the definition, when available (else null). */
+  definition_es: string | null;
   kjv_def: string | null;
 }
 
@@ -73,6 +75,16 @@ const ORIGINALS_SCHEMA = 'orig';
 /** Schema name the bundled cross-reference asset is attached under at import. */
 const XREF_SCHEMA = 'xref';
 
+/** Schema name the bundled Strong's-definitions overlay is attached under. */
+const SDEFS_SCHEMA = 'sdefs';
+
+/**
+ * Version of the bundled Strong's-definitions overlay (fixed English + Spanish).
+ * Bump this when shipping a new translation batch so the app re-imports the
+ * grown asset on the next launch.
+ */
+const SDEFS_VERSION = 1;
+
 /** Max incoming ("referenced by") rows surfaced for a verse, by votes. */
 const XREF_INCOMING_LIMIT = 25;
 
@@ -82,6 +94,11 @@ const XREF_IMPORT_SQL =
   `(from_book, from_chapter, from_verse, to_book, to_chapter, to_verse, to_verse_end, votes) ` +
   `SELECT from_book, from_chapter, from_verse, to_book, to_chapter, to_verse, to_verse_end, votes ` +
   `FROM ${XREF_SCHEMA}.cross_references`;
+
+/** Bulk import statement for the bundled Strong's-definitions overlay. */
+const SDEFS_IMPORT_SQL =
+  `INSERT INTO strongs_defs (strongs, definition_en, definition_es) ` +
+  `SELECT strongs, definition_en, definition_es FROM ${SDEFS_SCHEMA}.strongs_defs`;
 
 /**
  * Copy the bundled pre-seeded bible.db into expo-sqlite's storage
@@ -137,6 +154,8 @@ class BibleDatabase {
   private static readonly CROSS_REFS_LOADED_KEY = '@cross_refs_loaded_v1';
   // Flag marking the downloaded original-languages pack as imported.
   private static readonly ORIGINALS_LOADED_KEY = '@originals_loaded_v1';
+  // Imported VERSION of the bundled Strong's-definitions overlay (re-import on bump).
+  private static readonly SDEFS_LOADED_KEY = '@strongs_defs_loaded_version';
 
   async initialize(): Promise<void> {
     // Si ya está inicializado, retornar inmediatamente
@@ -330,6 +349,18 @@ class BibleDatabase {
         )
       `);
 
+      // Bundled Strong's-definitions overlay: the COMPLETE English definition
+      // (fixes the openscriptures derivation/strongs_def split) + our faithful
+      // Spanish translation. Populated from the bundled `strongs-defs.db` asset
+      // (see seedStrongsDefsIfNeeded); overlays strongs_lexicon at read time.
+      await this.db.runAsync(`
+        CREATE TABLE IF NOT EXISTS strongs_defs (
+          strongs TEXT PRIMARY KEY,
+          definition_en TEXT,
+          definition_es TEXT
+        )
+      `);
+
       await this.migrateBookmarksToFavorites();
 
       // Índices
@@ -383,6 +414,7 @@ class BibleDatabase {
       // (fresh installs AND existing ones — the seed copy never carried it).
       // Graceful: a failure just leaves the curated layer doing the work.
       await this.seedCrossReferencesIfMissing();
+      await this.seedStrongsDefsIfNeeded();
 
       this.initialized = true;
       console.log('✅ Database initialized successfully');
@@ -452,6 +484,50 @@ class BibleDatabase {
         '⚠️ Cross-reference seed failed (curated layer still active)',
         error,
       );
+    }
+  }
+
+  /**
+   * Load the bundled Strong's-definitions overlay (complete English + faithful
+   * Spanish) into `strongs_defs`. Versioned: re-imports whenever SDEFS_VERSION
+   * is bumped (a new translation batch shipped). Graceful — a failure just
+   * leaves the originals pack's own (English) definitions doing the work.
+   */
+  private async seedStrongsDefsIfNeeded(): Promise<void> {
+    const db = this.getDb();
+    try {
+      const loaded = await AsyncStorage.getItem(BibleDatabase.SDEFS_LOADED_KEY);
+      if (loaded === String(SDEFS_VERSION)) return;
+
+      const asset = Asset.fromModule(
+        require('../../../assets/strongs-defs.db'),
+      );
+      await asset.downloadAsync();
+      const sourceUri = asset.localUri ?? asset.uri;
+      if (!sourceUri) return;
+      const attachPath = normalizePackPath(sourceUri);
+
+      try {
+        await db.execAsync(`DETACH DATABASE ${SDEFS_SCHEMA}`);
+      } catch {
+        // Not attached — nothing to detach.
+      }
+      await db.runAsync(`ATTACH DATABASE ? AS ${SDEFS_SCHEMA}`, [attachPath]);
+      try {
+        await db.withTransactionAsync(async () => {
+          await db.runAsync('DELETE FROM strongs_defs');
+          await db.runAsync(SDEFS_IMPORT_SQL);
+        });
+      } finally {
+        await db.execAsync(`DETACH DATABASE ${SDEFS_SCHEMA}`);
+      }
+      await AsyncStorage.setItem(
+        BibleDatabase.SDEFS_LOADED_KEY,
+        String(SDEFS_VERSION),
+      );
+      console.log('📖 Strong’s definitions overlay imported from bundle');
+    } catch (error) {
+      console.warn('⚠️ Strong’s definitions seed failed', error);
     }
   }
 
@@ -576,12 +652,20 @@ class BibleDatabase {
     );
   }
 
-  /** A Strong's lexicon entry, or null when not found / not installed. */
+  /** A Strong's lexicon entry, or null when not found / not installed. The
+   *  bundled overlay (strongs_defs) supplies the COMPLETE English definition
+   *  (fixing the pack's truncation) and the faithful Spanish translation. */
   async getStrongsEntry(strongs: string): Promise<StrongsEntry | null> {
     await this.initialize();
     const row = await this.getDb().getFirstAsync<StrongsEntry>(
-      `SELECT strongs, lang, lemma, translit, definition, kjv_def
-       FROM strongs_lexicon WHERE strongs = ?`,
+      `SELECT l.strongs AS strongs, l.lang AS lang, l.lemma AS lemma,
+              l.translit AS translit,
+              COALESCE(d.definition_en, l.definition) AS definition,
+              d.definition_es AS definition_es,
+              l.kjv_def AS kjv_def
+       FROM strongs_lexicon l
+       LEFT JOIN strongs_defs d ON d.strongs = l.strongs
+       WHERE l.strongs = ?`,
       [strongs.trim()],
     );
     return row ?? null;
