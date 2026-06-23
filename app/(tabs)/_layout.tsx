@@ -219,6 +219,14 @@ export default function TabLayout() {
       />
 
       <Tabs.Screen
+        name="features/word-study"
+        options={{
+          href: null,
+          headerShown: false,
+        }}
+      />
+
+      <Tabs.Screen
         name="plan/[id]"
         options={{
           href: null,

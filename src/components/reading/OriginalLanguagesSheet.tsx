@@ -7,8 +7,8 @@
  *
  * Data comes from the optional originals pack (a ~30 MB download); when it isn't
  * installed the sheet offers to download it (or imports an already-downloaded
- * file). All reads go through `@/features/study/originals`. Concordance ("where
- * else it appears") is layered on next.
+ * file). All reads go through `@/features/study/originals`. "Word study" opens
+ * the dedicated visual-concordance screen for the tapped word's Strong's number.
  *
  * Para la gloria de Dios Todopoderoso ✨
  */
@@ -29,23 +29,18 @@ import {haptics} from '@lib/haptics';
 import {useTheme} from '@hooks/useTheme';
 import {focusTrapProps, a11yHiddenProps} from '@lib/a11y/focusTrap';
 import {useLanguage} from '@hooks/useLanguage';
-import {getBookById} from '@/constants/bible';
 import {staticColors} from '@/styles/designTokens';
 import {
   getVerseOriginal,
   getStrongsDetail,
-  getStrongsConcordance,
   isOriginalsInstalled,
   pickGloss,
   glossLanguage,
   hasLexicon,
   strongsLabel,
-  occurrenceRef,
   type OriginalWord,
   type StrongsEntry,
-  type StrongsOccurrence,
 } from '@/features/study/originals';
-import {christLangForVersion} from '@/features/study/christConnections';
 import {
   downloadAndImportOriginals,
   importLocalOriginalsIfPresent,
@@ -83,18 +78,11 @@ export const OriginalLanguagesSheet: React.FC<Props> = ({
   // Gloss in the language of what's being read (RVR1960 → Spanish), not just
   // the UI language; the sheet chrome stays in the UI language.
   const glossLang = glossLanguage(language, version);
-  // Verse references (the source verse + concordance occurrences) follow the
-  // reading version's language (RVR1960 → "Juan"), like the rest of the app.
-  const bookNameLang = christLangForVersion(version);
 
   const [status, setStatus] = useState<Status>('loading');
   const [words, setWords] = useState<OriginalWord[]>([]);
   const [expanded, setExpanded] = useState<number | null>(null);
   const [lex, setLex] = useState<StrongsEntry | null>(null);
-  const [concordance, setConcordance] = useState<{
-    count: number;
-    occurrences: StrongsOccurrence[];
-  } | null>(null);
   const [downloading, setDownloading] = useState(false);
   const [progress, setProgress] = useState(0);
 
@@ -145,12 +133,10 @@ export const OriginalLanguagesSheet: React.FC<Props> = ({
       if (expanded === word.position) {
         setExpanded(null);
         setLex(null);
-        setConcordance(null);
         return;
       }
       setExpanded(word.position);
       setLex(null);
-      setConcordance(null);
       if (hasLexicon(word.strongs)) {
         setLex(await getStrongsDetail(word.strongs));
       }
@@ -158,21 +144,23 @@ export const OriginalLanguagesSheet: React.FC<Props> = ({
     [expanded],
   );
 
-  const handleShowConcordance = useCallback(async (strongs: string) => {
-    haptics.tap();
-    setConcordance(await getStrongsConcordance(strongs));
-  }, []);
-
-  const handleJumpToOccurrence = useCallback(
-    (occ: StrongsOccurrence) => {
-      const book = getBookById(occ.book_id);
-      if (!book) return;
+  // Open the dedicated word-study (visual concordance) for this word's Strong's
+  // number, seeded with the gloss in the reading language for an instant header.
+  const handleOpenWordStudy = useCallback(
+    (word: OriginalWord) => {
+      if (!hasLexicon(word.strongs)) return;
       haptics.tap();
       onClose();
-      const name = bookNameLang === 'en' ? book.nameEn : book.name;
-      router.push(`/verse/${name}/${occ.chapter}?verse=${occ.verse}` as never);
+      router.push({
+        pathname: '/features/word-study' as never,
+        params: {
+          strongs: word.strongs,
+          version: version ?? '',
+          gloss: pickGloss(word, glossLang) ?? '',
+        },
+      } as never);
     },
-    [onClose, router, bookNameLang],
+    [onClose, router, version, glossLang],
   );
 
   const sourceLabel =
@@ -249,51 +237,25 @@ export const OriginalLanguagesSheet: React.FC<Props> = ({
               </Text>
             ) : null}
 
-            {word.strongs && !concordance ? (
+            {word.strongs ? (
               <TouchableOpacity
-                style={styles.concordanceLink}
-                onPress={() => handleShowConcordance(word.strongs as string)}
+                style={[
+                  styles.wordStudyButton,
+                  {backgroundColor: colors.primary + '14'},
+                ]}
+                onPress={() => handleOpenWordStudy(word)}
                 accessibilityRole="button"
-                accessibilityLabel={o.viewOccurrences}>
-                <Ionicons name="search" size={14} color={colors.primary} />
-                <Text
-                  style={[styles.concordanceLinkText, {color: colors.primary}]}>
-                  {o.viewOccurrences}
+                accessibilityLabel={o.openWordStudy}>
+                <Ionicons name="search" size={16} color={colors.primary} />
+                <Text style={[styles.wordStudyText, {color: colors.primary}]}>
+                  {o.openWordStudy}
                 </Text>
+                <Ionicons
+                  name="chevron-forward"
+                  size={16}
+                  color={colors.primary}
+                />
               </TouchableOpacity>
-            ) : null}
-
-            {concordance ? (
-              <View style={styles.concordance}>
-                <Text
-                  style={[
-                    styles.concordanceCount,
-                    {color: colors.textTertiary},
-                  ]}>
-                  {`${concordance.count} ${
-                    concordance.count === 1 ? o.occurrencesOne : o.occurrences
-                  }`}
-                </Text>
-                {concordance.occurrences.map((occ, i) => (
-                  <TouchableOpacity
-                    key={`${occ.book_id}-${occ.chapter}-${occ.verse}-${i}`}
-                    style={[styles.occRow, {borderTopColor: colors.border}]}
-                    onPress={() => handleJumpToOccurrence(occ)}
-                    accessibilityRole="button"
-                    accessibilityLabel={occurrenceRef(occ, bookNameLang)}>
-                    <Text
-                      style={[styles.occRef, {color: colors.primary}]}
-                      numberOfLines={1}>
-                      {occurrenceRef(occ, bookNameLang)}
-                    </Text>
-                    <Text
-                      style={[styles.occWord, {color: colors.textSecondary}]}
-                      numberOfLines={1}>
-                      {occ.word}
-                    </Text>
-                  </TouchableOpacity>
-                ))}
-              </View>
             ) : null}
           </View>
         ) : null}
@@ -520,31 +482,16 @@ const styles = StyleSheet.create({
   },
   lexLemma: {fontSize: fontSizes.md, fontWeight: '700'},
   lexDef: {fontSize: fontSizes.sm, lineHeight: 20},
-  concordanceLink: {
+  wordStudyButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 6,
+    gap: spacing.xs,
     marginTop: spacing.xs,
+    paddingVertical: spacing.sm,
+    paddingHorizontal: spacing.md,
+    borderRadius: borderRadius.md,
   },
-  concordanceLinkText: {fontSize: fontSizes.sm, fontWeight: '700'},
-  concordance: {marginTop: spacing.xs},
-  concordanceCount: {
-    fontSize: fontSizes.xs,
-    fontWeight: '700',
-    textTransform: 'uppercase',
-    letterSpacing: 0.5,
-    marginBottom: spacing.xs,
-  },
-  occRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingVertical: spacing.xs,
-    borderTopWidth: StyleSheet.hairlineWidth,
-    gap: spacing.sm,
-  },
-  occRef: {fontSize: fontSizes.sm, fontWeight: '700'},
-  occWord: {fontSize: fontSizes.sm, flexShrink: 1, textAlign: 'right'},
+  wordStudyText: {fontSize: fontSizes.sm, fontWeight: '700', flex: 1},
   attribution: {
     fontSize: fontSizes.xs,
     textAlign: 'center',
