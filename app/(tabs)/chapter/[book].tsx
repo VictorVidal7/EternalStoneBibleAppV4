@@ -23,6 +23,7 @@ import {haptics} from '@lib/haptics';
 import {getBookByName} from '@/constants/bible';
 import {useTheme} from '@hooks/useTheme';
 import {useLanguage} from '@hooks/useLanguage';
+import {useBibleVersion} from '@hooks/useBibleVersion';
 import {PremiumSkeleton} from '@components/PremiumSkeleton';
 import {PressableScale} from '@components/ui/PressableScale';
 import {useReadingProgress} from '@context/ReadingProgressContext';
@@ -59,7 +60,12 @@ interface ChapterItem {
 export default function ChapterSelectionScreen() {
   const router = useRouter();
   const {colors, isDark, gradient} = useTheme();
-  const {t, language} = useLanguage();
+  const {t} = useLanguage();
+  const {selectedVersion} = useBibleVersion();
+  // Book name follows the READING version's language (RVR1960 -> "Juan"), so the
+  // grid matches the version and the reader, not the UI language.
+  const bookNameLang: 'es' | 'en' =
+    selectedVersion.language === 'es' ? 'es' : 'en';
   const params = useLocalSearchParams<{book: string}>();
   const {getChapterProgress} = useReadingProgress();
   const [isLoading, setIsLoading] = useState(true);
@@ -186,7 +192,7 @@ export default function ChapterSelectionScreen() {
       // Localized name for the accessibility label (the progress lookup above
       // stays keyed on the canonical name).
       const localizedBookName =
-        (language === 'en' ? bookInfo?.nameEn : bookInfo?.name) || '';
+        (bookNameLang === 'en' ? bookInfo?.nameEn : bookInfo?.name) || '';
 
       return (
         <ChapterCard
@@ -208,7 +214,7 @@ export default function ChapterSelectionScreen() {
       bookInfo,
       t,
       getChapterProgress,
-      language,
+      bookNameLang,
     ],
   );
 
@@ -342,7 +348,7 @@ export default function ChapterSelectionScreen() {
                   {t.bible.selectChapter}
                 </Text>
                 <Text style={styles.headerTitle} numberOfLines={1}>
-                  {language === 'en' ? bookInfo.nameEn : bookInfo.name}
+                  {bookNameLang === 'en' ? bookInfo.nameEn : bookInfo.name}
                 </Text>
                 <View style={styles.chapterCountBadge}>
                   <Ionicons
