@@ -172,10 +172,19 @@ export default function VerseReadingScreen() {
   // (Sprint 58 bug). See canonicalBookName.
   const canonicalBook = canonicalBookName(book);
   const bookTheme = getBookTheme(bookInfo?.name || '');
-  // Display name follows the UI language so it stays consistent with the
-  // Bible library (e.g. "Genesis" in English, not "Génesis").
+  // Display name follows the READING VERSION's language (RVR1960 → "Juan",
+  // WEB/KJV → "John"), not the app UI language, so the reader title, the share
+  // reference, the verse-image and the cross-reference / original-languages
+  // sheets all match the verse text on screen — completing the version-aware
+  // book names already used in Study mode / the cross-references sheet /
+  // reference-chain (user feedback). Safe for the sheets that take this as their
+  // source book: getMergedCrossReferences / getVerseOriginal resolve it via
+  // getBookByName (both languages), and favorites/highlights key off
+  // canonicalBook, not this display name.
+  const bookNameLang: 'es' | 'en' =
+    selectedVersion.language === 'es' ? 'es' : 'en';
   const localizedBookName = bookInfo
-    ? language === 'en'
+    ? bookNameLang === 'en'
       ? bookInfo.nameEn
       : bookInfo.name
     : '';
