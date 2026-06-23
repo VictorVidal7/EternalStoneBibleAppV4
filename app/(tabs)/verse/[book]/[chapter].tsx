@@ -190,6 +190,11 @@ export default function VerseReadingScreen() {
     : false;
 
   const [verses, setVerses] = useState<BibleVerse[]>([]);
+  // The version the on-screen `verses` were actually fetched with. Lags
+  // `selectedVersion.id` during a mid-listen version switch (the new text loads
+  // async), so the audio re-sync below only fires once the displayed text truly
+  // matches the freshly-selected version — never against the stale prior text.
+  const [versesVersionId, setVersesVersionId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const {preferences: readerPrefs} = useReaderPreferences();
   const fontSize = readerPrefs.fontSize;
@@ -768,6 +773,7 @@ export default function VerseReadingScreen() {
       // re-report through onLayout immediately (Sprint 81).
       verseOffsetsRef.current.clear();
       setVerses(chapterVerses);
+      setVersesVersionId(selectedVersion.id);
 
       // Update reading progress
       if (chapterVerses.length > 0) {
@@ -1008,6 +1014,7 @@ export default function VerseReadingScreen() {
         versesLength: verses.length,
         loadedVersionId,
         displayedVersionId: selectedVersion.id,
+        versesVersionId,
       })
     ) {
       return;
@@ -1039,6 +1046,7 @@ export default function VerseReadingScreen() {
     isAudioVisible,
     audioBoundToReader,
     verses,
+    versesVersionId,
     selectedVersion.id,
     audioState.contentVersionId,
     audioState.isPlaying,

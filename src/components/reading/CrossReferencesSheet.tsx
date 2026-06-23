@@ -31,6 +31,7 @@ import {focusTrapProps, a11yHiddenProps} from '@lib/a11y/focusTrap';
 import {useLanguage} from '@hooks/useLanguage';
 import {staticColors} from '@/styles/designTokens';
 import {getMergedCrossReferences} from '@/features/study/crossReferences';
+import {christLangForVersion} from '@/features/study/christConnections';
 import {parseReference} from '@lib/references/parseReference';
 import bibleDB from '@lib/database';
 import {
@@ -70,7 +71,10 @@ export const CrossReferencesSheet: React.FC<Props> = ({
 }) => {
   const router = useRouter();
   const {colors} = useTheme();
-  const {t, language} = useLanguage();
+  const {t} = useLanguage();
+  // Book names follow the READING version's language (RVR1960 → "2 Corintios"),
+  // not the app interface language, so they match the verse text beside them.
+  const bookLang = christLangForVersion(version);
 
   const [rows, setRows] = useState<RefRow[]>([]);
   const [loading, setLoading] = useState(false);
@@ -107,7 +111,7 @@ export const CrossReferencesSheet: React.FC<Props> = ({
             };
           }
           const display =
-            language === 'en' ? parsed.book.nameEn : parsed.book.name;
+            bookLang === 'en' ? parsed.book.nameEn : parsed.book.name;
           try {
             const verseRow = await bibleDB.getVerse(
               parsed.book.id,
@@ -143,7 +147,7 @@ export const CrossReferencesSheet: React.FC<Props> = ({
     return () => {
       cancelled = true;
     };
-  }, [visible, sourceBook, sourceChapter, sourceVerse, language, version]);
+  }, [visible, sourceBook, sourceChapter, sourceVerse, bookLang, version]);
 
   const handleJump = (row: RefRow) => {
     if (row.bookId == null) return;

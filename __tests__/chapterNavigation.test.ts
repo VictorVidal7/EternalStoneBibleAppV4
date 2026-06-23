@@ -384,6 +384,8 @@ describe('shouldResyncAudioToVersion (Sprint 102)', () => {
     versesLength: 31,
     loadedVersionId: 'WEB',
     displayedVersionId: 'RVR1960',
+    // The on-screen text has already reloaded in the selected version.
+    versesVersionId: 'RVR1960',
   };
 
   it('re-syncs when the engine holds a different version than the reader shows', () => {
@@ -396,8 +398,23 @@ describe('shouldResyncAudioToVersion (Sprint 102)', () => {
         ...base,
         loadedVersionId: 'RVR1960',
         displayedVersionId: 'KJV',
+        versesVersionId: 'KJV',
       }),
     ).toBe(true);
+  });
+
+  it('waits for the new text before re-syncing (Sprint 111 race)', () => {
+    // Mid-switch: the version id flipped to RVR1960 but the reader still shows
+    // the OLD WEB text (the new text loads async). Re-syncing now would load the
+    // previous text tagged as the new version, then latch out the correct
+    // re-sync — so it must hold until the on-screen text is the new version.
+    expect(shouldResyncAudioToVersion({...base, versesVersionId: 'WEB'})).toBe(
+      false,
+    );
+    // Before any text has loaded at all.
+    expect(shouldResyncAudioToVersion({...base, versesVersionId: null})).toBe(
+      false,
+    );
   });
 
   it('does nothing when the engine already holds the displayed version', () => {

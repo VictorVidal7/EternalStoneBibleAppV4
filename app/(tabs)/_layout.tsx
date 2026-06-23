@@ -19,6 +19,13 @@ export default function TabLayout() {
 
   return (
     <Tabs
+      // Back walks the tabs you actually visited (last-visited first) instead of
+      // always jumping to Home. This makes "back" return to the screen you came
+      // from across the whole app — e.g. Study mode / Search → a verse → back
+      // returns to that screen, not Home (user feedback). The verse reader and
+      // the verse-connection screens live inside this navigator (href:null), so
+      // the journey between them is tracked here.
+      backBehavior="history"
       screenOptions={{
         tabBarActiveTintColor: colors.primary,
         tabBarInactiveTintColor: colors.textTertiary,
@@ -177,6 +184,26 @@ export default function TabLayout() {
 
       <Tabs.Screen
         name="verse/[book]/[chapter]"
+        options={{
+          href: null,
+          headerShown: false,
+        }}
+      />
+
+      {/* Verse-connection screens ("Study mode" + the reference-chain thread)
+          live inside the tab navigator (hidden from the bar) so opening a
+          connected verse and pressing back returns here via
+          backBehavior="history", instead of dropping to Home. */}
+      <Tabs.Screen
+        name="features/study"
+        options={{
+          href: null,
+          headerShown: false,
+        }}
+      />
+
+      <Tabs.Screen
+        name="features/reference-chain"
         options={{
           href: null,
           headerShown: false,

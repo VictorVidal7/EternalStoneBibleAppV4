@@ -50,6 +50,58 @@ import {
   customPlanFromBundle,
 } from '@/lib/reading/customPlans';
 
+/**
+ * The central value of a − [n] + stepper, made directly editable so a big jump
+ * (e.g. chapter 50 → 3) is one tap + typing instead of ~47 taps on the steppers
+ * (user feedback). Keeps a free-text draft while focused — digits only, no
+ * clamping mid-type so multi-digit values below the minimum can still be typed —
+ * and clamps to [min, max] on blur/submit. `selectTextOnFocus` makes the first
+ * keystroke replace the current number.
+ */
+function StepperValueInput({
+  value,
+  min,
+  max,
+  onCommit,
+  textColor,
+  accessibilityLabel,
+}: {
+  value: number;
+  min: number;
+  max: number;
+  onCommit: (n: number) => void;
+  textColor: string;
+  accessibilityLabel: string;
+}) {
+  const [draft, setDraft] = useState<string | null>(null);
+  const commit = () => {
+    const n = parseInt(draft ?? '', 10);
+    if (!Number.isNaN(n)) onCommit(Math.min(max, Math.max(min, n)));
+    setDraft(null);
+  };
+  return (
+    <View style={styles.stepValue}>
+      <TextInput
+        style={[
+          styles.stepValueText,
+          styles.stepValueInput,
+          {color: textColor},
+        ]}
+        value={draft ?? String(value)}
+        onChangeText={txt => setDraft(txt.replace(/[^0-9]/g, '').slice(0, 3))}
+        onBlur={commit}
+        onSubmitEditing={commit}
+        keyboardType="number-pad"
+        returnKeyType="done"
+        selectTextOnFocus
+        textAlign="center"
+        maxLength={3}
+        accessibilityLabel={accessibilityLabel}
+      />
+    </View>
+  );
+}
+
 export default function PlanBuilderScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
@@ -333,11 +385,18 @@ export default function PlanBuilderScreen() {
                 totalDays <= 1,
                 'remove',
               )}
-          <View style={styles.stepValue}>
-            <Text style={[styles.stepValueText, {color: colors.text}]}>
-              {paceMode === 'perDay' ? perDay : totalDays}
-            </Text>
-          </View>
+          <StepperValueInput
+            value={paceMode === 'perDay' ? perDay : totalDays}
+            min={1}
+            max={paceMode === 'perDay' ? 20 : 365}
+            onCommit={n =>
+              paceMode === 'perDay' ? setPerDay(n) : setTotalDays(n)
+            }
+            textColor={colors.text}
+            accessibilityLabel={
+              paceMode === 'perDay' ? tb.pacePerDay : tb.paceTotalDays
+            }
+          />
           {paceMode === 'perDay'
             ? stepBtn('+1', () => setPerDay(v => v + 1), perDay >= 20, 'add')
             : stepBtn(
@@ -440,11 +499,17 @@ export default function PlanBuilderScreen() {
                     fromCh <= 1,
                     'remove',
                   )}
-                  <View style={styles.stepValue}>
-                    <Text style={[styles.stepValueText, {color: colors.text}]}>
-                      {fromCh}
-                    </Text>
-                  </View>
+                  <StepperValueInput
+                    value={fromCh}
+                    min={1}
+                    max={maxCh}
+                    onCommit={n => {
+                      setFromCh(n);
+                      if (n > toCh) setToCh(n);
+                    }}
+                    textColor={colors.text}
+                    accessibilityLabel={tb.fromChapter}
+                  />
                   {stepBtn(
                     '+1',
                     () =>
@@ -468,11 +533,14 @@ export default function PlanBuilderScreen() {
                     toCh <= fromCh,
                     'remove',
                   )}
-                  <View style={styles.stepValue}>
-                    <Text style={[styles.stepValueText, {color: colors.text}]}>
-                      {toCh}
-                    </Text>
-                  </View>
+                  <StepperValueInput
+                    value={toCh}
+                    min={fromCh}
+                    max={maxCh}
+                    onCommit={n => setToCh(Math.max(fromCh, n))}
+                    textColor={colors.text}
+                    accessibilityLabel={tb.toChapter}
+                  />
                   {stepBtn(
                     '+1',
                     () => setToCh(v => Math.min(maxCh, v + 1)),
@@ -589,6 +657,10 @@ const styles = StyleSheet.create({
   },
   stepValue: {flex: 1, alignItems: 'center'},
   stepValueText: {fontSize: 22, fontWeight: '800'},
+  // The editable variant strips TextInput's default padding/min-height so the
+  // number sits exactly where the static <Text> did, and reserves a little width
+  // so a 1–3 digit value stays comfortably tappable.
+  stepValueInput: {paddingVertical: 0, minWidth: 72},
   disabled: {opacity: 0.4},
   preview: {
     flexDirection: 'row',

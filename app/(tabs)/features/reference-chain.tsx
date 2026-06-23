@@ -58,9 +58,12 @@ export default function ReferenceChainScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const {colors, gradient} = useTheme();
-  const {t, language} = useLanguage();
+  const {t} = useLanguage();
   const {selectedVersion} = useBibleVersion();
   const rc = t.referenceChain;
+  // Book names follow the READING version's language (RVR1960 → "2 Corintios"),
+  // not the app interface language, so they match the verse text beside them.
+  const bookLang: 'es' | 'en' = selectedVersion.language === 'es' ? 'es' : 'en';
   const params = useLocalSearchParams<{
     book?: string;
     chapter?: string;
@@ -102,7 +105,7 @@ export default function ReferenceChainScreen() {
 
   const localize = (book: string) => {
     const info = getBookByName(book);
-    return info ? (language === 'en' ? info.nameEn : info.name) : book;
+    return info ? (bookLang === 'en' ? info.nameEn : info.name) : book;
   };
 
   // Resolve the current verse's text + its cross-references whenever the head
@@ -155,7 +158,7 @@ export default function ReferenceChainScreen() {
               chapter: parsed.chapter,
               verse: parsed.verse,
             },
-            display: language === 'en' ? parsed.book.nameEn : parsed.book.name,
+            display: bookLang === 'en' ? parsed.book.nameEn : parsed.book.name,
             text: verseRow?.text ?? null,
           } as NextRef;
         }),
@@ -168,7 +171,7 @@ export default function ReferenceChainScreen() {
     return () => {
       cancelled = true;
     };
-  }, [current ? chainStepKey(current) : null, selectedVersion.id, language]);
+  }, [current ? chainStepKey(current) : null, selectedVersion.id, bookLang]);
 
   const onFollow = (next: ChainStep) => {
     haptics.tap();
@@ -259,7 +262,12 @@ export default function ReferenceChainScreen() {
         </View>
       )}
 
-      <ScrollView contentContainerStyle={styles.body}>
+      <ScrollView
+        contentContainerStyle={[
+          styles.body,
+          // Lives inside the tab navigator now — clear the floating tab bar.
+          {paddingBottom: insets.bottom + 100},
+        ]}>
         {/* The verse the reader is currently on. */}
         <TouchableOpacity
           activeOpacity={0.9}
