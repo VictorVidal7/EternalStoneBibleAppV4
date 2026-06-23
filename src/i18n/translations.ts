@@ -724,12 +724,6 @@ export const translations = {
       start: 'Seguir el hilo',
     },
 
-    verseArt: {
-      title: 'Arte de versículo',
-      typeface: 'Tipografía',
-      create: 'Crear arte',
-    },
-
     periodRecap: {
       yearTitle: 'Tu año en la Palabra',
       quarterTitle: 'Tu trimestre en la Palabra',
@@ -3936,12 +3930,6 @@ export const translations = {
       continueLabel: 'Continue the thread',
       threadEnds: 'The thread ends here',
       start: 'Follow the thread',
-    },
-
-    verseArt: {
-      title: 'Verse art',
-      typeface: 'Typeface',
-      create: 'Create art',
     },
 
     periodRecap: {
