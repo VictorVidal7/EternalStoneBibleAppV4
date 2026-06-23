@@ -27,6 +27,7 @@ import {useSafeAreaInsets} from 'react-native-safe-area-context';
 import {AppText as Text} from '@components/ui/AppText';
 import {useTheme} from '@hooks/useTheme';
 import {useLanguage} from '@hooks/useLanguage';
+import {useBibleVersion} from '@hooks/useBibleVersion';
 import {useToast} from '@context/ToastContext';
 import {useCustomPlans} from '@context/CustomPlansContext';
 import {useReadingPlanProgress} from '@context/ReadingPlanProgressContext';
@@ -106,7 +107,11 @@ export default function PlanBuilderScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const {colors} = useTheme();
-  const {t, language} = useLanguage();
+  const {t} = useLanguage();
+  const {selectedVersion} = useBibleVersion();
+  // Book names follow the READING version's language (RVR1960 → "Juan").
+  const bookNameLang: 'es' | 'en' =
+    selectedVersion.language === 'es' ? 'es' : 'en';
   const tb = t.planBuilder;
   const toast = useToast();
   const {getCustomPlanById, saveCustomPlan, replaceCustomPlan} =
@@ -150,7 +155,7 @@ export default function PlanBuilderScreen() {
   const bookName = (id: number) => {
     const b = getBookById(id);
     if (!b) return String(id);
-    return language === 'en' ? b.nameEn : b.name;
+    return bookNameLang === 'en' ? b.nameEn : b.name;
   };
 
   const pace: PlanPace =
@@ -475,7 +480,7 @@ export default function PlanBuilderScreen() {
                     onPress={() => chooseBook(item.id)}
                     accessibilityRole="button">
                     <Text style={[styles.bookRowText, {color: colors.text}]}>
-                      {language === 'en' ? item.nameEn : item.name}
+                      {bookNameLang === 'en' ? item.nameEn : item.name}
                     </Text>
                     <Text
                       style={[

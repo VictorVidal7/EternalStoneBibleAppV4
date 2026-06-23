@@ -25,6 +25,7 @@ import {haptics} from '@lib/haptics';
 import {useTheme} from '@hooks/useTheme';
 import {centeredMaxWidth} from '@/styles/responsive';
 import {useLanguage} from '@hooks/useLanguage';
+import {useBibleVersion} from '@hooks/useBibleVersion';
 import {useMemoryDeck} from '@context/MemoryDeckContext';
 import {getBookByName} from '@/constants/bible';
 import {applyMask, MASK_LEVEL_PERCENT, maskLevelForBox} from '@lib/memory/srs';
@@ -48,7 +49,8 @@ export default function MemoryPracticeScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const {colors, gradient} = useTheme();
-  const {t, language} = useLanguage();
+  const {t} = useLanguage();
+  const {selectedVersion} = useBibleVersion();
   const {dueCards, reviewCard} = useMemoryDeck();
 
   // Freeze the queue on mount so a grade-driven reshuffle doesn't add
@@ -74,8 +76,8 @@ export default function MemoryPracticeScreen() {
     if (!card) return '';
     const info = getBookByName(card.bookName);
     if (!info) return card.bookName;
-    return language === 'en' ? info.nameEn : info.name;
-  }, [card, language]);
+    return selectedVersion.language === 'es' ? info.name : info.nameEn;
+  }, [card, selectedVersion.language]);
 
   const maskLevel = card ? maskLevelForBox(card.box) : 0;
   const maskPercent = MASK_LEVEL_PERCENT[maskLevel];

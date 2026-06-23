@@ -76,7 +76,7 @@ export const AudioQueueSheet: React.FC<AudioQueueSheetProps> = ({
   onClose,
 }) => {
   const {colors} = useTheme();
-  const {t, language} = useLanguage();
+  const {t} = useLanguage();
   const {selectedVersion} = useBibleVersion();
   const {
     state,
@@ -91,14 +91,15 @@ export const AudioQueueSheet: React.FC<AudioQueueSheetProps> = ({
     setQueueRepeat,
   } = useAudioPlayer();
   const tQueue = t.audio.queue;
-  const lang = language === 'en' ? 'en' : 'es';
+  // Book/chapter titles in the queue follow the reading version's language.
+  const lang = selectedVersion.language === 'es' ? 'es' : 'en';
   // A verse playlist (Sprint 79) lists its own next VERSES, not chapters.
   const isPlaylist = queueInfo.mode === 'playlist';
 
   // Localized "Salmos 118:2" reference for any queue verse.
   const verseLabel = (v: {book: string; chapter: number; verse: number}) => {
     const info = getBookByName(v.book);
-    const name = info ? (language === 'en' ? info.nameEn : info.name) : v.book;
+    const name = info ? (lang === 'en' ? info.nameEn : info.name) : v.book;
     return `${name} ${v.chapter}:${v.verse}`;
   };
 
@@ -109,7 +110,7 @@ export const AudioQueueSheet: React.FC<AudioQueueSheetProps> = ({
     if (isPlaylist) return verseLabel(currentVerse);
     const info = getBookByName(currentVerse.book);
     const name = info
-      ? language === 'en'
+      ? lang === 'en'
         ? info.nameEn
         : info.name
       : currentVerse.book;
@@ -226,7 +227,7 @@ export const AudioQueueSheet: React.FC<AudioQueueSheetProps> = ({
   // Localized "Salmos 118:2" label for a pin (canonical book stored).
   const bookmarkLabel = (bm: AudioBookmark): string => {
     const info = getBookByName(bm.book);
-    const name = info ? (language === 'en' ? info.nameEn : info.name) : bm.book;
+    const name = info ? (lang === 'en' ? info.nameEn : info.name) : bm.book;
     return `${name} ${bm.chapter}:${bm.verse}`;
   };
 

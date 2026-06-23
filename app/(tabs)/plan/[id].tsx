@@ -111,13 +111,14 @@ export default function ReadingPlanDetailScreen() {
     [pace, plan, completed],
   );
 
+  // Book names follow the READING version's language (RVR1960 → "Juan").
   const bookLabel = useCallback(
     (book: string): string => {
       const info = getBookByName(book);
       if (!info) return book;
-      return language === 'en' ? info.nameEn : info.name;
+      return selectedVersion.language === 'es' ? info.name : info.nameEn;
     },
-    [language],
+    [selectedVersion.language],
   );
 
   // Celebrate the moment the FINAL day flips done in this session.

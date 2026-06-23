@@ -75,6 +75,10 @@ export default function DevotionalBuilderScreen() {
   const db = t.devotionalBuilder;
   const toast = useToast();
   const {selectedVersion} = useBibleVersion();
+  // Book names follow the READING version's language (RVR1960 → "Juan");
+  // `language` is kept only for the date formatting.
+  const bookNameLang: 'es' | 'en' =
+    selectedVersion.language === 'es' ? 'es' : 'en';
 
   const today = todayDateISO();
   const [title, setTitle] = useState('');
@@ -91,7 +95,7 @@ export default function DevotionalBuilderScreen() {
   const bookName = (id: number) => {
     const b = getBookById(id);
     if (!b) return String(id);
-    return language === 'en' ? b.nameEn : b.name;
+    return bookNameLang === 'en' ? b.nameEn : b.name;
   };
 
   const pickBook = pickBookId != null ? getBookById(pickBookId) : undefined;
@@ -424,7 +428,7 @@ export default function DevotionalBuilderScreen() {
                     onPress={() => chooseBook(item.id)}
                     accessibilityRole="button">
                     <Text style={[styles.bookRowText, {color: colors.text}]}>
-                      {language === 'en' ? item.nameEn : item.name}
+                      {bookNameLang === 'en' ? item.nameEn : item.name}
                     </Text>
                     <Text
                       style={[

@@ -62,6 +62,12 @@ jest.mock('@hooks/useLanguage', () => ({
   }),
 }));
 
+jest.mock('@hooks/useBibleVersion', () => ({
+  useBibleVersion: () => ({
+    selectedVersion: {id: 'RVR1960', language: 'es', abbreviation: 'RVR1960'},
+  }),
+}));
+
 jest.mock('@react-native-async-storage/async-storage', () => ({
   getItem: jest.fn(async () => null),
   setItem: jest.fn(async () => undefined),

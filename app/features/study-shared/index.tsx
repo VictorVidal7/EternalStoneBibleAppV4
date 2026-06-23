@@ -91,7 +91,7 @@ export default function SharedStudyScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const {colors} = useTheme();
-  const {t, language} = useLanguage();
+  const {t} = useLanguage();
   const ss = t.sharedStudy;
   const p = t.prepTable;
   const {selectedVersion} = useBibleVersion();
@@ -235,7 +235,7 @@ export default function SharedStudyScreen() {
 
   const headerGradient: [string, string] = [colors.primary, colors.primaryDark];
   const passageLabel = table
-    ? formatPassageLabel(table, language as 'es' | 'en')
+    ? formatPassageLabel(table, selectedVersion.language === 'es' ? 'es' : 'en')
     : '';
 
   const openVerse = (bookNav: string, chapter: number, verse: number) => {
