@@ -112,7 +112,7 @@ export default function StudyScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const {colors} = useTheme();
-  const {t, language} = useLanguage();
+  const {t} = useLanguage();
   const s = t.study;
 
   const params = useLocalSearchParams<{
@@ -155,17 +155,23 @@ export default function StudyScreen() {
         params.version ??
         (await AsyncStorage.getItem(VERSION_KEY)) ??
         'RVR1960';
+      // Book names follow the READING version's language, not the app interface
+      // language: a verse shown in RVR1960 reads "2 Corintios 4:14", not
+      // "2 Corinthians 4:14", even when the UI is English (and vice-versa) —
+      // matching the verse text right beside it and the "Christ in this passage"
+      // card below.
+      const bookLang = christLangForVersion(version);
       // Curated two-way web + the broad bundled cross-reference web (RUMBO #3).
       const conns = await getMergedStudyConnections(book, chapter, verse);
       setConnections(conns);
       const focusKey = conns.focus ?? `${book}/${chapter}/${verse}`;
       const [focus, refs, refBy] = await Promise.all([
-        resolveRow(focusKey, version, language),
+        resolveRow(focusKey, version, bookLang),
         Promise.all(
-          conns.references.map(k => resolveRow(k, version, language)),
+          conns.references.map(k => resolveRow(k, version, bookLang)),
         ),
         Promise.all(
-          conns.referencedBy.map(k => resolveRow(k, version, language)),
+          conns.referencedBy.map(k => resolveRow(k, version, bookLang)),
         ),
       ]);
       setFocusRow(focus);
@@ -227,7 +233,7 @@ export default function StudyScreen() {
       });
       setStatus('error');
     }
-  }, [params.version, book, chapter, verse, language]);
+  }, [params.version, book, chapter, verse]);
 
   useEffect(() => {
     load();
@@ -319,7 +325,12 @@ export default function StudyScreen() {
         </LinearGradient>
 
         <ScrollView
-          contentContainerStyle={styles.content}
+          contentContainerStyle={[
+            styles.content,
+            // This screen now lives inside the tab navigator, so reserve room so
+            // the last connection rows clear the floating bottom tab bar.
+            {paddingBottom: insets.bottom + 100},
+          ]}
           showsVerticalScrollIndicator={false}>
           {status === 'loading' && (
             <View style={styles.centerState}>
@@ -646,6 +657,7 @@ const styles = StyleSheet.create({
   focusText: {
     fontSize: fontSizes.lg,
     lineHeight: fontSizes.lg * 1.5,
+    paddingRight: verseTextRightSlack(fontSizes.lg),
   },
   connRow: {
     flexDirection: 'row',
@@ -686,7 +698,11 @@ const styles = StyleSheet.create({
     letterSpacing: 0.5,
     textTransform: 'uppercase',
   },
-  christNote: {fontSize: fontSizes.md, lineHeight: fontSizes.md * 1.55},
+  christNote: {
+    fontSize: fontSizes.md,
+    lineHeight: fontSizes.md * 1.55,
+    paddingRight: verseTextRightSlack(fontSizes.md),
+  },
   christVerse: {
     borderLeftWidth: 3,
     paddingLeft: spacing.md,
@@ -739,6 +755,7 @@ const styles = StyleSheet.create({
   refText: {
     fontSize: fontSizes.sm,
     lineHeight: fontSizes.sm * 1.5,
+    paddingRight: verseTextRightSlack(fontSizes.sm),
   },
   attribution: {
     fontSize: fontSizes.xs,

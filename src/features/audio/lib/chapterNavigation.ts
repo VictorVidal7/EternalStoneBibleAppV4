@@ -209,12 +209,23 @@ export function shouldFollowAudioChapter(
  * version's verses — so it narrates the previous text/language until reloaded.
  *
  * Returns `true` only when the player is up, the engine is bound to the chapter
- * the reader is showing, there is text to load, and the engine's loaded version
- * differs from the displayed one. A `null` loaded version (legacy load without
- * version info) is treated as "unknown, leave it" so a pre-S102 queue is never
- * yanked. Comparing the loaded version id (not just the language) is what keeps
- * a normal continuous-playback chapter advance — same version → equal ids — from
- * being mistaken for a version switch and needlessly restarting the chapter.
+ * the reader is showing, there is text to load, the on-screen text is ALREADY in
+ * the freshly-selected version, and the engine's loaded version differs from it.
+ * A `null` loaded version (legacy load without version info) is treated as
+ * "unknown, leave it" so a pre-S102 queue is never yanked. Comparing the loaded
+ * version id (not just the language) is what keeps a normal continuous-playback
+ * chapter advance — same version → equal ids — from being mistaken for a version
+ * switch and needlessly restarting the chapter.
+ *
+ * The `versesVersionId` guard (Sprint 111) closes a race: the reader's text
+ * loads asynchronously, so right when the user switches the version the engine
+ * id already differs from the (new) selected id while the verses on screen are
+ * still the OLD text. Without this gate the re-sync fired with stale verses,
+ * loading the previous text but tagging it as the new version — then the latch
+ * blocked the correct re-sync once the new text finally arrived, leaving the
+ * narration stuck on the prior version ("se hace bolas"). Requiring the
+ * displayed text to already match the selected version makes the re-sync wait
+ * for the real new text.
  */
 export function shouldResyncAudioToVersion(params: {
   isAudioVisible: boolean;
@@ -222,6 +233,7 @@ export function shouldResyncAudioToVersion(params: {
   versesLength: number;
   loadedVersionId: string | null;
   displayedVersionId: string;
+  versesVersionId: string | null;
 }): boolean {
   if (
     !params.isAudioVisible ||
@@ -231,6 +243,9 @@ export function shouldResyncAudioToVersion(params: {
     return false;
   }
   if (!params.loadedVersionId) return false;
+  // The on-screen verses must already be in the selected version, or we'd
+  // re-sync the engine to the previous text (the new text is still loading).
+  if (params.versesVersionId !== params.displayedVersionId) return false;
   return params.loadedVersionId !== params.displayedVersionId;
 }
 
