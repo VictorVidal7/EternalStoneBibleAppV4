@@ -240,8 +240,13 @@ export default function WordStudyScreen() {
                 {seedGloss}
               </Text>
             ) : null}
-            {lex?.definition ? (
-              language === 'es' ? (
+            {language === 'es' ? (
+              lex?.definition_es ? (
+                <Text
+                  style={[styles.definition, {color: colors.textSecondary}]}>
+                  {lex.definition_es}
+                </Text>
+              ) : lex?.definition ? (
                 <>
                   <TouchableOpacity
                     style={styles.defToggle}
@@ -272,12 +277,11 @@ export default function WordStudyScreen() {
                     </Text>
                   ) : null}
                 </>
-              ) : (
-                <Text
-                  style={[styles.definition, {color: colors.textSecondary}]}>
-                  {lex.definition}
-                </Text>
-              )
+              ) : null
+            ) : lex?.definition ? (
+              <Text style={[styles.definition, {color: colors.textSecondary}]}>
+                {lex.definition}
+              </Text>
             ) : null}
             <Text style={[styles.countLabel, {color: colors.textTertiary}]}>
               {countLabel}

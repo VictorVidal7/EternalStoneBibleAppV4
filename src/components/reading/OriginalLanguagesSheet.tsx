@@ -235,8 +235,12 @@ export const OriginalLanguagesSheet: React.FC<Props> = ({
                 ) : null}
               </Text>
             ) : null}
-            {lex.definition ? (
-              language === 'es' ? (
+            {language === 'es' ? (
+              lex.definition_es ? (
+                <Text style={[styles.lexDef, {color: colors.textSecondary}]}>
+                  {lex.definition_es}
+                </Text>
+              ) : lex.definition ? (
                 <>
                   <TouchableOpacity
                     style={styles.defToggle}
@@ -264,11 +268,11 @@ export const OriginalLanguagesSheet: React.FC<Props> = ({
                     </Text>
                   ) : null}
                 </>
-              ) : (
-                <Text style={[styles.lexDef, {color: colors.textSecondary}]}>
-                  {lex.definition}
-                </Text>
-              )
+              ) : null
+            ) : lex.definition ? (
+              <Text style={[styles.lexDef, {color: colors.textSecondary}]}>
+                {lex.definition}
+              </Text>
             ) : null}
 
             {word.strongs ? (
