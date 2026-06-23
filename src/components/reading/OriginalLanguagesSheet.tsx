@@ -45,6 +45,7 @@ import {
   type StrongsEntry,
   type StrongsOccurrence,
 } from '@/features/study/originals';
+import {christLangForVersion} from '@/features/study/christConnections';
 import {
   downloadAndImportOriginals,
   importLocalOriginalsIfPresent,
@@ -80,8 +81,11 @@ export const OriginalLanguagesSheet: React.FC<Props> = ({
   const {t, language} = useLanguage();
   const o = t.originals;
   // Gloss in the language of what's being read (RVR1960 → Spanish), not just
-  // the UI language; sheet chrome + references stay in the UI language.
+  // the UI language; the sheet chrome stays in the UI language.
   const glossLang = glossLanguage(language, version);
+  // Verse references (the source verse + concordance occurrences) follow the
+  // reading version's language (RVR1960 → "Juan"), like the rest of the app.
+  const bookNameLang = christLangForVersion(version);
 
   const [status, setStatus] = useState<Status>('loading');
   const [words, setWords] = useState<OriginalWord[]>([]);
@@ -165,10 +169,10 @@ export const OriginalLanguagesSheet: React.FC<Props> = ({
       if (!book) return;
       haptics.tap();
       onClose();
-      const name = language === 'en' ? book.nameEn : book.name;
+      const name = bookNameLang === 'en' ? book.nameEn : book.name;
       router.push(`/verse/${name}/${occ.chapter}?verse=${occ.verse}` as never);
     },
-    [onClose, router, language],
+    [onClose, router, bookNameLang],
   );
 
   const sourceLabel =
@@ -276,11 +280,11 @@ export const OriginalLanguagesSheet: React.FC<Props> = ({
                     style={[styles.occRow, {borderTopColor: colors.border}]}
                     onPress={() => handleJumpToOccurrence(occ)}
                     accessibilityRole="button"
-                    accessibilityLabel={occurrenceRef(occ, language)}>
+                    accessibilityLabel={occurrenceRef(occ, bookNameLang)}>
                     <Text
                       style={[styles.occRef, {color: colors.primary}]}
                       numberOfLines={1}>
-                      {occurrenceRef(occ, language)}
+                      {occurrenceRef(occ, bookNameLang)}
                     </Text>
                     <Text
                       style={[styles.occWord, {color: colors.textSecondary}]}

@@ -68,7 +68,7 @@ export default function GuidedDevotionScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const {colors} = useTheme();
-  const {t, language} = useLanguage();
+  const {t} = useLanguage();
   const {selectedVersion} = useBibleVersion();
   const tg = t.guided;
   const feelingNames = t.feelings.list as Record<string, {name: string}>;
@@ -109,7 +109,8 @@ export default function GuidedDevotionScreen() {
           setReveal({
             feeling,
             bookEn: book.nameEn,
-            bookDisplay: language === 'en' ? book.nameEn : book.name,
+            bookDisplay:
+              selectedVersion.language === 'es' ? book.name : book.nameEn,
             chapter: parsed.chapter,
             verse: parsed.verse,
             text: row.text,
@@ -124,7 +125,7 @@ export default function GuidedDevotionScreen() {
         }
       })();
     },
-    [language, selectedVersion.id],
+    [selectedVersion.language, selectedVersion.id],
   );
 
   const beginMoment = useCallback(() => {

@@ -34,6 +34,7 @@ import {haptics} from '@lib/haptics';
 import {AppText} from '@components/ui/AppText';
 import bibleDB from '@lib/database';
 import {getBookByName} from '@/constants/bible';
+import {christLangForVersion} from '@/features/study/christConnections';
 import {getTheme, parseThemeRef} from '@/features/study/themes';
 import type {ThemeRefKey} from '@/features/study/themes';
 import {buildVersePlaylist, useAudioPlayer} from '@/features/audio';
@@ -125,7 +126,7 @@ export default function ThemeDetailScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const {colors} = useTheme();
-  const {t, language} = useLanguage();
+  const {t} = useLanguage();
   const tt = t.themes;
 
   const params = useLocalSearchParams<{theme?: string}>();
@@ -148,8 +149,10 @@ export default function ThemeDetailScreen() {
     try {
       setStatus('loading');
       const version = (await AsyncStorage.getItem(VERSION_KEY)) ?? 'RVR1960';
+      // Book names follow the reading version's language, not the UI language.
+      const bookLang = christLangForVersion(version);
       const resolved = await Promise.all(
-        theme.verseRefs.map(k => resolveRow(k, version, language)),
+        theme.verseRefs.map(k => resolveRow(k, version, bookLang)),
       );
       setRows(resolved);
       setStatus('ready');
@@ -160,7 +163,7 @@ export default function ThemeDetailScreen() {
       });
       setStatus('error');
     }
-  }, [theme, language]);
+  }, [theme]);
 
   useEffect(() => {
     load();

@@ -43,6 +43,7 @@ import * as Clipboard from 'expo-clipboard';
 import {useTheme} from '@hooks/useTheme';
 import {centeredMaxWidth} from '@/styles/responsive';
 import {useLanguage} from '@hooks/useLanguage';
+import {useBibleVersion} from '@hooks/useBibleVersion';
 import {haptics} from '@lib/haptics';
 import {AppText} from '@components/ui/AppText';
 import bibleDB from '@lib/database';
@@ -162,7 +163,8 @@ export default function PrepTableScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const {colors} = useTheme();
-  const {t, language} = useLanguage();
+  const {t} = useLanguage();
+  const {selectedVersion} = useBibleVersion();
   const p = t.prepTable;
 
   const params = useLocalSearchParams<{
@@ -401,8 +403,9 @@ export default function PrepTableScreen() {
   );
 
   const headerGradient: [string, string] = [colors.primary, colors.primaryDark];
+  // The passage label follows the reading version's language (RVR1960 → "Juan").
   const passageLabel = table
-    ? formatPassageLabel(table, language as 'es' | 'en')
+    ? formatPassageLabel(table, selectedVersion.language === 'es' ? 'es' : 'en')
     : '';
 
   const handleExport = useCallback(async () => {

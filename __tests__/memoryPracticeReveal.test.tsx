@@ -60,6 +60,12 @@ jest.mock('@hooks/useLanguage', () => ({
   }),
 }));
 
+jest.mock('@hooks/useBibleVersion', () => ({
+  useBibleVersion: () => ({
+    selectedVersion: {id: 'RVR1960', language: 'es', abbreviation: 'RVR1960'},
+  }),
+}));
+
 jest.mock('@context/MemoryDeckContext', () => ({
   useMemoryDeck: () => ({dueCards: mockDueCards, reviewCard: jest.fn()}),
 }));

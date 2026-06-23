@@ -29,6 +29,7 @@ import {LinearGradient} from 'expo-linear-gradient';
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
 import {useTheme} from '@hooks/useTheme';
 import {useLanguage} from '@hooks/useLanguage';
+import {useBibleVersion} from '@hooks/useBibleVersion';
 import {useServices} from '@context/ServicesContext';
 import {useReadingProgress} from '@context/ReadingProgressContext';
 import {AppText} from '@components/ui/AppText';
@@ -94,7 +95,8 @@ export default function ReadingInsightsScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const {colors} = useTheme();
-  const {t, language} = useLanguage();
+  const {t} = useLanguage();
+  const {selectedVersion} = useBibleVersion();
   const ri = t.readingInsights;
   // Mood line lookups: localized feeling names + the one shared weekday
   // array (the memory-insights forecast already owns it — same calendar).
@@ -222,8 +224,8 @@ export default function ReadingInsightsScreen() {
     const key = insights.mostReadBook.book;
     const book = getBookByName(key);
     if (!book) return key;
-    return language === 'en' ? book.nameEn : book.name;
-  }, [insights?.mostReadBook, language]);
+    return selectedVersion.language === 'es' ? book.name : book.nameEn;
+  }, [insights?.mostReadBook, selectedVersion.language]);
 
   // Localized unit words for formatReadingTime ("2h 32m" / "2 h 32 min").
   const timeLabels = useMemo(

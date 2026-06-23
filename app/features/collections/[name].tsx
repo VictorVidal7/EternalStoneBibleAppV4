@@ -51,7 +51,7 @@ export default function CollectionDetailScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const {colors} = useTheme();
-  const {t, language} = useLanguage();
+  const {t} = useLanguage();
   const tc = t.collections;
   const {favorites, updateFavorite} = useFavorites();
   const {width: windowWidth} = useWindowDimensions();
@@ -66,13 +66,14 @@ export default function CollectionDetailScreen() {
     [params.name],
   );
 
+  // Book names follow the READING version's language (RVR1960 → "Juan").
   const localizeBook = useCallback(
     (book: string): string => {
       const info = getBookByName(book);
       if (!info) return book;
-      return language === 'en' ? info.nameEn : info.name;
+      return selectedVersion.language === 'es' ? info.name : info.nameEn;
     },
-    [language],
+    [selectedVersion.language],
   );
 
   // The favorites in this collection, newest-first. Reading the store directly

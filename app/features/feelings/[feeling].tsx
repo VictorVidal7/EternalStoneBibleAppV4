@@ -37,6 +37,7 @@ import {haptics} from '@lib/haptics';
 import {AppText} from '@components/ui/AppText';
 import bibleDB from '@lib/database';
 import {getBookByName} from '@/constants/bible';
+import {christLangForVersion} from '@/features/study/christConnections';
 import {getFeeling} from '@/features/study/feelings';
 import {recordTodayFeeling} from '@/features/study/feelingsLogStore';
 import {parseThemeRef} from '@/features/study/themes';
@@ -130,7 +131,7 @@ export default function FeelingDetailScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const {colors} = useTheme();
-  const {t, language} = useLanguage();
+  const {t} = useLanguage();
   const tf = t.feelings;
 
   const params = useLocalSearchParams<{feeling?: string}>();
@@ -162,8 +163,10 @@ export default function FeelingDetailScreen() {
     try {
       setStatus('loading');
       const version = (await AsyncStorage.getItem(VERSION_KEY)) ?? 'RVR1960';
+      // Book names follow the reading version's language, not the UI language.
+      const bookLang = christLangForVersion(version);
       const resolved = await Promise.all(
-        feeling.verseRefs.map(k => resolveRow(k, version, language)),
+        feeling.verseRefs.map(k => resolveRow(k, version, bookLang)),
       );
       setRows(resolved);
       setStatus('ready');
@@ -174,7 +177,7 @@ export default function FeelingDetailScreen() {
       });
       setStatus('error');
     }
-  }, [feeling, language]);
+  }, [feeling]);
 
   useEffect(() => {
     load();

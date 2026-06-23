@@ -98,9 +98,9 @@ export default function LectioScreen() {
     verseNum >= 1;
 
   const bookDisplay = bookInfo
-    ? language === 'en'
-      ? bookInfo.nameEn
-      : bookInfo.name
+    ? selectedVersion.language === 'es'
+      ? bookInfo.name
+      : bookInfo.nameEn
     : (params.book ?? '');
   const reference = paramsValid
     ? `${bookDisplay} ${chapterNum}:${verseNum}`

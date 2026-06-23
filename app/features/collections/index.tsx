@@ -23,6 +23,7 @@ import {useSafeAreaInsets} from 'react-native-safe-area-context';
 import {useTheme} from '@hooks/useTheme';
 import {centeredMaxWidth} from '@/styles/responsive';
 import {useLanguage} from '@hooks/useLanguage';
+import {useBibleVersion} from '@hooks/useBibleVersion';
 import {haptics} from '@lib/haptics';
 import {AppText} from '@components/ui/AppText';
 import {useFavorites} from '@context/FavoritesContext';
@@ -39,18 +40,20 @@ export default function CollectionsBrowseScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const {colors} = useTheme();
-  const {t, language} = useLanguage();
+  const {t} = useLanguage();
+  const {selectedVersion} = useBibleVersion();
   const tc = t.collections;
   const {favorites} = useFavorites();
   const collections = buildCollections(favorites);
 
+  // Book names follow the READING version's language (RVR1960 → "Juan").
   const localizeBook = useCallback(
     (book: string): string => {
       const info = getBookByName(book);
       if (!info) return book;
-      return language === 'en' ? info.nameEn : info.name;
+      return selectedVersion.language === 'es' ? info.name : info.nameEn;
     },
-    [language],
+    [selectedVersion.language],
   );
 
   const handleOpen = useCallback(

@@ -58,7 +58,7 @@ export default function GuidedPrayerScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const {colors} = useTheme();
-  const {t, language} = useLanguage();
+  const {t} = useLanguage();
   const {selectedVersion} = useBibleVersion();
   const ta = t.prayer.acts;
 
@@ -80,7 +80,8 @@ export default function GuidedPrayerScreen() {
             if (!parsed || !book) {
               return {...s, reference: s.anchor, text: null};
             }
-            const display = language === 'en' ? book.nameEn : book.name;
+            const display =
+              selectedVersion.language === 'es' ? book.name : book.nameEn;
             const row = await bibleDB.getVerse(
               book.id,
               parsed.chapter,
@@ -108,7 +109,7 @@ export default function GuidedPrayerScreen() {
     return () => {
       cancelled = true;
     };
-  }, [session, language, selectedVersion.id]);
+  }, [session, selectedVersion.language, selectedVersion.id]);
 
   // Stamp today's prayer the moment the walk completes (device-local, once).
   useEffect(() => {
