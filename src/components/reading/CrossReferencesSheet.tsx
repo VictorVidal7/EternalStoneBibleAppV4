@@ -197,6 +197,21 @@ export const CrossReferencesSheet: React.FC<Props> = ({
     } as never);
   };
 
+  // Open the verse's connection web as an interactive star map (RUMBO #3).
+  const handleOpenConstellation = () => {
+    if (sourceVerse == null) return;
+    haptics.tap();
+    onClose();
+    router.push({
+      pathname: '/features/constellation' as never,
+      params: {
+        book: sourceBook,
+        chapter: String(sourceChapter),
+        verse: String(sourceVerse),
+      },
+    } as never);
+  };
+
   const sourceLabel =
     sourceVerse != null
       ? `${sourceBook} ${sourceChapter}:${sourceVerse}`
@@ -342,6 +357,25 @@ export const CrossReferencesSheet: React.FC<Props> = ({
               />
               <Text style={[styles.studyButtonText, {color: colors.primary}]}>
                 {t.referenceChain.start}
+              </Text>
+              <Ionicons name="arrow-forward" size={16} color={colors.primary} />
+            </TouchableOpacity>
+          )}
+
+          {rows.length > 0 && (
+            <TouchableOpacity
+              style={[styles.chainButton, {borderColor: colors.primary}]}
+              onPress={handleOpenConstellation}
+              accessibilityRole="button"
+              accessibilityLabel={t.constellation.open}
+              accessibilityHint={t.constellation.subtitle}>
+              <Ionicons
+                name="sparkles-outline"
+                size={18}
+                color={colors.primary}
+              />
+              <Text style={[styles.studyButtonText, {color: colors.primary}]}>
+                {t.constellation.open}
               </Text>
               <Ionicons name="arrow-forward" size={16} color={colors.primary} />
             </TouchableOpacity>

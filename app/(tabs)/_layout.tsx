@@ -211,6 +211,14 @@ export default function TabLayout() {
       />
 
       <Tabs.Screen
+        name="features/constellation"
+        options={{
+          href: null,
+          headerShown: false,
+        }}
+      />
+
+      <Tabs.Screen
         name="plan/[id]"
         options={{
           href: null,
