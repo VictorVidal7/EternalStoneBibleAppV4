@@ -724,6 +724,20 @@ export const translations = {
       start: 'Seguir el hilo',
     },
 
+    constellation: {
+      title: 'Constelación',
+      subtitle: 'La red de conexiones del versículo',
+      open: 'Ver constelación',
+      legendOut: 'Apunta a',
+      legendIn: 'Citado por',
+      tapHint: 'Toca una estrella para verla',
+      connections: '{{n}} conexiones',
+      connectionsOne: '1 conexión',
+      empty: 'Este versículo aún no tiene conexiones para mapear.',
+      recenter: 'Centrar aquí',
+      openInReader: 'Abrir en el lector',
+    },
+
     periodRecap: {
       yearTitle: 'Tu año en la Palabra',
       quarterTitle: 'Tu trimestre en la Palabra',
@@ -3930,6 +3944,20 @@ export const translations = {
       continueLabel: 'Continue the thread',
       threadEnds: 'The thread ends here',
       start: 'Follow the thread',
+    },
+
+    constellation: {
+      title: 'Constellation',
+      subtitle: "The verse's web of connections",
+      open: 'View constellation',
+      legendOut: 'Points to',
+      legendIn: 'Cited by',
+      tapHint: 'Tap a star to reveal it',
+      connections: '{{n}} connections',
+      connectionsOne: '1 connection',
+      empty: 'This verse has no connections to map yet.',
+      recenter: 'Center here',
+      openInReader: 'Open in reader',
     },
 
     periodRecap: {
