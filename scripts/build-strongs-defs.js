@@ -43,7 +43,7 @@ const DICTS = [
 // strongs_def that STARTS with one of these is a continuation — the meaning
 // began in `derivation`, so we must prepend it (the ~5% θεός-style entries).
 const CONTINUATION =
-  /^(figuratively|by |and |or |also |specially|especially|properly|i\.e\.|;)/i;
+  /^(figuratively|literal|by |and |or |also |specially|especially|properly|i\.e\.|;)/i;
 
 /** Normalise an openscriptures key to the pack's lexicon key form. */
 function normalizeStrongs(raw) {

@@ -83,7 +83,7 @@ const SDEFS_SCHEMA = 'sdefs';
  * Bump this when shipping a new translation batch so the app re-imports the
  * grown asset on the next launch.
  */
-const SDEFS_VERSION = 1;
+const SDEFS_VERSION = 2;
 
 /** Max incoming ("referenced by") rows surfaced for a verse, by votes. */
 const XREF_INCOMING_LIMIT = 25;
