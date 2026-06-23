@@ -155,6 +155,10 @@ export default function HomeScreen() {
     initialized: servicesInitialized,
   } = useServices();
   const {t, language} = useLanguage();
+  // Book names on the Home cards follow the READING version's language (RVR1960
+  // → "Juan"), matching the rest of the app; `language` is kept only for the
+  // speech locale (reading the daily verse aloud).
+  const bookLang: 'es' | 'en' = selectedVersion.language === 'es' ? 'es' : 'en';
   const {getChapterProgress} = useReadingProgress();
   const {getCompletedDays, getStartedAt} = useReadingPlanProgress();
   const {getMembership} = useTogether();
@@ -625,7 +629,7 @@ export default function HomeScreen() {
             (() => {
               const info = getBookByName(lastRead.book);
               return info
-                ? language === 'en'
+                ? bookLang === 'en'
                   ? info.nameEn
                   : info.name
                 : lastRead.book;
@@ -738,7 +742,7 @@ export default function HomeScreen() {
             // version is active, mirroring "Continue Reading" above.
             const verseBookInfo = getBookByName(dailyVerse.book);
             const verseBookName = verseBookInfo
-              ? language === 'en'
+              ? bookLang === 'en'
                 ? verseBookInfo.nameEn
                 : verseBookInfo.name
               : dailyVerse.book;
@@ -1042,7 +1046,7 @@ export default function HomeScreen() {
                         {(() => {
                           const info = getBookByName(lastRead.book);
                           const name = info
-                            ? language === 'en'
+                            ? bookLang === 'en'
                               ? info.nameEn
                               : info.name
                             : lastRead.book;
@@ -1154,7 +1158,7 @@ export default function HomeScreen() {
                             : audioResumePos;
                           const info = getBookByName(shown.book);
                           const name = info
-                            ? language === 'en'
+                            ? bookLang === 'en'
                               ? info.nameEn
                               : info.name
                             : shown.book;
@@ -1175,7 +1179,7 @@ export default function HomeScreen() {
                           comes next, mirroring the expanded player's peek. */}
                       {(() => {
                         const upNext = autoAdvanceChapter
-                          ? nextChapterTitle(audioResumePos, language)
+                          ? nextChapterTitle(audioResumePos, bookLang)
                           : null;
                         return upNext ? (
                           <Text
@@ -1344,7 +1348,7 @@ export default function HomeScreen() {
                           formatDayReadings(nextDayReadings, book => {
                             const info = getBookByName(book);
                             if (!info) return book;
-                            return language === 'en' ? info.nameEn : info.name;
+                            return bookLang === 'en' ? info.nameEn : info.name;
                           }),
                         )
                     : t.home.planDays.replace(
@@ -1445,7 +1449,7 @@ export default function HomeScreen() {
                             formatDayReadings(nextDayReadings, book => {
                               const info = getBookByName(book);
                               if (!info) return book;
-                              return language === 'en'
+                              return bookLang === 'en'
                                 ? info.nameEn
                                 : info.name;
                             }),

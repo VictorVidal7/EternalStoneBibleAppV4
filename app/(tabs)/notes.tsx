@@ -19,6 +19,7 @@ import {Note} from '@/types/bible';
 import {useTheme} from '@hooks/useTheme';
 import {centeredMaxWidth} from '@/styles/responsive';
 import {useLanguage} from '@hooks/useLanguage';
+import {useBibleVersion} from '@hooks/useBibleVersion';
 import {haptics} from '@lib/haptics';
 import {IllustratedEmptyState} from '@components/IllustratedEmptyState';
 import {NoteImageModal} from '@components/reading/NoteImageModal';
@@ -45,6 +46,7 @@ export default function NotesScreen() {
     [gradient?.headerColors],
   );
   const {t, language} = useLanguage();
+  const {selectedVersion} = useBibleVersion();
   const {width} = useWindowDimensions();
   const [notes, setNotes] = useState<Note[]>([]);
   const [loading, setLoading] = useState(true);
@@ -101,12 +103,13 @@ export default function NotesScreen() {
     );
   }
 
-  // El nombre del libro se guarda en el idioma activo al crear la nota;
-  // se relocaliza para que la referencia siga al idioma de la app.
+  // The book name follows the READING version's language (RVR1960 → "Juan"), so
+  // saved notes read the same as the rest of the app, regardless of which
+  // version was active when the note was created.
   function localizeBook(book: string): string {
     const info = getBookByName(book);
     if (!info) return book;
-    return language === 'en' ? info.nameEn : info.name;
+    return selectedVersion.language === 'es' ? info.name : info.nameEn;
   }
 
   function referenceOf(note: Note): string {
@@ -127,9 +130,9 @@ export default function NotesScreen() {
       n => new Date(n.updatedAt).getTime(),
       n => getBookByName(n.book)?.id ?? 999,
     );
-    // (referenceOf depends on `language`, which is in the deps below, so a
-    // UI-language switch re-derives the localized search haystack.)
-  }, [notes, query, sortOrder, language]);
+    // (referenceOf depends on the reading version's language, which is in the
+    // deps below, so switching version re-derives the localized search haystack.)
+  }, [notes, query, sortOrder, selectedVersion.language]);
 
   const sortLabel: Record<NoteSortOrder, string> = {
     recent: t.notes.sortRecent,

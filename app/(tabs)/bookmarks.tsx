@@ -17,6 +17,7 @@ import {LinearGradient} from 'expo-linear-gradient';
 import {useTheme} from '@hooks/useTheme';
 import {centeredMaxWidth} from '@/styles/responsive';
 import {useLanguage} from '@hooks/useLanguage';
+import {useBibleVersion} from '@hooks/useBibleVersion';
 import {focusTrapProps} from '@lib/a11y/focusTrap';
 import {useBookmarks, type Bookmark} from '@context/BookmarksContext';
 import {IllustratedEmptyState} from '@components/IllustratedEmptyState';
@@ -32,18 +33,20 @@ export default function BookmarksScreen() {
         : ['#4f46e5', '#7c3aed', '#a855f7']) as [string, string, string],
     [gradient?.headerColors],
   );
-  const {t, language} = useLanguage();
+  const {t} = useLanguage();
+  const {selectedVersion} = useBibleVersion();
   const {bookmarks, removeBookmark, renameBookmark, loading} = useBookmarks();
   const [editingId, setEditingId] = useState<string | null>(null);
   const [labelDraft, setLabelDraft] = useState('');
 
-  // Book names are stored in whatever language the source version used;
-  // localize to the active UI language so the list reads naturally
-  // regardless of which version was active when the user bookmarked.
+  // Book names are stored in whatever language the source version used; localize
+  // to the READING version's language (RVR1960 → "Juan") so the list reads the
+  // same as the rest of the app, regardless of which version was active when the
+  // user bookmarked.
   function localizeBook(book: string): string {
     const info = getBookByName(book);
     if (!info) return book;
-    return language === 'en' ? info.nameEn : info.name;
+    return selectedVersion.language === 'es' ? info.name : info.nameEn;
   }
 
   function goToVerse(b: Bookmark) {
