@@ -9,10 +9,11 @@
  * Para la gloria de Dios Todopoderoso ✨
  */
 
-import React, {useMemo, useState} from 'react';
+import React, {useEffect, useMemo, useState} from 'react';
 import {
   View,
   Text,
+  TextInput,
   TouchableOpacity,
   StyleSheet,
   ScrollView,
@@ -30,6 +31,12 @@ import {useMemoryDeck} from '@context/MemoryDeckContext';
 import {getBookByName} from '@/constants/bible';
 import {applyMask, MASK_LEVEL_PERCENT, maskLevelForBox} from '@lib/memory/srs';
 import type {ReviewGrade} from '@lib/memory/srs';
+import {
+  firstLetterPrompt,
+  buildFillLayout,
+  fillScore,
+} from '@lib/memory/recall';
+import {WriteCanvas} from '@/features/memory/WriteCanvas';
 import {MemoryGuideModal} from '@components/MemoryGuideModal';
 import {
   borderRadius,
@@ -45,6 +52,16 @@ const GRADE_COLORS: Record<ReviewGrade, string> = {
   easy: '#3B82F6',
 };
 
+/** The active-recall modes layered on the SRS. */
+type PracticeMode = 'reveal' | 'firstLetter' | 'fill' | 'write';
+const MODE_ORDER: PracticeMode[] = ['reveal', 'firstLetter', 'fill', 'write'];
+const MODE_ICON: Record<PracticeMode, keyof typeof Ionicons.glyphMap> = {
+  reveal: 'eye-outline',
+  firstLetter: 'text-outline',
+  fill: 'create-outline',
+  write: 'brush-outline',
+};
+
 export default function MemoryPracticeScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
@@ -58,11 +75,19 @@ export default function MemoryPracticeScreen() {
   const [queue] = useState(() => [...dueCards]);
   const [index, setIndex] = useState(0);
   const [revealed, setRevealed] = useState(false);
+  const [mode, setMode] = useState<PracticeMode>('reveal');
+  const [fillAnswers, setFillAnswers] = useState<string[]>([]);
   const [guideVisible, setGuideVisible] = useState(false);
 
   const total = queue.length;
   const card = queue[index];
   const done = index >= total;
+
+  // A fresh card or a mode switch starts the recall over.
+  useEffect(() => {
+    setRevealed(false);
+    setFillAnswers([]);
+  }, [index, mode]);
 
   const headerGradient = useMemo(
     () =>
@@ -85,21 +110,43 @@ export default function MemoryPracticeScreen() {
     () => (card ? applyMask(card.text, maskLevel) : ''),
     [card, maskLevel],
   );
+  const firstLetterText = useMemo(
+    () => (card ? firstLetterPrompt(card.text) : ''),
+    [card],
+  );
+  const fillLayout = useMemo(
+    () => (card ? buildFillLayout(card.text) : {tokens: [], blankCount: 0}),
+    [card],
+  );
   const maskHintLabel =
     maskPercent === 0
       ? t.memory.practice.maskNone
       : t.memory.practice.maskHint.replace('{{percent}}', String(maskPercent));
 
-  // Box-1 cards (a verse's first time in the deck) are shown in full — the
-  // mask hides nothing — so there is nothing to "reveal". Skip the reveal
-  // step and grade straight from the visible verse, otherwise the
-  // "Show verse" button does nothing on an already-complete verse.
-  const nothingMasked = maskLevel === 0;
+  // Box-1 cards (a verse's first time in the deck) are shown in full in REVEAL
+  // mode — the mask hides nothing — so there is nothing to "reveal"; skip the
+  // reveal step there. The other modes always pose a real recall, so they wait
+  // for the user to reveal/check.
+  const nothingMasked = mode === 'reveal' && maskLevel === 0;
   const showAnswer = revealed || nothingMasked;
+
+  const fillExpected = useMemo(
+    () => fillLayout.tokens.filter(tk => tk.isBlank).map(tk => tk.text),
+    [fillLayout],
+  );
+  const fillCorrect = fillScore(fillAnswers, fillExpected);
 
   const handleReveal = () => {
     haptics.tap();
     setRevealed(true);
+  };
+
+  const setFillAnswer = (blankIndex: number, value: string) => {
+    setFillAnswers(prev => {
+      const next = [...prev];
+      next[blankIndex] = value;
+      return next;
+    });
   };
 
   const handleGrade = (grade: ReviewGrade) => {
@@ -111,6 +158,19 @@ export default function MemoryPracticeScreen() {
     // purpose — see the queue-freeze rationale at the top.
     setIndex(prev => prev + 1);
     setRevealed(false);
+  };
+
+  const modeLabel = (m: PracticeMode): string => {
+    switch (m) {
+      case 'reveal':
+        return t.memory.practice.modeReveal;
+      case 'firstLetter':
+        return t.memory.practice.modeFirstLetter;
+      case 'fill':
+        return t.memory.practice.modeFill;
+      case 'write':
+        return t.memory.practice.modeWrite;
+    }
   };
 
   return (
@@ -195,6 +255,54 @@ export default function MemoryPracticeScreen() {
             </View>
           ) : card ? (
             <>
+              {/* Recall-mode selector */}
+              <View style={styles.modeRow}>
+                {MODE_ORDER.map(m => {
+                  const active = mode === m;
+                  const label = modeLabel(m);
+                  return (
+                    <TouchableOpacity
+                      key={m}
+                      style={[
+                        styles.modeTab,
+                        {
+                          backgroundColor: active
+                            ? colors.primary
+                            : colors.surface,
+                          borderColor: active ? colors.primary : colors.border,
+                        },
+                      ]}
+                      onPress={() => {
+                        haptics.tap();
+                        setMode(m);
+                      }}
+                      accessibilityRole="button"
+                      accessibilityState={{selected: active}}
+                      accessibilityLabel={label}>
+                      <Ionicons
+                        name={MODE_ICON[m]}
+                        size={15}
+                        color={
+                          active ? staticColors.white : colors.textSecondary
+                        }
+                      />
+                      <Text
+                        style={[
+                          styles.modeTabText,
+                          {
+                            color: active
+                              ? staticColors.white
+                              : colors.textSecondary,
+                          },
+                        ]}
+                        numberOfLines={1}>
+                        {label}
+                      </Text>
+                    </TouchableOpacity>
+                  );
+                })}
+              </View>
+
               <View
                 style={[
                   styles.flashcard,
@@ -217,17 +325,71 @@ export default function MemoryPracticeScreen() {
                       )}
                     </Text>
                   </View>
-                  <Text
-                    style={[styles.maskHintText, {color: colors.textTertiary}]}>
-                    {maskHintLabel}
-                  </Text>
+                  {mode === 'reveal' ? (
+                    <Text
+                      style={[
+                        styles.maskHintText,
+                        {color: colors.textTertiary},
+                      ]}>
+                      {maskHintLabel}
+                    </Text>
+                  ) : null}
                 </View>
                 <Text style={[styles.reference, {color: colors.primary}]}>
                   {displayBookName} {card.chapter}:{card.verse}
                 </Text>
-                <Text style={[styles.verseText, {color: colors.text}]}>
-                  {showAnswer ? card.text : maskedText}
-                </Text>
+
+                {/* Body per recall mode */}
+                {showAnswer ? (
+                  <Text style={[styles.verseText, {color: colors.text}]}>
+                    {card.text}
+                  </Text>
+                ) : mode === 'reveal' ? (
+                  <Text style={[styles.verseText, {color: colors.text}]}>
+                    {maskedText}
+                  </Text>
+                ) : mode === 'firstLetter' ? (
+                  <Text style={[styles.verseText, {color: colors.text}]}>
+                    {firstLetterText}
+                  </Text>
+                ) : mode === 'fill' ? (
+                  <View style={styles.fillWrap}>
+                    {fillLayout.tokens.map((tk, i) =>
+                      tk.isBlank ? (
+                        <TextInput
+                          key={`tk-${i}`}
+                          style={[
+                            styles.fillInput,
+                            {color: colors.text, borderColor: colors.primary},
+                          ]}
+                          value={fillAnswers[tk.blankIndex] ?? ''}
+                          onChangeText={v => setFillAnswer(tk.blankIndex, v)}
+                          autoCapitalize="none"
+                          autoCorrect={false}
+                          placeholder="·····"
+                          placeholderTextColor={colors.textTertiary}
+                          accessibilityLabel={t.memory.practice.fillPrompt}
+                        />
+                      ) : (
+                        <Text
+                          key={`tk-${i}`}
+                          style={[styles.fillWord, {color: colors.text}]}>
+                          {tk.text}
+                        </Text>
+                      ),
+                    )}
+                  </View>
+                ) : (
+                  <WriteCanvas
+                    key={`${card.verseKey}-write`}
+                    strokeColor={colors.text}
+                    bgColor={colors.background}
+                    borderColor={colors.border}
+                    controlColor={colors.primary}
+                    clearLabel={t.memory.practice.clear}
+                    undoLabel={t.memory.practice.undo}
+                  />
+                )}
               </View>
 
               {!showAnswer ? (
@@ -237,17 +399,31 @@ export default function MemoryPracticeScreen() {
                     {backgroundColor: colors.primary},
                   ]}
                   onPress={handleReveal}>
-                  <Ionicons name="eye-outline" size={22} color="#FFFFFF" />
+                  <Ionicons
+                    name={
+                      mode === 'fill' && fillLayout.blankCount > 0
+                        ? 'checkmark-circle-outline'
+                        : 'eye-outline'
+                    }
+                    size={22}
+                    color="#FFFFFF"
+                  />
                   <Text style={styles.revealText}>
-                    {t.memory.practice.reveal}
+                    {mode === 'fill' && fillLayout.blankCount > 0
+                      ? t.memory.practice.fillCheck
+                      : t.memory.practice.reveal}
                   </Text>
                 </TouchableOpacity>
               ) : (
                 <>
                   <Text style={[styles.prompt, {color: colors.textSecondary}]}>
-                    {nothingMasked
-                      ? t.memory.practice.promptFullVerse
-                      : t.memory.practice.prompt}
+                    {mode === 'fill' && fillLayout.blankCount > 0
+                      ? t.memory.practice.fillResult
+                          .replace('{{correct}}', String(fillCorrect))
+                          .replace('{{total}}', String(fillLayout.blankCount))
+                      : nothingMasked
+                        ? t.memory.practice.promptFullVerse
+                        : t.memory.practice.prompt}
                   </Text>
                   <View style={styles.gradeRow}>
                     <GradeButton
@@ -385,6 +561,46 @@ const styles = StyleSheet.create({
   maskHintText: {
     fontSize: fontSizes.xs,
     fontWeight: '600',
+  },
+  modeRow: {
+    flexDirection: 'row',
+    gap: spacing.xs,
+    marginBottom: spacing.lg,
+  },
+  modeTab: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 4,
+    paddingVertical: spacing.sm,
+    paddingHorizontal: spacing.xs,
+    borderRadius: borderRadius.full,
+    borderWidth: 1,
+  },
+  modeTabText: {
+    fontSize: fontSizes.xs,
+    fontWeight: '700',
+  },
+  fillWrap: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: spacing.xs,
+  },
+  fillWord: {
+    fontSize: fontSizes.lg,
+    lineHeight: 36,
+  },
+  fillInput: {
+    minWidth: 64,
+    fontSize: fontSizes.base,
+    fontWeight: '700',
+    textAlign: 'center',
+    paddingHorizontal: spacing.xs,
+    paddingVertical: 2,
+    borderBottomWidth: 2,
   },
   reference: {
     fontSize: fontSizes.lg,
