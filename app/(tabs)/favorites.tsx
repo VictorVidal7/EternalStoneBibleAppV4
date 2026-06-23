@@ -95,12 +95,13 @@ export default function FavoritesScreen() {
     }
   }
 
-  // El nombre del libro se guarda en el idioma activo al crear el favorito;
-  // se relocaliza para que la referencia siga al idioma de la app.
+  // The book name follows the READING version's language (RVR1960 → "Juan"), so
+  // saved favorites read the same as the rest of the app, regardless of which
+  // version was active when the favorite was created.
   function localizeBook(book: string): string {
     const info = getBookByName(book);
     if (!info) return book;
-    return language === 'en' ? info.nameEn : info.name;
+    return selectedVersion.language === 'es' ? info.name : info.nameEn;
   }
 
   // 🎧 Listen to your favorites (Sprint 79): re-resolve each verse against the

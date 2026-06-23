@@ -57,7 +57,7 @@ interface MoodVerse {
 
 export const MoodVerseCard: React.FC<MoodVerseCardProps> = ({onOpenVerse}) => {
   const {colors} = useTheme();
-  const {t, language} = useLanguage();
+  const {t} = useLanguage();
   const {selectedVersion} = useBibleVersion();
   const tf = t.feelings;
   const feelingNames = tf.list as Record<string, {name: string}>;
@@ -103,7 +103,8 @@ export const MoodVerseCard: React.FC<MoodVerseCardProps> = ({onOpenVerse}) => {
           setMoodVerse({
             feeling,
             bookEn: book.nameEn,
-            bookDisplay: language === 'en' ? book.nameEn : book.name,
+            bookDisplay:
+              selectedVersion.language === 'es' ? book.name : book.nameEn,
             chapter: parsed.chapter,
             verse: parsed.verse,
             text: row.text,
@@ -119,7 +120,7 @@ export const MoodVerseCard: React.FC<MoodVerseCardProps> = ({onOpenVerse}) => {
       return () => {
         cancelled = true;
       };
-    }, [selectedVersion.id, language]),
+    }, [selectedVersion.id, selectedVersion.language]),
   );
 
   if (!moodVerse) return null;

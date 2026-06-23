@@ -58,7 +58,7 @@ const CATEGORY_KEYS: HighlightCategory[] = Object.values(HighlightCategory);
 export default function HighlightsScreen() {
   const router = useRouter();
   const {colors, gradient} = useTheme();
-  const {t, language} = useLanguage();
+  const {t} = useLanguage();
   const {selectedVersion} = useBibleVersion();
   const {highlightService} = useServices();
   const toast = useToast();
@@ -101,9 +101,9 @@ export default function HighlightsScreen() {
           text = v?.text ?? '';
         }
         const bookName = book
-          ? language === 'en'
-            ? book.nameEn
-            : book.name
+          ? selectedVersion.language === 'es'
+            ? book.name
+            : book.nameEn
           : h.bookId;
         resolved.push({...h, text, bookName});
       }
@@ -115,7 +115,7 @@ export default function HighlightsScreen() {
     } finally {
       setLoading(false);
     }
-  }, [highlightService, selectedVersion.id, language]);
+  }, [highlightService, selectedVersion.id, selectedVersion.language]);
 
   useFocusEffect(
     useCallback(() => {
