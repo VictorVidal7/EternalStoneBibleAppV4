@@ -83,6 +83,9 @@ export const OriginalLanguagesSheet: React.FC<Props> = ({
   const [words, setWords] = useState<OriginalWord[]>([]);
   const [expanded, setExpanded] = useState<number | null>(null);
   const [lex, setLex] = useState<StrongsEntry | null>(null);
+  // The Strong's lexicon definition is English-only (public-domain source); in a
+  // Spanish UI it's hidden behind this toggle so the panel stays Spanish.
+  const [defExpanded, setDefExpanded] = useState(false);
   const [downloading, setDownloading] = useState(false);
   const [progress, setProgress] = useState(0);
 
@@ -137,6 +140,7 @@ export const OriginalLanguagesSheet: React.FC<Props> = ({
       }
       setExpanded(word.position);
       setLex(null);
+      setDefExpanded(false);
       if (hasLexicon(word.strongs)) {
         setLex(await getStrongsDetail(word.strongs));
       }
@@ -232,9 +236,39 @@ export const OriginalLanguagesSheet: React.FC<Props> = ({
               </Text>
             ) : null}
             {lex.definition ? (
-              <Text style={[styles.lexDef, {color: colors.textSecondary}]}>
-                {lex.definition}
-              </Text>
+              language === 'es' ? (
+                <>
+                  <TouchableOpacity
+                    style={styles.defToggle}
+                    onPress={() => {
+                      haptics.tap();
+                      setDefExpanded(v => !v);
+                    }}
+                    accessibilityRole="button"
+                    accessibilityLabel={o.definitionEnglish}
+                    accessibilityState={{expanded: defExpanded}}>
+                    <Text
+                      style={[styles.defToggleText, {color: colors.primary}]}>
+                      {o.definitionEnglish}
+                    </Text>
+                    <Ionicons
+                      name={defExpanded ? 'chevron-up' : 'chevron-down'}
+                      size={14}
+                      color={colors.primary}
+                    />
+                  </TouchableOpacity>
+                  {defExpanded ? (
+                    <Text
+                      style={[styles.lexDef, {color: colors.textSecondary}]}>
+                      {lex.definition}
+                    </Text>
+                  ) : null}
+                </>
+              ) : (
+                <Text style={[styles.lexDef, {color: colors.textSecondary}]}>
+                  {lex.definition}
+                </Text>
+              )
             ) : null}
 
             {word.strongs ? (
@@ -482,6 +516,13 @@ const styles = StyleSheet.create({
   },
   lexLemma: {fontSize: fontSizes.md, fontWeight: '700'},
   lexDef: {fontSize: fontSizes.sm, lineHeight: 20},
+  defToggle: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    marginTop: spacing.xs,
+  },
+  defToggleText: {fontSize: fontSizes.sm, fontWeight: '700'},
   wordStudyButton: {
     flexDirection: 'row',
     alignItems: 'center',

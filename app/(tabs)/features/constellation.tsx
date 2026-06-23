@@ -16,7 +16,7 @@
  * Para la gloria de Dios Todopoderoso ✨
  */
 
-import React, {useEffect, useMemo, useRef, useState} from 'react';
+import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {
   View,
   Text,
@@ -160,21 +160,24 @@ export default function ConstellationScreen() {
     };
   }, [current ? chainStepKey(current) : null, selectedVersion.id, size]);
 
-  const onSelectNode = async (node: ConstellationNode) => {
-    haptics.tap();
-    selectedKeyRef.current = node.key;
-    setSelected(node);
-    setSelectedText(null);
-    const info = getBookByName(node.book);
-    if (!info) return;
-    const row = await bibleDB
-      .getVerse(info.id, node.chapter, node.verse, selectedVersion.id)
-      .catch(() => null);
-    // Ignore a stale fetch if the user tapped a different star meanwhile.
-    if (selectedKeyRef.current === node.key) {
-      setSelectedText(row?.text ?? null);
-    }
-  };
+  const onSelectNode = useCallback(
+    async (node: ConstellationNode) => {
+      haptics.tap();
+      selectedKeyRef.current = node.key;
+      setSelected(node);
+      setSelectedText(null);
+      const info = getBookByName(node.book);
+      if (!info) return;
+      const row = await bibleDB
+        .getVerse(info.id, node.chapter, node.verse, selectedVersion.id)
+        .catch(() => null);
+      // Ignore a stale fetch if the user tapped a different star meanwhile.
+      if (selectedKeyRef.current === node.key) {
+        setSelectedText(row?.text ?? null);
+      }
+    },
+    [selectedVersion.id],
+  );
 
   const onRecenter = (node: ConstellationNode) => {
     haptics.tap();
@@ -205,7 +208,6 @@ export default function ConstellationScreen() {
 
   const nodeColor = (node: ConstellationNode) =>
     node.direction === 'out' ? colors.primary : colors.accent;
-  const fillOpacity = (weight: number) => Math.min(1, 0.34 + weight * 0.62);
 
   const currentRef = current
     ? `${localize(current.book)} ${current.chapter}:${current.verse}`
@@ -215,6 +217,73 @@ export default function ConstellationScreen() {
     count === 1
       ? cn.connectionsOne
       : cn.connections.replace('{{n}}', String(count));
+
+  // The star map (edges + focus star + orbiting stars + hit targets) is
+  // independent of which star is SELECTED, so memoize it: tapping a star then
+  // only re-renders the lightweight selection-ring overlay below, not the whole
+  // ~100-element SVG — which is what made the screen feel sluggish.
+  const baseSvg = useMemo(() => {
+    if (!layout) return null;
+    const edges = layout.nodes.map(node => (
+      <Line
+        key={`edge-${node.key}`}
+        x1={layout.center.x}
+        y1={layout.center.y}
+        x2={node.x}
+        y2={node.y}
+        stroke={node.direction === 'out' ? colors.primary : colors.accent}
+        strokeOpacity={0.1 + node.weight * 0.22}
+        strokeWidth={0.75 + node.weight * 1.5}
+      />
+    ));
+    const center = (
+      <React.Fragment key="center">
+        <Circle
+          cx={layout.center.x}
+          cy={layout.center.y}
+          r={layout.center.r * 1.7}
+          fill={colors.primary}
+          opacity={0.16}
+        />
+        <Circle
+          cx={layout.center.x}
+          cy={layout.center.y}
+          r={layout.center.r}
+          fill={colors.primary}
+        />
+        <Circle
+          cx={layout.center.x}
+          cy={layout.center.y}
+          r={layout.center.r}
+          fill="none"
+          stroke={colors.onPrimary}
+          strokeOpacity={0.55}
+          strokeWidth={2}
+        />
+      </React.Fragment>
+    );
+    const stars = layout.nodes.map(node => (
+      <React.Fragment key={`star-${node.key}`}>
+        <Circle
+          cx={node.x}
+          cy={node.y}
+          r={node.r}
+          fill={node.direction === 'out' ? colors.primary : colors.accent}
+          fillOpacity={Math.min(1, 0.34 + node.weight * 0.62)}
+        />
+        {/* Transparent, generous hit target. */}
+        <Circle
+          cx={node.x}
+          cy={node.y}
+          r={Math.max(node.r + 10, 22)}
+          fill={colors.primary}
+          fillOpacity={0}
+          onPress={() => onSelectNode(node)}
+        />
+      </React.Fragment>
+    ));
+    return [...edges, center, ...stars];
+  }, [layout, colors.primary, colors.accent, colors.onPrimary, onSelectNode]);
 
   return (
     <View style={[styles.container, {backgroundColor: colors.background}]}>
@@ -339,80 +408,20 @@ export default function ConstellationScreen() {
                 },
               ]}>
               <Svg width={size} height={size}>
-                {/* Edges from the centre to every star. */}
-                {layout?.nodes.map(node => (
-                  <Line
-                    key={`edge-${node.key}`}
-                    x1={layout.center.x}
-                    y1={layout.center.y}
-                    x2={node.x}
-                    y2={node.y}
-                    stroke={nodeColor(node)}
-                    strokeOpacity={0.1 + node.weight * 0.22}
-                    strokeWidth={0.75 + node.weight * 1.5}
+                {/* Memoized star map (edges + focus + stars + hit targets). */}
+                {baseSvg}
+                {/* Selection ring overlay — the only part that re-renders on a
+                    tap, so the heavy base map stays cached. */}
+                {selected ? (
+                  <Circle
+                    cx={selected.x}
+                    cy={selected.y}
+                    r={selected.r + 4}
+                    fill="none"
+                    stroke={colors.text}
+                    strokeWidth={2}
                   />
-                ))}
-                {/* Central focus star (glow + core). */}
-                {layout && (
-                  <>
-                    <Circle
-                      cx={layout.center.x}
-                      cy={layout.center.y}
-                      r={layout.center.r * 1.7}
-                      fill={colors.primary}
-                      opacity={0.16}
-                    />
-                    <Circle
-                      cx={layout.center.x}
-                      cy={layout.center.y}
-                      r={layout.center.r}
-                      fill={colors.primary}
-                    />
-                    <Circle
-                      cx={layout.center.x}
-                      cy={layout.center.y}
-                      r={layout.center.r}
-                      fill="none"
-                      stroke={colors.onPrimary}
-                      strokeOpacity={0.55}
-                      strokeWidth={2}
-                    />
-                  </>
-                )}
-                {/* Orbiting stars. */}
-                {layout?.nodes.map(node => {
-                  const isSel = selected?.key === node.key;
-                  return (
-                    <React.Fragment key={`star-${node.key}`}>
-                      <Circle
-                        cx={node.x}
-                        cy={node.y}
-                        r={node.r}
-                        fill={nodeColor(node)}
-                        fillOpacity={fillOpacity(node.weight)}
-                      />
-                      {isSel && (
-                        <Circle
-                          cx={node.x}
-                          cy={node.y}
-                          r={node.r + 4}
-                          fill="none"
-                          stroke={colors.text}
-                          strokeWidth={2}
-                        />
-                      )}
-                      {/* Transparent, generous hit target. */}
-                      <Circle
-                        cx={node.x}
-                        cy={node.y}
-                        r={Math.max(node.r + 10, 22)}
-                        fill={colors.primary}
-                        fillOpacity={0}
-                        onPress={() => onSelectNode(node)}
-                      />
-                    </React.Fragment>
-                  );
-                })}
+                ) : null}
               </Svg>
             </View>
 

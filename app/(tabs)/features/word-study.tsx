@@ -62,7 +62,7 @@ export default function WordStudyScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const {colors, gradient} = useTheme();
-  const {t} = useLanguage();
+  const {t, language} = useLanguage();
   const w = t.wordStudy;
   const params = useLocalSearchParams<{
     strongs?: string;
@@ -83,11 +83,15 @@ export default function WordStudyScreen() {
 
   const [status, setStatus] = useState<Status>('loading');
   const [study, setStudy] = useState<WordStudy | null>(null);
+  // The Strong's definition is English-only; in a Spanish UI it hides behind
+  // this toggle so the card stays Spanish.
+  const [defExpanded, setDefExpanded] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
     setStatus('loading');
     setStudy(null);
+    setDefExpanded(false);
     (async () => {
       const installed = await isOriginalsInstalled();
       if (cancelled) return;
@@ -237,9 +241,43 @@ export default function WordStudyScreen() {
               </Text>
             ) : null}
             {lex?.definition ? (
-              <Text style={[styles.definition, {color: colors.textSecondary}]}>
-                {lex.definition}
-              </Text>
+              language === 'es' ? (
+                <>
+                  <TouchableOpacity
+                    style={styles.defToggle}
+                    onPress={() => {
+                      haptics.tap();
+                      setDefExpanded(v => !v);
+                    }}
+                    accessibilityRole="button"
+                    accessibilityLabel={t.originals.definitionEnglish}
+                    accessibilityState={{expanded: defExpanded}}>
+                    <Text
+                      style={[styles.defToggleText, {color: colors.primary}]}>
+                      {t.originals.definitionEnglish}
+                    </Text>
+                    <Ionicons
+                      name={defExpanded ? 'chevron-up' : 'chevron-down'}
+                      size={14}
+                      color={colors.primary}
+                    />
+                  </TouchableOpacity>
+                  {defExpanded ? (
+                    <Text
+                      style={[
+                        styles.definition,
+                        {color: colors.textSecondary},
+                      ]}>
+                      {lex.definition}
+                    </Text>
+                  ) : null}
+                </>
+              ) : (
+                <Text
+                  style={[styles.definition, {color: colors.textSecondary}]}>
+                  {lex.definition}
+                </Text>
+              )
             ) : null}
             <Text style={[styles.countLabel, {color: colors.textTertiary}]}>
               {countLabel}
@@ -418,6 +456,13 @@ const styles = StyleSheet.create({
     lineHeight: 20,
     paddingRight: verseTextRightSlack(fontSizes.sm),
   },
+  defToggle: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    marginTop: spacing.xs,
+  },
+  defToggleText: {fontSize: fontSizes.sm, fontWeight: '700'},
   countLabel: {
     fontSize: fontSizes.xs,
     fontWeight: '700',
