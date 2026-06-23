@@ -580,7 +580,12 @@ const styles = StyleSheet.create({
   verseText: {
     fontSize: fontSizes.lg,
     textAlign: 'center',
-    fontStyle: 'italic',
+    // No `fontStyle: 'italic'` here: the bundled reader faces (S82) register only
+    // Regular + Bold variants, so on Android pairing a custom family with an
+    // italic style finds no italic face and silently falls back to the SYSTEM
+    // font — which made every typeface in the picker look identical ("las
+    // tipografías no funcionan aquí"). Rendering upright lets the chosen face
+    // actually show, matching the Verse-art composer.
     lineHeight: 34,
     paddingHorizontal: spacing.sm,
   },
