@@ -61,6 +61,12 @@ export interface StrongsOccurrence {
   word: string;
 }
 
+/** Per-book occurrence count of a Strong's number (the distribution chart). */
+export interface StrongsBookCount {
+  book_id: number;
+  count: number;
+}
+
 /** Schema name the downloaded originals pack is attached under at import. */
 const ORIGINALS_SCHEMA = 'orig';
 
@@ -608,6 +614,51 @@ class BibleDatabase {
       [strongs.trim()],
     );
     return row?.n ?? 0;
+  }
+
+  /**
+   * Per-book occurrence counts of a Strong's number, in canonical book order.
+   * Powers the word-study distribution-by-book chart.
+   */
+  async getStrongsBookDistribution(
+    strongs: string,
+  ): Promise<StrongsBookCount[]> {
+    await this.initialize();
+    return this.getDb().getAllAsync<StrongsBookCount>(
+      `SELECT book_id, COUNT(*) AS count
+       FROM original_words
+       WHERE strongs = ?
+       GROUP BY book_id
+       ORDER BY book_id`,
+      [strongs.trim()],
+    );
+  }
+
+  /**
+   * The first and last occurrence of a Strong's number in canonical order
+   * (for the word-study "first/last appearance" rows). Null when not present.
+   */
+  async getStrongsExtent(strongs: string): Promise<{
+    first: StrongsOccurrence | null;
+    last: StrongsOccurrence | null;
+  }> {
+    await this.initialize();
+    const key = strongs.trim();
+    const [first, last] = await Promise.all([
+      this.getDb().getFirstAsync<StrongsOccurrence>(
+        `SELECT book_id, chapter, verse, word
+         FROM original_words WHERE strongs = ?
+         ORDER BY book_id, chapter, verse, position LIMIT 1`,
+        [key],
+      ),
+      this.getDb().getFirstAsync<StrongsOccurrence>(
+        `SELECT book_id, chapter, verse, word
+         FROM original_words WHERE strongs = ?
+         ORDER BY book_id DESC, chapter DESC, verse DESC, position DESC LIMIT 1`,
+        [key],
+      ),
+    ]);
+    return {first: first ?? null, last: last ?? null};
   }
 
   private async migrateBookmarksToFavorites(): Promise<void> {
