@@ -31,6 +31,7 @@ import {parseReference} from '@/lib/references/parseReference';
 import {useTheme} from '@hooks/useTheme';
 import {centeredMaxWidth} from '@/styles/responsive';
 import {useLanguage} from '@hooks/useLanguage';
+import {useBibleVersion} from '@hooks/useBibleVersion';
 
 // Design tokens
 import {spacing, fontSize, staticColors} from '@/styles/designTokens';
@@ -48,7 +49,12 @@ interface BibleBook {
 export default function BibleScreen() {
   const router = useRouter();
   const {colors, isDark, gradient} = useTheme();
-  const {t, language} = useLanguage();
+  const {t} = useLanguage();
+  const {selectedVersion} = useBibleVersion();
+  // Book names follow the READING version's language (RVR1960 -> "Juan"), so the
+  // whole Bible -> chapter -> reader flow matches the version, not the UI language.
+  const bookNameLang: 'es' | 'en' =
+    selectedVersion.language === 'es' ? 'es' : 'en';
 
   const [searchQuery, setSearchQuery] = useState('');
   const [filter, setFilter] = useState<'all' | 'old' | 'new'>('all');
@@ -108,14 +114,14 @@ export default function BibleScreen() {
   const quickJumpLabel = useMemo(() => {
     if (!parsedRef) return null;
     const name =
-      language === 'en' ? parsedRef.book.nameEn : parsedRef.book.name;
+      bookNameLang === 'en' ? parsedRef.book.nameEn : parsedRef.book.name;
     let ref = `${name} ${parsedRef.chapter}`;
     if (parsedRef.verse !== undefined) {
       ref += `:${parsedRef.verse}`;
       if (parsedRef.verseEnd !== undefined) ref += `-${parsedRef.verseEnd}`;
     }
     return ref;
-  }, [parsedRef, language]);
+  }, [parsedRef, bookNameLang]);
 
   function handleQuickJump() {
     if (!parsedRef) return;
@@ -455,7 +461,12 @@ interface BookCardProps {
 
 const BookCard: React.FC<BookCardProps> = ({book, index, onPress}) => {
   const {colors} = useTheme();
-  const {t, language} = useLanguage();
+  const {t} = useLanguage();
+  const {selectedVersion} = useBibleVersion();
+  // Book name + abbreviation follow the READING version's language (see the
+  // screen-level note), so the card matches the version, not the UI language.
+  const bookNameLang: 'es' | 'en' =
+    selectedVersion.language === 'es' ? 'es' : 'en';
   const scaleAnim = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
@@ -495,7 +506,7 @@ const BookCard: React.FC<BookCardProps> = ({book, index, onPress}) => {
             {backgroundColor: colors.primary + '15'},
           ]}>
           <Text style={[styles.bookIcon, {color: colors.primary}]}>
-            {language === 'en' ? book.abbrEn : book.abbr}
+            {bookNameLang === 'en' ? book.abbrEn : book.abbr}
           </Text>
         </View>
 
@@ -505,7 +516,7 @@ const BookCard: React.FC<BookCardProps> = ({book, index, onPress}) => {
             style={[styles.bookName, {color: colors.text}]}
             numberOfLines={1}
             ellipsizeMode="tail">
-            {language === 'en' ? book.nameEn : book.name}
+            {bookNameLang === 'en' ? book.nameEn : book.name}
           </Text>
           <View style={styles.bookRightContent}>
             <Text style={[styles.bookChapters, {color: colors.textSecondary}]}>
