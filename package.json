@@ -104,6 +104,24 @@
     "react-native-mmkv": "^4.0.0",
     "typescript": "~5.9.2"
   },
+  "overrides": {
+    "ws": "8.21.0",
+    "@expo/metro": {
+      "ws": "7.5.11"
+    },
+    "metro": {
+      "ws": "7.5.11"
+    },
+    "react-devtools-core": {
+      "ws": "7.5.11"
+    },
+    "@react-native/dev-middleware": {
+      "ws": "6.2.4"
+    },
+    "react-native": {
+      "ws": "6.2.4"
+    }
+  },
   "private": true,
   "lint-staged": {
     "*.{js,jsx,ts,tsx}": [
