@@ -92,8 +92,8 @@ export const translations = {
       greetingAfternoon: 'Buenas tardes',
       greetingEvening: 'Buenas noches',
       greetingNight: 'Que descanses',
-      nudgeStreak: 'Llevas {{days}} días seguidos en la Palabra',
-      nudgeStreakOne: 'Llevas 1 día seguido en la Palabra',
+      nudgeStreak: 'Llevas {{days}} días seguidos leyendo la Palabra',
+      nudgeStreakOne: 'Llevas 1 día seguido leyendo la Palabra',
       nudgeContinue: 'Continúa en {{book}}',
       nudgeDaily: 'Tu versículo de hoy te espera',
       level: 'Nivel',
@@ -1674,7 +1674,7 @@ export const translations = {
     },
 
     devotion: {
-      streakTitle: 'Tu constancia con Dios',
+      streakTitle: 'Tu momento con Dios',
       streakDays: '{{n}} días con Dios',
       streakOneDay: '1 día con Dios',
       streakBest: 'Tu mejor racha: {{n}}',
@@ -3358,8 +3358,8 @@ export const translations = {
       greetingAfternoon: 'Good afternoon',
       greetingEvening: 'Good evening',
       greetingNight: 'Rest well',
-      nudgeStreak: "You're on a {{days}}-day streak in the Word",
-      nudgeStreakOne: "You're on a 1-day streak in the Word",
+      nudgeStreak: "You're on a {{days}}-day reading streak",
+      nudgeStreakOne: "You're on a 1-day reading streak",
       nudgeContinue: 'Continue in {{book}}',
       nudgeDaily: "Today's verse is waiting for you",
       level: 'Level',
@@ -4929,7 +4929,7 @@ export const translations = {
     },
 
     devotion: {
-      streakTitle: 'Your constancy with God',
+      streakTitle: 'Your time with God',
       streakDays: '{{n}} days with God',
       streakOneDay: '1 day with God',
       streakBest: 'Your best: {{n}}',
