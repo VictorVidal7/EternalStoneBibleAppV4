@@ -499,6 +499,27 @@ export default function PropheticThreadScreen() {
                     ) : null}
                   </TouchableOpacity>
 
+                  {/* The visual web map of the whole thread. */}
+                  <TouchableOpacity
+                    style={styles.introIndexBtn}
+                    onPress={() => {
+                      haptics.tap();
+                      router.push('/features/prophecies/map' as never);
+                    }}
+                    accessibilityRole="button"
+                    accessibilityLabel={tp.mapTitle}>
+                    <Ionicons
+                      name="git-network"
+                      size={16}
+                      color={colors.primary}
+                    />
+                    <AppText
+                      scaleRole="compact"
+                      style={[styles.introIndexText, {color: colors.primary}]}>
+                      {tp.viewMap}
+                    </AppText>
+                  </TouchableOpacity>
+
                   {/* Sources & method — the honest "bibliography": the conservative
                   inclusion criterion + the sources (Scripture itself, the NT's
                   own citations, openbible.info). Collapsed by default. */}
