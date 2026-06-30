@@ -1702,7 +1702,9 @@ export const translations = {
       mapTitle: 'Mapa del hilo',
       mapSubtitle: 'Toda la Escritura converge en Él',
       mapHint:
-        'Toca un hilo (en cualquiera de sus dos extremos) para abrirlo en el recorrido.',
+        'Toca un hilo (en cualquiera de sus dos extremos) para resaltarlo y ver de qué trata.',
+      shareMap: 'Compartir el mapa',
+      openInWalk: 'Abrir en el recorrido',
       otTestament: 'Antiguo Testamento',
       ntTestament: 'Nuevo Testamento',
       prophecyLabel: 'Profecía',
@@ -5289,7 +5291,10 @@ export const translations = {
       viewMap: 'View the map',
       mapTitle: 'Thread map',
       mapSubtitle: 'All Scripture converges on Him',
-      mapHint: 'Tap a thread (at either end) to open it in the walk.',
+      mapHint:
+        'Tap a thread (at either end) to highlight it and see what it is.',
+      shareMap: 'Share the map',
+      openInWalk: 'Open in the walk',
       otTestament: 'Old Testament',
       ntTestament: 'New Testament',
       prophecyLabel: 'Prophecy',
