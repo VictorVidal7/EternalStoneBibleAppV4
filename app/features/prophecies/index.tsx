@@ -27,6 +27,7 @@ import {
 import {Stack, useRouter, useLocalSearchParams} from 'expo-router';
 import {Ionicons} from '@expo/vector-icons';
 import {LinearGradient} from 'expo-linear-gradient';
+import * as Speech from 'expo-speech';
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
 import {useTheme} from '@hooks/useTheme';
 import {centeredMaxWidth} from '@/styles/responsive';
@@ -130,6 +131,46 @@ export default function PropheticThreadScreen() {
   const toggleFavorite = (id: string) => {
     haptics.tap();
     void toggleProphecyFavorite(id).then(setFavorites);
+  };
+
+  // "Escuchar" — read the prophecy then its fulfillment aloud (expo-speech, in
+  // the version's language). Foreground only; stops on step change / unmount.
+  const [speaking, setSpeaking] = useState(false);
+  useEffect(() => {
+    setSpeaking(false);
+    return () => {
+      void Speech.stop();
+    };
+  }, [phase]);
+
+  const handleListen = () => {
+    haptics.tap();
+    if (speaking) {
+      void Speech.stop();
+      setSpeaking(false);
+      return;
+    }
+    const segments = [prophecy?.text, fulfillment?.text].filter(
+      (s): s is string => Boolean(s),
+    );
+    if (segments.length === 0) return;
+    const language = selectedVersion.language === 'es' ? 'es-ES' : 'en-US';
+    setSpeaking(true);
+    let i = 0;
+    const speakNext = () => {
+      if (i >= segments.length) {
+        setSpeaking(false);
+        return;
+      }
+      const text = segments[i++];
+      void Speech.speak(text, {
+        language,
+        onDone: speakNext,
+        onStopped: () => setSpeaking(false),
+        onError: () => setSpeaking(false),
+      });
+    };
+    void Speech.stop().then(speakNext);
   };
 
   const current =
@@ -899,6 +940,26 @@ export default function PropheticThreadScreen() {
                         {items[current.id]?.note ?? ''}
                       </AppText>
 
+                      {/* Escuchar — read the prophecy + fulfillment aloud. */}
+                      <TouchableOpacity
+                        style={[styles.listenBtn, {borderColor: accent + '55'}]}
+                        onPress={handleListen}
+                        accessibilityRole="button"
+                        accessibilityLabel={
+                          speaking ? tp.stopListening : tp.listen
+                        }>
+                        <Ionicons
+                          name={speaking ? 'stop-circle' : 'volume-high'}
+                          size={18}
+                          color={accent}
+                        />
+                        <AppText
+                          scaleRole="compact"
+                          style={[styles.listenText, {color: accent}]}>
+                          {speaking ? tp.stopListening : tp.listen}
+                        </AppText>
+                      </TouchableOpacity>
+
                       {/* "Cristo en este pasaje" — the curated christConnections
                           reflection on this OT verse, when one exists. */}
                       {christHereNote ? (
@@ -1428,6 +1489,18 @@ const styles = StyleSheet.create({
     lineHeight: fontSizes.md * 1.55,
     fontStyle: 'italic',
   },
+  listenBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: spacing.xs,
+    alignSelf: 'flex-start',
+    paddingVertical: spacing.xs,
+    paddingHorizontal: spacing.base,
+    borderRadius: borderRadius.full,
+    borderWidth: 1,
+  },
+  listenText: {fontSize: fontSizes.sm, fontWeight: '700'},
   christCard: {
     borderRadius: borderRadius.lg,
     borderWidth: 1,
