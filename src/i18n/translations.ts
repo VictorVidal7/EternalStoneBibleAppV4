@@ -1699,6 +1699,7 @@ export const translations = {
       viewIndex: 'Ver índice',
       indexTitle: 'Índice del hilo',
       prophecyLabel: 'Profecía',
+      shadowLabel: 'Sombra',
       fulfilledIn: 'Cumplido en',
       openInReader: 'Abrir en el lector',
       share: 'Compartir',
@@ -1719,6 +1720,7 @@ export const translations = {
         ministry: 'Su ministerio',
         passion: 'Su pasión',
         resurrection: 'Su resurrección y gloria',
+        shadows: 'Sombras de Cristo',
       },
       items: {
         'gen-3-15': {
@@ -1912,6 +1914,46 @@ export const translations = {
         'ps-110-4': {
           label: 'Sacerdote para siempre',
           note: 'Tú eres sacerdote para siempre según el orden de Melquisedec; Cristo es nuestro gran Sumo Sacerdote.',
+        },
+        'paschal-lamb': {
+          label: 'El cordero de la Pascua',
+          note: 'La sangre del cordero libraba de la muerte; «nuestra Pascua, que es Cristo, ya fue sacrificada por nosotros».',
+        },
+        'bronze-serpent': {
+          label: 'La serpiente de bronce',
+          note: 'Quien miraba la serpiente levantada vivía; así el Hijo del Hombre fue levantado, para que todo aquel que en Él cree tenga vida eterna.',
+        },
+        isaac: {
+          label: 'El cordero que Dios proveyó',
+          note: 'Abraham dijo: «Dios proveerá el cordero»; Juan señaló a Jesús: «He aquí el Cordero de Dios que quita el pecado del mundo».',
+        },
+        manna: {
+          label: 'El maná del cielo',
+          note: 'Dios dio pan del cielo en el desierto; Jesús dijo: «Yo soy el pan de vida; el que a mí viene, nunca tendrá hambre».',
+        },
+        rock: {
+          label: 'La roca que dio agua',
+          note: 'De la roca herida brotó agua para el pueblo; «y la roca era Cristo», de quien brota agua viva.',
+        },
+        tabernacle: {
+          label: 'El tabernáculo',
+          note: 'Dios habitó en medio de su pueblo en el tabernáculo; «el Verbo se hizo carne y habitó entre nosotros».',
+        },
+        atonement: {
+          label: 'El día de la expiación',
+          note: 'El sumo sacerdote entraba con sangre una vez al año; Cristo entró una vez para siempre por su propia sangre, hallando eterna redención.',
+        },
+        melchizedek: {
+          label: 'Melquisedec, sacerdote-rey',
+          note: 'Melquisedec, rey y sacerdote sin genealogía, prefigura a Cristo, sacerdote para siempre según su orden.',
+        },
+        firstfruits: {
+          label: 'Las primicias',
+          note: 'Se ofrecían las primicias de la cosecha; «Cristo ha resucitado, primicias de los que durmieron».',
+        },
+        jonah: {
+          label: 'Jonás, tres días',
+          note: 'Como Jonás estuvo tres días en el vientre del gran pez, así el Hijo del Hombre estuvo tres días en el corazón de la tierra.',
         },
       },
     },
@@ -5186,6 +5228,7 @@ export const translations = {
       viewIndex: 'View index',
       indexTitle: 'Thread index',
       prophecyLabel: 'Prophecy',
+      shadowLabel: 'Shadow',
       fulfilledIn: 'Fulfilled in',
       openInReader: 'Open in reader',
       share: 'Share',
@@ -5206,6 +5249,7 @@ export const translations = {
         ministry: 'His ministry',
         passion: 'His passion',
         resurrection: 'His resurrection and glory',
+        shadows: 'Shadows of Christ',
       },
       items: {
         'gen-3-15': {
@@ -5399,6 +5443,46 @@ export const translations = {
         'ps-110-4': {
           label: 'A priest forever',
           note: 'You are a priest forever after the order of Melchizedek; Christ is our great High Priest.',
+        },
+        'paschal-lamb': {
+          label: 'The Passover lamb',
+          note: "The lamb's blood spared from death; 'Christ, our Passover, has been sacrificed for us.'",
+        },
+        'bronze-serpent': {
+          label: 'The bronze serpent',
+          note: 'Whoever looked at the lifted serpent lived; so the Son of Man was lifted up, that whoever believes in Him may have eternal life.',
+        },
+        isaac: {
+          label: 'The lamb God provided',
+          note: 'Abraham said, "God will provide the lamb"; John pointed to Jesus: "Behold the Lamb of God who takes away the sin of the world."',
+        },
+        manna: {
+          label: 'The manna from heaven',
+          note: 'God gave bread from heaven in the wilderness; Jesus said, "I am the bread of life; whoever comes to Me will never hunger."',
+        },
+        rock: {
+          label: 'The rock that gave water',
+          note: 'From the struck rock water flowed for the people; "and the Rock was Christ," from whom living water flows.',
+        },
+        tabernacle: {
+          label: 'The tabernacle',
+          note: 'God dwelt among His people in the tabernacle; "the Word became flesh and dwelt among us."',
+        },
+        atonement: {
+          label: 'The Day of Atonement',
+          note: 'The high priest entered with blood once a year; Christ entered once for all by His own blood, obtaining eternal redemption.',
+        },
+        melchizedek: {
+          label: 'Melchizedek, priest-king',
+          note: 'Melchizedek, king and priest without genealogy, prefigures Christ, a priest forever after his order.',
+        },
+        firstfruits: {
+          label: 'The firstfruits',
+          note: 'The firstfruits of the harvest were offered; "Christ has been raised, the firstfruits of those who have fallen asleep."',
+        },
+        jonah: {
+          label: 'Jonah, three days',
+          note: 'As Jonah was three days in the belly of the great fish, so the Son of Man was three days in the heart of the earth.',
         },
       },
     },
