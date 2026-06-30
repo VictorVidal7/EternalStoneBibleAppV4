@@ -855,8 +855,11 @@ export default function HomeScreen() {
                     }
                     onPress={() =>
                       handlePress(() =>
+                        // Land on the EXACT daily verse, not the chapter top
+                        // (UX follow-up) — the reader scrolls to / highlights
+                        // the `verse` param, same as the cross-ref jumps.
                         router.push(
-                          `/verse/${dailyVerse.book}/${dailyVerse.chapter}` as never,
+                          `/verse/${dailyVerse.book}/${dailyVerse.chapter}?verse=${dailyVerse.verse}` as never,
                         ),
                       )
                     }
