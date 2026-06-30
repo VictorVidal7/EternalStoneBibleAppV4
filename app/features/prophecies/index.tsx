@@ -22,6 +22,7 @@ import {
   ScrollView,
   TouchableOpacity,
   ActivityIndicator,
+  Share,
   StyleSheet,
 } from 'react-native';
 import {Stack, useRouter} from 'expo-router';
@@ -188,6 +189,63 @@ export default function PropheticThreadScreen() {
 
   const items = tp.items as Record<string, {label: string; note: string}>;
   const groups = tp.groups as Record<string, string>;
+
+  // Cross-links + share operate on the OT prophecy verse (the thread's focus).
+  const openConstellation = () => {
+    if (!current) return;
+    const info = localizedRef(current.prophecy);
+    if (!info) return;
+    haptics.tap();
+    router.push({
+      pathname: '/features/constellation',
+      params: {
+        book: info.display,
+        chapter: String(info.chapter),
+        verse: String(info.verse),
+      },
+    } as never);
+  };
+
+  const openStudy = () => {
+    if (!current) return;
+    const info = localizedRef(current.prophecy);
+    if (!info) return;
+    haptics.tap();
+    router.push({
+      pathname: '/features/study',
+      params: {
+        book: info.display,
+        chapter: String(info.chapter),
+        verse: String(info.verse),
+        version: selectedVersion.id,
+      },
+    } as never);
+  };
+
+  const shareProphecy = async () => {
+    if (!current) return;
+    haptics.tap();
+    const label = items[current.id]?.label ?? '';
+    const note = items[current.id]?.note ?? '';
+    const message = [
+      label,
+      '',
+      `${tp.prophecyLabel} · ${prophecy?.reference ?? ''}`,
+      prophecy?.text ?? '',
+      '',
+      `${tp.fulfilledIn} · ${fulfillment?.reference ?? ''}`,
+      fulfillment?.text ?? '',
+      '',
+      note,
+      '',
+      tp.shareSignature,
+    ].join('\n');
+    try {
+      await Share.share({message});
+    } catch (error) {
+      logger.warn('Prophecy share dismissed', {error: String(error)});
+    }
+  };
 
   const renderVerseCard = (
     role: 'prophecy' | 'fulfillment',
@@ -550,6 +608,79 @@ export default function PropheticThreadScreen() {
                         ]}>
                         {items[current.id]?.note ?? ''}
                       </AppText>
+
+                      {/* Cross-links + share for the prophecy verse. */}
+                      <View style={styles.actionsRow}>
+                        <TouchableOpacity
+                          style={[
+                            styles.actionChip,
+                            {borderColor: colors.border},
+                          ]}
+                          onPress={() => void shareProphecy()}
+                          accessibilityRole="button"
+                          accessibilityLabel={tp.share}>
+                          <Ionicons
+                            name="share-outline"
+                            size={15}
+                            color={colors.textSecondary}
+                          />
+                          <AppText
+                            scaleRole="compact"
+                            style={[
+                              styles.actionChipText,
+                              {color: colors.textSecondary},
+                            ]}
+                            numberOfLines={1}>
+                            {tp.share}
+                          </AppText>
+                        </TouchableOpacity>
+                        <TouchableOpacity
+                          style={[
+                            styles.actionChip,
+                            {borderColor: colors.border},
+                          ]}
+                          onPress={openConstellation}
+                          accessibilityRole="button"
+                          accessibilityLabel={tp.constellation}>
+                          <Ionicons
+                            name="sparkles-outline"
+                            size={15}
+                            color={colors.textSecondary}
+                          />
+                          <AppText
+                            scaleRole="compact"
+                            style={[
+                              styles.actionChipText,
+                              {color: colors.textSecondary},
+                            ]}
+                            numberOfLines={1}>
+                            {tp.constellation}
+                          </AppText>
+                        </TouchableOpacity>
+                        <TouchableOpacity
+                          style={[
+                            styles.actionChip,
+                            {borderColor: colors.border},
+                          ]}
+                          onPress={openStudy}
+                          accessibilityRole="button"
+                          accessibilityLabel={tp.study}>
+                          <Ionicons
+                            name="git-network-outline"
+                            size={15}
+                            color={colors.textSecondary}
+                          />
+                          <AppText
+                            scaleRole="compact"
+                            style={[
+                              styles.actionChipText,
+                              {color: colors.textSecondary},
+                            ]}
+                            numberOfLines={1}>
+                            {tp.study}
+                          </AppText>
+                        </TouchableOpacity>
+                      </View>
                     </>
                   )}
 
@@ -839,6 +970,23 @@ const styles = StyleSheet.create({
     lineHeight: fontSizes.md * 1.55,
     fontStyle: 'italic',
   },
+  actionsRow: {
+    flexDirection: 'row',
+    gap: spacing.sm,
+    marginTop: spacing.xs,
+  },
+  actionChip: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: spacing.xs,
+    paddingVertical: spacing.sm,
+    paddingHorizontal: spacing.xs,
+    borderRadius: borderRadius.full,
+    borderWidth: 1,
+  },
+  actionChipText: {fontSize: fontSizes.xs, fontWeight: '700', flexShrink: 1},
   navRow: {flexDirection: 'row', gap: spacing.sm, marginTop: spacing.xs},
   navBtn: {
     flex: 1,
