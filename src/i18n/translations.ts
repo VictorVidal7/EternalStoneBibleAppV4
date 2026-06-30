@@ -1962,6 +1962,54 @@ export const translations = {
           label: 'Jonás, tres días',
           note: 'Como Jonás estuvo tres días en el vientre del gran pez, así el Hijo del Hombre estuvo tres días en el corazón de la tierra.',
         },
+        'isa-28-16': {
+          label: 'La piedra angular preciosa',
+          note: 'Dios pone en Sion una piedra probada, angular y preciosa; Pedro y Pablo la reconocen en Cristo, fundamento seguro: «el que creyere, no será avergonzado».',
+        },
+        'ps-69-9': {
+          label: 'El celo por la casa de Dios',
+          note: '«Me consumió el celo de tu casa», dice el salmo; sus discípulos lo recordaron cuando Jesús purificó el templo.',
+        },
+        'isa-49-6': {
+          label: 'Luz para las naciones',
+          note: 'El Siervo del Señor sería luz de las naciones y salvación hasta lo último de la tierra; en Cristo la salvación alcanza a los gentiles.',
+        },
+        'isa-53-1': {
+          label: 'El anuncio no creído',
+          note: '«¿Quién ha creído a nuestro anuncio?» Juan ve en la incredulidad ante Jesús el cumplimiento de la palabra de Isaías.',
+        },
+        'joel-2-32': {
+          label: 'Invocar el nombre del Señor',
+          note: '«Todo aquel que invocare el nombre de Jehová será salvo», dice Joel; Pablo lo aplica a Cristo, Señor de todos, generoso con cuantos le invocan.',
+        },
+        'amos-9-11': {
+          label: 'El tabernáculo de David levantado',
+          note: 'Dios prometió levantar el caído tabernáculo de David; Santiago ve la promesa cumplida en Cristo resucitado y en los gentiles que buscan al Señor.',
+        },
+        'ps-102-25': {
+          label: 'El Creador eterno',
+          note: '«Tú fundaste la tierra, y los cielos son obra de tus manos»; Hebreos dirige estas palabras al Hijo, el mismo ayer, hoy y por los siglos.',
+        },
+        'ps-8-6': {
+          label: 'Todo bajo sus pies',
+          note: 'Dios sujetó todas las cosas bajo los pies del hombre; Hebreos lo ve cumplido en Jesús, coronado de gloria, a quien todo le será sometido.',
+        },
+        adam: {
+          label: 'El postrer Adán',
+          note: 'El primer Adán fue hecho alma viviente; «el postrer Adán, espíritu vivificante». Lo que se perdió en uno, en Cristo recibe vida.',
+        },
+        veil: {
+          label: 'El velo del templo',
+          note: 'El velo cerraba el paso al Lugar Santísimo; por su carne, Cristo abrió «un camino nuevo y vivo» hasta la presencia de Dios.',
+        },
+        scapegoat: {
+          label: 'El macho cabrío que carga las culpas',
+          note: 'El macho cabrío llevaba sobre sí todas las iniquidades a tierra inhabitada; así Cristo fue ofrecido «para llevar los pecados de muchos».',
+        },
+        'joshua-rest': {
+          label: 'El reposo verdadero',
+          note: 'Josué dio reposo en la tierra, mas no el definitivo; queda un reposo para el pueblo de Dios, en el que se entra por la fe en Jesús.',
+        },
       },
     },
 
@@ -5496,6 +5544,54 @@ export const translations = {
         jonah: {
           label: 'Jonah, three days',
           note: 'As Jonah was three days in the belly of the great fish, so the Son of Man was three days in the heart of the earth.',
+        },
+        'isa-28-16': {
+          label: 'The precious cornerstone',
+          note: 'God lays in Zion a tried, precious cornerstone; Peter and Paul find it in Christ, the sure foundation: "he that believeth shall not be confounded."',
+        },
+        'ps-69-9': {
+          label: "Zeal for God's house",
+          note: '"The zeal of thine house hath eaten me up," says the psalm; His disciples remembered it when Jesus cleansed the temple.',
+        },
+        'isa-49-6': {
+          label: 'A light to the nations',
+          note: 'The Servant of the LORD would be a light to the nations, salvation to the ends of the earth; in Christ that salvation reaches the Gentiles.',
+        },
+        'isa-53-1': {
+          label: 'The report not believed',
+          note: '"Who hath believed our report?" John sees the unbelief toward Jesus as the fulfillment of what Isaiah foretold.',
+        },
+        'joel-2-32': {
+          label: 'Calling on the name of the Lord',
+          note: 'Joel says, "Whosoever shall call on the name of the LORD shall be saved"; Paul applies it to Christ, Lord of all, rich to all who call on Him.',
+        },
+        'amos-9-11': {
+          label: "David's fallen tent raised",
+          note: 'God promised to raise up the fallen tent of David; James sees the promise fulfilled in the risen Christ and in the Gentiles who seek the Lord.',
+        },
+        'ps-102-25': {
+          label: 'The eternal Creator',
+          note: '"Thou hast laid the foundation of the earth, and the heavens are the work of thine hands"; Hebrews speaks these words to the Son, the same yesterday, today, and forever.',
+        },
+        'ps-8-6': {
+          label: 'All things under His feet',
+          note: 'God put all things under the feet of man; Hebrews sees it fulfilled in Jesus, crowned with glory, to whom all things will be subjected.',
+        },
+        adam: {
+          label: 'The last Adam',
+          note: 'The first Adam was made a living soul; "the last Adam was made a quickening spirit." What was lost in one is made alive in Christ.',
+        },
+        veil: {
+          label: 'The temple veil',
+          note: 'The veil shut off the Most Holy Place; through His flesh Christ opened "a new and living way" into the presence of God.',
+        },
+        scapegoat: {
+          label: 'The goat that carries away sin',
+          note: 'The goat bore all their iniquities into an uninhabited land; so Christ was offered "to bear the sins of many."',
+        },
+        'joshua-rest': {
+          label: 'The true rest',
+          note: 'Joshua gave rest in the land, but not the final one; there remains a rest for the people of God, entered by faith in Jesus.',
         },
       },
     },
