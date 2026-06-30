@@ -192,20 +192,35 @@ export default function PropheciesMapScreen() {
             ))}
           </Svg>
 
-          {/* Tap targets: a band on the LEFT side of each row (the left dots are
-              evenly spaced, so these never overlap). */}
+          {/* Tap targets: a band at each row on BOTH rails. The left dots and the
+              right dots are each evenly spaced, so bands on a side never overlap
+              — and either end of a thread opens that prophecy in the walk. */}
           <View style={StyleSheet.absoluteFill} pointerEvents="box-none">
             {map.nodes.map(node => (
-              <Pressable
-                key={`tap-${node.id}`}
-                onPress={() => jump(node.index)}
-                style={[
-                  styles.tapBand,
-                  {top: node.leftY - 9, width: map.leftX + 28},
-                ]}
-                accessibilityRole="button"
-                accessibilityLabel={tp.viewIndex}
-              />
+              <React.Fragment key={`tap-${node.id}`}>
+                <Pressable
+                  onPress={() => jump(node.index)}
+                  style={[
+                    styles.tapBand,
+                    {top: node.leftY - 9, width: map.leftX + 28},
+                  ]}
+                  accessibilityRole="button"
+                  accessibilityLabel={tp.viewIndex}
+                />
+                <Pressable
+                  onPress={() => jump(node.index)}
+                  style={[
+                    styles.tapBand,
+                    {
+                      top: node.rightY - 9,
+                      left: map.rightX - 28,
+                      width: canvasW - map.rightX + 28,
+                    },
+                  ]}
+                  accessibilityRole="button"
+                  accessibilityLabel={tp.viewIndex}
+                />
+              </React.Fragment>
             ))}
           </View>
         </View>
