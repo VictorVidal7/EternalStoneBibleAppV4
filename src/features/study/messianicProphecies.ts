@@ -27,22 +27,37 @@
 /** A canonical "EnglishBook/Chapter/Verse" reference key. */
 export type ProphecyRefKey = string;
 
-/** The movements of Christ's life the thread walks through, in order. */
-export type ProphecyGroup = 'coming' | 'ministry' | 'passion' | 'resurrection';
+/**
+ * The movements the thread walks through, in order: the four stages of Christ's
+ * life, then the "shadows" — OT types that prefigure Him (the bronze serpent,
+ * the Passover lamb…), each affirmed as fulfilled in Him by the New Testament.
+ */
+export type ProphecyGroup =
+  | 'coming'
+  | 'ministry'
+  | 'passion'
+  | 'resurrection'
+  | 'shadows';
 
 export const PROPHECY_GROUP_ORDER: readonly ProphecyGroup[] = [
   'coming',
   'ministry',
   'passion',
   'resurrection',
+  'shadows',
 ];
 
 export interface MessianicProphecy {
   /** Stable slug — also the i18n key `t.prophecies.items[id]`. */
   id: string;
-  /** Which movement of Christ's life this prophecy belongs to. */
+  /** Which movement of Christ's life (or 'shadows') this entry belongs to. */
   group: ProphecyGroup;
-  /** The Old-Testament prophecy (canonical "EnglishBook/Chapter/Verse"). */
+  /**
+   * 'prophecy' (a spoken word foretelling Him, the default) or 'shadow' (an OT
+   * type/figure that prefigures Him). Changes only the OT-side label.
+   */
+  kind?: 'prophecy' | 'shadow';
+  /** The Old-Testament prophecy or type (canonical "EnglishBook/Chapter/Verse"). */
   prophecy: ProphecyRefKey;
   /** The New-Testament passage where it is fulfilled in Christ. */
   fulfillment: ProphecyRefKey;
@@ -349,6 +364,78 @@ export const MESSIANIC_PROPHECIES: readonly MessianicProphecy[] = [
     prophecy: 'Daniel/7/13',
     fulfillment: 'Matthew/26/64',
   },
+
+  // ── Shadows of Christ: OT types the NT affirms are fulfilled in Him ──
+  {
+    id: 'paschal-lamb',
+    group: 'shadows',
+    kind: 'shadow',
+    prophecy: 'Exodus/12/13',
+    fulfillment: '1 Corinthians/5/7',
+  },
+  {
+    id: 'bronze-serpent',
+    group: 'shadows',
+    kind: 'shadow',
+    prophecy: 'Numbers/21/9',
+    fulfillment: 'John/3/14',
+  },
+  {
+    id: 'isaac',
+    group: 'shadows',
+    kind: 'shadow',
+    prophecy: 'Genesis/22/8',
+    fulfillment: 'John/1/29',
+  },
+  {
+    id: 'manna',
+    group: 'shadows',
+    kind: 'shadow',
+    prophecy: 'Exodus/16/15',
+    fulfillment: 'John/6/35',
+  },
+  {
+    id: 'rock',
+    group: 'shadows',
+    kind: 'shadow',
+    prophecy: 'Exodus/17/6',
+    fulfillment: '1 Corinthians/10/4',
+  },
+  {
+    id: 'tabernacle',
+    group: 'shadows',
+    kind: 'shadow',
+    prophecy: 'Exodus/25/8',
+    fulfillment: 'John/1/14',
+  },
+  {
+    id: 'atonement',
+    group: 'shadows',
+    kind: 'shadow',
+    prophecy: 'Leviticus/16/15',
+    fulfillment: 'Hebrews/9/12',
+  },
+  {
+    id: 'melchizedek',
+    group: 'shadows',
+    kind: 'shadow',
+    prophecy: 'Genesis/14/18',
+    fulfillment: 'Hebrews/7/17',
+  },
+  {
+    id: 'firstfruits',
+    group: 'shadows',
+    kind: 'shadow',
+    prophecy: 'Leviticus/23/10',
+    fulfillment: '1 Corinthians/15/20',
+  },
+  {
+    id: 'jonah',
+    group: 'shadows',
+    kind: 'shadow',
+    prophecy: 'Jonah/1/17',
+    fulfillment: 'Matthew/12/40',
+  },
 ];
 
 /** Accent hue per movement (aligned with the app's palette families). */
@@ -357,6 +444,7 @@ export const PROPHECY_GROUP_ACCENT: Record<ProphecyGroup, string> = {
   ministry: '#10b981', // life / light
   passion: '#8b5cf6', // suffering
   resurrection: '#6366f1', // glory
+  shadows: '#0ea5e9', // types / figures
 };
 
 /** Ionicons glyph per movement, for the step header. */
@@ -365,6 +453,7 @@ export const PROPHECY_GROUP_ICON: Record<ProphecyGroup, string> = {
   ministry: 'sunny',
   passion: 'water',
   resurrection: 'sparkles',
+  shadows: 'contrast',
 };
 
 /** Total prophecies in the thread. */

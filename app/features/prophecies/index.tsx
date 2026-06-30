@@ -241,7 +241,8 @@ export default function PropheticThreadScreen() {
           groupTitle: groups[current.group],
           label: items[current.id]?.label ?? '',
           note: items[current.id]?.note ?? '',
-          prophecyLabel: tp.prophecyLabel,
+          prophecyLabel:
+            current.kind === 'shadow' ? tp.shadowLabel : tp.prophecyLabel,
           prophecyRef: prophecy.reference,
           prophecyText: prophecy.text ?? '',
           fulfilledLabel: tp.fulfilledIn,
@@ -279,7 +280,11 @@ export default function PropheticThreadScreen() {
             styles.verseRole,
             {color: role === 'prophecy' ? accent : colors.primary},
           ]}>
-          {role === 'prophecy' ? tp.prophecyLabel : tp.fulfilledIn}
+          {role === 'prophecy'
+            ? current?.kind === 'shadow'
+              ? tp.shadowLabel
+              : tp.prophecyLabel
+            : tp.fulfilledIn}
         </AppText>
         <AppText
           scaleRole="compact"
