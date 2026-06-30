@@ -12,6 +12,7 @@ import {
   PROPHECY_COUNT,
   NT_QUOTED_PROPHECIES,
   isNtQuoted,
+  getPropheciesByGroup,
   type ProphecyGroup,
 } from '../src/features/study/messianicProphecies';
 import {parseChristRef} from '../src/features/study/christConnections';
@@ -140,6 +141,23 @@ describe('messianicProphecies — NT-quoted set', () => {
   it('isNtQuoted mirrors the set', () => {
     for (const p of MESSIANIC_PROPHECIES) {
       expect(isNtQuoted(p.id)).toBe(NT_QUOTED_PROPHECIES.has(p.id));
+    }
+  });
+});
+
+describe('getPropheciesByGroup', () => {
+  it('returns the movements in order with correct global indices', () => {
+    const sections = getPropheciesByGroup();
+    expect(sections.map(s => s.group)).toEqual(
+      PROPHECY_GROUP_ORDER.filter(g =>
+        MESSIANIC_PROPHECIES.some(p => p.group === g),
+      ),
+    );
+    const flat = sections.flatMap(s => s.entries);
+    expect(flat.length).toBe(PROPHECY_COUNT);
+    // Each entry's index points back at the same prophecy in the catalog.
+    for (const {prophecy, index} of flat) {
+      expect(MESSIANIC_PROPHECIES[index]).toBe(prophecy);
     }
   });
 });

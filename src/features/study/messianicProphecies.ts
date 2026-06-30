@@ -422,3 +422,24 @@ export const NT_QUOTED_PROPHECIES: ReadonlySet<string> = new Set([
 export function isNtQuoted(id: string): boolean {
   return NT_QUOTED_PROPHECIES.has(id);
 }
+
+/** A movement with its prophecies and their global thread index (for an index). */
+export interface ProphecyGroupSection {
+  group: ProphecyGroup;
+  entries: {prophecy: MessianicProphecy; index: number}[];
+}
+
+/**
+ * The thread grouped by movement, in {@link PROPHECY_GROUP_ORDER}, each entry
+ * carrying its GLOBAL index in {@link MESSIANIC_PROPHECIES} so an index screen
+ * can jump straight to that step. Pure.
+ */
+export function getPropheciesByGroup(): ProphecyGroupSection[] {
+  return PROPHECY_GROUP_ORDER.map(group => ({
+    group,
+    entries: MESSIANIC_PROPHECIES.map((prophecy, index) => ({
+      prophecy,
+      index,
+    })).filter(e => e.prophecy.group === group),
+  })).filter(section => section.entries.length > 0);
+}
