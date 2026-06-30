@@ -69,7 +69,7 @@ const TAB_BAR_CLEARANCE = Platform.OS === 'ios' ? 84 : 64;
 export default function ConstellationScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
-  const {width} = useWindowDimensions();
+  const {width, height} = useWindowDimensions();
   const {colors, gradient} = useTheme();
   const {t} = useLanguage();
   const {selectedVersion} = useBibleVersion();
@@ -116,7 +116,20 @@ export default function ConstellationScreen() {
   }, [seedKey]);
 
   const current = currentStep(trail);
-  const size = Math.min(width - spacing.lg * 2, 420);
+  // Size the square star map by BOTH width and the available height, so the
+  // whole constellation always sits ABOVE the floating detail panel instead of
+  // having its lower stars covered (user feedback). The reserve accounts for
+  // the header + focus card + legend + the floating panel + the tab bar; the
+  // floor keeps it usable on short screens. Trimmed the outer margin too.
+  const CANVAS_HEIGHT_RESERVE = 540;
+  const size = Math.max(
+    220,
+    Math.min(
+      width - spacing.md * 2,
+      420,
+      height - CANVAS_HEIGHT_RESERVE - insets.top - insets.bottom,
+    ),
+  );
 
   const localize = (book: string) => {
     const info = getBookByName(book);
@@ -527,7 +540,7 @@ export default function ConstellationScreen() {
           {selectedText ? (
             <Text
               style={[styles.selectedText, {color: colors.text}]}
-              numberOfLines={3}>
+              numberOfLines={2}>
               {selectedText}
             </Text>
           ) : (
@@ -543,7 +556,11 @@ export default function ConstellationScreen() {
               accessibilityRole="button"
               accessibilityLabel={cn.recenter}>
               <Ionicons name="git-network" size={16} color={colors.primary} />
-              <Text style={[styles.actionText, {color: colors.primary}]}>
+              <Text
+                style={[styles.actionText, {color: colors.primary}]}
+                numberOfLines={1}
+                adjustsFontSizeToFit
+                minimumFontScale={0.85}>
                 {cn.recenter}
               </Text>
             </TouchableOpacity>
@@ -553,7 +570,11 @@ export default function ConstellationScreen() {
               accessibilityRole="button"
               accessibilityLabel={cn.openInReader}>
               <Ionicons name="book" size={16} color={colors.primary} />
-              <Text style={[styles.actionText, {color: colors.primary}]}>
+              <Text
+                style={[styles.actionText, {color: colors.primary}]}
+                numberOfLines={1}
+                adjustsFontSizeToFit
+                minimumFontScale={0.85}>
                 {cn.openInReader}
               </Text>
             </TouchableOpacity>
@@ -605,7 +626,7 @@ const styles = StyleSheet.create({
   },
   crumbText: {fontSize: fontSizes.xs, fontWeight: '700', maxWidth: 140},
   body: {
-    padding: spacing.lg,
+    padding: spacing.md,
     alignItems: 'center',
     ...centeredMaxWidth(),
   },
@@ -665,7 +686,6 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.18,
     shadowRadius: 12,
     elevation: 10,
-    ...centeredMaxWidth(),
   },
   floatingHeader: {
     flexDirection: 'row',
@@ -696,7 +716,7 @@ const styles = StyleSheet.create({
     borderRadius: borderRadius.md,
     borderWidth: 1,
   },
-  actionText: {fontSize: fontSizes.sm, fontWeight: '700'},
+  actionText: {fontSize: fontSizes.sm, fontWeight: '700', flexShrink: 1},
   tapHint: {
     fontSize: fontSizes.sm,
     fontWeight: '600',
