@@ -369,3 +369,56 @@ export const PROPHECY_GROUP_ICON: Record<ProphecyGroup, string> = {
 
 /** Total prophecies in the thread. */
 export const PROPHECY_COUNT = MESSIANIC_PROPHECIES.length;
+
+/**
+ * The prophecies the New Testament EXPLICITLY quotes/cites as fulfilled in
+ * Christ — the "para que se cumpliese" formula quotations and apostolic
+ * citations (Matthew's fulfilment formulas, Jesus' own quotations, Peter and
+ * Paul citing the Psalms/Prophets). The rest of the catalog is no less true,
+ * but the NT records or fulfils them rather than quoting the OT verse; the
+ * screen shows a "cited in the NT" badge only for these, so the distinction is
+ * honest and visible. (See the "Sources & method" note in the UI.)
+ */
+export const NT_QUOTED_PROPHECIES: ReadonlySet<string> = new Set([
+  'gen-22-18',
+  'isa-7-14',
+  'mic-5-2',
+  'hos-11-1',
+  'jer-31-15',
+  'isa-11-1',
+  'mal-3-1',
+  'isa-40-3',
+  'deut-18-15',
+  'isa-61-1',
+  'isa-9-2',
+  'isa-42-1',
+  'isa-53-4',
+  'ps-78-2',
+  'zech-9-9',
+  'ps-118-22',
+  'ps-118-26',
+  'ps-8-2',
+  'ps-41-9',
+  'zech-13-7',
+  'isa-53-5',
+  'ps-22-18',
+  'ps-69-21',
+  'ps-22-1',
+  'ps-34-20',
+  'zech-12-10',
+  'isa-53-12',
+  'deut-21-23',
+  'ps-16-10',
+  'ps-16-11',
+  'ps-2-7',
+  'ps-110-1',
+  'ps-110-4',
+  'ps-68-18',
+  'ps-45-6',
+  'dan-7-13',
+]);
+
+/** Whether the NT explicitly quotes/cites this prophecy as fulfilled. */
+export function isNtQuoted(id: string): boolean {
+  return NT_QUOTED_PROPHECIES.has(id);
+}

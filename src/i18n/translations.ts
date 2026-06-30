@@ -1698,6 +1698,11 @@ export const translations = {
       prophecyLabel: 'Profecía',
       fulfilledIn: 'Cumplido en',
       openInReader: 'Abrir en el lector',
+      quotedBadge: 'Citado en el NT',
+      sourcesTitle: 'Fuentes y método',
+      sourcesHint: 'Cómo se eligieron estas profecías',
+      sourcesBody:
+        'Este hilo reúne profecías mesiánicas del Antiguo Testamento y su cumplimiento en Cristo. El criterio es conservador: se incluyen solo profecías que el Nuevo Testamento mismo cita como cumplidas, o de aceptación cristiana histórica amplia — nunca especulación. La fuente principal es la Escritura: cada «Cumplido en» es la palabra del propio Nuevo Testamento, y el sello «Citado en el NT» marca las que el NT cita de forma explícita. Las referencias cruzadas se apoyan además en openbible.info (CC BY). Donde una profecía abarca varios versículos, se enlaza uno representativo; abre el pasaje para leer su contexto.',
       missingText: 'Versículo no disponible',
       finishedTitle: 'Cristo, el centro de todo',
       finishedBody:
@@ -5173,6 +5178,11 @@ export const translations = {
       prophecyLabel: 'Prophecy',
       fulfilledIn: 'Fulfilled in',
       openInReader: 'Open in reader',
+      quotedBadge: 'Cited in the NT',
+      sourcesTitle: 'Sources & method',
+      sourcesHint: 'How these prophecies were chosen',
+      sourcesBody:
+        'This thread gathers Old-Testament messianic prophecies and their fulfillment in Christ. The criterion is conservative: only prophecies the New Testament itself cites as fulfilled, or broadly held by the historic church — never speculation. The primary source is Scripture: each "Fulfilled in" is the New Testament\'s own word, and the "Cited in the NT" badge marks the ones the NT quotes explicitly. Cross-references also draw on openbible.info (CC BY). Where a prophecy spans several verses, one representative verse is linked; open the passage to read its context.',
       missingText: 'Verse unavailable',
       finishedTitle: 'Christ, the center of it all',
       finishedBody:

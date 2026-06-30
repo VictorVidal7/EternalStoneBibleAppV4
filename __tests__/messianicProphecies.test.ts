@@ -10,6 +10,8 @@ import {
   PROPHECY_GROUP_ACCENT,
   PROPHECY_GROUP_ICON,
   PROPHECY_COUNT,
+  NT_QUOTED_PROPHECIES,
+  isNtQuoted,
   type ProphecyGroup,
 } from '../src/features/study/messianicProphecies';
 import {parseChristRef} from '../src/features/study/christConnections';
@@ -123,6 +125,21 @@ describe('messianicProphecies — i18n parity', () => {
     const ids = new Set(MESSIANIC_PROPHECIES.map(p => p.id));
     for (const key of Object.keys(esP.items as AnyRecord)) {
       expect(ids.has(key)).toBe(true);
+    }
+  });
+});
+
+describe('messianicProphecies — NT-quoted set', () => {
+  it('only references real catalog ids (no orphans)', () => {
+    const ids = new Set(MESSIANIC_PROPHECIES.map(p => p.id));
+    for (const id of NT_QUOTED_PROPHECIES) {
+      expect(ids.has(id)).toBe(true);
+    }
+  });
+
+  it('isNtQuoted mirrors the set', () => {
+    for (const p of MESSIANIC_PROPHECIES) {
+      expect(isNtQuoted(p.id)).toBe(NT_QUOTED_PROPHECIES.has(p.id));
     }
   });
 });
