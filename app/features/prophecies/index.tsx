@@ -22,7 +22,6 @@ import {
   ScrollView,
   TouchableOpacity,
   ActivityIndicator,
-  Share,
   StyleSheet,
 } from 'react-native';
 import {Stack, useRouter} from 'expo-router';
@@ -51,6 +50,10 @@ import {
   getVisitedProphecies,
   markPropheciesVisited,
 } from '@/features/study/prophecyProgress';
+import {
+  ProphecyShareModal,
+  type ProphecyShareContent,
+} from '@components/study/ProphecyShareModal';
 import {
   borderRadius,
   fontSize as fontSizes,
@@ -82,6 +85,7 @@ export default function PropheticThreadScreen() {
   const [fulfillment, setFulfillment] = useState<ResolvedRef | null>(null);
   const [sourcesOpen, setSourcesOpen] = useState(false);
   const [indexOpen, setIndexOpen] = useState(false);
+  const [shareOpen, setShareOpen] = useState(false);
   const [visited, setVisited] = useState<Set<string>>(new Set());
 
   // Load the device-local "explored" marks once.
@@ -222,30 +226,25 @@ export default function PropheticThreadScreen() {
     } as never);
   };
 
-  const shareProphecy = async () => {
-    if (!current) return;
-    haptics.tap();
-    const label = items[current.id]?.label ?? '';
-    const note = items[current.id]?.note ?? '';
-    const message = [
-      label,
-      '',
-      `${tp.prophecyLabel} · ${prophecy?.reference ?? ''}`,
-      prophecy?.text ?? '',
-      '',
-      `${tp.fulfilledIn} · ${fulfillment?.reference ?? ''}`,
-      fulfillment?.text ?? '',
-      '',
-      note,
-      '',
-      tp.shareSignature,
-    ].join('\n');
-    try {
-      await Share.share({message});
-    } catch (error) {
-      logger.warn('Prophecy share dismissed', {error: String(error)});
-    }
-  };
+  // Content for the image-card share modal (null until the verses resolve).
+  const shareContent: ProphecyShareContent | null =
+    current && prophecy && fulfillment
+      ? {
+          accent,
+          groupTitle: groups[current.group],
+          label: items[current.id]?.label ?? '',
+          note: items[current.id]?.note ?? '',
+          prophecyLabel: tp.prophecyLabel,
+          prophecyRef: prophecy.reference,
+          prophecyText: prophecy.text ?? '',
+          fulfilledLabel: tp.fulfilledIn,
+          fulfillmentRef: fulfillment.reference,
+          fulfillmentText: fulfillment.text ?? '',
+          quoted: isNtQuoted(current.id),
+          quotedLabel: tp.quotedBadge,
+          signature: tp.shareSignature,
+        }
+      : null;
 
   const renderVerseCard = (
     role: 'prophecy' | 'fulfillment',
@@ -616,7 +615,10 @@ export default function PropheticThreadScreen() {
                             styles.actionChip,
                             {borderColor: colors.border},
                           ]}
-                          onPress={() => void shareProphecy()}
+                          onPress={() => {
+                            haptics.tap();
+                            setShareOpen(true);
+                          }}
                           accessibilityRole="button"
                           accessibilityLabel={tp.share}>
                           <Ionicons
@@ -776,6 +778,11 @@ export default function PropheticThreadScreen() {
           )}
         </ScrollView>
       </View>
+      <ProphecyShareModal
+        visible={shareOpen}
+        onClose={() => setShareOpen(false)}
+        content={shareContent}
+      />
     </>
   );
 }
