@@ -509,7 +509,7 @@ export const translations = {
         maskHint: '{{percent}}% oculto',
         maskNone: 'Versículo completo',
         modeReveal: 'Revelar',
-        modeFirstLetter: 'Primera letra',
+        modeFirstLetter: 'Iniciales',
         modeFill: 'Llenar',
         modeWrite: 'Escribir',
         firstLetterPrompt: 'Recita el versículo de memoria, luego revélalo.',

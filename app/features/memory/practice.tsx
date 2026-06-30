@@ -295,7 +295,12 @@ export default function MemoryPracticeScreen() {
                               : colors.textSecondary,
                           },
                         ]}
-                        numberOfLines={1}>
+                        numberOfLines={1}
+                        // Four equal-width tabs leave little room — let a long
+                        // label (e.g. ES "Iniciales") shrink to fit instead of
+                        // clipping to "Primera l…" (UX review #4).
+                        adjustsFontSizeToFit
+                        minimumFontScale={0.8}>
                         {label}
                       </Text>
                     </TouchableOpacity>
