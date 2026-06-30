@@ -1332,6 +1332,18 @@ export default function HomeScreen() {
                 }
               />
             </View>
+            <View style={styles.savedCardWrapper}>
+              <DiscoverTile
+                icon="git-network"
+                title={t.prophecies.title}
+                subtitle={t.prophecies.subtitle}
+                onPress={() =>
+                  handlePress(() =>
+                    router.push('/features/prophecies' as never),
+                  )
+                }
+              />
+            </View>
           </View>
         </Animated.View>
 

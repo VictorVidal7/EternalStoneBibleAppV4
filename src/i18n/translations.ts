@@ -1684,6 +1684,186 @@ export const translations = {
       streakHint: 'Abre la devoción guiada',
     },
 
+    prophecies: {
+      title: 'Hilo profético',
+      subtitle: 'Cristo en las profecías',
+      intro:
+        'Toda la Escritura habla de Él (Lucas 24:27). Recorre, paso a paso, las profecías que anunciaron al Mesías y los pasajes donde se cumplen en el Señor Jesús.',
+      begin: 'Comenzar',
+      prev: 'Anterior',
+      next: 'Siguiente',
+      finish: 'Amén',
+      done: 'Terminar',
+      stepOf: 'Profecía {{n}} de {{total}}',
+      prophecyLabel: 'Profecía',
+      fulfilledIn: 'Cumplido en',
+      openInReader: 'Abrir en el lector',
+      missingText: 'Versículo no disponible',
+      finishedTitle: 'Cristo, el centro de todo',
+      finishedBody:
+        'Has recorrido el hilo que une toda la Escritura en Él. «Escudriñad las Escrituras… ellas son las que dan testimonio de mí» (Juan 5:39).',
+      groups: {
+        coming: 'Su venida',
+        ministry: 'Su ministerio',
+        passion: 'Su pasión',
+        resurrection: 'Su resurrección y gloria',
+      },
+      items: {
+        'gen-3-15': {
+          label: 'La simiente de la mujer',
+          note: 'Desde la caída, Dios promete que la simiente de la mujer herirá la cabeza de la serpiente; Cristo, nacido de mujer, vino a deshacer las obras del diablo.',
+        },
+        'gen-22-18': {
+          label: 'Bendición a las naciones',
+          note: 'En la simiente de Abraham serían benditas todas las naciones; esa simiente, dice Pablo, es Cristo.',
+        },
+        'gen-49-10': {
+          label: 'De la tribu de Judá',
+          note: 'El cetro no se apartaría de Judá hasta venir Siloh; el Señor Jesús nació de la tribu de Judá.',
+        },
+        'num-24-17': {
+          label: 'Estrella de Jacob',
+          note: 'Balaam vio de lejos una estrella que saldría de Jacob; los magos siguieron su estrella hasta el Rey nacido.',
+        },
+        '2sam-7-12': {
+          label: 'Heredero del trono de David',
+          note: 'Dios prometió a David un descendiente cuyo reino sería eterno; el ángel anunció que Jesús reinaría para siempre.',
+        },
+        'isa-7-14': {
+          label: 'Nacido de una virgen',
+          note: 'La virgen concebiría y daría a luz un hijo, Emanuel, «Dios con nosotros»: cumplido en el nacimiento de Jesús.',
+        },
+        'mic-5-2': {
+          label: 'Nacido en Belén',
+          note: 'De Belén, pequeña entre las aldeas, saldría el Señor cuyos orígenes son desde la eternidad.',
+        },
+        'isa-9-6': {
+          label: 'Dios fuerte, Príncipe de paz',
+          note: 'Un niño nos es nacido cuyo nombre es Admirable, Dios fuerte, Príncipe de paz: el Salvador, Cristo el Señor.',
+        },
+        'hos-11-1': {
+          label: 'Llamado de Egipto',
+          note: 'Como Israel fue llamado de Egipto, así fue llamado el Hijo de Dios, guardado allí en su niñez.',
+        },
+        'jer-31-15': {
+          label: 'Llanto en Ramá',
+          note: 'El llanto de Raquel por sus hijos resonó cuando Herodes mandó matar a los niños de Belén.',
+        },
+        'mal-3-1': {
+          label: 'El mensajero del camino',
+          note: 'Dios enviaría un mensajero a preparar el camino delante de Él: Juan el Bautista, voz que precedió al Señor.',
+        },
+        'isa-40-3': {
+          label: 'Voz en el desierto',
+          note: 'Una voz clamaría en el desierto: «Preparad el camino del Señor»; así predicó Juan en el desierto.',
+        },
+        'deut-18-15': {
+          label: 'Profeta como Moisés',
+          note: 'Dios levantaría un profeta como Moisés, a quien oiríamos; Pedro lo proclama cumplido en Jesús.',
+        },
+        'isa-61-1': {
+          label: 'Ungido con el Espíritu',
+          note: 'El Espíritu del Señor sobre el Ungido para dar buenas nuevas a los pobres: Jesús lo leyó y dijo «hoy se ha cumplido».',
+        },
+        'isa-9-2': {
+          label: 'Luz en Galilea',
+          note: 'El pueblo que andaba en tinieblas vería gran luz; Jesús comenzó a predicar en Galilea de los gentiles.',
+        },
+        'isa-35-5': {
+          label: 'Sana ciegos y cojos',
+          note: 'Los ojos de los ciegos se abrirían y los cojos saltarían; así respondió Jesús: los ciegos ven, los cojos andan.',
+        },
+        'ps-78-2': {
+          label: 'Habla en parábolas',
+          note: 'El Mesías abriría su boca en parábolas, declarando cosas escondidas desde la fundación del mundo.',
+        },
+        'zech-9-9': {
+          label: 'Entra montado en pollino',
+          note: 'El Rey vendría humilde, montado en un pollino; así entró Jesús a Jerusalén entre aclamaciones.',
+        },
+        'ps-118-22': {
+          label: 'La piedra rechazada',
+          note: 'La piedra que desecharon los edificadores vino a ser cabeza del ángulo: Cristo, rechazado y exaltado.',
+        },
+        'ps-41-9': {
+          label: 'Traicionado por un amigo',
+          note: 'Aquel que comía pan con Él levantó contra Él su calcañar; Judas, uno de los doce, lo entregó.',
+        },
+        'zech-11-12': {
+          label: 'Vendido por treinta piezas',
+          note: 'Pesaron por su precio treinta piezas de plata, lo que Judas recibió por entregar al Señor.',
+        },
+        'zech-13-7': {
+          label: 'Herido el pastor',
+          note: 'Herido el pastor, se dispersarían las ovejas; los discípulos huyeron cuando prendieron a Jesús.',
+        },
+        'isa-53-7': {
+          label: 'Callado ante sus acusadores',
+          note: 'Como cordero llevado al matadero, enmudeció y no abrió su boca ante quienes lo acusaban.',
+        },
+        'isa-50-6': {
+          label: 'Golpeado y escupido',
+          note: 'Dio su rostro a los que lo herían y escupían; así trataron a Jesús en su juicio.',
+        },
+        'isa-53-5': {
+          label: 'Herido por nuestras rebeliones',
+          note: 'Fue herido por nuestras rebeliones, molido por nuestros pecados; por sus llagas fuimos sanados.',
+        },
+        'ps-22-16': {
+          label: 'Manos y pies horadados',
+          note: 'Horadaron sus manos y sus pies, mucho antes de que existiera la crucifixión: cumplido en la cruz.',
+        },
+        'ps-22-18': {
+          label: 'Reparten sus vestidos',
+          note: 'Repartieron entre sí sus vestidos y sobre su ropa echaron suertes, junto a la cruz.',
+        },
+        'ps-69-21': {
+          label: 'Hiel y vinagre',
+          note: 'En su sed le dieron a beber vinagre, tal como fue escrito de antemano.',
+        },
+        'ps-22-1': {
+          label: '¿Por qué me desamparaste?',
+          note: 'El clamor «Dios mío, ¿por qué me has desamparado?» fue la voz del Salmo 22 desde la cruz.',
+        },
+        'ps-34-20': {
+          label: 'Ningún hueso quebrado',
+          note: 'Él guarda todos sus huesos, ni uno será quebrado; no quebraron las piernas de Jesús en la cruz.',
+        },
+        'zech-12-10': {
+          label: 'Mirarán al que traspasaron',
+          note: 'Mirarán al que traspasaron y harán duelo; el soldado abrió su costado con la lanza.',
+        },
+        'isa-53-9': {
+          label: 'Sepultado con los ricos',
+          note: 'Se dispuso su sepultura con los ricos; José de Arimatea, hombre rico, lo puso en su propio sepulcro.',
+        },
+        'isa-53-12': {
+          label: 'Contado con transgresores',
+          note: 'Fue contado con los transgresores, crucificado entre dos malhechores, e intercedió por ellos.',
+        },
+        'ps-16-10': {
+          label: 'No vería corrupción',
+          note: 'No dejarías su alma en el Seol ni permitirías que tu Santo viera corrupción: Cristo resucitó al tercer día.',
+        },
+        'ps-2-7': {
+          label: 'Tú eres mi Hijo',
+          note: '«Mi Hijo eres tú, yo te engendré hoy»: Pablo lo aplica a la resurrección de Jesús.',
+        },
+        'ps-110-1': {
+          label: 'Sentado a la diestra',
+          note: 'El Señor dijo a su Señor: «Siéntate a mi diestra»; Cristo ascendió y se sentó a la diestra de Dios.',
+        },
+        'ps-68-18': {
+          label: 'Subió a lo alto',
+          note: 'Subiste a lo alto, llevaste cautiva la cautividad; Cristo ascendió y dio dones a los hombres.',
+        },
+        'dan-7-13': {
+          label: 'El Hijo del Hombre',
+          note: 'Vino uno como un Hijo de Hombre y le fue dado dominio eterno; Jesús se llamó así ante el sumo sacerdote.',
+        },
+      },
+    },
+
     constancy: {
       title: 'Tu constancia hoy',
       summary: '{{closed}} de {{total}} hoy',
@@ -4937,6 +5117,186 @@ export const translations = {
       streakTodayPending: "Today's moment awaits",
       streakLapsed: 'Pick your walk back up',
       streakHint: 'Open the guided devotion',
+    },
+
+    prophecies: {
+      title: 'Prophetic thread',
+      subtitle: 'Christ in the prophecies',
+      intro:
+        'All of Scripture speaks of Him (Luke 24:27). Walk, step by step, through the prophecies that foretold the Messiah and the passages where they are fulfilled in the Lord Jesus.',
+      begin: 'Begin',
+      prev: 'Previous',
+      next: 'Next',
+      finish: 'Amen',
+      done: 'Done',
+      stepOf: 'Prophecy {{n}} of {{total}}',
+      prophecyLabel: 'Prophecy',
+      fulfilledIn: 'Fulfilled in',
+      openInReader: 'Open in reader',
+      missingText: 'Verse unavailable',
+      finishedTitle: 'Christ, the center of it all',
+      finishedBody:
+        'You have walked the thread that unites all of Scripture in Him. "Search the Scriptures… they are the ones that testify of Me" (John 5:39).',
+      groups: {
+        coming: 'His coming',
+        ministry: 'His ministry',
+        passion: 'His passion',
+        resurrection: 'His resurrection and glory',
+      },
+      items: {
+        'gen-3-15': {
+          label: 'The seed of the woman',
+          note: "From the fall, God promises the woman's seed will crush the serpent's head; Christ, born of a woman, came to undo the works of the devil.",
+        },
+        'gen-22-18': {
+          label: 'Blessing to the nations',
+          note: "In Abraham's seed all nations would be blessed; that seed, Paul says, is Christ.",
+        },
+        'gen-49-10': {
+          label: 'From the tribe of Judah',
+          note: "The scepter would not depart from Judah until Shiloh came; the Lord Jesus was born of Judah's tribe.",
+        },
+        'num-24-17': {
+          label: 'A star out of Jacob',
+          note: 'Balaam saw from afar a star rising out of Jacob; the magi followed His star to the newborn King.',
+        },
+        '2sam-7-12': {
+          label: "Heir to David's throne",
+          note: 'God promised David an offspring whose kingdom would be everlasting; the angel said Jesus would reign forever.',
+        },
+        'isa-7-14': {
+          label: 'Born of a virgin',
+          note: 'The virgin would conceive and bear a son, Immanuel, "God with us": fulfilled in the birth of Jesus.',
+        },
+        'mic-5-2': {
+          label: 'Born in Bethlehem',
+          note: 'From Bethlehem, small among the towns, would come the One whose origins are from eternity.',
+        },
+        'isa-9-6': {
+          label: 'Mighty God, Prince of Peace',
+          note: 'A child is born whose name is Wonderful, Mighty God, Prince of Peace: the Savior, Christ the Lord.',
+        },
+        'hos-11-1': {
+          label: 'Out of Egypt',
+          note: 'As Israel was called out of Egypt, so was the Son of God, kept there in His childhood.',
+        },
+        'jer-31-15': {
+          label: 'Weeping in Ramah',
+          note: "Rachel's weeping for her children was heard when Herod killed the little ones of Bethlehem.",
+        },
+        'mal-3-1': {
+          label: 'The messenger of the way',
+          note: 'God would send a messenger to prepare the way before Him: John the Baptist, who came before the Lord.',
+        },
+        'isa-40-3': {
+          label: 'A voice in the wilderness',
+          note: 'A voice would cry in the wilderness, "Prepare the way of the Lord"; so John preached in the desert.',
+        },
+        'deut-18-15': {
+          label: 'A prophet like Moses',
+          note: 'God would raise a prophet like Moses, to whom we must listen; Peter proclaims Him fulfilled in Jesus.',
+        },
+        'isa-61-1': {
+          label: 'Anointed with the Spirit',
+          note: 'The Spirit of the Lord upon the Anointed to bring good news to the poor: Jesus read it and said "today this is fulfilled."',
+        },
+        'isa-9-2': {
+          label: 'Light in Galilee',
+          note: 'The people walking in darkness would see a great light; Jesus began to preach in Galilee of the Gentiles.',
+        },
+        'isa-35-5': {
+          label: 'Heals the blind and lame',
+          note: 'The eyes of the blind would open and the lame leap; so Jesus answered: the blind see, the lame walk.',
+        },
+        'ps-78-2': {
+          label: 'Speaks in parables',
+          note: 'The Messiah would open His mouth in parables, uttering things hidden since the foundation of the world.',
+        },
+        'zech-9-9': {
+          label: 'Riding on a donkey',
+          note: 'The King would come humble, riding on a colt; so Jesus entered Jerusalem amid praises.',
+        },
+        'ps-118-22': {
+          label: 'The rejected stone',
+          note: 'The stone the builders rejected became the cornerstone: Christ, rejected and exalted.',
+        },
+        'ps-41-9': {
+          label: 'Betrayed by a friend',
+          note: 'He who ate bread with Him lifted his heel against Him; Judas, one of the twelve, betrayed Him.',
+        },
+        'zech-11-12': {
+          label: 'Sold for thirty pieces',
+          note: 'They weighed out thirty pieces of silver as His price, what Judas received for betraying the Lord.',
+        },
+        'zech-13-7': {
+          label: 'The shepherd struck',
+          note: 'Strike the shepherd and the sheep scatter; the disciples fled when Jesus was seized.',
+        },
+        'isa-53-7': {
+          label: 'Silent before His accusers',
+          note: 'Like a lamb led to the slaughter, He was silent and did not open His mouth before His accusers.',
+        },
+        'isa-50-6': {
+          label: 'Struck and spat upon',
+          note: 'He gave His face to those who struck and spat at Him; so Jesus was treated at His trial.',
+        },
+        'isa-53-5': {
+          label: 'Wounded for our sins',
+          note: 'He was pierced for our transgressions, crushed for our iniquities; by His wounds we are healed.',
+        },
+        'ps-22-16': {
+          label: 'Hands and feet pierced',
+          note: 'They pierced His hands and feet, long before crucifixion existed: fulfilled at the cross.',
+        },
+        'ps-22-18': {
+          label: 'They divide His garments',
+          note: 'They divided His garments and cast lots for His clothing, beside the cross.',
+        },
+        'ps-69-21': {
+          label: 'Gall and vinegar',
+          note: 'In His thirst they gave Him vinegar to drink, just as was written beforehand.',
+        },
+        'ps-22-1': {
+          label: 'Why have You forsaken me?',
+          note: 'The cry "My God, why have You forsaken me?" was the voice of Psalm 22 from the cross.',
+        },
+        'ps-34-20': {
+          label: 'Not a bone broken',
+          note: "He keeps all His bones; not one is broken — they did not break Jesus' legs on the cross.",
+        },
+        'zech-12-10': {
+          label: 'They look on the pierced One',
+          note: 'They would look on the One they pierced and mourn; the soldier opened His side with a spear.',
+        },
+        'isa-53-9': {
+          label: 'Buried with the rich',
+          note: 'His grave was assigned with the rich; Joseph of Arimathea, a rich man, laid Him in his own tomb.',
+        },
+        'isa-53-12': {
+          label: 'Numbered with transgressors',
+          note: 'He was counted among the transgressors, crucified between two criminals, and interceded for them.',
+        },
+        'ps-16-10': {
+          label: 'He would not see decay',
+          note: 'You will not abandon His soul to Sheol nor let Your Holy One see corruption: Christ rose on the third day.',
+        },
+        'ps-2-7': {
+          label: 'You are My Son',
+          note: '"You are My Son, today I have begotten You": Paul applies it to the resurrection of Jesus.',
+        },
+        'ps-110-1': {
+          label: "Seated at God's right hand",
+          note: 'The Lord said to my Lord, "Sit at My right hand"; Christ ascended and sat at the right hand of God.',
+        },
+        'ps-68-18': {
+          label: 'Ascended on high',
+          note: 'You ascended on high, leading captivity captive; Christ ascended and gave gifts to men.',
+        },
+        'dan-7-13': {
+          label: 'The Son of Man',
+          note: 'One like a Son of Man came and was given everlasting dominion; Jesus called Himself so before the high priest.',
+        },
+      },
     },
 
     constancy: {
