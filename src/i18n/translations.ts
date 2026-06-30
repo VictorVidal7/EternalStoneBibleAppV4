@@ -1722,6 +1722,10 @@ export const translations = {
       finishedTitle: 'Cristo, el centro de todo',
       finishedBody:
         'Has recorrido el hilo que une toda la Escritura en Él. «Escudriñad las Escrituras… ellas son las que dan testimonio de mí» (Juan 5:39).',
+      whyTitle: '¿Por qué importa?',
+      whyBody:
+        'Que la Escritura anunciara estas cosas siglos antes y se cumplieran en Jesús no es casualidad: muestra que Dios gobierna la historia y cumple su palabra. El Señor mismo «les declaró en todas las Escrituras lo que de él decían» (Lucas 24:27, 44) y nos invita a escudriñarlas, «porque ellas son las que dan testimonio de mí» (Juan 5:39). No se trata de calcular probabilidades, sino de adorar con humildad al Dios fiel que cumple sus promesas en Cristo.',
+      christHereTitle: 'Cristo en este pasaje',
       groups: {
         coming: 'Su venida',
         ministry: 'Su ministerio',
@@ -5305,6 +5309,10 @@ export const translations = {
       finishedTitle: 'Christ, the center of it all',
       finishedBody:
         'You have walked the thread that unites all of Scripture in Him. "Search the Scriptures… they are the ones that testify of Me" (John 5:39).',
+      whyTitle: 'Why it matters',
+      whyBody:
+        'That Scripture announced these things centuries beforehand and they were fulfilled in Jesus is no accident: it shows that God rules history and keeps His word. The Lord Himself "expounded unto them in all the scriptures the things concerning himself" (Luke 24:27, 44) and invites us to search them, "for they are they which testify of me" (John 5:39). This is not about counting odds, but about humbly worshiping the faithful God who keeps His promises in Christ.',
+      christHereTitle: 'Christ in this passage',
       groups: {
         coming: 'His coming',
         ministry: 'His ministry',

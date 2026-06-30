@@ -37,7 +37,10 @@ import {AppText} from '@components/ui/AppText';
 import bibleDB from '@lib/database';
 import {logger} from '@lib/utils/logger';
 import {getBookByName} from '@/constants/bible';
-import {parseChristRef} from '@/features/study/christConnections';
+import {
+  parseChristRef,
+  getChristConnectionById,
+} from '@/features/study/christConnections';
 import {
   MESSIANIC_PROPHECIES,
   PROPHECY_GROUP_ACCENT,
@@ -91,6 +94,7 @@ export default function PropheticThreadScreen() {
   const [prophecy, setProphecy] = useState<ResolvedRef | null>(null);
   const [fulfillment, setFulfillment] = useState<ResolvedRef | null>(null);
   const [sourcesOpen, setSourcesOpen] = useState(false);
+  const [whyOpen, setWhyOpen] = useState(false);
   const [indexOpen, setIndexOpen] = useState(false);
   const [shareOpen, setShareOpen] = useState(false);
   const [visited, setVisited] = useState<Set<string>>(new Set());
@@ -200,6 +204,19 @@ export default function PropheticThreadScreen() {
 
   const items = tp.items as Record<string, {label: string; note: string}>;
   const groups = tp.groups as Record<string, string>;
+
+  // "Cristo en este pasaje" — surface the curated christConnections note for
+  // this prophecy's OT verse when one exists (many do not; shown only when
+  // present, so the deeper reflection rides on existing, vetted content).
+  const christHereNote = useMemo(() => {
+    if (!current) return null;
+    const info = localizedRef(current.prophecy);
+    if (!info) return null;
+    const conn = getChristConnectionById(info.bookId, info.chapter, info.verse);
+    if (!conn) return null;
+    const notes = t.christConnections.notes as Record<string, string>;
+    return notes[conn.id] ?? null;
+  }, [current, localizedRef, t.christConnections.notes]);
 
   // Cross-links + share operate on the OT prophecy verse (the thread's focus).
   const openConstellation = () => {
@@ -641,6 +658,80 @@ export default function PropheticThreadScreen() {
                         {items[current.id]?.note ?? ''}
                       </AppText>
 
+                      {/* "Cristo en este pasaje" — the curated christConnections
+                          reflection on this OT verse, when one exists. */}
+                      {christHereNote ? (
+                        <View
+                          style={[
+                            styles.christCard,
+                            {
+                              backgroundColor: accent + '12',
+                              borderColor: accent + '33',
+                            },
+                          ]}>
+                          <View style={styles.christHeader}>
+                            <Ionicons
+                              name="sparkles"
+                              size={13}
+                              color={accent}
+                            />
+                            <AppText
+                              scaleRole="compact"
+                              style={[styles.christTitle, {color: accent}]}>
+                              {tp.christHereTitle}
+                            </AppText>
+                          </View>
+                          <AppText
+                            style={[
+                              styles.christBody,
+                              {color: colors.textSecondary},
+                            ]}>
+                            {christHereNote}
+                          </AppText>
+                        </View>
+                      ) : null}
+
+                      {/* "¿Por qué importa?" — a shared, humble note on the weight
+                          of fulfilled prophecy (Lucas 24:27,44; Juan 5:39).
+                          Collapsed by default so the step stays calm. */}
+                      <View
+                        style={[styles.whyCard, {borderColor: colors.border}]}>
+                        <TouchableOpacity
+                          style={styles.whyHeader}
+                          onPress={() => {
+                            haptics.tap();
+                            setWhyOpen(o => !o);
+                          }}
+                          accessibilityRole="button"
+                          accessibilityState={{expanded: whyOpen}}
+                          accessibilityLabel={tp.whyTitle}>
+                          <Ionicons
+                            name="help-circle-outline"
+                            size={16}
+                            color={colors.primary}
+                          />
+                          <AppText
+                            scaleRole="compact"
+                            style={[styles.whyTitle, {color: colors.text}]}>
+                            {tp.whyTitle}
+                          </AppText>
+                          <Ionicons
+                            name={whyOpen ? 'chevron-up' : 'chevron-down'}
+                            size={16}
+                            color={colors.textTertiary}
+                          />
+                        </TouchableOpacity>
+                        {whyOpen ? (
+                          <AppText
+                            style={[
+                              styles.whyBody,
+                              {color: colors.textSecondary},
+                            ]}>
+                            {tp.whyBody}
+                          </AppText>
+                        ) : null}
+                      </View>
+
                       {/* Cross-links + share for the prophecy verse. */}
                       <View style={styles.actionsRow}>
                         <TouchableOpacity
@@ -1009,6 +1100,42 @@ const styles = StyleSheet.create({
     fontSize: fontSizes.md,
     lineHeight: fontSizes.md * 1.55,
     fontStyle: 'italic',
+  },
+  christCard: {
+    borderRadius: borderRadius.lg,
+    borderWidth: 1,
+    padding: spacing.base,
+    gap: spacing.xs,
+  },
+  christHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.xs,
+  },
+  christTitle: {
+    fontSize: fontSizes.xs,
+    fontWeight: '800',
+    textTransform: 'uppercase',
+    letterSpacing: 0.4,
+  },
+  christBody: {fontSize: fontSizes.sm, lineHeight: fontSizes.sm * 1.6},
+  whyCard: {
+    borderRadius: borderRadius.lg,
+    borderWidth: 1,
+    paddingHorizontal: spacing.base,
+    paddingVertical: spacing.xs,
+  },
+  whyHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.sm,
+    paddingVertical: spacing.sm,
+  },
+  whyTitle: {flex: 1, fontSize: fontSizes.sm, fontWeight: '700'},
+  whyBody: {
+    fontSize: fontSizes.sm,
+    lineHeight: fontSizes.sm * 1.6,
+    paddingBottom: spacing.sm,
   },
   actionsRow: {
     flexDirection: 'row',
