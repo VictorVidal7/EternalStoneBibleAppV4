@@ -2716,7 +2716,11 @@ export default function VerseReadingScreen() {
                     );
                     setCrossRefsVerse(sortedNums[0] ?? null);
                     setCrossRefsVisible(true);
-                    setShowOverflow(false);
+                    // Dismiss the selection action bar so the sheet is the only
+                    // surface — it used to stay open BEHIND the sheet, reading
+                    // as two competing popups (UX review #9). The sheet keeps
+                    // its own captured verse (crossRefsVerse), so this is safe.
+                    clearSelection();
                   }}>
                   <Ionicons
                     name="git-network-outline"
@@ -2742,7 +2746,10 @@ export default function VerseReadingScreen() {
                     );
                     setOriginalsVerse(sortedNums[0] ?? null);
                     setOriginalsVisible(true);
-                    setShowOverflow(false);
+                    // Same as cross-refs: the sheet captures its own verse
+                    // (originalsVerse), so clear the selection bar behind it so
+                    // there's a single clean surface (UX review #9).
+                    clearSelection();
                   }}>
                   <Ionicons
                     name="language-outline"
