@@ -1702,7 +1702,9 @@ export const translations = {
       mapTitle: 'Mapa del hilo',
       mapSubtitle: 'Toda la Escritura converge en Él',
       mapHint:
-        'Toca un hilo (en cualquiera de sus dos extremos) para abrirlo en el recorrido.',
+        'Toca un hilo (en cualquiera de sus dos extremos) para resaltarlo y ver de qué trata.',
+      shareMap: 'Compartir el mapa',
+      openInWalk: 'Abrir en el recorrido',
       otTestament: 'Antiguo Testamento',
       ntTestament: 'Nuevo Testamento',
       prophecyLabel: 'Profecía',
@@ -1712,6 +1714,9 @@ export const translations = {
       share: 'Compartir',
       constellation: 'Constelación',
       study: 'Estudiar',
+      memorize: 'Memorizar',
+      memorized: 'En tu mazo',
+      todayLabel: 'Hoy',
       shareSignature: 'Eternal Bible · Hilo profético',
       quotedBadge: 'Citado en el NT',
       sourcesTitle: 'Fuentes y método',
@@ -1722,6 +1727,10 @@ export const translations = {
       finishedTitle: 'Cristo, el centro de todo',
       finishedBody:
         'Has recorrido el hilo que une toda la Escritura en Él. «Escudriñad las Escrituras… ellas son las que dan testimonio de mí» (Juan 5:39).',
+      whyTitle: '¿Por qué importa?',
+      whyBody:
+        'Que la Escritura anunciara estas cosas siglos antes y se cumplieran en Jesús no es casualidad: muestra que Dios gobierna la historia y cumple su palabra. El Señor mismo «les declaró en todas las Escrituras lo que de él decían» (Lucas 24:27, 44) y nos invita a escudriñarlas, «porque ellas son las que dan testimonio de mí» (Juan 5:39). No se trata de calcular probabilidades, sino de adorar con humildad al Dios fiel que cumple sus promesas en Cristo.',
+      christHereTitle: 'Cristo en este pasaje',
       groups: {
         coming: 'Su venida',
         ministry: 'Su ministerio',
@@ -1961,6 +1970,54 @@ export const translations = {
         jonah: {
           label: 'Jonás, tres días',
           note: 'Como Jonás estuvo tres días en el vientre del gran pez, así el Hijo del Hombre estuvo tres días en el corazón de la tierra.',
+        },
+        'isa-28-16': {
+          label: 'La piedra angular preciosa',
+          note: 'Dios pone en Sion una piedra probada, angular y preciosa; Pedro y Pablo la reconocen en Cristo, fundamento seguro: «el que creyere, no será avergonzado».',
+        },
+        'ps-69-9': {
+          label: 'El celo por la casa de Dios',
+          note: '«Me consumió el celo de tu casa», dice el salmo; sus discípulos lo recordaron cuando Jesús purificó el templo.',
+        },
+        'isa-49-6': {
+          label: 'Luz para las naciones',
+          note: 'El Siervo del Señor sería luz de las naciones y salvación hasta lo último de la tierra; en Cristo la salvación alcanza a los gentiles.',
+        },
+        'isa-53-1': {
+          label: 'El anuncio no creído',
+          note: '«¿Quién ha creído a nuestro anuncio?» Juan ve en la incredulidad ante Jesús el cumplimiento de la palabra de Isaías.',
+        },
+        'joel-2-32': {
+          label: 'Invocar el nombre del Señor',
+          note: '«Todo aquel que invocare el nombre de Jehová será salvo», dice Joel; Pablo lo aplica a Cristo, Señor de todos, generoso con cuantos le invocan.',
+        },
+        'amos-9-11': {
+          label: 'El tabernáculo de David levantado',
+          note: 'Dios prometió levantar el caído tabernáculo de David; Santiago ve la promesa cumplida en Cristo resucitado y en los gentiles que buscan al Señor.',
+        },
+        'ps-102-25': {
+          label: 'El Creador eterno',
+          note: '«Tú fundaste la tierra, y los cielos son obra de tus manos»; Hebreos dirige estas palabras al Hijo, el mismo ayer, hoy y por los siglos.',
+        },
+        'ps-8-6': {
+          label: 'Todo bajo sus pies',
+          note: 'Dios sujetó todas las cosas bajo los pies del hombre; Hebreos lo ve cumplido en Jesús, coronado de gloria, a quien todo le será sometido.',
+        },
+        adam: {
+          label: 'El postrer Adán',
+          note: 'El primer Adán fue hecho alma viviente; «el postrer Adán, espíritu vivificante». Lo que se perdió en uno, en Cristo recibe vida.',
+        },
+        veil: {
+          label: 'El velo del templo',
+          note: 'El velo cerraba el paso al Lugar Santísimo; por su carne, Cristo abrió «un camino nuevo y vivo» hasta la presencia de Dios.',
+        },
+        scapegoat: {
+          label: 'El macho cabrío que carga las culpas',
+          note: 'El macho cabrío llevaba sobre sí todas las iniquidades a tierra inhabitada; así Cristo fue ofrecido «para llevar los pecados de muchos».',
+        },
+        'joshua-rest': {
+          label: 'El reposo verdadero',
+          note: 'Josué dio reposo en la tierra, mas no el definitivo; queda un reposo para el pueblo de Dios, en el que se entra por la fe en Jesús.',
         },
       },
     },
@@ -5237,7 +5294,10 @@ export const translations = {
       viewMap: 'View the map',
       mapTitle: 'Thread map',
       mapSubtitle: 'All Scripture converges on Him',
-      mapHint: 'Tap a thread (at either end) to open it in the walk.',
+      mapHint:
+        'Tap a thread (at either end) to highlight it and see what it is.',
+      shareMap: 'Share the map',
+      openInWalk: 'Open in the walk',
       otTestament: 'Old Testament',
       ntTestament: 'New Testament',
       prophecyLabel: 'Prophecy',
@@ -5247,6 +5307,9 @@ export const translations = {
       share: 'Share',
       constellation: 'Constellation',
       study: 'Study',
+      memorize: 'Memorize',
+      memorized: 'In your deck',
+      todayLabel: 'Today',
       shareSignature: 'Eternal Bible · Prophetic thread',
       quotedBadge: 'Cited in the NT',
       sourcesTitle: 'Sources & method',
@@ -5257,6 +5320,10 @@ export const translations = {
       finishedTitle: 'Christ, the center of it all',
       finishedBody:
         'You have walked the thread that unites all of Scripture in Him. "Search the Scriptures… they are the ones that testify of Me" (John 5:39).',
+      whyTitle: 'Why it matters',
+      whyBody:
+        'That Scripture announced these things centuries beforehand and they were fulfilled in Jesus is no accident: it shows that God rules history and keeps His word. The Lord Himself "expounded unto them in all the scriptures the things concerning himself" (Luke 24:27, 44) and invites us to search them, "for they are they which testify of me" (John 5:39). This is not about counting odds, but about humbly worshiping the faithful God who keeps His promises in Christ.',
+      christHereTitle: 'Christ in this passage',
       groups: {
         coming: 'His coming',
         ministry: 'His ministry',
@@ -5496,6 +5563,54 @@ export const translations = {
         jonah: {
           label: 'Jonah, three days',
           note: 'As Jonah was three days in the belly of the great fish, so the Son of Man was three days in the heart of the earth.',
+        },
+        'isa-28-16': {
+          label: 'The precious cornerstone',
+          note: 'God lays in Zion a tried, precious cornerstone; Peter and Paul find it in Christ, the sure foundation: "he that believeth shall not be confounded."',
+        },
+        'ps-69-9': {
+          label: "Zeal for God's house",
+          note: '"The zeal of thine house hath eaten me up," says the psalm; His disciples remembered it when Jesus cleansed the temple.',
+        },
+        'isa-49-6': {
+          label: 'A light to the nations',
+          note: 'The Servant of the LORD would be a light to the nations, salvation to the ends of the earth; in Christ that salvation reaches the Gentiles.',
+        },
+        'isa-53-1': {
+          label: 'The report not believed',
+          note: '"Who hath believed our report?" John sees the unbelief toward Jesus as the fulfillment of what Isaiah foretold.',
+        },
+        'joel-2-32': {
+          label: 'Calling on the name of the Lord',
+          note: 'Joel says, "Whosoever shall call on the name of the LORD shall be saved"; Paul applies it to Christ, Lord of all, rich to all who call on Him.',
+        },
+        'amos-9-11': {
+          label: "David's fallen tent raised",
+          note: 'God promised to raise up the fallen tent of David; James sees the promise fulfilled in the risen Christ and in the Gentiles who seek the Lord.',
+        },
+        'ps-102-25': {
+          label: 'The eternal Creator',
+          note: '"Thou hast laid the foundation of the earth, and the heavens are the work of thine hands"; Hebrews speaks these words to the Son, the same yesterday, today, and forever.',
+        },
+        'ps-8-6': {
+          label: 'All things under His feet',
+          note: 'God put all things under the feet of man; Hebrews sees it fulfilled in Jesus, crowned with glory, to whom all things will be subjected.',
+        },
+        adam: {
+          label: 'The last Adam',
+          note: 'The first Adam was made a living soul; "the last Adam was made a quickening spirit." What was lost in one is made alive in Christ.',
+        },
+        veil: {
+          label: 'The temple veil',
+          note: 'The veil shut off the Most Holy Place; through His flesh Christ opened "a new and living way" into the presence of God.',
+        },
+        scapegoat: {
+          label: 'The goat that carries away sin',
+          note: 'The goat bore all their iniquities into an uninhabited land; so Christ was offered "to bear the sins of many."',
+        },
+        'joshua-rest': {
+          label: 'The true rest',
+          note: 'Joshua gave rest in the land, but not the final one; there remains a rest for the people of God, entered by faith in Jesus.',
         },
       },
     },

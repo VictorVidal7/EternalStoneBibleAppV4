@@ -36,8 +36,14 @@ import {haptics} from '@lib/haptics';
 import {AppText} from '@components/ui/AppText';
 import bibleDB from '@lib/database';
 import {logger} from '@lib/utils/logger';
+import {useMemoryDeck} from '@context/MemoryDeckContext';
+import {useToast} from '@context/ToastContext';
+import {buildVerseKey} from '@lib/memory/srs';
 import {getBookByName} from '@/constants/bible';
-import {parseChristRef} from '@/features/study/christConnections';
+import {
+  parseChristRef,
+  getChristConnectionById,
+} from '@/features/study/christConnections';
 import {
   MESSIANIC_PROPHECIES,
   PROPHECY_GROUP_ACCENT,
@@ -75,6 +81,8 @@ export default function PropheticThreadScreen() {
   const {colors} = useTheme();
   const {t} = useLanguage();
   const {selectedVersion} = useBibleVersion();
+  const {hasCard, addCard} = useMemoryDeck();
+  const toast = useToast();
   const tp = t.prophecies;
 
   const total = MESSIANIC_PROPHECIES.length;
@@ -91,6 +99,7 @@ export default function PropheticThreadScreen() {
   const [prophecy, setProphecy] = useState<ResolvedRef | null>(null);
   const [fulfillment, setFulfillment] = useState<ResolvedRef | null>(null);
   const [sourcesOpen, setSourcesOpen] = useState(false);
+  const [whyOpen, setWhyOpen] = useState(false);
   const [indexOpen, setIndexOpen] = useState(false);
   const [shareOpen, setShareOpen] = useState(false);
   const [visited, setVisited] = useState<Set<string>>(new Set());
@@ -201,6 +210,19 @@ export default function PropheticThreadScreen() {
   const items = tp.items as Record<string, {label: string; note: string}>;
   const groups = tp.groups as Record<string, string>;
 
+  // "Cristo en este pasaje" — surface the curated christConnections note for
+  // this prophecy's OT verse when one exists (many do not; shown only when
+  // present, so the deeper reflection rides on existing, vetted content).
+  const christHereNote = useMemo(() => {
+    if (!current) return null;
+    const info = localizedRef(current.prophecy);
+    if (!info) return null;
+    const conn = getChristConnectionById(info.bookId, info.chapter, info.verse);
+    if (!conn) return null;
+    const notes = t.christConnections.notes as Record<string, string>;
+    return notes[conn.id] ?? null;
+  }, [current, localizedRef, t.christConnections.notes]);
+
   // Cross-links + share operate on the OT prophecy verse (the thread's focus).
   const openConstellation = () => {
     if (!current) return;
@@ -231,6 +253,31 @@ export default function PropheticThreadScreen() {
         version: selectedVersion.id,
       },
     } as never);
+  };
+
+  // "Memorizar" — add the OT prophecy verse to the spaced-repetition deck, the
+  // same deck the reader/daily-light feed (so the thread becomes something the
+  // reader can hide His Word in their heart, Salmo 119:11).
+  const memVerseKey = (() => {
+    if (!current) return '';
+    const info = localizedRef(current.prophecy);
+    return info ? buildVerseKey(info.display, info.chapter, info.verse) : '';
+  })();
+  const inDeck = memVerseKey ? hasCard(memVerseKey) : false;
+
+  const memorize = () => {
+    if (!current || !prophecy?.text || inDeck) return;
+    const info = localizedRef(current.prophecy);
+    if (!info) return;
+    haptics.tap();
+    addCard({
+      bookName: info.display,
+      chapter: info.chapter,
+      verse: info.verse,
+      text: prophecy.text,
+      version: selectedVersion.id,
+    });
+    toast.success(t.memory.addedToast);
   };
 
   // Content for the image-card share modal (null until the verses resolve).
@@ -641,6 +688,80 @@ export default function PropheticThreadScreen() {
                         {items[current.id]?.note ?? ''}
                       </AppText>
 
+                      {/* "Cristo en este pasaje" — the curated christConnections
+                          reflection on this OT verse, when one exists. */}
+                      {christHereNote ? (
+                        <View
+                          style={[
+                            styles.christCard,
+                            {
+                              backgroundColor: accent + '12',
+                              borderColor: accent + '33',
+                            },
+                          ]}>
+                          <View style={styles.christHeader}>
+                            <Ionicons
+                              name="sparkles"
+                              size={13}
+                              color={accent}
+                            />
+                            <AppText
+                              scaleRole="compact"
+                              style={[styles.christTitle, {color: accent}]}>
+                              {tp.christHereTitle}
+                            </AppText>
+                          </View>
+                          <AppText
+                            style={[
+                              styles.christBody,
+                              {color: colors.textSecondary},
+                            ]}>
+                            {christHereNote}
+                          </AppText>
+                        </View>
+                      ) : null}
+
+                      {/* "¿Por qué importa?" — a shared, humble note on the weight
+                          of fulfilled prophecy (Lucas 24:27,44; Juan 5:39).
+                          Collapsed by default so the step stays calm. */}
+                      <View
+                        style={[styles.whyCard, {borderColor: colors.border}]}>
+                        <TouchableOpacity
+                          style={styles.whyHeader}
+                          onPress={() => {
+                            haptics.tap();
+                            setWhyOpen(o => !o);
+                          }}
+                          accessibilityRole="button"
+                          accessibilityState={{expanded: whyOpen}}
+                          accessibilityLabel={tp.whyTitle}>
+                          <Ionicons
+                            name="help-circle-outline"
+                            size={16}
+                            color={colors.primary}
+                          />
+                          <AppText
+                            scaleRole="compact"
+                            style={[styles.whyTitle, {color: colors.text}]}>
+                            {tp.whyTitle}
+                          </AppText>
+                          <Ionicons
+                            name={whyOpen ? 'chevron-up' : 'chevron-down'}
+                            size={16}
+                            color={colors.textTertiary}
+                          />
+                        </TouchableOpacity>
+                        {whyOpen ? (
+                          <AppText
+                            style={[
+                              styles.whyBody,
+                              {color: colors.textSecondary},
+                            ]}>
+                            {tp.whyBody}
+                          </AppText>
+                        ) : null}
+                      </View>
+
                       {/* Cross-links + share for the prophecy verse. */}
                       <View style={styles.actionsRow}>
                         <TouchableOpacity
@@ -713,6 +834,40 @@ export default function PropheticThreadScreen() {
                             ]}
                             numberOfLines={1}>
                             {tp.study}
+                          </AppText>
+                        </TouchableOpacity>
+                        <TouchableOpacity
+                          style={[
+                            styles.actionChip,
+                            {borderColor: colors.border},
+                            inDeck ? styles.actionChipDisabled : null,
+                          ]}
+                          onPress={memorize}
+                          disabled={inDeck}
+                          accessibilityRole="button"
+                          accessibilityState={{disabled: inDeck}}
+                          accessibilityLabel={
+                            inDeck ? tp.memorized : tp.memorize
+                          }>
+                          <Ionicons
+                            name={inDeck ? 'school' : 'school-outline'}
+                            size={15}
+                            color={
+                              inDeck ? colors.primary : colors.textSecondary
+                            }
+                          />
+                          <AppText
+                            scaleRole="compact"
+                            style={[
+                              styles.actionChipText,
+                              {
+                                color: inDeck
+                                  ? colors.primary
+                                  : colors.textSecondary,
+                              },
+                            ]}
+                            numberOfLines={1}>
+                            {inDeck ? tp.memorized : tp.memorize}
                           </AppText>
                         </TouchableOpacity>
                       </View>
@@ -1010,13 +1165,51 @@ const styles = StyleSheet.create({
     lineHeight: fontSizes.md * 1.55,
     fontStyle: 'italic',
   },
+  christCard: {
+    borderRadius: borderRadius.lg,
+    borderWidth: 1,
+    padding: spacing.base,
+    gap: spacing.xs,
+  },
+  christHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.xs,
+  },
+  christTitle: {
+    fontSize: fontSizes.xs,
+    fontWeight: '800',
+    textTransform: 'uppercase',
+    letterSpacing: 0.4,
+  },
+  christBody: {fontSize: fontSizes.sm, lineHeight: fontSizes.sm * 1.6},
+  whyCard: {
+    borderRadius: borderRadius.lg,
+    borderWidth: 1,
+    paddingHorizontal: spacing.base,
+    paddingVertical: spacing.xs,
+  },
+  whyHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.sm,
+    paddingVertical: spacing.sm,
+  },
+  whyTitle: {flex: 1, fontSize: fontSizes.sm, fontWeight: '700'},
+  whyBody: {
+    fontSize: fontSizes.sm,
+    lineHeight: fontSizes.sm * 1.6,
+    paddingBottom: spacing.sm,
+  },
   actionsRow: {
     flexDirection: 'row',
+    flexWrap: 'wrap',
     gap: spacing.sm,
     marginTop: spacing.xs,
   },
   actionChip: {
-    flex: 1,
+    flexGrow: 1,
+    flexBasis: '45%',
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
@@ -1026,6 +1219,7 @@ const styles = StyleSheet.create({
     borderRadius: borderRadius.full,
     borderWidth: 1,
   },
+  actionChipDisabled: {opacity: 0.7},
   actionChipText: {fontSize: fontSizes.xs, fontWeight: '700', flexShrink: 1},
   navRow: {flexDirection: 'row', gap: spacing.sm, marginTop: spacing.xs},
   navBtn: {

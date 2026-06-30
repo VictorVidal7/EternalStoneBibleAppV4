@@ -83,6 +83,10 @@ import {
   parseChristRef,
   formatChristRefLabel,
 } from '@/features/study/christConnections';
+import {
+  getDailyProphecy,
+  getDailyProphecyIndex,
+} from '@/features/study/messianicProphecies';
 import {translations} from '@/i18n/translations';
 import {timeOfDay, homeNudge} from '@/lib/home/homeGreeting';
 import {planPace, formatDayReadings} from '@/lib/reading/planPace';
@@ -537,6 +541,16 @@ export default function HomeScreen() {
     haptics.tap();
     callback();
   };
+
+  // "Profecía del día" — the Hilo-profético discover tile rotates through the
+  // thread by the day, teasing today's prophecy and opening straight to it.
+  const dailyProphecy = useMemo(() => {
+    const p = getDailyProphecy();
+    const index = getDailyProphecyIndex();
+    const label = (t.prophecies.items as Record<string, {label: string}>)[p.id]
+      ?.label;
+    return {index, label};
+  }, [t.prophecies.items]);
 
   // "Continue listening" card mode (Sprint 75): 'navigate' deep-links into the
   // reader (no player up), 'resume' plays the paused restored player in place,
@@ -1336,10 +1350,16 @@ export default function HomeScreen() {
               <DiscoverTile
                 icon="git-network"
                 title={t.prophecies.title}
-                subtitle={t.prophecies.subtitle}
+                subtitle={
+                  dailyProphecy.label
+                    ? `${t.prophecies.todayLabel} · ${dailyProphecy.label}`
+                    : t.prophecies.subtitle
+                }
                 onPress={() =>
                   handlePress(() =>
-                    router.push('/features/prophecies' as never),
+                    router.push(
+                      `/features/prophecies?start=${dailyProphecy.index}` as never,
+                    ),
                   )
                 }
               />

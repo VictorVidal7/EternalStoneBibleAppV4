@@ -216,6 +216,24 @@ export const MESSIANIC_PROPHECIES: readonly MessianicProphecy[] = [
     prophecy: 'Psalms/8/2',
     fulfillment: 'Matthew/21/16',
   },
+  {
+    id: 'isa-28-16',
+    group: 'ministry',
+    prophecy: 'Isaiah/28/16',
+    fulfillment: '1 Peter/2/6',
+  },
+  {
+    id: 'ps-69-9',
+    group: 'ministry',
+    prophecy: 'Psalms/69/9',
+    fulfillment: 'John/2/17',
+  },
+  {
+    id: 'isa-49-6',
+    group: 'ministry',
+    prophecy: 'Isaiah/49/6',
+    fulfillment: 'Acts/13/47',
+  },
 
   // ── His passion: betrayal, suffering and death ──
   {
@@ -223,6 +241,12 @@ export const MESSIANIC_PROPHECIES: readonly MessianicProphecy[] = [
     group: 'passion',
     prophecy: 'Isaiah/53/3',
     fulfillment: 'John/1/11',
+  },
+  {
+    id: 'isa-53-1',
+    group: 'passion',
+    prophecy: 'Isaiah/53/1',
+    fulfillment: 'John/12/38',
   },
   {
     id: 'ps-41-9',
@@ -364,6 +388,30 @@ export const MESSIANIC_PROPHECIES: readonly MessianicProphecy[] = [
     prophecy: 'Daniel/7/13',
     fulfillment: 'Matthew/26/64',
   },
+  {
+    id: 'joel-2-32',
+    group: 'resurrection',
+    prophecy: 'Joel/2/32',
+    fulfillment: 'Romans/10/13',
+  },
+  {
+    id: 'amos-9-11',
+    group: 'resurrection',
+    prophecy: 'Amos/9/11',
+    fulfillment: 'Acts/15/16',
+  },
+  {
+    id: 'ps-102-25',
+    group: 'resurrection',
+    prophecy: 'Psalms/102/25',
+    fulfillment: 'Hebrews/1/10',
+  },
+  {
+    id: 'ps-8-6',
+    group: 'resurrection',
+    prophecy: 'Psalms/8/6',
+    fulfillment: 'Hebrews/2/8',
+  },
 
   // ── Shadows of Christ: OT types the NT affirms are fulfilled in Him ──
   {
@@ -436,6 +484,34 @@ export const MESSIANIC_PROPHECIES: readonly MessianicProphecy[] = [
     prophecy: 'Jonah/1/17',
     fulfillment: 'Matthew/12/40',
   },
+  {
+    id: 'adam',
+    group: 'shadows',
+    kind: 'shadow',
+    prophecy: 'Genesis/2/7',
+    fulfillment: '1 Corinthians/15/45',
+  },
+  {
+    id: 'veil',
+    group: 'shadows',
+    kind: 'shadow',
+    prophecy: 'Exodus/26/31',
+    fulfillment: 'Hebrews/10/20',
+  },
+  {
+    id: 'scapegoat',
+    group: 'shadows',
+    kind: 'shadow',
+    prophecy: 'Leviticus/16/22',
+    fulfillment: 'Hebrews/9/28',
+  },
+  {
+    id: 'joshua-rest',
+    group: 'shadows',
+    kind: 'shadow',
+    prophecy: 'Joshua/21/44',
+    fulfillment: 'Hebrews/4/8',
+  },
 ];
 
 /** Accent hue per movement (aligned with the app's palette families). */
@@ -505,6 +581,15 @@ export const NT_QUOTED_PROPHECIES: ReadonlySet<string> = new Set([
   'ps-68-18',
   'ps-45-6',
   'dan-7-13',
+  'isa-28-16',
+  'ps-69-9',
+  'isa-49-6',
+  'isa-53-1',
+  'joel-2-32',
+  'amos-9-11',
+  'ps-102-25',
+  'ps-8-6',
+  'adam',
 ]);
 
 /** Whether the NT explicitly quotes/cites this prophecy as fulfilled. */
@@ -568,4 +653,24 @@ export function getPropheciesByGroup(): ProphecyGroupSection[] {
       index,
     })).filter(e => e.prophecy.group === group),
   })).filter(section => section.entries.length > 0);
+}
+
+/**
+ * "Profecía del día" — a deterministic index into the thread by the day of the
+ * year, so everyone sees the same prophecy on a given day and the catalog
+ * rotates through the year (the same idea as the daily verse). Pure; always a
+ * valid index in `[0, length)`.
+ */
+export function getDailyProphecyIndex(date: Date = new Date()): number {
+  const startOfYear = new Date(date.getFullYear(), 0, 0);
+  const dayOfYear = Math.floor(
+    (date.getTime() - startOfYear.getTime()) / 86_400_000,
+  );
+  const n = MESSIANIC_PROPHECIES.length;
+  return (((dayOfYear - 1) % n) + n) % n;
+}
+
+/** The prophecy of the day (see {@link getDailyProphecyIndex}). Pure. */
+export function getDailyProphecy(date: Date = new Date()): MessianicProphecy {
+  return MESSIANIC_PROPHECIES[getDailyProphecyIndex(date)];
 }
