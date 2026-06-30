@@ -26,6 +26,7 @@ import {haptics} from '@lib/haptics';
 import bibleDB from '@lib/database';
 import {BibleVerse} from '@/types/bible';
 import {getBookByName, getBookById, canonicalBookName} from '@/constants/bible';
+import {findProphecyForVerseKey} from '@/features/study/messianicProphecies';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {
   linkifyReferences,
@@ -300,6 +301,17 @@ export default function VerseReadingScreen() {
   const firstSelectedVerse = useMemo(
     () => (selectedVerses.size > 0 ? Math.min(...selectedVerses) : null),
     [selectedVerses],
+  );
+  // Is the selected verse part of the Hilo profético (a messianic prophecy or
+  // its fulfillment)? If so, the selection overflow offers a jump to it.
+  const propheciesMatch = useMemo(
+    () =>
+      firstSelectedVerse != null && bookInfo
+        ? findProphecyForVerseKey(
+            `${bookInfo.nameEn}/${chapterNum}/${firstSelectedVerse}`,
+          )
+        : null,
+    [firstSelectedVerse, bookInfo, chapterNum],
   );
   // How the two translations are laid out in dual mode: the companion stacked
   // under each verse (default) or two equal-weight columns (Sprint 67),
@@ -2849,6 +2861,34 @@ export default function VerseReadingScreen() {
                     {t.lectio.cardTitle}
                   </Text>
                 </TouchableOpacity>
+                {/* ✝️ This verse is a messianic prophecy or its fulfillment —
+                    jump to it in the Hilo profético (only shown when it is). */}
+                {propheciesMatch && (
+                  <TouchableOpacity
+                    style={styles.selectionOverflowButton}
+                    accessibilityRole="button"
+                    accessibilityLabel={t.prophecies.title}
+                    onPress={() => {
+                      haptics.tap();
+                      router.push(
+                        `/features/prophecies?start=${propheciesMatch.index}` as never,
+                      );
+                      clearSelection();
+                    }}>
+                    <Ionicons
+                      name="sparkles-outline"
+                      size={22}
+                      color={effectiveColors.primary}
+                    />
+                    <Text
+                      style={[
+                        styles.selectionOverflowText,
+                        {color: effectiveColors.text},
+                      ]}>
+                      {t.prophecies.title}
+                    </Text>
+                  </TouchableOpacity>
+                )}
               </View>
             )}
           </View>

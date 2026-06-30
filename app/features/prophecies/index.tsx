@@ -24,7 +24,7 @@ import {
   ActivityIndicator,
   StyleSheet,
 } from 'react-native';
-import {Stack, useRouter} from 'expo-router';
+import {Stack, useRouter, useLocalSearchParams} from 'expo-router';
 import {Ionicons} from '@expo/vector-icons';
 import {LinearGradient} from 'expo-linear-gradient';
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
@@ -78,8 +78,15 @@ export default function PropheticThreadScreen() {
   const tp = t.prophecies;
 
   const total = MESSIANIC_PROPHECIES.length;
+  // Optional deep-link/param to open straight on a given prophecy (the reader's
+  // "Parte del Hilo profético → ver" jump). -1 = intro otherwise.
+  const params = useLocalSearchParams<{start?: string}>();
+  const startPhase = useMemo(() => {
+    const n = Number(params.start);
+    return Number.isInteger(n) && n >= 0 && n < total ? n : -1;
+  }, [params.start, total]);
   // -1 = intro, 0..total-1 = a prophecy, total = finished.
-  const [phase, setPhase] = useState(-1);
+  const [phase, setPhase] = useState(startPhase);
   const [status, setStatus] = useState<LoadStatus>('loading');
   const [prophecy, setProphecy] = useState<ResolvedRef | null>(null);
   const [fulfillment, setFulfillment] = useState<ResolvedRef | null>(null);
