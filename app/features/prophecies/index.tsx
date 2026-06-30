@@ -50,6 +50,7 @@ import {
   PROPHECY_GROUP_ICON,
   isNtQuoted,
   getPropheciesByGroup,
+  getDailyProphecyIndex,
   type ProphecyRefKey,
 } from '@/features/study/messianicProphecies';
 import {
@@ -196,6 +197,23 @@ export default function PropheticThreadScreen() {
     haptics.tap();
     setIndexOpen(false);
     setPhase(index);
+  };
+
+  // "Profecía de hoy" — the featured daily pick on the intro hub (the Home tile
+  // lands here, so the map / index / sources stay reachable; this card opens
+  // straight into today's prophecy).
+  const todayIndex = useMemo(() => getDailyProphecyIndex(), []);
+  const todayProphecy = MESSIANIC_PROPHECIES[todayIndex];
+  const todayRefs = useMemo(() => {
+    const p = localizedRef(todayProphecy.prophecy);
+    const f = localizedRef(todayProphecy.fulfillment);
+    return {prophecy: p?.reference ?? '', fulfillment: f?.reference ?? ''};
+  }, [todayProphecy, localizedRef]);
+
+  const openMap = () => {
+    haptics.tap();
+    setIndexOpen(false);
+    router.push('/features/prophecies/map' as never);
   };
 
   const openInReader = (ref: ProphecyRefKey) => {
@@ -435,6 +453,20 @@ export default function PropheticThreadScreen() {
                   .replace('{{n}}', String(visited.size))
                   .replace('{{total}}', String(total))}
               </AppText>
+              {/* The visual web map — reachable from the index too, so it is
+                  findable from any step (not just the intro). */}
+              <TouchableOpacity
+                style={[styles.indexMapBtn, {borderColor: colors.border}]}
+                onPress={openMap}
+                accessibilityRole="button"
+                accessibilityLabel={tp.mapTitle}>
+                <Ionicons name="git-network" size={16} color={colors.primary} />
+                <AppText
+                  scaleRole="compact"
+                  style={[styles.introIndexText, {color: colors.primary}]}>
+                  {tp.viewMap}
+                </AppText>
+              </TouchableOpacity>
               {sections.map(section => (
                 <View key={section.group} style={styles.indexSection}>
                   <AppText
@@ -494,6 +526,67 @@ export default function PropheticThreadScreen() {
                   <AppText style={[styles.introText, {color: colors.text}]}>
                     {tp.intro}
                   </AppText>
+
+                  {/* Profecía de hoy — the featured daily pick (the Home tile
+                      teases it; tapping opens straight into that step). */}
+                  <TouchableOpacity
+                    style={[
+                      styles.todayCard,
+                      {
+                        backgroundColor:
+                          PROPHECY_GROUP_ACCENT[todayProphecy.group] + '14',
+                        borderColor:
+                          PROPHECY_GROUP_ACCENT[todayProphecy.group] + '40',
+                      },
+                    ]}
+                    onPress={() => {
+                      haptics.tap();
+                      setPhase(todayIndex);
+                    }}
+                    accessibilityRole="button"
+                    accessibilityLabel={`${tp.todayTitle}: ${items[todayProphecy.id]?.label ?? ''}`}>
+                    <View style={styles.todayHeader}>
+                      <Ionicons
+                        name="sparkles"
+                        size={13}
+                        color={PROPHECY_GROUP_ACCENT[todayProphecy.group]}
+                      />
+                      <AppText
+                        scaleRole="compact"
+                        style={[
+                          styles.todayLabel,
+                          {color: PROPHECY_GROUP_ACCENT[todayProphecy.group]},
+                        ]}>
+                        {tp.todayTitle}
+                      </AppText>
+                    </View>
+                    <AppText
+                      scaleRole="compact"
+                      style={[styles.todayName, {color: colors.text}]}
+                      numberOfLines={2}>
+                      {items[todayProphecy.id]?.label ?? ''}
+                    </AppText>
+                    <View style={styles.todayRefRow}>
+                      <AppText
+                        scaleRole="compact"
+                        style={[styles.todayRef, {color: colors.textSecondary}]}
+                        numberOfLines={1}>
+                        {todayRefs.prophecy}
+                      </AppText>
+                      <Ionicons
+                        name="arrow-forward"
+                        size={12}
+                        color={colors.textTertiary}
+                      />
+                      <AppText
+                        scaleRole="compact"
+                        style={[styles.todayRef, {color: colors.textSecondary}]}
+                        numberOfLines={1}>
+                        {todayRefs.fulfillment}
+                      </AppText>
+                    </View>
+                  </TouchableOpacity>
+
                   <TouchableOpacity
                     style={[
                       styles.primaryBtn,
@@ -998,6 +1091,37 @@ const styles = StyleSheet.create({
   introIndexText: {fontSize: fontSizes.sm, fontWeight: '700'},
   introProgress: {fontSize: fontSizes.sm},
   indexBlock: {gap: spacing.lg},
+  indexMapBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: spacing.xs,
+    paddingVertical: spacing.sm,
+    borderRadius: borderRadius.md,
+    borderWidth: 1,
+  },
+  todayCard: {
+    alignSelf: 'stretch',
+    borderRadius: borderRadius.lg,
+    borderWidth: 1,
+    padding: spacing.base,
+    gap: spacing.xs,
+  },
+  todayHeader: {flexDirection: 'row', alignItems: 'center', gap: spacing.xs},
+  todayLabel: {
+    fontSize: fontSizes.xs,
+    fontWeight: '800',
+    textTransform: 'uppercase',
+    letterSpacing: 0.4,
+  },
+  todayName: {fontSize: fontSizes.lg, fontWeight: '800'},
+  todayRefRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.xs,
+    flexWrap: 'wrap',
+  },
+  todayRef: {fontSize: fontSizes.sm, fontWeight: '700', flexShrink: 1},
   indexProgress: {
     fontSize: fontSizes.sm,
     fontWeight: '600',
