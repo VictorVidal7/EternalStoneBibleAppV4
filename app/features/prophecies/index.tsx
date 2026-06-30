@@ -27,6 +27,7 @@ import {
 import {Stack, useRouter, useLocalSearchParams} from 'expo-router';
 import {Ionicons} from '@expo/vector-icons';
 import {LinearGradient} from 'expo-linear-gradient';
+import * as Speech from 'expo-speech';
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
 import {useTheme} from '@hooks/useTheme';
 import {centeredMaxWidth} from '@/styles/responsive';
@@ -38,6 +39,7 @@ import bibleDB from '@lib/database';
 import {logger} from '@lib/utils/logger';
 import {useMemoryDeck} from '@context/MemoryDeckContext';
 import {useToast} from '@context/ToastContext';
+import {useServices} from '@context/ServicesContext';
 import {buildVerseKey} from '@lib/memory/srs';
 import {getBookByName} from '@/constants/bible';
 import {
@@ -50,12 +52,17 @@ import {
   PROPHECY_GROUP_ICON,
   isNtQuoted,
   getPropheciesByGroup,
+  getDailyProphecyIndex,
   type ProphecyRefKey,
 } from '@/features/study/messianicProphecies';
 import {
   getVisitedProphecies,
   markPropheciesVisited,
 } from '@/features/study/prophecyProgress';
+import {
+  getFavoriteProphecies,
+  toggleProphecyFavorite,
+} from '@/features/study/prophecyFavorites';
 import {
   ProphecyShareModal,
   type ProphecyShareContent,
@@ -82,6 +89,7 @@ export default function PropheticThreadScreen() {
   const {t} = useLanguage();
   const {selectedVersion} = useBibleVersion();
   const {hasCard, addCard} = useMemoryDeck();
+  const {achievementService, notifyAchievements} = useServices();
   const toast = useToast();
   const tp = t.prophecies;
 
@@ -103,17 +111,79 @@ export default function PropheticThreadScreen() {
   const [indexOpen, setIndexOpen] = useState(false);
   const [shareOpen, setShareOpen] = useState(false);
   const [visited, setVisited] = useState<Set<string>>(new Set());
+  const [favorites, setFavorites] = useState<Set<string>>(new Set());
+  const [indexFilter, setIndexFilter] = useState<
+    'all' | 'favorites' | 'quoted'
+  >('all');
 
-  // Load the device-local "explored" marks once.
+  // Load the device-local "explored" + "favorite" marks once.
   useEffect(() => {
     let active = true;
     void getVisitedProphecies().then(set => {
       if (active) setVisited(set);
     });
+    void getFavoriteProphecies().then(set => {
+      if (active) setFavorites(set);
+    });
     return () => {
       active = false;
     };
   }, []);
+
+  const toggleFavorite = (id: string) => {
+    haptics.tap();
+    void toggleProphecyFavorite(id).then(setFavorites);
+  };
+
+  // When every prophecy has been explored, unlock the "walked the whole thread"
+  // badge (idempotent; the global achievement modal surfaces it).
+  const allVisited = total > 0 && visited.size >= total;
+  useEffect(() => {
+    if (!allVisited || !achievementService) return;
+    void achievementService.trackPropheticThreadComplete().then(unlocked => {
+      if (unlocked.length > 0) notifyAchievements(unlocked);
+    });
+  }, [allVisited, achievementService, notifyAchievements]);
+
+  // "Escuchar" — read the prophecy then its fulfillment aloud (expo-speech, in
+  // the version's language). Foreground only; stops on step change / unmount.
+  const [speaking, setSpeaking] = useState(false);
+  useEffect(() => {
+    setSpeaking(false);
+    return () => {
+      void Speech.stop();
+    };
+  }, [phase]);
+
+  const handleListen = () => {
+    haptics.tap();
+    if (speaking) {
+      void Speech.stop();
+      setSpeaking(false);
+      return;
+    }
+    const segments = [prophecy?.text, fulfillment?.text].filter(
+      (s): s is string => Boolean(s),
+    );
+    if (segments.length === 0) return;
+    const language = selectedVersion.language === 'es' ? 'es-ES' : 'en-US';
+    setSpeaking(true);
+    let i = 0;
+    const speakNext = () => {
+      if (i >= segments.length) {
+        setSpeaking(false);
+        return;
+      }
+      const text = segments[i++];
+      void Speech.speak(text, {
+        language,
+        onDone: speakNext,
+        onStopped: () => setSpeaking(false),
+        onError: () => setSpeaking(false),
+      });
+    };
+    void Speech.stop().then(speakNext);
+  };
 
   const current =
     phase >= 0 && phase < total ? MESSIANIC_PROPHECIES[phase] : null;
@@ -192,10 +262,46 @@ export default function PropheticThreadScreen() {
   };
 
   const sections = useMemo(() => getPropheciesByGroup(), []);
+
+  // The index, filtered by the active chip (all / favorites / NT-quoted);
+  // empty movements drop out so the list stays tight.
+  const filteredSections = useMemo(() => {
+    const match = (id: string) =>
+      indexFilter === 'all' ||
+      (indexFilter === 'favorites' && favorites.has(id)) ||
+      (indexFilter === 'quoted' && isNtQuoted(id));
+    return sections
+      .map(s => ({...s, entries: s.entries.filter(e => match(e.prophecy.id))}))
+      .filter(s => s.entries.length > 0);
+  }, [sections, indexFilter, favorites]);
+
   const jumpTo = (index: number) => {
     haptics.tap();
     setIndexOpen(false);
     setPhase(index);
+  };
+
+  const indexFilters: {key: 'all' | 'favorites' | 'quoted'; label: string}[] = [
+    {key: 'all', label: tp.filterAll},
+    {key: 'favorites', label: tp.filterFavorites},
+    {key: 'quoted', label: tp.filterQuoted},
+  ];
+
+  // "Profecía de hoy" — the featured daily pick on the intro hub (the Home tile
+  // lands here, so the map / index / sources stay reachable; this card opens
+  // straight into today's prophecy).
+  const todayIndex = useMemo(() => getDailyProphecyIndex(), []);
+  const todayProphecy = MESSIANIC_PROPHECIES[todayIndex];
+  const todayRefs = useMemo(() => {
+    const p = localizedRef(todayProphecy.prophecy);
+    const f = localizedRef(todayProphecy.fulfillment);
+    return {prophecy: p?.reference ?? '', fulfillment: f?.reference ?? ''};
+  }, [todayProphecy, localizedRef]);
+
+  const openMap = () => {
+    haptics.tap();
+    setIndexOpen(false);
+    router.push('/features/prophecies/map' as never);
   };
 
   const openInReader = (ref: ProphecyRefKey) => {
@@ -435,50 +541,118 @@ export default function PropheticThreadScreen() {
                   .replace('{{n}}', String(visited.size))
                   .replace('{{total}}', String(total))}
               </AppText>
-              {sections.map(section => (
-                <View key={section.group} style={styles.indexSection}>
-                  <AppText
-                    scaleRole="compact"
-                    style={[
-                      styles.indexGroupTitle,
-                      {color: PROPHECY_GROUP_ACCENT[section.group]},
-                    ]}>
-                    {groups[section.group]}
-                  </AppText>
-                  {section.entries.map(({prophecy: p, index}) => (
+              {/* The visual web map — reachable from the index too, so it is
+                  findable from any step (not just the intro). */}
+              <TouchableOpacity
+                style={[styles.indexMapBtn, {borderColor: colors.border}]}
+                onPress={openMap}
+                accessibilityRole="button"
+                accessibilityLabel={tp.mapTitle}>
+                <Ionicons name="git-network" size={16} color={colors.primary} />
+                <AppText
+                  scaleRole="compact"
+                  style={[styles.introIndexText, {color: colors.primary}]}>
+                  {tp.viewMap}
+                </AppText>
+              </TouchableOpacity>
+              {/* Filter chips — all / favorites / NT-quoted. */}
+              <View style={styles.indexFilters}>
+                {indexFilters.map(f => {
+                  const active = indexFilter === f.key;
+                  return (
                     <TouchableOpacity
-                      key={p.id}
-                      style={[styles.indexRow, {borderColor: colors.border}]}
-                      onPress={() => jumpTo(index)}
+                      key={f.key}
+                      style={[
+                        styles.indexFilterChip,
+                        active
+                          ? {
+                              borderColor: colors.primary,
+                              backgroundColor: colors.primary + '18',
+                            }
+                          : {borderColor: colors.border},
+                      ]}
+                      onPress={() => {
+                        haptics.tap();
+                        setIndexFilter(f.key);
+                      }}
                       accessibilityRole="button"
-                      accessibilityLabel={items[p.id]?.label ?? p.id}>
-                      <Ionicons
-                        name={
-                          visited.has(p.id)
-                            ? 'checkmark-circle'
-                            : 'ellipse-outline'
-                        }
-                        size={18}
-                        color={
-                          visited.has(p.id)
-                            ? PROPHECY_GROUP_ACCENT[section.group]
-                            : colors.textTertiary
-                        }
-                      />
+                      accessibilityState={{selected: active}}
+                      accessibilityLabel={f.label}>
                       <AppText
-                        style={[styles.indexRowText, {color: colors.text}]}
-                        numberOfLines={1}>
-                        {items[p.id]?.label ?? ''}
+                        scaleRole="compact"
+                        style={[
+                          styles.indexFilterText,
+                          {
+                            color: active
+                              ? colors.primary
+                              : colors.textSecondary,
+                          },
+                        ]}>
+                        {f.label}
                       </AppText>
-                      <Ionicons
-                        name="chevron-forward"
-                        size={16}
-                        color={colors.textTertiary}
-                      />
                     </TouchableOpacity>
-                  ))}
-                </View>
-              ))}
+                  );
+                })}
+              </View>
+
+              {filteredSections.length === 0 ? (
+                <AppText
+                  style={[styles.indexEmpty, {color: colors.textTertiary}]}>
+                  {tp.noFavorites}
+                </AppText>
+              ) : (
+                filteredSections.map(section => (
+                  <View key={section.group} style={styles.indexSection}>
+                    <AppText
+                      scaleRole="compact"
+                      style={[
+                        styles.indexGroupTitle,
+                        {color: PROPHECY_GROUP_ACCENT[section.group]},
+                      ]}>
+                      {groups[section.group]}
+                    </AppText>
+                    {section.entries.map(({prophecy: p, index}) => (
+                      <TouchableOpacity
+                        key={p.id}
+                        style={[styles.indexRow, {borderColor: colors.border}]}
+                        onPress={() => jumpTo(index)}
+                        accessibilityRole="button"
+                        accessibilityLabel={items[p.id]?.label ?? p.id}>
+                        <Ionicons
+                          name={
+                            visited.has(p.id)
+                              ? 'checkmark-circle'
+                              : 'ellipse-outline'
+                          }
+                          size={18}
+                          color={
+                            visited.has(p.id)
+                              ? PROPHECY_GROUP_ACCENT[section.group]
+                              : colors.textTertiary
+                          }
+                        />
+                        <AppText
+                          style={[styles.indexRowText, {color: colors.text}]}
+                          numberOfLines={1}>
+                          {items[p.id]?.label ?? ''}
+                        </AppText>
+                        {favorites.has(p.id) ? (
+                          <Ionicons
+                            name="star"
+                            size={14}
+                            color={PROPHECY_GROUP_ACCENT[section.group]}
+                          />
+                        ) : null}
+                        <Ionicons
+                          name="chevron-forward"
+                          size={16}
+                          color={colors.textTertiary}
+                        />
+                      </TouchableOpacity>
+                    ))}
+                  </View>
+                ))
+              )}
             </View>
           ) : (
             <>
@@ -494,6 +668,67 @@ export default function PropheticThreadScreen() {
                   <AppText style={[styles.introText, {color: colors.text}]}>
                     {tp.intro}
                   </AppText>
+
+                  {/* Profecía de hoy — the featured daily pick (the Home tile
+                      teases it; tapping opens straight into that step). */}
+                  <TouchableOpacity
+                    style={[
+                      styles.todayCard,
+                      {
+                        backgroundColor:
+                          PROPHECY_GROUP_ACCENT[todayProphecy.group] + '14',
+                        borderColor:
+                          PROPHECY_GROUP_ACCENT[todayProphecy.group] + '40',
+                      },
+                    ]}
+                    onPress={() => {
+                      haptics.tap();
+                      setPhase(todayIndex);
+                    }}
+                    accessibilityRole="button"
+                    accessibilityLabel={`${tp.todayTitle}: ${items[todayProphecy.id]?.label ?? ''}`}>
+                    <View style={styles.todayHeader}>
+                      <Ionicons
+                        name="sparkles"
+                        size={13}
+                        color={PROPHECY_GROUP_ACCENT[todayProphecy.group]}
+                      />
+                      <AppText
+                        scaleRole="compact"
+                        style={[
+                          styles.todayLabel,
+                          {color: PROPHECY_GROUP_ACCENT[todayProphecy.group]},
+                        ]}>
+                        {tp.todayTitle}
+                      </AppText>
+                    </View>
+                    <AppText
+                      scaleRole="compact"
+                      style={[styles.todayName, {color: colors.text}]}
+                      numberOfLines={2}>
+                      {items[todayProphecy.id]?.label ?? ''}
+                    </AppText>
+                    <View style={styles.todayRefRow}>
+                      <AppText
+                        scaleRole="compact"
+                        style={[styles.todayRef, {color: colors.textSecondary}]}
+                        numberOfLines={1}>
+                        {todayRefs.prophecy}
+                      </AppText>
+                      <Ionicons
+                        name="arrow-forward"
+                        size={12}
+                        color={colors.textTertiary}
+                      />
+                      <AppText
+                        scaleRole="compact"
+                        style={[styles.todayRef, {color: colors.textSecondary}]}
+                        numberOfLines={1}>
+                        {todayRefs.fulfillment}
+                      </AppText>
+                    </View>
+                  </TouchableOpacity>
+
                   <TouchableOpacity
                     style={[
                       styles.primaryBtn,
@@ -640,13 +875,42 @@ export default function PropheticThreadScreen() {
                         {groups[current.group]}
                       </AppText>
                     </View>
-                    <AppText
-                      scaleRole="compact"
-                      style={[styles.stepCount, {color: colors.textTertiary}]}>
-                      {tp.stepOf
-                        .replace('{{n}}', String(phase + 1))
-                        .replace('{{total}}', String(total))}
-                    </AppText>
+                    <View style={styles.stepTopRight}>
+                      <TouchableOpacity
+                        onPress={() => toggleFavorite(current.id)}
+                        hitSlop={{top: 10, bottom: 10, left: 10, right: 10}}
+                        accessibilityRole="button"
+                        accessibilityLabel={
+                          favorites.has(current.id)
+                            ? tp.unfavorite
+                            : tp.favorite
+                        }
+                        accessibilityState={{
+                          selected: favorites.has(current.id),
+                        }}>
+                        <Ionicons
+                          name={
+                            favorites.has(current.id) ? 'star' : 'star-outline'
+                          }
+                          size={20}
+                          color={
+                            favorites.has(current.id)
+                              ? accent
+                              : colors.textTertiary
+                          }
+                        />
+                      </TouchableOpacity>
+                      <AppText
+                        scaleRole="compact"
+                        style={[
+                          styles.stepCount,
+                          {color: colors.textTertiary},
+                        ]}>
+                        {tp.stepOf
+                          .replace('{{n}}', String(phase + 1))
+                          .replace('{{total}}', String(total))}
+                      </AppText>
+                    </View>
                   </View>
 
                   <AppText
@@ -687,6 +951,26 @@ export default function PropheticThreadScreen() {
                         ]}>
                         {items[current.id]?.note ?? ''}
                       </AppText>
+
+                      {/* Escuchar — read the prophecy + fulfillment aloud. */}
+                      <TouchableOpacity
+                        style={[styles.listenBtn, {borderColor: accent + '55'}]}
+                        onPress={handleListen}
+                        accessibilityRole="button"
+                        accessibilityLabel={
+                          speaking ? tp.stopListening : tp.listen
+                        }>
+                        <Ionicons
+                          name={speaking ? 'stop-circle' : 'volume-high'}
+                          size={18}
+                          color={accent}
+                        />
+                        <AppText
+                          scaleRole="compact"
+                          style={[styles.listenText, {color: accent}]}>
+                          {speaking ? tp.stopListening : tp.listen}
+                        </AppText>
+                      </TouchableOpacity>
 
                       {/* "Cristo en este pasaje" — the curated christConnections
                           reflection on this OT verse, when one exists. */}
@@ -927,11 +1211,32 @@ export default function PropheticThreadScreen() {
               {phase >= total && (
                 <View style={styles.introBlock}>
                   <Ionicons
-                    name="checkmark-circle"
+                    name={allVisited ? 'trophy' : 'checkmark-circle'}
                     size={56}
-                    color={colors.primary}
+                    color={allVisited ? colors.warning : colors.primary}
                     style={styles.introIcon}
                   />
+                  {allVisited ? (
+                    <View
+                      style={[
+                        styles.completedBadge,
+                        {backgroundColor: colors.warning + '22'},
+                      ]}>
+                      <Ionicons
+                        name="ribbon"
+                        size={14}
+                        color={colors.warning}
+                      />
+                      <AppText
+                        scaleRole="compact"
+                        style={[
+                          styles.completedBadgeText,
+                          {color: colors.warning},
+                        ]}>
+                        {tp.completedBadge}
+                      </AppText>
+                    </View>
+                  ) : null}
                   <AppText
                     scaleRole="display"
                     style={[styles.finishedTitle, {color: colors.text}]}>
@@ -998,10 +1303,61 @@ const styles = StyleSheet.create({
   introIndexText: {fontSize: fontSizes.sm, fontWeight: '700'},
   introProgress: {fontSize: fontSizes.sm},
   indexBlock: {gap: spacing.lg},
+  indexMapBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: spacing.xs,
+    paddingVertical: spacing.sm,
+    borderRadius: borderRadius.md,
+    borderWidth: 1,
+  },
+  todayCard: {
+    alignSelf: 'stretch',
+    borderRadius: borderRadius.lg,
+    borderWidth: 1,
+    padding: spacing.base,
+    gap: spacing.xs,
+  },
+  todayHeader: {flexDirection: 'row', alignItems: 'center', gap: spacing.xs},
+  todayLabel: {
+    fontSize: fontSizes.xs,
+    fontWeight: '800',
+    textTransform: 'uppercase',
+    letterSpacing: 0.4,
+  },
+  todayName: {fontSize: fontSizes.lg, fontWeight: '800'},
+  todayRefRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.xs,
+    flexWrap: 'wrap',
+  },
+  todayRef: {fontSize: fontSizes.sm, fontWeight: '700', flexShrink: 1},
   indexProgress: {
     fontSize: fontSizes.sm,
     fontWeight: '600',
     textAlign: 'center',
+  },
+  indexFilters: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: spacing.sm,
+    justifyContent: 'center',
+  },
+  indexFilterChip: {
+    paddingHorizontal: spacing.base,
+    paddingVertical: spacing.xs,
+    borderRadius: borderRadius.full,
+    borderWidth: 1,
+  },
+  indexFilterText: {fontSize: fontSizes.sm, fontWeight: '700'},
+  indexEmpty: {
+    fontSize: fontSizes.sm,
+    textAlign: 'center',
+    paddingVertical: spacing.xl,
+    paddingHorizontal: spacing.lg,
+    lineHeight: fontSizes.sm * 1.5,
   },
   indexSection: {gap: spacing.xs},
   indexGroupTitle: {
@@ -1065,6 +1421,20 @@ const styles = StyleSheet.create({
     fontWeight: '800',
     textAlign: 'center',
   },
+  completedBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.xs,
+    paddingHorizontal: spacing.base,
+    paddingVertical: spacing.xs,
+    borderRadius: borderRadius.full,
+  },
+  completedBadgeText: {
+    fontSize: fontSizes.sm,
+    fontWeight: '800',
+    textTransform: 'uppercase',
+    letterSpacing: 0.4,
+  },
   stepBlock: {gap: spacing.md},
   stepTopRow: {
     flexDirection: 'row',
@@ -1072,6 +1442,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     gap: spacing.sm,
   },
+  stepTopRight: {flexDirection: 'row', alignItems: 'center', gap: spacing.sm},
   groupChip: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -1165,6 +1536,18 @@ const styles = StyleSheet.create({
     lineHeight: fontSizes.md * 1.55,
     fontStyle: 'italic',
   },
+  listenBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: spacing.xs,
+    alignSelf: 'flex-start',
+    paddingVertical: spacing.xs,
+    paddingHorizontal: spacing.base,
+    borderRadius: borderRadius.full,
+    borderWidth: 1,
+  },
+  listenText: {fontSize: fontSizes.sm, fontWeight: '700'},
   christCard: {
     borderRadius: borderRadius.lg,
     borderWidth: 1,

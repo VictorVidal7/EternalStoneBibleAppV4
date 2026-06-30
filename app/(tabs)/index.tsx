@@ -83,10 +83,7 @@ import {
   parseChristRef,
   formatChristRefLabel,
 } from '@/features/study/christConnections';
-import {
-  getDailyProphecy,
-  getDailyProphecyIndex,
-} from '@/features/study/messianicProphecies';
+import {getDailyProphecy} from '@/features/study/messianicProphecies';
 import {translations} from '@/i18n/translations';
 import {timeOfDay, homeNudge} from '@/lib/home/homeGreeting';
 import {planPace, formatDayReadings} from '@/lib/reading/planPace';
@@ -542,14 +539,12 @@ export default function HomeScreen() {
     callback();
   };
 
-  // "Profecía del día" — the Hilo-profético discover tile rotates through the
-  // thread by the day, teasing today's prophecy and opening straight to it.
-  const dailyProphecy = useMemo(() => {
+  // "Profecía del día" — the Hilo-profético discover tile teases today's
+  // prophecy and opens the thread's intro hub (índice / mapa / fuentes all
+  // reachable there, and the intro features today's prophecy to open it).
+  const dailyProphecyLabel = useMemo(() => {
     const p = getDailyProphecy();
-    const index = getDailyProphecyIndex();
-    const label = (t.prophecies.items as Record<string, {label: string}>)[p.id]
-      ?.label;
-    return {index, label};
+    return (t.prophecies.items as Record<string, {label: string}>)[p.id]?.label;
   }, [t.prophecies.items]);
 
   // "Continue listening" card mode (Sprint 75): 'navigate' deep-links into the
@@ -1284,6 +1279,9 @@ export default function HomeScreen() {
             as ONE organized block. The redundant standalone "How are you
             feeling" browse card was removed — the FeelingChips at the top of
             Home already open the full feelings browser (onOpenAll). */}
+        {/* ==================== TU PROGRESO ==================== */}
+        {/* Your-progress surfaces (journey + activity/constancy) live in their
+            own section, separate from the discovery tiles below. */}
         <Animated.View
           style={{opacity: fadeAnim, marginTop: celestialSpacing.sectionGap}}>
           <View style={styles.sectionHeader}>
@@ -1292,10 +1290,10 @@ export default function HomeScreen() {
                 styles.sectionTitle,
                 {color: celestialTheme.colors.text},
               ]}>
-              {t.home.exploreTitle}
+              {t.home.progressTitle}
             </Text>
             <Ionicons
-              name="compass"
+              name="trending-up"
               size={26}
               color={celestialTheme.colors.accent}
             />
@@ -1324,6 +1322,28 @@ export default function HomeScreen() {
                 }
               />
             </View>
+          </View>
+        </Animated.View>
+
+        {/* ==================== EXPLORAR (discover grid) ==================== */}
+        <Animated.View
+          style={{opacity: fadeAnim, marginTop: celestialSpacing.sectionGap}}>
+          <View style={styles.sectionHeader}>
+            <Text
+              style={[
+                styles.sectionTitle,
+                {color: celestialTheme.colors.text},
+              ]}>
+              {t.home.exploreTitle}
+            </Text>
+            <Ionicons
+              name="compass"
+              size={26}
+              color={celestialTheme.colors.accent}
+            />
+          </View>
+
+          <View style={styles.savedGrid}>
             <View style={styles.savedCardWrapper}>
               <DiscoverTile
                 icon="sunny"
@@ -1351,15 +1371,13 @@ export default function HomeScreen() {
                 icon="git-network"
                 title={t.prophecies.title}
                 subtitle={
-                  dailyProphecy.label
-                    ? `${t.prophecies.todayLabel} · ${dailyProphecy.label}`
+                  dailyProphecyLabel
+                    ? `${t.prophecies.todayLabel} · ${dailyProphecyLabel}`
                     : t.prophecies.subtitle
                 }
                 onPress={() =>
                   handlePress(() =>
-                    router.push(
-                      `/features/prophecies?start=${dailyProphecy.index}` as never,
-                    ),
+                    router.push('/features/prophecies' as never),
                   )
                 }
               />
