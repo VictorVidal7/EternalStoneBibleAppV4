@@ -32,6 +32,13 @@ import {useTheme} from '../../hooks/useTheme';
 import {usePressScale} from '../../hooks/usePressScale';
 import {alsoChipLabel} from '../../lib/home/alsoInVersions';
 
+// Generous touch slop for the card's footer/CTA rows (UX review #8). These
+// sit INSIDE the whole-card TouchableOpacity (which reads the chapter), so a
+// near-miss on a thin CTA used to fall through to "read chapter" instead.
+// Expanding each CTA's hit area covers the gaps without changing the layout.
+const CTA_HIT_SLOP = {top: 10, bottom: 12, left: 12, right: 12} as const;
+const ICON_HIT_SLOP = {top: 8, bottom: 8, left: 8, right: 8} as const;
+
 /** A translation offered by the "see it in …" chips (Sprint 77). */
 export interface AlternateVersionOption {
   id: string;
@@ -588,7 +595,10 @@ const VerseOfDayCard: React.FC<VerseOfDayCardProps> = ({
           <View style={styles.footer}>
             {/* Botón leer capítulo completo */}
             {onPress && (
-              <TouchableOpacity style={styles.actionButton} onPress={onPress}>
+              <TouchableOpacity
+                style={styles.actionButton}
+                onPress={onPress}
+                hitSlop={CTA_HIT_SLOP}>
                 <Text
                   scaleRole="compact"
                   style={[styles.actionText, {color: colors.primary}]}>
@@ -618,6 +628,7 @@ const VerseOfDayCard: React.FC<VerseOfDayCardProps> = ({
                       },
                     ]}
                     onPress={onToggleAlternates}
+                    hitSlop={ICON_HIT_SLOP}
                     accessibilityRole="button"
                     accessibilityLabel={t.home.alsoToggle}
                     accessibilityState={{selected: alternatesVisible}}>
@@ -637,6 +648,7 @@ const VerseOfDayCard: React.FC<VerseOfDayCardProps> = ({
                     {backgroundColor: theme.colors.hover},
                   ]}
                   onPress={onShare}
+                  hitSlop={ICON_HIT_SLOP}
                   accessibilityRole="button"
                   accessibilityLabel={t.verse.shareVerse}>
                   <Ionicons
@@ -654,6 +666,7 @@ const VerseOfDayCard: React.FC<VerseOfDayCardProps> = ({
                     {backgroundColor: theme.colors.hover},
                   ]}
                   onPress={handleFavorite}
+                  hitSlop={ICON_HIT_SLOP}
                   accessibilityRole="button"
                   accessibilityLabel={
                     isFavorited ? t.verse.removeFavorite : t.verse.addFavorite
@@ -678,6 +691,7 @@ const VerseOfDayCard: React.FC<VerseOfDayCardProps> = ({
                 {borderTopColor: theme.colors.glassBorder},
               ]}
               onPress={onStudy}
+              hitSlop={CTA_HIT_SLOP}
               accessibilityRole="button"
               accessibilityLabel={`${t.home.studyVerse}, ${studyConnectionsCount}`}>
               <Ionicons
@@ -715,6 +729,7 @@ const VerseOfDayCard: React.FC<VerseOfDayCardProps> = ({
                 {borderTopColor: theme.colors.glassBorder},
               ]}
               onPress={onPrep}
+              hitSlop={CTA_HIT_SLOP}
               accessibilityRole="button"
               accessibilityLabel={t.home.prepFromVerse}>
               <Ionicons
@@ -741,6 +756,7 @@ const VerseOfDayCard: React.FC<VerseOfDayCardProps> = ({
                   {borderTopColor: theme.colors.glassBorder},
                 ]}
                 onPress={() => setChristExpanded(v => !v)}
+                hitSlop={CTA_HIT_SLOP}
                 accessibilityRole="button"
                 accessibilityLabel={christTitle}
                 accessibilityState={{expanded: christExpanded}}>
