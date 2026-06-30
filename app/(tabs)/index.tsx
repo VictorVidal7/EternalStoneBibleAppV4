@@ -1279,6 +1279,9 @@ export default function HomeScreen() {
             as ONE organized block. The redundant standalone "How are you
             feeling" browse card was removed — the FeelingChips at the top of
             Home already open the full feelings browser (onOpenAll). */}
+        {/* ==================== TU PROGRESO ==================== */}
+        {/* Your-progress surfaces (journey + activity/constancy) live in their
+            own section, separate from the discovery tiles below. */}
         <Animated.View
           style={{opacity: fadeAnim, marginTop: celestialSpacing.sectionGap}}>
           <View style={styles.sectionHeader}>
@@ -1287,10 +1290,10 @@ export default function HomeScreen() {
                 styles.sectionTitle,
                 {color: celestialTheme.colors.text},
               ]}>
-              {t.home.exploreTitle}
+              {t.home.progressTitle}
             </Text>
             <Ionicons
-              name="compass"
+              name="trending-up"
               size={26}
               color={celestialTheme.colors.accent}
             />
@@ -1319,6 +1322,28 @@ export default function HomeScreen() {
                 }
               />
             </View>
+          </View>
+        </Animated.View>
+
+        {/* ==================== EXPLORAR (discover grid) ==================== */}
+        <Animated.View
+          style={{opacity: fadeAnim, marginTop: celestialSpacing.sectionGap}}>
+          <View style={styles.sectionHeader}>
+            <Text
+              style={[
+                styles.sectionTitle,
+                {color: celestialTheme.colors.text},
+              ]}>
+              {t.home.exploreTitle}
+            </Text>
+            <Ionicons
+              name="compass"
+              size={26}
+              color={celestialTheme.colors.accent}
+            />
+          </View>
+
+          <View style={styles.savedGrid}>
             <View style={styles.savedCardWrapper}>
               <DiscoverTile
                 icon="sunny"
