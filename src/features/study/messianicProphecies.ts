@@ -115,6 +115,12 @@ export const MESSIANIC_PROPHECIES: readonly MessianicProphecy[] = [
     prophecy: 'Jeremiah/31/15',
     fulfillment: 'Matthew/2/17',
   },
+  {
+    id: 'isa-11-1',
+    group: 'coming',
+    prophecy: 'Isaiah/11/1',
+    fulfillment: 'Romans/15/12',
+  },
 
   // ── His ministry ──
   {
@@ -166,13 +172,43 @@ export const MESSIANIC_PROPHECIES: readonly MessianicProphecy[] = [
     fulfillment: 'Matthew/21/5',
   },
   {
+    id: 'isa-42-1',
+    group: 'ministry',
+    prophecy: 'Isaiah/42/1',
+    fulfillment: 'Matthew/12/18',
+  },
+  {
+    id: 'isa-53-4',
+    group: 'ministry',
+    prophecy: 'Isaiah/53/4',
+    fulfillment: 'Matthew/8/17',
+  },
+  {
     id: 'ps-118-22',
     group: 'ministry',
     prophecy: 'Psalms/118/22',
     fulfillment: 'Matthew/21/42',
   },
+  {
+    id: 'ps-118-26',
+    group: 'ministry',
+    prophecy: 'Psalms/118/26',
+    fulfillment: 'Matthew/21/9',
+  },
+  {
+    id: 'ps-8-2',
+    group: 'ministry',
+    prophecy: 'Psalms/8/2',
+    fulfillment: 'Matthew/21/16',
+  },
 
   // ── His passion: betrayal, suffering and death ──
+  {
+    id: 'isa-53-3',
+    group: 'passion',
+    prophecy: 'Isaiah/53/3',
+    fulfillment: 'John/1/11',
+  },
   {
     id: 'ps-41-9',
     group: 'passion',
@@ -257,6 +293,12 @@ export const MESSIANIC_PROPHECIES: readonly MessianicProphecy[] = [
     prophecy: 'Isaiah/53/12',
     fulfillment: 'Luke/22/37',
   },
+  {
+    id: 'deut-21-23',
+    group: 'passion',
+    prophecy: 'Deuteronomy/21/23',
+    fulfillment: 'Galatians/3/13',
+  },
 
   // ── His resurrection and exaltation ──
   {
@@ -264,6 +306,12 @@ export const MESSIANIC_PROPHECIES: readonly MessianicProphecy[] = [
     group: 'resurrection',
     prophecy: 'Psalms/16/10',
     fulfillment: 'Acts/2/31',
+  },
+  {
+    id: 'ps-16-11',
+    group: 'resurrection',
+    prophecy: 'Psalms/16/11',
+    fulfillment: 'Acts/2/28',
   },
   {
     id: 'ps-2-7',
@@ -282,6 +330,18 @@ export const MESSIANIC_PROPHECIES: readonly MessianicProphecy[] = [
     group: 'resurrection',
     prophecy: 'Psalms/68/18',
     fulfillment: 'Ephesians/4/8',
+  },
+  {
+    id: 'ps-45-6',
+    group: 'resurrection',
+    prophecy: 'Psalms/45/6',
+    fulfillment: 'Hebrews/1/8',
+  },
+  {
+    id: 'ps-110-4',
+    group: 'resurrection',
+    prophecy: 'Psalms/110/4',
+    fulfillment: 'Hebrews/5/6',
   },
   {
     id: 'dan-7-13',
