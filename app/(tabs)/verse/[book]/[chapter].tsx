@@ -2254,7 +2254,16 @@ export default function VerseReadingScreen() {
                       styles.verseText,
                       textStyle,
                       dualColumns && styles.dualColumn,
-                    ]}>
+                    ]}
+                    // #3 candidate (right-edge clip on the user's OEM device):
+                    // 'simple' uses GREEDY line-breaking instead of Android's
+                    // default 'highQuality', which packs lines tighter and lets
+                    // a line paint a few px wider than its measured wrap — the
+                    // documented root cause. Greedy wrapping breaks earlier and
+                    // leaves more right margin, so the last glyph clears the box.
+                    // A different lever than the fontSize-derived padding slack
+                    // (which never fully landed it), tried together here.
+                    textBreakStrategy="simple">
                     <Text style={[styles.verseNumber, numberStyle]}>
                       {verse.verse}
                       {'  '}
@@ -2339,7 +2348,8 @@ export default function VerseReadingScreen() {
                                       ? effectiveColors.onHighlight
                                       : effectiveColors.text,
                                   },
-                                ]}>
+                                ]}
+                                textBreakStrategy="simple">
                                 {companion.text}
                               </Text>
                             </View>
@@ -2371,7 +2381,8 @@ export default function VerseReadingScreen() {
                                   fontSize: Math.max(fontSize - 2, 12),
                                   lineHeight: Math.max(fontSize - 2, 12) * 1.5,
                                 },
-                              ]}>
+                              ]}
+                              textBreakStrategy="simple">
                               {companion.text}
                             </Text>
                           </View>
