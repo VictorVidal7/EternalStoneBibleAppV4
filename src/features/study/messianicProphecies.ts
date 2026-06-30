@@ -423,6 +423,43 @@ export function isNtQuoted(id: string): boolean {
   return NT_QUOTED_PROPHECIES.has(id);
 }
 
+/** Where a verse sits in the thread: which step, and as prophecy or fulfillment. */
+export interface ProphecyVerseMatch {
+  index: number;
+  id: string;
+  role: 'prophecy' | 'fulfillment';
+}
+
+// Reverse index "EnglishBook/Chapter/Verse" → its place in the thread, built
+// once. The OT prophecy ref wins if a verse happens to be both.
+let verseMatchIndex: Map<string, ProphecyVerseMatch> | null = null;
+function getVerseMatchIndex(): Map<string, ProphecyVerseMatch> {
+  if (verseMatchIndex === null) {
+    const map = new Map<string, ProphecyVerseMatch>();
+    MESSIANIC_PROPHECIES.forEach((p, index) => {
+      if (!map.has(p.prophecy)) {
+        map.set(p.prophecy, {index, id: p.id, role: 'prophecy'});
+      }
+      if (!map.has(p.fulfillment)) {
+        map.set(p.fulfillment, {index, id: p.id, role: 'fulfillment'});
+      }
+    });
+    verseMatchIndex = map;
+  }
+  return verseMatchIndex;
+}
+
+/**
+ * Whether a verse (by canonical "EnglishBook/Chapter/Verse") is part of the
+ * thread — so the reader can offer a jump to it. Pure; null when not in the
+ * thread.
+ */
+export function findProphecyForVerseKey(
+  key: string,
+): ProphecyVerseMatch | null {
+  return getVerseMatchIndex().get(key) ?? null;
+}
+
 /** A movement with its prophecies and their global thread index (for an index). */
 export interface ProphecyGroupSection {
   group: ProphecyGroup;

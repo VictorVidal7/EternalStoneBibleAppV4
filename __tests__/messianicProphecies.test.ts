@@ -13,6 +13,7 @@ import {
   NT_QUOTED_PROPHECIES,
   isNtQuoted,
   getPropheciesByGroup,
+  findProphecyForVerseKey,
   type ProphecyGroup,
 } from '../src/features/study/messianicProphecies';
 import {parseChristRef} from '../src/features/study/christConnections';
@@ -141,6 +142,24 @@ describe('messianicProphecies — NT-quoted set', () => {
   it('isNtQuoted mirrors the set', () => {
     for (const p of MESSIANIC_PROPHECIES) {
       expect(isNtQuoted(p.id)).toBe(NT_QUOTED_PROPHECIES.has(p.id));
+    }
+  });
+});
+
+describe('findProphecyForVerseKey', () => {
+  it('locates a verse as prophecy or fulfillment, null otherwise', () => {
+    const pr = findProphecyForVerseKey('Genesis/3/15');
+    expect(pr).toEqual({index: 0, id: 'gen-3-15', role: 'prophecy'});
+    const fu = findProphecyForVerseKey('Galatians/4/4');
+    expect(fu?.role).toBe('fulfillment');
+    expect(fu?.id).toBe('gen-3-15');
+    expect(findProphecyForVerseKey('Genesis/1/1')).toBeNull();
+  });
+
+  it('every prophecy + fulfillment verse is findable', () => {
+    for (const p of MESSIANIC_PROPHECIES) {
+      expect(findProphecyForVerseKey(p.prophecy)).not.toBeNull();
+      expect(findProphecyForVerseKey(p.fulfillment)).not.toBeNull();
     }
   });
 });
