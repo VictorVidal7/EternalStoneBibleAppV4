@@ -1861,6 +1861,46 @@ export const translations = {
           label: 'El Hijo del Hombre',
           note: 'Vino uno como un Hijo de Hombre y le fue dado dominio eterno; Jesús se llamó así ante el sumo sacerdote.',
         },
+        'isa-11-1': {
+          label: 'El Renuevo de Isaí',
+          note: 'Una vara saldría del tronco de Isaí, un Renuevo que llevará fruto; Pablo cita esta raíz de Isaí: Cristo, en quien esperan los gentiles.',
+        },
+        'isa-42-1': {
+          label: 'Mi siervo escogido',
+          note: 'He aquí mi siervo, mi escogido en quien mi alma tiene contentamiento; Mateo lo aplica al Señor Jesús, manso y humilde.',
+        },
+        'isa-53-4': {
+          label: 'Llevó nuestras dolencias',
+          note: 'Él llevó nuestras enfermedades y sufrió nuestros dolores; así describe Mateo sus sanidades, anticipo de la cruz.',
+        },
+        'isa-53-3': {
+          label: 'Despreciado y desechado',
+          note: 'Despreciado y desechado entre los hombres; vino a lo suyo, y los suyos no le recibieron.',
+        },
+        'deut-21-23': {
+          label: 'Hecho maldición por nosotros',
+          note: 'Maldito todo el que es colgado en un madero; Cristo nos redimió de la maldición, hecho por nosotros maldición.',
+        },
+        'ps-118-26': {
+          label: 'Bendito el que viene',
+          note: 'Bendito el que viene en el nombre del Señor; así lo aclamaron al entrar en Jerusalén: «¡Hosanna!».',
+        },
+        'ps-8-2': {
+          label: 'La alabanza de los niños',
+          note: 'De la boca de los niños afirmaste la alabanza; Jesús lo recordó cuando los pequeños lo aclamaban en el templo.',
+        },
+        'ps-16-11': {
+          label: 'La senda de la vida',
+          note: 'Me mostrarás la senda de la vida; Pedro lo proclama cumplido en la resurrección del Señor.',
+        },
+        'ps-45-6': {
+          label: 'Tu trono es eterno, oh Dios',
+          note: 'Tu trono, oh Dios, es eterno y para siempre; Hebreos lo dice del Hijo, Dios y Rey por los siglos.',
+        },
+        'ps-110-4': {
+          label: 'Sacerdote para siempre',
+          note: 'Tú eres sacerdote para siempre según el orden de Melquisedec; Cristo es nuestro gran Sumo Sacerdote.',
+        },
       },
     },
 
@@ -5295,6 +5335,46 @@ export const translations = {
         'dan-7-13': {
           label: 'The Son of Man',
           note: 'One like a Son of Man came and was given everlasting dominion; Jesus called Himself so before the high priest.',
+        },
+        'isa-11-1': {
+          label: 'The Branch of Jesse',
+          note: 'A shoot would come from the stump of Jesse, a Branch bearing fruit; Paul cites this root of Jesse: Christ, in whom the Gentiles hope.',
+        },
+        'isa-42-1': {
+          label: 'My chosen servant',
+          note: 'Behold My servant, My chosen in whom My soul delights; Matthew applies it to the Lord Jesus, gentle and humble.',
+        },
+        'isa-53-4': {
+          label: 'He bore our sicknesses',
+          note: 'He took up our infirmities and bore our diseases; so Matthew describes His healings, a foretaste of the cross.',
+        },
+        'isa-53-3': {
+          label: 'Despised and rejected',
+          note: 'Despised and rejected by men; He came to His own, and His own did not receive Him.',
+        },
+        'deut-21-23': {
+          label: 'Made a curse for us',
+          note: 'Cursed is everyone hanged on a tree; Christ redeemed us from the curse, becoming a curse for us.',
+        },
+        'ps-118-26': {
+          label: 'Blessed is He who comes',
+          note: 'Blessed is He who comes in the name of the Lord; so they hailed Him entering Jerusalem: "Hosanna!"',
+        },
+        'ps-8-2': {
+          label: 'The praise of children',
+          note: 'Out of the mouth of children You ordained praise; Jesus recalled it as the little ones acclaimed Him in the temple.',
+        },
+        'ps-16-11': {
+          label: 'The path of life',
+          note: 'You will show Me the path of life; Peter proclaims it fulfilled in the resurrection of the Lord.',
+        },
+        'ps-45-6': {
+          label: 'Your throne is forever, O God',
+          note: 'Your throne, O God, is forever and ever; Hebrews says it of the Son, God and King through the ages.',
+        },
+        'ps-110-4': {
+          label: 'A priest forever',
+          note: 'You are a priest forever after the order of Melchizedek; Christ is our great High Priest.',
         },
       },
     },
