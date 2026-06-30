@@ -25,6 +25,7 @@ import {
   Pressable,
   StyleSheet,
   ActivityIndicator,
+  Platform,
   useWindowDimensions,
 } from 'react-native';
 import Svg, {Circle, Line} from 'react-native-svg';
@@ -60,6 +61,10 @@ import {
   staticColors,
   verseTextRightSlack,
 } from '@/styles/designTokens';
+
+// Clearance so the floating detail panel sits above the bottom tab bar
+// (this screen lives in the (tabs) group, so the tab bar is present).
+const TAB_BAR_CLEARANCE = Platform.OS === 'ios' ? 84 : 64;
 
 export default function ConstellationScreen() {
   const router = useRouter();
@@ -475,61 +480,9 @@ export default function ConstellationScreen() {
               </Text>
             </View>
 
-            {/* Selected-star detail, or a hint to tap. */}
-            {selected ? (
-              <View
-                style={[
-                  styles.selectedCard,
-                  {
-                    backgroundColor: nodeColor(selected) + '0F',
-                    borderColor: nodeColor(selected) + '55',
-                  },
-                ]}>
-                <Text
-                  style={[styles.selectedRef, {color: nodeColor(selected)}]}
-                  numberOfLines={1}>
-                  {localize(selected.book)} {selected.chapter}:{selected.verse}
-                </Text>
-                {selectedText ? (
-                  <Text
-                    style={[styles.selectedText, {color: colors.text}]}
-                    numberOfLines={4}>
-                    {selectedText}
-                  </Text>
-                ) : (
-                  <ActivityIndicator
-                    color={nodeColor(selected)}
-                    style={styles.selectedLoading}
-                  />
-                )}
-                <View style={styles.selectedActions}>
-                  <TouchableOpacity
-                    style={[styles.actionButton, {borderColor: colors.primary}]}
-                    onPress={() => onRecenter(selected)}
-                    accessibilityRole="button"
-                    accessibilityLabel={cn.recenter}>
-                    <Ionicons
-                      name="git-network"
-                      size={16}
-                      color={colors.primary}
-                    />
-                    <Text style={[styles.actionText, {color: colors.primary}]}>
-                      {cn.recenter}
-                    </Text>
-                  </TouchableOpacity>
-                  <TouchableOpacity
-                    style={[styles.actionButton, {borderColor: colors.primary}]}
-                    onPress={() => openInReader(selected)}
-                    accessibilityRole="button"
-                    accessibilityLabel={cn.openInReader}>
-                    <Ionicons name="book" size={16} color={colors.primary} />
-                    <Text style={[styles.actionText, {color: colors.primary}]}>
-                      {cn.openInReader}
-                    </Text>
-                  </TouchableOpacity>
-                </View>
-              </View>
-            ) : (
+            {/* Hint to tap — the selected-star detail floats over the canvas
+                (below), so it never requires scrolling per connection. */}
+            {!selected && (
               <Text style={[styles.tapHint, {color: colors.textTertiary}]}>
                 {cn.tapHint}
               </Text>
@@ -537,6 +490,76 @@ export default function ConstellationScreen() {
           </>
         )}
       </ScrollView>
+
+      {/* Selected-star detail as a FLOATING panel pinned above the tab bar
+          (UX follow-up): tapping a star shows its verse here instantly and the
+          panel just updates as you tap others, so consulting many connections
+          never needs a scroll. A close button deselects. */}
+      {selected && count > 0 ? (
+        <View
+          style={[
+            styles.floatingDetail,
+            {
+              bottom: insets.bottom + TAB_BAR_CLEARANCE,
+              backgroundColor: colors.surface,
+              borderColor: nodeColor(selected) + '55',
+            },
+          ]}>
+          <View style={styles.floatingHeader}>
+            <Text
+              style={[styles.selectedRef, {color: nodeColor(selected)}]}
+              numberOfLines={1}>
+              {localize(selected.book)} {selected.chapter}:{selected.verse}
+            </Text>
+            <TouchableOpacity
+              onPress={() => {
+                haptics.tap();
+                selectedKeyRef.current = null;
+                setSelected(null);
+                setSelectedText(null);
+              }}
+              hitSlop={{top: 10, bottom: 10, left: 10, right: 10}}
+              accessibilityRole="button"
+              accessibilityLabel={t.close}>
+              <Ionicons name="close" size={20} color={colors.textTertiary} />
+            </TouchableOpacity>
+          </View>
+          {selectedText ? (
+            <Text
+              style={[styles.selectedText, {color: colors.text}]}
+              numberOfLines={3}>
+              {selectedText}
+            </Text>
+          ) : (
+            <ActivityIndicator
+              color={nodeColor(selected)}
+              style={styles.selectedLoading}
+            />
+          )}
+          <View style={styles.selectedActions}>
+            <TouchableOpacity
+              style={[styles.actionButton, {borderColor: colors.primary}]}
+              onPress={() => onRecenter(selected)}
+              accessibilityRole="button"
+              accessibilityLabel={cn.recenter}>
+              <Ionicons name="git-network" size={16} color={colors.primary} />
+              <Text style={[styles.actionText, {color: colors.primary}]}>
+                {cn.recenter}
+              </Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={[styles.actionButton, {borderColor: colors.primary}]}
+              onPress={() => openInReader(selected)}
+              accessibilityRole="button"
+              accessibilityLabel={cn.openInReader}>
+              <Ionicons name="book" size={16} color={colors.primary} />
+              <Text style={[styles.actionText, {color: colors.primary}]}>
+                {cn.openInReader}
+              </Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      ) : null}
     </View>
   );
 }
@@ -629,14 +652,28 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     marginLeft: 'auto',
   },
-  selectedCard: {
-    alignSelf: 'stretch',
-    marginTop: spacing.lg,
+  floatingDetail: {
+    position: 'absolute',
+    left: spacing.lg,
+    right: spacing.lg,
     borderRadius: borderRadius.lg,
     borderWidth: 1,
     padding: spacing.base,
+    // Float above the canvas; a clear shadow so it reads as a layer.
+    shadowColor: staticColors.black,
+    shadowOffset: {width: 0, height: 4},
+    shadowOpacity: 0.18,
+    shadowRadius: 12,
+    elevation: 10,
+    ...centeredMaxWidth(),
   },
-  selectedRef: {fontSize: fontSizes.base, fontWeight: '800'},
+  floatingHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: spacing.sm,
+  },
+  selectedRef: {fontSize: fontSizes.base, fontWeight: '800', flexShrink: 1},
   selectedText: {
     fontSize: fontSizes.md,
     lineHeight: fontSizes.md * 1.5,
