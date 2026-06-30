@@ -1775,6 +1775,9 @@ export const translations = {
         subtitle: 'Adora · Confiesa · Agradece · Pide',
         intro:
           'Un momento para venir a Dios paso a paso: adóralo, confiésate, dale gracias y preséntale tus peticiones.',
+        startQuestion: '¿Cómo quieres acercarte hoy?',
+        startAdoring: 'Adorando',
+        startConfessing: 'Confesando',
         begin: 'Comenzar',
         next: 'Siguiente',
         finish: 'Amén',
@@ -5022,6 +5025,9 @@ export const translations = {
         subtitle: 'The ACTS path',
         intro:
           'A moment to come to God step by step: adore Him, confess, give thanks, and bring Him your requests.',
+        startQuestion: 'How do you want to draw near today?',
+        startAdoring: 'Adoring',
+        startConfessing: 'Confessing',
         begin: 'Begin',
         next: 'Next',
         finish: 'Amen',

@@ -6,6 +6,7 @@
 import {
   ACTS_STEPS,
   ACTS_STEP_ORDER,
+  actsStepOrder,
   buildActsSession,
 } from '../src/features/prayer/acts';
 import {parseThemeRef} from '../src/features/study/themes';
@@ -76,5 +77,42 @@ describe('buildActsSession', () => {
     const day2 = buildActsSession(new Date(2026, 0, 2)).map(s => s.anchor);
     // At least one step should advance to a different anchor.
     expect(day1).not.toEqual(day2);
+  });
+});
+
+describe('flexible start (Adoration vs Confession)', () => {
+  it('defaults to Adoration-first (the ACTS order)', () => {
+    expect(actsStepOrder()).toEqual(ACTS_STEP_ORDER);
+    expect(buildActsSession(new Date(2026, 5, 15)).map(s => s.step)).toEqual([
+      'adoration',
+      'confession',
+      'thanksgiving',
+      'supplication',
+    ]);
+  });
+
+  it('swaps only the first two movements when starting with Confession', () => {
+    expect(actsStepOrder('confession')).toEqual([
+      'confession',
+      'adoration',
+      'thanksgiving',
+      'supplication',
+    ]);
+    expect(
+      buildActsSession(new Date(2026, 5, 15), 'confession').map(s => s.step),
+    ).toEqual(['confession', 'adoration', 'thanksgiving', 'supplication']);
+  });
+
+  it('keeps each movement its own day-anchor regardless of the start choice', () => {
+    const day = new Date(2026, 5, 15);
+    const a = buildActsSession(day, 'adoration');
+    const c = buildActsSession(day, 'confession');
+    const anchorOf = (
+      session: ReturnType<typeof buildActsSession>,
+      step: string,
+    ) => session.find(s => s.step === step)?.anchor;
+    for (const step of ACTS_STEP_ORDER) {
+      expect(anchorOf(a, step)).toBe(anchorOf(c, step));
+    }
   });
 });
