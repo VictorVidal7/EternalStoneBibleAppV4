@@ -36,6 +36,9 @@ import {haptics} from '@lib/haptics';
 import {AppText} from '@components/ui/AppText';
 import bibleDB from '@lib/database';
 import {logger} from '@lib/utils/logger';
+import {useMemoryDeck} from '@context/MemoryDeckContext';
+import {useToast} from '@context/ToastContext';
+import {buildVerseKey} from '@lib/memory/srs';
 import {getBookByName} from '@/constants/bible';
 import {
   parseChristRef,
@@ -78,6 +81,8 @@ export default function PropheticThreadScreen() {
   const {colors} = useTheme();
   const {t} = useLanguage();
   const {selectedVersion} = useBibleVersion();
+  const {hasCard, addCard} = useMemoryDeck();
+  const toast = useToast();
   const tp = t.prophecies;
 
   const total = MESSIANIC_PROPHECIES.length;
@@ -248,6 +253,31 @@ export default function PropheticThreadScreen() {
         version: selectedVersion.id,
       },
     } as never);
+  };
+
+  // "Memorizar" — add the OT prophecy verse to the spaced-repetition deck, the
+  // same deck the reader/daily-light feed (so the thread becomes something the
+  // reader can hide His Word in their heart, Salmo 119:11).
+  const memVerseKey = (() => {
+    if (!current) return '';
+    const info = localizedRef(current.prophecy);
+    return info ? buildVerseKey(info.display, info.chapter, info.verse) : '';
+  })();
+  const inDeck = memVerseKey ? hasCard(memVerseKey) : false;
+
+  const memorize = () => {
+    if (!current || !prophecy?.text || inDeck) return;
+    const info = localizedRef(current.prophecy);
+    if (!info) return;
+    haptics.tap();
+    addCard({
+      bookName: info.display,
+      chapter: info.chapter,
+      verse: info.verse,
+      text: prophecy.text,
+      version: selectedVersion.id,
+    });
+    toast.success(t.memory.addedToast);
   };
 
   // Content for the image-card share modal (null until the verses resolve).
@@ -806,6 +836,40 @@ export default function PropheticThreadScreen() {
                             {tp.study}
                           </AppText>
                         </TouchableOpacity>
+                        <TouchableOpacity
+                          style={[
+                            styles.actionChip,
+                            {borderColor: colors.border},
+                            inDeck ? styles.actionChipDisabled : null,
+                          ]}
+                          onPress={memorize}
+                          disabled={inDeck}
+                          accessibilityRole="button"
+                          accessibilityState={{disabled: inDeck}}
+                          accessibilityLabel={
+                            inDeck ? tp.memorized : tp.memorize
+                          }>
+                          <Ionicons
+                            name={inDeck ? 'school' : 'school-outline'}
+                            size={15}
+                            color={
+                              inDeck ? colors.primary : colors.textSecondary
+                            }
+                          />
+                          <AppText
+                            scaleRole="compact"
+                            style={[
+                              styles.actionChipText,
+                              {
+                                color: inDeck
+                                  ? colors.primary
+                                  : colors.textSecondary,
+                              },
+                            ]}
+                            numberOfLines={1}>
+                            {inDeck ? tp.memorized : tp.memorize}
+                          </AppText>
+                        </TouchableOpacity>
                       </View>
                     </>
                   )}
@@ -1139,11 +1203,13 @@ const styles = StyleSheet.create({
   },
   actionsRow: {
     flexDirection: 'row',
+    flexWrap: 'wrap',
     gap: spacing.sm,
     marginTop: spacing.xs,
   },
   actionChip: {
-    flex: 1,
+    flexGrow: 1,
+    flexBasis: '45%',
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
@@ -1153,6 +1219,7 @@ const styles = StyleSheet.create({
     borderRadius: borderRadius.full,
     borderWidth: 1,
   },
+  actionChipDisabled: {opacity: 0.7},
   actionChipText: {fontSize: fontSizes.xs, fontWeight: '700', flexShrink: 1},
   navRow: {flexDirection: 'row', gap: spacing.sm, marginTop: spacing.xs},
   navBtn: {

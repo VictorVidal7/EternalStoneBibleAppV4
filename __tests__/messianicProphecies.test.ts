@@ -14,6 +14,8 @@ import {
   isNtQuoted,
   getPropheciesByGroup,
   findProphecyForVerseKey,
+  getDailyProphecyIndex,
+  getDailyProphecy,
   type ProphecyGroup,
 } from '../src/features/study/messianicProphecies';
 import {parseChristRef} from '../src/features/study/christConnections';
@@ -161,6 +163,29 @@ describe('findProphecyForVerseKey', () => {
       expect(findProphecyForVerseKey(p.prophecy)).not.toBeNull();
       expect(findProphecyForVerseKey(p.fulfillment)).not.toBeNull();
     }
+  });
+});
+
+describe('getDailyProphecyIndex', () => {
+  it('is deterministic and always a valid in-range index', () => {
+    for (let d = 0; d < 400; d++) {
+      const date = new Date(2026, 0, 1 + d);
+      const index = getDailyProphecyIndex(date);
+      expect(index).toBe(getDailyProphecyIndex(date)); // stable
+      expect(Number.isInteger(index)).toBe(true);
+      expect(index).toBeGreaterThanOrEqual(0);
+      expect(index).toBeLessThan(PROPHECY_COUNT);
+      expect(getDailyProphecy(date)).toBe(MESSIANIC_PROPHECIES[index]);
+    }
+  });
+
+  it('rotates across consecutive days (not stuck on one prophecy)', () => {
+    const seen = new Set<number>();
+    for (let d = 0; d < PROPHECY_COUNT; d++) {
+      seen.add(getDailyProphecyIndex(new Date(2026, 0, 1 + d)));
+    }
+    // A full catalog-length window covers every prophecy exactly once.
+    expect(seen.size).toBe(PROPHECY_COUNT);
   });
 });
 

@@ -654,3 +654,23 @@ export function getPropheciesByGroup(): ProphecyGroupSection[] {
     })).filter(e => e.prophecy.group === group),
   })).filter(section => section.entries.length > 0);
 }
+
+/**
+ * "Profecía del día" — a deterministic index into the thread by the day of the
+ * year, so everyone sees the same prophecy on a given day and the catalog
+ * rotates through the year (the same idea as the daily verse). Pure; always a
+ * valid index in `[0, length)`.
+ */
+export function getDailyProphecyIndex(date: Date = new Date()): number {
+  const startOfYear = new Date(date.getFullYear(), 0, 0);
+  const dayOfYear = Math.floor(
+    (date.getTime() - startOfYear.getTime()) / 86_400_000,
+  );
+  const n = MESSIANIC_PROPHECIES.length;
+  return (((dayOfYear - 1) % n) + n) % n;
+}
+
+/** The prophecy of the day (see {@link getDailyProphecyIndex}). Pure. */
+export function getDailyProphecy(date: Date = new Date()): MessianicProphecy {
+  return MESSIANIC_PROPHECIES[getDailyProphecyIndex(date)];
+}
