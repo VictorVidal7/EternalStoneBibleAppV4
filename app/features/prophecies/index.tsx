@@ -39,6 +39,7 @@ import bibleDB from '@lib/database';
 import {logger} from '@lib/utils/logger';
 import {useMemoryDeck} from '@context/MemoryDeckContext';
 import {useToast} from '@context/ToastContext';
+import {useServices} from '@context/ServicesContext';
 import {buildVerseKey} from '@lib/memory/srs';
 import {getBookByName} from '@/constants/bible';
 import {
@@ -88,6 +89,7 @@ export default function PropheticThreadScreen() {
   const {t} = useLanguage();
   const {selectedVersion} = useBibleVersion();
   const {hasCard, addCard} = useMemoryDeck();
+  const {achievementService, notifyAchievements} = useServices();
   const toast = useToast();
   const tp = t.prophecies;
 
@@ -132,6 +134,16 @@ export default function PropheticThreadScreen() {
     haptics.tap();
     void toggleProphecyFavorite(id).then(setFavorites);
   };
+
+  // When every prophecy has been explored, unlock the "walked the whole thread"
+  // badge (idempotent; the global achievement modal surfaces it).
+  const allVisited = total > 0 && visited.size >= total;
+  useEffect(() => {
+    if (!allVisited || !achievementService) return;
+    void achievementService.trackPropheticThreadComplete().then(unlocked => {
+      if (unlocked.length > 0) notifyAchievements(unlocked);
+    });
+  }, [allVisited, achievementService, notifyAchievements]);
 
   // "Escuchar" — read the prophecy then its fulfillment aloud (expo-speech, in
   // the version's language). Foreground only; stops on step change / unmount.
@@ -1199,11 +1211,32 @@ export default function PropheticThreadScreen() {
               {phase >= total && (
                 <View style={styles.introBlock}>
                   <Ionicons
-                    name="checkmark-circle"
+                    name={allVisited ? 'trophy' : 'checkmark-circle'}
                     size={56}
-                    color={colors.primary}
+                    color={allVisited ? colors.warning : colors.primary}
                     style={styles.introIcon}
                   />
+                  {allVisited ? (
+                    <View
+                      style={[
+                        styles.completedBadge,
+                        {backgroundColor: colors.warning + '22'},
+                      ]}>
+                      <Ionicons
+                        name="ribbon"
+                        size={14}
+                        color={colors.warning}
+                      />
+                      <AppText
+                        scaleRole="compact"
+                        style={[
+                          styles.completedBadgeText,
+                          {color: colors.warning},
+                        ]}>
+                        {tp.completedBadge}
+                      </AppText>
+                    </View>
+                  ) : null}
                   <AppText
                     scaleRole="display"
                     style={[styles.finishedTitle, {color: colors.text}]}>
@@ -1387,6 +1420,20 @@ const styles = StyleSheet.create({
     fontSize: fontSizes['2xl'],
     fontWeight: '800',
     textAlign: 'center',
+  },
+  completedBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.xs,
+    paddingHorizontal: spacing.base,
+    paddingVertical: spacing.xs,
+    borderRadius: borderRadius.full,
+  },
+  completedBadgeText: {
+    fontSize: fontSizes.sm,
+    fontWeight: '800',
+    textTransform: 'uppercase',
+    letterSpacing: 0.4,
   },
   stepBlock: {gap: spacing.md},
   stepTopRow: {

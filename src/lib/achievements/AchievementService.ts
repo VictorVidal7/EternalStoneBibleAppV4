@@ -498,6 +498,26 @@ export class AchievementService {
     return await this.checkAchievements();
   }
 
+  /**
+   * Unlock the "walked the whole prophetic thread" badge (a one-off SPECIAL with
+   * no stat counter, so it is unlocked explicitly when the reader has explored
+   * every prophecy). Idempotent — returns [] if already unlocked.
+   */
+  async trackPropheticThreadComplete(): Promise<Achievement[]> {
+    const unlocked = await this.unlockAchievement('prophetic_thread');
+    if (!unlocked) return [];
+    const def = ACHIEVEMENT_DEFINITIONS.find(a => a.id === 'prophetic_thread');
+    if (!def) return [];
+    return [
+      {
+        ...def,
+        currentProgress: def.requirement,
+        isUnlocked: true,
+        unlockedAt: Date.now(),
+      },
+    ];
+  }
+
   async trackBookmark(): Promise<void> {
     this.stats = null;
     await this.db.executeSql(

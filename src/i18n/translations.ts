@@ -1728,6 +1728,7 @@ export const translations = {
         'Aún no tienes profecías favoritas. Toca la estrella en un paso para guardarla.',
       listen: 'Escuchar',
       stopListening: 'Detener',
+      completedBadge: 'Hilo completado',
       shareSignature: 'Eternal Bible · Hilo profético',
       quotedBadge: 'Citado en el NT',
       sourcesTitle: 'Fuentes y método',
@@ -3078,6 +3079,10 @@ export const translations = {
         night_owl: {
           name: 'Ave Nocturna',
           description: 'Lee después de las 11 PM',
+        },
+        prophetic_thread: {
+          name: 'Cristo en toda la Escritura',
+          description: 'Recorre todo el hilo profético',
         },
       },
     },
@@ -5332,6 +5337,7 @@ export const translations = {
         'No favorite prophecies yet. Tap the star on a step to save one.',
       listen: 'Listen',
       stopListening: 'Stop',
+      completedBadge: 'Thread complete',
       shareSignature: 'Eternal Bible · Prophetic thread',
       quotedBadge: 'Cited in the NT',
       sourcesTitle: 'Sources & method',
@@ -6675,6 +6681,10 @@ export const translations = {
         night_owl: {
           name: 'Night Owl',
           description: 'Read after 11 PM',
+        },
+        prophetic_thread: {
+          name: 'Christ in All Scripture',
+          description: 'Walk the whole prophetic thread',
         },
       },
     },

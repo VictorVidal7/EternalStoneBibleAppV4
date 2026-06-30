@@ -376,6 +376,16 @@ export const ACHIEVEMENT_DEFINITIONS: Omit<
     points: 25,
     tier: AchievementTier.SILVER,
   },
+  {
+    id: 'prophetic_thread',
+    name: 'Christ in All Scripture',
+    description: 'Walk the whole prophetic thread',
+    icon: '✝️',
+    category: AchievementCategory.SPECIAL,
+    requirement: 1,
+    points: 50,
+    tier: AchievementTier.GOLD,
+  },
 ];
 
 /**
