@@ -1147,8 +1147,12 @@ export default function HomeScreen() {
                   return;
                 }
                 handlePress(() =>
+                  // Land on the EXACT verse the card names (UX review #7) — it
+                  // used to open at the chapter top, which read as "it took me
+                  // somewhere else than it said". The `verse` param scrolls to /
+                  // highlights it; audioResume=1 still resumes playback there.
                   router.push(
-                    `/verse/${audioResumePos.book}/${audioResumePos.chapter}?audioResume=1` as never,
+                    `/verse/${audioResumePos.book}/${audioResumePos.chapter}?verse=${audioResumePos.verse}&audioResume=1` as never,
                   ),
                 );
               }}>
