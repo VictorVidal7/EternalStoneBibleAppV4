@@ -79,6 +79,7 @@ import {AudioPlayerProvider} from '@/features/audio/context/AudioPlayerContext';
 import {MiniAudioPlayer} from '@/features/audio/components/MiniAudioPlayer';
 // Cold-start player restore (Sprint 53)
 import {AudioResumeRestorer} from '@/features/audio/components/AudioResumeRestorer';
+import {ScreenAwakeManager} from '@components/ScreenAwakeManager';
 // Continuous playback across chapters (Sprint 72)
 import {AudioChapterAdvancer} from '@/features/audio/components/AudioChapterAdvancer';
 import {AudioListeningTracker} from '@/features/audio/components/AudioListeningTracker';
@@ -253,6 +254,9 @@ function AppContent() {
       {/* Re-opens the floating player at the last position on cold start
           (premium, paused) — Sprint 53. Render-less. */}
       <AudioResumeRestorer />
+      {/* Holds the screen awake on the long-dwell reading/study/memory/prayer
+          screens when the user enabled the setting (UX review). Render-less. */}
+      <ScreenAwakeManager />
       {/* Continuous playback: auto-advances into the next chapter when the
           current one finishes (Sprint 72). Render-less. */}
       <AudioChapterAdvancer />

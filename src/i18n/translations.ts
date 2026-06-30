@@ -2015,6 +2015,9 @@ export const translations = {
 
       colorTheme: 'Tema de Color',
       colorThemeDescription: 'Elige el estilo visual de la aplicación',
+      keepAwakeTitle: 'Mantener pantalla encendida',
+      keepAwakeDescription:
+        'Evita que la pantalla se bloquee mientras lees, estudias, memorizas u oras.',
       colorThemeNames: {
         ocean: 'Océano',
         celestial: 'Celestial',
@@ -5264,6 +5267,9 @@ export const translations = {
 
       colorTheme: 'Color Theme',
       colorThemeDescription: 'Choose the visual style of the app',
+      keepAwakeTitle: 'Keep screen on',
+      keepAwakeDescription:
+        'Stop the screen from locking while you read, study, memorize or pray.',
       colorThemeNames: {
         ocean: 'Ocean',
         celestial: 'Celestial',

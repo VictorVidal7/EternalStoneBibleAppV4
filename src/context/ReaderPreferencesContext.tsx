@@ -44,6 +44,14 @@ export interface ReaderPreferences {
    * needs an early bind).
    */
   autoImmersiveOnListen: boolean;
+  /**
+   * Keep the screen on while reading (opt-in, default off). When enabled, the
+   * OS screen-timeout is suspended on the long-dwell screens — the reader, the
+   * study tools, the memorization drills and the guided prayer ([[
+   * keepAwakeRoutes]]) — so the phone doesn't sleep mid-passage. Off elsewhere
+   * to preserve battery.
+   */
+  keepScreenAwake: boolean;
 }
 
 interface ReaderPreferencesContextValue {
@@ -58,6 +66,7 @@ interface ReaderPreferencesContextValue {
   setMargin: (next: ReaderMargin) => void;
   setTheme: (next: ReaderTheme) => void;
   setAutoImmersiveOnListen: (next: boolean) => void;
+  setKeepScreenAwake: (next: boolean) => void;
   /** Reset to defaults. Useful for a "Restore defaults" button. */
   reset: () => void;
 }
@@ -70,6 +79,7 @@ export const DEFAULT_READER_PREFERENCES: ReaderPreferences = {
   margin: 'medium',
   theme: 'system',
   autoImmersiveOnListen: false,
+  keepScreenAwake: false,
 };
 
 export const READER_FONT_SIZE_MIN = 14;
@@ -171,6 +181,10 @@ export const ReaderPreferencesProvider: React.FC<
     setPreferences(prev => ({...prev, autoImmersiveOnListen: !!next}));
   }, []);
 
+  const setKeepScreenAwake = useCallback((next: boolean) => {
+    setPreferences(prev => ({...prev, keepScreenAwake: !!next}));
+  }, []);
+
   const reset = useCallback(() => {
     setPreferences(DEFAULT_READER_PREFERENCES);
   }, []);
@@ -186,6 +200,7 @@ export const ReaderPreferencesProvider: React.FC<
       setMargin,
       setTheme,
       setAutoImmersiveOnListen,
+      setKeepScreenAwake,
       reset,
     }),
     [
@@ -198,6 +213,7 @@ export const ReaderPreferencesProvider: React.FC<
       setMargin,
       setTheme,
       setAutoImmersiveOnListen,
+      setKeepScreenAwake,
       reset,
     ],
   );

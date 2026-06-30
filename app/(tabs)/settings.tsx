@@ -6,6 +6,7 @@ import {
   StyleSheet,
   ScrollView,
   TouchableOpacity,
+  Switch,
   Alert,
   Image,
   ActivityIndicator,
@@ -34,6 +35,7 @@ import DevotionReminderSettings from '@components/settings/DevotionReminderSetti
 import MemoryGoalSettings from '@components/settings/MemoryGoalSettings';
 import ManageVersionsSection from '@components/settings/ManageVersionsSection';
 import ReadingGoalSettings from '@components/settings/ReadingGoalSettings';
+import {useReaderPreferences} from '@context/ReaderPreferencesContext';
 import PremiumSettings from '@components/settings/PremiumSettings';
 import {haptics} from '@lib/haptics';
 import Constants from 'expo-constants';
@@ -64,6 +66,7 @@ export default function SettingsScreen() {
   } = useTheme();
   const {selectedVersion, setVersion, availableVersions} = useBibleVersion();
   const {language, setLanguage, t} = useLanguage();
+  const {preferences: readerPrefs, setKeepScreenAwake} = useReaderPreferences();
   const {user, signInWithGoogle, signOut} = useAuth();
   const syncCtx = useSyncEngineOptional();
   const conflicts = useConflicts();
@@ -396,6 +399,30 @@ export default function SettingsScreen() {
                   </TouchableOpacity>
                 );
               })}
+            </View>
+          </View>
+
+          {/* Keep screen on while reading (UX review) */}
+          <View style={themedStyles.cardWithMargin}>
+            <View style={themedStyles.settingRow}>
+              <View style={themedStyles.toggleTextWrap}>
+                <Text style={themedStyles.settingLabel}>
+                  {t.settings.keepAwakeTitle}
+                </Text>
+                <Text style={themedStyles.settingDescription}>
+                  {t.settings.keepAwakeDescription}
+                </Text>
+              </View>
+              <Switch
+                value={readerPrefs.keepScreenAwake}
+                onValueChange={next => {
+                  haptics.tap();
+                  setKeepScreenAwake(next);
+                }}
+                trackColor={{false: colors.border, true: colors.primary}}
+                thumbColor={staticColors.white}
+                accessibilityLabel={t.settings.keepAwakeTitle}
+              />
             </View>
           </View>
         </View>
@@ -1244,6 +1271,10 @@ function createThemedStyles(
       flexDirection: 'row',
       alignItems: 'center',
       justifyContent: 'space-between',
+    },
+    toggleTextWrap: {
+      flex: 1,
+      marginRight: 12,
     },
     settingLabel: {
       fontSize: 16,
