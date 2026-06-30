@@ -38,7 +38,11 @@ import bibleDB from '@lib/database';
 import {logger} from '@lib/utils/logger';
 import {getBookByName} from '@/constants/bible';
 import {parseThemeRef} from '@/features/study/themes';
-import {buildActsSession, type ActsSessionStep} from '@/features/prayer/acts';
+import {
+  buildActsSession,
+  type ActsSessionStep,
+  type ActsStartChoice,
+} from '@/features/prayer/acts';
 import {recordTodayPrayer} from '@/features/prayer/prayerLogStore';
 import {
   borderRadius,
@@ -62,7 +66,16 @@ export default function GuidedPrayerScreen() {
   const {selectedVersion} = useBibleVersion();
   const ta = t.prayer.acts;
 
-  const session = useMemo(() => buildActsSession(new Date()), []);
+  // Capture the day once so the start choice (below) doesn't reroll anchors.
+  const today = useMemo(() => new Date(), []);
+  // Which movement the reader opens with (Adoration by default; a burdened
+  // heart may begin Confessing — Luke 18:13). Chosen on the intro screen,
+  // per session, so it tracks the heart of the day.
+  const [startWith, setStartWith] = useState<ActsStartChoice>('adoration');
+  const session = useMemo(
+    () => buildActsSession(today, startWith),
+    [today, startWith],
+  );
   const [status, setStatus] = useState<LoadStatus>('loading');
   const [steps, setSteps] = useState<ResolvedStep[]>([]);
   // -1 = intro, 0..n-1 = a step, n = finished.
@@ -199,6 +212,68 @@ export default function GuidedPrayerScreen() {
               <AppText style={[styles.introText, {color: colors.text}]}>
                 {ta.intro}
               </AppText>
+
+              {/* How to draw near today — Adoration leads by default (the
+                  Lord's Prayer, Isaiah 6), but a burdened heart may begin by
+                  confessing (Luke 18:13; Psalm 51). Per-session, not a buried
+                  setting, so it follows the heart of the moment. */}
+              <View style={styles.startChoiceWrap}>
+                <AppText
+                  scaleRole="compact"
+                  style={[styles.startQuestion, {color: colors.textSecondary}]}>
+                  {ta.startQuestion}
+                </AppText>
+                <View style={styles.startChoiceRow}>
+                  {(['adoration', 'confession'] as const).map(choice => {
+                    const active = startWith === choice;
+                    const label =
+                      choice === 'adoration'
+                        ? ta.startAdoring
+                        : ta.startConfessing;
+                    return (
+                      <TouchableOpacity
+                        key={choice}
+                        style={[
+                          styles.startChip,
+                          {
+                            backgroundColor: active
+                              ? colors.primary + '22'
+                              : colors.card,
+                            borderColor: active
+                              ? colors.primary
+                              : colors.border,
+                          },
+                        ]}
+                        onPress={() => {
+                          haptics.tap();
+                          setStartWith(choice);
+                        }}
+                        accessibilityRole="radio"
+                        accessibilityState={{selected: active}}
+                        accessibilityLabel={label}>
+                        <Ionicons
+                          name={choice === 'adoration' ? 'sparkles' : 'water'}
+                          size={16}
+                          color={active ? colors.primary : colors.textSecondary}
+                        />
+                        <AppText
+                          scaleRole="compact"
+                          style={[
+                            styles.startChipText,
+                            {
+                              color: active
+                                ? colors.primary
+                                : colors.textSecondary,
+                            },
+                          ]}>
+                          {label}
+                        </AppText>
+                      </TouchableOpacity>
+                    );
+                  })}
+                </View>
+              </View>
+
               <TouchableOpacity
                 style={[styles.primaryBtn, {backgroundColor: colors.primary}]}
                 onPress={advance}
@@ -401,6 +476,33 @@ const styles = StyleSheet.create({
     lineHeight: fontSizes.lg * 1.5,
     textAlign: 'center',
   },
+  startChoiceWrap: {
+    alignSelf: 'stretch',
+    gap: spacing.sm,
+    alignItems: 'center',
+  },
+  startQuestion: {
+    fontSize: fontSizes.sm,
+    fontWeight: '600',
+    textAlign: 'center',
+  },
+  startChoiceRow: {
+    flexDirection: 'row',
+    gap: spacing.sm,
+    alignSelf: 'stretch',
+  },
+  startChip: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: spacing.xs,
+    paddingVertical: spacing.md,
+    paddingHorizontal: spacing.sm,
+    borderRadius: borderRadius.lg,
+    borderWidth: 1,
+  },
+  startChipText: {fontSize: fontSizes.md, fontWeight: '700'},
   finishedTitle: {fontSize: fontSizes['2xl'], fontWeight: '800'},
   stepBlock: {gap: spacing.lg},
   stepCount: {
