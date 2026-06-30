@@ -42,6 +42,7 @@ import {
   MESSIANIC_PROPHECIES,
   PROPHECY_GROUP_ACCENT,
   PROPHECY_GROUP_ICON,
+  isNtQuoted,
   type ProphecyRefKey,
 } from '@/features/study/messianicProphecies';
 import {
@@ -73,6 +74,7 @@ export default function PropheticThreadScreen() {
   const [status, setStatus] = useState<LoadStatus>('loading');
   const [prophecy, setProphecy] = useState<ResolvedRef | null>(null);
   const [fulfillment, setFulfillment] = useState<ResolvedRef | null>(null);
+  const [sourcesOpen, setSourcesOpen] = useState(false);
 
   const current =
     phase >= 0 && phase < total ? MESSIANIC_PROPHECIES[phase] : null;
@@ -162,6 +164,7 @@ export default function PropheticThreadScreen() {
     role: 'prophecy' | 'fulfillment',
     data: ResolvedRef | null,
     refKey: ProphecyRefKey,
+    quoted: boolean,
   ) => (
     <TouchableOpacity
       activeOpacity={0.85}
@@ -194,6 +197,23 @@ export default function PropheticThreadScreen() {
       <AppText style={[styles.verseText, {color: colors.text}]}>
         {data?.text ?? tp.missingText}
       </AppText>
+      {/* "Cited in the NT" — only on a fulfillment the NT explicitly quotes,
+          so the distinction between citation and broader fulfillment is honest
+          and visible (see Sources & method). */}
+      {role === 'fulfillment' && quoted ? (
+        <View
+          style={[
+            styles.quotedBadge,
+            {backgroundColor: colors.primary + '18'},
+          ]}>
+          <Ionicons name="checkmark-circle" size={12} color={colors.primary} />
+          <AppText
+            scaleRole="compact"
+            style={[styles.quotedBadgeText, {color: colors.primary}]}>
+            {tp.quotedBadge}
+          </AppText>
+        </View>
+      ) : null}
     </TouchableOpacity>
   );
 
@@ -266,6 +286,53 @@ export default function PropheticThreadScreen() {
                   color={staticColors.white}
                 />
               </TouchableOpacity>
+
+              {/* Sources & method — the honest "bibliography": the conservative
+                  inclusion criterion + the sources (Scripture itself, the NT's
+                  own citations, openbible.info). Collapsed by default. */}
+              <View style={[styles.sourcesCard, {borderColor: colors.border}]}>
+                <TouchableOpacity
+                  style={styles.sourcesHeader}
+                  onPress={() => {
+                    haptics.tap();
+                    setSourcesOpen(o => !o);
+                  }}
+                  accessibilityRole="button"
+                  accessibilityState={{expanded: sourcesOpen}}
+                  accessibilityLabel={tp.sourcesTitle}>
+                  <Ionicons
+                    name="information-circle-outline"
+                    size={16}
+                    color={colors.primary}
+                  />
+                  <View style={styles.sourcesHeaderText}>
+                    <AppText
+                      scaleRole="compact"
+                      style={[styles.sourcesTitle, {color: colors.text}]}>
+                      {tp.sourcesTitle}
+                    </AppText>
+                    <AppText
+                      scaleRole="compact"
+                      style={[
+                        styles.sourcesHint,
+                        {color: colors.textTertiary},
+                      ]}>
+                      {tp.sourcesHint}
+                    </AppText>
+                  </View>
+                  <Ionicons
+                    name={sourcesOpen ? 'chevron-up' : 'chevron-down'}
+                    size={16}
+                    color={colors.textTertiary}
+                  />
+                </TouchableOpacity>
+                {sourcesOpen ? (
+                  <AppText
+                    style={[styles.sourcesBody, {color: colors.textSecondary}]}>
+                    {tp.sourcesBody}
+                  </AppText>
+                ) : null}
+              </View>
             </View>
           )}
 
@@ -307,7 +374,12 @@ export default function PropheticThreadScreen() {
                 </View>
               ) : (
                 <>
-                  {renderVerseCard('prophecy', prophecy, current.prophecy)}
+                  {renderVerseCard(
+                    'prophecy',
+                    prophecy,
+                    current.prophecy,
+                    false,
+                  )}
                   <View style={styles.connector}>
                     <Ionicons
                       name="arrow-down"
@@ -319,6 +391,7 @@ export default function PropheticThreadScreen() {
                     'fulfillment',
                     fulfillment,
                     current.fulfillment,
+                    isNtQuoted(current.id),
                   )}
                   <AppText
                     style={[styles.noteText, {color: colors.textSecondary}]}>
@@ -516,6 +589,43 @@ const styles = StyleSheet.create({
     fontSize: fontSizes.md,
     lineHeight: fontSizes.md * 1.55,
     paddingRight: verseTextRightSlack(fontSizes.md),
+  },
+  quotedBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    alignSelf: 'flex-start',
+    gap: 4,
+    paddingHorizontal: spacing.sm,
+    paddingVertical: 3,
+    borderRadius: borderRadius.full,
+    marginTop: spacing.xs,
+  },
+  quotedBadgeText: {
+    fontSize: fontSizes.xs,
+    fontWeight: '700',
+    letterSpacing: 0.3,
+  },
+  sourcesCard: {
+    alignSelf: 'stretch',
+    borderRadius: borderRadius.lg,
+    borderWidth: 1,
+    paddingHorizontal: spacing.base,
+    paddingVertical: spacing.sm,
+    marginTop: spacing.sm,
+  },
+  sourcesHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.sm,
+    paddingVertical: spacing.xs,
+  },
+  sourcesHeaderText: {flex: 1},
+  sourcesTitle: {fontSize: fontSizes.sm, fontWeight: '700'},
+  sourcesHint: {fontSize: fontSizes.xs, marginTop: 1},
+  sourcesBody: {
+    fontSize: fontSizes.sm,
+    lineHeight: fontSizes.sm * 1.6,
+    marginTop: spacing.sm,
   },
   connector: {alignItems: 'center'},
   noteText: {
