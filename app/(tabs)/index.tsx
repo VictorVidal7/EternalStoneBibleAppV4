@@ -77,7 +77,7 @@ import {
   useAudioPlayer,
 } from '@/features/audio';
 import type {PlaybackPosition} from '@/features/audio';
-import {getStudyConnections} from '@/features/study/studyConnections';
+import {getMergedStudyConnections} from '@/features/study/crossReferences';
 import {
   getChristConnectionById,
   parseChristRef,
@@ -190,6 +190,12 @@ export default function HomeScreen() {
   const [christFulfillmentText, setChristFulfillmentText] = useState<
     string | undefined
   >(undefined);
+  // How many study connections today's verse has — counted from the SAME
+  // merged web (curated parallels + the broad bundled cross-reference web)
+  // that the reader's Study mode and parallels sheet use, so the card's
+  // "Estudia este versículo" CTA appears for EVERY verse that actually has
+  // connections, not only the ~207 with hand-curated parallels (UX review #6).
+  const [dailyStudyCount, setDailyStudyCount] = useState(0);
   const [lastRead, setLastRead] = useState<ReadingProgress | null>(null);
   // Last audio position for the premium "Continue listening" card (Sprint 51).
   const [audioResumePos, setAudioResumePos] = useState<PlaybackPosition | null>(
@@ -259,6 +265,35 @@ export default function HomeScreen() {
       active = false;
     };
   }, [dailyDayOffset, selectedVersion.id]);
+
+  // Recompute the daily verse's MERGED study-connection count whenever the
+  // verse changes (UX review #6). This is async because it reads the broad
+  // bundled cross-reference web from SQLite — the same source Study mode and
+  // the parallels sheet use — so a verse like Matthew 28:6 (0 curated, 13 in
+  // the web) now shows the "Estudia este versículo" CTA on Home too. Defensive:
+  // any failure leaves the count at 0 (CTA simply hidden, never crashes).
+  useEffect(() => {
+    if (!dailyVerse) {
+      setDailyStudyCount(0);
+      return;
+    }
+    let cancelled = false;
+    void (async () => {
+      try {
+        const web = await getMergedStudyConnections(
+          dailyVerse.book,
+          dailyVerse.chapter,
+          dailyVerse.verse,
+        );
+        if (!cancelled) setDailyStudyCount(web.totalConnections);
+      } catch {
+        if (!cancelled) setDailyStudyCount(0);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [dailyVerse]);
 
   const goPrevDailyDay = useCallback(() => {
     haptics.tap();
@@ -749,11 +784,10 @@ export default function HomeScreen() {
             const verseReference = `${verseBookName} ${dailyVerse.chapter}:${dailyVerse.verse}`;
             // Innovation (S62): how many study connections this verse has, so
             // the card can invite the reader into the two-way study web (S61).
-            const studyConnectionsCount = getStudyConnections(
-              dailyVerse.book,
-              dailyVerse.chapter,
-              dailyVerse.verse,
-            ).totalConnections;
+            // Counted from the MERGED web (curated + broad bundled), resolved
+            // async above — matches the reader's Study mode / parallels exactly
+            // (UX review #6).
+            const studyConnectionsCount = dailyStudyCount;
             // "Christ in this passage" (S97) — a curated, faithful note when
             // today's verse points to / reveals Jesus.
             const christConn = dailyVerse.bookNumber
