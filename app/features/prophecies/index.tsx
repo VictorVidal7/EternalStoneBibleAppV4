@@ -43,8 +43,13 @@ import {
   PROPHECY_GROUP_ACCENT,
   PROPHECY_GROUP_ICON,
   isNtQuoted,
+  getPropheciesByGroup,
   type ProphecyRefKey,
 } from '@/features/study/messianicProphecies';
+import {
+  getVisitedProphecies,
+  markPropheciesVisited,
+} from '@/features/study/prophecyProgress';
 import {
   borderRadius,
   fontSize as fontSizes,
@@ -75,6 +80,19 @@ export default function PropheticThreadScreen() {
   const [prophecy, setProphecy] = useState<ResolvedRef | null>(null);
   const [fulfillment, setFulfillment] = useState<ResolvedRef | null>(null);
   const [sourcesOpen, setSourcesOpen] = useState(false);
+  const [indexOpen, setIndexOpen] = useState(false);
+  const [visited, setVisited] = useState<Set<string>>(new Set());
+
+  // Load the device-local "explored" marks once.
+  useEffect(() => {
+    let active = true;
+    void getVisitedProphecies().then(set => {
+      if (active) setVisited(set);
+    });
+    return () => {
+      active = false;
+    };
+  }, []);
 
   const current =
     phase >= 0 && phase < total ? MESSIANIC_PROPHECIES[phase] : null;
@@ -130,6 +148,10 @@ export default function PropheticThreadScreen() {
         setProphecy(pr);
         setFulfillment(fu);
         setStatus('ready');
+        // Mark this prophecy explored (device-local).
+        void markPropheciesVisited(cur.id).then(set => {
+          if (!cancelled) setVisited(set);
+        });
       } catch (error) {
         logger.error('Prophetic thread load failed', error as Error, {
           component: 'PropheticThreadScreen',
@@ -146,6 +168,13 @@ export default function PropheticThreadScreen() {
   const go = (delta: number) => {
     haptics.tap();
     setPhase(p => Math.max(-1, Math.min(total, p + delta)));
+  };
+
+  const sections = useMemo(() => getPropheciesByGroup(), []);
+  const jumpTo = (index: number) => {
+    haptics.tap();
+    setIndexOpen(false);
+    setPhase(index);
   };
 
   const openInReader = (ref: ProphecyRefKey) => {
@@ -226,13 +255,34 @@ export default function PropheticThreadScreen() {
           start={{x: 0, y: 0}}
           end={{x: 0, y: 1}}
           style={[styles.header, {paddingTop: insets.top + spacing.md}]}>
-          <TouchableOpacity
-            style={styles.backButton}
-            onPress={() => router.back()}
-            accessibilityRole="button"
-            accessibilityLabel={t.bible.back}>
-            <Ionicons name="arrow-back" size={24} color={staticColors.white} />
-          </TouchableOpacity>
+          <View style={styles.headerTopRow}>
+            <TouchableOpacity
+              style={styles.backButton}
+              onPress={() => router.back()}
+              accessibilityRole="button"
+              accessibilityLabel={t.bible.back}>
+              <Ionicons
+                name="arrow-back"
+                size={24}
+                color={staticColors.white}
+              />
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.backButton}
+              onPress={() => {
+                haptics.tap();
+                setIndexOpen(o => !o);
+              }}
+              accessibilityRole="button"
+              accessibilityLabel={tp.indexTitle}
+              accessibilityState={{expanded: indexOpen}}>
+              <Ionicons
+                name={indexOpen ? 'close' : 'list'}
+                size={24}
+                color={staticColors.white}
+              />
+            </TouchableOpacity>
+          </View>
           <View style={styles.headerTextRow}>
             <View style={styles.headerIcon}>
               <Ionicons
@@ -259,220 +309,339 @@ export default function PropheticThreadScreen() {
             centeredMaxWidth(),
           ]}
           showsVerticalScrollIndicator={false}>
-          {/* Intro */}
-          {phase === -1 && (
-            <View style={styles.introBlock}>
-              <Ionicons
-                name="sparkles"
-                size={48}
-                color={colors.primary}
-                style={styles.introIcon}
-              />
-              <AppText style={[styles.introText, {color: colors.text}]}>
-                {tp.intro}
+          {/* Index by movement — jump to any prophecy; explored ones ticked. */}
+          {indexOpen ? (
+            <View style={styles.indexBlock}>
+              <AppText
+                scaleRole="compact"
+                style={[styles.indexProgress, {color: colors.textSecondary}]}>
+                {tp.progress
+                  .replace('{{n}}', String(visited.size))
+                  .replace('{{total}}', String(total))}
               </AppText>
-              <TouchableOpacity
-                style={[styles.primaryBtn, {backgroundColor: colors.primary}]}
-                onPress={() => go(1)}
-                accessibilityRole="button"
-                accessibilityLabel={tp.begin}>
-                <AppText
-                  style={[styles.primaryBtnText, {color: staticColors.white}]}>
-                  {tp.begin}
-                </AppText>
-                <Ionicons
-                  name="arrow-forward"
-                  size={18}
-                  color={staticColors.white}
-                />
-              </TouchableOpacity>
-
-              {/* Sources & method — the honest "bibliography": the conservative
-                  inclusion criterion + the sources (Scripture itself, the NT's
-                  own citations, openbible.info). Collapsed by default. */}
-              <View style={[styles.sourcesCard, {borderColor: colors.border}]}>
-                <TouchableOpacity
-                  style={styles.sourcesHeader}
-                  onPress={() => {
-                    haptics.tap();
-                    setSourcesOpen(o => !o);
-                  }}
-                  accessibilityRole="button"
-                  accessibilityState={{expanded: sourcesOpen}}
-                  accessibilityLabel={tp.sourcesTitle}>
-                  <Ionicons
-                    name="information-circle-outline"
-                    size={16}
-                    color={colors.primary}
-                  />
-                  <View style={styles.sourcesHeaderText}>
-                    <AppText
-                      scaleRole="compact"
-                      style={[styles.sourcesTitle, {color: colors.text}]}>
-                      {tp.sourcesTitle}
-                    </AppText>
-                    <AppText
-                      scaleRole="compact"
-                      style={[
-                        styles.sourcesHint,
-                        {color: colors.textTertiary},
-                      ]}>
-                      {tp.sourcesHint}
-                    </AppText>
-                  </View>
-                  <Ionicons
-                    name={sourcesOpen ? 'chevron-up' : 'chevron-down'}
-                    size={16}
-                    color={colors.textTertiary}
-                  />
-                </TouchableOpacity>
-                {sourcesOpen ? (
-                  <AppText
-                    style={[styles.sourcesBody, {color: colors.textSecondary}]}>
-                    {tp.sourcesBody}
-                  </AppText>
-                ) : null}
-              </View>
-            </View>
-          )}
-
-          {/* A prophecy step */}
-          {current && (
-            <View style={styles.stepBlock}>
-              <View style={styles.stepTopRow}>
-                <View
-                  style={[styles.groupChip, {backgroundColor: accent + '22'}]}>
-                  <Ionicons
-                    name={PROPHECY_GROUP_ICON[current.group] as never}
-                    size={13}
-                    color={accent}
-                  />
+              {sections.map(section => (
+                <View key={section.group} style={styles.indexSection}>
                   <AppText
                     scaleRole="compact"
-                    style={[styles.groupChipText, {color: accent}]}>
-                    {groups[current.group]}
+                    style={[
+                      styles.indexGroupTitle,
+                      {color: PROPHECY_GROUP_ACCENT[section.group]},
+                    ]}>
+                    {groups[section.group]}
                   </AppText>
+                  {section.entries.map(({prophecy: p, index}) => (
+                    <TouchableOpacity
+                      key={p.id}
+                      style={[styles.indexRow, {borderColor: colors.border}]}
+                      onPress={() => jumpTo(index)}
+                      accessibilityRole="button"
+                      accessibilityLabel={items[p.id]?.label ?? p.id}>
+                      <Ionicons
+                        name={
+                          visited.has(p.id)
+                            ? 'checkmark-circle'
+                            : 'ellipse-outline'
+                        }
+                        size={18}
+                        color={
+                          visited.has(p.id)
+                            ? PROPHECY_GROUP_ACCENT[section.group]
+                            : colors.textTertiary
+                        }
+                      />
+                      <AppText
+                        style={[styles.indexRowText, {color: colors.text}]}
+                        numberOfLines={1}>
+                        {items[p.id]?.label ?? ''}
+                      </AppText>
+                      <Ionicons
+                        name="chevron-forward"
+                        size={16}
+                        color={colors.textTertiary}
+                      />
+                    </TouchableOpacity>
+                  ))}
                 </View>
-                <AppText
-                  scaleRole="compact"
-                  style={[styles.stepCount, {color: colors.textTertiary}]}>
-                  {tp.stepOf
-                    .replace('{{n}}', String(phase + 1))
-                    .replace('{{total}}', String(total))}
-                </AppText>
-              </View>
-
-              <AppText
-                scaleRole="display"
-                style={[styles.stepName, {color: colors.text}]}>
-                {items[current.id]?.label ?? ''}
-              </AppText>
-
-              {status === 'loading' && !prophecy ? (
-                <View style={styles.centerState}>
-                  <ActivityIndicator size="large" color={colors.primary} />
-                </View>
-              ) : (
-                <>
-                  {renderVerseCard(
-                    'prophecy',
-                    prophecy,
-                    current.prophecy,
-                    false,
-                  )}
-                  <View style={styles.connector}>
+              ))}
+            </View>
+          ) : (
+            <>
+              {/* Intro */}
+              {phase === -1 && (
+                <View style={styles.introBlock}>
+                  <Ionicons
+                    name="sparkles"
+                    size={48}
+                    color={colors.primary}
+                    style={styles.introIcon}
+                  />
+                  <AppText style={[styles.introText, {color: colors.text}]}>
+                    {tp.intro}
+                  </AppText>
+                  <TouchableOpacity
+                    style={[
+                      styles.primaryBtn,
+                      {backgroundColor: colors.primary},
+                    ]}
+                    onPress={() => go(1)}
+                    accessibilityRole="button"
+                    accessibilityLabel={tp.begin}>
+                    <AppText
+                      style={[
+                        styles.primaryBtnText,
+                        {color: staticColors.white},
+                      ]}>
+                      {tp.begin}
+                    </AppText>
                     <Ionicons
-                      name="arrow-down"
+                      name="arrow-forward"
                       size={18}
-                      color={colors.textTertiary}
+                      color={staticColors.white}
                     />
+                  </TouchableOpacity>
+
+                  {/* View-index link + explored progress. */}
+                  <TouchableOpacity
+                    style={styles.introIndexBtn}
+                    onPress={() => {
+                      haptics.tap();
+                      setIndexOpen(true);
+                    }}
+                    accessibilityRole="button"
+                    accessibilityLabel={tp.indexTitle}>
+                    <Ionicons name="list" size={16} color={colors.primary} />
+                    <AppText
+                      scaleRole="compact"
+                      style={[styles.introIndexText, {color: colors.primary}]}>
+                      {tp.viewIndex}
+                    </AppText>
+                    {visited.size > 0 ? (
+                      <AppText
+                        scaleRole="compact"
+                        style={[
+                          styles.introProgress,
+                          {color: colors.textTertiary},
+                        ]}>
+                        {'· ' +
+                          tp.progress
+                            .replace('{{n}}', String(visited.size))
+                            .replace('{{total}}', String(total))}
+                      </AppText>
+                    ) : null}
+                  </TouchableOpacity>
+
+                  {/* Sources & method — the honest "bibliography": the conservative
+                  inclusion criterion + the sources (Scripture itself, the NT's
+                  own citations, openbible.info). Collapsed by default. */}
+                  <View
+                    style={[styles.sourcesCard, {borderColor: colors.border}]}>
+                    <TouchableOpacity
+                      style={styles.sourcesHeader}
+                      onPress={() => {
+                        haptics.tap();
+                        setSourcesOpen(o => !o);
+                      }}
+                      accessibilityRole="button"
+                      accessibilityState={{expanded: sourcesOpen}}
+                      accessibilityLabel={tp.sourcesTitle}>
+                      <Ionicons
+                        name="information-circle-outline"
+                        size={16}
+                        color={colors.primary}
+                      />
+                      <View style={styles.sourcesHeaderText}>
+                        <AppText
+                          scaleRole="compact"
+                          style={[styles.sourcesTitle, {color: colors.text}]}>
+                          {tp.sourcesTitle}
+                        </AppText>
+                        <AppText
+                          scaleRole="compact"
+                          style={[
+                            styles.sourcesHint,
+                            {color: colors.textTertiary},
+                          ]}>
+                          {tp.sourcesHint}
+                        </AppText>
+                      </View>
+                      <Ionicons
+                        name={sourcesOpen ? 'chevron-up' : 'chevron-down'}
+                        size={16}
+                        color={colors.textTertiary}
+                      />
+                    </TouchableOpacity>
+                    {sourcesOpen ? (
+                      <AppText
+                        style={[
+                          styles.sourcesBody,
+                          {color: colors.textSecondary},
+                        ]}>
+                        {tp.sourcesBody}
+                      </AppText>
+                    ) : null}
                   </View>
-                  {renderVerseCard(
-                    'fulfillment',
-                    fulfillment,
-                    current.fulfillment,
-                    isNtQuoted(current.id),
-                  )}
-                  <AppText
-                    style={[styles.noteText, {color: colors.textSecondary}]}>
-                    {items[current.id]?.note ?? ''}
-                  </AppText>
-                </>
+                </View>
               )}
 
-              <View style={styles.navRow}>
-                <TouchableOpacity
-                  style={[styles.navBtn, {borderColor: colors.border}]}
-                  onPress={() => go(-1)}
-                  accessibilityRole="button"
-                  accessibilityLabel={tp.prev}>
-                  <Ionicons
-                    name="arrow-back"
-                    size={16}
-                    color={colors.textSecondary}
-                  />
-                  <AppText
-                    style={[styles.navBtnText, {color: colors.textSecondary}]}>
-                    {tp.prev}
-                  </AppText>
-                </TouchableOpacity>
-                <TouchableOpacity
-                  style={[
-                    styles.navBtn,
-                    styles.navBtnPrimary,
-                    {backgroundColor: accent},
-                  ]}
-                  onPress={() => go(1)}
-                  accessibilityRole="button"
-                  accessibilityLabel={
-                    phase === total - 1 ? tp.finish : tp.next
-                  }>
-                  <AppText
-                    style={[styles.navBtnText, {color: staticColors.white}]}>
-                    {phase === total - 1 ? tp.finish : tp.next}
-                  </AppText>
-                  <Ionicons
-                    name={phase === total - 1 ? 'checkmark' : 'arrow-forward'}
-                    size={16}
-                    color={staticColors.white}
-                  />
-                </TouchableOpacity>
-              </View>
-            </View>
-          )}
+              {/* A prophecy step */}
+              {current && (
+                <View style={styles.stepBlock}>
+                  <View style={styles.stepTopRow}>
+                    <View
+                      style={[
+                        styles.groupChip,
+                        {backgroundColor: accent + '22'},
+                      ]}>
+                      <Ionicons
+                        name={PROPHECY_GROUP_ICON[current.group] as never}
+                        size={13}
+                        color={accent}
+                      />
+                      <AppText
+                        scaleRole="compact"
+                        style={[styles.groupChipText, {color: accent}]}>
+                        {groups[current.group]}
+                      </AppText>
+                    </View>
+                    <AppText
+                      scaleRole="compact"
+                      style={[styles.stepCount, {color: colors.textTertiary}]}>
+                      {tp.stepOf
+                        .replace('{{n}}', String(phase + 1))
+                        .replace('{{total}}', String(total))}
+                    </AppText>
+                  </View>
 
-          {/* Finished */}
-          {phase >= total && (
-            <View style={styles.introBlock}>
-              <Ionicons
-                name="checkmark-circle"
-                size={56}
-                color={colors.primary}
-                style={styles.introIcon}
-              />
-              <AppText
-                scaleRole="display"
-                style={[styles.finishedTitle, {color: colors.text}]}>
-                {tp.finishedTitle}
-              </AppText>
-              <AppText
-                style={[styles.introText, {color: colors.textSecondary}]}>
-                {tp.finishedBody}
-              </AppText>
-              <TouchableOpacity
-                style={[styles.primaryBtn, {backgroundColor: colors.primary}]}
-                onPress={() => {
-                  haptics.tap();
-                  router.back();
-                }}
-                accessibilityRole="button"
-                accessibilityLabel={tp.done}>
-                <AppText
-                  style={[styles.primaryBtnText, {color: staticColors.white}]}>
-                  {tp.done}
-                </AppText>
-              </TouchableOpacity>
-            </View>
+                  <AppText
+                    scaleRole="display"
+                    style={[styles.stepName, {color: colors.text}]}>
+                    {items[current.id]?.label ?? ''}
+                  </AppText>
+
+                  {status === 'loading' && !prophecy ? (
+                    <View style={styles.centerState}>
+                      <ActivityIndicator size="large" color={colors.primary} />
+                    </View>
+                  ) : (
+                    <>
+                      {renderVerseCard(
+                        'prophecy',
+                        prophecy,
+                        current.prophecy,
+                        false,
+                      )}
+                      <View style={styles.connector}>
+                        <Ionicons
+                          name="arrow-down"
+                          size={18}
+                          color={colors.textTertiary}
+                        />
+                      </View>
+                      {renderVerseCard(
+                        'fulfillment',
+                        fulfillment,
+                        current.fulfillment,
+                        isNtQuoted(current.id),
+                      )}
+                      <AppText
+                        style={[
+                          styles.noteText,
+                          {color: colors.textSecondary},
+                        ]}>
+                        {items[current.id]?.note ?? ''}
+                      </AppText>
+                    </>
+                  )}
+
+                  <View style={styles.navRow}>
+                    <TouchableOpacity
+                      style={[styles.navBtn, {borderColor: colors.border}]}
+                      onPress={() => go(-1)}
+                      accessibilityRole="button"
+                      accessibilityLabel={tp.prev}>
+                      <Ionicons
+                        name="arrow-back"
+                        size={16}
+                        color={colors.textSecondary}
+                      />
+                      <AppText
+                        style={[
+                          styles.navBtnText,
+                          {color: colors.textSecondary},
+                        ]}>
+                        {tp.prev}
+                      </AppText>
+                    </TouchableOpacity>
+                    <TouchableOpacity
+                      style={[
+                        styles.navBtn,
+                        styles.navBtnPrimary,
+                        {backgroundColor: accent},
+                      ]}
+                      onPress={() => go(1)}
+                      accessibilityRole="button"
+                      accessibilityLabel={
+                        phase === total - 1 ? tp.finish : tp.next
+                      }>
+                      <AppText
+                        style={[
+                          styles.navBtnText,
+                          {color: staticColors.white},
+                        ]}>
+                        {phase === total - 1 ? tp.finish : tp.next}
+                      </AppText>
+                      <Ionicons
+                        name={
+                          phase === total - 1 ? 'checkmark' : 'arrow-forward'
+                        }
+                        size={16}
+                        color={staticColors.white}
+                      />
+                    </TouchableOpacity>
+                  </View>
+                </View>
+              )}
+
+              {/* Finished */}
+              {phase >= total && (
+                <View style={styles.introBlock}>
+                  <Ionicons
+                    name="checkmark-circle"
+                    size={56}
+                    color={colors.primary}
+                    style={styles.introIcon}
+                  />
+                  <AppText
+                    scaleRole="display"
+                    style={[styles.finishedTitle, {color: colors.text}]}>
+                    {tp.finishedTitle}
+                  </AppText>
+                  <AppText
+                    style={[styles.introText, {color: colors.textSecondary}]}>
+                    {tp.finishedBody}
+                  </AppText>
+                  <TouchableOpacity
+                    style={[
+                      styles.primaryBtn,
+                      {backgroundColor: colors.primary},
+                    ]}
+                    onPress={() => {
+                      haptics.tap();
+                      router.back();
+                    }}
+                    accessibilityRole="button"
+                    accessibilityLabel={tp.done}>
+                    <AppText
+                      style={[
+                        styles.primaryBtnText,
+                        {color: staticColors.white},
+                      ]}>
+                      {tp.done}
+                    </AppText>
+                  </TouchableOpacity>
+                </View>
+              )}
+            </>
           )}
         </ScrollView>
       </View>
@@ -488,7 +657,44 @@ const styles = StyleSheet.create({
     borderBottomLeftRadius: borderRadius.xl,
     borderBottomRightRadius: borderRadius.xl,
   },
+  headerTopRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
   backButton: {width: 40, height: 40, justifyContent: 'center'},
+  introIndexBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.xs,
+    paddingVertical: spacing.xs,
+  },
+  introIndexText: {fontSize: fontSizes.sm, fontWeight: '700'},
+  introProgress: {fontSize: fontSizes.sm},
+  indexBlock: {gap: spacing.lg},
+  indexProgress: {
+    fontSize: fontSizes.sm,
+    fontWeight: '600',
+    textAlign: 'center',
+  },
+  indexSection: {gap: spacing.xs},
+  indexGroupTitle: {
+    fontSize: fontSizes.xs,
+    fontWeight: '800',
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+    marginBottom: spacing.xs,
+  },
+  indexRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.sm,
+    paddingVertical: spacing.sm,
+    paddingHorizontal: spacing.sm,
+    borderRadius: borderRadius.md,
+    borderWidth: 1,
+  },
+  indexRowText: {flex: 1, fontSize: fontSizes.md, fontWeight: '600'},
   headerTextRow: {
     flexDirection: 'row',
     alignItems: 'center',
