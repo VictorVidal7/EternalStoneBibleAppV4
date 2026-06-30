@@ -22,6 +22,7 @@ import {
   Text,
   ScrollView,
   TouchableOpacity,
+  Pressable,
   StyleSheet,
   ActivityIndicator,
   useWindowDimensions,
@@ -262,28 +263,24 @@ export default function ConstellationScreen() {
         />
       </React.Fragment>
     );
+    // Only the VISIBLE stars live in the SVG now. The tap targets used to be
+    // transparent <Circle onPress> here, but react-native-svg's onPress is
+    // unreliable on Android when the <Svg> sits inside a ScrollView (the
+    // ScrollView claims the touch) — which is why "almost no circle responded"
+    // (UX review #5). The hit targets are now real RN <Pressable> overlays
+    // rendered above the canvas (see hitTargets below).
     const stars = layout.nodes.map(node => (
-      <React.Fragment key={`star-${node.key}`}>
-        <Circle
-          cx={node.x}
-          cy={node.y}
-          r={node.r}
-          fill={node.direction === 'out' ? colors.primary : colors.accent}
-          fillOpacity={Math.min(1, 0.34 + node.weight * 0.62)}
-        />
-        {/* Transparent, generous hit target. */}
-        <Circle
-          cx={node.x}
-          cy={node.y}
-          r={Math.max(node.r + 10, 22)}
-          fill={colors.primary}
-          fillOpacity={0}
-          onPress={() => onSelectNode(node)}
-        />
-      </React.Fragment>
+      <Circle
+        key={`star-${node.key}`}
+        cx={node.x}
+        cy={node.y}
+        r={node.r}
+        fill={node.direction === 'out' ? colors.primary : colors.accent}
+        fillOpacity={Math.min(1, 0.34 + node.weight * 0.62)}
+      />
     ));
     return [...edges, center, ...stars];
-  }, [layout, colors.primary, colors.accent, colors.onPrimary, onSelectNode]);
+  }, [layout, colors.primary, colors.accent, colors.onPrimary]);
 
   return (
     <View style={[styles.container, {backgroundColor: colors.background}]}>
@@ -423,6 +420,34 @@ export default function ConstellationScreen() {
                   />
                 ) : null}
               </Svg>
+
+              {/* Tap targets as real RN Pressables layered over the canvas —
+                  robust on Android where SVG onPress inside a ScrollView often
+                  never fires (UX review #5). box-none lets the empty gaps fall
+                  through to the ScrollView so vertical scrolling still works. */}
+              <View style={StyleSheet.absoluteFill} pointerEvents="box-none">
+                {layout?.nodes.map(node => {
+                  const hitR = Math.max(node.r + 12, 22);
+                  return (
+                    <Pressable
+                      key={`hit-${node.key}`}
+                      onPress={() => onSelectNode(node)}
+                      style={[
+                        styles.hitTarget,
+                        {
+                          left: node.x - hitR,
+                          top: node.y - hitR,
+                          width: hitR * 2,
+                          height: hitR * 2,
+                          borderRadius: hitR,
+                        },
+                      ]}
+                      accessibilityRole="button"
+                      accessibilityLabel={`${localize(node.book)} ${node.chapter}:${node.verse}`}
+                    />
+                  );
+                })}
+              </View>
             </View>
 
             {/* Legend + count. */}
@@ -588,6 +613,7 @@ const styles = StyleSheet.create({
     borderWidth: StyleSheet.hairlineWidth,
     overflow: 'hidden',
   },
+  hitTarget: {position: 'absolute'},
   legendRow: {
     flexDirection: 'row',
     alignItems: 'center',
