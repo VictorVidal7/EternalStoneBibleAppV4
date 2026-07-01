@@ -802,6 +802,27 @@ export default function PropheticThreadScreen() {
                     </AppText>
                   </TouchableOpacity>
 
+                  {/* Matching quiz: prophecy <-> fulfillment (robustness round 3). */}
+                  <TouchableOpacity
+                    style={styles.introIndexBtn}
+                    onPress={() => {
+                      haptics.tap();
+                      router.push('/features/prophecies/quiz' as never);
+                    }}
+                    accessibilityRole="button"
+                    accessibilityLabel={tp.quizPlay}>
+                    <Ionicons
+                      name="game-controller-outline"
+                      size={16}
+                      color={colors.primary}
+                    />
+                    <AppText
+                      scaleRole="compact"
+                      style={[styles.introIndexText, {color: colors.primary}]}>
+                      {tp.quizPlay}
+                    </AppText>
+                  </TouchableOpacity>
+
                   {/* Sources & method — the honest "bibliography": the conservative
                   inclusion criterion + the sources (Scripture itself, the NT's
                   own citations, openbible.info). Collapsed by default. */}

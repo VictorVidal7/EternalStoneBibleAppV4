@@ -90,7 +90,9 @@ import {
   refreshMemoryReminders,
   refreshPrayerReminders,
   refreshDevotionReminders,
+  refreshPropheticReminders,
 } from '@lib/notifications/NotificationService';
+import {PropheticReminderRouter} from '@/components/PropheticReminderRouter';
 
 function AppContent() {
   const {t, language} = useLanguage();
@@ -122,6 +124,8 @@ function AppContent() {
     refreshPrayerReminders({language}).catch(() => {});
     // Sprint 97 — and the gentle "time in the Word" devotion reminder window.
     refreshDevotionReminders({language}).catch(() => {});
+    // Hilo profético round 3 — and the "Profecía del día" reminder window.
+    refreshPropheticReminders({language}).catch(() => {});
   }, [isLoading, language, selectedVersion.id]);
 
   async function initializeApp() {
@@ -250,6 +254,9 @@ function AppContent() {
           modal was previously a no-op because setNewAchievements was never
           invoked, so it had been left commented out). */}
       <AchievementNotifications />
+      {/* Routes a tap on the "Profecía del día" notification to that step of
+          the Hilo profético (Sprint: prophecy-thread-round3). Render-less. */}
+      <PropheticReminderRouter />
       <MiniAudioPlayer />
       {/* Re-opens the floating player at the last position on cold start
           (premium, paused) — Sprint 53. Render-less. */}

@@ -16,6 +16,11 @@ import {getBookById} from '../../constants/bible';
 import {pickPrayerReminderCopy} from './prayerReminderCopy';
 import {pickDevotionReminderCopy} from './devotionReminderCopy';
 import {logger} from '../utils/logger';
+import {translations} from '../../i18n/translations';
+import {
+  MESSIANIC_PROPHECIES,
+  getDailyProphecyIndex,
+} from '../../features/study/messianicProphecies';
 
 const ENABLED_KEY = '@daily_notifications_enabled';
 const HOUR_KEY = '@daily_notifications_hour';
@@ -50,12 +55,25 @@ const DEVOTION_HOUR_KEY = '@devotion_reminder_hour';
 const DEVOTION_DEFAULT_HOUR = 8;
 const DEVOTION_CHANNEL_ID = 'devotion-reminder';
 
+/** A FIFTH independent reminder type — the "Profecía del día" step of the
+ *  Hilo profético (see messianicProphecies.ts). Unlike the memory/prayer/
+ *  devotion reminders its copy is per-day dynamic (like the daily verse),
+ *  but it needs no DB lookup: the label + note come straight from i18n, the
+ *  same source the prophecy screens already render. */
+const PROPHECY_ENABLED_KEY = '@prophecy_reminder_enabled';
+const PROPHECY_HOUR_KEY = '@prophecy_reminder_hour';
+const PROPHECY_DEFAULT_HOUR = 8;
+const PROPHECY_CHANNEL_ID = 'prophecy-daily';
+
 /** Discriminator stored on each scheduled notification's `data.type` so we
- *  can cancel one kind without touching the other. */
+ *  can cancel one kind without touching the other. Exported so the tap
+ *  router (PropheticReminderRouter) can recognise this type without
+ *  duplicating the literal. */
 const DAILY_VERSE_TYPE = 'daily-verse';
 const MEMORY_REMINDER_TYPE = 'memory-reminder';
 const PRAYER_REMINDER_TYPE = 'prayer-reminder';
 const DEVOTION_REMINDER_TYPE = 'devotion-reminder';
+export const PROPHECY_REMINDER_TYPE = 'prophecy-daily';
 
 export interface NotificationPreferences {
   enabled: boolean;
@@ -100,6 +118,10 @@ export async function initNotifications(): Promise<void> {
       });
       await Notifications.setNotificationChannelAsync(DEVOTION_CHANNEL_ID, {
         name: 'Recordatorio de devoción',
+        importance: Notifications.AndroidImportance.DEFAULT,
+      });
+      await Notifications.setNotificationChannelAsync(PROPHECY_CHANNEL_ID, {
+        name: 'Profecía del día',
         importance: Notifications.AndroidImportance.DEFAULT,
       });
     } catch (err) {
@@ -682,4 +704,147 @@ export async function refreshDevotionReminders(
   const granted = await requestNotificationPermission();
   if (!granted) return;
   await scheduleDevotionReminders({...opts, hour: prefs.hour});
+}
+
+// ---------------------------------------------------------------------------
+// ✝️ Prophecy-of-the-day reminder (Hilo profético robustness round 3)
+//
+// A FIFTH independent reminder, nudging the reader to today's step of the
+// prophetic thread. Shaped like the daily verse (per-day dynamic content,
+// tied to a date via getDailyProphecyIndex) but needs no DB round-trip: the
+// label + note already live in i18n, the same source the prophecy screens
+// render from. Tapping it should land on that exact step — see
+// PropheticReminderRouter, which matches PROPHECY_REMINDER_TYPE.
+// ---------------------------------------------------------------------------
+
+export interface PropheticReminderPreferences {
+  enabled: boolean;
+  hour: number;
+}
+
+export interface PropheticReminderOptions {
+  hour: number;
+  language: 'es' | 'en';
+}
+
+/** Reads the saved prophecy-reminder preferences. */
+export async function getPropheticReminderPreferences(): Promise<PropheticReminderPreferences> {
+  try {
+    const [enabledRaw, hourRaw] = await Promise.all([
+      AsyncStorage.getItem(PROPHECY_ENABLED_KEY),
+      AsyncStorage.getItem(PROPHECY_HOUR_KEY),
+    ]);
+    const hour =
+      hourRaw != null ? parseInt(hourRaw, 10) : PROPHECY_DEFAULT_HOUR;
+    return {
+      enabled: enabledRaw === 'true',
+      hour: Number.isFinite(hour) ? hour : PROPHECY_DEFAULT_HOUR,
+    };
+  } catch {
+    return {enabled: false, hour: PROPHECY_DEFAULT_HOUR};
+  }
+}
+
+async function savePropheticReminderPreferences(
+  prefs: PropheticReminderPreferences,
+): Promise<void> {
+  await AsyncStorage.multiSet([
+    [PROPHECY_ENABLED_KEY, String(prefs.enabled)],
+    [PROPHECY_HOUR_KEY, String(prefs.hour)],
+  ]);
+}
+
+/**
+ * Reschedules the rolling window of prophecy-of-the-day reminders. Cancels
+ * only the existing prophecy reminders first (never the other types).
+ */
+export async function schedulePropheticReminders(
+  opts: PropheticReminderOptions,
+): Promise<number> {
+  await initNotifications();
+  await cancelNotificationsByType(PROPHECY_REMINDER_TYPE);
+
+  const now = new Date();
+  let scheduled = 0;
+  const items = translations[opts.language].prophecies.items as Record<
+    string,
+    {label: string; note: string}
+  >;
+
+  for (let i = 0; i < DAYS_AHEAD; i++) {
+    const triggerDate = new Date(now);
+    triggerDate.setDate(now.getDate() + i);
+    triggerDate.setHours(opts.hour, 0, 0, 0);
+    if (triggerDate.getTime() <= now.getTime()) continue;
+
+    const index = getDailyProphecyIndex(triggerDate);
+    const prophecy = MESSIANIC_PROPHECIES[index];
+    const item = items[prophecy.id];
+    if (!item) continue;
+
+    const title =
+      opts.language === 'en'
+        ? `✝️ Prophecy of the day · ${item.label}`
+        : `✝️ Profecía del día · ${item.label}`;
+
+    await Notifications.scheduleNotificationAsync({
+      content: {
+        title,
+        body: item.note,
+        data: {
+          type: PROPHECY_REMINDER_TYPE,
+          index,
+        },
+      },
+      trigger: {
+        type: Notifications.SchedulableTriggerInputTypes.DATE,
+        date: triggerDate,
+        channelId: PROPHECY_CHANNEL_ID,
+      },
+    });
+    scheduled++;
+  }
+
+  logger.info('Prophetic reminders scheduled', {
+    component: 'NotificationService',
+    scheduled,
+    hour: opts.hour,
+  });
+  return scheduled;
+}
+
+/** Turns the prophecy reminder on or off (requesting permission on enable). */
+export async function setPropheticReminderEnabled(
+  enabled: boolean,
+  opts: PropheticReminderOptions,
+): Promise<boolean> {
+  if (enabled) {
+    const granted = await requestNotificationPermission();
+    if (!granted) return false;
+    await schedulePropheticReminders(opts);
+  } else {
+    await cancelNotificationsByType(PROPHECY_REMINDER_TYPE);
+  }
+  await savePropheticReminderPreferences({enabled, hour: opts.hour});
+  return true;
+}
+
+/** Updates the reminder hour and reschedules if enabled. */
+export async function updatePropheticReminderHour(
+  opts: PropheticReminderOptions,
+): Promise<void> {
+  await savePropheticReminderPreferences({enabled: true, hour: opts.hour});
+  await schedulePropheticReminders(opts);
+}
+
+/** Called on app launch: top up the rolling window if the reminder is on. */
+export async function refreshPropheticReminders(
+  opts: Omit<PropheticReminderOptions, 'hour'>,
+): Promise<void> {
+  const prefs = await getPropheticReminderPreferences();
+  await initNotifications();
+  if (!prefs.enabled) return;
+  const granted = await requestNotificationPermission();
+  if (!granted) return;
+  await schedulePropheticReminders({...opts, hour: prefs.hour});
 }
