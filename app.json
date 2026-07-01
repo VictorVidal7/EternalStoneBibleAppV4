@@ -2,7 +2,7 @@
   "expo": {
     "name": "Eternal Bible",
     "slug": "eternal-bible",
-    "version": "3.2.48",
+    "version": "3.2.49",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "automatic",
