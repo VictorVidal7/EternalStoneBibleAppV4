@@ -32,11 +32,11 @@ import React, {
   useState,
   ReactNode,
 } from 'react';
-import {Alert} from 'react-native';
 
 import {logger} from '@lib/utils/logger';
 import {getSyncEngine} from '@lib/sync';
 import {useLanguage} from '@hooks/useLanguage';
+import {ConfirmDialog} from '@components/ui/ConfirmDialog';
 
 // Web OAuth client id from google-services.json (oauth_client where
 // client_type === 3). It is already public in the bundled
@@ -149,6 +149,26 @@ export function AuthProvider({children}: AuthProviderProps) {
   // we do not loop if the first onAuthStateChanged fires with a null
   // user (which it will on a fresh install). Re-armed on signOut.
   const triggeredAnonymousRef = useRef(false);
+  // Themed replacement for the old Alert.alert-wrapped migration prompt
+  // (UX audit): the dialog is state-driven, but the calling code below still
+  // needs to `await` a yes/no answer, so a pending resolver bridges the two.
+  const [migrationPrompt, setMigrationPrompt] = useState<{
+    count: number;
+  } | null>(null);
+  const migrationResolveRef = useRef<((wantMigrate: boolean) => void) | null>(
+    null,
+  );
+  const askMigration = useCallback((count: number): Promise<boolean> => {
+    return new Promise(resolve => {
+      migrationResolveRef.current = resolve;
+      setMigrationPrompt({count});
+    });
+  }, []);
+  const resolveMigrationPrompt = useCallback((wantMigrate: boolean) => {
+    setMigrationPrompt(null);
+    migrationResolveRef.current?.(wantMigrate);
+    migrationResolveRef.current = null;
+  }, []);
 
   useEffect(() => {
     const gs = getGoogleSignin();
@@ -247,24 +267,7 @@ export function AuthProvider({children}: AuthProviderProps) {
             const localData = await engine.exportLocalData();
             const total = localData.reduce((acc, d) => acc + d.count, 0);
             if (total > 0) {
-              const wantMigrate = await new Promise<boolean>(resolve => {
-                Alert.alert(
-                  t.conflicts.migrationTitle,
-                  t.conflicts.migrationBody.replace('{{count}}', String(total)),
-                  [
-                    {
-                      text: t.conflicts.migrationNo,
-                      style: 'cancel',
-                      onPress: () => resolve(false),
-                    },
-                    {
-                      text: t.conflicts.migrationYes,
-                      onPress: () => resolve(true),
-                    },
-                  ],
-                  {cancelable: false, onDismiss: () => resolve(false)},
-                );
-              });
+              const wantMigrate = await askMigration(total);
               if (!wantMigrate) {
                 engine.queueSkipNextBulkPush();
                 logger.info('AuthProvider: user declined migration', {
@@ -294,7 +297,7 @@ export function AuthProvider({children}: AuthProviderProps) {
     }
 
     await authMod().signInWithCredential(credential);
-  }, [t]);
+  }, [askMigration]);
 
   const signOut = useCallback(async () => {
     const authMod = getAuth();
@@ -318,7 +321,30 @@ export function AuthProvider({children}: AuthProviderProps) {
     [user, isLoading, signInWithGoogle, signOut],
   );
 
-  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
+  return (
+    <AuthContext.Provider value={value}>
+      {children}
+
+      {/* Themed data-migration prompt (UX audit, replaces native Alert.alert) */}
+      <ConfirmDialog
+        visible={!!migrationPrompt}
+        title={t.conflicts.migrationTitle}
+        message={
+          migrationPrompt
+            ? t.conflicts.migrationBody.replace(
+                '{{count}}',
+                String(migrationPrompt.count),
+              )
+            : ''
+        }
+        confirmLabel={t.conflicts.migrationYes}
+        cancelLabel={t.conflicts.migrationNo}
+        onConfirm={() => resolveMigrationPrompt(true)}
+        onCancel={() => resolveMigrationPrompt(false)}
+        icon="cloud-upload-outline"
+      />
+    </AuthContext.Provider>
+  );
 }
 
 export function useAuth(): AuthContextValue {

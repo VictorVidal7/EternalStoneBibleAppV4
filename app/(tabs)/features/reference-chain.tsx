@@ -28,6 +28,7 @@ import {haptics} from '@lib/haptics';
 import {useTheme} from '@hooks/useTheme';
 import {centeredMaxWidth} from '@/styles/responsive';
 import {useLanguage} from '@hooks/useLanguage';
+import {ExpandableVerseText} from '@components/ui/ExpandableVerseText';
 import {useBibleVersion} from '@hooks/useBibleVersion';
 import {getBookByName} from '@/constants/bible';
 import {getMergedCrossReferences} from '@/features/study/crossReferences';
@@ -328,11 +329,11 @@ export default function ReferenceChainScreen() {
                   {ref.display} {ref.step.chapter}:{ref.step.verse}
                 </Text>
                 {ref.text ? (
-                  <Text
+                  <ExpandableVerseText
                     style={[styles.nextText, {color: colors.textSecondary}]}
                     numberOfLines={2}>
                     {ref.text}
-                  </Text>
+                  </ExpandableVerseText>
                 ) : null}
               </View>
               <Ionicons

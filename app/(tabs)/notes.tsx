@@ -5,7 +5,6 @@ import {
   StyleSheet,
   FlatList,
   TouchableOpacity,
-  Alert,
   useWindowDimensions,
 } from 'react-native';
 import {staticColors, verseTextRightSlack} from '@/styles/designTokens';
@@ -23,6 +22,7 @@ import {useBibleVersion} from '@hooks/useBibleVersion';
 import {haptics} from '@lib/haptics';
 import {IllustratedEmptyState} from '@components/IllustratedEmptyState';
 import {NoteImageModal} from '@components/reading/NoteImageModal';
+import {ConfirmDialog} from '@components/ui/ConfirmDialog';
 import {
   searchNotes,
   sortNotes,
@@ -53,6 +53,7 @@ export default function NotesScreen() {
   const [query, setQuery] = useState('');
   const [sortOrder, setSortOrder] = useState<NoteSortOrder>('recent');
   const [shareNote, setShareNote] = useState<Note | null>(null);
+  const [deleteTargetId, setDeleteTargetId] = useState<string | null>(null);
 
   useFocusEffect(
     useCallback(() => {
@@ -75,26 +76,24 @@ export default function NotesScreen() {
     }
   }
 
-  async function handleDelete(id: string) {
-    Alert.alert(t.notes.deleteTitle, t.notes.deleteMessage, [
-      {text: t.cancel, style: 'cancel'},
-      {
-        text: t.delete,
-        style: 'destructive',
-        onPress: async () => {
-          // Snapshot the note so the tombstone payload pushed to
-          // Firestore carries verse identity (Sprint 42).
-          const last = notes.find(n => n.id === id);
-          await bibleDB.removeNote(id);
-          getSyncEngine()?.queueDelete(
-            'notes',
-            id,
-            last ? buildNoteRemotePayload(last) : undefined,
-          );
-          loadNotes();
-        },
-      },
-    ]);
+  function handleDelete(id: string) {
+    setDeleteTargetId(id);
+  }
+
+  async function confirmDelete() {
+    const id = deleteTargetId;
+    if (!id) return;
+    // Snapshot the note so the tombstone payload pushed to
+    // Firestore carries verse identity (Sprint 42).
+    const last = notes.find(n => n.id === id);
+    await bibleDB.removeNote(id);
+    getSyncEngine()?.queueDelete(
+      'notes',
+      id,
+      last ? buildNoteRemotePayload(last) : undefined,
+    );
+    loadNotes();
+    setDeleteTargetId(null);
   }
 
   function goToVerse(note: Note) {
@@ -362,6 +361,18 @@ export default function NotesScreen() {
           onClose={() => setShareNote(null)}
         />
       )}
+
+      {/* Themed delete confirm (UX audit, replaces native Alert.alert) */}
+      <ConfirmDialog
+        visible={!!deleteTargetId}
+        title={t.notes.deleteTitle}
+        message={t.notes.deleteMessage}
+        confirmLabel={t.delete}
+        cancelLabel={t.cancel}
+        onConfirm={() => void confirmDelete()}
+        onCancel={() => setDeleteTargetId(null)}
+        destructive
+      />
     </View>
   );
 }

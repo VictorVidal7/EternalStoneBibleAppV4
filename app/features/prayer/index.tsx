@@ -22,7 +22,6 @@ import {
   TouchableOpacity,
   TextInput,
   Modal,
-  Alert,
   ActivityIndicator,
   StyleSheet,
 } from 'react-native';
@@ -37,6 +36,7 @@ import {useToast} from '@context/ToastContext';
 import {haptics} from '@lib/haptics';
 import {AppText} from '@components/ui/AppText';
 import {TestimonyImageModal} from '@components/insights/TestimonyImageModal';
+import {ConfirmDialog} from '@components/ui/ConfirmDialog';
 import {usePrayerJournal} from '@hooks/usePrayerJournal';
 import {
   activeRequests,
@@ -83,6 +83,7 @@ export default function PrayerJournalScreen() {
   const [answerNote, setAnswerNote] = useState('');
   // Share-as-testimony modal (Sprint 94) — the answered request being shared.
   const [shareReq, setShareReq] = useState<PrayerRequest | null>(null);
+  const [deleteTarget, setDeleteTarget] = useState<PrayerRequest | null>(null);
 
   const stats = useMemo(() => prayerStats(requests), [requests]);
   const active = useMemo(
@@ -140,16 +141,13 @@ export default function PrayerJournalScreen() {
 
   const confirmDelete = (r: PrayerRequest) => {
     haptics.tap();
-    Alert.alert(tp.deleteConfirmTitle, tp.deleteConfirmBody, [
-      {text: tp.cancel, style: 'cancel'},
-      {
-        text: tp.delete,
-        style: 'destructive',
-        onPress: () => {
-          void remove(r.id);
-        },
-      },
-    ]);
+    setDeleteTarget(r);
+  };
+
+  const handleConfirmDelete = () => {
+    if (!deleteTarget) return;
+    void remove(deleteTarget.id);
+    setDeleteTarget(null);
   };
 
   const openAnswer = (r: PrayerRequest) => {
@@ -708,6 +706,18 @@ export default function PrayerJournalScreen() {
             ),
           )}
           onClose={() => setShareReq(null)}
+        />
+
+        {/* Themed delete confirm (UX audit, replaces native Alert.alert) */}
+        <ConfirmDialog
+          visible={!!deleteTarget}
+          title={tp.deleteConfirmTitle}
+          message={tp.deleteConfirmBody}
+          confirmLabel={tp.delete}
+          cancelLabel={tp.cancel}
+          onConfirm={handleConfirmDelete}
+          onCancel={() => setDeleteTarget(null)}
+          destructive
         />
       </View>
     </>

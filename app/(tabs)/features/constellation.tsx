@@ -38,6 +38,7 @@ import {useTheme} from '@hooks/useTheme';
 import {centeredMaxWidth} from '@/styles/responsive';
 import {useLanguage} from '@hooks/useLanguage';
 import {useBibleVersion} from '@hooks/useBibleVersion';
+import {ExpandableVerseText} from '@components/ui/ExpandableVerseText';
 import {getBookByName} from '@/constants/bible';
 import {getMergedStudyConnections} from '@/features/study/crossReferences';
 import {
@@ -538,11 +539,11 @@ export default function ConstellationScreen() {
             </TouchableOpacity>
           </View>
           {selectedText ? (
-            <Text
+            <ExpandableVerseText
               style={[styles.selectedText, {color: colors.text}]}
               numberOfLines={2}>
               {selectedText}
-            </Text>
+            </ExpandableVerseText>
           ) : (
             <ActivityIndicator
               color={nodeColor(selected)}

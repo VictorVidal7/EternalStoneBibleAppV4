@@ -32,6 +32,7 @@ import {LinearGradient} from 'expo-linear-gradient';
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
 
 import {AppText as Text} from '@components/ui/AppText';
+import {ExpandableVerseText} from '@components/ui/ExpandableVerseText';
 import {useTheme} from '@hooks/useTheme';
 import {useLanguage} from '@hooks/useLanguage';
 import {useBibleVersion} from '@hooks/useBibleVersion';
@@ -335,11 +336,11 @@ export default function SharedStudyScreen() {
                 {row.bookDisplay} {row.chapter}:{row.verse}
               </Text>
               {row.text ? (
-                <Text
+                <ExpandableVerseText
                   style={[styles.refText, {color: colors.textSecondary}]}
                   numberOfLines={3}>
                   {row.text}
-                </Text>
+                </ExpandableVerseText>
               ) : null}
             </TouchableOpacity>
           ))}
@@ -360,11 +361,11 @@ export default function SharedStudyScreen() {
                 {row.note}
               </Text>
               {row.fulfillmentText && row.pointsTo ? (
-                <Text
+                <ExpandableVerseText
                   style={[styles.christVerse, {color: colors.text}]}
                   numberOfLines={4}>
                   {`“${row.fulfillmentText}” — ${row.pointsTo} · ${row.versionAbbrev}`}
-                </Text>
+                </ExpandableVerseText>
               ) : null}
               {row.pointsTo && row.navBook ? (
                 <TouchableOpacity

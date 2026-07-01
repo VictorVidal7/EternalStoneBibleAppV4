@@ -17,8 +17,8 @@
  */
 
 import React from 'react';
-import {Alert, Text} from 'react-native';
-import {act, render, waitFor} from '@testing-library/react-native';
+import {Text} from 'react-native';
+import {act, render, waitFor, fireEvent} from '@testing-library/react-native';
 
 // Sprint 43 — mock the sync module so the migration block in
 // AuthContext can interrogate a stub engine. We replace getSyncEngine
@@ -379,15 +379,11 @@ describe('AuthProvider', () => {
       {collection: 'favorites', count: 3},
       {collection: 'notes', count: 1},
     ]);
-    // Auto-tap the "Just sign in" (cancel) button on the migration alert.
-    const alertSpy = jest
-      .spyOn(Alert, 'alert')
-      .mockImplementation((_title, _msg, buttons) => {
-        const cancel = (buttons ?? []).find(b => b.style === 'cancel');
-        cancel?.onPress?.();
-      });
 
-    render(
+    // UX audit (2026-07-01) replaced the native Alert.alert with a themed,
+    // state-driven ConfirmDialog — simulate the user tapping "Solo iniciar
+    // sesión" (cancel) on it instead of spying on Alert.
+    const {getByText} = render(
       <AuthProvider>
         <Probe onReady={onReady} />
       </AuthProvider>,
@@ -405,16 +401,20 @@ describe('AuthProvider', () => {
     flushListenerWith(mockCurrentUser);
     await waitFor(() => expect(ref.current?.user?.uid).toBe('anon-decline'));
 
+    let signInPromise!: Promise<void>;
+    act(() => {
+      signInPromise = ref.current!.signInWithGoogle();
+    });
+    const cancelBtn = await waitFor(() => getByText('Solo iniciar sesión'));
     await act(async () => {
-      await ref.current!.signInWithGoogle();
+      fireEvent.press(cancelBtn);
+      await signInPromise;
     });
 
-    expect(alertSpy).toHaveBeenCalledTimes(1);
     expect(mockExportLocalData).toHaveBeenCalledTimes(1);
     expect(mockQueueSkipNextBulkPush).toHaveBeenCalledTimes(1);
     expect(mockSignInWithCredential).toHaveBeenCalledTimes(1);
 
-    alertSpy.mockRestore();
     mockEngineStub = null;
   });
 
@@ -427,15 +427,9 @@ describe('AuthProvider', () => {
     mockExportLocalData.mockResolvedValueOnce([
       {collection: 'favorites', count: 2},
     ]);
-    // Auto-tap the "Migrate" (non-cancel) button on the migration alert.
-    const alertSpy = jest
-      .spyOn(Alert, 'alert')
-      .mockImplementation((_title, _msg, buttons) => {
-        const migrate = (buttons ?? []).find(b => b.style !== 'cancel');
-        migrate?.onPress?.();
-      });
 
-    render(
+    // Simulate the user tapping "Migrar" (confirm) on the themed dialog.
+    const {getByText} = render(
       <AuthProvider>
         <Probe onReady={onReady} />
       </AuthProvider>,
@@ -453,15 +447,19 @@ describe('AuthProvider', () => {
     flushListenerWith(mockCurrentUser);
     await waitFor(() => expect(ref.current?.user?.uid).toBe('anon-accept'));
 
+    let signInPromise!: Promise<void>;
+    act(() => {
+      signInPromise = ref.current!.signInWithGoogle();
+    });
+    const migrateBtn = await waitFor(() => getByText('Migrar'));
     await act(async () => {
-      await ref.current!.signInWithGoogle();
+      fireEvent.press(migrateBtn);
+      await signInPromise;
     });
 
-    expect(alertSpy).toHaveBeenCalledTimes(1);
     expect(mockQueueSkipNextBulkPush).not.toHaveBeenCalled();
     expect(mockSignInWithCredential).toHaveBeenCalledTimes(1);
 
-    alertSpy.mockRestore();
     mockEngineStub = null;
     mockQueueSkipNextBulkPush.mockClear();
   });

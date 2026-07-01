@@ -35,6 +35,7 @@ import {centeredMaxWidth} from '@/styles/responsive';
 import {useLanguage} from '@hooks/useLanguage';
 import {haptics} from '@lib/haptics';
 import {AppText} from '@components/ui/AppText';
+import {ExpandableVerseText} from '@components/ui/ExpandableVerseText';
 import bibleDB from '@lib/database';
 import {getBookByName} from '@/constants/bible';
 import type {StudyConnections} from '@/features/study/studyConnections';
@@ -280,11 +281,11 @@ export default function StudyScreen() {
             color={colors.textTertiary}
           />
         </View>
-        <Text
+        <ExpandableVerseText
           style={[styles.refText, {color: colors.textSecondary}]}
           numberOfLines={3}>
           {row.text ?? s.missingText}
-        </Text>
+        </ExpandableVerseText>
       </TouchableOpacity>
     );
   };

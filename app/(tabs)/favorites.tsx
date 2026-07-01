@@ -1,11 +1,4 @@
-import {
-  View,
-  Text,
-  StyleSheet,
-  FlatList,
-  TouchableOpacity,
-  Alert,
-} from 'react-native';
+import {View, Text, StyleSheet, FlatList, TouchableOpacity} from 'react-native';
 import {staticColors} from '@/styles/designTokens';
 
 import React, {useCallback, useMemo, useState} from 'react';
@@ -16,6 +9,7 @@ import {useTheme} from '@hooks/useTheme';
 import {centeredMaxWidth} from '@/styles/responsive';
 import {useLanguage} from '@hooks/useLanguage';
 import {IllustratedEmptyState} from '@components/IllustratedEmptyState';
+import {ConfirmDialog} from '@components/ui/ConfirmDialog';
 import {useToast} from '@context/ToastContext';
 import {logger} from '@lib/utils/logger';
 import {haptics} from '@lib/haptics';
@@ -37,6 +31,7 @@ export default function FavoritesScreen() {
   const {hasCard, addCard, removeCard} = useMemoryDeck();
   // The favorite whose collections sheet is open (null = closed).
   const [collectionsFor, setCollectionsFor] = useState<string | null>(null);
+  const [deleteTargetId, setDeleteTargetId] = useState<string | null>(null);
   const {selectedVersion} = useBibleVersion();
   const {loadChapter, play} = useAudioPlayer();
   const headerGradient = useMemo(
@@ -58,18 +53,15 @@ export default function FavoritesScreen() {
     }, [refreshFavorites]),
   );
 
-  async function handleDelete(id: string) {
-    Alert.alert(t.favorites.deleteTitle, t.favorites.deleteMessage, [
-      {text: t.cancel, style: 'cancel'},
-      {
-        text: t.delete,
-        style: 'destructive',
-        onPress: async () => {
-          await removeFavorite(id);
-          toast.success(t.favorites.removedSuccessfully);
-        },
-      },
-    ]);
+  function handleDelete(id: string) {
+    setDeleteTargetId(id);
+  }
+
+  async function confirmDelete() {
+    if (!deleteTargetId) return;
+    await removeFavorite(deleteTargetId);
+    toast.success(t.favorites.removedSuccessfully);
+    setDeleteTargetId(null);
   }
 
   function goToVerse(favorite: (typeof favorites)[number]) {
@@ -319,6 +311,18 @@ export default function FavoritesScreen() {
       <AddToCollectionSheet
         favoriteId={collectionsFor}
         onClose={() => setCollectionsFor(null)}
+      />
+
+      {/* Themed delete confirm (UX audit, replaces native Alert.alert) */}
+      <ConfirmDialog
+        visible={!!deleteTargetId}
+        title={t.favorites.deleteTitle}
+        message={t.favorites.deleteMessage}
+        confirmLabel={t.delete}
+        cancelLabel={t.cancel}
+        onConfirm={() => void confirmDelete()}
+        onCancel={() => setDeleteTargetId(null)}
+        destructive
       />
     </View>
   );
