@@ -12,9 +12,9 @@
  * Para la gloria de Dios Todopoderoso ✨
  */
 
-import React from 'react';
+import React, {useCallback, useState} from 'react';
 import {View, ScrollView, TouchableOpacity, StyleSheet} from 'react-native';
-import {Stack, useRouter} from 'expo-router';
+import {Stack, useRouter, useFocusEffect} from 'expo-router';
 import {Ionicons} from '@expo/vector-icons';
 import {LinearGradient} from 'expo-linear-gradient';
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
@@ -27,9 +27,11 @@ import {
   JOURNEY_ROUTE_ORDER,
   JOURNEY_ROUTE_ICON,
   JOURNEY_ROUTE_ACCENT,
+  getStopsForRoute,
   getStopCount,
   type JourneyRouteId,
 } from '@/features/study/journeyMaps';
+import {getVisitedJourneyStops} from '@/features/study/journeyProgress';
 import {
   borderRadius,
   fontSize as fontSizes,
@@ -47,6 +49,19 @@ export default function JourneysHubScreen() {
     string,
     {title: string; subtitle: string; description: string}
   >;
+  const [visited, setVisited] = useState<Set<string>>(new Set());
+
+  useFocusEffect(
+    useCallback(() => {
+      let active = true;
+      void getVisitedJourneyStops().then(set => {
+        if (active) setVisited(set);
+      });
+      return () => {
+        active = false;
+      };
+    }, []),
+  );
 
   const headerGradient: [string, string] = [colors.primary, colors.primaryDark];
 
@@ -100,6 +115,10 @@ export default function JourneysHubScreen() {
           {JOURNEY_ROUTE_ORDER.map(route => {
             const accent = JOURNEY_ROUTE_ACCENT[route];
             const meta = routes[route];
+            const routeStops = getStopsForRoute(route);
+            const visitedCount = routeStops.filter(s =>
+              visited.has(s.id),
+            ).length;
             return (
               <TouchableOpacity
                 key={route}
@@ -138,10 +157,14 @@ export default function JourneysHubScreen() {
                   <AppText
                     scaleRole="compact"
                     style={[styles.cardStops, {color: colors.textTertiary}]}>
-                    {tj.stopsCount.replace(
-                      '{{n}}',
-                      String(getStopCount(route)),
-                    )}
+                    {visitedCount > 0
+                      ? tj.progress
+                          .replace('{{n}}', String(visitedCount))
+                          .replace('{{total}}', String(getStopCount(route)))
+                      : tj.stopsCount.replace(
+                          '{{n}}',
+                          String(getStopCount(route)),
+                        )}
                   </AppText>
                 </View>
                 <Ionicons

@@ -22,8 +22,8 @@ const esJ = (translations.es as AnyRecord).journeys as AnyRecord;
 const enJ = (translations.en as AnyRecord).journeys as AnyRecord;
 
 describe('journeyMaps — catalog shape', () => {
-  it('ships all 3 routes with several stops each', () => {
-    expect(JOURNEY_ROUTE_ORDER.length).toBe(3);
+  it('ships several routes with several stops each', () => {
+    expect(JOURNEY_ROUTE_ORDER.length).toBeGreaterThanOrEqual(3);
     for (const route of JOURNEY_ROUTE_ORDER) {
       expect(getStopCount(route)).toBeGreaterThanOrEqual(5);
     }

@@ -386,6 +386,16 @@ export const ACHIEVEMENT_DEFINITIONS: Omit<
     points: 50,
     tier: AchievementTier.GOLD,
   },
+  {
+    id: 'bible_routes',
+    name: 'Traveler of the Word',
+    description: 'Explore every stop on every Bible route',
+    icon: '🗺️',
+    category: AchievementCategory.SPECIAL,
+    requirement: 1,
+    points: 50,
+    tier: AchievementTier.GOLD,
+  },
 ];
 
 /**

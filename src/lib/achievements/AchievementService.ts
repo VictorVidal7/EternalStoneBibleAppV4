@@ -518,6 +518,26 @@ export class AchievementService {
     ];
   }
 
+  /**
+   * Unlock the "explored every Bible route stop" badge (mirrors
+   * trackPropheticThreadComplete — a one-off SPECIAL with no stat counter).
+   * Idempotent — returns [] if already unlocked.
+   */
+  async trackJourneyRoutesComplete(): Promise<Achievement[]> {
+    const unlocked = await this.unlockAchievement('bible_routes');
+    if (!unlocked) return [];
+    const def = ACHIEVEMENT_DEFINITIONS.find(a => a.id === 'bible_routes');
+    if (!def) return [];
+    return [
+      {
+        ...def,
+        currentProgress: def.requirement,
+        isUnlocked: true,
+        unlockedAt: Date.now(),
+      },
+    ];
+  }
+
   async trackBookmark(): Promise<void> {
     this.stats = null;
     await this.db.executeSql(

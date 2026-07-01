@@ -1,27 +1,43 @@
 /**
  * 🛤️ JOURNEY ROUTE — one Bible route's tappable rail map + stop list.
  *
- * Renders one of the 3 curated routes from [[journeyMaps]] as a vertical rail
+ * Renders one of the curated routes from [[journeyMaps]] as a vertical rail
  * (pure geometry from [[journeyMap]]): a dot per stop with its label, in walk
- * order. Tapping a dot OR its card in the list below jumps straight to that
- * stop's verse in the reader — "Visual + educativo + fiel", no live verse
- * text fetched here (the note is the content; the reader shows the passage).
+ * order. Tapping a dot jumps straight to that stop's verse in the reader; a
+ * list card below expands in place for an inline verse preview, with a
+ * separate ref chip to open the reader — "Visual + educativo + fiel".
+ *
+ * Robustness round (2026-07-01): device-local progress ([[journeyProgress]])
+ * + a SPECIAL achievement when every stop across every route is explored;
+ * favorites ([[journeyFavorites]]); a narrated auto-advance walkthrough
+ * (expo-speech reads each stop's label+note in sequence, mirroring the
+ * Hilo profético pattern); an automatic "part of the prophetic thread" link
+ * via [[findProphecyForVerseKey]] when a stop's exact verse is also a
+ * prophecy/fulfillment; a curated `echoNote` for the rare stop that shares a
+ * real location with another route (e.g. the Jordan); share-as-image
+ * (react-native-view-shot, the same pipeline as the prophecy map); and a
+ * purely decorative low-opacity route-icon watermark behind the rail (no
+ * real geographic data — a deliberate "light touch" per the user's call).
  *
  * Reached from the journeys hub `/features/journeys`.
  *
  * Para la gloria de Dios Todopoderoso ✨
  */
 
-import React, {useMemo} from 'react';
+import React, {useEffect, useMemo, useRef, useState} from 'react';
 import {
   View,
   ScrollView,
   TouchableOpacity,
   Pressable,
+  ActivityIndicator,
   StyleSheet,
   useWindowDimensions,
 } from 'react-native';
 import Svg, {Line, Circle} from 'react-native-svg';
+import * as Speech from 'expo-speech';
+import {captureRef} from 'react-native-view-shot';
+import * as Sharing from 'expo-sharing';
 import {Stack, useRouter, useLocalSearchParams} from 'expo-router';
 import {Ionicons} from '@expo/vector-icons';
 import {LinearGradient} from 'expo-linear-gradient';
@@ -30,11 +46,17 @@ import {useTheme} from '@hooks/useTheme';
 import {centeredMaxWidth} from '@/styles/responsive';
 import {useLanguage} from '@hooks/useLanguage';
 import {useBibleVersion} from '@hooks/useBibleVersion';
+import {useToast} from '@context/ToastContext';
+import {useServices} from '@context/ServicesContext';
 import {haptics} from '@lib/haptics';
+import {logger} from '@lib/utils/logger';
 import {AppText} from '@components/ui/AppText';
+import bibleDB from '@lib/database';
 import {getBookByName} from '@/constants/bible';
 import {parseChristRef} from '@/features/study/christConnections';
+import {findProphecyForVerseKey} from '@/features/study/messianicProphecies';
 import {
+  JOURNEY_STOPS,
   getStopsForRoute,
   JOURNEY_ROUTE_ACCENT,
   JOURNEY_ROUTE_ICON,
@@ -43,21 +65,43 @@ import {
 } from '@/features/study/journeyMaps';
 import {buildJourneyMap} from '@/features/study/journeyMap';
 import {
+  getVisitedJourneyStops,
+  markJourneyStopVisited,
+} from '@/features/study/journeyProgress';
+import {
+  getFavoriteJourneyStops,
+  toggleJourneyStopFavorite,
+} from '@/features/study/journeyFavorites';
+import {
   borderRadius,
   fontSize as fontSizes,
   spacing,
   staticColors,
 } from '@/styles/designTokens';
 
-const VALID_ROUTES: readonly JourneyRouteId[] = ['exodus', 'paul', 'jesus'];
+const VALID_ROUTES: readonly JourneyRouteId[] = [
+  'abraham',
+  'exodus',
+  'exile',
+  'jesus',
+  'paul',
+];
+
+interface StopItem {
+  label: string;
+  note: string;
+  echoNote?: string;
+}
 
 export default function JourneyRouteScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const {width} = useWindowDimensions();
   const {colors} = useTheme();
-  const {t} = useLanguage();
+  const {t, language} = useLanguage();
   const {selectedVersion} = useBibleVersion();
+  const toast = useToast();
+  const {achievementService, notifyAchievements} = useServices();
   const tj = t.journeys;
   const params = useLocalSearchParams<{routeId?: string}>();
   const routeId: JourneyRouteId = VALID_ROUTES.includes(
@@ -74,7 +118,55 @@ export default function JourneyRouteScreen() {
       {title: string; subtitle: string; description: string}
     >
   )[routeId];
-  const items = tj.items as Record<string, {label: string; note: string}>;
+  const items = tj.items as Record<string, StopItem>;
+
+  const [visited, setVisited] = useState<Set<string>>(new Set());
+  const [favorites, setFavorites] = useState<Set<string>>(new Set());
+  const [expandedId, setExpandedId] = useState<string | null>(null);
+  const [previewText, setPreviewText] = useState<Record<string, string | null>>(
+    {},
+  );
+  const [previewLoading, setPreviewLoading] = useState<string | null>(null);
+  const [walkthroughActive, setWalkthroughActive] = useState(false);
+  const [speakingId, setSpeakingId] = useState<string | null>(null);
+  const [sharing, setSharing] = useState(false);
+  const captureCardRef = useRef<View>(null);
+  const walkthroughRef = useRef(false);
+
+  useEffect(() => {
+    let active = true;
+    void getVisitedJourneyStops().then(set => {
+      if (active) setVisited(set);
+    });
+    void getFavoriteJourneyStops().then(set => {
+      if (active) setFavorites(set);
+    });
+    return () => {
+      active = false;
+    };
+  }, []);
+
+  useEffect(() => {
+    return () => {
+      void Speech.stop();
+    };
+  }, []);
+
+  const markVisited = (id: string) => {
+    void markJourneyStopVisited(id).then(next => {
+      setVisited(next);
+      if (next.size >= JOURNEY_STOPS.length && achievementService) {
+        void achievementService.trackJourneyRoutesComplete().then(unlocked => {
+          if (unlocked.length > 0) notifyAchievements(unlocked);
+        });
+      }
+    });
+  };
+
+  const toggleFavorite = (id: string) => {
+    haptics.tap();
+    void toggleJourneyStopFavorite(id).then(setFavorites);
+  };
 
   const canvasW = Math.min(width - spacing.lg * 2, 520);
   const map = useMemo(
@@ -97,6 +189,7 @@ export default function JourneyRouteScreen() {
     return {
       display,
       reference: `${display} ${parsed.chapter}:${parsed.verse}`,
+      bookId: book.id,
       chapter: parsed.chapter,
       verse: parsed.verse,
     };
@@ -106,13 +199,125 @@ export default function JourneyRouteScreen() {
     const info = localizedRef(stop.ref);
     if (!info) return;
     haptics.tap();
+    markVisited(stop.id);
     router.push(
       `/verse/${info.display}/${info.chapter}?verse=${info.verse}` as never,
     );
   };
 
+  const openProphecyLink = (verseKey: string) => {
+    const found = findProphecyForVerseKey(verseKey);
+    if (!found) return;
+    haptics.tap();
+    router.push(`/features/prophecies?start=${found.index}` as never);
+  };
+
+  const toggleExpand = (stop: JourneyStop) => {
+    haptics.tap();
+    markVisited(stop.id);
+    if (expandedId === stop.id) {
+      setExpandedId(null);
+      return;
+    }
+    setExpandedId(stop.id);
+    if (previewText[stop.id] !== undefined) return;
+    const info = localizedRef(stop.ref);
+    if (!info) {
+      setPreviewText(prev => ({...prev, [stop.id]: null}));
+      return;
+    }
+    setPreviewLoading(stop.id);
+    void (async () => {
+      try {
+        await bibleDB.initialize();
+        const row = await bibleDB
+          .getVerse(info.bookId, info.chapter, info.verse, selectedVersion.id)
+          .catch(() => null);
+        setPreviewText(prev => ({...prev, [stop.id]: row?.text ?? null}));
+      } finally {
+        setPreviewLoading(null);
+      }
+    })();
+  };
+
+  // "Recorrido narrado" — reads each stop's label + note aloud in sequence,
+  // from the first stop to the last, until stopped. No live verse text is
+  // fetched here (the note IS the narration), so there is no async-race risk
+  // like the prophecy thread's cross-step chaining had.
+  const speakStopAt = (index: number) => {
+    if (index >= stops.length) {
+      setWalkthroughActive(false);
+      walkthroughRef.current = false;
+      setSpeakingId(null);
+      return;
+    }
+    const stop = stops[index];
+    const item = items[stop.id];
+    markVisited(stop.id);
+    setSpeakingId(stop.id);
+    const text = [item?.label, item?.note].filter(Boolean).join('. ');
+    // The label/note come from the UI's i18n content (`t.journeys.items`),
+    // not the selected Bible version's text — so the voice must follow the
+    // UI language, not `selectedVersion.language` (they can differ, e.g. a
+    // Spanish UI reading an English WEB version).
+    const speechLanguage = language === 'es' ? 'es-ES' : 'en-US';
+    void Speech.speak(text, {
+      language: speechLanguage,
+      onDone: () => {
+        if (walkthroughRef.current) speakStopAt(index + 1);
+      },
+      onStopped: () => setSpeakingId(null),
+      onError: () => setSpeakingId(null),
+    });
+  };
+
+  const toggleWalkthrough = () => {
+    haptics.tap();
+    if (walkthroughActive) {
+      void Speech.stop();
+      walkthroughRef.current = false;
+      setWalkthroughActive(false);
+      setSpeakingId(null);
+      return;
+    }
+    walkthroughRef.current = true;
+    setWalkthroughActive(true);
+    void Speech.stop().then(() => speakStopAt(0));
+  };
+
+  async function handleShareMap() {
+    if (sharing || !captureCardRef.current) return;
+    try {
+      setSharing(true);
+      haptics.press();
+      const uri = await captureRef(captureCardRef, {
+        format: 'png',
+        quality: 1,
+        result: 'tmpfile',
+      });
+      if (!(await Sharing.isAvailableAsync())) {
+        toast.error(t.verse.imageShareError);
+        return;
+      }
+      await Sharing.shareAsync(uri, {
+        mimeType: 'image/png',
+        dialogTitle: t.share,
+        UTI: 'public.png',
+      });
+    } catch (error) {
+      logger.error('Error sharing journey map image', error as Error, {
+        component: 'JourneyRouteScreen',
+        action: 'handleShareMap',
+      });
+      toast.error(t.verse.imageShareError);
+    } finally {
+      setSharing(false);
+    }
+  }
+
   const firstY = map.nodes[0]?.y ?? 0;
   const lastY = map.nodes[map.nodes.length - 1]?.y ?? 0;
+  const visitedInRoute = stops.filter(s => visited.has(s.id)).length;
 
   return (
     <>
@@ -123,13 +328,35 @@ export default function JourneyRouteScreen() {
           start={{x: 0, y: 0}}
           end={{x: 0, y: 1}}
           style={[styles.header, {paddingTop: insets.top + spacing.md}]}>
-          <TouchableOpacity
-            style={styles.backButton}
-            onPress={() => router.back()}
-            accessibilityRole="button"
-            accessibilityLabel={t.bible.back}>
-            <Ionicons name="arrow-back" size={24} color={staticColors.white} />
-          </TouchableOpacity>
+          <View style={styles.headerTopRow}>
+            <TouchableOpacity
+              style={styles.iconButton}
+              onPress={() => router.back()}
+              accessibilityRole="button"
+              accessibilityLabel={t.bible.back}>
+              <Ionicons
+                name="arrow-back"
+                size={24}
+                color={staticColors.white}
+              />
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.iconButton}
+              onPress={() => void handleShareMap()}
+              disabled={sharing}
+              accessibilityRole="button"
+              accessibilityLabel={tj.shareMap}>
+              {sharing ? (
+                <ActivityIndicator color={staticColors.white} />
+              ) : (
+                <Ionicons
+                  name="share-outline"
+                  size={22}
+                  color={staticColors.white}
+                />
+              )}
+            </TouchableOpacity>
+          </View>
           <View style={styles.headerTextRow}>
             <View style={styles.headerIcon}>
               <Ionicons
@@ -147,6 +374,11 @@ export default function JourneyRouteScreen() {
               </AppText>
             </View>
           </View>
+          <AppText scaleRole="compact" style={styles.headerProgress}>
+            {tj.progress
+              .replace('{{n}}', String(visitedInRoute))
+              .replace('{{total}}', String(stops.length))}
+          </AppText>
         </LinearGradient>
 
         <ScrollView
@@ -160,75 +392,136 @@ export default function JourneyRouteScreen() {
             {routeMeta.description}
           </AppText>
 
-          {/* The rail map: one dot per stop, connected by a single line, in
-              walk order. Tap targets are an RN Pressable overlay (SVG has no
-              interactive elements, and onPress inside a ScrollView is
-              unreliable — the same gotcha the prophecy map hit). */}
-          <View style={[styles.mapWrap, {width: canvasW, height: map.height}]}>
-            <Svg width={canvasW} height={map.height}>
-              <Line
-                x1={map.railX}
-                y1={firstY}
-                x2={map.railX}
-                y2={lastY}
-                stroke={accent}
-                strokeOpacity={0.5}
-                strokeWidth={2}
+          <TouchableOpacity
+            style={[styles.walkthroughBtn, {borderColor: accent + '55'}]}
+            onPress={toggleWalkthrough}
+            accessibilityRole="button"
+            accessibilityLabel={
+              walkthroughActive ? tj.walkthroughStop : tj.walkthroughStart
+            }>
+            <Ionicons
+              name={walkthroughActive ? 'stop-circle' : 'play-skip-forward'}
+              size={18}
+              color={accent}
+            />
+            <AppText
+              scaleRole="compact"
+              style={[styles.walkthroughText, {color: accent}]}>
+              {walkthroughActive ? tj.walkthroughStop : tj.walkthroughStart}
+            </AppText>
+          </TouchableOpacity>
+
+          {/* The capturable card: rail map + a faint per-route icon watermark
+              (purely decorative — no real geographic data, per the user's
+              "light touch" call) + signature, for the share-as-image action. */}
+          <View
+            ref={captureCardRef}
+            collapsable={false}
+            style={[styles.captureCard, {backgroundColor: colors.background}]}>
+            <View
+              style={[styles.mapWrap, {width: canvasW, height: map.height}]}>
+              <Ionicons
+                name={JOURNEY_ROUTE_ICON[routeId] as never}
+                size={Math.min(canvasW, map.height) * 0.8}
+                color={accent}
+                style={[
+                  styles.mapWatermark,
+                  {
+                    top:
+                      map.height / 2 -
+                      (Math.min(canvasW, map.height) * 0.8) / 2,
+                    left:
+                      canvasW / 2 - (Math.min(canvasW, map.height) * 0.8) / 2,
+                  },
+                ]}
               />
-              {map.nodes.map(node => (
-                <Circle
-                  key={node.id}
-                  cx={map.railX}
-                  cy={node.y}
-                  r={6}
-                  fill={accent}
+              <Svg width={canvasW} height={map.height}>
+                <Line
+                  x1={map.railX}
+                  y1={firstY}
+                  x2={map.railX}
+                  y2={lastY}
+                  stroke={accent}
+                  strokeOpacity={0.5}
+                  strokeWidth={2}
                 />
-              ))}
-            </Svg>
-            <View style={StyleSheet.absoluteFill} pointerEvents="box-none">
-              {stops.map((stop, i) => {
-                const node = map.nodes[i];
-                if (!node) return null;
-                return (
-                  <Pressable
-                    key={stop.id}
-                    onPress={() => openInReader(stop)}
-                    style={[
-                      styles.mapRow,
-                      {top: node.y - 16, left: map.railX + 16},
-                    ]}
-                    accessibilityRole="button"
-                    accessibilityLabel={items[stop.id]?.label ?? stop.id}>
-                    <AppText
-                      scaleRole="compact"
-                      style={[styles.mapLabel, {color: colors.text}]}
-                      numberOfLines={1}>
-                      {items[stop.id]?.label ?? ''}
-                    </AppText>
-                  </Pressable>
-                );
-              })}
+                {map.nodes.map(node => {
+                  const isSpeaking = stops[node.index]?.id === speakingId;
+                  return (
+                    <Circle
+                      key={node.id}
+                      cx={map.railX}
+                      cy={node.y}
+                      r={isSpeaking ? 9 : 6}
+                      fill={accent}
+                      fillOpacity={isSpeaking ? 1 : 0.85}
+                    />
+                  );
+                })}
+              </Svg>
+              <View style={StyleSheet.absoluteFill} pointerEvents="box-none">
+                {stops.map((stop, i) => {
+                  const node = map.nodes[i];
+                  if (!node) return null;
+                  return (
+                    <Pressable
+                      key={stop.id}
+                      onPress={() => openInReader(stop)}
+                      style={[
+                        styles.mapRow,
+                        {top: node.y - 16, left: map.railX + 16},
+                      ]}
+                      accessibilityRole="button"
+                      accessibilityLabel={items[stop.id]?.label ?? stop.id}>
+                      <AppText
+                        scaleRole="compact"
+                        style={[styles.mapLabel, {color: colors.text}]}
+                        numberOfLines={1}>
+                        {items[stop.id]?.label ?? ''}
+                      </AppText>
+                    </Pressable>
+                  );
+                })}
+              </View>
+            </View>
+            <View style={styles.signatureRow}>
+              <Ionicons name="map" size={12} color={colors.textTertiary} />
+              <AppText
+                scaleRole="compact"
+                style={[styles.signatureText, {color: colors.textTertiary}]}>
+                Eternal Bible · {routeMeta.title}
+              </AppText>
             </View>
           </View>
 
-          {/* The full stop list — label, note, and a ref chip that jumps to
-              the passage. The map above is a visual shortcut to the same
-              action, not a separate source of information. */}
+          {/* The full stop list — tapping a card expands an inline verse
+              preview; the ref chip is a separate action that opens the
+              reader. The map above is a visual shortcut straight to the
+              reader, not a separate source of information. */}
           <View style={styles.list}>
             {stops.map((stop, i) => {
               const info = localizedRef(stop.ref);
               const item = items[stop.id];
+              const expanded = expandedId === stop.id;
+              const isSpeaking = speakingId === stop.id;
+              const isFavorite = favorites.has(stop.id);
+              const prophecyLink = findProphecyForVerseKey(stop.ref);
               return (
                 <TouchableOpacity
                   key={stop.id}
                   style={[
                     styles.stopCard,
-                    {backgroundColor: colors.card, borderColor: colors.border},
+                    isSpeaking ? styles.stopCardSpeaking : null,
+                    {
+                      backgroundColor: colors.card,
+                      borderColor: isSpeaking ? accent : colors.border,
+                    },
                   ]}
                   activeOpacity={0.85}
-                  onPress={() => openInReader(stop)}
+                  onPress={() => toggleExpand(stop)}
                   accessibilityRole="button"
-                  accessibilityLabel={`${tj.openInReader}: ${item?.label ?? ''}`}>
+                  accessibilityState={{expanded}}
+                  accessibilityLabel={item?.label ?? ''}>
                   <View style={styles.stopHead}>
                     <View
                       style={[
@@ -246,6 +539,20 @@ export default function JourneyRouteScreen() {
                       numberOfLines={1}>
                       {item?.label ?? ''}
                     </AppText>
+                    <TouchableOpacity
+                      onPress={() => toggleFavorite(stop.id)}
+                      hitSlop={{top: 8, bottom: 8, left: 8, right: 8}}
+                      accessibilityRole="button"
+                      accessibilityLabel={
+                        isFavorite ? tj.unfavorite : tj.favorite
+                      }
+                      accessibilityState={{selected: isFavorite}}>
+                      <Ionicons
+                        name={isFavorite ? 'star' : 'star-outline'}
+                        size={18}
+                        color={isFavorite ? accent : colors.textTertiary}
+                      />
+                    </TouchableOpacity>
                   </View>
                   {!!item?.note && (
                     <AppText
@@ -254,14 +561,75 @@ export default function JourneyRouteScreen() {
                       {item.note}
                     </AppText>
                   )}
-                  <View
-                    style={[styles.stopRefChip, {borderColor: accent + '55'}]}>
-                    <Ionicons name="book-outline" size={13} color={accent} />
-                    <AppText
-                      scaleRole="compact"
-                      style={[styles.stopRefText, {color: accent}]}>
-                      {info?.reference ?? tj.missingText}
-                    </AppText>
+
+                  {!!item?.echoNote && (
+                    <View
+                      style={[
+                        styles.echoCard,
+                        {
+                          backgroundColor: accent + '12',
+                          borderColor: accent + '33',
+                        },
+                      ]}>
+                      <Ionicons name="sparkles" size={13} color={accent} />
+                      <AppText
+                        scaleRole="compact"
+                        style={[
+                          styles.echoText,
+                          {color: colors.textSecondary},
+                        ]}>
+                        {item.echoNote}
+                      </AppText>
+                    </View>
+                  )}
+
+                  {expanded && (
+                    <View style={styles.previewBox}>
+                      {previewLoading === stop.id ? (
+                        <ActivityIndicator color={accent} />
+                      ) : (
+                        <AppText
+                          style={[styles.previewText, {color: colors.text}]}>
+                          {previewText[stop.id] ?? tj.missingText}
+                        </AppText>
+                      )}
+                    </View>
+                  )}
+
+                  <View style={styles.stopFooterRow}>
+                    <TouchableOpacity
+                      style={[styles.stopRefChip, {borderColor: accent + '55'}]}
+                      onPress={() => openInReader(stop)}
+                      accessibilityRole="button"
+                      accessibilityLabel={`${tj.openInReader}: ${item?.label ?? ''}`}>
+                      <Ionicons name="book-outline" size={13} color={accent} />
+                      <AppText
+                        scaleRole="compact"
+                        style={[styles.stopRefText, {color: accent}]}>
+                        {info?.reference ?? tj.missingText}
+                      </AppText>
+                    </TouchableOpacity>
+                    {prophecyLink && (
+                      <TouchableOpacity
+                        style={[
+                          styles.stopRefChip,
+                          {borderColor: colors.primary + '55'},
+                        ]}
+                        onPress={() => openProphecyLink(stop.ref)}
+                        accessibilityRole="button"
+                        accessibilityLabel={tj.partOfThread}>
+                        <Ionicons
+                          name="git-network-outline"
+                          size={13}
+                          color={colors.primary}
+                        />
+                        <AppText
+                          scaleRole="compact"
+                          style={[styles.stopRefText, {color: colors.primary}]}>
+                          {tj.partOfThread}
+                        </AppText>
+                      </TouchableOpacity>
+                    )}
                   </View>
                 </TouchableOpacity>
               );
@@ -281,7 +649,17 @@ const styles = StyleSheet.create({
     borderBottomLeftRadius: borderRadius.xl,
     borderBottomRightRadius: borderRadius.xl,
   },
-  backButton: {width: 40, height: 40, justifyContent: 'center'},
+  headerTopRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  iconButton: {
+    width: 40,
+    height: 40,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
   headerTextRow: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -307,15 +685,41 @@ const styles = StyleSheet.create({
     fontSize: fontSizes['2xl'],
     fontWeight: '800',
   },
+  headerProgress: {
+    color: staticColors.glassWhite90,
+    fontSize: fontSizes.sm,
+    fontWeight: '600',
+    marginTop: spacing.sm,
+  },
   content: {padding: spacing.lg, gap: spacing.lg, alignItems: 'center'},
   description: {
     fontSize: fontSizes.md,
     lineHeight: fontSizes.md * 1.5,
     textAlign: 'center',
   },
+  walkthroughBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: spacing.xs,
+    paddingVertical: spacing.xs,
+    paddingHorizontal: spacing.base,
+    borderRadius: borderRadius.full,
+    borderWidth: 1,
+  },
+  walkthroughText: {fontSize: fontSizes.sm, fontWeight: '700'},
+  captureCard: {alignItems: 'center', gap: spacing.sm},
   mapWrap: {},
+  mapWatermark: {position: 'absolute', opacity: 0.06},
   mapRow: {position: 'absolute', right: spacing.sm},
   mapLabel: {fontSize: fontSizes.sm, fontWeight: '700'},
+  signatureRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: spacing.xs,
+  },
+  signatureText: {fontSize: fontSizes.xs, fontWeight: '600'},
   list: {alignSelf: 'stretch', gap: spacing.sm},
   stopCard: {
     borderRadius: borderRadius.lg,
@@ -323,6 +727,7 @@ const styles = StyleSheet.create({
     padding: spacing.base,
     gap: spacing.xs,
   },
+  stopCardSpeaking: {borderWidth: 2},
   stopHead: {flexDirection: 'row', alignItems: 'center', gap: spacing.sm},
   stopDot: {
     width: 26,
@@ -334,6 +739,29 @@ const styles = StyleSheet.create({
   stopDotText: {fontSize: fontSizes.xs, fontWeight: '800'},
   stopLabel: {flex: 1, fontSize: fontSizes.md, fontWeight: '800'},
   stopNote: {fontSize: fontSizes.sm, lineHeight: fontSizes.sm * 1.45},
+  echoCard: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: spacing.xs,
+    borderRadius: borderRadius.md,
+    borderWidth: 1,
+    padding: spacing.sm,
+    marginTop: spacing.xs,
+  },
+  echoText: {flex: 1, fontSize: fontSizes.xs, lineHeight: fontSizes.xs * 1.5},
+  previewBox: {
+    marginTop: spacing.xs,
+    paddingTop: spacing.sm,
+    borderTopWidth: StyleSheet.hairlineWidth,
+    borderTopColor: staticColors.overlayBlack60,
+  },
+  previewText: {fontSize: fontSizes.md, lineHeight: fontSizes.md * 1.5},
+  stopFooterRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: spacing.sm,
+    marginTop: spacing.xs,
+  },
   stopRefChip: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -343,7 +771,6 @@ const styles = StyleSheet.create({
     paddingVertical: 3,
     borderRadius: borderRadius.full,
     borderWidth: 1,
-    marginTop: spacing.xs,
   },
   stopRefText: {fontSize: fontSizes.xs, fontWeight: '700'},
 });
