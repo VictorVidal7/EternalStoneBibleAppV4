@@ -2399,6 +2399,12 @@ export default function VerseReadingScreen() {
                                     : effectiveColors.textSecondary,
                                   fontSize: Math.max(fontSize - 2, 12),
                                   lineHeight: Math.max(fontSize - 2, 12) * 1.5,
+                                  // The stacked companion never picked up the
+                                  // reader's text-align preference (unlike the
+                                  // primary verse and the columns-layout
+                                  // companion), so "Justificado" silently had
+                                  // no effect here.
+                                  textAlign: readerPrefs.textAlign,
                                 },
                               ]}
                               textBreakStrategy="simple">
