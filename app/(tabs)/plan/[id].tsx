@@ -54,6 +54,11 @@ import {
 } from '@/constants/reading-plans';
 import {planPace, planCatchUp, formatDayReadings} from '@/lib/reading/planPace';
 import type {PlanPace, PlanCatchUp} from '@/lib/reading/planPace';
+import {
+  isReflowable,
+  maxReflowDays,
+  effectivePlanDays,
+} from '@/lib/reading/planReflow';
 import {staticColors} from '@/styles/designTokens';
 import {centeredMaxWidth} from '@/styles/responsive';
 import {getBookByName} from '@/constants/bible';
@@ -73,6 +78,8 @@ export default function ReadingPlanDetailScreen() {
     toggleDay,
     isChapterRead,
     getStartedAt,
+    getPlanDuration,
+    setPlanDuration,
   } = useReadingPlanProgress();
   const {getMembership, leavePlan} = useTogether();
   const {getCustomPlanById, deleteCustomPlan} = useCustomPlans();
@@ -89,26 +96,48 @@ export default function ReadingPlanDetailScreen() {
 
   const completedDays = plan ? getCompletedDays(plan.id) : [];
   const completed = completedDays.length;
+
+  // A reader-chosen duration (Sprint 111): re-spreads the SAME curated
+  // chapters across a different number of days. Only offered for curated,
+  // whole-chapter plans, before the first day is marked — see the picker
+  // below. `effectiveDays`/`effectiveDuration` replace `plan.days`/
+  // `plan.duration` everywhere else on this screen.
+  const customDuration = plan ? getPlanDuration(plan.id) : null;
+  const effectiveDays = useMemo(
+    () => (plan ? effectivePlanDays(plan, customDuration) : []),
+    [plan, customDuration],
+  );
+  const effectiveDuration = effectiveDays.length;
+
+  // The picker's own pending value — starts at whatever's already chosen
+  // (or the curated default), and re-syncs if the route's plan id changes.
+  const [pendingDuration, setPendingDuration] = useState(
+    customDuration ?? plan?.duration ?? 0,
+  );
+  useEffect(() => {
+    if (plan) setPendingDuration(customDuration ?? plan.duration);
+  }, [plan, customDuration]);
+
   const pace: PlanPace = useMemo(
     () =>
       planPace({
         startedAt: plan ? getStartedAt(plan.id) : null,
         completedDays,
-        duration: plan?.duration ?? 0,
+        duration: effectiveDuration,
         now: new Date(),
       }),
     // completedDays is a fresh array per render; its length + the plan are
     // the actual change signals (this eslint has no exhaustive-deps rule).
-    [plan, completed, getStartedAt],
+    [plan, completed, getStartedAt, effectiveDuration],
   );
 
   // "Ponte al día" (Sprint 84): the readings between the reader and today, and
   // the honest finish date if they keep one-a-day from here. Pure; only the
   // screen decides to SHOW it (when behind).
   const catchUp: PlanCatchUp = useMemo(
-    () => planCatchUp(pace, plan?.duration ?? 0, completedDays, new Date()),
+    () => planCatchUp(pace, effectiveDuration, completedDays, new Date()),
     // Same change signals as `pace` (completedDays is a fresh array per render).
-    [pace, plan, completed],
+    [pace, plan, completed, effectiveDuration],
   );
 
   // Book names follow the READING version's language (RVR1960 → "Juan").
@@ -146,11 +175,15 @@ export default function ReadingPlanDetailScreen() {
     if (!plan) return;
     const prev = prevCompletedRef.current;
     prevCompletedRef.current = completed;
-    if (prev !== null && prev < plan.duration && completed === plan.duration) {
+    if (
+      prev !== null &&
+      prev < effectiveDuration &&
+      completed === effectiveDuration
+    ) {
       haptics.success();
       setCelebrate(true);
     }
-  }, [plan, completed]);
+  }, [plan, completed, effectiveDuration]);
 
   // One-shot auto-scroll to the next day, reset when the plan changes
   // (expo-router reuses the route instance — S74). A plan whose pointer is at
@@ -237,7 +270,7 @@ export default function ReadingPlanDetailScreen() {
     );
   }
 
-  const percent = Math.round((completed / plan.duration) * 100);
+  const percent = Math.round((completed / effectiveDuration) * 100);
   const localizedPlan = getLocalizedPlan(plan, t);
   // A custom plan carries no localized tagline (S108) — describe it by its
   // shape in the active language instead of an empty subtitle.
@@ -254,6 +287,19 @@ export default function ReadingPlanDetailScreen() {
     haptics.tap();
     leavePlan(plan.id);
     toast.success(t.together.leaveGroup);
+  };
+
+  // The duration picker: curated (not custom-built), whole-chapter (not one
+  // of the partial-verse themed plans), not joined via Together (everyone in
+  // a shared plan reads the same day the same chapters), and no progress yet.
+  const durationMax = maxReflowDays(plan);
+  const showDurationPicker =
+    !plan.custom && completed === 0 && !membership && isReflowable(plan);
+  const adjustDuration = (delta: number) => {
+    haptics.tap();
+    const next = Math.max(1, Math.min(durationMax, pendingDuration + delta));
+    setPendingDuration(next);
+    void setPlanDuration(plan.id, next);
   };
 
   // Custom plans can be removed (curated ones cannot). Confirm first, since it
@@ -302,7 +348,7 @@ export default function ReadingPlanDetailScreen() {
 
   const todayDay =
     pace.nextDay != null
-      ? (plan.days.find(d => d.day === pace.nextDay) ?? null)
+      ? (effectiveDays.find(d => d.day === pace.nextDay) ?? null)
       : null;
 
   function openChapter(book: string, chapter: number) {
@@ -580,10 +626,60 @@ export default function ReadingPlanDetailScreen() {
         </Text>
         <Text style={styles.headerSubtitle}>{headerSubtitle}</Text>
 
+        {/* Duration picker (Sprint 111): only before any progress, only for
+            curated whole-chapter plans not joined via Together — changing it
+            later would re-shuffle which chapters land on which already-ticked
+            day number. */}
+        {showDurationPicker && (
+          <View style={styles.durationPicker}>
+            <Text style={styles.durationPickerLabel}>
+              {t.readingPlan.durationPickerLabel}
+            </Text>
+            <View style={styles.durationPickerRow}>
+              <TouchableOpacity
+                style={[
+                  styles.durationStepBtn,
+                  pendingDuration <= 1 && styles.disabled,
+                ]}
+                disabled={pendingDuration <= 1}
+                onPress={() => adjustDuration(-1)}
+                accessibilityRole="button"
+                accessibilityLabel="-1">
+                <Ionicons name="remove" size={18} color={staticColors.white} />
+              </TouchableOpacity>
+              <Text style={styles.durationPickerDays}>
+                {t.readingPlan.durationPickerDays.replace(
+                  '{{n}}',
+                  String(pendingDuration),
+                )}
+              </Text>
+              <TouchableOpacity
+                style={[
+                  styles.durationStepBtn,
+                  pendingDuration >= durationMax && styles.disabled,
+                ]}
+                disabled={pendingDuration >= durationMax}
+                onPress={() => adjustDuration(1)}
+                accessibilityRole="button"
+                accessibilityLabel="+1">
+                <Ionicons name="add" size={18} color={staticColors.white} />
+              </TouchableOpacity>
+            </View>
+            <Text style={styles.durationPickerPace}>
+              {t.readingPlan.durationPickerPace.replace(
+                '{{n}}',
+                (
+                  Math.round((durationMax / pendingDuration) * 10) / 10
+                ).toString(),
+              )}
+            </Text>
+          </View>
+        )}
+
         {/* Progress bar + honest pace line (Sprint 79) */}
         <View style={styles.progressInfo}>
           <Text style={styles.progressText}>
-            {completed}/{plan.duration} {t.readingPlan.daysCompleted} ·{' '}
+            {completed}/{effectiveDuration} {t.readingPlan.daysCompleted} ·{' '}
             {percent}%
           </Text>
         </View>
@@ -613,7 +709,7 @@ export default function ReadingPlanDetailScreen() {
 
       <FlatList
         ref={listRef}
-        data={plan.days}
+        data={effectiveDays}
         keyExtractor={item => String(item.day)}
         renderItem={renderDay}
         ListHeaderComponent={
@@ -766,6 +862,46 @@ const styles = StyleSheet.create({
     color: staticColors.glassWhite85,
     marginTop: 4,
   },
+  durationPicker: {
+    marginTop: 14,
+    padding: 12,
+    borderRadius: 14,
+    backgroundColor: staticColors.glassWhite20,
+  },
+  durationPickerLabel: {
+    fontSize: 13,
+    fontWeight: '700',
+    color: staticColors.white,
+  },
+  durationPickerRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 16,
+    marginTop: 8,
+  },
+  durationStepBtn: {
+    width: 34,
+    height: 34,
+    borderRadius: 17,
+    backgroundColor: staticColors.glassWhite25,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  durationPickerDays: {
+    fontSize: 17,
+    fontWeight: '800',
+    color: staticColors.white,
+    minWidth: 90,
+    textAlign: 'center',
+  },
+  durationPickerPace: {
+    fontSize: 12,
+    color: staticColors.glassWhite85,
+    textAlign: 'center',
+    marginTop: 6,
+  },
+  disabled: {opacity: 0.4},
   progressInfo: {marginTop: 16},
   progressText: {
     fontSize: 13,

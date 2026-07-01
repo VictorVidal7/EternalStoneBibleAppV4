@@ -25,6 +25,7 @@ import {READING_PLANS} from '../constants/reading-plans';
 import {getBookByName} from '../constants/bible';
 import {getRegisteredCustomPlans} from '../lib/reading/customPlans';
 import {withCompletionStamp} from '../lib/reading/planCompletion';
+import {effectivePlanDays} from '../lib/reading/planReflow';
 
 /** Curated + user-created plans, so progress treats custom plans alike (S108). */
 function allPlans() {
@@ -43,6 +44,13 @@ export interface PlanProgress {
    * re-completing. Plans finished before this sprint have no stamp.
    */
   completedAt?: string;
+  /**
+   * The reader's chosen total-day count for a reflowable curated plan, when
+   * different from its curated default (`planReflow.effectivePlanDays`
+   * re-spreads the same chapters across it). Only ever set before the first
+   * day is marked — see `setPlanDuration`.
+   */
+  customDuration?: number;
 }
 
 type ProgressMap = Record<string, PlanProgress>;
@@ -90,6 +98,14 @@ interface ReadingPlanProgressContextType {
   getStartedAt: (planId: string) => string | null;
   /** ISO timestamp of the plan's FIRST full completion; null = none yet. */
   getCompletedAt: (planId: string) => string | null;
+  /** The reader's chosen duration for this plan; null = using the curated default. */
+  getPlanDuration: (planId: string) => number | null;
+  /**
+   * Set the reader's chosen duration for a reflowable curated plan. A no-op
+   * once any day has been marked complete — reflowing would re-shuffle which
+   * chapters land on which day number, orphaning already-ticked progress.
+   */
+  setPlanDuration: (planId: string, totalDays: number) => Promise<void>;
 }
 
 const ReadingPlanProgressContext = createContext<
@@ -168,17 +184,29 @@ export function ReadingPlanProgressProvider({children}: {children: ReactNode}) {
 
   const toggleDay = useCallback(
     async (planId: string, day: number) => {
-      const current = progress[planId] ?? {
-        completedDays: [],
-        startedAt: new Date().toISOString(),
-      };
+      const existing = progress[planId];
+      // A `setPlanDuration`-only entry has an empty startedAt (the plan's
+      // pace clock hasn't started yet) — the first real toggle starts it now.
+      const current: PlanProgress =
+        existing && existing.startedAt
+          ? existing
+          : {
+              ...existing,
+              completedDays: existing?.completedDays ?? [],
+              startedAt: new Date().toISOString(),
+            };
       const has = current.completedDays.includes(day);
       const completedDays = has
         ? current.completedDays.filter(d => d !== day)
         : [...current.completedDays, day].sort((a, b) => a - b);
       // Stamp completedAt the first time the plan covers all its days
-      // (conserve-once-earned — see planCompletion).
-      const duration = allPlans().find(p => p.id === planId)?.days.length ?? 0;
+      // (conserve-once-earned — see planCompletion). Use the EFFECTIVE day
+      // count (a reflowed custom duration, if one was chosen), not the
+      // curated default, or a reflowed plan would never reach 100%.
+      const plan = allPlans().find(p => p.id === planId);
+      const duration = plan
+        ? effectivePlanDays(plan, current.customDuration).length
+        : 0;
       await persist({
         ...progress,
         [planId]: withCompletionStamp(
@@ -243,11 +271,18 @@ export function ReadingPlanProgressProvider({children}: {children: ReactNode}) {
       }
 
       // Find every plan day not yet completed whose chapters are all read.
+      // Uses each plan's EFFECTIVE days (a reflowed custom duration, if one
+      // was chosen) so auto-complete checks the day groupings the reader
+      // actually sees, not the curated default.
       const currentProgress = progressRef.current;
       const newlyCompleted: AutoCompletedDay[] = [];
       for (const plan of allPlans()) {
         const completedDays = currentProgress[plan.id]?.completedDays ?? [];
-        for (const planDay of plan.days) {
+        const planDays = effectivePlanDays(
+          plan,
+          currentProgress[plan.id]?.customDuration,
+        );
+        for (const planDay of planDays) {
           if (completedDays.includes(planDay.day)) continue;
           const allRead = planDay.readings.every(r => {
             const k = chapterKey(r.book, r.chapter);
@@ -262,15 +297,26 @@ export function ReadingPlanProgressProvider({children}: {children: ReactNode}) {
       if (newlyCompleted.length > 0) {
         const nextProgress: ProgressMap = {...currentProgress};
         for (const {planId, day} of newlyCompleted) {
-          const cur = nextProgress[planId] ?? {
-            completedDays: [],
-            startedAt: new Date().toISOString(),
-          };
+          const existing = nextProgress[planId];
+          // Same empty-startedAt fixup as toggleDay: a setPlanDuration-only
+          // entry hasn't started the pace clock yet — the first completed
+          // day (even an auto-completed one) starts it now.
+          const cur: PlanProgress =
+            existing && existing.startedAt
+              ? existing
+              : {
+                  ...existing,
+                  completedDays: existing?.completedDays ?? [],
+                  startedAt: new Date().toISOString(),
+                };
           if (!cur.completedDays.includes(day)) {
             // The auto-complete path can also finish a plan (reading the
-            // last listed chapter) — stamp it here too (Sprint 81).
-            const duration =
-              allPlans().find(p => p.id === planId)?.days.length ?? 0;
+            // last listed chapter) — stamp it here too (Sprint 81). Uses the
+            // EFFECTIVE day count (a reflowed custom duration, if chosen).
+            const plan = allPlans().find(p => p.id === planId);
+            const duration = plan
+              ? effectivePlanDays(plan, cur.customDuration).length
+              : 0;
             nextProgress[planId] = withCompletionStamp(
               {
                 ...cur,
@@ -309,6 +355,30 @@ export function ReadingPlanProgressProvider({children}: {children: ReactNode}) {
     [progress],
   );
 
+  const getPlanDuration = useCallback(
+    (planId: string) => progress[planId]?.customDuration ?? null,
+    [progress],
+  );
+
+  const setPlanDuration = useCallback(
+    async (planId: string, totalDays: number) => {
+      const current = progress[planId];
+      if (current && current.completedDays.length > 0) return;
+      const next: PlanProgress = current
+        ? {...current, customDuration: totalDays}
+        : {
+            // No startedAt yet — merely dialing in a duration shouldn't start
+            // the plan's pace clock (planPace treats a falsy startedAt as
+            // 'notStarted'); that only happens on the first toggleDay/setPlanStart.
+            completedDays: [],
+            startedAt: '',
+            customDuration: totalDays,
+          };
+      await persist({...progress, [planId]: next});
+    },
+    [progress, persist],
+  );
+
   return (
     <ReadingPlanProgressContext.Provider
       value={{
@@ -321,6 +391,8 @@ export function ReadingPlanProgressProvider({children}: {children: ReactNode}) {
         isChapterRead,
         getStartedAt,
         getCompletedAt,
+        getPlanDuration,
+        setPlanDuration,
       }}>
       {children}
     </ReadingPlanProgressContext.Provider>

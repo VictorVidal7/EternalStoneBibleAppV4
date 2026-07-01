@@ -3091,6 +3091,11 @@ export const translations = {
       planCompletedCta: 'Amén',
       planNextUp: 'Día {{day}} · {{readings}}',
       playlistDayLabel: 'Día {{day}} · {{plan}}',
+      durationPickerLabel: 'Duración del plan',
+      durationPickerHint:
+        'El mismo contenido, a tu ritmo. Se puede ajustar solo antes de empezar.',
+      durationPickerDays: '{{n}} días',
+      durationPickerPace: '≈{{n}} capítulos por día',
     },
 
     // Daily Verse Notifications
@@ -6961,6 +6966,11 @@ export const translations = {
       planCompletedCta: 'Amen',
       planNextUp: 'Day {{day}} · {{readings}}',
       playlistDayLabel: 'Day {{day}} · {{plan}}',
+      durationPickerLabel: 'Plan duration',
+      durationPickerHint:
+        'Same content, your pace. Only adjustable before you start.',
+      durationPickerDays: '{{n}} days',
+      durationPickerPace: '≈{{n}} chapters per day',
     },
 
     // Daily Verse Notifications
