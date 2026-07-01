@@ -2489,6 +2489,8 @@ export const translations = {
       cardSubtitleEmpty: 'Lleva tus cargas a Dios',
       openJournal: 'Mi diario de oración',
       prayNow: 'Orar ahora',
+      scriptureCta: 'Orar la Escritura',
+      scriptureCtaSubtitle: 'Ora versículo a versículo',
       studyToolTitle: 'Oración guiada',
       studyToolSubtitle: 'Adora, confiesa, agradece, pide',
       testimony: {
@@ -2535,6 +2537,127 @@ export const translations = {
         addToJournal: 'Guardar una petición',
         done: 'Terminar',
         missingText: 'Versículo no disponible',
+      },
+    },
+
+    scripturePrayer: {
+      title: 'Orar la Escritura',
+      subtitle: 'Ora con las palabras que la Biblia misma registra',
+      intro:
+        'Estas oraciones no son un ejercicio literario: son palabras que hombres y mujeres de la Biblia dirigieron a Dios en momentos reales. Camina versículo a versículo, y haz tuya la oración con tus propias palabras si quieres.',
+      disclaimer:
+        'Estas son oraciones registradas en la Escritura — ejemplos para aprender de ellas, no una fórmula que debas repetir. Tu propia oración, con tus propias palabras, es igual de valiosa delante de Dios.',
+      versesCount: '{{n}} versículos',
+      verseProgress: 'Versículo {{n}} de {{total}}',
+      begin: 'Comenzar',
+      prev: 'Anterior',
+      next: 'Siguiente',
+      finish: 'Amén',
+      missingText: 'Versículo no disponible',
+      yourPrayerLabel: 'Tu oración (opcional)',
+      yourPrayerPlaceholder:
+        'Escribe aquí tu oración, con tus propias palabras…',
+      finishedTitle: 'Gracias por orar',
+      finishedBody: 'Que esta oración te acerque más al corazón de Dios.',
+      saveJournalPrompt:
+        '¿Quieres guardar lo que escribiste en tu diario de oración?',
+      saveJournalButton: 'Guardar en el diario',
+      discardButton: 'Cerrar sin guardar',
+      savedToast: 'Guardado en tu diario de oración',
+      done: 'Terminar',
+      categories: {
+        jesus: 'Oraciones de Jesús',
+        canticles: 'Cánticos del Nuevo Testamento',
+        paul: 'Oraciones de Pablo por las iglesias',
+        psalms: 'Salmos que la Escritura titula «oración»',
+        ot: 'Otras oraciones del Antiguo Testamento',
+      },
+      passages: {
+        'lords-prayer': {
+          title: 'El Padre Nuestro',
+          context:
+            'Jesús mismo enseñó esta oración a sus discípulos, en respuesta a su pedido: «Señor, enséñanos a orar» (Lucas 11:1).',
+        },
+        gethsemane: {
+          title: 'Getsemaní',
+          context:
+            'Jesús enfrenta aquí su propia cruz, una copa que solo Él podía beber. Al orarlo, seguimos su ejemplo de someternos a la voluntad del Padre — no repetimos su circunstancia.',
+        },
+        magnificat: {
+          title: 'El Magníficat de María',
+          context:
+            'María canta por un hecho histórico único: llevar al Mesías en su vientre. La iglesia ha orado este canto por siglos como alabanza por la venida de Cristo, no como testimonio personal de cada quien.',
+        },
+        benedictus: {
+          title: 'El cántico de Zacarías',
+          context:
+            'Zacarías profetiza sobre su hijo Juan el Bautista y sobre la venida del Mesías. Lo oramos como alabanza por la fidelidad de Dios en cumplir sus promesas, no como palabras sobre nuestra propia vida.',
+        },
+        'nunc-dimittis': {
+          title: 'El cántico de Simeón',
+          context:
+            'Simeón vio con sus propios ojos al Mesías prometido. Oramos sus palabras como gratitud por la salvación que también nosotros hemos visto en Cristo.',
+        },
+        'ephesians-prayer': {
+          title: 'La oración de Pablo por los efesios',
+          context:
+            'Pablo dobla sus rodillas y pide que el amor de Cristo llene y fortalezca a los creyentes de Éfeso.',
+        },
+        'colossians-prayer': {
+          title: 'La oración de Pablo por los colosenses',
+          context:
+            'Pablo pide que los creyentes de Colosas sean llenos del conocimiento de la voluntad de Dios y anden como es digno del Señor.',
+        },
+        'philippians-prayer': {
+          title: 'La oración de Pablo por los filipenses',
+          context:
+            'Pablo pide que el amor de los filipenses abunde cada vez más en conocimiento y discernimiento.',
+        },
+        'thessalonians-prayer': {
+          title: 'La oración de Pablo por los tesalonicenses',
+          context:
+            'Pablo pide que Dios dirija su camino de vuelta a ellos y que el Señor los haga crecer en amor.',
+        },
+        'psalm-51': {
+          title: 'Salmo 51 — la confesión de David',
+          context:
+            'David clama a Dios por misericordia tras ser confrontado por el profeta Natán a causa de su pecado con Betsabé.',
+        },
+        'psalm-86': {
+          title: 'Salmo 86 — oración de David',
+          context:
+            'El propio título del salmo lo llama «Oración de David»: un clamor por ayuda y misericordia en medio de la angustia.',
+        },
+        'psalm-90': {
+          title: 'Salmo 90 — oración de Moisés',
+          context:
+            'El propio título del salmo lo llama «Oración de Moisés, varón de Dios»: una reflexión sobre la brevedad de la vida y la eternidad de Dios.',
+        },
+        'psalm-102': {
+          title: 'Salmo 102 — oración del afligido',
+          context:
+            'El propio título lo llama «Oración del afligido cuando está angustiado». Su pedido por la restauración de Sion, la iglesia lo ha entendido cumplido en el pueblo de Dios reunido en Cristo, no en la Jerusalén física.',
+        },
+        'psalm-142': {
+          title: 'Salmo 142 — oración de David en la cueva',
+          context:
+            'El propio título lo llama «Oración cuando estaba en la cueva»: David clama a Dios rodeado de peligro y sin ayuda humana.',
+        },
+        'nehemiah-prayer': {
+          title: 'La oración de Nehemías',
+          context:
+            'Nehemías confiesa el pecado de su pueblo y pide el favor de Dios antes de emprender la reconstrucción de Jerusalén.',
+        },
+        'daniel-prayer': {
+          title: 'La oración de Daniel',
+          context:
+            'Daniel confiesa el pecado de todo su pueblo, Israel, durante el exilio en Babilonia. Es un modelo de confesión corporal — orarlo es reconocer nuestras propias faltas y las de la iglesia, no describir literalmente nuestra situación.',
+        },
+        'jonah-prayer': {
+          title: 'La oración de Jonás',
+          context:
+            'Jonás clama a Dios desde el vientre del gran pez, y Dios lo escucha y lo libra.',
+        },
       },
     },
 
@@ -6576,6 +6699,8 @@ export const translations = {
       cardSubtitleEmpty: 'Bring your burdens to God',
       openJournal: 'My prayer journal',
       prayNow: 'Pray now',
+      scriptureCta: 'Pray the Scripture',
+      scriptureCtaSubtitle: 'Pray verse by verse',
       studyToolTitle: 'Guided prayer',
       studyToolSubtitle: 'Adore, confess, give thanks, ask',
       testimony: {
@@ -6619,6 +6744,126 @@ export const translations = {
         addToJournal: 'Save a prayer request',
         done: 'Done',
         missingText: 'Verse unavailable',
+      },
+    },
+
+    scripturePrayer: {
+      title: 'Pray the Scripture',
+      subtitle: 'Pray with the words Scripture itself records',
+      intro:
+        "These prayers aren't a literary exercise: they're words real people in the Bible spoke to God in real moments. Walk through them verse by verse, and make the prayer your own, in your own words, if you'd like.",
+      disclaimer:
+        'These are prayers recorded in Scripture — examples to learn from, not a formula to repeat. Your own prayer, in your own words, is just as valuable before God.',
+      versesCount: '{{n}} verses',
+      verseProgress: 'Verse {{n}} of {{total}}',
+      begin: 'Begin',
+      prev: 'Previous',
+      next: 'Next',
+      finish: 'Amen',
+      missingText: 'Verse unavailable',
+      yourPrayerLabel: 'Your prayer (optional)',
+      yourPrayerPlaceholder: 'Write your own prayer here, in your own words…',
+      finishedTitle: 'Thank you for praying',
+      finishedBody: 'May this prayer draw you closer to the heart of God.',
+      saveJournalPrompt:
+        'Would you like to save what you wrote to your prayer journal?',
+      saveJournalButton: 'Save to journal',
+      discardButton: 'Close without saving',
+      savedToast: 'Saved to your prayer journal',
+      done: 'Done',
+      categories: {
+        jesus: 'Prayers of Jesus',
+        canticles: 'New Testament canticles',
+        paul: "Paul's prayers for the churches",
+        psalms: 'Psalms Scripture itself titles "a prayer"',
+        ot: 'Other prayers of the Old Testament',
+      },
+      passages: {
+        'lords-prayer': {
+          title: "The Lord's Prayer",
+          context:
+            'Jesus Himself taught this prayer to His disciples, in response to their request: "Lord, teach us to pray" (Luke 11:1).',
+        },
+        gethsemane: {
+          title: 'Gethsemane',
+          context:
+            "Jesus faces His own cross here, a cup only He could drink. In praying it, we follow His example of submitting to the Father's will — not repeating His circumstance.",
+        },
+        magnificat: {
+          title: "Mary's Magnificat",
+          context:
+            "Mary sings over a unique historical event: carrying the Messiah in her womb. The church has prayed this song for centuries as praise for Christ's coming, not as anyone's personal testimony.",
+        },
+        benedictus: {
+          title: "Zechariah's song",
+          context:
+            "Zechariah prophesies about his son John the Baptist and the coming Messiah. We pray it as praise for God's faithfulness in keeping His promises, not as words about our own life.",
+        },
+        'nunc-dimittis': {
+          title: "Simeon's song",
+          context:
+            'Simeon saw the promised Messiah with his own eyes. We pray his words as gratitude for the salvation we too have seen in Christ.',
+        },
+        'ephesians-prayer': {
+          title: "Paul's prayer for the Ephesians",
+          context:
+            "Paul bows his knees and asks that Christ's love fill and strengthen the believers in Ephesus.",
+        },
+        'colossians-prayer': {
+          title: "Paul's prayer for the Colossians",
+          context:
+            "Paul asks that the believers in Colossae be filled with the knowledge of God's will and walk worthy of the Lord.",
+        },
+        'philippians-prayer': {
+          title: "Paul's prayer for the Philippians",
+          context:
+            "Paul asks that the Philippians' love abound more and more in knowledge and discernment.",
+        },
+        'thessalonians-prayer': {
+          title: "Paul's prayer for the Thessalonians",
+          context:
+            'Paul asks that God direct his way back to them and that the Lord make them grow in love.',
+        },
+        'psalm-51': {
+          title: "Psalm 51 — David's confession",
+          context:
+            'David cries out for mercy after being confronted by the prophet Nathan over his sin with Bathsheba.',
+        },
+        'psalm-86': {
+          title: 'Psalm 86 — a prayer of David',
+          context:
+            'The psalm\'s own title calls it "A Prayer of David": a cry for help and mercy in the midst of distress.',
+        },
+        'psalm-90': {
+          title: 'Psalm 90 — a prayer of Moses',
+          context:
+            "The psalm's own title calls it \"A Prayer of Moses, the man of God\": a reflection on life's brevity and God's eternity.",
+        },
+        'psalm-102': {
+          title: 'Psalm 102 — a prayer of the afflicted',
+          context:
+            'Its own title calls it "A Prayer of the afflicted, when he is overwhelmed." Its plea for Zion\'s restoration, the church has understood as fulfilled in God\'s people gathered in Christ, not in the physical city of Jerusalem.',
+        },
+        'psalm-142': {
+          title: "Psalm 142 — David's prayer in the cave",
+          context:
+            'Its own title calls it "A prayer when he was in the cave": David cries out to God, surrounded by danger with no human help.',
+        },
+        'nehemiah-prayer': {
+          title: "Nehemiah's prayer",
+          context:
+            "Nehemiah confesses his people's sin and asks for God's favor before undertaking the rebuilding of Jerusalem.",
+        },
+        'daniel-prayer': {
+          title: "Daniel's prayer",
+          context:
+            "Daniel confesses the sin of his whole people, Israel, during the exile in Babylon. It's a model of corporate confession — praying it means acknowledging our own failures and the church's, not literally describing our situation.",
+        },
+        'jonah-prayer': {
+          title: "Jonah's prayer",
+          context:
+            'Jonah cries out to God from the belly of the great fish, and God hears him and delivers him.',
+        },
       },
     },
 
