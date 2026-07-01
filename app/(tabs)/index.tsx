@@ -1271,61 +1271,11 @@ export default function HomeScreen() {
           </Animated.View>
         )}
 
-        {/* ==================== EXPLORAR (discover grid, Sprint 94) ======== */}
-        {/* The four discover surfaces (Tu camino / Mi lectura / Luz diaria /
-            Temas) used to stack as four near-identical full-width cards, which
-            made Home long and monotonous. They now share a tidy 2×2 glass grid
-            (same visual language as "Guardados") so the discover entries read
-            as ONE organized block. The redundant standalone "How are you
-            feeling" browse card was removed — the FeelingChips at the top of
-            Home already open the full feelings browser (onOpenAll). */}
-        {/* ==================== TU PROGRESO ==================== */}
-        {/* Your-progress surfaces (journey + activity/constancy) live in their
-            own section, separate from the discovery tiles below. */}
-        <Animated.View
-          style={{opacity: fadeAnim, marginTop: celestialSpacing.sectionGap}}>
-          <View style={styles.sectionHeader}>
-            <Text
-              style={[
-                styles.sectionTitle,
-                {color: celestialTheme.colors.text},
-              ]}>
-              {t.home.progressTitle}
-            </Text>
-            <Ionicons
-              name="trending-up"
-              size={26}
-              color={celestialTheme.colors.accent}
-            />
-          </View>
-
-          <View style={styles.savedGrid}>
-            <View style={styles.savedCardWrapper}>
-              <DiscoverTile
-                icon="footsteps"
-                title={t.journey.cardTitle}
-                subtitle={t.journey.cardSubtitle}
-                onPress={() =>
-                  handlePress(() => router.push('/features/journey' as never))
-                }
-              />
-            </View>
-            <View style={styles.savedCardWrapper}>
-              <DiscoverTile
-                icon="stats-chart"
-                title={t.readingInsights.cardTitle}
-                subtitle={t.readingInsights.cardSubtitle}
-                onPress={() =>
-                  handlePress(() =>
-                    router.push('/features/reading-insights' as never),
-                  )
-                }
-              />
-            </View>
-          </View>
-        </Animated.View>
-
         {/* ==================== EXPLORAR (discover grid) ==================== */}
+        {/* Leads Home's titled sections (ahead of Tu progreso) per the
+            user's 2026-06-30 Home-reorder call: discovery content (Luz
+            diaria / Temas / Profecías) is consulted more often by the
+            average user than the personal-progress tiles below. */}
         <Animated.View
           style={{opacity: fadeAnim, marginTop: celestialSpacing.sectionGap}}>
           <View style={styles.sectionHeader}>
@@ -1378,6 +1328,52 @@ export default function HomeScreen() {
                 onPress={() =>
                   handlePress(() =>
                     router.push('/features/prophecies' as never),
+                  )
+                }
+              />
+            </View>
+          </View>
+        </Animated.View>
+
+        {/* ==================== TU PROGRESO ==================== */}
+        {/* Your-progress surfaces (journey + activity/constancy), their own
+            section below Explorar. */}
+        <Animated.View
+          style={{opacity: fadeAnim, marginTop: celestialSpacing.sectionGap}}>
+          <View style={styles.sectionHeader}>
+            <Text
+              style={[
+                styles.sectionTitle,
+                {color: celestialTheme.colors.text},
+              ]}>
+              {t.home.progressTitle}
+            </Text>
+            <Ionicons
+              name="trending-up"
+              size={26}
+              color={celestialTheme.colors.accent}
+            />
+          </View>
+
+          <View style={styles.savedGrid}>
+            <View style={styles.savedCardWrapper}>
+              <DiscoverTile
+                icon="footsteps"
+                title={t.journey.cardTitle}
+                subtitle={t.journey.cardSubtitle}
+                onPress={() =>
+                  handlePress(() => router.push('/features/journey' as never))
+                }
+              />
+            </View>
+            <View style={styles.savedCardWrapper}>
+              <DiscoverTile
+                icon="stats-chart"
+                title={t.readingInsights.cardTitle}
+                subtitle={t.readingInsights.cardSubtitle}
+                onPress={() =>
+                  handlePress(() =>
+                    router.push('/features/reading-insights' as never),
                   )
                 }
               />
