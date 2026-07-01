@@ -39,6 +39,7 @@ import {haptics} from '@lib/haptics';
 import bibleDB from '@lib/database';
 import {BibleVerse, ReadingProgress} from '@/types/bible';
 import {READING_PLANS, getLocalizedPlan} from '@/constants/reading-plans';
+import {effectivePlanDays} from '@/lib/reading/planReflow';
 import {getDailyVerseRef} from '@/constants/daily-verses';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {getBookByName} from '@/constants/bible';
@@ -162,7 +163,8 @@ export default function HomeScreen() {
   // speech locale (reading the daily verse aloud).
   const bookLang: 'es' | 'en' = selectedVersion.language === 'es' ? 'es' : 'en';
   const {getChapterProgress} = useReadingProgress();
-  const {getCompletedDays, getStartedAt} = useReadingPlanProgress();
+  const {getCompletedDays, getStartedAt, getPlanDuration} =
+    useReadingPlanProgress();
   const {getMembership} = useTogether();
   const {customPlans} = useCustomPlans();
   const {addFavorite, isFavorite, favorites} = useFavorites();
@@ -1433,18 +1435,31 @@ export default function HomeScreen() {
             {READING_PLANS.map(plan => {
               const planDays = getCompletedDays(plan.id);
               const planDaysDone = planDays.length;
-              const localizedPlan = getLocalizedPlan(plan, t);
+              // A reader-chosen duration (Sprint 111) reflows the SAME
+              // curated chapters across a different day count — use the
+              // EFFECTIVE days/duration everywhere below, not the curated
+              // default, so the card matches what the detail screen shows.
+              const effectiveDays = effectivePlanDays(
+                plan,
+                getPlanDuration(plan.id),
+              );
+              const effectiveDuration = effectiveDays.length;
+              const localizedPlan = getLocalizedPlan(
+                plan,
+                t,
+                effectiveDuration,
+              );
               // "Día 4 · Mateo 9–10" once the plan is underway (Sprint 79);
               // the static duration label before the first interaction.
               const pace = planPace({
                 startedAt: getStartedAt(plan.id),
                 completedDays: planDays,
-                duration: plan.duration,
+                duration: effectiveDuration,
                 now: new Date(),
               });
               const nextDayReadings =
                 pace.nextDay != null
-                  ? plan.days.find(d => d.day === pace.nextDay)?.readings
+                  ? effectiveDays.find(d => d.day === pace.nextDay)?.readings
                   : undefined;
               const planSubtitle =
                 pace.status === 'complete'
@@ -1462,7 +1477,7 @@ export default function HomeScreen() {
                         )
                     : t.home.planDays.replace(
                         '{{days}}',
-                        plan.duration.toString(),
+                        effectiveDuration.toString(),
                       );
               return (
                 <ReadingPlanCard
@@ -1471,7 +1486,7 @@ export default function HomeScreen() {
                   description={localizedPlan.description}
                   subtitle={planSubtitle}
                   icon="book-outline"
-                  duration={plan.duration}
+                  duration={effectiveDuration}
                   daysCompleted={planDaysDone}
                   onPress={() =>
                     handlePress(() => router.push(`/plan/${plan.id}` as never))

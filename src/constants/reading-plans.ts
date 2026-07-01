@@ -55,8 +55,8 @@ export interface ReadingPlan {
 // Plan: Nuevo Testamento en 30 días
 const newTestament30Days: ReadingPlan = {
   id: 'nt-30',
-  name: 'Nuevo Testamento en 30 Días',
-  description: 'Lee todo el Nuevo Testamento en un mes',
+  name: 'Nuevo Testamento en {{n}} Días',
+  description: 'Lee todo el Nuevo Testamento a tu ritmo',
   i18nKey: 'newTestament',
   duration: 30,
   icon: 'book-outline',
@@ -478,8 +478,8 @@ const newTestament30Days: ReadingPlan = {
 // Plan: Salmos en 30 días
 const psalms30Days: ReadingPlan = {
   id: 'psalms-30',
-  name: 'Salmos en 30 Días',
-  description: 'Lee el libro de Salmos completo en un mes',
+  name: 'Salmos en {{n}} Días',
+  description: 'Lee el libro de Salmos completo a tu ritmo',
   i18nKey: 'psalms',
   duration: 30,
   icon: 'musical-notes-outline',
@@ -511,7 +511,7 @@ const proverbsMonth: ReadingPlan = {
 // Plan: Evangelios en 40 días
 const gospels40Days: ReadingPlan = {
   id: 'gospels-40',
-  name: 'Los 4 Evangelios en 40 Días',
+  name: 'Los 4 Evangelios en {{n}} Días',
   description: 'Conoce la vida de Jesús a través de los cuatro evangelios',
   i18nKey: 'gospels',
   duration: 40,
@@ -853,8 +853,8 @@ const allCanonicalChapters: {book: string; chapter: number}[] = [...BIBLE_BOOKS]
   );
 const bibleInAYear: ReadingPlan = {
   id: 'bible-year',
-  name: 'Toda la Biblia en un Año',
-  description: 'Recorre toda la Escritura en 365 días, en orden canónico',
+  name: 'Toda la Biblia en {{n}} Días',
+  description: 'Recorre toda la Escritura en {{n}} días, en orden canónico',
   i18nKey: 'bibleYear',
   duration: BIBLE_YEAR_DAYS,
   icon: 'calendar-outline',
@@ -977,7 +977,7 @@ const firstSteps: ReadingPlan = {
   id: 'first-steps-21',
   name: 'Primeros pasos con Jesús',
   description:
-    'Un camino suave de 21 días para nuevos creyentes y para volver a empezar',
+    'Un camino suave de {{n}} días para nuevos creyentes y para volver a empezar',
   i18nKey: 'firstSteps',
   duration: FIRST_STEPS_CHAPTERS.length,
   icon: 'footsteps-outline',
@@ -1726,15 +1726,26 @@ export function getReadingPlanById(id: string): ReadingPlan | undefined {
 /**
  * Resuelve el nombre y la descripción del plan en el idioma activo de la UI.
  * Cae al texto por defecto (español) si la clave i18n no estuviera presente.
+ *
+ * A few curated plans name their day count in the text itself ("Nuevo
+ * Testamento en {{n}} Días") — pass the reader's `effectiveDuration` (Sprint
+ * 111's duration picker) so a reflowed plan's name/description stays true;
+ * omitting it (or a plan with no `{{n}}` at all) falls back to the plan's own
+ * curated `duration`, which is a no-op replace for plans without the token.
  */
 export function getLocalizedPlan(
   plan: ReadingPlan,
   t: TranslationKeys,
+  effectiveDuration?: number,
 ): {name: string; description: string} {
   const localized = plan.i18nKey ? t.readingPlans?.[plan.i18nKey] : undefined;
+  const n = String(effectiveDuration ?? plan.duration);
   return {
-    name: localized?.name ?? plan.name,
-    description: localized?.description ?? plan.description,
+    name: (localized?.name ?? plan.name).replace('{{n}}', n),
+    description: (localized?.description ?? plan.description).replace(
+      '{{n}}',
+      n,
+    ),
   };
 }
 

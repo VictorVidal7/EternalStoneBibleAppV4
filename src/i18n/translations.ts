@@ -2835,25 +2835,26 @@ export const translations = {
         description: 'Un capítulo de Proverbios cada día',
       },
       psalms: {
-        name: 'Salmos en 30 Días',
-        description: 'Lee el libro de Salmos completo en un mes',
+        name: 'Salmos en {{n}} Días',
+        description: 'Lee el libro de Salmos completo a tu ritmo',
       },
       gospels: {
-        name: 'Los 4 Evangelios en 40 Días',
+        name: 'Los 4 Evangelios en {{n}} Días',
         description:
           'Conoce la vida de Jesús a través de los cuatro evangelios',
       },
       newTestament: {
-        name: 'Nuevo Testamento en 30 Días',
-        description: 'Lee todo el Nuevo Testamento en un mes',
+        name: 'Nuevo Testamento en {{n}} Días',
+        description: 'Lee todo el Nuevo Testamento a tu ritmo',
       },
       genesis: {
         name: 'Génesis - El Principio',
         description: 'Descubre el origen de todo en el libro de Génesis',
       },
       bibleYear: {
-        name: 'Toda la Biblia en un Año',
-        description: 'Recorre toda la Escritura en 365 días, en orden canónico',
+        name: 'Toda la Biblia en {{n}} Días',
+        description:
+          'Recorre toda la Escritura en {{n}} días, en orden canónico',
       },
       redemption: {
         name: 'Cristo en toda la Biblia',
@@ -2868,7 +2869,7 @@ export const translations = {
       firstSteps: {
         name: 'Primeros pasos con Jesús',
         description:
-          'Un camino suave de 21 días para nuevos creyentes y para volver a empezar',
+          'Un camino suave de {{n}} días para nuevos creyentes y para volver a empezar',
       },
       iam: {
         name: 'Los "Yo soy" de Jesús',
@@ -6710,25 +6711,25 @@ export const translations = {
         description: 'One chapter of Proverbs each day',
       },
       psalms: {
-        name: 'Psalms in 30 Days',
-        description: 'Read the entire book of Psalms in a month',
+        name: 'Psalms in {{n}} Days',
+        description: 'Read the entire book of Psalms at your own pace',
       },
       gospels: {
-        name: 'The 4 Gospels in 40 Days',
+        name: 'The 4 Gospels in {{n}} Days',
         description: 'Get to know the life of Jesus through the four gospels',
       },
       newTestament: {
-        name: 'New Testament in 30 Days',
-        description: 'Read the entire New Testament in a month',
+        name: 'New Testament in {{n}} Days',
+        description: 'Read the entire New Testament at your own pace',
       },
       genesis: {
         name: 'Genesis - The Beginning',
         description: 'Discover the origin of everything in the book of Genesis',
       },
       bibleYear: {
-        name: 'The Whole Bible in a Year',
+        name: 'The Whole Bible in {{n}} Days',
         description:
-          'Journey through all of Scripture in 365 days, in canonical order',
+          'Journey through all of Scripture in {{n}} days, in canonical order',
       },
       redemption: {
         name: 'Christ in All of Scripture',
@@ -6743,7 +6744,7 @@ export const translations = {
       firstSteps: {
         name: 'First Steps with Jesus',
         description:
-          'A gentle 21-day path for new believers and for beginning again',
+          'A gentle {{n}}-day path for new believers and for beginning again',
       },
       iam: {
         name: 'The "I Am" Sayings of Jesus',
