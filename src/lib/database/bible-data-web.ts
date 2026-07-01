@@ -172647,7 +172647,7 @@ export const WEB_DATA = [
     "book_name": "Ezekiel",
     "chapter": 43,
     "verse": 7,
-    "text": "He said to me, Son of man,this is the place of my throne, and the place of the soles of my feet, where I will dwell in the midst of the children of Israel forever. The house of Israel shall no more defile my holy name, neither they, nor their kings, by their prostitution, and by the dead bodies of their kings in their high places;",
+    "text": "He said to me, Son of man, this is the place of my throne, and the place of the soles of my feet, where I will dwell in the midst of the children of Israel forever. The house of Israel shall no more defile my holy name, neither they, nor their kings, by their prostitution, and by the dead bodies of their kings in their high places;",
     "version": "WEB"
   },
   {
@@ -185767,7 +185767,7 @@ export const WEB_DATA = [
     "book_name": "Matthew",
     "chapter": 4,
     "verse": 10,
-    "text": "Then Jesus said to him, “Get behind me,Satan! For it is written, ‘You shall worship the Lord your God, and you shall serve him only.’”",
+    "text": "Then Jesus said to him, “Get behind me, Satan! For it is written, ‘You shall worship the Lord your God, and you shall serve him only.’”",
     "version": "WEB"
   },
   {
@@ -187727,7 +187727,7 @@ export const WEB_DATA = [
     "book_name": "Matthew",
     "chapter": 11,
     "verse": 5,
-    "text": "the blind receive their sight, the lame walk, the lepers are cleansed, the deaf hear,the dead are raised up, and the poor have good news preached to them.",
+    "text": "the blind receive their sight, the lame walk, the lepers are cleansed, the deaf hear, the dead are raised up, and the poor have good news preached to them.",
     "version": "WEB"
   },
   {
@@ -189535,7 +189535,7 @@ export const WEB_DATA = [
     "book_name": "Matthew",
     "chapter": 16,
     "verse": 18,
-    "text": "I also tell you that you are Peter,and on this rock I will build my assembly, and the gates of Hadeswill not prevail against it.",
+    "text": "I also tell you that you are Peter, and on this rock I will build my assembly, and the gates of Hades will not prevail against it.",
     "version": "WEB"
   },
   {
@@ -189831,7 +189831,7 @@ export const WEB_DATA = [
     "book_name": "Matthew",
     "chapter": 17,
     "verse": 27,
-    "text": "But, lest we cause them to stumble, go to the sea, cast a hook, and take up the first fish that comes up. When you have opened its mouth, you will find a stater coin.Take that, and give it to them for me and you.”",
+    "text": "But, lest we cause them to stumble, go to the sea, cast a hook, and take up the first fish that comes up. When you have opened its mouth, you will find a stater coin. Take that, and give it to them for me and you.”",
     "version": "WEB"
   },
   {
@@ -190055,7 +190055,7 @@ export const WEB_DATA = [
     "book_name": "Matthew",
     "chapter": 18,
     "verse": 28,
-    "text": "“But that servant went out, and found one of his fellow servants, who owed him one hundred denarii,and he grabbed him, and took him by the throat, saying, ‘Pay me what you owe!’",
+    "text": "“But that servant went out, and found one of his fellow servants, who owed him one hundred denarii, and he grabbed him, and took him by the throat, saying, ‘Pay me what you owe!’",
     "version": "WEB"
   },
   {
@@ -190247,7 +190247,7 @@ export const WEB_DATA = [
     "book_name": "Matthew",
     "chapter": 19,
     "verse": 17,
-    "text": "He said to him, “Why do you call me good?No one is good but one, that is, God. But if you want to enter into life, keep the commandments.”",
+    "text": "He said to him, “Why do you call me good? No one is good but one, that is, God. But if you want to enter into life, keep the commandments.”",
     "version": "WEB"
   },
   {
@@ -190367,7 +190367,7 @@ export const WEB_DATA = [
     "book_name": "Matthew",
     "chapter": 20,
     "verse": 2,
-    "text": "When he had agreed with the laborers for a denariusa day, he sent them into his vineyard.",
+    "text": "When he had agreed with the laborers for a denarius a day, he sent them into his vineyard.",
     "version": "WEB"
   },
   {
@@ -190375,7 +190375,7 @@ export const WEB_DATA = [
     "book_name": "Matthew",
     "chapter": 20,
     "verse": 3,
-    "text": "He went out about the third hour,and saw others standing idle in the marketplace.",
+    "text": "He went out about the third hour, and saw others standing idle in the marketplace.",
     "version": "WEB"
   },
   {
@@ -190391,7 +190391,7 @@ export const WEB_DATA = [
     "book_name": "Matthew",
     "chapter": 20,
     "verse": 5,
-    "text": "Again he went out about the sixth and the ninth hour,and did likewise.",
+    "text": "Again he went out about the sixth and the ninth hour, and did likewise.",
     "version": "WEB"
   },
   {
@@ -190559,7 +190559,7 @@ export const WEB_DATA = [
     "book_name": "Matthew",
     "chapter": 20,
     "verse": 26,
-    "text": "It shall not be so among you, but whoever desires to become great among you shall beyour servant.",
+    "text": "It shall not be so among you, but whoever desires to become great among you shall be your servant.",
     "version": "WEB"
   },
   {
@@ -191943,7 +191943,7 @@ export const WEB_DATA = [
     "book_name": "Matthew",
     "chapter": 24,
     "verse": 34,
-    "text": "Most certainly I tell you, this generationwill not pass away, until all these things are accomplished.",
+    "text": "Most certainly I tell you, this generation will not pass away, until all these things are accomplished.",
     "version": "WEB"
   },
   {
@@ -191959,7 +191959,7 @@ export const WEB_DATA = [
     "book_name": "Matthew",
     "chapter": 24,
     "verse": 36,
-    "text": "But no one knows of that day and hour, not even the angels of heaven,but my Father only.",
+    "text": "But no one knows of that day and hour, not even the angels of heaven, but my Father only.",
     "version": "WEB"
   },
   {
@@ -193727,7 +193727,7 @@ export const WEB_DATA = [
     "book_name": "Matthew",
     "chapter": 28,
     "verse": 19,
-    "text": "Go,and make disciples of all nations, baptizing them in the name of the Father and of the Son and of the Holy Spirit,",
+    "text": "Go, and make disciples of all nations, baptizing them in the name of the Father and of the Son and of the Holy Spirit,",
     "version": "WEB"
   },
   {
@@ -196783,7 +196783,7 @@ export const WEB_DATA = [
     "book_name": "Mark",
     "chapter": 10,
     "verse": 8,
-    "text": "and the two will become one flesh,so that they are no longer two, but one flesh.",
+    "text": "and the two will become one flesh, so that they are no longer two, but one flesh.",
     "version": "WEB"
   },
   {
@@ -197863,7 +197863,7 @@ export const WEB_DATA = [
     "book_name": "Mark",
     "chapter": 13,
     "verse": 14,
-    "text": "But when you see the abomination of desolation,spoken of by Daniel the prophet, standing where it ought not (let the reader understand), then let those who are in Judea flee to the mountains,",
+    "text": "But when you see the abomination of desolation, spoken of by Daniel the prophet, standing where it ought not (let the reader understand), then let those who are in Judea flee to the mountains,",
     "version": "WEB"
   },
   {
@@ -197991,7 +197991,7 @@ export const WEB_DATA = [
     "book_name": "Mark",
     "chapter": 13,
     "verse": 30,
-    "text": "Most certainly I say to you, this generationwill not pass away until all these things happen.",
+    "text": "Most certainly I say to you, this generation will not pass away until all these things happen.",
     "version": "WEB"
   },
   {
@@ -201391,7 +201391,7 @@ export const WEB_DATA = [
     "book_name": "Luke",
     "chapter": 6,
     "verse": 26,
-    "text": "Woe,whenmen speak well of you, for their fathers did the same thing to the false prophets.",
+    "text": "Woe, when men speak well of you, for their fathers did the same thing to the false prophets.",
     "version": "WEB"
   },
   {
@@ -202607,7 +202607,7 @@ export const WEB_DATA = [
     "book_name": "Luke",
     "chapter": 9,
     "verse": 23,
-    "text": "He said to all, “If anyone desires to come after me, let him deny himself, take up his cross,and follow me.",
+    "text": "He said to all, “If anyone desires to come after me, let him deny himself, take up his cross, and follow me.",
     "version": "WEB"
   },
   {
@@ -203727,7 +203727,7 @@ export const WEB_DATA = [
     "book_name": "Luke",
     "chapter": 12,
     "verse": 5,
-    "text": "But I will warn you whom you should fear. Fear him, who after he has killed, has power to cast into Gehenna.Yes, I tell you, fear him.",
+    "text": "But I will warn you whom you should fear. Fear him, who after he has killed, has power to cast into Gehenna. Yes, I tell you, fear him.",
     "version": "WEB"
   },
   {
@@ -204647,7 +204647,7 @@ export const WEB_DATA = [
     "book_name": "Luke",
     "chapter": 14,
     "verse": 26,
-    "text": "“If anyone comes to me, and doesn’t disregardhis own father, mother, wife, children, brothers, and sisters, yes, and his own life also, he can’t be my disciple.",
+    "text": "“If anyone comes to me, and doesn’t disregard his own father, mother, wife, children, brothers, and sisters, yes, and his own life also, he can’t be my disciple.",
     "version": "WEB"
   },
   {
@@ -204783,7 +204783,7 @@ export const WEB_DATA = [
     "book_name": "Luke",
     "chapter": 15,
     "verse": 8,
-    "text": "Or what woman, if she had ten drachmacoins, if she lost one drachma coin, wouldn’t light a lamp, sweep the house, and seek diligently until she found it?",
+    "text": "Or what woman, if she had ten drachma coins, if she lost one drachma coin, wouldn’t light a lamp, sweep the house, and seek diligently until she found it?",
     "version": "WEB"
   },
   {
@@ -209031,7 +209031,7 @@ export const WEB_DATA = [
     "book_name": "John",
     "chapter": 3,
     "verse": 8,
-    "text": "The windblows where it wants to, and you hear its sound, but don’t know where it comes from and where it is going. So is everyone who is born of the Spirit.”",
+    "text": "The wind blows where it wants to, and you hear its sound, but don’t know where it comes from and where it is going. So is everyone who is born of the Spirit.”",
     "version": "WEB"
   },
   {
@@ -211151,7 +211151,7 @@ export const WEB_DATA = [
     "book_name": "John",
     "chapter": 8,
     "verse": 12,
-    "text": "Again, therefore, Jesus spoke to them, saying, “I am the light of the world.He who follows me will not walk in the darkness, but will have the light of life.”",
+    "text": "Again, therefore, Jesus spoke to them, saying, “I am the light of the world. He who follows me will not walk in the darkness, but will have the light of life.”",
     "version": "WEB"
   },
   {
@@ -211943,7 +211943,7 @@ export const WEB_DATA = [
     "book_name": "John",
     "chapter": 10,
     "verse": 11,
-    "text": "I am the good shepherd.The good shepherd lays down his life for the sheep.",
+    "text": "I am the good shepherd. The good shepherd lays down his life for the sheep.",
     "version": "WEB"
   },
   {
@@ -211983,7 +211983,7 @@ export const WEB_DATA = [
     "book_name": "John",
     "chapter": 10,
     "verse": 16,
-    "text": "I have other sheep, which are not of this fold.I must bring them also, and they will hear my voice. They will become one flock with one shepherd.",
+    "text": "I have other sheep, which are not of this fold. I must bring them also, and they will hear my voice. They will become one flock with one shepherd.",
     "version": "WEB"
   },
   {
@@ -213807,7 +213807,7 @@ export const WEB_DATA = [
     "book_name": "John",
     "chapter": 15,
     "verse": 26,
-    "text": "“When the Counselorhas come, whom I will send to you from the Father, the Spirit of truth, who proceeds from the Father, he will testify about me.",
+    "text": "“When the Counselor has come, whom I will send to you from the Father, the Spirit of truth, who proceeds from the Father, he will testify about me.",
     "version": "WEB"
   },
   {
@@ -213839,7 +213839,7 @@ export const WEB_DATA = [
     "book_name": "John",
     "chapter": 16,
     "verse": 3,
-    "text": "They will do these thingsbecause they have not known the Father, nor me.",
+    "text": "They will do these things because they have not known the Father, nor me.",
     "version": "WEB"
   },
   {
@@ -215175,7 +215175,7 @@ export const WEB_DATA = [
     "book_name": "John",
     "chapter": 20,
     "verse": 29,
-    "text": "Jesus said to him, “Because you have seen me,you have believed. Blessed are those who have not seen, and have believed.”",
+    "text": "Jesus said to him, “Because you have seen me, you have believed. Blessed are those who have not seen, and have believed.”",
     "version": "WEB"
   },
   {
@@ -217815,7 +217815,7 @@ export const WEB_DATA = [
     "book_name": "Acts",
     "chapter": 9,
     "verse": 11,
-    "text": "The Lord said to him, “Arise, and go to the street which is called Straight, and inquire in the house of Judahfor one named Saul, a man of Tarsus. For behold, he is praying,",
+    "text": "The Lord said to him, “Arise, and go to the street which is called Straight, and inquire in the house of Judah for one named Saul, a man of Tarsus. For behold, he is praying,",
     "version": "WEB"
   },
   {
@@ -245855,7 +245855,7 @@ export const WEB_DATA = [
     "book_name": "Revelation",
     "chapter": 2,
     "verse": 20,
-    "text": "But I have this against you, that you tolerate yourwoman, Jezebel, who calls herself a prophetess. She teaches and seduces my servants to commit sexual immorality, and to eat things sacrificed to idols.",
+    "text": "But I have this against you, that you tolerate your woman, Jezebel, who calls herself a prophetess. She teaches and seduces my servants to commit sexual immorality, and to eat things sacrificed to idols.",
     "version": "WEB"
   },
   {
@@ -245911,7 +245911,7 @@ export const WEB_DATA = [
     "book_name": "Revelation",
     "chapter": 2,
     "verse": 27,
-    "text": "He will rule them with a rod of iron, shattering them like clay pots;as I also have received of my Father:",
+    "text": "He will rule them with a rod of iron, shattering them like clay pots; as I also have received of my Father:",
     "version": "WEB"
   },
   {
@@ -248447,7 +248447,7 @@ export const WEB_DATA = [
     "book_name": "Revelation",
     "chapter": 21,
     "verse": 8,
-    "text": "But for the cowardly, unbelieving, sinners, abominable, murderers, sexually immoral, sorcerers,idolaters, and all liars, their part is in the lake that burns with fire and sulfur, which is the second death.”",
+    "text": "But for the cowardly, unbelieving, sinners, abominable, murderers, sexually immoral, sorcerers, idolaters, and all liars, their part is in the lake that burns with fire and sulfur, which is the second death.”",
     "version": "WEB"
   },
   {
@@ -248711,7 +248711,7 @@ export const WEB_DATA = [
     "book_name": "Revelation",
     "chapter": 22,
     "verse": 14,
-    "text": "Blessed are those who do his commandments,that they may have the right to the tree of life, and may enter in by the gates into the city.",
+    "text": "Blessed are those who do his commandments, that they may have the right to the tree of life, and may enter in by the gates into the city.",
     "version": "WEB"
   },
   {
