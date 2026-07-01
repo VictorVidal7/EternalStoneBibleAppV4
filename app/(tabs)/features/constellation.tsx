@@ -38,6 +38,7 @@ import {useTheme} from '@hooks/useTheme';
 import {centeredMaxWidth} from '@/styles/responsive';
 import {useLanguage} from '@hooks/useLanguage';
 import {useBibleVersion} from '@hooks/useBibleVersion';
+import {useBackHandlerStep} from '@hooks/useBackHandlerStep';
 import {ExpandableVerseText} from '@components/ui/ExpandableVerseText';
 import {getBookByName} from '@/constants/bible';
 import {getMergedStudyConnections} from '@/features/study/crossReferences';
@@ -214,6 +215,21 @@ export default function ConstellationScreen() {
     haptics.tap();
     setTrail(prev => truncateChainTo(prev, index));
   };
+
+  // Hardware back: close the selected-star panel first, then retreat one
+  // link in the chain (same as tapping the previous breadcrumb), then fall
+  // through to the route pop at the seed.
+  useBackHandlerStep(() => {
+    if (selected) {
+      setSelected(null);
+      return true;
+    }
+    if (trail.length > 1) {
+      setTrail(prev => truncateChainTo(prev, prev.length - 2));
+      return true;
+    }
+    return false;
+  });
 
   const openInReader = (step: {
     book: string;

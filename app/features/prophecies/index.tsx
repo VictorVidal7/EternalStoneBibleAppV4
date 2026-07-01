@@ -33,6 +33,7 @@ import {useTheme} from '@hooks/useTheme';
 import {centeredMaxWidth} from '@/styles/responsive';
 import {useLanguage} from '@hooks/useLanguage';
 import {useBibleVersion} from '@hooks/useBibleVersion';
+import {useBackHandlerStep} from '@hooks/useBackHandlerStep';
 import {haptics} from '@lib/haptics';
 import {AppText} from '@components/ui/AppText';
 import bibleDB from '@lib/database';
@@ -260,6 +261,32 @@ export default function PropheticThreadScreen() {
     haptics.tap();
     setPhase(p => Math.max(-1, Math.min(total, p + delta)));
   };
+
+  // Hardware back: close an open sheet first, then step back one prophecy,
+  // then fall through to the default route-pop once at the intro (phase -1).
+  useBackHandlerStep(() => {
+    if (shareOpen) {
+      setShareOpen(false);
+      return true;
+    }
+    if (indexOpen) {
+      setIndexOpen(false);
+      return true;
+    }
+    if (whyOpen) {
+      setWhyOpen(false);
+      return true;
+    }
+    if (sourcesOpen) {
+      setSourcesOpen(false);
+      return true;
+    }
+    if (phase > -1) {
+      go(-1);
+      return true;
+    }
+    return false;
+  });
 
   const sections = useMemo(() => getPropheciesByGroup(), []);
 

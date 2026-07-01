@@ -32,6 +32,7 @@ import {useTheme} from '@hooks/useTheme';
 import {centeredMaxWidth} from '@/styles/responsive';
 import {useLanguage} from '@hooks/useLanguage';
 import {useBibleVersion} from '@hooks/useBibleVersion';
+import {useBackHandlerStep} from '@hooks/useBackHandlerStep';
 import {haptics} from '@lib/haptics';
 import {AppText} from '@components/ui/AppText';
 import bibleDB from '@lib/database';
@@ -141,6 +142,16 @@ export default function GuidedPrayerScreen() {
     haptics.tap();
     setPhase(p => p + 1);
   };
+
+  // Hardware back: retreat one movement (the UI is forward-only, but back
+  // should still step, not exit the whole prayer straight to the intro/Home).
+  useBackHandlerStep(() => {
+    if (phase > -1) {
+      setPhase(p => p - 1);
+      return true;
+    }
+    return false;
+  });
 
   const stepCopy = (step: ActsSessionStep['step']) => ta[step];
 
