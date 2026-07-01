@@ -12,6 +12,12 @@
  * label) per follow-up feedback — the card shouldn't shout "there's more
  * here," just offer a small, discoverable affordance.
  *
+ * The chevron only renders when the text actually overflows
+ * `numberOfLines` (follow-up feedback: it showed on every card at first).
+ * `onTextLayout` on a `numberOfLines`-capped Text doesn't reliably report
+ * the untruncated line count across platforms, so an invisible, absolutely
+ * positioned twin (same style, unrestricted) measures the true line count.
+ *
  * Mirrors the app's one existing collapse convention (the prophecy
  * screen's "¿Por qué importa?" / "Fuentes y método": a boolean + chevron,
  * no animation library) — LayoutAnimation is the one addition, a built-in
@@ -24,9 +30,11 @@
 import React, {useState} from 'react';
 import {
   LayoutAnimation,
+  NativeSyntheticEvent,
   StyleProp,
   StyleSheet,
   Text,
+  TextLayoutEventData,
   TextStyle,
   TouchableOpacity,
   View,
@@ -50,6 +58,15 @@ export function ExpandableVerseText({
   const {colors} = useTheme();
   const {t} = useLanguage();
   const [expanded, setExpanded] = useState(false);
+  const [truncatable, setTruncatable] = useState(false);
+
+  const handleMeasuredLayout = (
+    e: NativeSyntheticEvent<TextLayoutEventData>,
+  ) => {
+    if (e.nativeEvent.lines.length > numberOfLines) {
+      setTruncatable(true);
+    }
+  };
 
   const toggle = () => {
     LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
@@ -62,24 +79,42 @@ export function ExpandableVerseText({
       <Text style={style} numberOfLines={expanded ? undefined : numberOfLines}>
         {children}
       </Text>
-      <TouchableOpacity
-        onPress={toggle}
-        hitSlop={{top: 10, bottom: 10, left: 10, right: 10}}
-        style={styles.toggle}
-        accessibilityRole="button"
-        accessibilityLabel={expanded ? t.readLess : t.readMore}
-        accessibilityState={{expanded}}>
-        <Ionicons
-          name={expanded ? 'chevron-up' : 'chevron-down'}
-          size={13}
-          color={colors.textTertiary}
-        />
-      </TouchableOpacity>
+      {!truncatable && (
+        <Text
+          style={[style, styles.measurer]}
+          onTextLayout={handleMeasuredLayout}
+          pointerEvents="none">
+          {children}
+        </Text>
+      )}
+      {truncatable && (
+        <TouchableOpacity
+          onPress={toggle}
+          hitSlop={{top: 10, bottom: 10, left: 10, right: 10}}
+          style={styles.toggle}
+          accessibilityRole="button"
+          accessibilityLabel={expanded ? t.readLess : t.readMore}
+          accessibilityState={{expanded}}>
+          <Ionicons
+            name={expanded ? 'chevron-up' : 'chevron-down'}
+            size={13}
+            color={colors.textTertiary}
+          />
+        </TouchableOpacity>
+      )}
     </View>
   );
 }
 
 const styles = StyleSheet.create({
+  measurer: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    top: 0,
+    opacity: 0,
+    zIndex: -1,
+  },
   toggle: {
     alignSelf: 'flex-start',
     marginTop: 2,
