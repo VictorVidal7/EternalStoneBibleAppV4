@@ -1356,6 +1356,16 @@ export default function HomeScreen() {
                 }
               />
             </View>
+            <View style={styles.savedCardWrapper}>
+              <DiscoverTile
+                icon="map"
+                title={t.journeys.tileTitle}
+                subtitle={t.journeys.subtitle}
+                onPress={() =>
+                  handlePress(() => router.push('/features/journeys' as never))
+                }
+              />
+            </View>
           </View>
         </Animated.View>
 
