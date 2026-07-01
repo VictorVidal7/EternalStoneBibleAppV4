@@ -2215,6 +2215,131 @@ export const translations = {
       },
     },
 
+    journeys: {
+      title: 'Mapas de viajes bíblicos',
+      tileTitle: 'Mapas bíblicos',
+      subtitle: 'Las grandes rutas de la Escritura',
+      intro:
+        'La Biblia no solo se lee: sucedió en lugares reales. Recorre estas tres grandes rutas y toca cada parada para leer el pasaje.',
+      stopsCount: '{{n}} paradas',
+      openInReader: 'Abrir en el lector',
+      missingText: 'Versículo no disponible',
+      routes: {
+        exodus: {
+          title: 'El Éxodo',
+          subtitle: 'De Egipto a la Tierra Prometida',
+          description:
+            'Sigue el camino de Israel desde la esclavitud en Egipto hasta el umbral de Canaán, apoyado en el propio itinerario que registra el libro de Números.',
+        },
+        paul: {
+          title: 'Los viajes de Pablo',
+          subtitle: 'El evangelio hasta los confines del Imperio',
+          description:
+            'Recorre las ciudades donde Pablo predicó, plantó iglesias y fue perseguido, desde Antioquía hasta Roma.',
+        },
+        jesus: {
+          title: 'El ministerio de Jesús',
+          subtitle: 'Su vida, muerte y resurrección',
+          description:
+            'Camina los lugares del ministerio del Señor, desde su nacimiento en Belén hasta la tumba vacía.',
+        },
+      },
+      items: {
+        'exodus-rameses': {
+          label: 'Ramesés, Egipto',
+          note: 'Punto de partida del Éxodo: los hijos de Israel salieron de Ramesés hacia Sucot, dejando la esclavitud.',
+        },
+        'exodus-red-sea': {
+          label: 'El Mar Rojo',
+          note: 'Dios abrió camino en medio del mar; Israel lo cruzó en seco mientras el ejército de Faraón quedaba atrás.',
+        },
+        'exodus-sinai': {
+          label: 'El Sinaí',
+          note: 'En el monte Sinaí, Dios entregó la Ley a Moisés y selló su pacto con Israel.',
+        },
+        'exodus-kadesh': {
+          label: 'Cades-barnea',
+          note: 'Tras el informe de los doce espías, la incredulidad del pueblo lo condenó a errar cuarenta años por el desierto.',
+        },
+        'exodus-moab': {
+          label: 'Llanos de Moab',
+          note: 'Desde el monte Nebo, Moisés vio la tierra prometida antes de morir sin entrar en ella.',
+        },
+        'exodus-jordan': {
+          label: 'El Jordán',
+          note: 'Bajo el mando de Josué, el pueblo cruzó el Jordán en seco y entró por fin a Canaán.',
+        },
+        'paul-antioch': {
+          label: 'Antioquía de Siria',
+          note: 'La iglesia de Antioquía, guiada por el Espíritu Santo, envió a Pablo y Bernabé en el primer viaje misionero.',
+        },
+        'paul-lystra': {
+          label: 'Listra',
+          note: 'Pablo sanó a un cojo de nacimiento, uno de los primeros milagros registrados de su ministerio entre los gentiles.',
+        },
+        'paul-jerusalem-council': {
+          label: 'El Concilio de Jerusalén',
+          note: 'La iglesia se reunió para resolver si los gentiles debían guardar la ley de Moisés para ser salvos.',
+        },
+        'paul-philippi': {
+          label: 'Filipos',
+          note: 'Una visión llamó a Pablo a cruzar a Macedonia; allí, encarcelado, un terremoto abrió las puertas de la prisión.',
+        },
+        'paul-athens': {
+          label: 'Atenas',
+          note: 'En el Areópago, Pablo predicó a los filósofos griegos sobre el Dios desconocido al que ellos ya adoraban sin saberlo.',
+        },
+        'paul-corinth': {
+          label: 'Corinto',
+          note: 'Pablo permaneció un año y medio enseñando la palabra de Dios en esta importante ciudad comercial.',
+        },
+        'paul-ephesus': {
+          label: 'Éfeso',
+          note: 'Durante dos años Pablo enseñó allí, de modo que toda la provincia de Asia oyó la palabra del Señor.',
+        },
+        'paul-rome': {
+          label: 'Roma',
+          note: 'Bajo custodia, Pablo predicó el reino de Dios en la capital del Imperio sin que nadie se lo impidiera.',
+        },
+        'jesus-bethlehem': {
+          label: 'Belén',
+          note: 'En la ciudad de David nació Jesús, envuelto en pañales y puesto en un pesebre.',
+        },
+        'jesus-jordan': {
+          label: 'El Jordán',
+          note: 'Juan bautizó a Jesús en el Jordán, y una voz del cielo lo declaró Hijo amado de Dios.',
+        },
+        'jesus-cana': {
+          label: 'Caná de Galilea',
+          note: 'En una boda, Jesús convirtió el agua en vino: la primera señal que manifestó su gloria.',
+        },
+        'jesus-capernaum': {
+          label: 'Capernaúm',
+          note: 'Jesús hizo de esta ciudad el centro de su ministerio en Galilea, con muchas enseñanzas y milagros.',
+        },
+        'jesus-caesarea-philippi': {
+          label: 'Cesarea de Filipos',
+          note: 'Allí Pedro confesó: «Tú eres el Cristo, el Hijo del Dios viviente».',
+        },
+        'jesus-jerusalem-entry': {
+          label: 'Entrada a Jerusalén',
+          note: 'Jesús entró en Jerusalén sobre un asno mientras la multitud aclamaba: «¡Hosanna al Hijo de David!».',
+        },
+        'jesus-gethsemane': {
+          label: 'Getsemaní',
+          note: 'En este huerto Jesús oró en agonía antes de ser entregado y arrestado.',
+        },
+        'jesus-golgotha': {
+          label: 'El Gólgota',
+          note: 'En este lugar, llamado «Calavera», Jesús fue crucificado por nuestros pecados.',
+        },
+        'jesus-empty-tomb': {
+          label: 'La tumba vacía',
+          note: '«No está aquí, pues ha resucitado, como dijo». La tumba vacía es el fundamento de la fe cristiana.',
+        },
+      },
+    },
+
     constancy: {
       title: 'Tu constancia hoy',
       summary: '{{closed}} de {{total}} hoy',
@@ -6096,6 +6221,131 @@ export const translations = {
           label: 'A night of wrestling, a new name',
           detail:
             'Jacob wrestled all night by the river Jabbok and received from God a new name, "Israel," which would become the name of an entire people.',
+        },
+      },
+    },
+
+    journeys: {
+      title: 'Bible journey maps',
+      tileTitle: 'Bible maps',
+      subtitle: 'The great routes of Scripture',
+      intro:
+        "The Bible isn't just read: it happened in real places. Walk these three great routes and tap each stop to read the passage.",
+      stopsCount: '{{n}} stops',
+      openInReader: 'Open in reader',
+      missingText: 'Verse unavailable',
+      routes: {
+        exodus: {
+          title: 'The Exodus',
+          subtitle: 'From Egypt to the Promised Land',
+          description:
+            "Follow Israel's path from slavery in Egypt to the edge of Canaan, following the very itinerary recorded in the book of Numbers.",
+        },
+        paul: {
+          title: "Paul's journeys",
+          subtitle: 'The gospel to the ends of the empire',
+          description:
+            'Walk the cities where Paul preached, planted churches, and was persecuted, from Antioch to Rome.',
+        },
+        jesus: {
+          title: 'The ministry of Jesus',
+          subtitle: 'His life, death, and resurrection',
+          description:
+            "Walk the places of the Lord's ministry, from His birth in Bethlehem to the empty tomb.",
+        },
+      },
+      items: {
+        'exodus-rameses': {
+          label: 'Rameses, Egypt',
+          note: 'The Exodus began here: the children of Israel set out from Rameses toward Succoth, leaving slavery behind.',
+        },
+        'exodus-red-sea': {
+          label: 'The Red Sea',
+          note: "God made a way through the sea; Israel crossed on dry ground while Pharaoh's army was left behind.",
+        },
+        'exodus-sinai': {
+          label: 'Mount Sinai',
+          note: 'At Mount Sinai, God gave the Law to Moses and sealed His covenant with Israel.',
+        },
+        'exodus-kadesh': {
+          label: 'Kadesh-barnea',
+          note: "After the twelve spies' report, the people's unbelief condemned them to wander the wilderness forty years.",
+        },
+        'exodus-moab': {
+          label: 'The plains of Moab',
+          note: 'From Mount Nebo, Moses saw the promised land before dying without entering it.',
+        },
+        'exodus-jordan': {
+          label: 'The Jordan River',
+          note: 'Under Joshua’s leadership, the people crossed the Jordan on dry ground and finally entered Canaan.',
+        },
+        'paul-antioch': {
+          label: 'Antioch of Syria',
+          note: 'The church at Antioch, led by the Holy Spirit, sent out Paul and Barnabas on the first missionary journey.',
+        },
+        'paul-lystra': {
+          label: 'Lystra',
+          note: 'Paul healed a man lame from birth, one of the first recorded miracles of his ministry among the Gentiles.',
+        },
+        'paul-jerusalem-council': {
+          label: 'The Jerusalem Council',
+          note: 'The church met to settle whether Gentiles had to keep the law of Moses to be saved.',
+        },
+        'paul-philippi': {
+          label: 'Philippi',
+          note: 'A vision called Paul across to Macedonia; there, imprisoned, an earthquake threw open the prison doors.',
+        },
+        'paul-athens': {
+          label: 'Athens',
+          note: 'At the Areopagus, Paul preached to the Greek philosophers about the unknown God they already worshiped without knowing it.',
+        },
+        'paul-corinth': {
+          label: 'Corinth',
+          note: 'Paul stayed a year and a half teaching the word of God in this major trading city.',
+        },
+        'paul-ephesus': {
+          label: 'Ephesus',
+          note: 'For two years Paul taught there, so that the whole province of Asia heard the word of the Lord.',
+        },
+        'paul-rome': {
+          label: 'Rome',
+          note: 'Under guard, Paul preached the kingdom of God in the capital of the empire, with no one stopping him.',
+        },
+        'jesus-bethlehem': {
+          label: 'Bethlehem',
+          note: 'In the city of David, Jesus was born, wrapped in cloths and laid in a manger.',
+        },
+        'jesus-jordan': {
+          label: 'The Jordan River',
+          note: "John baptized Jesus in the Jordan, and a voice from heaven declared Him God's beloved Son.",
+        },
+        'jesus-cana': {
+          label: 'Cana of Galilee',
+          note: 'At a wedding, Jesus turned water into wine: the first sign that revealed His glory.',
+        },
+        'jesus-capernaum': {
+          label: 'Capernaum',
+          note: 'Jesus made this town the center of His Galilean ministry, with many teachings and miracles.',
+        },
+        'jesus-caesarea-philippi': {
+          label: 'Caesarea Philippi',
+          note: "There Peter confessed: 'You are the Christ, the Son of the living God.'",
+        },
+        'jesus-jerusalem-entry': {
+          label: 'Entry into Jerusalem',
+          note: "Jesus entered Jerusalem on a donkey while the crowd shouted, 'Hosanna to the Son of David!'",
+        },
+        'jesus-gethsemane': {
+          label: 'Gethsemane',
+          note: 'In this garden Jesus prayed in agony before being betrayed and arrested.',
+        },
+        'jesus-golgotha': {
+          label: 'Golgotha',
+          note: "At this place, called 'the Skull,' Jesus was crucified for our sins.",
+        },
+        'jesus-empty-tomb': {
+          label: 'The empty tomb',
+          note: "'He is not here, for He has risen, just as He said.' The empty tomb is the foundation of the Christian faith.",
         },
       },
     },
