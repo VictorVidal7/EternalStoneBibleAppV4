@@ -14,7 +14,6 @@
 import React, {useCallback, useEffect, useState} from 'react';
 import {
   ActivityIndicator,
-  Alert,
   StyleSheet,
   Text,
   TouchableOpacity,
@@ -26,6 +25,7 @@ import {useTheme} from '@hooks/useTheme';
 import {useLanguage} from '@hooks/useLanguage';
 import {useBibleVersion} from '@hooks/useBibleVersion';
 import {useToast} from '@context/ToastContext';
+import {ConfirmDialog} from '@components/ui/ConfirmDialog';
 import {staticColors} from '@/styles/designTokens';
 import {
   formatBytes,
@@ -51,6 +51,9 @@ export default function ManageVersionsSection() {
   // progress fraction. Kept separate from rowError so a retry clears cleanly.
   const [progress, setProgress] = useState<Record<string, number>>({});
   const [rowError, setRowError] = useState<Record<string, string>>({});
+  const [deleteTarget, setDeleteTarget] = useState<RemotePackVersion | null>(
+    null,
+  );
 
   const installed = new Set(installedVersionIds.map(id => id.toLowerCase()));
 
@@ -124,38 +127,26 @@ export default function ManageVersionsSection() {
     [messageForError, refreshInstalledVersions, t, toast],
   );
 
-  const onDelete = useCallback(
-    (version: RemotePackVersion) => {
-      haptics.tap();
-      Alert.alert(
-        t.settings.versionDeleteTitle,
-        t.settings.versionDeleteMessage.replace('{version}', version.name),
-        [
-          {text: t.cancel, style: 'cancel'},
-          {
-            text: t.settings.versionDeleteConfirm,
-            style: 'destructive',
-            onPress: async () => {
-              try {
-                await removeInstalledVersion(version.id);
-                await refreshInstalledVersions();
-                haptics.success();
-                toast.success(
-                  t.settings.versionDeleteSuccess.replace(
-                    '{version}',
-                    version.name,
-                  ),
-                );
-              } catch {
-                toast.error(t.settings.versionErrorGeneric);
-              }
-            },
-          },
-        ],
+  const onDelete = useCallback((version: RemotePackVersion) => {
+    haptics.tap();
+    setDeleteTarget(version);
+  }, []);
+
+  const confirmDeleteVersion = useCallback(async () => {
+    const version = deleteTarget;
+    if (!version) return;
+    setDeleteTarget(null);
+    try {
+      await removeInstalledVersion(version.id);
+      await refreshInstalledVersions();
+      haptics.success();
+      toast.success(
+        t.settings.versionDeleteSuccess.replace('{version}', version.name),
       );
-    },
-    [refreshInstalledVersions, t, toast],
-  );
+    } catch {
+      toast.error(t.settings.versionErrorGeneric);
+    }
+  }, [deleteTarget, refreshInstalledVersions, t, toast]);
 
   const styles = createStyles(colors);
 
@@ -293,6 +284,25 @@ export default function ManageVersionsSection() {
           ))}
         </View>
       )}
+
+      {/* Themed delete confirm (UX audit, replaces native Alert.alert) */}
+      <ConfirmDialog
+        visible={!!deleteTarget}
+        title={t.settings.versionDeleteTitle}
+        message={
+          deleteTarget
+            ? t.settings.versionDeleteMessage.replace(
+                '{version}',
+                deleteTarget.name,
+              )
+            : ''
+        }
+        confirmLabel={t.settings.versionDeleteConfirm}
+        cancelLabel={t.cancel}
+        onConfirm={() => void confirmDeleteVersion()}
+        onCancel={() => setDeleteTarget(null)}
+        destructive
+      />
     </View>
   );
 }

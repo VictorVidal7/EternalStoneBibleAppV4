@@ -12,7 +12,6 @@ import {
   FlatList,
   ScrollView,
   TouchableOpacity,
-  Alert,
   Modal,
   TextInput,
   ActivityIndicator,
@@ -39,6 +38,7 @@ import {
   searchHighlights,
 } from '@lib/highlights/highlightGallery';
 import {HighlightsImageModal} from '@components/insights/HighlightsImageModal';
+import {ConfirmDialog} from '@components/ui/ConfirmDialog';
 import {logger} from '@lib/utils/logger';
 import {getSyncEngine} from '@lib/sync';
 import {buildHighlightRemotePayload} from '@lib/sync/adapters/highlights';
@@ -69,6 +69,7 @@ export default function HighlightsScreen() {
   const [categoryFilter, setCategoryFilter] =
     useState<HighlightCategory | null>(null);
   const [editing, setEditing] = useState<HighlightItem | null>(null);
+  const [deleteTarget, setDeleteTarget] = useState<HighlightItem | null>(null);
   const [noteDraft, setNoteDraft] = useState('');
   const [categoryDraft, setCategoryDraft] = useState<
     HighlightCategory | undefined
@@ -160,24 +161,21 @@ export default function HighlightsScreen() {
   }, [grouped, searched]);
 
   function handleDelete(item: HighlightItem) {
-    Alert.alert(t.highlights.deleteTitle, t.highlights.deleteMessage, [
-      {text: t.cancel, style: 'cancel'},
-      {
-        text: t.delete,
-        style: 'destructive',
-        onPress: async () => {
-          if (!highlightService) return;
-          await highlightService.removeHighlight(item.verseId);
-          setItems(prev => prev.filter(i => i.verseId !== item.verseId));
-          getSyncEngine()?.queueDelete(
-            'highlights',
-            item.verseId,
-            buildHighlightRemotePayload(item),
-          );
-          toast.success(t.highlights.removed);
-        },
-      },
-    ]);
+    setDeleteTarget(item);
+  }
+
+  async function confirmDelete() {
+    const item = deleteTarget;
+    if (!item || !highlightService) return;
+    await highlightService.removeHighlight(item.verseId);
+    setItems(prev => prev.filter(i => i.verseId !== item.verseId));
+    getSyncEngine()?.queueDelete(
+      'highlights',
+      item.verseId,
+      buildHighlightRemotePayload(item),
+    );
+    toast.success(t.highlights.removed);
+    setDeleteTarget(null);
   }
 
   function openEditor(item: HighlightItem) {
@@ -662,6 +660,18 @@ export default function HighlightsScreen() {
         visible={shareVisible}
         stats={galleryStats}
         onClose={() => setShareVisible(false)}
+      />
+
+      {/* Themed delete confirm (UX audit, replaces native Alert.alert) */}
+      <ConfirmDialog
+        visible={!!deleteTarget}
+        title={t.highlights.deleteTitle}
+        message={t.highlights.deleteMessage}
+        confirmLabel={t.delete}
+        cancelLabel={t.cancel}
+        onConfirm={() => void confirmDelete()}
+        onCancel={() => setDeleteTarget(null)}
+        destructive
       />
     </View>
   );

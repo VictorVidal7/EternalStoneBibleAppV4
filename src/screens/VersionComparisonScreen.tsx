@@ -16,7 +16,6 @@ import {
   ScrollView,
   TouchableOpacity,
   Modal,
-  Alert,
   ActivityIndicator,
   Dimensions,
 } from 'react-native';
@@ -25,6 +24,7 @@ import {centeredMaxWidth} from '@/styles/responsive';
 import {Ionicons} from '@expo/vector-icons';
 import {SaveComparisonDialog} from '../components/comparison/SaveComparisonDialog';
 import {CompareImageModal} from '../components/comparison/CompareImageModal';
+import {ConfirmDialog} from '../components/ui/ConfirmDialog';
 import {
   buildComparisonCard,
   buildComparisonCards,
@@ -157,6 +157,9 @@ export const VersionComparisonScreen: React.FC<
   // the next-verse arrow walk past the chapter's end.
   const [totalVerses, setTotalVerses] = useState(31);
   const [viewMode, setViewMode] = useState<'list' | 'grid'>('list');
+  const [deleteComparisonId, setDeleteComparisonId] = useState<string | null>(
+    null,
+  );
   const [editingComparisonId, setEditingComparisonId] = useState<string | null>(
     null,
   );
@@ -590,27 +593,21 @@ export const VersionComparisonScreen: React.FC<
     }
   };
 
-  const handleDeleteComparison = async (comparisonId: string) => {
-    Alert.alert(
-      t.versionComparison.deleteTitle,
-      t.versionComparison.deleteConfirm,
-      [
-        {text: t.versionComparison.cancel, style: 'cancel'},
-        {
-          text: t.versionComparison.delete,
-          style: 'destructive',
-          onPress: async () => {
-            try {
-              await versionComparisonService.deleteComparison(comparisonId);
-              await loadSavedComparisons();
-              toast.success(t.versionComparison.deleteSuccess);
-            } catch {
-              toast.error(t.versionComparison.deleteError);
-            }
-          },
-        },
-      ],
-    );
+  const handleDeleteComparison = (comparisonId: string) => {
+    setDeleteComparisonId(comparisonId);
+  };
+
+  const confirmDeleteComparison = async () => {
+    const comparisonId = deleteComparisonId;
+    if (!comparisonId) return;
+    setDeleteComparisonId(null);
+    try {
+      await versionComparisonService.deleteComparison(comparisonId);
+      await loadSavedComparisons();
+      toast.success(t.versionComparison.deleteSuccess);
+    } catch {
+      toast.error(t.versionComparison.deleteError);
+    }
   };
 
   const getVersionColor = (index: number) => {
@@ -1524,6 +1521,18 @@ export const VersionComparisonScreen: React.FC<
           </View>
         </View>
       </Modal>
+
+      {/* Themed delete confirm (UX audit, replaces native Alert.alert) */}
+      <ConfirmDialog
+        visible={!!deleteComparisonId}
+        title={t.versionComparison.deleteTitle}
+        message={t.versionComparison.deleteConfirm}
+        confirmLabel={t.versionComparison.delete}
+        cancelLabel={t.versionComparison.cancel}
+        onConfirm={() => void confirmDeleteComparison()}
+        onCancel={() => setDeleteComparisonId(null)}
+        destructive
+      />
     </View>
   );
 };

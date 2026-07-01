@@ -33,6 +33,7 @@ import DailyVerseSettings from '@components/settings/DailyVerseSettings';
 import PrayerReminderSettings from '@components/settings/PrayerReminderSettings';
 import DevotionReminderSettings from '@components/settings/DevotionReminderSettings';
 import PropheticReminderSettings from '@components/settings/PropheticReminderSettings';
+import {ConfirmDialog} from '@components/ui/ConfirmDialog';
 import MemoryGoalSettings from '@components/settings/MemoryGoalSettings';
 import ManageVersionsSection from '@components/settings/ManageVersionsSection';
 import ReadingGoalSettings from '@components/settings/ReadingGoalSettings';
@@ -73,8 +74,10 @@ export default function SettingsScreen() {
   const conflicts = useConflicts();
   const toast = useToast();
   const [isResetting, setIsResetting] = useState(false);
+  const [resetConfirmVisible, setResetConfirmVisible] = useState(false);
   const [isExporting, setIsExporting] = useState(false);
   const [isAuthenticating, setIsAuthenticating] = useState(false);
+  const [signOutConfirmVisible, setSignOutConfirmVisible] = useState(false);
   const scrollViewRef = useRef<ScrollView>(null);
 
   // Tick every 10s so the "Synced Xs ago" label stays accurate without
@@ -139,35 +142,27 @@ export default function SettingsScreen() {
     await setColorTheme(newColorTheme);
   }
 
-  async function handleResetData() {
-    Alert.alert(t.settings.resetTitle, t.settings.resetMessage, [
-      {text: t.cancel, style: 'cancel'},
-      {
-        // Confirm verb mirrors the action: this resets/reloads, it does
-        // not delete user content (favorites/notes/highlights survive).
-        text: t.settings.resetConfirm,
-        style: 'destructive',
-        onPress: async () => {
-          setIsResetting(true);
-          try {
-            await resetBibleData();
-            // The reset clears the verse tables and flags; reload right
-            // away so the user lands on a working app instead of having
-            // to close-and-reopen the way the old success copy demanded.
-            await initializeBibleData();
-            Alert.alert(
-              t.settings.resetSuccess,
-              t.settings.resetSuccessMessage,
-              [{text: t.ok}],
-            );
-          } catch {
-            Alert.alert(t.error, t.settings.resetError);
-          } finally {
-            setIsResetting(false);
-          }
-        },
-      },
-    ]);
+  function handleResetData() {
+    setResetConfirmVisible(true);
+  }
+
+  async function performResetData() {
+    setResetConfirmVisible(false);
+    setIsResetting(true);
+    try {
+      await resetBibleData();
+      // The reset clears the verse tables and flags; reload right
+      // away so the user lands on a working app instead of having
+      // to close-and-reopen the way the old success copy demanded.
+      await initializeBibleData();
+      Alert.alert(t.settings.resetSuccess, t.settings.resetSuccessMessage, [
+        {text: t.ok},
+      ]);
+    } catch {
+      Alert.alert(t.error, t.settings.resetError);
+    } finally {
+      setIsResetting(false);
+    }
   }
 
   async function handleExportBackup() {
@@ -213,27 +208,23 @@ export default function SettingsScreen() {
     }
   }
 
-  async function handleSignOut() {
-    Alert.alert(t.auth.signOutConfirmTitle, t.auth.signOutConfirmMessage, [
-      {text: t.cancel, style: 'cancel'},
-      {
-        text: t.auth.signOutConfirmCta,
-        style: 'destructive',
-        onPress: async () => {
-          try {
-            haptics.press();
-            await signOut();
-            toast.success(t.auth.signedOutToast);
-          } catch (err) {
-            logger.error('Sign-out failed', err as Error, {
-              component: 'SettingsScreen',
-              action: 'handleSignOut',
-            });
-            toast.error(t.auth.signInError);
-          }
-        },
-      },
-    ]);
+  function handleSignOut() {
+    setSignOutConfirmVisible(true);
+  }
+
+  async function performSignOut() {
+    setSignOutConfirmVisible(false);
+    try {
+      haptics.press();
+      await signOut();
+      toast.success(t.auth.signedOutToast);
+    } catch (err) {
+      logger.error('Sign-out failed', err as Error, {
+        component: 'SettingsScreen',
+        action: 'handleSignOut',
+      });
+      toast.error(t.auth.signInError);
+    }
   }
 
   const themeActiveTextColor = getReadableTextColor(
@@ -1070,6 +1061,29 @@ export default function SettingsScreen() {
           <Text style={themedStyles.footerVerse}>{t.settings.footerVerse}</Text>
         </View>
       </ScrollView>
+
+      {/* Themed confirms (UX audit, replace native Alert.alert) */}
+      <ConfirmDialog
+        visible={resetConfirmVisible}
+        title={t.settings.resetTitle}
+        message={t.settings.resetMessage}
+        confirmLabel={t.settings.resetConfirm}
+        cancelLabel={t.cancel}
+        onConfirm={() => void performResetData()}
+        onCancel={() => setResetConfirmVisible(false)}
+        destructive
+      />
+      <ConfirmDialog
+        visible={signOutConfirmVisible}
+        title={t.auth.signOutConfirmTitle}
+        message={t.auth.signOutConfirmMessage}
+        confirmLabel={t.auth.signOutConfirmCta}
+        cancelLabel={t.cancel}
+        onConfirm={() => void performSignOut()}
+        onCancel={() => setSignOutConfirmVisible(false)}
+        destructive
+        icon="log-out-outline"
+      />
     </View>
   );
 }

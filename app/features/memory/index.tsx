@@ -19,7 +19,6 @@ import {
   ScrollView,
   TouchableOpacity,
   StyleSheet,
-  Alert,
   Modal,
 } from 'react-native';
 import {AppText as Text} from '@components/ui/AppText';
@@ -41,6 +40,7 @@ import type {MemoryCard} from '@lib/memory/srs';
 import {isMastered} from '@lib/memory/srs';
 import {WeeklyChallengeCard} from '@components/WeeklyChallengeCard';
 import {MemoryGuideModal} from '@components/MemoryGuideModal';
+import {ConfirmDialog} from '@components/ui/ConfirmDialog';
 import {
   borderRadius,
   fontSize as fontSizes,
@@ -57,6 +57,7 @@ export default function MemoryDeckScreen() {
   const {cards, dueCards, stats, removeCard} = useMemoryDeck();
   const {history, goal, milestone, dismissMilestone} = useMemoryGoal();
   const [guideVisible, setGuideVisible] = useState(false);
+  const [removeTarget, setRemoveTarget] = useState<MemoryCard | null>(null);
 
   const headerGradient = useMemo(
     () =>
@@ -81,22 +82,14 @@ export default function MemoryDeckScreen() {
   };
 
   const confirmRemove = (card: MemoryCard) => {
-    Alert.alert(
-      t.memory.remove.title,
-      t.memory.remove.message,
-      [
-        {text: t.memory.remove.cancel, style: 'cancel'},
-        {
-          text: t.memory.remove.confirm,
-          style: 'destructive',
-          onPress: () => {
-            removeCard(card.verseKey);
-            toast.success(t.memory.removedToast);
-          },
-        },
-      ],
-      {cancelable: true},
-    );
+    setRemoveTarget(card);
+  };
+
+  const handleConfirmRemove = () => {
+    if (!removeTarget) return;
+    removeCard(removeTarget.verseKey);
+    toast.success(t.memory.removedToast);
+    setRemoveTarget(null);
   };
 
   const isEmpty = cards.length === 0;
@@ -261,6 +254,18 @@ export default function MemoryDeckScreen() {
       <MemoryGuideModal
         visible={guideVisible}
         onClose={() => setGuideVisible(false)}
+      />
+
+      {/* Themed remove-card confirm (UX audit, replaces native Alert.alert) */}
+      <ConfirmDialog
+        visible={!!removeTarget}
+        title={t.memory.remove.title}
+        message={t.memory.remove.message}
+        confirmLabel={t.memory.remove.confirm}
+        cancelLabel={t.memory.remove.cancel}
+        onConfirm={handleConfirmRemove}
+        onCancel={() => setRemoveTarget(null)}
+        destructive
       />
     </>
   );

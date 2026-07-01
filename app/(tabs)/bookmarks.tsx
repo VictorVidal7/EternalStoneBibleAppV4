@@ -4,7 +4,6 @@ import {
   StyleSheet,
   FlatList,
   TouchableOpacity,
-  Alert,
   TextInput,
   Modal,
 } from 'react-native';
@@ -21,6 +20,7 @@ import {useBibleVersion} from '@hooks/useBibleVersion';
 import {focusTrapProps} from '@lib/a11y/focusTrap';
 import {useBookmarks, type Bookmark} from '@context/BookmarksContext';
 import {IllustratedEmptyState} from '@components/IllustratedEmptyState';
+import {ConfirmDialog} from '@components/ui/ConfirmDialog';
 import {getBookByName} from '@/constants/bible';
 
 export default function BookmarksScreen() {
@@ -38,6 +38,7 @@ export default function BookmarksScreen() {
   const {bookmarks, removeBookmark, renameBookmark, loading} = useBookmarks();
   const [editingId, setEditingId] = useState<string | null>(null);
   const [labelDraft, setLabelDraft] = useState('');
+  const [deleteTarget, setDeleteTarget] = useState<Bookmark | null>(null);
 
   // Book names are stored in whatever language the source version used; localize
   // to the READING version's language (RVR1960 → "Juan") so the list reads the
@@ -54,16 +55,13 @@ export default function BookmarksScreen() {
   }
 
   function handleDelete(b: Bookmark) {
-    Alert.alert(t.bookmarks.deleteTitle, t.bookmarks.deleteMessage, [
-      {text: t.cancel, style: 'cancel'},
-      {
-        text: t.delete,
-        style: 'destructive',
-        onPress: () => {
-          removeBookmark(b.id);
-        },
-      },
-    ]);
+    setDeleteTarget(b);
+  }
+
+  function confirmDelete() {
+    if (!deleteTarget) return;
+    removeBookmark(deleteTarget.id);
+    setDeleteTarget(null);
   }
 
   function openRenameModal(b: Bookmark) {
@@ -238,6 +236,18 @@ export default function BookmarksScreen() {
           </View>
         </View>
       </Modal>
+
+      {/* Themed delete confirm (UX audit, replaces native Alert.alert) */}
+      <ConfirmDialog
+        visible={!!deleteTarget}
+        title={t.bookmarks.deleteTitle}
+        message={t.bookmarks.deleteMessage}
+        confirmLabel={t.delete}
+        cancelLabel={t.cancel}
+        onConfirm={confirmDelete}
+        onCancel={() => setDeleteTarget(null)}
+        destructive
+      />
     </View>
   );
 }
