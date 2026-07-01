@@ -16,7 +16,7 @@
  * Para la gloria de Dios Todopoderoso ✨
  */
 
-import React, {useEffect, useMemo, useState} from 'react';
+import React, {useEffect, useMemo, useRef, useState} from 'react';
 import {
   View,
   ScrollView,
@@ -68,6 +68,7 @@ import {
   ProphecyShareModal,
   type ProphecyShareContent,
 } from '@components/study/ProphecyShareModal';
+import {OriginalLanguagesSheet} from '@components/reading/OriginalLanguagesSheet';
 import {
   borderRadius,
   fontSize as fontSizes,
@@ -116,6 +117,13 @@ export default function PropheticThreadScreen() {
   const [indexFilter, setIndexFilter] = useState<
     'all' | 'favorites' | 'quoted'
   >('all');
+  // Original-languages sheet (Strong's) for a tapped verse card.
+  const [originalsVisible, setOriginalsVisible] = useState(false);
+  const [originalsTarget, setOriginalsTarget] = useState<{
+    book: string;
+    chapter: number;
+    verse: number;
+  } | null>(null);
 
   // Load the device-local "explored" + "favorite" marks once.
   useEffect(() => {
@@ -148,31 +156,44 @@ export default function PropheticThreadScreen() {
 
   // "Escuchar" — read the prophecy then its fulfillment aloud (expo-speech, in
   // the version's language). Foreground only; stops on step change / unmount.
+  // "Recorrido narrado" chains this across consecutive steps automatically
+  // (walkthroughActive); autoAdvancingRef distinguishes a walkthrough-driven
+  // setPhase from a manual one, since only the latter should cancel the tour.
   const [speaking, setSpeaking] = useState(false);
+  const [walkthroughActive, setWalkthroughActive] = useState(false);
+  const autoAdvancingRef = useRef(false);
+
   useEffect(() => {
     setSpeaking(false);
+    if (!autoAdvancingRef.current) {
+      setWalkthroughActive(false);
+    }
+    autoAdvancingRef.current = false;
     return () => {
       void Speech.stop();
     };
   }, [phase]);
 
-  const handleListen = () => {
-    haptics.tap();
-    if (speaking) {
-      void Speech.stop();
-      setSpeaking(false);
-      return;
-    }
+  const playCurrentStep = () => {
     const segments = [prophecy?.text, fulfillment?.text].filter(
       (s): s is string => Boolean(s),
     );
-    if (segments.length === 0) return;
+    if (segments.length === 0) {
+      setWalkthroughActive(false);
+      return;
+    }
     const language = selectedVersion.language === 'es' ? 'es-ES' : 'en-US';
     setSpeaking(true);
     let i = 0;
     const speakNext = () => {
       if (i >= segments.length) {
         setSpeaking(false);
+        if (walkthroughActive && phase < total - 1) {
+          autoAdvancingRef.current = true;
+          setPhase(p => p + 1);
+        } else {
+          setWalkthroughActive(false);
+        }
         return;
       }
       const text = segments[i++];
@@ -184,6 +205,38 @@ export default function PropheticThreadScreen() {
       });
     };
     void Speech.stop().then(speakNext);
+  };
+
+  // Drives the walkthrough: keyed on the resolved prophecy/fulfillment
+  // objects themselves (not `status`/`phase`) — those two update together
+  // the instant a step's verses are ready, whereas `status` flips to
+  // 'loading' in a LATER effect flush than a `phase` change, so keying on it
+  // here would fire this effect one render too early with the previous
+  // step's stale text.
+  useEffect(() => {
+    if (!walkthroughActive || status !== 'ready' || speaking) return;
+    playCurrentStep();
+  }, [walkthroughActive, prophecy, fulfillment]);
+
+  const handleListen = () => {
+    haptics.tap();
+    if (speaking) {
+      void Speech.stop();
+      setSpeaking(false);
+      return;
+    }
+    playCurrentStep();
+  };
+
+  const toggleWalkthrough = () => {
+    haptics.tap();
+    if (walkthroughActive) {
+      void Speech.stop();
+      setSpeaking(false);
+      setWalkthroughActive(false);
+      return;
+    }
+    setWalkthroughActive(true);
   };
 
   const current =
@@ -211,6 +264,18 @@ export default function PropheticThreadScreen() {
     },
     [selectedVersion.language],
   );
+
+  const openOriginals = (refKey: ProphecyRefKey) => {
+    const info = localizedRef(refKey);
+    if (!info) return;
+    haptics.tap();
+    setOriginalsTarget({
+      book: info.display,
+      chapter: info.chapter,
+      verse: info.verse,
+    });
+    setOriginalsVisible(true);
+  };
 
   // Resolve the current prophecy's two verses (OT + NT) from SQLite.
   useEffect(() => {
@@ -466,11 +531,24 @@ export default function PropheticThreadScreen() {
               : tp.prophecyLabel
             : tp.fulfilledIn}
         </AppText>
-        <AppText
-          scaleRole="compact"
-          style={[styles.verseRef, {color: colors.textSecondary}]}>
-          {data?.reference ?? ''}
-        </AppText>
+        <View style={styles.verseCardHeaderRight}>
+          <TouchableOpacity
+            onPress={() => openOriginals(refKey)}
+            hitSlop={{top: 8, bottom: 8, left: 8, right: 8}}
+            accessibilityRole="button"
+            accessibilityLabel={t.originals.buttonLabel}>
+            <Ionicons
+              name="language-outline"
+              size={15}
+              color={colors.textTertiary}
+            />
+          </TouchableOpacity>
+          <AppText
+            scaleRole="compact"
+            style={[styles.verseRef, {color: colors.textSecondary}]}>
+            {data?.reference ?? ''}
+          </AppText>
+        </View>
       </View>
       <AppText style={[styles.verseText, {color: colors.text}]}>
         {data?.text ?? tp.missingText}
@@ -829,6 +907,30 @@ export default function PropheticThreadScreen() {
                     </AppText>
                   </TouchableOpacity>
 
+                  {/* Together — the thread's derived reading plan already
+                      supports the app's standard shared-pace sharing (same
+                      start date, private progress); this just surfaces that
+                      entry point from the guided walk itself. */}
+                  <TouchableOpacity
+                    style={styles.introIndexBtn}
+                    onPress={() => {
+                      haptics.tap();
+                      router.push('/plan/prophetic-thread' as never);
+                    }}
+                    accessibilityRole="button"
+                    accessibilityLabel={tp.togetherCta}>
+                    <Ionicons
+                      name="people-outline"
+                      size={16}
+                      color={colors.primary}
+                    />
+                    <AppText
+                      scaleRole="compact"
+                      style={[styles.introIndexText, {color: colors.primary}]}>
+                      {tp.togetherCta}
+                    </AppText>
+                  </TouchableOpacity>
+
                   {/* Matching quiz: prophecy <-> fulfillment (robustness round 3). */}
                   <TouchableOpacity
                     style={styles.introIndexBtn}
@@ -1000,25 +1102,64 @@ export default function PropheticThreadScreen() {
                         {items[current.id]?.note ?? ''}
                       </AppText>
 
-                      {/* Escuchar — read the prophecy + fulfillment aloud. */}
-                      <TouchableOpacity
-                        style={[styles.listenBtn, {borderColor: accent + '55'}]}
-                        onPress={handleListen}
-                        accessibilityRole="button"
-                        accessibilityLabel={
-                          speaking ? tp.stopListening : tp.listen
-                        }>
-                        <Ionicons
-                          name={speaking ? 'stop-circle' : 'volume-high'}
-                          size={18}
-                          color={accent}
-                        />
-                        <AppText
-                          scaleRole="compact"
-                          style={[styles.listenText, {color: accent}]}>
-                          {speaking ? tp.stopListening : tp.listen}
-                        </AppText>
-                      </TouchableOpacity>
+                      {/* Escuchar (single-step) + Recorrido narrado
+                          (auto-advancing tour) — the plain listen pill hides
+                          while the tour is running, since it already reads
+                          every step aloud. */}
+                      <View style={styles.listenRow}>
+                        {!walkthroughActive && (
+                          <TouchableOpacity
+                            style={[
+                              styles.listenBtn,
+                              {borderColor: accent + '55'},
+                            ]}
+                            onPress={handleListen}
+                            accessibilityRole="button"
+                            accessibilityLabel={
+                              speaking ? tp.stopListening : tp.listen
+                            }>
+                            <Ionicons
+                              name={speaking ? 'stop-circle' : 'volume-high'}
+                              size={18}
+                              color={accent}
+                            />
+                            <AppText
+                              scaleRole="compact"
+                              style={[styles.listenText, {color: accent}]}>
+                              {speaking ? tp.stopListening : tp.listen}
+                            </AppText>
+                          </TouchableOpacity>
+                        )}
+                        <TouchableOpacity
+                          style={[
+                            styles.listenBtn,
+                            {borderColor: accent + '55'},
+                          ]}
+                          onPress={toggleWalkthrough}
+                          accessibilityRole="button"
+                          accessibilityLabel={
+                            walkthroughActive
+                              ? tp.walkthroughStop
+                              : tp.walkthroughStart
+                          }>
+                          <Ionicons
+                            name={
+                              walkthroughActive
+                                ? 'stop-circle'
+                                : 'play-skip-forward'
+                            }
+                            size={18}
+                            color={accent}
+                          />
+                          <AppText
+                            scaleRole="compact"
+                            style={[styles.listenText, {color: accent}]}>
+                            {walkthroughActive
+                              ? tp.walkthroughStop
+                              : tp.walkthroughStart}
+                          </AppText>
+                        </TouchableOpacity>
+                      </View>
 
                       {/* "Cristo en este pasaje" — the curated christConnections
                           reflection on this OT verse, when one exists. */}
@@ -1324,6 +1465,14 @@ export default function PropheticThreadScreen() {
         onClose={() => setShareOpen(false)}
         content={shareContent}
       />
+      <OriginalLanguagesSheet
+        visible={originalsVisible}
+        sourceBook={originalsTarget?.book ?? ''}
+        sourceChapter={originalsTarget?.chapter ?? 0}
+        sourceVerse={originalsTarget?.verse ?? null}
+        version={selectedVersion.id}
+        onClose={() => setOriginalsVisible(false)}
+      />
     </>
   );
 }
@@ -1524,6 +1673,12 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     gap: spacing.sm,
   },
+  verseCardHeaderRight: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.xs,
+    flexShrink: 1,
+  },
   verseRole: {
     fontSize: fontSizes.xs,
     fontWeight: '800',
@@ -1583,6 +1738,11 @@ const styles = StyleSheet.create({
     fontSize: fontSizes.md,
     lineHeight: fontSizes.md * 1.55,
     fontStyle: 'italic',
+  },
+  listenRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: spacing.sm,
   },
   listenBtn: {
     flexDirection: 'row',
