@@ -156,5 +156,11 @@ const styles = StyleSheet.create({
     fontWeight: '500',
     marginTop: 2,
     lineHeight: 16,
+    // Reserves space for a full 2 lines (the numberOfLines cap above) so
+    // every tile in the 2×2 grid is the same height regardless of whether
+    // its subtitle actually wraps — a short one-liner like "Tu devocional
+    // de hoy" would otherwise leave its tile shorter than a neighbor whose
+    // subtitle wraps (e.g. "Hoy · El pico más alto de la Biblia").
+    minHeight: 32,
   },
 });
