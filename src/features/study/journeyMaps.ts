@@ -23,23 +23,29 @@
 /** A canonical "EnglishBook/Chapter/Verse" reference key (same form as [[messianicProphecies]]). */
 export type JourneyRefKey = string;
 
-export type JourneyRouteId = 'exodus' | 'paul' | 'jesus';
+export type JourneyRouteId = 'abraham' | 'exodus' | 'exile' | 'paul' | 'jesus';
 
 export const JOURNEY_ROUTE_ORDER: readonly JourneyRouteId[] = [
+  'abraham',
   'exodus',
-  'paul',
+  'exile',
   'jesus',
+  'paul',
 ];
 
 export const JOURNEY_ROUTE_ICON: Record<JourneyRouteId, string> = {
+  abraham: 'star-outline',
   exodus: 'flag-outline',
+  exile: 'moon-outline',
   paul: 'boat-outline',
   jesus: 'sunny-outline',
 };
 
 /** One accent color per route, used for the rail/nodes and the route card. */
 export const JOURNEY_ROUTE_ACCENT: Record<JourneyRouteId, string> = {
+  abraham: '#B91C1C',
   exodus: '#B45309',
+  exile: '#4B5563',
   paul: '#0369A1',
   jesus: '#7C3AED',
 };
@@ -58,6 +64,14 @@ export interface JourneyStop {
  * `assets/bible-seed.db` before this file was written.
  */
 export const JOURNEY_STOPS: readonly JourneyStop[] = [
+  // ── Abraham ──
+  {id: 'abraham-ur', route: 'abraham', ref: 'Genesis/12/1'},
+  {id: 'abraham-shechem', route: 'abraham', ref: 'Genesis/12/7'},
+  {id: 'abraham-egypt', route: 'abraham', ref: 'Genesis/12/10'},
+  {id: 'abraham-hebron', route: 'abraham', ref: 'Genesis/15/6'},
+  {id: 'abraham-moriah', route: 'abraham', ref: 'Genesis/22/14'},
+  {id: 'abraham-beersheba', route: 'abraham', ref: 'Genesis/25/8'},
+
   // ── El Éxodo (Números 33's own itinerary) ──
   {id: 'exodus-rameses', route: 'exodus', ref: 'Exodus/12/37'},
   {id: 'exodus-red-sea', route: 'exodus', ref: 'Exodus/14/22'},
@@ -66,15 +80,13 @@ export const JOURNEY_STOPS: readonly JourneyStop[] = [
   {id: 'exodus-moab', route: 'exodus', ref: 'Deuteronomy/34/5'},
   {id: 'exodus-jordan', route: 'exodus', ref: 'Joshua/3/17'},
 
-  // ── Los viajes misioneros de Pablo ──
-  {id: 'paul-antioch', route: 'paul', ref: 'Acts/13/3'},
-  {id: 'paul-lystra', route: 'paul', ref: 'Acts/14/10'},
-  {id: 'paul-jerusalem-council', route: 'paul', ref: 'Acts/15/2'},
-  {id: 'paul-philippi', route: 'paul', ref: 'Acts/16/9'},
-  {id: 'paul-athens', route: 'paul', ref: 'Acts/17/23'},
-  {id: 'paul-corinth', route: 'paul', ref: 'Acts/18/11'},
-  {id: 'paul-ephesus', route: 'paul', ref: 'Acts/19/10'},
-  {id: 'paul-rome', route: 'paul', ref: 'Acts/28/31'},
+  // ── El exilio en Babilonia ──
+  {id: 'exile-jerusalem-fall', route: 'exile', ref: '2 Kings/25/9'},
+  {id: 'exile-babylon-rivers', route: 'exile', ref: 'Psalms/137/1'},
+  {id: 'exile-chebar', route: 'exile', ref: 'Ezekiel/1/1'},
+  {id: 'exile-daniel-court', route: 'exile', ref: 'Daniel/6/16'},
+  {id: 'exile-cyrus-decree', route: 'exile', ref: 'Ezra/1/1'},
+  {id: 'exile-return', route: 'exile', ref: 'Ezra/3/11'},
 
   // ── El ministerio de Jesús ──
   {id: 'jesus-bethlehem', route: 'jesus', ref: 'Luke/2/7'},
@@ -86,6 +98,16 @@ export const JOURNEY_STOPS: readonly JourneyStop[] = [
   {id: 'jesus-gethsemane', route: 'jesus', ref: 'Matthew/26/36'},
   {id: 'jesus-golgotha', route: 'jesus', ref: 'Matthew/27/33'},
   {id: 'jesus-empty-tomb', route: 'jesus', ref: 'Matthew/28/6'},
+
+  // ── Los viajes misioneros de Pablo ──
+  {id: 'paul-antioch', route: 'paul', ref: 'Acts/13/3'},
+  {id: 'paul-lystra', route: 'paul', ref: 'Acts/14/10'},
+  {id: 'paul-jerusalem-council', route: 'paul', ref: 'Acts/15/2'},
+  {id: 'paul-philippi', route: 'paul', ref: 'Acts/16/9'},
+  {id: 'paul-athens', route: 'paul', ref: 'Acts/17/23'},
+  {id: 'paul-corinth', route: 'paul', ref: 'Acts/18/11'},
+  {id: 'paul-ephesus', route: 'paul', ref: 'Acts/19/10'},
+  {id: 'paul-rome', route: 'paul', ref: 'Acts/28/31'},
 ];
 
 /** All stops for one route, in walk order. */

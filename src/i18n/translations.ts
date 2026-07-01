@@ -2216,20 +2216,40 @@ export const translations = {
     },
 
     journeys: {
-      title: 'Mapas de viajes bíblicos',
-      tileTitle: 'Mapas bíblicos',
+      title: 'Rutas bíblicas',
       subtitle: 'Las grandes rutas de la Escritura',
       intro:
         'La Biblia no solo se lee: sucedió en lugares reales. Recorre estas tres grandes rutas y toca cada parada para leer el pasaje.',
       stopsCount: '{{n}} paradas',
+      progress: '{{n}} de {{total}} recorridas',
       openInReader: 'Abrir en el lector',
       missingText: 'Versículo no disponible',
+      walkthroughStart: 'Recorrido narrado',
+      walkthroughStop: 'Detener recorrido',
+      favorite: 'Guardar como favorita',
+      unfavorite: 'Quitar de favoritas',
+      shareMap: 'Compartir el mapa',
+      partOfThread: 'Parte del hilo profético',
+      showVerse: 'Ver versículo',
+      hideVerse: 'Ocultar versículo',
       routes: {
+        abraham: {
+          title: 'Abraham',
+          subtitle: 'El padre de la fe',
+          description:
+            'Sigue el camino de Abraham desde su llamado en Ur hasta Beerseba, la fe que peregrina hacia una promesa que aún no veía cumplida.',
+        },
         exodus: {
           title: 'El Éxodo',
           subtitle: 'De Egipto a la Tierra Prometida',
           description:
             'Sigue el camino de Israel desde la esclavitud en Egipto hasta el umbral de Canaán, apoyado en el propio itinerario que registra el libro de Números.',
+        },
+        exile: {
+          title: 'El exilio en Babilonia',
+          subtitle: 'Juicio, fidelidad y regreso',
+          description:
+            'Recorre la caída de Jerusalén, los años de cautiverio en Babilonia y el regreso del pueblo a su tierra.',
         },
         paul: {
           title: 'Los viajes de Pablo',
@@ -2245,6 +2265,30 @@ export const translations = {
         },
       },
       items: {
+        'abraham-ur': {
+          label: 'El llamado de Abram',
+          note: 'Dios llamó a Abram a dejar su tierra y su familia, prometiéndole una tierra, una gran nación y bendición para todos los pueblos.',
+        },
+        'abraham-shechem': {
+          label: 'Siquem, en Canaán',
+          note: 'Al llegar a la tierra prometida, Abram edificó un altar al Señor que se le había aparecido.',
+        },
+        'abraham-egypt': {
+          label: 'Egipto',
+          note: 'El hambre lo llevó a Egipto; incluso en un tropiezo de fe, Dios protegió su promesa.',
+        },
+        'abraham-hebron': {
+          label: 'Hebrón: el pacto y la promesa',
+          note: 'Abram creyó la promesa de un heredero, y Dios se la contó por justicia — el fundamento de la fe que Pablo explicaría siglos después.',
+        },
+        'abraham-moriah': {
+          label: 'El monte Moriah',
+          note: 'Dispuesto a ofrecer a su hijo Isaac, Abraham vio la provisión de Dios y llamó a aquel lugar «Jehová proveerá».',
+        },
+        'abraham-beersheba': {
+          label: 'Beerseba: el final del camino',
+          note: 'Abraham murió en buena vejez, habiendo visto solo el comienzo de una promesa que se cumpliría en sus descendientes — y, en definitiva, en Cristo.',
+        },
         'exodus-rameses': {
           label: 'Ramesés, Egipto',
           note: 'Punto de partida del Éxodo: los hijos de Israel salieron de Ramesés hacia Sucot, dejando la esclavitud.',
@@ -2268,6 +2312,32 @@ export const translations = {
         'exodus-jordan': {
           label: 'El Jordán',
           note: 'Bajo el mando de Josué, el pueblo cruzó el Jordán en seco y entró por fin a Canaán.',
+          echoNote:
+            'Siglos después, en este mismo río, Jesús —cuyo nombre es la misma palabra hebrea que «Josué», el Señor salva— comenzó su propio camino hacia la salvación definitiva.',
+        },
+        'exile-jerusalem-fall': {
+          label: 'La caída de Jerusalén',
+          note: 'El ejército babilónico destruyó el templo de Salomón y llevó al pueblo cautivo — el juicio que los profetas habían anunciado.',
+        },
+        'exile-babylon-rivers': {
+          label: 'Junto a los ríos de Babilonia',
+          note: 'Lejos de su tierra, el pueblo lloró recordando a Sion — el lamento del salmo 137, uno de los más conmovedores de la Escritura.',
+        },
+        'exile-chebar': {
+          label: 'El río Quebar',
+          note: 'Allí, entre los cautivos, Ezequiel vio la visión de la gloria de Dios — Dios seguía presente aun en el exilio.',
+        },
+        'exile-daniel-court': {
+          label: 'La corte de Babilonia',
+          note: 'Daniel, fiel en un imperio pagano, fue librado del foso de los leones: Dios protege a los suyos incluso lejos de casa.',
+        },
+        'exile-cyrus-decree': {
+          label: 'El decreto de Ciro',
+          note: 'Setenta años después, Dios movió el corazón de un rey pagano para permitir el regreso del pueblo — cumpliendo su palabra por medio de Jeremías.',
+        },
+        'exile-return': {
+          label: 'El regreso y el nuevo templo',
+          note: 'Al poner los cimientos del templo, el pueblo alabó a Dios con lágrimas de alegría, recordando su fidelidad.',
         },
         'paul-antioch': {
           label: 'Antioquía de Siria',
@@ -2308,6 +2378,8 @@ export const translations = {
         'jesus-jordan': {
           label: 'El Jordán',
           note: 'Juan bautizó a Jesús en el Jordán, y una voz del cielo lo declaró Hijo amado de Dios.',
+          echoNote:
+            'En este mismo río, Josué había guiado antes a Israel hacia la Tierra Prometida. Jesús, cuyo nombre es la misma palabra hebrea, «el Señor salva», inicia aquí su propio camino.',
         },
         'jesus-cana': {
           label: 'Caná de Galilea',
@@ -3485,6 +3557,10 @@ export const translations = {
         prophetic_thread: {
           name: 'Cristo en toda la Escritura',
           description: 'Recorre todo el hilo profético',
+        },
+        bible_routes: {
+          name: 'Viajero de la Palabra',
+          description: 'Explora todas las paradas de todas las rutas bíblicas',
         },
       },
     },
@@ -6226,20 +6302,40 @@ export const translations = {
     },
 
     journeys: {
-      title: 'Bible journey maps',
-      tileTitle: 'Bible maps',
+      title: 'Bible routes',
       subtitle: 'The great routes of Scripture',
       intro:
         "The Bible isn't just read: it happened in real places. Walk these three great routes and tap each stop to read the passage.",
       stopsCount: '{{n}} stops',
+      progress: '{{n}} of {{total}} explored',
       openInReader: 'Open in reader',
       missingText: 'Verse unavailable',
+      walkthroughStart: 'Narrated walkthrough',
+      walkthroughStop: 'Stop walkthrough',
+      favorite: 'Save as favorite',
+      unfavorite: 'Remove from favorites',
+      shareMap: 'Share the map',
+      partOfThread: 'Part of the prophetic thread',
+      showVerse: 'Show verse',
+      hideVerse: 'Hide verse',
       routes: {
+        abraham: {
+          title: 'Abraham',
+          subtitle: 'The father of faith',
+          description:
+            "Follow Abraham's path from his call in Ur to Beersheba — faith journeying toward a promise he did not yet see fulfilled.",
+        },
         exodus: {
           title: 'The Exodus',
           subtitle: 'From Egypt to the Promised Land',
           description:
             "Follow Israel's path from slavery in Egypt to the edge of Canaan, following the very itinerary recorded in the book of Numbers.",
+        },
+        exile: {
+          title: 'The Babylonian exile',
+          subtitle: 'Judgment, faithfulness, and return',
+          description:
+            "Walk through the fall of Jerusalem, the years of captivity in Babylon, and the people's return to their land.",
         },
         paul: {
           title: "Paul's journeys",
@@ -6255,6 +6351,30 @@ export const translations = {
         },
       },
       items: {
+        'abraham-ur': {
+          label: "Abram's call",
+          note: 'God called Abram to leave his land and his family, promising him a land, a great nation, and blessing for all peoples.',
+        },
+        'abraham-shechem': {
+          label: 'Shechem, in Canaan',
+          note: 'On arriving in the promised land, Abram built an altar to the LORD who had appeared to him.',
+        },
+        'abraham-egypt': {
+          label: 'Egypt',
+          note: 'Famine drove him to Egypt; even in a stumble of faith, God protected His promise.',
+        },
+        'abraham-hebron': {
+          label: 'Hebron: the covenant and the promise',
+          note: 'Abram believed the promise of an heir, and God counted it to him as righteousness — the foundation of the faith Paul would explain centuries later.',
+        },
+        'abraham-moriah': {
+          label: 'Mount Moriah',
+          note: "Ready to offer his son Isaac, Abraham saw God's provision and called that place 'The LORD Will Provide.'",
+        },
+        'abraham-beersheba': {
+          label: 'Beersheba: the end of the road',
+          note: 'Abraham died in a good old age, having seen only the beginning of a promise that would be fulfilled in his descendants — and, ultimately, in Christ.',
+        },
         'exodus-rameses': {
           label: 'Rameses, Egypt',
           note: 'The Exodus began here: the children of Israel set out from Rameses toward Succoth, leaving slavery behind.',
@@ -6278,6 +6398,32 @@ export const translations = {
         'exodus-jordan': {
           label: 'The Jordan River',
           note: 'Under Joshua’s leadership, the people crossed the Jordan on dry ground and finally entered Canaan.',
+          echoNote:
+            "Centuries later, at this same river, Jesus — whose name is the same Hebrew word as 'Joshua,' the LORD saves — began His own path toward ultimate salvation.",
+        },
+        'exile-jerusalem-fall': {
+          label: 'The fall of Jerusalem',
+          note: 'The Babylonian army destroyed Solomon’s temple and carried the people into captivity — the judgment the prophets had announced.',
+        },
+        'exile-babylon-rivers': {
+          label: 'By the rivers of Babylon',
+          note: 'Far from their land, the people wept remembering Zion — the lament of Psalm 137, one of the most moving in all Scripture.',
+        },
+        'exile-chebar': {
+          label: 'The Chebar River',
+          note: 'There, among the exiles, Ezekiel saw the vision of God’s glory — God was still present even in exile.',
+        },
+        'exile-daniel-court': {
+          label: 'The court of Babylon',
+          note: "Daniel, faithful in a pagan empire, was delivered from the lions' den: God protects His own even far from home.",
+        },
+        'exile-cyrus-decree': {
+          label: 'The decree of Cyrus',
+          note: "Seventy years later, God moved the heart of a pagan king to allow the people's return — fulfilling His word through Jeremiah.",
+        },
+        'exile-return': {
+          label: 'The return and the new temple',
+          note: 'At the laying of the temple’s foundation, the people praised God with tears of joy, remembering His faithfulness.',
         },
         'paul-antioch': {
           label: 'Antioch of Syria',
@@ -6318,6 +6464,8 @@ export const translations = {
         'jesus-jordan': {
           label: 'The Jordan River',
           note: "John baptized Jesus in the Jordan, and a voice from heaven declared Him God's beloved Son.",
+          echoNote:
+            "At this same river, Joshua had once led Israel toward the Promised Land. Jesus, whose name is the same Hebrew word, 'the LORD saves,' begins His own path here.",
         },
         'jesus-cana': {
           label: 'Cana of Galilee',
@@ -7487,6 +7635,10 @@ export const translations = {
         prophetic_thread: {
           name: 'Christ in All Scripture',
           description: 'Walk the whole prophetic thread',
+        },
+        bible_routes: {
+          name: 'Traveler of the Word',
+          description: 'Explore every stop on every Bible route',
         },
       },
     },
