@@ -1743,6 +1743,16 @@ export const translations = {
       whyBody:
         'Que la Escritura anunciara estas cosas siglos antes y se cumplieran en Jesús no es casualidad: muestra que Dios gobierna la historia y cumple su palabra. El Señor mismo «les declaró en todas las Escrituras lo que de él decían» (Lucas 24:27, 44) y nos invita a escudriñarlas, «porque ellas son las que dan testimonio de mí» (Juan 5:39). No se trata de calcular probabilidades, sino de adorar con humildad al Dios fiel que cumple sus promesas en Cristo.',
       christHereTitle: 'Cristo en este pasaje',
+      quizPlay: 'Jugar el quiz',
+      quizTitle: 'Profecía y cumplimiento',
+      quizSubtitle: 'Empareja cada profecía con su cumplimiento en Cristo',
+      quizHint: 'Toca una profecía y luego su cumplimiento para emparejarlas.',
+      quizScore: 'Aciertos',
+      quizMistakes: 'Errores',
+      quizRoundOf: 'Ronda {{n}}',
+      quizComplete: '¡Ronda completa!',
+      quizCompletePerfect: '¡Ronda perfecta! 🎉',
+      quizNextRound: 'Nueva ronda',
       groups: {
         coming: 'Su venida',
         ministry: 'Su ministerio',
@@ -5443,6 +5453,16 @@ export const translations = {
       whyBody:
         'That Scripture announced these things centuries beforehand and they were fulfilled in Jesus is no accident: it shows that God rules history and keeps His word. The Lord Himself "expounded unto them in all the scriptures the things concerning himself" (Luke 24:27, 44) and invites us to search them, "for they are they which testify of me" (John 5:39). This is not about counting odds, but about humbly worshiping the faithful God who keeps His promises in Christ.',
       christHereTitle: 'Christ in this passage',
+      quizPlay: 'Play the quiz',
+      quizTitle: 'Prophecy and fulfillment',
+      quizSubtitle: 'Match each prophecy with its fulfillment in Christ',
+      quizHint: 'Tap a prophecy, then its fulfillment, to pair them.',
+      quizScore: 'Correct',
+      quizMistakes: 'Mistakes',
+      quizRoundOf: 'Round {{n}}',
+      quizComplete: 'Round complete!',
+      quizCompletePerfect: 'Perfect round! 🎉',
+      quizNextRound: 'New round',
       groups: {
         coming: 'His coming',
         ministry: 'His ministry',
