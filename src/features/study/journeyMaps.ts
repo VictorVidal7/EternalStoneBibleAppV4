@@ -34,7 +34,7 @@ export const JOURNEY_ROUTE_ORDER: readonly JourneyRouteId[] = [
 ];
 
 export const JOURNEY_ROUTE_ICON: Record<JourneyRouteId, string> = {
-  abraham: 'star-outline',
+  abraham: 'footsteps-outline',
   exodus: 'flag-outline',
   exile: 'moon-outline',
   paul: 'boat-outline',
