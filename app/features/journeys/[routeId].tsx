@@ -180,6 +180,13 @@ export default function JourneyRouteScreen() {
 
   const headerGradient: [string, string] = [colors.primary, colors.primaryDark];
 
+  // A deep link straight into this screen leaves no back-stack entry, so
+  // router.back() would throw a "GO_BACK not handled" navigation error.
+  const goBack = () => {
+    if (router.canGoBack()) router.back();
+    else router.replace('/features/journeys' as never);
+  };
+
   const localizedRef = (ref: string) => {
     const parsed = parseChristRef(ref);
     if (!parsed) return null;
@@ -331,7 +338,7 @@ export default function JourneyRouteScreen() {
           <View style={styles.headerTopRow}>
             <TouchableOpacity
               style={styles.iconButton}
-              onPress={() => router.back()}
+              onPress={goBack}
               accessibilityRole="button"
               accessibilityLabel={t.bible.back}>
               <Ionicons
