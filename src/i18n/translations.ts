@@ -2081,6 +2081,137 @@ export const translations = {
       },
     },
 
+    bibleFacts: {
+      title: '¿Sabías qué?',
+      subtitle: 'Datos curiosos con respaldo bíblico',
+      browseHint:
+        'Geografía, números, idioma original, historia y referencias cruzadas — siempre anclados a un versículo.',
+      todayLabel: 'Hoy',
+      todayTitle: 'Dato del día',
+      indexTitle: 'Todos los datos',
+      filterAll: 'Todas',
+      filterFavorites: 'Favoritas',
+      favorite: 'Guardar como favorito',
+      unfavorite: 'Quitar de favoritos',
+      noFavorites:
+        'Aún no tienes datos favoritos. Toca la estrella en una tarjeta para guardarla.',
+      openInReader: 'Abrir en el lector',
+      missingText: 'Versículo no disponible',
+      sourcesTitle: 'Fuentes y método',
+      sourcesHint: 'Cómo se eligieron estos datos',
+      sourcesBody:
+        'Estos datos reúnen geografía, medidas, matices del idioma original, costumbres históricas y conexiones entre pasajes. El criterio es conservador: cada dato está anclado a un versículo concreto de la Escritura — nunca especulación. Las medidas y costumbres se apoyan en el consenso de la erudición bíblica ampliamente documentada; los matices de idioma original citan la palabra hebrea o griega tal como aparece en el texto.',
+      categories: {
+        geography: 'Geografía',
+        numbers: 'Números',
+        language: 'Idioma original',
+        history: 'Historia y cultura',
+        crossref: 'Referencias cruzadas',
+      },
+      items: {
+        'dead-sea': {
+          label: 'El punto más bajo de la tierra',
+          detail:
+            'El Mar Muerto, llamado en la Biblia "Mar Salado", está a unos 430 metros bajo el nivel del mar: el punto más bajo de toda la superficie terrestre.',
+        },
+        'mount-hermon': {
+          label: 'El pico más alto de la Biblia',
+          detail:
+            'El monte Hermón, en la frontera norte de Israel, se eleva a 2814 metros y tiene nieve casi todo el año; los amorreos lo llamaban Senir.',
+        },
+        'dan-to-beersheba': {
+          label: '"De Dan a Beerseba"',
+          detail:
+            'Esta frase recorre la Biblia (unas 12 veces) para decir "de un extremo al otro del país" — y en línea recta son apenas unos 240 km: lo pequeña que era realmente la Tierra Prometida.',
+        },
+        'eleven-days': {
+          label: 'Once días… que se hicieron cuarenta años',
+          detail:
+            'De Horeb a Cades-barnea, en la frontera de Canaán, hay solo once días de camino a pie; a Israel, por su rebeldía, el mismo trayecto le tomó cuarenta años.',
+        },
+        'sanctuary-shekel': {
+          label: 'El siclo del santuario',
+          detail:
+            'El peso oficial del tabernáculo equivalía al doble de un siclo común, y la propia ley lo define con precisión: veinte geras.',
+        },
+        'the-cubit': {
+          label: 'El codo, una medida del cuerpo',
+          detail:
+            'El codo (unos 45 cm, de codo a punta de dedos) fue la unidad que midió el arca de Noé, y más tarde el templo.',
+        },
+        'forty-days': {
+          label: 'Cuarenta días, cuarenta años',
+          detail:
+            'El número cuarenta marca una y otra vez los tiempos de prueba en la Biblia: el diluvio, Moisés en el monte, Israel en el desierto, y el ayuno de Jesús.',
+        },
+        'thirty-pieces': {
+          label: 'El precio de un esclavo',
+          detail:
+            'La ley fijaba en treinta piezas de plata el precio de un esclavo herido por un buey; fue exactamente lo que pagaron por traicionar a Jesús.',
+        },
+        hesed: {
+          label: 'Hesed: un amor sin traducción exacta',
+          detail:
+            '⁦חֶסֶד⁩ (hesed) es la palabra hebrea de la misericordia fiel de Dios a su pacto; no tiene equivalente exacto en español, y se repite 26 veces seguidas en un solo salmo.',
+        },
+        selah: {
+          label: 'Selah: una pausa que sigue siendo un misterio',
+          detail:
+            '⁦סֶלָה⁩ (Selah) aparece 71 veces en los Salmos como una instrucción musical o litúrgica; su significado exacto — ¿una pausa?, ¿elevar la voz? — sigue debatido por los eruditos.',
+        },
+        logos: {
+          label: 'Logos: la Palabra que ordena el universo',
+          detail:
+            'λόγος (logos) era, en la filosofía griega, la razón que da orden al universo; Juan toma esa misma palabra y la aplica directamente a Cristo.',
+        },
+        amen: {
+          label: 'Amén: la palabra que no se tradujo',
+          detail:
+            '⁦אָמֵן⁩ (amén), "en verdad" o "que así sea", pasó del hebreo a prácticamente todos los idiomas del mundo sin traducirse, a través de la Biblia.',
+        },
+        'tearing-garments': {
+          label: 'Rasgar las vestiduras',
+          detail:
+            'En el Cercano Oriente antiguo, rasgarse la ropa era una señal pública de duelo o de indignación religiosa extrema; así reaccionó el sumo sacerdote al oír a Jesús.',
+        },
+        'washing-feet': {
+          label: 'Lavar los pies, tarea del último siervo',
+          detail:
+            'Con sandalias abiertas y caminos de tierra, lavar los pies de un invitado era tarea del sirviente de más baja categoría en una casa — de ahí lo chocante del gesto de Jesús con sus discípulos.',
+        },
+        'unleavened-bread': {
+          label: 'Pan sin tiempo para leudar',
+          detail:
+            'El pan de la Pascua se horneaba sin levadura porque no hubo tiempo de esperar que la masa fermentara antes de huir de Egipto a toda prisa.',
+        },
+        'seven-day-wedding': {
+          label: 'Una boda de siete días',
+          detail:
+            'En Israel una boda no era una ceremonia de una tarde, sino una fiesta comunitaria que podía durar una semana entera, como la de Sansón.',
+        },
+        'tree-of-life': {
+          label: 'Un jardín perdido, un jardín recuperado',
+          detail:
+            'La Biblia abre con un árbol de vida al que el ser humano pierde acceso, y cierra con ese mismo árbol, ahora accesible para siempre en la nueva creación.',
+        },
+        'joshua-jesus-name': {
+          label: 'Josué y Jesús: el mismo nombre',
+          detail:
+            '"Josué" y "Jesús" son la misma palabra hebrea, Yehoshúa ("el Señor salva"), en dos formas distintas: uno llevó al pueblo a la Tierra Prometida; el otro lleva a su pueblo a la vida eterna.',
+        },
+        'ruth-genealogy': {
+          label: 'De extranjera excluida a bisabuela de un rey',
+          detail:
+            'La ley excluía a los moabitas de la asamblea de Israel, pero Rut la moabita terminó siendo bisabuela del rey David — y aparece en la genealogía de Jesús.',
+        },
+        'jacob-israel': {
+          label: 'Una noche de lucha, un nombre nuevo',
+          detail:
+            'Jacob luchó toda una noche junto al río Jaboc y recibió de Dios un nombre nuevo, "Israel", que terminaría siendo el de todo un pueblo.',
+        },
+      },
+    },
+
     constancy: {
       title: 'Tu constancia hoy',
       summary: '{{closed}} de {{total}} hoy',
@@ -5823,6 +5954,136 @@ export const translations = {
         'joshua-rest': {
           label: 'The true rest',
           note: 'Joshua gave rest in the land, but not the final one; there remains a rest for the people of God, entered by faith in Jesus.',
+        },
+      },
+    },
+
+    bibleFacts: {
+      title: 'Did you know?',
+      subtitle: 'Interesting facts, biblically grounded',
+      browseHint:
+        'Geography, numbers, original language, history and cross-references — always anchored to a verse.',
+      todayLabel: 'Today',
+      todayTitle: "Today's fact",
+      indexTitle: 'All facts',
+      filterAll: 'All',
+      filterFavorites: 'Favorites',
+      favorite: 'Save as favorite',
+      unfavorite: 'Remove from favorites',
+      noFavorites: 'No favorite facts yet. Tap the star on a card to save one.',
+      openInReader: 'Open in reader',
+      missingText: 'Verse unavailable',
+      sourcesTitle: 'Sources & method',
+      sourcesHint: 'How these facts were chosen',
+      sourcesBody:
+        'These facts gather geography, measurements, original-language nuances, historical customs and connections between passages. The criterion is conservative: every fact is anchored to a specific verse of Scripture — never speculation. Measurements and customs draw on the broadly documented consensus of biblical scholarship; original-language notes quote the Hebrew or Greek word as it appears in the text.',
+      categories: {
+        geography: 'Geography',
+        numbers: 'Numbers',
+        language: 'Original language',
+        history: 'History & culture',
+        crossref: 'Cross-references',
+      },
+      items: {
+        'dead-sea': {
+          label: "Earth's lowest point",
+          detail:
+            'The Dead Sea, called the "Salt Sea" in Scripture, sits about 430 meters below sea level — the lowest point on the entire surface of the earth.',
+        },
+        'mount-hermon': {
+          label: "Scripture's highest peak",
+          detail:
+            "Mount Hermon, on Israel's northern border, rises to 2,814 meters and carries snow nearly year-round; the Amorites called it Senir.",
+        },
+        'dan-to-beersheba': {
+          label: '"From Dan to Beersheba"',
+          detail:
+            'This phrase runs through Scripture (about 12 times) meaning "from one end of the land to the other" — and in a straight line it\'s barely 240 km: how small the Promised Land really was.',
+        },
+        'eleven-days': {
+          label: 'Eleven days… that became forty years',
+          detail:
+            "From Horeb to Kadesh-barnea, at Canaan's border, is only an eleven days' walk; for Israel, because of its rebellion, that same trip took forty years.",
+        },
+        'sanctuary-shekel': {
+          label: 'The sanctuary shekel',
+          detail:
+            "The tabernacle's official weight was double a common shekel, and the law itself defines it precisely: twenty gerahs.",
+        },
+        'the-cubit': {
+          label: 'The cubit, a measure of the body',
+          detail:
+            "The cubit (about 45 cm, elbow to fingertip) was the unit that measured Noah's ark, and later the temple.",
+        },
+        'forty-days': {
+          label: 'Forty days, forty years',
+          detail:
+            "The number forty marks periods of testing again and again in Scripture: the flood, Moses on the mountain, Israel in the wilderness, and Jesus' fast.",
+        },
+        'thirty-pieces': {
+          label: "A slave's price",
+          detail:
+            'The law set thirty pieces of silver as the price of a slave gored by an ox; it was exactly what was paid to betray Jesus.',
+        },
+        hesed: {
+          label: 'Hesed: a love with no exact translation',
+          detail:
+            "⁦חֶסֶד⁩ (hesed) is the Hebrew word for God's faithful, covenant-keeping love; it has no exact equivalent in English, and repeats 26 times in a row in a single psalm.",
+        },
+        selah: {
+          label: 'Selah: a pause still shrouded in mystery',
+          detail:
+            '⁦סֶלָה⁩ (Selah) appears 71 times in the Psalms as a musical or liturgical instruction; its exact meaning — a pause? a raising of the voice? — is still debated by scholars.',
+        },
+        logos: {
+          label: 'Logos: the Word that orders the universe',
+          detail:
+            'λόγος (logos), in Greek philosophy, named the reason that gives order to the universe; John takes that very word and applies it directly to Christ.',
+        },
+        amen: {
+          label: "Amen: the word that wasn't translated",
+          detail:
+            '⁦אָמֵן⁩ (amen), "truly" or "so be it," passed from Hebrew into nearly every language on earth untranslated, through the Bible.',
+        },
+        'tearing-garments': {
+          label: "Tearing one's garments",
+          detail:
+            'In the ancient Near East, tearing your clothes was a public sign of mourning or extreme religious outrage; that is how the high priest reacted on hearing Jesus.',
+        },
+        'washing-feet': {
+          label: "Washing feet, the lowest servant's job",
+          detail:
+            "With open sandals and dusty roads, washing a guest's feet was the job of the lowest-ranking servant in a household — hence how shocking Jesus' gesture with His disciples was.",
+        },
+        'unleavened-bread': {
+          label: 'Bread with no time to rise',
+          detail:
+            'Passover bread was baked without yeast because there was no time to wait for the dough to rise before fleeing Egypt in haste.',
+        },
+        'seven-day-wedding': {
+          label: 'A seven-day wedding',
+          detail:
+            "In Israel a wedding wasn't a one-afternoon ceremony but a community feast that could last a full week, like Samson's.",
+        },
+        'tree-of-life': {
+          label: 'A garden lost, a garden regained',
+          detail:
+            'Scripture opens with a tree of life humanity loses access to, and closes with that same tree, now accessible forever in the new creation.',
+        },
+        'joshua-jesus-name': {
+          label: 'Joshua and Jesus: the same name',
+          detail:
+            '"Joshua" and "Jesus" are the same Hebrew name, Yehoshua ("the Lord saves"), in two different forms: one led the people into the Promised Land; the other leads His people into eternal life.',
+        },
+        'ruth-genealogy': {
+          label: "From excluded foreigner to a king's great-grandmother",
+          detail:
+            "The law excluded Moabites from Israel's assembly, yet Ruth the Moabite became King David's great-grandmother — and appears in the genealogy of Jesus.",
+        },
+        'jacob-israel': {
+          label: 'A night of wrestling, a new name',
+          detail:
+            'Jacob wrestled all night by the river Jabbok and received from God a new name, "Israel," which would become the name of an entire people.',
         },
       },
     },

@@ -84,6 +84,7 @@ import {
   formatChristRefLabel,
 } from '@/features/study/christConnections';
 import {getDailyProphecy} from '@/features/study/messianicProphecies';
+import {getDailyFact} from '@/features/study/bibleFacts';
 import {translations} from '@/i18n/translations';
 import {timeOfDay, homeNudge} from '@/lib/home/homeGreeting';
 import {planPace, formatDayReadings} from '@/lib/reading/planPace';
@@ -546,6 +547,13 @@ export default function HomeScreen() {
     const p = getDailyProphecy();
     return (t.prophecies.items as Record<string, {label: string}>)[p.id]?.label;
   }, [t.prophecies.items]);
+
+  // "Dato del día" — the ¿Sabías qué? Explorar tile teases today's fact and
+  // opens the hub, mirroring the prophecies tile above.
+  const dailyFactLabel = useMemo(() => {
+    const f = getDailyFact();
+    return (t.bibleFacts.items as Record<string, {label: string}>)[f.id]?.label;
+  }, [t.bibleFacts.items]);
 
   // "Continue listening" card mode (Sprint 75): 'navigate' deep-links into the
   // reader (no player up), 'resume' plays the paused restored player in place,
@@ -1329,6 +1337,20 @@ export default function HomeScreen() {
                   handlePress(() =>
                     router.push('/features/prophecies' as never),
                   )
+                }
+              />
+            </View>
+            <View style={styles.savedCardWrapper}>
+              <DiscoverTile
+                icon="bulb"
+                title={t.bibleFacts.title}
+                subtitle={
+                  dailyFactLabel
+                    ? `${t.bibleFacts.todayLabel} · ${dailyFactLabel}`
+                    : t.bibleFacts.subtitle
+                }
+                onPress={() =>
+                  handlePress(() => router.push('/features/facts' as never))
                 }
               />
             </View>
