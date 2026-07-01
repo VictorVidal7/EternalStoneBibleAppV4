@@ -32,6 +32,7 @@ import {useTheme} from '@hooks/useTheme';
 import {centeredMaxWidth} from '@/styles/responsive';
 import {useLanguage} from '@hooks/useLanguage';
 import {useBibleVersion} from '@hooks/useBibleVersion';
+import {useBackHandlerStep} from '@hooks/useBackHandlerStep';
 import {haptics} from '@lib/haptics';
 import {AppText} from '@components/ui/AppText';
 import bibleDB from '@lib/database';
@@ -76,6 +77,16 @@ export default function GuidedDevotionScreen() {
   const [phase, setPhase] = useState<Phase>('choose');
   const [reveal, setReveal] = useState<RevealVerse | null>(null);
   const feelings = getAllFeelings();
+
+  // Hardware back: retreat to the feeling picker from resolving/reveal/error,
+  // matching the on-screen "elegir otro" reset; pop the route from 'choose'.
+  useBackHandlerStep(() => {
+    if (phase !== 'choose') {
+      setPhase('choose');
+      return true;
+    }
+    return false;
+  });
 
   const chooseFeeling = useCallback(
     (feeling: Feeling) => {

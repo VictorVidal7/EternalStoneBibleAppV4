@@ -87,7 +87,11 @@ export default function PropheciesMapScreen() {
 
   const jump = (index: number) => {
     haptics.tap();
-    router.push(`/features/prophecies?start=${index}` as never);
+    // replace (not push): the map already sits above the index route in the
+    // stack, so pushing again on every jump piled up duplicate instances —
+    // hardware back then had to pop through all of them before really going
+    // back. replace keeps one coherent step.
+    router.replace(`/features/prophecies?start=${index}` as never);
   };
 
   // Tap a thread: first tap selects/highlights it; tapping the same thread

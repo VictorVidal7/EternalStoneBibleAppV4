@@ -36,6 +36,7 @@ import {useLanguage} from '@hooks/useLanguage';
 import {useToast} from '@context/ToastContext';
 import {useServices} from '@context/ServicesContext';
 import {useBibleVersion} from '@hooks/useBibleVersion';
+import {useBackHandlerStep} from '@hooks/useBackHandlerStep';
 import {useMemoryDeck} from '@context/MemoryDeckContext';
 import {buildVerseKey} from '@lib/memory/srs';
 import {haptics} from '@lib/haptics';
@@ -351,6 +352,21 @@ export default function LectioScreen() {
     haptics.tap();
     if (stepIndex > 0) setStepIndex(stepIndex - 1);
   };
+
+  // Hardware back: close the share sheet first, then step back one Lectio
+  // movement, then fall through to the default route-pop at the first step
+  // (the finale has no "un-finish" concept, so it pops like normal there).
+  useBackHandlerStep(() => {
+    if (shareVisible) {
+      setShareVisible(false);
+      return true;
+    }
+    if (!finished && stepIndex > 0) {
+      goBack();
+      return true;
+    }
+    return false;
+  });
 
   const headerGradient: [string, string] = [colors.primaryDark, colors.primary];
 

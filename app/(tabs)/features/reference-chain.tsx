@@ -30,6 +30,7 @@ import {centeredMaxWidth} from '@/styles/responsive';
 import {useLanguage} from '@hooks/useLanguage';
 import {ExpandableVerseText} from '@components/ui/ExpandableVerseText';
 import {useBibleVersion} from '@hooks/useBibleVersion';
+import {useBackHandlerStep} from '@hooks/useBackHandlerStep';
 import {getBookByName} from '@/constants/bible';
 import {getMergedCrossReferences} from '@/features/study/crossReferences';
 import {parseReference} from '@lib/references/parseReference';
@@ -183,6 +184,16 @@ export default function ReferenceChainScreen() {
     haptics.tap();
     setTrail(prev => truncateChainTo(prev, index));
   };
+
+  // Hardware back: retreat one link in the chain (same as tapping the
+  // previous breadcrumb), then fall through to the route pop at the seed.
+  useBackHandlerStep(() => {
+    if (trail.length > 1) {
+      setTrail(prev => truncateChainTo(prev, prev.length - 2));
+      return true;
+    }
+    return false;
+  });
 
   const openInReader = (step: ChainStep) => {
     haptics.tap();
