@@ -29,6 +29,7 @@ import {haptics} from '@lib/haptics';
 import {useTheme} from '@hooks/useTheme';
 import {focusTrapProps, a11yHiddenProps} from '@lib/a11y/focusTrap';
 import {useLanguage} from '@hooks/useLanguage';
+import {ExpandableVerseText} from '@components/ui/ExpandableVerseText';
 import {staticColors} from '@/styles/designTokens';
 import {getMergedCrossReferences} from '@/features/study/crossReferences';
 import {christLangForVersion} from '@/features/study/christConnections';
@@ -298,11 +299,11 @@ export const CrossReferencesSheet: React.FC<Props> = ({
                       {row.bookDisplay} {row.chapter}:{row.verse}
                     </Text>
                     {row.text ? (
-                      <Text
+                      <ExpandableVerseText
                         style={[styles.rowText, {color: colors.textSecondary}]}
                         numberOfLines={2}>
                         {row.text}
-                      </Text>
+                      </ExpandableVerseText>
                     ) : (
                       <Text
                         style={[

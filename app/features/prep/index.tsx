@@ -46,6 +46,7 @@ import {useLanguage} from '@hooks/useLanguage';
 import {useBibleVersion} from '@hooks/useBibleVersion';
 import {haptics} from '@lib/haptics';
 import {AppText} from '@components/ui/AppText';
+import {ExpandableVerseText} from '@components/ui/ExpandableVerseText';
 import bibleDB from '@lib/database';
 import {getBookByName} from '@/constants/bible';
 import {getBookIntro} from '@/constants/book-intros';
@@ -554,11 +555,11 @@ export default function PrepTableScreen() {
                     />
                   </View>
                   {row.text != null && (
-                    <Text
+                    <ExpandableVerseText
                       style={[styles.refText, {color: colors.textSecondary}]}
                       numberOfLines={3}>
                       {row.text}
-                    </Text>
+                    </ExpandableVerseText>
                   )}
                 </TouchableOpacity>
               ))}
@@ -631,11 +632,11 @@ export default function PrepTableScreen() {
                 </Text>
               )}
               {row.fulfillmentText && (
-                <Text
+                <ExpandableVerseText
                   style={[styles.helpBody, {color: colors.textTertiary}]}
                   numberOfLines={3}>
                   {row.fulfillmentText}
-                </Text>
+                </ExpandableVerseText>
               )}
             </View>
           ))}
