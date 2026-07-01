@@ -1,6 +1,6 @@
 /**
- * 📐 ExpandableVerseText — a truncated verse/passage `Text` with a "Leer
- * más" / "Leer menos" toggle to grow the box in place.
+ * 📐 ExpandableVerseText — a truncated verse/passage `Text` with a discreet
+ * chevron toggle to grow the box in place.
  *
  * User feedback (2026-06-30, UX batch): study/cross-reference connection
  * cards truncate verse text with `numberOfLines`, and jumping into the
@@ -8,7 +8,9 @@
  * in-place alternative. The toggle is its own small row BELOW the text
  * (not the text itself) so it never conflicts with a card's existing
  * tap-to-navigate behavior — most of these cards are already a
- * TouchableOpacity that jumps to the reader.
+ * TouchableOpacity that jumps to the reader. Kept icon-only and quiet (no
+ * label) per follow-up feedback — the card shouldn't shout "there's more
+ * here," just offer a small, discoverable affordance.
  *
  * Mirrors the app's one existing collapse convention (the prophecy
  * screen's "¿Por qué importa?" / "Fuentes y método": a boolean + chevron,
@@ -33,7 +35,6 @@ import {Ionicons} from '@expo/vector-icons';
 import {useTheme} from '@hooks/useTheme';
 import {useLanguage} from '@hooks/useLanguage';
 import {haptics} from '@lib/haptics';
-import {fontSize as fontSizes, spacing} from '@/styles/designTokens';
 
 export interface ExpandableVerseTextProps {
   children: string;
@@ -63,17 +64,14 @@ export function ExpandableVerseText({
       </Text>
       <TouchableOpacity
         onPress={toggle}
-        hitSlop={{top: 6, bottom: 6, left: 6, right: 6}}
+        hitSlop={{top: 10, bottom: 10, left: 10, right: 10}}
         style={styles.toggle}
         accessibilityRole="button"
         accessibilityLabel={expanded ? t.readLess : t.readMore}
         accessibilityState={{expanded}}>
-        <Text style={[styles.toggleText, {color: colors.textTertiary}]}>
-          {expanded ? t.readLess : t.readMore}
-        </Text>
         <Ionicons
           name={expanded ? 'chevron-up' : 'chevron-down'}
-          size={14}
+          size={13}
           color={colors.textTertiary}
         />
       </TouchableOpacity>
@@ -83,14 +81,8 @@ export function ExpandableVerseText({
 
 const styles = StyleSheet.create({
   toggle: {
-    flexDirection: 'row',
-    alignItems: 'center',
     alignSelf: 'flex-start',
-    gap: 2,
-    marginTop: spacing.xs,
-  },
-  toggleText: {
-    fontSize: fontSizes.xs,
-    fontWeight: '700',
+    marginTop: 2,
+    opacity: 0.7,
   },
 });
