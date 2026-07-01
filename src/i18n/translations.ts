@@ -1799,6 +1799,10 @@ export const translations = {
           label: 'Voz en el desierto',
           note: 'Una voz clamaría en el desierto: «Preparad el camino del Señor»; así predicó Juan en el desierto.',
         },
+        'mal-4-5': {
+          label: 'El Elías que había de venir',
+          note: '«He aquí, yo os envío el profeta Elías, antes que venga el día de Jehová», promete Malaquías; Jesús mismo declaró que esa promesa se cumplió en Juan el Bautista.',
+        },
         'deut-18-15': {
           label: 'Profeta como Moisés',
           note: 'Dios levantaría un profeta como Moisés, a quien oiríamos; Pedro lo proclama cumplido en Jesús.',
@@ -2014,6 +2018,10 @@ export const translations = {
         'ps-8-6': {
           label: 'Todo bajo sus pies',
           note: 'Dios sujetó todas las cosas bajo los pies del hombre; Hebreos lo ve cumplido en Jesús, coronado de gloria, a quien todo le será sometido.',
+        },
+        'isa-65-17': {
+          label: 'Cielos nuevos y tierra nueva',
+          note: '«He aquí que yo creo nuevos cielos y nueva tierra», anuncia Isaías; Juan ve esa promesa cumplida —un cielo nuevo y una tierra nueva— en la visión final donde el Cordero es la luz de la ciudad de Dios.',
         },
         adam: {
           label: 'El postrer Adán',
@@ -5414,6 +5422,10 @@ export const translations = {
           label: 'A voice in the wilderness',
           note: 'A voice would cry in the wilderness, "Prepare the way of the Lord"; so John preached in the desert.',
         },
+        'mal-4-5': {
+          label: 'The Elijah who was to come',
+          note: '"Behold, I will send you Elijah the prophet before the great and terrible day of the LORD comes," Malachi promises; Jesus himself declared that this promise was fulfilled in John the Baptist.',
+        },
         'deut-18-15': {
           label: 'A prophet like Moses',
           note: 'God would raise a prophet like Moses, to whom we must listen; Peter proclaims Him fulfilled in Jesus.',
@@ -5629,6 +5641,10 @@ export const translations = {
         'ps-8-6': {
           label: 'All things under His feet',
           note: 'God put all things under the feet of man; Hebrews sees it fulfilled in Jesus, crowned with glory, to whom all things will be subjected.',
+        },
+        'isa-65-17': {
+          label: 'New heavens and a new earth',
+          note: '"Behold, I create new heavens and a new earth," Isaiah declares; John sees that promise fulfilled — a new heaven and a new earth — in the final vision where the Lamb is the light of the city of God.',
         },
         adam: {
           label: 'The last Adam',

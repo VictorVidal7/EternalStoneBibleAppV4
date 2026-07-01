@@ -151,6 +151,12 @@ export const MESSIANIC_PROPHECIES: readonly MessianicProphecy[] = [
     fulfillment: 'Matthew/3/3',
   },
   {
+    id: 'mal-4-5',
+    group: 'ministry',
+    prophecy: 'Malachi/4/5',
+    fulfillment: 'Matthew/17/13',
+  },
+  {
     id: 'deut-18-15',
     group: 'ministry',
     prophecy: 'Deuteronomy/18/15',
@@ -412,6 +418,12 @@ export const MESSIANIC_PROPHECIES: readonly MessianicProphecy[] = [
     prophecy: 'Psalms/8/6',
     fulfillment: 'Hebrews/2/8',
   },
+  {
+    id: 'isa-65-17',
+    group: 'resurrection',
+    prophecy: 'Isaiah/65/17',
+    fulfillment: 'Revelation/21/1',
+  },
 
   // ── Shadows of Christ: OT types the NT affirms are fulfilled in Him ──
   {
@@ -553,6 +565,7 @@ export const NT_QUOTED_PROPHECIES: ReadonlySet<string> = new Set([
   'isa-11-1',
   'mal-3-1',
   'isa-40-3',
+  'mal-4-5',
   'deut-18-15',
   'isa-61-1',
   'isa-9-2',
