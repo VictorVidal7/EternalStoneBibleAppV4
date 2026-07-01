@@ -29,7 +29,8 @@ export type ReadingPlanI18nKey =
   | 'miracles'
   | 'namesOfGod'
   | 'fruitOfSpirit'
-  | 'heroesOfFaith';
+  | 'heroesOfFaith'
+  | 'propheticThread';
 
 export interface ReadingPlan {
   id: string;
@@ -944,6 +945,521 @@ const heroesOfFaith: ReadingPlan = {
   ],
 };
 
+// Plan: El hilo profético (Hilo profético robustness round 3) — the
+// chapter-level, day-by-day companion to the interactive Hilo profético
+// (app/features/prophecies). Unlike `redemptionStory` above (a hand-picked
+// 31-chapter highlights tour), this plan is DERIVED straight from
+// MESSIANIC_PROPHECIES: one day per prophecy/shadow pair, in the thread's own
+// order, reading that step's OT and NT CHAPTER (not just the single verse) for
+// full context. Two entries that land on the exact same chapter pair (e.g. two
+// Psalm 118 verses both fulfilled in the same Matthew 21 chapter) are merged
+// into one day so the list never repeats a reading back-to-back — hence 70
+// days for 72 catalog entries. Regenerate by re-running the entries through
+// the same book+chapter+merge logic if the dataset grows again.
+const PROPHETIC_THREAD_READINGS: ReadingPlanDay[] = [
+  {
+    day: 1,
+    readings: [
+      {book: 'Génesis', chapter: 3},
+      {book: 'Gálatas', chapter: 4},
+    ],
+  },
+  {
+    day: 2,
+    readings: [
+      {book: 'Génesis', chapter: 22},
+      {book: 'Gálatas', chapter: 3},
+    ],
+  },
+  {
+    day: 3,
+    readings: [
+      {book: 'Génesis', chapter: 49},
+      {book: 'Hebreos', chapter: 7},
+    ],
+  },
+  {
+    day: 4,
+    readings: [
+      {book: 'Números', chapter: 24},
+      {book: 'Mateo', chapter: 2},
+    ],
+  },
+  {
+    day: 5,
+    readings: [
+      {book: '2 Samuel', chapter: 7},
+      {book: 'Lucas', chapter: 1},
+    ],
+  },
+  {
+    day: 6,
+    readings: [
+      {book: 'Isaías', chapter: 7},
+      {book: 'Mateo', chapter: 1},
+    ],
+  },
+  {
+    day: 7,
+    readings: [
+      {book: 'Miqueas', chapter: 5},
+      {book: 'Mateo', chapter: 2},
+    ],
+  },
+  {
+    day: 8,
+    readings: [
+      {book: 'Isaías', chapter: 9},
+      {book: 'Lucas', chapter: 2},
+    ],
+  },
+  {
+    day: 9,
+    readings: [
+      {book: 'Oseas', chapter: 11},
+      {book: 'Mateo', chapter: 2},
+    ],
+  },
+  {
+    day: 10,
+    readings: [
+      {book: 'Jeremías', chapter: 31},
+      {book: 'Mateo', chapter: 2},
+    ],
+  },
+  {
+    day: 11,
+    readings: [
+      {book: 'Isaías', chapter: 11},
+      {book: 'Romanos', chapter: 15},
+    ],
+  },
+  {
+    day: 12,
+    readings: [
+      {book: 'Malaquías', chapter: 3},
+      {book: 'Marcos', chapter: 1},
+    ],
+  },
+  {
+    day: 13,
+    readings: [
+      {book: 'Isaías', chapter: 40},
+      {book: 'Mateo', chapter: 3},
+    ],
+  },
+  {
+    day: 14,
+    readings: [
+      {book: 'Malaquías', chapter: 4},
+      {book: 'Mateo', chapter: 17},
+    ],
+  },
+  {
+    day: 15,
+    readings: [
+      {book: 'Deuteronomio', chapter: 18},
+      {book: 'Hechos', chapter: 3},
+    ],
+  },
+  {
+    day: 16,
+    readings: [
+      {book: 'Isaías', chapter: 61},
+      {book: 'Lucas', chapter: 4},
+    ],
+  },
+  {
+    day: 17,
+    readings: [
+      {book: 'Isaías', chapter: 9},
+      {book: 'Mateo', chapter: 4},
+    ],
+  },
+  {
+    day: 18,
+    readings: [
+      {book: 'Isaías', chapter: 35},
+      {book: 'Mateo', chapter: 11},
+    ],
+  },
+  {
+    day: 19,
+    readings: [
+      {book: 'Salmos', chapter: 78},
+      {book: 'Mateo', chapter: 13},
+    ],
+  },
+  {
+    day: 20,
+    readings: [
+      {book: 'Zacarías', chapter: 9},
+      {book: 'Mateo', chapter: 21},
+    ],
+  },
+  {
+    day: 21,
+    readings: [
+      {book: 'Isaías', chapter: 42},
+      {book: 'Mateo', chapter: 12},
+    ],
+  },
+  {
+    day: 22,
+    readings: [
+      {book: 'Isaías', chapter: 53},
+      {book: 'Mateo', chapter: 8},
+    ],
+  },
+  {
+    day: 23,
+    readings: [
+      {book: 'Salmos', chapter: 118},
+      {book: 'Mateo', chapter: 21},
+    ],
+  },
+  {
+    day: 24,
+    readings: [
+      {book: 'Salmos', chapter: 8},
+      {book: 'Mateo', chapter: 21},
+    ],
+  },
+  {
+    day: 25,
+    readings: [
+      {book: 'Isaías', chapter: 28},
+      {book: '1 Pedro', chapter: 2},
+    ],
+  },
+  {
+    day: 26,
+    readings: [
+      {book: 'Salmos', chapter: 69},
+      {book: 'Juan', chapter: 2},
+    ],
+  },
+  {
+    day: 27,
+    readings: [
+      {book: 'Isaías', chapter: 49},
+      {book: 'Hechos', chapter: 13},
+    ],
+  },
+  {
+    day: 28,
+    readings: [
+      {book: 'Isaías', chapter: 53},
+      {book: 'Juan', chapter: 1},
+    ],
+  },
+  {
+    day: 29,
+    readings: [
+      {book: 'Isaías', chapter: 53},
+      {book: 'Juan', chapter: 12},
+    ],
+  },
+  {
+    day: 30,
+    readings: [
+      {book: 'Salmos', chapter: 41},
+      {book: 'Juan', chapter: 13},
+    ],
+  },
+  {
+    day: 31,
+    readings: [
+      {book: 'Zacarías', chapter: 11},
+      {book: 'Mateo', chapter: 26},
+    ],
+  },
+  {
+    day: 32,
+    readings: [
+      {book: 'Zacarías', chapter: 13},
+      {book: 'Mateo', chapter: 26},
+    ],
+  },
+  {
+    day: 33,
+    readings: [
+      {book: 'Isaías', chapter: 53},
+      {book: 'Mateo', chapter: 27},
+    ],
+  },
+  {
+    day: 34,
+    readings: [
+      {book: 'Isaías', chapter: 50},
+      {book: 'Mateo', chapter: 26},
+    ],
+  },
+  {
+    day: 35,
+    readings: [
+      {book: 'Isaías', chapter: 53},
+      {book: '1 Pedro', chapter: 2},
+    ],
+  },
+  {
+    day: 36,
+    readings: [
+      {book: 'Salmos', chapter: 22},
+      {book: 'Juan', chapter: 20},
+    ],
+  },
+  {
+    day: 37,
+    readings: [
+      {book: 'Salmos', chapter: 22},
+      {book: 'Juan', chapter: 19},
+    ],
+  },
+  {
+    day: 38,
+    readings: [
+      {book: 'Salmos', chapter: 69},
+      {book: 'Juan', chapter: 19},
+    ],
+  },
+  {
+    day: 39,
+    readings: [
+      {book: 'Salmos', chapter: 22},
+      {book: 'Mateo', chapter: 27},
+    ],
+  },
+  {
+    day: 40,
+    readings: [
+      {book: 'Salmos', chapter: 34},
+      {book: 'Juan', chapter: 19},
+    ],
+  },
+  {
+    day: 41,
+    readings: [
+      {book: 'Zacarías', chapter: 12},
+      {book: 'Juan', chapter: 19},
+    ],
+  },
+  {
+    day: 42,
+    readings: [
+      {book: 'Isaías', chapter: 53},
+      {book: 'Mateo', chapter: 27},
+    ],
+  },
+  {
+    day: 43,
+    readings: [
+      {book: 'Isaías', chapter: 53},
+      {book: 'Lucas', chapter: 22},
+    ],
+  },
+  {
+    day: 44,
+    readings: [
+      {book: 'Deuteronomio', chapter: 21},
+      {book: 'Gálatas', chapter: 3},
+    ],
+  },
+  {
+    day: 45,
+    readings: [
+      {book: 'Salmos', chapter: 16},
+      {book: 'Hechos', chapter: 2},
+    ],
+  },
+  {
+    day: 46,
+    readings: [
+      {book: 'Salmos', chapter: 2},
+      {book: 'Hechos', chapter: 13},
+    ],
+  },
+  {
+    day: 47,
+    readings: [
+      {book: 'Salmos', chapter: 110},
+      {book: 'Hechos', chapter: 2},
+    ],
+  },
+  {
+    day: 48,
+    readings: [
+      {book: 'Salmos', chapter: 68},
+      {book: 'Efesios', chapter: 4},
+    ],
+  },
+  {
+    day: 49,
+    readings: [
+      {book: 'Salmos', chapter: 45},
+      {book: 'Hebreos', chapter: 1},
+    ],
+  },
+  {
+    day: 50,
+    readings: [
+      {book: 'Salmos', chapter: 110},
+      {book: 'Hebreos', chapter: 5},
+    ],
+  },
+  {
+    day: 51,
+    readings: [
+      {book: 'Daniel', chapter: 7},
+      {book: 'Mateo', chapter: 26},
+    ],
+  },
+  {
+    day: 52,
+    readings: [
+      {book: 'Joel', chapter: 2},
+      {book: 'Romanos', chapter: 10},
+    ],
+  },
+  {
+    day: 53,
+    readings: [
+      {book: 'Amós', chapter: 9},
+      {book: 'Hechos', chapter: 15},
+    ],
+  },
+  {
+    day: 54,
+    readings: [
+      {book: 'Salmos', chapter: 102},
+      {book: 'Hebreos', chapter: 1},
+    ],
+  },
+  {
+    day: 55,
+    readings: [
+      {book: 'Salmos', chapter: 8},
+      {book: 'Hebreos', chapter: 2},
+    ],
+  },
+  {
+    day: 56,
+    readings: [
+      {book: 'Isaías', chapter: 65},
+      {book: 'Apocalipsis', chapter: 21},
+    ],
+  },
+  {
+    day: 57,
+    readings: [
+      {book: 'Éxodo', chapter: 12},
+      {book: '1 Corintios', chapter: 5},
+    ],
+  },
+  {
+    day: 58,
+    readings: [
+      {book: 'Números', chapter: 21},
+      {book: 'Juan', chapter: 3},
+    ],
+  },
+  {
+    day: 59,
+    readings: [
+      {book: 'Génesis', chapter: 22},
+      {book: 'Juan', chapter: 1},
+    ],
+  },
+  {
+    day: 60,
+    readings: [
+      {book: 'Éxodo', chapter: 16},
+      {book: 'Juan', chapter: 6},
+    ],
+  },
+  {
+    day: 61,
+    readings: [
+      {book: 'Éxodo', chapter: 17},
+      {book: '1 Corintios', chapter: 10},
+    ],
+  },
+  {
+    day: 62,
+    readings: [
+      {book: 'Éxodo', chapter: 25},
+      {book: 'Juan', chapter: 1},
+    ],
+  },
+  {
+    day: 63,
+    readings: [
+      {book: 'Levítico', chapter: 16},
+      {book: 'Hebreos', chapter: 9},
+    ],
+  },
+  {
+    day: 64,
+    readings: [
+      {book: 'Génesis', chapter: 14},
+      {book: 'Hebreos', chapter: 7},
+    ],
+  },
+  {
+    day: 65,
+    readings: [
+      {book: 'Levítico', chapter: 23},
+      {book: '1 Corintios', chapter: 15},
+    ],
+  },
+  {
+    day: 66,
+    readings: [
+      {book: 'Jonás', chapter: 1},
+      {book: 'Mateo', chapter: 12},
+    ],
+  },
+  {
+    day: 67,
+    readings: [
+      {book: 'Génesis', chapter: 2},
+      {book: '1 Corintios', chapter: 15},
+    ],
+  },
+  {
+    day: 68,
+    readings: [
+      {book: 'Éxodo', chapter: 26},
+      {book: 'Hebreos', chapter: 10},
+    ],
+  },
+  {
+    day: 69,
+    readings: [
+      {book: 'Levítico', chapter: 16},
+      {book: 'Hebreos', chapter: 9},
+    ],
+  },
+  {
+    day: 70,
+    readings: [
+      {book: 'Josué', chapter: 21},
+      {book: 'Hebreos', chapter: 4},
+    ],
+  },
+];
+const propheticThread: ReadingPlan = {
+  id: 'prophetic-thread-70',
+  name: 'El hilo profético',
+  description:
+    'El Antiguo y el Nuevo Testamento, capítulo a capítulo: 70 días recorriendo cada profecía y su cumplimiento en Cristo',
+  i18nKey: 'propheticThread',
+  duration: PROPHETIC_THREAD_READINGS.length,
+  icon: 'git-network-outline',
+  color: '#6366f1',
+  days: PROPHETIC_THREAD_READINGS,
+};
+
 export const READING_PLANS: ReadingPlan[] = [
   firstSteps,
   iamSayings,
@@ -953,6 +1469,7 @@ export const READING_PLANS: ReadingPlan[] = [
   fruitOfSpirit,
   heroesOfFaith,
   redemptionStory,
+  propheticThread,
   gospels40Days,
   newTestament30Days,
   wisdomDaily,
