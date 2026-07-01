@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "generated": "2026-06-21",
+  "generated": "2026-07-01",
   "note": "Per-version SQLite packs for Eternal Bible. Each pack has a single verses table (book_id,book_name,chapter,verse,text). Imported via ATTACH+INSERT; FTS auto-indexes on device. Public domain.",
   "versions": [
     {
@@ -12,7 +12,7 @@
       "license": "Public Domain",
       "url": "https://eternalstonebible.github.io/packs/kjv.sqlite",
       "bytes": 4968448,
-      "sha256": "11d0a2fd46ec111cc3878a4b037ada4add6e27f0cf0c880c2d46c04a38a886ab",
+      "sha256": "ae0605aeed8666a2b4e13921bfa66c4f80eba8013a82b32b63a3798cd7af0079",
       "verseCount": 31102
     },
     {
@@ -36,7 +36,7 @@
       "license": "Public Domain",
       "url": "https://eternalstonebible.github.io/packs/rv1909.sqlite",
       "bytes": 4751360,
-      "sha256": "c5417fe82b43e4348180653c6bf223b16b976c56f10692d8a0c50616dcc49a61",
+      "sha256": "271526b7c3ced81eb50f193c80b4a2b2966363c9128f43d88b795fd118fdeb73",
       "verseCount": 31084
     },
     {
@@ -48,7 +48,7 @@
       "license": "Public Domain",
       "url": "https://eternalstonebible.github.io/packs/sse1569.sqlite",
       "bytes": 4739072,
-      "sha256": "1189a838074a6710feb2c98e714a22415d034372997e2e2d092de7b16d446b4c",
+      "sha256": "7b335aedf5f35c9ff12c5f4627f472a38cd0193454b7c91431e2e361fd4a9648",
       "verseCount": 31098
     }
   ]

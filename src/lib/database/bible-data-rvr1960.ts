@@ -23008,7 +23008,7 @@ export const RVR1960_DATA = [
     "book_name": "1 Samuel",
     "chapter": 18,
     "verse": 7,
-    "text": "Y cantaban las mujeres que danzaban, y decían:Saúl hirió a sus miles, Y David a sus diez miles.",
+    "text": "Y cantaban las mujeres que danzaban, y decían: Saúl hirió a sus miles, Y David a sus diez miles.",
     "version": "RVR1960"
   },
   {
