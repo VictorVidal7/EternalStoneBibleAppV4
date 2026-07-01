@@ -2855,6 +2855,12 @@ export const translations = {
         'Una invitación gentil a pasar tiempo en la Palabra cada día, a la hora que elijas',
       devotionReminderEnabled: 'Recordatorio de devoción activado',
       devotionReminderDisabled: 'Recordatorio de devoción desactivado',
+      prophecyReminderTitle: 'Profecía del día',
+      prophecyReminder: 'Profecía del día',
+      prophecyReminderDesc:
+        'Recibe cada día un paso del hilo profético que anuncia a Cristo, a la hora que elijas',
+      prophecyReminderEnabled: 'Recordatorio de profecía activado',
+      prophecyReminderDisabled: 'Recordatorio de profecía desactivado',
       permissionDeniedTitle: 'Permiso necesario',
       permissionDeniedMessage:
         'Para recibir el versículo diario, activa las notificaciones de la app en los ajustes del sistema.',
@@ -6458,6 +6464,12 @@ export const translations = {
         'A gentle daily invitation to spend time in the Word, at the time you choose',
       devotionReminderEnabled: 'Devotion reminder turned on',
       devotionReminderDisabled: 'Devotion reminder turned off',
+      prophecyReminderTitle: 'Prophecy of the day',
+      prophecyReminder: 'Prophecy of the day',
+      prophecyReminderDesc:
+        'Receive a step of the prophetic thread that points to Christ each day, at the time you choose',
+      prophecyReminderEnabled: 'Prophecy reminder turned on',
+      prophecyReminderDisabled: 'Prophecy reminder turned off',
       permissionDeniedTitle: 'Permission needed',
       permissionDeniedMessage:
         'To receive the daily verse, enable notifications for the app in your system settings.',

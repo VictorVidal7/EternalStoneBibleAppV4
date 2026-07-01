@@ -32,6 +32,7 @@ import {useToast} from '@context/ToastContext';
 import DailyVerseSettings from '@components/settings/DailyVerseSettings';
 import PrayerReminderSettings from '@components/settings/PrayerReminderSettings';
 import DevotionReminderSettings from '@components/settings/DevotionReminderSettings';
+import PropheticReminderSettings from '@components/settings/PropheticReminderSettings';
 import MemoryGoalSettings from '@components/settings/MemoryGoalSettings';
 import ManageVersionsSection from '@components/settings/ManageVersionsSection';
 import ReadingGoalSettings from '@components/settings/ReadingGoalSettings';
@@ -670,6 +671,9 @@ export default function SettingsScreen() {
 
         {/* Gentle daily "time in the Word" reminder (Sprint 97) */}
         <DevotionReminderSettings />
+
+        {/* "Profecía del día" — Hilo profético robustness round 3 */}
+        <PropheticReminderSettings />
 
         {/* Daily reading goal — grades the Leer constancy ring (Sprint 85) */}
         <ReadingGoalSettings />
