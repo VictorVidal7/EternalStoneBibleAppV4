@@ -1921,6 +1921,10 @@ export const translations = {
           label: 'El Renuevo de Isaí',
           note: 'Una vara saldría del tronco de Isaí, un Renuevo que llevará fruto; Pablo cita esta raíz de Isaí: Cristo, en quien esperan los gentiles.',
         },
+        'jer-23-5': {
+          label: 'El Renuevo justo de David',
+          note: '«Levantaré a David renuevo justo, y reinará como Rey», promete Jeremías; el Señor Jesús se declara a sí mismo «la raíz y el linaje de David, la estrella resplandeciente de la mañana».',
+        },
         'isa-42-1': {
           label: 'Mi siervo escogido',
           note: 'He aquí mi siervo, mi escogido en quien mi alma tiene contentamiento; Mateo lo aplica al Señor Jesús, manso y humilde.',
@@ -1932,6 +1936,10 @@ export const translations = {
         'isa-53-3': {
           label: 'Despreciado y desechado',
           note: 'Despreciado y desechado entre los hombres; vino a lo suyo, y los suyos no le recibieron.',
+        },
+        'ps-69-4': {
+          label: 'Aborrecido sin causa',
+          note: '«Se han aumentado... los que me aborrecen sin causa», clama el salmista; Jesús mismo cita estas palabras la noche antes de morir: «Sin causa me aborrecieron».',
         },
         'deut-21-23': {
           label: 'Hecho maldición por nosotros',
@@ -1949,6 +1957,14 @@ export const translations = {
           label: 'La senda de la vida',
           note: 'Me mostrarás la senda de la vida; Pedro lo proclama cumplido en la resurrección del Señor.',
         },
+        'isa-55-3': {
+          label: 'El pacto eterno, las misericordias de David',
+          note: '«Haré con vosotros pacto eterno, las misericordias firmes a David», promete Isaías; Pablo lo cita en Antioquía como prueba de que Cristo resucitó para no volver más a corrupción.',
+        },
+        'ps-132-11': {
+          label: 'El juramento a David',
+          note: '«Juró Jehová a David... de tu descendencia pondré sobre tu trono»; Pedro recuerda ese juramento en Pentecostés al proclamar que Dios resucitó a Cristo para sentarlo en su trono.',
+        },
         'ps-45-6': {
           label: 'Tu trono es eterno, oh Dios',
           note: 'Tu trono, oh Dios, es eterno y para siempre; Hebreos lo dice del Hijo, Dios y Rey por los siglos.',
@@ -1960,6 +1976,10 @@ export const translations = {
         'paschal-lamb': {
           label: 'El cordero de la Pascua',
           note: 'La sangre del cordero libraba de la muerte; «nuestra Pascua, que es Cristo, ya fue sacrificada por nosotros».',
+        },
+        'covenant-blood': {
+          label: 'La sangre del pacto',
+          note: 'Moisés roció al pueblo con la sangre del pacto en el Sinaí; en la Última Cena, Jesús toma la copa y dice: «esto es mi sangre del nuevo pacto, que por muchos es derramada».',
         },
         'bronze-serpent': {
           label: 'La serpiente de bronce',
@@ -2028,6 +2048,14 @@ export const translations = {
         'ps-8-6': {
           label: 'Todo bajo sus pies',
           note: 'Dios sujetó todas las cosas bajo los pies del hombre; Hebreos lo ve cumplido en Jesús, coronado de gloria, a quien todo le será sometido.',
+        },
+        'isa-25-8': {
+          label: 'La muerte devorada para siempre',
+          note: '«Destruirá a la muerte para siempre», anuncia Isaías; Pablo cita la promesa cumplida cuando lo mortal se vista de inmortalidad: «Sorbida es la muerte en victoria».',
+        },
+        'hos-13-14': {
+          label: 'Rescatados del poder del Seol',
+          note: '«Oh muerte, yo seré tu muerte», promete Oseas; junto a Isaías 25:8, Pablo retoma el mismo clamor de victoria: «¿Dónde está, oh muerte, tu aguijón?».',
         },
         'isa-65-17': {
           label: 'Cielos nuevos y tierra nueva',
@@ -5631,6 +5659,10 @@ export const translations = {
           label: 'The Branch of Jesse',
           note: 'A shoot would come from the stump of Jesse, a Branch bearing fruit; Paul cites this root of Jesse: Christ, in whom the Gentiles hope.',
         },
+        'jer-23-5': {
+          label: "David's righteous Branch",
+          note: '"I will raise up for David a righteous Branch, and he shall reign as King," Jeremiah promises; the Lord Jesus declares himself "the root and the descendant of David, the bright morning star."',
+        },
         'isa-42-1': {
           label: 'My chosen servant',
           note: 'Behold My servant, My chosen in whom My soul delights; Matthew applies it to the Lord Jesus, gentle and humble.',
@@ -5642,6 +5674,10 @@ export const translations = {
         'isa-53-3': {
           label: 'Despised and rejected',
           note: 'Despised and rejected by men; He came to His own, and His own did not receive Him.',
+        },
+        'ps-69-4': {
+          label: 'Hated without a cause',
+          note: 'Those who hate me without cause are more than the hairs of my head, the psalmist cries; Jesus himself quotes these words the night before He died: "They hated me without a cause."',
         },
         'deut-21-23': {
           label: 'Made a curse for us',
@@ -5659,6 +5695,14 @@ export const translations = {
           label: 'The path of life',
           note: 'You will show Me the path of life; Peter proclaims it fulfilled in the resurrection of the Lord.',
         },
+        'isa-55-3': {
+          label: 'The everlasting covenant, the sure mercies of David',
+          note: '"I will make with you an everlasting covenant, my steadfast, sure love for David," Isaiah promises; Paul quotes it at Antioch as proof that Christ was raised, never again to see corruption.',
+        },
+        'ps-132-11': {
+          label: 'The oath to David',
+          note: '"The LORD swore to David... one of the sons of your body I will set on your throne"; Peter recalls that oath at Pentecost, proclaiming that God raised up Christ to sit on his throne.',
+        },
         'ps-45-6': {
           label: 'Your throne is forever, O God',
           note: 'Your throne, O God, is forever and ever; Hebrews says it of the Son, God and King through the ages.',
@@ -5670,6 +5714,10 @@ export const translations = {
         'paschal-lamb': {
           label: 'The Passover lamb',
           note: "The lamb's blood spared from death; 'Christ, our Passover, has been sacrificed for us.'",
+        },
+        'covenant-blood': {
+          label: 'The blood of the covenant',
+          note: 'Moses sprinkled the people with the blood of the covenant at Sinai; at the Last Supper, Jesus took the cup and said, "this is my blood of the new covenant, poured out for many."',
         },
         'bronze-serpent': {
           label: 'The bronze serpent',
@@ -5738,6 +5786,14 @@ export const translations = {
         'ps-8-6': {
           label: 'All things under His feet',
           note: 'God put all things under the feet of man; Hebrews sees it fulfilled in Jesus, crowned with glory, to whom all things will be subjected.',
+        },
+        'isa-25-8': {
+          label: 'Death swallowed up forever',
+          note: '"He will swallow up death forever," Isaiah announces; Paul quotes this promise fulfilled when the mortal puts on immortality: "Death is swallowed up in victory."',
+        },
+        'hos-13-14': {
+          label: 'Ransomed from the power of Sheol',
+          note: '"O Death, I will be your plague," Hosea promises; alongside Isaiah 25:8, Paul takes up the same cry of victory: "O death, where is your sting?"',
         },
         'isa-65-17': {
           label: 'New heavens and a new earth',

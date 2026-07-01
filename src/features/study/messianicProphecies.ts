@@ -136,6 +136,12 @@ export const MESSIANIC_PROPHECIES: readonly MessianicProphecy[] = [
     prophecy: 'Isaiah/11/1',
     fulfillment: 'Romans/15/12',
   },
+  {
+    id: 'jer-23-5',
+    group: 'coming',
+    prophecy: 'Jeremiah/23/5',
+    fulfillment: 'Revelation/22/16',
+  },
 
   // ── His ministry ──
   {
@@ -249,6 +255,12 @@ export const MESSIANIC_PROPHECIES: readonly MessianicProphecy[] = [
     fulfillment: 'John/1/11',
   },
   {
+    id: 'ps-69-4',
+    group: 'passion',
+    prophecy: 'Psalms/69/4',
+    fulfillment: 'John/15/25',
+  },
+  {
     id: 'isa-53-1',
     group: 'passion',
     prophecy: 'Isaiah/53/1',
@@ -347,6 +359,12 @@ export const MESSIANIC_PROPHECIES: readonly MessianicProphecy[] = [
 
   // ── His resurrection and exaltation ──
   {
+    id: 'isa-55-3',
+    group: 'resurrection',
+    prophecy: 'Isaiah/55/3',
+    fulfillment: 'Acts/13/34',
+  },
+  {
     id: 'ps-16-10',
     group: 'resurrection',
     prophecy: 'Psalms/16/10',
@@ -357,6 +375,12 @@ export const MESSIANIC_PROPHECIES: readonly MessianicProphecy[] = [
     group: 'resurrection',
     prophecy: 'Psalms/16/11',
     fulfillment: 'Acts/2/28',
+  },
+  {
+    id: 'ps-132-11',
+    group: 'resurrection',
+    prophecy: 'Psalms/132/11',
+    fulfillment: 'Acts/2/30',
   },
   {
     id: 'ps-2-7',
@@ -419,6 +443,18 @@ export const MESSIANIC_PROPHECIES: readonly MessianicProphecy[] = [
     fulfillment: 'Hebrews/2/8',
   },
   {
+    id: 'isa-25-8',
+    group: 'resurrection',
+    prophecy: 'Isaiah/25/8',
+    fulfillment: '1 Corinthians/15/54',
+  },
+  {
+    id: 'hos-13-14',
+    group: 'resurrection',
+    prophecy: 'Hosea/13/14',
+    fulfillment: '1 Corinthians/15/55',
+  },
+  {
     id: 'isa-65-17',
     group: 'resurrection',
     prophecy: 'Isaiah/65/17',
@@ -432,6 +468,13 @@ export const MESSIANIC_PROPHECIES: readonly MessianicProphecy[] = [
     kind: 'shadow',
     prophecy: 'Exodus/12/13',
     fulfillment: '1 Corinthians/5/7',
+  },
+  {
+    id: 'covenant-blood',
+    group: 'shadows',
+    kind: 'shadow',
+    prophecy: 'Exodus/24/8',
+    fulfillment: 'Matthew/26/28',
   },
   {
     id: 'bronze-serpent',
@@ -603,6 +646,10 @@ export const NT_QUOTED_PROPHECIES: ReadonlySet<string> = new Set([
   'ps-102-25',
   'ps-8-6',
   'adam',
+  'ps-69-4',
+  'isa-55-3',
+  'isa-25-8',
+  'hos-13-14',
 ]);
 
 /** Whether the NT explicitly quotes/cites this prophecy as fulfilled. */
