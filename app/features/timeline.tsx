@@ -35,6 +35,7 @@ import bibleDB from '@lib/database';
 import {AppText} from '@components/ui/AppText';
 import {getBookByName} from '@/constants/bible';
 import {READING_PLANS, getLocalizedPlan} from '@/constants/reading-plans';
+import {effectivePlanDays} from '@/lib/reading/planReflow';
 import {
   buildTimeline,
   timelineMonthKey,
@@ -78,7 +79,8 @@ export default function TimelineScreen() {
   const tl = t.readingInsights.timeline;
   const {achievementService, highlightService} = useServices();
   const {favorites} = useFavorites();
-  const {getStartedAt, getCompletedAt} = useReadingPlanProgress();
+  const {getStartedAt, getCompletedAt, getPlanDuration} =
+    useReadingPlanProgress();
 
   const [events, setEvents] = useState<TimelineEvent[] | null>(null);
   const [status, setStatus] = useState<LoadStatus>('loading');
@@ -199,17 +201,29 @@ export default function TimelineScreen() {
           return tl.devotionStreak.replace('{{n}}', event.subject);
         case 'plan-started': {
           const plan = READING_PLANS.find(p => p.id === event.subject);
-          const name = plan ? getLocalizedPlan(plan, t).name : event.subject;
+          const name = plan
+            ? getLocalizedPlan(
+                plan,
+                t,
+                effectivePlanDays(plan, getPlanDuration(plan.id)).length,
+              ).name
+            : event.subject;
           return tl.planStarted.replace('{{plan}}', name);
         }
         case 'plan-completed': {
           const plan = READING_PLANS.find(p => p.id === event.subject);
-          const name = plan ? getLocalizedPlan(plan, t).name : event.subject;
+          const name = plan
+            ? getLocalizedPlan(
+                plan,
+                t,
+                effectivePlanDays(plan, getPlanDuration(plan.id)).length,
+              ).name
+            : event.subject;
           return tl.planCompleted.replace('{{plan}}', name);
         }
       }
     },
-    [tl, t, language, localizedRef],
+    [tl, t, language, localizedRef, getPlanDuration],
   );
 
   const eventAccent = useCallback(

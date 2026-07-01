@@ -46,6 +46,7 @@ import {useBookmarks} from '@context/BookmarksContext';
 import {useReadingPlanProgress} from '@context/ReadingPlanProgressContext';
 import {useReadingProgress} from '@context/ReadingProgressContext';
 import {getReadingPlanById, getLocalizedPlan} from '@/constants/reading-plans';
+import {effectivePlanDays} from '@/lib/reading/planReflow';
 import {
   isBookComplete,
   detectCompletedBooks,
@@ -138,7 +139,7 @@ export default function VerseReadingScreen() {
     useServices();
   const {favorites, addFavorite, removeFavorite} = useFavorites();
   const {addBookmark} = useBookmarks();
-  const {markChapterRead} = useReadingPlanProgress();
+  const {markChapterRead, getPlanDuration} = useReadingPlanProgress();
   // Audio Bible
   const {
     loadChapter: loadAudioChapter,
@@ -659,7 +660,13 @@ export default function VerseReadingScreen() {
           if (autoDone.length > 0) {
             const {planId, day} = autoDone[0];
             const plan = getReadingPlanById(planId);
-            const planName = plan ? getLocalizedPlan(plan, t).name : '';
+            const planName = plan
+              ? getLocalizedPlan(
+                  plan,
+                  t,
+                  effectivePlanDays(plan, getPlanDuration(plan.id)).length,
+                ).name
+              : '';
             toast.success(
               t.readingPlan.dayAutoCompleted
                 .replace('{{day}}', String(day))

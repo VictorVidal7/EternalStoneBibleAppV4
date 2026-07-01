@@ -271,7 +271,7 @@ export default function ReadingPlanDetailScreen() {
   }
 
   const percent = Math.round((completed / effectiveDuration) * 100);
-  const localizedPlan = getLocalizedPlan(plan, t);
+  const localizedPlan = getLocalizedPlan(plan, t, effectiveDuration);
   // A custom plan carries no localized tagline (S108) — describe it by its
   // shape in the active language instead of an empty subtitle.
   const headerSubtitle = plan.custom
