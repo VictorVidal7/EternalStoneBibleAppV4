@@ -70,6 +70,13 @@ export default function JourneysHubScreen() {
     router.push(`/features/journeys/${route}` as never);
   };
 
+  // A deep link straight into this screen leaves no back-stack entry, so
+  // router.back() would throw a "GO_BACK not handled" navigation error.
+  const goBack = () => {
+    if (router.canGoBack()) router.back();
+    else router.replace('/' as never);
+  };
+
   return (
     <>
       <Stack.Screen options={{headerShown: false}} />
@@ -81,7 +88,7 @@ export default function JourneysHubScreen() {
           style={[styles.header, {paddingTop: insets.top + spacing.md}]}>
           <TouchableOpacity
             style={styles.backButton}
-            onPress={() => router.back()}
+            onPress={goBack}
             accessibilityRole="button"
             accessibilityLabel={t.bible.back}>
             <Ionicons name="arrow-back" size={24} color={staticColors.white} />
