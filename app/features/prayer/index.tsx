@@ -448,6 +448,40 @@ export default function PrayerJournalScreen() {
             </TouchableOpacity>
           </View>
 
+          <TouchableOpacity
+            style={[
+              styles.scriptureCta,
+              {borderColor: colors.primary, backgroundColor: colors.card},
+            ]}
+            onPress={() => {
+              haptics.tap();
+              router.push('/features/prayer/scripture' as never);
+            }}
+            accessibilityRole="button"
+            accessibilityLabel={tp.scriptureCta}>
+            <Ionicons name="book-outline" size={18} color={colors.primary} />
+            <View style={styles.scriptureCtaText}>
+              <AppText
+                scaleRole="compact"
+                style={[styles.scriptureCtaTitle, {color: colors.primary}]}>
+                {tp.scriptureCta}
+              </AppText>
+              <AppText
+                scaleRole="compact"
+                style={[
+                  styles.scriptureCtaSubtitle,
+                  {color: colors.textSecondary},
+                ]}>
+                {tp.scriptureCtaSubtitle}
+              </AppText>
+            </View>
+            <Ionicons
+              name="chevron-forward"
+              size={18}
+              color={colors.textTertiary}
+            />
+          </TouchableOpacity>
+
           {/* Filter row — horizontal ScrollView, no flex (no Fabric stretch) */}
           {requests.length > 0 && (
             <ScrollView
@@ -781,6 +815,18 @@ const styles = StyleSheet.create({
     borderWidth: 1.5,
   },
   ctaSecondaryText: {fontSize: fontSizes.md, fontWeight: '700'},
+  scriptureCta: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.sm,
+    paddingVertical: spacing.md,
+    paddingHorizontal: spacing.base,
+    borderRadius: borderRadius.lg,
+    borderWidth: 1.5,
+  },
+  scriptureCtaText: {flex: 1},
+  scriptureCtaTitle: {fontSize: fontSizes.md, fontWeight: '700'},
+  scriptureCtaSubtitle: {fontSize: fontSizes.xs, marginTop: 1},
   filterScroller: {flexGrow: 0},
   filterRow: {gap: spacing.sm, paddingVertical: spacing.xs},
   chip: {
