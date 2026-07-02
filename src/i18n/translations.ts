@@ -3423,6 +3423,8 @@ export const translations = {
       restartPlan: 'Reiniciar plan',
       restartPlanConfirm:
         'Esto borra los días marcados para volver a empezar desde el Día 1. Tu logro de haberlo completado antes se conserva.',
+      restartPlanConfirmInProgress:
+        'Esto borra tus días marcados hasta ahora para volver a empezar desde el Día 1.',
       planRestarted: 'Plan reiniciado — ¡Día 1 te espera!',
     },
 
@@ -8235,6 +8237,8 @@ export const translations = {
       restartPlan: 'Restart plan',
       restartPlanConfirm:
         "This clears your marked days so you can start over from Day 1. You'll keep credit for finishing it before.",
+      restartPlanConfirmInProgress:
+        'This clears your marked days so far so you can start over from Day 1.',
       planRestarted: 'Plan restarted — Day 1 awaits!',
     },
 
