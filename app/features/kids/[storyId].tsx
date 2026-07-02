@@ -321,19 +321,28 @@ export default function KidsStoryScreen() {
               )}
 
               <View style={styles.navRow}>
-                {sceneIndex > 0 ? (
-                  <TouchableOpacity
-                    style={[styles.navBtn, {borderColor: colors.border}]}
-                    onPress={prevScene}
-                    accessibilityRole="button"
-                    accessibilityLabel={tk.previous}>
-                    <AppText style={[styles.navBtnText, {color: colors.text}]}>
-                      {tk.previous}
-                    </AppText>
-                  </TouchableOpacity>
-                ) : (
-                  <View style={styles.navBtn} />
-                )}
+                <TouchableOpacity
+                  style={[
+                    styles.navBtn,
+                    {borderColor: colors.border},
+                    sceneIndex === 0 && styles.navBtnDisabled,
+                  ]}
+                  onPress={prevScene}
+                  disabled={sceneIndex === 0}
+                  accessibilityRole="button"
+                  accessibilityState={{disabled: sceneIndex === 0}}
+                  accessibilityLabel={tk.previous}>
+                  <AppText
+                    style={[
+                      styles.navBtnText,
+                      {
+                        color:
+                          sceneIndex === 0 ? colors.textTertiary : colors.text,
+                      },
+                    ]}>
+                    {tk.previous}
+                  </AppText>
+                </TouchableOpacity>
                 <TouchableOpacity
                   style={[
                     styles.navBtn,
@@ -516,6 +525,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
   },
   navBtnPrimary: {borderWidth: 0},
+  navBtnDisabled: {opacity: 0.4},
   navBtnText: {fontSize: fontSizes.md, fontWeight: '800'},
   doneWrap: {alignSelf: 'stretch', alignItems: 'center', gap: spacing.md},
   doneStars: {fontSize: fontSizes['3xl']},
