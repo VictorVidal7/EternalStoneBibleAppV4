@@ -1,81 +1,45 @@
-# Bible data: bundle strategy & the pre-seeded asset-DB question (Sprint 67)
+# Bible data: bundle strategy (current)
 
-How the three bundled translations ship today, what a pre-seeded SQLite asset
-would change, and — with **measured numbers** — why we are **keeping the current
-runtime-JS seed** for now. Read this before the next production build or before
-adding a 4th translation.
+How Bible text ships and seeds into the on-device SQLite DB today. Read this
+before the next production build or before adding a 4th translation.
 
-## How it works today (100% JS, no rebuild)
+## How it works today
 
-`src/lib/database/data-loader.ts` seeds three translations into the on-device
-SQLite `bible.db` at runtime from bundled JS data files:
+`assets/bible-seed.db` is a pre-built SQLite database (RVR1960 + WEB) shipped
+as a bundled asset. On first launch, `seedFromBundleIfMissing()`
+(`src/lib/database/index.ts`) copies it straight into
+`files/SQLite/bible.db` — a fast file copy, no per-verse insert loop.
 
-| File                    | Verses     | Raw          | gzip         |
-| ----------------------- | ---------- | ------------ | ------------ |
-| `bible-data-rvr1960.ts` | 31,102     | 8.1 MB       | 1.48 MB      |
-| `bible-data-kjv.ts`     | 31,102     | 7.8 MB       | 1.44 MB      |
-| `bible-data-web.ts`     | 31,095     | 7.8 MB       | 1.43 MB      |
-| **Total**               | **93,299** | **≈23.7 MB** | **≈4.35 MB** |
+`src/lib/database/bible-data-rvr1960.ts` and `bible-data-web.ts` (JS arrays,
+~8 MB each) are kept as a **fallback seed path** in `data-loader.ts`, used only
+if the asset-DB copy didn't already seed a version (guarded by the same
+`@bible_data_loaded_*` flags). In the normal install path they are not
+executed; they exist so a corrupted/missing asset copy still self-heals from
+JS on next launch.
 
-Each is `import()`-ed lazily and inserted into the `verses` table, guarded by its
-own `@bible_data_loaded_*` flag, so the work is one-time + incremental. On a fresh
-install the seed takes **~65 s per version (~3 min for all three)**; an existing
-install only pays for newly-bundled versions (Sprint 66's WEB seeded additively).
+KJV/BSB ship as separate downloadable packs (Settings → Manage Versions), not
+part of the base seed.
 
-## The pre-seeded asset-DB alternative
+## Rebuilding `bible-seed.db`
 
-Ship a **pre-built `bible.db`** (all three versions) as an Android asset and copy
-it into `files/SQLite/bible.db` on first launch instead of seeding from JS,
-dropping the three `bible-data-*.ts` files from the JS bundle.
+`scripts/rebuild-seed.js` regenerates the asset DB from the two JS data files
+(`bible-data-rvr1960.ts`, `bible-data-web.ts`) using `node:sqlite`. Run it
+whenever either source file changes, then re-bundle the app so the new
+`bible-seed.db` ships.
 
-### Measured size comparison
+## Adding a 4th translation to the base seed
 
-| Payload                                | Raw     | gzip (≈ APK/AAB compression) |
-| -------------------------------------- | ------- | ---------------------------- |
-| 3× JS data files                       | 23.7 MB | **4.35 MB**                  |
-| `bible.db` (3 versions, incl. indexes) | 32.2 MB | **11.8 MB**                  |
+1. Add `bible-data-<id>.ts` next to the existing two.
+2. Wire a `loadBibleVersion` call + flag in `data-loader.ts` as the fallback path.
+3. Re-run `scripts/rebuild-seed.js` to bake it into `bible-seed.db`.
+4. Re-measure bundle size — the asset DB is the size driver now, not the JS
+   fallback files (their fallback role means they're rarely exercised but
+   still ship in the JS bundle; see the "future work" note below).
 
-**The asset-DB does NOT shrink the download — it grows it.** JSON-ish text
-compresses ~5.4× (→ 4.35 MB); the SQLite binary (B-tree pages + indexes)
-compresses only ~2.7× (→ 11.8 MB). Caveat: in a release build the JS data is
-compiled to **Hermes bytecode** embedded in `index.android.bundle`; bytecode for
-large string tables can exceed the source, so the JS path's _true_ APK
-contribution sits somewhere between 4.35 MB (gzipped text) and ~24 MB (raw) and
-needs a real release-build measurement to pin down. Even at the pessimistic end,
-the DB asset's 11.8 MB compressed is in the same ballpark — **size is a wash at
-best, a regression at worst.**
+## Known follow-up (not urgent)
 
-### What the asset-DB _would_ win
-
-- **First-launch time**: a ~1 s file copy instead of the ~3 min JS→SQLite seed.
-- **Lower JS heap + no seed race** during startup (the Sprint 67 live test hit a
-  transient `prepareAsync` init race once; a pre-seeded DB sidesteps the seed
-  entirely).
-
-### What it costs
-
-- **A REBUILD.** Needs `expo-asset` + `expo-file-system` to bundle + copy the
-  asset on first launch, a build-time script to generate the pre-seeded `bible.db`,
-  and a changed seed flow (copy vs JS seed). This leaves the project's default
-  100%-JS / no-rebuild lane and requires `assembleDebug`/AAB + Metro `--clear`.
-- Maintenance: the generated `.db` becomes a build artifact to regenerate whenever
-  a translation changes.
-
-## Decision (Sprint 67)
-
-**Keep the runtime-JS seed.** There is no download-size win to justify a rebuild
-— the JS data already gzips to ~4.35 MB, which is not the dominant APK cost.
-
-**Revisit the asset-DB only if** first-launch seed time becomes a real UX problem,
-the startup seed race proves recurrent, or a 4th/5th translation pushes the
-bundle past an acceptable size. At that point it becomes a dedicated rebuild
-sprint (owner-approved), and the win to optimize for is **startup time, not
-size**.
-
-### For the next production build
-
-No action required: the JS-seed path is correct and ships today. The three data
-files are already in `.prettierignore`; they gzip well, so they are not the
-APK's size driver. If a 4th version is added, follow the Sprint 66 pattern
-(`bible-data-<id>.ts` + a `loadBibleVersion` call + the version in both lists +
-un-gate the Settings "Coming Soon" badge) and re-measure with this table.
+The JS fallback files still compile into the Hermes bundle even though the
+asset-DB path is primary — that's real, if secondary, bundle weight. Demoting
+them to an on-demand downloadable pack (same pattern as KJV/BSB) would trim
+it, but is a deliberate rebuild task, not a drop-in change — tracked as
+technical debt, not blocking.
