@@ -88,8 +88,16 @@ export interface ScheduleOptions {
 
 let handlerConfigured = false;
 
-/** Sets the foreground handler and Android channel. Safe to call repeatedly. */
-export async function initNotifications(): Promise<void> {
+/**
+ * Sets the foreground handler and Android channels. Safe to call repeatedly
+ * — every scheduling/refresh call re-runs this with the current language, so
+ * Android's per-channel display name (visible in the OS notification
+ * settings) stays in sync with the app's language instead of freezing at
+ * whichever language was active the first time a channel was created.
+ */
+export async function initNotifications(
+  language: 'es' | 'en' = 'es',
+): Promise<void> {
   if (!handlerConfigured) {
     Notifications.setNotificationHandler({
       handleNotification: async () => ({
@@ -103,25 +111,26 @@ export async function initNotifications(): Promise<void> {
   }
 
   if (Platform.OS === 'android') {
+    const n = translations[language].notifications;
     try {
       await Notifications.setNotificationChannelAsync(ANDROID_CHANNEL_ID, {
-        name: 'Versículo del día',
+        name: n.dailyVerse,
         importance: Notifications.AndroidImportance.DEFAULT,
       });
       await Notifications.setNotificationChannelAsync(MEMORY_CHANNEL_ID, {
-        name: 'Recordatorio de repaso',
+        name: n.memoryReminder,
         importance: Notifications.AndroidImportance.DEFAULT,
       });
       await Notifications.setNotificationChannelAsync(PRAYER_CHANNEL_ID, {
-        name: 'Recordatorio de oración',
+        name: n.prayerReminderTitle,
         importance: Notifications.AndroidImportance.DEFAULT,
       });
       await Notifications.setNotificationChannelAsync(DEVOTION_CHANNEL_ID, {
-        name: 'Recordatorio de devoción',
+        name: n.devotionReminderTitle,
         importance: Notifications.AndroidImportance.DEFAULT,
       });
       await Notifications.setNotificationChannelAsync(PROPHECY_CHANNEL_ID, {
-        name: 'Profecía del día',
+        name: n.prophecyReminderTitle,
         importance: Notifications.AndroidImportance.DEFAULT,
       });
     } catch (err) {
@@ -210,7 +219,7 @@ export async function cancelDailyVerseNotifications(): Promise<void> {
 export async function scheduleDailyVerseNotifications(
   opts: ScheduleOptions,
 ): Promise<number> {
-  await initNotifications();
+  await initNotifications(opts.language);
   await cancelDailyVerseNotifications();
 
   try {
@@ -319,7 +328,7 @@ export async function refreshDailyVerseNotifications(
   opts: Omit<ScheduleOptions, 'hour'>,
 ): Promise<void> {
   const prefs = await getNotificationPreferences();
-  await initNotifications();
+  await initNotifications(opts.language);
   if (!prefs.enabled) return;
   const granted = await requestNotificationPermission();
   if (!granted) return;
@@ -377,7 +386,7 @@ async function saveMemoryReminderPreferences(
 export async function scheduleMemoryReminders(
   opts: MemoryReminderOptions,
 ): Promise<number> {
-  await initNotifications();
+  await initNotifications(opts.language);
   await cancelNotificationsByType(MEMORY_REMINDER_TYPE);
 
   const now = new Date();
@@ -448,7 +457,7 @@ export async function refreshMemoryReminders(
   opts: Omit<MemoryReminderOptions, 'hour'>,
 ): Promise<void> {
   const prefs = await getMemoryReminderPreferences();
-  await initNotifications();
+  await initNotifications(opts.language);
   if (!prefs.enabled) return;
   const granted = await requestNotificationPermission();
   if (!granted) return;
@@ -507,7 +516,7 @@ async function savePrayerReminderPreferences(
 export async function schedulePrayerReminders(
   opts: PrayerReminderOptions,
 ): Promise<number> {
-  await initNotifications();
+  await initNotifications(opts.language);
   await cancelNotificationsByType(PRAYER_REMINDER_TYPE);
 
   const now = new Date();
@@ -573,7 +582,7 @@ export async function refreshPrayerReminders(
   opts: Omit<PrayerReminderOptions, 'hour'>,
 ): Promise<void> {
   const prefs = await getPrayerReminderPreferences();
-  await initNotifications();
+  await initNotifications(opts.language);
   if (!prefs.enabled) return;
   const granted = await requestNotificationPermission();
   if (!granted) return;
@@ -633,7 +642,7 @@ async function saveDevotionReminderPreferences(
 export async function scheduleDevotionReminders(
   opts: DevotionReminderOptions,
 ): Promise<number> {
-  await initNotifications();
+  await initNotifications(opts.language);
   await cancelNotificationsByType(DEVOTION_REMINDER_TYPE);
 
   const now = new Date();
@@ -699,7 +708,7 @@ export async function refreshDevotionReminders(
   opts: Omit<DevotionReminderOptions, 'hour'>,
 ): Promise<void> {
   const prefs = await getDevotionReminderPreferences();
-  await initNotifications();
+  await initNotifications(opts.language);
   if (!prefs.enabled) return;
   const granted = await requestNotificationPermission();
   if (!granted) return;
@@ -761,7 +770,7 @@ async function savePropheticReminderPreferences(
 export async function schedulePropheticReminders(
   opts: PropheticReminderOptions,
 ): Promise<number> {
-  await initNotifications();
+  await initNotifications(opts.language);
   await cancelNotificationsByType(PROPHECY_REMINDER_TYPE);
 
   const now = new Date();
@@ -842,7 +851,7 @@ export async function refreshPropheticReminders(
   opts: Omit<PropheticReminderOptions, 'hour'>,
 ): Promise<void> {
   const prefs = await getPropheticReminderPreferences();
-  await initNotifications();
+  await initNotifications(opts.language);
   if (!prefs.enabled) return;
   const granted = await requestNotificationPermission();
   if (!granted) return;

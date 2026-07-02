@@ -68,6 +68,7 @@ import {useFavorites} from '@context/FavoritesContext';
 import {useBookmarks} from '@context/BookmarksContext';
 import {useMemoryDeck} from '@context/MemoryDeckContext';
 import {usePremium} from '@context/PremiumContext';
+import {useToast} from '@context/ToastContext';
 import {
   chapterLocationFromVerse,
   getLastPosition,
@@ -172,6 +173,7 @@ export default function HomeScreen() {
   const bookmarksCount = bookmarks.length;
   const {stats: memoryStats} = useMemoryDeck();
   const {isPremium} = usePremium();
+  const toast = useToast();
   // The "Continue listening" card now COMPOSES with the floating player
   // (Sprint 75): while the cold-start-restored player sits paused-collapsed on
   // the saved chapter, the card stays up as a one-tap resume surface; once
@@ -513,6 +515,14 @@ export default function HomeScreen() {
         action: 'loadHomeData',
       });
       setLoading(false);
+      // A silent catch left the reader looking at an empty/stale Home with no
+      // indication anything went wrong. Surface it with a one-tap retry
+      // instead of a blocking screen, since pull-to-refresh already exists.
+      toast.show({
+        message: t.home.loadError,
+        variant: 'error',
+        action: {label: t.app.retry, onPress: () => loadHomeData()},
+      });
     }
   }
 
