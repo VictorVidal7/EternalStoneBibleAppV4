@@ -4261,6 +4261,26 @@ export const translations = {
         talkTitle: 'Para conversar',
         openInReader: 'Abrir en el lector',
       },
+      plan: {
+        cardTitle: 'Plan de 10 días',
+        cardSubtitle: 'Una historia cada día',
+        title: 'Plan de 10 días',
+        subtitle: 'Una historia bíblica cada día',
+        intro:
+          'Lee o escucha una historia distinta cada día durante 10 días. Puedes adelantarte o ir a tu ritmo — no hay ninguna prisa.',
+        dayLabel: 'Día {{n}}',
+        today: 'Hoy',
+        completed: 'Completada',
+        progress: '{{done}} de {{total}} días',
+        goToToday: 'Ir a la historia de hoy',
+        paceNotStarted: 'Empieza hoy — el Día 1 te espera',
+        paceOnTrack: 'Vas al día 🙌',
+        paceAhead: 'Llevas {{n}} días de ventaja',
+        paceAheadOne: 'Llevas 1 día de ventaja',
+        paceBehind: 'Te esperan {{n}} días — a tu ritmo, sin prisa',
+        paceBehindOne: 'Te espera 1 día — a tu ritmo, sin prisa',
+        paceComplete: '¡Completaste las 10 historias! 🎉',
+      },
       stories: {
         creation: {
           title: 'La Creación',
@@ -9040,6 +9060,26 @@ export const translations = {
         contextTitle: 'Context',
         talkTitle: 'To talk about',
         openInReader: 'Open in the reader',
+      },
+      plan: {
+        cardTitle: '10-Day Plan',
+        cardSubtitle: 'One story a day',
+        title: '10-Day Plan',
+        subtitle: 'One Bible story a day',
+        intro:
+          'Read or listen to a different story every day for 10 days. You can go ahead or take your time — there is no rush.',
+        dayLabel: 'Day {{n}}',
+        today: 'Today',
+        completed: 'Completed',
+        progress: '{{done}} of {{total}} days',
+        goToToday: "Go to today's story",
+        paceNotStarted: 'Start today — Day 1 awaits',
+        paceOnTrack: "You're on track 🙌",
+        paceAhead: "You're {{n}} days ahead",
+        paceAheadOne: "You're 1 day ahead",
+        paceBehind: '{{n}} days to catch up — at your pace, no rush',
+        paceBehindOne: '1 day to catch up — at your pace, no rush',
+        paceComplete: 'You finished all 10 stories! 🎉',
       },
       stories: {
         creation: {

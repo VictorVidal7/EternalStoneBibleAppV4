@@ -27,12 +27,24 @@ export interface KidsProfileProgress {
   scenesSeen: Record<string, number>;
   /** storyId → best quiz score (0-3). */
   quizBest: Record<string, number>;
+  /**
+   * ISO timestamp of the 10-day plan's first story completion; null = the
+   * plan's pace clock hasn't started (Tanda 2). Mirrors the adult reading
+   * plan's `toggleDay` behavior — the clock starts on the first real
+   * completion, not merely on viewing the plan screen.
+   */
+  planStartedAt: string | null;
 }
 
 type KidsProgressState = Record<string, KidsProfileProgress>;
 
 function emptyProfile(): KidsProfileProgress {
-  return {storiesCompleted: [], scenesSeen: {}, quizBest: {}};
+  return {
+    storiesCompleted: [],
+    scenesSeen: {},
+    quizBest: {},
+    planStartedAt: null,
+  };
 }
 
 function isValidProfile(value: unknown): value is KidsProfileProgress {
@@ -44,7 +56,10 @@ function isValidProfile(value: unknown): value is KidsProfileProgress {
     typeof v.scenesSeen === 'object' &&
     v.scenesSeen !== null &&
     typeof v.quizBest === 'object' &&
-    v.quizBest !== null
+    v.quizBest !== null &&
+    (v.planStartedAt === null ||
+      v.planStartedAt === undefined ||
+      typeof v.planStartedAt === 'string')
   );
 }
 
@@ -58,7 +73,14 @@ async function readState(): Promise<KidsProgressState> {
     for (const [profileId, profile] of Object.entries(
       parsed as Record<string, unknown>,
     )) {
-      if (isValidProfile(profile)) state[profileId] = profile;
+      // Legacy profiles predate `planStartedAt` (Tanda 2) — default it to
+      // null rather than leaving it `undefined` at runtime.
+      if (isValidProfile(profile)) {
+        state[profileId] = {
+          ...profile,
+          planStartedAt: profile.planStartedAt ?? null,
+        };
+      }
     }
     return state;
   } catch {
@@ -121,16 +143,26 @@ export async function recordKidsQuizScore(
   return next;
 }
 
-/** Mark a story's quiz completed. Idempotent. */
+/**
+ * Mark a story's quiz completed. Idempotent. Also starts the 10-day plan's
+ * pace clock on the FIRST completion of any story, if it hasn't started yet
+ * — the same "first real completion starts the clock" policy the adult
+ * reading plans use, so merely browsing never starts the countdown.
+ */
 export async function markKidsStoryCompleted(
   storyId: string,
   profileId: string = DEFAULT_KIDS_PROFILE,
 ): Promise<KidsProfileProgress> {
   const state = await readState();
   const profile = state[profileId] ?? emptyProfile();
-  const next: KidsProfileProgress = profile.storiesCompleted.includes(storyId)
-    ? profile
-    : {...profile, storiesCompleted: [...profile.storiesCompleted, storyId]};
+  const alreadyDone = profile.storiesCompleted.includes(storyId);
+  const next: KidsProfileProgress = {
+    ...profile,
+    storiesCompleted: alreadyDone
+      ? profile.storiesCompleted
+      : [...profile.storiesCompleted, storyId],
+    planStartedAt: profile.planStartedAt ?? new Date().toISOString(),
+  };
   state[profileId] = next;
   await writeState(state);
   return next;
