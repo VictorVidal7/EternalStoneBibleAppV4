@@ -93,6 +93,7 @@ import {
   refreshPropheticReminders,
 } from '@lib/notifications/NotificationService';
 import {PropheticReminderRouter} from '@/components/PropheticReminderRouter';
+import {ErrorBoundary} from '@/components/ErrorBoundary';
 
 function AppContent() {
   const {t, language} = useLanguage();
@@ -350,7 +351,9 @@ export default function RootLayout() {
                                   <ToastProvider>
                                     <PremiumProvider>
                                       <AudioPlayerProvider>
-                                        <AppContent />
+                                        <ErrorBoundary>
+                                          <AppContent />
+                                        </ErrorBoundary>
                                       </AudioPlayerProvider>
                                     </PremiumProvider>
                                   </ToastProvider>

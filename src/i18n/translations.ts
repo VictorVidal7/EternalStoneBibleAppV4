@@ -52,6 +52,9 @@ export const translations = {
       errorHint:
         'Si el problema persiste, cierra y vuelve a abrir la aplicación.',
       retry: 'Reintentar',
+      unexpectedErrorTitle: 'Algo salió mal',
+      unexpectedErrorMessage:
+        'La app encontró un error inesperado. Puedes intentar de nuevo.',
       endOfBook: 'Fin del libro',
       endOfBookMessage: 'Has llegado al final de este libro',
       firstChapterMessage: 'Estás en el primer capítulo de este libro',
@@ -97,6 +100,7 @@ export const translations = {
       nudgeStreakOne: 'Llevas 1 día seguido leyendo la Palabra',
       nudgeContinue: 'Continúa en {{book}}',
       nudgeDaily: 'Tu versículo de hoy te espera',
+      loadError: 'No se pudo cargar tu inicio.',
       level: 'Nivel',
       planDays: 'Plan de {{days}} días',
       start: 'Comenzar',
@@ -4886,6 +4890,9 @@ export const translations = {
         '"Your word is a lamp to my feet\nand a light to my path"\n- Psalm 119:105',
       errorHint: 'If the problem persists, close and reopen the application.',
       retry: 'Retry',
+      unexpectedErrorTitle: 'Something went wrong',
+      unexpectedErrorMessage:
+        'The app ran into an unexpected error. You can try again.',
       endOfBook: 'End of book',
       endOfBookMessage: 'You have reached the end of this book',
       firstChapterMessage: 'You are at the first chapter of this book',
@@ -4931,6 +4938,7 @@ export const translations = {
       nudgeStreakOne: "You're on a 1-day reading streak",
       nudgeContinue: 'Continue in {{book}}',
       nudgeDaily: "Today's verse is waiting for you",
+      loadError: "We couldn't load your home screen.",
       level: 'Level',
       planDays: '{{days}}-day Plan',
       start: 'Start',
