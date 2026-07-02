@@ -1693,10 +1693,10 @@ export default function VerseReadingScreen() {
             <View
               style={[
                 styles.navTitlePill,
-                {borderColor: effectiveColors.border},
+                {borderColor: effectiveColors.primary + '55'},
               ]}>
               <Text
-                style={[styles.navTitle, {color: effectiveColors.text}]}
+                style={[styles.navTitle, {color: effectiveColors.primary}]}
                 numberOfLines={1}>
                 {localizedBookName} {chapterNum}
               </Text>
@@ -3060,7 +3060,7 @@ const styles = StyleSheet.create({
     letterSpacing: 0.2,
   },
   navTitle: {
-    fontSize: fontSizes.base,
+    fontSize: fontSizes.sm,
     fontWeight: '700',
     letterSpacing: -0.2,
   },
