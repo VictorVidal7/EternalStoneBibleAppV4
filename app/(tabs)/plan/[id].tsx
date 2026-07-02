@@ -80,6 +80,7 @@ export default function ReadingPlanDetailScreen() {
     getStartedAt,
     getPlanDuration,
     setPlanDuration,
+    restartPlan,
   } = useReadingPlanProgress();
   const {getMembership, leavePlan} = useTogether();
   const {getCustomPlanById, deleteCustomPlan} = useCustomPlans();
@@ -154,6 +155,8 @@ export default function ReadingPlanDetailScreen() {
   const [celebrate, setCelebrate] = useState(false);
   // Themed confirm for removing a custom plan (replaces the bare native alert).
   const [confirmDelete, setConfirmDelete] = useState(false);
+  // Confirm before wiping a finished plan's progress to walk it again.
+  const [confirmRestart, setConfirmRestart] = useState(false);
   const [shareOpen, setShareOpen] = useState(false);
   const prevCompletedRef = useRef<number | null>(null);
 
@@ -327,6 +330,21 @@ export default function ReadingPlanDetailScreen() {
     router.back();
   };
 
+  const onRestartPlan = () => {
+    haptics.tap();
+    setConfirmRestart(true);
+  };
+
+  const onConfirmRestart = async () => {
+    if (!plan) return;
+    setConfirmRestart(false);
+    await restartPlan(plan.id);
+    // Let the auto-scroll-to-next-day effect run again now that pace.nextDay
+    // is back to day 1 (it only fires once per plan id otherwise).
+    scrolledForRef.current = null;
+    toast.success(t.readingPlan.planRestarted);
+  };
+
   const paceCaption = (() => {
     switch (pace.status) {
       case 'notStarted':
@@ -463,6 +481,22 @@ export default function ReadingPlanDetailScreen() {
               localizedPlan.name,
             )}
           </Text>
+          <View style={styles.todayActions}>
+            <TouchableOpacity
+              style={[
+                styles.todayAction,
+                styles.todayActionGhost,
+                {borderColor: colors.primary},
+              ]}
+              onPress={onRestartPlan}
+              accessibilityRole="button"
+              accessibilityLabel={t.readingPlan.restartPlan}>
+              <Ionicons name="refresh" size={15} color={colors.primary} />
+              <Text style={[styles.todayActionText, {color: colors.primary}]}>
+                {t.readingPlan.restartPlan}
+              </Text>
+            </TouchableOpacity>
+          </View>
         </View>
       );
     }
@@ -765,6 +799,19 @@ export default function ReadingPlanDetailScreen() {
         onConfirm={onConfirmDelete}
         onCancel={() => setConfirmDelete(false)}
         destructive
+      />
+
+      {/* 🔁 Confirm before wiping a finished plan's progress to walk it again. */}
+      <ConfirmDialog
+        visible={confirmRestart}
+        title={plan.name}
+        message={t.readingPlan.restartPlanConfirm}
+        confirmLabel={t.readingPlan.restartPlan}
+        cancelLabel={t.cancel}
+        onConfirm={() => void onConfirmRestart()}
+        onCancel={() => setConfirmRestart(false)}
+        destructive
+        icon="refresh"
       />
 
       {/* 🎉 Completion celebration (RM-safe: no bespoke animation) */}
