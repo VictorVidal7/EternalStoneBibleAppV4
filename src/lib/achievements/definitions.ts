@@ -396,6 +396,26 @@ export const ACHIEVEMENT_DEFINITIONS: Omit<
     points: 50,
     tier: AchievementTier.GOLD,
   },
+  {
+    id: 'kids_first_story',
+    name: 'First Story',
+    description: 'Complete your first Bible story for kids',
+    icon: '🌟',
+    category: AchievementCategory.SPECIAL,
+    requirement: 1,
+    points: 25,
+    tier: AchievementTier.SILVER,
+  },
+  {
+    id: 'kids_stories_complete',
+    name: 'Storyteller',
+    description: 'Complete every Bible story for kids',
+    icon: '🎈',
+    category: AchievementCategory.SPECIAL,
+    requirement: 1,
+    points: 50,
+    tier: AchievementTier.GOLD,
+  },
 ];
 
 /**

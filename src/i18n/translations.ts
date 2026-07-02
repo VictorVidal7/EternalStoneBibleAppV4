@@ -3685,6 +3685,14 @@ export const translations = {
           name: 'Viajero de la Palabra',
           description: 'Explora todas las paradas de todas las rutas bíblicas',
         },
+        kids_first_story: {
+          name: 'Primera historia',
+          description: 'Completa tu primera historia de la Biblia para niños',
+        },
+        kids_stories_complete: {
+          name: 'Narrador de historias',
+          description: 'Completa todas las historias de la Biblia para niños',
+        },
       },
     },
 
@@ -4218,6 +4226,582 @@ export const translations = {
       needNameAndPassage: 'Ponle un nombre y añade al menos un pasaje.',
       created: '¡Plan creado!',
       removePassage: 'Quitar pasaje',
+    },
+
+    kids: {
+      cardTitle: 'Biblia para niños',
+      cardSubtitle: 'Historias para leer y contar',
+      title: 'Biblia para niños',
+      subtitle: 'Historias de la Biblia, paso a paso',
+      intro:
+        'Estas historias están pensadas para que un niño las lea solo, o para que un adulto se las lea en voz alta. Cada escena viene de un versículo real — tócalo para escucharlo o verlo tal como está escrito.',
+      scenesCount: '{{n}} escenas',
+      completed: 'Completada',
+      sceneOf: 'Escena {{n}} de {{total}}',
+      listen: 'Escuchar',
+      stopListening: 'Detener',
+      showVerse: 'Ver el versículo',
+      hideVerse: 'Ocultar versículo',
+      missingVerse: 'Versículo no disponible',
+      next: 'Siguiente',
+      previous: 'Anterior',
+      quiz: {
+        start: 'Comenzar el reto',
+        question: 'Pregunta {{n}} de {{total}}',
+        correct: '¡Correcto!',
+        wrong: 'Casi — inténtalo de nuevo',
+        retry: 'Intentar de nuevo',
+        score: '{{n}} de {{total}} estrellas',
+        finish: 'Terminar',
+      },
+      teach: {
+        title: 'Para enseñar',
+        readFull: 'Lectura completa',
+        contextTitle: 'Contexto',
+        talkTitle: 'Para conversar',
+        openInReader: 'Abrir en el lector',
+      },
+      stories: {
+        creation: {
+          title: 'La Creación',
+          subtitle: 'Dios hizo todas las cosas',
+          refLabel: 'Génesis 1–2',
+          teachContext:
+            'Génesis 1 y 2 narran cómo Dios creó el universo en seis días y descansó el séptimo. No es un mito entre otros: es el fundamento de toda la Biblia — Dios como creador de todo lo que existe, y las personas hechas a su imagen.',
+          teachQuestions: [
+            '¿Qué parte de la Creación te parece más asombrosa? ¿Por qué?',
+            '¿Qué significa que Dios nos hizo "a su imagen"?',
+            '¿Por qué crees que Dios descansó el séptimo día, si Él no se cansa?',
+          ],
+          scenes: {
+            'creation-1': {
+              text: 'Antes de que existiera el sol, la luna o cualquier estrella, todo estaba oscuro y vacío. Entonces Dios habló: «Sea la luz». Y la luz apareció, solo porque Dios lo dijo. Así comenzó todo: con la palabra de Dios.',
+            },
+            'creation-2': {
+              text: 'Dios separó las aguas de arriba de las aguas de abajo, y puso un gran espacio entre ellas: el cielo. Todavía no había plantas, ni animales, ni personas — solo cielo, agua y la palabra poderosa de Dios haciendo lugar para lo que vendría.',
+            },
+            'creation-3': {
+              text: 'Dios juntó las aguas en un solo lugar y apareció la tierra seca. Después mandó a la tierra producir plantas: árboles, hierba y semillas de todo tipo, cada una según su especie. El mundo empezó a llenarse de verde.',
+            },
+            'creation-4': {
+              text: 'Dios puso dos grandes luces en el cielo: el sol para gobernar el día y la luna para gobernar la noche. También hizo las estrellas. Desde entonces, el día y la noche siguen el orden que Dios estableció aquel día.',
+            },
+            'creation-5': {
+              text: 'Dios llenó el mar de peces y el cielo de aves de toda clase. Los bendijo y les dijo que se multiplicaran. Por primera vez, el mundo se llenó de movimiento: aletas nadando y alas volando.',
+            },
+            'creation-6': {
+              text: 'Por último, Dios hizo a los animales de la tierra, y luego creó al hombre y a la mujer a su propia imagen. Les dio la tarea de cuidar todo lo que Él había hecho. Dios miró todo lo creado y vio que era bueno en gran manera.',
+            },
+            'creation-7': {
+              text: 'El día séptimo, Dios descansó de toda la obra que había hecho. No porque estuviera cansado, sino para bendecir ese día y apartarlo como especial. Así terminó la semana de la Creación.',
+            },
+          },
+          quiz: {
+            'creation-q1': {
+              question: '¿Qué dijo Dios primero, según la Biblia?',
+              options: [
+                '«Sea la luz»',
+                '«Hágase el mar»',
+                '«Hagamos al hombre»',
+              ],
+            },
+            'creation-q2': {
+              question: '¿Qué hizo Dios el día séptimo?',
+              options: [
+                'Creó a los animales',
+                'Descansó',
+                'Hizo el sol y la luna',
+              ],
+            },
+            'creation-q3': {
+              question: '¿A imagen de quién hizo Dios al hombre?',
+              options: [
+                'A imagen de los ángeles',
+                'A imagen de los animales',
+                'A imagen de Dios mismo',
+              ],
+            },
+          },
+        },
+        noah: {
+          title: 'Noé y el arca',
+          subtitle: 'Dios cumple su promesa',
+          refLabel: 'Génesis 6–9',
+          teachContext:
+            'La maldad había llenado la tierra, y Dios decidió comenzar de nuevo a través de una sola familia fiel. El diluvio es a la vez un relato de juicio y de la fidelidad de Dios: Él salva a quien confía en Él y sella su promesa con una señal visible en el cielo.',
+          teachQuestions: [
+            '¿Por qué crees que Noé obedeció a Dios aunque nadie más lo hacía?',
+            '¿Qué significa el arcoíris como promesa de Dios?',
+            '¿Qué cosas nos pide Dios hoy que quizás parezcan difíciles de obedecer, como construir el arca le pareció a Noé?',
+          ],
+          scenes: {
+            'noah-1': {
+              text: 'Dios vio que la tierra se había llenado de maldad y decidió mandar un diluvio. Pero le dijo a Noé, un hombre justo, que construyera un arca de madera, con aposentos por dentro y por fuera, para salvar a su familia.',
+            },
+            'noah-2': {
+              text: 'Dios le dijo a Noé que llevara al arca una pareja de cada tipo de animal, para que la vida siguiera después del diluvio. Noé obedeció exactamente lo que Dios le había mandado, y los animales entraron al arca de dos en dos.',
+            },
+            'noah-3': {
+              text: 'Cuando todos estuvieron dentro, comenzó a llover. La lluvia cayó sobre la tierra durante cuarenta días y cuarenta noches, y las aguas subieron hasta cubrir toda la tierra. El arca flotó segura sobre las aguas.',
+            },
+            'noah-4': {
+              text: 'Después de mucho tiempo, las aguas empezaron a bajar. El arca reposó sobre los montes de Ararat. La tierra que antes estaba cubierta de agua comenzó, poco a poco, a asomarse de nuevo.',
+            },
+            'noah-5': {
+              text: 'Noé soltó una paloma para ver si la tierra ya estaba seca. La paloma regresó al arca trayendo en su pico una hoja de olivo recién cortada. Así Noé supo que las aguas habían disminuido sobre la tierra.',
+            },
+            'noah-6': {
+              text: 'Cuando todos salieron del arca, Dios puso su arco —el arcoíris— en las nubes como señal de su promesa: nunca más destruiría la tierra con un diluvio. Cada vez que aparece un arcoíris, recuerda esa promesa de Dios.',
+            },
+          },
+          quiz: {
+            'noah-q1': {
+              question: '¿De qué le mandó Dios a Noé construir el arca?',
+              options: ['Madera de gofer', 'Piedra', 'Barro'],
+            },
+            'noah-q2': {
+              question: '¿Qué trajo la paloma en su pico?',
+              options: ['Una piedra', 'Una hoja de olivo', 'Un pez'],
+            },
+            'noah-q3': {
+              question: '¿Qué puso Dios en las nubes como señal de su promesa?',
+              options: ['Una estrella', 'Un arcoíris', 'Una paloma'],
+            },
+          },
+        },
+        joseph: {
+          title: 'José y sus hermanos',
+          subtitle: 'Dios encamina todo a bien',
+          refLabel: 'Génesis 37–45',
+          teachContext:
+            'La historia de José muestra cómo Dios puede traer bien incluso de la traición y la injusticia, sin que eso signifique que el mal hecho por sus hermanos estuvo bien. El perdón de José a quienes lo dañaron es el punto culminante de todo el relato.',
+          teachQuestions: [
+            '¿Por qué crees que los hermanos de José le tuvieron envidia?',
+            '¿Cómo pudo José perdonar a quienes le hicieron tanto daño?',
+            '¿Alguna vez algo malo que te pasó terminó ayudando a otras personas, como con José?',
+          ],
+          scenes: {
+            'joseph-1': {
+              text: 'José era uno de los doce hijos de Jacob, y su padre lo amaba de manera especial. Sus hermanos, celosos porque José tenía sueños en los que ellos se inclinaban ante él, comenzaron a mirarlo con envidia y sin poder hablarle con paz.',
+            },
+            'joseph-2': {
+              text: 'Un día, lejos de su padre, los hermanos de José lo vendieron a unos mercaderes que pasaban camino a Egipto. Le dijeron a su padre que un animal salvaje lo había matado, pero en verdad José había sido llevado como esclavo.',
+            },
+            'joseph-3': {
+              text: 'En Egipto, José fue vendido como sirviente, y hasta injustamente puesto en la cárcel. Pero la Biblia dice que Jehová estaba con José: le dio éxito en todo lo que hacía, incluso en los momentos más difíciles.',
+            },
+            'joseph-4': {
+              text: 'Dios le dio a José la capacidad de explicar el significado de un sueño del faraón: vendrían siete años de mucha comida y luego siete años de hambre. El faraón puso a José a cargo de todo Egipto para preparar el país.',
+            },
+            'joseph-5': {
+              text: 'Cuando el hambre llegó, los hermanos de José viajaron a Egipto a comprar alimento, sin saber que el gobernador que tenían delante era el mismo hermano que habían vendido años atrás. José los reconoció, pero ellos a él no.',
+            },
+            'joseph-6': {
+              text: 'Finalmente, José se dio a conocer a sus hermanos. Aunque le habían hecho mucho daño, les dijo que no se entristecieran: Dios lo había enviado a Egipto antes que ellos, para preservar la vida de muchas personas.',
+            },
+          },
+          quiz: {
+            'joseph-q1': {
+              question: '¿Qué le hicieron los hermanos de José?',
+              options: [
+                'Lo vendieron a unos mercaderes',
+                'Lo coronaron rey',
+                'Lo escondieron en su casa',
+              ],
+            },
+            'joseph-q2': {
+              question: '¿Quién estaba con José en Egipto?',
+              options: ['Nadie lo ayudaba', 'Jehová', 'Solo el faraón'],
+            },
+            'joseph-q3': {
+              question: '¿Qué les dijo José a sus hermanos al final?',
+              options: [
+                'Que se fueran para siempre',
+                'Que no se entristecieran, Dios lo había encaminado a bien',
+                'Que nunca los perdonaría',
+              ],
+            },
+          },
+        },
+        moses: {
+          title: 'Moisés y la salida de Egipto',
+          subtitle: 'Dios libera a su pueblo',
+          refLabel: 'Éxodo 2–14',
+          teachContext:
+            'El Éxodo es el gran acto liberador de Dios en el Antiguo Testamento: saca a Israel de la esclavitud en Egipto para llevarlo a ser su pueblo. Es también la historia detrás de la Pascua, que después Jesús cumpliría de una manera aún mayor.',
+          teachQuestions: [
+            '¿Por qué crees que Moisés tuvo miedo cuando Dios lo llamó?',
+            '¿Qué te muestra esta historia sobre el poder de Dios?',
+            '¿De qué maneras Dios "abre camino" hoy para su pueblo, aunque no sea partiendo un mar?',
+          ],
+          scenes: {
+            'moses-1': {
+              text: 'Cuando nació Moisés, el faraón había ordenado matar a todos los bebés varones hebreos. Su madre lo escondió en una canasta y la puso a flotar entre los juncos del río Nilo, confiando en que Dios cuidaría de su hijo.',
+            },
+            'moses-2': {
+              text: 'Ya de adulto, Moisés cuidaba ovejas en el desierto cuando vio algo extraño: una zarza que ardía en llamas, pero no se consumía. Cuando se acercó a mirar, Dios lo llamó desde el fuego y le habló.',
+            },
+            'moses-3': {
+              text: 'Dios envió a Moisés a hablar con el faraón de Egipto. Moisés y su hermano Aarón le dijeron: «Así ha dicho Jehová Dios de Israel: Deja ir a mi pueblo». Pero el faraón se negó una y otra vez.',
+            },
+            'moses-4': {
+              text: 'Antes de la última plaga, Dios le dio instrucciones a Israel para poner sangre en las puertas de sus casas: esa sangre sería la señal para que la muerte pasara de largo esa noche. Así comenzó la fiesta de la Pascua.',
+            },
+            'moses-5': {
+              text: 'El faraón por fin dejó salir al pueblo, pero luego cambió de opinión y los persiguió hasta el Mar Rojo. Moisés extendió su mano sobre el mar, y Dios abrió un camino en seco en medio de las aguas.',
+            },
+            'moses-6': {
+              text: 'Israel cruzó el mar en seco, con las aguas como una pared a cada lado. Cuando el ejército egipcio trató de seguirlos, las aguas volvieron a su lugar. El pueblo vio el gran poder de Dios y confió en Él.',
+            },
+          },
+          quiz: {
+            'moses-q1': {
+              question: '¿Dónde pusieron al bebé Moisés para protegerlo?',
+              options: [
+                'En una canasta en el río',
+                'En un palacio',
+                'En una cueva escondida',
+              ],
+            },
+            'moses-q2': {
+              question: '¿Cómo se le apareció Dios a Moisés?',
+              options: [
+                'En un sueño',
+                'En una zarza que ardía y no se consumía',
+                'Dentro de una nube de humo',
+              ],
+            },
+            'moses-q3': {
+              question: '¿Qué pasó con el mar cuando Moisés extendió su mano?',
+              options: [
+                'Se abrió en dos',
+                'Se congeló por completo',
+                'Se puso más profundo',
+              ],
+            },
+          },
+        },
+        'david-goliath': {
+          title: 'David y Goliat',
+          subtitle: 'La fe vence al gigante',
+          refLabel: '1 Samuel 17',
+          teachContext:
+            'David era todavía un joven pastor cuando enfrentó al gigante filisteo Goliat. El relato no celebra la valentía de David como una hazaña personal, sino su confianza en que Dios pelearía por Israel — la misma confianza que un niño puede tener hoy frente a sus propios "gigantes".',
+          teachQuestions: [
+            '¿Por qué crees que nadie más en el ejército de Israel quiso enfrentar a Goliat?',
+            '¿En qué confiaba David para no tener miedo?',
+            '¿Cuáles son los "gigantes" que tú enfrentas, y en quién puedes confiar como David confió en Dios?',
+          ],
+          scenes: {
+            'david-goliath-1': {
+              text: 'Un gigante filisteo llamado Goliat salió del campamento enemigo y desafió al ejército de Israel: pidió que alguien peleara contra él uno a uno. Todos los soldados de Israel, incluido el rey Saúl, tuvieron mucho miedo.',
+            },
+            'david-goliath-2': {
+              text: 'David era un joven pastor que cuidaba las ovejas de su padre. Cuando llegó al campamento a llevarle comida a sus hermanos, escuchó el desafío de Goliat y contó cómo, siendo pastor, ya había rescatado ovejas de leones y osos.',
+            },
+            'david-goliath-3': {
+              text: 'David no quiso usar la armadura pesada del rey Saúl. En su lugar, tomó su cayado, su honda, y escogió cinco piedras lisas de un arroyo, guardándolas en su bolsa de pastor. Así se acercó al filisteo.',
+            },
+            'david-goliath-4': {
+              text: 'Goliat se burló de David por ser tan joven. Pero David le respondió: «Tú vienes a mí con espada y lanza, mas yo vengo a ti en el nombre de Jehová de los ejércitos». David sabía que la batalla era de Dios.',
+            },
+            'david-goliath-5': {
+              text: 'David corrió hacia Goliat, tomó una piedra de su bolsa, la lanzó con su honda y golpeó al gigante en la frente. Goliat cayó, y todo el ejército filisteo huyó al ver lo que Dios había hecho a través de David.',
+            },
+          },
+          quiz: {
+            'david-goliath-q1': {
+              question: '¿Cuántas piedras lisas tomó David del arroyo?',
+              options: ['Tres', 'Cinco', 'Diez'],
+            },
+            'david-goliath-q2': {
+              question: '¿En el nombre de quién dijo David que venía a pelear?',
+              options: [
+                'En su propia fuerza',
+                'En el nombre de Jehová de los ejércitos',
+                'En el nombre del rey Saúl',
+              ],
+            },
+            'david-goliath-q3': {
+              question: '¿Qué usó David para vencer a Goliat?',
+              options: [
+                'Una espada',
+                'Una honda y una piedra',
+                'Un arco y flechas',
+              ],
+            },
+          },
+        },
+        'daniel-lions': {
+          title: 'Daniel en el foso de los leones',
+          subtitle: 'Fiel aunque sea peligroso',
+          refLabel: 'Daniel 6',
+          teachContext:
+            'Daniel era un extranjero fiel a Dios que servía en el gobierno de Babilonia. Cuando una ley injusta lo puso en peligro por orar, Daniel no dejó de hacerlo — y Dios lo protegió de una manera visible para todos, incluido el rey.',
+          teachQuestions: [
+            '¿Por qué Daniel siguió orando aunque sabía que era peligroso?',
+            '¿Qué significa ser fiel a Dios incluso cuando cuesta algo?',
+            '¿Has tenido que elegir entre hacer lo correcto o lo más fácil? ¿Qué pasó?',
+          ],
+          scenes: {
+            'daniel-lions-1': {
+              text: 'Daniel era un hombre fiel a Dios que servía como uno de los altos funcionarios del rey en Babilonia. Su honestidad y sabiduría eran tan grandes que el rey pensaba ponerlo por encima de todo el reino.',
+            },
+            'daniel-lions-2': {
+              text: 'Algunos hombres, celosos de Daniel, convencieron al rey de firmar una ley: durante treinta días, nadie podía orar a nadie excepto al rey, bajo pena de ser echado al foso de los leones. Sabían que Daniel oraba a Dios cada día.',
+            },
+            'daniel-lions-3': {
+              text: 'Cuando Daniel supo de la nueva ley, siguió orando a Dios tres veces al día, tal como siempre lo había hecho, con las ventanas de su casa abiertas hacia Jerusalén, sin esconderse ni tener miedo.',
+            },
+            'daniel-lions-4': {
+              text: 'Los hombres que odiaban a Daniel lo acusaron ante el rey, y aunque el rey no quería, la ley debía cumplirse. Daniel fue llevado y echado al foso de los leones esa misma noche.',
+            },
+            'daniel-lions-5': {
+              text: 'A la mañana siguiente, el rey corrió angustiado hasta el foso y llamó a Daniel. Daniel respondió que su Dios había enviado un ángel que cerró la boca de los leones, y que no había sufrido ningún daño.',
+            },
+          },
+          quiz: {
+            'daniel-lions-q1': {
+              question: '¿Cuántas veces al día oraba Daniel?',
+              options: [
+                'Una vez',
+                'Tres veces',
+                'Nunca dejaba de orar en voz alta',
+              ],
+            },
+            'daniel-lions-q2': {
+              question: '¿A dónde llevaron a Daniel por seguir orando?',
+              options: [
+                'Al foso de los leones',
+                'A una cárcel común',
+                'Lejos del reino',
+              ],
+            },
+            'daniel-lions-q3': {
+              question: '¿Quién cerró la boca de los leones?',
+              options: [
+                'El propio rey',
+                'El ángel de Dios',
+                'Los guardias del palacio',
+              ],
+            },
+          },
+        },
+        jonah: {
+          title: 'Jonás y el gran pez',
+          subtitle: 'Nadie escapa del amor de Dios',
+          refLabel: 'Jonás 1–3',
+          teachContext:
+            'Dios envió a Jonás a predicar a Nínive, una ciudad enemiga de Israel, y Jonás intentó huir en la dirección contraria. La historia muestra tanto la paciencia de Dios con Jonás como su compasión por una ciudad entera que no conocía a Dios.',
+          teachQuestions: [
+            '¿Por qué crees que Jonás no quería ir a Nínive?',
+            '¿Qué aprendió Jonás dentro del gran pez?',
+            '¿Alguna vez intentaste "huir" de algo que sabías que Dios te pedía hacer?',
+          ],
+          scenes: {
+            'jonah-1': {
+              text: 'Dios le dijo a Jonás que fuera a la ciudad de Nínive a predicar contra su maldad. Pero Jonás no quería ir: se levantó y tomó un barco en dirección contraria, tratando de huir de la presencia de Dios.',
+            },
+            'jonah-2': {
+              text: 'Mientras el barco navegaba, Jehová envió una tormenta tan fuerte que los marineros temieron que el barco se hundiera. Jonás les dijo que lo tomaran y lo echaran al mar, porque sabía que la tormenta era por su causa.',
+            },
+            'jonah-3': {
+              text: 'Cuando echaron a Jonás al mar, Jehová tenía preparado un gran pez que se lo tragó. Jonás estuvo dentro del pez tres días y tres noches, y desde allí clamó a Dios en oración.',
+            },
+            'jonah-4': {
+              text: 'Jonás oró a Jehová su Dios desde el vientre del pez, y Dios lo escuchó. El pez lo vomitó en tierra firme, y Dios volvió a hablarle: «Levántate y ve a Nínive, aquella gran ciudad, y proclama en ella el mensaje que yo te diré».',
+            },
+            'jonah-5': {
+              text: 'Esta vez Jonás obedeció y predicó en Nínive. Sorprendentemente, la gente de la ciudad creyó a Dios, se arrepintió de su maldad, y Dios, viendo su cambio, decidió no destruir la ciudad.',
+            },
+          },
+          quiz: {
+            'jonah-q1': {
+              question: '¿Qué hizo Jonás cuando Dios le pidió ir a Nínive?',
+              options: [
+                'Obedeció enseguida',
+                'Huyó en un barco hacia otro lugar',
+                'Se escondió en su casa',
+              ],
+            },
+            'jonah-q2': {
+              question: '¿Qué preparó Jehová para Jonás en el mar?',
+              options: [
+                'Un gran pez',
+                'Una balsa de madera',
+                'Una isla cercana',
+              ],
+            },
+            'jonah-q3': {
+              question:
+                '¿Qué hizo la gente de Nínive al escuchar el mensaje de Jonás?',
+              options: [
+                'Se rieron de él',
+                'Creyeron a Dios y se arrepintieron',
+                'Echaron a Jonás de la ciudad',
+              ],
+            },
+          },
+        },
+        'jesus-birth': {
+          title: 'El nacimiento de Jesús',
+          subtitle: 'Dios se hizo uno de nosotros',
+          refLabel: 'Lucas 2:1-20',
+          teachContext:
+            'Lucas narra el nacimiento de Jesús con detalles sencillos y humildes: un censo, un pesebre, unos pastores. El contraste entre la grandeza del anuncio angélico y la pobreza del lugar de nacimiento muestra cómo Dios eligió venir al mundo.',
+          teachQuestions: [
+            '¿Por qué crees que Jesús nació en un lugar tan humilde como un pesebre?',
+            '¿Por qué los ángeles anunciaron primero la noticia a unos pastores, y no a reyes o líderes importantes?',
+            '¿Qué sentirías si hubieras sido uno de los pastores esa noche?',
+          ],
+          scenes: {
+            'jesus-birth-1': {
+              text: 'Un censo obligó a José a viajar con María, su esposa, desde Nazaret hasta Belén, la ciudad de David, porque José era de su familia. María estaba a punto de dar a luz cuando llegaron.',
+            },
+            'jesus-birth-2': {
+              text: 'En Belén, María dio a luz a su hijo primogénito. Lo envolvió en pañales y lo acostó en un pesebre, porque no había lugar para ellos en el mesón. Así nació Jesús, en el lugar más sencillo.',
+            },
+            'jesus-birth-3': {
+              text: 'Esa misma noche, unos pastores cuidaban sus rebaños en el campo cuando un ángel se les apareció. «No temáis —les dijo—, os ha nacido hoy, en la ciudad de David, un Salvador, que es Cristo el Señor».',
+            },
+            'jesus-birth-4': {
+              text: 'Los pastores fueron enseguida a Belén y encontraron todo tal como el ángel les había dicho: a María, a José, y al niño acostado en el pesebre. Vieron con sus propios ojos lo que Dios había anunciado.',
+            },
+            'jesus-birth-5': {
+              text: 'Después de ver al niño, los pastores contaron a todos lo que los ángeles les habían dicho sobre Él. Luego volvieron a sus campos glorificando y alabando a Dios por todo lo que habían visto y oído.',
+            },
+          },
+          quiz: {
+            'jesus-birth-q1': {
+              question: '¿Dónde nació Jesús?',
+              options: [
+                'En un palacio',
+                'En un pesebre en Belén',
+                'Dentro del templo',
+              ],
+            },
+            'jesus-birth-q2': {
+              question: '¿Quién les anunció la buena noticia a los pastores?',
+              options: ['Un ángel', 'Un rey', 'Un profeta anciano'],
+            },
+            'jesus-birth-q3': {
+              question: '¿Qué hicieron los pastores después de ver al niño?',
+              options: [
+                'Guardaron silencio sobre todo',
+                'Volvieron glorificando y alabando a Dios',
+                'Se fueron tristes a sus casas',
+              ],
+            },
+          },
+        },
+        'good-samaritan': {
+          title: 'El buen samaritano',
+          subtitle: '¿Quién es mi prójimo?',
+          refLabel: 'Lucas 10:25-37',
+          teachContext:
+            'Jesús contó esta parábola en respuesta a la pregunta «¿quién es mi prójimo?». Los samaritanos y los judíos no se llevaban bien en esa época, así que elegir a un samaritano como el héroe de la historia sorprendió a quienes lo escuchaban.',
+          teachQuestions: [
+            '¿Por qué crees que el sacerdote y el levita no ayudaron al hombre herido?',
+            '¿Por qué fue sorprendente que el samaritano sí ayudara?',
+            '¿Quién podría ser tu "prójimo" hoy, alguien que necesita tu ayuda aunque no lo conozcas bien?',
+          ],
+          scenes: {
+            'good-samaritan-1': {
+              text: 'Un maestro de la ley le preguntó a Jesús qué debía hacer para amar a su prójimo, y luego le preguntó: «¿Y quién es mi prójimo?». Jesús respondió contando una historia.',
+            },
+            'good-samaritan-2': {
+              text: 'Un hombre bajaba por el camino de Jerusalén a Jericó cuando cayó en manos de ladrones. Le quitaron todo lo que tenía, lo hirieron y lo dejaron medio muerto junto al camino.',
+            },
+            'good-samaritan-3': {
+              text: 'Por ese mismo camino pasaron primero un sacerdote y luego un levita, dos hombres que servían en el templo. Ambos vieron al hombre herido, pero los dos pasaron de largo por el otro lado del camino, sin detenerse a ayudar.',
+            },
+            'good-samaritan-4': {
+              text: 'Después pasó un samaritano — alguien de un pueblo que no se llevaba bien con los judíos. Al ver al hombre herido, sintió compasión: se acercó, vendó sus heridas y lo cuidó, aunque no lo conocía de nada.',
+            },
+            'good-samaritan-5': {
+              text: 'El samaritano incluso pagó para que cuidaran al hombre herido en una posada hasta que se recuperara. Jesús preguntó: «¿Cuál de estos tres fue el prójimo?». Y dijo: «Ve, y haz tú lo mismo».',
+            },
+          },
+          quiz: {
+            'good-samaritan-q1': {
+              question:
+                'En la historia, ¿quiénes pasaron de largo sin ayudar al hombre herido?',
+              options: [
+                'Un sacerdote y un levita',
+                'Dos samaritanos',
+                'Dos niños del pueblo',
+              ],
+            },
+            'good-samaritan-q2': {
+              question: '¿Quién se detuvo a ayudar al hombre herido?',
+              options: ['Un sacerdote', 'Un samaritano', 'Un levita'],
+            },
+            'good-samaritan-q3': {
+              question: '¿Qué le dijo Jesús a quien había hecho la pregunta?',
+              options: [
+                'Ve y haz tú lo mismo',
+                'Olvídalo, no importa',
+                'Espera a que otro ayude',
+              ],
+            },
+          },
+        },
+        resurrection: {
+          title: '¡Jesús vive!',
+          subtitle: 'La tumba está vacía',
+          refLabel: 'Mateo 27:57–28:10',
+          teachContext:
+            'La resurrección de Jesús es el centro de la fe cristiana: no quedó en la tumba, sino que se levantó de entre los muertos al tercer día, tal como Él mismo había dicho. Este relato se cuenta con sobriedad y fidelidad al texto, sin añadir detalles gráficos que el texto no describe.',
+          teachQuestions: [
+            '¿Por qué crees que las mujeres fueron las primeras en enterarse de que Jesús había resucitado?',
+            '¿Qué significa para ti que Jesús esté vivo hoy?',
+            '¿Por qué el ángel les dijo a las mujeres que fueran a contarlo a los demás?',
+          ],
+          scenes: {
+            'resurrection-1': {
+              text: 'Después de morir en la cruz, el cuerpo de Jesús fue envuelto y puesto en una tumba nueva, tallada en roca. Sellaron la entrada con una gran piedra, y sus seguidores quedaron tristes, sin entender todavía lo que vendría después.',
+            },
+            'resurrection-2': {
+              text: 'Al amanecer del primer día de la semana, dos mujeres que seguían a Jesús fueron a visitar la tumba. No sabían lo que iban a encontrar, pero querían estar cerca del lugar donde habían dejado a su Señor.',
+            },
+            'resurrection-3': {
+              text: 'Cuando llegaron, un ángel apareció y les dijo: «No temáis vosotras; porque yo sé que buscáis a Jesús, el que fue crucificado. No está aquí, pues ha resucitado, como dijo». La tumba estaba vacía.',
+            },
+            'resurrection-4': {
+              text: 'Las mujeres salieron del sepulcro con temor y gran gozo a la vez, y corrieron a contarlo a los discípulos. En el camino, el propio Jesús les salió al encuentro y las saludó — ¡estaba realmente vivo!',
+            },
+            'resurrection-5': {
+              text: 'Jesús les dijo: «No temáis; id, dad las nuevas a mis hermanos». Las mujeres fueron las primeras en anunciar la noticia más importante de la historia: Jesús había resucitado, tal como lo había prometido.',
+            },
+          },
+          quiz: {
+            'resurrection-q1': {
+              question: '¿Qué le dijo el ángel a las mujeres en la tumba?',
+              options: [
+                'No está aquí, ha resucitado',
+                'Vuelvan mañana',
+                'No pueden pasar por aquí',
+              ],
+            },
+            'resurrection-q2': {
+              question: '¿Cómo se sintieron las mujeres al salir del sepulcro?',
+              options: [
+                'Con temor y gran gozo a la vez',
+                'Enojadas',
+                'Sin sentir nada especial',
+              ],
+            },
+            'resurrection-q3': {
+              question: '¿Qué les dijo Jesús a las mujeres que hicieran?',
+              options: [
+                'Que se escondieran',
+                'Que fueran a contarlo a los discípulos',
+                'Que se quedaran calladas para siempre',
+              ],
+            },
+          },
+        },
+      },
     },
   },
 
@@ -7885,6 +8469,14 @@ export const translations = {
           name: 'Traveler of the Word',
           description: 'Explore every stop on every Bible route',
         },
+        kids_first_story: {
+          name: 'First Story',
+          description: 'Complete your first Bible story for kids',
+        },
+        kids_stories_complete: {
+          name: 'Storyteller',
+          description: 'Complete every Bible story for kids',
+        },
       },
     },
 
@@ -8414,6 +9006,567 @@ export const translations = {
       needNameAndPassage: 'Give it a name and add at least one passage.',
       created: 'Plan created!',
       removePassage: 'Remove passage',
+    },
+
+    kids: {
+      cardTitle: 'Bible for Kids',
+      cardSubtitle: 'Stories to read and tell',
+      title: 'Bible for Kids',
+      subtitle: 'Bible stories, step by step',
+      intro:
+        'These stories are made so a child can read them alone, or so an adult can read them aloud. Each scene comes from a real verse — tap it to hear it or see it exactly as written.',
+      scenesCount: '{{n}} scenes',
+      completed: 'Completed',
+      sceneOf: 'Scene {{n}} of {{total}}',
+      listen: 'Listen',
+      stopListening: 'Stop',
+      showVerse: 'Show the verse',
+      hideVerse: 'Hide verse',
+      missingVerse: 'Verse not available',
+      next: 'Next',
+      previous: 'Previous',
+      quiz: {
+        start: 'Start the challenge',
+        question: 'Question {{n}} of {{total}}',
+        correct: 'Correct!',
+        wrong: 'Almost — try again',
+        retry: 'Try again',
+        score: '{{n}} of {{total}} stars',
+        finish: 'Finish',
+      },
+      teach: {
+        title: 'For teaching',
+        readFull: 'Full reading',
+        contextTitle: 'Context',
+        talkTitle: 'To talk about',
+        openInReader: 'Open in the reader',
+      },
+      stories: {
+        creation: {
+          title: 'Creation',
+          subtitle: 'God made everything',
+          refLabel: 'Genesis 1–2',
+          teachContext:
+            'Genesis 1 and 2 tell how God created the universe in six days and rested on the seventh. This is not one myth among others: it is the foundation of the whole Bible — God as creator of everything that exists, and people made in his image.',
+          teachQuestions: [
+            'Which part of Creation seems most amazing to you? Why?',
+            'What does it mean that God made us "in his image"?',
+            'Why do you think God rested on the seventh day, if he never gets tired?',
+          ],
+          scenes: {
+            'creation-1': {
+              text: 'Before the sun, the moon, or any star existed, everything was dark and empty. Then God spoke: "Let there be light." And light appeared, simply because God said so. That is how everything began: with the word of God.',
+            },
+            'creation-2': {
+              text: 'God separated the waters above from the waters below, and put a wide space between them: the sky. There were still no plants, animals, or people — only sky, water, and the powerful word of God making room for what was coming.',
+            },
+            'creation-3': {
+              text: 'God gathered the waters into one place, and dry land appeared. Then he commanded the land to produce plants: trees, grass, and seeds of every kind, each according to its kind. The world began to fill with green.',
+            },
+            'creation-4': {
+              text: 'God placed two great lights in the sky: the sun to rule the day and the moon to rule the night. He also made the stars. Ever since, day and night have followed the order God set that day.',
+            },
+            'creation-5': {
+              text: 'God filled the sea with fish and the sky with birds of every kind. He blessed them and told them to multiply. For the first time, the world was full of movement: fins swimming and wings flying.',
+            },
+            'creation-6': {
+              text: 'Finally, God made the animals of the earth, and then created man and woman in his own image. He gave them the task of caring for everything he had made. God looked at all he had created and saw that it was very good.',
+            },
+            'creation-7': {
+              text: 'On the seventh day, God rested from all the work he had done. Not because he was tired, but to bless that day and set it apart as special. That is how the week of Creation ended.',
+            },
+          },
+          quiz: {
+            'creation-q1': {
+              question: 'What did God say first, according to the Bible?',
+              options: [
+                '"Let there be light"',
+                '"Let there be sea"',
+                '"Let us make man"',
+              ],
+            },
+            'creation-q2': {
+              question: 'What did God do on the seventh day?',
+              options: [
+                'He made the animals',
+                'He rested',
+                'He made the sun and moon',
+              ],
+            },
+            'creation-q3': {
+              question: 'In whose image did God make man?',
+              options: [
+                "In the angels' image",
+                "In the animals' image",
+                "In God's own image",
+              ],
+            },
+          },
+        },
+        noah: {
+          title: 'Noah and the Ark',
+          subtitle: 'God keeps his promise',
+          refLabel: 'Genesis 6–9',
+          teachContext:
+            "Wickedness had filled the earth, and God chose to start again through one faithful family. The flood is both a story of judgment and of God's faithfulness: he saves those who trust him and seals his promise with a visible sign in the sky.",
+          teachQuestions: [
+            'Why do you think Noah obeyed God even though no one else did?',
+            "What does the rainbow mean as God's promise?",
+            'What things does God ask of us today that might feel as hard as building the ark felt to Noah?',
+          ],
+          scenes: {
+            'noah-1': {
+              text: 'God saw that the earth had become full of wickedness, and decided to send a flood. But he told Noah, a righteous man, to build an ark of wood, with rooms inside and out, to save his family.',
+            },
+            'noah-2': {
+              text: 'God told Noah to bring a pair of every kind of animal into the ark, so life could continue after the flood. Noah did exactly what God had commanded him, and the animals came into the ark two by two.',
+            },
+            'noah-3': {
+              text: 'When everyone was inside, it began to rain. Rain fell on the earth for forty days and forty nights, and the waters rose until they covered the whole earth. The ark floated safely on the waters.',
+            },
+            'noah-4': {
+              text: 'After a long time, the waters began to go down. The ark came to rest on the mountains of Ararat. The land that had been covered by water slowly began to appear again.',
+            },
+            'noah-5': {
+              text: 'Noah sent out a dove to see if the earth was dry yet. The dove came back to the ark carrying a freshly picked olive leaf in its beak. That is how Noah knew the waters had gone down on the earth.',
+            },
+            'noah-6': {
+              text: 'When everyone left the ark, God set his bow — the rainbow — in the clouds as a sign of his promise: he would never again destroy the earth with a flood. Every time a rainbow appears, it recalls that promise of God.',
+            },
+          },
+          quiz: {
+            'noah-q1': {
+              question: 'What did God tell Noah to build the ark from?',
+              options: ['Gopher wood', 'Stone', 'Clay'],
+            },
+            'noah-q2': {
+              question: 'What did the dove bring back in its beak?',
+              options: ['A stone', 'An olive leaf', 'A fish'],
+            },
+            'noah-q3': {
+              question:
+                'What did God set in the clouds as a sign of his promise?',
+              options: ['A star', 'A rainbow', 'A dove'],
+            },
+          },
+        },
+        joseph: {
+          title: 'Joseph and His Brothers',
+          subtitle: 'God turns it for good',
+          refLabel: 'Genesis 37–45',
+          teachContext:
+            "Joseph's story shows how God can bring good even out of betrayal and injustice, without that meaning the wrong done by his brothers was somehow right. Joseph's forgiveness of those who hurt him is the high point of the whole account.",
+          teachQuestions: [
+            "Why do you think Joseph's brothers were jealous of him?",
+            'How was Joseph able to forgive the ones who hurt him so badly?',
+            'Has something bad that happened to you ever ended up helping other people, like it did with Joseph?',
+          ],
+          scenes: {
+            'joseph-1': {
+              text: "Joseph was one of Jacob's twelve sons, and his father loved him in a special way. His brothers grew jealous because Joseph had dreams in which they bowed down to him, and they could no longer speak to him peacefully.",
+            },
+            'joseph-2': {
+              text: "One day, far from their father, Joseph's brothers sold him to traders passing by on their way to Egypt. They told their father a wild animal had killed him, but in truth Joseph had been carried off as a slave.",
+            },
+            'joseph-3': {
+              text: 'In Egypt, Joseph was sold as a servant, and even unjustly thrown into prison. But the Bible says the LORD was with Joseph: he gave him success in everything he did, even in the hardest moments.',
+            },
+            'joseph-4': {
+              text: 'God gave Joseph the ability to explain the meaning of a dream Pharaoh had: seven years of plenty would come, followed by seven years of famine. Pharaoh put Joseph in charge of all Egypt to prepare the land.',
+            },
+            'joseph-5': {
+              text: "When the famine came, Joseph's brothers traveled to Egypt to buy grain, not knowing that the governor standing before them was the very brother they had sold years earlier. Joseph recognized them, but they did not recognize him.",
+            },
+            'joseph-6': {
+              text: 'Finally, Joseph revealed himself to his brothers. Even though they had hurt him deeply, he told them not to be distressed: God had sent him ahead of them to Egypt to preserve the lives of many people.',
+            },
+          },
+          quiz: {
+            'joseph-q1': {
+              question: "What did Joseph's brothers do to him?",
+              options: [
+                'Sold him to traders',
+                'Crowned him king',
+                'Hid him in their house',
+              ],
+            },
+            'joseph-q2': {
+              question: 'Who was with Joseph in Egypt?',
+              options: ['No one helped him', 'The LORD', 'Only Pharaoh'],
+            },
+            'joseph-q3': {
+              question: 'What did Joseph tell his brothers in the end?',
+              options: [
+                'To leave forever',
+                'Not to be distressed — God turned it for good',
+                'That he would never forgive them',
+              ],
+            },
+          },
+        },
+        moses: {
+          title: 'Moses and the Exodus',
+          subtitle: 'God sets his people free',
+          refLabel: 'Exodus 2–14',
+          teachContext:
+            "The Exodus is God's great act of deliverance in the Old Testament: he brings Israel out of slavery in Egypt to become his people. It is also the story behind the Passover, which Jesus would later fulfill in an even greater way.",
+          teachQuestions: [
+            'Why do you think Moses was afraid when God called him?',
+            "What does this story show you about God's power?",
+            'In what ways does God "make a way" today for his people, even without parting a sea?',
+          ],
+          scenes: {
+            'moses-1': {
+              text: 'When Moses was born, Pharaoh had ordered every Hebrew baby boy to be killed. His mother hid him in a basket and set it afloat among the reeds of the Nile River, trusting that God would watch over her son.',
+            },
+            'moses-2': {
+              text: 'As an adult, Moses was tending sheep in the desert when he saw something strange: a bush that was on fire but was not burning up. When he went closer to look, God called to him out of the fire and spoke to him.',
+            },
+            'moses-3': {
+              text: 'God sent Moses to speak with Pharaoh of Egypt. Moses and his brother Aaron told him: "Thus says the LORD God of Israel: Let my people go." But Pharaoh refused, again and again.',
+            },
+            'moses-4': {
+              text: 'Before the final plague, God gave Israel instructions to put blood on the doorposts of their houses: that blood would be the sign for death to pass over that night. That is how the Passover began.',
+            },
+            'moses-5': {
+              text: 'Pharaoh finally let the people go, but then changed his mind and chased after them to the Red Sea. Moses stretched out his hand over the sea, and God opened a dry path through the middle of the waters.',
+            },
+            'moses-6': {
+              text: 'Israel crossed the sea on dry ground, with the waters like a wall on each side. When the Egyptian army tried to follow, the waters returned to their place. The people saw the great power of God and trusted him.',
+            },
+          },
+          quiz: {
+            'moses-q1': {
+              question: 'Where did they place baby Moses to keep him safe?',
+              options: [
+                'In a basket on the river',
+                'In a palace',
+                'In a hidden cave',
+              ],
+            },
+            'moses-q2': {
+              question: 'How did God appear to Moses?',
+              options: [
+                'In a dream',
+                'In a bush that burned but was not consumed',
+                'Inside a cloud of smoke',
+              ],
+            },
+            'moses-q3': {
+              question:
+                'What happened to the sea when Moses stretched out his hand?',
+              options: [
+                'It split in two',
+                'It froze solid',
+                'It became deeper',
+              ],
+            },
+          },
+        },
+        'david-goliath': {
+          title: 'David and Goliath',
+          subtitle: 'Faith defeats the giant',
+          refLabel: '1 Samuel 17',
+          teachContext:
+            'David was still a young shepherd when he faced the Philistine giant Goliath. The story does not celebrate David\'s courage as a personal feat, but his trust that God would fight for Israel — the same trust a child can have today facing their own "giants."',
+          teachQuestions: [
+            "Why do you think no one else in Israel's army wanted to face Goliath?",
+            "What was David trusting in so he wasn't afraid?",
+            'What are the "giants" you face, and who can you trust the way David trusted God?',
+          ],
+          scenes: {
+            'david-goliath-1': {
+              text: "A Philistine giant named Goliath came out of the enemy camp and challenged Israel's army: he asked for someone to fight him one on one. Every soldier in Israel, including King Saul, was very afraid.",
+            },
+            'david-goliath-2': {
+              text: "David was a young shepherd who cared for his father's sheep. When he arrived at the camp to bring food to his brothers, he heard Goliath's challenge and told how, as a shepherd, he had already rescued sheep from lions and bears.",
+            },
+            'david-goliath-3': {
+              text: "David chose not to wear King Saul's heavy armor. Instead, he took his staff, his sling, and chose five smooth stones from a stream, placing them in his shepherd's bag. That is how he approached the Philistine.",
+            },
+            'david-goliath-4': {
+              text: 'Goliath mocked David for being so young. But David answered him: "You come to me with sword and spear, but I come to you in the name of the LORD of hosts." David knew the battle belonged to God.',
+            },
+            'david-goliath-5': {
+              text: 'David ran toward Goliath, took a stone from his bag, slung it, and struck the giant on the forehead. Goliath fell, and the whole Philistine army fled when they saw what God had done through David.',
+            },
+          },
+          quiz: {
+            'david-goliath-q1': {
+              question:
+                'How many smooth stones did David take from the stream?',
+              options: ['Three', 'Five', 'Ten'],
+            },
+            'david-goliath-q2': {
+              question: 'In whose name did David say he came to fight?',
+              options: [
+                'In his own strength',
+                'In the name of the LORD of hosts',
+                'In the name of King Saul',
+              ],
+            },
+            'david-goliath-q3': {
+              question: 'What did David use to defeat Goliath?',
+              options: ['A sword', 'A sling and a stone', 'A bow and arrows'],
+            },
+          },
+        },
+        'daniel-lions': {
+          title: "Daniel in the Lions' Den",
+          subtitle: "Faithful even when it's dangerous",
+          refLabel: 'Daniel 6',
+          teachContext:
+            'Daniel was a foreigner faithful to God who served in the government of Babylon. When an unjust law put him in danger for praying, Daniel did not stop — and God protected him in a way everyone could see, including the king.',
+          teachQuestions: [
+            'Why did Daniel keep praying even though he knew it was dangerous?',
+            'What does it mean to be faithful to God even when it costs something?',
+            "Have you ever had to choose between doing what's right and what's easy? What happened?",
+          ],
+          scenes: {
+            'daniel-lions-1': {
+              text: "Daniel was a man faithful to God who served as one of the king's highest officials in Babylon. His honesty and wisdom were so great that the king planned to put him in charge of the whole kingdom.",
+            },
+            'daniel-lions-2': {
+              text: "Some men, jealous of Daniel, convinced the king to sign a law: for thirty days, no one could pray to anyone except the king, on penalty of being thrown into the lions' den. They knew Daniel prayed to God every day.",
+            },
+            'daniel-lions-3': {
+              text: 'When Daniel learned of the new law, he kept praying to God three times a day, just as he always had, with the windows of his house open toward Jerusalem, without hiding or being afraid.',
+            },
+            'daniel-lions-4': {
+              text: "The men who hated Daniel accused him before the king, and even though the king did not want to, the law had to be carried out. Daniel was taken and thrown into the lions' den that very night.",
+            },
+            'daniel-lions-5': {
+              text: "The next morning, the king ran anxiously to the den and called out to Daniel. Daniel answered that his God had sent an angel who had shut the lions' mouths, and that he had not been harmed at all.",
+            },
+          },
+          quiz: {
+            'daniel-lions-q1': {
+              question: 'How many times a day did Daniel pray?',
+              options: ['Once', 'Three times', 'He never prayed out loud'],
+            },
+            'daniel-lions-q2': {
+              question: 'Where was Daniel taken for continuing to pray?',
+              options: [
+                "To the lions' den",
+                'To an ordinary prison',
+                'Far away from the kingdom',
+              ],
+            },
+            'daniel-lions-q3': {
+              question: "Who shut the lions' mouths?",
+              options: ['The king himself', "God's angel", 'The palace guards'],
+            },
+          },
+        },
+        jonah: {
+          title: 'Jonah and the Great Fish',
+          subtitle: "No one escapes God's love",
+          refLabel: 'Jonah 1–3',
+          teachContext:
+            "God sent Jonah to preach to Nineveh, a city that was Israel's enemy, and Jonah tried to run the opposite way. The story shows both God's patience with Jonah and his compassion for an entire city that did not know him.",
+          teachQuestions: [
+            "Why do you think Jonah didn't want to go to Nineveh?",
+            'What did Jonah learn inside the great fish?',
+            'Have you ever tried to "run away" from something you knew God was asking you to do?',
+          ],
+          scenes: {
+            'jonah-1': {
+              text: 'God told Jonah to go to the city of Nineveh and preach against its wickedness. But Jonah did not want to go: he got up and boarded a ship heading the opposite direction, trying to flee from the presence of the LORD.',
+            },
+            'jonah-2': {
+              text: 'While the ship was sailing, the LORD sent such a strong storm that the sailors feared the ship would sink. Jonah told them to pick him up and throw him into the sea, because he knew the storm was because of him.',
+            },
+            'jonah-3': {
+              text: 'When they threw Jonah into the sea, the LORD had a great fish ready that swallowed him. Jonah was inside the fish for three days and three nights, and from there he cried out to God in prayer.',
+            },
+            'jonah-4': {
+              text: 'Jonah prayed to the LORD his God from inside the fish, and God heard him. The fish vomited him out onto dry land, and God spoke to him again: "Get up and go to Nineveh, that great city, and proclaim to it the message I give you."',
+            },
+            'jonah-5': {
+              text: 'This time Jonah obeyed and preached in Nineveh. Surprisingly, the people of the city believed God, turned away from their wickedness, and God, seeing their change, decided not to destroy the city.',
+            },
+          },
+          quiz: {
+            'jonah-q1': {
+              question:
+                'What did Jonah do when God asked him to go to Nineveh?',
+              options: [
+                'He obeyed right away',
+                'He fled on a ship in the other direction',
+                'He hid in his house',
+              ],
+            },
+            'jonah-q2': {
+              question: 'What did the LORD have ready for Jonah in the sea?',
+              options: ['A great fish', 'A wooden raft', 'A nearby island'],
+            },
+            'jonah-q3': {
+              question:
+                "What did the people of Nineveh do when they heard Jonah's message?",
+              options: [
+                'They laughed at him',
+                'They believed God and turned from their wickedness',
+                'They drove Jonah out of the city',
+              ],
+            },
+          },
+        },
+        'jesus-birth': {
+          title: 'The Birth of Jesus',
+          subtitle: 'God became one of us',
+          refLabel: 'Luke 2:1-20',
+          teachContext:
+            "Luke tells the birth of Jesus with simple, humble details: a census, a manger, some shepherds. The contrast between the greatness of the angels' announcement and the poverty of the birthplace shows how God chose to come into the world.",
+          teachQuestions: [
+            'Why do you think Jesus was born in such a humble place as a manger?',
+            'Why do you think the angels announced the news first to shepherds, rather than to kings or important leaders?',
+            'How would you have felt if you had been one of the shepherds that night?',
+          ],
+          scenes: {
+            'jesus-birth-1': {
+              text: "A census required Joseph to travel with Mary, his wife, from Nazareth to Bethlehem, the city of David, because Joseph was from David's family. Mary was about to give birth when they arrived.",
+            },
+            'jesus-birth-2': {
+              text: 'In Bethlehem, Mary gave birth to her firstborn son. She wrapped him in cloths and laid him in a manger, because there was no room for them at the inn. That is how Jesus was born, in the simplest of places.',
+            },
+            'jesus-birth-3': {
+              text: 'That same night, some shepherds were watching their flocks in the fields when an angel appeared to them. "Do not be afraid," he said, "for unto you is born this day, in the city of David, a Savior, who is Christ the Lord."',
+            },
+            'jesus-birth-4': {
+              text: 'The shepherds hurried to Bethlehem and found everything just as the angel had told them: Mary, Joseph, and the baby lying in the manger. They saw with their own eyes what God had announced.',
+            },
+            'jesus-birth-5': {
+              text: 'After seeing the child, the shepherds told everyone what the angels had said about him. Then they went back to their fields, glorifying and praising God for all they had seen and heard.',
+            },
+          },
+          quiz: {
+            'jesus-birth-q1': {
+              question: 'Where was Jesus born?',
+              options: [
+                'In a palace',
+                'In a manger in Bethlehem',
+                'Inside the temple',
+              ],
+            },
+            'jesus-birth-q2': {
+              question: 'Who announced the good news to the shepherds?',
+              options: ['An angel', 'A king', 'An elderly prophet'],
+            },
+            'jesus-birth-q3': {
+              question: 'What did the shepherds do after seeing the child?',
+              options: [
+                'They kept quiet about everything',
+                'They went back glorifying and praising God',
+                'They went home sad',
+              ],
+            },
+          },
+        },
+        'good-samaritan': {
+          title: 'The Good Samaritan',
+          subtitle: 'Who is my neighbor?',
+          refLabel: 'Luke 10:25-37',
+          teachContext:
+            'Jesus told this parable in answer to the question "who is my neighbor?" Samaritans and Jews did not get along in that time, so choosing a Samaritan as the hero of the story surprised those who heard it.',
+          teachQuestions: [
+            "Why do you think the priest and the Levite didn't help the injured man?",
+            'Why was it surprising that the Samaritan was the one who helped?',
+            'Who could be your "neighbor" today — someone who needs your help even if you don\'t know them well?',
+          ],
+          scenes: {
+            'good-samaritan-1': {
+              text: 'An expert in the law asked Jesus what he needed to do to love his neighbor, and then asked him, "And who is my neighbor?" Jesus answered by telling a story.',
+            },
+            'good-samaritan-2': {
+              text: 'A man was going down the road from Jerusalem to Jericho when he fell into the hands of robbers. They stripped him of everything he had, beat him, and left him half dead beside the road.',
+            },
+            'good-samaritan-3': {
+              text: 'A priest and then a Levite — two men who served at the temple — came down that same road. Both saw the injured man, but they passed by on the other side of the road without stopping to help.',
+            },
+            'good-samaritan-4': {
+              text: 'Then a Samaritan came by — someone from a people who did not get along with the Jews. When he saw the injured man, he felt compassion: he came near, bandaged his wounds, and took care of him, even though he did not know him at all.',
+            },
+            'good-samaritan-5': {
+              text: 'The Samaritan even paid to have the injured man cared for at an inn until he recovered. Jesus asked, "Which of these three was a neighbor?" And he said, "Go, and do likewise."',
+            },
+          },
+          quiz: {
+            'good-samaritan-q1': {
+              question:
+                'In the story, who passed by without helping the injured man?',
+              options: [
+                'A priest and a Levite',
+                'Two Samaritans',
+                'Two children from the village',
+              ],
+            },
+            'good-samaritan-q2': {
+              question: 'Who stopped to help the injured man?',
+              options: ['A priest', 'A Samaritan', 'A Levite'],
+            },
+            'good-samaritan-q3': {
+              question:
+                'What did Jesus tell the man who had asked the question?',
+              options: [
+                'Go and do likewise',
+                "Forget it, it doesn't matter",
+                'Wait for someone else to help',
+              ],
+            },
+          },
+        },
+        resurrection: {
+          title: 'Jesus Is Alive!',
+          subtitle: 'The tomb is empty',
+          refLabel: 'Matthew 27:57–28:10',
+          teachContext:
+            "Jesus' resurrection is the center of the Christian faith: he did not remain in the tomb, but rose from the dead on the third day, just as he himself had said. This account is told soberly and faithfully to the text, without adding graphic details the text does not describe.",
+          teachQuestions: [
+            'Why do you think the women were the first to learn Jesus had risen?',
+            'What does it mean to you that Jesus is alive today?',
+            'Why did the angel tell the women to go tell the others?',
+          ],
+          scenes: {
+            'resurrection-1': {
+              text: "After dying on the cross, Jesus' body was wrapped and placed in a new tomb cut into rock. They sealed the entrance with a large stone, and his followers were left sad, not yet understanding what would come next.",
+            },
+            'resurrection-2': {
+              text: 'At dawn on the first day of the week, two women who followed Jesus went to visit the tomb. They did not know what they would find, but they wanted to be near the place where they had left their Lord.',
+            },
+            'resurrection-3': {
+              text: 'When they arrived, an angel appeared and said to them, "Do not be afraid, for I know that you seek Jesus, who was crucified. He is not here, for he has risen, just as he said." The tomb was empty.',
+            },
+            'resurrection-4': {
+              text: 'The women left the tomb with fear and great joy at the same time, and ran to tell the disciples. On the way, Jesus himself met them and greeted them — he was truly alive!',
+            },
+            'resurrection-5': {
+              text: 'Jesus told them, "Do not be afraid; go, tell my brothers the news." The women were the first to announce the most important news in history: Jesus had risen, just as he had promised.',
+            },
+          },
+          quiz: {
+            'resurrection-q1': {
+              question: 'What did the angel tell the women at the tomb?',
+              options: [
+                'He is not here, he has risen',
+                'Come back tomorrow',
+                'You cannot come through here',
+              ],
+            },
+            'resurrection-q2': {
+              question: 'How did the women feel as they left the tomb?',
+              options: [
+                'With fear and great joy at once',
+                'Angry',
+                "They didn't feel anything special",
+              ],
+            },
+            'resurrection-q3': {
+              question: 'What did Jesus tell the women to do?',
+              options: ['Hide', 'Go tell the disciples', 'Stay silent forever'],
+            },
+          },
+        },
+      },
     },
   },
 };

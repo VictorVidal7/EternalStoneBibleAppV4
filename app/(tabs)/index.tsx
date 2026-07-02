@@ -1366,6 +1366,16 @@ export default function HomeScreen() {
                 }
               />
             </View>
+            <View style={styles.savedCardWrapper}>
+              <DiscoverTile
+                icon="happy"
+                title={t.kids.cardTitle}
+                subtitle={t.kids.cardSubtitle}
+                onPress={() =>
+                  handlePress(() => router.push('/features/kids' as never))
+                }
+              />
+            </View>
           </View>
         </Animated.View>
 

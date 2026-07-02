@@ -538,6 +538,48 @@ export class AchievementService {
     ];
   }
 
+  /**
+   * Unlock the "completed a kids story" badge (mirrors
+   * trackJourneyRoutesComplete — a one-off SPECIAL with no stat counter,
+   * unlocked explicitly by the screen once progress says so). Idempotent —
+   * returns [] if already unlocked.
+   */
+  async trackKidsFirstStoryComplete(): Promise<Achievement[]> {
+    const unlocked = await this.unlockAchievement('kids_first_story');
+    if (!unlocked) return [];
+    const def = ACHIEVEMENT_DEFINITIONS.find(a => a.id === 'kids_first_story');
+    if (!def) return [];
+    return [
+      {
+        ...def,
+        currentProgress: def.requirement,
+        isUnlocked: true,
+        unlockedAt: Date.now(),
+      },
+    ];
+  }
+
+  /**
+   * Unlock the "completed every kids story" badge. Idempotent — returns []
+   * if already unlocked.
+   */
+  async trackKidsAllStoriesComplete(): Promise<Achievement[]> {
+    const unlocked = await this.unlockAchievement('kids_stories_complete');
+    if (!unlocked) return [];
+    const def = ACHIEVEMENT_DEFINITIONS.find(
+      a => a.id === 'kids_stories_complete',
+    );
+    if (!def) return [];
+    return [
+      {
+        ...def,
+        currentProgress: def.requirement,
+        isUnlocked: true,
+        unlockedAt: Date.now(),
+      },
+    ];
+  }
+
   async trackBookmark(): Promise<void> {
     this.stats = null;
     await this.db.executeSql(
