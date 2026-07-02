@@ -485,30 +485,39 @@ export default function ConstellationScreen() {
               </View>
             </View>
 
-            {/* Legend + count. */}
-            <View style={styles.legendRow}>
-              <View style={styles.legendItem}>
-                <View
-                  style={[styles.legendDot, {backgroundColor: colors.primary}]}
-                />
-                <Text
-                  style={[styles.legendText, {color: colors.textSecondary}]}>
-                  {cn.legendOut}
+            {/* Legend + count — hidden while the floating detail panel is
+                open (below): it sits fixed near the bottom of the screen, so
+                with a star selected this row would otherwise land right
+                behind the panel's rounded corners, showing through and
+                competing with its text (UX follow-up). */}
+            {!selected && (
+              <View style={styles.legendRow}>
+                <View style={styles.legendItem}>
+                  <View
+                    style={[
+                      styles.legendDot,
+                      {backgroundColor: colors.primary},
+                    ]}
+                  />
+                  <Text
+                    style={[styles.legendText, {color: colors.textSecondary}]}>
+                    {cn.legendOut}
+                  </Text>
+                </View>
+                <View style={styles.legendItem}>
+                  <View
+                    style={[styles.legendDot, {backgroundColor: colors.accent}]}
+                  />
+                  <Text
+                    style={[styles.legendText, {color: colors.textSecondary}]}>
+                    {cn.legendIn}
+                  </Text>
+                </View>
+                <Text style={[styles.countText, {color: colors.textTertiary}]}>
+                  {countLabel}
                 </Text>
               </View>
-              <View style={styles.legendItem}>
-                <View
-                  style={[styles.legendDot, {backgroundColor: colors.accent}]}
-                />
-                <Text
-                  style={[styles.legendText, {color: colors.textSecondary}]}>
-                  {cn.legendIn}
-                </Text>
-              </View>
-              <Text style={[styles.countText, {color: colors.textTertiary}]}>
-                {countLabel}
-              </Text>
-            </View>
+            )}
 
             {/* Hint to tap — the selected-star detail floats over the canvas
                 (below), so it never requires scrolling per connection. */}
