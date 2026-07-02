@@ -106,6 +106,18 @@ interface ReadingPlanProgressContextType {
    * chapters land on which day number, orphaning already-ticked progress.
    */
   setPlanDuration: (planId: string, totalDays: number) => Promise<void>;
+  /**
+   * Restarts a FINISHED plan so it can be walked through again: clears
+   * `completedDays` and re-stamps `startedAt` to now, but preserves the
+   * once-earned `completedAt` (conserve-once-earned, same as `withCompletionStamp`)
+   * and any chosen `customDuration`. Also clears the global read-chapter flags
+   * for exactly this plan's chapters — otherwise the very next chapter read
+   * anywhere in the app would re-trigger auto-complete and instantly finish
+   * the "restarted" plan again, since those chapters were already marked read
+   * from the first run. Other plans that happen to share a chapter just lose
+   * that chapter's auto-tick, not any of their own completed days.
+   */
+  restartPlan: (planId: string) => Promise<void>;
 }
 
 const ReadingPlanProgressContext = createContext<
@@ -379,6 +391,45 @@ export function ReadingPlanProgressProvider({children}: {children: ReactNode}) {
     [progress, persist],
   );
 
+  const restartPlan = useCallback(
+    async (planId: string) => {
+      const plan = allPlans().find(p => p.id === planId);
+      const current = progress[planId];
+      if (!plan || !current) return;
+
+      // Drop the global read-chapter flags for exactly this plan's chapters
+      // FIRST — otherwise the very next chapter read anywhere in the app
+      // would find them still marked read and instantly auto-complete the
+      // "restarted" plan again via markChapterRead's scan over all plans.
+      const days = effectivePlanDays(plan, current.customDuration);
+      const keysToClear = new Set<string>();
+      for (const day of days) {
+        for (const r of day.readings) {
+          const key = chapterKey(r.book, r.chapter);
+          if (key) keysToClear.add(key);
+        }
+      }
+      const nextRead = {...readChaptersRef.current};
+      for (const key of keysToClear) delete nextRead[key];
+      readChaptersRef.current = nextRead;
+      setReadChapters(nextRead);
+      AsyncStorage.setItem(READ_CHAPTERS_KEY, JSON.stringify(nextRead)).catch(
+        err =>
+          logger.error('Could not save read chapters', err as Error, {
+            component: 'ReadingPlanProgress',
+          }),
+      );
+
+      const next: PlanProgress = {
+        ...current,
+        completedDays: [],
+        startedAt: new Date().toISOString(),
+      };
+      await persist({...progress, [planId]: next});
+    },
+    [progress, persist],
+  );
+
   return (
     <ReadingPlanProgressContext.Provider
       value={{
@@ -393,6 +444,7 @@ export function ReadingPlanProgressProvider({children}: {children: ReactNode}) {
         getCompletedAt,
         getPlanDuration,
         setPlanDuration,
+        restartPlan,
       }}>
       {children}
     </ReadingPlanProgressContext.Provider>

@@ -3420,6 +3420,10 @@ export const translations = {
         'El mismo contenido, a tu ritmo. Se puede ajustar solo antes de empezar.',
       durationPickerDays: '{{n}} días',
       durationPickerPace: '≈{{n}} capítulos por día',
+      restartPlan: 'Reiniciar plan',
+      restartPlanConfirm:
+        'Esto borra los días marcados para volver a empezar desde el Día 1. Tu logro de haberlo completado antes se conserva.',
+      planRestarted: 'Plan reiniciado — ¡Día 1 te espera!',
     },
 
     // Daily Verse Notifications
@@ -8228,6 +8232,10 @@ export const translations = {
         'Same content, your pace. Only adjustable before you start.',
       durationPickerDays: '{{n}} days',
       durationPickerPace: '≈{{n}} chapters per day',
+      restartPlan: 'Restart plan',
+      restartPlanConfirm:
+        "This clears your marked days so you can start over from Day 1. You'll keep credit for finishing it before.",
+      planRestarted: 'Plan restarted — Day 1 awaits!',
     },
 
     // Daily Verse Notifications

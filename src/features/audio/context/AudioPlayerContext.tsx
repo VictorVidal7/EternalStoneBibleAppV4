@@ -877,6 +877,37 @@ export const AudioPlayerProvider: React.FC<AudioPlayerProviderProps> = ({
     return () => sub.remove();
   }, [stop, cancelSleepTimer, armSleepTimers]);
 
+  // expo-speech chains verses by having JS call Speech.speak() again from
+  // each utterance's onDone callback — there's no native queue. Backgrounding
+  // the app throttles JS timers/callbacks (confirmed live: the in-flight
+  // utterance finishes, but the next one never fires), so playback silently
+  // stalls while the UI still claims isPlaying. Rather than leave that zombie
+  // state, pause explicitly on backgrounding so resuming shows an honest,
+  // resumable state. True background-continuous playback would need a
+  // foreground service (Android) + declared background audio (iOS) PLUS
+  // restructuring this JS-chained narration into a native-queued player —
+  // out of scope here; this only fixes the misleading "still playing" state.
+  useEffect(() => {
+    const sub = AppState.addEventListener('change', next => {
+      if (next !== 'background') return;
+      if (!stateRef.current.isPlaying) return;
+      const nextState = {
+        ...stateRef.current,
+        isPlaying: false,
+        isPaused: true,
+        isLoading: false,
+      };
+      stateRef.current = nextState;
+      setState(nextState);
+      Speech.stop().catch(err =>
+        logger.warn('Error stopping speech on background', {
+          error: String(err),
+        }),
+      );
+    });
+    return () => sub.remove();
+  }, []);
+
   // Cleanup timers on unmount
   useEffect(() => {
     return () => {
