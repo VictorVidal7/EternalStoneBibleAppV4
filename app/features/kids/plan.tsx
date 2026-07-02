@@ -1,16 +1,18 @@
 /**
- * 🧒 BIBLIA PARA NIÑOS — hub listing the app's curated kids stories (Item 4,
- * Tanda 1 of the kids/family mode).
+ * 🗓️ KIDS PLAN — "Plan de 10 días": one Bible-for-kids story per day (Item 4,
+ * Tanda 2 of the kids/family mode).
  *
- * A separate section reached from Home's "Explorar" tile, built for dual
- * use per the user's call: a child (8+) can read a story alone, or an adult
- * can read it aloud to a younger one. Each card opens
- * `/features/kids/[storyId]`: scenes → a 3-question quiz → a "Para enseñar"
- * panel for the adult (context + open discussion questions, no prescribed
- * wording — same theological care as [[scripturePrayers]]).
+ * NOT new content — this is a pacing layer over the ten stories already
+ * built in Tanda 1, reusing every scene/quiz/illustration as-is. The pace
+ * clock starts the first time ANY story's quiz is completed
+ * ([[markKidsStoryCompleted]]) and is read here via the pure [[kidsPlanPace]]
+ * model (a thin wrapper over the adult [[planPace]], which has no
+ * chapter-specific coupling). Days are never locked — a child or parent can
+ * open any day's story at any time; the plan only ever offers grace-toned
+ * pacing guidance, never a gate.
  *
- * Reached from the Home "Explorar" tile + the deep link
- * eternalbible://features/kids.
+ * Reached from the kids hub `/features/kids` and the deep link
+ * eternalbible://features/kids/plan.
  *
  * Para la gloria de Dios Todopoderoso ✨
  */
@@ -33,11 +35,11 @@ import {
   KIDS_STORY_PALETTE,
   type KidsStoryId,
 } from '@/features/kids/kidsStories';
+import {kidsPlanPace, kidsPlanDayStory} from '@/features/kids/kidsPlan';
 import {
   getKidsProgress,
   type KidsProfileProgress,
 } from '@/features/kids/kidsProgress';
-import {kidsPlanPace} from '@/features/kids/kidsPlan';
 import type {PlanPace} from '@/lib/reading/planPace';
 import {
   borderRadius,
@@ -51,12 +53,13 @@ interface KidsStoryText {
   subtitle: string;
 }
 
-export default function KidsHubScreen() {
+export default function KidsPlanScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const {colors} = useTheme();
   const {t} = useLanguage();
   const tk = t.kids;
+  const tp = tk.plan;
   const stories = tk.stories as Record<string, KidsStoryText>;
   const [progress, setProgress] = useState<KidsProfileProgress | null>(null);
 
@@ -72,16 +75,16 @@ export default function KidsHubScreen() {
     }, []),
   );
 
-  const headerGradient: [string, string] = [colors.primary, colors.primaryDark];
   const storyById = new Map(KIDS_STORIES.map(s => [s.id, s]));
+  const headerGradient: [string, string] = [colors.primary, colors.primaryDark];
 
   const pace: PlanPace = kidsPlanPace(
     progress?.planStartedAt ?? null,
     progress?.storiesCompleted ?? [],
     new Date(),
   );
-  const tp = tk.plan;
-  const planCaption = (() => {
+
+  const paceCaption = (() => {
     switch (pace.status) {
       case 'notStarted':
         return tp.paceNotStarted;
@@ -100,21 +103,17 @@ export default function KidsHubScreen() {
     }
   })();
 
+  const todayStoryId: KidsStoryId | null =
+    pace.nextDay != null ? kidsPlanDayStory(pace.nextDay) : null;
+
   const openStory = (id: KidsStoryId) => {
     haptics.tap();
     router.push(`/features/kids/${id}` as never);
   };
 
-  const openPlan = () => {
-    haptics.tap();
-    router.push('/features/kids/plan' as never);
-  };
-
-  // A deep link straight into this screen leaves no back-stack entry, so
-  // router.back() would throw a "GO_BACK not handled" navigation error.
   const goBack = () => {
     if (router.canGoBack()) router.back();
-    else router.replace('/' as never);
+    else router.replace('/features/kids' as never);
   };
 
   return (
@@ -135,14 +134,14 @@ export default function KidsHubScreen() {
           </TouchableOpacity>
           <View style={styles.headerTextRow}>
             <View style={styles.headerIcon}>
-              <Ionicons name="happy" size={22} color={staticColors.white} />
+              <Ionicons name="calendar" size={22} color={staticColors.white} />
             </View>
             <View style={styles.headerInfo}>
               <AppText scaleRole="compact" style={styles.headerLabel}>
-                {tk.subtitle}
+                {tp.subtitle}
               </AppText>
               <AppText scaleRole="display" style={styles.headerTitle}>
-                {tk.title}
+                {tp.title}
               </AppText>
             </View>
           </View>
@@ -156,57 +155,92 @@ export default function KidsHubScreen() {
           ]}
           showsVerticalScrollIndicator={false}>
           <AppText style={[styles.intro, {color: colors.textSecondary}]}>
-            {tk.intro}
+            {tp.intro}
           </AppText>
 
-          <TouchableOpacity
-            style={[styles.planCard, {backgroundColor: colors.primary}]}
-            activeOpacity={0.85}
-            onPress={openPlan}
-            accessibilityRole="button"
-            accessibilityLabel={tp.cardTitle}>
-            <View style={styles.planCardIcon}>
-              <Ionicons name="calendar" size={24} color={staticColors.white} />
+          <View style={[styles.paceCard, {backgroundColor: colors.card}]}>
+            <AppText style={[styles.paceCaption, {color: colors.text}]}>
+              {paceCaption}
+            </AppText>
+            <View style={styles.dotsRow}>
+              {KIDS_STORY_ORDER.map((id, i) => {
+                const day = i + 1;
+                const done = progress?.storiesCompleted.includes(id) ?? false;
+                return (
+                  <View
+                    key={id}
+                    style={[
+                      styles.dot,
+                      {
+                        backgroundColor: done ? colors.primary : colors.border,
+                      },
+                    ]}
+                    accessibilityLabel={tp.dayLabel.replace(
+                      '{{n}}',
+                      String(day),
+                    )}
+                  />
+                );
+              })}
             </View>
-            <View style={styles.planCardInfo}>
-              <AppText style={styles.planCardTitle}>{tp.cardTitle}</AppText>
-              <AppText
-                scaleRole="compact"
-                style={styles.planCardSubtitle}
-                numberOfLines={1}>
-                {planCaption}
-              </AppText>
-            </View>
-            <Ionicons
-              name="chevron-forward"
-              size={20}
-              color={staticColors.white}
-            />
-          </TouchableOpacity>
+            <AppText
+              scaleRole="compact"
+              style={[styles.paceProgress, {color: colors.textTertiary}]}>
+              {tp.progress
+                .replace(
+                  '{{done}}',
+                  String(progress?.storiesCompleted.length ?? 0),
+                )
+                .replace('{{total}}', String(KIDS_STORY_ORDER.length))}
+            </AppText>
+            {todayStoryId && (
+              <TouchableOpacity
+                style={[styles.todayBtn, {backgroundColor: colors.primary}]}
+                onPress={() => openStory(todayStoryId)}
+                accessibilityRole="button"
+                accessibilityLabel={tp.goToToday}>
+                <AppText
+                  style={[styles.todayBtnText, {color: staticColors.white}]}>
+                  {tp.goToToday}
+                </AppText>
+              </TouchableOpacity>
+            )}
+          </View>
 
-          {KIDS_STORY_ORDER.map(id => {
+          {KIDS_STORY_ORDER.map((id, i) => {
+            const day = i + 1;
             const story = storyById.get(id);
             if (!story) return null;
             const accent = KIDS_STORY_PALETTE[id].accent;
             const meta = stories[id];
             const completed = progress?.storiesCompleted.includes(id) ?? false;
-            const best = progress?.quizBest[id] ?? 0;
+            const isToday = id === todayStoryId;
             return (
               <TouchableOpacity
                 key={id}
                 style={[
                   styles.card,
-                  {backgroundColor: colors.card, borderColor: accent + '40'},
+                  isToday ? styles.cardToday : styles.cardBorder,
+                  {
+                    backgroundColor: colors.card,
+                    borderColor: isToday ? accent : accent + '40',
+                  },
                 ]}
                 activeOpacity={0.85}
                 onPress={() => openStory(id)}
                 accessibilityRole="button"
-                accessibilityLabel={meta?.title ?? id}>
+                accessibilityLabel={`${tp.dayLabel.replace('{{n}}', String(day))}: ${meta?.title ?? id}`}>
+                <View
+                  style={[styles.dayBadge, {backgroundColor: accent + '18'}]}>
+                  <AppText style={[styles.dayBadgeText, {color: accent}]}>
+                    {day}
+                  </AppText>
+                </View>
                 <View
                   style={[styles.cardIcon, {backgroundColor: accent + '18'}]}>
                   <Ionicons
                     name={KIDS_STORY_ICON[id] as never}
-                    size={26}
+                    size={22}
                     color={accent}
                   />
                 </View>
@@ -214,21 +248,7 @@ export default function KidsHubScreen() {
                   <AppText style={[styles.cardTitle, {color: colors.text}]}>
                     {meta?.title ?? ''}
                   </AppText>
-                  <AppText
-                    scaleRole="compact"
-                    style={[styles.cardSubtitle, {color: accent}]}
-                    numberOfLines={1}>
-                    {meta?.subtitle ?? ''}
-                  </AppText>
                   <View style={styles.cardMetaRow}>
-                    <AppText
-                      scaleRole="compact"
-                      style={[styles.cardMeta, {color: colors.textTertiary}]}>
-                      {tk.scenesCount.replace(
-                        '{{n}}',
-                        String(story.scenes.length),
-                      )}
-                    </AppText>
                     {completed && (
                       <View style={styles.completedChip}>
                         <Ionicons
@@ -242,16 +262,18 @@ export default function KidsHubScreen() {
                             styles.completedText,
                             {color: colors.success},
                           ]}>
-                          {tk.completed}
+                          {tp.completed}
                         </AppText>
                       </View>
                     )}
-                    {best > 0 && (
-                      <AppText
-                        scaleRole="compact"
-                        style={[styles.cardMeta, {color: colors.textTertiary}]}>
-                        {'⭐'.repeat(best)}
-                      </AppText>
+                    {!completed && isToday && (
+                      <View style={[styles.todayChip, {borderColor: accent}]}>
+                        <AppText
+                          scaleRole="compact"
+                          style={[styles.todayChipText, {color: accent}]}>
+                          {tp.today}
+                        </AppText>
+                      </View>
                     )}
                   </View>
                 </View>
@@ -303,58 +325,66 @@ const styles = StyleSheet.create({
     fontSize: fontSizes['2xl'],
     fontWeight: '800',
   },
-  content: {padding: spacing.lg, gap: spacing.lg},
+  content: {padding: spacing.lg, gap: spacing.md},
   intro: {
     fontSize: fontSizes.md,
     lineHeight: fontSizes.md * 1.5,
     textAlign: 'center',
+    marginBottom: spacing.xs,
   },
-  planCard: {
+  paceCard: {
+    borderRadius: borderRadius.lg,
+    padding: spacing.base,
+    alignItems: 'center',
+    gap: spacing.sm,
+    marginBottom: spacing.sm,
+  },
+  paceCaption: {fontSize: fontSizes.lg, fontWeight: '800', textAlign: 'center'},
+  dotsRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'center',
+    gap: spacing.xs,
+  },
+  dot: {width: 14, height: 14, borderRadius: 7},
+  paceProgress: {fontSize: fontSizes.xs, fontWeight: '600'},
+  todayBtn: {
+    alignSelf: 'stretch',
+    minHeight: 48,
+    borderRadius: borderRadius.full,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginTop: spacing.xs,
+    paddingHorizontal: spacing.base,
+  },
+  todayBtnText: {fontSize: fontSizes.md, fontWeight: '800'},
+  card: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: spacing.md,
+    gap: spacing.sm,
     borderRadius: borderRadius.lg,
     padding: spacing.base,
     minHeight: 68,
   },
-  planCardIcon: {
-    width: 44,
-    height: 44,
-    borderRadius: borderRadius.lg,
-    backgroundColor: staticColors.glassWhite25,
+  cardBorder: {borderWidth: 1},
+  cardToday: {borderWidth: 2},
+  dayBadge: {
+    width: 32,
+    height: 32,
+    borderRadius: borderRadius.md,
     justifyContent: 'center',
     alignItems: 'center',
   },
-  planCardInfo: {flex: 1, gap: 2},
-  planCardTitle: {
-    color: staticColors.white,
-    fontSize: fontSizes.md,
-    fontWeight: '800',
-  },
-  planCardSubtitle: {
-    color: staticColors.glassWhite95,
-    fontSize: fontSizes.sm,
-    fontWeight: '600',
-  },
-  card: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing.md,
-    borderRadius: borderRadius.lg,
-    borderWidth: 1,
-    padding: spacing.base,
-    minHeight: 72,
-  },
+  dayBadgeText: {fontSize: fontSizes.sm, fontWeight: '800'},
   cardIcon: {
-    width: 52,
-    height: 52,
+    width: 44,
+    height: 44,
     borderRadius: borderRadius.lg,
     justifyContent: 'center',
     alignItems: 'center',
   },
   cardInfo: {flex: 1, gap: 2},
-  cardTitle: {fontSize: fontSizes.lg, fontWeight: '800'},
-  cardSubtitle: {fontSize: fontSizes.sm, fontWeight: '700'},
+  cardTitle: {fontSize: fontSizes.md, fontWeight: '800'},
   cardMetaRow: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -362,7 +392,13 @@ const styles = StyleSheet.create({
     gap: spacing.sm,
     marginTop: 2,
   },
-  cardMeta: {fontSize: fontSizes.xs, fontWeight: '600'},
   completedChip: {flexDirection: 'row', alignItems: 'center', gap: 3},
   completedText: {fontSize: fontSizes.xs, fontWeight: '700'},
+  todayChip: {
+    borderWidth: 1,
+    borderRadius: borderRadius.full,
+    paddingHorizontal: spacing.sm,
+    paddingVertical: 1,
+  },
+  todayChipText: {fontSize: fontSizes.xs, fontWeight: '700'},
 });

@@ -23,6 +23,7 @@ describe('kidsProgress', () => {
       storiesCompleted: [],
       scenesSeen: {},
       quizBest: {},
+      planStartedAt: null,
     });
   });
 
@@ -59,6 +60,7 @@ describe('kidsProgress', () => {
       storiesCompleted: [],
       scenesSeen: {},
       quizBest: {},
+      planStartedAt: null,
     });
   });
 
@@ -71,7 +73,32 @@ describe('kidsProgress', () => {
       storiesCompleted: [],
       scenesSeen: {},
       quizBest: {},
+      planStartedAt: null,
     });
+  });
+
+  it('a legacy profile stored before planStartedAt existed defaults it to null', async () => {
+    await AsyncStorage.setItem(
+      STORAGE_KEY,
+      JSON.stringify({
+        [DEFAULT_KIDS_PROFILE]: {
+          storiesCompleted: ['creation'],
+          scenesSeen: {},
+          quizBest: {},
+        },
+      }),
+    );
+    const progress = await getKidsProgress();
+    expect(progress.planStartedAt).toBeNull();
+    expect(progress.storiesCompleted).toEqual(['creation']);
+  });
+
+  it('markKidsStoryCompleted starts the plan clock on the first completion only', async () => {
+    const first = await markKidsStoryCompleted('creation');
+    expect(first.planStartedAt).not.toBeNull();
+    const startedAt = first.planStartedAt;
+    const second = await markKidsStoryCompleted('noah');
+    expect(second.planStartedAt).toBe(startedAt);
   });
 
   it('writing to the default profile does not clobber another profile', async () => {
