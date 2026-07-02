@@ -8,8 +8,8 @@ import {
   markKidsSceneSeen,
   recordKidsQuizScore,
   markKidsStoryCompleted,
-  hasSeenReadTogetherHint,
-  markReadTogetherHintSeen,
+  hasSeenListenAllHint,
+  markListenAllHintSeen,
   DEFAULT_KIDS_PROFILE,
 } from '../src/features/kids/kidsProgress';
 
@@ -114,26 +114,26 @@ describe('kidsProgress', () => {
   });
 });
 
-describe('read-together hint flag', () => {
+describe('listen-all hint flag', () => {
   beforeEach(async () => {
     await AsyncStorage.clear();
   });
 
   it('defaults to not-seen', async () => {
-    await expect(hasSeenReadTogetherHint()).resolves.toBe(false);
+    await expect(hasSeenListenAllHint()).resolves.toBe(false);
   });
 
   it('stays seen once marked', async () => {
-    await markReadTogetherHintSeen();
-    await expect(hasSeenReadTogetherHint()).resolves.toBe(true);
+    await markListenAllHintSeen();
+    await expect(hasSeenListenAllHint()).resolves.toBe(true);
   });
 
   it('persists under its own key, independent of profile progress', async () => {
     await markKidsStoryCompleted('creation');
-    await expect(hasSeenReadTogetherHint()).resolves.toBe(false);
-    await markReadTogetherHintSeen();
+    await expect(hasSeenListenAllHint()).resolves.toBe(false);
+    await markListenAllHintSeen();
     const progress = await getKidsProgress();
     expect(progress.storiesCompleted).toEqual(['creation']);
-    await expect(hasSeenReadTogetherHint()).resolves.toBe(true);
+    await expect(hasSeenListenAllHint()).resolves.toBe(true);
   });
 });

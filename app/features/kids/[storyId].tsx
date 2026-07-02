@@ -56,8 +56,8 @@ import {
   markKidsSceneSeen,
   recordKidsQuizScore,
   markKidsStoryCompleted,
-  hasSeenReadTogetherHint,
-  markReadTogetherHintSeen,
+  hasSeenListenAllHint,
+  markListenAllHintSeen,
 } from '@/features/kids/kidsProgress';
 import {
   borderRadius,
@@ -116,17 +116,17 @@ export default function KidsStoryScreen() {
     setVerseText(undefined);
   }, [sceneIndex, storyId]);
 
-  // One-time, discreet hint explaining "Leer juntos" — shown once ever
+  // One-time, discreet hint explaining "Escuchar todo" — shown once ever
   // (device-wide flag, not per-story), a moment after the screen settles so
   // it doesn't compete with the initial scene render.
   useEffect(() => {
     let active = true;
     let timer: ReturnType<typeof setTimeout> | undefined;
-    void hasSeenReadTogetherHint().then(seen => {
+    void hasSeenListenAllHint().then(seen => {
       if (seen || !active) return;
-      void markReadTogetherHintSeen();
+      void markListenAllHintSeen();
       timer = setTimeout(() => {
-        if (active) toast.info(tk.readTogetherHint, 4500);
+        if (active) toast.info(tk.listenAllHint, 4500);
       }, 900);
     });
     return () => {
@@ -135,7 +135,7 @@ export default function KidsStoryScreen() {
     };
   }, []);
 
-  // "Escuchar" (single scene) + "Leer juntos" (auto-advancing tour) — both
+  // "Escuchar" (single scene) + "Escuchar todo" (auto-advancing tour) — both
   // powered by the shared narration engine ([[useNarratedWalkthrough]],
   // Tanda 3). Scene text is already in memory (no DB fetch), so `segments`
   // is always ready. Reaching the last scene stops the tour without opening
@@ -144,7 +144,7 @@ export default function KidsStoryScreen() {
   const {
     speaking,
     walkthroughActive,
-    toggle: toggleReadTogetherTour,
+    toggle: toggleListenAllTour,
     speakOnce,
     stop: stopReadAloud,
   } = useNarratedWalkthrough({
@@ -155,6 +155,11 @@ export default function KidsStoryScreen() {
     getLanguage: () => resolveSpeechLanguage(language),
     rate: 0.9,
   });
+  // `speaking` is shared by both segments (it's also true while the "Escuchar
+  // todo" tour narrates a scene) — only treat the "Escuchar" segment as
+  // active for a standalone, non-tour narration, since the tour's own
+  // segment already owns the "Detener" affordance while it runs.
+  const listenActive = speaking && !walkthroughActive;
 
   const canvasW = Math.min(width - spacing.lg * 2, 480);
   const headerGradient: [string, string] = [accent, colors.primaryDark];
@@ -171,9 +176,9 @@ export default function KidsStoryScreen() {
     speakOnce();
   };
 
-  const toggleReadTogether = () => {
+  const toggleListenAll = () => {
     haptics.tap();
-    toggleReadTogetherTour();
+    toggleListenAllTour();
   };
 
   const toggleVerse = () => {
@@ -305,58 +310,99 @@ export default function KidsStoryScreen() {
                 {sceneText}
               </AppText>
 
-              <View style={styles.actionsRow}>
-                {!walkthroughActive && (
+              <View style={styles.listenRow}>
+                <View
+                  style={[
+                    styles.segmentedControl,
+                    {borderColor: accent + '55'},
+                  ]}>
                   <TouchableOpacity
-                    style={[styles.actionBtn, {borderColor: accent + '55'}]}
+                    style={[
+                      styles.segment,
+                      listenActive && {backgroundColor: accent},
+                    ]}
                     onPress={toggleListen}
+                    disabled={walkthroughActive}
                     accessibilityRole="button"
+                    accessibilityState={{disabled: walkthroughActive}}
                     accessibilityLabel={
-                      speaking ? tk.stopListening : tk.listen
+                      listenActive ? tk.stopListening : tk.listen
                     }>
                     <Ionicons
-                      name={speaking ? 'stop-circle' : 'volume-high'}
+                      name={listenActive ? 'stop-circle' : 'volume-high'}
                       size={18}
-                      color={accent}
+                      color={
+                        listenActive
+                          ? staticColors.white
+                          : walkthroughActive
+                            ? colors.textTertiary
+                            : accent
+                      }
                     />
                     <AppText
                       scaleRole="compact"
-                      style={[styles.actionText, {color: accent}]}>
-                      {speaking ? tk.stopListening : tk.listen}
+                      style={[
+                        styles.segmentText,
+                        {
+                          color: listenActive
+                            ? staticColors.white
+                            : walkthroughActive
+                              ? colors.textTertiary
+                              : accent,
+                        },
+                      ]}>
+                      {listenActive ? tk.stopListening : tk.listen}
                     </AppText>
                   </TouchableOpacity>
-                )}
-                <TouchableOpacity
-                  style={[styles.actionBtn, {borderColor: accent + '55'}]}
-                  onPress={toggleReadTogether}
-                  accessibilityRole="button"
-                  accessibilityLabel={
-                    walkthroughActive ? tk.readTogetherStop : tk.readTogether
-                  }>
-                  <Ionicons
-                    name={walkthroughActive ? 'stop-circle' : 'play-circle'}
-                    size={18}
-                    color={accent}
+                  <View
+                    style={[
+                      styles.segmentDivider,
+                      {backgroundColor: accent + '33'},
+                    ]}
                   />
-                  <AppText
-                    scaleRole="compact"
-                    style={[styles.actionText, {color: accent}]}>
-                    {walkthroughActive ? tk.readTogetherStop : tk.readTogether}
-                  </AppText>
-                </TouchableOpacity>
-                <TouchableOpacity
-                  style={[styles.actionBtn, {borderColor: accent + '55'}]}
-                  onPress={toggleVerse}
-                  accessibilityRole="button"
-                  accessibilityLabel={showVerse ? tk.hideVerse : tk.showVerse}>
-                  <Ionicons name="book-outline" size={18} color={accent} />
-                  <AppText
-                    scaleRole="compact"
-                    style={[styles.actionText, {color: accent}]}>
-                    {showVerse ? tk.hideVerse : tk.showVerse}
-                  </AppText>
-                </TouchableOpacity>
+                  <TouchableOpacity
+                    style={[
+                      styles.segment,
+                      walkthroughActive && {backgroundColor: accent},
+                    ]}
+                    onPress={toggleListenAll}
+                    accessibilityRole="button"
+                    accessibilityLabel={
+                      walkthroughActive ? tk.stopListening : tk.listenAll
+                    }>
+                    <Ionicons
+                      name={walkthroughActive ? 'stop-circle' : 'play-circle'}
+                      size={18}
+                      color={walkthroughActive ? staticColors.white : accent}
+                    />
+                    <AppText
+                      scaleRole="compact"
+                      style={[
+                        styles.segmentText,
+                        {
+                          color: walkthroughActive
+                            ? staticColors.white
+                            : accent,
+                        },
+                      ]}>
+                      {walkthroughActive ? tk.stopListening : tk.listenAll}
+                    </AppText>
+                  </TouchableOpacity>
+                </View>
               </View>
+
+              <TouchableOpacity
+                style={[styles.actionBtn, {borderColor: accent + '55'}]}
+                onPress={toggleVerse}
+                accessibilityRole="button"
+                accessibilityLabel={showVerse ? tk.hideVerse : tk.showVerse}>
+                <Ionicons name="book-outline" size={18} color={accent} />
+                <AppText
+                  scaleRole="compact"
+                  style={[styles.actionText, {color: accent}]}>
+                  {showVerse ? tk.hideVerse : tk.showVerse}
+                </AppText>
+              </TouchableOpacity>
 
               {showVerse && (
                 <View style={[styles.verseBox, {borderColor: colors.border}]}>
@@ -541,7 +587,24 @@ const styles = StyleSheet.create({
     lineHeight: fontSizes.md * 1.6,
     textAlign: 'center',
   },
-  actionsRow: {flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm},
+  listenRow: {flexDirection: 'row', justifyContent: 'center'},
+  segmentedControl: {
+    flexDirection: 'row',
+    borderRadius: borderRadius.full,
+    borderWidth: 1,
+    overflow: 'hidden',
+  },
+  segment: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: spacing.xs,
+    paddingHorizontal: spacing.base,
+    paddingVertical: spacing.sm,
+    minHeight: 44,
+  },
+  segmentDivider: {width: StyleSheet.hairlineWidth},
+  segmentText: {fontSize: fontSizes.sm, fontWeight: '700'},
   actionBtn: {
     flexDirection: 'row',
     alignItems: 'center',
