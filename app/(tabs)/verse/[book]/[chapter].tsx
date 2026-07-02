@@ -1690,17 +1690,17 @@ export default function VerseReadingScreen() {
             onPress={openChapterSelector}
             accessibilityRole="button"
             accessibilityLabel={t.bible.selectChapter}>
-            <Text
-              style={[styles.navTitle, {color: effectiveColors.text}]}
-              numberOfLines={1}>
-              {localizedBookName} {chapterNum}
-            </Text>
-            <Ionicons
-              name="chevron-down"
-              size={14}
-              color={effectiveColors.textTertiary}
-              style={styles.navTitleChevron}
-            />
+            <View
+              style={[
+                styles.navTitlePill,
+                {borderColor: effectiveColors.border},
+              ]}>
+              <Text
+                style={[styles.navTitle, {color: effectiveColors.text}]}
+                numberOfLines={1}>
+                {localizedBookName} {chapterNum}
+              </Text>
+            </View>
           </TouchableOpacity>
 
           <View
@@ -3039,13 +3039,14 @@ const styles = StyleSheet.create({
   },
   navTitleContainer: {
     flex: 1,
-    flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    gap: 4,
   },
-  navTitleChevron: {
-    marginTop: 2,
+  navTitlePill: {
+    paddingHorizontal: spacing.sm,
+    paddingVertical: 3,
+    borderRadius: borderRadius.full,
+    borderWidth: 1,
   },
   navButton: {
     flexDirection: 'row',
