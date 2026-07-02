@@ -168,25 +168,25 @@ export async function markKidsStoryCompleted(
   return next;
 }
 
-const READ_TOGETHER_HINT_KEY = '@kids_read_together_hint_v1';
+const LISTEN_ALL_HINT_KEY = '@kids_listen_all_hint_v1';
 
 /**
- * Whether the reader has already seen the one-time "Leer juntos" hint
+ * Whether the reader has already seen the one-time "Escuchar todo" hint
  * (Tanda 3 follow-up) — a device-wide flag, not per-profile, since it's
  * teaching the UI itself rather than tracking a child's progress.
  */
-export async function hasSeenReadTogetherHint(): Promise<boolean> {
+export async function hasSeenListenAllHint(): Promise<boolean> {
   try {
-    return (await AsyncStorage.getItem(READ_TOGETHER_HINT_KEY)) === '1';
+    return (await AsyncStorage.getItem(LISTEN_ALL_HINT_KEY)) === '1';
   } catch {
     return false;
   }
 }
 
-/** Marks the "Leer juntos" hint as seen so it never shows again. */
-export async function markReadTogetherHintSeen(): Promise<void> {
+/** Marks the "Escuchar todo" hint as seen so it never shows again. */
+export async function markListenAllHintSeen(): Promise<void> {
   try {
-    await AsyncStorage.setItem(READ_TOGETHER_HINT_KEY, '1');
+    await AsyncStorage.setItem(LISTEN_ALL_HINT_KEY, '1');
   } catch {
     // Best-effort; a missed write just means the hint may show once more.
   }

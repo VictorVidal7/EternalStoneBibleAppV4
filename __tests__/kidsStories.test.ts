@@ -199,9 +199,9 @@ describe('kidsStories — i18n parity', () => {
       'missingVerse',
       'next',
       'previous',
-      'readTogether',
-      'readTogetherStop',
-      'readTogetherHint',
+      'stopListening',
+      'listenAll',
+      'listenAllHint',
     ];
     for (const key of uiKeys) {
       expect(typeof esK?.[key]).toBe('string');

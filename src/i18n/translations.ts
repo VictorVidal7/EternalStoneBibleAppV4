@@ -4245,10 +4245,9 @@ export const translations = {
       missingVerse: 'Versículo no disponible',
       next: 'Siguiente',
       previous: 'Anterior',
-      readTogether: 'Leer juntos',
-      readTogetherStop: 'Detener',
-      readTogetherHint:
-        'Consejo: "Leer juntos" narra toda la historia seguida, sin que tengas que tocar nada.',
+      listenAll: 'Escuchar todo',
+      listenAllHint:
+        'Consejo: "Escuchar todo" narra toda la historia seguida, sin que tengas que tocar nada.',
       quiz: {
         start: 'Comenzar el reto',
         question: 'Pregunta {{n}} de {{total}}',
@@ -9049,10 +9048,9 @@ export const translations = {
       missingVerse: 'Verse not available',
       next: 'Next',
       previous: 'Previous',
-      readTogether: 'Read together',
-      readTogetherStop: 'Stop',
-      readTogetherHint:
-        'Tip: "Read together" narrates the whole story in a row, hands-free.',
+      listenAll: 'Listen to all',
+      listenAllHint:
+        'Tip: "Listen to all" narrates the whole story in a row, hands-free.',
       quiz: {
         start: 'Start the challenge',
         question: 'Question {{n}} of {{total}}',
