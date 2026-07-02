@@ -4245,6 +4245,8 @@ export const translations = {
       missingVerse: 'Versículo no disponible',
       next: 'Siguiente',
       previous: 'Anterior',
+      readTogether: 'Leer juntos',
+      readTogetherStop: 'Detener',
       quiz: {
         start: 'Comenzar el reto',
         question: 'Pregunta {{n}} de {{total}}',
@@ -9045,6 +9047,8 @@ export const translations = {
       missingVerse: 'Verse not available',
       next: 'Next',
       previous: 'Previous',
+      readTogether: 'Read together',
+      readTogetherStop: 'Stop',
       quiz: {
         start: 'Start the challenge',
         question: 'Question {{n}} of {{total}}',
