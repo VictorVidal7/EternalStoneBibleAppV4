@@ -78,6 +78,7 @@ export default function ReadingPlanDetailScreen() {
     toggleDay,
     isChapterRead,
     getStartedAt,
+    getCompletedAt,
     getPlanDuration,
     setPlanDuration,
     restartPlan,
@@ -481,22 +482,6 @@ export default function ReadingPlanDetailScreen() {
               localizedPlan.name,
             )}
           </Text>
-          <View style={styles.todayActions}>
-            <TouchableOpacity
-              style={[
-                styles.todayAction,
-                styles.todayActionGhost,
-                {borderColor: colors.primary},
-              ]}
-              onPress={onRestartPlan}
-              accessibilityRole="button"
-              accessibilityLabel={t.readingPlan.restartPlan}>
-              <Ionicons name="refresh" size={15} color={colors.primary} />
-              <Text style={[styles.todayActionText, {color: colors.primary}]}>
-                {t.readingPlan.restartPlan}
-              </Text>
-            </TouchableOpacity>
-          </View>
         </View>
       );
     }
@@ -633,6 +618,18 @@ export default function ReadingPlanDetailScreen() {
                 accessibilityRole="button"
                 accessibilityLabel={t.together.deletePlan}>
                 <Ionicons name="trash-outline" size={21} color="#ffffff" />
+              </TouchableOpacity>
+            ) : null}
+            {/* Restart: available as soon as the plan has ANY progress, not
+                only once fully completed — a reader may want to redo it from
+                Day 1 mid-way through, not just after finishing. */}
+            {completed > 0 ? (
+              <TouchableOpacity
+                style={styles.headerBackButton}
+                onPress={onRestartPlan}
+                accessibilityRole="button"
+                accessibilityLabel={t.readingPlan.restartPlan}>
+                <Ionicons name="refresh" size={21} color="#ffffff" />
               </TouchableOpacity>
             ) : null}
             <TouchableOpacity
@@ -805,7 +802,11 @@ export default function ReadingPlanDetailScreen() {
       <ConfirmDialog
         visible={confirmRestart}
         title={plan.name}
-        message={t.readingPlan.restartPlanConfirm}
+        message={
+          getCompletedAt(plan.id)
+            ? t.readingPlan.restartPlanConfirm
+            : t.readingPlan.restartPlanConfirmInProgress
+        }
         confirmLabel={t.readingPlan.restartPlan}
         cancelLabel={t.cancel}
         onConfirm={() => void onConfirmRestart()}
