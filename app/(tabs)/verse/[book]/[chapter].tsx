@@ -1457,6 +1457,11 @@ export default function VerseReadingScreen() {
     );
   }
 
+  function openChapterSelector() {
+    haptics.tap();
+    router.push(`/chapter/${book}` as never);
+  }
+
   function navigateChapter(direction: 'prev' | 'next') {
     if (!bookInfo) return;
 
@@ -1680,13 +1685,23 @@ export default function VerseReadingScreen() {
             </TouchableOpacity>
           </View>
 
-          <View style={styles.navTitleContainer} pointerEvents="none">
+          <TouchableOpacity
+            style={styles.navTitleContainer}
+            onPress={openChapterSelector}
+            accessibilityRole="button"
+            accessibilityLabel={t.bible.selectChapter}>
             <Text
               style={[styles.navTitle, {color: effectiveColors.text}]}
               numberOfLines={1}>
               {localizedBookName} {chapterNum}
             </Text>
-          </View>
+            <Ionicons
+              name="chevron-down"
+              size={14}
+              color={effectiveColors.textTertiary}
+              style={styles.navTitleChevron}
+            />
+          </TouchableOpacity>
 
           <View
             style={[
@@ -3024,8 +3039,13 @@ const styles = StyleSheet.create({
   },
   navTitleContainer: {
     flex: 1,
+    flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
+    gap: 4,
+  },
+  navTitleChevron: {
+    marginTop: 2,
   },
   navButton: {
     flexDirection: 'row',
