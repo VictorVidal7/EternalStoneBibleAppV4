@@ -8,6 +8,8 @@ import {
   markKidsSceneSeen,
   recordKidsQuizScore,
   markKidsStoryCompleted,
+  hasSeenReadTogetherHint,
+  markReadTogetherHintSeen,
   DEFAULT_KIDS_PROFILE,
 } from '../src/features/kids/kidsProgress';
 
@@ -109,5 +111,29 @@ describe('kidsProgress', () => {
     const mine = await getKidsProgress(DEFAULT_KIDS_PROFILE);
     expect(other.storiesCompleted).toEqual(['creation']);
     expect(mine.storiesCompleted).toEqual(['noah']);
+  });
+});
+
+describe('read-together hint flag', () => {
+  beforeEach(async () => {
+    await AsyncStorage.clear();
+  });
+
+  it('defaults to not-seen', async () => {
+    await expect(hasSeenReadTogetherHint()).resolves.toBe(false);
+  });
+
+  it('stays seen once marked', async () => {
+    await markReadTogetherHintSeen();
+    await expect(hasSeenReadTogetherHint()).resolves.toBe(true);
+  });
+
+  it('persists under its own key, independent of profile progress', async () => {
+    await markKidsStoryCompleted('creation');
+    await expect(hasSeenReadTogetherHint()).resolves.toBe(false);
+    await markReadTogetherHintSeen();
+    const progress = await getKidsProgress();
+    expect(progress.storiesCompleted).toEqual(['creation']);
+    await expect(hasSeenReadTogetherHint()).resolves.toBe(true);
   });
 });

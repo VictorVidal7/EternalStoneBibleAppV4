@@ -37,6 +37,7 @@ import {centeredMaxWidth} from '@/styles/responsive';
 import {useLanguage} from '@hooks/useLanguage';
 import {useBibleVersion} from '@hooks/useBibleVersion';
 import {useServices} from '@context/ServicesContext';
+import {useToast} from '@context/ToastContext';
 import {useNarratedWalkthrough} from '@hooks/useNarratedWalkthrough';
 import {resolveSpeechLanguage} from '@/lib/speech/narration';
 import {haptics} from '@lib/haptics';
@@ -55,6 +56,8 @@ import {
   markKidsSceneSeen,
   recordKidsQuizScore,
   markKidsStoryCompleted,
+  hasSeenReadTogetherHint,
+  markReadTogetherHintSeen,
 } from '@/features/kids/kidsProgress';
 import {
   borderRadius,
@@ -82,6 +85,7 @@ export default function KidsStoryScreen() {
   const {t, language} = useLanguage();
   const {selectedVersion} = useBibleVersion();
   const {achievementService, notifyAchievements} = useServices();
+  const toast = useToast();
   const tk = t.kids;
 
   const params = useLocalSearchParams<{storyId?: string}>();
@@ -111,6 +115,25 @@ export default function KidsStoryScreen() {
     setShowVerse(false);
     setVerseText(undefined);
   }, [sceneIndex, storyId]);
+
+  // One-time, discreet hint explaining "Leer juntos" — shown once ever
+  // (device-wide flag, not per-story), a moment after the screen settles so
+  // it doesn't compete with the initial scene render.
+  useEffect(() => {
+    let active = true;
+    let timer: ReturnType<typeof setTimeout> | undefined;
+    void hasSeenReadTogetherHint().then(seen => {
+      if (seen || !active) return;
+      void markReadTogetherHintSeen();
+      timer = setTimeout(() => {
+        if (active) toast.info(tk.readTogetherHint, 4500);
+      }, 900);
+    });
+    return () => {
+      active = false;
+      if (timer) clearTimeout(timer);
+    };
+  }, []);
 
   // "Escuchar" (single scene) + "Leer juntos" (auto-advancing tour) — both
   // powered by the shared narration engine ([[useNarratedWalkthrough]],
@@ -311,9 +334,7 @@ export default function KidsStoryScreen() {
                     walkthroughActive ? tk.readTogetherStop : tk.readTogether
                   }>
                   <Ionicons
-                    name={
-                      walkthroughActive ? 'stop-circle' : 'play-skip-forward'
-                    }
+                    name={walkthroughActive ? 'stop-circle' : 'play-circle'}
                     size={18}
                     color={accent}
                   />
