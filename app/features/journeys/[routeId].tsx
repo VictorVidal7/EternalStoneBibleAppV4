@@ -35,7 +35,6 @@ import {
   useWindowDimensions,
 } from 'react-native';
 import Svg, {Line, Circle} from 'react-native-svg';
-import * as Speech from 'expo-speech';
 import {captureRef} from 'react-native-view-shot';
 import * as Sharing from 'expo-sharing';
 import {Stack, useRouter, useLocalSearchParams} from 'expo-router';
@@ -48,6 +47,11 @@ import {useLanguage} from '@hooks/useLanguage';
 import {useBibleVersion} from '@hooks/useBibleVersion';
 import {useToast} from '@context/ToastContext';
 import {useServices} from '@context/ServicesContext';
+import {useNarratedWalkthrough} from '@hooks/useNarratedWalkthrough';
+import {
+  resolveSpeechLanguage,
+  buildStopNarration,
+} from '@/lib/speech/narration';
 import {haptics} from '@lib/haptics';
 import {logger} from '@lib/utils/logger';
 import {AppText} from '@components/ui/AppText';
@@ -127,11 +131,8 @@ export default function JourneyRouteScreen() {
     {},
   );
   const [previewLoading, setPreviewLoading] = useState<string | null>(null);
-  const [walkthroughActive, setWalkthroughActive] = useState(false);
-  const [speakingId, setSpeakingId] = useState<string | null>(null);
   const [sharing, setSharing] = useState(false);
   const captureCardRef = useRef<View>(null);
-  const walkthroughRef = useRef(false);
 
   useEffect(() => {
     let active = true;
@@ -143,12 +144,6 @@ export default function JourneyRouteScreen() {
     });
     return () => {
       active = false;
-    };
-  }, []);
-
-  useEffect(() => {
-    return () => {
-      void Speech.stop();
     };
   }, []);
 
@@ -248,48 +243,44 @@ export default function JourneyRouteScreen() {
   };
 
   // "Recorrido narrado" — reads each stop's label + note aloud in sequence,
-  // from the first stop to the last, until stopped. No live verse text is
-  // fetched here (the note IS the narration), so there is no async-race risk
-  // like the prophecy thread's cross-step chaining had.
-  const speakStopAt = (index: number) => {
-    if (index >= stops.length) {
-      setWalkthroughActive(false);
-      walkthroughRef.current = false;
-      setSpeakingId(null);
-      return;
-    }
-    const stop = stops[index];
-    const item = items[stop.id];
-    markVisited(stop.id);
-    setSpeakingId(stop.id);
-    const text = [item?.label, item?.note].filter(Boolean).join('. ');
+  // from the first stop to the last, until stopped, via the shared narration
+  // engine ([[useNarratedWalkthrough]], Tanda 3). No live verse text is
+  // fetched here (the note IS the narration), so `segments` is always ready
+  // (never `null`) — there is no async-race risk like the prophecy thread's
+  // cross-step chaining has.
+  const [activeIndex, setActiveIndex] = useState(0);
+  const segments = useMemo(() => {
+    const stop = stops[activeIndex];
+    const item = stop ? items[stop.id] : undefined;
+    const text = buildStopNarration(item?.label, item?.note);
+    return text ? [text] : [];
+  }, [stops, activeIndex, items]);
+
+  const {
+    speaking,
+    walkthroughActive,
+    toggle: toggleWalkthroughTour,
+  } = useNarratedWalkthrough({
+    total: stops.length,
+    index: activeIndex,
+    setIndex: setActiveIndex,
+    segments,
     // The label/note come from the UI's i18n content (`t.journeys.items`),
     // not the selected Bible version's text — so the voice must follow the
     // UI language, not `selectedVersion.language` (they can differ, e.g. a
     // Spanish UI reading an English WEB version).
-    const speechLanguage = language === 'es' ? 'es-ES' : 'en-US';
-    void Speech.speak(text, {
-      language: speechLanguage,
-      onDone: () => {
-        if (walkthroughRef.current) speakStopAt(index + 1);
-      },
-      onStopped: () => setSpeakingId(null),
-      onError: () => setSpeakingId(null),
-    });
-  };
+    getLanguage: () => resolveSpeechLanguage(language),
+    onEnterStep: i => {
+      const stop = stops[i];
+      if (stop) markVisited(stop.id);
+    },
+  });
+  const speakingId = speaking ? (stops[activeIndex]?.id ?? null) : null;
 
   const toggleWalkthrough = () => {
     haptics.tap();
-    if (walkthroughActive) {
-      void Speech.stop();
-      walkthroughRef.current = false;
-      setWalkthroughActive(false);
-      setSpeakingId(null);
-      return;
-    }
-    walkthroughRef.current = true;
-    setWalkthroughActive(true);
-    void Speech.stop().then(() => speakStopAt(0));
+    // Always restarts from the first stop, matching the pre-Tanda-3 behavior.
+    toggleWalkthroughTour(0);
   };
 
   async function handleShareMap() {

@@ -19,7 +19,7 @@
  * Para la gloria de Dios Todopoderoso ✨
  */
 
-import React, {useEffect, useState} from 'react';
+import React, {useEffect, useMemo, useState} from 'react';
 import {
   View,
   ScrollView,
@@ -28,7 +28,6 @@ import {
   StyleSheet,
   useWindowDimensions,
 } from 'react-native';
-import * as Speech from 'expo-speech';
 import {Stack, useRouter, useLocalSearchParams} from 'expo-router';
 import {Ionicons} from '@expo/vector-icons';
 import {LinearGradient} from 'expo-linear-gradient';
@@ -38,6 +37,8 @@ import {centeredMaxWidth} from '@/styles/responsive';
 import {useLanguage} from '@hooks/useLanguage';
 import {useBibleVersion} from '@hooks/useBibleVersion';
 import {useServices} from '@context/ServicesContext';
+import {useNarratedWalkthrough} from '@hooks/useNarratedWalkthrough';
+import {resolveSpeechLanguage} from '@/lib/speech/narration';
 import {haptics} from '@lib/haptics';
 import {AppText} from '@components/ui/AppText';
 import bibleDB from '@lib/database';
@@ -95,7 +96,6 @@ export default function KidsStoryScreen() {
   const [verseText, setVerseText] = useState<string | null | undefined>(
     undefined,
   );
-  const [speaking, setSpeaking] = useState(false);
   const [quizScore, setQuizScore] = useState(0);
   const [teachOpen, setTeachOpen] = useState(false);
 
@@ -110,15 +110,28 @@ export default function KidsStoryScreen() {
   useEffect(() => {
     setShowVerse(false);
     setVerseText(undefined);
-    void Speech.stop();
-    setSpeaking(false);
   }, [sceneIndex, storyId]);
 
-  useEffect(() => {
-    return () => {
-      void Speech.stop();
-    };
-  }, []);
+  // "Escuchar" (single scene) + "Leer juntos" (auto-advancing tour) — both
+  // powered by the shared narration engine ([[useNarratedWalkthrough]],
+  // Tanda 3). Scene text is already in memory (no DB fetch), so `segments`
+  // is always ready. Reaching the last scene stops the tour without opening
+  // the quiz automatically — "Comenzar el reto" stays a deliberate tap.
+  const segments = useMemo(() => (sceneText ? [sceneText] : []), [sceneText]);
+  const {
+    speaking,
+    walkthroughActive,
+    toggle: toggleReadTogetherTour,
+    speakOnce,
+    stop: stopReadAloud,
+  } = useNarratedWalkthrough({
+    total: story.scenes.length,
+    index: sceneIndex,
+    setIndex: setSceneIndex,
+    segments,
+    getLanguage: () => resolveSpeechLanguage(language),
+    rate: 0.9,
+  });
 
   const canvasW = Math.min(width - spacing.lg * 2, 480);
   const headerGradient: [string, string] = [accent, colors.primaryDark];
@@ -132,20 +145,12 @@ export default function KidsStoryScreen() {
 
   const toggleListen = () => {
     haptics.tap();
-    if (speaking) {
-      void Speech.stop();
-      setSpeaking(false);
-      return;
-    }
-    const speechLanguage = language === 'es' ? 'es-ES' : 'en-US';
-    setSpeaking(true);
-    void Speech.speak(sceneText, {
-      language: speechLanguage,
-      rate: 0.9,
-      onDone: () => setSpeaking(false),
-      onStopped: () => setSpeaking(false),
-      onError: () => setSpeaking(false),
-    });
+    speakOnce();
+  };
+
+  const toggleReadTogether = () => {
+    haptics.tap();
+    toggleReadTogetherTour();
   };
 
   const toggleVerse = () => {
@@ -177,9 +182,11 @@ export default function KidsStoryScreen() {
 
   const nextScene = () => {
     haptics.tap();
-    void Speech.stop();
-    setSpeaking(false);
     if (isLastScene) {
+      // sceneIndex doesn't change here, so the hook's own manual-nav effect
+      // won't fire to stop an in-progress tour/one-shot narration — stop
+      // explicitly before leaving the scenes stage.
+      stopReadAloud();
       setStage('quiz');
       return;
     }
@@ -188,8 +195,6 @@ export default function KidsStoryScreen() {
 
   const prevScene = () => {
     haptics.tap();
-    void Speech.stop();
-    setSpeaking(false);
     setSceneIndex(i => Math.max(0, i - 1));
   };
 
@@ -278,20 +283,44 @@ export default function KidsStoryScreen() {
               </AppText>
 
               <View style={styles.actionsRow}>
+                {!walkthroughActive && (
+                  <TouchableOpacity
+                    style={[styles.actionBtn, {borderColor: accent + '55'}]}
+                    onPress={toggleListen}
+                    accessibilityRole="button"
+                    accessibilityLabel={
+                      speaking ? tk.stopListening : tk.listen
+                    }>
+                    <Ionicons
+                      name={speaking ? 'stop-circle' : 'volume-high'}
+                      size={18}
+                      color={accent}
+                    />
+                    <AppText
+                      scaleRole="compact"
+                      style={[styles.actionText, {color: accent}]}>
+                      {speaking ? tk.stopListening : tk.listen}
+                    </AppText>
+                  </TouchableOpacity>
+                )}
                 <TouchableOpacity
                   style={[styles.actionBtn, {borderColor: accent + '55'}]}
-                  onPress={toggleListen}
+                  onPress={toggleReadTogether}
                   accessibilityRole="button"
-                  accessibilityLabel={speaking ? tk.stopListening : tk.listen}>
+                  accessibilityLabel={
+                    walkthroughActive ? tk.readTogetherStop : tk.readTogether
+                  }>
                   <Ionicons
-                    name={speaking ? 'stop-circle' : 'volume-high'}
+                    name={
+                      walkthroughActive ? 'stop-circle' : 'play-skip-forward'
+                    }
                     size={18}
                     color={accent}
                   />
                   <AppText
                     scaleRole="compact"
                     style={[styles.actionText, {color: accent}]}>
-                    {speaking ? tk.stopListening : tk.listen}
+                    {walkthroughActive ? tk.readTogetherStop : tk.readTogether}
                   </AppText>
                 </TouchableOpacity>
                 <TouchableOpacity
@@ -491,7 +520,7 @@ const styles = StyleSheet.create({
     lineHeight: fontSizes.md * 1.6,
     textAlign: 'center',
   },
-  actionsRow: {flexDirection: 'row', gap: spacing.sm},
+  actionsRow: {flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm},
   actionBtn: {
     flexDirection: 'row',
     alignItems: 'center',

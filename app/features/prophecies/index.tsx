@@ -16,7 +16,7 @@
  * Para la gloria de Dios Todopoderoso ✨
  */
 
-import React, {useEffect, useMemo, useRef, useState} from 'react';
+import React, {useEffect, useMemo, useState} from 'react';
 import {
   View,
   ScrollView,
@@ -27,13 +27,14 @@ import {
 import {Stack, useRouter, useLocalSearchParams} from 'expo-router';
 import {Ionicons} from '@expo/vector-icons';
 import {LinearGradient} from 'expo-linear-gradient';
-import * as Speech from 'expo-speech';
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
 import {useTheme} from '@hooks/useTheme';
 import {centeredMaxWidth} from '@/styles/responsive';
 import {useLanguage} from '@hooks/useLanguage';
 import {useBibleVersion} from '@hooks/useBibleVersion';
 import {useBackHandlerStep} from '@hooks/useBackHandlerStep';
+import {useNarratedWalkthrough} from '@hooks/useNarratedWalkthrough';
+import {resolveSpeechLanguage} from '@/lib/speech/narration';
 import {haptics} from '@lib/haptics';
 import {AppText} from '@components/ui/AppText';
 import bibleDB from '@lib/database';
@@ -154,89 +155,42 @@ export default function PropheticThreadScreen() {
     });
   }, [allVisited, achievementService, notifyAchievements]);
 
-  // "Escuchar" — read the prophecy then its fulfillment aloud (expo-speech, in
-  // the version's language). Foreground only; stops on step change / unmount.
-  // "Recorrido narrado" chains this across consecutive steps automatically
-  // (walkthroughActive); autoAdvancingRef distinguishes a walkthrough-driven
-  // setPhase from a manual one, since only the latter should cancel the tour.
-  const [speaking, setSpeaking] = useState(false);
-  const [walkthroughActive, setWalkthroughActive] = useState(false);
-  const autoAdvancingRef = useRef(false);
-
-  useEffect(() => {
-    setSpeaking(false);
-    if (!autoAdvancingRef.current) {
-      setWalkthroughActive(false);
-    }
-    autoAdvancingRef.current = false;
-    return () => {
-      void Speech.stop();
-    };
-  }, [phase]);
-
-  const playCurrentStep = () => {
-    const segments = [prophecy?.text, fulfillment?.text].filter(
-      (s): s is string => Boolean(s),
-    );
-    if (segments.length === 0) {
-      setWalkthroughActive(false);
-      return;
-    }
-    const language = selectedVersion.language === 'es' ? 'es-ES' : 'en-US';
-    setSpeaking(true);
-    let i = 0;
-    const speakNext = () => {
-      if (i >= segments.length) {
-        setSpeaking(false);
-        if (walkthroughActive && phase < total - 1) {
-          autoAdvancingRef.current = true;
-          setPhase(p => p + 1);
-        } else {
-          setWalkthroughActive(false);
-        }
-        return;
-      }
-      const text = segments[i++];
-      void Speech.speak(text, {
-        language,
-        onDone: speakNext,
-        onStopped: () => setSpeaking(false),
-        onError: () => setSpeaking(false),
-      });
-    };
-    void Speech.stop().then(speakNext);
-  };
-
-  // Drives the walkthrough: keyed on the resolved prophecy/fulfillment
-  // objects themselves (not `status`/`phase`) — those two update together
-  // the instant a step's verses are ready, whereas `status` flips to
-  // 'loading' in a LATER effect flush than a `phase` change, so keying on it
-  // here would fire this effect one render too early with the previous
-  // step's stale text.
-  useEffect(() => {
-    if (!walkthroughActive || status !== 'ready' || speaking) return;
-    playCurrentStep();
-  }, [walkthroughActive, prophecy, fulfillment]);
+  // "Escuchar" (single step) + "Recorrido narrado" (auto-advancing tour) —
+  // both powered by the shared narration engine ([[useNarratedWalkthrough]],
+  // Tanda 3). `segments` is null while the current step's verses are still
+  // resolving from SQLite, so the hook waits rather than racing ahead with
+  // stale/undefined text; `[]` (both verses missing) skips the tour forward
+  // to the next step instead of stalling on it.
+  const segments = useMemo(
+    () =>
+      status === 'ready'
+        ? [prophecy?.text, fulfillment?.text].filter((s): s is string =>
+            Boolean(s),
+          )
+        : null,
+    [status, prophecy, fulfillment],
+  );
+  const {
+    speaking,
+    walkthroughActive,
+    toggle: toggleWalkthroughTour,
+    speakOnce,
+  } = useNarratedWalkthrough({
+    total,
+    index: phase,
+    setIndex: setPhase,
+    segments,
+    getLanguage: () => resolveSpeechLanguage(selectedVersion.language),
+  });
 
   const handleListen = () => {
     haptics.tap();
-    if (speaking) {
-      void Speech.stop();
-      setSpeaking(false);
-      return;
-    }
-    playCurrentStep();
+    speakOnce();
   };
 
   const toggleWalkthrough = () => {
     haptics.tap();
-    if (walkthroughActive) {
-      void Speech.stop();
-      setSpeaking(false);
-      setWalkthroughActive(false);
-      return;
-    }
-    setWalkthroughActive(true);
+    toggleWalkthroughTour();
   };
 
   const current =
