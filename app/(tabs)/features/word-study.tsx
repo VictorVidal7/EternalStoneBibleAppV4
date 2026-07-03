@@ -35,6 +35,8 @@ import {centeredMaxWidth} from '@/styles/responsive';
 import {useLanguage} from '@hooks/useLanguage';
 import {getBookById} from '@/constants/bible';
 import {MiniBarChart} from '@components/charts/MiniBarChart';
+import {usePremium} from '@context/PremiumContext';
+import {useOfferingSheet} from '@context/OfferingSheetContext';
 import {
   isOriginalsInstalled,
   occurrenceRef,
@@ -63,7 +65,10 @@ export default function WordStudyScreen() {
   const insets = useSafeAreaInsets();
   const {colors, gradient} = useTheme();
   const {t, language} = useLanguage();
+  const {isPremium} = usePremium();
+  const {open: openOfferingSheet} = useOfferingSheet();
   const w = t.wordStudy;
+  const o = t.originals;
   const params = useLocalSearchParams<{
     strongs?: string;
     version?: string;
@@ -283,6 +288,62 @@ export default function WordStudyScreen() {
                 {lex.definition}
               </Text>
             ) : null}
+
+            {lex?.kjv_def ? (
+              <View
+                style={[styles.kjvSection, {borderTopColor: colors.border}]}>
+                <View style={styles.kjvHeaderRow}>
+                  <Text style={[styles.kjvLabel, {color: colors.text}]}>
+                    {o.kjvGloss}
+                  </Text>
+                  <View
+                    style={[
+                      styles.exclusiveBadge,
+                      {backgroundColor: colors.primary + '1a'},
+                    ]}>
+                    <Text
+                      style={[styles.exclusiveText, {color: colors.primary}]}>
+                      {o.exclusiveLabel}
+                    </Text>
+                  </View>
+                </View>
+                {isPremium ? (
+                  <Text
+                    style={[styles.definition, {color: colors.textSecondary}]}>
+                    {lex.kjv_def}
+                  </Text>
+                ) : (
+                  <TouchableOpacity
+                    style={styles.kjvLockedRow}
+                    onPress={() => {
+                      haptics.tap();
+                      openOfferingSheet();
+                    }}
+                    accessibilityRole="button"
+                    accessibilityLabel={`${o.kjvGloss} — ${t.offering.badgeA11y}`}>
+                    <View
+                      style={[
+                        styles.kjvLockBadge,
+                        {backgroundColor: colors.primary},
+                      ]}>
+                      <Ionicons
+                        name="leaf-outline"
+                        size={11}
+                        color={staticColors.white}
+                      />
+                    </View>
+                    <Text
+                      style={[
+                        styles.kjvLockedText,
+                        {color: colors.textSecondary},
+                      ]}>
+                      {o.morphologyLocked}
+                    </Text>
+                  </TouchableOpacity>
+                )}
+              </View>
+            ) : null}
+
             <Text style={[styles.countLabel, {color: colors.textTertiary}]}>
               {countLabel}
             </Text>
@@ -467,6 +528,44 @@ const styles = StyleSheet.create({
     marginTop: spacing.xs,
   },
   defToggleText: {fontSize: fontSizes.sm, fontWeight: '700'},
+  kjvSection: {
+    marginTop: spacing.xs,
+    paddingTop: spacing.sm,
+    borderTopWidth: StyleSheet.hairlineWidth,
+    gap: 4,
+  },
+  kjvHeaderRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: spacing.sm,
+  },
+  kjvLabel: {fontSize: fontSizes.sm, fontWeight: '700'},
+  kjvLockedRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.xs,
+    paddingVertical: 2,
+  },
+  kjvLockBadge: {
+    width: 18,
+    height: 18,
+    borderRadius: 9,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  kjvLockedText: {fontSize: fontSizes.sm, flexShrink: 1},
+  exclusiveBadge: {
+    paddingHorizontal: spacing.sm,
+    paddingVertical: 2,
+    borderRadius: borderRadius.full,
+  },
+  exclusiveText: {
+    fontSize: fontSizes.xs,
+    fontWeight: '700',
+    textTransform: 'uppercase',
+    letterSpacing: 0.3,
+  },
   countLabel: {
     fontSize: fontSizes.xs,
     fontWeight: '700',

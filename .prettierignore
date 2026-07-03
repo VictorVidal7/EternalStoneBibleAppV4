@@ -17,6 +17,8 @@ yarn.lock
 src/data/bible_books
 src/lib/database/bible-data-rvr1960.ts
 src/lib/database/bible-data-web.ts
+src/features/study/data/greekMorphologyCodes.json
+src/features/study/data/hebrewMorphologyCodes.json
 
 # Binary asset bundles (images, fonts, the seeded SQLite db, etc.)
 assets
