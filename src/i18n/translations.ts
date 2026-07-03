@@ -3178,9 +3178,6 @@ export const translations = {
       thankYouMessage:
         'La app completa sigue siendo gratuita — este extra es solo un regalo adicional. Que Dios te bendiga.',
       close: 'Cerrar',
-      unavailableTitle: 'Aún no disponible',
-      unavailableMessage:
-        'Este extra todavía no se puede desbloquear desde esta instalación de la app.',
       settingsSectionTitle: 'Extras',
       settingsUnlockedTitle: 'Extras desbloqueados',
       settingsUnlockedDesc:
@@ -3190,6 +3187,28 @@ export const translations = {
         'Algunas funciones adicionales se pueden desbloquear con una ofrenda voluntaria.',
       settingsCta: 'Desbloquear con una ofrenda',
       devToggleLabel: 'Extras desbloqueados (solo desarrollo)',
+    },
+
+    donation: {
+      sheetTitle: 'Donación',
+      sheetIntro:
+        'Para los hermanos y hermanas que Dios ponga en el corazón apoyar esta obra: aquí puedes dar libremente. Esto no desbloquea nada — la app completa ya es, y seguirá siendo siempre, gratuita para todos.',
+      amountsHint:
+        'Elige la cantidad que quieras dar. Puedes hacerlo más de una vez.',
+      transparency:
+        'Esta donación no es deducible de impuestos. Sostiene el desarrollo y el ministerio de esta app.',
+      purchasing: 'Procesando…',
+      purchaseError: 'No se pudo completar la donación. Inténtalo de nuevo.',
+      thankYouTitle: 'Gracias por tu generosidad',
+      thankYouMessage: 'Dios ve lo que se da desde el corazón.',
+      thankYouVerse:
+        'La gracia del Señor Jesucristo, el amor de Dios, y la comunión del Espíritu Santo sean con todos vosotros. Amén.',
+      thankYouVerseRef: '2 Corintios 13:14',
+      close: 'Cerrar',
+      settingsSectionTitle: 'Donación',
+      settingsDesc:
+        'Si deseas apoyar el desarrollo y el ministerio de esta app con una donación libre, puedes hacerlo aquí. Nunca desbloquea nada ni es necesaria para usar la app.',
+      settingsCta: 'Apoyar con una donación',
     },
 
     // Reading Plans
@@ -8035,9 +8054,6 @@ export const translations = {
       thankYouMessage:
         'The full app stays free — this extra is just an added gift. God bless you.',
       close: 'Close',
-      unavailableTitle: 'Not available yet',
-      unavailableMessage:
-        "This extra can't be unlocked from this install of the app yet.",
       settingsSectionTitle: 'Extras',
       settingsUnlockedTitle: 'Extras unlocked',
       settingsUnlockedDesc:
@@ -8047,6 +8063,28 @@ export const translations = {
         'Some additional features can be unlocked with a voluntary offering.',
       settingsCta: 'Unlock with an offering',
       devToggleLabel: 'Extras unlocked (dev only)',
+    },
+
+    donation: {
+      sheetTitle: 'Donation',
+      sheetIntro:
+        'For brothers and sisters God places it on their heart to support this work: here you can give freely. This unlocks nothing — the full app already is, and will always be, free for everyone.',
+      amountsHint:
+        "Choose the amount you'd like to give. You can do it more than once.",
+      transparency:
+        "This donation is not tax-deductible. It sustains this app's development and ministry.",
+      purchasing: 'Processing…',
+      purchaseError: "The donation couldn't be completed. Please try again.",
+      thankYouTitle: 'Thank you for your generosity',
+      thankYouMessage: 'God sees what is given from the heart.',
+      thankYouVerse:
+        'The grace of the Lord Jesus Christ, the love of God, and the fellowship of the Holy Spirit, be with you all. Amen.',
+      thankYouVerseRef: '2 Corinthians 13:14',
+      close: 'Close',
+      settingsSectionTitle: 'Donation',
+      settingsDesc:
+        "If you'd like to support this app's development and ministry with a free-will donation, you can do it here. It never unlocks anything and is never required to use the app.",
+      settingsCta: 'Support with a donation',
     },
 
     // Reading Plans
