@@ -34,6 +34,9 @@ describe('READER_THEME_ORDER', () => {
       'sepia',
       'night',
       'high-contrast',
+      'musgo',
+      'crepusculo',
+      'niebla',
     ]);
   });
 
@@ -49,39 +52,48 @@ describe('READER_THEMES palettes', () => {
     expect(READER_THEMES.system).toBeNull();
   });
 
-  it.each(['paper', 'sepia', 'night', 'high-contrast'] as ReaderTheme[])(
-    '%s palette defines every reading-surface key',
-    theme => {
-      const p = READER_THEMES[theme];
-      expect(p).not.toBeNull();
-      const keys = [
-        'background',
-        'surface',
-        'text',
-        'textSecondary',
-        'textTertiary',
-        'border',
-        'primary',
-        'primaryDark',
-        'primaryLight',
-        'audioHighlight',
-        'onHighlight',
-      ];
-      const rec = p as unknown as Record<string, string>;
-      keys.forEach(k => {
-        expect(typeof rec[k]).toBe('string');
-        expect(rec[k].length).toBeGreaterThan(0);
-      });
-    },
-  );
+  it.each([
+    'paper',
+    'sepia',
+    'night',
+    'high-contrast',
+    'musgo',
+    'crepusculo',
+    'niebla',
+  ] as ReaderTheme[])('%s palette defines every reading-surface key', theme => {
+    const p = READER_THEMES[theme];
+    expect(p).not.toBeNull();
+    const keys = [
+      'background',
+      'surface',
+      'text',
+      'textSecondary',
+      'textTertiary',
+      'border',
+      'primary',
+      'primaryDark',
+      'primaryLight',
+      'audioHighlight',
+      'onHighlight',
+    ];
+    const rec = p as unknown as Record<string, string>;
+    keys.forEach(k => {
+      expect(typeof rec[k]).toBe('string');
+      expect(rec[k].length).toBeGreaterThan(0);
+    });
+  });
 });
 
 describe('isReaderTheme', () => {
-  it('accepts the four known themes', () => {
+  it('accepts the known themes', () => {
     expect(isReaderTheme('system')).toBe(true);
     expect(isReaderTheme('paper')).toBe(true);
     expect(isReaderTheme('sepia')).toBe(true);
     expect(isReaderTheme('night')).toBe(true);
+    expect(isReaderTheme('high-contrast')).toBe(true);
+    expect(isReaderTheme('musgo')).toBe(true);
+    expect(isReaderTheme('crepusculo')).toBe(true);
+    expect(isReaderTheme('niebla')).toBe(true);
   });
 
   it('rejects anything else', () => {

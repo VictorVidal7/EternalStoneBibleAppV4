@@ -23,7 +23,10 @@ export type ReaderTheme =
   | 'paper'
   | 'sepia'
   | 'night'
-  | 'high-contrast';
+  | 'high-contrast'
+  | 'musgo'
+  | 'crepusculo'
+  | 'niebla';
 
 /** Stable display order for the theme picker. */
 export const READER_THEME_ORDER: ReaderTheme[] = [
@@ -32,6 +35,21 @@ export const READER_THEME_ORDER: ReaderTheme[] = [
   'sepia',
   'night',
   'high-contrast',
+  // T6.3 — offering-unlocked exclusives, always last (see PREMIUM_READER_THEMES).
+  'musgo',
+  'crepusculo',
+  'niebla',
+];
+
+/**
+ * Reading-surface palettes that only unlock with a voluntary offering (T6 —
+ * Nuevos extras premium). The 5 original surfaces stay free forever — these
+ * 3 are new, exclusive additions, never a downgrade of something existing.
+ */
+export const PREMIUM_READER_THEMES: ReaderTheme[] = [
+  'musgo',
+  'crepusculo',
+  'niebla',
 ];
 
 /**
@@ -143,6 +161,56 @@ export const READER_THEMES: Record<ReaderTheme, ReaderThemeColors | null> = {
     audioHighlight: '#FFD60A', // actively-read verse: bright amber
     onHighlight: '#000000', // black over a user's bright highlight swatch
   },
+
+  // ===== T6.3 — premium exclusives (offering-unlocked) =====
+
+  // Soft sage-green "moss" paper — a cool, calming alternative to the warm
+  // paper/sepia tones above.
+  musgo: {
+    background: '#F1F3EA',
+    surface: '#E5E9D8',
+    text: '#2A2E22',
+    textSecondary: '#5C6350',
+    textTertiary: '#6F7660',
+    border: 'rgba(90, 110, 70, 0.20)',
+    primary: '#4C6633',
+    primaryDark: '#324420',
+    primaryLight: 'rgba(76, 102, 51, 0.15)',
+    audioHighlight: '#5C7A3A',
+    onHighlight: '#2A2E22',
+  },
+
+  // Cool blue-toned dark "twilight" — an alternative to Night's warm
+  // black+gold for readers who prefer a cooler evening surface.
+  crepusculo: {
+    background: '#0D1220',
+    surface: '#161D30',
+    text: '#DCE3F0',
+    textSecondary: '#A8B4CC',
+    textTertiary: '#8390AC',
+    border: 'rgba(150, 165, 200, 0.16)',
+    primary: '#7FA8D9',
+    primaryDark: '#A8C4E8',
+    primaryLight: 'rgba(127, 168, 217, 0.15)',
+    audioHighlight: '#8FBBEE',
+    onHighlight: '#0D1220',
+  },
+
+  // Soft cool gray-blue "mist" — a light surface distinct from the warm
+  // cream tones of paper/sepia, gentle and modern.
+  niebla: {
+    background: '#F2F4F7',
+    surface: '#E6EAF0',
+    text: '#262B33',
+    textSecondary: '#5B6472',
+    textTertiary: '#5F6977',
+    border: 'rgba(90, 105, 130, 0.18)',
+    primary: '#3D5F8F',
+    primaryDark: '#2A4265',
+    primaryLight: 'rgba(61, 95, 143, 0.14)',
+    audioHighlight: '#33507A',
+    onHighlight: '#262B33',
+  },
 };
 
 /** Type guard for a persisted/foreign `theme` value. */
@@ -152,7 +220,10 @@ export function isReaderTheme(value: unknown): value is ReaderTheme {
     value === 'paper' ||
     value === 'sepia' ||
     value === 'night' ||
-    value === 'high-contrast'
+    value === 'high-contrast' ||
+    value === 'musgo' ||
+    value === 'crepusculo' ||
+    value === 'niebla'
   );
 }
 

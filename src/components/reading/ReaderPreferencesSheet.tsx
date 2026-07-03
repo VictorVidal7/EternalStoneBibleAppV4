@@ -38,6 +38,7 @@ import {
 import {
   ReaderTheme,
   READER_THEME_ORDER,
+  PREMIUM_READER_THEMES,
   resolveReaderTheme,
 } from '../../styles/readerThemes';
 import {
@@ -86,27 +87,30 @@ export const ReaderPreferencesSheet: React.FC<ReaderPreferencesSheetProps> = ({
   const {isPremium, isLoading: premiumLoading} = usePremium();
   const {open: openOfferingSheet} = useOfferingSheet();
 
-  // If a premium typeface was active and the entitlement is later revoked
-  // (e.g. a refund), fall back to the default face instead of leaving a
-  // no-longer-unlocked one applied. `isPremium` is in the dependency array,
-  // so this reacts immediately if the sheet is already open when the
-  // revocation lands, and otherwise on next open — `!premiumLoading` avoids
-  // reverting during PremiumContext's own brief initial cache read.
+  // If a premium typeface or reading theme was active and the entitlement is
+  // later revoked (e.g. a refund), fall back to the default instead of
+  // leaving a no-longer-unlocked one applied. `isPremium` is in the
+  // dependency array, so this reacts immediately if the sheet is already
+  // open when the revocation lands, and otherwise on next open —
+  // `!premiumLoading` avoids reverting during PremiumContext's own brief
+  // initial cache read.
   React.useEffect(() => {
-    if (
-      visible &&
-      !premiumLoading &&
-      !isPremium &&
-      PREMIUM_READER_FONTS.includes(preferences.fontFamily)
-    ) {
-      setFontFamily('sans');
+    if (visible && !premiumLoading && !isPremium) {
+      if (PREMIUM_READER_FONTS.includes(preferences.fontFamily)) {
+        setFontFamily('sans');
+      }
+      if (PREMIUM_READER_THEMES.includes(preferences.theme)) {
+        setTheme('system');
+      }
     }
   }, [
     visible,
     premiumLoading,
     isPremium,
     preferences.fontFamily,
+    preferences.theme,
     setFontFamily,
+    setTheme,
   ]);
 
   const previewFontFamily = useMemo(
@@ -131,9 +135,24 @@ export const ReaderPreferencesSheet: React.FC<ReaderPreferencesSheetProps> = ({
     sepia: t.readerPrefs.themeSepia,
     night: t.readerPrefs.themeNight,
     'high-contrast': t.readerPrefs.themeHighContrast,
+    musgo: t.readerPrefs.themeMusgo,
+    crepusculo: t.readerPrefs.themeCrepusculo,
+    niebla: t.readerPrefs.themeNiebla,
   };
-  const themeOptions: {id: ReaderTheme; label: string}[] =
-    READER_THEME_ORDER.map(id => ({id, label: themeLabels[id]}));
+  const themeOptions: {
+    id: ReaderTheme;
+    label: string;
+    isPremiumTheme: boolean;
+    isLocked: boolean;
+  }[] = READER_THEME_ORDER.map(id => {
+    const isPremiumTheme = PREMIUM_READER_THEMES.includes(id);
+    return {
+      id,
+      label: themeLabels[id],
+      isPremiumTheme,
+      isLocked: isPremiumTheme && !isPremium,
+    };
+  });
 
   const tap = (fn: () => void) => () => {
     haptics.tap();
@@ -289,10 +308,29 @@ export const ReaderPreferencesSheet: React.FC<ReaderPreferencesSheetProps> = ({
                           borderColor: active ? colors.primary : swatch.border,
                         },
                       ]}
-                      onPress={tap(() => setTheme(opt.id))}
+                      onPress={tap(() =>
+                        opt.isLocked ? openOfferingSheet() : setTheme(opt.id),
+                      )}
                       accessibilityRole="button"
-                      accessibilityLabel={opt.label}
+                      accessibilityLabel={
+                        opt.isLocked
+                          ? `${opt.label} — ${t.offering.badgeA11y}`
+                          : opt.label
+                      }
                       accessibilityState={{selected: active}}>
+                      {opt.isLocked && (
+                        <View
+                          style={[
+                            styles.themeLockBadge,
+                            {backgroundColor: swatch.primary},
+                          ]}>
+                          <Ionicons
+                            name="leaf-outline"
+                            size={8}
+                            color={staticColors.white}
+                          />
+                        </View>
+                      )}
                       <Text style={styles.themePreview}>
                         <Text
                           style={[
@@ -312,14 +350,32 @@ export const ReaderPreferencesSheet: React.FC<ReaderPreferencesSheetProps> = ({
                       <Text
                         style={[
                           styles.choiceLabel,
+                          styles.themeChoiceLabel,
                           {
                             color: active
                               ? swatch.primary
                               : swatch.textSecondary,
                           },
-                        ]}>
+                        ]}
+                        numberOfLines={1}
+                        adjustsFontSizeToFit>
                         {opt.label}
                       </Text>
+                      {opt.isPremiumTheme && (
+                        <View
+                          style={[
+                            styles.exclusiveBadge,
+                            {backgroundColor: swatch.primary + '22'},
+                          ]}>
+                          <Text
+                            style={[
+                              styles.exclusiveText,
+                              {color: swatch.primary},
+                            ]}>
+                            {t.readerPrefs.exclusiveLabel}
+                          </Text>
+                        </View>
+                      )}
                     </TouchableOpacity>
                   );
                 })}
@@ -377,15 +433,15 @@ export const ReaderPreferencesSheet: React.FC<ReaderPreferencesSheetProps> = ({
                     {opt.isPremiumFont && (
                       <View
                         style={[
-                          styles.fontExclusiveBadge,
+                          styles.exclusiveBadge,
                           {backgroundColor: colors.primary + '1a'},
                         ]}>
                         <Text
                           style={[
-                            styles.fontExclusiveText,
+                            styles.exclusiveText,
                             {color: colors.primary},
                           ]}>
-                          {t.readerPrefs.fontExclusiveLabel}
+                          {t.readerPrefs.exclusiveLabel}
                         </Text>
                       </View>
                     )}
@@ -810,37 +866,57 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
-  // Quiet "Exclusivo"/"Exclusive" tag — reads as special whether the face is
-  // still locked or already unlocked.
-  fontExclusiveBadge: {
+  // Quiet "Exclusivo"/"Exclusive" tag, shared by the theme and typeface
+  // grids — reads as special whether the option is still locked or already
+  // unlocked.
+  exclusiveBadge: {
     marginTop: 2,
     paddingHorizontal: 5,
     paddingVertical: 1,
     borderRadius: 6,
   },
-  fontExclusiveText: {
+  exclusiveText: {
     fontSize: 7,
     fontWeight: '700',
     letterSpacing: 0.3,
     textTransform: 'uppercase',
   },
   themeCard: {
-    // Explicit height keeps every theme card out of the flex-line "natural
-    // size" regime, where the tallest/alone card (the selected one, or the
-    // wrapped Night card) was centred lower than its stretched siblings.
-    height: 112,
+    position: 'relative',
+    // A narrower basis (T6.3) so the 8 reading surfaces sit in 2 tidy rows of
+    // 4 instead of 3 taller rows of ~3 — also just more compact overall.
+    flexBasis: '22%',
+    minWidth: 0,
+    height: 76,
+    paddingVertical: spacing.xs,
+    paddingHorizontal: 2,
+  },
+  // Same glyph/position as fontLockBadge, sized down slightly for the
+  // smaller theme card.
+  themeLockBadge: {
+    position: 'absolute',
+    top: 4,
+    right: 4,
+    width: 13,
+    height: 13,
+    borderRadius: 6.5,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   themePreview: {
     textAlign: 'center',
-    marginBottom: 2,
+    marginBottom: 1,
   },
   themeSwatchNumber: {
-    fontSize: 13,
+    fontSize: 10,
     fontWeight: '800',
   },
   themeSwatchText: {
-    fontSize: 20,
+    fontSize: 15,
     fontWeight: '700',
+  },
+  themeChoiceLabel: {
+    fontSize: 9,
   },
   pill: {
     minWidth: 56,
