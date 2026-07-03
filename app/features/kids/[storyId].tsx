@@ -126,7 +126,10 @@ export default function KidsStoryScreen() {
       if (seen || !active) return;
       void markListenAllHintSeen();
       timer = setTimeout(() => {
-        if (active) toast.info(tk.listenAllHint, 4500);
+        // This hint's copy runs long (~85 chars in Spanish) — the toast's
+        // default 2-line cap silently truncated it (Victor caught this on a
+        // real device). 4 lines + a longer duration so it's fully readable.
+        if (active) toast.info(tk.listenAllHint, 6000, 4);
       }, 900);
     });
     return () => {

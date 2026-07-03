@@ -27,6 +27,8 @@ interface ToastOptions {
     label: string;
     onPress: () => void;
   };
+  /** Line cap for `message` — see `Toast`'s own prop doc. Defaults to 2. */
+  numberOfLines?: number;
 }
 
 interface ToastContextValue {
@@ -34,7 +36,7 @@ interface ToastContextValue {
   success: (message: string, duration?: number) => void;
   error: (message: string, duration?: number) => void;
   warning: (message: string, duration?: number) => void;
-  info: (message: string, duration?: number) => void;
+  info: (message: string, duration?: number, numberOfLines?: number) => void;
 }
 
 const ToastContext = createContext<ToastContextValue | undefined>(undefined);
@@ -74,8 +76,8 @@ export const ToastProvider: React.FC<ToastProviderProps> = ({children}) => {
   );
 
   const info = useCallback(
-    (message: string, duration = 3000) => {
-      show({message, variant: 'info', duration});
+    (message: string, duration = 3000, numberOfLines?: number) => {
+      show({message, variant: 'info', duration, numberOfLines});
     },
     [show],
   );
@@ -96,6 +98,7 @@ export const ToastProvider: React.FC<ToastProviderProps> = ({children}) => {
             duration={toastConfig.duration || 3000}
             position={toastConfig.position || 'top'}
             action={toastConfig.action}
+            numberOfLines={toastConfig.numberOfLines}
             onDismiss={handleDismiss}
           />
         </View>

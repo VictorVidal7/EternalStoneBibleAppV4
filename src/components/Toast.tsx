@@ -41,6 +41,10 @@ interface ToastProps {
   };
   icon?: keyof typeof Ionicons.glyphMap;
   useBlur?: boolean;
+  /** Line cap for `message` — 2 fits the app's normal short confirmations; a
+   * genuinely longer one-time tip (e.g. an onboarding hint) can raise this
+   * instead of being silently ellipsized. */
+  numberOfLines?: number;
 }
 
 const ICONS: Record<ToastVariant, keyof typeof Ionicons.glyphMap> = {
@@ -61,6 +65,7 @@ export const Toast: React.FC<ToastProps> = ({
   action,
   icon,
   useBlur = Platform.OS === 'ios',
+  numberOfLines = 2,
 }) => {
   const {colors, isDark} = useTheme();
   const translateY = useRef(
@@ -192,7 +197,7 @@ export const Toast: React.FC<ToastProps> = ({
       {/* Message */}
       <Text
         style={[styles.message, {color: variantColors.textColor}]}
-        numberOfLines={2}>
+        numberOfLines={numberOfLines}>
         {message}
       </Text>
 
