@@ -26,6 +26,15 @@ interface ContributionHeatmapProps {
   /** Gap in dp between cells and columns. */
   gap?: number;
   /**
+   * Fixed column width in dp. Omitted (default): columns are `flex: 1` and
+   * auto-shrink to fit the container, the original short-window behavior.
+   * Provided (T8.1's "full history" premium view, which can span many more
+   * weeks than fit on screen): columns render at this fixed width instead,
+   * so the grid's natural width grows past the viewport — wrap the
+   * component in a horizontal `ScrollView` in that case.
+   */
+  columnWidth?: number;
+  /**
    * One-sentence summary for screen readers (e.g. "Reading activity: 1422
    * verses, 3 active days" via `buildHeatmapA11yLabel`). When provided, the
    * grid announces as a single labelled `image`; when omitted, the grid is
@@ -41,6 +50,7 @@ export const ContributionHeatmap: React.FC<ContributionHeatmapProps> = ({
   cells,
   levelColors,
   gap = 3,
+  columnWidth,
   accessibilityLabel,
 }) => {
   // Chunk the contiguous days into week columns of up to 7 (the final
@@ -67,7 +77,13 @@ export const ContributionHeatmap: React.FC<ContributionHeatmapProps> = ({
   return (
     <View style={[styles.row, {gap}]} {...a11y}>
       {weeks.map((week, wi) => (
-        <View key={wi} style={[styles.col, {gap}]}>
+        <View
+          key={wi}
+          style={[
+            styles.colBase,
+            columnWidth ? {width: columnWidth} : styles.colFlex,
+            {gap},
+          ]}>
           {Array.from({length: DAYS_PER_WEEK}, (_, di) => {
             const cell = week[di];
             const color = cell
@@ -87,9 +103,11 @@ const styles = StyleSheet.create({
   row: {
     flexDirection: 'row',
   },
-  col: {
-    flex: 1,
+  colBase: {
     flexDirection: 'column',
+  },
+  colFlex: {
+    flex: 1,
   },
   cell: {
     aspectRatio: 1,

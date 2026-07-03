@@ -4,8 +4,13 @@ import {
   HEATMAP_WEEKS,
   historySummary,
   LEECH_MIN_LAPSES,
+  MAX_HEATMAP_WEEKS,
+  retentionByBook,
   retentionByInterval,
+  retentionTrend,
   reviewHeatmap,
+  TREND_MONTHS,
+  weeksSinceFirstEvent,
   type HeatmapCell,
 } from '../src/lib/memory/history';
 import type {ReviewEvent} from '../src/lib/memory/reviewEvents';
@@ -338,5 +343,159 @@ describe('computeReviewHistory', () => {
     expect(d1?.recalled).toBe(2); // the two 'good', not the 'again'
     // Only one 'again' total here → below the leech threshold.
     expect(h.leeches).toEqual([]);
+  });
+});
+
+describe('weeksSinceFirstEvent', () => {
+  it('falls back to HEATMAP_WEEKS for an empty log', () => {
+    expect(weeksSinceFirstEvent([], NOW)).toBe(HEATMAP_WEEKS);
+  });
+
+  it('never returns less than HEATMAP_WEEKS for a very recent log', () => {
+    const events = [mkEvent({reviewedAt: dayAt(NOW, 0)})];
+    expect(weeksSinceFirstEvent(events, NOW)).toBe(HEATMAP_WEEKS);
+  });
+
+  it('grows to cover a much older first event', () => {
+    // First event 400 days ago → needs more than HEATMAP_WEEKS.
+    const events = [mkEvent({reviewedAt: dayAt(NOW, -400)})];
+    const weeks = weeksSinceFirstEvent(events, NOW);
+    expect(weeks).toBeGreaterThan(HEATMAP_WEEKS);
+    expect(weeks).toBeGreaterThanOrEqual(Math.ceil(401 / 7));
+  });
+
+  it('caps at MAX_HEATMAP_WEEKS for an extremely old first event', () => {
+    const events = [mkEvent({reviewedAt: dayAt(NOW, -10000)})];
+    expect(weeksSinceFirstEvent(events, NOW)).toBe(MAX_HEATMAP_WEEKS);
+  });
+
+  it('uses the earliest event regardless of array order', () => {
+    const events = [
+      mkEvent({reviewedAt: dayAt(NOW, -10)}),
+      mkEvent({reviewedAt: dayAt(NOW, -400)}),
+      mkEvent({reviewedAt: dayAt(NOW, -50)}),
+    ];
+    expect(weeksSinceFirstEvent(events, NOW)).toBe(
+      weeksSinceFirstEvent([mkEvent({reviewedAt: dayAt(NOW, -400)})], NOW),
+    );
+  });
+});
+
+describe('retentionByBook', () => {
+  it('returns nothing for an empty log', () => {
+    expect(retentionByBook([])).toEqual([]);
+  });
+
+  it('aggregates totals, eligible reviews, and retention per book', () => {
+    const events = [
+      // John: 2 eligible (1 recalled), 1 first-ever (not eligible).
+      mkEvent({bookName: 'John', reviewedAt: 1, intervalDays: null}),
+      mkEvent({
+        bookName: 'John',
+        reviewedAt: 2,
+        intervalDays: 3,
+        grade: 'good',
+      }),
+      mkEvent({
+        bookName: 'John',
+        reviewedAt: 3,
+        intervalDays: 5,
+        grade: 'again',
+      }),
+      // Psalms: 1 eligible, recalled.
+      mkEvent({
+        bookName: 'Psalms',
+        reviewedAt: 4,
+        intervalDays: 2,
+        grade: 'good',
+      }),
+    ];
+    const rows = retentionByBook(events);
+    const john = rows.find(r => r.bookName === 'John')!;
+    expect(john.totalReviews).toBe(3);
+    expect(john.reviewsWithInterval).toBe(2);
+    expect(john.recalled).toBe(1);
+    expect(john.retention).toBeCloseTo(0.5);
+
+    const psalms = rows.find(r => r.bookName === 'Psalms')!;
+    expect(psalms.totalReviews).toBe(1);
+    expect(psalms.retention).toBe(1);
+  });
+
+  it('reports null retention for a book with no eligible reviews yet', () => {
+    const rows = retentionByBook([
+      mkEvent({bookName: 'Genesis', reviewedAt: 1, intervalDays: null}),
+    ]);
+    expect(rows[0].reviewsWithInterval).toBe(0);
+    expect(rows[0].retention).toBeNull();
+  });
+
+  it('sorts most-reviewed book first, alphabetically breaking ties', () => {
+    const events = [
+      mkEvent({bookName: 'Z', reviewedAt: 1, intervalDays: 1}),
+      mkEvent({bookName: 'Z', reviewedAt: 2, intervalDays: 1}),
+      mkEvent({bookName: 'A', reviewedAt: 3, intervalDays: 1}),
+      mkEvent({bookName: 'A', reviewedAt: 4, intervalDays: 1}),
+      mkEvent({bookName: 'M', reviewedAt: 5, intervalDays: 1}),
+    ];
+    expect(retentionByBook(events).map(r => r.bookName)).toEqual([
+      'A',
+      'Z',
+      'M',
+    ]);
+  });
+});
+
+describe('retentionTrend', () => {
+  it('returns TREND_MONTHS zero-filled points for an empty log', () => {
+    const points = retentionTrend([], NOW);
+    expect(points).toHaveLength(TREND_MONTHS);
+    expect(points.every(p => p.total === 0 && p.retention === null)).toBe(true);
+    // Chronological, ending with the current month.
+    const lastMonth = new Date(points[points.length - 1].monthStartMs);
+    expect(lastMonth.getFullYear()).toBe(NOW.getFullYear());
+    expect(lastMonth.getMonth()).toBe(NOW.getMonth());
+  });
+
+  it('buckets eligible reviews by calendar month and computes retention', () => {
+    const thisMonth = new Date(NOW.getFullYear(), NOW.getMonth(), 15).getTime();
+    const lastMonth = new Date(
+      NOW.getFullYear(),
+      NOW.getMonth() - 1,
+      15,
+    ).getTime();
+    const events = [
+      mkEvent({reviewedAt: thisMonth, intervalDays: 2, grade: 'good'}),
+      mkEvent({reviewedAt: thisMonth, intervalDays: 3, grade: 'again'}),
+      mkEvent({reviewedAt: lastMonth, intervalDays: 1, grade: 'good'}),
+      // First-ever review this month — excluded from the eligible totals.
+      mkEvent({reviewedAt: thisMonth, intervalDays: null}),
+    ];
+    const points = retentionTrend(events, NOW);
+    const current = points[points.length - 1];
+    const previous = points[points.length - 2];
+    expect(current.total).toBe(2);
+    expect(current.recalled).toBe(1);
+    expect(current.retention).toBeCloseTo(0.5);
+    expect(previous.total).toBe(1);
+    expect(previous.retention).toBe(1);
+  });
+
+  it('ignores reviews outside the requested window', () => {
+    const wayBack = new Date(
+      NOW.getFullYear() - 5,
+      NOW.getMonth(),
+      1,
+    ).getTime();
+    const points = retentionTrend(
+      [mkEvent({reviewedAt: wayBack, intervalDays: 1})],
+      NOW,
+    );
+    expect(points.reduce((sum, p) => sum + p.total, 0)).toBe(0);
+  });
+
+  it('honors a custom month count', () => {
+    expect(retentionTrend([], NOW, 3)).toHaveLength(3);
+    expect(retentionTrend([], NOW, 24)).toHaveLength(24);
   });
 });

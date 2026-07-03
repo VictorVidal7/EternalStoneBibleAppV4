@@ -376,3 +376,143 @@ export function computeReviewHistory(
     leeches: findLeeches(events),
   };
 }
+
+// ── T8.1 — expanded (offering-unlocked) history views ──────────────────
+//
+// These three additions extend the SAME append-only review-event log with
+// wider/differently-sliced pure reads: a longer heatmap window, a per-book
+// breakdown, and a month-by-month trend. Nothing here changes what the free
+// screen above already shows.
+
+/** Safety cap so an old, heavily-used deck can't render an unbounded heatmap. */
+export const MAX_HEATMAP_WEEKS = 260; // ~5 years
+
+/**
+ * How many week-columns a heatmap would need to span every review ever
+ * logged (at least `HEATMAP_WEEKS`, capped at `MAX_HEATMAP_WEEKS`). Powers
+ * the "full history" premium heatmap view.
+ */
+export function weeksSinceFirstEvent(events: ReviewEvent[], now: Date): number {
+  if (events.length === 0) return HEATMAP_WEEKS;
+  let earliest = events[0].reviewedAt;
+  for (const e of events) if (e.reviewedAt < earliest) earliest = e.reviewedAt;
+  const daysSince = Math.max(
+    0,
+    Math.floor((now.getTime() - earliest) / DAY_MS),
+  );
+  const weeks = Math.ceil((daysSince + 1) / 7);
+  return Math.min(MAX_HEATMAP_WEEKS, Math.max(HEATMAP_WEEKS, weeks));
+}
+
+/** Retention + activity for one Bible book, from the review log. */
+export interface BookRetentionRow {
+  /** Book name as stored on the events (matches `findLeeches`' convention). */
+  bookName: string;
+  /** Every review logged for this book (first-ever reviews included). */
+  totalReviews: number;
+  /** Of those, how many had a prior review (eligible for retention scoring). */
+  reviewsWithInterval: number;
+  /** Of the eligible reviews, how many were recalled. */
+  recalled: number;
+  /** recalled / reviewsWithInterval, or null when none are eligible yet. */
+  retention: number | null;
+}
+
+/**
+ * Per-book breakdown of review activity and retention, most-reviewed book
+ * first (ties broken alphabetically for a stable order). Like `findLeeches`,
+ * groups by the raw stored `bookName` — a user who switches UI language
+ * mid-history could see the same book split in two, the same pre-existing
+ * limitation the rest of the review-log UI already has.
+ */
+export function retentionByBook(events: ReviewEvent[]): BookRetentionRow[] {
+  interface Acc {
+    totalReviews: number;
+    reviewsWithInterval: number;
+    recalled: number;
+  }
+  const byBook = new Map<string, Acc>();
+  for (const e of events) {
+    const acc = byBook.get(e.bookName) ?? {
+      totalReviews: 0,
+      reviewsWithInterval: 0,
+      recalled: 0,
+    };
+    acc.totalReviews += 1;
+    if (e.intervalDays != null) {
+      acc.reviewsWithInterval += 1;
+      if (isRecallSuccess(e.grade)) acc.recalled += 1;
+    }
+    byBook.set(e.bookName, acc);
+  }
+  const rows: BookRetentionRow[] = [];
+  for (const [bookName, acc] of byBook) {
+    rows.push({
+      bookName,
+      totalReviews: acc.totalReviews,
+      reviewsWithInterval: acc.reviewsWithInterval,
+      recalled: acc.recalled,
+      retention:
+        acc.reviewsWithInterval > 0
+          ? acc.recalled / acc.reviewsWithInterval
+          : null,
+    });
+  }
+  rows.sort(
+    (a, b) =>
+      b.totalReviews - a.totalReviews || a.bookName.localeCompare(b.bookName),
+  );
+  return rows;
+}
+
+/** Retention measured over one calendar month. */
+export interface TrendPoint {
+  /** Local-midnight millis of the 1st of the month. */
+  monthStartMs: number;
+  /** Reviews with a prior review (retention-eligible) in this month. */
+  total: number;
+  /** Of those, how many were recalled. */
+  recalled: number;
+  /** recalled / total, or null when the month has no eligible reviews. */
+  retention: number | null;
+}
+
+/** How many trailing months `retentionTrend` covers by default. */
+export const TREND_MONTHS = 12;
+
+/**
+ * Month-by-month retention trend, oldest to newest, ending with the current
+ * (local) month. Zero-filled so the chart shape is always `months` wide
+ * regardless of how sparse the log is.
+ */
+export function retentionTrend(
+  events: ReviewEvent[],
+  now: Date,
+  months: number = TREND_MONTHS,
+): TrendPoint[] {
+  const m = Math.max(1, Math.floor(months));
+  const starts: number[] = [];
+  for (let i = m - 1; i >= 0; i--) {
+    starts.push(new Date(now.getFullYear(), now.getMonth() - i, 1).getTime());
+  }
+  const byMonth = new Map<number, {total: number; recalled: number}>();
+  for (const ms of starts) byMonth.set(ms, {total: 0, recalled: 0});
+  for (const e of events) {
+    if (e.intervalDays == null) continue;
+    const d = new Date(e.reviewedAt);
+    const monthStart = new Date(d.getFullYear(), d.getMonth(), 1).getTime();
+    const acc = byMonth.get(monthStart);
+    if (!acc) continue; // outside the requested window
+    acc.total += 1;
+    if (isRecallSuccess(e.grade)) acc.recalled += 1;
+  }
+  return starts.map(ms => {
+    const acc = byMonth.get(ms)!;
+    return {
+      monthStartMs: ms,
+      total: acc.total,
+      recalled: acc.recalled,
+      retention: acc.total > 0 ? acc.recalled / acc.total : null,
+    };
+  });
+}
