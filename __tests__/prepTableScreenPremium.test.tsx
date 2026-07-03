@@ -152,6 +152,16 @@ jest.mock('@lib/database/originals-download-service', () => ({
   importLocalOriginalsIfPresent: jest.fn(async () => false),
 }));
 
+// T8.4.3 — the screen now always mounts a "Comparar versiones" section too
+// (out of scope for THIS file, covered by prepTableScreenVersionCompare.test.tsx);
+// stub it here so these T8.4.2 tests don't hit the real SQLite-backed service.
+jest.mock('@lib/comparison/VersionComparison', () => ({
+  versionComparisonService: {
+    getAvailableVersions: jest.fn(async () => []),
+    compareVerseRange: jest.fn(async () => []),
+  },
+}));
+
 const p = translations.es.prepTable;
 
 function renderScreen() {
@@ -195,9 +205,11 @@ describe('Mesa de preparación — T8.4.2 premium additions', () => {
       expect(await findByText('Salmos 1:13')).toBeTruthy();
       expect(await findByText('Salmos 1:20')).toBeTruthy();
       expect(queryByText(/más con una ofrenda/)).toBeNull();
-      // Two "Exclusivo" pills: the cross-refs extension + the entirely-
-      // premium original-words section header (see below).
-      expect(getAllByText('Exclusivo')).toHaveLength(2);
+      // Three "Exclusivo" pills: the cross-refs extension, the entirely-
+      // premium original-words section header (see below), and the T8.4.3
+      // "Comparar versiones" section header (always shown, like original
+      // words — see prepTableScreenVersionCompare.test.tsx).
+      expect(getAllByText('Exclusivo')).toHaveLength(3);
     });
   });
 
