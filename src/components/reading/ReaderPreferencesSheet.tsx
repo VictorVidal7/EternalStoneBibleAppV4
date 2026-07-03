@@ -40,6 +40,7 @@ import {
   READER_THEME_ORDER,
   PREMIUM_READER_THEMES,
   resolveReaderTheme,
+  isReaderThemeUnlocked,
 } from '../../styles/readerThemes';
 import {
   READER_TYPEFACES,
@@ -93,13 +94,22 @@ export const ReaderPreferencesSheet: React.FC<ReaderPreferencesSheetProps> = ({
   // dependency array, so this reacts immediately if the sheet is already
   // open when the revocation lands, and otherwise on next open —
   // `!premiumLoading` avoids reverting during PremiumContext's own brief
-  // initial cache read.
+  // initial cache read. Sepia is checked through `isReaderThemeUnlocked`
+  // (not a plain `PREMIUM_READER_THEMES.includes` check) so a grandfathered
+  // device's Sepia is NEVER reverted here — T6.3b's whole point is that a
+  // device which already had Sepia keeps it working without premium.
   React.useEffect(() => {
     if (visible && !premiumLoading && !isPremium) {
       if (PREMIUM_READER_FONTS.includes(preferences.fontFamily)) {
         setFontFamily('sans');
       }
-      if (PREMIUM_READER_THEMES.includes(preferences.theme)) {
+      if (
+        !isReaderThemeUnlocked(
+          preferences.theme,
+          isPremium,
+          preferences.sepiaGrandfathered,
+        )
+      ) {
         setTheme('system');
       }
     }
@@ -109,6 +119,7 @@ export const ReaderPreferencesSheet: React.FC<ReaderPreferencesSheetProps> = ({
     isPremium,
     preferences.fontFamily,
     preferences.theme,
+    preferences.sepiaGrandfathered,
     setFontFamily,
     setTheme,
   ]);
@@ -149,8 +160,16 @@ export const ReaderPreferencesSheet: React.FC<ReaderPreferencesSheetProps> = ({
     return {
       id,
       label: themeLabels[id],
+      // The "Exclusivo" pill (isPremiumTheme) always shows for a gated
+      // theme, grandfathered or not — it's purely informational. The lock
+      // state is the one thing grandfathering changes, so it goes through
+      // `isReaderThemeUnlocked` rather than a plain premium check.
       isPremiumTheme,
-      isLocked: isPremiumTheme && !isPremium,
+      isLocked: !isReaderThemeUnlocked(
+        id,
+        isPremium,
+        preferences.sepiaGrandfathered,
+      ),
     };
   });
 

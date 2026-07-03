@@ -5,10 +5,12 @@
 import {
   READER_THEMES,
   READER_THEME_ORDER,
+  PREMIUM_READER_THEMES,
   LEGACY_AUDIO_HIGHLIGHT,
   LEGACY_ON_HIGHLIGHT,
   isReaderTheme,
   resolveReaderTheme,
+  isReaderThemeUnlocked,
   ReaderTheme,
 } from '../src/styles/readerThemes';
 
@@ -143,5 +145,60 @@ describe('resolveReaderTheme', () => {
     const snapshot = {...appColors};
     resolveReaderTheme(appColors, 'sepia');
     expect(appColors).toEqual(snapshot);
+  });
+});
+
+// T6.3b — Sepia joins PREMIUM_READER_THEMES but with a grandfathering
+// exception (see ReaderPreferencesContext for how `sepiaGrandfathered` is
+// derived at hydration).
+describe('PREMIUM_READER_THEMES (T6.3b — sepia gated + grandfathered)', () => {
+  it('includes sepia alongside the T6.3 exclusives', () => {
+    expect(PREMIUM_READER_THEMES).toContain('sepia');
+    expect(PREMIUM_READER_THEMES).toContain('musgo');
+    expect(PREMIUM_READER_THEMES).toContain('crepusculo');
+    expect(PREMIUM_READER_THEMES).toContain('niebla');
+  });
+
+  it('does not gate the other 4 original free surfaces', () => {
+    expect(PREMIUM_READER_THEMES).not.toContain('system');
+    expect(PREMIUM_READER_THEMES).not.toContain('paper');
+    expect(PREMIUM_READER_THEMES).not.toContain('night');
+    expect(PREMIUM_READER_THEMES).not.toContain('high-contrast');
+  });
+});
+
+describe('isReaderThemeUnlocked', () => {
+  it('unlocks every non-premium theme regardless of premium/grandfathering', () => {
+    (['system', 'paper', 'night', 'high-contrast'] as ReaderTheme[]).forEach(
+      theme => {
+        expect(isReaderThemeUnlocked(theme, false, false)).toBe(true);
+        expect(isReaderThemeUnlocked(theme, true, false)).toBe(true);
+      },
+    );
+  });
+
+  it('locks sepia for a non-premium, non-grandfathered device', () => {
+    expect(isReaderThemeUnlocked('sepia', false, false)).toBe(false);
+  });
+
+  it('unlocks sepia for a grandfathered device even without premium', () => {
+    expect(isReaderThemeUnlocked('sepia', false, true)).toBe(true);
+  });
+
+  it('unlocks sepia for a premium device regardless of grandfathering', () => {
+    expect(isReaderThemeUnlocked('sepia', true, false)).toBe(true);
+    expect(isReaderThemeUnlocked('sepia', true, true)).toBe(true);
+  });
+
+  it('locks the T6.3 exclusives for a non-premium device even when "sepiaGrandfathered" is true (grandfathering only ever applies to sepia)', () => {
+    expect(isReaderThemeUnlocked('musgo', false, true)).toBe(false);
+    expect(isReaderThemeUnlocked('crepusculo', false, true)).toBe(false);
+    expect(isReaderThemeUnlocked('niebla', false, true)).toBe(false);
+  });
+
+  it('unlocks the T6.3 exclusives for a premium device', () => {
+    expect(isReaderThemeUnlocked('musgo', true, false)).toBe(true);
+    expect(isReaderThemeUnlocked('crepusculo', true, false)).toBe(true);
+    expect(isReaderThemeUnlocked('niebla', true, false)).toBe(true);
   });
 });
