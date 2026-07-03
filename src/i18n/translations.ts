@@ -31,11 +31,11 @@ export const translations = {
       versesDialogTitle: 'Compartir versículos',
       planDialogTitle: 'Compartir plan de lectura',
       achievementDialogTitle: 'Compartir logro',
-      promo: '✨ Compartido desde Eternal Bible',
+      promo: '✨ Compartido desde Eternal Stone Bible',
       planMessage:
-        '📖 Plan de lectura: {{name}}\n\n{{description}}\n\n¡Únete a mí en este viaje espiritual!\n\n✨ Descarga Eternal Bible y empieza tu plan hoy.',
+        '📖 Plan de lectura: {{name}}\n\n{{description}}\n\n¡Únete a mí en este viaje espiritual!\n\n✨ Descarga Eternal Stone Bible y empieza tu plan hoy.',
       achievementMessage:
-        '🏆 ¡Logro desbloqueado!\n\n{{title}}\n{{description}}\n\n✨ Eternal Bible · Tu viaje espiritual',
+        '🏆 ¡Logro desbloqueado!\n\n{{title}}\n{{description}}\n\n✨ Eternal Stone Bible · Tu viaje espiritual',
       copiedTitle: 'Copiado',
       copiedMessage: 'El contenido se ha copiado al portapapeles',
       copyErrorMessage: 'No se pudo copiar al portapapeles',
@@ -76,7 +76,7 @@ export const translations = {
 
     // Headers
     headers: {
-      home: 'Eternal Bible',
+      home: 'Eternal Stone Bible',
       bible: 'La Biblia',
       search: 'Buscar en la Biblia',
       achievements: 'Mis Logros',
@@ -88,7 +88,7 @@ export const translations = {
     // Home Screen
     home: {
       title: 'Biblia Eterna',
-      welcome: 'Bienvenido a Eternal Bible',
+      welcome: 'Bienvenido a Eternal Stone Bible',
       welcomeShort: 'Bienvenido',
       subtitle: 'Inspiración Bíblica Diaria',
       journeyContinues: 'Tu viaje espiritual continúa',
@@ -641,7 +641,7 @@ export const translations = {
         shareCardRetention: 'retención',
         shareCardStreak: 'días de racha',
         shareCardStreakSingular: 'día de racha',
-        shareCardFooter: 'Eternal Bible',
+        shareCardFooter: 'Eternal Stone Bible',
       },
       goal: {
         heroTitle: 'Tu racha',
@@ -675,7 +675,7 @@ export const translations = {
       start: 'Empezar',
       step: 'Paso {{current}} de {{total}}',
       welcome: {
-        title: 'Bienvenido a Eternal Bible',
+        title: 'Bienvenido a Eternal Stone Bible',
         subtitle: 'Tu compañero diario en la Palabra',
         body: 'Vamos a personalizar tu experiencia en unos pocos pasos. Podrás cambiar todo más adelante en Ajustes.',
         cta: 'Comenzar',
@@ -1781,7 +1781,7 @@ export const translations = {
       walkthroughStop: 'Detener recorrido',
       togetherCta: 'Leer el hilo en grupo',
       completedBadge: 'Hilo completado',
-      shareSignature: 'Eternal Bible · Hilo profético',
+      shareSignature: 'Eternal Stone Bible · Hilo profético',
       quotedBadge: 'Citado en el NT',
       sourcesTitle: 'Fuentes y método',
       sourcesHint: 'Cómo se eligieron estas profecías',
@@ -4195,7 +4195,7 @@ export const translations = {
       howToUseSteps: {
         step1: 'Mantén presionada un área vacía de tu pantalla de inicio',
         step2: 'Toca "Widgets"',
-        step3: 'Busca "Eternal Bible" en la lista',
+        step3: 'Busca "Eternal Stone Bible" en la lista',
         step4: 'Mantén presionado el widget y arrástralo a tu pantalla',
         step5: '¡Listo! El verso del día te acompañará cada mañana',
       },
@@ -4227,7 +4227,7 @@ export const translations = {
       copyCode: 'Copiar código',
       copied: 'Copiado',
       inviteMessage:
-        '📖 Te invito a leer juntos: {{plan}}, empezando el {{date}}.\n\nÁbrelo en Eternal Bible:\n{{link}}\n\n¿No te abre el enlace? Usa el código {{code}} en Ajustes → Unirme a un grupo.',
+        '📖 Te invito a leer juntos: {{plan}}, empezando el {{date}}.\n\nÁbrelo en Eternal Stone Bible:\n{{link}}\n\n¿No te abre el enlace? Usa el código {{code}} en Ajustes → Unirme a un grupo.',
       importTitle: 'Unirte a un grupo',
       invitedTo: 'Te invitaron a leer juntos',
       willStart: 'Comienza el {{date}}',
@@ -4256,7 +4256,7 @@ export const translations = {
       shareCustomIntro:
         'Comparte tu plan por enlace. Quien lo reciba lo lee en su propia app, a su ritmo.',
       shareCustomMessage:
-        '📖 Te comparto un plan de lectura que armé: {{plan}}.\n\nÁbrelo en Eternal Bible:\n{{link}}\n\n¿No te abre el enlace? Copia este mensaje y pégalo en Ajustes → Unirme a un grupo.',
+        '📖 Te comparto un plan de lectura que armé: {{plan}}.\n\nÁbrelo en Eternal Stone Bible:\n{{link}}\n\n¿No te abre el enlace? Copia este mensaje y pégalo en Ajustes → Unirme a un grupo.',
       customLinkNote: 'Se comparte por enlace (no tiene código corto).',
       customInvitedTo: 'Te compartieron un plan',
       customMeta: '{{days}} días · {{chapters}} capítulos',
@@ -4274,7 +4274,7 @@ export const translations = {
       shareStudyIntro:
         'Comparte tu bosquejo por enlace. Quien lo reciba lo verá como estudio navegable (solo lectura), en su propio idioma.',
       shareStudyMessage:
-        '📖 Te comparto un estudio de {{passage}}.\n\nÁbrelo en Eternal Bible:\n{{link}}\n\n¿No te abre el enlace? Copia este mensaje y pégalo en Ajustes → Unirme a un grupo.',
+        '📖 Te comparto un estudio de {{passage}}.\n\nÁbrelo en Eternal Stone Bible:\n{{link}}\n\n¿No te abre el enlace? Copia este mensaje y pégalo en Ajustes → Unirme a un grupo.',
       shareStudy: 'Compartir estudio',
     },
     sharedStudy: {
@@ -4322,7 +4322,7 @@ export const translations = {
       share: 'Compartir devocional',
       needOneDay: 'Añade al menos un día con un versículo.',
       shareMessage:
-        '🗓️ Te comparto un devocional: {{title}}\n\nÁbrelo en Eternal Bible:\n{{link}}',
+        '🗓️ Te comparto un devocional: {{title}}\n\nÁbrelo en Eternal Stone Bible:\n{{link}}',
     },
     planBuilder: {
       title: 'Crear un plan',
@@ -4986,11 +4986,11 @@ export const translations = {
       versesDialogTitle: 'Share verses',
       planDialogTitle: 'Share reading plan',
       achievementDialogTitle: 'Share achievement',
-      promo: '✨ Shared from Eternal Bible',
+      promo: '✨ Shared from Eternal Stone Bible',
       planMessage:
-        '📖 Reading plan: {{name}}\n\n{{description}}\n\nJoin me on this spiritual journey!\n\n✨ Download Eternal Bible and start your plan today.',
+        '📖 Reading plan: {{name}}\n\n{{description}}\n\nJoin me on this spiritual journey!\n\n✨ Download Eternal Stone Bible and start your plan today.',
       achievementMessage:
-        '🏆 Achievement unlocked!\n\n{{title}}\n{{description}}\n\n✨ Eternal Bible · Your spiritual journey',
+        '🏆 Achievement unlocked!\n\n{{title}}\n{{description}}\n\n✨ Eternal Stone Bible · Your spiritual journey',
       copiedTitle: 'Copied',
       copiedMessage: 'The content was copied to the clipboard',
       copyErrorMessage: 'Could not copy to the clipboard',
@@ -5030,7 +5030,7 @@ export const translations = {
 
     // Headers
     headers: {
-      home: 'Eternal Bible',
+      home: 'Eternal Stone Bible',
       bible: 'The Bible',
       search: 'Search the Bible',
       achievements: 'My Achievements',
@@ -5041,8 +5041,8 @@ export const translations = {
 
     // Home Screen
     home: {
-      title: 'Eternal Bible',
-      welcome: 'Welcome to Eternal Bible',
+      title: 'Eternal Stone Bible',
+      welcome: 'Welcome to Eternal Stone Bible',
       welcomeShort: 'Welcome',
       subtitle: 'Daily Biblical Inspiration',
       journeyContinues: 'Your spiritual journey continues',
@@ -5578,7 +5578,7 @@ export const translations = {
         shareCardRetention: 'retention',
         shareCardStreak: 'day streak',
         shareCardStreakSingular: 'day streak',
-        shareCardFooter: 'Eternal Bible',
+        shareCardFooter: 'Eternal Stone Bible',
       },
       goal: {
         heroTitle: 'Your streak',
@@ -5623,7 +5623,7 @@ export const translations = {
       start: 'Get started',
       step: 'Step {{current}} of {{total}}',
       welcome: {
-        title: 'Welcome to Eternal Bible',
+        title: 'Welcome to Eternal Stone Bible',
         subtitle: 'Your daily companion in the Word',
         body: "Let's set up your experience in a few quick steps. You can change everything later from Settings.",
         cta: 'Get started',
@@ -6723,7 +6723,7 @@ export const translations = {
       walkthroughStop: 'Stop walkthrough',
       togetherCta: 'Read the thread together',
       completedBadge: 'Thread complete',
-      shareSignature: 'Eternal Bible · Prophetic thread',
+      shareSignature: 'Eternal Stone Bible · Prophetic thread',
       quotedBadge: 'Cited in the NT',
       sourcesTitle: 'Sources & method',
       sourcesHint: 'How these prophecies were chosen',
@@ -9124,7 +9124,7 @@ export const translations = {
       howToUseSteps: {
         step1: 'Long-press an empty spot on your home screen',
         step2: 'Tap "Widgets"',
-        step3: 'Find "Eternal Bible" in the list',
+        step3: 'Find "Eternal Stone Bible" in the list',
         step4: 'Press and hold the widget, then drag it to your screen',
         step5: 'Done! The daily verse will greet you each morning',
       },
@@ -9156,7 +9156,7 @@ export const translations = {
       copyCode: 'Copy code',
       copied: 'Copied',
       inviteMessage:
-        "📖 Let's read together: {{plan}}, starting {{date}}.\n\nOpen it in Eternal Bible:\n{{link}}\n\nLink not opening? Use code {{code}} in Settings → Join a group.",
+        "📖 Let's read together: {{plan}}, starting {{date}}.\n\nOpen it in Eternal Stone Bible:\n{{link}}\n\nLink not opening? Use code {{code}} in Settings → Join a group.",
       importTitle: 'Join a group',
       invitedTo: "You're invited to read together",
       willStart: 'Starts {{date}}',
@@ -9185,7 +9185,7 @@ export const translations = {
       shareCustomIntro:
         'Share your plan by link. Whoever gets it reads it in their own app, at their own pace.',
       shareCustomMessage:
-        "📖 Here's a reading plan I made: {{plan}}.\n\nOpen it in Eternal Bible:\n{{link}}\n\nLink not opening? Copy this message and paste it in Settings → Join a group.",
+        "📖 Here's a reading plan I made: {{plan}}.\n\nOpen it in Eternal Stone Bible:\n{{link}}\n\nLink not opening? Copy this message and paste it in Settings → Join a group.",
       customLinkNote: 'Shared by link (no short code).',
       customInvitedTo: 'A plan was shared with you',
       customMeta: '{{days}} days · {{chapters}} chapters',
@@ -9202,7 +9202,7 @@ export const translations = {
       shareStudyIntro:
         'Share your outline by link. Whoever gets it sees a navigable, read-only study, in their own language.',
       shareStudyMessage:
-        '📖 Here is a study of {{passage}} I made.\n\nOpen it in Eternal Bible:\n{{link}}\n\nLink not opening? Copy this message and paste it in Settings → Join a group.',
+        '📖 Here is a study of {{passage}} I made.\n\nOpen it in Eternal Stone Bible:\n{{link}}\n\nLink not opening? Copy this message and paste it in Settings → Join a group.',
       shareStudy: 'Share study',
     },
     sharedStudy: {
@@ -9250,7 +9250,7 @@ export const translations = {
       share: 'Share devotional',
       needOneDay: 'Add at least one day with a verse.',
       shareMessage:
-        '🗓️ A devotional for you: {{title}}\n\nOpen it in Eternal Bible:\n{{link}}',
+        '🗓️ A devotional for you: {{title}}\n\nOpen it in Eternal Stone Bible:\n{{link}}',
     },
     planBuilder: {
       title: 'Create a plan',

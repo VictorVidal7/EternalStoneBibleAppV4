@@ -956,7 +956,7 @@ export default function SettingsScreen() {
 
           <View style={themedStyles.card}>
             <View style={themedStyles.aboutRow}>
-              <Text style={themedStyles.settingLabel}>Eternal Bible</Text>
+              <Text style={themedStyles.settingLabel}>Eternal Stone Bible</Text>
               <Text style={themedStyles.settingValue}>
                 {t.settings.version} {Constants.expoConfig?.version ?? '3.0.4'}
               </Text>

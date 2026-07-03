@@ -487,7 +487,7 @@ export default function JourneyRouteScreen() {
               <AppText
                 scaleRole="compact"
                 style={[styles.signatureText, {color: colors.textTertiary}]}>
-                Eternal Bible · {routeMeta.title}
+                Eternal Stone Bible · {routeMeta.title}
               </AppText>
             </View>
           </View>
