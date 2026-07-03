@@ -940,6 +940,11 @@ export default function HomeScreen() {
                         await ShareService.shareVerse(
                           dailyVerse,
                           verseReference,
+                          {},
+                          (variant, message) =>
+                            variant === 'success'
+                              ? toast.success(message)
+                              : toast.error(message),
                         );
                       }
                     }}

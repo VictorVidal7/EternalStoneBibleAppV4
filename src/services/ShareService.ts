@@ -13,7 +13,6 @@
 
 import * as Sharing from 'expo-sharing';
 import * as Clipboard from 'expo-clipboard';
-import {Alert} from 'react-native';
 import {haptics} from '@lib/haptics';
 import {BibleVerse} from '../types/bible';
 import {logger} from '../lib/utils/logger';
@@ -26,6 +25,17 @@ export interface ShareOptions {
   customMessage?: string;
 }
 
+/**
+ * ShareService is a static, non-React service — it has no access to
+ * `useToast()`. Callers that want themed (rather than silent) clipboard-
+ * fallback feedback pass this callback; it's invoked instead of the old
+ * native `Alert.alert` so the caller can route it through its own toast.
+ */
+export type ShareFeedback = (
+  variant: 'success' | 'error',
+  message: string,
+) => void;
+
 export class ShareService {
   /**
    * Comparte un versículo de la Biblia
@@ -34,6 +44,7 @@ export class ShareService {
     verse: BibleVerse,
     reference: string,
     options: ShareOptions = {},
+    onFeedback?: ShareFeedback,
   ): Promise<boolean> {
     const t = await getTranslations();
     const message = this.formatVerseMessage(verse, reference, options, t);
@@ -58,7 +69,7 @@ export class ShareService {
         return true;
       } else {
         // Fallback: copiar al portapapeles
-        await this.copyToClipboard(message, t);
+        await this.copyToClipboard(message, t, onFeedback);
         return true;
       }
     } catch (error) {
@@ -69,7 +80,7 @@ export class ShareService {
       });
 
       // Fallback en caso de error
-      await this.copyToClipboard(message, t);
+      await this.copyToClipboard(message, t, onFeedback);
       return false;
     }
   }
@@ -82,6 +93,7 @@ export class ShareService {
     bookName: string,
     chapter: number,
     options: ShareOptions = {},
+    onFeedback?: ShareFeedback,
   ): Promise<boolean> {
     const t = await getTranslations();
     const message = this.formatMultipleVersesMessage(
@@ -110,7 +122,7 @@ export class ShareService {
 
         return true;
       } else {
-        await this.copyToClipboard(message, t);
+        await this.copyToClipboard(message, t, onFeedback);
         return true;
       }
     } catch (error) {
@@ -119,7 +131,7 @@ export class ShareService {
         action: 'shareMultipleVerses',
       });
 
-      await this.copyToClipboard(message, t);
+      await this.copyToClipboard(message, t, onFeedback);
       return false;
     }
   }
@@ -130,6 +142,7 @@ export class ShareService {
   static async shareReadingPlan(
     planName: string,
     planDescription: string,
+    onFeedback?: ShareFeedback,
   ): Promise<boolean> {
     const t = await getTranslations();
     const message = t.shareService.planMessage
@@ -147,7 +160,7 @@ export class ShareService {
         });
         return true;
       } else {
-        await this.copyToClipboard(message, t);
+        await this.copyToClipboard(message, t, onFeedback);
         return true;
       }
     } catch (error) {
@@ -162,6 +175,7 @@ export class ShareService {
   static async shareAchievement(
     achievementTitle: string,
     achievementDescription: string,
+    onFeedback?: ShareFeedback,
   ): Promise<boolean> {
     const t = await getTranslations();
     const message = t.shareService.achievementMessage
@@ -179,7 +193,7 @@ export class ShareService {
         });
         return true;
       } else {
-        await this.copyToClipboard(message, t);
+        await this.copyToClipboard(message, t, onFeedback);
         return true;
       }
     } catch (error) {
@@ -267,14 +281,13 @@ export class ShareService {
   private static async copyToClipboard(
     text: string,
     t: TranslationKeys,
+    onFeedback?: ShareFeedback,
   ): Promise<void> {
     try {
       await Clipboard.setStringAsync(text);
       haptics.success();
 
-      Alert.alert(t.shareService.copiedTitle, t.shareService.copiedMessage, [
-        {text: t.ok},
-      ]);
+      onFeedback?.('success', t.shareService.copiedMessage);
 
       logger.info('Content copied to clipboard', {
         component: 'ShareService',
@@ -283,7 +296,7 @@ export class ShareService {
     } catch (error) {
       logger.error('Error copying to clipboard', error as Error);
 
-      Alert.alert(t.error, t.shareService.copyErrorMessage, [{text: t.ok}]);
+      onFeedback?.('error', t.shareService.copyErrorMessage);
     }
   }
 

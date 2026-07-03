@@ -8,14 +8,7 @@
  */
 
 import React, {useCallback, useEffect, useState} from 'react';
-import {
-  View,
-  Text,
-  StyleSheet,
-  Switch,
-  TouchableOpacity,
-  Alert,
-} from 'react-native';
+import {View, Text, StyleSheet, Switch, TouchableOpacity} from 'react-native';
 import {Ionicons} from '@expo/vector-icons';
 import {haptics} from '@lib/haptics';
 import {useTheme} from '@hooks/useTheme';
@@ -55,10 +48,7 @@ export default function PropheticReminderSettings() {
       try {
         const ok = await setPropheticReminderEnabled(value, {hour, language});
         if (value && !ok) {
-          Alert.alert(
-            t.notifications.permissionDeniedTitle,
-            t.notifications.permissionDeniedMessage,
-          );
+          toast.warning(t.notifications.permissionDeniedMessage);
           setEnabled(false);
           return;
         }

@@ -7,7 +7,6 @@ import {
   ScrollView,
   TouchableOpacity,
   Switch,
-  Alert,
   Image,
   ActivityIndicator,
 } from 'react-native';
@@ -72,6 +71,8 @@ export default function SettingsScreen() {
   const [isExporting, setIsExporting] = useState(false);
   const [isAuthenticating, setIsAuthenticating] = useState(false);
   const [signOutConfirmVisible, setSignOutConfirmVisible] = useState(false);
+  // Dev-only Crashlytics smoke test confirm (see the __DEV__ long-press below).
+  const [crashConfirmVisible, setCrashConfirmVisible] = useState(false);
   const scrollViewRef = useRef<ScrollView>(null);
 
   // Tick every 10s so the "Synced Xs ago" label stays accurate without
@@ -144,11 +145,9 @@ export default function SettingsScreen() {
       // away so the user lands on a working app instead of having
       // to close-and-reopen the way the old success copy demanded.
       await initializeBibleData();
-      Alert.alert(t.settings.resetSuccess, t.settings.resetSuccessMessage, [
-        {text: t.ok},
-      ]);
+      toast.success(t.settings.resetSuccessMessage);
     } catch {
-      Alert.alert(t.error, t.settings.resetError);
+      toast.error(t.settings.resetError);
     } finally {
       setIsResetting(false);
     }
@@ -160,7 +159,7 @@ export default function SettingsScreen() {
       haptics.press();
       await exportBackup();
     } catch (error) {
-      Alert.alert(t.error, t.settings.exportError, [{text: t.ok}]);
+      toast.error(t.settings.exportError);
       void error;
     } finally {
       setIsExporting(false);
@@ -974,22 +973,7 @@ export default function SettingsScreen() {
             {__DEV__ && (
               <TouchableOpacity
                 style={themedStyles.linkButton}
-                onLongPress={() => {
-                  Alert.alert(
-                    'Crashlytics test',
-                    'Force a native crash now? The app will close and the ' +
-                      'crash should appear in the Firebase Console within ' +
-                      '5-10 minutes.',
-                    [
-                      {text: 'Cancel', style: 'cancel'},
-                      {
-                        text: 'Crash',
-                        style: 'destructive',
-                        onPress: () => logger.testCrash(),
-                      },
-                    ],
-                  );
-                }}
+                onLongPress={() => setCrashConfirmVisible(true)}
                 delayLongPress={800}>
                 <Ionicons name="bug-outline" size={20} color={colors.error} />
                 <Text style={[themedStyles.linkText, {color: colors.error}]}>
@@ -1029,6 +1013,25 @@ export default function SettingsScreen() {
         destructive
         icon="log-out-outline"
       />
+      {__DEV__ && (
+        <ConfirmDialog
+          visible={crashConfirmVisible}
+          title="Crashlytics test"
+          message={
+            'Force a native crash now? The app will close and the crash ' +
+            'should appear in the Firebase Console within 5-10 minutes.'
+          }
+          confirmLabel="Crash"
+          cancelLabel="Cancel"
+          onConfirm={() => {
+            setCrashConfirmVisible(false);
+            logger.testCrash();
+          }}
+          onCancel={() => setCrashConfirmVisible(false)}
+          destructive
+          icon="bug-outline"
+        />
+      )}
     </View>
   );
 }
