@@ -914,6 +914,14 @@ export const translations = {
         'Solo tienes una versión descargada en este dispositivo. Descarga otra versión desde Ajustes para comparar este pasaje lado a lado.',
       versionCompareGoToSettings: 'Ir a Ajustes',
       versionCompareError: 'No se pudieron cargar las versiones para comparar.',
+      // T8.4.5 — exportar el bosquejo como PDF con diseño (premium). El
+      // export gratis en Markdown (exportLabel/copied arriba) sigue exacto
+      // igual; esto es una adición pura, un formato de exportación distinto
+      // del mismo contenido.
+      exportPdfLabel: 'Exportar a PDF',
+      exportPdfGenerating: 'Generando PDF…',
+      exportPdfDialogTitle: 'Compartir bosquejo en PDF',
+      exportPdfError: 'No se pudo generar el PDF. Inténtalo de nuevo.',
       sections: {
         context: {
           label: 'Contexto',
@@ -5925,6 +5933,14 @@ export const translations = {
         'You only have one version downloaded on this device. Download another version from Settings to compare this passage side by side.',
       versionCompareGoToSettings: 'Go to Settings',
       versionCompareError: 'Could not load the versions to compare.',
+      // T8.4.5 — export the outline as a designed PDF (premium). The free
+      // Markdown export (exportLabel/copied above) stays exactly the same;
+      // this is a pure addition, a different export format of the same
+      // content.
+      exportPdfLabel: 'Export to PDF',
+      exportPdfGenerating: 'Generating PDF…',
+      exportPdfDialogTitle: 'Share outline as PDF',
+      exportPdfError: 'Could not generate the PDF. Please try again.',
       sections: {
         context: {
           label: 'Context',
