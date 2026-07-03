@@ -44,9 +44,15 @@ export const PrayerCard: React.FC<PrayerCardProps> = ({onPress}) => {
   const {loaded: journalLoaded, requests} = usePrayerJournal();
   const stats = useMemo(() => prayerStats(requests), [requests]);
 
-  // Honest gate: nothing to show until the reader has prayed or kept a request.
-  const engaged = summary.totalDays > 0 || requests.length > 0;
-  if (!streakLoaded || !journalLoaded || !engaged) return null;
+  if (!streakLoaded || !journalLoaded) return null;
+
+  // A brand-new reader (never prayed, never kept a request) still gets the
+  // card — it's how a first-time user discovers the journal at all, "Orar la
+  // Escritura" included (Victor caught that gating this on prior engagement
+  // meant a new user could never find it from Home). Only the SUBTITLE needs
+  // its own copy here: the streak/stats lines below all assume some history
+  // and would otherwise read oddly (e.g. "Tu mejor racha: 0").
+  const isNew = summary.totalDays === 0 && requests.length === 0;
 
   const lapsed = summary.current === 0;
   const headline =
@@ -58,9 +64,11 @@ export const PrayerCard: React.FC<PrayerCardProps> = ({onPress}) => {
         ? tp.streakOneDay
         : tp.streakDays.replace('{{n}}', String(summary.current));
 
-  // Sub-line: what's before God right now, else the streak's best run.
-  const subtitle =
-    stats.active > 0 || stats.answered > 0
+  // Sub-line: what's before God right now, else the streak's best run, else
+  // (brand-new) a simple invitation to explore.
+  const subtitle = isNew
+    ? tp.cardSubtitleNew
+    : stats.active > 0 || stats.answered > 0
       ? tp.cardSubtitlePraying
           .replace('{{n}}', String(stats.active))
           .replace('{{a}}', String(stats.answered))

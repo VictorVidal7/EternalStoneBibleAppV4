@@ -1,7 +1,13 @@
 /**
- * Sprint 93 — the Home prayer card. Pins the honest gate (nothing shown before
- * the reader has prayed or kept a request), the streak headline (active /
- * lapsed / never-streaked), and the "N praying · M answered" sub-line.
+ * Sprint 93 — the Home prayer card. Pins the streak headline (active /
+ * lapsed / never-streaked) and the "N praying · M answered" sub-line.
+ *
+ * The original "honest gate" (render nothing until the reader has prayed or
+ * kept a request) was removed per Victor's real-device feedback: it meant a
+ * brand-new user could never discover the prayer journal (and "Orar la
+ * Escritura" inside it) from Home at all. The card now always renders once
+ * its data has loaded, with its own inviting copy for the true first-time
+ * case.
  */
 import React from 'react';
 import {render} from '@testing-library/react-native';
@@ -48,13 +54,24 @@ const req = (over: Partial<PrayerRequest> = {}): PrayerRequest => ({
 });
 
 describe('PrayerCard (Sprint 93)', () => {
-  it('renders nothing until the reader has prayed or kept a request', () => {
+  it('renders nothing while streak/journal data is still loading', () => {
+    mockStreak = {
+      loaded: false,
+      summary: {current: 0, longest: 0, totalDays: 0, todayDone: false},
+    };
+    mockJournal = {loaded: false, requests: []};
+    expect(render(<PrayerCard onPress={jest.fn()} />).toJSON()).toBeNull();
+  });
+
+  it('shows an inviting first-time state for a brand-new reader (never prayed, no requests)', () => {
     mockStreak = {
       loaded: true,
       summary: {current: 0, longest: 0, totalDays: 0, todayDone: false},
     };
     mockJournal = {loaded: true, requests: []};
-    expect(render(<PrayerCard onPress={jest.fn()} />).toJSON()).toBeNull();
+    const {getByText} = render(<PrayerCard onPress={jest.fn()} />);
+    expect(getByText(tp.cardSubtitleEmpty)).toBeTruthy();
+    expect(getByText(tp.cardSubtitleNew)).toBeTruthy();
   });
 
   it('shows the active streak headline + praying/answered counts', () => {
