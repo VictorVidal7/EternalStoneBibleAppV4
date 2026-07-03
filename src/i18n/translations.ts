@@ -981,6 +981,63 @@ export const translations = {
       yearsAgo: 'Hace {{n}} años',
     },
 
+    // T8.4.4 — planificador de series de predicación (premium): agrupar
+    // varios pasajes en una serie nombrada de varias semanas y ver el
+    // progreso de preparación de cada uno. Pura organización sobre notas
+    // que el propio usuario ya escribe en la Mesa de preparación; no
+    // genera ni sugiere contenido.
+    prepSeries: {
+      entryLabel: 'Series de predicación',
+      title: 'Series de predicación',
+      subtitle: 'Agrupa varios pasajes en una serie de varias semanas',
+      exclusiveLabel: 'Exclusivo',
+      lockedTitle: 'Planifica tu próxima serie',
+      lockedBody:
+        'Desbloquea con una ofrenda el planificador de series: agrupa varios pasajes en una serie de varias semanas y sigue tu progreso de preparación, todo en este dispositivo.',
+      newSeries: 'Nueva serie',
+      newSeriesModalTitle: 'Nueva serie',
+      create: 'Crear',
+      namePlaceholder: 'Nombre de la serie, p. ej. "Efesios en 8 semanas"',
+      emptyTitle: 'Aún no tienes ninguna serie',
+      emptyBody:
+        'Crea una serie para agrupar los pasajes de tu próxima predicación y seguir tu progreso semana a semana.',
+      passagesCountOne: '1 pasaje',
+      passagesCount: '{{n}} pasajes',
+      progress: '{{started}} de {{total}} con preparación iniciada',
+      progressEmpty: 'Sin pasajes todavía',
+      limitReachedTitle: 'Llegaste al máximo de series',
+      limitReachedBody:
+        'Elimina una serie existente para poder crear una nueva.',
+      openHint: 'Abrir esta serie',
+      attachTitle: 'Agregar {{passage}} a una serie',
+      attachBody: 'Toca una serie para agregar este pasaje, o crea una nueva.',
+      attachDismiss: 'Ahora no',
+      addedToast: 'Agregado a "{{name}}"',
+      passagesTitle: 'Pasajes de la serie',
+      addPassage: 'Agregar pasaje',
+      addPassagePlaceholder: 'p. ej. Juan 3:16-21',
+      addPassageInvalid:
+        'No se reconoce ese pasaje. Prueba, por ejemplo, "Juan 3:16-21".',
+      addPassageDuplicate: 'Ese pasaje ya está en la serie.',
+      addPassageLimit: 'Esta serie alcanzó el máximo de pasajes.',
+      emptyPassagesTitle: 'Esta serie todavía no tiene pasajes',
+      emptyPassagesBody: 'Agrega un pasaje escribiendo una referencia arriba.',
+      passageStarted: 'Preparación iniciada',
+      passageNotStarted: 'Sin empezar',
+      moveUp: 'Subir',
+      moveDown: 'Bajar',
+      removePassage: 'Quitar de la serie',
+      openPassageHint: 'Abrir en la Mesa de preparación',
+      renameLabel: 'Renombrar serie',
+      renameModalTitle: 'Renombrar serie',
+      deleteLabel: 'Eliminar serie',
+      deleteConfirmTitle: '¿Eliminar esta serie?',
+      deleteConfirmBody:
+        'Se eliminará la lista de esta serie. Tus notas de preparación de cada pasaje no se borrarán.',
+      notFound: 'No se encontró esta serie',
+      backToList: 'Volver a Series',
+    },
+
     dailyLight: {
       cardTitle: 'Luz diaria',
       cardSubtitle: 'Tu devocional de hoy',
@@ -5990,6 +6047,61 @@ export const translations = {
       monthsAgo: '{{n}} months ago',
       yearsAgoSingular: '1 year ago',
       yearsAgo: '{{n}} years ago',
+    },
+
+    // T8.4.4 — preaching series planner (premium): group several passages
+    // into a named, multi-week series and see each one's preparation
+    // progress. Pure organization over notes the user already writes in
+    // the Preparation table; it never generates or suggests content.
+    prepSeries: {
+      entryLabel: 'Preaching series',
+      title: 'Preaching series',
+      subtitle: 'Group several passages into a multi-week series',
+      exclusiveLabel: 'Exclusive',
+      lockedTitle: 'Plan your next series',
+      lockedBody:
+        'Unlock with an offering the series planner: group several passages into a multi-week series and track your preparation progress, all on this device.',
+      newSeries: 'New series',
+      newSeriesModalTitle: 'New series',
+      create: 'Create',
+      namePlaceholder: 'Series name, e.g. "Ephesians in 8 weeks"',
+      emptyTitle: "You don't have any series yet",
+      emptyBody:
+        'Create a series to group the passages for your next preaching series and track your progress week by week.',
+      passagesCountOne: '1 passage',
+      passagesCount: '{{n}} passages',
+      progress: '{{started}} of {{total}} with preparation started',
+      progressEmpty: 'No passages yet',
+      limitReachedTitle: "You've reached the maximum number of series",
+      limitReachedBody: 'Delete an existing series to create a new one.',
+      openHint: 'Open this series',
+      attachTitle: 'Add {{passage}} to a series',
+      attachBody: 'Tap a series to add this passage, or create a new one.',
+      attachDismiss: 'Not now',
+      addedToast: 'Added to "{{name}}"',
+      passagesTitle: "Series' passages",
+      addPassage: 'Add passage',
+      addPassagePlaceholder: 'e.g. John 3:16-21',
+      addPassageInvalid:
+        'That passage isn\'t recognized. Try, for example, "John 3:16-21".',
+      addPassageDuplicate: 'That passage is already in the series.',
+      addPassageLimit: 'This series reached the maximum number of passages.',
+      emptyPassagesTitle: "This series doesn't have any passages yet",
+      emptyPassagesBody: 'Add a passage by typing a reference above.',
+      passageStarted: 'Preparation started',
+      passageNotStarted: 'Not started',
+      moveUp: 'Move up',
+      moveDown: 'Move down',
+      removePassage: 'Remove from series',
+      openPassageHint: 'Open in the Preparation table',
+      renameLabel: 'Rename series',
+      renameModalTitle: 'Rename series',
+      deleteLabel: 'Delete series',
+      deleteConfirmTitle: 'Delete this series?',
+      deleteConfirmBody:
+        "This series' list will be deleted. The preparation notes for each passage will NOT be deleted.",
+      notFound: 'This series could not be found',
+      backToList: 'Back to Series',
     },
 
     dailyLight: {

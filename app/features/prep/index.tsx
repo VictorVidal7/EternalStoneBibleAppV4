@@ -687,6 +687,18 @@ export default function PrepTableScreen() {
     router.push('/features/prep/history' as never);
   }, [router]);
 
+  // T8.4.4 — the "Series de predicación" entry point. Same discipline as
+  // history above: always navigates, the destination gates itself for a
+  // free reader. Carries the CURRENT passage's key so the series list can
+  // offer "add this passage to a series" (see that screen's docstring).
+  const handleOpenSeries = useCallback(() => {
+    haptics.tap();
+    router.push({
+      pathname: '/features/prep/series' as never,
+      params: table ? {passageKey: table.passageKey} : undefined,
+    });
+  }, [router, table]);
+
   const handleNoteChange = useCallback(
     (section: PrepSection, value: string) => {
       setDrafts(prev => ({...prev, [section]: value}));
@@ -1028,34 +1040,68 @@ export default function PrepTableScreen() {
                 color={staticColors.white}
               />
             </TouchableOpacity>
-            <TouchableOpacity
-              style={styles.historyButton}
-              onPress={handleOpenHistory}
-              accessibilityRole="button"
-              accessibilityLabel={
-                isPremium
-                  ? t.prepHistory.entryLabel
-                  : `${t.prepHistory.entryLabel} — ${t.offering.badgeA11y}`
-              }>
-              <Ionicons
-                name="time-outline"
-                size={22}
-                color={staticColors.white}
-              />
-              {!isPremium && (
-                <View
-                  style={[
-                    styles.historyBadge,
-                    {backgroundColor: colors.primary},
-                  ]}>
-                  <Ionicons
-                    name="leaf-outline"
-                    size={9}
-                    color={staticColors.white}
-                  />
-                </View>
-              )}
-            </TouchableOpacity>
+            {/* T8.4.1 + T8.4.4 — grouped so both icon buttons sit together
+                on the right; each is an isolated addition from its own
+                tanda, neither reorders nor touches the other. */}
+            <View style={styles.headerActionsRow}>
+              <TouchableOpacity
+                style={styles.historyButton}
+                onPress={handleOpenHistory}
+                accessibilityRole="button"
+                accessibilityLabel={
+                  isPremium
+                    ? t.prepHistory.entryLabel
+                    : `${t.prepHistory.entryLabel} — ${t.offering.badgeA11y}`
+                }>
+                <Ionicons
+                  name="time-outline"
+                  size={22}
+                  color={staticColors.white}
+                />
+                {!isPremium && (
+                  <View
+                    style={[
+                      styles.historyBadge,
+                      {backgroundColor: colors.primary},
+                    ]}>
+                    <Ionicons
+                      name="leaf-outline"
+                      size={9}
+                      color={staticColors.white}
+                    />
+                  </View>
+                )}
+              </TouchableOpacity>
+              {/* T8.4.4 — "Series de predicación" entry point. */}
+              <TouchableOpacity
+                style={styles.historyButton}
+                onPress={handleOpenSeries}
+                accessibilityRole="button"
+                accessibilityLabel={
+                  isPremium
+                    ? t.prepSeries.entryLabel
+                    : `${t.prepSeries.entryLabel} — ${t.offering.badgeA11y}`
+                }>
+                <Ionicons
+                  name="albums-outline"
+                  size={22}
+                  color={staticColors.white}
+                />
+                {!isPremium && (
+                  <View
+                    style={[
+                      styles.historyBadge,
+                      {backgroundColor: colors.primary},
+                    ]}>
+                    <Ionicons
+                      name="leaf-outline"
+                      size={9}
+                      color={staticColors.white}
+                    />
+                  </View>
+                )}
+              </TouchableOpacity>
+            </View>
           </View>
           <View style={styles.headerTextRow}>
             <View style={styles.headerIcon}>
@@ -1767,6 +1813,7 @@ const styles = StyleSheet.create({
     marginBottom: spacing.sm,
   },
   backButton: {},
+  headerActionsRow: {flexDirection: 'row'},
   historyButton: {
     width: 40,
     height: 40,
