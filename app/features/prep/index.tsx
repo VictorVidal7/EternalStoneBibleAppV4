@@ -40,6 +40,8 @@ import {LinearGradient} from 'expo-linear-gradient';
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as Clipboard from 'expo-clipboard';
+import * as Print from 'expo-print';
+import * as Sharing from 'expo-sharing';
 import {useTheme} from '@hooks/useTheme';
 import {centeredMaxWidth} from '@/styles/responsive';
 import {useLanguage} from '@hooks/useLanguage';
@@ -97,8 +99,10 @@ import {
 import {encodeHttpsLink, makeStudyBundle} from '@lib/together';
 import {
   buildPrepMarkdown,
+  type PrepMarkdownInput,
   type PrepMarkdownSection,
 } from '@/features/study/prepMarkdown';
+import {buildPrepHtml} from '@/features/study/prepPdf';
 import {
   type VerseRange,
   adjustStart,
@@ -308,6 +312,10 @@ export default function PrepTableScreen() {
   );
   const [versionLabel, setVersionLabel] = useState('');
   const [copied, setCopied] = useState(false);
+  // T8.4.5 — PDF export (premium): a separate in-flight flag from `copied`
+  // since printToFileAsync + shareAsync are real async I/O, not a clipboard
+  // write.
+  const [isExportingPdf, setIsExportingPdf] = useState(false);
 
   // T8.4.2 — "Palabras clave en el idioma original" (entirely premium).
   const [originalsStatus, setOriginalsStatus] =
@@ -719,9 +727,13 @@ export default function PrepTableScreen() {
         ? styles.compareVersionCardHalf
         : styles.compareVersionCardFull;
 
-  const handleExport = useCallback(async () => {
-    if (!table) return;
-    haptics.tap();
+  // T8.4.5 — the same assembled PrepMarkdownInput feeds BOTH exports: the
+  // free Markdown export (buildPrepMarkdown, unchanged) and the premium PDF
+  // export (buildPrepHtml, new). Extracted here so neither `handleExport`
+  // nor `handleExportPdf` re-derives the sections/cross-refs/themes/Christ
+  // helps assembly on its own.
+  const buildPrepInput = useCallback((): PrepMarkdownInput | null => {
+    if (!table) return null;
     const themeLabel = (id: string) =>
       (t.themes.list as Record<string, {name: string; description: string}>)[id]
         ?.name ?? id;
@@ -755,22 +767,14 @@ export default function PrepTableScreen() {
         helps,
       };
     });
-    const markdown = buildPrepMarkdown({
+    return {
       passageLabel,
       versionLabel,
       passageText: lines.map(l => ({verse: l.verse, text: l.text ?? ''})),
       sections,
       guardrail: p.guardrail,
       generatedWith: p.title,
-    });
-    try {
-      await Clipboard.setStringAsync(markdown);
-      haptics.success();
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
-    } catch (err) {
-      logger.warn('Prep export copy failed', {error: String(err)});
-    }
+    };
   }, [
     table,
     intro,
@@ -783,6 +787,57 @@ export default function PrepTableScreen() {
     p,
     t,
   ]);
+
+  const handleExport = useCallback(async () => {
+    const input = buildPrepInput();
+    if (!input) return;
+    haptics.tap();
+    const markdown = buildPrepMarkdown(input);
+    try {
+      await Clipboard.setStringAsync(markdown);
+      haptics.success();
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch (err) {
+      logger.warn('Prep export copy failed', {error: String(err)});
+    }
+  }, [buildPrepInput]);
+
+  // T8.4.5 — export a designed PDF (premium upgrade of the free Markdown
+  // export above). Locked for a free reader: tapping opens the offering
+  // sheet instead of generating anything. Uses the SAME assembled input as
+  // the Markdown export, just rendered by buildPrepHtml + turned into a real
+  // file via expo-print, then handed to the system share sheet via
+  // expo-sharing — same pattern as ImageShareModal's handleShare.
+  const handleExportPdf = useCallback(async () => {
+    if (isExportingPdf) return;
+    haptics.tap();
+    if (!isPremium) {
+      openOfferingSheet();
+      return;
+    }
+    const input = buildPrepInput();
+    if (!input) return;
+    try {
+      setIsExportingPdf(true);
+      const html = buildPrepHtml(input);
+      const {uri} = await Print.printToFileAsync({html, base64: false});
+      const canShare = await Sharing.isAvailableAsync();
+      if (!canShare) {
+        logger.warn('Prep PDF export: sharing unavailable on this device');
+        return;
+      }
+      await Sharing.shareAsync(uri, {
+        mimeType: 'application/pdf',
+        dialogTitle: p.exportPdfDialogTitle,
+        UTI: 'com.adobe.pdf',
+      });
+    } catch (err) {
+      logger.warn('Prep PDF export failed', {error: String(err)});
+    } finally {
+      setIsExportingPdf(false);
+    }
+  }, [isExportingPdf, isPremium, openOfferingSheet, buildPrepInput, p]);
 
   // Share the outline as a read-only study LINK (Sprint 109): the passage + the
   // preparer's per-section prose, carried in the link; the recipient's app
@@ -1706,6 +1761,62 @@ export default function PrepTableScreen() {
                 </AppText>
               </TouchableOpacity>
 
+              {/* T8.4.5 — export a designed PDF (premium). The free Markdown
+                  export above is untouched; this is a pure addition, a
+                  different export FORMAT of the same assembled content.
+                  Locked for a free reader: leaf badge + "Exclusivo" pill,
+                  tapping opens the offering sheet instead of generating. */}
+              <TouchableOpacity
+                style={[
+                  styles.exportButton,
+                  styles.pdfExportButton,
+                  {backgroundColor: colors.card, borderColor: colors.primary},
+                ]}
+                onPress={handleExportPdf}
+                accessibilityRole="button"
+                accessibilityLabel={
+                  isPremium
+                    ? p.exportPdfLabel
+                    : `${p.exportPdfLabel} · ${t.offering.badgeA11y}`
+                }
+                accessibilityState={{busy: isExportingPdf}}>
+                <View style={styles.pdfExportLeading}>
+                  {isExportingPdf ? (
+                    <ActivityIndicator size="small" color={colors.primary} />
+                  ) : (
+                    <Ionicons
+                      name="document-outline"
+                      size={18}
+                      color={colors.primary}
+                    />
+                  )}
+                  <AppText
+                    scaleRole="compact"
+                    style={[styles.exportText, {color: colors.primary}]}>
+                    {isExportingPdf ? p.exportPdfGenerating : p.exportPdfLabel}
+                  </AppText>
+                </View>
+                {!isPremium && (
+                  <View style={styles.pdfExportBadgeRow}>
+                    <OfferingBadge
+                      size={14}
+                      color={colors.primary}
+                      onPress={handleExportPdf}
+                    />
+                    <View
+                      style={[
+                        styles.exclusiveBadge,
+                        {backgroundColor: colors.primary + '1a'},
+                      ]}>
+                      <Text
+                        style={[styles.exclusiveText, {color: colors.primary}]}>
+                        {p.exclusiveLabel}
+                      </Text>
+                    </View>
+                  </View>
+                )}
+              </TouchableOpacity>
+
               {/* Share the outline as a read-only study LINK (Sprint 109). */}
               <TouchableOpacity
                 style={[
@@ -2031,6 +2142,22 @@ const styles = StyleSheet.create({
     marginTop: spacing.sm,
   },
   exportText: {fontWeight: '700', fontSize: fontSizes.md},
+  // T8.4.5 — PDF export button: same base look as `exportButton`, but
+  // `space-between` so the locked state's leaf badge + "Exclusivo" pill can
+  // sit at the trailing edge instead of centered with the label.
+  pdfExportButton: {
+    justifyContent: 'space-between',
+  },
+  pdfExportLeading: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.sm,
+  },
+  pdfExportBadgeRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.xs,
+  },
   guardrailWrap: {
     flexDirection: 'row',
     gap: spacing.sm,
