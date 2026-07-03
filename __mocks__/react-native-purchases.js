@@ -32,6 +32,7 @@ const Purchases = {
   restorePurchases: jest.fn(() => Promise.resolve(customerInfo)),
   logIn: jest.fn(() => Promise.resolve({customerInfo})),
   canMakePayments: jest.fn(() => Promise.resolve(true)),
+  setLogHandler: jest.fn(),
   PURCHASES_ERROR_CODE: {PURCHASE_CANCELLED_ERROR: '1'},
 
   // --- Test helpers, not part of the real SDK ---
