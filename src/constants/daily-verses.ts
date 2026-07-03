@@ -18,6 +18,14 @@
  * before this the theme rotated on an independent salt, so a love verse could
  * land beside wisdom questions). `dailyVerses.test` asserts every entry's
  * theme is a real theme id.
+ *
+ * The Android home-screen widget (plugins/widget-files/VerseWidgetProvider.kt)
+ * keeps its OWN inlined copy of this same list (both RVR1960 and WEB text,
+ * since the widget has no JS bridge and must render before first launch). If
+ * you add, remove or reorder entries in DAILY_VERSE_REFS, re-run
+ * `node scripts/build-widget-verses.js` and commit the regenerated .kt file
+ * so the widget doesn't drift out of sync again — see that script's header
+ * comment for details.
  */
 
 /** The 14 theme ids from the topical index ([[themes]] / `BIBLE_THEMES`). */
