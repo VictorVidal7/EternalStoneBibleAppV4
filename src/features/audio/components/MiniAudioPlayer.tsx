@@ -26,7 +26,7 @@ import {
   Platform,
   AccessibilityInfo,
 } from 'react-native';
-import {usePathname, router} from 'expo-router';
+import {usePathname} from 'expo-router';
 import {AppText} from '@components/ui/AppText';
 import Animated, {
   useAnimatedStyle,
@@ -67,6 +67,8 @@ import {logger} from '@lib/utils/logger';
 import {useToast} from '../../../context/ToastContext';
 import {useAudioPlayer} from '../context/AudioPlayerContext';
 import {usePremium} from '../../../context/PremiumContext';
+import {useOfferingSheet} from '../../../context/OfferingSheetContext';
+import {OfferingBadge} from '../../../components/ui/OfferingBadge';
 import {AudioControls} from './AudioControls';
 import {AudioProgressBar, MiniVerseProgress} from './AudioProgressBar';
 import {VerseScrubber} from './VerseScrubber';
@@ -140,6 +142,7 @@ export const MiniAudioPlayer: React.FC<MiniAudioPlayerProps> = ({
     queueInfo,
   } = useAudioPlayer();
   const {isPremium} = usePremium();
+  const {open: openOfferingSheet} = useOfferingSheet();
   const {favorites, addFavorite, removeFavorite, isFavorite} = useFavorites();
 
   // Localized reference for a verse index — fuels the scrubber's drag preview.
@@ -918,14 +921,14 @@ export const MiniAudioPlayer: React.FC<MiniAudioPlayerProps> = ({
                       style={styles.premiumUpsell}
                       onPress={() => {
                         haptics.tap();
-                        router.push('/(tabs)/settings');
+                        openOfferingSheet();
                       }}
                       accessibilityRole="button"
-                      accessibilityLabel={t.premium.featureName}>
-                      <Ionicons
-                        name="lock-closed"
+                      accessibilityLabel={t.offering.badgeA11y}>
+                      <OfferingBadge
                         size={11}
                         color={colors.textTertiary}
+                        onPress={openOfferingSheet}
                       />
                       <Text
                         style={[
@@ -933,7 +936,7 @@ export const MiniAudioPlayer: React.FC<MiniAudioPlayerProps> = ({
                           {color: colors.textTertiary},
                         ]}
                         numberOfLines={1}>
-                        {t.premium.featureName} · {t.premium.upsellTap}
+                        {t.premium.featureName}
                       </Text>
                     </TouchableOpacity>
                   </>

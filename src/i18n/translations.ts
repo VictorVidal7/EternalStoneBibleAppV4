@@ -3154,6 +3154,44 @@ export const translations = {
       lockedToast: 'Premium desactivado',
     },
 
+    offering: {
+      badgeA11y: 'Extra — se desbloquea con una ofrenda',
+      sheetTitle: 'Una ofrenda voluntaria',
+      sheetIntro:
+        'Algunos extras de esta app se desbloquean con una ofrenda única y voluntaria — como una ofrenda en la iglesia, no una compra. La Biblia, los planes de lectura, la oración y todo lo demás siguen siendo, y seguirán siendo siempre, completamente gratis.',
+      extrasListTitle: 'Esto es lo que se desbloquea:',
+      extraAudio:
+        'Audio avanzado: desplázate libremente por versículo, continúa donde lo dejaste, y escucha en modo inmersivo',
+      extraShareTemplates: 'Plantillas adicionales para compartir versículos',
+      tierSuggested: 'Sugerido',
+      legend:
+        'Los montos son fijos por requisitos de la tienda de aplicaciones; cualquiera de ellos desbloquea exactamente lo mismo.\n\nSi deseas dar una cantidad distinta, el apartado de Donación está siempre abierto para sembrar lo que Dios ponga en tu corazón.',
+      transparency:
+        'Esta ofrenda no es deducible de impuestos. Sostiene el desarrollo y el ministerio de esta app.',
+      restoreLink: 'Restaurar mi ofrenda anterior',
+      restoring: 'Restaurando…',
+      restoreNotFound: 'No encontramos una ofrenda anterior en esta cuenta.',
+      restoreSuccess: 'Extras restaurados. ¡Gracias por tu ofrenda!',
+      purchasing: 'Procesando…',
+      purchaseError: 'No se pudo completar la ofrenda. Inténtalo de nuevo.',
+      thankYouTitle: 'Gracias por sembrar en esta obra',
+      thankYouMessage:
+        'La app completa sigue siendo gratuita — este extra es solo un regalo adicional. Que Dios te bendiga.',
+      close: 'Cerrar',
+      unavailableTitle: 'Aún no disponible',
+      unavailableMessage:
+        'Este extra todavía no se puede desbloquear desde esta instalación de la app.',
+      settingsSectionTitle: 'Extras',
+      settingsUnlockedTitle: 'Extras desbloqueados',
+      settingsUnlockedDesc:
+        'Gracias por tu ofrenda — ya tienes acceso a todos los extras.',
+      settingsLockedTitle: 'Extras de la app',
+      settingsLockedDesc:
+        'Algunas funciones adicionales se pueden desbloquear con una ofrenda voluntaria.',
+      settingsCta: 'Desbloquear con una ofrenda',
+      devToggleLabel: 'Extras desbloqueados (solo desarrollo)',
+    },
+
     // Reading Plans
     readingPlans: {
       days: 'días',
@@ -7971,6 +8009,44 @@ export const translations = {
       toggleLabel: 'Premium unlocked',
       unlockedToast: 'Premium enabled',
       lockedToast: 'Premium disabled',
+    },
+
+    offering: {
+      badgeA11y: 'Extra — unlocked with an offering',
+      sheetTitle: 'A voluntary offering',
+      sheetIntro:
+        'Some extras in this app unlock with a single, voluntary offering — like an offering at church, not a purchase. The Bible, reading plans, prayer, and everything else stay, and will always stay, completely free.',
+      extrasListTitle: "Here's what unlocks:",
+      extraAudio:
+        'Advanced audio: scrub freely by verse, resume where you left off, and listen in immersive mode',
+      extraShareTemplates: 'Additional verse-sharing templates',
+      tierSuggested: 'Suggested',
+      legend:
+        "The amounts are fixed by app-store requirements; any of them unlocks exactly the same thing.\n\nIf you'd like to give a different amount, the Donation section is always open to sow whatever God places on your heart.",
+      transparency:
+        'This offering is not tax-deductible. It sustains the development and ministry of this app.',
+      restoreLink: 'Restore my previous offering',
+      restoring: 'Restoring…',
+      restoreNotFound: "We couldn't find a previous offering on this account.",
+      restoreSuccess: 'Extras restored. Thank you for your offering!',
+      purchasing: 'Processing…',
+      purchaseError: "The offering couldn't be completed. Please try again.",
+      thankYouTitle: 'Thank you for sowing into this work',
+      thankYouMessage:
+        'The full app stays free — this extra is just an added gift. God bless you.',
+      close: 'Close',
+      unavailableTitle: 'Not available yet',
+      unavailableMessage:
+        "This extra can't be unlocked from this install of the app yet.",
+      settingsSectionTitle: 'Extras',
+      settingsUnlockedTitle: 'Extras unlocked',
+      settingsUnlockedDesc:
+        'Thank you for your offering — you now have access to every extra.',
+      settingsLockedTitle: 'App extras',
+      settingsLockedDesc:
+        'Some additional features can be unlocked with a voluntary offering.',
+      settingsCta: 'Unlock with an offering',
+      devToggleLabel: 'Extras unlocked (dev only)',
     },
 
     // Reading Plans
