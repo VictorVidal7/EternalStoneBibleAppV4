@@ -192,223 +192,7 @@ class BibleDatabase {
       }
       this.db = await SQLite.openDatabaseAsync('bible.db');
 
-      // Ejecutar cada sentencia SQL por separado para evitar NullPointerException
-      console.log('🔧 Creating database tables...');
-
-      // Tabla verses
-      await this.db.runAsync(`
-        CREATE TABLE IF NOT EXISTS verses (
-          id INTEGER PRIMARY KEY AUTOINCREMENT,
-          book_id INTEGER NOT NULL,
-          book_name TEXT NOT NULL,
-          chapter INTEGER NOT NULL,
-          verse INTEGER NOT NULL,
-          text TEXT NOT NULL,
-          version TEXT NOT NULL DEFAULT 'RVR1960',
-          UNIQUE(book_id, chapter, verse, version)
-        )
-      `);
-
-      // FTS5 table
-      await this.db.runAsync(`
-        CREATE VIRTUAL TABLE IF NOT EXISTS verses_fts USING fts5(
-          book_name,
-          chapter,
-          verse,
-          text,
-          content='verses',
-          content_rowid='id'
-        )
-      `);
-
-      // Triggers
-      await this.db.runAsync(`
-        CREATE TRIGGER IF NOT EXISTS verses_ai AFTER INSERT ON verses BEGIN
-          INSERT INTO verses_fts(rowid, book_name, chapter, verse, text)
-          VALUES (new.id, new.book_name, new.chapter, new.verse, new.text);
-        END
-      `);
-
-      await this.db.runAsync(`
-        CREATE TRIGGER IF NOT EXISTS verses_ad AFTER DELETE ON verses BEGIN
-          INSERT INTO verses_fts(verses_fts, rowid, book_name, chapter, verse, text)
-          VALUES('delete', old.id, old.book_name, old.chapter, old.verse, old.text);
-        END
-      `);
-
-      await this.db.runAsync(`
-        CREATE TRIGGER IF NOT EXISTS verses_au AFTER UPDATE ON verses BEGIN
-          INSERT INTO verses_fts(verses_fts, rowid, book_name, chapter, verse, text)
-          VALUES('delete', old.id, old.book_name, old.chapter, old.verse, old.text);
-          INSERT INTO verses_fts(rowid, book_name, chapter, verse, text)
-          VALUES (new.id, new.book_name, new.chapter, new.verse, new.text);
-        END
-      `);
-
-      // Tabla notes
-      await this.db.runAsync(`
-        CREATE TABLE IF NOT EXISTS notes (
-          id TEXT PRIMARY KEY,
-          book_name TEXT NOT NULL,
-          chapter INTEGER NOT NULL,
-          verse INTEGER NOT NULL,
-          verse_text TEXT NOT NULL,
-          note TEXT NOT NULL,
-          created_at TEXT NOT NULL,
-          updated_at TEXT NOT NULL
-        )
-      `);
-
-      // Tabla reading_progress
-      await this.db.runAsync(`
-        CREATE TABLE IF NOT EXISTS reading_progress (
-          id INTEGER PRIMARY KEY CHECK (id = 1),
-          book_name TEXT NOT NULL,
-          chapter INTEGER NOT NULL,
-          verse INTEGER NOT NULL,
-          timestamp TEXT NOT NULL
-        )
-      `);
-
-      // Tabla favorites
-      await this.db.runAsync(`
-        CREATE TABLE IF NOT EXISTS favorites (
-          id TEXT PRIMARY KEY,
-          verse_id TEXT NOT NULL,
-          book_name TEXT NOT NULL,
-          chapter INTEGER NOT NULL,
-          verse INTEGER NOT NULL,
-          text TEXT NOT NULL,
-          category TEXT NOT NULL DEFAULT 'other',
-          rating INTEGER NOT NULL DEFAULT 5 CHECK (rating >= 1 AND rating <= 5),
-          tags TEXT,
-          note TEXT,
-          created_at INTEGER NOT NULL,
-          updated_at INTEGER NOT NULL
-        )
-      `);
-
-      // Tabla review_events — append-only SRS review log (Sprint 45).
-      // Immutable history powering the insights heatmap + retention curve.
-      await this.db.runAsync(`
-        CREATE TABLE IF NOT EXISTS review_events (
-          id TEXT PRIMARY KEY,
-          verse_key TEXT NOT NULL,
-          book_name TEXT NOT NULL,
-          grade TEXT NOT NULL,
-          box_before INTEGER NOT NULL,
-          box_after INTEGER NOT NULL,
-          interval_days INTEGER,
-          reviewed_at INTEGER NOT NULL
-        )
-      `);
-
-      // Tabla cross_references — the broad, faithful cross-reference web
-      // (RUMBO #3). Populated once from the bundled `cross-references.db` asset
-      // (see seedCrossReferencesIfMissing); the curated set in
-      // `src/constants/cross-references.ts` stays the runtime PRIORITY layer.
-      await this.db.runAsync(`
-        CREATE TABLE IF NOT EXISTS cross_references (
-          from_book INTEGER NOT NULL,
-          from_chapter INTEGER NOT NULL,
-          from_verse INTEGER NOT NULL,
-          to_book INTEGER NOT NULL,
-          to_chapter INTEGER NOT NULL,
-          to_verse INTEGER NOT NULL,
-          to_verse_end INTEGER,
-          votes INTEGER NOT NULL
-        )
-      `);
-
-      // Tablas de idiomas originales — Hebrew/Greek words + Strong's lexicon
-      // (ORIGINAL LANGUAGES). Empty until the user downloads the originals pack
-      // (importOriginalsPack); the verse panel + lexicon read from here.
-      await this.db.runAsync(`
-        CREATE TABLE IF NOT EXISTS original_words (
-          book_id INTEGER NOT NULL,
-          chapter INTEGER NOT NULL,
-          verse INTEGER NOT NULL,
-          position INTEGER NOT NULL,
-          lang TEXT NOT NULL,
-          word TEXT NOT NULL,
-          translit TEXT,
-          gloss_en TEXT,
-          gloss_es TEXT,
-          strongs TEXT,
-          grammar TEXT
-        )
-      `);
-      await this.db.runAsync(`
-        CREATE TABLE IF NOT EXISTS strongs_lexicon (
-          strongs TEXT PRIMARY KEY,
-          lang TEXT NOT NULL,
-          lemma TEXT,
-          translit TEXT,
-          definition TEXT,
-          kjv_def TEXT
-        )
-      `);
-
-      // Bundled Strong's-definitions overlay: the COMPLETE English definition
-      // (fixes the openscriptures derivation/strongs_def split) + our faithful
-      // Spanish translation. Populated from the bundled `strongs-defs.db` asset
-      // (see seedStrongsDefsIfNeeded); overlays strongs_lexicon at read time.
-      await this.db.runAsync(`
-        CREATE TABLE IF NOT EXISTS strongs_defs (
-          strongs TEXT PRIMARY KEY,
-          definition_en TEXT,
-          definition_es TEXT
-        )
-      `);
-
-      await this.migrateBookmarksToFavorites();
-
-      // Índices
-      await this.db.runAsync(
-        'CREATE INDEX IF NOT EXISTS idx_verses_book_chapter ON verses(book_id, chapter)',
-      );
-      await this.db.runAsync(
-        'CREATE INDEX IF NOT EXISTS idx_verses_version ON verses(version)',
-      );
-      await this.db.runAsync(
-        'CREATE INDEX IF NOT EXISTS idx_notes_reference ON notes(book_name, chapter, verse)',
-      );
-      await this.db.runAsync(
-        'CREATE INDEX IF NOT EXISTS idx_favorites_reference ON favorites(book_name, chapter, verse)',
-      );
-      await this.db.runAsync(
-        'CREATE INDEX IF NOT EXISTS idx_favorites_category ON favorites(category)',
-      );
-      await this.db.runAsync(
-        'CREATE INDEX IF NOT EXISTS idx_favorites_rating ON favorites(rating)',
-      );
-      await this.db.runAsync(
-        'CREATE INDEX IF NOT EXISTS idx_review_events_reviewed_at ON review_events(reviewed_at)',
-      );
-      await this.db.runAsync(
-        'CREATE INDEX IF NOT EXISTS idx_review_events_verse_key ON review_events(verse_key)',
-      );
-      await this.db.runAsync(
-        'CREATE INDEX IF NOT EXISTS idx_xref_from ON cross_references(from_book, from_chapter, from_verse)',
-      );
-      await this.db.runAsync(
-        'CREATE INDEX IF NOT EXISTS idx_xref_to ON cross_references(to_book, to_chapter, to_verse)',
-      );
-      await this.db.runAsync(
-        'CREATE INDEX IF NOT EXISTS idx_original_words_ref ON original_words(book_id, chapter, verse, position)',
-      );
-      await this.db.runAsync(
-        'CREATE INDEX IF NOT EXISTS idx_original_words_strongs ON original_words(strongs)',
-      );
-
-      // Seed the reading_progress row only if it does not exist yet.
-      // INSERT OR IGNORE (not OR REPLACE) so a returning user's real
-      // last-read position survives every app launch.
-      await this.db.runAsync(
-        `INSERT OR IGNORE INTO reading_progress (id, book_name, chapter, verse, timestamp)
-         VALUES (?, ?, ?, ?, datetime('now'))`,
-        [1, 'Juan', 3, 16],
-      );
+      await this.createSchema();
 
       // Populate the cross-reference web from the bundled asset on first run
       // (fresh installs AND existing ones — the seed copy never carried it).
@@ -429,6 +213,237 @@ class BibleDatabase {
       throw new Error('Database not initialized. Call initialize() first.');
     }
     return this.db;
+  }
+
+  /**
+   * Idempotent schema bootstrap: every table/trigger/index uses
+   * `IF NOT EXISTS`, and the lone data-carrying seed (the `reading_progress`
+   * singleton row) uses `INSERT OR IGNORE`, so running this again on a
+   * database that already has it all (every subsequent app launch) is a
+   * no-op that neither throws nor touches existing rows. Extracted from
+   * `_performInitialization` so schema idempotency is unit-testable without
+   * the asset-loading/native-open machinery around it (T7.2).
+   */
+  private async createSchema(): Promise<void> {
+    const db = this.getDb();
+
+    // Ejecutar cada sentencia SQL por separado para evitar NullPointerException
+    console.log('🔧 Creating database tables...');
+
+    // Tabla verses
+    await db.runAsync(`
+      CREATE TABLE IF NOT EXISTS verses (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        book_id INTEGER NOT NULL,
+        book_name TEXT NOT NULL,
+        chapter INTEGER NOT NULL,
+        verse INTEGER NOT NULL,
+        text TEXT NOT NULL,
+        version TEXT NOT NULL DEFAULT 'RVR1960',
+        UNIQUE(book_id, chapter, verse, version)
+      )
+    `);
+
+    // FTS5 table
+    await db.runAsync(`
+      CREATE VIRTUAL TABLE IF NOT EXISTS verses_fts USING fts5(
+        book_name,
+        chapter,
+        verse,
+        text,
+        content='verses',
+        content_rowid='id'
+      )
+    `);
+
+    // Triggers
+    await db.runAsync(`
+      CREATE TRIGGER IF NOT EXISTS verses_ai AFTER INSERT ON verses BEGIN
+        INSERT INTO verses_fts(rowid, book_name, chapter, verse, text)
+        VALUES (new.id, new.book_name, new.chapter, new.verse, new.text);
+      END
+    `);
+
+    await db.runAsync(`
+      CREATE TRIGGER IF NOT EXISTS verses_ad AFTER DELETE ON verses BEGIN
+        INSERT INTO verses_fts(verses_fts, rowid, book_name, chapter, verse, text)
+        VALUES('delete', old.id, old.book_name, old.chapter, old.verse, old.text);
+      END
+    `);
+
+    await db.runAsync(`
+      CREATE TRIGGER IF NOT EXISTS verses_au AFTER UPDATE ON verses BEGIN
+        INSERT INTO verses_fts(verses_fts, rowid, book_name, chapter, verse, text)
+        VALUES('delete', old.id, old.book_name, old.chapter, old.verse, old.text);
+        INSERT INTO verses_fts(rowid, book_name, chapter, verse, text)
+        VALUES (new.id, new.book_name, new.chapter, new.verse, new.text);
+      END
+    `);
+
+    // Tabla notes
+    await db.runAsync(`
+      CREATE TABLE IF NOT EXISTS notes (
+        id TEXT PRIMARY KEY,
+        book_name TEXT NOT NULL,
+        chapter INTEGER NOT NULL,
+        verse INTEGER NOT NULL,
+        verse_text TEXT NOT NULL,
+        note TEXT NOT NULL,
+        created_at TEXT NOT NULL,
+        updated_at TEXT NOT NULL
+      )
+    `);
+
+    // Tabla reading_progress
+    await db.runAsync(`
+      CREATE TABLE IF NOT EXISTS reading_progress (
+        id INTEGER PRIMARY KEY CHECK (id = 1),
+        book_name TEXT NOT NULL,
+        chapter INTEGER NOT NULL,
+        verse INTEGER NOT NULL,
+        timestamp TEXT NOT NULL
+      )
+    `);
+
+    // Tabla favorites
+    await db.runAsync(`
+      CREATE TABLE IF NOT EXISTS favorites (
+        id TEXT PRIMARY KEY,
+        verse_id TEXT NOT NULL,
+        book_name TEXT NOT NULL,
+        chapter INTEGER NOT NULL,
+        verse INTEGER NOT NULL,
+        text TEXT NOT NULL,
+        category TEXT NOT NULL DEFAULT 'other',
+        rating INTEGER NOT NULL DEFAULT 5 CHECK (rating >= 1 AND rating <= 5),
+        tags TEXT,
+        note TEXT,
+        created_at INTEGER NOT NULL,
+        updated_at INTEGER NOT NULL
+      )
+    `);
+
+    // Tabla review_events — append-only SRS review log (Sprint 45).
+    // Immutable history powering the insights heatmap + retention curve.
+    await db.runAsync(`
+      CREATE TABLE IF NOT EXISTS review_events (
+        id TEXT PRIMARY KEY,
+        verse_key TEXT NOT NULL,
+        book_name TEXT NOT NULL,
+        grade TEXT NOT NULL,
+        box_before INTEGER NOT NULL,
+        box_after INTEGER NOT NULL,
+        interval_days INTEGER,
+        reviewed_at INTEGER NOT NULL
+      )
+    `);
+
+    // Tabla cross_references — the broad, faithful cross-reference web
+    // (RUMBO #3). Populated once from the bundled `cross-references.db` asset
+    // (see seedCrossReferencesIfMissing); the curated set in
+    // `src/constants/cross-references.ts` stays the runtime PRIORITY layer.
+    await db.runAsync(`
+      CREATE TABLE IF NOT EXISTS cross_references (
+        from_book INTEGER NOT NULL,
+        from_chapter INTEGER NOT NULL,
+        from_verse INTEGER NOT NULL,
+        to_book INTEGER NOT NULL,
+        to_chapter INTEGER NOT NULL,
+        to_verse INTEGER NOT NULL,
+        to_verse_end INTEGER,
+        votes INTEGER NOT NULL
+      )
+    `);
+
+    // Tablas de idiomas originales — Hebrew/Greek words + Strong's lexicon
+    // (ORIGINAL LANGUAGES). Empty until the user downloads the originals pack
+    // (importOriginalsPack); the verse panel + lexicon read from here.
+    await db.runAsync(`
+      CREATE TABLE IF NOT EXISTS original_words (
+        book_id INTEGER NOT NULL,
+        chapter INTEGER NOT NULL,
+        verse INTEGER NOT NULL,
+        position INTEGER NOT NULL,
+        lang TEXT NOT NULL,
+        word TEXT NOT NULL,
+        translit TEXT,
+        gloss_en TEXT,
+        gloss_es TEXT,
+        strongs TEXT,
+        grammar TEXT
+      )
+    `);
+    await db.runAsync(`
+      CREATE TABLE IF NOT EXISTS strongs_lexicon (
+        strongs TEXT PRIMARY KEY,
+        lang TEXT NOT NULL,
+        lemma TEXT,
+        translit TEXT,
+        definition TEXT,
+        kjv_def TEXT
+      )
+    `);
+
+    // Bundled Strong's-definitions overlay: the COMPLETE English definition
+    // (fixes the openscriptures derivation/strongs_def split) + our faithful
+    // Spanish translation. Populated from the bundled `strongs-defs.db` asset
+    // (see seedStrongsDefsIfNeeded); overlays strongs_lexicon at read time.
+    await db.runAsync(`
+      CREATE TABLE IF NOT EXISTS strongs_defs (
+        strongs TEXT PRIMARY KEY,
+        definition_en TEXT,
+        definition_es TEXT
+      )
+    `);
+
+    await this.migrateBookmarksToFavorites();
+
+    // Índices
+    await db.runAsync(
+      'CREATE INDEX IF NOT EXISTS idx_verses_book_chapter ON verses(book_id, chapter)',
+    );
+    await db.runAsync(
+      'CREATE INDEX IF NOT EXISTS idx_verses_version ON verses(version)',
+    );
+    await db.runAsync(
+      'CREATE INDEX IF NOT EXISTS idx_notes_reference ON notes(book_name, chapter, verse)',
+    );
+    await db.runAsync(
+      'CREATE INDEX IF NOT EXISTS idx_favorites_reference ON favorites(book_name, chapter, verse)',
+    );
+    await db.runAsync(
+      'CREATE INDEX IF NOT EXISTS idx_favorites_category ON favorites(category)',
+    );
+    await db.runAsync(
+      'CREATE INDEX IF NOT EXISTS idx_favorites_rating ON favorites(rating)',
+    );
+    await db.runAsync(
+      'CREATE INDEX IF NOT EXISTS idx_review_events_reviewed_at ON review_events(reviewed_at)',
+    );
+    await db.runAsync(
+      'CREATE INDEX IF NOT EXISTS idx_review_events_verse_key ON review_events(verse_key)',
+    );
+    await db.runAsync(
+      'CREATE INDEX IF NOT EXISTS idx_xref_from ON cross_references(from_book, from_chapter, from_verse)',
+    );
+    await db.runAsync(
+      'CREATE INDEX IF NOT EXISTS idx_xref_to ON cross_references(to_book, to_chapter, to_verse)',
+    );
+    await db.runAsync(
+      'CREATE INDEX IF NOT EXISTS idx_original_words_ref ON original_words(book_id, chapter, verse, position)',
+    );
+    await db.runAsync(
+      'CREATE INDEX IF NOT EXISTS idx_original_words_strongs ON original_words(strongs)',
+    );
+
+    // Seed the reading_progress row only if it does not exist yet.
+    // INSERT OR IGNORE (not OR REPLACE) so a returning user's real
+    // last-read position survives every app launch.
+    await db.runAsync(
+      `INSERT OR IGNORE INTO reading_progress (id, book_name, chapter, verse, timestamp)
+       VALUES (?, ?, ?, ?, datetime('now'))`,
+      [1, 'Juan', 3, 16],
+    );
   }
 
   /**
