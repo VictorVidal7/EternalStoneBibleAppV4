@@ -43,11 +43,14 @@ import {
 import {
   READER_TYPEFACES,
   READER_FONT_FAMILY_ORDER,
+  PREMIUM_READER_FONTS,
   resolveTypeface,
   resolveTypefaceBold,
 } from '../../lib/reader/typefaces';
 import {useTheme} from '../../hooks/useTheme';
 import {useLanguage} from '../../hooks/useLanguage';
+import {usePremium} from '@context/PremiumContext';
+import {useOfferingSheet} from '@context/OfferingSheetContext';
 import {focusTrapProps, a11yHiddenProps} from '@lib/a11y/focusTrap';
 import {
   borderRadius,
@@ -80,6 +83,31 @@ export const ReaderPreferencesSheet: React.FC<ReaderPreferencesSheetProps> = ({
     setAutoImmersiveOnListen,
     reset,
   } = useReaderPreferences();
+  const {isPremium, isLoading: premiumLoading} = usePremium();
+  const {open: openOfferingSheet} = useOfferingSheet();
+
+  // If a premium typeface was active and the entitlement is later revoked
+  // (e.g. a refund), fall back to the default face instead of leaving a
+  // no-longer-unlocked one applied. `isPremium` is in the dependency array,
+  // so this reacts immediately if the sheet is already open when the
+  // revocation lands, and otherwise on next open — `!premiumLoading` avoids
+  // reverting during PremiumContext's own brief initial cache read.
+  React.useEffect(() => {
+    if (
+      visible &&
+      !premiumLoading &&
+      !isPremium &&
+      PREMIUM_READER_FONTS.includes(preferences.fontFamily)
+    ) {
+      setFontFamily('sans');
+    }
+  }, [
+    visible,
+    premiumLoading,
+    isPremium,
+    preferences.fontFamily,
+    setFontFamily,
+  ]);
 
   const previewFontFamily = useMemo(
     () => resolveFontFamily(preferences.fontFamily),
@@ -133,11 +161,18 @@ export const ReaderPreferencesSheet: React.FC<ReaderPreferencesSheetProps> = ({
     id: ReaderFontFamily;
     label: string;
     sample: string;
-  }[] = READER_FONT_FAMILY_ORDER.map(id => ({
-    id,
-    label: t.readerPrefs[READER_TYPEFACES[id].labelKey],
-    sample: READER_TYPEFACES[id].sample,
-  }));
+    isPremiumFont: boolean;
+    isLocked: boolean;
+  }[] = READER_FONT_FAMILY_ORDER.map(id => {
+    const isPremiumFont = PREMIUM_READER_FONTS.includes(id);
+    return {
+      id,
+      label: t.readerPrefs[READER_TYPEFACES[id].labelKey],
+      sample: READER_TYPEFACES[id].sample,
+      isPremiumFont,
+      isLocked: isPremiumFont && !isPremium,
+    };
+  });
 
   const alignOptions: {id: ReaderTextAlign; icon: string; label: string}[] = [
     {id: 'left', icon: 'list-outline', label: t.readerPrefs.alignLeft},
@@ -299,9 +334,30 @@ export const ReaderPreferencesSheet: React.FC<ReaderPreferencesSheetProps> = ({
                     key={opt.id}
                     active={preferences.fontFamily === opt.id}
                     colors={colors}
-                    onPress={tap(() => setFontFamily(opt.id))}
-                    accessibilityLabel={opt.label}
+                    onPress={tap(() =>
+                      opt.isLocked
+                        ? openOfferingSheet()
+                        : setFontFamily(opt.id),
+                    )}
+                    accessibilityLabel={
+                      opt.isLocked
+                        ? `${opt.label} — ${t.offering.badgeA11y}`
+                        : opt.label
+                    }
                     cardStyle={styles.fontFamilyCard}>
+                    {opt.isLocked && (
+                      <View
+                        style={[
+                          styles.fontLockBadge,
+                          {backgroundColor: colors.primary},
+                        ]}>
+                        <Ionicons
+                          name="leaf-outline"
+                          size={9}
+                          color={staticColors.white}
+                        />
+                      </View>
+                    )}
                     <Text
                       style={[
                         styles.fontPreviewText,
@@ -318,6 +374,21 @@ export const ReaderPreferencesSheet: React.FC<ReaderPreferencesSheetProps> = ({
                     <Text style={[styles.choiceLabel, {color: colors.text}]}>
                       {opt.label}
                     </Text>
+                    {opt.isPremiumFont && (
+                      <View
+                        style={[
+                          styles.fontExclusiveBadge,
+                          {backgroundColor: colors.primary + '1a'},
+                        ]}>
+                        <Text
+                          style={[
+                            styles.fontExclusiveText,
+                            {color: colors.primary},
+                          ]}>
+                          {t.readerPrefs.fontExclusiveLabel}
+                        </Text>
+                      </View>
+                    )}
                   </ChoiceCard>
                 ))}
               </View>
@@ -723,8 +794,35 @@ const styles = StyleSheet.create({
   // onto one line and pushed the rest off-screen). flexBasis overrides the
   // basis:0 from flex:1.
   fontFamilyCard: {
+    position: 'relative',
     flexBasis: '47%',
     minWidth: 0,
+  },
+  // Small leaf marker on a locked premium typeface — same "unlockable with
+  // an offering" glyph used everywhere else, never a padlock/crown.
+  fontLockBadge: {
+    position: 'absolute',
+    top: 6,
+    right: 6,
+    width: 14,
+    height: 14,
+    borderRadius: 7,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  // Quiet "Exclusivo"/"Exclusive" tag — reads as special whether the face is
+  // still locked or already unlocked.
+  fontExclusiveBadge: {
+    marginTop: 2,
+    paddingHorizontal: 5,
+    paddingVertical: 1,
+    borderRadius: 6,
+  },
+  fontExclusiveText: {
+    fontSize: 7,
+    fontWeight: '700',
+    letterSpacing: 0.3,
+    textTransform: 'uppercase',
   },
   themeCard: {
     // Explicit height keeps every theme card out of the flex-line "natural

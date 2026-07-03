@@ -42,6 +42,13 @@ export const READER_FONT_ASSETS = {
   ArchivoNarrow_700Bold: require('@expo-google-fonts/archivo-narrow/700Bold/ArchivoNarrow_700Bold.ttf'),
   JetBrainsMono_400Regular: require('@expo-google-fonts/jetbrains-mono/400Regular/JetBrainsMono_400Regular.ttf'),
   JetBrainsMono_700Bold: require('@expo-google-fonts/jetbrains-mono/700Bold/JetBrainsMono_700Bold.ttf'),
+  // T6.2 — offering-unlocked exclusive faces.
+  RobotoSlab_400Regular: require('@expo-google-fonts/roboto-slab/400Regular/RobotoSlab_400Regular.ttf'),
+  RobotoSlab_700Bold: require('@expo-google-fonts/roboto-slab/700Bold/RobotoSlab_700Bold.ttf'),
+  Spectral_400Regular: require('@expo-google-fonts/spectral/400Regular/Spectral_400Regular.ttf'),
+  Spectral_700Bold: require('@expo-google-fonts/spectral/700Bold/Spectral_700Bold.ttf'),
+  Nunito_400Regular: require('@expo-google-fonts/nunito/400Regular/Nunito_400Regular.ttf'),
+  Nunito_700Bold: require('@expo-google-fonts/nunito/700Bold/Nunito_700Bold.ttf'),
 } as const;
 
 /**
