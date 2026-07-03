@@ -38,6 +38,15 @@ export interface ReaderPreferences {
   /** Reading-surface palette. 'system' (default) follows the app theme. */
   theme: ReaderTheme;
   /**
+   * T6.3b grandfathering: permanently `true` once this device is observed,
+   * at hydration, to have `theme: 'sepia'` already persisted from BEFORE
+   * Sepia became an offering-gated theme. Device-local, never re-derived
+   * once set, never synced. See the hydration effect below for the single
+   * moment this is computed, and `isReaderThemeUnlocked` in `readerThemes.ts`
+   * for how it's consumed.
+   */
+  sepiaGrandfathered: boolean;
+  /**
    * Open the immersive reader automatically when audio starts from the
    * reader's Audio button (Sprint 77, opt-in). Also guarantees the immersive
    * binds to the engine before the first ∞ chapter advance (the S73 follow
@@ -78,6 +87,7 @@ export const DEFAULT_READER_PREFERENCES: ReaderPreferences = {
   textAlign: 'left',
   margin: 'medium',
   theme: 'system',
+  sepiaGrandfathered: false,
   autoImmersiveOnListen: false,
   keepScreenAwake: false,
 };
@@ -117,6 +127,19 @@ export const ReaderPreferencesProvider: React.FC<
         if (raw) {
           try {
             const parsed = JSON.parse(raw) as Partial<ReaderPreferences>;
+            // T6.3b grandfathering — this `raw` read is the ONLY moment in
+            // this device's lifetime where we can observe "what theme did
+            // this device have selected before Sepia became offering-gated".
+            // If the persisted blob already had `theme: 'sepia'` (from an
+            // older app version, pre-gate) — or the flag was already `true`
+            // from a previous run of this same logic — mark this device
+            // grandfathered for good. A blob with any other theme, or no
+            // blob at all (new install, handled by the `if (raw)` guard),
+            // never sets it: those devices are correctly gated. Once `true`
+            // here, it's carried forward by the normal `...parsed` spread on
+            // every future hydration and is NEVER re-derived or cleared.
+            const sepiaGrandfathered =
+              parsed.sepiaGrandfathered === true || parsed.theme === 'sepia';
             // Merge with defaults so new fields added later don't crash an
             // older persisted blob. Sanitize `theme` so a foreign/corrupt
             // value falls back to 'system' rather than a broken palette.
@@ -127,6 +150,7 @@ export const ReaderPreferencesProvider: React.FC<
               fontFamily: isReaderFontFamily(parsed.fontFamily)
                 ? parsed.fontFamily
                 : prev.fontFamily,
+              sepiaGrandfathered,
             }));
           } catch {
             // Corrupt blob — fall through to defaults.

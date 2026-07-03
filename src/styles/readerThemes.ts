@@ -42,15 +42,50 @@ export const READER_THEME_ORDER: ReaderTheme[] = [
 ];
 
 /**
- * Reading-surface palettes that only unlock with a voluntary offering (T6 —
- * Nuevos extras premium). The 5 original surfaces stay free forever — these
- * 3 are new, exclusive additions, never a downgrade of something existing.
+ * Reading-surface palettes gated behind a voluntary offering (T6 — Nuevos
+ * extras premium). Musgo/Crepúsculo/Niebla (T6.3) are brand-new exclusive
+ * additions with no history — gating them never took anything away.
+ *
+ * Sepia (T6.3b) is different: it's one of the 5 *original* free surfaces, so
+ * moving it behind the gate risks breaking the "premium never removes
+ * something a user already had" rule. The fix is grandfathering, not a plain
+ * gate — any device whose persisted preferences already had `theme: 'sepia'`
+ * before this gate shipped gets a permanent, device-local
+ * `sepiaGrandfathered` flag (captured once, at hydration — see
+ * [[ReaderPreferencesContext]]) that keeps Sepia unlocked for that device
+ * forever, premium or not. New installs and devices that had a different
+ * theme selected are correctly gated like any other exclusive.
+ *
+ * Never consult this array alone to decide whether a theme is usable —
+ * always go through `isReaderThemeUnlocked`, which folds in the
+ * grandfathering exception.
  */
 export const PREMIUM_READER_THEMES: ReaderTheme[] = [
+  'sepia',
   'musgo',
   'crepusculo',
   'niebla',
 ];
+
+/**
+ * Whether `theme` is currently usable — i.e. selecting it should apply it
+ * directly rather than open the offering sheet.
+ *
+ * Mirrors the `isTemplateUnlocked`/`isTextureUnlocked` pattern in
+ * `src/features/share/` (a free/non-gated value is always unlocked; a gated
+ * value needs `isPremium`), plus the one grandfathering exception: Sepia
+ * stays unlocked on a device that already had it selected before the gate
+ * existed, tracked by the device-local `sepiaGrandfathered` flag.
+ */
+export function isReaderThemeUnlocked(
+  theme: ReaderTheme,
+  isPremium: boolean,
+  sepiaGrandfathered: boolean,
+): boolean {
+  if (!PREMIUM_READER_THEMES.includes(theme)) return true;
+  if (isPremium) return true;
+  return theme === 'sepia' && sepiaGrandfathered;
+}
 
 /**
  * The reading-surface colors a palette overrides. These map onto the exact
@@ -115,6 +150,8 @@ export const READER_THEMES: Record<ReaderTheme, ReaderThemeColors | null> = {
   },
 
   // Classic cream/brown "sepia" — the lowest-glare daytime reading surface.
+  // T6.3b — offering-gated, but grandfathered for any device that already
+  // had it selected (see `isReaderThemeUnlocked` above).
   sepia: {
     background: '#F1E4CC',
     surface: '#E7D6B8',
