@@ -45,10 +45,23 @@ import {
   type ShareAspect,
   type ShareTemplate,
 } from '../../features/share/imageTemplates';
+import {
+  SHARE_TEXTURES,
+  isTextureUnlocked,
+  type ShareTexture,
+} from '@/features/share/textures';
+import {ShareTextureOverlay} from './ShareTextureOverlay';
+import {
+  getStylePresets,
+  saveStylePreset,
+  deleteStylePreset,
+} from '@/features/share/stylePresetsStore';
+import type {SharedStylePreset} from '@/features/share/stylePresets';
 import {passageMetaLine} from '@lib/reading/passageReference';
 import {
   READER_FONT_FAMILY_ORDER,
   READER_TYPEFACES,
+  PREMIUM_READER_FONTS,
   resolveTypeface,
   isReaderFontFamily,
   type ReaderFontFamily,
@@ -102,7 +115,58 @@ export const ImageShareModal: React.FC<ImageShareModalProps> = ({
   );
   const [fontFamilyId, setFontFamilyId] = useState<ReaderFontFamily>('serif');
   const [aspect, setAspect] = useState<ShareAspect>('square');
+  const [texture, setTexture] = useState<ShareTexture>('none');
   const [isSharing, setIsSharing] = useState(false);
+  const [savedPresets, setSavedPresets] = useState<SharedStylePreset[]>([]);
+
+  // T8.2 — load saved style presets (offering-unlocked) each time the
+  // modal opens; a free user never sees this state used (the section below
+  // is premium-gated), so this load is harmless either way.
+  useEffect(() => {
+    if (!visible) return;
+    getStylePresets().then(setSavedPresets);
+  }, [visible]);
+
+  function handleSavePreset() {
+    haptics.tap();
+    if (!isPremium) {
+      onClose();
+      openOfferingSheet();
+      return;
+    }
+    saveStylePreset({
+      templateId: activeTheme.id,
+      texture,
+      fontSize,
+      textAlign,
+      fontFamilyId,
+      aspect,
+    }).then(next => {
+      setSavedPresets(next);
+      toast.success(t.verse.imageStyleSaved);
+    });
+  }
+
+  function handleApplyPreset(preset: SharedStylePreset) {
+    haptics.tap();
+    const index = SHARE_TEMPLATES.findIndex(
+      tpl => tpl.id === preset.templateId,
+    );
+    if (index >= 0) setThemeIndex(index);
+    if (isTextureUnlocked(preset.texture, isPremium))
+      setTexture(preset.texture);
+    setFontSize(preset.fontSize);
+    setTextAlign(preset.textAlign);
+    if (isPremium || !PREMIUM_READER_FONTS.includes(preset.fontFamilyId)) {
+      setFontFamilyId(preset.fontFamilyId);
+    }
+    setAspect(preset.aspect);
+  }
+
+  function handleDeletePreset(id: string) {
+    haptics.tap();
+    deleteStylePreset(id).then(setSavedPresets);
+  }
 
   // Seed the card's typography from how the user actually reads (their
   // reader preferences) each time the modal opens — the closest size preset
@@ -123,6 +187,24 @@ export const ImageShareModal: React.FC<ImageShareModalProps> = ({
         : 'serif',
     );
   }, [visible]);
+
+  // T8.2 — the font picker below reuses the SAME reader typefaces as
+  // ReaderPreferencesSheet, including the 3 offering-unlocked exclusives
+  // (T6.2). Revert to the default free face if a premium one is selected
+  // and the entitlement isn't (or is no longer) active.
+  useEffect(() => {
+    if (visible && !isPremium && PREMIUM_READER_FONTS.includes(fontFamilyId)) {
+      setFontFamilyId('serif');
+    }
+  }, [visible, isPremium, fontFamilyId]);
+
+  // T8.2 — same revert pattern for the texture overlay (every texture but
+  // 'none' is offering-unlocked).
+  useEffect(() => {
+    if (visible && !isPremium && !isTextureUnlocked(texture, isPremium)) {
+      setTexture('none');
+    }
+  }, [visible, isPremium, texture]);
 
   // captureRef accepts the host LinearGradient instance ref directly.
   const previewRef = useRef<LinearGradient>(null);
@@ -218,6 +300,10 @@ export const ImageShareModal: React.FC<ImageShareModalProps> = ({
               collapsable={false}
               start={{x: 0, y: 0}}
               end={{x: 1, y: 1}}>
+              <ShareTextureOverlay
+                texture={texture}
+                color={activeTheme.textColor}
+              />
               <View style={styles.headerArea}>
                 <Ionicons
                   name={activeTheme.icon as keyof typeof Ionicons.glyphMap}
@@ -333,6 +419,88 @@ export const ImageShareModal: React.FC<ImageShareModalProps> = ({
             </ScrollView>
 
             <View style={styles.optionSection}>
+              <View style={styles.optionTitleRow}>
+                <Text
+                  style={[
+                    styles.optionsTitle,
+                    styles.noMarginBottom,
+                    {color: colors.textSecondary},
+                  ]}>
+                  {t.verse.imageMyStyles}
+                </Text>
+                <View
+                  style={[
+                    styles.exclusiveBadge,
+                    {backgroundColor: colors.primary + '1a'},
+                  ]}>
+                  <Text style={[styles.exclusiveText, {color: colors.primary}]}>
+                    {t.verse.exclusiveLabel}
+                  </Text>
+                </View>
+              </View>
+              {isPremium && savedPresets.length > 0 ? (
+                <ScrollView
+                  horizontal
+                  showsHorizontalScrollIndicator={false}
+                  style={styles.optionsRow}>
+                  {savedPresets.map(preset => (
+                    <TouchableOpacity
+                      key={preset.id}
+                      onPress={() => handleApplyPreset(preset)}
+                      accessibilityRole="button"
+                      accessibilityLabel={preset.name}
+                      style={[
+                        styles.sizeButton,
+                        styles.presetChip,
+                        {borderColor: colors.border},
+                      ]}>
+                      <Text style={[styles.formatLabel, {color: colors.text}]}>
+                        {preset.name}
+                      </Text>
+                      <TouchableOpacity
+                        onPress={() => handleDeletePreset(preset.id)}
+                        accessibilityRole="button"
+                        accessibilityLabel={t.verse.imageDeletePreset}
+                        hitSlop={8}
+                        style={styles.presetDelete}>
+                        <Ionicons
+                          name="close-circle"
+                          size={16}
+                          color={colors.textTertiary}
+                        />
+                      </TouchableOpacity>
+                    </TouchableOpacity>
+                  ))}
+                </ScrollView>
+              ) : null}
+              <TouchableOpacity
+                onPress={handleSavePreset}
+                accessibilityRole="button"
+                accessibilityLabel={
+                  isPremium
+                    ? t.verse.imageSavePreset
+                    : `${t.verse.imageSavePreset} · ${t.offering.badgeA11y}`
+                }
+                style={[styles.saveStyleButton, {borderColor: colors.primary}]}>
+                {!isPremium && (
+                  <Ionicons
+                    name="leaf-outline"
+                    size={14}
+                    color={colors.primary}
+                  />
+                )}
+                <Ionicons
+                  name="bookmark-outline"
+                  size={16}
+                  color={colors.primary}
+                />
+                <Text style={[styles.saveStyleText, {color: colors.primary}]}>
+                  {t.verse.imageSavePreset}
+                </Text>
+              </TouchableOpacity>
+            </View>
+
+            <View style={styles.optionSection}>
               <Text
                 style={[styles.optionsTitle, {color: colors.textSecondary}]}>
                 {t.verse.imageFormat}
@@ -380,6 +548,99 @@ export const ImageShareModal: React.FC<ImageShareModalProps> = ({
                         ]}>
                         {label}
                       </Text>
+                    </TouchableOpacity>
+                  );
+                })}
+              </View>
+            </View>
+
+            <View style={styles.optionSection}>
+              <View style={styles.optionTitleRow}>
+                <Text
+                  style={[
+                    styles.optionsTitle,
+                    styles.noMarginBottom,
+                    {color: colors.textSecondary},
+                  ]}>
+                  {t.verse.imageTexture}
+                </Text>
+                <View
+                  style={[
+                    styles.exclusiveBadge,
+                    {backgroundColor: colors.primary + '1a'},
+                  ]}>
+                  <Text style={[styles.exclusiveText, {color: colors.primary}]}>
+                    {t.verse.exclusiveLabel}
+                  </Text>
+                </View>
+              </View>
+              <View style={styles.optionsRow}>
+                {SHARE_TEXTURES.map(option => {
+                  const active = texture === option;
+                  const locked = !isTextureUnlocked(option, isPremium);
+                  const label =
+                    option === 'none'
+                      ? t.verse.imageTextureNone
+                      : option === 'dots'
+                        ? t.verse.imageTextureDots
+                        : option === 'lines'
+                          ? t.verse.imageTextureLines
+                          : t.verse.imageTextureGrain;
+                  return (
+                    <TouchableOpacity
+                      key={option}
+                      onPress={() => {
+                        haptics.tap();
+                        if (locked) {
+                          onClose();
+                          openOfferingSheet();
+                          return;
+                        }
+                        setTexture(option);
+                      }}
+                      accessibilityRole="button"
+                      accessibilityLabel={
+                        locked ? `${label} · ${t.offering.badgeA11y}` : label
+                      }
+                      accessibilityState={{selected: active}}
+                      style={[
+                        styles.sizeButton,
+                        styles.flex1,
+                        styles.formatButton,
+                        active && {
+                          borderColor: colors.primary,
+                          backgroundColor: colors.primaryLight,
+                        },
+                      ]}>
+                      <Ionicons
+                        name={
+                          option === 'none'
+                            ? 'close-outline'
+                            : option === 'dots'
+                              ? 'ellipsis-horizontal'
+                              : option === 'lines'
+                                ? 'reorder-four-outline'
+                                : 'sparkles-outline'
+                        }
+                        size={20}
+                        color={active ? selectedTextColor : colors.text}
+                      />
+                      <Text
+                        style={[
+                          styles.formatLabel,
+                          {color: active ? selectedTextColor : colors.text},
+                        ]}>
+                        {label}
+                      </Text>
+                      {locked && (
+                        <View style={styles.lockBadge}>
+                          <Ionicons
+                            name="leaf-outline"
+                            size={11}
+                            color="#FFFFFF"
+                          />
+                        </View>
+                      )}
                     </TouchableOpacity>
                   );
                 })}
@@ -475,6 +736,8 @@ export const ImageShareModal: React.FC<ImageShareModalProps> = ({
                 {READER_FONT_FAMILY_ORDER.map(id => {
                   const spec = READER_TYPEFACES[id];
                   const selected = fontFamilyId === id;
+                  const locked =
+                    PREMIUM_READER_FONTS.includes(id) && !isPremium;
                   const label = (t.readerPrefs as Record<string, string>)[
                     spec.labelKey
                   ];
@@ -483,10 +746,17 @@ export const ImageShareModal: React.FC<ImageShareModalProps> = ({
                       key={id}
                       onPress={() => {
                         haptics.tap();
+                        if (locked) {
+                          onClose();
+                          openOfferingSheet();
+                          return;
+                        }
                         setFontFamilyId(id);
                       }}
                       accessibilityRole="button"
-                      accessibilityLabel={label}
+                      accessibilityLabel={
+                        locked ? `${label} · ${t.offering.badgeA11y}` : label
+                      }
                       accessibilityState={{selected}}
                       style={[
                         styles.fontSwatch,
@@ -506,6 +776,15 @@ export const ImageShareModal: React.FC<ImageShareModalProps> = ({
                         ]}>
                         {spec.sample}
                       </Text>
+                      {locked && (
+                        <View style={styles.lockBadge}>
+                          <Ionicons
+                            name="leaf-outline"
+                            size={11}
+                            color="#FFFFFF"
+                          />
+                        </View>
+                      )}
                     </TouchableOpacity>
                   );
                 })}
@@ -680,6 +959,7 @@ const styles = StyleSheet.create({
     gap: spacing.sm,
   },
   fontSwatch: {
+    position: 'relative',
     width: 52,
     height: 52,
     borderRadius: borderRadius.md,
@@ -691,6 +971,7 @@ const styles = StyleSheet.create({
     fontSize: fontSizes.lg,
   },
   formatButton: {
+    position: 'relative',
     flexDirection: 'column',
     paddingVertical: spacing.md,
   },
@@ -701,5 +982,51 @@ const styles = StyleSheet.create({
   },
   flex1: {
     flex: 1,
+  },
+  optionTitleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: spacing.md,
+  },
+  noMarginBottom: {
+    marginBottom: 0,
+  },
+  exclusiveBadge: {
+    paddingHorizontal: spacing.sm,
+    paddingVertical: 2,
+    borderRadius: borderRadius.full,
+  },
+  exclusiveText: {
+    fontSize: 10,
+    fontWeight: '700',
+    textTransform: 'uppercase',
+    letterSpacing: 0.3,
+  },
+  presetChip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.xs,
+    paddingVertical: spacing.sm,
+  },
+  presetDelete: {
+    marginLeft: 2,
+  },
+  saveStyleButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: spacing.xs,
+    marginTop: spacing.sm,
+    paddingVertical: spacing.sm,
+    borderRadius: borderRadius.md,
+    borderWidth: 1.5,
+    borderStyle: 'dashed',
+    alignSelf: 'flex-start',
+    paddingHorizontal: spacing.md,
+  },
+  saveStyleText: {
+    fontSize: fontSizes.sm,
+    fontWeight: '700',
   },
 });

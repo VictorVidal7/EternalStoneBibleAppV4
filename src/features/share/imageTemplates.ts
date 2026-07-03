@@ -141,6 +141,36 @@ export const SHARE_TEMPLATES: readonly ShareTemplate[] = [
     icon: 'star-outline',
     tier: 'premium',
   },
+  // T8.2 — a second premium wave, filling hue families the first 5 didn't
+  // (cool teal/cyan, warm metallic neutral, cool monochrome, deep green).
+  {
+    id: 'boreal',
+    colors: ['#0F2E3D', '#134E4A', '#5EEAD4'],
+    textColor: '#FFFFFF',
+    icon: 'prism-outline',
+    tier: 'premium',
+  },
+  {
+    id: 'champagne',
+    colors: ['#D4A574', '#E8C39E'],
+    textColor: '#4A3728',
+    icon: 'diamond-outline',
+    tier: 'premium',
+  },
+  {
+    id: 'graphite',
+    colors: ['#232526', '#414345'],
+    textColor: '#E5E5E5',
+    icon: 'contrast-outline',
+    tier: 'premium',
+  },
+  {
+    id: 'evergreen',
+    colors: ['#0B3D2E', '#134E4A'],
+    textColor: '#D4AF37',
+    icon: 'infinite-outline',
+    tier: 'premium',
+  },
 ];
 
 /** Templates available without premium (the original 10). */
