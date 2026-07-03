@@ -28,11 +28,10 @@ import type {
   PurchasesStoreProduct,
 } from 'react-native-purchases';
 
-// TODO(Victor): once you create a project at https://app.revenuecat.com,
-// paste its Android public SDK key here. It's a client-safe public key (like
-// a Firebase apiKey), not a secret — fine to commit. Leave empty to keep the
-// whole offering system dormant.
-let apiKey = '';
+// RevenueCat's Android public SDK key for the "Eternal Stone Bible" app
+// (project "Eternal Stone"). Client-safe public key (like a Firebase
+// apiKey), not a secret — fine to commit.
+let apiKey = 'goog_pNQZBGDwlYVmDydhAtPBIVvVDbY';
 
 /** Test-only: simulates a configured API key without editing the constant above. */
 export function __setApiKeyForTests(key: string): void {
@@ -76,6 +75,7 @@ type PurchasesStatic = {
   restorePurchases: () => Promise<CustomerInfo>;
   logIn: (uid: string) => Promise<{customerInfo: CustomerInfo}>;
   canMakePayments: () => Promise<boolean>;
+  setLogHandler: (handler: (level: string, message: string) => void) => void;
   PURCHASES_ERROR_CODE: {PURCHASE_CANCELLED_ERROR: string};
 };
 
@@ -147,6 +147,16 @@ export async function initialize(): Promise<void> {
     return;
   }
   try {
+    // RevenueCat logs its own internal SDK activity straight to
+    // console.error/warn, which LogBox surfaces as a scary red banner even
+    // for conditions this module already handles gracefully (e.g. "billing
+    // unavailable" on a sideloaded install — expected until the app is on
+    // Play). Route it through our own logger instead, at low severity.
+    Purchases.setLogHandler((level, message) => {
+      logger.debug(`offeringService: [RevenueCat ${level}] ${message}`, {
+        component: 'offeringService',
+      });
+    });
     Purchases.configure({apiKey});
     configured = true;
     Purchases.addCustomerInfoUpdateListener(info => {
