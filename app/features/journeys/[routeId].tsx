@@ -133,6 +133,13 @@ export default function JourneyRouteScreen() {
   const [previewLoading, setPreviewLoading] = useState<string | null>(null);
   const [sharing, setSharing] = useState(false);
   const captureCardRef = useRef<View>(null);
+  // Auto-scroll plumbing for the narrated walkthrough (see the effect near
+  // `speakingId` below): a ref to the ScrollView + each stop card's measured
+  // Y offset, kept fresh via `onLayout` since cards vary in height (an
+  // expanded preview, an echo note, a prophecy-thread chip).
+  const scrollViewRef = useRef<ScrollView>(null);
+  const stopLayoutYRef = useRef<Record<string, number>>({});
+  const listOffsetYRef = useRef(0);
 
   useEffect(() => {
     let active = true;
@@ -277,6 +284,21 @@ export default function JourneyRouteScreen() {
   });
   const speakingId = speaking ? (stops[activeIndex]?.id ?? null) : null;
 
+  // Keep the stop being narrated on screen: while the tour runs, follow
+  // `activeIndex` as it advances so the user isn't left scrolling manually
+  // to find which card is currently being read (real-device report). Cards
+  // are measured via `onLayout` (below), so this only fires once the target
+  // card has actually been laid out.
+  useEffect(() => {
+    if (!walkthroughActive) return;
+    const stop = stops[activeIndex];
+    if (!stop) return;
+    const cardY = stopLayoutYRef.current[stop.id];
+    if (cardY === undefined) return;
+    const targetY = Math.max(0, listOffsetYRef.current + cardY - spacing.md);
+    scrollViewRef.current?.scrollTo({y: targetY, animated: true});
+  }, [activeIndex, walkthroughActive, stops]);
+
   const toggleWalkthrough = () => {
     haptics.tap();
     // Always restarts from the first stop, matching the pre-Tanda-3 behavior.
@@ -380,6 +402,7 @@ export default function JourneyRouteScreen() {
         </LinearGradient>
 
         <ScrollView
+          ref={scrollViewRef}
           contentContainerStyle={[
             styles.content,
             {paddingBottom: insets.bottom + spacing['2xl']},
@@ -496,7 +519,11 @@ export default function JourneyRouteScreen() {
               preview; the ref chip is a separate action that opens the
               reader. The map above is a visual shortcut straight to the
               reader, not a separate source of information. */}
-          <View style={styles.list}>
+          <View
+            style={styles.list}
+            onLayout={e => {
+              listOffsetYRef.current = e.nativeEvent.layout.y;
+            }}>
             {stops.map((stop, i) => {
               const info = localizedRef(stop.ref);
               const item = items[stop.id];
@@ -517,6 +544,9 @@ export default function JourneyRouteScreen() {
                   ]}
                   activeOpacity={0.85}
                   onPress={() => toggleExpand(stop)}
+                  onLayout={e => {
+                    stopLayoutYRef.current[stop.id] = e.nativeEvent.layout.y;
+                  }}
                   accessibilityRole="button"
                   accessibilityState={{expanded}}
                   accessibilityLabel={item?.label ?? ''}>
