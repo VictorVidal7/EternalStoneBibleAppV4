@@ -39,6 +39,7 @@ import ManageVersionsSection from '@components/settings/ManageVersionsSection';
 import ReadingGoalSettings from '@components/settings/ReadingGoalSettings';
 import {useReaderPreferences} from '@context/ReaderPreferencesContext';
 import ExtrasSettings from '@components/settings/ExtrasSettings';
+import DonationSettings from '@components/settings/DonationSettings';
 import {haptics} from '@lib/haptics';
 import Constants from 'expo-constants';
 
@@ -674,6 +675,9 @@ export default function SettingsScreen() {
 
         {/* Extras unlocked by a voluntary offering (offering infrastructure tanda) */}
         <ExtrasSettings />
+
+        {/* Separate, repeatable donation — never inside the unlock flow */}
+        <DonationSettings />
 
         {/* New Features V5.1 Section */}
         <View style={themedStyles.section}>
