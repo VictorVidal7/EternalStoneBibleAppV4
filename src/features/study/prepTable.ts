@@ -63,9 +63,23 @@ export type PrepSection = (typeof PREP_SECTIONS)[number];
 /**
  * Cap on gathered cross-references — enough parallels to study without burying
  * the preparer or bloating the export. Verses are walked in ascending order and
- * each verse keeps its curated order, so the cut is deterministic.
+ * each verse keeps its curated order, so the cut is deterministic. This is the
+ * FREE cap — unchanged by T8.4.2 so every existing free reader sees exactly
+ * what they saw before.
  */
 export const PREP_MAX_CROSS_REFS = 12;
+
+/**
+ * T8.4.2 — the offering-unlocked cross-reference cap. A generous ceiling
+ * rather than a literal "no limit": a long passage (a whole Psalm, a whole
+ * chapter) can have many dozens of curated parallels once every verse's own
+ * list is unioned, and an unbounded export would bury the preparer and bloat
+ * the "Copiar bosquejo" markdown instead of helping them. 40 comfortably
+ * covers a full chapter of ordinary curation density while still being a
+ * hard stop. `buildPrepTable` never decides which cap applies — the screen
+ * picks this one for a premium reader, `PREP_MAX_CROSS_REFS` otherwise.
+ */
+export const PREP_MAX_CROSS_REFS_PREMIUM = 40;
 
 /** A normalised, validated passage. */
 export interface PrepPassage {
@@ -164,7 +178,11 @@ function refInPassage(key: PrepRefKey, p: PrepPassage): boolean {
 /**
  * Assemble the full preparation table for a passage. Never throws: an unknown
  * book / out-of-range chapter yields null so the screen can show an empty state
- * rather than a crash. `getCrossRefs` is injectable for tests.
+ * rather than a crash. `getCrossRefs` is injectable for tests; `maxCrossRefs`
+ * lets the CALLER decide how many cross-references to gather (default
+ * `PREP_MAX_CROSS_REFS`, the free cap) — this module never asks whether the
+ * user is premium, it only takes the number it's handed (the screen passes
+ * `PREP_MAX_CROSS_REFS_PREMIUM` for an unlocked reader).
  */
 export function buildPrepTable(
   book: string,
@@ -173,12 +191,14 @@ export function buildPrepTable(
   endVerse?: number,
   deps?: {
     getCrossRefs?: (book: string, chapter: number, verse: number) => string[];
+    maxCrossRefs?: number;
   },
 ): PrepTable | null {
   const passage = normalizePassage(book, chapter, startVerse, endVerse);
   if (!passage) return null;
 
   const getRefs = deps?.getCrossRefs ?? getCrossReferences;
+  const maxCrossRefs = deps?.maxCrossRefs ?? PREP_MAX_CROSS_REFS;
 
   // ── Cross-references: walk the range ascending, keep each verse's curated
   // order, dedupe across verses, and drop any parallel that lands back inside
@@ -191,9 +211,9 @@ export function buildPrepTable(
       if (seen.has(ref) || refInPassage(ref, passage)) continue;
       seen.add(ref);
       crossRefs.push(ref);
-      if (crossRefs.length >= PREP_MAX_CROSS_REFS) break;
+      if (crossRefs.length >= maxCrossRefs) break;
     }
-    if (crossRefs.length >= PREP_MAX_CROSS_REFS) break;
+    if (crossRefs.length >= maxCrossRefs) break;
   }
 
   // ── Christ connections whose focus verse is in the range (catalog order).

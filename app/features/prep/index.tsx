@@ -45,9 +45,11 @@ import {centeredMaxWidth} from '@/styles/responsive';
 import {useLanguage} from '@hooks/useLanguage';
 import {useBibleVersion} from '@hooks/useBibleVersion';
 import {usePremium} from '@context/PremiumContext';
+import {useOfferingSheet} from '@context/OfferingSheetContext';
 import {haptics} from '@lib/haptics';
 import {AppText} from '@components/ui/AppText';
 import {ExpandableVerseText} from '@components/ui/ExpandableVerseText';
+import {OfferingBadge} from '@components/ui/OfferingBadge';
 import bibleDB from '@lib/database';
 import {getBookByName} from '@/constants/bible';
 import {getBookIntro} from '@/constants/book-intros';
@@ -62,10 +64,31 @@ import {
   buildPrepTable,
   formatPassageLabel,
   PREP_SECTIONS,
+  PREP_MAX_CROSS_REFS,
+  PREP_MAX_CROSS_REFS_PREMIUM,
   type PrepSection,
   type PrepTable,
 } from '@/features/study/prepTable';
 import {getPrepNotes, savePrepNote} from '@/features/study/prepNotesStore';
+import {
+  groupOriginalWordsByStrongs,
+  type PrepOriginalVerseWords,
+} from '@/features/study/prepOriginalWords';
+import {
+  getVerseOriginal,
+  isOriginalsInstalled,
+  pickGloss,
+  glossLanguage,
+  strongsLabel,
+} from '@/features/study/originals';
+import {
+  decodeMorphologyCode,
+  describeMorphology,
+} from '@/features/study/morphologyDecoder';
+import {
+  downloadAndImportOriginals,
+  importLocalOriginalsIfPresent,
+} from '@lib/database/originals-download-service';
 import {encodeHttpsLink, makeStudyBundle} from '@lib/together';
 import {
   buildPrepMarkdown,
@@ -94,6 +117,15 @@ const VERSION_KEY = '@bible_version';
 
 type LoadStatus = 'loading' | 'ready' | 'error' | 'empty';
 
+/** T8.4.2 — the "Palabras clave en el idioma original" section's own status. */
+type OriginalsStatus =
+  | 'idle'
+  | 'loading'
+  | 'notInstalled'
+  | 'ready'
+  | 'empty'
+  | 'error';
+
 interface VerseLine {
   verse: number;
   text: string | null;
@@ -114,6 +146,21 @@ interface ChristRow {
   pointsTo?: string;
   fulfillmentText?: string;
   versionAbbrev?: string;
+}
+
+/** A gathered original-language keyword, display-ready (T8.4.2). */
+interface OriginalWordRow {
+  strongs: string;
+  word: string;
+  translit: string | null;
+  gloss: string | null;
+  morphology: string | null;
+  count: number;
+}
+
+/** Resolve the reading version the same way for verse text and gloss language. */
+async function resolveVersion(paramVersion?: string): Promise<string> {
+  return paramVersion ?? (await AsyncStorage.getItem(VERSION_KEY)) ?? 'RVR1960';
 }
 
 /** Per-section icon for the outline cards. */
@@ -165,9 +212,10 @@ export default function PrepTableScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const {colors} = useTheme();
-  const {t} = useLanguage();
+  const {t, language} = useLanguage();
   const {selectedVersion} = useBibleVersion();
   const {isPremium} = usePremium();
+  const {open: openOfferingSheet} = useOfferingSheet();
   const p = t.prepTable;
 
   const params = useLocalSearchParams<{
@@ -200,10 +248,30 @@ export default function PrepTableScreen() {
     });
   }, [book, chapter, paramStart, paramEnd]);
 
+  // T8.4.2 — a premium reader gets a higher (but still bounded) cross-ref
+  // cap; a free reader sees the SAME 12-ref table as before this tanda. The
+  // cap decision lives here, never inside the pure `buildPrepTable`.
   const table: PrepTable | null = useMemo(
-    () => buildPrepTable(book, chapter, range.start, range.end),
-    [book, chapter, range.start, range.end],
+    () =>
+      buildPrepTable(book, chapter, range.start, range.end, {
+        maxCrossRefs: isPremium
+          ? PREP_MAX_CROSS_REFS_PREMIUM
+          : PREP_MAX_CROSS_REFS,
+      }),
+    [book, chapter, range.start, range.end, isPremium],
   );
+
+  // How many MORE curated parallels exist beyond the free cap — cheap (pure,
+  // no DB) to compute a second time just for the count, and only needed for a
+  // free reader's "+N more" invitation; a premium reader already sees them.
+  const extraCrossRefCount = useMemo(() => {
+    if (isPremium) return 0;
+    const full = buildPrepTable(book, chapter, range.start, range.end, {
+      maxCrossRefs: PREP_MAX_CROSS_REFS_PREMIUM,
+    });
+    const shown = table?.crossRefs.length ?? 0;
+    return Math.max(0, (full?.crossRefs.length ?? 0) - shown);
+  }, [isPremium, table, book, chapter, range.start, range.end]);
 
   const [status, setStatus] = useState<LoadStatus>('loading');
   const [reloading, setReloading] = useState(false);
@@ -224,6 +292,15 @@ export default function PrepTableScreen() {
   const [versionLabel, setVersionLabel] = useState('');
   const [copied, setCopied] = useState(false);
 
+  // T8.4.2 — "Palabras clave en el idioma original" (entirely premium).
+  const [originalsStatus, setOriginalsStatus] =
+    useState<OriginalsStatus>('idle');
+  const [originalWordRows, setOriginalWordRows] = useState<OriginalWordRow[]>(
+    [],
+  );
+  const [originalsDownloading, setOriginalsDownloading] = useState(false);
+  const [originalsProgress, setOriginalsProgress] = useState(0);
+
   const load = useCallback(async () => {
     if (!table) {
       setStatus('empty');
@@ -237,10 +314,7 @@ export default function PrepTableScreen() {
       setStatus('loading');
     }
     try {
-      const version =
-        params.version ??
-        (await AsyncStorage.getItem(VERSION_KEY)) ??
-        'RVR1960';
+      const version = await resolveVersion(params.version);
       const lang = christLangForVersion(version);
 
       // The chapter's verse count bounds the range picker.
@@ -372,6 +446,83 @@ export default function PrepTableScreen() {
   useEffect(() => {
     load();
   }, [load]);
+
+  // T8.4.2 — "Palabras clave en el idioma original". Entirely premium: a free
+  // reader never even reaches the pack-installed check or a DB read, same
+  // discipline as the T8.4.1 history screen ("premium stays a pure addition,
+  // nothing here costs the free path anything").
+  const loadOriginalWords = useCallback(async () => {
+    if (!table || !isPremium) return;
+    setOriginalsStatus('loading');
+    try {
+      let installed = await isOriginalsInstalled();
+      if (!installed) installed = await importLocalOriginalsIfPresent();
+      if (!installed) {
+        setOriginalsStatus('notInstalled');
+        return;
+      }
+
+      const version = await resolveVersion(params.version);
+      const glossLang = glossLanguage(language, version);
+
+      const verseNums: number[] = [];
+      for (let v = table.startVerse; v <= table.endVerse; v++)
+        verseNums.push(v);
+      const perVerse: PrepOriginalVerseWords[] = await Promise.all(
+        verseNums.map(async v => ({
+          verse: v,
+          words: await getVerseOriginal(table.bookNameEn, table.chapter, v),
+        })),
+      );
+
+      const groups = groupOriginalWordsByStrongs(perVerse);
+      const rows: OriginalWordRow[] = groups.map(g => {
+        const morphology = decodeMorphologyCode(g.grammar, g.lang);
+        return {
+          strongs: g.strongs,
+          word: g.word,
+          translit: g.translit,
+          gloss: pickGloss(g, glossLang),
+          morphology: morphology
+            ? describeMorphology(morphology, language)
+            : null,
+          count: g.count,
+        };
+      });
+      setOriginalWordRows(rows);
+      setOriginalsStatus(rows.length > 0 ? 'ready' : 'empty');
+    } catch (err) {
+      logger.warn('Prep original words load failed', {error: String(err)});
+      setOriginalsStatus('error');
+    }
+  }, [table, isPremium, language, params.version]);
+
+  useEffect(() => {
+    loadOriginalWords();
+  }, [loadOriginalWords]);
+
+  const handleDownloadOriginals = useCallback(async () => {
+    setOriginalsDownloading(true);
+    setOriginalsProgress(0);
+    try {
+      await downloadAndImportOriginals(setOriginalsProgress);
+      await loadOriginalWords();
+    } catch {
+      setOriginalsStatus('error');
+    } finally {
+      setOriginalsDownloading(false);
+    }
+  }, [loadOriginalWords]);
+
+  const handleUnlockOriginalWords = useCallback(() => {
+    haptics.tap();
+    openOfferingSheet();
+  }, [openOfferingSheet]);
+
+  const handleUnlockMoreCrossRefs = useCallback(() => {
+    haptics.tap();
+    openOfferingSheet();
+  }, [openOfferingSheet]);
 
   const handleJump = useCallback(
     (row: CrossRow) => {
@@ -535,11 +686,29 @@ export default function PrepTableScreen() {
         <>
           {crossRows.length > 0 && (
             <View style={styles.helpGroup}>
-              <AppText
-                scaleRole="compact"
-                style={[styles.helpGroupLabel, {color: colors.textTertiary}]}>
-                {p.crossRefsTitle}
-              </AppText>
+              <View style={styles.crossRefsHeaderRow}>
+                <AppText
+                  scaleRole="compact"
+                  style={[styles.helpGroupLabel, {color: colors.textTertiary}]}>
+                  {p.crossRefsTitle}
+                </AppText>
+                {/* T8.4.2 — a quiet heads-up that this list was extended by
+                    the reader's own offering; it never GATES the base 12. */}
+                {isPremium &&
+                  table &&
+                  table.crossRefs.length > PREP_MAX_CROSS_REFS && (
+                    <View
+                      style={[
+                        styles.exclusiveBadge,
+                        {backgroundColor: colors.primary + '1a'},
+                      ]}>
+                      <Text
+                        style={[styles.exclusiveText, {color: colors.primary}]}>
+                        {p.exclusiveLabel}
+                      </Text>
+                    </View>
+                  )}
+              </View>
               {crossRows.map(row => (
                 <TouchableOpacity
                   key={row.key}
@@ -573,6 +742,38 @@ export default function PrepTableScreen() {
                   )}
                 </TouchableOpacity>
               ))}
+              {/* T8.4.2 — the free list is UNCHANGED (still 12); this is a
+                  quiet invitation, never a degradation of what already
+                  worked. */}
+              {!isPremium && extraCrossRefCount > 0 && (
+                <TouchableOpacity
+                  style={[
+                    styles.crossRefsMoreRow,
+                    {
+                      backgroundColor: colors.primary + '0F',
+                      borderColor: colors.primary + '33',
+                    },
+                  ]}
+                  onPress={handleUnlockMoreCrossRefs}
+                  accessibilityRole="button"
+                  accessibilityLabel={p.crossRefsMore.replace(
+                    '{{n}}',
+                    String(extraCrossRefCount),
+                  )}>
+                  <OfferingBadge
+                    size={14}
+                    color={colors.primary}
+                    onPress={handleUnlockMoreCrossRefs}
+                  />
+                  <Text
+                    style={[styles.crossRefsMoreText, {color: colors.primary}]}>
+                    {p.crossRefsMore.replace(
+                      '{{n}}',
+                      String(extraCrossRefCount),
+                    )}
+                  </Text>
+                </TouchableOpacity>
+              )}
             </View>
           )}
           {table && table.themeIds.length > 0 && (
@@ -869,6 +1070,197 @@ export default function PrepTableScreen() {
                     {line.text ?? ''}
                   </Text>
                 ))}
+              </View>
+
+              {/* T8.4.2 — "Palabras clave en el idioma original": entirely
+                  premium, passage-wide (every distinct Strong's number in the
+                  range, deduplicated). */}
+              <View
+                style={[
+                  styles.sectionCard,
+                  {backgroundColor: colors.card, borderColor: colors.border},
+                ]}>
+                <View style={styles.sectionHeader}>
+                  <Ionicons
+                    name="language-outline"
+                    size={18}
+                    color={colors.primary}
+                  />
+                  <AppText
+                    scaleRole="body"
+                    style={[
+                      styles.sectionLabel,
+                      styles.flexOne,
+                      {color: colors.text},
+                    ]}>
+                    {p.originalWordsTitle}
+                  </AppText>
+                  <View
+                    style={[
+                      styles.exclusiveBadge,
+                      {backgroundColor: colors.primary + '1a'},
+                    ]}>
+                    <Text
+                      style={[styles.exclusiveText, {color: colors.primary}]}>
+                      {p.exclusiveLabel}
+                    </Text>
+                  </View>
+                </View>
+
+                {!isPremium ? (
+                  <TouchableOpacity
+                    style={styles.originalWordsLockedRow}
+                    onPress={handleUnlockOriginalWords}
+                    accessibilityRole="button"
+                    accessibilityLabel={`${p.originalWordsTitle} — ${t.offering.badgeA11y}`}>
+                    <OfferingBadge
+                      size={20}
+                      color={colors.primary}
+                      onPress={handleUnlockOriginalWords}
+                    />
+                    <Text
+                      style={[
+                        styles.helpBody,
+                        styles.flexOne,
+                        {color: colors.textSecondary},
+                      ]}>
+                      {p.originalWordsLockedBody}
+                    </Text>
+                  </TouchableOpacity>
+                ) : originalsStatus === 'loading' ||
+                  originalsStatus === 'idle' ? (
+                  <ActivityIndicator size="small" color={colors.primary} />
+                ) : originalsStatus === 'notInstalled' ||
+                  originalsStatus === 'error' ? (
+                  <View style={styles.originalWordsDownloadWrap}>
+                    <Text
+                      style={[styles.helpBody, {color: colors.textSecondary}]}>
+                      {originalsStatus === 'error'
+                        ? t.originals.downloadError
+                        : p.originalWordsNotInstalledBody}
+                    </Text>
+                    <TouchableOpacity
+                      style={[
+                        styles.downloadButtonSmall,
+                        {backgroundColor: colors.primary},
+                        originalsDownloading && styles.downloadButtonDisabled,
+                      ]}
+                      onPress={handleDownloadOriginals}
+                      disabled={originalsDownloading}
+                      accessibilityRole="button"
+                      accessibilityLabel={t.originals.download}>
+                      {originalsDownloading ? (
+                        <ActivityIndicator
+                          color={staticColors.white}
+                          size="small"
+                        />
+                      ) : (
+                        <Ionicons
+                          name="cloud-download-outline"
+                          size={16}
+                          color={staticColors.white}
+                        />
+                      )}
+                      <AppText
+                        scaleRole="compact"
+                        style={[
+                          styles.exportText,
+                          {color: staticColors.white},
+                        ]}>
+                        {originalsDownloading
+                          ? originalsProgress > 0
+                            ? `${t.originals.downloading} ${Math.round(originalsProgress * 100)}%`
+                            : t.originals.downloading
+                          : t.originals.download}
+                      </AppText>
+                    </TouchableOpacity>
+                  </View>
+                ) : originalsStatus === 'empty' ? (
+                  <Text
+                    style={[styles.helpBody, {color: colors.textSecondary}]}>
+                    {p.originalWordsEmpty}
+                  </Text>
+                ) : (
+                  <>
+                    <Text
+                      style={[styles.helpMeta, {color: colors.textTertiary}]}>
+                      {originalWordRows.length === 1
+                        ? p.originalWordsCountOne
+                        : p.originalWordsCount.replace(
+                            '{{n}}',
+                            String(originalWordRows.length),
+                          )}
+                    </Text>
+                    {originalWordRows.map(row => (
+                      <View
+                        key={row.strongs}
+                        style={[
+                          styles.helpCard,
+                          {
+                            backgroundColor: colors.background,
+                            borderColor: colors.border,
+                          },
+                        ]}>
+                        <View style={styles.originalWordHeaderRow}>
+                          <Text
+                            style={[
+                              styles.originalWordText,
+                              {color: colors.text},
+                            ]}>
+                            {row.word}
+                          </Text>
+                          <View
+                            style={[
+                              styles.strongsChip,
+                              {backgroundColor: colors.primary + '1A'},
+                            ]}>
+                            <Text
+                              style={[
+                                styles.strongsChipText,
+                                {color: colors.primary},
+                              ]}>
+                              {strongsLabel(row.strongs)}
+                            </Text>
+                          </View>
+                        </View>
+                        <Text
+                          style={[
+                            styles.helpMeta,
+                            {color: colors.textTertiary},
+                          ]}>
+                          {[row.translit, row.gloss]
+                            .filter(Boolean)
+                            .join(' · ')}
+                        </Text>
+                        {row.morphology ? (
+                          <Text
+                            style={[
+                              styles.helpBody,
+                              {color: colors.textSecondary},
+                            ]}>
+                            {row.morphology}
+                          </Text>
+                        ) : null}
+                        <Text
+                          style={[
+                            styles.helpMeta,
+                            {color: colors.textTertiary},
+                          ]}>
+                          {row.count > 1
+                            ? `${row.count} ${t.originals.occurrences}`
+                            : `1 ${t.originals.occurrencesOne}`}
+                        </Text>
+                      </View>
+                    ))}
+                    <Text
+                      style={[
+                        styles.attribution,
+                        {color: colors.textTertiary},
+                      ]}>
+                      {t.originals.attribution}
+                    </Text>
+                  </>
+                )}
               </View>
 
               {/* The outline scaffold. */}
@@ -1174,6 +1566,64 @@ const styles = StyleSheet.create({
     borderWidth: StyleSheet.hairlineWidth,
   },
   chipText: {fontSize: fontSizes.sm, fontWeight: '600'},
+  flexOne: {flex: 1},
+  crossRefsHeaderRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  exclusiveBadge: {
+    paddingHorizontal: spacing.sm,
+    paddingVertical: 2,
+    borderRadius: borderRadius.full,
+  },
+  exclusiveText: {
+    fontSize: fontSizes.xs,
+    fontWeight: '700',
+    textTransform: 'uppercase',
+    letterSpacing: 0.3,
+  },
+  crossRefsMoreRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.xs,
+    padding: spacing.sm,
+    borderRadius: borderRadius.md,
+    borderWidth: StyleSheet.hairlineWidth,
+  },
+  crossRefsMoreText: {fontSize: fontSizes.sm, fontWeight: '700', flex: 1},
+  originalWordsLockedRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.sm,
+  },
+  originalWordsDownloadWrap: {gap: spacing.sm, alignItems: 'flex-start'},
+  downloadButtonSmall: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.sm,
+    paddingVertical: spacing.sm,
+    paddingHorizontal: spacing.md,
+    borderRadius: borderRadius.md,
+  },
+  downloadButtonDisabled: {opacity: 0.7},
+  originalWordHeaderRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  originalWordText: {fontSize: fontSizes.lg, fontWeight: '700'},
+  strongsChip: {
+    paddingHorizontal: spacing.sm,
+    paddingVertical: 4,
+    borderRadius: borderRadius.full,
+  },
+  strongsChipText: {fontSize: fontSizes.xs, fontWeight: '800'},
+  attribution: {
+    fontSize: fontSizes.xs,
+    textAlign: 'center',
+    marginTop: spacing.xs,
+  },
   noteInput: {
     minHeight: 88,
     borderRadius: borderRadius.md,
