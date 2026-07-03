@@ -1,17 +1,22 @@
 /**
  * Sprint 50 — device-local premium flag store.
+ *
+ * Rewired for the offering infrastructure tanda: premiumStore is now a thin
+ * shim over the expo-secure-store-backed entitlementCache (see
+ * src/lib/offering/entitlementCache.ts), keeping the exact same public API
+ * so every usePremium() consumer needed zero changes.
  */
 
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import * as SecureStore from 'expo-secure-store';
 import {
-  PREMIUM_STORAGE_KEY,
   getPremiumUnlocked,
   setPremiumUnlocked,
 } from '../src/lib/premium/premiumStore';
+import {ENTITLEMENT_CACHE_KEY} from '../src/lib/offering/entitlementCache';
 
 describe('premiumStore', () => {
   beforeEach(async () => {
-    await AsyncStorage.clear();
+    await SecureStore.deleteItemAsync(ENTITLEMENT_CACHE_KEY);
   });
 
   it('defaults to locked when nothing is persisted', async () => {
@@ -21,7 +26,7 @@ describe('premiumStore', () => {
   it('persists and reads back the unlocked flag', async () => {
     await setPremiumUnlocked(true);
     await expect(getPremiumUnlocked()).resolves.toBe(true);
-    await expect(AsyncStorage.getItem(PREMIUM_STORAGE_KEY)).resolves.toBe(
+    await expect(SecureStore.getItemAsync(ENTITLEMENT_CACHE_KEY)).resolves.toBe(
       'true',
     );
   });
@@ -33,7 +38,7 @@ describe('premiumStore', () => {
   });
 
   it('treats any non-"true" stored value as locked', async () => {
-    await AsyncStorage.setItem(PREMIUM_STORAGE_KEY, 'yes');
+    await SecureStore.setItemAsync(ENTITLEMENT_CACHE_KEY, 'yes');
     await expect(getPremiumUnlocked()).resolves.toBe(false);
   });
 });
