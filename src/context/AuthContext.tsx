@@ -37,6 +37,7 @@ import {logger} from '@lib/utils/logger';
 import {getSyncEngine} from '@lib/sync';
 import {useLanguage} from '@hooks/useLanguage';
 import {ConfirmDialog} from '@components/ui/ConfirmDialog';
+import {linkUser as linkOfferingUser} from '@lib/offering/offeringService';
 
 // Web OAuth client id from google-services.json (oauth_client where
 // client_type === 3). It is already public in the bundled
@@ -199,6 +200,14 @@ export function AuthProvider({children}: AuthProviderProps) {
         logger.setUserId(next?.uid ?? '');
       } catch {
         // setUserId is best-effort; wrap defensively just in case.
+      }
+
+      // Associates this device's offering entitlement with the stable
+      // Firebase uid (anonymous or signed-in) for cross-device persistence.
+      // Best-effort and non-blocking — never awaited, never revoked on
+      // sign-out (see offeringService.linkUser's docstring).
+      if (next?.uid) {
+        linkOfferingUser(next.uid).catch(() => {});
       }
 
       if (!fbUser && !triggeredAnonymousRef.current) {

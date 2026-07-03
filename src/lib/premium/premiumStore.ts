@@ -1,43 +1,33 @@
 /**
- * Premium entitlement — device-local feature flag (Sprint 50).
+ * Premium entitlement — thin read/write shim over the entitlement cache.
  *
- * "Premium" was purely a visual style until now (PremiumBadge/Button/etc.).
- * This is the first REAL gate: a single device-local boolean persisted to
- * AsyncStorage, defaulting to LOCKED. There is no IAP/paywall yet — unlocking
- * is a local toggle in Settings that stands in for a future purchase. Kept
- * deliberately small (mirrors goalStore.ts): if real in-app purchases land
- * later (e.g. RevenueCat), they replace this store's read/write while the
- * `usePremium()` gate consuming it stays put.
+ * Originally (Sprint 50) this was a device-local AsyncStorage boolean with
+ * no real purchase behind it. As of the offering infrastructure tanda, the
+ * real source of truth is RevenueCat's CustomerInfo (see
+ * src/lib/offering/offeringService.ts), which writes into the
+ * expo-secure-store-backed entitlementCache whenever the entitlement
+ * changes; this module just exposes that cache under the SAME public API so
+ * every existing usePremium() consumer needed zero changes.
  *
- * Not synced — a real entitlement would come from store receipts, not our
- * Firestore user-data sync, so it stays out of the SyncEngine.
+ * setPremiumUnlocked is now a __DEV__-only manual override (see
+ * PremiumContext.setPremium, which gates it) — it writes straight to the
+ * cache for local testing without a real purchase. It never talks to
+ * RevenueCat, so flipping it does not create or revoke a real entitlement.
  *
- * Para la gloria de Dios - Eternal Stone Bible App
+ * Para la gloria de Dios Todopoderoso.
  */
 
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import {logger} from '@lib/utils/logger';
-
-export const PREMIUM_STORAGE_KEY = '@premium_unlocked';
+import {
+  getCachedEntitlement,
+  setCachedEntitlement,
+} from '@lib/offering/entitlementCache';
 
 /** Whether premium features are unlocked on this device. Defaults to false. */
 export async function getPremiumUnlocked(): Promise<boolean> {
-  try {
-    const value = await AsyncStorage.getItem(PREMIUM_STORAGE_KEY);
-    return value === 'true';
-  } catch (error) {
-    logger.warn('Failed to read premium flag, defaulting to locked', {
-      error: String(error),
-    });
-    return false;
-  }
+  return getCachedEntitlement();
 }
 
-/** Persist the premium-unlocked flag. */
+/** Persist the premium-unlocked flag. See the module docstring — __DEV__-only in practice. */
 export async function setPremiumUnlocked(value: boolean): Promise<void> {
-  try {
-    await AsyncStorage.setItem(PREMIUM_STORAGE_KEY, value ? 'true' : 'false');
-  } catch (error) {
-    logger.warn('Failed to persist premium flag', {error: String(error)});
-  }
+  await setCachedEntitlement(value);
 }

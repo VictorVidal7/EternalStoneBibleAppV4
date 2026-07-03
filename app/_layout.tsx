@@ -94,6 +94,7 @@ import {
 } from '@lib/notifications/NotificationService';
 import {PropheticReminderRouter} from '@/components/PropheticReminderRouter';
 import {ErrorBoundary} from '@/components/ErrorBoundary';
+import {initialize as initializeOffering} from '@lib/offering/offeringService';
 
 function AppContent() {
   const {t, language} = useLanguage();
@@ -159,6 +160,10 @@ function AppContent() {
           // failure must never abort the other services or the app, and the
           // text falls back to the system default until a later load lands.
           loadReaderFonts().catch(() => undefined),
+          // Offering infrastructure (RevenueCat wrapper) — stays dormant
+          // until a real API key + Play Store install are both present; see
+          // offeringService.ts. Best-effort, never blocks startup.
+          initializeOffering().catch(() => undefined),
         ]);
 
         // Precalentar caché con contenido popular
