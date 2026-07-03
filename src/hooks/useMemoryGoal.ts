@@ -38,6 +38,10 @@ import {
 export interface MemoryGoalState {
   /** True once the first load has completed. */
   loaded: boolean;
+  /** The raw review-event log — lets callers derive their own extra views
+   *  (e.g. T8.1's per-book breakdown / trend / full-history heatmap)
+   *  without this hook needing to know about every possible slice. */
+  events: ReviewEvent[];
   /** Heatmap / retention / streaks / leeches over the review log. */
   history: ReviewHistory;
   /** Today's progress toward the daily review goal. */
@@ -108,5 +112,5 @@ export function useMemoryGoal(): MemoryGoalState {
     void addCelebratedMilestones(keys);
   }, [milestone, history.summary]);
 
-  return {loaded, history, goal, milestone, setGoal, dismissMilestone};
+  return {loaded, events, history, goal, milestone, setGoal, dismissMilestone};
 }

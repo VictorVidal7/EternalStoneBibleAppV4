@@ -13,7 +13,7 @@
  * Para la gloria de Dios Todopoderoso ✨
  */
 
-import React, {useMemo} from 'react';
+import React, {useMemo, useState} from 'react';
 import {View, ScrollView, TouchableOpacity, StyleSheet} from 'react-native';
 import {AppText as Text} from '@components/ui/AppText';
 import {useRouter, Stack} from 'expo-router';
@@ -22,10 +22,20 @@ import {LinearGradient} from 'expo-linear-gradient';
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
 import {useTheme} from '@hooks/useTheme';
 import {useLanguage} from '@hooks/useLanguage';
+import {haptics} from '@lib/haptics';
+import {usePremium} from '@context/PremiumContext';
+import {useOfferingSheet} from '@context/OfferingSheetContext';
 import {useMemoryDeck} from '@context/MemoryDeckContext';
 import {useMemoryGoal} from '@hooks/useMemoryGoal';
 import {computeDeckInsights, type StrugglingCard} from '@lib/memory/insights';
-import {type LeechCard} from '@lib/memory/history';
+import {
+  reviewHeatmap,
+  retentionByBook,
+  retentionTrend,
+  weeksSinceFirstEvent,
+  type LeechCard,
+  type BookRetentionRow,
+} from '@lib/memory/history';
 import {DEFAULT_EASE} from '@lib/memory/srs';
 import {computeEasePrior, MIN_CALIBRATION_REVIEWS} from '@lib/memory/easePrior';
 import {getBookByName} from '@/constants/bible';
@@ -36,12 +46,15 @@ import {
   summarizeHeatmapCells,
   buildHeatmapA11yLabel,
 } from '@lib/a11y/heatmapSummary';
+import {MemoryShareCardModal} from '@components/memory/MemoryShareCardModal';
 import {
   borderRadius,
   fontSize as fontSizes,
   spacing,
   staticColors,
 } from '@/styles/designTokens';
+
+const MAX_BOOK_ROWS = 8;
 
 const DAY_MS = 24 * 60 * 60 * 1000;
 const MAX_STRUGGLING_ROWS = 5;
@@ -65,7 +78,11 @@ export default function MemoryInsightsScreen() {
   const {cards} = useMemoryDeck();
   // Sprint 47 — the review-event log + daily goal load via this hook, which
   // also refreshes on focus (returning from practice updates the stats).
-  const {loaded: eventsLoaded, history, goal} = useMemoryGoal();
+  const {loaded: eventsLoaded, events, history, goal} = useMemoryGoal();
+  const {isPremium} = usePremium();
+  const {open: openOfferingSheet} = useOfferingSheet();
+  const [showFullHistory, setShowFullHistory] = useState(false);
+  const [shareCardVisible, setShareCardVisible] = useState(false);
 
   const headerGradient = useMemo(
     () =>
@@ -82,6 +99,43 @@ export default function MemoryInsightsScreen() {
   const i = t.memory.insights;
   const g = t.memory.goal;
   const isEmpty = cards.length === 0;
+
+  // T8.1 — revert the "full history" toggle if the entitlement is lost
+  // while it's on (e.g. a refund), same pattern as the reader's premium
+  // theme/font toggles.
+  React.useEffect(() => {
+    if (!isPremium && showFullHistory) setShowFullHistory(false);
+  }, [isPremium, showFullHistory]);
+
+  // T8.1 — full-history heatmap (premium): spans every review ever logged
+  // instead of the free HEATMAP_WEEKS window. Falls back to the free
+  // heatmap whenever the toggle is off or the entitlement isn't active.
+  const extendedWeeks = useMemo(
+    () => weeksSinceFirstEvent(events, now),
+    [events, now],
+  );
+  const displayedHeatmap = useMemo(
+    () =>
+      showFullHistory && isPremium
+        ? reviewHeatmap(events, now, extendedWeeks)
+        : history.heatmap,
+    [showFullHistory, isPremium, events, now, extendedWeeks, history.heatmap],
+  );
+
+  // T8.1 — per-book retention breakdown (premium).
+  const bookRows = useMemo(() => retentionByBook(events), [events]);
+  const topBookRows = bookRows.slice(0, MAX_BOOK_ROWS);
+
+  // T8.1 — month-by-month retention trend (premium).
+  const trendPoints = useMemo(() => retentionTrend(events, now), [events, now]);
+  const trendData: BarDatum[] = trendPoints.map(p => {
+    const d = new Date(p.monthStartMs);
+    return {
+      label: i.monthsShort[d.getMonth()] ?? '',
+      value: p.retention == null ? 0 : Math.round(p.retention * 100),
+    };
+  });
+  const hasTrendData = trendPoints.some(p => p.total > 0);
 
   // Box distribution — box 5 reads as "mastered" (success), rest primary.
   const distributionData: BarDatum[] = insights.distribution.map(d => ({
@@ -338,17 +392,75 @@ export default function MemoryInsightsScreen() {
                     colors={colors}>
                     {hasEvents ? (
                       <>
-                        <ContributionHeatmap
-                          cells={history.heatmap.cells}
-                          levelColors={heatLevelColors}
-                          accessibilityLabel={buildHeatmapA11yLabel({
-                            title: i.heatmapTitle,
-                            activeDays: summarizeHeatmapCells(
-                              history.heatmap.cells,
-                            ).activeDays,
-                            daysWord: i.activeDays,
-                          })}
-                        />
+                        {showFullHistory && isPremium ? (
+                          <ScrollView horizontal showsHorizontalScrollIndicator>
+                            <ContributionHeatmap
+                              cells={displayedHeatmap.cells}
+                              levelColors={heatLevelColors}
+                              columnWidth={14}
+                              accessibilityLabel={buildHeatmapA11yLabel({
+                                title: i.heatmapTitle,
+                                activeDays: summarizeHeatmapCells(
+                                  displayedHeatmap.cells,
+                                ).activeDays,
+                                daysWord: i.activeDays,
+                              })}
+                            />
+                          </ScrollView>
+                        ) : (
+                          <ContributionHeatmap
+                            cells={displayedHeatmap.cells}
+                            levelColors={heatLevelColors}
+                            accessibilityLabel={buildHeatmapA11yLabel({
+                              title: i.heatmapTitle,
+                              activeDays: summarizeHeatmapCells(
+                                displayedHeatmap.cells,
+                              ).activeDays,
+                              daysWord: i.activeDays,
+                            })}
+                          />
+                        )}
+                        <TouchableOpacity
+                          style={styles.fullHistoryToggle}
+                          onPress={() => {
+                            haptics.tap();
+                            if (!isPremium) {
+                              openOfferingSheet();
+                              return;
+                            }
+                            setShowFullHistory(v => !v);
+                          }}
+                          accessibilityRole="button"
+                          accessibilityLabel={
+                            isPremium
+                              ? showFullHistory
+                                ? i.fullHistoryToggleOff
+                                : i.fullHistoryToggle
+                              : `${i.fullHistoryToggle} — ${t.offering.badgeA11y}`
+                          }>
+                          {!isPremium ? (
+                            <View
+                              style={[
+                                styles.miniLockBadge,
+                                {backgroundColor: colors.primary},
+                              ]}>
+                              <Ionicons
+                                name="leaf-outline"
+                                size={10}
+                                color={staticColors.white}
+                              />
+                            </View>
+                          ) : null}
+                          <Text
+                            style={[
+                              styles.fullHistoryToggleText,
+                              {color: colors.primary},
+                            ]}>
+                            {isPremium && showFullHistory
+                              ? i.fullHistoryToggleOff
+                              : i.fullHistoryToggle}
+                          </Text>
+                        </TouchableOpacity>
                         <View style={styles.legendRow}>
                           <Text
                             style={[
@@ -535,12 +647,146 @@ export default function MemoryInsightsScreen() {
                       ))
                     )}
                   </InsightCard>
+
+                  {/* 9 — Retention by book (T8.1, premium) */}
+                  <InsightCard
+                    title={i.byBookTitle}
+                    hint={i.byBookHint}
+                    exclusiveLabel={i.exclusiveLabel}
+                    colors={colors}>
+                    {isPremium ? (
+                      bookRows.length === 0 ? (
+                        <Text
+                          style={[
+                            styles.positiveNote,
+                            {color: colors.textSecondary},
+                          ]}>
+                          {i.heatmapEmpty}
+                        </Text>
+                      ) : (
+                        topBookRows.map(row => (
+                          <BookRow
+                            key={row.bookName}
+                            row={row}
+                            language={language}
+                            colors={colors}
+                          />
+                        ))
+                      )
+                    ) : (
+                      <LockedTeaser
+                        text={i.byBookLocked}
+                        colors={colors}
+                        onPress={() => {
+                          haptics.tap();
+                          openOfferingSheet();
+                        }}
+                        a11yLabel={`${i.byBookTitle} — ${t.offering.badgeA11y}`}
+                      />
+                    )}
+                  </InsightCard>
+
+                  {/* 10 — Retention trend (T8.1, premium) */}
+                  <InsightCard
+                    title={i.trendTitle}
+                    hint={i.trendHint}
+                    exclusiveLabel={i.exclusiveLabel}
+                    colors={colors}>
+                    {isPremium ? (
+                      hasTrendData ? (
+                        <MiniBarChart
+                          data={trendData}
+                          height={100}
+                          barColor={colors.primary}
+                          trackColor={colors.border}
+                          labelColor={colors.textSecondary}
+                          valueColor={colors.textTertiary}
+                        />
+                      ) : (
+                        <Text
+                          style={[
+                            styles.positiveNote,
+                            {color: colors.textSecondary},
+                          ]}>
+                          {i.retentionEmpty}
+                        </Text>
+                      )
+                    ) : (
+                      <LockedTeaser
+                        text={i.trendLocked}
+                        colors={colors}
+                        onPress={() => {
+                          haptics.tap();
+                          openOfferingSheet();
+                        }}
+                        a11yLabel={`${i.trendTitle} — ${t.offering.badgeA11y}`}
+                      />
+                    )}
+                  </InsightCard>
+
+                  {/* 11 — Share progress card (T8.1, premium) */}
+                  <TouchableOpacity
+                    style={[
+                      styles.shareButton,
+                      {
+                        backgroundColor: colors.surface,
+                        borderColor: colors.border,
+                      },
+                    ]}
+                    onPress={() => {
+                      haptics.tap();
+                      if (!isPremium) {
+                        openOfferingSheet();
+                        return;
+                      }
+                      setShareCardVisible(true);
+                    }}
+                    accessibilityRole="button"
+                    accessibilityLabel={
+                      isPremium
+                        ? i.shareProgressButton
+                        : `${i.shareProgressButton} — ${t.offering.badgeA11y}`
+                    }>
+                    {!isPremium ? (
+                      <View
+                        style={[
+                          styles.miniLockBadge,
+                          {backgroundColor: colors.primary},
+                        ]}>
+                        <Ionicons
+                          name="leaf-outline"
+                          size={10}
+                          color={staticColors.white}
+                        />
+                      </View>
+                    ) : (
+                      <Ionicons
+                        name="share-social-outline"
+                        size={18}
+                        color={colors.primary}
+                      />
+                    )}
+                    <Text
+                      style={[styles.shareButtonText, {color: colors.primary}]}>
+                      {i.shareProgressButton}
+                    </Text>
+                  </TouchableOpacity>
                 </>
               )}
             </>
           )}
         </ScrollView>
       </View>
+
+      {isPremium ? (
+        <MemoryShareCardModal
+          visible={shareCardVisible}
+          onClose={() => setShareCardVisible(false)}
+          totalVerses={insights.summary.total}
+          retention={history.summary.overallRetention}
+          streak={history.summary.currentStreak}
+        />
+      ) : null}
     </>
   );
 }
@@ -555,12 +801,17 @@ function weekdayShort(now: Date, offset: number, names: string[]): string {
 interface InsightCardProps {
   title: string;
   hint?: string;
+  /** T8.1 — shown as a small pill next to the title on premium sections,
+   *  regardless of unlocked state (same convention as the reader's
+   *  exclusive themes/fonts). */
+  exclusiveLabel?: string;
   colors: ReturnType<typeof useTheme>['colors'];
   children: React.ReactNode;
 }
 const InsightCard: React.FC<InsightCardProps> = ({
   title,
   hint,
+  exclusiveLabel,
   colors,
   children,
 }) => (
@@ -569,7 +820,20 @@ const InsightCard: React.FC<InsightCardProps> = ({
       styles.card,
       {backgroundColor: colors.surface, borderColor: colors.border},
     ]}>
-    <Text style={[styles.cardTitle, {color: colors.text}]}>{title}</Text>
+    <View style={styles.cardTitleRow}>
+      <Text style={[styles.cardTitle, {color: colors.text}]}>{title}</Text>
+      {exclusiveLabel ? (
+        <View
+          style={[
+            styles.exclusiveBadge,
+            {backgroundColor: colors.primary + '1a'},
+          ]}>
+          <Text style={[styles.exclusiveText, {color: colors.primary}]}>
+            {exclusiveLabel}
+          </Text>
+        </View>
+      ) : null}
+    </View>
     {hint ? (
       <Text style={[styles.cardHint, {color: colors.textSecondary}]}>
         {hint}
@@ -577,6 +841,62 @@ const InsightCard: React.FC<InsightCardProps> = ({
     ) : null}
     <View style={styles.cardBody}>{children}</View>
   </View>
+);
+
+/** A row in the T8.1 "retention by book" list. */
+const BookRow: React.FC<{
+  row: BookRetentionRow;
+  language: 'es' | 'en';
+  colors: ReturnType<typeof useTheme>['colors'];
+}> = ({row, language, colors}) => {
+  const bookInfo = getBookByName(row.bookName);
+  const displayBook = bookInfo
+    ? language === 'en'
+      ? bookInfo.nameEn
+      : bookInfo.name
+    : row.bookName;
+  const pct = row.retention == null ? null : Math.round(row.retention * 100);
+  return (
+    <View style={[styles.struggleRow, {borderTopColor: colors.border}]}>
+      <View style={styles.struggleMain}>
+        <Text style={[styles.struggleRef, {color: colors.text}]}>
+          {displayBook}
+        </Text>
+        <Text style={[styles.struggleMeta, {color: colors.textTertiary}]}>
+          {row.totalReviews}
+        </Text>
+      </View>
+      {pct != null ? (
+        <View
+          style={[styles.boxBadge, {backgroundColor: colors.primary + '15'}]}>
+          <Text style={[styles.boxBadgeText, {color: colors.primary}]}>
+            {pct}%
+          </Text>
+        </View>
+      ) : null}
+    </View>
+  );
+};
+
+/** T8.1 — the subtle locked-with-offering row shared by the new sections. */
+const LockedTeaser: React.FC<{
+  text: string;
+  a11yLabel: string;
+  colors: ReturnType<typeof useTheme>['colors'];
+  onPress: () => void;
+}> = ({text, a11yLabel, colors, onPress}) => (
+  <TouchableOpacity
+    style={styles.lockedTeaserRow}
+    onPress={onPress}
+    accessibilityRole="button"
+    accessibilityLabel={a11yLabel}>
+    <View style={[styles.miniLockBadge, {backgroundColor: colors.primary}]}>
+      <Ionicons name="leaf-outline" size={10} color={staticColors.white} />
+    </View>
+    <Text style={[styles.lockedTeaserText, {color: colors.textSecondary}]}>
+      {text}
+    </Text>
+  </TouchableOpacity>
 );
 
 const HeroStat: React.FC<{
@@ -752,6 +1072,12 @@ const styles = StyleSheet.create({
     borderWidth: StyleSheet.hairlineWidth,
     marginBottom: spacing.lg,
   },
+  cardTitleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: spacing.sm,
+  },
   cardTitle: {
     fontSize: fontSizes.base,
     fontWeight: '800',
@@ -762,6 +1088,59 @@ const styles = StyleSheet.create({
   },
   cardBody: {
     marginTop: spacing.md,
+  },
+  exclusiveBadge: {
+    paddingHorizontal: spacing.sm,
+    paddingVertical: 2,
+    borderRadius: borderRadius.full,
+  },
+  exclusiveText: {
+    fontSize: 10,
+    fontWeight: '700',
+    textTransform: 'uppercase',
+    letterSpacing: 0.3,
+  },
+  fullHistoryToggle: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    alignSelf: 'flex-start',
+    gap: spacing.xs,
+    marginTop: spacing.sm,
+  },
+  fullHistoryToggleText: {
+    fontSize: fontSizes.sm,
+    fontWeight: '700',
+  },
+  miniLockBadge: {
+    width: 16,
+    height: 16,
+    borderRadius: 8,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  lockedTeaserRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.xs,
+    paddingVertical: 2,
+  },
+  lockedTeaserText: {
+    fontSize: fontSizes.sm,
+    flexShrink: 1,
+  },
+  shareButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: spacing.sm,
+    paddingVertical: spacing.md,
+    borderRadius: borderRadius.lg,
+    borderWidth: StyleSheet.hairlineWidth,
+    marginBottom: spacing.lg,
+  },
+  shareButtonText: {
+    fontSize: fontSizes.base,
+    fontWeight: '700',
   },
   masteryRow: {
     flexDirection: 'row',
