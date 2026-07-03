@@ -27,7 +27,12 @@ import {Ionicons} from '@expo/vector-icons';
 import {LinearGradient} from 'expo-linear-gradient';
 import {haptics} from '@lib/haptics';
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
-import {colorThemes, useTheme, ColorTheme} from '../../hooks/useTheme';
+import {
+  colorThemes,
+  useTheme,
+  ColorTheme,
+  PREMIUM_COLOR_THEMES,
+} from '../../hooks/useTheme';
 import {useLanguage} from '../../hooks/useLanguage';
 import type {Language} from '../../i18n/translations';
 import {useBibleVersion} from '../../hooks/useBibleVersion';
@@ -367,7 +372,11 @@ const ColorThemeStep: React.FC<ColorThemeStepProps> = ({
   colors,
   t,
 }) => {
-  const ids = Object.keys(colorThemes) as ColorTheme[];
+  // A brand-new install can't have unlocked anything yet — never offer a
+  // premium theme here, only in Settings once there's a real entitlement.
+  const ids = (Object.keys(colorThemes) as ColorTheme[]).filter(
+    id => !PREMIUM_COLOR_THEMES.includes(id),
+  );
 
   return (
     <View style={styles.step}>
