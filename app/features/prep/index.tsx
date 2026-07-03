@@ -89,6 +89,11 @@ import {
   downloadAndImportOriginals,
   importLocalOriginalsIfPresent,
 } from '@lib/database/originals-download-service';
+import {
+  versionComparisonService,
+  type BibleVersion,
+  type VerseComparison,
+} from '@lib/comparison/VersionComparison';
 import {encodeHttpsLink, makeStudyBundle} from '@lib/together';
 import {
   buildPrepMarkdown,
@@ -124,6 +129,18 @@ type OriginalsStatus =
   | 'notInstalled'
   | 'ready'
   | 'empty'
+  | 'error';
+
+/**
+ * T8.4.3 — "Comparar versiones" section's own status. `onlyOneInstalled` is a
+ * distinct state (not `empty`) because it needs its own graceful copy + a
+ * link to Settings, not a generic empty state.
+ */
+type VersionCompareStatus =
+  | 'idle'
+  | 'loading'
+  | 'onlyOneInstalled'
+  | 'ready'
   | 'error';
 
 interface VerseLine {
@@ -300,6 +317,17 @@ export default function PrepTableScreen() {
   );
   const [originalsDownloading, setOriginalsDownloading] = useState(false);
   const [originalsProgress, setOriginalsProgress] = useState(0);
+
+  // T8.4.3 — "Comparar versiones": 2-3 ALREADY-INSTALLED translations of the
+  // current passage range, side by side. Entirely premium. `compareVersions`
+  // is the catalog of what the reader actually has (never the full catalog);
+  // `selectedCompareIds` is the reader's own pick, seeded once with a
+  // reasonable default and then left alone across passage/range changes.
+  const [compareStatus, setCompareStatus] =
+    useState<VersionCompareStatus>('idle');
+  const [compareVersions, setCompareVersions] = useState<BibleVersion[]>([]);
+  const [selectedCompareIds, setSelectedCompareIds] = useState<string[]>([]);
+  const [compareRows, setCompareRows] = useState<VerseComparison[]>([]);
 
   const load = useCallback(async () => {
     if (!table) {
@@ -501,6 +529,84 @@ export default function PrepTableScreen() {
     loadOriginalWords();
   }, [loadOriginalWords]);
 
+  // T8.4.3 — "Comparar versiones". Loads the catalog of versions the reader
+  // ACTUALLY has installed (never the full catalog) and seeds a default
+  // selection: the current reading version first, then up to two more —
+  // exactly the pitch's "current + up to 2 more of the installed ones".
+  // Entirely premium: a free reader never reaches `getAvailableVersions`,
+  // same discipline as the originals section above. Keyed on isPremium/
+  // language only (NOT on the passage) so widening the verse range or
+  // jumping to a new passage never resets the reader's own version picks.
+  const loadCompareVersions = useCallback(async () => {
+    if (!isPremium) return;
+    setCompareStatus('loading');
+    try {
+      const versions =
+        await versionComparisonService.getAvailableVersions(language);
+      setCompareVersions(versions);
+      if (versions.length <= 1) {
+        setCompareStatus('onlyOneInstalled');
+        return;
+      }
+      setSelectedCompareIds(prev => {
+        if (prev.length > 0) return prev; // keep the reader's own picks
+        const currentId = selectedVersion.id.toLowerCase();
+        const defaults: string[] = [];
+        const current = versions.find(v => v.id.toLowerCase() === currentId);
+        if (current) defaults.push(current.id);
+        for (const v of versions) {
+          if (defaults.length >= 3) break;
+          if (v.id.toLowerCase() === currentId) continue;
+          defaults.push(v.id);
+        }
+        return defaults;
+      });
+      setCompareStatus('ready');
+    } catch (err) {
+      logger.warn('Prep version compare: failed to load available versions', {
+        error: String(err),
+      });
+      setCompareStatus('error');
+    }
+  }, [isPremium, language, selectedVersion.id]);
+
+  useEffect(() => {
+    loadCompareVersions();
+  }, [loadCompareVersions]);
+
+  // Resolve the selected versions' text for the FULL passage range (reuses
+  // `compareVerseRange` — the same service that powers VersionComparisonScreen
+  // — rather than re-deriving verse-by-verse lookups here).
+  const loadCompareRows = useCallback(async () => {
+    if (
+      !table ||
+      !isPremium ||
+      compareStatus !== 'ready' ||
+      selectedCompareIds.length === 0
+    ) {
+      return;
+    }
+    try {
+      const rows = await versionComparisonService.compareVerseRange(
+        table.bookNameEn,
+        table.chapter,
+        table.startVerse,
+        table.endVerse,
+        selectedCompareIds,
+      );
+      setCompareRows(rows);
+    } catch (err) {
+      logger.warn('Prep version compare: failed to load verse texts', {
+        error: String(err),
+      });
+      setCompareRows([]);
+    }
+  }, [table, isPremium, compareStatus, selectedCompareIds]);
+
+  useEffect(() => {
+    loadCompareRows();
+  }, [loadCompareRows]);
+
   const handleDownloadOriginals = useCallback(async () => {
     setOriginalsDownloading(true);
     setOriginalsProgress(0);
@@ -523,6 +629,38 @@ export default function PrepTableScreen() {
     haptics.tap();
     openOfferingSheet();
   }, [openOfferingSheet]);
+
+  const handleUnlockVersionCompare = useCallback(() => {
+    haptics.tap();
+    openOfferingSheet();
+  }, [openOfferingSheet]);
+
+  // Toggle a version in/out of the comparison. Floor of 2 (a "comparison" of
+  // one translation isn't one) and a ceiling of 3 (the pitch's "2-3 side by
+  // side") — both silently no-op at the edges rather than needing a toast.
+  const handleToggleCompareVersion = useCallback((id: string) => {
+    haptics.tap();
+    setSelectedCompareIds(prev => {
+      const already = prev.some(
+        existing => existing.toLowerCase() === id.toLowerCase(),
+      );
+      if (already) {
+        if (prev.length <= 2) return prev;
+        return prev.filter(
+          existing => existing.toLowerCase() !== id.toLowerCase(),
+        );
+      }
+      if (prev.length >= 3) return prev;
+      return [...prev, id];
+    });
+  }, []);
+
+  // "Only one version installed" invites to Settings, where downloading more
+  // versions already lives (ManageVersionsSection) — no new download flow here.
+  const handleGoToVersionSettings = useCallback(() => {
+    haptics.tap();
+    router.push('/(tabs)/settings' as never);
+  }, [router]);
 
   const handleJump = useCallback(
     (row: CrossRow) => {
@@ -569,6 +707,17 @@ export default function PrepTableScreen() {
   const passageLabel = table
     ? formatPassageLabel(table, selectedVersion.language === 'es' ? 'es' : 'en')
     : '';
+
+  // T8.4.3 — the "Comparar versiones" card width follows the reader's
+  // SELECTION count (not what a given verse happens to resolve to), so the
+  // grid stays visually consistent across the whole passage even when one
+  // version omits a particular verse.
+  const compareCardWidthStyle =
+    selectedCompareIds.length >= 3
+      ? styles.compareVersionCardThird
+      : selectedCompareIds.length === 2
+        ? styles.compareVersionCardHalf
+        : styles.compareVersionCardFull;
 
   const handleExport = useCallback(async () => {
     if (!table) return;
@@ -1263,6 +1412,222 @@ export default function PrepTableScreen() {
                 )}
               </View>
 
+              {/* T8.4.3 — "Comparar versiones": 2-3 ALREADY-installed
+                  translations of the whole passage range, side by side.
+                  Entirely premium; reuses versionComparisonService verbatim. */}
+              <View
+                style={[
+                  styles.sectionCard,
+                  {backgroundColor: colors.card, borderColor: colors.border},
+                ]}>
+                <View style={styles.sectionHeader}>
+                  <Ionicons
+                    name="swap-horizontal-outline"
+                    size={18}
+                    color={colors.primary}
+                  />
+                  <AppText
+                    scaleRole="body"
+                    style={[
+                      styles.sectionLabel,
+                      styles.flexOne,
+                      {color: colors.text},
+                    ]}>
+                    {p.versionCompareTitle}
+                  </AppText>
+                  <View
+                    style={[
+                      styles.exclusiveBadge,
+                      {backgroundColor: colors.primary + '1a'},
+                    ]}>
+                    <Text
+                      style={[styles.exclusiveText, {color: colors.primary}]}>
+                      {p.exclusiveLabel}
+                    </Text>
+                  </View>
+                </View>
+
+                {!isPremium ? (
+                  <TouchableOpacity
+                    style={styles.originalWordsLockedRow}
+                    onPress={handleUnlockVersionCompare}
+                    accessibilityRole="button"
+                    accessibilityLabel={`${p.versionCompareTitle} — ${t.offering.badgeA11y}`}>
+                    <OfferingBadge
+                      size={20}
+                      color={colors.primary}
+                      onPress={handleUnlockVersionCompare}
+                    />
+                    <Text
+                      style={[
+                        styles.helpBody,
+                        styles.flexOne,
+                        {color: colors.textSecondary},
+                      ]}>
+                      {p.versionCompareLockedBody}
+                    </Text>
+                  </TouchableOpacity>
+                ) : compareStatus === 'loading' || compareStatus === 'idle' ? (
+                  <ActivityIndicator size="small" color={colors.primary} />
+                ) : compareStatus === 'error' ? (
+                  <Text
+                    style={[styles.helpBody, {color: colors.textSecondary}]}>
+                    {p.versionCompareError}
+                  </Text>
+                ) : compareStatus === 'onlyOneInstalled' ? (
+                  <View style={styles.originalWordsDownloadWrap}>
+                    <Text
+                      style={[styles.helpBody, {color: colors.textSecondary}]}>
+                      {p.versionCompareOnlyOneBody}
+                    </Text>
+                    <TouchableOpacity
+                      style={[
+                        styles.downloadButtonSmall,
+                        {backgroundColor: colors.primary},
+                      ]}
+                      onPress={handleGoToVersionSettings}
+                      accessibilityRole="button"
+                      accessibilityLabel={p.versionCompareGoToSettings}>
+                      <Ionicons
+                        name="settings-outline"
+                        size={16}
+                        color={staticColors.white}
+                      />
+                      <AppText
+                        scaleRole="compact"
+                        style={[
+                          styles.exportText,
+                          {color: staticColors.white},
+                        ]}>
+                        {p.versionCompareGoToSettings}
+                      </AppText>
+                    </TouchableOpacity>
+                  </View>
+                ) : (
+                  <>
+                    <Text
+                      style={[styles.helpMeta, {color: colors.textTertiary}]}>
+                      {p.versionCompareSelectHint}
+                    </Text>
+                    <View style={styles.chipWrap}>
+                      {compareVersions.map(v => {
+                        const isSelected = selectedCompareIds.some(
+                          id => id.toLowerCase() === v.id.toLowerCase(),
+                        );
+                        const atCap =
+                          !isSelected && selectedCompareIds.length >= 3;
+                        return (
+                          <TouchableOpacity
+                            key={v.id}
+                            onPress={() => handleToggleCompareVersion(v.id)}
+                            disabled={atCap}
+                            accessibilityRole="button"
+                            accessibilityState={{
+                              selected: isSelected,
+                              disabled: atCap,
+                            }}
+                            accessibilityLabel={v.abbreviation}
+                            style={[
+                              styles.chip,
+                              atCap && styles.chipAtCap,
+                              {
+                                backgroundColor: isSelected
+                                  ? colors.primary + '1A'
+                                  : colors.background,
+                                borderColor: isSelected
+                                  ? colors.primary
+                                  : colors.border,
+                              },
+                            ]}>
+                            <Text
+                              style={[
+                                styles.chipText,
+                                {
+                                  color: isSelected
+                                    ? colors.primary
+                                    : colors.text,
+                                },
+                              ]}>
+                              {v.abbreviation}
+                            </Text>
+                          </TouchableOpacity>
+                        );
+                      })}
+                    </View>
+
+                    {compareRows.map(row => {
+                      const present = new Set(
+                        row.versions.map(v => v.versionId.toLowerCase()),
+                      );
+                      const omittedIds = selectedCompareIds.filter(
+                        id => !present.has(id.toLowerCase()),
+                      );
+                      return (
+                        <View
+                          key={row.verseNumber}
+                          style={styles.compareVerseBlock}>
+                          <Text
+                            style={[
+                              styles.compareVerseLabel,
+                              {color: colors.primary},
+                            ]}>
+                            {row.verseNumber}
+                          </Text>
+                          <View style={styles.compareVersionsRow}>
+                            {row.versions.map(v => (
+                              <View
+                                key={v.versionId}
+                                style={[
+                                  styles.compareVersionCard,
+                                  compareCardWidthStyle,
+                                  {
+                                    backgroundColor: colors.background,
+                                    borderColor: colors.border,
+                                  },
+                                ]}>
+                                <Text
+                                  style={[
+                                    styles.compareVersionAbbr,
+                                    {color: colors.primary},
+                                  ]}>
+                                  {v.versionAbbr}
+                                </Text>
+                                <Text
+                                  style={[
+                                    styles.helpBody,
+                                    {color: colors.text},
+                                  ]}>
+                                  {v.text}
+                                </Text>
+                              </View>
+                            ))}
+                          </View>
+                          {omittedIds.map(id => {
+                            const meta = compareVersions.find(
+                              v => v.id.toLowerCase() === id.toLowerCase(),
+                            );
+                            const abbr = meta?.abbreviation ?? id.toUpperCase();
+                            return (
+                              <Text
+                                key={`omit-${row.verseNumber}-${id}`}
+                                style={[
+                                  styles.helpMeta,
+                                  {color: colors.textTertiary},
+                                ]}>
+                                {t.versionComparison.verseOmitted.replace(
+                                  '{{version}}',
+                                  abbr,
+                                )}
+                              </Text>
+                            );
+                          })}
+                        </View>
+                      );
+                    })}
+                  </>
+                )}
+              </View>
+
               {/* The outline scaffold. */}
               {PREP_SECTIONS.map(section => {
                 const sc = p.sections[section];
@@ -1566,6 +1931,7 @@ const styles = StyleSheet.create({
     borderWidth: StyleSheet.hairlineWidth,
   },
   chipText: {fontSize: fontSizes.sm, fontWeight: '600'},
+  chipAtCap: {opacity: 0.5},
   flexOne: {flex: 1},
   crossRefsHeaderRow: {
     flexDirection: 'row',
@@ -1623,6 +1989,28 @@ const styles = StyleSheet.create({
     fontSize: fontSizes.xs,
     textAlign: 'center',
     marginTop: spacing.xs,
+  },
+  compareVerseBlock: {marginBottom: spacing.md, gap: spacing.xs},
+  compareVerseLabel: {fontWeight: '700', fontSize: fontSizes.sm},
+  compareVersionsRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: spacing.sm,
+  },
+  compareVersionCard: {
+    borderRadius: borderRadius.md,
+    borderWidth: StyleSheet.hairlineWidth,
+    padding: spacing.sm,
+    gap: spacing.xs,
+  },
+  compareVersionCardFull: {flexBasis: '100%'},
+  compareVersionCardHalf: {flexBasis: '48%', flexGrow: 1},
+  compareVersionCardThird: {flexBasis: '31%', flexGrow: 1},
+  compareVersionAbbr: {
+    fontSize: fontSizes.xs,
+    fontWeight: '800',
+    textTransform: 'uppercase',
+    letterSpacing: 0.3,
   },
   noteInput: {
     minHeight: 88,

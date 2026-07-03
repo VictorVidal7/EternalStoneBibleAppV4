@@ -902,6 +902,18 @@ export const translations = {
         'Desbloquea con una ofrenda las palabras clave del hebreo y griego de todo el pasaje, ya decodificadas: transliteración, glosa, Strong y morfología.',
       originalWordsNotInstalledBody:
         'Descarga el paquete de idiomas originales para ver las palabras clave en hebreo y griego de todo el pasaje.',
+      // T8.4.3 — "Comparar versiones": 2-3 traducciones YA descargadas, lado a
+      // lado, del pasaje completo. Reutiliza versionComparisonService (la
+      // misma lógica de la pantalla de comparación de versiones); no
+      // reimplementa el análisis de diferencias.
+      versionCompareTitle: 'Comparar versiones',
+      versionCompareLockedBody:
+        'Desbloquea con una ofrenda comparar 2 o 3 traducciones de este pasaje, lado a lado.',
+      versionCompareSelectHint: 'Elige hasta 3 versiones para comparar',
+      versionCompareOnlyOneBody:
+        'Solo tienes una versión descargada en este dispositivo. Descarga otra versión desde Ajustes para comparar este pasaje lado a lado.',
+      versionCompareGoToSettings: 'Ir a Ajustes',
+      versionCompareError: 'No se pudieron cargar las versiones para comparar.',
       sections: {
         context: {
           label: 'Contexto',
@@ -5901,6 +5913,18 @@ export const translations = {
         'Unlock with an offering the Hebrew and Greek keywords for the whole passage, already decoded: transliteration, gloss, Strong’s number and morphology.',
       originalWordsNotInstalledBody:
         'Download the original-languages pack to see the Hebrew/Greek keywords for the whole passage.',
+      // T8.4.3 — "Compare versions": 2-3 ALREADY-downloaded translations of
+      // the whole passage, side by side. Reuses versionComparisonService (the
+      // same logic behind the Version Comparison screen); does not
+      // re-implement the differences analysis.
+      versionCompareTitle: 'Compare versions',
+      versionCompareLockedBody:
+        'Unlock with an offering to compare 2 or 3 translations of this passage, side by side.',
+      versionCompareSelectHint: 'Choose up to 3 versions to compare',
+      versionCompareOnlyOneBody:
+        'You only have one version downloaded on this device. Download another version from Settings to compare this passage side by side.',
+      versionCompareGoToSettings: 'Go to Settings',
+      versionCompareError: 'Could not load the versions to compare.',
       sections: {
         context: {
           label: 'Context',
