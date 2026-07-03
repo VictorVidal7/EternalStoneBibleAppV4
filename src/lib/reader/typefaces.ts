@@ -30,7 +30,10 @@ export type ReaderFontFamily =
   | 'serif'
   | 'classic'
   | 'condensed'
-  | 'mono';
+  | 'mono'
+  | 'slab'
+  | 'elegant'
+  | 'rounded';
 
 /** Order the typefaces appear in the picker (paired: two sans, two serif…). */
 export const READER_FONT_FAMILY_ORDER: ReaderFontFamily[] = [
@@ -40,6 +43,21 @@ export const READER_FONT_FAMILY_ORDER: ReaderFontFamily[] = [
   'classic',
   'condensed',
   'mono',
+  // T6.2 — offering-unlocked exclusives, always last (see PREMIUM_READER_FONTS).
+  'slab',
+  'elegant',
+  'rounded',
+];
+
+/**
+ * Reader typefaces that only unlock with a voluntary offering (T6 — Nuevos
+ * extras premium). The 6 original faces stay free forever — these 3 are new,
+ * exclusive additions, never a downgrade of something existing.
+ */
+export const PREMIUM_READER_FONTS: ReaderFontFamily[] = [
+  'slab',
+  'elegant',
+  'rounded',
 ];
 
 interface TypefaceSpec {
@@ -51,7 +69,10 @@ interface TypefaceSpec {
     | 'fontSerif'
     | 'fontClassic'
     | 'fontCondensed'
-    | 'fontMono';
+    | 'fontMono'
+    | 'fontSlab'
+    | 'fontElegant'
+    | 'fontRounded';
   /** Glyph sample shown on the picker card. */
   sample: string;
   /**
@@ -69,13 +90,18 @@ interface TypefaceSpec {
 }
 
 /**
- * The curated catalog — six visibly distinct, freely-licensed reading faces:
+ * The curated catalog — nine visibly distinct, freely-licensed reading faces.
+ * The first six are free forever; the last three (T6.2) unlock with an
+ * offering, see PREMIUM_READER_FONTS:
  *   - sans      → Inter                (humanist, the default body face)
  *   - legible   → Atkinson Hyperlegible(designed for low vision — a11y-first)
  *   - serif     → Lora                 (calm book serif, ideal for scripture)
  *   - classic   → EB Garamond          (a classic Garamond — old-book warmth)
  *   - condensed → Archivo Narrow       (genuinely narrow — fits more per line)
  *   - mono      → JetBrains Mono        (even-width, study/technical feel)
+ *   - slab      → Roboto Slab          (sturdy modern slab serif)
+ *   - elegant   → Spectral             (refined literary serif)
+ *   - rounded   → Nunito               (warm, soft rounded sans)
  */
 export const READER_TYPEFACES: Record<ReaderFontFamily, TypefaceSpec> = {
   sans: {
@@ -120,6 +146,31 @@ export const READER_TYPEFACES: Record<ReaderFontFamily, TypefaceSpec> = {
     family: 'JetBrainsMono_400Regular',
     familyBold: 'JetBrainsMono_700Bold',
   },
+  // T6.2 — offering-unlocked exclusives (see PREMIUM_READER_FONTS):
+  //   - slab    → Roboto Slab (sturdy modern slab serif — no slab face existed)
+  //   - elegant → Spectral    (refined literary serif, built for on-screen reading)
+  //   - rounded → Nunito      (warm, soft rounded sans — distinct from Inter)
+  slab: {
+    id: 'slab',
+    labelKey: 'fontSlab',
+    sample: 'Aa',
+    family: 'RobotoSlab_400Regular',
+    familyBold: 'RobotoSlab_700Bold',
+  },
+  elegant: {
+    id: 'elegant',
+    labelKey: 'fontElegant',
+    sample: 'Aa',
+    family: 'Spectral_400Regular',
+    familyBold: 'Spectral_700Bold',
+  },
+  rounded: {
+    id: 'rounded',
+    labelKey: 'fontRounded',
+    sample: 'Aa',
+    family: 'Nunito_400Regular',
+    familyBold: 'Nunito_700Bold',
+  },
 };
 
 /** Whether a value is a known reader typeface id (for sanitizing persisted blobs). */
@@ -130,7 +181,10 @@ export function isReaderFontFamily(value: unknown): value is ReaderFontFamily {
     value === 'serif' ||
     value === 'classic' ||
     value === 'condensed' ||
-    value === 'mono'
+    value === 'mono' ||
+    value === 'slab' ||
+    value === 'elegant' ||
+    value === 'rounded'
   );
 }
 
