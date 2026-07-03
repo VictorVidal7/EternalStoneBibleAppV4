@@ -105,6 +105,30 @@ export async function getVerseOriginal(
   }
 }
 
+/**
+ * The rendered translation text of a verse — the "reference translation" line
+ * shown alongside the visual interlinear (T8.3). Original-language words carry
+ * NO character-range alignment to this text (translations don't preserve the
+ * manuscript's word order), so this is shown as a separate fluent-reading
+ * reference, never claimed to line up word-for-word with the interlinear above
+ * it. Null when the verse/version isn't available.
+ */
+export async function getVerseText(
+  book: string,
+  chapter: number,
+  verse: number,
+  version: string,
+): Promise<string | null> {
+  const resolved = getBookByName(book);
+  if (!resolved) return null;
+  try {
+    const row = await bibleDB.getVerse(resolved.id, chapter, verse, version);
+    return row?.text ?? null;
+  } catch {
+    return null;
+  }
+}
+
 /** The lexicon entry for a Strong's number (null when unavailable). */
 export async function getStrongsDetail(
   strongs: string,

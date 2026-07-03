@@ -778,6 +778,14 @@ export const translations = {
       morphologyLocked: 'Se desbloquea con una ofrenda',
       kjvGloss: 'Traducción KJV',
       exclusiveLabel: 'Exclusivo',
+      interlinearTitle: 'Interlineal visual',
+      interlinearBlurb: 'Cada palabra del original, en su propio orden',
+      interlinearOpen: 'Ver interlineal',
+      interlinearReference: 'Traducción de referencia',
+      interlinearReferenceNote:
+        'Texto completo de tu versión, como referencia — el orden de las palabras del original no siempre coincide con el de la traducción.',
+      interlinearEmptyDetail: 'Toca una palabra arriba para ver su análisis.',
+      interlinearHint: 'Ver análisis de esta palabra',
     },
 
     wordStudy: {
@@ -5726,6 +5734,14 @@ export const translations = {
       morphologyLocked: 'Unlocked with an offering',
       kjvGloss: 'KJV translation',
       exclusiveLabel: 'Exclusive',
+      interlinearTitle: 'Visual interlinear',
+      interlinearBlurb: 'Every original word, in its own order',
+      interlinearOpen: 'View interlinear',
+      interlinearReference: 'Reference translation',
+      interlinearReferenceNote:
+        "Full text of your version, for reference — the original's word order doesn't always match the translation's.",
+      interlinearEmptyDetail: 'Tap a word above to see its analysis.',
+      interlinearHint: "See this word's analysis",
     },
 
     wordStudy: {
