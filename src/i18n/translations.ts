@@ -918,6 +918,34 @@ export const translations = {
       },
     },
 
+    // T8.4.1 — historial de preparaciones (premium): buscar y reabrir mesas
+    // de preparación pasadas. Pura navegación/búsqueda sobre notas que el
+    // propio usuario ya escribió; no genera ni sugiere texto.
+    prepHistory: {
+      title: 'Historial de preparaciones',
+      subtitle: 'Vuelve a tus pasajes guardados',
+      exclusiveLabel: 'Exclusivo',
+      entryLabel: 'Historial de preparaciones',
+      lockedTitle: 'Encuentra tus preparaciones pasadas',
+      lockedBody:
+        'Desbloquea con una ofrenda el historial y la búsqueda de todas tus mesas de preparación guardadas en este dispositivo.',
+      searchPlaceholder: 'Buscar por pasaje o contenido…',
+      emptyTitle: 'Aún no has preparado ningún pasaje',
+      emptyBody:
+        'Cuando escribas notas en la Mesa de preparación, aparecerán aquí para que las vuelvas a encontrar.',
+      noResults: 'No se encontraron preparaciones',
+      openHint: 'Abrir esta preparación',
+      today: 'Hoy',
+      yesterday: 'Ayer',
+      daysAgo: 'Hace {{n}} días',
+      weeksAgoSingular: 'Hace 1 semana',
+      weeksAgo: 'Hace {{n}} semanas',
+      monthsAgoSingular: 'Hace 1 mes',
+      monthsAgo: 'Hace {{n}} meses',
+      yearsAgoSingular: 'Hace 1 año',
+      yearsAgo: 'Hace {{n}} años',
+    },
+
     dailyLight: {
       cardTitle: 'Luz diaria',
       cardSubtitle: 'Tu devocional de hoy',
@@ -5864,6 +5892,34 @@ export const translations = {
             'What questions help you discover and live this truth, alone or in a group?',
         },
       },
+    },
+
+    // T8.4.1 — preparation history (premium): search and reopen past
+    // preparation tables. Pure navigation/search over notes the user already
+    // wrote; it never generates or suggests text.
+    prepHistory: {
+      title: 'Preparation history',
+      subtitle: 'Back to your saved passages',
+      exclusiveLabel: 'Exclusive',
+      entryLabel: 'Preparation history',
+      lockedTitle: 'Find your past preparations',
+      lockedBody:
+        'Unlock with an offering the history and search of every preparation table saved on this device.',
+      searchPlaceholder: 'Search by passage or content…',
+      emptyTitle: "You haven't prepared any passage yet",
+      emptyBody:
+        'Once you write notes in the Preparation table, they will show up here so you can find them again.',
+      noResults: 'No preparations found',
+      openHint: 'Open this preparation',
+      today: 'Today',
+      yesterday: 'Yesterday',
+      daysAgo: '{{n}} days ago',
+      weeksAgoSingular: '1 week ago',
+      weeksAgo: '{{n}} weeks ago',
+      monthsAgoSingular: '1 month ago',
+      monthsAgo: '{{n}} months ago',
+      yearsAgoSingular: '1 year ago',
+      yearsAgo: '{{n}} years ago',
     },
 
     dailyLight: {

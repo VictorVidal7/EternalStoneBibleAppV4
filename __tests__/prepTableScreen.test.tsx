@@ -8,6 +8,7 @@
 import React from 'react';
 import {render, waitFor} from '@testing-library/react-native';
 import PrepTableScreen from '../app/features/prep/index';
+import {PremiumProvider} from '../src/context/PremiumContext';
 import {translations} from '../src/i18n/translations';
 
 jest.mock('expo-router', () => ({
@@ -86,8 +87,18 @@ jest.mock('@lib/database', () => ({
 const p = translations.es.prepTable;
 
 describe('Mesa de preparación — screen', () => {
+  // T8.4.1 added a PremiumProvider mount (for the new history entry-point
+  // button's leaf badge) around an already async-heavy render (verse text,
+  // cross-refs and Christ connections all resolve via awaited DB calls) — a
+  // touch more headroom than the 5s default keeps this from flaking under a
+  // loaded full-suite run, even though it resolves in well under a second
+  // standalone.
   it('assembles the full outline scaffold, helps and guardrail for John 3:16', async () => {
-    const {findByText, getByText} = render(<PrepTableScreen />);
+    const {findByText, getByText} = render(
+      <PremiumProvider>
+        <PrepTableScreen />
+      </PremiumProvider>,
+    );
 
     // Header shows the localized passage label.
     expect(await findByText('Juan 3:16')).toBeTruthy();
@@ -113,5 +124,5 @@ describe('Mesa de preparación — screen', () => {
     // The in-screen verse-range picker is present.
     expect(getByText(p.rangeStartLabel)).toBeTruthy();
     expect(getByText(p.rangeEndLabel)).toBeTruthy();
-  });
+  }, 15000);
 });
