@@ -741,6 +741,10 @@ export const translations = {
       definitionEnglish: 'Definición (en inglés)',
       openHint: 'Ver definición',
       attribution: 'Hebreo/griego: STEPBible (CC BY) · Léxico: Strong',
+      morphologyTitle: 'Análisis morfológico',
+      morphologyLocked: 'Se desbloquea con una ofrenda',
+      kjvGloss: 'Traducción KJV',
+      exclusiveLabel: 'Exclusivo',
     },
 
     wordStudy: {
@@ -5643,6 +5647,10 @@ export const translations = {
       definitionEnglish: 'Definition (English)',
       openHint: 'View definition',
       attribution: 'Hebrew/Greek: STEPBible (CC BY) · Lexicon: Strong’s',
+      morphologyTitle: 'Morphological analysis',
+      morphologyLocked: 'Unlocked with an offering',
+      kjvGloss: 'KJV translation',
+      exclusiveLabel: 'Exclusive',
     },
 
     wordStudy: {

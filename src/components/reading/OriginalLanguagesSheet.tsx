@@ -30,6 +30,8 @@ import {useTheme} from '@hooks/useTheme';
 import {focusTrapProps, a11yHiddenProps} from '@lib/a11y/focusTrap';
 import {useLanguage} from '@hooks/useLanguage';
 import {staticColors} from '@/styles/designTokens';
+import {usePremium} from '@context/PremiumContext';
+import {useOfferingSheet} from '@context/OfferingSheetContext';
 import {
   getVerseOriginal,
   getStrongsDetail,
@@ -41,6 +43,10 @@ import {
   type OriginalWord,
   type StrongsEntry,
 } from '@/features/study/originals';
+import {
+  decodeMorphologyCode,
+  describeMorphology,
+} from '@/features/study/morphologyDecoder';
 import {
   downloadAndImportOriginals,
   importLocalOriginalsIfPresent,
@@ -74,6 +80,8 @@ export const OriginalLanguagesSheet: React.FC<Props> = ({
   const router = useRouter();
   const {colors} = useTheme();
   const {t, language} = useLanguage();
+  const {isPremium} = usePremium();
+  const {open: openOfferingSheet} = useOfferingSheet();
   const o = t.originals;
   // Gloss in the language of what's being read (RVR1960 → Spanish), not just
   // the UI language; the sheet chrome stays in the UI language.
@@ -175,6 +183,7 @@ export const OriginalLanguagesSheet: React.FC<Props> = ({
   const renderWord = (word: OriginalWord) => {
     const gloss = pickGloss(word, glossLang);
     const isOpen = expanded === word.position;
+    const morphology = decodeMorphologyCode(word.grammar, word.lang);
     return (
       <View key={word.position}>
         <TouchableOpacity
@@ -273,6 +282,69 @@ export const OriginalLanguagesSheet: React.FC<Props> = ({
               <Text style={[styles.lexDef, {color: colors.textSecondary}]}>
                 {lex.definition}
               </Text>
+            ) : null}
+
+            {morphology ? (
+              <View
+                style={[styles.morphSection, {borderTopColor: colors.border}]}>
+                <View style={styles.morphHeaderRow}>
+                  <Text style={[styles.morphTitle, {color: colors.text}]}>
+                    {o.morphologyTitle}
+                  </Text>
+                  <View
+                    style={[
+                      styles.exclusiveBadge,
+                      {backgroundColor: colors.primary + '1a'},
+                    ]}>
+                    <Text
+                      style={[styles.exclusiveText, {color: colors.primary}]}>
+                      {o.exclusiveLabel}
+                    </Text>
+                  </View>
+                </View>
+                {isPremium ? (
+                  <>
+                    <Text
+                      style={[styles.lexDef, {color: colors.textSecondary}]}>
+                      {describeMorphology(morphology, language)}
+                    </Text>
+                    {lex.kjv_def ? (
+                      <Text
+                        style={[styles.morphKjv, {color: colors.textTertiary}]}>
+                        {o.kjvGloss}: {lex.kjv_def}
+                      </Text>
+                    ) : null}
+                  </>
+                ) : (
+                  <TouchableOpacity
+                    style={styles.morphLockedRow}
+                    onPress={() => {
+                      haptics.tap();
+                      openOfferingSheet();
+                    }}
+                    accessibilityRole="button"
+                    accessibilityLabel={`${o.morphologyTitle} — ${t.offering.badgeA11y}`}>
+                    <View
+                      style={[
+                        styles.morphLockBadge,
+                        {backgroundColor: colors.primary},
+                      ]}>
+                      <Ionicons
+                        name="leaf-outline"
+                        size={11}
+                        color={staticColors.white}
+                      />
+                    </View>
+                    <Text
+                      style={[
+                        styles.morphLockedText,
+                        {color: colors.textSecondary},
+                      ]}>
+                      {o.morphologyLocked}
+                    </Text>
+                  </TouchableOpacity>
+                )}
+              </View>
             ) : null}
 
             {word.strongs ? (
@@ -537,6 +609,45 @@ const styles = StyleSheet.create({
     borderRadius: borderRadius.md,
   },
   wordStudyText: {fontSize: fontSizes.sm, fontWeight: '700', flex: 1},
+  morphSection: {
+    marginTop: spacing.xs,
+    paddingTop: spacing.sm,
+    borderTopWidth: StyleSheet.hairlineWidth,
+    gap: 4,
+  },
+  morphHeaderRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: spacing.sm,
+  },
+  morphTitle: {fontSize: fontSizes.sm, fontWeight: '700'},
+  morphKjv: {fontSize: fontSizes.xs, fontStyle: 'italic', marginTop: 2},
+  morphLockedRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.xs,
+    paddingVertical: 2,
+  },
+  morphLockBadge: {
+    width: 18,
+    height: 18,
+    borderRadius: 9,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  morphLockedText: {fontSize: fontSizes.sm, flexShrink: 1},
+  exclusiveBadge: {
+    paddingHorizontal: spacing.sm,
+    paddingVertical: 2,
+    borderRadius: borderRadius.full,
+  },
+  exclusiveText: {
+    fontSize: fontSizes.xs,
+    fontWeight: '700',
+    textTransform: 'uppercase',
+    letterSpacing: 0.3,
+  },
   attribution: {
     fontSize: fontSizes.xs,
     textAlign: 'center',
