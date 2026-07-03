@@ -44,6 +44,7 @@ import {useTheme} from '@hooks/useTheme';
 import {centeredMaxWidth} from '@/styles/responsive';
 import {useLanguage} from '@hooks/useLanguage';
 import {useBibleVersion} from '@hooks/useBibleVersion';
+import {usePremium} from '@context/PremiumContext';
 import {haptics} from '@lib/haptics';
 import {AppText} from '@components/ui/AppText';
 import {ExpandableVerseText} from '@components/ui/ExpandableVerseText';
@@ -166,6 +167,7 @@ export default function PrepTableScreen() {
   const {colors} = useTheme();
   const {t} = useLanguage();
   const {selectedVersion} = useBibleVersion();
+  const {isPremium} = usePremium();
   const p = t.prepTable;
 
   const params = useLocalSearchParams<{
@@ -387,6 +389,14 @@ export default function PrepTableScreen() {
     haptics.tap();
     setRange(next);
   }, []);
+
+  // T8.4.1 — the "Historial de preparaciones" entry point. Always navigates
+  // (the destination screen itself shows the premium teaser for a free
+  // reader); the small leaf badge below is just a visual heads-up.
+  const handleOpenHistory = useCallback(() => {
+    haptics.tap();
+    router.push('/features/prep/history' as never);
+  }, [router]);
 
   const handleNoteChange = useCallback(
     (section: PrepSection, value: string) => {
@@ -656,13 +666,47 @@ export default function PrepTableScreen() {
           start={{x: 0, y: 0}}
           end={{x: 0, y: 1}}
           style={[styles.header, {paddingTop: insets.top + spacing.md}]}>
-          <TouchableOpacity
-            style={styles.backButton}
-            onPress={() => router.back()}
-            accessibilityRole="button"
-            accessibilityLabel={t.bible.back}>
-            <Ionicons name="arrow-back" size={24} color={staticColors.white} />
-          </TouchableOpacity>
+          <View style={styles.headerTopRow}>
+            <TouchableOpacity
+              style={styles.backButton}
+              onPress={() => router.back()}
+              accessibilityRole="button"
+              accessibilityLabel={t.bible.back}>
+              <Ionicons
+                name="arrow-back"
+                size={24}
+                color={staticColors.white}
+              />
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.historyButton}
+              onPress={handleOpenHistory}
+              accessibilityRole="button"
+              accessibilityLabel={
+                isPremium
+                  ? t.prepHistory.entryLabel
+                  : `${t.prepHistory.entryLabel} — ${t.offering.badgeA11y}`
+              }>
+              <Ionicons
+                name="time-outline"
+                size={22}
+                color={staticColors.white}
+              />
+              {!isPremium && (
+                <View
+                  style={[
+                    styles.historyBadge,
+                    {backgroundColor: colors.primary},
+                  ]}>
+                  <Ionicons
+                    name="leaf-outline"
+                    size={9}
+                    color={staticColors.white}
+                  />
+                </View>
+              )}
+            </TouchableOpacity>
+          </View>
           <View style={styles.headerTextRow}>
             <View style={styles.headerIcon}>
               <Ionicons name="reader" size={24} color={staticColors.white} />
@@ -959,7 +1003,29 @@ const styles = StyleSheet.create({
     borderBottomLeftRadius: borderRadius.xl,
     borderBottomRightRadius: borderRadius.xl,
   },
-  backButton: {marginBottom: spacing.sm},
+  headerTopRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: spacing.sm,
+  },
+  backButton: {},
+  historyButton: {
+    width: 40,
+    height: 40,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  historyBadge: {
+    position: 'absolute',
+    top: 2,
+    right: 4,
+    width: 14,
+    height: 14,
+    borderRadius: 7,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
   headerTextRow: {flexDirection: 'row', alignItems: 'center'},
   headerIcon: {
     width: 44,
