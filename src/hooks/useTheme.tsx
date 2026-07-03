@@ -16,7 +16,24 @@ export type ColorTheme =
   | 'vino'
   | 'esmeralda'
   | 'arena'
-  | 'aurora';
+  | 'aurora'
+  | 'granate'
+  | 'zafiro'
+  | 'turquesa'
+  | 'orquidea';
+
+/**
+ * Color themes that only unlock with a voluntary offering (T6 — Nuevos
+ * extras premium). All 12 original themes stay free forever, per the plan's
+ * "don't take away what was already free" principle — these 4 are new,
+ * exclusive additions, never a downgrade of something existing.
+ */
+export const PREMIUM_COLOR_THEMES: ColorTheme[] = [
+  'granate',
+  'zafiro',
+  'turquesa',
+  'orquidea',
+];
 
 // Función para determinar la hora del día
 function getTimeOfDay(): TimeOfDay {
@@ -354,6 +371,116 @@ export const colorThemes = {
       },
     },
   },
+  // ===== T6 — premium exclusives (offering-unlocked, never gated content
+  // that was already free — see PREMIUM_COLOR_THEMES) =====
+  granate: {
+    name: 'Granate',
+    icon: 'flame',
+    preview: ['#7f1d1d', '#b91c1c', '#ef4444'],
+    gradients: {
+      morning: {
+        colors: ['#991b1b', '#dc2626', '#f87171'] as const,
+        headerColors: ['#7f1d1d', '#991b1b', '#b91c1c'] as const,
+        accentGlow: '#f87171',
+      },
+      afternoon: {
+        colors: ['#7f1d1d', '#b91c1c', '#dc2626'] as const,
+        headerColors: ['#450a0a', '#7f1d1d', '#991b1b'] as const,
+        accentGlow: '#ef4444',
+      },
+      evening: {
+        colors: ['#450a0a', '#7f1d1d', '#991b1b'] as const,
+        headerColors: ['#2a0505', '#450a0a', '#7f1d1d'] as const,
+        accentGlow: '#f87171',
+      },
+      night: {
+        colors: ['#1c0202', '#450a0a', '#7f1d1d'] as const,
+        headerColors: ['#1c0202', '#450a0a', '#7f1d1d'] as const,
+        accentGlow: '#dc2626',
+      },
+    },
+  },
+  zafiro: {
+    name: 'Zafiro',
+    icon: 'prism-outline',
+    preview: ['#312e81', '#4338ca', '#6366f1'],
+    gradients: {
+      morning: {
+        colors: ['#3730a3', '#4f46e5', '#818cf8'] as const,
+        headerColors: ['#312e81', '#3730a3', '#4338ca'] as const,
+        accentGlow: '#818cf8',
+      },
+      afternoon: {
+        colors: ['#312e81', '#4338ca', '#4f46e5'] as const,
+        headerColors: ['#1e1b4b', '#312e81', '#3730a3'] as const,
+        accentGlow: '#6366f1',
+      },
+      evening: {
+        colors: ['#1e1b4b', '#312e81', '#3730a3'] as const,
+        headerColors: ['#0a081c', '#1e1b4b', '#312e81'] as const,
+        accentGlow: '#818cf8',
+      },
+      night: {
+        colors: ['#0a081c', '#1e1b4b', '#312e81'] as const,
+        headerColors: ['#0a081c', '#1e1b4b', '#3730a3'] as const,
+        accentGlow: '#6366f1',
+      },
+    },
+  },
+  turquesa: {
+    name: 'Turquesa',
+    icon: 'water-outline',
+    preview: ['#164e63', '#0e7490', '#22d3ee'],
+    gradients: {
+      morning: {
+        colors: ['#155e75', '#0891b2', '#67e8f9'] as const,
+        headerColors: ['#164e63', '#155e75', '#0e7490'] as const,
+        accentGlow: '#67e8f9',
+      },
+      afternoon: {
+        colors: ['#164e63', '#0e7490', '#0891b2'] as const,
+        headerColors: ['#083344', '#164e63', '#155e75'] as const,
+        accentGlow: '#22d3ee',
+      },
+      evening: {
+        colors: ['#083344', '#164e63', '#155e75'] as const,
+        headerColors: ['#041c24', '#083344', '#164e63'] as const,
+        accentGlow: '#67e8f9',
+      },
+      night: {
+        colors: ['#020a0d', '#083344', '#164e63'] as const,
+        headerColors: ['#020a0d', '#083344', '#155e75'] as const,
+        accentGlow: '#0891b2',
+      },
+    },
+  },
+  orquidea: {
+    name: 'Orquídea',
+    icon: 'flower-outline',
+    preview: ['#701a75', '#a21caf', '#e879f9'],
+    gradients: {
+      morning: {
+        colors: ['#86198f', '#c026d3', '#f0abfc'] as const,
+        headerColors: ['#701a75', '#86198f', '#a21caf'] as const,
+        accentGlow: '#f0abfc',
+      },
+      afternoon: {
+        colors: ['#701a75', '#a21caf', '#c026d3'] as const,
+        headerColors: ['#4a044e', '#701a75', '#86198f'] as const,
+        accentGlow: '#e879f9',
+      },
+      evening: {
+        colors: ['#4a044e', '#701a75', '#86198f'] as const,
+        headerColors: ['#2c0230', '#4a044e', '#701a75'] as const,
+        accentGlow: '#f0abfc',
+      },
+      night: {
+        colors: ['#170117', '#4a044e', '#701a75'] as const,
+        headerColors: ['#170117', '#4a044e', '#86198f'] as const,
+        accentGlow: '#c026d3',
+      },
+    },
+  },
 };
 
 // Gradientes por defecto (usa el tema midnight - serio y profesional)
@@ -601,6 +728,88 @@ export const themePrimaryColors = {
       secondary: '#22d3ee', // cyan-400
       accent: '#818cf8', // indigo-400
       info: '#2dd4bf',
+      onPrimary: '#0f172a',
+    },
+  },
+  // ===== T6 — primaries for the four premium palettes (onPrimary AA-locked
+  // by themeContrast.test, which auto-enumerates every theme×mode) =====
+  granate: {
+    light: {
+      primary: '#b91c1c', // red-700
+      primaryLight: '#fee2e2', // red-100
+      primaryDark: '#991b1b', // red-800
+      secondary: '#dc2626', // red-600
+      accent: '#ef4444', // red-500
+      info: '#b91c1c',
+      onPrimary: '#ffffff',
+    },
+    dark: {
+      primary: '#f87171', // red-400
+      primaryLight: '#fca5a5', // red-300
+      primaryDark: '#dc2626', // red-600
+      secondary: '#ef4444',
+      accent: '#f87171',
+      info: '#f87171',
+      onPrimary: '#0f172a',
+    },
+  },
+  zafiro: {
+    light: {
+      primary: '#4338ca', // indigo-700
+      primaryLight: '#e0e7ff', // indigo-100
+      primaryDark: '#3730a3', // indigo-800
+      secondary: '#4f46e5', // indigo-600
+      accent: '#6366f1', // indigo-500
+      info: '#4338ca',
+      onPrimary: '#ffffff',
+    },
+    dark: {
+      primary: '#818cf8', // indigo-400
+      primaryLight: '#a5b4fc', // indigo-300
+      primaryDark: '#4f46e5', // indigo-600
+      secondary: '#6366f1',
+      accent: '#818cf8',
+      info: '#818cf8',
+      onPrimary: '#0f172a',
+    },
+  },
+  turquesa: {
+    light: {
+      primary: '#0e7490', // cyan-700
+      primaryLight: '#cffafe', // cyan-100
+      primaryDark: '#155e75', // cyan-800
+      secondary: '#0891b2', // cyan-600
+      accent: '#06b6d4', // cyan-500
+      info: '#0e7490',
+      onPrimary: '#ffffff',
+    },
+    dark: {
+      primary: '#22d3ee', // cyan-400
+      primaryLight: '#67e8f9', // cyan-300
+      primaryDark: '#0891b2', // cyan-600
+      secondary: '#06b6d4',
+      accent: '#22d3ee',
+      info: '#22d3ee',
+      onPrimary: '#0f172a',
+    },
+  },
+  orquidea: {
+    light: {
+      primary: '#a21caf', // fuchsia-700
+      primaryLight: '#fae8ff', // fuchsia-100
+      primaryDark: '#86198f', // fuchsia-800
+      secondary: '#c026d3', // fuchsia-600
+      accent: '#d946ef', // fuchsia-500
+      info: '#a21caf',
+      onPrimary: '#ffffff',
+    },
+    dark: {
+      primary: '#e879f9', // fuchsia-400
+      primaryLight: '#f0abfc', // fuchsia-300
+      primaryDark: '#c026d3', // fuchsia-600
+      secondary: '#d946ef',
+      accent: '#e879f9',
+      info: '#e879f9',
       onPrimary: '#0f172a',
     },
   },

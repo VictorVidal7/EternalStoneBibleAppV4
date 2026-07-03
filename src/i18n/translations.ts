@@ -2870,6 +2870,7 @@ export const translations = {
 
       colorTheme: 'Tema de Color',
       colorThemeDescription: 'Elige el estilo visual de la aplicación',
+      exclusiveThemeLabel: 'Exclusivo',
       keepAwakeTitle: 'Mantener pantalla encendida',
       keepAwakeDescription:
         'Evita que la pantalla se bloquee mientras lees, estudias, memorizas u oras.',
@@ -2886,6 +2887,10 @@ export const translations = {
         esmeralda: 'Esmeralda',
         arena: 'Arena',
         aurora: 'Aurora',
+        granate: 'Granate',
+        zafiro: 'Zafiro',
+        turquesa: 'Turquesa',
+        orquidea: 'Orquídea',
       },
 
       bibleVersion: 'Versión de la Biblia',
@@ -7749,6 +7754,7 @@ export const translations = {
 
       colorTheme: 'Color Theme',
       colorThemeDescription: 'Choose the visual style of the app',
+      exclusiveThemeLabel: 'Exclusive',
       keepAwakeTitle: 'Keep screen on',
       keepAwakeDescription:
         'Stop the screen from locking while you read, study, memorize or pray.',
@@ -7765,6 +7771,10 @@ export const translations = {
         esmeralda: 'Emerald',
         arena: 'Sand',
         aurora: 'Aurora',
+        granate: 'Garnet',
+        zafiro: 'Sapphire',
+        turquesa: 'Turquoise',
+        orquidea: 'Orchid',
       },
 
       bibleVersion: 'Bible Version',

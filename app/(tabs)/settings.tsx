@@ -19,7 +19,7 @@ import {centeredMaxWidth} from '@/styles/responsive';
 import React, {useEffect, useState, useMemo, useRef, useCallback} from 'react';
 import {Ionicons} from '@expo/vector-icons';
 import {useRouter, useFocusEffect} from 'expo-router';
-import {useTheme, colorThemes, ColorTheme, ThemeColors} from '@hooks/useTheme';
+import {useTheme, ThemeColors} from '@hooks/useTheme';
 import {LinearGradient} from 'expo-linear-gradient';
 import {useBibleVersion} from '@hooks/useBibleVersion';
 import {useLanguage} from '@hooks/useLanguage';
@@ -40,6 +40,7 @@ import ReadingGoalSettings from '@components/settings/ReadingGoalSettings';
 import {useReaderPreferences} from '@context/ReaderPreferencesContext';
 import ExtrasSettings from '@components/settings/ExtrasSettings';
 import DonationSettings from '@components/settings/DonationSettings';
+import ColorThemeSettings from '@components/settings/ColorThemeSettings';
 import {haptics} from '@lib/haptics';
 import Constants from 'expo-constants';
 
@@ -58,15 +59,7 @@ function getReadableTextColor(
 
 export default function SettingsScreen() {
   const router = useRouter();
-  const {
-    mode,
-    setThemeMode,
-    isDark,
-    colors,
-    colorTheme,
-    setColorTheme,
-    gradient,
-  } = useTheme();
+  const {mode, setThemeMode, isDark, colors, gradient} = useTheme();
   const {selectedVersion, setVersion, availableVersions} = useBibleVersion();
   const {language, setLanguage, t} = useLanguage();
   const {preferences: readerPrefs, setKeepScreenAwake} = useReaderPreferences();
@@ -136,11 +129,6 @@ export default function SettingsScreen() {
   async function handleThemeChange(newMode: ThemeOption) {
     haptics.tap();
     await setThemeMode(newMode);
-  }
-
-  async function handleColorThemeChange(newColorTheme: ColorTheme) {
-    haptics.press();
-    await setColorTheme(newColorTheme);
   }
 
   function handleResetData() {
@@ -345,55 +333,8 @@ export default function SettingsScreen() {
             </View>
           </View>
 
-          {/* Color Theme Selector - Compacto */}
-          <View style={themedStyles.cardWithMargin}>
-            <Text style={themedStyles.settingLabel}>
-              {t.settings.colorTheme}
-            </Text>
-            <Text style={themedStyles.settingDescription}>
-              {t.settings.colorThemeDescription}
-            </Text>
-
-            <View style={themedStyles.colorThemeGridCompact}>
-              {(Object.keys(colorThemes) as ColorTheme[]).map(themeKey => {
-                const theme = colorThemes[themeKey];
-                const isSelected = colorTheme === themeKey;
-                return (
-                  <TouchableOpacity
-                    key={themeKey}
-                    style={[
-                      themedStyles.colorThemeOptionCompact,
-                      isSelected && themedStyles.colorThemeOptionCompactActive,
-                    ]}
-                    onPress={() => handleColorThemeChange(themeKey)}>
-                    <View style={themedStyles.colorThemeCircleWrapper}>
-                      <LinearGradient
-                        colors={theme.preview as [string, string, string]}
-                        start={{x: 0, y: 0}}
-                        end={{x: 1, y: 1}}
-                        style={themedStyles.colorThemePreviewCompact}>
-                        {isSelected && (
-                          <Ionicons
-                            name="checkmark"
-                            size={13}
-                            color="#FFFFFF"
-                          />
-                        )}
-                      </LinearGradient>
-                    </View>
-                    <Text
-                      style={[
-                        themedStyles.colorThemeNameCompact,
-                        isSelected && themedStyles.colorThemeNameCompactActive,
-                      ]}
-                      numberOfLines={1}>
-                      {t.settings.colorThemeNames[themeKey]}
-                    </Text>
-                  </TouchableOpacity>
-                );
-              })}
-            </View>
-          </View>
+          {/* Color Theme Selector — extracted to ColorThemeSettings (T6) */}
+          <ColorThemeSettings />
 
           {/* Keep screen on while reading (UX review) */}
           <View style={themedStyles.cardWithMargin}>
@@ -1521,94 +1462,6 @@ function createThemedStyles(
     featureDescription: {
       fontSize: 13,
       color: colors.textSecondary,
-    },
-    colorThemeGrid: {
-      flexDirection: 'row',
-      flexWrap: 'wrap',
-      marginTop: 16,
-      gap: 12,
-    },
-    colorThemeOption: {
-      width: '30%',
-      alignItems: 'center',
-      padding: 8,
-      borderRadius: 12,
-      borderWidth: 2,
-      borderColor: staticColors.transparent,
-    },
-    colorThemeOptionActive: {
-      borderColor: colors.primary,
-      backgroundColor: colors.primaryLight,
-    },
-    colorThemePreview: {
-      width: 56,
-      height: 56,
-      borderRadius: 28,
-      justifyContent: 'center',
-      alignItems: 'center',
-      marginBottom: 6,
-    },
-    colorThemeName: {
-      fontSize: 12,
-      fontWeight: '600',
-      color: colors.textSecondary,
-      textAlign: 'center',
-    },
-    colorThemeNameActive: {
-      // En modo oscuro usar color oscuro para contrastar con fondo claro
-      color: isDark ? colors.primaryDark : colors.primary,
-    },
-    // Estilos compactos para el selector de temas
-    colorThemeGridCompact: {
-      flexDirection: 'row',
-      flexWrap: 'wrap',
-      marginTop: 12,
-      rowGap: 12,
-      // 6 swatches per row → the 12 themes sit in a tidy 2 rows (Sprint 82),
-      // evenly spread instead of three roomy rows of four.
-      justifyContent: 'space-between',
-    },
-    colorThemeOptionCompact: {
-      width: '15%',
-      alignItems: 'center',
-      paddingVertical: 4,
-      borderRadius: 10,
-      borderWidth: 2,
-      borderColor: staticColors.transparent,
-    },
-    colorThemeOptionCompactActive: {
-      borderColor: colors.primary,
-      backgroundColor: colors.primary + '40', // 25% opacity para coincidir con themeOptionActive
-    },
-    // Wrapper con borde circular para que el círculo sea visible en modo oscuro
-    colorThemeCircleWrapper: {
-      width: 34,
-      height: 34,
-      borderRadius: 17,
-      justifyContent: 'center',
-      alignItems: 'center',
-      borderWidth: isDark ? 1 : 0,
-      borderColor: isDark
-        ? staticColors.glassWhite25
-        : staticColors.transparent,
-      marginBottom: 4,
-    },
-    colorThemePreviewCompact: {
-      width: 30,
-      height: 30,
-      borderRadius: 15,
-      justifyContent: 'center',
-      alignItems: 'center',
-    },
-    colorThemeNameCompact: {
-      fontSize: 9,
-      fontWeight: '600',
-      color: colors.textSecondary,
-      textAlign: 'center',
-    },
-    colorThemeNameCompactActive: {
-      // Color primario para coincidir con el estilo del botón GitHub
-      color: colors.primary,
     },
   });
 }
