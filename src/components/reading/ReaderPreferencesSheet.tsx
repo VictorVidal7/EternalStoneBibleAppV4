@@ -390,7 +390,10 @@ export const ReaderPreferencesSheet: React.FC<ReaderPreferencesSheetProps> = ({
                             style={[
                               styles.exclusiveText,
                               {color: swatch.primary},
-                            ]}>
+                            ]}
+                            numberOfLines={1}
+                            adjustsFontSizeToFit
+                            minimumFontScale={0.75}>
                             {t.readerPrefs.exclusiveLabel}
                           </Text>
                         </View>
@@ -459,7 +462,10 @@ export const ReaderPreferencesSheet: React.FC<ReaderPreferencesSheetProps> = ({
                           style={[
                             styles.exclusiveText,
                             {color: colors.primary},
-                          ]}>
+                          ]}
+                          numberOfLines={1}
+                          adjustsFontSizeToFit
+                          minimumFontScale={0.75}>
                           {t.readerPrefs.exclusiveLabel}
                         </Text>
                       </View>

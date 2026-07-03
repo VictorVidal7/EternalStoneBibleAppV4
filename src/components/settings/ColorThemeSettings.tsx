@@ -146,7 +146,11 @@ export default function ColorThemeSettings() {
                     styles.exclusiveBadge,
                     {backgroundColor: colors.primary + '1a'},
                   ]}>
-                  <Text style={[styles.exclusiveText, {color: colors.primary}]}>
+                  <Text
+                    style={[styles.exclusiveText, {color: colors.primary}]}
+                    numberOfLines={1}
+                    adjustsFontSizeToFit
+                    minimumFontScale={0.75}>
                     {t.settings.exclusiveThemeLabel}
                   </Text>
                 </View>
