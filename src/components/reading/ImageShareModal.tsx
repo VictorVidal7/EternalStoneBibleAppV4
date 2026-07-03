@@ -27,7 +27,6 @@ import {LinearGradient} from 'expo-linear-gradient';
 import {captureRef} from 'react-native-view-shot';
 import * as Sharing from 'expo-sharing';
 import {haptics} from '@lib/haptics';
-import {useRouter} from 'expo-router';
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
 import {useTheme} from '../../hooks/useTheme';
 import {staticColors} from '../../styles/designTokens';
@@ -35,6 +34,7 @@ import {focusTrapProps} from '@lib/a11y/focusTrap';
 import {useLanguage} from '../../hooks/useLanguage';
 import {useToast} from '../../context/ToastContext';
 import {usePremium} from '../../context/PremiumContext';
+import {useOfferingSheet} from '../../context/OfferingSheetContext';
 import {useReaderPreferences} from '../../context/ReaderPreferencesContext';
 import {logger} from '../../lib/utils/logger';
 import {
@@ -91,8 +91,8 @@ export const ImageShareModal: React.FC<ImageShareModalProps> = ({
   const {colors, isDark} = useTheme();
   const {t} = useLanguage();
   const toast = useToast();
-  const router = useRouter();
   const {isPremium} = usePremium();
+  const {open: openOfferingSheet} = useOfferingSheet();
   const {preferences} = useReaderPreferences();
 
   const [themeIndex, setThemeIndex] = useState(0);
@@ -133,11 +133,10 @@ export const ImageShareModal: React.FC<ImageShareModalProps> = ({
   function handleSelectTemplate(template: ShareTemplate, index: number) {
     haptics.tap();
     if (!isTemplateUnlocked(template, isPremium)) {
-      // Locked premium design → send the user to the Settings upsell,
-      // mirroring the S50 verse-scrubber gate. Don't select it.
-      toast.info(`${t.premium.badge} · ${t.premium.upsellTap}`);
+      // Locked design → open the offering sheet directly instead of just
+      // sending the reader to Settings to go find it themselves.
       onClose();
-      router.push('/(tabs)/settings');
+      openOfferingSheet();
       return;
     }
     setThemeIndex(index);
@@ -303,7 +302,7 @@ export const ImageShareModal: React.FC<ImageShareModalProps> = ({
                       t.verse.imageStyleA11y.replace(
                         '{{n}}',
                         String(index + 1),
-                      ) + (unlocked ? '' : ` · ${t.premium.badge}`)
+                      ) + (unlocked ? '' : ` · ${t.offering.badgeA11y}`)
                     }
                     style={[
                       styles.styleCircle,
@@ -322,7 +321,7 @@ export const ImageShareModal: React.FC<ImageShareModalProps> = ({
                     {!unlocked && (
                       <View style={styles.lockBadge}>
                         <Ionicons
-                          name="lock-closed"
+                          name="leaf-outline"
                           size={11}
                           color="#FFFFFF"
                         />

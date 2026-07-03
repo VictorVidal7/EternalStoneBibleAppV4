@@ -85,6 +85,7 @@ import {AudioChapterAdvancer} from '@/features/audio/components/AudioChapterAdva
 import {AudioListeningTracker} from '@/features/audio/components/AudioListeningTracker';
 // Premium entitlement (Sprint 50 — local feature flag)
 import {PremiumProvider} from '@context/PremiumContext';
+import {OfferingSheetProvider} from '@context/OfferingSheetContext';
 import {
   refreshDailyVerseNotifications,
   refreshMemoryReminders,
@@ -355,11 +356,13 @@ export default function RootLayout() {
                                 <MemoryDeckProvider>
                                   <ToastProvider>
                                     <PremiumProvider>
-                                      <AudioPlayerProvider>
-                                        <ErrorBoundary>
-                                          <AppContent />
-                                        </ErrorBoundary>
-                                      </AudioPlayerProvider>
+                                      <OfferingSheetProvider>
+                                        <AudioPlayerProvider>
+                                          <ErrorBoundary>
+                                            <AppContent />
+                                          </ErrorBoundary>
+                                        </AudioPlayerProvider>
+                                      </OfferingSheetProvider>
                                     </PremiumProvider>
                                   </ToastProvider>
                                 </MemoryDeckProvider>

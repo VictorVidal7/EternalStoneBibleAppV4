@@ -38,7 +38,7 @@ import MemoryGoalSettings from '@components/settings/MemoryGoalSettings';
 import ManageVersionsSection from '@components/settings/ManageVersionsSection';
 import ReadingGoalSettings from '@components/settings/ReadingGoalSettings';
 import {useReaderPreferences} from '@context/ReaderPreferencesContext';
-import PremiumSettings from '@components/settings/PremiumSettings';
+import ExtrasSettings from '@components/settings/ExtrasSettings';
 import {haptics} from '@lib/haptics';
 import Constants from 'expo-constants';
 
@@ -672,8 +672,8 @@ export default function SettingsScreen() {
         {/* Memorization goal + review reminder (Sprint 47) */}
         <MemoryGoalSettings />
 
-        {/* Premium features — local unlock (Sprint 50) */}
-        <PremiumSettings />
+        {/* Extras unlocked by a voluntary offering (offering infrastructure tanda) */}
+        <ExtrasSettings />
 
         {/* New Features V5.1 Section */}
         <View style={themedStyles.section}>
