@@ -55,7 +55,7 @@ describe('ShareService localization', () => {
     expect(mockShareAsync).toHaveBeenCalledTimes(1);
     const [message, opts] = mockShareAsync.mock.calls[0];
     expect(opts.dialogTitle).toBe('Compartir versículo');
-    expect(message).toContain('✨ Compartido desde Eternal Bible');
+    expect(message).toContain('✨ Compartido desde Eternal Stone Bible');
   });
 
   it('uses the English dialog title and promo when language is en', async () => {
@@ -65,7 +65,7 @@ describe('ShareService localization', () => {
     expect(mockShareAsync).toHaveBeenCalledTimes(1);
     const [message, opts] = mockShareAsync.mock.calls[0];
     expect(opts.dialogTitle).toBe('Share verse');
-    expect(message).toContain('✨ Shared from Eternal Bible');
+    expect(message).toContain('✨ Shared from Eternal Stone Bible');
   });
 
   it('localizes the clipboard-fallback feedback when sharing is unavailable', async () => {
