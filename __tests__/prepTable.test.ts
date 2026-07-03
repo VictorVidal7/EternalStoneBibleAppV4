@@ -5,6 +5,7 @@ import {
   buildPrepTable,
   PREP_SECTIONS,
   PREP_MAX_CROSS_REFS,
+  PREP_MAX_CROSS_REFS_PREMIUM,
 } from '../src/features/study/prepTable';
 
 describe('prepTable — "Mesa de preparación" pure assembly', () => {
@@ -115,12 +116,42 @@ describe('prepTable — "Mesa de preparación" pure assembly', () => {
       expect(table.crossRefs).toEqual(['Romans/5/8']);
     });
 
-    it('caps the gathered cross-refs', () => {
+    it('caps the gathered cross-refs at the default (free) cap', () => {
       const many = Array.from({length: 30}, (_, i) => `Psalms/1/${i + 1}`);
       const table = buildPrepTable('John', 3, 16, 16, {
         getCrossRefs: () => many,
       })!;
       expect(table.crossRefs).toHaveLength(PREP_MAX_CROSS_REFS);
+      expect(PREP_MAX_CROSS_REFS).toBe(12);
+    });
+
+    // T8.4.2 — the caller (the screen) can raise the cap for a premium
+    // reader; the pure module itself never decides who gets which cap.
+    it('respects a caller-supplied maxCrossRefs above the default', () => {
+      const many = Array.from({length: 50}, (_, i) => `Psalms/1/${i + 1}`);
+      const table = buildPrepTable('John', 3, 16, 16, {
+        getCrossRefs: () => many,
+        maxCrossRefs: PREP_MAX_CROSS_REFS_PREMIUM,
+      })!;
+      expect(table.crossRefs).toHaveLength(PREP_MAX_CROSS_REFS_PREMIUM);
+      expect(PREP_MAX_CROSS_REFS_PREMIUM).toBeGreaterThan(PREP_MAX_CROSS_REFS);
+    });
+
+    it('respects a caller-supplied maxCrossRefs below the default too', () => {
+      const many = Array.from({length: 30}, (_, i) => `Psalms/1/${i + 1}`);
+      const table = buildPrepTable('John', 3, 16, 16, {
+        getCrossRefs: () => many,
+        maxCrossRefs: 3,
+      })!;
+      expect(table.crossRefs).toHaveLength(3);
+    });
+
+    it('falls back to the default cap when maxCrossRefs is omitted', () => {
+      const many = Array.from({length: 30}, (_, i) => `Psalms/1/${i + 1}`);
+      const table = buildPrepTable('John', 3, 16, 16, {
+        getCrossRefs: () => many,
+      })!;
+      expect(table.crossRefs).toHaveLength(12);
     });
 
     it('survives a getCrossRefs that returns junk', () => {

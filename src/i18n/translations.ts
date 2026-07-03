@@ -887,6 +887,21 @@ export const translations = {
       openHint: 'Abrir pasaje',
       error: 'No se pudo abrir la mesa de preparación',
       missingPassage: 'Elige un pasaje para comenzar.',
+      exclusiveLabel: 'Exclusivo',
+      // T8.4.2 — cross-refs ampliados (premium) + "Palabras clave en el
+      // idioma original" (enteramente premium).
+      crossRefsMore: '+{{n}} más con una ofrenda',
+      originalWordsTitle: 'Palabras clave en el idioma original',
+      originalWordsBlurb:
+        'Cada palabra distinta del hebreo o griego de este pasaje, con transliteración, glosa, Strong y morfología.',
+      originalWordsCount: '{{n}} palabras distintas',
+      originalWordsCountOne: '1 palabra distinta',
+      originalWordsEmpty:
+        'No hay palabras del idioma original marcadas para este pasaje.',
+      originalWordsLockedBody:
+        'Desbloquea con una ofrenda las palabras clave del hebreo y griego de todo el pasaje, ya decodificadas: transliteración, glosa, Strong y morfología.',
+      originalWordsNotInstalledBody:
+        'Descarga el paquete de idiomas originales para ver las palabras clave en hebreo y griego de todo el pasaje.',
       sections: {
         context: {
           label: 'Contexto',
@@ -5871,6 +5886,21 @@ export const translations = {
       openHint: 'Open passage',
       error: 'Could not open the preparation table',
       missingPassage: 'Choose a passage to begin.',
+      exclusiveLabel: 'Exclusive',
+      // T8.4.2 — expanded cross-refs (premium) + "Keywords in the original
+      // language" (entirely premium).
+      crossRefsMore: '+{{n}} more with an offering',
+      originalWordsTitle: 'Keywords in the original language',
+      originalWordsBlurb:
+        'Every distinct Hebrew or Greek word in this passage, with transliteration, gloss, Strong’s number and morphology.',
+      originalWordsCount: '{{n}} distinct words',
+      originalWordsCountOne: '1 distinct word',
+      originalWordsEmpty:
+        'No original-language words are tagged for this passage.',
+      originalWordsLockedBody:
+        'Unlock with an offering the Hebrew and Greek keywords for the whole passage, already decoded: transliteration, gloss, Strong’s number and morphology.',
+      originalWordsNotInstalledBody:
+        'Download the original-languages pack to see the Hebrew/Greek keywords for the whole passage.',
       sections: {
         context: {
           label: 'Context',

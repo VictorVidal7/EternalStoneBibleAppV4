@@ -74,6 +74,21 @@ jest.mock('@react-native-async-storage/async-storage', () => ({
   setItem: jest.fn(async () => undefined),
 }));
 
+// T8.4.2 — the screen now always mounts an offering-badge teaser for the new
+// "Palabras clave en el idioma original" section, which needs this context.
+jest.mock('@context/OfferingSheetContext', () => ({
+  useOfferingSheet: () => ({open: jest.fn()}),
+}));
+
+// T8.4.2 — imported unconditionally by the screen (only actually called once
+// premium); mocked here so the real expo-file-system-backed module never
+// loads in this free-reader test, same precaution as the OriginalLanguages
+// premium tests.
+jest.mock('@lib/database/originals-download-service', () => ({
+  downloadAndImportOriginals: jest.fn(),
+  importLocalOriginalsIfPresent: jest.fn(async () => false),
+}));
+
 jest.mock('@lib/database', () => ({
   __esModule: true,
   default: {
