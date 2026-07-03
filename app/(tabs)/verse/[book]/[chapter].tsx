@@ -6,7 +6,6 @@ import {
   TouchableOpacity,
   ActivityIndicator,
   AccessibilityInfo,
-  Alert,
   Modal,
   Share,
   Platform,
@@ -1476,7 +1475,7 @@ export default function VerseReadingScreen() {
       const prevBook = getBookById(bookInfo.id - 1);
       if (!prevBook) {
         haptics.warning();
-        Alert.alert(t.app.endOfBook, t.app.firstChapterMessage);
+        toast.warning(t.app.firstChapterMessage);
         return;
       }
       targetBook = prevBook.name;
@@ -1485,7 +1484,7 @@ export default function VerseReadingScreen() {
       const nextBook = getBookById(bookInfo.id + 1);
       if (!nextBook) {
         haptics.warning();
-        Alert.alert(t.app.endOfBook, t.app.endOfBookMessage);
+        toast.warning(t.app.endOfBookMessage);
         return;
       }
       targetBook = nextBook.name;

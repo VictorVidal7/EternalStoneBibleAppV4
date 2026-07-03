@@ -2,10 +2,13 @@
  * ShareService is a non-React static service, so it reads the active language
  * imperatively via languageUtils.getTranslations(). These tests prove the
  * native share dialog title, the in-message app promo, and the clipboard
- * fallback alert are localized (es/en) instead of hardcoded Spanish.
+ * fallback feedback are localized (es/en) instead of hardcoded Spanish.
+ *
+ * The clipboard fallback used to fire a native Alert.alert; it now calls an
+ * optional `onFeedback(variant, message)` callback (UX audit, 2026-07) so the
+ * caller can route it through its own themed `useToast()` instead.
  */
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import {Alert} from 'react-native';
 
 const mockShareAsync = jest.fn().mockResolvedValue(undefined);
 const mockIsAvailableAsync = jest.fn().mockResolvedValue(true);
@@ -65,19 +68,17 @@ describe('ShareService localization', () => {
     expect(message).toContain('✨ Shared from Eternal Bible');
   });
 
-  it('localizes the clipboard-fallback alert when sharing is unavailable', async () => {
-    const alertSpy = jest.spyOn(Alert, 'alert').mockImplementation(() => {});
+  it('localizes the clipboard-fallback feedback when sharing is unavailable', async () => {
+    const onFeedback = jest.fn();
     mockIsAvailableAsync.mockResolvedValue(false);
 
     await setLanguage('en');
-    await ShareService.shareVerse(verse, 'John 3:16');
+    await ShareService.shareVerse(verse, 'John 3:16', {}, onFeedback);
 
     expect(mockSetStringAsync).toHaveBeenCalledTimes(1);
-    expect(alertSpy).toHaveBeenCalledWith(
-      'Copied',
+    expect(onFeedback).toHaveBeenCalledWith(
+      'success',
       'The content was copied to the clipboard',
-      [{text: 'OK'}],
     );
-    alertSpy.mockRestore();
   });
 });
