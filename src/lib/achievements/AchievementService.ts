@@ -99,6 +99,20 @@ export class AchievementService {
       )
     `);
 
+    // Forward-only ledger of distinct (book, chapter) pairs ever read to
+    // completion (the reader's 5s dwell timer). Authoritative source for
+    // `total_chapters_read` so re-opening an already-read chapter can never
+    // inflate the CHAPTERS achievement category — same fix shape as
+    // `completed_books`/`total_books_completed`. Additive, no migration.
+    await db.execAsync(`
+      CREATE TABLE IF NOT EXISTS chapters_read_log (
+        book_name TEXT NOT NULL,
+        chapter INTEGER NOT NULL,
+        first_read_at INTEGER NOT NULL,
+        PRIMARY KEY (book_name, chapter)
+      )
+    `);
+
     await db.runAsync(
       'INSERT OR IGNORE INTO user_stats (id, updated_at) VALUES (?, ?)',
       [1, Date.now()],
@@ -318,13 +332,28 @@ export class AchievementService {
   }
 
   /**
-   * Tracks completed chapter
+   * Tracks a completed chapter. Deduplicated by (book, chapter) via
+   * `chapters_read_log` — re-reading the same chapter again is a no-op for
+   * `total_chapters_read` (previously this incremented unconditionally on
+   * every 5s dwell, so revisiting one chapter 5 times inflated the CHAPTERS
+   * achievement category by 5).
    */
-  async trackChapterCompleted(): Promise<Achievement[]> {
-    this.stats = null;
+  async trackChapterCompleted(
+    bookName: string,
+    chapter: number,
+  ): Promise<Achievement[]> {
+    const canonical = canonicalBookName(bookName) ?? bookName;
+    const now = Date.now();
     await this.db.executeSql(
-      'UPDATE user_stats SET total_chapters_read = total_chapters_read + 1, updated_at = ? WHERE id = 1',
-      [Date.now()],
+      'INSERT OR IGNORE INTO chapters_read_log (book_name, chapter, first_read_at) VALUES (?, ?, ?)',
+      [canonical, chapter, now],
+    );
+    this.stats = null;
+    // Authoritative count from the ledger — can't drift or double-count,
+    // same pattern as `total_books_completed`.
+    await this.db.executeSql(
+      'UPDATE user_stats SET total_chapters_read = (SELECT COUNT(*) FROM chapters_read_log), updated_at = ? WHERE id = 1',
+      [now],
     );
     return await this.checkAchievements();
   }

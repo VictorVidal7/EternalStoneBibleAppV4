@@ -650,8 +650,11 @@ export default function VerseReadingScreen() {
           canonicalBook,
         );
 
-        // Track chapter completed
-        await achievementService.trackChapterCompleted();
+        // Track chapter completed (deduplicated by book+chapter in the service)
+        await achievementService.trackChapterCompleted(
+          canonicalBook,
+          chapterNum,
+        );
 
         // Auto-complete any reading-plan day whose chapters are now all read.
         try {

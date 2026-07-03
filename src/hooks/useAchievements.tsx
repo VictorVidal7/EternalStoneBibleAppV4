@@ -81,22 +81,25 @@ export function useAchievements(database: BibleDatabase | null) {
   /**
    * Registra capítulo completado
    */
-  const trackChapterCompleted = useCallback(async () => {
-    if (!service) return;
+  const trackChapterCompleted = useCallback(
+    async (bookName: string, chapter: number) => {
+      if (!service) return;
 
-    const unlocked = await service.trackChapterCompleted();
-    if (unlocked.length > 0) {
-      setNewUnlocks(unlocked);
-    }
+      const unlocked = await service.trackChapterCompleted(bookName, chapter);
+      if (unlocked.length > 0) {
+        setNewUnlocks(unlocked);
+      }
 
-    const [updatedAchievements, updatedStats] = await Promise.all([
-      service.getAllAchievements(),
-      service.getUserStats(),
-    ]);
+      const [updatedAchievements, updatedStats] = await Promise.all([
+        service.getAllAchievements(),
+        service.getUserStats(),
+      ]);
 
-    setAchievements(updatedAchievements);
-    setStats(updatedStats);
-  }, [service]);
+      setAchievements(updatedAchievements);
+      setStats(updatedStats);
+    },
+    [service],
+  );
 
   /**
    * Registra highlight
