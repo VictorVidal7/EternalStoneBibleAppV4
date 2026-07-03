@@ -47,6 +47,7 @@ import {
   decodeMorphologyCode,
   describeMorphology,
 } from '@/features/study/morphologyDecoder';
+import {InterlinearSheet} from './InterlinearSheet';
 import {
   downloadAndImportOriginals,
   importLocalOriginalsIfPresent,
@@ -96,6 +97,7 @@ export const OriginalLanguagesSheet: React.FC<Props> = ({
   const [defExpanded, setDefExpanded] = useState(false);
   const [downloading, setDownloading] = useState(false);
   const [progress, setProgress] = useState(0);
+  const [interlinearVisible, setInterlinearVisible] = useState(false);
 
   const loadWords = useCallback(async () => {
     if (sourceVerse == null) return;
@@ -174,6 +176,19 @@ export const OriginalLanguagesSheet: React.FC<Props> = ({
     },
     [onClose, router, version, glossLang],
   );
+
+  // "Interlineal visual" (T8.3) — the real interlinear layout (original word
+  // order, horizontal, with the fluent translation as a reference line) is
+  // offering-unlocked; tapping it while free opens the offering sheet instead
+  // of the exclusive view.
+  const handleOpenInterlinear = useCallback(() => {
+    haptics.tap();
+    if (!isPremium) {
+      openOfferingSheet();
+      return;
+    }
+    setInterlinearVisible(true);
+  }, [isPremium, openOfferingSheet]);
 
   const sourceLabel =
     sourceVerse != null
@@ -485,17 +500,103 @@ export const OriginalLanguagesSheet: React.FC<Props> = ({
               </Text>
             </View>
           ) : (
-            <ScrollView
-              style={styles.list}
-              contentContainerStyle={styles.listContent}>
-              {words.map(renderWord)}
-              <Text style={[styles.attribution, {color: colors.textTertiary}]}>
-                {o.attribution}
-              </Text>
-            </ScrollView>
+            <>
+              <TouchableOpacity
+                style={[
+                  styles.interlinearRow,
+                  {
+                    backgroundColor: colors.primary + '0F',
+                    borderColor: colors.primary + '33',
+                  },
+                ]}
+                onPress={handleOpenInterlinear}
+                accessibilityRole="button"
+                accessibilityLabel={
+                  isPremium
+                    ? o.interlinearOpen
+                    : `${o.interlinearTitle} — ${t.offering.badgeA11y}`
+                }
+                accessibilityHint={o.interlinearBlurb}>
+                <View style={styles.interlinearRowText}>
+                  <View style={styles.interlinearTitleRow}>
+                    <Ionicons
+                      name="grid-outline"
+                      size={15}
+                      color={colors.primary}
+                    />
+                    <Text
+                      style={[styles.interlinearTitle, {color: colors.text}]}
+                      numberOfLines={1}>
+                      {o.interlinearTitle}
+                    </Text>
+                    <View
+                      style={[
+                        styles.exclusiveBadge,
+                        {backgroundColor: colors.primary + '1a'},
+                      ]}>
+                      <Text
+                        style={[styles.exclusiveText, {color: colors.primary}]}>
+                        {o.exclusiveLabel}
+                      </Text>
+                    </View>
+                  </View>
+                  <Text
+                    style={[
+                      styles.interlinearBlurb,
+                      {color: colors.textSecondary},
+                    ]}
+                    numberOfLines={1}>
+                    {o.interlinearBlurb}
+                  </Text>
+                </View>
+                <View
+                  style={[
+                    styles.interlinearButton,
+                    {
+                      backgroundColor: isPremium
+                        ? colors.primary
+                        : colors.primary + '1a',
+                    },
+                  ]}>
+                  {isPremium ? (
+                    <Ionicons
+                      name="chevron-forward"
+                      size={18}
+                      color={staticColors.white}
+                    />
+                  ) : (
+                    <Ionicons
+                      name="leaf-outline"
+                      size={16}
+                      color={colors.primary}
+                    />
+                  )}
+                </View>
+              </TouchableOpacity>
+
+              <ScrollView
+                style={styles.list}
+                contentContainerStyle={styles.listContent}>
+                {words.map(renderWord)}
+                <Text
+                  style={[styles.attribution, {color: colors.textTertiary}]}>
+                  {o.attribution}
+                </Text>
+              </ScrollView>
+            </>
           )}
         </View>
       </View>
+
+      <InterlinearSheet
+        visible={interlinearVisible}
+        sourceBook={sourceBook}
+        sourceChapter={sourceChapter}
+        sourceVerse={sourceVerse}
+        version={version}
+        words={words}
+        onClose={() => setInterlinearVisible(false)}
+      />
     </Modal>
   );
 };
@@ -557,6 +658,32 @@ const styles = StyleSheet.create({
   },
   downloadButtonDisabled: {opacity: 0.7},
   downloadText: {fontSize: fontSizes.md, fontWeight: '700'},
+  interlinearRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginHorizontal: spacing.lg,
+    marginBottom: spacing.md,
+    padding: spacing.md,
+    borderRadius: borderRadius.md,
+    borderWidth: StyleSheet.hairlineWidth,
+    gap: spacing.sm,
+  },
+  interlinearRowText: {flex: 1, gap: 2},
+  interlinearTitleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.xs,
+  },
+  interlinearTitle: {fontSize: fontSizes.sm, fontWeight: '700', flexShrink: 1},
+  interlinearBlurb: {fontSize: fontSizes.xs},
+  interlinearButton: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
   list: {flexGrow: 0},
   listContent: {
     paddingHorizontal: spacing.lg,
