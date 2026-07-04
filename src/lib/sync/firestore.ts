@@ -24,20 +24,46 @@ interface FirestoreInstance {
   // Native module also exposes batch, runTransaction etc., not needed yet.
 }
 
-interface CollectionRef {
-  doc: (id: string) => DocumentRef;
+/** Firestore inequality/equality operators we use for cursor queries. */
+type WhereFilterOp =
+  | '<'
+  | '<='
+  | '=='
+  | '!='
+  | '>='
+  | '>'
+  | 'array-contains'
+  | 'in'
+  | 'array-contains-any'
+  | 'not-in';
+
+/**
+ * Quota hardening — a Firestore Query (the result of `.where()`, or a
+ * bare collection reference before any filter is applied). Chainable,
+ * mirroring the real `@react-native-firebase/firestore` Query API, so
+ * callers can build `collection.where(...).orderBy(...).limit(...)`.
+ */
+interface Query {
+  where: (field: string, op: WhereFilterOp, value: unknown) => Query;
+  orderBy: (field: string, direction?: 'asc' | 'desc') => Query;
+  limit: (n: number) => Query;
   onSnapshot: (
     onNext: (snapshot: QuerySnapshot) => void,
     onError?: (err: Error) => void,
   ) => () => void;
   /**
-   * Sprint 49 — one-shot read of every doc in the collection. Used by
+   * Sprint 49 — one-shot read of every doc matching the query. Used by
    * the conflict-analytics dashboard to read the resolved-conflict audit
    * log (users/{uid}/conflicts), which is NOT a synced dataset (no
    * onSnapshot listener / no local mirror) — just an append-only log we
-   * read on demand.
+   * read on demand. Quota hardening reuses it (with a `.where()` filter)
+   * for the reviewEvents cloud-only cleanup sweep.
    */
   get: () => Promise<QuerySnapshot>;
+}
+
+interface CollectionRef extends Query {
+  doc: (id: string) => DocumentRef;
 }
 
 interface DocumentRef {
@@ -124,5 +150,7 @@ export type {
   DocumentSnapshot,
   FirestoreFn,
   FirestoreInstance,
+  Query,
   QuerySnapshot,
+  WhereFilterOp,
 };
