@@ -26,10 +26,16 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {logger} from '@lib/utils/logger';
 import {
+  isReviewEventEligibleForCloudCleanup,
+  REVIEW_EVENT_SYNC_WINDOW_MS,
+} from '@lib/memory/reviewEvents';
+import {
   getFirestore,
   type CollectionRef,
   type DocumentChange,
   type FirestoreFn,
+  type Query,
+  type QuerySnapshot,
 } from './firestore';
 import {getNetInfo, isStateOnline} from './netinfo';
 import {deepWithoutUndefined} from './sanitize';
@@ -81,6 +87,54 @@ const FLUSH_INTERVAL_MS = 60000;
 const CONFLICT_WINDOW_MS = 30000;
 
 /**
+ * Quota hardening — per-collection incremental sync cursor.
+ *
+ * Before this change, `attachListener` opened an UNFILTERED
+ * `onSnapshot` on the whole collection: every reattach (app cold start,
+ * reinstall, a cache that didn't survive) re-delivered EVERY existing
+ * doc as an "added" change, billed as one Firestore read per doc. For
+ * an account with years of favorites/notes/highlights/etc. that's a
+ * full-history re-read on every single app start.
+ *
+ * The fix: persist, per collection, the highest `updatedAt` we've ever
+ * successfully observed (AsyncStorage key `@sync_cursor_{collection}:
+ * {uid}` — see `cursorStorageKey`), and attach the listener with
+ * `where('updatedAt', '>=', cursor - CURSOR_SAFETY_MARGIN_MS)` instead
+ * of no filter at all. A brand-new user/device has no persisted cursor
+ * (defaults to 0), so the first-ever attach still pulls full history —
+ * that's a one-time, expected cost, not a recurring one.
+ *
+ * `updatedAt` is a CLIENT clock timestamp (`Date.now()` at queue time),
+ * not a Firestore server timestamp — see `queueWrite`/`queueDelete`. Two
+ * devices' clocks are never perfectly in sync, so a naive cursor could
+ * permanently exclude a genuinely-new write from a device whose clock
+ * runs behind the device that set the cursor. CURSOR_SAFETY_MARGIN_MS
+ * is a deliberate over-fetch buffer: as long as any two devices sharing
+ * an account are within this many ms of each other, no write is ever
+ * permanently missed — we'd just re-read (never lose) a few extra
+ * minutes' worth of already-seen docs on reattach. This directly serves
+ * this project's rule that a quota optimization must never risk losing
+ * a user's data; see the "residual risks" write-up in the commit that
+ * introduced this constant for the (narrow, accepted) case this doesn't
+ * fully cover: clock skew LARGER than this margin between two devices.
+ */
+export const CURSOR_SAFETY_MARGIN_MS = 5 * 60 * 1000; // 5 minutes
+
+const CURSOR_STORAGE_PREFIX = '@sync_cursor_';
+
+/**
+ * Quota hardening — reviewEvents is the one synced collection that grows
+ * WITHOUT bound (every review appends a new immutable event; nothing
+ * ever removes one locally). This caps how many stale docs one
+ * `cleanupOldReviewEvents` pass deletes from Firestore per engine
+ * start(), so a very long-lived account's first cleanup after this
+ * feature ships can't turn a single app launch into an unbounded delete
+ * spree. Any leftover old docs are simply caught on the NEXT start() —
+ * the cleanup is idempotent and safe to run partially.
+ */
+export const REVIEW_EVENTS_CLEANUP_BATCH_SIZE = 200;
+
+/**
  * Sprint 46 — map a logical doc id to a Firestore-safe doc id and back.
  *
  * Some collections key on ids that contain "/" — memoryCards use the
@@ -100,6 +154,18 @@ function toDocId(id: string): string {
 
 function fromDocId(docId: string): string {
   return docId.replace(/~/g, '/');
+}
+
+/**
+ * Quota hardening — the AsyncStorage key a collection's sync cursor is
+ * persisted under. Exported (not just internal) so tests can seed/assert
+ * a cursor without duplicating the string format. Scoped by uid so
+ * signing out of one account and into another on the same device can
+ * never reuse the wrong account's cursor (see `stop()`, which also
+ * clears the in-memory cursor cache on every uid change).
+ */
+export function cursorStorageKey(collection: string, uid: string): string {
+  return `${CURSOR_STORAGE_PREFIX}${collection}:${uid}`;
 }
 
 /** Deep equality good enough for our small payloads (text, tags arrays, etc).
@@ -140,6 +206,15 @@ export class SyncEngine {
   private suppressLocalWriteCount = 0;
   /** Sprint 43 — active conflicts awaiting user resolution. */
   private conflicts: ConflictRecord[] = [];
+  /**
+   * Quota hardening — in-memory cache of each collection's sync cursor
+   * (highest `updatedAt` observed), mirrored to AsyncStorage on every
+   * advance. Keyed by collection name only — safe because it is fully
+   * cleared on every `stop()`, and `start()` always calls `stop()` first
+   * when the uid changes, so it can never leak one account's cursor into
+   * another's session on the same device.
+   */
+  private cursors = new Map<string, number>();
   /** Sprint 43 — when set, the next maybeRunInitialBulkPush persists the
    *  done-flag without actually queueing any rows. Used by the migration
    *  flow in AuthContext when the user opts out of migrating anonymous
@@ -214,11 +289,38 @@ export class SyncEngine {
     this.subscribeNetInfo();
     this.startPeriodicFlush();
 
-    // Attach a listener per already-registered adapter.
-    for (const adapter of this.adapters.values()) {
-      // Fire and forget — each listener manages its own errors.
-      void this.attachListener(adapter);
-    }
+    // Quota hardening — purge cloud-only reviewEvents older than the
+    // 12-month sync window BEFORE any listener attaches. Awaited so the
+    // deletes complete first: a freshly-attached (cursor-less) listener
+    // on a brand-new device would otherwise be able to observe these
+    // docs disappear as a live 'removed' change mid-session, and while
+    // the reviewEvents adapter treats that as a no-op (see
+    // adapters/reviewEvents.ts), attaching AFTER cleanup means the
+    // listener's very first snapshot never includes them at all — one
+    // less edge case to reason about. Best-effort: a failure here must
+    // never block sync from starting for the other 5 collections.
+    await this.cleanupOldReviewEvents(uid).catch(err => {
+      logger.warn('SyncEngine: cleanupOldReviewEvents failed', {
+        component: 'SyncEngine',
+        uid,
+        error: err instanceof Error ? err.message : String(err),
+      });
+    });
+
+    // Attach a listener per already-registered adapter. Awaited — unlike
+    // before this tanda, attachListener now does a genuine async step
+    // (loading the collection's persisted cursor from AsyncStorage), so
+    // it can no longer be treated as "effectively synchronous, fire and
+    // forget". Awaiting here keeps start()'s contract intact: any code
+    // (screens, tests, other contexts) that assumes listeners are live
+    // once `await engine.start(uid)` resolves still gets that guarantee.
+    // Each attach still manages its own errors internally (logged, never
+    // thrown), so one failing collection can't block the others.
+    await Promise.all(
+      Array.from(this.adapters.values()).map(adapter =>
+        this.attachListener(adapter),
+      ),
+    );
 
     // Initial bulk push: if we've never pushed for this uid, snapshot
     // every adapter and queue everything. This is what runs after
@@ -244,6 +346,11 @@ export class SyncEngine {
     // time. If the user signs back in, fresh onSnapshot events will
     // re-detect any still-divergent docs.
     this.conflicts = [];
+    // Quota hardening — drop the in-memory cursor cache so a later
+    // start() (same uid signing back in, or a DIFFERENT uid on the same
+    // device) always re-derives cursors from AsyncStorage (uid-scoped
+    // keys) rather than risking a stale value leaking across accounts.
+    this.cursors.clear();
     this.updateState({
       isActive: false,
       isSyncing: false,
@@ -446,7 +553,31 @@ export class SyncEngine {
       );
       return;
     }
-    const off = collectionRef.onSnapshot(
+
+    // Quota hardening — filter the live listener to docs changed at or
+    // after our persisted cursor (minus the clock-skew safety margin —
+    // see CURSOR_SAFETY_MARGIN_MS) instead of the whole collection. A
+    // cursor-less collection (new user, new device, or a collection this
+    // uid has never synced before) defaults to 0, so `where('updatedAt',
+    // '>=', 0)` matches everything — the first attach still pulls full
+    // history, exactly as before this change.
+    const cursor = await this.loadCursor(adapter.collection);
+    const queryFloor = Math.max(0, cursor - CURSOR_SAFETY_MARGIN_MS);
+    let query: Query = collectionRef;
+    try {
+      query = collectionRef.where('updatedAt', '>=', queryFloor);
+    } catch (err) {
+      // Defensive fallback — prefer an unfiltered (more expensive but
+      // never wrong) listener over not syncing this collection at all.
+      logger.warn('SyncEngine: where() query build failed, using no filter', {
+        component: 'SyncEngine',
+        collection: adapter.collection,
+        error: err instanceof Error ? err.message : String(err),
+      });
+      query = collectionRef;
+    }
+
+    const off = query.onSnapshot(
       snapshot => {
         void this.handleSnapshot(adapter, snapshot.docChanges());
       },
@@ -467,6 +598,15 @@ export class SyncEngine {
   ): Promise<void> {
     if (changes.length === 0) return;
     this.updateState({isSyncing: true});
+    // Quota hardening — highest `updatedAt` observed in THIS batch, used
+    // to advance the collection's sync cursor once we're done. Tracked
+    // regardless of whether a change was actually applied locally: this
+    // must also advance for LWW-ignored "echoes" of this device's own
+    // writes (queueWrite triggers the same listener), or every reattach
+    // would keep re-reading docs we already know about. See the
+    // CURSOR_SAFETY_MARGIN_MS comment for why "advance the cursor" and
+    // "never lose a change" aren't in tension here.
+    let maxSeenUpdatedAt = 0;
     try {
       for (const change of changes) {
         // Decode the Firestore doc id back to the logical id (see toDocId):
@@ -475,7 +615,10 @@ export class SyncEngine {
         const data = change.doc.data();
         if (change.type === 'removed' || !data) {
           // Hard remove (rare — we soft-delete via tombstone). Treat
-          // same as a deleted-true upsert: drop the local row.
+          // same as a deleted-true upsert: drop the local row. No
+          // timestamp to advance the cursor by — safe to skip: a
+          // genuinely-removed doc can never be re-delivered as "added"
+          // by a future reattach anyway (it no longer exists).
           await this.withLocalWriteSuppressed(() =>
             adapter.applyRemoteDelete(id),
           );
@@ -488,6 +631,27 @@ export class SyncEngine {
           deleted: remote.deleted === true,
         };
         await this.applyRemoteChange(adapter, remoteChange);
+
+        // Quota hardening — withhold this doc's contribution to the
+        // cursor if it is STILL a pending conflict after the call above.
+        // A held conflict hasn't been applied anywhere yet (the user
+        // hasn't picked a winner), so folding its timestamp into the
+        // cursor could make a future reattach's query floor exclude it
+        // before it's ever resolved — resolveConflict() advances the
+        // cursor itself once the doc is actually settled (see below).
+        const stillConflicted = this.conflicts.some(
+          c => c.collection === adapter.collection && c.docId === id,
+        );
+        if (
+          !stillConflicted &&
+          typeof remote.updatedAt === 'number' &&
+          remote.updatedAt > maxSeenUpdatedAt
+        ) {
+          maxSeenUpdatedAt = remote.updatedAt;
+        }
+      }
+      if (maxSeenUpdatedAt > 0) {
+        await this.advanceCursor(adapter.collection, maxSeenUpdatedAt);
       }
       this.updateState({lastSyncedAt: Date.now(), lastError: null});
     } catch (err) {
@@ -551,6 +715,170 @@ export class SyncEngine {
       await this.withLocalWriteSuppressed(() =>
         adapter.applyRemoteUpsert(id, data),
       );
+    }
+  }
+
+  // ---------- private: sync cursor (quota hardening) ----------
+
+  /**
+   * Load a collection's persisted cursor (highest `updatedAt` we've ever
+   * successfully observed for this uid), caching it in-memory for the
+   * rest of the session. Returns 0 (= "sync everything") when nothing is
+   * persisted yet — a brand-new user, a reinstall/new device
+   * (AsyncStorage is gone), or a collection this uid has simply never
+   * synced before. That 0 is exactly what makes the "new device still
+   * gets full history" guarantee hold: there is no special-case branch
+   * for it anywhere else, it falls straight out of this default.
+   */
+  private async loadCursor(collection: string): Promise<number> {
+    const cached = this.cursors.get(collection);
+    if (cached !== undefined) return cached;
+    let value = 0;
+    if (this.uid) {
+      try {
+        const raw = await AsyncStorage.getItem(
+          cursorStorageKey(collection, this.uid),
+        );
+        const parsed = raw != null ? Number(raw) : NaN;
+        if (Number.isFinite(parsed) && parsed > 0) value = parsed;
+      } catch (err) {
+        logger.warn('SyncEngine: failed to read sync cursor', {
+          component: 'SyncEngine',
+          collection,
+          error: err instanceof Error ? err.message : String(err),
+        });
+        // Fall through with value = 0 — worst case we re-read the whole
+        // collection once more than strictly necessary, never less.
+      }
+    }
+    this.cursors.set(collection, value);
+    return value;
+  }
+
+  /**
+   * Advance a collection's cursor to `seenUpdatedAt` if it's newer than
+   * what we already have, persisting the new value to AsyncStorage. A
+   * no-op — not an error — when `seenUpdatedAt` isn't actually newer:
+   * batches can legitimately re-deliver older docs than we've already
+   * advanced past (that's the whole point of CURSOR_SAFETY_MARGIN_MS),
+   * and the cursor must never move BACKWARD.
+   */
+  private async advanceCursor(
+    collection: string,
+    seenUpdatedAt: number,
+  ): Promise<void> {
+    if (!this.uid) return;
+    if (!Number.isFinite(seenUpdatedAt) || seenUpdatedAt <= 0) return;
+    const current = this.cursors.get(collection) ?? 0;
+    if (seenUpdatedAt <= current) return;
+    this.cursors.set(collection, seenUpdatedAt);
+    try {
+      await AsyncStorage.setItem(
+        cursorStorageKey(collection, this.uid),
+        String(seenUpdatedAt),
+      );
+    } catch (err) {
+      logger.warn('SyncEngine: failed to persist sync cursor', {
+        component: 'SyncEngine',
+        collection,
+        error: err instanceof Error ? err.message : String(err),
+      });
+      // Best-effort — the in-memory cursor still advanced for the rest
+      // of THIS session (we won't re-process this batch again now), and
+      // if the process dies before a later write persists it, the next
+      // session simply falls back to an older cursor and re-reads a bit
+      // more than strictly necessary. Never less.
+    }
+  }
+
+  // ---------- private: reviewEvents cloud-only cleanup (quota hardening) ----------
+
+  /**
+   * Delete reviewEvents docs from Firestore whose `updatedAt` is older
+   * than the 12-month sync window (REVIEW_EVENT_SYNC_WINDOW_MS) for
+   * `uid`. Called once per engine start() — not on a timer/tick — so a
+   * single session pays a bounded, occasional cost instead of a
+   * recurring one; any leftovers past the batch cap are simply caught on
+   * the next start().
+   *
+   * Firestore-ONLY. This function must NEVER touch local SQLite —
+   * reviewEvents' local copy (`review_events` table) is the permanent
+   * record behind every on-device stat, including premium "full
+   * history" insights that intentionally look further back than 12
+   * months (see history.ts). Only the cloud copy is pruned. (The
+   * reviewEvents adapter's `applyRemoteDelete` is also a deliberate
+   * no-op precisely so that even a live listener that happens to
+   * observe one of these deletes can't cascade it into a local
+   * SQLite delete — see adapters/reviewEvents.ts.)
+   *
+   * Defensive twice over:
+   *  1. The Firestore query only matches `updatedAt < cutoff` — a doc
+   *     with a missing/non-numeric `updatedAt` never matches an
+   *     inequality filter on that field, so Firestore itself excludes
+   *     ambiguously-dated docs from the candidate set.
+   *  2. Belt-and-suspenders: every candidate is re-checked locally via
+   *     `isReviewEventEligibleForCloudCleanup` immediately before the
+   *     delete call, so even a malformed doc that somehow slipped
+   *     through can never be deleted on a doubtful date.
+   */
+  private async cleanupOldReviewEvents(uid: string): Promise<void> {
+    const fn = getFirestore();
+    if (!fn) return;
+    const now = Date.now();
+    const cutoff = now - REVIEW_EVENT_SYNC_WINDOW_MS;
+    const path = `users/${uid}/reviewEvents`;
+
+    let snapshot: QuerySnapshot;
+    try {
+      const query = fn()
+        .collection(path)
+        .where('updatedAt', '<', cutoff)
+        .orderBy('updatedAt', 'asc')
+        .limit(REVIEW_EVENTS_CLEANUP_BATCH_SIZE);
+      snapshot = await query.get();
+    } catch (err) {
+      logger.warn('SyncEngine: cleanupOldReviewEvents query failed', {
+        component: 'SyncEngine',
+        uid,
+        error: err instanceof Error ? err.message : String(err),
+      });
+      return;
+    }
+    if (!snapshot.docs || snapshot.docs.length === 0) return;
+
+    let deleted = 0;
+    let skipped = 0;
+    for (const doc of snapshot.docs) {
+      const data = doc.data();
+      const updatedAt = data
+        ? (data as Record<string, unknown>).updatedAt
+        : undefined;
+      if (!isReviewEventEligibleForCloudCleanup(updatedAt, now)) {
+        skipped += 1;
+        continue; // Never delete a doc we can't confidently date as old.
+      }
+      try {
+        await fn().collection(path).doc(doc.id).delete();
+        deleted += 1;
+      } catch (err) {
+        logger.warn('SyncEngine: cleanupOldReviewEvents delete failed', {
+          component: 'SyncEngine',
+          uid,
+          docId: doc.id,
+          error: err instanceof Error ? err.message : String(err),
+        });
+        // Keep going — one failed delete must not abort the rest of the
+        // batch; it (and any others) will be retried on the next start().
+      }
+    }
+    if (deleted > 0 || skipped > 0) {
+      logger.info('SyncEngine: cleanupOldReviewEvents finished', {
+        component: 'SyncEngine',
+        uid,
+        candidates: snapshot.docs.length,
+        deleted,
+        skipped,
+      });
     }
   }
 
@@ -677,6 +1005,18 @@ export class SyncEngine {
 
     this.conflicts = this.conflicts.filter(c => c.id !== conflictId);
     this.updateState({conflicts: [...this.conflicts]});
+
+    // Quota hardening — this doc's timestamp was withheld from the
+    // cursor while the conflict was pending (see handleSnapshot); now
+    // that the user has settled it, fold it in so a future reattach
+    // doesn't needlessly re-read it. Safe either way — omitting this
+    // would only cost an extra (never a lost) read on some future
+    // reattach.
+    const resolvedTs =
+      typeof resolvedValue.updatedAt === 'number'
+        ? resolvedValue.updatedAt
+        : now;
+    void this.advanceCursor(conflict.collection, resolvedTs);
 
     void this.logResolvedConflict({
       ...conflict,
@@ -976,5 +1316,11 @@ export class SyncEngine {
   __clearConflictsForTests(): void {
     this.conflicts = [];
     this.updateState({conflicts: []});
+  }
+
+  /** Test-only: current in-memory cursor for a collection (undefined if
+   *  never loaded/advanced this session). */
+  __getCursorForTests(collection: string): number | undefined {
+    return this.cursors.get(collection);
   }
 }

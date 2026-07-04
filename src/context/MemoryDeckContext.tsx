@@ -42,6 +42,7 @@ import {
 } from '../lib/sync';
 import {
   buildReviewEvent,
+  isReviewEventWithinSyncWindow,
   reviewEventToRemote,
 } from '../lib/memory/reviewEvents';
 import {
@@ -305,7 +306,19 @@ export const MemoryDeckProvider: React.FC<MemoryDeckProviderProps> = ({
         now,
       });
       void addReviewEvent(event);
-      engine?.queueWrite('reviewEvents', event.id, reviewEventToRemote(event));
+      // Quota hardening — reviewEvents only sync a rolling 12-month
+      // window (SyncEngine.cleanupOldReviewEvents prunes the cloud side;
+      // local SQLite above keeps every event forever regardless). A
+      // review recorded just now is always "today", so in practice this
+      // guard never trips — it exists purely as defense-in-depth in case
+      // `now` is ever backdated (e.g. a future offline-catch-up feature).
+      if (isReviewEventWithinSyncWindow(event.reviewedAt)) {
+        engine?.queueWrite(
+          'reviewEvents',
+          event.id,
+          reviewEventToRemote(event),
+        );
+      }
       // Sprint 48 — a new review changes the retention history the ease prior
       // is calibrated from; recompute so the next added card uses fresh data.
       void refreshEasePrior();

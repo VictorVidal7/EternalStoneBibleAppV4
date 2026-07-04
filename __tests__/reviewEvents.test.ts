@@ -1,7 +1,10 @@
 import {
   buildReviewEvent,
   isRecallSuccess,
+  isReviewEventEligibleForCloudCleanup,
+  isReviewEventWithinSyncWindow,
   remoteToReviewEvent,
+  REVIEW_EVENT_SYNC_WINDOW_MS,
   reviewEventToRemote,
 } from '../src/lib/memory/reviewEvents';
 import {applyReview, createCard, type MemoryCard} from '../src/lib/memory/srs';
@@ -109,5 +112,93 @@ describe('remote round-trip', () => {
       updatedAt: 999,
     } as never);
     expect(back.reviewedAt).toBe(999);
+  });
+});
+
+// =============================================================
+// Quota hardening — 12-month cloud sync window (exact boundaries)
+// =============================================================
+//
+// `isReviewEventWithinSyncWindow` gates queueWrite (outbound) and
+// applyRemoteUpsert (inbound); `isReviewEventEligibleForCloudCleanup`
+// gates SyncEngine.cleanupOldReviewEvents' destructive delete. They are
+// deliberately NOT plain negations of each other for invalid input: both
+// resolve ambiguity toward "never lose/never delete" (see reviewEvents.ts).
+
+const FIXED_NOW = new Date('2026-07-02T12:00:00.000Z').getTime();
+
+describe('isReviewEventWithinSyncWindow — exact boundary', () => {
+  it('is true for an event exactly AT the window boundary (not yet "more than" 12 months)', () => {
+    const reviewedAt = FIXED_NOW - REVIEW_EVENT_SYNC_WINDOW_MS;
+    expect(isReviewEventWithinSyncWindow(reviewedAt, FIXED_NOW)).toBe(true);
+  });
+
+  it('is true for an event 1ms inside the window', () => {
+    const reviewedAt = FIXED_NOW - REVIEW_EVENT_SYNC_WINDOW_MS + 1;
+    expect(isReviewEventWithinSyncWindow(reviewedAt, FIXED_NOW)).toBe(true);
+  });
+
+  it('is false for an event 1ms past the window boundary', () => {
+    const reviewedAt = FIXED_NOW - REVIEW_EVENT_SYNC_WINDOW_MS - 1;
+    expect(isReviewEventWithinSyncWindow(reviewedAt, FIXED_NOW)).toBe(false);
+  });
+
+  it('is true for a brand-new event (age 0)', () => {
+    expect(isReviewEventWithinSyncWindow(FIXED_NOW, FIXED_NOW)).toBe(true);
+  });
+
+  it.each([undefined, null, NaN, 'not-a-number', {}])(
+    'defensively returns true for ambiguous input %p (never skip syncing on doubt)',
+    value => {
+      expect(isReviewEventWithinSyncWindow(value, FIXED_NOW)).toBe(true);
+    },
+  );
+});
+
+describe('isReviewEventEligibleForCloudCleanup — exact boundary', () => {
+  it('is false for an event exactly AT the window boundary', () => {
+    const updatedAt = FIXED_NOW - REVIEW_EVENT_SYNC_WINDOW_MS;
+    expect(isReviewEventEligibleForCloudCleanup(updatedAt, FIXED_NOW)).toBe(
+      false,
+    );
+  });
+
+  it('is false for an event 1ms inside the window', () => {
+    const updatedAt = FIXED_NOW - REVIEW_EVENT_SYNC_WINDOW_MS + 1;
+    expect(isReviewEventEligibleForCloudCleanup(updatedAt, FIXED_NOW)).toBe(
+      false,
+    );
+  });
+
+  it('is true for an event 1ms past the window boundary', () => {
+    const updatedAt = FIXED_NOW - REVIEW_EVENT_SYNC_WINDOW_MS - 1;
+    expect(isReviewEventEligibleForCloudCleanup(updatedAt, FIXED_NOW)).toBe(
+      true,
+    );
+  });
+
+  it('is true for a clearly ancient event (e.g. 5 years old)', () => {
+    const updatedAt = FIXED_NOW - 5 * 365 * 24 * 60 * 60 * 1000;
+    expect(isReviewEventEligibleForCloudCleanup(updatedAt, FIXED_NOW)).toBe(
+      true,
+    );
+  });
+
+  it.each([undefined, null, NaN, 'not-a-number', {}])(
+    'defensively returns false for ambiguous input %p (never delete on doubt)',
+    value => {
+      expect(isReviewEventEligibleForCloudCleanup(value, FIXED_NOW)).toBe(
+        false,
+      );
+    },
+  );
+
+  it('is the exact complement of isReviewEventWithinSyncWindow for every valid timestamp', () => {
+    for (const offsetDays of [-1, 0, 1, 30, 180, 364, 365, 366, 400, 1000]) {
+      const ts = FIXED_NOW - offsetDays * 24 * 60 * 60 * 1000;
+      expect(isReviewEventEligibleForCloudCleanup(ts, FIXED_NOW)).toBe(
+        !isReviewEventWithinSyncWindow(ts, FIXED_NOW),
+      );
+    }
   });
 });

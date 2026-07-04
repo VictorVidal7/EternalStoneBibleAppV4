@@ -152,3 +152,68 @@ function clampBox(n: number): SrsBox {
   if (n >= 5) return 5;
   return n as SrsBox;
 }
+
+// ── Quota hardening — 12-month cloud sync window ────────────────────────
+//
+// reviewEvents is the one synced collection that grows WITHOUT bound: every
+// card review appends a new immutable event and nothing ever removes one
+// locally. Firestore's free (Spark) tier bills per document read, and an
+// unfiltered `onSnapshot` re-delivers every existing doc as an "added"
+// change on every fresh listener attach (reinstall, new device, or a
+// cache that didn't survive) — so an account with years of daily reviews
+// would re-pay for its ENTIRE history on every such reattach.
+//
+// The fix: only the trailing 12 months of reviewEvents live in Firestore.
+// Local SQLite (`review_events` table) is untouched and keeps EVERY event
+// forever — it is the real source of truth for on-device stats, including
+// the premium "full history" heatmap/retention views in history.ts, which
+// read straight from SQLite via getAllReviewEvents(), never from this
+// synced subset. A same-device user loses nothing. The one accepted
+// trade-off (see the SyncEngine quota-hardening commit for the full
+// write-up) is that a user who switches to a NEW device only inherits the
+// last 12 months of review history from the cloud, not their full local
+// history — acceptable for this tanda's scope, called out as a residual
+// risk rather than silently absorbed.
+//
+// 365 days (not calendar months) so the boundary is exact and testable.
+const REVIEW_EVENT_SYNC_WINDOW_MS = 365 * DAY_MS;
+
+/**
+ * True when `reviewedAtMs` is within the rolling 12-month sync window
+ * ending at `nowMs` — i.e., this event SHOULD be queued/synced/applied.
+ *
+ * Defensive by construction: an invalid/missing timestamp returns `true`
+ * (never skip syncing on ambiguous data — per this project's rule that a
+ * doubtful case must NEVER silently lose a user's data).
+ */
+export function isReviewEventWithinSyncWindow(
+  reviewedAtMs: unknown,
+  nowMs: number = Date.now(),
+): boolean {
+  if (typeof reviewedAtMs !== 'number' || !Number.isFinite(reviewedAtMs)) {
+    return true;
+  }
+  return nowMs - reviewedAtMs <= REVIEW_EVENT_SYNC_WINDOW_MS;
+}
+
+/**
+ * True when `updatedAtMs` is a *confidently* dated event strictly older
+ * than the 12-month sync window — i.e., eligible for the cloud-only
+ * cleanup sweep (SyncEngine.cleanupOldReviewEvents) to delete from
+ * Firestore. The exact complement of `isReviewEventWithinSyncWindow` for
+ * valid numbers, but NOT a plain negation for invalid ones: an
+ * invalid/missing timestamp returns `false` here too, so an ambiguously-
+ * dated doc is never a delete candidate (never destroy what you can't
+ * confidently date).
+ */
+export function isReviewEventEligibleForCloudCleanup(
+  updatedAtMs: unknown,
+  nowMs: number = Date.now(),
+): boolean {
+  if (typeof updatedAtMs !== 'number' || !Number.isFinite(updatedAtMs)) {
+    return false;
+  }
+  return nowMs - updatedAtMs > REVIEW_EVENT_SYNC_WINDOW_MS;
+}
+
+export {REVIEW_EVENT_SYNC_WINDOW_MS};
