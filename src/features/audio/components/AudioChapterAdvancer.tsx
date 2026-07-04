@@ -44,6 +44,43 @@ export const AudioChapterAdvancer: React.FC = () => {
   } = useAudioPlayer();
   const {selectedVersion} = useBibleVersion();
 
+  // Refs mirroring every value/callback the effect below reads, kept fresh
+  // EAGERLY on every render (mirrors AudioPlayerContext's own
+  // versionLangRef/versionIdRef pattern) rather than through the effect's own
+  // dependency array.
+  //
+  // Root cause confirmed live 2026-07-03: the effect used to list `verses`
+  // (among others) as a dependency, needing it to read the finished chapter's
+  // last verse. But `loadChapter` — called from INSIDE this same effect to
+  // advance into the next chapter — updates `verses`. That change re-ran the
+  // effect immediately (same render pass), and React tore down the in-flight
+  // invocation via its cleanup FIRST, setting that closure's `cancelled` to
+  // true. The already-scheduled `setTimeout(() => { if (!cancelled) play();
+  // }, 150)` then fired 150ms later against the STALE (now-true) `cancelled`,
+  // so `play()` was silently skipped every single time. Logs showed the next
+  // chapter's DB query, `loadChapter`, and UI (title/progress) all succeeding
+  // — only the follow-up `play()` never ran, matching the reported "audio
+  // doesn't continue" (it silently loads-but-pauses on every chapter
+  // boundary). Depending on refs instead of the live values means this
+  // effect's identity — and thus whether it tears itself down — depends ONLY
+  // on `state.chapterEndCount`, so its own side effects can never cancel it.
+  const versesRef = useRef(verses);
+  versesRef.current = verses;
+  const autoAdvanceRef = useRef(autoAdvanceChapter);
+  autoAdvanceRef.current = autoAdvanceChapter;
+  const sleepModeRef = useRef(sleepTimer.mode);
+  sleepModeRef.current = sleepTimer.mode;
+  const queueModeRef = useRef(queueInfo.mode);
+  queueModeRef.current = queueInfo.mode;
+  const versionRef = useRef(selectedVersion);
+  versionRef.current = selectedVersion;
+  const loadChapterRef = useRef(loadChapter);
+  loadChapterRef.current = loadChapter;
+  const playRef = useRef(play);
+  playRef.current = play;
+  const cancelSleepTimerRef = useRef(cancelSleepTimer);
+  cancelSleepTimerRef.current = cancelSleepTimer;
+
   // Dedup: each chapter-end bump is handled exactly once (back-to-back chapter
   // ends increment the counter, so a value-equality guard fires per chapter).
   const handledRef = useRef(0);
@@ -55,16 +92,16 @@ export const AudioChapterAdvancer: React.FC = () => {
 
     if (
       !shouldAdvanceChapter({
-        autoAdvance: autoAdvanceChapter,
-        sleepMode: sleepTimer.mode,
-        queueMode: queueInfo.mode,
+        autoAdvance: autoAdvanceRef.current,
+        sleepMode: sleepModeRef.current,
+        queueMode: queueModeRef.current,
       })
     ) {
       return;
     }
 
     // The chapter that just finished is described by its last verse.
-    const last = verses[verses.length - 1];
+    const last = versesRef.current[versesRef.current.length - 1];
     if (!last) return;
     const bookInfo = getBookByName(last.book);
     if (!bookInfo) return;
@@ -73,14 +110,14 @@ export const AudioChapterAdvancer: React.FC = () => {
     // book's last (the next chapter would cross into a different book, or the
     // canon ended) and clear the timer, instead of rolling into the next book.
     if (
-      sleepTimer.mode === 'end-of-book' &&
+      sleepModeRef.current === 'end-of-book' &&
       isBookEnd(bookInfo.id, last.chapter)
     ) {
       logger.info('End-of-book sleep timer reached — stopping at book end', {
         bookId: bookInfo.id,
         chapter: last.chapter,
       });
-      cancelSleepTimer();
+      cancelSleepTimerRef.current();
       return;
     }
 
@@ -94,7 +131,7 @@ export const AudioChapterAdvancer: React.FC = () => {
         const raw = await bibleDB.getChapter(
           target.bookId,
           target.chapter,
-          selectedVersion.id,
+          versionRef.current.id,
         );
         if (cancelled || raw.length === 0) return;
 
@@ -104,11 +141,13 @@ export const AudioChapterAdvancer: React.FC = () => {
           verses: raw.length,
         });
 
-        loadChapter(toAudioVerses(raw));
+        loadChapterRef.current(toAudioVerses(raw));
         // Let loadChapter's state refs settle before play (mirrors the reader's
-        // startAudioPlayback delay).
+        // startAudioPlayback delay). `cancelled` is only ever flipped by THIS
+        // invocation's own cleanup (unmount), never by loadChapter's state
+        // update, since the effect no longer depends on the values it mutates.
         setTimeout(() => {
-          if (!cancelled) play();
+          if (!cancelled) playRef.current();
         }, 150);
       } catch (error) {
         logger.warn('Auto-advance to next chapter failed', {
@@ -120,17 +159,11 @@ export const AudioChapterAdvancer: React.FC = () => {
     return () => {
       cancelled = true;
     };
-  }, [
-    state.chapterEndCount,
-    autoAdvanceChapter,
-    sleepTimer.mode,
-    queueInfo.mode,
-    verses,
-    selectedVersion,
-    loadChapter,
-    play,
-    cancelSleepTimer,
-  ]);
+    // Intentionally depends ONLY on the chapter-end signal — every other value
+    // is read through the refs above so this effect's own side effects
+    // (loadChapter mutating `verses`/`queueInfo`, etc.) can never re-trigger
+    // or tear down an in-flight advance.
+  }, [state.chapterEndCount]);
 
   return null;
 };
