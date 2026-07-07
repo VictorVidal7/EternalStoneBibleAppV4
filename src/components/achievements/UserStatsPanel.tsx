@@ -16,6 +16,7 @@ import {AppText as Text} from '@components/ui/AppText';
 import {UserStats, calculateLevelProgress} from '../../lib/achievements/types';
 import {useTheme} from '../../hooks/useTheme';
 import {useLanguage} from '../../hooks/useLanguage';
+import {useContentBottomInset} from '../../hooks/useContentBottomInset';
 import {
   spacing,
   borderRadius,
@@ -32,10 +33,12 @@ export const UserStatsPanel: React.FC<UserStatsPanelProps> = ({stats}) => {
   const {colors, isDark} = useTheme();
   const {t} = useLanguage();
   const levelProgress = calculateLevelProgress(stats.totalPoints);
+  const contentBottomInset = useContentBottomInset();
 
   return (
     <ScrollView
       style={[styles.container, {backgroundColor: colors.background}]}
+      contentContainerStyle={{paddingBottom: contentBottomInset}}
       showsVerticalScrollIndicator={false}>
       {/* Level and Progress */}
       <View
@@ -206,30 +209,30 @@ export const UserStatsPanel: React.FC<UserStatsPanelProps> = ({stats}) => {
           isDark ? shadows.md : shadows.sm,
         ]}>
         <Text style={[styles.sectionTitle, {color: colors.text}]}>
-          Interaction
+          {t.achievements.statsInteractionTitle}
         </Text>
         <View style={styles.interactionGrid}>
           <StatRow
             icon="🖍️"
-            label="Highlights"
+            label={t.achievements.statsHighlights}
             value={stats.totalHighlights}
             colors={colors}
           />
           <StatRow
             icon="📝"
-            label="Notes"
+            label={t.achievements.statsNotes}
             value={stats.totalNotes}
             colors={colors}
           />
           <StatRow
             icon="🔖"
-            label="Favorites"
-            value={stats.totalBookmarks}
+            label={t.achievements.statsFavorites}
+            value={stats.totalFavorites}
             colors={colors}
           />
           <StatRow
             icon="🔍"
-            label="Searches"
+            label={t.achievements.statsSearches}
             value={stats.totalSearches}
             colors={colors}
           />
@@ -247,7 +250,7 @@ export const UserStatsPanel: React.FC<UserStatsPanelProps> = ({stats}) => {
             styles.sectionTitle,
             {color: isDark ? colors.text : staticColors.grayNeutral},
           ]}>
-          Achievements
+          {t.achievements.statsAchievementsTitle}
         </Text>
         <View style={styles.achievementsRow}>
           <Text style={styles.achievementsIcon}>🏅</Text>
