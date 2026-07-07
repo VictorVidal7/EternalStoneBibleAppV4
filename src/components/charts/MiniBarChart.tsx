@@ -14,7 +14,7 @@
  */
 
 import React from 'react';
-import {View, StyleSheet} from 'react-native';
+import {View, StyleSheet, TouchableOpacity} from 'react-native';
 import {AppText as Text} from '../ui/AppText';
 
 export interface BarDatum {
@@ -34,6 +34,14 @@ interface MiniBarChartProps {
   trackColor: string;
   labelColor: string;
   valueColor: string;
+  /**
+   * Makes each bar tappable (e.g. word-study's "filter appearances by
+   * book" — Ficha #14). Omit to keep the chart purely decorative, as the
+   * Memory Insights screen's box-distribution/review-forecast charts do.
+   */
+  onBarPress?: (index: number) => void;
+  /** Index of the currently-selected bar, highlighted with a ring + bold label. */
+  selectedIndex?: number | null;
 }
 
 // A non-zero bar never renders shorter than this fraction of the track,
@@ -47,6 +55,8 @@ export const MiniBarChart: React.FC<MiniBarChartProps> = ({
   trackColor,
   labelColor,
   valueColor,
+  onBarPress,
+  selectedIndex = null,
 }) => {
   const max = Math.max(1, ...data.map(d => d.value));
 
@@ -55,14 +65,31 @@ export const MiniBarChart: React.FC<MiniBarChartProps> = ({
       {data.map((d, i) => {
         const fraction =
           d.value <= 0 ? 0 : Math.max(MIN_BAR_FRACTION, d.value / max);
+        const selected = selectedIndex === i;
+        const Column = onBarPress ? TouchableOpacity : View;
         return (
-          <View key={`${d.label}-${i}`} style={styles.column}>
+          <Column
+            key={`${d.label}-${i}`}
+            style={styles.column}
+            {...(onBarPress
+              ? {
+                  onPress: () => onBarPress(i),
+                  accessibilityRole: 'button' as const,
+                  accessibilityState: {selected},
+                }
+              : null)}>
             <Text
               scaleRole="compact"
               style={[styles.value, {color: valueColor}]}>
               {d.value}
             </Text>
-            <View style={[styles.track, {height, backgroundColor: trackColor}]}>
+            <View
+              style={[
+                styles.track,
+                {height, backgroundColor: trackColor},
+                selected && styles.trackSelected,
+                selected && {borderColor: d.color ?? barColor},
+              ]}>
               {d.value > 0 && (
                 <View
                   style={[
@@ -77,11 +104,15 @@ export const MiniBarChart: React.FC<MiniBarChartProps> = ({
             </View>
             <Text
               scaleRole="compact"
-              style={[styles.label, {color: labelColor}]}
+              style={[
+                styles.label,
+                {color: selected ? (d.color ?? barColor) : labelColor},
+                selected && styles.labelSelected,
+              ]}
               numberOfLines={1}>
               {d.label}
             </Text>
-          </View>
+          </Column>
         );
       })}
     </View>
@@ -117,6 +148,12 @@ const styles = StyleSheet.create({
     fontSize: 11,
     fontWeight: '600',
     marginTop: 6,
+  },
+  labelSelected: {
+    fontWeight: '800',
+  },
+  trackSelected: {
+    borderWidth: 2,
   },
 });
 

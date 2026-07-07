@@ -57,6 +57,21 @@ export function pickGloss(
   return language === 'es' ? es || en : en || es;
 }
 
+/**
+ * The verse's original-language word tagged with a specific Strong's number,
+ * or `null` when the verse has none (Ficha #13 — resolving which original word
+ * a word-study occurrence points to, e.g. "ταῦτα" for G3778 in Mateo 1:20).
+ * When a verse repeats the same Strong's number more than once, the FIRST
+ * match wins — a deterministic, documented choice; the concordance offers no
+ * finer-grained (per-instance) targeting to disambiguate further.
+ */
+export function findWordByStrongs(
+  words: readonly OriginalWord[],
+  strongs: string,
+): OriginalWord | null {
+  return words.find(w => w.strongs === strongs) ?? null;
+}
+
 /** Whether a Strong's number is a real lexicon key (links to a definition). */
 export function hasLexicon(
   strongs: string | null | undefined,

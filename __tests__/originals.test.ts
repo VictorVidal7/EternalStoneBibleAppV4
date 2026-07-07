@@ -4,7 +4,9 @@ import {
   hasLexicon,
   strongsLabel,
   occurrenceRef,
+  findWordByStrongs,
 } from '../src/features/study/originals';
+import type {OriginalWord} from '../src/lib/database';
 
 describe('originals — pure helpers', () => {
   describe('glossLanguage', () => {
@@ -41,6 +43,38 @@ describe('originals — pure helpers', () => {
     it('returns null when no gloss is present', () => {
       expect(pickGloss({gloss_es: null, gloss_en: null}, 'es')).toBeNull();
       expect(pickGloss({gloss_es: '', gloss_en: ''}, 'en')).toBeNull();
+    });
+  });
+
+  describe('findWordByStrongs (Ficha #13 — original-word chip)', () => {
+    const ow = (strongs: string | null, word: string): OriginalWord => ({
+      position: 1,
+      lang: 'grc',
+      word,
+      translit: null,
+      gloss_en: null,
+      gloss_es: null,
+      strongs,
+      grammar: null,
+    });
+
+    it('finds the word tagged with the given Strongs number', () => {
+      const words = [ow('G846', 'αὐτῆς'), ow('G3778', 'ταῦτα')];
+      expect(findWordByStrongs(words, 'G3778')?.word).toBe('ταῦτα');
+    });
+
+    it('returns null when the verse has no matching word', () => {
+      const words = [ow('G846', 'αὐτῆς')];
+      expect(findWordByStrongs(words, 'G3778')).toBeNull();
+    });
+
+    it('returns null for an empty verse', () => {
+      expect(findWordByStrongs([], 'G3778')).toBeNull();
+    });
+
+    it('returns the FIRST match when a Strongs number repeats in the verse', () => {
+      const words = [ow('G3778', 'first'), ow('G3778', 'second')];
+      expect(findWordByStrongs(words, 'G3778')?.word).toBe('first');
     });
   });
 
