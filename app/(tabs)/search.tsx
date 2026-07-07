@@ -6,7 +6,6 @@ import {
   TextInput,
   FlatList,
   TouchableOpacity,
-  RefreshControl,
   ScrollView,
 } from 'react-native';
 // ♿ Dynamic-type: cap OS font-scale on the search chrome (labels + result rows).
@@ -283,7 +282,6 @@ export default function SearchScreen() {
   const [searchQuery, setSearchQuery] = useState('');
   const [allResults, setAllResults] = useState<BibleVerse[]>([]);
   const [loading, setLoading] = useState(false);
-  const [refreshing, setRefreshing] = useState(false);
   const [hasSearched, setHasSearched] = useState(false);
   const [testamentFilter, setTestamentFilter] =
     useState<TestamentFilter>('all');
@@ -506,17 +504,6 @@ export default function SearchScreen() {
     setBookFilter(prev => (prev === book ? null : book));
   }
 
-  async function onRefresh() {
-    if (!searchQuery.trim() || searchQuery.trim().length < 3) {
-      setRefreshing(false);
-      return;
-    }
-
-    setRefreshing(true);
-    await performSearch(searchQuery);
-    setRefreshing(false);
-  }
-
   function goToVerse(verse: BibleVerse) {
     router.push(
       `/verse/${verse.book}/${verse.chapter}?verse=${verse.verse}` as never,
@@ -737,14 +724,6 @@ export default function SearchScreen() {
             data={results}
             keyExtractor={item =>
               `${item.id}-${item.book}-${item.chapter}-${item.verse}`
-            }
-            refreshControl={
-              <RefreshControl
-                refreshing={refreshing}
-                onRefresh={onRefresh}
-                tintColor={colors.primary}
-                colors={[colors.primary]}
-              />
             }
             renderItem={renderItem}
             contentContainerStyle={styles.resultsList}

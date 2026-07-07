@@ -43,6 +43,7 @@ import MemoryGoalSettings from '@components/settings/MemoryGoalSettings';
 import ManageVersionsSection from '@components/settings/ManageVersionsSection';
 import ReadingGoalSettings from '@components/settings/ReadingGoalSettings';
 import {useReaderPreferences} from '@context/ReaderPreferencesContext';
+import {useAccessibilityPreferences} from '@context/AccessibilityPreferencesContext';
 import ExtrasSettings from '@components/settings/ExtrasSettings';
 import DonationSettings from '@components/settings/DonationSettings';
 import ColorThemeSettings from '@components/settings/ColorThemeSettings';
@@ -64,10 +65,20 @@ function getReadableTextColor(
 
 export default function SettingsScreen() {
   const router = useRouter();
-  const {mode, setThemeMode, isDark, colors, gradient} = useTheme();
+  const {
+    mode,
+    setThemeMode,
+    isDark,
+    colors,
+    gradient,
+    highContrast,
+    setHighContrast,
+  } = useTheme();
   const {selectedVersion, setVersion, availableVersions} = useBibleVersion();
   const {language, setLanguage, t} = useLanguage();
   const {preferences: readerPrefs, setKeepScreenAwake} = useReaderPreferences();
+  const {reduceMotionOverride, setReduceMotionOverride} =
+    useAccessibilityPreferences();
   const {user, signInWithGoogle, signOut} = useAuth();
   const syncCtx = useSyncEngineOptional();
   const conflicts = useConflicts();
@@ -379,9 +390,23 @@ export default function SettingsScreen() {
 
           {/* Color Theme Selector — extracted to ColorThemeSettings (T6) */}
           <ColorThemeSettings />
+        </View>
 
-          {/* Keep screen on while reading (UX review) */}
-          <View style={themedStyles.cardWithMargin}>
+        {/* Accessibility Section (T15 — #17/#9) */}
+        <View style={themedStyles.section}>
+          <View style={themedStyles.sectionHeader}>
+            <Ionicons
+              name="accessibility-outline"
+              size={22}
+              color={colors.primary}
+            />
+            <Text style={themedStyles.sectionTitle}>
+              {t.settings.accessibility}
+            </Text>
+          </View>
+
+          {/* Keep screen on while reading (UX review) — moved from Apariencia */}
+          <View style={themedStyles.card}>
             <View style={themedStyles.settingRow}>
               <View style={themedStyles.toggleTextWrap}>
                 <Text style={themedStyles.settingLabel}>
@@ -400,6 +425,61 @@ export default function SettingsScreen() {
                 trackColor={{false: colors.border, true: colors.primary}}
                 thumbColor={staticColors.white}
                 accessibilityLabel={t.settings.keepAwakeTitle}
+              />
+            </View>
+          </View>
+
+          {/* App-wide high contrast (T15 — #9) */}
+          <View style={themedStyles.cardWithMargin}>
+            <View style={themedStyles.settingRow}>
+              <View style={themedStyles.toggleTextWrap}>
+                <Text style={themedStyles.settingLabel}>
+                  {t.settings.highContrastTitle}
+                </Text>
+                <Text style={themedStyles.settingDescription}>
+                  {t.settings.highContrastDescription}
+                </Text>
+              </View>
+              <Switch
+                value={highContrast}
+                onValueChange={next => {
+                  haptics.tap();
+                  void setHighContrast(next);
+                }}
+                trackColor={{false: colors.border, true: colors.primary}}
+                thumbColor={staticColors.white}
+                accessibilityLabel={t.settings.highContrastTitle}
+              />
+            </View>
+            <Text
+              style={[
+                themedStyles.settingDescription,
+                styles.highContrastReaderNote,
+              ]}>
+              {t.settings.highContrastReaderNote}
+            </Text>
+          </View>
+
+          {/* Reduce animations override (T15 — #9) */}
+          <View style={themedStyles.cardWithMargin}>
+            <View style={themedStyles.settingRow}>
+              <View style={themedStyles.toggleTextWrap}>
+                <Text style={themedStyles.settingLabel}>
+                  {t.settings.reduceMotionTitle}
+                </Text>
+                <Text style={themedStyles.settingDescription}>
+                  {t.settings.reduceMotionDescription}
+                </Text>
+              </View>
+              <Switch
+                value={reduceMotionOverride}
+                onValueChange={next => {
+                  haptics.tap();
+                  void setReduceMotionOverride(next);
+                }}
+                trackColor={{false: colors.border, true: colors.primary}}
+                thumbColor={staticColors.white}
+                accessibilityLabel={t.settings.reduceMotionTitle}
               />
             </View>
           </View>
@@ -1125,6 +1205,7 @@ const styles = StyleSheet.create({
   },
   signInPromptSpacing: {marginBottom: 16, marginTop: 0},
   dimmedWhileBusy: {opacity: 0.6},
+  highContrastReaderNote: {marginTop: 10, fontStyle: 'italic'},
   scrollView: {
     flex: 1,
   },

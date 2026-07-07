@@ -2,9 +2,14 @@
  * Tests for useReducedMotion — the OS "reduce motion" listener hook.
  */
 
+import React from 'react';
 import {renderHook, act, waitFor} from '@testing-library/react-native';
 import {AccessibilityInfo} from 'react-native';
 import {useReducedMotion} from '../src/hooks/useReducedMotion';
+import {
+  AccessibilityPreferencesProvider,
+  useAccessibilityPreferences,
+} from '../src/context/AccessibilityPreferencesContext';
 
 describe('useReducedMotion', () => {
   let changeListener: ((enabled: boolean) => void) | undefined;
@@ -71,5 +76,32 @@ describe('useReducedMotion', () => {
     );
     unmount();
     expect(remove).toHaveBeenCalled();
+  });
+
+  it('returns true when the app override is on, even though the OS setting is off', async () => {
+    const wrapper = ({children}: {children: React.ReactNode}) =>
+      React.createElement(AccessibilityPreferencesProvider, null, children);
+
+    const combined = renderHook(
+      () => ({
+        reduced: useReducedMotion(),
+        prefs: useAccessibilityPreferences(),
+      }),
+      {wrapper},
+    );
+    await waitFor(() =>
+      expect(AccessibilityInfo.isReduceMotionEnabled).toHaveBeenCalled(),
+    );
+    expect(combined.result.current.reduced).toBe(false);
+
+    await act(async () => {
+      await combined.result.current.prefs.setReduceMotionOverride(true);
+    });
+    expect(combined.result.current.reduced).toBe(true);
+
+    await act(async () => {
+      await combined.result.current.prefs.setReduceMotionOverride(false);
+    });
+    expect(combined.result.current.reduced).toBe(false);
   });
 });

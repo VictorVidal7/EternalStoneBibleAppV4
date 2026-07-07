@@ -18,7 +18,6 @@ import {
   TextInput,
   Animated,
   SectionList,
-  RefreshControl,
 } from 'react-native';
 import {useRouter} from 'expo-router';
 import {Ionicons} from '@expo/vector-icons';
@@ -59,7 +58,6 @@ export default function BibleScreen() {
   const [searchQuery, setSearchQuery] = useState('');
   const [filter, setFilter] = useState<'all' | 'old' | 'new'>('all');
   const [filteredBooks, setFilteredBooks] = useState<BibleBook[]>(BIBLE_BOOKS);
-  const [refreshing, setRefreshing] = useState(false);
 
   const searchAnim = useRef(new Animated.Value(0)).current;
   const headerAnim = useRef(new Animated.Value(0)).current;
@@ -149,22 +147,6 @@ export default function BibleScreen() {
     if (filter === 'all') return section.data.length > 0;
     return section.type === filter && section.data.length > 0;
   });
-
-  async function onRefresh() {
-    setRefreshing(true);
-    haptics.tap();
-
-    // Reset search and filter if there is one
-    if (searchQuery || filter !== 'all') {
-      setSearchQuery('');
-      setFilter('all');
-      setFilteredBooks(BIBLE_BOOKS);
-    }
-
-    setTimeout(() => {
-      setRefreshing(false);
-    }, 500);
-  }
 
   function goToChapterSelection(bookName: string) {
     haptics.tap();
@@ -363,14 +345,6 @@ export default function BibleScreen() {
         <SectionList
           sections={sections}
           keyExtractor={item => item.id.toString()}
-          refreshControl={
-            <RefreshControl
-              refreshing={refreshing}
-              onRefresh={onRefresh}
-              tintColor={colors.primary}
-              colors={[colors.primary]}
-            />
-          }
           renderSectionHeader={({section}) => (
             <SectionHeader
               title={section.title}

@@ -3050,6 +3050,15 @@ export const translations = {
       keepAwakeTitle: 'Mantener pantalla encendida',
       keepAwakeDescription:
         'Evita que la pantalla se bloquee mientras lees, estudias, memorizas u oras.',
+      accessibility: 'Accesibilidad',
+      highContrastTitle: 'Alto contraste (toda la app)',
+      highContrastDescription:
+        'Fondo negro, texto blanco y acento ámbar en toda la app — máxima legibilidad para baja visión.',
+      highContrastReaderNote:
+        'El lector también tiene su propio tema "Alto Contraste" en Aa, independiente de este interruptor.',
+      reduceMotionTitle: 'Reducir animaciones',
+      reduceMotionDescription:
+        'Minimiza las animaciones de la app, aunque tu dispositivo no tenga esta opción activada a nivel de sistema.',
       colorThemeNames: {
         ocean: 'Océano',
         celestial: 'Celestial',
@@ -8136,6 +8145,15 @@ export const translations = {
       keepAwakeTitle: 'Keep screen on',
       keepAwakeDescription:
         'Stop the screen from locking while you read, study, memorize or pray.',
+      accessibility: 'Accessibility',
+      highContrastTitle: 'High contrast (whole app)',
+      highContrastDescription:
+        'Black background, white text, amber accent everywhere in the app — maximum legibility for low vision.',
+      highContrastReaderNote:
+        'The reader also has its own "High Contrast" theme under Aa, independent of this switch.',
+      reduceMotionTitle: 'Reduce animations',
+      reduceMotionDescription:
+        "Minimizes the app's animations, even if your device doesn't have this turned on at the system level.",
       colorThemeNames: {
         ocean: 'Ocean',
         celestial: 'Celestial',
