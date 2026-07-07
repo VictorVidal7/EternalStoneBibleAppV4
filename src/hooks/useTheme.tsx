@@ -943,6 +943,9 @@ interface ThemeContextType {
   colorTheme: ColorTheme;
   setThemeMode: (mode: ThemeMode) => Promise<void>;
   setColorTheme: (theme: ColorTheme) => Promise<void>;
+  /** App-wide "Alto contraste" (T15 — #9). See `HIGH_CONTRAST_COLORS`. */
+  highContrast: boolean;
+  setHighContrast: (enabled: boolean) => Promise<void>;
 }
 
 // Colores Celestial Sereno Light - Paleta Indigo/Purple profesional
@@ -1023,15 +1026,75 @@ export const darkColors: ThemeColors = {
   bookmark: '#fbbf24',
 };
 
+/**
+ * App-wide "Alto contraste" (T15 — #9). A single fixed palette that
+ * REPLACES `colors` entirely while active — it deliberately ignores
+ * whichever `colorTheme`/light-dark `mode` the user has selected, the same
+ * "one canonical maximum-legibility surface" approach the reader's own
+ * `high-contrast` theme already uses (`src/styles/readerThemes.ts`), which
+ * this reuses the core hues from. Every text/background pair here clears
+ * WCAG AAA (7:1) — asserted in `highContrastTheme.test.ts`. Semantic accents
+ * (error/success/warning) are NOT held to AAA: a color can't be both AAA on
+ * black and recognizably red/green/orange, so they're only checked for a
+ * large/UI-text AA pass, same standard `themeContrast.test` already applies
+ * to the other themes' error/success.
+ */
+export const HIGH_CONTRAST_COLORS: ThemeColors = {
+  background: '#000000',
+  surface: '#0A0A0A',
+  surfaceVariant: '#141414',
+  card: '#0A0A0A',
+
+  text: '#FFFFFF', // 21:1 on background
+  textSecondary: '#EDEDED', // ~18:1
+  textTertiary: '#C7C7C7', // ~12:1 (still AAA for normal text)
+
+  primary: '#FFD60A', // amber accent, ~14.8:1 on black
+  primaryLight: 'rgba(255, 214, 10, 0.20)',
+  primaryDark: '#FFFFFF',
+  onPrimary: '#000000', // black ink on the bright amber fill
+
+  secondary: '#7FDBFF',
+
+  accent: '#FFD60A',
+  error: '#FF6B6B',
+  success: '#4ADE80',
+  warning: '#FFA94D',
+  info: '#7FDBFF',
+
+  border: 'rgba(255, 255, 255, 0.45)',
+  divider: 'rgba(255, 255, 255, 0.30)',
+  glassBorder: 'rgba(255, 255, 255, 0.45)',
+
+  highlight: 'rgba(255, 214, 10, 0.30)',
+  overlay: 'rgba(0, 0, 0, 0.75)',
+  disabled: 'rgba(255, 255, 255, 0.15)',
+  glass: 'rgba(10, 10, 10, 0.90)',
+
+  verseCard: '#0A0A0A',
+  verseHighlight: 'rgba(255, 214, 10, 0.20)',
+  bookmark: '#FFD60A',
+};
+
+/** Solid-black header gradient used while high contrast is on — no color
+ * theme's own gradient survives the override (see `HIGH_CONTRAST_COLORS`). */
+const HIGH_CONTRAST_GRADIENT = {
+  colors: ['#000000', '#000000', '#000000'] as const,
+  headerColors: ['#000000', '#000000', '#000000'] as const,
+  accentGlow: '#FFD60A',
+};
+
 const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 
 const THEME_STORAGE_KEY = '@app_theme_mode';
 const COLOR_THEME_STORAGE_KEY = '@app_color_theme';
+const HIGH_CONTRAST_STORAGE_KEY = '@app_high_contrast';
 
 export function ThemeProvider({children}: {children: ReactNode}) {
   const systemColorScheme = useColorScheme();
   const [mode, setMode] = useState<ThemeMode>('auto');
   const [colorTheme, setColorThemeState] = useState<ColorTheme>('midnight'); // Default: Midnight (serio y profesional)
+  const [highContrast, setHighContrastState] = useState(false);
   const [effectiveTheme, setEffectiveTheme] = useState<'light' | 'dark'>(
     'light',
   );
@@ -1041,6 +1104,7 @@ export function ThemeProvider({children}: {children: ReactNode}) {
   useEffect(() => {
     loadThemePreference();
     loadColorThemePreference();
+    loadHighContrastPreference();
   }, []);
 
   // Update time of day every minute
@@ -1086,6 +1150,17 @@ export function ThemeProvider({children}: {children: ReactNode}) {
     }
   }
 
+  async function loadHighContrastPreference() {
+    try {
+      const saved = await AsyncStorage.getItem(HIGH_CONTRAST_STORAGE_KEY);
+      if (saved === 'true') {
+        setHighContrastState(true);
+      }
+    } catch (error) {
+      console.error('Error loading high-contrast preference:', error);
+    }
+  }
+
   async function setThemeMode(newMode: ThemeMode) {
     try {
       await AsyncStorage.setItem(THEME_STORAGE_KEY, newMode);
@@ -1104,23 +1179,42 @@ export function ThemeProvider({children}: {children: ReactNode}) {
     }
   }
 
+  async function setHighContrast(enabled: boolean) {
+    try {
+      await AsyncStorage.setItem(
+        HIGH_CONTRAST_STORAGE_KEY,
+        enabled ? 'true' : 'false',
+      );
+      setHighContrastState(enabled);
+    } catch (error) {
+      console.error('Error saving high-contrast preference:', error);
+    }
+  }
+
   const baseColors = effectiveTheme === 'dark' ? darkColors : lightColors;
-  const isDark = effectiveTheme === 'dark';
+  // High contrast reports as dark-family (the fixed palette is a black
+  // surface) — components that branch bespoke chrome on `isDark` land on
+  // the dark-appropriate choice instead of the light one.
+  const isDark = highContrast || effectiveTheme === 'dark';
   // Usar gradientes del tema de color seleccionado
-  const gradient = colorThemes[colorTheme].gradients[timeOfDay];
+  const gradient = highContrast
+    ? HIGH_CONTRAST_GRADIENT
+    : colorThemes[colorTheme].gradients[timeOfDay];
 
   // Aplicar colores primarios y de realce según el tema de color seleccionado
   const themeColorsSet = themePrimaryColors[colorTheme][effectiveTheme];
-  const colors: ThemeColors = {
-    ...baseColors,
-    primary: themeColorsSet.primary,
-    primaryLight: themeColorsSet.primaryLight,
-    primaryDark: themeColorsSet.primaryDark,
-    onPrimary: themeColorsSet.onPrimary,
-    secondary: themeColorsSet.secondary,
-    accent: themeColorsSet.accent,
-    info: themeColorsSet.info,
-  };
+  const colors: ThemeColors = highContrast
+    ? HIGH_CONTRAST_COLORS
+    : {
+        ...baseColors,
+        primary: themeColorsSet.primary,
+        primaryLight: themeColorsSet.primaryLight,
+        primaryDark: themeColorsSet.primaryDark,
+        onPrimary: themeColorsSet.onPrimary,
+        secondary: themeColorsSet.secondary,
+        accent: themeColorsSet.accent,
+        info: themeColorsSet.info,
+      };
 
   return (
     <ThemeContext.Provider
@@ -1133,6 +1227,8 @@ export function ThemeProvider({children}: {children: ReactNode}) {
         colorTheme,
         setThemeMode,
         setColorTheme,
+        highContrast,
+        setHighContrast,
       }}>
       {children}
     </ThemeContext.Provider>
@@ -1149,6 +1245,8 @@ const defaultThemeContext: ThemeContextType = {
   colorTheme: 'midnight',
   setThemeMode: async () => {},
   setColorTheme: async () => {},
+  highContrast: false,
+  setHighContrast: async () => {},
 };
 
 export function useTheme() {

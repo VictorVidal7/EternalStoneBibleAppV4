@@ -52,6 +52,7 @@ import {loadReaderFonts} from '@lib/reader/fontAssets';
 import {ThemeProvider} from '@hooks/useTheme';
 import {BibleVersionProvider, useBibleVersion} from '@hooks/useBibleVersion';
 import {LanguageProvider, useLanguage} from '@hooks/useLanguage';
+import {AccessibilityPreferencesProvider} from '@context/AccessibilityPreferencesContext';
 import {ServicesProvider} from '@context/ServicesContext';
 import {ToastProvider} from '@context/ToastContext';
 import {ReadingProgressProvider} from '@context/ReadingProgressContext';
@@ -343,43 +344,45 @@ export default function RootLayout() {
     <GestureHandlerRootView style={styles.root}>
       <LanguageProvider>
         <ThemeProvider>
-          <BibleVersionProvider>
-            <ServicesProvider database={bibleDB}>
-              <AuthProvider>
-                <SyncEngineProvider>
-                  <ReadingProgressProvider>
-                    <ReadingPlanProgressProvider>
-                      <CustomPlansProvider>
-                        <TogetherProvider>
-                          <FavoritesProvider>
-                            <BookmarksProvider>
-                              <ReaderPreferencesProvider>
-                                <MemoryDeckProvider>
-                                  <ToastProvider>
-                                    <PremiumProvider>
-                                      <OfferingSheetProvider>
-                                        <DonationSheetProvider>
-                                          <AudioPlayerProvider>
-                                            <ErrorBoundary>
-                                              <AppContent />
-                                            </ErrorBoundary>
-                                          </AudioPlayerProvider>
-                                        </DonationSheetProvider>
-                                      </OfferingSheetProvider>
-                                    </PremiumProvider>
-                                  </ToastProvider>
-                                </MemoryDeckProvider>
-                              </ReaderPreferencesProvider>
-                            </BookmarksProvider>
-                          </FavoritesProvider>
-                        </TogetherProvider>
-                      </CustomPlansProvider>
-                    </ReadingPlanProgressProvider>
-                  </ReadingProgressProvider>
-                </SyncEngineProvider>
-              </AuthProvider>
-            </ServicesProvider>
-          </BibleVersionProvider>
+          <AccessibilityPreferencesProvider>
+            <BibleVersionProvider>
+              <ServicesProvider database={bibleDB}>
+                <AuthProvider>
+                  <SyncEngineProvider>
+                    <ReadingProgressProvider>
+                      <ReadingPlanProgressProvider>
+                        <CustomPlansProvider>
+                          <TogetherProvider>
+                            <FavoritesProvider>
+                              <BookmarksProvider>
+                                <ReaderPreferencesProvider>
+                                  <MemoryDeckProvider>
+                                    <ToastProvider>
+                                      <PremiumProvider>
+                                        <OfferingSheetProvider>
+                                          <DonationSheetProvider>
+                                            <AudioPlayerProvider>
+                                              <ErrorBoundary>
+                                                <AppContent />
+                                              </ErrorBoundary>
+                                            </AudioPlayerProvider>
+                                          </DonationSheetProvider>
+                                        </OfferingSheetProvider>
+                                      </PremiumProvider>
+                                    </ToastProvider>
+                                  </MemoryDeckProvider>
+                                </ReaderPreferencesProvider>
+                              </BookmarksProvider>
+                            </FavoritesProvider>
+                          </TogetherProvider>
+                        </CustomPlansProvider>
+                      </ReadingPlanProgressProvider>
+                    </ReadingProgressProvider>
+                  </SyncEngineProvider>
+                </AuthProvider>
+              </ServicesProvider>
+            </BibleVersionProvider>
+          </AccessibilityPreferencesProvider>
         </ThemeProvider>
       </LanguageProvider>
     </GestureHandlerRootView>
