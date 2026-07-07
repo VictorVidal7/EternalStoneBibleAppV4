@@ -36,14 +36,14 @@
  * `bible.readingProgress`, split into `lastReadPosition` + `chapterProgressMap`
  * (see above) — `importBackup` still understands a v1 file's old field name.
  *
- * Exported via expo-sharing; imported via a caller-supplied, already-picked
- * file URI (see `readBackupFileFromUri` / `pickBackupFileUri` at the bottom —
- * the latter needs a document-picker dependency this project doesn't have
- * yet, see its docstring). The on-disk JSON stays human-readable.
+ * Exported via expo-sharing; imported via `pickBackupFileUri` (expo-document-
+ * picker) + `readBackupFileFromUri` at the bottom. The on-disk JSON stays
+ * human-readable.
  */
 
 import {File, Paths} from 'expo-file-system';
 import * as Sharing from 'expo-sharing';
+import * as DocumentPicker from 'expo-document-picker';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import bibleDB from '../lib/database';
 import {logger} from '../lib/utils/logger';
@@ -677,9 +677,7 @@ function coerceRawStats(raw: unknown): RawUserStatsRow | null {
   };
 }
 
-function coerceAchievementRow(
-  raw: unknown,
-): {
+function coerceAchievementRow(raw: unknown): {
   id: string;
   currentProgress: number;
   isUnlocked: boolean;
@@ -953,7 +951,9 @@ export async function importBackup(
     coerceReviewEvent,
   );
 
-  const prepSection = isPlainObject(payload.prep) ? payload.prep : {};
+  const prepSection: Record<string, unknown> = isPlainObject(payload.prep)
+    ? payload.prep
+    : {};
   const prepNotesPresent = prepSection.notes !== undefined;
   const prepNotesIn = prepNotesPresent
     ? parsePrepNotesMap(JSON.stringify(prepSection.notes ?? {}))
@@ -1174,24 +1174,11 @@ export async function importBackup(
   return {formatVersion: payload.formatVersion, restoredSections};
 }
 
-/** Thrown by `pickBackupFileUri` — see its docstring. */
-export class BackupPickerUnavailableError extends Error {
-  constructor() {
-    super(
-      'Backup import needs a file picker, and this project has no such ' +
-        'dependency installed yet (checked expo-document-picker and any ' +
-        'react-native-document-picker equivalent — neither is present).',
-    );
-    this.name = 'BackupPickerUnavailableError';
-  }
-}
-
 /**
- * Read a backup file's full text content from an already-known URI. Fully
- * functional today — `expo-file-system`'s `File` class (already a
- * dependency, already used above for export) accepts an arbitrary URI and
- * can read it back as text with no picker involved. The missing piece is
- * only how the app OBTAINS that URI from the user — see `pickBackupFileUri`.
+ * Read a backup file's full text content from an already-known URI. Uses
+ * `expo-file-system`'s `File` class (already a dependency, already used
+ * above for export), which accepts an arbitrary URI and can read it back as
+ * text with no picker involved.
  */
 export async function readBackupFileFromUri(uri: string): Promise<string> {
   return new File(uri).text();
@@ -1199,27 +1186,13 @@ export async function readBackupFileFromUri(uri: string): Promise<string> {
 
 /**
  * Prompt the user to choose a backup `.json` file and return its URI (or
- * `null` if they cancelled). NOT YET WIRED: this project has no
- * document-picker dependency today (checked `package.json` — no
- * `expo-document-picker`, no `react-native-document-picker` equivalent), and
- * per this tanda's instructions a new dependency is NOT installed without
- * explicit approval. This throws `BackupPickerUnavailableError` instead of
- * either (a) silently doing nothing, which would look like a broken button,
- * or (b) reaching for some fragile workaround (e.g. scanning a fixed
- * directory) that wouldn't reliably work under Android scoped storage anyway.
- *
- * Everything downstream of getting a URI is already complete and tested —
- * `readBackupFileFromUri` + `parseBackupPayload` + `importBackup`. Once
- * `expo-document-picker` (recommended — it's the maintained Expo module for
- * exactly this, and every other file-handling dependency here is already
- * `expo-*`) is added, this function's body becomes:
- *
- * ```ts
- * const result = await DocumentPicker.getDocumentAsync({type: 'application/json'});
- * if (result.canceled) return null;
- * return result.assets[0].uri;
- * ```
+ * `null` if they cancelled).
  */
 export async function pickBackupFileUri(): Promise<string | null> {
-  throw new BackupPickerUnavailableError();
+  const result = await DocumentPicker.getDocumentAsync({
+    type: 'application/json',
+    copyToCacheDirectory: true,
+  });
+  if (result.canceled) return null;
+  return result.assets[0].uri;
 }

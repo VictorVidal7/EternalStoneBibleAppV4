@@ -3119,6 +3119,17 @@ export const translations = {
       exporting: 'Generando copia…',
       exportError: 'No se pudo exportar la copia. Inténtalo de nuevo.',
       backupDialogTitle: 'Eternal Stone Bible · Copia de seguridad',
+      importBackup: 'Importar copia de seguridad',
+      importBackupDescription:
+        'Restaura favoritos, notas, resaltados, progreso, logros y preferencias desde un archivo exportado antes.',
+      importing: 'Importando…',
+      importError:
+        'No se pudo importar la copia. Verifica que el archivo sea una copia de seguridad válida.',
+      importSuccess: 'Copia de seguridad importada correctamente.',
+      importConfirmTitle: 'Importar copia de seguridad',
+      importConfirmMessage:
+        'Esto reemplazará tus datos actuales con los del archivo elegido y no se puede deshacer.\n\nFavoritos, notas, resaltados, marcadores, memorización y repasos (últimos 12 meses) también se sincronizan con la nube si iniciaste sesión. El progreso de lectura, logros y rachas, preferencias y la Mesa de preparación solo viven en este dispositivo — la Mesa de preparación nunca se sincroniza a propósito.',
+      importConfirmCta: 'Importar y reemplazar',
 
       about: 'Acerca de',
       version: 'Versión',
@@ -8182,6 +8193,17 @@ export const translations = {
       exporting: 'Generating backup…',
       exportError: 'Backup export failed. Please try again.',
       backupDialogTitle: 'Eternal Stone Bible · Backup',
+      importBackup: 'Import backup',
+      importBackupDescription:
+        'Restore favorites, notes, highlights, progress, achievements and preferences from a previously exported file.',
+      importing: 'Importing…',
+      importError:
+        'Backup import failed. Make sure the file is a valid backup.',
+      importSuccess: 'Backup imported successfully.',
+      importConfirmTitle: 'Import backup',
+      importConfirmMessage:
+        "This will replace your current data with the contents of the chosen file, and can't be undone.\n\nFavorites, notes, highlights, bookmarks, memorization, and reviews (last 12 months) also sync to the cloud if you're signed in. Reading progress, achievements and streaks, preferences, and the Preparation table live only on this device — the Preparation table never syncs, by design.",
+      importConfirmCta: 'Import and replace',
 
       about: 'About',
       version: 'Version',

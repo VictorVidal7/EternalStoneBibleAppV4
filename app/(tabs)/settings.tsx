@@ -23,7 +23,13 @@ import {LinearGradient} from 'expo-linear-gradient';
 import {useBibleVersion} from '@hooks/useBibleVersion';
 import {useLanguage} from '@hooks/useLanguage';
 import {initializeBibleData, resetBibleData} from '@lib/database/data-loader';
-import {exportBackup} from '@/services/BackupService';
+import {
+  exportBackup,
+  pickBackupFileUri,
+  readBackupFileFromUri,
+  parseBackupPayload,
+  importBackup,
+} from '@/services/BackupService';
 import {logger} from '@lib/utils/logger';
 import {useAuth} from '@context/AuthContext';
 import {useSyncEngineOptional, useConflicts} from '@context/SyncEngineContext';
@@ -69,6 +75,9 @@ export default function SettingsScreen() {
   const [isResetting, setIsResetting] = useState(false);
   const [resetConfirmVisible, setResetConfirmVisible] = useState(false);
   const [isExporting, setIsExporting] = useState(false);
+  const [isImporting, setIsImporting] = useState(false);
+  const [importConfirmVisible, setImportConfirmVisible] = useState(false);
+  const pendingImportUriRef = useRef<string | null>(null);
   const [isAuthenticating, setIsAuthenticating] = useState(false);
   const [signOutConfirmVisible, setSignOutConfirmVisible] = useState(false);
   // Dev-only Crashlytics smoke test confirm (see the __DEV__ long-press below).
@@ -163,6 +172,42 @@ export default function SettingsScreen() {
       void error;
     } finally {
       setIsExporting(false);
+    }
+  }
+
+  async function handlePickImportFile() {
+    if (isImporting) return;
+    try {
+      haptics.press();
+      const uri = await pickBackupFileUri();
+      if (!uri) return; // user cancelled the picker
+      pendingImportUriRef.current = uri;
+      setImportConfirmVisible(true);
+    } catch (error) {
+      toast.error(t.settings.importError);
+      void error;
+    }
+  }
+
+  async function performImport() {
+    setImportConfirmVisible(false);
+    const uri = pendingImportUriRef.current;
+    pendingImportUriRef.current = null;
+    if (!uri) return;
+    setIsImporting(true);
+    try {
+      const raw = await readBackupFileFromUri(uri);
+      const payload = parseBackupPayload(raw);
+      await importBackup(payload);
+      toast.success(t.settings.importSuccess);
+    } catch (error) {
+      logger.error('Backup import failed', error as Error, {
+        component: 'SettingsScreen',
+        action: 'performImport',
+      });
+      toast.error(t.settings.importError);
+    } finally {
+      setIsImporting(false);
     }
   }
 
@@ -570,6 +615,30 @@ export default function SettingsScreen() {
               </View>
               <Ionicons
                 name="cloud-upload-outline"
+                size={20}
+                color={colors.primary}
+              />
+            </View>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={themedStyles.card}
+            onPress={handlePickImportFile}
+            disabled={isImporting}
+            accessibilityRole="button"
+            accessibilityLabel={t.settings.importBackup}>
+            <View style={themedStyles.settingRow}>
+              <View style={styles.settingInfo}>
+                <Text
+                  style={[themedStyles.settingLabel, {color: colors.primary}]}>
+                  {isImporting ? t.settings.importing : t.settings.importBackup}
+                </Text>
+                <Text style={themedStyles.settingDescription}>
+                  {t.settings.importBackupDescription}
+                </Text>
+              </View>
+              <Ionicons
+                name="cloud-download-outline"
                 size={20}
                 color={colors.primary}
               />
@@ -1001,6 +1070,20 @@ export default function SettingsScreen() {
         onConfirm={() => void performResetData()}
         onCancel={() => setResetConfirmVisible(false)}
         destructive
+      />
+      <ConfirmDialog
+        visible={importConfirmVisible}
+        title={t.settings.importConfirmTitle}
+        message={t.settings.importConfirmMessage}
+        confirmLabel={t.settings.importConfirmCta}
+        cancelLabel={t.cancel}
+        onConfirm={() => void performImport()}
+        onCancel={() => {
+          pendingImportUriRef.current = null;
+          setImportConfirmVisible(false);
+        }}
+        destructive
+        icon="cloud-download-outline"
       />
       <ConfirmDialog
         visible={signOutConfirmVisible}
