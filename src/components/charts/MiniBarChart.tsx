@@ -40,7 +40,7 @@ interface MiniBarChartProps {
    * Memory Insights screen's box-distribution/review-forecast charts do.
    */
   onBarPress?: (index: number) => void;
-  /** Index of the currently-selected bar, highlighted with a ring + bold label. */
+  /** Index of the currently-selected bar; the rest dim to spotlight it. */
   selectedIndex?: number | null;
 }
 
@@ -66,11 +66,16 @@ export const MiniBarChart: React.FC<MiniBarChartProps> = ({
         const fraction =
           d.value <= 0 ? 0 : Math.max(MIN_BAR_FRACTION, d.value / max);
         const selected = selectedIndex === i;
+        // Spotlight the selected bar by dimming the rest, instead of a
+        // ring around the (fixed-height) track — a ring left short bars
+        // looking half-empty inside their own highlight. No effect when
+        // nothing is selected or the chart isn't tappable.
+        const dimmed = !!onBarPress && selectedIndex != null && !selected;
         const Column = onBarPress ? TouchableOpacity : View;
         return (
           <Column
             key={`${d.label}-${i}`}
-            style={styles.column}
+            style={[styles.column, dimmed && styles.columnDimmed]}
             {...(onBarPress
               ? {
                   onPress: () => onBarPress(i),
@@ -83,13 +88,7 @@ export const MiniBarChart: React.FC<MiniBarChartProps> = ({
               style={[styles.value, {color: valueColor}]}>
               {d.value}
             </Text>
-            <View
-              style={[
-                styles.track,
-                {height, backgroundColor: trackColor},
-                selected && styles.trackSelected,
-                selected && {borderColor: d.color ?? barColor},
-              ]}>
+            <View style={[styles.track, {height, backgroundColor: trackColor}]}>
               {d.value > 0 && (
                 <View
                   style={[
@@ -152,8 +151,8 @@ const styles = StyleSheet.create({
   labelSelected: {
     fontWeight: '800',
   },
-  trackSelected: {
-    borderWidth: 2,
+  columnDimmed: {
+    opacity: 0.35,
   },
 });
 
