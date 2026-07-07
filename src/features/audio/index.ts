@@ -86,7 +86,10 @@ export {
   toAudioVerses,
   isSameAudioChapter,
   bibleVersesFromAudio,
+  immersiveStartIndex,
+  resolveImmersiveOpen,
 } from './lib/immersiveAudio';
+export type {ImmersiveOpenState} from './lib/immersiveAudio';
 export type {VerseLike} from './lib/immersiveAudio';
 
 // Continuous playback across chapters (Sprint 72); cross-chapter following

@@ -18,6 +18,7 @@
 import {getBookByName} from '@/constants/bible';
 import type {BibleVerse} from '@/types/bible';
 import type {AudioVerse} from '../types/audio';
+import {clampVerseIndex} from './playbackPosition';
 
 /**
  * Minimal shape we read off a reader verse. `BibleVerse` is a superset, but the
@@ -92,4 +93,82 @@ export function bibleVersesFromAudio(
     text: v.text,
     version: versionAbbr,
   }));
+}
+
+/**
+ * The verse index the ImmersiveReader should open on (#7 fix). The reader
+ * screen mounts a fresh `ImmersiveReader` each time the modal opens (RN's
+ * `Modal` unmounts its children while `visible={false}`), so `startIndex` is
+ * only ever read once, at that mount — it used to be hardcoded to 0, so
+ * immersive always opened on verse 1 even while the audio engine was already
+ * narrating deep into the same chapter.
+ *
+ * Seeds from the engine's current verse ONLY when it is already bound to the
+ * chapter about to be shown (`audioBoundToReader` — same book/chapter as the
+ * reader's `displayedLocation`, checked by the caller); otherwise falls back
+ * to the chapter's first verse, same as before. Clamped defensively in case
+ * the engine holds a different Bible version with a different verse count.
+ */
+export function immersiveStartIndex(
+  audioBoundToReader: boolean,
+  engineVerseIndex: number,
+  versesLength: number,
+): number {
+  if (!audioBoundToReader) return 0;
+  return clampVerseIndex(engineVerseIndex, versesLength);
+}
+
+/** What `ImmersiveReader` should open with: which chapter's verses, and where. */
+export interface ImmersiveOpenState {
+  verses: BibleVerse[];
+  startIndex: number;
+}
+
+/**
+ * Resolve the chapter + verse ImmersiveReader opens on (#7 fix, part 2). Handles
+ * the case `immersiveStartIndex` alone cannot: continuous playback (Sprint 72)
+ * can silently carry the audio engine into a DIFFERENT chapter than the one on
+ * screen (auto-advance while "reader follows audio" is off or the reader isn't
+ * focused) — seeding an index into the READER's chapter can't fix that, since
+ * the audio isn't even IN that chapter anymore. When the engine is actively
+ * narrating elsewhere, immersive opens on the engine's own chapter instead of
+ * stranding on the reader's stale one (previously: "1/58 con su propio Auto",
+ * a read-only immersive on the wrong chapter with no connection to what's
+ * playing). Otherwise (same chapter, or no active narration elsewhere) it opens
+ * on the reader's own chapter, matching the on-screen text/version.
+ */
+export function resolveImmersiveOpen(params: {
+  readerVerses: BibleVerse[];
+  audioEngineVerses: readonly AudioVerse[];
+  audioBoundToReader: boolean;
+  audioIsPlaying: boolean;
+  isAudioVisible: boolean;
+  engineVerseIndex: number;
+  versionAbbr: string;
+}): ImmersiveOpenState {
+  const engineActiveElsewhere =
+    params.isAudioVisible &&
+    params.audioIsPlaying &&
+    !params.audioBoundToReader &&
+    params.audioEngineVerses.length > 0;
+
+  if (engineActiveElsewhere) {
+    const verses = bibleVersesFromAudio(
+      params.audioEngineVerses,
+      params.versionAbbr,
+    );
+    return {
+      verses,
+      startIndex: clampVerseIndex(params.engineVerseIndex, verses.length),
+    };
+  }
+
+  return {
+    verses: params.readerVerses,
+    startIndex: immersiveStartIndex(
+      params.audioBoundToReader,
+      params.engineVerseIndex,
+      params.readerVerses.length,
+    ),
+  };
 }

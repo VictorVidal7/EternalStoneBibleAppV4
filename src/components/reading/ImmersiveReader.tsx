@@ -642,14 +642,17 @@ export const ImmersiveReader: React.FC<ImmersiveReaderProps> = ({
                 // descenders at 32 and floated at 16.
                 lineHeight: immersiveLineHeight(fontSize),
                 fontFamily: verseFontFamily,
-                color: isHighContrast
-                  ? hcColors.text
-                  : isDark
-                    ? '#f1f5f9'
-                    : '#1e293b',
-                textShadowColor: isDark
-                  ? 'rgba(0,0,0,0.5)'
-                  : 'rgba(255,255,255,0.8)',
+                // The gradient background (`getBackgroundGradient`) is always a
+                // saturated theme surface — celestial/nature/paper all range
+                // dark-to-bright, never a flat light background — regardless of
+                // the app's OWN light/dark toggle (`isDark`). Branching this
+                // text color on `isDark` picked dark navy text under a light
+                // app theme, which under a non-blue color theme (e.g. Bosque's
+                // green gradient) blended into the gradient's darker stops
+                // (2026-07-07 live report). Always use the light/dark-SURFACE
+                // palette here — matches what dark-mode users already saw.
+                color: isHighContrast ? hcColors.text : '#f1f5f9',
+                textShadowColor: 'rgba(0,0,0,0.5)',
               },
             ]}>
             {karaokeWord ? (
@@ -657,17 +660,9 @@ export const ImmersiveReader: React.FC<ImmersiveReaderProps> = ({
                 {currentVerse.text.slice(0, karaokeWord.start)}
                 <Text
                   style={{
-                    color: isHighContrast
-                      ? hcColors.accent
-                      : isDark
-                        ? '#fbbf24'
-                        : '#b45309',
+                    color: isHighContrast ? hcColors.accent : '#fbbf24',
                     backgroundColor:
-                      (isHighContrast
-                        ? hcColors.accent
-                        : isDark
-                          ? '#fbbf24'
-                          : '#b45309') + '26',
+                      (isHighContrast ? hcColors.accent : '#fbbf24') + '26',
                   }}>
                   {currentVerse.text.slice(karaokeWord.start, karaokeWord.end)}
                 </Text>
@@ -684,11 +679,7 @@ export const ImmersiveReader: React.FC<ImmersiveReaderProps> = ({
             style={[
               styles.reference,
               {
-                color: isHighContrast
-                  ? hcColors.reference
-                  : isDark
-                    ? '#cbd5e1'
-                    : '#64748b',
+                color: isHighContrast ? hcColors.reference : '#cbd5e1',
               },
             ]}>
             {localizedReference(currentVerse)}
