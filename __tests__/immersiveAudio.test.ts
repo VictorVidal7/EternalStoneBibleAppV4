@@ -6,9 +6,12 @@ import {
   toAudioVerses,
   isSameAudioChapter,
   bibleVersesFromAudio,
+  immersiveStartIndex,
+  resolveImmersiveOpen,
   VerseLike,
 } from '../src/features/audio/lib/immersiveAudio';
 import type {AudioVerse} from '../src/features/audio/types/audio';
+import type {BibleVerse} from '../src/types/bible';
 
 const av = (
   book: string,
@@ -148,5 +151,133 @@ describe('bibleVersesFromAudio (S73 — immersive cross-chapter follow)', () => 
 
   it('returns an empty array for empty input', () => {
     expect(bibleVersesFromAudio([], 'WEB')).toEqual([]);
+  });
+});
+
+describe('immersiveStartIndex (#7 — immersive opens where the audio already is)', () => {
+  it('seeds from the engine verse index when bound to the same chapter', () => {
+    expect(immersiveStartIndex(true, 14, 30)).toBe(14);
+  });
+
+  it('falls back to 0 (chapter start) when not bound to the reader chapter', () => {
+    expect(immersiveStartIndex(false, 14, 30)).toBe(0);
+  });
+
+  it('clamps the engine index into the displayed chapter bounds (version mismatch)', () => {
+    expect(immersiveStartIndex(true, 99, 10)).toBe(9);
+    expect(immersiveStartIndex(true, -1, 10)).toBe(0);
+  });
+
+  it('never indexes past an empty chapter', () => {
+    expect(immersiveStartIndex(true, 5, 0)).toBe(0);
+  });
+});
+
+describe('resolveImmersiveOpen (#7 part 2 — engine on a DIFFERENT chapter)', () => {
+  const bv = (
+    book: string,
+    chapter: number,
+    verse: number,
+    text = 't',
+  ): BibleVerse => ({
+    id: 0,
+    book,
+    bookNumber: 1,
+    chapter,
+    verse,
+    text,
+    version: 'RVR1960',
+  });
+  const readerVerses = [bv('Juan', 3, 1), bv('Juan', 3, 2), bv('Juan', 3, 3)];
+  const elsewhereEngineVerses = [
+    av('Salmos', 118, 1),
+    av('Salmos', 118, 2),
+    av('Salmos', 118, 3),
+    av('Salmos', 118, 4),
+  ];
+
+  it('opens on the reader chapter, seeded, when the engine is bound to it', () => {
+    const result = resolveImmersiveOpen({
+      readerVerses,
+      audioEngineVerses: [av('Juan', 3, 1), av('Juan', 3, 2), av('Juan', 3, 3)],
+      audioBoundToReader: true,
+      audioIsPlaying: true,
+      isAudioVisible: true,
+      engineVerseIndex: 2,
+      versionAbbr: 'RVR1960',
+    });
+    expect(result.verses).toBe(readerVerses);
+    expect(result.startIndex).toBe(2);
+  });
+
+  it('opens on the ENGINE chapter when it is actively narrating a different one', () => {
+    const result = resolveImmersiveOpen({
+      readerVerses,
+      audioEngineVerses: elsewhereEngineVerses,
+      audioBoundToReader: false,
+      audioIsPlaying: true,
+      isAudioVisible: true,
+      engineVerseIndex: 3,
+      versionAbbr: 'RVR1960',
+    });
+    expect(result.verses).toEqual(
+      bibleVersesFromAudio(elsewhereEngineVerses, 'RVR1960'),
+    );
+    expect(result.startIndex).toBe(3);
+  });
+
+  it('opens on the reader chapter (verse 1) when the engine is paused elsewhere', () => {
+    const result = resolveImmersiveOpen({
+      readerVerses,
+      audioEngineVerses: elsewhereEngineVerses,
+      audioBoundToReader: false,
+      audioIsPlaying: false,
+      isAudioVisible: true,
+      engineVerseIndex: 3,
+      versionAbbr: 'RVR1960',
+    });
+    expect(result.verses).toBe(readerVerses);
+    expect(result.startIndex).toBe(0);
+  });
+
+  it('opens on the reader chapter when there is no audio session at all', () => {
+    const result = resolveImmersiveOpen({
+      readerVerses,
+      audioEngineVerses: [],
+      audioBoundToReader: false,
+      audioIsPlaying: false,
+      isAudioVisible: false,
+      engineVerseIndex: 0,
+      versionAbbr: 'RVR1960',
+    });
+    expect(result.verses).toBe(readerVerses);
+    expect(result.startIndex).toBe(0);
+  });
+
+  it('opens on the reader chapter when the mini-player is hidden even if isPlaying is stale-true', () => {
+    const result = resolveImmersiveOpen({
+      readerVerses,
+      audioEngineVerses: elsewhereEngineVerses,
+      audioBoundToReader: false,
+      audioIsPlaying: true,
+      isAudioVisible: false,
+      engineVerseIndex: 3,
+      versionAbbr: 'RVR1960',
+    });
+    expect(result.verses).toBe(readerVerses);
+    expect(result.startIndex).toBe(0);
+  });
+
+  it('clamps the engine index into the engine chapter bounds', () => {
+    const result = resolveImmersiveOpen({
+      readerVerses,
+      audioEngineVerses: elsewhereEngineVerses,
+      audioBoundToReader: false,
+      audioIsPlaying: true,
+      isAudioVisible: true,
+      engineVerseIndex: 999,
+      versionAbbr: 'RVR1960',
+    });
+    expect(result.startIndex).toBe(elsewhereEngineVerses.length - 1);
   });
 });

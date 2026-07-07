@@ -87,8 +87,10 @@ import {
   sameChapterLocation,
   shouldReaderFollowAudio,
   shouldResyncAudioToVersion,
+  resolveImmersiveOpen,
   KaraokeText,
   type ChapterLocation,
+  type ImmersiveOpenState,
 } from '@/features/audio';
 import {localizedChapterReference} from '@lib/reading/verseReference';
 import {usePremium} from '@context/PremiumContext';
@@ -258,6 +260,17 @@ export default function VerseReadingScreen() {
     new Set(),
   );
   const [immersiveModeActive, setImmersiveModeActive] = useState(false);
+  // Snapshot of what ImmersiveReader should open with (#7), taken ONCE at the
+  // moment it opens — NOT recomputed every render. `ImmersiveReader` re-keys
+  // its internal chapter off its `verses` prop's REFERENCE (its own re-sync
+  // effect, `[propVerses]`); recomputing `resolveImmersiveOpen` inline on every
+  // render would hand it a fresh array each time audio advances a verse,
+  // repeatedly retriggering that effect and stomping the cross-chapter-follow
+  // latch it owns internally. `null` while closed (Modal doesn't render its
+  // child then, so it's never read).
+  const [immersiveOpen, setImmersiveOpen] = useState<ImmersiveOpenState | null>(
+    null,
+  );
   // Verse highlights: map of verse number -> highlight color (hex).
   const [verseHighlights, setVerseHighlights] = useState<Map<number, string>>(
     new Map(),
@@ -323,6 +336,15 @@ export default function VerseReadingScreen() {
   // Persisted; reuses the pure spotlight model. `focusedVerse` follows scroll.
   const [focusMode, setFocusMode] = useState(false);
   const [focusedVerse, setFocusedVerse] = useState<number | null>(null);
+  // The verse the reader arrived at via navigation (search, cross-reference,
+  // "highlightVerse"), temporarily outranking BOTH the audio-spoken verse and
+  // the scroll-centered one in Focus mode — otherwise an already-playing audio
+  // verse always won and the verse the user just navigated to never got the
+  // spotlight (#15). Clears on the next genuine user scroll or the next time
+  // the audio engine's verse advances (see the effects below).
+  const [arrivalFocusVerse, setArrivalFocusVerse] = useState<number | null>(
+    null,
+  );
 
   // Y offset of each verse row within the ScrollView, for audio auto-scroll
   // (Sprint 70 also reads them to find the centered verse for Focus mode).
@@ -820,6 +842,7 @@ export default function VerseReadingScreen() {
       if (highlightVerse) {
         const verseNum = parseInt(highlightVerse as string);
         if (!Number.isNaN(verseNum)) {
+          setArrivalFocusVerse(verseNum);
           let attempts = 0;
           const tryScroll = () => {
             const offset = verseOffsetsRef.current.get(verseNum);
@@ -1096,6 +1119,21 @@ export default function VerseReadingScreen() {
       ? (verses[audioState.currentVerseIndex]?.verse ?? null)
       : null;
 
+  // Release the arrival override (#15) once the audio engine actually moves
+  // to a different verse — its OWN current index at the moment of arrival
+  // doesn't count (the user navigated on purpose; only a later advance should
+  // cede the spotlight back to audio).
+  const prevAudioVerseIndexRef = useRef(audioState.currentVerseIndex);
+  useEffect(() => {
+    if (
+      arrivalFocusVerse !== null &&
+      audioState.currentVerseIndex !== prevAudioVerseIndexRef.current
+    ) {
+      setArrivalFocusVerse(null);
+    }
+    prevAudioVerseIndexRef.current = audioState.currentVerseIndex;
+  }, [audioState.currentVerseIndex, arrivalFocusVerse]);
+
   // Latch: the chapter the reader was showing WHILE the engine played that
   // same chapter. Only a chapter the user actually listened to from here can
   // be followed out of, so a manual jump near the playing chapter never drags
@@ -1279,6 +1317,34 @@ export default function VerseReadingScreen() {
     clearSelection();
   }
 
+  // Open Immersive from a MANUAL tap (#7): snapshot wherever the audio engine
+  // actually is right now, even if it has silently diverged onto a different
+  // chapter (continuous playback) — see resolveImmersiveOpen.
+  function openImmersiveFollowingAudio() {
+    setImmersiveOpen(
+      resolveImmersiveOpen({
+        readerVerses: verses,
+        audioEngineVerses,
+        audioBoundToReader,
+        audioIsPlaying: audioState.isPlaying,
+        isAudioVisible,
+        engineVerseIndex: audioState.currentVerseIndex,
+        versionAbbr: selectedVersion.abbreviation,
+      }),
+    );
+    setImmersiveModeActive(true);
+  }
+
+  // Open Immersive right as THIS reader's own chapter starts narrating (#7):
+  // the caller already knows the exact verse it just told the engine to play,
+  // synchronously — the engine's own state (audioState.currentVerseIndex)
+  // hasn't caught up yet at this point, so resolveImmersiveOpen would read a
+  // stale value here instead.
+  function openImmersiveOnThisChapter(startIndex: number) {
+    setImmersiveOpen({verses, startIndex});
+    setImmersiveModeActive(true);
+  }
+
   // Share selected verses
   async function handleShareSelected() {
     if (selectedVerses.size === 0) return;
@@ -1306,7 +1372,8 @@ export default function VerseReadingScreen() {
     loadAudioChapter(toAudioVerses(verses));
     goToVerse(startIndex);
     setTimeout(() => play(), 100);
-    if (readerPrefs.autoImmersiveOnListen) setImmersiveModeActive(true);
+    if (readerPrefs.autoImmersiveOnListen)
+      openImmersiveOnThisChapter(startIndex);
     clearSelection();
   }
 
@@ -1558,7 +1625,7 @@ export default function VerseReadingScreen() {
     // right as audio starts also BINDS it to the engine before the first ∞
     // chapter advance (the S73 follow requires an early bind).
     if (readerPrefs.autoImmersiveOnListen) {
-      setImmersiveModeActive(true);
+      openImmersiveOnThisChapter(resumeIndex);
     }
   }
 
@@ -1622,7 +1689,7 @@ export default function VerseReadingScreen() {
               <TouchableOpacity
                 onPress={() => {
                   haptics.press();
-                  setImmersiveModeActive(true);
+                  openImmersiveFollowingAudio();
                 }}
                 style={styles.headerButton}
                 accessibilityRole="button"
@@ -1692,14 +1759,12 @@ export default function VerseReadingScreen() {
             onPress={openChapterSelector}
             accessibilityRole="button"
             accessibilityLabel={t.bible.selectChapter}>
-            <View
-              style={[
-                styles.navTitlePill,
-                {borderColor: effectiveColors.primary + '55'},
-              ]}>
+            <View style={styles.navTitlePill}>
               <Text
                 style={[styles.navTitle, {color: effectiveColors.primary}]}
-                numberOfLines={1}>
+                numberOfLines={1}
+                adjustsFontSizeToFit
+                minimumFontScale={0.75}>
                 {localizedBookName} {chapterNum}
               </Text>
             </View>
@@ -1785,20 +1850,35 @@ export default function VerseReadingScreen() {
           </TouchableOpacity>
 
           <TouchableOpacity
-            style={styles.toolbarButton}
+            style={[
+              styles.toolbarButton,
+              immersiveModeActive && {
+                backgroundColor: effectiveColors.primary + '20',
+              },
+            ]}
             onPress={() => {
               haptics.tap();
-              setImmersiveModeActive(true);
-            }}>
+              openImmersiveFollowingAudio();
+            }}
+            accessibilityRole="button"
+            accessibilityState={{selected: immersiveModeActive}}>
             <Ionicons
               name="expand-outline"
               size={22}
-              color={effectiveColors.text}
+              color={
+                immersiveModeActive
+                  ? effectiveColors.primary
+                  : effectiveColors.text
+              }
             />
             <Text
               style={[
                 styles.toolbarButtonText,
-                {color: effectiveColors.textSecondary},
+                {
+                  color: immersiveModeActive
+                    ? effectiveColors.primary
+                    : effectiveColors.textSecondary,
+                },
               ]}>
               {t.verse.immersive}
             </Text>
@@ -1865,25 +1945,45 @@ export default function VerseReadingScreen() {
                 {t.verse.dualView}
               </Text>
             </TouchableOpacity>
-          ) : null}
+          ) : (
+            <View
+              style={styles.toolbarButton}
+              accessibilityElementsHidden
+              importantForAccessibility="no-hide-descendants"
+            />
+          )}
 
           <TouchableOpacity
-            style={styles.toolbarButton}
+            style={[
+              styles.toolbarButton,
+              readerPrefsVisible && {
+                backgroundColor: effectiveColors.primary + '20',
+              },
+            ]}
             onPress={() => {
               haptics.tap();
               setReaderPrefsVisible(true);
             }}
             accessibilityRole="button"
+            accessibilityState={{selected: readerPrefsVisible}}
             accessibilityLabel={t.readerPrefs.openLabel}>
             <Ionicons
               name="text-outline"
               size={22}
-              color={effectiveColors.text}
+              color={
+                readerPrefsVisible
+                  ? effectiveColors.primary
+                  : effectiveColors.text
+              }
             />
             <Text
               style={[
                 styles.toolbarButtonText,
-                {color: effectiveColors.textSecondary},
+                {
+                  color: readerPrefsVisible
+                    ? effectiveColors.primary
+                    : effectiveColors.textSecondary,
+                },
               ]}>
               Aa
             </Text>
@@ -2045,6 +2145,7 @@ export default function VerseReadingScreen() {
           ]}
           onScroll={handleScroll}
           scrollEventThrottle={16}
+          onScrollBeginDrag={() => setArrivalFocusVerse(null)}
           onScrollEndDrag={persistChapterProgress}
           onMomentumScrollEnd={persistChapterProgress}
           onLayout={e => {
@@ -2249,13 +2350,15 @@ export default function VerseReadingScreen() {
                   // selection (Sprint 69) and, in Focus mode, around the verse
                   // centered in the viewport (Sprint 70). Static opacity (not a
                   // fade) → reduce-motion-safe; the dimmer of the two wins, and
-                  // each is a no-op when its driver is inactive.
+                  // each is a no-op when its driver is inactive. A verse the
+                  // user just navigated to (#15) temporarily outranks both.
                   {
                     opacity: Math.min(
                       spotlightOpacity(verse.verse, selectedVerses),
                       focusVerseOpacity(
                         verse.verse,
-                        focusTargetVerse(focusedVerse, audioFocusVerse),
+                        arrivalFocusVerse ??
+                          focusTargetVerse(focusedVerse, audioFocusVerse),
                         focusMode,
                       ),
                     ),
@@ -2299,7 +2402,16 @@ export default function VerseReadingScreen() {
                     // leaves more right margin, so the last glyph clears the box.
                     // A different lever than the fontSize-derived padding slack
                     // (which never fully landed it), tried together here.
-                    textBreakStrategy="simple">
+                    //
+                    // #3/#10 (justify silently no-op'd, T12): Android's
+                    // JUSTIFICATION_MODE_INTER_WORD only applies under
+                    // 'highQuality'/'balanced' — 'simple' unconditionally
+                    // suppressed it, so "Justificado" never visibly justified.
+                    // Only left-align needs the greedy clip mitigation; justify
+                    // already reserves its clip gutter via marginRight (see
+                    // `textStyle` above), so it's safe to give justify back the
+                    // strategy it actually needs.
+                    textBreakStrategy={isJustified ? 'highQuality' : 'simple'}>
                     <Text style={[styles.verseNumber, numberStyle]}>
                       {verse.verse}
                       {'  '}
@@ -2385,7 +2497,9 @@ export default function VerseReadingScreen() {
                                       : effectiveColors.text,
                                   },
                                 ]}
-                                textBreakStrategy="simple">
+                                textBreakStrategy={
+                                  isJustified ? 'highQuality' : 'simple'
+                                }>
                                 {companion.text}
                               </Text>
                             </View>
@@ -2424,7 +2538,9 @@ export default function VerseReadingScreen() {
                                   textAlign: readerPrefs.textAlign,
                                 },
                               ]}
-                              textBreakStrategy="simple">
+                              textBreakStrategy={
+                                isJustified ? 'highQuality' : 'simple'
+                              }>
                               {companion.text}
                             </Text>
                           </View>
@@ -2984,11 +3100,17 @@ export default function VerseReadingScreen() {
           visible={immersiveModeActive}
           animationType="fade"
           presentationStyle="fullScreen"
-          onRequestClose={() => setImmersiveModeActive(false)}>
+          onRequestClose={() => {
+            setImmersiveModeActive(false);
+            setImmersiveOpen(null);
+          }}>
           <ImmersiveReader
-            verses={verses}
-            onClose={() => setImmersiveModeActive(false)}
-            startIndex={0}
+            verses={immersiveOpen?.verses ?? verses}
+            startIndex={immersiveOpen?.startIndex ?? 0}
+            onClose={() => {
+              setImmersiveModeActive(false);
+              setImmersiveOpen(null);
+            }}
           />
         </Modal>
 
@@ -3047,8 +3169,6 @@ const styles = StyleSheet.create({
   navTitlePill: {
     paddingHorizontal: spacing.sm,
     paddingVertical: 3,
-    borderRadius: borderRadius.full,
-    borderWidth: 1,
   },
   navButton: {
     flexDirection: 'row',
@@ -3063,14 +3183,14 @@ const styles = StyleSheet.create({
   },
   navTitle: {
     fontSize: fontSizes.sm,
-    fontWeight: '700',
+    fontWeight: '600',
     letterSpacing: -0.2,
   },
 
   // TOOLBAR - COMPACTA
   toolbar: {
     flexDirection: 'row',
-    justifyContent: 'space-around',
+    justifyContent: 'space-evenly',
     alignItems: 'center',
     paddingVertical: spacing['0.5'],
     paddingHorizontal: spacing.base,
