@@ -160,14 +160,25 @@ export const ReadingProgressProvider: FC<{children: ReactNode}> = ({
     percentage: number,
   ): void => {
     // Always key on the canonical (English) book name so reads from the Home
-    // card (which passes the route book param) and the chapter grid (which
+    // card (which passes the route param) and the chapter grid (which
     // passes the Spanish name) hit the same entry (Sprint 58 follow-up).
     const key = canonicalProgressKey(book);
+    // Max-merge, never overwrite downward (#16): the reader's session-scoped
+    // guard (`lastPersistedPctRef`) resets on every mount, so reopening an
+    // already-100% chapter and scrolling less starts a fresh, lower
+    // session-max — without this guard that lower value would stomp the
+    // earlier 100% and the chapter grid would show it as "in progress"
+    // again. Same convention as `canonicalizeProgressMap`'s migration merge.
+    const existingPct = progress[key]?.[chapter] ?? 0;
+    const mergedPct = Math.max(existingPct, percentage);
+    if (mergedPct === existingPct) {
+      return;
+    }
     const newProgress: ReadingProgress = {
       ...progress,
       [key]: {
         ...progress[key],
-        [chapter]: percentage,
+        [chapter]: mergedPct,
       },
     };
 
@@ -179,7 +190,7 @@ export const ReadingProgressProvider: FC<{children: ReactNode}> = ({
         action: 'updateChapterProgress',
         book,
         chapter,
-        percentage,
+        percentage: mergedPct,
       },
     );
 
