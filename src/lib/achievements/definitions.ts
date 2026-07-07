@@ -52,7 +52,7 @@ export const ACHIEVEMENT_DEFINITIONS: Omit<
   },
   {
     id: 'verses_1000',
-    name: 'Word Master',
+    name: 'Tireless Reader',
     description: 'Read 1000 verses',
     icon: '⭐',
     category: AchievementCategory.READING,
@@ -62,7 +62,7 @@ export const ACHIEVEMENT_DEFINITIONS: Omit<
   },
   {
     id: 'verses_5000',
-    name: 'Biblical Scholar',
+    name: 'Persevering Disciple',
     description: 'Read 5000 verses',
     icon: '💎',
     category: AchievementCategory.READING,
@@ -146,7 +146,7 @@ export const ACHIEVEMENT_DEFINITIONS: Omit<
   },
   {
     id: 'chapters_50',
-    name: 'Word Traveler',
+    name: 'Steadfast in the Word',
     description: 'Complete 50 chapters',
     icon: '🚶',
     category: AchievementCategory.CHAPTERS,
@@ -328,7 +328,7 @@ export const ACHIEVEMENT_DEFINITIONS: Omit<
   // SPECIAL ACHIEVEMENTS
   {
     id: 'psalms_complete',
-    name: 'Psalmist',
+    name: 'Psalms Completed',
     description: 'Complete the book of Psalms',
     icon: '🎵',
     category: AchievementCategory.SPECIAL,
@@ -338,7 +338,7 @@ export const ACHIEVEMENT_DEFINITIONS: Omit<
   },
   {
     id: 'proverbs_complete',
-    name: 'Wise One',
+    name: 'Proverbs Completed',
     description: 'Complete the book of Proverbs',
     icon: '💡',
     category: AchievementCategory.SPECIAL,
@@ -348,7 +348,7 @@ export const ACHIEVEMENT_DEFINITIONS: Omit<
   },
   {
     id: 'gospels_complete',
-    name: 'Evangelist',
+    name: 'Gospels Completed',
     description: 'Complete the 4 gospels',
     icon: '📯',
     category: AchievementCategory.SPECIAL,

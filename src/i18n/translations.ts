@@ -3766,6 +3766,12 @@ export const translations = {
       totalPoints: 'Puntos totales',
       pointsNeeded: 'puntos para',
       pts: 'pts',
+      statsInteractionTitle: 'Interacción',
+      statsHighlights: 'Destacados',
+      statsNotes: 'Notas',
+      statsFavorites: 'Favoritos',
+      statsSearches: 'Búsquedas',
+      statsAchievementsTitle: 'Logros',
       achievementsUnlocked: 'Desbloqueados',
       almostThere: 'A punto de lograrse',
       almostThereA11y:
@@ -3825,11 +3831,11 @@ export const translations = {
           description: 'Lee 500 versículos',
         },
         verses_1000: {
-          name: 'Maestro de la Palabra',
+          name: 'Lector Incansable',
           description: 'Lee 1000 versículos',
         },
         verses_5000: {
-          name: 'Erudito Bíblico',
+          name: 'Discípulo Perseverante',
           description: 'Lee 5000 versículos',
         },
         streak_3: {
@@ -3861,7 +3867,7 @@ export const translations = {
           description: 'Completa 10 capítulos',
         },
         chapters_50: {
-          name: 'Viajero de la Palabra',
+          name: 'Constante en la Palabra',
           description: 'Completa 50 capítulos',
         },
         chapters_150: {
@@ -3929,15 +3935,15 @@ export const translations = {
           description: 'Lee durante 1000 minutos',
         },
         psalms_complete: {
-          name: 'Salmista',
+          name: 'Salmos Completados',
           description: 'Completa el libro de Salmos',
         },
         proverbs_complete: {
-          name: 'Sabio',
+          name: 'Proverbios Completados',
           description: 'Completa el libro de Proverbios',
         },
         gospels_complete: {
-          name: 'Evangelista',
+          name: 'Evangelios Completados',
           description: 'Completa los 4 evangelios',
         },
         early_bird: {
@@ -8842,6 +8848,12 @@ export const translations = {
       totalPoints: 'Total points',
       pointsNeeded: 'points to',
       pts: 'pts',
+      statsInteractionTitle: 'Interaction',
+      statsHighlights: 'Highlights',
+      statsNotes: 'Notes',
+      statsFavorites: 'Favorites',
+      statsSearches: 'Searches',
+      statsAchievementsTitle: 'Achievements',
       achievementsUnlocked: 'Unlocked',
       almostThere: 'Almost there',
       almostThereA11y: '{{name}}: {{current}} of {{requirement}} to unlock',
@@ -8900,11 +8912,11 @@ export const translations = {
           description: 'Read 500 verses',
         },
         verses_1000: {
-          name: 'Word Master',
+          name: 'Tireless Reader',
           description: 'Read 1000 verses',
         },
         verses_5000: {
-          name: 'Biblical Scholar',
+          name: 'Persevering Disciple',
           description: 'Read 5000 verses',
         },
         streak_3: {
@@ -8936,7 +8948,7 @@ export const translations = {
           description: 'Complete 10 chapters',
         },
         chapters_50: {
-          name: 'Word Traveler',
+          name: 'Steadfast in the Word',
           description: 'Complete 50 chapters',
         },
         chapters_150: {
@@ -9004,15 +9016,15 @@ export const translations = {
           description: 'Read for 1000 minutes',
         },
         psalms_complete: {
-          name: 'Psalmist',
+          name: 'Psalms Completed',
           description: 'Complete the book of Psalms',
         },
         proverbs_complete: {
-          name: 'Wise One',
+          name: 'Proverbs Completed',
           description: 'Complete the book of Proverbs',
         },
         gospels_complete: {
-          name: 'Evangelist',
+          name: 'Gospels Completed',
           description: 'Complete the 4 gospels',
         },
         early_bird: {
