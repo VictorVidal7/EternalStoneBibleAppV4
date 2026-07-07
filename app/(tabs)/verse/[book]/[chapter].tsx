@@ -365,6 +365,12 @@ export default function VerseReadingScreen() {
   } | null>(null);
   const [originalWordChipDismissed, setOriginalWordChipDismissed] =
     useState(false);
+  // Whether the small "globito" bubble is currently expanded (toggled by
+  // tapping the marker beside the verse number). The marker itself doesn't
+  // claim to sit on a specific word — there's no character-alignment data
+  // between the original language and the rendered translation, so a
+  // per-word marker would be a guess dressed up as precision.
+  const [originalWordPopoverOpen, setOriginalWordPopoverOpen] = useState(false);
 
   // Y offset of each verse row within the ScrollView, for audio auto-scroll
   // (Sprint 70 also reads them to find the centered verse for Focus mode).
@@ -812,6 +818,7 @@ export default function VerseReadingScreen() {
       setLoading(true);
       setOriginalWordChip(null);
       setOriginalWordChipDismissed(false);
+      setOriginalWordPopoverOpen(false);
       logger.info('Loading chapter', {
         component: 'VerseReadingScreen',
         action: 'loadChapter',
@@ -2037,53 +2044,6 @@ export default function VerseReadingScreen() {
           </TouchableOpacity>
         </View>
 
-        {/* Original-word chip (Ficha #13): arrived from word-study with a
-            resolved Strong's match for the arrival verse — discreet, dismissible,
-            never claims a word-for-word alignment beyond this one occurrence. */}
-        {originalWordChip && !originalWordChipDismissed ? (
-          <View
-            style={[
-              styles.originalWordBanner,
-              {
-                backgroundColor: effectiveColors.primary + '14',
-                borderColor: effectiveColors.primary + '33',
-              },
-            ]}>
-            <TouchableOpacity
-              style={styles.originalWordBannerTextWrap}
-              onPress={() => {
-                haptics.tap();
-                setOriginalsVerse(originalWordChip.verse);
-                setOriginalsVisible(true);
-              }}
-              accessibilityRole="button"
-              accessibilityLabel={`${originalWordChip.word}${
-                originalWordChip.gloss ? ` · ${originalWordChip.gloss}` : ''
-              } — ${t.verse.originalWordHint}`}>
-              <Text
-                style={[
-                  styles.originalWordBannerText,
-                  {color: effectiveColors.primary},
-                ]}
-                numberOfLines={1}>
-                {originalWordChip.word}
-                {originalWordChip.gloss ? ` · ${originalWordChip.gloss}` : ''}
-              </Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              onPress={() => setOriginalWordChipDismissed(true)}
-              hitSlop={NAV_HIT_SLOP}
-              accessibilityRole="button"
-              accessibilityLabel={t.close}>
-              <Ionicons
-                name="close"
-                size={16}
-                color={effectiveColors.primary}
-              />
-            </TouchableOpacity>
-          </View>
-        ) : null}
-
         {/* Dual-mode controls (Sprint 66 picker + Sprint 67 swap/layout):
             choose WHICH translation sits alongside the one being read (chips,
             only when >1 companion exists), swap primary ↔ companion, and switch
@@ -2510,6 +2470,43 @@ export default function VerseReadingScreen() {
                       {verse.verse}
                       {'  '}
                     </Text>
+                    {/* Original-word marker (Ficha #13): arrived from
+                        word-study with a resolved Strong's match for this
+                        verse. Sits beside the verse NUMBER, not a specific
+                        word — the app has no character-alignment data
+                        between the original language and the rendered
+                        translation, so pointing at one word would be a
+                        guess dressed up as precision. Tap toggles a small
+                        "globito" rendered below the verse (see after
+                        verseContent). */}
+                    {originalWordChip &&
+                    originalWordChip.verse === verse.verse &&
+                    !originalWordChipDismissed ? (
+                      <Text
+                        onPress={() => {
+                          haptics.tap();
+                          setOriginalWordPopoverOpen(o => !o);
+                        }}
+                        accessibilityRole="button"
+                        accessibilityState={{expanded: originalWordPopoverOpen}}
+                        accessibilityLabel={t.verse.originalWordMarkerHint}>
+                        <View
+                          style={[
+                            styles.originalWordMarkerBadge,
+                            {
+                              backgroundColor: effectiveColors.primary + '26',
+                              borderColor: effectiveColors.primary + '55',
+                            },
+                          ]}>
+                          <Ionicons
+                            name="ellipsis-horizontal"
+                            size={12}
+                            color={effectiveColors.primary}
+                          />
+                        </View>
+                        {'  '}
+                      </Text>
+                    ) : null}
                     {/* Karaoke (Sprint 76): while the engine voices THIS
                         verse, light the spoken word with a deeper tint of
                         the audio-highlight hue. The emphasis must be
@@ -2641,6 +2638,66 @@ export default function VerseReadingScreen() {
                         );
                       })()
                     : null}
+                  {/* Original-word "globito" (Ficha #13): expands under the
+                      verse when the marker beside its number is tapped.
+                      Tapping the word inside opens Idiomas originales
+                      pre-focused on this verse; the bubble collapses again
+                      on a second tap of the marker, or is dismissed for
+                      good via the ×. Nested INSIDE verseContent (not a
+                      sibling after it) so it stacks in verseContent's own
+                      column flow instead of becoming a second column in
+                      verseItem's row layout (verseItem is row-direction so
+                      the favorite-heart icon can sit to the right). */}
+                  {originalWordChip &&
+                  originalWordChip.verse === verse.verse &&
+                  !originalWordChipDismissed &&
+                  originalWordPopoverOpen ? (
+                    <View
+                      style={[
+                        styles.originalWordPopover,
+                        {
+                          backgroundColor: effectiveColors.primary + '14',
+                          borderColor: effectiveColors.primary + '33',
+                        },
+                      ]}>
+                      <TouchableOpacity
+                        style={styles.originalWordPopoverTextWrap}
+                        onPress={() => {
+                          haptics.tap();
+                          setOriginalsVerse(originalWordChip.verse);
+                          setOriginalsVisible(true);
+                        }}
+                        accessibilityRole="button"
+                        accessibilityLabel={`${originalWordChip.word}${
+                          originalWordChip.gloss
+                            ? ` · ${originalWordChip.gloss}`
+                            : ''
+                        } — ${t.verse.originalWordHint}`}>
+                        <Text
+                          style={[
+                            styles.originalWordPopoverText,
+                            {color: effectiveColors.primary},
+                          ]}
+                          numberOfLines={1}>
+                          {originalWordChip.word}
+                          {originalWordChip.gloss
+                            ? ` · ${originalWordChip.gloss}`
+                            : ''}
+                        </Text>
+                      </TouchableOpacity>
+                      <TouchableOpacity
+                        onPress={() => setOriginalWordChipDismissed(true)}
+                        hitSlop={NAV_HIT_SLOP}
+                        accessibilityRole="button"
+                        accessibilityLabel={t.close}>
+                        <Ionicons
+                          name="close"
+                          size={14}
+                          color={effectiveColors.primary}
+                        />
+                      </TouchableOpacity>
+                    </View>
+                  ) : null}
                 </View>
                 {isFavorited && (
                   <TouchableOpacity
@@ -3372,22 +3429,32 @@ const styles = StyleSheet.create({
   sideBySideText: {
     fontStyle: 'italic',
   },
-  originalWordBanner: {
+  originalWordMarkerBadge: {
+    width: 20,
+    height: 20,
+    borderRadius: borderRadius.full,
+    borderWidth: StyleSheet.hairlineWidth,
+    alignItems: 'center',
+    justifyContent: 'center',
+    verticalAlign: 'middle',
+    transform: [{translateY: 4}],
+  },
+  originalWordPopover: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    marginHorizontal: spacing.base,
+    alignSelf: 'flex-start',
     marginTop: spacing.xs,
-    paddingHorizontal: spacing.md,
-    paddingVertical: spacing.sm,
-    borderRadius: borderRadius.md,
+    paddingHorizontal: spacing.sm,
+    paddingVertical: spacing['0.5'],
+    borderRadius: borderRadius.sm,
     borderWidth: StyleSheet.hairlineWidth,
+    gap: spacing.xs,
   },
-  originalWordBannerTextWrap: {
-    flex: 1,
-    marginRight: spacing.sm,
+  originalWordPopoverTextWrap: {
+    flexShrink: 1,
   },
-  originalWordBannerText: {
+  originalWordPopoverText: {
     fontSize: fontSizes.sm,
     fontWeight: '600',
   },
