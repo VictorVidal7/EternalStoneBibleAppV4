@@ -1391,6 +1391,16 @@ export default function HomeScreen() {
                 }
               />
             </View>
+            <View style={styles.savedCardWrapper}>
+              <DiscoverTile
+                icon="help-circle"
+                title={t.quiz.cardTitle}
+                subtitle={t.quiz.cardSubtitle}
+                onPress={() =>
+                  handlePress(() => router.push('/features/quiz' as never))
+                }
+              />
+            </View>
           </View>
         </Animated.View>
 
