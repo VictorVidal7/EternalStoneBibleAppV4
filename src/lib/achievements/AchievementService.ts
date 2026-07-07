@@ -874,4 +874,196 @@ export class AchievementService {
       return [];
     }
   }
+
+  /**
+   * Reads the `chapters_read_log` ledger — every distinct (book, chapter)
+   * ever credited by the reader's 5s dwell timer. Read-only; never throws (a
+   * missing table yields an empty log). Backup-only reader: `total_chapters_read`
+   * is normally derived FROM this table (see `trackChapterCompleted`), so a
+   * backup must carry the ledger itself, not just the derived count — restoring
+   * only the count would get silently overwritten back down on the next chapter
+   * read (see `restoreBackup`).
+   */
+  async getChaptersReadLog(): Promise<
+    Array<{bookName: string; chapter: number; firstReadAt: number}>
+  > {
+    try {
+      const result = await this.db.executeSql(
+        'SELECT book_name, chapter, first_read_at FROM chapters_read_log',
+      );
+      return result.rows._array.map(
+        (row: {
+          book_name: string;
+          chapter: number;
+          first_read_at?: number;
+        }) => ({
+          bookName: row.book_name,
+          chapter: row.chapter,
+          firstReadAt: row.first_read_at ?? 0,
+        }),
+      );
+    } catch {
+      return [];
+    }
+  }
+
+  /**
+   * Reads the raw `user_stats` row (backup-only). Deliberately distinct from
+   * `getUserStats()`, which merges in LIVE counts from other tables
+   * (highlights/notes/favorites) and derived fields (pointsToNextLevel,
+   * achievementsUnlocked) that must never be persisted as if they were
+   * source-of-truth columns — doing so would let a backup "freeze" a stale
+   * derived value that silently overrides the live computation after restore.
+   */
+  async getRawUserStats(): Promise<RawUserStatsRow> {
+    const result = await this.db.executeSql(
+      'SELECT * FROM user_stats WHERE id = 1',
+    );
+    const row = result.rows._array[0] ?? {};
+    return {
+      totalVersesRead: row.total_verses_read ?? 0,
+      totalChaptersRead: row.total_chapters_read ?? 0,
+      totalBooksCompleted: row.total_books_completed ?? 0,
+      totalReadingTime: row.total_reading_time ?? 0,
+      currentStreak: row.current_streak ?? 0,
+      longestStreak: row.longest_streak ?? 0,
+      lastReadDate: row.last_read_date ?? null,
+      totalHighlights: row.total_highlights ?? 0,
+      totalNotes: row.total_notes ?? 0,
+      totalBookmarks: row.total_bookmarks ?? 0,
+      totalSearches: row.total_searches ?? 0,
+      totalShares: row.total_shares ?? 0,
+      level: row.level ?? 1,
+      totalPoints: row.total_points ?? 0,
+    };
+  }
+
+  /**
+   * Full "restore = replace" of every achievement/stat table from a backup
+   * snapshot (`BackupService.importBackup`). Every write goes through
+   * `this.db.executeSql`, the SAME thin wrapper every other method in this
+   * class uses — so the caller (BackupService) can wrap this call, plus its
+   * own favorites/notes/highlights/reviewEvents writes, in ONE outer SQLite
+   * transaction (`db.withTransactionAsync`) and get true all-or-nothing
+   * atomicity across the WHOLE restore. This method deliberately does NOT
+   * open its own transaction — nesting `withTransactionAsync` calls on the
+   * same connection is not something expo-sqlite supports, and a nested
+   * transaction here would silently break the caller's atomicity guarantee.
+   *
+   * Unknown achievement ids (e.g. a backup made by a newer app version that
+   * shipped achievements this version doesn't know about) are silently
+   * skipped rather than inserted — `ACHIEVEMENT_DEFINITIONS` stays the only
+   * source of truth for which ids may exist in `user_achievements`.
+   *
+   * Invalidates the in-memory stats cache so the next `getUserStats()` call
+   * reflects the restore instead of a stale pre-restore snapshot.
+   */
+  async restoreBackup(data: AchievementBackupData): Promise<void> {
+    const knownIds = new Set(ACHIEVEMENT_DEFINITIONS.map(a => a.id));
+
+    await this.db.executeSql(
+      `UPDATE user_stats SET
+         total_verses_read = ?, total_chapters_read = ?, total_books_completed = ?,
+         total_reading_time = ?, current_streak = ?, longest_streak = ?, last_read_date = ?,
+         total_highlights = ?, total_notes = ?, total_bookmarks = ?, total_searches = ?,
+         total_shares = ?, level = ?, total_points = ?, updated_at = ?
+       WHERE id = 1`,
+      [
+        data.stats.totalVersesRead,
+        data.stats.totalChaptersRead,
+        data.stats.totalBooksCompleted,
+        data.stats.totalReadingTime,
+        data.stats.currentStreak,
+        data.stats.longestStreak,
+        data.stats.lastReadDate,
+        data.stats.totalHighlights,
+        data.stats.totalNotes,
+        data.stats.totalBookmarks,
+        data.stats.totalSearches,
+        data.stats.totalShares,
+        data.stats.level,
+        data.stats.totalPoints,
+        Date.now(),
+      ],
+    );
+
+    for (const a of data.achievements) {
+      if (!knownIds.has(a.id)) continue;
+      await this.db.executeSql(
+        'UPDATE user_achievements SET is_unlocked = ?, current_progress = ?, unlocked_at = ? WHERE id = ?',
+        [a.isUnlocked ? 1 : 0, a.currentProgress, a.unlockedAt ?? null, a.id],
+      );
+    }
+
+    await this.db.executeSql('DELETE FROM reading_streak_log');
+    for (const entry of data.streakLog) {
+      await this.db.executeSql(
+        'INSERT INTO reading_streak_log (date, verses_read, time_spent) VALUES (?, ?, ?)',
+        [entry.date, entry.versesRead, entry.timeSpent],
+      );
+    }
+
+    await this.db.executeSql('DELETE FROM completed_books');
+    for (const entry of data.completedBooks) {
+      await this.db.executeSql(
+        'INSERT INTO completed_books (book_name, completed_at) VALUES (?, ?)',
+        [entry.bookName, entry.completedAt],
+      );
+    }
+
+    await this.db.executeSql('DELETE FROM book_reading_log');
+    for (const entry of data.bookReadingLog) {
+      await this.db.executeSql(
+        'INSERT INTO book_reading_log (book_name, verses_read, time_spent, last_read_at) VALUES (?, ?, ?, ?)',
+        [entry.book, entry.versesRead, entry.timeSpent, entry.lastReadAt],
+      );
+    }
+
+    await this.db.executeSql('DELETE FROM chapters_read_log');
+    for (const entry of data.chaptersReadLog) {
+      await this.db.executeSql(
+        'INSERT OR IGNORE INTO chapters_read_log (book_name, chapter, first_read_at) VALUES (?, ?, ?)',
+        [entry.bookName, entry.chapter, entry.firstReadAt],
+      );
+    }
+
+    this.stats = null; // Invalidate cache — next read reflects the restore.
+  }
+}
+
+/** Raw `user_stats` row shape (backup-only — see `getRawUserStats`). */
+export interface RawUserStatsRow {
+  totalVersesRead: number;
+  totalChaptersRead: number;
+  totalBooksCompleted: number;
+  totalReadingTime: number;
+  currentStreak: number;
+  longestStreak: number;
+  lastReadDate: string | null;
+  totalHighlights: number;
+  totalNotes: number;
+  totalBookmarks: number;
+  totalSearches: number;
+  totalShares: number;
+  level: number;
+  totalPoints: number;
+}
+
+/** Full achievement/stat snapshot for backup + restore (see `restoreBackup`). */
+export interface AchievementBackupData {
+  stats: RawUserStatsRow;
+  achievements: Array<{
+    id: string;
+    currentProgress: number;
+    isUnlocked: boolean;
+    unlockedAt: number | null;
+  }>;
+  streakLog: Array<{date: string; versesRead: number; timeSpent: number}>;
+  completedBooks: Array<{bookName: string; completedAt: number}>;
+  bookReadingLog: BookReadingEntry[];
+  chaptersReadLog: Array<{
+    bookName: string;
+    chapter: number;
+    firstReadAt: number;
+  }>;
 }
