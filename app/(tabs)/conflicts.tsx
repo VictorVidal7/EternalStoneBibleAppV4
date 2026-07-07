@@ -65,6 +65,19 @@ export default function ConflictsScreen() {
   const [mergingId, setMergingId] = useState<string | null>(null);
   const [mergeDraft, setMergeDraft] = useState<Record<string, string>>({});
 
+  // Shared with the insights dashboard so a field/collection reads the
+  // same friendly name everywhere it's shown.
+  const collectionLabels = t.conflicts.insights.collectionLabels as Record<
+    string,
+    string
+  >;
+  const fieldLabels = t.conflicts.insights.fieldLabels as Record<
+    string,
+    string
+  >;
+  const collectionLabel = (c: string) => collectionLabels[c] ?? c;
+  const fieldLabel = (f: string) => fieldLabels[f] ?? f;
+
   const mergingConflict = useMemo(
     () => conflicts.find(c => c.id === mergingId) ?? null,
     [conflicts, mergingId],
@@ -187,7 +200,7 @@ export default function ConflictsScreen() {
               <Text
                 style={[styles.collection, {color: colors.primary}]}
                 numberOfLines={1}>
-                {item.collection}
+                {collectionLabel(item.collection)}
               </Text>
               <Text
                 style={[styles.docId, {color: colors.textTertiary}]}
@@ -209,7 +222,7 @@ export default function ConflictsScreen() {
                   <View key={`mine-${f}`} style={styles.fieldRow}>
                     <Text
                       style={[styles.fieldName, {color: colors.textTertiary}]}>
-                      {f}
+                      {fieldLabel(f)}
                     </Text>
                     <Text
                       style={[styles.fieldValue, {color: colors.text}]}
@@ -235,7 +248,7 @@ export default function ConflictsScreen() {
                   <View key={`theirs-${f}`} style={styles.fieldRow}>
                     <Text
                       style={[styles.fieldName, {color: colors.textTertiary}]}>
-                      {f}
+                      {fieldLabel(f)}
                     </Text>
                     <Text
                       style={[styles.fieldValue, {color: colors.text}]}
@@ -330,7 +343,7 @@ export default function ConflictsScreen() {
                 <View key={`merge-${f}`} style={styles.mergeField}>
                   <Text
                     style={[styles.fieldName, {color: colors.textTertiary}]}>
-                    {f}
+                    {fieldLabel(f)}
                   </Text>
                   <TextInput
                     value={mergeDraft[f] ?? ''}
