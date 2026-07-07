@@ -1023,6 +1023,18 @@ describe('fetchResolvedConflicts (Sprint 49)', () => {
     expect(recs).toHaveLength(1);
     expect(recs[0].choice).toBe('keepMine');
   });
+
+  it('bounds the read with orderBy(resolvedAt desc) + a generous limit', async () => {
+    const engine = new SyncEngine();
+    await engine.start('uid-conf3');
+    mockCollDocs.set('users/uid-conf3/conflicts', [
+      {id: 'a', data: {choice: 'keepMine', resolvedAt: 10}},
+    ]);
+    await engine.fetchResolvedConflicts();
+    const coll = mockCollections.get('users/uid-conf3/conflicts');
+    expect(coll?.orderBy).toHaveBeenCalledWith('resolvedAt', 'desc');
+    expect(coll?.limit).toHaveBeenCalledWith(500);
+  });
 });
 
 // =============================================================

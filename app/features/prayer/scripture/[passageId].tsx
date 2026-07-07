@@ -36,6 +36,7 @@ import {useLanguage} from '@hooks/useLanguage';
 import {useBibleVersion} from '@hooks/useBibleVersion';
 import {useToast} from '@context/ToastContext';
 import {usePrayerJournal} from '@hooks/usePrayerJournal';
+import {recordTodayPrayer} from '@/features/prayer/prayerLogStore';
 import {haptics} from '@lib/haptics';
 import {AppText} from '@components/ui/AppText';
 import bibleDB from '@lib/database';
@@ -128,6 +129,13 @@ export default function ScripturePrayerWalkScreen() {
       cancelled = true;
     };
   }, [phase, total, passage, selectedVersion.id, localizedRef]);
+
+  // Stamp today's prayer the moment the walk completes (device-local, once).
+  React.useEffect(() => {
+    if (phase >= total && total > 0) {
+      void recordTodayPrayer();
+    }
+  }, [phase, total]);
 
   if (!passage || !passageMeta) {
     return (

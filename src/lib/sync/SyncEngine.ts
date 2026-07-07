@@ -87,6 +87,15 @@ const FLUSH_INTERVAL_MS = 60000;
 const CONFLICT_WINDOW_MS = 30000;
 
 /**
+ * Sprint 49 — hard cap on how many resolved-conflict docs
+ * fetchResolvedConflicts() will read in one call. Conflicts are rare
+ * (see CONFLICT_WINDOW_MS), so this is generous headroom rather than a
+ * realistic ceiling — it exists to bound Firestore reads, not to trim
+ * real usage.
+ */
+const MAX_RESOLVED_CONFLICTS = 500;
+
+/**
  * Quota hardening — per-collection incremental sync cursor.
  *
  * Before this change, `attachListener` opened an UNFILTERED
@@ -1060,13 +1069,25 @@ export class SyncEngine {
    * Defensive: only docs that carry a resolution (numeric resolvedAt +
    * string choice) are returned, so a half-written or foreign doc can't
    * break the aggregation.
+   *
+   * Quota hardening — capped at the most recent MAX_RESOLVED_CONFLICTS
+   * (ordered by resolvedAt desc) instead of reading the whole collection.
+   * Conflicts only arise from concurrent edits on the same doc across
+   * devices within CONFLICT_WINDOW_MS, so this is a rare event in
+   * practice; the cap is a backstop against unbounded growth, not an
+   * expected truncation. If it ever binds, the dashboard reflects the
+   * most recent conflicts rather than the true lifetime total.
    */
   async fetchResolvedConflicts(): Promise<ResolvedConflictRecord[]> {
     if (!this.uid) return [];
     const fn = getFirestore();
     if (!fn) return [];
     try {
-      const snap = await fn().collection(`users/${this.uid}/conflicts`).get();
+      const snap = await fn()
+        .collection(`users/${this.uid}/conflicts`)
+        .orderBy('resolvedAt', 'desc')
+        .limit(MAX_RESOLVED_CONFLICTS)
+        .get();
       const out: ResolvedConflictRecord[] = [];
       for (const doc of snap.docs) {
         const data = doc.data();
