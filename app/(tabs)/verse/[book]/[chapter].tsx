@@ -76,6 +76,12 @@ import {
   resolveFontFamilyBold,
 } from '@components/reading/ReaderPreferencesSheet';
 import {getBookTheme} from '@/constants/bookThemes';
+import {
+  getVerseOriginal,
+  findWordByStrongs,
+  pickGloss,
+  glossLanguage,
+} from '@/features/study/originals';
 // Audio Bible Feature
 import {
   useAudioPlayer,
@@ -158,11 +164,13 @@ export default function VerseReadingScreen() {
     chapter,
     verse: highlightVerse,
     audioResume,
+    strongs: arrivalStrongs,
   } = useLocalSearchParams<{
     book: string;
     chapter: string;
     verse?: string;
     audioResume?: string;
+    strongs?: string;
   }>();
 
   const bookInfo = getBookByName(book);
@@ -345,6 +353,18 @@ export default function VerseReadingScreen() {
   const [arrivalFocusVerse, setArrivalFocusVerse] = useState<number | null>(
     null,
   );
+  // Original-word chip (Ficha #13): arriving from word-study's "first/last
+  // appearance" (or any occurrence row) with `?strongs=` tells the user
+  // WHICH original word to look for, since RVR1960 carries no word-for-word
+  // alignment to Greek/Hebrew — resolved from the arrival verse's own
+  // interlinear row, never fabricated. `null` fields = nothing to show.
+  const [originalWordChip, setOriginalWordChip] = useState<{
+    verse: number;
+    word: string;
+    gloss: string | null;
+  } | null>(null);
+  const [originalWordChipDismissed, setOriginalWordChipDismissed] =
+    useState(false);
 
   // Y offset of each verse row within the ScrollView, for audio auto-scroll
   // (Sprint 70 also reads them to find the centered verse for Focus mode).
@@ -623,6 +643,11 @@ export default function VerseReadingScreen() {
 
   const scrollViewRef = useRef<ScrollView>(null);
   const startTimeRef = useRef<number>(Date.now());
+  // Guards the original-word chip fetch below against a fast chapter-nav:
+  // without it, a slow-resolving lookup from a PREVIOUS chapter can land
+  // after the next loadChapter() already reset the chip, showing "this
+  // word means X" on a verse where it doesn't apply.
+  const loadIdRef = useRef(0);
 
   useEffect(() => {
     loadChapter();
@@ -782,8 +807,11 @@ export default function VerseReadingScreen() {
   }, [progress, canonicalBook, achievementService, notifyAchievements]);
 
   async function loadChapter() {
+    const myLoadId = ++loadIdRef.current;
     try {
       setLoading(true);
+      setOriginalWordChip(null);
+      setOriginalWordChipDismissed(false);
       logger.info('Loading chapter', {
         component: 'VerseReadingScreen',
         action: 'loadChapter',
@@ -843,6 +871,25 @@ export default function VerseReadingScreen() {
         const verseNum = parseInt(highlightVerse as string);
         if (!Number.isNaN(verseNum)) {
           setArrivalFocusVerse(verseNum);
+          if (arrivalStrongs) {
+            getVerseOriginal(book, chapterNum, verseNum)
+              .then(words => {
+                if (loadIdRef.current !== myLoadId) return;
+                const match = findWordByStrongs(words, arrivalStrongs);
+                if (!match) return;
+                setOriginalWordChip({
+                  verse: verseNum,
+                  word: match.word,
+                  gloss: pickGloss(
+                    match,
+                    glossLanguage(language, selectedVersion.id),
+                  ),
+                });
+              })
+              .catch(() => {
+                // Best-effort — the arrival tint still works without the chip.
+              });
+          }
           let attempts = 0;
           const tryScroll = () => {
             const offset = verseOffsetsRef.current.get(verseNum);
@@ -1989,6 +2036,53 @@ export default function VerseReadingScreen() {
             </Text>
           </TouchableOpacity>
         </View>
+
+        {/* Original-word chip (Ficha #13): arrived from word-study with a
+            resolved Strong's match for the arrival verse — discreet, dismissible,
+            never claims a word-for-word alignment beyond this one occurrence. */}
+        {originalWordChip && !originalWordChipDismissed ? (
+          <View
+            style={[
+              styles.originalWordBanner,
+              {
+                backgroundColor: effectiveColors.primary + '14',
+                borderColor: effectiveColors.primary + '33',
+              },
+            ]}>
+            <TouchableOpacity
+              style={styles.originalWordBannerTextWrap}
+              onPress={() => {
+                haptics.tap();
+                setOriginalsVerse(originalWordChip.verse);
+                setOriginalsVisible(true);
+              }}
+              accessibilityRole="button"
+              accessibilityLabel={`${originalWordChip.word}${
+                originalWordChip.gloss ? ` · ${originalWordChip.gloss}` : ''
+              } — ${t.verse.originalWordHint}`}>
+              <Text
+                style={[
+                  styles.originalWordBannerText,
+                  {color: effectiveColors.primary},
+                ]}
+                numberOfLines={1}>
+                {originalWordChip.word}
+                {originalWordChip.gloss ? ` · ${originalWordChip.gloss}` : ''}
+              </Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              onPress={() => setOriginalWordChipDismissed(true)}
+              hitSlop={NAV_HIT_SLOP}
+              accessibilityRole="button"
+              accessibilityLabel={t.close}>
+              <Ionicons
+                name="close"
+                size={16}
+                color={effectiveColors.primary}
+              />
+            </TouchableOpacity>
+          </View>
+        ) : null}
 
         {/* Dual-mode controls (Sprint 66 picker + Sprint 67 swap/layout):
             choose WHICH translation sits alongside the one being read (chips,
@@ -3277,6 +3371,25 @@ const styles = StyleSheet.create({
   },
   sideBySideText: {
     fontStyle: 'italic',
+  },
+  originalWordBanner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginHorizontal: spacing.base,
+    marginTop: spacing.xs,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.sm,
+    borderRadius: borderRadius.md,
+    borderWidth: StyleSheet.hairlineWidth,
+  },
+  originalWordBannerTextWrap: {
+    flex: 1,
+    marginRight: spacing.sm,
+  },
+  originalWordBannerText: {
+    fontSize: fontSizes.sm,
+    fontWeight: '600',
   },
   secondaryPicker: {
     flexDirection: 'row',

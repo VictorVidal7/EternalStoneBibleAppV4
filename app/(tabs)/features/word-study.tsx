@@ -91,12 +91,16 @@ export default function WordStudyScreen() {
   // The Strong's definition is English-only; in a Spanish UI it hides behind
   // this toggle so the card stays Spanish.
   const [defExpanded, setDefExpanded] = useState(false);
+  // Tap a distribution bar to filter the occurrence list to that book (Ficha
+  // #14 — the bars used to be purely decorative). `null` = no filter.
+  const [bookFilter, setBookFilter] = useState<number | null>(null);
 
   useEffect(() => {
     let cancelled = false;
     setStatus('loading');
     setStudy(null);
     setDefExpanded(false);
+    setBookFilter(null);
     (async () => {
       const installed = await isOriginalsInstalled();
       if (cancelled) return;
@@ -118,13 +122,42 @@ export default function WordStudyScreen() {
     () => (study ? buildBookBars(study.distribution, bookLang) : []),
     [study, bookLang],
   );
+  const selectedBarIndex =
+    bookFilter === null ? null : bars.findIndex(b => b.book_id === bookFilter);
+  const filteredOccurrences = useMemo(
+    () =>
+      study && bookFilter !== null
+        ? study.occurrences.filter(occ => occ.book_id === bookFilter)
+        : (study?.occurrences ?? []),
+    [study, bookFilter],
+  );
+  const filterBookName = useMemo(() => {
+    if (bookFilter === null) return null;
+    const book = getBookById(bookFilter);
+    if (!book) return null;
+    return bookLang === 'en' ? book.nameEn : book.name;
+  }, [bookFilter, bookLang]);
 
+  const handleBarPress = (index: number) => {
+    const bar = bars[index];
+    if (!bar) return;
+    haptics.tap();
+    setBookFilter(prev => (prev === bar.book_id ? null : bar.book_id));
+  };
+
+  // Passes `strongs` along so the reader can show a discreet "original word ·
+  // gloss" chip (Ficha #13) — the verse tint alone doesn't tell the user WHICH
+  // Spanish word corresponds to it (RVR1960 carries no word-for-word tagging;
+  // the reader resolves the exact per-occurrence gloss itself, keeping this
+  // tap instant rather than awaiting a DB lookup before navigating).
   const openInReader = (occ: StrongsOccurrence) => {
     const book = getBookById(occ.book_id);
     if (!book) return;
     haptics.tap();
     const name = bookLang === 'en' ? book.nameEn : book.name;
-    router.push(`/verse/${name}/${occ.chapter}?verse=${occ.verse}` as never);
+    router.push(
+      `/verse/${name}/${occ.chapter}?verse=${occ.verse}&strongs=${encodeURIComponent(strongs)}` as never,
+    );
   };
 
   const lex = study?.lexicon ?? null;
@@ -337,7 +370,7 @@ export default function WordStudyScreen() {
                         styles.kjvLockedText,
                         {color: colors.textSecondary},
                       ]}>
-                      {o.morphologyLocked}
+                      {o.kjvLocked}
                     </Text>
                   </TouchableOpacity>
                 )}
@@ -365,6 +398,8 @@ export default function WordStudyScreen() {
                 trackColor={colors.primary + '14'}
                 labelColor={colors.textSecondary}
                 valueColor={colors.textTertiary}
+                onBarPress={handleBarPress}
+                selectedIndex={selectedBarIndex}
               />
             </View>
           ) : null}
@@ -419,16 +454,44 @@ export default function WordStudyScreen() {
               styles.section,
               {backgroundColor: colors.surface, borderColor: colors.border},
             ]}>
-            <Text style={[styles.sectionTitle, {color: colors.text}]}>
-              {w.occurrencesHeader}
-            </Text>
-            {study.occurrences.map((occ, i) =>
+            <View style={styles.occHeaderRow}>
+              <Text style={[styles.sectionTitle, {color: colors.text}]}>
+                {w.occurrencesHeader}
+              </Text>
+              {filterBookName ? (
+                <TouchableOpacity
+                  onPress={() => {
+                    haptics.tap();
+                    setBookFilter(null);
+                  }}
+                  accessibilityRole="button"
+                  accessibilityLabel={`${w.filteringByBook.replace(
+                    '{{book}}',
+                    filterBookName,
+                  )} — ${w.clearFilter}`}
+                  style={[
+                    styles.filterChip,
+                    {backgroundColor: colors.primary + '1a'},
+                  ]}>
+                  <Text
+                    style={[styles.filterChipText, {color: colors.primary}]}>
+                    {w.filteringByBook.replace('{{book}}', filterBookName)}
+                  </Text>
+                  <Ionicons
+                    name="close-circle"
+                    size={14}
+                    color={colors.primary}
+                  />
+                </TouchableOpacity>
+              ) : null}
+            </View>
+            {filteredOccurrences.map((occ, i) =>
               renderOccurrence(
                 occ,
                 `${occ.book_id}-${occ.chapter}-${occ.verse}-${i}`,
               ),
             )}
-            {study.count > study.occurrences.length ? (
+            {bookFilter === null && study.count > study.occurrences.length ? (
               <Text style={[styles.moreNote, {color: colors.textTertiary}]}>
                 {w.moreOccurrences.replace(
                   '{{n}}',
@@ -580,6 +643,22 @@ const styles = StyleSheet.create({
     gap: spacing.md,
   },
   sectionTitle: {fontSize: fontSizes.base, fontWeight: '800'},
+  occHeaderRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    flexWrap: 'wrap',
+    gap: spacing.sm,
+  },
+  filterChip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.xs,
+    borderRadius: borderRadius.full,
+    paddingHorizontal: spacing.sm,
+    paddingVertical: spacing['0.5'],
+  },
+  filterChipText: {fontSize: fontSizes.xs, fontWeight: '700'},
   extentRow: {flexDirection: 'row', gap: spacing.md},
   extentCard: {
     flex: 1,

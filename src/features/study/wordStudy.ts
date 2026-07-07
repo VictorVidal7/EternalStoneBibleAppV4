@@ -34,6 +34,11 @@ export function bookChartLabel(bookId: number, language: Lang): string {
   return language === 'en' ? book.abbrEn : book.abbr;
 }
 
+/** A distribution bar tagged with the book it represents (Ficha #14 — tap to filter). */
+export interface BookBarDatum extends BarDatum {
+  book_id: number;
+}
+
 /**
  * The bars for the distribution chart: the books where a Strong's number occurs
  * MOST, capped to `max` and labelled by book abbreviation, tallest first (ties
@@ -45,11 +50,15 @@ export function buildBookBars(
   distribution: readonly StrongsBookCount[],
   language: Lang,
   max = 8,
-): BarDatum[] {
+): BookBarDatum[] {
   return [...distribution]
     .sort((a, b) => b.count - a.count || a.book_id - b.book_id)
     .slice(0, max)
-    .map(d => ({label: bookChartLabel(d.book_id, language), value: d.count}));
+    .map(d => ({
+      label: bookChartLabel(d.book_id, language),
+      value: d.count,
+      book_id: d.book_id,
+    }));
 }
 
 /** How many distinct books a Strong's number occurs in (its "breadth"). */

@@ -58,6 +58,11 @@ describe('wordStudy — pure helpers', () => {
     it('handles an empty distribution', () => {
       expect(buildBookBars([], 'en')).toEqual([]);
     });
+
+    it('tags each bar with its book_id (Ficha #14 — tap-to-filter)', () => {
+      const bars = buildBookBars(dist, 'en');
+      expect(bars.map(b => b.book_id)).toEqual([43, 40, 45, 1]);
+    });
   });
 
   describe('distinctBookCount', () => {
