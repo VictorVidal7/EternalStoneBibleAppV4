@@ -5112,6 +5112,188 @@ export const translations = {
         },
       },
     },
+    quiz: {
+      cardTitle: 'Quiz bíblico',
+      cardSubtitle: 'Pon a prueba lo que sabes de las Escrituras',
+      title: 'Quiz bíblico',
+      subtitle: 'Cuatro tipos de preguntas, banco curado y verificado',
+      roundOf: 'Ronda {{n}}',
+      score: 'Aciertos',
+      mistakes: 'Errores',
+      questionOf: 'Pregunta {{n}} de {{total}}',
+      correct: '¡Correcto!',
+      wrong: 'Incorrecto',
+      next: 'Siguiente',
+      finish: 'Ver resultado',
+      roundComplete: '¡Ronda completa!',
+      roundCompletePerfect: '¡Ronda perfecta! 🎉',
+      nextRound: 'Otra ronda',
+      bank: {
+        'who-01': {
+          question: '¿Quién dijo: «Sea la luz»?',
+          options: ['Dios', 'Moisés', 'el ángel', 'Adán'],
+        },
+        'who-02': {
+          question:
+            '¿Quién dijo: «He aquí la sierva del Señor; hágase conmigo conforme a tu palabra»?',
+          options: ['María', 'Elisabet', 'Ana', 'Marta'],
+        },
+        'who-03': {
+          question: '¿Quién dijo: «¿Soy yo acaso guarda de mi hermano?»?',
+          options: ['Caín', 'Abel', 'Set', 'Adán'],
+        },
+        'who-04': {
+          question:
+            '¿Quién escribió: «Todo lo puedo en Cristo que me fortalece»?',
+          options: ['Pablo', 'Pedro', 'Juan', 'Santiago'],
+        },
+        'who-05': {
+          question: '¿Quién dijo: «Ni yo te condeno; vete, y no peques más»?',
+          options: ['Jesús', 'Nicodemo', 'Moisés', 'Juan el Bautista'],
+        },
+        'who-06': {
+          question:
+            '¿Quién escribió el salmo que dice: «Jehová es mi pastor; nada me faltará»?',
+          options: ['David', 'Salomón', 'Moisés', 'Asaf'],
+        },
+        'complete-01': {
+          question:
+            '"…que ha dado a su ___ unigénito, para que todo aquel que en él cree, no se pierda, mas tenga vida eterna" (Juan 3:16)',
+          options: ['Hijo', 'siervo', 'pueblo', 'profeta'],
+        },
+        'complete-02': {
+          question: '"Jehová es mi ___; nada me faltará." (Salmos 23:1)',
+          options: ['pastor', 'roca', 'luz', 'escudo'],
+        },
+        'complete-03': {
+          question:
+            '"En el principio creó Dios los cielos y la ___." (Génesis 1:1)',
+          options: ['tierra', 'luz', 'mar', 'noche'],
+        },
+        'complete-04': {
+          question: '"Todo lo puedo en Cristo que me ___." (Filipenses 4:13)',
+          options: ['fortalece', 'perdona', 'guía', 'escucha'],
+        },
+        'complete-05': {
+          question:
+            '"Mas buscad primeramente el reino de Dios y su ___." (Mateo 6:33)',
+          options: ['justicia', 'gloria', 'verdad', 'paz'],
+        },
+        'complete-06': {
+          question:
+            '"Jehová es mi luz y mi ___; ¿de quién temeré?" (Salmos 27:1)',
+          options: ['salvación', 'fortaleza', 'consuelo', 'refugio'],
+        },
+        'refcontent-01': {
+          question: '¿Cuál es el texto de Juan 3:16?',
+          options: [
+            'Porque de tal manera amó Dios al mundo, que ha dado a su Hijo unigénito, para que todo aquel que en él cree, no se pierda, mas tenga vida eterna.',
+            'Jehová es mi pastor; nada me faltará.',
+            'En el principio creó Dios los cielos y la tierra.',
+            'Todo lo puedo en Cristo que me fortalece.',
+          ],
+        },
+        'refcontent-02': {
+          question: '¿Cuál es el texto de Salmos 23:1?',
+          options: [
+            'Jehová es mi pastor; nada me faltará.',
+            'Porque de tal manera amó Dios al mundo, que ha dado a su Hijo unigénito, para que todo aquel que en él cree, no se pierda, mas tenga vida eterna.',
+            'por cuanto todos pecaron, y están destituidos de la gloria de Dios,',
+            'Todo lo puedo en Cristo que me fortalece.',
+          ],
+        },
+        'refcontent-03': {
+          question: '¿Cuál es el texto de Génesis 1:1?',
+          options: [
+            'En el principio creó Dios los cielos y la tierra.',
+            'Jehová es mi pastor; nada me faltará.',
+            'por cuanto todos pecaron, y están destituidos de la gloria de Dios,',
+            'Por tanto, id, y haced discípulos a todas las naciones, bautizándolos en el nombre del Padre, y del Hijo, y del Espíritu Santo;',
+          ],
+        },
+        'refcontent-04': {
+          question: '¿Cuál es el texto de Romanos 3:23?',
+          options: [
+            'por cuanto todos pecaron, y están destituidos de la gloria de Dios,',
+            'Todo lo puedo en Cristo que me fortalece.',
+            'En el principio creó Dios los cielos y la tierra.',
+            'Jehová es mi pastor; nada me faltará.',
+          ],
+        },
+        'refcontent-05': {
+          question: '¿Cuál es el texto de Filipenses 4:13?',
+          options: [
+            'Todo lo puedo en Cristo que me fortalece.',
+            'Porque de tal manera amó Dios al mundo, que ha dado a su Hijo unigénito, para que todo aquel que en él cree, no se pierda, mas tenga vida eterna.',
+            'por cuanto todos pecaron, y están destituidos de la gloria de Dios,',
+            'Por tanto, id, y haced discípulos a todas las naciones, bautizándolos en el nombre del Padre, y del Hijo, y del Espíritu Santo;',
+          ],
+        },
+        'refcontent-06': {
+          question: '¿Cuál es el texto de Mateo 28:19?',
+          options: [
+            'Por tanto, id, y haced discípulos a todas las naciones, bautizándolos en el nombre del Padre, y del Hijo, y del Espíritu Santo;',
+            'Jehová es mi pastor; nada me faltará.',
+            'En el principio creó Dios los cielos y la tierra.',
+            'Todo lo puedo en Cristo que me fortalece.',
+          ],
+        },
+        'order-01': {
+          question: '¿Cuál de estos ocurrió primero?',
+          options: [
+            'La creación del mundo',
+            'El llamado de Abraham',
+            'El éxodo de Egipto',
+            'El reinado de David',
+          ],
+        },
+        'order-02': {
+          question: '¿Cuál de estos ocurrió primero?',
+          options: [
+            'El llamado de Abraham',
+            'El éxodo de Egipto',
+            'El reinado de David',
+            'El nacimiento de Jesús',
+          ],
+        },
+        'order-03': {
+          question: '¿Cuál de estos ocurrió primero?',
+          options: [
+            'El éxodo de Egipto',
+            'El reinado de David',
+            'El nacimiento de Jesús',
+            'Pentecostés',
+          ],
+        },
+        'order-04': {
+          question: '¿Cuál de estos ocurrió primero?',
+          options: [
+            'El reinado de David',
+            'El nacimiento de Jesús',
+            'El bautismo de Jesús',
+            'Pentecostés',
+          ],
+        },
+        'order-05': {
+          question: '¿Cuál de estos ocurrió primero?',
+          options: [
+            'El nacimiento de Jesús',
+            'El bautismo de Jesús',
+            'La Última Cena',
+            'La crucifixión de Jesús',
+          ],
+        },
+        'order-06': {
+          question: '¿Cuál de estos ocurrió primero?',
+          options: [
+            'El bautismo de Jesús',
+            'La Última Cena',
+            'La resurrección de Jesús',
+            'Pentecostés',
+          ],
+        },
+      },
+    },
   },
 
   en: {
@@ -10180,6 +10362,190 @@ export const translations = {
               options: ['Hide', 'Go tell the disciples', 'Stay silent forever'],
             },
           },
+        },
+      },
+    },
+    quiz: {
+      cardTitle: 'Bible Quiz',
+      cardSubtitle: 'Test what you know about Scripture',
+      title: 'Bible Quiz',
+      subtitle: 'Four question types, a curated and verified bank',
+      roundOf: 'Round {{n}}',
+      score: 'Correct',
+      mistakes: 'Mistakes',
+      questionOf: 'Question {{n}} of {{total}}',
+      correct: 'Correct!',
+      wrong: 'Incorrect',
+      next: 'Next',
+      finish: 'See result',
+      roundComplete: 'Round complete!',
+      roundCompletePerfect: 'Perfect round! 🎉',
+      nextRound: 'Another round',
+      bank: {
+        'who-01': {
+          question: 'Who said: "Let there be light"?',
+          options: ['God', 'Moses', 'the angel', 'Adam'],
+        },
+        'who-02': {
+          question:
+            'Who said: "Behold, the handmaid of the Lord; be it to me according to your word"?',
+          options: ['Mary', 'Elizabeth', 'Anna', 'Martha'],
+        },
+        'who-03': {
+          question: 'Who said: "Am I my brother’s keeper?"?',
+          options: ['Cain', 'Abel', 'Seth', 'Adam'],
+        },
+        'who-04': {
+          question:
+            'Who wrote: "I can do all things through Christ, who strengthens me"?',
+          options: ['Paul', 'Peter', 'John', 'James'],
+        },
+        'who-05': {
+          question:
+            'Who said: "Neither do I condemn you. Go your way. From now on, sin no more"?',
+          options: ['Jesus', 'Nicodemus', 'Moses', 'John the Baptist'],
+        },
+        'who-06': {
+          question:
+            'Who wrote the psalm that says: "Yahweh is my shepherd: I shall lack nothing"?',
+          options: ['David', 'Solomon', 'Moses', 'Asaph'],
+        },
+        'complete-01': {
+          question:
+            '"…that he gave his one and only ___, that whoever believes in him should not perish, but have eternal life" (John 3:16)',
+          options: ['Son', 'servant', 'people', 'prophet'],
+        },
+        'complete-02': {
+          question: '"Yahweh is my ___: I shall lack nothing." (Psalms 23:1)',
+          options: ['shepherd', 'rock', 'light', 'shield'],
+        },
+        'complete-03': {
+          question:
+            '"In the beginning, God created the heavens and the ___." (Genesis 1:1)',
+          options: ['earth', 'light', 'sea', 'night'],
+        },
+        'complete-04': {
+          question:
+            '"I can do all things through Christ, who ___ me." (Philippians 4:13)',
+          options: ['strengthens', 'forgives', 'guides', 'hears'],
+        },
+        'complete-05': {
+          question:
+            '"But seek first God’s Kingdom, and his ___." (Matthew 6:33)',
+          options: ['righteousness', 'glory', 'truth', 'peace'],
+        },
+        'complete-06': {
+          question:
+            '"Yahweh is my light and my ___. Whom shall I fear?" (Psalms 27:1)',
+          options: ['salvation', 'strength', 'comfort', 'refuge'],
+        },
+        'refcontent-01': {
+          question: 'What is the text of John 3:16?',
+          options: [
+            'For God so loved the world, that he gave his one and only Son, that whoever believes in him should not perish, but have eternal life.',
+            'Yahweh is my shepherd: I shall lack nothing.',
+            'In the beginning, God created the heavens and the earth.',
+            'I can do all things through Christ, who strengthens me.',
+          ],
+        },
+        'refcontent-02': {
+          question: 'What is the text of Psalms 23:1?',
+          options: [
+            'Yahweh is my shepherd: I shall lack nothing.',
+            'For God so loved the world, that he gave his one and only Son, that whoever believes in him should not perish, but have eternal life.',
+            'for all have sinned, and fall short of the glory of God;',
+            'I can do all things through Christ, who strengthens me.',
+          ],
+        },
+        'refcontent-03': {
+          question: 'What is the text of Genesis 1:1?',
+          options: [
+            'In the beginning, God created the heavens and the earth.',
+            'Yahweh is my shepherd: I shall lack nothing.',
+            'for all have sinned, and fall short of the glory of God;',
+            'Go, and make disciples of all nations, baptizing them in the name of the Father and of the Son and of the Holy Spirit,',
+          ],
+        },
+        'refcontent-04': {
+          question: 'What is the text of Romans 3:23?',
+          options: [
+            'for all have sinned, and fall short of the glory of God;',
+            'I can do all things through Christ, who strengthens me.',
+            'In the beginning, God created the heavens and the earth.',
+            'Yahweh is my shepherd: I shall lack nothing.',
+          ],
+        },
+        'refcontent-05': {
+          question: 'What is the text of Philippians 4:13?',
+          options: [
+            'I can do all things through Christ, who strengthens me.',
+            'For God so loved the world, that he gave his one and only Son, that whoever believes in him should not perish, but have eternal life.',
+            'for all have sinned, and fall short of the glory of God;',
+            'Go, and make disciples of all nations, baptizing them in the name of the Father and of the Son and of the Holy Spirit,',
+          ],
+        },
+        'refcontent-06': {
+          question: 'What is the text of Matthew 28:19?',
+          options: [
+            'Go, and make disciples of all nations, baptizing them in the name of the Father and of the Son and of the Holy Spirit,',
+            'Yahweh is my shepherd: I shall lack nothing.',
+            'In the beginning, God created the heavens and the earth.',
+            'I can do all things through Christ, who strengthens me.',
+          ],
+        },
+        'order-01': {
+          question: 'Which of these happened first?',
+          options: [
+            'The creation of the world',
+            'The calling of Abraham',
+            'The exodus from Egypt',
+            'The reign of David',
+          ],
+        },
+        'order-02': {
+          question: 'Which of these happened first?',
+          options: [
+            'The calling of Abraham',
+            'The exodus from Egypt',
+            'The reign of David',
+            'The birth of Jesus',
+          ],
+        },
+        'order-03': {
+          question: 'Which of these happened first?',
+          options: [
+            'The exodus from Egypt',
+            'The reign of David',
+            'The birth of Jesus',
+            'Pentecost',
+          ],
+        },
+        'order-04': {
+          question: 'Which of these happened first?',
+          options: [
+            'The reign of David',
+            'The birth of Jesus',
+            'The baptism of Jesus',
+            'Pentecost',
+          ],
+        },
+        'order-05': {
+          question: 'Which of these happened first?',
+          options: [
+            'The birth of Jesus',
+            'The baptism of Jesus',
+            'The Last Supper',
+            'The crucifixion of Jesus',
+          ],
+        },
+        'order-06': {
+          question: 'Which of these happened first?',
+          options: [
+            'The baptism of Jesus',
+            'The Last Supper',
+            'The resurrection of Jesus',
+            'Pentecost',
+          ],
         },
       },
     },
