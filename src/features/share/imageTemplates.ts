@@ -4,8 +4,15 @@
  * The catalog of verse-card backgrounds for `ImageShareModal`, plus the
  * social aspect-ratio presets. The 10 FREE templates are the ones shipped
  * since Sprint 3 — kept byte-identical so existing free users lose nothing.
- * The PREMIUM templates are the new "designer" set, gated behind
+ * The 9 PREMIUM templates are the "designer" set, gated behind
  * `usePremium()` (consistent with the S50–S53 device-local premium arc).
+ *
+ * T17 (deep-audit #22): 4 of the 9 premium templates (`graphite`,
+ * `evergreen`, `blossom`, `champagne`) were repainted because they read as
+ * near-twins of free templates or of each other — `evergreen` even shared
+ * an exact hex stop with `boreal` and its exact gold text with `classic`.
+ * Ids/tier are kept stable (only colors/textColor/icon changed) because
+ * `stylePresets.ts` stores a user's saved look by `templateId` string.
  *
  * Pure module — no React/React-Native imports, so it is unit-tested in
  * isolation (mirror of `readerThemes.ts` / `scrubMath.ts`). Sprint 56.
@@ -29,7 +36,7 @@ export interface ShareTemplate {
 }
 
 /**
- * The 10 free templates (unchanged since Sprint 3) followed by the 5 new
+ * The 10 free templates (unchanged since Sprint 3) followed by the 9
  * premium "designer" gradients. Order matters: free first keeps the swatch
  * row stable for existing users, premium appended at the end.
  */
@@ -127,10 +134,13 @@ export const SHARE_TEMPLATES: readonly ShareTemplate[] = [
     icon: 'wine-outline',
     tier: 'premium',
   },
+  // T17 — repainted (deep-audit #22): was a pale pastel pink-peach
+  // near-identical to free's rose. Now a saturated orchid-magenta jewel
+  // tone, clearly heavier/richer than rose's soft pastel.
   {
     id: 'blossom',
-    colors: ['#FFAFBD', '#FFC3A0'],
-    textColor: '#6A2C3E',
+    colors: ['#7A2560', '#C0459C'],
+    textColor: '#FFFFFF',
     icon: 'flower-outline',
     tier: 'premium',
   },
@@ -150,24 +160,34 @@ export const SHARE_TEMPLATES: readonly ShareTemplate[] = [
     icon: 'prism-outline',
     tier: 'premium',
   },
+  // T17 — repainted (deep-audit #22): was a pale beige near-identical to
+  // free's rose/minimal. Now a muted metallic bronze-gold, distinct in
+  // saturation from free's sunrise (same warm hue family, but sunrise is a
+  // flat vivid orange while this stays a desaturated "brushed metal" gold).
   {
     id: 'champagne',
-    colors: ['#D4A574', '#E8C39E'],
-    textColor: '#4A3728',
+    colors: ['#5C4A1E', '#9C8244', '#D9C088'],
+    textColor: '#241B08',
     icon: 'diamond-outline',
     tier: 'premium',
   },
+  // T17 — repainted (deep-audit #22): was a flat near-black grey, reading
+  // as a lighter twin of free's midnight. Now a genuine mid-tone cool
+  // steel-blue-grey (never as dark as midnight, never as light as minimal).
   {
     id: 'graphite',
-    colors: ['#232526', '#414345'],
-    textColor: '#E5E5E5',
-    icon: 'contrast-outline',
+    colors: ['#2E333A', '#5A6270'],
+    textColor: '#F0A860',
+    icon: 'cube-outline',
     tier: 'premium',
   },
+  // T17 — repainted (deep-audit #22): shared its exact gold text (D4AF37)
+  // with free's classic and an exact hex stop (#134E4A) with boreal. Now a
+  // deep, saturated emerald jewel-tone with a rose-gold accent instead.
   {
     id: 'evergreen',
-    colors: ['#0B3D2E', '#134E4A'],
-    textColor: '#D4AF37',
+    colors: ['#052E1C', '#1B7A4D'],
+    textColor: '#E6B89C',
     icon: 'infinite-outline',
     tier: 'premium',
   },
