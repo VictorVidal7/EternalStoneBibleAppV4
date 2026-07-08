@@ -101,4 +101,13 @@ export function usePremium(): PremiumContextValue {
   return context;
 }
 
+/**
+ * Non-throwing variant for code that can render without a PremiumProvider
+ * ancestor (unit tests that mount a narrower tree) — returns undefined
+ * instead of throwing. Mirrors useBibleVersionOptional's rationale.
+ */
+export function usePremiumOptional(): PremiumContextValue | undefined {
+  return useContext(PremiumContext);
+}
+
 export default PremiumContext;

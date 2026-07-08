@@ -642,7 +642,9 @@ export const MiniAudioPlayer: React.FC<MiniAudioPlayerProps> = ({
                     // Walk the FULL speed list (shared with the expanded
                     // player's selector) — a hardcoded 1→1.5→2 cycle here
                     // used to reset 1.25x listeners straight back to 1x.
-                    setPlaybackSpeed(nextPlaybackSpeed(state.playbackSpeed));
+                    setPlaybackSpeed(
+                      nextPlaybackSpeed(state.playbackSpeed, isPremium),
+                    );
                     haptics.tap();
                   }}
                   hitSlop={SPEED_BADGE_HIT_SLOP}
@@ -969,6 +971,7 @@ export const MiniAudioPlayer: React.FC<MiniAudioPlayerProps> = ({
                     currentSpeed={state.playbackSpeed}
                     onSpeedChange={setPlaybackSpeed}
                     variant="compact"
+                    isPremium={isPremium}
                   />
                 </View>
 

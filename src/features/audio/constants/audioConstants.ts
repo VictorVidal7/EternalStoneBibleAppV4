@@ -10,7 +10,7 @@ import {PlaybackSpeed, AudioLanguage} from '../types/audio';
 // ==================== PLAYBACK SPEEDS ====================
 
 export const PLAYBACK_SPEEDS: PlaybackSpeed[] = [
-  0.5, 0.75, 1, 1.25, 1.5, 1.75, 2,
+  0.5, 0.75, 1, 1.25, 1.5, 1.75, 2, 2.25, 2.5,
 ];
 
 export const PLAYBACK_SPEED_LABELS: Record<PlaybackSpeed, string> = {
@@ -21,9 +21,17 @@ export const PLAYBACK_SPEED_LABELS: Record<PlaybackSpeed, string> = {
   1.5: '1.5x',
   1.75: '1.75x',
   2: '2x',
+  2.25: '2.25x',
+  2.5: '2.5x',
 };
 
 export const DEFAULT_PLAYBACK_SPEED: PlaybackSpeed = 1;
+
+// Highest speed free listeners can reach; 2.25x/2.5x are a premium extra.
+// iOS caps expo-speech's actual rate at 2x regardless of the requested value
+// (AVSpeechUtteranceDefaultSpeechRate ceiling) — 2.25/2.5 would sound
+// identical to 2x there. Android (and web) apply the higher rates for real.
+export const FREE_MAX_PLAYBACK_SPEED: PlaybackSpeed = 2;
 
 // ==================== LANGUAGES ====================
 

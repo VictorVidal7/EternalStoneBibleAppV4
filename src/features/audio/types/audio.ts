@@ -7,7 +7,8 @@
 
 // ==================== PLAYBACK TYPES ====================
 
-export type PlaybackSpeed = 0.5 | 0.75 | 1 | 1.25 | 1.5 | 1.75 | 2;
+// 2.25/2.5 are premium-only (see FREE_MAX_PLAYBACK_SPEED in audioConstants.ts).
+export type PlaybackSpeed = 0.5 | 0.75 | 1 | 1.25 | 1.5 | 1.75 | 2 | 2.25 | 2.5;
 
 export type AudioLanguage = 'es' | 'en';
 

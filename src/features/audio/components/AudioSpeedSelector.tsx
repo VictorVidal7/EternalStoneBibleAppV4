@@ -36,6 +36,8 @@ interface AudioSpeedSelectorProps {
   currentSpeed: PlaybackSpeed;
   onSpeedChange: (speed: PlaybackSpeed) => void;
   variant?: 'chips' | 'compact' | 'inline';
+  // Gates the premium-only 2.25x/2.5x speeds when cycling (compact variant).
+  isPremium: boolean;
 }
 
 const AnimatedTouchable = Animated.createAnimatedComponent(TouchableOpacity);
@@ -44,6 +46,7 @@ export const AudioSpeedSelector: React.FC<AudioSpeedSelectorProps> = ({
   currentSpeed,
   onSpeedChange,
   variant = 'chips',
+  isPremium,
 }) => {
   const {colors} = useTheme();
   const {t} = useLanguage();
@@ -60,6 +63,7 @@ export const AudioSpeedSelector: React.FC<AudioSpeedSelectorProps> = ({
         currentSpeed={currentSpeed}
         onSpeedChange={handleSpeedSelect}
         colors={colors}
+        isPremium={isPremium}
       />
     );
   }
@@ -123,12 +127,14 @@ interface CompactSelectorProps {
   currentSpeed: PlaybackSpeed;
   onSpeedChange: (speed: PlaybackSpeed) => void;
   colors: ReturnType<typeof useTheme>['colors'];
+  isPremium?: boolean;
 }
 
 const CompactSpeedSelector: React.FC<CompactSelectorProps> = ({
   currentSpeed,
   onSpeedChange,
   colors,
+  isPremium = false,
 }) => {
   const {t} = useLanguage();
   const scale = useSharedValue(1);
@@ -142,7 +148,7 @@ const CompactSpeedSelector: React.FC<CompactSelectorProps> = ({
       scale.value = withSpring(1);
     });
 
-    onSpeedChange(nextPlaybackSpeed(currentSpeed));
+    onSpeedChange(nextPlaybackSpeed(currentSpeed, isPremium));
   };
 
   return (
