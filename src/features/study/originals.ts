@@ -172,3 +172,24 @@ export async function getStrongsConcordance(
     return {count: 0, occurrences: []};
   }
 }
+
+/**
+ * A single book's occurrences of a Strong's number, fetched FRESH and scoped
+ * to that book — unlike `getStrongsConcordance`'s list, which is capped
+ * GLOBALLY in canonical book order and can therefore under-represent (or
+ * entirely miss) a book that sorts late in the canon. This is what the
+ * word-study screen's per-book filter (Ficha #14) calls instead of narrowing
+ * the global list client-side. Empty on failure/not-installed, never throws.
+ */
+export async function getStrongsOccurrencesByBook(
+  strongs: string,
+  bookId: number,
+  limit?: number,
+): Promise<StrongsOccurrence[]> {
+  if (!hasLexicon(strongs)) return [];
+  try {
+    return await bibleDB.getStrongsOccurrencesByBook(strongs, bookId, limit);
+  } catch {
+    return [];
+  }
+}

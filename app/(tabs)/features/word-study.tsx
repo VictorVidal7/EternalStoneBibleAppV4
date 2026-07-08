@@ -48,6 +48,7 @@ import {
   buildBookBars,
   distinctBookCount,
   getWordStudy,
+  getWordStudyBookOccurrences,
   type WordStudy,
 } from '@/features/study/wordStudy';
 import {
@@ -94,6 +95,14 @@ export default function WordStudyScreen() {
   // Tap a distribution bar to filter the occurrence list to that book (Ficha
   // #14 — the bars used to be purely decorative). `null` = no filter.
   const [bookFilter, setBookFilter] = useState<number | null>(null);
+  // The selected book's occurrences, fetched FRESH and scoped to that book
+  // (never a client-side narrowing of `study.occurrences`, which is globally
+  // capped in canonical book order — see wordStudy.ts). `null` while no
+  // filter is active or the fetch hasn't resolved yet.
+  const [filterOccurrences, setFilterOccurrences] = useState<
+    StrongsOccurrence[] | null
+  >(null);
+  const [filterLoading, setFilterLoading] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -118,19 +127,50 @@ export default function WordStudyScreen() {
     };
   }, [strongs]);
 
+  // Fetch the selected book's real, complete occurrence list whenever the
+  // filter changes — replacing (not narrowing) the displayed list. Clearing
+  // the filter (bookFilter → null) simply reverts to `study.occurrences`
+  // below, no fetch needed.
+  useEffect(() => {
+    if (bookFilter === null) {
+      setFilterOccurrences(null);
+      setFilterLoading(false);
+      return;
+    }
+    let cancelled = false;
+    setFilterLoading(true);
+    (async () => {
+      const occs = await getWordStudyBookOccurrences(strongs, bookFilter);
+      if (cancelled) return;
+      setFilterOccurrences(occs);
+      setFilterLoading(false);
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [strongs, bookFilter]);
+
   const bars = useMemo(
     () => (study ? buildBookBars(study.distribution, bookLang) : []),
     [study, bookLang],
   );
   const selectedBarIndex =
     bookFilter === null ? null : bars.findIndex(b => b.book_id === bookFilter);
-  const filteredOccurrences = useMemo(
-    () =>
-      study && bookFilter !== null
-        ? study.occurrences.filter(occ => occ.book_id === bookFilter)
-        : (study?.occurrences ?? []),
-    [study, bookFilter],
-  );
+  const filteredOccurrences =
+    bookFilter === null
+      ? (study?.occurrences ?? [])
+      : (filterOccurrences ?? []);
+  // The TRUE total for the current view — the grand total when unfiltered
+  // (unchanged from before), or the book's real, uncapped count from the
+  // distribution aggregate when filtered. Comparing against this (rather
+  // than just "did the fetch hit its cap") means the "showing the first N"
+  // disclosure is honest even in the rare case a single book's occurrences
+  // of one Strong's number exceed the defensive fetch cap.
+  const totalForView =
+    bookFilter === null
+      ? (study?.count ?? 0)
+      : (study?.distribution.find(d => d.book_id === bookFilter)?.count ??
+        filteredOccurrences.length);
   const filterBookName = useMemo(() => {
     if (bookFilter === null) return null;
     const book = getBookById(bookFilter);
@@ -485,20 +525,29 @@ export default function WordStudyScreen() {
                 </TouchableOpacity>
               ) : null}
             </View>
-            {filteredOccurrences.map((occ, i) =>
-              renderOccurrence(
-                occ,
-                `${occ.book_id}-${occ.chapter}-${occ.verse}-${i}`,
-              ),
-            )}
-            {bookFilter === null && study.count > study.occurrences.length ? (
-              <Text style={[styles.moreNote, {color: colors.textTertiary}]}>
-                {w.moreOccurrences.replace(
-                  '{{n}}',
-                  String(study.occurrences.length),
+            {filterLoading ? (
+              <View style={styles.filterLoadingRow}>
+                <ActivityIndicator color={colors.primary} />
+              </View>
+            ) : (
+              <>
+                {filteredOccurrences.map((occ, i) =>
+                  renderOccurrence(
+                    occ,
+                    `${occ.book_id}-${occ.chapter}-${occ.verse}-${i}`,
+                  ),
                 )}
-              </Text>
-            ) : null}
+                {filteredOccurrences.length > 0 &&
+                totalForView > filteredOccurrences.length ? (
+                  <Text style={[styles.moreNote, {color: colors.textTertiary}]}>
+                    {w.moreOccurrences.replace(
+                      '{{n}}',
+                      String(filteredOccurrences.length),
+                    )}
+                  </Text>
+                ) : null}
+              </>
+            )}
           </View>
 
           <Text style={[styles.attribution, {color: colors.textTertiary}]}>
@@ -684,6 +733,7 @@ const styles = StyleSheet.create({
   },
   occRef: {fontSize: fontSizes.sm, fontWeight: '700'},
   occWord: {fontSize: fontSizes.sm, flexShrink: 1, textAlign: 'right'},
+  filterLoadingRow: {paddingVertical: spacing.lg, alignItems: 'center'},
   moreNote: {
     fontSize: fontSizes.xs,
     fontWeight: '600',

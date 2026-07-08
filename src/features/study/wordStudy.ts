@@ -22,7 +22,12 @@ import bibleDB, {
 } from '@lib/database';
 import {getBookById} from '@/constants/bible';
 import type {BarDatum} from '@components/charts/MiniBarChart';
-import {getStrongsDetail, getStrongsConcordance, hasLexicon} from './originals';
+import {
+  getStrongsDetail,
+  getStrongsConcordance,
+  getStrongsOccurrencesByBook,
+  hasLexicon,
+} from './originals';
 import type {Lang} from './originals';
 
 export type {StrongsBookCount};
@@ -118,4 +123,21 @@ export async function getWordStudy(
   } catch {
     return EMPTY_STUDY;
   }
+}
+
+/**
+ * One book's occurrences of a Strong's number, fetched fresh and scoped to
+ * that book (Ficha #14 — tapping a distribution bar). This is what the
+ * word-study screen calls when a bar filter is applied, INSTEAD of narrowing
+ * `WordStudy.occurrences` client-side — that array is globally capped in
+ * canonical book order (see {@link getWordStudy}'s `occurrenceLimit`), so a
+ * later-canon book can be entirely absent from it even when it truly has
+ * occurrences. Purely additive: `getWordStudy`'s own shape/behavior is
+ * unchanged. Empty on failure/not-installed, never throws.
+ */
+export function getWordStudyBookOccurrences(
+  strongs: string,
+  bookId: number,
+): Promise<StrongsOccurrence[]> {
+  return getStrongsOccurrencesByBook(strongs, bookId);
 }
