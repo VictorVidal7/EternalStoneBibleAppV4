@@ -4,6 +4,13 @@ import {View, Text, StyleSheet, TouchableOpacity} from 'react-native';
 import {staticColors} from '@/styles/designTokens';
 import {GestureHandlerRootView} from 'react-native-gesture-handler';
 import {initializeBibleData} from '@lib/database/data-loader';
+// Explicit .web specifier (not the bare '@lib/database/data-loader'):
+// clearWebStorageForLockRecovery is web-only and does not exist in
+// data-loader.ts (native) — tsc has no platform awareness and resolves a
+// bare specifier to the native file regardless of this file's own .web.tsx
+// name, so importing it unsuffixed would fail type-checking.
+import {clearWebStorageForLockRecovery} from '@lib/database/data-loader.web';
+import {isStorageLockError} from '@lib/database/storageLockError';
 import {loadReaderFonts} from '@lib/reader/fontAssets';
 import {ThemeProvider} from '@hooks/useTheme';
 import {BibleVersionProvider} from '@hooks/useBibleVersion';
@@ -33,6 +40,8 @@ function AppContent() {
   const [isLoading, setIsLoading] = useState(true);
   const [loadingProgress, setLoadingProgress] = useState({loaded: 0, total: 0});
   const [error, setError] = useState<string | null>(null);
+  const [isStorageLocked, setIsStorageLocked] = useState(false);
+  const [isClearingStorage, setIsClearingStorage] = useState(false);
 
   useEffect(() => {
     initializeApp();
@@ -51,7 +60,29 @@ function AppContent() {
         action: 'initializeApp',
       });
       setError(err instanceof Error ? err.message : 'Failed to initialize app');
+      // A stale OPFS lock from an interrupted first-run download poisons
+      // expo-sqlite's web worker for the rest of this page load (its VFS
+      // singleton never retries after the first failed acquisition — see
+      // isStorageLockError's doc comment), so calling initializeApp() again
+      // in place, the way the generic Retry button below does, reliably
+      // hits the exact same error. Only an actual page reload tears down
+      // that worker and gives the browser a chance to drop the lock.
+      setIsStorageLocked(isStorageLockError(err));
       setIsLoading(false);
+    }
+  }
+
+  async function handleClearStorageAndReload() {
+    setIsClearingStorage(true);
+    try {
+      await clearWebStorageForLockRecovery();
+    } catch (clearError) {
+      logger.error('Web storage clear error', clearError as Error, {
+        component: 'RootLayoutWeb',
+        action: 'handleClearStorageAndReload',
+      });
+    } finally {
+      window.location.reload();
     }
   }
 
@@ -70,6 +101,25 @@ function AppContent() {
                 ),
               )}
         </Text>
+      </View>
+    );
+  }
+
+  if (error && isStorageLocked) {
+    return (
+      <View style={styles.errorContainer}>
+        <Text style={styles.errorTitle}>{t.app.storageLockedTitle}</Text>
+        <Text style={styles.errorText}>{t.app.storageLockedMessage}</Text>
+        <TouchableOpacity
+          style={styles.clearButton}
+          disabled={isClearingStorage}
+          onPress={handleClearStorageAndReload}
+          accessibilityRole="button"
+          accessibilityLabel={t.app.clearDataAndReload}>
+          <Text style={styles.clearButtonText}>
+            {isClearingStorage ? t.app.clearingData : t.app.clearDataAndReload}
+          </Text>
+        </TouchableOpacity>
       </View>
     );
   }
@@ -144,6 +194,18 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   retryButtonText: {
+    color: staticColors.white,
+    fontSize: 16,
+    fontWeight: '700',
+  },
+  clearButton: {
+    backgroundColor: staticColors.amber500,
+    paddingVertical: 12,
+    paddingHorizontal: 32,
+    borderRadius: 8,
+    alignItems: 'center',
+  },
+  clearButtonText: {
     color: staticColors.white,
     fontSize: 16,
     fontWeight: '700',
