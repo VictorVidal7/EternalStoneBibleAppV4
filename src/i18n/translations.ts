@@ -61,6 +61,11 @@ export const translations = {
       emptyBookmarksHint:
         'Toca el icono de estrella al leer versiculos para guardarlos como favoritos',
       loadingProgress: 'Cargando... {{percent}}%',
+      storageLockedTitle: 'No se pudo completar la descarga',
+      storageLockedMessage:
+        'La descarga inicial de la Biblia se interrumpió (se cerró la pestaña, se recargó la página o hubo un corte) y el almacenamiento de este navegador quedó en un estado inconsistente. Reintentar no lo va a solucionar: hace falta borrar los datos guardados en este navegador y volver a cargar la página.',
+      clearDataAndReload: 'Borrar datos y recargar',
+      clearingData: 'Borrando datos...',
     },
 
     // Tabs Navigation
@@ -5358,6 +5363,11 @@ export const translations = {
       emptyBookmarksHint:
         'Tap the star icon while reading verses to save them as favorites',
       loadingProgress: 'Loading... {{percent}}%',
+      storageLockedTitle: "Download couldn't complete",
+      storageLockedMessage:
+        "The initial Bible download was interrupted (the tab was closed, the page reloaded, or the connection dropped) and this browser's storage was left in an inconsistent state. Retrying will not fix it — the data saved in this browser needs to be cleared and the page reloaded.",
+      clearDataAndReload: 'Clear data & reload',
+      clearingData: 'Clearing data...',
     },
 
     // Tabs Navigation
