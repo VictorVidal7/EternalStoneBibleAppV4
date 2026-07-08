@@ -94,7 +94,11 @@ export const ConfirmDialog: React.FC<ConfirmDialogProps> = ({
               onPress={onCancel}
               accessibilityRole="button"
               accessibilityLabel={cancelLabel}>
-              <Text style={[styles.buttonText, {color: colors.text}]}>
+              <Text
+                style={[styles.buttonText, {color: colors.text}]}
+                numberOfLines={2}
+                adjustsFontSizeToFit
+                minimumFontScale={0.8}>
                 {cancelLabel}
               </Text>
             </TouchableOpacity>
@@ -104,7 +108,11 @@ export const ConfirmDialog: React.FC<ConfirmDialogProps> = ({
               onPress={onConfirm}
               accessibilityRole="button"
               accessibilityLabel={confirmLabel}>
-              <Text style={[styles.buttonText, {color: confirmInk}]}>
+              <Text
+                style={[styles.buttonText, {color: confirmInk}]}
+                numberOfLines={2}
+                adjustsFontSizeToFit
+                minimumFontScale={0.8}>
                 {confirmLabel}
               </Text>
             </TouchableOpacity>
@@ -161,9 +169,19 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     gap: 12,
     alignSelf: 'stretch',
+    // Explicit (matches the default, but a shared component reused at 15
+    // call sites shouldn't depend on an implicit cross-axis default):
+    // whichever button's label wraps to a 2nd line grows the row, and BOTH
+    // buttons stretch to that height, so a long confirm label never dwarfs
+    // a short cancel label — they stay the same size, just with a
+    // one-line vs. two-line label inside.
+    alignItems: 'stretch',
   },
   button: {
     flex: 1,
+    // Floor so a short single-word label (e.g. "Cancelar") never renders a
+    // visibly squat button — independent of whatever the sibling needs.
+    minHeight: 48,
     borderRadius: 14,
     paddingVertical: 14,
     alignItems: 'center',
@@ -175,5 +193,12 @@ const styles = StyleSheet.create({
   buttonText: {
     fontSize: 16,
     fontWeight: '700',
+    lineHeight: 20,
+    // No-op for the 14 short single-line labels in this app (a single line
+    // is already centered by the button's own alignItems). Only matters
+    // once a label wraps: without it RN left-aligns each wrapped line,
+    // which is what actually made "Importar y" / "reemplazar" look
+    // lopsided next to a centered "Cancelar" — not the box height.
+    textAlign: 'center',
   },
 });
