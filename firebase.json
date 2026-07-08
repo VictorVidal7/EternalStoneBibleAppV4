@@ -5,5 +5,24 @@
     "crashlytics_auto_collection_enabled": true,
     "crashlytics_is_error_generation_on_js_crash_enabled": true,
     "crashlytics_javascript_exception_handler_chaining_enabled": true
+  },
+  "hosting": {
+    "public": "dist",
+    "ignore": ["firebase.json", "**/.*", "**/node_modules/**"],
+    "headers": [
+      {
+        "source": "**",
+        "headers": [
+          {"key": "Cross-Origin-Opener-Policy", "value": "same-origin"},
+          {"key": "Cross-Origin-Embedder-Policy", "value": "credentialless"}
+        ]
+      }
+    ],
+    "rewrites": [
+      {
+        "source": "**",
+        "destination": "/index.html"
+      }
+    ]
   }
 }
