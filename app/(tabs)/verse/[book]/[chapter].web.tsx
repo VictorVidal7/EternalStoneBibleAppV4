@@ -1,0 +1,296 @@
+import React, {useEffect, useState, useCallback} from 'react';
+import {
+  View,
+  Text,
+  TouchableOpacity,
+  StyleSheet,
+  ScrollView,
+} from 'react-native';
+import {useRouter, useLocalSearchParams, Stack} from 'expo-router';
+import {Ionicons} from '@expo/vector-icons';
+
+import bibleDB from '@lib/database';
+import {BibleVerse} from '@/types/bible';
+import {getBookByName} from '@/constants/bible';
+import {useTheme} from '@hooks/useTheme';
+import {useBibleVersion} from '@hooks/useBibleVersion';
+import {useLanguage} from '@hooks/useLanguage';
+import {useReaderPreferences} from '@context/ReaderPreferencesContext';
+import {
+  READER_FONT_SIZE_MIN,
+  READER_FONT_SIZE_MAX,
+  READER_FONT_SIZE_STEP,
+} from '@context/ReaderPreferencesContext';
+import {centeredMaxWidth, READER_MAX_WIDTH} from '@/styles/responsive';
+import {spacing, fontSize as tokenFontSize} from '@/styles/designTokens';
+
+/**
+ * Web Bible reader (T21) — a dedicated, from-scratch screen, NOT a
+ * Platform.OS-branched version of app/(tabs)/verse/[book]/[chapter].tsx.
+ *
+ * The native reader is deeply entangled with everything Victor's confirmed
+ * v1 scope excludes (audio/immersive, favorites, notes, highlights, sync,
+ * premium, cross-references, original languages, collections — ~20 contexts
+ * and components). Retrofitting that file with conditionals would mean
+ * either mounting all of those on web (defeating the point of the trimmed
+ * provider tree in _layout.web.tsx) or leaving dead/hidden UI affordances
+ * for features that Victor was explicit "no existen" on web. A dedicated
+ * file only touches theme/i18n/bibleVersion/readerPrefs + bibleDB reads —
+ * exactly what v1 needs: book/chapter navigation, verse text, theme, font
+ * size, and a shareable per-chapter URL (Expo Router web gives the last one
+ * for free from the route itself).
+ */
+
+export default function ChapterReaderWeb() {
+  const router = useRouter();
+  const {colors, isDark, mode, setThemeMode} = useTheme();
+  const {t} = useLanguage();
+  const {selectedVersion} = useBibleVersion();
+  const {preferences, setFontSize} = useReaderPreferences();
+  const params = useLocalSearchParams<{book: string; chapter: string}>();
+
+  const rawBook = params.book;
+  const book = typeof rawBook === 'string' ? rawBook : rawBook?.[0] || '';
+  const rawChapter = params.chapter;
+  const chapterParam =
+    typeof rawChapter === 'string' ? rawChapter : rawChapter?.[0] || '1';
+  const chapter = parseInt(chapterParam, 10) || 1;
+
+  const bookInfo = getBookByName(book);
+  const bookLang: 'es' | 'en' = selectedVersion.language === 'es' ? 'es' : 'en';
+  const bookName = bookInfo
+    ? bookLang === 'en'
+      ? bookInfo.nameEn
+      : bookInfo.name
+    : book;
+
+  const [verses, setVerses] = useState<BibleVerse[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState<string | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    async function load() {
+      if (!bookInfo) {
+        setLoading(false);
+        return;
+      }
+      setLoading(true);
+      setLoadError(null);
+      try {
+        await bibleDB.initialize();
+        const result = await bibleDB.getChapter(
+          bookInfo.id,
+          chapter,
+          selectedVersion.id,
+        );
+        if (!cancelled) setVerses(result);
+      } catch (err) {
+        if (!cancelled) {
+          setLoadError(err instanceof Error ? err.message : String(err));
+        }
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    }
+    load();
+    return () => {
+      cancelled = true;
+    };
+  }, [bookInfo, chapter, selectedVersion.id]);
+
+  const goToChapter = useCallback(
+    (target: number) => {
+      if (!bookInfo || target < 1 || target > bookInfo.chapters) return;
+      router.push(`/verse/${book}/${target}` as never);
+    },
+    [router, book, bookInfo],
+  );
+
+  const toggleDarkMode = useCallback(() => {
+    setThemeMode(mode === 'dark' ? 'light' : 'dark');
+  }, [mode, setThemeMode]);
+
+  if (!bookInfo) {
+    return (
+      <View style={[styles.center, {backgroundColor: colors.background}]}>
+        <Text style={{color: colors.text}}>
+          {t.bible.couldNotFind}: "{book}"
+        </Text>
+      </View>
+    );
+  }
+
+  return (
+    <>
+      <Stack.Screen options={{headerShown: false}} />
+      <View style={[styles.container, {backgroundColor: colors.background}]}>
+        <View style={[styles.header, {borderBottomColor: colors.glassBorder}]}>
+          <TouchableOpacity
+            onPress={() => router.push(`/chapter/${book}` as never)}
+            accessibilityRole="button"
+            accessibilityLabel={t.bible.back}
+            style={styles.headerButton}>
+            <Ionicons name="arrow-back" size={22} color={colors.text} />
+          </TouchableOpacity>
+
+          <Text
+            style={[styles.headerTitle, {color: colors.text}]}
+            numberOfLines={1}>
+            {bookName} {chapter}
+          </Text>
+
+          <View style={styles.headerActions}>
+            <TouchableOpacity
+              onPress={() =>
+                setFontSize(
+                  Math.max(
+                    READER_FONT_SIZE_MIN,
+                    preferences.fontSize - READER_FONT_SIZE_STEP,
+                  ),
+                )
+              }
+              accessibilityRole="button"
+              accessibilityLabel="A-"
+              style={styles.headerButton}>
+              <Text style={[styles.fontSizeButtonText, {color: colors.text}]}>
+                A-
+              </Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              onPress={() =>
+                setFontSize(
+                  Math.min(
+                    READER_FONT_SIZE_MAX,
+                    preferences.fontSize + READER_FONT_SIZE_STEP,
+                  ),
+                )
+              }
+              accessibilityRole="button"
+              accessibilityLabel="A+"
+              style={styles.headerButton}>
+              <Text style={[styles.fontSizeButtonText, {color: colors.text}]}>
+                A+
+              </Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              onPress={toggleDarkMode}
+              accessibilityRole="button"
+              accessibilityLabel={t.settings.theme}
+              style={styles.headerButton}>
+              <Ionicons
+                name={isDark ? 'sunny-outline' : 'moon-outline'}
+                size={20}
+                color={colors.text}
+              />
+            </TouchableOpacity>
+          </View>
+        </View>
+
+        <ScrollView
+          contentContainerStyle={[
+            styles.scrollContent,
+            centeredMaxWidth(READER_MAX_WIDTH),
+          ]}>
+          {loading ? (
+            <Text style={{color: colors.textSecondary}}>{t.loading}</Text>
+          ) : loadError ? (
+            <Text style={{color: colors.error ?? '#c0392b'}}>{loadError}</Text>
+          ) : verses.length === 0 ? (
+            <Text style={{color: colors.textSecondary}}>
+              {t.bible.couldNotLoadChapters}
+            </Text>
+          ) : (
+            verses.map(v => (
+              <Text
+                key={v.verse}
+                style={[
+                  styles.verseText,
+                  {
+                    color: colors.text,
+                    fontSize: preferences.fontSize,
+                    lineHeight:
+                      preferences.fontSize * preferences.lineHeightMultiplier,
+                  },
+                ]}>
+                <Text style={[styles.verseNumber, {color: colors.primary}]}>
+                  {v.verse}{' '}
+                </Text>
+                {v.text}
+              </Text>
+            ))
+          )}
+
+          <View style={styles.navRow}>
+            <TouchableOpacity
+              disabled={chapter <= 1}
+              onPress={() => goToChapter(chapter - 1)}
+              accessibilityRole="button"
+              accessibilityLabel={t.previous}
+              style={[
+                styles.navButton,
+                {borderColor: colors.glassBorder},
+                chapter <= 1 && styles.navButtonDisabled,
+              ]}>
+              <Ionicons name="chevron-back" size={18} color={colors.text} />
+              <Text style={{color: colors.text}}>{t.previous}</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              disabled={chapter >= bookInfo.chapters}
+              onPress={() => goToChapter(chapter + 1)}
+              accessibilityRole="button"
+              accessibilityLabel={t.next}
+              style={[
+                styles.navButton,
+                {borderColor: colors.glassBorder},
+                chapter >= bookInfo.chapters && styles.navButtonDisabled,
+              ]}>
+              <Text style={{color: colors.text}}>{t.next}</Text>
+              <Ionicons name="chevron-forward" size={18} color={colors.text} />
+            </TouchableOpacity>
+          </View>
+        </ScrollView>
+      </View>
+    </>
+  );
+}
+
+const styles = StyleSheet.create({
+  container: {flex: 1},
+  center: {flex: 1, justifyContent: 'center', alignItems: 'center'},
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingTop: 20,
+    paddingBottom: 14,
+    paddingHorizontal: 16,
+    borderBottomWidth: 1,
+    gap: 8,
+  },
+  headerButton: {padding: 8},
+  headerTitle: {flex: 1, fontSize: 18, fontWeight: '700'},
+  headerActions: {flexDirection: 'row', alignItems: 'center'},
+  fontSizeButtonText: {fontSize: tokenFontSize.sm, fontWeight: '700'},
+  scrollContent: {
+    paddingHorizontal: spacing.lg,
+    paddingTop: spacing.lg,
+    paddingBottom: spacing['2xl'],
+  },
+  verseText: {marginBottom: spacing.sm},
+  verseNumber: {fontWeight: '700'},
+  navRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginTop: spacing.xl,
+  },
+  navButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    paddingVertical: 10,
+    paddingHorizontal: 16,
+    borderRadius: 10,
+    borderWidth: 1,
+  },
+  navButtonDisabled: {opacity: 0.35},
+});
