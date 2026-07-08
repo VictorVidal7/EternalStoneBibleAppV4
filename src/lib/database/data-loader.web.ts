@@ -189,7 +189,9 @@ export async function resetBibleData(): Promise<void> {
  * isStorageLockError's doc comment) and lets the browser drop the handle.
  */
 export async function clearWebStorageForLockRecovery(): Promise<void> {
-  console.log('🔓 [web] Clearing OPFS/IndexedDB storage to recover from a stale lock...');
+  console.log(
+    '🔓 [web] Clearing OPFS/IndexedDB storage to recover from a stale lock...',
+  );
 
   try {
     const root = await navigator.storage.getDirectory();
@@ -202,11 +204,16 @@ export async function clearWebStorageForLockRecovery(): Promise<void> {
     await Promise.all(
       names.map(name =>
         root.removeEntry(name, {recursive: true}).catch(entryError => {
-          console.warn(`⚠️ [web] Could not remove OPFS entry "${name}":`, entryError);
+          console.warn(
+            `⚠️ [web] Could not remove OPFS entry "${name}":`,
+            entryError,
+          );
         }),
       ),
     );
-    console.log(`✅ [web] Cleared ${names.length} OPFS entr${names.length === 1 ? 'y' : 'ies'}`);
+    console.log(
+      `✅ [web] Cleared ${names.length} OPFS entr${names.length === 1 ? 'y' : 'ies'}`,
+    );
   } catch (error) {
     console.warn('⚠️ [web] OPFS clear failed (continuing anyway):', error);
   }

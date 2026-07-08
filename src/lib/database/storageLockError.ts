@@ -44,11 +44,19 @@ const STORAGE_LOCK_SIGNATURES: readonly RegExp[] = [
  * guaranteed to survive every hop of this app's worker → postMessage →
  * re-wrap → catch chain intact across browser versions.
  */
-function extractNameAndMessage(error: unknown): {name: string; message: string} {
-  if (error && typeof error === 'object' && typeof (error as {message?: unknown}).message === 'string') {
-    const name = typeof (error as {name?: unknown}).name === 'string'
-      ? (error as {name: string}).name
-      : '';
+function extractNameAndMessage(error: unknown): {
+  name: string;
+  message: string;
+} {
+  if (
+    error &&
+    typeof error === 'object' &&
+    typeof (error as {message?: unknown}).message === 'string'
+  ) {
+    const name =
+      typeof (error as {name?: unknown}).name === 'string'
+        ? (error as {name: string}).name
+        : '';
     return {name, message: (error as {message: string}).message};
   }
   if (typeof error === 'string') {
