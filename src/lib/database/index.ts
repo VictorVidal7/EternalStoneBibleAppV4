@@ -1,6 +1,7 @@
 /* eslint-disable no-console -- DB layer dev-mode init/progress logging.
    Will migrate to logger.* in Sprint 41 alongside Crashlytics wiring. */
 import * as SQLite from 'expo-sqlite';
+import {Platform} from 'react-native';
 import {Asset} from 'expo-asset';
 import {Directory, File, Paths} from 'expo-file-system';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -244,41 +245,48 @@ class BibleDatabase {
       )
     `);
 
-    // FTS5 table
-    await db.runAsync(`
-      CREATE VIRTUAL TABLE IF NOT EXISTS verses_fts USING fts5(
-        book_name,
-        chapter,
-        verse,
-        text,
-        content='verses',
-        content_rowid='id'
-      )
-    `);
+    // T20 web spike DIAGNOSTIC ONLY (not a real fix — see T20 report): the
+    // web expo-sqlite WASM build has no fts5 module, and unconditionally
+    // creating this virtual table + its triggers throws during schema
+    // bootstrap, breaking ALL database access on web. Skip on web here just
+    // to confirm that hypothesis; T21 owns the actual web data-layer design.
+    if (Platform.OS !== 'web') {
+      // FTS5 table
+      await db.runAsync(`
+        CREATE VIRTUAL TABLE IF NOT EXISTS verses_fts USING fts5(
+          book_name,
+          chapter,
+          verse,
+          text,
+          content='verses',
+          content_rowid='id'
+        )
+      `);
 
-    // Triggers
-    await db.runAsync(`
-      CREATE TRIGGER IF NOT EXISTS verses_ai AFTER INSERT ON verses BEGIN
-        INSERT INTO verses_fts(rowid, book_name, chapter, verse, text)
-        VALUES (new.id, new.book_name, new.chapter, new.verse, new.text);
-      END
-    `);
+      // Triggers
+      await db.runAsync(`
+        CREATE TRIGGER IF NOT EXISTS verses_ai AFTER INSERT ON verses BEGIN
+          INSERT INTO verses_fts(rowid, book_name, chapter, verse, text)
+          VALUES (new.id, new.book_name, new.chapter, new.verse, new.text);
+        END
+      `);
 
-    await db.runAsync(`
-      CREATE TRIGGER IF NOT EXISTS verses_ad AFTER DELETE ON verses BEGIN
-        INSERT INTO verses_fts(verses_fts, rowid, book_name, chapter, verse, text)
-        VALUES('delete', old.id, old.book_name, old.chapter, old.verse, old.text);
-      END
-    `);
+      await db.runAsync(`
+        CREATE TRIGGER IF NOT EXISTS verses_ad AFTER DELETE ON verses BEGIN
+          INSERT INTO verses_fts(verses_fts, rowid, book_name, chapter, verse, text)
+          VALUES('delete', old.id, old.book_name, old.chapter, old.verse, old.text);
+        END
+      `);
 
-    await db.runAsync(`
-      CREATE TRIGGER IF NOT EXISTS verses_au AFTER UPDATE ON verses BEGIN
-        INSERT INTO verses_fts(verses_fts, rowid, book_name, chapter, verse, text)
-        VALUES('delete', old.id, old.book_name, old.chapter, old.verse, old.text);
-        INSERT INTO verses_fts(rowid, book_name, chapter, verse, text)
-        VALUES (new.id, new.book_name, new.chapter, new.verse, new.text);
-      END
-    `);
+      await db.runAsync(`
+        CREATE TRIGGER IF NOT EXISTS verses_au AFTER UPDATE ON verses BEGIN
+          INSERT INTO verses_fts(verses_fts, rowid, book_name, chapter, verse, text)
+          VALUES('delete', old.id, old.book_name, old.chapter, old.verse, old.text);
+          INSERT INTO verses_fts(rowid, book_name, chapter, verse, text)
+          VALUES (new.id, new.book_name, new.chapter, new.verse, new.text);
+        END
+      `);
+    }
 
     // Tabla notes
     await db.runAsync(`

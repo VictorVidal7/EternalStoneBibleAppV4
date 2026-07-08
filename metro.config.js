@@ -8,6 +8,9 @@ config.resolver.blockList = [
 ];
 
 config.resolver.assetExts.push('db', 'sqlite');
+// expo-sqlite's web worker imports its wa-sqlite WASM binary directly;
+// Metro doesn't treat .wasm as an asset by default (T20 web spike finding).
+config.resolver.assetExts.push('wasm');
 // Keep real class/function names in the production bundle. Crash reporting
 // (src/lib/utils/logger.ts) forwards raw JS `Error` objects straight to
 // Firebase Crashlytics via `recordError`, and this repo has no sourcemap
