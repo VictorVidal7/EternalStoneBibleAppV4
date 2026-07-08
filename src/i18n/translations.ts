@@ -3113,6 +3113,7 @@ export const translations = {
       language: 'Idioma',
       selectLanguage: 'Selecciona tu idioma',
       languageDescription: 'Cambia el idioma de la aplicación',
+      webFontSize: 'Tamaño de letra',
 
       data: 'Datos',
       resetData: 'Resetear Datos de la Biblia',
@@ -8389,6 +8390,7 @@ export const translations = {
       language: 'Language',
       selectLanguage: 'Select your language',
       languageDescription: 'Change the app language',
+      webFontSize: 'Font size',
 
       data: 'Data',
       resetData: 'Reset Bible Data',
