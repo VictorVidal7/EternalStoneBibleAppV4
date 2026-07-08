@@ -3368,7 +3368,7 @@ export const translations = {
       badge: 'PREMIUM',
       settingsTitle: 'Funciones premium',
       settingsDesc:
-        'Desbloquea el desplazamiento por versículo y continuar escuchando donde lo dejaste en el reproductor de audio.',
+        'Desbloquea el desplazamiento por versículo, continuar donde lo dejaste, y escuchar hasta a 2.5x en el reproductor de audio.',
       toggleLabel: 'Premium desbloqueado',
       unlockedToast: 'Premium activado',
       lockedToast: 'Premium desactivado',
@@ -3381,7 +3381,7 @@ export const translations = {
         'Algunos extras de esta app se desbloquean con una ofrenda única y voluntaria — como una ofrenda en la iglesia, no una compra. La Biblia, los planes de lectura, la oración y todo lo demás siguen siendo, y seguirán siendo siempre, completamente gratis.',
       extrasListTitle: 'Esto es lo que se desbloquea:',
       extraAudio:
-        'Audio avanzado: desplázate libremente por versículo, continúa donde lo dejaste, y escucha en modo inmersivo',
+        'Audio avanzado: desplázate libremente por versículo (también en el modo inmersivo), continúa donde lo dejaste, y escucha hasta a 2.5x',
       extraShareTemplates: 'Plantillas adicionales para compartir versículos',
       tierSuggested: 'Sugerido',
       legend:
@@ -8649,7 +8649,7 @@ export const translations = {
       badge: 'PREMIUM',
       settingsTitle: 'Premium features',
       settingsDesc:
-        'Unlock verse scrubbing and resume-where-you-left-off in the audio player.',
+        'Unlock verse scrubbing, resume-where-you-left-off, and listening at up to 2.5x speed in the audio player.',
       toggleLabel: 'Premium unlocked',
       unlockedToast: 'Premium enabled',
       lockedToast: 'Premium disabled',
@@ -8662,7 +8662,7 @@ export const translations = {
         'Some extras in this app unlock with a single, voluntary offering — like an offering at church, not a purchase. The Bible, reading plans, prayer, and everything else stay, and will always stay, completely free.',
       extrasListTitle: "Here's what unlocks:",
       extraAudio:
-        'Advanced audio: scrub freely by verse, resume where you left off, and listen in immersive mode',
+        'Advanced audio: scrub freely by verse (in immersive mode too), resume where you left off, and listen at up to 2.5x speed',
       extraShareTemplates: 'Additional verse-sharing templates',
       tierSuggested: 'Suggested',
       legend:
