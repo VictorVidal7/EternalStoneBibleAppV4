@@ -162,3 +162,77 @@ export async function resetBibleData(): Promise<void> {
     console.error('❌ [web] Error clearing database:', error);
   }
 }
+
+/**
+ * Recovery path for the OPFS stale-lock case (T22, isStorageLockError).
+ * Unlike resetBibleData(), this must NOT touch bibleDB — opening the
+ * database is exactly what's failing, so any SQL-based clear would hit the
+ * same lock. Instead it drops down to the browser storage APIs directly:
+ * every file expo-sqlite's AccessHandlePoolVFS keeps in the origin's OPFS
+ * (under a directory it names 'expo-sqlite', see
+ * node_modules/expo-sqlite/web/worker.ts's VFS_NAME_PERSISTENT) holds the
+ * exclusive lock, and the only way to release a lock left by a crashed or
+ * hard-reloaded prior page load is to delete the underlying OPFS file and
+ * let SQLite recreate it fresh.
+ *
+ * Clears the WHOLE OPFS root for this origin rather than targeting just the
+ * 'expo-sqlite' subdirectory by name — this app has no other OPFS
+ * consumer today, and an origin-wide clear can't drift out of sync with
+ * expo-sqlite's internal file-naming scheme (random per-file names, not
+ * 'bible.db') the way a narrower guess could. Also clears any IndexedDB
+ * databases on this origin as a defensive no-op today (nothing here uses
+ * IDB; AsyncStorage-web is backed by localStorage, not IDB — see
+ * @react-native-async-storage/async-storage's web AsyncStorage.ts) in case
+ * a future expo-sqlite version adds an IDB-backed VFS. The caller is
+ * responsible for the actual window.location.reload() afterward — a real
+ * page reload is what tears down the poisoned SQLite worker (see
+ * isStorageLockError's doc comment) and lets the browser drop the handle.
+ */
+export async function clearWebStorageForLockRecovery(): Promise<void> {
+  console.log('🔓 [web] Clearing OPFS/IndexedDB storage to recover from a stale lock...');
+
+  try {
+    const root = await navigator.storage.getDirectory();
+    const names: string[] = [];
+    for await (const name of (
+      root as unknown as {keys(): AsyncIterableIterator<string>}
+    ).keys()) {
+      names.push(name);
+    }
+    await Promise.all(
+      names.map(name =>
+        root.removeEntry(name, {recursive: true}).catch(entryError => {
+          console.warn(`⚠️ [web] Could not remove OPFS entry "${name}":`, entryError);
+        }),
+      ),
+    );
+    console.log(`✅ [web] Cleared ${names.length} OPFS entr${names.length === 1 ? 'y' : 'ies'}`);
+  } catch (error) {
+    console.warn('⚠️ [web] OPFS clear failed (continuing anyway):', error);
+  }
+
+  try {
+    if (typeof indexedDB !== 'undefined' && indexedDB.databases) {
+      const dbs = await indexedDB.databases();
+      await Promise.all(
+        dbs
+          .map(db => db.name)
+          .filter((name): name is string => !!name)
+          .map(
+            name =>
+              new Promise<void>(resolve => {
+                const req = indexedDB.deleteDatabase(name);
+                req.onsuccess = () => resolve();
+                req.onerror = () => resolve();
+                req.onblocked = () => resolve();
+              }),
+          ),
+      );
+    }
+  } catch (error) {
+    console.warn('⚠️ [web] IndexedDB clear failed (continuing anyway):', error);
+  }
+
+  await AsyncStorage.removeItem(DATA_LOADED_KEY_RVR1960);
+  await AsyncStorage.removeItem(DATA_LOADED_KEY_WEB);
+}
