@@ -370,11 +370,20 @@ export const OriginalLanguagesSheet: React.FC<Props> = ({
                 ]}
                 onPress={() => handleOpenWordStudy(word)}
                 accessibilityRole="button"
-                accessibilityLabel={o.openWordStudy}>
+                accessibilityLabel={`${o.openWordStudy} — ${o.openWordStudySubtitle}`}>
                 <Ionicons name="search" size={16} color={colors.primary} />
-                <Text style={[styles.wordStudyText, {color: colors.primary}]}>
-                  {o.openWordStudy}
-                </Text>
+                <View style={styles.wordStudyTextGroup}>
+                  <Text style={[styles.wordStudyText, {color: colors.primary}]}>
+                    {o.openWordStudy}
+                  </Text>
+                  <Text
+                    style={[
+                      styles.wordStudySubtitle,
+                      {color: colors.textSecondary},
+                    ]}>
+                    {o.openWordStudySubtitle}
+                  </Text>
+                </View>
                 <Ionicons
                   name="chevron-forward"
                   size={16}
@@ -735,7 +744,9 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.md,
     borderRadius: borderRadius.md,
   },
-  wordStudyText: {fontSize: fontSizes.sm, fontWeight: '700', flex: 1},
+  wordStudyTextGroup: {flex: 1, gap: 1},
+  wordStudyText: {fontSize: fontSizes.sm, fontWeight: '700'},
+  wordStudySubtitle: {fontSize: fontSizes.xs},
   morphSection: {
     marginTop: spacing.xs,
     paddingTop: spacing.sm,

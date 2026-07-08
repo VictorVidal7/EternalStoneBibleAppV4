@@ -713,6 +713,45 @@ class BibleDatabase {
     );
   }
 
+  /**
+   * Occurrences of a Strong's number within ONE book, in that book's reading
+   * order (chapter/verse/position) — NOT narrowed from the global, canonically-
+   * ordered `getStrongsOccurrences` list. That method's `LIMIT` applies before
+   * any book filter exists, so a book that sorts late (e.g. Hechos, after
+   * Mateo+Lucas already fill the cap for a common word) can be entirely
+   * starved out of the capped array even though it truly has occurrences —
+   * this method's `WHERE book_id = ?` scopes the cap to just that book, so it
+   * can never be crowded out by earlier books. Powers the word-study
+   * distribution bars' tap-to-filter (Ficha #14).
+   *
+   * `limit` deliberately mirrors this file's other concordance cap
+   * (`getStrongsOccurrences`'s default 200) rather than trying to be "high
+   * enough to never truncate" — a handful of extremely frequent function
+   * words (e.g. the Greek article, ~2,000+ occurrences in a single long
+   * book) CAN exceed it. That's an acceptable, DISCLOSED tradeoff rather than
+   * a silent one: the word-study screen compares the fetched count against
+   * the uncapped per-book total from `getStrongsBookDistribution` and shows
+   * a "showing the first N" note when this cap is hit, exactly like the
+   * existing unfiltered view already does — so raising this value further
+   * would only trade a few honestly-disclosed rows for a much larger
+   * (unvirtualized ScrollView) render on the rare word that hits it.
+   */
+  async getStrongsOccurrencesByBook(
+    strongs: string,
+    bookId: number,
+    limit = 500,
+  ): Promise<StrongsOccurrence[]> {
+    await this.initialize();
+    return this.getDb().getAllAsync<StrongsOccurrence>(
+      `SELECT book_id, chapter, verse, word
+       FROM original_words
+       WHERE strongs = ? AND book_id = ?
+       ORDER BY chapter, verse, position
+       LIMIT ?`,
+      [strongs.trim(), bookId, limit],
+    );
+  }
+
   /** Total occurrence count of a Strong's number (for the concordance header). */
   async getStrongsOccurrenceCount(strongs: string): Promise<number> {
     await this.initialize();
