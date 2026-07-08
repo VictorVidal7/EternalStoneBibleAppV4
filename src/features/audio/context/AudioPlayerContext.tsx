@@ -41,8 +41,10 @@ import {
   DEFAULT_LANGUAGE,
   AUDIO_STORAGE_KEYS,
   AUDIO_KEEP_AWAKE_TAG,
+  PLAYBACK_SPEEDS,
 } from '../constants/audioConstants';
 import {shouldKeepScreenAwake} from '../lib/keepAwake';
+import {clampPlaybackSpeed} from '../lib/playbackSpeed';
 import {createPosition} from '../lib/playbackPosition';
 import {setLastPosition, clearLastPosition} from '../lib/playbackPositionStore';
 import {
@@ -54,6 +56,7 @@ import {resolveNarration, toAudioLanguage} from '../lib/narrationVoice';
 import {reconcileSleepTimer} from '../lib/sleepTimer';
 import {shouldReplayVerse} from '../lib/verseRepeat';
 import {useBibleVersionOptional} from '@hooks/useBibleVersion';
+import {usePremiumOptional} from '../../../context/PremiumContext';
 
 // ==================== INITIAL STATE ====================
 
@@ -186,6 +189,14 @@ export const AudioPlayerProvider: React.FC<AudioPlayerProviderProps> = ({
   const versionIdRef = useRef<string | null>(null);
   versionIdRef.current = versionCtx ? versionCtx.selectedVersion.id : null;
 
+  // Gates the premium-only 2.25x/2.5x playback speeds (T24). Optional variant
+  // (mirrors useBibleVersionOptional above) so a test tree that mounts
+  // AudioPlayerProvider without a PremiumProvider ancestor still works —
+  // degrades to "free, not loading" rather than throwing.
+  const premiumCtx = usePremiumOptional();
+  const isPremium = premiumCtx?.isPremium ?? false;
+  const premiumLoading = premiumCtx?.isLoading ?? false;
+
   // Keep refs in sync with state
   useEffect(() => {
     stateRef.current = state;
@@ -265,7 +276,14 @@ export const AudioPlayerProvider: React.FC<AudioPlayerProviderProps> = ({
         const prefs: AudioPreferences = JSON.parse(stored);
         setState(prev => ({
           ...prev,
-          playbackSpeed: prefs.playbackSpeed || DEFAULT_PLAYBACK_SPEED,
+          // Guards against a corrupted/stale persisted value that isn't one
+          // of the recognized speeds at all (entitlement-based clamping to
+          // FREE_MAX_PLAYBACK_SPEED happens separately once isPremium is known
+          // — see the effect below, which avoids clamping a real premium
+          // speed during the brief async window before it resolves).
+          playbackSpeed: PLAYBACK_SPEEDS.includes(prefs.playbackSpeed)
+            ? prefs.playbackSpeed
+            : DEFAULT_PLAYBACK_SPEED,
           selectedLanguage: prefs.selectedLanguage || DEFAULT_LANGUAGE,
         }));
         // Continuous playback (Sprint 72) — only override the ON default when a
@@ -681,11 +699,31 @@ export const AudioPlayerProvider: React.FC<AudioPlayerProviderProps> = ({
 
   // ==================== SETTINGS ====================
 
-  const setPlaybackSpeed = useCallback((speed: PlaybackSpeed) => {
-    haptics.tap();
-    setState(prev => ({...prev, playbackSpeed: speed}));
-    savePreferences({playbackSpeed: speed});
-  }, []);
+  // Entitlement reconciliation for playback speed (T24): once premium status
+  // is known (not just on revocation — also covers the initial hydration
+  // read, which can't safely clamp inline because isPremium resolves
+  // asynchronously), pull a premium-only speed back down to
+  // FREE_MAX_PLAYBACK_SPEED for a free listener. Mirrors
+  // ReaderPreferencesSheet's revert-on-revoke effect. Persists the correction
+  // so a genuinely revoked entitlement (not just the loading window) doesn't
+  // keep restoring the premium speed on the next cold start.
+  useEffect(() => {
+    if (premiumLoading) return;
+    const clamped = clampPlaybackSpeed(state.playbackSpeed, isPremium);
+    if (clamped === state.playbackSpeed) return;
+    setState(prev => ({...prev, playbackSpeed: clamped}));
+    savePreferences({playbackSpeed: clamped});
+  }, [isPremium, premiumLoading, state.playbackSpeed]);
+
+  const setPlaybackSpeed = useCallback(
+    (speed: PlaybackSpeed) => {
+      const clamped = clampPlaybackSpeed(speed, isPremium);
+      haptics.tap();
+      setState(prev => ({...prev, playbackSpeed: clamped}));
+      savePreferences({playbackSpeed: clamped});
+    },
+    [isPremium],
+  );
 
   const setVoice = useCallback((voice: VoiceInfo) => {
     haptics.tap();

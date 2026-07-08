@@ -196,14 +196,18 @@ export const ImmersiveReader: React.FC<ImmersiveReaderProps> = ({
 
   // Follow the narration: when the audio engine advances the active verse,
   // move the immersive reader to match (one-way; user navigation pushes the
-  // other direction imperatively, so there is no feedback loop).
+  // other direction imperatively, so there is no feedback loop). Free (T24):
+  // passive follow only needs the SAME chapter to be bound, not premium — the
+  // normal reader already follows audio for free, so immersive matching it is
+  // consistency, not a new premium feature. The draggable scrubber + karaoke
+  // (below, gated on `listening`) stay premium-only.
   const boundIndex = audioState.currentVerseIndex;
   useEffect(() => {
-    if (!listening) return;
+    if (!audioBound) return;
     if (boundIndex >= 0 && boundIndex < verses.length) {
       setCurrentIndex(prev => (prev === boundIndex ? prev : boundIndex));
     }
-  }, [listening, boundIndex, verses.length]);
+  }, [audioBound, boundIndex, verses.length]);
 
   // Latch that we've bound to the engine for the current displayed chapter — the
   // gate for the cross-chapter follow below.
@@ -227,7 +231,7 @@ export const ImmersiveReader: React.FC<ImmersiveReaderProps> = ({
     [audioVersesLoaded],
   );
   useEffect(() => {
-    if (!isPremium || !audioBoundOnceRef.current) return;
+    if (!audioBoundOnceRef.current) return;
     if (!shouldFollowAudioChapter(displayLocation, engineLocation)) return;
     const nextVerses = bibleVersesFromAudio(
       audioVersesLoaded,
@@ -244,7 +248,6 @@ export const ImmersiveReader: React.FC<ImmersiveReaderProps> = ({
     // has no react-hooks/exhaustive-deps rule, so no suppression is needed).
     showChapterTransition(localizedChapterReference(nextVerses[0], language));
   }, [
-    isPremium,
     displayLocation,
     engineLocation,
     audioVersesLoaded,
@@ -425,9 +428,16 @@ export const ImmersiveReader: React.FC<ImmersiveReaderProps> = ({
     }
   }, [screenReaderEnabled]);
 
-  // Auto-scroll logic
+  // Auto-scroll logic. Skipped while the audio engine is actively driving
+  // this same chapter (audioBound && isPlaying) — the follow-effect above
+  // already owns currentIndex in that case (now free too, T24), so letting
+  // this independent reading-timer ALSO call goToNext would race it.
   useEffect(() => {
-    if (autoScroll && currentIndex < verses.length - 1) {
+    if (
+      autoScroll &&
+      currentIndex < verses.length - 1 &&
+      !(audioBound && audioState.isPlaying)
+    ) {
       const wordsInVerse = currentVerse.text.split(' ').length;
       const avgReadingSpeed = 200; // words per minute
       const timeToRead = (wordsInVerse / avgReadingSpeed) * 60000; // milliseconds
@@ -442,7 +452,13 @@ export const ImmersiveReader: React.FC<ImmersiveReaderProps> = ({
       return () => clearTimeout(timer);
     }
     return undefined;
-  }, [currentIndex, autoScroll, currentVerse]);
+  }, [
+    currentIndex,
+    autoScroll,
+    currentVerse,
+    audioBound,
+    audioState.isPlaying,
+  ]);
 
   const animateTransition = (callback: () => void) => {
     Animated.sequence([
@@ -481,9 +497,11 @@ export const ImmersiveReader: React.FC<ImmersiveReaderProps> = ({
       haptics.tap();
       const next = currentIndex + 1;
       animateTransition(() => setCurrentIndex(next));
-      // When listening, move the narration too; the follow-effect keeps the
-      // index in sync, so this is the one-way push from a user nav.
-      if (listening) audioGoToVerse(next);
+      // When bound to the audio engine (free or premium), move the narration
+      // too — the free mini-player already has next/prev, so this swipe is
+      // just another way to reach the same control. The follow-effect keeps
+      // the index in sync, so this is the one-way push from a user nav.
+      if (audioBound) audioGoToVerse(next);
     }
   };
 
@@ -492,7 +510,7 @@ export const ImmersiveReader: React.FC<ImmersiveReaderProps> = ({
       haptics.tap();
       const prev = currentIndex - 1;
       animateTransition(() => setCurrentIndex(prev));
-      if (listening) audioGoToVerse(prev);
+      if (audioBound) audioGoToVerse(prev);
     }
   };
 

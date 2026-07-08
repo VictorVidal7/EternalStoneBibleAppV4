@@ -642,7 +642,9 @@ export const MiniAudioPlayer: React.FC<MiniAudioPlayerProps> = ({
                     // Walk the FULL speed list (shared with the expanded
                     // player's selector) — a hardcoded 1→1.5→2 cycle here
                     // used to reset 1.25x listeners straight back to 1x.
-                    setPlaybackSpeed(nextPlaybackSpeed(state.playbackSpeed));
+                    setPlaybackSpeed(
+                      nextPlaybackSpeed(state.playbackSpeed, isPremium),
+                    );
                     haptics.tap();
                   }}
                   hitSlop={SPEED_BADGE_HIT_SLOP}
@@ -969,6 +971,7 @@ export const MiniAudioPlayer: React.FC<MiniAudioPlayerProps> = ({
                     currentSpeed={state.playbackSpeed}
                     onSpeedChange={setPlaybackSpeed}
                     variant="compact"
+                    isPremium={isPremium}
                   />
                 </View>
 
@@ -1111,10 +1114,18 @@ const styles = StyleSheet.create({
     paddingHorizontal: 6,
     paddingVertical: 2,
     borderRadius: 6,
+    minWidth: 32,
+    minHeight: 20,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   speedText: {
     fontSize: 11,
     fontWeight: '600',
+    lineHeight: 13,
+    includeFontPadding: false,
+    textAlign: 'center',
+    textAlignVertical: 'center',
   },
   expandButton: {
     padding: 2,
@@ -1213,6 +1224,8 @@ const styles = StyleSheet.create({
   timerBadge: {
     fontSize: 11,
     fontWeight: '600',
+    lineHeight: 13,
+    includeFontPadding: false,
   },
   hidden: {
     zIndex: -1,
