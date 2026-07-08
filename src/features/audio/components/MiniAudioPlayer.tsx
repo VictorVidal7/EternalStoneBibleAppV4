@@ -1111,10 +1111,18 @@ const styles = StyleSheet.create({
     paddingHorizontal: 6,
     paddingVertical: 2,
     borderRadius: 6,
+    minWidth: 32,
+    minHeight: 20,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   speedText: {
     fontSize: 11,
     fontWeight: '600',
+    lineHeight: 13,
+    includeFontPadding: false,
+    textAlign: 'center',
+    textAlignVertical: 'center',
   },
   expandButton: {
     padding: 2,
@@ -1213,6 +1221,8 @@ const styles = StyleSheet.create({
   timerBadge: {
     fontSize: 11,
     fontWeight: '600',
+    lineHeight: 13,
+    includeFontPadding: false,
   },
   hidden: {
     zIndex: -1,
