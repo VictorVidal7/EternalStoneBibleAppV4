@@ -107,7 +107,13 @@ describe('ConstancyRingsCard', () => {
     const {getByLabelText} = render(
       <ConstancyRingsCard onPress={jest.fn()} onHabitPress={onHabitPress} />,
     );
-    fireEvent.press(getByLabelText(tc.habitMemory));
+    // someSummary gives memory a 2-day streak, so its full a11y label
+    // includes that status line, not just the habit name.
+    fireEvent.press(
+      getByLabelText(
+        `${tc.habitMemory}: ${tc.rowStreak.replace('{{n}}', '2')}`,
+      ),
+    );
     expect(onHabitPress).toHaveBeenCalledWith('memory');
   });
 });

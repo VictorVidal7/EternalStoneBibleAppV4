@@ -307,7 +307,12 @@ export const ConstancyRings: React.FC<ConstancyRingsProps> = ({
                 // room for this without overlapping a neighbor's hit area.
                 hitSlop={LEGEND_ROW_HIT_SLOP}
                 accessibilityRole={onHabitPress ? 'button' : undefined}
-                accessibilityLabel={habitLabel[key]}
+                // An explicit accessibilityLabel replaces (not appends to)
+                // the auto-announced child text, so the status line — the
+                // whole point of the "Empieza hoy" invitation — must be
+                // included here explicitly or a screen-reader user never
+                // hears it.
+                accessibilityLabel={`${habitLabel[key]}: ${statusText}`}
                 accessibilityHint={onHabitPress ? tc.rowHint : undefined}>
                 <View
                   style={[

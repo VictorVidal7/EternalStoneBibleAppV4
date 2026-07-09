@@ -131,7 +131,12 @@ describe('ConstancyRings', () => {
       const {getByLabelText} = render(
         <ConstancyRings summary={summary} onHabitPress={onHabitPress} />,
       );
-      fireEvent.press(getByLabelText(tc.habitDevotion));
+      // Every habit is untouched here, so the row's full a11y label includes
+      // the invitation, not just the habit name (screen-reader users must
+      // hear "Empieza hoy" too — see the T26 accessibility fix).
+      fireEvent.press(
+        getByLabelText(`${tc.habitDevotion}: ${tc.rowInvitation}`),
+      );
       expect(onHabitPress).toHaveBeenCalledWith('devotion');
       expect(onHabitPress).toHaveBeenCalledTimes(1);
     });
