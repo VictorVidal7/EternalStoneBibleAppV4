@@ -3,7 +3,8 @@
  * `voice.name`/`voice.language` (often a cryptic engine identifier) and a
  * single fixed language flag for every region (T15 — #18: es-US/es-MX
  * voices were shown under Spain's 🇪🇸, indistinguishable from an es-ES
- * voice). Pure/RN-free so it's unit-testable on its own.
+ * voice). Pure/RN-free so it's unit-testable on its own — display text is
+ * never hardcoded here, callers supply localized labels (T25's i18n pass).
  */
 
 import {VoiceInfo} from '../types/audio';
@@ -18,7 +19,6 @@ export interface RegionGroup {
 
 interface RegionInfo {
   key: string;
-  label: string;
   flag: string;
 }
 
@@ -30,15 +30,15 @@ interface RegionInfo {
  * that each needs its own flag.
  */
 const REGION_INFO: Record<string, RegionInfo> = {
-  'es-es': {key: 'es-ES', label: 'España', flag: '🇪🇸'},
-  'es-mx': {key: 'es-LATAM', label: 'Latinoamérica', flag: '🌎'},
-  'es-us': {key: 'es-LATAM', label: 'Latinoamérica', flag: '🌎'},
-  'es-ar': {key: 'es-LATAM', label: 'Latinoamérica', flag: '🌎'},
-  'es-co': {key: 'es-LATAM', label: 'Latinoamérica', flag: '🌎'},
-  'en-us': {key: 'en-US', label: 'Estados Unidos', flag: '🇺🇸'},
-  'en-gb': {key: 'en-GB', label: 'Reino Unido', flag: '🇬🇧'},
-  'en-au': {key: 'en-AU', label: 'Australia', flag: '🇦🇺'},
-  'en-in': {key: 'en-IN', label: 'India', flag: '🇮🇳'},
+  'es-es': {key: 'es-ES', flag: '🇪🇸'},
+  'es-mx': {key: 'es-LATAM', flag: '🌎'},
+  'es-us': {key: 'es-LATAM', flag: '🌎'},
+  'es-ar': {key: 'es-LATAM', flag: '🌎'},
+  'es-co': {key: 'es-LATAM', flag: '🌎'},
+  'en-us': {key: 'en-US', flag: '🇺🇸'},
+  'en-gb': {key: 'en-GB', flag: '🇬🇧'},
+  'en-au': {key: 'en-AU', flag: '🇦🇺'},
+  'en-in': {key: 'en-IN', flag: '🇮🇳'},
 };
 
 /** Stable fallback order groups appear in when the device region doesn't match any of them. */
@@ -58,8 +58,9 @@ function regionInfoFor(languageCode: string): RegionInfo {
   );
   if (match) return REGION_INFO[match];
   // Defensive fallback for an OS-reported code outside SUPPORTED_LANGUAGES —
-  // shows the raw code rather than silently hiding the voice.
-  return {key: languageCode, label: languageCode, flag: '🌐'};
+  // its key doubles as the display label (see `regionLabels` in
+  // `groupVoicesByRegion`), showing the raw code rather than hiding the voice.
+  return {key: languageCode, flag: '🌐'};
 }
 
 /**
@@ -85,10 +86,16 @@ function keyForDeviceRegion(
  * region first (falls back to the stable default order when there's no
  * match or no device region given). Voices keep their incoming relative
  * order within a group (callers already sort by quality upstream).
+ *
+ * `regionLabels` localizes the bucket names (keyed by `RegionGroup.key`,
+ * e.g. `t.audio.voiceSelector.regions` — see `VoiceSelector.tsx`); a key
+ * missing from the map (the raw-BCP-47-code fallback bucket) falls back to
+ * showing that code itself, same as before this was made caller-supplied.
  */
 export function groupVoicesByRegion(
   voices: VoiceInfo[],
-  deviceRegionCode?: string | null,
+  deviceRegionCode: string | null | undefined,
+  regionLabels: Record<string, string>,
 ): RegionGroup[] {
   const groups = new Map<string, RegionGroup>();
   for (const voice of voices) {
@@ -97,7 +104,12 @@ export function groupVoicesByRegion(
     if (existing) {
       existing.voices.push(voice);
     } else {
-      groups.set(info.key, {...info, voices: [voice]});
+      groups.set(info.key, {
+        key: info.key,
+        flag: info.flag,
+        label: regionLabels[info.key] ?? info.key,
+        voices: [voice],
+      });
     }
   }
 
@@ -119,12 +131,17 @@ export function groupVoicesByRegion(
   return ordered.map(key => groups.get(key)!);
 }
 
-/** "Español (Latinoamérica) · Voz 2" style label, hiding the raw OS name. */
+/**
+ * "Latinoamérica · Voz 2" style label, hiding the raw OS name. `voiceWord`
+ * is the localized word for "Voice" (e.g. `t.audio.voiceSelector.voiceWord`)
+ * so this stays free of any hardcoded language.
+ */
 export function friendlyVoiceLabel(
   regionLabel: string,
   indexInGroup: number,
+  voiceWord: string,
 ): string {
-  return `${regionLabel} · Voz ${indexInGroup + 1}`;
+  return `${regionLabel} · ${voiceWord} ${indexInGroup + 1}`;
 }
 
 /**
@@ -135,10 +152,11 @@ export function friendlyVoiceLabel(
 export function findFriendlyVoiceLabel(
   groups: RegionGroup[],
   identifier: string,
+  voiceWord: string,
 ): string | null {
   for (const group of groups) {
     const index = group.voices.findIndex(v => v.identifier === identifier);
-    if (index !== -1) return friendlyVoiceLabel(group.label, index);
+    if (index !== -1) return friendlyVoiceLabel(group.label, index, voiceWord);
   }
   return null;
 }

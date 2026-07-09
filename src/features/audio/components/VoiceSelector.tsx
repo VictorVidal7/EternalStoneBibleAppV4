@@ -22,6 +22,7 @@ import {Ionicons} from '@expo/vector-icons';
 import * as Localization from 'expo-localization';
 import {haptics} from '@lib/haptics';
 import {useTheme} from '../../../hooks/useTheme';
+import {useLanguage} from '../../../hooks/useLanguage';
 import {focusTrapProps} from '@lib/a11y/focusTrap';
 import {VoiceInfo, AudioLanguage} from '../types/audio';
 import {useVoices} from '../hooks/useVoices';
@@ -57,6 +58,8 @@ export const VoiceSelector: React.FC<VoiceSelectorProps> = ({
   variant = 'default',
 }) => {
   const {colors} = useTheme();
+  const {t} = useLanguage();
+  const tv = t.audio.voiceSelector;
   const [modalVisible, setModalVisible] = useState(false);
   const {spanishVoices, englishVoices, isLoading, previewVoice, stopPreview} =
     useVoices();
@@ -71,11 +74,11 @@ export const VoiceSelector: React.FC<VoiceSelectorProps> = ({
   const isCompact = variant === 'compact';
   const deviceRegionCode = Localization.getLocales()[0]?.regionCode ?? null;
   const voiceGroups = useMemo(
-    () => groupVoicesByRegion(voices, deviceRegionCode),
-    [voices, deviceRegionCode],
+    () => groupVoicesByRegion(voices, deviceRegionCode, tv.regions),
+    [voices, deviceRegionCode, tv.regions],
   );
   const currentVoiceLabel = currentVoice
-    ? findFriendlyVoiceLabel(voiceGroups, currentVoice.identifier)
+    ? findFriendlyVoiceLabel(voiceGroups, currentVoice.identifier, tv.voiceWord)
     : null;
 
   const handleOpenModal = () => {
@@ -135,12 +138,12 @@ export const VoiceSelector: React.FC<VoiceSelectorProps> = ({
               <View style={styles.triggerTextContainer}>
                 <Text
                   style={[styles.triggerLabel, {color: colors.textSecondary}]}>
-                  Voz
+                  {tv.triggerLabel}
                 </Text>
                 <Text
                   style={[styles.triggerValue, {color: colors.text}]}
                   numberOfLines={1}>
-                  {currentVoiceLabel ?? 'Seleccionar'}
+                  {currentVoiceLabel ?? tv.triggerPlaceholder}
                 </Text>
               </View>
               <Text style={styles.languageFlag}>
@@ -165,7 +168,7 @@ export const VoiceSelector: React.FC<VoiceSelectorProps> = ({
             {/* Header */}
             <View style={styles.modalHeader}>
               <Text style={[styles.modalTitle, {color: colors.text}]}>
-                Seleccionar Voz
+                {tv.modalTitle}
               </Text>
               <TouchableOpacity onPress={handleCloseModal}>
                 <Ionicons name="close" size={24} color={colors.text} />
@@ -226,7 +229,7 @@ export const VoiceSelector: React.FC<VoiceSelectorProps> = ({
                 <View style={styles.loadingContainer}>
                   <Text
                     style={[styles.loadingText, {color: colors.textSecondary}]}>
-                    Cargando voces...
+                    {tv.loading}
                   </Text>
                 </View>
               ) : voices.length === 0 ? (
@@ -238,90 +241,115 @@ export const VoiceSelector: React.FC<VoiceSelectorProps> = ({
                   />
                   <Text
                     style={[styles.emptyText, {color: colors.textSecondary}]}>
-                    No hay voces disponibles para este idioma
+                    {tv.empty}
                   </Text>
                 </View>
               ) : (
-                voiceGroups.map(group => (
-                  <View key={group.key}>
-                    <View style={styles.regionHeader}>
-                      <Text style={styles.regionHeaderFlag}>{group.flag}</Text>
-                      <Text
-                        style={[
-                          styles.regionHeaderText,
-                          {color: colors.textSecondary},
-                        ]}>
-                        {group.label}
-                      </Text>
-                    </View>
-                    {group.voices.map((voice, index) => {
-                      const isSelected =
-                        currentVoice?.identifier === voice.identifier;
-                      return (
-                        <TouchableOpacity
-                          key={voice.identifier}
+                <>
+                  <Text
+                    style={[
+                      styles.regionListHint,
+                      {color: colors.textTertiary},
+                    ]}>
+                    {tv.regionHint}
+                  </Text>
+                  {voiceGroups.map(group => (
+                    <View key={group.key}>
+                      <View style={styles.regionHeader}>
+                        <Text style={styles.regionHeaderFlag}>
+                          {group.flag}
+                        </Text>
+                        <Text
                           style={[
-                            styles.voiceItem,
-                            {
-                              backgroundColor: isSelected
-                                ? colors.primaryLight + '20'
-                                : staticColors.transparent,
-                              borderColor: isSelected
-                                ? colors.primary
-                                : colors.border,
-                            },
-                          ]}
-                          onPress={() => handleVoiceSelect(voice)}>
-                          <View style={styles.voiceInfo}>
-                            <Text
-                              style={[styles.voiceName, {color: colors.text}]}>
-                              {friendlyVoiceLabel(group.label, index)}
-                            </Text>
-                            {voice.quality !== 'Default' && (
-                              <View style={styles.voiceMeta}>
-                                <View
-                                  style={[
-                                    styles.qualityBadge,
-                                    {
-                                      backgroundColor:
-                                        voice.quality === 'Premium'
-                                          ? staticColors.emerald
-                                          : staticColors.amber500,
-                                    },
-                                  ]}>
-                                  <Text style={styles.qualityText}>
-                                    {voice.quality}
-                                  </Text>
+                            styles.regionHeaderText,
+                            {color: colors.textSecondary},
+                          ]}>
+                          {group.label}
+                        </Text>
+                      </View>
+                      {group.voices.map((voice, index) => {
+                        const isSelected =
+                          currentVoice?.identifier === voice.identifier;
+                        return (
+                          <TouchableOpacity
+                            key={voice.identifier}
+                            style={[
+                              styles.voiceItem,
+                              {
+                                backgroundColor: isSelected
+                                  ? colors.primaryLight + '20'
+                                  : staticColors.transparent,
+                                borderColor: isSelected
+                                  ? colors.primary
+                                  : colors.border,
+                              },
+                            ]}
+                            onPress={() => handleVoiceSelect(voice)}>
+                            <View style={styles.voiceInfo}>
+                              <Text
+                                style={[
+                                  styles.voiceName,
+                                  {color: colors.text},
+                                ]}>
+                                {friendlyVoiceLabel(
+                                  group.label,
+                                  index,
+                                  tv.voiceWord,
+                                )}
+                              </Text>
+                              <Text
+                                style={[
+                                  styles.voiceIdentifier,
+                                  {color: colors.textTertiary},
+                                ]}>
+                                {voice.identifier}
+                              </Text>
+                              {voice.quality !== 'Default' && (
+                                <View style={styles.voiceMeta}>
+                                  <View
+                                    style={[
+                                      styles.qualityBadge,
+                                      {
+                                        backgroundColor:
+                                          voice.quality === 'Premium'
+                                            ? staticColors.emerald
+                                            : staticColors.amber500,
+                                      },
+                                    ]}>
+                                    <Text style={styles.qualityText}>
+                                      {voice.quality}
+                                    </Text>
+                                  </View>
                                 </View>
-                              </View>
-                            )}
-                          </View>
-                          <View style={styles.voiceActions}>
-                            <TouchableOpacity
-                              style={[
-                                styles.previewButton,
-                                {backgroundColor: colors.surfaceVariant},
-                              ]}
-                              onPress={() => handlePreview(voice)}>
-                              <Ionicons
-                                name="play"
-                                size={16}
-                                color={colors.primary}
-                              />
-                            </TouchableOpacity>
-                            {isSelected && (
-                              <Ionicons
-                                name="checkmark-circle"
-                                size={24}
-                                color={colors.primary}
-                              />
-                            )}
-                          </View>
-                        </TouchableOpacity>
-                      );
-                    })}
-                  </View>
-                ))
+                              )}
+                            </View>
+                            <View style={styles.voiceActions}>
+                              <TouchableOpacity
+                                style={[
+                                  styles.previewButton,
+                                  {backgroundColor: colors.surfaceVariant},
+                                ]}
+                                onPress={() => handlePreview(voice)}>
+                                <Ionicons
+                                  name="play"
+                                  size={16}
+                                  color={colors.primary}
+                                />
+                              </TouchableOpacity>
+                              {isSelected && (
+                                <Ionicons
+                                  name="checkmark-circle"
+                                  size={24}
+                                  color={colors.primary}
+                                />
+                              )}
+                            </View>
+                          </TouchableOpacity>
+                        );
+                      })}
+                    </View>
+                  ))}
+                </>
               )}
             </ScrollView>
           </Pressable>
@@ -437,6 +465,11 @@ const styles = StyleSheet.create({
   voiceList: {
     paddingHorizontal: 16,
   },
+  regionListHint: {
+    fontSize: 12,
+    marginTop: 8,
+    marginBottom: 4,
+  },
   regionHeader: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -468,6 +501,10 @@ const styles = StyleSheet.create({
   voiceName: {
     fontSize: 15,
     fontWeight: '600',
+    marginBottom: 2,
+  },
+  voiceIdentifier: {
+    fontSize: 11,
     marginBottom: 4,
   },
   voiceMeta: {

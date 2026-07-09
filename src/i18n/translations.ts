@@ -3365,6 +3365,23 @@ export const translations = {
         continuous: 'Continuo',
         chapterAdvanced: 'Continuando en {{chapter}}',
       },
+      voiceSelector: {
+        triggerLabel: 'Voz',
+        triggerPlaceholder: 'Seleccionar',
+        modalTitle: 'Seleccionar Voz',
+        loading: 'Cargando voces...',
+        empty: 'No hay voces disponibles para este idioma',
+        regionHint: 'Región según el sistema — toca ▶ para escuchar cada voz',
+        voiceWord: 'Voz',
+        regions: {
+          'es-ES': 'España',
+          'es-LATAM': 'Latinoamérica',
+          'en-US': 'Estados Unidos',
+          'en-GB': 'Reino Unido',
+          'en-AU': 'Australia',
+          'en-IN': 'India',
+        },
+      },
     },
 
     // Premium (Sprint 50 — local feature flag)
@@ -8653,6 +8670,23 @@ export const translations = {
         paused: 'Paused',
         continuous: 'Continuous',
         chapterAdvanced: 'Now reading {{chapter}}',
+      },
+      voiceSelector: {
+        triggerLabel: 'Voice',
+        triggerPlaceholder: 'Select',
+        modalTitle: 'Select Voice',
+        loading: 'Loading voices...',
+        empty: 'No voices available for this language',
+        regionHint: 'Region reported by the system — tap ▶ to hear each voice',
+        voiceWord: 'Voice',
+        regions: {
+          'es-ES': 'Spain',
+          'es-LATAM': 'Latin America',
+          'en-US': 'United States',
+          'en-GB': 'United Kingdom',
+          'en-AU': 'Australia',
+          'en-IN': 'India',
+        },
       },
     },
 
