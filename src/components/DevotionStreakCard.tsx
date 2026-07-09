@@ -1,12 +1,20 @@
 /**
  * 🕯️ DevotionStreakCard — the constancy of your daily "Momento con Dios"
- * (Sprint 84).
+ * (Sprint 84; T26 — shown to brand-new readers too).
  *
  * Once the reader has completed at least one devotion, Home shows a calm
  * streak card: how many days in a row they have come to God, their best run,
  * and whether today is already done. It encourages the habit without nagging —
  * a lapsed streak reads as a gentle invitation ("retoma tu constancia"), never
  * a scold. Tapping it opens the guided devotion to continue today.
+ *
+ * A brand-new reader (never completed a devotion) still gets the card now —
+ * it was previously hidden until the first devotion, which is exactly how
+ * Victor found devotion "buried" on Home (batch 3 feedback, item 5): there
+ * was no way to discover it from here at all. Only the headline/subtitle
+ * need their own copy in that state (`isNew`), same precedent as
+ * [[PrayerCard]]'s `isNew` — the streak/best-run lines below all assume some
+ * history and would otherwise read oddly (e.g. "Tu mejor racha: 0").
  *
  * Pure derivation lives in [[devotionLog]] / [[useDevotionStreak]]; this view
  * only renders it. Router-free like [[MoodVerseCard]] — the owner injects
@@ -42,15 +50,21 @@ export const DevotionStreakCard: React.FC<DevotionStreakCardProps> = ({
   const td = t.devotion;
   const {loaded, summary} = useDevotionStreak();
 
-  // Honest gate: nothing to show until the reader has completed a devotion.
-  if (!loaded || summary.totalDays === 0) return null;
+  if (!loaded) return null;
 
-  const lapsed = summary.current === 0;
-  const headline = lapsed
-    ? td.streakLapsed
-    : summary.current === 1
-      ? td.streakOneDay
-      : td.streakDays.replace('{{n}}', String(summary.current));
+  // Brand-new: never completed a devotion. Shown (T26) instead of hidden, so
+  // Home always has a discoverable entry point into it — only the headline/
+  // subtitle need their own copy; the streak/best-run lines below all assume
+  // some history.
+  const isNew = summary.totalDays === 0;
+  const lapsed = !isNew && summary.current === 0;
+  const headline = isNew
+    ? td.streakEmpty
+    : lapsed
+      ? td.streakLapsed
+      : summary.current === 1
+        ? td.streakOneDay
+        : td.streakDays.replace('{{n}}', String(summary.current));
   // Sub-line: best run, plus today's status while the streak is alive.
   const best = td.streakBest.replace('{{n}}', String(summary.longest));
   const todayLine = lapsed
@@ -58,7 +72,11 @@ export const DevotionStreakCard: React.FC<DevotionStreakCardProps> = ({
     : summary.todayDone
       ? td.streakTodayDone
       : td.streakTodayPending;
-  const subtitle = todayLine ? `${best} · ${todayLine}` : best;
+  const subtitle = isNew
+    ? td.streakSubtitleNew
+    : todayLine
+      ? `${best} · ${todayLine}`
+      : best;
 
   return (
     <TouchableOpacity

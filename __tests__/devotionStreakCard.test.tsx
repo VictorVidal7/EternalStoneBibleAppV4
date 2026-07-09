@@ -1,7 +1,10 @@
 /**
- * Sprint 84 — the Home devotion-streak card. Pins the honest gate (nothing
- * shown before the first devotion), the active vs lapsed headline, and the
- * "today done/pending" sub-line, all driven by the pure streak summary.
+ * Sprint 84 — the Home devotion-streak card. Pins the loading gate, the
+ * active vs lapsed headline, and the "today done/pending" sub-line, all
+ * driven by the pure streak summary. T26 added the brand-new (`isNew`)
+ * invitation state — the card used to hide entirely before the first
+ * devotion, which is exactly how Victor found devotion undiscoverable from
+ * Home (batch 3 feedback item 5).
  */
 import React from 'react';
 import {render} from '@testing-library/react-native';
@@ -40,13 +43,27 @@ jest.mock('../src/hooks/useDevotionStreak', () => ({
 const td = translations.es.devotion;
 
 describe('DevotionStreakCard (Sprint 84)', () => {
-  it('renders nothing until the first devotion is completed', () => {
+  it('renders nothing while the streak summary is still loading', () => {
     mockSummary = {
-      loaded: true,
+      loaded: false,
       summary: {current: 0, longest: 0, totalDays: 0, todayDone: false},
     };
     const {toJSON} = render(<DevotionStreakCard onPress={jest.fn()} />);
     expect(toJSON()).toBeNull();
+  });
+
+  it('T26: shows an invitation (not the lapsed copy) for a brand-new reader, never "Tu mejor racha: 0"', () => {
+    mockSummary = {
+      loaded: true,
+      summary: {current: 0, longest: 0, totalDays: 0, todayDone: false},
+    };
+    const {getByText, queryByText} = render(
+      <DevotionStreakCard onPress={jest.fn()} />,
+    );
+    expect(getByText(td.streakEmpty)).toBeTruthy();
+    expect(getByText(td.streakSubtitleNew)).toBeTruthy();
+    expect(queryByText(td.streakLapsed)).toBeNull();
+    expect(queryByText(td.streakBest.replace('{{n}}', '0'))).toBeNull();
   });
 
   it('shows the active streak headline and "today done" sub-line', () => {

@@ -49,6 +49,10 @@ export const HABIT_ICONS: Record<HabitKey, keyof typeof Ionicons.glyphMap> = {
 const RING_SIZE = 150;
 const RING_STROKE = 12;
 const RING_GAP = 5;
+// Expands each legend row's touch target without growing its visual height
+// (rows sit close together to keep the card compact) — matches the row-to-
+// row gap below so adjacent hit areas meet without overlapping.
+const LEGEND_ROW_HIT_SLOP = {top: 6, bottom: 6, left: 4, right: 4};
 
 interface GraphicProps {
   rings: RingState[];
@@ -127,15 +131,25 @@ interface ConstancyRingsProps {
   /** When provided, a small share icon appears in the header (opens the
    *  share image). Optional so the card is usable without sharing. */
   onShare?: () => void;
+  /** When provided, tapping the header or the rings graphic opens the
+   *  detailed insights screen (T26 — moved off the whole card so each
+   *  legend row below can carry its own destination instead). */
+  onPress?: () => void;
+  /** When provided, each legend row becomes its own button that navigates
+   *  to that habit's own screen (T26 — reading/memory/devotion/mood). */
+  onHabitPress?: (key: HabitKey) => void;
 }
 
 /**
  * The Home card BODY (rings + legend). Router-free and store-free — the owner
- * (S85 T2) passes the already-derived `summary` and wraps it in a pressable.
+ * (S85 T2) passes the already-derived `summary`; T26 added per-row navigation
+ * (`onHabitPress`) alongside the original whole-graphic `onPress`.
  */
 export const ConstancyRings: React.FC<ConstancyRingsProps> = ({
   summary,
   onShare,
+  onPress,
+  onHabitPress,
 }) => {
   const {colors, isDark} = useTheme();
   const {t} = useLanguage();
@@ -154,6 +168,21 @@ export const ConstancyRings: React.FC<ConstancyRingsProps> = ({
     .replace('{{closed}}', String(summary.closedCount))
     .replace('{{total}}', String(summary.total));
 
+  // Tapping the header or the rings graphic opens insights (T26 — moved off
+  // the whole card so each legend row below can carry its own destination).
+  const handleInsightsPress = () => {
+    if (!onPress) return;
+    haptics.tap();
+    onPress();
+  };
+  const insightsA11y = onPress
+    ? {
+        accessibilityRole: 'button' as const,
+        accessibilityLabel: `${tc.title}: ${summaryLine}`,
+        accessibilityHint: tc.cardHint,
+      }
+    : {};
+
   return (
     <View
       style={[
@@ -163,7 +192,11 @@ export const ConstancyRings: React.FC<ConstancyRingsProps> = ({
           borderColor: colors.border,
         },
       ]}>
-      <View style={styles.header}>
+      <TouchableOpacity
+        style={styles.header}
+        disabled={!onPress}
+        onPress={handleInsightsPress}
+        {...insightsA11y}>
         <AppText
           scaleRole="compact"
           style={[styles.title, {color: colors.text}]}>
@@ -192,25 +225,35 @@ export const ConstancyRings: React.FC<ConstancyRingsProps> = ({
             </TouchableOpacity>
           )}
         </View>
-      </View>
+      </TouchableOpacity>
 
       <View style={styles.body}>
-        <ConstancyRingsGraphic rings={summary.rings} trackColor={trackColor}>
-          {summary.allClosed ? (
-            <Ionicons name="checkmark" size={34} color={colors.primary} />
-          ) : (
-            <View style={styles.centerStack}>
-              <AppText style={[styles.centerCount, {color: colors.text}]}>
-                {summary.closedCount}
-              </AppText>
-              <AppText
-                scaleRole="compact"
-                style={[styles.centerTotal, {color: colors.textSecondary}]}>
-                {`/${summary.total}`}
-              </AppText>
-            </View>
-          )}
-        </ConstancyRingsGraphic>
+        <TouchableOpacity
+          disabled={!onPress}
+          onPress={handleInsightsPress}
+          // Not separately exposed to screen readers: the header right above
+          // already announces the identical label/hint for this same action,
+          // so an AT user isn't forced to hear it twice in a row. Sighted/
+          // touch users can still tap the graphic directly.
+          accessible={false}
+          importantForAccessibility="no-hide-descendants">
+          <ConstancyRingsGraphic rings={summary.rings} trackColor={trackColor}>
+            {summary.allClosed ? (
+              <Ionicons name="checkmark" size={34} color={colors.primary} />
+            ) : (
+              <View style={styles.centerStack}>
+                <AppText style={[styles.centerCount, {color: colors.text}]}>
+                  {summary.closedCount}
+                </AppText>
+                <AppText
+                  scaleRole="compact"
+                  style={[styles.centerTotal, {color: colors.textSecondary}]}>
+                  {`/${summary.total}`}
+                </AppText>
+              </View>
+            )}
+          </ConstancyRingsGraphic>
+        </TouchableOpacity>
 
         <View style={styles.legend}>
           {HABIT_ORDER.map(key => {
@@ -219,8 +262,58 @@ export const ConstancyRings: React.FC<ConstancyRingsProps> = ({
             const markerBg = ring.done
               ? habitColor + '26'
               : staticColors.transparent;
+            // "Empieza hoy" invitation (T26): only for a habit that has
+            // NEVER been done, so it self-disables the moment the reader
+            // engages it once — no new storage, precedent PrayerCard.isNew.
+            const showInvitation = !ring.done && !ring.everDone;
+            // Every row reads as label + one status line underneath (T26 —
+            // was a cramped icon+number floating on the right before,
+            // inconsistent with the invitation's own subtitle style).
+            let statusIcon: keyof typeof Ionicons.glyphMap | null = null;
+            let statusIconColor = habitColor;
+            let statusText: string;
+            let statusColor: string;
+            if (ring.streak > 0) {
+              statusIcon = 'flame';
+              statusIconColor = HABIT_RING_COLORS.devotion;
+              statusColor = colors.text;
+              statusText =
+                ring.streak === 1
+                  ? tc.rowStreakOne
+                  : tc.rowStreak.replace('{{n}}', String(ring.streak));
+            } else if (ring.done) {
+              statusIcon = 'checkmark-circle';
+              statusColor = colors.text;
+              statusText = tc.rowDoneToday;
+            } else if (showInvitation) {
+              statusColor = colors.primary;
+              statusText = tc.rowInvitation;
+            } else {
+              statusColor = colors.textTertiary;
+              statusText = tc.rowInactive;
+            }
             return (
-              <View key={key} style={styles.legendRow}>
+              <TouchableOpacity
+                key={key}
+                style={styles.legendRow}
+                disabled={!onHabitPress}
+                onPress={() => {
+                  if (!onHabitPress) return;
+                  haptics.tap();
+                  onHabitPress(key);
+                }}
+                // Touch target is grown via hitSlop (not a taller row) so the
+                // card stays compact — the gap between rows already leaves
+                // room for this without overlapping a neighbor's hit area.
+                hitSlop={LEGEND_ROW_HIT_SLOP}
+                accessibilityRole={onHabitPress ? 'button' : undefined}
+                // An explicit accessibilityLabel replaces (not appends to)
+                // the auto-announced child text, so the status line — the
+                // whole point of the "Empieza hoy" invitation — must be
+                // included here explicitly or a screen-reader user never
+                // hears it.
+                accessibilityLabel={`${habitLabel[key]}: ${statusText}`}
+                accessibilityHint={onHabitPress ? tc.rowHint : undefined}>
                 <View
                   style={[
                     styles.legendMarker,
@@ -232,44 +325,42 @@ export const ConstancyRings: React.FC<ConstancyRingsProps> = ({
                     color={habitColor}
                   />
                 </View>
-                <AppText
-                  scaleRole="compact"
-                  numberOfLines={1}
-                  style={[styles.legendLabel, {color: colors.text}]}>
-                  {habitLabel[key]}
-                </AppText>
-                <View style={styles.legendStatus}>
-                  {ring.streak > 0 ? (
-                    <>
+                <View style={styles.legendLabelStack}>
+                  <AppText
+                    scaleRole="compact"
+                    numberOfLines={1}
+                    style={[styles.legendLabel, {color: colors.text}]}>
+                    {habitLabel[key]}
+                  </AppText>
+                  {/* One status line under the label — same treatment for
+                      every habit (streak, done-today, never-done invitation,
+                      or no-streak-yet), instead of a cramped icon+number
+                      column competing for width on the right. */}
+                  <View style={styles.legendSubtitleRow}>
+                    {statusIcon && (
                       <Ionicons
-                        name="flame"
-                        size={12}
-                        color={HABIT_RING_COLORS.devotion}
+                        name={statusIcon}
+                        size={11}
+                        color={statusIconColor}
                       />
-                      <AppText
-                        scaleRole="compact"
-                        style={[styles.legendStreak, {color: colors.text}]}>
-                        {String(ring.streak)}
-                      </AppText>
-                    </>
-                  ) : ring.done ? (
-                    <Ionicons
-                      name="checkmark-circle"
-                      size={14}
-                      color={HABIT_RING_COLORS[key]}
-                    />
-                  ) : (
+                    )}
                     <AppText
                       scaleRole="compact"
-                      style={[
-                        styles.legendStreak,
-                        {color: colors.textTertiary},
-                      ]}>
-                      ·
+                      numberOfLines={1}
+                      style={[styles.legendInvitation, {color: statusColor}]}>
+                      {statusText}
                     </AppText>
-                  )}
+                  </View>
                 </View>
-              </View>
+                {onHabitPress && (
+                  <Ionicons
+                    name="chevron-forward"
+                    size={14}
+                    color={colors.textTertiary}
+                    style={styles.legendChevron}
+                  />
+                )}
+              </TouchableOpacity>
             );
           })}
         </View>
@@ -322,7 +413,11 @@ const styles = StyleSheet.create({
   centerCount: {fontSize: fontSizes['2xl'], fontWeight: '800'},
   centerTotal: {fontSize: fontSizes.sm, fontWeight: '700'},
   legend: {flex: 1, gap: spacing.sm},
-  legendRow: {flexDirection: 'row', alignItems: 'center', gap: spacing.sm},
+  legendRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.sm,
+  },
   legendMarker: {
     width: 22,
     height: 22,
@@ -331,9 +426,11 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  legendLabel: {flex: 1, fontSize: fontSizes.sm, fontWeight: '600'},
-  legendStatus: {flexDirection: 'row', alignItems: 'center', gap: 2},
-  legendStreak: {fontSize: fontSizes.sm, fontWeight: '700'},
+  legendLabelStack: {flex: 1, gap: 1},
+  legendLabel: {fontSize: fontSizes.sm, fontWeight: '600'},
+  legendSubtitleRow: {flexDirection: 'row', alignItems: 'center', gap: 3},
+  legendInvitation: {fontSize: fontSizes.xs, fontWeight: '700'},
+  legendChevron: {marginLeft: 2},
   caption: {
     marginTop: spacing.md,
     fontSize: fontSizes.xs,

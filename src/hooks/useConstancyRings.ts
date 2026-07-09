@@ -145,24 +145,28 @@ export function useConstancyRings(): ConstancyRingsState {
         done: reading.done,
         fraction: reading.fraction,
         streak: reading.streak,
+        everDone: reading.everRead,
       },
       {
         key: 'memory',
         done: memory.goal.met,
         fraction: memory.goal.fraction,
         streak: memory.history.summary.currentStreak,
+        everDone: memory.history.summary.totalReviews > 0,
       },
       {
         key: 'devotion',
         done: devotion.summary.todayDone,
         fraction: devotion.summary.todayDone ? 1 : 0,
         streak: devotion.summary.current,
+        everDone: devotion.summary.totalDays > 0,
       },
       {
         key: 'mood',
         done: mood.done,
         fraction: mood.done ? 1 : 0,
         streak: mood.streak,
+        everDone: mood.everLogged,
       },
     ];
     return buildConstancySummary(inputs);
