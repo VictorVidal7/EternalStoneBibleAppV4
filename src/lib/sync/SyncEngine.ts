@@ -279,6 +279,13 @@ export class SyncEngine {
     return this.state;
   }
 
+  /** The active (non-anonymous) uid while the engine is running, else null.
+   *  Lets non-adapter write paths (e.g. the memoryStats aggregate) target the
+   *  right account without re-reading auth. */
+  getActiveUid(): string | null {
+    return this.uid;
+  }
+
   /**
    * Activate the engine for a given uid. Sets up firestore listeners,
    * hydrates the persisted queue, subscribes to NetInfo. Idempotent —

@@ -78,7 +78,9 @@ export default function MemoryInsightsScreen() {
   const {cards} = useMemoryDeck();
   // Sprint 47 — the review-event log + daily goal load via this hook, which
   // also refreshes on focus (returning from practice updates the stats).
-  const {loaded: eventsLoaded, events, history, goal} = useMemoryGoal();
+  // Passing the deck lets leech detection survive a reinstall via the synced
+  // cards' lapseCount even before the local review log re-accumulates.
+  const {loaded: eventsLoaded, events, history, goal} = useMemoryGoal(cards);
   const {isPremium} = usePremium();
   const {open: openOfferingSheet} = useOfferingSheet();
   const [showFullHistory, setShowFullHistory] = useState(false);
@@ -176,9 +178,26 @@ export default function MemoryInsightsScreen() {
       value: Math.round((b.retention ?? 0) * 100),
       color: colors.primary,
     }));
-  const hasEvents = history.summary.totalReviews > 0;
-  const hasRetention =
-    history.summary.overallRetention !== null && retentionData.length > 0;
+  // Local-first quota feature — a freshly-restored device has zero local
+  // `events`, so `history.summary` (events-only by design, see history.ts)
+  // stays at zero/null even though the heatmap/retention bands above it
+  // already show real floor-restored data. Gate on the floor-merged views
+  // themselves (`displayedHeatmap`/`history.retention`), not the events-only
+  // summary, so this card doesn't show an empty state while the streak card
+  // right above it shows a real streak.
+  const hasEvents = displayedHeatmap.windowTotal > 0;
+  const retentionTotals = history.retention.reduce(
+    (acc, b) => ({
+      total: acc.total + b.total,
+      recalled: acc.recalled + b.recalled,
+    }),
+    {total: 0, recalled: 0},
+  );
+  const overallRetention =
+    retentionTotals.total > 0
+      ? retentionTotals.recalled / retentionTotals.total
+      : null;
+  const hasRetention = overallRetention !== null && retentionData.length > 0;
   const topLeeches = history.leeches.slice(0, MAX_LEECH_ROWS);
 
   // Sprint 48 — the calibrated ease prior new cards start at, derived from
@@ -525,10 +544,7 @@ export default function MemoryInsightsScreen() {
                               styles.retentionValue,
                               {color: colors.success},
                             ]}>
-                            {Math.round(
-                              (history.summary.overallRetention ?? 0) * 100,
-                            )}
-                            %
+                            {Math.round((overallRetention ?? 0) * 100)}%
                           </Text>
                           <Text
                             style={[
@@ -783,7 +799,7 @@ export default function MemoryInsightsScreen() {
           visible={shareCardVisible}
           onClose={() => setShareCardVisible(false)}
           totalVerses={insights.summary.total}
-          retention={history.summary.overallRetention}
+          retention={overallRetention}
           streak={history.summary.currentStreak}
         />
       ) : null}

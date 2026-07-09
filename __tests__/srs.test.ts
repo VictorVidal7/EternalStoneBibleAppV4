@@ -228,6 +228,33 @@ describe('applyReview — adaptive ease scheduling', () => {
   });
 });
 
+describe('lapseCount', () => {
+  it('seeds a fresh card at 0', () => {
+    expect(freshCard().lapseCount).toBe(0);
+  });
+
+  it('increments by 1 on an "again" grade', () => {
+    const c = freshCard({box: 3, lapseCount: 2});
+    expect(applyReview(c, 'again', T0).lapseCount).toBe(3);
+  });
+
+  it('carries the count forward unchanged on good/hard/easy', () => {
+    const c = freshCard({box: 2, lapseCount: 4});
+    expect(applyReview(c, 'good', T0).lapseCount).toBe(4);
+    expect(applyReview(c, 'hard', T0).lapseCount).toBe(4);
+    expect(applyReview(c, 'easy', T0).lapseCount).toBe(4);
+  });
+
+  it('treats a missing lapseCount as 0 before incrementing', () => {
+    const legacy = {
+      ...freshCard(),
+      lapseCount: undefined,
+    } as unknown as MemoryCard;
+    expect(applyReview(legacy, 'again', T0).lapseCount).toBe(1);
+    expect(applyReview(legacy, 'good', T0).lapseCount).toBe(0);
+  });
+});
+
 describe('selectDueCards', () => {
   it('includes cards whose dueAt is in the past', () => {
     const cards = [

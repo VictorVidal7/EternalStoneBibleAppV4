@@ -34,7 +34,7 @@ import React, {
 } from 'react';
 
 import {logger} from '@lib/utils/logger';
-import {getSyncEngine} from '@lib/sync';
+import {getSyncEngine, deleteAllCloudData} from '@lib/sync';
 import {useLanguage} from '@hooks/useLanguage';
 import {ConfirmDialog} from '@components/ui/ConfirmDialog';
 import {linkUser as linkOfferingUser} from '@lib/offering/offeringService';
@@ -59,6 +59,7 @@ export interface AuthContextValue {
   isLoading: boolean;
   signInWithGoogle: () => Promise<void>;
   signOut: () => Promise<void>;
+  deleteAccount: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextValue | undefined>(undefined);
@@ -136,6 +137,24 @@ export function extractIdToken(signInResult: any): string | null {
     return signInResult.user.idToken;
   }
   return null;
+}
+
+/**
+ * Extract {name, photo} from the same GoogleSignin.signIn() result shapes
+ * extractIdToken() already tolerates. linkWithCredential (unlike a fresh
+ * signInWithCredential) does not copy these onto the Firebase user's
+ * profile on its own, so the caller must set them explicitly or the
+ * account UI falls back to the "Guest"/"Invitado" label forever.
+ */
+export function extractGoogleProfile(signInResult: any): {
+  displayName: string | null;
+  photoURL: string | null;
+} {
+  const u = signInResult?.user ?? signInResult?.data?.user ?? null;
+  return {
+    displayName: typeof u?.name === 'string' ? u.name : null,
+    photoURL: typeof u?.photo === 'string' ? u.photo : null,
+  };
 }
 
 interface AuthProviderProps {
@@ -252,6 +271,37 @@ export function AuthProvider({children}: AuthProviderProps) {
     if (current && current.isAnonymous) {
       try {
         await current.linkWithCredential(credential);
+
+        // linkWithCredential doesn't copy the Google profile onto the
+        // Firebase user the way a fresh signInWithCredential does, so
+        // without this the account UI would show "Guest"/"Invitado"
+        // forever instead of the person's real name. Best-effort: a
+        // failure here shouldn't fail the sign-in itself.
+        const profile = extractGoogleProfile(result);
+        if (profile.displayName || profile.photoURL) {
+          try {
+            await current.updateProfile(profile);
+          } catch (err) {
+            logger.warn('Failed to set profile after linking', {
+              component: 'AuthProvider',
+              action: 'signInWithGoogle',
+              error: err instanceof Error ? err.message : String(err),
+            });
+          }
+        }
+        // updateProfile() doesn't reliably re-fire onAuthStateChanged, so
+        // update local state directly instead of waiting for a listener
+        // event that may never come.
+        setUser(prev =>
+          prev
+            ? {
+                ...prev,
+                isAnonymous: false,
+                displayName: profile.displayName ?? prev.displayName,
+                photoURL: profile.photoURL ?? prev.photoURL,
+              }
+            : prev,
+        );
         return;
       } catch (err: any) {
         if (err?.code !== 'auth/credential-already-in-use') {
@@ -325,9 +375,107 @@ export function AuthProvider({children}: AuthProviderProps) {
     }
   }, []);
 
+  /**
+   * Full account deletion (Play Store account-deletion policy). Sequence
+   * matters: cloud data must be fully gone BEFORE the Firebase Auth user
+   * is deleted — deleting the Auth user first would orphan the Firestore
+   * subcollections under the old uid with no way to reach them again
+   * (a fresh sign-in gets a brand-new uid).
+   *
+   *  1. Stop the sync engine first — while it's running, its onSnapshot
+   *     listeners echo every remote delete back into local SQLite
+   *     (applyRemoteDelete), which would silently wipe on-device data
+   *     too. Account deletion is scoped to the cloud copy only, same as
+   *     sign-out ("Local data survives sign-out" above) — stopping the
+   *     engine keeps that deterministic instead of racing the listeners.
+   *  2. Queue a bulk-push skip — SyncEngineContext only calls engine.start()
+   *     for a non-anonymous user, so the fresh anonymous session created
+   *     below does NOT push anything on its own. This flag instead guards
+   *     the case where the user signs back into Google in this same app
+   *     session (no restart) right after deleting: that linkWithCredential
+   *     would otherwise trigger a bulk push of the still-on-device rows
+   *     with no "already pushed" marker for the new uid, silently
+   *     re-uploading the exact data we just deleted.
+   *  3. Delete every users/{uid}/* doc (see deleteAllCloudData — verified
+   *     against the live Firestore rules, a permissive wildcard, so this
+   *     is safe to do client-side for every collection incl. `conflicts`).
+   *  4. Delete the Firebase Auth user itself, re-authenticating with a
+   *     fresh Google credential if the session isn't "recent" enough.
+   *  5. Best-effort revoke the on-device Google session so no stale token
+   *     lingers, then let the existing null-user handler take over.
+   */
+  const deleteAccount = useCallback(async () => {
+    const authMod = getAuth();
+    const gs = getGoogleSignin();
+    if (!authMod) {
+      throw new Error('Auth native modules not available');
+    }
+    const current = authMod().currentUser;
+    if (!current) {
+      throw new Error('No signed-in user to delete');
+    }
+    const uid = String(current.uid);
+    const engine = getSyncEngine();
+
+    engine?.stop();
+    engine?.queueSkipNextBulkPush();
+
+    try {
+      await deleteAllCloudData(uid);
+    } catch (err) {
+      // Cloud wipe failed — resume normal sync for the still-valid
+      // account instead of leaving it stuck with sync off, then
+      // propagate so the caller can surface a retry to the user.
+      void engine?.start(uid);
+      throw err;
+    }
+
+    try {
+      await current.delete();
+    } catch (err: any) {
+      // Cloud data is already gone at this point — the account still
+      // exists (Auth delete failed/was cancelled), so resume normal sync
+      // for it rather than leaving the engine silently stopped until the
+      // next cold start.
+      const restoreSync = () => void engine?.start(uid);
+      if (err?.code !== 'auth/requires-recent-login') {
+        restoreSync();
+        throw err;
+      }
+      try {
+        if (!gs) throw err;
+        await gs.hasPlayServices({showPlayServicesUpdateDialog: true});
+        const result = await gs.signIn();
+        const idToken = extractIdToken(result);
+        if (!idToken) throw err;
+        const credential = authMod.GoogleAuthProvider.credential(idToken);
+        await current.reauthenticateWithCredential(credential);
+        await current.delete();
+      } catch (reauthErr) {
+        restoreSync();
+        throw reauthErr;
+      }
+    }
+
+    if (gs) {
+      try {
+        await gs.revokeAccess();
+      } catch {
+        // best-effort — device may already lack a Google session.
+      }
+      try {
+        await gs.signOut();
+      } catch {
+        // best-effort
+      }
+    }
+
+    triggeredAnonymousRef.current = false;
+  }, []);
+
   const value = useMemo<AuthContextValue>(
-    () => ({user, isLoading, signInWithGoogle, signOut}),
-    [user, isLoading, signInWithGoogle, signOut],
+    () => ({user, isLoading, signInWithGoogle, signOut, deleteAccount}),
+    [user, isLoading, signInWithGoogle, signOut, deleteAccount],
   );
 
   return (

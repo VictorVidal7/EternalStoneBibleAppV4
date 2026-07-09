@@ -39,6 +39,7 @@ import {
 } from '@lib/sync';
 import {logger} from '@lib/utils/logger';
 import {registerOfflineAdapters} from '@lib/sync/registerOfflineAdapters';
+import {seedMemoryStatsFloorIfFresh} from '@lib/memory/memoryStatsSync';
 
 interface SyncEngineContextValue {
   engine: SyncEngine;
@@ -90,13 +91,24 @@ export const SyncEngineProvider: React.FC<SyncEngineProviderProps> = ({
   // Auth gate: start/stop the engine based on the user state.
   useEffect(() => {
     if (user && !user.isAnonymous) {
-      void engine.start(user.uid).catch(err => {
-        logger.error(
-          'SyncEngineProvider: engine.start failed',
-          err instanceof Error ? err : new Error(String(err)),
-          {component: 'SyncEngineProvider', uid: user.uid},
-        );
-      });
+      const uid = user.uid;
+      void engine
+        .start(uid)
+        .then(() => {
+          // Local-first quota feature — after the engine is live, seed the
+          // memoryStats restore floor if this is a fresh device (zero local
+          // review rows). Kept OUT of SyncEngine.start() on purpose so the
+          // engine never imports the SQLite review-event store — it stays
+          // Firestore-only, like cleanupOldReviewEvents. Best-effort.
+          void seedMemoryStatsFloorIfFresh(uid);
+        })
+        .catch(err => {
+          logger.error(
+            'SyncEngineProvider: engine.start failed',
+            err instanceof Error ? err : new Error(String(err)),
+            {component: 'SyncEngineProvider', uid},
+          );
+        });
     } else {
       // Anonymous user or signed out — engine is dormant. Local stores
       // still work; nothing goes to Firestore.

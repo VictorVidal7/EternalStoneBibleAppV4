@@ -11,6 +11,8 @@
 
 export {SyncEngine} from './SyncEngine';
 export {getSyncEngine, setSyncEngine} from './instance';
+// Account deletion — full erasure of a user's Firestore data.
+export {deleteAllCloudData} from './deleteAccountData';
 // Sprint 77 — every *ToRemote payload must strip `undefined` values.
 // Sprint 78 — deep variant for nested payloads (engine boundary).
 export {withoutUndefined, deepWithoutUndefined} from './sanitize';

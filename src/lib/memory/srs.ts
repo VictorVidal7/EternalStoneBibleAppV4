@@ -83,6 +83,12 @@ export interface MemoryCard {
   lastReviewedAt: string | null;
   /** Total number of times this card has been reviewed. */
   reviewCount: number;
+  /** Times this card has been graded "again" (a recall lapse). Rides the
+   *  existing per-review memoryCards write (adds no Firestore write of its
+   *  own); seeded to 0 and backfilled to 0 for cards persisted earlier. Lets
+   *  the fully-synced deck act as a leech floor when the local review log is
+   *  empty (see history.ts findLeeches). */
+  lapseCount: number;
   /** Sprint 46: per-card ease factor scaling the box interval. Seeded to
    *  DEFAULT_EASE; backfilled on hydration for cards persisted earlier. */
   ease: number;
@@ -125,6 +131,7 @@ export function createCard(input: {
     addedAt: input.now,
     lastReviewedAt: null,
     reviewCount: 0,
+    lapseCount: 0,
     ease: normalizeEase(input.ease),
     updatedAt: Date.parse(input.now) || Date.now(),
   };
@@ -197,6 +204,7 @@ export function applyReview(
     dueAt: computeDueDate(nextBox, grade, currentEase, now).toISOString(),
     lastReviewedAt: now.toISOString(),
     reviewCount: card.reviewCount + 1,
+    lapseCount: (card.lapseCount ?? 0) + (grade === 'again' ? 1 : 0),
     updatedAt: now.getTime(),
   };
 }

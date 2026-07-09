@@ -1,51 +1,45 @@
 /**
  * Sprint 45 — reviewEvents SyncAdapter (Ola F.2, the 6th synced dataset).
+ * Local-first quota tanda — this adapter no longer moves any data through
+ * Firestore; it is kept registered only so `getLocal`/`getMaterialFields`
+ * stay well-typed call targets and so a stray `queueWrite('reviewEvents', …)`
+ * (e.g. BackupService's manual restore) doesn't throw for lack of an
+ * adapter. Both directions are now a deliberate no-op:
  *
- * The append-only SRS review log lives in the `review_events` SQLite
- * table (via `reviewEventStore`). Like notes/highlights there is no React
- * context for it — the outbound write is queued by the review callsite
- * (`MemoryDeckContext.reviewCard`), and this adapter handles the inbound
- * side plus the initial bulk push (`pullAllLocal`).
+ *  - `pullAllLocal` returns `[]` — the initial bulk push never uploads a
+ *    device's local review log to Firestore anymore.
+ *  - `applyRemoteUpsert` is a no-op — a live listener (or the initial
+ *    snapshot on a freshly-attached device) never writes an incoming
+ *    remote event into local SQLite anymore.
  *
- * Events are **immutable and append-only**: each Firestore doc id
- * (`${verseKey}__${reviewedAt}`) is written exactly once, so two devices
- * can never produce divergent versions of the same event. The adapter
- * therefore opts out of conflict detection (`getMaterialFields` → []),
- * leaving pure — and trivial — last-write-wins.
+ * Why: cross-device continuity for streaks/heatmap/retention/leeches is
+ * now handled by the `memoryStats/summary` aggregate doc + the one-time
+ * local restore floor (`@lib/memory/memoryStatsSync`), not by replicating
+ * the full per-event log. Severing this adapter's Firestore traffic (not
+ * just the per-review write, which was removed at the call site in
+ * `MemoryDeckContext`) closes a real race: `SyncEngine.start()` resolves
+ * once listeners are ATTACHED, not once their first snapshot has been
+ * DELIVERED, so `seedMemoryStatsFloorIfFresh` (called right after `start()`
+ * resolves) could otherwise run concurrently with this adapter's own first
+ * snapshot delivering real events into local SQLite on a "fresh" device —
+ * double-counting those events into `retentionByIntervalWithFloor`'s sum
+ * merge. With both directions neutered, the floor is the ONLY source of
+ * restored history on a new device, so there is nothing left to race.
  *
- * Quota hardening — this collection only syncs a rolling 12-month window
- * (see `isReviewEventWithinSyncWindow` / `isReviewEventEligibleForCloud-
- * Cleanup` in `@lib/memory/reviewEvents`; SyncEngine.cleanupOldReviewEvents
- * deletes anything older directly from Firestore). Two consequences here:
+ * Legacy Firestore `reviewEvents` docs (written before this change, or by
+ * `BackupService`'s manual restore, which still queues writes for its own
+ * reasons) are simply orphaned — nothing reads them anymore. They keep
+ * aging out via the existing 12-month `SyncEngine.cleanupOldReviewEvents`
+ * sweep; no proactive migration needed at current data volumes.
  *
- *  1. `applyRemoteUpsert` defensively skips writing an incoming remote
- *     event that is already outside the window — it would just be
- *     deleted by the next cleanup pass anyway, so there is no point
- *     re-adding it to local SQLite first (harmless either way, but this
- *     avoids the pointless round trip).
- *  2. `applyRemoteDelete` is a deliberate NO-OP. Nothing in this codebase
- *     ever calls `queueDelete('reviewEvents', …)` or writes a
- *     `deleted:true` tombstone for this collection (reviewEvents are
- *     append-only) — so historically this hook was unreachable. The
- *     cleanup sweep is the FIRST code path that ever hard-deletes a
- *     reviewEvents doc from Firestore, and per this project's rule that
- *     the cleanup must NEVER touch the local SQLite copy, this handler
- *     must not cascade a Firestore-side delete (cleanup OR any live
- *     listener that happens to observe one, e.g. a freshly-attached
- *     listener on a brand-new device racing the cleanup sweep) into a
- *     `removeReviewEvent` call. Local history is retained forever
- *     regardless of what the cloud copy keeps.
+ * `applyRemoteDelete` stays a no-op for the same original reason: local
+ * SQLite history is permanent regardless of what the (now-orphaned) cloud
+ * copy keeps.
  */
 
-import {
-  addReviewEvent,
-  getAllReviewEvents,
-  getReviewEventById,
-} from '@lib/memory/reviewEventStore';
+import {getReviewEventById} from '@lib/memory/reviewEventStore';
 import {logger} from '@lib/utils/logger';
 import {
-  isReviewEventWithinSyncWindow,
-  remoteToReviewEvent,
   reviewEventToRemote,
   type RemoteReviewEvent,
 } from '@lib/memory/reviewEvents';
@@ -59,25 +53,19 @@ export const reviewEventsSyncAdapter: SyncAdapter<RemoteReviewEvent> = {
     return event ? reviewEventToRemote(event) : null;
   },
 
-  async applyRemoteUpsert(id, data) {
-    // Defensive guard (see file header) — the primary enforcement is the
-    // cloud-only cleanup sweep, not this check, so an ambiguous/missing
-    // reviewedAt/updatedAt is treated as "within window" and applied.
-    const reviewedAt =
-      typeof data.reviewedAt === 'number' ? data.reviewedAt : data.updatedAt;
-    if (!isReviewEventWithinSyncWindow(reviewedAt)) {
-      logger.info(
-        'reviewEvents adapter: skipping remote upsert older than the sync window',
-        {component: 'sync/reviewEvents', id},
-      );
-      return;
-    }
-    await addReviewEvent(remoteToReviewEvent(id, data));
+  async applyRemoteUpsert(id) {
+    // Deliberate no-op — see file header. The memoryStats floor is the
+    // sole restore path now; never let a remote event re-enter local
+    // SQLite (that's what created the double-count race with the floor).
+    logger.info(
+      'reviewEvents adapter: ignoring remote upsert (local-only; see memoryStatsSync for restore)',
+      {component: 'sync/reviewEvents', id},
+    );
   },
 
   async applyRemoteDelete(id) {
     // Deliberate no-op — see the file header comment. Local SQLite is
-    // the permanent record; only the cloud copy is ever pruned.
+    // the permanent record; only the (now-orphaned) cloud copy is ever pruned.
     logger.info(
       'reviewEvents adapter: ignoring remote delete (local history is never pruned by sync)',
       {component: 'sync/reviewEvents', id},
@@ -85,22 +73,11 @@ export const reviewEventsSyncAdapter: SyncAdapter<RemoteReviewEvent> = {
   },
 
   async pullAllLocal() {
-    const all = await getAllReviewEvents();
-    // Quota hardening — bound the INITIAL BULK PUSH the same way as
-    // ongoing sync. Without this, a user who accumulated years of
-    // local-only history (e.g. an anonymous user linking a Google
-    // account for the first time) would push their entire history to
-    // Firestore in one shot, only to have most of it deleted by the very
-    // next cleanup pass (SyncEngine.cleanupOldReviewEvents) — wasted
-    // quota on both the write and the delete. Events outside the window
-    // simply stay local-only, exactly like any other >12-month-old event.
-    const withinWindow = all.filter(event =>
-      isReviewEventWithinSyncWindow(event.reviewedAt),
-    );
-    return withinWindow.map(event => ({
-      id: event.id,
-      data: reviewEventToRemote(event),
-    }));
+    // Deliberate no-op — see file header. Never upload the local review
+    // log to Firestore; the memoryStats aggregate is the only thing this
+    // collection contributes to the cloud now (written directly by
+    // memoryStatsSync, outside this adapter).
+    return [];
   },
 
   // Immutable append-only events never conflict — opt out, pure LWW.

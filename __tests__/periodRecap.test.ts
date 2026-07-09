@@ -29,6 +29,7 @@ const card = (addedAt: string): MemoryCard => ({
   addedAt,
   lastReviewedAt: null,
   reviewCount: 0,
+  lapseCount: 0,
   ease: 1,
   updatedAt: Date.parse(addedAt),
 });

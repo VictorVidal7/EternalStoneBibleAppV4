@@ -34,6 +34,7 @@ const card = (
     addedAt: '2026-05-01',
     lastReviewedAt: '2026-06-16',
     reviewCount: 3,
+    lapseCount: 0,
     ease: 1,
     updatedAt: Date.parse('2026-06-16'),
   };

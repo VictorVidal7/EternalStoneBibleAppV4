@@ -22,6 +22,7 @@ import React, {
   useState,
   ReactNode,
 } from 'react';
+import {AppState} from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {
   applyReview,
@@ -40,17 +41,14 @@ import {
   type SyncAdapter,
   type SyncEntity,
 } from '../lib/sync';
-import {
-  buildReviewEvent,
-  isReviewEventWithinSyncWindow,
-  reviewEventToRemote,
-} from '../lib/memory/reviewEvents';
+import {buildReviewEvent} from '../lib/memory/reviewEvents';
 import {
   addReviewEvent,
   getAllReviewEvents,
 } from '../lib/memory/reviewEventStore';
 import {historySummary} from '../lib/memory/history';
 import {computeEasePrior} from '../lib/memory/easePrior';
+import {maybeWriteMemoryStatsSummary} from '../lib/memory/memoryStatsSync';
 import {useSyncEngineOptional} from './SyncEngineContext';
 
 const STORAGE_KEY = '@memory_deck';
@@ -170,7 +168,15 @@ export const MemoryDeckProvider: React.FC<MemoryDeckProviderProps> = ({
                 // Sprint 46 backfill: cards persisted before the adaptive
                 // scheduler lack `ease` — seed it to the neutral default so
                 // they behave like plain Leitner until reviewed again.
-                clean[k] = {...v, ease: normalizeEase(v.ease), updatedAt};
+                // lapseCount backfill: cards persisted before the local-first
+                // quota feature lack it — default 0.
+                clean[k] = {
+                  ...v,
+                  ease: normalizeEase(v.ease),
+                  lapseCount:
+                    typeof v.lapseCount === 'number' ? v.lapseCount : 0,
+                  updatedAt,
+                };
               }
             }
             setDeck(clean);
@@ -189,6 +195,18 @@ export const MemoryDeckProvider: React.FC<MemoryDeckProviderProps> = ({
       () => undefined,
     );
   }, [deck, hydrated]);
+
+  // Local-first quota feature — push the memoryStats aggregate on app
+  // background (NOT per review), at most once per unchanged snapshot. This is
+  // the cheap cross-device substitute for the per-review reviewEvents write we
+  // dropped. No-ops when signed out / offline (guarded inside the writer).
+  useEffect(() => {
+    const sub = AppState.addEventListener('change', next => {
+      if (next !== 'background') return;
+      void maybeWriteMemoryStatsSummary();
+    });
+    return () => sub.remove();
+  }, []);
 
   // Sync adapter — memoria cards use verseKey as their id (stable
   // across devices because it's derived from the verse identity, not a
@@ -214,6 +232,8 @@ export const MemoryDeckProvider: React.FC<MemoryDeckProviderProps> = ({
           addedAt: data.addedAt,
           lastReviewedAt: data.lastReviewedAt ?? null,
           reviewCount: data.reviewCount ?? 0,
+          // Remote cards from a device that predates lapseCount won't carry it.
+          lapseCount: data.lapseCount ?? 0,
           // Sprint 46 — remote cards from before the adaptive scheduler
           // (or from a device that hasn't upgraded) won't carry `ease`.
           ease: normalizeEase(data.ease),
@@ -295,10 +315,13 @@ export const MemoryDeckProvider: React.FC<MemoryDeckProviderProps> = ({
       setDeck(prev => (prev[verseKey] ? {...prev, [verseKey]: updated} : prev));
       const engine = getSyncEngine();
       engine?.queueWrite('memoryCards', verseKey, cardToRemote(updated));
-      // Sprint 45 — append an immutable review event to the SQLite log and
-      // queue it as the 6th synced dataset. Fire-and-forget: the local card
-      // state above is the source of truth for the deck; the event log is a
-      // separate append-only history feeding the insights heatmap/retention.
+      // Local-first quota feature — append the immutable review event to the
+      // local SQLite log ONLY. It is NO LONGER queued to Firestore per review
+      // (that per-review reviewEvents write roughly halved the free-tier
+      // ceiling). Cross-device continuity for streak/heatmap/retention now
+      // rides the bounded `memoryStats/summary` aggregate instead
+      // (memoryStatsSync). The card write above still carries lapseCount, so
+      // leech detection survives a reinstall via the synced deck.
       const event = buildReviewEvent({
         cardBefore: existing,
         cardAfter: updated,
@@ -306,19 +329,6 @@ export const MemoryDeckProvider: React.FC<MemoryDeckProviderProps> = ({
         now,
       });
       void addReviewEvent(event);
-      // Quota hardening — reviewEvents only sync a rolling 12-month
-      // window (SyncEngine.cleanupOldReviewEvents prunes the cloud side;
-      // local SQLite above keeps every event forever regardless). A
-      // review recorded just now is always "today", so in practice this
-      // guard never trips — it exists purely as defense-in-depth in case
-      // `now` is ever backdated (e.g. a future offline-catch-up feature).
-      if (isReviewEventWithinSyncWindow(event.reviewedAt)) {
-        engine?.queueWrite(
-          'reviewEvents',
-          event.id,
-          reviewEventToRemote(event),
-        );
-      }
       // Sprint 48 — a new review changes the retention history the ease prior
       // is calibrated from; recompute so the next added card uses fresh data.
       void refreshEasePrior();
