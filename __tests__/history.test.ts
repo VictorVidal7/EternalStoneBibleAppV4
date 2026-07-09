@@ -1,5 +1,6 @@
 import {
   computeReviewHistory,
+  computeReviewHistoryWithFloor,
   findLeeches,
   HEATMAP_WEEKS,
   historySummary,
@@ -7,13 +8,42 @@ import {
   MAX_HEATMAP_WEEKS,
   retentionByBook,
   retentionByInterval,
+  retentionByIntervalWithFloor,
   retentionTrend,
   reviewHeatmap,
+  reviewHeatmapWithFloor,
   TREND_MONTHS,
   weeksSinceFirstEvent,
   type HeatmapCell,
 } from '../src/lib/memory/history';
 import type {ReviewEvent} from '../src/lib/memory/reviewEvents';
+import type {MemoryCard} from '../src/lib/memory/srs';
+import type {MemoryStatsSummary} from '../src/lib/memory/memoryStats';
+
+/** Local-midnight-ms key for `offset` days from NOW (the recentDays key form). */
+function dayKey(offset: number): string {
+  return String(sod(dayAt(NOW, offset)));
+}
+
+/** A minimal MemoryCard for the findLeeches cards-floor tests. */
+function mkCard(over: Partial<MemoryCard> & {verseKey: string}): MemoryCard {
+  return {
+    verseKey: over.verseKey,
+    bookName: over.bookName ?? 'John',
+    chapter: over.chapter ?? 3,
+    verse: over.verse ?? 16,
+    text: over.text ?? 'text',
+    version: over.version ?? 'KJV',
+    box: over.box ?? 1,
+    dueAt: over.dueAt ?? NOW.toISOString(),
+    addedAt: over.addedAt ?? NOW.toISOString(),
+    lastReviewedAt: over.lastReviewedAt ?? null,
+    reviewCount: over.reviewCount ?? 0,
+    lapseCount: over.lapseCount ?? 0,
+    ease: over.ease ?? 1,
+    updatedAt: over.updatedAt ?? NOW.getTime(),
+  };
+}
 
 // Thursday 2026-05-28 12:00 local — getDay() === 4. Constructed via the
 // numeric ctor so it's local time, matching history.ts's local-day logic.
@@ -325,6 +355,60 @@ describe('findLeeches', () => {
     expect(leech.bookName).toBe('New');
     expect(leech.lastReviewedAt).toBe(300);
   });
+
+  it('surfaces a leech from the cards floor when the local log is empty', () => {
+    // Fresh device: the synced deck carries lapseCount but the review log is
+    // empty. The card alone must be enough to flag the leech.
+    const cards = [
+      mkCard({
+        verseKey: 'John/3/16',
+        bookName: 'John',
+        reviewCount: 8,
+        lapseCount: 4,
+      }),
+      mkCard({
+        verseKey: 'Psalms/23/1',
+        bookName: 'Psalms',
+        reviewCount: 5,
+        lapseCount: 1,
+      }),
+    ];
+    const leeches = findLeeches([], LEECH_MIN_LAPSES, cards);
+    expect(leeches.map(l => l.verseKey)).toEqual(['John/3/16']);
+    expect(leeches[0].totalReviews).toBe(8);
+    expect(leeches[0].lapses).toBe(4);
+    expect(leeches[0].lapseRate).toBeCloseTo(0.5);
+  });
+
+  it('takes the max of the event log and the card floor per verse', () => {
+    // Log shows 2 lapses; card carries 4 → the card floor dominates.
+    const events = cardEvents('John/3/16', 'John', 3, 2);
+    const cards = [
+      mkCard({verseKey: 'John/3/16', reviewCount: 9, lapseCount: 4}),
+    ];
+    const [leech] = findLeeches(events, LEECH_MIN_LAPSES, cards);
+    expect(leech.totalReviews).toBe(9); // max(3, 9)
+    expect(leech.lapses).toBe(4); // max(2, 4)
+    expect(leech.lapseRate).toBeLessThanOrEqual(1);
+  });
+
+  it('is unaffected by cards with fewer lapses than the log', () => {
+    const events = cardEvents('John/3/16', 'John', 6, 5);
+    const cards = [
+      mkCard({verseKey: 'John/3/16', reviewCount: 2, lapseCount: 1}),
+    ];
+    const [leech] = findLeeches(events, LEECH_MIN_LAPSES, cards);
+    expect(leech.totalReviews).toBe(6); // max(6, 2)
+    expect(leech.lapses).toBe(5); // max(5, 1)
+  });
+
+  it('behaves exactly like the events-only signature when cards omitted', () => {
+    const events = cardEvents('John/3/16', 'John', 5, LEECH_MIN_LAPSES);
+    expect(findLeeches(events)).toEqual(findLeeches(events, LEECH_MIN_LAPSES));
+    expect(findLeeches(events, LEECH_MIN_LAPSES, [])).toEqual(
+      findLeeches(events),
+    );
+  });
 });
 
 describe('computeReviewHistory', () => {
@@ -343,6 +427,105 @@ describe('computeReviewHistory', () => {
     expect(d1?.recalled).toBe(2); // the two 'good', not the 'again'
     // Only one 'again' total here → below the leech threshold.
     expect(h.leeches).toEqual([]);
+  });
+});
+
+describe('reviewHeatmapWithFloor', () => {
+  it('folds floor day counts in where the local log is empty', () => {
+    const floorDays = {[dayKey(-1)]: 3, [dayKey(-2)]: 2};
+    const h = reviewHeatmapWithFloor([], NOW, floorDays);
+    expect(h.windowTotal).toBe(5);
+    const yesterday = h.cells.find(c => c.dateMs === sod(dayAt(NOW, -1)));
+    expect(yesterday?.count).toBe(3);
+  });
+
+  it('lets local reviews win on a day the floor also covers', () => {
+    const floorDays = {[dayKey(0)]: 9};
+    const events = eventsOnDay(0, 2, 'good'); // 2 real reviews today
+    const h = reviewHeatmapWithFloor(events, NOW, floorDays);
+    const today = h.cells.find(c => c.dateMs === sod(dayAt(NOW, 0)));
+    expect(today?.count).toBe(2); // local wins, not the floor's 9
+  });
+
+  it('matches reviewHeatmap when there is no floor', () => {
+    const events = [...eventsOnDay(0, 2), ...eventsOnDay(-3, 1)];
+    expect(reviewHeatmapWithFloor(events, NOW, undefined)).toEqual(
+      reviewHeatmap(events, NOW),
+    );
+  });
+});
+
+describe('retentionByIntervalWithFloor', () => {
+  it('sums floor band totals on top of the local ones', () => {
+    const events = eventsOnDay(0, 2, 'good'); // 2 in d1, both recalled
+    const floorBands = {d1: {total: 4, recalled: 3}};
+    const buckets = retentionByIntervalWithFloor(events, floorBands);
+    const d1 = buckets.find(b => b.key === 'd1')!;
+    expect(d1.total).toBe(6); // 2 local + 4 floor
+    expect(d1.recalled).toBe(5); // 2 local + 3 floor
+    expect(d1.retention).toBeCloseTo(5 / 6);
+  });
+
+  it('matches retentionByInterval when there is no floor', () => {
+    const events = eventsOnDay(0, 3, 'again');
+    expect(retentionByIntervalWithFloor(events, undefined)).toEqual(
+      retentionByInterval(events),
+    );
+  });
+});
+
+describe('computeReviewHistoryWithFloor', () => {
+  it('reproduces computeReviewHistory with a null floor and no cards', () => {
+    const events = [
+      ...eventsOnDay(0, 2, 'good'),
+      ...eventsOnDay(-1, 1, 'again'),
+    ];
+    expect(computeReviewHistoryWithFloor(events, NOW, null)).toEqual(
+      computeReviewHistory(events, NOW),
+    );
+  });
+
+  it('drives streak / heatmap / retention from the floor on a fresh device', () => {
+    // Empty local log; floor carries 3 consecutive prior days + history.
+    const floor: MemoryStatsSummary = {
+      updatedAt: NOW.getTime(),
+      longestStreak: 12,
+      earliestReviewMs: dayAt(NOW, -300),
+      recentDays: {[dayKey(-1)]: 1, [dayKey(-2)]: 1, [dayKey(-3)]: 1},
+      retentionBands: {d1: {total: 10, recalled: 8}},
+    };
+    const h = computeReviewHistoryWithFloor([], NOW, floor);
+    // currentStreak: today has no review → grace, count back through the
+    // 3 consecutive floor days.
+    expect(h.summary.currentStreak).toBe(3);
+    expect(h.summary.activeDays).toBe(3);
+    expect(h.summary.longestStreak).toBe(12); // floor beats local 0
+    expect(h.heatmap.windowTotal).toBe(3);
+    const d1 = h.retention.find(b => b.key === 'd1')!;
+    expect(d1.total).toBe(10);
+    expect(d1.retention).toBeCloseTo(0.8);
+  });
+
+  it('takes the max of local and floor longestStreak', () => {
+    // Local has a 2-day streak; floor claims 1 → local wins.
+    const events = [...eventsOnDay(0, 1), ...eventsOnDay(-1, 1)];
+    const floor: MemoryStatsSummary = {
+      updatedAt: NOW.getTime(),
+      longestStreak: 1,
+      earliestReviewMs: null,
+      recentDays: {},
+      retentionBands: {},
+    };
+    const h = computeReviewHistoryWithFloor(events, NOW, floor);
+    expect(h.summary.longestStreak).toBe(2);
+  });
+
+  it('passes cards through to findLeeches', () => {
+    const cards = [
+      mkCard({verseKey: 'John/3/16', reviewCount: 8, lapseCount: 4}),
+    ];
+    const h = computeReviewHistoryWithFloor([], NOW, null, cards);
+    expect(h.leeches.map(l => l.verseKey)).toEqual(['John/3/16']);
   });
 });
 

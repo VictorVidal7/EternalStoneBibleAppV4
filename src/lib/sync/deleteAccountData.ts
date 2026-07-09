@@ -26,7 +26,12 @@ const USER_DATA_COLLECTIONS = [
   'highlights',
   'bookmarks',
   'memoryCards',
+  // Legacy per-review docs from before the local-first change still need
+  // wiping (the 12-month cleanup would otherwise leave up to a year of them).
   'reviewEvents',
+  // The single `summary` aggregate doc — the generic query-then-delete loop
+  // handles a one-doc collection unchanged (its id is just `summary`).
+  'memoryStats',
   'conflicts',
 ] as const;
 

@@ -20,6 +20,10 @@
 
 import type {ReviewEvent} from './reviewEvents';
 import {isRecallSuccess} from './reviewEvents';
+import type {MemoryCard} from './srs';
+// Type-only import (erased at runtime) so the value import
+// memoryStats.ts → history.ts never becomes a runtime cycle.
+import type {MemoryStatsSummary} from './memoryStats';
 
 const DAY_MS = 24 * 60 * 60 * 1000;
 
@@ -164,15 +168,11 @@ function reviewDaySet(events: ReviewEvent[]): Set<number> {
   return set;
 }
 
-/**
- * Daily-activity heatmap spanning `weeks` Sunday-aligned columns ending
- * today. The first cell is the Sunday of the oldest week, the last cell
- * is today; the UI chunks `cells` into columns of 7 (top = Sunday).
- */
-export function reviewHeatmap(
-  events: ReviewEvent[],
+/** Build the heatmap grid from a pre-tallied per-day counts map. */
+function buildHeatmap(
+  counts: Map<number, number>,
   now: Date,
-  weeks: number = HEATMAP_WEEKS,
+  weeks: number,
 ): ReviewHeatmap {
   const w = Math.max(1, Math.floor(weeks));
   const todayStart = startOfLocalDay(now.getTime());
@@ -184,14 +184,6 @@ export function reviewHeatmap(
   const start = new Date(todayStart);
   start.setDate(start.getDate() - (totalCells - 1));
   const startDayMs = startOfLocalDay(start.getTime());
-
-  // Tally reviews per local day within the window.
-  const counts = new Map<number, number>();
-  for (const e of events) {
-    const day = startOfLocalDay(e.reviewedAt);
-    if (day < startDayMs || day > todayStart) continue;
-    counts.set(day, (counts.get(day) ?? 0) + 1);
-  }
 
   const cells: HeatmapCell[] = [];
   let maxCount = 0;
@@ -207,6 +199,54 @@ export function reviewHeatmap(
   }
 
   return {cells, weeks: w, maxCount, windowTotal};
+}
+
+/**
+ * Daily-activity heatmap spanning `weeks` Sunday-aligned columns ending
+ * today. The first cell is the Sunday of the oldest week, the last cell
+ * is today; the UI chunks `cells` into columns of 7 (top = Sunday).
+ */
+export function reviewHeatmap(
+  events: ReviewEvent[],
+  now: Date,
+  weeks: number = HEATMAP_WEEKS,
+): ReviewHeatmap {
+  // Tally reviews per local day.
+  const counts = new Map<number, number>();
+  for (const e of events) {
+    const day = startOfLocalDay(e.reviewedAt);
+    counts.set(day, (counts.get(day) ?? 0) + 1);
+  }
+  return buildHeatmap(counts, now, weeks);
+}
+
+/**
+ * Like `reviewHeatmap`, but folds a stats floor's per-day counts in for any
+ * day the local log has no review — so a freshly-restored device shows its
+ * pre-restore activity until real local reviews accumulate. Local always wins
+ * on a day both cover.
+ */
+export function reviewHeatmapWithFloor(
+  events: ReviewEvent[],
+  now: Date,
+  floorDays: Record<string, number> | undefined,
+  weeks: number = HEATMAP_WEEKS,
+): ReviewHeatmap {
+  const counts = new Map<number, number>();
+  if (floorDays) {
+    for (const [day, count] of Object.entries(floorDays)) {
+      const ms = Number(day);
+      if (Number.isFinite(ms)) counts.set(startOfLocalDay(ms), count);
+    }
+  }
+  // Local wins — overwrite the floor's value on any day with real reviews.
+  const local = new Map<number, number>();
+  for (const e of events) {
+    const day = startOfLocalDay(e.reviewedAt);
+    local.set(day, (local.get(day) ?? 0) + 1);
+  }
+  for (const [day, count] of local) counts.set(day, count);
+  return buildHeatmap(counts, now, weeks);
 }
 
 /**
@@ -231,6 +271,28 @@ export function retentionByInterval(events: ReviewEvent[]): RetentionBucket[] {
     if (isRecallSuccess(e.grade)) bucket.recalled += 1;
   }
   for (const bucket of buckets) {
+    bucket.retention = bucket.total > 0 ? bucket.recalled / bucket.total : null;
+  }
+  return buckets;
+}
+
+/**
+ * Like `retentionByInterval`, but adds a stats floor's per-band totals on top
+ * of the locally-computed ones (safe to sum — the floor is disjoint from the
+ * local events, see memoryStats.ts). Retention per band is recomputed from the
+ * combined totals.
+ */
+export function retentionByIntervalWithFloor(
+  events: ReviewEvent[],
+  floorBands: Record<string, {total: number; recalled: number}> | undefined,
+): RetentionBucket[] {
+  const buckets = retentionByInterval(events);
+  for (const bucket of buckets) {
+    const f = floorBands?.[bucket.key];
+    if (f) {
+      bucket.total += f.total;
+      bucket.recalled += f.recalled;
+    }
     bucket.retention = bucket.total > 0 ? bucket.recalled / bucket.total : null;
   }
   return buckets;
@@ -313,10 +375,19 @@ export function historySummary(
  * qualifies once its "again" count reaches `minLapses`. Sorted hardest
  * first (most lapses → highest lapse rate → verseKey for a stable tie
  * break) so the UI can show the top few.
+ *
+ * `cards` (optional) acts as a floor: since the deck fully cross-device syncs
+ * (its live listener), `card.reviewCount`/`card.lapseCount` survive a reinstall
+ * even when the local review log doesn't. Each verse's totals are the `max` of
+ * what the events show and what its card carries — so a leech stays visible on
+ * a fresh device before its per-review history has re-accumulated. Since
+ * `reviewCount ≥ lapseCount` and `eventsTotal ≥ eventsLapses`, the max-ed total
+ * always dominates the max-ed lapses, keeping `lapseRate` ≤ 1.
  */
 export function findLeeches(
   events: ReviewEvent[],
   minLapses: number = LEECH_MIN_LAPSES,
+  cards?: MemoryCard[],
 ): LeechCard[] {
   interface Acc {
     bookName: string;
@@ -340,6 +411,22 @@ export function findLeeches(
       acc.bookName = e.bookName;
     }
     byCard.set(e.verseKey, acc);
+  }
+
+  for (const card of cards ?? []) {
+    const cardMs = card.lastReviewedAt
+      ? Date.parse(card.lastReviewedAt) || card.updatedAt
+      : card.updatedAt;
+    const acc = byCard.get(card.verseKey) ?? {
+      bookName: card.bookName,
+      total: 0,
+      lapses: 0,
+      last: cardMs,
+    };
+    acc.total = Math.max(acc.total, card.reviewCount);
+    acc.lapses = Math.max(acc.lapses, card.lapseCount ?? 0);
+    if (acc.last === 0) acc.last = cardMs;
+    byCard.set(card.verseKey, acc);
   }
 
   const leeches: LeechCard[] = [];
@@ -374,6 +461,52 @@ export function computeReviewHistory(
     retention: retentionByInterval(events),
     summary: historySummary(events, now),
     leeches: findLeeches(events),
+  };
+}
+
+/** Local-day-set built from events plus a floor's per-day keys (for streaks). */
+function mergedDaySet(
+  events: ReviewEvent[],
+  floorDays: Record<string, number> | undefined,
+): Set<number> {
+  const set = reviewDaySet(events);
+  if (floorDays) {
+    for (const day of Object.keys(floorDays)) {
+      const ms = Number(day);
+      if (Number.isFinite(ms)) set.add(startOfLocalDay(ms));
+    }
+  }
+  return set;
+}
+
+/**
+ * Floor-aware variant of `computeReviewHistory` — folds a restored stats floor
+ * (and the synced deck, for leeches) into the views that must survive a
+ * reinstall: heatmap, retention bands, streaks, and leeches. Recent counts
+ * (today / last-7 / last-30) and overall retention stay events-only — they
+ * naturally self-heal as real local reviews accumulate. `computeReviewHistory`
+ * is left untouched; passing a null floor + no cards reproduces it exactly.
+ */
+export function computeReviewHistoryWithFloor(
+  events: ReviewEvent[],
+  now: Date,
+  floor: MemoryStatsSummary | null,
+  cards?: MemoryCard[],
+  weeks: number = HEATMAP_WEEKS,
+): ReviewHistory {
+  const base = historySummary(events, now);
+  const daySet = mergedDaySet(events, floor?.recentDays);
+  const summary: HistorySummary = {
+    ...base,
+    activeDays: daySet.size,
+    currentStreak: currentStreak(daySet, now),
+    longestStreak: Math.max(base.longestStreak, floor?.longestStreak ?? 0),
+  };
+  return {
+    heatmap: reviewHeatmapWithFloor(events, now, floor?.recentDays, weeks),
+    retention: retentionByIntervalWithFloor(events, floor?.retentionBands),
+    summary,
+    leeches: findLeeches(events, LEECH_MIN_LAPSES, cards),
   };
 }
 

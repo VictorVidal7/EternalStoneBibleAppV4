@@ -1,22 +1,20 @@
 /**
- * Quota hardening — reviewEvents SyncAdapter behavior tests.
+ * Local-first quota tanda — reviewEvents SyncAdapter behavior tests.
  *
- * The adapter (src/lib/sync/adapters/reviewEvents.ts) was changed in three
- * ways to bound reviewEvents to a rolling 12-month cloud sync window:
+ * The adapter (src/lib/sync/adapters/reviewEvents.ts) no longer moves any
+ * data through Firestore in either direction — cross-device continuity is
+ * handled by the `memoryStats/summary` aggregate + local restore floor
+ * instead (see memoryStatsSync.test.ts). This file now asserts the
+ * opposite of what it used to: every hook is a deliberate no-op.
  *
- *  1. `applyRemoteDelete` is now a deliberate NO-OP. This is the most
- *     important test in this file: nothing may ever call
- *     `removeReviewEvent` as a result of a Firestore-side delete, because
- *     the ONLY thing that ever hard-deletes a reviewEvents doc from
- *     Firestore is SyncEngine.cleanupOldReviewEvents (a cloud-only sweep),
- *     and local SQLite history must survive regardless of what the cloud
- *     copy retains.
- *  2. `applyRemoteUpsert` skips (never calls `addReviewEvent`) for an
- *     incoming remote event whose date is already outside the window.
- *  3. `pullAllLocal` (the initial bulk push source) excludes local events
- *     outside the window, so a veteran anonymous user linking their
- *     account for the first time doesn't push years of history to
- *     Firestore only to have most of it immediately cleaned up again.
+ *  1. `applyRemoteDelete` is a deliberate NO-OP (unchanged from before —
+ *     local SQLite history is permanent regardless of the cloud copy).
+ *  2. `applyRemoteUpsert` NEVER calls `addReviewEvent` anymore, for any
+ *     incoming remote event — this is what closes the race where a
+ *     freshly-attached listener's first snapshot could double-count
+ *     events already captured by the memoryStats floor.
+ *  3. `pullAllLocal` always returns `[]` — the initial bulk push never
+ *     uploads a device's local review log to Firestore anymore.
  *
  * The local store (`reviewEventStore`, SQLite-backed) is mocked so these
  * tests run pure-in-memory, same convention as MemoryDeckContext.test.tsx.
@@ -40,7 +38,6 @@ import {
   REVIEW_EVENT_SYNC_WINDOW_MS,
   type RemoteReviewEvent,
 } from '../src/lib/memory/reviewEvents';
-import type {ReviewEvent} from '../src/lib/memory/reviewEvents';
 import type {SyncEntity} from '../src/lib/sync/types';
 
 const DAY_MS = 24 * 60 * 60 * 1000;
@@ -58,20 +55,6 @@ function remoteEvent(
     intervalDays: 3,
     reviewedAt: NOW,
     updatedAt: NOW,
-    ...overrides,
-  };
-}
-
-function localEvent(overrides: Partial<ReviewEvent> = {}): ReviewEvent {
-  return {
-    id: `John/3/16__${NOW}`,
-    verseKey: 'John/3/16',
-    bookName: 'John',
-    grade: 'good',
-    boxBefore: 1,
-    boxAfter: 2,
-    intervalDays: 3,
-    reviewedAt: NOW,
     ...overrides,
   };
 }
@@ -97,40 +80,24 @@ describe('reviewEventsSyncAdapter.applyRemoteDelete — deliberate no-op', () =>
   });
 });
 
-describe('reviewEventsSyncAdapter.applyRemoteUpsert — 12-month sync window', () => {
-  it('applies an incoming event within the window', async () => {
+describe('reviewEventsSyncAdapter.applyRemoteUpsert — deliberate no-op (local-only)', () => {
+  it('never calls addReviewEvent for a recent incoming event', async () => {
     const data = remoteEvent({
       reviewedAt: NOW - DAY_MS,
       updatedAt: NOW - DAY_MS,
     });
     await reviewEventsSyncAdapter.applyRemoteUpsert('id-recent', data);
-    expect(mockAddReviewEvent).toHaveBeenCalledTimes(1);
+    expect(mockAddReviewEvent).not.toHaveBeenCalled();
   });
 
-  it('skips (never calls addReviewEvent) for an event older than the window', async () => {
+  it('never calls addReviewEvent for an event older than the old 12-month window', async () => {
     const old = NOW - REVIEW_EVENT_SYNC_WINDOW_MS - DAY_MS;
     const data = remoteEvent({reviewedAt: old, updatedAt: old});
     await reviewEventsSyncAdapter.applyRemoteUpsert('id-old', data);
     expect(mockAddReviewEvent).not.toHaveBeenCalled();
   });
 
-  it('applies an event comfortably inside the window boundary (not "older than")', async () => {
-    // Not the EXACT millisecond boundary — the adapter calls Date.now()
-    // fresh at call time, which is a few ms after this test's own `NOW`
-    // was captured, so an exact-boundary value would flakily land on
-    // either side depending on that drift. The exact boundary itself is
-    // covered precisely (with an injected fixed clock) by the
-    // isReviewEventWithinSyncWindow tests in reviewEvents.test.ts.
-    const insideBoundary = NOW - REVIEW_EVENT_SYNC_WINDOW_MS + 60_000;
-    const data = remoteEvent({
-      reviewedAt: insideBoundary,
-      updatedAt: insideBoundary,
-    });
-    await reviewEventsSyncAdapter.applyRemoteUpsert('id-boundary', data);
-    expect(mockAddReviewEvent).toHaveBeenCalledTimes(1);
-  });
-
-  it('defensively applies (never skips) when reviewedAt/updatedAt are ambiguous', async () => {
+  it('never calls addReviewEvent even when reviewedAt/updatedAt are ambiguous or missing', async () => {
     const data = {
       verseKey: 'John/3/16',
       bookName: 'John',
@@ -138,65 +105,41 @@ describe('reviewEventsSyncAdapter.applyRemoteUpsert — 12-month sync window', (
       boxBefore: 1,
       boxAfter: 2,
       intervalDays: null,
-      // Both timestamps missing — an adapter bug or malformed doc should
-      // never silently drop a review from local history.
+      // Both timestamps missing — regardless, this hook must never write.
     } as unknown as SyncEntity<RemoteReviewEvent>;
     await reviewEventsSyncAdapter.applyRemoteUpsert('id-ambiguous', data);
-    expect(mockAddReviewEvent).toHaveBeenCalledTimes(1);
+    expect(mockAddReviewEvent).not.toHaveBeenCalled();
   });
 
-  it('falls back to updatedAt when reviewedAt is missing but updatedAt is old', async () => {
-    const old = NOW - REVIEW_EVENT_SYNC_WINDOW_MS - DAY_MS;
-    const data = remoteEvent({updatedAt: old});
-    delete (data as Partial<RemoteReviewEvent>).reviewedAt;
-    await reviewEventsSyncAdapter.applyRemoteUpsert('id-fallback', data);
+  it('is a no-op even when called many times / with many ids', async () => {
+    await reviewEventsSyncAdapter.applyRemoteUpsert('a', remoteEvent());
+    await reviewEventsSyncAdapter.applyRemoteUpsert('b', remoteEvent());
+    await reviewEventsSyncAdapter.applyRemoteUpsert('c', remoteEvent());
     expect(mockAddReviewEvent).not.toHaveBeenCalled();
   });
 });
 
-describe('reviewEventsSyncAdapter.pullAllLocal — initial bulk push filter', () => {
-  it('excludes local events older than 12 months from the bulk push', async () => {
-    const recent = localEvent({
-      id: 'recent__1',
-      verseKey: 'recent',
-      reviewedAt: NOW - DAY_MS,
-    });
-    const old = localEvent({
-      id: 'old__1',
-      verseKey: 'old',
-      reviewedAt: NOW - REVIEW_EVENT_SYNC_WINDOW_MS - DAY_MS,
-    });
-    mockGetAllReviewEvents.mockResolvedValue([recent, old]);
-
+describe('reviewEventsSyncAdapter.pullAllLocal — deliberate no-op (never bulk-push)', () => {
+  it('returns [] without reading the local store at all', async () => {
     const rows = await reviewEventsSyncAdapter.pullAllLocal();
-
-    expect(rows.map(r => r.id)).toEqual(['recent__1']);
+    expect(rows).toEqual([]);
+    expect(mockGetAllReviewEvents).not.toHaveBeenCalled();
   });
 
-  it('returns everything when the whole local log is within the window', async () => {
-    const events = [
-      localEvent({id: 'a', reviewedAt: NOW}),
-      localEvent({id: 'b', reviewedAt: NOW - DAY_MS}),
-      localEvent({id: 'c', reviewedAt: NOW - 30 * DAY_MS}),
-    ];
-    mockGetAllReviewEvents.mockResolvedValue(events);
-
+  it('returns [] regardless of what the local store would otherwise contain', async () => {
+    mockGetAllReviewEvents.mockResolvedValue([
+      {
+        id: 'a',
+        verseKey: 'John/3/16',
+        bookName: 'John',
+        grade: 'good',
+        boxBefore: 1,
+        boxAfter: 2,
+        intervalDays: 3,
+        reviewedAt: NOW,
+      },
+    ]);
     const rows = await reviewEventsSyncAdapter.pullAllLocal();
-
-    expect(rows.map(r => r.id).sort()).toEqual(['a', 'b', 'c']);
-  });
-
-  it('returns an empty bulk push when the entire local log is outside the window', async () => {
-    const events = [
-      localEvent({
-        id: 'ancient',
-        reviewedAt: NOW - 2 * REVIEW_EVENT_SYNC_WINDOW_MS,
-      }),
-    ];
-    mockGetAllReviewEvents.mockResolvedValue(events);
-
-    const rows = await reviewEventsSyncAdapter.pullAllLocal();
-
-    expect(rows).toHaveLength(0);
+    expect(rows).toEqual([]);
   });
 });

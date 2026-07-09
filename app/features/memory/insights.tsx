@@ -78,7 +78,9 @@ export default function MemoryInsightsScreen() {
   const {cards} = useMemoryDeck();
   // Sprint 47 — the review-event log + daily goal load via this hook, which
   // also refreshes on focus (returning from practice updates the stats).
-  const {loaded: eventsLoaded, events, history, goal} = useMemoryGoal();
+  // Passing the deck lets leech detection survive a reinstall via the synced
+  // cards' lapseCount even before the local review log re-accumulates.
+  const {loaded: eventsLoaded, events, history, goal} = useMemoryGoal(cards);
   const {isPremium} = usePremium();
   const {open: openOfferingSheet} = useOfferingSheet();
   const [showFullHistory, setShowFullHistory] = useState(false);

@@ -614,6 +614,7 @@ function coerceMemoryCard(raw: unknown): MemoryCard | null {
     lastReviewedAt:
       typeof raw.lastReviewedAt === 'string' ? raw.lastReviewedAt : null,
     reviewCount: num(raw.reviewCount, 0),
+    lapseCount: num(raw.lapseCount, 0),
     ease: normalizeEase(typeof raw.ease === 'number' ? raw.ease : undefined),
     updatedAt: num(raw.updatedAt, Date.now()),
   };

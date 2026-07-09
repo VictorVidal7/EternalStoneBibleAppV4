@@ -67,6 +67,7 @@ function makeCard(over: Partial<MemoryCard> = {}): MemoryCard {
     addedAt: new Date(daysAgoMs(10)).toISOString(),
     lastReviewedAt: null,
     reviewCount: 0,
+    lapseCount: 0,
     ease: 1.0,
     updatedAt: daysAgoMs(10),
     ...over,

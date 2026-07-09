@@ -94,6 +94,7 @@ const mockCard: MemoryCard = {
   addedAt: NOW.toISOString(),
   lastReviewedAt: NOW.toISOString(),
   reviewCount: 2,
+  lapseCount: 0,
   ease: DEFAULT_EASE,
   updatedAt: NOW.getTime(),
 };

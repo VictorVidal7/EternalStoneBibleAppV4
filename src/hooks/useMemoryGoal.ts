@@ -16,9 +16,15 @@
 
 import {useCallback, useMemo, useState} from 'react';
 import {useFocusEffect} from 'expo-router';
-import {computeReviewHistory, type ReviewHistory} from '@lib/memory/history';
+import {
+  computeReviewHistoryWithFloor,
+  type ReviewHistory,
+} from '@lib/memory/history';
 import {getAllReviewEvents} from '@lib/memory/reviewEventStore';
+import {getMemoryStatsFloor} from '@lib/memory/memoryStatsSync';
 import type {ReviewEvent} from '@lib/memory/reviewEvents';
+import type {MemoryCard} from '@lib/memory/srs';
+import type {MemoryStatsSummary} from '@lib/memory/memoryStats';
 import {
   clampGoal,
   computeGoalProgress,
@@ -54,8 +60,14 @@ export interface MemoryGoalState {
   dismissMilestone: () => void;
 }
 
-export function useMemoryGoal(): MemoryGoalState {
+/**
+ * @param cards optional deck snapshot — lets `findLeeches` keep surfacing a
+ *   struggling verse from `lapseCount`/`reviewCount` on a freshly-restored
+ *   device (the deck fully cross-device syncs; the review log doesn't).
+ */
+export function useMemoryGoal(cards?: MemoryCard[]): MemoryGoalState {
   const [events, setEvents] = useState<ReviewEvent[]>([]);
+  const [floor, setFloor] = useState<MemoryStatsSummary | null>(null);
   const [goalValue, setGoalValue] = useState<number>(DEFAULT_DAILY_GOAL);
   const [celebrated, setCelebrated] = useState<string[]>([]);
   const [loaded, setLoaded] = useState(false);
@@ -68,13 +80,18 @@ export function useMemoryGoal(): MemoryGoalState {
     useCallback(() => {
       let active = true;
       (async () => {
-        const [ev, g, c] = await Promise.all([
+        const [ev, fl, g, c] = await Promise.all([
           getAllReviewEvents(),
+          // Local-first quota feature — the restore floor keeps streak /
+          // heatmap / retention alive on a fresh device until real local
+          // reviews accumulate. Null on a device that owns the full history.
+          getMemoryStatsFloor(),
           getDailyGoal(),
           getCelebratedMilestones(),
         ]);
         if (!active) return;
         setEvents(ev);
+        setFloor(fl);
         setGoalValue(g);
         setCelebrated(c);
         setNow(new Date());
@@ -87,8 +104,8 @@ export function useMemoryGoal(): MemoryGoalState {
   );
 
   const history = useMemo(
-    () => computeReviewHistory(events, now),
-    [events, now],
+    () => computeReviewHistoryWithFloor(events, now, floor, cards),
+    [events, now, floor, cards],
   );
   const goal = useMemo(
     () => computeGoalProgress(history.summary, goalValue),
