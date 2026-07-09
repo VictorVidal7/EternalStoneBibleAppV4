@@ -139,6 +139,24 @@ export function extractIdToken(signInResult: any): string | null {
   return null;
 }
 
+/**
+ * Extract {name, photo} from the same GoogleSignin.signIn() result shapes
+ * extractIdToken() already tolerates. linkWithCredential (unlike a fresh
+ * signInWithCredential) does not copy these onto the Firebase user's
+ * profile on its own, so the caller must set them explicitly or the
+ * account UI falls back to the "Guest"/"Invitado" label forever.
+ */
+export function extractGoogleProfile(signInResult: any): {
+  displayName: string | null;
+  photoURL: string | null;
+} {
+  const u = signInResult?.user ?? signInResult?.data?.user ?? null;
+  return {
+    displayName: typeof u?.name === 'string' ? u.name : null,
+    photoURL: typeof u?.photo === 'string' ? u.photo : null,
+  };
+}
+
 interface AuthProviderProps {
   children: ReactNode;
 }
@@ -253,6 +271,37 @@ export function AuthProvider({children}: AuthProviderProps) {
     if (current && current.isAnonymous) {
       try {
         await current.linkWithCredential(credential);
+
+        // linkWithCredential doesn't copy the Google profile onto the
+        // Firebase user the way a fresh signInWithCredential does, so
+        // without this the account UI would show "Guest"/"Invitado"
+        // forever instead of the person's real name. Best-effort: a
+        // failure here shouldn't fail the sign-in itself.
+        const profile = extractGoogleProfile(result);
+        if (profile.displayName || profile.photoURL) {
+          try {
+            await current.updateProfile(profile);
+          } catch (err) {
+            logger.warn('Failed to set profile after linking', {
+              component: 'AuthProvider',
+              action: 'signInWithGoogle',
+              error: err instanceof Error ? err.message : String(err),
+            });
+          }
+        }
+        // updateProfile() doesn't reliably re-fire onAuthStateChanged, so
+        // update local state directly instead of waiting for a listener
+        // event that may never come.
+        setUser(prev =>
+          prev
+            ? {
+                ...prev,
+                isAnonymous: false,
+                displayName: profile.displayName ?? prev.displayName,
+                photoURL: profile.photoURL ?? prev.photoURL,
+              }
+            : prev,
+        );
         return;
       } catch (err: any) {
         if (err?.code !== 'auth/credential-already-in-use') {
