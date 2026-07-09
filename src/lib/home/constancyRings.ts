@@ -51,6 +51,9 @@ export interface HabitProgress {
   fraction: number;
   /** Current streak in days for the legend sub-line; 0 when none. */
   streak: number;
+  /** Any LIFETIME footprint in this habit, ever — not just today (T26: powers
+   *  the legend's "toca para empezar" invitation, shown only while false). */
+  everDone: boolean;
 }
 
 /** A habit's progress after clamping — what the view renders. */
@@ -109,6 +112,7 @@ export function buildConstancySummary(
       done: input?.done === true,
       fraction: input ? clampFraction(input.fraction) : 0,
       streak: input ? safeStreak(input.streak) : 0,
+      everDone: input?.everDone === true,
     };
   });
 

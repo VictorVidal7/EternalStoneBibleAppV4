@@ -54,9 +54,9 @@ jest.mock('react-native-safe-area-context', () => ({
 const tc = translations.es.constancy;
 
 const summary = buildConstancySummary([
-  {key: 'reading', done: true, fraction: 1, streak: 7},
-  {key: 'memory', done: false, fraction: 0.4, streak: 0},
-  {key: 'devotion', done: true, fraction: 1, streak: 3},
+  {key: 'reading', done: true, fraction: 1, streak: 7, everDone: true},
+  {key: 'memory', done: false, fraction: 0.4, streak: 0, everDone: true},
+  {key: 'devotion', done: true, fraction: 1, streak: 3, everDone: true},
 ]);
 
 describe('ConstancyImageModal (Sprint 85)', () => {
@@ -84,7 +84,7 @@ describe('ConstancyImageModal (Sprint 85)', () => {
 
   it('uses the singular day form for a one-day streak', () => {
     const oneDay = buildConstancySummary([
-      {key: 'reading', done: false, fraction: 0.2, streak: 1},
+      {key: 'reading', done: false, fraction: 0.2, streak: 1, everDone: true},
     ]);
     const {getByText, queryByText} = render(
       <ConstancyImageModal visible summary={oneDay} onClose={jest.fn()} />,

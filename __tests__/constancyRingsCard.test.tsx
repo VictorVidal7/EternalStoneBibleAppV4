@@ -66,33 +66,48 @@ jest.mock('react-native-safe-area-context', () => ({
 const tc = translations.es.constancy;
 
 const someSummary = buildConstancySummary([
-  {key: 'reading', done: true, fraction: 1, streak: 4},
-  {key: 'memory', done: false, fraction: 0.3, streak: 2},
+  {key: 'reading', done: true, fraction: 1, streak: 4, everDone: true},
+  {key: 'memory', done: false, fraction: 0.3, streak: 2, everDone: true},
 ]);
 
 describe('ConstancyRingsCard', () => {
   it('renders nothing until loaded', () => {
     mockState = {loaded: false, summary: someSummary, hasHistory: true};
-    const {queryByText} = render(<ConstancyRingsCard onPress={jest.fn()} />);
+    const {queryByText} = render(
+      <ConstancyRingsCard onPress={jest.fn()} onHabitPress={jest.fn()} />,
+    );
     expect(queryByText(tc.title)).toBeNull();
   });
 
   it('renders nothing without any habit history', () => {
     mockState = {loaded: true, summary: someSummary, hasHistory: false};
-    const {queryByText} = render(<ConstancyRingsCard onPress={jest.fn()} />);
+    const {queryByText} = render(
+      <ConstancyRingsCard onPress={jest.fn()} onHabitPress={jest.fn()} />,
+    );
     expect(queryByText(tc.title)).toBeNull();
   });
 
-  it('shows the rings and fires onPress when tapped', () => {
+  it('shows the rings and fires onPress when tapping the graphic/header', () => {
     mockState = {loaded: true, summary: someSummary, hasHistory: true};
     const onPress = jest.fn();
     const {getByText, getByLabelText} = render(
-      <ConstancyRingsCard onPress={onPress} />,
+      <ConstancyRingsCard onPress={onPress} onHabitPress={jest.fn()} />,
     );
     expect(getByText(tc.title)).toBeTruthy();
     expect(getByText('1 de 4 hoy')).toBeTruthy();
-    // The card's own button (the share icon is a separate nested button).
+    // The graphic/header button (the share icon is a separate nested button;
+    // each legend row is its own button too, covered in constancyRingsView).
     fireEvent.press(getByLabelText(`${tc.title}: 1 de 4 hoy`));
     expect(onPress).toHaveBeenCalledTimes(1);
+  });
+
+  it('fires onHabitPress with the habit key when a legend row is tapped', () => {
+    mockState = {loaded: true, summary: someSummary, hasHistory: true};
+    const onHabitPress = jest.fn();
+    const {getByLabelText} = render(
+      <ConstancyRingsCard onPress={jest.fn()} onHabitPress={onHabitPress} />,
+    );
+    fireEvent.press(getByLabelText(tc.habitMemory));
+    expect(onHabitPress).toHaveBeenCalledWith('memory');
   });
 });

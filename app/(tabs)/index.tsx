@@ -107,6 +107,7 @@ import {FeelingChips} from '@components/FeelingChips';
 import {MoodVerseCard} from '@components/MoodVerseCard';
 import {DevotionStreakCard} from '@components/DevotionStreakCard';
 import {ConstancyRingsCard} from '@components/ConstancyRingsCard';
+import type {HabitKey} from '@lib/home/constancyRings';
 import {NextMilestoneCard} from '@components/NextMilestoneCard';
 import {PrayerCard} from '@components/PrayerCard';
 import {DiscoverTile} from '@components/home/DiscoverTile';
@@ -138,6 +139,22 @@ const SAVED_CARD_WIDTH = Math.floor(
   (EFFECTIVE_CONTENT_WIDTH - CONTENT_HORIZONTAL_PADDING * 2 - SAVED_CARD_GAP) /
     2,
 );
+
+// Where each "Tu constancia hoy" legend row (T26) navigates when tapped —
+// the same destinations a reader would otherwise have to already know how
+// to find (Biblia tab, Memoria, Devoción guiada, ¿Cómo te sientes?).
+function constancyHabitRoute(key: HabitKey): string {
+  switch (key) {
+    case 'reading':
+      return '/(tabs)/bible';
+    case 'memory':
+      return '/features/memory';
+    case 'devotion':
+      return '/features/guided';
+    case 'mood':
+      return '/features/feelings';
+  }
+}
 
 export default function HomeScreen() {
   const router = useRouter();
@@ -1023,8 +1040,9 @@ export default function HomeScreen() {
               )
             }
           />
-          {/* 🕯️ Devotion streak (Sprint 84) — renders nothing until the
-              reader has completed at least one "Momento con Dios". Tapping it
+          {/* 🕯️ Devotion streak (Sprint 84; T26 — shown to brand-new readers
+              too, with an invitation instead of a streak, so devotion is
+              discoverable from Home even before the first one). Tapping it
               opens the guided devotion to continue today. */}
           <DevotionStreakCard
             onPress={() =>
@@ -1045,16 +1063,23 @@ export default function HomeScreen() {
         {/* ==================== TU CONSTANCIA HOY (rings, Sprint 85) ========== */}
         {/* Apple-Watch-style rings composing today's reading, memorization,
             devotion and emotional check-in. Renders nothing until the reader
-            has any footprint in any habit. Tapping opens Mi lectura. The card
-            owns its own top gap so it collapses cleanly when it renders null —
-            an opacity-only wrapper here leaves no phantom space on an empty
-            Home (e.g. a fresh install with no habit footprint yet). */}
+            has any footprint in any habit. Tapping the header/graphic opens
+            Mi lectura (insights); each legend row (T26) opens that habit's
+            own screen instead, so the rings double as a discoverable nav
+            hub for readers who didn't know where reading/memory/devotion/
+            mood live. The card owns its own top gap so it collapses cleanly
+            when it renders null — an opacity-only wrapper here leaves no
+            phantom space on an empty Home (e.g. a fresh install with no
+            habit footprint yet). */}
         <Animated.View style={{opacity: fadeAnim}}>
           <ConstancyRingsCard
             onPress={() =>
               handlePress(() =>
                 router.push('/features/reading-insights' as never),
               )
+            }
+            onHabitPress={(key: HabitKey) =>
+              handlePress(() => router.push(constancyHabitRoute(key) as never))
             }
           />
         </Animated.View>

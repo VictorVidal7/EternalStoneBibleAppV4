@@ -18,6 +18,7 @@ const full = (over: Partial<HabitProgress> & {key: HabitProgress['key']}) => ({
   done: false,
   fraction: 0,
   streak: 0,
+  everDone: false,
   ...over,
 });
 
