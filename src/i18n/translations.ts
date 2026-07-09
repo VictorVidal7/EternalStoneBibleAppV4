@@ -2898,6 +2898,14 @@ export const translations = {
       signedOutToast: 'Sesión cerrada',
       avatarA11y: 'Foto de perfil de {{name}}',
       googleLogoA11y: 'Logo de Google',
+      deleteAccount: 'Eliminar cuenta',
+      deleteAccountConfirmTitle: '¿Eliminar tu cuenta?',
+      deleteAccountConfirmMessage:
+        'Se borrará tu contenido en la nube (favoritos, notas, resaltados, marcadores, tarjetas de memoria e historial de repasos) y se cerrará tu sesión. Tu cuenta de Google no se elimina — solo se desvincula de la app, y podrás volver a iniciar sesión cuando quieras. Esto no se puede deshacer. Los datos que ya están guardados en este dispositivo no se borran — usa "Restablecer datos" en Datos si también quieres eliminarlos.',
+      deleteAccountConfirmCta: 'Eliminar cuenta',
+      deleteAccountSuccessToast: 'Tu cuenta fue eliminada',
+      deleteAccountError:
+        'No se pudo eliminar tu cuenta. Inténtalo de nuevo o escríbenos.',
     },
 
     sync: {
@@ -8207,6 +8215,14 @@ export const translations = {
       signedOutToast: 'Signed out',
       avatarA11y: 'Profile picture of {{name}}',
       googleLogoA11y: 'Google logo',
+      deleteAccount: 'Delete account',
+      deleteAccountConfirmTitle: 'Delete your account?',
+      deleteAccountConfirmMessage:
+        'This deletes your cloud content (favorites, notes, highlights, bookmarks, memory cards, and review history) and signs you out. Your Google account itself is not deleted — it\'s only unlinked from the app, and you can sign back in anytime. This can\'t be undone. Data already saved on this device is not removed — use "Reset data" under Data if you want that too.',
+      deleteAccountConfirmCta: 'Delete account',
+      deleteAccountSuccessToast: 'Your account was deleted',
+      deleteAccountError:
+        'Could not delete your account. Please try again or contact us.',
     },
 
     sync: {

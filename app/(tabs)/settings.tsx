@@ -79,7 +79,7 @@ export default function SettingsScreen() {
   const {preferences: readerPrefs, setKeepScreenAwake} = useReaderPreferences();
   const {reduceMotionOverride, setReduceMotionOverride} =
     useAccessibilityPreferences();
-  const {user, signInWithGoogle, signOut} = useAuth();
+  const {user, signInWithGoogle, signOut, deleteAccount} = useAuth();
   const syncCtx = useSyncEngineOptional();
   const conflicts = useConflicts();
   const toast = useToast();
@@ -91,6 +91,9 @@ export default function SettingsScreen() {
   const pendingImportUriRef = useRef<string | null>(null);
   const [isAuthenticating, setIsAuthenticating] = useState(false);
   const [signOutConfirmVisible, setSignOutConfirmVisible] = useState(false);
+  const [deleteAccountConfirmVisible, setDeleteAccountConfirmVisible] =
+    useState(false);
+  const [isDeletingAccount, setIsDeletingAccount] = useState(false);
   // Dev-only Crashlytics smoke test confirm (see the __DEV__ long-press below).
   const [crashConfirmVisible, setCrashConfirmVisible] = useState(false);
   const scrollViewRef = useRef<ScrollView>(null);
@@ -268,6 +271,28 @@ export default function SettingsScreen() {
         action: 'handleSignOut',
       });
       toast.error(t.auth.signInError);
+    }
+  }
+
+  function handleDeleteAccount() {
+    setDeleteAccountConfirmVisible(true);
+  }
+
+  async function performDeleteAccount() {
+    setDeleteAccountConfirmVisible(false);
+    setIsDeletingAccount(true);
+    try {
+      haptics.press();
+      await deleteAccount();
+      toast.success(t.auth.deleteAccountSuccessToast);
+    } catch (err) {
+      logger.error('Account deletion failed', err as Error, {
+        component: 'SettingsScreen',
+        action: 'handleDeleteAccount',
+      });
+      toast.error(t.auth.deleteAccountError);
+    } finally {
+      setIsDeletingAccount(false);
     }
   }
 
@@ -1053,6 +1078,34 @@ export default function SettingsScreen() {
                     {t.auth.signOut}
                   </Text>
                 </TouchableOpacity>
+                <TouchableOpacity
+                  style={[
+                    themedStyles.signOutButton,
+                    styles.deleteAccountButton,
+                    {borderColor: colors.error},
+                    isDeletingAccount && styles.dimmedWhileBusy,
+                  ]}
+                  onPress={handleDeleteAccount}
+                  disabled={isDeletingAccount}
+                  accessibilityRole="button"
+                  accessibilityLabel={t.auth.deleteAccount}>
+                  {isDeletingAccount ? (
+                    <ActivityIndicator size="small" color={colors.error} />
+                  ) : (
+                    <Ionicons
+                      name="person-remove-outline"
+                      size={20}
+                      color={colors.error}
+                    />
+                  )}
+                  <Text
+                    style={[
+                      themedStyles.signOutButtonText,
+                      {color: colors.error},
+                    ]}>
+                    {t.auth.deleteAccount}
+                  </Text>
+                </TouchableOpacity>
               </>
             ) : (
               <>
@@ -1175,6 +1228,17 @@ export default function SettingsScreen() {
         onCancel={() => setSignOutConfirmVisible(false)}
         destructive
         icon="log-out-outline"
+      />
+      <ConfirmDialog
+        visible={deleteAccountConfirmVisible}
+        title={t.auth.deleteAccountConfirmTitle}
+        message={t.auth.deleteAccountConfirmMessage}
+        confirmLabel={t.auth.deleteAccountConfirmCta}
+        cancelLabel={t.cancel}
+        onConfirm={() => void performDeleteAccount()}
+        onCancel={() => setDeleteAccountConfirmVisible(false)}
+        destructive
+        icon="person-remove-outline"
       />
       {__DEV__ && (
         <ConfirmDialog
@@ -1343,6 +1407,9 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: '600',
     flex: 1,
+  },
+  deleteAccountButton: {
+    marginTop: 10,
   },
 });
 
