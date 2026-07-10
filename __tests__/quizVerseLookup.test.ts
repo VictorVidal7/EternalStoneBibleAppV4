@@ -74,7 +74,10 @@ jest.mock('@/lib/database', () => {
   };
 });
 
-import {resolveVerseForAddCard} from '../src/features/quiz/quizVerseLookup';
+import {
+  resolveVerseForAddCard,
+  refKeyToVerseKey,
+} from '../src/features/quiz/quizVerseLookup';
 
 // Real refKeys copied straight from src/features/quiz/quizBank.ts.
 const REF_KEYS = [
@@ -135,6 +138,27 @@ describe('resolveVerseForAddCard — verbatim embedded-Bible text', () => {
       expect(es!.text).not.toBe(en!.text);
     },
   );
+});
+
+describe('refKeyToVerseKey — same identity resolveVerseForAddCard stores', () => {
+  it.each(REF_KEYS)(
+    '%s produces "EnglishBook/chapter/verse", matching the bookName resolveVerseForAddCard returns',
+    async refKey => {
+      const key = refKeyToVerseKey(refKey);
+      expect(key).not.toBeNull();
+
+      const resolved = await resolveVerseForAddCard(refKey, 'WEB');
+      expect(resolved).not.toBeNull();
+      expect(key).toBe(
+        `${resolved!.bookName}/${resolved!.chapter}/${resolved!.verse}`,
+      );
+    },
+  );
+
+  it('returns null for an unparseable or unknown-book refKey, same as resolveVerseForAddCard', () => {
+    expect(refKeyToVerseKey('not-a-ref')).toBeNull();
+    expect(refKeyToVerseKey('Hesperus/1/1')).toBeNull();
+  });
 });
 
 describe('resolveVerseForAddCard — resolves null cleanly, never throws', () => {

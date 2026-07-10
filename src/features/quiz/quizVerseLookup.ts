@@ -21,6 +21,7 @@
 import {bibleDB} from '@/lib/database';
 import {getBookByName} from '@/constants/bible';
 import {parseChristRef} from '@/features/study/christConnections';
+import {buildVerseKey} from '@/lib/memory/srs';
 
 /**
  * Structurally compatible with MemoryDeckContext's `AddCardInput` (which is not
@@ -33,6 +34,52 @@ export interface ResolvedQuizVerse {
   verse: number;
   text: string;
   version: string;
+}
+
+interface ResolvedRef {
+  bookId: number;
+  bookNameEn: string;
+  chapter: number;
+  verse: number;
+}
+
+/**
+ * Parses a quiz `refKey` down to the book/chapter/verse identity the
+ * memorization deck uses — WITHOUT hitting the DB. Deliberately the ONE place
+ * this parsing happens: both the SRS-reschedule path (`hasCard`/`reviewCard`,
+ * which needs a verseKey synchronously to decide whether a just-answered verse
+ * is already in the deck) and the add-to-deck path below (which additionally
+ * fetches real verse text) go through this, so they can never disagree on the
+ * book-name form — a divergence here would make `hasCard` silently miss a card
+ * that genuinely exists.
+ */
+function resolveRef(refKey: string): ResolvedRef | null {
+  const parsed = parseChristRef(refKey);
+  if (!parsed) return null;
+
+  const book = getBookByName(parsed.book);
+  if (!book) return null;
+
+  return {
+    bookId: book.id,
+    // Canonical English identity → language-independent verseKey, matching
+    // the favorites add-path; display layers re-localize this (see header).
+    bookNameEn: book.nameEn,
+    chapter: parsed.chapter,
+    verse: parsed.verse,
+  };
+}
+
+/**
+ * A quiz `refKey`'s memorization-deck verse key (`buildVerseKey`'s exact
+ * format), or `null` if the refKey doesn't resolve to a known book. Use this —
+ * not a hand-rolled string — anywhere you need to check `hasCard()`/call
+ * `reviewCard()` for a quiz question's verse.
+ */
+export function refKeyToVerseKey(refKey: string): string | null {
+  const resolved = resolveRef(refKey);
+  if (!resolved) return null;
+  return buildVerseKey(resolved.bookNameEn, resolved.chapter, resolved.verse);
 }
 
 /**
@@ -49,11 +96,8 @@ export async function resolveVerseForAddCard(
   refKey: string,
   version: string,
 ): Promise<ResolvedQuizVerse | null> {
-  const parsed = parseChristRef(refKey);
-  if (!parsed) return null;
-
-  const book = getBookByName(parsed.book);
-  if (!book) return null;
+  const resolved = resolveRef(refKey);
+  if (!resolved) return null;
 
   try {
     // On-demand entry point (fired when a quiz answer is wrong), so make sure
@@ -61,19 +105,17 @@ export async function resolveVerseForAddCard(
     // handleListenAll path.
     await bibleDB.initialize();
     const row = await bibleDB.getVerse(
-      book.id,
-      parsed.chapter,
-      parsed.verse,
+      resolved.bookId,
+      resolved.chapter,
+      resolved.verse,
       version,
     );
     if (!row || !row.text) return null;
 
     return {
-      // Canonical English identity → language-independent verseKey, matching
-      // the favorites add-path; display layers re-localize this.
-      bookName: book.nameEn,
-      chapter: parsed.chapter,
-      verse: parsed.verse,
+      bookName: resolved.bookNameEn,
+      chapter: resolved.chapter,
+      verse: resolved.verse,
       text: row.text,
       version,
     };

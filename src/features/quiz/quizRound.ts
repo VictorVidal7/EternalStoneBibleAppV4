@@ -19,6 +19,9 @@ export const QUIZ_ROUND_SIZE = 8;
 /** Every question in the bank has exactly this many options. */
 export const QUIZ_OPTION_COUNT = 4;
 
+/** Premium timed mode (T18b): countdown budget per question, in seconds. */
+export const QUIZ_TIMED_SECONDS_PER_QUESTION = 15;
+
 /**
  * Picks `size` distinct questions for a round, preferring ones not in
  * `exclude` (so consecutive rounds in a session vary instead of repeating).
