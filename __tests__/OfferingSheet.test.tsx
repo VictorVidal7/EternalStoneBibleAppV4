@@ -112,6 +112,9 @@ describe('OfferingSheet', () => {
     expect(getByText('$2.99')).toBeTruthy();
     expect(getByText('$6.99')).toBeTruthy();
     expect(getByText('Sugerido')).toBeTruthy();
+    // The unlocked-extras list is data-driven (t.offering.extras); assert the
+    // first grouped benefit renders so a broken/empty map can't slip through.
+    expect(getByText('Mesa de preparación')).toBeTruthy();
   });
 
   it('shows the thank-you state after a successful purchase', async () => {

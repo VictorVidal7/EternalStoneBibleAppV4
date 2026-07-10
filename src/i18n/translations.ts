@@ -3416,9 +3416,32 @@ export const translations = {
       sheetIntro:
         'Algunos extras de esta app se desbloquean con una ofrenda única y voluntaria — como una ofrenda en la iglesia, no una compra. La Biblia, los planes de lectura, la oración y todo lo demás siguen siendo, y seguirán siendo siempre, completamente gratis.',
       extrasListTitle: 'Esto es lo que se desbloquea:',
-      extraAudio:
-        'Audio avanzado: desplázate libremente por versículo (también en el modo inmersivo), continúa donde lo dejaste, y escucha hasta a 2.5x',
-      extraShareTemplates: 'Plantillas adicionales para compartir versículos',
+      extras: [
+        {
+          title: 'Mesa de preparación',
+          desc: 'Prepara tu estudio o enseñanza: referencias cruzadas ampliadas, palabras clave en los idiomas originales, comparar versiones, exportar a PDF, historial y series.',
+        },
+        {
+          title: 'Idiomas originales',
+          desc: 'Interlineal hebreo y griego, análisis morfológico y definiciones palabra por palabra.',
+        },
+        {
+          title: 'Audio avanzado',
+          desc: 'Desplázate por versículo, continúa donde lo dejaste (también en el modo inmersivo) y escucha hasta a 2.5x.',
+        },
+        {
+          title: 'Memorización',
+          desc: 'Estadísticas completas de tu repaso, retención por libro y tendencia — más el Quiz con categorías, contrarreloj y añadir versículos a tu mazo.',
+        },
+        {
+          title: 'Personalización',
+          desc: 'Temas de lectura y de color exclusivos, y tipografías premium.',
+        },
+        {
+          title: 'Compartir con estilo',
+          desc: 'Plantillas de diseño, texturas y estilos guardados para tus versículos.',
+        },
+      ],
       tierSuggested: 'Sugerido',
       legend:
         'Los montos son fijos por requisitos de la tienda de aplicaciones; cualquiera de ellos desbloquea exactamente lo mismo.\n\nSi deseas dar una cantidad distinta, el apartado de Donación está siempre abierto para sembrar lo que Dios ponga en tu corazón.',
@@ -8769,9 +8792,32 @@ export const translations = {
       sheetIntro:
         'Some extras in this app unlock with a single, voluntary offering — like an offering at church, not a purchase. The Bible, reading plans, prayer, and everything else stay, and will always stay, completely free.',
       extrasListTitle: "Here's what unlocks:",
-      extraAudio:
-        'Advanced audio: scrub freely by verse (in immersive mode too), resume where you left off, and listen at up to 2.5x speed',
-      extraShareTemplates: 'Additional verse-sharing templates',
+      extras: [
+        {
+          title: 'Preparation desk',
+          desc: 'Prepare your study or teaching: expanded cross-references, original-language keywords, version comparison, PDF export, history, and series.',
+        },
+        {
+          title: 'Original languages',
+          desc: 'Hebrew and Greek interlinear, morphological analysis, and word-by-word definitions.',
+        },
+        {
+          title: 'Advanced audio',
+          desc: 'Scrub by verse, resume where you left off (in immersive mode too), and listen at up to 2.5x.',
+        },
+        {
+          title: 'Memorization',
+          desc: 'Full review stats, retention by book and trend — plus the Quiz with categories, timed mode, and add-to-deck.',
+        },
+        {
+          title: 'Personalization',
+          desc: 'Exclusive reading and color themes, and premium typefaces.',
+        },
+        {
+          title: 'Share with style',
+          desc: 'Designer templates, textures, and saved styles for your verses.',
+        },
+      ],
       tierSuggested: 'Suggested',
       legend:
         "The amounts are fixed by app-store requirements; any of them unlocks exactly the same thing.\n\nIf you'd like to give a different amount, the Donation section is always open to sow whatever God places on your heart.",
