@@ -123,12 +123,17 @@ export default function QuizScreen() {
   const currentVerseKey = current
     ? refKeyToVerseKey(current.spec.refKey)
     : null;
+  // Once the user has tapped (pending/added), keep showing the affordance in
+  // its new state — recomputing straight from `hasCard()` would flip this
+  // false the instant `addCard` succeeds (the card is now IN the deck), which
+  // makes the confirmed "Added to your deck" state vanish instead of show.
   const canAddToDeck =
-    isPremium &&
-    !!current &&
-    isAddToDeckEligible(current.spec.type) &&
-    !!currentVerseKey &&
-    !hasCard(currentVerseKey);
+    addToDeckStatus !== 'idle' ||
+    (isPremium &&
+      !!current &&
+      isAddToDeckEligible(current.spec.type) &&
+      !!currentVerseKey &&
+      !hasCard(currentVerseKey));
 
   const headerGradient = (
     gradient?.headerColors
