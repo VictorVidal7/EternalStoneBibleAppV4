@@ -26,6 +26,8 @@ import {
   removePassageFromSeries,
   renameSeries,
   serializePrepSeriesMap,
+  setSeriesPassageDate,
+  setSeriesPassageNote,
 } from './prepSeries';
 
 const PREP_SERIES_KEY = '@prep_series';
@@ -121,6 +123,27 @@ export function movePrepSeriesPassage(
   direction: 'up' | 'down',
 ): Promise<void> {
   return mutate(map => moveSeriesPassage(map, id, passageKey, direction));
+}
+
+/**
+ * Set (or clear, with `date === null`) a passage's target preaching date
+ * ("YYYY-MM-DD"). Fire-and-forget safe.
+ */
+export function setPrepSeriesPassageDate(
+  id: string,
+  passageKey: string,
+  date: string | null,
+): Promise<void> {
+  return mutate(map => setSeriesPassageDate(map, id, passageKey, date));
+}
+
+/** Set (or clear, with '') a passage's short schedule note. Fire-and-forget safe. */
+export function setPrepSeriesPassageNote(
+  id: string,
+  passageKey: string,
+  note: string,
+): Promise<void> {
+  return mutate(map => setSeriesPassageNote(map, id, passageKey, note));
 }
 
 /** Delete a whole series (never touches the passages' own prep notes). */

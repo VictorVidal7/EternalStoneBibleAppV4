@@ -47,11 +47,14 @@ import {
 import {Ionicons} from '@expo/vector-icons';
 import {LinearGradient} from 'expo-linear-gradient';
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
+import * as Print from 'expo-print';
+import * as Sharing from 'expo-sharing';
 import {useTheme} from '@hooks/useTheme';
 import {centeredMaxWidth} from '@/styles/responsive';
 import {useLanguage} from '@hooks/useLanguage';
 import {useBibleVersion} from '@hooks/useBibleVersion';
 import {haptics} from '@lib/haptics';
+import {logger} from '@lib/utils/logger';
 import {usePremium} from '@context/PremiumContext';
 import {useOfferingSheet} from '@context/OfferingSheetContext';
 import {focusTrapProps} from '@lib/a11y/focusTrap';
@@ -62,6 +65,7 @@ import {
   addPrepSeriesPassage,
   removePrepSeriesPassage,
   movePrepSeriesPassage,
+  setPrepSeriesPassageDate,
   deletePrepSeries,
 } from '@/features/study/prepSeriesStore';
 import {getAllPrepNotes} from '@/features/study/prepNotesStore';
@@ -69,8 +73,12 @@ import {
   canAddPassage,
   computeSeriesProgress,
   passageKeyFromReference,
+  passagesSortedByDate,
+  seriesPassages,
   type PrepSeries,
 } from '@/features/study/prepSeries';
+import {assembleSeriesExportInput} from '@/features/study/prepSeriesExport';
+import {buildSeriesHtml} from '@/features/study/prepPdf';
 import {isPrepNotesEmpty} from '@/features/study/prepNotes';
 import type {PrepNotesMap} from '@/features/study/prepNotes';
 import {parsePassageKey} from '@/features/study/prepHistory';
@@ -83,6 +91,60 @@ import {
 } from '@/styles/designTokens';
 
 type Status = 'loading' | 'ready' | 'notFound';
+
+const MONTH_ABBR: Record<'es' | 'en', readonly string[]> = {
+  es: [
+    'ene',
+    'feb',
+    'mar',
+    'abr',
+    'may',
+    'jun',
+    'jul',
+    'ago',
+    'sep',
+    'oct',
+    'nov',
+    'dic',
+  ],
+  en: [
+    'Jan',
+    'Feb',
+    'Mar',
+    'Apr',
+    'May',
+    'Jun',
+    'Jul',
+    'Aug',
+    'Sep',
+    'Oct',
+    'Nov',
+    'Dec',
+  ],
+};
+
+/** Format a "YYYY-MM-DD" key into a short human label ("12 jul 2026"). */
+function formatDateLabel(dateKey: string, lang: 'es' | 'en'): string {
+  const [y, m, d] = dateKey.split('-').map(Number);
+  if (!y || !m || !d) return dateKey;
+  return `${d} ${MONTH_ABBR[lang][m - 1]} ${y}`;
+}
+
+/** Local "YYYY-MM-DD" for a Date (device-local, never UTC, so the day matches). */
+function toDateKey(d: Date): string {
+  const m = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  return `${d.getFullYear()}-${m}-${day}`;
+}
+
+/** The Nth upcoming Sunday from today (0 = this coming Sunday, today if Sunday). */
+function upcomingSundayKey(weeksAhead: number): string {
+  const now = new Date();
+  const d = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  const toSunday = (7 - d.getDay()) % 7;
+  d.setDate(d.getDate() + toSunday + weeksAhead * 7);
+  return toDateKey(d);
+}
 
 export default function PrepSeriesDetailScreen() {
   const router = useRouter();
@@ -106,6 +168,13 @@ export default function PrepSeriesDetailScreen() {
   const [renaming, setRenaming] = useState(false);
   const [nameDraft, setNameDraft] = useState('');
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
+  const [viewByDate, setViewByDate] = useState(false);
+  const [dateModalKey, setDateModalKey] = useState<string | null>(null);
+  const [exporting, setExporting] = useState(false);
+  const [exportProgress, setExportProgress] = useState<{
+    done: number;
+    total: number;
+  } | null>(null);
 
   const load = useCallback(async () => {
     if (!id) {
@@ -221,6 +290,64 @@ export default function PrepSeriesDetailScreen() {
     router.back();
   }, [series, router]);
 
+  const handleOpenDateModal = useCallback((key: string) => {
+    haptics.tap();
+    setDateModalKey(key);
+  }, []);
+
+  const handlePickDate = useCallback(
+    async (date: string | null) => {
+      if (!series || !dateModalKey) return;
+      haptics.tap();
+      await setPrepSeriesPassageDate(series.id, dateModalKey, date);
+      setDateModalKey(null);
+      await load();
+    },
+    [series, dateModalKey, load],
+  );
+
+  const handleExportSeries = useCallback(async () => {
+    if (!series || series.passageKeys.length === 0 || exporting) return;
+    haptics.tap();
+    setExporting(true);
+    setExportProgress({done: 0, total: series.passageKeys.length});
+    try {
+      const order = viewByDate
+        ? passagesSortedByDate(series)
+        : seriesPassages(series);
+      const input = await assembleSeriesExportInput(series, {
+        version: selectedVersion.id,
+        guardrail: t.prepTable.guardrail,
+        generatedWith: t.prepTable.title,
+        dateLabelFor: d => formatDateLabel(d, bookLang),
+        order,
+        onProgress: (done, total) => setExportProgress({done, total}),
+      });
+      if (!input) return;
+      const html = buildSeriesHtml(input);
+      const {uri} = await Print.printToFileAsync({html, base64: false});
+      if (await Sharing.isAvailableAsync()) {
+        await Sharing.shareAsync(uri, {
+          mimeType: 'application/pdf',
+          dialogTitle: h.exportDialogTitle,
+          UTI: 'com.adobe.pdf',
+        });
+      }
+    } catch (err) {
+      logger.warn('Prep series export failed', {error: String(err)});
+    } finally {
+      setExporting(false);
+      setExportProgress(null);
+    }
+  }, [series, viewByDate, exporting, selectedVersion, t, h, bookLang]);
+
+  const orderedKeys = useMemo(() => {
+    if (!series) return [];
+    return viewByDate
+      ? passagesSortedByDate(series).map(p => p.key)
+      : series.passageKeys;
+  }, [series, viewByDate]);
+
   const headerGradient: [string, string] = [colors.primary, colors.primaryDark];
 
   return (
@@ -246,6 +373,28 @@ export default function PrepSeriesDetailScreen() {
             </TouchableOpacity>
             {isPremium && series && (
               <View style={styles.headerActions}>
+                {series.passageKeys.length > 0 && (
+                  <TouchableOpacity
+                    style={styles.headerActionButton}
+                    onPress={handleExportSeries}
+                    disabled={exporting}
+                    accessibilityRole="button"
+                    accessibilityState={{disabled: exporting}}
+                    accessibilityLabel={h.exportSeries}>
+                    {exporting ? (
+                      <ActivityIndicator
+                        size="small"
+                        color={staticColors.white}
+                      />
+                    ) : (
+                      <Ionicons
+                        name="share-outline"
+                        size={20}
+                        color={staticColors.white}
+                      />
+                    )}
+                  </TouchableOpacity>
+                )}
                 <TouchableOpacity
                   style={styles.headerActionButton}
                   onPress={handleOpenRename}
@@ -282,7 +431,13 @@ export default function PrepSeriesDetailScreen() {
                 numberOfLines={2}>
                 {series ? series.name : h.title}
               </AppText>
-              {progress && (
+              {exportProgress ? (
+                <AppText scaleRole="compact" style={styles.headerSubtitle}>
+                  {h.exportGenerating
+                    .replace('{{done}}', String(exportProgress.done))
+                    .replace('{{total}}', String(exportProgress.total))}
+                </AppText>
+              ) : progress ? (
                 <AppText scaleRole="compact" style={styles.headerSubtitle}>
                   {progress.total === 0
                     ? h.progressEmpty
@@ -290,7 +445,7 @@ export default function PrepSeriesDetailScreen() {
                         .replace('{{started}}', String(progress.started))
                         .replace('{{total}}', String(progress.total))}
                 </AppText>
-              )}
+              ) : null}
             </View>
           </View>
         </LinearGradient>
@@ -384,18 +539,79 @@ export default function PrepSeriesDetailScreen() {
               )}
             </View>
 
+            {series.passageKeys.length > 1 && (
+              <View style={[styles.viewToggleRow, centeredMaxWidth()]}>
+                <TouchableOpacity
+                  style={[
+                    styles.viewToggleChip,
+                    {borderColor: colors.border},
+                    !viewByDate && {
+                      backgroundColor: colors.primary,
+                      borderColor: colors.primary,
+                    },
+                  ]}
+                  onPress={() => setViewByDate(false)}
+                  accessibilityRole="button"
+                  accessibilityState={{selected: !viewByDate}}
+                  accessibilityLabel={h.viewManual}>
+                  <Text
+                    style={[
+                      styles.viewToggleText,
+                      {
+                        color: !viewByDate
+                          ? staticColors.white
+                          : colors.textSecondary,
+                      },
+                    ]}>
+                    {h.viewManual}
+                  </Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={[
+                    styles.viewToggleChip,
+                    {borderColor: colors.border},
+                    viewByDate && {
+                      backgroundColor: colors.primary,
+                      borderColor: colors.primary,
+                    },
+                  ]}
+                  onPress={() => setViewByDate(true)}
+                  accessibilityRole="button"
+                  accessibilityState={{selected: viewByDate}}
+                  accessibilityLabel={h.viewByDate}>
+                  <Text
+                    style={[
+                      styles.viewToggleText,
+                      {
+                        color: viewByDate
+                          ? staticColors.white
+                          : colors.textSecondary,
+                      },
+                    ]}>
+                    {h.viewByDate}
+                  </Text>
+                </TouchableOpacity>
+              </View>
+            )}
+
             <FlatList
-              data={series.passageKeys}
+              data={orderedKeys}
               keyExtractor={key => key}
               contentContainerStyle={[styles.listContent, centeredMaxWidth()]}
-              renderItem={({item: key, index}) => {
+              renderItem={({item: key}) => {
                 const parsed = parsePassageKey(key);
                 const label = parsed
                   ? formatPassageLabel(parsed, bookLang)
                   : key;
                 const started = !isPrepNotesEmpty(notesMap[key]);
-                const canMoveUp = index > 0;
-                const canMoveDown = index < series.passageKeys.length - 1;
+                // Reorder always operates on the MANUAL order, even while the
+                // list is shown sorted by date — so use the manual index.
+                const manualIndex = series.passageKeys.indexOf(key);
+                const canMoveUp = manualIndex > 0;
+                const canMoveDown =
+                  manualIndex >= 0 &&
+                  manualIndex < series.passageKeys.length - 1;
+                const date = series.schedule?.[key]?.date;
                 return (
                   <View
                     style={[
@@ -431,37 +647,77 @@ export default function PrepSeriesDetailScreen() {
                           ]}>
                           {started ? h.passageStarted : h.passageNotStarted}
                         </Text>
+                        <TouchableOpacity
+                          style={[
+                            styles.datePill,
+                            {
+                              borderColor: date
+                                ? colors.primary
+                                : colors.border,
+                            },
+                          ]}
+                          onPress={() => handleOpenDateModal(key)}
+                          accessibilityRole="button"
+                          accessibilityLabel={
+                            date
+                              ? `${h.dateModalTitle}: ${formatDateLabel(date, bookLang)}`
+                              : h.noDate
+                          }>
+                          <Ionicons
+                            name="calendar-outline"
+                            size={12}
+                            color={date ? colors.primary : colors.textTertiary}
+                          />
+                          <Text
+                            style={[
+                              styles.datePillText,
+                              {
+                                color: date
+                                  ? colors.primary
+                                  : colors.textTertiary,
+                              },
+                            ]}
+                            numberOfLines={1}>
+                            {date ? formatDateLabel(date, bookLang) : h.noDate}
+                          </Text>
+                        </TouchableOpacity>
                       </View>
                     </TouchableOpacity>
                     <View style={styles.rowActions}>
-                      <TouchableOpacity
-                        style={styles.rowActionButton}
-                        onPress={() => handleMovePassage(key, 'up')}
-                        accessibilityRole="button"
-                        accessibilityLabel={h.moveUp}
-                        accessibilityState={{disabled: !canMoveUp}}>
-                        <Ionicons
-                          name="chevron-up"
-                          size={18}
-                          color={
-                            canMoveUp ? colors.textSecondary : colors.border
-                          }
-                        />
-                      </TouchableOpacity>
-                      <TouchableOpacity
-                        style={styles.rowActionButton}
-                        onPress={() => handleMovePassage(key, 'down')}
-                        accessibilityRole="button"
-                        accessibilityLabel={h.moveDown}
-                        accessibilityState={{disabled: !canMoveDown}}>
-                        <Ionicons
-                          name="chevron-down"
-                          size={18}
-                          color={
-                            canMoveDown ? colors.textSecondary : colors.border
-                          }
-                        />
-                      </TouchableOpacity>
+                      {!viewByDate && (
+                        <>
+                          <TouchableOpacity
+                            style={styles.rowActionButton}
+                            onPress={() => handleMovePassage(key, 'up')}
+                            accessibilityRole="button"
+                            accessibilityLabel={h.moveUp}
+                            accessibilityState={{disabled: !canMoveUp}}>
+                            <Ionicons
+                              name="chevron-up"
+                              size={18}
+                              color={
+                                canMoveUp ? colors.textSecondary : colors.border
+                              }
+                            />
+                          </TouchableOpacity>
+                          <TouchableOpacity
+                            style={styles.rowActionButton}
+                            onPress={() => handleMovePassage(key, 'down')}
+                            accessibilityRole="button"
+                            accessibilityLabel={h.moveDown}
+                            accessibilityState={{disabled: !canMoveDown}}>
+                            <Ionicons
+                              name="chevron-down"
+                              size={18}
+                              color={
+                                canMoveDown
+                                  ? colors.textSecondary
+                                  : colors.border
+                              }
+                            />
+                          </TouchableOpacity>
+                        </>
+                      )}
                       <TouchableOpacity
                         style={styles.rowActionButton}
                         onPress={() => handleRemovePassage(key)}
@@ -558,6 +814,74 @@ export default function PrepSeriesDetailScreen() {
                       {color: staticColors.white},
                     ]}>
                     {t.save}
+                  </Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+          </View>
+        </Modal>
+
+        <Modal
+          visible={dateModalKey !== null}
+          transparent
+          animationType="fade"
+          onRequestClose={() => setDateModalKey(null)}>
+          <View
+            style={[styles.modalOverlay, {backgroundColor: colors.overlay}]}>
+            <View
+              style={[styles.modalCard, {backgroundColor: colors.surface}]}
+              {...focusTrapProps()}>
+              <Text style={[styles.modalTitle, {color: colors.text}]}>
+                {h.dateModalTitle}
+              </Text>
+              <View style={styles.dateChipsWrap}>
+                {[
+                  {label: h.dateThisSunday, weeks: 0},
+                  {label: h.dateNextSunday, weeks: 1},
+                  {label: h.dateIn2Weeks, weeks: 2},
+                  {label: h.dateIn3Weeks, weeks: 3},
+                ].map(pick => (
+                  <TouchableOpacity
+                    key={pick.weeks}
+                    style={[
+                      styles.dateChip,
+                      {
+                        borderColor: colors.border,
+                        backgroundColor: colors.card,
+                      },
+                    ]}
+                    onPress={() =>
+                      handlePickDate(upcomingSundayKey(pick.weeks))
+                    }
+                    accessibilityRole="button"
+                    accessibilityLabel={pick.label}>
+                    <Text style={[styles.dateChipText, {color: colors.text}]}>
+                      {pick.label}
+                    </Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
+              <View style={styles.modalActions}>
+                <TouchableOpacity
+                  style={[styles.modalButton, {borderColor: colors.border}]}
+                  onPress={() => setDateModalKey(null)}
+                  accessibilityRole="button"
+                  accessibilityLabel={t.cancel}>
+                  <Text
+                    style={[
+                      styles.modalButtonText,
+                      {color: colors.textSecondary},
+                    ]}>
+                    {t.cancel}
+                  </Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={[styles.modalButton, {borderColor: colors.border}]}
+                  onPress={() => handlePickDate(null)}
+                  accessibilityRole="button"
+                  accessibilityLabel={h.clearDate}>
+                  <Text style={[styles.modalButtonText, {color: colors.error}]}>
+                    {h.clearDate}
                   </Text>
                 </TouchableOpacity>
               </View>
@@ -762,4 +1086,39 @@ const styles = StyleSheet.create({
   },
   modalButtonDisabled: {opacity: 0.5},
   modalButtonText: {fontWeight: '700', fontSize: fontSizes.md},
+  viewToggleRow: {
+    flexDirection: 'row',
+    gap: spacing.xs,
+    paddingHorizontal: spacing.lg,
+    paddingTop: spacing.md,
+  },
+  viewToggleChip: {
+    flex: 1,
+    borderWidth: StyleSheet.hairlineWidth,
+    borderRadius: borderRadius.full,
+    paddingVertical: spacing.xs,
+    alignItems: 'center',
+  },
+  viewToggleText: {fontSize: fontSizes.sm, fontWeight: '600'},
+  datePill: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 3,
+    borderWidth: StyleSheet.hairlineWidth,
+    borderRadius: borderRadius.full,
+    paddingHorizontal: spacing.xs,
+    paddingVertical: 2,
+    marginLeft: spacing.xs,
+    maxWidth: 140,
+  },
+  datePillText: {fontSize: fontSizes.xs, fontWeight: '600'},
+  dateChipsWrap: {gap: spacing.sm, marginBottom: spacing.lg},
+  dateChip: {
+    borderWidth: StyleSheet.hairlineWidth,
+    borderRadius: borderRadius.md,
+    paddingVertical: spacing.md,
+    paddingHorizontal: spacing.md,
+    alignItems: 'center',
+  },
+  dateChipText: {fontSize: fontSizes.md, fontWeight: '600'},
 });

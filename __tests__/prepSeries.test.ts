@@ -8,6 +8,7 @@ import {
   MAX_PASSAGES_PER_SERIES,
   MAX_SERIES,
   MAX_SERIES_NAME_LENGTH,
+  MAX_SERIES_PASSAGE_NOTE_LENGTH,
   addPassageToSeries,
   canAddPassage,
   canCreateSeries,
@@ -16,13 +17,18 @@ import {
   deleteSeries,
   emptySeriesMap,
   generateSeriesId,
+  isValidDateKey,
   listSeries,
   moveSeriesPassage,
   parsePrepSeriesMap,
   passageKeyFromReference,
+  passagesSortedByDate,
   removePassageFromSeries,
   renameSeries,
   serializePrepSeriesMap,
+  seriesPassages,
+  setSeriesPassageDate,
+  setSeriesPassageNote,
   type PrepSeries,
   type PrepSeriesMap,
 } from '../src/features/study/prepSeries';
@@ -445,5 +451,203 @@ describe('passageKeyFromReference', () => {
 
   it('returns null for an empty string', () => {
     expect(passageKeyFromReference('')).toBeNull();
+  });
+});
+
+describe('isValidDateKey', () => {
+  it('accepts a real calendar date', () => {
+    expect(isValidDateKey('2026-07-12')).toBe(true);
+  });
+
+  it('rejects a rolled-over / impossible date', () => {
+    expect(isValidDateKey('2026-13-40')).toBe(false);
+    expect(isValidDateKey('2026-02-30')).toBe(false);
+  });
+
+  it('rejects a malformed format', () => {
+    expect(isValidDateKey('2026-7-12')).toBe(false);
+    expect(isValidDateKey('07/12/2026')).toBe(false);
+    expect(isValidDateKey('2026-07')).toBe(false);
+  });
+
+  it('rejects non-strings', () => {
+    expect(isValidDateKey(20260712)).toBe(false);
+    expect(isValidDateKey(null)).toBe(false);
+    expect(isValidDateKey(undefined)).toBe(false);
+  });
+});
+
+describe('setSeriesPassageDate / setSeriesPassageNote', () => {
+  const base = (): PrepSeriesMap => ({
+    id1: series({
+      id: 'id1',
+      passageKeys: ['John/1/1', 'John/3/16'],
+      updatedAt: 1,
+    }),
+  });
+
+  it('sets a date on a passage and bumps updatedAt', () => {
+    const next = setSeriesPassageDate(
+      base(),
+      'id1',
+      'John/3/16',
+      '2026-07-12',
+      99,
+    );
+    expect(next.id1.schedule).toEqual({'John/3/16': {date: '2026-07-12'}});
+    expect(next.id1.updatedAt).toBe(99);
+  });
+
+  it('clears a date with null and drops an otherwise-empty entry', () => {
+    const withDate = setSeriesPassageDate(
+      base(),
+      'id1',
+      'John/3/16',
+      '2026-07-12',
+      2,
+    );
+    const cleared = setSeriesPassageDate(withDate, 'id1', 'John/3/16', null, 3);
+    expect(cleared.id1.schedule).toEqual({});
+  });
+
+  it('keeps the note when only the date is cleared', () => {
+    let map = setSeriesPassageDate(base(), 'id1', 'John/3/16', '2026-07-12', 2);
+    map = setSeriesPassageNote(map, 'id1', 'John/3/16', 'Bautismos después', 3);
+    map = setSeriesPassageDate(map, 'id1', 'John/3/16', null, 4);
+    expect(map.id1.schedule).toEqual({
+      'John/3/16': {note: 'Bautismos después'},
+    });
+  });
+
+  it('is a no-op for an invalid date string', () => {
+    const map = base();
+    expect(setSeriesPassageDate(map, 'id1', 'John/3/16', '2026-13-40')).toBe(
+      map,
+    );
+  });
+
+  it('is a no-op for a passage not in the series or an unknown series', () => {
+    const map = base();
+    expect(setSeriesPassageDate(map, 'id1', 'Mark/1/1', '2026-07-12')).toBe(
+      map,
+    );
+    expect(setSeriesPassageDate(map, 'nope', 'John/1/1', '2026-07-12')).toBe(
+      map,
+    );
+    expect(setSeriesPassageNote(map, 'id1', 'Mark/1/1', 'x')).toBe(map);
+  });
+
+  it('clamps a note to MAX_SERIES_PASSAGE_NOTE_LENGTH and trims it', () => {
+    const long = 'x'.repeat(MAX_SERIES_PASSAGE_NOTE_LENGTH + 50);
+    const next = setSeriesPassageNote(base(), 'id1', 'John/1/1', `  ${long}  `);
+    expect(next.id1.schedule!['John/1/1'].note).toHaveLength(
+      MAX_SERIES_PASSAGE_NOTE_LENGTH,
+    );
+  });
+
+  it('clears a note with an empty string', () => {
+    const withNote = setSeriesPassageNote(base(), 'id1', 'John/1/1', 'temp', 2);
+    const cleared = setSeriesPassageNote(withNote, 'id1', 'John/1/1', '   ', 3);
+    expect(cleared.id1.schedule).toEqual({});
+  });
+});
+
+describe('seriesPassages / passagesSortedByDate', () => {
+  const scheduled = (): PrepSeries =>
+    series({
+      passageKeys: ['A/1/1', 'B/1/1', 'C/1/1', 'D/1/1'],
+      schedule: {
+        'A/1/1': {date: '2026-08-02'},
+        'C/1/1': {date: '2026-07-19', note: 'Comunión'},
+      },
+    });
+
+  it('lists passages in manual order with schedule merged', () => {
+    expect(seriesPassages(scheduled())).toEqual([
+      {key: 'A/1/1', date: '2026-08-02'},
+      {key: 'B/1/1'},
+      {key: 'C/1/1', date: '2026-07-19', note: 'Comunión'},
+      {key: 'D/1/1'},
+    ]);
+  });
+
+  it('sorts dated passages ascending, undated trailing in manual order', () => {
+    expect(passagesSortedByDate(scheduled()).map(p => p.key)).toEqual([
+      'C/1/1', // 07-19
+      'A/1/1', // 08-02
+      'B/1/1', // undated, manual order
+      'D/1/1',
+    ]);
+  });
+
+  it('does not mutate the series', () => {
+    const s = scheduled();
+    const before = [...s.passageKeys];
+    passagesSortedByDate(s);
+    expect(s.passageKeys).toEqual(before);
+  });
+});
+
+describe('removePassageFromSeries schedule pruning', () => {
+  it('drops the removed passage schedule entry', () => {
+    const map: PrepSeriesMap = {
+      id1: series({
+        id: 'id1',
+        passageKeys: ['John/1/1', 'John/3/16'],
+        schedule: {'John/3/16': {date: '2026-07-12'}},
+      }),
+    };
+    const next = removePassageFromSeries(map, 'id1', 'John/3/16');
+    expect(next.id1.passageKeys).toEqual(['John/1/1']);
+    expect(next.id1.schedule).toEqual({});
+  });
+});
+
+describe('parsePrepSeriesMap schedule tolerance', () => {
+  it('reads a legacy blob (no schedule field) as unscheduled', () => {
+    const raw = JSON.stringify({
+      id1: {
+        id: 'id1',
+        name: 'Legacy',
+        passageKeys: ['John/3/16'],
+        createdAt: 1,
+        updatedAt: 1,
+      },
+    });
+    const parsed = parsePrepSeriesMap(raw).id1;
+    expect(parsed.passageKeys).toEqual(['John/3/16']);
+    expect(parsed.schedule).toBeUndefined();
+  });
+
+  it('round-trips a scheduled series', () => {
+    const map: PrepSeriesMap = {
+      id1: series({
+        id: 'id1',
+        passageKeys: ['John/3/16'],
+        schedule: {'John/3/16': {date: '2026-07-12', note: 'Nota'}},
+      }),
+    };
+    const parsed = parsePrepSeriesMap(serializePrepSeriesMap(map));
+    expect(parsed.id1.schedule).toEqual({
+      'John/3/16': {date: '2026-07-12', note: 'Nota'},
+    });
+  });
+
+  it('drops schedule entries for passages not in the series and invalid dates', () => {
+    const raw = JSON.stringify({
+      id1: {
+        id: 'id1',
+        name: 'X',
+        passageKeys: ['John/3/16'],
+        schedule: {
+          'John/3/16': {date: 'not-a-date', note: 'kept'},
+          'Mark/1/1': {date: '2026-07-12'}, // not in passageKeys
+        },
+        createdAt: 1,
+        updatedAt: 1,
+      },
+    });
+    const parsed = parsePrepSeriesMap(raw).id1;
+    expect(parsed.schedule).toEqual({'John/3/16': {note: 'kept'}});
   });
 });
