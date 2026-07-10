@@ -11,7 +11,7 @@
  */
 
 import {shuffle} from '../study/propheticQuiz';
-import {QUIZ_BANK, type QuizQuestionSpec} from './quizBank';
+import {QUIZ_BANK, type QuizCategory, type QuizQuestionSpec} from './quizBank';
 
 /** How many questions make up one round. */
 export const QUIZ_ROUND_SIZE = 8;
@@ -24,15 +24,26 @@ export const QUIZ_OPTION_COUNT = 4;
  * `exclude` (so consecutive rounds in a session vary instead of repeating).
  * Falls back to the full bank once fewer than `size` entries remain unseen,
  * so a round is always fully sized. Pure; `rng` is injectable.
+ *
+ * When `category` is given (premium "mazos por libro", T18b), the bank is
+ * filtered to that category FIRST — so exclude/shuffle/fallback and the
+ * `Math.min(size, …)` sizing all operate within the deck (a deck smaller than
+ * `size` yields a shorter round rather than borrowing from other categories).
+ * Omitting `category` (or passing `undefined`) is byte-for-byte the original
+ * behavior: the same QUIZ_BANK reference flows through the same steps.
  */
 export function pickQuizRound(
   size: number = QUIZ_ROUND_SIZE,
   exclude: ReadonlySet<string> = new Set(),
   rng: () => number = Math.random,
+  category?: QuizCategory,
 ): QuizQuestionSpec[] {
-  const n = Math.min(size, QUIZ_BANK.length);
-  const fresh = QUIZ_BANK.filter(q => !exclude.has(q.id));
-  const pool = fresh.length >= n ? fresh : QUIZ_BANK;
+  const bank = category
+    ? QUIZ_BANK.filter(q => q.category === category)
+    : QUIZ_BANK;
+  const n = Math.min(size, bank.length);
+  const fresh = bank.filter(q => !exclude.has(q.id));
+  const pool = fresh.length >= n ? fresh : bank;
   return shuffle(pool, rng).slice(0, n);
 }
 
