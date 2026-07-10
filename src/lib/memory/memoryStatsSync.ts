@@ -37,8 +37,19 @@ import {
 
 /** Device-level, one-time restore floor. Not uid-scoped — the local review
  *  log it substitutes for isn't either (both are device data, shared across
- *  accounts on the same device, and never cleared on sign-out). */
+ *  accounts on the same device). Cleared via `clearMemoryStatsFloor`, called
+ *  from `AuthContext`'s `signOut`/`deleteAccount` (an explicit user action,
+ *  deliberately NOT a reactive effect watching auth state — that raced with
+ *  ordinary cold-start Auth rehydration and wiped+silently-re-seeded the
+ *  floor on every launch, confirmed live 2026-07-09) so a second account on
+ *  a shared device never inherits the first account's restored aggregate. */
 const FLOOR_KEY = '@memory_stats_floor';
+
+/** Set alongside the floor when it's freshly seeded; cleared once the
+ *  restore banner has been shown+dismissed (or the floor itself is cleared
+ *  on sign-out). Drives a one-time "we restored your progress" notice,
+ *  never a per-session nag. */
+const RESTORE_BANNER_KEY = '@memory_stats_floor_banner_pending';
 
 /** Session guard so app-background writes stay cheap (skip when unchanged). */
 let lastWrittenSignature: string | null = null;
@@ -86,6 +97,7 @@ export async function seedMemoryStatsFloorIfFresh(uid: string): Promise<void> {
     const floor = coerceMemoryStatsSummary(snap.data());
     if (!floor) return;
     await AsyncStorage.setItem(FLOOR_KEY, JSON.stringify(floor));
+    await AsyncStorage.setItem(RESTORE_BANNER_KEY, '1');
     logger.info('memoryStatsSync: seeded restore floor on fresh device', {
       component: 'memory/memoryStatsSync',
       uid,
@@ -134,6 +146,42 @@ export async function maybeWriteMemoryStatsSummary(): Promise<void> {
     logger.warn('memoryStatsSync: maybeWriteMemoryStatsSummary failed', {
       component: 'memory/memoryStatsSync',
       uid,
+      error: err instanceof Error ? err.message : String(err),
+    });
+  }
+}
+
+/** True once, right after a fresh-device floor seed, until dismissed. Drives
+ *  the one-time "we restored your progress" notice on the insights screen. */
+export async function shouldShowRestoreBanner(): Promise<boolean> {
+  try {
+    return (await AsyncStorage.getItem(RESTORE_BANNER_KEY)) != null;
+  } catch {
+    return false;
+  }
+}
+
+/** Mark the restore banner seen so it never shows again for this floor. */
+export async function dismissRestoreBanner(): Promise<void> {
+  try {
+    await AsyncStorage.removeItem(RESTORE_BANNER_KEY);
+  } catch {
+    // best-effort — worst case the banner reappears once more.
+  }
+}
+
+/** Clears the device-level restore floor (and its pending-banner flag) on
+ *  sign-out, so a second account signing into a shared device never inherits
+ *  the first account's restored streak/heatmap/retention. Does NOT touch the
+ *  local review-event log or any other local data — only this cross-device
+ *  continuity aid, which is safe to lose (it just re-seeds from the cloud on
+ *  the next real sign-in, same as a genuinely fresh device). */
+export async function clearMemoryStatsFloor(): Promise<void> {
+  try {
+    await AsyncStorage.multiRemove([FLOOR_KEY, RESTORE_BANNER_KEY]);
+  } catch (err) {
+    logger.warn('memoryStatsSync: clearMemoryStatsFloor failed', {
+      component: 'memory/memoryStatsSync',
       error: err instanceof Error ? err.message : String(err),
     });
   }

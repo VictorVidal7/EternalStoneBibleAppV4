@@ -21,7 +21,11 @@ import {
   type ReviewHistory,
 } from '@lib/memory/history';
 import {getAllReviewEvents} from '@lib/memory/reviewEventStore';
-import {getMemoryStatsFloor} from '@lib/memory/memoryStatsSync';
+import {
+  getMemoryStatsFloor,
+  shouldShowRestoreBanner,
+  dismissRestoreBanner as dismissRestoreBannerFlag,
+} from '@lib/memory/memoryStatsSync';
 import type {ReviewEvent} from '@lib/memory/reviewEvents';
 import type {MemoryCard} from '@lib/memory/srs';
 import type {MemoryStatsSummary} from '@lib/memory/memoryStats';
@@ -58,6 +62,11 @@ export interface MemoryGoalState {
   setGoal: (goal: number) => Promise<void>;
   /** Mark the current milestone celebrated so it never re-fires. */
   dismissMilestone: () => void;
+  /** True right after a fresh-device restore floor was seeded, until
+   *  dismissed — drives the one-time "we restored your progress" notice. */
+  showRestoreBanner: boolean;
+  /** Mark the restore banner seen so it never shows again for this floor. */
+  dismissRestoreBanner: () => void;
 }
 
 /**
@@ -71,6 +80,7 @@ export function useMemoryGoal(cards?: MemoryCard[]): MemoryGoalState {
   const [goalValue, setGoalValue] = useState<number>(DEFAULT_DAILY_GOAL);
   const [celebrated, setCelebrated] = useState<string[]>([]);
   const [loaded, setLoaded] = useState(false);
+  const [showRestoreBanner, setShowRestoreBanner] = useState(false);
   // Re-captured on every (re)load so "today" stays current across days.
   const [now, setNow] = useState<Date>(() => new Date());
 
@@ -80,7 +90,7 @@ export function useMemoryGoal(cards?: MemoryCard[]): MemoryGoalState {
     useCallback(() => {
       let active = true;
       (async () => {
-        const [ev, fl, g, c] = await Promise.all([
+        const [ev, fl, g, c, showBanner] = await Promise.all([
           getAllReviewEvents(),
           // Local-first quota feature — the restore floor keeps streak /
           // heatmap / retention alive on a fresh device until real local
@@ -88,12 +98,14 @@ export function useMemoryGoal(cards?: MemoryCard[]): MemoryGoalState {
           getMemoryStatsFloor(),
           getDailyGoal(),
           getCelebratedMilestones(),
+          shouldShowRestoreBanner(),
         ]);
         if (!active) return;
         setEvents(ev);
         setFloor(fl);
         setGoalValue(g);
         setCelebrated(c);
+        setShowRestoreBanner(showBanner);
         setNow(new Date());
         setLoaded(true);
       })();
@@ -129,5 +141,20 @@ export function useMemoryGoal(cards?: MemoryCard[]): MemoryGoalState {
     void addCelebratedMilestones(keys);
   }, [milestone, history.summary]);
 
-  return {loaded, events, history, goal, milestone, setGoal, dismissMilestone};
+  const dismissRestoreBanner = useCallback(() => {
+    setShowRestoreBanner(false);
+    void dismissRestoreBannerFlag();
+  }, []);
+
+  return {
+    loaded,
+    events,
+    history,
+    goal,
+    milestone,
+    setGoal,
+    dismissMilestone,
+    showRestoreBanner,
+    dismissRestoreBanner,
+  };
 }

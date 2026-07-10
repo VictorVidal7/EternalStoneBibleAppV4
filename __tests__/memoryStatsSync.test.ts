@@ -40,12 +40,16 @@ import {
   getMemoryStatsFloor,
   maybeWriteMemoryStatsSummary,
   seedMemoryStatsFloorIfFresh,
+  shouldShowRestoreBanner,
+  dismissRestoreBanner,
+  clearMemoryStatsFloor,
   __resetMemoryStatsSessionForTests,
 } from '../src/lib/memory/memoryStatsSync';
 import {setSyncEngine} from '../src/lib/sync';
 import {__resetFirestoreCacheForTests} from '../src/lib/sync/firestore';
 
 const FLOOR_KEY = '@memory_stats_floor';
+const BANNER_KEY = '@memory_stats_floor_banner_pending';
 
 function mkEvent(reviewedAt: number): ReviewEvent {
   return {
@@ -119,6 +123,67 @@ describe('seedMemoryStatsFloorIfFresh', () => {
     mockSummaryDoc = null; // doc.exists === false
     await seedMemoryStatsFloorIfFresh('u1');
     expect(await AsyncStorage.getItem(FLOOR_KEY)).toBeNull();
+  });
+
+  it('marks the restore banner pending alongside a successful seed', async () => {
+    mockGetAllReviewEvents.mockResolvedValue([]);
+    mockSummaryDoc = SAMPLE_SUMMARY;
+    expect(await shouldShowRestoreBanner()).toBe(false);
+    await seedMemoryStatsFloorIfFresh('u1');
+    expect(await shouldShowRestoreBanner()).toBe(true);
+  });
+
+  it('does not mark the banner pending when nothing was seeded', async () => {
+    mockGetAllReviewEvents.mockResolvedValue([mkEvent(1000)]); // not fresh
+    mockSummaryDoc = SAMPLE_SUMMARY;
+    await seedMemoryStatsFloorIfFresh('u1');
+    expect(await shouldShowRestoreBanner()).toBe(false);
+  });
+});
+
+describe('shouldShowRestoreBanner / dismissRestoreBanner', () => {
+  it('flips to false once dismissed, and stays false after', async () => {
+    await AsyncStorage.setItem(BANNER_KEY, '1');
+    expect(await shouldShowRestoreBanner()).toBe(true);
+    await dismissRestoreBanner();
+    expect(await shouldShowRestoreBanner()).toBe(false);
+    // Dismissing again is a harmless no-op.
+    await dismissRestoreBanner();
+    expect(await shouldShowRestoreBanner()).toBe(false);
+  });
+});
+
+describe('clearMemoryStatsFloor', () => {
+  it('removes both the floor and the pending-banner flag', async () => {
+    await AsyncStorage.setItem(FLOOR_KEY, JSON.stringify(SAMPLE_SUMMARY));
+    await AsyncStorage.setItem(BANNER_KEY, '1');
+    await clearMemoryStatsFloor();
+    expect(await getMemoryStatsFloor()).toBeNull();
+    expect(await shouldShowRestoreBanner()).toBe(false);
+  });
+
+  it('lets a later sign-in on the same device re-seed a fresh floor', async () => {
+    // Account A restores...
+    mockGetAllReviewEvents.mockResolvedValue([]);
+    mockSummaryDoc = SAMPLE_SUMMARY;
+    await seedMemoryStatsFloorIfFresh('u1');
+    expect(await getMemoryStatsFloor()).not.toBeNull();
+
+    // ...signs out (the shared-device fix)...
+    await clearMemoryStatsFloor();
+
+    // ...and account B signs in with its own, different aggregate — must
+    // NOT still see account A's floor.
+    const otherSummary = {...SAMPLE_SUMMARY, longestStreak: 30};
+    mockSummaryDoc = otherSummary;
+    await seedMemoryStatsFloorIfFresh('u2');
+    const floor = await getMemoryStatsFloor();
+    expect(floor?.longestStreak).toBe(30);
+  });
+
+  it('is a harmless no-op when nothing was ever seeded', async () => {
+    await expect(clearMemoryStatsFloor()).resolves.toBeUndefined();
+    expect(await getMemoryStatsFloor()).toBeNull();
   });
 });
 

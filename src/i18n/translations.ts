@@ -589,6 +589,9 @@ export const translations = {
         streakCurrent: 'Racha actual',
         streakLongest: 'Racha máxima',
         activeDays: 'Días activos',
+        restoreBannerText:
+          'Restauramos tu racha y tu progreso general de memorización de otro dispositivo.',
+        restoreBannerDismiss: 'Cerrar aviso',
         retentionTitle: 'Retención por intervalo',
         retentionHint: '% de versículos recordados según cuánto esperaste',
         retentionEmpty:
@@ -5910,6 +5913,9 @@ export const translations = {
         streakCurrent: 'Current streak',
         streakLongest: 'Best streak',
         activeDays: 'Active days',
+        restoreBannerText:
+          'We restored your streak and overall memorization progress from another device.',
+        restoreBannerDismiss: 'Dismiss notice',
         retentionTitle: 'Retention by interval',
         retentionHint: '% of verses recalled by how long you waited',
         retentionEmpty:

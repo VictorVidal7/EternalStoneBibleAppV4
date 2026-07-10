@@ -13,9 +13,13 @@
  *    no anonymous user exists yet; falls through to direct credential
  *    sign-in.
  *
- * Sign-out only clears the Firebase Auth token; it does NOT touch
- * AsyncStorage or the SQLite stores (favorites/notes/highlights/
- * memoria/bookmarks). Local data survives sign-out.
+ * Sign-out clears the Firebase Auth token; it does NOT touch the SQLite
+ * stores (favorites/notes/highlights/memoria/bookmarks) or most of
+ * AsyncStorage. Local data survives sign-out. The one deliberate exception
+ * is the memoryStats restore floor (`clearMemoryStatsFloor`) — a
+ * cross-device continuity aid, not the user's own local data, cleared so a
+ * second account on a shared device never inherits the first account's
+ * restored streak/heatmap/retention.
  *
  * Native modules are loaded lazily via require() inside try/catch so
  * jest unit tests work without explicit native mocks (mirrors the
@@ -38,6 +42,7 @@ import {getSyncEngine, deleteAllCloudData} from '@lib/sync';
 import {useLanguage} from '@hooks/useLanguage';
 import {ConfirmDialog} from '@components/ui/ConfirmDialog';
 import {linkUser as linkOfferingUser} from '@lib/offering/offeringService';
+import {clearMemoryStatsFloor} from '@lib/memory/memoryStatsSync';
 
 // Web OAuth client id from google-services.json (oauth_client where
 // client_type === 3). It is already public in the bundled
@@ -373,6 +378,12 @@ export function AuthProvider({children}: AuthProviderProps) {
       triggeredAnonymousRef.current = false;
       await authMod().signOut();
     }
+    // Shared-device guard — see the file header comment. Tied to this
+    // explicit action, not to the reactive `user` state in
+    // SyncEngineContext, which can tick through null/anonymous transiently
+    // during ordinary Auth rehydration for an account that's still signed
+    // in (that raced with a real seed and broke the restore banner).
+    void clearMemoryStatsFloor();
   }, []);
 
   /**
@@ -471,6 +482,9 @@ export function AuthProvider({children}: AuthProviderProps) {
     }
 
     triggeredAnonymousRef.current = false;
+    // Shared-device guard — see signOut above. The deleted account's own
+    // restore floor (if any) must not leak into whoever signs in next.
+    void clearMemoryStatsFloor();
   }, []);
 
   const value = useMemo<AuthContextValue>(
