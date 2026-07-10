@@ -2019,7 +2019,11 @@ export default function PrepTableScreen() {
               <TouchableOpacity
                 style={[
                   styles.exportButton,
-                  styles.pdfExportButton,
+                  // Only spread the leading content + badge apart when the
+                  // locked badge is actually present; a premium reader has no
+                  // badge, so the label should stay centered like the other
+                  // export buttons instead of hugging the left edge.
+                  !isPremium && styles.pdfExportButton,
                   {backgroundColor: colors.card, borderColor: colors.primary},
                 ]}
                 onPress={handleExportPdf}
