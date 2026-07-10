@@ -9,7 +9,7 @@ import {
   QUIZ_ROUND_SIZE,
   QUIZ_OPTION_COUNT,
 } from '../src/features/quiz/quizRound';
-import {QUIZ_BANK} from '../src/features/quiz/quizBank';
+import {QUIZ_BANK, QUIZ_CATEGORIES} from '../src/features/quiz/quizBank';
 
 /** Deterministic RNG for reproducible tests: cycles through a fixed sequence. */
 function seededRng(seed: number[]): () => number {
@@ -48,6 +48,70 @@ describe('pickQuizRound', () => {
     const a = pickQuizRound(QUIZ_ROUND_SIZE, new Set(), seededRng(rngSeq));
     const b = pickQuizRound(QUIZ_ROUND_SIZE, new Set(), seededRng(rngSeq));
     expect(a).toEqual(b);
+  });
+});
+
+describe('pickQuizRound — category filter (T18b "mazos por libro")', () => {
+  it('returns only questions of the requested category, for every category', () => {
+    for (const category of QUIZ_CATEGORIES) {
+      const round = pickQuizRound(
+        QUIZ_ROUND_SIZE,
+        new Set(),
+        Math.random,
+        category,
+      );
+      expect(round.length).toBeGreaterThan(0);
+      expect(round.every(q => q.category === category)).toBe(true);
+    }
+  });
+
+  it('caps a round at the deck size when the deck is smaller than QUIZ_ROUND_SIZE', () => {
+    // `historicos` has exactly ONE question (order-04, "2 Samuel"). A round for
+    // it must be length 1 — which only holds if the category filter runs BEFORE
+    // `Math.min(size, bank.length)`, not after a full-bank pick.
+    const historicos = QUIZ_BANK.filter(q => q.category === 'historicos');
+    expect(historicos.length).toBe(1);
+    const round = pickQuizRound(
+      QUIZ_ROUND_SIZE,
+      new Set(),
+      Math.random,
+      'historicos',
+    );
+    expect(round.length).toBe(1);
+    expect(round[0].category).toBe('historicos');
+  });
+
+  it('fallback stays within the category even when exclude empties the deck', () => {
+    const deck = QUIZ_BANK.filter(q => q.category === 'evangelios');
+    const excludeAll = new Set(deck.map(q => q.id));
+    const round = pickQuizRound(
+      QUIZ_ROUND_SIZE,
+      excludeAll,
+      Math.random,
+      'evangelios',
+    );
+    expect(round.every(q => q.category === 'evangelios')).toBe(true);
+    expect(round.length).toBe(Math.min(QUIZ_ROUND_SIZE, deck.length));
+  });
+});
+
+describe('pickQuizRound — omitting category is unchanged behavior', () => {
+  it('no category equals passing undefined (byte-identical for a fixed rng)', () => {
+    const seq = [0.9, 0.1, 0.5, 0.2, 0.7, 0.3, 0.4, 0.6];
+    const a = pickQuizRound(QUIZ_ROUND_SIZE, new Set(), seededRng(seq));
+    const b = pickQuizRound(
+      QUIZ_ROUND_SIZE,
+      new Set(),
+      seededRng(seq),
+      undefined,
+    );
+    expect(a).toEqual(b);
+  });
+
+  it('the default pick still returns a full-size, all-distinct round', () => {
+    const round = pickQuizRound(QUIZ_ROUND_SIZE, new Set(), Math.random);
+    expect(round.length).toBe(QUIZ_ROUND_SIZE);
+    expect(new Set(round.map(q => q.id)).size).toBe(QUIZ_ROUND_SIZE);
   });
 });
 

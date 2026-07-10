@@ -6,7 +6,11 @@
  * "correct" answer. `ref-to-content` distractors are checked too: they must
  * each be a real verse from elsewhere in the bank, never fabricated.
  */
-import {QUIZ_BANK} from '../src/features/quiz/quizBank';
+import {
+  QUIZ_BANK,
+  QUIZ_CATEGORIES,
+  type QuizCategory,
+} from '../src/features/quiz/quizBank';
 import {parseChristRef} from '../src/features/study/christConnections';
 import {getBookByName} from '../src/constants/bible';
 import {translations} from '../src/i18n/translations';
@@ -359,5 +363,94 @@ describe('QUIZ_BANK — event-order chronology has exactly one earliest option',
       }
     }
     expect(bad).toEqual([]);
+  });
+});
+
+describe('QUIZ_BANK — thematic category (T18b "mazos por libro")', () => {
+  // The authoritative book→category expectation, restated here INDEPENDENTLY of
+  // quizBank's own BOOK_CATEGORY so this is a genuine cross-check of the
+  // module's derivation, not a tautology importing the same map.
+  const EXPECTED_BOOK_CATEGORY: Record<string, QuizCategory> = {
+    Genesis: 'pentateuco',
+    Exodus: 'pentateuco',
+    '2 Samuel': 'historicos',
+    Psalms: 'sabiduria',
+    Matthew: 'evangelios',
+    Luke: 'evangelios',
+    John: 'evangelios',
+    Philippians: 'cartas',
+    Romans: 'cartas',
+  };
+
+  const VALID_CATEGORIES: readonly QuizCategory[] = [
+    'pentateuco',
+    'historicos',
+    'sabiduria',
+    'evangelios',
+    'cartas',
+  ];
+
+  /** Book segment of a refKey — first "/", independent of parseChristRef. */
+  const bookOfRef = (refKey: string): string => {
+    const slash = refKey.indexOf('/');
+    return (slash < 0 ? refKey : refKey.slice(0, slash)).trim();
+  };
+
+  it("every question's category is one of the 5 valid ids", () => {
+    for (const q of QUIZ_BANK) expect(VALID_CATEGORIES).toContain(q.category);
+  });
+
+  it("every question's category is correctly derived from its refKey book", () => {
+    const bad: string[] = [];
+    for (const q of QUIZ_BANK) {
+      const book = bookOfRef(q.refKey);
+      const expected = EXPECTED_BOOK_CATEGORY[book];
+      if (!expected) {
+        bad.push(
+          `${q.id}: refKey book "${book}" is unmapped in the test expectation`,
+        );
+        continue;
+      }
+      if (q.category !== expected) {
+        bad.push(
+          `${q.id}: category "${q.category}" !== expected "${expected}" for ${q.refKey}`,
+        );
+      }
+    }
+    expect(bad).toEqual([]);
+  });
+});
+
+describe('QUIZ_CATEGORIES — only non-empty decks, never a fabricated one', () => {
+  it('equals exactly the set of categories that have ≥1 real question', () => {
+    const present = new Set(QUIZ_BANK.map(q => q.category));
+    expect(new Set(QUIZ_CATEGORIES)).toEqual(present);
+  });
+
+  it('lists each category at most once', () => {
+    expect(QUIZ_CATEGORIES.length).toBe(new Set(QUIZ_CATEGORIES).size);
+  });
+
+  it('never includes a category with 0 questions', () => {
+    for (const c of QUIZ_CATEGORIES) {
+      expect(QUIZ_BANK.some(q => q.category === c)).toBe(true);
+    }
+  });
+
+  it('does NOT include an empty "profetas" deck (nor any unknown id)', () => {
+    // profetas has 0 questions today → must not be offered as a deck.
+    expect((QUIZ_CATEGORIES as readonly string[]).includes('profetas')).toBe(
+      false,
+    );
+  });
+
+  it("matches today's bank: all five categories, in canonical order", () => {
+    expect(QUIZ_CATEGORIES).toEqual([
+      'pentateuco',
+      'historicos',
+      'sabiduria',
+      'evangelios',
+      'cartas',
+    ]);
   });
 });

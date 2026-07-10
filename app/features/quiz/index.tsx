@@ -1,7 +1,26 @@
 /**
- * 🧩 QUIZ BÍBLICO (T18) — free MCQ round over the curated 24-question bank
- * (`quizBank.ts`): who-said-it, complete-the-verse, reference-to-content,
- * and event-order, 8 questions per round (`QUIZ_ROUND_SIZE`).
+ * 🧩 QUIZ BÍBLICO — free MCQ round (T18) over the curated 24-question bank
+ * (`quizBank.ts`) PLUS the premium layer (T18b): mazos por categoría, modo
+ * cronometrado, "añadir a mi mazo" tras fallar, y estadísticas extendidas.
+ *
+ * Free users see the ORIGINAL T18 behavior byte-for-byte: `category` stays
+ * `undefined` regardless of any local state (guarded in every place a round is
+ * built), no timer, no add-to-deck button, no stats recorded. Every premium
+ * control is still visible-but-locked (existing app pattern, e.g.
+ * `word-study.tsx`'s KJV row) rather than hidden, and tapping a locked control
+ * opens the offering sheet instead of doing anything else.
+ *
+ * SRS integration (T18b, scoped with Victor via AskUserQuestion): the deck is
+ * touched in exactly two ways, both batched ONCE PER ROUND (never per
+ * answer/tap — the quota-safety rule this app enforces after the local-first
+ * reviewEvents refactor):
+ *   1. "Add to my deck" — user-initiated, only offered after a WRONG answer,
+ *      excluded for `event-order` (its `refKey` is a supporting reference for
+ *      the correct option, not "the verse the question is about").
+ *   2. A `complete-verse` question whose verse is ALREADY in the deck gets its
+ *      card rescheduled (`reviewCard`, correct→'good'/wrong→'again') once the
+ *      round ends — the only question type that's genuinely recall, not
+ *      recognition, so it's the only type allowed to touch scheduling.
  *
  * Header/score-chip/round-complete shell mirrors
  * `app/features/prophecies/quiz.tsx` (screen owns round state); the active
@@ -14,7 +33,7 @@
  * Para la gloria de Dios Todopoderoso ✨
  */
 
-import React, {useRef, useState} from 'react';
+import React, {useCallback, useRef, useState} from 'react';
 import {View, ScrollView, TouchableOpacity, StyleSheet} from 'react-native';
 import {Stack, useRouter} from 'expo-router';
 import {Ionicons} from '@expo/vector-icons';
@@ -22,16 +41,31 @@ import {LinearGradient} from 'expo-linear-gradient';
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
 import {useTheme} from '@hooks/useTheme';
 import {useLanguage} from '@hooks/useLanguage';
+import {useBibleVersion} from '@hooks/useBibleVersion';
+import {useToast} from '@context/ToastContext';
+import {usePremium} from '@context/PremiumContext';
+import {useOfferingSheet} from '@context/OfferingSheetContext';
+import {useMemoryDeck} from '@context/MemoryDeckContext';
 import {haptics} from '@lib/haptics';
 import {AppText} from '@components/ui/AppText';
 import {useContentBottomInset} from '@hooks/useContentBottomInset';
-import {QuizPanel} from '@/components/quiz/QuizPanel';
+import {QuizPanel, type AddToDeckStatus} from '@/components/quiz/QuizPanel';
 import {
   pickQuizRound,
   prepareQuizRound,
   QUIZ_ROUND_SIZE,
   type PreparedQuizQuestion,
 } from '@/features/quiz/quizRound';
+import {
+  QUIZ_CATEGORIES,
+  type QuizCategory,
+  type QuizQuestionType,
+} from '@/features/quiz/quizBank';
+import {
+  refKeyToVerseKey,
+  resolveVerseForAddCard,
+} from '@/features/quiz/quizVerseLookup';
+import {useQuizStats} from '@/hooks/useQuizStats';
 import {
   borderRadius,
   fontSize as fontSizes,
@@ -44,6 +78,17 @@ interface QuizBankText {
   options: string[];
 }
 
+interface RoundAnswer {
+  refKey: string;
+  type: QuizQuestionType;
+  correct: boolean;
+}
+
+/** Question types whose refKey is genuinely "the verse" — eligible for add-to-deck. */
+function isAddToDeckEligible(type: QuizQuestionType): boolean {
+  return type !== 'event-order';
+}
+
 export default function QuizScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
@@ -52,8 +97,17 @@ export default function QuizScreen() {
   const {t} = useLanguage();
   const tq = t.quiz;
   const bank = tq.bank as Record<string, QuizBankText>;
+  const toast = useToast();
+  const {selectedVersion} = useBibleVersion();
+  const {isPremium} = usePremium();
+  const {open: openOfferingSheet} = useOfferingSheet();
+  const {hasCard, addCard, reviewCard} = useMemoryDeck();
+  const {recordRoundResult} = useQuizStats();
 
   const seenRef = useRef<Set<string>>(new Set());
+  const roundAnswersRef = useRef<RoundAnswer[]>([]);
+  const [category, setCategory] = useState<QuizCategory | undefined>(undefined);
+  const [timedMode, setTimedMode] = useState(false);
   const [roundNum, setRoundNum] = useState(1);
   const [round, setRound] = useState<PreparedQuizQuestion[]>(() =>
     prepareQuizRound(pickQuizRound(QUIZ_ROUND_SIZE, seenRef.current)),
@@ -61,15 +115,67 @@ export default function QuizScreen() {
   const [index, setIndex] = useState(0);
   const [score, setScore] = useState(0);
   const [mistakes, setMistakes] = useState(0);
+  const [addToDeckStatus, setAddToDeckStatus] =
+    useState<AddToDeckStatus>('idle');
 
   const roundComplete = index >= round.length;
   const current = roundComplete ? null : round[index];
+  const currentVerseKey = current
+    ? refKeyToVerseKey(current.spec.refKey)
+    : null;
+  // Once the user has tapped (pending/added), keep showing the affordance in
+  // its new state — recomputing straight from `hasCard()` would flip this
+  // false the instant `addCard` succeeds (the card is now IN the deck), which
+  // makes the confirmed "Added to your deck" state vanish instead of show.
+  const canAddToDeck =
+    addToDeckStatus !== 'idle' ||
+    (isPremium &&
+      !!current &&
+      isAddToDeckEligible(current.spec.type) &&
+      !!currentVerseKey &&
+      !hasCard(currentVerseKey));
 
   const headerGradient = (
     gradient?.headerColors
       ? [...gradient.headerColors]
       : [colors.primary, colors.primaryDark]
   ) as [string, string, ...string[]];
+
+  const buildRound = useCallback(
+    (exclude: ReadonlySet<string>, cat: QuizCategory | undefined) =>
+      prepareQuizRound(
+        pickQuizRound(QUIZ_ROUND_SIZE, exclude, Math.random, cat),
+      ),
+    [],
+  );
+
+  const finishRoundSideEffects = useCallback(() => {
+    if (!isPremium) return; // free path: byte-identical to pre-T18b, no side effects
+    const answers = roundAnswersRef.current;
+    if (answers.length === 0) return;
+
+    const correctCount = answers.filter(a => a.correct).length;
+    void recordRoundResult({
+      score: correctCount,
+      total: answers.length,
+      perQuestionResults: answers.map(a => ({
+        type: a.type,
+        correct: a.correct,
+      })),
+      timedMode,
+    });
+
+    // Batched ONCE per round (never per answer): only reschedule a card that
+    // (a) is genuinely recall — `complete-verse` — and (b) is already in the
+    // user's deck. Anything else is left untouched by design (see header).
+    for (const a of answers) {
+      if (a.type !== 'complete-verse') continue;
+      const key = refKeyToVerseKey(a.refKey);
+      if (key && hasCard(key)) {
+        reviewCard(key, a.correct ? 'good' : 'again');
+      }
+    }
+  }, [isPremium, timedMode, recordRoundResult, hasCard, reviewCard]);
 
   const startNextRound = () => {
     haptics.tap();
@@ -78,17 +184,87 @@ export default function QuizScreen() {
     setScore(0);
     setMistakes(0);
     setIndex(0);
-    setRound(prepareQuizRound(pickQuizRound(QUIZ_ROUND_SIZE, seenRef.current)));
+    setAddToDeckStatus('idle');
+    roundAnswersRef.current = [];
+    setRound(buildRound(seenRef.current, isPremium ? category : undefined));
+  };
+
+  const restartWithSettings = (
+    nextCategory: QuizCategory | undefined,
+    nextTimedMode: boolean,
+  ) => {
+    haptics.tap();
+    setCategory(nextCategory);
+    setTimedMode(nextTimedMode);
+    seenRef.current = new Set();
+    setRoundNum(1);
+    setScore(0);
+    setMistakes(0);
+    setIndex(0);
+    setAddToDeckStatus('idle');
+    roundAnswersRef.current = [];
+    setRound(buildRound(new Set(), isPremium ? nextCategory : undefined));
+  };
+
+  const handlePickCategory = (cat: QuizCategory | undefined) => {
+    if (!isPremium && cat !== undefined) {
+      openOfferingSheet();
+      return;
+    }
+    if (cat === category) return;
+    restartWithSettings(cat, timedMode);
+  };
+
+  const handleToggleTimedMode = () => {
+    if (!isPremium) {
+      openOfferingSheet();
+      return;
+    }
+    restartWithSettings(category, !timedMode);
+  };
+
+  const handleOpenStats = () => {
+    if (!isPremium) {
+      openOfferingSheet();
+      return;
+    }
+    router.push('/features/quiz/stats' as never);
   };
 
   const handleAnswer = (correct: boolean) => {
     if (correct) setScore(s => s + 1);
     else setMistakes(m => m + 1);
+    if (current) {
+      roundAnswersRef.current.push({
+        refKey: current.spec.refKey,
+        type: current.spec.type,
+        correct,
+      });
+    }
   };
 
   const handleAdvance = () => {
+    if (index === round.length - 1) finishRoundSideEffects();
+    setAddToDeckStatus('idle');
     setIndex(i => i + 1);
   };
+
+  const handleAddToDeck = useCallback(async () => {
+    if (!current || addToDeckStatus !== 'idle') return;
+    setAddToDeckStatus('pending');
+    const resolved = await resolveVerseForAddCard(
+      current.spec.refKey,
+      selectedVersion.id,
+    );
+    if (!resolved) {
+      setAddToDeckStatus('idle');
+      toast.error(tq.addToDeckErrorToast);
+      return;
+    }
+    addCard(resolved);
+    setAddToDeckStatus('added');
+    toast.success(tq.addToDeckSuccessToast);
+  }, [current, addToDeckStatus, selectedVersion.id, addCard, toast, tq]);
 
   return (
     <View style={[styles.container, {backgroundColor: colors.background}]}>
@@ -109,6 +285,27 @@ export default function QuizScreen() {
           <AppText scaleRole="compact" style={styles.headerRound}>
             {tq.roundOf.replace('{{n}}', String(roundNum))}
           </AppText>
+          <TouchableOpacity
+            style={styles.iconButton}
+            onPress={handleOpenStats}
+            accessibilityRole="button"
+            accessibilityLabel={tq.statsButtonA11y}>
+            <Ionicons
+              name="stats-chart-outline"
+              size={22}
+              color={staticColors.white}
+            />
+            {!isPremium && (
+              <View
+                style={[styles.miniLock, {backgroundColor: colors.primary}]}>
+                <Ionicons
+                  name="leaf-outline"
+                  size={9}
+                  color={staticColors.white}
+                />
+              </View>
+            )}
+          </TouchableOpacity>
         </View>
         <AppText scaleRole="display" style={styles.headerTitle}>
           {tq.title}
@@ -138,6 +335,101 @@ export default function QuizScreen() {
             </AppText>
           </View>
         </View>
+
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          style={styles.categoryRow}
+          contentContainerStyle={styles.categoryRowContent}>
+          <TouchableOpacity
+            style={[
+              styles.categoryChip,
+              {
+                backgroundColor:
+                  category === undefined
+                    ? staticColors.white
+                    : staticColors.glassWhite18,
+              },
+            ]}
+            onPress={() => handlePickCategory(undefined)}
+            accessibilityRole="button"
+            accessibilityLabel={tq.categoryAll}>
+            <AppText
+              style={[
+                styles.categoryChipText,
+                {
+                  color:
+                    category === undefined
+                      ? colors.primaryDark
+                      : staticColors.white,
+                },
+              ]}>
+              {tq.categoryAll}
+            </AppText>
+          </TouchableOpacity>
+          {QUIZ_CATEGORIES.map(cat => {
+            const selected = category === cat;
+            const locked = !isPremium;
+            return (
+              <TouchableOpacity
+                key={cat}
+                style={[
+                  styles.categoryChip,
+                  {
+                    backgroundColor: selected
+                      ? staticColors.white
+                      : staticColors.glassWhite18,
+                  },
+                ]}
+                onPress={() => handlePickCategory(cat)}
+                accessibilityRole="button"
+                accessibilityLabel={tq.categories[cat]}>
+                {locked && (
+                  <Ionicons
+                    name="leaf-outline"
+                    size={12}
+                    color={selected ? colors.primaryDark : staticColors.white}
+                  />
+                )}
+                <AppText
+                  style={[
+                    styles.categoryChipText,
+                    {color: selected ? colors.primaryDark : staticColors.white},
+                  ]}>
+                  {tq.categories[cat]}
+                </AppText>
+              </TouchableOpacity>
+            );
+          })}
+          <TouchableOpacity
+            style={[
+              styles.categoryChip,
+              {
+                backgroundColor: timedMode
+                  ? staticColors.white
+                  : staticColors.glassWhite18,
+              },
+            ]}
+            onPress={handleToggleTimedMode}
+            accessibilityRole="button"
+            accessibilityState={{selected: timedMode}}
+            accessibilityLabel={tq.timedModeLabel}>
+            {!isPremium && (
+              <Ionicons
+                name="leaf-outline"
+                size={12}
+                color={timedMode ? colors.primaryDark : staticColors.white}
+              />
+            )}
+            <AppText
+              style={[
+                styles.categoryChipText,
+                {color: timedMode ? colors.primaryDark : staticColors.white},
+              ]}>
+              ⏱ {tq.timedModeLabel}
+            </AppText>
+          </TouchableOpacity>
+        </ScrollView>
       </LinearGradient>
 
       <ScrollView
@@ -153,6 +445,10 @@ export default function QuizScreen() {
             isLast={index === round.length - 1}
             onAnswer={handleAnswer}
             onAdvance={handleAdvance}
+            timedMode={isPremium && timedMode}
+            canAddToDeck={canAddToDeck}
+            addToDeckStatus={addToDeckStatus}
+            onAddToDeck={handleAddToDeck}
           />
         ) : (
           <View
@@ -205,6 +501,16 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
+  miniLock: {
+    position: 'absolute',
+    top: 2,
+    right: 2,
+    width: 14,
+    height: 14,
+    borderRadius: 7,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
   headerRound: {
     color: staticColors.glassWhite90,
     fontSize: fontSizes.sm,
@@ -239,6 +545,17 @@ const styles = StyleSheet.create({
     fontSize: fontSizes.xs,
     fontWeight: '700',
   },
+  categoryRow: {marginTop: spacing.md},
+  categoryRowContent: {gap: spacing.xs, paddingRight: spacing.lg},
+  categoryChip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    paddingHorizontal: spacing.sm,
+    paddingVertical: 6,
+    borderRadius: borderRadius.full,
+  },
+  categoryChipText: {fontSize: fontSizes.xs, fontWeight: '700'},
   scroll: {
     paddingHorizontal: spacing.lg,
     paddingTop: spacing.xl,

@@ -39,6 +39,23 @@ export type QuizQuestionType =
   | 'ref-to-content'
   | 'event-order';
 
+/**
+ * Broad thematic groupings the premium "mazos por libro" (T18b) lets you drill
+ * on. Deliberately NOT one-per-book (66 books, most with 0 questions today) and
+ * deliberately WITHOUT a `profetas` id: the current bank has no prophetic-book
+ * question, and the project's "no fabricar contenido vacío" rule forbids
+ * surfacing an empty deck as if it existed. Every id below maps to ≥1 real
+ * question in QUIZ_BANK; the human-readable label for each is expected to live
+ * in i18n under `t.quiz.categories.<id>` (e.g. `t.quiz.categories.pentateuco`),
+ * added by the UI-integration branch — this module holds ids only.
+ */
+export type QuizCategory =
+  | 'pentateuco'
+  | 'historicos'
+  | 'sabiduria'
+  | 'evangelios'
+  | 'cartas';
+
 export interface QuizQuestionSpec {
   /** Stable id — also the i18n key `t.quiz.bank[id]`. */
   id: string;
@@ -52,9 +69,58 @@ export interface QuizQuestionSpec {
   refKey: string;
   /** 0-based index into the i18n `options` array marking the correct choice. */
   correctIndex: number;
+  /**
+   * Thematic deck this question belongs to. Derived at module load from the
+   * book segment of `refKey` (see BOOK_CATEGORY / categoryOf), never authored
+   * by hand — so it can never drift out of sync with the reference.
+   */
+  category: QuizCategory;
 }
 
-export const QUIZ_BANK: readonly QuizQuestionSpec[] = [
+/**
+ * English-book-name → thematic category. Keys are the exact book segment of a
+ * refKey (the part before the first "/", e.g. `"2 Samuel"`). Only books that
+ * actually appear in QUIZ_BANK need an entry; categoryOf throws on a miss so a
+ * future question with an unmapped book fails loudly in CI instead of shipping
+ * without a deck.
+ */
+const BOOK_CATEGORY: Readonly<Record<string, QuizCategory>> = {
+  Genesis: 'pentateuco',
+  Exodus: 'pentateuco',
+  '2 Samuel': 'historicos',
+  Psalms: 'sabiduria',
+  Matthew: 'evangelios',
+  Luke: 'evangelios',
+  John: 'evangelios',
+  Philippians: 'cartas',
+  Romans: 'cartas',
+};
+
+/** The book segment of a canonical refKey (mirrors parseChristRef's first-slash
+ *  convention: everything before the first "/", so `"2 Samuel/5/3"` → `"2 Samuel"`). */
+function bookOf(refKey: string): string {
+  const slash = refKey.indexOf('/');
+  return (slash < 0 ? refKey : refKey.slice(0, slash)).trim();
+}
+
+/** Resolves a refKey to its thematic category, throwing if its book is unmapped. */
+function categoryOf(refKey: string): QuizCategory {
+  const book = bookOf(refKey);
+  const category = BOOK_CATEGORY[book];
+  if (!category) {
+    throw new Error(
+      `quizBank: no category mapped for book "${book}" (refKey "${refKey}")`,
+    );
+  }
+  return category;
+}
+
+/**
+ * The authored questions, minus the derived `category` (added below). Kept as a
+ * plain literal so each line stays greppable; category is layered on by map so
+ * it can't drift from `refKey`.
+ */
+const RAW_BANK: readonly Omit<QuizQuestionSpec, 'category'>[] = [
   // ── ¿Quién lo dijo? ──────────────────────────────────────────────────
   {id: 'who-01', type: 'who-said-it', refKey: 'Genesis/1/3', correctIndex: 0},
   {id: 'who-02', type: 'who-said-it', refKey: 'Luke/1/38', correctIndex: 0},
@@ -177,6 +243,31 @@ export const QUIZ_BANK: readonly QuizQuestionSpec[] = [
     correctIndex: 0,
   },
 ];
+
+/** The curated bank, each question tagged with its derived thematic category. */
+export const QUIZ_BANK: readonly QuizQuestionSpec[] = RAW_BANK.map(q => ({
+  ...q,
+  category: categoryOf(q.refKey),
+}));
+
+/** Canonical (roughly biblical) display order for the category ids. */
+const CATEGORY_ORDER: readonly QuizCategory[] = [
+  'pentateuco',
+  'historicos',
+  'sabiduria',
+  'evangelios',
+  'cartas',
+];
+
+/**
+ * The categories a user can actually pick — ONLY those with ≥1 real question in
+ * QUIZ_BANK, computed from the bank (not hardcoded) so an empty deck can never
+ * appear. With today's bank this is all five ids; a category that lost its last
+ * question would drop out automatically.
+ */
+export const QUIZ_CATEGORIES: readonly QuizCategory[] = CATEGORY_ORDER.filter(
+  c => QUIZ_BANK.some(q => q.category === c),
+);
 
 /** Total questions in the bank — kept in sync with the array above. */
 export const QUIZ_BANK_COUNT = QUIZ_BANK.length;
