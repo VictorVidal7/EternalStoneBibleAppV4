@@ -80,7 +80,14 @@ export default function MemoryInsightsScreen() {
   // also refreshes on focus (returning from practice updates the stats).
   // Passing the deck lets leech detection survive a reinstall via the synced
   // cards' lapseCount even before the local review log re-accumulates.
-  const {loaded: eventsLoaded, events, history, goal} = useMemoryGoal(cards);
+  const {
+    loaded: eventsLoaded,
+    events,
+    history,
+    goal,
+    showRestoreBanner,
+    dismissRestoreBanner,
+  } = useMemoryGoal(cards);
   const {isPremium} = usePremium();
   const {open: openOfferingSheet} = useOfferingSheet();
   const [showFullHistory, setShowFullHistory] = useState(false);
@@ -257,6 +264,15 @@ export default function MemoryInsightsScreen() {
             </View>
           ) : (
             <>
+              {showRestoreBanner && (
+                <RestoreBanner
+                  text={i.restoreBannerText}
+                  dismissLabel={i.restoreBannerDismiss}
+                  onDismiss={dismissRestoreBanner}
+                  colors={colors}
+                />
+              )}
+
               {/* 0 — Streak + daily goal hero (Sprint 47) */}
               <InsightCard title={g.heroTitle} colors={colors}>
                 <View style={styles.masteryRow}>
@@ -814,6 +830,42 @@ function weekdayShort(now: Date, offset: number, names: string[]): string {
   return names[d.getDay()] ?? '';
 }
 
+/** One-time notice shown right after a fresh-device restore floor seed —
+ *  explains why streak/heatmap/retention already show data the user didn't
+ *  generate on this device. Dismissed for good once tapped away; never
+ *  reappears after that (see `useMemoryGoal`'s `dismissRestoreBanner`). */
+const RestoreBanner: React.FC<{
+  text: string;
+  dismissLabel: string;
+  onDismiss: () => void;
+  colors: ReturnType<typeof useTheme>['colors'];
+}> = ({text, dismissLabel, onDismiss, colors}) => (
+  <View
+    style={[
+      styles.restoreBanner,
+      {
+        backgroundColor: colors.primary + '14',
+        borderColor: colors.primary + '40',
+      },
+    ]}
+    accessibilityRole="alert">
+    <Ionicons
+      name="cloud-download-outline"
+      size={20}
+      color={colors.primary}
+      style={styles.restoreBannerIcon}
+    />
+    <Text style={[styles.restoreBannerText, {color: colors.text}]}>{text}</Text>
+    <TouchableOpacity
+      onPress={onDismiss}
+      hitSlop={{top: 8, bottom: 8, left: 8, right: 8}}
+      accessibilityRole="button"
+      accessibilityLabel={dismissLabel}>
+      <Ionicons name="close" size={18} color={colors.textSecondary} />
+    </TouchableOpacity>
+  </View>
+);
+
 interface InsightCardProps {
   title: string;
   hint?: string;
@@ -1087,6 +1139,23 @@ const styles = StyleSheet.create({
     borderRadius: borderRadius.lg,
     borderWidth: StyleSheet.hairlineWidth,
     marginBottom: spacing.lg,
+  },
+  restoreBanner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.sm,
+    padding: spacing.md,
+    borderRadius: borderRadius.lg,
+    borderWidth: StyleSheet.hairlineWidth,
+    marginBottom: spacing.lg,
+  },
+  restoreBannerIcon: {
+    marginTop: 1,
+  },
+  restoreBannerText: {
+    flex: 1,
+    fontSize: fontSizes.sm,
+    lineHeight: 18,
   },
   cardTitleRow: {
     flexDirection: 'row',

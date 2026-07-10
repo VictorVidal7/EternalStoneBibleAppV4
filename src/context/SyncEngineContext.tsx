@@ -112,6 +112,17 @@ export const SyncEngineProvider: React.FC<SyncEngineProviderProps> = ({
     } else {
       // Anonymous user or signed out — engine is dormant. Local stores
       // still work; nothing goes to Firestore.
+      //
+      // NOTE: deliberately does NOT clear the memoryStats restore floor
+      // here. `user` can tick through `null`/anonymous transiently during
+      // ordinary cold-start Firebase Auth rehydration for an account that
+      // IS actually still signed in (confirmed live 2026-07-09 — the floor
+      // was being wiped and silently re-seeded on every cold start, which
+      // also broke the restore banner's "show once" guarantee by
+      // resurrecting its pending flag). Clearing the floor is instead tied
+      // to the explicit user actions that really end a session — see
+      // `AuthContext.signOut`/`deleteAccount` — never to this reactive,
+      // race-prone observation of `user`.
       engine.stop();
     }
   }, [engine, user]);
