@@ -723,9 +723,18 @@ export default function PrepTableScreen() {
   // Modo púlpito — the presenter view. Always navigates with the current
   // passage (the destination gates itself + shows an empty state when there
   // are no notes yet), same discipline as history/series above.
-  const handleOpenPulpit = useCallback(() => {
+  const handleOpenPulpit = useCallback(async () => {
     if (!table) return;
     haptics.tap();
+    // Persist any in-flight note edits BEFORE navigating. The presenter screen
+    // reads notes from STORAGE, so a note just typed (whose onBlur save is still
+    // queued when this button's tap fires) could otherwise lose the race and
+    // make the presenter show its empty state. Flushing here closes that gap.
+    await Promise.all(
+      PREP_SECTIONS.map(section =>
+        savePrepNote(table.passageKey, section, drafts[section] ?? ''),
+      ),
+    );
     router.push({
       pathname: '/features/prep/pulpit' as never,
       params: {
@@ -736,7 +745,7 @@ export default function PrepTableScreen() {
         ...(params.version ? {version: params.version} : {}),
       },
     });
-  }, [router, table, params.version]);
+  }, [router, table, params.version, drafts]);
 
   const handleUnlockPulpit = useCallback(() => {
     haptics.tap();
