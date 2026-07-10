@@ -934,6 +934,16 @@ export const translations = {
       exportPdfGenerating: 'Generando PDF…',
       exportPdfDialogTitle: 'Compartir bosquejo en PDF',
       exportPdfError: 'No se pudo generar el PDF. Inténtalo de nuevo.',
+      pulpitTitle: 'Modo púlpito',
+      pulpitLockedBody:
+        'Desbloquea con una ofrenda el modo púlpito: una vista de pantalla completa con letra grande, cronómetro y una estimación de la duración de tu prédica.',
+      pulpitWordCount: '{{n}} palabras escritas',
+      pulpitEstimateLabel: '≈ {{n}} min',
+      pulpitEstimateLessThanMinute: 'Menos de 1 min',
+      pulpitEmptyBody:
+        'Escribe tus notas en el esquema de arriba para ver una estimación y entrar en modo púlpito.',
+      pulpitEnterButton: 'Entrar en modo púlpito',
+      pulpitWpmLabel: 'Palabras por minuto',
       sections: {
         context: {
           label: 'Contexto',
@@ -1068,6 +1078,23 @@ export const translations = {
       exportSeries: 'Exportar serie',
       exportDialogTitle: 'Compartir serie',
       exportGenerating: 'Generando {{done}} de {{total}}…',
+    },
+
+    prepPulpit: {
+      title: 'Modo púlpito',
+      exitLabel: 'Salir del modo púlpito',
+      lockedTitle: 'Predica con una vista de pantalla completa',
+      lockedBody:
+        'Desbloquea con una ofrenda una vista de predicación a pantalla completa: letra grande, cronómetro de ritmo y tus propias notas, listas para el púlpito.',
+      emptyTitle: 'Aún no hay nada que presentar',
+      emptyBody:
+        'Vuelve a la Mesa de preparación y escribe tus notas para poder abrir el modo púlpito.',
+      errorBody: 'No se pudo cargar el pasaje.',
+      fontSizeIncrease: 'Aumentar tamaño de letra',
+      fontSizeDecrease: 'Disminuir tamaño de letra',
+      darkBackgroundToggle: 'Fondo oscuro',
+      elapsedLabel: 'Tiempo transcurrido',
+      sectionNavHint: 'Ir a esta sección',
     },
 
     dailyLight: {
@@ -6338,6 +6365,16 @@ export const translations = {
       exportPdfGenerating: 'Generating PDF…',
       exportPdfDialogTitle: 'Share outline as PDF',
       exportPdfError: 'Could not generate the PDF. Please try again.',
+      pulpitTitle: 'Pulpit mode',
+      pulpitLockedBody:
+        'Unlock pulpit mode with an offering: a full-screen, large-type view with a pacing clock and an estimate of your sermon’s length.',
+      pulpitWordCount: '{{n}} words written',
+      pulpitEstimateLabel: '≈ {{n}} min',
+      pulpitEstimateLessThanMinute: 'Less than 1 min',
+      pulpitEmptyBody:
+        'Write your notes in the outline above to see an estimate and enter pulpit mode.',
+      pulpitEnterButton: 'Enter pulpit mode',
+      pulpitWpmLabel: 'Words per minute',
       sections: {
         context: {
           label: 'Context',
@@ -6470,6 +6507,23 @@ export const translations = {
       exportSeries: 'Export series',
       exportDialogTitle: 'Share series',
       exportGenerating: 'Generating {{done}} of {{total}}…',
+    },
+
+    prepPulpit: {
+      title: 'Pulpit mode',
+      exitLabel: 'Exit pulpit mode',
+      lockedTitle: 'Preach from a full-screen view',
+      lockedBody:
+        'Unlock with an offering a full-screen preaching view: large type, a pacing clock, and your own notes, ready for the pulpit.',
+      emptyTitle: 'Nothing to present yet',
+      emptyBody:
+        'Go back to the preparation table and write your notes to open pulpit mode.',
+      errorBody: 'Could not load the passage.',
+      fontSizeIncrease: 'Increase font size',
+      fontSizeDecrease: 'Decrease font size',
+      darkBackgroundToggle: 'Dark background',
+      elapsedLabel: 'Elapsed time',
+      sectionNavHint: 'Jump to this section',
     },
 
     dailyLight: {

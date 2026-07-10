@@ -252,4 +252,17 @@ describe('Mesa de preparación — T8.4.2 premium additions', () => {
       expect(await findByText(p.originalWordsCountOne)).toBeTruthy();
     });
   });
+
+  describe('Modo púlpito card', () => {
+    it('free reader: shows the pulpit card locked with an offering invitation', async () => {
+      const {findByText} = renderScreen();
+      expect(await findByText(p.pulpitLockedBody)).toBeTruthy();
+    });
+
+    it('premium reader with no notes: shows the pulpit card empty prompt', async () => {
+      await SecureStore.setItemAsync(ENTITLEMENT_CACHE_KEY, 'true');
+      const {findByText} = renderScreen();
+      expect(await findByText(p.pulpitEmptyBody)).toBeTruthy();
+    });
+  });
 });
