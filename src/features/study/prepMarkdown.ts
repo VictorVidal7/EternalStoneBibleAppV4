@@ -42,19 +42,43 @@ export interface PrepMarkdownInput {
   generatedWith?: string;
 }
 
+/** One passage inside a whole-series export, with its optional schedule. */
+export interface PrepSeriesEntryInput {
+  /** Localized date label for the heading, e.g. "12 jul 2026" (already formatted). */
+  dateLabel?: string;
+  /** Short schedule annotation (NOT the sermon prose). */
+  note?: string;
+  /** The fully-assembled single-passage input for this entry. */
+  passage: PrepMarkdownInput;
+}
+
+/** A whole preaching series as one export document. */
+export interface PrepSeriesMarkdownInput {
+  /** The series name, used as the document title. */
+  seriesName: string;
+  /** The series' passages, in the order to render them. */
+  entries: PrepSeriesEntryInput[];
+  /** Pastoral guardrail line carried once at the foot of the document. */
+  guardrail: string;
+  /** Optional attribution footer. */
+  generatedWith?: string;
+}
+
 /** Collapse runs of blank lines and trim the trailing whitespace. */
 function tidy(markdown: string): string {
   return markdown.replace(/\n{3,}/g, '\n\n').trimEnd() + '\n';
 }
 
-/** Render a preparation table as a Markdown document. */
-export function buildPrepMarkdown(input: PrepMarkdownInput): string {
+/**
+ * Render the passage text (numbered blockquote) and the outline sections at
+ * the given Markdown heading level. Shared by the single-passage and
+ * whole-series builders so the section formatting lives in exactly one place.
+ */
+function renderPassageBody(
+  input: PrepMarkdownInput,
+  sectionHeading: '##' | '###',
+): string[] {
   const out: string[] = [];
-
-  const title = input.versionLabel
-    ? `# ${input.passageLabel} (${input.versionLabel})`
-    : `# ${input.passageLabel}`;
-  out.push(title, '');
 
   if (input.passageText && input.passageText.length > 0) {
     for (const line of input.passageText) {
@@ -65,7 +89,7 @@ export function buildPrepMarkdown(input: PrepMarkdownInput): string {
   }
 
   for (const section of input.sections) {
-    out.push(`## ${section.label}`, '');
+    out.push(`${sectionHeading} ${section.label}`, '');
 
     const note = section.note?.trim();
     if (note) {
@@ -83,13 +107,66 @@ export function buildPrepMarkdown(input: PrepMarkdownInput): string {
     }
   }
 
-  out.push('---', '');
+  return out;
+}
+
+/** The `---` + guardrail + attribution footer shared by both documents. */
+function renderMarkdownFooter(input: {
+  guardrail: string;
+  generatedWith?: string;
+}): string[] {
+  const out: string[] = ['---', ''];
   if (input.guardrail.trim()) {
     out.push(`_${input.guardrail.trim()}_`, '');
   }
   if (input.generatedWith?.trim()) {
     out.push(input.generatedWith.trim(), '');
   }
+  return out;
+}
+
+/** Render a preparation table as a Markdown document. */
+export function buildPrepMarkdown(input: PrepMarkdownInput): string {
+  const out: string[] = [];
+
+  const title = input.versionLabel
+    ? `# ${input.passageLabel} (${input.versionLabel})`
+    : `# ${input.passageLabel}`;
+  out.push(title, '');
+
+  out.push(...renderPassageBody(input, '##'));
+  out.push(...renderMarkdownFooter(input));
+
+  return tidy(out.join('\n'));
+}
+
+/**
+ * Render a whole preaching series as ONE Markdown document: the series name as
+ * the title, then each passage as a section (its own date/note, passage text
+ * and outline). Reuses `renderPassageBody`, so a passage exports identically
+ * whether alone or inside a series — this only re-frames the SAME content the
+ * preparer already wrote, generating nothing (Jeremías 23:30-32).
+ */
+export function buildSeriesMarkdown(input: PrepSeriesMarkdownInput): string {
+  const out: string[] = [];
+  out.push(`# ${input.seriesName}`, '');
+
+  for (const entry of input.entries) {
+    const label = entry.passage.versionLabel
+      ? `${entry.passage.passageLabel} (${entry.passage.versionLabel})`
+      : entry.passage.passageLabel;
+    const heading = entry.dateLabel ? `${entry.dateLabel} · ${label}` : label;
+    out.push(`## ${heading}`, '');
+
+    const note = entry.note?.trim();
+    if (note) {
+      out.push(`_${note}_`, '');
+    }
+
+    out.push(...renderPassageBody(entry.passage, '###'));
+  }
+
+  out.push(...renderMarkdownFooter(input));
 
   return tidy(out.join('\n'));
 }

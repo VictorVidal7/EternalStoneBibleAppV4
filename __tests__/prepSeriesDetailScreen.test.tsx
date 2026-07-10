@@ -88,6 +88,30 @@ jest.mock('@lib/haptics', () => ({
   haptics: {tap: jest.fn(), success: jest.fn()},
 }));
 
+const mockPrintToFile = jest
+  .fn()
+  .mockResolvedValue({uri: 'file:///series.pdf'});
+jest.mock('expo-print', () => ({
+  printToFileAsync: (...args: unknown[]) => mockPrintToFile(...args),
+}));
+
+const mockShareAsync = jest.fn().mockResolvedValue(undefined);
+const mockIsAvailable = jest.fn().mockResolvedValue(true);
+jest.mock('expo-sharing', () => ({
+  isAvailableAsync: () => mockIsAvailable(),
+  shareAsync: (...args: unknown[]) => mockShareAsync(...args),
+}));
+
+// The whole-series export assembler reads verse text through bibleDB; a light
+// fake keeps the export deterministic and off the real SQLite layer.
+jest.mock('@lib/database', () => ({
+  __esModule: true,
+  default: {
+    getVerse: jest.fn().mockResolvedValue({text: 'Texto del versículo'}),
+    getChapterVerseCount: jest.fn().mockResolvedValue(0),
+  },
+}));
+
 const mockColors = {
   background: '#000000',
   card: '#111111',
@@ -163,6 +187,9 @@ describe('PrepSeriesDetailScreen — T8.4.4', () => {
     mockPush.mockClear();
     mockBack.mockClear();
     mockOpenOfferingSheet.mockClear();
+    mockPrintToFile.mockClear();
+    mockShareAsync.mockClear();
+    mockIsAvailable.mockClear();
     await AsyncStorage.removeItem(PREP_SERIES_KEY);
     await AsyncStorage.removeItem(PREP_NOTES_KEY);
     await SecureStore.deleteItemAsync(ENTITLEMENT_CACHE_KEY);
@@ -327,5 +354,67 @@ describe('PrepSeriesDetailScreen — T8.4.4', () => {
         endVerse: '30',
       },
     });
+  });
+
+  it('sets a passage date via a quick chip', async () => {
+    await unlockPremium();
+    await seedSeries({[SERIES_ID]: series({passageKeys: ['John/3/16']})});
+    const {findByText, findByLabelText} = renderScreen();
+    await findByText('Juan 3:16');
+    // The date pill reads "Sin fecha" until a date is set.
+    fireEvent.press(await findByLabelText(h.noDate));
+    fireEvent.press(await findByText(h.dateThisSunday));
+
+    await waitFor(async () => {
+      const updated = await getPrepSeries(SERIES_ID);
+      expect(updated?.schedule?.['John/3/16']?.date).toMatch(
+        /^\d{4}-\d{2}-\d{2}$/,
+      );
+    });
+  });
+
+  it('clears a passage date', async () => {
+    await unlockPremium();
+    await seedSeries({
+      [SERIES_ID]: series({
+        passageKeys: ['John/3/16'],
+        schedule: {'John/3/16': {date: '2026-07-12'}},
+      }),
+    });
+    const {findByText, findByLabelText} = renderScreen();
+    await findByText('Juan 3:16');
+    fireEvent.press(await findByLabelText(`${h.dateModalTitle}: 12 jul 2026`));
+    fireEvent.press(await findByText(h.clearDate));
+
+    await waitFor(async () => {
+      const updated = await getPrepSeries(SERIES_ID);
+      expect(updated?.schedule?.['John/3/16']).toBeUndefined();
+    });
+  });
+
+  it('exports the whole series to a PDF and shares it', async () => {
+    await unlockPremium();
+    await seedSeries({
+      [SERIES_ID]: series({passageKeys: ['John/3/16', 'Romans/8/28']}),
+    });
+    const {findByText, findByLabelText} = renderScreen();
+    await findByText('Juan 3:16');
+    fireEvent.press(await findByLabelText(h.exportSeries));
+
+    await waitFor(() => expect(mockPrintToFile).toHaveBeenCalledTimes(1));
+    await waitFor(() => expect(mockShareAsync).toHaveBeenCalledTimes(1));
+  });
+
+  it('hides the reorder controls in the "by date" view', async () => {
+    await unlockPremium();
+    await seedSeries({
+      [SERIES_ID]: series({passageKeys: ['John/1/1', 'John/3/16']}),
+    });
+    const {findByText, findByLabelText, queryAllByLabelText} = renderScreen();
+    await findByText('Juan 1:1');
+    expect(queryAllByLabelText(h.moveDown).length).toBeGreaterThan(0);
+
+    fireEvent.press(await findByLabelText(h.viewByDate));
+    await waitFor(() => expect(queryAllByLabelText(h.moveDown).length).toBe(0));
   });
 });
