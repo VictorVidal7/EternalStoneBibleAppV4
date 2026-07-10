@@ -104,6 +104,16 @@ import {
 } from '@/features/study/prepMarkdown';
 import {buildPrepHtml} from '@/features/study/prepPdf';
 import {
+  DEFAULT_WORDS_PER_MINUTE,
+  WPM_MAX,
+  WPM_MIN,
+  WPM_STEP,
+  clampWpm,
+  countPrepNotesWords,
+  estimateMinutes,
+  formatEstimatedDuration,
+} from '@/features/study/prepTiming';
+import {
   type VerseRange,
   adjustStart,
   adjustEnd,
@@ -316,6 +326,9 @@ export default function PrepTableScreen() {
   // since printToFileAsync + shareAsync are real async I/O, not a clipboard
   // write.
   const [isExportingPdf, setIsExportingPdf] = useState(false);
+
+  // Modo púlpito — configurable words-per-minute for the duration estimate.
+  const [pulpitWpm, setPulpitWpm] = useState(DEFAULT_WORDS_PER_MINUTE);
 
   // T8.4.2 — "Palabras clave en el idioma original" (entirely premium).
   const [originalsStatus, setOriginalsStatus] =
@@ -706,6 +719,29 @@ export default function PrepTableScreen() {
       params: table ? {passageKey: table.passageKey} : undefined,
     });
   }, [router, table]);
+
+  // Modo púlpito — the presenter view. Always navigates with the current
+  // passage (the destination gates itself + shows an empty state when there
+  // are no notes yet), same discipline as history/series above.
+  const handleOpenPulpit = useCallback(() => {
+    if (!table) return;
+    haptics.tap();
+    router.push({
+      pathname: '/features/prep/pulpit' as never,
+      params: {
+        book: table.bookNameEn,
+        chapter: String(table.chapter),
+        startVerse: String(table.startVerse),
+        endVerse: String(table.endVerse),
+        ...(params.version ? {version: params.version} : {}),
+      },
+    });
+  }, [router, table, params.version]);
+
+  const handleUnlockPulpit = useCallback(() => {
+    haptics.tap();
+    openOfferingSheet();
+  }, [openOfferingSheet]);
 
   const handleNoteChange = useCallback(
     (section: PrepSection, value: string) => {
@@ -1786,6 +1822,165 @@ export default function PrepTableScreen() {
                 );
               })}
 
+              {/* Modo púlpito — presenter view + duration estimate (premium). */}
+              {(() => {
+                const pulpitWords = countPrepNotesWords({
+                  sections: drafts,
+                  updatedAt: 0,
+                });
+                const pulpitEstimate = formatEstimatedDuration(
+                  estimateMinutes(pulpitWords, pulpitWpm),
+                  {
+                    lessThanOneMinute: p.pulpitEstimateLessThanMinute,
+                    aboutMinutes: p.pulpitEstimateLabel,
+                  },
+                );
+                return (
+                  <View
+                    style={[
+                      styles.sectionCard,
+                      {
+                        backgroundColor: colors.card,
+                        borderColor: colors.border,
+                      },
+                    ]}>
+                    <View style={styles.sectionHeader}>
+                      <Ionicons
+                        name="mic-outline"
+                        size={18}
+                        color={colors.primary}
+                      />
+                      <AppText
+                        scaleRole="body"
+                        style={[styles.sectionLabel, {color: colors.text}]}>
+                        {p.pulpitTitle}
+                      </AppText>
+                      {!isPremium && (
+                        <View
+                          style={[
+                            styles.exclusiveBadge,
+                            {backgroundColor: colors.primary + '1a'},
+                          ]}>
+                          <Text
+                            style={[
+                              styles.exclusiveText,
+                              {color: colors.primary},
+                            ]}>
+                            {p.exclusiveLabel}
+                          </Text>
+                        </View>
+                      )}
+                    </View>
+                    {!isPremium ? (
+                      <TouchableOpacity
+                        style={styles.pulpitLockedRow}
+                        onPress={handleUnlockPulpit}
+                        accessibilityRole="button"
+                        accessibilityLabel={`${p.pulpitTitle} · ${t.offering.badgeA11y}`}>
+                        <Text
+                          style={[
+                            styles.sectionPrompt,
+                            styles.pulpitLockedText,
+                            {color: colors.textSecondary},
+                          ]}>
+                          {p.pulpitLockedBody}
+                        </Text>
+                        <OfferingBadge
+                          size={16}
+                          color={colors.primary}
+                          onPress={handleUnlockPulpit}
+                        />
+                      </TouchableOpacity>
+                    ) : pulpitWords === 0 ? (
+                      <Text
+                        style={[
+                          styles.sectionPrompt,
+                          {color: colors.textSecondary},
+                        ]}>
+                        {p.pulpitEmptyBody}
+                      </Text>
+                    ) : (
+                      <>
+                        <View style={styles.pulpitStatsRow}>
+                          <Text
+                            style={[styles.pulpitStat, {color: colors.text}]}>
+                            {p.pulpitWordCount.replace(
+                              '{{n}}',
+                              String(pulpitWords),
+                            )}
+                          </Text>
+                          <Text
+                            style={[
+                              styles.pulpitStat,
+                              styles.pulpitEstimateStat,
+                              {color: colors.primary},
+                            ]}>
+                            {pulpitEstimate}
+                          </Text>
+                        </View>
+                        <View style={styles.pulpitWpmRow}>
+                          <Text
+                            style={[
+                              styles.pulpitWpmLabel,
+                              {color: colors.textSecondary},
+                            ]}>
+                            {p.pulpitWpmLabel}
+                          </Text>
+                          <View style={styles.pulpitWpmControls}>
+                            <StepButton
+                              icon="remove"
+                              onPress={() =>
+                                setPulpitWpm(w => clampWpm(w - WPM_STEP))
+                              }
+                              disabled={pulpitWpm <= WPM_MIN}
+                              color={colors.primary}
+                              disabledColor={colors.border}
+                              label={p.pulpitWpmLabel}
+                            />
+                            <Text
+                              style={[
+                                styles.pulpitWpmValue,
+                                {color: colors.text},
+                              ]}>
+                              {pulpitWpm}
+                            </Text>
+                            <StepButton
+                              icon="add"
+                              onPress={() =>
+                                setPulpitWpm(w => clampWpm(w + WPM_STEP))
+                              }
+                              disabled={pulpitWpm >= WPM_MAX}
+                              color={colors.primary}
+                              disabledColor={colors.border}
+                              label={p.pulpitWpmLabel}
+                            />
+                          </View>
+                        </View>
+                        <TouchableOpacity
+                          style={[
+                            styles.pulpitEnterButton,
+                            {backgroundColor: colors.primary},
+                          ]}
+                          onPress={handleOpenPulpit}
+                          accessibilityRole="button"
+                          accessibilityLabel={p.pulpitEnterButton}>
+                          <Ionicons
+                            name="expand-outline"
+                            size={18}
+                            color={staticColors.white}
+                          />
+                          <AppText
+                            scaleRole="compact"
+                            style={styles.pulpitEnterText}>
+                            {p.pulpitEnterButton}
+                          </AppText>
+                        </TouchableOpacity>
+                      </>
+                    )}
+                  </View>
+                );
+              })()}
+
               {/* Export the assembled outline + the preparer's notes. */}
               <TouchableOpacity
                 style={[
@@ -2038,6 +2233,53 @@ const styles = StyleSheet.create({
     fontSize: fontSizes.sm,
     lineHeight: fontSizes.sm * 1.45,
     marginBottom: spacing.md,
+  },
+  pulpitLockedRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.sm,
+    marginTop: spacing.xs,
+  },
+  pulpitStatsRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginTop: spacing.xs,
+  },
+  pulpitStat: {fontSize: fontSizes.md, fontWeight: '600'},
+  pulpitEstimateStat: {fontWeight: '800'},
+  pulpitLockedText: {flex: 1, marginBottom: 0},
+  pulpitWpmRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginTop: spacing.md,
+  },
+  pulpitWpmLabel: {fontSize: fontSizes.sm},
+  pulpitWpmControls: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.sm,
+  },
+  pulpitWpmValue: {
+    fontSize: fontSizes.md,
+    fontWeight: '700',
+    minWidth: 40,
+    textAlign: 'center',
+  },
+  pulpitEnterButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: spacing.sm,
+    paddingVertical: spacing.md,
+    borderRadius: borderRadius.md,
+    marginTop: spacing.md,
+  },
+  pulpitEnterText: {
+    color: staticColors.white,
+    fontWeight: '700',
+    fontSize: fontSizes.md,
   },
   helpGroup: {marginBottom: spacing.md, gap: spacing.sm},
   helpGroupLabel: {
