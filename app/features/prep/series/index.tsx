@@ -289,12 +289,22 @@ export default function PrepSeriesListScreen() {
                     borderColor: colors.primary + '33',
                   },
                 ]}>
-                <Ionicons
-                  name="add-circle-outline"
-                  size={20}
-                  color={colors.primary}
-                />
-                <View style={styles.attachTextWrap}>
+                <TouchableOpacity
+                  onPress={handleOpenCreate}
+                  accessibilityRole="button"
+                  accessibilityLabel={h.newSeries}
+                  hitSlop={{top: 8, bottom: 8, left: 8, right: 8}}>
+                  <Ionicons
+                    name="add-circle"
+                    size={24}
+                    color={colors.primary}
+                  />
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={styles.attachTextWrap}
+                  onPress={handleOpenCreate}
+                  accessibilityRole="button"
+                  accessibilityLabel={h.newSeries}>
                   <Text style={[styles.attachTitle, {color: colors.text}]}>
                     {h.attachTitle.replace('{{passage}}', pendingLabel)}
                   </Text>
@@ -302,7 +312,7 @@ export default function PrepSeriesListScreen() {
                     style={[styles.attachBody, {color: colors.textSecondary}]}>
                     {h.attachBody}
                   </Text>
-                </View>
+                </TouchableOpacity>
                 <TouchableOpacity
                   onPress={() => setAttachDismissed(true)}
                   accessibilityRole="button"

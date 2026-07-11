@@ -19,7 +19,30 @@
  * Para la gloria de Dios Todopoderoso ✨
  */
 
-import type {PrepMarkdownInput, PrepMarkdownSection} from './prepMarkdown';
+import type {
+  PrepMarkdownInput,
+  PrepMarkdownSection,
+  PrepSeriesMarkdownInput,
+} from './prepMarkdown';
+
+/**
+ * Turn a series name / passage label into a safe PDF filename (WITHOUT the
+ * `.pdf` extension) so a shared export is named meaningfully (e.g. "Efesios en
+ * 8 semanas", "Juan 3.16-21") instead of expo-print's random UUID. Strips
+ * filesystem-illegal characters, collapses whitespace, caps length, and falls
+ * back to a generic name if nothing usable remains.
+ */
+export function pdfFileName(name: string): string {
+  const illegal = /[/\\:*?"<>|]+/g;
+  const cleaned = (name ?? '')
+    .replace(/:/g, '.')
+    .replace(illegal, ' ')
+    .replace(/\s+/g, ' ')
+    .trim()
+    .slice(0, 80)
+    .trim();
+  return cleaned || 'export';
+}
 
 /** Escape the five HTML-significant characters so free-text notes/helps can't break the markup. */
 function escapeHtml(value: string): string {
@@ -71,42 +94,23 @@ function renderSection(section: PrepMarkdownSection): string {
     .join('\n');
 }
 
-/** Render a preparation table as a self-contained, print-ready HTML document. */
-export function buildPrepHtml(input: PrepMarkdownInput): string {
-  const titleHtml = input.versionLabel
-    ? `${escapeHtml(input.passageLabel)} <span class="version">(${escapeHtml(
-        input.versionLabel,
-      )})</span>`
-    : escapeHtml(input.passageLabel);
+/** The pastoral guardrail + attribution footer, shared by both documents. */
+function renderDocFooter(guardrail: string, generatedWith?: string): string {
+  const g = guardrail.trim();
+  const a = generatedWith?.trim();
+  if (!g && !a) return '';
+  return [
+    '<footer class="doc-footer">',
+    g ? `  <p class="guardrail">${escapeHtml(g)}</p>` : '',
+    a ? `  <p class="attribution">${escapeHtml(a)}</p>` : '',
+    '</footer>',
+  ]
+    .filter(Boolean)
+    .join('\n');
+}
 
-  const passageHtml = renderPassageBlock(input.passageText);
-  const sectionsHtml = input.sections.map(renderSection).join('\n');
-  const guardrail = input.guardrail.trim();
-  const generatedWith = input.generatedWith?.trim();
-
-  const footerHtml =
-    guardrail || generatedWith
-      ? [
-          '<footer class="doc-footer">',
-          guardrail
-            ? `  <p class="guardrail">${escapeHtml(guardrail)}</p>`
-            : '',
-          generatedWith
-            ? `  <p class="attribution">${escapeHtml(generatedWith)}</p>`
-            : '',
-          '</footer>',
-        ]
-          .filter(Boolean)
-          .join('\n')
-      : '';
-
-  return `<!DOCTYPE html>
-<html lang="es">
-<head>
-<meta charset="utf-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>${escapeHtml(input.passageLabel)}</title>
-<style>
+/** The inline stylesheet, shared by the single-passage and whole-series docs. */
+const DOC_STYLE = `<style>
   * { box-sizing: border-box; }
   html, body {
     margin: 0;
@@ -153,6 +157,31 @@ export function buildPrepHtml(input: PrepMarkdownInput): string {
     font-style: normal;
     color: #2f6f4f;
     margin-right: 8px;
+  }
+  section.series-entry {
+    margin-bottom: 40px;
+  }
+  section.series-entry + section.series-entry {
+    page-break-before: always;
+  }
+  h2.entry-title {
+    font-size: 20px;
+    font-weight: 700;
+    color: #14301f;
+    border: none;
+    text-transform: none;
+    letter-spacing: 0;
+    margin: 0 0 6px 0;
+    padding: 0;
+  }
+  .entry-meta {
+    margin: 0 0 14px 0;
+    font-size: 12px;
+    color: #5b6b63;
+  }
+  .entry-date {
+    font-weight: 700;
+    color: #2f6f4f;
   }
   section.outline-section {
     margin-bottom: 26px;
@@ -201,20 +230,107 @@ export function buildPrepHtml(input: PrepMarkdownInput): string {
     color: #9aa79f;
     margin: 6px 0 0 0;
   }
-</style>
+</style>`;
+
+/** Wrap a document body in the shared, self-contained HTML shell. */
+function renderDocShell(title: string, bodyHtml: string): string {
+  return `<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>${escapeHtml(title)}</title>
+${DOC_STYLE}
 </head>
 <body>
 <main>
-<header class="doc-header">
+${bodyHtml}
+</main>
+</body>
+</html>
+`;
+}
+
+/** Render a preparation table as a self-contained, print-ready HTML document. */
+export function buildPrepHtml(input: PrepMarkdownInput): string {
+  const titleHtml = input.versionLabel
+    ? `${escapeHtml(input.passageLabel)} <span class="version">(${escapeHtml(
+        input.versionLabel,
+      )})</span>`
+    : escapeHtml(input.passageLabel);
+
+  const passageHtml = renderPassageBlock(input.passageText);
+  const sectionsHtml = input.sections.map(renderSection).join('\n');
+  const footerHtml = renderDocFooter(input.guardrail, input.generatedWith);
+
+  const bodyHtml = `<header class="doc-header">
 <h1>${titleHtml}</h1>
 </header>
 ${passageHtml}
 <div class="outline">
 ${sectionsHtml}
 </div>
-${footerHtml}
-</main>
-</body>
-</html>
-`;
+${footerHtml}`;
+
+  return renderDocShell(input.passageLabel, bodyHtml);
+}
+
+/** One series entry: its scheduling meta + passage block + outline sections. */
+function renderSeriesEntry(
+  entry: PrepSeriesMarkdownInput['entries'][number],
+): string {
+  const p = entry.passage;
+  const titleHtml = p.versionLabel
+    ? `${escapeHtml(p.passageLabel)} <span class="version">(${escapeHtml(
+        p.versionLabel,
+      )})</span>`
+    : escapeHtml(p.passageLabel);
+
+  const meta: string[] = [];
+  const dateLabel = entry.dateLabel?.trim();
+  const note = entry.note?.trim();
+  if (dateLabel) {
+    meta.push(`<span class="entry-date">${escapeHtml(dateLabel)}</span>`);
+  }
+  if (note) {
+    meta.push(`<span class="entry-note">${escapeHtml(note)}</span>`);
+  }
+  const metaHtml =
+    meta.length > 0 ? `<p class="entry-meta">${meta.join(' · ')}</p>` : '';
+
+  const passageHtml = renderPassageBlock(p.passageText);
+  const sectionsHtml = p.sections.map(renderSection).join('\n');
+
+  return [
+    '<section class="series-entry">',
+    `<h2 class="entry-title">${titleHtml}</h2>`,
+    metaHtml,
+    passageHtml,
+    '<div class="outline">',
+    sectionsHtml,
+    '</div>',
+    '</section>',
+  ]
+    .filter(Boolean)
+    .join('\n');
+}
+
+/**
+ * Render a whole preaching series as ONE self-contained, print-ready HTML
+ * document — the series name as the title, then every passage's outline in
+ * order (each starting on a new printed page). Reuses the SAME
+ * `renderPassageBlock`/`renderSection` a single passage uses, so nothing here
+ * generates content; it only re-frames what the preparer already wrote.
+ */
+export function buildSeriesHtml(input: PrepSeriesMarkdownInput): string {
+  const entriesHtml = input.entries.map(renderSeriesEntry).join('\n');
+  const footerHtml = renderDocFooter(input.guardrail, input.generatedWith);
+
+  const bodyHtml = `<header class="doc-header">
+<h1>${escapeHtml(input.seriesName)}</h1>
+</header>
+${entriesHtml}
+${footerHtml}`;
+
+  return renderDocShell(input.seriesName, bodyHtml);
 }

@@ -253,30 +253,31 @@ export const OfferingSheet: React.FC<Props> = ({visible, onClose}) => {
                 {t.offering.extrasListTitle}
               </AppText>
               <View style={styles.extrasList}>
-                <View style={styles.extraRow}>
-                  <Ionicons
-                    name="checkmark-circle-outline"
-                    size={16}
-                    color={colors.primary}
-                  />
-                  <AppText
-                    scaleRole="compact"
-                    style={[styles.extraText, {color: colors.textSecondary}]}>
-                    {t.offering.extraAudio}
-                  </AppText>
-                </View>
-                <View style={styles.extraRow}>
-                  <Ionicons
-                    name="checkmark-circle-outline"
-                    size={16}
-                    color={colors.primary}
-                  />
-                  <AppText
-                    scaleRole="compact"
-                    style={[styles.extraText, {color: colors.textSecondary}]}>
-                    {t.offering.extraShareTemplates}
-                  </AppText>
-                </View>
+                {t.offering.extras.map((extra, index) => (
+                  <View key={index} style={styles.extraRow}>
+                    <Ionicons
+                      name="checkmark-circle-outline"
+                      size={16}
+                      color={colors.primary}
+                      style={styles.extraIcon}
+                    />
+                    <View style={styles.extraTextCol}>
+                      <AppText
+                        scaleRole="compact"
+                        style={[styles.extraTitle, {color: colors.text}]}>
+                        {extra.title}
+                      </AppText>
+                      <AppText
+                        scaleRole="compact"
+                        style={[
+                          styles.extraText,
+                          {color: colors.textSecondary},
+                        ]}>
+                        {extra.desc}
+                      </AppText>
+                    </View>
+                  </View>
+                ))}
               </View>
 
               {state.kind === 'available' && (
@@ -411,13 +412,16 @@ const styles = StyleSheet.create({
     fontSize: fontSizes.sm,
     fontWeight: '700',
   },
-  extrasList: {gap: spacing.xs},
+  extrasList: {gap: spacing.sm},
   extraRow: {
     flexDirection: 'row',
     alignItems: 'flex-start',
     gap: spacing.xs,
   },
-  extraText: {fontSize: fontSizes.sm, lineHeight: 19, flex: 1},
+  extraIcon: {marginTop: 2},
+  extraTextCol: {flex: 1, gap: 1},
+  extraTitle: {fontSize: fontSizes.sm, fontWeight: '700'},
+  extraText: {fontSize: fontSizes.sm, lineHeight: 19},
   tierRow: {
     flexDirection: 'row',
     gap: spacing.sm,

@@ -934,6 +934,16 @@ export const translations = {
       exportPdfGenerating: 'Generando PDF…',
       exportPdfDialogTitle: 'Compartir bosquejo en PDF',
       exportPdfError: 'No se pudo generar el PDF. Inténtalo de nuevo.',
+      pulpitTitle: 'Modo púlpito',
+      pulpitLockedBody:
+        'Desbloquea con una ofrenda el modo púlpito: una vista de pantalla completa con letra grande, cronómetro y una estimación de la duración de tu prédica.',
+      pulpitWordCount: '{{n}} palabras escritas',
+      pulpitEstimateLabel: '≈ {{n}} min',
+      pulpitEstimateLessThanMinute: 'Menos de 1 min',
+      pulpitEmptyBody:
+        'Entra para presentar el pasaje en letra grande; tus notas y una estimación de tiempo aparecerán aquí conforme las escribas en el esquema.',
+      pulpitEnterButton: 'Entrar en modo púlpito',
+      pulpitWpmLabel: 'Palabras por minuto',
       sections: {
         context: {
           label: 'Contexto',
@@ -1056,6 +1066,35 @@ export const translations = {
         'Se eliminará la lista de esta serie. Tus notas de preparación de cada pasaje no se borrarán.',
       notFound: 'No se encontró esta serie',
       backToList: 'Volver a Series',
+      dateModalTitle: 'Fecha de predicación',
+      noDate: 'Sin fecha',
+      dateThisSunday: 'Este domingo',
+      dateNextSunday: 'Próximo domingo',
+      dateIn2Weeks: 'En 2 semanas',
+      dateIn3Weeks: 'En 3 semanas',
+      clearDate: 'Quitar fecha',
+      viewManual: 'Orden de enseñanza',
+      viewByDate: 'Por fecha',
+      exportSeries: 'Exportar serie',
+      exportDialogTitle: 'Compartir serie',
+      exportGenerating: 'Generando {{done}} de {{total}}…',
+    },
+
+    prepPulpit: {
+      title: 'Modo púlpito',
+      exitLabel: 'Salir del modo púlpito',
+      lockedTitle: 'Predica con una vista de pantalla completa',
+      lockedBody:
+        'Desbloquea con una ofrenda una vista de predicación a pantalla completa: letra grande, cronómetro de ritmo y tus propias notas, listas para el púlpito.',
+      emptyTitle: 'No se pudo abrir el pasaje',
+      emptyBody:
+        'Vuelve a la Mesa de preparación e intenta abrir el modo púlpito de nuevo.',
+      errorBody: 'No se pudo cargar el pasaje.',
+      fontSizeIncrease: 'Aumentar tamaño de letra',
+      fontSizeDecrease: 'Disminuir tamaño de letra',
+      darkBackgroundToggle: 'Fondo oscuro',
+      elapsedLabel: 'Tiempo transcurrido',
+      sectionNavHint: 'Ir a esta sección',
     },
 
     dailyLight: {
@@ -3416,9 +3455,32 @@ export const translations = {
       sheetIntro:
         'Algunos extras de esta app se desbloquean con una ofrenda única y voluntaria — como una ofrenda en la iglesia, no una compra. La Biblia, los planes de lectura, la oración y todo lo demás siguen siendo, y seguirán siendo siempre, completamente gratis.',
       extrasListTitle: 'Esto es lo que se desbloquea:',
-      extraAudio:
-        'Audio avanzado: desplázate libremente por versículo (también en el modo inmersivo), continúa donde lo dejaste, y escucha hasta a 2.5x',
-      extraShareTemplates: 'Plantillas adicionales para compartir versículos',
+      extras: [
+        {
+          title: 'Mesa de preparación',
+          desc: 'Prepara tu estudio o enseñanza: referencias cruzadas ampliadas, palabras clave en los idiomas originales, comparar versiones, exportar a PDF, historial y series.',
+        },
+        {
+          title: 'Idiomas originales',
+          desc: 'Interlineal hebreo y griego, análisis morfológico y definiciones palabra por palabra.',
+        },
+        {
+          title: 'Audio avanzado',
+          desc: 'Desplázate por versículo, continúa donde lo dejaste (también en el modo inmersivo) y escucha hasta a 2.5x.',
+        },
+        {
+          title: 'Memorización',
+          desc: 'Estadísticas completas de tu repaso, retención por libro y tendencia — más el Quiz con categorías, contrarreloj y añadir versículos a tu mazo.',
+        },
+        {
+          title: 'Personalización',
+          desc: 'Temas de lectura y de color exclusivos, y tipografías premium.',
+        },
+        {
+          title: 'Compartir con estilo',
+          desc: 'Plantillas de diseño, texturas y estilos guardados para tus versículos.',
+        },
+      ],
       tierSuggested: 'Sugerido',
       legend:
         'Los montos son fijos por requisitos de la tienda de aplicaciones; cualquiera de ellos desbloquea exactamente lo mismo.\n\nSi deseas dar una cantidad distinta, el apartado de Donación está siempre abierto para sembrar lo que Dios ponga en tu corazón.',
@@ -6303,6 +6365,16 @@ export const translations = {
       exportPdfGenerating: 'Generating PDF…',
       exportPdfDialogTitle: 'Share outline as PDF',
       exportPdfError: 'Could not generate the PDF. Please try again.',
+      pulpitTitle: 'Pulpit mode',
+      pulpitLockedBody:
+        'Unlock pulpit mode with an offering: a full-screen, large-type view with a pacing clock and an estimate of your sermon’s length.',
+      pulpitWordCount: '{{n}} words written',
+      pulpitEstimateLabel: '≈ {{n}} min',
+      pulpitEstimateLessThanMinute: 'Less than 1 min',
+      pulpitEmptyBody:
+        'Enter to present the passage in large type; your notes and a time estimate appear here as you write them in the outline.',
+      pulpitEnterButton: 'Enter pulpit mode',
+      pulpitWpmLabel: 'Words per minute',
       sections: {
         context: {
           label: 'Context',
@@ -6423,6 +6495,35 @@ export const translations = {
         "This series' list will be deleted. The preparation notes for each passage will NOT be deleted.",
       notFound: 'This series could not be found',
       backToList: 'Back to Series',
+      dateModalTitle: 'Preaching date',
+      noDate: 'No date',
+      dateThisSunday: 'This Sunday',
+      dateNextSunday: 'Next Sunday',
+      dateIn2Weeks: 'In 2 weeks',
+      dateIn3Weeks: 'In 3 weeks',
+      clearDate: 'Clear date',
+      viewManual: 'Teaching order',
+      viewByDate: 'By date',
+      exportSeries: 'Export series',
+      exportDialogTitle: 'Share series',
+      exportGenerating: 'Generating {{done}} of {{total}}…',
+    },
+
+    prepPulpit: {
+      title: 'Pulpit mode',
+      exitLabel: 'Exit pulpit mode',
+      lockedTitle: 'Preach from a full-screen view',
+      lockedBody:
+        'Unlock with an offering a full-screen preaching view: large type, a pacing clock, and your own notes, ready for the pulpit.',
+      emptyTitle: 'This passage could not be opened',
+      emptyBody:
+        'Go back to the preparation table and try opening pulpit mode again.',
+      errorBody: 'Could not load the passage.',
+      fontSizeIncrease: 'Increase font size',
+      fontSizeDecrease: 'Decrease font size',
+      darkBackgroundToggle: 'Dark background',
+      elapsedLabel: 'Elapsed time',
+      sectionNavHint: 'Jump to this section',
     },
 
     dailyLight: {
@@ -8769,9 +8870,32 @@ export const translations = {
       sheetIntro:
         'Some extras in this app unlock with a single, voluntary offering — like an offering at church, not a purchase. The Bible, reading plans, prayer, and everything else stay, and will always stay, completely free.',
       extrasListTitle: "Here's what unlocks:",
-      extraAudio:
-        'Advanced audio: scrub freely by verse (in immersive mode too), resume where you left off, and listen at up to 2.5x speed',
-      extraShareTemplates: 'Additional verse-sharing templates',
+      extras: [
+        {
+          title: 'Preparation desk',
+          desc: 'Prepare your study or teaching: expanded cross-references, original-language keywords, version comparison, PDF export, history, and series.',
+        },
+        {
+          title: 'Original languages',
+          desc: 'Hebrew and Greek interlinear, morphological analysis, and word-by-word definitions.',
+        },
+        {
+          title: 'Advanced audio',
+          desc: 'Scrub by verse, resume where you left off (in immersive mode too), and listen at up to 2.5x.',
+        },
+        {
+          title: 'Memorization',
+          desc: 'Full review stats, retention by book and trend — plus the Quiz with categories, timed mode, and add-to-deck.',
+        },
+        {
+          title: 'Personalization',
+          desc: 'Exclusive reading and color themes, and premium typefaces.',
+        },
+        {
+          title: 'Share with style',
+          desc: 'Designer templates, textures, and saved styles for your verses.',
+        },
+      ],
       tierSuggested: 'Suggested',
       legend:
         "The amounts are fixed by app-store requirements; any of them unlocks exactly the same thing.\n\nIf you'd like to give a different amount, the Donation section is always open to sow whatever God places on your heart.",

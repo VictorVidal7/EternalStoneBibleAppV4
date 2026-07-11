@@ -295,6 +295,15 @@ describe('PrepSeriesListScreen — T8.4.4', () => {
       ).toBeTruthy();
     });
 
+    it('opens the create modal when tapping the banner to make a new series', async () => {
+      await unlockPremium();
+      const {findByText} = renderScreen();
+      // The banner (icon + text) is a tappable "create a new series" action —
+      // not just decorative — so a user isn't forced to hunt for the header +.
+      fireEvent.press(await findByText(h.attachBody));
+      expect(await findByText(h.newSeriesModalTitle)).toBeTruthy();
+    });
+
     it('adds the pending passage to a tapped series and goes back', async () => {
       await unlockPremium();
       await seedSeries({

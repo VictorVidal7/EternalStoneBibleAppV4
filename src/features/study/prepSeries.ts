@@ -31,14 +31,38 @@ import {normalizePassage, formatPassageKey} from './prepTable';
 import {isPrepNotesEmpty} from './prepNotes';
 import type {PrepNotesMap} from './prepNotes';
 
+/** Optional per-passage scheduling metadata, keyed by canonical passageKey. */
+export interface SeriesPassageSchedule {
+  /** Target preaching date, calendar-only "YYYY-MM-DD" (no time, no timezone). */
+  date?: string;
+  /** Short scheduling annotation — NOT the sermon prose (that's [[prepNotes]]). */
+  note?: string;
+}
+
 /** One named, ordered group of passages the preparer is planning through. */
 export interface PrepSeries {
   id: string;
   name: string;
   /** Canonical `passageKey`s, in the order the preparer plans to teach them. */
   passageKeys: string[];
+  /**
+   * Optional per-passage scheduling, keyed by `passageKey`. Kept as a side-map
+   * (not folded into `passageKeys`) precisely so it can never desync from a
+   * reorder: order lives in `passageKeys`, this is pure per-key metadata.
+   * Absent on legacy/unscheduled series — a new app reads an old blob as
+   * "no schedule", and an old app reads a new blob by simply ignoring this
+   * field, so both directions degrade gracefully.
+   */
+  schedule?: Record<string, SeriesPassageSchedule>;
   createdAt: number;
   updatedAt: number;
+}
+
+/** A passage plus its resolved (optional) schedule — a read-only projection. */
+export interface ScheduledPassage {
+  key: string;
+  date?: string;
+  note?: string;
 }
 
 /** The whole device-local store: series id → the series. */
@@ -56,6 +80,8 @@ export const MAX_SERIES = 20;
 export const MAX_PASSAGES_PER_SERIES = 30;
 /** Defensive cap on a series' own name length. */
 export const MAX_SERIES_NAME_LENGTH = 80;
+/** Defensive cap on a per-passage schedule note (a short annotation, not prose). */
+export const MAX_SERIES_PASSAGE_NOTE_LENGTH = 140;
 
 /** A fresh, empty map. */
 export function emptySeriesMap(): PrepSeriesMap {
@@ -83,6 +109,31 @@ function dedupeKeys(keys: readonly string[]): string[] {
     out.push(key);
   }
   return out;
+}
+
+/**
+ * Validates a "YYYY-MM-DD" string is a REAL calendar date (rejects e.g.
+ * "2026-13-40"). Calendar-only by design — no time, no timezone — so a stored
+ * date never shifts a day when round-tripped through a device-local clock.
+ * Mirrors the day-string convention used elsewhere (achievements/streak).
+ */
+export function isValidDateKey(value: unknown): value is string {
+  if (typeof value !== 'string') return false;
+  const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(value);
+  if (!m) return false;
+  const y = Number(m[1]);
+  const mo = Number(m[2]);
+  const d = Number(m[3]);
+  const dt = new Date(y, mo - 1, d);
+  return (
+    dt.getFullYear() === y && dt.getMonth() === mo - 1 && dt.getDate() === d
+  );
+}
+
+function clampScheduleNote(note: string): string {
+  return typeof note === 'string'
+    ? note.trim().slice(0, MAX_SERIES_PASSAGE_NOTE_LENGTH)
+    : '';
 }
 
 /** True while the map has room for one more series. */
@@ -158,7 +209,10 @@ export function addPassageToSeries(
   };
 }
 
-/** Remove a passage from a series. A no-op if it isn't there. */
+/**
+ * Remove a passage from a series. A no-op if it isn't there. Also drops any
+ * schedule entry for that passage so the side-map never keeps orphans.
+ */
 export function removePassageFromSeries(
   map: PrepSeriesMap,
   id: string,
@@ -167,11 +221,17 @@ export function removePassageFromSeries(
 ): PrepSeriesMap {
   const series = map[id];
   if (!series || !series.passageKeys.includes(passageKey)) return map;
+  let nextSchedule = series.schedule;
+  if (nextSchedule && passageKey in nextSchedule) {
+    nextSchedule = {...nextSchedule};
+    delete nextSchedule[passageKey];
+  }
   return {
     ...map,
     [id]: {
       ...series,
       passageKeys: series.passageKeys.filter(key => key !== passageKey),
+      ...(nextSchedule ? {schedule: nextSchedule} : {}),
       updatedAt: now,
     },
   };
@@ -198,6 +258,90 @@ export function moveSeriesPassage(
   const next = [...series.passageKeys];
   [next[index], next[swapWith]] = [next[swapWith], next[index]];
   return {...map, [id]: {...series, passageKeys: next, updatedAt: now}};
+}
+
+/**
+ * Set (or clear, with `date === null`) the target preaching date for a
+ * passage. A no-op for an unknown series, a passage not in the series, or an
+ * invalid date string. Clearing a date that leaves an empty schedule entry
+ * drops the entry entirely.
+ */
+export function setSeriesPassageDate(
+  map: PrepSeriesMap,
+  id: string,
+  passageKey: string,
+  date: string | null,
+  now: number = Date.now(),
+): PrepSeriesMap {
+  const series = map[id];
+  if (!series || !series.passageKeys.includes(passageKey)) return map;
+  if (date !== null && !isValidDateKey(date)) return map;
+  const nextSchedule = {...(series.schedule ?? {})};
+  const entry: SeriesPassageSchedule = {...nextSchedule[passageKey]};
+  if (date === null) {
+    delete entry.date;
+  } else {
+    entry.date = date;
+  }
+  if (entry.date === undefined && entry.note === undefined) {
+    delete nextSchedule[passageKey];
+  } else {
+    nextSchedule[passageKey] = entry;
+  }
+  return {...map, [id]: {...series, schedule: nextSchedule, updatedAt: now}};
+}
+
+/**
+ * Set (or clear, with an empty string) a passage's short schedule note. A
+ * no-op for an unknown series or a passage not in the series.
+ */
+export function setSeriesPassageNote(
+  map: PrepSeriesMap,
+  id: string,
+  passageKey: string,
+  note: string,
+  now: number = Date.now(),
+): PrepSeriesMap {
+  const series = map[id];
+  if (!series || !series.passageKeys.includes(passageKey)) return map;
+  const trimmed = clampScheduleNote(note);
+  const nextSchedule = {...(series.schedule ?? {})};
+  const entry: SeriesPassageSchedule = {...nextSchedule[passageKey]};
+  if (trimmed) {
+    entry.note = trimmed;
+  } else {
+    delete entry.note;
+  }
+  if (entry.date === undefined && entry.note === undefined) {
+    delete nextSchedule[passageKey];
+  } else {
+    nextSchedule[passageKey] = entry;
+  }
+  return {...map, [id]: {...series, schedule: nextSchedule, updatedAt: now}};
+}
+
+/** The series' passages in the preparer's manual order, each with its schedule. */
+export function seriesPassages(series: PrepSeries): ScheduledPassage[] {
+  const schedule = series.schedule ?? {};
+  return series.passageKeys.map(key => ({key, ...schedule[key]}));
+}
+
+/**
+ * A read-only projection sorted for a "preaching calendar": dated passages
+ * first, ascending by date (a "YYYY-MM-DD" string sorts chronologically as
+ * plain text, so no `Date` round-trip and no timezone drift), then undated
+ * passages in their existing manual order. NEVER mutates the series — the
+ * manual `passageKeys` order the preparer set stays authoritative.
+ */
+export function passagesSortedByDate(series: PrepSeries): ScheduledPassage[] {
+  const passages = seriesPassages(series);
+  const dated = passages
+    .filter(p => p.date !== undefined)
+    .sort((a, b) =>
+      a.date === b.date ? 0 : (a.date as string) < (b.date as string) ? -1 : 1,
+    );
+  const undated = passages.filter(p => p.date === undefined);
+  return [...dated, ...undated];
 }
 
 /** Delete a whole series. A no-op for an unknown id. Never touches prep notes. */
@@ -238,12 +382,43 @@ export function computeSeriesProgress(
 
 // ── Defensive parse/serialize, mirroring prepNotes' parsePrepNotesMap. ──────
 
+/**
+ * Coerce a persisted schedule blob: keep only entries whose key is still a
+ * passage in the series, validate each date, clamp each note, and drop empty
+ * entries. Returns undefined when nothing survives, so the field stays absent
+ * on unscheduled series.
+ */
+function coerceSchedule(
+  value: unknown,
+  passageKeys: readonly string[],
+): Record<string, SeriesPassageSchedule> | undefined {
+  if (!value || typeof value !== 'object') return undefined;
+  const allowed = new Set(passageKeys);
+  const out: Record<string, SeriesPassageSchedule> = {};
+  for (const [key, entryValue] of Object.entries(
+    value as Record<string, unknown>,
+  )) {
+    if (!allowed.has(key)) continue;
+    if (!entryValue || typeof entryValue !== 'object') continue;
+    const e = entryValue as {date?: unknown; note?: unknown};
+    const entry: SeriesPassageSchedule = {};
+    if (isValidDateKey(e.date)) entry.date = e.date;
+    if (typeof e.note === 'string') {
+      const n = clampScheduleNote(e.note);
+      if (n) entry.note = n;
+    }
+    if (entry.date !== undefined || entry.note !== undefined) out[key] = entry;
+  }
+  return Object.keys(out).length > 0 ? out : undefined;
+}
+
 function coerceSeries(value: unknown): PrepSeries | null {
   if (!value || typeof value !== 'object') return null;
   const raw = value as {
     id?: unknown;
     name?: unknown;
     passageKeys?: unknown;
+    schedule?: unknown;
     createdAt?: unknown;
     updatedAt?: unknown;
   };
@@ -255,6 +430,7 @@ function coerceSeries(value: unknown): PrepSeries | null {
         raw.passageKeys.filter((k): k is string => typeof k === 'string'),
       ).slice(0, MAX_PASSAGES_PER_SERIES)
     : [];
+  const schedule = coerceSchedule(raw.schedule, passageKeys);
   const createdAt =
     typeof raw.createdAt === 'number' && Number.isFinite(raw.createdAt)
       ? raw.createdAt
@@ -263,7 +439,14 @@ function coerceSeries(value: unknown): PrepSeries | null {
     typeof raw.updatedAt === 'number' && Number.isFinite(raw.updatedAt)
       ? raw.updatedAt
       : createdAt;
-  return {id: raw.id, name, passageKeys, createdAt, updatedAt};
+  return {
+    id: raw.id,
+    name,
+    passageKeys,
+    ...(schedule ? {schedule} : {}),
+    createdAt,
+    updatedAt,
+  };
 }
 
 /**
