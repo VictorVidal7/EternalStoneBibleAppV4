@@ -122,6 +122,8 @@ Estados: `PENDIENTE` · `EN CURSO` · `✅ OK` · `🐛 BUG` · `⚠️ DUDA/PAR
 - 2026-07-11 — Agente QA-4: áreas 17-19 (Lectura ✅, Inmersivo ✅, Audio 🐛 solo por typo "Espanol" = BUG-3; todo lo funcional OK). Extras: verificado en vivo el cap free 2x con reconciliación instantánea al apagar extras; corregido el apéndice (sleep timer no es premium); ?audioResume=1 reanuda en cold start; premium quedó ON, sin audio sonando. Nota: swipe horizontal no navega capítulos (no implementado, por diseño).
 - 2026-07-11 — Agente QA-1: áreas 1-6 (5×✅, 1×🐛: pérdida de nota si se cierra el teclado con atrás y se sale sin blur — BUG-1). Extra: descargado el pack originals.db en el emulador (quedó instalado); confirmado el toggle Ajustes→Extras en ambos sentidos (fila 15); 2 issues de datos del pack anotados en fila 2 (typo "prcticando", puntuación pegada a lemas).
 
+- 2026-07-11 — Agente QA-5: área 20 (Memoria/SRS) 🐛 — núcleo ✅ pero BUG-4 (Current streak > Best streak en Insights con floor restaurado) y BUG-5 (copy EN de leeches invertido). DETENIDO a mitad del área 21 (quiz contrarreloj) a petición de Victor por límite de uso — 21 y 22 quedan PENDIENTE. Fin de la Sesión 1: P0 completo (16/16) + P1 17-20; 5 bugs totales, todos documentados abajo. Emulador queda con premium ON, versión RVR1960, series QA de prueba presentes.
+
 ## 🐛 Resumen de bugs encontrados
 
 > Lista consolidada de todo lo marcado `🐛 BUG` arriba, para revisión de Victor.
