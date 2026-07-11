@@ -123,3 +123,35 @@ Estados: `PENDIENTE` · `EN CURSO` · `✅ OK` · `🐛 BUG` · `⚠️ DUDA/PAR
 > Lista consolidada de todo lo marcado `🐛 BUG` arriba, para revisión de Victor.
 
 - _(vacío)_
+
+---
+
+## 📎 Apéndice — Playbook de acceso por área (auditoría estática 2026-07-11)
+
+> Cómo llegar rápido a cada área P1/P2 en el emulador. Deep links con `adb shell am start -W -a android.intent.action.VIEW -d "<url>"` (escapar `&` como `\&`). Premium: Settings → Extras → toggle dev.
+> Dato clave: **ningún feature P2 tiene gate premium a nivel de ruta** — los únicos gates viven en quiz, word-study, memory/insights, audio player, color themes, image-share y la Mesa (P0).
+
+- **17 Lectura:** `eternalbible://verse/John/3?verse=16` (params book,chapter,verse,audioResume,strongs); grid `eternalbible://chapter/John`; tab `eternalbible://bible`. Sin premium.
+- **18 Inmersivo:** dentro del reader — botón "Immersive" (`verse/[book]/[chapter].tsx:1909`, auto-scroll GRATIS); "Listen from here" en barra de selección (`:2854`) lanza TTS (gates en 19).
+- **19 Audio:** player flotante `MiniAudioPlayer.tsx`. Premium: scrubbing `:908`, velocidad extra `:646`, sleep timer `:974`, resume `verse/[book]/[chapter].tsx:1644,1692` (tarjeta Home + `?audioResume=1`).
+- **20 Memoria:** `eternalbible://features/memory` (gratis) · insights `eternalbible://features/memory/insights` (premium: `insights.tsx:116,430,689,727`). Necesita tarjetas/historial.
+- **21 Quiz:** `eternalbible://features/quiz`. Premium: categorías `quiz/index.tsx:210`, contrarreloj `:219,227`. Ronda aleatoria gratis. Stats: `features/quiz/stats`.
+- **22 Word study:** `eternalbible://features/word-study?strongs=G25\&version=RVR1960`. TODO premium (`word-study.tsx:383`) + requiere pack `originals.db` instalado.
+- **23 Búsqueda:** `eternalbible://search`. Sin premium.
+- **24 Personalización:** Settings → Appearance (`settings.tsx:342-410`) + ColorThemeSettings (`settings.tsx:417`; premium `ColorThemeSettings.tsx:55,85,143`). Tipografías: ReaderPreferencesSheet en el reader.
+- **25 Compartir:** sin ruta — Home `index.tsx:955` o barra del reader; imagen `ImageShareModal.tsx` (plantillas/texturas premium); enlace estudio gratis.
+- **26 Sync/cuenta:** Settings → Cuenta (`settings.tsx:938`, `useAuth` :82, requiere login Google); conflictos `eternalbible://conflicts` + `features/conflicts/insights`; backup `settings.tsx:709-742`. Sin premium.
+- **27 Ajustes:** `eternalbible://settings`. Accesibilidad :424, reset :158, recordatorios :772-788, Extras :791, Donación :794, V5.1 :796-902, borrar cuenta :286.
+- **28 Home:** tab Inicio. Solo premium: tarjeta "Continue listening" (`index.tsx:1189`). Check-in :1020, verso del día, Explorar.
+- **29 Logros:** `eternalbible://achievements` (tab) + badges `eternalbible://features/badges` (Settings V5.1 :902). Sin premium.
+- **30 Cross-refs (3 rutas):** `eternalbible://features/study?book=John\&chapter=3\&verse=16` · `.../constellation?...` · `.../reference-chain?...`. Sin premium.
+- **31 Temas/sentimientos/Daily Light/devocional:** `features/themes` (+`/peace`), `features/feelings` (+`/anxious`), `features/daily-light`, `features/guided`, devocional en Settings V5.1 :840. Sin premium.
+- **32 Profecías:** `features/prophecies` (`?start=N`), `/quiz`, mapa `prophecies/map.tsx`. Sin premium.
+- **33 Journeys:** `features/journeys` + `[routeId]` (ej. `exodus`). Sin premium.
+- **34 Niños:** `features/kids`, `[storyId]`, `/plan`. Sin premium.
+- **35 Oración:** `features/prayer`, `/acts`, `/scripture`, lectio `features/lectio?book=Salmos\&chapter=23\&verse=1`. PrayerCard en Home solo tras guardar petición. Sin premium.
+- **36 Planes/Juntos:** `plan/<id>`, builder desde Home "Mis planes → Crear" (`:1602`), `features/together` sin param → campo de código (Settings V5.1 :809). Sin premium.
+- **37 Widgets:** `features/widgets` (pantalla demo; Settings V5.1 :871). Sin premium.
+- **38 Onboarding:** no es ruta — `adb shell pm clear com.eternalstonebible.app` lo fuerza (borra TODO el estado local; hacerlo AL FINAL de la revisión). Key `@onboarding_completed` (`useOnboarding.tsx:15`).
+- **39 Donación:** Settings → DonationSettings (`settings.tsx:794`). ⛔ RevenueCat sin ofertas aquí — verificar solo texto/apertura.
+- **40 Accesibilidad:** Settings → Accesibilidad (`settings.tsx:424-507`): keep-awake :438, alto contraste :462, reduce motion :493. Texto grande = escala del SO (reader sin capar, nota :482).
