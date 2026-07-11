@@ -48,7 +48,6 @@ import {Ionicons} from '@expo/vector-icons';
 import {LinearGradient} from 'expo-linear-gradient';
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
 import * as Print from 'expo-print';
-import * as Sharing from 'expo-sharing';
 import {useTheme} from '@hooks/useTheme';
 import {centeredMaxWidth} from '@/styles/responsive';
 import {useLanguage} from '@hooks/useLanguage';
@@ -79,6 +78,7 @@ import {
 } from '@/features/study/prepSeries';
 import {assembleSeriesExportInput} from '@/features/study/prepSeriesExport';
 import {buildSeriesHtml} from '@/features/study/prepPdf';
+import {sharePreparedPdf} from '@/features/study/sharePdf';
 import {isPrepNotesEmpty} from '@/features/study/prepNotes';
 import type {PrepNotesMap} from '@/features/study/prepNotes';
 import {parsePassageKey} from '@/features/study/prepHistory';
@@ -326,13 +326,8 @@ export default function PrepSeriesDetailScreen() {
       if (!input) return;
       const html = buildSeriesHtml(input);
       const {uri} = await Print.printToFileAsync({html, base64: false});
-      if (await Sharing.isAvailableAsync()) {
-        await Sharing.shareAsync(uri, {
-          mimeType: 'application/pdf',
-          dialogTitle: h.exportDialogTitle,
-          UTI: 'com.adobe.pdf',
-        });
-      }
+      // Share under the series name instead of expo-print's UUID filename.
+      await sharePreparedPdf(uri, series.name, h.exportDialogTitle);
     } catch (err) {
       logger.warn('Prep series export failed', {error: String(err)});
     } finally {

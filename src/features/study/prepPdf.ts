@@ -25,6 +25,25 @@ import type {
   PrepSeriesMarkdownInput,
 } from './prepMarkdown';
 
+/**
+ * Turn a series name / passage label into a safe PDF filename (WITHOUT the
+ * `.pdf` extension) so a shared export is named meaningfully (e.g. "Efesios en
+ * 8 semanas", "Juan 3.16-21") instead of expo-print's random UUID. Strips
+ * filesystem-illegal characters, collapses whitespace, caps length, and falls
+ * back to a generic name if nothing usable remains.
+ */
+export function pdfFileName(name: string): string {
+  const illegal = /[/\\:*?"<>|]+/g;
+  const cleaned = (name ?? '')
+    .replace(/:/g, '.')
+    .replace(illegal, ' ')
+    .replace(/\s+/g, ' ')
+    .trim()
+    .slice(0, 80)
+    .trim();
+  return cleaned || 'export';
+}
+
 /** Escape the five HTML-significant characters so free-text notes/helps can't break the markup. */
 function escapeHtml(value: string): string {
   return value

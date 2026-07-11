@@ -138,10 +138,15 @@ describe('PulpitModeScreen', () => {
     expect(await findByText(h.lockedTitle)).toBeTruthy();
   });
 
-  it('shows the empty state for a passage with no notes yet', async () => {
+  it('presents the passage in large type even with no notes yet', async () => {
     await unlockPremium();
-    const {findByText} = renderScreen();
-    expect(await findByText(h.emptyTitle)).toBeTruthy();
+    const {findAllByText, queryByText} = renderScreen();
+    // The passage renders even though no notes exist yet (no "couldn't open"
+    // empty state) — a preacher can read the text large from the first moment.
+    expect((await findAllByText(/Texto del versículo/)).length).toBeGreaterThan(
+      0,
+    );
+    expect(queryByText(h.emptyTitle)).toBeNull();
   });
 
   it('renders the passage text and only the non-empty sections', async () => {

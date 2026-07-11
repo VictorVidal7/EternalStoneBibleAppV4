@@ -11,7 +11,7 @@ import {
   type PrepMarkdownInput,
   type PrepSeriesMarkdownInput,
 } from '../src/features/study/prepMarkdown';
-import {buildSeriesHtml} from '../src/features/study/prepPdf';
+import {buildSeriesHtml, pdfFileName} from '../src/features/study/prepPdf';
 import {
   assembleSeriesExportInput,
   assembleSeriesPassageInput,
@@ -249,5 +249,34 @@ describe('assembleSeriesExportInput', () => {
       {version: 'RVR1960', guardrail: 'g', deps: fakeDeps},
     );
     expect(out).toBeNull();
+  });
+});
+
+describe('pdfFileName', () => {
+  it('turns a passage label into a friendly filename (colon → dot, keeps range)', () => {
+    expect(pdfFileName('Juan 3:16-21')).toBe('Juan 3.16-21');
+  });
+
+  it('keeps a plain series name intact', () => {
+    expect(pdfFileName('Efesios en 8 semanas')).toBe('Efesios en 8 semanas');
+  });
+
+  it('strips filesystem-illegal characters', () => {
+    expect(pdfFileName('a/b\\c*d?e"f<g>h|i')).toBe('a b c d e f g h i');
+  });
+
+  it('collapses whitespace and trims', () => {
+    expect(pdfFileName('  Serie   con   espacios  ')).toBe(
+      'Serie con espacios',
+    );
+  });
+
+  it('caps the length at 80 characters', () => {
+    expect(pdfFileName('x'.repeat(200))).toHaveLength(80);
+  });
+
+  it('falls back to a generic name when nothing usable remains', () => {
+    expect(pdfFileName('')).toBe('export');
+    expect(pdfFileName('///')).toBe('export');
   });
 });

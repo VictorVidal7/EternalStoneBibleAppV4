@@ -41,7 +41,6 @@ import {useSafeAreaInsets} from 'react-native-safe-area-context';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as Clipboard from 'expo-clipboard';
 import * as Print from 'expo-print';
-import * as Sharing from 'expo-sharing';
 import {useTheme} from '@hooks/useTheme';
 import {centeredMaxWidth} from '@/styles/responsive';
 import {useLanguage} from '@hooks/useLanguage';
@@ -103,6 +102,7 @@ import {
   type PrepMarkdownSection,
 } from '@/features/study/prepMarkdown';
 import {buildPrepHtml} from '@/features/study/prepPdf';
+import {sharePreparedPdf} from '@/features/study/sharePdf';
 import {
   DEFAULT_WORDS_PER_MINUTE,
   WPM_MAX,
@@ -879,22 +879,22 @@ export default function PrepTableScreen() {
       setIsExportingPdf(true);
       const html = buildPrepHtml(input);
       const {uri} = await Print.printToFileAsync({html, base64: false});
-      const canShare = await Sharing.isAvailableAsync();
-      if (!canShare) {
-        logger.warn('Prep PDF export: sharing unavailable on this device');
-        return;
-      }
-      await Sharing.shareAsync(uri, {
-        mimeType: 'application/pdf',
-        dialogTitle: p.exportPdfDialogTitle,
-        UTI: 'com.adobe.pdf',
-      });
+      // Share under a meaningful filename (the passage) instead of the UUID
+      // expo-print assigns.
+      await sharePreparedPdf(uri, passageLabel, p.exportPdfDialogTitle);
     } catch (err) {
       logger.warn('Prep PDF export failed', {error: String(err)});
     } finally {
       setIsExportingPdf(false);
     }
-  }, [isExportingPdf, isPremium, openOfferingSheet, buildPrepInput, p]);
+  }, [
+    isExportingPdf,
+    isPremium,
+    openOfferingSheet,
+    buildPrepInput,
+    passageLabel,
+    p,
+  ]);
 
   // Share the outline as a read-only study LINK (Sprint 109): the passage + the
   // preparer's per-section prose, carried in the link; the recipient's app
@@ -1900,71 +1900,78 @@ export default function PrepTableScreen() {
                           onPress={handleUnlockPulpit}
                         />
                       </TouchableOpacity>
-                    ) : pulpitWords === 0 ? (
-                      <Text
-                        style={[
-                          styles.sectionPrompt,
-                          {color: colors.textSecondary},
-                        ]}>
-                        {p.pulpitEmptyBody}
-                      </Text>
                     ) : (
                       <>
-                        <View style={styles.pulpitStatsRow}>
-                          <Text
-                            style={[styles.pulpitStat, {color: colors.text}]}>
-                            {p.pulpitWordCount.replace(
-                              '{{n}}',
-                              String(pulpitWords),
-                            )}
-                          </Text>
+                        {pulpitWords > 0 ? (
+                          <>
+                            <View style={styles.pulpitStatsRow}>
+                              <Text
+                                style={[
+                                  styles.pulpitStat,
+                                  {color: colors.text},
+                                ]}>
+                                {p.pulpitWordCount.replace(
+                                  '{{n}}',
+                                  String(pulpitWords),
+                                )}
+                              </Text>
+                              <Text
+                                style={[
+                                  styles.pulpitStat,
+                                  styles.pulpitEstimateStat,
+                                  {color: colors.primary},
+                                ]}>
+                                {pulpitEstimate}
+                              </Text>
+                            </View>
+                            <View style={styles.pulpitWpmRow}>
+                              <Text
+                                style={[
+                                  styles.pulpitWpmLabel,
+                                  {color: colors.textSecondary},
+                                ]}>
+                                {p.pulpitWpmLabel}
+                              </Text>
+                              <View style={styles.pulpitWpmControls}>
+                                <StepButton
+                                  icon="remove"
+                                  onPress={() =>
+                                    setPulpitWpm(w => clampWpm(w - WPM_STEP))
+                                  }
+                                  disabled={pulpitWpm <= WPM_MIN}
+                                  color={colors.primary}
+                                  disabledColor={colors.border}
+                                  label={p.pulpitWpmLabel}
+                                />
+                                <Text
+                                  style={[
+                                    styles.pulpitWpmValue,
+                                    {color: colors.text},
+                                  ]}>
+                                  {pulpitWpm}
+                                </Text>
+                                <StepButton
+                                  icon="add"
+                                  onPress={() =>
+                                    setPulpitWpm(w => clampWpm(w + WPM_STEP))
+                                  }
+                                  disabled={pulpitWpm >= WPM_MAX}
+                                  color={colors.primary}
+                                  disabledColor={colors.border}
+                                  label={p.pulpitWpmLabel}
+                                />
+                              </View>
+                            </View>
+                          </>
+                        ) : (
                           <Text
                             style={[
-                              styles.pulpitStat,
-                              styles.pulpitEstimateStat,
-                              {color: colors.primary},
-                            ]}>
-                            {pulpitEstimate}
-                          </Text>
-                        </View>
-                        <View style={styles.pulpitWpmRow}>
-                          <Text
-                            style={[
-                              styles.pulpitWpmLabel,
+                              styles.sectionPrompt,
                               {color: colors.textSecondary},
                             ]}>
-                            {p.pulpitWpmLabel}
+                            {p.pulpitEmptyBody}
                           </Text>
-                          <View style={styles.pulpitWpmControls}>
-                            <StepButton
-                              icon="remove"
-                              onPress={() =>
-                                setPulpitWpm(w => clampWpm(w - WPM_STEP))
-                              }
-                              disabled={pulpitWpm <= WPM_MIN}
-                              color={colors.primary}
-                              disabledColor={colors.border}
-                              label={p.pulpitWpmLabel}
-                            />
-                            <Text
-                              style={[
-                                styles.pulpitWpmValue,
-                                {color: colors.text},
-                              ]}>
-                              {pulpitWpm}
-                            </Text>
-                            <StepButton
-                              icon="add"
-                              onPress={() =>
-                                setPulpitWpm(w => clampWpm(w + WPM_STEP))
-                              }
-                              disabled={pulpitWpm >= WPM_MAX}
-                              color={colors.primary}
-                              disabledColor={colors.border}
-                              label={p.pulpitWpmLabel}
-                            />
-                          </View>
-                        </View>
+                        )}
                         <TouchableOpacity
                           style={[
                             styles.pulpitEnterButton,

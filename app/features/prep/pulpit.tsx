@@ -50,7 +50,6 @@ import {
   type PrepSection,
 } from '@/features/study/prepTable';
 import {getPrepNotes} from '@/features/study/prepNotesStore';
-import {isPrepNotesEmpty} from '@/features/study/prepNotes';
 import {
   countPrepNotesWords,
   estimateMinutes,
@@ -162,13 +161,9 @@ export default function PulpitModeScreen() {
       const notes = await getPrepNotes(passageKey);
       setLines(verseRows);
 
-      if (isPrepNotesEmpty(notes)) {
-        setSections([]);
-        setWordCount(0);
-        setStatus('empty');
-        return;
-      }
-
+      // Present the passage even with no notes yet — a preacher can read the
+      // text in large type from the first moment, and their outline prose fills
+      // in below as they write it. Only the non-empty sections are shown.
       const filled: FilledSection[] = PREP_SECTIONS.map(section => ({
         section,
         label: t.prepTable.sections[section].label,
@@ -456,11 +451,13 @@ export default function PulpitModeScreen() {
                   </Text>
                 </View>
               ))}
-              <View style={styles.footerMeta}>
-                <Text style={[styles.footerMetaText, {color: dim}]}>
-                  {estimateLabel}
-                </Text>
-              </View>
+              {wordCount > 0 && (
+                <View style={styles.footerMeta}>
+                  <Text style={[styles.footerMetaText, {color: dim}]}>
+                    {estimateLabel}
+                  </Text>
+                </View>
+              )}
             </ScrollView>
           </>
         )}

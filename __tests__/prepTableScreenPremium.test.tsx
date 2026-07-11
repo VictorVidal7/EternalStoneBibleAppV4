@@ -259,10 +259,13 @@ describe('Mesa de preparación — T8.4.2 premium additions', () => {
       expect(await findByText(p.pulpitLockedBody)).toBeTruthy();
     });
 
-    it('premium reader with no notes: shows the pulpit card empty prompt', async () => {
+    it('premium reader with no notes: shows the empty prompt AND the enter button', async () => {
       await SecureStore.setItemAsync(ENTITLEMENT_CACHE_KEY, 'true');
       const {findByText} = renderScreen();
       expect(await findByText(p.pulpitEmptyBody)).toBeTruthy();
+      // Pulpit is reachable even without notes (to present the passage in large
+      // type) — the enter button is always shown for a premium reader.
+      expect(await findByText(p.pulpitEnterButton)).toBeTruthy();
     });
   });
 });

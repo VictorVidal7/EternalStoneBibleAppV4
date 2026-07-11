@@ -941,7 +941,7 @@ export const translations = {
       pulpitEstimateLabel: '≈ {{n}} min',
       pulpitEstimateLessThanMinute: 'Menos de 1 min',
       pulpitEmptyBody:
-        'Escribe tus notas en el esquema de arriba para ver una estimación y entrar en modo púlpito.',
+        'Entra para presentar el pasaje en letra grande; tus notas y una estimación de tiempo aparecerán aquí conforme las escribas en el esquema.',
       pulpitEnterButton: 'Entrar en modo púlpito',
       pulpitWpmLabel: 'Palabras por minuto',
       sections: {
@@ -1086,9 +1086,9 @@ export const translations = {
       lockedTitle: 'Predica con una vista de pantalla completa',
       lockedBody:
         'Desbloquea con una ofrenda una vista de predicación a pantalla completa: letra grande, cronómetro de ritmo y tus propias notas, listas para el púlpito.',
-      emptyTitle: 'Aún no hay nada que presentar',
+      emptyTitle: 'No se pudo abrir el pasaje',
       emptyBody:
-        'Vuelve a la Mesa de preparación y escribe tus notas para poder abrir el modo púlpito.',
+        'Vuelve a la Mesa de preparación e intenta abrir el modo púlpito de nuevo.',
       errorBody: 'No se pudo cargar el pasaje.',
       fontSizeIncrease: 'Aumentar tamaño de letra',
       fontSizeDecrease: 'Disminuir tamaño de letra',
@@ -6372,7 +6372,7 @@ export const translations = {
       pulpitEstimateLabel: '≈ {{n}} min',
       pulpitEstimateLessThanMinute: 'Less than 1 min',
       pulpitEmptyBody:
-        'Write your notes in the outline above to see an estimate and enter pulpit mode.',
+        'Enter to present the passage in large type; your notes and a time estimate appear here as you write them in the outline.',
       pulpitEnterButton: 'Enter pulpit mode',
       pulpitWpmLabel: 'Words per minute',
       sections: {
@@ -6515,9 +6515,9 @@ export const translations = {
       lockedTitle: 'Preach from a full-screen view',
       lockedBody:
         'Unlock with an offering a full-screen preaching view: large type, a pacing clock, and your own notes, ready for the pulpit.',
-      emptyTitle: 'Nothing to present yet',
+      emptyTitle: 'This passage could not be opened',
       emptyBody:
-        'Go back to the preparation table and write your notes to open pulpit mode.',
+        'Go back to the preparation table and try opening pulpit mode again.',
       errorBody: 'Could not load the passage.',
       fontSizeIncrease: 'Increase font size',
       fontSizeDecrease: 'Decrease font size',
