@@ -41,7 +41,7 @@ export const SUPPORTED_LANGUAGES: Record<AudioLanguage, string[]> = {
 };
 
 export const LANGUAGE_LABELS: Record<AudioLanguage, string> = {
-  es: 'Espanol',
+  es: 'Español',
   en: 'English',
 };
 
