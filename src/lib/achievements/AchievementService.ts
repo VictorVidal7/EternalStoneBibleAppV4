@@ -132,6 +132,41 @@ export class AchievementService {
     // list is intentionally discarded here — there is no UI listening at init,
     // and the achievements are marked unlocked in the DB regardless.
     await this.backfillBookCompletion();
+
+    // Backfill every other count-based achievement (highlights, notes,
+    // searches, verses, chapters...) the same way, for the same reason.
+    // Achievements are 100% local — there is no Firestore sync adapter for
+    // achievements/user_stats (see registerOfflineAdapters.ts) — but the
+    // underlying CONTENT they count (highlights, notes) DOES sync. A
+    // reinstall or a fresh sync pulldown can therefore silently push a count
+    // like `highlights` to >= 1 via `applyRemoteUpsert`
+    // (lib/sync/adapters/highlights.ts → HighlightService.addHighlight()
+    // directly), which never calls checkAchievements(). Left alone, the
+    // achievement then sits "secretly already earned" until the NEXT
+    // unrelated tracked action (trackVersesRead, trackSearch, trackNote...)
+    // runs the generic loop below and "discovers" it — popping the
+    // celebratory unlock modal for something that happened on a different
+    // device/session, which reads to the user as a false/glitchy unlock.
+    // Running the same loop once, silently, here closes that gap the same
+    // way backfillBookCompletion() does for books: anything already
+    // satisfied at startup gets marked unlocked quietly now, so only a
+    // genuine NEW crossing after this point ever surfaces the modal. Same
+    // discard-the-result contract as backfillBookCompletion() — there is no
+    // UI listening at init.
+    //
+    // Known limitation: this only catches drift already present AT startup.
+    // The sync engine's Firestore listeners attach asynchronously — gated on
+    // Firebase Auth resolving, in a separate provider (SyncEngineContext) —
+    // and each listener's first onSnapshot callback can fire well after this
+    // method has already returned (SyncEngine.start() awaits the listener
+    // being ATTACHED, not its first snapshot; see SyncEngine.ts
+    // attachListener/handleSnapshot). If a highlight syncs in AFTER this
+    // backfill has already run, the same false-positive can still occur on
+    // the next tracked action. There is no existing "initial sync settled"
+    // signal to hook a second backfill onto, and inventing one is out of
+    // scope (and in tension with the standing minimize-Firestore-sync
+    // policy) — a startup-only fix is a real improvement on its own even so.
+    await this.checkAchievements();
   }
 
   /**
