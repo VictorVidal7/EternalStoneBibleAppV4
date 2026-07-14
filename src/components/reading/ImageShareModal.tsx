@@ -448,14 +448,17 @@ export const ImageShareModal: React.FC<ImageShareModalProps> = ({
                       key={preset.id}
                       onPress={() => handleApplyPreset(preset)}
                       accessibilityRole="button"
-                      accessibilityLabel={preset.name}
+                      accessibilityLabel={t.verse.imageStyleA11y.replace(
+                        '{{n}}',
+                        preset.name,
+                      )}
                       style={[
                         styles.sizeButton,
                         styles.presetChip,
                         {borderColor: colors.border},
                       ]}>
                       <Text style={[styles.formatLabel, {color: colors.text}]}>
-                        {preset.name}
+                        {t.verse.imageStyleA11y.replace('{{n}}', preset.name)}
                       </Text>
                       <TouchableOpacity
                         onPress={() => handleDeletePreset(preset.id)}
