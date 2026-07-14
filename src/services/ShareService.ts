@@ -11,6 +11,7 @@
  * - Haptic feedback
  */
 
+import {Share} from 'react-native';
 import * as Sharing from 'expo-sharing';
 import * as Clipboard from 'expo-clipboard';
 import {haptics} from '@lib/haptics';
@@ -52,26 +53,18 @@ export class ShareService {
       haptics.tap();
 
       // Intentar compartir nativamente
-      const canShare = await Sharing.isAvailableAsync();
+      await Share.share(
+        {message},
+        {dialogTitle: t.shareService.verseDialogTitle},
+      );
 
-      if (canShare) {
-        await Sharing.shareAsync(message, {
-          mimeType: 'text/plain',
-          dialogTitle: t.shareService.verseDialogTitle,
-        });
+      logger.info('Verse shared successfully', {
+        component: 'ShareService',
+        action: 'shareVerse',
+        reference,
+      });
 
-        logger.info('Verse shared successfully', {
-          component: 'ShareService',
-          action: 'shareVerse',
-          reference,
-        });
-
-        return true;
-      } else {
-        // Fallback: copiar al portapapeles
-        await this.copyToClipboard(message, t, onFeedback);
-        return true;
-      }
+      return true;
     } catch (error) {
       logger.error('Error sharing verse', error as Error, {
         component: 'ShareService',
@@ -106,25 +99,18 @@ export class ShareService {
     try {
       haptics.tap();
 
-      const canShare = await Sharing.isAvailableAsync();
+      await Share.share(
+        {message},
+        {dialogTitle: t.shareService.versesDialogTitle},
+      );
 
-      if (canShare) {
-        await Sharing.shareAsync(message, {
-          mimeType: 'text/plain',
-          dialogTitle: t.shareService.versesDialogTitle,
-        });
+      logger.info('Multiple verses shared successfully', {
+        component: 'ShareService',
+        action: 'shareMultipleVerses',
+        count: verses.length,
+      });
 
-        logger.info('Multiple verses shared successfully', {
-          component: 'ShareService',
-          action: 'shareMultipleVerses',
-          count: verses.length,
-        });
-
-        return true;
-      } else {
-        await this.copyToClipboard(message, t, onFeedback);
-        return true;
-      }
+      return true;
     } catch (error) {
       logger.error('Error sharing multiple verses', error as Error, {
         component: 'ShareService',
@@ -151,20 +137,14 @@ export class ShareService {
     try {
       haptics.tap();
 
-      const canShare = await Sharing.isAvailableAsync();
-
-      if (canShare) {
-        await Sharing.shareAsync(message, {
-          mimeType: 'text/plain',
-          dialogTitle: t.shareService.planDialogTitle,
-        });
-        return true;
-      } else {
-        await this.copyToClipboard(message, t, onFeedback);
-        return true;
-      }
+      await Share.share(
+        {message},
+        {dialogTitle: t.shareService.planDialogTitle},
+      );
+      return true;
     } catch (error) {
       logger.error('Error sharing reading plan', error as Error);
+      await this.copyToClipboard(message, t, onFeedback);
       return false;
     }
   }
@@ -184,20 +164,14 @@ export class ShareService {
     try {
       haptics.press();
 
-      const canShare = await Sharing.isAvailableAsync();
-
-      if (canShare) {
-        await Sharing.shareAsync(message, {
-          mimeType: 'text/plain',
-          dialogTitle: t.shareService.achievementDialogTitle,
-        });
-        return true;
-      } else {
-        await this.copyToClipboard(message, t, onFeedback);
-        return true;
-      }
+      await Share.share(
+        {message},
+        {dialogTitle: t.shareService.achievementDialogTitle},
+      );
+      return true;
     } catch (error) {
       logger.error('Error sharing achievement', error as Error);
+      await this.copyToClipboard(message, t, onFeedback);
       return false;
     }
   }
