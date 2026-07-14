@@ -527,6 +527,34 @@ describe('computeReviewHistoryWithFloor', () => {
     const h = computeReviewHistoryWithFloor([], NOW, null, cards);
     expect(h.leeches.map(l => l.verseKey)).toEqual(['John/3/16']);
   });
+
+  it('never reports longestStreak below currentStreak (BUG-4 regression)', () => {
+    // The floor recorded a 2-day run that ended 2 days ago (offsets -3, -2).
+    // Local reviews then continue that exact run through yesterday and today
+    // (offsets -1, 0) — a run the floor never saw and the local-only
+    // longestStreak (computed from local events alone) never saw either, so
+    // neither historical maximum reflects it.
+    const floor: MemoryStatsSummary = {
+      updatedAt: NOW.getTime(),
+      longestStreak: 2, // the floor's own best run — just its -3..-2 pair
+      earliestReviewMs: dayAt(NOW, -3),
+      recentDays: {[dayKey(-3)]: 1, [dayKey(-2)]: 1},
+      retentionBands: {},
+    };
+    const events = [...eventsOnDay(-1, 1), ...eventsOnDay(0, 1)];
+    // Sanity check on the local-only baseline: also a 2-day run, so neither
+    // input to the old `Math.max(base.longestStreak, floor.longestStreak)`
+    // is large enough to cover the merged 4-day run below.
+    expect(historySummary(events, NOW).longestStreak).toBe(2);
+
+    const h = computeReviewHistoryWithFloor(events, NOW, floor);
+    // Merged day-set is 4 consecutive days (-3, -2, -1, 0) ending today.
+    expect(h.summary.currentStreak).toBe(4);
+    expect(h.summary.longestStreak).toBe(4);
+    expect(h.summary.longestStreak).toBeGreaterThanOrEqual(
+      h.summary.currentStreak,
+    );
+  });
 });
 
 describe('weeksSinceFirstEvent', () => {
