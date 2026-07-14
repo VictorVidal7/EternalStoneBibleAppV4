@@ -10,13 +10,23 @@
  */
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-const mockShareAsync = jest.fn().mockResolvedValue(undefined);
+const mockShareFn = jest.fn().mockResolvedValue({action: 'sharedAction'});
 const mockIsAvailableAsync = jest.fn().mockResolvedValue(true);
 const mockSetStringAsync = jest.fn().mockResolvedValue(undefined);
 
+// `react-native`'s index re-exports `Share` as a lazy getter over
+// `./Libraries/Share/Share`. Mocking the whole `react-native` module (even
+// via `{...jest.requireActual('react-native')}`) forces every one of those
+// lazy getters to evaluate eagerly — including native-only subsystems like
+// DevMenu — and crashes under jest-expo with a TurboModuleRegistry
+// invariant. Mocking just the submodule that backs `Share` (same targeted
+// style used for TouchableOpacity elsewhere in this suite) avoids that.
+jest.mock('react-native/Libraries/Share/Share', () => ({
+  __esModule: true,
+  default: {share: (...args: unknown[]) => mockShareFn(...args)},
+}));
 jest.mock('expo-sharing', () => ({
   isAvailableAsync: (...args: unknown[]) => mockIsAvailableAsync(...args),
-  shareAsync: (...args: unknown[]) => mockShareAsync(...args),
 }));
 jest.mock('expo-clipboard', () => ({
   setStringAsync: (...args: unknown[]) => mockSetStringAsync(...args),
@@ -44,6 +54,7 @@ async function setLanguage(lang: 'es' | 'en') {
 
 beforeEach(() => {
   jest.clearAllMocks();
+  mockShareFn.mockResolvedValue({action: 'sharedAction'});
   mockIsAvailableAsync.mockResolvedValue(true);
 });
 
@@ -52,8 +63,8 @@ describe('ShareService localization', () => {
     await setLanguage('es');
     await ShareService.shareVerse(verse, 'Juan 3:16');
 
-    expect(mockShareAsync).toHaveBeenCalledTimes(1);
-    const [message, opts] = mockShareAsync.mock.calls[0];
+    expect(mockShareFn).toHaveBeenCalledTimes(1);
+    const [{message}, opts] = mockShareFn.mock.calls[0];
     expect(opts.dialogTitle).toBe('Compartir versículo');
     expect(message).toContain('✨ Compartido desde Eternal Stone Bible');
   });
@@ -62,15 +73,15 @@ describe('ShareService localization', () => {
     await setLanguage('en');
     await ShareService.shareVerse(verse, 'John 3:16');
 
-    expect(mockShareAsync).toHaveBeenCalledTimes(1);
-    const [message, opts] = mockShareAsync.mock.calls[0];
+    expect(mockShareFn).toHaveBeenCalledTimes(1);
+    const [{message}, opts] = mockShareFn.mock.calls[0];
     expect(opts.dialogTitle).toBe('Share verse');
     expect(message).toContain('✨ Shared from Eternal Stone Bible');
   });
 
-  it('localizes the clipboard-fallback feedback when sharing is unavailable', async () => {
+  it('localizes the clipboard-fallback feedback when the share sheet throws', async () => {
     const onFeedback = jest.fn();
-    mockIsAvailableAsync.mockResolvedValue(false);
+    mockShareFn.mockRejectedValueOnce(new Error('boom'));
 
     await setLanguage('en');
     await ShareService.shareVerse(verse, 'John 3:16', {}, onFeedback);
