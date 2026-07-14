@@ -41,6 +41,7 @@ import {useSafeAreaInsets} from 'react-native-safe-area-context';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as Clipboard from 'expo-clipboard';
 import * as Print from 'expo-print';
+import {useDebouncedCallback} from 'use-debounce';
 import {useTheme} from '@hooks/useTheme';
 import {centeredMaxWidth} from '@/styles/responsive';
 import {useLanguage} from '@hooks/useLanguage';
@@ -735,6 +736,15 @@ export default function PrepTableScreen() {
         savePrepNote(table.passageKey, section, drafts[section] ?? ''),
       ),
     );
+    // Resolve the version the SAME way this screen resolves it (explicit
+    // param, else the device's last-picked reading version) and ALWAYS
+    // forward it. The pulpit screen falls back independently to the
+    // UI-language-based selectedVersion when no version param arrives,
+    // which can silently disagree with the version the Mesa is showing
+    // (e.g. deep link with no version param + English UI: Mesa shows
+    // RVR1960 via its own fallback, pulpit would show WEB via its own).
+    // Forwarding the resolved version unconditionally closes that gap.
+    const version = await resolveVersion(params.version);
     router.push({
       pathname: '/features/prep/pulpit' as never,
       params: {
@@ -742,7 +752,7 @@ export default function PrepTableScreen() {
         chapter: String(table.chapter),
         startVerse: String(table.startVerse),
         endVerse: String(table.endVerse),
-        ...(params.version ? {version: params.version} : {}),
+        version,
       },
     });
   }, [router, table, params.version, drafts]);
@@ -752,11 +762,34 @@ export default function PrepTableScreen() {
     openOfferingSheet();
   }, [openOfferingSheet]);
 
+  // Autosave note edits shortly after typing stops. On Android the hardware
+  // back button dismisses the keyboard WITHOUT firing onBlur, so relying on
+  // blur alone lets a typed note vanish if the reader backs out of the
+  // screen right after (the process is still alive — this debounce is the
+  // save path that actually catches that case). onBlur below stays as a
+  // harmless, redundant safety net for the common case where it does fire.
+  const debouncedSaveNote = useDebouncedCallback(
+    (passageKey: string, section: PrepSection, value: string) => {
+      savePrepNote(passageKey, section, value);
+    },
+    700,
+  );
+
+  // use-debounce cancels its pending trailing call once this component
+  // unmounts, so a save queued right before the screen closes (the exact
+  // "type, back, back" repro this debounce exists for) would otherwise be
+  // silently dropped. Flushing on unmount forces that queued save through —
+  // savePrepNote is idempotent + serialized, so this is harmless even when
+  // onBlur/handleOpenPulpit already saved the same value.
+  useEffect(() => () => debouncedSaveNote.flush(), [debouncedSaveNote]);
+
   const handleNoteChange = useCallback(
     (section: PrepSection, value: string) => {
       setDrafts(prev => ({...prev, [section]: value}));
+      if (!table) return;
+      debouncedSaveNote(table.passageKey, section, value);
     },
-    [],
+    [table, debouncedSaveNote],
   );
 
   const handleNoteBlur = useCallback(

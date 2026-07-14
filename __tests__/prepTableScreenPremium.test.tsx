@@ -10,6 +10,7 @@
  */
 import React from 'react';
 import {render, waitFor, fireEvent} from '@testing-library/react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as SecureStore from 'expo-secure-store';
 import Purchases from 'react-native-purchases';
 import PrepTableScreen from '../app/features/prep/index';
@@ -23,14 +24,21 @@ const mockPurchases = Purchases as unknown as {
   __reset: () => void;
 };
 
+// Mutable route params — reassigned by the BUG-2 regression test below (needs
+// a render with NO version param). Read at CALL time by the closure, so
+// reassigning before a render (not before the whole file loads) is enough,
+// same pattern as prepTableScreenVersionCompare.test.tsx.
+let mockRouteParams: Record<string, string> = {
+  book: 'John',
+  chapter: '3',
+  startVerse: '16',
+  version: 'RVR1960',
+};
+const mockRouterPush = jest.fn();
+
 jest.mock('expo-router', () => ({
-  useRouter: () => ({push: jest.fn(), back: jest.fn()}),
-  useLocalSearchParams: () => ({
-    book: 'John',
-    chapter: '3',
-    startVerse: '16',
-    version: 'RVR1960',
-  }),
+  useRouter: () => ({push: mockRouterPush, back: jest.fn()}),
+  useLocalSearchParams: () => mockRouteParams,
   Stack: {Screen: () => null},
 }));
 
@@ -180,6 +188,17 @@ describe('Mesa de preparación — T8.4.2 premium additions', () => {
     mockOriginalsInstalled.mockClear();
     mockOriginalsInstalled.mockResolvedValue(true);
     mockGetOriginalWords.mockClear();
+    mockRouterPush.mockClear();
+    // Reset in case the BUG-2 regression test below overrode this with a
+    // key-specific mockImplementation — every other test needs the plain
+    // "nothing stored" default back.
+    (AsyncStorage.getItem as jest.Mock).mockReset().mockResolvedValue(null);
+    mockRouteParams = {
+      book: 'John',
+      chapter: '3',
+      startVerse: '16',
+      version: 'RVR1960',
+    };
     await SecureStore.deleteItemAsync(ENTITLEMENT_CACHE_KEY);
   });
 
@@ -266,6 +285,35 @@ describe('Mesa de preparación — T8.4.2 premium additions', () => {
       // Pulpit is reachable even without notes (to present the passage in large
       // type) — the enter button is always shown for a premium reader.
       expect(await findByText(p.pulpitEnterButton)).toBeTruthy();
+    });
+
+    // Regression (BUG-2, QA revision): the Mesa used to forward `version`
+    // to the pulpit screen only when IT was opened with an explicit version
+    // param. When it wasn't, the pulpit fell back to a DIFFERENT source
+    // (selectedVersion, UI-language-based) than the Mesa's own fallback
+    // (AsyncStorage, then 'RVR1960'), so the two screens could disagree.
+    // The Mesa must now always forward the exact version IT resolved.
+    //
+    // AsyncStorage is stubbed to return a version ('KJV') distinct from
+    // both the route param (absent here) and the mocked selectedVersion
+    // ('RVR1960', see @hooks/useBibleVersion above) — asserting on 'KJV'
+    // proves the pushed param came from the Mesa's OWN resolveVersion()
+    // fallback, not a coincidental match with the pulpit's independent one.
+    it("premium reader with no version param: forwards the Mesa's own resolved version to the pulpit screen", async () => {
+      mockRouteParams = {book: 'John', chapter: '3', startVerse: '16'};
+      (AsyncStorage.getItem as jest.Mock).mockImplementation(
+        async (key: string) => (key === '@bible_version' ? 'KJV' : null),
+      );
+      await SecureStore.setItemAsync(ENTITLEMENT_CACHE_KEY, 'true');
+      const {findByText} = renderScreen();
+      fireEvent.press(await findByText(p.pulpitEnterButton));
+      await waitFor(() => expect(mockRouterPush).toHaveBeenCalledTimes(1));
+      expect(mockRouterPush).toHaveBeenCalledWith(
+        expect.objectContaining({
+          pathname: '/features/prep/pulpit',
+          params: expect.objectContaining({version: 'KJV'}),
+        }),
+      );
     });
   });
 });
