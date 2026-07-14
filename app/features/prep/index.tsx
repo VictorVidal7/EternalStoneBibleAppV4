@@ -736,6 +736,15 @@ export default function PrepTableScreen() {
         savePrepNote(table.passageKey, section, drafts[section] ?? ''),
       ),
     );
+    // Resolve the version the SAME way this screen resolves it (explicit
+    // param, else the device's last-picked reading version) and ALWAYS
+    // forward it. The pulpit screen falls back independently to the
+    // UI-language-based selectedVersion when no version param arrives,
+    // which can silently disagree with the version the Mesa is showing
+    // (e.g. deep link with no version param + English UI: Mesa shows
+    // RVR1960 via its own fallback, pulpit would show WEB via its own).
+    // Forwarding the resolved version unconditionally closes that gap.
+    const version = await resolveVersion(params.version);
     router.push({
       pathname: '/features/prep/pulpit' as never,
       params: {
@@ -743,7 +752,7 @@ export default function PrepTableScreen() {
         chapter: String(table.chapter),
         startVerse: String(table.startVerse),
         endVerse: String(table.endVerse),
-        ...(params.version ? {version: params.version} : {}),
+        version,
       },
     });
   }, [router, table, params.version, drafts]);
