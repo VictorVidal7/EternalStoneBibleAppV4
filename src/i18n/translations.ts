@@ -2448,7 +2448,7 @@ export const translations = {
       title: 'Rutas bíblicas',
       subtitle: 'Las grandes rutas de la Escritura',
       intro:
-        'La Biblia no solo se lee: sucedió en lugares reales. Recorre estas tres grandes rutas y toca cada parada para leer el pasaje.',
+        'La Biblia no solo se lee: sucedió en lugares reales. Recorre estas cinco grandes rutas y toca cada parada para leer el pasaje.',
       stopsCount: '{{n}} paradas',
       progress: '{{n}} de {{total}} recorridas',
       openInReader: 'Abrir en el lector',
@@ -6022,7 +6022,7 @@ export const translations = {
         leechesTitle: 'Hardest to remember',
         leechesHint:
           "You've missed these a few times — maybe re-read them slowly.",
-        leechesEmpty: 'No verses are sticking. Excellent!',
+        leechesEmpty: 'No verses are giving you trouble. Excellent!',
         lapsesBadge: '{{count}} lapses',
         lapsesBadgeSingular: '1 lapse',
         calibrationTitle: 'Scheduling calibration',
@@ -7870,7 +7870,7 @@ export const translations = {
       title: 'Bible routes',
       subtitle: 'The great routes of Scripture',
       intro:
-        "The Bible isn't just read: it happened in real places. Walk these three great routes and tap each stop to read the passage.",
+        "The Bible isn't just read: it happened in real places. Walk these five great routes and tap each stop to read the passage.",
       stopsCount: '{{n}} stops',
       progress: '{{n}} of {{total}} explored',
       openInReader: 'Open in reader',

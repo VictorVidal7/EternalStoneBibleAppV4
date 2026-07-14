@@ -443,34 +443,48 @@ export const ImageShareModal: React.FC<ImageShareModalProps> = ({
                   horizontal
                   showsHorizontalScrollIndicator={false}
                   style={styles.optionsRow}>
-                  {savedPresets.map(preset => (
-                    <TouchableOpacity
-                      key={preset.id}
-                      onPress={() => handleApplyPreset(preset)}
-                      accessibilityRole="button"
-                      accessibilityLabel={preset.name}
-                      style={[
-                        styles.sizeButton,
-                        styles.presetChip,
-                        {borderColor: colors.border},
-                      ]}>
-                      <Text style={[styles.formatLabel, {color: colors.text}]}>
-                        {preset.name}
-                      </Text>
+                  {savedPresets.map(preset => {
+                    // Legacy presets saved before BUG-7's fix still carry the
+                    // old hardcoded "Estilo N" as their literal `.name`. Only
+                    // apply the localized "Style {{n}}" template when `name`
+                    // is a plain ordinal (what NEW presets store) — otherwise
+                    // render the legacy string as-is, so we don't double it
+                    // up into "Estilo Estilo 1". These self-heal as the old
+                    // presets age out of the MAX_STYLE_PRESETS cap.
+                    const isOrdinal = /^\d+$/.test(preset.name);
+                    const presetLabel = isOrdinal
+                      ? t.verse.imageStyleA11y.replace('{{n}}', preset.name)
+                      : preset.name;
+                    return (
                       <TouchableOpacity
-                        onPress={() => handleDeletePreset(preset.id)}
+                        key={preset.id}
+                        onPress={() => handleApplyPreset(preset)}
                         accessibilityRole="button"
-                        accessibilityLabel={t.verse.imageDeletePreset}
-                        hitSlop={8}
-                        style={styles.presetDelete}>
-                        <Ionicons
-                          name="close-circle"
-                          size={16}
-                          color={colors.textTertiary}
-                        />
+                        accessibilityLabel={presetLabel}
+                        style={[
+                          styles.sizeButton,
+                          styles.presetChip,
+                          {borderColor: colors.border},
+                        ]}>
+                        <Text
+                          style={[styles.formatLabel, {color: colors.text}]}>
+                          {presetLabel}
+                        </Text>
+                        <TouchableOpacity
+                          onPress={() => handleDeletePreset(preset.id)}
+                          accessibilityRole="button"
+                          accessibilityLabel={t.verse.imageDeletePreset}
+                          hitSlop={8}
+                          style={styles.presetDelete}>
+                          <Ionicons
+                            name="close-circle"
+                            size={16}
+                            color={colors.textTertiary}
+                          />
+                        </TouchableOpacity>
                       </TouchableOpacity>
-                    </TouchableOpacity>
-                  ))}
+                    );
+                  })}
                 </ScrollView>
               ) : null}
               <TouchableOpacity

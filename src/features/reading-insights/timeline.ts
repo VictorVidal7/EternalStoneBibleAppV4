@@ -220,7 +220,7 @@ export function buildTimeline(inputs: TimelineInputs): TimelineEvent[] {
       id: `achievement:${achievement.id}`,
       type: 'achievement',
       timestamp: achievement.unlockedAt!,
-      subject: achievement.name,
+      subject: achievement.id,
       icon: achievement.icon,
     });
   }

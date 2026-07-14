@@ -20,7 +20,11 @@ import type {ReaderFontFamily} from '@lib/reader/typefaces';
 
 export interface SharedStylePreset {
   id: string;
-  /** Auto-numbered "Estilo N" — no naming UI needed to keep this simple. */
+  /**
+   * Auto-numbered ordinal (e.g. "3") — no naming UI needed to keep this
+   * simple. Plain digits so callers can localize the "Style N" wording via
+   * i18n (see `t.verse.imageStyleA11y`) instead of baking a language in.
+   */
   name: string;
   templateId: string;
   texture: ShareTexture;
@@ -36,7 +40,7 @@ export const MAX_STYLE_PRESETS = 6;
 export type NewStylePreset = Omit<SharedStylePreset, 'id' | 'name'>;
 
 /**
- * Append a new preset (auto-named "Estilo N" by position), oldest dropped
+ * Append a new preset (auto-named by position, e.g. "3"), oldest dropped
  * once the cap is reached. `id`/`now` are injectable for deterministic tests.
  */
 export function addStylePreset(
@@ -46,7 +50,7 @@ export function addStylePreset(
 ): SharedStylePreset[] {
   const next = [
     ...presets,
-    {...preset, id: `preset_${now}`, name: `Estilo ${presets.length + 1}`},
+    {...preset, id: `preset_${now}`, name: String(presets.length + 1)},
   ];
   return next.length > MAX_STYLE_PRESETS
     ? next.slice(next.length - MAX_STYLE_PRESETS)

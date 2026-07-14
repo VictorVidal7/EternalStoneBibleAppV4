@@ -47,6 +47,7 @@ import {
 } from '@/features/reading-insights/timelineCard';
 import {TimelineImageModal} from '@components/insights/TimelineImageModal';
 import {getDevotionLog} from '@/features/study/devotionLogStore';
+import {getLocalizedAchievement} from '@lib/achievements/definitions';
 import {haptics} from '@lib/haptics';
 import {logger} from '@lib/utils/logger';
 import {
@@ -187,8 +188,13 @@ export default function TimelineScreen() {
             : event.subject;
           return tl.bookCompleted.replace('{{book}}', name);
         }
-        case 'achievement':
-          return tl.achievement.replace('{{name}}', event.subject);
+        case 'achievement': {
+          const localized = getLocalizedAchievement(
+            {id: event.subject, description: ''},
+            t,
+          );
+          return tl.achievement.replace('{{name}}', localized.name);
+        }
         case 'first-favorite':
           return tl.firstFavorite.replace('{{ref}}', localizedRef(event));
         case 'first-note':

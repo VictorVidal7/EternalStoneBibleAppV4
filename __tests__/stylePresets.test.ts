@@ -21,16 +21,21 @@ describe('addStylePreset', () => {
   it('appends a new preset, auto-numbered by position', () => {
     const next = addStylePreset([], BASE, 1000);
     expect(next).toHaveLength(1);
-    expect(next[0].name).toBe('Estilo 1');
+    expect(next[0].name).toBe('1');
     expect(next[0].id).toBe('preset_1000');
     expect(next[0].templateId).toBe('classic');
   });
 
-  it('numbers subsequent presets sequentially', () => {
+  it('numbers subsequent presets sequentially, as a plain ordinal', () => {
     let list = addStylePreset([], BASE, 1);
     list = addStylePreset(list, BASE, 2);
     list = addStylePreset(list, BASE, 3);
-    expect(list.map(p => p.name)).toEqual(['Estilo 1', 'Estilo 2', 'Estilo 3']);
+    expect(list.map(p => p.name)).toEqual(['1', '2', '3']);
+  });
+
+  it('never bakes a language into the name, so the UI can localize it', () => {
+    const next = addStylePreset([], BASE, 1);
+    expect(next[0].name).not.toMatch(/[a-zA-Z]/);
   });
 
   it('drops the oldest preset once the cap is exceeded', () => {
