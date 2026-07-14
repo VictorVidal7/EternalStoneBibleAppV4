@@ -300,10 +300,15 @@ export default function DailyLightScreen() {
     );
   }, [content, router]);
 
-  const dateLabel = new Date().toLocaleDateString(
+  const rawDateLabel = new Date().toLocaleDateString(
     devLang === 'es' ? 'es-ES' : 'en-US',
     {weekday: 'long', month: 'long', day: 'numeric'},
   );
+  // Only the first character should be capitalized (Spanish date formatting
+  // is lowercase by convention) — `textTransform: 'capitalize'` used to
+  // capitalize every word, which is wrong for ES ("Martes, 14 De Julio").
+  const dateLabel =
+    rawDateLabel.charAt(0).toUpperCase() + rawDateLabel.slice(1);
 
   const headerGradient: [string, string] = [colors.primary, colors.primaryDark];
 
@@ -645,7 +650,6 @@ const styles = StyleSheet.create({
     color: staticColors.glassWhite95,
     fontSize: fontSizes.sm,
     fontWeight: '600',
-    textTransform: 'capitalize',
   },
   headerTitle: {
     color: staticColors.white,
