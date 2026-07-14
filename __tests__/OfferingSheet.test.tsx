@@ -8,6 +8,7 @@
 
 import React from 'react';
 import {render, waitFor, fireEvent} from '@testing-library/react-native';
+import {StyleSheet} from 'react-native';
 import Purchases from 'react-native-purchases';
 import * as SecureStore from 'expo-secure-store';
 import {OfferingSheet} from '../src/components/offering/OfferingSheet';
@@ -20,6 +21,10 @@ import {
   __setApiKeyForTests,
 } from '../src/lib/offering/offeringService';
 
+// `onPrimary` deliberately differs from staticColors.white (#FFFFFF) so a
+// component that still reads the hardcoded white instead of colors.onPrimary
+// (Tanda K regression) fails the assertion below instead of passing by
+// coincidence.
 const mockColors = {
   background: '#ffffff',
   card: '#f8fafc',
@@ -28,8 +33,12 @@ const mockColors = {
   textSecondary: '#475569',
   textTertiary: '#94a3b8',
   primary: '#1d4ed8',
+  onPrimary: '#000000',
   border: '#cbd5e1',
 };
+
+const colorOf = (node: {props: {style?: unknown}}): string | undefined =>
+  (StyleSheet.flatten(node.props.style) as {color?: string})?.color;
 
 jest.mock('../src/hooks/useTheme', () => ({
   useTheme: () => ({colors: mockColors, isDark: false}),
@@ -131,6 +140,10 @@ describe('OfferingSheet', () => {
     fireEvent.press(await findByLabelText('$0.99'));
 
     expect(await findByText('Gracias por sembrar en esta obra')).toBeTruthy();
+    // The "Cerrar" CTA sits on a colors.primary-filled button — its ink must
+    // come from colors.onPrimary (theme-aware), not a hardcoded white that
+    // washes out under high contrast (Tanda K).
+    expect(colorOf(await findByText('Cerrar'))).toBe(mockColors.onPrimary);
   });
 
   it('returns to the tier picker silently on a cancelled purchase', async () => {
@@ -209,5 +222,8 @@ describe('OfferingSheet', () => {
 
     expect(await findByText('Extras desbloqueados')).toBeTruthy();
     expect(queryByText('$0.99')).toBeNull();
+    // Same doneButton/doneText pairing as the 'success' state, rendered from
+    // a separate JSX branch — must independently use colors.onPrimary.
+    expect(colorOf(await findByText('Cerrar'))).toBe(mockColors.onPrimary);
   });
 });

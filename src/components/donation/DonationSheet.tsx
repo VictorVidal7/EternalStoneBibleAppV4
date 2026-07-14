@@ -165,7 +165,9 @@ export const DonationSheet: React.FC<Props> = ({visible, onClose}) => {
                 onPress={handleClose}
                 accessibilityRole="button"
                 accessibilityLabel={t.donation.close}>
-                <AppText scaleRole="compact" style={styles.doneText}>
+                <AppText
+                  scaleRole="compact"
+                  style={[styles.doneText, {color: colors.onPrimary}]}>
                   {t.donation.close}
                 </AppText>
               </TouchableOpacity>
@@ -331,7 +333,6 @@ const styles = StyleSheet.create({
     marginTop: spacing.sm,
   },
   doneText: {
-    color: staticColors.white,
     fontSize: fontSizes.md,
     fontWeight: '700',
   },

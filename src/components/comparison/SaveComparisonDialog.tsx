@@ -114,7 +114,7 @@ export const SaveComparisonDialog: React.FC<SaveComparisonDialogProps> = ({
                 {backgroundColor: colors.primary},
               ]}
               onPress={handleSave}>
-              <Text style={styles.saveButtonText}>
+              <Text style={[styles.saveButtonText, {color: colors.onPrimary}]}>
                 {isEditing
                   ? t.versionComparison.update
                   : t.versionComparison.save}
@@ -174,7 +174,6 @@ const styles = StyleSheet.create({
     marginTop: 8,
   },
   saveButtonText: {
-    color: staticColors.white,
     fontSize: 16,
     fontWeight: '700',
   },
