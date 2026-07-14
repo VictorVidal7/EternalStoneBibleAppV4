@@ -81,7 +81,7 @@ export default function KidsStoryScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const {width} = useWindowDimensions();
-  const {colors} = useTheme();
+  const {colors, gradient, highContrast} = useTheme();
   const {t, language} = useLanguage();
   const {selectedVersion} = useBibleVersion();
   const {achievementService, notifyAchievements} = useServices();
@@ -165,7 +165,9 @@ export default function KidsStoryScreen() {
   const listenActive = speaking && !walkthroughActive;
 
   const canvasW = Math.min(width - spacing.lg * 2, 480);
-  const headerGradient: [string, string] = [accent, colors.primaryDark];
+  const headerGradient: readonly [string, string, ...string[]] = highContrast
+    ? (gradient.headerColors as readonly [string, string, ...string[]])
+    : [accent, colors.primaryDark];
 
   // A deep link straight into this screen leaves no back-stack entry, so
   // router.back() would throw a "GO_BACK not handled" navigation error.

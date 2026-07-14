@@ -37,7 +37,7 @@ type ThemeListEntry = {name: string; description: string};
 export default function ThemesBrowseScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
-  const {colors} = useTheme();
+  const {colors, gradient, highContrast} = useTheme();
   const {t} = useLanguage();
   const tt = t.themes;
   const list = tt.list as Record<string, ThemeListEntry>;
@@ -51,7 +51,9 @@ export default function ThemesBrowseScreen() {
     [router],
   );
 
-  const headerGradient: [string, string] = [colors.primary, colors.primaryDark];
+  const headerGradient: readonly [string, string, ...string[]] = highContrast
+    ? (gradient.headerColors as readonly [string, string, ...string[]])
+    : [colors.primary, colors.primaryDark];
 
   return (
     <>

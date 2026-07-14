@@ -62,7 +62,7 @@ interface ResolvedStep extends ActsSessionStep {
 export default function GuidedPrayerScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
-  const {colors} = useTheme();
+  const {colors, gradient, highContrast} = useTheme();
   const {t} = useLanguage();
   const {selectedVersion} = useBibleVersion();
   const ta = t.prayer.acts;
@@ -136,7 +136,9 @@ export default function GuidedPrayerScreen() {
     phase >= 0 && phase < steps.length
       ? steps[phase].meta.accent
       : colors.primary;
-  const headerGradient: [string, string] = [colors.primary, colors.primaryDark];
+  const headerGradient: readonly [string, string, ...string[]] = highContrast
+    ? (gradient.headerColors as readonly [string, string, ...string[]])
+    : [colors.primary, colors.primaryDark];
 
   const advance = () => {
     haptics.tap();

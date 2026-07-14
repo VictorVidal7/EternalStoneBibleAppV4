@@ -91,7 +91,7 @@ interface Intro {
 export default function SharedStudyScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
-  const {colors} = useTheme();
+  const {colors, gradient, highContrast} = useTheme();
   const {t} = useLanguage();
   const ss = t.sharedStudy;
   const p = t.prepTable;
@@ -234,7 +234,9 @@ export default function SharedStudyScreen() {
     };
   }, [table, selectedVersion.id]);
 
-  const headerGradient: [string, string] = [colors.primary, colors.primaryDark];
+  const headerGradient: readonly [string, string, ...string[]] = highContrast
+    ? (gradient.headerColors as readonly [string, string, ...string[]])
+    : [colors.primary, colors.primaryDark];
   const passageLabel = table
     ? formatPassageLabel(table, selectedVersion.language === 'es' ? 'es' : 'en')
     : '';
