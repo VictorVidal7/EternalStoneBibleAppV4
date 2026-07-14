@@ -9,6 +9,7 @@
 import React from 'react';
 import {render, waitFor, fireEvent} from '@testing-library/react-native';
 import * as SecureStore from 'expo-secure-store';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import Purchases from 'react-native-purchases';
 import {ImageShareModal} from '../src/components/reading/ImageShareModal';
 import {PremiumProvider} from '../src/context/PremiumContext';
@@ -215,5 +216,33 @@ describe('ImageShareModal — T8.2 saved style presets', () => {
 
     fireEvent.press(await findByLabelText('Eliminar estilo'));
     await waitFor(() => expect(queryByText('Estilo 1')).toBeNull());
+  });
+
+  it('BUG-7 follow-up: renders a legacy pre-fix preset name as-is, not double-wrapped', async () => {
+    // Presets saved before BUG-7's fix have the old hardcoded "Estilo N"
+    // baked into `.name` (not a plain ordinal). The localized template must
+    // only apply to NEW ordinal-named presets — applying it to a legacy
+    // name would produce "Estilo Estilo 1" instead of the original,
+    // acceptable-until-it-ages-out "Estilo 1".
+    await SecureStore.setItemAsync(ENTITLEMENT_CACHE_KEY, 'true');
+    await AsyncStorage.setItem(
+      '@share_style_presets',
+      JSON.stringify([
+        {
+          id: 'preset_legacy',
+          name: 'Estilo 1',
+          templateId: 'classic',
+          texture: 'none',
+          fontSize: 20,
+          textAlign: 'center',
+          fontFamilyId: 'serif',
+          aspect: 'square',
+        },
+      ]),
+    );
+
+    const {findByText, queryByText} = renderModal();
+    expect(await findByText('Estilo 1')).toBeTruthy();
+    expect(queryByText('Estilo Estilo 1')).toBeNull();
   });
 });
