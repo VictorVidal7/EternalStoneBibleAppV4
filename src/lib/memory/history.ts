@@ -496,11 +496,22 @@ export function computeReviewHistoryWithFloor(
 ): ReviewHistory {
   const base = historySummary(events, now);
   const daySet = mergedDaySet(events, floor?.recentDays);
+  // Computed once and reused for both fields below: the merged (local +
+  // floor) day-set can produce a currentStreak that runs from floor-days
+  // into local-days and so beats every previously-recorded longestStreak
+  // (both the local-only `base.longestStreak` and the floor's own
+  // `floor.longestStreak`, neither of which sees this merged run). Folding
+  // it into the Math.max keeps "best" from ever rendering below "current".
+  const mergedCurrentStreak = currentStreak(daySet, now);
   const summary: HistorySummary = {
     ...base,
     activeDays: daySet.size,
-    currentStreak: currentStreak(daySet, now),
-    longestStreak: Math.max(base.longestStreak, floor?.longestStreak ?? 0),
+    currentStreak: mergedCurrentStreak,
+    longestStreak: Math.max(
+      base.longestStreak,
+      floor?.longestStreak ?? 0,
+      mergedCurrentStreak,
+    ),
   };
   return {
     heatmap: reviewHeatmapWithFloor(events, now, floor?.recentDays, weeks),
