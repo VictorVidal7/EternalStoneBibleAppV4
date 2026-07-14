@@ -25,6 +25,10 @@ import {centeredMaxWidth} from '@/styles/responsive';
 import {useBibleVersion} from '@hooks/useBibleVersion';
 import {useLanguage} from '@hooks/useLanguage';
 import {translations} from '@/i18n/translations';
+import {
+  parseReference,
+  type ParsedReference,
+} from '@/lib/references/parseReference';
 import {IllustratedEmptyState} from '@components/IllustratedEmptyState';
 import {VerseSkeleton} from '@components/SkeletonLoader';
 import {
@@ -213,7 +217,40 @@ function createThemedStyles(colors: ThemeColors, isDark: boolean) {
       alignItems: 'center',
       marginBottom: 8,
     },
+    goToReferenceRow: {
+      flexDirection: 'row' as const,
+      alignItems: 'center' as const,
+      justifyContent: 'space-between' as const,
+      backgroundColor: colors.primary,
+      marginHorizontal: 16,
+      marginTop: 12,
+      paddingVertical: 14,
+      paddingHorizontal: 16,
+      borderRadius: 12,
+    },
+    goToReferenceText: {
+      fontSize: 15,
+      fontWeight: '600' as const,
+      color: staticColors.white,
+    },
   });
+}
+
+/**
+ * Format a parsed reference for display, e.g. "Juan 3:16" or "John 3:16-18",
+ * picking the book name in the given language (mirrors the `.language ===
+ * 'es' ? name : nameEn` selection already used for the popular-search chips
+ * below). verseEnd is only appended when a verse is also present — a
+ * chapter-only reference like "Juan 3" never shows a dash.
+ */
+function formatReferenceLabel(ref: ParsedReference, language: string): string {
+  const bookName = language === 'es' ? ref.book.name : ref.book.nameEn;
+  let label = `${bookName} ${ref.chapter}`;
+  if (ref.verse !== undefined) {
+    label += `:${ref.verse}`;
+    if (ref.verseEnd !== undefined) label += `-${ref.verseEnd}`;
+  }
+  return label;
 }
 
 /**
@@ -510,10 +547,38 @@ export default function SearchScreen() {
     );
   }
 
+  // Recognize a typed Bible reference ("Juan 3:16") independently of the
+  // debounced FTS search below — this is synchronous, so the row can appear
+  // the instant the user finishes typing, without waiting on the 500ms
+  // debounce or the SQLite round-trip. FTS5 treats ":" as column-filter
+  // syntax, so without this a reference query would otherwise just return 0
+  // full-text results with no way to jump straight to the verse.
+  const parsedRef = useMemo(() => parseReference(searchQuery), [searchQuery]);
+
+  function goToParsedReference(ref: ParsedReference) {
+    // Same navigation shape as jumpToReference() in verse/[book]/[chapter].tsx
+    // — verseEnd is not passed through there either, so we stay consistent
+    // rather than inventing new range-navigation behavior here.
+    const base = `/verse/${ref.book.name}/${ref.chapter}`;
+    router.push(
+      (ref.verse !== undefined ? `${base}?verse=${ref.verse}` : base) as never,
+    );
+  }
+
   const themedStyles = useMemo(
     () => createThemedStyles(colors, isDark),
     [colors, isDark],
   );
+
+  const parsedRefLabel = parsedRef
+    ? t.search.goToReference.replace(
+        '{{ref}}',
+        formatReferenceLabel(
+          parsedRef,
+          selectedVersion.language === 'es' ? 'es' : 'en',
+        ),
+      )
+    : null;
 
   // While more rows may exist behind the cursor, present the count as
   // "N+" so the user knows there are unseen matches; once load-more
@@ -701,6 +766,26 @@ export default function SearchScreen() {
           </ScrollView>
         )}
       </View>
+
+      {/* Go-to-reference row: appears the instant a typed reference like
+          "Juan 3:16" parses, independent of the FTS loading/hasSearched
+          lifecycle — additive to (not a replacement for) the text results
+          below. */}
+      {parsedRef && parsedRefLabel && (
+        <TouchableOpacity
+          style={themedStyles.goToReferenceRow}
+          onPress={() => goToParsedReference(parsedRef)}
+          activeOpacity={0.8}
+          accessibilityRole="button"
+          accessibilityLabel={parsedRefLabel}>
+          <Text style={themedStyles.goToReferenceText}>{parsedRefLabel}</Text>
+          <Ionicons
+            name="chevron-forward"
+            size={18}
+            color={staticColors.white}
+          />
+        </TouchableOpacity>
+      )}
 
       {/* Loading State */}
       {loading && (

@@ -222,6 +222,7 @@ export const translations = {
       removeFromHistory: 'Eliminar del historial',
       loadMore: 'Cargar más resultados',
       allBooks: 'Todos los libros',
+      goToReference: 'Ir a {{ref}}',
       suggestions: ['amor', 'fe', 'esperanza', 'paz', 'salvación'],
       testament: {
         all: 'Todos',
@@ -5659,6 +5660,7 @@ export const translations = {
       removeFromHistory: 'Remove from history',
       loadMore: 'Load more results',
       allBooks: 'All books',
+      goToReference: 'Go to {{ref}}',
       suggestions: ['love', 'faith', 'hope', 'peace', 'salvation'],
       testament: {
         all: 'All',
