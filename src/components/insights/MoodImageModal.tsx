@@ -19,7 +19,7 @@
  * Para la gloria de Dios Todopoderoso ✨
  */
 
-import React, {useRef, useState} from 'react';
+import React from 'react';
 import {
   View,
   Text,
@@ -29,17 +29,13 @@ import {
   StyleSheet,
 } from 'react-native';
 import {Ionicons} from '@expo/vector-icons';
-import {LinearGradient} from 'expo-linear-gradient';
-import {captureRef} from 'react-native-view-shot';
-import * as Sharing from 'expo-sharing';
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
 import {useTheme} from '@hooks/useTheme';
 import {useLanguage} from '@hooks/useLanguage';
-import {useToast} from '@context/ToastContext';
-import {haptics} from '@lib/haptics';
-import {logger} from '@lib/utils/logger';
 import {focusTrapProps} from '@lib/a11y/focusTrap';
-import {FREE_TEMPLATES} from '@/features/share/imageTemplates';
+import {useShareImage} from '@/features/share/useShareImage';
+import {ShareCardHost} from '@/features/share/ShareCardHost';
+import {ShareStylePicker} from '@/features/share/ShareStylePicker';
 import {getFeeling} from '@/features/study/feelings';
 import type {
   MoodMonthSummary,
@@ -49,8 +45,6 @@ import {
   spacing,
   borderRadius,
   fontSize as fontSizes,
-  shadows,
-  staticColors,
 } from '@/styles/designTokens';
 
 export interface MoodImageModalProps {
@@ -73,16 +67,23 @@ export const MoodImageModal: React.FC<MoodImageModalProps> = ({
   const {t} = useLanguage();
   const ri = t.readingInsights;
   const feelingNames = t.feelings.list as Record<string, {name: string}>;
-  const toast = useToast();
-
-  const [templateIndex, setTemplateIndex] = useState(0);
-  const [isSharing, setIsSharing] = useState(false);
-
-  // captureRef accepts the host LinearGradient instance ref directly.
-  const previewRef = useRef<LinearGradient>(null);
-  const template = FREE_TEMPLATES[templateIndex];
 
   const hasData = month.daysLogged > 0;
+
+  const {
+    templateIndex,
+    setTemplateIndex,
+    template,
+    templates,
+    isSharing,
+    previewRef,
+    handleShare,
+  } = useShareImage({
+    componentName: 'MoodImageModal',
+    canShare: () => hasData,
+    onShared: onClose,
+  });
+
   const dominant = getFeeling(month.dominant);
   const dominantName = dominant
     ? (feelingNames[dominant.id]?.name ?? dominant.id)
@@ -115,42 +116,6 @@ export const MoodImageModal: React.FC<MoodImageModalProps> = ({
     ? [...trend.rising.slice(0, 1), ...trend.easing.slice(0, 1)]
     : [];
 
-  async function handleShare() {
-    if (isSharing || !previewRef.current || !hasData) return;
-    try {
-      setIsSharing(true);
-      haptics.press();
-
-      const uri = await captureRef(previewRef, {
-        format: 'png',
-        quality: 1,
-        result: 'tmpfile',
-      });
-
-      if (!(await Sharing.isAvailableAsync())) {
-        toast.error(t.verse.imageShareError);
-        return;
-      }
-
-      await Sharing.shareAsync(uri, {
-        mimeType: 'image/png',
-        dialogTitle: t.share,
-        UTI: 'public.png',
-      });
-
-      toast.success(t.verse.imageReady);
-      onClose();
-    } catch (error) {
-      logger.error('Error sharing mood image', error as Error, {
-        component: 'MoodImageModal',
-        action: 'handleShare',
-      });
-      toast.error(t.verse.imageShareError);
-    } finally {
-      setIsSharing(false);
-    }
-  }
-
   return (
     <Modal visible={visible} animationType="slide" onRequestClose={onClose}>
       <View
@@ -181,13 +146,7 @@ export const MoodImageModal: React.FC<MoodImageModalProps> = ({
           style={styles.flex}
           contentContainerStyle={styles.scrollContent}>
           <View style={styles.previewContainer}>
-            <LinearGradient
-              colors={template.colors}
-              style={styles.card}
-              ref={previewRef}
-              collapsable={false}
-              start={{x: 0, y: 0}}
-              end={{x: 1, y: 1}}>
+            <ShareCardHost ref={previewRef} template={template}>
               <Text
                 style={[styles.cardTitle, {color: template.textColor}]}
                 numberOfLines={2}>
@@ -333,7 +292,7 @@ export const MoodImageModal: React.FC<MoodImageModalProps> = ({
                   Eternal Stone Bible
                 </Text>
               </View>
-            </LinearGradient>
+            </ShareCardHost>
           </View>
 
           {!hasData && (
@@ -342,45 +301,11 @@ export const MoodImageModal: React.FC<MoodImageModalProps> = ({
             </Text>
           )}
 
-          <View style={styles.options}>
-            <Text style={[styles.optionsTitle, {color: colors.textSecondary}]}>
-              {t.verse.imageStyle}
-            </Text>
-            <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-              {FREE_TEMPLATES.map((tpl, index) => {
-                const selected = index === templateIndex;
-                return (
-                  <TouchableOpacity
-                    key={tpl.id}
-                    onPress={() => {
-                      haptics.tap();
-                      setTemplateIndex(index);
-                    }}
-                    accessibilityRole="button"
-                    accessibilityState={{selected}}
-                    accessibilityLabel={t.verse.imageStyleA11y.replace(
-                      '{{n}}',
-                      String(index + 1),
-                    )}
-                    style={[
-                      styles.swatch,
-                      selected && styles.swatchSelected,
-                      selected && {borderColor: colors.primary},
-                    ]}>
-                    <LinearGradient
-                      colors={tpl.colors}
-                      style={styles.swatchGradient}>
-                      <Ionicons
-                        name={tpl.icon as keyof typeof Ionicons.glyphMap}
-                        size={20}
-                        color={tpl.textColor}
-                      />
-                    </LinearGradient>
-                  </TouchableOpacity>
-                );
-              })}
-            </ScrollView>
-          </View>
+          <ShareStylePicker
+            templates={templates}
+            selectedIndex={templateIndex}
+            onSelect={setTemplateIndex}
+          />
         </ScrollView>
       </View>
     </Modal>
@@ -406,13 +331,6 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     padding: spacing.xl,
-  },
-  card: {
-    width: '100%',
-    padding: spacing.xl,
-    borderRadius: borderRadius.xl,
-    justifyContent: 'center',
-    ...shadows.xl,
   },
   cardTitle: {fontSize: fontSizes['2xl'], fontWeight: '800'},
   cardSubtitle: {
@@ -519,26 +437,5 @@ const styles = StyleSheet.create({
     fontSize: fontSizes.sm,
     paddingHorizontal: spacing.xl,
     marginBottom: spacing.md,
-  },
-  options: {paddingHorizontal: spacing.xl, paddingTop: spacing.md},
-  optionsTitle: {
-    fontSize: fontSizes.sm,
-    fontWeight: '600',
-    marginBottom: spacing.md,
-  },
-  swatch: {
-    width: 56,
-    height: 56,
-    borderRadius: 28,
-    marginRight: spacing.md,
-    borderWidth: 2,
-    borderColor: staticColors.transparent,
-  },
-  swatchSelected: {borderWidth: 3},
-  swatchGradient: {
-    flex: 1,
-    borderRadius: 26,
-    justifyContent: 'center',
-    alignItems: 'center',
   },
 });
