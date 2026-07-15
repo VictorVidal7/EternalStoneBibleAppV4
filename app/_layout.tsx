@@ -1,7 +1,6 @@
 import {Stack} from 'expo-router';
 import {useEffect, useState} from 'react';
 import {View, Text, StyleSheet, LogBox, TouchableOpacity} from 'react-native';
-import {staticColors} from '@/styles/designTokens';
 
 // React Native Firebase v22+ emits a verbose namespaced-API deprecation
 // warning on EVERY firestore/crashlytics call (collection/onSnapshot/log…),
@@ -49,7 +48,7 @@ if (!__DEV__) {
 import {GestureHandlerRootView} from 'react-native-gesture-handler';
 import {initializeBibleData} from '@lib/database/data-loader';
 import {loadReaderFonts} from '@lib/reader/fontAssets';
-import {ThemeProvider} from '@hooks/useTheme';
+import {ThemeProvider, useTheme} from '@hooks/useTheme';
 import {BibleVersionProvider, useBibleVersion} from '@hooks/useBibleVersion';
 import {LanguageProvider, useLanguage} from '@hooks/useLanguage';
 import {AccessibilityPreferencesProvider} from '@context/AccessibilityPreferencesContext';
@@ -99,8 +98,12 @@ import {PropheticReminderRouter} from '@/components/PropheticReminderRouter';
 import {ErrorBoundary} from '@/components/ErrorBoundary';
 import {initialize as initializeOffering} from '@lib/offering/offeringService';
 
-function AppContent() {
+// Exported (in addition to the default `RootLayout`) so tests can mount just
+// this component's init logic without standing up every ancestor provider —
+// see __tests__/_layout.test.tsx (Tanda N).
+export function AppContent() {
   const {t, language} = useLanguage();
+  const {colors} = useTheme();
   const {selectedVersion} = useBibleVersion();
   const {completed: onboardingCompleted, complete: completeOnboarding} =
     useOnboarding();
@@ -147,48 +150,65 @@ function AppContent() {
         setLoadingProgress({loaded, total});
       });
 
-      // ✨ Inicializar servicios V5.1
+      // Bible data is the ONLY thing the UI genuinely needs before it can
+      // render (Tanda N). Everything below — predictive cache, badges,
+      // version comparison, widget registration, reader fonts, RevenueCat
+      // offering — is best-effort and, per investigation, nothing mounted
+      // right after this point (tab stack, achievement/audio widgets) has a
+      // hard runtime dependency on any of it having ALREADY finished; each
+      // is either unreferenced at first paint, reads a persisted/self-healing
+      // default, or is gated behind an explicit user tap. So unblock the
+      // loading screen NOW instead of waiting on a Promise.all + warmup +
+      // cleanup that can add real, user-visible latency — e.g. a cold
+      // RevenueCat network round-trip — with nothing to show for it. This
+      // matters most on a process-death resume, which reruns this whole
+      // init indistinguishably from a cold start.
+      setIsLoading(false);
+
+      // ✨ Inicializar servicios V5.1 — fired WITHOUT awaiting (see above).
+      // Still fully error-tolerant: caught internally so a rejection here
+      // can never surface as an unhandled-promise warning or affect the UI.
       logger.info('Inicializando servicios V5.1', {
         component: 'RootLayout',
         action: 'initializeApp',
       });
-      try {
-        await Promise.all([
-          predictiveCacheService.initialize(),
-          badgeSystemService.initialize(),
-          versionComparisonService.initialize(),
-          widgetTaskHandler.initialize(),
-          // Register the bundled reader typefaces (Sprint 82) so the reader's
-          // first paint already has the chosen face. Best-effort: a font load
-          // failure must never abort the other services or the app, and the
-          // text falls back to the system default until a later load lands.
-          loadReaderFonts().catch(() => undefined),
-          // Offering infrastructure (RevenueCat wrapper) — stays dormant
-          // until a real API key + Play Store install are both present; see
-          // offeringService.ts. Best-effort, never blocks startup.
-          initializeOffering().catch(() => undefined),
-        ]);
+      void (async () => {
+        try {
+          await Promise.all([
+            predictiveCacheService.initialize(),
+            badgeSystemService.initialize(),
+            versionComparisonService.initialize(),
+            widgetTaskHandler.initialize(),
+            // Register the bundled reader typefaces (Sprint 82) so the reader's
+            // first paint already has the chosen face. Best-effort: a font load
+            // failure must never abort the other services or the app, and the
+            // text falls back to the system default until a later load lands.
+            loadReaderFonts().catch(() => undefined),
+            // Offering infrastructure (RevenueCat wrapper) — stays dormant
+            // until a real API key + Play Store install are both present; see
+            // offeringService.ts. Best-effort, never blocks startup.
+            initializeOffering().catch(() => undefined),
+          ]);
 
-        // Precalentar caché con contenido popular
-        await predictiveCacheService.warmupCache();
+          // Precalentar caché con contenido popular
+          await predictiveCacheService.warmupCache();
 
-        // Limpiar entradas expiradas del caché
-        await predictiveCacheService.cleanup();
+          // Limpiar entradas expiradas del caché
+          await predictiveCacheService.cleanup();
 
-        logger.info('Servicios V5.1 inicializados correctamente', {
-          component: 'RootLayout',
-          action: 'initializeApp',
-        });
-      } catch (serviceError) {
-        logger.warn('Algunos servicios V5.1 no se pudieron inicializar', {
-          component: 'RootLayout',
-          action: 'initializeApp',
-          error: serviceError,
-        });
-        // No fallar la app, solo continuar sin los servicios V5.1
-      }
-
-      setIsLoading(false);
+          logger.info('Servicios V5.1 inicializados correctamente', {
+            component: 'RootLayout',
+            action: 'initializeApp',
+          });
+        } catch (serviceError) {
+          logger.warn('Algunos servicios V5.1 no se pudieron inicializar', {
+            component: 'RootLayout',
+            action: 'initializeApp',
+            error: serviceError,
+          });
+          // No fallar la app, solo continuar sin los servicios V5.1
+        }
+      })();
     } catch (err) {
       logger.error('Initialization error', err as Error, {
         component: 'RootLayout',
@@ -201,8 +221,9 @@ function AppContent() {
 
   if (isLoading) {
     return (
-      <View style={styles.loadingContainer}>
-        <Text style={styles.progressText}>
+      <View
+        style={[styles.loadingContainer, {backgroundColor: colors.background}]}>
+        <Text style={[styles.progressText, {color: colors.textSecondary}]}>
           {loadingProgress.total === 0
             ? t.app.preparing
             : t.app.loadingProgress.replace(
@@ -220,11 +241,14 @@ function AppContent() {
 
   if (error) {
     return (
-      <View style={styles.errorContainer}>
-        <Text style={styles.errorTitle}>{t.error}</Text>
-        <Text style={styles.errorText}>{error}</Text>
+      <View
+        style={[styles.errorContainer, {backgroundColor: colors.background}]}>
+        <Text style={[styles.errorTitle, {color: colors.error}]}>
+          {t.error}
+        </Text>
+        <Text style={[styles.errorText, {color: colors.text}]}>{error}</Text>
         <TouchableOpacity
-          style={styles.retryButton}
+          style={[styles.retryButton, {backgroundColor: colors.primary}]}
           onPress={() => {
             setError(null);
             setIsLoading(true);
@@ -233,9 +257,13 @@ function AppContent() {
           }}
           accessibilityRole="button"
           accessibilityLabel={t.app.retry}>
-          <Text style={styles.retryButtonText}>{t.app.retry}</Text>
+          <Text style={[styles.retryButtonText, {color: colors.onPrimary}]}>
+            {t.app.retry}
+          </Text>
         </TouchableOpacity>
-        <Text style={styles.errorHint}>{t.app.errorHint}</Text>
+        <Text style={[styles.errorHint, {color: colors.textTertiary}]}>
+          {t.app.errorHint}
+        </Text>
       </View>
     );
   }
@@ -244,7 +272,11 @@ function AppContent() {
   // mount. `null` = still hydrating the flag, so render a tick of nothing
   // rather than briefly flashing either UI.
   if (onboardingCompleted === null) {
-    return <View style={styles.loadingContainer} />;
+    return (
+      <View
+        style={[styles.loadingContainer, {backgroundColor: colors.background}]}
+      />
+    );
   }
   if (onboardingCompleted === false) {
     return <OnboardingScreen onDone={completeOnboarding} />;
@@ -287,16 +319,18 @@ const styles = StyleSheet.create({
   root: {
     flex: 1,
   },
+  // Colors for these loading/error styles are theme-derived (`colors.*`,
+  // applied inline where each style is used) rather than hardcoded here — no
+  // hardcoded colors, per repo convention — so dark mode and "Alto
+  // contraste" are respected instead of always painting white.
   loadingContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: staticColors.white,
     padding: 20,
   },
   progressText: {
     fontSize: 16,
-    color: staticColors.slate600,
     marginTop: 16,
     textAlign: 'center',
   },
@@ -304,36 +338,30 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: staticColors.white,
     padding: 20,
   },
   errorTitle: {
     fontSize: 24,
     fontWeight: 'bold',
-    color: staticColors.accentRed,
     marginBottom: 16,
   },
   errorText: {
     fontSize: 16,
-    color: staticColors.grayDark,
     textAlign: 'center',
     marginBottom: 24,
   },
   errorHint: {
     fontSize: 14,
-    color: staticColors.grayTertiary,
     textAlign: 'center',
     marginTop: 16,
   },
   retryButton: {
-    backgroundColor: staticColors.brandBlue,
     paddingVertical: 12,
     paddingHorizontal: 32,
     borderRadius: 8,
     alignItems: 'center',
   },
   retryButtonText: {
-    color: staticColors.white,
     fontSize: 16,
     fontWeight: '700',
   },
