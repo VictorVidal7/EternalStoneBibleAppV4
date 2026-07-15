@@ -95,7 +95,7 @@ export default function QuizScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const bottomInset = useContentBottomInset();
-  const {colors, gradient} = useTheme();
+  const {colors, gradient, highContrast} = useTheme();
   const {t} = useLanguage();
   const tq = t.quiz;
   const bank = tq.bank as Record<string, QuizBankText>;
@@ -143,6 +143,17 @@ export default function QuizScreen() {
       ? [...gradient.headerColors]
       : [colors.primary, colors.primaryDark]
   ) as [string, string, ...string[]];
+
+  // Ink for the selected filter chips below, which fill with a literal
+  // `staticColors.white` when active. `colors.primaryDark` is normally a
+  // dark, saturated hue that reads fine on that white fill — true for every
+  // color theme — but `HIGH_CONTRAST_COLORS.primaryDark` is pure white
+  // (`#FFFFFF`), which renders as invisible white-on-white text/icons. Only
+  // swap to `colors.onPrimary` while high contrast is on: it's black there,
+  // but it's white in every normal theme's light-mode variant (it's meant
+  // for ink atop a `colors.primary`-filled control, not a white one), so
+  // using it unconditionally would just move the same bug into light mode.
+  const selectedChipInk = highContrast ? colors.onPrimary : colors.primaryDark;
 
   const buildRound = useCallback(
     (exclude: ReadonlySet<string>, cat: QuizCategory | undefined) =>
@@ -398,13 +409,13 @@ export default function QuizScreen() {
               <Ionicons
                 name="leaf-outline"
                 size={12}
-                color={timedMode ? colors.primaryDark : staticColors.white}
+                color={timedMode ? selectedChipInk : staticColors.white}
               />
             )}
             <AppText
               style={[
                 styles.categoryChipText,
-                {color: timedMode ? colors.primaryDark : staticColors.white},
+                {color: timedMode ? selectedChipInk : staticColors.white},
               ]}>
               ⏱ {tq.timedModeLabel}
             </AppText>
@@ -435,7 +446,7 @@ export default function QuizScreen() {
                 {
                   color:
                     category === undefined
-                      ? colors.primaryDark
+                      ? selectedChipInk
                       : staticColors.white,
                 },
               ]}>
@@ -463,13 +474,13 @@ export default function QuizScreen() {
                   <Ionicons
                     name="leaf-outline"
                     size={12}
-                    color={selected ? colors.primaryDark : staticColors.white}
+                    color={selected ? selectedChipInk : staticColors.white}
                   />
                 )}
                 <AppText
                   style={[
                     styles.categoryChipText,
-                    {color: selected ? colors.primaryDark : staticColors.white},
+                    {color: selected ? selectedChipInk : staticColors.white},
                   ]}>
                   {tq.categories[cat]}
                 </AppText>
