@@ -20,7 +20,6 @@ import {useTheme} from '@hooks/useTheme';
 import {useLanguage} from '@hooks/useLanguage';
 import {useToast} from '@context/ToastContext';
 import {haptics} from '@lib/haptics';
-import {staticColors} from '@/styles/designTokens';
 import {focusTrapProps} from '@lib/a11y/focusTrap';
 import {encodeHttpsLink} from '@lib/together';
 import {bundleFromCustomPlan} from '@lib/reading/customPlans';
@@ -62,9 +61,12 @@ export function ShareCustomPlanModal({visible, plan, onClose}: Props) {
       transparent
       animationType="fade"
       onRequestClose={onClose}>
-      <View style={styles.overlay}>
+      <View style={[styles.overlay, {backgroundColor: colors.overlay}]}>
         <View
-          style={[styles.card, {backgroundColor: colors.card}]}
+          style={[
+            styles.card,
+            {backgroundColor: colors.card, borderColor: colors.border},
+          ]}
           {...focusTrapProps()}>
           <View style={styles.headerRow}>
             <Ionicons
@@ -102,9 +104,11 @@ export function ShareCustomPlanModal({visible, plan, onClose}: Props) {
             <Ionicons
               name="share-social-outline"
               size={20}
-              color={staticColors.white}
+              color={colors.onPrimary}
             />
-            <Text style={styles.primaryBtnText}>{tt.share}</Text>
+            <Text style={[styles.primaryBtnText, {color: colors.onPrimary}]}>
+              {tt.share}
+            </Text>
           </TouchableOpacity>
           <TouchableOpacity
             style={[styles.secondaryBtn, {borderColor: colors.border}]}
@@ -125,11 +129,10 @@ export function ShareCustomPlanModal({visible, plan, onClose}: Props) {
 const styles = StyleSheet.create({
   overlay: {
     flex: 1,
-    backgroundColor: staticColors.overlayBlack60,
     justifyContent: 'center',
     padding: 20,
   },
-  card: {borderRadius: 20, padding: 18},
+  card: {borderRadius: 20, borderWidth: 1, padding: 18},
   headerRow: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -149,7 +152,7 @@ const styles = StyleSheet.create({
     paddingVertical: 14,
     marginTop: 16,
   },
-  primaryBtnText: {color: staticColors.white, fontSize: 16, fontWeight: '700'},
+  primaryBtnText: {fontSize: 16, fontWeight: '700'},
   secondaryBtn: {
     flexDirection: 'row',
     alignItems: 'center',

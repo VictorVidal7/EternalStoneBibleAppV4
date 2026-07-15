@@ -91,7 +91,10 @@ export const SleepTimerModal: React.FC<SleepTimerModalProps> = ({
       onRequestClose={onClose}>
       <Pressable style={styles.modalOverlay} onPress={onClose}>
         <Pressable
-          style={[styles.modalContent, {backgroundColor: colors.card}]}
+          style={[
+            styles.modalContent,
+            {backgroundColor: colors.card, borderTopColor: colors.border},
+          ]}
           onPress={e => e.stopPropagation()}
           {...focusTrapProps()}>
           {/* Header */}
@@ -257,6 +260,7 @@ const styles = StyleSheet.create({
   modalContent: {
     borderTopLeftRadius: 24,
     borderTopRightRadius: 24,
+    borderTopWidth: StyleSheet.hairlineWidth,
     paddingBottom: 34,
   },
   modalHeader: {

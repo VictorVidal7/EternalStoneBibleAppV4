@@ -121,7 +121,10 @@ export const DonationSheet: React.FC<Props> = ({visible, onClose}) => {
           {...a11yHiddenProps()}
         />
         <View
-          style={[styles.sheet, {backgroundColor: colors.card}]}
+          style={[
+            styles.sheet,
+            {backgroundColor: colors.card, borderTopColor: colors.border},
+          ]}
           {...focusTrapProps()}>
           <View style={styles.handle} />
 
@@ -249,6 +252,7 @@ const styles = StyleSheet.create({
   sheet: {
     borderTopLeftRadius: borderRadius.xl,
     borderTopRightRadius: borderRadius.xl,
+    borderTopWidth: StyleSheet.hairlineWidth,
     padding: spacing.lg,
     paddingBottom: spacing['2xl'],
     gap: spacing.sm,

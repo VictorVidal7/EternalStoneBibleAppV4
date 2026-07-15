@@ -32,7 +32,6 @@ import {
   borderRadius,
   fontSize as fontSizes,
   spacing,
-  staticColors,
 } from '@/styles/designTokens';
 
 export interface MemoryGuideModalProps {
@@ -65,12 +64,13 @@ export const MemoryGuideModal: React.FC<MemoryGuideModalProps> = ({
       transparent
       animationType="fade"
       onRequestClose={onClose}>
-      <View style={styles.overlay}>
+      <View style={[styles.overlay, {backgroundColor: colors.overlay}]}>
         <View
           style={[
             styles.sheet,
             {
               backgroundColor: colors.surface,
+              borderTopColor: colors.border,
               paddingBottom: insets.bottom + spacing.lg,
             },
           ]}
@@ -136,7 +136,9 @@ export const MemoryGuideModal: React.FC<MemoryGuideModalProps> = ({
             }}
             accessibilityRole="button"
             accessibilityLabel={g.close}>
-            <AppText scaleRole="compact" style={styles.ctaText}>
+            <AppText
+              scaleRole="compact"
+              style={[styles.ctaText, {color: colors.onPrimary}]}>
               {g.close}
             </AppText>
           </TouchableOpacity>
@@ -151,12 +153,12 @@ export default MemoryGuideModal;
 const styles = StyleSheet.create({
   overlay: {
     flex: 1,
-    backgroundColor: staticColors.overlayBlack55,
     justifyContent: 'flex-end',
   },
   sheet: {
     borderTopLeftRadius: borderRadius.xl,
     borderTopRightRadius: borderRadius.xl,
+    borderTopWidth: StyleSheet.hairlineWidth,
     paddingHorizontal: spacing.lg,
     paddingTop: spacing.lg,
     maxHeight: '85%',
@@ -203,7 +205,6 @@ const styles = StyleSheet.create({
     marginTop: spacing.xs,
   },
   ctaText: {
-    color: staticColors.white,
     fontSize: fontSizes.md,
     fontWeight: '800',
   },

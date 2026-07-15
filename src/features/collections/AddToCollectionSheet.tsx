@@ -98,7 +98,10 @@ export const AddToCollectionSheet: React.FC<Props> = ({
           {...a11yHiddenProps()}
         />
         <View
-          style={[styles.sheet, {backgroundColor: colors.card}]}
+          style={[
+            styles.sheet,
+            {backgroundColor: colors.card, borderTopColor: colors.border},
+          ]}
           {...focusTrapProps()}>
           <View style={styles.handle} />
           <AppText
@@ -173,7 +176,7 @@ export const AddToCollectionSheet: React.FC<Props> = ({
                       : colors.primary,
                 },
               ]}>
-              <Ionicons name="add" size={20} color={staticColors.white} />
+              <Ionicons name="add" size={20} color={colors.onPrimary} />
             </TouchableOpacity>
           </View>
 
@@ -182,7 +185,9 @@ export const AddToCollectionSheet: React.FC<Props> = ({
             accessibilityRole="button"
             accessibilityLabel={tc.done}
             style={[styles.doneButton, {backgroundColor: colors.primary}]}>
-            <AppText scaleRole="compact" style={styles.doneText}>
+            <AppText
+              scaleRole="compact"
+              style={[styles.doneText, {color: colors.onPrimary}]}>
               {tc.done}
             </AppText>
           </TouchableOpacity>
@@ -206,6 +211,7 @@ const styles = StyleSheet.create({
   sheet: {
     borderTopLeftRadius: borderRadius.xl,
     borderTopRightRadius: borderRadius.xl,
+    borderTopWidth: StyleSheet.hairlineWidth,
     padding: spacing.lg,
     paddingBottom: spacing['2xl'],
     gap: spacing.md,
@@ -253,7 +259,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   doneText: {
-    color: staticColors.white,
     fontSize: fontSizes.md,
     fontWeight: '700',
   },
