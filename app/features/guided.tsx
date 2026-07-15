@@ -68,7 +68,7 @@ interface RevealVerse {
 export default function GuidedDevotionScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
-  const {colors} = useTheme();
+  const {colors, gradient, highContrast} = useTheme();
   const {t} = useLanguage();
   const {selectedVersion} = useBibleVersion();
   const tg = t.guided;
@@ -142,7 +142,15 @@ export default function GuidedDevotionScreen() {
   const beginMoment = useCallback(() => {
     if (!reveal) return;
     haptics.tap();
-    router.push({
+    // router.replace (not push): this is the ONLY entry point into lectio
+    // that hops through this feeling-picker screen first. Replacing drops
+    // guided.tsx off the nav stack the moment a feeling is committed, so
+    // lectio's finale (X / "Listo" / hardware-back — all plain
+    // router.back()) lands on Home instead of back on the picker. Lectio's
+    // other two entry points (Home's daily-verse card, the reader's
+    // selection-bar overflow) push directly into lectio without ever
+    // touching this screen, so they are unaffected.
+    router.replace({
       pathname: '/features/lectio' as never,
       params: {
         book: reveal.bookEn,
@@ -152,7 +160,9 @@ export default function GuidedDevotionScreen() {
     } as never);
   }, [reveal, router]);
 
-  const headerGradient: [string, string] = [colors.primaryDark, colors.primary];
+  const headerGradient: readonly [string, string, ...string[]] = highContrast
+    ? (gradient.headerColors as readonly [string, string, ...string[]])
+    : [colors.primaryDark, colors.primary];
 
   return (
     <>

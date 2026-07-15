@@ -70,7 +70,7 @@ type LoadStatus = 'loading' | 'ready' | 'error';
 export default function LectioScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
-  const {colors} = useTheme();
+  const {colors, gradient, highContrast} = useTheme();
   const {t, language} = useLanguage();
   const toast = useToast();
   const {achievementService, notifyAchievements} = useServices();
@@ -368,7 +368,9 @@ export default function LectioScreen() {
     return false;
   });
 
-  const headerGradient: [string, string] = [colors.primaryDark, colors.primary];
+  const headerGradient: readonly [string, string, ...string[]] = highContrast
+    ? (gradient.headerColors as readonly [string, string, ...string[]])
+    : [colors.primaryDark, colors.primary];
 
   function renderStepDots() {
     return (
