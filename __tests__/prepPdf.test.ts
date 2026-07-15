@@ -1,5 +1,14 @@
-import {buildPrepHtml} from '../src/features/study/prepPdf';
-import type {PrepMarkdownInput} from '../src/features/study/prepMarkdown';
+import {
+  buildPrepHtml,
+  buildSeriesHtml,
+  DISCUSSION_GUIDE_STAGES,
+} from '../src/features/study/prepPdf';
+import type {
+  PrepMarkdownInput,
+  PrepMarkdownSection,
+  PrepSeriesMarkdownInput,
+} from '../src/features/study/prepMarkdown';
+import {PREP_SECTIONS} from '../src/features/study/prepTable';
 
 const base: PrepMarkdownInput = {
   passageLabel: 'Juan 3:16',
@@ -167,5 +176,148 @@ describe('prepPdf — render a prep table as a self-contained HTML document', ()
     expect(html).toContain('&quot;comillas&quot;');
     expect(html).toContain('&lt;tag&gt;');
     expect(html).toContain('&#39;comillas simples&#39;');
+  });
+});
+
+// Tanda 3 — a fully-sectioned fixture (all 7 PREP_SECTIONS, each with an
+// `id`, a note AND a prompt AND a help) so the format-aware renderers'
+// filtering/omission behavior is actually exercised, not just "produces
+// valid HTML".
+function sectionedInput(
+  over: Partial<PrepMarkdownInput> = {},
+): PrepMarkdownInput {
+  const sections: PrepMarkdownSection[] = PREP_SECTIONS.map(id => ({
+    id,
+    label: `Label-${id}`,
+    prompt: `Prompt-${id}`,
+    note: `Note-${id}`,
+    helps: [`Help-${id}`],
+  }));
+  return {
+    passageLabel: 'Efesios 2:1-10',
+    passageText: [{verse: 1, text: 'Y él os dio vida juntamente con Cristo'}],
+    sections,
+    guardrail: 'Examínalo todo a la luz de la Escritura.',
+    ...over,
+  };
+}
+
+describe('buildPrepHtml — format-aware (Tanda 3)', () => {
+  it('defaults to the manuscript format (zero-regression guard)', () => {
+    const input = sectionedInput();
+    expect(buildPrepHtml(input)).toBe(buildPrepHtml(input, 'manuscript'));
+  });
+
+  it('manuscript renders every section with its note and helps', () => {
+    const html = buildPrepHtml(sectionedInput(), 'manuscript');
+    for (const id of PREP_SECTIONS) {
+      expect(html).toContain(`Label-${id}`);
+      expect(html).toContain(`Note-${id}`);
+      expect(html).toContain(`Help-${id}`);
+    }
+  });
+
+  it('outline: headings + helps only, no note/prompt prose, no passage text', () => {
+    const html = buildPrepHtml(sectionedInput(), 'outline');
+    for (const id of PREP_SECTIONS) {
+      expect(html).toContain(`Label-${id}`);
+      expect(html).toContain(`Help-${id}`);
+      expect(html).not.toContain(`Note-${id}`);
+      expect(html).not.toContain(`Prompt-${id}`);
+    }
+    expect(html).not.toContain('class="passage"');
+    expect(html).not.toContain('Y él os dio vida juntamente con Cristo');
+  });
+
+  it('handout: only bigIdea/application/questions, full note + helps, passage text kept', () => {
+    const html = buildPrepHtml(sectionedInput(), 'handout');
+    for (const id of ['bigIdea', 'application', 'questions'] as const) {
+      expect(html).toContain(`Label-${id}`);
+      expect(html).toContain(`Note-${id}`);
+      expect(html).toContain(`Help-${id}`);
+    }
+    for (const id of [
+      'context',
+      'observation',
+      'interpretation',
+      'christ',
+    ] as const) {
+      expect(html).not.toContain(`Label-${id}`);
+      expect(html).not.toContain(`Note-${id}`);
+    }
+    expect(html).toContain('class="passage"');
+    expect(html).toContain('Y él os dio vida juntamente con Cristo');
+  });
+
+  it('handout renders an empty outline body for sections with no `id` (un-migrated caller)', () => {
+    const html = buildPrepHtml(base, 'handout');
+    expect(html).not.toContain('<section class="outline-section">');
+    // The doc shell/passage/footer still render fine — nothing throws.
+    expect(html.trimStart().startsWith('<!DOCTYPE html>')).toBe(true);
+  });
+
+  it('discussion: the fixed 9 O-I-A prompts render, section notes do not, passage text is kept', () => {
+    const html = buildPrepHtml(sectionedInput(), 'discussion');
+    expect(DISCUSSION_GUIDE_STAGES).toHaveLength(3);
+    for (const stage of DISCUSSION_GUIDE_STAGES) {
+      expect(stage.prompts).toHaveLength(3);
+      expect(html).toContain(stage.label);
+      for (const prompt of stage.prompts) {
+        expect(html).toContain(prompt);
+      }
+    }
+    for (const id of PREP_SECTIONS) {
+      expect(html).not.toContain(`Note-${id}`);
+    }
+    expect(html).toContain('class="passage"');
+    expect(html).toContain('Y él os dio vida juntamente con Cristo');
+  });
+});
+
+function seriesInputWithSections(
+  over: Partial<PrepSeriesMarkdownInput> = {},
+): PrepSeriesMarkdownInput {
+  return {
+    seriesName: 'Efesios en 8 semanas',
+    entries: [
+      {dateLabel: '12 jul 2026', passage: sectionedInput()},
+      {passage: sectionedInput({passageLabel: 'Efesios 3:1-13'})},
+    ],
+    guardrail: 'Examínalo todo a la luz de la Escritura.',
+    ...over,
+  };
+}
+
+describe('buildSeriesHtml — format-aware (Tanda 3)', () => {
+  it('defaults to the manuscript format (zero-regression guard)', () => {
+    const input = seriesInputWithSections();
+    expect(buildSeriesHtml(input)).toBe(buildSeriesHtml(input, 'manuscript'));
+  });
+
+  it('outline: applies per entry — no notes/prompts anywhere, helps kept, no passage text', () => {
+    const html = buildSeriesHtml(seriesInputWithSections(), 'outline');
+    expect(html).not.toContain('Note-bigIdea');
+    expect(html).not.toContain('Prompt-bigIdea');
+    expect(html).toContain('Help-bigIdea');
+    expect(html).not.toContain('class="passage"');
+  });
+
+  it('handout: only bigIdea/application/questions per entry (2 entries → 2 occurrences each)', () => {
+    const html = buildSeriesHtml(seriesInputWithSections(), 'handout');
+    expect((html.match(/Label-bigIdea/g) ?? []).length).toBe(2);
+    expect((html.match(/Label-context/g) ?? []).length).toBe(0);
+    expect(html).toContain('class="passage"');
+  });
+
+  it('discussion: the fixed O-I-A scaffold renders once per entry (2 entries → 2 occurrences)', () => {
+    const html = buildSeriesHtml(seriesInputWithSections(), 'discussion');
+    const stage = DISCUSSION_GUIDE_STAGES[0];
+    // split/join count instead of a regex — the prompts contain "¿"/"?",
+    // which are regex metacharacters, not literal text to match.
+    const occurrences = (haystack: string, needle: string) =>
+      haystack.split(needle).length - 1;
+    expect(occurrences(html, stage.label)).toBe(2);
+    expect(occurrences(html, stage.prompts[0])).toBe(2);
+    expect(html).not.toContain('Note-bigIdea');
   });
 });

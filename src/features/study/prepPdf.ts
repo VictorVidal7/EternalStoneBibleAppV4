@@ -24,6 +24,89 @@ import type {
   PrepMarkdownSection,
   PrepSeriesMarkdownInput,
 } from './prepMarkdown';
+import type {PrepSection} from './prepTable';
+
+/**
+ * The export formats a prep document can be rendered as (Tanda 3, pastors/
+ * teachers premium track). `'manuscript'` is the pre-existing full document
+ * (free-eligible today, unchanged) — the other three are premium-gated,
+ * format-only re-renders of the SAME assembled `PrepMarkdownInput`/
+ * `PrepSeriesMarkdownInput`; none of them generate new content, only pick a
+ * different subset/shape of what's already there (Jeremías 23:30-32).
+ *
+ *  - 'manuscript': the full document — passage + every section's note/prompt
+ *    + gathered helps. Today's `buildPrepHtml`/`buildSeriesHtml` behavior.
+ *  - 'outline': a compact skeleton for the pulpit — headings + bullet helps
+ *    only, no prose (note/prompt) and no re-quoted passage text (the
+ *    preacher already has the Bible open; this is a glance-at-a-glance
+ *    scaffold, not a manuscript).
+ *  - 'handout': a congregant follow-along sheet — the passage text plus only
+ *    the sections a listener benefits from during/after the message (the
+ *    big idea, the application, the discussion questions), never the
+ *    preacher's raw exegetical process (context/observation/interpretation/
+ *    Christ-connection prose, which is process, not takeaway).
+ *  - 'discussion': a small-group discussion sheet — the passage text plus a
+ *    FIXED, reviewable "O-I-A" (Observación-Interpretación-Aplicación)
+ *    scaffold of generic Bible-study-method questions. Deliberately ignores
+ *    the preparer's own section notes: this format is pure METHOD/STRUCTURE
+ *    the app supplies, never generated theological content.
+ */
+export type PrepExportFormat =
+  | 'manuscript'
+  | 'outline'
+  | 'handout'
+  | 'discussion';
+
+/**
+ * The `PrepSection` ids most useful to hand to a congregation on a follow-
+ * along sheet: the ONE dominant thought (bigIdea), how it changes them
+ * (application), and what to talk about afterward (questions). Deliberately
+ * excludes context/observation/interpretation/christ — that's the
+ * preacher's own study process, not the takeaway a listener needs on paper.
+ */
+const HANDOUT_SECTION_IDS: readonly PrepSection[] = [
+  'bigIdea',
+  'application',
+  'questions',
+];
+
+/**
+ * The fixed "O-I-A" discussion scaffold rendered by the 'discussion' format —
+ * 3 neutral, general-purpose Spanish prompts per stage, reusable across ANY
+ * passage. These are pure METHOD, reviewed as a fixed list (not generated per
+ * passage): no answers, no passage-specific content, no doctrinal claims —
+ * only the kind of question any solid inductive-study guide asks. Exported so
+ * tests can assert against the exact, reviewable list.
+ */
+export const DISCUSSION_GUIDE_STAGES: ReadonlyArray<{
+  label: string;
+  prompts: readonly string[];
+}> = [
+  {
+    label: 'Observación',
+    prompts: [
+      '¿Qué dice el texto literalmente? Anota palabras, frases o ideas que se repiten.',
+      '¿Quién habla, a quién, y en qué situación o contexto ocurre esto?',
+      '¿Qué preguntas te genera el pasaje al leerlo con cuidado?',
+    ],
+  },
+  {
+    label: 'Interpretación',
+    prompts: [
+      '¿Qué significaba este pasaje para sus primeros oyentes o lectores?',
+      '¿Cómo ayuda el resto de la Escritura a entender este pasaje?',
+      '¿Cuál es la idea central que el pasaje quiere comunicar?',
+    ],
+  },
+  {
+    label: 'Aplicación',
+    prompts: [
+      '¿Qué verdad de este pasaje necesito creer o recordar hoy?',
+      '¿Cómo aplica esto a mi vida esta semana, en algo concreto?',
+      '¿Con quién puedo compartir o vivir esto en comunidad?',
+    ],
+  },
+];
 
 /**
  * Turn a series name / passage label into a safe PDF filename (WITHOUT the
@@ -92,6 +175,100 @@ function renderSection(section: PrepMarkdownSection): string {
   ]
     .filter(Boolean)
     .join('\n');
+}
+
+/**
+ * One outline section as a heading + gathered helps ONLY — the 'outline'
+ * format's compact pulpit skeleton. Drops the note/prompt prose entirely
+ * (that's the manuscript's job); reuses the SAME `outline-section`/`helps`
+ * markup + CSS as `renderSection` so no new stylesheet rules are needed.
+ */
+function renderOutlineSkeletonSection(section: PrepMarkdownSection): string {
+  const helps = (section.helps ?? []).filter(h => h && h.trim().length > 0);
+  const helpsHtml =
+    helps.length > 0
+      ? `<ul class="helps">\n${helps
+          .map(h => `  <li>${escapeHtml(h.trim())}</li>`)
+          .join('\n')}\n</ul>`
+      : '';
+
+  return [
+    '<section class="outline-section">',
+    `  <h2>${escapeHtml(section.label)}</h2>`,
+    helpsHtml ? `  ${helpsHtml}` : '',
+    '</section>',
+  ]
+    .filter(Boolean)
+    .join('\n');
+}
+
+/**
+ * The 'handout' format: only the sections in `HANDOUT_SECTION_IDS`, rendered
+ * identically to the manuscript (note-or-prompt + helps) — a congregant gets
+ * the finished big idea/application/questions, not a partial manuscript.
+ * Sections without an `id` (a caller that hasn't adopted the new field yet)
+ * never match, so an un-migrated caller simply renders an empty handout
+ * body rather than guessing by label.
+ */
+function renderHandoutSections(sections: PrepMarkdownSection[]): string {
+  return sections
+    .filter(s => s.id != null && HANDOUT_SECTION_IDS.includes(s.id))
+    .map(renderSection)
+    .join('\n');
+}
+
+/**
+ * The 'discussion' format's body: the FIXED O-I-A scaffold, completely
+ * independent of the preparer's own section notes (this format never shows
+ * the preparer's private prose — only the reusable method questions). Reuses
+ * the same `outline-section`/`h2`/`helps` markup so no new CSS is needed.
+ */
+function renderDiscussionSections(): string {
+  return DISCUSSION_GUIDE_STAGES.map(stage => {
+    const helpsHtml = `<ul class="helps">\n${stage.prompts
+      .map(p => `  <li>${escapeHtml(p)}</li>`)
+      .join('\n')}\n</ul>`;
+    return [
+      '<section class="outline-section">',
+      `  <h2>${escapeHtml(stage.label)}</h2>`,
+      `  ${helpsHtml}`,
+      '</section>',
+    ].join('\n');
+  }).join('\n');
+}
+
+/**
+ * Dispatch the outline sections markup by format. `'manuscript'` returns
+ * EXACTLY what the original (pre-Tanda-3) code computed — the same
+ * `sections.map(renderSection).join('\n')` — so the default/no-format-arg
+ * call site sees zero output change.
+ */
+function renderSectionsForFormat(
+  sections: PrepMarkdownSection[],
+  format: PrepExportFormat,
+): string {
+  switch (format) {
+    case 'outline':
+      return sections.map(renderOutlineSkeletonSection).join('\n');
+    case 'handout':
+      return renderHandoutSections(sections);
+    case 'discussion':
+      return renderDiscussionSections();
+    case 'manuscript':
+    default:
+      return sections.map(renderSection).join('\n');
+  }
+}
+
+/**
+ * Whether the passage text blockquote is rendered for a given format. The
+ * 'outline' pulpit skeleton omits it (the preacher already has the Bible
+ * open — this is a glance-at-a-glance scaffold, not the manuscript); every
+ * other format keeps it, since a congregant/small-group sheet needs the
+ * actual text to follow along.
+ */
+function includesPassageText(format: PrepExportFormat): boolean {
+  return format !== 'outline';
 }
 
 /** The pastoral guardrail + attribution footer, shared by both documents. */
@@ -251,16 +428,30 @@ ${bodyHtml}
 `;
 }
 
-/** Render a preparation table as a self-contained, print-ready HTML document. */
-export function buildPrepHtml(input: PrepMarkdownInput): string {
+/**
+ * Render a preparation table as a self-contained, print-ready HTML document.
+ * `format` defaults to `'manuscript'` — the pre-existing, free-eligible full
+ * document — so every existing call site (and the 23 pre-Tanda-3 tests) sees
+ * byte-identical output with no `format` argument. The other 3 formats
+ * (Tanda 3, premium-gated at the call site, not here) reuse the SAME
+ * `DOC_STYLE`/`renderDocShell`/`renderDocFooter`/`renderPassageBlock`
+ * primitives, just picking a different subset/shape of the SAME assembled
+ * input — nothing here generates new content.
+ */
+export function buildPrepHtml(
+  input: PrepMarkdownInput,
+  format: PrepExportFormat = 'manuscript',
+): string {
   const titleHtml = input.versionLabel
     ? `${escapeHtml(input.passageLabel)} <span class="version">(${escapeHtml(
         input.versionLabel,
       )})</span>`
     : escapeHtml(input.passageLabel);
 
-  const passageHtml = renderPassageBlock(input.passageText);
-  const sectionsHtml = input.sections.map(renderSection).join('\n');
+  const passageHtml = includesPassageText(format)
+    ? renderPassageBlock(input.passageText)
+    : '';
+  const sectionsHtml = renderSectionsForFormat(input.sections, format);
   const footerHtml = renderDocFooter(input.guardrail, input.generatedWith);
 
   const bodyHtml = `<header class="doc-header">
@@ -278,6 +469,7 @@ ${footerHtml}`;
 /** One series entry: its scheduling meta + passage block + outline sections. */
 function renderSeriesEntry(
   entry: PrepSeriesMarkdownInput['entries'][number],
+  format: PrepExportFormat,
 ): string {
   const p = entry.passage;
   const titleHtml = p.versionLabel
@@ -298,8 +490,10 @@ function renderSeriesEntry(
   const metaHtml =
     meta.length > 0 ? `<p class="entry-meta">${meta.join(' · ')}</p>` : '';
 
-  const passageHtml = renderPassageBlock(p.passageText);
-  const sectionsHtml = p.sections.map(renderSection).join('\n');
+  const passageHtml = includesPassageText(format)
+    ? renderPassageBlock(p.passageText)
+    : '';
+  const sectionsHtml = renderSectionsForFormat(p.sections, format);
 
   return [
     '<section class="series-entry">',
@@ -318,12 +512,20 @@ function renderSeriesEntry(
 /**
  * Render a whole preaching series as ONE self-contained, print-ready HTML
  * document — the series name as the title, then every passage's outline in
- * order (each starting on a new printed page). Reuses the SAME
- * `renderPassageBlock`/`renderSection` a single passage uses, so nothing here
- * generates content; it only re-frames what the preparer already wrote.
+ * order (each starting on a new printed page). `format` defaults to
+ * `'manuscript'`, matching `buildPrepHtml` — same zero-regression guarantee,
+ * same 3 additional formats, applied per entry. Reuses the SAME
+ * `renderPassageBlock`/`renderSectionsForFormat` a single passage uses, so
+ * nothing here generates content; it only re-frames what the preparer
+ * already wrote.
  */
-export function buildSeriesHtml(input: PrepSeriesMarkdownInput): string {
-  const entriesHtml = input.entries.map(renderSeriesEntry).join('\n');
+export function buildSeriesHtml(
+  input: PrepSeriesMarkdownInput,
+  format: PrepExportFormat = 'manuscript',
+): string {
+  const entriesHtml = input.entries
+    .map(entry => renderSeriesEntry(entry, format))
+    .join('\n');
   const footerHtml = renderDocFooter(input.guardrail, input.generatedWith);
 
   const bodyHtml = `<header class="doc-header">

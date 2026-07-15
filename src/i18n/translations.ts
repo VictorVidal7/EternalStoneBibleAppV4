@@ -945,6 +945,24 @@ export const translations = {
         'Entra para presentar el pasaje en letra grande; tus notas y una estimación de tiempo aparecerán aquí conforme las escribas en el esquema.',
       pulpitEnterButton: 'Entrar en modo púlpito',
       pulpitWpmLabel: 'Palabras por minuto',
+      // Tanda 3 — el selector de formato de exportación (PrepExportFormatSheet):
+      // 'manuscript' (gratis, el documento completo de siempre) y 3 formatos
+      // premium nuevos que solo cambian la FORMA de lo ya reunido, sin generar
+      // contenido nuevo (Jer 23:30-32).
+      exportFormatSheetTitle: 'Elige un formato',
+      exportFormatManuscriptLabel: 'Manuscrito completo',
+      exportFormatManuscriptDesc:
+        'El documento completo, con tus notas y las ayudas reunidas.',
+      exportFormatOutlineLabel: 'Bosquejo para el púlpito',
+      exportFormatOutlineDesc:
+        'Solo los títulos y las ayudas, en limpio, sin el pasaje ni tu prosa.',
+      exportFormatHandoutLabel: 'Hoja para la congregación',
+      exportFormatHandoutDesc:
+        'El pasaje, la idea central, la aplicación y las preguntas.',
+      exportFormatDiscussionLabel: 'Guía de discusión',
+      exportFormatDiscussionDesc:
+        'El pasaje y preguntas de observación, interpretación y aplicación para un grupo pequeño.',
+      exportFormatCloseLabel: 'Cerrar',
       sections: {
         context: {
           label: 'Contexto',
@@ -6380,6 +6398,24 @@ export const translations = {
         'Enter to present the passage in large type; your notes and a time estimate appear here as you write them in the outline.',
       pulpitEnterButton: 'Enter pulpit mode',
       pulpitWpmLabel: 'Words per minute',
+      // Tanda 3 — the export format picker (PrepExportFormatSheet):
+      // 'manuscript' (free, today's full document) plus 3 new premium
+      // formats that only change the SHAPE of what's already gathered,
+      // generating no new content (Jer 23:30-32).
+      exportFormatSheetTitle: 'Choose a format',
+      exportFormatManuscriptLabel: 'Full manuscript',
+      exportFormatManuscriptDesc:
+        'The full document, with your notes and gathered helps.',
+      exportFormatOutlineLabel: 'Pulpit outline',
+      exportFormatOutlineDesc:
+        'Just the headings and helps, clean — no passage text or prose.',
+      exportFormatHandoutLabel: 'Congregation handout',
+      exportFormatHandoutDesc:
+        'The passage, the big idea, the application and the questions.',
+      exportFormatDiscussionLabel: 'Discussion guide',
+      exportFormatDiscussionDesc:
+        'The passage and observation/interpretation/application questions for a small group.',
+      exportFormatCloseLabel: 'Close',
       sections: {
         context: {
           label: 'Context',
