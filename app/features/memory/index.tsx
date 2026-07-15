@@ -383,11 +383,16 @@ const MilestoneCelebration: React.FC<{
 
   return (
     <Modal visible transparent animationType="fade" onRequestClose={onClose}>
-      <View style={styles.celebrateOverlay}>
+      <View
+        style={[styles.celebrateOverlay, {backgroundColor: colors.overlay}]}>
         <Animated.View
           style={[
             styles.celebrateCard,
-            {backgroundColor: colors.surface, transform: [{scale}]},
+            {
+              backgroundColor: colors.surface,
+              borderColor: colors.border,
+              transform: [{scale}],
+            },
           ]}
           {...focusTrapProps()}>
           <Text style={styles.celebrateEmoji}>{emoji}</Text>
@@ -401,7 +406,9 @@ const MilestoneCelebration: React.FC<{
             style={[styles.celebrateCta, {backgroundColor: colors.primary}]}
             onPress={onClose}
             accessibilityRole="button">
-            <Text style={styles.celebrateCtaText}>{g.celebrateCta}</Text>
+            <Text style={[styles.celebrateCtaText, {color: colors.onPrimary}]}>
+              {g.celebrateCta}
+            </Text>
           </TouchableOpacity>
         </Animated.View>
       </View>
@@ -728,7 +735,6 @@ const styles = StyleSheet.create({
   },
   celebrateOverlay: {
     flex: 1,
-    backgroundColor: staticColors.overlayBlack55,
     alignItems: 'center',
     justifyContent: 'center',
     padding: spacing.xl,
@@ -737,6 +743,7 @@ const styles = StyleSheet.create({
     width: '100%',
     maxWidth: 360,
     borderRadius: borderRadius.lg,
+    borderWidth: 1,
     padding: spacing['2xl'],
     alignItems: 'center',
     gap: spacing.sm,
@@ -762,7 +769,6 @@ const styles = StyleSheet.create({
     borderRadius: borderRadius.full,
   },
   celebrateCtaText: {
-    color: staticColors.white,
     fontSize: fontSizes.base,
     fontWeight: '800',
   },

@@ -758,7 +758,10 @@ export default function PrepSeriesDetailScreen() {
           <View
             style={[styles.modalOverlay, {backgroundColor: colors.overlay}]}>
             <View
-              style={[styles.modalCard, {backgroundColor: colors.surface}]}
+              style={[
+                styles.modalCard,
+                {backgroundColor: colors.surface, borderColor: colors.border},
+              ]}
               {...focusTrapProps()}>
               <Text style={[styles.modalTitle, {color: colors.text}]}>
                 {h.renameModalTitle}
@@ -806,10 +809,7 @@ export default function PrepSeriesDetailScreen() {
                   accessibilityState={{disabled: !nameDraft.trim()}}
                   accessibilityLabel={t.save}>
                   <Text
-                    style={[
-                      styles.modalButtonText,
-                      {color: staticColors.white},
-                    ]}>
+                    style={[styles.modalButtonText, {color: colors.onPrimary}]}>
                     {t.save}
                   </Text>
                 </TouchableOpacity>
@@ -826,7 +826,10 @@ export default function PrepSeriesDetailScreen() {
           <View
             style={[styles.modalOverlay, {backgroundColor: colors.overlay}]}>
             <View
-              style={[styles.modalCard, {backgroundColor: colors.surface}]}
+              style={[
+                styles.modalCard,
+                {backgroundColor: colors.surface, borderColor: colors.border},
+              ]}
               {...focusTrapProps()}>
               <Text style={[styles.modalTitle, {color: colors.text}]}>
                 {h.dateModalTitle}
@@ -1058,6 +1061,7 @@ const styles = StyleSheet.create({
     width: '100%',
     maxWidth: 400,
     borderRadius: borderRadius.lg,
+    borderWidth: 1,
     padding: spacing.lg,
   },
   modalTitle: {

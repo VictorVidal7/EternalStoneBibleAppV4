@@ -399,9 +399,12 @@ export default function DevotionalBuilderScreen() {
         transparent
         animationType="fade"
         onRequestClose={() => setPickerOpen(false)}>
-        <View style={styles.overlay}>
+        <View style={[styles.overlay, {backgroundColor: colors.overlay}]}>
           <View
-            style={[styles.modalCard, {backgroundColor: colors.card}]}
+            style={[
+              styles.modalCard,
+              {backgroundColor: colors.card, borderColor: colors.border},
+            ]}
             {...focusTrapProps()}>
             <View style={styles.modalHeader}>
               <Text style={[styles.modalTitle, {color: colors.text}]}>
@@ -481,7 +484,13 @@ export default function DevotionalBuilderScreen() {
                     onPress={confirmDay}
                     accessibilityRole="button"
                     accessibilityLabel={db.addThisDay}>
-                    <Text style={styles.confirmBtnText}>{db.addThisDay}</Text>
+                    <Text
+                      style={[
+                        styles.confirmBtnText,
+                        {color: colors.onPrimary},
+                      ]}>
+                      {db.addThisDay}
+                    </Text>
                   </TouchableOpacity>
                 </View>
               </View>
@@ -598,11 +607,15 @@ const styles = StyleSheet.create({
   disabled: {opacity: 0.4},
   overlay: {
     flex: 1,
-    backgroundColor: staticColors.overlayBlack60,
     justifyContent: 'center',
     padding: 20,
   },
-  modalCard: {borderRadius: 20, maxHeight: '80%', overflow: 'hidden'},
+  modalCard: {
+    borderRadius: 20,
+    borderWidth: 1,
+    maxHeight: '80%',
+    overflow: 'hidden',
+  },
   modalHeader: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -651,5 +664,5 @@ const styles = StyleSheet.create({
     paddingVertical: 13,
     alignItems: 'center',
   },
-  confirmBtnText: {color: staticColors.white, fontSize: 15, fontWeight: '700'},
+  confirmBtnText: {fontSize: 15, fontWeight: '700'},
 });

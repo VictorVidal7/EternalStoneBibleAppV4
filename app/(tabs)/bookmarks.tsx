@@ -191,7 +191,10 @@ export default function BookmarksScreen() {
         onRequestClose={() => setEditingId(null)}>
         <View style={[styles.modalOverlay, {backgroundColor: colors.overlay}]}>
           <View
-            style={[styles.modalCard, {backgroundColor: colors.surface}]}
+            style={[
+              styles.modalCard,
+              {backgroundColor: colors.surface, borderColor: colors.border},
+            ]}
             {...focusTrapProps()}>
             <Text style={[styles.modalTitle, {color: colors.text}]}>
               {t.bookmarks.renameTitle}
@@ -228,7 +231,7 @@ export default function BookmarksScreen() {
                 style={[styles.modalButton, {backgroundColor: colors.primary}]}
                 onPress={saveRename}>
                 <Text
-                  style={[styles.modalButtonText, {color: staticColors.white}]}>
+                  style={[styles.modalButtonText, {color: colors.onPrimary}]}>
                   {t.save}
                 </Text>
               </TouchableOpacity>
@@ -329,6 +332,7 @@ const styles = StyleSheet.create({
   modalCard: {
     width: '100%',
     borderRadius: 16,
+    borderWidth: 1,
     padding: 20,
     gap: 16,
   },

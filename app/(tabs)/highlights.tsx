@@ -556,7 +556,10 @@ export default function HighlightsScreen() {
         onRequestClose={() => setEditing(null)}>
         <View style={styles.modalOverlay}>
           <View
-            style={[styles.modalCard, {backgroundColor: colors.surface}]}
+            style={[
+              styles.modalCard,
+              {backgroundColor: colors.surface, borderTopColor: colors.border},
+            ]}
             {...focusTrapProps()}>
             <Text style={[styles.modalTitle, {color: colors.text}]}>
               {editing?.bookName} {editing?.chapter}:{editing?.verse}
@@ -610,7 +613,7 @@ export default function HighlightsScreen() {
                         styles.filterChipTextSmall,
                         {
                           color: active
-                            ? staticColors.white
+                            ? colors.onPrimary
                             : colors.textSecondary,
                         },
                       ]}>
@@ -645,7 +648,7 @@ export default function HighlightsScreen() {
                 <Text
                   style={[
                     styles.modalButtonTextSave,
-                    {color: staticColors.white},
+                    {color: colors.onPrimary},
                   ]}>
                   {t.highlights.save}
                 </Text>
@@ -828,6 +831,7 @@ const styles = StyleSheet.create({
   modalCard: {
     borderTopLeftRadius: 24,
     borderTopRightRadius: 24,
+    borderTopWidth: StyleSheet.hairlineWidth,
     padding: 24,
     paddingBottom: 36,
   },

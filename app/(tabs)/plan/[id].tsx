@@ -821,9 +821,13 @@ export default function ReadingPlanDetailScreen() {
         transparent
         animationType="fade"
         onRequestClose={() => setCelebrate(false)}>
-        <View style={styles.celebrateOverlay}>
+        <View
+          style={[styles.celebrateOverlay, {backgroundColor: colors.overlay}]}>
           <View
-            style={[styles.celebrateCard, {backgroundColor: colors.card}]}
+            style={[
+              styles.celebrateCard,
+              {backgroundColor: colors.card, borderColor: colors.border},
+            ]}
             {...focusTrapProps()}>
             <Ionicons name="trophy" size={48} color={colors.primary} />
             <Text style={[styles.celebrateTitle, {color: colors.text}]}>
@@ -841,7 +845,8 @@ export default function ReadingPlanDetailScreen() {
               onPress={() => setCelebrate(false)}
               accessibilityRole="button"
               accessibilityLabel={t.readingPlan.planCompletedCta}>
-              <Text style={styles.celebrateCtaText}>
+              <Text
+                style={[styles.celebrateCtaText, {color: colors.onPrimary}]}>
                 {t.readingPlan.planCompletedCta}
               </Text>
             </TouchableOpacity>
@@ -1069,7 +1074,6 @@ const styles = StyleSheet.create({
   dayContext: {fontSize: 13, lineHeight: 18, fontStyle: 'italic'},
   celebrateOverlay: {
     flex: 1,
-    backgroundColor: staticColors.overlayBlack50,
     alignItems: 'center',
     justifyContent: 'center',
     padding: 28,
@@ -1077,6 +1081,7 @@ const styles = StyleSheet.create({
   celebrateCard: {
     width: '100%',
     borderRadius: 20,
+    borderWidth: 1,
     padding: 26,
     alignItems: 'center',
     gap: 12,
@@ -1100,6 +1105,5 @@ const styles = StyleSheet.create({
   celebrateCtaText: {
     fontSize: 15,
     fontWeight: '700',
-    color: staticColors.white,
   },
 });

@@ -552,7 +552,13 @@ export default function PrayerJournalScreen() {
           onRequestClose={() => setFormOpen(false)}>
           <View style={styles.modalOverlay}>
             <View
-              style={[styles.modalCard, {backgroundColor: colors.background}]}>
+              style={[
+                styles.modalCard,
+                {
+                  backgroundColor: colors.background,
+                  borderColor: colors.border,
+                },
+              ]}>
               <AppText
                 scaleRole="display"
                 style={[styles.modalTitle, {color: colors.text}]}>
@@ -659,7 +665,7 @@ export default function PrayerJournalScreen() {
                   accessibilityState={{disabled: isBlankTitle(draftTitle)}}
                   accessibilityLabel={tp.save}>
                   <AppText
-                    style={[styles.modalSaveText, {color: staticColors.white}]}>
+                    style={[styles.modalSaveText, {color: colors.onPrimary}]}>
                     {tp.save}
                   </AppText>
                 </TouchableOpacity>
@@ -676,7 +682,13 @@ export default function PrayerJournalScreen() {
           onRequestClose={() => setAnswerId(null)}>
           <View style={styles.modalOverlay}>
             <View
-              style={[styles.modalCard, {backgroundColor: colors.background}]}>
+              style={[
+                styles.modalCard,
+                {
+                  backgroundColor: colors.background,
+                  borderColor: colors.border,
+                },
+              ]}>
               <AppText
                 scaleRole="display"
                 style={[styles.modalTitle, {color: colors.text}]}>
@@ -718,10 +730,10 @@ export default function PrayerJournalScreen() {
                   <Ionicons
                     name="checkmark"
                     size={18}
-                    color={staticColors.white}
+                    color={colors.onPrimary}
                   />
                   <AppText
-                    style={[styles.modalSaveText, {color: staticColors.white}]}>
+                    style={[styles.modalSaveText, {color: colors.onPrimary}]}>
                     {tp.markAnswered}
                   </AppText>
                 </TouchableOpacity>
