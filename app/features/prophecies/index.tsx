@@ -88,7 +88,7 @@ interface ResolvedRef {
 export default function PropheticThreadScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
-  const {colors} = useTheme();
+  const {colors, gradient, highContrast} = useTheme();
   const {t} = useLanguage();
   const {selectedVersion} = useBibleVersion();
   const {hasCard, addCard} = useMemoryDeck();
@@ -198,7 +198,12 @@ export default function PropheticThreadScreen() {
   const accent = current
     ? PROPHECY_GROUP_ACCENT[current.group]
     : colors.primary;
-  const headerGradient: [string, string] = [colors.primary, colors.primaryDark];
+  // High contrast (whole app): swap to the flat dark header gradient instead
+  // of the amber→white pair `colors.primary`/`colors.primaryDark` become
+  // under that theme (Tanda L precedent, e.g. daily-light/index.tsx).
+  const headerGradient: readonly [string, string, ...string[]] = highContrast
+    ? (gradient.headerColors as readonly [string, string, ...string[]])
+    : [colors.primary, colors.primaryDark];
 
   const localizedRef = useMemo(
     () => (ref: ProphecyRefKey) => {
@@ -281,8 +286,12 @@ export default function PropheticThreadScreen() {
     setPhase(p => Math.max(-1, Math.min(total, p + delta)));
   };
 
-  // Hardware back: close an open sheet first, then step back one prophecy,
-  // then fall through to the default route-pop once at the intro (phase -1).
+  // Hardware back: close an open sheet first, then fall through to the
+  // default route-pop — matching the header arrow's `router.back()`, which
+  // always exits immediately. This is a 79-item list, not a short wizard
+  // (contrast prayer/acts.tsx, lectio.tsx, guided.tsx, where "back = previous
+  // step" is deliberate on a handful of steps): stepping back one prophecy
+  // per hardware-back press meant ~79 presses to actually leave the screen.
   useBackHandlerStep(() => {
     if (shareOpen) {
       setShareOpen(false);
@@ -298,10 +307,6 @@ export default function PropheticThreadScreen() {
     }
     if (sourcesOpen) {
       setSourcesOpen(false);
-      return true;
-    }
-    if (phase > -1) {
-      go(-1);
       return true;
     }
     return false;
