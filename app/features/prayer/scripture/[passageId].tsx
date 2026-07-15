@@ -55,7 +55,7 @@ type LoadStatus = 'loading' | 'ready' | 'error';
 export default function ScripturePrayerWalkScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
-  const {colors} = useTheme();
+  const {colors, gradient, highContrast} = useTheme();
   const {t} = useLanguage();
   const {selectedVersion} = useBibleVersion();
   const toast = useToast();
@@ -145,7 +145,9 @@ export default function ScripturePrayerWalkScreen() {
     );
   }
 
-  const headerGradient: [string, string] = [colors.primary, colors.primaryDark];
+  const headerGradient: readonly [string, string, ...string[]] = highContrast
+    ? (gradient.headerColors as readonly [string, string, ...string[]])
+    : [colors.primary, colors.primaryDark];
 
   const goBack = () => {
     if (router.canGoBack()) router.back();

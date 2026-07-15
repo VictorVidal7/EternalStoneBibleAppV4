@@ -67,7 +67,7 @@ interface ResolvedRef {
 export default function BibleFactsScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
-  const {colors} = useTheme();
+  const {colors, gradient, highContrast} = useTheme();
   const {t} = useLanguage();
   const {selectedVersion} = useBibleVersion();
   const tf = t.bibleFacts;
@@ -182,7 +182,9 @@ export default function BibleFactsScreen() {
       .filter(section => section.entries.length > 0);
   }, [filter, favorites]);
 
-  const headerGradient: [string, string] = [colors.primary, colors.primaryDark];
+  const headerGradient: readonly [string, string, ...string[]] = highContrast
+    ? (gradient.headerColors as readonly [string, string, ...string[]])
+    : [colors.primary, colors.primaryDark];
   const dailyAccent = FACT_CATEGORY_ACCENT[dailyFact.category];
   const dailyItem = items[dailyFact.id];
   const dailyResolved = resolved[dailyFact.ref];

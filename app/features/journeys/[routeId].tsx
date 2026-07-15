@@ -101,7 +101,7 @@ export default function JourneyRouteScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const {width} = useWindowDimensions();
-  const {colors} = useTheme();
+  const {colors, gradient, highContrast} = useTheme();
   const {t, language} = useLanguage();
   const {selectedVersion} = useBibleVersion();
   const toast = useToast();
@@ -180,7 +180,9 @@ export default function JourneyRouteScreen() {
     [stops, canvasW],
   );
 
-  const headerGradient: [string, string] = [colors.primary, colors.primaryDark];
+  const headerGradient: readonly [string, string, ...string[]] = highContrast
+    ? (gradient.headerColors as readonly [string, string, ...string[]])
+    : [colors.primary, colors.primaryDark];
 
   // A deep link straight into this screen leaves no back-stack entry, so
   // router.back() would throw a "GO_BACK not handled" navigation error.

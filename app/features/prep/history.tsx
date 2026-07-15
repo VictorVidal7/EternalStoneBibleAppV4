@@ -62,7 +62,7 @@ type Status = 'loading' | 'ready';
 export default function PrepHistoryScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
-  const {colors} = useTheme();
+  const {colors, gradient, highContrast} = useTheme();
   const {t} = useLanguage();
   const {selectedVersion} = useBibleVersion();
   const {isPremium} = usePremium();
@@ -126,7 +126,9 @@ export default function PrepHistoryScreen() {
     openOfferingSheet();
   }, [openOfferingSheet]);
 
-  const headerGradient: [string, string] = [colors.primary, colors.primaryDark];
+  const headerGradient: readonly [string, string, ...string[]] = highContrast
+    ? (gradient.headerColors as readonly [string, string, ...string[]])
+    : [colors.primary, colors.primaryDark];
 
   return (
     <>

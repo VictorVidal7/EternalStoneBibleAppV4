@@ -130,7 +130,7 @@ async function resolveRow(
 export default function FeelingDetailScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
-  const {colors} = useTheme();
+  const {colors, gradient, highContrast} = useTheme();
   const {t} = useLanguage();
   const tf = t.feelings;
 
@@ -238,7 +238,9 @@ export default function FeelingDetailScreen() {
   }, [rows, feeling?.id, name, loadChapter, play, toast, t]);
 
   const accent = feeling?.accent ?? colors.primary;
-  const headerGradient: [string, string] = [accent, colors.primaryDark];
+  const headerGradient: readonly [string, string, ...string[]] = highContrast
+    ? (gradient.headerColors as readonly [string, string, ...string[]])
+    : [accent, colors.primaryDark];
 
   return (
     <>

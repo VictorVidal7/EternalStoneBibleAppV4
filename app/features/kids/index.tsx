@@ -54,7 +54,7 @@ interface KidsStoryText {
 export default function KidsHubScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
-  const {colors} = useTheme();
+  const {colors, gradient, highContrast} = useTheme();
   const {t} = useLanguage();
   const tk = t.kids;
   const stories = tk.stories as Record<string, KidsStoryText>;
@@ -72,7 +72,9 @@ export default function KidsHubScreen() {
     }, []),
   );
 
-  const headerGradient: [string, string] = [colors.primary, colors.primaryDark];
+  const headerGradient: readonly [string, string, ...string[]] = highContrast
+    ? (gradient.headerColors as readonly [string, string, ...string[]])
+    : [colors.primary, colors.primaryDark];
   const storyById = new Map(KIDS_STORIES.map(s => [s.id, s]));
 
   const pace: PlanPace = kidsPlanPace(
