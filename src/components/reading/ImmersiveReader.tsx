@@ -159,6 +159,17 @@ export const ImmersiveReader: React.FC<ImmersiveReaderProps> = ({
   // here, or it was already playing in the floating player when immersive opened.
   const audioBound = isSameAudioChapter(audioVersesLoaded, audioVerses);
   const listening = isPremium && audioBound;
+  // The "Auto" (auto-scroll timer) button is a genuine dead control for a
+  // FREE user in this exact state: audio bound to this chapter AND playing.
+  // `listening` requires isPremium, so a free listener never reaches the
+  // combined play/pause button above — they land here instead — but the
+  // auto-scroll effect's own guard (`!(audioBound && isPlaying)`) skips
+  // scheduling in that same state, since the audio engine already owns
+  // currentIndex. Tapping "Auto" then only toggles local state with zero
+  // observable effect on verse advancement, so it must render as disabled
+  // rather than silently no-op.
+  const autoScrollDeadForFree =
+    !isPremium && audioBound && audioState.isPlaying;
 
   // 🎤 Karaoke (Sprint 75): the TTS word boundary last voiced. Subscribed only
   // while this surface is listening; the provider fans out via refs, so the
@@ -896,14 +907,25 @@ export const ImmersiveReader: React.FC<ImmersiveReaderProps> = ({
                 </TouchableOpacity>
               ) : (
                 <>
-                  {/* Auto-scroll toggle (reading timer) */}
+                  {/* Auto-scroll toggle (reading timer). Disabled for a free
+                      user when audio is already bound to this chapter AND
+                      playing — the auto-scroll effect's own guard skips
+                      scheduling in that exact state (the audio engine already
+                      drives currentIndex), so the button would otherwise be a
+                      dead control: interactive but with zero observable
+                      effect. See `autoScrollDeadForFree` above. */}
                   <TouchableOpacity
                     style={[
                       styles.actionButton,
                       autoScroll && {backgroundColor: accent},
+                      autoScrollDeadForFree && styles.actionButtonDisabled,
                     ]}
-                    onPress={toggleAutoScroll}
+                    onPress={
+                      autoScrollDeadForFree ? undefined : toggleAutoScroll
+                    }
+                    disabled={autoScrollDeadForFree}
                     accessibilityRole="button"
+                    accessibilityState={{disabled: autoScrollDeadForFree}}
                     accessibilityLabel={
                       autoScroll ? t.verse.pause : t.verse.autoPlay
                     }>
@@ -1144,6 +1166,12 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
+  },
+  // Dead-control state for a free user (audio already bound + playing this
+  // chapter) — same reduced-opacity language as the disabled Previous/Next
+  // nav buttons above.
+  actionButtonDisabled: {
+    opacity: 0.4,
   },
   actionButtonText: {
     color: '#fff',
