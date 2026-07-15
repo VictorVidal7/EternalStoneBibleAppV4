@@ -69,7 +69,9 @@ export default [
     ignores: [
       'node_modules/**',
       '.expo/**',
+      'dist/**',
       'coverage/**',
+      '.claude/**',
       '*.config.js',
       'babel.config.js',
       'metro.config.js',
