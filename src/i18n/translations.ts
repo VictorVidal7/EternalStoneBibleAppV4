@@ -5234,6 +5234,9 @@ export const translations = {
       roundComplete: '¡Ronda completa!',
       roundCompletePerfect: '¡Ronda perfecta! 🎉',
       nextRound: 'Otra ronda',
+      exitConfirmTitle: '¿Salir del quiz?',
+      exitConfirmMessage: 'Perderás tu progreso de esta ronda.',
+      exitConfirmCta: 'Salir',
       categoryPickerTitle: 'Elige un mazo',
       categoryAll: 'Todos',
       categories: {
@@ -10629,6 +10632,9 @@ export const translations = {
       roundComplete: 'Round complete!',
       roundCompletePerfect: 'Perfect round! 🎉',
       nextRound: 'Another round',
+      exitConfirmTitle: 'Exit quiz?',
+      exitConfirmMessage: "You'll lose your progress in this round.",
+      exitConfirmCta: 'Exit',
       categoryPickerTitle: 'Choose a deck',
       categoryAll: 'All',
       categories: {

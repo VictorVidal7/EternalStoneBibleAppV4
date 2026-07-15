@@ -48,7 +48,9 @@ import {useOfferingSheet} from '@context/OfferingSheetContext';
 import {useMemoryDeck} from '@context/MemoryDeckContext';
 import {haptics} from '@lib/haptics';
 import {AppText} from '@components/ui/AppText';
+import {ConfirmDialog} from '@components/ui/ConfirmDialog';
 import {useContentBottomInset} from '@hooks/useContentBottomInset';
+import {useBackHandlerStep} from '@hooks/useBackHandlerStep';
 import {QuizPanel, type AddToDeckStatus} from '@/components/quiz/QuizPanel';
 import {
   pickQuizRound,
@@ -117,6 +119,7 @@ export default function QuizScreen() {
   const [mistakes, setMistakes] = useState(0);
   const [addToDeckStatus, setAddToDeckStatus] =
     useState<AddToDeckStatus>('idle');
+  const [showExitConfirm, setShowExitConfirm] = useState(false);
 
   const roundComplete = index >= round.length;
   const current = roundComplete ? null : round[index];
@@ -266,6 +269,42 @@ export default function QuizScreen() {
     toast.success(tq.addToDeckSuccessToast);
   }, [current, addToDeckStatus, selectedVersion.id, addCard, toast, tq]);
 
+  // Nothing is persisted before the round's LAST question (finishRoundSideEffects
+  // only runs then), so "progress worth confirming" is simply: past the first
+  // question, and the round isn't already complete (roundComplete already has
+  // its own "next round" flow, not an exit).
+  const roundInProgress = index > 0 && !roundComplete;
+
+  // Hardware back: intercept ONLY when there's progress to lose. Returning
+  // `true` consumes the event (dialog decides next); `false` lets the default
+  // route-pop proceed exactly like today. Deliberately NOT memoized — the
+  // hook re-reads this closure via a ref on every press (see its docstring),
+  // so a fresh closure each render is the intended usage.
+  const handleBackIntent = (): boolean => {
+    if (roundInProgress) {
+      setShowExitConfirm(true);
+      return true;
+    }
+    return false;
+  };
+  useBackHandlerStep(handleBackIntent);
+
+  // On-screen back arrow: same gate, so both back paths agree (this app has
+  // a documented history of back-arrow vs. hardware-back disagreeing on other
+  // screens — don't repeat that here).
+  const handlePressBack = () => {
+    if (roundInProgress) {
+      setShowExitConfirm(true);
+      return;
+    }
+    router.back();
+  };
+
+  const handleConfirmExit = () => {
+    setShowExitConfirm(false);
+    router.back();
+  };
+
   return (
     <View style={[styles.container, {backgroundColor: colors.background}]}>
       <Stack.Screen options={{headerShown: false}} />
@@ -277,7 +316,7 @@ export default function QuizScreen() {
         <View style={styles.headerTopRow}>
           <TouchableOpacity
             style={styles.iconButton}
-            onPress={() => router.back()}
+            onPress={handlePressBack}
             accessibilityRole="button"
             accessibilityLabel={t.bible.back}>
             <Ionicons name="arrow-back" size={24} color={staticColors.white} />
@@ -334,6 +373,42 @@ export default function QuizScreen() {
               {tq.mistakes}: {mistakes}
             </AppText>
           </View>
+        </View>
+
+        {/* Game-mode toggle, deliberately NOT inside categoryRow below — it's a
+            round-setting toggle, not another question-category filter, and
+            grouping it with those chips read as "another filter option" to a
+            real user (Victor's feedback). Kept visually identical to the
+            category chips (same shape/selected-state colors), just relocated. */}
+        <View style={styles.modeRow}>
+          <TouchableOpacity
+            style={[
+              styles.categoryChip,
+              {
+                backgroundColor: timedMode
+                  ? staticColors.white
+                  : staticColors.glassWhite18,
+              },
+            ]}
+            onPress={handleToggleTimedMode}
+            accessibilityRole="button"
+            accessibilityState={{selected: timedMode}}
+            accessibilityLabel={tq.timedModeLabel}>
+            {!isPremium && (
+              <Ionicons
+                name="leaf-outline"
+                size={12}
+                color={timedMode ? colors.primaryDark : staticColors.white}
+              />
+            )}
+            <AppText
+              style={[
+                styles.categoryChipText,
+                {color: timedMode ? colors.primaryDark : staticColors.white},
+              ]}>
+              ⏱ {tq.timedModeLabel}
+            </AppText>
+          </TouchableOpacity>
         </View>
 
         <ScrollView
@@ -401,34 +476,6 @@ export default function QuizScreen() {
               </TouchableOpacity>
             );
           })}
-          <TouchableOpacity
-            style={[
-              styles.categoryChip,
-              {
-                backgroundColor: timedMode
-                  ? staticColors.white
-                  : staticColors.glassWhite18,
-              },
-            ]}
-            onPress={handleToggleTimedMode}
-            accessibilityRole="button"
-            accessibilityState={{selected: timedMode}}
-            accessibilityLabel={tq.timedModeLabel}>
-            {!isPremium && (
-              <Ionicons
-                name="leaf-outline"
-                size={12}
-                color={timedMode ? colors.primaryDark : staticColors.white}
-              />
-            )}
-            <AppText
-              style={[
-                styles.categoryChipText,
-                {color: timedMode ? colors.primaryDark : staticColors.white},
-              ]}>
-              ⏱ {tq.timedModeLabel}
-            </AppText>
-          </TouchableOpacity>
         </ScrollView>
       </LinearGradient>
 
@@ -477,6 +524,18 @@ export default function QuizScreen() {
           </View>
         )}
       </ScrollView>
+
+      <ConfirmDialog
+        visible={showExitConfirm}
+        title={tq.exitConfirmTitle}
+        message={tq.exitConfirmMessage}
+        confirmLabel={tq.exitConfirmCta}
+        cancelLabel={t.cancel}
+        onConfirm={handleConfirmExit}
+        onCancel={() => setShowExitConfirm(false)}
+        destructive
+        icon="log-out-outline"
+      />
     </View>
   );
 }
@@ -544,6 +603,10 @@ const styles = StyleSheet.create({
     color: staticColors.white,
     fontSize: fontSizes.xs,
     fontWeight: '700',
+  },
+  modeRow: {
+    flexDirection: 'row',
+    marginTop: spacing.sm,
   },
   categoryRow: {marginTop: spacing.md},
   categoryRowContent: {gap: spacing.xs, paddingRight: spacing.lg},
