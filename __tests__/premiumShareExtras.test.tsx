@@ -21,6 +21,7 @@ const mockColors = {
   textSecondary: '#94a3b8',
   textTertiary: '#64748b',
   primary: '#38bdf8',
+  primaryDark: '#0ea5e9',
   primaryLight: '#1e293b',
   border: '#374151',
 };

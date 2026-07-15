@@ -73,9 +73,13 @@ export const PremiumShareExtras: React.FC<PremiumShareExtrasProps> = ({
   isPremium,
   onLockedAction,
 }) => {
-  const {colors} = useTheme();
+  const {colors, isDark} = useTheme();
   const {t} = useLanguage();
   const toast = useToast();
+
+  // Matches ImageShareModal's own `selectedTextColor` — the active texture
+  // icon/label swaps to `primaryDark` in dark mode instead of `primary`.
+  const selectedTextColor = isDark ? colors.primaryDark : colors.primary;
 
   const [savedPresets, setSavedPresets] = useState<CompactStylePreset[]>([]);
 
@@ -254,12 +258,12 @@ export const PremiumShareExtras: React.FC<PremiumShareExtrasProps> = ({
                           : 'sparkles-outline'
                   }
                   size={20}
-                  color={active ? colors.primary : colors.text}
+                  color={active ? selectedTextColor : colors.text}
                 />
                 <Text
                   style={[
                     styles.formatLabel,
-                    {color: active ? colors.primary : colors.text},
+                    {color: active ? selectedTextColor : colors.text},
                   ]}>
                   {label}
                 </Text>
