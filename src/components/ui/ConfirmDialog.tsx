@@ -71,9 +71,12 @@ export const ConfirmDialog: React.FC<ConfirmDialogProps> = ({
       animationType="fade"
       statusBarTranslucent
       onRequestClose={onCancel}>
-      <View style={styles.overlay}>
+      <View style={[styles.overlay, {backgroundColor: colors.overlay}]}>
         <View
-          style={[styles.card, {backgroundColor: colors.surface}]}
+          style={[
+            styles.card,
+            {backgroundColor: colors.surface, borderColor: colors.border},
+          ]}
           {...focusTrapProps()}>
           <View style={[styles.badge, {backgroundColor: accent + '22'}]}>
             <Ionicons name={badgeIcon} size={28} color={accent} />
@@ -126,7 +129,6 @@ export const ConfirmDialog: React.FC<ConfirmDialogProps> = ({
 const styles = StyleSheet.create({
   overlay: {
     flex: 1,
-    backgroundColor: staticColors.overlayBlack55,
     justifyContent: 'center',
     alignItems: 'center',
     padding: 28,
@@ -135,6 +137,7 @@ const styles = StyleSheet.create({
     width: '100%',
     maxWidth: 380,
     borderRadius: 24,
+    borderWidth: 1,
     paddingHorizontal: 24,
     paddingTop: 26,
     paddingBottom: 18,

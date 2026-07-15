@@ -194,7 +194,9 @@ export const OfferingSheet: React.FC<Props> = ({visible, onClose}) => {
                 onPress={handleClose}
                 accessibilityRole="button"
                 accessibilityLabel={t.offering.close}>
-                <AppText scaleRole="compact" style={styles.doneText}>
+                <AppText
+                  scaleRole="compact"
+                  style={[styles.doneText, {color: colors.onPrimary}]}>
                   {t.offering.close}
                 </AppText>
               </TouchableOpacity>
@@ -225,7 +227,9 @@ export const OfferingSheet: React.FC<Props> = ({visible, onClose}) => {
                 onPress={handleClose}
                 accessibilityRole="button"
                 accessibilityLabel={t.offering.close}>
-                <AppText scaleRole="compact" style={styles.doneText}>
+                <AppText
+                  scaleRole="compact"
+                  style={[styles.doneText, {color: colors.onPrimary}]}>
                   {t.offering.close}
                 </AppText>
               </TouchableOpacity>
@@ -457,7 +461,6 @@ const styles = StyleSheet.create({
     marginTop: spacing.sm,
   },
   doneText: {
-    color: staticColors.white,
     fontSize: fontSizes.md,
     fontWeight: '700',
   },

@@ -24,6 +24,7 @@ const mockColors = {
   primary: '#2563eb',
   onPrimary: '#ffffff',
   error: '#dc2626',
+  overlay: 'rgba(0, 0, 0, 0.75)',
 };
 
 jest.mock('../src/hooks/useTheme', () => ({
@@ -35,6 +36,23 @@ const LONG_CONFIRM_LABEL = 'Importar y reemplazar';
 function flattenStyle(style: unknown): Record<string, unknown> {
   const arr = Array.isArray(style) ? style : [style];
   return Object.assign({}, ...arr.filter(Boolean));
+}
+
+// Climb from a descendant node to the nearest ancestor whose flattened style
+// paints the given backgroundColor — same pattern as
+// achievementModalTheme.test.tsx's bgOfNearestAncestor, generalized to
+// return the whole flattened style so borderColor can be inspected too.
+function nearestAncestorStyleWithBackground(
+  node: {props?: {style?: unknown}; parent?: unknown} | null,
+  backgroundColor: string,
+): Record<string, unknown> | undefined {
+  let cur = node;
+  while (cur) {
+    const flat = flattenStyle(cur.props?.style);
+    if (flat.backgroundColor === backgroundColor) return flat;
+    cur = cur.parent as typeof cur;
+  }
+  return undefined;
 }
 
 describe('ConfirmDialog', () => {
@@ -123,5 +141,40 @@ describe('ConfirmDialog', () => {
       const flat = flattenStyle(button.props.style);
       expect(flat.minHeight).toBe(48);
     }
+  });
+
+  it('gives the card a themed border and the backdrop the themed overlay color (Tanda K — high-contrast anti-pattern fix)', () => {
+    const {getByText} = render(
+      <ConfirmDialog
+        visible
+        title="Reemplazar copia de seguridad"
+        message="Esto sobrescribirá tus datos actuales."
+        confirmLabel={LONG_CONFIRM_LABEL}
+        cancelLabel="Cancelar"
+        onConfirm={() => {}}
+        onCancel={() => {}}
+      />,
+    );
+
+    const titleNode = getByText('Reemplazar copia de seguridad');
+
+    // Before the fix, the card relied solely on a shadow for separation from
+    // the backdrop — invisible when both resolve to near-black under high
+    // contrast. The card must now carry an explicit colors.border ring.
+    const cardStyle = nearestAncestorStyleWithBackground(
+      titleNode,
+      mockColors.surface,
+    );
+    expect(cardStyle?.borderColor).toBe(mockColors.border);
+    expect(cardStyle?.borderWidth).toBeGreaterThan(0);
+
+    // The overlay must come from the theme's colors.overlay token (which
+    // resolves correctly in high contrast), not a hardcoded staticColors
+    // constant that ignores the active theme.
+    const overlayStyle = nearestAncestorStyleWithBackground(
+      titleNode,
+      mockColors.overlay,
+    );
+    expect(overlayStyle).toBeTruthy();
   });
 });
