@@ -16,7 +16,7 @@
  * Para la gloria de Dios Todopoderoso ✨
  */
 
-import React, {useEffect, useMemo, useState} from 'react';
+import React, {useEffect, useMemo, useRef, useState} from 'react';
 import {
   View,
   ScrollView,
@@ -125,6 +125,9 @@ export default function PropheticThreadScreen() {
     chapter: number;
     verse: number;
   } | null>(null);
+  // The main content ScrollView — reset to the top on every phase change
+  // (see the effect below); QA BUG-10.
+  const scrollRef = useRef<ScrollView>(null);
 
   // Load the device-local "explored" + "favorite" marks once.
   useEffect(() => {
@@ -281,18 +284,44 @@ export default function PropheticThreadScreen() {
     };
   }, [phase, total, selectedVersion.id, localizedRef]);
 
+  // QA BUG-10: tapping "Siguiente" from the bottom of a long step used to
+  // leave the ScrollView at its old scroll offset, so the next prophecy
+  // rendered scrolled to the middle (showing "Cumplido en" first, forcing a
+  // scroll back up to see the title) instead of starting at the top. Reset
+  // on every phase change — covers Anterior/Siguiente, jumping from the
+  // index or the "today" card, the narrated walkthrough auto-advancing, and
+  // the back-navigation hub jump above — not just the one repro path.
+  useEffect(() => {
+    scrollRef.current?.scrollTo({y: 0, animated: false});
+  }, [phase]);
+
   const go = (delta: number) => {
     haptics.tap();
     setPhase(p => Math.max(-1, Math.min(total, p + delta)));
   };
 
-  // Hardware back: close an open sheet first, then fall through to the
-  // default route-pop — matching the header arrow's `router.back()`, which
-  // always exits immediately. This is a 79-item list, not a short wizard
-  // (contrast prayer/acts.tsx, lectio.tsx, guided.tsx, where "back = previous
-  // step" is deliberate on a handful of steps): stepping back one prophecy
-  // per hardware-back press meant ~79 presses to actually leave the screen.
-  useBackHandlerStep(() => {
+  // Shared "back" priority for BOTH hardware back and the header arrow (kept
+  // as one function so the two can't drift apart): close an open sheet
+  // first; then, if mid-thread (`phase > -1`), jump straight to this
+  // feature's own intro/hub card (`setPhase(-1)`) — a single jump, not
+  // one-prophecy-at-a-time. Only once nothing is left to close/step back
+  // from (no sheet open AND already at the hub) does it return `false`,
+  // meaning "this screen has nothing more to do — actually leave."
+  //
+  // This intentionally OVERRIDES the previous design that used to live in
+  // this comment (Tanda G): hardware back and the header arrow both called
+  // `router.back()`/fell through immediately regardless of phase, reasoned
+  // as matching a 79-item list where stepping back one prophecy per press
+  // would take ~79 presses to leave. That reasoning still holds — this is a
+  // single jump straight to the hub, NOT one-prophecy-at-a-time, so the
+  // "~79 presses to leave" problem is not reintroduced — but the "always
+  // exit immediately" half of the old design turned out to be the actual
+  // bug: a live test (screenshot-confirmed, 2026-07-15) showed tapping back
+  // mid-thread (e.g. "Profecía 38 de 79") dropped straight to Home instead
+  // of back to this feature's own hub card, forcing a full re-entry into the
+  // feature to resume browsing. Now one back press returns to the hub card,
+  // and a second press from there (genuinely `phase === -1`) exits to Home.
+  const consumeBackPress = (): boolean => {
     if (shareOpen) {
       setShareOpen(false);
       return true;
@@ -309,8 +338,14 @@ export default function PropheticThreadScreen() {
       setSourcesOpen(false);
       return true;
     }
+    if (phase > -1) {
+      setPhase(-1);
+      return true;
+    }
     return false;
-  });
+  };
+
+  useBackHandlerStep(consumeBackPress);
 
   const sections = useMemo(() => getPropheciesByGroup(), []);
 
@@ -544,7 +579,16 @@ export default function PropheticThreadScreen() {
           <View style={styles.headerTopRow}>
             <TouchableOpacity
               style={styles.backButton}
-              onPress={() => router.back()}
+              onPress={() => {
+                haptics.tap();
+                // Same priority as hardware back (`consumeBackPress` above,
+                // see its comment): close an open sheet, else jump to the
+                // hub if mid-thread, else this screen has nothing left to
+                // do — actually leave.
+                if (!consumeBackPress()) {
+                  router.back();
+                }
+              }}
               accessibilityRole="button"
               accessibilityLabel={t.bible.back}>
               <Ionicons
@@ -589,6 +633,7 @@ export default function PropheticThreadScreen() {
         </LinearGradient>
 
         <ScrollView
+          ref={scrollRef}
           contentContainerStyle={[
             styles.content,
             {paddingBottom: insets.bottom + spacing['2xl']},
@@ -1394,6 +1439,17 @@ export default function PropheticThreadScreen() {
                     style={[styles.introText, {color: colors.textSecondary}]}>
                     {tp.finishedBody}
                   </AppText>
+                  {/* "Terminar" — the completion screen's own CTA after
+                      finishing all `total` steps, not a back/close affordance
+                      (contrast the header arrow above): it deliberately keeps
+                      exiting immediately regardless of phase, matching the
+                      same "done" finish button on this app's other guided
+                      walks (verified: prayer/acts.tsx's `ta.done` and
+                      lectio.tsx's `tl.done`, both a plain `router.back()` on
+                      their own finished screen). Routing it through the hub
+                      first would undo the point of "I'm finished" and make
+                      the user tap twice to leave after completing the whole
+                      thread. */}
                   <TouchableOpacity
                     style={[
                       styles.primaryBtn,

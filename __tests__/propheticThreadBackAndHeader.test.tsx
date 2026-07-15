@@ -20,6 +20,19 @@
  *    instead of the flat dark `gradient.headerColors` every other screen
  *    swaps to (Tanda L precedent, e.g. daily-light/index.tsx).
  *
+ * UPDATE (2026-07-15, branch fix/prophecies-back-navigation) — OVERRIDES
+ * fix #1 above: Tanda G's "always exit immediately, matching the header
+ * arrow" was itself a bug. A live test (screenshot-confirmed by the app
+ * owner) showed tapping the header back arrow mid-thread (e.g. "Profecía 38
+ * de 79") dropped straight to Home instead of back to this feature's own
+ * intro/hub card. Both the header arrow and hardware-back's fallthrough now
+ * jump straight to the hub (`setPhase(-1)`) when `phase > -1`, and only
+ * exit (`router.back()` / default route-pop) once already at the hub. This
+ * is still a single jump, not one-prophecy-at-a-time, so Tanda G's original
+ * "~79 presses to leave" concern is NOT reintroduced. The first `describe`
+ * block below is rewritten to assert this new behavior; the high-contrast
+ * `describe` block (fix #2) is untouched and still passing.
+ *
  * Reuses two established techniques from this suite rather than inventing a
  * third:
  *  - quizExitConfirm.test.tsx (Tanda I): `jest.spyOn` on
@@ -177,7 +190,7 @@ async function begin(utils: ReturnType<typeof renderScreen>) {
   });
 }
 
-describe('Prophetic Thread screen — hardware back matches the header arrow (Tanda G)', () => {
+describe('Prophetic Thread screen — back navigation returns to the hub before exiting (overrides Tanda G)', () => {
   // A fresh spy per test, and restored via `afterEach` (not a manual
   // `mockRestore()` call at the end of each test body) so a MID-TEST
   // assertion failure — e.g. exactly what happens when this suite is run
@@ -210,7 +223,7 @@ describe('Prophetic Thread screen — hardware back matches the header arrow (Ta
     expect(mockBack).not.toHaveBeenCalled();
   });
 
-  it('after stepping into the list (phase > -1), hardware back no longer steps back one prophecy — it falls through, just like the header arrow', async () => {
+  it('after stepping into the list (phase > -1), hardware back jumps straight to the hub card — not one prophecy at a time, and not straight out to Home', async () => {
     const utils = renderScreen();
     await begin(utils);
 
@@ -220,22 +233,48 @@ describe('Prophetic Thread screen — hardware back matches the header arrow (Ta
       consumed = handler();
     });
 
-    // Pre-fix: `phase > -1` -> `go(-1)` -> consumed = true and phase steps
-    // back to -1, re-showing the intro. Post-fix: falls through to
-    // `return false`, phase is untouched, intro stays hidden.
-    expect(consumed).toBe(false);
-    expect(utils.queryByText(tp.intro)).toBeNull();
-    // The screen itself doesn't call router.back() in this path — the
-    // native default route-pop does (same contract quizExitConfirm.test.tsx
-    // verifies for the quiz screen's equivalent no-sheets-open case).
+    // `true`: the screen itself handles the event — phase jumps straight to
+    // -1 (the hub), re-showing the intro card. This is neither Tanda G's
+    // original bug (stepping back one prophecy per press) nor the
+    // regression this fix addresses (falling through and exiting the
+    // screen immediately).
+    expect(consumed).toBe(true);
+    expect(utils.queryByText(tp.intro)).not.toBeNull();
     expect(mockBack).not.toHaveBeenCalled();
   });
 
-  it('the header back arrow still exits immediately regardless of phase (unchanged)', async () => {
+  it('a second hardware back from the hub (now genuinely phase -1) falls through to the default route-pop', async () => {
+    const utils = renderScreen();
+    await begin(utils);
+
+    const handler = addEventListenerSpy.mock.calls[0][1] as () => boolean;
+    act(() => {
+      handler(); // first press: mid-thread -> jumps to the hub
+    });
+    let consumed: boolean | undefined;
+    act(() => {
+      consumed = handler(); // second press: already at the hub
+    });
+
+    expect(consumed).toBe(false);
+    expect(mockBack).not.toHaveBeenCalled();
+  });
+
+  it('the header back arrow jumps to the hub card first when mid-thread, instead of exiting immediately', async () => {
     const utils = renderScreen();
     await begin(utils);
 
     fireEvent.press(utils.getByLabelText(backLabel));
+
+    expect(utils.queryByText(tp.intro)).not.toBeNull();
+    expect(mockBack).not.toHaveBeenCalled();
+  });
+
+  it('the header back arrow exits (router.back()) once already at the hub (phase -1)', () => {
+    const utils = renderScreen();
+
+    fireEvent.press(utils.getByLabelText(backLabel));
+
     expect(mockBack).toHaveBeenCalledTimes(1);
   });
 
@@ -263,6 +302,28 @@ describe('Prophetic Thread screen — hardware back matches the header arrow (Ta
     // `true` consumes the event — the sheet closes, the screen doesn't exit.
     expect(consumed).toBe(true);
     expect(findToggle()!.props.accessibilityState.expanded).toBe(false);
+    expect(mockBack).not.toHaveBeenCalled();
+  });
+
+  it('while the index sheet is open and mid-thread, the header back arrow also closes the sheet first — same priority as hardware back, not a separate exit-immediately path', async () => {
+    const utils = renderScreen();
+    await begin(utils); // phase > -1, so this also proves the sheet check
+    // runs before the phase->hub jump, not just before router.back().
+
+    const findToggle = () =>
+      utils
+        .getAllByLabelText(tp.indexTitle)
+        .find(el => el.props.accessibilityState?.expanded !== undefined);
+
+    fireEvent.press(findToggle()!);
+    expect(findToggle()!.props.accessibilityState.expanded).toBe(true);
+
+    fireEvent.press(utils.getByLabelText(backLabel));
+
+    // First header-arrow tap only closes the sheet — it neither jumps to
+    // the hub nor exits yet, matching hardware back's own priority.
+    expect(findToggle()!.props.accessibilityState.expanded).toBe(false);
+    expect(utils.queryByText(tp.intro)).toBeNull();
     expect(mockBack).not.toHaveBeenCalled();
   });
 });
