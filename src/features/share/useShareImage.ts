@@ -27,6 +27,7 @@ import {logger} from '@lib/utils/logger';
 import {useLanguage} from '@hooks/useLanguage';
 import {useToast} from '@context/ToastContext';
 import {FREE_TEMPLATES, type ShareTemplate} from './imageTemplates';
+import type {ShareTexture} from './textures';
 
 export interface UseShareImageOptions {
   /** Catalog to pick from — defaults to the 10 free templates. */
@@ -48,6 +49,13 @@ export interface UseShareImageResult {
   setTemplateIndex: (index: number) => void;
   template: ShareTemplate;
   templates: readonly ShareTemplate[];
+  /**
+   * T8.2-style texture overlay state (Tanda M3 foundation) — additive so the
+   * 11 already-migrated free-tier screens (which never read this field)
+   * see no behavior change. Defaults to `'none'` same as the flagship.
+   */
+  texture: ShareTexture;
+  setTexture: (texture: ShareTexture) => void;
   isSharing: boolean;
   previewRef: React.RefObject<LinearGradient | null>;
   handleShare: () => Promise<void>;
@@ -63,6 +71,7 @@ export function useShareImage({
   const toast = useToast();
 
   const [templateIndex, setTemplateIndex] = useState(0);
+  const [texture, setTexture] = useState<ShareTexture>('none');
   const [isSharing, setIsSharing] = useState(false);
   const previewRef = useRef<LinearGradient>(null);
   const template = templates[templateIndex];
@@ -110,6 +119,8 @@ export function useShareImage({
     setTemplateIndex,
     template,
     templates,
+    texture,
+    setTexture,
     isSharing,
     previewRef,
     handleShare,
