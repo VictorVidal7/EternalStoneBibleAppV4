@@ -140,6 +140,30 @@ export const ReaderPreferencesSheet: React.FC<ReaderPreferencesSheetProps> = ({
     [colors, preferences.theme],
   );
 
+  // Right-edge anti-clip reserve — same fontSize-derived gutter as the real
+  // reader screen (app/(tabs)/verse/[book]/[chapter].tsx, Sprint 81-110: a
+  // tight line can paint a couple px wider than its measured wrap on some
+  // Android OEMs and the canvas clips the last glyph). This preview card had
+  // none of that protection, so it's ported here verbatim: a margin for
+  // justified text (padding disables Android's native justification) and
+  // padding for left-aligned text (extends the clip rect so an overhanging
+  // glyph paints inside the bounds, per Sprint 110's root-cause fix).
+  const previewIsJustified = preferences.textAlign === 'justify';
+  const previewRightSlack = Math.max(
+    24,
+    Math.round(preferences.fontSize * 0.7),
+  );
+
+  const previewTextStyle = {
+    color: previewColors.text,
+    fontSize: preferences.fontSize,
+    lineHeight: preferences.fontSize * preferences.lineHeightMultiplier,
+    textAlign: preferences.textAlign,
+    fontFamily: previewFontFamily,
+    marginRight: previewIsJustified ? previewRightSlack : 0,
+    paddingRight: previewIsJustified ? 0 : previewRightSlack,
+  } as const;
+
   const themeLabels: Record<ReaderTheme, string> = {
     system: t.readerPrefs.themeSystem,
     paper: t.readerPrefs.themePaper,
@@ -249,7 +273,9 @@ export const ReaderPreferencesSheet: React.FC<ReaderPreferencesSheetProps> = ({
           <View style={styles.handle} />
 
           <View style={styles.header}>
-            <Text style={[styles.title, {color: colors.text}]}>
+            <Text
+              style={[styles.title, {color: colors.text}]}
+              numberOfLines={1}>
               {t.readerPrefs.title}
             </Text>
             <View style={styles.headerActions}>
@@ -280,15 +306,7 @@ export const ReaderPreferencesSheet: React.FC<ReaderPreferencesSheetProps> = ({
                 paddingHorizontal: READER_MARGIN_PADDING[preferences.margin],
               },
             ]}>
-            <Text
-              style={{
-                color: previewColors.text,
-                fontSize: preferences.fontSize,
-                lineHeight:
-                  preferences.fontSize * preferences.lineHeightMultiplier,
-                textAlign: preferences.textAlign,
-                fontFamily: previewFontFamily,
-              }}>
+            <Text testID="reader-prefs-preview-text" style={previewTextStyle}>
               <Text
                 style={[
                   styles.previewNumber,
@@ -801,6 +819,7 @@ const styles = StyleSheet.create({
   title: {
     fontSize: fontSizes.lg,
     fontWeight: '800',
+    flexShrink: 1,
   },
   headerActions: {
     flexDirection: 'row',
