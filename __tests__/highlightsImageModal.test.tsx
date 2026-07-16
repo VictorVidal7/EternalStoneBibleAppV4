@@ -1,13 +1,27 @@
 /**
  * Sprint 86 — the highlights gallery share card. Pins the card title, the
  * total hero, the count line (with singular), over a gradient template.
+ *
+ * Tanda M Phase B — also covers the premium wiring (`PremiumShareExtras`):
+ * a premium template renders unlocked for a premium user, and a locked
+ * template/texture routes to the offering sheet for a free user, mirroring
+ * `imageShareModalPremium.test.tsx`'s mocking pattern for the flagship.
  */
 import React from 'react';
-import {render} from '@testing-library/react-native';
+import {render, fireEvent} from '@testing-library/react-native';
 import {HighlightsImageModal} from '../src/components/insights/HighlightsImageModal';
 import type {HighlightGalleryStats} from '../src/lib/highlights/highlightGallery';
 import {HighlightColor} from '../src/lib/highlights';
 import {translations} from '../src/i18n/translations';
+
+let mockIsPremium = false;
+const mockOpenOfferingSheet = jest.fn();
+jest.mock('../src/context/PremiumContext', () => ({
+  usePremium: () => ({isPremium: mockIsPremium}),
+}));
+jest.mock('../src/context/OfferingSheetContext', () => ({
+  useOfferingSheet: () => ({open: mockOpenOfferingSheet}),
+}));
 
 const mockColors = {
   background: '#0f172a',
@@ -56,6 +70,11 @@ const stats: HighlightGalleryStats = {
 };
 
 describe('HighlightsImageModal (Sprint 86)', () => {
+  beforeEach(() => {
+    mockIsPremium = false;
+    mockOpenOfferingSheet.mockClear();
+  });
+
   it('renders the card title and the total count line', () => {
     const {getByText} = render(
       <HighlightsImageModal visible stats={stats} onClose={jest.fn()} />,
@@ -73,5 +92,39 @@ describe('HighlightsImageModal (Sprint 86)', () => {
       <HighlightsImageModal visible stats={one} onClose={jest.fn()} />,
     );
     expect(getByText(th.galleryShareCountOne)).toBeTruthy();
+  });
+});
+
+describe('HighlightsImageModal — Tanda M Phase B (PremiumShareExtras wiring)', () => {
+  beforeEach(() => {
+    mockIsPremium = false;
+    mockOpenOfferingSheet.mockClear();
+  });
+
+  // SHARE_TEMPLATES is 10 free + 9 premium — index 10 (the 11th template,
+  // "Estilo 11") is the first premium one, same math the flagship's own
+  // premium-template tests rely on.
+  it('renders a premium template unlocked (no offering badge) for a premium user', async () => {
+    mockIsPremium = true;
+    const {findByLabelText} = render(
+      <HighlightsImageModal visible stats={stats} onClose={jest.fn()} />,
+    );
+    expect(await findByLabelText('Estilo 11')).toBeTruthy();
+  });
+
+  it('opens the offering sheet instead of applying a locked template for a free user', async () => {
+    const {findByLabelText} = render(
+      <HighlightsImageModal visible stats={stats} onClose={jest.fn()} />,
+    );
+    fireEvent.press(await findByLabelText(/Estilo 11 · /));
+    expect(mockOpenOfferingSheet).toHaveBeenCalledTimes(1);
+  });
+
+  it('opens the offering sheet instead of applying a locked texture for a free user', async () => {
+    const {findByLabelText} = render(
+      <HighlightsImageModal visible stats={stats} onClose={jest.fn()} />,
+    );
+    fireEvent.press(await findByLabelText(/Puntos · /));
+    expect(mockOpenOfferingSheet).toHaveBeenCalledTimes(1);
   });
 });
