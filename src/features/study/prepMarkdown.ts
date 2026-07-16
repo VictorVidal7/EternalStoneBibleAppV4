@@ -15,6 +15,8 @@
  * Para la gloria de Dios Todopoderoso ✨
  */
 
+import type {PrepSection} from './prepTable';
+
 /** One outline section, already localized and with the preparer's prose. */
 export interface PrepMarkdownSection {
   /** Section heading, e.g. "Contexto". */
@@ -25,6 +27,15 @@ export interface PrepMarkdownSection {
   note?: string;
   /** Gathered helps as plain bullet strings (cross-refs, themes, notes). */
   helps?: string[];
+  /**
+   * The stable `PrepSection` id this rendered section came from (Tanda 3).
+   * Optional — a caller that only cares about the free Markdown/manuscript
+   * export can omit it, same as before. Format-specific renderers (e.g. the
+   * PDF's 'handout' format) need to filter/reorder sections by identity
+   * rather than by localized `label`, which changes per language and can't
+   * be matched reliably.
+   */
+  id?: PrepSection;
 }
 
 export interface PrepMarkdownInput {
