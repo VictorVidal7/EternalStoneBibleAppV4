@@ -11,10 +11,17 @@
  * modal, unlike the sibling "Series de predicación" list) — the editor's own
  * autosave fills it in.
  *
- * FOUNDATION ONLY (Tanda 4): this screen is entirely standalone. Inserting a
- * saved illustration into the passage currently being prepared
- * (`/features/prep`) is explicitly a LATER step — nothing here reads or
- * writes that flow.
+ * Doubles as the "insert into my current preparation" target picker (Tanda
+ * 4, Phase B): when opened with an `insertPassageKey` param (from the
+ * "Banco de ilustraciones" button on the single-passage Mesa de
+ * preparación), a banner offers to insert whichever illustration is tapped
+ * next into that passage's notes — "Ahora no" dismisses back to normal
+ * browsing without losing the list underneath it. Mirrors "Series de
+ * predicación"'s own `passageKey` attach-mode almost exactly. Every insert
+ * lands in the SAME fixed section (`application`) — this entry point has no
+ * natural per-section target since the bank is one flat list, not scoped to
+ * an outline section; a lightweight section picker is a reasonable v2 if
+ * that default proves wrong in practice.
  *
  * PURE organization over material the preacher wrote themselves — nothing
  * here generates or suggests content, so the app's guardrail (the app never
@@ -39,13 +46,19 @@ import {
   StyleSheet,
 } from 'react-native';
 import {AppText} from '@components/ui/AppText';
-import {Stack, useFocusEffect, useRouter} from 'expo-router';
+import {
+  Stack,
+  useFocusEffect,
+  useLocalSearchParams,
+  useRouter,
+} from 'expo-router';
 import {Ionicons} from '@expo/vector-icons';
 import {LinearGradient} from 'expo-linear-gradient';
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
 import {useTheme} from '@hooks/useTheme';
 import {centeredMaxWidth} from '@/styles/responsive';
 import {useLanguage} from '@hooks/useLanguage';
+import {useBibleVersion} from '@hooks/useBibleVersion';
 import {haptics} from '@lib/haptics';
 import {usePremium} from '@context/PremiumContext';
 import {useOfferingSheet} from '@context/OfferingSheetContext';
@@ -68,6 +81,9 @@ import {
   type PrepIllustration,
   type PrepIllustrationsMap,
 } from '@/features/study/prepIllustrations';
+import {parsePassageKey} from '@/features/study/prepHistory';
+import {formatPassageLabel, type PrepSection} from '@/features/study/prepTable';
+import {getPrepNotes, savePrepNote} from '@/features/study/prepNotesStore';
 import {
   borderRadius,
   fontSize as fontSizes,
@@ -78,15 +94,29 @@ import {
 type Status = 'loading' | 'ready';
 type CategoryFilter = IllustrationCategory | 'all';
 
+/**
+ * Tanda 4 insert-flow judgment call: this entry point has no natural
+ * per-section target — the bank is one flat list, not scoped to a specific
+ * outline section of the passage being prepared — so every insert lands in
+ * 'application', the section an illustration most naturally supports. A
+ * lightweight section picker is a reasonable v2 if this default proves
+ * wrong in practice.
+ */
+const INSERT_TARGET_SECTION: PrepSection = 'application';
+
 export default function PrepIllustrationsListScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const {colors, gradient, highContrast} = useTheme();
   const {t} = useLanguage();
+  const {selectedVersion} = useBibleVersion();
   const {isPremium} = usePremium();
   const {open: openOfferingSheet} = useOfferingSheet();
   const toast = useToast();
   const h = t.prepIllustrations;
+  const bookLang = selectedVersion.language === 'es' ? 'es' : 'en';
+
+  const params = useLocalSearchParams<{insertPassageKey?: string}>();
 
   const [status, setStatus] = useState<Status>('loading');
   const [illustrationsMap, setIllustrationsMap] =
@@ -96,6 +126,7 @@ export default function PrepIllustrationsListScreen() {
   const [deleteTarget, setDeleteTarget] = useState<PrepIllustration | null>(
     null,
   );
+  const [insertDismissed, setInsertDismissed] = useState(false);
 
   const load = useCallback(async () => {
     const map = await getAllPrepIllustrations();
@@ -119,6 +150,21 @@ export default function PrepIllustrationsListScreen() {
 
   const hasAny = Object.keys(illustrationsMap).length > 0;
 
+  // Tanda 4 — "insert mode", mirroring prepSeries' own passageKey attach
+  // mode: opened with `insertPassageKey` from the single-passage Mesa de
+  // preparación, tapping an illustration inserts it there instead of
+  // opening the editor. `insertDismissed` lets the reader fall back to
+  // normal browsing without losing the param (same "Ahora no" idiom).
+  const pendingInsertPassage = useMemo(
+    () =>
+      params.insertPassageKey ? parsePassageKey(params.insertPassageKey) : null,
+    [params.insertPassageKey],
+  );
+  const insertActive = Boolean(pendingInsertPassage) && !insertDismissed;
+  const insertLabel = pendingInsertPassage
+    ? formatPassageLabel(pendingInsertPassage, bookLang)
+    : '';
+
   const handleUnlock = useCallback(() => {
     haptics.tap();
     openOfferingSheet();
@@ -139,12 +185,40 @@ export default function PrepIllustrationsListScreen() {
     router.push(`/features/prep/illustrations/${created.id}` as never);
   }, [illustrationsMap, categoryFilter, toast, h, router]);
 
+  // Tanda 4 — append the tapped illustration's title + body to the pending
+  // passage's `application` section (see INSERT_TARGET_SECTION above) and
+  // return. Reads the CURRENT saved text first (savePrepNote overwrites a
+  // whole section, it doesn't append) so this adds to whatever the preparer
+  // already wrote rather than replacing it.
+  const handleInsert = useCallback(
+    async (item: PrepIllustration) => {
+      const passageKey = params.insertPassageKey;
+      if (!passageKey) return;
+      haptics.tap();
+      const existing = await getPrepNotes(passageKey);
+      const pieces = [item.title.trim(), item.body.trim()].filter(Boolean);
+      const addition = pieces.join('\n');
+      const current = existing.sections[INSERT_TARGET_SECTION] ?? '';
+      const next =
+        current.trim().length > 0 ? `${current}\n\n${addition}` : addition;
+      await savePrepNote(passageKey, INSERT_TARGET_SECTION, next);
+      haptics.success();
+      toast.success(h.insertedToast);
+      router.back();
+    },
+    [params.insertPassageKey, toast, h.insertedToast, router],
+  );
+
   const handleOpen = useCallback(
     (item: PrepIllustration) => {
+      if (insertActive) {
+        handleInsert(item);
+        return;
+      }
       haptics.tap();
       router.push(`/features/prep/illustrations/${item.id}` as never);
     },
-    [router],
+    [insertActive, handleInsert, router],
   );
 
   const handleRequestDelete = useCallback((item: PrepIllustration) => {
@@ -252,6 +326,46 @@ export default function PrepIllustrationsListScreen() {
           </View>
         ) : (
           <View style={styles.body}>
+            {insertActive && (
+              <View style={centeredMaxWidth()}>
+                <View
+                  style={[
+                    styles.insertBanner,
+                    {
+                      backgroundColor: colors.primary + '0F',
+                      borderColor: colors.primary + '33',
+                    },
+                  ]}>
+                  <Ionicons
+                    name="arrow-undo-outline"
+                    size={20}
+                    color={colors.primary}
+                  />
+                  <View style={styles.insertTextWrap}>
+                    <Text style={[styles.insertTitle, {color: colors.text}]}>
+                      {h.insertTitle.replace('{{passage}}', insertLabel)}
+                    </Text>
+                    <Text
+                      style={[
+                        styles.insertBody,
+                        {color: colors.textSecondary},
+                      ]}>
+                      {h.insertBody}
+                    </Text>
+                  </View>
+                  <TouchableOpacity
+                    onPress={() => setInsertDismissed(true)}
+                    accessibilityRole="button"
+                    accessibilityLabel={h.insertDismiss}
+                    hitSlop={{top: 8, bottom: 8, left: 8, right: 8}}>
+                    <Text
+                      style={[styles.insertDismiss, {color: colors.primary}]}>
+                      {h.insertDismiss}
+                    </Text>
+                  </TouchableOpacity>
+                </View>
+              </View>
+            )}
             <View style={centeredMaxWidth()}>
               <View
                 style={[
@@ -573,6 +687,19 @@ const styles = StyleSheet.create({
     fontSize: fontSizes.md,
   },
   body: {flex: 1},
+  insertBanner: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: spacing.sm,
+    marginTop: spacing.md,
+    padding: spacing.md,
+    borderRadius: borderRadius.md,
+    borderWidth: StyleSheet.hairlineWidth,
+  },
+  insertTextWrap: {flex: 1, gap: 2},
+  insertTitle: {fontSize: fontSizes.sm, fontWeight: '700'},
+  insertBody: {fontSize: fontSizes.xs, lineHeight: fontSizes.xs * 1.4},
+  insertDismiss: {fontSize: fontSizes.xs, fontWeight: '700'},
   searchRow: {
     flexDirection: 'row',
     alignItems: 'center',

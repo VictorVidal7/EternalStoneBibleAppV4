@@ -11,16 +11,23 @@ import PrepTableScreen from '../app/features/prep/index';
 import {PremiumProvider} from '../src/context/PremiumContext';
 import {translations} from '../src/i18n/translations';
 
-jest.mock('expo-router', () => ({
-  useRouter: () => ({push: jest.fn(), back: jest.fn()}),
-  useLocalSearchParams: () => ({
-    book: 'John',
-    chapter: '3',
-    startVerse: '16',
-    version: 'RVR1960',
-  }),
-  Stack: {Screen: () => null},
-}));
+jest.mock('expo-router', () => {
+  const ReactActual = require('react');
+  return {
+    useRouter: () => ({push: jest.fn(), back: jest.fn()}),
+    useLocalSearchParams: () => ({
+      book: 'John',
+      chapter: '3',
+      startVerse: '16',
+      version: 'RVR1960',
+    }),
+    // Tanda 4 — the screen now uses this for a narrow notes-only refresh on
+    // refocus; a dependency-aware stand-in (mirrors prepSeriesListScreen's
+    // own mock) is enough for these tests, which don't exercise refocus.
+    useFocusEffect: (cb: () => void) => ReactActual.useEffect(cb, [cb]),
+    Stack: {Screen: () => null},
+  };
+});
 
 jest.mock('@expo/vector-icons', () => ({Ionicons: () => null}));
 

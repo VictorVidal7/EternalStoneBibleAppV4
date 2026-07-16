@@ -34,7 +34,12 @@ import {
   StyleSheet,
   Share,
 } from 'react-native';
-import {Stack, useLocalSearchParams, useRouter} from 'expo-router';
+import {
+  Stack,
+  useFocusEffect,
+  useLocalSearchParams,
+  useRouter,
+} from 'expo-router';
 import {Ionicons} from '@expo/vector-icons';
 import {LinearGradient} from 'expo-linear-gradient';
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
@@ -102,7 +107,8 @@ import {
   type PrepMarkdownInput,
   type PrepMarkdownSection,
 } from '@/features/study/prepMarkdown';
-import {buildPrepHtml} from '@/features/study/prepPdf';
+import {buildPrepHtml, type PrepExportFormat} from '@/features/study/prepPdf';
+import {PrepExportFormatSheet} from '@/features/study/PrepExportFormatSheet';
 import {sharePreparedPdf} from '@/features/study/sharePdf';
 import {
   DEFAULT_WORDS_PER_MINUTE,
@@ -327,6 +333,10 @@ export default function PrepTableScreen() {
   // since printToFileAsync + shareAsync are real async I/O, not a clipboard
   // write.
   const [isExportingPdf, setIsExportingPdf] = useState(false);
+  // Tanda 3 — the export-format choice sheet. A premium tap on "Export to
+  // PDF" opens this instead of generating a manuscript immediately; a free
+  // tap never sees it (openOfferingSheet runs directly, unchanged).
+  const [formatSheetVisible, setFormatSheetVisible] = useState(false);
 
   // Modo púlpito — configurable words-per-minute for the duration estimate.
   const [pulpitWpm, setPulpitWpm] = useState(DEFAULT_WORDS_PER_MINUTE);
@@ -496,6 +506,23 @@ export default function PrepTableScreen() {
   useEffect(() => {
     load();
   }, [load]);
+
+  // Tanda 4 — re-read ONLY the saved notes on refocus, not the whole heavy
+  // `load()` above (which re-fetches cross-refs, book intro, comparison
+  // versions, etc.). A plain `useEffect(() => load(), [load])` doesn't
+  // re-run just because the reader navigated away (e.g. to the
+  // illustrations bank to insert a saved illustration into these notes) and
+  // came back — `load`'s deps (`table`, `params.version`) don't change on
+  // that round trip, so the inserted text would otherwise sit unseen in
+  // storage until an unrelated reload. This is narrowly scoped to the notes
+  // read alone so it stays cheap enough to run on every focus.
+  useFocusEffect(
+    useCallback(() => {
+      if (table) {
+        getPrepNotes(table.passageKey).then(saved => setDrafts(saved.sections));
+      }
+    }, [table]),
+  );
 
   // T8.4.2 — "Palabras clave en el idioma original". Entirely premium: a free
   // reader never even reaches the pack-installed check or a DB read, same
@@ -721,6 +748,32 @@ export default function PrepTableScreen() {
     });
   }, [router, table]);
 
+  // Tanda 4 — the "Banco de ilustraciones" entry point, opened in INSERT
+  // mode (carries `insertPassageKey`): picking an illustration there appends
+  // it to this passage's notes and navigates back, instead of just browsing.
+  // Placement judgment call: grouped with history/series above (same header
+  // row, same "always navigate, destination gates/handles itself"
+  // discipline) rather than beside the export buttons — flagged for
+  // revisit, since unlike history/series this entry point always opens in a
+  // special insert mode rather than plain browsing.
+  const handleOpenIllustrations = useCallback(async () => {
+    if (!table) return;
+    haptics.tap();
+    // Same race handleOpenPulpit below guards against: flush any in-flight
+    // note edits BEFORE navigating, so the illustrations screen's own read
+    // (when it appends the inserted illustration) sees the latest typed
+    // content rather than a stale AsyncStorage snapshot.
+    await Promise.all(
+      PREP_SECTIONS.map(section =>
+        savePrepNote(table.passageKey, section, drafts[section] ?? ''),
+      ),
+    );
+    router.push({
+      pathname: '/features/prep/illustrations' as never,
+      params: {insertPassageKey: table.passageKey},
+    });
+  }, [router, table, drafts]);
+
   // Modo púlpito — the presenter view. Always navigates with the current
   // passage (the destination gates itself + shows an empty state when there
   // are no notes yet), same discipline as history/series above.
@@ -853,6 +906,7 @@ export default function PrepTableScreen() {
         );
       }
       return {
+        id: section,
         label: p.sections[section].label,
         prompt: p.sections[section].prompt,
         note: drafts[section],
@@ -897,39 +951,47 @@ export default function PrepTableScreen() {
 
   // T8.4.5 — export a designed PDF (premium upgrade of the free Markdown
   // export above). Locked for a free reader: tapping opens the offering
-  // sheet instead of generating anything. Uses the SAME assembled input as
-  // the Markdown export, just rendered by buildPrepHtml + turned into a real
-  // file via expo-print, then handed to the system share sheet via
-  // expo-sharing — same pattern as ImageShareModal's handleShare.
-  const handleExportPdf = useCallback(async () => {
+  // sheet instead of generating anything, WITHOUT ever showing the
+  // format-choice sheet (a free reader has nothing to choose among). A
+  // premium tap now opens the format sheet (Tanda 3) instead of generating a
+  // manuscript immediately — see handleSelectExportFormat below for the
+  // actual generate-and-share step.
+  const handleExportPdf = useCallback(() => {
     if (isExportingPdf) return;
     haptics.tap();
     if (!isPremium) {
       openOfferingSheet();
       return;
     }
-    const input = buildPrepInput();
-    if (!input) return;
-    try {
-      setIsExportingPdf(true);
-      const html = buildPrepHtml(input);
-      const {uri} = await Print.printToFileAsync({html, base64: false});
-      // Share under a meaningful filename (the passage) instead of the UUID
-      // expo-print assigns.
-      await sharePreparedPdf(uri, passageLabel, p.exportPdfDialogTitle);
-    } catch (err) {
-      logger.warn('Prep PDF export failed', {error: String(err)});
-    } finally {
-      setIsExportingPdf(false);
-    }
-  }, [
-    isExportingPdf,
-    isPremium,
-    openOfferingSheet,
-    buildPrepInput,
-    passageLabel,
-    p,
-  ]);
+    setFormatSheetVisible(true);
+  }, [isExportingPdf, isPremium, openOfferingSheet]);
+
+  // Tanda 3 — generate + share the PDF in the reader's chosen format, once
+  // the format sheet reports a pick. This is the exact isExportingPdf/try-
+  // catch-finally/sharePreparedPdf body handleExportPdf used to run directly
+  // before this tanda; only WHEN it runs changed (after a format choice,
+  // not on the button tap itself), plus `format` now flows into
+  // buildPrepHtml instead of relying on its 'manuscript' default.
+  const handleSelectExportFormat = useCallback(
+    async (format: PrepExportFormat) => {
+      setFormatSheetVisible(false);
+      const input = buildPrepInput();
+      if (!input) return;
+      try {
+        setIsExportingPdf(true);
+        const html = buildPrepHtml(input, format);
+        const {uri} = await Print.printToFileAsync({html, base64: false});
+        // Share under a meaningful filename (the passage) instead of the
+        // UUID expo-print assigns.
+        await sharePreparedPdf(uri, passageLabel, p.exportPdfDialogTitle);
+      } catch (err) {
+        logger.warn('Prep PDF export failed', {error: String(err)});
+      } finally {
+        setIsExportingPdf(false);
+      }
+    },
+    [buildPrepInput, passageLabel, p],
+  );
 
   // Share the outline as a read-only study LINK (Sprint 109): the passage + the
   // preparer's per-section prose, carried in the link; the recipient's app
@@ -1219,6 +1281,37 @@ export default function PrepTableScreen() {
                 }>
                 <Ionicons
                   name="albums-outline"
+                  size={22}
+                  color={staticColors.white}
+                />
+                {!isPremium && (
+                  <View
+                    style={[
+                      styles.historyBadge,
+                      {backgroundColor: colors.primary},
+                    ]}>
+                    <Ionicons
+                      name="leaf-outline"
+                      size={9}
+                      color={staticColors.white}
+                    />
+                  </View>
+                )}
+              </TouchableOpacity>
+              {/* Tanda 4 — "Banco de ilustraciones" entry point, opened in
+                  insert mode (see handleOpenIllustrations above for the
+                  placement judgment call). */}
+              <TouchableOpacity
+                style={styles.historyButton}
+                onPress={handleOpenIllustrations}
+                accessibilityRole="button"
+                accessibilityLabel={
+                  isPremium
+                    ? t.prepIllustrations.entryLabel
+                    : `${t.prepIllustrations.entryLabel} — ${t.offering.badgeA11y}`
+                }>
+                <Ionicons
+                  name="bulb-outline"
                   size={22}
                   color={staticColors.white}
                 />
@@ -2154,6 +2247,22 @@ export default function PrepTableScreen() {
             </View>
           </ScrollView>
         )}
+
+        {/* Tanda 3 — the export-format choice sheet. Only ever opened for a
+            premium reader (handleExportPdf sends a free tap straight to the
+            offering sheet instead), so every row it shows is unlocked in
+            practice; onLockedAction stays wired for the sheet's own
+            fully-controlled contract (pinned in PrepExportFormatSheet.test.tsx). */}
+        <PrepExportFormatSheet
+          visible={formatSheetVisible}
+          isPremium={isPremium}
+          onSelect={handleSelectExportFormat}
+          onLockedAction={() => {
+            setFormatSheetVisible(false);
+            openOfferingSheet();
+          }}
+          onClose={() => setFormatSheetVisible(false)}
+        />
       </View>
     </>
   );
