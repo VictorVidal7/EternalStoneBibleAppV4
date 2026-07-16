@@ -347,7 +347,7 @@ export const OriginalLanguagesSheet: React.FC<Props> = ({
                       <Ionicons
                         name="leaf-outline"
                         size={11}
-                        color={staticColors.white}
+                        color={colors.onPrimary}
                       />
                     </View>
                     <Text
@@ -465,15 +465,9 @@ export const OriginalLanguagesSheet: React.FC<Props> = ({
                 accessibilityLabel={o.download}>
                 {downloading ? (
                   <>
-                    <ActivityIndicator
-                      color={staticColors.white}
-                      size="small"
-                    />
+                    <ActivityIndicator color={colors.onPrimary} size="small" />
                     <Text
-                      style={[
-                        styles.downloadText,
-                        {color: staticColors.white},
-                      ]}>
+                      style={[styles.downloadText, {color: colors.onPrimary}]}>
                       {progress > 0
                         ? `${o.downloading} ${Math.round(progress * 100)}%`
                         : o.downloading}
@@ -484,13 +478,10 @@ export const OriginalLanguagesSheet: React.FC<Props> = ({
                     <Ionicons
                       name="cloud-download-outline"
                       size={18}
-                      color={staticColors.white}
+                      color={colors.onPrimary}
                     />
                     <Text
-                      style={[
-                        styles.downloadText,
-                        {color: staticColors.white},
-                      ]}>
+                      style={[styles.downloadText, {color: colors.onPrimary}]}>
                       {o.download}
                     </Text>
                   </>
@@ -571,7 +562,7 @@ export const OriginalLanguagesSheet: React.FC<Props> = ({
                     <Ionicons
                       name="chevron-forward"
                       size={18}
-                      color={staticColors.white}
+                      color={colors.onPrimary}
                     />
                   ) : (
                     <Ionicons

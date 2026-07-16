@@ -53,9 +53,12 @@ export const SaveComparisonDialog: React.FC<SaveComparisonDialogProps> = ({
       animationType="slide"
       transparent
       onRequestClose={onClose}>
-      <View style={styles.modalOverlay}>
+      <View style={[styles.modalOverlay, {backgroundColor: colors.overlay}]}>
         <View
-          style={[styles.modalContent, {backgroundColor: colors.surface}]}
+          style={[
+            styles.modalContent,
+            {backgroundColor: colors.surface, borderColor: colors.border},
+          ]}
           {...focusTrapProps()}>
           <View style={styles.modalHeader}>
             <Text style={[styles.modalTitle, {color: colors.text}]}>
@@ -130,12 +133,12 @@ export const SaveComparisonDialog: React.FC<SaveComparisonDialogProps> = ({
 const styles = StyleSheet.create({
   modalOverlay: {
     flex: 1,
-    backgroundColor: staticColors.overlayBlack50,
     justifyContent: 'center',
     padding: 20,
   },
   modalContent: {
     borderRadius: 20,
+    borderWidth: 1,
     padding: 20,
     maxHeight: '80%',
     shadowColor: staticColors.black,

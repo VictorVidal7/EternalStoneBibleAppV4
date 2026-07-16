@@ -27,7 +27,6 @@ import {useTheme} from '@hooks/useTheme';
 import {useLanguage} from '@hooks/useLanguage';
 import {useToast} from '@context/ToastContext';
 import {haptics} from '@lib/haptics';
-import {staticColors} from '@/styles/designTokens';
 import {focusTrapProps} from '@lib/a11y/focusTrap';
 import {
   GROUP_NAME_MAX,
@@ -151,9 +150,12 @@ export function ShareTogetherModal({
       transparent
       animationType="fade"
       onRequestClose={onClose}>
-      <View style={styles.overlay}>
+      <View style={[styles.overlay, {backgroundColor: colors.overlay}]}>
         <View
-          style={[styles.card, {backgroundColor: colors.card}]}
+          style={[
+            styles.card,
+            {backgroundColor: colors.card, borderColor: colors.border},
+          ]}
           {...focusTrapProps()}>
           <View style={styles.headerRow}>
             <Ionicons
@@ -275,8 +277,14 @@ export function ShareTogetherModal({
               onPress={onShare}
               accessibilityRole="button"
               accessibilityLabel={tt.share}>
-              <Ionicons name="share-social-outline" size={20} color="#fff" />
-              <Text style={styles.primaryBtnText}>{tt.share}</Text>
+              <Ionicons
+                name="share-social-outline"
+                size={20}
+                color={colors.onPrimary}
+              />
+              <Text style={[styles.primaryBtnText, {color: colors.onPrimary}]}>
+                {tt.share}
+              </Text>
             </TouchableOpacity>
             <View style={styles.secondaryRow}>
               <TouchableOpacity
@@ -312,12 +320,12 @@ export function ShareTogetherModal({
 const styles = StyleSheet.create({
   overlay: {
     flex: 1,
-    backgroundColor: staticColors.overlayBlack60,
     justifyContent: 'center',
     padding: 20,
   },
   card: {
     borderRadius: 20,
+    borderWidth: 1,
     maxHeight: '88%',
     overflow: 'hidden',
   },
@@ -377,7 +385,7 @@ const styles = StyleSheet.create({
     borderRadius: 14,
     paddingVertical: 14,
   },
-  primaryBtnText: {color: staticColors.white, fontSize: 16, fontWeight: '700'},
+  primaryBtnText: {fontSize: 16, fontWeight: '700'},
   secondaryRow: {flexDirection: 'row', gap: 10},
   secondaryBtn: {
     flex: 1,

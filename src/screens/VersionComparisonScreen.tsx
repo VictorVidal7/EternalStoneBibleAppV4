@@ -1125,7 +1125,10 @@ export const VersionComparisonScreen: React.FC<
         onRequestClose={() => setShowVersionPicker(false)}>
         <View style={styles.modalOverlay}>
           <View
-            style={[styles.modalContent, {backgroundColor: colors.surface}]}
+            style={[
+              styles.modalContent,
+              {backgroundColor: colors.surface, borderTopColor: colors.border},
+            ]}
             {...focusTrapProps()}>
             <View style={styles.modalHeader}>
               <Text style={[styles.modalTitle, {color: colors.text}]}>
@@ -1224,7 +1227,10 @@ export const VersionComparisonScreen: React.FC<
         onRequestClose={() => setShowSavedComparisons(false)}>
         <View style={styles.modalOverlay}>
           <View
-            style={[styles.modalContent, {backgroundColor: colors.surface}]}
+            style={[
+              styles.modalContent,
+              {backgroundColor: colors.surface, borderTopColor: colors.border},
+            ]}
             {...focusTrapProps()}>
             <View style={styles.modalHeader}>
               <Text style={[styles.modalTitle, {color: colors.text}]}>
@@ -1344,7 +1350,10 @@ export const VersionComparisonScreen: React.FC<
         onRequestClose={() => setShowVersePicker(false)}>
         <View style={styles.modalOverlay}>
           <View
-            style={[styles.modalContent, {backgroundColor: colors.surface}]}
+            style={[
+              styles.modalContent,
+              {backgroundColor: colors.surface, borderTopColor: colors.border},
+            ]}
             {...focusTrapProps()}>
             <View style={styles.modalHeader}>
               <Text style={[styles.modalTitle, {color: colors.text}]}>
@@ -1379,12 +1388,12 @@ export const VersionComparisonScreen: React.FC<
                 <Ionicons
                   name={multiSelectMode ? 'checkmark-done' : 'copy-outline'}
                   size={16}
-                  color={multiSelectMode ? staticColors.white : colors.text}
+                  color={multiSelectMode ? colors.onPrimary : colors.text}
                 />
                 <Text
                   style={[
                     styles.multiSelectText,
-                    {color: multiSelectMode ? staticColors.white : colors.text},
+                    {color: multiSelectMode ? colors.onPrimary : colors.text},
                   ]}>
                   {multiSelectMode
                     ? t.versionComparison.multiSelectMode
@@ -1487,16 +1496,18 @@ export const VersionComparisonScreen: React.FC<
                         style={[
                           styles.verseGridText,
                           {
-                            color: isSelected
-                              ? staticColors.white
-                              : colors.text,
+                            color: isSelected ? colors.onPrimary : colors.text,
                           },
                         ]}>
                         {verseNum}
                       </Text>
                       {multiSelectMode && isSelected && (
                         <View style={styles.checkmarkBadge}>
-                          <Ionicons name="checkmark" size={12} color="#FFF" />
+                          <Ionicons
+                            name="checkmark"
+                            size={12}
+                            color={colors.onPrimary}
+                          />
                         </View>
                       )}
                     </TouchableOpacity>
@@ -1512,7 +1523,8 @@ export const VersionComparisonScreen: React.FC<
                   {backgroundColor: colors.primary},
                 ]}
                 onPress={() => setShowVersePicker(false)}>
-                <Text style={styles.applyMultiText}>
+                <Text
+                  style={[styles.applyMultiText, {color: colors.onPrimary}]}>
                   Comparar {selectedVerses.length} Versículo
                   {selectedVerses.length !== 1 ? 's' : ''}
                 </Text>
@@ -1820,6 +1832,7 @@ const styles = StyleSheet.create({
   modalContent: {
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
+    borderTopWidth: StyleSheet.hairlineWidth,
     maxHeight: '80%',
   },
   modalHeader: {
@@ -2009,7 +2022,6 @@ const styles = StyleSheet.create({
   applyMultiText: {
     fontSize: 16,
     fontWeight: '700',
-    color: staticColors.white,
   },
   multiVerseHeader: {
     paddingVertical: 12,

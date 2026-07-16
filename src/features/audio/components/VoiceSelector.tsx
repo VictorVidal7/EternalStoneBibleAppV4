@@ -162,7 +162,10 @@ export const VoiceSelector: React.FC<VoiceSelectorProps> = ({
         onRequestClose={handleCloseModal}>
         <Pressable style={styles.modalOverlay} onPress={handleCloseModal}>
           <Pressable
-            style={[styles.modalContent, {backgroundColor: colors.card}]}
+            style={[
+              styles.modalContent,
+              {backgroundColor: colors.card, borderTopColor: colors.border},
+            ]}
             onPress={e => e.stopPropagation()}
             {...focusTrapProps()}>
             {/* Header */}
@@ -414,6 +417,7 @@ const styles = StyleSheet.create({
   modalContent: {
     borderTopLeftRadius: 24,
     borderTopRightRadius: 24,
+    borderTopWidth: StyleSheet.hairlineWidth,
     maxHeight: '80%',
     paddingBottom: 34,
   },

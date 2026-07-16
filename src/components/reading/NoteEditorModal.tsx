@@ -66,7 +66,10 @@ export const NoteEditorModal: React.FC<NoteEditorModalProps> = ({
       onRequestClose={onClose}>
       <View style={[styles.overlay, {backgroundColor: colors.overlay}]}>
         <View
-          style={[styles.content, {backgroundColor: colors.surface}]}
+          style={[
+            styles.content,
+            {backgroundColor: colors.surface, borderTopColor: colors.border},
+          ]}
           {...focusTrapProps()}>
           <View style={styles.header}>
             <Text
@@ -159,6 +162,7 @@ const styles = StyleSheet.create({
   content: {
     borderTopLeftRadius: borderRadius['2xl'],
     borderTopRightRadius: borderRadius['2xl'],
+    borderTopWidth: StyleSheet.hairlineWidth,
     padding: spacing.xl,
     minHeight: 450,
     ...shadows['3xl'],

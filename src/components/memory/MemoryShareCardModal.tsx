@@ -111,7 +111,10 @@ export const MemoryShareCardModal: React.FC<Props> = ({
           {...a11yHiddenProps()}
         />
         <View
-          style={[styles.sheet, {backgroundColor: colors.surface}]}
+          style={[
+            styles.sheet,
+            {backgroundColor: colors.surface, borderTopColor: colors.border},
+          ]}
           {...focusTrapProps()}>
           <View style={styles.header}>
             <Text style={[styles.title, {color: colors.text}]}>
@@ -184,9 +187,11 @@ export const MemoryShareCardModal: React.FC<Props> = ({
             <Ionicons
               name="share-social-outline"
               size={18}
-              color={staticColors.white}
+              color={colors.onPrimary}
             />
-            <Text style={styles.shareButtonText}>{t.share}</Text>
+            <Text style={[styles.shareButtonText, {color: colors.onPrimary}]}>
+              {t.share}
+            </Text>
           </TouchableOpacity>
         </View>
       </View>
@@ -204,6 +209,7 @@ const styles = StyleSheet.create({
   sheet: {
     borderTopLeftRadius: borderRadius.xl,
     borderTopRightRadius: borderRadius.xl,
+    borderTopWidth: StyleSheet.hairlineWidth,
     padding: spacing.lg,
     paddingBottom: spacing['2xl'],
     gap: spacing.md,
@@ -278,7 +284,6 @@ const styles = StyleSheet.create({
   shareButtonText: {
     fontSize: fontSizes.base,
     fontWeight: '700',
-    color: staticColors.white,
   },
   disabled: {opacity: 0.6},
 });

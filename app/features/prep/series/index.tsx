@@ -399,7 +399,10 @@ export default function PrepSeriesListScreen() {
           <View
             style={[styles.modalOverlay, {backgroundColor: colors.overlay}]}>
             <View
-              style={[styles.modalCard, {backgroundColor: colors.surface}]}
+              style={[
+                styles.modalCard,
+                {backgroundColor: colors.surface, borderColor: colors.border},
+              ]}
               {...focusTrapProps()}>
               <Text style={[styles.modalTitle, {color: colors.text}]}>
                 {h.newSeriesModalTitle}
@@ -447,10 +450,7 @@ export default function PrepSeriesListScreen() {
                   accessibilityState={{disabled: !nameDraft.trim()}}
                   accessibilityLabel={h.create}>
                   <Text
-                    style={[
-                      styles.modalButtonText,
-                      {color: staticColors.white},
-                    ]}>
+                    style={[styles.modalButtonText, {color: colors.onPrimary}]}>
                     {h.create}
                   </Text>
                 </TouchableOpacity>
@@ -615,6 +615,7 @@ const styles = StyleSheet.create({
     width: '100%',
     maxWidth: 400,
     borderRadius: borderRadius.lg,
+    borderWidth: 1,
     padding: spacing.lg,
   },
   modalTitle: {

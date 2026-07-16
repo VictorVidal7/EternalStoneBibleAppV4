@@ -38,7 +38,6 @@ import {
   spacing,
   borderRadius,
   fontSize as fontSizes,
-  staticColors,
 } from '@/styles/designTokens';
 
 export interface PeriodRecapModalProps {
@@ -177,7 +176,7 @@ export const PeriodRecapModal: React.FC<PeriodRecapModalProps> = ({
                 <Text
                   style={[
                     styles.scopeText,
-                    {color: active ? staticColors.white : colors.textSecondary},
+                    {color: active ? colors.onPrimary : colors.textSecondary},
                   ]}>
                   {s === 'year' ? tp.scopeYear : tp.scopeQuarter}
                 </Text>

@@ -113,6 +113,7 @@ export function ProphecyShareModal({
             styles.sheet,
             {
               backgroundColor: colors.background,
+              borderTopColor: colors.border,
               paddingBottom: insets.bottom + spacing.lg,
             },
           ]}>
@@ -253,6 +254,7 @@ const styles = StyleSheet.create({
   sheet: {
     borderTopLeftRadius: borderRadius.xl,
     borderTopRightRadius: borderRadius.xl,
+    borderTopWidth: StyleSheet.hairlineWidth,
     padding: spacing.lg,
     gap: spacing.lg,
   },

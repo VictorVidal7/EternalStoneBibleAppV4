@@ -673,7 +673,10 @@ export const BadgeCollectionScreen: React.FC<BadgeCollectionScreenProps> = ({
           onRequestClose={() => setSelectedBadge(null)}>
           <View style={styles.modalOverlay}>
             <View
-              style={[styles.modalContent, {backgroundColor: colors.surface}]}
+              style={[
+                styles.modalContent,
+                {backgroundColor: colors.surface, borderColor: colors.border},
+              ]}
               {...focusTrapProps()}>
               <TouchableOpacity
                 style={styles.closeButton}
@@ -766,7 +769,10 @@ export const BadgeCollectionScreen: React.FC<BadgeCollectionScreenProps> = ({
           onRequestClose={() => setSelectedTitle(null)}>
           <View style={styles.modalOverlay}>
             <View
-              style={[styles.modalContent, {backgroundColor: colors.surface}]}
+              style={[
+                styles.modalContent,
+                {backgroundColor: colors.surface, borderColor: colors.border},
+              ]}
               {...focusTrapProps()}>
               <TouchableOpacity
                 style={styles.closeButton}
@@ -1123,6 +1129,7 @@ const styles = StyleSheet.create({
     maxWidth: 400,
     padding: 24,
     borderRadius: 20,
+    borderWidth: 1,
     alignItems: 'center',
   },
   closeButton: {

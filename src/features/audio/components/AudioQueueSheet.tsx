@@ -326,7 +326,10 @@ export const AudioQueueSheet: React.FC<AudioQueueSheetProps> = ({
       onRequestClose={onClose}>
       <Pressable style={styles.modalOverlay} onPress={onClose}>
         <Pressable
-          style={[styles.modalContent, {backgroundColor: colors.card}]}
+          style={[
+            styles.modalContent,
+            {backgroundColor: colors.card, borderTopColor: colors.border},
+          ]}
           onPress={e => e.stopPropagation()}
           {...focusTrapProps()}>
           {/* Header — a playlist shows its own identity (list icon + label) */}
@@ -700,6 +703,7 @@ const styles = StyleSheet.create({
   modalContent: {
     borderTopLeftRadius: 24,
     borderTopRightRadius: 24,
+    borderTopWidth: StyleSheet.hairlineWidth,
     paddingBottom: 34,
   },
   modalHeader: {

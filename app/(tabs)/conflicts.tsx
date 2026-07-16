@@ -328,7 +328,10 @@ export default function ConflictsScreen() {
         onRequestClose={closeMerge}>
         <View style={[styles.modalOverlay, {backgroundColor: colors.overlay}]}>
           <View
-            style={[styles.modalCard, {backgroundColor: colors.surface}]}
+            style={[
+              styles.modalCard,
+              {backgroundColor: colors.surface, borderColor: colors.border},
+            ]}
             {...focusTrapProps()}>
             <Text style={[styles.modalTitle, {color: colors.text}]}>
               {t.conflicts.mergeTitle}
@@ -390,7 +393,8 @@ export default function ConflictsScreen() {
                 ]}
                 onPress={applyMerge}
                 accessibilityRole="button">
-                <Text style={styles.mergeButtonText}>
+                <Text
+                  style={[styles.mergeButtonText, {color: colors.onPrimary}]}>
                   {t.conflicts.saveMerge}
                 </Text>
               </TouchableOpacity>
@@ -459,7 +463,6 @@ const styles = StyleSheet.create({
     shadowRadius: 4,
   },
   mergeButtonText: {
-    color: staticColors.white,
     fontWeight: '600',
   },
   cardHeader: {
@@ -520,6 +523,7 @@ const styles = StyleSheet.create({
     width: '100%',
     maxHeight: '85%',
     borderRadius: 16,
+    borderWidth: 1,
     padding: 18,
   },
   modalTitle: {fontSize: 18, fontWeight: '700'},
