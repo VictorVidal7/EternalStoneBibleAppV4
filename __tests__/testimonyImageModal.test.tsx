@@ -2,9 +2,17 @@
  * Sprint 94 — the answered-prayer testimony share card (TestimonyImageModal).
  * Pins the eyebrow ("Dios fue fiel"), the request title, the answered-on line,
  * the optional testimony quote, and that the testimony is omitted when absent.
+ *
+ * Tanda M Phase B — wires the offering-gated `PremiumShareExtras` (premium
+ * templates/textures/saved styles) into this screen, mirroring the wiring
+ * `imageShareModalPremium.test.tsx` exercises on the flagship. `usePremium`
+ * is mocked via a `jest.fn()` (prefixed `mock*` so babel-plugin-jest-hoist
+ * allows referencing it from inside the hoisted `jest.mock` factory) so
+ * individual tests can flip `isPremium` without needing the real
+ * `PremiumProvider` + entitlement-cache plumbing.
  */
 import React from 'react';
-import {render} from '@testing-library/react-native';
+import {render, fireEvent} from '@testing-library/react-native';
 import {TestimonyImageModal} from '../src/components/insights/TestimonyImageModal';
 
 const mockColors = {
@@ -42,7 +50,22 @@ jest.mock('react-native-safe-area-context', () => ({
   useSafeAreaInsets: () => ({top: 0, bottom: 0, left: 0, right: 0}),
 }));
 
+const mockUsePremium = jest.fn(() => ({isPremium: false}));
+jest.mock('@context/PremiumContext', () => ({
+  usePremium: () => mockUsePremium(),
+}));
+
+const mockOpenOfferingSheet = jest.fn();
+jest.mock('@context/OfferingSheetContext', () => ({
+  useOfferingSheet: () => ({open: mockOpenOfferingSheet}),
+}));
+
 describe('TestimonyImageModal (Sprint 94)', () => {
+  beforeEach(() => {
+    mockUsePremium.mockReturnValue({isPremium: false});
+    mockOpenOfferingSheet.mockClear();
+  });
+
   it('renders the eyebrow, request title, answered line and testimony', () => {
     const {getByText} = render(
       <TestimonyImageModal
@@ -73,5 +96,46 @@ describe('TestimonyImageModal (Sprint 94)', () => {
     expect(getByText('Provisión')).toBeTruthy();
     // No testimony note → no quoted line rendered.
     expect(queryByText(/“.*”/)).toBeNull();
+  });
+});
+
+describe('TestimonyImageModal — Tanda M Phase B (premium share extras)', () => {
+  beforeEach(() => {
+    mockUsePremium.mockReturnValue({isPremium: false});
+    mockOpenOfferingSheet.mockClear();
+  });
+
+  function renderModal() {
+    return render(
+      <TestimonyImageModal
+        visible
+        title="Sanidad de mi madre"
+        answeredLine="Respondida el 16 jun 2026"
+        onClose={jest.fn()}
+      />,
+    );
+  }
+
+  it('marks a premium template as locked for a free user and opens the offering sheet on tap', async () => {
+    const {findByLabelText} = renderModal();
+    // SHARE_TEMPLATES[10] ("cosmos") is the first of the 9 premium designs
+    // appended after the 10 free ones — 1-indexed as "Estilo 11" in the a11y
+    // label, with the offering suffix PremiumShareExtras adds when locked.
+    const lockedTemplate = await findByLabelText(/Estilo 11 · /);
+    expect(lockedTemplate).toBeTruthy();
+
+    fireEvent.press(lockedTemplate);
+    expect(mockOpenOfferingSheet).toHaveBeenCalledTimes(1);
+  });
+
+  it('renders the same premium template unlocked (no offering suffix) once isPremium is true', async () => {
+    mockUsePremium.mockReturnValue({isPremium: true});
+    const {findByLabelText} = renderModal();
+
+    const unlockedTemplate = await findByLabelText('Estilo 11');
+    expect(unlockedTemplate).toBeTruthy();
+
+    fireEvent.press(unlockedTemplate);
+    expect(mockOpenOfferingSheet).not.toHaveBeenCalled();
   });
 });
