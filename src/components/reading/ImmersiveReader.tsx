@@ -96,6 +96,13 @@ export const ImmersiveReader: React.FC<ImmersiveReaderProps> = ({
   // `colors.primary` is already light/dark-aware. The karaoke now-playing
   // hue stays gold (it's the audio cue, semantic — not the theme accent).
   const accent = isHighContrast ? hcColors.accent : colors.primary;
+  // The Listen and (when active) auto-scroll buttons paint `accent` as their
+  // background. Under high contrast `accent` is a bright amber
+  // (`hcColors.accent`), so the hardcoded white icon/text ink those buttons
+  // used to assume becomes unreadable — same bug family as the quiz-chip and
+  // NoteEditorModal HC fixes. Swap to the reader's own HC background
+  // (pure black) as ink whenever the accent fill is actually applied.
+  const activeButtonInk = isHighContrast ? hcColors.background : '#fff';
   // The reader's typeface preference applies HERE too (Sprint 81) — this
   // surface used to hardcode Georgia/serif, so the picker silently did
   // nothing for anyone reading (or auto-immersing) in immersive mode. Since
@@ -588,6 +595,13 @@ export const ImmersiveReader: React.FC<ImmersiveReaderProps> = ({
     return [colors.background, colors.background]; // minimal
   };
 
+  // The auto-scroll button only gets the `accent` background (and therefore
+  // only needs the HC-safe ink) while it's actually active; when inactive it
+  // keeps the default semi-transparent-black fill, where white ink is always
+  // correct regardless of theme.
+  const autoScrollButtonInk =
+    autoScroll && isHighContrast ? hcColors.background : '#fff';
+
   return (
     <View style={styles.container} {...focusTrapProps()}>
       <StatusBar hidden />
@@ -897,9 +911,10 @@ export const ImmersiveReader: React.FC<ImmersiveReaderProps> = ({
                   <Ionicons
                     name={audioState.isPlaying ? 'pause' : 'play'}
                     size={24}
-                    color="#fff"
+                    color={activeButtonInk}
                   />
-                  <Text style={styles.actionButtonText}>
+                  <Text
+                    style={[styles.actionButtonText, {color: activeButtonInk}]}>
                     {audioState.isPlaying
                       ? t.audio.immersive.listening
                       : t.audio.immersive.paused}
@@ -932,9 +947,13 @@ export const ImmersiveReader: React.FC<ImmersiveReaderProps> = ({
                     <Ionicons
                       name={autoScroll ? 'pause' : 'play'}
                       size={24}
-                      color="#fff"
+                      color={autoScrollButtonInk}
                     />
-                    <Text style={styles.actionButtonText}>
+                    <Text
+                      style={[
+                        styles.actionButtonText,
+                        {color: autoScrollButtonInk},
+                      ]}>
                       {autoScroll ? t.verse.pause : t.verse.autoPlay}
                     </Text>
                   </TouchableOpacity>
