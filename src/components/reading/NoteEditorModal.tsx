@@ -137,7 +137,9 @@ export const NoteEditorModal: React.FC<NoteEditorModalProps> = ({
             ]}
             onPress={onSave}
             disabled={!trimmed}>
-            <Text style={styles.saveButtonText}>{t.notes.saveNote}</Text>
+            <Text style={[styles.saveButtonText, {color: colors.onPrimary}]}>
+              {t.notes.saveNote}
+            </Text>
           </TouchableOpacity>
         </View>
 
