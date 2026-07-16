@@ -1116,6 +1116,46 @@ export const translations = {
       sectionNavHint: 'Ir a esta sección',
     },
 
+    prepIllustrations: {
+      title: 'Banco de ilustraciones',
+      subtitle: 'Tu colección personal de ilustraciones y citas para predicar',
+      exclusiveLabel: 'Exclusivo',
+      lockedTitle: 'Guarda tus mejores ilustraciones',
+      lockedBody:
+        'Desbloquea con una ofrenda tu banco de ilustraciones: guarda anécdotas, citas y analogías que ya usaste (o quieres usar), organizadas por categoría y listas para reutilizar en tu próxima predicación.',
+      searchPlaceholder: 'Buscar por título o contenido',
+      filterAll: 'Todas',
+      categories: {
+        historical: 'Histórica',
+        scienceNature: 'Ciencia y naturaleza',
+        testimony: 'Testimonio personal',
+        quote: 'Cita de un autor',
+        analogy: 'Analogía cotidiana',
+        currentEvents: 'Actualidad',
+        humor: 'Humor',
+      },
+      newIllustration: 'Nueva ilustración',
+      untitled: 'Sin título',
+      limitReachedTitle: 'Llegaste al máximo de ilustraciones',
+      limitReachedBody:
+        'Elimina alguna ilustración existente para poder guardar una nueva.',
+      emptyTitle: 'Aún no guardaste ninguna ilustración',
+      emptyBody:
+        'Toca "+" para guardar tu primera ilustración, cita o anécdota para reutilizar en tus predicaciones.',
+      emptySearchTitle: 'Sin resultados',
+      emptySearchBody:
+        'Prueba con otra palabra o quita el filtro de categoría.',
+      openHint: 'Abrir esta ilustración',
+      titlePlaceholder: 'Título breve, p. ej. "El reloj y el relojero"',
+      bodyPlaceholder: 'Escribe aquí la ilustración, cita o anécdota completa…',
+      categoryLabel: 'Categoría',
+      deleteLabel: 'Eliminar ilustración',
+      deleteConfirmTitle: '¿Eliminar esta ilustración?',
+      deleteConfirmBody:
+        'Se eliminará de tu banco de ilustraciones. No se puede deshacer.',
+      notFound: 'No se encontró esta ilustración',
+    },
+
     dailyLight: {
       cardTitle: 'Luz diaria',
       cardSubtitle: 'Tu devocional de hoy',
@@ -6565,6 +6605,45 @@ export const translations = {
       darkBackgroundToggle: 'Dark background',
       elapsedLabel: 'Elapsed time',
       sectionNavHint: 'Jump to this section',
+    },
+
+    prepIllustrations: {
+      title: 'Illustration bank',
+      subtitle:
+        'Your personal collection of illustrations and quotes for preaching',
+      exclusiveLabel: 'Exclusive',
+      lockedTitle: 'Save your best illustrations',
+      lockedBody:
+        "Unlock with an offering your illustration bank: save anecdotes, quotes, and analogies you've already used (or want to use), organized by category and ready to reuse in your next sermon.",
+      searchPlaceholder: 'Search by title or content',
+      filterAll: 'All',
+      categories: {
+        historical: 'Historical',
+        scienceNature: 'Science & nature',
+        testimony: 'Personal testimony',
+        quote: "Author's quote",
+        analogy: 'Everyday analogy',
+        currentEvents: 'Current events',
+        humor: 'Humor',
+      },
+      newIllustration: 'New illustration',
+      untitled: 'Untitled',
+      limitReachedTitle: "You've reached the maximum number of illustrations",
+      limitReachedBody: 'Delete an existing illustration to save a new one.',
+      emptyTitle: "You haven't saved any illustrations yet",
+      emptyBody:
+        'Tap "+" to save your first illustration, quote, or anecdote to reuse in your sermons.',
+      emptySearchTitle: 'No results',
+      emptySearchBody: 'Try another word or clear the category filter.',
+      openHint: 'Open this illustration',
+      titlePlaceholder: 'Short title, e.g. "The watch and the watchmaker"',
+      bodyPlaceholder: 'Write the full illustration, quote, or anecdote here…',
+      categoryLabel: 'Category',
+      deleteLabel: 'Delete illustration',
+      deleteConfirmTitle: 'Delete this illustration?',
+      deleteConfirmBody:
+        "It will be removed from your illustration bank. This can't be undone.",
+      notFound: 'This illustration could not be found',
     },
 
     dailyLight: {
