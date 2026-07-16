@@ -13,6 +13,14 @@
  * prepIllustrations store (seeded through AsyncStorage's global jest mock)
  * rather than hand-mocking either — only the offering sheet, toast, and
  * navigation/theme plumbing are mocked.
+ *
+ * Also covers Tanda 4's "insert mode" (opened with an `insertPassageKey`
+ * param from the single-passage Mesa de preparación): the banner with the
+ * passage label, tapping an illustration appending it to that passage's
+ * REAL `application` notes (verified via the real prepNotesStore, not a
+ * mock) and navigating back, and dismissing the banner to fall back to
+ * normal browsing — same "attach mode" pattern prepSeriesListScreen.test.tsx
+ * already pins for "Series de predicación".
  */
 import React from 'react';
 import {render, fireEvent, waitFor} from '@testing-library/react-native';
@@ -26,6 +34,7 @@ import {
   serializePrepIllustrationsMap,
   type PrepIllustrationsMap,
 } from '../src/features/study/prepIllustrations';
+import {getPrepNotes, savePrepNote} from '../src/features/study/prepNotesStore';
 import {translations} from '../src/i18n/translations';
 
 const PREP_ILLUSTRATIONS_KEY = '@prep_illustrations';
@@ -49,12 +58,17 @@ jest.mock(
 
 const mockPush = jest.fn();
 const mockBack = jest.fn();
+// Tanda 4 — mutable route params, reassigned by the "insert mode" describe
+// block below (needs a render WITH an `insertPassageKey` param). Read at
+// CALL time by the closure, same pattern as prepSeriesListScreen.test.tsx's
+// own `mockParams`.
+let mockParams: {insertPassageKey?: string} = {};
 
 jest.mock('expo-router', () => {
   const ReactActual = require('react');
   return {
     useRouter: () => ({push: mockPush, back: mockBack}),
-    useLocalSearchParams: () => ({}),
+    useLocalSearchParams: () => mockParams,
     useFocusEffect: (cb: () => void) => ReactActual.useEffect(cb, [cb]),
     Stack: {Screen: () => null},
   };
@@ -97,6 +111,15 @@ jest.mock('@hooks/useLanguage', () => ({
   useLanguage: () => ({
     language: 'es',
     t: require('../src/i18n/translations').translations.es,
+  }),
+}));
+
+// Tanda 4 — the insert-mode banner formats the pending passage's label via
+// formatPassageLabel(parsed, bookLang), which needs this hook (same mock
+// prepSeriesListScreen.test.tsx uses for its own attach-mode banner).
+jest.mock('@hooks/useBibleVersion', () => ({
+  useBibleVersion: () => ({
+    selectedVersion: {id: 'RVR1960', language: 'es', abbreviation: 'RVR1960'},
   }),
 }));
 
@@ -145,7 +168,9 @@ describe('PrepIllustrationsListScreen — Tanda 4', () => {
     mockOpenOfferingSheet.mockClear();
     mockToast.success.mockClear();
     mockToast.warning.mockClear();
+    mockParams = {};
     await AsyncStorage.removeItem(PREP_ILLUSTRATIONS_KEY);
+    await AsyncStorage.removeItem('@prep_notes');
     await SecureStore.deleteItemAsync(ENTITLEMENT_CACHE_KEY);
   });
 
@@ -339,5 +364,98 @@ describe('PrepIllustrationsListScreen — Tanda 4', () => {
     // than RTL's default 1000ms wait.
     expect(await findByText(h.emptyTitle, {}, {timeout: 5000})).toBeTruthy();
     expect(queryByText('Para borrar')).toBeNull();
+  });
+
+  describe('insert mode (adding a saved illustration to the current preparation)', () => {
+    beforeEach(() => {
+      mockParams = {insertPassageKey: 'John/3/16'};
+    });
+
+    it('shows the insert banner with the passage label', async () => {
+      await unlockPremium();
+      const {findByText} = renderScreen();
+      expect(
+        await findByText(h.insertTitle.replace('{{passage}}', 'Juan 3:16')),
+      ).toBeTruthy();
+    });
+
+    it("inserts the tapped illustration into the passage's application notes and goes back", async () => {
+      await unlockPremium();
+      await seedIllustrations({
+        i1: {
+          id: 'i1',
+          title: 'El reloj y el relojero',
+          body: 'Un argumento clásico de diseño',
+          category: 'analogy',
+          createdAt: 1,
+          updatedAt: 1,
+        },
+      });
+      const {findByText} = renderScreen();
+      fireEvent.press(await findByText('El reloj y el relojero'));
+
+      await waitFor(() => expect(mockBack).toHaveBeenCalledTimes(1));
+      expect(mockToast.success).toHaveBeenCalledWith(h.insertedToast);
+
+      const notes = await getPrepNotes('John/3/16');
+      expect(notes.sections.application).toBe(
+        'El reloj y el relojero\nUn argumento clásico de diseño',
+      );
+      // The editor is never opened while inserting.
+      expect(mockPush).not.toHaveBeenCalled();
+    });
+
+    it('appends to existing application notes instead of overwriting them', async () => {
+      await unlockPremium();
+      await savePrepNote(
+        'John/3/16',
+        'application',
+        'Nota previa del predicador.',
+      );
+      await seedIllustrations({
+        i1: {
+          id: 'i1',
+          title: 'La semilla de mostaza',
+          body: 'Crece en fe',
+          category: 'analogy',
+          createdAt: 1,
+          updatedAt: 1,
+        },
+      });
+      const {findByText} = renderScreen();
+      fireEvent.press(await findByText('La semilla de mostaza'));
+
+      await waitFor(() => expect(mockBack).toHaveBeenCalledTimes(1));
+      const notes = await getPrepNotes('John/3/16');
+      expect(notes.sections.application).toBe(
+        'Nota previa del predicador.\n\nLa semilla de mostaza\nCrece en fe',
+      );
+    });
+
+    it('dismisses the insert banner and browses normally afterward', async () => {
+      await unlockPremium();
+      await seedIllustrations({
+        i1: {
+          id: 'i1',
+          title: 'Cita de Spurgeon',
+          body: 'Sobre la oración',
+          category: 'quote',
+          createdAt: 1,
+          updatedAt: 1,
+        },
+      });
+      const {findByText, queryByText} = renderScreen();
+      fireEvent.press(await findByText(h.insertDismiss));
+
+      await waitFor(() =>
+        expect(
+          queryByText(h.insertTitle.replace('{{passage}}', 'Juan 3:16')),
+        ).toBeNull(),
+      );
+
+      fireEvent.press(await findByText('Cita de Spurgeon'));
+      expect(mockPush).toHaveBeenCalledWith('/features/prep/illustrations/i1');
+      expect(mockBack).not.toHaveBeenCalled();
+    });
   });
 });

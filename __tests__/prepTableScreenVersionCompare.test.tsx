@@ -37,11 +37,18 @@ let mockRouteParams: Record<string, string> = {
 };
 const mockRouterPush = jest.fn();
 
-jest.mock('expo-router', () => ({
-  useRouter: () => ({push: mockRouterPush, back: jest.fn()}),
-  useLocalSearchParams: () => mockRouteParams,
-  Stack: {Screen: () => null},
-}));
+jest.mock('expo-router', () => {
+  const ReactActual = require('react');
+  return {
+    useRouter: () => ({push: mockRouterPush, back: jest.fn()}),
+    useLocalSearchParams: () => mockRouteParams,
+    // Tanda 4 — the screen now uses this for a narrow notes-only refresh on
+    // refocus; a dependency-aware stand-in (mirrors prepSeriesListScreen's
+    // own mock) is enough for these tests, which don't exercise refocus.
+    useFocusEffect: (cb: () => void) => ReactActual.useEffect(cb, [cb]),
+    Stack: {Screen: () => null},
+  };
+});
 
 jest.mock('@expo/vector-icons', () => ({Ionicons: () => null}));
 

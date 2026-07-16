@@ -4,11 +4,14 @@
  * stays byte-for-byte the same and is covered by prepTableScreen.test.tsx) —
  * a different export FORMAT of the SAME assembled content, gated behind an
  * offering. Locked for a free reader (leaf badge + "Exclusivo" pill, tap
- * opens the offering sheet, nothing is generated); once unlocked, tapping
- * renders the outline through buildPrepHtml (unit-tested on its own in
- * prepPdf.test.ts) and hands it to expo-print + expo-sharing, mocked here
- * the same way ImageShareModal's capture/share pipeline is mocked in
- * imageShareModalPremium.test.tsx.
+ * opens the offering sheet directly, nothing is generated and the format
+ * sheet never mounts visibly); once unlocked, tapping opens the Tanda 3
+ * format-choice sheet (PrepExportFormatSheet, unit-tested on its own in
+ * PrepExportFormatSheet.test.tsx) instead of generating immediately —
+ * picking a format then renders the outline through buildPrepHtml
+ * (unit-tested on its own in prepPdf.test.ts) and hands it to expo-print +
+ * expo-sharing, mocked here the same way ImageShareModal's capture/share
+ * pipeline is mocked in imageShareModalPremium.test.tsx.
  */
 import React from 'react';
 import {render, waitFor, fireEvent} from '@testing-library/react-native';
@@ -25,16 +28,23 @@ const mockPurchases = Purchases as unknown as {
   __reset: () => void;
 };
 
-jest.mock('expo-router', () => ({
-  useRouter: () => ({push: jest.fn(), back: jest.fn()}),
-  useLocalSearchParams: () => ({
-    book: 'John',
-    chapter: '3',
-    startVerse: '16',
-    version: 'RVR1960',
-  }),
-  Stack: {Screen: () => null},
-}));
+jest.mock('expo-router', () => {
+  const ReactActual = require('react');
+  return {
+    useRouter: () => ({push: jest.fn(), back: jest.fn()}),
+    useLocalSearchParams: () => ({
+      book: 'John',
+      chapter: '3',
+      startVerse: '16',
+      version: 'RVR1960',
+    }),
+    // Tanda 4 — the screen now uses this for a narrow notes-only refresh on
+    // refocus; a dependency-aware stand-in (mirrors prepSeriesListScreen's
+    // own mock) is enough for these tests, which don't exercise refocus.
+    useFocusEffect: (cb: () => void) => ReactActual.useEffect(cb, [cb]),
+    Stack: {Screen: () => null},
+  };
+});
 
 jest.mock('@expo/vector-icons', () => ({Ionicons: () => null}));
 
@@ -171,12 +181,15 @@ describe('Mesa de preparación — T8.4.5 PDF export', () => {
     ).toBeTruthy();
   });
 
-  it('free reader: tapping the locked PDF export opens the offering sheet and generates nothing', async () => {
-    const {findByLabelText} = renderScreen();
+  it('free reader: tapping the locked PDF export opens the offering sheet directly, never the format sheet', async () => {
+    const {findByLabelText, queryByText} = renderScreen();
     fireEvent.press(
       await findByLabelText(`${p.exportPdfLabel} · ${offeringSuffix}`),
     );
     expect(mockOpenOfferingSheet).toHaveBeenCalledTimes(1);
+    // A free reader has nothing to choose among — the format sheet (Tanda 3)
+    // never mounts visibly for them, only the offering sheet opens.
+    expect(queryByText(p.exportFormatSheetTitle)).toBeNull();
     expect(mockPrintToFile).not.toHaveBeenCalled();
     expect(mockShareAsync).not.toHaveBeenCalled();
   });
@@ -187,11 +200,27 @@ describe('Mesa de preparación — T8.4.5 PDF export', () => {
     expect(await findByLabelText(p.exportPdfLabel)).toBeTruthy();
   });
 
-  it('premium reader: tapping generates the PDF and shares it, without ever opening the offering sheet', async () => {
+  // Tanda 3 — a premium tap no longer generates a manuscript immediately;
+  // it opens the format-choice sheet instead, so the reader can pick among
+  // 'manuscript'/'outline'/'handout'/'discussion' before anything renders.
+  it('premium reader: tapping opens the format-choice sheet instead of generating immediately', async () => {
     await SecureStore.setItemAsync(ENTITLEMENT_CACHE_KEY, 'true');
-    const {findByLabelText} = renderScreen();
+    const {findByLabelText, findByText} = renderScreen();
 
     fireEvent.press(await findByLabelText(p.exportPdfLabel));
+
+    expect(await findByText(p.exportFormatSheetTitle)).toBeTruthy();
+    expect(await findByText(p.exportFormatManuscriptLabel)).toBeTruthy();
+    expect(mockPrintToFile).not.toHaveBeenCalled();
+    expect(mockShareAsync).not.toHaveBeenCalled();
+  });
+
+  it('premium reader: picking "manuscript" in the sheet generates the PDF and shares it, without ever opening the offering sheet', async () => {
+    await SecureStore.setItemAsync(ENTITLEMENT_CACHE_KEY, 'true');
+    const {findByLabelText, findByText} = renderScreen();
+
+    fireEvent.press(await findByLabelText(p.exportPdfLabel));
+    fireEvent.press(await findByText(p.exportFormatManuscriptLabel));
 
     await waitFor(() => expect(mockPrintToFile).toHaveBeenCalledTimes(1));
     const call = mockPrintToFile.mock.calls[0][0];
@@ -210,12 +239,37 @@ describe('Mesa de preparación — T8.4.5 PDF export', () => {
     expect(mockOpenOfferingSheet).not.toHaveBeenCalled();
   });
 
+  // Step 1's blocking-gap fix, exercised end-to-end: buildPrepInput now
+  // stamps each section with its stable `id` (see prep/index.tsx), which
+  // the 'handout' format needs to filter by identity rather than by
+  // localized label (prepPdf.test.ts pins the filtering logic itself given
+  // ids; THIS test proves the screen actually supplies them). Without the
+  // `id` field this would regress silently — every OTHER test in this file
+  // picks 'manuscript', which renders fine with or without ids.
+  it('premium reader: picking "handout" in the sheet renders only bigIdea/application/questions, proving buildPrepInput supplies section ids', async () => {
+    await SecureStore.setItemAsync(ENTITLEMENT_CACHE_KEY, 'true');
+    const {findByLabelText, findByText} = renderScreen();
+
+    fireEvent.press(await findByLabelText(p.exportPdfLabel));
+    fireEvent.press(await findByText(p.exportFormatHandoutLabel));
+
+    await waitFor(() => expect(mockPrintToFile).toHaveBeenCalledTimes(1));
+    const call = mockPrintToFile.mock.calls[0][0];
+    expect(call.html).toContain(p.sections.bigIdea.label);
+    expect(call.html).toContain(p.sections.application.label);
+    expect(call.html).toContain(p.sections.questions.label);
+    expect(call.html).not.toContain(p.sections.context.label);
+    expect(call.html).not.toContain(p.sections.observation.label);
+    expect(call.html).not.toContain(p.sections.interpretation.label);
+  });
+
   it('premium reader: does not crash and skips sharing when the share sheet is unavailable', async () => {
     mockIsAvailable.mockResolvedValueOnce(false);
     await SecureStore.setItemAsync(ENTITLEMENT_CACHE_KEY, 'true');
-    const {findByLabelText} = renderScreen();
+    const {findByLabelText, findByText} = renderScreen();
 
     fireEvent.press(await findByLabelText(p.exportPdfLabel));
+    fireEvent.press(await findByText(p.exportFormatManuscriptLabel));
 
     await waitFor(() => expect(mockPrintToFile).toHaveBeenCalledTimes(1));
     await waitFor(() => expect(mockIsAvailable).toHaveBeenCalledTimes(1));

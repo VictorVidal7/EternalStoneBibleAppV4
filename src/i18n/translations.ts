@@ -1118,6 +1118,7 @@ export const translations = {
 
     prepIllustrations: {
       title: 'Banco de ilustraciones',
+      entryLabel: 'Banco de ilustraciones',
       subtitle: 'Tu colección personal de ilustraciones y citas para predicar',
       exclusiveLabel: 'Exclusivo',
       lockedTitle: 'Guarda tus mejores ilustraciones',
@@ -1154,6 +1155,13 @@ export const translations = {
       deleteConfirmBody:
         'Se eliminará de tu banco de ilustraciones. No se puede deshacer.',
       notFound: 'No se encontró esta ilustración',
+      // Tanda 4 — insertar una ilustración guardada en la preparación actual
+      // (banner + toast), mismo idioma que el "attach mode" de Series de
+      // predicación (attachTitle/attachBody/attachDismiss).
+      insertTitle: 'Agregar a {{passage}}',
+      insertBody: 'Toca una ilustración para agregarla a tu preparación.',
+      insertDismiss: 'Ahora no',
+      insertedToast: 'Ilustración añadida a tu preparación.',
     },
 
     dailyLight: {
@@ -6609,6 +6617,7 @@ export const translations = {
 
     prepIllustrations: {
       title: 'Illustration bank',
+      entryLabel: 'Illustration bank',
       subtitle:
         'Your personal collection of illustrations and quotes for preaching',
       exclusiveLabel: 'Exclusive',
@@ -6644,6 +6653,13 @@ export const translations = {
       deleteConfirmBody:
         "It will be removed from your illustration bank. This can't be undone.",
       notFound: 'This illustration could not be found',
+      // Tanda 4 — insert a saved illustration into the current preparation
+      // (banner + toast), same idiom as Preaching series' "attach mode"
+      // (attachTitle/attachBody/attachDismiss).
+      insertTitle: 'Add to {{passage}}',
+      insertBody: 'Tap an illustration to add it to your preparation.',
+      insertDismiss: 'Not now',
+      insertedToast: 'Illustration added to your preparation.',
     },
 
     dailyLight: {
