@@ -49,6 +49,14 @@ jest.mock('../src/hooks/useConstancyRings', () => ({
 jest.mock('../src/context/ToastContext', () => ({
   useToast: () => ({success: jest.fn(), error: jest.fn()}),
 }));
+// Tanda M Phase B — ConstancyImageModal now also pulls in usePremium/
+// useOfferingSheet (for its PremiumShareExtras wiring) even while hidden.
+jest.mock('../src/context/PremiumContext', () => ({
+  usePremium: () => ({isPremium: false}),
+}));
+jest.mock('../src/context/OfferingSheetContext', () => ({
+  useOfferingSheet: () => ({open: jest.fn()}),
+}));
 
 jest.mock('react-native-view-shot', () => ({
   captureRef: jest.fn(() => Promise.resolve('file://constancy.png')),

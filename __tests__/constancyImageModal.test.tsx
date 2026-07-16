@@ -3,12 +3,28 @@
  * ConstancyRingsGraphic the Home card shows over a gradient template, plus a
  * per-habit legend. Pins the card title, the habit labels, and the streak
  * status line.
+ *
+ * Tanda M Phase B adds `PremiumShareExtras` (premium templates + textures +
+ * "Mis estilos") in place of the free-only `ShareStylePicker` — the two new
+ * tests below pin that a premium template renders unlocked once `isPremium`
+ * is true, and that a locked tap routes to the offering sheet when it's not,
+ * mirroring `premiumShareExtras.test.tsx`'s own coverage of that component.
  */
 import React from 'react';
-import {render} from '@testing-library/react-native';
+import {render, fireEvent} from '@testing-library/react-native';
 import {ConstancyImageModal} from '../src/components/insights/ConstancyImageModal';
 import {buildConstancySummary} from '../src/lib/home/constancyRings';
 import {translations} from '../src/i18n/translations';
+
+let mockIsPremium = false;
+jest.mock('../src/context/PremiumContext', () => ({
+  usePremium: () => ({isPremium: mockIsPremium}),
+}));
+
+const mockOpenOfferingSheet = jest.fn();
+jest.mock('../src/context/OfferingSheetContext', () => ({
+  useOfferingSheet: () => ({open: mockOpenOfferingSheet}),
+}));
 
 const mockColors = {
   background: '#0f172a',
@@ -60,6 +76,11 @@ const summary = buildConstancySummary([
 ]);
 
 describe('ConstancyImageModal (Sprint 85)', () => {
+  beforeEach(() => {
+    mockIsPremium = false;
+    mockOpenOfferingSheet.mockClear();
+  });
+
   it('renders the share card: title, subtitle and every habit label', () => {
     const {getByText} = render(
       <ConstancyImageModal visible summary={summary} onClose={jest.fn()} />,
@@ -91,5 +112,38 @@ describe('ConstancyImageModal (Sprint 85)', () => {
     );
     expect(getByText(tc.shareStreakDay)).toBeTruthy();
     expect(queryByText(tc.shareStreakDays.replace('{{n}}', '1'))).toBeNull();
+  });
+});
+
+describe('ConstancyImageModal — Tanda M Phase B (PremiumShareExtras wiring)', () => {
+  beforeEach(() => {
+    mockIsPremium = false;
+    mockOpenOfferingSheet.mockClear();
+  });
+
+  it('renders a premium template unlocked (no offering suffix) once isPremium is true', async () => {
+    mockIsPremium = true;
+    const {findByLabelText} = render(
+      <ConstancyImageModal visible summary={summary} onClose={jest.fn()} />,
+    );
+    // SHARE_TEMPLATES is 10 free + 9 premium — index 10 (label "Estilo 11")
+    // is the first premium template in the catalog.
+    expect(await findByLabelText('Estilo 11')).toBeTruthy();
+  });
+
+  it('routes a locked premium template tap to the offering sheet when isPremium is false', async () => {
+    const {findByLabelText} = render(
+      <ConstancyImageModal visible summary={summary} onClose={jest.fn()} />,
+    );
+    fireEvent.press(await findByLabelText(/Estilo 11 · /));
+    expect(mockOpenOfferingSheet).toHaveBeenCalledTimes(1);
+  });
+
+  it('routes a locked texture tap to the offering sheet when isPremium is false', async () => {
+    const {findByLabelText} = render(
+      <ConstancyImageModal visible summary={summary} onClose={jest.fn()} />,
+    );
+    fireEvent.press(await findByLabelText(/Puntos · /));
+    expect(mockOpenOfferingSheet).toHaveBeenCalledTimes(1);
   });
 });
