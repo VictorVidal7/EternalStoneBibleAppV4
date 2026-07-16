@@ -33,9 +33,12 @@ import {useSafeAreaInsets} from 'react-native-safe-area-context';
 import {useTheme} from '@hooks/useTheme';
 import {useLanguage} from '@hooks/useLanguage';
 import {focusTrapProps} from '@lib/a11y/focusTrap';
+import {usePremium} from '@context/PremiumContext';
+import {useOfferingSheet} from '@context/OfferingSheetContext';
 import {useShareImage} from '@/features/share/useShareImage';
 import {ShareCardHost} from '@/features/share/ShareCardHost';
-import {ShareStylePicker} from '@/features/share/ShareStylePicker';
+import {PremiumShareExtras} from '@/features/share/PremiumShareExtras';
+import {SHARE_TEMPLATES} from '@/features/share/imageTemplates';
 import {getFeeling} from '@/features/study/feelings';
 import type {
   MoodMonthSummary,
@@ -69,16 +72,21 @@ export const MoodImageModal: React.FC<MoodImageModalProps> = ({
   const feelingNames = t.feelings.list as Record<string, {name: string}>;
 
   const hasData = month.daysLogged > 0;
+  const {isPremium} = usePremium();
+  const {open: openOfferingSheet} = useOfferingSheet();
 
   const {
     templateIndex,
     setTemplateIndex,
     template,
     templates,
+    texture,
+    setTexture,
     isSharing,
     previewRef,
     handleShare,
   } = useShareImage({
+    templates: SHARE_TEMPLATES,
     componentName: 'MoodImageModal',
     canShare: () => hasData,
     onShared: onClose,
@@ -146,7 +154,10 @@ export const MoodImageModal: React.FC<MoodImageModalProps> = ({
           style={styles.flex}
           contentContainerStyle={styles.scrollContent}>
           <View style={styles.previewContainer}>
-            <ShareCardHost ref={previewRef} template={template}>
+            <ShareCardHost
+              ref={previewRef}
+              template={template}
+              texture={texture}>
               <Text
                 style={[styles.cardTitle, {color: template.textColor}]}
                 numberOfLines={2}>
@@ -301,10 +312,14 @@ export const MoodImageModal: React.FC<MoodImageModalProps> = ({
             </Text>
           )}
 
-          <ShareStylePicker
+          <PremiumShareExtras
             templates={templates}
-            selectedIndex={templateIndex}
-            onSelect={setTemplateIndex}
+            templateIndex={templateIndex}
+            onSelectTemplate={setTemplateIndex}
+            texture={texture}
+            onSelectTexture={setTexture}
+            isPremium={isPremium}
+            onLockedAction={openOfferingSheet}
           />
         </ScrollView>
       </View>

@@ -5,9 +5,17 @@
  * renders the dominant feeling + days line, and that the gentle trend line
  * appears ONLY when both windows carry a check-in (hasComparison) — so an empty
  * prior month never invents a comparison on the shared image.
+ *
+ * Tanda M Phase B — wires the offering-gated `PremiumShareExtras` (premium
+ * templates/textures/saved styles) into this screen, mirroring the wiring
+ * `testimonyImageModal.test.tsx` exercises for its sibling. `usePremium` is
+ * mocked via a `jest.fn()` (prefixed `mock*` so babel-plugin-jest-hoist
+ * allows referencing it from inside the hoisted `jest.mock` factory) so
+ * individual tests can flip `isPremium` without needing the real
+ * `PremiumProvider` + entitlement-cache plumbing.
  */
 import React from 'react';
-import {render} from '@testing-library/react-native';
+import {render, fireEvent} from '@testing-library/react-native';
 import {MoodImageModal} from '../src/components/insights/MoodImageModal';
 import {translations} from '../src/i18n/translations';
 import type {
@@ -57,6 +65,16 @@ jest.mock('react-native-safe-area-context', () => ({
   useSafeAreaInsets: () => ({top: 0, bottom: 0, left: 0, right: 0}),
 }));
 
+const mockUsePremium = jest.fn(() => ({isPremium: false}));
+jest.mock('@context/PremiumContext', () => ({
+  usePremium: () => mockUsePremium(),
+}));
+
+const mockOpenOfferingSheet = jest.fn();
+jest.mock('@context/OfferingSheetContext', () => ({
+  useOfferingSheet: () => ({open: mockOpenOfferingSheet}),
+}));
+
 const month: MoodMonthSummary = {
   windowDays: 30,
   daysLogged: 18,
@@ -81,6 +99,11 @@ const liftingTrend: MoodTrendSummary = {
 
 describe('MoodImageModal (Sprint 84)', () => {
   const es = translations.es;
+
+  beforeEach(() => {
+    mockUsePremium.mockReturnValue({isPremium: false});
+    mockOpenOfferingSheet.mockClear();
+  });
 
   it('renders the month card: title, dominant feeling, and days line', () => {
     const {getByText, getAllByText} = render(
@@ -142,5 +165,52 @@ describe('MoodImageModal (Sprint 84)', () => {
     );
     expect(queryByText(es.readingInsights.moodTrendLighter)).toBeNull();
     expect(queryByText(es.readingInsights.moodTrendSteady)).toBeNull();
+  });
+});
+
+describe('MoodImageModal — Tanda M Phase B (premium share extras)', () => {
+  beforeEach(() => {
+    mockUsePremium.mockReturnValue({isPremium: false});
+    mockOpenOfferingSheet.mockClear();
+  });
+
+  function renderModal() {
+    return render(
+      <MoodImageModal
+        visible
+        month={month}
+        trend={liftingTrend}
+        onClose={jest.fn()}
+      />,
+    );
+  }
+
+  it('marks a premium template as locked for a free user and opens the offering sheet on tap', async () => {
+    const {findByLabelText} = renderModal();
+    // SHARE_TEMPLATES[10] is the first of the 9 premium designs appended
+    // after the 10 free ones — 1-indexed as "Estilo 11" in the a11y label,
+    // with the offering suffix PremiumShareExtras adds when locked.
+    const lockedTemplate = await findByLabelText(/Estilo 11 · /);
+    expect(lockedTemplate).toBeTruthy();
+
+    fireEvent.press(lockedTemplate);
+    expect(mockOpenOfferingSheet).toHaveBeenCalledTimes(1);
+  });
+
+  it('renders the same premium template unlocked (no offering suffix) once isPremium is true', async () => {
+    mockUsePremium.mockReturnValue({isPremium: true});
+    const {findByLabelText} = renderModal();
+
+    const unlockedTemplate = await findByLabelText('Estilo 11');
+    expect(unlockedTemplate).toBeTruthy();
+
+    fireEvent.press(unlockedTemplate);
+    expect(mockOpenOfferingSheet).not.toHaveBeenCalled();
+  });
+
+  it('routes a locked texture tap to the offering sheet when isPremium is false', async () => {
+    const {findByLabelText} = renderModal();
+    fireEvent.press(await findByLabelText(/Puntos · /));
+    expect(mockOpenOfferingSheet).toHaveBeenCalledTimes(1);
   });
 });
