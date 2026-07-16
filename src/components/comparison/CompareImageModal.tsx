@@ -39,13 +39,13 @@ import {
   FREE_TEMPLATES,
   type ShareTemplate,
 } from '@/features/share/imageTemplates';
+import {ShareCardHost} from '@/features/share/ShareCardHost';
+import {ShareStylePicker} from '@/features/share/ShareStylePicker';
 import {type ComparisonCardModel} from '@/lib/comparison/comparisonCard';
 import {
   spacing,
   borderRadius,
   fontSize as fontSizes,
-  shadows,
-  staticColors,
 } from '@/styles/designTokens';
 
 export interface CompareImageModalProps {
@@ -77,13 +77,7 @@ interface CompareCardProps {
  */
 const CompareCard = forwardRef<LinearGradient, CompareCardProps>(
   ({card, template, similarityLabel, minHeight}, ref) => (
-    <LinearGradient
-      colors={template.colors}
-      style={[styles.card, {minHeight}]}
-      ref={ref}
-      collapsable={false}
-      start={{x: 0, y: 0}}
-      end={{x: 1, y: 1}}>
+    <ShareCardHost ref={ref} template={template} style={{minHeight}}>
       <Ionicons
         name={template.icon as keyof typeof Ionicons.glyphMap}
         size={30}
@@ -132,7 +126,7 @@ const CompareCard = forwardRef<LinearGradient, CompareCardProps>(
           Eternal Stone Bible
         </Text>
       </View>
-    </LinearGradient>
+    </ShareCardHost>
   ),
 );
 CompareCard.displayName = 'CompareCard';
@@ -335,45 +329,11 @@ export const CompareImageModal: React.FC<CompareImageModalProps> = ({
             </>
           )}
 
-          <View style={styles.options}>
-            <Text style={[styles.optionsTitle, {color: colors.textSecondary}]}>
-              {t.verse.imageStyle}
-            </Text>
-            <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-              {FREE_TEMPLATES.map((tpl, index) => {
-                const selected = index === templateIndex;
-                return (
-                  <TouchableOpacity
-                    key={tpl.id}
-                    onPress={() => {
-                      haptics.tap();
-                      setTemplateIndex(index);
-                    }}
-                    accessibilityRole="button"
-                    accessibilityState={{selected}}
-                    accessibilityLabel={t.verse.imageStyleA11y.replace(
-                      '{{n}}',
-                      String(index + 1),
-                    )}
-                    style={[
-                      styles.swatch,
-                      selected && styles.swatchSelected,
-                      selected && {borderColor: colors.primary},
-                    ]}>
-                    <LinearGradient
-                      colors={tpl.colors}
-                      style={styles.swatchGradient}>
-                      <Ionicons
-                        name={tpl.icon as keyof typeof Ionicons.glyphMap}
-                        size={20}
-                        color={tpl.textColor}
-                      />
-                    </LinearGradient>
-                  </TouchableOpacity>
-                );
-              })}
-            </ScrollView>
-          </View>
+          <ShareStylePicker
+            templates={FREE_TEMPLATES}
+            selectedIndex={templateIndex}
+            onSelect={setTemplateIndex}
+          />
         </ScrollView>
 
         {/* Off-screen collage: every card stacked vertically, captured as one
@@ -465,13 +425,6 @@ const styles = StyleSheet.create({
     padding: spacing.xl,
     gap: spacing.lg,
   },
-  card: {
-    width: '100%',
-    padding: spacing.xl,
-    borderRadius: borderRadius.xl,
-    justifyContent: 'center',
-    ...shadows.xl,
-  },
   watermark: {opacity: 0.4, marginBottom: spacing.md},
   cardRef: {fontSize: fontSizes['3xl'], fontWeight: '800'},
   cardSimilarity: {
@@ -513,26 +466,5 @@ const styles = StyleSheet.create({
     textTransform: 'uppercase',
     letterSpacing: 2,
     opacity: 0.8,
-  },
-  options: {paddingHorizontal: spacing.xl, paddingTop: spacing.md},
-  optionsTitle: {
-    fontSize: fontSizes.sm,
-    fontWeight: '600',
-    marginBottom: spacing.md,
-  },
-  swatch: {
-    width: 56,
-    height: 56,
-    borderRadius: 28,
-    marginRight: spacing.md,
-    borderWidth: 2,
-    borderColor: staticColors.transparent,
-  },
-  swatchSelected: {borderWidth: 3},
-  swatchGradient: {
-    flex: 1,
-    borderRadius: 26,
-    justifyContent: 'center',
-    alignItems: 'center',
   },
 });
