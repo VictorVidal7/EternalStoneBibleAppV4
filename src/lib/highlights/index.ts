@@ -66,7 +66,7 @@ export const HIGHLIGHT_CATEGORY_ICONS: Record<HighlightCategory, string> = {
   [HighlightCategory.COMMANDMENT]: '📜',
   [HighlightCategory.WISDOM]: '💡',
   [HighlightCategory.PROPHECY]: '🔮',
-  [HighlightCategory.FAVORITE]: '⭐',
+  [HighlightCategory.FAVORITE]: '💙',
   [HighlightCategory.MEMORIZE]: '🧠',
   [HighlightCategory.STUDY]: '📖',
 };

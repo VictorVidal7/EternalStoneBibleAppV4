@@ -469,7 +469,7 @@ export default function KidsStoryScreen() {
           {stage === 'done' && (
             <View style={styles.doneWrap}>
               <AppText style={[styles.doneStars, {color: accent}]}>
-                {'⭐'.repeat(quizScore) || '·'}
+                {'🏅'.repeat(quizScore) || '·'}
               </AppText>
               <AppText style={[styles.doneScore, {color: colors.text}]}>
                 {tk.quiz.score

@@ -271,7 +271,9 @@ export default function BibleFactsScreen() {
                   }
                   accessibilityState={{selected: favorites.has(dailyFact.id)}}>
                   <Ionicons
-                    name={favorites.has(dailyFact.id) ? 'star' : 'star-outline'}
+                    name={
+                      favorites.has(dailyFact.id) ? 'heart' : 'heart-outline'
+                    }
                     size={20}
                     color={
                       favorites.has(dailyFact.id)
@@ -505,8 +507,8 @@ export default function BibleFactsScreen() {
                               <Ionicons
                                 name={
                                   favorites.has(fact.id)
-                                    ? 'star'
-                                    : 'star-outline'
+                                    ? 'heart'
+                                    : 'heart-outline'
                                 }
                                 size={20}
                                 color={

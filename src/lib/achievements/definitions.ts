@@ -54,7 +54,7 @@ export const ACHIEVEMENT_DEFINITIONS: Omit<
     id: 'verses_1000',
     name: 'Tireless Reader',
     description: 'Read 1000 verses',
-    icon: '⭐',
+    icon: '💎',
     category: AchievementCategory.READING,
     requirement: 1000,
     points: 100,

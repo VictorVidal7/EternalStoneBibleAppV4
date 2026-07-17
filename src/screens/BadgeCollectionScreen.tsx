@@ -210,7 +210,7 @@ export const BadgeCollectionScreen: React.FC<BadgeCollectionScreenProps> = ({
       completion: 'checkmark-done',
       knowledge: 'school',
       social: 'people',
-      special: 'star',
+      special: 'sparkles',
     };
     return icons[category];
   };
@@ -750,7 +750,11 @@ export const BadgeCollectionScreen: React.FC<BadgeCollectionScreenProps> = ({
               )}
 
               <View style={styles.rewardSection}>
-                <Ionicons name="star" size={20} color={colors.warning} />
+                <Ionicons
+                  name="diamond-outline"
+                  size={20}
+                  color={colors.warning}
+                />
                 <Text style={[styles.rewardText, {color: colors.text}]}>
                   +{selectedBadge.badge.xpReward} XP
                 </Text>

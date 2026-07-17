@@ -578,7 +578,7 @@ export default function JourneyRouteScreen() {
                       }
                       accessibilityState={{selected: isFavorite}}>
                       <Ionicons
-                        name={isFavorite ? 'star' : 'star-outline'}
+                        name={isFavorite ? 'heart' : 'heart-outline'}
                         size={18}
                         color={isFavorite ? accent : colors.textTertiary}
                       />

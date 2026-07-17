@@ -148,7 +148,7 @@ export const SHARE_TEMPLATES: readonly ShareTemplate[] = [
     id: 'noir',
     colors: ['#1F1C2C', '#928DAB'],
     textColor: '#E8C547',
-    icon: 'star-outline',
+    icon: 'sparkles-outline',
     tier: 'premium',
   },
   // T8.2 — a second premium wave, filling hue families the first 5 didn't

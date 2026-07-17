@@ -62,7 +62,10 @@ jest.mock('expo-router', () => ({
   Stack: {Screen: () => null},
 }));
 
-jest.mock('@expo/vector-icons', () => ({Ionicons: () => null}));
+jest.mock('@expo/vector-icons', () => ({
+  Ionicons: () => null,
+  MaterialCommunityIcons: () => null,
+}));
 
 jest.mock('expo-linear-gradient', () => {
   const {View: RNView} = require('react-native');

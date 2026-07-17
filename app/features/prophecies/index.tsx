@@ -25,7 +25,7 @@ import {
   StyleSheet,
 } from 'react-native';
 import {Stack, useRouter, useLocalSearchParams} from 'expo-router';
-import {Ionicons} from '@expo/vector-icons';
+import {Ionicons, MaterialCommunityIcons} from '@expo/vector-icons';
 import {LinearGradient} from 'expo-linear-gradient';
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
 import {useTheme} from '@hooks/useTheme';
@@ -747,7 +747,7 @@ export default function PropheticThreadScreen() {
                         </AppText>
                         {favorites.has(p.id) ? (
                           <Ionicons
-                            name="star"
+                            name="heart"
                             size={14}
                             color={PROPHECY_GROUP_ACCENT[section.group]}
                           />
@@ -1018,11 +1018,19 @@ export default function PropheticThreadScreen() {
                         styles.groupChip,
                         {backgroundColor: accent + '22'},
                       ]}>
-                      <Ionicons
-                        name={PROPHECY_GROUP_ICON[current.group] as never}
-                        size={13}
-                        color={accent}
-                      />
+                      {current.group === 'coming' ? (
+                        <MaterialCommunityIcons
+                          name="star-shooting"
+                          size={13}
+                          color={accent}
+                        />
+                      ) : (
+                        <Ionicons
+                          name={PROPHECY_GROUP_ICON[current.group] as never}
+                          size={13}
+                          color={accent}
+                        />
+                      )}
                       <AppText
                         scaleRole="compact"
                         style={[styles.groupChipText, {color: accent}]}>
@@ -1044,7 +1052,9 @@ export default function PropheticThreadScreen() {
                         }}>
                         <Ionicons
                           name={
-                            favorites.has(current.id) ? 'star' : 'star-outline'
+                            favorites.has(current.id)
+                              ? 'heart'
+                              : 'heart-outline'
                           }
                           size={20}
                           color={

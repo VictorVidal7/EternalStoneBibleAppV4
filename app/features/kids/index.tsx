@@ -18,7 +18,7 @@
 import React, {useCallback, useState} from 'react';
 import {View, ScrollView, TouchableOpacity, StyleSheet} from 'react-native';
 import {Stack, useRouter, useFocusEffect} from 'expo-router';
-import {Ionicons} from '@expo/vector-icons';
+import {Ionicons, MaterialCommunityIcons} from '@expo/vector-icons';
 import {LinearGradient} from 'expo-linear-gradient';
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
 import {useTheme} from '@hooks/useTheme';
@@ -206,11 +206,19 @@ export default function KidsHubScreen() {
                 accessibilityLabel={meta?.title ?? id}>
                 <View
                   style={[styles.cardIcon, {backgroundColor: accent + '18'}]}>
-                  <Ionicons
-                    name={KIDS_STORY_ICON[id] as never}
-                    size={26}
-                    color={accent}
-                  />
+                  {id === 'jesus-birth' ? (
+                    <MaterialCommunityIcons
+                      name="star-shooting-outline"
+                      size={26}
+                      color={accent}
+                    />
+                  ) : (
+                    <Ionicons
+                      name={KIDS_STORY_ICON[id] as never}
+                      size={26}
+                      color={accent}
+                    />
+                  )}
                 </View>
                 <View style={styles.cardInfo}>
                   <AppText style={[styles.cardTitle, {color: colors.text}]}>
@@ -252,7 +260,7 @@ export default function KidsHubScreen() {
                       <AppText
                         scaleRole="compact"
                         style={[styles.cardMeta, {color: colors.textTertiary}]}>
-                        {'⭐'.repeat(best)}
+                        {'🏅'.repeat(best)}
                       </AppText>
                     )}
                   </View>

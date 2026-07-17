@@ -578,9 +578,11 @@ export const PROPHECY_GROUP_ACCENT: Record<ProphecyGroup, string> = {
   shadows: '#0ea5e9', // types / figures
 };
 
-/** Ionicons glyph per movement, for the step header. */
+/** Icon glyph per movement, for the step header. All Ionicons except
+ * 'coming', which uses MaterialCommunityIcons' 'star-shooting' — the star
+ * that moved to guide the magi to Christ's coming (Matthew 2:9). */
 export const PROPHECY_GROUP_ICON: Record<ProphecyGroup, string> = {
-  coming: 'star',
+  coming: 'star-shooting',
   ministry: 'sunny',
   passion: 'water',
   resurrection: 'sparkles',
