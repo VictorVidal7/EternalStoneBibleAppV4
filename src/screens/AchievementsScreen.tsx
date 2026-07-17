@@ -183,7 +183,7 @@ export const AchievementsScreen: React.FC<AchievementsScreenProps> = ({
     {
       id: AchievementCategory.SPECIAL,
       name: t.achievements.categories.special,
-      icon: '⭐',
+      icon: '✨',
     },
   ];
 

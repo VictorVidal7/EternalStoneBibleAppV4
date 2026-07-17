@@ -793,7 +793,7 @@ export default function HomeScreen() {
                 <View style={styles.statDivider} />
 
                 <StatsCard
-                  icon="star"
+                  icon="diamond-outline"
                   value={userStats.level}
                   label={t.home.level}
                   iconColor="#fbbf24"

@@ -49,6 +49,8 @@ export const KIDS_STORY_ORDER: readonly KidsStoryId[] = [
   'resurrection',
 ];
 
+/** Ionicons names, except 'jesus-birth' which is MaterialCommunityIcons'
+ * 'star-shooting-outline' — the moving star that guided the magi. */
 export const KIDS_STORY_ICON: Record<KidsStoryId, string> = {
   creation: 'planet-outline',
   noah: 'boat-outline',
@@ -57,7 +59,7 @@ export const KIDS_STORY_ICON: Record<KidsStoryId, string> = {
   'david-goliath': 'flash-outline',
   'daniel-lions': 'paw-outline',
   jonah: 'fish-outline',
-  'jesus-birth': 'star-outline',
+  'jesus-birth': 'star-shooting-outline',
   'good-samaritan': 'heart-outline',
   resurrection: 'sunny-outline',
 };
@@ -773,7 +775,7 @@ export const KIDS_STORIES: readonly KidsStory[] = [
           decor: ['stars', 'moon'],
           actors: [
             {emoji: '👶', x: 50, y: 66, size: 16},
-            {emoji: '⭐', x: 50, y: 28, size: 20},
+            {emoji: '🌟', x: 50, y: 28, size: 20},
           ],
         },
       },

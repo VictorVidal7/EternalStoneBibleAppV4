@@ -168,7 +168,7 @@ export const AchievementImageModal: React.FC<AchievementImageModalProps> = ({
                   {item.points != null ? (
                     <View style={styles.pointsRow}>
                       <Ionicons
-                        name="star"
+                        name="diamond-outline"
                         size={14}
                         color={template.textColor}
                         style={styles.pointsIcon}

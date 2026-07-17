@@ -619,25 +619,25 @@ export const ImmersiveReader: React.FC<ImmersiveReaderProps> = ({
       {!isHighContrast && backgroundType === 'celestial' && (
         <View style={styles.starsContainer} {...a11yHiddenProps()}>
           <Ionicons
-            name="star"
+            name="sparkles-outline"
             size={20}
             color="rgba(255,255,255,0.3)"
             style={[styles.star, {top: '10%', left: '20%'}]}
           />
           <Ionicons
-            name="star"
+            name="sparkles-outline"
             size={16}
             color="rgba(255,255,255,0.2)"
             style={[styles.star, {top: '30%', right: '15%'}]}
           />
           <Ionicons
-            name="star"
+            name="sparkles-outline"
             size={14}
             color="rgba(255,255,255,0.25)"
             style={[styles.star, {top: '60%', left: '10%'}]}
           />
           <Ionicons
-            name="star"
+            name="sparkles-outline"
             size={18}
             color="rgba(255,255,255,0.3)"
             style={[styles.star, {top: '80%', right: '25%'}]}

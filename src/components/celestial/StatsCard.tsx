@@ -18,7 +18,7 @@ type IoniconsName = ComponentProps<typeof Ionicons>['name'];
 interface StatsCardProps {
   /**
    * Nombre del ícono de Ionicons
-   * Ejemplos: 'flame', 'star', 'trending-up'
+   * Ejemplos: 'flame', 'diamond-outline', 'trending-up'
    */
   icon: IoniconsName;
 

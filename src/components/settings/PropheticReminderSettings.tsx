@@ -86,7 +86,11 @@ export default function PropheticReminderSettings() {
   return (
     <View style={styles.section}>
       <View style={styles.sectionHeader}>
-        <Ionicons name="star-outline" size={22} color={colors.primary} />
+        <Ionicons
+          name="notifications-outline"
+          size={22}
+          color={colors.primary}
+        />
         <Text style={[styles.sectionTitle, {color: colors.text}]}>
           {t.notifications.prophecyReminderTitle}
         </Text>

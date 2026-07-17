@@ -186,7 +186,7 @@ export function AchievementCard({
         {/* Points */}
         <View style={styles.footer}>
           <View style={styles.pointsBadge}>
-            <Ionicons name="star" size={14} color="#fbbf24" />
+            <Ionicons name="diamond-outline" size={14} color="#fbbf24" />
             <Text style={[styles.pointsText, {color: colors.textSecondary}]}>
               {achievement.points} pts
             </Text>
