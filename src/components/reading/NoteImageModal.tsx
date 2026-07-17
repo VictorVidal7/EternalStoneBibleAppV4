@@ -24,9 +24,12 @@ import {useSafeAreaInsets} from 'react-native-safe-area-context';
 import {useTheme} from '@hooks/useTheme';
 import {useLanguage} from '@hooks/useLanguage';
 import {focusTrapProps} from '@lib/a11y/focusTrap';
+import {usePremium} from '@context/PremiumContext';
+import {useOfferingSheet} from '@context/OfferingSheetContext';
 import {useShareImage} from '@/features/share/useShareImage';
 import {ShareCardHost} from '@/features/share/ShareCardHost';
-import {ShareStylePicker} from '@/features/share/ShareStylePicker';
+import {PremiumShareExtras} from '@/features/share/PremiumShareExtras';
+import {SHARE_TEMPLATES} from '@/features/share/imageTemplates';
 import {buildNoteCard} from '@/lib/notes/noteCard';
 import {spacing, fontSize as fontSizes} from '@/styles/designTokens';
 
@@ -53,6 +56,8 @@ export const NoteImageModal: React.FC<NoteImageModalProps> = ({
   const insets = useSafeAreaInsets();
   const {colors} = useTheme();
   const {t} = useLanguage();
+  const {isPremium} = usePremium();
+  const {open: openOfferingSheet} = useOfferingSheet();
 
   const card = buildNoteCard(reference, verseText, note);
 
@@ -61,10 +66,13 @@ export const NoteImageModal: React.FC<NoteImageModalProps> = ({
     setTemplateIndex,
     template,
     templates,
+    texture,
+    setTexture,
     isSharing,
     previewRef,
     handleShare,
   } = useShareImage({
+    templates: SHARE_TEMPLATES,
     componentName: 'NoteImageModal',
     canShare: () => card.hasNote,
     onShared: onClose,
@@ -103,7 +111,8 @@ export const NoteImageModal: React.FC<NoteImageModalProps> = ({
             <ShareCardHost
               ref={previewRef}
               template={template}
-              style={{minHeight: cardSize}}>
+              style={{minHeight: cardSize}}
+              texture={texture}>
               <Ionicons
                 name={template.icon as keyof typeof Ionicons.glyphMap}
                 size={30}
@@ -152,10 +161,14 @@ export const NoteImageModal: React.FC<NoteImageModalProps> = ({
             </ShareCardHost>
           </View>
 
-          <ShareStylePicker
+          <PremiumShareExtras
             templates={templates}
-            selectedIndex={templateIndex}
-            onSelect={setTemplateIndex}
+            templateIndex={templateIndex}
+            onSelectTemplate={setTemplateIndex}
+            texture={texture}
+            onSelectTexture={setTexture}
+            isPremium={isPremium}
+            onLockedAction={openOfferingSheet}
           />
         </ScrollView>
       </View>
