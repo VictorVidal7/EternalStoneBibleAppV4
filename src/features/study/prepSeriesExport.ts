@@ -72,9 +72,7 @@ export interface SeriesExportDeps {
 }
 
 /** Parse a canonical passageKey ("John/3/16" or "1 Corinthians/13/4-7"). */
-function parsePassageKey(
-  key: string,
-): {
+function parsePassageKey(key: string): {
   book: string;
   chapter: number;
   startVerse: number;
