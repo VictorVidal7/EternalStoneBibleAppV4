@@ -45,6 +45,20 @@ jest.mock('react-native-safe-area-context', () => ({
   useSafeAreaInsets: () => ({top: 0, bottom: 0, left: 0, right: 0}),
 }));
 
+// Tanda M Phase B — this screen now wires the shared premium extras
+// (templates/textures/"Mis estilos"), so it needs `usePremium`/
+// `useOfferingSheet` mocks the same way `ImageShareModal`'s own test does.
+// `mockIsPremium` is mutable per-test (default free) rather than a fixed
+// return value, mirroring the flagship's premium test suite.
+let mockIsPremium = false;
+jest.mock('../src/context/PremiumContext', () => ({
+  usePremium: () => ({isPremium: mockIsPremium}),
+}));
+const mockOpenOfferingSheet = jest.fn();
+jest.mock('../src/context/OfferingSheetContext', () => ({
+  useOfferingSheet: () => ({open: mockOpenOfferingSheet}),
+}));
+
 const tp = translations.es.periodRecap;
 
 // A reading day dated TODAY (local) falls in both this year and this quarter.
@@ -62,6 +76,11 @@ const input: PeriodInput = {
 };
 
 describe('PeriodRecapModal (Sprint 87)', () => {
+  beforeEach(() => {
+    mockIsPremium = false;
+    mockOpenOfferingSheet.mockClear();
+  });
+
   it('renders the year recap with the scope toggle and a period stat row', () => {
     const {getByText} = render(
       <PeriodRecapModal visible input={input} onClose={jest.fn()} />,
@@ -94,5 +113,40 @@ describe('PeriodRecapModal (Sprint 87)', () => {
     expect(getByText(tp.versesRead.replace('{{n}}', '42'))).toBeTruthy();
     // Quarter title appears (header + card).
     expect(getAllByText(tp.quarterTitle).length).toBeGreaterThan(0);
+  });
+
+  // Tanda M Phase B — PremiumShareExtras wiring (premium templates/textures/
+  // "Mis estilos"), replacing the free-tier ShareStylePicker. The catalog is
+  // 10 free + 9 premium (SHARE_TEMPLATES), so the first premium template is
+  // "Estilo 11".
+  it('marks the first premium template as locked for a free user', async () => {
+    const {findByLabelText} = render(
+      <PeriodRecapModal visible input={input} onClose={jest.fn()} />,
+    );
+    expect(await findByLabelText(/Estilo 11 · /)).toBeTruthy();
+  });
+
+  it('renders the premium template unlocked (no offering suffix) once isPremium is true', async () => {
+    mockIsPremium = true;
+    const {findByLabelText} = render(
+      <PeriodRecapModal visible input={input} onClose={jest.fn()} />,
+    );
+    expect(await findByLabelText('Estilo 11')).toBeTruthy();
+  });
+
+  it('opens the offering sheet instead of selecting a locked template', async () => {
+    const {findByLabelText} = render(
+      <PeriodRecapModal visible input={input} onClose={jest.fn()} />,
+    );
+    fireEvent.press(await findByLabelText(/Estilo 11 · /));
+    expect(mockOpenOfferingSheet).toHaveBeenCalledTimes(1);
+  });
+
+  it('opens the offering sheet instead of applying a locked texture', async () => {
+    const {findByLabelText} = render(
+      <PeriodRecapModal visible input={input} onClose={jest.fn()} />,
+    );
+    fireEvent.press(await findByLabelText(/Puntos · /));
+    expect(mockOpenOfferingSheet).toHaveBeenCalledTimes(1);
   });
 });

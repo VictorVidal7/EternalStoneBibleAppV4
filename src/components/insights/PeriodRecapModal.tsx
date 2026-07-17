@@ -26,9 +26,12 @@ import {useTheme} from '@hooks/useTheme';
 import {useLanguage} from '@hooks/useLanguage';
 import {haptics} from '@lib/haptics';
 import {focusTrapProps} from '@lib/a11y/focusTrap';
+import {usePremium} from '@context/PremiumContext';
+import {useOfferingSheet} from '@context/OfferingSheetContext';
 import {useShareImage} from '@/features/share/useShareImage';
 import {ShareCardHost} from '@/features/share/ShareCardHost';
-import {ShareStylePicker} from '@/features/share/ShareStylePicker';
+import {PremiumShareExtras} from '@/features/share/PremiumShareExtras';
+import {SHARE_TEMPLATES} from '@/features/share/imageTemplates';
 import {
   buildPeriodRecap,
   type PeriodInput,
@@ -66,15 +69,21 @@ export const PeriodRecapModal: React.FC<PeriodRecapModalProps> = ({
     [input, scope],
   );
 
+  const {isPremium} = usePremium();
+  const {open: openOfferingSheet} = useOfferingSheet();
+
   const {
     templateIndex,
     setTemplateIndex,
     template,
     templates,
+    texture,
+    setTexture,
     isSharing,
     previewRef,
     handleShare,
   } = useShareImage({
+    templates: SHARE_TEMPLATES,
     componentName: 'PeriodRecapModal',
     canShare: () => recap.hasData,
     onShared: onClose,
@@ -189,7 +198,10 @@ export const PeriodRecapModal: React.FC<PeriodRecapModalProps> = ({
           style={styles.flex}
           contentContainerStyle={styles.scrollContent}>
           <View style={styles.previewContainer}>
-            <ShareCardHost ref={previewRef} template={template}>
+            <ShareCardHost
+              ref={previewRef}
+              template={template}
+              texture={texture}>
               <Ionicons
                 name="calendar-outline"
                 size={28}
@@ -238,10 +250,14 @@ export const PeriodRecapModal: React.FC<PeriodRecapModalProps> = ({
             </ShareCardHost>
           </View>
 
-          <ShareStylePicker
+          <PremiumShareExtras
             templates={templates}
-            selectedIndex={templateIndex}
-            onSelect={setTemplateIndex}
+            templateIndex={templateIndex}
+            onSelectTemplate={setTemplateIndex}
+            texture={texture}
+            onSelectTexture={setTexture}
+            isPremium={isPremium}
+            onLockedAction={openOfferingSheet}
           />
         </ScrollView>
       </View>
