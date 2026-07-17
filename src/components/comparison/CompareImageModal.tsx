@@ -9,6 +9,12 @@
  * baked into a shareable PNG. The card model is the pure [[comparisonCard]]
  * builder.
  *
+ * Tanda M Phase B: wired to `PremiumShareExtras` (offering-unlocked premium
+ * templates + textures + "Mis estilos" presets), same as the other 11
+ * non-verse share screens — the two `CompareCard` render sites (carousel +
+ * off-screen "share all" collage) both stay in sync since they share this
+ * component's own `texture`/`templateIndex` state.
+ *
  * Para la gloria de Dios Todopoderoso ✨
  */
 
@@ -32,15 +38,18 @@ import {useSafeAreaInsets} from 'react-native-safe-area-context';
 import {useTheme} from '@hooks/useTheme';
 import {useLanguage} from '@hooks/useLanguage';
 import {useToast} from '@context/ToastContext';
+import {usePremium} from '@context/PremiumContext';
+import {useOfferingSheet} from '@context/OfferingSheetContext';
 import {haptics} from '@lib/haptics';
 import {logger} from '@lib/utils/logger';
 import {focusTrapProps} from '@lib/a11y/focusTrap';
 import {
-  FREE_TEMPLATES,
+  SHARE_TEMPLATES,
   type ShareTemplate,
 } from '@/features/share/imageTemplates';
+import {type ShareTexture} from '@/features/share/textures';
 import {ShareCardHost} from '@/features/share/ShareCardHost';
-import {ShareStylePicker} from '@/features/share/ShareStylePicker';
+import {PremiumShareExtras} from '@/features/share/PremiumShareExtras';
 import {type ComparisonCardModel} from '@/lib/comparison/comparisonCard';
 import {
   spacing,
@@ -64,6 +73,7 @@ export interface CompareImageModalProps {
 interface CompareCardProps {
   card: ComparisonCardModel;
   template: ShareTemplate;
+  texture: ShareTexture;
   similarityLabel: string;
   /** Min height — the full preview height in the carousel, 0 (natural) in the collage. */
   minHeight: number;
@@ -76,8 +86,12 @@ interface CompareCardProps {
  * height, in the off-screen "share all" collage (Sprint 71).
  */
 const CompareCard = forwardRef<LinearGradient, CompareCardProps>(
-  ({card, template, similarityLabel, minHeight}, ref) => (
-    <ShareCardHost ref={ref} template={template} style={{minHeight}}>
+  ({card, template, texture, similarityLabel, minHeight}, ref) => (
+    <ShareCardHost
+      ref={ref}
+      template={template}
+      texture={texture}
+      style={{minHeight}}>
       <Ionicons
         name={template.icon as keyof typeof Ionicons.glyphMap}
         size={30}
@@ -142,8 +156,11 @@ export const CompareImageModal: React.FC<CompareImageModalProps> = ({
   const {colors} = useTheme();
   const {t} = useLanguage();
   const toast = useToast();
+  const {isPremium} = usePremium();
+  const {open: openOfferingSheet} = useOfferingSheet();
 
   const [templateIndex, setTemplateIndex] = useState(0);
+  const [texture, setTexture] = useState<ShareTexture>('none');
   const [isSharing, setIsSharing] = useState(false);
   // Which verse's card is currently centered in the carousel (Sprint 70) — the
   // one captured + shared. Reset to the first card whenever the modal opens.
@@ -156,7 +173,7 @@ export const CompareImageModal: React.FC<CompareImageModalProps> = ({
   // The off-screen vertical collage of every card — one capturable View host
   // for the "share all" action (Sprint 71).
   const collageRef = useRef<View>(null);
-  const template = FREE_TEMPLATES[templateIndex];
+  const template = SHARE_TEMPLATES[templateIndex];
   const hasCarousel = cards.length > 1;
 
   // Reopen always starts on the first verse (the carousel retains scroll
@@ -270,6 +287,7 @@ export const CompareImageModal: React.FC<CompareImageModalProps> = ({
                       }}
                       card={card}
                       template={template}
+                      texture={texture}
                       similarityLabel={t.versionComparison.similarity}
                       minHeight={cardSize}
                     />
@@ -329,10 +347,14 @@ export const CompareImageModal: React.FC<CompareImageModalProps> = ({
             </>
           )}
 
-          <ShareStylePicker
-            templates={FREE_TEMPLATES}
-            selectedIndex={templateIndex}
-            onSelect={setTemplateIndex}
+          <PremiumShareExtras
+            templates={SHARE_TEMPLATES}
+            templateIndex={templateIndex}
+            onSelectTemplate={setTemplateIndex}
+            texture={texture}
+            onSelectTexture={setTexture}
+            isPremium={isPremium}
+            onLockedAction={openOfferingSheet}
           />
         </ScrollView>
 
@@ -353,6 +375,7 @@ export const CompareImageModal: React.FC<CompareImageModalProps> = ({
                   key={`collage-${card.reference}-${ci}`}
                   card={card}
                   template={template}
+                  texture={texture}
                   similarityLabel={t.versionComparison.similarity}
                   minHeight={0}
                 />
