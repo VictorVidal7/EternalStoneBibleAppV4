@@ -2,13 +2,27 @@
  * Sprint 92 — the achievement/title share card (AchievementImageModal).
  * Pins the eyebrow, the accomplishment title + description, the tier badge,
  * the points line, and that points/tier are optional (titles have no points).
+ *
+ * Tanda M Phase B — also covers the premium wiring (`PremiumShareExtras`):
+ * a premium template renders unlocked for a premium user, and a locked
+ * template/texture routes to the offering sheet for a free user, mirroring
+ * `imageShareModalPremium.test.tsx`'s mocking pattern for the flagship.
  */
 import React from 'react';
-import {render} from '@testing-library/react-native';
+import {render, fireEvent} from '@testing-library/react-native';
 import {
   AchievementImageModal,
   type ShareableAccomplishment,
 } from '../src/components/insights/AchievementImageModal';
+
+let mockIsPremium = false;
+const mockOpenOfferingSheet = jest.fn();
+jest.mock('../src/context/PremiumContext', () => ({
+  usePremium: () => ({isPremium: mockIsPremium}),
+}));
+jest.mock('../src/context/OfferingSheetContext', () => ({
+  useOfferingSheet: () => ({open: mockOpenOfferingSheet}),
+}));
 
 const mockColors = {
   background: '#0f172a',
@@ -54,6 +68,11 @@ const achievement: ShareableAccomplishment = {
 };
 
 describe('AchievementImageModal (Sprint 92)', () => {
+  beforeEach(() => {
+    mockIsPremium = false;
+    mockOpenOfferingSheet.mockClear();
+  });
+
   it('renders the eyebrow, title, description, tier and points', () => {
     const {getByText} = render(
       <AchievementImageModal
@@ -90,5 +109,57 @@ describe('AchievementImageModal (Sprint 92)', () => {
     expect(getByText('El Sabio')).toBeTruthy();
     expect(getByText('Título obtenido')).toBeTruthy();
     expect(queryByText(/pts$/)).toBeNull();
+  });
+});
+
+describe('AchievementImageModal — Tanda M Phase B premium wiring', () => {
+  beforeEach(() => {
+    mockIsPremium = false;
+    mockOpenOfferingSheet.mockClear();
+  });
+
+  // SHARE_TEMPLATES is 10 free + 9 premium — index 10 (the 11th template,
+  // "Estilo 11") is the first premium one, same math the flagship's own
+  // premium-template tests rely on.
+  it('renders a premium template unlocked (no offering badge) for a premium user', async () => {
+    mockIsPremium = true;
+    const {findByLabelText} = render(
+      <AchievementImageModal
+        visible
+        item={achievement}
+        headerTitle="Compartir logro"
+        eyebrow="Logro desbloqueado"
+        onClose={jest.fn()}
+      />,
+    );
+    expect(await findByLabelText('Estilo 11')).toBeTruthy();
+  });
+
+  it('opens the offering sheet instead of applying a locked template for a free user', async () => {
+    const {findByLabelText} = render(
+      <AchievementImageModal
+        visible
+        item={achievement}
+        headerTitle="Compartir logro"
+        eyebrow="Logro desbloqueado"
+        onClose={jest.fn()}
+      />,
+    );
+    fireEvent.press(await findByLabelText(/Estilo 11 · /));
+    expect(mockOpenOfferingSheet).toHaveBeenCalledTimes(1);
+  });
+
+  it('opens the offering sheet instead of applying a locked texture for a free user', async () => {
+    const {findByLabelText} = render(
+      <AchievementImageModal
+        visible
+        item={achievement}
+        headerTitle="Compartir logro"
+        eyebrow="Logro desbloqueado"
+        onClose={jest.fn()}
+      />,
+    );
+    fireEvent.press(await findByLabelText(/Puntos · /));
+    expect(mockOpenOfferingSheet).toHaveBeenCalledTimes(1);
   });
 });
