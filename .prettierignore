@@ -7,6 +7,9 @@ ios
 dist
 build
 
+# Live agent worktrees (each carries its own copy of touched source files)
+.claude
+
 # Lockfiles
 package-lock.json
 yarn.lock
