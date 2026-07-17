@@ -75,7 +75,7 @@ const TYPE_ICONS: Record<TimelineEvent['type'], string> = {
 export default function TimelineScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
-  const {colors} = useTheme();
+  const {colors, gradient, highContrast} = useTheme();
   const {t, language} = useLanguage();
   const tl = t.readingInsights.timeline;
   const {achievementService, highlightService} = useServices();
@@ -273,7 +273,9 @@ export default function TimelineScreen() {
     }));
   }, [events, locale]);
 
-  const headerGradient: [string, string] = [colors.primary, colors.primaryDark];
+  const headerGradient: readonly [string, string, ...string[]] = highContrast
+    ? (gradient.headerColors as readonly [string, string, ...string[]])
+    : [colors.primary, colors.primaryDark];
 
   // Render-ready share card: the newest milestones, already localized (the
   // feed arrives newest-first). Uniform Ionicons glyphs — achievement events
