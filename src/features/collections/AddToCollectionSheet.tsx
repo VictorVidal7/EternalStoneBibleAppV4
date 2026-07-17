@@ -10,7 +10,7 @@
  * Para la gloria de Dios Todopoderoso ✨
  */
 
-import React, {useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import {
   Modal,
   View,
@@ -18,6 +18,9 @@ import {
   TextInput,
   StyleSheet,
   Pressable,
+  KeyboardAvoidingView,
+  Keyboard,
+  Platform,
 } from 'react-native';
 import {Ionicons} from '@expo/vector-icons';
 import {useTheme} from '@hooks/useTheme';
@@ -55,6 +58,28 @@ export const AddToCollectionSheet: React.FC<Props> = ({
   const tc = t.collections;
   const {favorites, updateFavorite} = useFavorites();
   const [draft, setDraft] = useState('');
+  const [keyboardVisible, setKeyboardVisible] = useState(false);
+
+  useEffect(() => {
+    const showSub = Keyboard.addListener('keyboardDidShow', () =>
+      setKeyboardVisible(true),
+    );
+    const hideSub = Keyboard.addListener('keyboardDidHide', () =>
+      setKeyboardVisible(false),
+    );
+    return () => {
+      showSub.remove();
+      hideSub.remove();
+    };
+  }, []);
+
+  const handleRequestClose = () => {
+    if (keyboardVisible) {
+      Keyboard.dismiss();
+      return;
+    }
+    onClose();
+  };
 
   const fav = favorites.find(f => f.id === favoriteId);
   const names = collectionNames(favorites);
@@ -88,8 +113,10 @@ export const AddToCollectionSheet: React.FC<Props> = ({
       visible={favoriteId !== null}
       transparent
       animationType="fade"
-      onRequestClose={onClose}>
-      <View style={styles.backdrop}>
+      onRequestClose={handleRequestClose}>
+      <KeyboardAvoidingView
+        style={styles.backdrop}
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
         {/* Decorative dismiss layer — a sibling (not a parent) of the sheet so
             screen readers can skip it without hiding the sheet's contents. */}
         <Pressable
@@ -192,7 +219,7 @@ export const AddToCollectionSheet: React.FC<Props> = ({
             </AppText>
           </TouchableOpacity>
         </View>
-      </View>
+      </KeyboardAvoidingView>
     </Modal>
   );
 };
