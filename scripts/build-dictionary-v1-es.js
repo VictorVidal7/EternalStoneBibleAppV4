@@ -103,23 +103,42 @@ function parseEntry(filename, content) {
   }
 
   const glossEs = trimSection(lines.slice(glossIdx + 1, articuloIdx));
-  // Everything after the ARTÍCULO heading to EOF is the article — this
-  // deliberately includes trailing addenda (e.g. Josué's "hijo de Josadac"
-  // addendum), which are part of this entry's premium content, not a
-  // separate entry.
-  const articleEs = trimSection(lines.slice(articuloIdx + 1, lines.length));
+
+  // A "## ADDENDUM: ..." heading after the ARTÍCULO heading marks trailing
+  // content about a DIFFERENT biblical person that the English ISBE source
+  // happened to print immediately after this headword's article (e.g.
+  // Josué's addendum on "Josué, hijo de Josadac", a distinct high priest —
+  // confirmed against the original 1915 source as a separately-signed
+  // article, not a subsection of this one). Excluded from articleEs, never
+  // silently folded in; logged below for manual follow-up per Victor.
+  const addendumIdx = lines.findIndex(
+    (l, i) => i > articuloIdx && /^##\s+ADDENDUM/i.test(l),
+  );
+  const articleEnd = addendumIdx === -1 ? lines.length : addendumIdx;
+  const articleEs = trimSection(lines.slice(articuloIdx + 1, articleEnd));
 
   if (!glossEs) throw new Error(`${filename}: GLOSS GRATIS section is empty`);
   if (!articleEs)
     throw new Error(`${filename}: ARTÍCULO COMPLETO PREMIUM section is empty`);
 
+  const excludedAddendum =
+    addendumIdx === -1
+      ? null
+      : {
+          filename,
+          heading: lines[addendumIdx].trim(),
+        };
+
   return {
-    slug: slugFromFilename(filename),
-    headwordEs,
-    glossEs,
-    articleEs,
-    sourceTier: 'v1-factual',
-    treatment: 'as-is',
+    entry: {
+      slug: slugFromFilename(filename),
+      headwordEs,
+      glossEs,
+      articleEs,
+      sourceTier: 'v1-factual',
+      treatment: 'as-is',
+    },
+    excludedAddendum,
   };
 }
 
@@ -137,10 +156,13 @@ function main() {
     throw new Error(`No v1-translation-*.md entry files found in ${SRC_DIR}`);
   }
 
-  const entries = filenames.map(filename => {
+  const parsed = filenames.map(filename => {
     const content = fs.readFileSync(path.join(SRC_DIR, filename), 'utf8');
     return parseEntry(filename, content);
   });
+
+  const entries = parsed.map(p => p.entry);
+  const excludedAddenda = parsed.map(p => p.excludedAddendum).filter(Boolean);
 
   // Stable output order regardless of directory-listing order.
   entries.sort((a, b) => a.slug.localeCompare(b.slug));
@@ -166,6 +188,14 @@ function main() {
     console.log(
       `   - ${e.slug}: headword="${e.headwordEs}" gloss=${e.glossEs.length} chars, article=${e.articleEs.length} chars`,
     );
+  }
+  if (excludedAddenda.length > 0) {
+    console.warn(
+      `\n⚠️  ${excludedAddenda.length} addendum block(s) excluded (about a different biblical person than this entry's headword — not merged, needs Victor's separate follow-up):`,
+    );
+    for (const a of excludedAddenda) {
+      console.warn(`   - ${a.filename}: "${a.heading}"`);
+    }
   }
 }
 

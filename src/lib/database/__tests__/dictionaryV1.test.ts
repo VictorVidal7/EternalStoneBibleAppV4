@@ -245,18 +245,23 @@ describe('getDictionaryEntry', () => {
     expect(josue).not.toBeNull();
     expect(josue.gloss_es.length).toBeGreaterThan(0);
     expect(josue.article_es).not.toBeNull();
-    // Josué is the longest v1 entry (~8,530 words incl. the "hijo de
-    // Josadac" addendum) — assert against its actual bundled length rather
-    // than a hardcoded number, so this stays a real non-truncation check
-    // even if the source translation is revised.
+    // Josué is still the longest v1 entry even excluding its addendum —
+    // assert against its actual bundled length rather than a hardcoded
+    // number, so this stays a real non-truncation check even if the source
+    // translation is revised.
     const bundledJosue = BUNDLED.find(e => e.slug === 'josue')!;
     expect((josue.article_es as string).length).toBe(
       bundledJosue.articleEs.length,
     );
-    expect((josue.article_es as string).length).toBeGreaterThan(40000);
-    // The addendum is part of THIS entry's article, not dropped or split off.
-    expect(josue.article_es).toContain('ADDENDUM');
-    expect(josue.article_es).toContain('David Francis Roberts');
+    expect((josue.article_es as string).length).toBeGreaterThan(30000);
+    // The "Josué, hijo de Josadac" addendum is about a DIFFERENT biblical
+    // person (a high priest under Zerubbabel, confirmed against the 1915
+    // ISBE source as a separately-signed article, not a subsection of this
+    // one) — excluded from the article, not silently merged in. See
+    // scripts/build-dictionary-v1-es.js's addendum handling.
+    expect(josue.article_es).not.toContain('ADDENDUM');
+    expect(josue.article_es).not.toContain('David Francis Roberts');
+    expect(josue.article_es).toContain('A. S. Geden');
   });
 
   it('trims whitespace from the slug, like the Strong’s accessor it mirrors', async () => {
