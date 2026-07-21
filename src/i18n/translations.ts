@@ -1816,6 +1816,21 @@ export const translations = {
       },
     },
 
+    dictionary: {
+      title: 'Diccionario bíblico',
+      subtitle: 'Explora términos y personajes',
+      cardTitle: 'Diccionario bíblico',
+      cardSubtitle: 'Términos, lugares y personajes',
+      browseHint: 'Elige un término para ver su definición',
+      searchPlaceholder: 'Buscar un término...',
+      noResults: 'No se encontraron términos',
+      openHint: 'Abrir definición',
+      articleLabel: 'Artículo completo',
+      articleLocked: 'Desbloquea el artículo completo con premium',
+      missingText: '(texto no disponible)',
+      error: 'No se pudo cargar el diccionario',
+    },
+
     feelings: {
       title: '¿Cómo te sientes hoy?',
       subtitle: 'Palabra para tu corazón',
@@ -7306,6 +7321,21 @@ export const translations = {
         salvation: {name: 'Salvation', description: 'The way of salvation'},
         guidance: {name: 'Guidance', description: 'Direction for your path'},
       },
+    },
+
+    dictionary: {
+      title: 'Bible Dictionary',
+      subtitle: 'Explore terms and figures',
+      cardTitle: 'Bible Dictionary',
+      cardSubtitle: 'Terms, places, and figures',
+      browseHint: 'Choose a term to view its definition',
+      searchPlaceholder: 'Search for a term...',
+      noResults: 'No terms found',
+      openHint: 'Open definition',
+      articleLabel: 'Full article',
+      articleLocked: 'Unlock the full article with premium',
+      missingText: '(text not available)',
+      error: 'Could not load the dictionary',
     },
 
     feelings: {

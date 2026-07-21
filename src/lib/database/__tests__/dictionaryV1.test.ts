@@ -100,6 +100,22 @@ class FakeDictHandle {
     );
   }
 
+  async getAllAsync<T>(sql: string): Promise<T[]> {
+    const s = sql.trim();
+    if (
+      /^SELECT slug, headword_es, gloss_es\s+FROM dictionary_entries$/i.test(s)
+    ) {
+      return this.rows.map(r => ({
+        slug: r.slug,
+        headword_es: r.headword_es,
+        gloss_es: r.gloss_es,
+      })) as T[];
+    }
+    throw new Error(
+      `FakeDictHandle.getAllAsync: unhandled query: ${s.slice(0, 80)}`,
+    );
+  }
+
   async withTransactionAsync(fn: () => Promise<void>): Promise<void> {
     await fn();
   }
@@ -271,5 +287,35 @@ describe('getDictionaryEntry', () => {
     const entry = await db.getDictionaryEntry('  tiro  ');
     expect(entry).not.toBeNull();
     expect(entry!.slug).toBe('tiro');
+  });
+});
+
+describe('getAllDictionaryEntries', () => {
+  afterEach(async () => {
+    await AsyncStorage.clear();
+  });
+
+  it('returns all 10 bundled entries with only the browse-list fields', async () => {
+    const {db} = makeDb();
+    await privateApi(db).seedDictionaryV1IfNeeded();
+
+    const rows = await db.getAllDictionaryEntries();
+    expect(rows).toHaveLength(10);
+    expect(rows.map(r => r.slug).sort()).toEqual(
+      BUNDLED.map(e => e.slug).sort(),
+    );
+    for (const row of rows) {
+      expect(row.headword_es.length).toBeGreaterThan(0);
+      expect(row.gloss_es.length).toBeGreaterThan(0);
+      // The list screen never renders the premium body — confirm the
+      // accessor doesn't even select it.
+      expect('article_es' in row).toBe(false);
+    }
+  });
+
+  it('returns an empty array before the batch has been seeded', async () => {
+    const {db} = makeDb();
+    const rows = await db.getAllDictionaryEntries();
+    expect(rows).toEqual([]);
   });
 });

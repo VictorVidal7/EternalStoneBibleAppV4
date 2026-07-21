@@ -1426,6 +1426,18 @@ export default function HomeScreen() {
                 }
               />
             </View>
+            <View style={styles.savedCardWrapper}>
+              <DiscoverTile
+                icon="book"
+                title={t.dictionary.cardTitle}
+                subtitle={t.dictionary.cardSubtitle}
+                onPress={() =>
+                  handlePress(() =>
+                    router.push('/features/dictionary' as never),
+                  )
+                }
+              />
+            </View>
           </View>
         </Animated.View>
 
