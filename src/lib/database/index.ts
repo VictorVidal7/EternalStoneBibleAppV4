@@ -937,6 +937,19 @@ class BibleDatabase {
     return row ?? null;
   }
 
+  /**
+   * All Bible-dictionary entries' browse-list fields (no `article_es` — the
+   * list screen never renders the premium body, only the free gloss).
+   */
+  async getAllDictionaryEntries(): Promise<
+    Pick<DictionaryEntry, 'slug' | 'headword_es' | 'gloss_es'>[]
+  > {
+    await this.initialize();
+    return this.getDb().getAllAsync<
+      Pick<DictionaryEntry, 'slug' | 'headword_es' | 'gloss_es'>
+    >('SELECT slug, headword_es, gloss_es FROM dictionary_entries');
+  }
+
   private async migrateBookmarksToFavorites(): Promise<void> {
     const db = this.getDb();
     const table = await db.getFirstAsync<{name: string}>(
