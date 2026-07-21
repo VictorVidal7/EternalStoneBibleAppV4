@@ -1,5 +1,6 @@
 import {
   filterDictionaryEntries,
+  parseMarkdownSegments,
   titleCaseHeadword,
   type DictionaryListEntry,
 } from '../dictionary';
@@ -89,6 +90,68 @@ describe('dictionary — pure helpers for the browse/search screen', () => {
       const copy = [...entries];
       filterDictionaryEntries(entries, '');
       expect(entries).toEqual(copy);
+    });
+  });
+
+  describe('parseMarkdownSegments', () => {
+    it('splits a real ISBE-style heading out of running prose', () => {
+      const result = parseMarkdownSegments(
+        '**JOSUÉ**\n\n**I. Forma y significado del nombre.** — El nombre Josué...',
+      );
+      expect(result).toEqual([
+        {text: 'JOSUÉ', style: 'bold'},
+        {text: '\n\n', style: 'plain'},
+        {text: 'I. Forma y significado del nombre.', style: 'bold'},
+        {text: ' — El nombre Josué...', style: 'plain'},
+      ]);
+    });
+
+    it('italicizes a transliterated term marked with a single "*"', () => {
+      const result = parseMarkdownSegments(
+        'El nombre es una forma contraída de *beth-lehem*, que significa "casa de pan".',
+      );
+      expect(result).toEqual([
+        {text: 'El nombre es una forma contraída de ', style: 'plain'},
+        {text: 'beth-lehem', style: 'italic'},
+        {text: ', que significa "casa de pan".', style: 'plain'},
+      ]);
+    });
+
+    it('does not misread a "**bold**" span as nested italics', () => {
+      const result = parseMarkdownSegments('**I. Primera aparición.** texto');
+      expect(result).toEqual([
+        {text: 'I. Primera aparición.', style: 'bold'},
+        {text: ' texto', style: 'plain'},
+      ]);
+    });
+
+    it('returns a single plain segment for text with no markdown markers', () => {
+      expect(parseMarkdownSegments('Texto sin formato.')).toEqual([
+        {text: 'Texto sin formato.', style: 'plain'},
+      ]);
+    });
+
+    it('returns an empty array for empty input', () => {
+      expect(parseMarkdownSegments('')).toEqual([]);
+    });
+
+    it('leaves an unmatched (odd) "**" as literal text rather than guessing', () => {
+      const result = parseMarkdownSegments('**foo** bar **baz');
+      expect(result).toEqual([
+        {text: 'foo', style: 'bold'},
+        {text: ' bar **baz', style: 'plain'},
+      ]);
+    });
+
+    it('joining every segment.text reproduces the original content losslessly', () => {
+      const original =
+        '**JOSUÉ**\n\n**I. Forma.** — texto de *beth-lehem* con **II. Historia.** más texto.';
+      const rejoined = parseMarkdownSegments(original)
+        .map(s => s.text)
+        .join('');
+      // The rejoined text differs only by the stripped "*"/"**" delimiters —
+      // confirms no source content is silently dropped.
+      expect(rejoined).toBe(original.replace(/\*\*|\*/g, ''));
     });
   });
 });

@@ -37,7 +37,10 @@ import {useOfferingSheet} from '@context/OfferingSheetContext';
 import {haptics} from '@lib/haptics';
 import {AppText} from '@components/ui/AppText';
 import bibleDB, {type DictionaryEntry} from '@lib/database';
-import {titleCaseHeadword} from '@/features/study/dictionary';
+import {
+  parseMarkdownSegments,
+  titleCaseHeadword,
+} from '@/features/study/dictionary';
 import {
   borderRadius,
   fontSize as fontSizes,
@@ -186,7 +189,28 @@ export default function DictionaryDetailScreen() {
                         styles.articleText,
                         {color: colors.textSecondary},
                       ]}>
-                      {entry.article_es}
+                      {parseMarkdownSegments(entry.article_es).map((seg, i) => {
+                        if (seg.style === 'bold') {
+                          return (
+                            <Text
+                              key={i}
+                              style={[
+                                styles.articleBold,
+                                {color: colors.text},
+                              ]}>
+                              {seg.text}
+                            </Text>
+                          );
+                        }
+                        if (seg.style === 'italic') {
+                          return (
+                            <Text key={i} style={styles.articleItalic}>
+                              {seg.text}
+                            </Text>
+                          );
+                        }
+                        return seg.text;
+                      })}
                     </Text>
                   ) : (
                     <TouchableOpacity
@@ -307,6 +331,12 @@ const styles = StyleSheet.create({
     fontSize: fontSizes.md,
     lineHeight: fontSizes.md * 1.5,
     paddingRight: verseTextRightSlack(fontSizes.md),
+  },
+  articleBold: {
+    fontWeight: '700',
+  },
+  articleItalic: {
+    fontStyle: 'italic',
   },
   lockedRow: {
     flexDirection: 'row',

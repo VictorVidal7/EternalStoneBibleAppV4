@@ -17,6 +17,16 @@
  * entry whose headword doesn't literally contain that word but whose gloss
  * explains it.
  *
+ * `parseMarkdownSegments` handles the translated ISBE articles' own markdown
+ * — "**...**" for section headings inline in the running prose (e.g.
+ * "**I. Forma y significado del nombre.**") and "*...*" for italicized
+ * transliterated Hebrew/Greek/Latin terms (e.g. "*beth-lehem*", "*sanhedhrin*") —
+ * both real typographic structure worth keeping, not noise to strip. No
+ * markdown-rendering library exists in this codebase yet (`prepMarkdown.ts`
+ * only GENERATES markdown for PDF export, never renders it), so this is a
+ * small, purpose-built parser for exactly these two constructs rather than
+ * pulling in a general-purpose dependency.
+ *
  * Para la gloria de Dios Todopoderoso ✨
  */
 
@@ -26,6 +36,13 @@ export interface DictionaryListEntry {
   slug: string;
   headword_es: string;
   gloss_es: string;
+}
+
+export type MarkdownSegmentStyle = 'plain' | 'bold' | 'italic';
+
+export interface MarkdownSegment {
+  text: string;
+  style: MarkdownSegmentStyle;
 }
 
 /** Sentence-case a stored ALL-CAPS headword: first character upper, rest
@@ -53,4 +70,28 @@ export function filterDictionaryEntries<T extends DictionaryListEntry>(
       'es',
     ),
   );
+}
+
+/** Split article text on "**bold**" and "*italic*" spans into styled
+ *  segments, so a screen can render each with its own style instead of
+ *  showing the literal asterisks. Bold is matched before italic at each
+ *  position (the alternation order below) so a "**bold**" span is never
+ *  misread as italic-inside-italic. Unmatched/stray "*"/"**" (an odd count,
+ *  or a lone "*" with no partner) are left as literal text rather than
+ *  guessed at — never drop source content over a formatting ambiguity.
+ *  Empty input returns an empty array. */
+export function parseMarkdownSegments(text: string): MarkdownSegment[] {
+  if (!text) return [];
+  return text
+    .split(/(\*\*[^*]+\*\*|\*[^*]+\*)/g)
+    .filter(part => part.length > 0)
+    .map(part => {
+      if (part.startsWith('**') && part.endsWith('**')) {
+        return {text: part.slice(2, -2), style: 'bold' as const};
+      }
+      if (part.startsWith('*') && part.endsWith('*')) {
+        return {text: part.slice(1, -1), style: 'italic' as const};
+      }
+      return {text: part, style: 'plain' as const};
+    });
 }
