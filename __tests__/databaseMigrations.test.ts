@@ -612,6 +612,7 @@ describe('createSchema (idempotent bootstrap)', () => {
         'original_words',
         'strongs_lexicon',
         'strongs_defs',
+        'dictionary_entries',
       ]),
     );
   });

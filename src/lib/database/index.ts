@@ -70,6 +70,22 @@ export interface StrongsBookCount {
   count: number;
 }
 
+/**
+ * A Bible-dictionary entry (Tanda 5). `gloss_es` is free, complete in
+ * itself; `article_es` is the premium full translated article (null for a
+ * future `multi-view` treatment, where the content instead lives in a
+ * separate `dictionary_multiview_sections` table — not part of this batch).
+ */
+export interface DictionaryEntry {
+  slug: string;
+  headword_es: string;
+  gloss_es: string;
+  article_es: string | null;
+  source_tier: string;
+  treatment: string;
+  updated_at: string | null;
+}
+
 /** Schema name the downloaded originals pack is attached under at import. */
 const ORIGINALS_SCHEMA = 'orig';
 
@@ -85,6 +101,23 @@ const SDEFS_SCHEMA = 'sdefs';
  * grown asset on the next launch.
  */
 const SDEFS_VERSION = 17;
+
+/**
+ * Version of the bundled v1-factual dictionary entries (Tanda 5, see
+ * seedDictionaryV1IfNeeded). Bump this when shipping a new translation batch
+ * so the app re-imports the grown JSON asset on the next launch — same idea
+ * as SDEFS_VERSION, but for a dataset small enough (10 rows) to embed
+ * directly as JSON instead of a downloadable/attached SQLite overlay.
+ */
+const DICT_V1_VERSION = 1;
+
+/**
+ * `updated_at` stamped on every row seeded by seedDictionaryV1IfNeeded: the
+ * date this v1-factual batch was translated (per the source files' own
+ * "Fecha:" notes), not the device's local seed time — the content itself
+ * didn't change since then, only where it's stored.
+ */
+const DICT_V1_UPDATED_AT = '2026-07-18';
 
 /** Max incoming ("referenced by") rows surfaced for a verse, by votes. */
 const XREF_INCOMING_LIMIT = 25;
@@ -157,6 +190,8 @@ class BibleDatabase {
   private static readonly ORIGINALS_LOADED_KEY = '@originals_loaded_v1';
   // Imported VERSION of the bundled Strong's-definitions overlay (re-import on bump).
   private static readonly SDEFS_LOADED_KEY = '@strongs_defs_loaded_version';
+  // Imported VERSION of the bundled v1-factual dictionary entries (Tanda 5).
+  private static readonly DICT_V1_LOADED_KEY = '@dictionary_v1_loaded_version';
 
   async initialize(): Promise<void> {
     // Si ya está inicializado, retornar inmediatamente
@@ -200,6 +235,7 @@ class BibleDatabase {
       // Graceful: a failure just leaves the curated layer doing the work.
       await this.seedCrossReferencesIfMissing();
       await this.seedStrongsDefsIfNeeded();
+      await this.seedDictionaryV1IfNeeded();
 
       this.initialized = true;
       console.log('✅ Database initialized successfully');
@@ -404,6 +440,23 @@ class BibleDatabase {
       )
     `);
 
+    // Bible-dictionary entries (Tanda 5). Populated from the bundled
+    // `dictionary-v1-es.json` asset (see seedDictionaryV1IfNeeded) — free
+    // gloss + premium article, same gating shape as strongs_defs/word-study.
+    // Nothing reads from this table yet; where it surfaces in the app is
+    // still an open product decision (see the Tanda 5 design doc).
+    await db.runAsync(`
+      CREATE TABLE IF NOT EXISTS dictionary_entries (
+        slug TEXT PRIMARY KEY,
+        headword_es TEXT,
+        gloss_es TEXT,
+        article_es TEXT,
+        source_tier TEXT,
+        treatment TEXT,
+        updated_at TEXT
+      )
+    `);
+
     await this.migrateBookmarksToFavorites();
 
     // Índices
@@ -551,6 +604,66 @@ class BibleDatabase {
       console.log('📖 Strong’s definitions overlay imported from bundle');
     } catch (error) {
       console.warn('⚠️ Strong’s definitions seed failed', error);
+    }
+  }
+
+  /**
+   * Load the bundled v1-factual Bible-dictionary entries (Tanda 5) into
+   * `dictionary_entries`. Versioned like seedStrongsDefsIfNeeded (re-imports
+   * whenever DICT_V1_VERSION is bumped), but the source is a small JSON
+   * array (10 rows) required directly — no Asset.fromModule/download/ATTACH
+   * DATABASE, which would be unnecessary machinery for a dataset this size.
+   * Graceful: a failure just leaves the table empty; nothing reads from it
+   * yet (Tanda 5's UI placement is still an open product decision).
+   */
+  private async seedDictionaryV1IfNeeded(): Promise<void> {
+    const db = this.getDb();
+    try {
+      const loaded = await AsyncStorage.getItem(
+        BibleDatabase.DICT_V1_LOADED_KEY,
+      );
+      if (loaded === String(DICT_V1_VERSION)) return;
+
+      type SeedEntry = {
+        slug: string;
+        headwordEs: string;
+        glossEs: string;
+        articleEs: string;
+        sourceTier: string;
+        treatment: string;
+      };
+      // Bundled JSON asset (10 rows) — see scripts/build-dictionary-v1-es.js.
+      const entries: SeedEntry[] = require('../../../assets/dictionary-v1-es.json');
+
+      await db.withTransactionAsync(async () => {
+        await db.runAsync('DELETE FROM dictionary_entries');
+        for (const e of entries) {
+          await db.runAsync(
+            `INSERT INTO dictionary_entries
+               (slug, headword_es, gloss_es, article_es, source_tier, treatment, updated_at)
+             VALUES (?, ?, ?, ?, ?, ?, ?)`,
+            [
+              e.slug,
+              e.headwordEs,
+              e.glossEs,
+              e.articleEs,
+              e.sourceTier,
+              e.treatment,
+              DICT_V1_UPDATED_AT,
+            ],
+          );
+        }
+      });
+
+      await AsyncStorage.setItem(
+        BibleDatabase.DICT_V1_LOADED_KEY,
+        String(DICT_V1_VERSION),
+      );
+      console.log(
+        `📚 Dictionary v1 entries imported from bundle (${entries.length})`,
+      );
+    } catch (error) {
+      console.warn('⚠️ Dictionary v1 seed failed', error);
     }
   }
 
@@ -805,6 +918,23 @@ class BibleDatabase {
       ),
     ]);
     return {first: first ?? null, last: last ?? null};
+  }
+
+  // ── Bible dictionary (Tanda 5) ─────────────────────────────────────────
+
+  /**
+   * A single Bible-dictionary entry by slug, or null when not found / the
+   * bundled batch hasn't been seeded yet. Mirrors getStrongsEntry's shape.
+   */
+  async getDictionaryEntry(slug: string): Promise<DictionaryEntry | null> {
+    await this.initialize();
+    const row = await this.getDb().getFirstAsync<DictionaryEntry>(
+      `SELECT slug, headword_es, gloss_es, article_es, source_tier, treatment, updated_at
+       FROM dictionary_entries
+       WHERE slug = ?`,
+      [slug.trim()],
+    );
+    return row ?? null;
   }
 
   private async migrateBookmarksToFavorites(): Promise<void> {
