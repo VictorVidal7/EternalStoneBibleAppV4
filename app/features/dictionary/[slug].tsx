@@ -26,7 +26,7 @@
  * Para la gloria de Dios Todopoderoso ✨
  */
 
-import React, {useCallback, useEffect, useState} from 'react';
+import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {
   View,
   Text,
@@ -44,6 +44,12 @@ import {centeredMaxWidth} from '@/styles/responsive';
 import {useLanguage} from '@hooks/useLanguage';
 import {usePremium} from '@context/PremiumContext';
 import {useOfferingSheet} from '@context/OfferingSheetContext';
+import {useReaderPreferences} from '@context/ReaderPreferencesContext';
+import {
+  ReaderPreferencesSheet,
+  resolveFontFamily,
+  resolveFontFamilyBold,
+} from '@components/reading/ReaderPreferencesSheet';
 import {haptics} from '@lib/haptics';
 import {AppText} from '@components/ui/AppText';
 import bibleDB, {
@@ -68,14 +74,34 @@ type LoadStatus = 'loading' | 'ready' | 'error' | 'unknown';
  *  the single-article body and every multi-view section body, so the bold
  *  and italic handling only lives in one place. Plain-style segments are
  *  returned as bare strings, inheriting the wrapping `Text`'s color — no
- *  separate "plain" color prop needed here. */
-function MarkdownBody({text, boldColor}: {text: string; boldColor: string}) {
+ *  separate "plain" color prop needed here.
+ *
+ *  `boldFontFamily` (reader-preferences wiring): the bundled reader typefaces
+ *  are static font FILES, so RN cannot synthesize a faux-bold weight for them
+ *  — a bold run needs to switch to the face's own bold-weight family, not
+ *  just add `fontWeight: '700'` (see `src/lib/reader/typefaces.ts`'s own
+ *  rationale, mirrored exactly here). Plain and italic segments inherit the
+ *  wrapping `Text`'s regular-weight `fontFamily`, so they don't need the prop. */
+function MarkdownBody({
+  text,
+  boldColor,
+  boldFontFamily,
+}: {
+  text: string;
+  boldColor: string;
+  boldFontFamily: string;
+}) {
   return (
     <>
       {parseMarkdownSegments(text).map((seg, i) => {
         if (seg.style === 'bold') {
           return (
-            <Text key={i} style={[styles.articleBold, {color: boldColor}]}>
+            <Text
+              key={i}
+              style={[
+                styles.articleBold,
+                {color: boldColor, fontFamily: boldFontFamily},
+              ]}>
               {seg.text}
             </Text>
           );
@@ -101,6 +127,22 @@ export default function DictionaryDetailScreen() {
   const dt = t.dictionary;
   const {isPremium} = usePremium();
   const {open: openOfferingSheet} = useOfferingSheet();
+
+  // Aa reading preferences — reuses the SAME global store as the main verse
+  // reader (Victor: "si todo lo del reader es reutilizable en el diccionario,
+  // adelante"). Only the fields that make sense for a prose gloss/article are
+  // wired in below (see `proseStyle`); `margin` and `theme` are deliberately
+  // left out — see the comments at their would-be call sites for why.
+  const {preferences: readerPrefs} = useReaderPreferences();
+  const readerFontFamily = useMemo(
+    () => resolveFontFamily(readerPrefs.fontFamily),
+    [readerPrefs.fontFamily],
+  );
+  const readerFontFamilyBold = useMemo(
+    () => resolveFontFamilyBold(readerPrefs.fontFamily),
+    [readerPrefs.fontFamily],
+  );
+  const [readerPrefsVisible, setReaderPrefsVisible] = useState(false);
 
   const params = useLocalSearchParams<{slug?: string}>();
   const [status, setStatus] = useState<LoadStatus>('loading');
@@ -148,6 +190,26 @@ export default function DictionaryDetailScreen() {
     ? (gradient.headerColors as readonly [string, string, ...string[]])
     : [colors.primary, colors.primaryDark];
 
+  // Prose styling for the gloss + article/multi-view bodies, driven by the
+  // reader preferences wired in above. `verseTextRightSlack` already takes a
+  // dynamic fontSize (it's the same "fixed-size scripture card" gutter helper
+  // this file used before, just no longer pinned to `fontSizes.md`), and the
+  // margin/padding split for the anti-clip gutter mirrors the main reader's
+  // own hard-won fix (chapter.tsx): a right PADDING disables Android's native
+  // inter-word justification, so justified text needs the gutter as a MARGIN
+  // instead, while left-aligned text keeps it as padding (the lever that
+  // actually clears the OEM glyph-overhang clip there).
+  const isJustified = readerPrefs.textAlign === 'justify';
+  const proseRightSlack = verseTextRightSlack(readerPrefs.fontSize);
+  const proseStyle = {
+    fontFamily: readerFontFamily,
+    fontSize: readerPrefs.fontSize,
+    lineHeight: readerPrefs.fontSize * readerPrefs.lineHeightMultiplier,
+    textAlign: readerPrefs.textAlign,
+    marginRight: isJustified ? proseRightSlack : 0,
+    paddingRight: isJustified ? 0 : proseRightSlack,
+  } as const;
+
   return (
     <>
       <Stack.Screen options={{headerShown: false}} />
@@ -157,13 +219,33 @@ export default function DictionaryDetailScreen() {
           start={{x: 0, y: 0}}
           end={{x: 0, y: 1}}
           style={[styles.header, {paddingTop: insets.top + spacing.md}]}>
-          <TouchableOpacity
-            style={styles.backButton}
-            onPress={() => router.back()}
-            accessibilityRole="button"
-            accessibilityLabel={t.bible.back}>
-            <Ionicons name="arrow-back" size={24} color={staticColors.white} />
-          </TouchableOpacity>
+          <View style={styles.headerTopRow}>
+            <TouchableOpacity
+              style={styles.backButton}
+              onPress={() => router.back()}
+              accessibilityRole="button"
+              accessibilityLabel={t.bible.back}>
+              <Ionicons
+                name="arrow-back"
+                size={24}
+                color={staticColors.white}
+              />
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.readerPrefsButton}
+              onPress={() => {
+                haptics.tap();
+                setReaderPrefsVisible(true);
+              }}
+              accessibilityRole="button"
+              accessibilityLabel={t.readerPrefs.openLabel}>
+              <Ionicons
+                name="text-outline"
+                size={22}
+                color={staticColors.white}
+              />
+            </TouchableOpacity>
+          </View>
           <View style={styles.headerTextRow}>
             <View style={styles.headerIcon}>
               <Ionicons name="book" size={24} color={staticColors.white} />
@@ -208,7 +290,12 @@ export default function DictionaryDetailScreen() {
                 styles.entryCard,
                 {backgroundColor: colors.surface, borderColor: colors.primary},
               ]}>
-              <Text style={[styles.gloss, {color: colors.textSecondary}]}>
+              <Text
+                style={[
+                  styles.gloss,
+                  proseStyle,
+                  {color: colors.textSecondary},
+                ]}>
                 {entry.gloss_es}
               </Text>
 
@@ -237,11 +324,13 @@ export default function DictionaryDetailScreen() {
                     <Text
                       style={[
                         styles.articleText,
+                        proseStyle,
                         {color: colors.textSecondary},
                       ]}>
                       <MarkdownBody
                         text={entry.article_es}
                         boldColor={colors.text}
+                        boldFontFamily={readerFontFamilyBold}
                       />
                     </Text>
                   ) : (
@@ -258,7 +347,7 @@ export default function DictionaryDetailScreen() {
                         <Ionicons
                           name="leaf-outline"
                           size={11}
-                          color={staticColors.white}
+                          color={colors.onPrimary}
                         />
                       </View>
                       <Text
@@ -314,11 +403,13 @@ export default function DictionaryDetailScreen() {
                           <Text
                             style={[
                               styles.articleText,
+                              proseStyle,
                               {color: colors.textSecondary},
                             ]}>
                             <MarkdownBody
                               text={section.body_es}
                               boldColor={colors.text}
+                              boldFontFamily={readerFontFamilyBold}
                             />
                           </Text>
                         </View>
@@ -338,7 +429,7 @@ export default function DictionaryDetailScreen() {
                         <Ionicons
                           name="leaf-outline"
                           size={11}
-                          color={staticColors.white}
+                          color={colors.onPrimary}
                         />
                       </View>
                       <Text
@@ -355,6 +446,13 @@ export default function DictionaryDetailScreen() {
             </View>
           )}
         </ScrollView>
+
+        {/* Aa reading preferences — same global sheet/store as the verse
+            reader (app/(tabs)/verse/[book]/[chapter].tsx). */}
+        <ReaderPreferencesSheet
+          visible={readerPrefsVisible}
+          onClose={() => setReaderPrefsVisible(false)}
+        />
       </View>
     </>
   );
@@ -368,10 +466,21 @@ const styles = StyleSheet.create({
     borderBottomLeftRadius: borderRadius.xl,
     borderBottomRightRadius: borderRadius.xl,
   },
+  headerTopRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
   backButton: {
     width: 40,
     height: 40,
     justifyContent: 'center',
+  },
+  readerPrefsButton: {
+    width: 40,
+    height: 40,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   headerTextRow: {
     flexDirection: 'row',
@@ -421,11 +530,11 @@ const styles = StyleSheet.create({
     padding: spacing.md,
     gap: spacing.sm,
   },
-  gloss: {
-    fontSize: fontSizes.md,
-    lineHeight: fontSizes.md * 1.5,
-    paddingRight: verseTextRightSlack(fontSizes.md),
-  },
+  // fontSize/lineHeight/textAlign/paddingRight|marginRight come from the
+  // reader-preferences-derived `proseStyle` (always merged in after this
+  // base style at every call site), so this only needs to exist as a stable
+  // style-array anchor.
+  gloss: {},
   articleSection: {
     marginTop: spacing.xs,
     paddingTop: spacing.sm,
@@ -439,11 +548,8 @@ const styles = StyleSheet.create({
     gap: spacing.sm,
   },
   articleLabel: {fontSize: fontSizes.sm, fontWeight: '700'},
-  articleText: {
-    fontSize: fontSizes.md,
-    lineHeight: fontSizes.md * 1.5,
-    paddingRight: verseTextRightSlack(fontSizes.md),
-  },
+  // See `gloss` above — sizing/alignment/gutter all come from `proseStyle`.
+  articleText: {},
   articleBold: {
     fontWeight: '700',
   },
