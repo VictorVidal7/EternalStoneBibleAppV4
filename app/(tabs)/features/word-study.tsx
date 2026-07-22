@@ -402,7 +402,7 @@ export default function WordStudyScreen() {
                       <Ionicons
                         name="leaf-outline"
                         size={11}
-                        color={staticColors.white}
+                        color={colors.onPrimary}
                       />
                     </View>
                     <Text

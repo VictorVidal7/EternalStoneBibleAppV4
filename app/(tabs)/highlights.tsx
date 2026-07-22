@@ -267,7 +267,7 @@ export default function HighlightsScreen() {
                   styles.filterChipText,
                   {
                     color: !colorFilter
-                      ? staticColors.white
+                      ? colors.onPrimary
                       : colors.textSecondary,
                   },
                 ]}>
@@ -314,7 +314,7 @@ export default function HighlightsScreen() {
                   styles.filterChipText,
                   {
                     color: !categoryFilter
-                      ? staticColors.white
+                      ? colors.onPrimary
                       : colors.textSecondary,
                   },
                 ]}>
@@ -338,9 +338,7 @@ export default function HighlightsScreen() {
                     style={[
                       styles.filterChipText,
                       {
-                        color: active
-                          ? staticColors.white
-                          : colors.textSecondary,
+                        color: active ? colors.onPrimary : colors.textSecondary,
                       },
                     ]}>
                     {t.highlights.categories[cat]}
@@ -394,12 +392,12 @@ export default function HighlightsScreen() {
               <Ionicons
                 name={grouped ? 'apps' : 'list'}
                 size={15}
-                color={grouped ? staticColors.white : colors.textSecondary}
+                color={grouped ? colors.onPrimary : colors.textSecondary}
               />
               <Text
                 style={[
                   styles.toolbarChipText,
-                  {color: grouped ? staticColors.white : colors.textSecondary},
+                  {color: grouped ? colors.onPrimary : colors.textSecondary},
                 ]}>
                 {grouped ? t.highlights.groupByColor : t.highlights.listView}
               </Text>

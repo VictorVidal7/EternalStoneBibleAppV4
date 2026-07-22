@@ -104,7 +104,7 @@ function createThemedStyles(colors: ThemeColors, isDark: boolean) {
       color: colors.textSecondary,
     },
     filterTextActive: {
-      color: staticColors.white,
+      color: colors.onPrimary,
     },
     bookChip: {
       paddingVertical: 6,
@@ -124,7 +124,7 @@ function createThemedStyles(colors: ThemeColors, isDark: boolean) {
       color: colors.textSecondary,
     },
     bookChipTextActive: {
-      color: staticColors.white,
+      color: colors.onPrimary,
     },
     loadingText: {
       fontSize: 16,
@@ -231,7 +231,7 @@ function createThemedStyles(colors: ThemeColors, isDark: boolean) {
     goToReferenceText: {
       fontSize: 15,
       fontWeight: '600' as const,
-      color: staticColors.white,
+      color: colors.onPrimary,
     },
   });
 }
@@ -779,11 +779,7 @@ export default function SearchScreen() {
           accessibilityRole="button"
           accessibilityLabel={parsedRefLabel}>
           <Text style={themedStyles.goToReferenceText}>{parsedRefLabel}</Text>
-          <Ionicons
-            name="chevron-forward"
-            size={18}
-            color={staticColors.white}
-          />
+          <Ionicons name="chevron-forward" size={18} color={colors.onPrimary} />
         </TouchableOpacity>
       )}
 

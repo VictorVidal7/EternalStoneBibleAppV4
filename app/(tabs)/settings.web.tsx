@@ -16,7 +16,7 @@ import {
   READER_FONT_SIZE_MAX,
   READER_FONT_SIZE_STEP,
 } from '@context/ReaderPreferencesContext';
-import {spacing, fontSize, staticColors} from '@/styles/designTokens';
+import {spacing, fontSize} from '@/styles/designTokens';
 import {centeredMaxWidth, CONTENT_MAX_WIDTH} from '@/styles/responsive';
 
 /**
@@ -76,7 +76,7 @@ export default function SettingsScreenWeb() {
                 <Text
                   style={[
                     styles.chipText,
-                    {color: mode === m ? staticColors.white : colors.text},
+                    {color: mode === m ? colors.onPrimary : colors.text},
                   ]}>
                   {modeLabel(m)}
                 </Text>
@@ -151,8 +151,7 @@ export default function SettingsScreenWeb() {
                   style={[
                     styles.chipText,
                     {
-                      color:
-                        language === lang ? staticColors.white : colors.text,
+                      color: language === lang ? colors.onPrimary : colors.text,
                     },
                   ]}>
                   {lang === 'es' ? 'Español' : 'English'}
