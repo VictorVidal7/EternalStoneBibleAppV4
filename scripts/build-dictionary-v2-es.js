@@ -50,10 +50,15 @@ const SCRATCH_BASE =
 
 // Batch 1 (2026-07-21): the 4 v2-doctrinal entries Victor confirmed as fully
 // resolved (zero open `[REVISAR]` markers, verified before this script was
-// written). Baptism/Milenio (multi-view, needs new schema) and Predestination
-// /Holy Spirit/Kingdom of God/Salvation (still had open markers as of this
-// writing) are deliberately NOT listed here — add them only once their own
-// markers are genuinely resolved.
+// written). Baptism/Milenio (multi-view, needs new schema) are deliberately
+// NOT listed here — those need a `dictionary_multiview_sections` schema, a
+// separate future tanda.
+//
+// Batch 2 (2026-07-21, same day, continuation after context compaction):
+// Kingdom of God, Predestination, Holy Spirit, Salvation — all 4 had open
+// `[REVISAR]` markers as of batch 1; all 4 resolved this session (12
+// contextual notes + 1 excision, the latter following the same
+// Jerusalem/Herod precedent already applied within Kingdom of God itself).
 const SOURCES = [
   {file: 'isbe-v2-translations/v2-translation-atonement.md', slug: 'expiacion'},
   {
@@ -65,6 +70,19 @@ const SOURCES = [
     file: 'isbe-v2-translations/v2-translation-tabernaculo.md',
     slug: 'tabernaculo',
   },
+  {
+    file: 'isbe-v2-translations/v2-translation-kingdom-de-dios.md',
+    slug: 'reino-de-dios',
+  },
+  {
+    file: 'isbe-v2-translations/v2-translation-predestination.md',
+    slug: 'predestinacion',
+  },
+  {
+    file: 'isbe-v2-translations/v2-translation-espiritu-santo.md',
+    slug: 'espiritu-santo',
+  },
+  {file: 'isbe-v2-reextract/v2-translation-salvation.md', slug: 'salvacion'},
 ];
 
 /** Trim leading/trailing blank lines from a line array, then drop a

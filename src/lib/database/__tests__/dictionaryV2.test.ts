@@ -1,10 +1,12 @@
 /**
- * Tanda 5 — Bible-dictionary v2-doctrinal data layer, batch 1 (4 entries:
- * Expiación, Sábado, Creación, Tabernáculo — the ones confirmed fully
- * resolved, zero open `[REVISAR]` markers, as of 2026-07-21; see
- * project_essb-premium-audit-pastors-teachers). Baptism/Milenio (multi-view)
- * and Kingdom of God/Predestination/Holy Spirit/Salvation (still had open
- * markers) are deliberately NOT part of this batch.
+ * Tanda 5 — Bible-dictionary v2-doctrinal data layer. Batch 1 (2026-07-21):
+ * Expiación, Sábado, Creación, Tabernáculo. Batch 2 (same day, continuation
+ * after context compaction): Reino de Dios, Predestinación, Espíritu Santo,
+ * Salvación — all 4 had open `[REVISAR]` markers as of batch 1, all resolved
+ * this session (12 contextual notes + 1 excision). See
+ * project_essb-premium-audit-pastors-teachers. Baptism/Milenio (multi-view,
+ * needs a `dictionary_multiview_sections` schema) are deliberately NOT part
+ * of either batch.
  *
  * Mirrors dictionaryV1.test.ts's "fake handle, real business logic" idiom.
  * Also covers the cross-tier safety property that motivated scoping both
@@ -139,13 +141,17 @@ function privateApi(db: BibleDatabase) {
   };
 }
 
-describe('dictionary-v2-es.json (bundled asset, batch 1)', () => {
-  it('has exactly the 4 approved batch-1 entries, each fully resolved (no leftover markers)', () => {
-    expect(BUNDLED_V2).toHaveLength(4);
+describe('dictionary-v2-es.json (bundled asset, batches 1+2)', () => {
+  it('has exactly the 8 approved entries, each fully resolved (no leftover markers)', () => {
+    expect(BUNDLED_V2).toHaveLength(8);
     expect(BUNDLED_V2.map(e => e.slug).sort()).toEqual([
       'creacion',
+      'espiritu-santo',
       'expiacion',
+      'predestinacion',
+      'reino-de-dios',
       'sabado',
+      'salvacion',
       'tabernaculo',
     ]);
     const markerPattern = /\[REVISAR|\[EXCISE|\[NOTA DE CONTEXTO|\[CONFIRMADO/;
@@ -181,6 +187,30 @@ describe('dictionary-v2-es.json (bundled asset, batch 1)', () => {
     // No stray triple-newline gaps left behind by a stripped standalone
     // pointer paragraph (tabernaculo had 8 of these before normalization).
     expect(tabernaculo.articleEs).not.toMatch(/\n{3,}/);
+
+    // Batch 2.
+    const reinoDeDios = BUNDLED_V2.find(e => e.slug === 'reino-de-dios')!;
+    expect(reinoDeDios.articleEs).toContain(
+      'sigue siendo una pregunta genuinamente abierta',
+    );
+    const predestinacion = BUNDLED_V2.find(e => e.slug === 'predestinacion')!;
+    expect(predestinacion.articleEs).toContain(
+      '*Nota: la doctrina reformada de la reprobación',
+    );
+    const espirituSanto = BUNDLED_V2.find(e => e.slug === 'espiritu-santo')!;
+    expect(espirituSanto.articleEs).toContain(
+      '*Nota: el artículo descarta esta idea sin exponer el argumento católico',
+    );
+    const salvacion = BUNDLED_V2.find(e => e.slug === 'salvacion')!;
+    expect(salvacion.articleEs).toContain(
+      '*Nota: el rechazo de que la justificación forense',
+    );
+  });
+
+  it('excises the "soñador de gueto" passage from Reino de Dios entirely — no note, no trace, same precedent as Jerusalén/Herodes', () => {
+    const reinoDeDios = BUNDLED_V2.find(e => e.slug === 'reino-de-dios')!;
+    expect(reinoDeDios.articleEs).not.toContain('soñador de gueto');
+    expect(reinoDeDios.articleEs).not.toContain('clavándolo en un madero');
   });
 
   it('does not collide with any v1-factual slug', () => {
@@ -196,11 +226,11 @@ describe('seedDictionaryV2IfNeeded', () => {
     await AsyncStorage.clear();
   });
 
-  it('inserts all 4 bundled batch-1 entries into dictionary_entries', async () => {
+  it('inserts all 8 bundled entries into dictionary_entries', async () => {
     const {db, fake} = makeDb();
     await privateApi(db).seedDictionaryV2IfNeeded();
 
-    expect(fake.rows).toHaveLength(4);
+    expect(fake.rows).toHaveLength(8);
     expect(fake.rows.map(r => r.slug).sort()).toEqual(
       BUNDLED_V2.map(e => e.slug).sort(),
     );
@@ -215,12 +245,12 @@ describe('seedDictionaryV2IfNeeded', () => {
   it('is versioned: a second call is a no-op once the version flag is set', async () => {
     const {db, fake} = makeDb();
     await privateApi(db).seedDictionaryV2IfNeeded();
-    expect(fake.rows).toHaveLength(4);
+    expect(fake.rows).toHaveLength(8);
 
     fake.rows[0].gloss_es = 'stale-marker';
     await privateApi(db).seedDictionaryV2IfNeeded();
 
-    expect(fake.rows).toHaveLength(4);
+    expect(fake.rows).toHaveLength(8);
     expect(fake.rows[0].gloss_es).toBe('stale-marker');
   });
 
@@ -294,20 +324,20 @@ describe('getDictionaryEntry (v2-doctrinal rows)', () => {
     await AsyncStorage.clear();
   });
 
-  it('returns non-empty gloss_es and article_es for the longest v2 entry (tabernaculo, a truncation stress case)', async () => {
+  it('returns non-empty gloss_es and article_es for the longest v2 entry (espiritu-santo, a truncation stress case)', async () => {
     const {db} = makeDb();
     await privateApi(db).seedDictionaryV2IfNeeded();
 
-    const tabernaculo = (await db.getDictionaryEntry(
-      'tabernaculo',
+    const espirituSanto = (await db.getDictionaryEntry(
+      'espiritu-santo',
     )) as DictionaryEntry;
-    expect(tabernaculo).not.toBeNull();
-    expect(tabernaculo.headword_es).toBe('TABERNÁCULO');
-    expect(tabernaculo.source_tier).toBe('v2-doctrinal');
-    const bundled = BUNDLED_V2.find(e => e.slug === 'tabernaculo')!;
-    expect((tabernaculo.article_es as string).length).toBe(
+    expect(espirituSanto).not.toBeNull();
+    expect(espirituSanto.headword_es).toBe('ESPÍRITU SANTO');
+    expect(espirituSanto.source_tier).toBe('v2-doctrinal');
+    const bundled = BUNDLED_V2.find(e => e.slug === 'espiritu-santo')!;
+    expect((espirituSanto.article_es as string).length).toBe(
       bundled.articleEs.length,
     );
-    expect((tabernaculo.article_es as string).length).toBeGreaterThan(30000);
+    expect((espirituSanto.article_es as string).length).toBeGreaterThan(90000);
   });
 });

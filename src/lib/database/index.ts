@@ -120,12 +120,13 @@ const DICT_V1_VERSION = 1;
 const DICT_V1_UPDATED_AT = '2026-07-18';
 
 /**
- * Version of the bundled v2-doctrinal dictionary entries batch 1 (Tanda 5,
- * see seedDictionaryV2IfNeeded). Bump when shipping a grown v2 batch (e.g.
- * once Kingdom of God/Predestination/Holy Spirit/Salvation are resolved) so
- * the app re-imports the grown JSON asset on the next launch.
+ * Version of the bundled v2-doctrinal dictionary entries (Tanda 5, see
+ * seedDictionaryV2IfNeeded). Bump whenever the JSON asset's entry set grows
+ * or changes so the app re-imports it on the next launch. v1 = batch 1
+ * (Expiación, Sábado, Creación, Tabernáculo); v2 = batch 2, same day (+
+ * Reino de Dios, Predestinación, Espíritu Santo, Salvación).
  */
-const DICT_V2_VERSION = 1;
+const DICT_V2_VERSION = 2;
 
 /** `updated_at` stamped on every row seeded by seedDictionaryV2IfNeeded. */
 const DICT_V2_UPDATED_AT = '2026-07-21';
