@@ -68,6 +68,12 @@ import {
   focusTargetVerse,
 } from '@/lib/reader/spotlight';
 import {
+  resolveChapterSwipe,
+  chapterSwipeEdgeInset,
+} from '@/lib/reader/chapterSwipeGesture';
+import {Gesture, GestureDetector} from 'react-native-gesture-handler';
+import {runOnJS} from 'react-native-reanimated';
+import {
   useReaderPreferences,
   READER_MARGIN_PADDING,
 } from '@context/ReaderPreferencesContext';
@@ -1619,6 +1625,33 @@ export default function VerseReadingScreen() {
     router.replace(`/verse/${targetBook}/${newChapter}` as never);
   }
 
+  // 👉 Swipe left/right to change chapter (opt-in, default off — toggled from
+  // the reader's own preferences sheet, ReaderPreferencesSheet). The Pan
+  // handler's `hitSlop` excludes the outer edge strip on each side so it
+  // never claims the same touches as the Android system back-gesture; see
+  // chapterSwipeGesture for the pure distance/velocity/edge policy this
+  // wraps. Reuses `navigateChapter` — the exact function the
+  // Anterior/Siguiente header buttons call — so a swipe and a button tap
+  // behave identically at book boundaries (friendly toast, no navigation)
+  // instead of duplicating that logic.
+  const chapterSwipeEdgeInsetDp = useMemo(
+    () => chapterSwipeEdgeInset(windowWidth),
+    [windowWidth],
+  );
+  const chapterSwipeGesture = Gesture.Pan()
+    .enabled(readerPrefs.swipeChapterNavigation)
+    .activeOffsetX([-20, 20])
+    .failOffsetY([-12, 12])
+    .hitSlop({left: -chapterSwipeEdgeInsetDp, right: -chapterSwipeEdgeInsetDp})
+    .onEnd(event => {
+      const action = resolveChapterSwipe({
+        translationX: event.translationX,
+        velocityX: event.velocityX,
+      });
+      if (!action) return;
+      runOnJS(navigateChapter)(action === 'next' ? 'next' : 'prev');
+    });
+
   // Start Audio Bible playback
   async function startAudioPlayback() {
     if (verses.length === 0) return;
@@ -2170,260 +2203,264 @@ export default function VerseReadingScreen() {
           </View>
         ) : null}
 
-        {/* Verses - Clean inline format */}
-        <ScrollView
-          ref={scrollViewRef}
-          style={styles.versesContainer}
-          contentContainerStyle={[
-            styles.versesContent,
-            {
-              // Sprint 31: horizontal padding now follows the reader's
-              // margin preference; vertical bottom padding leaves room so
-              // the last verses are never hidden behind the tab bar, the
-              // audio mini-player or the selection action bar.
-              paddingHorizontal: readerPaddingHorizontal,
-              paddingBottom:
-                insets.bottom +
-                100 +
-                (isAudioVisible ? 80 : 0) +
-                (selectedVerses.size > 0 ? 130 : 0),
-              // Sprint 96: cap + center the reading column on wide screens
-              // (foldable inner display / tablet / landscape) so verse lines
-              // stay a comfortable length. No-op on phones (narrower than the
-              // cap). The cap includes the reader margin so the TEXT column is
-              // ~READER_MAX_WIDTH regardless of the chosen margin.
-              ...centeredMaxWidth(
-                READER_MAX_WIDTH + readerPaddingHorizontal * 2,
-              ),
-            },
-          ]}
-          onScroll={handleScroll}
-          scrollEventThrottle={16}
-          onScrollBeginDrag={() => setArrivalFocusVerse(null)}
-          onScrollEndDrag={persistChapterProgress}
-          onMomentumScrollEnd={persistChapterProgress}
-          onLayout={e => {
-            viewportHeightRef.current = e.nativeEvent.layout.height;
-          }}
-          onContentSizeChange={(_w, h) => {
-            contentHeightRef.current = h;
-          }}>
-          {verses.map((verse, index) => {
-            const isFavorited = favoritedVerses.has(verse.verse);
-            const isSelected = selectedVerses.has(verse.verse);
-            const isHighlighted =
-              highlightVerse &&
-              parseInt(highlightVerse as string) === verse.verse;
-            const isBeingRead =
-              audioBoundToReader &&
-              audioState.isPlaying &&
-              audioState.currentVerseIndex === index;
-            const userHighlight = verseHighlights.get(verse.verse);
+        {/* Verses - Clean inline format. Wrapped in GestureDetector for the
+            opt-in swipe-to-change-chapter gesture (disabled unless the
+            preference is on; its hitSlop already excludes the outer edges,
+            so it never competes with the OS back-gesture there either). */}
+        <GestureDetector gesture={chapterSwipeGesture}>
+          <ScrollView
+            ref={scrollViewRef}
+            style={styles.versesContainer}
+            contentContainerStyle={[
+              styles.versesContent,
+              {
+                // Sprint 31: horizontal padding now follows the reader's
+                // margin preference; vertical bottom padding leaves room so
+                // the last verses are never hidden behind the tab bar, the
+                // audio mini-player or the selection action bar.
+                paddingHorizontal: readerPaddingHorizontal,
+                paddingBottom:
+                  insets.bottom +
+                  100 +
+                  (isAudioVisible ? 80 : 0) +
+                  (selectedVerses.size > 0 ? 130 : 0),
+                // Sprint 96: cap + center the reading column on wide screens
+                // (foldable inner display / tablet / landscape) so verse lines
+                // stay a comfortable length. No-op on phones (narrower than the
+                // cap). The cap includes the reader margin so the TEXT column is
+                // ~READER_MAX_WIDTH regardless of the chosen margin.
+                ...centeredMaxWidth(
+                  READER_MAX_WIDTH + readerPaddingHorizontal * 2,
+                ),
+              },
+            ]}
+            onScroll={handleScroll}
+            scrollEventThrottle={16}
+            onScrollBeginDrag={() => setArrivalFocusVerse(null)}
+            onScrollEndDrag={persistChapterProgress}
+            onMomentumScrollEnd={persistChapterProgress}
+            onLayout={e => {
+              viewportHeightRef.current = e.nativeEvent.layout.height;
+            }}
+            onContentSizeChange={(_w, h) => {
+              contentHeightRef.current = h;
+            }}>
+            {verses.map((verse, index) => {
+              const isFavorited = favoritedVerses.has(verse.verse);
+              const isSelected = selectedVerses.has(verse.verse);
+              const isHighlighted =
+                highlightVerse &&
+                parseInt(highlightVerse as string) === verse.verse;
+              const isBeingRead =
+                audioBoundToReader &&
+                audioState.isPlaying &&
+                audioState.currentVerseIndex === index;
+              const userHighlight = verseHighlights.get(verse.verse);
 
-            // Right-edge anti-clip reserve, derived SOLELY from fontSize so the
-            // now-playing and idle verse measure identically (no playback
-            // reflow). See the lever rationale on `paddingRight`/`marginRight`
-            // in the style below.
-            const rightSlack = Math.max(24, Math.round(fontSize * 0.7));
-            const isJustified = readerPrefs.textAlign === 'justify';
+              // Right-edge anti-clip reserve, derived SOLELY from fontSize so the
+              // now-playing and idle verse measure identically (no playback
+              // reflow). See the lever rationale on `paddingRight`/`marginRight`
+              // in the style below.
+              const rightSlack = Math.max(24, Math.round(fontSize * 0.7));
+              const isJustified = readerPrefs.textAlign === 'justify';
 
-            const textStyle = {
-              color: isBeingRead
-                ? effectiveColors.audioHighlight
-                : userHighlight
-                  ? effectiveColors.onHighlight
-                  : isSelected
-                    ? effectiveColors.primaryDark
-                    : effectiveColors.text,
-              fontSize,
-              lineHeight: fontSize * readerPrefs.lineHeightMultiplier,
-              textAlign: readerPrefs.textAlign,
-              fontFamily: readerFontFamily,
-              // Right-edge slack for Android's painted-vs-measured rounding
-              // (Sprint 81/83/84): a tight line can paint a couple px wider
-              // than its measured wrap and the canvas clips the last glyph —
-              // worst on the verse being read, whose paragraph mixes a bold-
-              // face verse number with the karaoke background run. Scaled with
-              // the font (the overflow grows with glyph advance) and DERIVED
-              // ONLY from fontSize so it's identical for the read/idle verse →
-              // no reflow when playback reaches a verse. Sprint 84 removed the
-              // leading now-playing spacer box (the bigger clip cause), which
-              // fixed the audio-verse clip the user confirmed gone.
+              const textStyle = {
+                color: isBeingRead
+                  ? effectiveColors.audioHighlight
+                  : userHighlight
+                    ? effectiveColors.onHighlight
+                    : isSelected
+                      ? effectiveColors.primaryDark
+                      : effectiveColors.text,
+                fontSize,
+                lineHeight: fontSize * readerPrefs.lineHeightMultiplier,
+                textAlign: readerPrefs.textAlign,
+                fontFamily: readerFontFamily,
+                // Right-edge slack for Android's painted-vs-measured rounding
+                // (Sprint 81/83/84): a tight line can paint a couple px wider
+                // than its measured wrap and the canvas clips the last glyph —
+                // worst on the verse being read, whose paragraph mixes a bold-
+                // face verse number with the karaoke background run. Scaled with
+                // the font (the overflow grows with glyph advance) and DERIVED
+                // ONLY from fontSize so it's identical for the read/idle verse →
+                // no reflow when playback reaches a verse. Sprint 84 removed the
+                // leading now-playing spacer box (the bigger clip cause), which
+                // fixed the audio-verse clip the user confirmed gone.
+                //
+                // Sprint 91: the user still saw a faint clip on IDLE verses on
+                // their OEM device (the Pixel emulator's huge ragged-right margin
+                // never reproduces it — OEM font metrics paint a wider right side
+                // bearing than the measured advance). The slack was 8px at the
+                // default size; widened the floor to 14 and the slope to 0.6 so
+                // the reserved gutter comfortably clears that overhang at every
+                // size. Still derived solely from fontSize → read/idle parity and
+                // no playback reflow are preserved; a few px of extra ragged-right
+                // margin is imperceptible on devices that never clipped.
+                //
+                // Sprint 95: this gutter is a MARGIN, not paddingRight. Two
+                // reasons the user surfaced: (1) with `textAlign: 'justify'`,
+                // internal right PADDING on an Android <Text> disables the native
+                // inter-word justification — lines fall back to ragged-left, so
+                // justified mode "looked like it wasn't justified". A margin lives
+                // OUTSIDE the text box, so Android still justifies the content
+                // normally. (2) For justified text, padding can't prevent the
+                // clip anyway — justify fills to the content-box right edge, so
+                // shrinking the box with padding just relocates the same edge-
+                // clip inward. A margin reserves real space to the RIGHT of the
+                // box where a glyph's overhanging side-bearing can paint without
+                // being canvas-clipped. Identical gutter width, still fontSize-
+                // derived (read/idle parity, no playback reflow); now it protects
+                // BOTH alignments and keeps justify rendering as justify.
+                //
+                // Sprint 100: the user still saw a faint residual clip in rare
+                // cases on their OEM device (never reproducible on the emulator).
+                // Nudged the floor 14→16 and the slope 0.6→0.65 so the reserved
+                // gutter clears the overhang a touch more at every size; the few
+                // extra px of ragged-right margin stay imperceptible on devices
+                // that never clipped.
+                //
+                // Sprint 102: a few verses still clipped "un poquito" on the
+                // user's real phone. Within the reader's whole font range (14-26)
+                // round(fontSize·0.65) never exceeds 17, so the FLOOR is the only
+                // lever that actually moves the reserve — bumped it 16→20 (the
+                // slope is moot here and stays 0.65). Still derived solely from
+                // fontSize → read/idle parity and no playback reflow preserved.
+                //
+                // Sprint 106 (8th report): still a faint clip on the user's phone.
+                // Floor 20→24 (the lever in-range) + slope 0.65→0.7 so the larger
+                // reader sizes gain a little too. Still derived only from fontSize.
+                //
+                // Sprint 110 (root cause, not another bump — the user STILL caught
+                // a faint right-edge clip on their OEM phone): reserve the gutter
+                // as paddingRight for LEFT-aligned text instead of marginRight. On
+                // Android a <Text> clips its glyphs to its OWN content box;
+                // paddingRight EXTENDS that clip rect so an overhanging last-glyph
+                // side-bearing paints INSIDE the bounds, whereas marginRight only
+                // narrows the box (lines wrap a hair earlier) — a probabilistic
+                // mitigation that never fully clears the clip, which is why the 8
+                // margin bumps above never landed it AND why every FIXED-size
+                // scripture card (which already uses paddingRight) was never
+                // reported. The reserve width is unchanged, so the wrap — and thus
+                // the read/idle parity above — is identical. JUSTIFIED text keeps
+                // the margin: paddingRight disables Android's native inter-word
+                // justification (Sprint 95 rationale), and justify fills to the
+                // content-box edge anyway, so the margin is the best lever there.
+                marginRight: isJustified ? rightSlack : 0,
+                paddingRight: isJustified ? 0 : rightSlack,
+              } as const;
+
+              const numberStyle = {
+                color: isBeingRead
+                  ? effectiveColors.audioHighlight
+                  : userHighlight
+                    ? effectiveColors.onHighlight
+                    : effectiveColors.primary,
+                fontFamily: readerFontFamilyBold,
+              };
+
+              // 🔊 Now-playing cue (Sprint 84): the speaker icon sits in this
+              // verse's OWN left PADDING gutter — a small negative offset that
+              // tucks it just left of the verse number, on top of the gold
+              // now-playing tint (verseItem has spacing.md of left padding, the
+              // reader margin adds more) — so the verse text starts flush at
+              // column 0 EXACTLY like an idle verse: NO first-line indent.
               //
-              // Sprint 91: the user still saw a faint clip on IDLE verses on
-              // their OEM device (the Pixel emulator's huge ragged-right margin
-              // never reproduces it — OEM font metrics paint a wider right side
-              // bearing than the measured advance). The slack was 8px at the
-              // default size; widened the floor to 14 and the slope to 0.6 so
-              // the reserved gutter comfortably clears that overhang at every
-              // size. Still derived solely from fontSize → read/idle parity and
-              // no playback reflow are preserved; a few px of extra ragged-right
-              // margin is imperceptible on devices that never clipped.
-              //
-              // Sprint 95: this gutter is a MARGIN, not paddingRight. Two
-              // reasons the user surfaced: (1) with `textAlign: 'justify'`,
-              // internal right PADDING on an Android <Text> disables the native
-              // inter-word justification — lines fall back to ragged-left, so
-              // justified mode "looked like it wasn't justified". A margin lives
-              // OUTSIDE the text box, so Android still justifies the content
-              // normally. (2) For justified text, padding can't prevent the
-              // clip anyway — justify fills to the content-box right edge, so
-              // shrinking the box with padding just relocates the same edge-
-              // clip inward. A margin reserves real space to the RIGHT of the
-              // box where a glyph's overhanging side-bearing can paint without
-              // being canvas-clipped. Identical gutter width, still fontSize-
-              // derived (read/idle parity, no playback reflow); now it protects
-              // BOTH alignments and keeps justify rendering as justify.
-              //
-              // Sprint 100: the user still saw a faint residual clip in rare
-              // cases on their OEM device (never reproducible on the emulator).
-              // Nudged the floor 14→16 and the slope 0.6→0.65 so the reserved
-              // gutter clears the overhang a touch more at every size; the few
-              // extra px of ragged-right margin stay imperceptible on devices
-              // that never clipped.
-              //
-              // Sprint 102: a few verses still clipped "un poquito" on the
-              // user's real phone. Within the reader's whole font range (14-26)
-              // round(fontSize·0.65) never exceeds 17, so the FLOOR is the only
-              // lever that actually moves the reserve — bumped it 16→20 (the
-              // slope is moot here and stays 0.65). Still derived solely from
-              // fontSize → read/idle parity and no playback reflow preserved.
-              //
-              // Sprint 106 (8th report): still a faint clip on the user's phone.
-              // Floor 20→24 (the lever in-range) + slope 0.65→0.7 so the larger
-              // reader sizes gain a little too. Still derived only from fontSize.
-              //
-              // Sprint 110 (root cause, not another bump — the user STILL caught
-              // a faint right-edge clip on their OEM phone): reserve the gutter
-              // as paddingRight for LEFT-aligned text instead of marginRight. On
-              // Android a <Text> clips its glyphs to its OWN content box;
-              // paddingRight EXTENDS that clip rect so an overhanging last-glyph
-              // side-bearing paints INSIDE the bounds, whereas marginRight only
-              // narrows the box (lines wrap a hair earlier) — a probabilistic
-              // mitigation that never fully clears the clip, which is why the 8
-              // margin bumps above never landed it AND why every FIXED-size
-              // scripture card (which already uses paddingRight) was never
-              // reported. The reserve width is unchanged, so the wrap — and thus
-              // the read/idle parity above — is identical. JUSTIFIED text keeps
-              // the margin: paddingRight disables Android's native inter-word
-              // justification (Sprint 95 rationale), and justify fills to the
-              // content-box edge anyway, so the margin is the best lever there.
-              marginRight: isJustified ? rightSlack : 0,
-              paddingRight: isJustified ? 0 : rightSlack,
-            } as const;
+              // Sprint 82 instead indented only the first line with an inline
+              // glyph-less spacer box. On several OEM line-break engines a
+              // LEADING replacement box at the start of a wrapping paragraph
+              // shifts the whole first line right by its width (~26px) and the
+              // last word clips off the right edge — far more than the S83 right
+              // slack (8–13px) could absorb, which is why that report persisted.
+              // Dropping the spacer makes the now-playing first line measure
+              // byte-for-byte like the idle verse (which never clips), and there
+              // is no read↔idle reflow at all. The icon is absolute (out of
+              // flow), so the side-by-side companion still never shifts.
+              const nowPlayingIconStyle = {
+                position: 'absolute' as const,
+                left: -(fontSizes.sm + spacing['0.5']),
+                top: Math.max(
+                  0,
+                  (fontSize * readerPrefs.lineHeightMultiplier - fontSizes.sm) /
+                    2,
+                ),
+              };
 
-            const numberStyle = {
-              color: isBeingRead
-                ? effectiveColors.audioHighlight
-                : userHighlight
-                  ? effectiveColors.onHighlight
-                  : effectiveColors.primary,
-              fontFamily: readerFontFamilyBold,
-            };
+              // One coherent screen-reader node per verse: "Verse N, <text>"
+              // (overrides the noisy 🔊/number prefix), with companion text
+              // appended in side-by-side so nothing is hidden from TalkBack.
+              const companionForA11y =
+                sideBySide && secondaryVersion
+                  ? secondaryVerses.find(v => v.verse === verse.verse)?.text
+                  : undefined;
+              const verseA11yLabel =
+                t.verse.verseA11yLabel
+                  .replace('{{n}}', String(verse.verse))
+                  .replace('{{text}}', verse.text) +
+                (companionForA11y ? `. ${companionForA11y}` : '');
 
-            // 🔊 Now-playing cue (Sprint 84): the speaker icon sits in this
-            // verse's OWN left PADDING gutter — a small negative offset that
-            // tucks it just left of the verse number, on top of the gold
-            // now-playing tint (verseItem has spacing.md of left padding, the
-            // reader margin adds more) — so the verse text starts flush at
-            // column 0 EXACTLY like an idle verse: NO first-line indent.
-            //
-            // Sprint 82 instead indented only the first line with an inline
-            // glyph-less spacer box. On several OEM line-break engines a
-            // LEADING replacement box at the start of a wrapping paragraph
-            // shifts the whole first line right by its width (~26px) and the
-            // last word clips off the right edge — far more than the S83 right
-            // slack (8–13px) could absorb, which is why that report persisted.
-            // Dropping the spacer makes the now-playing first line measure
-            // byte-for-byte like the idle verse (which never clips), and there
-            // is no read↔idle reflow at all. The icon is absolute (out of
-            // flow), so the side-by-side companion still never shifts.
-            const nowPlayingIconStyle = {
-              position: 'absolute' as const,
-              left: -(fontSizes.sm + spacing['0.5']),
-              top: Math.max(
-                0,
-                (fontSize * readerPrefs.lineHeightMultiplier - fontSizes.sm) /
-                  2,
-              ),
-            };
+              // Equal-weight two-column dual layout (Sprint 67): primary and
+              // companion sit side by side at the same font size, vs the default
+              // stacked/dimmed companion.
+              const dualColumns =
+                sideBySide && !!secondaryVersion && dualLayout === 'columns';
 
-            // One coherent screen-reader node per verse: "Verse N, <text>"
-            // (overrides the noisy 🔊/number prefix), with companion text
-            // appended in side-by-side so nothing is hidden from TalkBack.
-            const companionForA11y =
-              sideBySide && secondaryVersion
-                ? secondaryVerses.find(v => v.verse === verse.verse)?.text
-                : undefined;
-            const verseA11yLabel =
-              t.verse.verseA11yLabel
-                .replace('{{n}}', String(verse.verse))
-                .replace('{{text}}', verse.text) +
-              (companionForA11y ? `. ${companionForA11y}` : '');
-
-            // Equal-weight two-column dual layout (Sprint 67): primary and
-            // companion sit side by side at the same font size, vs the default
-            // stacked/dimmed companion.
-            const dualColumns =
-              sideBySide && !!secondaryVersion && dualLayout === 'columns';
-
-            return (
-              <TouchableOpacity
-                key={verse.verse}
-                activeOpacity={0.7}
-                onPress={() => toggleVerseSelection(verse.verse)}
-                accessibilityLabel={verseA11yLabel}
-                accessibilityHint={t.verse.verseA11yHint}
-                accessibilityState={{selected: isSelected}}
-                onLayout={e => {
-                  verseOffsetsRef.current.set(
-                    verse.verse,
-                    e.nativeEvent.layout.y,
-                  );
-                }}
-                style={[
-                  styles.verseItem,
-                  // Selection + arrive-with-highlight tints follow the active
-                  // theme (Sprint 82) — they used a FIXED brand blue, so under
-                  // any non-blue theme a selected/opened verse clashed. Layered
-                  // before verseBeingRead so the gold now-playing tint still
-                  // wins; the primary alpha (26/1A) matches the old 15%/10%.
-                  isSelected && styles.verseSelected,
-                  isSelected && {
-                    backgroundColor: effectiveColors.primary + '26',
-                  },
-                  isHighlighted && styles.verseHighlighted,
-                  isHighlighted && {
-                    backgroundColor: effectiveColors.primary + '1A',
-                    borderLeftColor: effectiveColors.primary,
-                  },
-                  isBeingRead && styles.verseBeingRead,
-                  userHighlight && styles.verseUserHighlightRadius,
-                  userHighlight && {backgroundColor: userHighlight},
-                  // Reading focus/spotlight: dim the verses around the active
-                  // selection (Sprint 69) and, in Focus mode, around the verse
-                  // centered in the viewport (Sprint 70). Static opacity (not a
-                  // fade) → reduce-motion-safe; the dimmer of the two wins, and
-                  // each is a no-op when its driver is inactive. A verse the
-                  // user just navigated to (#15) temporarily outranks both.
-                  {
-                    opacity: Math.min(
-                      spotlightOpacity(verse.verse, selectedVerses),
-                      focusVerseOpacity(
-                        verse.verse,
-                        arrivalFocusVerse ??
-                          focusTargetVerse(focusedVerse, audioFocusVerse),
-                        focusMode,
-                      ),
-                    ),
-                  },
-                ]}>
-                <View
+              return (
+                <TouchableOpacity
+                  key={verse.verse}
+                  activeOpacity={0.7}
+                  onPress={() => toggleVerseSelection(verse.verse)}
+                  accessibilityLabel={verseA11yLabel}
+                  accessibilityHint={t.verse.verseA11yHint}
+                  accessibilityState={{selected: isSelected}}
+                  onLayout={e => {
+                    verseOffsetsRef.current.set(
+                      verse.verse,
+                      e.nativeEvent.layout.y,
+                    );
+                  }}
                   style={[
-                    styles.verseContent,
-                    dualColumns && styles.verseContentColumns,
+                    styles.verseItem,
+                    // Selection + arrive-with-highlight tints follow the active
+                    // theme (Sprint 82) — they used a FIXED brand blue, so under
+                    // any non-blue theme a selected/opened verse clashed. Layered
+                    // before verseBeingRead so the gold now-playing tint still
+                    // wins; the primary alpha (26/1A) matches the old 15%/10%.
+                    isSelected && styles.verseSelected,
+                    isSelected && {
+                      backgroundColor: effectiveColors.primary + '26',
+                    },
+                    isHighlighted && styles.verseHighlighted,
+                    isHighlighted && {
+                      backgroundColor: effectiveColors.primary + '1A',
+                      borderLeftColor: effectiveColors.primary,
+                    },
+                    isBeingRead && styles.verseBeingRead,
+                    userHighlight && styles.verseUserHighlightRadius,
+                    userHighlight && {backgroundColor: userHighlight},
+                    // Reading focus/spotlight: dim the verses around the active
+                    // selection (Sprint 69) and, in Focus mode, around the verse
+                    // centered in the viewport (Sprint 70). Static opacity (not a
+                    // fade) → reduce-motion-safe; the dimmer of the two wins, and
+                    // each is a no-op when its driver is inactive. A verse the
+                    // user just navigated to (#15) temporarily outranks both.
+                    {
+                      opacity: Math.min(
+                        spotlightOpacity(verse.verse, selectedVerses),
+                        focusVerseOpacity(
+                          verse.verse,
+                          arrivalFocusVerse ??
+                            focusTargetVerse(focusedVerse, audioFocusVerse),
+                          focusMode,
+                        ),
+                      ),
+                    },
                   ]}>
-                  {/* "Now playing" cue for the verse being read aloud (Sprint
+                  <View
+                    style={[
+                      styles.verseContent,
+                      dualColumns && styles.verseContentColumns,
+                    ]}>
+                    {/* "Now playing" cue for the verse being read aloud (Sprint
                       84). The speaker icon is absolutely placed in this verse's
                       OWN left padding gutter, just left of the verse number, so
                       the verse text starts flush at column 0 like an idle verse
@@ -2433,44 +2470,46 @@ export default function VerseReadingScreen() {
                       icon-style comment above). Sprint 81 hung it as a row
                       sibling, which pushed the ENTIRE block including the
                       companion; this icon is out of flow, so nothing shifts. */}
-                  {isBeingRead ? (
-                    <View style={nowPlayingIconStyle} pointerEvents="none">
-                      <Ionicons
-                        name="volume-high"
-                        size={fontSizes.sm}
-                        color={effectiveColors.audioHighlight}
-                      />
-                    </View>
-                  ) : null}
-                  <Text
-                    style={[
-                      styles.verseText,
-                      textStyle,
-                      dualColumns && styles.dualColumn,
-                    ]}
-                    // #3 candidate (right-edge clip on the user's OEM device):
-                    // 'simple' uses GREEDY line-breaking instead of Android's
-                    // default 'highQuality', which packs lines tighter and lets
-                    // a line paint a few px wider than its measured wrap — the
-                    // documented root cause. Greedy wrapping breaks earlier and
-                    // leaves more right margin, so the last glyph clears the box.
-                    // A different lever than the fontSize-derived padding slack
-                    // (which never fully landed it), tried together here.
-                    //
-                    // #3/#10 (justify silently no-op'd, T12): Android's
-                    // JUSTIFICATION_MODE_INTER_WORD only applies under
-                    // 'highQuality'/'balanced' — 'simple' unconditionally
-                    // suppressed it, so "Justificado" never visibly justified.
-                    // Only left-align needs the greedy clip mitigation; justify
-                    // already reserves its clip gutter via marginRight (see
-                    // `textStyle` above), so it's safe to give justify back the
-                    // strategy it actually needs.
-                    textBreakStrategy={isJustified ? 'highQuality' : 'simple'}>
-                    <Text style={[styles.verseNumber, numberStyle]}>
-                      {verse.verse}
-                      {'  '}
-                    </Text>
-                    {/* Original-word marker (Ficha #13): arrived from
+                    {isBeingRead ? (
+                      <View style={nowPlayingIconStyle} pointerEvents="none">
+                        <Ionicons
+                          name="volume-high"
+                          size={fontSizes.sm}
+                          color={effectiveColors.audioHighlight}
+                        />
+                      </View>
+                    ) : null}
+                    <Text
+                      style={[
+                        styles.verseText,
+                        textStyle,
+                        dualColumns && styles.dualColumn,
+                      ]}
+                      // #3 candidate (right-edge clip on the user's OEM device):
+                      // 'simple' uses GREEDY line-breaking instead of Android's
+                      // default 'highQuality', which packs lines tighter and lets
+                      // a line paint a few px wider than its measured wrap — the
+                      // documented root cause. Greedy wrapping breaks earlier and
+                      // leaves more right margin, so the last glyph clears the box.
+                      // A different lever than the fontSize-derived padding slack
+                      // (which never fully landed it), tried together here.
+                      //
+                      // #3/#10 (justify silently no-op'd, T12): Android's
+                      // JUSTIFICATION_MODE_INTER_WORD only applies under
+                      // 'highQuality'/'balanced' — 'simple' unconditionally
+                      // suppressed it, so "Justificado" never visibly justified.
+                      // Only left-align needs the greedy clip mitigation; justify
+                      // already reserves its clip gutter via marginRight (see
+                      // `textStyle` above), so it's safe to give justify back the
+                      // strategy it actually needs.
+                      textBreakStrategy={
+                        isJustified ? 'highQuality' : 'simple'
+                      }>
+                      <Text style={[styles.verseNumber, numberStyle]}>
+                        {verse.verse}
+                        {'  '}
+                      </Text>
+                      {/* Original-word marker (Ficha #13): arrived from
                         word-study with a resolved Strong's match for this
                         verse. Sits beside the verse NUMBER, not a specific
                         word — the app has no character-alignment data
@@ -2479,35 +2518,37 @@ export default function VerseReadingScreen() {
                         guess dressed up as precision. Tap toggles a small
                         "globito" rendered below the verse (see after
                         verseContent). */}
-                    {originalWordChip &&
-                    originalWordChip.verse === verse.verse &&
-                    !originalWordChipDismissed ? (
-                      <Text
-                        onPress={() => {
-                          haptics.tap();
-                          setOriginalWordPopoverOpen(o => !o);
-                        }}
-                        accessibilityRole="button"
-                        accessibilityState={{expanded: originalWordPopoverOpen}}
-                        accessibilityLabel={t.verse.originalWordMarkerHint}>
-                        <View
-                          style={[
-                            styles.originalWordMarkerBadge,
-                            {
-                              backgroundColor: effectiveColors.primary + '26',
-                              borderColor: effectiveColors.primary + '55',
-                            },
-                          ]}>
-                          <Ionicons
-                            name="ellipsis-horizontal"
-                            size={12}
-                            color={effectiveColors.primary}
-                          />
-                        </View>
-                        {'  '}
-                      </Text>
-                    ) : null}
-                    {/* Karaoke (Sprint 76): while the engine voices THIS
+                      {originalWordChip &&
+                      originalWordChip.verse === verse.verse &&
+                      !originalWordChipDismissed ? (
+                        <Text
+                          onPress={() => {
+                            haptics.tap();
+                            setOriginalWordPopoverOpen(o => !o);
+                          }}
+                          accessibilityRole="button"
+                          accessibilityState={{
+                            expanded: originalWordPopoverOpen,
+                          }}
+                          accessibilityLabel={t.verse.originalWordMarkerHint}>
+                          <View
+                            style={[
+                              styles.originalWordMarkerBadge,
+                              {
+                                backgroundColor: effectiveColors.primary + '26',
+                                borderColor: effectiveColors.primary + '55',
+                              },
+                            ]}>
+                            <Ionicons
+                              name="ellipsis-horizontal"
+                              size={12}
+                              color={effectiveColors.primary}
+                            />
+                          </View>
+                          {'  '}
+                        </Text>
+                      ) : null}
+                      {/* Karaoke (Sprint 76): while the engine voices THIS
                         verse, light the spoken word with a deeper tint of
                         the audio-highlight hue. The emphasis must be
                         METRICS-NEUTRAL (Sprint 80): a bold run widens the
@@ -2517,59 +2558,97 @@ export default function VerseReadingScreen() {
                         clips. Until a boundary arrives — or when not being
                         read — falls through to the linkified body below, so
                         reference links stay tappable. */}
-                    <KaraokeText
-                      text={verse.text}
-                      verseIndex={index}
-                      active={isBeingRead}
-                      wordStyle={{
-                        backgroundColor: effectiveColors.audioHighlight + '4D',
-                      }}>
-                      {/* Linkify inline references ("Isaías 53:5",
+                      <KaraokeText
+                        text={verse.text}
+                        verseIndex={index}
+                        active={isBeingRead}
+                        wordStyle={{
+                          backgroundColor:
+                            effectiveColors.audioHighlight + '4D',
+                        }}>
+                        {/* Linkify inline references ("Isaías 53:5",
                           "John 3:16") inside the verse text so they become
                           tappable jumps. */}
-                      {(() => {
-                        const segments = linkifyReferences(verse.text);
-                        if (segments.length === 1 && !segments[0].ref) {
-                          return verse.text;
-                        }
-                        const linkColor = userHighlight
-                          ? effectiveColors.primaryDark
-                          : effectiveColors.primary;
-                        return segments.map((seg, i) =>
-                          seg.ref ? (
-                            <Text
-                              key={i}
-                              onPress={() => jumpToReference(seg.ref!)}
-                              style={[styles.crossRefLink, {color: linkColor}]}>
-                              {seg.text}
-                            </Text>
-                          ) : (
-                            seg.text
-                          ),
-                        );
-                      })()}
-                    </KaraokeText>
-                  </Text>
-                  {/* Side-by-side companion: the matching verse from the other
+                        {(() => {
+                          const segments = linkifyReferences(verse.text);
+                          if (segments.length === 1 && !segments[0].ref) {
+                            return verse.text;
+                          }
+                          const linkColor = userHighlight
+                            ? effectiveColors.primaryDark
+                            : effectiveColors.primary;
+                          return segments.map((seg, i) =>
+                            seg.ref ? (
+                              <Text
+                                key={i}
+                                onPress={() => jumpToReference(seg.ref!)}
+                                style={[
+                                  styles.crossRefLink,
+                                  {color: linkColor},
+                                ]}>
+                                {seg.text}
+                              </Text>
+                            ) : (
+                              seg.text
+                            ),
+                          );
+                        })()}
+                      </KaraokeText>
+                    </Text>
+                    {/* Side-by-side companion: the matching verse from the other
                       version. In STACKED layout it sits below the primary one,
                       smaller/dimmer, as supporting context. In COLUMNS layout
                       it sits in an equal-weight column at the SAME font size, so
                       neither reads as secondary (Sprint 67). The tap on this
                       region is harmless — selection still targets the primary
                       verse via the outer Touchable. */}
-                  {sideBySide && secondaryVersion
-                    ? (() => {
-                        const companion = secondaryVerses.find(
-                          v => v.verse === verse.verse,
-                        );
-                        if (!companion) return null;
-                        if (dualColumns) {
+                    {sideBySide && secondaryVersion
+                      ? (() => {
+                          const companion = secondaryVerses.find(
+                            v => v.verse === verse.verse,
+                          );
+                          if (!companion) return null;
+                          if (dualColumns) {
+                            return (
+                              <View
+                                style={[
+                                  styles.dualColumn,
+                                  styles.dualColumnCompanion,
+                                  {borderLeftColor: effectiveColors.border},
+                                ]}>
+                                <Text
+                                  style={[
+                                    styles.sideBySideLabel,
+                                    {color: effectiveColors.primary},
+                                  ]}>
+                                  {secondaryVersion.abbreviation}
+                                </Text>
+                                <Text
+                                  style={[
+                                    styles.verseText,
+                                    textStyle,
+                                    {
+                                      color: userHighlight
+                                        ? effectiveColors.onHighlight
+                                        : effectiveColors.text,
+                                    },
+                                  ]}
+                                  textBreakStrategy={
+                                    isJustified ? 'highQuality' : 'simple'
+                                  }>
+                                  {companion.text}
+                                </Text>
+                              </View>
+                            );
+                          }
                           return (
                             <View
                               style={[
-                                styles.dualColumn,
-                                styles.dualColumnCompanion,
-                                {borderLeftColor: effectiveColors.border},
+                                styles.sideBySideCompanion,
+                                {
+                                  borderTopColor: effectiveColors.border,
+                                  borderLeftColor: effectiveColors.primary,
+                                },
                               ]}>
                               <Text
                                 style={[
@@ -2580,12 +2659,20 @@ export default function VerseReadingScreen() {
                               </Text>
                               <Text
                                 style={[
-                                  styles.verseText,
-                                  textStyle,
+                                  styles.sideBySideText,
                                   {
                                     color: userHighlight
                                       ? effectiveColors.onHighlight
-                                      : effectiveColors.text,
+                                      : effectiveColors.textSecondary,
+                                    fontSize: Math.max(fontSize - 2, 12),
+                                    lineHeight:
+                                      Math.max(fontSize - 2, 12) * 1.5,
+                                    // The stacked companion never picked up the
+                                    // reader's text-align preference (unlike the
+                                    // primary verse and the columns-layout
+                                    // companion), so "Justificado" silently had
+                                    // no effect here.
+                                    textAlign: readerPrefs.textAlign,
                                   },
                                 ]}
                                 textBreakStrategy={
@@ -2595,50 +2682,9 @@ export default function VerseReadingScreen() {
                               </Text>
                             </View>
                           );
-                        }
-                        return (
-                          <View
-                            style={[
-                              styles.sideBySideCompanion,
-                              {
-                                borderTopColor: effectiveColors.border,
-                                borderLeftColor: effectiveColors.primary,
-                              },
-                            ]}>
-                            <Text
-                              style={[
-                                styles.sideBySideLabel,
-                                {color: effectiveColors.primary},
-                              ]}>
-                              {secondaryVersion.abbreviation}
-                            </Text>
-                            <Text
-                              style={[
-                                styles.sideBySideText,
-                                {
-                                  color: userHighlight
-                                    ? effectiveColors.onHighlight
-                                    : effectiveColors.textSecondary,
-                                  fontSize: Math.max(fontSize - 2, 12),
-                                  lineHeight: Math.max(fontSize - 2, 12) * 1.5,
-                                  // The stacked companion never picked up the
-                                  // reader's text-align preference (unlike the
-                                  // primary verse and the columns-layout
-                                  // companion), so "Justificado" silently had
-                                  // no effect here.
-                                  textAlign: readerPrefs.textAlign,
-                                },
-                              ]}
-                              textBreakStrategy={
-                                isJustified ? 'highQuality' : 'simple'
-                              }>
-                              {companion.text}
-                            </Text>
-                          </View>
-                        );
-                      })()
-                    : null}
-                  {/* Original-word "globito" (Ficha #13): expands under the
+                        })()
+                      : null}
+                    {/* Original-word "globito" (Ficha #13): expands under the
                       verse when the marker beside its number is tapped.
                       Tapping the word inside opens Idiomas originales
                       pre-focused on this verse; the bubble collapses again
@@ -2648,73 +2694,74 @@ export default function VerseReadingScreen() {
                       column flow instead of becoming a second column in
                       verseItem's row layout (verseItem is row-direction so
                       the favorite-heart icon can sit to the right). */}
-                  {originalWordChip &&
-                  originalWordChip.verse === verse.verse &&
-                  !originalWordChipDismissed &&
-                  originalWordPopoverOpen ? (
-                    <View
-                      style={[
-                        styles.originalWordPopover,
-                        {
-                          backgroundColor: effectiveColors.primary + '14',
-                          borderColor: effectiveColors.primary + '33',
-                        },
-                      ]}>
-                      <TouchableOpacity
-                        style={styles.originalWordPopoverTextWrap}
-                        onPress={() => {
-                          haptics.tap();
-                          setOriginalsVerse(originalWordChip.verse);
-                          setOriginalsVisible(true);
-                        }}
-                        accessibilityRole="button"
-                        accessibilityLabel={`${originalWordChip.word}${
-                          originalWordChip.gloss
-                            ? ` · ${originalWordChip.gloss}`
-                            : ''
-                        } — ${t.verse.originalWordHint}`}>
-                        <Text
-                          style={[
-                            styles.originalWordPopoverText,
-                            {color: effectiveColors.primary},
-                          ]}
-                          numberOfLines={1}>
-                          {originalWordChip.word}
-                          {originalWordChip.gloss
-                            ? ` · ${originalWordChip.gloss}`
-                            : ''}
-                        </Text>
-                      </TouchableOpacity>
-                      <TouchableOpacity
-                        onPress={() => setOriginalWordChipDismissed(true)}
-                        hitSlop={NAV_HIT_SLOP}
-                        accessibilityRole="button"
-                        accessibilityLabel={t.close}>
-                        <Ionicons
-                          name="close"
-                          size={14}
-                          color={effectiveColors.primary}
-                        />
-                      </TouchableOpacity>
-                    </View>
-                  ) : null}
-                </View>
-                {isFavorited && (
-                  <TouchableOpacity
-                    onPress={() => handleToggleSingleFavorite(verse)}
-                    hitSlop={{top: 10, bottom: 10, left: 10, right: 10}}
-                    style={styles.favoriteIndicator}>
-                    <Ionicons
-                      name="heart"
-                      size={18}
-                      color={effectiveColors.favorite}
-                    />
-                  </TouchableOpacity>
-                )}
-              </TouchableOpacity>
-            );
-          })}
-        </ScrollView>
+                    {originalWordChip &&
+                    originalWordChip.verse === verse.verse &&
+                    !originalWordChipDismissed &&
+                    originalWordPopoverOpen ? (
+                      <View
+                        style={[
+                          styles.originalWordPopover,
+                          {
+                            backgroundColor: effectiveColors.primary + '14',
+                            borderColor: effectiveColors.primary + '33',
+                          },
+                        ]}>
+                        <TouchableOpacity
+                          style={styles.originalWordPopoverTextWrap}
+                          onPress={() => {
+                            haptics.tap();
+                            setOriginalsVerse(originalWordChip.verse);
+                            setOriginalsVisible(true);
+                          }}
+                          accessibilityRole="button"
+                          accessibilityLabel={`${originalWordChip.word}${
+                            originalWordChip.gloss
+                              ? ` · ${originalWordChip.gloss}`
+                              : ''
+                          } — ${t.verse.originalWordHint}`}>
+                          <Text
+                            style={[
+                              styles.originalWordPopoverText,
+                              {color: effectiveColors.primary},
+                            ]}
+                            numberOfLines={1}>
+                            {originalWordChip.word}
+                            {originalWordChip.gloss
+                              ? ` · ${originalWordChip.gloss}`
+                              : ''}
+                          </Text>
+                        </TouchableOpacity>
+                        <TouchableOpacity
+                          onPress={() => setOriginalWordChipDismissed(true)}
+                          hitSlop={NAV_HIT_SLOP}
+                          accessibilityRole="button"
+                          accessibilityLabel={t.close}>
+                          <Ionicons
+                            name="close"
+                            size={14}
+                            color={effectiveColors.primary}
+                          />
+                        </TouchableOpacity>
+                      </View>
+                    ) : null}
+                  </View>
+                  {isFavorited && (
+                    <TouchableOpacity
+                      onPress={() => handleToggleSingleFavorite(verse)}
+                      hitSlop={{top: 10, bottom: 10, left: 10, right: 10}}
+                      style={styles.favoriteIndicator}>
+                      <Ionicons
+                        name="heart"
+                        size={18}
+                        color={effectiveColors.favorite}
+                      />
+                    </TouchableOpacity>
+                  )}
+                </TouchableOpacity>
+              );
+            })}
+          </ScrollView>
+        </GestureDetector>
 
         {/* Selection Action Bar */}
         {selectedVerses.size > 0 && (
