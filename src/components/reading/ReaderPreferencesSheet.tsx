@@ -356,6 +356,16 @@ export const ReaderPreferencesSheet: React.FC<ReaderPreferencesSheetProps> = ({
                       }
                       accessibilityState={{selected: active}}>
                       {opt.isLocked && (
+                        // HC audit (batch 5): this badge only ever renders for
+                        // the 4 gated palettes (sepia/musgo/crepusculo/niebla —
+                        // see `isLocked` above), and of those only crepúsculo's
+                        // swatch.primary (#7FA8D9) fails contrast against a
+                        // fixed white icon (~2.47:1). A correct per-palette fix
+                        // needs an `onPrimary`-equivalent added to
+                        // `ReaderThemeColors` (readerThemes.ts) — out of scope
+                        // here since that file isn't part of this batch and
+                        // "always black" would in turn hurt sepia/musgo/niebla
+                        // (all comfortably readable with white today).
                         <View
                           style={[
                             styles.themeLockBadge,
@@ -450,7 +460,7 @@ export const ReaderPreferencesSheet: React.FC<ReaderPreferencesSheetProps> = ({
                         <Ionicons
                           name="leaf-outline"
                           size={9}
-                          color={staticColors.white}
+                          color={colors.onPrimary}
                         />
                       </View>
                     )}
