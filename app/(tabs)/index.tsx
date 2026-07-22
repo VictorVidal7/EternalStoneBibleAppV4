@@ -1438,6 +1438,18 @@ export default function HomeScreen() {
                 }
               />
             </View>
+            <View style={styles.savedCardWrapper}>
+              <DiscoverTile
+                icon="create"
+                title={t.sermonNotes.cardTitle}
+                subtitle={t.sermonNotes.cardSubtitle}
+                onPress={() =>
+                  handlePress(() =>
+                    router.push('/features/sermon-notes' as never),
+                  )
+                }
+              />
+            </View>
           </View>
         </Animated.View>
 
