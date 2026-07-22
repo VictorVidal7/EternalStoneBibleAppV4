@@ -119,6 +119,17 @@ const DICT_V1_VERSION = 1;
  */
 const DICT_V1_UPDATED_AT = '2026-07-18';
 
+/**
+ * Version of the bundled v2-doctrinal dictionary entries batch 1 (Tanda 5,
+ * see seedDictionaryV2IfNeeded). Bump when shipping a grown v2 batch (e.g.
+ * once Kingdom of God/Predestination/Holy Spirit/Salvation are resolved) so
+ * the app re-imports the grown JSON asset on the next launch.
+ */
+const DICT_V2_VERSION = 1;
+
+/** `updated_at` stamped on every row seeded by seedDictionaryV2IfNeeded. */
+const DICT_V2_UPDATED_AT = '2026-07-21';
+
 /** Max incoming ("referenced by") rows surfaced for a verse, by votes. */
 const XREF_INCOMING_LIMIT = 25;
 
@@ -192,6 +203,8 @@ class BibleDatabase {
   private static readonly SDEFS_LOADED_KEY = '@strongs_defs_loaded_version';
   // Imported VERSION of the bundled v1-factual dictionary entries (Tanda 5).
   private static readonly DICT_V1_LOADED_KEY = '@dictionary_v1_loaded_version';
+  // Imported VERSION of the bundled v2-doctrinal dictionary entries (Tanda 5).
+  private static readonly DICT_V2_LOADED_KEY = '@dictionary_v2_loaded_version';
 
   async initialize(): Promise<void> {
     // Si ya está inicializado, retornar inmediatamente
@@ -236,6 +249,7 @@ class BibleDatabase {
       await this.seedCrossReferencesIfMissing();
       await this.seedStrongsDefsIfNeeded();
       await this.seedDictionaryV1IfNeeded();
+      await this.seedDictionaryV2IfNeeded();
 
       this.initialized = true;
       console.log('✅ Database initialized successfully');
@@ -636,7 +650,12 @@ class BibleDatabase {
       const entries: SeedEntry[] = require('../../../assets/dictionary-v1-es.json');
 
       await db.withTransactionAsync(async () => {
-        await db.runAsync('DELETE FROM dictionary_entries');
+        // Scoped to this tier only — a v2 (or future tier) seed re-import
+        // must never wipe rows it doesn't own, regardless of which order
+        // the seed functions run in.
+        await db.runAsync(
+          "DELETE FROM dictionary_entries WHERE source_tier = 'v1-factual'",
+        );
         for (const e of entries) {
           await db.runAsync(
             `INSERT INTO dictionary_entries
@@ -664,6 +683,65 @@ class BibleDatabase {
       );
     } catch (error) {
       console.warn('⚠️ Dictionary v1 seed failed', error);
+    }
+  }
+
+  /**
+   * Load the bundled v2-doctrinal Bible-dictionary entries (Tanda 5) into
+   * `dictionary_entries`. Same shape as seedDictionaryV1IfNeeded, versioned
+   * and scoped independently so re-importing one tier never touches the
+   * other's rows.
+   */
+  private async seedDictionaryV2IfNeeded(): Promise<void> {
+    const db = this.getDb();
+    try {
+      const loaded = await AsyncStorage.getItem(
+        BibleDatabase.DICT_V2_LOADED_KEY,
+      );
+      if (loaded === String(DICT_V2_VERSION)) return;
+
+      type SeedEntry = {
+        slug: string;
+        headwordEs: string;
+        glossEs: string;
+        articleEs: string;
+        sourceTier: string;
+        treatment: string;
+      };
+      // Bundled JSON asset — see scripts/build-dictionary-v2-es.js.
+      const entries: SeedEntry[] = require('../../../assets/dictionary-v2-es.json');
+
+      await db.withTransactionAsync(async () => {
+        await db.runAsync(
+          "DELETE FROM dictionary_entries WHERE source_tier = 'v2-doctrinal'",
+        );
+        for (const e of entries) {
+          await db.runAsync(
+            `INSERT INTO dictionary_entries
+               (slug, headword_es, gloss_es, article_es, source_tier, treatment, updated_at)
+             VALUES (?, ?, ?, ?, ?, ?, ?)`,
+            [
+              e.slug,
+              e.headwordEs,
+              e.glossEs,
+              e.articleEs,
+              e.sourceTier,
+              e.treatment,
+              DICT_V2_UPDATED_AT,
+            ],
+          );
+        }
+      });
+
+      await AsyncStorage.setItem(
+        BibleDatabase.DICT_V2_LOADED_KEY,
+        String(DICT_V2_VERSION),
+      );
+      console.log(
+        `📚 Dictionary v2 entries imported from bundle (${entries.length})`,
+      );
+    } catch (error) {
+      console.warn('⚠️ Dictionary v2 seed failed', error);
     }
   }
 
