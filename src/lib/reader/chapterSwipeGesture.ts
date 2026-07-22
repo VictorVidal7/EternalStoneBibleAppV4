@@ -49,6 +49,7 @@ export function resolveChapterSwipe(params: {
   translationX: number;
   velocityX: number;
 }): ChapterSwipeAction {
+  'worklet';
   const {translationX, velocityX} = params;
 
   const farEnough = Math.abs(translationX) >= CHAPTER_SWIPE_DISTANCE_THRESHOLD;
