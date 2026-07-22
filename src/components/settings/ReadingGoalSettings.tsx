@@ -98,7 +98,7 @@ export default function ReadingGoalSettings() {
                 <Text
                   style={[
                     styles.chipText,
-                    {color: active ? staticColors.white : colors.text},
+                    {color: active ? colors.onPrimary : colors.text},
                   ]}>
                   {g}
                 </Text>

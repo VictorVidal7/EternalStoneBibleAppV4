@@ -26,7 +26,6 @@ import {useLanguage} from '@hooks/useLanguage';
 import {useBibleVersion} from '@hooks/useBibleVersion';
 import {useToast} from '@context/ToastContext';
 import {ConfirmDialog} from '@components/ui/ConfirmDialog';
-import {staticColors} from '@/styles/designTokens';
 import {
   formatBytes,
   PackDownloadError,
@@ -224,7 +223,7 @@ export default function ManageVersionsSection() {
         <Ionicons
           name={error ? 'refresh' : 'cloud-download-outline'}
           size={18}
-          color={staticColors.white}
+          color={colors.onPrimary}
         />
         <Text style={styles.downloadButtonText}>
           {error ? t.settings.manageVersionsRetry : t.settings.versionDownload}
@@ -411,7 +410,7 @@ function createStyles(colors: ReturnType<typeof useTheme>['colors']) {
     downloadButtonText: {
       fontSize: 14,
       fontWeight: '700',
-      color: staticColors.white,
+      color: colors.onPrimary,
     },
     installedRow: {
       flexDirection: 'row',

@@ -146,7 +146,7 @@ export default function DevotionReminderSettings() {
                     <Text
                       style={[
                         styles.optionChipText,
-                        {color: active ? staticColors.white : colors.text},
+                        {color: active ? colors.onPrimary : colors.text},
                       ]}>
                       {String(h).padStart(2, '0')}:00
                     </Text>

@@ -167,7 +167,7 @@ export default function MemoryGoalSettings() {
                 <Text
                   style={[
                     styles.optionChipText,
-                    {color: active ? staticColors.white : colors.text},
+                    {color: active ? colors.onPrimary : colors.text},
                   ]}>
                   {g}
                 </Text>
@@ -217,7 +217,7 @@ export default function MemoryGoalSettings() {
                 <Text
                   style={[
                     styles.optionChipText,
-                    {color: active ? staticColors.white : colors.text},
+                    {color: active ? colors.onPrimary : colors.text},
                   ]}>
                   {wt}
                 </Text>
@@ -278,7 +278,7 @@ export default function MemoryGoalSettings() {
                     <Text
                       style={[
                         styles.optionChipText,
-                        {color: active ? staticColors.white : colors.text},
+                        {color: active ? colors.onPrimary : colors.text},
                       ]}>
                       {String(h).padStart(2, '0')}:00
                     </Text>

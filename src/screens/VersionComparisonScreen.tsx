@@ -620,6 +620,13 @@ export const VersionComparisonScreen: React.FC<
     return versionColors[index % versionColors.length];
   };
 
+  // Ink for text/icons drawn on top of getVersionColor(index). Only slot 0
+  // (colors.primary) is theme-reactive — it goes light/amber in dark/HC
+  // variants, so it needs the AA-locked onPrimary token. The other three
+  // slots are fixed brand hues, always dark enough for plain white ink.
+  const getVersionInkColor = (index: number) =>
+    index % 4 === 0 ? colors.onPrimary : staticColors.white;
+
   // Localize the book name in the reference so it matches the app language.
   const bookInfo = getBookByName(book);
   const localizedBook = bookInfo
@@ -687,7 +694,7 @@ export const VersionComparisonScreen: React.FC<
                 {backgroundColor: colors.primary},
               ]}
               onPress={() => setShowSaveDialog(true)}>
-              <Ionicons name="add" size={24} color="#FFF" />
+              <Ionicons name="add" size={24} color={colors.onPrimary} />
             </TouchableOpacity>
           </View>
         </View>
@@ -717,7 +724,11 @@ export const VersionComparisonScreen: React.FC<
                     borderColor: getVersionColor(index),
                   },
                 ]}>
-                <Text style={styles.versionPillText}>
+                <Text
+                  style={[
+                    styles.versionPillText,
+                    {color: getVersionInkColor(index)},
+                  ]}>
                   {version?.abbreviation || versionId.toUpperCase()}
                 </Text>
               </View>
@@ -806,7 +817,11 @@ export const VersionComparisonScreen: React.FC<
                                 styles.versionBadge,
                                 {backgroundColor: getVersionColor(index)},
                               ]}>
-                              <Text style={styles.versionBadgeText}>
+                              <Text
+                                style={[
+                                  styles.versionBadgeText,
+                                  {color: getVersionInkColor(index)},
+                                ]}>
                                 {version.versionAbbr}
                               </Text>
                             </View>
@@ -899,7 +914,11 @@ export const VersionComparisonScreen: React.FC<
                           styles.versionBadge,
                           {backgroundColor: getVersionColor(index)},
                         ]}>
-                        <Text style={styles.versionBadgeText}>
+                        <Text
+                          style={[
+                            styles.versionBadgeText,
+                            {color: getVersionInkColor(index)},
+                          ]}>
                           {version.versionAbbr}
                         </Text>
                       </View>
@@ -1617,7 +1636,6 @@ const styles = StyleSheet.create({
   versionPillText: {
     fontSize: 12,
     fontWeight: '700',
-    color: staticColors.white,
   },
   addVersionButton: {
     flexDirection: 'row',
@@ -1675,7 +1693,6 @@ const styles = StyleSheet.create({
   versionBadgeText: {
     fontSize: 11,
     fontWeight: '700',
-    color: staticColors.white,
   },
   versionName: {
     fontSize: 13,

@@ -126,7 +126,7 @@ export default function ColorThemeSettings() {
                     <Ionicons
                       name="leaf-outline"
                       size={9}
-                      color={staticColors.white}
+                      color={colors.onPrimary}
                     />
                   </View>
                 )}
