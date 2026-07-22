@@ -189,6 +189,7 @@ export default function MemoryDeckScreen() {
             <PulsingPracticeCta
               onPress={handlePractice}
               backgroundColor={colors.primary}
+              textColor={colors.onPrimary}
               label={
                 dueCount === 1
                   ? t.memory.practiceCtaSingular
@@ -552,8 +553,9 @@ const StatBubble: React.FC<{value: number; label: string}> = ({
 const PulsingPracticeCta: React.FC<{
   onPress: () => void;
   backgroundColor: string;
+  textColor: string;
   label: string;
-}> = ({onPress, backgroundColor, label}) => {
+}> = ({onPress, backgroundColor, textColor, label}) => {
   const pulse = useRef(new Animated.Value(1)).current;
   const stoppedRef = useRef(false);
 
@@ -593,8 +595,10 @@ const PulsingPracticeCta: React.FC<{
         style={[styles.practiceCta, {backgroundColor}]}
         onPress={handlePress}
         accessibilityRole="button">
-        <Ionicons name="play" size={22} color="#FFFFFF" />
-        <Text style={styles.practiceCtaText}>{label}</Text>
+        <Ionicons name="play" size={22} color={textColor} />
+        <Text style={[styles.practiceCtaText, {color: textColor}]}>
+          {label}
+        </Text>
       </TouchableOpacity>
     </Animated.View>
   );
@@ -782,7 +786,6 @@ const styles = StyleSheet.create({
     marginBottom: spacing.lg,
   },
   practiceCtaText: {
-    color: staticColors.white,
     fontSize: fontSizes.base,
     fontWeight: '800',
   },

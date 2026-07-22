@@ -168,13 +168,16 @@ export default function KidsHubScreen() {
             accessibilityRole="button"
             accessibilityLabel={tp.cardTitle}>
             <View style={styles.planCardIcon}>
-              <Ionicons name="calendar" size={24} color={staticColors.white} />
+              <Ionicons name="calendar" size={24} color={colors.onPrimary} />
             </View>
             <View style={styles.planCardInfo}>
-              <AppText style={styles.planCardTitle}>{tp.cardTitle}</AppText>
+              <AppText
+                style={[styles.planCardTitle, {color: colors.onPrimary}]}>
+                {tp.cardTitle}
+              </AppText>
               <AppText
                 scaleRole="compact"
-                style={styles.planCardSubtitle}
+                style={[styles.planCardSubtitle, {color: colors.onPrimary}]}
                 numberOfLines={1}>
                 {planCaption}
               </AppText>
@@ -182,7 +185,7 @@ export default function KidsHubScreen() {
             <Ionicons
               name="chevron-forward"
               size={20}
-              color={staticColors.white}
+              color={colors.onPrimary}
             />
           </TouchableOpacity>
 
@@ -337,12 +340,10 @@ const styles = StyleSheet.create({
   },
   planCardInfo: {flex: 1, gap: 2},
   planCardTitle: {
-    color: staticColors.white,
     fontSize: fontSizes.md,
     fontWeight: '800',
   },
   planCardSubtitle: {
-    color: staticColors.glassWhite95,
     fontSize: fontSizes.sm,
     fontWeight: '600',
   },

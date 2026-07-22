@@ -482,7 +482,7 @@ export default function MemoryInsightsScreen() {
                               <Ionicons
                                 name="leaf-outline"
                                 size={10}
-                                color={staticColors.white}
+                                color={colors.onPrimary}
                               />
                             </View>
                           ) : null}
@@ -788,7 +788,7 @@ export default function MemoryInsightsScreen() {
                         <Ionicons
                           name="leaf-outline"
                           size={10}
-                          color={staticColors.white}
+                          color={colors.onPrimary}
                         />
                       </View>
                     ) : (
@@ -959,7 +959,7 @@ const LockedTeaser: React.FC<{
     accessibilityRole="button"
     accessibilityLabel={a11yLabel}>
     <View style={[styles.miniLockBadge, {backgroundColor: colors.primary}]}>
-      <Ionicons name="leaf-outline" size={10} color={staticColors.white} />
+      <Ionicons name="leaf-outline" size={10} color={colors.onPrimary} />
     </View>
     <Text style={[styles.lockedTeaserText, {color: colors.textSecondary}]}>
       {text}

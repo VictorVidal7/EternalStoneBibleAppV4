@@ -248,7 +248,7 @@ export default function MemoryPracticeScreen() {
               <TouchableOpacity
                 style={[styles.doneCta, {backgroundColor: colors.primary}]}
                 onPress={() => router.back()}>
-                <Text style={styles.doneCtaText}>
+                <Text style={[styles.doneCtaText, {color: colors.onPrimary}]}>
                   {t.memory.practice.doneCta}
                 </Text>
               </TouchableOpacity>
@@ -282,16 +282,14 @@ export default function MemoryPracticeScreen() {
                       <Ionicons
                         name={MODE_ICON[m]}
                         size={15}
-                        color={
-                          active ? staticColors.white : colors.textSecondary
-                        }
+                        color={active ? colors.onPrimary : colors.textSecondary}
                       />
                       <Text
                         style={[
                           styles.modeTabText,
                           {
                             color: active
-                              ? staticColors.white
+                              ? colors.onPrimary
                               : colors.textSecondary,
                           },
                         ]}
@@ -411,9 +409,9 @@ export default function MemoryPracticeScreen() {
                         : 'eye-outline'
                     }
                     size={22}
-                    color="#FFFFFF"
+                    color={colors.onPrimary}
                   />
-                  <Text style={styles.revealText}>
+                  <Text style={[styles.revealText, {color: colors.onPrimary}]}>
                     {mode === 'fill' && fillLayout.blankCount > 0
                       ? t.memory.practice.fillCheck
                       : t.memory.practice.reveal}
@@ -627,7 +625,6 @@ const styles = StyleSheet.create({
     gap: spacing.sm,
   },
   revealText: {
-    color: staticColors.white,
     fontSize: fontSizes.base,
     fontWeight: '800',
   },
@@ -681,7 +678,6 @@ const styles = StyleSheet.create({
     borderRadius: borderRadius.full,
   },
   doneCtaText: {
-    color: staticColors.white,
     fontSize: fontSizes.base,
     fontWeight: '800',
   },
