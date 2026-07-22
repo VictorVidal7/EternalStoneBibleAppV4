@@ -31,7 +31,6 @@ import {useTheme} from '@hooks/useTheme';
 import {useLanguage} from '@hooks/useLanguage';
 import {useToast} from '@context/ToastContext';
 import {haptics} from '@lib/haptics';
-import {staticColors} from '@/styles/designTokens';
 import {useTogether} from '@context/TogetherContext';
 import {useCustomPlans} from '@context/CustomPlansContext';
 import {useReadingPlanProgress} from '@context/ReadingPlanProgressContext';
@@ -312,10 +311,9 @@ export default function TogetherJoinScreen() {
               <Ionicons
                 name="checkmark-circle-outline"
                 size={20}
-                color={staticColors.white}
+                color={colors.onPrimary}
               />
-              <Text
-                style={[styles.primaryBtnText, {color: staticColors.white}]}>
+              <Text style={[styles.primaryBtnText, {color: colors.onPrimary}]}>
                 {tt.join}
               </Text>
             </TouchableOpacity>
@@ -358,10 +356,9 @@ export default function TogetherJoinScreen() {
               <Ionicons
                 name="download-outline"
                 size={20}
-                color={staticColors.white}
+                color={colors.onPrimary}
               />
-              <Text
-                style={[styles.primaryBtnText, {color: staticColors.white}]}>
+              <Text style={[styles.primaryBtnText, {color: colors.onPrimary}]}>
                 {tt.importPlan}
               </Text>
             </TouchableOpacity>
@@ -433,8 +430,7 @@ export default function TogetherJoinScreen() {
               onPress={submitCode}
               accessibilityRole="button"
               accessibilityLabel={tt.continueLabel}>
-              <Text
-                style={[styles.primaryBtnText, {color: staticColors.white}]}>
+              <Text style={[styles.primaryBtnText, {color: colors.onPrimary}]}>
                 {tt.continueLabel}
               </Text>
             </TouchableOpacity>

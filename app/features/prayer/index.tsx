@@ -198,14 +198,14 @@ export default function PrayerJournalScreen() {
           <Ionicons
             name={meta.icon as never}
             size={14}
-            color={selected ? staticColors.white : meta.accent}
+            color={selected ? colors.onPrimary : meta.accent}
           />
         )}
         <AppText
           scaleRole="compact"
           style={[
             styles.chipText,
-            {color: selected ? staticColors.white : colors.text},
+            {color: selected ? colors.onPrimary : colors.text},
           ]}>
           {label}
         </AppText>
@@ -223,7 +223,7 @@ export default function PrayerJournalScreen() {
               scaleRole="compact"
               style={[
                 styles.chipCountText,
-                {color: selected ? staticColors.white : colors.primary},
+                {color: selected ? colors.onPrimary : colors.primary},
               ]}>
               {String(count)}
             </AppText>
@@ -426,10 +426,10 @@ export default function PrayerJournalScreen() {
               }}
               accessibilityRole="button"
               accessibilityLabel={tp.prayNow}>
-              <Ionicons name="sparkles" size={18} color={staticColors.white} />
+              <Ionicons name="sparkles" size={18} color={colors.onPrimary} />
               <AppText
                 scaleRole="compact"
-                style={[styles.ctaPrimaryText, {color: staticColors.white}]}>
+                style={[styles.ctaPrimaryText, {color: colors.onPrimary}]}>
                 {tp.prayNow}
               </AppText>
             </TouchableOpacity>

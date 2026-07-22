@@ -293,7 +293,7 @@ export default function GuidedPrayerScreen() {
                 accessibilityRole="button"
                 accessibilityLabel={ta.begin}>
                 <AppText
-                  style={[styles.primaryBtnText, {color: staticColors.white}]}>
+                  style={[styles.primaryBtnText, {color: colors.onPrimary}]}>
                   {ta.begin}
                 </AppText>
               </TouchableOpacity>
@@ -405,9 +405,9 @@ export default function GuidedPrayerScreen() {
                 }}
                 accessibilityRole="button"
                 accessibilityLabel={ta.addToJournal}>
-                <Ionicons name="add" size={18} color={staticColors.white} />
+                <Ionicons name="add" size={18} color={colors.onPrimary} />
                 <AppText
-                  style={[styles.primaryBtnText, {color: staticColors.white}]}>
+                  style={[styles.primaryBtnText, {color: colors.onPrimary}]}>
                   {ta.addToJournal}
                 </AppText>
               </TouchableOpacity>
