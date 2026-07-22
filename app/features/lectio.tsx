@@ -561,9 +561,11 @@ export default function LectioScreen() {
                 <Ionicons
                   name={running ? 'pause' : 'play'}
                   size={16}
-                  color={staticColors.white}
+                  color={colors.onPrimary}
                 />
-                <AppText scaleRole="compact" style={styles.timerButtonText}>
+                <AppText
+                  scaleRole="compact"
+                  style={[styles.timerButtonText, {color: colors.onPrimary}]}>
                   {running ? tl.timerPause : tl.timerStart}
                 </AppText>
               </TouchableOpacity>
@@ -596,8 +598,10 @@ export default function LectioScreen() {
           }}
           accessibilityRole="button"
           accessibilityLabel={tl.shareImage}>
-          <Ionicons name="image-outline" size={16} color={staticColors.white} />
-          <AppText scaleRole="compact" style={styles.finaleActionText}>
+          <Ionicons name="image-outline" size={16} color={colors.onPrimary} />
+          <AppText
+            scaleRole="compact"
+            style={[styles.finaleActionText, {color: colors.onPrimary}]}>
             {tl.shareImage}
           </AppText>
         </TouchableOpacity>
@@ -725,13 +729,18 @@ export default function LectioScreen() {
                     onPress={goNext}
                     accessibilityRole="button"
                     accessibilityLabel={tl.next}>
-                    <AppText scaleRole="compact" style={styles.navPrimaryText}>
+                    <AppText
+                      scaleRole="compact"
+                      style={[
+                        styles.navPrimaryText,
+                        {color: colors.onPrimary},
+                      ]}>
                       {tl.next}
                     </AppText>
                     <Ionicons
                       name="arrow-forward"
                       size={16}
-                      color={staticColors.white}
+                      color={colors.onPrimary}
                     />
                   </TouchableOpacity>
                 ) : (
@@ -743,13 +752,18 @@ export default function LectioScreen() {
                     onPress={() => void handleFinish()}
                     accessibilityRole="button"
                     accessibilityLabel={tl.finish}>
-                    <AppText scaleRole="compact" style={styles.navPrimaryText}>
+                    <AppText
+                      scaleRole="compact"
+                      style={[
+                        styles.navPrimaryText,
+                        {color: colors.onPrimary},
+                      ]}>
                       {tl.finish}
                     </AppText>
                     <Ionicons
                       name="checkmark"
                       size={16}
-                      color={staticColors.white}
+                      color={colors.onPrimary}
                     />
                   </TouchableOpacity>
                 )}
@@ -938,7 +952,6 @@ const styles = StyleSheet.create({
   timerButtonText: {
     fontSize: fontSizes.sm,
     fontWeight: '700',
-    color: staticColors.white,
   },
   navRow: {
     flexDirection: 'row',
@@ -965,7 +978,6 @@ const styles = StyleSheet.create({
   navPrimaryText: {
     fontSize: fontSizes.sm,
     fontWeight: '700',
-    color: staticColors.white,
   },
   finale: {alignItems: 'center', gap: spacing.md, paddingTop: spacing.lg},
   finaleTitle: {fontSize: fontSizes['2xl'], fontWeight: '800'},
@@ -985,7 +997,6 @@ const styles = StyleSheet.create({
   finaleActionText: {
     fontSize: fontSizes.sm,
     fontWeight: '700',
-    color: staticColors.white,
   },
   finaleSecondary: {
     flexDirection: 'row',

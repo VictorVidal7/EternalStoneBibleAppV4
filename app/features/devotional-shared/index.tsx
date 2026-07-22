@@ -275,7 +275,7 @@ export default function SharedDevotionalScreen() {
               <View
                 style={[styles.todayBadge, {backgroundColor: colors.primary}]}>
                 <Text
-                  style={[styles.todayBadgeText, {color: staticColors.white}]}>
+                  style={[styles.todayBadgeText, {color: colors.onPrimary}]}>
                   {statusLine}
                 </Text>
               </View>

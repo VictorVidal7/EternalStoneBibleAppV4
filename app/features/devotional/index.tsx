@@ -32,7 +32,6 @@ import {useLanguage} from '@hooks/useLanguage';
 import {useBibleVersion} from '@hooks/useBibleVersion';
 import {useToast} from '@context/ToastContext';
 import {haptics} from '@lib/haptics';
-import {staticColors} from '@/styles/designTokens';
 import {centeredMaxWidth} from '@/styles/responsive';
 import {focusTrapProps} from '@lib/a11y/focusTrap';
 import bibleDB from '@lib/database';
@@ -387,9 +386,11 @@ export default function DevotionalBuilderScreen() {
           <Ionicons
             name="share-social-outline"
             size={20}
-            color={staticColors.white}
+            color={colors.onPrimary}
           />
-          <Text style={styles.shareBtnText}>{db.share}</Text>
+          <Text style={[styles.shareBtnText, {color: colors.onPrimary}]}>
+            {db.share}
+          </Text>
         </TouchableOpacity>
       </ScrollView>
 
@@ -587,7 +588,7 @@ const styles = StyleSheet.create({
     paddingVertical: 15,
     marginTop: 28,
   },
-  shareBtnText: {color: staticColors.white, fontSize: 16, fontWeight: '700'},
+  shareBtnText: {fontSize: 16, fontWeight: '700'},
   stepperRow: {
     flexDirection: 'row',
     alignItems: 'center',

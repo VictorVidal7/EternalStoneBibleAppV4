@@ -309,8 +309,10 @@ export default function GuidedDevotionScreen() {
                 onPress={beginMoment}
                 accessibilityRole="button"
                 accessibilityLabel={tg.begin}>
-                <Ionicons name="flame" size={18} color={staticColors.white} />
-                <AppText scaleRole="compact" style={styles.beginButtonText}>
+                <Ionicons name="flame" size={18} color={colors.onPrimary} />
+                <AppText
+                  scaleRole="compact"
+                  style={[styles.beginButtonText, {color: colors.onPrimary}]}>
                   {tg.begin}
                 </AppText>
               </TouchableOpacity>
@@ -489,7 +491,6 @@ const styles = StyleSheet.create({
   beginButtonText: {
     fontSize: fontSizes.md,
     fontWeight: '700',
-    color: staticColors.white,
   },
   againButton: {
     alignSelf: 'center',

@@ -586,9 +586,11 @@ export default function DailyLightScreen() {
               <Ionicons
                 name="book-outline"
                 size={20}
-                color={staticColors.white}
+                color={colors.onPrimary}
               />
-              <AppText scaleRole="compact" style={styles.primaryActionText}>
+              <AppText
+                scaleRole="compact"
+                style={[styles.primaryActionText, {color: colors.onPrimary}]}>
                 {dl.readInContext}
               </AppText>
             </TouchableOpacity>
@@ -766,7 +768,6 @@ const styles = StyleSheet.create({
     borderRadius: borderRadius.lg,
   },
   primaryActionText: {
-    color: staticColors.white,
     fontSize: fontSizes.md,
     fontWeight: '700',
   },

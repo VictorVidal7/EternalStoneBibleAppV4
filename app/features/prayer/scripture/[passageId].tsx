@@ -234,13 +234,13 @@ export default function ScripturePrayerWalkScreen() {
                 accessibilityRole="button"
                 accessibilityLabel={ts.begin}>
                 <AppText
-                  style={[styles.primaryBtnText, {color: staticColors.white}]}>
+                  style={[styles.primaryBtnText, {color: colors.onPrimary}]}>
                   {ts.begin}
                 </AppText>
                 <Ionicons
                   name="arrow-forward"
                   size={18}
-                  color={staticColors.white}
+                  color={colors.onPrimary}
                 />
               </TouchableOpacity>
             </View>
@@ -330,13 +330,13 @@ export default function ScripturePrayerWalkScreen() {
                     phase === total - 1 ? ts.finish : ts.next
                   }>
                   <AppText
-                    style={[styles.navBtnText, {color: staticColors.white}]}>
+                    style={[styles.navBtnText, {color: colors.onPrimary}]}>
                     {phase === total - 1 ? ts.finish : ts.next}
                   </AppText>
                   <Ionicons
                     name={phase === total - 1 ? 'checkmark' : 'arrow-forward'}
                     size={16}
-                    color={staticColors.white}
+                    color={colors.onPrimary}
                   />
                 </TouchableOpacity>
               </View>
@@ -376,12 +376,12 @@ export default function ScripturePrayerWalkScreen() {
                     accessibilityRole="button"
                     accessibilityLabel={ts.saveJournalButton}>
                     {saving ? (
-                      <ActivityIndicator color={staticColors.white} />
+                      <ActivityIndicator color={colors.onPrimary} />
                     ) : (
                       <AppText
                         style={[
                           styles.primaryBtnText,
-                          {color: staticColors.white},
+                          {color: colors.onPrimary},
                         ]}>
                         {ts.saveJournalButton}
                       </AppText>
@@ -409,10 +409,7 @@ export default function ScripturePrayerWalkScreen() {
                   accessibilityRole="button"
                   accessibilityLabel={ts.done}>
                   <AppText
-                    style={[
-                      styles.primaryBtnText,
-                      {color: staticColors.white},
-                    ]}>
+                    style={[styles.primaryBtnText, {color: colors.onPrimary}]}>
                     {ts.done}
                   </AppText>
                 </TouchableOpacity>
