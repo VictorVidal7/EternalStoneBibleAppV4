@@ -24,7 +24,6 @@ import {
   borderRadius,
   fontSize as fontSizes,
   spacing,
-  staticColors,
 } from '@/styles/designTokens';
 
 interface KidsQuizQuestionText {
@@ -150,7 +149,7 @@ export const KidsQuizPanel: React.FC<KidsQuizPanelProps> = ({
             onPress={advance}
             accessibilityRole="button"
             accessibilityLabel={isLast ? tk.quiz.finish : tk.next}>
-            <AppText style={styles.nextBtnText}>
+            <AppText style={[styles.nextBtnText, {color: colors.onPrimary}]}>
               {isLast ? tk.quiz.finish : tk.next}
             </AppText>
           </TouchableOpacity>
@@ -188,7 +187,6 @@ const styles = StyleSheet.create({
     borderRadius: borderRadius.full,
   },
   nextBtnText: {
-    color: staticColors.white,
     fontSize: fontSizes.md,
     fontWeight: '700',
   },

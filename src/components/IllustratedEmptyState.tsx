@@ -15,12 +15,7 @@ import {LinearGradient} from 'expo-linear-gradient';
 import {Ionicons} from '@expo/vector-icons';
 import {haptics} from '@lib/haptics';
 
-import {
-  spacing,
-  borderRadius,
-  shadows,
-  staticColors,
-} from '../styles/designTokens';
+import {spacing, borderRadius, shadows} from '../styles/designTokens';
 import {typography} from '../styles/typography';
 import {useLanguage} from '../hooks/useLanguage';
 import type {ThemeColors} from '../hooks/useTheme';
@@ -207,7 +202,7 @@ export const IllustratedEmptyState: React.FC<IllustratedEmptyStateProps> = ({
             start={{x: 0, y: 0}}
             end={{x: 1, y: 1}}
             style={styles.iconContainer}>
-            <Ionicons name={config.icon} size={64} color="#ffffff" />
+            <Ionicons name={config.icon} size={64} color={colors.onPrimary} />
           </LinearGradient>
 
           {/* Iconos decorativos flotantes */}
@@ -264,10 +259,12 @@ export const IllustratedEmptyState: React.FC<IllustratedEmptyStateProps> = ({
             start={{x: 0, y: 0}}
             end={{x: 1, y: 0}}
             style={[styles.actionButtonGradient, shadows.md]}>
-            <Text scaleRole="compact" style={styles.actionButtonText}>
+            <Text
+              scaleRole="compact"
+              style={[styles.actionButtonText, {color: colors.onPrimary}]}>
               {actionLabel || config.defaultAction}
             </Text>
-            <Ionicons name="heart" size={20} color="#ffffff" />
+            <Ionicons name="heart" size={20} color={colors.onPrimary} />
           </LinearGradient>
         </TouchableOpacity>
       )}
@@ -382,7 +379,6 @@ const styles = StyleSheet.create({
   },
   actionButtonText: {
     ...typography.button,
-    color: staticColors.white,
   },
 
   // Bottom decoration

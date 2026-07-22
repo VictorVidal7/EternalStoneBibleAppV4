@@ -186,14 +186,14 @@ export const OnboardingScreen: React.FC<OnboardingScreenProps> = ({onDone}) => {
           accessibilityLabel={
             isLast ? t.onboarding.done.cta : t.onboarding.next
           }>
-          <Text style={styles.nextText}>
+          <Text style={[styles.nextText, {color: colors.onPrimary}]}>
             {isFirst
               ? t.onboarding.welcome.cta
               : isLast
                 ? t.onboarding.done.cta
                 : t.onboarding.next}
           </Text>
-          <Ionicons name="chevron-forward" size={20} color="#FFFFFF" />
+          <Ionicons name="chevron-forward" size={20} color={colors.onPrimary} />
         </TouchableOpacity>
       </View>
     </View>
@@ -595,6 +595,5 @@ const styles = StyleSheet.create({
   nextText: {
     fontSize: fontSizes.base,
     fontWeight: '800',
-    color: staticColors.white,
   },
 });
