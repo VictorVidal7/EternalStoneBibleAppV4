@@ -172,6 +172,19 @@ describe('dictionary-v2-es.json (bundled asset, batches 1+2)', () => {
       // a real space at ingestion time, never shipped as-is.
       expect(e.glossEs).not.toContain('&nbsp;');
       expect(e.articleEs).not.toContain('&nbsp;');
+      // A stray "*" outside a valid **bold**/*italic* span pairs with the
+      // NEXT unrelated "*" in parseMarkdownSegments, silently swallowing
+      // everything between into one wrong italic span (and cascading, since
+      // each subsequent "**heading**" then only contributes one of its two
+      // asterisks to close it). Caught 2026-07-21 in reino-de-dios (a
+      // bold-wrapped "**[CONFIRMADO ...]**") and creacion (5 bold-wrapped
+      // inline "**[NOTA DE CONTEXTO AGREGADA — ver nota general ...]**"
+      // pointers that should never have been bold in the first place).
+      const strippedOfValidSpans = e.articleEs.replace(
+        /\*\*[^*]+\*\*|\*[^*]+\*/g,
+        '',
+      );
+      expect(strippedOfValidSpans).not.toContain('*');
     }
   });
 

@@ -26,8 +26,12 @@
  * entry's extracted gloss/article text — that means a real, undecided
  * editorial marker would otherwise ship as literal bracket text to a real
  * user. This is the safety net for entries not yet fully resolved (e.g. a
- * future Baptism/Predestination/Holy Spirit/Salvation batch) — don't loosen
- * this check to "make the build pass".
+ * future Baptism/Milenio batch, once those get a multi-view schema) — don't
+ * loosen this check to "make the build pass". Also fails loud on any stray
+ * `*` left outside a valid `**bold**`/`*italic*` span — usually a marker
+ * that got bold-wrapped (`**[...]**`) without a following blockquote, which
+ * cascades into silently corrupting the rest of the article's formatting
+ * (caught 2026-07-21 in two already-written entries).
  *
  * Source files (explicit list, not a filename-prefix scan like v1 — the
  * scratchpad's v2 filenames don't follow one consistent naming scheme, and
@@ -197,6 +201,21 @@ function parseEntry(relPath, slug, content) {
     if (stillOpen) {
       throw new Error(
         `${relPath}: unresolved marker in ${label} — "${stillOpen[0].slice(0, 80)}..." — this entry is not ready to ship`,
+      );
+    }
+
+    // Fail loud: a stray, unmatched "*" left after stripping every valid
+    // **bold**/*italic* span means the app's parseMarkdownSegments will
+    // pair it with the NEXT unrelated "*" it finds — silently swallowing
+    // everything in between into one wrong italic span, and cascading
+    // (each subsequent "**heading**" then contributes only one of its two
+    // asterisks to close that span, corrupting formatting for the rest of
+    // the article). Caught 2026-07-21: a bold-wrapped "**[CONFIRMADO ...]**"
+    // marker had only its bracket stripped, leaving "**" + "**" behind.
+    const strippedOfValidSpans = value.replace(/\*\*[^*]+\*\*|\*[^*]+\*/g, '');
+    if (strippedOfValidSpans.includes('*')) {
+      throw new Error(
+        `${relPath}: unbalanced markdown asterisk in ${label} — a stray "*" survived outside any valid **bold**/*italic* span. Likely a bold-wrapped marker (e.g. "**[CONFIRMADO ...]**") that only had its bracket stripped. This would silently corrupt formatting for the rest of the article — fix the source markdown, don't ship it.`,
       );
     }
   }
