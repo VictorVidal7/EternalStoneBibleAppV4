@@ -180,11 +180,13 @@ describe('dictionary-v2-es.json (bundled asset, batches 1+2)', () => {
       // bold-wrapped "**[CONFIRMADO ...]**") and creacion (5 bold-wrapped
       // inline "**[NOTA DE CONTEXTO AGREGADA — ver nota general ...]**"
       // pointers that should never have been bold in the first place).
-      const strippedOfValidSpans = e.articleEs.replace(
-        /\*\*[^*]+\*\*|\*[^*]+\*/g,
-        '',
-      );
-      expect(strippedOfValidSpans).not.toContain('*');
+      for (const field of [e.glossEs, e.articleEs]) {
+        const strippedOfValidSpans = field.replace(
+          /\*\*[^*]+\*\*|\*[^*]+\*/g,
+          '',
+        );
+        expect(strippedOfValidSpans).not.toContain('*');
+      }
     }
   });
 
