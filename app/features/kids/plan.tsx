@@ -202,7 +202,7 @@ export default function KidsPlanScreen() {
                 accessibilityRole="button"
                 accessibilityLabel={tp.goToToday}>
                 <AppText
-                  style={[styles.todayBtnText, {color: staticColors.white}]}>
+                  style={[styles.todayBtnText, {color: colors.onPrimary}]}>
                   {tp.goToToday}
                 </AppText>
               </TouchableOpacity>
