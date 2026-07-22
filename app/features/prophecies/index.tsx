@@ -849,14 +849,14 @@ export default function PropheticThreadScreen() {
                     <AppText
                       style={[
                         styles.primaryBtnText,
-                        {color: staticColors.white},
+                        {color: colors.onPrimary},
                       ]}>
                       {tp.begin}
                     </AppText>
                     <Ionicons
                       name="arrow-forward"
                       size={18}
-                      color={staticColors.white}
+                      color={colors.onPrimary}
                     />
                   </TouchableOpacity>
 
@@ -1474,7 +1474,7 @@ export default function PropheticThreadScreen() {
                     <AppText
                       style={[
                         styles.primaryBtnText,
-                        {color: staticColors.white},
+                        {color: colors.onPrimary},
                       ]}>
                       {tp.done}
                     </AppText>

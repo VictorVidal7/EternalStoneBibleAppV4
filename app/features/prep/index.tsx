@@ -1264,7 +1264,7 @@ export default function PrepTableScreen() {
                     <Ionicons
                       name="leaf-outline"
                       size={9}
-                      color={staticColors.white}
+                      color={colors.onPrimary}
                     />
                   </View>
                 )}
@@ -1293,7 +1293,7 @@ export default function PrepTableScreen() {
                     <Ionicons
                       name="leaf-outline"
                       size={9}
-                      color={staticColors.white}
+                      color={colors.onPrimary}
                     />
                   </View>
                 )}
@@ -1324,7 +1324,7 @@ export default function PrepTableScreen() {
                     <Ionicons
                       name="leaf-outline"
                       size={9}
-                      color={staticColors.white}
+                      color={colors.onPrimary}
                     />
                   </View>
                 )}
@@ -1574,22 +1574,19 @@ export default function PrepTableScreen() {
                       accessibilityLabel={t.originals.download}>
                       {originalsDownloading ? (
                         <ActivityIndicator
-                          color={staticColors.white}
+                          color={colors.onPrimary}
                           size="small"
                         />
                       ) : (
                         <Ionicons
                           name="cloud-download-outline"
                           size={16}
-                          color={staticColors.white}
+                          color={colors.onPrimary}
                         />
                       )}
                       <AppText
                         scaleRole="compact"
-                        style={[
-                          styles.exportText,
-                          {color: staticColors.white},
-                        ]}>
+                        style={[styles.exportText, {color: colors.onPrimary}]}>
                         {originalsDownloading
                           ? originalsProgress > 0
                             ? `${t.originals.downloading} ${Math.round(originalsProgress * 100)}%`
@@ -1765,14 +1762,11 @@ export default function PrepTableScreen() {
                       <Ionicons
                         name="settings-outline"
                         size={16}
-                        color={staticColors.white}
+                        color={colors.onPrimary}
                       />
                       <AppText
                         scaleRole="compact"
-                        style={[
-                          styles.exportText,
-                          {color: staticColors.white},
-                        ]}>
+                        style={[styles.exportText, {color: colors.onPrimary}]}>
                         {p.versionCompareGoToSettings}
                       </AppText>
                     </TouchableOpacity>
@@ -2111,11 +2105,14 @@ export default function PrepTableScreen() {
                           <Ionicons
                             name="expand-outline"
                             size={18}
-                            color={staticColors.white}
+                            color={colors.onPrimary}
                           />
                           <AppText
                             scaleRole="compact"
-                            style={styles.pulpitEnterText}>
+                            style={[
+                              styles.pulpitEnterText,
+                              {color: colors.onPrimary},
+                            ]}>
                             {p.pulpitEnterButton}
                           </AppText>
                         </TouchableOpacity>
@@ -2221,11 +2218,11 @@ export default function PrepTableScreen() {
                 <Ionicons
                   name="share-social-outline"
                   size={18}
-                  color={staticColors.white}
+                  color={colors.onPrimary}
                 />
                 <AppText
                   scaleRole="compact"
-                  style={[styles.exportText, {color: staticColors.white}]}>
+                  style={[styles.exportText, {color: colors.onPrimary}]}>
                   {t.together.shareStudy}
                 </AppText>
               </TouchableOpacity>
@@ -2441,7 +2438,6 @@ const styles = StyleSheet.create({
     marginTop: spacing.md,
   },
   pulpitEnterText: {
-    color: staticColors.white,
     fontWeight: '700',
     fontSize: fontSizes.md,
   },

@@ -437,9 +437,9 @@ export default function PlanBuilderScreen() {
           <Ionicons
             name="checkmark-circle-outline"
             size={20}
-            color={staticColors.white}
+            color={colors.onPrimary}
           />
-          <Text style={styles.createBtnText}>
+          <Text style={[styles.createBtnText, {color: colors.onPrimary}]}>
             {isEdit ? tb.save : tb.create}
           </Text>
         </TouchableOpacity>
@@ -572,7 +572,11 @@ export default function PlanBuilderScreen() {
                     onPress={confirmPassage}
                     accessibilityRole="button"
                     accessibilityLabel={tb.addThisPassage}>
-                    <Text style={styles.confirmBtnText}>
+                    <Text
+                      style={[
+                        styles.confirmBtnText,
+                        {color: colors.onPrimary},
+                      ]}>
                       {tb.addThisPassage}
                     </Text>
                   </TouchableOpacity>
@@ -686,7 +690,7 @@ const styles = StyleSheet.create({
     paddingVertical: 15,
     marginTop: 16,
   },
-  createBtnText: {color: staticColors.white, fontSize: 16, fontWeight: '700'},
+  createBtnText: {fontSize: 16, fontWeight: '700'},
   overlay: {
     flex: 1,
     backgroundColor: staticColors.overlayBlack60,
@@ -741,5 +745,5 @@ const styles = StyleSheet.create({
     paddingVertical: 13,
     alignItems: 'center',
   },
-  confirmBtnText: {color: staticColors.white, fontSize: 15, fontWeight: '700'},
+  confirmBtnText: {fontSize: 15, fontWeight: '700'},
 });

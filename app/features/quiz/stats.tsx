@@ -100,8 +100,7 @@ export default function QuizStatsScreen() {
             onPress={openOfferingSheet}
             accessibilityRole="button"
             accessibilityLabel={tq.premiumLockedHint}>
-            <AppText
-              style={[styles.unlockBtnText, {color: staticColors.white}]}>
+            <AppText style={[styles.unlockBtnText, {color: colors.onPrimary}]}>
               {tq.premiumLockedHint}
             </AppText>
           </TouchableOpacity>

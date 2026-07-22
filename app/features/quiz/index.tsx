@@ -351,7 +351,7 @@ export default function QuizScreen() {
                 <Ionicons
                   name="leaf-outline"
                   size={9}
-                  color={staticColors.white}
+                  color={colors.onPrimary}
                 />
               </View>
             )}
@@ -527,10 +527,10 @@ export default function QuizScreen() {
               accessibilityRole="button"
               accessibilityLabel={tq.nextRound}>
               <AppText
-                style={[styles.nextRoundBtnText, {color: staticColors.white}]}>
+                style={[styles.nextRoundBtnText, {color: colors.onPrimary}]}>
                 {tq.nextRound}
               </AppText>
-              <Ionicons name="refresh" size={18} color={staticColors.white} />
+              <Ionicons name="refresh" size={18} color={colors.onPrimary} />
             </TouchableOpacity>
           </View>
         )}

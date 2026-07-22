@@ -302,10 +302,10 @@ export default function PropheticQuizScreen() {
               accessibilityRole="button"
               accessibilityLabel={tp.quizNextRound}>
               <AppText
-                style={[styles.nextRoundBtnText, {color: staticColors.white}]}>
+                style={[styles.nextRoundBtnText, {color: colors.onPrimary}]}>
                 {tp.quizNextRound}
               </AppText>
-              <Ionicons name="refresh" size={18} color={staticColors.white} />
+              <Ionicons name="refresh" size={18} color={colors.onPrimary} />
             </TouchableOpacity>
           </View>
         ) : null}
