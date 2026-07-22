@@ -15,8 +15,10 @@ import {
   formatReferenceForInsert,
   formatReferencedVerseLabel,
   formatSessionDateLabel,
+  formatVerseSelectionForInsert,
   generateSermonNoteId,
   getReferencedVerses,
+  groupContiguousVerses,
   insertReferenceText,
   listSessions,
   parseSermonNotesMap,
@@ -358,6 +360,95 @@ describe('insertReferenceText', () => {
     expect(insertReferenceText('Notas\n', 'Juan 3:16')).toBe(
       'Notas\nJuan 3:16 ',
     );
+  });
+});
+
+describe('groupContiguousVerses', () => {
+  it('collapses a single contiguous run', () => {
+    expect(groupContiguousVerses([16, 17, 18])).toEqual([{start: 16, end: 18}]);
+  });
+
+  it('splits on a gap', () => {
+    expect(groupContiguousVerses([16, 18])).toEqual([
+      {start: 16, end: 16},
+      {start: 18, end: 18},
+    ]);
+  });
+
+  it('sorts and dedupes unordered, repeated input', () => {
+    expect(groupContiguousVerses([18, 16, 17, 17])).toEqual([
+      {start: 16, end: 18},
+    ]);
+  });
+
+  it('handles a single verse', () => {
+    expect(groupContiguousVerses([5])).toEqual([{start: 5, end: 5}]);
+  });
+
+  it('handles an empty selection', () => {
+    expect(groupContiguousVerses([])).toEqual([]);
+  });
+});
+
+describe('formatVerseSelectionForInsert', () => {
+  it('formats a contiguous run as a single range label', () => {
+    expect(
+      formatVerseSelectionForInsert('John', 3, [16, 17, 18], 'es'),
+    ).toEqual(['Juan 3:16-18']);
+  });
+
+  it('formats a single verse without a range', () => {
+    expect(formatVerseSelectionForInsert('John', 3, [16], 'es')).toEqual([
+      'Juan 3:16',
+    ]);
+  });
+
+  it('emits SEPARATE labels for a gap, never a comma list', () => {
+    expect(formatVerseSelectionForInsert('John', 3, [16, 18], 'es')).toEqual([
+      'Juan 3:16',
+      'Juan 3:18',
+    ]);
+  });
+
+  it('uses the English book name when bookLang is en', () => {
+    expect(formatVerseSelectionForInsert('John', 3, [16], 'en')).toEqual([
+      'John 3:16',
+    ]);
+  });
+
+  it('returns an empty array for an empty selection', () => {
+    expect(formatVerseSelectionForInsert('John', 3, [], 'es')).toEqual([]);
+  });
+
+  it('every emitted label round-trips through formatReferenceForInsert unchanged', () => {
+    const labels = formatVerseSelectionForInsert(
+      'John',
+      3,
+      [16, 17, 18, 20],
+      'es',
+    );
+    for (const label of labels) {
+      expect(formatReferenceForInsert(label, 'es')).toBe(label);
+    }
+  });
+
+  it('a range label is recognized back as a single referenced verse with the right bounds', () => {
+    const [label] = formatVerseSelectionForInsert(
+      'John',
+      3,
+      [16, 17, 18],
+      'es',
+    );
+    const refs = getReferencedVerses(label);
+    expect(refs).toEqual([
+      {
+        key: 'John/3/16-18',
+        bookNameEn: 'John',
+        chapter: 3,
+        verse: 16,
+        verseEnd: 18,
+      },
+    ]);
   });
 });
 

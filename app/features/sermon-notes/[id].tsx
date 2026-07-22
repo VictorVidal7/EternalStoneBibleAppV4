@@ -63,6 +63,7 @@ import {
   type SermonNoteSession,
 } from '@/features/study/sermonNotes';
 import {buildSermonNoteMarkdown} from '@/features/study/sermonNotesMarkdown';
+import {SermonVersePickerSheet} from '@/features/study/SermonVersePickerSheet';
 import {
   borderRadius,
   fontSize as fontSizes,
@@ -92,6 +93,7 @@ export default function SermonNoteEditorScreen() {
   const [insertDraft, setInsertDraft] = useState('');
   const [insertError, setInsertError] = useState('');
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
+  const [pickerOpen, setPickerOpen] = useState(false);
 
   // Loaded ONCE per id — not on every focus. Re-focusing this screen (e.g.
   // after tapping a referenced-verse chip and coming back) must never
@@ -169,29 +171,49 @@ export default function SermonNoteEditorScreen() {
     [bodyText],
   );
 
+  // Shared tail for BOTH the manual "+" field and the visual verse-picker
+  // sheet — same debounced path as typing, so a later, still-pending typing
+  // save never overwrites an insert with stale text. Multi-label inserts
+  // (the picker) fold ALL labels into this ONE call rather than looping it,
+  // since each call closes over `bodyText` — looping would read the same
+  // stale snapshot every time and only the last label would survive.
+  const insertFormattedReferences = useCallback(
+    (formatted: string[]) => {
+      if (formatted.length === 0) return;
+      haptics.tap();
+      const next = formatted.reduce(
+        (body, label) => insertReferenceText(body, label),
+        bodyText,
+      );
+      setBodyText(next);
+      debouncedSaveBody(next);
+    },
+    [bodyText, debouncedSaveBody],
+  );
+
   const handleInsertReference = useCallback(() => {
     const formatted = formatReferenceForInsert(insertDraft, bookLang);
     if (!formatted) {
       setInsertError(h.insertReferenceInvalid);
       return;
     }
-    haptics.tap();
-    const next = insertReferenceText(bodyText, formatted);
-    setBodyText(next);
-    // Same debounced path as typing — a later, still-pending typing save
-    // would otherwise overwrite this insert with stale text; routing both
-    // through ONE debounced callback means only the latest value is ever
-    // written.
-    debouncedSaveBody(next);
+    insertFormattedReferences([formatted]);
     setInsertDraft('');
     setInsertError('');
   }, [
     insertDraft,
     bookLang,
-    bodyText,
-    debouncedSaveBody,
+    insertFormattedReferences,
     h.insertReferenceInvalid,
   ]);
+
+  const handlePickerConfirm = useCallback(
+    (labels: string[]) => {
+      insertFormattedReferences(labels);
+      setPickerOpen(false);
+    },
+    [insertFormattedReferences],
+  );
 
   const handleOpenVerse = useCallback(
     (rv: ReferencedVerse) => {
@@ -364,7 +386,21 @@ export default function SermonNoteEditorScreen() {
                 accessibilityRole="button"
                 accessibilityState={{disabled: !insertDraft.trim()}}
                 accessibilityLabel={h.insertReferenceButton}>
-                <Ionicons name="add" size={20} color={staticColors.white} />
+                <Ionicons name="add" size={20} color={colors.onPrimary} />
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[styles.pickerButton, {borderColor: colors.border}]}
+                onPress={() => {
+                  haptics.tap();
+                  setPickerOpen(true);
+                }}
+                accessibilityRole="button"
+                accessibilityLabel={h.pickVerseButton}>
+                <Ionicons
+                  name="book-outline"
+                  size={20}
+                  color={colors.primary}
+                />
               </TouchableOpacity>
             </View>
             {insertError.length > 0 && (
@@ -447,6 +483,12 @@ export default function SermonNoteEditorScreen() {
           onCancel={() => setDeleteConfirmOpen(false)}
           destructive
         />
+        <SermonVersePickerSheet
+          visible={pickerOpen}
+          bookLang={bookLang}
+          onClose={() => setPickerOpen(false)}
+          onConfirm={handlePickerConfirm}
+        />
       </View>
     </>
   );
@@ -526,6 +568,14 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   insertButtonDisabled: {opacity: 0.5},
+  pickerButton: {
+    width: 40,
+    height: 40,
+    borderRadius: borderRadius.md,
+    borderWidth: StyleSheet.hairlineWidth,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
   insertErrorText: {
     fontSize: fontSizes.xs,
     marginTop: spacing.xs,

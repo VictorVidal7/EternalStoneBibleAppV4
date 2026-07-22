@@ -1805,6 +1805,14 @@ export const translations = {
       insertReferenceButton: 'Insertar',
       insertReferenceInvalid:
         'No se reconoce esa referencia. Prueba, por ejemplo, "Juan 3:16".',
+      pickVerseButton: 'Elegir versículo',
+      pickerTitle: 'Elegir versículo',
+      pickerBookSearchPlaceholder: 'Buscar libro...',
+      pickerVerseStepHint: 'Toca los versículos que quieras agregar',
+      pickerVerseStepEmpty: 'No se encontraron versículos para este capítulo',
+      pickerAddButton: 'Agregar {{n}} versículos',
+      pickerAddButtonOne: 'Agregar 1 versículo',
+      pickerAddButtonNone: 'Selecciona al menos un versículo',
       deleteLabel: 'Eliminar nota',
       deleteConfirmTitle: '¿Eliminar esta nota?',
       deleteConfirmBody:
@@ -7358,6 +7366,14 @@ export const translations = {
       insertReferenceButton: 'Insert',
       insertReferenceInvalid:
         'That reference isn\'t recognized. Try, for example, "John 3:16".',
+      pickVerseButton: 'Choose verse',
+      pickerTitle: 'Choose a verse',
+      pickerBookSearchPlaceholder: 'Search book...',
+      pickerVerseStepHint: 'Tap the verses you want to add',
+      pickerVerseStepEmpty: 'No verses found for this chapter',
+      pickerAddButton: 'Add {{n}} verses',
+      pickerAddButtonOne: 'Add 1 verse',
+      pickerAddButtonNone: 'Select at least one verse',
       deleteLabel: 'Delete note',
       deleteConfirmTitle: 'Delete this note?',
       deleteConfirmBody:

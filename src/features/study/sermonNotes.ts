@@ -324,6 +324,57 @@ export function insertReferenceText(
   return `${bodyText}${needsNewline ? '\n' : ''}${formattedRef} `;
 }
 
+/**
+ * Group verse numbers (unsorted, possibly with duplicates) into contiguous
+ * runs, e.g. `[16, 17, 18, 20]` → `[{start:16,end:18}, {start:20,end:20}]`.
+ * Pure — used by the verse-picker sheet to decide when a selection collapses
+ * into a single "16-18" range vs. staying as separate references.
+ */
+export function groupContiguousVerses(
+  verseNumbers: number[],
+): Array<{start: number; end: number}> {
+  const sorted = Array.from(new Set(verseNumbers)).sort((a, b) => a - b);
+  const runs: Array<{start: number; end: number}> = [];
+  for (const n of sorted) {
+    const last = runs[runs.length - 1];
+    if (last && n === last.end + 1) {
+      last.end = n;
+    } else {
+      runs.push({start: n, end: n});
+    }
+  }
+  return runs;
+}
+
+/**
+ * Format a verse-picker selection (all from ONE book/chapter) into one or
+ * more insertable reference labels, ready for [[insertReferenceText]].
+ * Contiguous runs collapse into a single "Book chapter:start-end" label; a
+ * gap in the selection (e.g. verses 16 and 18 but not 17) produces SEPARATE
+ * labels rather than a comma list — `parseReference`/`linkifyReferences`
+ * never round-trip a comma-separated verse list, so emitting one here would
+ * silently break the "tap the chip to open the verse" flow later.
+ */
+export function formatVerseSelectionForInsert(
+  bookNameEn: string,
+  chapter: number,
+  verseNumbers: number[],
+  bookLang: 'es' | 'en' = 'es',
+): string[] {
+  if (verseNumbers.length === 0) return [];
+  const book = getBookByName(bookNameEn);
+  const name = book
+    ? bookLang === 'es'
+      ? book.name
+      : book.nameEn
+    : bookNameEn;
+  return groupContiguousVerses(verseNumbers).map(({start, end}) =>
+    start === end
+      ? `${name} ${chapter}:${start}`
+      : `${name} ${chapter}:${start}-${end}`,
+  );
+}
+
 // ── Defensive parse/serialize, mirroring prepSeries' parsePrepSeriesMap. ────
 
 function coerceSession(value: unknown): SermonNoteSession | null {
