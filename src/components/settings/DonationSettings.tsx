@@ -66,7 +66,9 @@ export default function DonationSettings() {
           accessibilityRole="button"
           accessibilityLabel={t.donation.settingsCta}
           style={[styles.ctaButton, {backgroundColor: colors.primary}]}>
-          <Text scaleRole="compact" style={styles.ctaButtonText}>
+          <Text
+            scaleRole="compact"
+            style={[styles.ctaButtonText, {color: colors.onPrimary}]}>
             {t.donation.settingsCta}
           </Text>
         </TouchableOpacity>
@@ -112,7 +114,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   ctaButtonText: {
-    color: staticColors.white,
     fontSize: 15,
     fontWeight: '700',
   },

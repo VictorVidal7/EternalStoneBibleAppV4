@@ -102,6 +102,7 @@ export default function ExtrasSettings() {
           <TouchableCta
             label={t.offering.settingsCta}
             color={colors.primary}
+            textColor={colors.onPrimary}
             onPress={open}
           />
         )}
@@ -137,10 +138,12 @@ export default function ExtrasSettings() {
 function TouchableCta({
   label,
   color,
+  textColor,
   onPress,
 }: {
   label: string;
   color: string;
+  textColor: string;
   onPress: () => void;
 }) {
   return (
@@ -149,7 +152,9 @@ function TouchableCta({
       accessibilityRole="button"
       accessibilityLabel={label}
       style={[styles.ctaButton, {backgroundColor: color}]}>
-      <Text scaleRole="compact" style={styles.ctaButtonText}>
+      <Text
+        scaleRole="compact"
+        style={[styles.ctaButtonText, {color: textColor}]}>
         {label}
       </Text>
     </TouchableOpacity>
@@ -207,7 +212,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   ctaButtonText: {
-    color: staticColors.white,
     fontSize: 15,
     fontWeight: '700',
   },

@@ -356,12 +356,12 @@ export const BadgeCollectionScreen: React.FC<BadgeCollectionScreenProps> = ({
           <Ionicons
             name="trophy"
             size={18}
-            color={viewMode === 'badges' ? staticColors.white : colors.text}
+            color={viewMode === 'badges' ? colors.onPrimary : colors.text}
           />
           <Text
             style={[
               styles.toggleText,
-              {color: viewMode === 'badges' ? staticColors.white : colors.text},
+              {color: viewMode === 'badges' ? colors.onPrimary : colors.text},
             ]}>
             {t.badgeSystem.allBadges}
           </Text>
@@ -383,12 +383,12 @@ export const BadgeCollectionScreen: React.FC<BadgeCollectionScreenProps> = ({
           <Ionicons
             name="ribbon"
             size={18}
-            color={viewMode === 'titles' ? staticColors.white : colors.text}
+            color={viewMode === 'titles' ? colors.onPrimary : colors.text}
           />
           <Text
             style={[
               styles.toggleText,
-              {color: viewMode === 'titles' ? staticColors.white : colors.text},
+              {color: viewMode === 'titles' ? colors.onPrimary : colors.text},
             ]}>
             {t.badgeSystem.myTitles}
           </Text>
@@ -424,9 +424,7 @@ export const BadgeCollectionScreen: React.FC<BadgeCollectionScreenProps> = ({
                   styles.filterChipText,
                   {
                     color:
-                      filterCategory === 'all'
-                        ? staticColors.white
-                        : colors.text,
+                      filterCategory === 'all' ? colors.onPrimary : colors.text,
                   },
                 ]}>
                 {t.badgeSystem.all}
@@ -464,9 +462,7 @@ export const BadgeCollectionScreen: React.FC<BadgeCollectionScreenProps> = ({
                   }
                   size={14}
                   color={
-                    filterCategory === category
-                      ? staticColors.white
-                      : colors.text
+                    filterCategory === category ? colors.onPrimary : colors.text
                   }
                 />
                 <Text
@@ -475,7 +471,7 @@ export const BadgeCollectionScreen: React.FC<BadgeCollectionScreenProps> = ({
                     {
                       color:
                         filterCategory === category
-                          ? staticColors.white
+                          ? colors.onPrimary
                           : colors.text,
                     },
                   ]}>
