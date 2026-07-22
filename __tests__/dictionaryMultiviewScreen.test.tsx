@@ -10,9 +10,16 @@
  * free shows a single locked row (not N locked rows) that opens the
  * offering sheet; the pre-existing single-article (`treatment: 'annotated'`)
  * branch is untouched by the new code path.
+ *
+ * Also covers the "Aa" reading-preferences wiring added alongside: the screen
+ * reuses the SAME global `ReaderPreferencesContext`/`ReaderPreferencesSheet`
+ * as the main verse reader (no dictionary-scoped store), so `resolveFontFamily`
+ * and the sheet itself are mocked the same lightweight way
+ * propheticThreadBackAndHeader.test.tsx mocks a heavy child sheet.
  */
 import React from 'react';
 import {render, fireEvent} from '@testing-library/react-native';
+import {StyleSheet} from 'react-native';
 import DictionaryDetailScreen from '../app/features/dictionary/[slug]';
 import {translations} from '../src/i18n/translations';
 
@@ -23,7 +30,14 @@ jest.mock('expo-router', () => ({
   Stack: {Screen: () => null},
 }));
 
-jest.mock('@expo/vector-icons', () => ({Ionicons: () => null}));
+// `onPrimary` deliberately differs from staticColors.white (#FFFFFF) so a
+// component that still reads the hardcoded white instead of colors.onPrimary
+// fails the assertion below instead of passing by coincidence (same idiom as
+// DonationSheet.test.tsx / OfferingSheet.test.tsx's Tanda K regression guard).
+const mockIonicons = jest.fn((_props: {name?: string; color?: string}) => null);
+jest.mock('@expo/vector-icons', () => ({
+  Ionicons: (props: {name?: string; color?: string}) => mockIonicons(props),
+}));
 
 jest.mock('expo-linear-gradient', () => {
   const {View} = require('react-native');
@@ -42,6 +56,7 @@ jest.mock('@hooks/useTheme', () => ({
       border: '#222222',
       primary: '#6366f1',
       primaryDark: '#4338ca',
+      onPrimary: '#00ff00',
       text: '#ffffff',
       textSecondary: '#cccccc',
       textTertiary: '#999999',
@@ -61,6 +76,40 @@ jest.mock('@hooks/useLanguage', () => ({
 jest.mock('@lib/haptics', () => ({
   haptics: {tap: jest.fn()},
 }));
+
+// Reuses the SAME global reader-preferences store as the verse reader — no
+// dictionary-scoped preferences. Mutable per-test so font/size/align wiring
+// can be asserted against a non-default value.
+let mockReaderPrefs = {
+  fontFamily: 'sans',
+  fontSize: 16,
+  lineHeightMultiplier: 1.6,
+  textAlign: 'left' as 'left' | 'justify',
+  margin: 'medium',
+  theme: 'system',
+};
+jest.mock('@context/ReaderPreferencesContext', () => ({
+  useReaderPreferences: () => ({preferences: mockReaderPrefs}),
+}));
+
+// The real sheet has its own dedicated test suite (ReaderPreferencesSheet*
+// .test.tsx) — here it's stubbed to a prop probe so this file can assert the
+// screen actually opens it, without pulling in premium/offering wiring
+// again. `resolveFontFamily`/`resolveFontFamilyBold` stay simple and
+// deterministic so the font wiring assertion below doesn't depend on the
+// real bundled typeface catalog.
+jest.mock('@components/reading/ReaderPreferencesSheet', () => {
+  const {Text} = require('react-native');
+  const ReactLib = require('react');
+  return {
+    ReaderPreferencesSheet: ({visible}: {visible: boolean}) =>
+      visible
+        ? ReactLib.createElement(Text, null, 'reader-prefs-sheet-open')
+        : null,
+    resolveFontFamily: (family: string) => `${family}-regular`,
+    resolveFontFamilyBold: (family: string) => `${family}-bold`,
+  };
+});
 
 // Mutable per-test, same pattern as memoryInsightsRestoreBanner.test.tsx /
 // hcHeaderGradients.test.tsx's own mutable mock flags.
@@ -134,6 +183,15 @@ describe('DictionaryDetailScreen — multi-view branch (Bautismo, Milenio)', () 
     mockOpenOfferingSheet.mockClear();
     mockGetDictionaryEntry.mockReset();
     mockGetDictionaryMultiviewSections.mockReset();
+    mockIonicons.mockClear();
+    mockReaderPrefs = {
+      fontFamily: 'sans',
+      fontSize: 16,
+      lineHeightMultiplier: 1.6,
+      textAlign: 'left',
+      margin: 'medium',
+      theme: 'system',
+    };
   });
 
   it('premium: renders all 3 labeled section cards, gloss always visible', async () => {
@@ -190,5 +248,68 @@ describe('DictionaryDetailScreen — multi-view branch (Bautismo, Milenio)', () 
     // No "different views" section for a single-article entry.
     expect(queryByText(translations.es.dictionary.viewsLabel)).toBeNull();
     expect(mockGetDictionaryMultiviewSections).not.toHaveBeenCalled();
+  });
+
+  it('"Aa" button opens the same global ReaderPreferencesSheet used by the verse reader', async () => {
+    mockIsPremium = true;
+    mockGetDictionaryEntry.mockResolvedValue(ANNOTATED_ENTRY);
+    mockGetDictionaryMultiviewSections.mockResolvedValue([]);
+
+    const {findByLabelText, findByText, queryByText} = render(
+      <DictionaryDetailScreen />,
+    );
+
+    expect(await findByText('Artículo completo sobre expiación.')).toBeTruthy();
+    expect(queryByText('reader-prefs-sheet-open')).toBeNull();
+
+    fireEvent.press(
+      await findByLabelText(translations.es.readerPrefs.openLabel),
+    );
+
+    expect(await findByText('reader-prefs-sheet-open')).toBeTruthy();
+  });
+
+  it('wires fontFamily/fontSize/textAlign from the global reader preferences into the gloss text', async () => {
+    mockReaderPrefs = {
+      fontFamily: 'serif',
+      fontSize: 22,
+      lineHeightMultiplier: 1.8,
+      textAlign: 'justify',
+      margin: 'large',
+      theme: 'system',
+    };
+    mockGetDictionaryEntry.mockResolvedValue(BAUTISMO_ENTRY);
+    mockGetDictionaryMultiviewSections.mockResolvedValue([]);
+
+    const {findByText} = render(<DictionaryDetailScreen />);
+
+    const glossNode = await findByText(
+      'El bautismo es el rito de iniciación cristiana.',
+    );
+    const flat = StyleSheet.flatten(glossNode.props.style) as {
+      fontFamily?: string;
+      fontSize?: number;
+      textAlign?: string;
+    };
+    expect(flat.fontFamily).toBe('serif-regular');
+    expect(flat.fontSize).toBe(22);
+    expect(flat.textAlign).toBe('justify');
+  });
+
+  it('the free/premium lock badge icon reads colors.onPrimary, not a hardcoded white', async () => {
+    mockIsPremium = false;
+    mockGetDictionaryEntry.mockResolvedValue(BAUTISMO_ENTRY);
+    mockGetDictionaryMultiviewSections.mockResolvedValue(BAUTISMO_SECTIONS);
+
+    const {findByText} = render(<DictionaryDetailScreen />);
+    expect(
+      await findByText(translations.es.dictionary.viewsLocked),
+    ).toBeTruthy();
+
+    const lockBadgeCall = mockIonicons.mock.calls.find(
+      ([props]) => props.name === 'leaf-outline',
+    );
+    expect(lockBadgeCall).toBeTruthy();
+    expect(lockBadgeCall?.[0].color).toBe('#00ff00');
   });
 });
