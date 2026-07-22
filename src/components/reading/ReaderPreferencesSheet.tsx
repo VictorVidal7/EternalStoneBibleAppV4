@@ -83,6 +83,7 @@ export const ReaderPreferencesSheet: React.FC<ReaderPreferencesSheetProps> = ({
     setMargin,
     setTheme,
     setAutoImmersiveOnListen,
+    setSwipeChapterNavigation,
     reset,
   } = useReaderPreferences();
   const {isPremium, isLoading: premiumLoading} = usePremium();
@@ -674,6 +675,43 @@ export const ReaderPreferencesSheet: React.FC<ReaderPreferencesSheetProps> = ({
                   }
                   accessibilityLabel={t.readerPrefs.autoImmersive}
                   accessibilityHint={t.readerPrefs.autoImmersiveHint}
+                />
+              </View>
+            </Section>
+
+            {/* 👉 Swipe to change chapter (opt-in, default off): the gesture
+                only claims the middle band of the screen width so it never
+                fights the Android system back-gesture, which owns the outer
+                edge strip (see chapterSwipeGesture). */}
+            <Section title={t.readerPrefs.navigationSection} colors={colors}>
+              <View style={styles.switchRow}>
+                <View style={styles.switchTextWrap}>
+                  <Text style={[styles.optionLabelBold, {color: colors.text}]}>
+                    {t.readerPrefs.swipeChapterNav}
+                  </Text>
+                  <Text
+                    style={[styles.switchHint, {color: colors.textSecondary}]}>
+                    {t.readerPrefs.swipeChapterNavHint}
+                  </Text>
+                </View>
+                <Switch
+                  value={preferences.swipeChapterNavigation}
+                  onValueChange={tap(() =>
+                    setSwipeChapterNavigation(
+                      !preferences.swipeChapterNavigation,
+                    ),
+                  )}
+                  trackColor={{
+                    false: colors.border,
+                    true: colors.primary + '70',
+                  }}
+                  thumbColor={
+                    preferences.swipeChapterNavigation
+                      ? colors.primary
+                      : colors.surfaceVariant
+                  }
+                  accessibilityLabel={t.readerPrefs.swipeChapterNav}
+                  accessibilityHint={t.readerPrefs.swipeChapterNavHint}
                 />
               </View>
             </Section>

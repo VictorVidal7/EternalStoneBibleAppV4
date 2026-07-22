@@ -747,6 +747,10 @@ export const translations = {
       autoImmersive: 'Abrir el modo inmersivo al escuchar',
       autoImmersiveHint:
         'Al tocar Audio, la lectura inmersiva se abre sola y sigue la voz',
+      navigationSection: 'Navegación',
+      swipeChapterNav: 'Cambiar de capítulo deslizando',
+      swipeChapterNavHint:
+        'Desliza a la izquierda para el capítulo siguiente y a la derecha para el anterior. El gesto solo actúa en el centro de la pantalla, así que no interfiere con el gesto de "atrás" del sistema.',
       sampleText:
         'En el principio creó Dios los cielos y la tierra. La tierra estaba desordenada y vacía, y las tinieblas estaban sobre la faz del abismo.',
     },
@@ -6265,6 +6269,10 @@ export const translations = {
       autoImmersive: 'Open immersive mode when listening',
       autoImmersiveHint:
         'Tapping Audio opens the immersive reader, following the voice',
+      navigationSection: 'Navigation',
+      swipeChapterNav: 'Change chapter by swiping',
+      swipeChapterNavHint:
+        'Swipe left for the next chapter and right for the previous one. The gesture only responds in the center of the screen, so it never fights the system "back" gesture.',
       sampleText:
         'In the beginning God created the heaven and the earth. And the earth was without form, and void; and darkness was upon the face of the deep.',
     },

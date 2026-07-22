@@ -61,6 +61,13 @@ export interface ReaderPreferences {
    * to preserve battery.
    */
   keepScreenAwake: boolean;
+  /**
+   * Change chapter by swiping left/right in the reader (opt-in, default off).
+   * The gesture only claims the middle band of the screen width — see
+   * [[chapterSwipeGesture]] — so it never fights the Android system
+   * back-gesture, which owns the outer edge strip.
+   */
+  swipeChapterNavigation: boolean;
 }
 
 interface ReaderPreferencesContextValue {
@@ -76,6 +83,7 @@ interface ReaderPreferencesContextValue {
   setTheme: (next: ReaderTheme) => void;
   setAutoImmersiveOnListen: (next: boolean) => void;
   setKeepScreenAwake: (next: boolean) => void;
+  setSwipeChapterNavigation: (next: boolean) => void;
   /** Reset to defaults. Useful for a "Restore defaults" button. */
   reset: () => void;
 }
@@ -90,6 +98,7 @@ export const DEFAULT_READER_PREFERENCES: ReaderPreferences = {
   sepiaGrandfathered: false,
   autoImmersiveOnListen: false,
   keepScreenAwake: false,
+  swipeChapterNavigation: false,
 };
 
 export const READER_FONT_SIZE_MIN = 14;
@@ -209,6 +218,10 @@ export const ReaderPreferencesProvider: React.FC<
     setPreferences(prev => ({...prev, keepScreenAwake: !!next}));
   }, []);
 
+  const setSwipeChapterNavigation = useCallback((next: boolean) => {
+    setPreferences(prev => ({...prev, swipeChapterNavigation: !!next}));
+  }, []);
+
   const reset = useCallback(() => {
     setPreferences(DEFAULT_READER_PREFERENCES);
   }, []);
@@ -225,6 +238,7 @@ export const ReaderPreferencesProvider: React.FC<
       setTheme,
       setAutoImmersiveOnListen,
       setKeepScreenAwake,
+      setSwipeChapterNavigation,
       reset,
     }),
     [
@@ -238,6 +252,7 @@ export const ReaderPreferencesProvider: React.FC<
       setTheme,
       setAutoImmersiveOnListen,
       setKeepScreenAwake,
+      setSwipeChapterNavigation,
       reset,
     ],
   );
