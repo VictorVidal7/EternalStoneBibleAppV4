@@ -72,9 +72,10 @@ export interface StrongsBookCount {
 
 /**
  * A Bible-dictionary entry (Tanda 5). `gloss_es` is free, complete in
- * itself; `article_es` is the premium full translated article (null for a
- * future `multi-view` treatment, where the content instead lives in a
- * separate `dictionary_multiview_sections` table — not part of this batch).
+ * itself; `article_es` is the premium full translated article — `null` for
+ * a `multi-view` treatment (batch 3: Bautismo, Milenio), where the premium
+ * content instead lives in `dictionary_multiview_sections` (see
+ * `DictionaryMultiviewSection` below), keyed by `slug`.
  */
 export interface DictionaryEntry {
   slug: string;
@@ -84,6 +85,20 @@ export interface DictionaryEntry {
   source_tier: string;
   treatment: string;
   updated_at: string | null;
+}
+
+/**
+ * One labeled section of a `treatment === 'multi-view'` dictionary entry
+ * (e.g. one signed doctrinal tradition's take on Bautismo, or one
+ * eschatological posture on Milenio). Rendered in `position` order; all
+ * sections sit behind the same premium gate as `article_es` would for a
+ * single-article entry.
+ */
+export interface DictionaryMultiviewSection {
+  slug: string;
+  position: number;
+  label_es: string;
+  body_es: string;
 }
 
 /** Schema name the downloaded originals pack is attached under at import. */
@@ -124,9 +139,11 @@ const DICT_V1_UPDATED_AT = '2026-07-18';
  * seedDictionaryV2IfNeeded). Bump whenever the JSON asset's entry set grows
  * or changes so the app re-imports it on the next launch. v1 = batch 1
  * (Expiación, Sábado, Creación, Tabernáculo); v2 = batch 2, same day (+
- * Reino de Dios, Predestinación, Espíritu Santo, Salvación).
+ * Reino de Dios, Predestinación, Espíritu Santo, Salvación); v3 = batch 3
+ * (Bautismo, Milenio — `treatment: 'multi-view'`, `article_es: null`,
+ * content in `dictionary_multiview_sections`).
  */
-const DICT_V2_VERSION = 2;
+const DICT_V2_VERSION = 3;
 
 /** `updated_at` stamped on every row seeded by seedDictionaryV2IfNeeded. */
 const DICT_V2_UPDATED_AT = '2026-07-21';
@@ -472,6 +489,22 @@ class BibleDatabase {
       )
     `);
 
+    // Labeled multi-view sections for `dictionary_entries` rows whose
+    // `treatment` is `'multi-view'` (Tanda 5, batch 3: Bautismo, Milenio).
+    // `article_es` is NULL for those rows; the premium content lives here
+    // instead, one row per signed tradition/posture, in `position` order.
+    // Populated by seedDictionaryV2IfNeeded (sole writer — see its own
+    // comment for why an unconditional DELETE there is safe).
+    await db.runAsync(`
+      CREATE TABLE IF NOT EXISTS dictionary_multiview_sections (
+        slug TEXT,
+        position INTEGER,
+        label_es TEXT,
+        body_es TEXT,
+        PRIMARY KEY (slug, position)
+      )
+    `);
+
     await this.migrateBookmarksToFavorites();
 
     // Índices
@@ -692,6 +725,15 @@ class BibleDatabase {
    * `dictionary_entries`. Same shape as seedDictionaryV1IfNeeded, versioned
    * and scoped independently so re-importing one tier never touches the
    * other's rows.
+   *
+   * Batch 3 (Bautismo, Milenio) added `treatment: 'multi-view'` rows: their
+   * `articleEs` is `null` and their premium content instead ships as a
+   * `sections` array, inserted into `dictionary_multiview_sections`. That
+   * table has no `source_tier` column (only v2-doctrinal entries use
+   * multi-view today) so its DELETE below is unconditional — safe only
+   * because this function is that table's sole writer; if a future tier
+   * ever writes multi-view rows too, scope this the same way the
+   * `dictionary_entries` DELETE already is.
    */
   private async seedDictionaryV2IfNeeded(): Promise<void> {
     const db = this.getDb();
@@ -701,13 +743,15 @@ class BibleDatabase {
       );
       if (loaded === String(DICT_V2_VERSION)) return;
 
+      type SeedSection = {position: number; labelEs: string; bodyEs: string};
       type SeedEntry = {
         slug: string;
         headwordEs: string;
         glossEs: string;
-        articleEs: string;
+        articleEs: string | null;
         sourceTier: string;
         treatment: string;
+        sections?: SeedSection[];
       };
       // Bundled JSON asset — see scripts/build-dictionary-v2-es.js.
       const entries: SeedEntry[] = require('../../../assets/dictionary-v2-es.json');
@@ -716,6 +760,7 @@ class BibleDatabase {
         await db.runAsync(
           "DELETE FROM dictionary_entries WHERE source_tier = 'v2-doctrinal'",
         );
+        await db.runAsync('DELETE FROM dictionary_multiview_sections');
         for (const e of entries) {
           await db.runAsync(
             `INSERT INTO dictionary_entries
@@ -731,6 +776,14 @@ class BibleDatabase {
               DICT_V2_UPDATED_AT,
             ],
           );
+          for (const s of e.sections ?? []) {
+            await db.runAsync(
+              `INSERT INTO dictionary_multiview_sections
+                 (slug, position, label_es, body_es)
+               VALUES (?, ?, ?, ?)`,
+              [e.slug, s.position, s.labelEs, s.bodyEs],
+            );
+          }
         }
       });
 
@@ -1027,6 +1080,26 @@ class BibleDatabase {
     return this.getDb().getAllAsync<
       Pick<DictionaryEntry, 'slug' | 'headword_es' | 'gloss_es'>
     >('SELECT slug, headword_es, gloss_es FROM dictionary_entries');
+  }
+
+  /**
+   * The labeled premium sections of a `treatment === 'multi-view'`
+   * dictionary entry, in display order. Empty array for any other entry
+   * (nothing was ever inserted for its slug) — callers branch on
+   * `entry.treatment`, not on this array's length, but an empty result is
+   * still a safe no-op rather than an error.
+   */
+  async getDictionaryMultiviewSections(
+    slug: string,
+  ): Promise<DictionaryMultiviewSection[]> {
+    await this.initialize();
+    return this.getDb().getAllAsync<DictionaryMultiviewSection>(
+      `SELECT slug, position, label_es, body_es
+       FROM dictionary_multiview_sections
+       WHERE slug = ?
+       ORDER BY position`,
+      [slug.trim()],
+    );
   }
 
   private async migrateBookmarksToFavorites(): Promise<void> {

@@ -38,6 +38,15 @@
  * an explicit list keeps this run's actual scope — only the entries Victor
  * approved as ready — auditable at a glance).
  *
+ * Batch 3 (Bautismo, Milenio — `treatment: 'multi-view'`) doesn't go
+ * through `SOURCES`/`parseEntry` at all: those two entries are several
+ * signed pieces/postures, not one article, so their premium content is a
+ * `sections` array (→ `dictionary_multiview_sections` rows) instead of a
+ * single `articleEs` string, and `articleEs` ships `null`. They're sliced
+ * by the separate `scripts/split-dictionary-views.js` (run first, writes
+ * `assets/dictionary-v2-multiview-es.json`) — this script just reads that
+ * already-resolved JSON and merges it in below, unchanged.
+ *
  * Para la gloria de Dios Todopoderoso ✨
  */
 
@@ -51,6 +60,17 @@ const OUT =
 const SCRATCH_BASE =
   process.argv[3] ||
   'C:\\Users\\victo\\AppData\\Local\\Temp\\claude\\C--projects-EternalStoneBibleAppV4\\d451883b-b8f6-4f80-ad38-86967c47d25f\\scratchpad';
+
+// Batch 3's already-sliced multi-view entries (Bautismo, Milenio) — written
+// by `node scripts/split-dictionary-views.js`, run BEFORE this script.
+// Always a repo-relative build artifact, never scratchpad-relative (unlike
+// SCRATCH_BASE above), since it's the OUTPUT of that other script, not a
+// raw source file.
+const MULTIVIEW_JSON = path.join(
+  ROOT,
+  'assets',
+  'dictionary-v2-multiview-es.json',
+);
 
 // Batch 1 (2026-07-21): the 4 v2-doctrinal entries Victor confirmed as fully
 // resolved (zero open `[REVISAR]` markers, verified before this script was
@@ -230,8 +250,60 @@ function parseEntry(relPath, slug, content) {
   };
 }
 
+/** Load + lightly validate batch 3's already-sliced multi-view entries.
+ *  Only structural checks here — the actual marker-resolution/asterisk-
+ *  balance fail-loud checks already ran per-section inside
+ *  split-dictionary-views.js; re-running the SAME checks against its
+ *  output here (like the annotated batches' parseEntry does against ITS
+ *  own freshly-resolved text) is cheap insurance against a hand-edit of
+ *  the intermediate JSON reintroducing a marker after the fact. */
+function loadMultiviewEntries() {
+  if (!fs.existsSync(MULTIVIEW_JSON)) {
+    throw new Error(
+      `Multi-view JSON not found: ${MULTIVIEW_JSON} — run ` +
+        `"node scripts/split-dictionary-views.js" first.`,
+    );
+  }
+  const entries = JSON.parse(fs.readFileSync(MULTIVIEW_JSON, 'utf8'));
+  const markerPattern =
+    /\[REVISAR|\[EXCISE|\[END EXCISE|\[CONFIRMADO|\[NOTA DE CONTEXTO|\[APROBADO/;
+  for (const e of entries) {
+    if (e.treatment !== 'multi-view') {
+      throw new Error(
+        `${MULTIVIEW_JSON}: ${e.slug} treatment must be 'multi-view'`,
+      );
+    }
+    if (e.articleEs !== null) {
+      throw new Error(`${MULTIVIEW_JSON}: ${e.slug} articleEs must be null`);
+    }
+    if (!Array.isArray(e.sections) || e.sections.length === 0) {
+      throw new Error(`${MULTIVIEW_JSON}: ${e.slug} has no sections`);
+    }
+    for (const field of [e.glossEs, ...e.sections.map(s => s.bodyEs)]) {
+      if (markerPattern.test(field)) {
+        throw new Error(
+          `${MULTIVIEW_JSON}: ${e.slug} still has an unresolved marker — "${field.match(markerPattern)[0].slice(0, 60)}..."`,
+        );
+      }
+      if (field.includes('`')) {
+        throw new Error(`${MULTIVIEW_JSON}: ${e.slug} has a stray backtick`);
+      }
+      const strippedOfValidSpans = field.replace(
+        /\*\*[^*]+\*\*|\*[^*]+\*/g,
+        '',
+      );
+      if (strippedOfValidSpans.includes('*')) {
+        throw new Error(
+          `${MULTIVIEW_JSON}: ${e.slug} has an unbalanced markdown asterisk`,
+        );
+      }
+    }
+  }
+  return entries;
+}
+
 function main() {
-  const entries = SOURCES.map(({file, slug}) => {
+  const annotatedEntries = SOURCES.map(({file, slug}) => {
     const abs = path.join(SCRATCH_BASE, file);
     if (!fs.existsSync(abs)) {
       throw new Error(`Source file not found: ${abs}`);
@@ -240,6 +312,9 @@ function main() {
     return parseEntry(file, slug, content);
   });
 
+  const multiviewEntries = loadMultiviewEntries();
+
+  const entries = [...annotatedEntries, ...multiviewEntries];
   entries.sort((a, b) => a.slug.localeCompare(b.slug));
 
   const seen = new Set();
@@ -258,9 +333,15 @@ function main() {
     `   ${entries.length} entries: ${entries.map(e => e.slug).join(', ')}`,
   );
   for (const e of entries) {
-    console.log(
-      `   - ${e.slug}: headword="${e.headwordEs}" gloss=${e.glossEs.length} chars, article=${e.articleEs.length} chars`,
-    );
+    if (e.treatment === 'multi-view') {
+      console.log(
+        `   - ${e.slug}: headword="${e.headwordEs}" gloss=${e.glossEs.length} chars, ${e.sections.length} multi-view sections`,
+      );
+    } else {
+      console.log(
+        `   - ${e.slug}: headword="${e.headwordEs}" gloss=${e.glossEs.length} chars, article=${e.articleEs.length} chars`,
+      );
+    }
   }
 }
 
