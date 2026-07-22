@@ -48,7 +48,13 @@ class FakeDictHandle {
   ): Promise<{changes: number; lastInsertRowId: number}> {
     const s = sql.trim();
     if (/^DELETE FROM dictionary_entries/i.test(s)) {
-      this.rows = [];
+      // Real query scopes by source_tier — model that here too, so a test
+      // seeding two tiers actually exercises the cross-tier safety the real
+      // scoped DELETE exists for, instead of silently wiping everything.
+      const tierMatch = s.match(/source_tier\s*=\s*'([^']+)'/i);
+      this.rows = tierMatch
+        ? this.rows.filter(r => r.source_tier !== tierMatch[1])
+        : [];
       return {changes: 0, lastInsertRowId: 0};
     }
     if (/^INSERT INTO dictionary_entries/i.test(s)) {
