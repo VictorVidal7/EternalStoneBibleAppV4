@@ -10,6 +10,16 @@
  * batch today, but the column allows it) simply omits that section — no
  * broken teaser for content that doesn't exist.
  *
+ * Batch 3 (Tanda 5, v2 multi-view — Bautismo, Milenio): `treatment ===
+ * 'multi-view'` entries have `article_es: null` by design (see
+ * `DictionaryEntry`'s own comment) — their premium content is several
+ * labeled sections (`getDictionaryMultiviewSections`), one per signed
+ * doctrinal tradition or eschatological posture, fetched alongside the entry
+ * and rendered as a list of cards instead of one article block. Same gate:
+ * the gloss is always visible, every section sits behind `isPremium`
+ * together (not section-by-section — there's no product reason to unlock
+ * one posture but not another).
+ *
  * Reached from the browse screen (`/features/dictionary`) and the deep link
  * eternalbible://features/dictionary/<slug>.
  *
@@ -36,7 +46,10 @@ import {usePremium} from '@context/PremiumContext';
 import {useOfferingSheet} from '@context/OfferingSheetContext';
 import {haptics} from '@lib/haptics';
 import {AppText} from '@components/ui/AppText';
-import bibleDB, {type DictionaryEntry} from '@lib/database';
+import bibleDB, {
+  type DictionaryEntry,
+  type DictionaryMultiviewSection,
+} from '@lib/database';
 import {
   parseMarkdownSegments,
   titleCaseHeadword,
@@ -51,6 +64,35 @@ import {
 
 type LoadStatus = 'loading' | 'ready' | 'error' | 'unknown';
 
+/** Renders `parseMarkdownSegments(text)` as inline `Text` nodes — shared by
+ *  the single-article body and every multi-view section body, so the bold
+ *  and italic handling only lives in one place. Plain-style segments are
+ *  returned as bare strings, inheriting the wrapping `Text`'s color — no
+ *  separate "plain" color prop needed here. */
+function MarkdownBody({text, boldColor}: {text: string; boldColor: string}) {
+  return (
+    <>
+      {parseMarkdownSegments(text).map((seg, i) => {
+        if (seg.style === 'bold') {
+          return (
+            <Text key={i} style={[styles.articleBold, {color: boldColor}]}>
+              {seg.text}
+            </Text>
+          );
+        }
+        if (seg.style === 'italic') {
+          return (
+            <Text key={i} style={styles.articleItalic}>
+              {seg.text}
+            </Text>
+          );
+        }
+        return seg.text;
+      })}
+    </>
+  );
+}
+
 export default function DictionaryDetailScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
@@ -63,6 +105,9 @@ export default function DictionaryDetailScreen() {
   const params = useLocalSearchParams<{slug?: string}>();
   const [status, setStatus] = useState<LoadStatus>('loading');
   const [entry, setEntry] = useState<DictionaryEntry | null>(null);
+  const [multiviewSections, setMultiviewSections] = useState<
+    DictionaryMultiviewSection[]
+  >([]);
 
   const load = useCallback(async () => {
     if (!params.slug) {
@@ -78,6 +123,11 @@ export default function DictionaryDetailScreen() {
         return;
       }
       setEntry(row);
+      setMultiviewSections(
+        row.treatment === 'multi-view'
+          ? await bibleDB.getDictionaryMultiviewSections(params.slug)
+          : [],
+      );
       setStatus('ready');
     } catch {
       setStatus('error');
@@ -189,28 +239,10 @@ export default function DictionaryDetailScreen() {
                         styles.articleText,
                         {color: colors.textSecondary},
                       ]}>
-                      {parseMarkdownSegments(entry.article_es).map((seg, i) => {
-                        if (seg.style === 'bold') {
-                          return (
-                            <Text
-                              key={i}
-                              style={[
-                                styles.articleBold,
-                                {color: colors.text},
-                              ]}>
-                              {seg.text}
-                            </Text>
-                          );
-                        }
-                        if (seg.style === 'italic') {
-                          return (
-                            <Text key={i} style={styles.articleItalic}>
-                              {seg.text}
-                            </Text>
-                          );
-                        }
-                        return seg.text;
-                      })}
+                      <MarkdownBody
+                        text={entry.article_es}
+                        boldColor={colors.text}
+                      />
                     </Text>
                   ) : (
                     <TouchableOpacity
@@ -235,6 +267,86 @@ export default function DictionaryDetailScreen() {
                           {color: colors.textSecondary},
                         ]}>
                         {dt.articleLocked}
+                      </Text>
+                    </TouchableOpacity>
+                  )}
+                </View>
+              ) : null}
+
+              {entry.treatment === 'multi-view' &&
+              multiviewSections.length > 0 ? (
+                <View
+                  style={[
+                    styles.articleSection,
+                    {borderTopColor: colors.border},
+                  ]}>
+                  <View style={styles.articleHeaderRow}>
+                    <Text style={[styles.articleLabel, {color: colors.text}]}>
+                      {dt.viewsLabel}
+                    </Text>
+                    <View
+                      style={[
+                        styles.exclusiveBadge,
+                        {backgroundColor: colors.primary + '1a'},
+                      ]}>
+                      <Text
+                        style={[styles.exclusiveText, {color: colors.primary}]}>
+                        {t.originals.exclusiveLabel}
+                      </Text>
+                    </View>
+                  </View>
+                  {isPremium ? (
+                    <View style={styles.viewsList}>
+                      {multiviewSections.map(section => (
+                        <View
+                          key={section.position}
+                          style={[
+                            styles.viewCard,
+                            {
+                              backgroundColor: colors.background,
+                              borderColor: colors.border,
+                            },
+                          ]}>
+                          <Text
+                            style={[styles.viewLabel, {color: colors.primary}]}>
+                            {section.label_es}
+                          </Text>
+                          <Text
+                            style={[
+                              styles.articleText,
+                              {color: colors.textSecondary},
+                            ]}>
+                            <MarkdownBody
+                              text={section.body_es}
+                              boldColor={colors.text}
+                            />
+                          </Text>
+                        </View>
+                      ))}
+                    </View>
+                  ) : (
+                    <TouchableOpacity
+                      style={styles.lockedRow}
+                      onPress={handleUnlock}
+                      accessibilityRole="button"
+                      accessibilityLabel={`${dt.viewsLabel} — ${t.offering.badgeA11y}`}>
+                      <View
+                        style={[
+                          styles.lockBadge,
+                          {backgroundColor: colors.primary},
+                        ]}>
+                        <Ionicons
+                          name="leaf-outline"
+                          size={11}
+                          color={staticColors.white}
+                        />
+                      </View>
+                      <Text
+                        style={[
+                          styles.lockedText,
+                          {color: colors.textSecondary},
+                        ]}>
+                        {dt.viewsLocked}
                       </Text>
                     </TouchableOpacity>
                   )}
@@ -337,6 +449,19 @@ const styles = StyleSheet.create({
   },
   articleItalic: {
     fontStyle: 'italic',
+  },
+  viewsList: {
+    gap: spacing.md,
+  },
+  viewCard: {
+    borderWidth: 1,
+    borderRadius: borderRadius.md,
+    padding: spacing.md,
+    gap: spacing.xs,
+  },
+  viewLabel: {
+    fontSize: fontSizes.sm,
+    fontWeight: '700',
   },
   lockedRow: {
     flexDirection: 'row',
