@@ -313,9 +313,11 @@ export default function PrepIllustrationsListScreen() {
               <Ionicons
                 name="leaf-outline"
                 size={18}
-                color={staticColors.white}
+                color={colors.onPrimary}
               />
-              <AppText scaleRole="compact" style={styles.unlockButtonText}>
+              <AppText
+                scaleRole="compact"
+                style={[styles.unlockButtonText, {color: colors.onPrimary}]}>
                 {t.offering.settingsCta}
               </AppText>
             </TouchableOpacity>
@@ -411,6 +413,16 @@ export default function PrepIllustrationsListScreen() {
                         : ILLUSTRATION_CATEGORY_META[value];
                     const label =
                       value === 'all' ? h.filterAll : h.categories[value];
+                    // The 'all' chip has no fixed category accent, so its
+                    // selected fill falls back to the theme-reactive
+                    // `colors.primary` — unlike every other chip's fixed,
+                    // theme-independent `meta.accent`. That fallback needs
+                    // `colors.onPrimary` ink (dark-mode/amber `colors.primary`
+                    // resolves to a LIGHT hue, where literal white would be
+                    // low-contrast); the fixed accents stay safely white.
+                    const selectedInk = meta
+                      ? staticColors.white
+                      : colors.onPrimary;
                     return (
                       <TouchableOpacity
                         key={value}
@@ -436,16 +448,14 @@ export default function PrepIllustrationsListScreen() {
                           <Ionicons
                             name={meta.icon as keyof typeof Ionicons.glyphMap}
                             size={13}
-                            color={selected ? staticColors.white : colors.text}
+                            color={selected ? selectedInk : colors.text}
                           />
                         )}
                         <Text
                           style={[
                             styles.chipText,
                             {
-                              color: selected
-                                ? staticColors.white
-                                : colors.text,
+                              color: selected ? selectedInk : colors.text,
                             },
                           ]}>
                           {label}
@@ -682,7 +692,6 @@ const styles = StyleSheet.create({
     marginTop: spacing.md,
   },
   unlockButtonText: {
-    color: staticColors.white,
     fontWeight: '700',
     fontSize: fontSizes.md,
   },

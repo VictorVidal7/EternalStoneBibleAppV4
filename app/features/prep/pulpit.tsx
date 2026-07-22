@@ -55,7 +55,7 @@ import {
   estimateMinutes,
   formatEstimatedDuration,
 } from '@/features/study/prepTiming';
-import {borderRadius, spacing, staticColors} from '@/styles/designTokens';
+import {borderRadius, spacing} from '@/styles/designTokens';
 
 type Status = 'loading' | 'ready' | 'empty' | 'error';
 
@@ -293,9 +293,11 @@ export default function PulpitModeScreen() {
               <Ionicons
                 name="leaf-outline"
                 size={18}
-                color={staticColors.white}
+                color={colors.onPrimary}
               />
-              <AppText scaleRole="compact" style={styles.unlockButtonText}>
+              <AppText
+                scaleRole="compact"
+                style={[styles.unlockButtonText, {color: colors.onPrimary}]}>
                 {t.offering.settingsCta}
               </AppText>
             </TouchableOpacity>
@@ -572,7 +574,6 @@ const styles = StyleSheet.create({
     marginTop: spacing.md,
   },
   unlockButtonText: {
-    color: staticColors.white,
     fontWeight: '700',
     fontSize: 15,
   },

@@ -470,9 +470,11 @@ export default function PrepSeriesDetailScreen() {
               <Ionicons
                 name="leaf-outline"
                 size={18}
-                color={staticColors.white}
+                color={colors.onPrimary}
               />
-              <AppText scaleRole="compact" style={styles.unlockButtonText}>
+              <AppText
+                scaleRole="compact"
+                style={[styles.unlockButtonText, {color: colors.onPrimary}]}>
                 {t.offering.settingsCta}
               </AppText>
             </TouchableOpacity>
@@ -526,7 +528,7 @@ export default function PrepSeriesDetailScreen() {
                   accessibilityRole="button"
                   accessibilityState={{disabled: !addDraft.trim()}}
                   accessibilityLabel={h.addPassage}>
-                  <Ionicons name="add" size={22} color={staticColors.white} />
+                  <Ionicons name="add" size={22} color={colors.onPrimary} />
                 </TouchableOpacity>
               </View>
               {addError.length > 0 && (
@@ -556,7 +558,7 @@ export default function PrepSeriesDetailScreen() {
                       styles.viewToggleText,
                       {
                         color: !viewByDate
-                          ? staticColors.white
+                          ? colors.onPrimary
                           : colors.textSecondary,
                       },
                     ]}>
@@ -581,7 +583,7 @@ export default function PrepSeriesDetailScreen() {
                       styles.viewToggleText,
                       {
                         color: viewByDate
-                          ? staticColors.white
+                          ? colors.onPrimary
                           : colors.textSecondary,
                       },
                     ]}>
@@ -997,7 +999,6 @@ const styles = StyleSheet.create({
     marginTop: spacing.md,
   },
   unlockButtonText: {
-    color: staticColors.white,
     fontWeight: '700',
     fontSize: fontSizes.md,
   },
