@@ -237,9 +237,7 @@ export default function NotesScreen() {
                     style={[
                       styles.sortChipText,
                       {
-                        color: active
-                          ? staticColors.white
-                          : colors.textSecondary,
+                        color: active ? colors.onPrimary : colors.textSecondary,
                       },
                     ]}>
                     {sortLabel[order]}

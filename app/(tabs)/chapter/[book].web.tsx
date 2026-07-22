@@ -7,7 +7,7 @@ import {getBookByName} from '@/constants/bible';
 import {useTheme} from '@hooks/useTheme';
 import {useLanguage} from '@hooks/useLanguage';
 import {useBibleVersion} from '@hooks/useBibleVersion';
-import {spacing, fontSize, staticColors} from '@/styles/designTokens';
+import {spacing, fontSize} from '@/styles/designTokens';
 import {centeredMaxWidth, CONTENT_MAX_WIDTH} from '@/styles/responsive';
 
 /**
@@ -69,7 +69,9 @@ export default function ChapterSelectionScreenWeb() {
             onPress={() => router.back()}
             accessibilityRole="button"
             accessibilityLabel={t.bible.back}>
-            <Text style={styles.backButtonText}>{t.bible.back}</Text>
+            <Text style={[styles.backButtonText, {color: colors.onPrimary}]}>
+              {t.bible.back}
+            </Text>
           </TouchableOpacity>
         </View>
       </>
@@ -138,7 +140,7 @@ const styles = StyleSheet.create({
     paddingVertical: spacing.sm,
     borderRadius: 10,
   },
-  backButtonText: {color: staticColors.white, fontWeight: '600'},
+  backButtonText: {fontWeight: '600'},
   header: {
     flexDirection: 'row',
     alignItems: 'center',

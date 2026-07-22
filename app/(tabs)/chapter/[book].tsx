@@ -256,8 +256,10 @@ export default function ChapterSelectionScreen() {
             <TouchableOpacity
               style={[styles.backButton, {backgroundColor: colors.primary}]}
               onPress={() => router.back()}>
-              <Ionicons name="arrow-back" size={20} color="#ffffff" />
-              <Text style={styles.backButtonText}>{t.bible.back}</Text>
+              <Ionicons name="arrow-back" size={20} color={colors.onPrimary} />
+              <Text style={[styles.backButtonText, {color: colors.onPrimary}]}>
+                {t.bible.back}
+              </Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -638,7 +640,6 @@ const styles = StyleSheet.create({
   backButtonText: {
     fontSize: fontSize.base,
     fontWeight: '600',
-    color: staticColors.white,
   },
 
   // Header - Estandarizado con todas las pantallas

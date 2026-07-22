@@ -513,8 +513,8 @@ export default function ReadingPlanDetailScreen() {
               onPress={() => openChapter(firstUnread.book, firstUnread.chapter)}
               accessibilityRole="button"
               accessibilityLabel={t.readingPlan.readDay}>
-              <Ionicons name="book" size={15} color={staticColors.white} />
-              <Text style={styles.todayActionText}>
+              <Ionicons name="book" size={15} color={colors.onPrimary} />
+              <Text style={[styles.todayActionText, {color: colors.onPrimary}]}>
                 {t.readingPlan.readDay}
               </Text>
             </TouchableOpacity>
@@ -564,7 +564,9 @@ export default function ReadingPlanDetailScreen() {
                   : staticColors.transparent,
               },
             ]}>
-            {done && <Ionicons name="checkmark" size={18} color="#fff" />}
+            {done && (
+              <Ionicons name="checkmark" size={18} color={colors.onPrimary} />
+            )}
           </View>
         </TouchableOpacity>
         <View style={styles.dayContent}>
@@ -1028,7 +1030,6 @@ const styles = StyleSheet.create({
   todayActionText: {
     fontSize: 14,
     fontWeight: '700',
-    color: staticColors.white,
   },
   chipsRow: {
     flexDirection: 'row',
