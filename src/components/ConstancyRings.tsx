@@ -27,6 +27,7 @@ import {
   ringRadius,
   ringCircumference,
   ringDashoffset,
+  displayFraction,
   type ConstancySummary,
   type HabitKey,
   type RingState,
@@ -112,7 +113,10 @@ export const ConstancyRingsGraphic: React.FC<GraphicProps> = ({
                 strokeWidth={strokeWidth}
                 fill="none"
                 strokeDasharray={circumference}
-                strokeDashoffset={ringDashoffset(circumference, ring.fraction)}
+                strokeDashoffset={ringDashoffset(
+                  circumference,
+                  displayFraction(ring),
+                )}
                 strokeLinecap="round"
                 rotation="-90"
                 origin={`${center}, ${center}`}

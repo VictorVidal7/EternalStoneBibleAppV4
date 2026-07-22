@@ -160,3 +160,21 @@ export function ringDashoffset(
 ): number {
   return circumference * (1 - clampFraction(fraction));
 }
+
+/**
+ * A thin minimum arc for a habit with a LIVE streak but nothing done today
+ * (fraction 0) — otherwise it draws as an empty track, visually IDENTICAL to
+ * a habit that has never been touched. A real device report showed a
+ * multi-day reading streak's ring looking "vanished" even though the streak
+ * itself was intact — this "pilot light" keeps an active streak visibly
+ * distinct from a never-started one, regardless of why today reads as 0.
+ */
+export const PILOT_LIGHT_FRACTION = 0.04;
+
+/** The fraction actually drawn for a ring's arc — see {@link PILOT_LIGHT_FRACTION}. */
+export function displayFraction(
+  ring: Pick<RingState, 'fraction' | 'streak'>,
+): number {
+  if (ring.fraction > 0) return ring.fraction;
+  return ring.streak > 0 ? PILOT_LIGHT_FRACTION : 0;
+}
