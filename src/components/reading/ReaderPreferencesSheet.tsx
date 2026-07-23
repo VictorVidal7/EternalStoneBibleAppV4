@@ -72,7 +72,7 @@ export const ReaderPreferencesSheet: React.FC<ReaderPreferencesSheetProps> = ({
   visible,
   onClose,
 }) => {
-  const {colors} = useTheme();
+  const {colors, isDark} = useTheme();
   const {t} = useLanguage();
   const {
     preferences,
@@ -84,6 +84,7 @@ export const ReaderPreferencesSheet: React.FC<ReaderPreferencesSheetProps> = ({
     setTheme,
     setAutoImmersiveOnListen,
     setSwipeChapterNavigation,
+    setRedLetterWords,
     reset,
   } = useReaderPreferences();
   const {isPremium, isLoading: premiumLoading} = usePremium();
@@ -137,8 +138,8 @@ export const ReaderPreferencesSheet: React.FC<ReaderPreferencesSheetProps> = ({
   // The preview + reader surface follow the selected reading theme. 'system'
   // resolves back to the live app colors so the sheet stays consistent.
   const previewColors = useMemo(
-    () => resolveReaderTheme(colors, preferences.theme),
-    [colors, preferences.theme],
+    () => resolveReaderTheme(colors, preferences.theme, isDark),
+    [colors, preferences.theme, isDark],
   );
 
   // Right-edge anti-clip reserve — same fontSize-derived gutter as the real
@@ -332,7 +333,7 @@ export const ReaderPreferencesSheet: React.FC<ReaderPreferencesSheetProps> = ({
             <Section title={t.readerPrefs.theme} colors={colors}>
               <View style={styles.row}>
                 {themeOptions.map(opt => {
-                  const swatch = resolveReaderTheme(colors, opt.id);
+                  const swatch = resolveReaderTheme(colors, opt.id, isDark);
                   const active = preferences.theme === opt.id;
                   return (
                     <TouchableOpacity
@@ -722,6 +723,40 @@ export const ReaderPreferencesSheet: React.FC<ReaderPreferencesSheetProps> = ({
                   }
                   accessibilityLabel={t.readerPrefs.swipeChapterNav}
                   accessibilityHint={t.readerPrefs.swipeChapterNavHint}
+                />
+              </View>
+            </Section>
+
+            {/* ✝️ Red-letter words (opt-out, default on — a well-known
+                Bible convention). Only visibly takes effect on WEB, the only
+                reading version with the underlying marking today. */}
+            <Section title={t.readerPrefs.redLetterSection} colors={colors}>
+              <View style={styles.switchRow}>
+                <View style={styles.switchTextWrap}>
+                  <Text style={[styles.optionLabelBold, {color: colors.text}]}>
+                    {t.readerPrefs.redLetterWords}
+                  </Text>
+                  <Text
+                    style={[styles.switchHint, {color: colors.textSecondary}]}>
+                    {t.readerPrefs.redLetterWordsHint}
+                  </Text>
+                </View>
+                <Switch
+                  value={preferences.redLetterWords}
+                  onValueChange={tap(() =>
+                    setRedLetterWords(!preferences.redLetterWords),
+                  )}
+                  trackColor={{
+                    false: colors.border,
+                    true: colors.primary + '70',
+                  }}
+                  thumbColor={
+                    preferences.redLetterWords
+                      ? colors.primary
+                      : colors.surfaceVariant
+                  }
+                  accessibilityLabel={t.readerPrefs.redLetterWords}
+                  accessibilityHint={t.readerPrefs.redLetterWordsHint}
                 />
               </View>
             </Section>

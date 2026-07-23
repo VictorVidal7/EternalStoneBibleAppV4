@@ -68,6 +68,13 @@ export interface ReaderPreferences {
    * back-gesture, which owns the outer edge strip.
    */
   swipeChapterNavigation: boolean;
+  /**
+   * Highlight the words of Jesus in red while reading (opt-out, default on —
+   * a well-known Bible convention). Only takes visible effect on WEB, the
+   * only reading version with the underlying marking today; silently inert
+   * on every other version.
+   */
+  redLetterWords: boolean;
 }
 
 interface ReaderPreferencesContextValue {
@@ -84,6 +91,7 @@ interface ReaderPreferencesContextValue {
   setAutoImmersiveOnListen: (next: boolean) => void;
   setKeepScreenAwake: (next: boolean) => void;
   setSwipeChapterNavigation: (next: boolean) => void;
+  setRedLetterWords: (next: boolean) => void;
   /** Reset to defaults. Useful for a "Restore defaults" button. */
   reset: () => void;
 }
@@ -99,6 +107,7 @@ export const DEFAULT_READER_PREFERENCES: ReaderPreferences = {
   autoImmersiveOnListen: false,
   keepScreenAwake: false,
   swipeChapterNavigation: false,
+  redLetterWords: true,
 };
 
 export const READER_FONT_SIZE_MIN = 14;
@@ -222,6 +231,10 @@ export const ReaderPreferencesProvider: React.FC<
     setPreferences(prev => ({...prev, swipeChapterNavigation: !!next}));
   }, []);
 
+  const setRedLetterWords = useCallback((next: boolean) => {
+    setPreferences(prev => ({...prev, redLetterWords: !!next}));
+  }, []);
+
   const reset = useCallback(() => {
     setPreferences(DEFAULT_READER_PREFERENCES);
   }, []);
@@ -239,6 +252,7 @@ export const ReaderPreferencesProvider: React.FC<
       setAutoImmersiveOnListen,
       setKeepScreenAwake,
       setSwipeChapterNavigation,
+      setRedLetterWords,
       reset,
     }),
     [
@@ -253,6 +267,7 @@ export const ReaderPreferencesProvider: React.FC<
       setAutoImmersiveOnListen,
       setKeepScreenAwake,
       setSwipeChapterNavigation,
+      setRedLetterWords,
       reset,
     ],
   );

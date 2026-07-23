@@ -116,6 +116,8 @@ export interface ReaderThemeColors {
   audioHighlight: string;
   /** Text drawn over a user's highlight swatch (kept legible on any swatch). */
   onHighlight: string;
+  /** Text color for the words of Christ (red-letter), where the reading version marks them. */
+  redLetter: string;
 }
 
 /**
@@ -125,6 +127,8 @@ export interface ReaderThemeColors {
  */
 export const LEGACY_AUDIO_HIGHLIGHT = '#D4AF37'; // soft gold (legacy)
 export const LEGACY_ON_HIGHLIGHT = '#1A1D2E'; // app navy (legacy)
+export const LEGACY_RED_LETTER_LIGHT = '#A8352A'; // deep red, for the app's light theme surfaces
+export const LEGACY_RED_LETTER_DARK = '#EF7A6E'; // lightened coral-red, for the app's dark theme surfaces
 
 /**
  * Concrete palettes. `system` is intentionally `null` — the resolver maps it
@@ -147,6 +151,7 @@ export const READER_THEMES: Record<ReaderTheme, ReaderThemeColors | null> = {
     primaryLight: 'rgba(181, 121, 63, 0.15)',
     audioHighlight: '#9A6A1F',
     onHighlight: '#2B2A26',
+    redLetter: '#A8352A',
   },
 
   // Classic cream/brown "sepia" — the lowest-glare daytime reading surface.
@@ -164,6 +169,7 @@ export const READER_THEMES: Record<ReaderTheme, ReaderThemeColors | null> = {
     primaryLight: 'rgba(138, 90, 43, 0.16)',
     audioHighlight: '#8A5A1A',
     onHighlight: '#4A3B28',
+    redLetter: '#8A2E1D',
   },
 
   // True-dark, low-blue "night" — warm off-white text on near-black, gold accent.
@@ -179,6 +185,7 @@ export const READER_THEMES: Record<ReaderTheme, ReaderThemeColors | null> = {
     primaryLight: 'rgba(201, 168, 106, 0.15)',
     audioHighlight: '#E6C77A',
     onHighlight: '#1A1A1A',
+    redLetter: '#EF7A6E',
   },
 
   // Maximum-legibility "high contrast" — pure white text on pure black with a
@@ -197,6 +204,7 @@ export const READER_THEMES: Record<ReaderTheme, ReaderThemeColors | null> = {
     primaryLight: 'rgba(255, 214, 10, 0.20)', // highlight tint over black
     audioHighlight: '#FFD60A', // actively-read verse: bright amber
     onHighlight: '#000000', // black over a user's bright highlight swatch
+    redLetter: '#FF7A5C', // words of Christ: coral-red, ~8.19:1 on black (AAA)
   },
 
   // ===== T6.3 — premium exclusives (offering-unlocked) =====
@@ -215,6 +223,7 @@ export const READER_THEMES: Record<ReaderTheme, ReaderThemeColors | null> = {
     primaryLight: 'rgba(76, 102, 51, 0.15)',
     audioHighlight: '#5C7A3A',
     onHighlight: '#2A2E22',
+    redLetter: '#9E3F2A',
   },
 
   // Cool blue-toned dark "twilight" — an alternative to Night's warm
@@ -231,6 +240,7 @@ export const READER_THEMES: Record<ReaderTheme, ReaderThemeColors | null> = {
     primaryLight: 'rgba(127, 168, 217, 0.15)',
     audioHighlight: '#8FBBEE',
     onHighlight: '#0D1220',
+    redLetter: '#E8746A',
   },
 
   // Soft cool gray-blue "mist" — a light surface distinct from the warm
@@ -247,6 +257,7 @@ export const READER_THEMES: Record<ReaderTheme, ReaderThemeColors | null> = {
     primaryLight: 'rgba(61, 95, 143, 0.14)',
     audioHighlight: '#33507A',
     onHighlight: '#262B33',
+    redLetter: '#A5382A',
   },
 };
 
@@ -268,6 +279,7 @@ export function isReaderTheme(value: unknown): value is ReaderTheme {
 export interface ReaderThemeExtras {
   audioHighlight: string;
   onHighlight: string;
+  redLetter: string;
 }
 
 /**
@@ -275,13 +287,18 @@ export interface ReaderThemeExtras {
  * shape so every non-reading key (warning, error, …) is preserved untouched.
  *
  * - `system` (or any unknown value) → the app colors verbatim + the legacy
- *   gold/navy extras (byte-identical to the pre-Sprint-54 reader).
+ *   gold/navy extras (byte-identical to the pre-Sprint-54 reader). `isDark`
+ *   picks between `LEGACY_RED_LETTER_DARK` and `LEGACY_RED_LETTER_LIGHT` for
+ *   the `redLetter` extra in this case.
  * - any concrete palette → the app colors with the reading-surface keys
- *   overridden + the palette's own audio/on-highlight extras.
+ *   overridden + the palette's own audio/on-highlight/red-letter extras
+ *   (concrete palettes ignore `isDark` — they already have a fixed,
+ *   self-contained `redLetter`).
  */
 export function resolveReaderTheme<T extends object>(
   appColors: T,
   theme: ReaderTheme,
+  isDark: boolean = false,
 ): T & ReaderThemeColors & ReaderThemeExtras {
   const palette = isReaderTheme(theme) ? READER_THEMES[theme] : null;
   if (!palette) {
@@ -289,6 +306,7 @@ export function resolveReaderTheme<T extends object>(
       ...appColors,
       audioHighlight: LEGACY_AUDIO_HIGHLIGHT,
       onHighlight: LEGACY_ON_HIGHLIGHT,
+      redLetter: isDark ? LEGACY_RED_LETTER_DARK : LEGACY_RED_LETTER_LIGHT,
     } as T & ReaderThemeColors & ReaderThemeExtras;
   }
   return {...appColors, ...palette} as T &

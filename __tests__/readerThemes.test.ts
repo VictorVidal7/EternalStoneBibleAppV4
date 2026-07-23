@@ -8,6 +8,8 @@ import {
   PREMIUM_READER_THEMES,
   LEGACY_AUDIO_HIGHLIGHT,
   LEGACY_ON_HIGHLIGHT,
+  LEGACY_RED_LETTER_LIGHT,
+  LEGACY_RED_LETTER_DARK,
   isReaderTheme,
   resolveReaderTheme,
   isReaderThemeUnlocked,
@@ -77,6 +79,7 @@ describe('READER_THEMES palettes', () => {
       'primaryLight',
       'audioHighlight',
       'onHighlight',
+      'redLetter',
     ];
     const rec = p as unknown as Record<string, string>;
     keys.forEach(k => {
@@ -145,6 +148,31 @@ describe('resolveReaderTheme', () => {
     const snapshot = {...appColors};
     resolveReaderTheme(appColors, 'sepia');
     expect(appColors).toEqual(snapshot);
+  });
+
+  it('system with no third argument resolves redLetter to the legacy light value', () => {
+    const resolved = resolveReaderTheme(appColors, 'system');
+    expect(resolved.redLetter).toBe(LEGACY_RED_LETTER_LIGHT);
+  });
+
+  it('system with isDark: false resolves redLetter to the legacy light value', () => {
+    const resolved = resolveReaderTheme(appColors, 'system', false);
+    expect(resolved.redLetter).toBe(LEGACY_RED_LETTER_LIGHT);
+  });
+
+  it('system with isDark: true resolves redLetter to the legacy dark value', () => {
+    const resolved = resolveReaderTheme(appColors, 'system', true);
+    expect(resolved.redLetter).toBe(LEGACY_RED_LETTER_DARK);
+  });
+
+  it('a concrete palette resolves redLetter to its own fixed value regardless of isDark', () => {
+    const paper = READER_THEMES.paper!;
+    expect(resolveReaderTheme(appColors, 'paper', true).redLetter).toBe(
+      paper.redLetter,
+    );
+    expect(resolveReaderTheme(appColors, 'paper', false).redLetter).toBe(
+      paper.redLetter,
+    );
   });
 });
 
