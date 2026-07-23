@@ -204,6 +204,15 @@ export default function WordStudyScreen() {
   const lemma = lex?.lemma ?? null;
   const bookCount = study ? distinctBookCount(study.distribution) : 0;
 
+  // A single-book distribution degenerates a bar chart to one bar — a stat
+  // line reads better than a chart with nothing to compare against.
+  const singleBookName = useMemo(() => {
+    if (bars.length !== 1) return null;
+    const book = getBookById(bars[0].book_id);
+    if (!book) return null;
+    return bookLang === 'en' ? book.nameEn : book.name;
+  }, [bars, bookLang]);
+
   const countLabel = study
     ? `${study.count} ${
         study.count === 1 ? w.occurrencesOne : w.occurrences
@@ -423,7 +432,26 @@ export default function WordStudyScreen() {
           </View>
 
           {/* Distribution across books. */}
-          {bars.length > 0 ? (
+          {bars.length === 1 && singleBookName ? (
+            <TouchableOpacity
+              style={[
+                styles.section,
+                {backgroundColor: colors.surface, borderColor: colors.border},
+              ]}
+              onPress={() => study?.first && openInReader(study.first)}
+              accessibilityRole="button"
+              accessibilityLabel={w.distributionSingleBook.replace(
+                '{{book}}',
+                singleBookName,
+              )}>
+              <Text style={[styles.sectionTitle, {color: colors.text}]}>
+                {w.distribution}
+              </Text>
+              <Text style={[styles.extentRef, {color: colors.primary}]}>
+                {w.distributionSingleBook.replace('{{book}}', singleBookName)}
+              </Text>
+            </TouchableOpacity>
+          ) : bars.length > 1 ? (
             <View
               style={[
                 styles.section,

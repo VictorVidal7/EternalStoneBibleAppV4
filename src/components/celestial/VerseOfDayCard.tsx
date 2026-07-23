@@ -633,7 +633,7 @@ const VerseOfDayCard: React.FC<VerseOfDayCardProps> = ({
                     accessibilityLabel={t.home.alsoToggle}
                     accessibilityState={{selected: alternatesVisible}}>
                     <Ionicons
-                      name="language"
+                      name="eye-outline"
                       size={20}
                       color={
                         alternatesVisible ? colors.primary : theme.colors.text

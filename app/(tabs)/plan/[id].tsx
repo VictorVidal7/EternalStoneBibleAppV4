@@ -82,6 +82,8 @@ export default function ReadingPlanDetailScreen() {
     getPlanDuration,
     setPlanDuration,
     restartPlan,
+    getSilentDayCount,
+    startPlanFromSilentProgress,
   } = useReadingPlanProgress();
   const {getMembership, leavePlan} = useTogether();
   const {getCustomPlanById, deleteCustomPlan} = useCustomPlans();
@@ -462,6 +464,55 @@ export default function ReadingPlanDetailScreen() {
     );
   }
 
+  /**
+   * Invitation (Sprint 111 fix): a plan the reader never explicitly started
+   * no longer auto-completes from ordinary Bible reading (see
+   * ReadingPlanProgressContext), but the overlap is real progress worth
+   * surfacing — an invitation to officially start it, never a silent
+   * auto-start.
+   */
+  function renderSilentProgressCard() {
+    if (pace.status !== 'notStarted') return null;
+    const silentCount = getSilentDayCount(plan!.id);
+    if (silentCount === 0) return null;
+    return (
+      <View
+        style={[
+          styles.catchUpCard,
+          {backgroundColor: colors.surface, borderColor: colors.primary},
+        ]}>
+        <View style={styles.todayHeader}>
+          <Ionicons name="sparkles" size={18} color={colors.primary} />
+          <Text style={[styles.todayTitle, {color: colors.primary}]}>
+            {t.readingPlan.silentProgressTitle}
+          </Text>
+        </View>
+        <Text style={[styles.catchUpReadings, {color: colors.text}]}>
+          {t.readingPlan.silentProgressBody
+            .replace('{{completed}}', String(silentCount))
+            .replace('{{total}}', String(effectiveDuration))}
+        </Text>
+        <TouchableOpacity
+          style={[
+            styles.todayAction,
+            styles.todayActionStart,
+            {backgroundColor: colors.primary},
+          ]}
+          onPress={() => {
+            haptics.tap();
+            void startPlanFromSilentProgress(plan!.id);
+          }}
+          accessibilityRole="button"
+          accessibilityLabel={t.readingPlan.silentProgressCta}>
+          <Ionicons name="play" size={15} color={colors.onPrimary} />
+          <Text style={[styles.todayActionText, {color: colors.onPrimary}]}>
+            {t.readingPlan.silentProgressCta}
+          </Text>
+        </TouchableOpacity>
+      </View>
+    );
+  }
+
   function renderTodayCard() {
     if (!todayDay) {
       return (
@@ -747,6 +798,7 @@ export default function ReadingPlanDetailScreen() {
         renderItem={renderDay}
         ListHeaderComponent={
           <>
+            {renderSilentProgressCard()}
             {renderCatchUpCard()}
             {renderTodayCard()}
           </>
@@ -1027,6 +1079,7 @@ const styles = StyleSheet.create({
     backgroundColor: staticColors.transparent,
     borderWidth: 1.5,
   },
+  todayActionStart: {alignSelf: 'flex-start'},
   todayActionText: {
     fontSize: 14,
     fontWeight: '700',

@@ -362,7 +362,7 @@ export default function HomeScreen() {
   useFocusEffect(
     useCallback(() => {
       loadHomeData();
-    }, [selectedVersion.id]),
+    }, [selectedVersion.id, achievementService, servicesInitialized]),
   );
 
   useEffect(() => {

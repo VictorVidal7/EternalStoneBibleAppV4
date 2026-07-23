@@ -118,6 +118,20 @@ interface ReadingPlanProgressContextType {
    * that chapter's auto-tick, not any of their own completed days.
    */
   restartPlan: (planId: string) => Promise<void>;
+  /**
+   * How many of an UNSTARTED plan's days are already fully covered by
+   * ordinary Bible reading (Sprint 111 fix) — powers the "you're already 15
+   * of 21 days in, start officially?" invitation. Returns 0 for a plan that's
+   * already started (its real completedDays is the honest number instead).
+   */
+  getSilentDayCount: (planId: string) => number;
+  /**
+   * Officially starts a plan the reader has been silently covering via
+   * ordinary Bible reading: stamps `startedAt` to now AND immediately credits
+   * every day already fully read, so accepting the invitation doesn't drop
+   * the reader back to 0 (Sprint 111 fix).
+   */
+  startPlanFromSilentProgress: (planId: string) => Promise<void>;
 }
 
 const ReadingPlanProgressContext = createContext<
@@ -285,10 +299,16 @@ export function ReadingPlanProgressProvider({children}: {children: ReactNode}) {
       // Find every plan day not yet completed whose chapters are all read.
       // Uses each plan's EFFECTIVE days (a reflowed custom duration, if one
       // was chosen) so auto-complete checks the day groupings the reader
-      // actually sees, not the curated default.
+      // actually sees, not the curated default. Only plans the reader has
+      // EXPLICITLY started (a real `startedAt`) are eligible — otherwise
+      // ordinary Bible reading silently auto-starts and auto-completes plans
+      // the reader never opened, which reads as broken tracking rather than a
+      // feature. An unstarted plan's silent overlap surfaces instead as an
+      // invitation via `getSilentDayCount` for the screen to show.
       const currentProgress = progressRef.current;
       const newlyCompleted: AutoCompletedDay[] = [];
       for (const plan of allPlans()) {
+        if (!currentProgress[plan.id]?.startedAt) continue;
         const completedDays = currentProgress[plan.id]?.completedDays ?? [];
         const planDays = effectivePlanDays(
           plan,
@@ -362,6 +382,22 @@ export function ReadingPlanProgressProvider({children}: {children: ReactNode}) {
     [progress],
   );
 
+  const getSilentDayCount = useCallback(
+    (planId: string) => {
+      if (progress[planId]?.startedAt) return 0;
+      const plan = allPlans().find(p => p.id === planId);
+      if (!plan) return 0;
+      const days = effectivePlanDays(plan, progress[planId]?.customDuration);
+      return days.filter(day =>
+        day.readings.every(r => {
+          const key = chapterKey(r.book, r.chapter);
+          return key != null && !!readChapters[key];
+        }),
+      ).length;
+    },
+    [progress, readChapters],
+  );
+
   const getCompletedAt = useCallback(
     (planId: string) => progress[planId]?.completedAt ?? null,
     [progress],
@@ -430,6 +466,37 @@ export function ReadingPlanProgressProvider({children}: {children: ReactNode}) {
     [progress, persist],
   );
 
+  const startPlanFromSilentProgress = useCallback(
+    async (planId: string) => {
+      const plan = allPlans().find(p => p.id === planId);
+      if (!plan) return;
+      const current = progress[planId];
+      const days = effectivePlanDays(plan, current?.customDuration);
+      const completedDays = days
+        .filter(day =>
+          day.readings.every(r => {
+            const key = chapterKey(r.book, r.chapter);
+            return key != null && !!readChaptersRef.current[key];
+          }),
+        )
+        .map(day => day.day);
+      const duration = effectivePlanDays(plan, current?.customDuration).length;
+      await persist({
+        ...progress,
+        [planId]: withCompletionStamp(
+          {
+            ...current,
+            completedDays,
+            startedAt: new Date().toISOString(),
+          },
+          duration,
+          new Date().toISOString(),
+        ),
+      });
+    },
+    [progress, persist],
+  );
+
   return (
     <ReadingPlanProgressContext.Provider
       value={{
@@ -445,6 +512,8 @@ export function ReadingPlanProgressProvider({children}: {children: ReactNode}) {
         getPlanDuration,
         setPlanDuration,
         restartPlan,
+        getSilentDayCount,
+        startPlanFromSilentProgress,
       }}>
       {children}
     </ReadingPlanProgressContext.Provider>

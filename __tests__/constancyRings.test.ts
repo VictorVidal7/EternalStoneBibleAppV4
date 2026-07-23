@@ -11,6 +11,8 @@ import {
   ringRadius,
   ringCircumference,
   ringDashoffset,
+  displayFraction,
+  PILOT_LIGHT_FRACTION,
   type HabitProgress,
 } from '../src/lib/home/constancyRings';
 
@@ -112,5 +114,22 @@ describe('ring geometry', () => {
     expect(ringDashoffset(c, 0.25)).toBeCloseTo(c * 0.75);
     // Clamps a bad fraction.
     expect(ringDashoffset(c, 5)).toBeCloseTo(0);
+  });
+});
+
+describe('displayFraction (pilot light — bug fix)', () => {
+  it('draws a thin sliver for a live streak with nothing done today, not an empty ring', () => {
+    expect(displayFraction({fraction: 0, streak: 12})).toBe(
+      PILOT_LIGHT_FRACTION,
+    );
+  });
+
+  it('stays fully empty when there is no streak either', () => {
+    expect(displayFraction({fraction: 0, streak: 0})).toBe(0);
+  });
+
+  it('leaves a real, positive fraction untouched regardless of streak', () => {
+    expect(displayFraction({fraction: 0.5, streak: 0})).toBe(0.5);
+    expect(displayFraction({fraction: 1, streak: 9})).toBe(1);
   });
 });

@@ -811,6 +811,7 @@ export const translations = {
       inBooks: 'en {{n}} libros',
       inBooksOne: 'en 1 libro',
       distribution: 'Distribución por libro',
+      distributionSingleBook: 'Aparece únicamente en {{book}}',
       firstAppearance: 'Primera aparición',
       lastAppearance: 'Última aparición',
       occurrencesHeader: 'Apariciones',
@@ -3922,6 +3923,10 @@ export const translations = {
       catchUpTitle: 'Ponte al día',
       catchUpToday: 'Para ponerte al día: {{readings}}',
       catchUpFinish: 'A un día por jornada desde hoy, terminas el {{date}}',
+      silentProgressTitle: 'Ya vas avanzando',
+      silentProgressBody:
+        'Ya llevas {{completed}} de {{total}} días leídos por tu cuenta. ¿Quieres empezarlo oficialmente para llevar el ritmo?',
+      silentProgressCta: 'Empezar oficialmente',
       planCompleted: '¡Plan completado!',
       planCompletedShort: '¡Completado! 🎉',
       planCompletedMessage:
@@ -6380,6 +6385,7 @@ export const translations = {
       inBooks: 'in {{n}} books',
       inBooksOne: 'in 1 book',
       distribution: 'Distribution by book',
+      distributionSingleBook: 'Appears only in {{book}}',
       firstAppearance: 'First appearance',
       lastAppearance: 'Last appearance',
       occurrencesHeader: 'Occurrences',
@@ -9472,6 +9478,10 @@ export const translations = {
       catchUpTitle: 'Catch up',
       catchUpToday: 'To get current: {{readings}}',
       catchUpFinish: 'At one day per day from today, you finish {{date}}',
+      silentProgressTitle: "You're already moving",
+      silentProgressBody:
+        "You've already read {{completed}} of {{total}} days on your own. Want to start it officially to keep pace?",
+      silentProgressCta: 'Start officially',
       planCompleted: 'Plan completed!',
       planCompletedShort: 'Completed! 🎉',
       planCompletedMessage:
