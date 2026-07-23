@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "generated": "2026-07-09",
+  "generated": "2026-07-23",
   "note": "Web-only bootstrap packs (RVR1960 + WEB), byte-identical to the native bundled seed. NOT part of web/packs/versions.json (that catalog is also read by the native download-versions screen, which does not filter bundled versions).",
   "packs": [
     {
@@ -13,9 +13,16 @@
     {
       "id": "WEB",
       "file": "web.sqlite",
-      "bytes": 4857856,
-      "sha256": "21c7e4b963d725d80b52447afd49bb333c472b97420c6d380515f5c2e7311827",
-      "verseCount": 31095
+      "bytes": 4849664,
+      "sha256": "f5f7e3b8603de698535586888a09e5965d59e71248c107296582a77ef41ec580",
+      "verseCount": 31098
     }
-  ]
+  ],
+  "redLetter": {
+    "file": "web-red-letter.json",
+    "bytes": 116209,
+    "sha256": "9ea0c1dbb1610852b0cfe0f0c12b1cb0399b753c865109bd97e04c592608281b",
+    "entries": 2059,
+    "spans": 2077
+  }
 }

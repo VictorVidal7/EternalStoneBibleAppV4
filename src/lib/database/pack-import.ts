@@ -21,6 +21,18 @@ export function packLoadedKey(versionId: string): string {
 }
 
 /**
+ * The AsyncStorage key that stores the sha256 of the pack version most
+ * recently imported for this Bible version — compared against the live
+ * manifest's sha256 on every boot so a server-side pack update (e.g. a
+ * text re-ingest) actually reaches browsers that already imported an
+ * older pack, instead of being silently skipped forever by packLoadedKey
+ * alone.
+ */
+export function packVersionKey(versionId: string): string {
+  return `@bible_data_version_${versionId.trim().toLowerCase()}`;
+}
+
+/**
  * SQLite's `ATTACH DATABASE` wants a bare filesystem path, but expo-file-system
  * hands back `file://` URIs. Strip the scheme and percent-decode (`%20` → space)
  * so the attach resolves. An already-bare path passes through unchanged.
