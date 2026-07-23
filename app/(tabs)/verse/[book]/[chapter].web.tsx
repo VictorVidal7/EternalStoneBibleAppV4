@@ -23,6 +23,20 @@ import {
 } from '@context/ReaderPreferencesContext';
 import {centeredMaxWidth, READER_MAX_WIDTH} from '@/styles/responsive';
 import {spacing, fontSize as tokenFontSize} from '@/styles/designTokens';
+import {
+  LEGACY_RED_LETTER_LIGHT,
+  LEGACY_RED_LETTER_DARK,
+} from '@/styles/readerThemes';
+// Explicit .web specifier (not the bare '@lib/reading/redLetterText'):
+// loadRedLetterSpans is web-only and does not exist in redLetterText.ts
+// (native) — tsc has no platform awareness and resolves a bare specifier to
+// the native file regardless of this file's own .web.tsx name, so importing
+// it unsuffixed would fail type-checking.
+import {
+  getRedLetterSpans,
+  mergeRedLetterSpans,
+  loadRedLetterSpans,
+} from '@lib/reading/redLetterText.web';
 
 /**
  * Web Bible reader (T21) — a dedicated, from-scratch screen, NOT a
@@ -67,6 +81,23 @@ export default function ChapterReaderWeb() {
   const [verses, setVerses] = useState<BibleVerse[]>([]);
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState<string | null>(null);
+
+  // Red-letter (Words of Christ) is WEB-version-only, exactly like the
+  // native reader — gated on both the user's toggle and the active version.
+  const redLetterActive =
+    preferences.redLetterWords && selectedVersion.id === 'WEB';
+  const [redLetterLoaded, setRedLetterLoaded] = useState(false);
+
+  useEffect(() => {
+    if (!redLetterActive) return;
+    let cancelled = false;
+    loadRedLetterSpans().then(() => {
+      if (!cancelled) setRedLetterLoaded(true);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [redLetterActive]);
 
   useEffect(() => {
     let cancelled = false;
@@ -201,24 +232,59 @@ export default function ChapterReaderWeb() {
               {t.bible.couldNotLoadChapters}
             </Text>
           ) : (
-            verses.map(v => (
-              <Text
-                key={v.verse}
-                style={[
-                  styles.verseText,
-                  {
-                    color: colors.text,
-                    fontSize: preferences.fontSize,
-                    lineHeight:
-                      preferences.fontSize * preferences.lineHeightMultiplier,
-                  },
-                ]}>
-                <Text style={[styles.verseNumber, {color: colors.primary}]}>
-                  {v.verse}{' '}
+            verses.map(v => {
+              // Red-letter (Words of Christ, WEB-only): gated on
+              // redLetterLoaded so we skip the lookup entirely until the
+              // async span data has resolved — before then (or when the
+              // toggle/version don't qualify) this falls through to the
+              // plain {v.text} below, identical to pre-red-letter behavior.
+              const spans =
+                redLetterActive && redLetterLoaded
+                  ? getRedLetterSpans(bookInfo.id, chapter, v.verse)
+                  : undefined;
+              // No reference-linkification on this screen, so the whole
+              // verse is one implicit plain (ref-less) segment for
+              // mergeRedLetterSpans to split on the red-letter span
+              // boundaries — an empty linkSegments array would make it
+              // return no runs at all (see redLetterText.ts), erasing the
+              // verse text.
+              const runs: {text: string; isRedLetter: boolean}[] | null =
+                spans && spans.length > 0
+                  ? mergeRedLetterSpans(v.text, [{text: v.text}], spans)
+                  : null;
+              return (
+                <Text
+                  key={v.verse}
+                  style={[
+                    styles.verseText,
+                    {
+                      color: colors.text,
+                      fontSize: preferences.fontSize,
+                      lineHeight:
+                        preferences.fontSize * preferences.lineHeightMultiplier,
+                    },
+                  ]}>
+                  <Text style={[styles.verseNumber, {color: colors.primary}]}>
+                    {v.verse}{' '}
+                  </Text>
+                  {runs
+                    ? runs.map((run, i) => (
+                        <Text
+                          key={i}
+                          style={{
+                            color: run.isRedLetter
+                              ? isDark
+                                ? LEGACY_RED_LETTER_DARK
+                                : LEGACY_RED_LETTER_LIGHT
+                              : colors.text,
+                          }}>
+                          {run.text}
+                        </Text>
+                      ))
+                    : v.text}
                 </Text>
-                {v.text}
-              </Text>
-            ))
+              );
+            })
           )}
 
           <View style={styles.navRow}>

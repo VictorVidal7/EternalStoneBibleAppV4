@@ -2,7 +2,7 @@
 import * as SQLite from 'expo-sqlite';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import bibleDB from './index';
-import {packLoadedKey} from './pack-import';
+import {packLoadedKey, packVersionKey} from './pack-import';
 
 /**
  * Web variant of data-loader.ts (T21). Native embeds RVR1960 + WEB in
@@ -98,6 +98,51 @@ const BOOTSTRAP_PACKS: Array<{versionId: string; key: string; file: string}> = [
   {versionId: 'WEB', key: DATA_LOADED_KEY_WEB, file: 'web.sqlite'},
 ];
 
+/**
+ * The subset of web-bootstrap.json (scripts/build-web-packs.js) this file
+ * actually reads. `schema`/`generated`/`redLetter` exist in the real
+ * manifest but belong to other Phase 3 work, not the version-gate below.
+ */
+interface WebBootstrapManifestPack {
+  id: string;
+  sha256: string;
+}
+
+interface WebBootstrapManifest {
+  packs: WebBootstrapManifestPack[];
+}
+
+/**
+ * Fetch the live manifest so a server-side pack update (e.g. the Phase 1
+ * WEB re-ingest from eBible.org, commit 086882b) actually reaches browsers
+ * that already imported an older pack — see packVersionKey's doc comment
+ * for why packLoadedKey alone can't do this (once set it is never
+ * re-checked against the pack's actual content).
+ *
+ * Never lets a manifest problem block app boot: offline, a non-200, or
+ * malformed JSON all land in the catch and this resolves to `null`, which
+ * the caller treats as "fall back to the original flag-only check".
+ */
+async function fetchWebBootstrapManifest(): Promise<WebBootstrapManifest | null> {
+  try {
+    const res = await fetch(`${WEB_PACKS_BASE_URL}web-bootstrap.json`);
+    if (!res.ok) {
+      throw new Error(`Manifest fetch failed: HTTP ${res.status}`);
+    }
+    const parsed = (await res.json()) as WebBootstrapManifest;
+    if (!Array.isArray(parsed?.packs)) {
+      throw new Error('Manifest fetch succeeded but had an unexpected shape');
+    }
+    return parsed;
+  } catch (error) {
+    console.warn(
+      '⚠️ [web] Bootstrap manifest unavailable, falling back to flag-only pack checks:',
+      error,
+    );
+    return null;
+  }
+}
+
 export async function initializeBibleData(
   onProgress?: (loaded: number, total: number) => void,
 ): Promise<void> {
@@ -105,14 +150,53 @@ export async function initializeBibleData(
     console.log('🔵 [web] Starting Bible data initialization...');
     await bibleDB.initialize();
 
+    const manifest = await fetchWebBootstrapManifest();
+
     for (const pack of BOOTSTRAP_PACKS) {
-      const isLoaded = await AsyncStorage.getItem(pack.key);
-      if (isLoaded === 'true') {
-        console.log(`🟢 [web] ${pack.versionId} already loaded, skipping`);
+      if (manifest === null) {
+        // No live manifest this run — exactly the original flag-only check.
+        const isLoaded = await AsyncStorage.getItem(pack.key);
+        if (isLoaded === 'true') {
+          console.log(`🟢 [web] ${pack.versionId} already loaded, skipping`);
+          continue;
+        }
+        console.log(`📖 [web] Downloading ${pack.versionId} bootstrap pack...`);
+        await importWebPack(pack.versionId, pack.file, onProgress);
+        console.log(`✅ [web] ${pack.versionId} bootstrap pack imported`);
         continue;
       }
-      console.log(`📖 [web] Downloading ${pack.versionId} bootstrap pack...`);
+
+      const manifestEntry = manifest.packs.find(p => p.id === pack.versionId);
+      const isLoaded = await AsyncStorage.getItem(pack.key);
+      const storedVersion = await AsyncStorage.getItem(
+        packVersionKey(pack.versionId),
+      );
+
+      if (
+        isLoaded === 'true' &&
+        manifestEntry &&
+        storedVersion === manifestEntry.sha256
+      ) {
+        console.log(
+          `🟢 [web] ${pack.versionId} already loaded (current version), skipping`,
+        );
+        continue;
+      }
+
+      if (isLoaded === 'true') {
+        console.log(
+          `📖 [web] Newer ${pack.versionId} bootstrap pack available, re-importing...`,
+        );
+      } else {
+        console.log(`📖 [web] Downloading ${pack.versionId} bootstrap pack...`);
+      }
       await importWebPack(pack.versionId, pack.file, onProgress);
+      if (manifestEntry) {
+        await AsyncStorage.setItem(
+          packVersionKey(pack.versionId),
+          manifestEntry.sha256,
+        );
+      }
       console.log(`✅ [web] ${pack.versionId} bootstrap pack imported`);
     }
   } catch (error) {

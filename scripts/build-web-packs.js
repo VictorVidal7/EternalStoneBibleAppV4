@@ -22,6 +22,11 @@
  * bootstrap instead reads a small, separate manifest generated alongside
  * these packs (see WEB_PACKS_JSON below).
  *
+ * Also emits web-red-letter.json — the WEB-only "Words of Christ" (\wj) span
+ * data from bible-data-web-redletter.ts, flattened to plain JSON and
+ * verified span-by-span against the just-built web.sqlite text before being
+ * written out.
+ *
  * Requires Node ≥ 22 (node:sqlite). Usage:
  *   node --experimental-sqlite scripts/build-web-packs.js [outDir]
  *   (default outDir: %USERPROFILE%/Desktop/web-packs)
@@ -38,10 +43,32 @@ const ROOT = path.resolve(__dirname, '..');
 const OUT = process.argv[2] || path.join(os.homedir(), 'Desktop', 'web-packs');
 const WEB_PACKS_JSON = path.join(ROOT, 'web', 'packs', 'web-bootstrap.json');
 
-/** Parse a `export const X_DATA = [ ... ]` JSON array out of a .ts data file. */
+/**
+ * Parse a `export const X = [ ... ]` array literal out of a .ts data file.
+ * Locates the array's opening `[` starting from the `export const X ... =`
+ * declaration (not a naive first-`[`-in-file scan), so brackets appearing
+ * earlier in header comments or in a `: Type[]` annotation don't confuse it.
+ *
+ * Most data files here are strict JSON (quoted keys, no trailing commas),
+ * so that's tried first. Some (e.g. bible-data-web-redletter.ts) are plain
+ * JS object-literal syntax instead (unquoted keys, trailing commas) — if
+ * strict JSON.parse fails, fall back to normalizing just those two things
+ * before parsing again.
+ */
 function parseTsArray(file) {
   const c = fs.readFileSync(file, 'utf8');
-  return JSON.parse(c.slice(c.indexOf('['), c.lastIndexOf(']') + 1));
+  const decl = c.match(/export const \w+[^=]*=/);
+  const searchFrom = decl ? decl.index + decl[0].length : 0;
+  const start = c.indexOf('[', searchFrom);
+  const raw = c.slice(start, c.lastIndexOf(']') + 1);
+  try {
+    return JSON.parse(raw);
+  } catch {
+    const normalized = raw
+      .replace(/([{,]\s*)([A-Za-z_$][\w$]*)(\s*:)/g, '$1"$2"$3')
+      .replace(/,(\s*[}\]])/g, '$1');
+    return JSON.parse(normalized);
+  }
 }
 
 function buildPack(rows, dbFile) {
@@ -100,6 +127,69 @@ function verifyPack(dbFile, expectCount) {
   if (!ok) throw new Error('Pack verification FAILED: ' + dbFile);
 }
 
+/**
+ * Verify every red-letter span against the ACTUAL text stored in the
+ * just-built web.sqlite (not the source .ts file) — a hard failure here
+ * means a span would render as garbled/wrong-highlighted text for real
+ * users, so this throws rather than warns.
+ */
+function verifyRedLetterAlignment(entries, dbFile) {
+  const db = new DatabaseSync(dbFile, {readOnly: true});
+  const stmt = db.prepare(
+    'SELECT text FROM verses WHERE book_id=? AND chapter=? AND verse=?',
+  );
+  const failures = [];
+  let spanCount = 0;
+  for (const e of entries) {
+    const row = stmt.get(e.book_id, e.chapter, e.verse);
+    if (!row) {
+      failures.push(`${e.book_id}/${e.chapter}:${e.verse} — verse not found`);
+      continue;
+    }
+    for (const [s, en] of e.spans) {
+      spanCount++;
+      if (en > row.text.length) {
+        failures.push(
+          `${e.book_id}/${e.chapter}:${e.verse} — span [${s},${en}) exceeds ` +
+            `text length ${row.text.length}`,
+        );
+        continue;
+      }
+      const slice = row.text.slice(s, en);
+      if (slice.trim().length === 0) {
+        failures.push(
+          `${e.book_id}/${e.chapter}:${e.verse} — span [${s},${en}) is blank`,
+        );
+      }
+    }
+  }
+  if (failures.length > 0) {
+    db.close();
+    throw new Error(
+      'Red-letter alignment verification FAILED ' +
+        `(${failures.length} of ${spanCount} spans across ${entries.length} entries):\n` +
+        failures.slice(0, 10).join('\n'),
+    );
+  }
+  console.log(
+    `  red-letter alignment: ${entries.length} entries, ${spanCount} spans, ` +
+      `ALL slices non-blank and in-range against ${path.basename(dbFile)}`,
+  );
+  const jw = entries.find(
+    e => e.book_id === 43 && e.chapter === 3 && e.verse === 16,
+  );
+  if (jw) {
+    const row = stmt.get(jw.book_id, jw.chapter, jw.verse);
+    for (const [s, en] of jw.spans) {
+      console.log(
+        `    John 3:16 red-letter span [${s},${en}) =`,
+        JSON.stringify(row.text.slice(s, en)),
+      );
+    }
+  }
+  db.close();
+}
+
 function main() {
   fs.mkdirSync(OUT, {recursive: true});
 
@@ -146,6 +236,30 @@ function main() {
     });
   }
 
+  console.log('Building web-red-letter.json from bible-data-web-redletter.ts…');
+  const redLetterFile = path.join(
+    ROOT,
+    'src/lib/database/bible-data-web-redletter.ts',
+  );
+  const redLetterEntries = parseTsArray(redLetterFile);
+  const webDbFile = path.join(OUT, 'web.sqlite');
+  verifyRedLetterAlignment(redLetterEntries, webDbFile);
+  const redLetterJsonFile = path.join(OUT, 'web-red-letter.json');
+  fs.writeFileSync(redLetterJsonFile, JSON.stringify(redLetterEntries));
+  const redLetterBuf = fs.readFileSync(redLetterJsonFile);
+  const redLetterSha = crypto
+    .createHash('sha256')
+    .update(redLetterBuf)
+    .digest('hex');
+  const redLetterSpanCount = redLetterEntries.reduce(
+    (sum, e) => sum + e.spans.length,
+    0,
+  );
+  console.log(
+    `  red-letter: ${redLetterEntries.length} entries, ${redLetterSpanCount} ` +
+      `spans -> ${redLetterBuf.length} bytes, sha256 ${redLetterSha.slice(0, 16)}…`,
+  );
+
   fs.writeFileSync(
     WEB_PACKS_JSON,
     JSON.stringify(
@@ -158,6 +272,13 @@ function main() {
           '(that catalog is also read by the native download-versions ' +
           'screen, which does not filter bundled versions).',
         packs: manifest,
+        redLetter: {
+          file: 'web-red-letter.json',
+          bytes: redLetterBuf.length,
+          sha256: redLetterSha,
+          entries: redLetterEntries.length,
+          spans: redLetterSpanCount,
+        },
       },
       null,
       2,
@@ -167,9 +288,11 @@ function main() {
   console.log('\nDone.');
   for (const s of specs)
     console.log(`  ${path.join(OUT, s.id.toLowerCase() + '.sqlite')}`);
+  console.log(`  ${redLetterJsonFile}`);
   console.log(`  ${WEB_PACKS_JSON} written`);
   console.log(
-    '  Upload the *.sqlite to the Pages repo under /packs/ (Victor — no gh CLI access from this session).',
+    '  Upload the *.sqlite AND web-red-letter.json to the Pages repo under ' +
+      '/packs/ (Victor — no gh CLI access from this session).',
   );
 }
 

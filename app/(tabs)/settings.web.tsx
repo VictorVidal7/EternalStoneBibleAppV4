@@ -32,7 +32,7 @@ const MODES: ThemeMode[] = ['auto', 'light', 'dark'];
 export default function SettingsScreenWeb() {
   const {colors, mode, setThemeMode} = useTheme();
   const {t, language, setLanguage} = useLanguage();
-  const {preferences, setFontSize} = useReaderPreferences();
+  const {preferences, setFontSize, setRedLetterWords} = useReaderPreferences();
 
   const modeLabel = (m: ThemeMode) =>
     m === 'light'
@@ -82,6 +82,41 @@ export default function SettingsScreenWeb() {
                 </Text>
               </TouchableOpacity>
             ))}
+          </View>
+        </View>
+
+        <View style={styles.section}>
+          <Text style={[styles.sectionLabel, {color: colors.textSecondary}]}>
+            {t.readerPrefs.redLetterSection}
+          </Text>
+          <Text style={[styles.hintText, {color: colors.textSecondary}]}>
+            {t.readerPrefs.redLetterWordsHint}
+          </Text>
+          <View style={styles.row}>
+            <TouchableOpacity
+              onPress={() => setRedLetterWords(!preferences.redLetterWords)}
+              accessibilityRole="button"
+              accessibilityLabel={t.readerPrefs.redLetterWords}
+              style={[
+                styles.chip,
+                {borderColor: colors.glassBorder},
+                preferences.redLetterWords && {
+                  backgroundColor: colors.primary,
+                  borderColor: colors.primary,
+                },
+              ]}>
+              <Text
+                style={[
+                  styles.chipText,
+                  {
+                    color: preferences.redLetterWords
+                      ? colors.onPrimary
+                      : colors.text,
+                  },
+                ]}>
+                {t.readerPrefs.redLetterWords}
+              </Text>
+            </TouchableOpacity>
           </View>
         </View>
 
@@ -174,6 +209,10 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     textTransform: 'uppercase',
     letterSpacing: 0.5,
+    marginBottom: spacing.sm,
+  },
+  hintText: {
+    fontSize: fontSize.xs,
     marginBottom: spacing.sm,
   },
   row: {flexDirection: 'row', alignItems: 'center', gap: spacing.sm},
