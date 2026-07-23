@@ -1831,6 +1831,94 @@ export const translations = {
       exportDialogTitle: 'Compartir notas de sermón',
       generatedWith: 'Eternal Bible · Notas de sermón',
     },
+    shareFaith: {
+      cardTitle: 'Comparte tu fe',
+      cardSubtitle: 'Preguntas comunes y tu propio testimonio',
+      hub: {
+        title: 'Comparte tu fe',
+        subtitle: 'Encuentra versículos y organiza tu testimonio',
+        objectionsCardTitle: 'Preguntas frecuentes',
+        objectionsCardSubtitle: 'Versículos para preguntas comunes sobre la fe',
+        testimonyCardTitle: 'Mi testimonio',
+        testimonyCardSubtitle: 'Escribe y comparte tu historia con Dios',
+      },
+      objections: {
+        title: 'Preguntas frecuentes',
+        subtitle: 'Versículos para preguntas comunes',
+        browseHint: 'Elige una pregunta para ver versículos relacionados',
+        verses: 'versículos',
+        openHint: 'Abrir pasaje',
+        missingText: '(texto no disponible)',
+        error: 'No se pudieron cargar los pasajes',
+        list: {
+          'god-exists': {
+            title: '¿Cómo sé que Dios existe?',
+            description: 'Versículos sobre la existencia y la obra de Dios',
+          },
+          suffering: {
+            title: '¿Por qué hay sufrimiento en el mundo?',
+            description:
+              'Versículos sobre el dolor, el consuelo y la esperanza',
+          },
+          'many-religions': {
+            title: '¿No son todas las religiones caminos al mismo Dios?',
+            description: 'Versículos sobre quién es Jesús',
+          },
+          'bible-reliable': {
+            title: '¿Cómo sé que la Biblia es confiable?',
+            description:
+              'Versículos sobre el origen y la permanencia de la Escritura',
+          },
+          'faith-and-science': {
+            title: '¿La fe contradice la ciencia?',
+            description: 'Versículos sobre la fe y la creación',
+          },
+          'real-change': {
+            title: '¿Puede Dios cambiar mi vida de verdad?',
+            description:
+              'Versículos sobre la transformación y la nueva vida en Cristo',
+          },
+          'after-death': {
+            title: '¿Qué hay después de la muerte?',
+            description: 'Versículos sobre la resurrección y la vida eterna',
+          },
+          'god-cares': {
+            title: '¿Le importa a Dios lo que me pasa?',
+            description: 'Versículos sobre el cuidado y el amor de Dios por ti',
+          },
+        },
+      },
+      testimony: {
+        title: 'Mi testimonio',
+        subtitle: 'Tu historia con Dios, en tus propias palabras',
+        newSession: 'Nuevo testimonio',
+        untitled: 'Testimonio sin título',
+        emptyTitle: 'Aún no has escrito tu testimonio',
+        emptyBody:
+          'Toca "+" para empezar a organizar tu historia: cómo era tu vida antes, qué cambió y cómo es ahora.',
+        openHint: 'Abrir este testimonio',
+        limitReachedTitle: 'Llegaste al máximo de testimonios',
+        limitReachedBody:
+          'Elimina algún testimonio existente para poder crear uno nuevo.',
+        titlePlaceholder: 'Título, p. ej. "Mi historia"',
+        structureHint:
+          'Esto es solo una guía. Escribe con tus propias palabras — no hay una respuesta correcta.',
+        beforeLabel: '¿Cómo era tu vida antes?',
+        beforePlaceholder: 'Escribe aquí, con tus propias palabras…',
+        changeLabel: '¿Qué cambió?',
+        changePlaceholder: 'Escribe aquí, con tus propias palabras…',
+        nowLabel: '¿Cómo es tu vida ahora?',
+        nowPlaceholder: 'Escribe aquí, con tus propias palabras…',
+        shareButton: 'Compartir como imagen',
+        shareEmptyHint: 'Escribe algo antes de compartir',
+        dateLine: 'Escrito el {{date}}',
+        deleteLabel: 'Eliminar testimonio',
+        deleteConfirmTitle: '¿Eliminar este testimonio?',
+        deleteConfirmBody:
+          'Este testimonio se eliminará. No se puede deshacer.',
+        notFound: 'No se encontró este testimonio',
+      },
+    },
     themes: {
       title: 'Explora por tema',
       subtitle: 'Pasajes por tema',
@@ -7404,6 +7492,90 @@ export const translations = {
       exportLabel: 'Export as Markdown',
       exportDialogTitle: 'Share sermon notes',
       generatedWith: 'Eternal Bible · Sermon notes',
+    },
+    shareFaith: {
+      cardTitle: 'Share your faith',
+      cardSubtitle: 'Common questions and your own testimony',
+      hub: {
+        title: 'Share your faith',
+        subtitle: 'Find verses and organize your testimony',
+        objectionsCardTitle: 'Common questions',
+        objectionsCardSubtitle: 'Verses for common questions about faith',
+        testimonyCardTitle: 'My testimony',
+        testimonyCardSubtitle: 'Write and share your story with God',
+      },
+      objections: {
+        title: 'Common questions',
+        subtitle: 'Verses for common questions',
+        browseHint: 'Pick a question to see related verses',
+        verses: 'verses',
+        openHint: 'Open passage',
+        missingText: '(text not available)',
+        error: 'Could not load the passages',
+        list: {
+          'god-exists': {
+            title: 'How do I know God exists?',
+            description: "Verses about God's existence and work",
+          },
+          suffering: {
+            title: 'Why is there suffering in the world?',
+            description: 'Verses about pain, comfort and hope',
+          },
+          'many-religions': {
+            title: "Aren't all religions paths to the same God?",
+            description: 'Verses about who Jesus is',
+          },
+          'bible-reliable': {
+            title: 'How do I know the Bible is trustworthy?',
+            description: "Verses about Scripture's origin and endurance",
+          },
+          'faith-and-science': {
+            title: "Doesn't faith contradict science?",
+            description: 'Verses about faith and creation',
+          },
+          'real-change': {
+            title: 'Can God really change my life?',
+            description: 'Verses about transformation and new life in Christ',
+          },
+          'after-death': {
+            title: 'What happens after death?',
+            description: 'Verses about resurrection and eternal life',
+          },
+          'god-cares': {
+            title: 'Does God care what happens to me?',
+            description: "Verses about God's care and love for you",
+          },
+        },
+      },
+      testimony: {
+        title: 'My testimony',
+        subtitle: 'Your story with God, in your own words',
+        newSession: 'New testimony',
+        untitled: 'Untitled testimony',
+        emptyTitle: "You haven't written your testimony yet",
+        emptyBody:
+          'Tap "+" to start organizing your story: what your life was like before, what changed, and what it\'s like now.',
+        openHint: 'Open this testimony',
+        limitReachedTitle: "You've reached the maximum number of testimonies",
+        limitReachedBody: 'Delete an existing testimony to create a new one.',
+        titlePlaceholder: 'Title, e.g. "My story"',
+        structureHint:
+          "This is just a guide. Write in your own words — there's no right answer.",
+        beforeLabel: 'What was your life like before?',
+        beforePlaceholder: 'Write here, in your own words…',
+        changeLabel: 'What changed?',
+        changePlaceholder: 'Write here, in your own words…',
+        nowLabel: 'What is your life like now?',
+        nowPlaceholder: 'Write here, in your own words…',
+        shareButton: 'Share as image',
+        shareEmptyHint: 'Write something before sharing',
+        dateLine: 'Written on {{date}}',
+        deleteLabel: 'Delete testimony',
+        deleteConfirmTitle: 'Delete this testimony?',
+        deleteConfirmBody:
+          'This testimony will be deleted. This cannot be undone.',
+        notFound: 'This testimony could not be found',
+      },
     },
     themes: {
       title: 'Explore by Theme',

@@ -1450,6 +1450,18 @@ export default function HomeScreen() {
                 }
               />
             </View>
+            <View style={styles.savedCardWrapper}>
+              <DiscoverTile
+                icon="heart"
+                title={t.shareFaith.cardTitle}
+                subtitle={t.shareFaith.cardSubtitle}
+                onPress={() =>
+                  handlePress(() =>
+                    router.push('/features/share-faith' as never),
+                  )
+                }
+              />
+            </View>
           </View>
         </Animated.View>
 
