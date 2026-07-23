@@ -1,22 +1,45 @@
 /**
  * Celebratory modal when an achievement is unlocked
+ *
+ * Motion redesign (2026-07-23): migrated off the legacy `Animated` API to
+ * Reanimated, dropped the 360° spin for a calm scale+fade entrance, replaced
+ * the 20-particle confetti burst with a tier-coloured halo/bloom, added a
+ * single haptic pulse at unlock, and scaled the halo's presence by the
+ * achievement's tier. Deliberately does NOT reuse the rotation-wiggle half of
+ * `celebrationAnimation` (reanimatedAnimations.ts) — only its scale-bounce
+ * feel — per the 2026-07-15 research's explicit avoid-list (a rotating card
+ * read as too playful for this app's devotional tone).
  */
 
-import React, {useEffect, useRef} from 'react';
+import React, {useEffect} from 'react';
 import {
   Modal,
   View,
   Text,
   StyleSheet,
-  Animated,
   Pressable,
   Dimensions,
 } from 'react-native';
+import Animated, {
+  useSharedValue,
+  useAnimatedStyle,
+  withTiming,
+  withSpring,
+  withSequence,
+  withDelay,
+} from 'react-native-reanimated';
 import {staticColors} from '@/styles/designTokens';
+import {
+  SPRING_CONFIGS,
+  DURATIONS,
+  EASING_CURVES,
+} from '@/styles/reanimatedAnimations';
 import {focusTrapProps, a11yHiddenProps} from '@lib/a11y/focusTrap';
+import {haptics} from '@lib/haptics';
 
 import {
   Achievement,
+  AchievementTier,
   ACHIEVEMENT_TIER_COLORS,
 } from '../../lib/achievements/types';
 import {getLocalizedAchievement} from '../../lib/achievements/definitions';
@@ -30,6 +53,37 @@ interface AchievementUnlockedModalProps {
   onClose: () => void;
 }
 
+// ==================== TIER-SCALED CELEBRATION ====================
+// Direction 4 (2026-07-15 research): every tier used to look identical. A
+// tier "rank" (0=bronze … 4=diamond) scales the halo's size/brightness so
+// higher tiers read as more luminous — a couple of interpolated values, not
+// a different animation per tier.
+const TIER_RANK_ORDER: AchievementTier[] = Object.values(AchievementTier);
+const getTierRank = (tier: AchievementTier): number => {
+  const rank = TIER_RANK_ORDER.indexOf(tier);
+  return rank === -1 ? 0 : rank;
+};
+// Gold and above get one extra, subtle glint accent during the bloom-in.
+const GLINT_MIN_TIER_RANK = getTierRank(AchievementTier.GOLD);
+
+const HALO_MAX_SIZE = 160; // diamond's footprint; also the centering box size
+const HALO_BASE_SIZE = 120; // bronze
+const HALO_SIZE_STEP = 10; // +10px per tier rank
+const getHaloSize = (tierRank: number) =>
+  HALO_BASE_SIZE + tierRank * HALO_SIZE_STEP;
+
+const HALO_PEAK_OPACITY_BASE = 0.35;
+const HALO_PEAK_OPACITY_STEP = 0.08;
+const getHaloPeakOpacity = (tierRank: number) =>
+  HALO_PEAK_OPACITY_BASE + tierRank * HALO_PEAK_OPACITY_STEP;
+
+const HALO_REST_OPACITY_BASE = 0.14;
+const HALO_REST_OPACITY_STEP = 0.04;
+const getHaloRestOpacity = (tierRank: number) =>
+  HALO_REST_OPACITY_BASE + tierRank * HALO_REST_OPACITY_STEP;
+
+const GLINT_SIZE = 108;
+
 export const AchievementUnlockedModal: React.FC<
   AchievementUnlockedModalProps
 > = ({visible, achievement, onClose}) => {
@@ -41,109 +95,125 @@ export const AchievementUnlockedModal: React.FC<
   // rarity signal. Sprint 82 had tinted everything with the tier colour, which
   // the user read as "not my theme" on the daily build.
   const reduced = useReducedMotion();
-  const scaleAnim = useRef(new Animated.Value(0)).current;
-  const rotateAnim = useRef(new Animated.Value(0)).current;
-  const fadeAnim = useRef(new Animated.Value(0)).current;
-  const confettiAnims = useRef(
-    Array.from({length: 20}, () => ({
-      translateY: new Animated.Value(0),
-      translateX: new Animated.Value(0),
-      rotate: new Animated.Value(0),
-      opacity: new Animated.Value(1),
-    })),
-  ).current;
+
+  // Card entrance: calm scale + fade only, no rotation.
+  const scale = useSharedValue(0);
+  const opacity = useSharedValue(0);
+  // Halo/bloom replacing the old 20-particle confetti burst — blooms in once
+  // then settles to a subtle steady glow (no continuous/infinite loop).
+  const haloOpacity = useSharedValue(0);
+  const haloScale = useSharedValue(0.7);
+  // One-time glint accent, gold tier and above only.
+  const glintOpacity = useSharedValue(0);
 
   useEffect(() => {
     if (visible && achievement) {
+      const tierRank = getTierRank(achievement.tier);
+      const haloPeakOpacity = getHaloPeakOpacity(tierRank);
+      const haloRestOpacity = getHaloRestOpacity(tierRank);
+
+      // A haptic pulse marks the unlock moment itself. This is not a
+      // visual-motion accessibility concern (useReducedMotion exists to
+      // suppress *motion*, not tactile feedback), so it fires regardless of
+      // the reduced-motion state below.
+      haptics.success();
+
       if (reduced) {
-        // Reduce motion: present the card at rest, no spin/scale, no confetti.
-        scaleAnim.setValue(1);
-        rotateAnim.setValue(0);
-        fadeAnim.setValue(1);
-        confettiAnims.forEach(anim => anim.opacity.setValue(0));
+        // Reduced motion: present the card at its resting state — including
+        // the tier-appropriate resting glow — just with zero animated motion
+        // getting there.
+        scale.value = 1;
+        opacity.value = 1;
+        haloScale.value = 1;
+        haloOpacity.value = haloRestOpacity;
+        glintOpacity.value = 0;
         return;
       }
 
-      // Reset animations
-      scaleAnim.setValue(0);
-      rotateAnim.setValue(0);
-      fadeAnim.setValue(0);
-      confettiAnims.forEach(anim => {
-        anim.translateY.setValue(0);
-        anim.translateX.setValue(0);
-        anim.rotate.setValue(0);
-        anim.opacity.setValue(1);
+      // Reset to start-of-entrance values.
+      scale.value = 0;
+      opacity.value = 0;
+      haloScale.value = 0.7;
+      haloOpacity.value = 0;
+      glintOpacity.value = 0;
+
+      // Entry animation — fade + a single calm scale bounce. This borrows the
+      // FEEL of `celebrationAnimation`'s scale sequence (bouncy → default
+      // spring) but deliberately omits its rotation-wiggle half: no rotate
+      // transform anywhere on this card.
+      opacity.value = withTiming(1, {
+        duration: DURATIONS.normal,
+        easing: EASING_CURVES.emphasizedDecelerate,
       });
+      scale.value = withSequence(
+        withSpring(1.2, SPRING_CONFIGS.bouncy),
+        withSpring(1, SPRING_CONFIGS.default),
+      );
 
-      // Entry animation
-      Animated.parallel([
-        Animated.spring(scaleAnim, {
-          toValue: 1,
-          useNativeDriver: true,
-          friction: 4,
-          tension: 40,
+      // Halo bloom: grows/brightens in, then settles to a steady, subtle glow.
+      haloScale.value = withSequence(
+        withTiming(1.15, {
+          duration: DURATIONS.smooth,
+          easing: EASING_CURVES.emphasizedDecelerate,
         }),
-        Animated.timing(fadeAnim, {
-          toValue: 1,
-          duration: 300,
-          useNativeDriver: true,
+        withTiming(1, {
+          duration: DURATIONS.slow,
+          easing: EASING_CURVES.standard,
         }),
-        Animated.sequence([
-          Animated.timing(rotateAnim, {
-            toValue: 1,
-            duration: 400,
-            useNativeDriver: true,
-          }),
-          Animated.spring(rotateAnim, {
-            toValue: 0,
-            useNativeDriver: true,
-            friction: 3,
-          }),
-        ]),
-      ]).start();
+      );
+      haloOpacity.value = withSequence(
+        withTiming(haloPeakOpacity, {
+          duration: DURATIONS.smooth,
+          easing: EASING_CURVES.emphasizedDecelerate,
+        }),
+        withTiming(haloRestOpacity, {
+          duration: DURATIONS.slow,
+          easing: EASING_CURVES.standard,
+        }),
+      );
 
-      // Confetti animation
-      confettiAnims.forEach((anim, index) => {
-        const angle = (Math.PI * 2 * index) / confettiAnims.length;
-        const distance = 150 + Math.random() * 100;
-
-        Animated.parallel([
-          Animated.timing(anim.translateX, {
-            toValue: Math.cos(angle) * distance,
-            duration: 1000 + Math.random() * 500,
-            useNativeDriver: true,
-          }),
-          Animated.timing(anim.translateY, {
-            toValue: Math.sin(angle) * distance,
-            duration: 1000 + Math.random() * 500,
-            useNativeDriver: true,
-          }),
-          Animated.timing(anim.rotate, {
-            toValue: Math.random() * 360,
-            duration: 1000,
-            useNativeDriver: true,
-          }),
-          Animated.timing(anim.opacity, {
-            toValue: 0,
-            duration: 1000,
-            useNativeDriver: true,
-          }),
-        ]).start();
-      });
+      // Tier-scaled extra accent: a brief, single glint for gold+ only.
+      if (tierRank >= GLINT_MIN_TIER_RANK) {
+        glintOpacity.value = withDelay(
+          150,
+          withSequence(
+            withTiming(1, {
+              duration: 180,
+              easing: EASING_CURVES.standardDecelerate,
+            }),
+            withTiming(0, {
+              duration: 420,
+              easing: EASING_CURVES.standardAccelerate,
+            }),
+          ),
+        );
+      }
     }
   }, [visible, achievement, reduced]);
+
+  const cardAnimatedStyle = useAnimatedStyle(() => ({
+    opacity: opacity.value,
+    transform: [{scale: scale.value}],
+  }));
+  const haloAnimatedStyle = useAnimatedStyle(() => ({
+    opacity: haloOpacity.value,
+    transform: [{scale: haloScale.value}],
+  }));
+  const glintAnimatedStyle = useAnimatedStyle(() => ({
+    opacity: glintOpacity.value,
+  }));
 
   if (!achievement) return null;
 
   const tierColor = ACHIEVEMENT_TIER_COLORS[achievement.tier];
+  const tierRank = getTierRank(achievement.tier);
+  const haloSize = getHaloSize(tierRank);
+  const haloOffset = (HALO_MAX_SIZE - haloSize) / 2;
+  const glintOffset = (HALO_MAX_SIZE - GLINT_SIZE) / 2;
   const localized = getLocalizedAchievement(achievement, t);
   const tierLabel = (t.achievements.tiers as Record<string, string>)[
     achievement.tier
   ];
-  const rotation = rotateAnim.interpolate({
-    inputRange: [0, 1],
-    outputRange: ['0deg', '360deg'],
-  });
 
   return (
     <Modal
@@ -158,45 +228,8 @@ export const AchievementUnlockedModal: React.FC<
           {...a11yHiddenProps()}
         />
 
-        {/* Confetti */}
-        {confettiAnims.map((anim, index) => (
-          <Animated.View
-            key={index}
-            style={[
-              styles.confetti,
-              {
-                backgroundColor: [
-                  '#FFD700',
-                  '#FF6B6B',
-                  '#4ECDC4',
-                  '#95E1D3',
-                  '#F38181',
-                ][index % 5],
-                transform: [
-                  {translateX: anim.translateX},
-                  {translateY: anim.translateY},
-                  {
-                    rotate: anim.rotate.interpolate({
-                      inputRange: [0, 360],
-                      outputRange: ['0deg', '360deg'],
-                    }),
-                  },
-                ],
-                opacity: anim.opacity,
-              },
-            ]}
-          />
-        ))}
-
         {/* Content */}
-        <Animated.View
-          style={[
-            styles.container,
-            {
-              transform: [{scale: scaleAnim}, {rotate: rotation}],
-              opacity: fadeAnim,
-            },
-          ]}>
+        <Animated.View style={[styles.container, cardAnimatedStyle]}>
           <View
             style={[
               styles.card,
@@ -218,13 +251,45 @@ export const AchievementUnlockedModal: React.FC<
               </View>
             </View>
 
-            {/* Icon */}
-            <View
-              style={[
-                styles.iconContainer,
-                {backgroundColor: colors.primary + '20'},
-              ]}>
-              <Text style={styles.icon}>{achievement.icon}</Text>
+            {/* Icon + tier-scaled halo/bloom (replaces the old confetti burst) */}
+            <View style={styles.iconWrapper}>
+              <Animated.View
+                pointerEvents="none"
+                style={[
+                  styles.halo,
+                  haloAnimatedStyle,
+                  {
+                    width: haloSize,
+                    height: haloSize,
+                    borderRadius: haloSize / 2,
+                    top: haloOffset,
+                    left: haloOffset,
+                    backgroundColor: tierColor,
+                    shadowColor: tierColor,
+                  },
+                ]}
+              />
+              {tierRank >= GLINT_MIN_TIER_RANK && (
+                <Animated.View
+                  pointerEvents="none"
+                  style={[
+                    styles.glint,
+                    glintAnimatedStyle,
+                    {
+                      top: glintOffset,
+                      left: glintOffset,
+                      borderColor: tierColor,
+                    },
+                  ]}
+                />
+              )}
+              <View
+                style={[
+                  styles.iconContainer,
+                  {backgroundColor: colors.primary + '20'},
+                ]}>
+                <Text style={styles.icon}>{achievement.icon}</Text>
+              </View>
             </View>
 
             {/* Name and description */}
@@ -272,14 +337,6 @@ const styles = StyleSheet.create({
   backdrop: {
     ...StyleSheet.absoluteFillObject,
   },
-  confetti: {
-    position: 'absolute',
-    width: 10,
-    height: 10,
-    borderRadius: 5,
-    top: '50%',
-    left: '50%',
-  },
   container: {
     width: width * 0.85,
     maxWidth: 400,
@@ -319,13 +376,39 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     color: staticColors.white,
   },
+  iconWrapper: {
+    width: HALO_MAX_SIZE,
+    height: HALO_MAX_SIZE,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 16,
+  },
+  halo: {
+    position: 'absolute',
+    shadowOffset: {width: 0, height: 0},
+    shadowOpacity: 0.6,
+    shadowRadius: 24,
+    // No `elevation` here on purpose: on Android elevation reorders sibling
+    // paint order independently of JSX order, which would draw this glow ON
+    // TOP of the icon/glint instead of behind them. The colored bloom itself
+    // comes from `backgroundColor` (elevation would only add a neutral-gray
+    // Android drop shadow, nothing colored); the iOS glow is entirely
+    // shadowColor/shadowOpacity/shadowRadius. Without elevation, both
+    // platforms stack by JSX order — halo behind glint behind icon.
+  },
+  glint: {
+    position: 'absolute',
+    width: GLINT_SIZE,
+    height: GLINT_SIZE,
+    borderRadius: GLINT_SIZE / 2,
+    borderWidth: 2,
+  },
   iconContainer: {
     width: 100,
     height: 100,
     borderRadius: 50,
     justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: 16,
   },
   icon: {
     fontSize: 56,
