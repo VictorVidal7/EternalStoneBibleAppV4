@@ -751,6 +751,10 @@ export const translations = {
       swipeChapterNav: 'Cambiar de capítulo deslizando',
       swipeChapterNavHint:
         'Desliza a la izquierda para el capítulo siguiente y a la derecha para el anterior. El gesto solo actúa en el centro de la pantalla, así que no interfiere con el gesto de "atrás" del sistema.',
+      redLetterSection: 'Palabras de Cristo',
+      redLetterWords: 'Resaltar las palabras de Jesús en rojo',
+      redLetterWordsHint:
+        'Solo aplica leyendo en inglés (WEB), la única versión con esta marca disponible por ahora.',
       sampleText:
         'En el principio creó Dios los cielos y la tierra. La tierra estaba desordenada y vacía, y las tinieblas estaban sobre la faz del abismo.',
     },
@@ -6325,6 +6329,10 @@ export const translations = {
       swipeChapterNav: 'Change chapter by swiping',
       swipeChapterNavHint:
         'Swipe left for the next chapter and right for the previous one. The gesture only responds in the center of the screen, so it never fights the system "back" gesture.',
+      redLetterSection: 'Words of Christ',
+      redLetterWords: 'Highlight the words of Jesus in red',
+      redLetterWordsHint:
+        'Only applies when reading in English (WEB), the only version with this marking available for now.',
       sampleText:
         'In the beginning God created the heaven and the earth. And the earth was without form, and void; and darkness was upon the face of the deep.',
     },

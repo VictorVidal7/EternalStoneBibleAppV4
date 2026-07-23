@@ -31,6 +31,10 @@ import {
   linkifyReferences,
   type ParsedReference,
 } from '@/lib/references/parseReference';
+import {
+  getRedLetterSpans,
+  mergeRedLetterSpans,
+} from '@lib/reading/redLetterText';
 import {HighlightColor} from '@lib/highlights';
 import {getSyncEngine} from '@lib/sync';
 import {buildNoteRemotePayload} from '@lib/sync/adapters/notes';
@@ -638,7 +642,7 @@ export default function VerseReadingScreen() {
   // colors so an existing user sees no change. `themedColors` also carries
   // the reader-specific `audioHighlight` (verse being read aloud) and
   // `onHighlight` (text over a user highlight swatch) extras.
-  const themedColors = resolveReaderTheme(colors, readerPrefs.theme);
+  const themedColors = resolveReaderTheme(colors, readerPrefs.theme, isDark);
   const effectiveColors = {
     ...themedColors,
     favorite: themedColors.primary,
@@ -2599,28 +2603,62 @@ export default function VerseReadingScreen() {
                         }}>
                         {/* Linkify inline references ("Isaías 53:5",
                           "John 3:16") inside the verse text so they become
-                          tappable jumps. */}
+                          tappable jumps, and — reading WEB with the "Palabras
+                          de Cristo" preference on — tint Jesus's own words
+                          red (Phase 2 of the red-letter feature). A
+                          cross-reference link always wins its color/tap
+                          affordance over red-letter (mergeRedLetterSpans'
+                          own rule), so only the non-link runs ever paint red. */}
                         {(() => {
                           const segments = linkifyReferences(verse.text);
-                          if (segments.length === 1 && !segments[0].ref) {
+                          const redLetterSpans =
+                            readerPrefs.redLetterWords &&
+                            selectedVersion.id === 'WEB'
+                              ? getRedLetterSpans(
+                                  verse.bookNumber,
+                                  chapterNum,
+                                  verse.verse,
+                                )
+                              : undefined;
+                          if (
+                            segments.length === 1 &&
+                            !segments[0].ref &&
+                            !redLetterSpans?.length
+                          ) {
                             return verse.text;
                           }
                           const linkColor = userHighlight
                             ? effectiveColors.primaryDark
                             : effectiveColors.primary;
-                          return segments.map((seg, i) =>
-                            seg.ref ? (
+                          const runs = redLetterSpans?.length
+                            ? mergeRedLetterSpans(
+                                verse.text,
+                                segments,
+                                redLetterSpans,
+                              )
+                            : segments.map(seg => ({
+                                ...seg,
+                                isRedLetter: false,
+                              }));
+                          return runs.map((run, i) =>
+                            run.ref ? (
                               <Text
                                 key={i}
-                                onPress={() => jumpToReference(seg.ref!)}
+                                onPress={() => jumpToReference(run.ref!)}
                                 style={[
                                   styles.crossRefLink,
                                   {color: linkColor},
                                 ]}>
-                                {seg.text}
+                                {run.text}
+                              </Text>
+                            ) : run.isRedLetter ? (
+                              <Text
+                                key={i}
+                                style={{color: effectiveColors.redLetter}}>
+                                {run.text}
                               </Text>
                             ) : (
-                              seg.text
+                              run.text
                             ),
                           );
                         })()}

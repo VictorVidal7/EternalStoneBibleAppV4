@@ -56,4 +56,11 @@ describe('readerThemes — high-contrast palette WCAG compliance', () => {
     expect(resolved.audioHighlight).toBe('#FFD60A');
     expect(resolved.onHighlight).toBe('#000000');
   });
+
+  it('uses a red-letter (words of Christ) color that clears AAA on the background', () => {
+    // The coral-red accent for red-letter text, ~8.19:1 on black.
+    const ratio = contrastRatio(hc!.redLetter, hc!.background);
+    expect(ratio).toBeGreaterThanOrEqual(7);
+    expect(meetsAAA(ratio)).toBe(true);
+  });
 });
