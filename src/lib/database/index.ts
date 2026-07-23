@@ -836,24 +836,46 @@ class BibleDatabase {
    * so simply re-running it overwrites every existing WEB row with the fresh
    * text — no separate DELETE needed, and the FTS index self-updates via the
    * verses_ai/au/ad triggers.
+   *
+   * NATIVE ONLY. Bug found post-hoc: `seedFromBundleIfMissing()` always
+   * throws on web (no expo-file-system there) and its catch just logs +
+   * returns false, so `WEB_TEXT_LOADED_KEY` was never getting stamped on
+   * web — meaning every fresh browser fell through to the `import
+   * ('./bible-data-web')` below, pulling the whole ~6 MB in-repo WEB_DATA
+   * array into the web JS bundle AND executing a redundant full re-seed
+   * before data-loader.web.ts's importWebPack() (the actual web data owner,
+   * a small SQLite pack fetch) even got a chance to run — directly
+   * contradicting the "web starts empty, fetches small packs" design (T19
+   * §3.1a / data-loader.web.ts's header doc). The `Platform.OS !== 'web'`
+   * guard below is written around the dynamic import itself (not an
+   * early-return before it) so Metro's web build can prove it statically
+   * unreachable and drop the bible-data-web.ts chunk from the bundle graph
+   * entirely, rather than just leaving it unfetched in dist/.
    */
   private async seedWebTextIfNeeded(): Promise<void> {
-    try {
-      const loaded = await AsyncStorage.getItem(WEB_TEXT_LOADED_KEY);
-      if (loaded === String(WEB_TEXT_VERSION)) return;
+    if (Platform.OS !== 'web') {
+      try {
+        const loaded = await AsyncStorage.getItem(WEB_TEXT_LOADED_KEY);
+        if (loaded === String(WEB_TEXT_VERSION)) return;
 
-      const {WEB_DATA} = await import('./bible-data-web');
-      // Same dual book_id/book_name shape insertVerses already accepts from
-      // the JS bulk loader (data-loader.ts) — its declared Omit<BibleVerse,
-      // 'id'>[] param predates that shape and doesn't structurally cover it.
-      await this.insertVerses(WEB_DATA as unknown as Omit<BibleVerse, 'id'>[]);
+        const {WEB_DATA} = await import('./bible-data-web');
+        // Same dual book_id/book_name shape insertVerses already accepts from
+        // the JS bulk loader (data-loader.ts) — its declared Omit<BibleVerse,
+        // 'id'>[] param predates that shape and doesn't structurally cover it.
+        await this.insertVerses(
+          WEB_DATA as unknown as Omit<BibleVerse, 'id'>[],
+        );
 
-      await AsyncStorage.setItem(WEB_TEXT_LOADED_KEY, String(WEB_TEXT_VERSION));
-      console.log(
-        `📖 WEB reading-version text re-seeded from bundle (${WEB_DATA.length} verses)`,
-      );
-    } catch (error) {
-      console.warn('⚠️ WEB text re-seed failed', error);
+        await AsyncStorage.setItem(
+          WEB_TEXT_LOADED_KEY,
+          String(WEB_TEXT_VERSION),
+        );
+        console.log(
+          `📖 WEB reading-version text re-seeded from bundle (${WEB_DATA.length} verses)`,
+        );
+      } catch (error) {
+        console.warn('⚠️ WEB text re-seed failed', error);
+      }
     }
   }
 
