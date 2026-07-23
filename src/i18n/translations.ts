@@ -10954,7 +10954,7 @@ export const translations = {
         },
         'who-02': {
           question:
-            'Who said: "Behold, the handmaid of the Lord; be it to me according to your word"?',
+            'Who said: "Behold, the servant of the Lord; let it be done to me according to your word"?',
           options: ['Mary', 'Elizabeth', 'Anna', 'Martha'],
         },
         'who-03': {
@@ -10963,7 +10963,7 @@ export const translations = {
         },
         'who-04': {
           question:
-            'Who wrote: "I can do all things through Christ, who strengthens me"?',
+            'Who wrote: "I can do all things through Christ who strengthens me"?',
           options: ['Paul', 'Peter', 'John', 'James'],
         },
         'who-05': {
@@ -10973,16 +10973,16 @@ export const translations = {
         },
         'who-06': {
           question:
-            'Who wrote the psalm that says: "Yahweh is my shepherd: I shall lack nothing"?',
+            'Who wrote the psalm that says: "The LORD is my shepherd; I shall lack nothing"?',
           options: ['David', 'Solomon', 'Moses', 'Asaph'],
         },
         'complete-01': {
           question:
-            '"…that he gave his one and only ___, that whoever believes in him should not perish, but have eternal life" (John 3:16)',
+            '"…that he gave his only born ___, that whoever believes in him should not perish, but have eternal life" (John 3:16)',
           options: ['Son', 'servant', 'people', 'prophet'],
         },
         'complete-02': {
-          question: '"Yahweh is my ___: I shall lack nothing." (Psalms 23:1)',
+          question: '"The LORD is my ___; I shall lack nothing." (Psalms 23:1)',
           options: ['shepherd', 'rock', 'light', 'shield'],
         },
         'complete-03': {
@@ -10992,71 +10992,71 @@ export const translations = {
         },
         'complete-04': {
           question:
-            '"I can do all things through Christ, who ___ me." (Philippians 4:13)',
+            '"I can do all things through Christ who ___ me." (Philippians 4:13)',
           options: ['strengthens', 'forgives', 'guides', 'hears'],
         },
         'complete-05': {
           question:
-            '"But seek first God’s Kingdom, and his ___." (Matthew 6:33)',
+            '"But seek first God’s Kingdom and his ___." (Matthew 6:33)',
           options: ['righteousness', 'glory', 'truth', 'peace'],
         },
         'complete-06': {
           question:
-            '"Yahweh is my light and my ___. Whom shall I fear?" (Psalms 27:1)',
+            '"The LORD is my light and my ___. Whom shall I fear?" (Psalms 27:1)',
           options: ['salvation', 'strength', 'comfort', 'refuge'],
         },
         'refcontent-01': {
           question: 'What is the text of John 3:16?',
           options: [
-            'For God so loved the world, that he gave his one and only Son, that whoever believes in him should not perish, but have eternal life.',
-            'Yahweh is my shepherd: I shall lack nothing.',
+            'For God so loved the world, that he gave his only born Son, that whoever believes in him should not perish, but have eternal life.',
+            'The LORD is my shepherd; I shall lack nothing.',
             'In the beginning, God created the heavens and the earth.',
-            'I can do all things through Christ, who strengthens me.',
+            'I can do all things through Christ who strengthens me.',
           ],
         },
         'refcontent-02': {
           question: 'What is the text of Psalms 23:1?',
           options: [
-            'Yahweh is my shepherd: I shall lack nothing.',
-            'For God so loved the world, that he gave his one and only Son, that whoever believes in him should not perish, but have eternal life.',
+            'The LORD is my shepherd; I shall lack nothing.',
+            'For God so loved the world, that he gave his only born Son, that whoever believes in him should not perish, but have eternal life.',
             'for all have sinned, and fall short of the glory of God;',
-            'I can do all things through Christ, who strengthens me.',
+            'I can do all things through Christ who strengthens me.',
           ],
         },
         'refcontent-03': {
           question: 'What is the text of Genesis 1:1?',
           options: [
             'In the beginning, God created the heavens and the earth.',
-            'Yahweh is my shepherd: I shall lack nothing.',
+            'The LORD is my shepherd; I shall lack nothing.',
             'for all have sinned, and fall short of the glory of God;',
-            'Go, and make disciples of all nations, baptizing them in the name of the Father and of the Son and of the Holy Spirit,',
+            'Go and make disciples of all nations, baptizing them in the name of the Father and of the Son and of the Holy Spirit,',
           ],
         },
         'refcontent-04': {
           question: 'What is the text of Romans 3:23?',
           options: [
             'for all have sinned, and fall short of the glory of God;',
-            'I can do all things through Christ, who strengthens me.',
+            'I can do all things through Christ who strengthens me.',
             'In the beginning, God created the heavens and the earth.',
-            'Yahweh is my shepherd: I shall lack nothing.',
+            'The LORD is my shepherd; I shall lack nothing.',
           ],
         },
         'refcontent-05': {
           question: 'What is the text of Philippians 4:13?',
           options: [
-            'I can do all things through Christ, who strengthens me.',
-            'For God so loved the world, that he gave his one and only Son, that whoever believes in him should not perish, but have eternal life.',
+            'I can do all things through Christ who strengthens me.',
+            'For God so loved the world, that he gave his only born Son, that whoever believes in him should not perish, but have eternal life.',
             'for all have sinned, and fall short of the glory of God;',
-            'Go, and make disciples of all nations, baptizing them in the name of the Father and of the Son and of the Holy Spirit,',
+            'Go and make disciples of all nations, baptizing them in the name of the Father and of the Son and of the Holy Spirit,',
           ],
         },
         'refcontent-06': {
           question: 'What is the text of Matthew 28:19?',
           options: [
-            'Go, and make disciples of all nations, baptizing them in the name of the Father and of the Son and of the Holy Spirit,',
-            'Yahweh is my shepherd: I shall lack nothing.',
+            'Go and make disciples of all nations, baptizing them in the name of the Father and of the Son and of the Holy Spirit,',
+            'The LORD is my shepherd; I shall lack nothing.',
             'In the beginning, God created the heavens and the earth.',
-            'I can do all things through Christ, who strengthens me.',
+            'I can do all things through Christ who strengthens me.',
           ],
         },
         'order-01': {

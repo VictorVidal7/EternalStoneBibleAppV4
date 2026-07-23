@@ -145,6 +145,26 @@ const DICT_V1_UPDATED_AT = '2026-07-18';
  */
 const DICT_V2_VERSION = 3;
 
+/**
+ * Version of the bundled WEB reading-version text (see seedWebTextIfNeeded).
+ * v1 = the original getbible.net-sourced text (Sprint 66). v2 = re-ingested
+ * from eBible.org's own engwebp USFM distribution — a DIFFERENT WEB revision
+ * (v1 turned out not to match any current eBible.org edition, discovered
+ * while building words-of-Christ red-letter highlighting, which needs its
+ * \wj spans and the verse text to come from the same source). Bump this
+ * whenever bible-data-web.ts is regenerated so already-installed devices —
+ * which only ever seed WEB text ONCE, on first launch — re-import the new
+ * text instead of silently keeping the old wording forever.
+ */
+const WEB_TEXT_VERSION = 2;
+
+/**
+ * Storage key for {@link WEB_TEXT_VERSION}. A plain module-level constant
+ * (not a `BibleDatabase` static like its siblings) because it's also read by
+ * `seedFromBundleIfMissing`, a standalone function outside the class.
+ */
+const WEB_TEXT_LOADED_KEY = '@web_text_version';
+
 /** `updated_at` stamped on every row seeded by seedDictionaryV2IfNeeded. */
 const DICT_V2_UPDATED_AT = '2026-07-21';
 
@@ -191,10 +211,14 @@ async function seedFromBundleIfMissing(): Promise<boolean> {
     // the two BUNDLED versions (RVR1960 + WEB) as loaded so it short-circuits
     // instead of redundantly re-iterating 62k rows just to hit the UNIQUE
     // constraint. KJV/BSB are downloadable packs — their flags get set by
-    // importVersionPack, not here.
+    // importVersionPack, not here. Also stamp the WEB text version so a fresh
+    // install — which just got the CURRENT text via this fast asset copy —
+    // doesn't immediately redo the work via the separate versioned re-seed
+    // below (that path exists for devices that seeded BEFORE this version).
     await Promise.all([
       AsyncStorage.setItem('@bible_data_loaded_rvr1960', 'true'),
       AsyncStorage.setItem('@bible_data_loaded_web', 'true'),
+      AsyncStorage.setItem(WEB_TEXT_LOADED_KEY, String(WEB_TEXT_VERSION)),
     ]);
     return true;
   } catch (error) {
@@ -268,6 +292,7 @@ class BibleDatabase {
       await this.seedStrongsDefsIfNeeded();
       await this.seedDictionaryV1IfNeeded();
       await this.seedDictionaryV2IfNeeded();
+      await this.seedWebTextIfNeeded();
 
       this.initialized = true;
       console.log('✅ Database initialized successfully');
@@ -796,6 +821,39 @@ class BibleDatabase {
       );
     } catch (error) {
       console.warn('⚠️ Dictionary v2 seed failed', error);
+    }
+  }
+
+  /**
+   * Re-seed the WEB reading version's text when `bible-data-web.ts` has been
+   * regenerated (WEB_TEXT_VERSION bumped) since this device last loaded it.
+   * WEB otherwise only ever loads ONCE (see BUNDLE_DATA_STRATEGY.md) — a
+   * fresh install gets the current text via the fast `bible-seed.db` asset
+   * copy (which stamps this same version key, see seedFromBundleIfMissing),
+   * but a device that already seeded under an OLDER version would keep that
+   * stale text forever without this explicit check. `insertVerses` already
+   * does `INSERT OR REPLACE` keyed on `(book_id, chapter, verse, version)`,
+   * so simply re-running it overwrites every existing WEB row with the fresh
+   * text — no separate DELETE needed, and the FTS index self-updates via the
+   * verses_ai/au/ad triggers.
+   */
+  private async seedWebTextIfNeeded(): Promise<void> {
+    try {
+      const loaded = await AsyncStorage.getItem(WEB_TEXT_LOADED_KEY);
+      if (loaded === String(WEB_TEXT_VERSION)) return;
+
+      const {WEB_DATA} = await import('./bible-data-web');
+      // Same dual book_id/book_name shape insertVerses already accepts from
+      // the JS bulk loader (data-loader.ts) — its declared Omit<BibleVerse,
+      // 'id'>[] param predates that shape and doesn't structurally cover it.
+      await this.insertVerses(WEB_DATA as unknown as Omit<BibleVerse, 'id'>[]);
+
+      await AsyncStorage.setItem(WEB_TEXT_LOADED_KEY, String(WEB_TEXT_VERSION));
+      console.log(
+        `📖 WEB reading-version text re-seeded from bundle (${WEB_DATA.length} verses)`,
+      );
+    } catch (error) {
+      console.warn('⚠️ WEB text re-seed failed', error);
     }
   }
 
