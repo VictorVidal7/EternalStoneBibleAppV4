@@ -109,9 +109,14 @@ export const AudioPlayerProvider: React.FC<AudioPlayerProviderProps> = ({
   // flows past the end of a chapter; persisted in AudioPreferences and stopped
   // explicitly by a "end of chapter" sleep timer.
   const [autoAdvanceChapter, setAutoAdvanceChapterState] = useState(true);
-  // Reader follow (Sprint 74). Defaults OFF (opt-in): when on, the reader
-  // screen navigates along with continuous playback across a chapter boundary.
-  const [readerFollowsAudio, setReaderFollowsAudioState] = useState(false);
+  // Reader follow (Sprint 74). Defaults ON (batch6 reader-feedback, item 13):
+  // out of the box, continuous playback and this were two independently
+  // defaulted settings guaranteed to diverge — the reader could show one
+  // chapter while audio played another with no visible link between them.
+  // The policy itself (shouldReaderFollowAudio's synced-chapter latch) already
+  // guards against hijacking the user's own manual navigation, so following by
+  // default doesn't yank an actively-reading user back to the narration.
+  const [readerFollowsAudio, setReaderFollowsAudioState] = useState(true);
   // Memorization "repeat verse" loop. Runtime-only (NOT persisted) so it never
   // surprises a fresh session; defaults off. When on, a finished verse replays
   // instead of advancing.
@@ -291,7 +296,8 @@ export const AudioPlayerProvider: React.FC<AudioPlayerProviderProps> = ({
         if (typeof prefs.autoAdvanceChapter === 'boolean') {
           setAutoAdvanceChapterState(prefs.autoAdvanceChapter);
         }
-        // Reader follow (Sprint 74) — opt-in, so only a saved true turns it on.
+        // Reader follow (Sprint 74) — only override the ON default when a
+        // boolean was explicitly saved (older prefs without the field keep ON).
         if (typeof prefs.readerFollowsAudio === 'boolean') {
           setReaderFollowsAudioState(prefs.readerFollowsAudio);
         }
