@@ -145,6 +145,15 @@ import {useWindowDimensions} from 'react-native';
 const NAV_HIT_SLOP = hitSlopToMinTarget(40);
 // Dual-mode companion/layout chips are only ~24dp tall (S74 hit-target audit).
 const DUAL_CHIP_HIT_SLOP = hitSlopToMinTarget(24);
+// Fallback verse-row height for the selection-bar auto-scroll math, used only
+// when a neighboring verse's own measured offset isn't available to derive
+// the real height from (verse-selection-bar-blocking fix).
+const DEFAULT_VERSE_ROW_HEIGHT_ESTIMATE = 60;
+// Retry cadence while waiting for the selection bar's FIRST `onLayout` (it
+// hasn't rendered/measured yet the very first time a verse is selected in a
+// chapter) — mirrors the existing deep-link arrival-scroll retry shape below.
+const SELECTION_BAR_SCROLL_RETRY_MS = 80;
+const SELECTION_BAR_SCROLL_MAX_ATTEMPTS = 10;
 
 export default function VerseReadingScreen() {
   const router = useRouter();
@@ -243,6 +252,27 @@ export default function VerseReadingScreen() {
   const [selectedVerseForNote, setSelectedVerseForNote] =
     useState<BibleVerse | null>(null);
   const [selectedVerses, setSelectedVerses] = useState<Set<number>>(new Set());
+  // Ref mirror of `selectedVerses`, kept fresh during render (same idiom as
+  // `updateChapterProgressRef` below) so the deferred auto-scroll retry can
+  // check "is this verse still selected?" without capturing a stale closure
+  // over a state snapshot from the render that scheduled it.
+  const selectedVersesRef = useRef<Set<number>>(selectedVerses);
+  selectedVersesRef.current = selectedVerses;
+  // Real measured height of the floating selection action bar (verse-
+  // selection-bar-blocking fix). The bar has no fixed height — it grows to
+  // fit the base action grid plus, optionally, the highlight-color picker or
+  // the overflow row — so a flat fudge factor for scroll padding always
+  // under- or over-shoots. `onLayout` re-fires whenever Yoga recomputes the
+  // bar's frame, including height-only changes from its content growing or
+  // shrinking, so this stays in sync as those panels toggle open/closed.
+  const [selectionBarHeight, setSelectionBarHeight] = useState(0);
+  // Mirrors `selectionBarHeight` for synchronous reads from the deferred
+  // auto-scroll below — state set inside an event handler isn't visible
+  // until the next render, but the very first verse selected in a chapter
+  // needs the bar's height before it has ever rendered once (bar height is
+  // still 0 at that instant). The ref lets the deferred retry loop poll for
+  // the real value once `onLayout` has actually fired.
+  const selectionBarHeightRef = useRef(0);
   const [noteModalVisible, setNoteModalVisible] = useState(false);
   const [imageModalVisible, setImageModalVisible] = useState(false);
   const [crossRefsVisible, setCrossRefsVisible] = useState(false);
@@ -390,6 +420,18 @@ export default function VerseReadingScreen() {
   const lastScrollYRef = useRef(0);
   const {width: windowWidth} = useWindowDimensions();
   const navSideWidth = Math.min(windowWidth * 0.32, 140);
+
+  // Distance from the SCREEN'S bottom edge (== `container`'s bottom edge —
+  // both `container` and `versesContainer`/the ScrollView are `flex: 1` with
+  // no bottom sibling other than the absolutely-positioned bar itself, so the
+  // ScrollView's own bottom edge coincides with it) to the selection bar's
+  // BOTTOM edge. Single source of truth for both the bar's own `bottom`
+  // position (style below) and the auto-scroll math (verse-selection-bar-
+  // blocking fix) so the two can never drift apart.
+  const selectionBarBottomOffset =
+    insets.bottom +
+    (Platform.OS === 'ios' ? 88 : 68) +
+    (isAudioVisible ? 92 : 12);
 
   const {setBottomOffset} = useAudioPlayer();
 
@@ -993,18 +1035,80 @@ export default function VerseReadingScreen() {
     toast.success(t.notes.saved);
   }
 
+  // Auto-scroll a newly SELECTED verse clear of the floating selection
+  // action bar (verse-selection-bar-blocking fix — Victor couldn't select
+  // Números 6:26 because the bar visually covered it with no way to reach
+  // it except tapping it directly). Only scrolls when the verse's row would
+  // actually land at/below the bar's CURRENT real top edge — never
+  // unconditionally, so it doesn't feel jumpy on selections that are
+  // already fully visible. Retries briefly if the bar hasn't measured its
+  // height yet (only possible on the very first selection in a chapter,
+  // before `selectionBar`'s `onLayout` has ever fired), same retry shape as
+  // the deep-link arrival-scroll above.
+  function scrollSelectedVerseAboveBar(verseNum: number, attempt = 0) {
+    if (!selectedVersesRef.current.has(verseNum)) return; // deselected meanwhile
+    const offset = verseOffsetsRef.current.get(verseNum);
+    const barHeight = selectionBarHeightRef.current;
+    if (
+      (offset == null || barHeight === 0) &&
+      attempt < SELECTION_BAR_SCROLL_MAX_ATTEMPTS
+    ) {
+      setTimeout(
+        () => scrollSelectedVerseAboveBar(verseNum, attempt + 1),
+        SELECTION_BAR_SCROLL_RETRY_MS,
+      );
+      return;
+    }
+    if (offset == null || barHeight === 0 || !scrollViewRef.current) return;
+    if (viewportHeightRef.current <= 0) return; // ScrollView hasn't laid out
+
+    // Row-height estimate for this verse, from the NEXT verse's own measured
+    // offset when it's known (the real value); falls back to a constant only
+    // for the last verse of a chapter, which has no next row to measure.
+    const nextOffset = verseOffsetsRef.current.get(verseNum + 1);
+    const rowHeight =
+      nextOffset != null && nextOffset > offset
+        ? nextOffset - offset
+        : DEFAULT_VERSE_ROW_HEIGHT_ESTIMATE;
+    // Breathing room below the verse once scrolled: one more row's worth
+    // when there IS a next verse to reserve that space for, else a small
+    // fixed margin (there's nothing below to make room for).
+    const breathingRoom = nextOffset != null ? rowHeight : 16;
+
+    const verseBottom = offset + rowHeight; // content-space, unscrolled
+    const barTopY =
+      viewportHeightRef.current - selectionBarBottomOffset - barHeight;
+    const verseBottomInViewport = verseBottom - lastScrollYRef.current;
+
+    // Already fully visible above the bar — leave the scroll position alone.
+    if (verseBottomInViewport <= barTopY) return;
+
+    const targetY = verseBottom + breathingRoom - barTopY;
+    scrollViewRef.current.scrollTo({y: Math.max(targetY, 0), animated: true});
+  }
+
   // Toggle verse selection
   function toggleVerseSelection(verseNum: number) {
     haptics.tap();
-    setSelectedVerses(prev => {
-      const newSet = new Set(prev);
-      if (newSet.has(verseNum)) {
-        newSet.delete(verseNum);
-      } else {
-        newSet.add(verseNum);
-      }
-      return newSet;
-    });
+    // Built from the ref (not a functional setState updater) so it can be
+    // mirrored into `selectedVersesRef` in the SAME synchronous step —
+    // `scrollSelectedVerseAboveBar` reads that ref immediately below, before
+    // React has re-rendered, so it must already reflect this toggle rather
+    // than the previous render's snapshot.
+    const wasSelected = selectedVersesRef.current.has(verseNum);
+    const newSet = new Set(selectedVersesRef.current);
+    if (wasSelected) {
+      newSet.delete(verseNum);
+    } else {
+      newSet.add(verseNum);
+    }
+    selectedVersesRef.current = newSet;
+    setSelectedVerses(newSet);
+    // Only a newly-added selection can end up hidden behind the bar —
+    // removing a verse never needs a compensating scroll.
+    if (!wasSelected) {
+      scrollSelectedVerseAboveBar(verseNum);
+    }
   }
 
   // Clear selection
@@ -2252,13 +2356,18 @@ export default function VerseReadingScreen() {
                 // Sprint 31: horizontal padding now follows the reader's
                 // margin preference; vertical bottom padding leaves room so
                 // the last verses are never hidden behind the tab bar, the
-                // audio mini-player or the selection action bar.
+                // audio mini-player or the selection action bar. The
+                // selection term used to be a flat +130 fudge, which
+                // undershot the bar's real footprint once the highlight
+                // picker or overflow row opened (verse-selection-bar-
+                // blocking fix) — now it's the bar's own measured height
+                // plus a small margin so it always clears exactly.
                 paddingHorizontal: readerPaddingHorizontal,
                 paddingBottom:
                   insets.bottom +
                   100 +
                   (isAudioVisible ? 80 : 0) +
-                  (selectedVerses.size > 0 ? 130 : 0),
+                  (selectedVerses.size > 0 ? selectionBarHeight + 20 : 0),
                 // Sprint 96: cap + center the reading column on wide screens
                 // (foldable inner display / tablet / landscape) so verse lines
                 // stay a comfortable length. No-op on phones (narrower than the
@@ -2845,12 +2954,21 @@ export default function VerseReadingScreen() {
                 // Float clear above the tab bar (which now includes the
                 // system inset). When the audio mini-player is visible, sit
                 // above it too.
-                bottom:
-                  insets.bottom +
-                  (Platform.OS === 'ios' ? 88 : 68) +
-                  (isAudioVisible ? 92 : 12),
+                bottom: selectionBarBottomOffset,
               },
-            ]}>
+            ]}
+            onLayout={e => {
+              // Real measured height (verse-selection-bar-blocking fix) —
+              // replaces a flat scroll-padding fudge factor that undershot
+              // whenever the highlight picker or overflow row grew the bar.
+              // Re-fires on every Yoga layout pass, including height-only
+              // changes from this view's own content growing/shrinking (no
+              // fixed height is set on `selectionBar`), so this naturally
+              // stays in sync as those panels toggle.
+              const h = e.nativeEvent.layout.height;
+              selectionBarHeightRef.current = h;
+              setSelectionBarHeight(prev => (prev === h ? prev : h));
+            }}>
             <View style={styles.selectionHeader}>
               <Text
                 style={[styles.selectionCount, {color: effectiveColors.text}]}>
