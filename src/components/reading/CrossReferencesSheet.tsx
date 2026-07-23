@@ -51,6 +51,14 @@ interface Props {
   /** Bible version to fetch the parallel text from (matches the reader). */
   version: string;
   onClose: () => void;
+  /**
+   * Called with the row about to be navigated to, right before the jump's
+   * own `router.push`. Lets a host that's already showing a reader chapter
+   * remember where the jump came from, so it can offer its own way back
+   * instead of relying on the tab navigator's history (which doesn't gain a
+   * new entry for an in-place param change on an already-focused tab).
+   */
+  onJump?: (target: {book: string; chapter: number; verse: number}) => void;
 }
 
 interface RefRow {
@@ -69,6 +77,7 @@ export const CrossReferencesSheet: React.FC<Props> = ({
   sourceVerse,
   version,
   onClose,
+  onJump,
 }) => {
   const router = useRouter();
   const {colors} = useTheme();
@@ -153,6 +162,7 @@ export const CrossReferencesSheet: React.FC<Props> = ({
   const handleJump = (row: RefRow) => {
     if (row.bookId == null) return;
     haptics.tap();
+    onJump?.({book: row.bookDisplay, chapter: row.chapter, verse: row.verse});
     onClose();
     router.push({
       pathname: `/verse/${row.bookDisplay}/${row.chapter}` as never,

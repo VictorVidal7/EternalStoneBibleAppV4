@@ -38,6 +38,7 @@ import {buildHighlightRemotePayload} from '@lib/sync/adapters/highlights';
 import {useTheme} from '@hooks/useTheme';
 import {useBibleVersion} from '@hooks/useBibleVersion';
 import {useLanguage} from '@hooks/useLanguage';
+import {useBackHandlerStep} from '@hooks/useBackHandlerStep';
 import {useServices} from '@context/ServicesContext';
 import {useToast} from '@context/ToastContext';
 import {useFavorites} from '@context/FavoritesContext';
@@ -1078,12 +1079,37 @@ export default function VerseReadingScreen() {
   // and a replace would remount the screen and close it) + the synced-chapter
   // latch so the user's own navigation is never hijacked.
   const [screenFocused, setScreenFocused] = useState(true);
+  // ── Back-nav for in-place verse jumps (batch6 reader-feedback, item 10) ──
+  // Paralelos/inline cross-ref jumps push a new /verse/... route while THIS
+  // tab is already focused — the tab navigator's history only tracks which
+  // TAB was visited, not param changes within an already-focused one, so no
+  // new history entry is created and Android back skips past the whole
+  // reading session. This stack remembers where each in-place jump came
+  // from so back can retreat through them before ever falling through to
+  // the tab history. Cleared on blur so a stale jump never resurfaces after
+  // the user has genuinely navigated away and back.
+  const jumpStackRef = useRef<
+    Array<{book: string; chapter: number; verse?: string}>
+  >([]);
   useFocusEffect(
     useCallback(() => {
       setScreenFocused(true);
-      return () => setScreenFocused(false);
+      return () => {
+        setScreenFocused(false);
+        jumpStackRef.current = [];
+      };
     }, []),
   );
+  useBackHandlerStep(() => {
+    const previous = jumpStackRef.current.pop();
+    if (!previous) return false;
+    router.replace(
+      (previous.verse !== undefined
+        ? `/verse/${previous.book}/${previous.chapter}?verse=${previous.verse}`
+        : `/verse/${previous.book}/${previous.chapter}`) as never,
+    );
+    return true;
+  });
 
   // The chapter this screen displays (route identity) and the chapter the
   // audio engine currently holds (its loaded verses — single source of truth).
@@ -1580,6 +1606,11 @@ export default function VerseReadingScreen() {
   // inside the rendered verse text (see #8 of the Sprint-17 plan).
   function jumpToReference(ref: ParsedReference) {
     haptics.selection();
+    jumpStackRef.current.push({
+      book,
+      chapter: chapterNum,
+      verse: highlightVerse,
+    });
     const base = `/verse/${ref.book.name}/${ref.chapter}`;
     router.push(
       (ref.verse !== undefined ? `${base}?verse=${ref.verse}` : base) as never,
@@ -3258,6 +3289,13 @@ export default function VerseReadingScreen() {
           sourceVerse={crossRefsVerse}
           version={selectedVersion.id}
           onClose={() => setCrossRefsVisible(false)}
+          onJump={() =>
+            jumpStackRef.current.push({
+              book,
+              chapter: chapterNum,
+              verse: highlightVerse,
+            })
+          }
         />
 
         {/* 📜 Original Hebrew/Greek words + Strong's for the first selected verse. */}

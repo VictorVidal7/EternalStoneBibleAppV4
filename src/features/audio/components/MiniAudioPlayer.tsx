@@ -762,7 +762,7 @@ export const MiniAudioPlayer: React.FC<MiniAudioPlayerProps> = ({
                   </TouchableOpacity>
                   {/* Reader-follow toggle — when on, the reader screen
                       navigates along with the continuous auto-advance
-                      (Sprint 74, opt-in). Only meaningful while continuous
+                      (Sprint 74, defaults ON). Only meaningful while continuous
                       playback is on, so it hides when ∞ is off. */}
                   {autoAdvanceChapter && (
                     <TouchableOpacity
