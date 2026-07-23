@@ -442,11 +442,29 @@ export default function BibleFactsScreen() {
                             color={accent}
                           />
                         </View>
-                        <AppText
-                          style={[styles.factLabel, {color: colors.text}]}
-                          numberOfLines={isOpen ? undefined : 2}>
-                          {item.label}
-                        </AppText>
+                        <View style={styles.factLabelCol}>
+                          {fact.draft && (
+                            <View
+                              style={[
+                                styles.draftBadge,
+                                {backgroundColor: accent + '22'},
+                              ]}>
+                              <AppText
+                                scaleRole="compact"
+                                style={[
+                                  styles.draftBadgeText,
+                                  {color: accent},
+                                ]}>
+                                {tf.draftBadge}
+                              </AppText>
+                            </View>
+                          )}
+                          <AppText
+                            style={[styles.factLabel, {color: colors.text}]}
+                            numberOfLines={isOpen ? undefined : 2}>
+                            {item.label}
+                          </AppText>
+                        </View>
                         <Ionicons
                           name={isOpen ? 'chevron-up' : 'chevron-down'}
                           size={16}
@@ -701,10 +719,25 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
-  factLabel: {
+  factLabelCol: {
     flex: 1,
+    gap: 2,
+  },
+  factLabel: {
     fontSize: fontSizes.sm,
     fontWeight: '700',
+  },
+  draftBadge: {
+    alignSelf: 'flex-start',
+    paddingHorizontal: spacing.xs,
+    paddingVertical: 1,
+    borderRadius: borderRadius.sm,
+  },
+  draftBadgeText: {
+    fontSize: 10,
+    fontWeight: '800',
+    letterSpacing: 0.4,
+    textTransform: 'uppercase',
   },
   factBody: {
     paddingHorizontal: spacing.md,

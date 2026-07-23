@@ -2473,12 +2473,14 @@ export const translations = {
       sourcesHint: 'Cómo se eligieron estos datos',
       sourcesBody:
         'Estos datos reúnen geografía, medidas, matices del idioma original, costumbres históricas y conexiones entre pasajes. El criterio es conservador: cada dato está anclado a un versículo concreto de la Escritura — nunca especulación. Las medidas y costumbres se apoyan en el consenso de la erudición bíblica ampliamente documentada; los matices de idioma original citan la palabra hebrea o griega tal como aparece en el texto.',
+      draftBadge: 'Borrador',
       categories: {
         geography: 'Geografía',
         numbers: 'Números',
         language: 'Idioma original',
         history: 'Historia y cultura',
         crossref: 'Referencias cruzadas',
+        commentary: 'Comentario',
       },
       items: {
         'dead-sea': {
@@ -2580,6 +2582,66 @@ export const translations = {
           label: 'Una noche de lucha, un nombre nuevo',
           detail:
             'Jacob luchó toda una noche junto al río Jaboc y recibió de Dios un nombre nuevo, "Israel", que terminaría siendo el de todo un pueblo.',
+        },
+        // ── BORRADOR — pendiente de revisión doctrinal, no publicado ──
+        'gods-costly-gift': {
+          label: 'El regalo que costó todo lo más precioso',
+          detail:
+            'Cuando Juan 3:16 dice que Dios "dio" a su Hijo, no habla de un préstamo ni de un simple envío: es la entrega total de lo más valioso que el Padre tenía, hasta el sufrimiento y la muerte. Llamar a Jesús "unigénito" no es un tecnicismo, sino una forma de resaltar cuánto le costó a Dios este regalo. Y hay algo más: la oferta se extiende "al mundo", rompiendo la expectativa de muchos judíos de la época de que el Mesías vendría solo para Israel. El amor de Dios no se queda en un sentimiento: se demuestra en una acción concreta y costosa.',
+        },
+        'emmanuel-name': {
+          label: 'Un nombre que ya es una promesa',
+          detail:
+            '"Emanuel" no es un nombre cualquiera: en hebreo significa literalmente "Dios con nosotros" (immanu, "con nosotros", + El, "Dios"). Mateo lo retoma de una profecía escrita unos 700 años antes para explicar quién es este niño recién nacido: no solo un mensajero de Dios, sino Dios mismo haciéndose presente entre su pueblo.',
+        },
+        'father-who-ran': {
+          label: 'Por qué el padre corrió',
+          detail:
+            'En la cultura del Cercano Oriente antiguo, un hombre mayor y respetado no corría en público: hacerlo significaba levantarse la túnica y arriesgarse al ridículo. Por eso, cuando el padre de la parábola sale corriendo a recibir a su hijo, la escena resultaba chocante para los primeros oyentes de Jesús: se adelanta a cualquier disculpa y carga él mismo con la vergüenza pública, con tal de llegar antes de que el pueblo lo reciba con desprecio.',
+        },
+        'my-shepherd': {
+          label: 'El peso de una sola palabra: "mi"',
+          detail:
+            'Charles Spurgeon observaba que la fuerza del Salmo 23 no está solo en llamar a Dios "pastor", sino en el pequeño posesivo que lo acompaña: no es un pastor lejano y general, sino el pastor de cada persona en particular. Sobre la promesa de que no faltará lo necesario, Spurgeon aclaraba que no es un deseo optimista sino una certeza: pueden faltar lujos, pero no aquello que de verdad se necesita para vivir y para seguir confiando en Dios.',
+        },
+        'a-denarius-a-days-wage': {
+          label: 'Un denario: el salario de un día entero',
+          detail:
+            'En tiempos de Jesús, un denario romano era lo que se le pagaba a un jornalero por una jornada completa de trabajo: lo justo para que su familia comiera ese día, sin margen para ahorrar. Este detalle ayuda a entender mejor la parábola de los obreros de la viña: recibir "lo justo" no era un tecnicismo económico, sino literalmente el pan del día.',
+        },
+      },
+    },
+
+    // ⚠️ BORRADOR — pendiente de revisión doctrinal, no publicado. Contenido
+    // placeholder para probar el shell de la funcionalidad de punta a punta;
+    // Victor aún no ha dado el visto bueno a este texto exacto.
+    theology: {
+      cardTitle: 'Teología',
+      cardSubtitle: 'Verdades esenciales de la fe cristiana',
+      title: 'Teología',
+      subtitle: 'Doctrina cristiana esencial, con respaldo bíblico',
+      browseHint:
+        'Verdades centrales que la iglesia cristiana confiesa desde sus primeros siglos — sin entrar en temas donde los cristianos fieles discrepan entre sí.',
+      openInReader: 'Abrir en el lector',
+      passageLabel: 'Pasaje',
+      items: {
+        trinity: {
+          title: 'Un Dios, tres personas',
+          topic: 'La Trinidad',
+          body: 'La Biblia enseña que hay un solo Dios verdadero, pero que ese Dios se ha revelado como Padre, Hijo y Espíritu Santo: tres personas distintas que comparten una misma naturaleza divina, no tres dioses separados ni tres "máscaras" de uno solo. Es un misterio que la iglesia cristiana ha confesado desde sus primeros siglos, precisamente porque así es como la Biblia nos presenta a Dios actuando.',
+          passage: '2 Corintios 13:14',
+        },
+        'grace-salvation': {
+          title: 'Un regalo, no un salario',
+          topic: 'La salvación por gracia',
+          body: 'La Biblia enseña que nadie puede ganarse la salvación a base de portarse lo suficientemente bien: es un regalo que Dios ofrece por pura gracia, y lo recibimos confiando en Jesús, no acumulando méritos propios. Esto no significa que las buenas obras no importen, sino que no son el precio de entrada — son, más bien, el fruto natural de una vida ya transformada por ese regalo.',
+          passage: 'Efesios 2:8-9',
+        },
+        resurrection: {
+          title: 'La resurrección: por qué todo depende de esto',
+          topic: 'Deidad y resurrección de Cristo',
+          body: 'El apóstol Pablo escribe que Jesús murió por nuestros pecados, fue sepultado y resucitó al tercer día — y aclara que no es una historia que él mismo inventó, sino algo que "recibió" de otros testigos, muchos de los cuales seguían con vida cuando escribió esto. Para los primeros cristianos, la tumba vacía no era solo un milagro asombroso: era la confirmación de que Jesús es exactamente quien decía ser.',
+          passage: '1 Corintios 15:3-8; Juan 20:28',
         },
       },
     },
@@ -8040,12 +8102,14 @@ export const translations = {
       sourcesHint: 'How these facts were chosen',
       sourcesBody:
         'These facts gather geography, measurements, original-language nuances, historical customs and connections between passages. The criterion is conservative: every fact is anchored to a specific verse of Scripture — never speculation. Measurements and customs draw on the broadly documented consensus of biblical scholarship; original-language notes quote the Hebrew or Greek word as it appears in the text.',
+      draftBadge: 'Draft',
       categories: {
         geography: 'Geography',
         numbers: 'Numbers',
         language: 'Original language',
         history: 'History & culture',
         crossref: 'Cross-references',
+        commentary: 'Commentary',
       },
       items: {
         'dead-sea': {
@@ -8147,6 +8211,66 @@ export const translations = {
           label: 'A night of wrestling, a new name',
           detail:
             'Jacob wrestled all night by the river Jabbok and received from God a new name, "Israel," which would become the name of an entire people.',
+        },
+        // ── DRAFT — pending doctrinal review, not published ──
+        'gods-costly-gift': {
+          label: 'The gift that cost everything most precious',
+          detail:
+            'When John 3:16 says God "gave" His Son, it is not describing a loan or a simple sending: it is the total surrender of the most valuable thing the Father had, all the way to suffering and death. Calling Jesus the "only begotten" is not a technicality — it underlines just how much this gift cost God. And there is more: the offer reaches "the world," breaking many first-century Jews\' expectation that the Messiah would come for Israel alone. God\'s love does not stay a feeling: it is proven in a concrete, costly act.',
+        },
+        'emmanuel-name': {
+          label: 'A name that is already a promise',
+          detail:
+            '"Immanuel" is no ordinary name: in Hebrew it literally means "God with us" (immanu, "with us," + El, "God"). Matthew draws it from a prophecy written some 700 years earlier to explain who this newborn child is — not merely a messenger from God, but God Himself becoming present among His people.',
+        },
+        'father-who-ran': {
+          label: 'Why the father ran',
+          detail:
+            "In ancient Near Eastern culture, an older, respected man did not run in public: doing so meant hiking up his robe and risking ridicule. That is why, when the father in the parable runs out to meet his son, the scene would have shocked Jesus' first hearers: he gets ahead of any apology and takes the public shame on himself, just to reach his son before the village could meet him with contempt.",
+        },
+        'my-shepherd': {
+          label: 'The weight of one small word: "my"',
+          detail:
+            'Charles Spurgeon observed that the power of Psalm 23 lies not just in calling God "shepherd," but in the small possessive that goes with it: not a distant, general shepherd, but the shepherd of each person in particular. On the promise that nothing needed will be lacking, Spurgeon noted this is not wishful optimism but a certainty: luxuries may be missing, but not what is truly needed to live and to keep trusting God.',
+        },
+        'a-denarius-a-days-wage': {
+          label: "A denarius: a full day's wage",
+          detail:
+            "In Jesus' day, a Roman denarius was what a day laborer earned for a full day's work: just enough for his family to eat that day, with no margin to save. This detail helps make better sense of the parable of the workers in the vineyard: receiving \"what was fair\" was not an economic technicality — it was literally that day's bread.",
+        },
+      },
+    },
+
+    // ⚠️ DRAFT — pending doctrinal review, not published. Placeholder content
+    // to prove the feature shell end-to-end; Victor has not yet signed off
+    // on this exact text.
+    theology: {
+      cardTitle: 'Theology',
+      cardSubtitle: 'Essential truths of the Christian faith',
+      title: 'Theology',
+      subtitle: 'Essential Christian doctrine, with biblical grounding',
+      browseHint:
+        'Core truths the Christian church has confessed since its earliest centuries — set apart from topics where faithful Christians disagree with one another.',
+      openInReader: 'Open in reader',
+      passageLabel: 'Passage',
+      items: {
+        trinity: {
+          title: 'One God, three persons',
+          topic: 'The Trinity',
+          body: 'Scripture teaches that there is one true God, yet that God has revealed Himself as Father, Son, and Holy Spirit: three distinct persons who share one divine nature — not three separate gods, nor three "masks" worn by one. It is a mystery the Christian church has confessed since its earliest centuries, precisely because that is how Scripture presents God acting.',
+          passage: '2 Corinthians 13:14',
+        },
+        'grace-salvation': {
+          title: 'A gift, not a wage',
+          topic: 'Salvation by grace',
+          body: "Scripture teaches that no one can earn salvation by being good enough: it is a gift God offers by pure grace, received by trusting Jesus, not by piling up merits of our own. That doesn't mean good works don't matter — rather, they are not the price of admission but the natural fruit of a life already transformed by that gift.",
+          passage: 'Ephesians 2:8-9',
+        },
+        resurrection: {
+          title: 'The resurrection: why everything hinges on this',
+          topic: "Christ's deity and resurrection",
+          body: 'The apostle Paul writes that Jesus died for our sins, was buried, and rose on the third day — and makes clear this is not a story he invented himself, but something he "received" from other witnesses, many of whom were still alive when he wrote this. For the first Christians, the empty tomb was not merely an astonishing miracle: it was confirmation that Jesus is exactly who He claimed to be.',
+          passage: '1 Corinthians 15:3-8; John 20:28',
         },
       },
     },

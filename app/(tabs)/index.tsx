@@ -1450,6 +1450,16 @@ export default function HomeScreen() {
                 }
               />
             </View>
+            <View style={styles.savedCardWrapper}>
+              <DiscoverTile
+                icon="school"
+                title={t.theology.cardTitle}
+                subtitle={t.theology.cardSubtitle}
+                onPress={() =>
+                  handlePress(() => router.push('/features/theology' as never))
+                }
+              />
+            </View>
           </View>
         </Animated.View>
 
