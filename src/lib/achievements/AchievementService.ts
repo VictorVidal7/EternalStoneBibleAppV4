@@ -19,6 +19,7 @@ import {
   normalizeBookReadingLog,
   type BookReadingEntry,
 } from '../reading/bookReadingLog';
+import {localDayKey} from '../utils/dateKey';
 
 export class AchievementService {
   private db: BibleDatabase;
@@ -304,7 +305,7 @@ export class AchievementService {
     bookNameEn?: string,
   ): Promise<Achievement[]> {
     this.stats = null; // Invalidate cache
-    const today = new Date().toISOString().split('T')[0];
+    const today = localDayKey(Date.now());
     const now = Date.now();
 
     // Update statistics
@@ -508,10 +509,12 @@ export class AchievementService {
    * (Sprint 58 bug), leaving both columns at 0 forever.
    *
    * @param today Optional `YYYY-MM-DD` anchor for the "current" streak;
-   *              defaults to the current UTC day (same basis as the log keys).
+   *              defaults to the current LOCAL day (same basis as the log
+   *              keys — reading now shares [[localDayKey]] with every other
+   *              daily habit, batch6 reader-feedback item 14).
    */
   private async recomputeReadingStreak(today?: string): Promise<void> {
-    const anchor = today ?? new Date().toISOString().split('T')[0];
+    const anchor = today ?? localDayKey(Date.now());
     let dates: string[] = [];
     try {
       const result = await this.db.executeSql(

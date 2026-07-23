@@ -27,10 +27,10 @@ import {useMemoryGoal} from '@hooks/useMemoryGoal';
 import {useDevotionStreak} from '@hooks/useDevotionStreak';
 import {computeStreaks} from '@lib/achievements/streak';
 import {getFeelingsLog} from '@/features/study/feelingsLogStore';
-import {feelingsDateKey} from '@/features/study/feelingsLog';
 import {getReadingGoal} from '@lib/reading/readingGoalStore';
 import {computeReadingGoalProgress} from '@lib/reading/readingGoal';
 import {logger} from '@lib/utils/logger';
+import {localDayKey} from '@lib/utils/dateKey';
 import {
   buildConstancySummary,
   type ConstancySummary,
@@ -84,19 +84,22 @@ export function useConstancyRings(): ConstancyRingsState {
       let cancelled = false;
       void (async () => {
         try {
-          // Reading — the streak service owns "today" (UTC day key, matching
-          // the reading_streak_log the streak is built from). The ring fills by
-          // today's verses against the device-local daily reading goal, so it
-          // grades rather than just snapping closed (Sprint 85 T3).
-          const todayUtc = new Date().toISOString().split('T')[0];
+          // Every habit shares ONE local-day key (batch6 reader-feedback item
+          // 14) — reading used to derive its own UTC day here, which could
+          // disagree with the other three habits for hours around a negative
+          // UTC-offset user's evening, making an active streak's ring read as
+          // untouched. The ring fills by today's verses against the
+          // device-local daily reading goal, so it grades rather than just
+          // snapping closed (Sprint 85 T3).
+          const todayKey = localDayKey(Date.now());
           let next = EMPTY_READING;
           if (achievementService) {
-            const [stats, log, goal] = await Promise.all([
+            const [stats, readingLog, goal] = await Promise.all([
               achievementService.getUserStats(),
               achievementService.getReadingLog(),
               getReadingGoal(),
             ]);
-            const todayRow = log.find(d => d.date === todayUtc);
+            const todayRow = readingLog.find(d => d.date === todayKey);
             const progress = computeReadingGoalProgress(
               todayRow?.versesRead ?? 0,
               goal,
@@ -109,11 +112,10 @@ export function useConstancyRings(): ConstancyRingsState {
             };
           }
 
-          // Mood — the device-only feelings log (local day key).
-          const log = await getFeelingsLog();
-          const keys = Object.keys(log.days ?? {});
-          const todayKey = feelingsDateKey(Date.now());
-          const moodDone = Boolean(log.days?.[todayKey]);
+          // Mood — the device-only feelings log (same local day key).
+          const feelingsLog = await getFeelingsLog();
+          const keys = Object.keys(feelingsLog.days ?? {});
+          const moodDone = Boolean(feelingsLog.days?.[todayKey]);
           const moodStreak = computeStreaks(keys, todayKey).currentStreak;
 
           if (cancelled) return;

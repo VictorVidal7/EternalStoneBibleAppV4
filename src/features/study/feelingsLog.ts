@@ -18,6 +18,7 @@
  */
 
 import {isBrightFeeling} from './feelings';
+import {localDayKey} from '@lib/utils/dateKey';
 
 /** dateKey (local YYYY-MM-DD) → feelingId for that day. */
 export interface FeelingsLog {
@@ -28,12 +29,7 @@ export interface FeelingsLog {
 export const FEELINGS_RETENTION_DAYS = 84;
 
 /** Local-day key for a timestamp (the listeningStats key format). */
-export function feelingsDateKey(now: number): string {
-  const d = new Date(now);
-  const month = String(d.getMonth() + 1).padStart(2, '0');
-  const day = String(d.getDate()).padStart(2, '0');
-  return `${d.getFullYear()}-${month}-${day}`;
-}
+export const feelingsDateKey = localDayKey;
 
 export function emptyFeelingsLog(): FeelingsLog {
   return {days: {}};
