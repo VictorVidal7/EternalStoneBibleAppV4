@@ -11,6 +11,7 @@ import {
   FACT_CATEGORY_ICON,
   FACT_COUNT,
   getFactsByCategory,
+  getRotatableFacts,
   getDailyFactIndex,
   getDailyFact,
   type FactCategory,
@@ -135,13 +136,57 @@ describe('getDailyFactIndex', () => {
     }
   });
 
-  it('rotates across consecutive days (not stuck on one fact)', () => {
+  it('never lands on a BORRADOR/draft fact (Home + hero must never show unreviewed content)', () => {
+    for (let d = 0; d < 400; d++) {
+      const date = new Date(2026, 0, 1 + d);
+      expect(getDailyFact(date).draft).toBeFalsy();
+    }
+  });
+
+  it('rotates across consecutive days over the rotatable (non-draft) pool', () => {
+    const rotatableCount = getRotatableFacts().length;
     const seen = new Set<number>();
-    for (let d = 0; d < FACT_COUNT; d++) {
+    for (let d = 0; d < rotatableCount; d++) {
       seen.add(getDailyFactIndex(new Date(2026, 0, 1 + d)));
     }
-    // A full catalog-length window covers every fact exactly once.
-    expect(seen.size).toBe(FACT_COUNT);
+    // A full rotatable-pool-length window covers every non-draft fact once.
+    expect(seen.size).toBe(rotatableCount);
+  });
+});
+
+describe('bibleFacts — commentary entries (BORRADOR, pending doctrinal review)', () => {
+  const commentaryFacts = BIBLE_FACTS.filter(f => f.category === 'commentary');
+
+  it('ships the 5 seeded BORRADOR "¿Sabías qué?" entries', () => {
+    expect(commentaryFacts.length).toBe(5);
+  });
+
+  it('every commentary entry has a non-empty source citation', () => {
+    for (const f of commentaryFacts) {
+      expect(typeof f.source).toBe('string');
+      expect((f.source ?? '').trim().length).toBeGreaterThan(0);
+    }
+  });
+
+  it('every commentary entry is flagged as draft (unreviewed placeholder content)', () => {
+    for (const f of commentaryFacts) {
+      expect(f.draft).toBe(true);
+    }
+  });
+
+  it('every commentary entry\'s ref looks like a real "Book/Chapter/Verse" reference', () => {
+    for (const f of commentaryFacts) {
+      expect(f.ref).toMatch(/^[A-Za-z1-3 ]+\/\d+\/\d+$/);
+    }
+  });
+
+  it('non-commentary entries are not marked draft (only the new seed is unreviewed)', () => {
+    for (const f of BIBLE_FACTS) {
+      if (f.category !== 'commentary') {
+        expect(f.draft).toBeFalsy();
+        expect(f.source).toBeUndefined();
+      }
+    }
   });
 });
 
