@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "generated": "2026-07-01",
+  "generated": "2026-07-23",
   "note": "Per-version SQLite packs for Eternal Bible. Each pack has a single verses table (book_id,book_name,chapter,verse,text). Imported via ATTACH+INSERT; FTS auto-indexes on device. Public domain.",
   "versions": [
     {
