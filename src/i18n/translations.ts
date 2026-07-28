@@ -3889,7 +3889,7 @@ export const translations = {
         },
         {
           title: 'Memorización',
-          desc: 'Estadísticas completas de tu repaso, retención por libro y tendencia — más el Quiz con categorías, contrarreloj y añadir versículos a tu mazo.',
+          desc: 'Estadísticas completas de tu repaso, retención por libro y tendencia — más el modo contrarreloj del Quiz y añadir versículos a tu mazo.',
         },
         {
           title: 'Personalización',
@@ -9723,7 +9723,7 @@ export const translations = {
         },
         {
           title: 'Memorization',
-          desc: 'Full review stats, retention by book and trend — plus the Quiz with categories, timed mode, and add-to-deck.',
+          desc: 'Full review stats, retention by book and trend — plus the Quiz’s timed mode and add-to-deck.',
         },
         {
           title: 'Personalization',
