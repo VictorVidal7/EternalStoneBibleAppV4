@@ -25,6 +25,7 @@ import {
   topBookReading,
   type BookReadingEntry,
 } from '@lib/reading/bookReadingLog';
+import {localDayKey} from '@lib/utils/dateKey';
 
 const MS_PER_DAY = 86_400_000;
 
@@ -231,7 +232,14 @@ export function buildReadingInsights(
     totalBooksCompleted: 0,
   };
 
-  const todayNum = dayNumberFromMs(now);
+  // `entry.date` strings are LOCAL calendar days (localDayKey, same basis
+  // AchievementService's reading_streak_log uses since 55ff1a7). Anchoring
+  // "today" on the UTC day of `now` instead would desync from those entries
+  // for any negative-UTC-offset reader once UTC's date has already rolled
+  // past local midnight — same class of bug 55ff1a7 fixed for the streak log
+  // itself, just not yet ported to this screen's own day math.
+  const todayNum =
+    dayNumberFromDateStr(localDayKey(now)) ?? dayNumberFromMs(now);
 
   // Tally verses + seconds per UTC day, and collect active-day strings for the
   // streak. Reading time (seconds) rides alongside the verse count per day.
