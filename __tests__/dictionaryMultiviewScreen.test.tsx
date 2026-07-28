@@ -19,13 +19,18 @@
  */
 import React from 'react';
 import {render, fireEvent} from '@testing-library/react-native';
-import {StyleSheet} from 'react-native';
+import {ScrollView, StyleSheet} from 'react-native';
 import DictionaryDetailScreen from '../app/features/dictionary/[slug]';
 import {translations} from '../src/i18n/translations';
 
 let mockSlug = 'bautismo';
+// Hoisted so assertions can inspect calls — a fresh `jest.fn()` returned
+// anew on every `useRouter()` call (the previous shape) can never be
+// asserted against by the test.
+const mockPush = jest.fn();
+const mockBack = jest.fn();
 jest.mock('expo-router', () => ({
-  useRouter: () => ({push: jest.fn(), back: jest.fn()}),
+  useRouter: () => ({push: mockPush, back: mockBack}),
   useLocalSearchParams: () => ({slug: mockSlug}),
   Stack: {Screen: () => null},
 }));
@@ -74,7 +79,7 @@ jest.mock('@hooks/useLanguage', () => ({
 }));
 
 jest.mock('@lib/haptics', () => ({
-  haptics: {tap: jest.fn()},
+  haptics: {tap: jest.fn(), selection: jest.fn()},
 }));
 
 // Reuses the SAME global reader-preferences store as the verse reader — no
@@ -90,6 +95,11 @@ let mockReaderPrefs = {
 };
 jest.mock('@context/ReaderPreferencesContext', () => ({
   useReaderPreferences: () => ({preferences: mockReaderPrefs}),
+  // The screen imports this alongside `useReaderPreferences` (margin →
+  // horizontal padding wiring) — must match the real module's values
+  // (`src/context/ReaderPreferencesContext.tsx`) or the margin assertions
+  // below would pass for the wrong reason.
+  READER_MARGIN_PADDING: {small: 12, medium: 24, large: 40},
 }));
 
 // The real sheet has its own dedicated test suite (ReaderPreferencesSheet*
@@ -164,6 +174,19 @@ const ANNOTATED_ENTRY = {
   updated_at: '2026-07-21',
 };
 
+// A citation-bearing gloss for the linkify tests below — "Lv 16" resolves
+// against `src/constants/bible.ts`'s Levítico `abbr` ('Lv') without a verse,
+// exercising the base-URL-only branch of `handleReferencePress`.
+const REFERENCE_ENTRY = {
+  slug: 'referencia-prueba',
+  headword_es: 'REFERENCIA DE PRUEBA',
+  gloss_es: 'Véase Lv 16 para más detalles.',
+  article_es: null,
+  source_tier: 'v1',
+  treatment: 'annotated',
+  updated_at: '2026-07-21',
+};
+
 const mockGetDictionaryEntry = jest.fn();
 const mockGetDictionaryMultiviewSections = jest.fn();
 jest.mock('@lib/database', () => ({
@@ -184,6 +207,8 @@ describe('DictionaryDetailScreen — multi-view branch (Bautismo, Milenio)', () 
     mockGetDictionaryEntry.mockReset();
     mockGetDictionaryMultiviewSections.mockReset();
     mockIonicons.mockClear();
+    mockPush.mockClear();
+    mockBack.mockClear();
     mockReaderPrefs = {
       fontFamily: 'sans',
       fontSize: 16,
@@ -311,5 +336,102 @@ describe('DictionaryDetailScreen — multi-view branch (Bautismo, Milenio)', () 
     );
     expect(lockBadgeCall).toBeTruthy();
     expect(lockBadgeCall?.[0].color).toBe('#00ff00');
+  });
+
+  // Previously margin had ZERO effect on the screen — READER_MARGIN_PADDING
+  // was never read, so the horizontal gutter was hardcoded at module scope
+  // (`styles.content`'s `padding: spacing.lg`) and couldn't react to the
+  // preference. This is the regression guard for that fix.
+  it('wires the margin preference into the horizontal padding around the entry card', async () => {
+    mockReaderPrefs = {
+      fontFamily: 'sans',
+      fontSize: 16,
+      lineHeightMultiplier: 1.6,
+      textAlign: 'left',
+      margin: 'large',
+      theme: 'system',
+    };
+    mockGetDictionaryEntry.mockResolvedValue(BAUTISMO_ENTRY);
+    mockGetDictionaryMultiviewSections.mockResolvedValue([]);
+
+    const {findByText, UNSAFE_getByType} = render(<DictionaryDetailScreen />);
+    await findByText('El bautismo es el rito de iniciación cristiana.');
+
+    const scrollView = UNSAFE_getByType(ScrollView);
+    const flat = StyleSheet.flatten(scrollView.props.contentContainerStyle) as {
+      paddingHorizontal?: number;
+    };
+    // READER_MARGIN_PADDING.large (src/context/ReaderPreferencesContext.tsx),
+    // NOT the old hardcoded spacing.lg (24) that ignored the preference.
+    expect(flat.paddingHorizontal).toBe(40);
+  });
+
+  // Previously theme had ZERO effect on the screen — resolveReaderTheme was
+  // never called, so every color came from the plain app `useTheme()`
+  // regardless of the Aa sheet's Night/Sepia/Musgo selection. This is the
+  // regression guard for that fix.
+  it('wires the theme preference into the reading-surface colors (gloss + entry card)', async () => {
+    mockReaderPrefs = {
+      fontFamily: 'sans',
+      fontSize: 16,
+      lineHeightMultiplier: 1.6,
+      textAlign: 'left',
+      margin: 'medium',
+      theme: 'night',
+    };
+    mockGetDictionaryEntry.mockResolvedValue(BAUTISMO_ENTRY);
+    mockGetDictionaryMultiviewSections.mockResolvedValue([]);
+
+    const {findByText} = render(<DictionaryDetailScreen />);
+    const glossNode = await findByText(
+      'El bautismo es el rito de iniciación cristiana.',
+    );
+    const flat = StyleSheet.flatten(glossNode.props.style) as {color?: string};
+    // Night theme's textSecondary (src/styles/readerThemes.ts) — NOT the
+    // mocked app colors.textSecondary ('#cccccc'), proving the reading-theme
+    // palette actually applies instead of the plain app theme leaking through.
+    expect(flat.color).toBe('#A39E92');
+    expect(flat.color).not.toBe('#cccccc');
+  });
+
+  // 'system' (the default) must resolve back to the live app colors so an
+  // existing user who never opens the Aa sheet sees zero visual change.
+  it("'system' theme (default) keeps the plain app colors on the gloss", async () => {
+    mockGetDictionaryEntry.mockResolvedValue(BAUTISMO_ENTRY);
+    mockGetDictionaryMultiviewSections.mockResolvedValue([]);
+
+    const {findByText} = render(<DictionaryDetailScreen />);
+    const glossNode = await findByText(
+      'El bautismo es el rito de iniciación cristiana.',
+    );
+    const flat = StyleSheet.flatten(glossNode.props.style) as {color?: string};
+    expect(flat.color).toBe('#cccccc'); // mocked colors.textSecondary
+  });
+
+  // Part 3 — dictionary citations become tappable, same recognizer + tap-to-
+  // jump affordance already used inline in the main verse reader.
+  it('linkifies an inline Bible citation in the gloss and navigates to it on tap', async () => {
+    mockSlug = 'referencia-prueba';
+    mockGetDictionaryEntry.mockResolvedValue(REFERENCE_ENTRY);
+    mockGetDictionaryMultiviewSections.mockResolvedValue([]);
+
+    const {findByText} = render(<DictionaryDetailScreen />);
+    const refNode = await findByText('Lv 16');
+    fireEvent.press(refNode);
+
+    expect(mockPush).toHaveBeenCalledTimes(1);
+    // No verse in "Lv 16" — chapter-only jump, base URL with no `?verse=`.
+    expect(mockPush).toHaveBeenCalledWith('/verse/Levítico/16');
+  });
+
+  it('a gloss with no recognizable citation renders as plain text, unaffected', async () => {
+    mockGetDictionaryEntry.mockResolvedValue(BAUTISMO_ENTRY);
+    mockGetDictionaryMultiviewSections.mockResolvedValue([]);
+
+    const {findByText} = render(<DictionaryDetailScreen />);
+    expect(
+      await findByText('El bautismo es el rito de iniciación cristiana.'),
+    ).toBeTruthy();
+    expect(mockPush).not.toHaveBeenCalled();
   });
 });
