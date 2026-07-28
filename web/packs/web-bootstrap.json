@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "generated": "2026-07-23",
+  "generated": "2026-07-28",
   "note": "Web-only bootstrap packs (RVR1960 + WEB), byte-identical to the native bundled seed. NOT part of web/packs/versions.json (that catalog is also read by the native download-versions screen, which does not filter bundled versions).",
   "packs": [
     {
