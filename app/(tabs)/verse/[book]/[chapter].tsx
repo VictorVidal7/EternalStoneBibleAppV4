@@ -910,6 +910,17 @@ export default function VerseReadingScreen() {
       // top because John 4's verse 17 answered first). Clear; the new rows
       // re-report through onLayout immediately (Sprint 81).
       verseOffsetsRef.current.clear();
+      // Same reused-instance issue hits `lastScrollYRef` (verse-selection-bar
+      // fix, `76e4fd3`): the new chapter renders scrolled to the top, but
+      // this ref only updates from real `onScroll` events, so without an
+      // explicit reset here it keeps the PREVIOUS chapter's scroll offset.
+      // `scrollSelectedVerseAboveBar` then thinks a verse near the top of the
+      // new chapter is already past the bar (using the stale offset) and
+      // skips the scroll it actually needs — confirmed live on a real device
+      // 2026-07-28: selecting Génesis 5:4 right after paging from Génesis 4
+      // (which had scrolled to 375px) silently failed to scroll because the
+      // stale 375 made the verse look already-visible.
+      lastScrollYRef.current = 0;
       setVerses(chapterVerses);
       setVersesVersionId(selectedVersion.id);
 
