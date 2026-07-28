@@ -625,7 +625,7 @@ export const translations = {
           'Todo tu historial de repasos, no solo los últimos meses',
         byBookTitle: 'Retención por libro',
         byBookHint: 'Cómo te va en cada libro que has memorizado',
-        byBookLocked: 'Se desbloquea con una ofrenda',
+        byBookLocked: 'Se desbloquea con premium',
         monthsShort: [
           'Ene',
           'Feb',
@@ -642,9 +642,9 @@ export const translations = {
         ],
         trendTitle: 'Tendencia de retención',
         trendHint: 'Tu retención mes a mes, en los últimos 12 meses',
-        trendLocked: 'Se desbloquea con una ofrenda',
+        trendLocked: 'Se desbloquea con premium',
         shareProgressButton: 'Compartir mi progreso',
-        shareProgressLocked: 'Se desbloquea con una ofrenda',
+        shareProgressLocked: 'Se desbloquea con premium',
         shareCardVerses: 'versículos memorizados',
         shareCardVersesSingular: 'versículo memorizado',
         shareCardRetention: 'retención',
@@ -793,9 +793,9 @@ export const translations = {
       openHint: 'Ver definición',
       attribution: 'Hebreo/griego: STEPBible (CC BY) · Léxico: Strong',
       morphologyTitle: 'Análisis morfológico',
-      morphologyLocked: 'Se desbloquea con una ofrenda',
+      morphologyLocked: 'Se desbloquea con premium',
       kjvGloss: 'Traducción KJV',
-      kjvLocked: 'Se desbloquea con una ofrenda',
+      kjvLocked: 'Se desbloquea con premium',
       exclusiveLabel: 'Exclusivo',
       interlinearTitle: 'Interlineal visual',
       interlinearBlurb: 'Cada palabra del original, en su propio orden',
@@ -912,7 +912,7 @@ export const translations = {
       exclusiveLabel: 'Exclusivo',
       // T8.4.2 — cross-refs ampliados (premium) + "Palabras clave en el
       // idioma original" (enteramente premium).
-      crossRefsMore: '+{{n}} más con una ofrenda',
+      crossRefsMore: '+{{n}} más con premium',
       originalWordsTitle: 'Palabras clave en el idioma original',
       originalWordsBlurb:
         'Cada palabra distinta del hebreo o griego de este pasaje, con transliteración, glosa, Strong y morfología.',
@@ -921,7 +921,7 @@ export const translations = {
       originalWordsEmpty:
         'No hay palabras del idioma original marcadas para este pasaje.',
       originalWordsLockedBody:
-        'Desbloquea con una ofrenda las palabras clave del hebreo y griego de todo el pasaje, ya decodificadas: transliteración, glosa, Strong y morfología.',
+        'Desbloquea con premium las palabras clave del hebreo y griego de todo el pasaje, ya decodificadas: transliteración, glosa, Strong y morfología.',
       originalWordsNotInstalledBody:
         'Descarga el paquete de idiomas originales para ver las palabras clave en hebreo y griego de todo el pasaje.',
       // T8.4.3 — "Comparar versiones": 2-3 traducciones YA descargadas, lado a
@@ -930,7 +930,7 @@ export const translations = {
       // reimplementa el análisis de diferencias.
       versionCompareTitle: 'Comparar versiones',
       versionCompareLockedBody:
-        'Desbloquea con una ofrenda comparar 2 o 3 traducciones de este pasaje, lado a lado.',
+        'Desbloquea con premium comparar 2 o 3 traducciones de este pasaje, lado a lado.',
       versionCompareSelectHint: 'Elige hasta 3 versiones para comparar',
       versionCompareOnlyOneBody:
         'Solo tienes una versión descargada en este dispositivo. Descarga otra versión desde Ajustes para comparar este pasaje lado a lado.',
@@ -946,7 +946,7 @@ export const translations = {
       exportPdfError: 'No se pudo generar el PDF. Inténtalo de nuevo.',
       pulpitTitle: 'Modo púlpito',
       pulpitLockedBody:
-        'Desbloquea con una ofrenda el modo púlpito: una vista de pantalla completa con letra grande, cronómetro y una estimación de la duración de tu prédica.',
+        'Desbloquea con premium el modo púlpito: una vista de pantalla completa con letra grande, cronómetro y una estimación de la duración de tu prédica.',
       pulpitWordCount: '{{n}} palabras escritas',
       pulpitEstimateLabel: '≈ {{n}} min',
       pulpitEstimateLessThanMinute: 'Menos de 1 min',
@@ -1021,7 +1021,7 @@ export const translations = {
       entryLabel: 'Historial de preparaciones',
       lockedTitle: 'Encuentra tus preparaciones pasadas',
       lockedBody:
-        'Desbloquea con una ofrenda el historial y la búsqueda de todas tus mesas de preparación guardadas en este dispositivo.',
+        'Desbloquea con premium el historial y la búsqueda de todas tus mesas de preparación guardadas en este dispositivo.',
       searchPlaceholder: 'Buscar por pasaje o contenido…',
       emptyTitle: 'Aún no has preparado ningún pasaje',
       emptyBody:
@@ -1051,7 +1051,7 @@ export const translations = {
       exclusiveLabel: 'Exclusivo',
       lockedTitle: 'Planifica tu próxima serie',
       lockedBody:
-        'Desbloquea con una ofrenda el planificador de series: agrupa varios pasajes en una serie de varias semanas y sigue tu progreso de preparación, todo en este dispositivo.',
+        'Desbloquea con premium el planificador de series: agrupa varios pasajes en una serie de varias semanas y sigue tu progreso de preparación, todo en este dispositivo.',
       newSeries: 'Nueva serie',
       newSeriesModalTitle: 'Nueva serie',
       create: 'Crear',
@@ -1113,7 +1113,7 @@ export const translations = {
       exitLabel: 'Salir del modo púlpito',
       lockedTitle: 'Predica con una vista de pantalla completa',
       lockedBody:
-        'Desbloquea con una ofrenda una vista de predicación a pantalla completa: letra grande, cronómetro de ritmo y tus propias notas, listas para el púlpito.',
+        'Desbloquea con premium una vista de predicación a pantalla completa: letra grande, cronómetro de ritmo y tus propias notas, listas para el púlpito.',
       emptyTitle: 'No se pudo abrir el pasaje',
       emptyBody:
         'Vuelve a la Mesa de preparación e intenta abrir el modo púlpito de nuevo.',
@@ -1132,7 +1132,7 @@ export const translations = {
       exclusiveLabel: 'Exclusivo',
       lockedTitle: 'Guarda tus mejores ilustraciones',
       lockedBody:
-        'Desbloquea con una ofrenda tu banco de ilustraciones: guarda anécdotas, citas y analogías que ya usaste (o quieres usar), organizadas por categoría y listas para reutilizar en tu próxima predicación.',
+        'Desbloquea con premium tu banco de ilustraciones: guarda anécdotas, citas y analogías que ya usaste (o quieres usar), organizadas por categoría y listas para reutilizar en tu próxima predicación.',
       searchPlaceholder: 'Buscar por título o contenido',
       filterAll: 'Todas',
       categories: {
@@ -3869,7 +3869,7 @@ export const translations = {
     },
 
     offering: {
-      badgeA11y: 'Extra — se desbloquea con una ofrenda',
+      badgeA11y: 'Extra — se desbloquea con premium',
       sheetTitle: 'Una ofrenda voluntaria',
       sheetIntro:
         'Algunos extras de esta app se desbloquean con una ofrenda única y voluntaria — como una ofrenda en la iglesia, no una compra. La Biblia, los planes de lectura, la oración y todo lo demás siguen siendo, y seguirán siendo siempre, completamente gratis.',
@@ -3922,7 +3922,7 @@ export const translations = {
       settingsLockedTitle: 'Extras de la app',
       settingsLockedDesc:
         'Algunas funciones adicionales se pueden desbloquear con una ofrenda voluntaria.',
-      settingsCta: 'Desbloquear con una ofrenda',
+      settingsCta: 'Desbloquear con premium',
       devToggleLabel: 'Extras desbloqueados (solo desarrollo)',
     },
 
@@ -5671,7 +5671,7 @@ export const translations = {
       timedModeLabel: 'Modo cronometrado',
       timedModeHint: '{{n}} segundos por pregunta',
       timeUp: '¡Se acabó el tiempo!',
-      premiumLockedHint: 'Desbloquea con una ofrenda',
+      premiumLockedHint: 'Desbloquea con premium',
       statsButtonA11y: 'Tus estadísticas del quiz',
       addToDeck: 'Añadir a mi mazo',
       addToDeckAdded: 'Añadido a tu mazo',
@@ -6471,7 +6471,7 @@ export const translations = {
         fullHistoryHint: 'Your entire review history, not just recent months',
         byBookTitle: 'Retention by book',
         byBookHint: 'How you’re doing in each book you’ve memorized',
-        byBookLocked: 'Unlocked with an offering',
+        byBookLocked: 'Unlocked with premium',
         monthsShort: [
           'Jan',
           'Feb',
@@ -6488,9 +6488,9 @@ export const translations = {
         ],
         trendTitle: 'Retention trend',
         trendHint: 'Your retention month by month, over the last 12 months',
-        trendLocked: 'Unlocked with an offering',
+        trendLocked: 'Unlocked with premium',
         shareProgressButton: 'Share my progress',
-        shareProgressLocked: 'Unlocked with an offering',
+        shareProgressLocked: 'Unlocked with premium',
         shareCardVerses: 'verses memorized',
         shareCardVersesSingular: 'verse memorized',
         shareCardRetention: 'retention',
@@ -6650,9 +6650,9 @@ export const translations = {
       openHint: 'View definition',
       attribution: 'Hebrew/Greek: STEPBible (CC BY) · Lexicon: Strong’s',
       morphologyTitle: 'Morphological analysis',
-      morphologyLocked: 'Unlocked with an offering',
+      morphologyLocked: 'Unlocked with premium',
       kjvGloss: 'KJV translation',
-      kjvLocked: 'Unlocked with an offering',
+      kjvLocked: 'Unlocked with premium',
       exclusiveLabel: 'Exclusive',
       interlinearTitle: 'Visual interlinear',
       interlinearBlurb: 'Every original word, in its own order',
@@ -6769,7 +6769,7 @@ export const translations = {
       exclusiveLabel: 'Exclusive',
       // T8.4.2 — expanded cross-refs (premium) + "Keywords in the original
       // language" (entirely premium).
-      crossRefsMore: '+{{n}} more with an offering',
+      crossRefsMore: '+{{n}} more with premium',
       originalWordsTitle: 'Keywords in the original language',
       originalWordsBlurb:
         'Every distinct Hebrew or Greek word in this passage, with transliteration, gloss, Strong’s number and morphology.',
@@ -6778,7 +6778,7 @@ export const translations = {
       originalWordsEmpty:
         'No original-language words are tagged for this passage.',
       originalWordsLockedBody:
-        'Unlock with an offering the Hebrew and Greek keywords for the whole passage, already decoded: transliteration, gloss, Strong’s number and morphology.',
+        'Unlock with premium the Hebrew and Greek keywords for the whole passage, already decoded: transliteration, gloss, Strong’s number and morphology.',
       originalWordsNotInstalledBody:
         'Download the original-languages pack to see the Hebrew/Greek keywords for the whole passage.',
       // T8.4.3 — "Compare versions": 2-3 ALREADY-downloaded translations of
@@ -6787,7 +6787,7 @@ export const translations = {
       // re-implement the differences analysis.
       versionCompareTitle: 'Compare versions',
       versionCompareLockedBody:
-        'Unlock with an offering to compare 2 or 3 translations of this passage, side by side.',
+        'Unlock with premium to compare 2 or 3 translations of this passage, side by side.',
       versionCompareSelectHint: 'Choose up to 3 versions to compare',
       versionCompareOnlyOneBody:
         'You only have one version downloaded on this device. Download another version from Settings to compare this passage side by side.',
@@ -6803,7 +6803,7 @@ export const translations = {
       exportPdfError: 'Could not generate the PDF. Please try again.',
       pulpitTitle: 'Pulpit mode',
       pulpitLockedBody:
-        'Unlock pulpit mode with an offering: a full-screen, large-type view with a pacing clock and an estimate of your sermon’s length.',
+        'Unlock pulpit mode with premium: a full-screen, large-type view with a pacing clock and an estimate of your sermon’s length.',
       pulpitWordCount: '{{n}} words written',
       pulpitEstimateLabel: '≈ {{n}} min',
       pulpitEstimateLessThanMinute: 'Less than 1 min',
@@ -6878,7 +6878,7 @@ export const translations = {
       entryLabel: 'Preparation history',
       lockedTitle: 'Find your past preparations',
       lockedBody:
-        'Unlock with an offering the history and search of every preparation table saved on this device.',
+        'Unlock with premium the history and search of every preparation table saved on this device.',
       searchPlaceholder: 'Search by passage or content…',
       emptyTitle: "You haven't prepared any passage yet",
       emptyBody:
@@ -6907,7 +6907,7 @@ export const translations = {
       exclusiveLabel: 'Exclusive',
       lockedTitle: 'Plan your next series',
       lockedBody:
-        'Unlock with an offering the series planner: group several passages into a multi-week series and track your preparation progress, all on this device.',
+        'Unlock with premium the series planner: group several passages into a multi-week series and track your preparation progress, all on this device.',
       newSeries: 'New series',
       newSeriesModalTitle: 'New series',
       create: 'Create',
@@ -6968,7 +6968,7 @@ export const translations = {
       exitLabel: 'Exit pulpit mode',
       lockedTitle: 'Preach from a full-screen view',
       lockedBody:
-        'Unlock with an offering a full-screen preaching view: large type, a pacing clock, and your own notes, ready for the pulpit.',
+        'Unlock with premium a full-screen preaching view: large type, a pacing clock, and your own notes, ready for the pulpit.',
       emptyTitle: 'This passage could not be opened',
       emptyBody:
         'Go back to the preparation table and try opening pulpit mode again.',
@@ -6988,7 +6988,7 @@ export const translations = {
       exclusiveLabel: 'Exclusive',
       lockedTitle: 'Save your best illustrations',
       lockedBody:
-        "Unlock with an offering your illustration bank: save anecdotes, quotes, and analogies you've already used (or want to use), organized by category and ready to reuse in your next sermon.",
+        "Unlock with premium your illustration bank: save anecdotes, quotes, and analogies you've already used (or want to use), organized by category and ready to reuse in your next sermon.",
       searchPlaceholder: 'Search by title or content',
       filterAll: 'All',
       categories: {
@@ -9703,7 +9703,7 @@ export const translations = {
     },
 
     offering: {
-      badgeA11y: 'Extra — unlocked with an offering',
+      badgeA11y: 'Extra — unlocked with premium',
       sheetTitle: 'A voluntary offering',
       sheetIntro:
         'Some extras in this app unlock with a single, voluntary offering — like an offering at church, not a purchase. The Bible, reading plans, prayer, and everything else stay, and will always stay, completely free.',
@@ -9756,7 +9756,7 @@ export const translations = {
       settingsLockedTitle: 'App extras',
       settingsLockedDesc:
         'Some additional features can be unlocked with a voluntary offering.',
-      settingsCta: 'Unlock with an offering',
+      settingsCta: 'Unlock with premium',
       devToggleLabel: 'Extras unlocked (dev only)',
     },
 
@@ -11484,7 +11484,7 @@ export const translations = {
       timedModeLabel: 'Timed mode',
       timedModeHint: '{{n}} seconds per question',
       timeUp: 'Time’s up!',
-      premiumLockedHint: 'Unlock with an offering',
+      premiumLockedHint: 'Unlock with premium',
       statsButtonA11y: 'Your quiz statistics',
       addToDeck: 'Add to my deck',
       addToDeckAdded: 'Added to your deck',

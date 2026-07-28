@@ -216,12 +216,12 @@ describe('Mesa de preparación — T8.4.2 premium additions', () => {
       // The 13th+ curated parallel is NOT shown — the free experience is
       // byte-for-byte what it was before this tanda.
       expect(queryByText('Salmos 1:13')).toBeNull();
-      expect(await findByText('+8 más con una ofrenda')).toBeTruthy();
+      expect(await findByText('+8 más con premium')).toBeTruthy();
     });
 
     it('opens the offering sheet when tapping the "+N more" invitation', async () => {
       const {findByText} = renderScreen();
-      fireEvent.press(await findByText('+8 más con una ofrenda'));
+      fireEvent.press(await findByText('+8 más con premium'));
       expect(mockOpenOfferingSheet).toHaveBeenCalledTimes(1);
     });
 
@@ -230,7 +230,7 @@ describe('Mesa de preparación — T8.4.2 premium additions', () => {
       const {findByText, queryByText, getAllByText} = renderScreen();
       expect(await findByText('Salmos 1:13')).toBeTruthy();
       expect(await findByText('Salmos 1:20')).toBeTruthy();
-      expect(queryByText(/más con una ofrenda/)).toBeNull();
+      expect(queryByText(/más con premium/)).toBeNull();
       // Three "Exclusivo" pills: the cross-refs extension, the entirely-
       // premium original-words section header (see below), and the T8.4.3
       // "Comparar versiones" section header (always shown, like original

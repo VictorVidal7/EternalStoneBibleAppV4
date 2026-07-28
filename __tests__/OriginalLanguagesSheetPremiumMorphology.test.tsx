@@ -132,14 +132,14 @@ describe('OriginalLanguagesSheet — premium morphology (Originales+)', () => {
   it('shows a locked teaser (not the parsing) for a free user', async () => {
     const {findByText, queryByText} = renderSheet();
     fireEvent.press(await findByText('ἠγάπησεν'));
-    expect(await findByText('Se desbloquea con una ofrenda')).toBeTruthy();
+    expect(await findByText('Se desbloquea con premium')).toBeTruthy();
     expect(queryByText(/Verbo, Aoristo/)).toBeNull();
   });
 
   it('opens the offering sheet when tapping the locked morphology teaser', async () => {
     const {findByText} = renderSheet();
     fireEvent.press(await findByText('ἠγάπησεν'));
-    fireEvent.press(await findByText('Se desbloquea con una ofrenda'));
+    fireEvent.press(await findByText('Se desbloquea con premium'));
     expect(mockOpenOfferingSheet).toHaveBeenCalledTimes(1);
   });
 
@@ -171,7 +171,7 @@ describe('OriginalLanguagesSheet — premium morphology (Originales+)', () => {
     mockPurchases.__setCustomerInfo(noEntitlementInfo);
 
     await waitFor(async () =>
-      expect(await findByText('Se desbloquea con una ofrenda')).toBeTruthy(),
+      expect(await findByText('Se desbloquea con premium')).toBeTruthy(),
     );
     expect(queryByText(/Verbo, Aoristo/)).toBeNull();
   });
