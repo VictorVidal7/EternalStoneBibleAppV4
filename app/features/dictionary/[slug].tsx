@@ -44,12 +44,20 @@ import {centeredMaxWidth} from '@/styles/responsive';
 import {useLanguage} from '@hooks/useLanguage';
 import {usePremium} from '@context/PremiumContext';
 import {useOfferingSheet} from '@context/OfferingSheetContext';
-import {useReaderPreferences} from '@context/ReaderPreferencesContext';
+import {
+  useReaderPreferences,
+  READER_MARGIN_PADDING,
+} from '@context/ReaderPreferencesContext';
 import {
   ReaderPreferencesSheet,
   resolveFontFamily,
   resolveFontFamilyBold,
 } from '@components/reading/ReaderPreferencesSheet';
+import {resolveReaderTheme} from '@/styles/readerThemes';
+import {
+  linkifyReferences,
+  type ParsedReference,
+} from '@/lib/references/parseReference';
 import {haptics} from '@lib/haptics';
 import {AppText} from '@components/ui/AppText';
 import bibleDB, {
@@ -70,6 +78,54 @@ import {
 
 type LoadStatus = 'loading' | 'ready' | 'error' | 'unknown';
 
+/** Linkify Bible references (`linkifyReferences`) inside a run of plain
+ *  text, rendering matches as tappable underlined spans — the SAME
+ *  recognizer + tap-to-jump affordance already used inline in the main verse
+ *  reader (`app/(tabs)/verse/[book]/[chapter].tsx`'s `jumpToReference`) and
+ *  derived for sermon notes (`src/features/study/sermonNotes.ts`'s
+ *  `getReferencedVerses`), now reused so dictionary citations like "Lv 16" or
+ *  "Dt 1:2" become tappable too. Called both per-segment from `MarkdownBody`
+ *  (article/multi-view bodies) and directly on the free gloss (which has no
+ *  bold/italic markdown of its own, so it skips `parseMarkdownSegments`).
+ *  Segments with no reference are returned as bare strings, inheriting the
+ *  wrapping `Text`'s style — same "no separate plain color prop" idiom as
+ *  `MarkdownBody` itself. `keyPrefix` disambiguates React keys across the
+ *  outer loop (one caller can invoke this several times, e.g. once per
+ *  markdown segment, and each one can itself contain zero, one, or several
+ *  references).
+ *
+ *  KNOWN GAP (pre-existing in `linkifyReferences`, not introduced here):
+ *  `REF_REGEX` is built from each book's raw `abbr` string with no diacritic
+ *  folding, so an accented abbreviation actually used in the seeded ISBE
+ *  text — "Éx" for Éxodo — never matches, because `BIBLE_BOOKS`' own `abbr`
+ *  for that book is the unaccented "Ex" (confirmed against
+ *  `assets/dictionary-v1-es.json`, which contains many "Éx 4:1"-style
+ *  citations). Every other common abbreviation checked (Lv, Dt, Nm, Is, Mt,
+ *  Lc, Jn, Hch, 1 R/2 R, 1 S/2 S…) matches correctly. This is a limitation
+ *  of the shared parser also affecting the main reader and sermon notes, out
+ *  of scope to fix here — flagged for a future `parseReference.ts` pass. */
+function linkifyMarkdownSegment(
+  text: string,
+  linkColor: string,
+  onPressReference: (ref: ParsedReference) => void,
+  keyPrefix: number,
+): React.ReactNode {
+  const refSegments = linkifyReferences(text);
+  if (refSegments.length === 1 && !refSegments[0].ref) return text;
+  return refSegments.map((seg, j) =>
+    seg.ref ? (
+      <Text
+        key={`${keyPrefix}-${j}`}
+        onPress={() => onPressReference(seg.ref!)}
+        style={[styles.crossRefLink, {color: linkColor}]}>
+        {seg.text}
+      </Text>
+    ) : (
+      seg.text
+    ),
+  );
+}
+
 /** Renders `parseMarkdownSegments(text)` as inline `Text` nodes — shared by
  *  the single-article body and every multi-view section body, so the bold
  *  and italic handling only lives in one place. Plain-style segments are
@@ -81,19 +137,33 @@ type LoadStatus = 'loading' | 'ready' | 'error' | 'unknown';
  *  — a bold run needs to switch to the face's own bold-weight family, not
  *  just add `fontWeight: '700'` (see `src/lib/reader/typefaces.ts`'s own
  *  rationale, mirrored exactly here). Plain and italic segments inherit the
- *  wrapping `Text`'s regular-weight `fontFamily`, so they don't need the prop. */
+ *  wrapping `Text`'s regular-weight `fontFamily`, so they don't need the prop.
+ *
+ *  Every segment (regardless of bold/italic/plain) is additionally run
+ *  through `linkifyMarkdownSegment` so an inline Bible citation stays
+ *  tappable no matter which markdown style it happens to sit inside. */
 function MarkdownBody({
   text,
   boldColor,
   boldFontFamily,
+  linkColor,
+  onPressReference,
 }: {
   text: string;
   boldColor: string;
   boldFontFamily: string;
+  linkColor: string;
+  onPressReference: (ref: ParsedReference) => void;
 }) {
   return (
     <>
       {parseMarkdownSegments(text).map((seg, i) => {
+        const linked = linkifyMarkdownSegment(
+          seg.text,
+          linkColor,
+          onPressReference,
+          i,
+        );
         if (seg.style === 'bold') {
           return (
             <Text
@@ -102,18 +172,18 @@ function MarkdownBody({
                 styles.articleBold,
                 {color: boldColor, fontFamily: boldFontFamily},
               ]}>
-              {seg.text}
+              {linked}
             </Text>
           );
         }
         if (seg.style === 'italic') {
           return (
             <Text key={i} style={styles.articleItalic}>
-              {seg.text}
+              {linked}
             </Text>
           );
         }
-        return seg.text;
+        return <React.Fragment key={i}>{linked}</React.Fragment>;
       })}
     </>
   );
@@ -122,7 +192,7 @@ function MarkdownBody({
 export default function DictionaryDetailScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
-  const {colors, gradient, highContrast} = useTheme();
+  const {colors, gradient, highContrast, isDark} = useTheme();
   const {t} = useLanguage();
   const dt = t.dictionary;
   const {isPremium} = usePremium();
@@ -130,9 +200,14 @@ export default function DictionaryDetailScreen() {
 
   // Aa reading preferences — reuses the SAME global store as the main verse
   // reader (Victor: "si todo lo del reader es reutilizable en el diccionario,
-  // adelante"). Only the fields that make sense for a prose gloss/article are
-  // wired in below (see `proseStyle`); `margin` and `theme` are deliberately
-  // left out — see the comments at their would-be call sites for why.
+  // adelante"). Every field is wired in: typography/alignment feed
+  // `proseStyle` below; `margin` sets the horizontal gutter around the entry
+  // card via `READER_MARGIN_PADDING` (mirrors chapter.tsx's
+  // `readerPaddingHorizontal`); `theme` recolors the reading surface — the
+  // entry/multi-view cards and their body text — via `resolveReaderTheme`
+  // into `themedColors` below. The top header banner, the Aa button and the
+  // EXCLUSIVO badge stay on the plain app theme, same as chapter.tsx keeps
+  // its own screen chrome (nav bar, toolbar) off the reading-surface palette.
   const {preferences: readerPrefs} = useReaderPreferences();
   const readerFontFamily = useMemo(
     () => resolveFontFamily(readerPrefs.fontFamily),
@@ -185,10 +260,47 @@ export default function DictionaryDetailScreen() {
     openOfferingSheet();
   }, [openOfferingSheet]);
 
+  // Tap-to-jump for an inline Bible citation recognized by `linkifyReferences`
+  // inside a gloss/article body (see `MarkdownBody`). Mirrors chapter.tsx's
+  // `jumpToReference` — pushes the cited chapter (optionally scrolled to a
+  // specific verse) onto the verse-reader route. No jump-back-stack bookkeeping
+  // here (that's chapter.tsx's own within-screen cross-ref feature); this is a
+  // normal `router.push` from a different screen, so the OS/back button
+  // already returns to this dictionary entry.
+  const handleReferencePress = useCallback(
+    (ref: ParsedReference) => {
+      haptics.selection();
+      const base = `/verse/${ref.book.name}/${ref.chapter}`;
+      router.push(
+        (ref.verse !== undefined
+          ? `${base}?verse=${ref.verse}`
+          : base) as never,
+      );
+    },
+    [router],
+  );
+
   const title = entry ? titleCaseHeadword(entry.headword_es) : '';
   const headerGradient: readonly [string, string, ...string[]] = highContrast
     ? (gradient.headerColors as readonly [string, string, ...string[]])
     : [colors.primary, colors.primaryDark];
+
+  // Reader-margin gutter (Sprint T-audit): the horizontal padding between the
+  // screen edge and the entry card now follows the Aa margin preference,
+  // exactly like chapter.tsx's `readerPaddingHorizontal` does for the verse
+  // column. `centeredMaxWidth()`'s wide-screen cap on `styles.content` is
+  // untouched — margin only adjusts the padding WITHIN that cap.
+  const readerPaddingHorizontal = READER_MARGIN_PADDING[readerPrefs.margin];
+
+  // Reading-surface theme (Sprint T-audit): recolors the entry/multi-view
+  // cards and their body text via the SAME palette resolver the main reader
+  // uses (`resolveReaderTheme`) — 'system' (the default) resolves back to the
+  // live app colors, so an existing user sees zero change until they pick a
+  // reading theme. Scoped narrowly to the article content, NOT the top header
+  // banner / Aa button / EXCLUSIVO badge — those stay on `colors` (the plain
+  // app theme), same split chapter.tsx keeps between its reading surface and
+  // its own screen chrome.
+  const themedColors = resolveReaderTheme(colors, readerPrefs.theme, isDark);
 
   // Prose styling for the gloss + article/multi-view bodies, driven by the
   // reader preferences wired in above. `verseTextRightSlack` already takes a
@@ -262,7 +374,10 @@ export default function DictionaryDetailScreen() {
         </LinearGradient>
 
         <ScrollView
-          contentContainerStyle={styles.content}
+          contentContainerStyle={[
+            styles.content,
+            {paddingHorizontal: readerPaddingHorizontal},
+          ]}
           showsVerticalScrollIndicator={false}>
           {status === 'loading' && (
             <View style={styles.centerState}>
@@ -288,15 +403,23 @@ export default function DictionaryDetailScreen() {
             <View
               style={[
                 styles.entryCard,
-                {backgroundColor: colors.surface, borderColor: colors.primary},
+                {
+                  backgroundColor: themedColors.surface,
+                  borderColor: themedColors.primary,
+                },
               ]}>
               <Text
                 style={[
                   styles.gloss,
                   proseStyle,
-                  {color: colors.textSecondary},
+                  {color: themedColors.textSecondary},
                 ]}>
-                {entry.gloss_es}
+                {linkifyMarkdownSegment(
+                  entry.gloss_es,
+                  themedColors.primary,
+                  handleReferencePress,
+                  0,
+                )}
               </Text>
 
               {entry.article_es ? (
@@ -325,12 +448,14 @@ export default function DictionaryDetailScreen() {
                       style={[
                         styles.articleText,
                         proseStyle,
-                        {color: colors.textSecondary},
+                        {color: themedColors.textSecondary},
                       ]}>
                       <MarkdownBody
                         text={entry.article_es}
-                        boldColor={colors.text}
+                        boldColor={themedColors.text}
                         boldFontFamily={readerFontFamilyBold}
+                        linkColor={themedColors.primary}
+                        onPressReference={handleReferencePress}
                       />
                     </Text>
                   ) : (
@@ -392,8 +517,8 @@ export default function DictionaryDetailScreen() {
                           style={[
                             styles.viewCard,
                             {
-                              backgroundColor: colors.background,
-                              borderColor: colors.border,
+                              backgroundColor: themedColors.background,
+                              borderColor: themedColors.border,
                             },
                           ]}>
                           <Text
@@ -404,12 +529,14 @@ export default function DictionaryDetailScreen() {
                             style={[
                               styles.articleText,
                               proseStyle,
-                              {color: colors.textSecondary},
+                              {color: themedColors.textSecondary},
                             ]}>
                             <MarkdownBody
                               text={section.body_es}
-                              boldColor={colors.text}
+                              boldColor={themedColors.text}
                               boldFontFamily={readerFontFamilyBold}
+                              linkColor={themedColors.primary}
+                              onPressReference={handleReferencePress}
                             />
                           </Text>
                         </View>
@@ -507,8 +634,13 @@ const styles = StyleSheet.create({
     fontSize: fontSizes['2xl'],
     fontWeight: '800',
   },
+  // paddingHorizontal is NOT set here — it comes from the reader-preferences
+  // -derived `readerPaddingHorizontal` (always merged in as an inline
+  // override at the ScrollView call site), so the Aa margin control actually
+  // takes effect. Vertical padding and the `centeredMaxWidth()` wide-screen
+  // cap stay fixed regardless of margin.
   content: {
-    padding: spacing.lg,
+    paddingTop: spacing.lg,
     paddingBottom: spacing['2xl'],
     gap: spacing.md,
     ...centeredMaxWidth(),
@@ -555,6 +687,11 @@ const styles = StyleSheet.create({
   },
   articleItalic: {
     fontStyle: 'italic',
+  },
+  // Tappable inline Bible citation (linkifyReferences match) — color comes
+  // from `linkColor` at each MarkdownBody call site.
+  crossRefLink: {
+    textDecorationLine: 'underline',
   },
   viewsList: {
     gap: spacing.md,
