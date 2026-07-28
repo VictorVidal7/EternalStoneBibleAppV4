@@ -121,7 +121,9 @@ const styles = StyleSheet.create({
   chip: {
     flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'center',
     gap: 6,
+    minWidth: 92,
     borderRadius: borderRadius.full,
     borderWidth: 1,
     paddingHorizontal: spacing.md,
