@@ -1,10 +1,14 @@
 /**
  * 🕊️ COMPARTE TU FE — free-tier hub screen.
  *
- * Two entry points into the "Comparte tu fe" feature:
+ * Three entry points into the "Comparte tu fe" feature:
  *   - "Preguntas frecuentes" — a curated, browsable list of common
  *     questions/objections a believer might face when sharing their faith,
  *     each mapped to a handful of relevant verses ([[shareFaithObjections]]).
+ *   - "Cómo compartir el evangelio" — curated, ORDERED gospel-sharing
+ *     outlines (Romans Road, Bridge to Life, the Four Laws, the Three
+ *     Circles), each verse carrying a one-clause caption
+ *     ([[shareFaithMethods]]).
  *   - "Mi testimonio" — a guided-but-not-scripted writing surface for the
  *     reader's OWN testimony, shareable as an image ([[faithTestimony]]).
  *
@@ -43,6 +47,11 @@ export default function ShareFaithHubScreen() {
   const handleOpenObjections = useCallback(() => {
     haptics.tap();
     router.push('/features/share-faith/objections' as never);
+  }, [router]);
+
+  const handleOpenMethods = useCallback(() => {
+    haptics.tap();
+    router.push('/features/share-faith/methods' as never);
   }, [router]);
 
   const handleOpenTestimony = useCallback(() => {
@@ -114,6 +123,41 @@ export default function ShareFaithHubScreen() {
                 scaleRole="compact"
                 style={[styles.cardSubtitle, {color: colors.textSecondary}]}>
                 {h.objectionsCardSubtitle}
+              </AppText>
+            </View>
+            <Ionicons
+              name="chevron-forward"
+              size={20}
+              color={colors.textTertiary}
+            />
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={[
+              styles.card,
+              {backgroundColor: colors.card, borderColor: colors.border},
+            ]}
+            onPress={handleOpenMethods}
+            accessibilityRole="button"
+            accessibilityLabel={h.methodsCardTitle}
+            accessibilityHint={h.methodsCardSubtitle}>
+            <View
+              style={[
+                styles.cardIcon,
+                {backgroundColor: colors.primary + '22'},
+              ]}>
+              <Ionicons name="map" size={26} color={colors.primary} />
+            </View>
+            <View style={styles.cardInfo}>
+              <AppText
+                scaleRole="display"
+                style={[styles.cardTitle, {color: colors.text}]}>
+                {h.methodsCardTitle}
+              </AppText>
+              <AppText
+                scaleRole="compact"
+                style={[styles.cardSubtitle, {color: colors.textSecondary}]}>
+                {h.methodsCardSubtitle}
               </AppText>
             </View>
             <Ionicons

@@ -10,7 +10,7 @@ describe('shareFaithObjections — objection → verses index ("Comparte tu fe")
   describe('taxonomy shape', () => {
     it('ships a meaningful, respectful-sized set of objections', () => {
       expect(SHARE_FAITH_OBJECTIONS.length).toBeGreaterThanOrEqual(6);
-      expect(SHARE_FAITH_OBJECTIONS.length).toBeLessThanOrEqual(10);
+      expect(SHARE_FAITH_OBJECTIONS.length).toBeLessThanOrEqual(14);
     });
 
     it('has unique objection ids', () => {
@@ -18,12 +18,12 @@ describe('shareFaithObjections — objection → verses index ("Comparte tu fe")
       expect(new Set(ids).size).toBe(ids.length);
     });
 
-    it('every objection has an icon, a hex accent and 2-4 verses', () => {
+    it('every objection has an icon, a hex accent and 2-6 verses', () => {
       for (const o of SHARE_FAITH_OBJECTIONS) {
         expect(o.icon).toBeTruthy();
         expect(o.accent).toMatch(/^#[0-9A-Fa-f]{6}$/);
         expect(o.verseRefs.length).toBeGreaterThanOrEqual(2);
-        expect(o.verseRefs.length).toBeLessThanOrEqual(4);
+        expect(o.verseRefs.length).toBeLessThanOrEqual(6);
       }
     });
 

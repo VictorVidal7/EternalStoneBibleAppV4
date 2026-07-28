@@ -13,7 +13,7 @@
  *
  * SCOPE GUARDRAIL — read before adding to this file: this module is
  * DELIBERATELY Part 1 only, NOT Part 2. Each objection's `verseRefs` are a
- * flat, ORDER-INSIGNIFICANT set of 2-4 passages someone could read/reflect
+ * flat, ORDER-INSIGNIFICANT set of 2-6 passages someone could read/reflect
  * on/share — never a sequenced "step 1, step 2, step 3" argument, never
  * connecting prose that chains verses into a case, and never a walk-through
  * of how to present the gospel. A prior research pass proposed exactly that
@@ -80,19 +80,39 @@ export const SHARE_FAITH_OBJECTIONS: readonly ShareFaithObjection[] = [
     id: 'god-exists',
     icon: 'planet',
     accent: '#6366F1',
-    verseRefs: ['Romans/1/20', 'Psalms/19/1', 'Genesis/1/1', 'Hebrews/11/6'],
+    verseRefs: [
+      'Romans/1/20',
+      'Psalms/19/1',
+      'Genesis/1/1',
+      'Hebrews/11/6',
+      'Acts/17/24',
+      'Colossians/1/16',
+    ],
   },
   {
     id: 'suffering',
     icon: 'rainy',
     accent: '#3B82F6',
-    verseRefs: ['Romans/8/28', 'John/16/33', 'Revelation/21/4', 'Psalms/34/18'],
+    verseRefs: [
+      'Romans/8/28',
+      'John/16/33',
+      'Revelation/21/4',
+      'Psalms/34/18',
+      '2 Corinthians/1/3',
+      'Psalms/23/4',
+    ],
   },
   {
     id: 'many-religions',
     icon: 'git-compare',
     accent: '#8B5CF6',
-    verseRefs: ['John/14/6', 'Acts/4/12', '1 Timothy/2/5'],
+    verseRefs: [
+      'John/14/6',
+      'Acts/4/12',
+      '1 Timothy/2/5',
+      'Colossians/2/9',
+      'Hebrews/1/3',
+    ],
   },
   {
     id: 'bible-reliable',
@@ -103,13 +123,21 @@ export const SHARE_FAITH_OBJECTIONS: readonly ShareFaithObjection[] = [
       '2 Peter/1/21',
       'Psalms/119/105',
       'Isaiah/40/8',
+      'Matthew/24/35',
+      '1 Peter/1/25',
     ],
   },
   {
     id: 'faith-and-science',
     icon: 'flask',
     accent: '#10B981',
-    verseRefs: ['Colossians/1/17', 'Hebrews/11/3', 'Psalms/111/2'],
+    verseRefs: [
+      'Colossians/1/17',
+      'Hebrews/11/3',
+      'Psalms/111/2',
+      'Job/38/4',
+      'Proverbs/25/2',
+    ],
   },
   {
     id: 'real-change',
@@ -120,6 +148,8 @@ export const SHARE_FAITH_OBJECTIONS: readonly ShareFaithObjection[] = [
       'Philippians/1/6',
       'Ezekiel/36/26',
       'Romans/12/2',
+      'Galatians/2/20',
+      '1 Corinthians/6/11',
     ],
   },
   {
@@ -131,6 +161,8 @@ export const SHARE_FAITH_OBJECTIONS: readonly ShareFaithObjection[] = [
       '1 Corinthians/15/57',
       'Hebrews/9/27',
       '2 Corinthians/5/1',
+      'John/14/2',
+      'Philippians/1/23',
     ],
   },
   {
@@ -142,6 +174,42 @@ export const SHARE_FAITH_OBJECTIONS: readonly ShareFaithObjection[] = [
       'Matthew/10/31',
       'Zephaniah/3/17',
       'Psalms/139/1',
+      'Matthew/6/26',
+      'Isaiah/49/15',
+    ],
+  },
+  {
+    id: 'prayer-works',
+    icon: 'chatbubble-ellipses',
+    accent: '#F97316',
+    verseRefs: [
+      'Jeremiah/33/3',
+      '1 John/5/14',
+      'Matthew/7/7',
+      'Philippians/4/6',
+    ],
+  },
+  {
+    id: 'many-denominations',
+    icon: 'people',
+    accent: '#0891B2',
+    verseRefs: ['John/17/21', '1 Corinthians/12/12', 'Ephesians/4/3'],
+  },
+  {
+    id: 'human-tradition',
+    icon: 'compass',
+    accent: '#14B8A6',
+    verseRefs: ['Acts/17/11', '1 Thessalonians/5/21', 'John/8/32'],
+  },
+  {
+    id: 'never-heard-gospel',
+    icon: 'globe',
+    accent: '#7C3AED',
+    verseRefs: [
+      'Genesis/18/25',
+      'Deuteronomy/29/29',
+      'Romans/2/15',
+      'Acts/17/27',
     ],
   },
 ];
