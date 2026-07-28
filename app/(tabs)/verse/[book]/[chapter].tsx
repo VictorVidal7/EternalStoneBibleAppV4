@@ -2406,6 +2406,11 @@ export default function VerseReadingScreen() {
               // reflow). See the lever rationale on `paddingRight`/`marginRight`
               // in the style below.
               const rightSlack = Math.max(24, Math.round(fontSize * 0.7));
+              // Half the right gutter, mirrored on the left, purely to balance
+              // how lopsided the margin LOOKS (Victor, 2026-07-28) — the right
+              // side's full reserve is untouched (that's the actual clip
+              // protection, see the lever rationale below), this is cosmetic.
+              const leftSlack = Math.round(rightSlack / 2);
               const isJustified = readerPrefs.textAlign === 'justify';
 
               const textStyle = {
@@ -2491,6 +2496,8 @@ export default function VerseReadingScreen() {
                 // content-box edge anyway, so the margin is the best lever there.
                 marginRight: isJustified ? rightSlack : 0,
                 paddingRight: isJustified ? 0 : rightSlack,
+                marginLeft: isJustified ? leftSlack : 0,
+                paddingLeft: isJustified ? 0 : leftSlack,
               } as const;
 
               const numberStyle = {
