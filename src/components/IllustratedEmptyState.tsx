@@ -20,6 +20,7 @@ import {typography} from '../styles/typography';
 import {useLanguage} from '../hooks/useLanguage';
 import type {ThemeColors} from '../hooks/useTheme';
 import {a11yHiddenProps} from '../lib/a11y/focusTrap';
+import {useReducedMotion} from '../hooks/useReducedMotion';
 
 interface IllustratedEmptyStateProps {
   type:
@@ -48,15 +49,12 @@ export const IllustratedEmptyState: React.FC<IllustratedEmptyStateProps> = ({
   isDark,
 }) => {
   const {t} = useLanguage();
+  const reducedMotion = useReducedMotion();
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const scaleAnim = useRef(new Animated.Value(0.9)).current;
   const bounceAnim = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
-    startAnimations();
-  }, []);
-
-  const startAnimations = () => {
     Animated.parallel([
       Animated.timing(fadeAnim, {
         toValue: 1,
@@ -70,9 +68,15 @@ export const IllustratedEmptyState: React.FC<IllustratedEmptyStateProps> = ({
         useNativeDriver: true,
       }),
     ]).start();
+  }, []);
 
-    // Bounce animation continua
-    Animated.loop(
+  useEffect(() => {
+    if (reducedMotion) {
+      bounceAnim.setValue(0);
+      return;
+    }
+    // Bounce animation continua — omitted under reduced motion.
+    const bounce = Animated.loop(
       Animated.sequence([
         Animated.timing(bounceAnim, {
           toValue: -10,
@@ -85,8 +89,10 @@ export const IllustratedEmptyState: React.FC<IllustratedEmptyStateProps> = ({
           useNativeDriver: true,
         }),
       ]),
-    ).start();
-  };
+    );
+    bounce.start();
+    return () => bounce.stop();
+  }, [reducedMotion, bounceAnim]);
 
   const handleAction = () => {
     haptics.press();

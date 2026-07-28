@@ -30,6 +30,7 @@ import {haptics} from '@lib/haptics';
 import {useTheme} from '@hooks/useTheme';
 import {centeredMaxWidth} from '@/styles/responsive';
 import {useLanguage} from '@hooks/useLanguage';
+import {useReducedMotion} from '@hooks/useReducedMotion';
 import {focusTrapProps} from '@lib/a11y/focusTrap';
 import {useToast} from '@context/ToastContext';
 import {useMemoryDeck} from '@context/MemoryDeckContext';
@@ -558,8 +559,13 @@ const PulsingPracticeCta: React.FC<{
 }> = ({onPress, backgroundColor, textColor, label}) => {
   const pulse = useRef(new Animated.Value(1)).current;
   const stoppedRef = useRef(false);
+  const reducedMotion = useReducedMotion();
 
   useEffect(() => {
+    if (reducedMotion) {
+      pulse.setValue(1);
+      return;
+    }
     const loop = Animated.loop(
       Animated.sequence([
         Animated.timing(pulse, {
@@ -574,12 +580,13 @@ const PulsingPracticeCta: React.FC<{
         }),
       ]),
     );
+    stoppedRef.current = false;
     loop.start();
     return () => {
       stoppedRef.current = true;
       loop.stop();
     };
-  }, [pulse]);
+  }, [pulse, reducedMotion]);
 
   const handlePress = () => {
     if (!stoppedRef.current) {

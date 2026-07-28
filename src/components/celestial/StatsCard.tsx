@@ -12,6 +12,7 @@ import {View, StyleSheet, Animated} from 'react-native';
 import {Ionicons} from '@expo/vector-icons';
 import type {ComponentProps} from 'react';
 import {AppText} from '@components/ui/AppText';
+import {useReducedMotion} from '@hooks/useReducedMotion';
 
 type IoniconsName = ComponentProps<typeof Ionicons>['name'];
 
@@ -74,26 +75,31 @@ const StatsCard: React.FC<StatsCardProps> = ({
   pulse = false,
 }) => {
   const pulseAnim = useRef(new Animated.Value(1)).current;
+  const reducedMotion = useReducedMotion();
 
   useEffect(() => {
-    if (pulse) {
-      // Animación pulse continua
-      Animated.loop(
-        Animated.sequence([
-          Animated.timing(pulseAnim, {
-            toValue: 1.2,
-            duration: 800,
-            useNativeDriver: true,
-          }),
-          Animated.timing(pulseAnim, {
-            toValue: 1,
-            duration: 800,
-            useNativeDriver: true,
-          }),
-        ]),
-      ).start();
+    if (!pulse || reducedMotion) {
+      pulseAnim.setValue(1);
+      return;
     }
-  }, [pulse, pulseAnim]);
+    // Animación pulse continua
+    const animation = Animated.loop(
+      Animated.sequence([
+        Animated.timing(pulseAnim, {
+          toValue: 1.2,
+          duration: 800,
+          useNativeDriver: true,
+        }),
+        Animated.timing(pulseAnim, {
+          toValue: 1,
+          duration: 800,
+          useNativeDriver: true,
+        }),
+      ]),
+    );
+    animation.start();
+    return () => animation.stop();
+  }, [pulse, pulseAnim, reducedMotion]);
 
   return (
     <View style={styles.container}>
