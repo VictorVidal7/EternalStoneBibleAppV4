@@ -3365,7 +3365,7 @@ export default function VerseReadingScreen() {
                       setShowHighlightPicker(false);
                     }}>
                     <Ionicons
-                      name="eye-outline"
+                      name="layers-outline"
                       size={22}
                       color={effectiveColors.primary}
                     />
