@@ -2417,10 +2417,12 @@ export default function VerseReadingScreen() {
               // reflow). See the lever rationale on `paddingRight`/`marginRight`
               // in the style below.
               const rightSlack = Math.max(24, Math.round(fontSize * 0.7));
-              // Half the right gutter, mirrored on the left, purely to balance
-              // how lopsided the margin LOOKS (Victor, 2026-07-28) — the right
-              // side's full reserve is untouched (that's the actual clip
-              // protection, see the lever rationale below), this is cosmetic.
+              // Half the right gutter, mirrored on the left ONLY for
+              // left-aligned text (applied as paddingLeft below), purely to
+              // balance how lopsided the margin LOOKS (Victor, 2026-07-28) —
+              // the right side's full reserve is untouched (that's the
+              // actual clip protection, see the lever rationale below), this
+              // is cosmetic.
               const leftSlack = Math.round(rightSlack / 2);
               const isJustified = readerPrefs.textAlign === 'justify';
 
@@ -2507,7 +2509,24 @@ export default function VerseReadingScreen() {
                 // content-box edge anyway, so the margin is the best lever there.
                 marginRight: isJustified ? rightSlack : 0,
                 paddingRight: isJustified ? 0 : rightSlack,
-                marginLeft: isJustified ? leftSlack : 0,
+                // Justified text takes NO left margin. The cosmetic
+                // leftSlack mirror added in commit 1126a1a (2026-07-28, to
+                // visually balance the gutter) regressed justified rendering:
+                // a nonzero marginLeft on a justified Android <Text> isn't
+                // accounted for in the native inter-word fill target, so
+                // every line overshoots the content box by ~leftSlack (12px
+                // at size 26) — a WHOLE-GLYPH clip/corruption ("trajo"→
+                // "trajc"), not the older few-px side-bearing overhang.
+                // A/B-confirmed on-device (Génesis 4:3, leftSlack 12 vs 0,
+                // nothing else changed). This is a DIFFERENT, narrower bug
+                // than the long-running Sprint 81-110 side-bearing clip —
+                // that one is still open for justified text specifically
+                // (marginRight narrows the box but doesn't extend the canvas
+                // clip rect the way paddingRight does for left-align; see the
+                // marginRight/paddingRight comment above). Left-aligned text
+                // is unaffected by this fix — it uses paddingLeft below, not
+                // a margin, and never invokes justify.
+                marginLeft: 0,
                 paddingLeft: isJustified ? 0 : leftSlack,
               } as const;
 
