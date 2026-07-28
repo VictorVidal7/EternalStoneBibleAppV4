@@ -16,10 +16,11 @@
  */
 
 import React from 'react';
-import {View, TouchableOpacity, StyleSheet} from 'react-native';
+import {View, StyleSheet} from 'react-native';
 import {BlurView} from 'expo-blur';
 import {Ionicons} from '@expo/vector-icons';
 import {AppText} from '@components/ui/AppText';
+import {PressableScale} from '@components/ui/PressableScale';
 import {useTheme} from '@hooks/useTheme';
 import {createCelestialTheme} from '@/styles/celestialTheme';
 import {withOpacity} from '@/styles/modernTheme';
@@ -57,8 +58,8 @@ export const DiscoverTile: React.FC<DiscoverTileProps> = ({
   });
 
   return (
-    <TouchableOpacity
-      activeOpacity={0.9}
+    <PressableScale
+      pressedOpacity={0.9}
       style={styles.wrapper}
       onPress={onPress}
       accessibilityRole="button"
@@ -111,7 +112,7 @@ export const DiscoverTile: React.FC<DiscoverTileProps> = ({
           </AppText>
         </View>
       </BlurView>
-    </TouchableOpacity>
+    </PressableScale>
   );
 };
 

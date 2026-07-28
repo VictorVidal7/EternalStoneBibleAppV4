@@ -24,9 +24,10 @@
  */
 
 import React from 'react';
-import {View, TouchableOpacity, StyleSheet} from 'react-native';
+import {View, StyleSheet} from 'react-native';
 import {Ionicons} from '@expo/vector-icons';
 import {AppText} from '@components/ui/AppText';
+import {PressableScale} from '@components/ui/PressableScale';
 import {useTheme} from '@hooks/useTheme';
 import {useLanguage} from '@hooks/useLanguage';
 import {haptics} from '@lib/haptics';
@@ -79,7 +80,8 @@ export const DevotionStreakCard: React.FC<DevotionStreakCardProps> = ({
       : best;
 
   return (
-    <TouchableOpacity
+    <PressableScale
+      pressedOpacity={0.9}
       style={[
         styles.card,
         {
@@ -120,7 +122,7 @@ export const DevotionStreakCard: React.FC<DevotionStreakCardProps> = ({
           color={colors.textTertiary}
         />
       </View>
-    </TouchableOpacity>
+    </PressableScale>
   );
 };
 
