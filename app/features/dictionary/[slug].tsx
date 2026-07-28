@@ -547,7 +547,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     gap: spacing.sm,
   },
-  articleLabel: {fontSize: fontSizes.sm, fontWeight: '700'},
+  articleLabel: {fontSize: fontSizes.sm, fontWeight: '700', flexShrink: 1},
   // See `gloss` above — sizing/alignment/gutter all come from `proseStyle`.
   articleText: {},
   articleBold: {
