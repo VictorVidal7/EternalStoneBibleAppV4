@@ -34,6 +34,7 @@ import {
   ActivityIndicator,
   StyleSheet,
   Share,
+  Keyboard,
 } from 'react-native';
 import {Stack, useLocalSearchParams, useRouter} from 'expo-router';
 import {Ionicons} from '@expo/vector-icons';
@@ -392,6 +393,7 @@ export default function SermonNoteEditorScreen() {
                 style={[styles.pickerButton, {borderColor: colors.border}]}
                 onPress={() => {
                   haptics.tap();
+                  Keyboard.dismiss();
                   setPickerOpen(true);
                 }}
                 accessibilityRole="button"
