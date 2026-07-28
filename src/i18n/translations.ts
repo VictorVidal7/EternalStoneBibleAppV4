@@ -3889,7 +3889,7 @@ export const translations = {
         },
         {
           title: 'Memorización',
-          desc: 'Estadísticas completas de tu repaso, retención por libro y tendencia — más el modo contrarreloj del Quiz y añadir versículos a tu mazo.',
+          desc: 'Estadísticas completas de tu repaso, retención por libro y tendencia — más el Quiz contrarreloj y añadir versículos a tu mazo.',
         },
         {
           title: 'Personalización',
