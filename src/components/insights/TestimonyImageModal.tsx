@@ -52,6 +52,16 @@ export interface TestimonyImageModalProps {
   testimony?: string;
   /** Localized "answered on" line, e.g. "Respondida · 16 jun 2026". */
   answeredLine: string;
+  /**
+   * Small label above the request title. Defaults to the answered-prayer
+   * framing ("Dios fue fiel") since this component was originally built for
+   * that flow — callers sharing a different kind of testimony (e.g. the
+   * general faith-testimony writer) should pass their own copy instead of
+   * inheriting prayer-specific wording.
+   */
+  eyebrow?: string;
+  /** Emoji shown under the eyebrow. Defaults to 🙏 (see `eyebrow` above). */
+  icon?: string;
   onClose: () => void;
 }
 
@@ -60,6 +70,8 @@ export const TestimonyImageModal: React.FC<TestimonyImageModalProps> = ({
   title,
   testimony,
   answeredLine,
+  eyebrow,
+  icon,
   onClose,
 }) => {
   const insets = useSafeAreaInsets();
@@ -126,15 +138,15 @@ export const TestimonyImageModal: React.FC<TestimonyImageModalProps> = ({
                 style={styles.watermark}
               />
               <Text style={[styles.eyebrow, {color: template.textColor}]}>
-                {tt.eyebrow}
+                {eyebrow ?? tt.eyebrow}
               </Text>
 
-              {/* 🙏 is an emoji → standalone Text, never Ionicons (which would
-                  render the missing-glyph "?", per the S80 lesson). */}
+              {/* Emoji → standalone Text, never Ionicons (which would render
+                  the missing-glyph "?", per the S80 lesson). */}
               <Text
                 style={[styles.icon, {color: template.textColor}]}
                 allowFontScaling={false}>
-                {'🙏'}
+                {icon ?? '🙏'}
               </Text>
 
               <Text style={[styles.requestTitle, {color: template.textColor}]}>

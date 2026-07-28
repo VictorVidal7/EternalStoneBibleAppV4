@@ -398,6 +398,8 @@ export default function FaithTestimonyEditorScreen() {
           title={title.trim() || h.untitled}
           testimony={testimonyText || undefined}
           answeredLine={dateLine}
+          eyebrow={h.title}
+          icon="✨"
           onClose={() => setShareOpen(false)}
         />
       </View>
