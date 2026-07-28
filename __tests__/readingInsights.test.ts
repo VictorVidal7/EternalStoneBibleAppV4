@@ -3,6 +3,7 @@ import {
   readingLevelForVerses,
   ReadingInsightsInput,
 } from '../src/features/reading-insights/readingInsights';
+import {localDayKey} from '../src/lib/utils/dateKey';
 
 const MS_PER_DAY = 86_400_000;
 // Fixed "now": 2026-06-02 12:00 UTC (matches the project's current date).
@@ -165,6 +166,31 @@ describe('buildReadingInsights', () => {
       bookProgress: null,
     } as unknown as ReadingInsightsInput;
     expect(() => buildReadingInsights(bad, NOW)).not.toThrow();
+  });
+
+  describe('today anchored on the LOCAL day, not UTC', () => {
+    it('counts an entry logged near local midnight as "today", matching entry.date\'s own local-day basis', () => {
+      // 23:00 LOCAL time — for any negative-UTC-offset reader (most of the
+      // Americas) this instant already falls on tomorrow's UTC calendar day.
+      // "today" must still anchor on the LOCAL day, same as entry.date
+      // (localDayKey — see 55ff1a7), or a reader's own just-logged entry
+      // reads as "yesterday" and the streak/this-week math desyncs.
+      const now = new Date(2026, 5, 2, 23, 0, 0).getTime();
+      const today = localDayKey(now);
+
+      const r = buildReadingInsights(
+        {
+          ...emptyInput,
+          readingLog: [{date: today, versesRead: 12, timeSpent: 60}],
+        },
+        now,
+      );
+
+      expect(r.currentStreak).toBe(1);
+      expect(r.thisWeekVerses).toBe(12);
+      const todayCell = r.heatmap[r.heatmap.length - 1];
+      expect(todayCell.count).toBe(12);
+    });
   });
 
   describe('most-read book — real per-book log vs proxy', () => {
