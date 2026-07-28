@@ -1839,6 +1839,9 @@ export const translations = {
         subtitle: 'Encuentra versículos y organiza tu testimonio',
         objectionsCardTitle: 'Preguntas frecuentes',
         objectionsCardSubtitle: 'Versículos para preguntas comunes sobre la fe',
+        methodsCardTitle: 'Cómo compartir el evangelio',
+        methodsCardSubtitle:
+          'Recorridos como el Camino Romano o el Puente de vida',
         testimonyCardTitle: 'Mi testimonio',
         testimonyCardSubtitle: 'Escribe y comparte tu historia con Dios',
       },
@@ -1885,6 +1888,96 @@ export const translations = {
           'god-cares': {
             title: '¿Le importa a Dios lo que me pasa?',
             description: 'Versículos sobre el cuidado y el amor de Dios por ti',
+          },
+          'prayer-works': {
+            title: '¿La oración realmente funciona? ¿Dios realmente escucha?',
+            description: 'Versículos sobre la invitación de Dios a clamar a Él',
+          },
+          'many-denominations': {
+            title: '¿Por qué hay tantas iglesias o denominaciones diferentes?',
+            description:
+              'Versículos sobre la unidad que Jesús pide en medio de la diversidad',
+          },
+          'human-tradition': {
+            title: '¿Cómo sé que no estoy solo siguiendo una tradición humana?',
+            description:
+              'Versículos sobre poner a prueba lo que se te enseña con la Escritura misma',
+          },
+          'never-heard-gospel': {
+            title: '¿Qué pasa con los que nunca oyeron del evangelio?',
+            description:
+              'Versículos sobre la justicia de Dios y lo que Él nos ha revelado — y lo que no',
+          },
+        },
+      },
+      methods: {
+        title: 'Cómo compartir el evangelio',
+        subtitle: 'Distintas formas de contar la misma buena noticia',
+        framingNote:
+          'Estas son distintas maneras de organizar y compartir las mismas buenas nuevas de Jesucristo: cada una usa una imagen o un orden distinto (un camino, un puente, una lista, un círculo), pero cuentan la misma historia central — Dios te ama, el pecado nos separa de Él, y Jesucristo es el camino de regreso. Son herramientas que muchas iglesias y ministerios, de distintas tradiciones, han usado a lo largo de los años — no la fórmula de una sola denominación o movimiento. Elige la que te resulte más natural: no hay una "correcta", solo formas distintas de compartir la misma verdad.',
+        list: {
+          'romans-road': {
+            title: 'Camino Romano',
+            description:
+              'Un recorrido, usando solo la carta a los Romanos, que muestra el problema del pecado y la respuesta de la fe.',
+          },
+          'bridge-to-life': {
+            title: 'Puente de vida',
+            description:
+              'Dos orillas separadas por el pecado, unidas por la cruz — una imagen visual del evangelio.',
+          },
+          'four-laws': {
+            title: 'Las cuatro leyes',
+            description:
+              'Cuatro verdades breves y numeradas, pensadas para compartirse en una conversación corta.',
+          },
+          'three-circles': {
+            title: 'Los tres círculos',
+            description:
+              'El buen diseño de Dios, el quebranto del pecado, y cómo Jesús restaura lo que se rompió — un ciclo, no una línea recta.',
+          },
+        },
+        openHint: 'Ver este recorrido',
+        verses: 'versículos',
+        missingText: '(texto no disponible)',
+        error: 'No se pudieron cargar los pasajes',
+        stepLabel: 'Paso {{n}}',
+        stepCaptions: {
+          'romans-road': {
+            'romans-3-23': 'todos pecaron y no alcanzan la gloria de Dios',
+            'romans-6-23':
+              'la paga del pecado es muerte; la dádiva de Dios es vida eterna',
+            'romans-5-8': 'Cristo murió por nosotros siendo aún pecadores',
+            'romans-10-9': 'confesar con la boca y creer en el corazón',
+            'romans-10-13': 'todo el que invoca el nombre del Señor será salvo',
+          },
+          'bridge-to-life': {
+            'isaiah-59-2': 'el pecado nos separa de Dios',
+            'romans-6-23':
+              'la paga del pecado es muerte; la dádiva de Dios es vida eterna',
+            'romans-5-8': 'Cristo murió por nosotros',
+            '1-timothy-2-5': 'un solo mediador entre Dios y los hombres',
+            'ephesians-2-8': 'por gracia somos salvos por medio de la fe',
+            'ephesians-2-9': 'no por obras, para que nadie se gloríe',
+          },
+          'four-laws': {
+            'john-3-16':
+              'Dios amó al mundo y dio a su Hijo (ley 1: Dios te ama)',
+            'romans-3-23': 'todos pecaron (ley 2: el pecado separa)',
+            'romans-6-23':
+              'la paga del pecado es muerte; la dádiva es vida eterna (ley 2, cont.)',
+            'john-14-6':
+              'Jesús es el camino, la verdad y la vida (ley 3: la única provisión de Dios)',
+            'john-1-12':
+              'a los que lo recibieron les dio potestad de ser hechos hijos de Dios (ley 4: recibir a Cristo)',
+          },
+          'three-circles': {
+            'genesis-1-27': 'Dios creó a la humanidad a su imagen (diseño)',
+            'isaiah-53-6': 'todos nos descarriamos como ovejas (quebranto)',
+            'romans-5-8':
+              'Cristo murió por nosotros (la diferencia que hace Jesús)',
+            'acts-3-19': 'arrepentíos y convertíos (la respuesta)',
+            '2-corinthians-5-17': 'en Cristo, nueva criatura; lo viejo pasó',
           },
         },
       },
@@ -7599,6 +7692,8 @@ export const translations = {
         subtitle: 'Find verses and organize your testimony',
         objectionsCardTitle: 'Common questions',
         objectionsCardSubtitle: 'Verses for common questions about faith',
+        methodsCardTitle: 'How to share the gospel',
+        methodsCardSubtitle: 'Outlines like Romans Road or Bridge to Life',
         testimonyCardTitle: 'My testimony',
         testimonyCardSubtitle: 'Write and share your story with God',
       },
@@ -7642,6 +7737,96 @@ export const translations = {
           'god-cares': {
             title: 'Does God care what happens to me?',
             description: "Verses about God's care and love for you",
+          },
+          'prayer-works': {
+            title: 'Does prayer actually work? Does God really listen?',
+            description: "Verses about God's invitation to call on Him",
+          },
+          'many-denominations': {
+            title: 'Why are there so many different churches or denominations?',
+            description: 'Verses about the unity Jesus asks for amid diversity',
+          },
+          'human-tradition': {
+            title: "How do I know I'm not just following a human tradition?",
+            description:
+              "Verses about testing what you're taught against Scripture itself",
+          },
+          'never-heard-gospel': {
+            title: 'What about those who never heard the gospel?',
+            description:
+              "Verses about God's justice and what He has revealed — and what He hasn't",
+          },
+        },
+      },
+      methods: {
+        title: 'How to share the gospel',
+        subtitle: 'Different ways to tell the same good news',
+        framingNote:
+          'These are different ways to organize and share the same good news about Jesus Christ: each one uses a different image or order (a road, a bridge, a list, a circle), but they tell the same central story — God loves you, sin separates us from Him, and Jesus is the way back. These are tools many churches and ministries, across different traditions, have used over the years — not the formula of one denomination or movement. Pick whichever feels most natural to you: there\'s no "correct" one, just different ways of sharing the same truth.',
+        list: {
+          'romans-road': {
+            title: 'Romans Road',
+            description:
+              'A route through the book of Romans alone, showing the problem of sin and the response of faith.',
+          },
+          'bridge-to-life': {
+            title: 'Bridge to Life',
+            description:
+              'Two sides separated by sin, joined by the cross — a visual picture of the gospel.',
+          },
+          'four-laws': {
+            title: 'The Four Laws',
+            description:
+              'Four short, numbered truths, meant to be shared in a brief conversation.',
+          },
+          'three-circles': {
+            title: 'The Three Circles',
+            description:
+              "God's good design, the brokenness of sin, and how Jesus restores what was broken — a cycle, not a straight line.",
+          },
+        },
+        openHint: 'View this outline',
+        verses: 'verses',
+        missingText: '(text not available)',
+        error: 'Could not load the passages',
+        stepLabel: 'Step {{n}}',
+        stepCaptions: {
+          'romans-road': {
+            'romans-3-23': 'all have sinned and fall short of the glory of God',
+            'romans-6-23':
+              'the wages of sin is death; the gift of God is eternal life',
+            'romans-5-8': 'Christ died for us while we were still sinners',
+            'romans-10-9': 'confess with your mouth and believe in your heart',
+            'romans-10-13':
+              'everyone who calls on the name of the Lord will be saved',
+          },
+          'bridge-to-life': {
+            'isaiah-59-2': 'sin separates us from God',
+            'romans-6-23':
+              'the wages of sin is death; the gift of God is eternal life',
+            'romans-5-8': 'Christ died for us',
+            '1-timothy-2-5': 'one mediator between God and mankind',
+            'ephesians-2-8': 'by grace we are saved through faith',
+            'ephesians-2-9': 'not by works, so that no one may boast',
+          },
+          'four-laws': {
+            'john-3-16':
+              'God loved the world and gave His Son (law 1: God loves you)',
+            'romans-3-23': 'all have sinned (law 2: sin separates)',
+            'romans-6-23':
+              'the wages of sin is death; the gift is eternal life (law 2, cont.)',
+            'john-14-6':
+              "Jesus is the way, the truth and the life (law 3: God's only provision)",
+            'john-1-12':
+              'to those who received Him He gave the right to become children of God (law 4: receiving Christ)',
+          },
+          'three-circles': {
+            'genesis-1-27': 'God created humanity in His image (design)',
+            'isaiah-53-6': 'we all, like sheep, have gone astray (brokenness)',
+            'romans-5-8': 'Christ died for us (the difference Jesus makes)',
+            'acts-3-19': 'repent and turn to God (the response)',
+            '2-corinthians-5-17':
+              'in Christ, a new creation; the old has passed',
           },
         },
       },
