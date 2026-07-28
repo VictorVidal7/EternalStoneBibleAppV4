@@ -2013,6 +2013,12 @@ export const translations = {
           prayer:
             'Padre, tú estás cerca de los quebrantados de corazón. Consuélame y sana mis heridas. Amén.',
         },
+        grief: {
+          name: 'En duelo',
+          description: 'Cuando la pérdida duele y no hay palabras',
+          prayer:
+            'Señor, tú también lloraste ante la tumba de un amigo. Quédate cerca de mí en este duelo, y dame espacio para llorar sin prisa. Amén.',
+        },
         tired: {
           name: 'Cansado',
           description: 'Cuando ya no te quedan fuerzas',
@@ -2037,17 +2043,47 @@ export const translations = {
           prayer:
             'Dios mío, confieso mi pecado y recibo tu perdón. Crea en mí un corazón limpio. Amén.',
         },
+        shame: {
+          name: 'Con vergüenza',
+          description: 'Cuando quisieras esconderte de todos',
+          prayer:
+            'Padre, tú me cubres cuando yo solo sé esconderme. En Cristo soy nueva criatura: no me define mi vergüenza, sino tu gracia. Amén.',
+        },
         angry: {
           name: 'Enojado',
           description: 'Cuando la ira quiere ganar',
           prayer:
             'Señor, calma mi enojo antes de que haga daño. Dame un corazón pronto para perdonar. Amén.',
         },
+        temptation: {
+          name: 'Tentado',
+          description: 'Cuando la tentación parece más fuerte que tú',
+          prayer:
+            'Señor, tú conoces la tentación porque también fuiste probado. Dame una salida antes de caer, y fuerzas para tomarla. Amén.',
+        },
         confused: {
           name: 'Confundido',
           description: 'Cuando no sabes qué camino tomar',
           prayer:
             'Padre, no me apoyo en mi propia prudencia. Endereza tú mis pasos y guíame. Amén.',
+        },
+        doubt: {
+          name: 'Con dudas',
+          description: 'Cuando la duda pesa más que la certeza',
+          prayer:
+            'Señor, creo; ayuda mi incredulidad. Cuando las preguntas pesen más que las respuestas, sostén tú mi fe. Amén.',
+        },
+        waiting: {
+          name: 'Esperando en Dios',
+          description: 'Cuando el tiempo de Dios no es el tuyo',
+          prayer:
+            'Señor, aguardo en ti aunque no entienda tus tiempos. Renueva mis fuerzas mientras espero, como el águila que levanta vuelo. Amén.',
+        },
+        seeking: {
+          name: 'Buscando a Dios',
+          description: 'Cuando buscas a Dios con todo tu corazón',
+          prayer:
+            'Padre, te busco de todo corazón; déjate encontrar. Abre mis ojos para verte cerca, aunque no siempre lo sienta. Amén.',
         },
         hopeful: {
           name: 'Esperanzado',
@@ -7727,6 +7763,12 @@ export const translations = {
           prayer:
             'Father, you are near to the brokenhearted. Comfort me and heal my wounds. Amen.',
         },
+        grief: {
+          name: 'Grieving',
+          description: 'When loss aches and words run out',
+          prayer:
+            'Lord, you wept at the tomb of a friend too. Stay close to me in this grief, and give me room to mourn without hurrying. Amen.',
+        },
         tired: {
           name: 'Tired',
           description: 'When you have no strength left',
@@ -7751,17 +7793,47 @@ export const translations = {
           prayer:
             'My God, I confess my sin and receive your forgiveness. Create in me a clean heart. Amen.',
         },
+        shame: {
+          name: 'Ashamed',
+          description: "When you'd rather hide than be seen",
+          prayer:
+            'Father, you cover me when I only know how to hide. In Christ I am a new creation — my shame does not define me, your grace does. Amen.',
+        },
         angry: {
           name: 'Angry',
           description: 'When anger wants to win',
           prayer:
             'Lord, calm my anger before it does harm. Give me a heart quick to forgive. Amen.',
         },
+        temptation: {
+          name: 'Tempted',
+          description: 'When temptation feels stronger than you',
+          prayer:
+            'Lord, you know temptation, for you were tested too. Give me a way out before I fall, and strength to take it. Amen.',
+        },
         confused: {
           name: 'Confused',
           description: "When you don't know which way to go",
           prayer:
             'Father, I will not lean on my own understanding. Make my paths straight and guide me. Amen.',
+        },
+        doubt: {
+          name: 'Doubting',
+          description: 'When doubt feels louder than your faith',
+          prayer:
+            'Lord, I believe; help my unbelief. When questions outweigh answers, hold my faith together. Amen.',
+        },
+        waiting: {
+          name: 'Waiting on God',
+          description: "When God's timing isn't yours",
+          prayer:
+            "Lord, I wait for you even when I don't understand your timing. Renew my strength as I wait, like the eagle that rises on the wind. Amen.",
+        },
+        seeking: {
+          name: 'Seeking God',
+          description: 'When you seek God with your whole heart',
+          prayer:
+            "Father, I seek you with my whole heart; let yourself be found. Open my eyes to see you near, even when I can't feel it. Amen.",
         },
         hopeful: {
           name: 'Hopeful',
