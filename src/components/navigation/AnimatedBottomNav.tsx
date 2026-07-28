@@ -19,6 +19,7 @@ import {useRouter} from 'expo-router';
 import {useTheme} from '../../hooks/useTheme';
 import {staticColors} from '../../styles/designTokens';
 import {useLanguage} from '../../hooks/useLanguage';
+import {useReducedMotion} from '../../hooks/useReducedMotion';
 
 interface AnimatedBottomNavProps {
   visible?: boolean;
@@ -33,16 +34,22 @@ export const AnimatedBottomNav: React.FC<AnimatedBottomNavProps> = ({
   const {colors, isDark} = useTheme();
   const {t} = useLanguage();
   const translateY = useRef(new Animated.Value(0)).current;
+  const reducedMotion = useReducedMotion();
 
   // Animate tab bar visibility
   useEffect(() => {
+    const toValue = visible ? 0 : 100;
+    if (reducedMotion) {
+      translateY.setValue(toValue);
+      return;
+    }
     Animated.spring(translateY, {
-      toValue: visible ? 0 : 100,
+      toValue,
       tension: 100,
       friction: 20,
       useNativeDriver: true,
     }).start();
-  }, [visible, translateY]);
+  }, [visible, translateY, reducedMotion]);
 
   // Usar el color primario del tema para consistencia
   const activeColor = colors.primary;

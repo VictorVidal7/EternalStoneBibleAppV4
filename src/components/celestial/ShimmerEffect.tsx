@@ -10,6 +10,7 @@ import Animated, {
 } from 'react-native-reanimated';
 import {LinearGradient} from 'expo-linear-gradient';
 import {useTheme} from '../../hooks/useTheme';
+import {useReducedMotion} from '../../hooks/useReducedMotion';
 import {withOpacity} from '../../styles/modernTheme';
 
 const {width: SCREEN_WIDTH} = Dimensions.get('window');
@@ -112,6 +113,7 @@ export const ShimmerCard: React.FC<ShimmerCardProps> = ({
 }) => {
   const {gradient, isDark, colors} = useTheme();
   const glowOpacity = useSharedValue(0.3);
+  const reducedMotion = useReducedMotion();
 
   const effectiveGlowColor = glowColor || gradient.accentGlow;
   const cardBorderOpacity = isDark ? 0.3 : 0.8;
@@ -122,17 +124,19 @@ export const ShimmerCard: React.FC<ShimmerCardProps> = ({
     (isDark ? 'rgba(26, 29, 46, 0.85)' : 'rgba(255, 255, 255, 0.95)');
 
   useEffect(() => {
-    if (showGlow) {
-      glowOpacity.value = withRepeat(
-        withTiming(0.6, {
-          duration: 2000,
-          easing: Easing.inOut(Easing.ease),
-        }),
-        -1,
-        true,
-      );
+    if (!showGlow || reducedMotion) {
+      glowOpacity.value = 0.3;
+      return;
     }
-  }, [showGlow]);
+    glowOpacity.value = withRepeat(
+      withTiming(0.6, {
+        duration: 2000,
+        easing: Easing.inOut(Easing.ease),
+      }),
+      -1,
+      true,
+    );
+  }, [showGlow, reducedMotion, glowOpacity]);
 
   const glowStyle = useAnimatedStyle(() => ({
     opacity: glowOpacity.value,
