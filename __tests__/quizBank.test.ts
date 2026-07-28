@@ -7,6 +7,7 @@
  * each be a real verse from elsewhere in the bank, never fabricated.
  */
 import {
+  MIN_CATEGORY_QUESTIONS,
   QUIZ_BANK,
   QUIZ_CATEGORIES,
   type QuizCategory,
@@ -421,19 +422,28 @@ describe('QUIZ_BANK — thematic category (T18b "mazos por libro")', () => {
   });
 });
 
-describe('QUIZ_CATEGORIES — only non-empty decks, never a fabricated one', () => {
-  it('equals exactly the set of categories that have ≥1 real question', () => {
-    const present = new Set(QUIZ_BANK.map(q => q.category));
-    expect(new Set(QUIZ_CATEGORIES)).toEqual(present);
+describe('QUIZ_CATEGORIES — only sufficiently-populated decks, never a fabricated or too-small one', () => {
+  it('equals exactly the set of categories with ≥ MIN_CATEGORY_QUESTIONS real questions', () => {
+    const counts = new Map<QuizCategory, number>();
+    for (const q of QUIZ_BANK) {
+      counts.set(q.category, (counts.get(q.category) ?? 0) + 1);
+    }
+    const expected = new Set(
+      Array.from(counts.entries())
+        .filter(([, n]) => n >= MIN_CATEGORY_QUESTIONS)
+        .map(([c]) => c),
+    );
+    expect(new Set(QUIZ_CATEGORIES)).toEqual(expected);
   });
 
   it('lists each category at most once', () => {
     expect(QUIZ_CATEGORIES.length).toBe(new Set(QUIZ_CATEGORIES).size);
   });
 
-  it('never includes a category with 0 questions', () => {
+  it('never includes a category below MIN_CATEGORY_QUESTIONS', () => {
     for (const c of QUIZ_CATEGORIES) {
-      expect(QUIZ_BANK.some(q => q.category === c)).toBe(true);
+      const count = QUIZ_BANK.filter(q => q.category === c).length;
+      expect(count).toBeGreaterThanOrEqual(MIN_CATEGORY_QUESTIONS);
     }
   });
 
@@ -444,10 +454,16 @@ describe('QUIZ_CATEGORIES — only non-empty decks, never a fabricated one', () 
     );
   });
 
-  it("matches today's bank: all five categories, in canonical order", () => {
+  it('excludes "historicos" (today only 1 question, below MIN_CATEGORY_QUESTIONS) while its questions stay in QUIZ_BANK', () => {
+    expect((QUIZ_CATEGORIES as readonly string[]).includes('historicos')).toBe(
+      false,
+    );
+    expect(QUIZ_BANK.some(q => q.category === 'historicos')).toBe(true);
+  });
+
+  it("matches today's bank: four categories, in canonical order (historicos excluded, below threshold)", () => {
     expect(QUIZ_CATEGORIES).toEqual([
       'pentateuco',
-      'historicos',
       'sabiduria',
       'evangelios',
       'cartas',

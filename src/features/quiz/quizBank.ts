@@ -40,12 +40,14 @@ export type QuizQuestionType =
   | 'event-order';
 
 /**
- * Broad thematic groupings the premium "mazos por libro" (T18b) lets you drill
- * on. Deliberately NOT one-per-book (66 books, most with 0 questions today) and
- * deliberately WITHOUT a `profetas` id: the current bank has no prophetic-book
- * question, and the project's "no fabricar contenido vacío" rule forbids
- * surfacing an empty deck as if it existed. Every id below maps to ≥1 real
- * question in QUIZ_BANK; the human-readable label for each is expected to live
+ * Broad thematic groupings the "mazos por libro" category filter (T18b,
+ * opened up to free users in a later pass) lets you drill on. Deliberately
+ * NOT one-per-book (66 books, most with 0 questions today) and deliberately
+ * WITHOUT a `profetas` id: the current bank has no prophetic-book question,
+ * and the project's "no fabricar contenido vacío" rule forbids surfacing an
+ * empty deck as if it existed. Every id below maps to ≥1 real question in
+ * QUIZ_BANK (see `QUIZ_CATEGORIES` below for the stricter "actually
+ * selectable" subset); the human-readable label for each is expected to live
  * in i18n under `t.quiz.categories.<id>` (e.g. `t.quiz.categories.pentateuco`),
  * added by the UI-integration branch — this module holds ids only.
  */
@@ -260,13 +262,26 @@ const CATEGORY_ORDER: readonly QuizCategory[] = [
 ];
 
 /**
- * The categories a user can actually pick — ONLY those with ≥1 real question in
- * QUIZ_BANK, computed from the bank (not hardcoded) so an empty deck can never
- * appear. With today's bank this is all five ids; a category that lost its last
- * question would drop out automatically.
+ * Minimum question count a category needs to be offered as its own
+ * selectable deck. Below this, `pickQuizRound`'s "fall back to the full
+ * bank once fewer than `size` remain unseen" logic can't help — the deck
+ * itself is too small, so filtering to it yields a visibly broken round
+ * (today, `historicos` has exactly 1 question vs. this app's 8-question
+ * round size). Set to 4, matching the smallest of the other 4 categories —
+ * raise this (and author more `historicos` questions) to bring it back.
+ */
+export const MIN_CATEGORY_QUESTIONS = 4;
+
+/**
+ * The categories a user can actually pick — ONLY those with ≥ MIN_CATEGORY_QUESTIONS
+ * real questions in QUIZ_BANK, computed from the bank (not hardcoded) so neither an
+ * empty nor a too-small deck can ever appear as a chip. A category under the
+ * threshold (e.g. today's `historicos`) simply isn't offered as a filter — its
+ * questions are still in QUIZ_BANK and still reachable via the default "all
+ * categories" random round.
  */
 export const QUIZ_CATEGORIES: readonly QuizCategory[] = CATEGORY_ORDER.filter(
-  c => QUIZ_BANK.some(q => q.category === c),
+  c => QUIZ_BANK.filter(q => q.category === c).length >= MIN_CATEGORY_QUESTIONS,
 );
 
 /** Total questions in the bank — kept in sync with the array above. */

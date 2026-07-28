@@ -1,14 +1,21 @@
 /**
  * 🧩 QUIZ BÍBLICO — free MCQ round (T18) over the curated 24-question bank
- * (`quizBank.ts`) PLUS the premium layer (T18b): mazos por categoría, modo
- * cronometrado, "añadir a mi mazo" tras fallar, y estadísticas extendidas.
+ * (`quizBank.ts`) PLUS the premium layer (T18b): modo cronometrado, "añadir
+ * a mi mazo" tras fallar, y estadísticas extendidas. Category filtering
+ * (mazos por categoría) started as premium-only under T18b but was later
+ * opened up to everyone — any category chip from `QUIZ_CATEGORIES` (already
+ * filtered to sufficiently-populated decks, see that constant's doc) picks a
+ * filtered round for free and premium users alike.
  *
- * Free users see the ORIGINAL T18 behavior byte-for-byte: `category` stays
- * `undefined` regardless of any local state (guarded in every place a round is
- * built), no timer, no add-to-deck button, no stats recorded. Every premium
- * control is still visible-but-locked (existing app pattern, e.g.
- * `word-study.tsx`'s KJV row) rather than hidden, and tapping a locked control
- * opens the offering sheet instead of doing anything else.
+ * Timed mode, the stats screen, and add-to-deck remain premium-gated exactly
+ * as under T18b: `handleToggleTimedMode` and `handleOpenStats` both bounce
+ * non-premium taps to the offering sheet instead of applying the change, the
+ * `QuizPanel` timer prop is forced off (`isPremium && timedMode`), and
+ * `canAddToDeck`/`finishRoundSideEffects` short-circuit for non-premium users
+ * (no add-to-deck button, no stats recorded). Those three controls are still
+ * visible-but-locked (existing app pattern, e.g. `word-study.tsx`'s KJV row)
+ * rather than hidden, and tapping a locked control opens the offering sheet
+ * instead of doing anything else.
  *
  * SRS integration (T18b, scoped with Victor via AskUserQuestion): the deck is
  * touched in exactly two ways, both batched ONCE PER ROUND (never per
@@ -200,7 +207,7 @@ export default function QuizScreen() {
     setIndex(0);
     setAddToDeckStatus('idle');
     roundAnswersRef.current = [];
-    setRound(buildRound(seenRef.current, isPremium ? category : undefined));
+    setRound(buildRound(seenRef.current, category));
   };
 
   const restartWithSettings = (
@@ -217,14 +224,10 @@ export default function QuizScreen() {
     setIndex(0);
     setAddToDeckStatus('idle');
     roundAnswersRef.current = [];
-    setRound(buildRound(new Set(), isPremium ? nextCategory : undefined));
+    setRound(buildRound(new Set(), nextCategory));
   };
 
   const handlePickCategory = (cat: QuizCategory | undefined) => {
-    if (!isPremium && cat !== undefined) {
-      openOfferingSheet();
-      return;
-    }
     if (cat === category) return;
     restartWithSettings(cat, timedMode);
   };
@@ -455,7 +458,6 @@ export default function QuizScreen() {
           </TouchableOpacity>
           {QUIZ_CATEGORIES.map(cat => {
             const selected = category === cat;
-            const locked = !isPremium;
             return (
               <TouchableOpacity
                 key={cat}
@@ -470,13 +472,6 @@ export default function QuizScreen() {
                 onPress={() => handlePickCategory(cat)}
                 accessibilityRole="button"
                 accessibilityLabel={tq.categories[cat]}>
-                {locked && (
-                  <Ionicons
-                    name="leaf-outline"
-                    size={12}
-                    color={selected ? selectedChipInk : staticColors.white}
-                  />
-                )}
                 <AppText
                   style={[
                     styles.categoryChipText,
