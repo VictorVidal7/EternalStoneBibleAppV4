@@ -308,7 +308,18 @@ export const ReaderPreferencesSheet: React.FC<ReaderPreferencesSheetProps> = ({
                 paddingHorizontal: READER_MARGIN_PADDING[preferences.margin],
               },
             ]}>
-            <Text testID="reader-prefs-preview-text" style={previewTextStyle}>
+            <Text
+              testID="reader-prefs-preview-text"
+              style={previewTextStyle}
+              // Matches the real reader's textBreakStrategy per alignment
+              // (chapter.tsx) for behavioral parity between preview and
+              // reader. NOT a fix for right-edge clipping on justified text —
+              // 2026-07-28 device testing showed justified text can clip its
+              // last glyph regardless of break strategy, font, or gutter
+              // width (justify stretches to fill the content-box edge, so
+              // the last glyph has no room by construction). See the master
+              // backlog for the full writeup.
+              textBreakStrategy={previewIsJustified ? 'highQuality' : 'simple'}>
               <Text
                 style={[
                   styles.previewNumber,
