@@ -18,7 +18,6 @@ import {
   View,
   StyleSheet,
   ScrollView,
-  TouchableOpacity,
   Dimensions,
   Animated,
   Platform,
@@ -101,6 +100,10 @@ import {
 
 // Skeleton Loaders
 import {Skeleton} from '@components/SkeletonLoader';
+
+// Shared reduce-motion-aware press-depress (Sprint 66) — replaces the plain
+// TouchableOpacity buttons below that had zero press feedback beyond opacity.
+import {PressableScale} from '@components/ui/PressableScale';
 
 // Emotional check-in (Sprint 79)
 import {FeelingChips} from '@components/FeelingChips';
@@ -1102,8 +1105,8 @@ export default function HomeScreen() {
         {lastRead && (
           <Animated.View
             style={{opacity: fadeAnim, marginTop: celestialSpacing.cardGap}}>
-            <TouchableOpacity
-              activeOpacity={0.9}
+            <PressableScale
+              pressedOpacity={0.9}
               accessibilityRole="button"
               accessible={true}
               onPress={() =>
@@ -1179,7 +1182,7 @@ export default function HomeScreen() {
                   </View>
                 </View>
               </ShimmerCard>
-            </TouchableOpacity>
+            </PressableScale>
           </Animated.View>
         )}
 
@@ -1189,8 +1192,8 @@ export default function HomeScreen() {
         {audioResumeMode !== 'hidden' && audioResumePos && (
           <Animated.View
             style={{opacity: fadeAnim, marginTop: celestialSpacing.cardGap}}>
-            <TouchableOpacity
-              activeOpacity={0.9}
+            <PressableScale
+              pressedOpacity={0.9}
               accessibilityRole="button"
               accessibilityLabel={t.home.continueListening}
               accessibilityHint={
@@ -1317,7 +1320,7 @@ export default function HomeScreen() {
                   </View>
                 </View>
               </ShimmerCard>
-            </TouchableOpacity>
+            </PressableScale>
           </Animated.View>
         )}
 
@@ -1634,7 +1637,8 @@ export default function HomeScreen() {
               ]}>
               {t.home.myPlans}
             </Text>
-            <TouchableOpacity
+            <PressableScale
+              pressedOpacity={0.9}
               style={[
                 styles.createPlanButton,
                 {
@@ -1657,7 +1661,7 @@ export default function HomeScreen() {
                 style={[styles.createPlanButtonText, {color: colors.primary}]}>
                 {t.home.createPlanShort}
               </Text>
-            </TouchableOpacity>
+            </PressableScale>
           </View>
 
           {customPlans.length > 0 ? (
@@ -1765,8 +1769,8 @@ export default function HomeScreen() {
           </View>
 
           {/* 🕊️ Guided devotion — begins with how your heart is today (S83) */}
-          <TouchableOpacity
-            activeOpacity={0.9}
+          <PressableScale
+            pressedOpacity={0.9}
             accessibilityRole="button"
             accessible={true}
             accessibilityLabel={t.guided.cardTitle}
@@ -1810,12 +1814,12 @@ export default function HomeScreen() {
                 />
               </View>
             </ShimmerCard>
-          </TouchableOpacity>
+          </PressableScale>
 
           {/* 🕯️ Moment with God — lectio on the daily verse (Sprint 79) */}
           {dailyVerse && (
-            <TouchableOpacity
-              activeOpacity={0.9}
+            <PressableScale
+              pressedOpacity={0.9}
               style={{marginTop: celestialSpacing.cardGap}}
               accessibilityRole="button"
               accessible={true}
@@ -1869,12 +1873,12 @@ export default function HomeScreen() {
                   />
                 </View>
               </ShimmerCard>
-            </TouchableOpacity>
+            </PressableScale>
           )}
 
           {/* 🙏 Guided prayer — the ACTS path (Sprint 93) */}
-          <TouchableOpacity
-            activeOpacity={0.9}
+          <PressableScale
+            pressedOpacity={0.9}
             style={{marginTop: celestialSpacing.cardGap}}
             accessibilityRole="button"
             accessible={true}
@@ -1919,11 +1923,11 @@ export default function HomeScreen() {
                 />
               </View>
             </ShimmerCard>
-          </TouchableOpacity>
+          </PressableScale>
 
           {/* 🔀 Version comparison — the study aid (S51), closes the section */}
-          <TouchableOpacity
-            activeOpacity={0.9}
+          <PressableScale
+            pressedOpacity={0.9}
             style={{marginTop: celestialSpacing.cardGap}}
             accessibilityRole="button"
             accessible={true}
@@ -1972,7 +1976,7 @@ export default function HomeScreen() {
                 />
               </View>
             </ShimmerCard>
-          </TouchableOpacity>
+          </PressableScale>
         </Animated.View>
 
         {/* ==================== SAVED SHORTCUTS ==================== */}
@@ -1994,8 +1998,8 @@ export default function HomeScreen() {
           </View>
 
           <View style={styles.savedGrid}>
-            <TouchableOpacity
-              activeOpacity={0.9}
+            <PressableScale
+              pressedOpacity={0.9}
               style={styles.savedCardWrapper}
               accessibilityRole="button"
               accessible={true}
@@ -2059,10 +2063,10 @@ export default function HomeScreen() {
                   {t.tabs.favorites}
                 </Text>
               </BlurView>
-            </TouchableOpacity>
+            </PressableScale>
 
-            <TouchableOpacity
-              activeOpacity={0.9}
+            <PressableScale
+              pressedOpacity={0.9}
               style={styles.savedCardWrapper}
               accessibilityRole="button"
               accessible={true}
@@ -2130,10 +2134,10 @@ export default function HomeScreen() {
                   {t.tabs.notes}
                 </Text>
               </BlurView>
-            </TouchableOpacity>
+            </PressableScale>
 
-            <TouchableOpacity
-              activeOpacity={0.9}
+            <PressableScale
+              pressedOpacity={0.9}
               style={styles.savedCardWrapper}
               accessibilityRole="button"
               accessible={true}
@@ -2201,10 +2205,10 @@ export default function HomeScreen() {
                   {t.highlights.short}
                 </Text>
               </BlurView>
-            </TouchableOpacity>
+            </PressableScale>
 
-            <TouchableOpacity
-              activeOpacity={0.9}
+            <PressableScale
+              pressedOpacity={0.9}
               style={styles.savedCardWrapper}
               accessibilityRole="button"
               accessible={true}
@@ -2272,13 +2276,13 @@ export default function HomeScreen() {
                   {t.bookmarks.short}
                 </Text>
               </BlurView>
-            </TouchableOpacity>
+            </PressableScale>
 
             {/* Memory — Sprint 34: badge shows due-today count (or total
                 if nothing is due) so the user sees "what's calling me
                 back" at a glance. */}
-            <TouchableOpacity
-              activeOpacity={0.9}
+            <PressableScale
+              pressedOpacity={0.9}
               style={styles.savedCardWrapper}
               accessibilityRole="button"
               accessible={true}
@@ -2346,7 +2350,7 @@ export default function HomeScreen() {
                   {t.memory.short}
                 </Text>
               </BlurView>
-            </TouchableOpacity>
+            </PressableScale>
           </View>
         </Animated.View>
 

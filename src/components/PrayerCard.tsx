@@ -16,9 +16,10 @@
  */
 
 import React, {useMemo} from 'react';
-import {View, TouchableOpacity, StyleSheet} from 'react-native';
+import {View, StyleSheet} from 'react-native';
 import {Ionicons} from '@expo/vector-icons';
 import {AppText} from '@components/ui/AppText';
+import {PressableScale} from '@components/ui/PressableScale';
 import {useTheme} from '@hooks/useTheme';
 import {useLanguage} from '@hooks/useLanguage';
 import {haptics} from '@lib/haptics';
@@ -75,7 +76,8 @@ export const PrayerCard: React.FC<PrayerCardProps> = ({onPress}) => {
       : tp.streakBest.replace('{{n}}', String(summary.longest));
 
   return (
-    <TouchableOpacity
+    <PressableScale
+      pressedOpacity={0.9}
       style={[
         styles.card,
         {
@@ -120,7 +122,7 @@ export const PrayerCard: React.FC<PrayerCardProps> = ({onPress}) => {
           color={colors.textTertiary}
         />
       </View>
-    </TouchableOpacity>
+    </PressableScale>
   );
 };
 

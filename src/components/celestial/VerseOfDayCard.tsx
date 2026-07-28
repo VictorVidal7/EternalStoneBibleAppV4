@@ -30,6 +30,7 @@ import {verseTextRightSlack} from '../../styles/designTokens';
 import {useLanguage} from '../../hooks/useLanguage';
 import {useTheme} from '../../hooks/useTheme';
 import {usePressScale} from '../../hooks/usePressScale';
+import {PressableScale} from '../ui/PressableScale';
 import {alsoChipLabel} from '../../lib/home/alsoInVersions';
 
 // Generous touch slop for the card's footer/CTA rows (UX review #8). These
@@ -595,7 +596,8 @@ const VerseOfDayCard: React.FC<VerseOfDayCardProps> = ({
           <View style={styles.footer}>
             {/* Botón leer capítulo completo */}
             {onPress && (
-              <TouchableOpacity
+              <PressableScale
+                pressedOpacity={0.9}
                 style={styles.actionButton}
                 onPress={onPress}
                 hitSlop={CTA_HIT_SLOP}>
@@ -609,7 +611,7 @@ const VerseOfDayCard: React.FC<VerseOfDayCardProps> = ({
                   size={18}
                   color={colors.primary}
                 />
-              </TouchableOpacity>
+              </PressableScale>
             )}
 
             {/* Botones de share y favorite */}
@@ -685,7 +687,8 @@ const VerseOfDayCard: React.FC<VerseOfDayCardProps> = ({
           {/* Study web CTA (S62) — invites the reader into the verse's two-way
               study connections (S61). Hidden when the verse has no connections. */}
           {onStudy && studyConnectionsCount > 0 ? (
-            <TouchableOpacity
+            <PressableScale
+              pressedOpacity={0.9}
               style={[
                 styles.studyCta,
                 {borderTopColor: theme.colors.glassBorder},
@@ -716,14 +719,15 @@ const VerseOfDayCard: React.FC<VerseOfDayCardProps> = ({
                 </Text>
               </View>
               <Ionicons name="arrow-forward" size={16} color={colors.primary} />
-            </TouchableOpacity>
+            </PressableScale>
           ) : null}
 
           {/* Mesa de preparación (S108) — always offered when wired, so even a
               verse with no curated study connections has a way into deeper
               study of the day's passage. */}
           {onPrep ? (
-            <TouchableOpacity
+            <PressableScale
+              pressedOpacity={0.9}
               style={[
                 styles.studyCta,
                 {borderTopColor: theme.colors.glassBorder},
@@ -743,14 +747,15 @@ const VerseOfDayCard: React.FC<VerseOfDayCardProps> = ({
                 {t.home.prepFromVerse}
               </Text>
               <Ionicons name="arrow-forward" size={16} color={colors.primary} />
-            </TouchableOpacity>
+            </PressableScale>
           ) : null}
 
           {/* Christ in this passage (S97) — a collapsible reveal so the card
               stays minimal; only rendered when today's verse is curated. */}
           {christNote ? (
             <View>
-              <TouchableOpacity
+              <PressableScale
+                pressedOpacity={0.9}
                 style={[
                   styles.studyCta,
                   {borderTopColor: theme.colors.glassBorder},
@@ -771,7 +776,7 @@ const VerseOfDayCard: React.FC<VerseOfDayCardProps> = ({
                   size={16}
                   color={colors.primary}
                 />
-              </TouchableOpacity>
+              </PressableScale>
               {christExpanded ? (
                 <View style={styles.christBody}>
                   <Text
