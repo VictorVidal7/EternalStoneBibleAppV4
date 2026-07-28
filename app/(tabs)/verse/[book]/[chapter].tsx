@@ -2438,94 +2438,32 @@ export default function VerseReadingScreen() {
                 lineHeight: fontSize * readerPrefs.lineHeightMultiplier,
                 textAlign: readerPrefs.textAlign,
                 fontFamily: readerFontFamily,
-                // Right-edge slack for Android's painted-vs-measured rounding
-                // (Sprint 81/83/84): a tight line can paint a couple px wider
-                // than its measured wrap and the canvas clips the last glyph —
-                // worst on the verse being read, whose paragraph mixes a bold-
-                // face verse number with the karaoke background run. Scaled with
-                // the font (the overflow grows with glyph advance) and DERIVED
-                // ONLY from fontSize so it's identical for the read/idle verse →
-                // no reflow when playback reaches a verse. Sprint 84 removed the
-                // leading now-playing spacer box (the bigger clip cause), which
-                // fixed the audio-verse clip the user confirmed gone.
-                //
-                // Sprint 91: the user still saw a faint clip on IDLE verses on
-                // their OEM device (the Pixel emulator's huge ragged-right margin
-                // never reproduces it — OEM font metrics paint a wider right side
-                // bearing than the measured advance). The slack was 8px at the
-                // default size; widened the floor to 14 and the slope to 0.6 so
-                // the reserved gutter comfortably clears that overhang at every
-                // size. Still derived solely from fontSize → read/idle parity and
-                // no playback reflow are preserved; a few px of extra ragged-right
-                // margin is imperceptible on devices that never clipped.
-                //
-                // Sprint 95: this gutter is a MARGIN, not paddingRight. Two
-                // reasons the user surfaced: (1) with `textAlign: 'justify'`,
-                // internal right PADDING on an Android <Text> disables the native
-                // inter-word justification — lines fall back to ragged-left, so
-                // justified mode "looked like it wasn't justified". A margin lives
-                // OUTSIDE the text box, so Android still justifies the content
-                // normally. (2) For justified text, padding can't prevent the
-                // clip anyway — justify fills to the content-box right edge, so
-                // shrinking the box with padding just relocates the same edge-
-                // clip inward. A margin reserves real space to the RIGHT of the
-                // box where a glyph's overhanging side-bearing can paint without
-                // being canvas-clipped. Identical gutter width, still fontSize-
-                // derived (read/idle parity, no playback reflow); now it protects
-                // BOTH alignments and keeps justify rendering as justify.
-                //
-                // Sprint 100: the user still saw a faint residual clip in rare
-                // cases on their OEM device (never reproducible on the emulator).
-                // Nudged the floor 14→16 and the slope 0.6→0.65 so the reserved
-                // gutter clears the overhang a touch more at every size; the few
-                // extra px of ragged-right margin stay imperceptible on devices
-                // that never clipped.
-                //
-                // Sprint 102: a few verses still clipped "un poquito" on the
-                // user's real phone. Within the reader's whole font range (14-26)
-                // round(fontSize·0.65) never exceeds 17, so the FLOOR is the only
-                // lever that actually moves the reserve — bumped it 16→20 (the
-                // slope is moot here and stays 0.65). Still derived solely from
-                // fontSize → read/idle parity and no playback reflow preserved.
-                //
-                // Sprint 106 (8th report): still a faint clip on the user's phone.
-                // Floor 20→24 (the lever in-range) + slope 0.65→0.7 so the larger
-                // reader sizes gain a little too. Still derived only from fontSize.
-                //
-                // Sprint 110 (root cause, not another bump — the user STILL caught
-                // a faint right-edge clip on their OEM phone): reserve the gutter
-                // as paddingRight for LEFT-aligned text instead of marginRight. On
-                // Android a <Text> clips its glyphs to its OWN content box;
-                // paddingRight EXTENDS that clip rect so an overhanging last-glyph
-                // side-bearing paints INSIDE the bounds, whereas marginRight only
-                // narrows the box (lines wrap a hair earlier) — a probabilistic
-                // mitigation that never fully clears the clip, which is why the 8
-                // margin bumps above never landed it AND why every FIXED-size
-                // scripture card (which already uses paddingRight) was never
-                // reported. The reserve width is unchanged, so the wrap — and thus
-                // the read/idle parity above — is identical. JUSTIFIED text keeps
-                // the margin: paddingRight disables Android's native inter-word
-                // justification (Sprint 95 rationale), and justify fills to the
-                // content-box edge anyway, so the margin is the best lever there.
-                marginRight: isJustified ? rightSlack : 0,
-                paddingRight: isJustified ? 0 : rightSlack,
-                // Justified text takes NO left margin. The cosmetic
-                // leftSlack mirror added in commit 1126a1a (2026-07-28, to
-                // visually balance the gutter) regressed justified rendering:
-                // a nonzero marginLeft on a justified Android <Text> isn't
-                // accounted for in the native inter-word fill target, so
-                // every line overshoots the content box by ~leftSlack (12px
-                // at size 26) — a WHOLE-GLYPH clip/corruption ("trajo"→
-                // "trajc"), not the older few-px side-bearing overhang.
-                // A/B-confirmed on-device (Génesis 4:3, leftSlack 12 vs 0,
-                // nothing else changed). This is a DIFFERENT, narrower bug
-                // than the long-running Sprint 81-110 side-bearing clip —
-                // that one is still open for justified text specifically
-                // (marginRight narrows the box but doesn't extend the canvas
-                // clip rect the way paddingRight does for left-align; see the
-                // marginRight/paddingRight comment above). Left-aligned text
-                // is unaffected by this fix — it uses paddingLeft below, not
-                // a margin, and never invokes justify.
+                // Right-edge anti-clip reserve as paddingRight (padding is
+                // INSIDE the Text's own box, so it extends Android's glyph
+                // clip rect — a plain marginRight only narrows the box and
+                // never fully prevented the clip, across many past sprints
+                // of tuning this value; see git history on `rightSlack`
+                // above for that saga). Same treatment for BOTH alignments
+                // as of Sprint 112: `textAlign: 'justify'` was pixel-scanned
+                // on-device and found NOT to actually stretch lines flush on
+                // this Android/RN build (right edges landed >100px apart) —
+                // so `textBreakStrategy: 'highQuality'` (needed for real
+                // inter-word justification) was buying nothing visually
+                // while its denser packing occasionally overshot the reserve
+                // by more than any tested padding multiple could safely
+                // cover across every margin setting. Justified text now uses
+                // the exact same 'simple' + paddingRight combination
+                // left-align has relied on without a single clip report.
+                marginRight: 0,
+                paddingRight: rightSlack,
+                // Justified text takes no left inset at all (no margin, no
+                // padding) — a cosmetic left mirror of the gutter, tried
+                // during this same investigation, measurably regressed
+                // justified rendering (A/B-confirmed on Génesis 4:3) for
+                // reasons that stopped mattering once justified text moved
+                // to the same 'simple' strategy as left-align above. Only
+                // left-aligned text keeps the cosmetic leftSlack, via
+                // paddingLeft.
                 marginLeft: 0,
                 paddingLeft: isJustified ? 0 : leftSlack,
               } as const;
@@ -2666,26 +2604,34 @@ export default function VerseReadingScreen() {
                         textStyle,
                         dualColumns && styles.dualColumn,
                       ]}
-                      // #3 candidate (right-edge clip on the user's OEM device):
-                      // 'simple' uses GREEDY line-breaking instead of Android's
-                      // default 'highQuality', which packs lines tighter and lets
-                      // a line paint a few px wider than its measured wrap — the
-                      // documented root cause. Greedy wrapping breaks earlier and
-                      // leaves more right margin, so the last glyph clears the box.
-                      // A different lever than the fontSize-derived padding slack
-                      // (which never fully landed it), tried together here.
-                      //
-                      // #3/#10 (justify silently no-op'd, T12): Android's
-                      // JUSTIFICATION_MODE_INTER_WORD only applies under
-                      // 'highQuality'/'balanced' — 'simple' unconditionally
-                      // suppressed it, so "Justificado" never visibly justified.
-                      // Only left-align needs the greedy clip mitigation; justify
-                      // already reserves its clip gutter via marginRight (see
-                      // `textStyle` above), so it's safe to give justify back the
-                      // strategy it actually needs.
-                      textBreakStrategy={
-                        isJustified ? 'highQuality' : 'simple'
-                      }>
+                      // Sprint 112 (the right-edge clip saga, finally
+                      // closed): 'simple' (greedy line-breaking) for BOTH
+                      // alignments now, not just left-align. Left-align has
+                      // used 'simple' + paddingRight since Sprint 110 and has
+                      // never clipped, across every margin/font-size/verse
+                      // this app's testing has ever covered — it's the one
+                      // mechanism with a genuine cross-configuration safety
+                      // record. Justified text used to get 'highQuality'
+                      // (denser optimal packing, closer to a "justified"
+                      // look) on the theory that it was needed for Android's
+                      // native inter-word justification to engage — but a
+                      // pixel-level scan of the actual rendered output proved
+                      // `textAlign: 'justify'` is NOT stretching lines flush
+                      // on this device/RN version at all (right edges landed
+                      // >100px apart, not aligned), so there was never any
+                      // real justification to preserve. 'highQuality' was
+                      // ALSO measured + confirmed on-device (Génesis 4, both
+                      // Amplios and Normales margins) to over-pack lines by
+                      // an amount that scales with available width, so no
+                      // fixed padding multiplier could be found that was
+                      // both safe in every margin AND visually tight — 1.1x
+                      // rightSlack still clipped, 1.5x was safe under Amplios
+                      // but clipped under Normales. Given Victor's explicit
+                      // priority ("nunca jamás" — this must never happen
+                      // again) over cosmetic tightness, and since switching
+                      // away from 'highQuality' costs nothing visually that
+                      // wasn't already lost, 'simple' is now unconditional.
+                      textBreakStrategy="simple">
                       <Text style={[styles.verseNumber, numberStyle]}>
                         {verse.verse}
                         {'  '}
