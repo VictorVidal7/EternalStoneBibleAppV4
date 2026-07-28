@@ -862,16 +862,21 @@ class BibleDatabase {
         // Same dual book_id/book_name shape insertVerses already accepts from
         // the JS bulk loader (data-loader.ts) — its declared Omit<BibleVerse,
         // 'id'>[] param predates that shape and doesn't structurally cover it.
+        // Timed (see insertVerses' batched-INSERT doc) so a future device
+        // test can confirm the fix against the historical ~100s row-by-row
+        // baseline (commit 32fceb4) without needing a profiler attached.
+        const startedAt = Date.now();
         await this.insertVerses(
           WEB_DATA as unknown as Omit<BibleVerse, 'id'>[],
         );
+        const elapsedMs = Date.now() - startedAt;
 
         await AsyncStorage.setItem(
           WEB_TEXT_LOADED_KEY,
           String(WEB_TEXT_VERSION),
         );
         console.log(
-          `📖 WEB reading-version text re-seeded from bundle (${WEB_DATA.length} verses)`,
+          `📖 WEB reading-version text re-seeded from bundle (${WEB_DATA.length} verses) in ${elapsedMs}ms`,
         );
       } catch (error) {
         console.warn('⚠️ WEB text re-seed failed', error);
@@ -1366,27 +1371,62 @@ class BibleDatabase {
 
   // ========== VERSE OPERATIONS ==========
 
+  /**
+   * Rows per multi-row `INSERT OR REPLACE ... VALUES (...), (...), ...`
+   * statement in {@link insertVerses}. 6 bound params/row × 166 = 996,
+   * safely under SQLite's legacy `SQLITE_MAX_VARIABLE_NUMBER` default of 999
+   * (older builds; modern SQLite defaults to 32766) — kept conservative
+   * because we can't probe the actual compiled-in limit of either the
+   * native expo-sqlite build or the WASM build `data-loader.web.ts` drives
+   * through this same method, and a hard failure here would be a boot-time
+   * crash, not a slow boot.
+   */
+  private static readonly VERSE_INSERT_BATCH_SIZE = 166;
+
+  /**
+   * Bulk-insert verses in multi-row `VALUES` statements instead of one
+   * `runAsync` per row. Historically this looped a single-row INSERT per
+   * verse inside one transaction — correct, but 31k+ individual native-
+   * bridge round trips (one per verse) measured ~100s on a real device for
+   * a similarly-sized bundled version (see commit 32fceb4, "Sprint 20 —
+   * JSON backup export + pre-seeded SQLite"). Batching rows into a single
+   * statement per {@link VERSE_INSERT_BATCH_SIZE} verses cuts the round
+   * trips by ~2 orders of magnitude while keeping the exact same end state
+   * (`INSERT OR REPLACE` still fires the verses_ai/ad/au FTS triggers once
+   * per affected row, same as before — SQLite fires row triggers per row
+   * regardless of how many rows one statement writes).
+   */
   async insertVerses(verses: Omit<BibleVerse, 'id'>[]): Promise<void> {
     const db = this.getDb();
+    if (verses.length === 0) return;
+
+    const BATCH_SIZE = BibleDatabase.VERSE_INSERT_BATCH_SIZE;
 
     await db.withTransactionAsync(async () => {
-      for (const verse of verses) {
-        // Los datos del archivo usan book_id y book_name, pero nuestra interfaz usa bookNumber y book
-        // Soportamos ambos formatos para flexibilidad
-        const bookId = (verse as any).book_id || verse.bookNumber;
-        const bookName = (verse as any).book_name || verse.book;
+      for (let i = 0; i < verses.length; i += BATCH_SIZE) {
+        const batch = verses.slice(i, i + BATCH_SIZE);
+        const placeholders = batch.map(() => '(?, ?, ?, ?, ?, ?)').join(', ');
+        const params: (string | number)[] = [];
+        for (const verse of batch) {
+          // Los datos del archivo usan book_id y book_name, pero nuestra interfaz usa bookNumber y book
+          // Soportamos ambos formatos para flexibilidad
+          const bookId = (verse as any).book_id || verse.bookNumber;
+          const bookName = (verse as any).book_name || verse.book;
 
-        await db.runAsync(
-          `INSERT OR REPLACE INTO verses (book_id, book_name, chapter, verse, text, version)
-           VALUES (?, ?, ?, ?, ?, ?)`,
-          [
+          params.push(
             bookId,
             bookName,
             verse.chapter,
             verse.verse,
             verse.text,
             verse.version,
-          ],
+          );
+        }
+
+        await db.runAsync(
+          `INSERT OR REPLACE INTO verses (book_id, book_name, chapter, verse, text, version)
+           VALUES ${placeholders}`,
+          params,
         );
       }
     });
