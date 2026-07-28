@@ -219,7 +219,7 @@ describe('MemoryInsightsScreen — T8.1 premium sections', () => {
 
   it('shows locked teasers for the by-book and trend sections for a free user', async () => {
     const {findAllByText} = renderScreen();
-    const teasers = await findAllByText('Se desbloquea con una ofrenda');
+    const teasers = await findAllByText('Se desbloquea con premium');
     // By-book, trend, full-history toggle, and the share button all lock.
     expect(teasers.length).toBeGreaterThanOrEqual(2);
   });
@@ -235,7 +235,7 @@ describe('MemoryInsightsScreen — T8.1 premium sections', () => {
     const {findByLabelText} = renderScreen();
     fireEvent.press(
       await findByLabelText(
-        'Retención por libro — Extra — se desbloquea con una ofrenda',
+        'Retención por libro — Extra — se desbloquea con premium',
       ),
     );
     expect(mockOpenOfferingSheet).toHaveBeenCalledTimes(1);
@@ -245,7 +245,7 @@ describe('MemoryInsightsScreen — T8.1 premium sections', () => {
     const {findByLabelText} = renderScreen();
     fireEvent.press(
       await findByLabelText(
-        'Compartir mi progreso — Extra — se desbloquea con una ofrenda',
+        'Compartir mi progreso — Extra — se desbloquea con premium',
       ),
     );
     expect(mockOpenOfferingSheet).toHaveBeenCalledTimes(1);
@@ -277,7 +277,7 @@ describe('MemoryInsightsScreen — T8.1 premium sections', () => {
     mockPurchases.__setCustomerInfo(noEntitlementInfo);
 
     await waitFor(async () => {
-      const teasers = await findAllByText('Se desbloquea con una ofrenda');
+      const teasers = await findAllByText('Se desbloquea con premium');
       expect(teasers.length).toBeGreaterThanOrEqual(2);
     });
     expect(queryByText('Juan')).toBeNull();

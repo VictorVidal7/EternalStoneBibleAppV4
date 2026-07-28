@@ -96,7 +96,7 @@ describe('ExtrasSettings', () => {
     await initialize();
     const {findByText} = renderSettings();
 
-    const cta = await findByText('Desbloquear con una ofrenda');
+    const cta = await findByText('Desbloquear con premium');
     fireEvent.press(cta);
     expect(mockOpenOfferingSheet).toHaveBeenCalledTimes(1);
   });
@@ -106,7 +106,7 @@ describe('ExtrasSettings', () => {
     const {findByText, queryByText} = renderSettings();
 
     expect(await findByText('Extras desbloqueados')).toBeTruthy();
-    expect(queryByText('Desbloquear con una ofrenda')).toBeNull();
+    expect(queryByText('Desbloquear con premium')).toBeNull();
   });
 
   it('exposes a __DEV__-only manual toggle alongside the real status', async () => {

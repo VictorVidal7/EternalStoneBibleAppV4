@@ -134,13 +134,13 @@ describe('WordStudyScreen — premium KJV gloss (Originales+)', () => {
 
   it('shows a locked teaser (not the KJV gloss) for a free user', async () => {
     const {findByText, queryByText} = renderScreen();
-    expect(await findByText('Se desbloquea con una ofrenda')).toBeTruthy();
+    expect(await findByText('Se desbloquea con premium')).toBeTruthy();
     expect(queryByText(/be-\)love/)).toBeNull();
   });
 
   it('opens the offering sheet when tapping the locked KJV teaser', async () => {
     const {findByText} = renderScreen();
-    fireEvent.press(await findByText('Se desbloquea con una ofrenda'));
+    fireEvent.press(await findByText('Se desbloquea con premium'));
     expect(mockOpenOfferingSheet).toHaveBeenCalledTimes(1);
   });
 
@@ -161,7 +161,7 @@ describe('WordStudyScreen — premium KJV gloss (Originales+)', () => {
     mockPurchases.__setCustomerInfo(noEntitlementInfo);
 
     await waitFor(async () =>
-      expect(await findByText('Se desbloquea con una ofrenda')).toBeTruthy(),
+      expect(await findByText('Se desbloquea con premium')).toBeTruthy(),
     );
   });
 });

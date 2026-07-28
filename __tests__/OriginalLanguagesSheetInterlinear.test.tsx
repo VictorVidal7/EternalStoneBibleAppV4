@@ -116,7 +116,7 @@ describe('OriginalLanguagesSheet — Interlineal visual entry (T8.3)', () => {
     const {findByLabelText, queryByText} = renderSheet();
     fireEvent.press(
       await findByLabelText(
-        'Interlineal visual — Extra — se desbloquea con una ofrenda',
+        'Interlineal visual — Extra — se desbloquea con premium',
       ),
     );
     expect(mockOpenOfferingSheet).toHaveBeenCalledTimes(1);
