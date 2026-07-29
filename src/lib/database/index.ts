@@ -282,6 +282,7 @@ class BibleDatabase {
         );
       }
       this.db = await SQLite.openDatabaseAsync('bible.db');
+      await this.configureRecursiveTriggers();
 
       await this.createSchema();
 
@@ -300,6 +301,43 @@ class BibleDatabase {
       console.error('❌ Error initializing database:', error);
       throw error;
     }
+  }
+
+  /**
+   * SQLite defaults `recursive_triggers` to OFF, which per SQLite's own docs
+   * ("When the REPLACE conflict resolution strategy deletes rows in order to
+   * satisfy a constraint, delete triggers fire if and only if recursive
+   * triggers are enabled" — sqlite.org/lang_conflict.html) means the
+   * `verses_ad` AFTER DELETE trigger (see {@link createSchema}) would NOT
+   * fire for the implicit delete inside `INSERT OR REPLACE INTO verses`
+   * (used by {@link insertVerses} to re-seed, e.g. `seedWebTextIfNeeded`'s
+   * WEB_TEXT_VERSION bumps).
+   *
+   * Confirmed by direct repro against a faithful schema copy (real SQLite,
+   * not this app's code): with this pragma left OFF, replacing an existing
+   * verse row leaves its old `verses_fts` index entries orphaned — the
+   * replaced row gets a NEW autoincrement id (REPLACE deletes-then-inserts;
+   * `verses.id` is `INTEGER PRIMARY KEY AUTOINCREMENT` and the insert doesn't
+   * specify `id`), so the OLD id's postings are never cleaned up. The shadow
+   * FTS index then grows unboundedly across re-seeds, and any FTS5 query
+   * that doesn't defensively re-join back to `verses` (e.g. snippet()/
+   * highlight(), or a bare `SELECT ... FROM verses_fts`) can raise a hard
+   * `fts5: missing row N from content table 'main'.'verses'` error — the
+   * app's own `searchVerses`/`searchByBook` happen to always INNER JOIN back
+   * to `verses`, which silently filters orphaned rowids out of results
+   * instead of crashing, but the index bloat and any future non-joined FTS5
+   * query remain real risks.
+   *
+   * Turning this on makes `verses_ad` fire normally on REPLACE, keeping
+   * `verses_fts` exactly in sync — safe globally: `verses_ai/ad/au` are the
+   * ONLY triggers this app defines, and none of them write back to `verses`
+   * itself, so there is no risk of unwanted trigger recursion elsewhere.
+   * Extracted to its own method (called from `_performInitialization` right
+   * after opening the connection) so it's unit-testable in isolation — see
+   * `__tests__/versesFtsRecursiveTriggers.test.ts`.
+   */
+  private async configureRecursiveTriggers(): Promise<void> {
+    await this.getDb().execAsync('PRAGMA recursive_triggers = ON;');
   }
 
   private getDb(): SQLite.SQLiteDatabase {
@@ -835,7 +873,11 @@ class BibleDatabase {
    * does `INSERT OR REPLACE` keyed on `(book_id, chapter, verse, version)`,
    * so simply re-running it overwrites every existing WEB row with the fresh
    * text — no separate DELETE needed, and the FTS index self-updates via the
-   * verses_ai/au/ad triggers.
+   * verses_ai/au/ad triggers (this relies on `recursive_triggers` being ON —
+   * see {@link configureRecursiveTriggers} for why it's required for
+   * `verses_ad` to fire on REPLACE's implicit delete; without it this
+   * re-seed path orphans the old rows' `verses_fts` entries instead of
+   * cleaning them up).
    *
    * NATIVE ONLY. Bug found post-hoc: `seedFromBundleIfMissing()` always
    * throws on web (no expo-file-system there) and its catch just logs +
@@ -1394,7 +1436,9 @@ class BibleDatabase {
    * trips by ~2 orders of magnitude while keeping the exact same end state
    * (`INSERT OR REPLACE` still fires the verses_ai/ad/au FTS triggers once
    * per affected row, same as before — SQLite fires row triggers per row
-   * regardless of how many rows one statement writes).
+   * regardless of how many rows one statement writes; `verses_ad` firing for
+   * the implicit delete inside a REPLACE additionally requires
+   * `recursive_triggers` to be ON — see {@link configureRecursiveTriggers}).
    */
   async insertVerses(verses: Omit<BibleVerse, 'id'>[]): Promise<void> {
     const db = this.getDb();
