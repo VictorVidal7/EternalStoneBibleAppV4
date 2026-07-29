@@ -436,7 +436,8 @@ export default function DictionaryDetailScreen() {
                     {borderTopColor: colors.border},
                   ]}>
                   <View style={styles.articleHeaderRow}>
-                    <Text style={[styles.articleLabel, {color: colors.text}]}>
+                    <Text
+                      style={[styles.articleLabel, {color: themedColors.text}]}>
                       {dt.articleLabel}
                     </Text>
                     <View
@@ -486,7 +487,7 @@ export default function DictionaryDetailScreen() {
                       <Text
                         style={[
                           styles.lockedText,
-                          {color: colors.textSecondary},
+                          {color: themedColors.textSecondary},
                         ]}>
                         {dt.articleLocked}
                       </Text>
@@ -503,7 +504,8 @@ export default function DictionaryDetailScreen() {
                     {borderTopColor: colors.border},
                   ]}>
                   <View style={styles.articleHeaderRow}>
-                    <Text style={[styles.articleLabel, {color: colors.text}]}>
+                    <Text
+                      style={[styles.articleLabel, {color: themedColors.text}]}>
                       {dt.viewsLabel}
                     </Text>
                     <View
@@ -530,7 +532,10 @@ export default function DictionaryDetailScreen() {
                             },
                           ]}>
                           <Text
-                            style={[styles.viewLabel, {color: colors.primary}]}>
+                            style={[
+                              styles.viewLabel,
+                              {color: themedColors.primary},
+                            ]}>
                             {section.label_es}
                           </Text>
                           <Text
@@ -571,7 +576,7 @@ export default function DictionaryDetailScreen() {
                       <Text
                         style={[
                           styles.lockedText,
-                          {color: colors.textSecondary},
+                          {color: themedColors.textSecondary},
                         ]}>
                         {dt.viewsLocked}
                       </Text>
