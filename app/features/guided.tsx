@@ -52,6 +52,7 @@ import {
   spacing,
   staticColors,
   verseTextRightSlack,
+  FEELING_CHIP_WIDTH,
 } from '@/styles/designTokens';
 
 type Phase = 'choose' | 'resolving' | 'reveal' | 'error';
@@ -433,16 +434,28 @@ const styles = StyleSheet.create({
     flexWrap: 'wrap',
     gap: spacing.sm,
   },
+  // Equal-width treatment shared with FeelingChips (Home): width (not an
+  // unconstrained hug-content box) so every option in this picker occupies
+  // the SAME space — this picker previously had no equal-sizing at all. Same
+  // FEELING_CHIP_WIDTH constant as Home's row, so both feeling pickers in
+  // the app render at the identical size.
   feelingChip: {
     flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'center',
     gap: 6,
+    width: FEELING_CHIP_WIDTH,
     borderRadius: borderRadius.full,
     borderWidth: 1,
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.xs + 2,
   },
-  feelingChipText: {fontSize: fontSizes.sm, fontWeight: '600'},
+  feelingChipText: {
+    flexShrink: 1,
+    textAlign: 'center',
+    fontSize: fontSizes.sm,
+    fontWeight: '600',
+  },
   resolving: {paddingVertical: spacing.lg, alignItems: 'center'},
   revealWrap: {gap: spacing.md},
   revealFeelingRow: {

@@ -100,6 +100,25 @@ export const verseTextRightSlack = (fontSize: number): number =>
   // larger hero quotes gain a touch more too. Still monotonic & font-scaled.
   Math.max(20, Math.round(fontSize * 0.75));
 
+/**
+ * Fixed width for a "feeling"/mood chip (not `minWidth`) so every option in
+ * these rows occupies the SAME horizontal space regardless of label length.
+ * `minWidth` alone only floors short labels ("Solo", "Triste") — it doesn't
+ * cap long ones ("Esperando en Dios", "Buscando a Dios" — the longest of the
+ * 18 `feelings.list` entries), which grow past the floor and end up visibly
+ * bigger than the short chips.
+ *
+ * Sized so the longest unbreakable word among the 18 labels ("Esperando",
+ * "Confundido", "vergüenza" — all ~9-10 chars) fits one wrapped line inside
+ * the chip's padding, letting the two-word long labels wrap to a second line
+ * (unbounded `numberOfLines`, so nothing ever ellipsizes at larger system
+ * font scales) rather than overflow. Shared by every equal-width feeling
+ * chip row in the app — [[FeelingChips]] (Home) and the guided-devotion
+ * feeling picker (`app/features/guided.tsx`) — so they render at the exact
+ * same size instead of each inventing its own number.
+ */
+export const FEELING_CHIP_WIDTH = 148;
+
 export const fontWeight = {
   light: '300',
   regular: '400',

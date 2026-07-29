@@ -23,7 +23,7 @@
  */
 import React from 'react';
 import {render, fireEvent, waitFor} from '@testing-library/react-native';
-import {View} from 'react-native';
+import {View, StyleSheet} from 'react-native';
 import GuidedDevotionScreen from '../app/features/guided';
 import {
   getAllFeelings,
@@ -33,6 +33,7 @@ import {feelingsDateKey} from '../src/features/study/feelingsLog';
 import {parseThemeRef} from '../src/features/study/themes';
 import {getBookByName} from '../src/constants/bible';
 import {translations} from '../src/i18n/translations';
+import {FEELING_CHIP_WIDTH} from '../src/styles/designTokens';
 
 // RN's own TouchableOpacity drives its press/disabled feedback through an
 // internal Animated.Value; under react-test-renderer that throws "Unable to
@@ -221,5 +222,28 @@ describe('GuidedDevotionScreen header gradient — high contrast override (Tanda
       mockColors.primaryDark,
       mockColors.primary,
     ]);
+  });
+});
+
+describe('GuidedDevotionScreen feeling picker — equal chip width', () => {
+  beforeEach(() => {
+    mockHighContrast = false;
+  });
+
+  it('gives every feeling chip the SAME fixed width, short label or long, matching the shared constant', () => {
+    // This picker previously had NO equal-sizing at all (unconstrained,
+    // hug-content chips) — "Solo" (lonely) and "Esperando en Dios" (waiting)
+    // are the shortest/longest of the 18 feelings.list labels. Asserting
+    // against the shared FEELING_CHIP_WIDTH constant (not a literal number)
+    // also pins that this picker reuses the exact same size as Home's
+    // FeelingChips row rather than inventing its own.
+    const {getByLabelText} = render(<GuidedDevotionScreen />);
+    const shortChip = StyleSheet.flatten(getByLabelText('Solo').props.style);
+    const longChip = StyleSheet.flatten(
+      getByLabelText('Esperando en Dios').props.style,
+    );
+    expect(shortChip.width).toBe(FEELING_CHIP_WIDTH);
+    expect(longChip.width).toBe(FEELING_CHIP_WIDTH);
+    expect(shortChip.width).toBe(longChip.width);
   });
 });
