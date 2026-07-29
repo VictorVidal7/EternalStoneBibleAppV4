@@ -102,14 +102,12 @@ const AnimatedAchievementCard: React.FC<AnimatedAchievementCardProps> = ({
   // entrance animation. An id already in the set has animated in before —
   // e.g. it scrolled out of FlatList's virtualization window and back in,
   // creating a fresh instance — so it renders at rest immediately instead
-  // of replaying the cascade.
+  // of replaying the cascade. Only READ the set during render (writing here
+  // would be unsafe if React ever discarded and retried this render pass);
+  // the corresponding write happens in the mount effect below.
   const shouldAnimateRef = useRef<boolean | null>(null);
   if (shouldAnimateRef.current === null) {
-    const alreadySeen = seenIdsRef.current.has(achievement.id);
-    shouldAnimateRef.current = !alreadySeen;
-    if (!alreadySeen) {
-      seenIdsRef.current.add(achievement.id);
-    }
+    shouldAnimateRef.current = !seenIdsRef.current.has(achievement.id);
   }
   const shouldAnimate = shouldAnimateRef.current && !reduced;
 
@@ -117,6 +115,9 @@ const AnimatedAchievementCard: React.FC<AnimatedAchievementCardProps> = ({
   const scale = useSharedValue(shouldAnimate ? 0.95 : 1);
 
   useEffect(() => {
+    // Mark this id as seen on mount (Set.add is idempotent, so re-running
+    // this effect when `reduced` changes later is harmless).
+    seenIdsRef.current.add(achievement.id);
     if (!shouldAnimate) {
       // Reduced motion (OS or in-app override) or an already-seen card:
       // present at rest, no animated motion getting there.
