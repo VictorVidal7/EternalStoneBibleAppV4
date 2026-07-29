@@ -12,6 +12,7 @@ import {View, StyleSheet, Animated} from 'react-native';
 import {Ionicons} from '@expo/vector-icons';
 import type {ComponentProps} from 'react';
 import {AppText} from '@components/ui/AppText';
+import {CountUpText} from '@components/ui/CountUpText';
 import {useReducedMotion} from '@hooks/useReducedMotion';
 
 type IoniconsName = ComponentProps<typeof Ionicons>['name'];
@@ -62,6 +63,16 @@ interface StatsCardProps {
    * @default false
    */
   pulse?: boolean;
+
+  /**
+   * Animate `value` ticking up to its new number instead of snapping in
+   * (make-it-feel-alive backlog). Only applies when `value` is a number —
+   * string values (e.g. the "XX%" progress tile) always render plainly.
+   * Delegates reduced-motion handling to [[CountUpText]], which already
+   * skips the animation and renders the final value when motion is reduced.
+   * @default false
+   */
+  countUp?: boolean;
 }
 
 const StatsCard: React.FC<StatsCardProps> = ({
@@ -73,6 +84,7 @@ const StatsCard: React.FC<StatsCardProps> = ({
   labelColor = 'rgba(255, 255, 255, 0.75)',
   iconSize = 24,
   pulse = false,
+  countUp = false,
 }) => {
   const pulseAnim = useRef(new Animated.Value(1)).current;
   const reducedMotion = useReducedMotion();
@@ -114,13 +126,25 @@ const StatsCard: React.FC<StatsCardProps> = ({
         <Ionicons name={icon} size={iconSize} color={iconColor} />
       </Animated.View>
 
-      {/* Valor — display number in a fixed hero column: cap font scaling */}
-      <AppText
-        scaleRole="display"
-        numberOfLines={1}
-        style={[styles.value, {color: valueColor}]}>
-        {value}
-      </AppText>
+      {/* Valor — display number in a fixed hero column: cap font scaling.
+          countUp swaps in CountUpText so the number ticks up to its new
+          value on change instead of snapping in; only meaningful for
+          numeric values, so string values (e.g. "XX%") always render plain. */}
+      {countUp && typeof value === 'number' ? (
+        <CountUpText
+          value={value}
+          scaleRole="display"
+          numberOfLines={1}
+          style={[styles.value, {color: valueColor}]}
+        />
+      ) : (
+        <AppText
+          scaleRole="display"
+          numberOfLines={1}
+          style={[styles.value, {color: valueColor}]}>
+          {value}
+        </AppText>
+      )}
 
       {/* Label — compact uppercase caption: tightest cap */}
       <AppText
