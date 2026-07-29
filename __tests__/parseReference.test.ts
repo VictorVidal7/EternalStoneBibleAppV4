@@ -152,4 +152,44 @@ describe('linkifyReferences', () => {
     const linked = segs.find(s => s.ref !== undefined);
     expect(linked?.text).toBe('JOHN 3:16');
   });
+
+  it('linkifies the accented "Éx" abbreviation for Éxodo', () => {
+    const segs = linkifyReferences(
+      'Como se ve en Éx 4:1, Moisés recibió señales.',
+    );
+    const linked = segs.filter(s => s.ref !== undefined);
+    expect(linked).toHaveLength(1);
+    expect(linked[0].ref?.book.name).toBe('Éxodo');
+    expect(linked[0].ref?.chapter).toBe(4);
+    expect(linked[0].ref?.verse).toBe(1);
+    expect(linked[0].text).toBe('Éx 4:1');
+  });
+
+  it('linkifies the unaccented "Ex" abbreviation for Éxodo too', () => {
+    const segs = linkifyReferences('Ex 20:3 lists the first commandment.');
+    const linked = segs.filter(s => s.ref !== undefined);
+    expect(linked).toHaveLength(1);
+    expect(linked[0].ref?.book.name).toBe('Éxodo');
+    expect(linked[0].ref?.chapter).toBe(20);
+  });
+
+  it('linkifies other accented abbreviations regardless of accent usage', () => {
+    // Gálatas' canonical abbr is accented ("Gá"); the unaccented spelling
+    // people actually type ("Ga") should still resolve.
+    const segs = linkifyReferences('Ver Ga 5:22 sobre el fruto del Espíritu.');
+    const linked = segs.filter(s => s.ref !== undefined);
+    expect(linked).toHaveLength(1);
+    expect(linked[0].ref?.book.name).toBe('Gálatas');
+    expect(linked[0].ref?.chapter).toBe(5);
+    expect(linked[0].ref?.verse).toBe(22);
+  });
+});
+
+describe('parseReference accent handling', () => {
+  it('parses "Éx 4:1" directly', () => {
+    const r = parseReference('Éx 4:1');
+    expect(r?.book.name).toBe('Éxodo');
+    expect(r?.chapter).toBe(4);
+    expect(r?.verse).toBe(1);
+  });
 });

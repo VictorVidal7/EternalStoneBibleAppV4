@@ -127,6 +127,43 @@ export function parseReference(input: string): ParsedReference | null {
 }
 
 /**
+ * Vowel equivalence classes so the match regex is accent-insensitive.
+ * Canonical abbreviations are a mix of accented ("Gá" for Gálatas) and
+ * unaccented ("Ex" for Éxodo) forms, but free-form text in the wild uses
+ * whichever spelling feels natural ("Éx 4:1"). Each class lists every
+ * accented/unaccented variant of a base vowel; `charClass` below maps any
+ * member back to its full class so the built regex accepts all of them
+ * regardless of which single form appears in BIBLE_BOOKS.
+ */
+const VOWEL_CLASSES = ['aá', 'eé', 'ií', 'oó', 'uúü'];
+const charClass = new Map<string, string>();
+for (const cls of VOWEL_CLASSES) {
+  for (const ch of cls) charClass.set(ch, cls);
+}
+const REGEX_SPECIAL = /[\\^$.*+?()[\]{}|]/;
+
+/**
+ * Turn a literal book name/abbreviation into a regex-source fragment that
+ * matches any accenting of its vowels (case handled separately by the
+ * outer /i flag). Non-vowel characters are escaped as needed and passed
+ * through unchanged.
+ */
+function accentInsensitiveSource(s: string): string {
+  let out = '';
+  for (const ch of s) {
+    const cls = charClass.get(ch.toLowerCase());
+    if (cls) {
+      out += `[${cls}]`;
+    } else if (REGEX_SPECIAL.test(ch)) {
+      out += `\\${ch}`;
+    } else {
+      out += ch;
+    }
+  }
+  return out;
+}
+
+/**
  * Regex covering every known book name + abbreviation, longest first so
  * "1 John" wins over "John" inside "1 John 4:18". Built once at module
  * load — there are ~6 keys × 66 books, well within regex alternation
@@ -141,7 +178,7 @@ const REF_REGEX = (() => {
     names.add(book.abbrEn);
   }
   const sorted = [...names].sort((a, b) => b.length - a.length);
-  const escaped = sorted.map(n => n.replace(/[\\^$.*+?()[\]{}|]/g, '\\$&'));
+  const escaped = sorted.map(accentInsensitiveSource);
   // Allow a trailing dot on abbreviations ("Gen. 1:1"). The body of the
   // reference is `<book> <chapter>[:<verse>[-<verseEnd>]]`.
   return new RegExp(

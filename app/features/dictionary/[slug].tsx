@@ -65,9 +65,11 @@ import bibleDB, {
   type DictionaryMultiviewSection,
 } from '@lib/database';
 import {
+  getRelatedSlugs,
   parseMarkdownSegments,
   titleCaseHeadword,
 } from '@/features/study/dictionary';
+import {getNavesCrossReferences} from '@/features/study/dictionaryNaves';
 import {
   borderRadius,
   fontSize as fontSizes,
@@ -94,16 +96,17 @@ type LoadStatus = 'loading' | 'ready' | 'error' | 'unknown';
  *  markdown segment, and each one can itself contain zero, one, or several
  *  references).
  *
- *  KNOWN GAP (pre-existing in `linkifyReferences`, not introduced here):
- *  `REF_REGEX` is built from each book's raw `abbr` string with no diacritic
- *  folding, so an accented abbreviation actually used in the seeded ISBE
- *  text — "Éx" for Éxodo — never matches, because `BIBLE_BOOKS`' own `abbr`
- *  for that book is the unaccented "Ex" (confirmed against
- *  `assets/dictionary-v1-es.json`, which contains many "Éx 4:1"-style
- *  citations). Every other common abbreviation checked (Lv, Dt, Nm, Is, Mt,
- *  Lc, Jn, Hch, 1 R/2 R, 1 S/2 S…) matches correctly. This is a limitation
- *  of the shared parser also affecting the main reader and sermon notes, out
- *  of scope to fix here — flagged for a future `parseReference.ts` pass. */
+ *  FIXED GAP (was pre-existing in `linkifyReferences`): `REF_REGEX` used to
+ *  be built from each book's raw `abbr` string with no diacritic folding, so
+ *  an accented abbreviation actually used in the seeded ISBE text — "Éx" for
+ *  Éxodo — never matched, because `BIBLE_BOOKS`' own `abbr` for that book is
+ *  the unaccented "Ex" (confirmed against `assets/dictionary-v1-es.json`,
+ *  which contains many "Éx 4:1"-style citations). `parseReference.ts` now
+ *  builds `REF_REGEX` with accent-insensitive vowel character classes (see
+ *  `accentInsensitiveSource`), so both "Éx 4:1" and "Ex 4:1" — and any other
+ *  accented/unaccented spelling of an abbreviation — resolve to the same
+ *  book. Fixed at the shared-parser level, so the main reader and sermon
+ *  notes get the same fix for free. */
 function linkifyMarkdownSegment(
   text: string,
   linkColor: string,
@@ -225,6 +228,14 @@ export default function DictionaryDetailScreen() {
   const [multiviewSections, setMultiviewSections] = useState<
     DictionaryMultiviewSection[]
   >([]);
+  // "Ver también" — sibling entries from the small static
+  // `getRelatedSlugs` map (src/features/study/dictionary.ts), resolved to
+  // their display headwords. Only queried when the current entry actually
+  // has related slugs, in the map's own order (not alphabetical/query
+  // order) so the most relevant link surfaces first.
+  const [relatedEntries, setRelatedEntries] = useState<
+    Pick<DictionaryEntry, 'slug' | 'headword_es' | 'gloss_es'>[]
+  >([]);
 
   const load = useCallback(async () => {
     if (!params.slug) {
@@ -245,6 +256,25 @@ export default function DictionaryDetailScreen() {
           ? await bibleDB.getDictionaryMultiviewSections(params.slug)
           : [],
       );
+      const relatedSlugs = getRelatedSlugs(row.slug);
+      if (relatedSlugs.length > 0) {
+        const all = await bibleDB.getAllDictionaryEntries();
+        const bySlug = new Map(all.map(e => [e.slug, e]));
+        setRelatedEntries(
+          relatedSlugs
+            .map(slug => bySlug.get(slug))
+            .filter(
+              (
+                e,
+              ): e is Pick<
+                DictionaryEntry,
+                'slug' | 'headword_es' | 'gloss_es'
+              > => e !== undefined,
+            ),
+        );
+      } else {
+        setRelatedEntries([]);
+      }
       setStatus('ready');
     } catch {
       setStatus('error');
@@ -280,10 +310,30 @@ export default function DictionaryDetailScreen() {
     [router],
   );
 
+  // "Ver también" row tap — same in-app navigation the browse screen uses
+  // (`app/features/dictionary/index.tsx`'s own `router.push`), just from
+  // this detail screen instead of the list. Always free: this is plain
+  // additive navigation between entries that already exist, never gated.
+  const handleRelatedPress = useCallback(
+    (slug: string) => {
+      haptics.selection();
+      router.push(`/features/dictionary/${slug}` as never);
+    },
+    [router],
+  );
+
   const title = entry ? titleCaseHeadword(entry.headword_es) : '';
   const headerGradient: readonly [string, string, ...string[]] = highContrast
     ? (gradient.headerColors as readonly [string, string, ...string[]])
     : [colors.primary, colors.primaryDark];
+
+  // Nave's Topical Bible cross-reference panel (Tanda 5, v1.1 fast-follow —
+  // see `dictionaryNaves.ts`'s own doc comment for scope/sourcing). A pure
+  // static lookup keyed by slug, empty outside the 6-entry allow-list, so
+  // this is a no-op render for every other entry. Always free, same
+  // reasoning as "Ver también" above — a list of Bible references, not
+  // translated commentary.
+  const navesSections = entry ? getNavesCrossReferences(entry.slug) : [];
 
   // Reader-margin gutter (Sprint T-audit): the horizontal padding between the
   // screen edge and the entry card now follows the Aa margin preference,
@@ -584,6 +634,92 @@ export default function DictionaryDetailScreen() {
                   )}
                 </View>
               ) : null}
+
+              {relatedEntries.length > 0 ? (
+                <View
+                  style={[
+                    styles.articleSection,
+                    {borderTopColor: colors.border},
+                  ]}>
+                  <View style={styles.articleHeaderRow}>
+                    <Text
+                      style={[styles.articleLabel, {color: themedColors.text}]}>
+                      {dt.relatedLabel}
+                    </Text>
+                  </View>
+                  <View style={styles.relatedList}>
+                    {relatedEntries.map(rel => (
+                      <TouchableOpacity
+                        key={rel.slug}
+                        style={styles.relatedRow}
+                        onPress={() => handleRelatedPress(rel.slug)}
+                        accessibilityRole="button"
+                        accessibilityLabel={titleCaseHeadword(rel.headword_es)}>
+                        <Ionicons
+                          name="arrow-forward-circle-outline"
+                          size={18}
+                          color={themedColors.primary}
+                        />
+                        <Text
+                          style={[
+                            styles.relatedText,
+                            {color: themedColors.primary},
+                          ]}>
+                          {titleCaseHeadword(rel.headword_es)}
+                        </Text>
+                      </TouchableOpacity>
+                    ))}
+                  </View>
+                </View>
+              ) : null}
+
+              {navesSections.length > 0 ? (
+                <View
+                  style={[
+                    styles.articleSection,
+                    {borderTopColor: colors.border},
+                  ]}>
+                  <View style={styles.articleHeaderRow}>
+                    <Text
+                      style={[styles.articleLabel, {color: themedColors.text}]}>
+                      {dt.navesLabel}
+                    </Text>
+                  </View>
+                  <View style={styles.navesList}>
+                    {navesSections.map((section, i) => (
+                      <View
+                        key={i}
+                        style={[
+                          styles.navesCard,
+                          {
+                            backgroundColor: themedColors.background,
+                            borderColor: themedColors.border,
+                          },
+                        ]}>
+                        <Text
+                          style={[
+                            styles.navesHeading,
+                            {color: themedColors.text},
+                          ]}>
+                          {section.heading}
+                        </Text>
+                        <Text
+                          style={[
+                            styles.navesRefs,
+                            {color: themedColors.textSecondary},
+                          ]}>
+                          {linkifyMarkdownSegment(
+                            section.refs.join('; '),
+                            themedColors.primary,
+                            handleReferencePress,
+                            i,
+                          )}
+                        </Text>
+                      </View>
+                    ))}
+                  </View>
+                </View>
+              ) : null}
             </View>
           )}
         </ScrollView>
@@ -744,5 +880,40 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     textTransform: 'uppercase',
     letterSpacing: 0.3,
+  },
+  // Nave's Topical Bible cross-reference panel — mirrors viewsList/viewCard's
+  // card layout so it reads as the same visual family as the multi-view
+  // section, not a new pattern.
+  navesList: {
+    gap: spacing.sm,
+  },
+  navesCard: {
+    borderWidth: 1,
+    borderRadius: borderRadius.md,
+    padding: spacing.md,
+    gap: spacing.xs,
+  },
+  navesHeading: {
+    fontSize: fontSizes.sm,
+    fontWeight: '700',
+  },
+  navesRefs: {
+    fontSize: fontSizes.sm,
+    lineHeight: fontSizes.sm * 1.4,
+  },
+  // "Ver también" related-entry links.
+  relatedList: {
+    gap: spacing.xs,
+  },
+  relatedRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.xs,
+    paddingVertical: 2,
+  },
+  relatedText: {
+    fontSize: fontSizes.sm,
+    fontWeight: '600',
+    textDecorationLine: 'underline',
   },
 });

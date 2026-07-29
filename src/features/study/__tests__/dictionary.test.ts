@@ -1,9 +1,26 @@
 import {
   filterDictionaryEntries,
+  getRelatedSlugs,
   parseMarkdownSegments,
+  RELATED_DICTIONARY_SLUGS,
   titleCaseHeadword,
   type DictionaryListEntry,
 } from '../dictionary';
+
+// The real bundled entry sets (same "require the real asset" idiom as
+// dictionaryV1.test.ts / dictionaryV2.test.ts) — used only to confirm every
+// slug named in the related-entries map actually exists as a shipped entry,
+// so a typo can't silently render a link into the "entry not found" state.
+const V1_ENTRIES: {
+  slug: string;
+}[] = require('../../../../assets/dictionary-v1-es.json');
+const V2_ENTRIES: {
+  slug: string;
+}[] = require('../../../../assets/dictionary-v2-es.json');
+const ALL_SLUGS = new Set([
+  ...V1_ENTRIES.map(e => e.slug),
+  ...V2_ENTRIES.map(e => e.slug),
+]);
 
 describe('dictionary — pure helpers for the browse/search screen', () => {
   describe('titleCaseHeadword', () => {
@@ -152,6 +169,58 @@ describe('dictionary — pure helpers for the browse/search screen', () => {
       // The rejoined text differs only by the stripped "*"/"**" delimiters —
       // confirms no source content is silently dropped.
       expect(rejoined).toBe(original.replace(/\*\*|\*/g, ''));
+    });
+  });
+
+  describe('getRelatedSlugs ("Ver también")', () => {
+    it('returns the expected pairs for a few representative entries', () => {
+      expect(getRelatedSlugs('sabado')).toEqual(['jornada-sabado', 'creacion']);
+      expect(getRelatedSlugs('jornada-sabado')).toEqual(['sabado']);
+      expect(getRelatedSlugs('nazaret')).toEqual([
+        'belen',
+        'galilea',
+        'sinagoga',
+      ]);
+      expect(getRelatedSlugs('milenio')).toEqual(['reino-de-dios']);
+    });
+
+    it('returns an empty array for an entry with no related links', () => {
+      expect(getRelatedSlugs('sanedrin')).toEqual([]);
+      expect(getRelatedSlugs('tiro')).toEqual([]);
+    });
+
+    it('returns an empty array for an unknown slug rather than throwing', () => {
+      expect(getRelatedSlugs('does-not-exist')).toEqual([]);
+    });
+
+    it('is symmetric: every A→B link has a matching B→A link back', () => {
+      for (const [slug, related] of Object.entries(RELATED_DICTIONARY_SLUGS)) {
+        for (const other of related) {
+          expect(RELATED_DICTIONARY_SLUGS[other]).toBeDefined();
+          expect(RELATED_DICTIONARY_SLUGS[other]).toContain(slug);
+        }
+      }
+    });
+
+    it('never links an entry to itself', () => {
+      for (const [slug, related] of Object.entries(RELATED_DICTIONARY_SLUGS)) {
+        expect(related).not.toContain(slug);
+      }
+    });
+
+    it('every slug named in the map (key or value) is a real shipped entry', () => {
+      for (const [slug, related] of Object.entries(RELATED_DICTIONARY_SLUGS)) {
+        expect(ALL_SLUGS.has(slug)).toBe(true);
+        for (const other of related) {
+          expect(ALL_SLUGS.has(other)).toBe(true);
+        }
+      }
+    });
+
+    it('has no duplicate related slugs within one entry', () => {
+      for (const related of Object.values(RELATED_DICTIONARY_SLUGS)) {
+        expect(new Set(related).size).toBe(related.length);
+      }
     });
   });
 });
