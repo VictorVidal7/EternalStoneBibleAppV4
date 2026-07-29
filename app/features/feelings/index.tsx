@@ -132,17 +132,12 @@ export default function FeelingsBrowseScreen() {
                     numberOfLines={1}>
                     {name}
                   </AppText>
-                  {entry?.description ? (
-                    <AppText
-                      scaleRole="compact"
-                      style={[
-                        styles.feelingDesc,
-                        {color: colors.textSecondary},
-                      ]}
-                      numberOfLines={2}>
-                      {entry.description}
-                    </AppText>
-                  ) : null}
+                  <AppText
+                    scaleRole="compact"
+                    style={[styles.feelingDesc, {color: colors.textSecondary}]}
+                    numberOfLines={2}>
+                    {entry?.description ?? ''}
+                  </AppText>
                 </TouchableOpacity>
               );
             })}
@@ -226,8 +221,15 @@ const styles = StyleSheet.create({
     fontSize: fontSizes.md,
     fontWeight: '700',
   },
+  // minHeight reserves space for the full 2 lines `numberOfLines` allows —
+  // without it, a short description (eg. "guilty"'s ~26 chars, 1 line) only
+  // takes up half the box a long one (eg. "seeking"'s ~40 chars, 2 lines)
+  // does, so cards end up different heights even though feelingCard's width
+  // is already equal. Always rendering this AppText (never conditionally
+  // omitting it, see below) keeps that reserved space present on every card.
   feelingDesc: {
     fontSize: fontSizes.sm,
     lineHeight: fontSizes.sm * 1.4,
+    minHeight: fontSizes.sm * 1.4 * 2,
   },
 });
