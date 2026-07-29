@@ -3,6 +3,8 @@ import {
   getChristConnectionById,
   parseChristRef,
   formatChristRefLabel,
+  christLangForVersion,
+  bookLangForVersion,
 } from '../src/features/study/christConnections';
 import {getBookByName, getBookById} from '../src/constants/bible';
 import {translations} from '../src/i18n/translations';
@@ -172,6 +174,37 @@ describe('christConnections — "Christ in this passage" catalog', () => {
 
     it('falls back to the raw key on a bad ref', () => {
       expect(formatChristRefLabel('Nope/1/1', 'en')).toBe('Nope/1/1');
+    });
+  });
+
+  describe('christLangForVersion', () => {
+    it('follows a known version’s language', () => {
+      expect(christLangForVersion('RVR1960')).toBe('es');
+      expect(christLangForVersion('KJV')).toBe('en');
+      expect(christLangForVersion('WEB')).toBe('en');
+    });
+
+    it('defaults to English for an unknown/missing id (by design, for the Christ card)', () => {
+      expect(christLangForVersion('nope')).toBe('en');
+      expect(christLangForVersion(undefined)).toBe('en');
+      expect(christLangForVersion(null)).toBe('en');
+    });
+  });
+
+  describe('bookLangForVersion — word-study "Última aparición" i18n fix', () => {
+    it('follows a known version’s language regardless of UI language', () => {
+      expect(bookLangForVersion('RVR1960', 'en')).toBe('es');
+      expect(bookLangForVersion('KJV', 'es')).toBe('en');
+    });
+
+    it('falls back to the UI language — NOT a hard "en" — for an unknown/missing id', () => {
+      // This is the actual bug: an empty/stale version id used to silently
+      // resolve to English book names even on a Spanish-UI install.
+      expect(bookLangForVersion('', 'es')).toBe('es');
+      expect(bookLangForVersion(undefined, 'es')).toBe('es');
+      expect(bookLangForVersion('some-removed-version-id', 'es')).toBe('es');
+      // And still respects an English UI when that's genuinely the fallback.
+      expect(bookLangForVersion(undefined, 'en')).toBe('en');
     });
   });
 });

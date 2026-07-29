@@ -43,7 +43,7 @@ import {
   strongsLabel,
   type StrongsOccurrence,
 } from '@/features/study/originals';
-import {christLangForVersion} from '@/features/study/christConnections';
+import {bookLangForVersion} from '@/features/study/christConnections';
 import {
   buildBookBars,
   distinctBookCount,
@@ -78,8 +78,14 @@ export default function WordStudyScreen() {
   const strongs = (params.strongs ?? '').trim();
   const version = params.version;
   const seedGloss = params.gloss?.trim() || null;
-  // Verse references follow the reading version's language (RVR1960 → "Juan").
-  const bookLang = christLangForVersion(version);
+  // Verse references follow the reading version's language (RVR1960 → "Juan"),
+  // matching Home's book-name pattern. Falls back to the UI language (not a
+  // hard 'en') when `version` is missing/unrecognized, so a Spanish-first
+  // install never shows English book names by silent default — this is the
+  // root cause of the "Última aparición" field showing "Isaiah" instead of
+  // "Isaías": it wasn't that field alone, `bookLang` itself was 'en' for the
+  // whole screen whenever the version id didn't resolve.
+  const bookLang = bookLangForVersion(version, language);
 
   const headerGradient = (
     gradient?.headerColors
