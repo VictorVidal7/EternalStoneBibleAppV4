@@ -3,7 +3,7 @@
  * Shows all user achievements, progress and statistics
  */
 
-import React, {useState, useMemo, useCallback} from 'react';
+import React, {useState, useMemo, useCallback, useEffect, useRef} from 'react';
 import {
   View,
   Text,
@@ -19,6 +19,13 @@ import {SafeAreaView} from 'react-native-safe-area-context';
 import {useFocusEffect, router} from 'expo-router';
 import {Ionicons} from '@expo/vector-icons';
 import {LinearGradient} from 'expo-linear-gradient';
+import Animated, {
+  useSharedValue,
+  useAnimatedStyle,
+  withTiming,
+  withSpring,
+  withDelay,
+} from 'react-native-reanimated';
 import {
   AchievementCard,
   getAchievementRarity,
@@ -32,6 +39,7 @@ import {UserStatsPanel} from '../components/achievements/UserStatsPanel';
 import {AchievementUnlockedModal} from '../components/achievements/AchievementUnlockedModal';
 import {useAchievements} from '../hooks/useAchievements';
 import {useTheme} from '../hooks/useTheme';
+import {useReducedMotion} from '../hooks/useReducedMotion';
 import {centeredMaxWidth} from '../styles/responsive';
 import {useLanguage} from '../hooks/useLanguage';
 import {BibleDatabase} from '../lib/database';
@@ -45,6 +53,116 @@ import {
   shadows,
   staticColors,
 } from '../styles/designTokens';
+import {
+  DURATIONS,
+  EASING_CURVES,
+  SPRING_CONFIGS,
+} from '../styles/reanimatedAnimations';
+
+// ==================== STAGGERED GRID ENTRANCE ====================
+// "Make the app feel more alive" backlog: each achievement card fades +
+// scales in with a small per-index delay so the list reads as cascading in
+// rather than popping in all at once. Capped so a 30+ item list still
+// settles well under a second, and cards that mount later (scrolled into
+// view, past FlatList's initial render window) skip the delay entirely —
+// they're already entering via scroll, an extra artificial wait would just
+// read as lag. Manual shared-value timing (not the declarative `entering`
+// prop) to match this codebase's existing Reanimated convention — see
+// AchievementUnlockedModal, the only other hand-rolled entrance in this
+// feature. No rotation, no confetti/particles, no looping motion, per the
+// backlog's explicit avoid-list.
+const STAGGER_STEP_MS = 35;
+const STAGGER_MAX_INDEX = 12; // items at/after this index render with no delay
+
+interface AnimatedAchievementCardProps {
+  achievement: Achievement;
+  index: number;
+  reduced: boolean;
+  seenIdsRef: React.MutableRefObject<Set<string>>;
+  onPress: () => void;
+  onLongPress?: () => void;
+  shareHintA11y?: string;
+}
+
+// Module-scope (not defined inside AchievementsScreen's body): the screen
+// re-renders on every filter tap, "almost there" expand, modal open/close,
+// etc. A component TYPE recreated per render would remount this whole
+// subtree on each of those and replay the entrance animation — the thing
+// requirement 5 explicitly rules out.
+const AnimatedAchievementCard: React.FC<AnimatedAchievementCardProps> = ({
+  achievement,
+  index,
+  reduced,
+  seenIdsRef,
+  onPress,
+  onLongPress,
+  shareHintA11y,
+}) => {
+  // Decide ONCE per mounted instance whether this card should play the
+  // entrance animation. An id already in the set has animated in before —
+  // e.g. it scrolled out of FlatList's virtualization window and back in,
+  // creating a fresh instance — so it renders at rest immediately instead
+  // of replaying the cascade. Only READ the set during render (writing here
+  // would be unsafe if React ever discarded and retried this render pass);
+  // the corresponding write happens in the mount effect below.
+  const shouldAnimateRef = useRef<boolean | null>(null);
+  if (shouldAnimateRef.current === null) {
+    shouldAnimateRef.current = !seenIdsRef.current.has(achievement.id);
+  }
+  const shouldAnimate = shouldAnimateRef.current && !reduced;
+
+  const opacity = useSharedValue(shouldAnimate ? 0 : 1);
+  const scale = useSharedValue(shouldAnimate ? 0.95 : 1);
+
+  useEffect(() => {
+    // Mark this id as seen on mount (Set.add is idempotent, so re-running
+    // this effect when `reduced` changes later is harmless).
+    seenIdsRef.current.add(achievement.id);
+    if (!shouldAnimate) {
+      // Reduced motion (OS or in-app override) or an already-seen card:
+      // present at rest, no animated motion getting there.
+      opacity.value = 1;
+      scale.value = 1;
+      return;
+    }
+    const delay = index < STAGGER_MAX_INDEX ? index * STAGGER_STEP_MS : 0;
+    opacity.value = withDelay(
+      delay,
+      withTiming(1, {
+        duration: DURATIONS.normal,
+        easing: EASING_CURVES.emphasizedDecelerate,
+      }),
+    );
+    scale.value = withDelay(delay, withSpring(1, SPRING_CONFIGS.gentle));
+    // `reduced` starts false and can flip true shortly after mount, once
+    // useReducedMotion's async OS read resolves (see its own doc comment);
+    // re-run so a late "reduce motion" answer still snaps to rest instead
+    // of finishing a motion animation that should never have started.
+    // index/shouldAnimate are stable for the lifetime of this instance (this
+    // eslint config has no react-hooks/exhaustive-deps rule, so no
+    // suppression directive is needed here).
+  }, [reduced]);
+
+  const animatedStyle = useAnimatedStyle(() => ({
+    opacity: opacity.value,
+    transform: [{scale: scale.value}],
+  }));
+
+  return (
+    <Animated.View style={animatedStyle}>
+      <TouchableOpacity
+        onPress={onPress}
+        onLongPress={onLongPress}
+        accessibilityHint={shareHintA11y}>
+        <AchievementCard
+          achievement={achievement}
+          unlocked={achievement.isUnlocked}
+          progress={(achievement.currentProgress / achievement.requirement) * 100}
+        />
+      </TouchableOpacity>
+    </Animated.View>
+  );
+};
 
 interface AchievementsScreenProps {
   database: BibleDatabase;
@@ -57,6 +175,11 @@ export const AchievementsScreen: React.FC<AchievementsScreenProps> = ({
     useAchievements(database);
   const {colors, isDark, gradient} = useTheme();
   const {t} = useLanguage();
+  const reducedMotion = useReducedMotion();
+  // Tracks which achievement ids have already played their entrance so a
+  // FlatList remount (scrolled far out of the virtualization window and
+  // back) never replays the stagger — see AnimatedAchievementCard above.
+  const seenCardIdsRef = useRef<Set<string>>(new Set());
 
   // Re-read achievements and stats when the tab regains focus so reading
   // progress made elsewhere is reflected without an app restart.
@@ -489,25 +612,24 @@ export const AchievementsScreen: React.FC<AchievementsScreenProps> = ({
                 ) : null}
               </>
             }
-            renderItem={({item}) => (
-              <TouchableOpacity
+            renderItem={({item, index}) => (
+              <AnimatedAchievementCard
+                achievement={item}
+                index={index}
+                reduced={reducedMotion}
+                seenIdsRef={seenCardIdsRef}
                 onPress={() => setSelectedAchievement(item)}
                 onLongPress={
                   item.isUnlocked
                     ? () => handleShareAchievement(item)
                     : undefined
                 }
-                accessibilityHint={
+                shareHintA11y={
                   item.isUnlocked
                     ? t.achievements.shareLongPressA11y
                     : undefined
-                }>
-                <AchievementCard
-                  achievement={item}
-                  unlocked={item.isUnlocked}
-                  progress={(item.currentProgress / item.requirement) * 100}
-                />
-              </TouchableOpacity>
+                }
+              />
             )}
             contentContainerStyle={[styles.list, centeredMaxWidth()]}
             showsVerticalScrollIndicator={false}
