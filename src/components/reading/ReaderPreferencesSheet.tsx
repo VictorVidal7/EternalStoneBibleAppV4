@@ -143,14 +143,15 @@ export const ReaderPreferencesSheet: React.FC<ReaderPreferencesSheetProps> = ({
   );
 
   // Right-edge anti-clip reserve — same fontSize-derived gutter as the real
-  // reader screen (app/(tabs)/verse/[book]/[chapter].tsx, Sprint 81-110: a
-  // tight line can paint a couple px wider than its measured wrap on some
-  // Android OEMs and the canvas clips the last glyph). This preview card had
-  // none of that protection, so it's ported here verbatim: a margin for
-  // justified text (padding disables Android's native justification) and
-  // padding for left-aligned text (extends the clip rect so an overhanging
-  // glyph paints inside the bounds, per Sprint 110's root-cause fix).
-  const previewIsJustified = preferences.textAlign === 'justify';
+  // reader screen (app/(tabs)/verse/[book]/[chapter].tsx). A tight line can
+  // paint a couple px wider than its measured wrap on some Android OEMs and
+  // the canvas clips the last glyph; padding (not margin) is what actually
+  // protects against it, since padding extends Android's own glyph clip
+  // rect while a plain margin only narrows the box. Unconditional for both
+  // alignments as of Sprint 112 (2026-07-28): the earlier margin-for-
+  // justified split here was ported from chapter.tsx's OWN pre-fix
+  // pattern, which turned out to never fully prevent the clip either — see
+  // that file's `rightSlack` history for the full saga.
   const previewRightSlack = Math.max(
     24,
     Math.round(preferences.fontSize * 0.7),
@@ -162,8 +163,7 @@ export const ReaderPreferencesSheet: React.FC<ReaderPreferencesSheetProps> = ({
     lineHeight: preferences.fontSize * preferences.lineHeightMultiplier,
     textAlign: preferences.textAlign,
     fontFamily: previewFontFamily,
-    marginRight: previewIsJustified ? previewRightSlack : 0,
-    paddingRight: previewIsJustified ? 0 : previewRightSlack,
+    paddingRight: previewRightSlack,
   } as const;
 
   const themeLabels: Record<ReaderTheme, string> = {
@@ -311,15 +311,15 @@ export const ReaderPreferencesSheet: React.FC<ReaderPreferencesSheetProps> = ({
             <Text
               testID="reader-prefs-preview-text"
               style={previewTextStyle}
-              // Matches the real reader's textBreakStrategy per alignment
-              // (chapter.tsx) for behavioral parity between preview and
-              // reader. NOT a fix for right-edge clipping on justified text —
-              // 2026-07-28 device testing showed justified text can clip its
-              // last glyph regardless of break strategy, font, or gutter
-              // width (justify stretches to fill the content-box edge, so
-              // the last glyph has no room by construction). See the master
-              // backlog for the full writeup.
-              textBreakStrategy={previewIsJustified ? 'highQuality' : 'simple'}>
+              // Matches the real reader's textBreakStrategy (chapter.tsx) for
+              // behavioral parity between preview and reader — 'simple' for
+              // BOTH alignments since Sprint 112. `textAlign: 'justify'` was
+              // pixel-scanned on-device and found NOT to actually stretch
+              // lines flush on this Android/RN build, so 'highQuality'
+              // (needed for real inter-word justification) bought nothing
+              // visually while its denser packing was the actual source of
+              // clip risk.
+              textBreakStrategy="simple">
               <Text
                 style={[
                   styles.previewNumber,
