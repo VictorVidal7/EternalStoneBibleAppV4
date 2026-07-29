@@ -791,6 +791,7 @@ export default function HomeScreen() {
                   iconColor="#fbbf24"
                   iconSize={18}
                   pulse={userStats.streak > 0}
+                  countUp
                 />
 
                 <View style={styles.statDivider} />
@@ -801,6 +802,7 @@ export default function HomeScreen() {
                   label={t.home.level}
                   iconColor="#fbbf24"
                   iconSize={18}
+                  countUp
                 />
 
                 <View style={styles.statDivider} />
