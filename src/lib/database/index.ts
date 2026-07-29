@@ -141,9 +141,12 @@ const DICT_V1_UPDATED_AT = '2026-07-18';
  * (Expiación, Sábado, Creación, Tabernáculo); v2 = batch 2, same day (+
  * Reino de Dios, Predestinación, Espíritu Santo, Salvación); v3 = batch 3
  * (Bautismo, Milenio — `treatment: 'multi-view'`, `article_es: null`,
- * content in `dictionary_multiview_sections`).
+ * content in `dictionary_multiview_sections`); v4 = batch 4 (Comunión —
+ * also `treatment: 'multi-view'`, entirely freshly-authored, not
+ * ISBE-derived; 6 sections: Conmemorativa, Reformada, Luterana, Católica
+ * romana, Ortodoxa, Diferencias de práctica).
  */
-const DICT_V2_VERSION = 3;
+const DICT_V2_VERSION = 4;
 
 /**
  * Version of the bundled WEB reading-version text (see seedWebTextIfNeeded).
@@ -791,12 +794,13 @@ class BibleDatabase {
    *
    * Batch 3 (Bautismo, Milenio) added `treatment: 'multi-view'` rows: their
    * `articleEs` is `null` and their premium content instead ships as a
-   * `sections` array, inserted into `dictionary_multiview_sections`. That
-   * table has no `source_tier` column (only v2-doctrinal entries use
-   * multi-view today) so its DELETE below is unconditional — safe only
-   * because this function is that table's sole writer; if a future tier
-   * ever writes multi-view rows too, scope this the same way the
-   * `dictionary_entries` DELETE already is.
+   * `sections` array, inserted into `dictionary_multiview_sections`. Batch 4
+   * (Comunión) added a 3rd multi-view entry the same way — freshly-authored,
+   * not ISBE-derived, same shape. That table has no `source_tier` column
+   * (only v2-doctrinal entries use multi-view today) so its DELETE below is
+   * unconditional — safe only because this function is that table's sole
+   * writer; if a future tier ever writes multi-view rows too, scope this the
+   * same way the `dictionary_entries` DELETE already is.
    */
   private async seedDictionaryV2IfNeeded(): Promise<void> {
     const db = this.getDb();
