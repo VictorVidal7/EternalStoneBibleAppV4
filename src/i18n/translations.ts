@@ -973,6 +973,16 @@ export const translations = {
       exportFormatDiscussionDesc:
         'El pasaje y preguntas de observación, interpretación y aplicación para un grupo pequeño.',
       exportFormatCloseLabel: 'Cerrar',
+      // Tanda "sugeridor por tema" — 100% offline/determinista (sin IA, sin
+      // backend): solo empareja palabras clave contra la taxonomía de temas
+      // YA curada (BIBLE_THEMES) y devuelve pasajes que la app ya asocia con
+      // ese tema. Premium, y solo visible cuando aún no hay un pasaje
+      // elegido — el estado libre (con pasaje) no cambia en nada.
+      topicSuggestLabel: 'Busca por tema',
+      topicSuggestPlaceholder:
+        '¿Sobre qué quieres predicar? Ej.: gracia, perdón, miedo',
+      topicSuggestNoResults:
+        'No encontramos pasajes para ese tema. Prueba con otra palabra.',
       sections: {
         context: {
           label: 'Contexto',
@@ -6840,6 +6850,16 @@ export const translations = {
       exportFormatDiscussionDesc:
         'The passage and observation/interpretation/application questions for a small group.',
       exportFormatCloseLabel: 'Close',
+      // Topic-suggester tanda — 100% offline/deterministic (no AI, no
+      // backend): plain keyword matching against the ALREADY-curated theme
+      // taxonomy (BIBLE_THEMES), returning passages the app already
+      // associates with that theme. Premium, and only shown before a
+      // passage is picked — the free (with-passage) experience is unchanged.
+      topicSuggestLabel: 'Search by topic',
+      topicSuggestPlaceholder:
+        'What do you want to preach about? E.g.: grace, forgiveness, fear',
+      topicSuggestNoResults:
+        'We couldn’t find passages for that topic. Try another word.',
       sections: {
         context: {
           label: 'Context',
