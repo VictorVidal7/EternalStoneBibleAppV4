@@ -903,7 +903,8 @@ export default function HomeScreen() {
               : undefined;
             let christPointsTo: string | undefined;
             let christNav:
-              {book: string; chapter: number; verse: number} | undefined;
+              | {book: string; chapter: number; verse: number}
+              | undefined;
             if (christConn?.fulfillment) {
               const fp = parseChristRef(christConn.fulfillment);
               const fbook = fp ? getBookByName(fp.book) : undefined;
