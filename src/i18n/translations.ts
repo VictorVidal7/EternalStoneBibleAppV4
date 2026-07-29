@@ -2865,6 +2865,11 @@ export const translations = {
       },
     },
 
+    exploreAll: {
+      title: 'Explorar todo',
+      subtitle: 'Todo lo que puedes descubrir',
+    },
+
     journeys: {
       title: 'Rutas bíblicas',
       subtitle: 'Las grandes rutas de la Escritura',
@@ -8706,6 +8711,11 @@ export const translations = {
           passage: '1 Corinthians 15:3-8; John 20:28',
         },
       },
+    },
+
+    exploreAll: {
+      title: 'Explore all',
+      subtitle: 'Everything there is to discover',
     },
 
     journeys: {
