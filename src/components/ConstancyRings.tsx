@@ -49,8 +49,8 @@ import {
   type HabitKey,
   type RingState,
 } from '@lib/home/constancyRings';
-import {DURATIONS} from '@/styles/reanimatedAnimations';
 import {
+  animation,
   borderRadius,
   fontSize as fontSizes,
   spacing,
@@ -62,7 +62,7 @@ import {
 const AnimatedCircle = Animated.createAnimatedComponent(Circle);
 
 /** Ring-closing tween duration — a deliberate ease, not an instant snap. */
-const RING_CLOSE_DURATION_MS = DURATIONS.smooth;
+const RING_CLOSE_DURATION_MS = animation.duration.slow;
 
 /** Ionicon per habit for the legend (the rings themselves are color-coded). */
 export const HABIT_ICONS: Record<HabitKey, keyof typeof Ionicons.glyphMap> = {
