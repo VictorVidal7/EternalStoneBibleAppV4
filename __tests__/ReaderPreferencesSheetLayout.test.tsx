@@ -108,6 +108,10 @@ describe('ReaderPreferencesSheet — layout fixes (Tanda J)', () => {
       // rightSlack = max(24, round(16 * 0.7)) = 24.
       expect(flat.paddingRight).toBe(24);
       expect(flat.marginRight).toBeUndefined();
+      // Sprint 112 regression guard: 'simple' unconditionally (RN's Android
+      // default is 'highQuality' — see justifyClipRegressionGuard.test.ts).
+      expect(preview.props.textBreakStrategy).toBe('simple');
+      expect(flat.marginLeft).toBeUndefined();
     });
 
     it('keeps the paddingRight gutter when justified too (Sprint 112: margin never fully prevented the clip)', () => {
@@ -118,6 +122,12 @@ describe('ReaderPreferencesSheet — layout fixes (Tanda J)', () => {
       const flat = flattenStyle(preview.props.style);
       expect(flat.paddingRight).toBe(24);
       expect(flat.marginRight).toBeUndefined();
+      // The dangerous pre-fix pattern gave justified text a DIFFERENT
+      // (non-zero) marginRight/marginLeft and/or 'highQuality' break
+      // strategy than left-align — this pins that justified text is
+      // treated IDENTICALLY to left-align on all 4 properties.
+      expect(preview.props.textBreakStrategy).toBe('simple');
+      expect(flat.marginLeft).toBeUndefined();
     });
 
     it('applies the fontSize-derived formula, whose 24px floor wins across the whole reader size range', () => {

@@ -321,6 +321,79 @@ describe('DictionaryDetailScreen — multi-view branch (Bautismo, Milenio)', () 
     expect(flat.textAlign).toBe('justify');
   });
 
+  // Sprint 112 regression guard ("nunca jamás" — the reader's right-edge
+  // clip saga, closed 2026-07-28, live on main): this screen was the one
+  // outlier still giving justified text a MARGIN-based gutter and/or
+  // 'highQuality' textBreakStrategy instead of the unconditional
+  // paddingRight + 'simple' every other reading surface uses. Covers all 3
+  // prose surfaces that share `proseStyle` — gloss, article, and a
+  // multi-view section body — in one render, under 'justify' (the alignment
+  // the old, disproven pattern singled out).
+  it('Sprint 112 guard: gloss/article/multi-view prose text never conditions margin or textBreakStrategy on justify', async () => {
+    mockReaderPrefs = {
+      fontFamily: 'sans',
+      fontSize: 16,
+      lineHeightMultiplier: 1.6,
+      textAlign: 'justify',
+      margin: 'medium',
+      theme: 'system',
+    };
+    mockIsPremium = true;
+    mockGetDictionaryEntry.mockResolvedValue({
+      ...BAUTISMO_ENTRY,
+      article_es: 'Artículo completo sobre el bautismo.',
+    });
+    mockGetDictionaryMultiviewSections.mockResolvedValue(BAUTISMO_SECTIONS);
+
+    const {findByText} = render(<DictionaryDetailScreen />);
+
+    const glossNode = await findByText(
+      'El bautismo es el rito de iniciación cristiana.',
+    );
+    const articleNode = await findByText(
+      'Artículo completo sobre el bautismo.',
+    );
+    const sectionNode = await findByText('Texto bautista.');
+
+    for (const [label, node] of [
+      ['gloss', glossNode],
+      ['article', articleNode],
+      ['multi-view section', sectionNode],
+    ] as const) {
+      const flat = StyleSheet.flatten(node.props.style) as {
+        marginLeft?: number;
+        marginRight?: number;
+        paddingRight?: number;
+        textAlign?: string;
+      };
+      expect({label, textAlign: flat.textAlign}).toEqual({
+        label,
+        textAlign: 'justify',
+      });
+      // The old, disproven pattern gave justified text a non-zero
+      // marginRight (and sometimes marginLeft) instead of padding — both
+      // must stay absent, exactly like left-align.
+      expect({label, marginLeft: flat.marginLeft}).toEqual({
+        label,
+        marginLeft: undefined,
+      });
+      expect({label, marginRight: flat.marginRight}).toEqual({
+        label,
+        marginRight: undefined,
+      });
+      expect({label, hasPaddingRight: (flat.paddingRight ?? 0) > 0}).toEqual({
+        label,
+        hasPaddingRight: true,
+      });
+      // RN's Android default is 'highQuality' (denser packing, the actual
+      // source of the clip) — must always be the explicit 'simple' literal.
+      expect({label, textBreakStrategy: node.props.textBreakStrategy}).toEqual({
+        label,
+        textBreakStrategy: 'simple',
+      });
+    }
+  });
+
   it('the free/premium lock badge icon reads colors.onPrimary, not a hardcoded white', async () => {
     mockIsPremium = false;
     mockGetDictionaryEntry.mockResolvedValue(BAUTISMO_ENTRY);
