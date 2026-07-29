@@ -159,6 +159,29 @@ function constancyHabitRoute(key: HabitKey): string {
   }
 }
 
+// The hero card's contextual nudge ("sigue tu racha" / "continúa en {{book}}"
+// / "tu versículo de hoy te espera") used to be purely decorative — tapping
+// it did nothing, despite every copy variant implying an action. This is the
+// pure routing decision behind the fix: a 'streak' or 'continue' nudge is
+// fundamentally "keep reading", so both route to the same place the Continue
+// Reading card below does; with no lastRead (or the 'daily' nudge) it falls
+// back to today's verse, mirroring the Verse of the Day card's own onPress.
+// Kept pure + exported so the mapping is unit-testable without rendering the
+// whole screen (Home carries ~14 context hooks).
+export function heroNudgeRoute(
+  nudgeKind: 'streak' | 'continue' | 'daily',
+  lastRead: {book: string; chapter: number} | null,
+  dailyVerse: {book: string; chapter: number; verse: number} | null,
+): string | null {
+  if ((nudgeKind === 'streak' || nudgeKind === 'continue') && lastRead) {
+    return `/verse/${lastRead.book}/${lastRead.chapter}`;
+  }
+  if (dailyVerse) {
+    return `/verse/${dailyVerse.book}/${dailyVerse.chapter}?verse=${dailyVerse.verse}`;
+  }
+  return null;
+}
+
 export default function HomeScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
@@ -753,70 +776,93 @@ export default function HomeScreen() {
             opacity: fadeAnim,
             transform: [{translateY: slideAnim}, {scale: scaleAnim}],
           }}>
-          <LinearGradient
-            colors={
-              (gradient?.headerColors && gradient.headerColors.length >= 2
-                ? [...gradient.headerColors]
-                : [colors.primary, colors.primaryDark]) as [
-                string,
-                string,
-                ...string[],
-              ]
-            }
-            start={{x: 0, y: 0}}
-            end={{x: 1, y: 1}}
-            style={[
-              styles.heroCard,
-              styles.heroCardShadow,
-              {shadowColor: colors.primary},
-            ]}>
-            <View style={styles.heroContent}>
-              {/* Compact header with icon */}
-              <View style={styles.heroHeader}>
-                <Ionicons name="book" size={28} color="#ffffff" />
-                <View style={styles.heroTextContainer}>
-                  <Text style={styles.heroTitle}>{heroGreeting}</Text>
-                  <Text style={styles.heroSubtitle} numberOfLines={2}>
-                    {heroSubtitle}
-                  </Text>
+          <PressableScale
+            pressedOpacity={0.94}
+            accessibilityRole="button"
+            accessible={true}
+            accessibilityLabel={heroSubtitle}
+            accessibilityHint={t.home.a11y.startReadingHint}
+            onPress={() => {
+              const route = heroNudgeRoute(
+                nudge.kind,
+                lastRead,
+                dailyVerse
+                  ? {
+                      book: dailyVerse.book,
+                      chapter: dailyVerse.chapter,
+                      verse: dailyVerse.verse,
+                    }
+                  : null,
+              );
+              if (route) {
+                handlePress(() => router.push(route as never));
+              }
+            }}>
+            <LinearGradient
+              colors={
+                (gradient?.headerColors && gradient.headerColors.length >= 2
+                  ? [...gradient.headerColors]
+                  : [colors.primary, colors.primaryDark]) as [
+                  string,
+                  string,
+                  ...string[],
+                ]
+              }
+              start={{x: 0, y: 0}}
+              end={{x: 1, y: 1}}
+              style={[
+                styles.heroCard,
+                styles.heroCardShadow,
+                {shadowColor: colors.primary},
+              ]}>
+              <View style={styles.heroContent}>
+                {/* Compact header with icon */}
+                <View style={styles.heroHeader}>
+                  <Ionicons name="book" size={28} color="#ffffff" />
+                  <View style={styles.heroTextContainer}>
+                    <Text style={styles.heroTitle}>{heroGreeting}</Text>
+                    <Text style={styles.heroSubtitle} numberOfLines={2}>
+                      {heroSubtitle}
+                    </Text>
+                  </View>
+                </View>
+
+                {/* Stats Row - Compact */}
+                <View style={styles.statsRow}>
+                  <StatsCard
+                    icon="flame"
+                    value={userStats.streak}
+                    label={t.home.streakDays}
+                    iconColor="#fbbf24"
+                    iconSize={18}
+                    pulse={userStats.streak > 0}
+                    countUp
+                  />
+
+                  <View style={styles.statDivider} />
+
+                  <StatsCard
+                    icon="diamond-outline"
+                    value={userStats.level}
+                    label={t.home.level}
+                    iconColor="#fbbf24"
+                    iconSize={18}
+                    countUp
+                  />
+
+                  <View style={styles.statDivider} />
+
+                  <StatsCard
+                    icon="trending-up"
+                    value={`${Math.round(userStats.progress)}%`}
+                    label={t.home.progress}
+                    iconColor="#fbbf24"
+                    iconSize={18}
+                  />
                 </View>
               </View>
-
-              {/* Stats Row - Compact */}
-              <View style={styles.statsRow}>
-                <StatsCard
-                  icon="flame"
-                  value={userStats.streak}
-                  label={t.home.streakDays}
-                  iconColor="#fbbf24"
-                  iconSize={18}
-                  pulse={userStats.streak > 0}
-                  countUp
-                />
-
-                <View style={styles.statDivider} />
-
-                <StatsCard
-                  icon="diamond-outline"
-                  value={userStats.level}
-                  label={t.home.level}
-                  iconColor="#fbbf24"
-                  iconSize={18}
-                  countUp
-                />
-
-                <View style={styles.statDivider} />
-
-                <StatsCard
-                  icon="trending-up"
-                  value={`${Math.round(userStats.progress)}%`}
-                  label={t.home.progress}
-                  iconColor="#fbbf24"
-                  iconSize={18}
-                />
-              </View>
-            </View>
-          </LinearGradient>
+            </LinearGradient>
+          </PressableScale>
         </Animated.View>
 
         {/* ==================== VERSE OF THE DAY ==================== */}
@@ -857,8 +903,7 @@ export default function HomeScreen() {
               : undefined;
             let christPointsTo: string | undefined;
             let christNav:
-              | {book: string; chapter: number; verse: number}
-              | undefined;
+              {book: string; chapter: number; verse: number} | undefined;
             if (christConn?.fulfillment) {
               const fp = parseChristRef(christConn.fulfillment);
               const fbook = fp ? getBookByName(fp.book) : undefined;
@@ -1019,91 +1064,10 @@ export default function HomeScreen() {
             );
           })()}
 
-        {/* ==================== HOW ARE YOU FEELING (Sprint 79) ==================== */}
-        <Animated.View
-          style={{opacity: fadeAnim, marginTop: celestialSpacing.cardGap}}>
-          <FeelingChips
-            onOpenFeeling={feelingId =>
-              handlePress(() =>
-                router.push(`/features/feelings/${feelingId}` as never),
-              )
-            }
-            onOpenAll={() =>
-              handlePress(() => router.push('/features/feelings' as never))
-            }
-          />
-          {/* A verse for TODAY's check-in (Sprint 81) — renders nothing
-              until the reader names a feeling today. */}
-          <MoodVerseCard
-            onOpenVerse={(book, chapter, verse) =>
-              handlePress(() =>
-                // `verse` is the reader's highlight-and-scroll param (it
-                // renames it to highlightVerse internally).
-                router.push(
-                  `/verse/${book}/${chapter}?verse=${verse}` as never,
-                ),
-              )
-            }
-          />
-          {/* 🕯️ Devotion streak (Sprint 84; T26 — shown to brand-new readers
-              too, with an invitation instead of a streak, so devotion is
-              discoverable from Home even before the first one). Tapping it
-              opens the guided devotion to continue today. */}
-          <DevotionStreakCard
-            onPress={() =>
-              handlePress(() => router.push('/features/guided' as never))
-            }
-          />
-
-          {/* 🙏 Prayer (Sprint 93) — renders nothing until the reader has kept
-              a request in the journal OR completed a guided prayer. Shows the
-              prayer streak + what's before God now; taps open the journal. */}
-          <PrayerCard
-            onPress={() =>
-              handlePress(() => router.push('/features/prayer' as never))
-            }
-          />
-        </Animated.View>
-
-        {/* ==================== TU CONSTANCIA HOY (rings, Sprint 85) ========== */}
-        {/* Apple-Watch-style rings composing today's reading, memorization,
-            devotion and emotional check-in. Renders nothing until the reader
-            has any footprint in any habit. Tapping the header/graphic opens
-            Mi lectura (insights); each legend row (T26) opens that habit's
-            own screen instead, so the rings double as a discoverable nav
-            hub for readers who didn't know where reading/memory/devotion/
-            mood live. The card owns its own top gap so it collapses cleanly
-            when it renders null — an opacity-only wrapper here leaves no
-            phantom space on an empty Home (e.g. a fresh install with no
-            habit footprint yet). */}
-        <Animated.View style={{opacity: fadeAnim}}>
-          <ConstancyRingsCard
-            onPress={() =>
-              handlePress(() =>
-                router.push('/features/reading-insights' as never),
-              )
-            }
-            onHabitPress={(key: HabitKey) =>
-              handlePress(() => router.push(constancyHabitRoute(key) as never))
-            }
-          />
-        </Animated.View>
-
-        {/* ==================== PRÓXIMO HITO (Sprint 92) ===================== */}
-        {/* The single achievement the reader is closest to unlocking, bridging
-            Home to the Trophy tab. Renders nothing until they are measurably
-            walking toward one. Tapping opens the Achievements tab. The card
-            owns its own top gap (opacity-only wrapper) so it leaves no phantom
-            space when it renders null. */}
-        <Animated.View style={{opacity: fadeAnim}}>
-          <NextMilestoneCard
-            onPress={() =>
-              handlePress(() => router.push('/(tabs)/achievements' as never))
-            }
-          />
-        </Animated.View>
-
         {/* ==================== CONTINUE READING (Compact) ==================== */}
+        {/* Moved up (Home-reorg): resuming where you left off is more
+            actionable than the emotional check-in / constancy cards below,
+            so it now sits right after the daily verse. */}
         {lastRead && (
           <Animated.View
             style={{opacity: fadeAnim, marginTop: celestialSpacing.cardGap}}>
@@ -1326,11 +1290,103 @@ export default function HomeScreen() {
           </Animated.View>
         )}
 
+        {/* ==================== HOW ARE YOU FEELING (Sprint 79) ==================== */}
+        <Animated.View
+          style={{opacity: fadeAnim, marginTop: celestialSpacing.cardGap}}>
+          <FeelingChips
+            onOpenFeeling={feelingId =>
+              handlePress(() =>
+                router.push(`/features/feelings/${feelingId}` as never),
+              )
+            }
+            onOpenAll={() =>
+              handlePress(() => router.push('/features/feelings' as never))
+            }
+          />
+          {/* A verse for TODAY's check-in (Sprint 81) — renders nothing
+              until the reader names a feeling today. */}
+          <MoodVerseCard
+            onOpenVerse={(book, chapter, verse) =>
+              handlePress(() =>
+                // `verse` is the reader's highlight-and-scroll param (it
+                // renames it to highlightVerse internally).
+                router.push(
+                  `/verse/${book}/${chapter}?verse=${verse}` as never,
+                ),
+              )
+            }
+          />
+          {/* 🕯️ Devotion streak (Sprint 84; T26 — shown to brand-new readers
+              too, with an invitation instead of a streak, so devotion is
+              discoverable from Home even before the first one). Tapping it
+              opens the guided devotion to continue today. */}
+          <DevotionStreakCard
+            onPress={() =>
+              handlePress(() => router.push('/features/guided' as never))
+            }
+          />
+
+          {/* 🙏 Prayer (Sprint 93) — renders nothing until the reader has kept
+              a request in the journal OR completed a guided prayer. Shows the
+              prayer streak + what's before God now; taps open the journal. */}
+          <PrayerCard
+            onPress={() =>
+              handlePress(() => router.push('/features/prayer' as never))
+            }
+          />
+        </Animated.View>
+
+        {/* ==================== TU CONSTANCIA HOY (rings, Sprint 85) ========== */}
+        {/* Apple-Watch-style rings composing today's reading, memorization,
+            devotion and emotional check-in. Renders nothing until the reader
+            has any footprint in any habit. Tapping the header/graphic opens
+            Mi lectura (insights); each legend row (T26) opens that habit's
+            own screen instead, so the rings double as a discoverable nav
+            hub for readers who didn't know where reading/memory/devotion/
+            mood live. The card owns its own top gap so it collapses cleanly
+            when it renders null — an opacity-only wrapper here leaves no
+            phantom space on an empty Home (e.g. a fresh install with no
+            habit footprint yet). */}
+        <Animated.View style={{opacity: fadeAnim}}>
+          <ConstancyRingsCard
+            onPress={() =>
+              handlePress(() =>
+                router.push('/features/reading-insights' as never),
+              )
+            }
+            onHabitPress={(key: HabitKey) =>
+              handlePress(() => router.push(constancyHabitRoute(key) as never))
+            }
+          />
+        </Animated.View>
+
+        {/* ==================== JOURNEY (Tu camino) ==================== */}
+        {/* "Tu progreso" dissolved (Home-reorg): its Reading Insights tile was
+            a confirmed duplicate destination (ConstancyRingsCard's own
+            onPress already opens /features/reading-insights), and Journey is
+            progress-tracking rather than discovery-browsing, so it doesn't
+            belong in the now-6-tile-capped Explorar grid either. It stands
+            alone here as a single full-width tile, same visual treatment as
+            the Explorar tiles — positioned right after the rings card since
+            both are progress-tracking surfaces. */}
+        <Animated.View
+          style={{opacity: fadeAnim, marginTop: celestialSpacing.cardGap}}>
+          <DiscoverTile
+            icon="footsteps"
+            title={t.journey.cardTitle}
+            subtitle={t.journey.cardSubtitle}
+            onPress={() =>
+              handlePress(() => router.push('/features/journey' as never))
+            }
+          />
+        </Animated.View>
+
         {/* ==================== EXPLORAR (discover grid) ==================== */}
-        {/* Leads Home's titled sections (ahead of Tu progreso) per the
-            user's 2026-06-30 Home-reorder call: discovery content (Luz
-            diaria / Temas / Profecías) is consulted more often by the
-            average user than the personal-progress tiles below. */}
+        {/* Trimmed to 6 curated tiles (Home-reorg): Luz diaria / Temas /
+            Profecías / Sabías qué / Quiz / Diccionario are consulted often
+            enough to earn a Home slot; the rest of the discovery catalogue
+            (Journeys, Kids, Sermon Notes, Theology, Share Faith) moved to the
+            standalone "ver todo" browse-all screen, linked from the header. */}
         <Animated.View
           style={{opacity: fadeAnim, marginTop: celestialSpacing.sectionGap}}>
           <View style={styles.sectionHeader}>
@@ -1341,11 +1397,27 @@ export default function HomeScreen() {
               ]}>
               {t.home.exploreTitle}
             </Text>
-            <Ionicons
-              name="compass"
-              size={26}
-              color={celestialTheme.colors.accent}
-            />
+            <View style={styles.sectionHeaderActions}>
+              <PressableScale
+                pressedOpacity={0.7}
+                accessibilityRole="button"
+                accessible={true}
+                accessibilityLabel={t.home.exploreSeeAll}
+                onPress={() =>
+                  handlePress(() =>
+                    router.push('/features/explore-all' as never),
+                  )
+                }>
+                <Text style={[styles.seeAllText, {color: colors.primary}]}>
+                  {t.home.exploreSeeAll}
+                </Text>
+              </PressableScale>
+              <Ionicons
+                name="compass"
+                size={26}
+                color={celestialTheme.colors.accent}
+              />
+            </View>
           </View>
 
           <View style={styles.savedGrid}>
@@ -1403,26 +1475,6 @@ export default function HomeScreen() {
             </View>
             <View style={styles.savedCardWrapper}>
               <DiscoverTile
-                icon="map"
-                title={t.journeys.title}
-                subtitle={t.journeys.subtitle}
-                onPress={() =>
-                  handlePress(() => router.push('/features/journeys' as never))
-                }
-              />
-            </View>
-            <View style={styles.savedCardWrapper}>
-              <DiscoverTile
-                icon="happy"
-                title={t.kids.cardTitle}
-                subtitle={t.kids.cardSubtitle}
-                onPress={() =>
-                  handlePress(() => router.push('/features/kids' as never))
-                }
-              />
-            </View>
-            <View style={styles.savedCardWrapper}>
-              <DiscoverTile
                 icon="help-circle"
                 title={t.quiz.cardTitle}
                 subtitle={t.quiz.cardSubtitle}
@@ -1443,90 +1495,35 @@ export default function HomeScreen() {
                 }
               />
             </View>
-            <View style={styles.savedCardWrapper}>
-              <DiscoverTile
-                icon="create"
-                title={t.sermonNotes.cardTitle}
-                subtitle={t.sermonNotes.cardSubtitle}
-                onPress={() =>
-                  handlePress(() =>
-                    router.push('/features/sermon-notes' as never),
-                  )
-                }
-              />
-            </View>
-            <View style={styles.savedCardWrapper}>
-              <DiscoverTile
-                icon="school"
-                title={t.theology.cardTitle}
-                subtitle={t.theology.cardSubtitle}
-                onPress={() =>
-                  handlePress(() => router.push('/features/theology' as never))
-                }
-              />
-            </View>
-            <View style={styles.savedCardWrapper}>
-              <DiscoverTile
-                icon="heart"
-                title={t.shareFaith.cardTitle}
-                subtitle={t.shareFaith.cardSubtitle}
-                onPress={() =>
-                  handlePress(() =>
-                    router.push('/features/share-faith' as never),
-                  )
-                }
-              />
-            </View>
           </View>
         </Animated.View>
 
-        {/* ==================== TU PROGRESO ==================== */}
-        {/* Your-progress surfaces (journey + activity/constancy), their own
-            section below Explorar. */}
-        <Animated.View
-          style={{opacity: fadeAnim, marginTop: celestialSpacing.sectionGap}}>
-          <View style={styles.sectionHeader}>
-            <Text
-              style={[
-                styles.sectionTitle,
-                {color: celestialTheme.colors.text},
-              ]}>
-              {t.home.progressTitle}
-            </Text>
-            <Ionicons
-              name="trending-up"
-              size={26}
-              color={celestialTheme.colors.accent}
-            />
-          </View>
-
-          <View style={styles.savedGrid}>
-            <View style={styles.savedCardWrapper}>
-              <DiscoverTile
-                icon="footsteps"
-                title={t.journey.cardTitle}
-                subtitle={t.journey.cardSubtitle}
-                onPress={() =>
-                  handlePress(() => router.push('/features/journey' as never))
-                }
-              />
-            </View>
-            <View style={styles.savedCardWrapper}>
-              <DiscoverTile
-                icon="stats-chart"
-                title={t.readingInsights.cardTitle}
-                subtitle={t.readingInsights.cardSubtitle}
-                onPress={() =>
-                  handlePress(() =>
-                    router.push('/features/reading-insights' as never),
-                  )
-                }
-              />
-            </View>
-          </View>
+        {/* ==================== PRÓXIMO HITO (Sprint 92) ===================== */}
+        {/* Demoted from its old spot near the top (Home-reorg): it's a
+            progress bridge to the Trophy tab, so it now sits with the other
+            progress/planning surfaces rather than ahead of Explorar. The
+            single achievement the reader is closest to unlocking. Renders
+            nothing until they are measurably walking toward one. Tapping
+            opens the Achievements tab. The card owns its own top gap
+            (opacity-only wrapper) so it leaves no phantom space when it
+            renders null. */}
+        <Animated.View style={{opacity: fadeAnim}}>
+          <NextMilestoneCard
+            onPress={() =>
+              handlePress(() => router.push('/(tabs)/achievements' as never))
+            }
+          />
         </Animated.View>
 
-        {/* ==================== READING PLANS ==================== */}
+        {/* ==================== READING PLANS + MIS PLANES ================= */}
+        {/* Merged under one shared header (Home-reorg): "Reading Plans" and
+            "Mis Planes" used to be two separate sectionHeader-chrome blocks
+            back to back — the "+crear" pill (the only action either header
+            actually needed) now lives in this single header. The curated
+            carousel renders first, the reader's own custom plans directly
+            underneath with no second header, and nothing at all when they
+            have no custom plans yet (the old italic empty-state sentence is
+            gone — the create pill above is the only affordance needed). */}
         <Animated.View
           style={{opacity: fadeAnim, marginTop: celestialSpacing.sectionGap}}>
           <View style={styles.sectionHeader}>
@@ -1537,11 +1534,31 @@ export default function HomeScreen() {
               ]}>
               {t.home.readingPlans}
             </Text>
-            <Ionicons
-              name="calendar"
-              size={26}
-              color={celestialTheme.colors.accent}
-            />
+            <PressableScale
+              pressedOpacity={0.9}
+              style={[
+                styles.createPlanButton,
+                {
+                  backgroundColor: withOpacity(
+                    colors.primary,
+                    isDark ? 0.2 : 0.12,
+                  ),
+                  borderColor: colors.primary,
+                },
+              ]}
+              onPress={() =>
+                handlePress(() =>
+                  router.push('/features/plan-builder' as never),
+                )
+              }
+              accessibilityRole="button"
+              accessibilityLabel={t.planBuilder.cardTitle}>
+              <Ionicons name="add" size={18} color={colors.primary} />
+              <Text
+                style={[styles.createPlanButtonText, {color: colors.primary}]}>
+                {t.home.createPlanShort}
+              </Text>
+            </PressableScale>
           </View>
 
           <ScrollView
@@ -1622,55 +1639,20 @@ export default function HomeScreen() {
               );
             })}
           </ScrollView>
-        </Animated.View>
 
-        {/* ==================== MIS PLANES (Sprint 108) ==================== */}
-        {/* The user's own plans (built in the editor or imported from a shared
-            cplan link) live in their own section. "Create" is a compact button
-            in the header (it's just an action — it shouldn't claim a big card),
-            and the plans themselves use the SAME card as the curated carousel. */}
-        <Animated.View
-          style={{opacity: fadeAnim, marginTop: celestialSpacing.sectionGap}}>
-          <View style={styles.sectionHeader}>
-            <Text
-              style={[
-                styles.sectionTitle,
-                {color: celestialTheme.colors.text},
-              ]}>
-              {t.home.myPlans}
-            </Text>
-            <PressableScale
-              pressedOpacity={0.9}
-              style={[
-                styles.createPlanButton,
-                {
-                  backgroundColor: withOpacity(
-                    colors.primary,
-                    isDark ? 0.2 : 0.12,
-                  ),
-                  borderColor: colors.primary,
-                },
-              ]}
-              onPress={() =>
-                handlePress(() =>
-                  router.push('/features/plan-builder' as never),
-                )
-              }
-              accessibilityRole="button"
-              accessibilityLabel={t.planBuilder.cardTitle}>
-              <Ionicons name="add" size={18} color={colors.primary} />
-              <Text
-                style={[styles.createPlanButtonText, {color: colors.primary}]}>
-                {t.home.createPlanShort}
-              </Text>
-            </PressableScale>
-          </View>
-
-          {customPlans.length > 0 ? (
+          {/* Mis Planes (Sprint 108): the reader's own plans (built in the
+              editor or imported from a shared cplan link), directly under the
+              curated carousel with no header of their own — the shared header
+              above already owns the "+crear" action. Renders nothing at all
+              when there are none yet. */}
+          {customPlans.length > 0 && (
             <ScrollView
               horizontal
               showsHorizontalScrollIndicator={false}
-              contentContainerStyle={styles.plansScroll}>
+              contentContainerStyle={[
+                styles.plansScroll,
+                {marginTop: celestialSpacing.cardGap},
+              ]}>
               {customPlans.map(plan => {
                 const planDays = getCompletedDays(plan.id);
                 const planDaysDone = planDays.length;
@@ -1735,14 +1717,6 @@ export default function HomeScreen() {
                 );
               })}
             </ScrollView>
-          ) : (
-            <Text
-              style={[
-                styles.noPlansText,
-                {color: celestialTheme.colors.textSecondary},
-              ]}>
-              {t.home.noPlansYet}
-            </Text>
           )}
         </Animated.View>
 
@@ -1752,7 +1726,13 @@ export default function HomeScreen() {
             an analytical study aid (version comparison), so the label
             mislabeled the section. Renamed to "Crece con Dios"/"Grow with God"
             (echoes 2 Pe 3:18) and reordered devotion-first; the study aid
-            (version comparison) closes the section. */}
+            (version comparison) closes the section.
+            Home-reorg: converted from 4 stacked full-width cards to a 2×2
+            grid (same savedGrid/savedCardWrapper flexbox already used by
+            Explorar/Saved Shortcuts) — each card's internal content is
+            unchanged, only the wrapping layout/sizing shrank to fit a
+            half-width tile. Lectio is conditional on dailyVerse, so the grid
+            can show 3 tiles (a hole on row 2) or 4. */}
         <Animated.View
           style={{opacity: fadeAnim, marginTop: celestialSpacing.sectionGap}}>
           <View style={styles.sectionHeader}>
@@ -1770,74 +1750,17 @@ export default function HomeScreen() {
             />
           </View>
 
-          {/* 🕊️ Guided devotion — begins with how your heart is today (S83) */}
-          <PressableScale
-            pressedOpacity={0.9}
-            accessibilityRole="button"
-            accessible={true}
-            accessibilityLabel={t.guided.cardTitle}
-            accessibilityHint={t.guided.cardSubtitle}
-            onPress={() =>
-              handlePress(() => router.push('/features/guided' as never))
-            }>
-            <ShimmerCard
-              glowColor={colors.primary}
-              shimmerEnabled={false}
-              cardBackgroundColor={celestialTheme.colors.surfaceGlass}
-              cardBorderColor={celestialTheme.colors.glassBorder}>
-              <View style={styles.toolCard}>
-                <View
-                  style={[
-                    styles.toolIconContainer,
-                    {backgroundColor: colors.primary + '20'},
-                  ]}>
-                  <Ionicons name="leaf" size={28} color={colors.primary} />
-                </View>
-                <View style={styles.toolInfo}>
-                  <Text
-                    style={[
-                      styles.toolTitle,
-                      {color: celestialTheme.colors.text},
-                    ]}>
-                    {t.guided.cardTitle}
-                  </Text>
-                  <Text
-                    style={[
-                      styles.toolDescription,
-                      {color: celestialTheme.colors.textSecondary},
-                    ]}>
-                    {t.guided.cardSubtitle}
-                  </Text>
-                </View>
-                <Ionicons
-                  name="chevron-forward"
-                  size={24}
-                  color={colors.textTertiary}
-                />
-              </View>
-            </ShimmerCard>
-          </PressableScale>
-
-          {/* 🕯️ Moment with God — lectio on the daily verse (Sprint 79) */}
-          {dailyVerse && (
+          <View style={styles.savedGrid}>
+            {/* 🕊️ Guided devotion — begins with how your heart is today (S83) */}
             <PressableScale
               pressedOpacity={0.9}
-              style={{marginTop: celestialSpacing.cardGap}}
+              style={styles.savedCardWrapper}
               accessibilityRole="button"
               accessible={true}
-              accessibilityLabel={t.lectio.cardTitle}
-              accessibilityHint={t.lectio.cardSubtitle}
+              accessibilityLabel={t.guided.cardTitle}
+              accessibilityHint={t.guided.cardSubtitle}
               onPress={() =>
-                handlePress(() =>
-                  router.push({
-                    pathname: '/features/lectio' as never,
-                    params: {
-                      book: dailyVerse.book,
-                      chapter: String(dailyVerse.chapter),
-                      verse: String(dailyVerse.verse),
-                    },
-                  } as never),
-                )
+                handlePress(() => router.push('/features/guided' as never))
               }>
               <ShimmerCard
                 glowColor={colors.primary}
@@ -1845,140 +1768,220 @@ export default function HomeScreen() {
                 cardBackgroundColor={celestialTheme.colors.surfaceGlass}
                 cardBorderColor={celestialTheme.colors.glassBorder}>
                 <View style={styles.toolCard}>
-                  <View
-                    style={[
-                      styles.toolIconContainer,
-                      {backgroundColor: colors.primary + '20'},
-                    ]}>
-                    <Ionicons name="flame" size={28} color={colors.primary} />
+                  <View style={styles.toolCardTop}>
+                    <View
+                      style={[
+                        styles.toolIconContainer,
+                        {backgroundColor: colors.primary + '20'},
+                      ]}>
+                      <Ionicons name="leaf" size={20} color={colors.primary} />
+                    </View>
+                    <Ionicons
+                      name="chevron-forward"
+                      size={16}
+                      color={colors.textTertiary}
+                    />
                   </View>
                   <View style={styles.toolInfo}>
                     <Text
                       style={[
                         styles.toolTitle,
                         {color: celestialTheme.colors.text},
-                      ]}>
-                      {t.lectio.cardTitle}
+                      ]}
+                      numberOfLines={1}>
+                      {t.guided.cardTitle}
                     </Text>
                     <Text
                       style={[
                         styles.toolDescription,
                         {color: celestialTheme.colors.textSecondary},
-                      ]}>
-                      {t.lectio.cardSubtitle}
+                      ]}
+                      numberOfLines={2}>
+                      {t.guided.cardSubtitle}
                     </Text>
                   </View>
-                  <Ionicons
-                    name="chevron-forward"
-                    size={24}
-                    color={colors.textTertiary}
-                  />
                 </View>
               </ShimmerCard>
             </PressableScale>
-          )}
 
-          {/* 🙏 Guided prayer — the ACTS path (Sprint 93) */}
-          <PressableScale
-            pressedOpacity={0.9}
-            style={{marginTop: celestialSpacing.cardGap}}
-            accessibilityRole="button"
-            accessible={true}
-            accessibilityLabel={t.prayer.studyToolTitle}
-            accessibilityHint={t.prayer.studyToolSubtitle}
-            onPress={() =>
-              handlePress(() => router.push('/features/prayer/acts' as never))
-            }>
-            <ShimmerCard
-              glowColor={colors.primary}
-              shimmerEnabled={false}
-              cardBackgroundColor={celestialTheme.colors.surfaceGlass}
-              cardBorderColor={celestialTheme.colors.glassBorder}>
-              <View style={styles.toolCard}>
-                <View
-                  style={[
-                    styles.toolIconContainer,
-                    {backgroundColor: colors.primary + '20'},
-                  ]}>
-                  <Ionicons name="rose" size={28} color={colors.primary} />
-                </View>
-                <View style={styles.toolInfo}>
-                  <Text
-                    style={[
-                      styles.toolTitle,
-                      {color: celestialTheme.colors.text},
-                    ]}>
-                    {t.prayer.studyToolTitle}
-                  </Text>
-                  <Text
-                    style={[
-                      styles.toolDescription,
-                      {color: celestialTheme.colors.textSecondary},
-                    ]}>
-                    {t.prayer.studyToolSubtitle}
-                  </Text>
-                </View>
-                <Ionicons
-                  name="chevron-forward"
-                  size={24}
-                  color={colors.textTertiary}
-                />
-              </View>
-            </ShimmerCard>
-          </PressableScale>
+            {/* 🕯️ Moment with God — lectio on the daily verse (Sprint 79) */}
+            {dailyVerse && (
+              <PressableScale
+                pressedOpacity={0.9}
+                style={styles.savedCardWrapper}
+                accessibilityRole="button"
+                accessible={true}
+                accessibilityLabel={t.lectio.cardTitle}
+                accessibilityHint={t.lectio.cardSubtitle}
+                onPress={() =>
+                  handlePress(() =>
+                    router.push({
+                      pathname: '/features/lectio' as never,
+                      params: {
+                        book: dailyVerse.book,
+                        chapter: String(dailyVerse.chapter),
+                        verse: String(dailyVerse.verse),
+                      },
+                    } as never),
+                  )
+                }>
+                <ShimmerCard
+                  glowColor={colors.primary}
+                  shimmerEnabled={false}
+                  cardBackgroundColor={celestialTheme.colors.surfaceGlass}
+                  cardBorderColor={celestialTheme.colors.glassBorder}>
+                  <View style={styles.toolCard}>
+                    <View style={styles.toolCardTop}>
+                      <View
+                        style={[
+                          styles.toolIconContainer,
+                          {backgroundColor: colors.primary + '20'},
+                        ]}>
+                        <Ionicons
+                          name="flame"
+                          size={20}
+                          color={colors.primary}
+                        />
+                      </View>
+                      <Ionicons
+                        name="chevron-forward"
+                        size={16}
+                        color={colors.textTertiary}
+                      />
+                    </View>
+                    <View style={styles.toolInfo}>
+                      <Text
+                        style={[
+                          styles.toolTitle,
+                          {color: celestialTheme.colors.text},
+                        ]}
+                        numberOfLines={1}>
+                        {t.lectio.cardTitle}
+                      </Text>
+                      <Text
+                        style={[
+                          styles.toolDescription,
+                          {color: celestialTheme.colors.textSecondary},
+                        ]}
+                        numberOfLines={2}>
+                        {t.lectio.cardSubtitle}
+                      </Text>
+                    </View>
+                  </View>
+                </ShimmerCard>
+              </PressableScale>
+            )}
 
-          {/* 🔀 Version comparison — the study aid (S51), closes the section */}
-          <PressableScale
-            pressedOpacity={0.9}
-            style={{marginTop: celestialSpacing.cardGap}}
-            accessibilityRole="button"
-            accessible={true}
-            accessibilityLabel={t.settingsV51.versionComparison}
-            accessibilityHint={t.settingsV51.versionComparisonDesc}
-            onPress={() =>
-              handlePress(() => router.push('/features/version-comparison'))
-            }>
-            <ShimmerCard
-              glowColor={colors.primary}
-              shimmerEnabled={false}
-              cardBackgroundColor={celestialTheme.colors.surfaceGlass}
-              cardBorderColor={celestialTheme.colors.glassBorder}>
-              <View style={styles.toolCard}>
-                <View
-                  style={[
-                    styles.toolIconContainer,
-                    {backgroundColor: colors.primary + '20'},
-                  ]}>
-                  <Ionicons
-                    name="git-compare-outline"
-                    size={28}
-                    color={colors.primary}
-                  />
+            {/* 🙏 Guided prayer — the ACTS path (Sprint 93) */}
+            <PressableScale
+              pressedOpacity={0.9}
+              style={styles.savedCardWrapper}
+              accessibilityRole="button"
+              accessible={true}
+              accessibilityLabel={t.prayer.studyToolTitle}
+              accessibilityHint={t.prayer.studyToolSubtitle}
+              onPress={() =>
+                handlePress(() => router.push('/features/prayer/acts' as never))
+              }>
+              <ShimmerCard
+                glowColor={colors.primary}
+                shimmerEnabled={false}
+                cardBackgroundColor={celestialTheme.colors.surfaceGlass}
+                cardBorderColor={celestialTheme.colors.glassBorder}>
+                <View style={styles.toolCard}>
+                  <View style={styles.toolCardTop}>
+                    <View
+                      style={[
+                        styles.toolIconContainer,
+                        {backgroundColor: colors.primary + '20'},
+                      ]}>
+                      <Ionicons name="rose" size={20} color={colors.primary} />
+                    </View>
+                    <Ionicons
+                      name="chevron-forward"
+                      size={16}
+                      color={colors.textTertiary}
+                    />
+                  </View>
+                  <View style={styles.toolInfo}>
+                    <Text
+                      style={[
+                        styles.toolTitle,
+                        {color: celestialTheme.colors.text},
+                      ]}
+                      numberOfLines={1}>
+                      {t.prayer.studyToolTitle}
+                    </Text>
+                    <Text
+                      style={[
+                        styles.toolDescription,
+                        {color: celestialTheme.colors.textSecondary},
+                      ]}
+                      numberOfLines={2}>
+                      {t.prayer.studyToolSubtitle}
+                    </Text>
+                  </View>
                 </View>
-                <View style={styles.toolInfo}>
-                  <Text
-                    style={[
-                      styles.toolTitle,
-                      {color: celestialTheme.colors.text},
-                    ]}>
-                    {t.settingsV51.versionComparison}
-                  </Text>
-                  <Text
-                    style={[
-                      styles.toolDescription,
-                      {color: celestialTheme.colors.textSecondary},
-                    ]}>
-                    {t.settingsV51.versionComparisonDesc}
-                  </Text>
+              </ShimmerCard>
+            </PressableScale>
+
+            {/* 🔀 Version comparison — the study aid (S51), closes the section */}
+            <PressableScale
+              pressedOpacity={0.9}
+              style={styles.savedCardWrapper}
+              accessibilityRole="button"
+              accessible={true}
+              accessibilityLabel={t.settingsV51.versionComparison}
+              accessibilityHint={t.settingsV51.versionComparisonDesc}
+              onPress={() =>
+                handlePress(() => router.push('/features/version-comparison'))
+              }>
+              <ShimmerCard
+                glowColor={colors.primary}
+                shimmerEnabled={false}
+                cardBackgroundColor={celestialTheme.colors.surfaceGlass}
+                cardBorderColor={celestialTheme.colors.glassBorder}>
+                <View style={styles.toolCard}>
+                  <View style={styles.toolCardTop}>
+                    <View
+                      style={[
+                        styles.toolIconContainer,
+                        {backgroundColor: colors.primary + '20'},
+                      ]}>
+                      <Ionicons
+                        name="git-compare-outline"
+                        size={20}
+                        color={colors.primary}
+                      />
+                    </View>
+                    <Ionicons
+                      name="chevron-forward"
+                      size={16}
+                      color={colors.textTertiary}
+                    />
+                  </View>
+                  <View style={styles.toolInfo}>
+                    <Text
+                      style={[
+                        styles.toolTitle,
+                        {color: celestialTheme.colors.text},
+                      ]}
+                      numberOfLines={1}>
+                      {t.settingsV51.versionComparison}
+                    </Text>
+                    <Text
+                      style={[
+                        styles.toolDescription,
+                        {color: celestialTheme.colors.textSecondary},
+                      ]}
+                      numberOfLines={2}>
+                      {t.settingsV51.versionComparisonDesc}
+                    </Text>
+                  </View>
                 </View>
-                <Ionicons
-                  name="chevron-forward"
-                  size={24}
-                  color={colors.textTertiary}
-                />
-              </View>
-            </ShimmerCard>
-          </PressableScale>
+              </ShimmerCard>
+            </PressableScale>
+          </View>
         </Animated.View>
 
         {/* ==================== SAVED SHORTCUTS ==================== */}
@@ -2568,7 +2571,20 @@ const styles = StyleSheet.create({
     fontWeight: '800', // Más bold
     letterSpacing: -0.5,
   },
-  // Compact "create a plan" button in the "Mis planes" header (Sprint 108).
+  // Explorar's header pairs the accent icon with a "ver todo" link
+  // (Home-reorg) — a small row so both sit together on the header's
+  // right-hand side.
+  sectionHeaderActions: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+  },
+  seeAllText: {
+    fontSize: 14,
+    fontWeight: '700',
+  },
+  // Compact "create a plan" button in the shared Reading Plans header
+  // (Sprint 108; Home-reorg merged "Mis planes" into this same header).
   createPlanButton: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -2581,11 +2597,6 @@ const styles = StyleSheet.create({
   createPlanButtonText: {
     fontSize: 14,
     fontWeight: '700',
-  },
-  noPlansText: {
-    fontSize: 14,
-    lineHeight: 20,
-    fontStyle: 'italic',
   },
 
   // Quick Access Grid
@@ -2678,32 +2689,42 @@ const styles = StyleSheet.create({
   skeletonSection: {
     marginBottom: 16,
   },
-  // Tool Card
+  // Tool Card — "Grow with God" 2×2 grid tile (Home-reorg). Sized to match
+  // DiscoverTile's grid conventions (minHeight 124, icon-row + body layout)
+  // since it now shares the same savedGrid/savedCardWrapper wrapper.
   toolCard: {
-    padding: 16,
+    padding: 14,
+    minHeight: 124,
+    justifyContent: 'space-between',
+  },
+  toolCardTop: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 16,
+    justifyContent: 'space-between',
   },
   toolIconContainer: {
-    width: 48,
-    height: 48,
-    borderRadius: 14,
+    width: 36,
+    height: 36,
+    borderRadius: 12,
     justifyContent: 'center',
     alignItems: 'center',
   },
   toolInfo: {
-    flex: 1,
+    marginTop: 10,
   },
   toolTitle: {
-    fontSize: 17,
+    fontSize: 16,
     fontWeight: '700',
-    letterSpacing: -0.3,
+    letterSpacing: -0.2,
   },
   toolDescription: {
-    fontSize: 14,
+    fontSize: 13,
     fontWeight: '400',
     marginTop: 2,
-    lineHeight: 18,
+    lineHeight: 17,
+    // Reserves space for a full 2 lines (numberOfLines cap above) so every
+    // tile in the grid is the same height regardless of whether its
+    // description actually wraps — mirrors DiscoverTile's subtitle.
+    minHeight: 34,
   },
 });
