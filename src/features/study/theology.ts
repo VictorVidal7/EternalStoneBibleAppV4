@@ -1,5 +1,5 @@
 /**
- * ✝️ theology — the "Teología" catalog (BORRADOR — infrastructure phase).
+ * ✝️ theology — the "Teología" catalog.
  *
  * Short, faithful doctrine essays scoped narrowly to "mere Christianity"
  * consensus (Trinity, salvation by grace, Christ's deity/resurrection) —
@@ -18,10 +18,8 @@
  * The title/body/passage-citation prose lives in i18n (`t.theology.items`),
  * es/en parity enforced by `i18nParity.test.ts` + this module's own test.
  *
- * ⚠️ BORRADOR — pendiente de revisión doctrinal. Every entry below is a
- * placeholder drafted to prove the feature shell end-to-end. NOT reviewed or
- * approved by Victor yet — do not treat as ship-ready content. See
- * `__tests__/theology.test.ts` and the branch's own commit message.
+ * Reviewed and approved by Victor 2026-07-29 — all 3 entries below cleared
+ * for their doctrinal content. See `__tests__/theology.test.ts`.
  *
  * Para la gloria de Dios Todopoderoso ✨
  */
@@ -38,11 +36,7 @@ export interface TheologyEntry {
   icon: string;
   /** Accent colour (hex) for the entry's card/header. */
   accent: string;
-  /**
-   * BORRADOR flag — true while pending Victor's per-entry doctrinal sign-off.
-   * Every entry in this placeholder seed is `true`; flip to false (or drop
-   * the field) only once he has reviewed that specific entry's exact text.
-   */
+  /** True while pending Victor's per-entry doctrinal sign-off. */
   draft: boolean;
 }
 
@@ -57,21 +51,21 @@ export const THEOLOGY_ENTRIES: readonly TheologyEntry[] = [
     refs: ['2 Corinthians/13/14'],
     icon: 'triangle-outline',
     accent: '#6366F1',
-    draft: true,
+    draft: false,
   },
   {
     id: 'grace-salvation',
     refs: ['Ephesians/2/8'],
     icon: 'gift-outline',
     accent: '#10B981',
-    draft: true,
+    draft: false,
   },
   {
     id: 'resurrection',
     refs: ['1 Corinthians/15/3', 'John/20/28'],
     icon: 'sunny-outline',
     accent: '#F59E0B',
-    draft: true,
+    draft: false,
   },
 ] as const;
 

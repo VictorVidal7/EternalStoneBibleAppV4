@@ -1,9 +1,9 @@
 /**
- * The "Teología" catalog (BORRADOR — infrastructure phase, see
- * `src/features/study/theology.ts`'s file comment). Mirrors
- * `bibleFacts.test.ts` / `christConnections.test.ts`'s shape: every anchor
- * ref must resolve to a real canonical verse-in-range, ids are unique, and
- * every entry has a non-empty title/body/passage citation in BOTH locales.
+ * The "Teología" catalog (see `src/features/study/theology.ts`'s file
+ * comment). Mirrors `bibleFacts.test.ts` / `christConnections.test.ts`'s
+ * shape: every anchor ref must resolve to a real canonical verse-in-range,
+ * ids are unique, and every entry has a non-empty title/body/passage
+ * citation in BOTH locales.
  */
 import {
   THEOLOGY_ENTRIES,
@@ -19,7 +19,7 @@ const esT = (translations.es as AnyRecord).theology as AnyRecord;
 const enT = (translations.en as AnyRecord).theology as AnyRecord;
 
 describe('theology — catalog shape', () => {
-  it('ships the 3 seeded BORRADOR entries', () => {
+  it('ships the 3 seeded entries', () => {
     expect(THEOLOGY_ENTRIES.length).toBe(3);
     expect(THEOLOGY_COUNT).toBe(THEOLOGY_ENTRIES.length);
   });
@@ -37,9 +37,9 @@ describe('theology — catalog shape', () => {
     }
   });
 
-  it('every entry is flagged as draft (unreviewed placeholder content)', () => {
+  it('every entry is cleared of the draft flag (reviewed content)', () => {
     for (const e of THEOLOGY_ENTRIES) {
-      expect(e.draft).toBe(true);
+      expect(e.draft).toBe(false);
     }
   });
 });
