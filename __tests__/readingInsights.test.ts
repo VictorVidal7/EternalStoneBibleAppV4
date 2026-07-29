@@ -8,7 +8,12 @@ import {localDayKey} from '../src/lib/utils/dateKey';
 const MS_PER_DAY = 86_400_000;
 // Fixed "now": 2026-06-02 12:00 UTC (matches the project's current date).
 const NOW = Date.UTC(2026, 5, 2, 12, 0, 0);
-const TODAY_NUM = Math.floor(NOW / MS_PER_DAY);
+// Mirror buildReadingInsights' own local-day anchoring (dayNumberFromDateStr(localDayKey(now)))
+// instead of raw UTC math, so this stays correct at positive TZ offsets >= UTC+12 too.
+const [TODAY_Y, TODAY_M, TODAY_D] = localDayKey(NOW).split('-').map(Number);
+const TODAY_NUM = Math.floor(
+  Date.UTC(TODAY_Y, TODAY_M - 1, TODAY_D) / MS_PER_DAY,
+);
 
 const emptyInput: ReadingInsightsInput = {
   readingLog: [],
