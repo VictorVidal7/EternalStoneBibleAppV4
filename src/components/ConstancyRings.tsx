@@ -8,18 +8,29 @@
  * {@link ConstancyRingsGraphic} over a gradient.
  *
  * The graphic is intentionally STATIC (no entrance animation) so it captures
- * cleanly into the share image and renders identically in tests.
+ * cleanly into the share image and renders identically in tests. The one
+ * exception is `pulseRingKey`/`pulseAnim` (opt-in, unused by the share image
+ * and every test) — the "goal just completed today" pulse owned by
+ * [[ConstancyRings]] below.
  *
  * Para la gloria de Dios Todopoderoso ✨
  */
 
-import React from 'react';
-import {View, StyleSheet, TouchableOpacity, type ViewStyle} from 'react-native';
+import React, {useEffect, useRef} from 'react';
+import {
+  Animated,
+  Easing,
+  View,
+  StyleSheet,
+  TouchableOpacity,
+  type ViewStyle,
+} from 'react-native';
 import Svg, {Circle} from 'react-native-svg';
 import {Ionicons} from '@expo/vector-icons';
 import {AppText} from '@components/ui/AppText';
 import {useTheme} from '@hooks/useTheme';
 import {useLanguage} from '@hooks/useLanguage';
+import {useReducedMotion} from '@hooks/useReducedMotion';
 import {haptics} from '@lib/haptics';
 import {
   HABIT_ORDER,
@@ -47,6 +58,13 @@ export const HABIT_ICONS: Record<HabitKey, keyof typeof Ionicons.glyphMap> = {
   mood: 'heart',
 };
 
+// Animated Circle for the one-time "goal just completed" ring pulse (see
+// `pulseRingKey`/`pulseAnim` on GraphicProps below). Cast to `any` — same as
+// SVGCircularProgress.tsx/ProgressCircle.tsx in this codebase: react-native-
+// svg's typings don't accept Animated props (scale, strokeDashoffset, …)
+// even though they work at runtime.
+const AnimatedCircle: any = Animated.createAnimatedComponent(Circle);
+
 const RING_SIZE = 150;
 const RING_STROKE = 12;
 const RING_GAP = 5;
@@ -65,6 +83,17 @@ interface GraphicProps {
   trackColor: string;
   /** Optional override for the arc color (e.g. monochrome on a share card). */
   colorFor?: (key: HabitKey) => string;
+  /**
+   * When set ALONGSIDE `pulseAnim`, this one ring's track+arc scale-animate
+   * about the shared center instead of rendering as static `Circle`s — the
+   * one-time "goal just completed today" pulse. Every other caller (the
+   * share image, unit tests) never passes this, so their render stays
+   * byte-identical to before — this component is otherwise still the same
+   * static, deterministic graphic its docstring promises.
+   */
+  pulseRingKey?: HabitKey;
+  /** The driving Animated.Value for `pulseRingKey`, resting at 1. */
+  pulseAnim?: Animated.Value;
   /** Center overlay (a number, a check…). */
   children?: React.ReactNode;
   style?: ViewStyle;
@@ -82,6 +111,8 @@ export const ConstancyRingsGraphic: React.FC<GraphicProps> = ({
   gap = RING_GAP,
   trackColor,
   colorFor,
+  pulseRingKey,
+  pulseAnim,
   children,
   style,
 }) => {
@@ -95,17 +126,29 @@ export const ConstancyRingsGraphic: React.FC<GraphicProps> = ({
           const color = colorFor
             ? colorFor(ring.key)
             : HABIT_RING_COLORS[ring.key];
+          // Only the ring named by `pulseRingKey` (reading, today) ever
+          // swaps to the Animated variant — every other ring, and every
+          // caller that never sets these two props, keeps the plain static
+          // `Circle` it always rendered.
+          const TrackCircle =
+            pulseRingKey === ring.key && pulseAnim ? AnimatedCircle : Circle;
+          const ArcCircle = TrackCircle;
+          const pulseOnly =
+            pulseRingKey === ring.key && pulseAnim
+              ? {scale: pulseAnim, origin: `${center}, ${center}`}
+              : null;
           return (
             <React.Fragment key={ring.key}>
-              <Circle
+              <TrackCircle
                 cx={center}
                 cy={center}
                 r={radius}
                 stroke={trackColor}
                 strokeWidth={strokeWidth}
                 fill="none"
+                {...pulseOnly}
               />
-              <Circle
+              <ArcCircle
                 cx={center}
                 cy={center}
                 r={radius}
@@ -120,6 +163,7 @@ export const ConstancyRingsGraphic: React.FC<GraphicProps> = ({
                 strokeLinecap="round"
                 rotation="-90"
                 origin={`${center}, ${center}`}
+                {...(pulseOnly ? {scale: pulseAnim} : null)}
               />
             </React.Fragment>
           );
@@ -142,23 +186,81 @@ interface ConstancyRingsProps {
   /** When provided, each legend row becomes its own button that navigates
    *  to that habit's own screen (T26 — reading/memory/devotion/mood). */
   onHabitPress?: (key: HabitKey) => void;
+  /**
+   * Increments exactly once per real "reading goal just completed today"
+   * transition — owned/derived by [[ConstancyRingsCard]] (it stays mounted
+   * across the honest gate, unlike this presentational component). A change
+   * in this number is the ONLY thing that fires the pulse; its starting
+   * value (including on first mount) never does. "Make the app feel alive"
+   * backlog item — reading-only scope, see the file-level note below.
+   */
+  pulseReadingToken?: number;
 }
 
 /**
  * The Home card BODY (rings + legend). Router-free and store-free — the owner
  * (S85 T2) passes the already-derived `summary`; T26 added per-row navigation
  * (`onHabitPress`) alongside the original whole-graphic `onPress`.
+ *
+ * `pulseReadingToken` drives a ONE-TIME, non-repeating pulse + haptic on the
+ * reading ring the moment it closes for the day (not on every re-render where
+ * it's already closed, e.g. reopening the app later today) — scoped to
+ * reading only, the most central habit here, rather than all four rings, to
+ * keep this a single small moment rather than four competing ones. The haptic
+ * always fires; the visual scale pulse is skipped under reduced motion,
+ * mirroring the exact distinction AchievementUnlockedModal already draws
+ * (haptics aren't a motion-sickness concern the way visual animation is).
  */
 export const ConstancyRings: React.FC<ConstancyRingsProps> = ({
   summary,
   onShare,
   onPress,
   onHabitPress,
+  pulseReadingToken,
 }) => {
   const {colors, isDark} = useTheme();
   const {t} = useLanguage();
+  const reducedMotion = useReducedMotion();
   const tc = t.constancy;
   const trackColor = isDark ? 'rgba(255,255,255,0.10)' : 'rgba(0,0,0,0.06)';
+
+  // The pulse itself — a brief scale up-and-back on the reading ring only
+  // (deliberately NOT the rotation-wiggle half of `celebrationAnimation` in
+  // reanimatedAnimations.ts, which was explicitly rejected as too playful for
+  // this app's tone). `prevPulseTokenRef` starts `undefined` so the effect
+  // only reacts to a CHANGE in the token, never its initial value — that's
+  // what keeps "reopen the app after already completing today" silent even
+  // though the token is already > 0 the moment this component first mounts.
+  const readingPulseScale = useRef(new Animated.Value(1)).current;
+  const prevPulseTokenRef = useRef<number | undefined>(undefined);
+  useEffect(() => {
+    const token = pulseReadingToken ?? 0;
+    const prevToken = prevPulseTokenRef.current;
+    prevPulseTokenRef.current = token;
+    if (prevToken === undefined || token === prevToken) return;
+
+    haptics.success();
+    if (reducedMotion) return;
+
+    readingPulseScale.setValue(1);
+    Animated.sequence([
+      Animated.timing(readingPulseScale, {
+        toValue: 1.16,
+        duration: 220,
+        easing: Easing.out(Easing.quad),
+        // SVG `scale` isn't a native-driver prop (unlike `strokeDashoffset`
+        // in this file's sibling components) — JS-driven is correct here,
+        // and cheap enough for a single ~480ms one-shot.
+        useNativeDriver: false,
+      }),
+      Animated.timing(readingPulseScale, {
+        toValue: 1,
+        duration: 260,
+        easing: Easing.out(Easing.quad),
+        useNativeDriver: false,
+      }),
+    ]).start();
+  }, [pulseReadingToken, reducedMotion, readingPulseScale]);
 
   const habitLabel: Record<HabitKey, string> = {
     reading: tc.habitReading,
@@ -241,7 +343,11 @@ export const ConstancyRings: React.FC<ConstancyRingsProps> = ({
           // touch users can still tap the graphic directly.
           accessible={false}
           importantForAccessibility="no-hide-descendants">
-          <ConstancyRingsGraphic rings={summary.rings} trackColor={trackColor}>
+          <ConstancyRingsGraphic
+            rings={summary.rings}
+            trackColor={trackColor}
+            pulseRingKey="reading"
+            pulseAnim={readingPulseScale}>
             {summary.allClosed ? (
               <Ionicons name="checkmark" size={34} color={colors.primary} />
             ) : (
