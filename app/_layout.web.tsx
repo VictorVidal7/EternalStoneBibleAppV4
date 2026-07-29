@@ -16,6 +16,7 @@ import {ThemeProvider} from '@hooks/useTheme';
 import {BibleVersionProvider} from '@hooks/useBibleVersion';
 import {LanguageProvider, useLanguage} from '@hooks/useLanguage';
 import {AccessibilityPreferencesProvider} from '@context/AccessibilityPreferencesContext';
+import {useReducedMotion} from '@hooks/useReducedMotion';
 import {ToastProvider} from '@context/ToastContext';
 import {ReaderPreferencesProvider} from '@context/ReaderPreferencesContext';
 import {logger} from '@lib/utils/logger';
@@ -37,6 +38,7 @@ import {ErrorBoundary} from '@/components/ErrorBoundary';
 
 function AppContent() {
   const {t} = useLanguage();
+  const reduceMotion = useReducedMotion();
   const [isLoading, setIsLoading] = useState(true);
   const [loadingProgress, setLoadingProgress] = useState({loaded: 0, total: 0});
   const [error, setError] = useState<string | null>(null);
@@ -146,7 +148,18 @@ function AppContent() {
   }
 
   return (
-    <Stack screenOptions={{headerShown: false}}>
+    // Mirrors app/_layout.tsx's native root Stack for parity: same explicit,
+    // reduced-motion-aware `animation` instead of an unconfigured default.
+    // Whether react-native-screens' web build actually renders this as a
+    // transition is unverified here — v1 web is the read-only reader shell,
+    // and `(tabs)/_layout.web.tsx` (the nav one level down) is a bare `Slot`
+    // with no animation concept at all, so this Stack is the only place on
+    // web where it could matter.
+    <Stack
+      screenOptions={{
+        headerShown: false,
+        animation: reduceMotion ? 'none' : 'slide_from_right',
+      }}>
       <Stack.Screen name="(tabs)" />
     </Stack>
   );
