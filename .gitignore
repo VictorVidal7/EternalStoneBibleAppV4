@@ -46,6 +46,13 @@ scripts/firebase-admin-key.json
 scripts/*-firebase-adminsdk-*.json
 *-firebase-adminsdk-*.json
 
+# Bible-dictionary ingestion source text (public-domain source .md files fed
+# into scripts/build-dictionary-v{1,2}-es.js; not committed, only the built
+# JSON output under assets/ is). Durable local location — see the
+# DICTIONARY_V1_SRC_DIR override in build-dictionary-v1-es.js if you keep
+# these elsewhere.
+scripts/dictionary-sources/
+
 # typescript
 *.tsbuildinfo
 

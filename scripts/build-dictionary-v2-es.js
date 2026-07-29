@@ -57,9 +57,36 @@ const ROOT = path.resolve(__dirname, '..');
 const OUT =
   process.argv[2] || path.join(ROOT, 'assets', 'dictionary-v2-es.json');
 
+// Base dir for the raw v2-doctrinal source files listed in SOURCES below
+// (each entry is a subpath under it, e.g. `isbe-v2-translations/...` or
+// `isbe-v2-reextract/...`). Resolution order: explicit 3rd CLI arg, then
+// DICTIONARY_V2_SRC_DIR env var, then this repo-relative default.
+//
+// IMPORTANT: this used to be hardcoded to a personal Windows Temp scratchpad
+// path, same as build-dictionary-v1-es.js was — Windows "Storage Sense"
+// auto-cleanup silently wiped that directory (see the Tanda 5 dictionary
+// track's memory notes), breaking this script with no warning until someone
+// next tried to run it. Never point this back at a scratch/temp directory —
+// use the gitignored repo-relative default below, or an explicit override
+// that lives somewhere durable.
+const DEFAULT_SCRATCH_BASE = path.join(ROOT, 'scripts', 'dictionary-sources');
 const SCRATCH_BASE =
-  process.argv[3] ||
-  'C:\\Users\\victo\\AppData\\Local\\Temp\\claude\\C--projects-EternalStoneBibleAppV4\\d451883b-b8f6-4f80-ad38-86967c47d25f\\scratchpad';
+  process.argv[3] || process.env.DICTIONARY_V2_SRC_DIR || DEFAULT_SCRATCH_BASE;
+
+if (!fs.existsSync(SCRATCH_BASE)) {
+  throw new Error(
+    `Source directory not found: ${SCRATCH_BASE}\n` +
+      'Expected the raw `isbe-v2-translations/`/`isbe-v2-reextract/` ' +
+      'subfolders (see SOURCES below for the exact expected file list) ' +
+      'there. This directory is meant to be a durable, non-scratchpad ' +
+      'location — do not point it at a Windows Temp / scratch directory; ' +
+      'those get silently wiped by Storage Sense (that is exactly how this ' +
+      'script broke before).\n' +
+      `Fix by either: (1) placing the source files under ${DEFAULT_SCRATCH_BASE}, ` +
+      'or (2) setting the DICTIONARY_V2_SRC_DIR env var, or (3) passing a ' +
+      '3rd CLI arg: node scripts/build-dictionary-v2-es.js [outPath] [srcBaseDir]',
+  );
+}
 
 // Batch 3's already-sliced multi-view entries (Bautismo, Milenio) — written
 // by `node scripts/split-dictionary-views.js`, run BEFORE this script.

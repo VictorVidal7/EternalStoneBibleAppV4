@@ -11,9 +11,12 @@
  * src/lib/database/index.ts) — no Asset.fromModule/download machinery needed
  * for a dataset this small.
  *
- * Source: the 10 approved `v1-translation-*.md` files under the Tanda 5
- * scratchpad (isbe-recovery/final/v1-factual/), each following the molde
- * confirmed in the Nazaret pilot entry:
+ * Source: the approved `v1-translation-*.md` files, expected under
+ * `scripts/dictionary-sources/v1-factual/` (repo-relative, gitignored — the
+ * translated .md source files aren't committed, only this script and its
+ * JSON output are). Override with the `DICTIONARY_V1_SRC_DIR` env var or a
+ * 3rd CLI arg if they live elsewhere. Each file follows the molde confirmed
+ * in the Nazaret pilot entry:
  *   # HEADWORD — ...
  *   ## GLOSS GRATIS (completo en sí mismo)
  *   <one free paragraph>
@@ -36,11 +39,25 @@ const ROOT = path.resolve(__dirname, '..');
 const OUT =
   process.argv[2] || path.join(ROOT, 'assets', 'dictionary-v1-es.json');
 
-// One-time scratchpad location of the approved v1-factual translations
-// (not part of the repo — this script's whole job is to pull them in).
+// Location of the approved v1-factual translations (not part of the repo's
+// shipped content — this script's whole job is to pull them in and emit the
+// small JSON asset that IS committed). Resolution order: explicit 3rd CLI
+// arg, then DICTIONARY_V1_SRC_DIR env var, then this repo-relative default.
+//
+// IMPORTANT: this used to be hardcoded to a personal Windows Temp scratchpad
+// path. Windows "Storage Sense" auto-cleanup silently wiped that directory
+// (see the Tanda 5 dictionary track's memory notes), which broke this script
+// with no warning until someone next tried to run it. Never point this back
+// at a scratch/temp directory — use the gitignored repo-relative default
+// below, or an explicit override that lives somewhere durable.
+const DEFAULT_SRC_DIR = path.join(
+  ROOT,
+  'scripts',
+  'dictionary-sources',
+  'v1-factual',
+);
 const SRC_DIR =
-  process.argv[3] ||
-  'C:\\Users\\victo\\AppData\\Local\\Temp\\claude\\C--projects-EternalStoneBibleAppV4\\d451883b-b8f6-4f80-ad38-86967c47d25f\\scratchpad\\isbe-recovery\\final\\v1-factual';
+  process.argv[3] || process.env.DICTIONARY_V1_SRC_DIR || DEFAULT_SRC_DIR;
 
 /** Filenames in this directory that follow the `v1-translation-*.md` pattern
  *  but are NOT dictionary entries (independent QA/verification reports). */
@@ -144,7 +161,17 @@ function parseEntry(filename, content) {
 
 function main() {
   if (!fs.existsSync(SRC_DIR)) {
-    throw new Error(`Source directory not found: ${SRC_DIR}`);
+    throw new Error(
+      `Source directory not found: ${SRC_DIR}\n` +
+        'Expected the approved `v1-translation-*.md` files there (see this ' +
+        "file's header comment for the format). This directory is meant to " +
+        'be a durable, non-scratchpad location — do not point it at a ' +
+        'Windows Temp / scratch directory; those get silently wiped by ' +
+        'Storage Sense (that is exactly how this script broke before).\n' +
+        `Fix by either: (1) placing the source files under ${DEFAULT_SRC_DIR}, ` +
+        'or (2) setting the DICTIONARY_V1_SRC_DIR env var, or (3) passing a ' +
+        '3rd CLI arg: node scripts/build-dictionary-v1-es.js [outPath] [srcDir]',
+    );
   }
 
   const filenames = fs
