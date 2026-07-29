@@ -635,6 +635,44 @@ export default function DictionaryDetailScreen() {
                 </View>
               ) : null}
 
+              {relatedEntries.length > 0 ? (
+                <View
+                  style={[
+                    styles.articleSection,
+                    {borderTopColor: colors.border},
+                  ]}>
+                  <View style={styles.articleHeaderRow}>
+                    <Text
+                      style={[styles.articleLabel, {color: themedColors.text}]}>
+                      {dt.relatedLabel}
+                    </Text>
+                  </View>
+                  <View style={styles.relatedList}>
+                    {relatedEntries.map(rel => (
+                      <TouchableOpacity
+                        key={rel.slug}
+                        style={styles.relatedRow}
+                        onPress={() => handleRelatedPress(rel.slug)}
+                        accessibilityRole="button"
+                        accessibilityLabel={titleCaseHeadword(rel.headword_es)}>
+                        <Ionicons
+                          name="arrow-forward-circle-outline"
+                          size={18}
+                          color={themedColors.primary}
+                        />
+                        <Text
+                          style={[
+                            styles.relatedText,
+                            {color: themedColors.primary},
+                          ]}>
+                          {titleCaseHeadword(rel.headword_es)}
+                        </Text>
+                      </TouchableOpacity>
+                    ))}
+                  </View>
+                </View>
+              ) : null}
+
               {navesSections.length > 0 ? (
                 <View
                   style={[
@@ -678,44 +716,6 @@ export default function DictionaryDetailScreen() {
                           )}
                         </Text>
                       </View>
-                    ))}
-                  </View>
-                </View>
-              ) : null}
-
-              {relatedEntries.length > 0 ? (
-                <View
-                  style={[
-                    styles.articleSection,
-                    {borderTopColor: colors.border},
-                  ]}>
-                  <View style={styles.articleHeaderRow}>
-                    <Text
-                      style={[styles.articleLabel, {color: themedColors.text}]}>
-                      {dt.relatedLabel}
-                    </Text>
-                  </View>
-                  <View style={styles.relatedList}>
-                    {relatedEntries.map(rel => (
-                      <TouchableOpacity
-                        key={rel.slug}
-                        style={styles.relatedRow}
-                        onPress={() => handleRelatedPress(rel.slug)}
-                        accessibilityRole="button"
-                        accessibilityLabel={titleCaseHeadword(rel.headword_es)}>
-                        <Ionicons
-                          name="arrow-forward-circle-outline"
-                          size={18}
-                          color={themedColors.primary}
-                        />
-                        <Text
-                          style={[
-                            styles.relatedText,
-                            {color: themedColors.primary},
-                          ]}>
-                          {titleCaseHeadword(rel.headword_es)}
-                        </Text>
-                      </TouchableOpacity>
                     ))}
                   </View>
                 </View>
