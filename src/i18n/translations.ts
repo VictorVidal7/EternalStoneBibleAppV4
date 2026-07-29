@@ -2086,6 +2086,8 @@ export const translations = {
       error: 'No se pudieron cargar los pasajes',
       listenAll: 'Escuchar estos versos',
       prayerTitle: 'Una oración breve',
+      prayerHedge:
+        'Esta es una oración de ejemplo para este momento — no una fórmula que debas repetir palabra por palabra. Hazla tuya, con tus propias palabras, o úsala como punto de partida.',
       relatedTheme: 'Explora el tema: {{theme}}',
       list: {
         anxious: {
@@ -7928,6 +7930,8 @@ export const translations = {
       error: 'Could not load the passages',
       listenAll: 'Listen to these verses',
       prayerTitle: 'A short prayer',
+      prayerHedge:
+        'This is a sample prayer for this moment — not a formula to repeat word for word. Make it your own, in your own words, or use it as a starting point.',
       relatedTheme: 'Explore the theme: {{theme}}',
       list: {
         anxious: {

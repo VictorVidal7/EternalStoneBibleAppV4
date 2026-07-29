@@ -339,6 +339,11 @@ export default function FeelingDetailScreen() {
               <Text style={[styles.prayerText, {color: colors.text}]}>
                 {localized.prayer}
               </Text>
+              <AppText
+                scaleRole="compact"
+                style={[styles.prayerHedge, {color: colors.textSecondary}]}>
+                {tf.prayerHedge}
+              </AppText>
             </View>
           ) : null}
 
@@ -489,6 +494,11 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     textTransform: 'uppercase',
     letterSpacing: 0.6,
+  },
+  prayerHedge: {
+    fontSize: fontSizes.xs,
+    lineHeight: fontSizes.xs * 1.4,
+    marginTop: spacing.xs,
   },
   prayerText: {
     fontSize: fontSizes.md,
