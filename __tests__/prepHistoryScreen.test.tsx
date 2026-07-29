@@ -26,8 +26,14 @@ import {translations} from '../src/i18n/translations';
 const PREP_NOTES_KEY = '@prep_notes';
 
 const mockPush = jest.fn();
+// Mutable route params — reassigned by the relevance-reranking describe
+// block below (needs a render WITH a `relevantToPassageKey` param). Read at
+// CALL time by the closure, same pattern as prepIllustrationsListScreen's
+// own `mockParams`.
+let mockParams: {relevantToPassageKey?: string} = {};
 jest.mock('expo-router', () => ({
   useRouter: () => ({push: mockPush, back: jest.fn()}),
+  useLocalSearchParams: () => mockParams,
   // Runs the focus callback synchronously, like on a real screen mount.
   useFocusEffect: (cb: () => void) => cb(),
   Stack: {Screen: () => null},
@@ -104,6 +110,7 @@ describe('PrepHistoryScreen — T8.4.1', () => {
   beforeEach(async () => {
     mockPush.mockClear();
     mockOpenOfferingSheet.mockClear();
+    mockParams = {};
     await AsyncStorage.removeItem(PREP_NOTES_KEY);
     await SecureStore.deleteItemAsync(ENTITLEMENT_CACHE_KEY);
   });
@@ -223,6 +230,40 @@ describe('PrepHistoryScreen — T8.4.1', () => {
         startVerse: '28',
         endVerse: '30',
       },
+    });
+  });
+
+  // Relevance re-ranking (the "past prep notes" half of prepRelevance.ts):
+  // opened from Mesa de preparación with the CURRENT passage's key, the list
+  // should surface the preacher's OWN past prep that shares a curated theme
+  // with that passage BEFORE an unrelated one — a pure reorder of the exact
+  // same rows the tests above already cover, not a new filter.
+  describe('relevance re-ranking (opened with relevantToPassageKey)', () => {
+    it('surfaces a past prep sharing a curated theme with the target passage first', async () => {
+      await unlockPremium();
+      await seedPrepNotes({
+        // Genesis/1/1 has no curated theme at all.
+        'Genesis/1/1': {
+          sections: {context: 'En el principio'},
+          updatedAt: 1000,
+        },
+        // Matthew/6/14 is curated under "forgiveness" — same theme as the
+        // target passage below (John/3/16 has no "forgiveness" theme, so
+        // this proves the reorder isn't just recency).
+        'Matthew/6/14': {
+          sections: {context: 'Si perdonáis a los hombres'},
+          updatedAt: 1,
+        },
+      });
+      // Ephesians/4/32 is ALSO curated under "forgiveness".
+      mockParams = {relevantToPassageKey: 'Ephesians/4/32'};
+
+      const {findAllByText} = renderScreen();
+      const rows = await findAllByText(/^(Génesis 1:1|Mateo 6:14)$/);
+      expect(rows.map(node => node.props.children)).toEqual([
+        'Mateo 6:14',
+        'Génesis 1:1',
+      ]);
     });
   });
 });

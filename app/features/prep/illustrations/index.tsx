@@ -82,7 +82,12 @@ import {
   type PrepIllustrationsMap,
 } from '@/features/study/prepIllustrations';
 import {parsePassageKey} from '@/features/study/prepHistory';
-import {formatPassageLabel, type PrepSection} from '@/features/study/prepTable';
+import {
+  buildPrepTable,
+  formatPassageLabel,
+  type PrepSection,
+} from '@/features/study/prepTable';
+import {rankIllustrationsByRelevance} from '@/features/study/prepRelevance';
 import {getPrepNotes, savePrepNote} from '@/features/study/prepNotesStore';
 import {
   borderRadius,
@@ -142,14 +147,6 @@ export default function PrepIllustrationsListScreen() {
     }, [isPremium, load]),
   );
 
-  const visible = useMemo(() => {
-    const all = listIllustrations(illustrationsMap);
-    const byCategory = filterIllustrationsByCategory(all, categoryFilter);
-    return searchIllustrations(byCategory, query);
-  }, [illustrationsMap, categoryFilter, query]);
-
-  const hasAny = Object.keys(illustrationsMap).length > 0;
-
   // Tanda 4 — "insert mode", mirroring prepSeries' own passageKey attach
   // mode: opened with `insertPassageKey` from the single-passage Mesa de
   // preparación, tapping an illustration inserts it there instead of
@@ -164,6 +161,34 @@ export default function PrepIllustrationsListScreen() {
   const insertLabel = pendingInsertPassage
     ? formatPassageLabel(pendingInsertPassage, bookLang)
     : '';
+
+  // Relevance re-ranking — ONLY when opened in insert mode with a real
+  // target passage: the theme ids that passage's own Mesa de preparación
+  // already computes (`buildPrepTable`'s `themeIds`), reused here purely to
+  // score the preacher's OWN saved illustrations by keyword relevance (see
+  // prepRelevance.ts). Pure lookup, no AI — and a no-op (browsing keeps its
+  // existing most-recently-updated order) whenever there's no target passage.
+  const targetThemeIds = useMemo(() => {
+    if (!pendingInsertPassage) return [];
+    const targetTable = buildPrepTable(
+      pendingInsertPassage.bookNameEn,
+      pendingInsertPassage.chapter,
+      pendingInsertPassage.startVerse,
+      pendingInsertPassage.endVerse,
+    );
+    return targetTable?.themeIds ?? [];
+  }, [pendingInsertPassage]);
+
+  const visible = useMemo(() => {
+    const all = listIllustrations(illustrationsMap);
+    const byCategory = filterIllustrationsByCategory(all, categoryFilter);
+    const searched = searchIllustrations(byCategory, query);
+    return targetThemeIds.length > 0
+      ? rankIllustrationsByRelevance(searched, targetThemeIds)
+      : searched;
+  }, [illustrationsMap, categoryFilter, query, targetThemeIds]);
+
+  const hasAny = Object.keys(illustrationsMap).length > 0;
 
   const handleUnlock = useCallback(() => {
     haptics.tap();

@@ -60,7 +60,11 @@ import {OfferingBadge} from '@components/ui/OfferingBadge';
 import bibleDB from '@lib/database';
 import {getBookByName} from '@/constants/bible';
 import {getBookIntro} from '@/constants/book-intros';
-import {getTheme} from '@/features/study/themes';
+import {getTheme, parseThemeRef} from '@/features/study/themes';
+import {
+  suggestPassagesForTopic,
+  type TopicPassageSuggestion,
+} from '@/features/study/prepTopicSuggest';
 import {
   christLangForVersion,
   formatChristRefLabel,
@@ -340,6 +344,18 @@ export default function PrepTableScreen() {
 
   // Modo púlpito — configurable words-per-minute for the duration estimate.
   const [pulpitWpm, setPulpitWpm] = useState(DEFAULT_WORDS_PER_MINUTE);
+
+  // Topic suggester — "I have a topic, not a passage yet" (premium). Only
+  // reachable from the EMPTY state (no passage selected), so this never
+  // touches the free, unchanged, with-a-passage experience. Pure keyword
+  // matching over the already-curated theme taxonomy — see
+  // prepTopicSuggest.ts's own docstring for the "no AI" discipline.
+  const [topicQuery, setTopicQuery] = useState('');
+  const topicSuggestions = useMemo(
+    () =>
+      topicQuery.trim().length > 0 ? suggestPassagesForTopic(topicQuery) : [],
+    [topicQuery],
+  );
 
   // T8.4.2 — "Palabras clave en el idioma original" (entirely premium).
   const [originalsStatus, setOriginalsStatus] =
@@ -728,13 +744,43 @@ export default function PrepTableScreen() {
     setRange(next);
   }, []);
 
+  // Topic suggester — open a suggested passage the SAME way history.tsx's
+  // own handleOpen does (push to this same route with book/chapter/
+  // startVerse params). `suggestPassagesForTopic` only ever returns refs
+  // that already resolve to a real canonical book, but parseThemeRef/
+  // getBookByName are still checked defensively rather than assumed.
+  const handleOpenTopicSuggestion = useCallback(
+    (suggestion: TopicPassageSuggestion) => {
+      const parsed = parseThemeRef(suggestion.ref);
+      if (!parsed) return;
+      const bookInfo = getBookByName(parsed.book);
+      if (!bookInfo) return;
+      haptics.tap();
+      router.push({
+        pathname: '/features/prep' as never,
+        params: {
+          book: bookInfo.nameEn,
+          chapter: String(parsed.chapter),
+          startVerse: String(parsed.verse),
+        },
+      });
+    },
+    [router],
+  );
+
   // T8.4.1 — the "Historial de preparaciones" entry point. Always navigates
   // (the destination screen itself shows the premium teaser for a free
-  // reader); the small leaf badge below is just a visual heads-up.
+  // reader); the small leaf badge below is just a visual heads-up. Carries
+  // the CURRENT passage's key (when one is selected) so the history list can
+  // surface the preacher's OWN past preps most relevant to it first —
+  // reorder only, mirrors handleOpenSeries' own passageKey convention below.
   const handleOpenHistory = useCallback(() => {
     haptics.tap();
-    router.push('/features/prep/history' as never);
-  }, [router]);
+    router.push({
+      pathname: '/features/prep/history' as never,
+      params: table ? {relevantToPassageKey: table.passageKey} : undefined,
+    });
+  }, [router, table]);
 
   // T8.4.4 — the "Series de predicación" entry point. Same discipline as
   // history above: always navigates, the destination gates itself for a
@@ -860,6 +906,22 @@ export default function PrepTableScreen() {
   const passageLabel = table
     ? formatPassageLabel(table, selectedVersion.language === 'es' ? 'es' : 'en')
     : '';
+  const bookLang = selectedVersion.language === 'es' ? 'es' : 'en';
+
+  // Topic suggester — a display label for a suggested ref, same language
+  // convention as `passageLabel` above ("Juan 3:16" for an 'es' reader).
+  // Falls back to the raw canonical ref on the defensive parse-miss path
+  // (kept in step with handleOpenTopicSuggestion's own guards).
+  const formatSuggestionLabel = useCallback(
+    (suggestion: TopicPassageSuggestion): string => {
+      const parsed = parseThemeRef(suggestion.ref);
+      const bookInfo = parsed ? getBookByName(parsed.book) : null;
+      if (!parsed || !bookInfo) return suggestion.ref;
+      const name = bookLang === 'es' ? bookInfo.name : bookInfo.nameEn;
+      return `${name} ${parsed.chapter}:${parsed.verse}`;
+    },
+    [bookLang],
+  );
 
   // T8.4.3 — the "Comparar versiones" card width follows the reader's
   // SELECTION count (not what a given verse happens to resolve to), so the
@@ -1362,6 +1424,81 @@ export default function PrepTableScreen() {
             <Text style={[styles.stateText, {color: colors.textSecondary}]}>
               {p.missingPassage}
             </Text>
+            {/* Topic suggester ("I have a topic, not a passage yet") — a
+                PURE addition, premium only, reachable ONLY from this empty
+                state. A free reader sees the exact same two elements above
+                as before this addition — nothing here changes that path.
+                100% offline/deterministic keyword matching against the
+                already-curated theme taxonomy; see prepTopicSuggest.ts. */}
+            {isPremium && (
+              <View style={[centeredMaxWidth(), styles.topicSuggestWrap]}>
+                <Text
+                  style={[
+                    styles.topicSuggestLabel,
+                    {color: colors.textSecondary},
+                  ]}>
+                  {p.topicSuggestLabel}
+                </Text>
+                <TextInput
+                  style={[
+                    styles.topicSuggestInput,
+                    {
+                      color: colors.text,
+                      backgroundColor: colors.card,
+                      borderColor: colors.border,
+                    },
+                  ]}
+                  value={topicQuery}
+                  onChangeText={setTopicQuery}
+                  placeholder={p.topicSuggestPlaceholder}
+                  placeholderTextColor={colors.textTertiary}
+                  returnKeyType="search"
+                  accessibilityLabel={p.topicSuggestLabel}
+                />
+                {topicSuggestions.length > 0 && (
+                  <View style={styles.topicSuggestList}>
+                    {topicSuggestions.map(suggestion => (
+                      <TouchableOpacity
+                        key={suggestion.ref}
+                        style={[
+                          styles.topicSuggestRow,
+                          {
+                            backgroundColor: colors.card,
+                            borderColor: colors.border,
+                          },
+                        ]}
+                        onPress={() => handleOpenTopicSuggestion(suggestion)}
+                        accessibilityRole="button"
+                        accessibilityLabel={formatSuggestionLabel(suggestion)}
+                        accessibilityHint={p.openHint}>
+                        <Text
+                          style={[
+                            styles.topicSuggestRefText,
+                            {color: colors.primary},
+                          ]}>
+                          {formatSuggestionLabel(suggestion)}
+                        </Text>
+                        <Ionicons
+                          name="chevron-forward"
+                          size={16}
+                          color={colors.textTertiary}
+                        />
+                      </TouchableOpacity>
+                    ))}
+                  </View>
+                )}
+                {topicQuery.trim().length > 0 &&
+                  topicSuggestions.length === 0 && (
+                    <Text
+                      style={[
+                        styles.topicSuggestEmptyText,
+                        {color: colors.textTertiary},
+                      ]}>
+                      {p.topicSuggestNoResults}
+                    </Text>
+                  )}
+              </View>
+            )}
           </View>
         )}
 
@@ -2623,5 +2760,37 @@ const styles = StyleSheet.create({
     fontSize: fontSizes.xs,
     textAlign: 'center',
     marginTop: spacing.md,
+  },
+  // Topic suggester (empty state, premium only) — see the status === 'empty'
+  // block above.
+  topicSuggestWrap: {width: '100%', marginTop: spacing.lg, gap: spacing.sm},
+  topicSuggestLabel: {
+    fontSize: fontSizes.xs,
+    fontWeight: '700',
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+    textAlign: 'center',
+  },
+  topicSuggestInput: {
+    height: 48,
+    borderRadius: borderRadius.md,
+    borderWidth: StyleSheet.hairlineWidth,
+    paddingHorizontal: spacing.md,
+    fontSize: fontSizes.md,
+  },
+  topicSuggestList: {gap: spacing.sm},
+  topicSuggestRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    borderRadius: borderRadius.md,
+    borderWidth: StyleSheet.hairlineWidth,
+    padding: spacing.md,
+  },
+  topicSuggestRefText: {fontWeight: '700', fontSize: fontSizes.md},
+  topicSuggestEmptyText: {
+    fontSize: fontSizes.sm,
+    textAlign: 'center',
+    marginTop: spacing.xs,
   },
 });

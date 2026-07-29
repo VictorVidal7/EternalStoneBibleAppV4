@@ -31,7 +31,12 @@ import {
   StyleSheet,
 } from 'react-native';
 import {AppText} from '@components/ui/AppText';
-import {Stack, useFocusEffect, useRouter} from 'expo-router';
+import {
+  Stack,
+  useFocusEffect,
+  useLocalSearchParams,
+  useRouter,
+} from 'expo-router';
 import {Ionicons} from '@expo/vector-icons';
 import {LinearGradient} from 'expo-linear-gradient';
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
@@ -46,9 +51,11 @@ import {getAllPrepNotes} from '@/features/study/prepNotesStore';
 import {
   buildPrepHistoryEntries,
   formatRelativeUpdatedAt,
+  parsePassageKey,
   type PrepHistoryEntry,
 } from '@/features/study/prepHistory';
-import {formatPassageLabel} from '@/features/study/prepTable';
+import {buildPrepTable, formatPassageLabel} from '@/features/study/prepTable';
+import {rankHistoryEntriesByRelevance} from '@/features/study/prepRelevance';
 import {searchNotes} from '@lib/notes/noteFilter';
 import {
   borderRadius,
@@ -71,6 +78,25 @@ export default function PrepHistoryScreen() {
   // Passage references follow the reading version's language, same
   // convention as the Notes tab and the prep table itself.
   const bookLang = selectedVersion.language === 'es' ? 'es' : 'en';
+
+  // Opened from the single-passage Mesa de preparación with the CURRENT
+  // passage's key (mirrors series/index.tsx's own `passageKey` param) —
+  // when present, re-ranks the preacher's OWN past preps by relevance to
+  // that passage; reorder only, never a filter (see prepRelevance.ts).
+  const params = useLocalSearchParams<{relevantToPassageKey?: string}>();
+  const relevantThemeIds = useMemo(() => {
+    const parsed = params.relevantToPassageKey
+      ? parsePassageKey(params.relevantToPassageKey)
+      : null;
+    if (!parsed) return [];
+    const table = buildPrepTable(
+      parsed.bookNameEn,
+      parsed.chapter,
+      parsed.startVerse,
+      parsed.endVerse,
+    );
+    return table?.themeIds ?? [];
+  }, [params.relevantToPassageKey]);
 
   const [status, setStatus] = useState<Status>('loading');
   const [entries, setEntries] = useState<PrepHistoryEntry[]>([]);
@@ -103,6 +129,19 @@ export default function PrepHistoryScreen() {
           `${formatPassageLabel(entry, bookLang)} ${entry.searchableText}`,
       ),
     [entries, query, bookLang],
+  );
+
+  // Re-rank AFTER search/filter, so a reader searching for something
+  // specific still sees exactly the matches (just reordered), never a
+  // different set. A no-op (keeps the existing most-recently-edited order)
+  // when there's no target passage — same discipline as the illustrations
+  // bank's own reranking above.
+  const ranked = useMemo(
+    () =>
+      relevantThemeIds.length > 0
+        ? rankHistoryEntriesByRelevance(filtered, relevantThemeIds)
+        : filtered,
+    [filtered, relevantThemeIds],
   );
 
   const handleOpen = useCallback(
@@ -245,7 +284,7 @@ export default function PrepHistoryScreen() {
             )}
 
             <FlatList
-              data={filtered}
+              data={ranked}
               keyExtractor={item => item.passageKey}
               contentContainerStyle={[styles.listContent, centeredMaxWidth()]}
               keyboardShouldPersistTaps="handled"
