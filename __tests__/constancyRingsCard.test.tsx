@@ -10,6 +10,7 @@ import {
   type ConstancySummary,
 } from '../src/lib/home/constancyRings';
 import {translations} from '../src/i18n/translations';
+import {haptics} from '../src/lib/haptics';
 
 const mockColors = {
   text: '#0f172a',
@@ -38,7 +39,7 @@ jest.mock('../src/hooks/useLanguage', () => ({
 }));
 
 jest.mock('../src/lib/haptics', () => ({
-  haptics: {tap: jest.fn(), press: jest.fn()},
+  haptics: {tap: jest.fn(), press: jest.fn(), success: jest.fn()},
 }));
 
 jest.mock('../src/hooks/useConstancyRings', () => ({
@@ -123,5 +124,58 @@ describe('ConstancyRingsCard', () => {
       ),
     );
     expect(onHabitPress).toHaveBeenCalledWith('memory');
+  });
+
+  describe('reading-goal-complete pulse (make-app-feel-alive backlog)', () => {
+    const notDoneSummary = buildConstancySummary([
+      {key: 'reading', done: false, fraction: 0.5, streak: 0, everDone: true},
+    ]);
+    const doneSummary = buildConstancySummary([
+      {key: 'reading', done: true, fraction: 1, streak: 1, everDone: true},
+    ]);
+
+    beforeEach(() => {
+      (haptics.success as jest.Mock).mockClear();
+    });
+
+    it('fires the haptic exactly once on the not-done → done transition, and not again while it stays done', () => {
+      mockState = {loaded: true, summary: notDoneSummary, hasHistory: true};
+      const {rerender} = render(
+        <ConstancyRingsCard onPress={jest.fn()} onHabitPress={jest.fn()} />,
+      );
+      expect(haptics.success).not.toHaveBeenCalled();
+
+      // The reading ring closes (e.g. Home regains focus after the reader
+      // pushed today's verse count over the goal).
+      mockState = {loaded: true, summary: doneSummary, hasHistory: true};
+      rerender(
+        <ConstancyRingsCard onPress={jest.fn()} onHabitPress={jest.fn()} />,
+      );
+      expect(haptics.success).toHaveBeenCalledTimes(1);
+
+      // Another focus reload while still done today (e.g. switching tabs and
+      // back) — a genuinely NEW summary object (mirroring the hook returning
+      // a freshly-recomputed one each reload), still `done: true` — must NOT
+      // re-fire.
+      mockState = {
+        loaded: true,
+        summary: buildConstancySummary([
+          {key: 'reading', done: true, fraction: 1, streak: 1, everDone: true},
+        ]),
+        hasHistory: true,
+      };
+      rerender(
+        <ConstancyRingsCard onPress={jest.fn()} onHabitPress={jest.fn()} />,
+      );
+      expect(haptics.success).toHaveBeenCalledTimes(1);
+    });
+
+    it('does not fire when the goal is already done on first mount (reopening the app later today)', () => {
+      mockState = {loaded: true, summary: doneSummary, hasHistory: true};
+      render(
+        <ConstancyRingsCard onPress={jest.fn()} onHabitPress={jest.fn()} />,
+      );
+      expect(haptics.success).not.toHaveBeenCalled();
+    });
   });
 });
