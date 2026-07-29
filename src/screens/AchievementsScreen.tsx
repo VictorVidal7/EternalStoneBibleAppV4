@@ -157,7 +157,9 @@ const AnimatedAchievementCard: React.FC<AnimatedAchievementCardProps> = ({
         <AchievementCard
           achievement={achievement}
           unlocked={achievement.isUnlocked}
-          progress={(achievement.currentProgress / achievement.requirement) * 100}
+          progress={
+            (achievement.currentProgress / achievement.requirement) * 100
+          }
         />
       </TouchableOpacity>
     </Animated.View>
