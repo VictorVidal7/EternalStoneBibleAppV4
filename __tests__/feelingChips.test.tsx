@@ -7,9 +7,11 @@
  */
 import React from 'react';
 import {render, fireEvent} from '@testing-library/react-native';
+import {StyleSheet} from 'react-native';
 import {FeelingChips} from '../src/components/FeelingChips';
 import {FEELINGS} from '../src/features/study/feelings';
 import {translations} from '../src/i18n/translations';
+import {FEELING_CHIP_WIDTH} from '../src/styles/designTokens';
 
 jest.mock('@expo/vector-icons', () => ({
   Ionicons: () => null,
@@ -70,5 +72,35 @@ describe('FeelingChips', () => {
     );
     fireEvent.press(getByText('Ver todos'));
     expect(onOpenAll).toHaveBeenCalledTimes(1);
+  });
+
+  it('gives every chip the SAME fixed width, short label or long', () => {
+    // "Solo" (lonely) is one of the shortest labels; "Esperando en Dios"
+    // (waiting) is the longest of the 18 feelings.list entries. A `minWidth`
+    // floor would let the long one grow past the short one's box — this
+    // pins the fixed-`width` fix instead.
+    const {getByLabelText} = render(
+      <FeelingChips onOpenFeeling={jest.fn()} onOpenAll={jest.fn()} />,
+    );
+    const shortChip = StyleSheet.flatten(getByLabelText('Solo').props.style);
+    const longChip = StyleSheet.flatten(
+      getByLabelText('Esperando en Dios').props.style,
+    );
+    expect(shortChip.width).toBe(FEELING_CHIP_WIDTH);
+    expect(longChip.width).toBe(FEELING_CHIP_WIDTH);
+    expect(shortChip.width).toBe(longChip.width);
+    // minWidth's floor is gone — width is the sole sizing contract now.
+    expect(shortChip.minWidth).toBeUndefined();
+  });
+
+  it('gives the trailing "Ver todos" chip the same fixed width as a feeling chip', () => {
+    const {getByLabelText} = render(
+      <FeelingChips onOpenFeeling={jest.fn()} onOpenAll={jest.fn()} />,
+    );
+    const feelingChip = StyleSheet.flatten(getByLabelText('Solo').props.style);
+    const seeAllChip = StyleSheet.flatten(
+      getByLabelText('Ver todos').props.style,
+    );
+    expect(seeAllChip.width).toBe(feelingChip.width);
   });
 });

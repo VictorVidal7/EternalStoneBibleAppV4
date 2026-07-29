@@ -22,6 +22,7 @@ import {
   borderRadius,
   fontSize as fontSizes,
   spacing,
+  FEELING_CHIP_WIDTH,
 } from '@/styles/designTokens';
 
 interface FeelingChipsProps {
@@ -118,18 +119,26 @@ const styles = StyleSheet.create({
     gap: spacing.sm,
     paddingRight: spacing.lg,
   },
+  // width (not minWidth) — see FEELING_CHIP_WIDTH's doc comment: a floor
+  // alone lets long labels ("Esperando en Dios") grow past it while short
+  // ones ("Solo") sit at the floor, so chips end up visibly uneven widths.
   chip: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     gap: 6,
-    minWidth: 92,
+    width: FEELING_CHIP_WIDTH,
     borderRadius: borderRadius.full,
     borderWidth: 1,
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.xs + 2,
   },
   chipText: {
+    // flexShrink lets the label wrap to fit the fixed chip width instead of
+    // overflowing it (RN text doesn't wrap in a row without it); textAlign
+    // keeps short, single-line labels centered like before.
+    flexShrink: 1,
+    textAlign: 'center',
     fontSize: fontSizes.sm,
     fontWeight: '600',
   },
