@@ -65,6 +65,7 @@ import {MemoryDeckProvider} from '@context/MemoryDeckContext';
 import {AuthProvider} from '@context/AuthContext';
 import {SyncEngineProvider} from '@context/SyncEngineContext';
 import {useOnboarding} from '@hooks/useOnboarding';
+import {useReducedMotion} from '@hooks/useReducedMotion';
 import {OnboardingScreen} from '@components/onboarding/OnboardingScreen';
 import bibleDB from '@lib/database';
 import {logger} from '@lib/utils/logger';
@@ -97,6 +98,36 @@ import {
 import {PropheticReminderRouter} from '@/components/PropheticReminderRouter';
 import {ErrorBoundary} from '@/components/ErrorBoundary';
 import {initialize as initializeOffering} from '@lib/offering/offeringService';
+
+// The root native-stack — (tabs) plus every `app/features/*` route pushed on
+// top of it (Expo Router auto-registers those from the file system; this is
+// the ONLY explicit `<Stack.Screen>` because the rest inherit `screenOptions`
+// below). "Alive but calm" backlog item: give screen-to-screen pushes an
+// intentional, consistent transition instead of leaving `animation`
+// unconfigured. `slide_from_right` is a no-op on iOS (native-stack already
+// resolves the platform "default" to a slide-from-right push there — see
+// react-navigation's own docs on the `animation` prop), so this only changes
+// Android, making its push transition match iOS instead of drifting across
+// OEM skins/OS versions. `useReducedMotion()` lives in this small child
+// component — not in `AppContent` itself — so it only mounts once onboarding
+// has resolved and the real navigator renders; `__tests__/_layout.test.tsx`
+// renders `<AppContent />` directly with onboarding left `null` on purpose
+// and does not mock `useAccessibilityPreferences`, so keeping the hook out of
+// `AppContent`'s unconditional render path preserves that test's bare-mount
+// contract.
+function RootStack() {
+  const reduceMotion = useReducedMotion();
+
+  return (
+    <Stack
+      screenOptions={{
+        headerShown: false,
+        animation: reduceMotion ? 'none' : 'slide_from_right',
+      }}>
+      <Stack.Screen name="(tabs)" />
+    </Stack>
+  );
+}
 
 // Exported (in addition to the default `RootLayout`) so tests can mount just
 // this component's init logic without standing up every ancestor provider —
@@ -284,12 +315,7 @@ export function AppContent() {
 
   return (
     <>
-      <Stack
-        screenOptions={{
-          headerShown: false,
-        }}>
-        <Stack.Screen name="(tabs)" />
-      </Stack>
+      <RootStack />
       {/* Celebrates freshly-earned achievements app-wide. Inert until
           ServicesContext.notifyAchievements is called (Sprint 64 wired it — the
           modal was previously a no-op because setNewAchievements was never

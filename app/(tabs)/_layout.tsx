@@ -27,6 +27,17 @@ export default function TabLayout() {
       // the journey between them is tracked here.
       backBehavior="history"
       screenOptions={{
+        // "Alive but calm" backlog item: this stays 'none' (bottom-tabs'
+        // own default) — an explicit, intentional choice rather than an
+        // unconfigured one. Most of the app's reading flow (Bible → chapter
+        // → verse → study) lives inside this Tabs navigator as hidden
+        // (`href: null`) tab screens, not stack pushes, so a fade/shift here
+        // would fire on nearly every navigation in the reader — layered on
+        // top of `backBehavior="history"`, that reads as busy rather than
+        // calm. See the root Stack in `app/_layout.tsx` for the deliberate
+        // slide-from-right transition used on actual screen-to-screen pushes
+        // (Home/Bible → `app/features/*`).
+        animation: 'none',
         tabBarActiveTintColor: colors.primary,
         tabBarInactiveTintColor: colors.textTertiary,
         tabBarStyle: {
