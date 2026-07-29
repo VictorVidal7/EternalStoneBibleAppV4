@@ -81,7 +81,13 @@ const ProgressCircle: React.FC<ProgressCircleProps> = ({
       Animated.timing(animatedProgress, {
         toValue: progress,
         duration: animationDuration,
-        useNativeDriver: true, // Usar native driver para mejor performance
+        // `strokeDashoffset` es un prop de forma SVG, no transform/opacity —
+        // no puede ir por el native driver (react-native-svg lo aplica en el
+        // hilo JS de todos modos). `true` aquí no siempre da error, pero
+        // revienta bajo react-test-renderer (no hay vista nativa real a la
+        // que engancharse) y en el dispositivo real es silenciosamente
+        // incorrecto también.
+        useNativeDriver: false,
       }).start();
     } else {
       animatedProgress.setValue(progress);

@@ -90,7 +90,12 @@ export const SVGCircularProgress: React.FC<SVGCircularProgressProps> = ({
       Animated.timing(animatedValue, {
         toValue: clampedProgress,
         duration,
-        useNativeDriver: true,
+        // `strokeDashoffset` is an SVG shape prop, not transform/opacity —
+        // it can't ride the native driver (react-native-svg patches it on
+        // the JS thread regardless of this flag). `true` here doesn't
+        // error on its own, but throws under react-test-renderer (no real
+        // native view to attach to) and is silently wrong on-device too.
+        useNativeDriver: false,
       }).start();
     } else {
       animatedValue.setValue(clampedProgress);
