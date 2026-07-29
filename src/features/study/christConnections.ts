@@ -345,6 +345,29 @@ export function christLangForVersion(
   return v?.language === 'es' ? 'es' : 'en';
 }
 
+/**
+ * Like {@link christLangForVersion}, but for callers where a missing/
+ * unrecognized version id must NOT silently default to English. That default
+ * is fine for the "Christ in this passage" card (English is a safe neutral
+ * fallback when we truly don't know the version), but it's the wrong choice
+ * for book-name localization in a Spanish-first app: an unmatched `versionId`
+ * (empty param, stale deep link) would otherwise render English book names
+ * even for a Spanish-reading user. Falls back to `uiLanguage` — the app's own
+ * interface language — instead of a hard 'en' when the version id isn't a
+ * known {@link BIBLE_VERSIONS} entry. This is what the word-study screen's
+ * "Última aparición" field should use (it was found showing an English book
+ * name, e.g. "Isaiah" instead of "Isaías", when reached with no/unknown
+ * version id — not an isolated bug in that one field, but this shared
+ * fallback silently resolving to English for the WHOLE screen).
+ */
+export function bookLangForVersion(
+  versionId: string | null | undefined,
+  uiLanguage: 'es' | 'en',
+): 'es' | 'en' {
+  const known = BIBLE_VERSIONS.some(v => v.id === versionId);
+  return known ? christLangForVersion(versionId) : uiLanguage;
+}
+
 /** The display abbreviation for a Bible version id, or '' if unknown. */
 export function versionAbbrev(versionId: string | null | undefined): string {
   return BIBLE_VERSIONS.find(x => x.id === versionId)?.abbreviation ?? '';
