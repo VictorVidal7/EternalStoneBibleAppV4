@@ -11,6 +11,7 @@ import {
   Platform,
   NativeSyntheticEvent,
   NativeScrollEvent,
+  Animated,
 } from 'react-native';
 import {useState, useEffect, useRef, useMemo, useCallback} from 'react';
 import {
@@ -43,6 +44,7 @@ import {useTheme} from '@hooks/useTheme';
 import {useBibleVersion} from '@hooks/useBibleVersion';
 import {useLanguage} from '@hooks/useLanguage';
 import {useBackHandlerStep} from '@hooks/useBackHandlerStep';
+import {useReducedMotion} from '@hooks/useReducedMotion';
 import {useServices} from '@context/ServicesContext';
 import {useToast} from '@context/ToastContext';
 import {useFavorites} from '@context/FavoritesContext';
@@ -394,6 +396,19 @@ export default function VerseReadingScreen() {
   const [arrivalFocusVerse, setArrivalFocusVerse] = useState<number | null>(
     null,
   );
+  // Honors the OS/app "reduce motion" setting for the arrival pulse below —
+  // when on, the target verse keeps its existing static highlight tint (see
+  // `isHighlighted` in the render loop) but skips the animated flash.
+  const reduceMotion = useReducedMotion();
+  // Brief "you arrived here" flash (make-the-app-feel-alive backlog item):
+  // a soft tint pulse layered OVER the existing static `isHighlighted`
+  // background, fading in then out once when the reader lands on a verse
+  // via a PROGRAMMATIC jump (search, cross-reference, "Seguir el hilo",
+  // deep link) — see the trigger next to the arrival `scrollTo` call in
+  // `loadChapter` below. One shared value is enough: only one verse can be
+  // `isHighlighted` at a time. Does not touch scroll position math at all
+  // (`lastScrollYRef`/`verseOffsetsRef`) — purely a visual layer on top.
+  const arrivalPulseAnim = useRef(new Animated.Value(0)).current;
   // Original-word chip (Ficha #13): arriving from word-study's "first/last
   // appearance" (or any occurrence row) with `?strongs=` tells the user
   // WHICH original word to look for, since RVR1960 carries no word-for-word
@@ -969,6 +984,32 @@ export default function VerseReadingScreen() {
                 y: Math.max(offset - 120, 0),
                 animated: true,
               });
+              // Arrival pulse (see `arrivalPulseAnim` above). The `scrollTo`
+              // above is itself animated and takes a couple hundred ms to
+              // settle, so starting the pulse's decay immediately (as a
+              // first attempt here did) finished the flash before the verse
+              // was even on screen for any real-distance jump. Instead: wait
+              // out roughly the scroll's settle time, then a short ramp-in
+              // (so the flash itself reads as a fade, not a hard on-edge)
+              // followed by a slightly longer fade-out. Skipped entirely
+              // under reduced motion — the static `isHighlighted` tint alone
+              // still marks the destination verse instantly.
+              if (!reduceMotion) {
+                arrivalPulseAnim.setValue(0);
+                Animated.sequence([
+                  Animated.delay(220),
+                  Animated.timing(arrivalPulseAnim, {
+                    toValue: 1,
+                    duration: 140,
+                    useNativeDriver: true,
+                  }),
+                  Animated.timing(arrivalPulseAnim, {
+                    toValue: 0,
+                    duration: 340,
+                    useNativeDriver: true,
+                  }),
+                ]).start();
+              }
             } else if (attempts < 10) {
               attempts += 1;
               setTimeout(tryScroll, 120);
@@ -2581,6 +2622,32 @@ export default function VerseReadingScreen() {
                       ),
                     },
                   ]}>
+                  {isHighlighted && !reduceMotion ? (
+                    // "You arrived here" flash (see `arrivalPulseAnim`
+                    // above) — a one-shot pulse layered OVER the static
+                    // isHighlighted tint set on this row's own `style`
+                    // above, not a replacement for it. Peak opacity is
+                    // capped well below solid (~22%, close to the 15%/10%
+                    // alpha tints already used for isSelected/isHighlighted
+                    // elsewhere in this file) so it reads as a quiet settle,
+                    // not a flash. Absolutely positioned +
+                    // `pointerEvents="none"` so it never affects layout or
+                    // taps; purely decorative.
+                    <Animated.View
+                      pointerEvents="none"
+                      style={[
+                        StyleSheet.absoluteFillObject,
+                        styles.verseArrivalPulse,
+                        {
+                          backgroundColor: effectiveColors.primary,
+                          opacity: arrivalPulseAnim.interpolate({
+                            inputRange: [0, 1],
+                            outputRange: [0, 0.22],
+                          }),
+                        },
+                      ]}
+                    />
+                  ) : null}
                   <View
                     style={[
                       styles.verseContent,
@@ -3628,6 +3695,12 @@ const styles = StyleSheet.create({
     backgroundColor: staticColors.brandBlueTint10,
     borderLeftWidth: 3,
     borderLeftColor: staticColors.brandBlue,
+  },
+  // Overlay for the one-shot "arrived here" flash (see `arrivalPulseAnim`
+  // in the component) — matches `verseItem`'s own corner radius so it reads
+  // as part of the row, not a separate box.
+  verseArrivalPulse: {
+    borderRadius: borderRadius.md,
   },
   verseBeingRead: {
     backgroundColor: staticColors.goldTint08,
