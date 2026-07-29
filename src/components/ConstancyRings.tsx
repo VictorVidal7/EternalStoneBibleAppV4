@@ -7,19 +7,36 @@
  * render-testable and reusable: the share image (S85 T4) re-uses the same
  * {@link ConstancyRingsGraphic} over a gradient.
  *
- * The graphic is intentionally STATIC (no entrance animation) so it captures
- * cleanly into the share image and renders identically in tests.
+ * The graphic defaults to STATIC (no animation) so it still captures cleanly
+ * into the share image and renders identically in tests — [[ConstancyImageModal]]
+ * never passes `animated`. The interactive Home card below (`ConstancyRings`)
+ * opts in via `animated`, which eases each ring's `strokeDashoffset` toward its
+ * new fraction instead of snapping, so a habit finishing today (streak review,
+ * last verse, devotion, mood check-in) visibly "closes" the ring rather than
+ * jump-cutting to the closed state (the "make the app feel alive" backlog).
+ * Mirrors [[SVGCircularProgress]]'s existing RN-`Animated` strokeDashoffset
+ * tween — the established pattern for this exact widget in this codebase —
+ * plus [[useReducedMotion]] so the tween is skipped entirely when the OS/app
+ * asks for reduced motion.
  *
  * Para la gloria de Dios Todopoderoso ✨
  */
 
-import React from 'react';
-import {View, StyleSheet, TouchableOpacity, type ViewStyle} from 'react-native';
+import React, {useEffect, useRef} from 'react';
+import {
+  Animated,
+  Easing,
+  View,
+  StyleSheet,
+  TouchableOpacity,
+  type ViewStyle,
+} from 'react-native';
 import Svg, {Circle} from 'react-native-svg';
 import {Ionicons} from '@expo/vector-icons';
 import {AppText} from '@components/ui/AppText';
 import {useTheme} from '@hooks/useTheme';
 import {useLanguage} from '@hooks/useLanguage';
+import {useReducedMotion} from '@hooks/useReducedMotion';
 import {haptics} from '@lib/haptics';
 import {
   HABIT_ORDER,
@@ -32,12 +49,20 @@ import {
   type HabitKey,
   type RingState,
 } from '@lib/home/constancyRings';
+import {DURATIONS} from '@/styles/reanimatedAnimations';
 import {
   borderRadius,
   fontSize as fontSizes,
   spacing,
   staticColors,
 } from '@/styles/designTokens';
+
+// Animated Circle component (RN `Animated`, not Reanimated — matches the
+// existing SVGCircularProgress/ProgressCircle convention for this widget).
+const AnimatedCircle = Animated.createAnimatedComponent(Circle);
+
+/** Ring-closing tween duration — a deliberate ease, not an instant snap. */
+const RING_CLOSE_DURATION_MS = DURATIONS.smooth;
 
 /** Ionicon per habit for the legend (the rings themselves are color-coded). */
 export const HABIT_ICONS: Record<HabitKey, keyof typeof Ionicons.glyphMap> = {
@@ -55,6 +80,77 @@ const RING_GAP = 5;
 // row gap below so adjacent hit areas meet without overlapping.
 const LEGEND_ROW_HIT_SLOP = {top: 6, bottom: 6, left: 4, right: 4};
 
+interface AnimatedRingArcProps {
+  center: number;
+  radius: number;
+  strokeWidth: number;
+  circumference: number;
+  color: string;
+  /** Target fraction, already clamped (see {@link displayFraction}), 0..1. */
+  fraction: number;
+}
+
+/**
+ * The animated version of a single ring's progress arc — Home only (see the
+ * class doc above). Starts already AT its current fraction so there is no
+ * entrance animation on first mount (matching the other high-visibility
+ * motion sites [[useReducedMotion]] lists); only SUBSEQUENT changes — a
+ * review completed, a chapter finished, coming back from another screen —
+ * ease the stroke toward the new value, which is what reads as the ring
+ * visibly "closing" its last open segment instead of snapping shut.
+ */
+const AnimatedRingArc: React.FC<AnimatedRingArcProps> = ({
+  center,
+  radius,
+  strokeWidth,
+  circumference,
+  color,
+  fraction,
+}) => {
+  const reduced = useReducedMotion();
+  const animatedFraction = useRef(new Animated.Value(fraction)).current;
+
+  useEffect(() => {
+    if (reduced) {
+      // Reduced motion: land on the final state instantly, no tween.
+      animatedFraction.setValue(fraction);
+      return;
+    }
+    Animated.timing(animatedFraction, {
+      toValue: fraction,
+      duration: RING_CLOSE_DURATION_MS,
+      easing: Easing.out(Easing.cubic),
+      // `strokeDashoffset` is an SVG shape prop, not transform/opacity, so it
+      // can't ride the native driver (react-native-svg patches it on the JS
+      // thread either way). Four small rings tweening only on a data change
+      // — not continuously — so the JS-thread cost here is negligible.
+      useNativeDriver: false,
+    }).start();
+  }, [fraction, reduced, animatedFraction]);
+
+  const strokeDashoffset = animatedFraction.interpolate({
+    inputRange: [0, 1],
+    outputRange: [circumference, 0],
+    extrapolate: 'clamp',
+  });
+
+  return (
+    <AnimatedCircle
+      cx={center}
+      cy={center}
+      r={radius}
+      stroke={color}
+      strokeWidth={strokeWidth}
+      fill="none"
+      strokeDasharray={circumference}
+      strokeDashoffset={strokeDashoffset}
+      strokeLinecap="round"
+      rotation="-90"
+      origin={`${center}, ${center}`}
+    />
+  );
+};
+
 interface GraphicProps {
   rings: RingState[];
   /** Square px size of the graphic (default 150). */
@@ -68,6 +164,10 @@ interface GraphicProps {
   /** Center overlay (a number, a check…). */
   children?: React.ReactNode;
   style?: ViewStyle;
+  /** Ease fraction changes instead of snapping (the ring "closing" motion).
+   *  Home opts in; [[ConstancyImageModal]] deliberately does NOT, so the
+   *  share-image capture and the render tests stay static/deterministic. */
+  animated?: boolean;
 }
 
 /**
@@ -84,6 +184,7 @@ export const ConstancyRingsGraphic: React.FC<GraphicProps> = ({
   colorFor,
   children,
   style,
+  animated = false,
 }) => {
   const center = size / 2;
   return (
@@ -105,22 +206,33 @@ export const ConstancyRingsGraphic: React.FC<GraphicProps> = ({
                 strokeWidth={strokeWidth}
                 fill="none"
               />
-              <Circle
-                cx={center}
-                cy={center}
-                r={radius}
-                stroke={color}
-                strokeWidth={strokeWidth}
-                fill="none"
-                strokeDasharray={circumference}
-                strokeDashoffset={ringDashoffset(
-                  circumference,
-                  displayFraction(ring),
-                )}
-                strokeLinecap="round"
-                rotation="-90"
-                origin={`${center}, ${center}`}
-              />
+              {animated ? (
+                <AnimatedRingArc
+                  center={center}
+                  radius={radius}
+                  strokeWidth={strokeWidth}
+                  circumference={circumference}
+                  color={color}
+                  fraction={displayFraction(ring)}
+                />
+              ) : (
+                <Circle
+                  cx={center}
+                  cy={center}
+                  r={radius}
+                  stroke={color}
+                  strokeWidth={strokeWidth}
+                  fill="none"
+                  strokeDasharray={circumference}
+                  strokeDashoffset={ringDashoffset(
+                    circumference,
+                    displayFraction(ring),
+                  )}
+                  strokeLinecap="round"
+                  rotation="-90"
+                  origin={`${center}, ${center}`}
+                />
+              )}
             </React.Fragment>
           );
         })}
@@ -241,7 +353,10 @@ export const ConstancyRings: React.FC<ConstancyRingsProps> = ({
           // touch users can still tap the graphic directly.
           accessible={false}
           importantForAccessibility="no-hide-descendants">
-          <ConstancyRingsGraphic rings={summary.rings} trackColor={trackColor}>
+          <ConstancyRingsGraphic
+            rings={summary.rings}
+            trackColor={trackColor}
+            animated>
             {summary.allClosed ? (
               <Ionicons name="checkmark" size={34} color={colors.primary} />
             ) : (
