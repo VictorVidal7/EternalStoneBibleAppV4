@@ -189,6 +189,17 @@ const REFERENCE_ENTRY = {
 
 const mockGetDictionaryEntry = jest.fn();
 const mockGetDictionaryMultiviewSections = jest.fn();
+// "Ver también" (RELATED_DICTIONARY_SLUGS-driven) resolves related headwords
+// through this same query whenever the loaded entry has related slugs —
+// defaults to empty so every pre-existing test in this file (most of which
+// use `bautismo`, which DOES have a related slug) keeps rendering exactly
+// what it did before that feature existed. Tests that actually exercise
+// "Ver también" below override this per-call.
+const mockGetAllDictionaryEntries = jest.fn(
+  async (): Promise<
+    {slug: string; headword_es: string; gloss_es: string}[]
+  > => [],
+);
 jest.mock('@lib/database', () => ({
   __esModule: true,
   default: {
@@ -196,6 +207,7 @@ jest.mock('@lib/database', () => ({
     getDictionaryEntry: (...args: unknown[]) => mockGetDictionaryEntry(...args),
     getDictionaryMultiviewSections: (...args: unknown[]) =>
       mockGetDictionaryMultiviewSections(...args),
+    getAllDictionaryEntries: () => mockGetAllDictionaryEntries(),
   },
 }));
 
@@ -206,6 +218,7 @@ describe('DictionaryDetailScreen — multi-view branch (Bautismo, Milenio)', () 
     mockOpenOfferingSheet.mockClear();
     mockGetDictionaryEntry.mockReset();
     mockGetDictionaryMultiviewSections.mockReset();
+    mockGetAllDictionaryEntries.mockReset().mockResolvedValue([]);
     mockIonicons.mockClear();
     mockPush.mockClear();
     mockBack.mockClear();
@@ -506,5 +519,81 @@ describe('DictionaryDetailScreen — multi-view branch (Bautismo, Milenio)', () 
       await findByText('El bautismo es el rito de iniciación cristiana.'),
     ).toBeTruthy();
     expect(mockPush).not.toHaveBeenCalled();
+  });
+
+  // "Ver también" (RELATED_DICTIONARY_SLUGS) — additive navigation, always
+  // free (rendered regardless of `isPremium`).
+  it('"Ver también" renders the related entry and navigates to it on tap', async () => {
+    mockGetDictionaryEntry.mockResolvedValue(BAUTISMO_ENTRY);
+    mockGetDictionaryMultiviewSections.mockResolvedValue([]);
+    mockGetAllDictionaryEntries.mockResolvedValue([
+      {
+        slug: 'espiritu-santo',
+        headword_es: 'ESPÍRITU SANTO',
+        gloss_es: 'El Espíritu Santo es Dios mismo.',
+      },
+      // A third, unrelated entry confirms the section only lists the slugs
+      // named in RELATED_DICTIONARY_SLUGS, not every bundled entry.
+      {
+        slug: 'sanedrin',
+        headword_es: 'SANEDRÍN',
+        gloss_es: 'El Sanedrín era el tribunal supremo.',
+      },
+    ]);
+
+    const {findByText, queryByText} = render(<DictionaryDetailScreen />);
+    const relatedLink = await findByText('Espíritu santo');
+    expect(queryByText('Sanedrín')).toBeNull();
+
+    fireEvent.press(relatedLink);
+    expect(mockPush).toHaveBeenCalledWith(
+      '/features/dictionary/espiritu-santo',
+    );
+  });
+
+  it('renders no "Ver también" section for an entry with no related slugs', async () => {
+    mockGetDictionaryEntry.mockResolvedValue(ANNOTATED_ENTRY); // expiacion
+    mockGetDictionaryMultiviewSections.mockResolvedValue([]);
+
+    const {findByText} = render(<DictionaryDetailScreen />);
+    await findByText('La expiación es la obra de Cristo.');
+    expect(mockGetAllDictionaryEntries).not.toHaveBeenCalled();
+    expect(translations.es.dictionary.relatedLabel).toBe('Ver también');
+  });
+
+  // Nave's Topical Bible cross-reference panel — allow-listed to exactly 6
+  // slugs (`NAVES_ALLOWLIST` in dictionaryNaves.ts); always free, same as
+  // "Ver también". `nazaret` is one of the 6 and uses the 'annotated'
+  // treatment, same shape as REFERENCE_ENTRY above.
+  it("renders the Nave's Topical Bible panel for an allow-listed entry", async () => {
+    mockSlug = 'nazaret';
+    mockGetDictionaryEntry.mockResolvedValue({
+      slug: 'nazaret',
+      headword_es: 'NAZARET',
+      gloss_es: 'Nazaret era un pequeño pueblo de Galilea.',
+      article_es: null,
+      source_tier: 'v1-factual',
+      treatment: 'annotated',
+      updated_at: '2026-07-18',
+    });
+    mockGetDictionaryMultiviewSections.mockResolvedValue([]);
+
+    const {findByText} = render(<DictionaryDetailScreen />);
+    await findByText('Nazaret era un pequeño pueblo de Galilea.');
+    expect(await findByText('José y María viven allí')).toBeTruthy();
+    // A citation from the panel is independently tappable, same recognizer
+    // as the gloss/article body.
+    const citation = await findByText('Mateo 2:23');
+    fireEvent.press(citation);
+    expect(mockPush).toHaveBeenCalledWith('/verse/Mateo/2?verse=23');
+  });
+
+  it("renders no Nave's panel for an entry outside the allow-list", async () => {
+    mockGetDictionaryEntry.mockResolvedValue(BAUTISMO_ENTRY);
+    mockGetDictionaryMultiviewSections.mockResolvedValue([]);
+
+    const {findByText, queryByText} = render(<DictionaryDetailScreen />);
+    await findByText('El bautismo es el rito de iniciación cristiana.');
+    expect(queryByText(translations.es.dictionary.navesLabel)).toBeNull();
   });
 });

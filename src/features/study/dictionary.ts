@@ -95,3 +95,65 @@ export function parseMarkdownSegments(text: string): MarkdownSegment[] {
       return {text: part, style: 'plain' as const};
     });
 }
+
+/**
+ * "Ver también" related-entry map — a small, static, DATA-DRIVEN list of
+ * genuinely related sibling slugs per dictionary entry. Purely additive
+ * navigation, never new prose: every pair below is justified either by the
+ * entries' OWN existing gloss text explicitly discussing or naming the
+ * other entry —
+ *   - sabado ↔ jornada-sabado: jornada-sabado's whole entry is about a
+ *     sabbath-observance rule.
+ *   - sabado ↔ creacion: sabado's gloss cites "los seis días de la
+ *     creación" as the reason for sabbath rest.
+ *   - aaron ↔ tabernaculo: aaron's gloss describes his priestly ministry
+ *     "en el tabernáculo".
+ *   - josue ↔ jerico: jerico's gloss credits its conquest to "el mando de
+ *     Josué".
+ *   - nazaret ↔ galilea: nazaret's gloss locates it "en las colinas de
+ *     Galilea".
+ *   - nazaret ↔ sinagoga: sinagoga's gloss names Nazaret specifically as
+ *     the site of Jesus's synagogue reading (Lc 4:16-21).
+ *   - bautismo ↔ espiritu-santo: espiritu-santo's gloss explicitly
+ *     discusses how traditions relate the Spirit's work "con el bautismo".
+ *   - milenio ↔ reino-de-dios: milenio's gloss defines itself in terms of
+ *     "el reino de Dios".
+ *   - predestinacion ↔ salvacion: predestinacion's gloss is specifically
+ *     about God determining "la salvación del creyente".
+ * — or, for nazaret ↔ belen only, the well-established, uncontroversial
+ * biblical fact that they're Jesus's birthplace and childhood hometown
+ * (the one pair here with no in-gloss cross-reference, called out
+ * separately since it's thematic rather than textual).
+ *
+ * Kept intentionally small: an entry not listed here simply gets no "Ver
+ * también" section, rather than a forced/loose link. Symmetric by
+ * construction (see the `related-slugs are symmetric` test).
+ */
+export const RELATED_DICTIONARY_SLUGS: Readonly<
+  Record<string, readonly string[]>
+> = {
+  sabado: ['jornada-sabado', 'creacion'],
+  'jornada-sabado': ['sabado'],
+  creacion: ['sabado'],
+  aaron: ['tabernaculo'],
+  tabernaculo: ['aaron'],
+  josue: ['jerico'],
+  jerico: ['josue'],
+  nazaret: ['belen', 'galilea', 'sinagoga'],
+  belen: ['nazaret'],
+  galilea: ['nazaret'],
+  sinagoga: ['nazaret'],
+  bautismo: ['espiritu-santo'],
+  'espiritu-santo': ['bautismo'],
+  milenio: ['reino-de-dios'],
+  'reino-de-dios': ['milenio'],
+  predestinacion: ['salvacion'],
+  salvacion: ['predestinacion'],
+};
+
+/** Related sibling slugs for a dictionary entry's "Ver también" section, or
+ *  an empty array when the entry has none listed. Never throws on an
+ *  unknown slug. */
+export function getRelatedSlugs(slug: string): readonly string[] {
+  return RELATED_DICTIONARY_SLUGS[slug] ?? [];
+}
