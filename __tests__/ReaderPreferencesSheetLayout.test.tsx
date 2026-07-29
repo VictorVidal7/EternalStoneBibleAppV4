@@ -107,17 +107,17 @@ describe('ReaderPreferencesSheet — layout fixes (Tanda J)', () => {
       // Default preferences: fontSize 16, textAlign 'left'.
       // rightSlack = max(24, round(16 * 0.7)) = 24.
       expect(flat.paddingRight).toBe(24);
-      expect(flat.marginRight).toBe(0);
+      expect(flat.marginRight).toBeUndefined();
     });
 
-    it('switches the gutter to marginRight when justified (padding would break Android justification)', () => {
+    it('keeps the paddingRight gutter when justified too (Sprint 112: margin never fully prevented the clip)', () => {
       const {getByTestId, getByLabelText} = renderSheet();
       fireEvent.press(getByLabelText(t.readerPrefs.alignJustify));
 
       const preview = getByTestId('reader-prefs-preview-text');
       const flat = flattenStyle(preview.props.style);
-      expect(flat.marginRight).toBe(24);
-      expect(flat.paddingRight).toBe(0);
+      expect(flat.paddingRight).toBe(24);
+      expect(flat.marginRight).toBeUndefined();
     });
 
     it('applies the fontSize-derived formula, whose 24px floor wins across the whole reader size range', () => {

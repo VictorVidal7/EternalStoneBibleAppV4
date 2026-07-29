@@ -305,21 +305,27 @@ export default function DictionaryDetailScreen() {
   // Prose styling for the gloss + article/multi-view bodies, driven by the
   // reader preferences wired in above. `verseTextRightSlack` already takes a
   // dynamic fontSize (it's the same "fixed-size scripture card" gutter helper
-  // this file used before, just no longer pinned to `fontSizes.md`), and the
-  // margin/padding split for the anti-clip gutter mirrors the main reader's
-  // own hard-won fix (chapter.tsx): a right PADDING disables Android's native
-  // inter-word justification, so justified text needs the gutter as a MARGIN
-  // instead, while left-aligned text keeps it as padding (the lever that
-  // actually clears the OEM glyph-overhang clip there).
-  const isJustified = readerPrefs.textAlign === 'justify';
+  // this file used before, just no longer pinned to `fontSizes.md`).
+  //
+  // This used to give justified text the gutter as a MARGIN instead of
+  // padding, on the theory that padding disables Android's native
+  // inter-word justification. Sprint 112 (chapter.tsx's own clip saga,
+  // 2026-07-28) disproved that: `textAlign: 'justify'` was pixel-scanned
+  // on-device and found NOT to actually stretch lines flush on this
+  // Android/RN build at all, AND marginRight was independently found to
+  // never fully prevent the clip (it narrows the box but doesn't extend
+  // Android's glyph clip rect the way padding does). Every other screen
+  // using `verseTextRightSlack` already applies it as a plain
+  // unconditional `paddingRight` — this file was the one outlier still
+  // carrying the disproven pattern, found while closing that investigation
+  // out. Now unconditional, matching everyone else.
   const proseRightSlack = verseTextRightSlack(readerPrefs.fontSize);
   const proseStyle = {
     fontFamily: readerFontFamily,
     fontSize: readerPrefs.fontSize,
     lineHeight: readerPrefs.fontSize * readerPrefs.lineHeightMultiplier,
     textAlign: readerPrefs.textAlign,
-    marginRight: isJustified ? proseRightSlack : 0,
-    paddingRight: isJustified ? 0 : proseRightSlack,
+    paddingRight: proseRightSlack,
   } as const;
 
   return (
@@ -413,7 +419,8 @@ export default function DictionaryDetailScreen() {
                   styles.gloss,
                   proseStyle,
                   {color: themedColors.textSecondary},
-                ]}>
+                ]}
+                textBreakStrategy="simple">
                 {linkifyMarkdownSegment(
                   entry.gloss_es,
                   themedColors.primary,
@@ -449,7 +456,8 @@ export default function DictionaryDetailScreen() {
                         styles.articleText,
                         proseStyle,
                         {color: themedColors.textSecondary},
-                      ]}>
+                      ]}
+                      textBreakStrategy="simple">
                       <MarkdownBody
                         text={entry.article_es}
                         boldColor={themedColors.text}
@@ -530,7 +538,8 @@ export default function DictionaryDetailScreen() {
                               styles.articleText,
                               proseStyle,
                               {color: themedColors.textSecondary},
-                            ]}>
+                            ]}
+                            textBreakStrategy="simple">
                             <MarkdownBody
                               text={section.body_es}
                               boldColor={themedColors.text}

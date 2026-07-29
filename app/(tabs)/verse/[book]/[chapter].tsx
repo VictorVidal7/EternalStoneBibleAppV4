@@ -2417,14 +2417,13 @@ export default function VerseReadingScreen() {
               // reflow). See the lever rationale on `paddingRight`/`marginRight`
               // in the style below.
               const rightSlack = Math.max(24, Math.round(fontSize * 0.7));
-              // Half the right gutter, mirrored on the left ONLY for
-              // left-aligned text (applied as paddingLeft below), purely to
-              // balance how lopsided the margin LOOKS (Victor, 2026-07-28) —
-              // the right side's full reserve is untouched (that's the
-              // actual clip protection, see the lever rationale below), this
-              // is cosmetic.
+              // Half the right gutter, mirrored on the left for BOTH
+              // alignments (Sprint 112 cleanup, 2026-07-28) purely to
+              // balance how lopsided the margin LOOKS — the right side's
+              // full reserve is untouched (that's the actual clip
+              // protection, see the lever rationale below), this is
+              // cosmetic.
               const leftSlack = Math.round(rightSlack / 2);
-              const isJustified = readerPrefs.textAlign === 'justify';
 
               const textStyle = {
                 color: isBeingRead
@@ -2456,16 +2455,24 @@ export default function VerseReadingScreen() {
                 // left-align has relied on without a single clip report.
                 marginRight: 0,
                 paddingRight: rightSlack,
-                // Justified text takes no left inset at all (no margin, no
-                // padding) — a cosmetic left mirror of the gutter, tried
-                // during this same investigation, measurably regressed
-                // justified rendering (A/B-confirmed on Génesis 4:3) for
-                // reasons that stopped mattering once justified text moved
-                // to the same 'simple' strategy as left-align above. Only
-                // left-aligned text keeps the cosmetic leftSlack, via
-                // paddingLeft.
+                // Cosmetic left gutter, same paddingLeft for BOTH
+                // alignments (Sprint 112 cleanup, 2026-07-28): an earlier
+                // pass in this same investigation tried this under
+                // `highQuality` and it measurably regressed justified
+                // rendering (A/B-confirmed on Génesis 4:3) — but that was
+                // BEFORE the switch to `textBreakStrategy: 'simple'`
+                // above. `marginLeft` (not paddingLeft) was the lever that
+                // broke justify's layout math, per git history — but note
+                // padding on its own is NOT a guaranteed fix either: an
+                // earlier attempt at plain `paddingRight` + `marginRight: 0`
+                // under `highQuality` still clipped on-device despite
+                // measuring safe in logs (see git history). Both levers
+                // above — padding over margin, AND 'simple' over
+                // 'highQuality' — are load-bearing together; re-adding
+                // paddingLeft restores the left/right balance Victor
+                // approved in 1126a1a without reintroducing either risk.
                 marginLeft: 0,
-                paddingLeft: isJustified ? 0 : leftSlack,
+                paddingLeft: leftSlack,
               } as const;
 
               const numberStyle = {
@@ -2794,9 +2801,7 @@ export default function VerseReadingScreen() {
                                         : effectiveColors.text,
                                     },
                                   ]}
-                                  textBreakStrategy={
-                                    isJustified ? 'highQuality' : 'simple'
-                                  }>
+                                  textBreakStrategy="simple">
                                   {companion.text}
                                 </Text>
                               </View>
@@ -2834,11 +2839,23 @@ export default function VerseReadingScreen() {
                                     // companion), so "Justificado" silently had
                                     // no effect here.
                                     textAlign: readerPrefs.textAlign,
+                                    // This companion never got the primary
+                                    // verse's right/left clip-reserve (it uses
+                                    // its own style, not `textStyle`) — found
+                                    // while closing out the Sprint 112 clip
+                                    // saga. Reusing the same rightSlack/
+                                    // leftSlack values (sized off the LARGER
+                                    // primary fontSize) is a strictly bigger
+                                    // reserve relative to this smaller font,
+                                    // so it's safe without re-running the
+                                    // on-device tuning that validated them.
+                                    marginRight: 0,
+                                    paddingRight: rightSlack,
+                                    marginLeft: 0,
+                                    paddingLeft: leftSlack,
                                   },
                                 ]}
-                                textBreakStrategy={
-                                  isJustified ? 'highQuality' : 'simple'
-                                }>
+                                textBreakStrategy="simple">
                                 {companion.text}
                               </Text>
                             </View>
