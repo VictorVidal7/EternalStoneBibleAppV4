@@ -4,11 +4,11 @@
  *
  * Exercises the REAL `seedDictionaryV1IfNeeded` / `getDictionaryEntry`
  * against the REAL bundled `assets/dictionary-v1-es.json` (produced by
- * `scripts/build-dictionary-v1-es.js` from the 10 approved
+ * `scripts/build-dictionary-v1-es.js` from the 24 approved
  * `v1-translation-*.md` source files) through a fake in-memory SQLite
  * handle — same "fake handle, real business logic" idiom already
  * established in strongsOccurrencesByBookDb.test.ts / databaseMigrations.test.ts.
- * Deliberately does NOT re-implement a fixture copy of the 10 entries: the
+ * Deliberately does NOT re-implement a fixture copy of the 24 entries: the
  * whole point is to catch a real ingestion bug (a truncated article, a
  * dropped entry, a bad slug) rather than just confirming the plumbing works
  * against hand-written test data.
@@ -149,18 +149,32 @@ function privateApi(db: BibleDatabase) {
 }
 
 describe('dictionary-v1-es.json (bundled asset)', () => {
-  it('has exactly the 10 approved v1-factual entries, each with all fields populated', () => {
-    expect(BUNDLED).toHaveLength(10);
+  it('has exactly the 24 approved v1-factual entries, each with all fields populated', () => {
+    expect(BUNDLED).toHaveLength(24);
     expect(BUNDLED.map(e => e.slug).sort()).toEqual([
       'aaron',
+      'abraham',
       'belen',
+      'calvario',
+      'david',
+      'egipto',
+      'fariseos',
       'galilea',
+      'getsemani',
       'jerico',
+      'jerusalen',
       'jornada-sabado',
       'josue',
+      'moises',
       'nazaret',
+      'pascua',
+      'pentecostes',
+      'sacerdocio',
+      'sacerdote',
+      'saduceos',
       'sanedrin',
       'sinagoga',
+      'sinai',
       'tiro',
     ]);
     for (const e of BUNDLED) {
@@ -183,11 +197,11 @@ describe('seedDictionaryV1IfNeeded', () => {
     await AsyncStorage.clear();
   });
 
-  it('inserts all 10 bundled entries into dictionary_entries', async () => {
+  it('inserts all 24 bundled entries into dictionary_entries', async () => {
     const {db, fake} = makeDb();
     await privateApi(db).seedDictionaryV1IfNeeded();
 
-    expect(fake.rows).toHaveLength(10);
+    expect(fake.rows).toHaveLength(24);
     expect(fake.rows.map(r => r.slug).sort()).toEqual(
       BUNDLED.map(e => e.slug).sort(),
     );
@@ -202,14 +216,14 @@ describe('seedDictionaryV1IfNeeded', () => {
   it('is versioned: a second call is a no-op once the version flag is set (does not duplicate or re-touch rows)', async () => {
     const {db, fake} = makeDb();
     await privateApi(db).seedDictionaryV1IfNeeded();
-    expect(fake.rows).toHaveLength(10);
+    expect(fake.rows).toHaveLength(24);
 
     // Simulate stale/edited data sitting in the table between app launches.
     fake.rows[0].gloss_es = 'stale-marker';
 
     await privateApi(db).seedDictionaryV1IfNeeded();
 
-    expect(fake.rows).toHaveLength(10); // not doubled
+    expect(fake.rows).toHaveLength(24); // not doubled
     expect(fake.rows[0].gloss_es).toBe('stale-marker'); // untouched — flag short-circuited
   });
 
@@ -219,9 +233,9 @@ describe('seedDictionaryV1IfNeeded', () => {
 
     await privateApi(db).seedDictionaryV1IfNeeded();
 
-    expect(fake.rows).toHaveLength(10);
+    expect(fake.rows).toHaveLength(24);
     expect(await AsyncStorage.getItem('@dictionary_v1_loaded_version')).toBe(
-      '1',
+      '2',
     );
   });
 
@@ -301,12 +315,12 @@ describe('getAllDictionaryEntries', () => {
     await AsyncStorage.clear();
   });
 
-  it('returns all 10 bundled entries with only the browse-list fields', async () => {
+  it('returns all 24 bundled entries with only the browse-list fields', async () => {
     const {db} = makeDb();
     await privateApi(db).seedDictionaryV1IfNeeded();
 
     const rows = await db.getAllDictionaryEntries();
-    expect(rows).toHaveLength(10);
+    expect(rows).toHaveLength(24);
     expect(rows.map(r => r.slug).sort()).toEqual(
       BUNDLED.map(e => e.slug).sort(),
     );
