@@ -124,7 +124,7 @@ const SDEFS_VERSION = 17;
  * as SDEFS_VERSION, but for a dataset small enough (10 rows) to embed
  * directly as JSON instead of a downloadable/attached SQLite overlay.
  */
-const DICT_V1_VERSION = 1;
+const DICT_V1_VERSION = 2;
 
 /**
  * `updated_at` stamped on every row seeded by seedDictionaryV1IfNeeded: the
