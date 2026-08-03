@@ -67,10 +67,8 @@ import {logger} from '@lib/utils/logger';
 import {useToast} from '../../../context/ToastContext';
 import {useAudioPlayer} from '../context/AudioPlayerContext';
 import {usePremium} from '../../../context/PremiumContext';
-import {useOfferingSheet} from '../../../context/OfferingSheetContext';
-import {OfferingBadge} from '../../../components/ui/OfferingBadge';
 import {AudioControls} from './AudioControls';
-import {AudioProgressBar, MiniVerseProgress} from './AudioProgressBar';
+import {MiniVerseProgress} from './AudioProgressBar';
 import {VerseScrubber} from './VerseScrubber';
 import {AudioWaveform} from './AudioWaveform';
 import {AudioSpeedSelector} from './AudioSpeedSelector';
@@ -142,7 +140,6 @@ export const MiniAudioPlayer: React.FC<MiniAudioPlayerProps> = ({
     queueInfo,
   } = useAudioPlayer();
   const {isPremium} = usePremium();
-  const {open: openOfferingSheet} = useOfferingSheet();
   const {favorites, addFavorite, removeFavorite, isFavorite} = useFavorites();
 
   // Localized reference for a verse index — fuels the scrubber's drag preview.
@@ -902,47 +899,15 @@ export const MiniAudioPlayer: React.FC<MiniAudioPlayerProps> = ({
                 />
               </View>
 
-              {/* Progress Bar — premium gets a draggable verse scrubber,
-                  free keeps the read-only bar + a discreet upsell. */}
+              {/* Progress Bar — the draggable verse scrubber is free for all
+                  users (verse-seek is not a premium gate). */}
               <View style={styles.progressContainer}>
-                {isPremium ? (
-                  <VerseScrubber
-                    currentIndex={state.currentVerseIndex}
-                    totalVerses={verses.length}
-                    labelForIndex={labelForIndex}
-                    onSeek={goToVerse}
-                  />
-                ) : (
-                  <>
-                    <AudioProgressBar
-                      currentIndex={state.currentVerseIndex}
-                      totalVerses={verses.length}
-                      showLabels={true}
-                    />
-                    <TouchableOpacity
-                      style={styles.premiumUpsell}
-                      onPress={() => {
-                        haptics.tap();
-                        openOfferingSheet();
-                      }}
-                      accessibilityRole="button"
-                      accessibilityLabel={t.offering.badgeA11y}>
-                      <OfferingBadge
-                        size={11}
-                        color={colors.textTertiary}
-                        onPress={openOfferingSheet}
-                      />
-                      <Text
-                        style={[
-                          styles.premiumUpsellText,
-                          {color: colors.textTertiary},
-                        ]}
-                        numberOfLines={1}>
-                        {t.premium.featureName}
-                      </Text>
-                    </TouchableOpacity>
-                  </>
-                )}
+                <VerseScrubber
+                  currentIndex={state.currentVerseIndex}
+                  totalVerses={verses.length}
+                  labelForIndex={labelForIndex}
+                  onSeek={goToVerse}
+                />
               </View>
 
               {/* Controls */}
@@ -1167,17 +1132,6 @@ const styles = StyleSheet.create({
   },
   progressContainer: {
     marginBottom: 2,
-  },
-  premiumUpsell: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 5,
-    marginTop: 4,
-  },
-  premiumUpsellText: {
-    fontSize: 11,
-    fontWeight: '500',
   },
   nextChapterRow: {
     flexDirection: 'row',
