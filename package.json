@@ -19,6 +19,7 @@
     "validate": "npm run type-check && npm run lint && npm run format:check && npm run test",
     "clean": "rm -rf node_modules && npm install",
     "clean:cache": "npm start -- --clear",
+    "version:bump": "node scripts/bump-version.js",
     "prepare": "husky"
   },
   "dependencies": {
