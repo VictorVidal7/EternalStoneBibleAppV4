@@ -22,7 +22,13 @@
  */
 
 import React, {useMemo} from 'react';
-import {View, ScrollView, TouchableOpacity, StyleSheet} from 'react-native';
+import {
+  View,
+  ScrollView,
+  TouchableOpacity,
+  StyleSheet,
+  Dimensions,
+} from 'react-native';
 import {Stack, useRouter} from 'expo-router';
 import {Ionicons} from '@expo/vector-icons';
 import {LinearGradient} from 'expo-linear-gradient';
@@ -32,7 +38,7 @@ import {useLanguage} from '@hooks/useLanguage';
 import {haptics} from '@lib/haptics';
 import {AppText} from '@components/ui/AppText';
 import {DiscoverTile} from '@components/home/DiscoverTile';
-import {centeredMaxWidth} from '@/styles/responsive';
+import {centeredMaxWidth, CONTENT_MAX_WIDTH} from '@/styles/responsive';
 import {getDailyProphecy} from '@/features/study/messianicProphecies';
 import {getDailyFact} from '@/features/study/bibleFacts';
 import {
@@ -41,6 +47,19 @@ import {
   spacing,
   staticColors,
 } from '@/styles/designTokens';
+
+const {width: SCREEN_WIDTH} = Dimensions.get('window');
+// Sprint 96's Home grid learned this the hard way (see app/(tabs)/index.tsx):
+// a percentage width ('48%') doesn't account for the row gap, so two tiles
+// plus the gap overflow the row on every real phone width and Yoga wraps the
+// second tile onto its own line — silently collapsing the "grid" into a
+// single stacked column. Deriving the width in pixels from the actual
+// available content width (capped the same way Home caps it on wide
+// screens) guarantees both tiles + the gap always fit on one row.
+const EFFECTIVE_CONTENT_WIDTH = Math.min(SCREEN_WIDTH, CONTENT_MAX_WIDTH);
+const TILE_WIDTH = Math.floor(
+  (EFFECTIVE_CONTENT_WIDTH - spacing.lg * 2 - spacing.md) / 2,
+);
 
 export default function ExploreAllScreen() {
   const router = useRouter();
@@ -294,6 +313,6 @@ const styles = StyleSheet.create({
     gap: spacing.md,
   },
   tileWrapper: {
-    width: '48%',
+    width: TILE_WIDTH,
   },
 });
