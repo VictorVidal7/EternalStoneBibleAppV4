@@ -137,6 +137,16 @@ export default function JourneyScreen() {
   const j = t.journey;
   const ri = t.readingInsights; // reuses the reading-time unit words
 
+  // Locale-aware number formatting — threads the app's CHOSEN language
+  // (independent of device locale) into every stat, mirroring `fmtDate`'s
+  // locale mapping below. Shared between the slides memo and the finale
+  // renderer so both stay in sync.
+  const num = useCallback(
+    (n: number): string =>
+      n.toLocaleString(language === 'en' ? 'en-US' : 'es-ES'),
+    [language],
+  );
+
   const [recap, setRecap] = useState<JourneyRecap | null>(null);
   const [status, setStatus] = useState<'loading' | 'ready' | 'error'>(
     'loading',
@@ -219,7 +229,6 @@ export default function JourneyScreen() {
         month: 'long',
         day: 'numeric',
       });
-    const num = (n: number): string => n.toLocaleString();
 
     const list: Slide[] = [];
 
@@ -580,7 +589,7 @@ export default function JourneyScreen() {
     // capture then fails with "No view found"); the share button lives
     // outside this memo so only it re-renders while sharing. (This eslint has
     // no react-hooks/exhaustive-deps rule, so a disable directive would error.)
-  }, [recap, j, ri, language, width]);
+  }, [recap, j, ri, language, width, num]);
 
   // Clamp the cursor if the slide set shrinks (defensive).
   useEffect(() => {
@@ -649,19 +658,19 @@ export default function JourneyScreen() {
     if (recap.versesRead > 0) {
       summary.push({
         label: j.versesReadLabel,
-        value: recap.versesRead.toLocaleString(),
+        value: num(recap.versesRead),
       });
     }
     if (recap.longestStreak > 0) {
       summary.push({
         label: j.longestStreakLabel,
-        value: recap.longestStreak.toLocaleString(),
+        value: num(recap.longestStreak),
       });
     }
     if (recap.cardsTotal > 0) {
       summary.push({
         label: j.memorizedLabel,
-        value: recap.cardsTotal.toLocaleString(),
+        value: num(recap.cardsTotal),
       });
     }
     if (recap.favoriteBook) {
