@@ -157,7 +157,9 @@ export const TestimonyImageModal: React.FC<TestimonyImageModalProps> = ({
               </Text>
 
               {testimony ? (
-                <Text style={[styles.testimony, {color: template.textColor}]}>
+                <Text
+                  style={[styles.testimony, {color: template.textColor}]}
+                  numberOfLines={8}>
                   “{testimony}”
                 </Text>
               ) : null}
