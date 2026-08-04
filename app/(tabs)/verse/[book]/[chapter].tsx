@@ -1920,14 +1920,34 @@ export default function VerseReadingScreen() {
   // Auto-start audio when arriving via the Home "Continue listening" card
   // (deep-linked with ?audioResume=1). Premium only; fires once, after the
   // chapter's verses have loaded, then defers to the resume logic above.
+  // Reset whenever the displayed chapter changes: expo-router REUSES this
+  // screen instance across navigations (see followHandledRef above), so a
+  // stale "handled" flag from a previous chapter would permanently block
+  // every later "Continue listening" deep link for the rest of the session.
   const audioResumeHandledRef = useRef(false);
+  useEffect(() => {
+    audioResumeHandledRef.current = false;
+  }, [displayedLocation]);
   useEffect(() => {
     if (audioResumeHandledRef.current) return;
     if (audioResume !== '1' || !isPremium) return;
     if (loading || verses.length === 0) return;
+    // Reused-instance hazard, mid-navigation flavor: right after the chapter
+    // changes, `loadChapter`'s `setLoading(true)` hasn't committed yet, so
+    // this can still see the PREVIOUS chapter's (non-empty) `verses` for one
+    // render. Only fire once the loaded rows actually belong to the chapter
+    // on screen, or this plays the old chapter and burns the latch on it.
+    if (
+      !sameChapterLocation(
+        displayedLocation,
+        chapterLocationFromVerse(verses[0]),
+      )
+    ) {
+      return;
+    }
     audioResumeHandledRef.current = true;
     void startAudioPlayback();
-  }, [audioResume, isPremium, loading, verses.length]);
+  }, [audioResume, isPremium, loading, verses, displayedLocation]);
 
   if (!bookInfo || loading) {
     return (
