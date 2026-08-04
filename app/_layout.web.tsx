@@ -19,21 +19,60 @@ import {AccessibilityPreferencesProvider} from '@context/AccessibilityPreference
 import {useReducedMotion} from '@hooks/useReducedMotion';
 import {ToastProvider} from '@context/ToastContext';
 import {ReaderPreferencesProvider} from '@context/ReaderPreferencesContext';
+import {FavoritesProvider} from '@context/FavoritesContext';
+import {MemoryDeckProvider} from '@context/MemoryDeckContext';
+import {PremiumProvider} from '@context/PremiumContext';
+import {OfferingSheetProvider} from '@context/OfferingSheetContext';
+import {AudioPlayerProvider} from '@/features/audio/context/AudioPlayerContext';
 import {logger} from '@lib/utils/logger';
 import {ErrorBoundary} from '@/components/ErrorBoundary';
 
 /**
  * Web root layout (T21) — deliberately NOT app/_layout.tsx's provider tree.
  *
- * v1 web is a read-only reader with no login/sync/premium/audio/notifications
+ * v1 web is a read-only reader with no login/sync/notifications
  * (Victor-confirmed scope, T21). This mounts only the providers those reader
- * screens actually touch — Auth/SyncEngine/Premium/Audio/Offering/Donation and
- * every write-feature context (Favorites/Bookmarks/ReadingProgress/
- * ReadingPlanProgress/CustomPlans/Together/MemoryDeck) are never imported here,
- * so their native-only dependencies (chiefly @react-native-firebase/*, which
- * T20 found throws "No Firebase App '[DEFAULT]' has been created" on web)
- * never enter the web bundle's mounted tree at all — no firestore.web.ts
- * needed for this tanda.
+ * screens actually touch — Auth/SyncEngine/Offering(real purchase flow)/
+ * Donation/ReadingProgress/ReadingPlanProgress/CustomPlans/Together/
+ * Bookmarks/Services are never imported here, so their native-only
+ * dependencies (chiefly @react-native-firebase/*, which T20 found throws "No
+ * Firebase App '[DEFAULT]' has been created" on web) never enter the web
+ * bundle's mounted tree at all — no firestore.web.ts needed for this tanda.
+ * (ServicesContext specifically: `useServices()` can never throw — its
+ * `createContext` default is a real object, not `undefined` — so leaving it
+ * unmounted costs nothing; mounting it would only add unnecessary write-path
+ * machinery, achievement/highlight service init, to every web page load.)
+ *
+ * Premium/OfferingSheet/AudioPlayer/MemoryDeck ARE mounted below, but as
+ * inert web STUBS (see PremiumContext.web.tsx / OfferingSheetContext.web.tsx
+ * / AudioPlayerContext.web.tsx / MemoryDeckContext.web.tsx) rather than the
+ * real native providers. Metro resolves those .web.tsx siblings
+ * automatically in place of the imports below when bundling for web, so this
+ * file imports the plain (bare) provider names exactly like the native tree
+ * does. Without them, route files under app/features/** (and app/(tabs)/) —
+ * originally ~27, now including 4 more found in a follow-up audit — that
+ * call usePremium()/useOfferingSheet()/useAudioPlayer()/useMemoryDeck()
+ * unconditionally (no .web.tsx variant, no Platform.OS guard) would throw
+ * "must be used within a ...Provider" the instant they render — and since
+ * firebase.json's catch-all SPA rewrite makes every one of those routes
+ * reachable via a direct URL/bookmark, and ErrorBoundary below wraps the
+ * whole Stack (not per-route), that throw took down the entire deployed web
+ * app with no in-app recovery.
+ *
+ * MemoryDeck is specifically a STUB (not the real provider) despite having
+ * no native-only dependency: mounting the real one would let a web visitor
+ * build an SRS memorization deck that can never sync (no Auth/SyncEngine on
+ * web) and silently vanishes on clearing site data — a data-loss trap, not a
+ * harmless read feature. See MemoryDeckContext.web.tsx's header for the full
+ * reasoning.
+ *
+ * FavoritesProvider, by contrast, IS mounted for real below (not stubbed):
+ * it has the same "no native-only dependency" profile as MemoryDeck, but NO
+ * web-reachable screen calls `addFavorite` (the .web.tsx reader screens only
+ * do theme/i18n/version/prefs + bibleDB reads), so there is no equivalent
+ * orphaned-data risk — favorites simply reads/displays an always-empty local
+ * table, which is both correct and the simpler implementation (no new stub
+ * file needed).
  */
 
 function AppContent() {
@@ -232,13 +271,23 @@ export default function RootLayoutWeb() {
         <ThemeProvider>
           <AccessibilityPreferencesProvider>
             <BibleVersionProvider>
-              <ReaderPreferencesProvider>
-                <ToastProvider>
-                  <ErrorBoundary>
-                    <AppContent />
-                  </ErrorBoundary>
-                </ToastProvider>
-              </ReaderPreferencesProvider>
+              <FavoritesProvider>
+                <ReaderPreferencesProvider>
+                  <MemoryDeckProvider>
+                    <ToastProvider>
+                      <PremiumProvider>
+                        <OfferingSheetProvider>
+                          <AudioPlayerProvider>
+                            <ErrorBoundary>
+                              <AppContent />
+                            </ErrorBoundary>
+                          </AudioPlayerProvider>
+                        </OfferingSheetProvider>
+                      </PremiumProvider>
+                    </ToastProvider>
+                  </MemoryDeckProvider>
+                </ReaderPreferencesProvider>
+              </FavoritesProvider>
             </BibleVersionProvider>
           </AccessibilityPreferencesProvider>
         </ThemeProvider>
