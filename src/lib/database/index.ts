@@ -150,9 +150,12 @@ const DICT_V1_UPDATED_AT = '2026-07-18';
  * ISBE-derived; 6 sections: Conmemorativa, Reformada, Luterana, Católica
  * romana, Ortodoxa, Diferencias de práctica); v5 = corrected 2 undisclosed
  * chapter-digit typos in Bible citations (Expiación's "Nm 36:33"->"Nm
- * 35:33", Tabernáculo's "Éx 26:40"->"Éx 25:40"), no new entries.
+ * 35:33", Tabernáculo's "Éx 26:40"->"Éx 25:40"), no new entries; v6 =
+ * corrected the disclosed "Gá 6:19"->"Gá 5:19" digit errata in Espíritu
+ * Santo's article (Victor approved promoting it from Pattern B to the
+ * dominant Pattern A house style), no new entries.
  */
-const DICT_V2_VERSION = 5;
+const DICT_V2_VERSION = 6;
 
 /**
  * Version of the bundled WEB reading-version text (see seedWebTextIfNeeded).
