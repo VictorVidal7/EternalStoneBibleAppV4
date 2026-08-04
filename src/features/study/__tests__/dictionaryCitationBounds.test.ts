@@ -125,11 +125,16 @@ describe('dictionary content corrections resolve to the real quoted verse', () =
     expect(entry?.articleEs).not.toContain('Éx 26:40');
   });
 
-  it('leaves the disclosed misprint and the 2-Esdras references untouched (Part 1 alone handles them)', () => {
+  it('"espiritu-santo" now cites Gá 5:19 ("obras de la carne"), not the disclosed Gá 6:19 misprint (Victor promoted it to Pattern A); the 2-Esdras references are left untouched', () => {
+    const parsed = parseReference('Gá 5:19');
+    expect(parsed).not.toBeNull();
+    expect(realVerseSet('Gálatas', 5)?.has(19)).toBe(true);
+
     const entries = loadEntries('dictionary-v2-es.json');
     const espirituSanto = entries.find(e => e.slug === 'espiritu-santo');
     const salvacion = entries.find(e => e.slug === 'salvacion');
-    expect(espirituSanto?.articleEs).toContain('Gá 6:19');
+    expect(espirituSanto?.articleEs).toContain('Gá 5:19');
+    expect(espirituSanto?.articleEs).not.toContain('Gá 6:19');
     expect(salvacion?.articleEs).toContain('Esd 7:91-98');
     expect(salvacion?.articleEs).toContain('Esd 7:119');
   });
