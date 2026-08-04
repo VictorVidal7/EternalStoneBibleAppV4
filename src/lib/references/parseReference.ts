@@ -11,6 +11,7 @@
  * the matches as tappable links.
  */
 import {BIBLE_BOOKS} from '@/constants/bible';
+import {getChapterVerseCount} from '@/constants/bible-verse-counts';
 import type {BibleBook} from '@/types/bible';
 
 export interface ParsedReference {
@@ -98,7 +99,11 @@ export function findBook(query: string): BibleBook | undefined {
  * Parse a single, complete reference. The input must shape as
  * `<book> <chapter>[:<verse>[-<verseEnd>]]` after trimming. Chapter and
  * verse must be within the book's actual range — out-of-range refs
- * resolve to null so the UI doesn't offer a broken jump.
+ * resolve to null so the UI doesn't offer a broken jump. Verse bounds are
+ * checked against {@link getChapterVerseCount} (derived from the real
+ * bundled RVR1960 text) — a chapter-valid but verse-out-of-range citation
+ * like "Gá 6:19" (Gálatas 6 only has 18 verses) used to slip through here
+ * and become a tappable link that silently dead-ended in the reader.
  */
 const REF_PATTERN = /^(.+?)\s+(\d+)(?::(\d+)(?:-(\d+))?)?$/;
 
@@ -122,6 +127,18 @@ export function parseReference(input: string): ParsedReference | null {
   if (verse !== undefined && verse < 1) return null;
   if (verseEnd !== undefined && verse !== undefined && verseEnd < verse) {
     return null;
+  }
+  if (verse !== undefined) {
+    const chapterVerseCount = getChapterVerseCount(book.id, chapter);
+    // No data for an in-range chapter shouldn't happen (every chapter up to
+    // book.chapters has bundled text), but fail closed rather than offer a
+    // jump we can't back up.
+    if (chapterVerseCount === undefined || verse > chapterVerseCount) {
+      return null;
+    }
+    if (verseEnd !== undefined && verseEnd > chapterVerseCount) {
+      return null;
+    }
   }
   return {book, chapter, verse, verseEnd};
 }
