@@ -97,6 +97,21 @@ describe('TestimonyImageModal (Sprint 94)', () => {
     // No testimony note → no quoted line rendered.
     expect(queryByText(/“.*”/)).toBeNull();
   });
+
+  it('caps the testimony body at 8 lines so an unbounded testimony (no hard char limit elsewhere) cannot render an absurdly tall share card', () => {
+    const longTestimony = 'Dios es fiel. '.repeat(400); // ~5,600 chars
+    const {getByText} = render(
+      <TestimonyImageModal
+        visible
+        title="Sanidad de mi madre"
+        testimony={longTestimony}
+        answeredLine="Respondida el 16 jun 2026"
+        onClose={jest.fn()}
+      />,
+    );
+    const testimonyNode = getByText(`“${longTestimony}”`);
+    expect(testimonyNode.props.numberOfLines).toBe(8);
+  });
 });
 
 describe('TestimonyImageModal — Tanda M Phase B (premium share extras)', () => {
