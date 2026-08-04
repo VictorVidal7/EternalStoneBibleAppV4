@@ -2,7 +2,6 @@
    Will migrate to logger.* in Sprint 41 alongside Crashlytics wiring. */
 import * as SQLite from 'expo-sqlite';
 import {Platform} from 'react-native';
-import {Asset} from 'expo-asset';
 import {Directory, File, Paths} from 'expo-file-system';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {BibleVerse, Note, ReadingProgress} from '../../types/bible';
@@ -13,6 +12,11 @@ import {
   PACK_IMPORT_SQL,
   PACK_SCHEMA,
 } from './pack-import';
+import {
+  resolveBibleSeedDbAsset,
+  resolveCrossReferencesDbAsset,
+  resolveStrongsDefsDbAsset,
+} from './nativeSeedAssets';
 
 /** An outgoing cross-reference row (the verse a focus verse points TO). */
 export interface CrossRefOut {
@@ -204,9 +208,7 @@ async function seedFromBundleIfMissing(): Promise<boolean> {
     const targetFile = new File(sqliteDir, 'bible.db');
     if (targetFile.exists) return false;
 
-    const asset = Asset.fromModule(require('../../../assets/bible-seed.db'));
-    await asset.downloadAsync();
-    const sourceUri = asset.localUri ?? asset.uri;
+    const sourceUri = await resolveBibleSeedDbAsset();
     if (!sourceUri) return false;
 
     if (!sqliteDir.exists) sqliteDir.create({intermediates: true});
@@ -648,11 +650,7 @@ class BibleDatabase {
         await AsyncStorage.setItem(BibleDatabase.CROSS_REFS_LOADED_KEY, 'true');
         return;
       }
-      const asset = Asset.fromModule(
-        require('../../../assets/cross-references.db'),
-      );
-      await asset.downloadAsync();
-      const sourceUri = asset.localUri ?? asset.uri;
+      const sourceUri = await resolveCrossReferencesDbAsset();
       if (!sourceUri) return;
       const attachPath = normalizePackPath(sourceUri);
 
@@ -691,11 +689,7 @@ class BibleDatabase {
       const loaded = await AsyncStorage.getItem(BibleDatabase.SDEFS_LOADED_KEY);
       if (loaded === String(SDEFS_VERSION)) return;
 
-      const asset = Asset.fromModule(
-        require('../../../assets/strongs-defs.db'),
-      );
-      await asset.downloadAsync();
-      const sourceUri = asset.localUri ?? asset.uri;
+      const sourceUri = await resolveStrongsDefsDbAsset();
       if (!sourceUri) return;
       const attachPath = normalizePackPath(sourceUri);
 
