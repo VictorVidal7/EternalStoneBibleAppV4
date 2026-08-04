@@ -287,6 +287,9 @@ export const translations = {
       sortOldest: 'Antiguas',
       sortByBook: 'Por libro',
       noResults: 'Ninguna nota coincide con tu búsqueda',
+      referencedVersesTitle: 'Versículos referenciados',
+      referencedVersesHint:
+        'Se detectan automáticamente al escribir, p. ej. "Juan 3:16"',
     },
 
     bookIntro: {
@@ -6169,6 +6172,9 @@ export const translations = {
       sortOldest: 'Oldest',
       sortByBook: 'By book',
       noResults: 'No notes match your search',
+      referencedVersesTitle: 'Referenced verses',
+      referencedVersesHint:
+        'Detected automatically as you type, e.g. "John 3:16"',
     },
 
     readingInsights: {

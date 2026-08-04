@@ -3582,6 +3582,13 @@ export default function VerseReadingScreen() {
           onChangeText={setNoteText}
           onSave={saveNote}
           onClose={() => setNoteModalVisible(false)}
+          onJump={() =>
+            jumpStackRef.current.push({
+              book,
+              chapter: chapterNum,
+              verse: highlightVerse,
+            })
+          }
         />
 
         {/* Immersive Reading Mode Modal */}
