@@ -57,6 +57,7 @@ import {
   type AchievementBackupData,
   type RawUserStatsRow,
 } from '../lib/achievements/AchievementService';
+import {getAchievementServiceInstance} from '../lib/achievements/instance';
 import type {Achievement} from '../lib/achievements/types';
 import type {BookReadingEntry} from '../lib/reading/bookReadingLog';
 import {
@@ -275,10 +276,21 @@ const EMPTY_RAW_STATS: RawUserStatsRow = {
   totalPoints: 0,
 };
 
-// Module-level singleton, same pattern as the sync adapters
-// (src/lib/sync/adapters/highlights.ts's `_service`) — BackupService stays
-// decoupled from the React provider tree.
-const achievementService = new AchievementService(bibleDB);
+// Prefer the app-wide `AchievementService` instance ServicesContext creates
+// (mirrored via `setAchievementServiceInstance` — see
+// lib/achievements/instance.ts) so `restoreBackup()`'s cache invalidation
+// lands on the SAME instance the Achievements tab reads from
+// (`useAchievements` → `useServices()`). Falls back to a lazily-created,
+// module-local instance — same pattern as the sync adapters
+// (src/lib/sync/adapters/highlights.ts's `_service`) — for callers that run
+// before ServicesProvider has mounted (e.g. this file's own unit tests).
+let fallbackAchievementService: AchievementService | null = null;
+function resolveAchievementService(): AchievementService {
+  return (
+    getAchievementServiceInstance() ??
+    (fallbackAchievementService ??= new AchievementService(bibleDB))
+  );
+}
 
 /**
  * Reads one AsyncStorage key as JSON. `null` is returned BOTH when the key
@@ -360,6 +372,7 @@ async function safeQuery<T>(
  * of the file silently looking complete when it isn't.
  */
 export async function buildBackup(): Promise<BuildBackupResult> {
+  const achievementService = resolveAchievementService();
   const degradedSections: string[] = [];
   await bibleDB.initialize();
   // Idempotent schema bootstrap (CREATE TABLE IF NOT EXISTS + INSERT OR
@@ -1077,18 +1090,27 @@ function pushImportedEntitiesToSync(data: {
  *     re-writing the PREVIOUS state, which importBackup never captured, and
  *     is out of scope for this fix).
  *
- * Does NOT reload any in-memory app state — see Settings' import handler,
+ * Does NOT reload most in-memory app state — see Settings' import handler,
  * which asks the user to close and reopen the app (the same fallback this
  * project's own `performResetData` pattern documents as acceptable when a
  * safe universal hot-reload isn't reasonably achievable for every affected
- * context — and here there are over a dozen: achievements, favorites, notes,
- * highlights, bookmarks, two reading-progress stores, reader preferences,
- * app theme, memory deck, review events, prep notes, prep series).
+ * context — and here there are over a dozen: favorites, notes, highlights,
+ * bookmarks, two reading-progress stores, reader preferences, app theme,
+ * memory deck, review events, prep notes, prep series).
+ *
+ * `achievements` is the one exception: `resolveAchievementService()` reaches
+ * the SAME `AchievementService` instance the Achievements tab reads from
+ * (via `useAchievements` → `useServices()`, mirrored into
+ * `lib/achievements/instance.ts` by `ServicesContext`), so `restoreBackup()`'s
+ * existing in-memory cache invalidation (`this.stats = null`) lands on that
+ * shared instance — the tab reflects the restore on its next read (e.g. on
+ * screen focus), no app restart required.
  */
 export async function importBackup(
   payload: BackupPayload,
 ): Promise<ImportResult> {
   assertSupportedFormatVersion(payload?.formatVersion);
+  const achievementService = resolveAchievementService();
   await bibleDB.initialize();
   await achievementService.initialize();
 

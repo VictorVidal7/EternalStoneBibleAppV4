@@ -13,6 +13,10 @@ import React, {
 } from 'react';
 import {BibleDatabase} from '../lib/database';
 import {AchievementService} from '../lib/achievements/AchievementService';
+import {
+  setAchievementServiceInstance,
+  getAchievementServiceInstance,
+} from '../lib/achievements/instance';
 import {HighlightService} from '../lib/highlights/HighlightService';
 import {Achievement} from '../lib/achievements/types';
 import {logger} from '../lib/utils/logger';
@@ -72,6 +76,14 @@ export const ServicesProvider: React.FC<ServicesProviderProps> = ({
   useEffect(() => {
     if (!database) return;
 
+    // Tracks the instance THIS effect run published into the module-level
+    // singleton (if any) — the async `initializeServices` below can still be
+    // in flight when cleanup fires, so cleanup only clears the singleton if
+    // it still holds what this effect run actually published, never a value
+    // published by a newer run (avoids a stale-clear race on a `database`
+    // change/remount).
+    let publishedInstance: AchievementService | null = null;
+
     const initializeServices = async () => {
       try {
         logger.info('🔵 Initializing services...', {
@@ -97,6 +109,11 @@ export const ServicesProvider: React.FC<ServicesProviderProps> = ({
 
         setAchievementService(achievements);
         setHighlightService(highlights);
+        // Mirror into the module-level singleton so non-React callsites
+        // (BackupService's export/import) reach this SAME instance instead
+        // of constructing their own — see lib/achievements/instance.ts.
+        publishedInstance = achievements;
+        setAchievementServiceInstance(achievements);
         setInitialized(true);
         logger.info('🟢 Services initialized successfully', {
           component: 'ServicesProvider',
@@ -109,6 +126,15 @@ export const ServicesProvider: React.FC<ServicesProviderProps> = ({
     };
 
     initializeServices();
+
+    return () => {
+      if (
+        publishedInstance &&
+        getAchievementServiceInstance() === publishedInstance
+      ) {
+        setAchievementServiceInstance(null);
+      }
+    };
   }, [database]);
 
   const clearNewAchievements = () => {
