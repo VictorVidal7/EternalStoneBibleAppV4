@@ -816,11 +816,7 @@ describe('Previously-crashing web routes, with only the stub providers mounted',
       expect(
         await findByText('Porque de tal manera amó Dios al mundo...'),
       ).toBeTruthy();
-    }, // push this particular test — the heaviest of the six route renders, // A cold Babel/TS transform cache (first run after install, or CI) can
-    // with a real async bibleDB round-trip plus i18n/theme/date-format
-    // module loads — past the default 5000ms Jest test timeout; every
-    // other test in this file stays well under it.
-    15000);
+    }, 15000); // other test in this file stays well under it. // module loads — past the default 5000ms Jest test timeout; every // with a real async bibleDB round-trip plus i18n/theme/date-format // push this particular test — the heaviest of the six route renders, // A cold Babel/TS transform cache (first run after install, or CI) can
   });
 
   describe('app/features/memory/insights.tsx', () => {
