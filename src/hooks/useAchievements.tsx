@@ -1,30 +1,31 @@
 /**
  * Hook personalizado para gestionar logros
+ *
+ * Consumes the single app-wide `AchievementService` instance from
+ * [[ServicesContext]] instead of constructing its own. `AchievementService`
+ * caches `getUserStats()` in a private `this.stats` field that only its own
+ * mutator methods (trackVersesRead, trackChapterCompleted, trackNote, ...)
+ * invalidate. Every real tracking call site (the reader, notes, highlights,
+ * search, book completion) goes through the ServicesContext instance, so a
+ * second, independently-constructed instance here would never see its cache
+ * invalidated by real activity — the Achievements tab's points/level/streak/
+ * verses/chapters/books would freeze at whatever they were on first load.
  */
 
 import {useState, useEffect, useCallback} from 'react';
-import {AchievementService} from '../lib/achievements/AchievementService';
+import {useServices} from '../context/ServicesContext';
 import {Achievement, UserStats, ReadingStreak} from '../lib/achievements/types';
-import {BibleDatabase} from '../lib/database';
 
-export function useAchievements(database: BibleDatabase | null) {
-  const [service, setService] = useState<AchievementService | null>(null);
+export function useAchievements() {
+  const {achievementService: service} = useServices();
   const [achievements, setAchievements] = useState<Achievement[]>([]);
   const [stats, setStats] = useState<UserStats | null>(null);
   const [streak, setStreak] = useState<ReadingStreak | null>(null);
-  const [loading, setLoading] = useState(true);
   const [newUnlocks, setNewUnlocks] = useState<Achievement[]>([]);
-
-  // Inicializar servicio
-  useEffect(() => {
-    if (!database) return;
-
-    const achievementService = new AchievementService(database);
-    achievementService.initialize().then(() => {
-      setService(achievementService);
-      setLoading(false);
-    });
-  }, [database]);
+  // ServicesProvider already awaits `achievementService.initialize()` before
+  // publishing the instance (see ServicesContext.tsx), so a non-null service
+  // here is guaranteed initialized — nothing left for this hook to await.
+  const loading = service === null;
 
   // Cargar / recargar datos. Se expone como `reload` para que la pantalla
   // lo invoque al recuperar el foco y refleje el progreso de la lectura.

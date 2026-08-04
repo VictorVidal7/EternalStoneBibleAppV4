@@ -29,7 +29,7 @@ export default function AchievementsTab() {
     );
   }
 
-  return <AchievementsScreen database={database} />;
+  return <AchievementsScreen />;
 }
 
 const styles = StyleSheet.create({
