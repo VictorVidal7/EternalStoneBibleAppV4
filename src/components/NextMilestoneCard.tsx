@@ -24,7 +24,6 @@ import {AppText} from '@components/ui/AppText';
 import {useTheme} from '@hooks/useTheme';
 import {useLanguage} from '@hooks/useLanguage';
 import {haptics} from '@lib/haptics';
-import {useServices} from '@context/ServicesContext';
 import {useAchievements} from '@hooks/useAchievements';
 import {nearestAchievements} from '@lib/achievements/nearby';
 import {getLocalizedAchievement} from '@lib/achievements/definitions';
@@ -44,8 +43,7 @@ export const NextMilestoneCard: React.FC<NextMilestoneCardProps> = ({
 }) => {
   const {colors} = useTheme();
   const {t} = useLanguage();
-  const {database} = useServices();
-  const {achievements, reload} = useAchievements(database);
+  const {achievements, reload} = useAchievements();
 
   // Refresh when Home regains focus so the progress reflects fresh reading.
   useFocusEffect(

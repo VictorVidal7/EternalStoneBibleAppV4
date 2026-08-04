@@ -42,7 +42,6 @@ import {useTheme} from '../hooks/useTheme';
 import {useReducedMotion} from '../hooks/useReducedMotion';
 import {centeredMaxWidth} from '../styles/responsive';
 import {useLanguage} from '../hooks/useLanguage';
-import {BibleDatabase} from '../lib/database';
 import {Achievement, AchievementCategory} from '../lib/achievements/types';
 import {nearestAchievements} from '../lib/achievements/nearby';
 import {getLocalizedAchievement} from '../lib/achievements/definitions';
@@ -166,15 +165,9 @@ const AnimatedAchievementCard: React.FC<AnimatedAchievementCardProps> = ({
   );
 };
 
-interface AchievementsScreenProps {
-  database: BibleDatabase;
-}
-
-export const AchievementsScreen: React.FC<AchievementsScreenProps> = ({
-  database,
-}) => {
+export const AchievementsScreen: React.FC = () => {
   const {achievements, stats, loading, newUnlocks, clearNewUnlocks, reload} =
-    useAchievements(database);
+    useAchievements();
   const {colors, isDark, gradient} = useTheme();
   const {t} = useLanguage();
   const reducedMotion = useReducedMotion();
