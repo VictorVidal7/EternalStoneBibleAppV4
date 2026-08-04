@@ -50,32 +50,37 @@ export interface MarkdownSegment {
   style: MarkdownSegmentStyle;
 }
 
-/** Known proper-noun parenthetical qualifiers (checked case-insensitively)
- *  that must keep their own capitalization instead of being lowercased by
- *  `titleCaseHeadword`'s blanket sentence-case rule — e.g. "Gólgota" in
- *  "CALVARIO (GÓLGOTA)" is itself a place name, not a descriptive common
- *  noun like "persona" in "JOSUÉ (persona)". A small explicit allowlist
- *  (rather than a proper-noun-detection heuristic) is enough because the
- *  dictionary's bundled headwords are a small, curated, known dataset —
- *  add new qualifiers here as they show up, not a general detector that
- *  could misfire on a future entry. */
-const PROPER_NOUN_QUALIFIERS = ['gólgota'];
+/** Known proper-noun parenthetical qualifiers, stored in their correct
+ *  DISPLAY capitalization and matched case-insensitively against the
+ *  lowercased qualifier text — e.g. "Gólgota" in "CALVARIO (GÓLGOTA)" is
+ *  itself a place name, not a descriptive common noun like "persona" in
+ *  "JOSUÉ (persona)". A small explicit allowlist (rather than a
+ *  proper-noun-detection heuristic) is enough because the dictionary's
+ *  bundled headwords are a small, curated, known dataset — add new
+ *  qualifiers here, in their correct display form, as they show up, not a
+ *  general detector that could misfire on a future entry. Storing the
+ *  display form (rather than re-deriving it by upper-casing just the first
+ *  letter) also keeps this correct for any future multi-word or hyphenated
+ *  qualifier (e.g. "Mar de Galilea", "Bet-el"). */
+const PROPER_NOUN_QUALIFIERS = ['Gólgota'];
 
 /** Sentence-case a stored ALL-CAPS headword: first character upper, rest
  *  lower. A parenthetical qualifier is lowercased the same way (e.g. "JOSUÉ
  *  (persona)" → "Josué (persona)") UNLESS it's a known proper noun listed in
- *  `PROPER_NOUN_QUALIFIERS`, in which case its own capitalization is kept
- *  (e.g. "CALVARIO (GÓLGOTA)" → "Calvario (Gólgota)", not "(gólgota)"). */
+ *  `PROPER_NOUN_QUALIFIERS`, in which case its listed display capitalization
+ *  is used instead (e.g. "CALVARIO (GÓLGOTA)" → "Calvario (Gólgota)", not
+ *  "(gólgota)"). Only the first parenthetical group is checked — correct for
+ *  every headword shipped today, none of which has more than one. */
 export function titleCaseHeadword(raw: string): string {
   const trimmed = raw.trim();
   if (trimmed.length === 0) return trimmed;
   const sentenceCased =
     trimmed.charAt(0).toUpperCase() + trimmed.slice(1).toLowerCase();
   return sentenceCased.replace(/\(([^)]+)\)/, (match, qualifier: string) => {
-    if (PROPER_NOUN_QUALIFIERS.includes(qualifier.toLowerCase())) {
-      return `(${qualifier.charAt(0).toUpperCase()}${qualifier.slice(1)})`;
-    }
-    return match;
+    const properNoun = PROPER_NOUN_QUALIFIERS.find(
+      q => q.toLowerCase() === qualifier.toLowerCase(),
+    );
+    return properNoun ? `(${properNoun})` : match;
   });
 }
 
