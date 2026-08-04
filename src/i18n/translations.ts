@@ -3642,6 +3642,8 @@ export const translations = {
       importError:
         'No se pudo importar la copia. Verifica que el archivo sea una copia de seguridad válida.',
       importSuccess: 'Copia de seguridad importada correctamente.',
+      importPartial:
+        'Copia importada, pero algunos datos no se pudieron restaurar. El resto de tu información no se vio afectada.',
       importConfirmTitle: 'Importar copia de seguridad',
       importConfirmMessage:
         'Esto reemplazará tus datos actuales con los del archivo elegido y no se puede deshacer.\n\nFavoritos, notas, resaltados, marcadores, memorización y repasos (últimos 12 meses) también se sincronizan con la nube si iniciaste sesión. El progreso de lectura, logros y rachas, preferencias y la Mesa de preparación solo viven en este dispositivo — la Mesa de preparación nunca se sincroniza a propósito.',
@@ -9498,6 +9500,8 @@ export const translations = {
       importError:
         'Backup import failed. Make sure the file is a valid backup.',
       importSuccess: 'Backup imported successfully.',
+      importPartial:
+        "Backup imported, but some data couldn't be restored. The rest of your data wasn't affected.",
       importConfirmTitle: 'Import backup',
       importConfirmMessage:
         "This will replace your current data with the contents of the chosen file, and can't be undone.\n\nFavorites, notes, highlights, bookmarks, memorization, and reviews (last 12 months) also sync to the cloud if you're signed in. Reading progress, achievements and streaks, preferences, and the Preparation table live only on this device — the Preparation table never syncs, by design.",

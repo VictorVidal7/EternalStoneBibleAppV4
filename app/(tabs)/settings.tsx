@@ -212,8 +212,25 @@ export default function SettingsScreen() {
     try {
       const raw = await readBackupFileFromUri(uri);
       const payload = parseBackupPayload(raw);
-      await importBackup(payload);
-      toast.success(t.settings.importSuccess);
+      const result = await importBackup(payload);
+      // `importBackup` RESOLVES (never rejects) for the two honest-partial-
+      // failure cases: a corrupted-but-structurally-valid section where
+      // every row failed validation (left untouched rather than wiped), and
+      // the rarer case where SQLite already committed but the subsequent
+      // AsyncStorage write step then failed outright. Either way,
+      // `failedSections` is non-empty and a flat "success" toast would be a
+      // lie — surface the honest, non-alarming partial message instead.
+      if (result.failedSections.length > 0) {
+        logger.warn('Backup import completed with partial failures', {
+          component: 'SettingsScreen',
+          action: 'performImport',
+          failedSections: result.failedSections,
+          asyncStorageWriteFailed: result.asyncStorageWriteFailed,
+        });
+        toast.warning(t.settings.importPartial);
+      } else {
+        toast.success(t.settings.importSuccess);
+      }
     } catch (error) {
       logger.error('Backup import failed', error as Error, {
         component: 'SettingsScreen',

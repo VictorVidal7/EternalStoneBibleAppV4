@@ -368,3 +368,160 @@ describe('importBackup — v1 payload compatibility', () => {
     expect(await AsyncStorage.getItem('@prep_notes')).toBeNull();
   });
 });
+
+describe('importBackup — Bug 2: every row in a present section fails validation', () => {
+  it('does NOT wipe existing favorites when every favorites row is corrupted', async () => {
+    const payload = basePayload({
+      bible: {
+        // Both entries are missing required fields — nothing survives
+        // `coerceFavorite`, but the section IS present with real (non-empty)
+        // source data, unlike a genuinely empty backup.
+        favorites: [
+          {id: 'fav-bad-1'} as unknown,
+          {chapter: 1, verse: 1} as unknown,
+        ] as never,
+        notes: [],
+        highlights: [],
+        lastReadPosition: null,
+        chapterProgressMap: null,
+      },
+    });
+
+    const result = await importBackup(payload);
+
+    // The OLD (buggy) behavior silently pushed 'favorites' into
+    // restoredSections regardless of how many rows survived. The fix must
+    // report this differently: not restored, and distinctly failed.
+    expect(result.restoredSections).not.toContain('favorites');
+    expect(result.failedSections).toContain('favorites');
+
+    // The destructive DELETE must never have run — proves existing local
+    // favorites were left untouched instead of being wiped to zero rows.
+    expect(sqlCallsStartingWith('DELETE FROM favorites')).toHaveLength(0);
+    expect(sqlCallsStartingWith('INSERT INTO favorites')).toHaveLength(0);
+  });
+
+  it('still clears favorites via a genuinely empty array (REPLACE semantics preserved)', async () => {
+    const payload = basePayload({
+      bible: {
+        favorites: [],
+        notes: [],
+        highlights: [],
+        lastReadPosition: null,
+        chapterProgressMap: null,
+      },
+    });
+
+    const result = await importBackup(payload);
+
+    // A real "I have zero favorites" backup must still replace-with-empty —
+    // this is NOT the same case as Bug 2 and must not regress.
+    expect(result.restoredSections).toContain('favorites');
+    expect(result.failedSections).not.toContain('favorites');
+    expect(sqlCallsStartingWith('DELETE FROM favorites')).toHaveLength(1);
+  });
+
+  it('does NOT overwrite existing bookmarks when every bookmark row is corrupted', async () => {
+    await AsyncStorage.setItem(
+      '@bible_bookmarks',
+      JSON.stringify([{id: 'real-existing-bookmark'}]),
+    );
+
+    const payload = basePayload({
+      user: {
+        // Missing `book`/`chapter`/`verse` — both fail `coerceBookmark`.
+        bookmarks: [{id: 'bm-bad'} as unknown, {} as unknown] as never,
+        readingPlanProgress: undefined,
+        readingPlanReadChapters: undefined,
+        searchHistory: undefined,
+        readerPreferences: {sideBySide: false},
+        readerPreferencesFull: null,
+        appTheme: {mode: null, colorTheme: null},
+      },
+    });
+
+    const result = await importBackup(payload);
+
+    expect(result.restoredSections).not.toContain('bookmarks');
+    expect(result.failedSections).toContain('bookmarks');
+
+    // The pre-existing AsyncStorage value must be untouched, not overwritten
+    // with an empty array the way the old unconditional-write path did.
+    const stillThere = JSON.parse(
+      (await AsyncStorage.getItem('@bible_bookmarks')) ?? '[]',
+    );
+    expect(stillThere).toEqual([{id: 'real-existing-bookmark'}]);
+  });
+});
+
+describe('importBackup — Bug 1: AsyncStorage write fails after SQLite already committed', () => {
+  it('resolves (does not reject) with asyncStorageWriteFailed=true, keeping the already-committed SQLite section out of failedSections', async () => {
+    const multiSetSpy = jest
+      .spyOn(AsyncStorage, 'multiSet')
+      .mockRejectedValueOnce(new Error('mock: device storage full'));
+
+    const payload = basePayload({
+      bible: {
+        favorites: [
+          {
+            id: 'fav-1',
+            book: 'John',
+            chapter: 3,
+            verse: 16,
+            text: 'For God so loved the world',
+            category: 'other',
+            rating: 5,
+            tags: [],
+            createdAt: 1,
+            updatedAt: 1,
+          },
+        ] as never,
+        notes: [],
+        highlights: [],
+        lastReadPosition: null,
+        chapterProgressMap: null,
+      },
+      user: {
+        bookmarks: [
+          {
+            id: 'bm-1',
+            book: 'Genesis',
+            chapter: 1,
+            verse: 1,
+            text: 'In the beginning',
+            createdAt: 1,
+            updatedAt: 1,
+          },
+        ],
+        readingPlanProgress: undefined,
+        readingPlanReadChapters: undefined,
+        searchHistory: undefined,
+        readerPreferences: {sideBySide: false},
+        readerPreferencesFull: null,
+        appTheme: {mode: null, colorTheme: null},
+      },
+    });
+
+    // The pre-fix behavior was a generic reject here, indistinguishable from
+    // "nothing was written" even though SQLite had already committed. The
+    // fix must resolve with an honest, distinguishing signal instead.
+    const result = await importBackup(payload);
+
+    expect(result.asyncStorageWriteFailed).toBe(true);
+    // SQLite-backed section: already committed before multiSet ever ran.
+    expect(result.restoredSections).toContain('favorites');
+    // AsyncStorage-backed section: never actually persisted.
+    expect(result.restoredSections).not.toContain('bookmarks');
+    expect(result.failedSections).toContain('bookmarks');
+
+    // Prove the SQLite write really happened (not just claimed in the
+    // result) — this is the crux of Bug 1: the DB write is real and
+    // unrecoverable by the time AsyncStorage fails.
+    expect(sqlCallsStartingWith('INSERT INTO favorites')).toHaveLength(1);
+
+    // Prove the AsyncStorage write really did NOT happen.
+    expect(await AsyncStorage.getItem('@bible_bookmarks')).toBeNull();
+
+    multiSetSpy.mockRestore();
+  });
+});
