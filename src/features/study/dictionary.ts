@@ -27,6 +27,20 @@
  * small, purpose-built parser for exactly these two constructs rather than
  * pulling in a general-purpose dependency.
  *
+ * A bold span may itself wrap one or more italic runs — e.g. "pascua"'s own
+ * numbered section headings, "**1. *Pesaḥ* y *matsot***" (a Hebrew/Greek
+ * transliteration italicized inside an otherwise-bold heading). The parser
+ * resolves this one level of nesting (bold-wraps-italic is the only
+ * direction ever used in the bundled content — confirmed against all 3
+ * bundled JSON assets, v1/v2/multiview) by first matching the *outer* bold
+ * span (its content may contain complete "*...*" runs), then re-splitting
+ * that captured inner text for nested italics, tagging those runs
+ * `'bold-italic'` rather than dropping the bold. Getting this wrong is not
+ * cosmetic: because the whole function is one sequential split, a single
+ * misread nested span desyncs every markdown marker for the REST of the
+ * document (this is exactly what happened before this was fixed — see
+ * `dictionary.test.ts`'s "pascua" regression case).
+ *
  * Para la gloria de Dios Todopoderoso ✨
  */
 
@@ -38,7 +52,7 @@ export interface DictionaryListEntry {
   gloss_es: string;
 }
 
-export type MarkdownSegmentStyle = 'plain' | 'bold' | 'italic';
+export type MarkdownSegmentStyle = 'plain' | 'bold' | 'italic' | 'bold-italic';
 
 export interface MarkdownSegment {
   text: string;
@@ -76,23 +90,52 @@ export function filterDictionaryEntries<T extends DictionaryListEntry>(
  *  segments, so a screen can render each with its own style instead of
  *  showing the literal asterisks. Bold is matched before italic at each
  *  position (the alternation order below) so a "**bold**" span is never
- *  misread as italic-inside-italic. Unmatched/stray "*"/"**" (an odd count,
- *  or a lone "*" with no partner) are left as literal text rather than
- *  guessed at — never drop source content over a formatting ambiguity.
- *  Empty input returns an empty array. */
+ *  misread as italic-inside-italic. A bold span's content may itself contain
+ *  one or more complete "*italic*" runs (see the file header comment) —
+ *  `SPLIT_RE`'s bold alternative matches the whole outer span in one go (its
+ *  `(?:[^*]|\*[^*]+\*)+` content group accepts either a non-"*" run or a
+ *  complete italic pair, so an inner "***" boundary collision like
+ *  "*matsot***" resolves as italic-close-then-bold-close instead of
+ *  desyncing the rest of the split). The captured inner text is then
+ *  re-split on plain italic pairs so nested runs get `'bold-italic'` instead
+ *  of losing their bold weight. Unmatched/stray "*"/"**" (an odd count, or a
+ *  lone "*" with no partner) are left as literal text rather than guessed at
+ *  — never drop source content over a formatting ambiguity. Empty input
+ *  returns an empty array. */
+const BOLD_WITH_OPTIONAL_ITALIC_SRC = '\\*\\*(?:[^*]|\\*[^*]+\\*)+\\*\\*';
+const ITALIC_ONLY_SRC = '\\*[^*]+\\*';
+// Capturing groups so `.split` keeps the matched delimiters in the result
+// (an uncaptured `.split` regex would silently discard them).
+const SPLIT_RE = new RegExp(
+  `(${BOLD_WITH_OPTIONAL_ITALIC_SRC}|${ITALIC_ONLY_SRC})`,
+  'g',
+);
+const NESTED_ITALIC_RE = new RegExp(`(${ITALIC_ONLY_SRC})`, 'g');
+
 export function parseMarkdownSegments(text: string): MarkdownSegment[] {
   if (!text) return [];
   return text
-    .split(/(\*\*[^*]+\*\*|\*[^*]+\*)/g)
+    .split(SPLIT_RE)
     .filter(part => part.length > 0)
-    .map(part => {
+    .flatMap((part): MarkdownSegment[] => {
       if (part.startsWith('**') && part.endsWith('**')) {
-        return {text: part.slice(2, -2), style: 'bold' as const};
+        // Re-split the raw inner text (asterisks intact) for nested italic
+        // runs — see the doc comment above for why this always resolves
+        // cleanly for content `SPLIT_RE`'s bold alternative accepted.
+        return part
+          .slice(2, -2)
+          .split(NESTED_ITALIC_RE)
+          .filter(inner => inner.length > 0)
+          .map(inner =>
+            inner.startsWith('*') && inner.endsWith('*')
+              ? {text: inner.slice(1, -1), style: 'bold-italic' as const}
+              : {text: inner, style: 'bold' as const},
+          );
       }
       if (part.startsWith('*') && part.endsWith('*')) {
-        return {text: part.slice(1, -1), style: 'italic' as const};
+        return [{text: part.slice(1, -1), style: 'italic' as const}];
       }
-      return {text: part, style: 'plain' as const};
+      return [{text: part, style: 'plain' as const}];
     });
 }
 

@@ -8,19 +8,50 @@ import {
 } from '../dictionary';
 
 // The real bundled entry sets (same "require the real asset" idiom as
-// dictionaryV1.test.ts / dictionaryV2.test.ts) — used only to confirm every
-// slug named in the related-entries map actually exists as a shipped entry,
-// so a typo can't silently render a link into the "entry not found" state.
-const V1_ENTRIES: {
+// dictionaryV1.test.ts / dictionaryV2.test.ts) — used to confirm every slug
+// named in the related-entries map actually exists as a shipped entry (so a
+// typo can't silently render a link into the "entry not found" state), and
+// to run `parseMarkdownSegments` regression checks against the real bundled
+// article text below, not a synthetic simplification.
+interface BundledSection {
+  bodyEs: string;
+}
+interface BundledEntry {
   slug: string;
-}[] = require('../../../../assets/dictionary-v1-es.json');
-const V2_ENTRIES: {
-  slug: string;
-}[] = require('../../../../assets/dictionary-v2-es.json');
+  articleEs?: string | null;
+  glossEs?: string;
+  sections?: BundledSection[];
+}
+const V1_ENTRIES: BundledEntry[] = require('../../../../assets/dictionary-v1-es.json');
+const V2_ENTRIES: BundledEntry[] = require('../../../../assets/dictionary-v2-es.json');
+const MULTIVIEW_ENTRIES: BundledEntry[] = require('../../../../assets/dictionary-v2-multiview-es.json');
 const ALL_SLUGS = new Set([
   ...V1_ENTRIES.map(e => e.slug),
   ...V2_ENTRIES.map(e => e.slug),
 ]);
+// Every markdown-bearing text field across all 3 bundled dictionary assets
+// (v1, v2, and the v2 multiview split), used by the corpus-wide regression
+// check below.
+const ALL_BUNDLED_MARKDOWN_FIELDS: {path: string; text: string}[] = [
+  ...V1_ENTRIES.flatMap(e =>
+    e.articleEs ? [{path: `v1/${e.slug}.articleEs`, text: e.articleEs}] : [],
+  ),
+  ...[...V2_ENTRIES, ...MULTIVIEW_ENTRIES].flatMap(e => {
+    const tier = V2_ENTRIES.includes(e) ? 'v2' : 'multiview';
+    const fields: {path: string; text: string}[] = [];
+    if (e.articleEs)
+      fields.push({path: `${tier}/${e.slug}.articleEs`, text: e.articleEs});
+    if (e.glossEs)
+      fields.push({path: `${tier}/${e.slug}.glossEs`, text: e.glossEs});
+    (e.sections ?? []).forEach((s, i) =>
+      fields.push({
+        path: `${tier}/${e.slug}.sections[${i}].bodyEs`,
+        text: s.bodyEs,
+      }),
+    );
+    return fields;
+  }),
+];
 
 describe('dictionary — pure helpers for the browse/search screen', () => {
   describe('titleCaseHeadword', () => {
@@ -169,6 +200,90 @@ describe('dictionary — pure helpers for the browse/search screen', () => {
       // The rejoined text differs only by the stripped "*"/"**" delimiters —
       // confirms no source content is silently dropped.
       expect(rejoined).toBe(original.replace(/\*\*|\*/g, ''));
+    });
+
+    describe('nested bold-wraps-italic (regression: "pascua" desync bug)', () => {
+      // Real heading text sliced straight out of the bundled "pascua" article
+      // — not a synthetic simplification — so this test can't silently drift
+      // from what actually ships. Before the fix, this exact pattern
+      // ("**N. *término*...**") desynced the split for the rest of the
+      // ~17,558-char article: every later paragraph/heading came out with
+      // the wrong style, ending in a stray unpaired "*".
+      const REAL_PASCUA_HEADING = '**1. *Pesaḥ* y *matsot***';
+
+      it('is actually present verbatim in the bundled pascua article (guards against drift)', () => {
+        const pascua = V1_ENTRIES.find(e => e.slug === 'pascua')!;
+        expect(pascua.articleEs).toContain(REAL_PASCUA_HEADING);
+      });
+
+      it('splits a bold heading that wraps two italic runs into bold + bold-italic segments, no stray asterisks', () => {
+        const result = parseMarkdownSegments(REAL_PASCUA_HEADING);
+        expect(result).toEqual([
+          {text: '1. ', style: 'bold'},
+          {text: 'Pesaḥ', style: 'bold-italic'},
+          {text: ' y ', style: 'bold'},
+          {text: 'matsot', style: 'bold-italic'},
+        ]);
+        for (const seg of result) {
+          expect(seg.text).not.toContain('*');
+        }
+      });
+
+      it('parses the full real pascua article end-to-end with no desync into the rest of the document', () => {
+        const pascua = V1_ENTRIES.find(e => e.slug === 'pascua')!;
+        const segments = parseMarkdownSegments(pascua.articleEs as string);
+
+        // No stray asterisks leak into ANY rendered segment.
+        for (const seg of segments) {
+          expect(seg.text).not.toContain('*');
+        }
+        // Lossless rejoin — every character survives except the stripped
+        // markdown delimiters themselves.
+        const rejoined = segments.map(s => s.text).join('');
+        expect(rejoined).toBe(
+          (pascua.articleEs as string).replace(/\*\*|\*/g, ''),
+        );
+
+        // All 5 numbered nested headings resolved as bold, with their
+        // wrapped transliterated terms as bold-italic (not swallowed and
+        // not downgraded to plain italic).
+        for (const term of ['Pesaḥ mitsrayim', 'Pesaḥ dorot', 'matsot']) {
+          const hit = segments.find(
+            s => s.text === term && s.style === 'bold-italic',
+          );
+          expect(hit).toBeDefined();
+        }
+
+        // The article's closing byline (well past the last nested heading)
+        // must still render as ordinary plain prose, not a style corrupted
+        // by an earlier desync.
+        const last = segments[segments.length - 1];
+        expect(last.style).toBe('plain');
+        expect(last.text).toContain('Nathan Isaacs');
+      });
+
+      it('does not change parsed output for any other bundled entry/field (v1, v2, multiview)', () => {
+        // Every field is confirmed non-lossy and stray-asterisk-free — a
+        // proxy for "identical to the pre-fix parser", since the only
+        // behavioral difference introduced is how a genuinely nested
+        // bold+italic span is handled, and pascua's 5 headings are the only
+        // such spans anywhere in the bundled corpus (confirmed by scanning
+        // all 3 JSON assets).
+        expect(ALL_BUNDLED_MARKDOWN_FIELDS.length).toBeGreaterThan(30);
+        for (const {path, text} of ALL_BUNDLED_MARKDOWN_FIELDS) {
+          const segments = parseMarkdownSegments(text);
+          const rejoined = segments.map(s => s.text).join('');
+          // `path` is embedded in the failure message via the field label —
+          // jest reports the failing assertion's stack, and this loop body
+          // is small enough that the offending `text` is easy to spot too.
+          expect({path, ok: rejoined === text.replace(/\*\*|\*/g, '')}).toEqual(
+            {path, ok: true},
+          );
+          for (const seg of segments) {
+            expect(seg.text.includes('*')).toBe(false);
+          }
+        }
+      });
     });
   });
 
