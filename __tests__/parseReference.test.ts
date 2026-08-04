@@ -106,6 +106,25 @@ describe('parseReference', () => {
     expect(parseReference('John 3:18-16')).toBeNull();
   });
 
+  it("returns null for a verse number beyond the chapter's actual verse count", () => {
+    // Gálatas 6 only has 18 verses.
+    expect(parseReference('Gálatas 6:19')).toBeNull();
+    expect(parseReference('Gálatas 6:18')).not.toBeNull();
+    // Números 36 only has 13 verses.
+    expect(parseReference('Números 36:33')).toBeNull();
+    expect(parseReference('Números 36:13')).not.toBeNull();
+  });
+
+  it("returns null when only the range end overshoots the chapter's verse count", () => {
+    // Levítico 5 only has 19 verses.
+    expect(parseReference('Levítico 5:18-26')).toBeNull();
+    expect(parseReference('Levítico 5:18-19')).not.toBeNull();
+  });
+
+  it('still resolves a whole-chapter reference (no verse to bound-check)', () => {
+    expect(parseReference('Salmos 23')).not.toBeNull();
+  });
+
   it('returns null for nonsense', () => {
     expect(parseReference('hello world')).toBeNull();
     expect(parseReference('Genesis')).toBeNull(); // no chapter
@@ -144,6 +163,14 @@ describe('linkifyReferences', () => {
   it('ignores out-of-range chapter numbers', () => {
     // Genesis only has 50 chapters; "Genesis 99:1" should not linkify.
     const segs = linkifyReferences('A reference to Genesis 99:1 is bogus.');
+    expect(segs.every(s => s.ref === undefined)).toBe(true);
+  });
+
+  it('ignores a chapter-valid but verse-out-of-range citation instead of dead-linking it', () => {
+    // Gálatas 6 is a real chapter, but it only has 18 verses — "Gá 6:19"
+    // used to slip past the old chapter-only bounds check and become a
+    // tappable link that silently dead-ended.
+    const segs = linkifyReferences('como se ve en Gá 6:19, un ejemplo.');
     expect(segs.every(s => s.ref === undefined)).toBe(true);
   });
 
