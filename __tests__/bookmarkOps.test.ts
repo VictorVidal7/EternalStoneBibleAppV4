@@ -56,13 +56,18 @@ describe('dedupeAndPrepend', () => {
     expect(next).toHaveLength(2);
   });
 
-  it('treats different translations of the same verse as distinct', () => {
+  it('collapses different translations of the same verse into one entry', () => {
     // (book strings reflect the stored DB book name, which differs per
-    // version — Genesis vs Génesis. dedupe is a string equality check.)
+    // version — Genesis vs Génesis. dedupeAndPrepend compares on the
+    // canonical book identity — see canonicalBookName — so bookmarking the
+    // same verse while reading two different-language versions produces
+    // one entry, not two. Sprint 58 bug class, same fix as favorites /
+    // highlights / notes / audio bookmarks.)
     const en = bm({id: 'en', book: 'Genesis', chapter: 1, verse: 1});
     const es = bm({id: 'es', book: 'Génesis', chapter: 1, verse: 1});
     const next = dedupeAndPrepend([en], es);
-    expect(next).toHaveLength(2);
+    expect(next).toHaveLength(1);
+    expect(next[0].id).toBe('es');
   });
 });
 
@@ -110,5 +115,12 @@ describe('isBookmarkedAt', () => {
     expect(isBookmarkedAt(list, 'John', 3, 17)).toBe(false);
     expect(isBookmarkedAt(list, 'John', 4, 16)).toBe(false);
     expect(isBookmarkedAt(list, 'Romans', 3, 16)).toBe(false);
+  });
+
+  it('finds a match across version languages via the canonical book name', () => {
+    // list holds the English-canonical 'John'; querying with the Spanish
+    // reading-version name 'Juan' must still report a hit.
+    expect(isBookmarkedAt(list, 'Juan', 3, 16)).toBe(true);
+    expect(isBookmarkedAt(list, 'Génesis', 1, 1)).toBe(true);
   });
 });

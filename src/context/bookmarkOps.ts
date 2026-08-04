@@ -5,6 +5,7 @@
  * mount the React tree or stub AsyncStorage.
  */
 
+import {canonicalBookName} from '../constants/bible';
 import type {Bookmark} from './BookmarksContext';
 
 /**
@@ -12,15 +13,22 @@ import type {Bookmark} from './BookmarksContext';
  * bookmark that points to the same exact verse. This is what keeps
  * re-bookmarking idempotent: the user gets one entry per (book,
  * chapter, verse) tuple with the most recent metadata.
+ *
+ * Compares on the canonical book identity (see canonicalBookName) so a
+ * verse bookmarked while reading a Spanish version ("Juan") and later
+ * while reading an English version ("John") collapse to the same entry,
+ * same as favorites / highlights / notes / audio bookmarks (Sprint 58
+ * bug class).
  */
 export function dedupeAndPrepend(
   existing: ReadonlyArray<Bookmark>,
   candidate: Bookmark,
 ): Bookmark[] {
+  const candidateBook = canonicalBookName(candidate.book);
   const filtered = existing.filter(
     b =>
       !(
-        b.book === candidate.book &&
+        canonicalBookName(b.book) === candidateBook &&
         b.chapter === candidate.chapter &&
         b.verse === candidate.verse
       ),
@@ -43,13 +51,23 @@ export function renameById(
   return list.map(b => (b.id === id ? {...b, label} : b));
 }
 
+/**
+ * Membership check for (book, chapter, verse). Canonicalizes both the
+ * incoming `book` and each stored bookmark's `book` so the same verse is
+ * recognized regardless of which version-language name it arrives with
+ * (mirrors FavoritesContext.isFavorite).
+ */
 export function isBookmarkedAt(
   list: ReadonlyArray<Bookmark>,
   book: string,
   chapter: number,
   verse: number,
 ): boolean {
+  const canonical = canonicalBookName(book);
   return list.some(
-    b => b.book === book && b.chapter === chapter && b.verse === verse,
+    b =>
+      canonicalBookName(b.book) === canonical &&
+      b.chapter === chapter &&
+      b.verse === verse,
   );
 }
