@@ -9,7 +9,9 @@
  * context's `goToVerse`, so the TTS engine is never thrashed mid-drag.
  *
  * Presentational: all playback state comes in via props; the math lives in the
- * pure `scrubMath` module. Gated behind premium by the caller.
+ * pure `scrubMath` module. Free for all users — verse-seek is not a premium
+ * gate (other player features, like playback speed, may still be gated by
+ * the caller independently).
  *
  * Para la gloria de Dios - Eternal Stone Bible App
  */
