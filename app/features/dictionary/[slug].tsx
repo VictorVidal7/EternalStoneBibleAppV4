@@ -142,9 +142,18 @@ function linkifyMarkdownSegment(
  *  rationale, mirrored exactly here). Plain and italic segments inherit the
  *  wrapping `Text`'s regular-weight `fontFamily`, so they don't need the prop.
  *
- *  Every segment (regardless of bold/italic/plain) is additionally run
- *  through `linkifyMarkdownSegment` so an inline Bible citation stays
- *  tappable no matter which markdown style it happens to sit inside. */
+ *  `'bold-italic'` (an italic run nested inside a bold span, e.g. "pascua"'s
+ *  own "**1. *Pesaḥ* y *matsot***" headings — see `parseMarkdownSegments`)
+ *  gets both `articleBold` and `articleItalic` applied together. The bold
+ *  weight still comes from switching to `boldFontFamily` (same static-font
+ *  caveat as plain bold above); RN can fake the italic slant on top of that
+ *  face via `fontStyle: 'italic'` even without a dedicated bold-italic font
+ *  file, so worst case this renders bold without a visible slant — still
+ *  strictly better than silently dropping the bold weight.
+ *
+ *  Every segment (regardless of style) is additionally run through
+ *  `linkifyMarkdownSegment` so an inline Bible citation stays tappable no
+ *  matter which markdown style it happens to sit inside. */
 function MarkdownBody({
   text,
   boldColor,
@@ -167,12 +176,13 @@ function MarkdownBody({
           onPressReference,
           i,
         );
-        if (seg.style === 'bold') {
+        if (seg.style === 'bold' || seg.style === 'bold-italic') {
           return (
             <Text
               key={i}
               style={[
                 styles.articleBold,
+                seg.style === 'bold-italic' && styles.articleItalic,
                 {color: boldColor, fontFamily: boldFontFamily},
               ]}>
               {linked}
