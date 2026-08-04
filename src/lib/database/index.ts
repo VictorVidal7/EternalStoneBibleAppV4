@@ -144,9 +144,11 @@ const DICT_V1_UPDATED_AT = '2026-07-18';
  * content in `dictionary_multiview_sections`); v4 = batch 4 (Comunión —
  * also `treatment: 'multi-view'`, entirely freshly-authored, not
  * ISBE-derived; 6 sections: Conmemorativa, Reformada, Luterana, Católica
- * romana, Ortodoxa, Diferencias de práctica).
+ * romana, Ortodoxa, Diferencias de práctica); v5 = corrected 2 undisclosed
+ * chapter-digit typos in Bible citations (Expiación's "Nm 36:33"->"Nm
+ * 35:33", Tabernáculo's "Éx 26:40"->"Éx 25:40"), no new entries.
  */
-const DICT_V2_VERSION = 4;
+const DICT_V2_VERSION = 5;
 
 /**
  * Version of the bundled WEB reading-version text (see seedWebTextIfNeeded).
