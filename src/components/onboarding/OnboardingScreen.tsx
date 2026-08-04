@@ -36,6 +36,7 @@ import {
 import {useLanguage} from '../../hooks/useLanguage';
 import type {Language} from '../../i18n/translations';
 import {useBibleVersion} from '../../hooks/useBibleVersion';
+import {useBackHandlerStep} from '../../hooks/useBackHandlerStep';
 import type {BibleVersion} from '../../types/bible';
 import {
   borderRadius,
@@ -74,6 +75,25 @@ export const OnboardingScreen: React.FC<OnboardingScreenProps> = ({onDone}) => {
     haptics.tap();
     setStep(step - 1);
   };
+
+  // Hardware back (and the matching edge-swipe gesture) mirrors the
+  // on-screen "Atrás" button: retreat one step. Unlike every other
+  // useBackHandlerStep call site in the app, this one never falls through
+  // (never returns `false`) even at step 0. Onboarding is rendered in place
+  // of the entire route tree (see app/_layout.tsx's onboardingCompleted
+  // branch) — it's the sole screen in Expo Router's internal root stack, so
+  // falling through wouldn't pop to a previous screen (there isn't one); it
+  // would reach react-navigation's own hardwareBackPress listener
+  // (`useBackButton`), find nothing left to pop, and let Android's default
+  // handling run — i.e. exit the app mid first-run setup. The on-screen
+  // button already treats step 0 as a no-op (`goBack` returns early);
+  // hardware back does the same by always consuming the event.
+  useBackHandlerStep(() => {
+    if (!isFirst) {
+      setStep(s => s - 1);
+    }
+    return true;
+  });
 
   const handleLanguage = async (next: Language) => {
     haptics.tap();
