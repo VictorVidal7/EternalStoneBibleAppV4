@@ -99,11 +99,17 @@ export function findBook(query: string): BibleBook | undefined {
  * Parse a single, complete reference. The input must shape as
  * `<book> <chapter>[:<verse>[-<verseEnd>]]` after trimming. Chapter and
  * verse must be within the book's actual range — out-of-range refs
- * resolve to null so the UI doesn't offer a broken jump. Verse bounds are
- * checked against {@link getChapterVerseCount} (derived from the real
- * bundled RVR1960 text) — a chapter-valid but verse-out-of-range citation
- * like "Gá 6:19" (Gálatas 6 only has 18 verses) used to slip through here
- * and become a tappable link that silently dead-ended in the reader.
+ * resolve to null so the UI doesn't offer a broken jump. Both the chapter
+ * AND verse bounds are checked against {@link getChapterVerseCount}
+ * (derived from the real bundled RVR1960 text) — a single generated source
+ * of truth, rather than cross-checking the chapter against the separately
+ * hand-maintained `book.chapters` count and only reaching for the real
+ * per-chapter table once a verse is present. A chapter-valid but
+ * verse-out-of-range citation like "Gá 6:19" (Gálatas 6 only has 18 verses)
+ * used to slip through and become a tappable link that silently dead-ended
+ * in the reader; a whole-chapter reference (no verse to separately
+ * bound-check) now gets that identical rigor instead of a second,
+ * independently-maintained count that could in principle drift from it.
  */
 const REF_PATTERN = /^(.+?)\s+(\d+)(?::(\d+)(?:-(\d+))?)?$/;
 
@@ -121,7 +127,12 @@ export function parseReference(input: string): ParsedReference | null {
   const book = findBook(bookPart);
   if (!book) return null;
   const chapter = parseInt(chapterStr, 10);
-  if (chapter < 1 || chapter > book.chapters) return null;
+  if (chapter < 1) return null;
+  const chapterVerseCount = getChapterVerseCount(book.id, chapter);
+  // Undefined means this chapter has no bundled verse data at all — fail
+  // closed rather than offer a jump we can't back up, regardless of
+  // whether the citation is chapter-only or includes a verse.
+  if (chapterVerseCount === undefined) return null;
   const verse = verseStr ? parseInt(verseStr, 10) : undefined;
   const verseEnd = verseEndStr ? parseInt(verseEndStr, 10) : undefined;
   if (verse !== undefined && verse < 1) return null;
@@ -129,13 +140,7 @@ export function parseReference(input: string): ParsedReference | null {
     return null;
   }
   if (verse !== undefined) {
-    const chapterVerseCount = getChapterVerseCount(book.id, chapter);
-    // No data for an in-range chapter shouldn't happen (every chapter up to
-    // book.chapters has bundled text), but fail closed rather than offer a
-    // jump we can't back up.
-    if (chapterVerseCount === undefined || verse > chapterVerseCount) {
-      return null;
-    }
+    if (verse > chapterVerseCount) return null;
     if (verseEnd !== undefined && verseEnd > chapterVerseCount) {
       return null;
     }
@@ -205,6 +210,44 @@ const REF_REGEX = (() => {
 })();
 
 /**
+ * A bare digit run separated only by whitespace from a matched book token
+ * changes what's actually being cited — e.g. "2 Esd 7:20" is a reference to
+ * the apocryphal, non-canonical "2 Esdras" (no bundled text, must never
+ * link), not chapter/verse 7:20 of the canonical "Esdras" (Ezra) that
+ * {@link REF_REGEX} matches in isolation. REF_REGEX's alternation only
+ * registers whole multi-word names for books that are genuinely numbered
+ * ("1 Samuel", "2 Corintios", "3 Juan", ...); an extra leading numeral in
+ * the source text is therefore never part of a canonical name and always
+ * changes the reference's meaning, so folding it back in and re-resolving
+ * through {@link parseReference} — the same rigor a fully-typed
+ * "2 Esd 7:20" already gets — is the correct, general fix rather than a
+ * one-off denylist for "2 Esd" alone. It naturally covers every other
+ * numbered-apocryphal collision with a bare canonical abbreviation (e.g.
+ * "1 Esd", which the bundled dictionary content also cites and explicitly
+ * disclaims as apocryphal) without needing to enumerate them by name.
+ */
+function extendMatchWithLeadingNumeral(
+  text: string,
+  matchStart: number,
+  matchText: string,
+  consumedUpTo: number,
+): {start: number; text: string} {
+  const leadingNumeral = /(\d+)\s+$/.exec(text.slice(0, matchStart));
+  // Guard against reaching back into the PREVIOUS match's own trailing
+  // chapter/verse digits when two references sit back-to-back with only
+  // whitespace between them (no comma/semicolon) — e.g. "...1 Cr 5 Esd
+  // 7:20" must not reinterpret the "5" that belongs to "1 Cr 5" as a
+  // leading numeral for "Esd 7:20".
+  if (!leadingNumeral || matchStart - leadingNumeral[0].length < consumedUpTo) {
+    return {start: matchStart, text: matchText};
+  }
+  return {
+    start: matchStart - leadingNumeral[0].length,
+    text: leadingNumeral[0] + matchText,
+  };
+}
+
+/**
  * Scan arbitrary text (a verse, a note, etc.) for embedded Bible
  * references and split it into plain + linked segments. Out-of-range
  * matches collapse back into plain text so we don't link a bogus jump.
@@ -217,8 +260,14 @@ export function linkifyReferences(text: string): LinkifiedSegment[] {
   REF_REGEX.lastIndex = 0;
   let m: RegExpExecArray | null;
   while ((m = REF_REGEX.exec(text)) !== null) {
-    const matchStart = m.index;
-    const matchText = m[0];
+    const extended = extendMatchWithLeadingNumeral(
+      text,
+      m.index,
+      m[0],
+      lastIndex,
+    );
+    const matchStart = extended.start;
+    const matchText = extended.text;
     const ref = parseReference(matchText.replace(/\.\s+/, ' '));
     if (!ref) continue;
     if (matchStart > lastIndex) {
