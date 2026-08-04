@@ -20,6 +20,7 @@ import {
   type BookReadingEntry,
 } from '../reading/bookReadingLog';
 import {localDayKey} from '../utils/dateKey';
+import {logger} from '../utils/logger';
 
 export class AchievementService {
   private db: BibleDatabase;
@@ -993,6 +994,15 @@ export class AchievementService {
    * skipped rather than inserted — `ACHIEVEMENT_DEFINITIONS` stays the only
    * source of truth for which ids may exist in `user_achievements`.
    *
+   * The 4 log-shaped sections (streakLog/completedBooks/bookReadingLog/
+   * chaptersReadLog) each go through the same DELETE-then-insert REPLACE
+   * pattern — see `data.allFailed` on `AchievementBackupData` for how a
+   * corrupted-but-structurally-valid backup (real source rows that all
+   * failed per-row coercion upstream in `BackupService`) is prevented from
+   * silently wiping a section down to zero rows: the destructive DELETE is
+   * skipped entirely for a section flagged there, leaving this device's
+   * existing local data untouched instead.
+   *
    * Invalidates the in-memory stats cache so the next `getUserStats()` call
    * reflects the restore instead of a stale pre-restore snapshot.
    */
@@ -1033,36 +1043,72 @@ export class AchievementService {
       );
     }
 
-    await this.db.executeSql('DELETE FROM reading_streak_log');
-    for (const entry of data.streakLog) {
-      await this.db.executeSql(
-        'INSERT INTO reading_streak_log (date, verses_read, time_spent) VALUES (?, ?, ?)',
-        [entry.date, entry.versesRead, entry.timeSpent],
+    if (data.allFailed?.streakLog) {
+      logger.warn(
+        'AchievementService.restoreBackup: streakLog had real source rows ' +
+          'that all failed validation — skipping the destructive delete to ' +
+          'avoid wiping existing local reading-streak history.',
+        {component: 'AchievementService', action: 'restoreBackup'},
       );
+    } else {
+      await this.db.executeSql('DELETE FROM reading_streak_log');
+      for (const entry of data.streakLog) {
+        await this.db.executeSql(
+          'INSERT INTO reading_streak_log (date, verses_read, time_spent) VALUES (?, ?, ?)',
+          [entry.date, entry.versesRead, entry.timeSpent],
+        );
+      }
     }
 
-    await this.db.executeSql('DELETE FROM completed_books');
-    for (const entry of data.completedBooks) {
-      await this.db.executeSql(
-        'INSERT INTO completed_books (book_name, completed_at) VALUES (?, ?)',
-        [entry.bookName, entry.completedAt],
+    if (data.allFailed?.completedBooks) {
+      logger.warn(
+        'AchievementService.restoreBackup: completedBooks had real source ' +
+          'rows that all failed validation — skipping the destructive ' +
+          'delete to avoid wiping existing local completed-books data.',
+        {component: 'AchievementService', action: 'restoreBackup'},
       );
+    } else {
+      await this.db.executeSql('DELETE FROM completed_books');
+      for (const entry of data.completedBooks) {
+        await this.db.executeSql(
+          'INSERT INTO completed_books (book_name, completed_at) VALUES (?, ?)',
+          [entry.bookName, entry.completedAt],
+        );
+      }
     }
 
-    await this.db.executeSql('DELETE FROM book_reading_log');
-    for (const entry of data.bookReadingLog) {
-      await this.db.executeSql(
-        'INSERT INTO book_reading_log (book_name, verses_read, time_spent, last_read_at) VALUES (?, ?, ?, ?)',
-        [entry.book, entry.versesRead, entry.timeSpent, entry.lastReadAt],
+    if (data.allFailed?.bookReadingLog) {
+      logger.warn(
+        'AchievementService.restoreBackup: bookReadingLog had real source ' +
+          'rows that all failed validation — skipping the destructive ' +
+          'delete to avoid wiping existing local book-reading-log data.',
+        {component: 'AchievementService', action: 'restoreBackup'},
       );
+    } else {
+      await this.db.executeSql('DELETE FROM book_reading_log');
+      for (const entry of data.bookReadingLog) {
+        await this.db.executeSql(
+          'INSERT INTO book_reading_log (book_name, verses_read, time_spent, last_read_at) VALUES (?, ?, ?, ?)',
+          [entry.book, entry.versesRead, entry.timeSpent, entry.lastReadAt],
+        );
+      }
     }
 
-    await this.db.executeSql('DELETE FROM chapters_read_log');
-    for (const entry of data.chaptersReadLog) {
-      await this.db.executeSql(
-        'INSERT OR IGNORE INTO chapters_read_log (book_name, chapter, first_read_at) VALUES (?, ?, ?)',
-        [entry.bookName, entry.chapter, entry.firstReadAt],
+    if (data.allFailed?.chaptersReadLog) {
+      logger.warn(
+        'AchievementService.restoreBackup: chaptersReadLog had real source ' +
+          'rows that all failed validation — skipping the destructive ' +
+          'delete to avoid wiping existing local chapters-read-log data.',
+        {component: 'AchievementService', action: 'restoreBackup'},
       );
+    } else {
+      await this.db.executeSql('DELETE FROM chapters_read_log');
+      for (const entry of data.chaptersReadLog) {
+        await this.db.executeSql(
+          'INSERT OR IGNORE INTO chapters_read_log (book_name, chapter, first_read_at) VALUES (?, ?, ?)',
+          [entry.bookName, entry.chapter, entry.firstReadAt],
+        );
+      }
     }
 
     this.stats = null; // Invalidate cache — next read reflects the restore.
@@ -1104,4 +1150,28 @@ export interface AchievementBackupData {
     chapter: number;
     firstReadAt: number;
   }>;
+  /**
+   * Per-section signal, set by the caller (`BackupService.importBackup`),
+   * for the same "every row failed validation" case its own
+   * `allRowsFailedValidation` helper detects on the outer sections
+   * (favorites/notes/highlights/bookmarks/memoryDeck): the raw backup had
+   * REAL (non-empty) source data for this array, but every entry failed
+   * per-row coercion before it ever reached `restoreBackup`. By the time
+   * this method sees `data.streakLog` etc. it only has the already-coerced
+   * array, so it cannot itself tell "the backup legitimately has zero
+   * entries" apart from "the backup had entries and all of them were
+   * garbage" — both collapse to an empty array. This flag restores that
+   * distinction: when true for a given key, `restoreBackup` skips that
+   * section's destructive DELETE-then-insert entirely, leaving the
+   * device's existing local data untouched, instead of silently wiping it
+   * down to zero rows. Omitted/false sections behave exactly as before
+   * (DELETE + insert), including the genuinely-empty REPLACE-with-empty
+   * case.
+   */
+  allFailed?: {
+    streakLog?: boolean;
+    completedBooks?: boolean;
+    bookReadingLog?: boolean;
+    chaptersReadLog?: boolean;
+  };
 }

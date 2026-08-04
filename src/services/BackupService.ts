@@ -1409,28 +1409,56 @@ export async function importBackup(
     }
 
     if (achievementsSection && rawStatsIn) {
+      const streakLogIn = coerceArray(
+        achievementsSection.streakLog,
+        coerceStreakEntry,
+      );
+      const completedBooksIn = coerceArray(
+        achievementsSection.completedBooks,
+        coerceCompletedBookEntry,
+      );
+      const bookReadingLogIn = coerceArray(
+        achievementsSection.bookReadingLog,
+        coerceBookReadingEntry,
+      );
+      const chaptersReadLogIn = coerceArray(
+        achievementsSection.chaptersReadLog,
+        coerceChapterReadEntry,
+      );
+      // Same "every row failed validation" check as the outer sections
+      // (favorites/notes/highlights/bookmarks/memoryDeck) above — computed
+      // here because `AchievementService.restoreBackup` only ever receives
+      // the already-coerced arrays and has no way to tell "the backup
+      // legitimately has zero entries" apart from "every entry was garbage"
+      // on its own. See `AchievementBackupData.allFailed`.
       const data: AchievementBackupData = {
         stats: rawStatsIn,
         achievements: coerceArray(
           achievementsSection.achievements,
           coerceAchievementRow,
         ),
-        streakLog: coerceArray(
-          achievementsSection.streakLog,
-          coerceStreakEntry,
-        ),
-        completedBooks: coerceArray(
-          achievementsSection.completedBooks,
-          coerceCompletedBookEntry,
-        ),
-        bookReadingLog: coerceArray(
-          achievementsSection.bookReadingLog,
-          coerceBookReadingEntry,
-        ),
-        chaptersReadLog: coerceArray(
-          achievementsSection.chaptersReadLog,
-          coerceChapterReadEntry,
-        ),
+        streakLog: streakLogIn,
+        completedBooks: completedBooksIn,
+        bookReadingLog: bookReadingLogIn,
+        chaptersReadLog: chaptersReadLogIn,
+        allFailed: {
+          streakLog: allRowsFailedValidation(
+            sourceArrayLength(achievementsSection.streakLog),
+            streakLogIn.length,
+          ),
+          completedBooks: allRowsFailedValidation(
+            sourceArrayLength(achievementsSection.completedBooks),
+            completedBooksIn.length,
+          ),
+          bookReadingLog: allRowsFailedValidation(
+            sourceArrayLength(achievementsSection.bookReadingLog),
+            bookReadingLogIn.length,
+          ),
+          chaptersReadLog: allRowsFailedValidation(
+            sourceArrayLength(achievementsSection.chaptersReadLog),
+            chaptersReadLogIn.length,
+          ),
+        },
       };
       await achievementService.restoreBackup(data);
       restoredSections.push('achievements');
