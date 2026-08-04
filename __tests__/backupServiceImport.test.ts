@@ -45,6 +45,9 @@ jest.mock('../src/lib/achievements/AchievementService', () => {
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as DatabaseModule from '../src/lib/database';
 import * as AchievementServiceModule from '../src/lib/achievements/AchievementService';
+// NOT mocked — this is the real module-level singleton BackupService reads
+// via `resolveAchievementService()` (see lib/achievements/instance.ts).
+import {setAchievementServiceInstance} from '../src/lib/achievements/instance';
 import {
   importBackup,
   parseBackupPayload,
@@ -141,6 +144,10 @@ beforeEach(async () => {
     rows: {_array: [], length: 0},
   }));
   await AsyncStorage.clear();
+  // Every test starts with no shared instance registered — otherwise a
+  // shared-instance test earlier in the file would leak into a later test
+  // that expects BackupService's own fallback instance to be used instead.
+  setAchievementServiceInstance(null);
 });
 
 describe('parseBackupPayload — corrupted files', () => {
@@ -324,6 +331,58 @@ describe('importBackup — round trip through coercion + persistence', () => {
         ]),
       }),
     );
+  });
+});
+
+describe('importBackup — shared AchievementService instance (staleness fix)', () => {
+  // Regression coverage for the bug this fix addresses: BackupService used
+  // to always construct its OWN `AchievementService`, whose in-memory
+  // `stats` cache is separate from the app-wide instance the Achievements
+  // tab reads (via `useAchievements` → `useServices()`). A restore would
+  // invalidate the WRONG cache, so the tab kept showing pre-restore stats
+  // until an app restart threw the stale cache away. `resolveAchievementService()`
+  // now prefers whatever `ServicesContext` has mirrored into the module-level
+  // singleton (`lib/achievements/instance.ts`) so the SAME instance's cache
+  // gets invalidated.
+  it('delegates to the registered shared instance instead of its own fallback', async () => {
+    const sharedInstance = {
+      initialize: jest.fn().mockResolvedValue(undefined),
+      restoreBackup: jest.fn().mockResolvedValue(undefined),
+    };
+    setAchievementServiceInstance(
+      sharedInstance as unknown as Parameters<
+        typeof setAchievementServiceInstance
+      >[0],
+    );
+
+    const payload = basePayload();
+    const result = await importBackup(payload);
+
+    expect(result.restoredSections).toContain('achievements');
+    expect(sharedInstance.initialize).toHaveBeenCalled();
+    expect(sharedInstance.restoreBackup).toHaveBeenCalledWith(
+      expect.objectContaining({
+        stats: expect.objectContaining({totalPoints: 0}),
+      }),
+    );
+    // The fallback (module-mocked) instance must NOT have been touched —
+    // proves the shared instance was actually used, not just constructed
+    // alongside it.
+    expect(mockAchievementInitialize).not.toHaveBeenCalled();
+    expect(mockRestoreBackup).not.toHaveBeenCalled();
+
+    setAchievementServiceInstance(null);
+  });
+
+  it('falls back to its own instance when no shared instance is registered', async () => {
+    setAchievementServiceInstance(null);
+
+    const payload = basePayload();
+    const result = await importBackup(payload);
+
+    expect(result.restoredSections).toContain('achievements');
+    expect(mockAchievementInitialize).toHaveBeenCalled();
+    expect(mockRestoreBackup).toHaveBeenCalled();
   });
 });
 
