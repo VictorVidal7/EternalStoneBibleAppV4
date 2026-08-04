@@ -31,7 +31,11 @@ import {ShareCardHost} from '@/features/share/ShareCardHost';
 import {PremiumShareExtras} from '@/features/share/PremiumShareExtras';
 import {SHARE_TEMPLATES} from '@/features/share/imageTemplates';
 import {type CollectionCardModel} from './collectionCard';
-import {spacing, fontSize as fontSizes} from '@/styles/designTokens';
+import {
+  spacing,
+  fontSize as fontSizes,
+  verseTextRightSlack,
+} from '@/styles/designTokens';
 
 export interface CollectionImageModalProps {
   visible: boolean;
@@ -203,7 +207,14 @@ const styles = StyleSheet.create({
   cardVerses: {gap: spacing.md},
   cardVerse: {gap: 2},
   cardRef: {fontSize: fontSizes.sm, fontWeight: '700', opacity: 0.9},
-  cardText: {fontSize: fontSizes.base, fontStyle: 'italic', lineHeight: 24},
+  cardText: {
+    fontSize: fontSizes.base,
+    fontStyle: 'italic',
+    lineHeight: 24,
+    // Italic serif clips its last glyph on some OEMs (Sprint 94) — reserve a
+    // few px so the painted right bearing clears the card's inner edge.
+    paddingRight: verseTextRightSlack(fontSizes.base),
+  },
   brand: {marginTop: spacing.xl, alignItems: 'flex-start'},
   brandDivider: {
     width: 30,
