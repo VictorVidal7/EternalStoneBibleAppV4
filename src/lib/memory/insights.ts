@@ -17,6 +17,7 @@
  */
 
 import {MemoryCard, SrsBox, isMastered} from './srs';
+import {localDayKey} from '../utils/dateKey';
 
 /** Number of forward days the review forecast spans (today + next 6). */
 export const FORECAST_HORIZON_DAYS = 7;
@@ -124,11 +125,28 @@ function struggleScore(card: MemoryCard): number {
 }
 
 /**
+ * UTC day-number for a LOCAL calendar-day key (`YYYY-MM-DD`) — same
+ * anchoring `readingInsights.ts`'s `dayNumberFromDateStr` uses, and the
+ * same one the deck screen's `formatRelativeDate` uses, so two day keys
+ * can be diffed as plain integers instead of rounding a raw millisecond
+ * gap.
+ */
+function dayNumberFromDayKey(dayKey: string): number {
+  const [y, m, d] = dayKey.split('-').map(Number);
+  return Math.floor(Date.UTC(y, m - 1, d) / DAY_MS);
+}
+
+/**
  * Cards due per day across the next `horizonDays`. Overdue cards fold
  * into today (offset 0); cards due beyond the horizon are dropped. The
- * day bucketing uses the same rounding the deck screen uses for its
- * "today / tomorrow / in N days" labels, so a card the list calls
- * "tomorrow" lands in the matching forecast bar.
+ * day bucketing diffs MIDNIGHT-NORMALIZED local calendar days (via the
+ * shared `localDayKey`), the same basis the deck screen's
+ * `formatRelativeDate` uses for its "today / tomorrow / in N days"
+ * labels, so a card the list calls "tomorrow" lands in the matching
+ * forecast bar regardless of the review's/viewer's time-of-day (a raw
+ * `(due - now) / dayMs` round can disagree with the calendar-day label
+ * once the two clock-times don't line up — see `formatRelativeDate` for
+ * the full explanation).
  */
 export function reviewForecast(
   cards: MemoryCard[],
@@ -136,12 +154,13 @@ export function reviewForecast(
   horizonDays: number = FORECAST_HORIZON_DAYS,
 ): ForecastDay[] {
   const horizon = Math.max(1, Math.floor(horizonDays));
-  const nowMs = now.getTime();
+  const todayDayNum = dayNumberFromDayKey(localDayKey(now.getTime()));
   const buckets = new Array<number>(horizon).fill(0);
   for (const card of cards) {
     const dueMs = new Date(card.dueAt).getTime();
     if (Number.isNaN(dueMs)) continue;
-    let offset = Math.round((dueMs - nowMs) / DAY_MS);
+    const dueDayNum = dayNumberFromDayKey(localDayKey(dueMs));
+    let offset = dueDayNum - todayDayNum;
     if (offset < 0) offset = 0;
     if (offset < horizon) buckets[offset] += 1;
   }

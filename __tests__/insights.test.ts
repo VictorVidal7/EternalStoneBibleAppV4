@@ -143,6 +143,40 @@ describe('reviewForecast', () => {
   });
 });
 
+// `dueAt` (srs.ts computeDueDate) preserves the time-of-day of the review
+// that scheduled a card rather than normalizing to midnight, so it can sit
+// anywhere in the day. reviewForecast used to bucket cards by rounding a
+// RAW millisecond gap to a day count, which — same bug class as
+// `formatRelativeDate` on the deck screen — could put a card in the wrong
+// forecast bar whenever `dueAt`'s clock-time didn't match `now`'s. These
+// cases use LOCAL Date constructors (not UTC) so a card's calendar day is
+// unambiguous regardless of the test runner's timezone.
+describe('reviewForecast — midnight-normalized day diff', () => {
+  it('buckets a card as "today" (offset 0) once `now` has rolled past midnight into its due day, even though the raw ms gap alone would round up to "tomorrow"', () => {
+    const due = new Date(2026, 0, 2, 19, 0, 0); // due 7pm Jan 2
+    const now = new Date(2026, 0, 2, 0, 30, 0); // checked 00:30 Jan 2 — ~18.5h raw gap
+    const fc = reviewForecast([mk({dueAt: due.toISOString()})], now);
+    expect(fc[0].count).toBe(1);
+    expect(fc[1].count).toBe(0);
+  });
+
+  it('buckets a card as "tomorrow" (offset 1) when it is due just after midnight but `now` is minutes before that midnight, even though the raw ms gap alone would round down to "today"', () => {
+    const due = new Date(2026, 0, 2, 1, 0, 0); // due 1am Jan 2
+    const now = new Date(2026, 0, 1, 23, 50, 0); // checked 23:50 Jan 1 — ~1h10m raw gap
+    const fc = reviewForecast([mk({dueAt: due.toISOString()})], now);
+    expect(fc[0].count).toBe(0);
+    expect(fc[1].count).toBe(1);
+  });
+
+  it('buckets a multi-day-away card into the correct calendar-day offset, not one short', () => {
+    const due = new Date(2026, 0, 4, 6, 0, 0); // due Jan 4, 6am
+    const now = new Date(2026, 0, 1, 22, 0, 0); // checked Jan 1, 10pm — ~56h raw gap
+    const fc = reviewForecast([mk({dueAt: due.toISOString()})], now);
+    expect(fc[3].count).toBe(1); // offset 3 = Jan 4, the correct calendar-day gap
+    expect(fc[2].count).toBe(0); // a raw-ms round would have placed it here instead
+  });
+});
+
 describe('masterySummary', () => {
   it('returns all zeros for an empty deck', () => {
     expect(masterySummary([], T0)).toEqual({
