@@ -18,6 +18,7 @@ interface BundledSection {
 }
 interface BundledEntry {
   slug: string;
+  headwordEs?: string;
   articleEs?: string | null;
   glossEs?: string;
   sections?: BundledSection[];
@@ -72,6 +73,27 @@ describe('dictionary — pure helpers for the browse/search screen', () => {
       expect(titleCaseHeadword('CAMINO DE UN DÍA DE REPOSO')).toBe(
         'Camino de un día de reposo',
       );
+    });
+
+    it('sentence-cases the two divine-title headwords ("Espíritu santo", "Reino de dios") rather than per-word title-casing them', () => {
+      // Regression lock, NOT a bug fix: as written, the blanket sentence-case
+      // rule above already renders these two multi-word divine titles
+      // correctly. A prior investigation flagged them as rendering with
+      // every word capitalized ("Espíritu Santo" / "Reino De Dios"), but
+      // that output can't come from this function — it can only come from a
+      // per-word title-case, which is exactly the failure mode the
+      // "CAMINO DE UN DÍA DE REPOSO" test above already guards against.
+      // Pinned against the real bundled `headwordEs` values (the same
+      // "require the real asset" idiom this file already uses elsewhere) so
+      // neither the source data nor this function can silently regress.
+      const espirituSanto = V2_ENTRIES.find(e => e.slug === 'espiritu-santo');
+      const reinoDeDios = V2_ENTRIES.find(e => e.slug === 'reino-de-dios');
+      expect(espirituSanto?.headwordEs).toBe('ESPÍRITU SANTO');
+      expect(reinoDeDios?.headwordEs).toBe('REINO DE DIOS');
+      expect(titleCaseHeadword(espirituSanto!.headwordEs!)).toBe(
+        'Espíritu santo',
+      );
+      expect(titleCaseHeadword(reinoDeDios!.headwordEs!)).toBe('Reino de dios');
     });
 
     it('keeps a common-noun parenthetical qualifier lowercase past its first letter', () => {
