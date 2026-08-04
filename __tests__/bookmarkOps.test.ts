@@ -1,5 +1,6 @@
 import {
   dedupeAndPrepend,
+  findSuperseded,
   isBookmarkedAt,
   removeById,
   renameById,
@@ -68,6 +69,46 @@ describe('dedupeAndPrepend', () => {
     const next = dedupeAndPrepend([en], es);
     expect(next).toHaveLength(1);
     expect(next[0].id).toBe('es');
+  });
+});
+
+describe('findSuperseded', () => {
+  // These mirror the dedupeAndPrepend cases above — the whole point of
+  // findSuperseded is that it identifies exactly the entries
+  // dedupeAndPrepend is about to drop, so a caller (BookmarksContext)
+  // can queueDelete their old Firestore docs.
+  it('returns empty when the candidate does not collide with anything', () => {
+    const a = bm({id: 'a', book: 'John', chapter: 3, verse: 16});
+    const b = bm({id: 'b', book: 'Romans', chapter: 8, verse: 28});
+    expect(findSuperseded([a], b)).toEqual([]);
+  });
+
+  it('finds the exact-verse entry a re-bookmark would replace', () => {
+    const original = bm({id: 'old', book: 'John', chapter: 3, verse: 16});
+    const updated = bm({id: 'new', book: 'John', chapter: 3, verse: 16});
+    const superseded = findSuperseded([original], updated);
+    expect(superseded).toHaveLength(1);
+    expect(superseded[0].id).toBe('old');
+  });
+
+  it('does not flag a different verse in the same chapter', () => {
+    const a = bm({id: 'a', book: 'John', chapter: 3, verse: 16});
+    const b = bm({id: 'b', book: 'John', chapter: 3, verse: 17});
+    expect(findSuperseded([a], b)).toEqual([]);
+  });
+
+  it('finds the entry across version-language book names (the canonicalization gap)', () => {
+    // Same scenario dedupeAndPrepend's cross-translation test covers: the
+    // OLD entry was bookmarked reading the English version ('Genesis'),
+    // the candidate comes from re-bookmarking the same verse while
+    // reading the Spanish version ('Génesis'). This is precisely the case
+    // that leaves a stale Firestore doc behind if the caller does not
+    // queueDelete the id this function returns.
+    const en = bm({id: 'en', book: 'Genesis', chapter: 1, verse: 1});
+    const es = bm({id: 'es', book: 'Génesis', chapter: 1, verse: 1});
+    const superseded = findSuperseded([en], es);
+    expect(superseded).toHaveLength(1);
+    expect(superseded[0].id).toBe('en');
   });
 });
 
