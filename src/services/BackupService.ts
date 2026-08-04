@@ -198,10 +198,64 @@ export interface BackupPayload {
   };
 }
 
+/**
+ * What `buildBackup`/`exportBackup` actually managed to read. `safeQuery`/
+ * `readJSON`/`readRaw` fall back to an empty/default value for ANY section
+ * whose underlying read throws, so the export never aborts outright — but
+ * that means a transient SQLite/AsyncStorage error can silently produce a
+ * backup file that LOOKS complete (valid JSON, every field present) while
+ * actually missing real data, normally only discovered much later when the
+ * user tries to restore from it. `degradedSections` closes that visibility
+ * gap: it lists every section whose read actually threw (never a section
+ * that's just legitimately empty — see the doc on `readJSON`). */
+export interface BuildBackupResult {
+  payload: BackupPayload;
+  degradedSections: string[];
+}
+
+/** What `exportBackup` actually wrote — human/log/test friendly. */
+export interface ExportResult {
+  /** Absolute `file://` URI of the written backup JSON. */
+  uri: string;
+  /** See `BuildBackupResult.degradedSections` — forwarded unchanged. Empty
+   *  when every section read cleanly. */
+  degradedSections: string[];
+}
+
 /** What `importBackup` actually wrote — human/log/test friendly. */
 export interface ImportResult {
   formatVersion: number;
+  /** Sections that were ACTUALLY restored. For SQLite-backed sections this
+   *  means the shared transaction that wrote them committed; for
+   *  AsyncStorage-backed sections it means the `multiSet` call that wrote
+   *  them actually succeeded (see `asyncStorageWriteFailed`). */
   restoredSections: string[];
+  /** Sections present in the backup with real (non-empty) source data where
+   *  NOTHING ended up restored. Two distinct causes land here:
+   *   1. Every row/entry in the section failed per-row validation (a
+   *      structurally-valid-but-garbled backup) — the destructive
+   *      DELETE-then-insert for that section was skipped entirely and the
+   *      device's existing local data was deliberately left untouched,
+   *      rather than being silently wiped and replaced with zero rows.
+   *   2. (`asyncStorageWriteFailed` case) The section's data validated and
+   *      serialized fine, but the single real `AsyncStorage.multiSet` call
+   *      failed outright after the SQLite portion had already committed.
+   *  A section legitimately absent from the file, or present as a genuinely
+   *  empty array/map (a real "I have zero of these" backup), is NOT listed
+   *  here — that is ordinary REPLACE-with-empty behavior, not a failure. */
+  failedSections: string[];
+  /** True only for the one scenario where SQLite already committed but the
+   *  AsyncStorage write step then failed (e.g. device storage full, a
+   *  serialization edge case the pre-flight build didn't catch). When true,
+   *  `restoredSections` reflects ONLY what actually persisted (the SQLite
+   *  sections); the AsyncStorage-backed sections that were supposed to be
+   *  written are listed in `failedSections` instead. This is the one case
+   *  where `importBackup` resolves instead of rejecting on a write failure,
+   *  specifically so a caller can tell the user "part of your data was
+   *  restored" instead of a flat, inaccurate "import failed" — by this
+   *  point failing the promise would hide that SQLite data is already
+   *  overwritten. See the atomicity note on `importBackup` itself. */
+  asyncStorageWriteFailed: boolean;
 }
 
 const EMPTY_RAW_STATS: RawUserStatsRow = {
@@ -226,7 +280,20 @@ const EMPTY_RAW_STATS: RawUserStatsRow = {
 // decoupled from the React provider tree.
 const achievementService = new AchievementService(bibleDB);
 
-async function readJSON<T = unknown>(key: string): Promise<T | null> {
+/**
+ * Reads one AsyncStorage key as JSON. `null` is returned BOTH when the key
+ * legitimately isn't set (a normal, healthy state for a new user or a
+ * section they've never touched) AND when the read itself throws — those
+ * two cases must never be confused. The optional `label`/`degraded` pair
+ * lets a caller (`buildBackup`) distinguish them: `degraded` is only ever
+ * pushed to inside the `catch` block, i.e. only for an ACTUAL read failure,
+ * never for a legitimately-empty key.
+ */
+async function readJSON<T = unknown>(
+  key: string,
+  label?: string,
+  degraded?: string[],
+): Promise<T | null> {
   try {
     const raw = await AsyncStorage.getItem(key);
     if (raw == null) return null;
@@ -240,17 +307,46 @@ async function readJSON<T = unknown>(key: string): Promise<T | null> {
   } catch (error) {
     logger.warn('Backup: AsyncStorage read failed', {key});
     void error;
+    if (label) degraded?.push(label);
     return null;
   }
 }
 
-async function safeQuery<T>(fn: () => Promise<T>, fallback: T): Promise<T> {
+/** Same `null`-is-ambiguous caveat as `readJSON` (see its doc), for the raw
+ *  (non-JSON) AsyncStorage keys `buildBackup` reads directly. */
+async function readRaw(
+  key: string,
+  label?: string,
+  degraded?: string[],
+): Promise<string | null> {
+  try {
+    return await AsyncStorage.getItem(key);
+  } catch (error) {
+    logger.warn('Backup: AsyncStorage read failed', {key});
+    void error;
+    if (label) degraded?.push(label);
+    return null;
+  }
+}
+
+/**
+ * Runs a SQLite read with a safe fallback on failure. Same distinction as
+ * `readJSON`: `degraded` is only pushed to when `fn` actually throws, never
+ * just because the result happens to equal `fallback`.
+ */
+async function safeQuery<T>(
+  fn: () => Promise<T>,
+  fallback: T,
+  label?: string,
+  degraded?: string[],
+): Promise<T> {
   try {
     return await fn();
   } catch (error) {
     logger.warn('Backup: SQLite read failed', {
       message: (error as Error)?.message,
     });
+    if (label) degraded?.push(label);
     return fallback;
   }
 }
@@ -259,9 +355,12 @@ async function safeQuery<T>(fn: () => Promise<T>, fallback: T): Promise<T> {
  * Read every user-owned dataset and assemble the backup payload.
  * Each source falls back to an empty value on failure so a partial
  * read still produces a usable file rather than aborting the whole
- * export.
+ * export. `degradedSections` (see `BuildBackupResult`) is how a caller
+ * finds out that fallback actually happened for a given section, instead
+ * of the file silently looking complete when it isn't.
  */
-export async function buildBackup(): Promise<BackupPayload> {
+export async function buildBackup(): Promise<BuildBackupResult> {
+  const degradedSections: string[] = [];
   await bibleDB.initialize();
   // Idempotent schema bootstrap (CREATE TABLE IF NOT EXISTS + INSERT OR
   // IGNORE) — safe to call even though the app already ran it at boot.
@@ -271,19 +370,41 @@ export async function buildBackup(): Promise<BackupPayload> {
 
   const [favorites, notes, highlightsResult, lastReadPosition] =
     await Promise.all([
-      safeQuery(() => bibleDB.getFavorites(), [] as Favorite[]),
-      safeQuery(() => bibleDB.getNotes(), [] as Note[]),
-      safeQuery(async () => {
-        const result = await bibleDB.executeSql(
-          'SELECT * FROM highlights ORDER BY created_at DESC',
-        );
-        return (result?.rows?._array ?? []) as RawHighlightRow[];
-      }, [] as RawHighlightRow[]),
-      safeQuery(() => bibleDB.getReadingProgress(), null),
+      safeQuery(
+        () => bibleDB.getFavorites(),
+        [] as Favorite[],
+        'favorites',
+        degradedSections,
+      ),
+      safeQuery(
+        () => bibleDB.getNotes(),
+        [] as Note[],
+        'notes',
+        degradedSections,
+      ),
+      safeQuery(
+        async () => {
+          const result = await bibleDB.executeSql(
+            'SELECT * FROM highlights ORDER BY created_at DESC',
+          );
+          return (result?.rows?._array ?? []) as RawHighlightRow[];
+        },
+        [] as RawHighlightRow[],
+        'highlights',
+        degradedSections,
+      ),
+      safeQuery(
+        () => bibleDB.getReadingProgress(),
+        null,
+        'lastReadPosition',
+        degradedSections,
+      ),
     ]);
 
   const chapterProgressMapRaw = await readJSON<ChapterProgressMap>(
     KEYS.readingProgress,
+    'chapterProgressMap',
+    degradedSections,
   );
   const chapterProgressMap = chapterProgressMapRaw
     ? canonicalizeProgressMap(chapterProgressMapRaw)
@@ -302,17 +423,29 @@ export async function buildBackup(): Promise<BackupPayload> {
     prepNotesRaw,
     prepSeriesRaw,
   ] = await Promise.all([
-    readJSON<Bookmark[]>(KEYS.bookmarks),
-    readJSON(KEYS.readingPlanProgress),
-    readJSON(KEYS.readingPlanReadChapters),
-    readJSON(KEYS.searchHistory),
-    AsyncStorage.getItem(KEYS.sideBySide).catch(() => null),
-    readJSON<ReaderPreferences>(KEYS.readerPreferences),
-    AsyncStorage.getItem(KEYS.appThemeMode).catch(() => null),
-    AsyncStorage.getItem(KEYS.appColorTheme).catch(() => null),
-    readJSON<Record<string, MemoryCard>>(KEYS.memoryDeck),
-    AsyncStorage.getItem(KEYS.prepNotes).catch(() => null),
-    AsyncStorage.getItem(KEYS.prepSeries).catch(() => null),
+    readJSON<Bookmark[]>(KEYS.bookmarks, 'bookmarks', degradedSections),
+    readJSON(KEYS.readingPlanProgress, 'readingPlanProgress', degradedSections),
+    readJSON(
+      KEYS.readingPlanReadChapters,
+      'readingPlanReadChapters',
+      degradedSections,
+    ),
+    readJSON(KEYS.searchHistory, 'searchHistory', degradedSections),
+    readRaw(KEYS.sideBySide, 'readerPreferences', degradedSections),
+    readJSON<ReaderPreferences>(
+      KEYS.readerPreferences,
+      'readerPreferencesFull',
+      degradedSections,
+    ),
+    readRaw(KEYS.appThemeMode, 'appTheme', degradedSections),
+    readRaw(KEYS.appColorTheme, 'appTheme', degradedSections),
+    readJSON<Record<string, MemoryCard>>(
+      KEYS.memoryDeck,
+      'memoryDeck',
+      degradedSections,
+    ),
+    readRaw(KEYS.prepNotes, 'prepNotes', degradedSections),
+    readRaw(KEYS.prepSeries, 'prepSeries', degradedSections),
   ]);
 
   const [
@@ -324,19 +457,51 @@ export async function buildBackup(): Promise<BackupPayload> {
     chaptersReadLog,
     reviewEvents,
   ] = await Promise.all([
-    safeQuery(() => achievementService.getRawUserStats(), EMPTY_RAW_STATS),
+    safeQuery(
+      () => achievementService.getRawUserStats(),
+      EMPTY_RAW_STATS,
+      'achievements.stats',
+      degradedSections,
+    ),
     safeQuery(
       () => achievementService.getAllAchievements(),
       [] as Achievement[],
+      'achievements.list',
+      degradedSections,
     ),
-    safeQuery(() => achievementService.getReadingLog(), []),
-    safeQuery(() => achievementService.getCompletedBooks(), []),
-    safeQuery(() => achievementService.getBookReadingLog(), []),
-    safeQuery(() => achievementService.getChaptersReadLog(), []),
-    safeQuery(() => getAllReviewEvents(), [] as ReviewEvent[]),
+    safeQuery(
+      () => achievementService.getReadingLog(),
+      [],
+      'achievements.streakLog',
+      degradedSections,
+    ),
+    safeQuery(
+      () => achievementService.getCompletedBooks(),
+      [],
+      'achievements.completedBooks',
+      degradedSections,
+    ),
+    safeQuery(
+      () => achievementService.getBookReadingLog(),
+      [],
+      'achievements.bookReadingLog',
+      degradedSections,
+    ),
+    safeQuery(
+      () => achievementService.getChaptersReadLog(),
+      [],
+      'achievements.chaptersReadLog',
+      degradedSections,
+    ),
+    safeQuery(
+      () => getAllReviewEvents(),
+      [] as ReviewEvent[],
+      'reviewEvents',
+      degradedSections,
+    ),
   ]);
 
-  return {
+  const payload: BackupPayload = {
     formatVersion: BACKUP_FORMAT_VERSION,
     generatedAt: new Date().toISOString(),
     app: {
@@ -381,16 +546,23 @@ export async function buildBackup(): Promise<BackupPayload> {
       series: prepSeriesRaw ? parsePrepSeriesMap(prepSeriesRaw) : null,
     },
   };
+
+  // A handful of sections (appTheme, readerPreferences) are read from more
+  // than one AsyncStorage key and would otherwise appear twice.
+  return {payload, degradedSections: Array.from(new Set(degradedSections))};
 }
 
 /**
  * Build the backup, dump it to a JSON file in the cache directory, and
- * hand it to expo-sharing. Returns the absolute path of the written
- * file so the caller can show it in a toast or log it. Throws if the
- * device can't share — Settings can then surface an error message.
+ * hand it to expo-sharing. Returns the absolute URI of the written file
+ * (plus `degradedSections`, see `ExportResult`) so the caller can show it
+ * in a toast or log it. Throws if the device can't share — Settings can
+ * then surface an error message. Does NOT throw just because some
+ * sections degraded — the file is still written and shareable; a caller
+ * that cares can inspect `degradedSections` instead.
  */
-export async function exportBackup(): Promise<string> {
-  const payload = await buildBackup();
+export async function exportBackup(): Promise<ExportResult> {
+  const {payload, degradedSections} = await buildBackup();
   // Stable, sortable filename so multiple backups stack chronologically.
   const stamp = payload.generatedAt.replace(/[:.]/g, '-');
   const fileName = `eternalstone-backup-${stamp}.json`;
@@ -413,7 +585,7 @@ export async function exportBackup(): Promise<string> {
     UTI: 'public.json',
   });
 
-  return target.uri;
+  return {uri: target.uri, degradedSections};
 }
 
 // ============================================================================
@@ -746,6 +918,31 @@ function coerceArray<T>(raw: unknown, coerce: (v: unknown) => T | null): T[] {
   return out;
 }
 
+/** How many raw entries a section's source data actually had, for arrays. */
+function sourceArrayLength(raw: unknown): number {
+  return Array.isArray(raw) ? raw.length : 0;
+}
+
+/** How many raw entries a section's source data actually had, for the one
+ *  object-map-shaped section (`memoryDeck`, keyed by `verseKey`). */
+function sourceObjectLength(raw: unknown): number {
+  return isPlainObject(raw) ? Object.keys(raw).length : 0;
+}
+
+/**
+ * Distinguishes "corrupted-but-structurally-valid backup where every row
+ * failed per-row coercion" from "the backup legitimately has zero entries
+ * for this section" (restore=replace's normal empty case). Only the former
+ * should block the destructive DELETE-then-insert/overwrite and be reported
+ * as failed rather than silently restored-as-empty.
+ */
+function allRowsFailedValidation(
+  sourceLen: number,
+  survivedLen: number,
+): boolean {
+  return sourceLen > 0 && survivedLen === 0;
+}
+
 /**
  * Hand off the 6 Firestore-synced collections' just-restored entities to the
  * EXISTING sync engine via its own public `queueWrite` — the same call every
@@ -842,23 +1039,43 @@ function pushImportedEntitiesToSync(data: {
  * Restore = REPLACE. Every section present in `payload` overwrites whatever
  * this device currently has for that section; a section ABSENT from the file
  * (only possible for a v1 file missing a v2-only field) is left untouched —
- * importing an old backup must never wipe data it never knew about.
+ * importing an old backup must never wipe data it never knew about. A
+ * section that's PRESENT with real data but where every row/entry fails
+ * per-row validation is treated the same as absent (see `failedSections` on
+ * `ImportResult`) — a garbled-but-parseable backup must never silently wipe
+ * real local data down to zero rows either.
  *
- * Atomicity: every SQLite write (favorites/notes/highlights/reviewEvents/
- * lastReadPosition/achievements) happens inside ONE transaction
- * (`db.withTransactionAsync`), so a failure partway through rolls back to
- * the pre-import state — never a half-restored, inconsistent DB. The
- * AsyncStorage writes (bookmarks, plans, search history, reader prefs, app
- * theme, chapter-progress map, memory deck, prep notes/series) go through a
- * single `AsyncStorage.multiSet` call for the same reason — the best
- * available atomicity primitive for that storage engine. SQLite and
- * AsyncStorage can never share one real transaction (different engines), so
- * the SQLite portion runs first: if the (larger, more failure-prone)
- * transaction fails, NOTHING has been written yet — including AsyncStorage —
- * so the device is left at its exact pre-import state rather than a mixed
- * one. Every top-level section is pre-validated + coerced BEFORE any write
- * begins, so a malformed backup is rejected up front rather than partway
- * through a write.
+ * Atomicity — what's actually guaranteed vs. what is NOT:
+ *   - Every SQLite write (favorites/notes/highlights/reviewEvents/
+ *     lastReadPosition/achievements) happens inside ONE transaction
+ *     (`db.withTransactionAsync`), so a failure partway through THAT
+ *     transaction rolls back to the pre-import state for those sections —
+ *     never a half-restored SQLite DB.
+ *   - ALL data for BOTH engines — including the exact AsyncStorage
+ *     key/value pairs — is validated, coerced, and serialized BEFORE the
+ *     SQLite transaction even opens. This means a `JSON.stringify`/shape
+ *     problem is caught up front (nothing written anywhere), and by the
+ *     time the SQLite transaction is about to commit, the AsyncStorage
+ *     payload is already known-buildable.
+ *   - SQLite and AsyncStorage can NEVER share one real transaction — they're
+ *     different storage engines with no shared commit protocol — so this is
+ *     NOT true cross-engine atomicity, and the docstring previously
+ *     overclaimed it. There is a real (small) window between "the SQLite
+ *     transaction commits" and "the `AsyncStorage.multiSet` call returns"
+ *     where the device can be left with SQLite sections restored but
+ *     AsyncStorage sections not, e.g. if `multiSet` itself throws (storage
+ *     full, a native-module error). That call is wrapped in try/catch: on
+ *     failure, `importBackup` does NOT reject — it RESOLVES with
+ *     `asyncStorageWriteFailed: true` and `restoredSections`/
+ *     `failedSections` that honestly reflect the split outcome, so a caller
+ *     can tell the user "part of your data was restored" instead of a flat,
+ *     inaccurate "import failed" that would hide the fact SQLite data is
+ *     already overwritten. Pre-building the payload before the transaction
+ *     minimizes how often this window is ever actually hit, but cannot
+ *     eliminate it — a true rollback of the already-committed SQLite portion
+ *     if `multiSet` fails is not attempted (it would mean re-deriving and
+ *     re-writing the PREVIOUS state, which importBackup never captured, and
+ *     is out of scope for this fix).
  *
  * Does NOT reload any in-memory app state — see Settings' import handler,
  * which asks the user to close and reopen the app (the same fallback this
@@ -876,6 +1093,7 @@ export async function importBackup(
   await achievementService.initialize();
 
   const restoredSections: string[] = [];
+  const failedSections: string[] = [];
   const bible: Record<string, unknown> = isPlainObject(payload.bible)
     ? payload.bible
     : {};
@@ -883,15 +1101,32 @@ export async function importBackup(
     ? payload.user
     : {};
 
-  // ---- pre-validate + coerce every present section BEFORE writing anything ----
+  // ---- pre-validate + coerce every present section BEFORE writing anything.
+  // Each `*AllFailed` flag distinguishes "this section is legitimately empty
+  // in the backup" (0 source rows — a normal REPLACE-with-empty) from "this
+  // section had real data but every row failed per-row coercion" (a
+  // corrupted-but-structurally-valid file) — only the latter should block
+  // the destructive write and get reported via `failedSections`. ----
   const favoritesPresent = Array.isArray(bible.favorites);
   const favoritesIn = coerceArray(bible.favorites, coerceFavorite);
+  const favoritesAllFailed = allRowsFailedValidation(
+    sourceArrayLength(bible.favorites),
+    favoritesIn.length,
+  );
 
   const notesPresent = Array.isArray(bible.notes);
   const notesIn = coerceArray(bible.notes, coerceNote);
+  const notesAllFailed = allRowsFailedValidation(
+    sourceArrayLength(bible.notes),
+    notesIn.length,
+  );
 
   const highlightsPresent = Array.isArray(bible.highlights);
   const highlightsIn = coerceArray(bible.highlights, coerceHighlightRow);
+  const highlightsAllFailed = allRowsFailedValidation(
+    sourceArrayLength(bible.highlights),
+    highlightsIn.length,
+  );
 
   // v1 compat: the SQLite pointer was called `readingProgress` back then.
   const legacyPointer = getLegacyField(bible, 'readingProgress');
@@ -908,6 +1143,10 @@ export async function importBackup(
 
   const bookmarksPresent = Array.isArray(user.bookmarks);
   const bookmarksIn = coerceArray(user.bookmarks, coerceBookmark);
+  const bookmarksAllFailed = allRowsFailedValidation(
+    sourceArrayLength(user.bookmarks),
+    bookmarksIn.length,
+  );
 
   const readingPlanProgressPresent = user.readingPlanProgress !== undefined;
   const readingPlanReadChaptersPresent =
@@ -945,11 +1184,19 @@ export async function importBackup(
     : {};
   const memoryDeckPresent = memorySection.memoryDeck !== undefined;
   const memoryDeckIn = coerceMemoryDeck(memorySection.memoryDeck);
+  const memoryDeckAllFailed = allRowsFailedValidation(
+    sourceObjectLength(memorySection.memoryDeck),
+    Object.keys(memoryDeckIn).length,
+  );
 
   const reviewEventsPresent = Array.isArray(memorySection.reviewEvents);
   const reviewEventsIn = coerceArray(
     memorySection.reviewEvents,
     coerceReviewEvent,
+  );
+  const reviewEventsAllFailed = allRowsFailedValidation(
+    sourceArrayLength(memorySection.reviewEvents),
+    reviewEventsIn.length,
   );
 
   const prepSection: Record<string, unknown> = isPlainObject(payload.prep)
@@ -964,76 +1211,163 @@ export async function importBackup(
     ? parsePrepSeriesMap(JSON.stringify(prepSection.series ?? {}))
     : null;
 
+  // ---- AsyncStorage portion: fully built (validated + serialized into the
+  // exact key/value pairs) BEFORE the SQLite transaction even opens. This is
+  // the Bug-1 mitigation: proving every AsyncStorage value serializes
+  // cleanly up front means a `JSON.stringify` problem is caught before
+  // ANYTHING has been written, instead of after SQLite has already
+  // committed. `pendingAsyncStorageSections` mirrors `pairs` 1:1 — section
+  // names only move into `restoredSections`/`failedSections` AFTER the real
+  // `multiSet` call below is known to have succeeded or failed. ----
+  const pairs: [string, string][] = [];
+  const pendingAsyncStorageSections: string[] = [];
+  if (bookmarksPresent) {
+    if (bookmarksAllFailed) {
+      failedSections.push('bookmarks');
+    } else {
+      pairs.push([KEYS.bookmarks, JSON.stringify(bookmarksIn)]);
+      pendingAsyncStorageSections.push('bookmarks');
+    }
+  }
+  if (readingPlanProgressPresent) {
+    pairs.push([
+      KEYS.readingPlanProgress,
+      JSON.stringify(user.readingPlanProgress),
+    ]);
+    pendingAsyncStorageSections.push('readingPlanProgress');
+  }
+  if (readingPlanReadChaptersPresent) {
+    pairs.push([
+      KEYS.readingPlanReadChapters,
+      JSON.stringify(user.readingPlanReadChapters),
+    ]);
+    pendingAsyncStorageSections.push('readingPlanReadChapters');
+  }
+  if (searchHistoryPresent) {
+    pairs.push([KEYS.searchHistory, JSON.stringify(user.searchHistory)]);
+    pendingAsyncStorageSections.push('searchHistory');
+  }
+  if (sideBySideIn !== null) {
+    pairs.push([KEYS.sideBySide, sideBySideIn ? '1' : '0']);
+  }
+  if (readerPreferencesFullPresent) {
+    pairs.push([
+      KEYS.readerPreferences,
+      JSON.stringify(user.readerPreferencesFull),
+    ]);
+    pendingAsyncStorageSections.push('readerPreferences');
+  }
+  if (appThemeModeIn) {
+    pairs.push([KEYS.appThemeMode, appThemeModeIn]);
+    pendingAsyncStorageSections.push('appThemeMode');
+  }
+  if (appColorThemeIn) {
+    pairs.push([KEYS.appColorTheme, appColorThemeIn]);
+    pendingAsyncStorageSections.push('appColorTheme');
+  }
+  if (chapterProgressMapPresent) {
+    pairs.push([KEYS.readingProgress, JSON.stringify(chapterProgressMapIn)]);
+    pendingAsyncStorageSections.push('chapterProgressMap');
+  }
+  if (memoryDeckPresent) {
+    if (memoryDeckAllFailed) {
+      failedSections.push('memoryDeck');
+    } else {
+      pairs.push([KEYS.memoryDeck, JSON.stringify(memoryDeckIn)]);
+      pendingAsyncStorageSections.push('memoryDeck');
+    }
+  }
+  if (prepNotesPresent && prepNotesIn) {
+    pairs.push([KEYS.prepNotes, serializePrepNotesMap(prepNotesIn)]);
+    pendingAsyncStorageSections.push('prepNotes');
+  }
+  if (prepSeriesPresent && prepSeriesIn) {
+    pairs.push([KEYS.prepSeries, serializePrepSeriesMap(prepSeriesIn)]);
+    pendingAsyncStorageSections.push('prepSeries');
+  }
+
   // ---- SQLite portion: ONE transaction, all-or-nothing ----
   const db = await bibleDB.getDatabase();
   await db.withTransactionAsync(async () => {
     if (favoritesPresent) {
-      await bibleDB.executeSql('DELETE FROM favorites');
-      for (const f of favoritesIn) {
-        await bibleDB.executeSql(
-          `INSERT INTO favorites (id, verse_id, book_name, chapter, verse, text, category, rating, tags, note, created_at, updated_at)
-           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-          [
-            f.id,
-            f.verseId,
-            f.book,
-            f.chapter,
-            f.verse,
-            f.text,
-            f.category,
-            f.rating,
-            JSON.stringify(f.tags),
-            f.note ?? null,
-            f.createdAt,
-            f.updatedAt,
-          ],
-        );
+      if (favoritesAllFailed) {
+        failedSections.push('favorites');
+      } else {
+        await bibleDB.executeSql('DELETE FROM favorites');
+        for (const f of favoritesIn) {
+          await bibleDB.executeSql(
+            `INSERT INTO favorites (id, verse_id, book_name, chapter, verse, text, category, rating, tags, note, created_at, updated_at)
+             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+            [
+              f.id,
+              f.verseId,
+              f.book,
+              f.chapter,
+              f.verse,
+              f.text,
+              f.category,
+              f.rating,
+              JSON.stringify(f.tags),
+              f.note ?? null,
+              f.createdAt,
+              f.updatedAt,
+            ],
+          );
+        }
+        restoredSections.push('favorites');
       }
-      restoredSections.push('favorites');
     }
 
     if (notesPresent) {
-      await bibleDB.executeSql('DELETE FROM notes');
-      for (const n of notesIn) {
-        await bibleDB.executeSql(
-          `INSERT INTO notes (id, book_name, chapter, verse, verse_text, note, created_at, updated_at)
-           VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
-          [
-            n.id,
-            n.book,
-            n.chapter,
-            n.verse,
-            n.text,
-            n.note,
-            n.createdAt,
-            n.updatedAt,
-          ],
-        );
+      if (notesAllFailed) {
+        failedSections.push('notes');
+      } else {
+        await bibleDB.executeSql('DELETE FROM notes');
+        for (const n of notesIn) {
+          await bibleDB.executeSql(
+            `INSERT INTO notes (id, book_name, chapter, verse, verse_text, note, created_at, updated_at)
+             VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+            [
+              n.id,
+              n.book,
+              n.chapter,
+              n.verse,
+              n.text,
+              n.note,
+              n.createdAt,
+              n.updatedAt,
+            ],
+          );
+        }
+        restoredSections.push('notes');
       }
-      restoredSections.push('notes');
     }
 
     if (highlightsPresent) {
-      await bibleDB.executeSql('DELETE FROM highlights');
-      for (const h of highlightsIn) {
-        await bibleDB.executeSql(
-          `INSERT INTO highlights (id, verse_id, book_id, chapter, verse, color, category, note, created_at, updated_at)
-           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-          [
-            h.id,
-            h.verse_id,
-            h.book_id,
-            h.chapter,
-            h.verse,
-            h.color,
-            h.category ?? null,
-            h.note ?? null,
-            h.created_at,
-            h.updated_at,
-          ],
-        );
+      if (highlightsAllFailed) {
+        failedSections.push('highlights');
+      } else {
+        await bibleDB.executeSql('DELETE FROM highlights');
+        for (const h of highlightsIn) {
+          await bibleDB.executeSql(
+            `INSERT INTO highlights (id, verse_id, book_id, chapter, verse, color, category, note, created_at, updated_at)
+             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+            [
+              h.id,
+              h.verse_id,
+              h.book_id,
+              h.chapter,
+              h.verse,
+              h.color,
+              h.category ?? null,
+              h.note ?? null,
+              h.created_at,
+              h.updated_at,
+            ],
+          );
+        }
+        restoredSections.push('highlights');
       }
-      restoredSections.push('highlights');
     }
 
     if (lastReadPositionIn) {
@@ -1050,24 +1384,28 @@ export async function importBackup(
     }
 
     if (reviewEventsPresent) {
-      await bibleDB.executeSql('DELETE FROM review_events');
-      for (const e of reviewEventsIn) {
-        await bibleDB.executeSql(
-          `INSERT OR REPLACE INTO review_events (id, verse_key, book_name, grade, box_before, box_after, interval_days, reviewed_at)
-           VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
-          [
-            e.id,
-            e.verseKey,
-            e.bookName,
-            e.grade,
-            e.boxBefore,
-            e.boxAfter,
-            e.intervalDays,
-            e.reviewedAt,
-          ],
-        );
+      if (reviewEventsAllFailed) {
+        failedSections.push('reviewEvents');
+      } else {
+        await bibleDB.executeSql('DELETE FROM review_events');
+        for (const e of reviewEventsIn) {
+          await bibleDB.executeSql(
+            `INSERT OR REPLACE INTO review_events (id, verse_key, book_name, grade, box_before, box_after, interval_days, reviewed_at)
+             VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+            [
+              e.id,
+              e.verseKey,
+              e.bookName,
+              e.grade,
+              e.boxBefore,
+              e.boxAfter,
+              e.intervalDays,
+              e.reviewedAt,
+            ],
+          );
+        }
+        restoredSections.push('reviewEvents');
       }
-      restoredSections.push('reviewEvents');
     }
 
     if (achievementsSection && rawStatsIn) {
@@ -1099,80 +1437,55 @@ export async function importBackup(
     }
   });
 
-  // ---- AsyncStorage portion: one multiSet, only present sections ----
-  const pairs: [string, string][] = [];
-  if (bookmarksPresent) {
-    pairs.push([KEYS.bookmarks, JSON.stringify(bookmarksIn)]);
-    restoredSections.push('bookmarks');
-  }
-  if (readingPlanProgressPresent) {
-    pairs.push([
-      KEYS.readingPlanProgress,
-      JSON.stringify(user.readingPlanProgress),
-    ]);
-    restoredSections.push('readingPlanProgress');
-  }
-  if (readingPlanReadChaptersPresent) {
-    pairs.push([
-      KEYS.readingPlanReadChapters,
-      JSON.stringify(user.readingPlanReadChapters),
-    ]);
-    restoredSections.push('readingPlanReadChapters');
-  }
-  if (searchHistoryPresent) {
-    pairs.push([KEYS.searchHistory, JSON.stringify(user.searchHistory)]);
-    restoredSections.push('searchHistory');
-  }
-  if (sideBySideIn !== null) {
-    pairs.push([KEYS.sideBySide, sideBySideIn ? '1' : '0']);
-  }
-  if (readerPreferencesFullPresent) {
-    pairs.push([
-      KEYS.readerPreferences,
-      JSON.stringify(user.readerPreferencesFull),
-    ]);
-    restoredSections.push('readerPreferences');
-  }
-  if (appThemeModeIn) {
-    pairs.push([KEYS.appThemeMode, appThemeModeIn]);
-    restoredSections.push('appThemeMode');
-  }
-  if (appColorThemeIn) {
-    pairs.push([KEYS.appColorTheme, appColorThemeIn]);
-    restoredSections.push('appColorTheme');
-  }
-  if (chapterProgressMapPresent) {
-    pairs.push([KEYS.readingProgress, JSON.stringify(chapterProgressMapIn)]);
-    restoredSections.push('chapterProgressMap');
-  }
-  if (memoryDeckPresent) {
-    pairs.push([KEYS.memoryDeck, JSON.stringify(memoryDeckIn)]);
-    restoredSections.push('memoryDeck');
-  }
-  if (prepNotesPresent && prepNotesIn) {
-    pairs.push([KEYS.prepNotes, serializePrepNotesMap(prepNotesIn)]);
-    restoredSections.push('prepNotes');
-  }
-  if (prepSeriesPresent && prepSeriesIn) {
-    pairs.push([KEYS.prepSeries, serializePrepSeriesMap(prepSeriesIn)]);
-    restoredSections.push('prepSeries');
-  }
-
+  // ---- AsyncStorage portion: one multiSet call. Wrapped in try/catch so a
+  // real write failure here (device storage full, a native-module error) —
+  // which can only happen AFTER the SQLite transaction above has already
+  // committed — is distinguished from every earlier, pre-write validation
+  // failure. On failure this function RESOLVES with
+  // `asyncStorageWriteFailed: true` instead of rejecting, specifically so
+  // the caller can tell the user their data was PARTIALLY restored instead
+  // of a flat, inaccurate "import failed" (see the docstring above
+  // `importBackup`). ----
+  let asyncStorageWriteFailed = false;
   if (pairs.length > 0) {
-    await AsyncStorage.multiSet(pairs);
+    try {
+      await AsyncStorage.multiSet(pairs);
+      restoredSections.push(...pendingAsyncStorageSections);
+    } catch (error) {
+      asyncStorageWriteFailed = true;
+      failedSections.push(...pendingAsyncStorageSections);
+      logger.error(
+        'Backup: AsyncStorage write failed AFTER the SQLite portion of the ' +
+          'restore already committed — device is left with the imported ' +
+          'SQLite sections but the pre-import AsyncStorage sections.',
+        error as Error,
+        {component: 'BackupService', action: 'importBackup'},
+      );
+    }
   }
 
-  // ---- Hand off the 6 Firestore-synced collections to the normal sync path ----
+  // ---- Hand off the Firestore-synced collections to the normal sync path.
+  // favorites/notes/highlights/reviewEvents are SQLite-backed and already
+  // committed above regardless of the AsyncStorage outcome, so pushing them
+  // is always safe. bookmarks/memoryDeck are AsyncStorage-backed: pushing
+  // them to the cloud when the LOCAL write just failed would leave this
+  // device's cloud data ahead of what actually landed locally, so they're
+  // skipped in that one failure case. ----
   pushImportedEntitiesToSync({
     favorites: favoritesIn,
     notes: notesIn,
     highlights: highlightsIn,
-    bookmarks: bookmarksIn,
-    memoryDeck: Object.values(memoryDeckIn),
+    bookmarks: asyncStorageWriteFailed ? [] : bookmarksIn,
+    memoryDeck: asyncStorageWriteFailed ? [] : Object.values(memoryDeckIn),
     reviewEvents: reviewEventsIn,
   });
 
-  return {formatVersion: payload.formatVersion, restoredSections};
+  return {
+    formatVersion: payload.formatVersion,
+    restoredSections,
+    failedSections,
+    asyncStorageWriteFailed,
+  };
 }
 
 /**
