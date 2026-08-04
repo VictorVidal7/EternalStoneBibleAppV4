@@ -1,44 +1,63 @@
 /**
  * Web stub providers — regression coverage for the "blank web app" crash.
  *
- * `app/_layout.web.tsx` mounts a reduced provider tree (T21): no
- * PremiumProvider/OfferingSheetProvider/AudioPlayerProvider. But ~27 route
- * files under app/features/** (and a few under app/(tabs)/**) call
- * usePremium()/useOfferingSheet()/useAudioPlayer() unconditionally, with no
- * `.web.tsx` sibling and no `Platform.OS` guard. Each native context's hook
- * throws "must be used within a ...Provider" when its context is undefined —
- * and since `firebase.json`'s catch-all SPA rewrite makes every one of those
- * routes reachable via a direct URL/bookmark on the live deployed site, and
+ * `app/_layout.web.tsx` mounts a reduced provider tree (T21): originally no
+ * PremiumProvider/OfferingSheetProvider/AudioPlayerProvider/MemoryDeckProvider
+ * at all. But ~27+ route files under app/features/** (and a few under
+ * app/(tabs)/**) call usePremium()/useOfferingSheet()/useAudioPlayer()/
+ * useMemoryDeck()/useFavorites() unconditionally, with no `.web.tsx` sibling
+ * and no `Platform.OS` guard. Each throwing context's hook raises "must be
+ * used within a ...Provider" when its context is undefined — and since
+ * `firebase.json`'s catch-all SPA rewrite makes every one of those routes
+ * reachable via a direct URL/bookmark on the live deployed site, and
  * `ErrorBoundary` wraps the WHOLE Stack (not per-route) in `_layout.web.tsx`,
  * that throw took down the entire web app with no in-app recovery.
  *
- * The fix: `PremiumContext.web.tsx` / `OfferingSheetContext.web.tsx` /
- * `AudioPlayerContext.web.tsx` — inert stub siblings that Metro resolves in
- * place of the native files for any web bundle (same precedent as
- * data-loader.web.ts / redLetterText.web.ts).
+ * The fix, in two tandas:
+ *  1. `PremiumContext.web.tsx` / `OfferingSheetContext.web.tsx` /
+ *     `AudioPlayerContext.web.tsx` — inert stub siblings (same precedent as
+ *     data-loader.web.ts / redLetterText.web.ts) for three contexts with a
+ *     genuine native-only dependency (RevenueCat, native audio modules).
+ *  2. A follow-up audit found FIVE more routes (quiz/index.tsx, lectio.tsx,
+ *     memory/insights.tsx, favorites.tsx, collections/[name].tsx) still
+ *     crashing on `useMemoryDeck()`/`useFavorites()`/`useServices()`. Unlike
+ *     tanda 1, these three contexts have NO native-only dependency, so each
+ *     got investigated on its own merits (see app/_layout.web.tsx's header
+ *     comment for the full reasoning): `MemoryDeckContext.web.tsx` is a
+ *     STUB (mounting the real one would let a web visitor build an SRS deck
+ *     that can never sync — a data-loss trap, not a crash risk); Favorites
+ *     is mounted FOR REAL (no orphaned-data risk — no web-reachable screen
+ *     ever calls `addFavorite`); Services is left UNMOUNTED entirely
+ *     (`useServices()` cannot throw — its `createContext` default is a real
+ *     object, not `undefined` — so there was never anything to fix there).
  *
- * Part A below exercises each stub module directly (imported via its
- * explicit `.web` path, the same way Metro would resolve it for a web
+ * Part A below exercises each context in isolation — the 4 true stub
+ * modules (Premium/OfferingSheet/AudioPlayer/MemoryDeck, each imported via
+ * its explicit `.web` path, the same way Metro would resolve it for a web
  * build — Jest has no platform-aware resolution for a BARE `@context/...`
- * specifier, so this file must name the `.web` file explicitly to reach it).
- * It proves: (1) the stub Provider supplies safe, honest "off/free/inert"
- * values, (2) the hook still throws its ORIGINAL guard error when rendered
- * without any provider at all (the guard itself was not weakened), and (3)
- * every exposed function/control is callable without throwing.
+ * specifier, so this file must name the `.web` file explicitly to reach
+ * it), plus ServicesContext (proving `useServices()` structurally cannot
+ * throw) and FavoritesContext (proving the REAL, unstubbed module is safe
+ * to mount with zero ServicesProvider/SyncEngineProvider ancestors). For
+ * each true stub it proves: (1) the stub Provider supplies safe, honest
+ * "off/free/inert" values, (2) the hook still throws its ORIGINAL guard
+ * error when rendered without any provider at all (the guard itself was not
+ * weakened), and (3) every exposed function/control is callable without
+ * throwing.
  *
- * Part B renders two REAL, previously-crashing route screens
- * (`app/features/dictionary/[slug].tsx`, `app/features/quiz/index.tsx`)
- * wrapped ONLY in the stub Premium/OfferingSheet providers — reached by
- * `jest.mock('@context/PremiumContext', () =>
- * require('../src/context/PremiumContext.web'))`, which redirects every
- * `usePremium()`/`useOfferingSheet()` call inside those screens to the REAL
- * stub module's real code (not a hand-rolled test double). This proves the
- * usePremium()/useOfferingSheet() crash site specifically is gone. It does
- * NOT prove either screen is fully web-safe end-to-end: `dictionary/[slug]`
- * is (it uses no other unmounted-context hook), but `quiz/index` also calls
- * `useMemoryDeck()`, which `app/_layout.web.tsx` still doesn't provide
- * (T21's write-feature exclusion; out of scope here) — see the note on that
- * `it(...)` block below.
+ * Part B renders SIX real, previously-crashing route screens — the original
+ * two (`dictionary/[slug].tsx`, `quiz/index.tsx`) plus the four found in the
+ * follow-up audit (`lectio.tsx`, `memory/insights.tsx`, `favorites.tsx`,
+ * `collections/[name].tsx`) — wrapped ONLY in the actual web provider tree
+ * (stub Premium/OfferingSheet/AudioPlayer/MemoryDeck + real Favorites, per
+ * screen as needed), reached via `jest.mock` redirects to the REAL `.web`
+ * stub modules (not hand-rolled test doubles) for every context that has
+ * one. `quiz/index.tsx`'s test in particular now proves ALL of
+ * usePremium()/useOfferingSheet()/useMemoryDeck() are fixed, not just the
+ * first two (a prior version of this test hand-mocked useMemoryDeck as a
+ * convenience double, which meant a green result there did NOT prove the
+ * real deployed web app was fixed — that gap is closed now that
+ * MemoryDeckContext.web.tsx exists for real).
  *
  * NEITHER part exercises Metro's actual `.web.tsx` platform-resolution swap
  * (both reach the stub file via an explicit path or a `jest.mock` redirect,
@@ -61,10 +80,53 @@
  * from this fix, and not a crash risk.
  */
 import React from 'react';
-import {render, fireEvent} from '@testing-library/react-native';
+import {render, fireEvent, waitFor} from '@testing-library/react-native';
+
+// A SINGLE, file-wide `@lib/database` mock, shared by every describe block
+// below that touches bibleDB (the FavoritesContext, dictionary/[slug],
+// favorites, and collections/[name] tests) — real SQLite isn't available in
+// jest, and `jest.mock('@lib/database', ...)` calls are hoisted above every
+// import regardless of which describe block they're textually written in,
+// so two different factories for the same specifier in one file would
+// silently collide (only the textually-last one survives for the WHOLE
+// file's test run, breaking whichever block's tests ran expecting the
+// other's shape). Each test's own `beforeEach` resets/configures just the
+// fns it cares about; fns no test configures simply resolve to their
+// declared default.
+const mockDbInitialize = jest.fn(async (..._args: unknown[]) => undefined);
+const mockGetFavorites = jest.fn(
+  async (..._args: unknown[]) => [] as unknown[],
+);
+const mockGetDictionaryEntry = jest.fn();
+const mockGetDictionaryMultiviewSections = jest.fn(
+  async (..._args: unknown[]) => [] as unknown[],
+);
+const mockGetAllDictionaryEntries = jest.fn(async () => [] as unknown[]);
+const mockGetVerse = jest.fn(
+  async (..._args: unknown[]): Promise<{text: string} | null> => null,
+);
+jest.mock('@lib/database', () => ({
+  __esModule: true,
+  default: {
+    initialize: (...args: unknown[]) => mockDbInitialize(...args),
+    getFavorites: (...args: unknown[]) => mockGetFavorites(...args),
+    addFavorite: jest.fn(async () => undefined),
+    removeFavorite: jest.fn(async () => undefined),
+    updateFavorite: jest.fn(async () => undefined),
+    getDictionaryEntry: (...args: unknown[]) => mockGetDictionaryEntry(...args),
+    getDictionaryMultiviewSections: (...args: unknown[]) =>
+      mockGetDictionaryMultiviewSections(...args),
+    getAllDictionaryEntries: () => mockGetAllDictionaryEntries(),
+    getVerse: (...args: unknown[]) => mockGetVerse(...args),
+    getNoteForVerse: jest.fn(async () => null),
+    addNote: jest.fn(async () => 'note-1'),
+    updateNote: jest.fn(async () => undefined),
+  },
+}));
 
 // ============================================================================
-// Part A — the 3 stub modules in isolation
+// Part A — each context in isolation (4 true stubs + ServicesContext +
+// FavoritesContext, see the file header comment)
 // ============================================================================
 
 describe('PremiumContext.web (stub)', () => {
@@ -275,37 +337,259 @@ describe('AudioPlayerContext.web (stub)', () => {
   });
 });
 
+describe('MemoryDeckContext.web (stub)', () => {
+  const {
+    MemoryDeckProvider,
+    useMemoryDeck,
+  } = require('../src/context/MemoryDeckContext.web');
+
+  it('never throws when wrapped, and reports a permanently empty deck', () => {
+    let ctx: ReturnType<typeof useMemoryDeck> | null = null;
+    function Capture() {
+      ctx = useMemoryDeck();
+      return null;
+    }
+    expect(() =>
+      render(
+        <MemoryDeckProvider>
+          <Capture />
+        </MemoryDeckProvider>,
+      ),
+    ).not.toThrow();
+    expect(ctx).not.toBeNull();
+    const value = ctx!;
+    expect(value.cards).toEqual([]);
+    expect(value.dueCards).toEqual([]);
+    expect(value.hydrated).toBe(true);
+    expect(value.stats).toEqual({total: 0, due: 0, mastered: 0});
+    expect(value.hasCard('Juan_3_16')).toBe(false);
+  });
+
+  it('every exposed control is a no-op callable without throwing', () => {
+    let ctx: ReturnType<typeof useMemoryDeck> | null = null;
+    function Capture() {
+      ctx = useMemoryDeck();
+      return null;
+    }
+    render(
+      <MemoryDeckProvider>
+        <Capture />
+      </MemoryDeckProvider>,
+    );
+    const value = ctx!;
+    expect(() =>
+      value.addCard({
+        bookName: 'Juan',
+        chapter: 3,
+        verse: 16,
+        text: 'Porque de tal manera amó Dios al mundo...',
+        version: 'RVR1960',
+      }),
+    ).not.toThrow();
+    expect(() => value.removeCard('Juan_3_16')).not.toThrow();
+    expect(() => value.reviewCard('Juan_3_16', 'good')).not.toThrow();
+    expect(() => value.resetDeck()).not.toThrow();
+    // No-ops actually no-op — the deck never grows.
+    expect(value.cards).toEqual([]);
+  });
+
+  it('still throws its original guard error without a provider (guard not weakened)', () => {
+    function Probe() {
+      useMemoryDeck();
+      return null;
+    }
+    const spy = jest.spyOn(console, 'error').mockImplementation(() => {});
+    expect(() => render(<Probe />)).toThrow(
+      'useMemoryDeck must be used within a MemoryDeckProvider',
+    );
+    spy.mockRestore();
+  });
+});
+
+describe('ServicesContext (intentionally left unmounted on web)', () => {
+  // app/_layout.web.tsx does NOT mount ServicesProvider (see its header
+  // comment). That is safe only because useServices() is structurally
+  // incapable of throwing: unlike every other context hook in this file,
+  // ServicesContext's createContext() default is a real object (database:
+  // null, achievementService: null, ...), not `undefined` — so
+  // `useContext` always returns a truthy value and the `if (!context)
+  // throw` guard can never fire, provider or no provider. This test proves
+  // that directly against the real (non-.web, non-mocked) module, so a
+  // future refactor that changes the default to `undefined` fails loudly
+  // here instead of silently reintroducing a web crash.
+  const {useServices} = require('../src/context/ServicesContext');
+
+  it('useServices() never throws, even with zero ServicesProvider ancestors', () => {
+    let captured: ReturnType<typeof useServices> | null = null;
+    function Probe() {
+      captured = useServices();
+      return null;
+    }
+    expect(() => render(<Probe />)).not.toThrow();
+    expect(captured).not.toBeNull();
+    expect(captured!.database).toBeNull();
+    expect(captured!.achievementService).toBeNull();
+    expect(captured!.highlightService).toBeNull();
+    expect(captured!.initialized).toBe(false);
+    // notifyAchievements/clearNewAchievements must be safely callable too —
+    // lectio.tsx calls `achievementService?.trackNote().then(notifyAchievements)`
+    // guarded by the null achievementService, but notifyAchievements itself
+    // is still reachable from the default value.
+    expect(() => captured!.notifyAchievements([])).not.toThrow();
+    expect(() => captured!.clearNewAchievements()).not.toThrow();
+  });
+});
+
+describe('FavoritesContext (mounted for REAL on web — not stubbed)', () => {
+  // Unlike MemoryDeck, FavoritesContext has no orphaned-data risk on web: no
+  // web-reachable screen calls `addFavorite` (see app/_layout.web.tsx's
+  // header comment), so mounting the genuine provider just reads/displays an
+  // always-empty local table. This proves the real (non-.web) module itself
+  // — the one Metro actually bundles for web, since there is no
+  // FavoritesContext.web.tsx — never throws when mounted with no
+  // ServicesProvider/SyncEngineProvider ancestor (exactly app/_layout.web.tsx's
+  // tree) and bibleDB backed by a minimal mock instead of real SQLite.
+  // `@lib/database` is mocked ONCE, file-wide, via the module-scope
+  // `mockGetFavorites`/`mockDbInitialize`/... fns + `jest.mock('@lib/database', ...)`
+  // call declared at the top of this file — jest.mock calls are hoisted
+  // above every import regardless of which describe block they're written
+  // in, so two different factories for the same specifier in one file would
+  // silently collide (only the textually-last one survives for the WHOLE
+  // file's test run). This block just configures that one shared mock's
+  // fns for its own tests.
+  const {
+    FavoritesProvider,
+    useFavorites,
+  } = require('../src/context/FavoritesContext');
+
+  beforeEach(() => {
+    mockGetFavorites.mockReset().mockResolvedValue([]);
+    mockDbInitialize.mockReset().mockResolvedValue(undefined);
+  });
+
+  it('never throws when wrapped with no ServicesProvider/SyncEngineProvider ancestor, and reports an empty list', async () => {
+    let ctx: ReturnType<typeof useFavorites> | null = null;
+    function Capture() {
+      ctx = useFavorites();
+      return null;
+    }
+    expect(() =>
+      render(
+        <FavoritesProvider>
+          <Capture />
+        </FavoritesProvider>,
+      ),
+    ).not.toThrow();
+    await waitFor(() => expect(ctx!.loading).toBe(false));
+    expect(ctx!.favorites).toEqual([]);
+    expect(ctx!.isFavorite('Juan', 3, 16)).toBe(false);
+  });
+
+  it('still throws its original guard error without a provider (guard not weakened)', () => {
+    function Probe() {
+      useFavorites();
+      return null;
+    }
+    const spy = jest.spyOn(console, 'error').mockImplementation(() => {});
+    expect(() => render(<Probe />)).toThrow(
+      'useFavorites must be used within a FavoritesProvider',
+    );
+    spy.mockRestore();
+  });
+});
+
 // ============================================================================
 // Part B — real previously-crashing routes, rendered with ONLY the web stub
 // Premium/OfferingSheet providers mounted (no native providers at all).
 // ============================================================================
 
 describe('Previously-crashing web routes, with only the stub providers mounted', () => {
-  // Redirects `@context/PremiumContext` / `@context/OfferingSheetContext` —
-  // exactly what every route file under test imports — to the REAL `.web`
-  // stub modules, the same substitution Metro performs automatically when
-  // bundling for the web platform.
+  // Redirects `@context/PremiumContext` / `@context/OfferingSheetContext` /
+  // `@context/MemoryDeckContext` / the AudioPlayerContext module — exactly
+  // what every route file under test imports — to the REAL `.web` stub
+  // modules, the same substitution Metro performs automatically when
+  // bundling for the web platform. Registered ONCE here (not per inner
+  // describe): jest.mock calls are hoisted to module scope regardless of
+  // nesting, so repeating an IDENTICAL factory per describe is redundant,
+  // and this mock is harmless for the routes below that never call
+  // useMemoryDeck()/useAudioPlayer() at all (dictionary/[slug]).
   jest.mock('@context/PremiumContext', () =>
     require('../src/context/PremiumContext.web'),
   );
   jest.mock('@context/OfferingSheetContext', () =>
     require('../src/context/OfferingSheetContext.web'),
   );
+  jest.mock('@context/MemoryDeckContext', () =>
+    require('../src/context/MemoryDeckContext.web'),
+  );
+  // Route files import `useAudioPlayer` either directly from this module
+  // path or (favorites.tsx/lectio.tsx/collections/[name].tsx) via the
+  // `@/features/audio` barrel's `export {useAudioPlayer} from
+  // './context/AudioPlayerContext'` — both resolve to this SAME file, so
+  // mocking it here covers both import styles; the barrel's many OTHER
+  // real (unmocked) exports, e.g. `buildVersePlaylist`, are untouched.
+  jest.mock('@/features/audio/context/AudioPlayerContext', () =>
+    require('../src/features/audio/context/AudioPlayerContext.web'),
+  );
 
   // Resolved through the SAME mocked specifiers the route files themselves
   // import — i.e. these ARE the real .web stub Providers, not test doubles.
-  // This is the tree app/_layout.web.tsx now mounts (Premium > OfferingSheet
-  // around ErrorBoundary/AppContent); reproduced narrowly here since a full
+  // This mirrors the tree app/_layout.web.tsx now mounts (BibleVersion >
+  // Favorites > ReaderPreferences > MemoryDeck > Toast > Premium >
+  // OfferingSheet > AudioPlayer); reproduced narrowly here since a full
   // _layout.web.tsx render would need to also mock Bible-data
   // initialization, fonts, etc. unrelated to what this test is proving.
+  // FavoritesProvider is NOT included by default (see
+  // renderWithWebProvidersAndFavorites below) — most routes under test don't
+  // call useFavorites(), and mounting it needlessly would hide a missing
+  // `@lib/database` mock in some future unrelated route's test.
   function renderWithWebProviders(ui: React.ReactElement) {
     const {PremiumProvider} =
       require('@context/PremiumContext') as typeof import('../src/context/PremiumContext.web');
     const {OfferingSheetProvider} =
       require('@context/OfferingSheetContext') as typeof import('../src/context/OfferingSheetContext.web');
+    const {MemoryDeckProvider} =
+      require('@context/MemoryDeckContext') as typeof import('../src/context/MemoryDeckContext.web');
+    const {AudioPlayerProvider} =
+      require('@/features/audio/context/AudioPlayerContext') as typeof import('../src/features/audio/context/AudioPlayerContext.web');
     return render(
       <PremiumProvider>
-        <OfferingSheetProvider>{ui}</OfferingSheetProvider>
+        <OfferingSheetProvider>
+          <MemoryDeckProvider>
+            <AudioPlayerProvider>{ui}</AudioPlayerProvider>
+          </MemoryDeckProvider>
+        </OfferingSheetProvider>
+      </PremiumProvider>,
+    );
+  }
+
+  // Same as renderWithWebProviders, plus the REAL FavoritesProvider (mounted
+  // for real on web — see app/_layout.web.tsx's header comment and the
+  // "FavoritesContext (mounted for REAL on web)" Part A block above) — for
+  // the two screens (favorites.tsx, collections/[name].tsx) that call
+  // useFavorites(). `@context/FavoritesContext` is NOT jest.mock'd anywhere
+  // in this file, so this reaches the real, unmodified module — exactly what
+  // Metro bundles for web (there is no FavoritesContext.web.tsx).
+  function renderWithWebProvidersAndFavorites(ui: React.ReactElement) {
+    const {PremiumProvider} =
+      require('@context/PremiumContext') as typeof import('../src/context/PremiumContext.web');
+    const {OfferingSheetProvider} =
+      require('@context/OfferingSheetContext') as typeof import('../src/context/OfferingSheetContext.web');
+    const {MemoryDeckProvider} =
+      require('@context/MemoryDeckContext') as typeof import('../src/context/MemoryDeckContext.web');
+    const {AudioPlayerProvider} =
+      require('@/features/audio/context/AudioPlayerContext') as typeof import('../src/features/audio/context/AudioPlayerContext.web');
+    const {FavoritesProvider} =
+      require('@context/FavoritesContext') as typeof import('../src/context/FavoritesContext');
+    return render(
+      <PremiumProvider>
+        <OfferingSheetProvider>
+          <FavoritesProvider>
+            <MemoryDeckProvider>
+              <AudioPlayerProvider>{ui}</AudioPlayerProvider>
+            </MemoryDeckProvider>
+          </FavoritesProvider>
+        </OfferingSheetProvider>
       </PremiumProvider>,
     );
   }
@@ -315,12 +599,19 @@ describe('Previously-crashing web routes, with only the stub providers mounted',
   // separate `jest.mock('expo-router', ...)` factories in the same file
   // would collide — only the last one survives for BOTH screens. Combining
   // every export either screen needs into one factory avoids that trap.
+  // `mockSearchParams` is intentionally a loose bag (every field every
+  // screen under test might read via useLocalSearchParams) rather than one
+  // shape per screen, reassigned wholesale in each describe block's own
+  // `beforeEach`.
   let mockSlug = 'expiacion';
+  let mockSearchParams: Record<string, string | undefined> = {
+    slug: mockSlug,
+  };
   const mockPush = jest.fn();
   const mockBack = jest.fn();
   jest.mock('expo-router', () => ({
     useRouter: () => ({push: mockPush, back: mockBack}),
-    useLocalSearchParams: () => ({slug: mockSlug}),
+    useLocalSearchParams: () => mockSearchParams,
     useFocusEffect: (cb: () => void | (() => void)) => {
       const ReactLib = require('react');
       ReactLib.useEffect(() => cb(), []);
@@ -413,23 +704,9 @@ describe('Previously-crashing web routes, with only the stub providers mounted',
       updated_at: '2026-07-21',
     };
 
-    const mockGetDictionaryEntry = jest.fn();
-    const mockGetDictionaryMultiviewSections = jest.fn();
-    const mockGetAllDictionaryEntries = jest.fn(async () => []);
-    jest.mock('@lib/database', () => ({
-      __esModule: true,
-      default: {
-        initialize: jest.fn(async () => undefined),
-        getDictionaryEntry: (...args: unknown[]) =>
-          mockGetDictionaryEntry(...args),
-        getDictionaryMultiviewSections: (...args: unknown[]) =>
-          mockGetDictionaryMultiviewSections(...args),
-        getAllDictionaryEntries: () => mockGetAllDictionaryEntries(),
-      },
-    }));
-
     beforeEach(() => {
       mockSlug = 'expiacion';
+      mockSearchParams = {slug: mockSlug};
       mockGetDictionaryEntry.mockReset().mockResolvedValue(ANNOTATED_ENTRY);
       mockGetDictionaryMultiviewSections.mockReset().mockResolvedValue([]);
       mockGetAllDictionaryEntries.mockReset().mockResolvedValue([]);
@@ -469,13 +746,14 @@ describe('Previously-crashing web routes, with only the stub providers mounted',
     jest.mock('@context/ToastContext', () => ({
       useToast: () => ({success: jest.fn(), error: jest.fn()}),
     }));
-    jest.mock('@context/MemoryDeckContext', () => ({
-      useMemoryDeck: () => ({
-        hasCard: () => false,
-        addCard: jest.fn(),
-        reviewCard: jest.fn(),
-      }),
-    }));
+    // `@context/MemoryDeckContext` is redirected to the REAL
+    // MemoryDeckContext.web stub at the outer describe's scope above (and
+    // `renderWithWebProviders` wraps its Provider) — the same substitution
+    // Metro performs for any web bundle, since there IS a
+    // MemoryDeckContext.web.tsx sibling now. Previously this screen's
+    // useMemoryDeck() was a hand-rolled test double standing in for a
+    // context that had no web variant at all (it genuinely threw on the
+    // deployed web app); that gap is now closed for real.
     jest.mock('@/hooks/useQuizStats', () => ({
       useQuizStats: () => ({
         loaded: true,
@@ -496,18 +774,137 @@ describe('Previously-crashing web routes, with only the stub providers mounted',
       };
     });
 
-    // NOTE (scope caveat): `@context/MemoryDeckContext` is mocked above for
-    // ordinary test convenience (this screen also calls `useMemoryDeck()` for
-    // "add to deck"/SRS), NOT because MemoryDeckProvider is safe on web. It
-    // is NOT — `app/_layout.web.tsx` never mounts it (T21's write-feature
-    // exclusion; out of scope for this fix), so on the REAL deployed web app
-    // `useMemoryDeck()` still throws and this route still crashes. This test
-    // only proves the usePremium()/useOfferingSheet() piece no longer does;
-    // do not read a green result here as "quiz/index.tsx is web-safe".
-    it('renders without throwing (confirmed crash site: usePremium()/useOfferingSheet() called unconditionally at the top of the component)', () => {
+    it('renders without throwing (confirmed crash sites: usePremium()/useOfferingSheet()/useMemoryDeck() all called unconditionally at the top of the component — this now proves ALL THREE are fixed, not just the first two)', () => {
       const QuizScreen = require('../app/features/quiz/index').default;
       const {getByText} = renderWithWebProviders(<QuizScreen />);
       expect(getByText('quiz-panel-rendered')).toBeTruthy();
+    });
+  });
+
+  describe('app/features/lectio.tsx', () => {
+    jest.mock('@context/ToastContext', () => ({
+      useToast: () => ({success: jest.fn(), error: jest.fn()}),
+    }));
+    // `@context/MemoryDeckContext` and the AudioPlayerContext module (which
+    // this screen reaches via the `@/features/audio` barrel's re-export —
+    // both specifiers resolve to the same file, see the outer describe's
+    // comment) are already redirected to their real `.web` stubs at the
+    // outer scope above, and `renderWithWebProviders` wraps both Providers.
+    // `@context/ServicesContext` is deliberately NOT mocked here — the whole
+    // point is proving the REAL module's useServices() default (see the
+    // "ServicesContext (intentionally left unmounted on web)" Part A block)
+    // is what actually keeps this screen from crashing, with no
+    // ServicesProvider anywhere in the tree (matching app/_layout.web.tsx).
+    jest.mock('@/features/study/devotionLogStore', () => ({
+      recordTodayDevotion: jest.fn(async () => undefined),
+    }));
+    jest.mock('@components/reading/ImageShareModal', () => ({
+      ImageShareModal: () => null,
+    }));
+
+    beforeEach(() => {
+      mockSearchParams = {book: 'Juan', chapter: '3', verse: '16'};
+      mockGetVerse.mockReset().mockResolvedValue({
+        text: 'Porque de tal manera amó Dios al mundo...',
+      });
+      mockDbInitialize.mockReset().mockResolvedValue(undefined);
+    });
+
+    it('renders without throwing and reaches the ready state (confirmed crash sites: useServices()/useMemoryDeck() called unconditionally at the top of the component)', async () => {
+      const LectioScreen = require('../app/features/lectio').default;
+      const {findByText} = renderWithWebProviders(<LectioScreen />);
+      expect(
+        await findByText('Porque de tal manera amó Dios al mundo...'),
+      ).toBeTruthy();
+    }, // push this particular test — the heaviest of the six route renders, // A cold Babel/TS transform cache (first run after install, or CI) can
+    // with a real async bibleDB round-trip plus i18n/theme/date-format
+    // module loads — past the default 5000ms Jest test timeout; every
+    // other test in this file stays well under it.
+    15000);
+  });
+
+  describe('app/features/memory/insights.tsx', () => {
+    // The empty-deck render path (isEmpty = cards.length === 0, which the
+    // MemoryDeckContext.web stub guarantees) never reaches the SVG/chart
+    // components (SVGCircularProgress, MiniBarChart, ContributionHeatmap),
+    // so those need no special mocking here. `useMemoryGoal`'s only
+    // non-AsyncStorage dependency is the review-event SQLite log — mocked
+    // directly (bypassing bibleDB.getDatabase()) rather than pulled through
+    // the shared bibleDB mock, which doesn't model that access pattern.
+    jest.mock('@lib/memory/reviewEventStore', () => ({
+      getAllReviewEvents: jest.fn(async () => []),
+      addReviewEvent: jest.fn(async () => undefined),
+      getReviewEventById: jest.fn(async () => null),
+      removeReviewEvent: jest.fn(async () => undefined),
+    }));
+
+    beforeEach(() => {
+      mockSearchParams = {};
+    });
+
+    it('renders without throwing and shows the empty-deck state (confirmed crash site: useMemoryDeck() called unconditionally at the top of the component)', async () => {
+      const MemoryInsightsScreen =
+        require('../app/features/memory/insights').default;
+      const {findByText} = renderWithWebProviders(<MemoryInsightsScreen />);
+      const es = require('../src/i18n/translations').translations.es;
+      expect(await findByText(es.memory.insights.emptyTitle)).toBeTruthy();
+    });
+  });
+
+  describe('app/(tabs)/favorites.tsx', () => {
+    // Mocked away because they're unrelated to the crash under test (same
+    // idiom as QuizPanel above) — AddToCollectionSheet pulls in
+    // @gorhom/bottom-sheet, which needs its own dedicated test setup.
+    jest.mock('@components/IllustratedEmptyState', () => ({
+      IllustratedEmptyState: () => null,
+    }));
+    jest.mock('@components/ui/ConfirmDialog', () => ({
+      ConfirmDialog: () => null,
+    }));
+    jest.mock('@/features/collections/AddToCollectionSheet', () => ({
+      AddToCollectionSheet: () => null,
+    }));
+    jest.mock('@context/ToastContext', () => ({
+      useToast: () => ({success: jest.fn(), error: jest.fn()}),
+    }));
+
+    beforeEach(() => {
+      mockSearchParams = {};
+      mockGetFavorites.mockReset().mockResolvedValue([]);
+      mockDbInitialize.mockReset().mockResolvedValue(undefined);
+    });
+
+    it('renders without throwing and shows the (empty) favorites header (confirmed crash sites: useFavorites()/useMemoryDeck() called unconditionally at the top of the component)', async () => {
+      const FavoritesScreen = require('../app/(tabs)/favorites').default;
+      const es = require('../src/i18n/translations').translations.es;
+      const {findByText} = renderWithWebProvidersAndFavorites(
+        <FavoritesScreen />,
+      );
+      expect(await findByText(es.tabs.favorites)).toBeTruthy();
+    });
+  });
+
+  describe('app/features/collections/[name].tsx', () => {
+    jest.mock('@/features/collections/CollectionImageModal', () => ({
+      CollectionImageModal: () => null,
+    }));
+    jest.mock('@context/ToastContext', () => ({
+      useToast: () => ({success: jest.fn(), error: jest.fn()}),
+    }));
+
+    beforeEach(() => {
+      mockSearchParams = {name: 'coleccion-de-prueba'};
+      mockGetFavorites.mockReset().mockResolvedValue([]);
+      mockDbInitialize.mockReset().mockResolvedValue(undefined);
+    });
+
+    it('renders without throwing and shows the (empty) collection header (confirmed crash site: useFavorites() called unconditionally at the top of the component)', async () => {
+      const CollectionDetailScreen =
+        require('../app/features/collections/[name]').default;
+      const {findByText} = renderWithWebProvidersAndFavorites(
+        <CollectionDetailScreen />,
+      );
+      expect(await findByText('coleccion-de-prueba')).toBeTruthy();
     });
   });
 });
