@@ -3634,6 +3634,8 @@ export const translations = {
         'Genera un archivo JSON con favoritos, notas, resaltados, marcadores, progreso y preferencias.',
       exporting: 'Generando copia…',
       exportError: 'No se pudo exportar la copia. Inténtalo de nuevo.',
+      exportPartial:
+        'Copia generada, pero algunos datos no se pudieron incluir. Puedes intentarlo de nuevo más tarde.',
       backupDialogTitle: 'Eternal Stone Bible · Copia de seguridad',
       importBackup: 'Importar copia de seguridad',
       importBackupDescription:
@@ -9492,6 +9494,8 @@ export const translations = {
         'Generate a JSON file with favorites, notes, highlights, bookmarks, progress and preferences.',
       exporting: 'Generating backup…',
       exportError: 'Backup export failed. Please try again.',
+      exportPartial:
+        "Backup created, but some data couldn't be included. You can try again later.",
       backupDialogTitle: 'Eternal Stone Bible · Backup',
       importBackup: 'Import backup',
       importBackupDescription:

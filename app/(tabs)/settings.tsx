@@ -180,7 +180,19 @@ export default function SettingsScreen() {
     setIsExporting(true);
     try {
       haptics.press();
-      await exportBackup();
+      const result = await exportBackup();
+      // A transient SQLite/AsyncStorage read error during export falls back
+      // to an empty value per-section rather than aborting the whole file —
+      // `degradedSections` is how that's surfaced instead of a backup file
+      // that silently looks complete while actually missing real data.
+      if (result.degradedSections.length > 0) {
+        logger.warn('Backup export completed with degraded sections', {
+          component: 'SettingsScreen',
+          action: 'handleExportBackup',
+          degradedSections: result.degradedSections,
+        });
+        toast.warning(t.settings.exportPartial);
+      }
     } catch (error) {
       toast.error(t.settings.exportError);
       void error;

@@ -198,6 +198,30 @@ export interface BackupPayload {
   };
 }
 
+/**
+ * What `buildBackup`/`exportBackup` actually managed to read. `safeQuery`/
+ * `readJSON`/`readRaw` fall back to an empty/default value for ANY section
+ * whose underlying read throws, so the export never aborts outright — but
+ * that means a transient SQLite/AsyncStorage error can silently produce a
+ * backup file that LOOKS complete (valid JSON, every field present) while
+ * actually missing real data, normally only discovered much later when the
+ * user tries to restore from it. `degradedSections` closes that visibility
+ * gap: it lists every section whose read actually threw (never a section
+ * that's just legitimately empty — see the doc on `readJSON`). */
+export interface BuildBackupResult {
+  payload: BackupPayload;
+  degradedSections: string[];
+}
+
+/** What `exportBackup` actually wrote — human/log/test friendly. */
+export interface ExportResult {
+  /** Absolute `file://` URI of the written backup JSON. */
+  uri: string;
+  /** See `BuildBackupResult.degradedSections` — forwarded unchanged. Empty
+   *  when every section read cleanly. */
+  degradedSections: string[];
+}
+
 /** What `importBackup` actually wrote — human/log/test friendly. */
 export interface ImportResult {
   formatVersion: number;
@@ -256,7 +280,20 @@ const EMPTY_RAW_STATS: RawUserStatsRow = {
 // decoupled from the React provider tree.
 const achievementService = new AchievementService(bibleDB);
 
-async function readJSON<T = unknown>(key: string): Promise<T | null> {
+/**
+ * Reads one AsyncStorage key as JSON. `null` is returned BOTH when the key
+ * legitimately isn't set (a normal, healthy state for a new user or a
+ * section they've never touched) AND when the read itself throws — those
+ * two cases must never be confused. The optional `label`/`degraded` pair
+ * lets a caller (`buildBackup`) distinguish them: `degraded` is only ever
+ * pushed to inside the `catch` block, i.e. only for an ACTUAL read failure,
+ * never for a legitimately-empty key.
+ */
+async function readJSON<T = unknown>(
+  key: string,
+  label?: string,
+  degraded?: string[],
+): Promise<T | null> {
   try {
     const raw = await AsyncStorage.getItem(key);
     if (raw == null) return null;
@@ -270,17 +307,46 @@ async function readJSON<T = unknown>(key: string): Promise<T | null> {
   } catch (error) {
     logger.warn('Backup: AsyncStorage read failed', {key});
     void error;
+    if (label) degraded?.push(label);
     return null;
   }
 }
 
-async function safeQuery<T>(fn: () => Promise<T>, fallback: T): Promise<T> {
+/** Same `null`-is-ambiguous caveat as `readJSON` (see its doc), for the raw
+ *  (non-JSON) AsyncStorage keys `buildBackup` reads directly. */
+async function readRaw(
+  key: string,
+  label?: string,
+  degraded?: string[],
+): Promise<string | null> {
+  try {
+    return await AsyncStorage.getItem(key);
+  } catch (error) {
+    logger.warn('Backup: AsyncStorage read failed', {key});
+    void error;
+    if (label) degraded?.push(label);
+    return null;
+  }
+}
+
+/**
+ * Runs a SQLite read with a safe fallback on failure. Same distinction as
+ * `readJSON`: `degraded` is only pushed to when `fn` actually throws, never
+ * just because the result happens to equal `fallback`.
+ */
+async function safeQuery<T>(
+  fn: () => Promise<T>,
+  fallback: T,
+  label?: string,
+  degraded?: string[],
+): Promise<T> {
   try {
     return await fn();
   } catch (error) {
     logger.warn('Backup: SQLite read failed', {
       message: (error as Error)?.message,
     });
+    if (label) degraded?.push(label);
     return fallback;
   }
 }
@@ -289,9 +355,12 @@ async function safeQuery<T>(fn: () => Promise<T>, fallback: T): Promise<T> {
  * Read every user-owned dataset and assemble the backup payload.
  * Each source falls back to an empty value on failure so a partial
  * read still produces a usable file rather than aborting the whole
- * export.
+ * export. `degradedSections` (see `BuildBackupResult`) is how a caller
+ * finds out that fallback actually happened for a given section, instead
+ * of the file silently looking complete when it isn't.
  */
-export async function buildBackup(): Promise<BackupPayload> {
+export async function buildBackup(): Promise<BuildBackupResult> {
+  const degradedSections: string[] = [];
   await bibleDB.initialize();
   // Idempotent schema bootstrap (CREATE TABLE IF NOT EXISTS + INSERT OR
   // IGNORE) — safe to call even though the app already ran it at boot.
@@ -301,19 +370,41 @@ export async function buildBackup(): Promise<BackupPayload> {
 
   const [favorites, notes, highlightsResult, lastReadPosition] =
     await Promise.all([
-      safeQuery(() => bibleDB.getFavorites(), [] as Favorite[]),
-      safeQuery(() => bibleDB.getNotes(), [] as Note[]),
-      safeQuery(async () => {
-        const result = await bibleDB.executeSql(
-          'SELECT * FROM highlights ORDER BY created_at DESC',
-        );
-        return (result?.rows?._array ?? []) as RawHighlightRow[];
-      }, [] as RawHighlightRow[]),
-      safeQuery(() => bibleDB.getReadingProgress(), null),
+      safeQuery(
+        () => bibleDB.getFavorites(),
+        [] as Favorite[],
+        'favorites',
+        degradedSections,
+      ),
+      safeQuery(
+        () => bibleDB.getNotes(),
+        [] as Note[],
+        'notes',
+        degradedSections,
+      ),
+      safeQuery(
+        async () => {
+          const result = await bibleDB.executeSql(
+            'SELECT * FROM highlights ORDER BY created_at DESC',
+          );
+          return (result?.rows?._array ?? []) as RawHighlightRow[];
+        },
+        [] as RawHighlightRow[],
+        'highlights',
+        degradedSections,
+      ),
+      safeQuery(
+        () => bibleDB.getReadingProgress(),
+        null,
+        'lastReadPosition',
+        degradedSections,
+      ),
     ]);
 
   const chapterProgressMapRaw = await readJSON<ChapterProgressMap>(
     KEYS.readingProgress,
+    'chapterProgressMap',
+    degradedSections,
   );
   const chapterProgressMap = chapterProgressMapRaw
     ? canonicalizeProgressMap(chapterProgressMapRaw)
@@ -332,17 +423,29 @@ export async function buildBackup(): Promise<BackupPayload> {
     prepNotesRaw,
     prepSeriesRaw,
   ] = await Promise.all([
-    readJSON<Bookmark[]>(KEYS.bookmarks),
-    readJSON(KEYS.readingPlanProgress),
-    readJSON(KEYS.readingPlanReadChapters),
-    readJSON(KEYS.searchHistory),
-    AsyncStorage.getItem(KEYS.sideBySide).catch(() => null),
-    readJSON<ReaderPreferences>(KEYS.readerPreferences),
-    AsyncStorage.getItem(KEYS.appThemeMode).catch(() => null),
-    AsyncStorage.getItem(KEYS.appColorTheme).catch(() => null),
-    readJSON<Record<string, MemoryCard>>(KEYS.memoryDeck),
-    AsyncStorage.getItem(KEYS.prepNotes).catch(() => null),
-    AsyncStorage.getItem(KEYS.prepSeries).catch(() => null),
+    readJSON<Bookmark[]>(KEYS.bookmarks, 'bookmarks', degradedSections),
+    readJSON(KEYS.readingPlanProgress, 'readingPlanProgress', degradedSections),
+    readJSON(
+      KEYS.readingPlanReadChapters,
+      'readingPlanReadChapters',
+      degradedSections,
+    ),
+    readJSON(KEYS.searchHistory, 'searchHistory', degradedSections),
+    readRaw(KEYS.sideBySide, 'readerPreferences', degradedSections),
+    readJSON<ReaderPreferences>(
+      KEYS.readerPreferences,
+      'readerPreferencesFull',
+      degradedSections,
+    ),
+    readRaw(KEYS.appThemeMode, 'appTheme', degradedSections),
+    readRaw(KEYS.appColorTheme, 'appTheme', degradedSections),
+    readJSON<Record<string, MemoryCard>>(
+      KEYS.memoryDeck,
+      'memoryDeck',
+      degradedSections,
+    ),
+    readRaw(KEYS.prepNotes, 'prepNotes', degradedSections),
+    readRaw(KEYS.prepSeries, 'prepSeries', degradedSections),
   ]);
 
   const [
@@ -354,19 +457,51 @@ export async function buildBackup(): Promise<BackupPayload> {
     chaptersReadLog,
     reviewEvents,
   ] = await Promise.all([
-    safeQuery(() => achievementService.getRawUserStats(), EMPTY_RAW_STATS),
+    safeQuery(
+      () => achievementService.getRawUserStats(),
+      EMPTY_RAW_STATS,
+      'achievements.stats',
+      degradedSections,
+    ),
     safeQuery(
       () => achievementService.getAllAchievements(),
       [] as Achievement[],
+      'achievements.list',
+      degradedSections,
     ),
-    safeQuery(() => achievementService.getReadingLog(), []),
-    safeQuery(() => achievementService.getCompletedBooks(), []),
-    safeQuery(() => achievementService.getBookReadingLog(), []),
-    safeQuery(() => achievementService.getChaptersReadLog(), []),
-    safeQuery(() => getAllReviewEvents(), [] as ReviewEvent[]),
+    safeQuery(
+      () => achievementService.getReadingLog(),
+      [],
+      'achievements.streakLog',
+      degradedSections,
+    ),
+    safeQuery(
+      () => achievementService.getCompletedBooks(),
+      [],
+      'achievements.completedBooks',
+      degradedSections,
+    ),
+    safeQuery(
+      () => achievementService.getBookReadingLog(),
+      [],
+      'achievements.bookReadingLog',
+      degradedSections,
+    ),
+    safeQuery(
+      () => achievementService.getChaptersReadLog(),
+      [],
+      'achievements.chaptersReadLog',
+      degradedSections,
+    ),
+    safeQuery(
+      () => getAllReviewEvents(),
+      [] as ReviewEvent[],
+      'reviewEvents',
+      degradedSections,
+    ),
   ]);
 
-  return {
+  const payload: BackupPayload = {
     formatVersion: BACKUP_FORMAT_VERSION,
     generatedAt: new Date().toISOString(),
     app: {
@@ -411,16 +546,23 @@ export async function buildBackup(): Promise<BackupPayload> {
       series: prepSeriesRaw ? parsePrepSeriesMap(prepSeriesRaw) : null,
     },
   };
+
+  // A handful of sections (appTheme, readerPreferences) are read from more
+  // than one AsyncStorage key and would otherwise appear twice.
+  return {payload, degradedSections: Array.from(new Set(degradedSections))};
 }
 
 /**
  * Build the backup, dump it to a JSON file in the cache directory, and
- * hand it to expo-sharing. Returns the absolute path of the written
- * file so the caller can show it in a toast or log it. Throws if the
- * device can't share — Settings can then surface an error message.
+ * hand it to expo-sharing. Returns the absolute URI of the written file
+ * (plus `degradedSections`, see `ExportResult`) so the caller can show it
+ * in a toast or log it. Throws if the device can't share — Settings can
+ * then surface an error message. Does NOT throw just because some
+ * sections degraded — the file is still written and shareable; a caller
+ * that cares can inspect `degradedSections` instead.
  */
-export async function exportBackup(): Promise<string> {
-  const payload = await buildBackup();
+export async function exportBackup(): Promise<ExportResult> {
+  const {payload, degradedSections} = await buildBackup();
   // Stable, sortable filename so multiple backups stack chronologically.
   const stamp = payload.generatedAt.replace(/[:.]/g, '-');
   const fileName = `eternalstone-backup-${stamp}.json`;
@@ -443,7 +585,7 @@ export async function exportBackup(): Promise<string> {
     UTI: 'public.json',
   });
 
-  return target.uri;
+  return {uri: target.uri, degradedSections};
 }
 
 // ============================================================================
