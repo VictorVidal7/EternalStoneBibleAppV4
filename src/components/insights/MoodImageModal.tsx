@@ -49,6 +49,7 @@ import {
   borderRadius,
   fontSize as fontSizes,
 } from '@/styles/designTokens';
+import {withOpacity} from '@/styles/modernTheme';
 
 export interface MoodImageModalProps {
   visible: boolean;
@@ -220,7 +221,22 @@ export const MoodImageModal: React.FC<MoodImageModalProps> = ({
                       <View
                         style={[
                           styles.barTrack,
-                          {backgroundColor: template.textColor},
+                          // Sprint 84 bugfix: the track must be a genuinely
+                          // muted/translucent color (alpha-blended via
+                          // withOpacity), NOT the parent View `opacity` prop —
+                          // that prop composites the whole subtree (track +
+                          // fill) into one layer before applying the alpha, so
+                          // the fill's own opacity:1 was rendered relative to
+                          // that already-dimmed layer, not to a full-strength
+                          // track. Since both used the same textColor, the
+                          // "filled" and "empty" portions were indistinguishable
+                          // in the exported image.
+                          {
+                            backgroundColor: withOpacity(
+                              template.textColor,
+                              0.25,
+                            ),
+                          },
                         ]}>
                         <View
                           style={[
@@ -395,11 +411,13 @@ const styles = StyleSheet.create({
     flex: 1,
     height: 8,
     borderRadius: 4,
-    opacity: 0.25,
     overflow: 'hidden',
     marginHorizontal: spacing.sm,
   },
-  barFill: {height: '100%', borderRadius: 4, opacity: 1},
+  // No `opacity` here on purpose — the track's muted look now comes from an
+  // alpha-blended backgroundColor (withOpacity) set inline, so this full-
+  // strength fill is never composited through a dimmed ancestor layer.
+  barFill: {height: '100%', borderRadius: 4},
   barCount: {
     width: 22,
     textAlign: 'right',

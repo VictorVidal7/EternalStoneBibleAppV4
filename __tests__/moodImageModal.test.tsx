@@ -16,6 +16,7 @@
  */
 import React from 'react';
 import {render, fireEvent} from '@testing-library/react-native';
+import {View, StyleSheet} from 'react-native';
 import {MoodImageModal} from '../src/components/insights/MoodImageModal';
 import {translations} from '../src/i18n/translations';
 import type {
@@ -165,6 +166,51 @@ describe('MoodImageModal (Sprint 84)', () => {
     );
     expect(queryByText(es.readingInsights.moodTrendLighter)).toBeNull();
     expect(queryByText(es.readingInsights.moodTrendSteady)).toBeNull();
+  });
+
+  // Regression test for the bar-chart bug: `barTrack` used a View-level
+  // `opacity: 0.25` while its `barFill` child used the SAME
+  // `template.textColor` — but RN's `opacity` prop composites a View's
+  // entire subtree into one layer before applying the alpha, so the fill's
+  // own `opacity: 1` never made it stand out from the dimmed track. Every
+  // distribution bar rendered as one flat, uniform strip. The fix drops the
+  // `opacity` prop from the track and instead gives it a real alpha-blended
+  // RGBA background (via `withOpacity`), leaving the fill a fully solid
+  // color that is genuinely distinguishable from the track behind it.
+  it('renders the distribution-bar track and fill with genuinely different colors, not opacity-nested', () => {
+    const {UNSAFE_getAllByType} = render(
+      <MoodImageModal
+        visible
+        month={month}
+        trend={liftingTrend}
+        onClose={jest.fn()}
+      />,
+    );
+    const views = UNSAFE_getAllByType(View).map(v => ({
+      props: v.props,
+      style: StyleSheet.flatten(v.props.style) || {},
+    }));
+    const track = views.find(
+      ({style}) => style.height === 8 && style.borderRadius === 4,
+    );
+    const fill = views.find(
+      ({style}) => style.height === '100%' && style.borderRadius === 4,
+    );
+    expect(track).toBeTruthy();
+    expect(fill).toBeTruthy();
+
+    // Neither node relies on the View `opacity` prop anymore — that's what
+    // silently dimmed the fill along with the track before the fix.
+    expect(track!.style.opacity).toBeUndefined();
+    expect(fill!.style.opacity).toBeUndefined();
+
+    // The track's background is a real alpha-blended RGBA value (translucent
+    // but still visible), while the fill stays a fully solid color — so the
+    // two are genuinely distinct, not "the same color at two nested opacities
+    // that cancel out".
+    expect(String(track!.style.backgroundColor)).toMatch(/^rgba\(/);
+    expect(String(fill!.style.backgroundColor)).not.toMatch(/^rgba\(/);
+    expect(fill!.style.backgroundColor).not.toBe(track!.style.backgroundColor);
   });
 });
 
