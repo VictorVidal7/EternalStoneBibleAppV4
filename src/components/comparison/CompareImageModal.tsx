@@ -55,6 +55,7 @@ import {
   spacing,
   borderRadius,
   fontSize as fontSizes,
+  verseTextRightSlack,
 } from '@/styles/designTokens';
 
 export interface CompareImageModalProps {
@@ -474,7 +475,14 @@ const styles = StyleSheet.create({
     fontWeight: '800',
     letterSpacing: 1,
   },
-  cardText: {fontSize: fontSizes.base, fontStyle: 'italic', lineHeight: 24},
+  cardText: {
+    fontSize: fontSizes.base,
+    fontStyle: 'italic',
+    lineHeight: 24,
+    // Italic serif clips its last glyph on some OEMs (Sprint 94) — reserve a
+    // few px so the painted right bearing clears the card's inner edge.
+    paddingRight: verseTextRightSlack(fontSizes.base),
+  },
   divergent: {fontWeight: '900', textDecorationLine: 'underline'},
   brand: {marginTop: spacing.xl, alignItems: 'flex-start'},
   brandDivider: {

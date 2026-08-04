@@ -31,7 +31,11 @@ import {ShareCardHost} from '@/features/share/ShareCardHost';
 import {PremiumShareExtras} from '@/features/share/PremiumShareExtras';
 import {SHARE_TEMPLATES} from '@/features/share/imageTemplates';
 import {buildNoteCard} from '@/lib/notes/noteCard';
-import {spacing, fontSize as fontSizes} from '@/styles/designTokens';
+import {
+  spacing,
+  fontSize as fontSizes,
+  verseTextRightSlack,
+} from '@/styles/designTokens';
 
 export interface NoteImageModalProps {
   visible: boolean;
@@ -204,6 +208,9 @@ const styles = StyleSheet.create({
     lineHeight: 24,
     marginTop: spacing.sm,
     opacity: 0.95,
+    // Italic serif clips its last glyph on some OEMs (Sprint 94) — reserve a
+    // few px so the painted right bearing clears the card's inner edge.
+    paddingRight: verseTextRightSlack(fontSizes.base),
   },
   noteDivider: {
     width: 40,
