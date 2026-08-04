@@ -729,6 +729,16 @@ export default function VerseReadingScreen() {
     // the chapter changes so stale verse numbers don't re-highlight here.
     setSelectedVerses(new Set());
     setShowHighlightPicker(false);
+    // Cross-refs/originals sheets capture their source verse once when
+    // opened (sourceVerse) but are rendered with a LIVE sourceChapter/book.
+    // If the chapter changes underneath an open sheet — via audio
+    // auto-advance (readerFollowsAudio) OR manual Anterior/Siguiente/swipe
+    // navigation, all of which land here since they change `book`/`chapter`
+    // — the captured verse becomes stale and can even point at the wrong
+    // book. There's no sensible "right verse" to re-derive for the new
+    // chapter, so just close the sheets rather than show stale data.
+    setCrossRefsVisible(false);
+    setOriginalsVisible(false);
   }, [book, chapter, selectedVersion.id]);
 
   useEffect(() => {
