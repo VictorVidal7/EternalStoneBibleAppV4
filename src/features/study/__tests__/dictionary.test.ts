@@ -74,8 +74,24 @@ describe('dictionary — pure helpers for the browse/search screen', () => {
       );
     });
 
-    it('keeps a parenthetical qualifier lowercase past its first letter', () => {
+    it('keeps a common-noun parenthetical qualifier lowercase past its first letter', () => {
       expect(titleCaseHeadword('JOSUÉ (persona)')).toBe('Josué (persona)');
+    });
+
+    it('capitalizes a known proper-noun parenthetical qualifier instead of lowercasing it', () => {
+      // "Gólgota" is the Aramaic name for Calvary — a proper place name, not
+      // a descriptive common noun like "persona" above — so it must keep
+      // its capital letter rather than following the blanket sentence-case
+      // rule applied to the rest of the headword.
+      expect(titleCaseHeadword('CALVARIO (GÓLGOTA)')).toBe(
+        'Calvario (Gólgota)',
+      );
+    });
+
+    it('matches the known proper-noun qualifier case-insensitively', () => {
+      expect(titleCaseHeadword('calvario (gólgota)')).toBe(
+        'Calvario (Gólgota)',
+      );
     });
 
     it('trims surrounding whitespace and handles an empty string', () => {
