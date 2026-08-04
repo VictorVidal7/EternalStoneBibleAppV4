@@ -95,7 +95,7 @@ export default function ReadingInsightsScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const {colors, gradient, highContrast} = useTheme();
-  const {t} = useLanguage();
+  const {t, language} = useLanguage();
   const {selectedVersion} = useBibleVersion();
   const ri = t.readingInsights;
   // Mood line lookups: localized feeling names + the one shared weekday
@@ -104,6 +104,15 @@ export default function ReadingInsightsScreen() {
   const weekdaysShort = t.memory.insights.weekdaysShort;
   const {achievementService} = useServices();
   const {progress} = useReadingProgress();
+
+  // Locale-aware number formatting — threads the app's CHOSEN language
+  // (independent of device locale) into every stat, same convention as the
+  // journey screen's `num` and the codebase's `en-US`/`es-ES` date mapping.
+  const num = useCallback(
+    (n: number): string =>
+      n.toLocaleString(language === 'en' ? 'en-US' : 'es-ES'),
+    [language],
+  );
 
   const [insights, setInsights] = useState<ReadingInsights | null>(null);
   // Listening time (Sprint 75) — audio was never tracked before; per-day
@@ -243,14 +252,14 @@ export default function ReadingInsightsScreen() {
     const mr = insights?.mostReadBook;
     if (!mr) return null;
     if (mr.source === 'log') {
-      const verses = `${(mr.versesRead ?? 0).toLocaleString()} ${ri.versesUnit}`;
+      const verses = `${num(mr.versesRead ?? 0)} ${ri.versesUnit}`;
       const time = mr.timeSpent
         ? ` · ${formatReadingTime(mr.timeSpent, timeLabels)}`
         : '';
       return `${verses}${time}`;
     }
     return `${mr.chapters} ${ri.chaptersUnit}`;
-  }, [insights?.mostReadBook, ri.versesUnit, ri.chaptersUnit, timeLabels]);
+  }, [insights?.mostReadBook, ri.versesUnit, ri.chaptersUnit, timeLabels, num]);
 
   // Completion progress toward the whole 66-book canon (0 when not loaded yet).
   const booksPct = insights
@@ -399,7 +408,7 @@ export default function ReadingInsightsScreen() {
                   <WeekDeltaRow
                     label={ri.weekVsVerses}
                     delta={weekCompare.versesRead}
-                    format={n => n.toLocaleString()}
+                    format={num}
                     a11yTemplate={ri.weekVsA11y}
                     colors={colors}
                   />

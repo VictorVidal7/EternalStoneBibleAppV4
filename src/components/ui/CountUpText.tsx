@@ -18,6 +18,7 @@ import React, {useEffect, useRef, useState} from 'react';
 import {Animated, Easing} from 'react-native';
 import {AppText, AppTextProps} from './AppText';
 import {useReducedMotion} from '@hooks/useReducedMotion';
+import {useLanguage} from '@hooks/useLanguage';
 import {countUpValue} from '@lib/animation/countUp';
 
 export interface CountUpTextProps extends Omit<AppTextProps, 'children'> {
@@ -29,14 +30,19 @@ export interface CountUpTextProps extends Omit<AppTextProps, 'children'> {
   format?: (n: number) => string;
 }
 
-const defaultFormat = (n: number): string => n.toLocaleString();
-
 export const CountUpText: React.FC<CountUpTextProps> = ({
   value,
   durationMs = 900,
-  format = defaultFormat,
+  format,
   ...textProps
 }) => {
+  // No custom `format` passed → default to the app's CHOSEN language
+  // (independent of device locale), same convention as journey/reading-insights.
+  const {language} = useLanguage();
+  const resolvedFormat =
+    format ??
+    ((n: number): string =>
+      n.toLocaleString(language === 'en' ? 'en-US' : 'es-ES'));
   const reduced = useReducedMotion();
   const progress = useRef(new Animated.Value(0)).current;
   // Start already settled when motion is reduced so the first paint is final.
@@ -65,7 +71,7 @@ export const CountUpText: React.FC<CountUpTextProps> = ({
     };
   }, [value, reduced, durationMs, progress]);
 
-  return <AppText {...textProps}>{format(display)}</AppText>;
+  return <AppText {...textProps}>{resolvedFormat(display)}</AppText>;
 };
 
 export default CountUpText;

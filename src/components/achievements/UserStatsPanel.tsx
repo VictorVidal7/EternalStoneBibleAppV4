@@ -31,7 +31,7 @@ interface UserStatsPanelProps {
 
 export const UserStatsPanel: React.FC<UserStatsPanelProps> = ({stats}) => {
   const {colors, isDark} = useTheme();
-  const {t} = useLanguage();
+  const {t, language} = useLanguage();
   const levelProgress = calculateLevelProgress(stats.totalPoints);
   const contentBottomInset = useContentBottomInset();
 
@@ -147,7 +147,9 @@ export const UserStatsPanel: React.FC<UserStatsPanelProps> = ({stats}) => {
           ]}>
           <Text style={styles.statIcon}>📖</Text>
           <Text style={[styles.statValue, {color: colors.text}]}>
-            {stats.totalVersesRead.toLocaleString()}
+            {stats.totalVersesRead.toLocaleString(
+              language === 'en' ? 'en-US' : 'es-ES',
+            )}
           </Text>
           <Text style={[styles.statLabel, {color: colors.textSecondary}]}>
             {t.achievements.versesRead}
@@ -292,17 +294,22 @@ const StatRow: React.FC<{
   label: string;
   value: number;
   colors: any;
-}> = ({icon, label, value, colors}) => (
-  <View style={styles.statRow}>
-    <Text style={styles.statRowIcon}>{icon}</Text>
-    <Text style={[styles.statRowLabel, {color: colors.textSecondary}]}>
-      {label}
-    </Text>
-    <Text style={[styles.statRowValue, {color: colors.text}]}>
-      {value.toLocaleString()}
-    </Text>
-  </View>
-);
+}> = ({icon, label, value, colors}) => {
+  // Pulls the app's chosen language directly (independent of device locale)
+  // since this is its own component — same fix as the panel's own stat above.
+  const {language} = useLanguage();
+  return (
+    <View style={styles.statRow}>
+      <Text style={styles.statRowIcon}>{icon}</Text>
+      <Text style={[styles.statRowLabel, {color: colors.textSecondary}]}>
+        {label}
+      </Text>
+      <Text style={[styles.statRowValue, {color: colors.text}]}>
+        {value.toLocaleString(language === 'en' ? 'en-US' : 'es-ES')}
+      </Text>
+    </View>
+  );
+};
 
 const styles = StyleSheet.create({
   container: {
