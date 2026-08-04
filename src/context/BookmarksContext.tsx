@@ -25,6 +25,7 @@ import React, {
   type ReactNode,
 } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import {canonicalBookName} from '../constants/bible';
 import {logger} from '../lib/utils/logger';
 import {
   dedupeAndPrepend,
@@ -42,7 +43,11 @@ import {useSyncEngineOptional} from './SyncEngineContext';
 
 export interface Bookmark {
   id: string;
-  book: string; // canonical name as stored in the source Bible version
+  // Canonical (English) book identity — see canonicalBookName. addBookmark
+  // canonicalizes on write so a verse bookmarked while reading any
+  // version-language ("Juan"/"John") collapses to one entry (Sprint 58
+  // bug class, same fix as favorites/highlights/notes/audio bookmarks).
+  book: string;
   chapter: number;
   verse: number;
   text: string; // verse snippet for the list preview
@@ -229,9 +234,13 @@ export const BookmarksProvider: FC<BookmarksProviderProps> = ({children}) => {
   const addBookmark: BookmarksContextType['addBookmark'] = useCallback(
     async input => {
       const now = Date.now();
+      // Canonicalize the book identity so a verse is keyed the same way no
+      // matter which version-language the reader was on when it was
+      // bookmarked ("Juan" vs "John") — see canonicalBookName, and compare
+      // to FavoritesContext.addFavorite which does the same.
       const bookmark: Bookmark = {
         id: generateId(),
-        book: input.book,
+        book: canonicalBookName(input.book),
         chapter: input.chapter,
         verse: input.verse,
         text: input.text,
