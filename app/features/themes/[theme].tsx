@@ -62,7 +62,19 @@ interface ThemeVerseRow {
 
 const VERSION_KEY = '@bible_version';
 
-/** Resolve a canonical "EnglishBook/Chapter/Verse" key to a display row. */
+/**
+ * Resolve a canonical "EnglishBook/Chapter/Verse" key to a display row.
+ *
+ * Every branch that ends up with `text: null` (and thus renders the
+ * `missingText` placeholder) logs WHY — a malformed ref, an unknown book, a
+ * query that threw, or a query that simply found no row — plus the ref and
+ * the active `version`. Mirrors the same fix in the sibling share-faith
+ * detail screens (`/features/share-faith/methods/[id]`,
+ * `/features/share-faith/objections/[id]`, which reuse this exact pattern):
+ * a bare `catch {}` plus `row?.text ?? null` used to collapse all four
+ * cases into one indistinguishable placeholder, which is exactly why a real
+ * report of it appearing was undiagnosable from the code alone.
+ */
 async function resolveRow(
   key: ThemeRefKey,
   version: string,
@@ -70,6 +82,13 @@ async function resolveRow(
 ): Promise<ThemeVerseRow> {
   const parsed = parseThemeRef(key);
   if (!parsed) {
+    logger.warn('Theme verse: unparseable ref', {
+      component: 'ThemeDetailScreen',
+      action: 'resolveRow',
+      ref: key,
+      version,
+      reason: 'unparseable-ref',
+    });
     return {
       key,
       bookId: null,
@@ -86,6 +105,13 @@ async function resolveRow(
       : book.name
     : parsed.book;
   if (!book) {
+    logger.warn('Theme verse: unknown book', {
+      component: 'ThemeDetailScreen',
+      action: 'resolveRow',
+      ref: key,
+      version,
+      reason: 'unknown-book',
+    });
     return {
       key,
       bookId: null,
@@ -102,6 +128,16 @@ async function resolveRow(
       parsed.verse,
       version,
     );
+    if (!row) {
+      logger.warn('Theme verse: verse not found for version', {
+        component: 'ThemeDetailScreen',
+        action: 'resolveRow',
+        ref: key,
+        version,
+        bookId: book.id,
+        reason: 'no-row',
+      });
+    }
     return {
       key,
       bookId: book.id,
@@ -110,7 +146,16 @@ async function resolveRow(
       verse: parsed.verse,
       text: row?.text ?? null,
     };
-  } catch {
+  } catch (err) {
+    logger.warn('Theme verse: getVerse threw', {
+      component: 'ThemeDetailScreen',
+      action: 'resolveRow',
+      ref: key,
+      version,
+      bookId: book.id,
+      reason: 'query-threw',
+      error: err instanceof Error ? err.message : String(err),
+    });
     return {
       key,
       bookId: book.id,
