@@ -9,6 +9,32 @@ import {canonicalBookName} from '../constants/bible';
 import type {Bookmark} from './BookmarksContext';
 
 /**
+ * The bookmark(s) in `existing` that `candidate` would replace — i.e. same
+ * canonical verse (book/chapter/verse), a different id. The dedupe
+ * invariant normally keeps at most one entry per verse, so this is usually
+ * a single-element (or empty) array, but it returns an array defensively
+ * in case local storage ever holds a stray duplicate.
+ *
+ * Callers use this to know which Firestore doc(s) must be explicitly
+ * deleted when a bookmark is superseded: `dedupeAndPrepend` drops the old
+ * entry locally and the new one gets a brand-new random id, so without an
+ * explicit delete the old doc would keep living in Firestore forever (see
+ * BookmarksContext.addBookmark).
+ */
+export function findSuperseded(
+  existing: ReadonlyArray<Bookmark>,
+  candidate: Bookmark,
+): Bookmark[] {
+  const candidateBook = canonicalBookName(candidate.book);
+  return existing.filter(
+    b =>
+      canonicalBookName(b.book) === candidateBook &&
+      b.chapter === candidate.chapter &&
+      b.verse === candidate.verse,
+  );
+}
+
+/**
  * Insert `candidate` at the head of `existing` and remove any prior
  * bookmark that points to the same exact verse. This is what keeps
  * re-bookmarking idempotent: the user gets one entry per (book,
@@ -19,20 +45,18 @@ import type {Bookmark} from './BookmarksContext';
  * while reading an English version ("John") collapse to the same entry,
  * same as favorites / highlights / notes / audio bookmarks (Sprint 58
  * bug class).
+ *
+ * Built on top of `findSuperseded` so the two can never disagree about
+ * which entries get replaced.
  */
 export function dedupeAndPrepend(
   existing: ReadonlyArray<Bookmark>,
   candidate: Bookmark,
 ): Bookmark[] {
-  const candidateBook = canonicalBookName(candidate.book);
-  const filtered = existing.filter(
-    b =>
-      !(
-        canonicalBookName(b.book) === candidateBook &&
-        b.chapter === candidate.chapter &&
-        b.verse === candidate.verse
-      ),
+  const supersededIds = new Set(
+    findSuperseded(existing, candidate).map(b => b.id),
   );
+  const filtered = existing.filter(b => !supersededIds.has(b.id));
   return [candidate, ...filtered];
 }
 

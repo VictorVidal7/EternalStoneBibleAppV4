@@ -29,6 +29,7 @@ import {canonicalBookName} from '../constants/bible';
 import {logger} from '../lib/utils/logger';
 import {
   dedupeAndPrepend,
+  findSuperseded,
   isBookmarkedAt,
   removeById,
   renameById,
@@ -249,13 +250,23 @@ export const BookmarksProvider: FC<BookmarksProviderProps> = ({children}) => {
         updatedAt: now,
       };
       // Dedupe + MRU prepend lives in a pure helper (see bookmarkOps.ts)
-      // so it can be unit-tested without rendering the provider.
+      // so it can be unit-tested without rendering the provider. Compute
+      // which entry (if any) this add supersedes BEFORE persisting, so we
+      // still have its id to hand to queueDelete afterwards.
+      const superseded = findSuperseded(bookmarks, bookmark);
       await persist(dedupeAndPrepend(bookmarks, bookmark));
-      getSyncEngine()?.queueWrite(
-        'bookmarks',
-        bookmark.id,
-        bookmarkToRemote(bookmark),
-      );
+      const engine = getSyncEngine();
+      engine?.queueWrite('bookmarks', bookmark.id, bookmarkToRemote(bookmark));
+      // The superseded bookmark (if any) gets a brand-new random id here,
+      // so its OLD Firestore doc is never touched by the queueWrite above.
+      // Without this explicit delete the stale doc stays live forever and
+      // a fresh sync attach (reinstall/new device/cursor reset) redelivers
+      // BOTH docs — applyRemoteUpsert only dedups by doc id, not by verse,
+      // so the exact duplicate-bookmark bug the canonicalization fix
+      // eliminated resurfaces via sync. See bookmarkOps.findSuperseded.
+      for (const old of superseded) {
+        engine?.queueDelete('bookmarks', old.id, bookmarkToRemote(old));
+      }
       return bookmark;
     },
     [bookmarks, persist],
