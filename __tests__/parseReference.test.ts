@@ -125,6 +125,16 @@ describe('parseReference', () => {
     expect(parseReference('Salmos 23')).not.toBeNull();
   });
 
+  it('bounds against the widest bundled version, not just RVR1960 — Romanos 14 has 23 verses in RVR1960 but 26 in WEB', () => {
+    // A citation in WEB versification (from cross-references or a user's
+    // sermon note) must not be wrongly rejected just because RVR1960 numbers
+    // this chapter shorter — see generate-verse-counts.js's doc comment.
+    expect(parseReference('Romanos 14:26')).not.toBeNull();
+    expect(parseReference('Romans 14:26')).not.toBeNull();
+    // Still rejects a truly out-of-range verse for that chapter.
+    expect(parseReference('Romanos 14:27')).toBeNull();
+  });
+
   it('returns null for nonsense', () => {
     expect(parseReference('hello world')).toBeNull();
     expect(parseReference('Genesis')).toBeNull(); // no chapter
