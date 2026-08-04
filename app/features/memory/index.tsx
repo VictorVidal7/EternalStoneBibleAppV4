@@ -27,6 +27,7 @@ import {Ionicons} from '@expo/vector-icons';
 import {LinearGradient} from 'expo-linear-gradient';
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
 import {haptics} from '@lib/haptics';
+import {localDayKey} from '@lib/utils/dateKey';
 import {useTheme} from '@hooks/useTheme';
 import {centeredMaxWidth} from '@/styles/responsive';
 import {useLanguage} from '@hooks/useLanguage';
@@ -497,13 +498,38 @@ const DeckRow: React.FC<DeckRowProps> = ({
   );
 };
 
-/** "today" / "tomorrow" / "in 3d" / "2d ago" — localized + concise. */
-function formatRelativeDate(iso: string, language: 'es' | 'en'): string {
-  const due = new Date(iso).getTime();
-  const now = Date.now();
-  const diffMs = due - now;
-  const dayMs = 24 * 60 * 60 * 1000;
-  const diffDays = Math.round(diffMs / dayMs);
+const DAY_MS = 24 * 60 * 60 * 1000;
+
+/**
+ * UTC day-number for a LOCAL calendar-day key (`YYYY-MM-DD`) — same
+ * anchoring `readingInsights.ts`'s `dayNumberFromDateStr` uses, so two day
+ * keys can be diffed as plain integers instead of rounding a raw
+ * millisecond gap.
+ */
+function dayNumberFromDayKey(dayKey: string): number {
+  const [y, m, d] = dayKey.split('-').map(Number);
+  return Math.floor(Date.UTC(y, m - 1, d) / DAY_MS);
+}
+
+/**
+ * "today" / "tomorrow" / "in 3 days" — localized + concise.
+ *
+ * Diffs MIDNIGHT-NORMALIZED local calendar days (via the shared
+ * `localDayKey`), not a raw millisecond gap. `computeDueDate` (srs.ts)
+ * preserves the time-of-day of the review that scheduled a card, so a card
+ * reviewed at 11pm and due ~20h later carries a `dueAt` clock-time nowhere
+ * near midnight — a raw `(due - now) / dayMs` round can land on the wrong
+ * calendar day depending on what time of day the deck happens to be
+ * viewed (e.g. showing "hoy" for a card actually due tomorrow, or "en 2
+ * días" for one due tomorrow, once midnight has passed between review and
+ * viewing). Comparing calendar-day numbers instead removes the clock-time
+ * mismatch entirely. Mirrors the day-number pattern already established by
+ * `readingInsights.ts` / the other `localDayKey`-based streak fixes.
+ */
+export function formatRelativeDate(iso: string, language: 'es' | 'en'): string {
+  const dueDayNum = dayNumberFromDayKey(localDayKey(new Date(iso).getTime()));
+  const todayDayNum = dayNumberFromDayKey(localDayKey(Date.now()));
+  const diffDays = dueDayNum - todayDayNum;
 
   if (language === 'es') {
     if (diffDays <= 0) return 'hoy';
