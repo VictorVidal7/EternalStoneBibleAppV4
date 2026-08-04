@@ -70,7 +70,18 @@ interface ObjectionVerseRow {
 
 const VERSION_KEY = '@bible_version';
 
-/** Resolve a canonical "EnglishBook/Chapter/Verse" key to a display row. */
+/**
+ * Resolve a canonical "EnglishBook/Chapter/Verse" key to a display row.
+ *
+ * Every branch that ends up with `text: null` (and thus renders the
+ * `missingText` placeholder) logs WHY — a malformed ref, an unknown book, a
+ * query that threw, or a query that simply found no row — plus the ref and
+ * the active `version`. Mirrors the same fix in the sibling methods detail
+ * screen (`/features/share-faith/methods/[id]`): a bare `catch {}` plus
+ * `row?.text ?? null` used to collapse all four cases into one
+ * indistinguishable placeholder, which is exactly why a real report of it
+ * appearing was undiagnosable from the code alone.
+ */
 async function resolveRow(
   key: ObjectionRefKey,
   version: string,
@@ -78,6 +89,13 @@ async function resolveRow(
 ): Promise<ObjectionVerseRow> {
   const parsed = parseObjectionRef(key);
   if (!parsed) {
+    logger.warn('Share-faith objection verse: unparseable ref', {
+      component: 'ShareFaithObjectionDetailScreen',
+      action: 'resolveRow',
+      ref: key,
+      version,
+      reason: 'unparseable-ref',
+    });
     return {
       key,
       bookId: null,
@@ -94,6 +112,13 @@ async function resolveRow(
       : book.name
     : parsed.book;
   if (!book) {
+    logger.warn('Share-faith objection verse: unknown book', {
+      component: 'ShareFaithObjectionDetailScreen',
+      action: 'resolveRow',
+      ref: key,
+      version,
+      reason: 'unknown-book',
+    });
     return {
       key,
       bookId: null,
@@ -110,6 +135,16 @@ async function resolveRow(
       parsed.verse,
       version,
     );
+    if (!row) {
+      logger.warn('Share-faith objection verse: verse not found for version', {
+        component: 'ShareFaithObjectionDetailScreen',
+        action: 'resolveRow',
+        ref: key,
+        version,
+        bookId: book.id,
+        reason: 'no-row',
+      });
+    }
     return {
       key,
       bookId: book.id,
@@ -118,7 +153,16 @@ async function resolveRow(
       verse: parsed.verse,
       text: row?.text ?? null,
     };
-  } catch {
+  } catch (err) {
+    logger.warn('Share-faith objection verse: getVerse threw', {
+      component: 'ShareFaithObjectionDetailScreen',
+      action: 'resolveRow',
+      ref: key,
+      version,
+      bookId: book.id,
+      reason: 'query-threw',
+      error: err instanceof Error ? err.message : String(err),
+    });
     return {
       key,
       bookId: book.id,

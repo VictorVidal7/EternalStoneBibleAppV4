@@ -76,7 +76,18 @@ interface MethodStepRow {
 
 const VERSION_KEY = '@bible_version';
 
-/** Resolve a method step's canonical ref to a display row. */
+/**
+ * Resolve a method step's canonical ref to a display row.
+ *
+ * Every branch that ends up with `text: null` (and thus renders the
+ * `missingText` placeholder) logs WHY — a typo'd/malformed ref, an unknown
+ * book, a query that threw, or a query that simply found no row — plus the
+ * ref and the active `version`. Before this, all four cases collapsed into
+ * an indistinguishable "(texto no disponible)" with a bare `catch {}` and
+ * `row?.text ?? null`, which is exactly why a real report of this
+ * placeholder appearing was undiagnosable from the code alone (no signal on
+ * which reading version was active, or whether the DB call even ran).
+ */
 async function resolveStepRow(
   step: ShareFaithMethodStep,
   version: string,
@@ -85,6 +96,13 @@ async function resolveStepRow(
   const key: MethodRefKey = step.ref;
   const parsed = parseMethodRef(key);
   if (!parsed) {
+    logger.warn('Share-faith method step: unparseable ref', {
+      component: 'ShareFaithMethodDetailScreen',
+      action: 'resolveStepRow',
+      ref: key,
+      version,
+      reason: 'unparseable-ref',
+    });
     return {
       captionKey: step.captionKey,
       bookId: null,
@@ -101,6 +119,13 @@ async function resolveStepRow(
       : book.name
     : parsed.book;
   if (!book) {
+    logger.warn('Share-faith method step: unknown book', {
+      component: 'ShareFaithMethodDetailScreen',
+      action: 'resolveStepRow',
+      ref: key,
+      version,
+      reason: 'unknown-book',
+    });
     return {
       captionKey: step.captionKey,
       bookId: null,
@@ -117,6 +142,16 @@ async function resolveStepRow(
       parsed.verse,
       version,
     );
+    if (!row) {
+      logger.warn('Share-faith method step: verse not found for version', {
+        component: 'ShareFaithMethodDetailScreen',
+        action: 'resolveStepRow',
+        ref: key,
+        version,
+        bookId: book.id,
+        reason: 'no-row',
+      });
+    }
     return {
       captionKey: step.captionKey,
       bookId: book.id,
@@ -125,7 +160,16 @@ async function resolveStepRow(
       verse: parsed.verse,
       text: row?.text ?? null,
     };
-  } catch {
+  } catch (err) {
+    logger.warn('Share-faith method step: getVerse threw', {
+      component: 'ShareFaithMethodDetailScreen',
+      action: 'resolveStepRow',
+      ref: key,
+      version,
+      bookId: book.id,
+      reason: 'query-threw',
+      error: err instanceof Error ? err.message : String(err),
+    });
     return {
       captionKey: step.captionKey,
       bookId: book.id,
