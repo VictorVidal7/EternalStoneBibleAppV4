@@ -107,7 +107,12 @@ jest.mock('@/features/audio', () => ({
 }));
 
 jest.mock('@/features/study/feelingsLogStore', () => ({
-  getFeelingsLog: jest.fn().mockResolvedValue([]),
+  // `FeelingsLog` is `{days: Record<string, string>}`, not an array (see
+  // readingInsightsLocaleNumbers.test.tsx's docblock for why this matters);
+  // harmless here since `recap.mood` is null in `mockRecap`, but kept
+  // consistent with the real shape in case a future edit un-mocks
+  // `buildJourneyRecap`.
+  getFeelingsLog: jest.fn().mockResolvedValue({days: {}}),
 }));
 
 jest.mock('@components/insights/PeriodRecapModal', () => ({
