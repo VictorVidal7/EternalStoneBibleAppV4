@@ -2,8 +2,10 @@
  * 🔤 fontAssets — the bundled reader fonts + their runtime loader (Sprint 82).
  *
  * Kept SEPARATE from the pure [[typefaces]] catalog on purpose: this module
- * `require`s `.ttf` files, so it must never be pulled into a unit test (jest
- * would have to mock every asset). Only the startup loader imports it.
+ * `require`s `.ttf` files. jest-expo's `assetFileTransformer` handles `.ttf`
+ * like any other asset extension, so this module IS unit-testable (see
+ * `__tests__/fontAssets.test.ts`) — only the actual native/web asset content
+ * is opaque, not the loader logic.
  *
  * The keys here are the family names the rest of the app sets as `fontFamily`
  * (see `READER_TYPEFACES` in [[typefaces]]). expo-font is already autolinked
@@ -20,10 +22,27 @@
  * eight regular/bold files actually registered here — Metro resolves `.ttf`
  * through its asset plugin, so each `require` is just the one font module.
  *
+ * WEB STARTUP COST (perf fix, Sprint 84): expo-font's WEB loader does more
+ * than declare a lazy CSS `@font-face` — for every family passed to
+ * `Font.loadAsync`, it also renders a hidden probe glyph and polls it (a
+ * `FontFaceObserver`-style forced load) specifically to make the browser
+ * fetch the file RIGHT NOW instead of waiting for real text to need it. That
+ * means calling `loadReaderFonts()` (all 18 files, ~3.58MB) on web forces the
+ * whole catalog to download unconditionally on every page load, whether or
+ * not the visible reader even applies a `fontFamily` today. Native does not
+ * have this problem — its loader is a real async font registration with no
+ * forced-fetch side effect — so `loadReaderFonts()` stays the all-18 native
+ * loader (see `app/_layout.tsx`, which fires it in a background
+ * non-blocking `Promise.all`). WEB instead calls [[loadFontFamily]] for only
+ * the user's currently-active family (see `app/_layout.web.tsx`), and the
+ * remaining families stay untouched — never fetched — until something (a
+ * future font-picker UI) explicitly calls `loadFontFamily` for them.
+ *
  * Para la gloria de Dios Todopoderoso ✨
  */
 
 import * as Font from 'expo-font';
+import {READER_TYPEFACES, ReaderFontFamily} from './typefaces';
 
 /**
  * The `Font.loadAsync` map: family name → bundled `.ttf` module. Every name
@@ -52,12 +71,39 @@ export const READER_FONT_ASSETS = {
 } as const;
 
 /**
- * Register the reader fonts. Best-effort and idempotent (expo-font no-ops a
- * face that is already loaded). Awaited behind the startup loading screen so
- * the reader's first paint already has the chosen face; if it ever rejects,
- * the caller swallows it and the text renders in the system default until a
- * later load succeeds — never blank.
+ * Register ALL 18 bundled reader fonts. Best-effort and idempotent
+ * (expo-font no-ops a face that is already loaded). NATIVE-ONLY in practice:
+ * `app/_layout.tsx` fires this unawaited inside a background `Promise.all`,
+ * never blocking first paint there, and native's loader has no forced-fetch
+ * side effect so loading all 18 up front is cheap. Do NOT call this from web
+ * startup — see the module doc comment and [[loadFontFamily]].
  */
 export async function loadReaderFonts(): Promise<void> {
   await Font.loadAsync(READER_FONT_ASSETS);
+}
+
+/**
+ * Register a single typeface family's two weights (Regular + Bold) — e.g.
+ * `loadFontFamily('serif')` loads only `Lora_400Regular` + `Lora_700Bold`,
+ * never the other 16 files. Best-effort and idempotent, same contract as
+ * `loadReaderFonts`.
+ *
+ * This is what WEB startup calls for just the user's currently-active
+ * family (see `app/_layout.web.tsx`), and what a future font-picker UI can
+ * call on demand the moment the user switches to a different family —
+ * lazy-loading it then, rather than never being able to load it at all. An
+ * unrecognized `familyId` (e.g. a corrupted persisted preference that slipped
+ * past `isReaderFontFamily`) falls back to `sans`, mirroring
+ * `resolveTypeface`'s own fallback.
+ */
+export async function loadFontFamily(
+  familyId: ReaderFontFamily,
+): Promise<void> {
+  const spec = READER_TYPEFACES[familyId] ?? READER_TYPEFACES.sans;
+  const regularKey = spec.family as keyof typeof READER_FONT_ASSETS;
+  const boldKey = spec.familyBold as keyof typeof READER_FONT_ASSETS;
+  await Font.loadAsync({
+    [spec.family]: READER_FONT_ASSETS[regularKey],
+    [spec.familyBold]: READER_FONT_ASSETS[boldKey],
+  });
 }

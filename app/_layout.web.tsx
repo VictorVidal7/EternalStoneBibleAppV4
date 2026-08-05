@@ -11,14 +11,17 @@ import {initializeBibleData} from '@lib/database/data-loader';
 // name, so importing it unsuffixed would fail type-checking.
 import {clearWebStorageForLockRecovery} from '@lib/database/data-loader.web';
 import {isStorageLockError} from '@lib/database/storageLockError';
-import {loadReaderFonts} from '@lib/reader/fontAssets';
+import {loadFontFamily} from '@lib/reader/fontAssets';
 import {ThemeProvider} from '@hooks/useTheme';
 import {BibleVersionProvider} from '@hooks/useBibleVersion';
 import {LanguageProvider, useLanguage} from '@hooks/useLanguage';
 import {AccessibilityPreferencesProvider} from '@context/AccessibilityPreferencesContext';
 import {useReducedMotion} from '@hooks/useReducedMotion';
 import {ToastProvider} from '@context/ToastContext';
-import {ReaderPreferencesProvider} from '@context/ReaderPreferencesContext';
+import {
+  ReaderPreferencesProvider,
+  useReaderPreferences,
+} from '@context/ReaderPreferencesContext';
 import {FavoritesProvider} from '@context/FavoritesContext';
 import {MemoryDeckProvider} from '@context/MemoryDeckContext';
 import {PremiumProvider} from '@context/PremiumContext';
@@ -75,9 +78,11 @@ import {ErrorBoundary} from '@/components/ErrorBoundary';
  * file needed).
  */
 
-function AppContent() {
+export function AppContent() {
   const {t} = useLanguage();
   const reduceMotion = useReducedMotion();
+  const {preferences: readerPreferences, hydrated: readerPrefsHydrated} =
+    useReaderPreferences();
   const [isLoading, setIsLoading] = useState(true);
   const [loadingProgress, setLoadingProgress] = useState({loaded: 0, total: 0});
   const [error, setError] = useState<string | null>(null);
@@ -88,12 +93,28 @@ function AppContent() {
     initializeApp();
   }, []);
 
+  // Load ONLY the user's currently-active reader font family (2 files —
+  // Regular + Bold) once the persisted preference has hydrated, never all 9
+  // families. Deliberately its own effect, fired-and-forgotten (not awaited
+  // by `initializeApp`/`isLoading`): expo-font's web loader forces an eager
+  // fetch the instant `Font.loadAsync` runs for a family (see fontAssets.ts's
+  // doc comment), so this used to be `await loadReaderFonts()` inside
+  // `initializeApp` — blocking first paint on ~3.58MB of font downloads for
+  // faces the web reader doesn't even apply visually yet. This mirrors
+  // native's fire-and-forget background `Promise.all` in `app/_layout.tsx`.
+  // The other 8 families stay untouched (never fetched) until a future
+  // font-picker UI calls `loadFontFamily` again for whichever one the user
+  // switches to.
+  useEffect(() => {
+    if (!readerPrefsHydrated) return;
+    void loadFontFamily(readerPreferences.fontFamily).catch(() => undefined);
+  }, [readerPrefsHydrated, readerPreferences.fontFamily]);
+
   async function initializeApp() {
     try {
       await initializeBibleData((loaded, total) => {
         setLoadingProgress({loaded, total});
       });
-      await loadReaderFonts().catch(() => undefined);
       setIsLoading(false);
     } catch (err) {
       logger.error('Web initialization error', err as Error, {
