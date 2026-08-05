@@ -21,7 +21,6 @@ import {
 } from 'react-native';
 import {Ionicons} from '@expo/vector-icons';
 import {captureRef} from 'react-native-view-shot';
-import * as Sharing from 'expo-sharing';
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
 import {AppText} from '@components/ui/AppText';
 import {haptics} from '@lib/haptics';
@@ -29,6 +28,7 @@ import {useTheme} from '@hooks/useTheme';
 import {useLanguage} from '@hooks/useLanguage';
 import {useToast} from '@context/ToastContext';
 import {logger} from '@lib/utils/logger';
+import {shareOrDownloadImage} from '@/features/share/shareOrDownloadImage';
 import {
   borderRadius,
   fontSize as fontSizes,
@@ -80,15 +80,17 @@ export function ProphecyShareModal({
         quality: 1,
         result: 'tmpfile',
       });
-      if (!(await Sharing.isAvailableAsync())) {
+      const result = await shareOrDownloadImage(uri, {dialogTitle: t.share});
+      if (result === 'unavailable') {
         toast.error(t.verse.imageShareError);
         return;
       }
-      await Sharing.shareAsync(uri, {
-        mimeType: 'image/png',
-        dialogTitle: t.share,
-        UTI: 'public.png',
-      });
+      // No success toast on the native "shared" path — the OS share sheet's
+      // own UI is confirmation enough (matches the prior behavior). A web
+      // download is silent by default though, so it gets an explicit toast.
+      if (result === 'downloaded') {
+        toast.success(t.verse.imageDownloaded);
+      }
       onClose();
     } catch (error) {
       logger.error('Error sharing prophecy image', error as Error, {
