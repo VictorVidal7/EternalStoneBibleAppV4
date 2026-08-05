@@ -40,7 +40,7 @@ import {
 interface ExploreFeaturedCardProps {
   /** Ionicons glyph for the featured category. */
   icon: keyof typeof Ionicons.glyphMap;
-  /** Small label above the title (e.g. "Recomendado para ti"). */
+  /** Small label above the title (e.g. "Sigue explorando"). */
   eyebrow: string;
   /** The category's own title (same string its list row would show). */
   title: string;
