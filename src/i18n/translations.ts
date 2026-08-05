@@ -1120,6 +1120,7 @@ export const translations = {
       exportSeries: 'Exportar serie',
       exportDialogTitle: 'Compartir serie',
       exportGenerating: 'Generando {{done}} de {{total}}…',
+      exportError: 'No se pudo exportar la serie. Inténtalo de nuevo.',
     },
 
     prepPulpit: {
@@ -7002,6 +7003,7 @@ export const translations = {
       exportSeries: 'Export series',
       exportDialogTitle: 'Share series',
       exportGenerating: 'Generating {{done}} of {{total}}…',
+      exportError: 'Could not export the series. Please try again.',
     },
 
     prepPulpit: {

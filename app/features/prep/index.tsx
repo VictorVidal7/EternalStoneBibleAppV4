@@ -45,7 +45,6 @@ import {LinearGradient} from 'expo-linear-gradient';
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as Clipboard from 'expo-clipboard';
-import * as Print from 'expo-print';
 import {useDebouncedCallback} from 'use-debounce';
 import {useTheme} from '@hooks/useTheme';
 import {centeredMaxWidth} from '@/styles/responsive';
@@ -53,6 +52,7 @@ import {useLanguage} from '@hooks/useLanguage';
 import {useBibleVersion} from '@hooks/useBibleVersion';
 import {usePremium} from '@context/PremiumContext';
 import {useOfferingSheet} from '@context/OfferingSheetContext';
+import {useToast} from '@context/ToastContext';
 import {haptics} from '@lib/haptics';
 import {AppText} from '@components/ui/AppText';
 import {ExpandableVerseText} from '@components/ui/ExpandableVerseText';
@@ -113,7 +113,7 @@ import {
 } from '@/features/study/prepMarkdown';
 import {buildPrepHtml, type PrepExportFormat} from '@/features/study/prepPdf';
 import {PrepExportFormatSheet} from '@/features/study/PrepExportFormatSheet';
-import {sharePreparedPdf} from '@/features/study/sharePdf';
+import {exportPreparedPdf} from '@/features/study/exportPrepPdf';
 import {
   DEFAULT_WORDS_PER_MINUTE,
   WPM_MAX,
@@ -258,6 +258,7 @@ export default function PrepTableScreen() {
   const {selectedVersion} = useBibleVersion();
   const {isPremium} = usePremium();
   const {open: openOfferingSheet} = useOfferingSheet();
+  const toast = useToast();
   const p = t.prepTable;
 
   const params = useLocalSearchParams<{
@@ -1030,10 +1031,19 @@ export default function PrepTableScreen() {
 
   // Tanda 3 — generate + share the PDF in the reader's chosen format, once
   // the format sheet reports a pick. This is the exact isExportingPdf/try-
-  // catch-finally/sharePreparedPdf body handleExportPdf used to run directly
-  // before this tanda; only WHEN it runs changed (after a format choice,
-  // not on the button tap itself), plus `format` now flows into
-  // buildPrepHtml instead of relying on its 'manuscript' default.
+  // catch-finally body handleExportPdf used to run directly before this
+  // tanda; only WHEN it runs changed (after a format choice, not on the
+  // button tap itself), plus `format` now flows into buildPrepHtml instead
+  // of relying on its 'manuscript' default.
+  //
+  // The actual generate-and-hand-off step is `exportPreparedPdf` — on native
+  // it's byte-identical to the old inline `Print.printToFileAsync` +
+  // `sharePreparedPdf` pair; on web it fixes a real bug (expo-print's web
+  // implementation ignores the `html` we hand it and never returns a
+  // `{uri}`, so the old code silently threw and did nothing) by printing
+  // the built HTML directly through the browser's own print dialog. Either
+  // way, a `false`/thrown result now surfaces an honest error toast instead
+  // of failing silently.
   const handleSelectExportFormat = useCallback(
     async (format: PrepExportFormat) => {
       setFormatSheetVisible(false);
@@ -1042,17 +1052,22 @@ export default function PrepTableScreen() {
       try {
         setIsExportingPdf(true);
         const html = buildPrepHtml(input, format);
-        const {uri} = await Print.printToFileAsync({html, base64: false});
-        // Share under a meaningful filename (the passage) instead of the
-        // UUID expo-print assigns.
-        await sharePreparedPdf(uri, passageLabel, p.exportPdfDialogTitle);
+        const ok = await exportPreparedPdf(
+          html,
+          passageLabel,
+          p.exportPdfDialogTitle,
+        );
+        if (!ok) {
+          toast.error(p.exportPdfError);
+        }
       } catch (err) {
         logger.warn('Prep PDF export failed', {error: String(err)});
+        toast.error(p.exportPdfError);
       } finally {
         setIsExportingPdf(false);
       }
     },
-    [buildPrepInput, passageLabel, p],
+    [buildPrepInput, passageLabel, p, toast],
   );
 
   // Share the outline as a read-only study LINK (Sprint 109): the passage + the
