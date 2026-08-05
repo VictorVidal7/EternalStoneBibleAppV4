@@ -33,7 +33,6 @@ import {
 import {Ionicons} from '@expo/vector-icons';
 import {LinearGradient} from 'expo-linear-gradient';
 import {captureRef} from 'react-native-view-shot';
-import * as Sharing from 'expo-sharing';
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
 import {useTheme} from '@hooks/useTheme';
 import {useLanguage} from '@hooks/useLanguage';
@@ -50,6 +49,7 @@ import {
 import {type ShareTexture} from '@/features/share/textures';
 import {ShareCardHost} from '@/features/share/ShareCardHost';
 import {PremiumShareExtras} from '@/features/share/PremiumShareExtras';
+import {shareOrDownloadImage} from '@/features/share/shareOrDownloadImage';
 import {type ComparisonCardModel} from '@/lib/comparison/comparisonCard';
 import {
   spacing,
@@ -207,18 +207,15 @@ export const CompareImageModal: React.FC<CompareImageModalProps> = ({
         result: 'tmpfile',
       });
 
-      if (!(await Sharing.isAvailableAsync())) {
+      const result = await shareOrDownloadImage(uri, {dialogTitle: t.share});
+      if (result === 'unavailable') {
         toast.error(t.verse.imageShareError);
         return;
       }
 
-      await Sharing.shareAsync(uri, {
-        mimeType: 'image/png',
-        dialogTitle: t.share,
-        UTI: 'public.png',
-      });
-
-      toast.success(t.verse.imageReady);
+      toast.success(
+        result === 'downloaded' ? t.verse.imageDownloaded : t.verse.imageReady,
+      );
       onClose();
     } catch (error) {
       logger.error('Error sharing comparison image', error as Error, {

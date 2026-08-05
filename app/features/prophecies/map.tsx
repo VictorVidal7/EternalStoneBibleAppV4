@@ -29,7 +29,6 @@ import {
 } from 'react-native';
 import Svg, {Path, Circle, Text as SvgText} from 'react-native-svg';
 import {captureRef} from 'react-native-view-shot';
-import * as Sharing from 'expo-sharing';
 import {Stack, useRouter} from 'expo-router';
 import {Ionicons} from '@expo/vector-icons';
 import {LinearGradient} from 'expo-linear-gradient';
@@ -40,6 +39,7 @@ import {useBibleVersion} from '@hooks/useBibleVersion';
 import {useToast} from '@context/ToastContext';
 import {haptics} from '@lib/haptics';
 import {logger} from '@lib/utils/logger';
+import {shareOrDownloadImage} from '@/features/share/shareOrDownloadImage';
 import {AppText} from '@components/ui/AppText';
 import {
   PROPHECY_GROUP_ACCENT,
@@ -119,15 +119,14 @@ export default function PropheciesMapScreen() {
         quality: 1,
         result: 'tmpfile',
       });
-      if (!(await Sharing.isAvailableAsync())) {
+      const result = await shareOrDownloadImage(uri, {dialogTitle: t.share});
+      if (result === 'unavailable') {
         toast.error(t.verse.imageShareError);
         return;
       }
-      await Sharing.shareAsync(uri, {
-        mimeType: 'image/png',
-        dialogTitle: t.share,
-        UTI: 'public.png',
-      });
+      if (result === 'downloaded') {
+        toast.success(t.verse.imageDownloaded);
+      }
     } catch (error) {
       logger.error('Error sharing prophecy map image', error as Error, {
         component: 'PropheciesMapScreen',

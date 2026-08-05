@@ -41,7 +41,6 @@ import {LinearGradient} from 'expo-linear-gradient';
 import {Ionicons} from '@expo/vector-icons';
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
 import {captureRef} from 'react-native-view-shot';
-import * as Sharing from 'expo-sharing';
 import {haptics} from '@lib/haptics';
 import {useTheme} from '@hooks/useTheme';
 import {useLanguage} from '@hooks/useLanguage';
@@ -58,6 +57,7 @@ import {logger} from '@lib/utils/logger';
 import {formatReadingTime} from '@lib/utils/formatReadingTime';
 import {getBookByName} from '@/constants/bible';
 import {TOTAL_BIBLE_BOOKS} from '@lib/achievements/bookCompletion';
+import {shareOrDownloadImage} from '@/features/share/shareOrDownloadImage';
 import {
   buildJourneyRecap,
   type JourneyRecap,
@@ -630,15 +630,16 @@ export default function JourneyScreen() {
         quality: 1,
         result: 'tmpfile',
       });
-      if (!(await Sharing.isAvailableAsync())) {
+      const result = await shareOrDownloadImage(uri, {dialogTitle: t.share});
+      if (result === 'unavailable') {
         toast.error(j.shareError);
         return;
       }
-      await Sharing.shareAsync(uri, {
-        mimeType: 'image/png',
-        dialogTitle: t.share,
-        UTI: 'public.png',
-      });
+      // No success toast on the native "shared" path (matches prior
+      // behavior) — but a web download is silent by default, so surface it.
+      if (result === 'downloaded') {
+        toast.success(t.verse.imageDownloaded);
+      }
     } catch (err) {
       logger.error('Journey share failed', err as Error, {
         component: 'JourneyScreen',

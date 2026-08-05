@@ -21,13 +21,13 @@
 import {useRef, useState} from 'react';
 import {LinearGradient} from 'expo-linear-gradient';
 import {captureRef} from 'react-native-view-shot';
-import * as Sharing from 'expo-sharing';
 import {haptics} from '@lib/haptics';
 import {logger} from '@lib/utils/logger';
 import {useLanguage} from '@hooks/useLanguage';
 import {useToast} from '@context/ToastContext';
 import {FREE_TEMPLATES, type ShareTemplate} from './imageTemplates';
 import type {ShareTexture} from './textures';
+import {shareOrDownloadImage} from './shareOrDownloadImage';
 
 export interface UseShareImageOptions {
   /** Catalog to pick from — defaults to the 10 free templates. */
@@ -90,18 +90,15 @@ export function useShareImage({
         result: 'tmpfile',
       });
 
-      if (!(await Sharing.isAvailableAsync())) {
+      const result = await shareOrDownloadImage(uri, {dialogTitle: t.share});
+      if (result === 'unavailable') {
         toast.error(t.verse.imageShareError);
         return;
       }
 
-      await Sharing.shareAsync(uri, {
-        mimeType: 'image/png',
-        dialogTitle: t.share,
-        UTI: 'public.png',
-      });
-
-      toast.success(t.verse.imageReady);
+      toast.success(
+        result === 'downloaded' ? t.verse.imageDownloaded : t.verse.imageReady,
+      );
       onShared?.();
     } catch (error) {
       logger.error(`Error sharing ${componentName} image`, error as Error, {

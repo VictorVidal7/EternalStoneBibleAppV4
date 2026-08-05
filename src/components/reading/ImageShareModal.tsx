@@ -25,7 +25,6 @@ import {
 import {Ionicons} from '@expo/vector-icons';
 import {LinearGradient} from 'expo-linear-gradient';
 import {captureRef} from 'react-native-view-shot';
-import * as Sharing from 'expo-sharing';
 import {haptics} from '@lib/haptics';
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
 import {useTheme} from '../../hooks/useTheme';
@@ -58,6 +57,7 @@ import {
 } from '@/features/share/stylePresetsStore';
 import type {SharedStylePreset} from '@/features/share/stylePresets';
 import {passageMetaLine} from '@lib/reading/passageReference';
+import {shareOrDownloadImage} from '@/features/share/shareOrDownloadImage';
 import {
   READER_FONT_FAMILY_ORDER,
   READER_TYPEFACES,
@@ -237,19 +237,15 @@ export const ImageShareModal: React.FC<ImageShareModalProps> = ({
         result: 'tmpfile',
       });
 
-      const canShare = await Sharing.isAvailableAsync();
-      if (!canShare) {
+      const result = await shareOrDownloadImage(uri, {dialogTitle: t.share});
+      if (result === 'unavailable') {
         toast.error(t.verse.imageShareError);
         return;
       }
 
-      await Sharing.shareAsync(uri, {
-        mimeType: 'image/png',
-        dialogTitle: t.share,
-        UTI: 'public.png',
-      });
-
-      toast.success(t.verse.imageReady);
+      toast.success(
+        result === 'downloaded' ? t.verse.imageDownloaded : t.verse.imageReady,
+      );
       onClose();
     } catch (error) {
       logger.error('Error sharing image', error as Error, {

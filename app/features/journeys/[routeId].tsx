@@ -36,7 +36,6 @@ import {
 } from 'react-native';
 import Svg, {Line, Circle} from 'react-native-svg';
 import {captureRef} from 'react-native-view-shot';
-import * as Sharing from 'expo-sharing';
 import {Stack, useRouter, useLocalSearchParams} from 'expo-router';
 import {Ionicons} from '@expo/vector-icons';
 import {LinearGradient} from 'expo-linear-gradient';
@@ -48,6 +47,7 @@ import {useBibleVersion} from '@hooks/useBibleVersion';
 import {useToast} from '@context/ToastContext';
 import {useServices} from '@context/ServicesContext';
 import {useNarratedWalkthrough} from '@hooks/useNarratedWalkthrough';
+import {shareOrDownloadImage} from '@/features/share/shareOrDownloadImage';
 import {
   resolveSpeechLanguage,
   buildStopNarration,
@@ -317,15 +317,14 @@ export default function JourneyRouteScreen() {
         quality: 1,
         result: 'tmpfile',
       });
-      if (!(await Sharing.isAvailableAsync())) {
+      const result = await shareOrDownloadImage(uri, {dialogTitle: t.share});
+      if (result === 'unavailable') {
         toast.error(t.verse.imageShareError);
         return;
       }
-      await Sharing.shareAsync(uri, {
-        mimeType: 'image/png',
-        dialogTitle: t.share,
-        UTI: 'public.png',
-      });
+      if (result === 'downloaded') {
+        toast.success(t.verse.imageDownloaded);
+      }
     } catch (error) {
       logger.error('Error sharing journey map image', error as Error, {
         component: 'JourneyRouteScreen',

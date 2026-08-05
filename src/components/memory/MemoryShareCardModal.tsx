@@ -20,13 +20,13 @@ import {AppText as Text} from '@components/ui/AppText';
 import {Ionicons} from '@expo/vector-icons';
 import {LinearGradient} from 'expo-linear-gradient';
 import {captureRef} from 'react-native-view-shot';
-import * as Sharing from 'expo-sharing';
 import {haptics} from '@lib/haptics';
 import {useTheme} from '@hooks/useTheme';
 import {useLanguage} from '@hooks/useLanguage';
 import {useToast} from '@context/ToastContext';
 import {focusTrapProps, a11yHiddenProps} from '@lib/a11y/focusTrap';
 import {logger} from '@lib/utils/logger';
+import {shareOrDownloadImage} from '@/features/share/shareOrDownloadImage';
 import {
   borderRadius,
   fontSize as fontSizes,
@@ -75,17 +75,14 @@ export const MemoryShareCardModal: React.FC<Props> = ({
         quality: 1,
         result: 'tmpfile',
       });
-      const canShare = await Sharing.isAvailableAsync();
-      if (!canShare) {
+      const result = await shareOrDownloadImage(uri, {dialogTitle: t.share});
+      if (result === 'unavailable') {
         toast.error(t.verse.imageShareError);
         return;
       }
-      await Sharing.shareAsync(uri, {
-        mimeType: 'image/png',
-        dialogTitle: t.share,
-        UTI: 'public.png',
-      });
-      toast.success(t.verse.imageReady);
+      toast.success(
+        result === 'downloaded' ? t.verse.imageDownloaded : t.verse.imageReady,
+      );
     } catch (error) {
       logger.error('Error sharing memory progress card', error as Error, {
         component: 'MemoryShareCardModal',
