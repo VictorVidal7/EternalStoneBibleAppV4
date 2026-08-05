@@ -2,9 +2,11 @@ import * as LegacyFS from 'expo-file-system/legacy';
 import {File} from 'expo-file-system';
 import bibleDB from './index';
 import {sha256Hex} from './sha256';
+import {logger} from '@lib/utils/logger';
 import {
   CATALOG_URL,
   PackDownloadError,
+  isAllowedPackUrl,
   parseVersionCatalog,
   type RemotePackVersion,
 } from './pack-catalog';
@@ -58,6 +60,27 @@ export async function downloadAndImportPack(
   version: RemotePackVersion,
   onProgress?: (fraction: number) => void,
 ): Promise<number> {
+  // 0) Security hardening — redundant allow-list check (belt-and-suspenders
+  // alongside pack-catalog.ts's parsePackVersion, which already drops any
+  // catalog entry off the allow-listed host before it ever reaches here).
+  // Guards against a caller constructing/passing a RemotePackVersion that
+  // skipped that parse step. Log-and-skip rather than crash: the UI already
+  // localizes PackDownloadError via its `code`.
+  if (!isAllowedPackUrl(version.url)) {
+    logger.warn(
+      'version-download-service: rejected pack download from a non-allow-listed URL',
+      {
+        component: 'version-download-service',
+        action: 'downloadAndImportPack',
+        versionId: version.id,
+      },
+    );
+    throw new PackDownloadError(
+      'untrusted-source',
+      `URL not on the allow-listed pack host: ${version.url}`,
+    );
+  }
+
   const cacheDir = LegacyFS.cacheDirectory;
   if (!cacheDir) {
     throw new PackDownloadError('network', 'no cache directory');
