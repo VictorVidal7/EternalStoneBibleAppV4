@@ -1,4 +1,4 @@
-import React, {useEffect, useState, useCallback} from 'react';
+import React, {useEffect, useState, useCallback, useMemo} from 'react';
 import {
   View,
   Text,
@@ -21,6 +21,11 @@ import {
   READER_FONT_SIZE_MAX,
   READER_FONT_SIZE_STEP,
 } from '@context/ReaderPreferencesContext';
+import {
+  ReaderPreferencesSheet,
+  resolveFontFamily,
+  resolveFontFamilyBold,
+} from '@components/reading/ReaderPreferencesSheet';
 import {centeredMaxWidth, READER_MAX_WIDTH} from '@/styles/responsive';
 import {spacing, fontSize as tokenFontSize} from '@/styles/designTokens';
 import {
@@ -62,6 +67,23 @@ export default function ChapterReaderWeb() {
   const {selectedVersion} = useBibleVersion();
   const {preferences, setFontSize} = useReaderPreferences();
   const params = useLocalSearchParams<{book: string; chapter: string}>();
+  const [readerPrefsVisible, setReaderPrefsVisible] = useState(false);
+  // Same resolver the native reader uses (app/(tabs)/verse/[book]/[chapter].tsx)
+  // — a reader typeface id always maps to a bundled `fontFamily` string, never
+  // `undefined`. All faces are loaded eagerly for web in _layout.web.tsx's
+  // `loadReaderFonts()` call, awaited before this screen can ever mount, so
+  // there is no lazy-load step needed here.
+  const readerFontFamily = useMemo(
+    () => resolveFontFamily(preferences.fontFamily),
+    [preferences.fontFamily],
+  );
+  // Bold-weight family for the verse number — the bundled faces are static,
+  // so `fontWeight: '700'` alone wouldn't bold them (same reasoning as the
+  // native reader).
+  const readerFontFamilyBold = useMemo(
+    () => resolveFontFamilyBold(preferences.fontFamily),
+    [preferences.fontFamily],
+  );
 
   const rawBook = params.book;
   const book = typeof rawBook === 'string' ? rawBook : rawBook?.[0] || '';
@@ -205,6 +227,13 @@ export default function ChapterReaderWeb() {
               </Text>
             </TouchableOpacity>
             <TouchableOpacity
+              onPress={() => setReaderPrefsVisible(true)}
+              accessibilityRole="button"
+              accessibilityLabel={t.readerPrefs.openLabel}
+              style={styles.headerButton}>
+              <Ionicons name="text-outline" size={20} color={colors.text} />
+            </TouchableOpacity>
+            <TouchableOpacity
               onPress={toggleDarkMode}
               accessibilityRole="button"
               accessibilityLabel={t.settings.theme}
@@ -255,16 +284,22 @@ export default function ChapterReaderWeb() {
               return (
                 <Text
                   key={v.verse}
+                  testID={`web-verse-text-${v.verse}`}
                   style={[
                     styles.verseText,
                     {
                       color: colors.text,
                       fontSize: preferences.fontSize,
+                      fontFamily: readerFontFamily,
                       lineHeight:
                         preferences.fontSize * preferences.lineHeightMultiplier,
                     },
                   ]}>
-                  <Text style={[styles.verseNumber, {color: colors.primary}]}>
+                  <Text
+                    style={[
+                      styles.verseNumber,
+                      {color: colors.primary, fontFamily: readerFontFamilyBold},
+                    ]}>
                     {v.verse}{' '}
                   </Text>
                   {runs
@@ -316,6 +351,11 @@ export default function ChapterReaderWeb() {
             </TouchableOpacity>
           </View>
         </ScrollView>
+
+        <ReaderPreferencesSheet
+          visible={readerPrefsVisible}
+          onClose={() => setReaderPrefsVisible(false)}
+        />
       </View>
     </>
   );
