@@ -302,6 +302,7 @@ export default function ReadingInsightsScreen() {
         </LinearGradient>
 
         <ScrollView
+          style={styles.body}
           contentContainerStyle={styles.content}
           showsVerticalScrollIndicator={false}>
           {status === 'loading' && (
@@ -1316,6 +1317,12 @@ const TextStat: React.FC<{
 
 const styles = StyleSheet.create({
   container: {
+    flex: 1,
+  },
+  // Missing on this screen was a real deviation from sibling dashboards
+  // (memory/insights.tsx, memory/index.tsx, conflicts/insights.tsx), which
+  // all give the ScrollView its own flex: 1 alongside contentContainerStyle.
+  body: {
     flex: 1,
   },
   header: {
