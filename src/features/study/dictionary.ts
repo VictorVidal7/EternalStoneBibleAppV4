@@ -78,16 +78,37 @@ export interface MarkdownSegment {
  *  qualifier (e.g. "Mar de Galilea", "Bet-el"). */
 const PROPER_NOUN_QUALIFIERS = ['Gólgota'];
 
+/** Known proper-noun WHOLE headwords, stored in correct DISPLAY
+ *  capitalization and matched case-insensitively against the trimmed raw
+ *  headword. "Espíritu Santo" and "Reino de Dios" are theological proper
+ *  nouns throughout the phrase, not just first-letter-capitalized common
+ *  phrases like "CAMINO DE UN DÍA DE REPOSO" — the blanket sentence-case
+ *  rule under-capitalizes "Santo"/"Dios" for these two. Same small-explicit-
+ *  allowlist rationale as `PROPER_NOUN_QUALIFIERS` above: the bundled
+ *  headwords are a small, curated, known dataset, so list exceptions rather
+ *  than build a general proper-noun detector. */
+const PROPER_NOUN_HEADWORDS: Record<string, string> = {
+  'espíritu santo': 'Espíritu Santo',
+  'reino de dios': 'Reino de Dios',
+};
+
 /** Sentence-case a stored ALL-CAPS headword: first character upper, rest
- *  lower. A parenthetical qualifier is lowercased the same way (e.g. "JOSUÉ
- *  (persona)" → "Josué (persona)") UNLESS it's a known proper noun listed in
- *  `PROPER_NOUN_QUALIFIERS`, in which case its listed display capitalization
- *  is used instead (e.g. "CALVARIO (GÓLGOTA)" → "Calvario (Gólgota)", not
- *  "(gólgota)"). Only the first parenthetical group is checked — correct for
- *  every headword shipped today, none of which has more than one. */
+ *  lower. Two exceptions apply, checked in order:
+ *  1. The whole headword matches `PROPER_NOUN_HEADWORDS` (e.g. "ESPÍRITU
+ *     SANTO" → "Espíritu Santo"), in which case its listed display form is
+ *     used verbatim instead of sentence-casing.
+ *  2. A parenthetical qualifier is lowercased the same way as the rest of
+ *     the headword (e.g. "JOSUÉ (persona)" → "Josué (persona)") UNLESS it's
+ *     a known proper noun listed in `PROPER_NOUN_QUALIFIERS`, in which case
+ *     its listed display capitalization is used instead (e.g. "CALVARIO
+ *     (GÓLGOTA)" → "Calvario (Gólgota)", not "(gólgota)"). Only the first
+ *     parenthetical group is checked — correct for every headword shipped
+ *     today, none of which has more than one. */
 export function titleCaseHeadword(raw: string): string {
   const trimmed = raw.trim();
   if (trimmed.length === 0) return trimmed;
+  const wholeHeadwordOverride = PROPER_NOUN_HEADWORDS[trimmed.toLowerCase()];
+  if (wholeHeadwordOverride) return wholeHeadwordOverride;
   const sentenceCased =
     trimmed.charAt(0).toUpperCase() + trimmed.slice(1).toLowerCase();
   return sentenceCased.replace(/\(([^)]+)\)/, (match, qualifier: string) => {
