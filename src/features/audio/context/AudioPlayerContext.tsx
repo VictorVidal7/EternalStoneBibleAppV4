@@ -817,13 +817,24 @@ export const AudioPlayerProvider: React.FC<AudioPlayerProviderProps> = ({
 
       const remaining = endTimeMs - Date.now();
       if (remaining <= 0) {
-        stop();
+        // Already past endTime (e.g. reconciled long after backgrounding):
+        // pause rather than stop — see the rationale on the setTimeout branch
+        // below, which hits this exact same bug via the live in-foreground path.
+        pause();
         cancelSleepTimer();
         return;
       }
 
       sleepTimerRef.current = setTimeout(() => {
-        stop();
+        // A sleep timer expiring is "stop narrating", NOT "I'm done with this
+        // chapter" — the listener fell asleep mid-verse and expects to resume
+        // there later. stop() resets currentVerseIndex to 0, and the
+        // position-autosave effect above persists whatever index is current
+        // as the "Continue listening" position — so a bare stop() here would
+        // silently overwrite a real resume point with verse 0. pause() stops
+        // playback the same way but leaves currentVerseIndex untouched,
+        // exactly like backgrounding does a few effects down.
+        pause();
         cancelSleepTimer();
       }, remaining);
 
@@ -841,7 +852,7 @@ export const AudioPlayerProvider: React.FC<AudioPlayerProviderProps> = ({
         );
       }, 30 * 1000);
     },
-    [stop, cancelSleepTimer],
+    [pause, cancelSleepTimer],
   );
 
   const setSleepTimer = useCallback(
@@ -907,7 +918,10 @@ export const AudioPlayerProvider: React.FC<AudioPlayerProviderProps> = ({
       if (timer.mode !== 'time' || !timer.endTime) return;
       const r = reconcileSleepTimer(timer.endTime.getTime(), Date.now());
       if (r.expired) {
-        stop();
+        // Same rationale as the setTimeout branch in armSleepTimers: a sleep
+        // timer that elapsed while backgrounded should leave the resume
+        // position exactly where it was, not zero it out via stop().
+        pause();
         cancelSleepTimer();
         return;
       }
@@ -919,7 +933,7 @@ export const AudioPlayerProvider: React.FC<AudioPlayerProviderProps> = ({
       armSleepTimers(timer.endTime.getTime());
     });
     return () => sub.remove();
-  }, [stop, cancelSleepTimer, armSleepTimers]);
+  }, [pause, cancelSleepTimer, armSleepTimers]);
 
   // expo-speech chains verses by having JS call Speech.speak() again from
   // each utterance's onDone callback — there's no native queue. Backgrounding
