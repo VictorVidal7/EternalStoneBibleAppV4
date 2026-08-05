@@ -4,6 +4,7 @@
  */
 import {
   formatBytes,
+  isAllowedPackUrl,
   parsePackVersion,
   parseVersionCatalog,
   PackDownloadError,
@@ -44,7 +45,7 @@ describe('parsePackVersion', () => {
   it('fills sensible defaults for optional fields', () => {
     const v = parsePackVersion({
       id: 'BSB',
-      url: 'https://x/bsb.sqlite',
+      url: 'https://eternalstonebible.github.io/packs/bsb.sqlite',
       sha256: 'abc',
       bytes: 100,
     });
@@ -52,6 +53,68 @@ describe('parsePackVersion', () => {
     expect(v!.name).toBe('BSB');
     expect(v!.language).toBe('en');
     expect(v!.verseCount).toBe(0);
+  });
+
+  // Security hardening — a catalog entry's `url` is untrusted third-party
+  // data once fetched (see isAllowedPackUrl's doc comment); it must be on the
+  // allow-listed GitHub Pages host or the whole entry is dropped, not just
+  // trusted verbatim and handed to the downloader.
+  it('rejects an entry whose url points off the allow-listed host', () => {
+    expect(
+      parsePackVersion({...valid, url: 'https://evil.example.com/kjv.sqlite'}),
+    ).toBeNull();
+  });
+
+  it('rejects a lookalike host that merely contains the allowed host as a substring', () => {
+    expect(
+      parsePackVersion({
+        ...valid,
+        url: 'https://eternalstonebible.github.io.evil.com/kjv.sqlite',
+      }),
+    ).toBeNull();
+  });
+
+  it('rejects the allow-listed host downgraded to plain http', () => {
+    expect(
+      parsePackVersion({
+        ...valid,
+        url: 'http://eternalstonebible.github.io/packs/kjv.sqlite',
+      }),
+    ).toBeNull();
+  });
+});
+
+describe('isAllowedPackUrl', () => {
+  it('allows the real pack host (translation packs and the originals pack alike)', () => {
+    expect(
+      isAllowedPackUrl('https://eternalstonebible.github.io/packs/kjv.sqlite'),
+    ).toBe(true);
+    expect(
+      isAllowedPackUrl(
+        'https://eternalstonebible.github.io/packs/originals.db',
+      ),
+    ).toBe(true);
+  });
+
+  it('rejects a different host entirely', () => {
+    expect(isAllowedPackUrl('https://evil.example.com/kjv.sqlite')).toBe(false);
+  });
+
+  it('rejects userinfo tricks (host@evil.com-style prefixes)', () => {
+    expect(
+      isAllowedPackUrl(
+        'https://eternalstonebible.github.io@evil.com/packs/kjv.sqlite',
+      ),
+    ).toBe(false);
+  });
+
+  it('rejects a bare host with no trailing slash (would bypass a naive prefix check)', () => {
+    expect(isAllowedPackUrl('https://eternalstonebible.github.io')).toBe(false);
+  });
+
+  it('rejects garbage / empty strings without throwing', () => {
+    expect(isAllowedPackUrl('')).toBe(false);
+    expect(isAllowedPackUrl('not a url at all')).toBe(false);
   });
 });
 
