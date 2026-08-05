@@ -153,9 +153,11 @@ const DICT_V1_UPDATED_AT = '2026-07-18';
  * 35:33", Tabernáculo's "Éx 26:40"->"Éx 25:40"), no new entries; v6 =
  * corrected the disclosed "Gá 6:19"->"Gá 5:19" digit errata in Espíritu
  * Santo's article (Victor approved promoting it from Pattern B to the
- * dominant Pattern A house style), no new entries.
+ * dominant Pattern A house style), no new entries; v7 = corrected
+ * Expiación's "Lv 5:26"->"Lv 5:2" (the 1915 ISBE original used half-verse
+ * notation "Lev 5 2b", misread/transcribed as digit "6"), no new entries.
  */
-const DICT_V2_VERSION = 6;
+const DICT_V2_VERSION = 7;
 
 /**
  * Version of the bundled WEB reading-version text (see seedWebTextIfNeeded).
