@@ -320,6 +320,15 @@ export default function SearchScreen() {
   const [allResults, setAllResults] = useState<BibleVerse[]>([]);
   const [loading, setLoading] = useState(false);
   const [hasSearched, setHasSearched] = useState(false);
+  // Defense in depth: sanitizeFtsQuery (src/lib/search/sanitizeFtsQuery.ts)
+  // now guarantees searchVerses/searchByBook never hand FTS5 a query it
+  // can't parse, so a thrown error here should no longer be reachable from
+  // ordinary user input. If one ever does happen anyway (DB not
+  // initialized, native binding failure, etc.), tell the user something
+  // went wrong instead of silently showing the same "no resultados" empty
+  // state a genuine zero-match search produces — those are different
+  // situations and shouldn't look identical.
+  const [searchError, setSearchError] = useState(false);
   const [testamentFilter, setTestamentFilter] =
     useState<TestamentFilter>('all');
   // Per-book narrowing (Sprint 70): null ⇒ all books. Reset on every new search
@@ -420,12 +429,14 @@ export default function SearchScreen() {
       if (query.trim().length < 3) {
         setAllResults([]);
         setHasSearched(false);
+        setSearchError(false);
         return;
       }
 
       setLoading(true);
       setHasSearched(true);
       setLoadingMore(false);
+      setSearchError(false);
       // A fresh query may not contain the previously-picked book.
       setBookFilter(null);
 
@@ -455,6 +466,10 @@ export default function SearchScreen() {
         console.error('Search error:', error);
         setAllResults([]);
         setHasMore(false);
+        // A thrown error is not the same thing as a genuine zero-match
+        // search — surface it distinctly instead of the "no resultados"
+        // empty state (see the searchError doc comment above).
+        setSearchError(true);
       } finally {
         setLoading(false);
       }
@@ -797,7 +812,11 @@ export default function SearchScreen() {
         <>
           <View style={themedStyles.resultsHeader}>
             <Text style={themedStyles.resultsCount}>
-              {results.length > 0 ? resultsCountLabel : t.search.noResults}
+              {searchError
+                ? t.search.error
+                : results.length > 0
+                  ? resultsCountLabel
+                  : t.search.noResults}
             </Text>
           </View>
 
@@ -831,14 +850,25 @@ export default function SearchScreen() {
             }
             ListEmptyComponent={
               !loading && hasSearched ? (
-                <IllustratedEmptyState
-                  type="no-search-results"
-                  colors={colors}
-                  isDark={isDark}
-                  message={`${t.search.noResults} "${searchQuery}"`}
-                  onAction={() => setSearchQuery('')}
-                  actionLabel={t.search.tryDifferent}
-                />
+                searchError ? (
+                  <IllustratedEmptyState
+                    type="no-search-results"
+                    colors={colors}
+                    isDark={isDark}
+                    message={t.search.error}
+                    onAction={() => performSearch(searchQuery)}
+                    actionLabel={t.search.retry}
+                  />
+                ) : (
+                  <IllustratedEmptyState
+                    type="no-search-results"
+                    colors={colors}
+                    isDark={isDark}
+                    message={`${t.search.noResults} "${searchQuery}"`}
+                    onAction={() => setSearchQuery('')}
+                    actionLabel={t.search.tryDifferent}
+                  />
+                )
               ) : null
             }
           />
