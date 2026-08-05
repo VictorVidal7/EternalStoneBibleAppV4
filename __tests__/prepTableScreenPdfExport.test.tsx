@@ -61,6 +61,17 @@ jest.mock('@lib/haptics', () => ({
   haptics: {tap: jest.fn(), success: jest.fn()},
 }));
 
+const mockToast = {
+  success: jest.fn(),
+  error: jest.fn(),
+  warning: jest.fn(),
+  info: jest.fn(),
+  show: jest.fn(),
+};
+jest.mock('@context/ToastContext', () => ({
+  useToast: () => mockToast,
+}));
+
 jest.mock('expo-clipboard', () => ({
   setStringAsync: jest.fn(async () => true),
 }));
@@ -171,6 +182,7 @@ describe('Mesa de preparación — T8.4.5 PDF export', () => {
     mockIsAvailable.mockClear();
     mockIsAvailable.mockResolvedValue(true);
     mockShareAsync.mockClear();
+    mockToast.error.mockClear();
     await SecureStore.deleteItemAsync(ENTITLEMENT_CACHE_KEY);
   });
 
@@ -273,6 +285,25 @@ describe('Mesa de preparación — T8.4.5 PDF export', () => {
 
     await waitFor(() => expect(mockPrintToFile).toHaveBeenCalledTimes(1));
     await waitFor(() => expect(mockIsAvailable).toHaveBeenCalledTimes(1));
+    expect(mockShareAsync).not.toHaveBeenCalled();
+  });
+
+  // The bug this fixes (web, not exercised here since these tests run under
+  // the default 'ios' test platform — see exportPrepPdf.test.ts for the web
+  // path): the export used to fail SILENTLY on any thrown error (just a
+  // console.warn, no user-facing feedback). Now any failure — native or
+  // web — surfaces an honest error toast via exportPrepPdf.ts's return
+  // value / thrown error.
+  it('premium reader: shows an error toast (no longer silently swallowed) when the PDF generation itself throws', async () => {
+    mockPrintToFile.mockRejectedValueOnce(new Error('boom'));
+    await SecureStore.setItemAsync(ENTITLEMENT_CACHE_KEY, 'true');
+    const {findByLabelText, findByText} = renderScreen();
+
+    fireEvent.press(await findByLabelText(p.exportPdfLabel));
+    fireEvent.press(await findByText(p.exportFormatManuscriptLabel));
+
+    await waitFor(() => expect(mockToast.error).toHaveBeenCalledTimes(1));
+    expect(mockToast.error).toHaveBeenCalledWith(p.exportPdfError);
     expect(mockShareAsync).not.toHaveBeenCalled();
   });
 });

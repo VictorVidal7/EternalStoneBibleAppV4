@@ -88,6 +88,17 @@ jest.mock('@lib/haptics', () => ({
   haptics: {tap: jest.fn(), success: jest.fn()},
 }));
 
+const mockToast = {
+  success: jest.fn(),
+  error: jest.fn(),
+  warning: jest.fn(),
+  info: jest.fn(),
+  show: jest.fn(),
+};
+jest.mock('@context/ToastContext', () => ({
+  useToast: () => mockToast,
+}));
+
 const mockPrintToFile = jest
   .fn()
   .mockResolvedValue({uri: 'file:///series.pdf'});
@@ -190,6 +201,7 @@ describe('PrepSeriesDetailScreen — T8.4.4', () => {
     mockPrintToFile.mockClear();
     mockShareAsync.mockClear();
     mockIsAvailable.mockClear();
+    mockToast.error.mockClear();
     await AsyncStorage.removeItem(PREP_SERIES_KEY);
     await AsyncStorage.removeItem(PREP_NOTES_KEY);
     await SecureStore.deleteItemAsync(ENTITLEMENT_CACHE_KEY);
@@ -403,6 +415,25 @@ describe('PrepSeriesDetailScreen — T8.4.4', () => {
 
     await waitFor(() => expect(mockPrintToFile).toHaveBeenCalledTimes(1));
     await waitFor(() => expect(mockShareAsync).toHaveBeenCalledTimes(1));
+  });
+
+  // The bug this fixes (web-specific, not exercised on this default 'ios'
+  // test platform — see exportPrepPdf.test.ts for the web path itself): a
+  // failed export used to fail SILENTLY (just a console.warn). Now it
+  // surfaces an honest error toast via exportPrepPdf.ts.
+  it('shows an error toast (no longer silently swallowed) when the series PDF generation throws', async () => {
+    mockPrintToFile.mockRejectedValueOnce(new Error('boom'));
+    await unlockPremium();
+    await seedSeries({
+      [SERIES_ID]: series({passageKeys: ['John/3/16', 'Romans/8/28']}),
+    });
+    const {findByText, findByLabelText} = renderScreen();
+    await findByText('Juan 3:16');
+    fireEvent.press(await findByLabelText(h.exportSeries));
+
+    await waitFor(() => expect(mockToast.error).toHaveBeenCalledTimes(1));
+    expect(mockToast.error).toHaveBeenCalledWith(h.exportError);
+    expect(mockShareAsync).not.toHaveBeenCalled();
   });
 
   it('hides the reorder controls in the "by date" view', async () => {

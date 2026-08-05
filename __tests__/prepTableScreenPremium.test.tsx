@@ -64,6 +64,16 @@ jest.mock('@lib/haptics', () => ({
   haptics: {tap: jest.fn(), success: jest.fn()},
 }));
 
+jest.mock('@context/ToastContext', () => ({
+  useToast: () => ({
+    success: jest.fn(),
+    error: jest.fn(),
+    warning: jest.fn(),
+    info: jest.fn(),
+    show: jest.fn(),
+  }),
+}));
+
 jest.mock('expo-clipboard', () => ({
   setStringAsync: jest.fn(async () => true),
 }));

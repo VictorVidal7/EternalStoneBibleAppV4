@@ -47,7 +47,6 @@ import {
 import {Ionicons} from '@expo/vector-icons';
 import {LinearGradient} from 'expo-linear-gradient';
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
-import * as Print from 'expo-print';
 import {useTheme} from '@hooks/useTheme';
 import {centeredMaxWidth} from '@/styles/responsive';
 import {useLanguage} from '@hooks/useLanguage';
@@ -56,6 +55,7 @@ import {haptics} from '@lib/haptics';
 import {logger} from '@lib/utils/logger';
 import {usePremium} from '@context/PremiumContext';
 import {useOfferingSheet} from '@context/OfferingSheetContext';
+import {useToast} from '@context/ToastContext';
 import {focusTrapProps} from '@lib/a11y/focusTrap';
 import {ConfirmDialog} from '@components/ui/ConfirmDialog';
 import {
@@ -78,7 +78,7 @@ import {
 } from '@/features/study/prepSeries';
 import {assembleSeriesExportInput} from '@/features/study/prepSeriesExport';
 import {buildSeriesHtml} from '@/features/study/prepPdf';
-import {sharePreparedPdf} from '@/features/study/sharePdf';
+import {exportPreparedPdf} from '@/features/study/exportPrepPdf';
 import {isPrepNotesEmpty} from '@/features/study/prepNotes';
 import type {PrepNotesMap} from '@/features/study/prepNotes';
 import {parsePassageKey} from '@/features/study/prepHistory';
@@ -154,6 +154,7 @@ export default function PrepSeriesDetailScreen() {
   const {selectedVersion} = useBibleVersion();
   const {isPremium} = usePremium();
   const {open: openOfferingSheet} = useOfferingSheet();
+  const toast = useToast();
   const h = t.prepSeries;
   const bookLang = selectedVersion.language === 'es' ? 'es' : 'en';
 
@@ -325,16 +326,28 @@ export default function PrepSeriesDetailScreen() {
       });
       if (!input) return;
       const html = buildSeriesHtml(input);
-      const {uri} = await Print.printToFileAsync({html, base64: false});
-      // Share under the series name instead of expo-print's UUID filename.
-      await sharePreparedPdf(uri, series.name, h.exportDialogTitle);
+      // exportPreparedPdf shares under the series name on native (instead
+      // of expo-print's UUID filename); on web it prints the built HTML
+      // directly through the browser's print dialog, since expo-print's web
+      // implementation doesn't support printing an arbitrary HTML string to
+      // file (see exportPrepPdf.ts). A `false`/thrown result now surfaces
+      // an honest error toast instead of failing silently.
+      const ok = await exportPreparedPdf(
+        html,
+        series.name,
+        h.exportDialogTitle,
+      );
+      if (!ok) {
+        toast.error(h.exportError);
+      }
     } catch (err) {
       logger.warn('Prep series export failed', {error: String(err)});
+      toast.error(h.exportError);
     } finally {
       setExporting(false);
       setExportProgress(null);
     }
-  }, [series, viewByDate, exporting, selectedVersion, t, h, bookLang]);
+  }, [series, viewByDate, exporting, selectedVersion, t, h, bookLang, toast]);
 
   const orderedKeys = useMemo(() => {
     if (!series) return [];
