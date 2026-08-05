@@ -15,9 +15,16 @@
  * (`achievementService`, `progress`) use STABLE module-level references —
  * a fresh object/array literal per render would retrigger the load effect
  * forever (the exact trap that first hand-tripped the journey-screen test).
+ *
+ * A second, unrelated regression guard lives at the bottom of this file (its
+ * own `describe` block): the screen's root ScrollView was missing
+ * `style={{flex: 1}}`, unlike sibling dashboard screens (memory/insights.tsx,
+ * memory/index.tsx, conflicts/insights.tsx). It reuses this file's render
+ * setup rather than duplicating the mock scaffolding in a new file.
  */
 import React from 'react';
 import {render} from '@testing-library/react-native';
+import {ScrollView, StyleSheet} from 'react-native';
 import ReadingInsightsScreen from '../app/features/reading-insights/index';
 import {translations} from '../src/i18n/translations';
 
@@ -199,5 +206,26 @@ describe('Reading-insights screen locale-aware number formatting', () => {
     expect(await findByText(`123,456 ${ri.versesUnit}`)).toBeTruthy();
     expect(await findByText('12,345')).toBeTruthy();
     expect(await findByText('54,321')).toBeTruthy();
+  });
+});
+
+// Regression guard for a real deviation from sibling dashboard screens
+// (memory/insights.tsx, memory/index.tsx, conflicts/insights.tsx): this
+// screen's ScrollView was missing `style={{flex: 1}}` alongside its
+// `contentContainerStyle`, unlike every sibling. Same
+// `UNSAFE_getByType(ScrollView)` + `StyleSheet.flatten` idiom as
+// dictionaryMultiviewScreen.test.tsx's contentContainerStyle assertion.
+describe('Reading-insights screen layout', () => {
+  it('gives the ScrollView its own flex: 1, matching sibling dashboard screens', async () => {
+    mockLanguage = 'es';
+    const ri = translations.es.readingInsights;
+    const {findByText, UNSAFE_getByType} = render(<ReadingInsightsScreen />);
+    await findByText(`123.456 ${ri.versesUnit}`);
+
+    const scrollView = UNSAFE_getByType(ScrollView);
+    const flat = StyleSheet.flatten(scrollView.props.style) as {
+      flex?: number;
+    };
+    expect(flat.flex).toBe(1);
   });
 });
