@@ -220,5 +220,24 @@ describe('shareOrDownloadImage', () => {
       });
       expect(result).toBe('unavailable');
     });
+
+    it('returns "unavailable" — instead of silently downloading a zero-byte file — when the captured uri is not a base64 data URI', async () => {
+      // `captureRef` on web always returns a `data:...;base64,...` string
+      // (RNViewShot.web.js). If a future caller ever passes something else
+      // (a blob: or file: URI), decoding it naively would produce an empty
+      // File that "successfully" downloads — the exact silent-failure bug
+      // this module exists to fix, one layer down. It must bail out instead.
+      setNavigator({});
+      const dom = stubDom();
+
+      const result = await shareOrDownloadImage('blob:http://localhost/abc', {
+        dialogTitle: 'Share this',
+      });
+      jest.runAllTimers();
+
+      expect(result).toBe('unavailable');
+      expect(dom.createObjectURL).not.toHaveBeenCalled();
+      expect(dom.createElement).not.toHaveBeenCalled();
+    });
   });
 });

@@ -79,7 +79,14 @@ async function shareOrDownloadImageOnWeb(
 ): Promise<ShareOrDownloadResult> {
   if (typeof navigator === 'undefined') return 'unavailable';
 
+  // `captureRef` on web (see RNViewShot.web.js) always returns a base64
+  // `data:` URI — if this ever gets something else, decoding it would
+  // silently produce a zero-byte File and "successfully" download an empty
+  // image, which is the exact silent-failure class this function exists to
+  // fix, just one layer down. Bail out to the caller's existing error toast
+  // instead.
   const file = dataUriToFile(dataUri, fileName);
+  if (!file) return 'unavailable';
 
   if (
     navigator.share &&
@@ -110,11 +117,15 @@ async function shareOrDownloadImageOnWeb(
  * returns for every `result` option (see `RNViewShot.web.js`) — into a real
  * `File`. Done with `atob` rather than a `fetch(dataUri)` round-trip so this
  * stays synchronous, has no network/CSP dependency, and is trivial to test.
+ *
+ * Returns `null` (rather than a bogus zero-byte File) when `dataUri` isn't
+ * shaped like a base64 data URI at all — the caller treats that as
+ * `'unavailable'`.
  */
-function dataUriToFile(dataUri: string, fileName: string): File {
+function dataUriToFile(dataUri: string, fileName: string): File | null {
   const match = /^data:([^;]+);base64,(.*)$/.exec(dataUri);
-  const mime = match?.[1] ?? 'image/png';
-  const base64 = match?.[2] ?? '';
+  if (!match) return null;
+  const [, mime, base64] = match;
   const binary = atob(base64);
   const bytes = new Uint8Array(binary.length);
   for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
