@@ -28,6 +28,13 @@ jest.mock('expo-router', () => ({
 
 jest.mock('@expo/vector-icons', () => ({Ionicons: () => null}));
 
+// The screen now pads its ScrollView for the floating MiniAudioPlayer (same
+// fix/pattern as quizExitConfirm.test.tsx) — mock the hook directly rather
+// than the whole `@/features/audio` module's `useAudioPlayer` shape.
+jest.mock('@hooks/useContentBottomInset', () => ({
+  useContentBottomInset: () => 0,
+}));
+
 jest.mock('expo-linear-gradient', () => {
   const {View} = require('react-native');
   return {LinearGradient: View};
