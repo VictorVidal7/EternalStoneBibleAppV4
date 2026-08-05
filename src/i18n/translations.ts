@@ -2885,6 +2885,9 @@ export const translations = {
     exploreAll: {
       title: 'Explorar todo',
       subtitle: 'Todo lo que puedes descubrir',
+      featuredEyebrow: 'Recomendado para ti',
+      sectionPopular: 'Lo más visitado',
+      sectionMore: 'Más para descubrir',
     },
 
     journeys: {
@@ -8755,6 +8758,9 @@ export const translations = {
     exploreAll: {
       title: 'Explore all',
       subtitle: 'Everything there is to discover',
+      featuredEyebrow: 'Recommended for you',
+      sectionPopular: 'Most visited',
+      sectionMore: 'More to discover',
     },
 
     journeys: {

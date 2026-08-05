@@ -18,17 +18,29 @@
  * (`app/features/journeys/index.tsx`, `app/features/theology/index.tsx`) —
  * no new header style invented here.
  *
+ * REDESIGN (combines 3 polish specs into one screen, all touching the same
+ * `DiscoverTile` component so they had to land together):
+ *
+ *  1. A featured/hero card (`ExploreFeaturedCard`) above everything else,
+ *     picking whichever category the reader most recently navigated into
+ *     FROM this screen (`src/features/explore/exploreRecency.ts`, purely
+ *     local AsyncStorage — no Firestore, nothing to sync). First run / no
+ *     history yet falls back to a fixed default (Diccionario).
+ *  2. The remaining categories are grouped under section headers (mirroring
+ *     Home's own `sectionHeader`/`sectionTitle` style) instead of the old
+ *     fixed 2-column grid.
+ *  3. Each category carries its own `accentColor` (see
+ *     `src/features/explore/exploreCategories.ts`) and renders as a compact
+ *     dense-list row (`DiscoverTile`'s new `variant="dense"`) rather than a
+ *     2-column tile — the previous ~124px tile grid (and its pixel-exact
+ *     `TILE_WIDTH` math) is intentionally retired here in favor of the
+ *     dense list.
+ *
  * Para la gloria de Dios Todopoderoso ✨
  */
 
-import React, {useMemo} from 'react';
-import {
-  View,
-  ScrollView,
-  TouchableOpacity,
-  StyleSheet,
-  Dimensions,
-} from 'react-native';
+import React, {useEffect, useMemo, useState} from 'react';
+import {View, ScrollView, TouchableOpacity, StyleSheet} from 'react-native';
 import {Stack, useRouter} from 'expo-router';
 import {Ionicons} from '@expo/vector-icons';
 import {LinearGradient} from 'expo-linear-gradient';
@@ -38,9 +50,20 @@ import {useLanguage} from '@hooks/useLanguage';
 import {haptics} from '@lib/haptics';
 import {AppText} from '@components/ui/AppText';
 import {DiscoverTile} from '@components/home/DiscoverTile';
-import {centeredMaxWidth, CONTENT_MAX_WIDTH} from '@/styles/responsive';
+import {ExploreFeaturedCard} from '@components/explore/ExploreFeaturedCard';
+import {centeredMaxWidth} from '@/styles/responsive';
 import {getDailyProphecy} from '@/features/study/messianicProphecies';
 import {getDailyFact} from '@/features/study/bibleFacts';
+import {
+  EXPLORE_CATEGORIES,
+  getExploreCategoryIds,
+  type ExploreCategoryDef,
+} from '@/features/explore/exploreCategories';
+import {
+  getLastVisitedCategoryId,
+  recordCategoryVisit,
+  resolveFeaturedCategoryId,
+} from '@/features/explore/exploreRecency';
 import {
   borderRadius,
   fontSize as fontSizes,
@@ -48,18 +71,7 @@ import {
   staticColors,
 } from '@/styles/designTokens';
 
-const {width: SCREEN_WIDTH} = Dimensions.get('window');
-// Sprint 96's Home grid learned this the hard way (see app/(tabs)/index.tsx):
-// a percentage width ('48%') doesn't account for the row gap, so two tiles
-// plus the gap overflow the row on every real phone width and Yoga wraps the
-// second tile onto its own line — silently collapsing the "grid" into a
-// single stacked column. Deriving the width in pixels from the actual
-// available content width (capped the same way Home caps it on wide
-// screens) guarantees both tiles + the gap always fit on one row.
-const EFFECTIVE_CONTENT_WIDTH = Math.min(SCREEN_WIDTH, CONTENT_MAX_WIDTH);
-const TILE_WIDTH = Math.floor(
-  (EFFECTIVE_CONTENT_WIDTH - spacing.lg * 2 - spacing.md) / 2,
-);
+const EXPLORE_CATEGORY_IDS = getExploreCategoryIds();
 
 export default function ExploreAllScreen() {
   const router = useRouter();
@@ -67,6 +79,26 @@ export default function ExploreAllScreen() {
   const {colors, gradient, highContrast} = useTheme();
   const {t} = useLanguage();
   const te = t.exploreAll;
+
+  // Recency-based featured category (T-hero-redesign): read once on mount.
+  // Starts `null` (no opinion yet) so the very first render already shows
+  // the deterministic first-run fallback via `resolveFeaturedCategoryId`
+  // rather than a flash of nothing.
+  const [lastVisitedId, setLastVisitedId] = useState<string | null>(null);
+  useEffect(() => {
+    let cancelled = false;
+    getLastVisitedCategoryId().then(id => {
+      if (!cancelled) setLastVisitedId(id);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  const featuredId = useMemo(
+    () => resolveFeaturedCategoryId(lastVisitedId, EXPLORE_CATEGORY_IDS),
+    [lastVisitedId],
+  );
 
   // Mirrors Home's own "today's ___" teaser logic for the two tiles whose
   // subtitle rotates daily (Hilo profético / ¿Sabías qué?), so this
@@ -81,13 +113,74 @@ export default function ExploreAllScreen() {
     return (t.bibleFacts.items as Record<string, {label: string}>)[f.id]?.label;
   }, [t.bibleFacts.items]);
 
+  // Per-category title/subtitle, keyed by the same `id` exploreCategories.ts
+  // uses — the one place daily-rotating copy (prophecies/facts) and the
+  // catalogue's differing i18n shapes (`.title`/`.subtitle` vs
+  // `.cardTitle`/`.cardSubtitle`) get reconciled into one uniform shape.
+  const categoryContent = useMemo<
+    Record<string, {title: string; subtitle: string}>
+  >(
+    () => ({
+      dailyLight: {
+        title: t.dailyLight.cardTitle,
+        subtitle: t.dailyLight.cardSubtitle,
+      },
+      themes: {title: t.themes.cardTitle, subtitle: t.themes.cardSubtitle},
+      prophecies: {
+        title: t.prophecies.title,
+        subtitle: dailyProphecyLabel
+          ? `${t.prophecies.todayLabel} · ${dailyProphecyLabel}`
+          : t.prophecies.subtitle,
+      },
+      bibleFacts: {
+        title: t.bibleFacts.title,
+        subtitle: dailyFactLabel
+          ? `${t.bibleFacts.todayLabel} · ${dailyFactLabel}`
+          : t.bibleFacts.subtitle,
+      },
+      journeys: {title: t.journeys.title, subtitle: t.journeys.subtitle},
+      kids: {title: t.kids.cardTitle, subtitle: t.kids.cardSubtitle},
+      quiz: {title: t.quiz.cardTitle, subtitle: t.quiz.cardSubtitle},
+      dictionary: {
+        title: t.dictionary.cardTitle,
+        subtitle: t.dictionary.cardSubtitle,
+      },
+      sermonNotes: {
+        title: t.sermonNotes.cardTitle,
+        subtitle: t.sermonNotes.cardSubtitle,
+      },
+      theology: {
+        title: t.theology.cardTitle,
+        subtitle: t.theology.cardSubtitle,
+      },
+      shareFaith: {
+        title: t.shareFaith.cardTitle,
+        subtitle: t.shareFaith.cardSubtitle,
+      },
+    }),
+    [t, dailyProphecyLabel, dailyFactLabel],
+  );
+
+  const featuredCategory =
+    EXPLORE_CATEGORIES.find(c => c.id === featuredId) ?? EXPLORE_CATEGORIES[0];
+  const remainingCategories = EXPLORE_CATEGORIES.filter(
+    c => c.id !== featuredCategory.id,
+  );
+  const popularSection = remainingCategories.filter(
+    c => c.section === 'popular',
+  );
+  const moreSection = remainingCategories.filter(c => c.section === 'more');
+
   const headerGradient: readonly [string, string, ...string[]] = highContrast
     ? (gradient.headerColors as readonly [string, string, ...string[]])
     : [colors.primary, colors.primaryDark];
 
-  const handlePress = (callback: () => void) => {
+  const goToCategory = (category: ExploreCategoryDef) => {
     haptics.tap();
-    callback();
+    // Fire-and-forget local write — never blocks navigation (see
+    // exploreRecency.ts's `recordCategoryVisit`).
+    recordCategoryVisit(category.id);
+    router.push(category.route as never);
   };
 
   // A deep link straight into this screen leaves no back-stack entry, so
@@ -136,136 +229,56 @@ export default function ExploreAllScreen() {
             centeredMaxWidth(),
           ]}
           showsVerticalScrollIndicator={false}>
-          <View style={styles.grid}>
-            <View style={styles.tileWrapper}>
-              <DiscoverTile
-                icon="sunny"
-                title={t.dailyLight.cardTitle}
-                subtitle={t.dailyLight.cardSubtitle}
-                onPress={() =>
-                  handlePress(() =>
-                    router.push('/features/daily-light' as never),
-                  )
-                }
-              />
+          <ExploreFeaturedCard
+            icon={featuredCategory.icon as keyof typeof Ionicons.glyphMap}
+            eyebrow={te.featuredEyebrow}
+            title={categoryContent[featuredCategory.id]?.title ?? ''}
+            subtitle={categoryContent[featuredCategory.id]?.subtitle ?? ''}
+            accentColor={featuredCategory.accentColor}
+            onPress={() => goToCategory(featuredCategory)}
+          />
+
+          {popularSection.length > 0 && (
+            <View style={styles.section}>
+              <AppText style={[styles.sectionTitle, {color: colors.text}]}>
+                {te.sectionPopular}
+              </AppText>
+              <View style={styles.sectionList}>
+                {popularSection.map(category => (
+                  <DiscoverTile
+                    key={category.id}
+                    variant="dense"
+                    icon={category.icon as keyof typeof Ionicons.glyphMap}
+                    accentColor={category.accentColor}
+                    title={categoryContent[category.id]?.title ?? ''}
+                    subtitle={categoryContent[category.id]?.subtitle ?? ''}
+                    onPress={() => goToCategory(category)}
+                  />
+                ))}
+              </View>
             </View>
-            <View style={styles.tileWrapper}>
-              <DiscoverTile
-                icon="grid"
-                title={t.themes.cardTitle}
-                subtitle={t.themes.cardSubtitle}
-                onPress={() =>
-                  handlePress(() => router.push('/features/themes' as never))
-                }
-              />
+          )}
+
+          {moreSection.length > 0 && (
+            <View style={styles.section}>
+              <AppText style={[styles.sectionTitle, {color: colors.text}]}>
+                {te.sectionMore}
+              </AppText>
+              <View style={styles.sectionList}>
+                {moreSection.map(category => (
+                  <DiscoverTile
+                    key={category.id}
+                    variant="dense"
+                    icon={category.icon as keyof typeof Ionicons.glyphMap}
+                    accentColor={category.accentColor}
+                    title={categoryContent[category.id]?.title ?? ''}
+                    subtitle={categoryContent[category.id]?.subtitle ?? ''}
+                    onPress={() => goToCategory(category)}
+                  />
+                ))}
+              </View>
             </View>
-            <View style={styles.tileWrapper}>
-              <DiscoverTile
-                icon="git-network"
-                title={t.prophecies.title}
-                subtitle={
-                  dailyProphecyLabel
-                    ? `${t.prophecies.todayLabel} · ${dailyProphecyLabel}`
-                    : t.prophecies.subtitle
-                }
-                onPress={() =>
-                  handlePress(() =>
-                    router.push('/features/prophecies' as never),
-                  )
-                }
-              />
-            </View>
-            <View style={styles.tileWrapper}>
-              <DiscoverTile
-                icon="bulb"
-                title={t.bibleFacts.title}
-                subtitle={
-                  dailyFactLabel
-                    ? `${t.bibleFacts.todayLabel} · ${dailyFactLabel}`
-                    : t.bibleFacts.subtitle
-                }
-                onPress={() =>
-                  handlePress(() => router.push('/features/facts' as never))
-                }
-              />
-            </View>
-            <View style={styles.tileWrapper}>
-              <DiscoverTile
-                icon="map"
-                title={t.journeys.title}
-                subtitle={t.journeys.subtitle}
-                onPress={() =>
-                  handlePress(() => router.push('/features/journeys' as never))
-                }
-              />
-            </View>
-            <View style={styles.tileWrapper}>
-              <DiscoverTile
-                icon="happy"
-                title={t.kids.cardTitle}
-                subtitle={t.kids.cardSubtitle}
-                onPress={() =>
-                  handlePress(() => router.push('/features/kids' as never))
-                }
-              />
-            </View>
-            <View style={styles.tileWrapper}>
-              <DiscoverTile
-                icon="help-circle"
-                title={t.quiz.cardTitle}
-                subtitle={t.quiz.cardSubtitle}
-                onPress={() =>
-                  handlePress(() => router.push('/features/quiz' as never))
-                }
-              />
-            </View>
-            <View style={styles.tileWrapper}>
-              <DiscoverTile
-                icon="book"
-                title={t.dictionary.cardTitle}
-                subtitle={t.dictionary.cardSubtitle}
-                onPress={() =>
-                  handlePress(() =>
-                    router.push('/features/dictionary' as never),
-                  )
-                }
-              />
-            </View>
-            <View style={styles.tileWrapper}>
-              <DiscoverTile
-                icon="create"
-                title={t.sermonNotes.cardTitle}
-                subtitle={t.sermonNotes.cardSubtitle}
-                onPress={() =>
-                  handlePress(() =>
-                    router.push('/features/sermon-notes' as never),
-                  )
-                }
-              />
-            </View>
-            <View style={styles.tileWrapper}>
-              <DiscoverTile
-                icon="school"
-                title={t.theology.cardTitle}
-                subtitle={t.theology.cardSubtitle}
-                onPress={() =>
-                  handlePress(() => router.push('/features/theology' as never))
-                }
-              />
-            </View>
-            <View style={styles.tileWrapper}>
-              <DiscoverTile
-                icon="heart"
-                title={t.shareFaith.cardTitle}
-                subtitle={t.shareFaith.cardSubtitle}
-                onPress={() =>
-                  handlePress(() =>
-                    router.push('/features/share-faith' as never),
-                  )
-                }
-              />
-            </View>
-          </View>
+          )}
         </ScrollView>
       </View>
     </>
@@ -306,13 +319,17 @@ const styles = StyleSheet.create({
     fontSize: fontSizes['2xl'],
     fontWeight: '800',
   },
-  content: {padding: spacing.lg},
-  grid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: spacing.md,
+  content: {padding: spacing.lg, gap: spacing.lg},
+  // Mirrors Home's own sectionHeader/sectionTitle values (app/(tabs)/
+  // index.tsx) for visual consistency — this screen has no nested "ver
+  // todo" action row to pair it with (it IS the "ver todo" destination),
+  // so only the title half of that pattern applies here.
+  section: {marginTop: spacing.sm},
+  sectionTitle: {
+    fontSize: fontSizes['2xl'],
+    fontWeight: '800',
+    letterSpacing: -0.5,
+    marginBottom: spacing.md,
   },
-  tileWrapper: {
-    width: TILE_WIDTH,
-  },
+  sectionList: {gap: spacing.sm},
 });

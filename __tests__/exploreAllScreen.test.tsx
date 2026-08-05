@@ -8,9 +8,20 @@
  * router/native-module boundaries and assert on real `translations.es`
  * strings rather than hand-rolled fixtures, so a translation-key typo would
  * fail this test too.
+ *
+ * T-hero-redesign additions: a featured/hero card (recency-based, falling
+ * back to Diccionario on first run — [[exploreRecency]]) plus section
+ * headers replacing the old 2-column grid. Every assertion below runs
+ * synchronously right after `render()`, BEFORE the screen's `useEffect`
+ * async AsyncStorage read can resolve (a plain, non-awaited `it` body never
+ * yields a turn to that microtask) — so the featured category is
+ * deterministically the first-run fallback (Diccionario) in every case here,
+ * regardless of what any earlier test in this file already wrote to the
+ * (file-scoped) AsyncStorage mock.
  */
 import React from 'react';
 import {render, fireEvent} from '@testing-library/react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import ExploreAllScreen from '../app/features/explore-all/index';
 
 const mockBack = jest.fn();
@@ -139,5 +150,37 @@ describe('Explore-all screen', () => {
     fireEvent.press(getByLabelText(es.bible.back));
     expect(mockReplace).toHaveBeenCalledWith('/');
     expect(mockBack).not.toHaveBeenCalled();
+  });
+
+  describe('featured hero card + section headers (T-hero-redesign)', () => {
+    it('features Diccionario on first render (first-run fallback, no visit history yet)', () => {
+      const {getByText} = renderScreen();
+      expect(getByText(es.exploreAll.featuredEyebrow)).toBeTruthy();
+      // Dictionary's title still renders exactly once (in the hero, not
+      // duplicated in a list row) — getByText would throw on >1 match.
+      expect(getByText(es.dictionary.cardTitle)).toBeTruthy();
+    });
+
+    it('renders both section headers', () => {
+      const {getByText} = renderScreen();
+      expect(getByText(es.exploreAll.sectionPopular)).toBeTruthy();
+      expect(getByText(es.exploreAll.sectionMore)).toBeTruthy();
+    });
+
+    it('tapping the featured hero navigates to its route (Diccionario)', () => {
+      const {getByLabelText} = renderScreen();
+      fireEvent.press(getByLabelText(es.dictionary.cardTitle));
+      expect(mockPush).toHaveBeenCalledWith('/features/dictionary');
+    });
+
+    it('tapping a tile records it as the last-visited category (local AsyncStorage, no Firestore)', () => {
+      const setItemSpy = jest.spyOn(AsyncStorage, 'setItem');
+      const {getByText} = renderScreen();
+      fireEvent.press(getByText(es.quiz.cardTitle));
+      expect(setItemSpy).toHaveBeenCalledWith(
+        expect.stringContaining('explore'),
+        'quiz',
+      );
+    });
   });
 });
