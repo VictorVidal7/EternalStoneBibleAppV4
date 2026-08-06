@@ -57,6 +57,8 @@ import {haptics} from '@lib/haptics';
 import {AppText} from '@components/ui/AppText';
 import {ExpandableVerseText} from '@components/ui/ExpandableVerseText';
 import {OfferingBadge} from '@components/ui/OfferingBadge';
+import {ContextualHintBanner} from '@components/hints/ContextualHintBanner';
+import {useContextualHint} from '@hooks/useContextualHint';
 import bibleDB from '@lib/database';
 import {getBookByName} from '@/constants/bible';
 import {getBookIntro} from '@/constants/book-intros';
@@ -269,6 +271,10 @@ export default function PrepTableScreen() {
   const {open: openOfferingSheet} = useOfferingSheet();
   const toast = useToast();
   const p = t.prepTable;
+  // Contextual hint (T: onboarding-contextual-hints) — the 3 header icons
+  // (Historial / Series / Ilustraciones) are icon-only with no visible
+  // label, right next to the back button; easy to overlook entirely.
+  const headerActionsHint = useContextualHint('prepHeaderActions');
 
   const params = useLocalSearchParams<{
     book?: string;
@@ -1495,6 +1501,17 @@ export default function PrepTableScreen() {
           </View>
         </LinearGradient>
 
+        {/* Contextual hint (T: onboarding-contextual-hints) — see
+            headerActionsHint above. Shown regardless of loading/empty/ready
+            state, directly under the header row that carries those 3 icons. */}
+        <View style={styles.hintWrapper}>
+          <ContextualHintBanner
+            visible={headerActionsHint.visible}
+            onDismiss={headerActionsHint.dismiss}
+            message={t.contextualHints.prepHeaderActions}
+          />
+        </View>
+
         {status === 'loading' && (
           <View style={styles.centerState}>
             <ActivityIndicator size="large" color={colors.primary} />
@@ -2587,6 +2604,11 @@ export default function PrepTableScreen() {
 
 const styles = StyleSheet.create({
   container: {flex: 1},
+  // Horizontal inset only (no background/border) so this renders as
+  // nothing at all while ContextualHintBanner is null.
+  hintWrapper: {
+    paddingHorizontal: spacing.lg,
+  },
   header: {
     paddingHorizontal: spacing.lg,
     paddingBottom: spacing.lg,

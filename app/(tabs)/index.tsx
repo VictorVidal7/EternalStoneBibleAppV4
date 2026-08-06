@@ -114,6 +114,8 @@ import type {HabitKey} from '@lib/home/constancyRings';
 import {NextMilestoneCard} from '@components/NextMilestoneCard';
 import {PrayerCard} from '@components/PrayerCard';
 import {DiscoverTile} from '@components/home/DiscoverTile';
+import {ContextualHintBanner} from '@components/hints/ContextualHintBanner';
+import {useContextualHint} from '@hooks/useContextualHint';
 
 // Tema Celestial
 import {
@@ -202,6 +204,9 @@ export default function HomeScreen() {
     initialized: servicesInitialized,
   } = useServices();
   const {t, language} = useLanguage();
+  // Contextual hint (T: onboarding-contextual-hints) — see the callout
+  // rendered in the Explorar section below for why this one was chosen.
+  const homeExploreHint = useContextualHint('homeExploreAll');
   // Book names on the Home cards follow the READING version's language (RVR1960
   // → "Juan"), matching the rest of the app; `language` is kept only for the
   // speech locale (reading the daily verse aloud).
@@ -1420,6 +1425,16 @@ export default function HomeScreen() {
               />
             </View>
           </View>
+
+          {/* Contextual hint (T: onboarding-contextual-hints): points out
+              that "Ver todo" leads to the full discovery catalogue (11
+              tiles), not just the 6 curated ones below — a new user only
+              looking at this grid could easily miss that it exists. */}
+          <ContextualHintBanner
+            visible={homeExploreHint.visible}
+            onDismiss={homeExploreHint.dismiss}
+            message={t.contextualHints.homeExploreAll}
+          />
 
           <View style={styles.savedGrid}>
             <View style={styles.savedCardWrapper}>

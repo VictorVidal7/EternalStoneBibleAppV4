@@ -715,6 +715,20 @@ export const translations = {
       },
     },
 
+    // Contextual hints — separate layer from `onboarding` above (see
+    // src/lib/onboarding/contextualHints.ts). Short, one-time callouts
+    // pointing out a single feature in place, never a guided tour.
+    contextualHints: {
+      homeExploreAll:
+        'Toca Ver todo para descubrir diccionario, profecías, rutas bíblicas y mucho más en un solo lugar.',
+      exploreFeaturedCard:
+        'Esta tarjeta cambia según lo último que exploraste, para que retomes justo donde lo dejaste.',
+      readerFocusMode:
+        'Prueba Foco: resalta el versículo que lees y atenúa el resto para ayudarte a concentrarte.',
+      prepHeaderActions:
+        'Estos íconos guardan tu historial, organizan series de predicación y ofrecen un banco de ilustraciones.',
+    },
+
     readerPrefs: {
       title: 'Preferencias de lectura',
       openLabel: 'Abrir preferencias de lectura',
@@ -6666,6 +6680,20 @@ export const translations = {
         body: 'May the Word of God be a lamp to your feet on this journey.',
         cta: 'Start reading',
       },
+    },
+
+    // Contextual hints — separate layer from `onboarding` above (see
+    // src/lib/onboarding/contextualHints.ts). Short, one-time callouts
+    // pointing out a single feature in place, never a guided tour.
+    contextualHints: {
+      homeExploreAll:
+        'Tap See all to discover the dictionary, prophecies, Bible journeys and much more in one place.',
+      exploreFeaturedCard:
+        'This card updates based on what you explored last, so you can pick up right where you left off.',
+      readerFocusMode:
+        "Try Focus: it highlights the verse you're reading and dims the rest to help you concentrate.",
+      prepHeaderActions:
+        'These icons hold your history, organize preaching series, and offer a bank of illustrations.',
     },
 
     readerPrefs: {
