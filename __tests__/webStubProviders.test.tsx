@@ -810,13 +810,20 @@ describe('Previously-crashing web routes, with only the stub providers mounted',
       mockDbInitialize.mockReset().mockResolvedValue(undefined);
     });
 
+    // A cold Babel/TS transform cache (first run after install, or CI) can
+    // push this particular test — the heaviest of the six route renders,
+    // with a real async bibleDB round-trip plus i18n/theme/date-format
+    // module loads — well past Jest's default 5000ms timeout; every other
+    // test in this file stays well under it. Bumped 15s -> 30s after a real
+    // GitHub Actions failure ("Exceeded timeout of 15000 ms") under
+    // `--coverage --maxWorkers=2`, which this local dev machine doesn't pay.
     it('renders without throwing and reaches the ready state (confirmed crash sites: useServices()/useMemoryDeck() called unconditionally at the top of the component)', async () => {
       const LectioScreen = require('../app/features/lectio').default;
       const {findByText} = renderWithWebProviders(<LectioScreen />);
       expect(
         await findByText('Porque de tal manera amó Dios al mundo...'),
       ).toBeTruthy();
-    }, 15000); // other test in this file stays well under it. // module loads — past the default 5000ms Jest test timeout; every // with a real async bibleDB round-trip plus i18n/theme/date-format // push this particular test — the heaviest of the six route renders, // A cold Babel/TS transform cache (first run after install, or CI) can
+    }, 30000);
   });
 
   describe('app/features/memory/insights.tsx', () => {
