@@ -5,6 +5,7 @@ import {
   parsePrepNotesMap,
   serializePrepNotesMap,
   setMapSectionNote,
+  type PrepNotesMap,
 } from '../src/features/study/prepNotes';
 
 describe('prepNotes — preparer prose model', () => {
@@ -218,6 +219,31 @@ describe('prepNotes — preparer prose model', () => {
         2,
       );
       expect(afterInsert['Ruth/1/1'].template).toBe('narrative');
+    });
+
+    // The non-negotiable from the task: picking a template for a NEW passage
+    // must never touch or migrate any OTHER already-saved entry. A legacy
+    // entry (no template, real prose written before templates existed) sits
+    // in the SAME map as a fresh 'narrative' pick and must come out byte-
+    // identical — sections, updatedAt, and its continued lack of a template.
+    it('choosing a template for a NEW entry never touches an existing legacy entry in the same map', () => {
+      const legacy: PrepNotesMap = {
+        'John/3/16': {
+          sections: {bigIdea: 'God so loved the world'},
+          updatedAt: 5,
+        },
+      };
+      const next = setMapSectionNote(
+        legacy,
+        'Ruth/1/1',
+        'tension',
+        'Famine in the land',
+        9,
+        'narrative',
+      );
+      expect(next['John/3/16']).toEqual(legacy['John/3/16']);
+      expect(next['John/3/16'].template).toBeUndefined();
+      expect(next['Ruth/1/1'].template).toBe('narrative');
     });
   });
 });
