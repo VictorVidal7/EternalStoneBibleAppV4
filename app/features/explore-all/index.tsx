@@ -51,6 +51,8 @@ import {haptics} from '@lib/haptics';
 import {AppText} from '@components/ui/AppText';
 import {DiscoverTile} from '@components/home/DiscoverTile';
 import {ExploreFeaturedCard} from '@components/explore/ExploreFeaturedCard';
+import {ContextualHintBanner} from '@components/hints/ContextualHintBanner';
+import {useContextualHint} from '@hooks/useContextualHint';
 import {centeredMaxWidth} from '@/styles/responsive';
 import {getDailyProphecy} from '@/features/study/messianicProphecies';
 import {getDailyFact} from '@/features/study/bibleFacts';
@@ -79,6 +81,10 @@ export default function ExploreAllScreen() {
   const {colors, gradient, highContrast} = useTheme();
   const {t} = useLanguage();
   const te = t.exploreAll;
+  // Contextual hint (T: onboarding-contextual-hints) — explains that the
+  // featured card above is personalized (recency-based), not static/random,
+  // which isn't obvious just by looking at it once.
+  const featuredHint = useContextualHint('exploreFeaturedCard');
 
   // Recency-based featured category (T-hero-redesign): re-read every time
   // this screen regains focus (not just on initial mount), so tapping into
@@ -241,6 +247,12 @@ export default function ExploreAllScreen() {
             subtitle={categoryContent[featuredCategory.id]?.subtitle ?? ''}
             accentColor={featuredCategory.accentColor}
             onPress={() => goToCategory(featuredCategory)}
+          />
+
+          <ContextualHintBanner
+            visible={featuredHint.visible}
+            onDismiss={featuredHint.dismiss}
+            message={t.contextualHints.exploreFeaturedCard}
           />
 
           {popularSection.length > 0 && (

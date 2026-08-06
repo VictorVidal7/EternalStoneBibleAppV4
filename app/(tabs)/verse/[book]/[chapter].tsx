@@ -113,6 +113,8 @@ import {
 } from '@/features/audio';
 import {localizedChapterReference} from '@lib/reading/verseReference';
 import {usePremium} from '@context/PremiumContext';
+import {ContextualHintBanner} from '@components/hints/ContextualHintBanner';
+import {useContextualHint} from '@hooks/useContextualHint';
 // Navigation
 // import {
 //   AnimatedBottomNav,
@@ -164,6 +166,11 @@ export default function VerseReadingScreen() {
   const {selectedVersion, setVersion, availableVersions} = useBibleVersion();
   const {t, language} = useLanguage();
   const toast = useToast();
+  // Contextual hint (T: onboarding-contextual-hints) — Focus mode already
+  // has an "explain on long-press" affordance (explainFocusMode below),
+  // which only helps someone who already knows to long-press it. This
+  // callout surfaces the same explanation proactively, once.
+  const focusModeHint = useContextualHint('readerFocusMode');
   const {achievementService, highlightService, notifyAchievements} =
     useServices();
   const {favorites, addFavorite, removeFavorite} = useFavorites();
@@ -2298,6 +2305,24 @@ export default function VerseReadingScreen() {
           </TouchableOpacity>
         </View>
 
+        {/* Contextual hint (T: onboarding-contextual-hints) — see
+            focusModeHint above for why Focus mode specifically. The wrapper
+            only carries a horizontal inset (no background/border of its
+            own), so it renders nothing at all while the banner is null.
+            duration={0}: this sits directly above the verse ScrollView, so
+            an auto-dismiss here would shift the verse text the user is
+            mid-reading by ~50px on its own, unprompted. Only an explicit
+            close tap dismisses it (still persists via the same dismiss()
+            path) — one deliberate layout shift instead of two. */}
+        <View style={styles.hintWrapper}>
+          <ContextualHintBanner
+            visible={focusModeHint.visible}
+            onDismiss={focusModeHint.dismiss}
+            message={t.contextualHints.readerFocusMode}
+            duration={0}
+          />
+        </View>
+
         {/* Dual-mode controls (Sprint 66 picker + Sprint 67 swap/layout):
             choose WHICH translation sits alongside the one being read (chips,
             only when >1 companion exists), swap primary ↔ companion, and switch
@@ -3712,6 +3737,12 @@ const styles = StyleSheet.create({
     paddingVertical: spacing['0.5'],
     paddingHorizontal: spacing.base,
     borderBottomWidth: 1,
+  },
+  // Horizontal inset only (no background/border) so this renders as
+  // nothing at all while ContextualHintBanner is null — see the render
+  // call site for why.
+  hintWrapper: {
+    marginHorizontal: spacing.base,
   },
   toolbarButton: {
     alignItems: 'center',
