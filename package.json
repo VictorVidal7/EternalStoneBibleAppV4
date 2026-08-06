@@ -112,6 +112,9 @@
   "overrides": {
     "ws": "8.21.0",
     "react-dom": "19.1.0",
+    "uuid": "^11.1.1",
+    "postcss": "^8.5.23",
+    "@opentelemetry/core": "^2.8.0",
     "@expo/metro": {
       "ws": "7.5.11"
     },
