@@ -12,7 +12,7 @@
  * T-hero-redesign additions: a featured/hero card (recency-based, falling
  * back to Diccionario on first run — [[exploreRecency]]) plus section
  * headers replacing the old 2-column grid. Every assertion below runs
- * synchronously right after `render()`, BEFORE the screen's `useEffect`
+ * synchronously right after `render()`, BEFORE the screen's `useFocusEffect`
  * async AsyncStorage read can resolve (a plain, non-awaited `it` body never
  * yields a turn to that microtask) — so the featured category is
  * deterministically the first-run fallback (Diccionario) in every case here,
@@ -28,15 +28,24 @@ const mockBack = jest.fn();
 const mockPush = jest.fn();
 const mockCanGoBack = jest.fn(() => true);
 const mockReplace = jest.fn();
-jest.mock('expo-router', () => ({
-  useRouter: () => ({
-    back: mockBack,
-    push: mockPush,
-    replace: mockReplace,
-    canGoBack: mockCanGoBack,
-  }),
-  Stack: {Screen: () => null},
-}));
+jest.mock('expo-router', () => {
+  const ReactActual = require('react');
+  return {
+    useRouter: () => ({
+      back: mockBack,
+      push: mockPush,
+      replace: mockReplace,
+      canGoBack: mockCanGoBack,
+    }),
+    // A dependency-aware stand-in for the real useFocusEffect (matches the
+    // pattern used in prepSeriesListScreen.test.tsx etc.): reruns only when
+    // the callback identity changes, mirroring real focus behavior closely
+    // enough for a render-once smoke test (this screen's callback has an
+    // empty dep array, so it still runs exactly once here).
+    useFocusEffect: (cb: () => void) => ReactActual.useEffect(cb, [cb]),
+    Stack: {Screen: () => null},
+  };
+});
 
 jest.mock('@expo/vector-icons', () => ({Ionicons: () => null}));
 

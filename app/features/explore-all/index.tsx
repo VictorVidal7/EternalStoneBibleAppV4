@@ -39,9 +39,9 @@
  * Para la gloria de Dios Todopoderoso ✨
  */
 
-import React, {useEffect, useMemo, useState} from 'react';
+import React, {useCallback, useMemo, useState} from 'react';
 import {View, ScrollView, TouchableOpacity, StyleSheet} from 'react-native';
-import {Stack, useRouter} from 'expo-router';
+import {Stack, useRouter, useFocusEffect} from 'expo-router';
 import {Ionicons} from '@expo/vector-icons';
 import {LinearGradient} from 'expo-linear-gradient';
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
@@ -80,20 +80,25 @@ export default function ExploreAllScreen() {
   const {t} = useLanguage();
   const te = t.exploreAll;
 
-  // Recency-based featured category (T-hero-redesign): read once on mount.
+  // Recency-based featured category (T-hero-redesign): re-read every time
+  // this screen regains focus (not just on initial mount), so tapping into
+  // a category and pressing back — the most common navigation pattern here
+  // — updates the hero card immediately instead of only on a fresh mount.
   // Starts `null` (no opinion yet) so the very first render already shows
   // the deterministic first-run fallback via `resolveFeaturedCategoryId`
   // rather than a flash of nothing.
   const [lastVisitedId, setLastVisitedId] = useState<string | null>(null);
-  useEffect(() => {
-    let cancelled = false;
-    getLastVisitedCategoryId().then(id => {
-      if (!cancelled) setLastVisitedId(id);
-    });
-    return () => {
-      cancelled = true;
-    };
-  }, []);
+  useFocusEffect(
+    useCallback(() => {
+      let cancelled = false;
+      getLastVisitedCategoryId().then(id => {
+        if (!cancelled) setLastVisitedId(id);
+      });
+      return () => {
+        cancelled = true;
+      };
+    }, []),
+  );
 
   const featuredId = useMemo(
     () => resolveFeaturedCategoryId(lastVisitedId, EXPLORE_CATEGORY_IDS),
