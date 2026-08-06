@@ -4601,6 +4601,8 @@ export const translations = {
       highlightDifferences: 'Resaltar diferencias',
       contrastSameLangHint:
         'Funciona mejor entre versiones del mismo idioma (KJV ↔ WEB)',
+      switchToGridView: 'Cambiar a vista de cuadrícula',
+      switchToListView: 'Cambiar a vista de lista',
       shareImage: 'Compartir como imagen',
       shareAllImage: 'Compartir todas',
       observations: 'Observaciones',
@@ -10465,6 +10467,8 @@ export const translations = {
       highlightDifferences: 'Highlight differences',
       contrastSameLangHint:
         'Works best between versions in the same language (KJV ↔ WEB)',
+      switchToGridView: 'Switch to grid view',
+      switchToListView: 'Switch to list view',
       shareImage: 'Share as image',
       shareAllImage: 'Share all',
       observations: 'Observations',

@@ -642,7 +642,9 @@ export const VersionComparisonScreen: React.FC<
         <View style={styles.headerTop}>
           <TouchableOpacity
             style={styles.backButton}
-            onPress={() => router.back()}>
+            onPress={() => router.back()}
+            accessibilityRole="button"
+            accessibilityLabel={t.bible.back}>
             <Ionicons name="chevron-back" size={28} color={colors.text} />
           </TouchableOpacity>
 
@@ -653,8 +655,13 @@ export const VersionComparisonScreen: React.FC<
           <View style={styles.headerButtons}>
             <TouchableOpacity
               style={styles.iconActionButton}
-              onPress={() =>
-                setViewMode(viewMode === 'list' ? 'grid' : 'list')
+              onPress={() => setViewMode(viewMode === 'list' ? 'grid' : 'list')}
+              accessibilityRole="button"
+              accessibilityState={{selected: viewMode === 'grid'}}
+              accessibilityLabel={
+                viewMode === 'list'
+                  ? t.versionComparison.switchToGridView
+                  : t.versionComparison.switchToListView
               }>
               <Ionicons
                 name={viewMode === 'list' ? 'grid-outline' : 'list-outline'}
@@ -668,7 +675,9 @@ export const VersionComparisonScreen: React.FC<
               onPress={() => {
                 loadSavedComparisons();
                 setShowSavedComparisons(true);
-              }}>
+              }}
+              accessibilityRole="button"
+              accessibilityLabel={t.versionComparison.savedComparisons}>
               <Ionicons
                 name="bookmarks-outline"
                 size={22}
@@ -693,7 +702,9 @@ export const VersionComparisonScreen: React.FC<
                 styles.saveCircleButton,
                 {backgroundColor: colors.primary},
               ]}
-              onPress={() => setShowSaveDialog(true)}>
+              onPress={() => setShowSaveDialog(true)}
+              accessibilityRole="button"
+              accessibilityLabel={t.versionComparison.saveComparison}>
               <Ionicons name="add" size={24} color={colors.onPrimary} />
             </TouchableOpacity>
           </View>
@@ -1096,7 +1107,9 @@ export const VersionComparisonScreen: React.FC<
             currentVerse <= 1 && styles.navButtonDisabled,
           ]}
           onPress={() => setCurrentVerse(prev => Math.max(1, prev - 1))}
-          disabled={currentVerse <= 1}>
+          disabled={currentVerse <= 1}
+          accessibilityRole="button"
+          accessibilityLabel={t.verse.previousVerse}>
           <Ionicons
             name="chevron-back"
             size={24}
@@ -1125,7 +1138,9 @@ export const VersionComparisonScreen: React.FC<
           onPress={() =>
             setCurrentVerse(prev => Math.min(totalVerses, prev + 1))
           }
-          disabled={currentVerse >= totalVerses}>
+          disabled={currentVerse >= totalVerses}
+          accessibilityRole="button"
+          accessibilityLabel={t.verse.nextVerse}>
           <Ionicons
             name="chevron-forward"
             size={24}
@@ -1153,7 +1168,10 @@ export const VersionComparisonScreen: React.FC<
               <Text style={[styles.modalTitle, {color: colors.text}]}>
                 {t.versionComparison.selectVersions}
               </Text>
-              <TouchableOpacity onPress={() => setShowVersionPicker(false)}>
+              <TouchableOpacity
+                onPress={() => setShowVersionPicker(false)}
+                accessibilityRole="button"
+                accessibilityLabel={t.close}>
                 <Ionicons name="close" size={24} color={colors.text} />
               </TouchableOpacity>
             </View>
@@ -1255,7 +1273,10 @@ export const VersionComparisonScreen: React.FC<
               <Text style={[styles.modalTitle, {color: colors.text}]}>
                 {t.versionComparison.savedComparisons}
               </Text>
-              <TouchableOpacity onPress={() => setShowSavedComparisons(false)}>
+              <TouchableOpacity
+                onPress={() => setShowSavedComparisons(false)}
+                accessibilityRole="button"
+                accessibilityLabel={t.close}>
                 <Ionicons name="close" size={24} color={colors.text} />
               </TouchableOpacity>
             </View>
@@ -1333,7 +1354,11 @@ export const VersionComparisonScreen: React.FC<
                         style={styles.actionButton}
                         onPress={() => {
                           handleEditComparison(comp);
-                        }}>
+                        }}
+                        accessibilityRole="button"
+                        accessibilityLabel={`${t.versionComparison.editComparison} ${
+                          comp.name || t.versionComparison.untitledComparison
+                        }`}>
                         <Ionicons
                           name="pencil-outline"
                           size={20}
@@ -1345,7 +1370,11 @@ export const VersionComparisonScreen: React.FC<
                         onPress={e => {
                           e.stopPropagation();
                           handleDeleteComparison(comp.id);
-                        }}>
+                        }}
+                        accessibilityRole="button"
+                        accessibilityLabel={`${t.versionComparison.deleteTitle} ${
+                          comp.name || t.versionComparison.untitledComparison
+                        }`}>
                         <Ionicons
                           name="trash-outline"
                           size={20}
@@ -1379,7 +1408,10 @@ export const VersionComparisonScreen: React.FC<
                 {t.versionComparison.selectVerse}
                 {multiSelectMode ? 's' : ''}
               </Text>
-              <TouchableOpacity onPress={() => setShowVersePicker(false)}>
+              <TouchableOpacity
+                onPress={() => setShowVersePicker(false)}
+                accessibilityRole="button"
+                accessibilityLabel={t.close}>
                 <Ionicons name="close" size={24} color={colors.text} />
               </TouchableOpacity>
             </View>
