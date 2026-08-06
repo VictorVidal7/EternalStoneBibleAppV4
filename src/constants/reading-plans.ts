@@ -1094,7 +1094,6 @@ const CHRONO_DIVIDED_KINGDOM: ChronoReading[] = [
   ...span('Ezequiel', 1, 48), // comienza en el exilio de Joaquín (Ez 1:2)
   ...span('Jeremías', 39, 52),
   ...span('2 Reyes', 25, 25), // caída de Jerusalén, Gedalías, Joaquín liberado
-  ...span('2 Crónicas', 36, 36), // los últimos reyes, la caída, el decreto de Ciro
   ...span('Lamentaciones', 1, 5),
   ...picks('Salmos', [137]), // "junto a los ríos de Babilonia" — el exilio mismo
   // JUDGMENT CALL (fecha de Abdías): algunos lo ubican temprano (siglo IX
@@ -1103,6 +1102,12 @@ const CHRONO_DIVIDED_KINGDOM: ChronoReading[] = [
   // colaboró "en el día de la calamidad" de su hermano Jacob (vv. 11–14)—
   // encaja mejor con el 586 a.C. (cf. Sal 137:7; Lm 4:21-22).
   ...span('Abdías', 1, 1),
+  // 2 Crónicas 36 se lee aquí, no justo tras 2 Reyes 25: el capítulo mismo
+  // avanza ~50 años, de la caída de Jerusalén (586 a.C.) hasta el decreto
+  // de Ciro (538 a.C., vv. 22-23) — el mismo decreto con que abre Esdras
+  // 1:1-3. Leerlo aquí, inmediatamente antes de Esdras, mantiene ese puente
+  // intacto en vez de leerlo antes de Lamentaciones/Abdías y retroceder.
+  ...span('2 Crónicas', 36, 36),
 ];
 
 // --- El regreso del exilio -------------------------------------------------
