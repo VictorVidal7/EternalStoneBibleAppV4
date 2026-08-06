@@ -4203,6 +4203,11 @@ export const translations = {
           'El reposo verdadero: Josué dio reposo en la tierra, mas no el definitivo; queda un reposo para el pueblo de Dios, en el que se entra por la fe en Jesús.',
         ],
       },
+      chronological: {
+        name: 'La Biblia en Orden Cronológico',
+        description:
+          'Recorre toda la Escritura en {{n}} días, en el orden en que sus sucesos ocurrieron',
+      },
     },
 
     // Reading Plan Screen
@@ -10073,6 +10078,11 @@ export const translations = {
           'The goat that carries away sin: The goat bore all their iniquities into an uninhabited land; so Christ was offered "to bear the sins of many."',
           'The true rest: Joshua gave rest in the land, but not the final one; there remains a rest for the people of God, entered by faith in Jesus.',
         ],
+      },
+      chronological: {
+        name: 'The Bible in Chronological Order',
+        description:
+          'Journey through all of Scripture in {{n}} days, in the order its events happened',
       },
     },
 

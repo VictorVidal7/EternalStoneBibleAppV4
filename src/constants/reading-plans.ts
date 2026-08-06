@@ -30,7 +30,8 @@ export type ReadingPlanI18nKey =
   | 'namesOfGod'
   | 'fruitOfSpirit'
   | 'heroesOfFaith'
-  | 'propheticThread';
+  | 'propheticThread'
+  | 'chronological';
 
 export interface ReadingPlan {
   id: string;
@@ -864,6 +865,421 @@ const bibleInAYear: ReadingPlan = {
     const start = Math.floor((i * total) / BIBLE_YEAR_DAYS);
     const end = Math.floor(((i + 1) * total) / BIBLE_YEAR_DAYS);
     return {day: i + 1, readings: allCanonicalChapters.slice(start, end)};
+  }),
+};
+
+// Plan: La Biblia en orden cronológico.
+//
+// Mismo alcance que `bibleInAYear` (los 1189 capítulos, 365 días), pero en
+// vez del orden canónico, en el orden en que los sucesos y escritos de la
+// Escritura realmente ocurrieron — la convención evangélica de "Biblia
+// cronológica", ampliamente enseñada y no una invención de esta app. El
+// orden histórico/narrativo es un hecho o una convención, no una expresión
+// protegida por derechos de autor, pero la secuencia exacta de abajo fue
+// derivada de forma independiente para esta app, a nivel de CAPÍTULO
+// completo (nunca se dividen versículos de un capítulo entre dos días).
+//
+// Algunas ubicaciones son decisiones de juicio erudito genuinas, sin una
+// única respuesta establecida entre los eruditos evangélicos. Cada una se
+// marca con un comentario "JUDGMENT CALL" justo donde ocurre, para que
+// Victor la revise antes de publicar este plan.
+//
+// El agrupamiento en días reutiliza el mismo método mecánico de
+// `bibleInAYear`: se aplanan los capítulos ya reordenados y se reparten
+// proporcionalmente en 365 días con los mismos límites `Math.floor` — el
+// corte de días es mecánico, no una tabla escrita a mano.
+
+type ChronoReading = {book: string; chapter: number};
+
+/** A contiguous chapter range from ONE book, inclusive on both ends. */
+function span(book: string, start: number, end: number): ChronoReading[] {
+  const out: ChronoReading[] = [];
+  for (let chapter = start; chapter <= end; chapter++) {
+    out.push({book, chapter});
+  }
+  return out;
+}
+
+/** Explicit, possibly non-contiguous chapters from ONE book, in the given order. */
+function picks(book: string, chapters: readonly number[]): ChronoReading[] {
+  return chapters.map(chapter => ({book, chapter}));
+}
+
+// --- Los Salmos sin data interna --------------------------------------
+//
+// JUDGMENT CALL (Salmos sin data interna): el Salterio no trae una tabla de
+// fechas. La regla seguida aquí es deliberadamente conservadora: SOLO se
+// reubica un salmo cuando su propio título o texto da una ocasión histórica
+// explícita (el conjunto bien conocido de superíndices davídicos ligados a
+// sucesos de 1–2 Samuel, Sal 90 "oración de Moisés", Sal 137 "junto a los
+// ríos de Babilonia"). Los salmos de Asaf y de los hijos de Coré se leen
+// juntos en el punto en que David los nombra cantores levitas (1 Cr 15–16).
+// Los Cánticos de las subidas (120–134) se leen juntos en el regreso del
+// exilio por su tema de peregrinación a Sion, aunque algunos llevan título
+// davídico — aquí se prioriza la coherencia de la colección sobre la fecha
+// individual de cada uno. TODO el resto del Salterio (la mayoría, sin
+// ninguna pista interna de fecha) no recibe una ocasión inventada: se
+// agrupa según su propia división estructural en "Libros" (una
+// característica real del texto — Libros I–III frente a IV–V, no algo que
+// esta app decide) y se lee en dos bloques, uno en tiempos de David y otro
+// en el regreso del exilio.
+const ASAPH_PSALMS = [50, 73, 74, 75, 76, 77, 78, 79, 80, 81, 82, 83];
+const KORAH_PSALMS = [42, 43, 44, 45, 46, 47, 48, 49, 84, 85, 87, 88];
+const PSALMS_ASCENTS = [
+  120, 121, 122, 123, 124, 125, 126, 127, 128, 129, 130, 131, 132, 133, 134,
+];
+const PSALMS_BOOKS_I_III_UNDATED = [
+  1, 2, 4, 5, 6, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 19, 20, 21, 22, 23, 24,
+  25, 26, 27, 28, 29, 31, 32, 33, 35, 36, 37, 38, 39, 40, 41, 53, 55, 58, 61,
+  62, 64, 65, 66, 67, 68, 69, 70, 71, 86, 89,
+];
+const PSALMS_BOOKS_IV_V_UNDATED = [
+  91, 92, 93, 94, 95, 96, 97, 98, 99, 100, 101, 102, 103, 104, 105, 106, 107,
+  108, 109, 110, 111, 112, 113, 114, 115, 116, 117, 118, 119, 135, 136, 138,
+  139, 140, 141, 143, 144, 145, 146, 147, 148, 149, 150,
+];
+
+// --- Orígenes y los patriarcas ------------------------------------------
+const CHRONO_ORIGINS: ChronoReading[] = [
+  ...span('Génesis', 1, 11), // Creación, caída, diluvio, Babel
+  // JUDGMENT CALL (ubicación de Job): se sitúa aquí, antes del llamado de
+  // Abraham. Su trasfondo (riqueza medida en rebaños, sacrificio patriarcal
+  // sin sacerdocio levítico, longevidad) encaja en la edad de los
+  // patriarcas, pero el libro mismo no fecha su historia con ningún rey ni
+  // suceso verificable — esta es la ubicación más frecuente en las Biblias
+  // cronológicas evangélicas, no un dato cierto.
+  ...span('Job', 1, 42),
+  ...span('Génesis', 12, 50), // Abraham, Isaac, Jacob, José
+];
+
+// --- Éxodo, ley y peregrinación ------------------------------------------
+const CHRONO_EXODUS_AND_LAW: ChronoReading[] = [
+  ...span('Éxodo', 1, 40),
+  ...span('Levítico', 1, 27),
+  ...span('Números', 1, 20),
+  // Salmo 90, "oración de Moisés": la única atribución de autoría del
+  // Salterio ubicada fuera de la época real-davídica. Su tema ("nuestros
+  // años son setenta") encaja con la generación que muere en el desierto
+  // (Nm 20 narra la muerte de Miriam, y más adelante la de Aarón).
+  ...picks('Salmos', [90]),
+  ...span('Números', 21, 36),
+  ...span('Deuteronomio', 1, 34),
+];
+
+// --- Conquista y jueces ---------------------------------------------------
+const CHRONO_CONQUEST_AND_JUDGES: ChronoReading[] = [
+  ...span('Josué', 1, 24),
+  // JUDGMENT CALL (orden interno de Jueces): se deja el libro en su propio
+  // orden 1–21 en vez de adelantar los capítulos 17–21 al comienzo del
+  // período de los jueces — una reubicación que algunas Biblias
+  // cronológicas hacen por la mención de Finees, nieto de Aarón, todavía
+  // vivo en 20:28. Este plan solo reordena LIBROS o rangos de capítulos
+  // completos entre sí, nunca capítulos individuales fuera de secuencia
+  // dentro de un mismo libro — un riesgo mayor que no vale la pena asumir
+  // aquí.
+  ...span('Jueces', 1, 21),
+  ...span('Rut', 1, 4), // "en los días que gobernaban los jueces" (Rt 1:1)
+];
+
+// --- La monarquía unida: Saúl, David, Salomón -----------------------------
+//
+// JUDGMENT CALL (Samuel y 1 Crónicas): en vez de intercalar 1 Crónicas
+// capítulo a capítulo dentro de 1–2 Samuel (arriesgando errores de
+// colocación sin ganar precisión real a nivel de capítulo completo), este
+// plan lee primero todo 1–2 Samuel y luego todo 1 Crónicas 1–29 seguido —
+// el relato profético del mismo reinado, y después el relato del cronista
+// del mismo reinado, uno a continuación del otro. Es una simplificación
+// declarada, no una interleaving genuina.
+const CHRONO_UNITED_MONARCHY: ChronoReading[] = [
+  ...span('1 Samuel', 1, 19),
+  ...picks('Salmos', [59]), // "cuando Saúl envió a vigilar la casa" (1 S 19:11)
+  ...span('1 Samuel', 20, 21),
+  ...picks('Salmos', [56, 34]), // huida a Gat, ante Abimelec/Aquis (1 S 21)
+  ...span('1 Samuel', 22, 22),
+  ...picks('Salmos', [52]), // Doeg delató a Saúl (1 S 22)
+  ...span('1 Samuel', 23, 23),
+  ...picks('Salmos', [54]), // los zifeos delataron a David (1 S 23)
+  ...span('1 Samuel', 24, 24),
+  ...picks('Salmos', [57, 142, 7]), // huida a la cueva, ante Saúl
+  ...span('1 Samuel', 25, 31),
+  ...span('1 Crónicas', 1, 9), // genealogías, prólogo del cronista
+  ...span('1 Crónicas', 10, 10), // muerte de Saúl (paralelo a 1 S 31)
+  ...span('2 Samuel', 1, 5),
+  ...picks('Salmos', [30]), // dedicación de la casa de David
+  ...span('2 Samuel', 6, 8),
+  ...picks('Salmos', [60]), // tras las guerras de David (2 S 8)
+  ...span('2 Samuel', 9, 12),
+  ...picks('Salmos', [51]), // Natán vino a él tras su pecado (2 S 12)
+  ...span('2 Samuel', 13, 15),
+  ...picks('Salmos', [3, 63]), // huida de Absalón, desierto de Judá
+  ...span('2 Samuel', 16, 22),
+  ...picks('Salmos', [18]), // mismo cántico de liberación que 2 S 22
+  ...span('2 Samuel', 23, 24),
+  ...span('1 Crónicas', 11, 16), // reinado de David, el arca vuelve
+  ...picks('Salmos', ASAPH_PSALMS), // David nombra a Asaf cantor (1 Cr 15–16)
+  ...picks('Salmos', KORAH_PSALMS), // y a los hijos de Coré
+  ...span('1 Crónicas', 17, 29), // pacto davídico, preparativos del templo
+  ...picks('Salmos', PSALMS_BOOKS_I_III_UNDATED),
+  ...span('1 Reyes', 1, 2), // Salomón sucede a David
+  ...picks('Salmos', [72]), // "de Salomón": bendición sobre su reinado
+  ...span('1 Reyes', 3, 3), // sabiduría concedida
+  ...span('Cantares', 1, 8),
+  ...span('1 Reyes', 4, 10), // administración, templo, la reina de Sabá
+  ...span('Proverbios', 1, 31),
+  ...span('1 Reyes', 11, 11), // decadencia, mujeres extranjeras, muerte
+  ...span('Eclesiastés', 1, 12), // reflexión tardía sobre la vanidad
+  ...span('2 Crónicas', 1, 9), // el mismo reinado, relato del cronista
+];
+
+// --- El reino dividido, con los profetas escritores intercalados ---------
+//
+// JUDGMENT CALL (Isaías completo): se lee entero en el reinado de Ezequías,
+// donde están sus capítulos narrativos (36–39, casi idénticos a 2 R 18–20)
+// y donde el propio libro registra a Isaías como consejero del rey (2 R
+// 19–20; 2 Cr 32). Su capítulo del llamado (Is 6) ocurre antes, "el año que
+// murió el rey Uzías", y el capítulo 7 está fechado en Acaz — pero dividir
+// el libro entre esos puntos tomaría, de hecho, una postura sobre la
+// composición del libro que este producto devocional prefiere no asumir.
+// Mantenerlo entero en su ancla narrativa más clara evita esa postura.
+// La misma razón aplica a Zacarías más abajo.
+const CHRONO_DIVIDED_KINGDOM: ChronoReading[] = [
+  ...span('1 Reyes', 12, 16), // Jeroboam I / Roboam, Abiam, Asa, ...Acab
+  ...span('2 Crónicas', 10, 16), // el mismo tramo, solo Judá
+  ...span('1 Reyes', 17, 22), // Acab, Elías, Josafat empieza
+  ...span('2 Crónicas', 17, 20), // Josafat
+  ...span('2 Reyes', 1, 11), // Elías, Eliseo, Jehú, Atalía
+  ...span('2 Crónicas', 21, 23), // Joram, Ocozías, Atalía, Joás coronado
+  ...span('2 Reyes', 12, 12), // Joás de Judá repara el templo
+  ...span('2 Crónicas', 24, 24), // Joás, relato del cronista
+  // JUDGMENT CALL (fecha de Joel): entre las más disputadas del AT (se ha
+  // propuesto desde el siglo IX a.C. hasta la época postexílica). Se
+  // ubica aquí, en tiempos de Joás/Joiada, la datación temprana más común
+  // entre comentaristas conservadores — el culto del templo funcionando con
+  // normalidad encaja mejor con una fecha preexílica que postexílica.
+  ...span('Joel', 1, 3),
+  ...span('2 Reyes', 13, 13), // Joacaz, Joás de Israel, muerte de Eliseo
+  ...span('2 Reyes', 14, 14), // Amasías, Jeroboam II — 14:25 nombra a Jonás
+  ...span('2 Crónicas', 25, 25), // Amasías
+  ...span('Jonás', 1, 4), // "en días de Jeroboam hijo de Joás" (2 R 14:25)
+  ...span('Amós', 1, 9), // "en días de Uzías... y Jeroboam" (Am 1:1)
+  ...span('Oseas', 1, 14), // "en días de Uzías... hasta Ezequías" (Os 1:1)
+  ...span('2 Reyes', 15, 15), // Uzías/Azarías, reyes efímeros de Israel, Jotam
+  ...span('2 Crónicas', 26, 26), // Uzías
+  ...span('2 Crónicas', 27, 27), // Jotam
+  ...span('Miqueas', 1, 7), // "en días de Jotam, Acaz, Ezequías" (Miq 1:1)
+  ...span('2 Reyes', 16, 16), // Acaz — trasfondo de la señal de Is 7
+  ...span('2 Crónicas', 28, 28), // Acaz
+  ...span('2 Reyes', 17, 17), // caída de Samaria, exilio de Israel
+  ...span('2 Reyes', 18, 20), // Ezequías, Senaquerib, la enfermedad
+  ...span('2 Crónicas', 29, 32), // Ezequías, relato del cronista
+  ...span('Isaías', 1, 66),
+  ...span('Nahúm', 1, 3), // Nínive, todavía la potencia dominante
+  ...span('2 Reyes', 21, 21), // Manasés, Amón
+  ...span('2 Crónicas', 33, 33), // Manasés, Amón — incluye su arrepentimiento
+  ...span('2 Reyes', 22, 23), // Josías, hallazgo del libro de la ley
+  ...span('2 Crónicas', 34, 35), // Josías, relato del cronista
+  ...span('Sofonías', 1, 3), // "en días de Josías" (Sof 1:1)
+  // JUDGMENT CALL (fecha de Habacuc): sin data interna explícita; se ubica
+  // al final del reinado de Josías, cuando el peligro caldeo (babilónico)
+  // ya se anunciaba en el horizonte (Hab 1:6).
+  ...span('Habacuc', 1, 3),
+  // JUDGMENT CALL (Jeremías dividido en su única costura natural): el
+  // libro se divide en 1–38 (el ministerio de advertencia, que comienza
+  // "en los días de Josías", Jer 1:2) y 39–52 (la caída misma de Jerusalén
+  // y sus secuelas) — la única división que el propio libro ya marca con
+  // el relato del sitio en el capítulo 39, no un corte arbitrario.
+  ...span('Jeremías', 1, 38),
+  ...span('2 Reyes', 24, 24), // Joacim, Joaquín, primera deportación
+  ...span('Daniel', 1, 12), // comienza con la deportación de Joacim (Dn 1:1)
+  ...span('Ezequiel', 1, 48), // comienza en el exilio de Joaquín (Ez 1:2)
+  ...span('Jeremías', 39, 52),
+  ...span('2 Reyes', 25, 25), // caída de Jerusalén, Gedalías, Joaquín liberado
+  ...span('2 Crónicas', 36, 36), // los últimos reyes, la caída, el decreto de Ciro
+  ...span('Lamentaciones', 1, 5),
+  ...picks('Salmos', [137]), // "junto a los ríos de Babilonia" — el exilio mismo
+  // JUDGMENT CALL (fecha de Abdías): algunos lo ubican temprano (siglo IX
+  // a.C., un ataque edomita narrado en 2 Cr 21); se ubica aquí, tras la
+  // caída de Jerusalén, porque su acusación central —Edom se regocijó y
+  // colaboró "en el día de la calamidad" de su hermano Jacob (vv. 11–14)—
+  // encaja mejor con el 586 a.C. (cf. Sal 137:7; Lm 4:21-22).
+  ...span('Abdías', 1, 1),
+];
+
+// --- El regreso del exilio -------------------------------------------------
+const CHRONO_RETURN_FROM_EXILE: ChronoReading[] = [
+  ...span('Esdras', 1, 4), // decreto de Ciro, altar, cimiento del templo, oposición
+  // Hageo y Zacarías (1–8) están fechados explícitamente "en el año segundo
+  // de Darío" y son nombrados como los que animaron la obra en Esd 5:1;
+  // 6:14 — la única ubicación de este plan tomada directamente del propio
+  // texto histórico, sin ninguna inferencia de por medio.
+  ...span('Hageo', 1, 2),
+  ...span('Zacarías', 1, 14),
+  ...span('Esdras', 5, 6), // el templo se termina y se dedica, bajo Darío
+  ...picks('Salmos', PSALMS_ASCENTS), // adoración de peregrinación, templo ya en pie
+  ...span('Ester', 1, 10), // reinado de Asuero/Jerjes, entre Esd 6 y Esd 7
+  ...span('Esdras', 7, 10), // el regreso de Esdras, bajo Artajerjes
+  ...span('Nehemías', 1, 13), // se reconstruye el muro, reformas finales
+  ...span('Malaquías', 1, 4), // los mismos males que enfrenta Nehemías 13
+  ...picks('Salmos', PSALMS_BOOKS_IV_V_UNDATED),
+];
+
+// --- Los cuatro evangelios: una vida de Cristo --------------------------
+//
+// JUDGMENT CALL (armonía de los evangelios): a nivel de CAPÍTULO completo
+// (no de versículo) no se puede fusionar el contenido de dos evangelios en
+// una sola lectura — así que "armonizar" aquí significa intercalar los 89
+// capítulos de los cuatro evangelios en una sola línea de tiempo, de modo
+// que los capítulos que narran el mismo tramo queden uno junto al otro.
+// La columna vertebral usada es: la infancia sigue a Lucas (su propio
+// relato reclama una "investigación ordenada", Lc 1:3, y es el más
+// completo); el ministerio público sigue a Marcos, el evangelio más breve
+// y de acción más directamente secuencial; los capítulos de Mateo y Lucas
+// que Marcos no tiene paralelo (el Sermón del Monte, la larga sección de
+// viaje de Lucas 10–17) se insertan en el punto de Marcos que les
+// corresponde; los capítulos de Juan —en su mayoría materiales propios de
+// Judea/Jerusalén, no sinópticos— se insertan en los propios anclajes de
+// fiestas/viajes que el texto de Juan mismo da (bodas de Caná, fiesta de
+// los Tabernáculos, dedicación, etc.); la Semana de la Pasión agrupa los
+// capítulos de los cuatro por día del relato, no por libro.
+const CHRONO_GOSPELS: ChronoReading[] = [
+  ...span('Lucas', 1, 1), // anuncios del nacimiento de Juan y de Jesús
+  ...span('Mateo', 1, 1), // genealogía y nacimiento, perspectiva de José
+  ...span('Lucas', 2, 2), // nacimiento, pastores, presentación, Jesús niño
+  ...span('Mateo', 2, 2), // magos, huida a Egipto, Nazaret
+  ...span('Mateo', 3, 3), // Juan el Bautista, bautismo de Jesús
+  ...span('Marcos', 1, 1), // bautismo, tentación, ministerio galileo comienza
+  ...span('Lucas', 3, 4), // genealogía hasta Adán; tentación, Nazaret
+  ...span('Mateo', 4, 4), // tentación, llamado de los primeros discípulos
+  ...span('Juan', 1, 5), // prólogo; Caná; Nicodemo; la samaritana; Betesda
+  ...span('Lucas', 5, 5), // pesca milagrosa, leproso, paralítico, Leví
+  ...span('Marcos', 2, 3), // controversias de sábado, los Doce escogidos
+  ...span('Mateo', 5, 7), // Sermón del Monte
+  ...span('Lucas', 6, 6), // Sermón del Llano, los Doce
+  ...span('Mateo', 8, 9), // sanidades, la tormenta calmada, llamado de Mateo
+  ...span('Lucas', 7, 8), // el centurión, viuda de Naín, el sembrador
+  ...span('Mateo', 10, 12), // envío de los Doce, controversias de sábado
+  ...span('Marcos', 4, 4), // parábolas del reino
+  ...span('Mateo', 13, 13), // parábolas del reino
+  ...span('Marcos', 5, 5), // el gadareno, la hija de Jairo
+  ...span('Mateo', 14, 14), // Juan el Bautista decapitado, los 5000
+  ...span('Marcos', 6, 6), // Nazaret, los 5000, camina sobre el mar
+  ...span('Juan', 6, 6), // los 5000, el Pan de Vida
+  ...span('Mateo', 15, 15), // la sirofenicia, los 4000
+  ...span('Marcos', 7, 7), // tradición de los ancianos, la sirofenicia
+  ...span('Mateo', 16, 16), // confesión de Pedro, primer anuncio de la pasión
+  ...span('Marcos', 8, 8), // los 4000, confesión de Pedro
+  ...span('Lucas', 9, 9), // transfiguración, comienza el viaje a Jerusalén
+  ...span('Mateo', 17, 17), // transfiguración, el muchacho endemoniado
+  ...span('Marcos', 9, 9), // transfiguración, sobre la grandeza
+  ...span('Mateo', 18, 18), // sobre la grandeza, el perdón
+  ...span('Juan', 7, 10), // fiesta de los Tabernáculos, el buen Pastor
+  ...span('Lucas', 10, 17), // los 72, el buen samaritano, hasta los diez leprosos
+  ...span('Mateo', 19, 19), // el divorcio, los niños, el joven rico
+  ...span('Marcos', 10, 10), // el joven rico, Bartimeo
+  ...span('Lucas', 18, 18), // la viuda persistente, Bartimeo
+  ...span('Mateo', 20, 20), // obreros de la viña, tercer anuncio de la pasión
+  ...span('Juan', 11, 11), // resurrección de Lázaro
+  ...span('Lucas', 19, 19), // Zaqueo, las minas, entrada triunfal
+  ...span('Mateo', 21, 21), // entrada triunfal, purificación del templo
+  ...span('Marcos', 11, 11), // entrada triunfal, la higuera, el templo
+  ...span('Juan', 12, 12), // unción en Betania, entrada triunfal
+  ...span('Mateo', 22, 22), // parábola de las bodas, tributo, el gran mandamiento
+  ...span('Marcos', 12, 12), // controversias del templo, la viuda pobre
+  ...span('Lucas', 20, 20), // controversias del templo
+  ...span('Mateo', 23, 23), // ayes contra los escribas y fariseos
+  ...span('Lucas', 21, 21), // la viuda pobre, discurso del Olivo
+  ...span('Marcos', 13, 13), // discurso del Olivo
+  ...span('Mateo', 24, 25), // discurso del Olivo, parábolas del juicio
+  ...span('Lucas', 22, 22), // última cena, Getsemaní, arresto, negación
+  ...span('Mateo', 26, 26), // última cena, Getsemaní, arresto, juicio ante el sanedrín
+  ...span('Marcos', 14, 14), // última cena, Getsemaní, arresto, negación
+  ...span('Juan', 13, 18), // lavado de pies, discurso de despedida, arresto
+  ...span('Mateo', 27, 27), // juicio ante Pilato, crucifixión, sepultura
+  ...span('Marcos', 15, 15), // juicio ante Pilato, crucifixión, sepultura
+  ...span('Lucas', 23, 23), // Pilato, Herodes, crucifixión, sepultura
+  ...span('Juan', 19, 19), // crucifixión, muerte, sepultura
+  ...span('Mateo', 28, 28), // resurrección, gran comisión
+  ...span('Marcos', 16, 16), // resurrección, gran comisión, ascensión
+  ...span('Lucas', 24, 24), // camino a Emaús, apariciones, ascensión
+  ...span('Juan', 20, 21), // Tomás, apariciones, restauración de Pedro
+];
+
+// --- Hechos y las cartas: la cronología misionera de Pablo ---------------
+//
+// Orden estándar entre los estudios del NT: las cartas de Pablo se leen en
+// el punto de Hechos en que fueron escritas, y las cartas generales se
+// ubican por su propia fecha tradicional relativa a esos mismos años.
+const CHRONO_ACTS_AND_LETTERS: ChronoReading[] = [
+  ...span('Hechos', 1, 9), // Pentecostés, Esteban, conversión de Saulo
+  ...span('Hechos', 10, 12), // Cornelio, persecución de Herodes
+  ...span('Santiago', 1, 5), // la carta más temprana del NT, antes del concilio
+  ...span('Hechos', 13, 14), // primer viaje misionero
+  // JUDGMENT CALL (fecha de Gálatas): se sigue la postura de "Galacia del
+  // sur" con fecha temprana — escrita justo después del primer viaje, a las
+  // iglesias recién visitadas, antes del concilio de Jerusalén (Hch 15).
+  // La postura de "Galacia del norte" la fecharía más tarde, en el segundo
+  // o tercer viaje; ambas son posiciones eruditas serias.
+  ...span('Gálatas', 1, 6),
+  ...span('Hechos', 15, 15), // concilio de Jerusalén
+  ...span('Hechos', 16, 18), // segundo viaje: Filipos, Tesalónica, Corinto
+  ...span('1 Tesalonicenses', 1, 5), // escrita desde Corinto (Hch 18)
+  ...span('2 Tesalonicenses', 1, 3),
+  ...span('Hechos', 19, 19), // tercer viaje, Éfeso
+  ...span('1 Corintios', 1, 16), // escrita desde Éfeso (Hch 19)
+  ...span('2 Corintios', 1, 13), // escrita desde Macedonia poco después
+  ...span('Hechos', 20, 20), // regreso hacia Jerusalén
+  ...span('Romanos', 1, 16), // escrita desde Corinto, al final del tercer viaje
+  ...span('Hechos', 21, 23), // arresto en Jerusalén
+  ...span('Hechos', 24, 26), // juicios ante Félix, Festo, Agripa
+  ...span('Hechos', 27, 28), // viaje a Roma, naufragio, arresto domiciliario
+  ...span('Efesios', 1, 6), // cartas de la prisión, escritas desde Roma
+  ...span('Filipenses', 1, 4),
+  ...span('Colosenses', 1, 4),
+  ...span('Filemón', 1, 1),
+  ...span('1 Timoteo', 1, 6), // tras una presunta liberación
+  ...span('Tito', 1, 3),
+  ...span('Hebreos', 1, 13), // autor y fecha inciertos; ubicada a mediados de los 60
+  ...span('1 Pedro', 1, 5), // Pedro, a mediados de los 60
+  ...span('2 Timoteo', 1, 4), // la última carta de Pablo, segunda prisión romana
+  ...span('2 Pedro', 1, 3), // la última carta de Pedro
+  ...span('Judas', 1, 1), // muy cercana a 2 Pedro en tema y fecha
+  ...span('1 Juan', 1, 5), // las cartas de Juan, décadas de los 80–90
+  ...span('2 Juan', 1, 1),
+  ...span('3 Juan', 1, 1),
+  ...span('Apocalipsis', 1, 22), // al final, tanto canónica como cronológicamente
+];
+
+/**
+ * The full chronological chapter order behind `chronologicalBible`, exported
+ * so the invariant test can verify BOTH the source ordering (every canonical
+ * chapter exactly once) AND that the day-by-day split reproduces this exact
+ * array when its days are flattened back together.
+ */
+export const CHRONOLOGICAL_CHAPTERS: ChronoReading[] = [
+  ...CHRONO_ORIGINS,
+  ...CHRONO_EXODUS_AND_LAW,
+  ...CHRONO_CONQUEST_AND_JUDGES,
+  ...CHRONO_UNITED_MONARCHY,
+  ...CHRONO_DIVIDED_KINGDOM,
+  ...CHRONO_RETURN_FROM_EXILE,
+  ...CHRONO_GOSPELS,
+  ...CHRONO_ACTS_AND_LETTERS,
+];
+
+const chronologicalBible: ReadingPlan = {
+  id: 'chronological-bible',
+  name: 'La Biblia en Orden Cronológico',
+  description:
+    'Recorre toda la Escritura en {{n}} días, en el orden en que sus sucesos ocurrieron',
+  i18nKey: 'chronological',
+  duration: BIBLE_YEAR_DAYS,
+  icon: 'time-outline',
+  color: '#78350F',
+  days: Array.from({length: BIBLE_YEAR_DAYS}, (_, i) => {
+    const total = CHRONOLOGICAL_CHAPTERS.length;
+    const start = Math.floor((i * total) / BIBLE_YEAR_DAYS);
+    const end = Math.floor(((i + 1) * total) / BIBLE_YEAR_DAYS);
+    return {day: i + 1, readings: CHRONOLOGICAL_CHAPTERS.slice(start, end)};
   }),
 };
 
@@ -1714,6 +2130,7 @@ export const READING_PLANS: ReadingPlan[] = [
   proverbsMonth,
   genesisMonth,
   bibleInAYear,
+  chronologicalBible,
 ];
 
 export function getReadingPlanById(id: string): ReadingPlan | undefined {
