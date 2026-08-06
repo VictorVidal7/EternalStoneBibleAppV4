@@ -26,7 +26,23 @@ import {
   StyleSheet,
   useWindowDimensions,
 } from 'react-native';
-import {MarkdownTextInput} from '@expensify/react-native-live-markdown';
+// Deep import, NOT `from '@expensify/react-native-live-markdown'` (the
+// package root barrel). That barrel's `src/index.tsx` re-exports
+// `parseExpensiMark` alongside `MarkdownTextInput` in the SAME module, and
+// ES module evaluation runs a barrel's full static-import graph regardless
+// of which named export is actually used — so importing the bare package
+// specifier eagerly loads `parseExpensiMark.ts`, which throws in `__DEV__`
+// on a real native build unless `html-entities` is workletized via
+// patch-package (confirmed via a live-device crash: "Uncaught Error:
+// `parseExpensiMark` requires `html-entities` package to be workletized").
+// This app never uses the library's own parser (`noteMarkdownRanges.ts`'s
+// header comment explains why) and never applied that patch, so it must
+// never load that module at all. `MarkdownTextInput.tsx` itself has no
+// dependency on `parseExpensiMark` — importing it directly, bypassing the
+// barrel, sidesteps the whole problem. Mirrors the same reasoning already
+// applied to this file's Jest mock (`jest.setup.js`), which deep-imports
+// the same component for the identical reason under Jest.
+import MarkdownTextInput from '@expensify/react-native-live-markdown/src/MarkdownTextInput';
 import {useRouter} from 'expo-router';
 import {Ionicons} from '@expo/vector-icons';
 import {useTheme} from '../../hooks/useTheme';

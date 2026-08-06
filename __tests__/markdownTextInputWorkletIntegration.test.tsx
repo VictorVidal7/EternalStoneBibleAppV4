@@ -33,13 +33,28 @@
  * `babel.config.js`, which chains `react-native-worklets/plugin` — DOES
  * apply, the same as it does for every other first-party test in this repo.
  *
+ * Imports `MarkdownTextInput` via the SAME deep subpath
+ * (`@expensify/react-native-live-markdown/src/MarkdownTextInput`, a default
+ * export) that `NoteEditorModal.tsx` itself uses — NOT the package root
+ * barrel. A live-device run surfaced a real crash the package-root import
+ * caused: `src/index.tsx` re-exports `parseExpensiMark` alongside
+ * `MarkdownTextInput` from the same module, and evaluating a barrel runs
+ * its ENTIRE static-import graph regardless of which export is actually
+ * used — so merely importing the bare package specifier eagerly loads
+ * `parseExpensiMark.ts`, which throws in `__DEV__` on native unless
+ * `html-entities` is workletized via patch-package (a step this app never
+ * takes, since it never uses that parser). This test's own import path is
+ * kept in sync with the app's real one specifically so a regression here —
+ * someone reverting `NoteEditorModal.tsx` back to the barrel import — would
+ * fail this test too, not just silently reintroduce a device-only crash.
+ *
  * Kept as a real (non-skipped) regression test: if this stops rendering,
  * something about the mock wiring broke, independent of anything
  * `NoteEditorModal` itself does.
  */
 import React from 'react';
 import {render} from '@testing-library/react-native';
-import {MarkdownTextInput} from '@expensify/react-native-live-markdown';
+import MarkdownTextInput from '@expensify/react-native-live-markdown/src/MarkdownTextInput';
 import {parseNoteMarkdownRanges} from '../src/lib/notes/noteMarkdownRanges';
 
 describe('MarkdownTextInput + parseNoteMarkdownRanges — mock integration', () => {

@@ -79,12 +79,25 @@ jest.mock('react-native-reanimated', () =>
 // comment on why this app's parser sidesteps that dependency entirely).
 // This app's own custom parser (`noteMarkdownRanges.ts`) is NOT stubbed by
 // any of this — it still runs for real in tests.
-jest.mock('@expensify/react-native-live-markdown', () => {
+//
+// Mocked by the SAME deep specifier the app itself imports
+// (`@expensify/react-native-live-markdown/src/MarkdownTextInput`), not the
+// package root barrel — confirmed via a live-device crash that importing
+// the barrel (`@expensify/react-native-live-markdown`) eagerly evaluates
+// `parseExpensiMark.ts` as a side effect of loading `index.tsx`'s re-export
+// graph, which throws in `__DEV__` on native without the same html-entities
+// patch-package step. `NoteEditorModal.tsx` deep-imports `MarkdownTextInput`
+// directly to avoid that at runtime; this mock must intercept that same
+// deep specifier (as a default export, matching `MarkdownTextInput.tsx`'s
+// own export shape) or the real un-transformed TSX would hit Jest's default
+// `transformIgnorePatterns` and fail to parse.
+jest.mock('@expensify/react-native-live-markdown/src/MarkdownTextInput', () => {
   global.jsi_setMarkdownRuntime = jest.fn();
   global.jsi_registerMarkdownWorklet = jest.fn();
   global.jsi_unregisterMarkdownWorklet = jest.fn();
   return {
-    MarkdownTextInput: jest.requireActual(
+    __esModule: true,
+    default: jest.requireActual(
       '@expensify/react-native-live-markdown/lib/commonjs/MarkdownTextInput.js',
     ).default,
   };
