@@ -8,15 +8,25 @@
  * landmine documented in constellation.tsx) in a SINGLE Animated.View so a
  * pinch/pan gesture moves them together — the hit targets stay aligned with
  * their stars at every zoom/pan state instead of freezing in their original
- * screen position. This module holds the CLAMPING policy for that shared
- * transform (zoom bounds, pan bounds, "has the user actually moved away from
- * the default view" detection) as pure `'worklet'` functions, mirroring
- * [[chapterSwipeGesture]]: free of React/RN/Reanimated types so they run
- * directly on the UI thread inside a react-native-gesture-handler callback
- * AND unit-test deterministically without a gesture harness.
+ * screen position. This module holds two things:
+ *
+ *  - the CLAMPING policy for that shared transform (zoom bounds, pan bounds,
+ *    "has the user actually moved away from the default view" detection) as
+ *    pure `'worklet'` functions, mirroring [[chapterSwipeGesture]]: free of
+ *    React/RN/Reanimated types so they run directly on the UI thread inside a
+ *    react-native-gesture-handler callback;
+ *  - {@link constellationHitBox}, the per-star hit-target GEOMETRY itself,
+ *    extracted out of the screen so the "hit box is centred exactly on the
+ *    star it targets" invariant — the other half of the shared-transform fix
+ *    above — is asserted by a test against real {@link layoutConstellation}
+ *    output, not just left as a comment.
+ *
+ * All of it unit-tests deterministically without a gesture harness.
  *
  * Para la gloria de Dios Todopoderoso ✨
  */
+
+import type {ConstellationNode} from './constellation';
 
 /** Never zoom below the default 1x — there is nothing to reveal below "actual size". */
 export const CONSTELLATION_MIN_SCALE = 1;
@@ -112,4 +122,41 @@ export function isConstellationTransformed(
     Math.abs(translateX) > EPSILON ||
     Math.abs(translateY) > EPSILON
   );
+}
+
+/**
+ * This screen's own minimum comfortable hit-target diameter (px). Deliberately
+ * NOT the app-wide `MIN_TOUCH_TARGET` (48, see src/lib/a11y/touchTarget.ts) —
+ * this is the value the screen already shipped with before this feature
+ * (`Math.max(node.r + 12, 22)` radius, i.e. 44px minimum diameter); extracting
+ * it here keeps that pre-existing sizing byte-for-byte instead of quietly
+ * changing it to match the unrelated app-wide constant.
+ */
+export const CONSTELLATION_HIT_TARGET_MIN = 44;
+
+/** A star's Pressable hit-target, as an absolute square box in canvas space. */
+export interface ConstellationHitBox {
+  left: number;
+  top: number;
+  size: number;
+}
+
+/**
+ * The Pressable hit-target box for a star node: grows with the star's own
+ * radius (bigger/stronger stars get bigger tap targets) but never shrinks
+ * below {@link CONSTELLATION_HIT_TARGET_MIN}, and is always centred EXACTLY
+ * on `(node.x, node.y)` — the same point constellation.tsx draws the star's
+ * `<Circle cx/cy>` at. That shared centre is what keeps the tap target and
+ * the visible star coincident; see constellationZoom.test.ts for the
+ * assertion of this over real layoutConstellation output.
+ */
+export function constellationHitBox(
+  node: Pick<ConstellationNode, 'x' | 'y' | 'r'>,
+): ConstellationHitBox {
+  const hitR = Math.max(node.r + 12, CONSTELLATION_HIT_TARGET_MIN / 2);
+  return {
+    left: node.x - hitR,
+    top: node.y - hitR,
+    size: hitR * 2,
+  };
 }

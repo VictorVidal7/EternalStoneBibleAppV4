@@ -63,6 +63,7 @@ import {
 import {
   clampConstellationScale,
   clampConstellationTranslate,
+  constellationHitBox,
   isConstellationTransformed,
   CONSTELLATION_MIN_SCALE,
 } from '@/features/study/constellationZoom';
@@ -285,6 +286,48 @@ export default function ConstellationScreen() {
   // one frame late is imperceptible).
   const [transformed, setTransformed] = useState(false);
 
+  // Snap the transform back to the default 1x/no-pan view whenever a NEW
+  // constellation is laid out — re-centring on a star (Centrar aquí),
+  // following a breadcrumb, or switching Bible version all rebuild `layout`
+  // (see the effect above keyed on the same values) with a brand-new focus
+  // star at canvas centre. Without this, a map zoomed/panned into a corner
+  // would hand the user a fresh map that's ALSO off-screen at the old pan
+  // offset — the reset button would still recover it, but the correct
+  // default behaviour is that a new map always arrives at the default view.
+  // Snaps instantly (no withTiming) since this coincides with the whole map
+  // being replaced under it, not a standalone gesture release.
+  useEffect(() => {
+    scale.value = CONSTELLATION_MIN_SCALE;
+    translateX.value = 0;
+    translateY.value = 0;
+    savedScale.value = CONSTELLATION_MIN_SCALE;
+    savedTranslateX.value = 0;
+    savedTranslateY.value = 0;
+    setTransformed(false);
+  }, [
+    current ? chainStepKey(current) : null,
+    selectedVersion.id,
+    size,
+    scale,
+    translateX,
+    translateY,
+    savedScale,
+    savedTranslateX,
+    savedTranslateY,
+  ]);
+
+  // JUDGMENT CALL — pinch anchor: scaling is CENTRE-anchored (React Native's
+  // default transform origin is the view's own centre), not focal-point
+  // anchored on the pinch midpoint. A focal-point anchor (the content point
+  // under your fingers stays under your fingers as you pinch, like a photo
+  // viewer) is the fancier option but needs the focal point's OFFSET from
+  // centre folded into the translate math on every update, which meaningfully
+  // raises the risk of a subtle drift bug in exactly the code responsible for
+  // this screen's core requirement (hit-target alignment). Centre-anchored
+  // zoom is simple, has no such drift risk, and is a completely standard,
+  // easily-recognisable zoom behaviour for a small map like this one — but it
+  // IS a different feel than a typical photo-viewer pinch, so flagging it
+  // rather than deciding silently.
   const pinchGesture = Gesture.Pinch()
     .onUpdate(e => {
       const nextScale = clampConstellationScale(savedScale.value * e.scale);
@@ -631,7 +674,7 @@ export default function ConstellationScreen() {
                     style={StyleSheet.absoluteFill}
                     pointerEvents="box-none">
                     {layout?.nodes.map(node => {
-                      const hitR = Math.max(node.r + 12, 22);
+                      const hitBox = constellationHitBox(node);
                       return (
                         <Pressable
                           key={`hit-${node.key}`}
@@ -639,11 +682,11 @@ export default function ConstellationScreen() {
                           style={[
                             styles.hitTarget,
                             {
-                              left: node.x - hitR,
-                              top: node.y - hitR,
-                              width: hitR * 2,
-                              height: hitR * 2,
-                              borderRadius: hitR,
+                              left: hitBox.left,
+                              top: hitBox.top,
+                              width: hitBox.size,
+                              height: hitBox.size,
+                              borderRadius: hitBox.size / 2,
                             },
                           ]}
                           accessibilityRole="button"

@@ -1,17 +1,26 @@
 /**
  * constellationZoom — pure clamping policy for the constellation star map's
  * pinch-zoom/pan transform (zoom bounds, pan bounds, and "has the view
- * strayed from default" detection used to show the reset-view button).
+ * strayed from default" detection used to show the reset-view button), PLUS
+ * the per-star hit-target geometry and the alignment invariant it must hold
+ * against real layoutConstellation output (the Jest-testable half of the
+ * screen's "hit targets must stay aligned with their stars" landmine).
  */
 
 import {
   clampConstellationScale,
   clampConstellationTranslate,
+  constellationHitBox,
   maxConstellationTranslate,
   isConstellationTransformed,
+  CONSTELLATION_HIT_TARGET_MIN,
   CONSTELLATION_MIN_SCALE,
   CONSTELLATION_MAX_SCALE,
 } from '../src/features/study/constellationZoom';
+import {
+  layoutConstellation,
+  type ConstellationConnection,
+} from '../src/features/study/constellation';
 
 describe('clampConstellationScale', () => {
   it('passes values already inside [1, 3] through unchanged', () => {
@@ -105,5 +114,50 @@ describe('isConstellationTransformed', () => {
   it('is true once either pan axis has meaningfully moved', () => {
     expect(isConstellationTransformed(1, 5, 0)).toBe(true);
     expect(isConstellationTransformed(1, 0, -5)).toBe(true);
+  });
+});
+
+describe('constellationHitBox', () => {
+  const make = (n: number): ConstellationConnection[] =>
+    Array.from({length: n}, (_, i) => ({
+      key: `John/3/${i + 1}`,
+      book: 'John',
+      chapter: 3,
+      verse: i + 1,
+      direction: 'out' as const,
+    }));
+
+  // This is the Jest-testable half of the screen's core requirement: the
+  // per-star Pressable must stay centred on the SAME point the <Circle
+  // cx/cy> draws the star at. (The other half — that this stays true through
+  // a pinch/pan — is the shared Animated.View transform wrapping both the
+  // Svg and the hit-target layer together, which is gesture-recognition
+  // machinery Jest cannot exercise.)
+  it('is centred exactly on the star it targets, for every node in a laid-out map', () => {
+    const layout = layoutConstellation(make(14), {size: 320});
+    for (const node of layout.nodes) {
+      const box = constellationHitBox(node);
+      expect(box.left + box.size / 2).toBeCloseTo(node.x);
+      expect(box.top + box.size / 2).toBeCloseTo(node.y);
+    }
+  });
+
+  it('is at least the comfortable touch-target minimum for every node', () => {
+    const layout = layoutConstellation(make(14), {size: 320});
+    for (const node of layout.nodes) {
+      expect(constellationHitBox(node).size).toBeGreaterThanOrEqual(
+        CONSTELLATION_HIT_TARGET_MIN,
+      );
+    }
+  });
+
+  it('grows past the minimum for a large-radius (strongest) star', () => {
+    const box = constellationHitBox({x: 0, y: 0, r: 22});
+    expect(box.size).toBe((22 + 12) * 2);
+  });
+
+  it('floors small-radius stars at the minimum instead of shrinking further', () => {
+    const box = constellationHitBox({x: 0, y: 0, r: 1});
+    expect(box.size).toBe(CONSTELLATION_HIT_TARGET_MIN);
   });
 });
