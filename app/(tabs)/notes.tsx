@@ -22,6 +22,7 @@ import {useBibleVersion} from '@hooks/useBibleVersion';
 import {haptics} from '@lib/haptics';
 import {IllustratedEmptyState} from '@components/IllustratedEmptyState';
 import {NoteImageModal} from '@components/reading/NoteImageModal';
+import {NoteMarkdownText} from '@components/notes/NoteMarkdownText';
 import {ConfirmDialog} from '@components/ui/ConfirmDialog';
 import {
   searchNotes,
@@ -320,11 +321,11 @@ export default function NotesScreen() {
               style={[styles.noteDivider, {backgroundColor: colors.border}]}
             />
 
-            <Text
+            <NoteMarkdownText
+              text={item.note}
               style={[styles.noteText, {color: colors.text}]}
-              numberOfLines={3}>
-              {item.note}
-            </Text>
+              numberOfLines={3}
+            />
           </TouchableOpacity>
         )}
         contentContainerStyle={styles.listContent}

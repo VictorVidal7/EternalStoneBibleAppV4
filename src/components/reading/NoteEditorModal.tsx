@@ -203,6 +203,10 @@ export const NoteEditorModal: React.FC<NoteEditorModalProps> = ({
             textAlignVertical="top"
           />
 
+          <Text style={[styles.markdownHint, {color: colors.textTertiary}]}>
+            {t.notes.markdownHint}
+          </Text>
+
           {/* Referenced-verse chips (ported from "Notas de sermón"): only
             shown once at least one reference is detected, so an empty draft
             doesn't grow this already-compact bottom sheet. */}
@@ -320,6 +324,10 @@ const styles = StyleSheet.create({
     fontSize: fontSizes.base,
     minHeight: 160,
     textAlignVertical: 'top',
+  },
+  markdownHint: {
+    fontSize: fontSizes.xs,
+    marginTop: spacing.xs,
   },
   chipsSection: {marginTop: spacing.md, gap: spacing.xs},
   chipsTitle: {fontSize: fontSizes.sm, fontWeight: '700'},

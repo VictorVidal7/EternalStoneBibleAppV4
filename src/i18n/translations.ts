@@ -292,6 +292,7 @@ export const translations = {
       referencedVersesTitle: 'Versículos referenciados',
       referencedVersesHint:
         'Se detectan automáticamente al escribir, p. ej. "Juan 3:16"',
+      markdownHint: 'Usa **negrita** o *cursiva*',
     },
 
     bookIntro: {
@@ -6190,6 +6191,7 @@ export const translations = {
       referencedVersesTitle: 'Referenced verses',
       referencedVersesHint:
         'Detected automatically as you type, e.g. "John 3:16"',
+      markdownHint: 'Use **bold** or *italic*',
     },
 
     readingInsights: {

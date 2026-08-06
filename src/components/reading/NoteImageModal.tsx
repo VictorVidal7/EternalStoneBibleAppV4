@@ -31,6 +31,7 @@ import {ShareCardHost} from '@/features/share/ShareCardHost';
 import {PremiumShareExtras} from '@/features/share/PremiumShareExtras';
 import {SHARE_TEMPLATES} from '@/features/share/imageTemplates';
 import {buildNoteCard} from '@/lib/notes/noteCard';
+import {NoteMarkdownText} from '@components/notes/NoteMarkdownText';
 import {
   spacing,
   fontSize as fontSizes,
@@ -145,11 +146,11 @@ export const NoteImageModal: React.FC<NoteImageModalProps> = ({
                 numberOfLines={1}>
                 {t.notes.note}
               </Text>
-              <Text
+              <NoteMarkdownText
+                text={card.note}
                 style={[styles.noteText, {color: template.textColor}]}
-                numberOfLines={8}>
-                {card.note}
-              </Text>
+                numberOfLines={8}
+              />
 
               <View style={styles.brand}>
                 <View
