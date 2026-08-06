@@ -159,19 +159,23 @@ describe('resetAllHints', () => {
     }
   });
 
-  it('also resets the session counter, so the next call starts back at 1', async () => {
+  it('does NOT reset the session counter — a reset on a warmed-up install stays eligible immediately', async () => {
     await getOrIncrementSessionCount();
     __resetSessionCacheForTests();
     await getOrIncrementSessionCount(); // now at 2, persisted
 
     await resetAllHints();
+    __resetSessionCacheForTests(); // simulate the tester relaunching once
 
-    expect(await getOrIncrementSessionCount()).toBe(1);
+    // Still >= HINT_ELIGIBLE_AFTER_SESSIONS — no extra relaunches needed
+    // just because the dismissed hints were forgotten.
+    const count = await getOrIncrementSessionCount();
+    expect(count).toBeGreaterThanOrEqual(HINT_ELIGIBLE_AFTER_SESSIONS);
   });
 
-  it('never throws even if the underlying storage calls fail', async () => {
+  it('never throws even if the underlying storage call fails', async () => {
     jest
-      .spyOn(AsyncStorage, 'multiRemove')
+      .spyOn(AsyncStorage, 'removeItem')
       .mockRejectedValueOnce(new Error('boom'));
     await expect(resetAllHints()).resolves.toBeUndefined();
   });

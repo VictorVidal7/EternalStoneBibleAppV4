@@ -155,18 +155,24 @@ export function computeHintsEligible(
   return onboardingCompleted && sessionCount >= HINT_ELIGIBLE_AFTER_SESSIONS;
 }
 
-/** Forgets every hint's dismissed state AND the session counter — the
- * "show me the hints again" testing affordance, mirroring
- * `useOnboarding().reset()`. Not currently wired to any Settings UI (there
- * is no existing dev/settings affordance for the wizard's own reset()
- * either — see the PR description). */
+/** Forgets every hint's dismissed state — the "show me the hints again"
+ * testing affordance, mirroring `useOnboarding().reset()`. Not currently
+ * wired to any Settings UI (there is no existing dev/settings affordance
+ * for the wizard's own reset() either — see the PR description).
+ *
+ * Deliberately does NOT touch the session counter. An earlier version
+ * cleared both keys, which meant a tester who reset the hints had to
+ * relaunch the app twice more (session 1 suppressed again, eligible again
+ * only from session 2) before anything reappeared — the opposite of what
+ * "show me the hints again" implies. Leaving the session count alone means
+ * a reset on an install that's already past its first couple of sessions
+ * makes every hint eligible again on the very next screen visit. */
 export async function resetAllHints(): Promise<void> {
   try {
-    await AsyncStorage.multiRemove([DISMISSED_KEY, SESSION_COUNT_KEY]);
+    await AsyncStorage.removeItem(DISMISSED_KEY);
   } catch {
     // Best-effort, same as the rest of this module.
   }
-  sessionCountPromise = null;
 }
 
 /** Test-only: clears the in-memory session-count cache without touching

@@ -2308,12 +2308,18 @@ export default function VerseReadingScreen() {
         {/* Contextual hint (T: onboarding-contextual-hints) — see
             focusModeHint above for why Focus mode specifically. The wrapper
             only carries a horizontal inset (no background/border of its
-            own), so it renders nothing at all while the banner is null. */}
+            own), so it renders nothing at all while the banner is null.
+            duration={0}: this sits directly above the verse ScrollView, so
+            an auto-dismiss here would shift the verse text the user is
+            mid-reading by ~50px on its own, unprompted. Only an explicit
+            close tap dismisses it (still persists via the same dismiss()
+            path) — one deliberate layout shift instead of two. */}
         <View style={styles.hintWrapper}>
           <ContextualHintBanner
             visible={focusModeHint.visible}
             onDismiss={focusModeHint.dismiss}
             message={t.contextualHints.readerFocusMode}
+            duration={0}
           />
         </View>
 
