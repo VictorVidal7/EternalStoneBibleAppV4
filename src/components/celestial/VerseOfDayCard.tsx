@@ -316,7 +316,35 @@ const VerseOfDayCard: React.FC<VerseOfDayCardProps> = ({
         onPress={onPress}
         onPressIn={press.onPressIn}
         onPressOut={press.onPressOut}
-        disabled={!onPress}>
+        disabled={!onPress}
+        // A11y audit fix (touchable nesting): this wraps ~9 independently-
+        // actionable inner controls (history chevrons, share, favorite,
+        // study/prep/Christ CTAs…), each already carrying its own
+        // accessibilityRole+Label. Touchable*/Pressable default `accessible`
+        // to true, which turns the WHOLE subtree into ONE opaque
+        // accessibility node on iOS — VoiceOver then swallows every inner
+        // control, unreachable individually. Confirmed live on Android via
+        // `uiautomator dump`: children stayed independently reachable, but
+        // the wrapper itself still surfaced as a separate, UNLABELED
+        // "Button" stop (empty content-desc), since it never had its own
+        // accessibilityLabel — a real defect either way.
+        // `accessible={false}` alone wasn't enough to remove that stop on
+        // Android: TouchableOpacity separately computes its own `focusable`
+        // prop (true whenever onPress is set and it's not disabled) and
+        // forwards it to the SAME underlying view; RN's Android
+        // `setFocusable` ReactProp re-sets `view.isFocusable = true`
+        // regardless of what `accessible` already set, undoing it — dump
+        // showed `focusable="true"` surviving `accessible={false}` alone,
+        // until `focusable={false}` was added too. Safe either way:
+        // `focusable={false}` only removes the accessibility click-
+        // listener/focus target (what TalkBack's synthetic double-tap
+        // needs) — RN's own touch responder chain (what a sighted finger
+        // tap uses) doesn't depend on this native view property, so
+        // tap-to-navigate on the card keeps working (confirmed live). The
+        // "read chapter" action stays screen-reader-reachable through the
+        // explicitly-labeled "Leer Capítulo Completo" button below.
+        accessible={false}
+        focusable={false}>
         <BlurView
           intensity={isDark ? 30 : 60}
           tint={isDark ? 'dark' : 'light'}
@@ -600,7 +628,15 @@ const VerseOfDayCard: React.FC<VerseOfDayCardProps> = ({
                 pressedOpacity={0.9}
                 style={styles.actionButton}
                 onPress={onPress}
-                hitSlop={CTA_HIT_SLOP}>
+                hitSlop={CTA_HIT_SLOP}
+                // Now that the outer card opts out of accessibility grouping
+                // (see the `accessible={false}` note above), this is the
+                // real, sole screen-reader-reachable entry point for "read
+                // the full chapter" — give it the same explicit role+label
+                // every sibling CTA in this card already has, instead of
+                // relying on RN's auto-derived label from its Text child.
+                accessibilityRole="button"
+                accessibilityLabel={t.home.readFullChapter}>
                 <Text
                   scaleRole="compact"
                   style={[styles.actionText, {color: colors.primary}]}>
