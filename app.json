@@ -2,7 +2,7 @@
   "expo": {
     "name": "Eternal Stone Bible",
     "slug": "eternal-bible",
-    "version": "3.2.56",
+    "version": "3.2.57",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "automatic",
@@ -36,7 +36,7 @@
     },
     "android": {
       "package": "com.eternalstonebible.app",
-      "versionCode": 68,
+      "versionCode": 69,
       "adaptiveIcon": {
         "foregroundImage": "./assets/icon.png",
         "backgroundColor": "#001122"
