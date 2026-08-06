@@ -31,6 +31,19 @@ jest.mock('expo-secure-store', () => {
   };
 });
 
+// Worklets (must be mocked before Reanimated's own mock, which eagerly
+// requires the real react-native-worklets native module and throws
+// "Native part of Worklets doesn't seem to be initialized" under Jest
+// otherwise — SPIKE FINDING: needed for ANY worklets bump above the
+// previously-pinned 0.5.1, including versions reanimated 4.1.x itself
+// declares compatible (0.7.x). react-native-worklets ships its own Jest
+// mock at src/mock.ts, but it is not exposed as a resolvable subpath
+// export from the package root, so it must be required via the deep
+// "react-native-worklets/src/mock" path rather than "react-native-worklets/mock".
+jest.mock('react-native-worklets', () =>
+  require('react-native-worklets/src/mock'),
+);
+
 // Reanimated
 jest.mock('react-native-reanimated', () =>
   require('react-native-reanimated/mock'),
