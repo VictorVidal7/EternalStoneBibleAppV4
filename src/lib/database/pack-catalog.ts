@@ -11,6 +11,30 @@
 export const CATALOG_URL =
   'https://eternalstonebible.github.io/packs/versions.json';
 
+/**
+ * Security hardening — allow-list of origins a pack `url` (and the originals
+ * pack, see originals-download-service.ts's ORIGINALS_PACK_URL) is ever
+ * permitted to point at. The catalog itself is fetched from this same GitHub
+ * Pages host (see CATALOG_URL), but its `versions` array is untrusted
+ * third-party-shaped data once parsed — a compromised catalog response (bad
+ * deploy, DNS/MITM on a network that doesn't validate the TLS cert, etc.)
+ * should not be able to redirect a download to an arbitrary attacker host.
+ * This is defense-in-depth only: downloads are already verified by exact
+ * byte-size + SHA-256 before import (see version-download-service.ts), so an
+ * attacker-controlled URL still couldn't get an unverified file imported —
+ * but it could exfiltrate the device's IP/UA to an arbitrary host, or serve
+ * a large file as a denial-of-service, so it's worth rejecting outright.
+ *
+ * Every `startsWith` prefix ends in a trailing slash so a lookalike host
+ * (e.g. `https://eternalstonebible.github.io.evil.com/`) can never match.
+ */
+const ALLOWED_PACK_URL_PREFIXES = ['https://eternalstonebible.github.io/'];
+
+/** Whether `url` is hosted on an allow-listed pack origin. */
+export function isAllowedPackUrl(url: string): boolean {
+  return ALLOWED_PACK_URL_PREFIXES.some(prefix => url.startsWith(prefix));
+}
+
 /** One downloadable version as described by versions.json. */
 export interface RemotePackVersion {
   id: string;
@@ -48,6 +72,14 @@ export function parsePackVersion(raw: unknown): RemotePackVersion | null {
     !Number.isFinite(o.bytes) ||
     o.bytes <= 0
   ) {
+    return null;
+  }
+  // Security hardening: a catalog entry pointing off the allow-listed pack
+  // host is dropped here, at parse time, so it never reaches the UI as a
+  // selectable/downloadable version in the first place. See
+  // isAllowedPackUrl's doc comment for why this matters despite the
+  // downstream size + SHA-256 verification.
+  if (!isAllowedPackUrl(o.url.trim())) {
     return null;
   }
   return {
@@ -109,7 +141,8 @@ export type PackDownloadErrorCode =
   | 'insufficient-space'
   | 'checksum-mismatch'
   | 'size-mismatch'
-  | 'import-failed';
+  | 'import-failed'
+  | 'untrusted-source';
 
 export class PackDownloadError extends Error {
   code: PackDownloadErrorCode;

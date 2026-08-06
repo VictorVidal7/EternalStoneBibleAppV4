@@ -17,6 +17,7 @@ import {
   resolveCrossReferencesDbAsset,
   resolveStrongsDefsDbAsset,
 } from './nativeSeedAssets';
+import {sanitizeFtsQuery} from '../search/sanitizeFtsQuery';
 
 /** An outgoing cross-reference row (the verse a focus verse points TO). */
 export interface CrossRefOut {
@@ -1747,6 +1748,15 @@ class BibleDatabase {
     // Use FTS5 for fast full-text search. OFFSET supports the
     // "Load more" pagination on the search screen — when a query
     // returns LIMIT rows, the next page is fetched with offset=LIMIT.
+    //
+    // The raw query is never bound directly: FTS5's MATCH argument is its
+    // own tiny query language (AND/OR/NOT, "phrase", prefix*, (), col:), so
+    // ordinary vocabulary with FTS5-special characters — hyphenated words
+    // like "self-control" or "co-heirs" above all — throws a SQL syntax
+    // error instead of matching. sanitizeFtsQuery neutralizes that while
+    // still matching the literal words typed and preserving the handful of
+    // FTS5 syntax forms this screen intentionally supports (prefix*, OR,
+    // "phrase quoting"). See its doc comment for the full rationale.
     const result = await db.getAllAsync<BibleVerse>(
       `SELECT v.id, v.book_id as bookNumber, v.book_name as book, v.chapter, v.verse, v.text, v.version
        FROM verses v
@@ -1754,7 +1764,7 @@ class BibleDatabase {
        WHERE fts.text MATCH ? AND v.version = ?
        ORDER BY rank
        LIMIT ? OFFSET ?`,
-      [query, version, limit, offset],
+      [sanitizeFtsQuery(query), version, limit, offset],
     );
 
     return result;
@@ -1767,13 +1777,15 @@ class BibleDatabase {
   ): Promise<BibleVerse[]> {
     const db = this.getDb();
 
+    // See searchVerses' comment: the query must never reach FTS5 MATCH
+    // un-sanitized.
     const result = await db.getAllAsync<BibleVerse>(
       `SELECT v.id, v.book_id as bookNumber, v.book_name as book, v.chapter, v.verse, v.text, v.version
        FROM verses v
        INNER JOIN verses_fts fts ON v.id = fts.rowid
        WHERE fts.text MATCH ? AND v.book_id = ? AND v.version = ?
        ORDER BY v.chapter, v.verse`,
-      [query, bookId, version],
+      [sanitizeFtsQuery(query), bookId, version],
     );
 
     return result;

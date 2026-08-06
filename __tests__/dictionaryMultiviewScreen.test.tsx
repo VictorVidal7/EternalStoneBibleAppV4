@@ -542,7 +542,7 @@ describe('DictionaryDetailScreen — multi-view branch (Bautismo, Milenio)', () 
     ]);
 
     const {findByText, queryByText} = render(<DictionaryDetailScreen />);
-    const relatedLink = await findByText('Espíritu santo');
+    const relatedLink = await findByText('Espíritu Santo');
     expect(queryByText('Sanedrín')).toBeNull();
 
     fireEvent.press(relatedLink);

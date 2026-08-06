@@ -30,6 +30,7 @@ import {useSafeAreaInsets} from 'react-native-safe-area-context';
 import {useTheme} from '@hooks/useTheme';
 import {useLanguage} from '@hooks/useLanguage';
 import {useBibleVersion} from '@hooks/useBibleVersion';
+import {useContentBottomInset} from '@hooks/useContentBottomInset';
 import {useServices} from '@context/ServicesContext';
 import {useReadingProgress} from '@context/ReadingProgressContext';
 import {AppText} from '@components/ui/AppText';
@@ -97,6 +98,13 @@ export default function ReadingInsightsScreen() {
   const {colors, gradient, highContrast} = useTheme();
   const {t, language} = useLanguage();
   const {selectedVersion} = useBibleVersion();
+  // The floating MiniAudioPlayer (app/_layout.tsx) renders as a sibling of
+  // the whole Stack, so it floats over THIS pushed screen too, not just the
+  // tab screens — without this, its last ~80dp (collapsed height + bottom
+  // margin) sits on top of the last card/button instead of past it. Same
+  // hook + pattern already used by the other non-tab `features/*` screen
+  // that hits this (quiz/index.tsx).
+  const bottomInset = useContentBottomInset();
   const ri = t.readingInsights;
   // Mood line lookups: localized feeling names + the one shared weekday
   // array (the memory-insights forecast already owns it — same calendar).
@@ -302,7 +310,8 @@ export default function ReadingInsightsScreen() {
         </LinearGradient>
 
         <ScrollView
-          contentContainerStyle={styles.content}
+          style={styles.body}
+          contentContainerStyle={[styles.content, {paddingBottom: bottomInset}]}
           showsVerticalScrollIndicator={false}>
           {status === 'loading' && (
             <View style={styles.centerState}>
@@ -1318,6 +1327,12 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
+  // Missing on this screen was a real deviation from sibling dashboards
+  // (memory/insights.tsx, memory/index.tsx, conflicts/insights.tsx), which
+  // all give the ScrollView its own flex: 1 alongside contentContainerStyle.
+  body: {
+    flex: 1,
+  },
   header: {
     paddingHorizontal: spacing.lg,
     paddingBottom: spacing.lg,
@@ -1361,8 +1376,9 @@ const styles = StyleSheet.create({
     fontWeight: '800',
   },
   content: {
+    // paddingBottom is set dynamically (useContentBottomInset) so the last
+    // card clears the floating MiniAudioPlayer when it's on screen.
     padding: spacing.md,
-    paddingBottom: spacing['3xl'],
     gap: spacing.md,
   },
   centerState: {
