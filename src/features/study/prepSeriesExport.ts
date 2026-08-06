@@ -34,9 +34,10 @@ import {
 } from './christConnections';
 import {
   PREP_MAX_CROSS_REFS_PREMIUM,
-  PREP_SECTIONS,
   buildPrepTable,
   formatPassageLabel,
+  getPrepTemplateSections,
+  interpretationSlotFor,
   type PrepSection,
 } from './prepTable';
 import {getPrepNotes} from './prepNotesStore';
@@ -198,7 +199,14 @@ export async function assembleSeriesPassageInput(
   const themeLabel = (id: string) =>
     (tr.themes.list as Record<string, {name: string}>)[id]?.name ?? id;
 
-  const sections: PrepMarkdownSection[] = PREP_SECTIONS.map(
+  // Tanda "plantillas de sermón" — resolve THIS entry's own template (legacy
+  // entries with no `notes.template` fall back to 'expository', matching
+  // today's exact 7-section outline), and which of ITS section ids plays
+  // "interpretation"'s role (where the cross-ref/theme helps attach).
+  const templateSections = getPrepTemplateSections(notes.template);
+  const interpSlot = interpretationSlotFor(notes.template);
+
+  const sections: PrepMarkdownSection[] = templateSections.map(
     (section: PrepSection) => {
       let helps: string[] = [];
       if (section === 'context' && intro) {
@@ -206,7 +214,7 @@ export async function assembleSeriesPassageInput(
           `${p.bookIntroTitle} — ${intro.author} · ${intro.date}`,
           intro.context,
         ];
-      } else if (section === 'interpretation') {
+      } else if (section === interpSlot) {
         helps = [
           ...crossRows.map(r =>
             r.text
@@ -223,6 +231,7 @@ export async function assembleSeriesPassageInput(
         );
       }
       return {
+        id: section,
         label: p.sections[section].label,
         prompt: p.sections[section].prompt,
         note: notes.sections[section],

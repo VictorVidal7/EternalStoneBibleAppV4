@@ -11,7 +11,11 @@ import {
   type PrepMarkdownInput,
   type PrepSeriesMarkdownInput,
 } from '../src/features/study/prepMarkdown';
-import {buildSeriesHtml, pdfFileName} from '../src/features/study/prepPdf';
+import {
+  buildPrepHtml,
+  buildSeriesHtml,
+  pdfFileName,
+} from '../src/features/study/prepPdf';
 import {
   assembleSeriesExportInput,
   assembleSeriesPassageInput,
@@ -197,6 +201,122 @@ describe('assembleSeriesPassageInput', () => {
         deps: fakeDeps,
       }),
     ).toBeNull();
+  });
+});
+
+// Tanda "plantillas de sermón" — one full round-trip per non-expository
+// template: the assembler resolves the SAVED entry's own template (not
+// always the 7 expository ids), and the curated cross-ref/theme helps
+// attach to THAT template's own "interpretation slot" id.
+describe('assembleSeriesPassageInput — per-template round-trip', () => {
+  const crossRefDeps = (
+    template: 'textual' | 'topical' | 'narrative',
+    sections: Record<string, string>,
+  ): SeriesExportDeps => ({
+    getVerse: async (_b, _c, v) => ({text: `Texto ${v}`}),
+    getNotes: async () => ({sections, updatedAt: 0, template}),
+    getCrossRefs: (_b, _c, v) => (v === 16 ? ['Romans/5/8'] : []),
+  });
+
+  it("'textual' attaches cross-refs to versePoints and carries all 6 of its own sections", async () => {
+    const input = await assembleSeriesPassageInput('John/3/16', {
+      version: 'RVR1960',
+      deps: crossRefDeps('textual', {versePoints: 'Cada cláusula, en orden'}),
+    });
+    expect(input!.sections.map(s => s.id)).toEqual([
+      'context',
+      'versePoints',
+      'bigIdea',
+      'christ',
+      'application',
+      'questions',
+    ]);
+    const versePoints = input!.sections.find(s => s.id === 'versePoints')!;
+    expect(versePoints.note).toBe('Cada cláusula, en orden');
+    expect(versePoints.helps).toEqual(
+      expect.arrayContaining([expect.stringContaining('Romanos')]),
+    );
+    // No other section receives the cross-ref helps.
+    const others = input!.sections.filter(s => s.id !== 'versePoints');
+    for (const s of others) {
+      expect(s.helps ?? []).not.toEqual(
+        expect.arrayContaining([expect.stringContaining('Romanos')]),
+      );
+    }
+  });
+
+  it("'topical' attaches cross-refs to topicDevelopment and carries all 6 of its own sections", async () => {
+    const input = await assembleSeriesPassageInput('John/3/16', {
+      version: 'RVR1960',
+      deps: crossRefDeps('topical', {
+        topicDevelopment: 'El amor de Dios a través de la Escritura',
+      }),
+    });
+    expect(input!.sections.map(s => s.id)).toEqual([
+      'context',
+      'topicDevelopment',
+      'bigIdea',
+      'christ',
+      'application',
+      'questions',
+    ]);
+    const dev = input!.sections.find(s => s.id === 'topicDevelopment')!;
+    expect(dev.helps).toEqual(
+      expect.arrayContaining([expect.stringContaining('Romanos')]),
+    );
+  });
+
+  it("'narrative' attaches cross-refs to resolution and carries all 8 of its own sections", async () => {
+    const input = await assembleSeriesPassageInput('John/3/16', {
+      version: 'RVR1960',
+      deps: crossRefDeps('narrative', {
+        tension: 'La condenación que merecemos',
+        resolution: 'El Hijo entregado en amor',
+      }),
+    });
+    expect(input!.sections.map(s => s.id)).toEqual([
+      'context',
+      'observation',
+      'tension',
+      'resolution',
+      'bigIdea',
+      'christ',
+      'application',
+      'questions',
+    ]);
+    const resolution = input!.sections.find(s => s.id === 'resolution')!;
+    expect(resolution.note).toBe('El Hijo entregado en amor');
+    expect(resolution.helps).toEqual(
+      expect.arrayContaining([expect.stringContaining('Romanos')]),
+    );
+  });
+
+  it("survives the 'handout' PDF format for a non-expository template — bigIdea/application/questions are universal", async () => {
+    const input = await assembleSeriesPassageInput('John/3/16', {
+      version: 'RVR1960',
+      deps: crossRefDeps('narrative', {
+        tension: 'La condenación que merecemos',
+        bigIdea: 'Dios amó tanto que dio a su Hijo',
+        application: 'Cree en él hoy',
+        questions: '¿Qué te impide creer?',
+      }),
+    });
+    const html = buildPrepHtml(input!, 'handout');
+    expect(html).toContain(
+      input!.sections.find(s => s.id === 'bigIdea')!.label,
+    );
+    expect(html).toContain(
+      input!.sections.find(s => s.id === 'application')!.label,
+    );
+    expect(html).toContain(
+      input!.sections.find(s => s.id === 'questions')!.label,
+    );
+    // The narrative-only ids are process, not a congregant takeaway — same
+    // discipline the expository handout already follows for context/
+    // observation/interpretation.
+    expect(html).not.toContain(
+      input!.sections.find(s => s.id === 'tension')!.label,
+    );
   });
 });
 

@@ -5,6 +5,7 @@ import {
   parsePrepNotesMap,
   serializePrepNotesMap,
   setMapSectionNote,
+  type PrepNotesMap,
 } from '../src/features/study/prepNotes';
 
 describe('prepNotes — preparer prose model', () => {
@@ -53,6 +54,64 @@ describe('prepNotes — preparer prose model', () => {
       setSectionNote(base, 'application', 'Go and do', 1);
       expect(base.sections.application).toBeUndefined();
     });
+
+    // Tanda "plantillas de sermón" — a template is stamped once, on the
+    // FIRST real write, and never changes underneath already-written prose.
+    it('stamps a proposed template on a brand-new entry', () => {
+      const next = setSectionNote(
+        emptyPrepNotes(),
+        'tension',
+        'The famine drives Naomi to Moab',
+        1,
+        'narrative',
+      );
+      expect(next.template).toBe('narrative');
+    });
+
+    it('leaves a legacy entry (no template) untouched when none is proposed', () => {
+      const next = setSectionNote(
+        emptyPrepNotes(),
+        'bigIdea',
+        'God provides',
+        1,
+      );
+      expect(next.template).toBeUndefined();
+    });
+
+    it('keeps an already-stamped template even when a DIFFERENT one is proposed on a later write', () => {
+      const first = setSectionNote(
+        emptyPrepNotes(),
+        'tension',
+        'The famine',
+        1,
+        'narrative',
+      );
+      // A later save (e.g. a different screen's flush) proposes 'expository'
+      // — the entry's own template must win, never silently switch under
+      // already-written prose.
+      const second = setSectionNote(
+        first,
+        'resolution',
+        'Boaz redeems',
+        2,
+        'expository',
+      );
+      expect(second.template).toBe('narrative');
+    });
+
+    it('preserves an already-stamped template when a later write omits the argument entirely (e.g. the illustrations-bank insert flow)', () => {
+      const first = setSectionNote(
+        emptyPrepNotes(),
+        'context',
+        'Bethlehem, in the days of the judges',
+        1,
+        'narrative',
+      );
+      // No 5th argument at all — mirrors app/features/prep/illustrations
+      // calling `savePrepNote(passageKey, INSERT_TARGET_SECTION, next)`.
+      const second = setSectionNote(first, 'application', 'Trust God', 2);
+      expect(second.template).toBe('narrative');
+    });
   });
 
   describe('parse/serialize round-trip', () => {
@@ -82,6 +141,43 @@ describe('prepNotes — preparer prose model', () => {
       // A row with a non-object sections becomes empty → dropped.
       expect(map['Bad/1/1']).toBeUndefined();
     });
+
+    // Tanda "plantillas de sermón" — every read of storage funnels through
+    // `coercePrepNotes`; a `template` that doesn't survive THIS round trip
+    // would silently vanish on the very next app open (the exact bug this
+    // guards against — see prepNotes.ts's own docstring on the function).
+    it('round-trips a valid template', () => {
+      const map = setMapSectionNote(
+        {},
+        'Ruth/1/1',
+        'tension',
+        'Famine in the land',
+        7,
+        'narrative',
+      );
+      const round = parsePrepNotesMap(serializePrepNotesMap(map));
+      expect(round['Ruth/1/1'].template).toBe('narrative');
+    });
+
+    it('drops a corrupt/unrecognized template value (resolves back to expository)', () => {
+      const raw = JSON.stringify({
+        'John/3/16': {
+          sections: {bigIdea: 'Love'},
+          updatedAt: 5,
+          template: 'not-a-real-template',
+        },
+      });
+      const map = parsePrepNotesMap(raw);
+      expect(map['John/3/16'].template).toBeUndefined();
+    });
+
+    it('a legacy entry with no template field round-trips with none (renders as expository)', () => {
+      const raw = JSON.stringify({
+        'John/3/16': {sections: {bigIdea: 'Love'}, updatedAt: 5},
+      });
+      const map = parsePrepNotesMap(raw);
+      expect(map['John/3/16'].template).toBeUndefined();
+    });
   });
 
   describe('setMapSectionNote', () => {
@@ -100,6 +196,54 @@ describe('prepNotes — preparer prose model', () => {
       const base = setMapSectionNote({}, 'John/3/16', 'context', 'x', 1);
       setMapSectionNote(base, 'John/3/16', 'bigIdea', 'y', 2);
       expect(base['John/3/16'].sections.bigIdea).toBeUndefined();
+    });
+
+    // Tanda "plantillas de sermón" — mirrors `savePrepNote`'s real call from
+    // app/features/prep/illustrations/index.tsx, which never passes a
+    // `template` argument. An already-narrative entry must not lose its
+    // template just because ONE caller doesn't know about templates.
+    it('a write with no template argument preserves an already-stamped one', () => {
+      const withTemplate = setMapSectionNote(
+        {},
+        'Ruth/1/1',
+        'tension',
+        'Famine',
+        1,
+        'narrative',
+      );
+      const afterInsert = setMapSectionNote(
+        withTemplate,
+        'Ruth/1/1',
+        'application',
+        'An illustration inserted here',
+        2,
+      );
+      expect(afterInsert['Ruth/1/1'].template).toBe('narrative');
+    });
+
+    // The non-negotiable from the task: picking a template for a NEW passage
+    // must never touch or migrate any OTHER already-saved entry. A legacy
+    // entry (no template, real prose written before templates existed) sits
+    // in the SAME map as a fresh 'narrative' pick and must come out byte-
+    // identical — sections, updatedAt, and its continued lack of a template.
+    it('choosing a template for a NEW entry never touches an existing legacy entry in the same map', () => {
+      const legacy: PrepNotesMap = {
+        'John/3/16': {
+          sections: {bigIdea: 'God so loved the world'},
+          updatedAt: 5,
+        },
+      };
+      const next = setMapSectionNote(
+        legacy,
+        'Ruth/1/1',
+        'tension',
+        'Famine in the land',
+        9,
+        'narrative',
+      );
+      expect(next['John/3/16']).toEqual(legacy['John/3/16']);
+      expect(next['John/3/16'].template).toBeUndefined();
+      expect(next['Ruth/1/1'].template).toBe('narrative');
     });
   });
 });

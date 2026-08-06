@@ -16,7 +16,11 @@
  * Para la gloria de Dios Todopoderoso ✨
  */
 
-import type {PrepSection} from './prepTable';
+import {
+  PREP_TEMPLATE_IDS,
+  type PrepSection,
+  type PrepTemplateId,
+} from './prepTable';
 
 /** What the preparer wrote for one passage. */
 export interface PrepNotes {
@@ -24,6 +28,16 @@ export interface PrepNotes {
   sections: Partial<Record<PrepSection, string>>;
   /** Last-edited epoch ms — lets a future "recent prep" list sort by recency. */
   updatedAt: number;
+  /**
+   * The homiletic structure this entry uses. OPTIONAL and ABSENT on every
+   * entry written before templates existed — a missing field means
+   * 'expository' (see `DEFAULT_PREP_TEMPLATE` in `prepTable.ts`), never a
+   * separate on-disk migration. Stamped once (by `setSectionNote` below) the
+   * FIRST time a section is actually saved, and never overwritten after —
+   * switching templates mid-preparation is out of scope; the picker only
+   * offers a choice while an entry is still empty.
+   */
+  template?: PrepTemplateId;
 }
 
 /** The whole device-local store: passage key → the preparer's notes. */
@@ -46,12 +60,20 @@ export function isPrepNotesEmpty(notes: PrepNotes | null | undefined): boolean {
  * Set one section's prose, returning a NEW notes object (immutable update).
  * A blank/whitespace value removes the key so an empty section doesn't linger
  * in storage and `isPrepNotesEmpty` stays honest. `updatedAt` advances to `now`.
+ *
+ * `template` is only ever a PROPOSAL: an existing `notes.template` always
+ * wins (a template, once stamped on first save, never changes underneath
+ * already-written prose). Pass it on every call with whatever the caller's
+ * current effective template is — harmless once one is already stored, and
+ * exactly how a brand-new entry gets its template stamped the first time any
+ * section is actually saved.
  */
 export function setSectionNote(
   notes: PrepNotes,
   section: PrepSection,
   text: string,
   now: number = Date.now(),
+  template?: PrepTemplateId,
 ): PrepNotes {
   const sections = {...notes.sections};
   const trimmed = typeof text === 'string' ? text : '';
@@ -60,13 +82,30 @@ export function setSectionNote(
   } else {
     sections[section] = trimmed;
   }
-  return {sections, updatedAt: now};
+  const resolvedTemplate = notes.template ?? template;
+  return resolvedTemplate
+    ? {sections, updatedAt: now, template: resolvedTemplate}
+    : {sections, updatedAt: now};
 }
 
-/** Coerce an unknown value into a clean `PrepNotes` (drops bad fields). */
+/**
+ * Coerce an unknown value into a clean `PrepNotes` (drops bad fields).
+ * `template` is preserved ONLY when it's one of the known `PrepTemplateId`s —
+ * any other value (corruption, a future app version's new template this
+ * build doesn't know) is dropped, which resolves back to `'expository'`
+ * wherever the field is read. Every read path (`getPrepNotes`,
+ * `getAllPrepNotes`, `parsePrepNotesMap`) funnels through this, so a saved
+ * `template` MUST survive here or it silently vanishes on the next load —
+ * an earlier draft of this change got that wrong; keep the round-trip test
+ * in `prepNotes.test.ts` green.
+ */
 function coercePrepNotes(value: unknown): PrepNotes | null {
   if (!value || typeof value !== 'object') return null;
-  const raw = value as {sections?: unknown; updatedAt?: unknown};
+  const raw = value as {
+    sections?: unknown;
+    updatedAt?: unknown;
+    template?: unknown;
+  };
   const sections: Partial<Record<PrepSection, string>> = {};
   if (raw.sections && typeof raw.sections === 'object') {
     for (const [key, text] of Object.entries(
@@ -77,11 +116,16 @@ function coercePrepNotes(value: unknown): PrepNotes | null {
       }
     }
   }
+  const template =
+    typeof raw.template === 'string' &&
+    (PREP_TEMPLATE_IDS as readonly string[]).includes(raw.template)
+      ? (raw.template as PrepTemplateId)
+      : undefined;
   const updatedAt =
     typeof raw.updatedAt === 'number' && Number.isFinite(raw.updatedAt)
       ? raw.updatedAt
       : 0;
-  return {sections, updatedAt};
+  return template ? {sections, updatedAt, template} : {sections, updatedAt};
 }
 
 /**
@@ -126,9 +170,10 @@ export function setMapSectionNote(
   section: PrepSection,
   text: string,
   now: number = Date.now(),
+  template?: PrepTemplateId,
 ): PrepNotesMap {
   const current = map[passageKey] ?? emptyPrepNotes();
-  const next = setSectionNote(current, section, text, now);
+  const next = setSectionNote(current, section, text, now, template);
   const out = {...map};
   if (isPrepNotesEmpty(next)) {
     delete out[passageKey];

@@ -42,9 +42,9 @@ import {logger} from '@lib/utils/logger';
 import {AppText} from '@components/ui/AppText';
 import bibleDB from '@lib/database';
 import {
-  PREP_SECTIONS,
   formatPassageKey,
   formatPassageLabel,
+  getPrepTemplateSections,
   normalizePassage,
   type PrepPassage,
   type PrepSection,
@@ -163,15 +163,20 @@ export default function PulpitModeScreen() {
 
       // Present the passage even with no notes yet — a preacher can read the
       // text in large type from the first moment, and their outline prose fills
-      // in below as they write it. Only the non-empty sections are shown.
-      const filled: FilledSection[] = PREP_SECTIONS.map(section => ({
-        section,
-        label: t.prepTable.sections[section].label,
-        prose: (notes.sections[section] ?? '').trim(),
-      })).filter(s => s.prose.length > 0);
+      // in below as they write it. Only the non-empty sections are shown, in
+      // THIS entry's own template order (a legacy entry with no `template`
+      // resolves to 'expository' — today's exact 7-section order, unchanged).
+      const templateSections = getPrepTemplateSections(notes.template);
+      const filled: FilledSection[] = templateSections
+        .map(section => ({
+          section,
+          label: t.prepTable.sections[section].label,
+          prose: (notes.sections[section] ?? '').trim(),
+        }))
+        .filter(s => s.prose.length > 0);
 
       setSections(filled);
-      setWordCount(countPrepNotesWords(notes));
+      setWordCount(countPrepNotesWords(notes, templateSections));
       setStatus('ready');
     } catch (err) {
       logger.error('Pulpit mode load failed', err as Error, {
