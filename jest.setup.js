@@ -31,10 +31,77 @@ jest.mock('expo-secure-store', () => {
   };
 });
 
+// Worklets (must be mocked before Reanimated's own mock, which eagerly
+// requires the real react-native-worklets native module and throws
+// "Native part of Worklets doesn't seem to be initialized" under Jest
+// otherwise — SPIKE FINDING: needed for ANY worklets bump above the
+// previously-pinned 0.5.1, including versions reanimated 4.1.x itself
+// declares compatible (0.7.x). react-native-worklets ships its own Jest
+// mock at src/mock.ts, but it is not exposed as a resolvable subpath
+// export from the package root, so it must be required via the deep
+// "react-native-worklets/src/mock" path rather than "react-native-worklets/mock".
+jest.mock('react-native-worklets', () =>
+  require('react-native-worklets/src/mock'),
+);
+
 // Reanimated
 jest.mock('react-native-reanimated', () =>
   require('react-native-reanimated/mock'),
 );
+
+// @expensify/react-native-live-markdown
+//
+// NOT the package's own documented `.../mock` subpath
+// (`jest.mock('@expensify/react-native-live-markdown', () =>
+// require('@expensify/react-native-live-markdown/mock'))`) — that was tried
+// first and is broken IN THIS PROJECT's Jest resolver setup specifically:
+// `jest.mock()` intercepts by RESOLVED ABSOLUTE PATH, and this package has
+// no "exports" map (only legacy "main"/"module"/"react-native" string
+// fields), so Jest's default resolver — which only understands "main",
+// not the ad hoc "react-native" field Metro honors at bundle time —
+// resolves the bare specifier to `lib/commonjs/index.js`. The shipped
+// mock (`lib/commonjs/mock/index.js`) internally does
+// `require("../index.js")`, which resolves to that SAME absolute file.
+// Since it's the same file already being mocked, that internal require
+// hits Jest's circular-require short-circuit and gets back an EMPTY,
+// still-in-progress exports object — so `MarkdownTextInput` silently comes
+// back `undefined` (confirmed empirically against a pristine
+// `node_modules` reinstall, not a leftover artifact of local debugging).
+//
+// Fix: build the mock shape ourselves, pulling the REAL component from a
+// deep subpath (`.../lib/commonjs/MarkdownTextInput.js`) via
+// `jest.requireActual`, which bypasses the mock registry entirely and sits
+// outside the self-referential file the broken mock hits. Deliberately
+// NOT `jest.requireActual('@expensify/react-native-live-markdown')` (the
+// package root) — that would also eagerly load `parseExpensiMark.js`,
+// which pulls in `expensify-common` + `html-entities` and is exactly what
+// the library ships a mock to avoid (see `noteMarkdownRanges.ts`'s header
+// comment on why this app's parser sidesteps that dependency entirely).
+// This app's own custom parser (`noteMarkdownRanges.ts`) is NOT stubbed by
+// any of this — it still runs for real in tests.
+//
+// Mocked by the SAME deep specifier the app itself imports
+// (`@expensify/react-native-live-markdown/src/MarkdownTextInput`), not the
+// package root barrel — confirmed via a live-device crash that importing
+// the barrel (`@expensify/react-native-live-markdown`) eagerly evaluates
+// `parseExpensiMark.ts` as a side effect of loading `index.tsx`'s re-export
+// graph, which throws in `__DEV__` on native without the same html-entities
+// patch-package step. `NoteEditorModal.tsx` deep-imports `MarkdownTextInput`
+// directly to avoid that at runtime; this mock must intercept that same
+// deep specifier (as a default export, matching `MarkdownTextInput.tsx`'s
+// own export shape) or the real un-transformed TSX would hit Jest's default
+// `transformIgnorePatterns` and fail to parse.
+jest.mock('@expensify/react-native-live-markdown/src/MarkdownTextInput', () => {
+  global.jsi_setMarkdownRuntime = jest.fn();
+  global.jsi_registerMarkdownWorklet = jest.fn();
+  global.jsi_unregisterMarkdownWorklet = jest.fn();
+  return {
+    __esModule: true,
+    default: jest.requireActual(
+      '@expensify/react-native-live-markdown/lib/commonjs/MarkdownTextInput.js',
+    ).default,
+  };
+});
 
 // Silence the useNativeDriver warning emitted by the Animated module. Must
 // capture the ORIGINAL console.warn before spying — calling `console.warn`

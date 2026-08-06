@@ -22,11 +22,27 @@ import {
   View,
   Text,
   Modal,
-  TextInput,
   TouchableOpacity,
   StyleSheet,
   useWindowDimensions,
 } from 'react-native';
+// Deep import, NOT `from '@expensify/react-native-live-markdown'` (the
+// package root barrel). That barrel's `src/index.tsx` re-exports
+// `parseExpensiMark` alongside `MarkdownTextInput` in the SAME module, and
+// ES module evaluation runs a barrel's full static-import graph regardless
+// of which named export is actually used — so importing the bare package
+// specifier eagerly loads `parseExpensiMark.ts`, which throws in `__DEV__`
+// on a real native build unless `html-entities` is workletized via
+// patch-package (confirmed via a live-device crash: "Uncaught Error:
+// `parseExpensiMark` requires `html-entities` package to be workletized").
+// This app never uses the library's own parser (`noteMarkdownRanges.ts`'s
+// header comment explains why) and never applied that patch, so it must
+// never load that module at all. `MarkdownTextInput.tsx` itself has no
+// dependency on `parseExpensiMark` — importing it directly, bypassing the
+// barrel, sidesteps the whole problem. Mirrors the same reasoning already
+// applied to this file's Jest mock (`jest.setup.js`), which deep-imports
+// the same component for the identical reason under Jest.
+import MarkdownTextInput from '@expensify/react-native-live-markdown/src/MarkdownTextInput';
 import {useRouter} from 'expo-router';
 import {Ionicons} from '@expo/vector-icons';
 import {useTheme} from '../../hooks/useTheme';
@@ -40,6 +56,7 @@ import {
   formatReferencedVerseLabel,
   type ReferencedVerse,
 } from '@/features/study/sermonNotes';
+import {parseNoteMarkdownRanges} from '@lib/notes/noteMarkdownRanges';
 import {NoteImageModal} from './NoteImageModal';
 import {staticColors} from '../../styles/designTokens';
 import {
@@ -90,6 +107,17 @@ export const NoteEditorModal: React.FC<NoteEditorModalProps> = ({
   const trimmed = value.trim();
   // Share-as-image (Sprint 70): a designer card of the verse + this note.
   const [shareVisible, setShareVisible] = useState(false);
+
+  // Must be a stable reference, not an inline object literal: MarkdownTextInput
+  // re-derives its native style (JSON clone + processColor) and re-registers
+  // its parser worklet whenever `markdownStyle`/`parser` change identity
+  // (`node_modules/@expensify/react-native-live-markdown/src/MarkdownTextInput.tsx`
+  // lines 95 & 107) — an inline literal here would re-do that work on every
+  // keystroke, the exact hot path this feature exists for.
+  const markdownStyle = useMemo(
+    () => ({syntax: {color: colors.textTertiary}}),
+    [colors.textTertiary],
+  );
 
   // The verse this note is attached to, as a ParsedReference — used only to
   // exclude it from the detected-references chips below. `verseReference` is
@@ -189,7 +217,7 @@ export const NoteEditorModal: React.FC<NoteEditorModalProps> = ({
             </Text>
           ) : null}
 
-          <TextInput
+          <MarkdownTextInput
             style={[
               styles.input,
               {color: colors.text, borderColor: colors.border},
@@ -201,6 +229,8 @@ export const NoteEditorModal: React.FC<NoteEditorModalProps> = ({
             multiline
             autoFocus
             textAlignVertical="top"
+            parser={parseNoteMarkdownRanges}
+            markdownStyle={markdownStyle}
           />
 
           <Text style={[styles.markdownHint, {color: colors.textTertiary}]}>
