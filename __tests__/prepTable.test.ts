@@ -6,6 +6,12 @@ import {
   PREP_SECTIONS,
   PREP_MAX_CROSS_REFS,
   PREP_MAX_CROSS_REFS_PREMIUM,
+  ALL_PREP_SECTION_IDS,
+  DEFAULT_PREP_TEMPLATE,
+  PREP_TEMPLATE_IDS,
+  PREP_TEMPLATES,
+  getPrepTemplateSections,
+  interpretationSlotFor,
 } from '../src/features/study/prepTable';
 
 describe('prepTable — "Mesa de preparación" pure assembly', () => {
@@ -178,5 +184,112 @@ describe('prepTable — "Mesa de preparación" pure assembly', () => {
       const one = buildPrepTable('John', 3, 16)!;
       expect(formatPassageLabel(one, 'es')).toBe('Juan 3:16');
     });
+  });
+});
+
+// Tanda "plantillas de sermón" — the 4 homiletic templates + resolution
+// helpers. `expository` is PREP_SECTIONS unchanged; the other 3 are additive.
+describe('prepTable — sermon-prep templates', () => {
+  it('defaults to expository', () => {
+    expect(DEFAULT_PREP_TEMPLATE).toBe('expository');
+  });
+
+  it("'expository' is exactly PREP_SECTIONS, unchanged", () => {
+    expect(PREP_TEMPLATES.expository).toEqual(PREP_SECTIONS);
+  });
+
+  it("'textual' walks the text verse-by-verse instead of two separate observation/interpretation passes", () => {
+    expect(PREP_TEMPLATES.textual).toEqual([
+      'context',
+      'versePoints',
+      'bigIdea',
+      'christ',
+      'application',
+      'questions',
+    ]);
+  });
+
+  it("'topical' replaces the single-passage walk with a topic's development", () => {
+    expect(PREP_TEMPLATES.topical).toEqual([
+      'context',
+      'topicDevelopment',
+      'bigIdea',
+      'christ',
+      'application',
+      'questions',
+    ]);
+  });
+
+  it("'narrative' adds tension/resolution beats for a story passage", () => {
+    expect(PREP_TEMPLATES.narrative).toEqual([
+      'context',
+      'observation',
+      'tension',
+      'resolution',
+      'bigIdea',
+      'christ',
+      'application',
+      'questions',
+    ]);
+  });
+
+  it('every template keeps bigIdea, christ, application and questions — the Christ-centred ethos', () => {
+    for (const id of PREP_TEMPLATE_IDS) {
+      const sections = PREP_TEMPLATES[id];
+      expect(sections).toEqual(
+        expect.arrayContaining([
+          'bigIdea',
+          'christ',
+          'application',
+          'questions',
+        ]),
+      );
+    }
+  });
+
+  describe('getPrepTemplateSections', () => {
+    it('resolves each known template id to its own list', () => {
+      for (const id of PREP_TEMPLATE_IDS) {
+        expect(getPrepTemplateSections(id)).toEqual(PREP_TEMPLATES[id]);
+      }
+    });
+
+    it('falls back to expository for null/undefined (legacy entries)', () => {
+      expect(getPrepTemplateSections(undefined)).toEqual(PREP_SECTIONS);
+      expect(getPrepTemplateSections(null)).toEqual(PREP_SECTIONS);
+    });
+
+    it('falls back to expository for an unrecognized id (defensive)', () => {
+      // @ts-expect-error — exercise the defensive fallback for a corrupt/future id.
+      expect(getPrepTemplateSections('made-up-template')).toEqual(
+        PREP_SECTIONS,
+      );
+    });
+  });
+
+  describe('interpretationSlotFor', () => {
+    it('maps every template to the id that carries cross-ref/theme helps', () => {
+      expect(interpretationSlotFor('expository')).toBe('interpretation');
+      expect(interpretationSlotFor('textual')).toBe('versePoints');
+      expect(interpretationSlotFor('topical')).toBe('topicDevelopment');
+      expect(interpretationSlotFor('narrative')).toBe('resolution');
+    });
+
+    it('falls back to interpretation for null/undefined/unrecognized', () => {
+      expect(interpretationSlotFor(undefined)).toBe('interpretation');
+      expect(interpretationSlotFor(null)).toBe('interpretation');
+    });
+  });
+
+  it('ALL_PREP_SECTION_IDS covers every id used by every template exactly once', () => {
+    const union = new Set<string>();
+    for (const id of PREP_TEMPLATE_IDS) {
+      for (const section of PREP_TEMPLATES[id]) union.add(section);
+    }
+    expect(new Set(ALL_PREP_SECTION_IDS)).toEqual(union);
+    // No duplicates.
+    expect(new Set(ALL_PREP_SECTION_IDS).size).toBe(
+      ALL_PREP_SECTION_IDS.length,
+    );
   });
 });

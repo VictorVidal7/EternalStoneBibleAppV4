@@ -74,12 +74,17 @@ import {
 import {
   buildPrepTable,
   formatPassageLabel,
-  PREP_SECTIONS,
+  getPrepTemplateSections,
+  interpretationSlotFor,
+  DEFAULT_PREP_TEMPLATE,
   PREP_MAX_CROSS_REFS,
   PREP_MAX_CROSS_REFS_PREMIUM,
+  PREP_TEMPLATE_IDS,
   type PrepSection,
   type PrepTable,
+  type PrepTemplateId,
 } from '@/features/study/prepTable';
+import {isPrepNotesEmpty} from '@/features/study/prepNotes';
 import {getPrepNotes, savePrepNote} from '@/features/study/prepNotesStore';
 import {
   groupOriginalWordsByStrongs,
@@ -205,7 +210,7 @@ async function resolveVersion(paramVersion?: string): Promise<string> {
   return paramVersion ?? (await AsyncStorage.getItem(VERSION_KEY)) ?? 'RVR1960';
 }
 
-/** Per-section icon for the outline cards. */
+/** Per-section icon for the outline cards — every id from every template. */
 const SECTION_ICONS: Record<PrepSection, keyof typeof Ionicons.glyphMap> = {
   context: 'book-outline',
   observation: 'eye-outline',
@@ -214,6 +219,10 @@ const SECTION_ICONS: Record<PrepSection, keyof typeof Ionicons.glyphMap> = {
   christ: 'sparkles-outline',
   application: 'walk-outline',
   questions: 'help-circle-outline',
+  versePoints: 'list-outline',
+  topicDevelopment: 'layers-outline',
+  tension: 'warning-outline',
+  resolution: 'checkmark-circle-outline',
 };
 
 /** One +/− button in the verse-range stepper. */
@@ -332,6 +341,23 @@ export default function PrepTableScreen() {
   const [drafts, setDrafts] = useState<Partial<Record<PrepSection, string>>>(
     {},
   );
+  // Tanda "plantillas de sermón" — the CURRENT entry's homiletic structure.
+  // Resolved from storage in `load()` (unconditionally, so switching passages
+  // never leaks a stale choice); the narrow refocus effect below only adopts
+  // a NEWLY-persisted template, never resetting an as-yet-unsaved pick made
+  // via the picker. See its own comment for why the two are asymmetric.
+  const [template, setTemplate] = useState<PrepTemplateId>(
+    DEFAULT_PREP_TEMPLATE,
+  );
+  // This entry's own ordered section-id list + which of its ids plays
+  // "interpretation"'s role — every call site below resolves through these
+  // two instead of importing `PREP_SECTIONS` directly, so a template choice
+  // actually changes what renders/exports/flushes/times.
+  const templateSections = useMemo(
+    () => getPrepTemplateSections(template),
+    [template],
+  );
+  const interpSlot = useMemo(() => interpretationSlotFor(template), [template]);
   const [versionLabel, setVersionLabel] = useState('');
   const [copied, setCopied] = useState(false);
   // T8.4.5 — PDF export (premium): a separate in-flight flag from `copied`
@@ -506,6 +532,11 @@ export default function PrepTableScreen() {
       setChristRows(christResolved.filter(r => Boolean(r.note)));
       setIntro(bookIntro);
       setDrafts(saved.sections);
+      // Unconditional (unlike the narrow refocus effect below): this is a
+      // whole-passage (re)load, possibly for a DIFFERENT passageKey than
+      // before (the range stepper just moved), so it must always resolve to
+      // THAT entry's own stored template — never carry over a stale pick.
+      setTemplate(saved.template ?? DEFAULT_PREP_TEMPLATE);
       setVersionLabel(versionAbbrev(version));
       hasLoadedRef.current = true;
       setStatus('ready');
@@ -536,7 +567,17 @@ export default function PrepTableScreen() {
   useFocusEffect(
     useCallback(() => {
       if (table) {
-        getPrepNotes(table.passageKey).then(saved => setDrafts(saved.sections));
+        getPrepNotes(table.passageKey).then(saved => {
+          setDrafts(saved.sections);
+          // CONDITIONAL, unlike `load()` above: a focus round-trip (e.g. to
+          // the illustrations bank and back) must adopt a template another
+          // screen just PERSISTED for this SAME entry, but must never reset
+          // a template the picker just chose locally and hasn't been saved
+          // yet (picking narrativo, then navigating to insert an
+          // illustration before typing a word, must not silently revert the
+          // pick to 'expository' on return).
+          if (saved.template) setTemplate(saved.template);
+        });
       }
     }, [table]),
   );
@@ -809,17 +850,26 @@ export default function PrepTableScreen() {
     // Same race handleOpenPulpit below guards against: flush any in-flight
     // note edits BEFORE navigating, so the illustrations screen's own read
     // (when it appends the inserted illustration) sees the latest typed
-    // content rather than a stale AsyncStorage snapshot.
+    // content rather than a stale AsyncStorage snapshot. Flushes THIS entry's
+    // own template sections (not the bare `PREP_SECTIONS` 7) so a
+    // non-'expository' entry's just-typed prose (e.g. a `tension` note) is
+    // actually persisted before the illustrations screen reads it back.
     await Promise.all(
-      PREP_SECTIONS.map(section =>
-        savePrepNote(table.passageKey, section, drafts[section] ?? ''),
+      templateSections.map(section =>
+        savePrepNote(
+          table.passageKey,
+          section,
+          drafts[section] ?? '',
+          undefined,
+          template,
+        ),
       ),
     );
     router.push({
       pathname: '/features/prep/illustrations' as never,
       params: {insertPassageKey: table.passageKey},
     });
-  }, [router, table, drafts]);
+  }, [router, table, drafts, templateSections, template]);
 
   // Modo púlpito — the presenter view. Always navigates with the current
   // passage (the destination gates itself + shows an empty state when there
@@ -831,9 +881,18 @@ export default function PrepTableScreen() {
     // reads notes from STORAGE, so a note just typed (whose onBlur save is still
     // queued when this button's tap fires) could otherwise lose the race and
     // make the presenter show its empty state. Flushing here closes that gap.
+    // Uses THIS entry's own template sections (not the bare `PREP_SECTIONS`
+    // 7) so a non-'expository' entry's prose is fully flushed too — the
+    // pulpit screen resolves the SAME template independently from storage.
     await Promise.all(
-      PREP_SECTIONS.map(section =>
-        savePrepNote(table.passageKey, section, drafts[section] ?? ''),
+      templateSections.map(section =>
+        savePrepNote(
+          table.passageKey,
+          section,
+          drafts[section] ?? '',
+          undefined,
+          template,
+        ),
       ),
     );
     // Resolve the version the SAME way this screen resolves it (explicit
@@ -855,7 +914,7 @@ export default function PrepTableScreen() {
         version,
       },
     });
-  }, [router, table, params.version, drafts]);
+  }, [router, table, params.version, drafts, templateSections, template]);
 
   const handleUnlockPulpit = useCallback(() => {
     haptics.tap();
@@ -869,8 +928,13 @@ export default function PrepTableScreen() {
   // save path that actually catches that case). onBlur below stays as a
   // harmless, redundant safety net for the common case where it does fire.
   const debouncedSaveNote = useDebouncedCallback(
-    (passageKey: string, section: PrepSection, value: string) => {
-      savePrepNote(passageKey, section, value);
+    (
+      passageKey: string,
+      section: PrepSection,
+      value: string,
+      templateId: PrepTemplateId,
+    ) => {
+      savePrepNote(passageKey, section, value, undefined, templateId);
     },
     700,
   );
@@ -887,17 +951,23 @@ export default function PrepTableScreen() {
     (section: PrepSection, value: string) => {
       setDrafts(prev => ({...prev, [section]: value}));
       if (!table) return;
-      debouncedSaveNote(table.passageKey, section, value);
+      debouncedSaveNote(table.passageKey, section, value, template);
     },
-    [table, debouncedSaveNote],
+    [table, debouncedSaveNote, template],
   );
 
   const handleNoteBlur = useCallback(
     (section: PrepSection) => {
       if (!table) return;
-      savePrepNote(table.passageKey, section, drafts[section] ?? '');
+      savePrepNote(
+        table.passageKey,
+        section,
+        drafts[section] ?? '',
+        undefined,
+        template,
+      );
     },
-    [table, drafts],
+    [table, drafts, template],
   );
 
   const headerGradient: readonly [string, string, ...string[]] = highContrast
@@ -945,14 +1015,14 @@ export default function PrepTableScreen() {
     const themeLabel = (id: string) =>
       (t.themes.list as Record<string, {name: string; description: string}>)[id]
         ?.name ?? id;
-    const sections: PrepMarkdownSection[] = PREP_SECTIONS.map(section => {
+    const sections: PrepMarkdownSection[] = templateSections.map(section => {
       let helps: string[] = [];
       if (section === 'context' && intro) {
         helps = [
           `${p.bookIntroTitle} — ${intro.author} · ${intro.date}`,
           intro.context,
         ];
-      } else if (section === 'interpretation') {
+      } else if (section === interpSlot) {
         helps = [
           ...crossRows.map(r =>
             r.text
@@ -995,6 +1065,8 @@ export default function PrepTableScreen() {
     versionLabel,
     p,
     t,
+    templateSections,
+    interpSlot,
   ]);
 
   const handleExport = useCallback(async () => {
@@ -1116,7 +1188,7 @@ export default function PrepTableScreen() {
       );
     }
 
-    if (section === 'interpretation') {
+    if (section === interpSlot) {
       return (
         <>
           {crossRows.length > 0 && (
@@ -2048,8 +2120,104 @@ export default function PrepTableScreen() {
                 )}
               </View>
 
-              {/* The outline scaffold. */}
-              {PREP_SECTIONS.map(section => {
+              {/* Tanda "plantillas de sermón" — the structure picker. Shown
+                  ONLY while this entry is still empty (no section has real
+                  prose yet, in-memory OR saved): once the preparer writes a
+                  single word the choice locks in (stamped onto storage by
+                  the very next save) and this card disappears, so switching
+                  templates mid-preparation — which would leave already-
+                  written prose sitting under a hidden section id — is never
+                  offered as an option. Defaults to 'expository', unchanged. */}
+              {status === 'ready' &&
+                isPrepNotesEmpty({sections: drafts, updatedAt: 0}) && (
+                  <View
+                    style={[
+                      styles.sectionCard,
+                      {
+                        backgroundColor: colors.card,
+                        borderColor: colors.border,
+                      },
+                    ]}>
+                    <View style={styles.sectionHeader}>
+                      <Ionicons
+                        name="git-branch-outline"
+                        size={18}
+                        color={colors.primary}
+                      />
+                      <AppText
+                        scaleRole="body"
+                        style={[styles.sectionLabel, {color: colors.text}]}>
+                        {p.templatePickerTitle}
+                      </AppText>
+                    </View>
+                    <Text
+                      style={[
+                        styles.sectionPrompt,
+                        {color: colors.textSecondary},
+                      ]}>
+                      {p.templatePickerHint}
+                    </Text>
+                    <View style={styles.templateOptionsWrap}>
+                      {PREP_TEMPLATE_IDS.map(id => {
+                        const isSelected = template === id;
+                        const tpl = p.templates[id];
+                        return (
+                          <TouchableOpacity
+                            key={id}
+                            onPress={() => {
+                              haptics.tap();
+                              setTemplate(id);
+                            }}
+                            accessibilityRole="button"
+                            accessibilityState={{selected: isSelected}}
+                            accessibilityLabel={`${tpl.label} — ${tpl.description}`}
+                            style={[
+                              styles.templateOption,
+                              {
+                                borderColor: isSelected
+                                  ? colors.primary
+                                  : colors.border,
+                                backgroundColor: isSelected
+                                  ? colors.primary + '14'
+                                  : colors.background,
+                              },
+                            ]}>
+                            <View style={styles.templateOptionHeaderRow}>
+                              <Text
+                                style={[
+                                  styles.templateOptionLabel,
+                                  {
+                                    color: isSelected
+                                      ? colors.primary
+                                      : colors.text,
+                                  },
+                                ]}>
+                                {tpl.label}
+                              </Text>
+                              {isSelected && (
+                                <Ionicons
+                                  name="checkmark-circle"
+                                  size={16}
+                                  color={colors.primary}
+                                />
+                              )}
+                            </View>
+                            <Text
+                              style={[
+                                styles.templateOptionDesc,
+                                {color: colors.textSecondary},
+                              ]}>
+                              {tpl.description}
+                            </Text>
+                          </TouchableOpacity>
+                        );
+                      })}
+                    </View>
+                  </View>
+                )}
+
+              {/* The outline scaffold — THIS entry's own template order. */}
+              {templateSections.map(section => {
                 const sc = p.sections[section];
                 return (
                   <View
@@ -2107,10 +2275,10 @@ export default function PrepTableScreen() {
 
               {/* Modo púlpito — presenter view + duration estimate (premium). */}
               {(() => {
-                const pulpitWords = countPrepNotesWords({
-                  sections: drafts,
-                  updatedAt: 0,
-                });
+                const pulpitWords = countPrepNotesWords(
+                  {sections: drafts, updatedAt: 0},
+                  templateSections,
+                );
                 const pulpitEstimate = formatEstimatedDuration(
                   estimateMinutes(pulpitWords, pulpitWpm),
                   {
@@ -2644,6 +2812,23 @@ const styles = StyleSheet.create({
   },
   chipText: {fontSize: fontSizes.sm, fontWeight: '600'},
   chipAtCap: {opacity: 0.5},
+  templateOptionsWrap: {gap: spacing.sm},
+  templateOption: {
+    borderRadius: borderRadius.md,
+    borderWidth: StyleSheet.hairlineWidth,
+    padding: spacing.md,
+  },
+  templateOptionHeaderRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  templateOptionLabel: {fontWeight: '700', fontSize: fontSizes.sm},
+  templateOptionDesc: {
+    fontSize: fontSizes.xs,
+    lineHeight: fontSizes.xs * 1.4,
+    marginTop: 2,
+  },
   flexOne: {flex: 1},
   crossRefsHeaderRow: {
     flexDirection: 'row',

@@ -96,6 +96,33 @@ describe('firstNonEmptyPreview', () => {
     expect(preview.length).toBeLessThan(200);
     expect(preview.endsWith('…')).toBe(true);
   });
+
+  // Tanda "plantillas de sermón" — the preview walks THIS entry's own
+  // template order, not always the expository 7.
+  it("uses the entry's own template order (narrative: tension before bigIdea)", () => {
+    const n: PrepNotes = {
+      sections: {
+        bigIdea: 'God redeems through Boaz',
+        tension: 'Naomi is left with nothing',
+      },
+      updatedAt: 1,
+      template: 'narrative',
+    };
+    // In narrative order, 'tension' comes before 'bigIdea' — the preview
+    // must prefer it even though 'bigIdea' would win under expository order.
+    expect(firstNonEmptyPreview(n)).toBe('Naomi is left with nothing');
+  });
+
+  it('a legacy entry with no template resolves as expository (context before bigIdea)', () => {
+    const n: PrepNotes = {
+      sections: {
+        bigIdea: 'God so loved the world',
+        context: 'Written by John',
+      },
+      updatedAt: 1,
+    };
+    expect(firstNonEmptyPreview(n)).toBe('Written by John');
+  });
 });
 
 describe('buildPrepHistoryEntries', () => {

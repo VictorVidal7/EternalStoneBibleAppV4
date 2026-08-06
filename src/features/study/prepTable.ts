@@ -47,6 +47,13 @@ export type PrepRefKey = string;
  * is the classic inductive movement — what it SAYS, what it MEANT/MEANS, its one
  * dominant thought, how it reveals Christ, how it changes us, and questions to
  * teach it — kept Christ-centred so application never floats free of the gospel.
+ *
+ * This is the **'expository'** template's outline (see `PREP_TEMPLATES` below)
+ * and the DEFAULT for every passage — unchanged since Sprint 103. A saved
+ * `PrepNotes` entry with no `template` field (every entry written before
+ * templates existed) is treated as `'expository'` and renders/exports/times
+ * EXACTLY this list, in this order — that backward-compatibility guarantee is
+ * why this constant's value must never change.
  */
 export const PREP_SECTIONS = [
   'context',
@@ -58,7 +65,149 @@ export const PREP_SECTIONS = [
   'questions',
 ] as const;
 
-export type PrepSection = (typeof PREP_SECTIONS)[number];
+/**
+ * Section ids introduced by the non-'expository' templates (see
+ * `PREP_TEMPLATES` below) — each still just an i18n key under
+ * `t.prepTable.sections[id]`, same shape as the original 7:
+ *
+ *  - `versePoints` ('textual'): the classic verse-by-verse sermon derives its
+ *    points directly from the text's own clauses IN ORDER, observing and
+ *    interpreting each together rather than in two separate global passes —
+ *    a genuinely different single step, not a relabeling of
+ *    observation+interpretation.
+ *  - `topicDevelopment` ('topical'): a topic-driven message doesn't walk ONE
+ *    passage's flow — it builds its case across passages, so the "what does
+ *    this development look like, in what order" question replaces
+ *    observation/interpretation.
+ *  - `tension` / `resolution` ('narrative'): a story's conflict and its turn —
+ *    concepts none of the original 7 name.
+ *
+ * Listed here together with `PREP_SECTIONS` in `ALL_PREP_SECTION_IDS` below.
+ */
+export const ALL_PREP_SECTION_IDS = [
+  'context',
+  'observation',
+  'interpretation',
+  'versePoints',
+  'topicDevelopment',
+  'tension',
+  'resolution',
+  'bigIdea',
+  'christ',
+  'application',
+  'questions',
+] as const;
+
+export type PrepSection = (typeof ALL_PREP_SECTION_IDS)[number];
+
+/**
+ * The homiletic structure the preparer chooses for a passage (proposal #1 of
+ * the sermon-prep-support research, 2026-07-15). `'expository'` is today's
+ * only outline and stays the default; the other three are additive — same
+ * `{id, label, prompt}` shape, just a different ordered subset of section ids.
+ * These ids are PERSISTED on `PrepNotes.template` (see `prepNotes.ts`) — never
+ * rename or remove one after ships without a storage migration.
+ */
+export const PREP_TEMPLATE_IDS = [
+  'expository',
+  'textual',
+  'topical',
+  'narrative',
+] as const;
+
+export type PrepTemplateId = (typeof PREP_TEMPLATE_IDS)[number];
+
+/** A saved entry with no `template` field renders as this — see `PREP_SECTIONS`'s docstring. */
+export const DEFAULT_PREP_TEMPLATE: PrepTemplateId = 'expository';
+
+const TEXTUAL_SECTIONS = [
+  'context',
+  'versePoints',
+  'bigIdea',
+  'christ',
+  'application',
+  'questions',
+] as const satisfies readonly PrepSection[];
+
+const TOPICAL_SECTIONS = [
+  'context',
+  'topicDevelopment',
+  'bigIdea',
+  'christ',
+  'application',
+  'questions',
+] as const satisfies readonly PrepSection[];
+
+const NARRATIVE_SECTIONS = [
+  'context',
+  'observation',
+  'tension',
+  'resolution',
+  'bigIdea',
+  'christ',
+  'application',
+  'questions',
+] as const satisfies readonly PrepSection[];
+
+/** Every template's ordered section-id list, keyed by `PrepTemplateId`. */
+export const PREP_TEMPLATES: Record<PrepTemplateId, readonly PrepSection[]> = {
+  expository: PREP_SECTIONS,
+  textual: TEXTUAL_SECTIONS,
+  topical: TOPICAL_SECTIONS,
+  narrative: NARRATIVE_SECTIONS,
+};
+
+/**
+ * Resolve which ordered section-id list applies to a saved entry — the SINGLE
+ * place every call site should ask "which sections for this template", instead
+ * of importing `PREP_SECTIONS` directly. `null`/`undefined`/an unrecognized id
+ * (defensive — a hand-edited or future-app-version store) all fall back to
+ * `DEFAULT_PREP_TEMPLATE`, so a legacy entry with no `template` field renders
+ * exactly as it always has.
+ */
+export function getPrepTemplateSections(
+  templateId: PrepTemplateId | null | undefined,
+): readonly PrepSection[] {
+  return (
+    PREP_TEMPLATES[templateId as PrepTemplateId] ??
+    PREP_TEMPLATES[DEFAULT_PREP_TEMPLATE]
+  );
+}
+
+/**
+ * Which section id plays "interpretation"'s role in a given template — the
+ * step where the curated cross-references + themes attach. The GATHERED helps
+ * themselves never vary by template (the assembler is template-agnostic, see
+ * `buildPrepTable` below); only which outline slot displays them does.
+ */
+export function interpretationSlotFor(
+  templateId: PrepTemplateId | null | undefined,
+): PrepSection {
+  switch (templateId) {
+    case 'textual':
+      return 'versePoints';
+    case 'topical':
+      return 'topicDevelopment';
+    case 'narrative':
+      return 'resolution';
+    case 'expository':
+    default:
+      return 'interpretation';
+  }
+}
+
+/**
+ * Every id that has ever played the interpretation-slot role above, across
+ * every template — for a reader that must guess which template produced a
+ * given note without being told (e.g. the read-only shared-study viewer,
+ * which never receives the sender's template choice).
+ */
+export const INTERPRETATION_SLOT_IDS: readonly PrepSection[] = [
+  'interpretation',
+  'versePoints',
+  'topicDevelopment',
+  'resolution',
+];
 
 /**
  * Cap on gathered cross-references — enough parallels to study without burying
@@ -111,7 +260,14 @@ export interface PrepTable {
   hasBookIntro: boolean;
   /** Count of distinct gathered helps — drives a "N ayudas" badge. */
   helpCount: number;
-  /** The ordered outline sections (stable ids → i18n). */
+  /**
+   * The DEFAULT ('expository') outline — this assembler is template-agnostic
+   * (the gathered helps never depend on which homiletic structure the
+   * preparer picks), so it always reports `PREP_SECTIONS` here regardless of
+   * a saved entry's own `PrepNotes.template`. A caller resolving which
+   * outline actually applies to a specific saved entry must use
+   * `getPrepTemplateSections(notes.template)` instead of this field.
+   */
   sections: readonly PrepSection[];
 }
 

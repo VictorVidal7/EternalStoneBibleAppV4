@@ -989,6 +989,36 @@ export const translations = {
         '¿Sobre qué quieres predicar? Ej.: gracia, perdón, miedo',
       topicSuggestNoResults:
         'No encontramos pasajes para ese tema. Prueba con otra palabra.',
+      // Tanda "plantillas de sermón" — elegir entre varias estructuras
+      // homiléticas antes de escribir, en vez del único esquema expositivo de
+      // siempre. Solo se muestra mientras la preparación está vacía; el
+      // predicador nunca ve la mecánica de "plantilla" en sí, solo un nombre
+      // y una descripción breve de cómo se organiza el bosquejo.
+      templatePickerTitle: 'Estructura del bosquejo',
+      templatePickerHint:
+        'Elige cómo quieres organizar esta preparación. Podrás verla así hasta que termines.',
+      templates: {
+        expository: {
+          label: 'Expositivo',
+          description:
+            'El recorrido clásico: contexto, observación e interpretación hacia una sola idea central.',
+        },
+        textual: {
+          label: 'Textual',
+          description:
+            'Verso a verso: cada punto nace directamente del orden del texto.',
+        },
+        topical: {
+          label: 'Temático',
+          description:
+            'Parte de un tema y lo desarrolla con pasajes de toda la Escritura.',
+        },
+        narrative: {
+          label: 'Narrativo',
+          description:
+            'Para relatos: escena, tensión, resolución y la enseñanza que deja.',
+        },
+      },
       sections: {
         context: {
           label: 'Contexto',
@@ -1004,6 +1034,30 @@ export const translations = {
           label: 'Interpretación',
           prompt:
             '¿Qué significó para sus primeros lectores y qué significa? Deja que el pasaje hable y compáralo con los paralelos.',
+        },
+        // Tanda "plantillas de sermón" — nuevos ids, uno por concepto que
+        // ninguno de los 7 originales cubre (ver PREP_TEMPLATES en
+        // prepTable.ts). Mismo tono que los de arriba: preguntas
+        // estructurales que guían, nunca una respuesta sugerida.
+        versePoints: {
+          label: 'Puntos del texto, verso a verso',
+          prompt:
+            'Recorre el pasaje verso a verso (o cláusula a cláusula): ¿qué observas y qué significa en cada uno? Deja que el orden del texto ordene tus puntos.',
+        },
+        topicDevelopment: {
+          label: 'Desarrollo del tema',
+          prompt:
+            '¿Qué verdades o pasajes, en qué orden, edifican tu argumento sobre este tema? Que cada paso apoye al siguiente, sin salirte del hilo.',
+        },
+        tension: {
+          label: 'Tensión del relato',
+          prompt:
+            '¿Cuál es el conflicto, el problema o la pregunta que el relato plantea? Nómbralo con claridad antes de pasar a la resolución.',
+        },
+        resolution: {
+          label: 'Resolución',
+          prompt:
+            '¿Cómo resuelve el relato esa tensión? ¿Qué gira o se revela en el desenlace?',
         },
         bigIdea: {
           label: 'Idea central',
@@ -6883,6 +6937,36 @@ export const translations = {
         'What do you want to preach about? E.g.: grace, forgiveness, fear',
       topicSuggestNoResults:
         'We couldn’t find passages for that topic. Try another word.',
+      // Sermon-templates tanda — choose among several homiletic structures
+      // before writing, instead of the one always-expository scaffold. Only
+      // shown while the preparation is still empty; the preacher never sees
+      // the word "template" as a mechanism, just a name and a short
+      // description of how the outline is organized.
+      templatePickerTitle: 'Outline structure',
+      templatePickerHint:
+        "Choose how you want to organize this preparation. You'll see it this way until you finish.",
+      templates: {
+        expository: {
+          label: 'Expository',
+          description:
+            'The classic path: context, observation and interpretation toward one central idea.',
+        },
+        textual: {
+          label: 'Textual',
+          description:
+            "Verse by verse: each point comes straight from the text's own order.",
+        },
+        topical: {
+          label: 'Topical',
+          description:
+            'Starts from a topic and develops it with passages from across Scripture.',
+        },
+        narrative: {
+          label: 'Narrative',
+          description:
+            'For stories: scene, tension, resolution, and the lesson it leaves.',
+        },
+      },
       sections: {
         context: {
           label: 'Context',
@@ -6898,6 +6982,30 @@ export const translations = {
           label: 'Interpretation',
           prompt:
             'What did it mean to its first readers, and what does it mean? Let the passage speak, and compare the parallels.',
+        },
+        // Sermon-templates tanda — new ids, one per concept none of the
+        // original 7 cover (see PREP_TEMPLATES in prepTable.ts). Same voice
+        // as the ones above: guiding structural questions, never a
+        // suggested answer.
+        versePoints: {
+          label: 'Points from the text, verse by verse',
+          prompt:
+            "Walk the passage verse by verse (or clause by clause): what do you observe, and what does it mean, in each one? Let the text's own order shape your points.",
+        },
+        topicDevelopment: {
+          label: 'Development of the topic',
+          prompt:
+            'What truths or passages, in what order, build your case on this topic? Let each step support the next, without wandering from the thread.',
+        },
+        tension: {
+          label: 'Story tension',
+          prompt:
+            'What is the conflict, problem, or question the story raises? Name it clearly before moving to the resolution.',
+        },
+        resolution: {
+          label: 'Resolution',
+          prompt:
+            'How does the story resolve that tension? What turns or is revealed in the outcome?',
         },
         bigIdea: {
           label: 'Big idea',

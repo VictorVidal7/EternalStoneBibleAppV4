@@ -20,7 +20,7 @@
  */
 
 import {getBookByName} from '@/constants/bible';
-import {PREP_SECTIONS, type PrepSection} from './prepTable';
+import {getPrepTemplateSections} from './prepTable';
 import type {PrepNotes, PrepNotesMap} from './prepNotes';
 
 /** A `passageKey` resolved back into its passage parts. */
@@ -78,11 +78,13 @@ export function parsePassageKey(key: string): ParsedPassageKey | null {
 }
 
 /**
- * The first non-empty outline section's prose (outline order), trimmed to a
- * single line and capped so a long paragraph doesn't blow out a list row.
+ * The first non-empty outline section's prose, in THIS entry's OWN template
+ * order (defaults to 'expository' for a legacy entry with no `template`),
+ * trimmed to a single line and capped so a long paragraph doesn't blow out a
+ * list row.
  */
 export function firstNonEmptyPreview(notes: PrepNotes): string {
-  for (const section of PREP_SECTIONS as readonly PrepSection[]) {
+  for (const section of getPrepTemplateSections(notes.template)) {
     const text = notes.sections[section];
     if (text && text.trim().length > 0) {
       const flat = text.trim().replace(/\s+/g, ' ');

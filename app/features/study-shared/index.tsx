@@ -45,9 +45,10 @@ import {getBookById, getBookByName} from '@/constants/bible';
 import {getBookIntro} from '@/constants/book-intros';
 import {translations} from '@/i18n/translations';
 import {
+  ALL_PREP_SECTION_IDS,
   buildPrepTable,
   formatPassageLabel,
-  PREP_SECTIONS,
+  INTERPRETATION_SLOT_IDS,
   type PrepSection,
   type PrepTable,
 } from '@/features/study/prepTable';
@@ -241,6 +242,23 @@ export default function SharedStudyScreen() {
     ? formatPassageLabel(table, selectedVersion.language === 'es' ? 'es' : 'en')
     : '';
 
+  // Tanda "plantillas de sermón" — this bundle never carries WHICH homiletic
+  // template the sender used (the peer-to-peer `StudyBundle` wire format stays
+  // domain-free, see [[together/types]]), so this viewer can't be TOLD which
+  // section id plays "interpretation"'s role for a non-'expository' template.
+  // Best-effort recovery: whichever of the possible slot ids actually has the
+  // sender's own prose is the one they used; falling back to 'interpretation'
+  // is byte-identical for every bundle made before this change (the only
+  // template that has ever existed). Memoized ONCE (not per rendered section)
+  // so the cross-ref/theme helps below attach to exactly one heading.
+  const interpSlotId = useMemo<PrepSection>(() => {
+    if (!bundle) return 'interpretation';
+    return (
+      INTERPRETATION_SLOT_IDS.find(id => bundle.n[id]?.trim()) ??
+      'interpretation'
+    );
+  }, [bundle]);
+
   const openVerse = (bookNav: string, chapter: number, verse: number) => {
     haptics.tap();
     router.push({
@@ -315,7 +333,7 @@ export default function SharedStudyScreen() {
         </View>
       );
     }
-    if (section === 'interpretation' && crossRows.length > 0) {
+    if (section === interpSlotId && crossRows.length > 0) {
       return (
         <View style={styles.helpGroup}>
           <Text style={[styles.helpGroupLabel, {color: colors.textTertiary}]}>
@@ -455,8 +473,12 @@ export default function SharedStudyScreen() {
           />
         ) : null}
 
-        {/* Outline sections — show one when it has the teacher's note OR helps. */}
-        {PREP_SECTIONS.map(section => {
+        {/* Outline sections — show one when it has the teacher's note OR
+            helps. Walks EVERY section id from EVERY template (not just
+            'expository''s 7) since this bundle doesn't say which template
+            the sender used; a section simply never renders unless the
+            sender actually wrote to it or it has curated helps. */}
+        {ALL_PREP_SECTION_IDS.map(section => {
           const note = bundle.n[section]?.trim();
           const helps = renderHelps(section);
           if (!note && !helps) return null;

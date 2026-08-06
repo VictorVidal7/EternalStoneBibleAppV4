@@ -13,7 +13,7 @@
 
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {logger} from '@lib/utils/logger';
-import type {PrepSection} from './prepTable';
+import type {PrepSection, PrepTemplateId} from './prepTable';
 import {
   type PrepNotes,
   type PrepNotesMap,
@@ -48,12 +48,20 @@ let writeQueue: Promise<void> = Promise.resolve();
 /**
  * Save one section's prose for a passage (last write wins; an emptied passage
  * drops out of storage). Fire-and-forget safe: failures log and never reject.
+ *
+ * `template` is the caller's CURRENT effective template (e.g. the screen's
+ * own resolved `notes.template ?? DEFAULT_PREP_TEMPLATE` state) — passed
+ * through to `setMapSectionNote`, which only ever uses it to stamp a
+ * brand-new entry that has none yet; an already-templated entry ignores it.
+ * Omitting it (every pre-existing call site) preserves today's exact
+ * behavior: no template ever gets written.
  */
 export function savePrepNote(
   passageKey: string,
   section: PrepSection,
   text: string,
   now: number = Date.now(),
+  template?: PrepTemplateId,
 ): Promise<void> {
   const run = async () => {
     const raw = await AsyncStorage.getItem(PREP_NOTES_KEY);
@@ -63,6 +71,7 @@ export function savePrepNote(
       section,
       text,
       now,
+      template,
     );
     await AsyncStorage.setItem(PREP_NOTES_KEY, serializePrepNotesMap(next));
   };
