@@ -3020,11 +3020,32 @@ export default function VerseReadingScreen() {
                       </View>
                     ) : null}
                   </View>
+                  {/* Per-verse favorite indicator/toggle — a11y gap fix:
+                    previously had no accessibilityLabel/State, so TalkBack
+                    read it as an unlabeled "button" with no hint of what it
+                    did or its current state. Mirrors the exact pattern
+                    VerseOfDayCard uses for its own favorite toggle
+                    (src/components/celestial/VerseOfDayCard.tsx). Note the
+                    `isFavorited` guard just above means this button only
+                    ever MOUNTS when already favorited, so in practice the
+                    `t.verse.addFavorite` branch below is currently
+                    unreachable (there's no per-verse control to ADD a
+                    favorite — that only exists via long-press → selection →
+                    the toolbar's heart-outline button). Kept as a ternary
+                    anyway to match the reference pattern and stay correct if
+                    that guard ever changes. */}
                   {isFavorited && (
                     <TouchableOpacity
                       onPress={() => handleToggleSingleFavorite(verse)}
                       hitSlop={{top: 10, bottom: 10, left: 10, right: 10}}
-                      style={styles.favoriteIndicator}>
+                      style={styles.favoriteIndicator}
+                      accessibilityRole="button"
+                      accessibilityLabel={
+                        isFavorited
+                          ? t.verse.removeFavorite
+                          : t.verse.addFavorite
+                      }
+                      accessibilityState={{selected: isFavorited}}>
                       <Ionicons
                         name="heart"
                         size={18}
