@@ -50,4 +50,11 @@ describe('NoteMarkdownText', () => {
     const {getByText} = render(<NoteMarkdownText text={text} />);
     expect(getByText(text)).toBeTruthy();
   });
+
+  it('renders a "- " line as a "•" bullet, inline (no separate node/View)', () => {
+    const {getByText} = render(
+      <NoteMarkdownText text={'- primero\n- segundo'} />,
+    );
+    expect(getByText('• primero\n• segundo')).toBeTruthy();
+  });
 });

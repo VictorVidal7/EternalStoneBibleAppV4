@@ -75,4 +75,52 @@ describe('parseNoteMarkdown', () => {
       {text: ' here\nLine three', style: 'plain'},
     ]);
   });
+
+  describe('bullet lines ("- ")', () => {
+    it('turns a leading "- " into a "•" bullet', () => {
+      expect(parseNoteMarkdown('- primer punto')).toEqual([
+        {text: '• primer punto', style: 'plain'},
+      ]);
+    });
+
+    it('converts multiple bullet lines, one per line', () => {
+      expect(parseNoteMarkdown('- uno\n- dos\n- tres')).toEqual([
+        {text: '• uno\n• dos\n• tres', style: 'plain'},
+      ]);
+    });
+
+    it('only converts a "- " at the very start of a line, not mid-line', () => {
+      const text = 'Nota - con un guión aquí';
+      expect(parseNoteMarkdown(text)).toEqual([{text, style: 'plain'}]);
+    });
+
+    it('leaves a lone "-" (no following space) untouched', () => {
+      const text = '-sin espacio';
+      expect(parseNoteMarkdown(text)).toEqual([{text, style: 'plain'}]);
+    });
+
+    it('does NOT treat "*" as an alternate bullet marker (stays disjoint from italics)', () => {
+      // The corruption-prevention case from above must still hold once
+      // bullets exist: only "- " is a bullet, never "*".
+      const text = '* punto uno\n* punto dos';
+      expect(parseNoteMarkdown(text)).toEqual([{text, style: 'plain'}]);
+    });
+
+    it('supports bold/italic INSIDE a bullet line', () => {
+      expect(parseNoteMarkdown('- esto es **muy** importante')).toEqual([
+        {text: '• esto es ', style: 'plain'},
+        {text: 'muy', style: 'bold'},
+        {text: ' importante', style: 'plain'},
+      ]);
+    });
+
+    it('supports a mix of bullet and non-bullet lines', () => {
+      const result = parseNoteMarkdown(
+        'Puntos clave:\n- primero\n- segundo\nFin.',
+      );
+      expect(result).toEqual([
+        {text: 'Puntos clave:\n• primero\n• segundo\nFin.', style: 'plain'},
+      ]);
+    });
+  });
 });

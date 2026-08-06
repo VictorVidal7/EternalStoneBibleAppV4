@@ -23,6 +23,20 @@
  * dictionary's articles, a short verse note has no real use for that
  * combination, and skipping it keeps this parser simpler to reason about.
  *
+ * Bullet lines (v1b-plus) use a leading "- " (dash-space), NOT "*" — this is
+ * load-bearing, not a style choice. Keeping the bullet marker disjoint from
+ * the emphasis markers is what keeps a hand-typed "* punto" bullet (the
+ * exact corruption case this file was hardened against above) reading as
+ * plain literal text instead of colliding with italic. A future edit that
+ * "also accepts '*' as a bullet marker for convenience" would silently
+ * reopen that corruption — don't do it without re-deriving this reasoning.
+ * Bullets render INLINE (a "•" substituted for the "- ", still inside one
+ * plain-text run) rather than as a separate list-item construct, so both
+ * render sites' existing `numberOfLines` truncation keeps working unchanged
+ * — a real `View`-per-bullet layout would break that in the notes list and
+ * the share-image card, which is why this stays a text substitution, not a
+ * new segment style.
+ *
  * Para la gloria de Dios Todopoderoso ✨
  */
 
@@ -43,12 +57,24 @@ const ITALIC_SRC = '\\*[^*\\n]+\\*';
 // instead of discarding them.
 const SPLIT_RE = new RegExp(`(${BOLD_SRC}|${ITALIC_SRC})`, 'g');
 
+/** Replace a leading "- " (dash-space) on any line with "• " (bullet-space).
+ *  Only the line's own first two characters are checked — no leading-
+ *  whitespace tolerance, no nested/indented list levels; a plain flat list
+ *  is the whole of what "lightweight" means here. A line that's just "-"
+ *  with no following space, or a "-" anywhere but the start, is untouched. */
+function applyBulletMarkers(text: string): string {
+  return text
+    .split('\n')
+    .map(line => (line.startsWith('- ') ? '•' + line.slice(1) : line))
+    .join('\n');
+}
+
 /** Split note text into styled segments for rendering. Unmatched/unpaired
  *  "*"/"**" are left as literal plain text — never guessed at, never dropped.
  *  Empty input returns an empty array. */
 export function parseNoteMarkdown(text: string): NoteMarkdownSegment[] {
   if (!text) return [];
-  return text
+  return applyBulletMarkers(text)
     .split(SPLIT_RE)
     .filter(part => part.length > 0)
     .map((part): NoteMarkdownSegment => {
