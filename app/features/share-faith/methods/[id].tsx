@@ -11,9 +11,10 @@
  * its own identity.
  *
  * The app never argues a case here — it only reproduces a well-known outline
- * (Romans Road, Bridge to Life, the Four Spiritual Laws, the Three Circles)
- * with its own real Scripture; reading, reflecting, and sharing in their own
- * words is left entirely to the reader.
+ * (Romans Road, Bridge to Life, the Four Spiritual Laws, and a
+ * design/brokenness/restoration creation-fall-redemption arc) with its own
+ * real Scripture; reading, reflecting, and sharing in their own words is
+ * left entirely to the reader.
  *
  * 100% FREE — no `usePremium()` / `useOfferingSheet()` anywhere in this
  * flow. 100% JS: the taxonomy is the pure
