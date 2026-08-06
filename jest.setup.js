@@ -49,6 +49,47 @@ jest.mock('react-native-reanimated', () =>
   require('react-native-reanimated/mock'),
 );
 
+// @expensify/react-native-live-markdown
+//
+// NOT the package's own documented `.../mock` subpath
+// (`jest.mock('@expensify/react-native-live-markdown', () =>
+// require('@expensify/react-native-live-markdown/mock'))`) — that was tried
+// first and is broken IN THIS PROJECT's Jest resolver setup specifically:
+// `jest.mock()` intercepts by RESOLVED ABSOLUTE PATH, and this package has
+// no "exports" map (only legacy "main"/"module"/"react-native" string
+// fields), so Jest's default resolver — which only understands "main",
+// not the ad hoc "react-native" field Metro honors at bundle time —
+// resolves the bare specifier to `lib/commonjs/index.js`. The shipped
+// mock (`lib/commonjs/mock/index.js`) internally does
+// `require("../index.js")`, which resolves to that SAME absolute file.
+// Since it's the same file already being mocked, that internal require
+// hits Jest's circular-require short-circuit and gets back an EMPTY,
+// still-in-progress exports object — so `MarkdownTextInput` silently comes
+// back `undefined` (confirmed empirically against a pristine
+// `node_modules` reinstall, not a leftover artifact of local debugging).
+//
+// Fix: build the mock shape ourselves, pulling the REAL component from a
+// deep subpath (`.../lib/commonjs/MarkdownTextInput.js`) via
+// `jest.requireActual`, which bypasses the mock registry entirely and sits
+// outside the self-referential file the broken mock hits. Deliberately
+// NOT `jest.requireActual('@expensify/react-native-live-markdown')` (the
+// package root) — that would also eagerly load `parseExpensiMark.js`,
+// which pulls in `expensify-common` + `html-entities` and is exactly what
+// the library ships a mock to avoid (see `noteMarkdownRanges.ts`'s header
+// comment on why this app's parser sidesteps that dependency entirely).
+// This app's own custom parser (`noteMarkdownRanges.ts`) is NOT stubbed by
+// any of this — it still runs for real in tests.
+jest.mock('@expensify/react-native-live-markdown', () => {
+  global.jsi_setMarkdownRuntime = jest.fn();
+  global.jsi_registerMarkdownWorklet = jest.fn();
+  global.jsi_unregisterMarkdownWorklet = jest.fn();
+  return {
+    MarkdownTextInput: jest.requireActual(
+      '@expensify/react-native-live-markdown/lib/commonjs/MarkdownTextInput.js',
+    ).default,
+  };
+});
+
 // Silence the useNativeDriver warning emitted by the Animated module. Must
 // capture the ORIGINAL console.warn before spying — calling `console.warn`
 // from inside its own mockImplementation would call the mock itself

@@ -22,11 +22,11 @@ import {
   View,
   Text,
   Modal,
-  TextInput,
   TouchableOpacity,
   StyleSheet,
   useWindowDimensions,
 } from 'react-native';
+import {MarkdownTextInput} from '@expensify/react-native-live-markdown';
 import {useRouter} from 'expo-router';
 import {Ionicons} from '@expo/vector-icons';
 import {useTheme} from '../../hooks/useTheme';
@@ -40,6 +40,7 @@ import {
   formatReferencedVerseLabel,
   type ReferencedVerse,
 } from '@/features/study/sermonNotes';
+import {parseNoteMarkdownRanges} from '@lib/notes/noteMarkdownRanges';
 import {NoteImageModal} from './NoteImageModal';
 import {staticColors} from '../../styles/designTokens';
 import {
@@ -90,6 +91,17 @@ export const NoteEditorModal: React.FC<NoteEditorModalProps> = ({
   const trimmed = value.trim();
   // Share-as-image (Sprint 70): a designer card of the verse + this note.
   const [shareVisible, setShareVisible] = useState(false);
+
+  // Must be a stable reference, not an inline object literal: MarkdownTextInput
+  // re-derives its native style (JSON clone + processColor) and re-registers
+  // its parser worklet whenever `markdownStyle`/`parser` change identity
+  // (`node_modules/@expensify/react-native-live-markdown/src/MarkdownTextInput.tsx`
+  // lines 95 & 107) — an inline literal here would re-do that work on every
+  // keystroke, the exact hot path this feature exists for.
+  const markdownStyle = useMemo(
+    () => ({syntax: {color: colors.textTertiary}}),
+    [colors.textTertiary],
+  );
 
   // The verse this note is attached to, as a ParsedReference — used only to
   // exclude it from the detected-references chips below. `verseReference` is
@@ -189,7 +201,7 @@ export const NoteEditorModal: React.FC<NoteEditorModalProps> = ({
             </Text>
           ) : null}
 
-          <TextInput
+          <MarkdownTextInput
             style={[
               styles.input,
               {color: colors.text, borderColor: colors.border},
@@ -201,6 +213,8 @@ export const NoteEditorModal: React.FC<NoteEditorModalProps> = ({
             multiline
             autoFocus
             textAlignVertical="top"
+            parser={parseNoteMarkdownRanges}
+            markdownStyle={markdownStyle}
           />
 
           <Text style={[styles.markdownHint, {color: colors.textTertiary}]}>
