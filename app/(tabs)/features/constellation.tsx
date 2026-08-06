@@ -13,6 +13,11 @@
  * Lives inside the tab navigator (href:null) so pressing back returns to the
  * reader via backBehavior="history" instead of dropping to Home.
  *
+ * The star map also supports two-finger pinch-to-zoom and two-finger pan
+ * (see the gesture setup below) with a "reset view" button once you've
+ * strayed from the default 1x view. See constellationZoom.ts for the pure
+ * zoom/pan clamp policy this drives.
+ *
  * Para la gloria de Dios Todopoderoso ✨
  */
 
@@ -29,6 +34,13 @@ import {
   useWindowDimensions,
 } from 'react-native';
 import Svg, {Circle, Line} from 'react-native-svg';
+import Animated, {
+  useAnimatedStyle,
+  useSharedValue,
+  withTiming,
+  runOnJS,
+} from 'react-native-reanimated';
+import {Gesture, GestureDetector} from 'react-native-gesture-handler';
 import {useLocalSearchParams, useRouter} from 'expo-router';
 import {Ionicons} from '@expo/vector-icons';
 import {LinearGradient} from 'expo-linear-gradient';
@@ -48,6 +60,13 @@ import {
   type ConstellationLayout,
   type ConstellationNode,
 } from '@/features/study/constellation';
+import {
+  clampConstellationScale,
+  clampConstellationTranslate,
+  constellationHitBox,
+  isConstellationTransformed,
+  CONSTELLATION_MIN_SCALE,
+} from '@/features/study/constellationZoom';
 import {
   advanceChain,
   chainStepKey,
@@ -245,6 +264,177 @@ export default function ConstellationScreen() {
   const nodeColor = (node: ConstellationNode) =>
     node.direction === 'out' ? colors.primary : colors.accent;
 
+  // ── Pinch-to-zoom / two-finger-pan for the star map ──────────────────────
+  // Both the <Svg> canvas AND the per-star hit-target <Pressable> overlay
+  // below live inside ONE shared Animated.View (mapTransformStyle) so the
+  // SAME transform relocates + rescales both together. This is the fix for
+  // the sibling of the landmine noted above: if only the <Svg> panned/zoomed
+  // while the Pressables kept their original absolute left/top, taps would
+  // hit the wrong star (or nothing) the instant the user pinched or dragged.
+  // React Native's transform affects hit-testing, not just paint, so wrapping
+  // both together keeps every star's tap target exactly where it's drawn at
+  // any zoom/pan state. See constellationZoom.ts for the pure clamp policy.
+  const scale = useSharedValue(CONSTELLATION_MIN_SCALE);
+  const savedScale = useSharedValue(CONSTELLATION_MIN_SCALE);
+  const translateX = useSharedValue(0);
+  const translateY = useSharedValue(0);
+  const savedTranslateX = useSharedValue(0);
+  const savedTranslateY = useSharedValue(0);
+  // Drives the "reset view" button — only shown once the map has actually
+  // strayed from its default 1x/no-pan state. Updated from the UI thread at
+  // the end of each gesture rather than every frame (cheap; a button showing
+  // one frame late is imperceptible).
+  const [transformed, setTransformed] = useState(false);
+
+  // Snap the transform back to the default 1x/no-pan view whenever a NEW
+  // constellation is laid out — re-centring on a star (Centrar aquí),
+  // following a breadcrumb, or switching Bible version all rebuild `layout`
+  // (see the effect above keyed on the same values) with a brand-new focus
+  // star at canvas centre. Without this, a map zoomed/panned into a corner
+  // would hand the user a fresh map that's ALSO off-screen at the old pan
+  // offset — the reset button would still recover it, but the correct
+  // default behaviour is that a new map always arrives at the default view.
+  // Snaps instantly (no withTiming) since this coincides with the whole map
+  // being replaced under it, not a standalone gesture release.
+  useEffect(() => {
+    scale.value = CONSTELLATION_MIN_SCALE;
+    translateX.value = 0;
+    translateY.value = 0;
+    savedScale.value = CONSTELLATION_MIN_SCALE;
+    savedTranslateX.value = 0;
+    savedTranslateY.value = 0;
+    setTransformed(false);
+  }, [
+    current ? chainStepKey(current) : null,
+    selectedVersion.id,
+    size,
+    scale,
+    translateX,
+    translateY,
+    savedScale,
+    savedTranslateX,
+    savedTranslateY,
+  ]);
+
+  // JUDGMENT CALL — pinch anchor: scaling is CENTRE-anchored (React Native's
+  // default transform origin is the view's own centre), not focal-point
+  // anchored on the pinch midpoint. A focal-point anchor (the content point
+  // under your fingers stays under your fingers as you pinch, like a photo
+  // viewer) is the fancier option but needs the focal point's OFFSET from
+  // centre folded into the translate math on every update, which meaningfully
+  // raises the risk of a subtle drift bug in exactly the code responsible for
+  // this screen's core requirement (hit-target alignment). Centre-anchored
+  // zoom is simple, has no such drift risk, and is a completely standard,
+  // easily-recognisable zoom behaviour for a small map like this one — but it
+  // IS a different feel than a typical photo-viewer pinch, so flagging it
+  // rather than deciding silently.
+  const pinchGesture = Gesture.Pinch()
+    .onUpdate(e => {
+      const nextScale = clampConstellationScale(savedScale.value * e.scale);
+      scale.value = nextScale;
+      // Re-clamp pan too: zooming back out shrinks how far the map is
+      // allowed to have wandered, so a pinch-out at the pan limit should
+      // pull the map back toward centre instead of leaving a gap.
+      translateX.value = clampConstellationTranslate(
+        translateX.value,
+        nextScale,
+        size,
+      );
+      translateY.value = clampConstellationTranslate(
+        translateY.value,
+        nextScale,
+        size,
+      );
+    })
+    .onEnd(() => {
+      savedScale.value = scale.value;
+      savedTranslateX.value = translateX.value;
+      savedTranslateY.value = translateY.value;
+      runOnJS(setTransformed)(
+        isConstellationTransformed(
+          scale.value,
+          translateX.value,
+          translateY.value,
+        ),
+      );
+    });
+
+  // TWO fingers only (minPointers/maxPointers) — JUDGMENT CALL: this screen's
+  // outer content sits in a vertical ScrollView, and a ONE-finger pan on the
+  // canvas needs to keep scrolling the screen exactly like it did before this
+  // feature (purely additive at rest). Gating a one-finger pan by "only once
+  // zoomed in" was the alternative, but that needs a JS round-trip to flip
+  // `.enabled()` right as the user crosses back to 1x and would still eat the
+  // very first one-finger drag on a freshly-zoomed view. Requiring two
+  // fingers means this gesture and the ScrollView's one-finger scroll gesture
+  // never compete for the same touch stream at all, at any zoom level —
+  // the safest way to guarantee zero regression to the existing scroll.
+  const panGesture = Gesture.Pan()
+    .minPointers(2)
+    .maxPointers(2)
+    .onUpdate(e => {
+      translateX.value = clampConstellationTranslate(
+        savedTranslateX.value + e.translationX,
+        scale.value,
+        size,
+      );
+      translateY.value = clampConstellationTranslate(
+        savedTranslateY.value + e.translationY,
+        scale.value,
+        size,
+      );
+    })
+    .onEnd(() => {
+      savedTranslateX.value = translateX.value;
+      savedTranslateY.value = translateY.value;
+      runOnJS(setTransformed)(
+        isConstellationTransformed(
+          scale.value,
+          translateX.value,
+          translateY.value,
+        ),
+      );
+    });
+
+  // Simultaneous (not Exclusive/Race) so a natural two-finger pinch-and-drag
+  // updates scale and translation together in the same gesture.
+  const mapGesture = Gesture.Simultaneous(pinchGesture, panGesture);
+
+  const mapTransformStyle = useAnimatedStyle(() => ({
+    transform: [
+      {translateX: translateX.value},
+      {translateY: translateY.value},
+      {scale: scale.value},
+    ],
+  }));
+
+  // Reset-view affordance — JUDGMENT CALL: a small visible button rather than
+  // a double-tap gesture. A double-tap Gesture.Tap() would sit in the SAME
+  // view subtree as the per-star hit-target Pressables (it has to, to be
+  // recognised over the whole canvas), risking exactly the class of Android
+  // touch-arbitration flakiness the file-level landmine comment already
+  // flags for SVG onPress — two independent tap recognisers layered over the
+  // same area is asking for trouble on the one interaction (star selection)
+  // this screen cannot regress. A plain RN Pressable button carries none of
+  // that risk and is also more discoverable/accessible than a hidden gesture.
+  const resetMapView = useCallback(() => {
+    haptics.tap();
+    scale.value = withTiming(CONSTELLATION_MIN_SCALE);
+    translateX.value = withTiming(0);
+    translateY.value = withTiming(0);
+    savedScale.value = CONSTELLATION_MIN_SCALE;
+    savedTranslateX.value = 0;
+    savedTranslateY.value = 0;
+    setTransformed(false);
+  }, [
+    scale,
+    translateX,
+    translateY,
+    savedScale,
+    savedTranslateX,
+    savedTranslateY,
+  ]);
+
   const currentRef = current
     ? `${localize(current.book)} ${current.chapter}:${current.verse}`
     : '';
@@ -428,62 +618,110 @@ export default function ConstellationScreen() {
           </View>
         ) : (
           <>
-            {/* The star map. */}
-            <View
-              style={[
-                styles.canvasWrap,
-                {
-                  width: size,
-                  height: size,
-                  backgroundColor: colors.surface,
-                  borderColor: colors.border,
-                },
-              ]}>
-              <Svg width={size} height={size}>
-                {/* Memoized star map (edges + focus + stars + hit targets). */}
-                {baseSvg}
-                {/* Selection ring overlay — the only part that re-renders on a
-                    tap, so the heavy base map stays cached. */}
-                {selected ? (
-                  <Circle
-                    cx={selected.x}
-                    cy={selected.y}
-                    r={selected.r + 4}
-                    fill="none"
-                    stroke={colors.text}
-                    strokeWidth={2}
-                  />
-                ) : null}
-              </Svg>
+            {/* The star map — wrapped in a GestureDetector so a two-finger
+                pinch/pan can zoom and pan it (see the gesture setup above).
+                A one-finger drag here is NOT claimed by this gesture, so the
+                screen's vertical ScrollView keeps scrolling exactly as
+                before. */}
+            <GestureDetector gesture={mapGesture}>
+              <View
+                style={[
+                  styles.canvasWrap,
+                  {
+                    width: size,
+                    height: size,
+                    backgroundColor: colors.surface,
+                    borderColor: colors.border,
+                  },
+                ]}>
+                {/* Shared transform — both the Svg canvas AND the hit-target
+                    Pressables below live inside this ONE Animated.View so
+                    they pan/zoom together (see the gesture setup above for
+                    why that matters). At rest (1x, no pan) this is an
+                    identity transform, so the default view is pixel-identical
+                    to before this feature. */}
+                <Animated.View
+                  style={[{width: size, height: size}, mapTransformStyle]}>
+                  <Svg width={size} height={size}>
+                    {/* Memoized star map (edges + focus + stars + hit targets). */}
+                    {baseSvg}
+                    {/* Selection ring overlay — the only part that re-renders
+                        on a tap, so the heavy base map stays cached. */}
+                    {selected ? (
+                      <Circle
+                        cx={selected.x}
+                        cy={selected.y}
+                        r={selected.r + 4}
+                        fill="none"
+                        stroke={colors.text}
+                        strokeWidth={2}
+                      />
+                    ) : null}
+                  </Svg>
 
-              {/* Tap targets as real RN Pressables layered over the canvas —
-                  robust on Android where SVG onPress inside a ScrollView often
-                  never fires (UX review #5). box-none lets the empty gaps fall
-                  through to the ScrollView so vertical scrolling still works. */}
-              <View style={StyleSheet.absoluteFill} pointerEvents="box-none">
-                {layout?.nodes.map(node => {
-                  const hitR = Math.max(node.r + 12, 22);
-                  return (
-                    <Pressable
-                      key={`hit-${node.key}`}
-                      onPress={() => onSelectNode(node)}
-                      style={[
-                        styles.hitTarget,
-                        {
-                          left: node.x - hitR,
-                          top: node.y - hitR,
-                          width: hitR * 2,
-                          height: hitR * 2,
-                          borderRadius: hitR,
-                        },
-                      ]}
-                      accessibilityRole="button"
-                      accessibilityLabel={`${localize(node.book)} ${node.chapter}:${node.verse}`}
+                  {/* Tap targets as real RN Pressables layered over the
+                      canvas — robust on Android where SVG onPress inside a
+                      ScrollView often never fires (UX review #5). box-none
+                      lets the empty gaps fall through to the ScrollView so
+                      vertical scrolling still works. Positions stay computed
+                      from the RAW (untransformed) node.x/node.y — the parent
+                      Animated.View's transform relocates + rescales this
+                      whole subtree (RN transforms move hit-testing, not just
+                      paint), so every star stays tappable exactly where it's
+                      drawn at any zoom/pan state without recomputing anything
+                      here. */}
+                  <View
+                    style={StyleSheet.absoluteFill}
+                    pointerEvents="box-none">
+                    {layout?.nodes.map(node => {
+                      const hitBox = constellationHitBox(node);
+                      return (
+                        <Pressable
+                          key={`hit-${node.key}`}
+                          onPress={() => onSelectNode(node)}
+                          style={[
+                            styles.hitTarget,
+                            {
+                              left: hitBox.left,
+                              top: hitBox.top,
+                              width: hitBox.size,
+                              height: hitBox.size,
+                              borderRadius: hitBox.size / 2,
+                            },
+                          ]}
+                          accessibilityRole="button"
+                          accessibilityLabel={`${localize(node.book)} ${node.chapter}:${node.verse}`}
+                        />
+                      );
+                    })}
+                  </View>
+                </Animated.View>
+
+                {/* Reset-view button — fixed in the canvas corner (a sibling
+                    of the transformed Animated.View, so it never itself
+                    pans/zooms), shown only once the map has actually strayed
+                    from its default view. */}
+                {transformed && (
+                  <Pressable
+                    onPress={resetMapView}
+                    style={[
+                      styles.resetButton,
+                      {
+                        backgroundColor: colors.surface,
+                        borderColor: colors.border,
+                      },
+                    ]}
+                    accessibilityRole="button"
+                    accessibilityLabel={cn.resetZoom}>
+                    <Ionicons
+                      name="contract-outline"
+                      size={18}
+                      color={colors.primary}
                     />
-                  );
-                })}
+                  </Pressable>
+                )}
               </View>
-            </View>
+            </GestureDetector>
 
             {/* Legend + count — hidden while the floating detail panel is
                 open (below): it sits fixed near the bottom of the screen, so
@@ -684,6 +922,22 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
   },
   hitTarget: {position: 'absolute'},
+  resetButton: {
+    position: 'absolute',
+    right: spacing.sm,
+    bottom: spacing.sm,
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    borderWidth: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    shadowColor: staticColors.black,
+    shadowOffset: {width: 0, height: 2},
+    shadowOpacity: 0.15,
+    shadowRadius: 6,
+    elevation: 6,
+  },
   legendRow: {
     flexDirection: 'row',
     alignItems: 'center',

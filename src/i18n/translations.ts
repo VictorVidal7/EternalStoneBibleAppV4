@@ -870,6 +870,7 @@ export const translations = {
       empty: 'Este versículo aún no tiene conexiones para mapear.',
       recenter: 'Centrar aquí',
       openInReader: 'Abrir en el lector',
+      resetZoom: 'Restablecer vista',
     },
 
     periodRecap: {
@@ -6835,6 +6836,7 @@ export const translations = {
       empty: 'This verse has no connections to map yet.',
       recenter: 'Center here',
       openInReader: 'Open in reader',
+      resetZoom: 'Reset view',
     },
 
     periodRecap: {
