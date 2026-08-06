@@ -2033,15 +2033,13 @@ export const translations = {
             'ephesians-2-9': 'no por obras, para que nadie se gloríe',
           },
           'four-laws': {
-            'john-3-16':
-              'Dios amó al mundo y dio a su Hijo (ley 1: Dios te ama)',
-            'romans-3-23': 'todos pecaron (ley 2: el pecado separa)',
+            'john-3-16': 'Dios amó al mundo y dio a su Hijo',
+            'romans-3-23': 'todos pecaron',
             'romans-6-23':
-              'la paga del pecado es muerte; la dádiva es vida eterna (ley 2, cont.)',
-            'john-14-6':
-              'Jesús es el camino, la verdad y la vida (ley 3: la única provisión de Dios)',
+              'la paga del pecado es muerte; la dádiva es vida eterna',
+            'john-14-6': 'Jesús es el camino, la verdad y la vida',
             'john-1-12':
-              'a los que lo recibieron les dio potestad de ser hechos hijos de Dios (ley 4: recibir a Cristo)',
+              'a los que lo recibieron les dio potestad de ser hechos hijos de Dios',
           },
           'three-circles': {
             'genesis-1-27': 'Dios creó a la humanidad a su imagen (diseño)',
@@ -7978,15 +7976,13 @@ export const translations = {
             'ephesians-2-9': 'not by works, so that no one may boast',
           },
           'four-laws': {
-            'john-3-16':
-              'God loved the world and gave His Son (law 1: God loves you)',
-            'romans-3-23': 'all have sinned (law 2: sin separates)',
+            'john-3-16': 'God loved the world and gave His Son',
+            'romans-3-23': 'all have sinned',
             'romans-6-23':
-              'the wages of sin is death; the gift is eternal life (law 2, cont.)',
-            'john-14-6':
-              "Jesus is the way, the truth and the life (law 3: God's only provision)",
+              'the wages of sin is death; the gift is eternal life',
+            'john-14-6': 'Jesus is the way, the truth and the life',
             'john-1-12':
-              'to those who received Him He gave the right to become children of God (law 4: receiving Christ)',
+              'to those who received Him He gave the right to become children of God',
           },
           'three-circles': {
             'genesis-1-27': 'God created humanity in His image (design)',
