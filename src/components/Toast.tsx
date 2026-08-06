@@ -13,6 +13,7 @@ import {
   Animated,
   TouchableOpacity,
   Platform,
+  AccessibilityInfo,
 } from 'react-native';
 import {Ionicons} from '@expo/vector-icons';
 import {BlurView} from 'expo-blur';
@@ -165,6 +166,24 @@ export const Toast: React.FC<ToastProps> = ({
       }
     };
   }, [visible]);
+
+  // ♿ Screen-reader announcement (was ZERO wiring before this fix — a toast
+  // used to appear/disappear silently for TalkBack/VoiceOver users). Same
+  // imperative mechanism the codebase already relies on for other ephemeral,
+  // auto-dismissing messages (ImmersiveReader's chapter-transition banner,
+  // MiniAudioPlayer's bookmark/swipe cues, AudioQueueSheet) — a single
+  // consistent announcement for every variant, rather than a new
+  // assertive/polite severity abstraction: RN's `announceForAccessibility`
+  // already interrupts on both platforms by default, and Android's
+  // `accessibilityLiveRegion` split doesn't apply cleanly to a view that
+  // mounts and unmounts with the message already set. Keyed on `message` too
+  // (not just `visible`) so a second toast fired while one is still on
+  // screen still gets announced.
+  useEffect(() => {
+    if (visible && message) {
+      AccessibilityInfo.announceForAccessibility(message);
+    }
+  }, [visible, message]);
 
   if (!visible) return null;
 
