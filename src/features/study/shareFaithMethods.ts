@@ -16,10 +16,18 @@
  * `captionKey` naming what that verse contributes to the outline. That's
  * intentional here — each of the 4 methods below is itself a named,
  * pre-existing outline (Romans Road, Bridge to Life, the Four Spiritual
- * Laws, the Three Circles) that churches and ministries across many
- * traditions have used for decades; presenting its steps in order is just
- * faithfully reproducing that outline, not inventing a new sequenced
- * argument. Captions stay to a single clause naming what the verse
+ * Laws, and a design/brokenness/restoration creation-fall-redemption
+ * arc) that churches and ministries across many traditions have used for
+ * decades; presenting its steps in order is just faithfully reproducing
+ * that outline, not inventing a new sequenced argument. The 4th outline is
+ * deliberately NOT named/branded after any one org's specific tract (see
+ * `id: 'design-brokenness-restoration'` below) — the underlying
+ * creation/fall/redemption shape is ancient and common property, but its
+ * best-known modern packaging as "The 3 Circles" is a trademarked
+ * evangelism tool published by a specific denomination's mission board,
+ * which would misleadingly imply a denominational affiliation this app
+ * doesn't have (2026-08 movement-neutrality audit). Captions stay to a
+ * single clause naming what the verse
  * contributes — never connecting "therefore" prose beyond that, and never
  * commentary that argues a case on the reader's behalf.
  *
@@ -120,7 +128,7 @@ export const SHARE_FAITH_METHODS: readonly ShareFaithMethod[] = [
     ],
   },
   {
-    id: 'three-circles',
+    id: 'design-brokenness-restoration',
     icon: 'sync',
     accent: '#059669',
     steps: [
