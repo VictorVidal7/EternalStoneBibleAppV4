@@ -15,6 +15,7 @@ import {render, waitFor, fireEvent} from '@testing-library/react-native';
 import * as SecureStore from 'expo-secure-store';
 import Purchases from 'react-native-purchases';
 import {ImageShareModal} from '../src/components/reading/ImageShareModal';
+import {translations} from '../src/i18n/translations';
 import {PremiumProvider} from '../src/context/PremiumContext';
 import {ENTITLEMENT_CACHE_KEY} from '../src/lib/offering/entitlementCache';
 import {
@@ -186,7 +187,14 @@ describe('ImageShareModal — "own photo" background', () => {
     const {findByLabelText, queryByTestId} = renderModal();
     fireEvent.press(await findByLabelText('Tu propia foto'));
 
-    await waitFor(() => expect(mockToastError).toHaveBeenCalledTimes(1));
+    // Pinned to the actual denied-permission copy — not just "some toast
+    // fired" — so a denied/error message swap would fail this test.
+    await waitFor(() =>
+      expect(mockToastError).toHaveBeenCalledWith(
+        translations.es.verse.imageOwnPhotoPermissionDenied,
+      ),
+    );
+    expect(mockToastError).toHaveBeenCalledTimes(1);
     expect(mockLaunchImageLibraryAsync).not.toHaveBeenCalled();
     expect(queryByTestId('share-own-photo-background')).toBeNull();
   });

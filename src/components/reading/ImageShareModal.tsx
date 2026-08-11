@@ -362,7 +362,21 @@ export const ImageShareModal: React.FC<ImageShareModalProps> = ({
           contentContainerStyle={styles.scrollContent}>
           <View style={styles.previewContainer}>
             <View
-              style={[styles.card, {minHeight: cardHeight || cardSize}]}
+              style={[
+                styles.card,
+                // `card` used to be painted directly by the LinearGradient
+                // (always opaque). Now the background is a same-size
+                // absolutely-filled child instead, so `card` itself would be
+                // fully transparent — on iOS a transparent layer can fail to
+                // cast `shadows.xl`'s drop shadow at all. This opaque backing
+                // is completely hidden under the child background layer
+                // either way; it only exists to keep the shadow's alpha mask
+                // solid.
+                {
+                  minHeight: cardHeight || cardSize,
+                  backgroundColor: colors.card,
+                },
+              ]}
               ref={previewRef}
               collapsable={false}>
               {ownPhotoUri ? (
