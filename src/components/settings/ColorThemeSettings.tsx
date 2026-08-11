@@ -23,7 +23,6 @@ import {
   colorThemes,
   ColorTheme,
   PREMIUM_COLOR_THEMES,
-  celestialTheme,
 } from '@hooks/useTheme';
 import {useLanguage} from '@hooks/useLanguage';
 import {usePremium} from '@context/PremiumContext';
@@ -105,7 +104,20 @@ export default function ColorThemeSettings() {
                     borderWidth: 2,
                     borderColor: colors.primary,
                     backgroundColor: colors.surface,
-                    ...celestialTheme.shadows.glow(theme.preview[2]),
+                    // A scaled-down local glow, not celestialTheme.shadows.glow
+                    // (shadowRadius 20 / shadowOpacity 0.5 / elevation 10) — that
+                    // was previously scoped to the 4 premium swatches sitting
+                    // alone in their own trailing row. Now that every selected
+                    // swatch gets it (fixing the free-vs-premium asymmetry), a
+                    // radius that size would bleed into neighboring swatches in
+                    // this tightly packed 6-per-row grid, especially the
+                    // Android `elevation` shadow which reads as a plain grey
+                    // smudge rather than a colored glow.
+                    shadowColor: theme.preview[2],
+                    shadowOffset: {width: 0, height: 0},
+                    shadowOpacity: 0.35,
+                    shadowRadius: 8,
+                    elevation: 4,
                   },
                 ]}>
                 <LinearGradient
@@ -137,9 +149,7 @@ export default function ColorThemeSettings() {
                   {color: colors.textSecondary},
                   isSelected && {color: colors.primary},
                 ]}
-                numberOfLines={1}
-                adjustsFontSizeToFit
-                minimumFontScale={0.85}>
+                numberOfLines={1}>
                 {themeName}
               </Text>
               {isPremiumTheme && (
@@ -240,7 +250,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   name: {
-    fontSize: 10,
+    fontSize: 9,
     fontWeight: '600',
     textAlign: 'center',
   },
