@@ -17,6 +17,7 @@ import React, {useEffect, useRef, useState} from 'react';
 import {
   View,
   Text,
+  Image,
   Modal,
   ScrollView,
   TouchableOpacity,
@@ -49,6 +50,7 @@ import {
   isTextureUnlocked,
   type ShareTexture,
 } from '@/features/share/textures';
+import {pickOwnPhotoBackground} from '@/features/share/ownPhotoPicker';
 import {ShareTextureOverlay} from './ShareTextureOverlay';
 import {
   getStylePresets,
@@ -118,6 +120,13 @@ export const ImageShareModal: React.FC<ImageShareModalProps> = ({
   const [texture, setTexture] = useState<ShareTexture>('none');
   const [isSharing, setIsSharing] = useState(false);
   const [savedPresets, setSavedPresets] = useState<SharedStylePreset[]>([]);
+  // "Own photo" background (v2, offering-unlocked — see isTemplateUnlocked's
+  // free/premium split): a device-gallery photo used instead of one of the
+  // SHARE_TEMPLATES gradients. `null` means "not using a photo, use
+  // SHARE_TEMPLATES[themeIndex] like before". Kept orthogonal from
+  // `themeIndex` (picking a photo doesn't change it) so switching back to a
+  // template always lands on whatever gradient was last chosen.
+  const [ownPhotoUri, setOwnPhotoUri] = useState<string | null>(null);
 
   // T8.2 — load saved style presets (offering-unlocked) each time the
   // modal opens; a free user never sees this state used (the section below
@@ -132,6 +141,14 @@ export const ImageShareModal: React.FC<ImageShareModalProps> = ({
     if (!isPremium) {
       onClose();
       openOfferingSheet();
+      return;
+    }
+    // Saved presets only carry a `templateId` (see SharedStylePreset) — there
+    // is nowhere to store an arbitrary gallery photo, so saving here would
+    // silently save the stale template underneath instead of the photo the
+    // user is actually looking at. Refuse rather than mislead.
+    if (ownPhotoUri) {
+      toast.info(t.verse.imageOwnPhotoPresetUnavailable);
       return;
     }
     saveStylePreset({
@@ -149,6 +166,10 @@ export const ImageShareModal: React.FC<ImageShareModalProps> = ({
 
   function handleApplyPreset(preset: SharedStylePreset) {
     haptics.tap();
+    // A saved preset always describes a built-in template — applying one
+    // must cleanly switch away from an "own photo" background, same as
+    // tapping a template swatch directly (handleSelectTemplate below).
+    setOwnPhotoUri(null);
     const index = SHARE_TEMPLATES.findIndex(
       tpl => tpl.id === preset.templateId,
     );
@@ -206,11 +227,33 @@ export const ImageShareModal: React.FC<ImageShareModalProps> = ({
     }
   }, [visible, isPremium, texture]);
 
-  // captureRef accepts the host LinearGradient instance ref directly.
-  const previewRef = useRef<LinearGradient>(null);
+  // Same revert pattern for "own photo" — it's offering-unlocked (see
+  // handlePickOwnPhoto), so a lapsed entitlement while one is active must
+  // fall back to the free template underneath, not leave a locked-feature
+  // background silently applied.
+  useEffect(() => {
+    if (visible && !isPremium && ownPhotoUri) {
+      setOwnPhotoUri(null);
+    }
+  }, [visible, isPremium, ownPhotoUri]);
+
+  // captureRef accepts a ref to the captured host view directly. Typed as
+  // `View` (rather than the previous `LinearGradient`) because the card's
+  // background layer now swaps between a LinearGradient (template) and an
+  // Image (own photo) — the ref lives on their shared `View` parent instead.
+  const previewRef = useRef<View>(null);
   const selectedTextColor = isDark ? colors.primaryDark : colors.primary;
   const activeTheme = SHARE_TEMPLATES[themeIndex];
   const cardHeight = aspectHeight(aspect, cardSize);
+  const usingOwnPhoto = ownPhotoUri !== null;
+  // A user's own photo can't guarantee contrast the way a curated gradient
+  // does, so it always pairs with fixed white text/icons over a dark scrim
+  // (see styles.ownPhotoScrim) rather than trying to derive a color from the
+  // photo — simplest option that reads reliably over any photo.
+  const cardTextColor = usingOwnPhoto
+    ? staticColors.white
+    : activeTheme.textColor;
+  const cardIcon = usingOwnPhoto ? 'image-outline' : activeTheme.icon;
 
   function handleSelectTemplate(template: ShareTemplate, index: number) {
     haptics.tap();
@@ -221,7 +264,36 @@ export const ImageShareModal: React.FC<ImageShareModalProps> = ({
       openOfferingSheet();
       return;
     }
+    // Switching to a built-in template must cleanly leave "own photo" mode
+    // — no stale photo left showing behind the newly-picked gradient.
+    setOwnPhotoUri(null);
     setThemeIndex(index);
+  }
+
+  async function handlePickOwnPhoto() {
+    haptics.tap();
+    if (!isPremium) {
+      // Matches handleSelectTemplate's locked-design flow above.
+      onClose();
+      openOfferingSheet();
+      return;
+    }
+    const result = await pickOwnPhotoBackground();
+    switch (result.status) {
+      case 'success':
+        setOwnPhotoUri(result.uri);
+        break;
+      case 'denied':
+        toast.error(t.verse.imageOwnPhotoPermissionDenied);
+        break;
+      case 'error':
+        toast.error(t.verse.imageOwnPhotoError);
+        break;
+      case 'canceled':
+        // No-op by design: leave whatever background (template or a
+        // previously-picked photo) was already active untouched.
+        break;
+    }
   }
 
   async function handleShare() {
@@ -289,22 +361,50 @@ export const ImageShareModal: React.FC<ImageShareModalProps> = ({
           style={styles.flex}
           contentContainerStyle={styles.scrollContent}>
           <View style={styles.previewContainer}>
-            <LinearGradient
-              colors={activeTheme.colors}
-              style={[styles.card, {minHeight: cardHeight || cardSize}]}
+            <View
+              style={[
+                styles.card,
+                // `card` used to be painted directly by the LinearGradient
+                // (always opaque). Now the background is a same-size
+                // absolutely-filled child instead, so `card` itself would be
+                // fully transparent — on iOS a transparent layer can fail to
+                // cast `shadows.xl`'s drop shadow at all. This opaque backing
+                // is completely hidden under the child background layer
+                // either way; it only exists to keep the shadow's alpha mask
+                // solid.
+                {
+                  minHeight: cardHeight || cardSize,
+                  backgroundColor: colors.card,
+                },
+              ]}
               ref={previewRef}
-              collapsable={false}
-              start={{x: 0, y: 0}}
-              end={{x: 1, y: 1}}>
-              <ShareTextureOverlay
-                texture={texture}
-                color={activeTheme.textColor}
-              />
+              collapsable={false}>
+              {ownPhotoUri ? (
+                <>
+                  <Image
+                    testID="share-own-photo-background"
+                    source={{uri: ownPhotoUri}}
+                    style={styles.cardBackgroundLayer}
+                    resizeMode="cover"
+                  />
+                  <View
+                    style={[styles.cardBackgroundLayer, styles.ownPhotoScrim]}
+                  />
+                </>
+              ) : (
+                <LinearGradient
+                  colors={activeTheme.colors}
+                  style={styles.cardBackgroundLayer}
+                  start={{x: 0, y: 0}}
+                  end={{x: 1, y: 1}}
+                />
+              )}
+              <ShareTextureOverlay texture={texture} color={cardTextColor} />
               <View style={styles.headerArea}>
                 <Ionicons
-                  name={activeTheme.icon as keyof typeof Ionicons.glyphMap}
+                  name={cardIcon as keyof typeof Ionicons.glyphMap}
                   size={32}
-                  color={activeTheme.textColor}
+                  color={cardTextColor}
                   style={styles.watermarkIcon}
                 />
               </View>
@@ -313,14 +413,14 @@ export const ImageShareModal: React.FC<ImageShareModalProps> = ({
                 <Ionicons
                   name="chatbubble-outline"
                   size={24}
-                  color={activeTheme.textColor}
+                  color={cardTextColor}
                   style={styles.quoteIcon}
                 />
                 <Text
                   style={[
                     styles.verseText,
                     {
-                      color: activeTheme.textColor,
+                      color: cardTextColor,
                       fontSize,
                       textAlign,
                       fontFamily: resolveTypeface(fontFamilyId),
@@ -335,23 +435,17 @@ export const ImageShareModal: React.FC<ImageShareModalProps> = ({
                 <View
                   style={[
                     styles.brandDivider,
-                    {backgroundColor: activeTheme.textColor},
+                    {backgroundColor: cardTextColor},
                   ]}
                 />
-                <Text
-                  style={[styles.brandText, {color: activeTheme.textColor}]}>
+                <Text style={[styles.brandText, {color: cardTextColor}]}>
                   Eternal Stone Bible
                 </Text>
-                <Text
-                  style={[
-                    styles.brandReference,
-                    {color: activeTheme.textColor},
-                  ]}>
+                <Text style={[styles.brandReference, {color: cardTextColor}]}>
                   {verseReference}
                 </Text>
                 {hasSelection && versionAbbr ? (
-                  <Text
-                    style={[styles.brandMeta, {color: activeTheme.textColor}]}>
+                  <Text style={[styles.brandMeta, {color: cardTextColor}]}>
                     {passageMetaLine(
                       versionAbbr,
                       verseCount,
@@ -360,7 +454,7 @@ export const ImageShareModal: React.FC<ImageShareModalProps> = ({
                   </Text>
                 ) : null}
               </View>
-            </LinearGradient>
+            </View>
           </View>
 
           <View style={styles.optionsContainer}>
@@ -412,6 +506,45 @@ export const ImageShareModal: React.FC<ImageShareModalProps> = ({
                   </TouchableOpacity>
                 );
               })}
+              <TouchableOpacity
+                onPress={handlePickOwnPhoto}
+                accessibilityRole="button"
+                accessibilityState={{selected: usingOwnPhoto}}
+                accessibilityLabel={
+                  t.verse.imageOwnPhoto +
+                  (isPremium ? '' : ` · ${t.offering.badgeA11y}`)
+                }
+                style={[
+                  styles.styleCircle,
+                  {borderColor: colors.border},
+                  !ownPhotoUri && styles.ownPhotoCircleEmpty,
+                  usingOwnPhoto && styles.styleCircleSelected,
+                  usingOwnPhoto && {borderColor: colors.primary},
+                ]}>
+                {ownPhotoUri ? (
+                  <Image
+                    source={{uri: ownPhotoUri}}
+                    style={styles.styleCircleGradient}
+                  />
+                ) : (
+                  <View
+                    style={[
+                      styles.styleCircleGradient,
+                      {backgroundColor: colors.surfaceVariant},
+                    ]}>
+                    <Ionicons
+                      name="images-outline"
+                      size={20}
+                      color={colors.textSecondary}
+                    />
+                  </View>
+                )}
+                {!isPremium && (
+                  <View style={styles.lockBadge}>
+                    <Ionicons name="leaf-outline" size={11} color="#FFFFFF" />
+                  </View>
+                )}
+              </TouchableOpacity>
             </ScrollView>
 
             <View style={styles.optionSection}>
@@ -846,6 +979,26 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     ...shadows.xl,
   },
+  // Background layer (LinearGradient for a template, Image for an own
+  // photo) — an absolutely-filled sibling of `card`'s content rather than
+  // `card` itself, so it can swap component type without disturbing the
+  // shadow/padding/layout `card` already provides. Carries its own
+  // borderRadius (matching `card`'s) because an absolutely-positioned child
+  // isn't clipped by an ancestor's borderRadius unless that ancestor also
+  // sets `overflow: 'hidden'` — which would clip `card`'s drop shadow too
+  // (a well-known RN gotcha). Both Image and LinearGradient clip their own
+  // painted content to their own borderRadius, so this avoids that trap.
+  cardBackgroundLayer: {
+    ...StyleSheet.absoluteFillObject,
+    borderRadius: borderRadius.xl,
+  },
+  // Own-photo mode always pairs with fixed white text (see `cardTextColor`)
+  // since a gallery photo can't guarantee contrast the way a curated
+  // gradient does — this flat scrim is what makes that legible over any
+  // photo, without trying to derive a color from the image itself.
+  ownPhotoScrim: {
+    backgroundColor: staticColors.overlayBlack45,
+  },
   headerArea: {
     alignItems: 'center',
     paddingTop: spacing.sm,
@@ -936,6 +1089,12 @@ const styles = StyleSheet.create({
     borderRadius: 28,
     justifyContent: 'center',
     alignItems: 'center',
+  },
+  // Dashed border for the "own photo" swatch while empty — same visual
+  // language as `saveStyleButton`'s dashed border below, both signal "tap to
+  // add/create" rather than "select an existing option".
+  ownPhotoCircleEmpty: {
+    borderStyle: 'dashed',
   },
   lockBadge: {
     position: 'absolute',

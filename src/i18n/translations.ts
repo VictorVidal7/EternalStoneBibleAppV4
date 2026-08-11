@@ -3802,6 +3802,12 @@ export const translations = {
       imageStyleSaved: 'Estilo guardado',
       imageMyStyles: 'Mis estilos',
       imageDeletePreset: 'Eliminar estilo',
+      imageOwnPhoto: 'Tu propia foto',
+      imageOwnPhotoPermissionDenied:
+        'No se pudo acceder a tus fotos. Puedes habilitar el permiso desde los Ajustes del sistema.',
+      imageOwnPhotoError: 'No se pudo abrir tus fotos',
+      imageOwnPhotoPresetUnavailable:
+        'Los estilos guardados no incluyen fotos propias',
       verseProgress: 'Versículo {{current}} de {{total}}',
       autoPlay: 'Avance automático',
       closeImmersive: 'Cerrar modo inmersivo',
@@ -9752,6 +9758,12 @@ export const translations = {
       imageStyleSaved: 'Style saved',
       imageMyStyles: 'My styles',
       imageDeletePreset: 'Delete style',
+      imageOwnPhoto: 'Your own photo',
+      imageOwnPhotoPermissionDenied:
+        "We couldn't access your photos. You can enable the permission from your system Settings.",
+      imageOwnPhotoError: "Couldn't open your photos",
+      imageOwnPhotoPresetUnavailable:
+        "Saved styles can't include your own photos",
       verseProgress: 'Verse {{current}} of {{total}}',
       autoPlay: 'Auto-scroll',
       closeImmersive: 'Close immersive mode',
