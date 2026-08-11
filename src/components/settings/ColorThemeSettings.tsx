@@ -90,10 +90,7 @@ export default function ColorThemeSettings() {
               key={themeKey}
               style={[
                 styles.option,
-                isSelected && {
-                  borderColor: colors.primary,
-                  backgroundColor: colors.primary + '40',
-                },
+                isSelected && {backgroundColor: colors.primary + '1a'},
               ]}
               onPress={() => handleSelect(themeKey)}
               accessibilityRole="button"
@@ -103,10 +100,13 @@ export default function ColorThemeSettings() {
               <View
                 style={[
                   styles.circleWrapper,
-                  isDark && styles.circleWrapperDark,
-                  isSelected &&
-                    isPremiumTheme &&
-                    celestialTheme.shadows.glow(theme.preview[2]),
+                  {borderColor: colors.border},
+                  isSelected && {
+                    borderWidth: 2,
+                    borderColor: colors.primary,
+                    backgroundColor: colors.surface,
+                    ...celestialTheme.shadows.glow(theme.preview[2]),
+                  },
                 ]}>
                 <LinearGradient
                   colors={theme.preview as [string, string, string]}
@@ -137,14 +137,16 @@ export default function ColorThemeSettings() {
                   {color: colors.textSecondary},
                   isSelected && {color: colors.primary},
                 ]}
-                numberOfLines={1}>
+                numberOfLines={1}
+                adjustsFontSizeToFit
+                minimumFontScale={0.85}>
                 {themeName}
               </Text>
               {isPremiumTheme && (
                 <View
                   style={[
                     styles.exclusiveBadge,
-                    {backgroundColor: colors.primary + '1a'},
+                    {backgroundColor: colors.primary + '26'},
                   ]}>
                   <Text
                     style={[styles.exclusiveText, {color: colors.primary}]}
@@ -200,21 +202,25 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingVertical: 4,
     borderRadius: 10,
-    borderWidth: 2,
-    borderColor: staticColors.transparent,
   },
+  // A hairline ring (borderColor set inline from `colors.border`) now sits on
+  // every swatch in BOTH light and dark mode — previously this ring only
+  // existed in dark mode (circleWrapperDark), which read as an unfinished
+  // patch rather than an intentional treatment. Sized up from 34 to 36 so
+  // the selected state (2px ring + `colors.surface` fill) leaves a visible
+  // card-colored gap between the ring and the swatch instead of the ring
+  // sitting flush against it — necessary because the ring's selected color
+  // (colors.primary) is drawn from the very theme it's marking as active, so
+  // it can't be trusted to contrast with the gradient on its own.
   circleWrapper: {
     position: 'relative',
-    width: 34,
-    height: 34,
-    borderRadius: 17,
+    width: 36,
+    height: 36,
+    borderRadius: 18,
     justifyContent: 'center',
     alignItems: 'center',
     marginBottom: 4,
-  },
-  circleWrapperDark: {
     borderWidth: 1,
-    borderColor: staticColors.glassWhite25,
   },
   previewCircle: {
     width: 30,
@@ -225,8 +231,8 @@ const styles = StyleSheet.create({
   },
   lockBadge: {
     position: 'absolute',
-    top: -2,
-    right: -2,
+    top: -1,
+    right: -1,
     width: 14,
     height: 14,
     borderRadius: 7,
@@ -234,14 +240,14 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   name: {
-    fontSize: 9,
+    fontSize: 10,
     fontWeight: '600',
     textAlign: 'center',
   },
   exclusiveBadge: {
     marginTop: 2,
     paddingHorizontal: 5,
-    paddingVertical: 1,
+    paddingVertical: 2,
     borderRadius: 6,
   },
   exclusiveText: {
