@@ -728,7 +728,7 @@ export const translations = {
       prepHeaderActions:
         'Estos íconos guardan tu historial, organizan series de predicación y ofrecen un banco de ilustraciones.',
       favoritesCollections:
-        'Toca el ícono de marcadores para organizar tus versículos favoritos en colecciones con nombre, como "Promesas" o "Consuelo".',
+        'Abre Colecciones, en la cabecera, para agrupar tus favoritos en listas con nombre como «Promesas» o «Consuelo».',
       memoryBoxProgress:
         'Cada versículo sube de caja cuando lo recuerdas bien, y así se espacia más su próximo repaso.',
       wordStudyBarChart:
@@ -6700,7 +6700,7 @@ export const translations = {
       prepHeaderActions:
         'These icons hold your history, organize preaching series, and offer a bank of illustrations.',
       favoritesCollections:
-        'Tap the bookmarks icon to organize your favorite verses into named collections, like "Promises" or "Comfort".',
+        'Open Collections, up in the header, to group your favorites into named lists like "Promises" or "Comfort".',
       memoryBoxProgress:
         'Each verse moves up a box when you remember it well, spacing out its next review even further.',
       wordStudyBarChart:
