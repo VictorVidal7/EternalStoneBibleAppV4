@@ -25,15 +25,24 @@
  * this module's Firestore gating deliberately mirrors). The Firestore
  * portion is skipped entirely for an anonymous/signed-out caller, and once
  * it has been attempted successfully for a real uid, `@migration_
- * bookmarks_to_favorites_v1` is set to `'done'` and this function never
- * touches Firestore (or does meaningful work at all) again on this device.
- * Until then it may store the intermediate value `'local-only'`, which
- * means "local pass complete, but no signed-in uid has been seen yet (or
- * the one Firestore attempt so far failed) — try the Firestore side again
- * next time a real uid is available." A permanently-anonymous user simply
- * never advances past `'local-only'`, which is fine: there is nothing in
- * Firestore for them anyway, and each further run is a cheap local no-op
- * once `@bible_bookmarks` has been cleared.
+ * bookmarks_to_favorites_v1` is set to `` `done:${uid}` `` and this function
+ * skips Firestore (and does no meaningful work at all) again for THAT SAME
+ * uid on this device. Until then it may store the intermediate value
+ * `'local-only'`, which means "local pass complete, but no signed-in uid
+ * has been seen yet (or the one Firestore attempt so far failed) — try the
+ * Firestore side again next time a real uid is available." A permanently-
+ * anonymous user simply never advances past `'local-only'`, which is fine:
+ * there is nothing in Firestore for them anyway, and each further run is a
+ * cheap local no-op once `@bible_bookmarks` has been cleared.
+ *
+ * The `'done'` state is deliberately keyed BY UID, not device-global — on a
+ * shared device, a second account signing in after a first account's
+ * `'done:<uidA>'` must still get its own Firestore pass (`'done:<uidA>'` !==
+ * `deps.uid === uidB`), otherwise uidB's bookmarks would sit unread in
+ * `users/{uidB}/bookmarks` with no UI left to reach them (Bookmarks itself
+ * is gone). Re-running for a new uid is safe even though the local store was
+ * already cleared by the first pass — it's empty by then, so the local
+ * portion is a harmless no-op and only the Firestore portion does real work.
  */
 
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -158,7 +167,8 @@ export async function migrateRetiredBookmarksToFavorites(
         error: error instanceof Error ? error.message : String(error),
       });
     }
-    if (flag === 'done') return;
+    const doneForUid = flag?.startsWith('done:') ? flag.slice(5) : null;
+    if (doneForUid && deps.uid && doneForUid === deps.uid) return;
 
     // ---- gather candidates from every source ----
     const collected = new Map<string, LegacyBookmarkLike>();
@@ -282,7 +292,7 @@ export async function migrateRetiredBookmarksToFavorites(
     try {
       await AsyncStorage.setItem(
         BOOKMARKS_MIGRATION_FLAG_KEY,
-        deps.uid && firestoreSucceeded ? 'done' : 'local-only',
+        deps.uid && firestoreSucceeded ? `done:${deps.uid}` : 'local-only',
       );
     } catch (error) {
       logger.warn('retiredBookmarksMigration: failed to persist flag', {

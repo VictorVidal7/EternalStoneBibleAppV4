@@ -8,8 +8,10 @@
  *    favorites AND within the batch itself.
  *  - `migrateRetiredBookmarksToFavorites` (impure): local-only migration,
  *    the Firestore safety-net for a signed-in uid, the flag state machine
- *    ('local-only' vs 'done'), idempotency (never re-migrates once done),
- *    and that it clears the legacy AsyncStorage store.
+ *    ('local-only' vs 'done:<uid>', per-uid so a second account on a shared
+ *    device still gets its own Firestore pass), idempotency (never
+ *    re-migrates once done for that uid), and that it clears the legacy
+ *    AsyncStorage store.
  *
  * Firestore is mocked at the module boundary (`@lib/sync/firestore`), same
  * idiom the codebase already uses in memoryStatsSync's own tests.
@@ -188,8 +190,8 @@ describe('migrateRetiredBookmarksToFavorites', () => {
     expect(await AsyncStorage.getItem(LEGACY_BOOKMARKS_STORAGE_KEY)).toBeNull();
   });
 
-  it('only runs once: a second call is a no-op once the flag is "done"', async () => {
-    await AsyncStorage.setItem(BOOKMARKS_MIGRATION_FLAG_KEY, 'done');
+  it('only runs once: a second call for the SAME uid is a no-op once the flag is "done:<uid>"', async () => {
+    await AsyncStorage.setItem(BOOKMARKS_MIGRATION_FLAG_KEY, 'done:some-uid');
     await AsyncStorage.setItem(
       LEGACY_BOOKMARKS_STORAGE_KEY,
       JSON.stringify([bookmark()]),
@@ -208,6 +210,38 @@ describe('migrateRetiredBookmarksToFavorites', () => {
     expect(
       await AsyncStorage.getItem(LEGACY_BOOKMARKS_STORAGE_KEY),
     ).not.toBeNull();
+  });
+
+  it('shared-device fix: a DIFFERENT uid still runs its own Firestore pass even though a prior uid already reached "done"', async () => {
+    // uidA already completed its migration on this device.
+    await AsyncStorage.setItem(BOOKMARKS_MIGRATION_FLAG_KEY, 'done:uid-a');
+    mockDocs = [
+      {
+        id: 'bm-remote-b',
+        data: {book: 'John', chapter: 3, verse: 16, text: 'uidB verse'},
+      },
+    ];
+    const addFavorite = jest.fn().mockResolvedValue(undefined);
+
+    await migrateRetiredBookmarksToFavorites({
+      existingFavoriteVerseKeys: [],
+      addFavorite,
+      uid: 'uid-b',
+    });
+
+    // Without the fix, this would short-circuit on the stale device-global
+    // 'done' flag and never look at uid-b's own Firestore bookmarks.
+    expect(mockCollection).toHaveBeenCalledWith('users/uid-b/bookmarks');
+    expect(addFavorite).toHaveBeenCalledWith(
+      {book: 'John', chapter: 3, verse: 16, text: 'uidB verse'},
+      'other',
+      5,
+      [],
+      undefined,
+    );
+    expect(await AsyncStorage.getItem(BOOKMARKS_MIGRATION_FLAG_KEY)).toBe(
+      'done:uid-b',
+    );
   });
 
   it('never re-runs for the SAME already-migrated bookmark across two calls (idempotent)', async () => {
@@ -321,9 +355,9 @@ describe('migrateRetiredBookmarksToFavorites — Firestore safety-net (signed-in
     expect(mockDoc).toHaveBeenCalledWith('bm-remote');
     expect(mockDelete).toHaveBeenCalledTimes(1);
     // A successful Firestore attempt with a real uid is the only way to
-    // reach the PERMANENT 'done' state.
+    // reach the PERMANENT 'done:<uid>' state, keyed to that specific uid.
     expect(await AsyncStorage.getItem(BOOKMARKS_MIGRATION_FLAG_KEY)).toBe(
-      'done',
+      'done:user-1',
     );
   });
 
