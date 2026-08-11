@@ -38,6 +38,7 @@ import DailyVerseSettings from '@components/settings/DailyVerseSettings';
 import PrayerReminderSettings from '@components/settings/PrayerReminderSettings';
 import DevotionReminderSettings from '@components/settings/DevotionReminderSettings';
 import PropheticReminderSettings from '@components/settings/PropheticReminderSettings';
+import SabiasQueReminderSettings from '@components/settings/SabiasQueReminderSettings';
 import {ConfirmDialog} from '@components/ui/ConfirmDialog';
 import MemoryGoalSettings from '@components/settings/MemoryGoalSettings';
 import ManageVersionsSection from '@components/settings/ManageVersionsSection';
@@ -809,6 +810,9 @@ export default function SettingsScreen() {
 
         {/* "Profecía del día" — Hilo profético robustness round 3 */}
         <PropheticReminderSettings />
+
+        {/* "¿Sabías qué?" — daily Bible-facts nudge (v2) */}
+        <SabiasQueReminderSettings />
 
         {/* Daily reading goal — grades the Leer constancy ring (Sprint 85) */}
         <ReadingGoalSettings />

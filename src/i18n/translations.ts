@@ -4367,6 +4367,12 @@ export const translations = {
         'Recibe cada día un paso del hilo profético que anuncia a Cristo, a la hora que elijas',
       prophecyReminderEnabled: 'Recordatorio de profecía activado',
       prophecyReminderDisabled: 'Recordatorio de profecía desactivado',
+      sabiasQueReminderTitle: '¿Sabías qué?',
+      sabiasQueReminder: 'Dato del día',
+      sabiasQueReminderDesc:
+        'Recibe cada día un dato curioso con respaldo bíblico, a la hora que elijas',
+      sabiasQueReminderEnabled: 'Recordatorio de "¿Sabías qué?" activado',
+      sabiasQueReminderDisabled: 'Recordatorio de "¿Sabías qué?" desactivado',
       permissionDeniedTitle: 'Permiso necesario',
       permissionDeniedMessage:
         'Para recibir el versículo diario, activa las notificaciones de la app en los ajustes del sistema.',
@@ -10309,6 +10315,12 @@ export const translations = {
         'Receive a step of the prophetic thread that points to Christ each day, at the time you choose',
       prophecyReminderEnabled: 'Prophecy reminder turned on',
       prophecyReminderDisabled: 'Prophecy reminder turned off',
+      sabiasQueReminderTitle: 'Did you know?',
+      sabiasQueReminder: 'Fact of the day',
+      sabiasQueReminderDesc:
+        'Receive a biblically-grounded curious fact each day, at the time you choose',
+      sabiasQueReminderEnabled: '"Did you know?" reminder turned on',
+      sabiasQueReminderDisabled: '"Did you know?" reminder turned off',
       permissionDeniedTitle: 'Permission needed',
       permissionDeniedMessage:
         'To receive the daily verse, enable notifications for the app in your system settings.',
