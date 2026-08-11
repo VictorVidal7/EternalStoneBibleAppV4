@@ -727,6 +727,12 @@ export const translations = {
         'Prueba Foco: resalta el versículo que lees y atenúa el resto para ayudarte a concentrarte.',
       prepHeaderActions:
         'Estos íconos guardan tu historial, organizan series de predicación y ofrecen un banco de ilustraciones.',
+      favoritesCollections:
+        'Abre Colecciones, en la cabecera, para agrupar tus favoritos en listas con nombre como «Promesas» o «Consuelo».',
+      memoryBoxProgress:
+        'Cada versículo sube de caja cuando lo recuerdas bien, y así se espacia más su próximo repaso.',
+      wordStudyBarChart:
+        'Toca una barra para filtrar la lista de apariciones a ese libro.',
     },
 
     readerPrefs: {
@@ -6693,6 +6699,12 @@ export const translations = {
         "Try Focus: it highlights the verse you're reading and dims the rest to help you concentrate.",
       prepHeaderActions:
         'These icons hold your history, organize preaching series, and offer a bank of illustrations.',
+      favoritesCollections:
+        'Open Collections, up in the header, to group your favorites into named lists like "Promises" or "Comfort".',
+      memoryBoxProgress:
+        'Each verse moves up a box when you remember it well, spacing out its next review even further.',
+      wordStudyBarChart:
+        'Tap a bar to filter the occurrence list down to that book.',
     },
 
     readerPrefs: {

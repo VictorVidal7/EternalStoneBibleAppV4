@@ -1,5 +1,5 @@
 import {View, Text, StyleSheet, FlatList, TouchableOpacity} from 'react-native';
-import {staticColors} from '@/styles/designTokens';
+import {spacing, staticColors} from '@/styles/designTokens';
 
 import React, {useCallback, useMemo, useState} from 'react';
 import {useRouter, useFocusEffect} from 'expo-router';
@@ -10,6 +10,8 @@ import {centeredMaxWidth} from '@/styles/responsive';
 import {useLanguage} from '@hooks/useLanguage';
 import {IllustratedEmptyState} from '@components/IllustratedEmptyState';
 import {ConfirmDialog} from '@components/ui/ConfirmDialog';
+import {ContextualHintBanner} from '@components/hints/ContextualHintBanner';
+import {useContextualHint} from '@hooks/useContextualHint';
 import {useToast} from '@context/ToastContext';
 import {logger} from '@lib/utils/logger';
 import {haptics} from '@lib/haptics';
@@ -29,6 +31,12 @@ export default function FavoritesScreen() {
   const toast = useToast();
   const {favorites, removeFavorite, refreshFavorites, loading} = useFavorites();
   const {hasCard, addCard, removeCard} = useMemoryDeck();
+  // Contextual hint (T: contextual-hints-expansion) — the "Colecciones"
+  // header icon is icon-only, easy to overlook, and it's the entry point to
+  // organizing favorites into named lists (a feature `collections.emptyHint`
+  // already teaches once the user gets there — this hint's only job is
+  // getting them to tap the icon in the first place).
+  const collectionsHint = useContextualHint('favoritesCollections');
   // The favorite whose collections sheet is open (null = closed).
   const [collectionsFor, setCollectionsFor] = useState<string | null>(null);
   const [deleteTargetId, setDeleteTargetId] = useState<string | null>(null);
@@ -207,6 +215,25 @@ export default function FavoritesScreen() {
         </View>
       </LinearGradient>
 
+      {/* Contextual hint (T: contextual-hints-expansion) — see
+          collectionsHint above. Sits directly under the header that carries
+          the Colecciones icon, above the list, mirroring prepHeaderActions'
+          placement for its own icon-only header actions. Gated on
+          favorites.length > 0: with zero favorites the empty state below
+          already tells the user to go save a verse first — a callout about
+          organizing favorites they don't have yet would be noise, and the
+          default 8s auto-dismiss would burn this one-shot hint for good on
+          a screen where it had nothing useful to say. */}
+      {favorites.length > 0 && (
+        <View style={styles.hintWrapper}>
+          <ContextualHintBanner
+            visible={collectionsHint.visible}
+            onDismiss={collectionsHint.dismiss}
+            message={t.contextualHints.favoritesCollections}
+          />
+        </View>
+      )}
+
       <FlatList
         data={favorites}
         keyExtractor={item => item.id}
@@ -331,6 +358,11 @@ export default function FavoritesScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+  },
+  // Horizontal inset only (no background/border) so this renders as
+  // nothing at all while ContextualHintBanner is null.
+  hintWrapper: {
+    paddingHorizontal: spacing.lg,
   },
   header: {
     paddingTop: 60,
