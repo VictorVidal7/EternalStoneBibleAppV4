@@ -467,7 +467,7 @@ export const ImageShareModal: React.FC<ImageShareModalProps> = ({
               style={styles.optionsRow}>
               {SHARE_TEMPLATES.map((template, index) => {
                 const unlocked = isTemplateUnlocked(template, isPremium);
-                const selected = index === themeIndex;
+                const selected = index === themeIndex && !usingOwnPhoto;
                 return (
                   <TouchableOpacity
                     key={template.id}

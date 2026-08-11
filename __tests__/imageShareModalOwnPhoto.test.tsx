@@ -253,6 +253,34 @@ describe('ImageShareModal — "own photo" background', () => {
     );
   });
 
+  it('does not leave a template swatch showing "selected" once an own photo is active', async () => {
+    // Regression: `selected` used to check only `index === themeIndex`,
+    // which stays true for whichever template was picked BEFORE own-photo
+    // mode — so its ring kept showing alongside the new own-photo circle's
+    // ring, ambiguously implying 2 things were selected at once.
+    await unlockPremium();
+    mockRequestMediaLibraryPermissionsAsync.mockResolvedValue({
+      granted: true,
+    });
+    mockLaunchImageLibraryAsync.mockResolvedValue({
+      canceled: false,
+      assets: [{uri: 'file://selected-photo.jpg'}],
+    });
+
+    const {findByLabelText} = renderModal();
+    // themeIndex defaults to 0 ("Estilo 1"), so it starts selected.
+    expect(
+      (await findByLabelText('Estilo 1')).props.accessibilityState,
+    ).toEqual({selected: true});
+
+    fireEvent.press(await findByLabelText('Tu propia foto'));
+    await waitFor(async () =>
+      expect(
+        (await findByLabelText('Estilo 1')).props.accessibilityState,
+      ).toEqual({selected: false}),
+    );
+  });
+
   it('reverts to a template if the entitlement is revoked while a photo is active', async () => {
     // Mirrors imageShareModalPremium.test.tsx's own texture-revert test: a
     // LIVE entitlement change (via the RevenueCat mock + offeringService's
