@@ -58,8 +58,6 @@ export const translations = {
       endOfBook: 'Fin del libro',
       endOfBookMessage: 'Has llegado al final de este libro',
       firstChapterMessage: 'Estás en el primer capítulo de este libro',
-      emptyBookmarksHint:
-        'Toca el icono de estrella al leer versiculos para guardarlos como favoritos',
       loadingProgress: 'Cargando... {{percent}}%',
       storageLockedTitle: 'No se pudo completar la descarga',
       storageLockedMessage:
@@ -3465,7 +3463,7 @@ export const translations = {
       signOut: 'Cerrar sesión',
       signOutConfirmTitle: 'Cerrar sesión',
       signOutConfirmMessage:
-        'Cerrarás sesión de Google. Tus favoritos, notas, resaltados, marcadores y tarjetas de memoria seguirán en este dispositivo.',
+        'Cerrarás sesión de Google. Tus favoritos, notas, resaltados y tarjetas de memoria seguirán en este dispositivo.',
       signOutConfirmCta: 'Cerrar sesión',
       signedInAs: 'Sesión iniciada como',
       notSignedIn:
@@ -3481,7 +3479,7 @@ export const translations = {
       deleteAccount: 'Eliminar cuenta',
       deleteAccountConfirmTitle: '¿Eliminar tu cuenta?',
       deleteAccountConfirmMessage:
-        'Se borrará tu contenido en la nube (favoritos, notas, resaltados, marcadores, tarjetas de memoria e historial de repasos) y se cerrará tu sesión. Tu cuenta de Google no se elimina — solo se desvincula de la app, y podrás volver a iniciar sesión cuando quieras. Esto no se puede deshacer. Los datos que ya están guardados en este dispositivo no se borran — usa "Restablecer datos" en Datos si también quieres eliminarlos.',
+        'Se borrará tu contenido en la nube (favoritos, notas, resaltados, tarjetas de memoria e historial de repasos) y se cerrará tu sesión. Tu cuenta de Google no se elimina — solo se desvincula de la app, y podrás volver a iniciar sesión cuando quieras. Esto no se puede deshacer. Los datos que ya están guardados en este dispositivo no se borran — usa "Restablecer datos" en Datos si también quieres eliminarlos.',
       deleteAccountConfirmCta: 'Eliminar cuenta',
       deleteAccountSuccessToast: 'Tu cuenta fue eliminada',
       deleteAccountError:
@@ -3568,7 +3566,6 @@ export const translations = {
           favorites: 'Favoritos',
           notes: 'Notas',
           highlights: 'Resaltados',
-          bookmarks: 'Marcadores',
           memoryCards: 'Memorización',
         },
         fieldLabels: {
@@ -3581,22 +3578,6 @@ export const translations = {
           label: 'Etiqueta',
         },
       },
-    },
-
-    bookmarks: {
-      title: 'Marcadores',
-      short: 'Marcadores',
-      count: 'marcadores',
-      countSingular: 'marcador',
-      added: 'Marcador añadido',
-      addedMany: '{{n}} marcadores añadidos',
-      emptyMessage: 'Aún no tienes marcadores',
-      openBible: 'Abrir la Biblia',
-      rename: 'Renombrar',
-      renameTitle: 'Nombre del marcador',
-      labelPlaceholder: 'Ej.: Sermón del domingo',
-      deleteTitle: 'Eliminar marcador',
-      deleteMessage: '¿Quieres quitar este marcador?',
     },
 
     highlights: {
@@ -3730,7 +3711,7 @@ export const translations = {
       resetError: 'Error al resetear los datos.',
       exportBackup: 'Exportar copia de seguridad',
       exportBackupDescription:
-        'Genera un archivo JSON con favoritos, notas, resaltados, marcadores, progreso y preferencias.',
+        'Genera un archivo JSON con favoritos, notas, resaltados, progreso y preferencias.',
       exporting: 'Generando copia…',
       exportError: 'No se pudo exportar la copia. Inténtalo de nuevo.',
       exportPartial:
@@ -3747,7 +3728,7 @@ export const translations = {
         'Copia importada, pero algunos datos no se pudieron restaurar. El resto de tu información no se vio afectada.',
       importConfirmTitle: 'Importar copia de seguridad',
       importConfirmMessage:
-        'Esto reemplazará tus datos actuales con los del archivo elegido y no se puede deshacer.\n\nFavoritos, notas, resaltados, marcadores, memorización y repasos (últimos 12 meses) también se sincronizan con la nube si iniciaste sesión. El progreso de lectura, logros y rachas, preferencias y la Mesa de preparación solo viven en este dispositivo — la Mesa de preparación nunca se sincroniza a propósito.',
+        'Esto reemplazará tus datos actuales con los del archivo elegido y no se puede deshacer.\n\nFavoritos, notas, resaltados, memorización y repasos (últimos 12 meses) también se sincronizan con la nube si iniciaste sesión. El progreso de lectura, logros y rachas, preferencias y la Mesa de preparación solo viven en este dispositivo — la Mesa de preparación nunca se sincroniza a propósito.',
       importConfirmCta: 'Importar y reemplazar',
 
       about: 'Acerca de',
@@ -4683,12 +4664,6 @@ export const translations = {
         title: 'Sin plan de lectura activo',
         message: 'Elige un plan para guiar tu lectura diaria',
         action: 'Explorar planes',
-      },
-      noBookmarks: {
-        title: 'Sin marcadores aún',
-        message:
-          'Marca versículos mientras lees para volver fácilmente a ellos',
-        action: 'Abrir la Biblia',
       },
     },
 
@@ -6064,8 +6039,6 @@ export const translations = {
       endOfBook: 'End of book',
       endOfBookMessage: 'You have reached the end of this book',
       firstChapterMessage: 'You are at the first chapter of this book',
-      emptyBookmarksHint:
-        'Tap the star icon while reading verses to save them as favorites',
       loadingProgress: 'Loading... {{percent}}%',
       storageLockedTitle: "Download couldn't complete",
       storageLockedMessage:
@@ -9446,7 +9419,7 @@ export const translations = {
       signOut: 'Sign out',
       signOutConfirmTitle: 'Sign out',
       signOutConfirmMessage:
-        'You will be signed out of Google. Your favorites, notes, highlights, bookmarks and memory cards will remain on this device.',
+        'You will be signed out of Google. Your favorites, notes, highlights and memory cards will remain on this device.',
       signOutConfirmCta: 'Sign out',
       signedInAs: 'Signed in as',
       notSignedIn: 'Sign in to sync your data across devices',
@@ -9461,7 +9434,7 @@ export const translations = {
       deleteAccount: 'Delete account',
       deleteAccountConfirmTitle: 'Delete your account?',
       deleteAccountConfirmMessage:
-        'This deletes your cloud content (favorites, notes, highlights, bookmarks, memory cards, and review history) and signs you out. Your Google account itself is not deleted — it\'s only unlinked from the app, and you can sign back in anytime. This can\'t be undone. Data already saved on this device is not removed — use "Reset data" under Data if you want that too.',
+        'This deletes your cloud content (favorites, notes, highlights, memory cards, and review history) and signs you out. Your Google account itself is not deleted — it\'s only unlinked from the app, and you can sign back in anytime. This can\'t be undone. Data already saved on this device is not removed — use "Reset data" under Data if you want that too.',
       deleteAccountConfirmCta: 'Delete account',
       deleteAccountSuccessToast: 'Your account was deleted',
       deleteAccountError:
@@ -9547,7 +9520,6 @@ export const translations = {
           favorites: 'Favorites',
           notes: 'Notes',
           highlights: 'Highlights',
-          bookmarks: 'Bookmarks',
           memoryCards: 'Memorization',
         },
         fieldLabels: {
@@ -9560,22 +9532,6 @@ export const translations = {
           label: 'Label',
         },
       },
-    },
-
-    bookmarks: {
-      title: 'Bookmarks',
-      short: 'Bookmarks',
-      count: 'bookmarks',
-      countSingular: 'bookmark',
-      added: 'Bookmark added',
-      addedMany: '{{n}} bookmarks added',
-      emptyMessage: 'No bookmarks yet',
-      openBible: 'Open the Bible',
-      rename: 'Rename',
-      renameTitle: 'Bookmark name',
-      labelPlaceholder: 'e.g. Sunday sermon',
-      deleteTitle: 'Delete bookmark',
-      deleteMessage: 'Remove this bookmark?',
     },
 
     // My Highlights Screen
@@ -9709,7 +9665,7 @@ export const translations = {
       resetError: 'Error resetting data.',
       exportBackup: 'Export backup',
       exportBackupDescription:
-        'Generate a JSON file with favorites, notes, highlights, bookmarks, progress and preferences.',
+        'Generate a JSON file with favorites, notes, highlights, progress and preferences.',
       exporting: 'Generating backup…',
       exportError: 'Backup export failed. Please try again.',
       exportPartial:
@@ -9726,7 +9682,7 @@ export const translations = {
         "Backup imported, but some data couldn't be restored. The rest of your data wasn't affected.",
       importConfirmTitle: 'Import backup',
       importConfirmMessage:
-        "This will replace your current data with the contents of the chosen file, and can't be undone.\n\nFavorites, notes, highlights, bookmarks, memorization, and reviews (last 12 months) also sync to the cloud if you're signed in. Reading progress, achievements and streaks, preferences, and the Preparation table live only on this device — the Preparation table never syncs, by design.",
+        "This will replace your current data with the contents of the chosen file, and can't be undone.\n\nFavorites, notes, highlights, memorization, and reviews (last 12 months) also sync to the cloud if you're signed in. Reading progress, achievements and streaks, preferences, and the Preparation table live only on this device — the Preparation table never syncs, by design.",
       importConfirmCta: 'Import and replace',
 
       about: 'About',
@@ -10657,11 +10613,6 @@ export const translations = {
         title: 'No active reading plan',
         message: 'Choose a plan to guide your daily reading',
         action: 'Explore plans',
-      },
-      noBookmarks: {
-        title: 'No bookmarks yet',
-        message: 'Bookmark verses while reading to come back to them later',
-        action: 'Open the Bible',
       },
     },
 

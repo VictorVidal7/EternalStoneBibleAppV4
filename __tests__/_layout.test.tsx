@@ -151,9 +151,14 @@ jest.mock('../src/context/ReadingProgressContext', () => ({
 }));
 jest.mock('../src/context/FavoritesContext', () => ({
   FavoritesProvider: ({children}: {children: React.ReactNode}) => children,
+  useFavorites: () => ({
+    favorites: [],
+    loading: false,
+    addFavorite: jest.fn(() => Promise.resolve()),
+  }),
 }));
-jest.mock('../src/context/BookmarksContext', () => ({
-  BookmarksProvider: ({children}: {children: React.ReactNode}) => children,
+jest.mock('../src/lib/migrations/retiredBookmarksMigration', () => ({
+  migrateRetiredBookmarksToFavorites: jest.fn(() => Promise.resolve()),
 }));
 jest.mock('../src/context/ReadingPlanProgressContext', () => ({
   ReadingPlanProgressProvider: ({children}: {children: React.ReactNode}) =>
@@ -174,6 +179,7 @@ jest.mock('../src/context/MemoryDeckContext', () => ({
 }));
 jest.mock('../src/context/AuthContext', () => ({
   AuthProvider: ({children}: {children: React.ReactNode}) => children,
+  useAuth: () => ({user: null, isLoading: false}),
 }));
 jest.mock('../src/context/SyncEngineContext', () => ({
   SyncEngineProvider: ({children}: {children: React.ReactNode}) => children,

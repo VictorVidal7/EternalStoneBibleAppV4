@@ -24,6 +24,14 @@ const USER_DATA_COLLECTIONS = [
   'favorites',
   'notes',
   'highlights',
+  // The "Marcadores"/Bookmarks feature was removed (retiredBookmarksMigration.ts
+  // migrates any existing bookmark into a Favorito and best-effort deletes the
+  // migrated doc from this collection) — normally empty by the time a user
+  // reaches account deletion. Kept here as a deliberate defense-in-depth
+  // safety net (an account deleted before that migration ever ran, or one of
+  // its best-effort remote deletes having failed) so account deletion never
+  // leaves a stray doc behind. The generic query-then-delete loop below costs
+  // almost nothing against an empty/near-empty collection.
   'bookmarks',
   'memoryCards',
   // Legacy per-review docs from before the local-first change still need

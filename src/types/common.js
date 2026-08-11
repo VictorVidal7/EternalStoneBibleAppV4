@@ -7,13 +7,6 @@
  */
 
 /**
- * @typedef {Object} Bookmark
- * @property {string} book - The name of the book
- * @property {number} chapter - The chapter number
- * @property {number} verse - The verse number
- */
-
-/**
  * @typedef {Object} ReadingPlan
  * @property {string} id - Unique identifier for the plan
  * @property {string} name - Name of the reading plan

@@ -31,10 +31,20 @@
  *     is the ONLY way to move this between devices.
  *
  * All v1 field names are kept where the data they described didn't change
- * meaning (favorites/notes/highlights/bookmarks/searchHistory/reading-plan
- * progress/`readerPreferences.sideBySide`). The one deliberate exception is
+ * meaning (favorites/notes/highlights/searchHistory/reading-plan progress/
+ * `readerPreferences.sideBySide`). The one deliberate exception is
  * `bible.readingProgress`, split into `lastReadPosition` + `chapterProgressMap`
  * (see above) — `importBackup` still understands a v1 file's old field name.
+ *
+ * `user.bookmarks` — the "Marcadores" feature — was removed from the CURRENT
+ * export/import shape when the Bookmarks feature itself was retired
+ * (redundant with the richer Favorites feature). An OLD backup file that
+ * still carries a `user.bookmarks` array is simply never read by
+ * `importBackup` — it silently no-ops rather than failing validation, and
+ * every other section in that same file still restores normally. Existing
+ * bookmarks (local AND already-synced) are handled by a dedicated one-time
+ * migration into Favoritos, NOT by this file — see
+ * `src/lib/migrations/retiredBookmarksMigration.ts`.
  *
  * Exported via expo-sharing; imported via `pickBackupFileUri` (expo-document-
  * picker) + `readBackupFileFromUri` at the bottom. The on-disk JSON stays
@@ -50,7 +60,6 @@ import {logger} from '../lib/utils/logger';
 import {getTranslations} from '../i18n/languageUtils';
 import type {Note} from '../types/bible';
 import type {Favorite} from '../context/FavoritesContext';
-import type {Bookmark} from '../context/BookmarksContext';
 import type {ReaderPreferences} from '../context/ReaderPreferencesContext';
 import {
   AchievementService,
@@ -96,7 +105,6 @@ const KEYS = {
   readingProgress: 'readingProgress',
   readingPlanProgress: '@reading_plan_progress',
   readingPlanReadChapters: '@reading_plan_read_chapters',
-  bookmarks: '@bible_bookmarks',
   searchHistory: '@bible_search_history',
   sideBySide: '@reader_side_by_side',
   readerPreferences: '@reader_preferences',
@@ -157,7 +165,6 @@ export interface BackupPayload {
     chapterProgressMap: ChapterProgressMap | null;
   };
   user: {
-    bookmarks: Bookmark[];
     readingPlanProgress: unknown;
     readingPlanReadChapters: unknown;
     searchHistory: unknown;
@@ -424,7 +431,6 @@ export async function buildBackup(): Promise<BuildBackupResult> {
     : null;
 
   const [
-    bookmarks,
     planProgress,
     planReadChapters,
     searchHistory,
@@ -436,7 +442,6 @@ export async function buildBackup(): Promise<BuildBackupResult> {
     prepNotesRaw,
     prepSeriesRaw,
   ] = await Promise.all([
-    readJSON<Bookmark[]>(KEYS.bookmarks, 'bookmarks', degradedSections),
     readJSON(KEYS.readingPlanProgress, 'readingPlanProgress', degradedSections),
     readJSON(
       KEYS.readingPlanReadChapters,
@@ -529,7 +534,6 @@ export async function buildBackup(): Promise<BuildBackupResult> {
       chapterProgressMap,
     },
     user: {
-      bookmarks: bookmarks ?? [],
       readingPlanProgress: planProgress ?? {},
       readingPlanReadChapters: planReadChapters ?? {},
       searchHistory: searchHistory ?? [],
@@ -736,25 +740,6 @@ function coerceHighlightRow(raw: unknown): RawHighlightRow | null {
     note: typeof raw.note === 'string' ? raw.note : null,
     created_at: num(raw.created_at, Date.now()),
     updated_at: num(raw.updated_at, Date.now()),
-  };
-}
-
-function coerceBookmark(raw: unknown): Bookmark | null {
-  if (!isPlainObject(raw)) return null;
-  if (typeof raw.id !== 'string' || typeof raw.book !== 'string') return null;
-  if (typeof raw.chapter !== 'number' || typeof raw.verse !== 'number') {
-    return null;
-  }
-  const now = Date.now();
-  return {
-    id: raw.id,
-    book: raw.book,
-    chapter: raw.chapter,
-    verse: raw.verse,
-    text: typeof raw.text === 'string' ? raw.text : '',
-    label: typeof raw.label === 'string' ? raw.label : undefined,
-    createdAt: num(raw.createdAt, now),
-    updatedAt: num(raw.updatedAt, now),
   };
 }
 
@@ -978,7 +963,6 @@ function pushImportedEntitiesToSync(data: {
   favorites: Favorite[];
   notes: Note[];
   highlights: RawHighlightRow[];
-  bookmarks: Bookmark[];
   memoryDeck: MemoryCard[];
   reviewEvents: ReviewEvent[];
 }): void {
@@ -1027,10 +1011,6 @@ function pushImportedEntitiesToSync(data: {
         updatedAt: h.updated_at,
       }),
     );
-  }
-
-  for (const b of data.bookmarks) {
-    engine.queueWrite('bookmarks', b.id, withoutUndefined({...b}));
   }
 
   for (const c of data.memoryDeck) {
@@ -1095,8 +1075,8 @@ function pushImportedEntitiesToSync(data: {
  * project's own `performResetData` pattern documents as acceptable when a
  * safe universal hot-reload isn't reasonably achievable for every affected
  * context — and here there are over a dozen: favorites, notes, highlights,
- * bookmarks, two reading-progress stores, reader preferences, app theme,
- * memory deck, review events, prep notes, prep series).
+ * two reading-progress stores, reader preferences, app theme, memory deck,
+ * review events, prep notes, prep series).
  *
  * `achievements` is the one exception: `resolveAchievementService()` reaches
  * the SAME `AchievementService` instance the Achievements tab reads from
@@ -1162,13 +1142,6 @@ export async function importBackup(
         bible.chapterProgressMap as ChapterProgressMap | null,
       )
     : null;
-
-  const bookmarksPresent = Array.isArray(user.bookmarks);
-  const bookmarksIn = coerceArray(user.bookmarks, coerceBookmark);
-  const bookmarksAllFailed = allRowsFailedValidation(
-    sourceArrayLength(user.bookmarks),
-    bookmarksIn.length,
-  );
 
   const readingPlanProgressPresent = user.readingPlanProgress !== undefined;
   const readingPlanReadChaptersPresent =
@@ -1243,14 +1216,6 @@ export async function importBackup(
   // `multiSet` call below is known to have succeeded or failed. ----
   const pairs: [string, string][] = [];
   const pendingAsyncStorageSections: string[] = [];
-  if (bookmarksPresent) {
-    if (bookmarksAllFailed) {
-      failedSections.push('bookmarks');
-    } else {
-      pairs.push([KEYS.bookmarks, JSON.stringify(bookmarksIn)]);
-      pendingAsyncStorageSections.push('bookmarks');
-    }
-  }
   if (readingPlanProgressPresent) {
     pairs.push([
       KEYS.readingPlanProgress,
@@ -1448,7 +1413,7 @@ export async function importBackup(
         coerceChapterReadEntry,
       );
       // Same "every row failed validation" check as the outer sections
-      // (favorites/notes/highlights/bookmarks/memoryDeck) above — computed
+      // (favorites/notes/highlights/memoryDeck) above — computed
       // here because `AchievementService.restoreBackup` only ever receives
       // the already-coerced arrays and has no way to tell "the backup
       // legitimately has zero entries" apart from "every entry was garbage"
@@ -1517,15 +1482,14 @@ export async function importBackup(
   // ---- Hand off the Firestore-synced collections to the normal sync path.
   // favorites/notes/highlights/reviewEvents are SQLite-backed and already
   // committed above regardless of the AsyncStorage outcome, so pushing them
-  // is always safe. bookmarks/memoryDeck are AsyncStorage-backed: pushing
-  // them to the cloud when the LOCAL write just failed would leave this
-  // device's cloud data ahead of what actually landed locally, so they're
-  // skipped in that one failure case. ----
+  // is always safe. memoryDeck is AsyncStorage-backed: pushing it to the
+  // cloud when the LOCAL write just failed would leave this device's cloud
+  // data ahead of what actually landed locally, so it's skipped in that one
+  // failure case. ----
   pushImportedEntitiesToSync({
     favorites: favoritesIn,
     notes: notesIn,
     highlights: highlightsIn,
-    bookmarks: asyncStorageWriteFailed ? [] : bookmarksIn,
     memoryDeck: asyncStorageWriteFailed ? [] : Object.values(memoryDeckIn),
     reviewEvents: reviewEventsIn,
   });

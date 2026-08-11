@@ -109,7 +109,6 @@ describe('buildBackup — degradedSections only fires on an actual read failure'
     // fresh user must never be told their export "degraded".
     expect(degradedSections).toEqual([]);
     expect(payload.bible.favorites).toEqual([]);
-    expect(payload.user.bookmarks).toEqual([]);
     expect(payload.memory.memoryDeck).toBeNull();
   });
 
@@ -126,7 +125,7 @@ describe('buildBackup — degradedSections only fires on an actual read failure'
 
   it('flags a section whose AsyncStorage read actually throws, not sections that are merely null', async () => {
     jest.spyOn(AsyncStorage, 'getItem').mockImplementation(async key => {
-      if (key === '@bible_bookmarks') {
+      if (key === '@bible_search_history') {
         throw new Error('mock: AsyncStorage read failed');
       }
       return null;
@@ -134,8 +133,8 @@ describe('buildBackup — degradedSections only fires on an actual read failure'
 
     const {payload, degradedSections} = await buildBackup();
 
-    expect(degradedSections).toContain('bookmarks');
-    expect(payload.user.bookmarks).toEqual([]);
+    expect(degradedSections).toContain('searchHistory');
+    expect(payload.user.searchHistory).toEqual([]);
     // Every OTHER AsyncStorage-backed key legitimately returned null in
     // this test (never threw) — none of them should be flagged.
     expect(degradedSections).not.toContain('readerPreferencesFull');

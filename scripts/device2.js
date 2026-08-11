@@ -43,7 +43,6 @@ const COLLECTIONS = [
   'favorites',
   'notes',
   'highlights',
-  'bookmarks',
   'memoryCards',
   'conflicts',
 ];
