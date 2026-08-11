@@ -35,6 +35,8 @@ import {centeredMaxWidth} from '@/styles/responsive';
 import {useLanguage} from '@hooks/useLanguage';
 import {getBookById} from '@/constants/bible';
 import {MiniBarChart} from '@components/charts/MiniBarChart';
+import {ContextualHintBanner} from '@components/hints/ContextualHintBanner';
+import {useContextualHint} from '@hooks/useContextualHint';
 import {usePremium} from '@context/PremiumContext';
 import {useOfferingSheet} from '@context/OfferingSheetContext';
 import {
@@ -93,6 +95,12 @@ export default function WordStudyScreen() {
       : ['#4f46e5', '#7c3aed', '#a855f7']
   ) as [string, string, ...string[]];
 
+  // Contextual hint (T: contextual-hints-expansion) — the distribution bar
+  // chart looks purely decorative but each bar is tappable (see bookFilter
+  // below); called unconditionally alongside the screen's other hooks (no
+  // early return on this screen precedes it) even though the banner itself
+  // only renders once the chart exists (bars.length > 1, below).
+  const barChartHint = useContextualHint('wordStudyBarChart');
   const [status, setStatus] = useState<Status>('loading');
   const [study, setStudy] = useState<WordStudy | null>(null);
   // The Strong's definition is English-only; in a Spanish UI it hides behind
@@ -474,6 +482,20 @@ export default function WordStudyScreen() {
                 valueColor={colors.textTertiary}
                 onBarPress={handleBarPress}
                 selectedIndex={selectedBarIndex}
+              />
+              {/* Contextual hint (T: contextual-hints-expansion) — see
+                  barChartHint above. duration={0}: the feature being
+                  explained IS tapping a bar, and this banner sits directly
+                  below the chart, above the first/last-appearance cards —
+                  an auto-dismiss while the user is exploring the bars would
+                  shift those cards under a reaching finger, the same
+                  layout-jump risk readerFocusMode's duration={0} avoids in
+                  the reader. */}
+              <ContextualHintBanner
+                visible={barChartHint.visible}
+                onDismiss={barChartHint.dismiss}
+                message={t.contextualHints.wordStudyBarChart}
+                duration={0}
               />
             </View>
           ) : null}

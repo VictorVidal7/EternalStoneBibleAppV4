@@ -43,6 +43,8 @@ import {isMastered} from '@lib/memory/srs';
 import {WeeklyChallengeCard} from '@components/WeeklyChallengeCard';
 import {MemoryGuideModal} from '@components/MemoryGuideModal';
 import {ConfirmDialog} from '@components/ui/ConfirmDialog';
+import {ContextualHintBanner} from '@components/hints/ContextualHintBanner';
+import {useContextualHint} from '@hooks/useContextualHint';
 import {
   borderRadius,
   fontSize as fontSizes,
@@ -58,6 +60,14 @@ export default function MemoryDeckScreen() {
   const toast = useToast();
   const {cards, dueCards, stats, removeCard} = useMemoryDeck();
   const {history, goal, milestone, dismissMilestone} = useMemoryGoal();
+  // Contextual hint (T: contextual-hints-expansion) — the box badge on each
+  // card (e.g. "Caja 2") and its next-review date are visible, but WHY they
+  // change isn't: this states the spaced-repetition mechanic directly
+  // rather than pointing at the "?" guide button, which only helps someone
+  // who already knows to tap it (same gap `readerFocusMode` was built to
+  // close for Focus mode). The guide button remains the place to go for the
+  // full explanation; this hint's job is just surfacing the mechanic once.
+  const boxProgressHint = useContextualHint('memoryBoxProgress');
   const [guideVisible, setGuideVisible] = useState(false);
   const [removeTarget, setRemoveTarget] = useState<MemoryCard | null>(null);
 
@@ -229,6 +239,20 @@ export default function MemoryDeckScreen() {
                 {t.memory.emptyHint}
               </Text>
             </View>
+          )}
+
+          {/* Contextual hint (T: contextual-hints-expansion) — see
+              boxProgressHint above. Placed directly above the cards list (not
+              above PulsingPracticeCta) so its default auto-dismiss never
+              shifts a primary CTA button under a reaching finger — only the
+              box-badge rows it's actually explaining. Gated on !isEmpty:
+              nothing to explain before the deck has its first card. */}
+          {!isEmpty && (
+            <ContextualHintBanner
+              visible={boxProgressHint.visible}
+              onDismiss={boxProgressHint.dismiss}
+              message={t.contextualHints.memoryBoxProgress}
+            />
           )}
 
           {/* Cards list */}

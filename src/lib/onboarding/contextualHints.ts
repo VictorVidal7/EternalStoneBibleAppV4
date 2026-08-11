@@ -56,6 +56,11 @@ export const CONTEXTUAL_HINT_IDS = [
   'exploreFeaturedCard',
   'readerFocusMode',
   'prepHeaderActions',
+  // Expansion batch (T: contextual-hints-expansion) — see each wiring site
+  // for why that particular feature was chosen.
+  'favoritesCollections',
+  'memoryBoxProgress',
+  'wordStudyBarChart',
 ] as const;
 
 export type ContextualHintId = (typeof CONTEXTUAL_HINT_IDS)[number];
