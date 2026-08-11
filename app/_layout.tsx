@@ -94,6 +94,7 @@ import {
   refreshPrayerReminders,
   refreshDevotionReminders,
   refreshPropheticReminders,
+  refreshSabiasQueReminders,
 } from '@lib/notifications/NotificationService';
 import {PropheticReminderRouter} from '@/components/PropheticReminderRouter';
 import {ErrorBoundary} from '@/components/ErrorBoundary';
@@ -165,6 +166,8 @@ export function AppContent() {
     refreshDevotionReminders({language}).catch(() => {});
     // Hilo profético round 3 — and the "Profecía del día" reminder window.
     refreshPropheticReminders({language}).catch(() => {});
+    // v2 — and the "¿Sabías qué?" daily-facts reminder window.
+    refreshSabiasQueReminders({language}).catch(() => {});
   }, [isLoading, language, selectedVersion.id]);
 
   async function initializeApp() {

@@ -120,6 +120,7 @@ jest.mock('../src/lib/notifications/NotificationService', () => ({
   refreshPrayerReminders: jest.fn(() => Promise.resolve()),
   refreshDevotionReminders: jest.fn(() => Promise.resolve()),
   refreshPropheticReminders: jest.fn(() => Promise.resolve()),
+  refreshSabiasQueReminders: jest.fn(() => Promise.resolve()),
 }));
 
 // ---- expo-router: Stack is imported but never reached (onboarding is

@@ -21,6 +21,7 @@ import {
   MESSIANIC_PROPHECIES,
   getDailyProphecyIndex,
 } from '../../features/study/messianicProphecies';
+import {getDailyFact} from '../../features/study/bibleFacts';
 
 const ENABLED_KEY = '@daily_notifications_enabled';
 const HOUR_KEY = '@daily_notifications_hour';
@@ -65,6 +66,24 @@ const PROPHECY_HOUR_KEY = '@prophecy_reminder_hour';
 const PROPHECY_DEFAULT_HOUR = 8;
 const PROPHECY_CHANNEL_ID = 'prophecy-daily';
 
+/** A SIXTH independent reminder type — a daily nudge for "¿Sabías qué?"
+ *  (src/features/study/bibleFacts.ts). Shaped exactly like the prophecy-daily
+ *  reminder: per-day dynamic content, no DB lookup needed (the facts catalog
+ *  is a static in-memory array), title + body resolved from i18n via the
+ *  fact's stable id (t.bibleFacts.items[id]), the same source the facts
+ *  screen itself renders from. Defaults to midday (12:00) rather than
+ *  stacking on the 08:00 cluster (daily-verse/devotion/prophecy already sit
+ *  there) — a "curiosity break" reads naturally as a midday nudge, and since
+ *  every reminder is independently toggled/timed, some proximity across
+ *  types isn't actually a problem. Tapping it opens the "¿Sabías qué?" hub
+ *  (app/features/facts/index.tsx), whose "Dato del día" hero already shows
+ *  today's fact by default — see PropheticReminderRouter, which matches
+ *  SABIAS_QUE_REMINDER_TYPE too. */
+const SABIAS_QUE_ENABLED_KEY = '@sabias_que_reminder_enabled';
+const SABIAS_QUE_HOUR_KEY = '@sabias_que_reminder_hour';
+const SABIAS_QUE_DEFAULT_HOUR = 12;
+const SABIAS_QUE_CHANNEL_ID = 'sabias-que-reminder';
+
 /** Discriminator stored on each scheduled notification's `data.type` so we
  *  can cancel one kind without touching the other. Exported so the tap
  *  router (PropheticReminderRouter) can recognise this type without
@@ -74,6 +93,7 @@ const MEMORY_REMINDER_TYPE = 'memory-reminder';
 const PRAYER_REMINDER_TYPE = 'prayer-reminder';
 const DEVOTION_REMINDER_TYPE = 'devotion-reminder';
 export const PROPHECY_REMINDER_TYPE = 'prophecy-daily';
+export const SABIAS_QUE_REMINDER_TYPE = 'sabias-que-reminder';
 
 export interface NotificationPreferences {
   enabled: boolean;
@@ -131,6 +151,10 @@ export async function initNotifications(
       });
       await Notifications.setNotificationChannelAsync(PROPHECY_CHANNEL_ID, {
         name: n.prophecyReminderTitle,
+        importance: Notifications.AndroidImportance.DEFAULT,
+      });
+      await Notifications.setNotificationChannelAsync(SABIAS_QUE_CHANNEL_ID, {
+        name: n.sabiasQueReminderTitle,
         importance: Notifications.AndroidImportance.DEFAULT,
       });
     } catch (err) {
@@ -856,4 +880,146 @@ export async function refreshPropheticReminders(
   const granted = await requestNotificationPermission();
   if (!granted) return;
   await schedulePropheticReminders({...opts, hour: prefs.hour});
+}
+
+// ---------------------------------------------------------------------------
+// 💡 "¿Sabías qué?" reminder (v2 daily-facts nudge)
+//
+// A SIXTH independent reminder, nudging the reader to today's "Dato del día"
+// in the Bible-facts catalog. Shaped exactly like the prophecy-of-the-day
+// reminder above (per-day dynamic content resolved via getDailyFact, which
+// needs no DB round-trip since bibleFacts.ts is a static in-memory array):
+// the label + detail already live in i18n, the same source the facts screen
+// renders from. Tapping it opens the facts hub — see PropheticReminderRouter,
+// which matches SABIAS_QUE_REMINDER_TYPE.
+// ---------------------------------------------------------------------------
+
+export interface SabiasQueReminderPreferences {
+  enabled: boolean;
+  hour: number;
+}
+
+export interface SabiasQueReminderOptions {
+  hour: number;
+  language: 'es' | 'en';
+}
+
+/** Reads the saved "¿Sabías qué?" reminder preferences. */
+export async function getSabiasQueReminderPreferences(): Promise<SabiasQueReminderPreferences> {
+  try {
+    const [enabledRaw, hourRaw] = await Promise.all([
+      AsyncStorage.getItem(SABIAS_QUE_ENABLED_KEY),
+      AsyncStorage.getItem(SABIAS_QUE_HOUR_KEY),
+    ]);
+    const hour =
+      hourRaw != null ? parseInt(hourRaw, 10) : SABIAS_QUE_DEFAULT_HOUR;
+    return {
+      enabled: enabledRaw === 'true',
+      hour: Number.isFinite(hour) ? hour : SABIAS_QUE_DEFAULT_HOUR,
+    };
+  } catch {
+    return {enabled: false, hour: SABIAS_QUE_DEFAULT_HOUR};
+  }
+}
+
+async function saveSabiasQueReminderPreferences(
+  prefs: SabiasQueReminderPreferences,
+): Promise<void> {
+  await AsyncStorage.multiSet([
+    [SABIAS_QUE_ENABLED_KEY, String(prefs.enabled)],
+    [SABIAS_QUE_HOUR_KEY, String(prefs.hour)],
+  ]);
+}
+
+/**
+ * Reschedules the rolling window of "¿Sabías qué?" reminders. Cancels only
+ * the existing reminders of this type first (never the other five types).
+ */
+export async function scheduleSabiasQueReminders(
+  opts: SabiasQueReminderOptions,
+): Promise<number> {
+  await initNotifications(opts.language);
+  await cancelNotificationsByType(SABIAS_QUE_REMINDER_TYPE);
+
+  const now = new Date();
+  let scheduled = 0;
+  const items = translations[opts.language].bibleFacts.items as Record<
+    string,
+    {label: string; detail: string}
+  >;
+
+  for (let i = 0; i < DAYS_AHEAD; i++) {
+    const triggerDate = new Date(now);
+    triggerDate.setDate(now.getDate() + i);
+    triggerDate.setHours(opts.hour, 0, 0, 0);
+    if (triggerDate.getTime() <= now.getTime()) continue;
+
+    const fact = getDailyFact(triggerDate);
+    const item = items[fact.id];
+    if (!item) continue;
+
+    const title =
+      opts.language === 'en'
+        ? `💡 Did you know? · ${item.label}`
+        : `💡 ¿Sabías qué? · ${item.label}`;
+
+    await Notifications.scheduleNotificationAsync({
+      content: {
+        title,
+        body: item.detail,
+        data: {
+          type: SABIAS_QUE_REMINDER_TYPE,
+        },
+      },
+      trigger: {
+        type: Notifications.SchedulableTriggerInputTypes.DATE,
+        date: triggerDate,
+        channelId: SABIAS_QUE_CHANNEL_ID,
+      },
+    });
+    scheduled++;
+  }
+
+  logger.info('Sabias que reminders scheduled', {
+    component: 'NotificationService',
+    scheduled,
+    hour: opts.hour,
+  });
+  return scheduled;
+}
+
+/** Turns the "¿Sabías qué?" reminder on or off (requesting permission on enable). */
+export async function setSabiasQueReminderEnabled(
+  enabled: boolean,
+  opts: SabiasQueReminderOptions,
+): Promise<boolean> {
+  if (enabled) {
+    const granted = await requestNotificationPermission();
+    if (!granted) return false;
+    await scheduleSabiasQueReminders(opts);
+  } else {
+    await cancelNotificationsByType(SABIAS_QUE_REMINDER_TYPE);
+  }
+  await saveSabiasQueReminderPreferences({enabled, hour: opts.hour});
+  return true;
+}
+
+/** Updates the reminder hour and reschedules if enabled. */
+export async function updateSabiasQueReminderHour(
+  opts: SabiasQueReminderOptions,
+): Promise<void> {
+  await saveSabiasQueReminderPreferences({enabled: true, hour: opts.hour});
+  await scheduleSabiasQueReminders(opts);
+}
+
+/** Called on app launch: top up the rolling window if the reminder is on. */
+export async function refreshSabiasQueReminders(
+  opts: Omit<SabiasQueReminderOptions, 'hour'>,
+): Promise<void> {
+  const prefs = await getSabiasQueReminderPreferences();
+  await initNotifications(opts.language);
+  if (!prefs.enabled) return;
+  const granted = await requestNotificationPermission();
+  if (!granted) return;
+  await scheduleSabiasQueReminders({...opts, hour: prefs.hour});
 }
