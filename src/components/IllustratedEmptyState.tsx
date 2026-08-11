@@ -29,8 +29,7 @@ interface IllustratedEmptyStateProps {
     | 'no-highlights'
     | 'no-search-results'
     | 'no-achievements'
-    | 'no-reading-plan'
-    | 'no-bookmarks';
+    | 'no-reading-plan';
   title?: string;
   message?: string;
   actionLabel?: string;
@@ -142,12 +141,6 @@ export const IllustratedEmptyState: React.FC<IllustratedEmptyStateProps> = ({
         defaultTitle: t.emptyStates.noReadingPlan.title,
         defaultMessage: t.emptyStates.noReadingPlan.message,
         defaultAction: t.emptyStates.noReadingPlan.action,
-      },
-      'no-bookmarks': {
-        icon: 'bookmark-outline' as const,
-        defaultTitle: t.emptyStates.noBookmarks.title,
-        defaultMessage: t.emptyStates.noBookmarks.message,
-        defaultAction: t.emptyStates.noBookmarks.action,
       },
     };
 

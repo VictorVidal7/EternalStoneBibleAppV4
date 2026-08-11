@@ -55,15 +55,15 @@ import {AccessibilityPreferencesProvider} from '@context/AccessibilityPreference
 import {ServicesProvider} from '@context/ServicesContext';
 import {ToastProvider} from '@context/ToastContext';
 import {ReadingProgressProvider} from '@context/ReadingProgressContext';
-import {FavoritesProvider} from '@context/FavoritesContext';
-import {BookmarksProvider} from '@context/BookmarksContext';
+import {FavoritesProvider, useFavorites} from '@context/FavoritesContext';
 import {ReadingPlanProgressProvider} from '@context/ReadingPlanProgressContext';
 import {TogetherProvider} from '@context/TogetherContext';
 import {CustomPlansProvider} from '@context/CustomPlansContext';
 import {ReaderPreferencesProvider} from '@context/ReaderPreferencesContext';
 import {MemoryDeckProvider} from '@context/MemoryDeckContext';
-import {AuthProvider} from '@context/AuthContext';
+import {AuthProvider, useAuth} from '@context/AuthContext';
 import {SyncEngineProvider} from '@context/SyncEngineContext';
+import {migrateRetiredBookmarksToFavorites} from '@lib/migrations/retiredBookmarksMigration';
 import {useOnboarding} from '@hooks/useOnboarding';
 import {useReducedMotion} from '@hooks/useReducedMotion';
 import {OnboardingScreen} from '@components/onboarding/OnboardingScreen';
@@ -141,10 +141,37 @@ export function AppContent() {
   const [isLoading, setIsLoading] = useState(true);
   const [loadingProgress, setLoadingProgress] = useState({loaded: 0, total: 0});
   const [error, setError] = useState<string | null>(null);
+  const {favorites, loading: favoritesLoading, addFavorite} = useFavorites();
+  const {user} = useAuth();
 
   useEffect(() => {
     initializeApp();
   }, []);
+
+  // One-time migration for the retired "Marcadores" (Bookmarks) feature: any
+  // verse a user had already bookmarked becomes a Favorito instead of just
+  // disappearing (see retiredBookmarksMigration.ts for the full data-safety
+  // rationale). `migrationUid` in the dependency array lets this re-fire once
+  // if the user signs in AFTER the first (anonymous/local-only) pass, so the
+  // Firestore safety-net for bookmarks synced from ANOTHER device still gets
+  // a chance to run — the migration's own AsyncStorage flag makes every call
+  // beyond the first genuinely necessary one a cheap no-op.
+  const migrationUid = user && !user.isAnonymous ? user.uid : null;
+  useEffect(() => {
+    if (isLoading || favoritesLoading) return;
+    migrateRetiredBookmarksToFavorites({
+      existingFavoriteVerseKeys: favorites.map(f => f.verseId),
+      addFavorite: (verse, category, rating, tags, note) =>
+        addFavorite(verse, category, rating, tags, note),
+      uid: migrationUid,
+    }).catch(() => {
+      // Best-effort — never block the app; a failure just means a retry on
+      // a future qualifying render (see the migration's own flag semantics).
+    });
+    // favorites/addFavorite intentionally excluded — this should only
+    // reconsider running when the loading gate or the signed-in uid changes,
+    // not on every favorites list mutation.
+  }, [isLoading, favoritesLoading, migrationUid]);
 
   // Once the app is ready, top up the rolling window of daily-verse
   // notifications (no-op unless the user has enabled the reminder). Re-runs
@@ -408,25 +435,23 @@ export default function RootLayout() {
                         <CustomPlansProvider>
                           <TogetherProvider>
                             <FavoritesProvider>
-                              <BookmarksProvider>
-                                <ReaderPreferencesProvider>
-                                  <MemoryDeckProvider>
-                                    <ToastProvider>
-                                      <PremiumProvider>
-                                        <OfferingSheetProvider>
-                                          <DonationSheetProvider>
-                                            <AudioPlayerProvider>
-                                              <ErrorBoundary>
-                                                <AppContent />
-                                              </ErrorBoundary>
-                                            </AudioPlayerProvider>
-                                          </DonationSheetProvider>
-                                        </OfferingSheetProvider>
-                                      </PremiumProvider>
-                                    </ToastProvider>
-                                  </MemoryDeckProvider>
-                                </ReaderPreferencesProvider>
-                              </BookmarksProvider>
+                              <ReaderPreferencesProvider>
+                                <MemoryDeckProvider>
+                                  <ToastProvider>
+                                    <PremiumProvider>
+                                      <OfferingSheetProvider>
+                                        <DonationSheetProvider>
+                                          <AudioPlayerProvider>
+                                            <ErrorBoundary>
+                                              <AppContent />
+                                            </ErrorBoundary>
+                                          </AudioPlayerProvider>
+                                        </DonationSheetProvider>
+                                      </OfferingSheetProvider>
+                                    </PremiumProvider>
+                                  </ToastProvider>
+                                </MemoryDeckProvider>
+                              </ReaderPreferencesProvider>
                             </FavoritesProvider>
                           </TogetherProvider>
                         </CustomPlansProvider>

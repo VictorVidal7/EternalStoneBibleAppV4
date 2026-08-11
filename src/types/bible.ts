@@ -24,15 +24,6 @@ export interface BibleChapter {
   verses: BibleVerse[];
 }
 
-export interface Bookmark {
-  id: string;
-  book: string;
-  chapter: number;
-  verse: number;
-  text: string;
-  createdAt: string;
-}
-
 export interface Note {
   id: string;
   book: string;

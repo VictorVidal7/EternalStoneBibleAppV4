@@ -98,7 +98,6 @@ function basePayload(overrides: Partial<BackupPayload> = {}): BackupPayload {
       chapterProgressMap: null,
     },
     user: {
-      bookmarks: [],
       readingPlanProgress: undefined,
       readingPlanReadChapters: undefined,
       searchHistory: undefined,
@@ -242,20 +241,9 @@ describe('importBackup — round trip through coercion + persistence', () => {
     ]);
   });
 
-  it('persists AsyncStorage-backed sections (bookmarks, theme)', async () => {
+  it('persists AsyncStorage-backed sections (theme)', async () => {
     const payload = basePayload({
       user: {
-        bookmarks: [
-          {
-            id: 'bm-1',
-            book: 'Genesis',
-            chapter: 1,
-            verse: 1,
-            text: 'In the beginning',
-            createdAt: 1,
-            updatedAt: 1,
-          },
-        ],
         readingPlanProgress: undefined,
         readingPlanReadChapters: undefined,
         searchHistory: undefined,
@@ -268,14 +256,8 @@ describe('importBackup — round trip through coercion + persistence', () => {
     const result = await importBackup(payload);
 
     expect(result.restoredSections).toEqual(
-      expect.arrayContaining(['bookmarks', 'appThemeMode', 'appColorTheme']),
+      expect.arrayContaining(['appThemeMode', 'appColorTheme']),
     );
-
-    const storedBookmarks = JSON.parse(
-      (await AsyncStorage.getItem('@bible_bookmarks')) ?? '[]',
-    );
-    expect(storedBookmarks).toHaveLength(1);
-    expect(storedBookmarks[0].id).toBe('bm-1');
 
     expect(await AsyncStorage.getItem('@app_theme_mode')).toBe('dark');
     expect(await AsyncStorage.getItem('@app_color_theme')).toBe('default');
@@ -479,37 +461,82 @@ describe('importBackup — Bug 2: every row in a present section fails validatio
     expect(result.failedSections).not.toContain('favorites');
     expect(sqlCallsStartingWith('DELETE FROM favorites')).toHaveLength(1);
   });
+});
 
-  it('does NOT overwrite existing bookmarks when every bookmark row is corrupted', async () => {
-    await AsyncStorage.setItem(
-      '@bible_bookmarks',
-      JSON.stringify([{id: 'real-existing-bookmark'}]),
-    );
-
+describe('importBackup — legacy `user.bookmarks` field (removed Bookmarks feature)', () => {
+  // The Bookmarks ("Marcadores") feature was removed and its data now lives
+  // as Favoritos (see src/lib/migrations/retiredBookmarksMigration.ts, which
+  // handles converting any PRE-EXISTING bookmark — this file is NOT that
+  // migration). A backup created before the removal may still carry a
+  // `user.bookmarks` array; `importBackup` must never crash or fail
+  // validation on it, and — critically — every OTHER section in the same
+  // file must still restore normally.
+  it('silently ignores a legacy user.bookmarks array without crashing or dropping other sections', async () => {
     const payload = basePayload({
-      user: {
-        // Missing `book`/`chapter`/`verse` — both fail `coerceBookmark`.
-        bookmarks: [{id: 'bm-bad'} as unknown, {} as unknown] as never,
-        readingPlanProgress: undefined,
-        readingPlanReadChapters: undefined,
-        searchHistory: undefined,
-        readerPreferences: {sideBySide: false},
-        readerPreferencesFull: null,
-        appTheme: {mode: null, colorTheme: null},
+      bible: {
+        favorites: [
+          {
+            id: 'fav-1',
+            book: 'John',
+            chapter: 3,
+            verse: 16,
+            text: 'For God so loved the world',
+            category: 'other',
+            rating: 5,
+            tags: [],
+            createdAt: 1,
+            updatedAt: 1,
+          },
+        ] as never,
+        notes: [],
+        highlights: [],
+        lastReadPosition: null,
+        chapterProgressMap: null,
       },
+      user: {
+        // Legacy field from a pre-removal backup. There is nothing left to
+        // restore it into — it must simply be ignored.
+        bookmarks: [
+          {
+            id: 'bm-1',
+            book: 'Genesis',
+            chapter: 1,
+            verse: 1,
+            text: 'In the beginning',
+            createdAt: 1,
+            updatedAt: 1,
+          },
+        ],
+        readingPlanProgress: {plan: 'gospel-of-john'},
+        readingPlanReadChapters: undefined,
+        searchHistory: ['grace'],
+        readerPreferences: {sideBySide: true},
+        readerPreferencesFull: null,
+        appTheme: {mode: 'dark', colorTheme: 'default'},
+      } as unknown as BackupPayload['user'],
     });
 
+    // Awaiting directly (rather than wrapping in expect(...).resolves) is
+    // itself the "does not crash" assertion — an unexpected rejection here
+    // fails the test.
     const result = await importBackup(payload);
 
-    expect(result.restoredSections).not.toContain('bookmarks');
-    expect(result.failedSections).toContain('bookmarks');
-
-    // The pre-existing AsyncStorage value must be untouched, not overwritten
-    // with an empty array the way the old unconditional-write path did.
-    const stillThere = JSON.parse(
-      (await AsyncStorage.getItem('@bible_bookmarks')) ?? '[]',
+    // The rest of the SAME payload restored normally.
+    expect(result.restoredSections).toEqual(
+      expect.arrayContaining([
+        'favorites',
+        'readingPlanProgress',
+        'searchHistory',
+        'appThemeMode',
+        'appColorTheme',
+      ]),
     );
-    expect(stillThere).toEqual([{id: 'real-existing-bookmark'}]);
+    // Never restored (nothing to restore it into) and never reported as a
+    // failure either — it's simply unread, not a corrupted section.
+    expect(result.restoredSections).not.toContain('bookmarks');
+    expect(result.failedSections).not.toContain('bookmarks');
+    // The retired local store is never (re-)created by import.
+    expect(await AsyncStorage.getItem('@bible_bookmarks')).toBeNull();
   });
 });
 
@@ -541,20 +568,9 @@ describe('importBackup — Bug 1: AsyncStorage write fails after SQLite already 
         chapterProgressMap: null,
       },
       user: {
-        bookmarks: [
-          {
-            id: 'bm-1',
-            book: 'Genesis',
-            chapter: 1,
-            verse: 1,
-            text: 'In the beginning',
-            createdAt: 1,
-            updatedAt: 1,
-          },
-        ],
         readingPlanProgress: undefined,
         readingPlanReadChapters: undefined,
-        searchHistory: undefined,
+        searchHistory: ['grace', 'faith'],
         readerPreferences: {sideBySide: false},
         readerPreferencesFull: null,
         appTheme: {mode: null, colorTheme: null},
@@ -570,8 +586,8 @@ describe('importBackup — Bug 1: AsyncStorage write fails after SQLite already 
     // SQLite-backed section: already committed before multiSet ever ran.
     expect(result.restoredSections).toContain('favorites');
     // AsyncStorage-backed section: never actually persisted.
-    expect(result.restoredSections).not.toContain('bookmarks');
-    expect(result.failedSections).toContain('bookmarks');
+    expect(result.restoredSections).not.toContain('searchHistory');
+    expect(result.failedSections).toContain('searchHistory');
 
     // Prove the SQLite write really happened (not just claimed in the
     // result) — this is the crux of Bug 1: the DB write is real and
@@ -579,7 +595,7 @@ describe('importBackup — Bug 1: AsyncStorage write fails after SQLite already 
     expect(sqlCallsStartingWith('INSERT INTO favorites')).toHaveLength(1);
 
     // Prove the AsyncStorage write really did NOT happen.
-    expect(await AsyncStorage.getItem('@bible_bookmarks')).toBeNull();
+    expect(await AsyncStorage.getItem('@bible_search_history')).toBeNull();
 
     multiSetSpy.mockRestore();
   });

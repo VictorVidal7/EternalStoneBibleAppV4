@@ -37,7 +37,7 @@ import {ErrorBoundary} from '@/components/ErrorBoundary';
  * (Victor-confirmed scope, T21). This mounts only the providers those reader
  * screens actually touch — Auth/SyncEngine/Offering(real purchase flow)/
  * Donation/ReadingProgress/ReadingPlanProgress/CustomPlans/Together/
- * Bookmarks/Services are never imported here, so their native-only
+ * Services are never imported here, so their native-only
  * dependencies (chiefly @react-native-firebase/*, which T20 found throws "No
  * Firebase App '[DEFAULT]' has been created" on web) never enter the web
  * bundle's mounted tree at all — no firestore.web.ts needed for this tanda.

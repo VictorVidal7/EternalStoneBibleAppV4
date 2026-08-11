@@ -64,7 +64,6 @@ import {useReadingPlanProgress} from '@context/ReadingPlanProgressContext';
 import {useTogether} from '@context/TogetherContext';
 import {useCustomPlans} from '@context/CustomPlansContext';
 import {useFavorites} from '@context/FavoritesContext';
-import {useBookmarks} from '@context/BookmarksContext';
 import {useMemoryDeck} from '@context/MemoryDeckContext';
 import {usePremium} from '@context/PremiumContext';
 import {useToast} from '@context/ToastContext';
@@ -217,8 +216,6 @@ export default function HomeScreen() {
   const {getMembership} = useTogether();
   const {customPlans} = useCustomPlans();
   const {addFavorite, isFavorite, favorites} = useFavorites();
-  const {bookmarks} = useBookmarks();
-  const bookmarksCount = bookmarks.length;
   const {stats: memoryStats} = useMemoryDeck();
   const {isPremium} = usePremium();
   const toast = useToast();
@@ -2228,77 +2225,6 @@ export default function HomeScreen() {
               </BlurView>
             </PressableScale>
 
-            <PressableScale
-              pressedOpacity={0.9}
-              style={styles.savedCardWrapper}
-              accessibilityRole="button"
-              accessible={true}
-              onPress={() =>
-                handlePress(() => router.push('/(tabs)/bookmarks' as never))
-              }>
-              <BlurView
-                intensity={isDark ? 28 : 48}
-                tint={isDark ? 'dark' : 'light'}
-                style={[
-                  styles.savedCard,
-                  {
-                    backgroundColor: celestialTheme.colors.surfaceGlass,
-                    borderColor: celestialTheme.colors.glassBorder,
-                  },
-                  celestialTheme.shadows.md,
-                ]}>
-                <View style={styles.savedCardHeader}>
-                  <View
-                    style={[
-                      styles.savedIcon,
-                      {
-                        backgroundColor: withOpacity(
-                          colors.primary,
-                          isDark ? 0.2 : 0.12,
-                        ),
-                      },
-                    ]}>
-                    <Ionicons
-                      name="bookmark"
-                      size={20}
-                      color={colors.primary}
-                    />
-                  </View>
-                  <View style={styles.savedMeta}>
-                    <View
-                      style={[
-                        styles.savedBadge,
-                        {
-                          backgroundColor: withOpacity(
-                            colors.primary,
-                            isDark ? 0.18 : 0.12,
-                          ),
-                        },
-                      ]}>
-                      <Text
-                        style={[
-                          styles.savedBadgeText,
-                          {color: colors.primary},
-                        ]}>
-                        {formatSavedCount(bookmarksCount)}
-                      </Text>
-                    </View>
-                    <Ionicons
-                      name="chevron-forward"
-                      size={18}
-                      color={colors.textTertiary}
-                    />
-                  </View>
-                </View>
-                <Text
-                  style={[styles.savedLabel, {color: colors.text}]}
-                  numberOfLines={1}
-                  ellipsizeMode="tail">
-                  {t.bookmarks.short}
-                </Text>
-              </BlurView>
-            </PressableScale>
-
             {/* Memory — Sprint 34: badge shows due-today count (or total
                 if nothing is due) so the user sees "what's calling me
                 back" at a glance. */}
@@ -2623,7 +2549,7 @@ const styles = StyleSheet.create({
   },
 
   // Saved shortcuts: 2×2 grid wrapping after two cards so the four
-  // saved-item entry points (Favorites/Notes/Highlights/Bookmarks) all
+  // saved-item entry points (Favorites/Notes/Highlights/Memory) all
   // fit comfortably on a single Home screen.
   savedGrid: {
     flexDirection: 'row',

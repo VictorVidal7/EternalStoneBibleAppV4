@@ -192,7 +192,7 @@ function main() {
   console.log(`Old dataset: ${oldData.length.toLocaleString()} verses`);
   console.log(`New dataset: ${newVerses.length.toLocaleString()} verses`);
   console.log(
-    `Verse keys in OLD but NOT in NEW (would orphan any highlight/note/bookmark anchored to them): ${removed.length}`,
+    `Verse keys in OLD but NOT in NEW (would orphan any highlight/note/favorite anchored to them): ${removed.length}`,
   );
   for (const k of removed.slice(0, 50)) console.log('  - ' + k);
   if (removed.length > 50) console.log(`  ... and ${removed.length - 50} more`);

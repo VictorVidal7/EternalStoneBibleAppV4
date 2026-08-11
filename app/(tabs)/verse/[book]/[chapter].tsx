@@ -48,7 +48,6 @@ import {useReducedMotion} from '@hooks/useReducedMotion';
 import {useServices} from '@context/ServicesContext';
 import {useToast} from '@context/ToastContext';
 import {useFavorites} from '@context/FavoritesContext';
-import {useBookmarks} from '@context/BookmarksContext';
 import {useReadingPlanProgress} from '@context/ReadingPlanProgressContext';
 import {useReadingProgress} from '@context/ReadingProgressContext';
 import {getReadingPlanById, getLocalizedPlan} from '@/constants/reading-plans';
@@ -174,7 +173,6 @@ export default function VerseReadingScreen() {
   const {achievementService, highlightService, notifyAchievements} =
     useServices();
   const {favorites, addFavorite, removeFavorite} = useFavorites();
-  const {addBookmark} = useBookmarks();
   const {markChapterRead, getPlanDuration} = useReadingPlanProgress();
   // Audio Bible
   const {
@@ -1688,35 +1686,6 @@ export default function VerseReadingScreen() {
 
     setCollectionVerseId(verseId);
     setShowOverflow(false);
-    clearSelection();
-  }
-
-  // Save the selected verses as named bookmarks (one per verse so the
-  // user can come back to a specific point — distinct from the single
-  // "Continue Reading" position the reader auto-tracks).
-  async function handleBookmarkSelected() {
-    if (selectedVerses.size === 0) return;
-    haptics.press();
-
-    const sortedNums = Array.from(selectedVerses).sort((a, b) => a - b);
-    const selectedVersesData = sortedNums
-      .map(num => verses.find(v => v.verse === num))
-      .filter(Boolean) as BibleVerse[];
-
-    for (const verse of selectedVersesData) {
-      await addBookmark({
-        book: verse.book,
-        chapter: verse.chapter,
-        verse: verse.verse,
-        text: verse.text,
-      });
-    }
-
-    toast.success(
-      sortedNums.length === 1
-        ? t.bookmarks.added
-        : t.bookmarks.addedMany.replace('{{n}}', String(sortedNums.length)),
-    );
     clearSelection();
   }
 
@@ -3314,24 +3283,6 @@ export default function VerseReadingScreen() {
                       {color: effectiveColors.text},
                     ]}>
                     {t.verse.addFavorite}
-                  </Text>
-                </TouchableOpacity>
-                <TouchableOpacity
-                  style={styles.selectionButton}
-                  accessibilityRole="button"
-                  onPress={handleBookmarkSelected}>
-                  <Ionicons
-                    name="bookmark-outline"
-                    size={22}
-                    color={effectiveColors.primary}
-                  />
-                  <Text
-                    numberOfLines={1}
-                    style={[
-                      styles.selectionButtonText,
-                      {color: effectiveColors.text},
-                    ]}>
-                    {t.bookmarks.short}
                   </Text>
                 </TouchableOpacity>
                 <TouchableOpacity
