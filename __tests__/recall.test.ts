@@ -4,6 +4,7 @@ import {
   normalizeAnswer,
   isBlankCorrect,
   fillScore,
+  checkTypedVerse,
 } from '../src/lib/memory/recall';
 
 describe('recall — active-recall transforms', () => {
@@ -86,6 +87,76 @@ describe('recall — active-recall transforms', () => {
       ).toBe(2);
       expect(fillScore([], ['God'])).toBe(0);
       expect(fillScore(['god', 'LOVED'], ['God', 'loved'])).toBe(2);
+    });
+  });
+
+  describe('checkTypedVerse — whole-verse "type" recall mode', () => {
+    it('marks every word correct for an exact match', () => {
+      const result = checkTypedVerse(
+        'For God so loved the world',
+        'For God so loved the world',
+      );
+      expect(result.wordResults).toEqual([true, true, true, true, true, true]);
+      expect(result.correctCount).toBe(6);
+      expect(result.totalCount).toBe(6);
+    });
+
+    it('matches case/accent/punctuation-insensitively, word by word', () => {
+      const result = checkTypedVerse(
+        'el senor es mi pastor',
+        'Él Señor. es mi pastor,',
+      );
+      expect(result.wordResults).toEqual([true, true, true, true, true]);
+      expect(result.correctCount).toBe(5);
+    });
+
+    it('flags a wrong word at its position without derailing the rest', () => {
+      const result = checkTypedVerse(
+        'For God so loved the planet',
+        'For God so loved the world',
+      );
+      expect(result.wordResults).toEqual([true, true, true, true, true, false]);
+      expect(result.correctCount).toBe(5);
+      expect(result.totalCount).toBe(6);
+    });
+
+    it('counts a missing tail (typed answer shorter than the verse) as incorrect', () => {
+      const result = checkTypedVerse(
+        'For God so',
+        'For God so loved the world',
+      );
+      expect(result.wordResults).toEqual([
+        true,
+        true,
+        true,
+        false,
+        false,
+        false,
+      ]);
+      expect(result.correctCount).toBe(3);
+      expect(result.totalCount).toBe(6);
+    });
+
+    it('ignores extra typed words beyond the verse length', () => {
+      const result = checkTypedVerse(
+        'For God so loved the world and beyond',
+        'For God so loved the world',
+      );
+      expect(result.totalCount).toBe(6);
+      expect(result.correctCount).toBe(6);
+      expect(result.wordResults).toHaveLength(6);
+    });
+
+    it('treats an empty typed answer as entirely incorrect, not a crash', () => {
+      const result = checkTypedVerse('', 'Jesus wept');
+      expect(result.wordResults).toEqual([false, false]);
+      expect(result.correctCount).toBe(0);
+      expect(result.totalCount).toBe(2);
+    });
+
+    it('collapses whitespace runs on both sides', () => {
+      const result = checkTypedVerse('  a   b  ', 'a b');
+      expect(result.wordResults).toEqual([true, true]);
     });
   });
 });

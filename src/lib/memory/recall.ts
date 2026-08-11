@@ -87,3 +87,36 @@ export function fillScore(
     0,
   );
 }
+
+/** Per-word verdict of a full-verse typed attempt, aligned to the verse's words. */
+export interface TypeCheckResult {
+  /** One entry per expected word, in order — true when that word matched. */
+  wordResults: boolean[];
+  /** Count of correct words (== wordResults.filter(Boolean).length). */
+  correctCount: number;
+  /** Total words in the expected verse (== wordResults.length). */
+  totalCount: number;
+}
+
+/**
+ * Score a whole-verse typed attempt against the verse text, word by word —
+ * the "type" recall mode's equivalent of {@link fillScore}, but scored over
+ * EVERY word instead of just the blanked half. Words are matched positionally
+ * (typed word *i* vs. expected word *i*) and folded through the same
+ * {@link isBlankCorrect} normalization fill mode uses, so case/accents/
+ * punctuation never fail a recall the user actually got right. A typed
+ * answer shorter than the verse leaves the missing tail incorrect; a longer
+ * one simply has its extra words ignored (nothing to compare them against).
+ */
+export function checkTypedVerse(
+  typed: string,
+  expected: string,
+): TypeCheckResult {
+  const expectedWords = expected.split(/\s+/).filter(w => w.length > 0);
+  const typedWords = typed.split(/\s+/).filter(w => w.length > 0);
+  const wordResults = expectedWords.map((word, i) =>
+    isBlankCorrect(typedWords[i] ?? '', word),
+  );
+  const correctCount = wordResults.filter(Boolean).length;
+  return {wordResults, correctCount, totalCount: expectedWords.length};
+}

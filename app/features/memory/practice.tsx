@@ -28,13 +28,16 @@ import {centeredMaxWidth} from '@/styles/responsive';
 import {useLanguage} from '@hooks/useLanguage';
 import {useBibleVersion} from '@hooks/useBibleVersion';
 import {useMemoryDeck} from '@context/MemoryDeckContext';
-import {getBookByName} from '@/constants/bible';
+import {useFavorites} from '@context/FavoritesContext';
+import {useToast} from '@context/ToastContext';
+import {getBookByName, canonicalBookName} from '@/constants/bible';
 import {applyMask, MASK_LEVEL_PERCENT, maskLevelForBox} from '@lib/memory/srs';
 import type {ReviewGrade} from '@lib/memory/srs';
 import {
   firstLetterPrompt,
   buildFillLayout,
   fillScore,
+  checkTypedVerse,
 } from '@lib/memory/recall';
 import {WriteCanvas} from '@/features/memory/WriteCanvas';
 import {MemoryGuideModal} from '@components/MemoryGuideModal';
@@ -53,13 +56,23 @@ const GRADE_COLORS: Record<ReviewGrade, string> = {
 };
 
 /** The active-recall modes layered on the SRS. */
-type PracticeMode = 'reveal' | 'firstLetter' | 'fill' | 'write';
-const MODE_ORDER: PracticeMode[] = ['reveal', 'firstLetter', 'fill', 'write'];
+type PracticeMode = 'reveal' | 'firstLetter' | 'fill' | 'write' | 'type';
+const MODE_ORDER: PracticeMode[] = [
+  'reveal',
+  'firstLetter',
+  'fill',
+  'write',
+  'type',
+];
 const MODE_ICON: Record<PracticeMode, keyof typeof Ionicons.glyphMap> = {
   reveal: 'eye-outline',
   firstLetter: 'text-outline',
   fill: 'create-outline',
   write: 'brush-outline',
+  // 'write' already owns the hand-drawing brush icon — this is the
+  // keyboard-typing mode, so a pencil (already used elsewhere in the app for
+  // "type/edit text") keeps the two visually distinct.
+  type: 'pencil-outline',
 };
 
 export default function MemoryPracticeScreen() {
@@ -69,6 +82,8 @@ export default function MemoryPracticeScreen() {
   const {t} = useLanguage();
   const {selectedVersion} = useBibleVersion();
   const {dueCards, reviewCard} = useMemoryDeck();
+  const {favorites, addFavorite, removeFavorite} = useFavorites();
+  const toast = useToast();
 
   // Freeze the queue on mount so a grade-driven reshuffle doesn't add
   // the same card back into the current session.
@@ -77,6 +92,7 @@ export default function MemoryPracticeScreen() {
   const [revealed, setRevealed] = useState(false);
   const [mode, setMode] = useState<PracticeMode>('reveal');
   const [fillAnswers, setFillAnswers] = useState<string[]>([]);
+  const [typedAnswer, setTypedAnswer] = useState('');
   const [guideVisible, setGuideVisible] = useState(false);
 
   const total = queue.length;
@@ -87,7 +103,46 @@ export default function MemoryPracticeScreen() {
   useEffect(() => {
     setRevealed(false);
     setFillAnswers([]);
+    setTypedAnswer('');
   }, [index, mode]);
+
+  // Favorito ↔ Memorizar cross-link: the CURRENT card, favorited or not.
+  // Mirrors the reader's handleToggleSingleFavorite / favorites.tsx's
+  // school-icon toggle, just in the other direction.
+  const currentFavorite = useMemo(() => {
+    if (!card) return undefined;
+    const book = canonicalBookName(card.bookName);
+    return favorites.find(
+      f =>
+        canonicalBookName(f.book) === book &&
+        f.chapter === card.chapter &&
+        f.verse === card.verse,
+    );
+  }, [favorites, card]);
+  const isCardFavorited = Boolean(currentFavorite);
+
+  const handleToggleFavorite = () => {
+    if (!card) return;
+    haptics.press();
+    if (currentFavorite) {
+      void removeFavorite(currentFavorite.id).then(() => {
+        toast.info(t.verse.removedFromFavorites);
+      });
+    } else {
+      void addFavorite(
+        {
+          book: card.bookName,
+          chapter: card.chapter,
+          verse: card.verse,
+          text: card.text,
+        },
+        'other',
+        5,
+      ).then(() => {
+        toast.success(t.verse.addedToFavorites);
+      });
+    }
+  };
 
   const headerGradient = useMemo(
     () =>
@@ -136,6 +191,16 @@ export default function MemoryPracticeScreen() {
   );
   const fillCorrect = fillScore(fillAnswers, fillExpected);
 
+  // 'type' mode — the whole verse is expected words, not just the blanks.
+  const typeExpectedWords = useMemo(
+    () => (card ? card.text.split(/\s+/).filter(w => w.length > 0) : []),
+    [card],
+  );
+  const typeCheckResult = useMemo(
+    () => checkTypedVerse(typedAnswer, card ? card.text : ''),
+    [typedAnswer, card],
+  );
+
   const handleReveal = () => {
     haptics.tap();
     setRevealed(true);
@@ -170,6 +235,8 @@ export default function MemoryPracticeScreen() {
         return t.memory.practice.modeFill;
       case 'write':
         return t.memory.practice.modeWrite;
+      case 'type':
+        return t.memory.practice.modeType;
     }
   };
 
@@ -328,22 +395,45 @@ export default function MemoryPracticeScreen() {
                       )}
                     </Text>
                   </View>
-                  {mode === 'reveal' ? (
-                    <Text
-                      style={[
-                        styles.maskHintText,
-                        {color: colors.textTertiary},
-                      ]}>
-                      {maskHintLabel}
-                    </Text>
-                  ) : null}
+                  <View style={styles.cardMetaRight}>
+                    {mode === 'reveal' ? (
+                      <Text
+                        style={[
+                          styles.maskHintText,
+                          {color: colors.textTertiary},
+                        ]}>
+                        {maskHintLabel}
+                      </Text>
+                    ) : null}
+                    {/* Favorito ↔ Memorizar cross-link — mark the CURRENT
+                        card as a Favorito too, mirroring the reader's own
+                        heart toggle. */}
+                    <TouchableOpacity
+                      onPress={handleToggleFavorite}
+                      hitSlop={{top: 8, bottom: 8, left: 8, right: 8}}
+                      accessibilityRole="button"
+                      accessibilityLabel={
+                        isCardFavorited
+                          ? t.verse.removeFavorite
+                          : t.verse.addFavorite
+                      }
+                      accessibilityState={{selected: isCardFavorited}}>
+                      <Ionicons
+                        name={isCardFavorited ? 'heart' : 'heart-outline'}
+                        size={20}
+                        color={
+                          isCardFavorited ? colors.primary : colors.textTertiary
+                        }
+                      />
+                    </TouchableOpacity>
+                  </View>
                 </View>
                 <Text style={[styles.reference, {color: colors.primary}]}>
                   {displayBookName} {card.chapter}:{card.verse}
                 </Text>
 
                 {/* Body per recall mode */}
-                {showAnswer ? (
+                {showAnswer && mode !== 'type' ? (
                   <Text style={[styles.verseText, {color: colors.text}]}>
                     {card.text}
                   </Text>
@@ -382,6 +472,44 @@ export default function MemoryPracticeScreen() {
                       ),
                     )}
                   </View>
+                ) : mode === 'type' ? (
+                  showAnswer ? (
+                    <View style={styles.typeResultWrap}>
+                      {typeExpectedWords.map((word, i) => (
+                        <Text
+                          key={`tw-${i}`}
+                          style={[
+                            styles.typeResultWord,
+                            {
+                              color: typeCheckResult.wordResults[i]
+                                ? colors.success
+                                : colors.error,
+                            },
+                          ]}>
+                          {word}
+                        </Text>
+                      ))}
+                    </View>
+                  ) : (
+                    <TextInput
+                      style={[
+                        styles.typeInput,
+                        {
+                          color: colors.text,
+                          borderColor: colors.border,
+                          backgroundColor: colors.background,
+                        },
+                      ]}
+                      value={typedAnswer}
+                      onChangeText={setTypedAnswer}
+                      multiline
+                      autoCapitalize="none"
+                      autoCorrect={false}
+                      placeholder={t.memory.practice.typePlaceholder}
+                      placeholderTextColor={colors.textTertiary}
+                      accessibilityLabel={t.memory.practice.typePrompt}
+                    />
+                  )
                 ) : (
                   <WriteCanvas
                     key={`${card.verseKey}-write`}
@@ -404,7 +532,8 @@ export default function MemoryPracticeScreen() {
                   onPress={handleReveal}>
                   <Ionicons
                     name={
-                      mode === 'fill' && fillLayout.blankCount > 0
+                      (mode === 'fill' && fillLayout.blankCount > 0) ||
+                      mode === 'type'
                         ? 'checkmark-circle-outline'
                         : 'eye-outline'
                     }
@@ -414,7 +543,9 @@ export default function MemoryPracticeScreen() {
                   <Text style={[styles.revealText, {color: colors.onPrimary}]}>
                     {mode === 'fill' && fillLayout.blankCount > 0
                       ? t.memory.practice.fillCheck
-                      : t.memory.practice.reveal}
+                      : mode === 'type'
+                        ? t.memory.practice.typeCheck
+                        : t.memory.practice.reveal}
                   </Text>
                 </TouchableOpacity>
               ) : (
@@ -424,9 +555,19 @@ export default function MemoryPracticeScreen() {
                       ? t.memory.practice.fillResult
                           .replace('{{correct}}', String(fillCorrect))
                           .replace('{{total}}', String(fillLayout.blankCount))
-                      : nothingMasked
-                        ? t.memory.practice.promptFullVerse
-                        : t.memory.practice.prompt}
+                      : mode === 'type'
+                        ? t.memory.practice.typeResult
+                            .replace(
+                              '{{correct}}',
+                              String(typeCheckResult.correctCount),
+                            )
+                            .replace(
+                              '{{total}}',
+                              String(typeCheckResult.totalCount),
+                            )
+                        : nothingMasked
+                          ? t.memory.practice.promptFullVerse
+                          : t.memory.practice.prompt}
                   </Text>
                   <View style={styles.gradeRow}>
                     <GradeButton
@@ -550,6 +691,11 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     marginBottom: spacing.md,
   },
+  cardMetaRight: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.sm,
+  },
   boxBadge: {
     paddingHorizontal: spacing.sm,
     paddingVertical: 4,
@@ -604,6 +750,26 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.xs,
     paddingVertical: 2,
     borderBottomWidth: 2,
+  },
+  typeInput: {
+    minHeight: 100,
+    fontSize: fontSizes.base,
+    lineHeight: 24,
+    borderWidth: 1,
+    borderRadius: borderRadius.md,
+    padding: spacing.md,
+    textAlignVertical: 'top',
+  },
+  typeResultWrap: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'center',
+    gap: spacing.xs,
+  },
+  typeResultWord: {
+    fontSize: fontSizes.lg,
+    lineHeight: 28,
+    fontWeight: '700',
   },
   reference: {
     fontSize: fontSizes.lg,

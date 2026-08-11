@@ -70,6 +70,26 @@ jest.mock('@context/MemoryDeckContext', () => ({
   useMemoryDeck: () => ({dueCards: mockDueCards, reviewCard: jest.fn()}),
 }));
 
+// Favorito ↔ Memorizar cross-link (added alongside the 'type' recall mode)
+// pulls in these two contexts — mock them so this pre-existing reveal-step
+// test keeps working without a real FavoritesProvider/ToastProvider.
+jest.mock('@context/FavoritesContext', () => ({
+  useFavorites: () => ({
+    favorites: [],
+    addFavorite: jest.fn().mockResolvedValue(undefined),
+    removeFavorite: jest.fn().mockResolvedValue(undefined),
+  }),
+}));
+
+jest.mock('@context/ToastContext', () => ({
+  useToast: () => ({
+    success: jest.fn(),
+    info: jest.fn(),
+    error: jest.fn(),
+    warning: jest.fn(),
+  }),
+}));
+
 const p = translations.es.memory.practice;
 
 const makeCard = (box: 1 | 2 | 3 | 4 | 5) => ({
