@@ -35,14 +35,18 @@ import {useReducedMotion} from '@hooks/useReducedMotion';
 import {focusTrapProps} from '@lib/a11y/focusTrap';
 import {useToast} from '@context/ToastContext';
 import {useMemoryDeck} from '@context/MemoryDeckContext';
+import {useFavorites, type Favorite} from '@context/FavoritesContext';
 import {useMemoryGoal} from '@hooks/useMemoryGoal';
 import type {GoalProgress, MemoryMilestone} from '@lib/memory/goals';
-import {getBookByName} from '@/constants/bible';
+import {getBookByName, canonicalBookName} from '@/constants/bible';
+import type {BibleVerse} from '@/types/bible';
 import type {MemoryCard} from '@lib/memory/srs';
-import {isMastered} from '@lib/memory/srs';
+import {buildVerseKey, isMastered} from '@lib/memory/srs';
 import {WeeklyChallengeCard} from '@components/WeeklyChallengeCard';
 import {MemoryGuideModal} from '@components/MemoryGuideModal';
 import {ConfirmDialog} from '@components/ui/ConfirmDialog';
+import {MemoryVersePickerSheet} from '@/features/memory/MemoryVersePickerSheet';
+import {useBibleVersion} from '@hooks/useBibleVersion';
 import {
   borderRadius,
   fontSize as fontSizes,
@@ -50,16 +54,111 @@ import {
   staticColors,
 } from '@/styles/designTokens';
 
+/**
+ * Which "verses added" toast to show, given how many of the PICKED verses
+ * were genuinely new (i.e. NOT already in the deck — `addCard` itself
+ * no-ops on a dupe, so without this the toast could claim "3 added" when
+ * only 1 was actually new). Pure so it unit-tests without rendering the
+ * screen. `count` on the `'many'` case doubles as "how many" for both the
+ * toast text and any future UI that wants it directly.
+ */
+export type AddVersesOutcome =
+  | {kind: 'none'}
+  | {kind: 'one'}
+  | {kind: 'many'; count: number};
+
+export function describeAddVersesOutcome(newCount: number): AddVersesOutcome {
+  if (newCount <= 0) return {kind: 'none'};
+  if (newCount === 1) return {kind: 'one'};
+  return {kind: 'many', count: newCount};
+}
+
 export default function MemoryDeckScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const {colors, gradient} = useTheme();
   const {t, language} = useLanguage();
   const toast = useToast();
-  const {cards, dueCards, stats, removeCard} = useMemoryDeck();
+  const {cards, dueCards, stats, removeCard, addCard, hasCard} =
+    useMemoryDeck();
+  const {favorites, addFavorite, removeFavorite} = useFavorites();
+  const {selectedVersion} = useBibleVersion();
   const {history, goal, milestone, dismissMilestone} = useMemoryGoal();
   const [guideVisible, setGuideVisible] = useState(false);
   const [removeTarget, setRemoveTarget] = useState<MemoryCard | null>(null);
+  // "Agregar tarjeta nueva sin salir de Memorizar" — a visual book → chapter
+  // → verse picker so adding a card no longer requires the Bible reader or
+  // Favoritos' school-icon toggle.
+  const [pickerVisible, setPickerVisible] = useState(false);
+
+  const findFavorite = (card: MemoryCard): Favorite | undefined => {
+    const book = canonicalBookName(card.bookName);
+    return favorites.find(
+      f =>
+        canonicalBookName(f.book) === book &&
+        f.chapter === card.chapter &&
+        f.verse === card.verse,
+    );
+  };
+
+  const handleToggleFavorite = (card: MemoryCard) => {
+    haptics.tap();
+    const existing = findFavorite(card);
+    if (existing) {
+      void removeFavorite(existing.id).then(() => {
+        toast.info(t.verse.removedFromFavorites);
+      });
+    } else {
+      void addFavorite(
+        {
+          book: card.bookName,
+          chapter: card.chapter,
+          verse: card.verse,
+          text: card.text,
+        },
+        'other',
+        5,
+      ).then(() => {
+        toast.success(t.verse.addedToFavorites);
+      });
+    }
+  };
+
+  const handleAddVerses = (verses: BibleVerse[]) => {
+    // Canonicalize the book name (English) before keying/adding — the SAME
+    // convention favorites.tsx's toggleMemory already uses (via
+    // `favorite.book`, itself canonicalized inside FavoritesContext's
+    // addFavorite). Without this, picking "Juan 3:16" here (RVR1960's raw
+    // DB name) while it's already in the deck as "John 3:16" (added via the
+    // favorites toggle) would build a DIFFERENT verseKey and silently
+    // duplicate the card instead of recognizing it as already-added.
+    // getBookByName resolves either spelling for display, so this never
+    // breaks how the reference renders (DeckRow / practice.tsx).
+    const newCount = verses.filter(
+      v =>
+        !hasCard(buildVerseKey(canonicalBookName(v.book), v.chapter, v.verse)),
+    ).length;
+    for (const v of verses) {
+      addCard({
+        bookName: canonicalBookName(v.book),
+        chapter: v.chapter,
+        verse: v.verse,
+        text: v.text,
+        version: selectedVersion.id,
+      });
+    }
+    setPickerVisible(false);
+    const outcome = describeAddVersesOutcome(newCount);
+    if (outcome.kind === 'none') {
+      toast.info(t.memory.alreadyInDeck);
+    } else if (outcome.kind === 'one') {
+      toast.success(t.memory.addedToast);
+    } else {
+      toast.success(
+        t.memory.addedToastMany.replace('{{count}}', String(outcome.count)),
+      );
+    }
+  };
 
   const headerGradient = useMemo(
     () =>
@@ -115,6 +214,18 @@ export default function MemoryDeckScreen() {
               <Ionicons name="arrow-back" size={24} color="#FFFFFF" />
             </TouchableOpacity>
             <View style={styles.headerActions}>
+              {/* Agregar tarjeta nueva sin salir de Memorizar — opens the
+                  book → chapter → verse picker. */}
+              <TouchableOpacity
+                style={styles.insightsButton}
+                onPress={() => {
+                  haptics.tap();
+                  setPickerVisible(true);
+                }}
+                accessibilityRole="button"
+                accessibilityLabel={t.memory.addVerse}>
+                <Ionicons name="add" size={26} color="#FFFFFF" />
+              </TouchableOpacity>
               <TouchableOpacity
                 style={styles.insightsButton}
                 onPress={() => {
@@ -228,6 +339,26 @@ export default function MemoryDeckScreen() {
               <Text style={[styles.emptyBody, {color: colors.textSecondary}]}>
                 {t.memory.emptyHint}
               </Text>
+              <TouchableOpacity
+                style={[
+                  styles.emptyAddButton,
+                  {backgroundColor: colors.primary},
+                ]}
+                onPress={() => {
+                  haptics.tap();
+                  setPickerVisible(true);
+                }}
+                accessibilityRole="button"
+                accessibilityLabel={t.memory.addVerse}>
+                <Ionicons name="add" size={18} color={colors.onPrimary} />
+                <Text
+                  style={[
+                    styles.emptyAddButtonText,
+                    {color: colors.onPrimary},
+                  ]}>
+                  {t.memory.addVerse}
+                </Text>
+              </TouchableOpacity>
             </View>
           )}
 
@@ -239,11 +370,20 @@ export default function MemoryDeckScreen() {
               language={language}
               t={t}
               colors={colors}
+              isFavorited={Boolean(findFavorite(card))}
               onRemove={() => confirmRemove(card)}
+              onToggleFavorite={() => handleToggleFavorite(card)}
             />
           ))}
         </ScrollView>
       </View>
+
+      {/* Agregar tarjeta nueva sin salir de Memorizar */}
+      <MemoryVersePickerSheet
+        visible={pickerVisible}
+        onClose={() => setPickerVisible(false)}
+        onAddVerses={handleAddVerses}
+      />
 
       {/* In-app milestone celebration (Sprint 47) */}
       <MilestoneCelebration
@@ -419,19 +559,30 @@ const MilestoneCelebration: React.FC<{
   );
 };
 
-interface DeckRowProps {
+// Exported (alongside its props) purely so it can be exercised in isolation
+// in tests — this SCREEN's header renders `Animated.spring(...,
+// {useNativeDriver: true})` (StatBubble/PulsingPracticeCta), which throws
+// "Unable to locate attached view in the native tree" under
+// react-test-renderer (no native view to attach to). DeckRow itself has no
+// Animated code, so rendering it directly sidesteps that pre-existing,
+// unrelated test-environment limitation.
+export interface DeckRowProps {
   card: MemoryCard;
   language: 'es' | 'en';
   t: ReturnType<typeof useLanguage>['t'];
   colors: ReturnType<typeof useTheme>['colors'];
+  isFavorited: boolean;
   onRemove: () => void;
+  onToggleFavorite: () => void;
 }
-const DeckRow: React.FC<DeckRowProps> = ({
+export const DeckRow: React.FC<DeckRowProps> = ({
   card,
   language,
   t,
   colors,
+  isFavorited,
   onRemove,
+  onToggleFavorite,
 }) => {
   const mastered = isMastered(card);
   const bookInfo = getBookByName(card.bookName);
@@ -487,13 +638,30 @@ const DeckRow: React.FC<DeckRowProps> = ({
           {t.memory.nextReview}: {nextReview}
         </Text>
       </View>
-      <TouchableOpacity
-        style={styles.rowAction}
-        onPress={onRemove}
-        accessibilityRole="button"
-        accessibilityLabel={t.memory.removeFromDeck}>
-        <Ionicons name="trash-outline" size={20} color={colors.error} />
-      </TouchableOpacity>
+      <View style={styles.rowActions}>
+        {/* Favorito ↔ Memorizar cross-link — favorite this card too. */}
+        <TouchableOpacity
+          style={styles.rowAction}
+          onPress={onToggleFavorite}
+          accessibilityRole="button"
+          accessibilityLabel={
+            isFavorited ? t.verse.removeFavorite : t.verse.addFavorite
+          }
+          accessibilityState={{selected: isFavorited}}>
+          <Ionicons
+            name={isFavorited ? 'heart' : 'heart-outline'}
+            size={20}
+            color={isFavorited ? colors.primary : colors.textSecondary}
+          />
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={styles.rowAction}
+          onPress={onRemove}
+          accessibilityRole="button"
+          accessibilityLabel={t.memory.removeFromDeck}>
+          <Ionicons name="trash-outline" size={20} color={colors.error} />
+        </TouchableOpacity>
+      </View>
     </View>
   );
 };
@@ -857,6 +1025,19 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     lineHeight: 20,
   },
+  emptyAddButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.xs,
+    paddingHorizontal: spacing.lg,
+    paddingVertical: spacing.sm,
+    borderRadius: borderRadius.full,
+    marginTop: spacing.sm,
+  },
+  emptyAddButtonText: {
+    fontSize: fontSizes.sm,
+    fontWeight: '800',
+  },
   row: {
     flexDirection: 'row',
     padding: spacing.md,
@@ -898,6 +1079,9 @@ const styles = StyleSheet.create({
   rowMeta: {
     fontSize: 11,
     fontWeight: '600',
+  },
+  rowActions: {
+    flexDirection: 'column',
   },
   rowAction: {
     width: 36,
