@@ -4349,6 +4349,8 @@ export const translations = {
     // Daily Verse Notifications
     notifications: {
       title: 'Notificaciones',
+      manageReminders: 'Configurar recordatorios',
+      manageRemindersDesc: 'Versículo del día, oración, profecía y más',
       dailyVerse: 'Versículo del día',
       dailyVerseDesc: 'Recibe el versículo del día a la hora que elijas',
       time: 'Hora del recordatorio',
@@ -10300,6 +10302,8 @@ export const translations = {
     // Daily Verse Notifications
     notifications: {
       title: 'Notifications',
+      manageReminders: 'Manage reminders',
+      manageRemindersDesc: 'Daily verse, prayer, prophecy, and more',
       dailyVerse: 'Verse of the day',
       dailyVerseDesc: 'Receive the verse of the day at the time you choose',
       time: 'Reminder time',

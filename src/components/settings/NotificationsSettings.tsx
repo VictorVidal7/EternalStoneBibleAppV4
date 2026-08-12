@@ -1,15 +1,24 @@
 /**
- * Consolidated notification-reminders section: one card, six compact rows
- * (Versículo del día, Oración, Tiempo en la Palabra, Profecía del día,
- * ¿Sabías qué?, Memorización), replacing what used to be six separate
- * full-width sections. Each row keeps its own {enabled, hour, busy} state
- * and calls its own NotificationService functions — a toggle in flight on
- * one type must never disable another type's switch. Purely a presentation
+ * Consolidated notification-reminders entry point: a single row in Ajustes
+ * that opens a full-screen modal containing six compact rows (Versículo del
+ * día, Oración, Tiempo en la Palabra, Profecía del día, ¿Sabías qué?,
+ * Memorización), replacing what used to be six separate full-width sections
+ * permanently inline. Each row keeps its own {enabled, hour, busy} state and
+ * calls its own NotificationService functions — a toggle in flight on one
+ * type must never disable another type's switch. Purely a presentation
  * consolidation: NotificationService's scheduling logic is untouched.
  */
 
 import React, {useCallback, useEffect, useState} from 'react';
-import {View, Text, StyleSheet} from 'react-native';
+import {
+  View,
+  Text,
+  StyleSheet,
+  Modal,
+  ScrollView,
+  TouchableOpacity,
+} from 'react-native';
+import {useSafeAreaInsets} from 'react-native-safe-area-context';
 import {Ionicons} from '@expo/vector-icons';
 import {haptics} from '@lib/haptics';
 import {useTheme} from '@hooks/useTheme';
@@ -17,6 +26,7 @@ import {useLanguage} from '@hooks/useLanguage';
 import {useBibleVersion} from '@hooks/useBibleVersion';
 import {staticColors} from '@/styles/designTokens';
 import {useToast} from '@context/ToastContext';
+import {focusTrapProps} from '@lib/a11y/focusTrap';
 import NotificationReminderRow from './NotificationReminderRow';
 import {
   getNotificationPreferences,
@@ -57,6 +67,9 @@ export default function NotificationsSettings() {
   const {t, language} = useLanguage();
   const {selectedVersion} = useBibleVersion();
   const toast = useToast();
+  const insets = useSafeAreaInsets();
+
+  const [modalVisible, setModalVisible] = useState(false);
 
   const [dailyVerse, setDailyVerse] = useState<ReminderState>({
     enabled: false,
@@ -401,6 +414,83 @@ export default function NotificationsSettings() {
     [memory.busy, memory.hour, memory.enabled, language, t, toast],
   );
 
+  const remindersCard = (
+    <View
+      style={[
+        styles.card,
+        isDark ? styles.cardShadowDark : styles.cardShadowLight,
+        {backgroundColor: colors.surface},
+      ]}>
+      <NotificationReminderRow
+        isFirst
+        icon="notifications-outline"
+        label={t.notifications.dailyVerse}
+        description={t.notifications.dailyVerseDesc}
+        enabled={dailyVerse.enabled}
+        hour={dailyVerse.hour}
+        hourOptions={DAILY_VERSE_HOURS}
+        busy={dailyVerse.busy}
+        onToggle={handleDailyVerseToggle}
+        onHourSelect={handleDailyVerseHourSelect}
+      />
+      <NotificationReminderRow
+        icon="heart-outline"
+        label={t.notifications.prayerReminder}
+        description={t.notifications.prayerReminderDesc}
+        enabled={prayer.enabled}
+        hour={prayer.hour}
+        hourOptions={PRAYER_HOURS}
+        busy={prayer.busy}
+        onToggle={handlePrayerToggle}
+        onHourSelect={handlePrayerHourSelect}
+      />
+      <NotificationReminderRow
+        icon="book-outline"
+        label={t.notifications.devotionReminder}
+        description={t.notifications.devotionReminderDesc}
+        enabled={devotion.enabled}
+        hour={devotion.hour}
+        hourOptions={DEVOTION_HOURS}
+        busy={devotion.busy}
+        onToggle={handleDevotionToggle}
+        onHourSelect={handleDevotionHourSelect}
+      />
+      <NotificationReminderRow
+        icon="flame-outline"
+        label={t.notifications.prophecyReminder}
+        description={t.notifications.prophecyReminderDesc}
+        enabled={prophetic.enabled}
+        hour={prophetic.hour}
+        hourOptions={PROPHETIC_HOURS}
+        busy={prophetic.busy}
+        onToggle={handlePropheticToggle}
+        onHourSelect={handlePropheticHourSelect}
+      />
+      <NotificationReminderRow
+        icon="bulb-outline"
+        label={t.notifications.sabiasQueReminder}
+        description={t.notifications.sabiasQueReminderDesc}
+        enabled={sabiasQue.enabled}
+        hour={sabiasQue.hour}
+        hourOptions={SABIAS_QUE_HOURS}
+        busy={sabiasQue.busy}
+        onToggle={handleSabiasQueToggle}
+        onHourSelect={handleSabiasQueHourSelect}
+      />
+      <NotificationReminderRow
+        icon="school-outline"
+        label={t.notifications.memoryReminder}
+        description={t.notifications.memoryReminderDesc}
+        enabled={memory.enabled}
+        hour={memory.hour}
+        hourOptions={MEMORY_HOURS}
+        busy={memory.busy}
+        onToggle={handleMemoryToggle}
+        onHourSelect={handleMemoryHourSelect}
+      />
+    </View>
+  );
+
   return (
     <View style={styles.section}>
       <View style={styles.sectionHeader}>
@@ -414,80 +504,56 @@ export default function NotificationsSettings() {
         </Text>
       </View>
 
-      <View
+      <TouchableOpacity
         style={[
           styles.card,
           isDark ? styles.cardShadowDark : styles.cardShadowLight,
           {backgroundColor: colors.surface},
-        ]}>
-        <NotificationReminderRow
-          isFirst
-          icon="notifications-outline"
-          label={t.notifications.dailyVerse}
-          description={t.notifications.dailyVerseDesc}
-          enabled={dailyVerse.enabled}
-          hour={dailyVerse.hour}
-          hourOptions={DAILY_VERSE_HOURS}
-          busy={dailyVerse.busy}
-          onToggle={handleDailyVerseToggle}
-          onHourSelect={handleDailyVerseHourSelect}
-        />
-        <NotificationReminderRow
-          icon="heart-outline"
-          label={t.notifications.prayerReminder}
-          description={t.notifications.prayerReminderDesc}
-          enabled={prayer.enabled}
-          hour={prayer.hour}
-          hourOptions={PRAYER_HOURS}
-          busy={prayer.busy}
-          onToggle={handlePrayerToggle}
-          onHourSelect={handlePrayerHourSelect}
-        />
-        <NotificationReminderRow
-          icon="book-outline"
-          label={t.notifications.devotionReminder}
-          description={t.notifications.devotionReminderDesc}
-          enabled={devotion.enabled}
-          hour={devotion.hour}
-          hourOptions={DEVOTION_HOURS}
-          busy={devotion.busy}
-          onToggle={handleDevotionToggle}
-          onHourSelect={handleDevotionHourSelect}
-        />
-        <NotificationReminderRow
-          icon="flame-outline"
-          label={t.notifications.prophecyReminder}
-          description={t.notifications.prophecyReminderDesc}
-          enabled={prophetic.enabled}
-          hour={prophetic.hour}
-          hourOptions={PROPHETIC_HOURS}
-          busy={prophetic.busy}
-          onToggle={handlePropheticToggle}
-          onHourSelect={handlePropheticHourSelect}
-        />
-        <NotificationReminderRow
-          icon="bulb-outline"
-          label={t.notifications.sabiasQueReminder}
-          description={t.notifications.sabiasQueReminderDesc}
-          enabled={sabiasQue.enabled}
-          hour={sabiasQue.hour}
-          hourOptions={SABIAS_QUE_HOURS}
-          busy={sabiasQue.busy}
-          onToggle={handleSabiasQueToggle}
-          onHourSelect={handleSabiasQueHourSelect}
-        />
-        <NotificationReminderRow
-          icon="school-outline"
-          label={t.notifications.memoryReminder}
-          description={t.notifications.memoryReminderDesc}
-          enabled={memory.enabled}
-          hour={memory.hour}
-          hourOptions={MEMORY_HOURS}
-          busy={memory.busy}
-          onToggle={handleMemoryToggle}
-          onHourSelect={handleMemoryHourSelect}
-        />
-      </View>
+        ]}
+        onPress={() => setModalVisible(true)}
+        accessibilityRole="button"
+        accessibilityLabel={t.notifications.manageReminders}>
+        <View style={styles.entryRow}>
+          <View style={styles.rowInfo}>
+            <Text style={[styles.label, {color: colors.text}]}>
+              {t.notifications.manageReminders}
+            </Text>
+            <Text style={[styles.description, {color: colors.textSecondary}]}>
+              {t.notifications.manageRemindersDesc}
+            </Text>
+          </View>
+          <Ionicons
+            name="chevron-forward"
+            size={20}
+            color={colors.textSecondary}
+          />
+        </View>
+      </TouchableOpacity>
+
+      <Modal
+        visible={modalVisible}
+        animationType="slide"
+        onRequestClose={() => setModalVisible(false)}>
+        <View
+          style={[modalStyles.container, {backgroundColor: colors.background}]}
+          {...focusTrapProps()}>
+          <View style={[modalStyles.header, {paddingTop: insets.top + 10}]}>
+            <TouchableOpacity
+              onPress={() => setModalVisible(false)}
+              accessibilityRole="button"
+              accessibilityLabel={t.close}>
+              <Ionicons name="close" size={28} color={colors.text} />
+            </TouchableOpacity>
+            <Text style={[modalStyles.title, {color: colors.text}]}>
+              {t.notifications.title}
+            </Text>
+            <View style={modalStyles.headerSpacer} />
+          </View>
+          <ScrollView contentContainerStyle={modalStyles.scrollContent}>
+            {remindersCard}
+          </ScrollView>
+        </View>
+      </Modal>
     </View>
   );
 }
@@ -519,4 +585,46 @@ const styles = StyleSheet.create({
   },
   cardShadowDark: {shadowOpacity: 0.3},
   cardShadowLight: {shadowOpacity: 0.1},
+  entryRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 12,
+  },
+  rowInfo: {
+    flex: 1,
+    marginRight: 12,
+  },
+  label: {
+    fontSize: 15,
+    fontWeight: '600',
+    marginBottom: 2,
+  },
+  description: {
+    fontSize: 13,
+    lineHeight: 18,
+  },
+});
+
+const modalStyles = StyleSheet.create({
+  container: {
+    flex: 1,
+  },
+  header: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: 20,
+    paddingBottom: 16,
+  },
+  title: {
+    fontSize: 18,
+    fontWeight: '700',
+  },
+  headerSpacer: {
+    width: 28,
+  },
+  scrollContent: {
+    padding: 16,
+    paddingBottom: 40,
+  },
 });
