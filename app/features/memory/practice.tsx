@@ -90,13 +90,28 @@ export default function MemoryPracticeScreen() {
   // `?verseKey=...`) instead of only what's currently due. Free sessions
   // never call `reviewCard` — see handleGrade/handleNext below — so they
   // can never touch the SRS schedule, stats, streaks, or Firestore.
+  //
+  // `isFree` is STATE, not just a param-derived constant, because
+  // "Repetir" (handleRepeat below) forces it to true even for a session
+  // that started graded. reviewCard mutates the LIVE deck by verseKey, not
+  // the frozen `queue` snapshot below — so replaying the same queue with
+  // grading still live would grade the same card a second time in one
+  // sitting (box jumps twice, a near-zero-interval review event pollutes
+  // the retention history that calibrates every FUTURE card's ease, and
+  // the daily goal/streak double-count). The first pass's grades (already
+  // applied to the real deck before Repetir is ever pressed) are correct
+  // and untouched — only the REPLAY must be ungraded.
   const params = useLocalSearchParams<{free?: string; verseKey?: string}>();
-  const isFree = params.free === '1';
+  const [isFree, setIsFree] = useState(params.free === '1');
 
   // Freeze the queue on mount so a grade-driven reshuffle doesn't add
-  // the same card back into the current session.
+  // the same card back into the current session. Seeding reads the
+  // ORIGINAL param-derived free-ness (captured once, before any Repetir
+  // flip) — a graded session's queue/dueCards-seeding must never change
+  // just because a later Repetir switches the UI to ungraded.
   const [queue] = useState(() => {
-    if (isFree) {
+    const seedFromWholeDeck = params.free === '1';
+    if (seedFromWholeDeck) {
       if (params.verseKey) {
         const target = cards.find(c => c.verseKey === params.verseKey);
         if (target) return [target];
@@ -112,9 +127,11 @@ export default function MemoryPracticeScreen() {
   const [revealed, setRevealed] = useState(false);
   // Box-1 cards show the full verse in 'reveal' mode (nothing masked), which
   // is pointless for free practice off-schedule — default to a real recall
-  // mode instead. The user can still switch back to 'reveal' freely.
+  // mode instead. The user can still switch back to 'reveal' freely. Reads
+  // the initial `isFree` value only (mode shouldn't jump on a later Repetir
+  // flip — "Repetir" keeps the SAME mode the session was already in).
   const [mode, setMode] = useState<PracticeMode>(
-    isFree ? 'firstLetter' : 'reveal',
+    params.free === '1' ? 'firstLetter' : 'reveal',
   );
   const [fillAnswers, setFillAnswers] = useState<string[]>([]);
   const [typedAnswer, setTypedAnswer] = useState('');
@@ -261,11 +278,18 @@ export default function MemoryPracticeScreen() {
     setRevealed(false);
   };
 
-  // "Repetir" — replay the SAME frozen queue in the SAME mode (graded or
-  // free) from the start. Resetting `index` alone is enough: the
-  // [index, mode] effect above clears revealed/fillAnswers/typedAnswer.
+  // "Repetir" — replay the SAME frozen queue, in the SAME recall mode, from
+  // the start. ALWAYS forces free/ungraded mode for the replay — even when
+  // the session that just finished was graded — because reviewCard keys off
+  // verseKey against the LIVE deck, not this frozen queue: grading the same
+  // card again here would silently re-apply a second review to a card
+  // already reviewed this session (see the isFree comment above for the
+  // downstream SRS/ease/retention/streak fallout). The already-applied
+  // first-pass grades are unaffected. Resetting `index` alone handles the
+  // rest: the [index, mode] effect clears revealed/fillAnswers/typedAnswer.
   const handleRepeat = () => {
     haptics.tap();
+    setIsFree(true);
     setIndex(0);
   };
 

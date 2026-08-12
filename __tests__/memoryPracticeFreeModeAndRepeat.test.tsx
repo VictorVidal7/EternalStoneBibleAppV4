@@ -12,7 +12,14 @@
  * a real render + real presses is the strongest evidence of that.
  *
  * "Repetir" (on the done screen) replays the SAME frozen queue from the
- * start, in whatever mode (graded or free) the session was already in.
+ * start, in the SAME recall mode — but ALWAYS ungraded on the replay, even
+ * if the session that just finished was graded. This is deliberate: the
+ * frozen `queue` array is a snapshot, but `reviewCard` mutates the LIVE
+ * deck keyed by verseKey — grading a replay would silently apply a SECOND
+ * review to a card already reviewed this sitting (double box jump, a
+ * near-zero-interval review event skewing retention/ease calibration for
+ * future cards, double-counted daily goal/streak). Only the first pass's
+ * grades (already applied before Repetir is ever pressed) are graded.
  */
 import React from 'react';
 import {render, fireEvent} from '@testing-library/react-native';
@@ -267,24 +274,38 @@ describe('Memory practice — free practice (?free=1)', () => {
 });
 
 describe('Memory practice — "Repetir" (repeat)', () => {
-  it('graded session: Repetir replays the same queue and STAYS graded', () => {
-    mockDueCards = [makeCard(1, JUAN_3_16)];
+  it('graded session: the FIRST pass grades normally, but Repetir switches the REPLAY to ungraded — no double-grading', () => {
+    // Two cards so the assertion proves reviewCard is never called again
+    // for ANY card in the second pass, not just coincidentally skipped for
+    // the one card a narrower test might have picked.
+    mockDueCards = [makeCard(1, JUAN_3_16), makeCard(1, MATEO_1_1)];
     mockParams = {};
 
     const {getByText, queryByText} = render(<MemoryPracticeScreen />);
 
-    // Box-1 in default 'reveal' mode skips straight to grading.
-    fireEvent.press(getByText(p.again));
+    // Box-1 cards in default 'reveal' mode skip straight to grading.
+    fireEvent.press(getByText(p.again)); // grades card 1
+    fireEvent.press(getByText(p.easy)); // grades card 2
     expect(queryByText(p.done)).not.toBeNull();
-    expect(mockReviewCard).toHaveBeenCalledTimes(1);
+    expect(mockReviewCard).toHaveBeenCalledTimes(2);
 
     fireEvent.press(getByText(p.repeat));
 
-    // Back at the active card, grading is still live.
+    // Back at the active card, but now UNGRADED: grade buttons are gone,
+    // and the free-mode disclaimer appears even though this session
+    // started graded — reviewCard mutates the live deck by verseKey, so
+    // grading these same two cards again here would silently double-apply
+    // a review already recorded this sitting.
     expect(queryByText(p.done)).toBeNull();
-    expect(queryByText(p.again)).not.toBeNull();
+    expect(queryByText(p.again)).toBeNull();
+    expect(queryByText(p.freeModeCaption)).not.toBeNull();
 
-    fireEvent.press(getByText(p.easy));
+    // Advance through BOTH cards again via "Siguiente".
+    fireEvent.press(getByText(top.next));
+    fireEvent.press(getByText(top.next));
+
+    expect(queryByText(p.done)).not.toBeNull();
+    // Still exactly 2 — the replay never graded either card again.
     expect(mockReviewCard).toHaveBeenCalledTimes(2);
   });
 
