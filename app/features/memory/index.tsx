@@ -194,20 +194,28 @@ export default function MemoryDeckScreen() {
 
   // "Practicar sin calificar" (free practice) — opens practice.tsx in its
   // ungraded mode over the WHOLE deck, regardless of what's currently due.
+  // Uses the object form of router.push (matches the convention already
+  // used elsewhere in this app, e.g. (tabs)/index.tsx's dailyVerse links)
+  // so expo-router serializes the query string itself — a verseKey like
+  // "Juan/3/16" contains literal slashes, and hand-building the URL with
+  // encodeURIComponent risked a mismatch against how useLocalSearchParams
+  // decodes it back out.
   const handleFreePractice = () => {
     haptics.press();
-    router.push('/features/memory/practice?free=1' as never);
+    router.push({
+      pathname: '/features/memory/practice' as never,
+      params: {free: '1'},
+    });
   };
 
   // Same free-practice mode, but pinned to a single card via the per-row
   // action — seeds the queue with just that verse.
   const handlePracticeCard = (card: MemoryCard) => {
     haptics.press();
-    router.push(
-      `/features/memory/practice?free=1&verseKey=${encodeURIComponent(
-        card.verseKey,
-      )}` as never,
-    );
+    router.push({
+      pathname: '/features/memory/practice' as never,
+      params: {free: '1', verseKey: card.verseKey},
+    });
   };
 
   const confirmRemove = (card: MemoryCard) => {

@@ -99,7 +99,10 @@ export default function MemoryPracticeScreen() {
     if (isFree) {
       if (params.verseKey) {
         const target = cards.find(c => c.verseKey === params.verseKey);
-        return target ? [target] : [];
+        if (target) return [target];
+        // Target verse not found (e.g. removed from the deck between
+        // navigating and this mount) — fall back to the whole deck rather
+        // than stranding the user on an instant "session complete".
       }
       return [...cards];
     }

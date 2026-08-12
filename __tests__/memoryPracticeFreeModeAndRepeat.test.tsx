@@ -18,7 +18,7 @@ import React from 'react';
 import {render, fireEvent} from '@testing-library/react-native';
 import MemoryPracticeScreen from '../app/features/memory/practice';
 import {translations} from '../src/i18n/translations';
-import {createCard} from '../src/lib/memory/srs';
+import {buildVerseKey, createCard} from '../src/lib/memory/srs';
 
 let mockDueCards: ReturnType<typeof createCard>[] = [];
 let mockCards: ReturnType<typeof createCard>[] = [];
@@ -115,12 +115,23 @@ jest.mock('@context/ToastContext', () => ({
 const p = translations.es.memory.practice;
 const top = translations.es;
 
-const makeCard = (verseKey: string, box: 1 | 2 | 3 | 4 | 5, text?: string) => ({
+// Each card gets a DISTINCT book/chapter/verse (not just a distinct
+// verseKey string) so tests can assert on the rendered reference and
+// actually prove which card ended up in the queue — two cards sharing the
+// same displayed "Juan 3:16" would make a wrong-card bug invisible.
+const JUAN_3_16 = {bookName: 'Juan', chapter: 3, verse: 16};
+const MATEO_1_1 = {bookName: 'Mateo', chapter: 1, verse: 1};
+
+const makeCard = (
+  box: 1 | 2 | 3 | 4 | 5,
+  ref: {bookName: string; chapter: number; verse: number} = JUAN_3_16,
+  text?: string,
+) => ({
   ...createCard({
-    verseKey,
-    bookName: 'Juan',
-    chapter: 3,
-    verse: 16,
+    verseKey: buildVerseKey(ref.bookName, ref.chapter, ref.verse),
+    bookName: ref.bookName,
+    chapter: ref.chapter,
+    verse: ref.verse,
     text: text ?? 'Porque de tal manera amó Dios al mundo',
     version: 'RVR1960',
     now: new Date().toISOString(),
@@ -138,7 +149,7 @@ beforeEach(() => {
 describe('Memory practice — free practice (?free=1)', () => {
   it('seeds the queue from the WHOLE deck (cards), not dueCards, when no verseKey is given', () => {
     mockDueCards = []; // nothing due
-    mockCards = [makeCard('Juan/3/16', 1), makeCard('Mateo/1/1', 1)];
+    mockCards = [makeCard(1, JUAN_3_16), makeCard(1, MATEO_1_1)];
     mockParams = {free: '1'};
 
     const {getByText} = render(<MemoryPracticeScreen />);
@@ -150,9 +161,16 @@ describe('Memory practice — free practice (?free=1)', () => {
     ).toBeTruthy();
   });
 
-  it('seeds the queue with a SINGLE card when verseKey is provided, ignoring the rest of the deck', () => {
-    mockCards = [makeCard('Juan/3/16', 1), makeCard('Mateo/1/1', 1)];
-    mockParams = {free: '1', verseKey: 'Mateo/1/1'};
+  it('seeds the queue with the CORRECT single card when verseKey is provided, ignoring the rest of the deck', () => {
+    mockCards = [makeCard(1, JUAN_3_16), makeCard(1, MATEO_1_1)];
+    mockParams = {
+      free: '1',
+      verseKey: buildVerseKey(
+        MATEO_1_1.bookName,
+        MATEO_1_1.chapter,
+        MATEO_1_1.verse,
+      ),
+    };
 
     const {getByText} = render(<MemoryPracticeScreen />);
 
@@ -161,13 +179,33 @@ describe('Memory practice — free practice (?free=1)', () => {
         p.progress.replace('{{current}}', '1').replace('{{total}}', '1'),
       ),
     ).toBeTruthy();
+    // Proves it's the RIGHT card, not just that total===1 — two cards that
+    // happened to share a rendered reference would make a wrong-card pick
+    // invisible to a count-only assertion.
+    expect(getByText('Mateo 1:1')).toBeTruthy();
+  });
+
+  it('falls back to the whole deck if verseKey matches no card (e.g. removed between navigating and mount)', () => {
+    mockCards = [makeCard(1, JUAN_3_16), makeCard(1, MATEO_1_1)];
+    mockParams = {free: '1', verseKey: 'Nonexistent/9/9'};
+
+    const {getByText, queryByText} = render(<MemoryPracticeScreen />);
+
+    // Degrades to practicing the whole deck instead of an instant
+    // "session complete" (queue would otherwise be empty).
+    expect(
+      getByText(
+        p.progress.replace('{{current}}', '1').replace('{{total}}', '2'),
+      ),
+    ).toBeTruthy();
+    expect(queryByText(p.done)).toBeNull();
   });
 
   it('defaults to a non-reveal recall mode, so even a box-1 card poses a real recall step', () => {
     // In the default GRADED 'reveal' mode a box-1 card skips the reveal
     // step entirely (nothing is masked) — see memoryPracticeReveal.test.
     // Free mode must default elsewhere so this isn't trivial.
-    mockCards = [makeCard('Juan/3/16', 1)];
+    mockCards = [makeCard(1, JUAN_3_16)];
     mockParams = {free: '1'};
 
     const {queryByText} = render(<MemoryPracticeScreen />);
@@ -177,7 +215,7 @@ describe('Memory practice — free practice (?free=1)', () => {
   });
 
   it('shows the free-mode disclaimer caption', () => {
-    mockCards = [makeCard('Juan/3/16', 1)];
+    mockCards = [makeCard(1, JUAN_3_16)];
     mockParams = {free: '1'};
 
     const {queryByText} = render(<MemoryPracticeScreen />);
@@ -186,7 +224,7 @@ describe('Memory practice — free practice (?free=1)', () => {
   });
 
   it('does NOT show the disclaimer caption in a normal graded session', () => {
-    mockDueCards = [makeCard('Juan/3/16', 1)];
+    mockDueCards = [makeCard(1, JUAN_3_16)];
     mockParams = {};
 
     const {queryByText} = render(<MemoryPracticeScreen />);
@@ -195,7 +233,7 @@ describe('Memory practice — free practice (?free=1)', () => {
   });
 
   it('hides the grade buttons, shows "Siguiente" instead, and NEVER calls reviewCard', () => {
-    mockCards = [makeCard('Juan/3/16', 3)]; // masked box, goes through reveal
+    mockCards = [makeCard(3, JUAN_3_16)]; // masked box, goes through reveal
     mockParams = {free: '1'};
 
     const {getByText, queryByText} = render(<MemoryPracticeScreen />);
@@ -214,7 +252,7 @@ describe('Memory practice — free practice (?free=1)', () => {
   });
 
   it('advances to the done state after "Siguiente" on the last card, still without grading', () => {
-    mockCards = [makeCard('Juan/3/16', 1)];
+    mockCards = [makeCard(1, JUAN_3_16)];
     mockParams = {free: '1'};
 
     const {getByText, queryByText} = render(<MemoryPracticeScreen />);
@@ -230,7 +268,7 @@ describe('Memory practice — free practice (?free=1)', () => {
 
 describe('Memory practice — "Repetir" (repeat)', () => {
   it('graded session: Repetir replays the same queue and STAYS graded', () => {
-    mockDueCards = [makeCard('Juan/3/16', 1)];
+    mockDueCards = [makeCard(1, JUAN_3_16)];
     mockParams = {};
 
     const {getByText, queryByText} = render(<MemoryPracticeScreen />);
@@ -251,7 +289,7 @@ describe('Memory practice — "Repetir" (repeat)', () => {
   });
 
   it('free session: Repetir replays the same queue and STAYS ungraded', () => {
-    mockCards = [makeCard('Juan/3/16', 1)];
+    mockCards = [makeCard(1, JUAN_3_16)];
     mockParams = {free: '1'};
 
     const {getByText, queryByText} = render(<MemoryPracticeScreen />);
