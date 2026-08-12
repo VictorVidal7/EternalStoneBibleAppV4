@@ -48,10 +48,20 @@ interface ToastProviderProps {
 export const ToastProvider: React.FC<ToastProviderProps> = ({children}) => {
   const [toastConfig, setToastConfig] = useState<ToastOptions | null>(null);
   const [visible, setVisible] = useState(false);
+  // Bumped on every show() so the Modal below gets a fresh `key`. Without
+  // this, RN/Fabric can recycle the previous toast's native Modal host view
+  // when a second toast fires while another screen's own <Modal> is already
+  // open on Android — the recycled Dialog reports onShow but never actually
+  // becomes visible (two stacked native Modal windows is an area where RN's
+  // Android Modal implementation is known to be unreliable). A changing key
+  // forces a genuinely new native view + Dialog every time, matching the
+  // first-ever-toast case, which always renders correctly.
+  const [toastKey, setToastKey] = useState(0);
 
   const show = useCallback((options: ToastOptions) => {
     setToastConfig(options);
     setVisible(true);
+    setToastKey(k => k + 1);
   }, []);
 
   const success = useCallback(
@@ -97,6 +107,7 @@ export const ToastProvider: React.FC<ToastProviderProps> = ({children}) => {
         // Wrapping in its own transparent Modal gives the toast its own
         // window too, shown last so it lands above whatever else is open.
         <Modal
+          key={toastKey}
           transparent
           animationType="none"
           statusBarTranslucent
