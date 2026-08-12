@@ -87,6 +87,7 @@ describe('DeckRow — favorite toggle', () => {
         isFavorited={false}
         onRemove={jest.fn()}
         onToggleFavorite={jest.fn()}
+        onPracticeCard={jest.fn()}
       />,
     );
     expect(getByLabelText(v.addFavorite)).toBeTruthy();
@@ -102,6 +103,7 @@ describe('DeckRow — favorite toggle', () => {
         isFavorited
         onRemove={jest.fn()}
         onToggleFavorite={jest.fn()}
+        onPracticeCard={jest.fn()}
       />,
     );
     expect(getByLabelText(v.removeFavorite)).toBeTruthy();
@@ -119,6 +121,7 @@ describe('DeckRow — favorite toggle', () => {
         isFavorited={false}
         onRemove={onRemove}
         onToggleFavorite={onToggleFavorite}
+        onPracticeCard={jest.fn()}
       />,
     );
 
@@ -139,12 +142,37 @@ describe('DeckRow — favorite toggle', () => {
         isFavorited={false}
         onRemove={onRemove}
         onToggleFavorite={jest.fn()}
+        onPracticeCard={jest.fn()}
       />,
     );
 
     fireEvent.press(getByLabelText(t.memory.removeFromDeck));
 
     expect(onRemove).toHaveBeenCalledTimes(1);
+  });
+
+  it('calls onPracticeCard (not onRemove/onToggleFavorite) when the practice icon is pressed', () => {
+    const onPracticeCard = jest.fn();
+    const onRemove = jest.fn();
+    const onToggleFavorite = jest.fn();
+    const {getByLabelText} = render(
+      <DeckRow
+        card={card}
+        language="es"
+        t={t}
+        colors={colors}
+        isFavorited={false}
+        onRemove={onRemove}
+        onToggleFavorite={onToggleFavorite}
+        onPracticeCard={onPracticeCard}
+      />,
+    );
+
+    fireEvent.press(getByLabelText(t.memory.practiceCardLabel));
+
+    expect(onPracticeCard).toHaveBeenCalledTimes(1);
+    expect(onRemove).not.toHaveBeenCalled();
+    expect(onToggleFavorite).not.toHaveBeenCalled();
   });
 });
 
@@ -206,6 +234,8 @@ describe('memory/index.tsx source wiring — add-verse affordances', () => {
       expect(typeof tr.memory.addedToast).toBe('string');
       expect(typeof tr.memory.addedToastMany).toBe('string');
       expect(typeof tr.memory.alreadyInDeck).toBe('string');
+      expect(typeof tr.memory.freePracticeCta).toBe('string');
+      expect(typeof tr.memory.practiceCardLabel).toBe('string');
       expect(typeof tr.verse.addFavorite).toBe('string');
       expect(typeof tr.verse.removeFavorite).toBe('string');
     }

@@ -26,6 +26,7 @@ const mockToastInfo = jest.fn();
 
 jest.mock('expo-router', () => ({
   useRouter: () => ({back: jest.fn()}),
+  useLocalSearchParams: () => ({}),
   Stack: {Screen: () => null},
 }));
 

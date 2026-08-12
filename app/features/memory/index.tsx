@@ -192,6 +192,24 @@ export default function MemoryDeckScreen() {
     router.push('/features/memory/practice' as never);
   };
 
+  // "Practicar sin calificar" (free practice) — opens practice.tsx in its
+  // ungraded mode over the WHOLE deck, regardless of what's currently due.
+  const handleFreePractice = () => {
+    haptics.press();
+    router.push('/features/memory/practice?free=1' as never);
+  };
+
+  // Same free-practice mode, but pinned to a single card via the per-row
+  // action — seeds the queue with just that verse.
+  const handlePracticeCard = (card: MemoryCard) => {
+    haptics.press();
+    router.push(
+      `/features/memory/practice?free=1&verseKey=${encodeURIComponent(
+        card.verseKey,
+      )}` as never,
+    );
+  };
+
   const confirmRemove = (card: MemoryCard) => {
     setRemoveTarget(card);
   };
@@ -339,6 +357,28 @@ export default function MemoryDeckScreen() {
             </View>
           ) : null}
 
+          {/* "Practicar sin calificar" — always available (not gated on
+              dueCount), so a verse can be practiced any time it's wanted,
+              not just when the SRS schedule says it's due. Ungraded, purely
+              local to practice.tsx; never touches dueCards/stats. */}
+          {!isEmpty && (
+            <TouchableOpacity
+              style={styles.freePracticeLink}
+              onPress={handleFreePractice}
+              accessibilityRole="button"
+              accessibilityLabel={t.memory.freePracticeCta}>
+              <Ionicons
+                name="repeat-outline"
+                size={16}
+                color={colors.primary}
+              />
+              <Text
+                style={[styles.freePracticeLinkText, {color: colors.primary}]}>
+                {t.memory.freePracticeCta}
+              </Text>
+            </TouchableOpacity>
+          )}
+
           {/* Empty state */}
           {isEmpty && (
             <View style={[styles.emptyCard, {backgroundColor: colors.surface}]}>
@@ -397,6 +437,7 @@ export default function MemoryDeckScreen() {
               isFavorited={Boolean(findFavorite(card))}
               onRemove={() => confirmRemove(card)}
               onToggleFavorite={() => handleToggleFavorite(card)}
+              onPracticeCard={() => handlePracticeCard(card)}
             />
           ))}
         </ScrollView>
@@ -598,6 +639,8 @@ export interface DeckRowProps {
   isFavorited: boolean;
   onRemove: () => void;
   onToggleFavorite: () => void;
+  /** "Practicar sin calificar" pinned to this one card. */
+  onPracticeCard: () => void;
 }
 export const DeckRow: React.FC<DeckRowProps> = ({
   card,
@@ -607,6 +650,7 @@ export const DeckRow: React.FC<DeckRowProps> = ({
   isFavorited,
   onRemove,
   onToggleFavorite,
+  onPracticeCard,
 }) => {
   const mastered = isMastered(card);
   const bookInfo = getBookByName(card.bookName);
@@ -676,6 +720,18 @@ export const DeckRow: React.FC<DeckRowProps> = ({
             name={isFavorited ? 'heart' : 'heart-outline'}
             size={20}
             color={isFavorited ? colors.primary : colors.textSecondary}
+          />
+        </TouchableOpacity>
+        {/* "Practicar sin calificar" pinned to this one card. */}
+        <TouchableOpacity
+          style={styles.rowAction}
+          onPress={onPracticeCard}
+          accessibilityRole="button"
+          accessibilityLabel={t.memory.practiceCardLabel}>
+          <Ionicons
+            name="repeat-outline"
+            size={20}
+            color={colors.textSecondary}
           />
         </TouchableOpacity>
         <TouchableOpacity
@@ -1024,6 +1080,18 @@ const styles = StyleSheet.create({
   },
   noDueTitle: {
     fontSize: fontSizes.base,
+    fontWeight: '700',
+  },
+  freePracticeLink: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: spacing.xs,
+    paddingVertical: spacing.sm,
+    marginBottom: spacing.lg,
+  },
+  freePracticeLinkText: {
+    fontSize: fontSizes.sm,
     fontWeight: '700',
   },
   noDueHint: {
