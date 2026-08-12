@@ -12,7 +12,7 @@ import React, {
   useCallback,
   ReactNode,
 } from 'react';
-import {StyleSheet, View} from 'react-native';
+import {Modal, StyleSheet, View} from 'react-native';
 import Toast from '../components/Toast';
 
 type ToastVariant = 'success' | 'error' | 'warning' | 'info' | 'default';
@@ -90,18 +90,31 @@ export const ToastProvider: React.FC<ToastProviderProps> = ({children}) => {
     <ToastContext.Provider value={{show, success, error, warning, info}}>
       {children}
       {toastConfig && (
-        <View style={styles.toastContainer}>
-          <Toast
-            visible={visible}
-            message={toastConfig.message}
-            variant={toastConfig.variant || 'default'}
-            duration={toastConfig.duration || 3000}
-            position={toastConfig.position || 'top'}
-            action={toastConfig.action}
-            numberOfLines={toastConfig.numberOfLines}
-            onDismiss={handleDismiss}
-          />
-        </View>
+        // A plain absolute-positioned View here would render in the app's
+        // main Android window — invisible behind any screen that opens its
+        // own native `Modal` (ImageShareModal, OfferingSheet, etc., which
+        // are genuinely separate windows on Android, stacked on top).
+        // Wrapping in its own transparent Modal gives the toast its own
+        // window too, shown last so it lands above whatever else is open.
+        <Modal
+          transparent
+          animationType="none"
+          statusBarTranslucent
+          visible={visible}
+          onRequestClose={handleDismiss}>
+          <View style={styles.toastContainer} pointerEvents="box-none">
+            <Toast
+              visible={visible}
+              message={toastConfig.message}
+              variant={toastConfig.variant || 'default'}
+              duration={toastConfig.duration || 3000}
+              position={toastConfig.position || 'top'}
+              action={toastConfig.action}
+              numberOfLines={toastConfig.numberOfLines}
+              onDismiss={handleDismiss}
+            />
+          </View>
+        </Modal>
       )}
     </ToastContext.Provider>
   );
