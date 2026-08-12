@@ -34,11 +34,7 @@ import {logger} from '@lib/utils/logger';
 import {useAuth} from '@context/AuthContext';
 import {useSyncEngineOptional, useConflicts} from '@context/SyncEngineContext';
 import {useToast} from '@context/ToastContext';
-import DailyVerseSettings from '@components/settings/DailyVerseSettings';
-import PrayerReminderSettings from '@components/settings/PrayerReminderSettings';
-import DevotionReminderSettings from '@components/settings/DevotionReminderSettings';
-import PropheticReminderSettings from '@components/settings/PropheticReminderSettings';
-import SabiasQueReminderSettings from '@components/settings/SabiasQueReminderSettings';
+import NotificationsSettings from '@components/settings/NotificationsSettings';
 import {ConfirmDialog} from '@components/ui/ConfirmDialog';
 import MemoryGoalSettings from '@components/settings/MemoryGoalSettings';
 import ManageVersionsSection from '@components/settings/ManageVersionsSection';
@@ -799,20 +795,8 @@ export default function SettingsScreen() {
           </TouchableOpacity>
         </View>
 
-        {/* Daily Verse Notifications */}
-        <DailyVerseSettings />
-
-        {/* Gentle daily prayer reminder (Sprint 95) */}
-        <PrayerReminderSettings />
-
-        {/* Gentle daily "time in the Word" reminder (Sprint 97) */}
-        <DevotionReminderSettings />
-
-        {/* "Profecía del día" — Hilo profético robustness round 3 */}
-        <PropheticReminderSettings />
-
-        {/* "¿Sabías qué?" — daily Bible-facts nudge (v2) */}
-        <SabiasQueReminderSettings />
+        {/* Consolidated notification reminders (daily verse, prayer, devotion, prophecy, ¿Sabías qué?, memorization) */}
+        <NotificationsSettings />
 
         {/* Daily reading goal — grades the Leer constancy ring (Sprint 85) */}
         <ReadingGoalSettings />
