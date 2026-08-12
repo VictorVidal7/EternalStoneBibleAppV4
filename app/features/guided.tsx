@@ -432,6 +432,7 @@ const styles = StyleSheet.create({
   feelingGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
+    justifyContent: 'center',
     gap: spacing.sm,
   },
   // Equal-width treatment shared with FeelingChips (Home): width (not an
