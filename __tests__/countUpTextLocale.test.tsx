@@ -8,7 +8,6 @@
  * and the final value renders on first paint (same trick as
  * achievementModalTheme.test.tsx), keeping this a synchronous render test.
  */
-import React from 'react';
 import {render} from '@testing-library/react-native';
 import {CountUpText} from '../src/components/ui/CountUpText';
 

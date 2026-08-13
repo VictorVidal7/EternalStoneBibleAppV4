@@ -13,7 +13,6 @@
  * expo-sharing, mocked here the same way ImageShareModal's capture/share
  * pipeline is mocked in imageShareModalPremium.test.tsx.
  */
-import React from 'react';
 import {render, waitFor, fireEvent} from '@testing-library/react-native';
 import * as SecureStore from 'expo-secure-store';
 import Purchases from 'react-native-purchases';

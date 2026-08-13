@@ -3,7 +3,6 @@
  * that a today-dated activity surfaces as a period stat row (the modal builds
  * the recap internally from the injected sources for the current clock).
  */
-import React from 'react';
 import {render, fireEvent} from '@testing-library/react-native';
 import {PeriodRecapModal} from '../src/components/insights/PeriodRecapModal';
 import type {PeriodInput} from '../src/features/journey/periodRecap';

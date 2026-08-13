@@ -10,7 +10,6 @@
  *    that adds/removes it from Favoritos, mirroring the reader's own
  *    heart-icon toggle (`t.verse.addFavorite` / `t.verse.removeFavorite`).
  */
-import React from 'react';
 import {render, fireEvent} from '@testing-library/react-native';
 import MemoryPracticeScreen from '../app/features/memory/practice';
 import {translations} from '../src/i18n/translations';

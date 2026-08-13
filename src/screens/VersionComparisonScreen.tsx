@@ -528,8 +528,7 @@ export const VersionComparisonScreen: React.FC<
 
       // El servicio mapea los campos a camelCase
       const versionIds = (comp.versionIds || comp.version_ids) as
-        | string
-        | string[];
+        string | string[];
       const versesRangeRaw = comp.versesRange || comp.verses_range || '';
 
       if (

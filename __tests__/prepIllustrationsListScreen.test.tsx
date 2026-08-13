@@ -22,7 +22,6 @@
  * normal browsing — same "attach mode" pattern prepSeriesListScreen.test.tsx
  * already pins for "Series de predicación".
  */
-import React from 'react';
 import {render, fireEvent, waitFor} from '@testing-library/react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as SecureStore from 'expo-secure-store';

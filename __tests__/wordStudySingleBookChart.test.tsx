@@ -6,7 +6,6 @@
  * a compact stat line instead, tappable straight to the verse — mirroring
  * the multi-book case's mocking scaffold in wordStudyScreenBookFilter.test.tsx.
  */
-import React from 'react';
 import {render, fireEvent} from '@testing-library/react-native';
 import WordStudyScreen from '../app/(tabs)/features/word-study';
 import {PremiumProvider} from '../src/context/PremiumContext';

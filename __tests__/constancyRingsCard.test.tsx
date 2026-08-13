@@ -2,7 +2,6 @@
  * Sprint 85 — the Home ConstancyRingsCard wrapper. Pins the honest gate
  * (hidden until loaded + any habit history) and the press → onPress wiring.
  */
-import React from 'react';
 import {render, fireEvent} from '@testing-library/react-native';
 import {ConstancyRingsCard} from '../src/components/ConstancyRingsCard';
 import {

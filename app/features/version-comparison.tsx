@@ -1,4 +1,3 @@
-import React from 'react';
 import {ActivityIndicator, View, StyleSheet} from 'react-native';
 import {VersionComparisonScreen} from '../../src/screens/VersionComparisonScreen';
 import {useLocalSearchParams} from 'expo-router';

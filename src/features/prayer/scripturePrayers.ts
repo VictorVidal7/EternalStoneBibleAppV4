@@ -30,11 +30,7 @@
 export type PrayerRefKey = string;
 
 export type ScripturePrayerCategory =
-  | 'jesus'
-  | 'canticles'
-  | 'paul'
-  | 'psalms'
-  | 'ot';
+  'jesus' | 'canticles' | 'paul' | 'psalms' | 'ot';
 
 export const SCRIPTURE_PRAYER_CATEGORY_ORDER: readonly ScripturePrayerCategory[] =
   ['jesus', 'canticles', 'paul', 'psalms', 'ot'];

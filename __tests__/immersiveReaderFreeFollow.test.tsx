@@ -11,7 +11,7 @@
  * bound, entitlement-agnostic) while the scrubber/karaoke stay keyed off
  * `listening` (still premium-only) — this test pins that split.
  */
-import React, {useEffect} from 'react';
+import {useEffect} from 'react';
 import {render} from '@testing-library/react-native';
 import Purchases from 'react-native-purchases';
 import * as SecureStore from 'expo-secure-store';

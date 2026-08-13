@@ -26,10 +26,7 @@ import type {PrayerCategory} from './prayer';
 
 /** The four movements of ACTS, in fixed walking order. */
 export type ActsStep =
-  | 'adoration'
-  | 'confession'
-  | 'thanksgiving'
-  | 'supplication';
+  'adoration' | 'confession' | 'thanksgiving' | 'supplication';
 
 export const ACTS_STEP_ORDER: readonly ActsStep[] = [
   'adoration',

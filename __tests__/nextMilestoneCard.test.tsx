@@ -4,7 +4,6 @@
  * single closest achievement with its name + progress count, bridging Home to
  * the Trophy tab.
  */
-import React from 'react';
 import {render} from '@testing-library/react-native';
 import {NextMilestoneCard} from '../src/components/NextMilestoneCard';
 import {translations} from '../src/i18n/translations';

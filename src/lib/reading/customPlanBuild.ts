@@ -29,8 +29,7 @@ export interface PlanPassage {
 
 /** How to spread the chapters across days. */
 export type PlanPace =
-  | {mode: 'perDay'; chaptersPerDay: number}
-  | {mode: 'totalDays'; days: number};
+  {mode: 'perDay'; chaptersPerDay: number} | {mode: 'totalDays'; days: number};
 
 /** Flatten ordered passages into a chapter list `[bookId, chapter]`. */
 export function passagesToChapters(passages: PlanPassage[]): CustomReading[] {

@@ -6,7 +6,6 @@
  * message + one CTA, and no dev toggle.
  */
 
-import React from 'react';
 import {render, waitFor, fireEvent} from '@testing-library/react-native';
 import Purchases from 'react-native-purchases';
 import DonationSettings from '../src/components/settings/DonationSettings';

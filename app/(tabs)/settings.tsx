@@ -15,7 +15,7 @@ import {AppText as Text} from '@components/ui/AppText';
 import {staticColors} from '@/styles/designTokens';
 import {centeredMaxWidth} from '@/styles/responsive';
 
-import React, {useEffect, useState, useMemo, useRef, useCallback} from 'react';
+import {useEffect, useState, useMemo, useRef, useCallback} from 'react';
 import {Ionicons} from '@expo/vector-icons';
 import {useRouter, useFocusEffect} from 'expo-router';
 import {useTheme, ThemeColors} from '@hooks/useTheme';

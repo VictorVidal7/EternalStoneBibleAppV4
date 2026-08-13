@@ -93,12 +93,7 @@ const SKY_DEEP: readonly [string, string] = ['#0C4A6E', '#38BDF8'];
 const SKY_SAND: readonly [string, string] = ['#93C5FD', '#FDE68A'];
 
 export type KidsSceneGround =
-  | 'water'
-  | 'sand'
-  | 'grass'
-  | 'stone'
-  | 'night'
-  | 'none';
+  'water' | 'sand' | 'grass' | 'stone' | 'night' | 'none';
 
 export type KidsSceneDecor =
   | 'sun'

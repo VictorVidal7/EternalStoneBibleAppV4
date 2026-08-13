@@ -7,7 +7,6 @@
  * hidden (so it never traps focus when closed).
  */
 
-import React from 'react';
 import {render} from '@testing-library/react-native';
 import {MemoryGuideModal} from '../src/components/MemoryGuideModal';
 import {translations} from '../src/i18n/translations';

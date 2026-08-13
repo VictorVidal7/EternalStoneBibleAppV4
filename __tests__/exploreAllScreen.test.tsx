@@ -19,7 +19,6 @@
  * regardless of what any earlier test in this file already wrote to the
  * (file-scoped) AsyncStorage mock.
  */
-import React from 'react';
 import {render, fireEvent} from '@testing-library/react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import ExploreAllScreen from '../app/features/explore-all/index';

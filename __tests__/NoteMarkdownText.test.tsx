@@ -3,7 +3,6 @@
  * styled `<Text>` nodes (not literal asterisks), and that plain-text notes
  * with no markers still render exactly as typed.
  */
-import React from 'react';
 import {render} from '@testing-library/react-native';
 import {NoteMarkdownText} from '../src/components/notes/NoteMarkdownText';
 

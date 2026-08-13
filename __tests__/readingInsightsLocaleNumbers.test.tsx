@@ -22,7 +22,6 @@
  * memory/index.tsx, conflicts/insights.tsx). It reuses this file's render
  * setup rather than duplicating the mock scaffolding in a new file.
  */
-import React from 'react';
 import {render} from '@testing-library/react-native';
 import {ScrollView, StyleSheet} from 'react-native';
 import ReadingInsightsScreen from '../app/features/reading-insights/index';

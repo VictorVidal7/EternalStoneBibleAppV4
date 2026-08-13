@@ -17,7 +17,6 @@
  * ConfirmDialog.test.tsx's approach) rather than trying to measure rendered
  * layout.
  */
-import React from 'react';
 import {render, fireEvent} from '@testing-library/react-native';
 import {ReaderPreferencesSheet} from '../src/components/reading/ReaderPreferencesSheet';
 import {ReaderPreferencesProvider} from '../src/context/ReaderPreferencesContext';

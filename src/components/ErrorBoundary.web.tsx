@@ -1,4 +1,4 @@
-import React, {Component, ErrorInfo, ReactNode, useState} from 'react';
+import {Component, ErrorInfo, ReactNode, useState} from 'react';
 import {View, Text, StyleSheet, TouchableOpacity} from 'react-native';
 import {staticColors} from '@/styles/designTokens';
 import {useLanguage} from '@hooks/useLanguage';

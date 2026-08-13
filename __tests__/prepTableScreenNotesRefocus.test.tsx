@@ -22,7 +22,6 @@
  * and never touches AsyncStorage for the reading-version key, keeping that
  * lookup out of the way of the notes assertions.
  */
-import React from 'react';
 import {act, render, waitFor} from '@testing-library/react-native';
 import PrepTableScreen from '../app/features/prep/index';
 import {PremiumProvider} from '../src/context/PremiumContext';

@@ -33,7 +33,7 @@ export async function sharePreparedPdf(
     const source = new File(sourceUri);
     const target = new File(Paths.cache, `${pdfFileName(name)}.pdf`);
     if (target.exists) target.delete();
-    source.copy(target);
+    await source.copy(target);
     shareUri = target.uri;
   } catch {
     // Fall back to the original temp file — a friendly name is a nicety, not

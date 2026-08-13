@@ -7,7 +7,6 @@
  * can be driven directly without a real network call.
  */
 
-import React from 'react';
 import {render, waitFor, fireEvent, act} from '@testing-library/react-native';
 
 const mockColors = {

@@ -32,8 +32,7 @@ export function PropheticReminderRouter() {
 
   useEffect(() => {
     const data = response?.notification.request.content.data as
-      | {type?: string; index?: number}
-      | undefined;
+      {type?: string; index?: number} | undefined;
     if (data?.type === PROPHECY_REMINDER_TYPE) {
       const index = typeof data.index === 'number' ? data.index : 0;
       router.push(`/features/prophecies?start=${index}` as never);

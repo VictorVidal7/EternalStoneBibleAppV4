@@ -29,9 +29,7 @@ export function timeOfDay(hour: number): TimeOfDay {
 
 /** The contextual hero nudge. */
 export type HomeNudge =
-  | {kind: 'streak'; days: number}
-  | {kind: 'continue'}
-  | {kind: 'daily'};
+  {kind: 'streak'; days: number} | {kind: 'continue'} | {kind: 'daily'};
 
 /**
  * Choose the single most motivating nudge for the hero subtitle, in priority

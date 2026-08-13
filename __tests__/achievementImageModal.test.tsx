@@ -8,7 +8,6 @@
  * template/texture routes to the offering sheet for a free user, mirroring
  * `imageShareModalPremium.test.tsx`'s mocking pattern for the flagship.
  */
-import React from 'react';
 import {render, fireEvent} from '@testing-library/react-native';
 import {
   AchievementImageModal,

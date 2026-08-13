@@ -8,7 +8,6 @@
  * Para la gloria de Dios y del Rey Jesús
  */
 
-import React from 'react';
 import {View, StyleSheet} from 'react-native';
 // Fixed-size grid card with no long-form text → cap every label at the
 // moderate <AppText> default so a large system font can't overflow the card.

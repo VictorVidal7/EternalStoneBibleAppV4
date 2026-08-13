@@ -628,7 +628,7 @@ const styles = StyleSheet.create({
   },
   graphic: {alignItems: 'center', justifyContent: 'center'},
   center: {
-    ...StyleSheet.absoluteFillObject,
+    ...StyleSheet.absoluteFill,
     alignItems: 'center',
     justifyContent: 'center',
   },

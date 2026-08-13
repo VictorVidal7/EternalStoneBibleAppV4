@@ -10,7 +10,7 @@
  * Para la gloria de Dios Todopoderoso ✨
  */
 
-import React, {useMemo} from 'react';
+import {useMemo} from 'react';
 import {Modal, Share, StyleSheet, TouchableOpacity, View} from 'react-native';
 import * as Clipboard from 'expo-clipboard';
 import {Ionicons} from '@expo/vector-icons';

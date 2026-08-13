@@ -2185,8 +2185,7 @@ export function getPlanDayContext(
 ): string | undefined {
   const entry = plan.i18nKey
     ? (t.readingPlans?.[plan.i18nKey] as
-        | {context?: readonly string[]}
-        | undefined)
+        {context?: readonly string[]} | undefined)
     : undefined;
   return entry?.context?.[day - 1];
 }

@@ -6,7 +6,6 @@
  * past, the chevrons fire/disable per the handlers, and the "Hoy" pill
  * appears only while browsing the past.
  */
-import React from 'react';
 import {render, fireEvent} from '@testing-library/react-native';
 import VerseOfDayCard from '../src/components/celestial/VerseOfDayCard';
 

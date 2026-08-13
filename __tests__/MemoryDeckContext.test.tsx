@@ -8,7 +8,6 @@
  * `computeEasePrior`, `createCard`, AsyncStorage) runs for real.
  */
 
-import React from 'react';
 import {Text} from 'react-native';
 import {act, cleanup, render, waitFor} from '@testing-library/react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';

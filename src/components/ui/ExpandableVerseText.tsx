@@ -27,7 +27,7 @@
  * Para la gloria de Dios Todopoderoso ✨
  */
 
-import React, {useState} from 'react';
+import {useState} from 'react';
 import {
   LayoutAnimation,
   NativeSyntheticEvent,

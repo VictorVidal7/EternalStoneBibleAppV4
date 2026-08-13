@@ -1021,7 +1021,7 @@ const styles = StyleSheet.create({
     fontSize: 32,
   },
   lockOverlay: {
-    ...StyleSheet.absoluteFillObject,
+    ...StyleSheet.absoluteFill,
     backgroundColor: staticColors.overlayBlack50,
     borderRadius: 30,
     justifyContent: 'center',

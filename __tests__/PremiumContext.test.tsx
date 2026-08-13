@@ -7,7 +7,6 @@
  * __DEV__-only override so it no-ops in production builds.
  */
 
-import React from 'react';
 import {Text} from 'react-native';
 import {act, cleanup, render, waitFor} from '@testing-library/react-native';
 import * as SecureStore from 'expo-secure-store';

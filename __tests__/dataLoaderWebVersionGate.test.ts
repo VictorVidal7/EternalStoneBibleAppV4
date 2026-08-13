@@ -102,9 +102,7 @@ const okPackFileResponse: FakeResponse = {
 /** Routes `fetch` by URL: the manifest per `manifestMode`, else a pack file. */
 function installFetchMock(
   manifestMode:
-    | {kind: 'ok'; manifest: unknown}
-    | {kind: 'reject'}
-    | {kind: 'http-error'},
+    {kind: 'ok'; manifest: unknown} | {kind: 'reject'} | {kind: 'http-error'},
 ): jest.Mock {
   const mock = jest.fn(async (input: unknown): Promise<FakeResponse> => {
     const url = String(input);

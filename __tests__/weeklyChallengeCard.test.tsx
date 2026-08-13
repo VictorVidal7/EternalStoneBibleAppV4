@@ -3,7 +3,6 @@
  * (hidden until loaded + a non-empty deck), the headline/progress/practice
  * lines, the focus-verse reference, and the press → onPractice wiring.
  */
-import React from 'react';
 import {render, fireEvent} from '@testing-library/react-native';
 import {WeeklyChallengeCard} from '../src/components/WeeklyChallengeCard';
 import type {WeeklyChallenge} from '../src/lib/memory/weeklyChallenge';

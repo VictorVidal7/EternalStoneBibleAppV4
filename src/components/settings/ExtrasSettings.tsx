@@ -11,7 +11,7 @@
  * testing without a real purchase.
  */
 
-import React, {useCallback, useEffect, useState} from 'react';
+import {useCallback, useEffect, useState} from 'react';
 import {View, StyleSheet, Switch, TouchableOpacity} from 'react-native';
 import {AppText as Text} from '@components/ui/AppText';
 import {Ionicons} from '@expo/vector-icons';

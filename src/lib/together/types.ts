@@ -170,10 +170,7 @@ export interface CalBundle {
  * capability: shared curated plan, custom plan, shared study, baked calendar.
  */
 export type TogetherBundle =
-  | SharedPlanBundle
-  | CustomPlanBundle
-  | StudyBundle
-  | CalBundle;
+  SharedPlanBundle | CustomPlanBundle | StudyBundle | CalBundle;
 
 /** Why a decode failed — drives a friendly, localized message in the UI. */
 export type DecodeFailure =
@@ -187,5 +184,4 @@ export type DecodeFailure =
   | 'unknown-plan';
 
 export type DecodeResult =
-  | {ok: true; bundle: TogetherBundle}
-  | {ok: false; reason: DecodeFailure};
+  {ok: true; bundle: TogetherBundle} | {ok: false; reason: DecodeFailure};

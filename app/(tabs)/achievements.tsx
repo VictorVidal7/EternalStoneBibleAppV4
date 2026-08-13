@@ -3,7 +3,6 @@
  * Displays the complete achievements and gamification system
  */
 
-import React from 'react';
 import {AchievementsScreen} from '@screens/AchievementsScreen';
 import {useServices} from '@context/ServicesContext';
 import {View, ActivityIndicator, StyleSheet} from 'react-native';

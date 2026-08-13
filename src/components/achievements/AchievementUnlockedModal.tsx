@@ -335,7 +335,7 @@ const styles = StyleSheet.create({
     backgroundColor: staticColors.overlayBlack70,
   },
   backdrop: {
-    ...StyleSheet.absoluteFillObject,
+    ...StyleSheet.absoluteFill,
   },
   container: {
     width: width * 0.85,

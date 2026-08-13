@@ -14,7 +14,6 @@
  * mock) rather than hand-mocking either — only the offering sheet, toast,
  * and navigation/theme plumbing are mocked.
  */
-import React from 'react';
 import {render, fireEvent, waitFor} from '@testing-library/react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as SecureStore from 'expo-secure-store';

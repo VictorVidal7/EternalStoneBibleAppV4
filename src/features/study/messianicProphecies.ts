@@ -33,11 +33,7 @@ export type ProphecyRefKey = string;
  * the Passover lamb…), each affirmed as fulfilled in Him by the New Testament.
  */
 export type ProphecyGroup =
-  | 'coming'
-  | 'ministry'
-  | 'passion'
-  | 'resurrection'
-  | 'shadows';
+  'coming' | 'ministry' | 'passion' | 'resurrection' | 'shadows';
 
 export const PROPHECY_GROUP_ORDER: readonly ProphecyGroup[] = [
   'coming',

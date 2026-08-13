@@ -34,10 +34,7 @@
  */
 
 export type QuizQuestionType =
-  | 'who-said-it'
-  | 'complete-verse'
-  | 'ref-to-content'
-  | 'event-order';
+  'who-said-it' | 'complete-verse' | 'ref-to-content' | 'event-order';
 
 /**
  * Broad thematic groupings the "mazos por libro" category filter (T18b,
@@ -52,11 +49,7 @@ export type QuizQuestionType =
  * added by the UI-integration branch — this module holds ids only.
  */
 export type QuizCategory =
-  | 'pentateuco'
-  | 'historicos'
-  | 'sabiduria'
-  | 'evangelios'
-  | 'cartas';
+  'pentateuco' | 'historicos' | 'sabiduria' | 'evangelios' | 'cartas';
 
 export interface QuizQuestionSpec {
   /** Stable id — also the i18n key `t.quiz.bank[id]`. */

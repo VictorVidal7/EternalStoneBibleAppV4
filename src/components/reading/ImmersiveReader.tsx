@@ -999,7 +999,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   starsContainer: {
-    ...StyleSheet.absoluteFillObject,
+    ...StyleSheet.absoluteFill,
   },
   star: {
     position: 'absolute',
@@ -1138,7 +1138,7 @@ const styles = StyleSheet.create({
     borderRadius: 2,
   },
   controlsOverlay: {
-    ...StyleSheet.absoluteFillObject,
+    ...StyleSheet.absoluteFill,
     justifyContent: 'space-between',
   },
   topControls: {

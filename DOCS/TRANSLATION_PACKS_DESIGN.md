@@ -55,12 +55,12 @@ seleccionarla muestra capítulos vacíos. Este feature **corrige ese bug latente
 
 ### Licencias (verificadas)
 
-| Versión                     | Idioma | Licencia                               | Distribuible $0   |
-| --------------------------- | ------ | -------------------------------------- | ----------------- |
-| WEB — World English Bible   | en     | Dominio público                        | ✅                |
-| BSB — Berean Standard Bible | en     | **PD desde 2023-04-30** (berean.bible) | ✅                |
-| RVR1960 (ya embebida)       | es     | © Sociedades Bíblicas Unidas          | ⚠ ya distribuida |
-| KJV (ya embebida)           | en     | PD en EE. UU.                          | ✅                |
+| Versión                     | Idioma | Licencia                               | Distribuible $0  |
+| --------------------------- | ------ | -------------------------------------- | ---------------- |
+| WEB — World English Bible   | en     | Dominio público                        | ✅               |
+| BSB — Berean Standard Bible | en     | **PD desde 2023-04-30** (berean.bible) | ✅               |
+| RVR1960 (ya embebida)       | es     | © Sociedades Bíblicas Unidas           | ⚠ ya distribuida |
+| KJV (ya embebida)           | en     | PD en EE. UU.                          | ✅               |
 
 NTV/NLT (Tyndale) **quedan fuera**: requieren licencia escrita, no son $0.
 Español PD (RV1909 / VBL) queda como posible lote futuro.

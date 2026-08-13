@@ -12,7 +12,7 @@ import {
 import {AppText as Text} from '@components/ui/AppText';
 import {staticColors} from '@/styles/designTokens';
 
-import React, {useState, useCallback, useMemo, useEffect, memo} from 'react';
+import {useState, useCallback, useMemo, useEffect, memo} from 'react';
 import {useRouter} from 'expo-router';
 import {Ionicons} from '@expo/vector-icons';
 import {LinearGradient} from 'expo-linear-gradient';
@@ -948,8 +948,7 @@ export default function SearchScreen() {
               {(
                 translations[
                   (selectedVersion.language === 'es' ? 'es' : 'en') as
-                    | 'es'
-                    | 'en'
+                    'es' | 'en'
                 ].search.suggestions as readonly string[]
               ).map(suggestion => (
                 <TouchableOpacity

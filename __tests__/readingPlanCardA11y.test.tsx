@@ -4,7 +4,6 @@
  * with no actionable affordance. Pins the button role, the composed label
  * (name + subtitle + progress), and the action hint (continue/start).
  */
-import React from 'react';
 import {render} from '@testing-library/react-native';
 import ReadingPlanCard from '../src/components/celestial/ReadingPlanCard';
 

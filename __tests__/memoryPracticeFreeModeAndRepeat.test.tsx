@@ -21,7 +21,6 @@
  * future cards, double-counted daily goal/streak). Only the first pass's
  * grades (already applied before Repetir is ever pressed) are graded.
  */
-import React from 'react';
 import {render, fireEvent} from '@testing-library/react-native';
 import MemoryPracticeScreen from '../app/features/memory/practice';
 import {translations} from '../src/i18n/translations';

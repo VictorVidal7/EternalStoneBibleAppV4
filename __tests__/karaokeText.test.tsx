@@ -6,7 +6,6 @@
  * while active, ignore other verses' boundaries, re-render just this node per
  * word, and fall back to children until a boundary arrives.
  */
-import React from 'react';
 import {Text} from 'react-native';
 import {render, act} from '@testing-library/react-native';
 import {KaraokeText} from '../src/features/audio/components/KaraokeText';

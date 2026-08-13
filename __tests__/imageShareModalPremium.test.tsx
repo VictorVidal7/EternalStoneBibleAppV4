@@ -6,7 +6,6 @@
  * is untouched by this tanda.
  */
 
-import React from 'react';
 import {render, waitFor, fireEvent} from '@testing-library/react-native';
 import * as SecureStore from 'expo-secure-store';
 import AsyncStorage from '@react-native-async-storage/async-storage';

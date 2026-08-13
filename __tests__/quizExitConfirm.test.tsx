@@ -18,7 +18,6 @@
  * imported `BackHandler.addEventListener` captures the handler function
  * directly, sidestepping that no-op without needing a deep module mock.
  */
-import React from 'react';
 import {render, fireEvent, act} from '@testing-library/react-native';
 import {BackHandler} from 'react-native';
 import QuizScreen from '../app/features/quiz/index';

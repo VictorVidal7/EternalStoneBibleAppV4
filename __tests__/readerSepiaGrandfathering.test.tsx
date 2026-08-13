@@ -9,7 +9,7 @@
  * confirm it never gets re-derived or cleared afterwards. Mirrors
  * readerAutoImmersive.test.tsx's direct renderHook-against-AsyncStorage style.
  */
-import React, {type ReactNode} from 'react';
+import {type ReactNode} from 'react';
 import {renderHook, act, waitFor} from '@testing-library/react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {

@@ -34,7 +34,6 @@
  * to capture and directly invoke the registered handler (react-native
  * resolves to the iOS build under Jest, which never stores it on its own).
  */
-import React from 'react';
 import {render, fireEvent, act} from '@testing-library/react-native';
 import {BackHandler} from 'react-native';
 import {OnboardingScreen} from '../src/components/onboarding/OnboardingScreen';

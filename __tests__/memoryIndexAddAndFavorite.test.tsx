@@ -29,7 +29,6 @@
  */
 import fs from 'fs';
 import path from 'path';
-import React from 'react';
 import {render, fireEvent} from '@testing-library/react-native';
 import {DeckRow, describeAddVersesOutcome} from '../app/features/memory/index';
 import {translations} from '../src/i18n/translations';

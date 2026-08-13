@@ -469,7 +469,7 @@ const styles = StyleSheet.create({
     justifyContent: 'flex-end',
   },
   backdropTouch: {
-    ...StyleSheet.absoluteFillObject,
+    ...StyleSheet.absoluteFill,
   },
   sheet: {
     height: '82%',

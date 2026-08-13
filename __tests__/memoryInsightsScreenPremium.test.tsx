@@ -11,7 +11,6 @@
  * shapes) instead of exercising the SQLite/AsyncStorage-backed hook chain.
  */
 
-import React from 'react';
 import {render, waitFor, fireEvent} from '@testing-library/react-native';
 import * as SecureStore from 'expo-secure-store';
 import Purchases from 'react-native-purchases';

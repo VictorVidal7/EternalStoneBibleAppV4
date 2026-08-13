@@ -6,7 +6,6 @@
  * OfferingSheetContext wiring needed — mirrors how AchievementImageModal's
  * own test mocks just useTheme/useLanguage/ToastContext/haptics.
  */
-import React from 'react';
 import {render, fireEvent, waitFor} from '@testing-library/react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {

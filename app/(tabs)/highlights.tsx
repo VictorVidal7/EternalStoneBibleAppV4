@@ -18,7 +18,7 @@ import {
 } from 'react-native';
 import {staticColors} from '@/styles/designTokens';
 
-import React, {useCallback, useMemo, useState} from 'react';
+import {useCallback, useMemo, useState} from 'react';
 import {useRouter, useFocusEffect} from 'expo-router';
 import {Ionicons} from '@expo/vector-icons';
 import {LinearGradient} from 'expo-linear-gradient';

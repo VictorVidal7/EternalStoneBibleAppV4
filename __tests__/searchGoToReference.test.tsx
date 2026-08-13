@@ -8,7 +8,6 @@
  * the debounced FTS search — without removing or replacing the normal
  * text-search results below it.
  */
-import React from 'react';
 import {render, fireEvent, waitFor} from '@testing-library/react-native';
 import SearchScreen from '../app/(tabs)/search';
 import type {BibleVerse} from '../src/types/bible';

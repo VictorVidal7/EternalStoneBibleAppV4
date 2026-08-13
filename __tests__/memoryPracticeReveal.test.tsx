@@ -6,7 +6,6 @@
  * nothing on an already-complete verse, so the screen must skip straight to
  * the grade buttons. Masked cards (box ≥ 2) keep the reveal-then-grade flow.
  */
-import React from 'react';
 import {render, fireEvent} from '@testing-library/react-native';
 import MemoryPracticeScreen from '../app/features/memory/practice';
 import {translations} from '../src/i18n/translations';

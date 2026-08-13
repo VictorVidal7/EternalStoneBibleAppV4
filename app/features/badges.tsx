@@ -1,4 +1,3 @@
-import React from 'react';
 import {ActivityIndicator, View, StyleSheet} from 'react-native';
 import {BadgeCollectionScreen} from '../../src/screens/BadgeCollectionScreen';
 import {useAuth} from '@context/AuthContext';

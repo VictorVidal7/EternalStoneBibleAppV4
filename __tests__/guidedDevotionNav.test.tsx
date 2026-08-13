@@ -21,7 +21,6 @@
  * deterministic feelingVerseRefForDay → parseThemeRef → getBookByName
  * chain) so it isn't pinned to "today"'s particular verse.
  */
-import React from 'react';
 import {render, fireEvent, waitFor} from '@testing-library/react-native';
 import {View, StyleSheet} from 'react-native';
 import GuidedDevotionScreen from '../app/features/guided';

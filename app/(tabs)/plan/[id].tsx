@@ -27,7 +27,7 @@ import {
   TouchableOpacity,
   Modal,
 } from 'react-native';
-import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {AppText as Text} from '@components/ui/AppText';
 import {ConfirmDialog} from '@components/ui/ConfirmDialog';
 import {ShareTogetherModal} from '@components/together/ShareTogetherModal';

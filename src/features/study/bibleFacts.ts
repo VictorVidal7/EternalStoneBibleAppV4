@@ -28,12 +28,7 @@ export type FactRefKey = string;
  * in that it always carries a `source`.
  */
 export type FactCategory =
-  | 'geography'
-  | 'numbers'
-  | 'language'
-  | 'history'
-  | 'crossref'
-  | 'commentary';
+  'geography' | 'numbers' | 'language' | 'history' | 'crossref' | 'commentary';
 
 export const FACT_CATEGORY_ORDER: readonly FactCategory[] = [
   'geography',

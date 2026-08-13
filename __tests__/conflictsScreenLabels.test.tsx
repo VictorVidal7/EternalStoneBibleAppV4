@@ -3,7 +3,6 @@
  * collection/field names (shared with the insights dashboard's i18n maps)
  * instead of raw internal keys like "note" or "favorites".
  */
-import React from 'react';
 import {render} from '@testing-library/react-native';
 import ConflictsScreen from '../app/(tabs)/conflicts';
 import type {ConflictRecord} from '../src/lib/sync/types';

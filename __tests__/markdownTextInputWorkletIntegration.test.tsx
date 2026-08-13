@@ -52,7 +52,6 @@
  * something about the mock wiring broke, independent of anything
  * `NoteEditorModal` itself does.
  */
-import React from 'react';
 import {render} from '@testing-library/react-native';
 import MarkdownTextInput from '@expensify/react-native-live-markdown/src/MarkdownTextInput';
 import {parseNoteMarkdownRanges} from '../src/lib/notes/noteMarkdownRanges';

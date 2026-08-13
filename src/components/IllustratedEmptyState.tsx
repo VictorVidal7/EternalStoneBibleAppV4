@@ -304,7 +304,7 @@ const styles = StyleSheet.create({
     position: 'relative',
   },
   decorativeCircles: {
-    ...StyleSheet.absoluteFillObject,
+    ...StyleSheet.absoluteFill,
   },
   circle: {
     position: 'absolute',
@@ -338,7 +338,7 @@ const styles = StyleSheet.create({
     ...shadows.xl,
   },
   floatingIcons: {
-    ...StyleSheet.absoluteFillObject,
+    ...StyleSheet.absoluteFill,
   },
   floatingIcon: {
     position: 'absolute',

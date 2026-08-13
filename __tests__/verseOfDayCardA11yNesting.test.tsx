@@ -26,7 +26,6 @@
  * matching every other CTA in this card (share, favorite, study, prep,
  * Christ note…) which already had explicit accessibilityRole+Label.
  */
-import React from 'react';
 import {TouchableOpacity} from 'react-native';
 import {render, fireEvent} from '@testing-library/react-native';
 import VerseOfDayCard from '../src/components/celestial/VerseOfDayCard';

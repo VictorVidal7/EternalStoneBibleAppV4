@@ -14,7 +14,6 @@
  * individual tests can flip `isPremium` without needing the real
  * `PremiumProvider` + entitlement-cache plumbing.
  */
-import React from 'react';
 import {render, fireEvent} from '@testing-library/react-native';
 import {View, StyleSheet} from 'react-native';
 import {MoodImageModal} from '../src/components/insights/MoodImageModal';

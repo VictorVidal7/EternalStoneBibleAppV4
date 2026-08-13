@@ -6,7 +6,6 @@
  * tapping again collapses, a missing verse shows the unavailable copy, and
  * the compare exit fires the callback.
  */
-import React from 'react';
 import {render, fireEvent, act} from '@testing-library/react-native';
 import VerseOfDayCard from '../src/components/celestial/VerseOfDayCard';
 import {translations} from '../src/i18n/translations';

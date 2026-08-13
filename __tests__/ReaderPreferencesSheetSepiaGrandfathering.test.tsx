@@ -6,7 +6,6 @@
  * the grandfathering exception.
  */
 
-import React from 'react';
 import {
   render,
   waitFor,

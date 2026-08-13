@@ -246,7 +246,7 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
   },
   shimmerContainer: {
-    ...StyleSheet.absoluteFillObject,
+    ...StyleSheet.absoluteFill,
     overflow: 'hidden',
   },
   shimmerGradient: {

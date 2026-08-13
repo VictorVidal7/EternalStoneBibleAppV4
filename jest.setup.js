@@ -40,9 +40,21 @@ jest.mock('expo-secure-store', () => {
 // mock at src/mock.ts, but it is not exposed as a resolvable subpath
 // export from the package root, so it must be required via the deep
 // "react-native-worklets/src/mock" path rather than "react-native-worklets/mock".
-jest.mock('react-native-worklets', () =>
-  require('react-native-worklets/src/mock'),
-);
+jest.mock('react-native-worklets', () => ({
+  ...require('react-native-worklets/src/mock'),
+  // react-native-worklets 0.10.1's own mock doesn't provide these two —
+  // reanimated 4.5.1's mock.ts imports the REAL `./index` barrel (for
+  // pure-JS re-exports like Extrapolation/ReduceMotion), which eagerly
+  // calls createNativeReanimatedModule() -> installTurboModule() at
+  // require time, which needs these to exist. Even worklets' own "web"
+  // implementation just throws ("not supported on web") rather than
+  // stubbing them, so there's no upstream Jest-safe version to reuse —
+  // stub them as no-ops here instead.
+  getUIRuntimeHolder: () => ({}),
+  getUISchedulerHolder: () => ({}),
+  createShareable: value => value,
+  toggleSlowAnimationsOnUIRuntime: () => {},
+}));
 
 // Reanimated
 jest.mock('react-native-reanimated', () =>

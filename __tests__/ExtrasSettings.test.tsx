@@ -6,7 +6,6 @@
  * and reflects the real entitlement/billing state otherwise.
  */
 
-import React from 'react';
 import {render, waitFor, fireEvent} from '@testing-library/react-native';
 import Purchases from 'react-native-purchases';
 import * as SecureStore from 'expo-secure-store';

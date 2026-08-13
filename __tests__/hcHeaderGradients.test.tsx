@@ -16,7 +16,6 @@
  * (ThemeDetailScreen) so a refactor can't silently reintroduce the
  * unreadable amber-to-white header under high contrast.
  */
-import React from 'react';
 import {render} from '@testing-library/react-native';
 import {View} from 'react-native';
 import ScripturePrayerHubScreen from '../app/features/prayer/scripture/index';

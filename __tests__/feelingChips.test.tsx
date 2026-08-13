@@ -5,7 +5,6 @@
  * names from i18n), tapping a chip reports its feeling id, and the trailing
  * "Ver todos" chip opens the browse grid.
  */
-import React from 'react';
 import {render, fireEvent} from '@testing-library/react-native';
 import {StyleSheet} from 'react-native';
 import {FeelingChips} from '../src/components/FeelingChips';

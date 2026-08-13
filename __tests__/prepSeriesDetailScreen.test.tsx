@@ -13,7 +13,6 @@
  * through AsyncStorage's global jest mock), mirroring
  * prepSeriesListScreen.test.tsx / prepHistoryScreen.test.tsx.
  */
-import React from 'react';
 import {render, fireEvent, waitFor} from '@testing-library/react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as SecureStore from 'expo-secure-store';

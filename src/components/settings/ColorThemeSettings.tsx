@@ -12,7 +12,7 @@
  * rather than leaving a no-longer-unlocked palette applied.
  */
 
-import React, {useCallback, useEffect} from 'react';
+import {useCallback, useEffect} from 'react';
 import {View, StyleSheet, TouchableOpacity} from 'react-native';
 import {AppText as Text} from '@components/ui/AppText';
 import {Ionicons} from '@expo/vector-icons';

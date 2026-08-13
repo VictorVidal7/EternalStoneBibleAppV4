@@ -12,7 +12,6 @@
  * expo-notifications itself correctly reporting the tap, which is Expo's
  * own responsibility, not this app's.
  */
-import React from 'react';
 import {render} from '@testing-library/react-native';
 import {PropheticReminderRouter} from '../src/components/PropheticReminderRouter';
 import {

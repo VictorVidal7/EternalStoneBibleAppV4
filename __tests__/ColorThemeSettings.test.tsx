@@ -8,7 +8,6 @@
  * lost after a premium theme was active falls back to a free one.
  */
 
-import React from 'react';
 import {render, waitFor, fireEvent} from '@testing-library/react-native';
 import * as SecureStore from 'expo-secure-store';
 import ColorThemeSettings from '../src/components/settings/ColorThemeSettings';

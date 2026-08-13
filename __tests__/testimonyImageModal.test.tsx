@@ -11,7 +11,6 @@
  * individual tests can flip `isPremium` without needing the real
  * `PremiumProvider` + entitlement-cache plumbing.
  */
-import React from 'react';
 import {render, fireEvent} from '@testing-library/react-native';
 import {TestimonyImageModal} from '../src/components/insights/TestimonyImageModal';
 
