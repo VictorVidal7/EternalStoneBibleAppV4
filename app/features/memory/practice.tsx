@@ -18,7 +18,7 @@ import {
   StyleSheet,
   ScrollView,
 } from 'react-native';
-import {useRouter, Stack} from 'expo-router';
+import {useRouter, useLocalSearchParams, Stack} from 'expo-router';
 import {Ionicons} from '@expo/vector-icons';
 import {LinearGradient} from 'expo-linear-gradient';
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
@@ -81,16 +81,58 @@ export default function MemoryPracticeScreen() {
   const {colors, gradient} = useTheme();
   const {t} = useLanguage();
   const {selectedVersion} = useBibleVersion();
-  const {dueCards, reviewCard} = useMemoryDeck();
+  const {dueCards, cards, reviewCard} = useMemoryDeck();
   const {favorites, addFavorite, removeFavorite} = useFavorites();
   const toast = useToast();
 
+  // "Practicar sin calificar" (free practice) — `?free=1` opens this same
+  // screen ungraded, seeded from the WHOLE deck (or a single card via
+  // `?verseKey=...`) instead of only what's currently due. Free sessions
+  // never call `reviewCard` — see handleGrade/handleNext below — so they
+  // can never touch the SRS schedule, stats, streaks, or Firestore.
+  //
+  // `isFree` is STATE, not just a param-derived constant, because
+  // "Repetir" (handleRepeat below) forces it to true even for a session
+  // that started graded. reviewCard mutates the LIVE deck by verseKey, not
+  // the frozen `queue` snapshot below — so replaying the same queue with
+  // grading still live would grade the same card a second time in one
+  // sitting (box jumps twice, a near-zero-interval review event pollutes
+  // the retention history that calibrates every FUTURE card's ease, and
+  // the daily goal/streak double-count). The first pass's grades (already
+  // applied to the real deck before Repetir is ever pressed) are correct
+  // and untouched — only the REPLAY must be ungraded.
+  const params = useLocalSearchParams<{free?: string; verseKey?: string}>();
+  const [isFree, setIsFree] = useState(params.free === '1');
+
   // Freeze the queue on mount so a grade-driven reshuffle doesn't add
-  // the same card back into the current session.
-  const [queue] = useState(() => [...dueCards]);
+  // the same card back into the current session. Seeding reads the
+  // ORIGINAL param-derived free-ness (captured once, before any Repetir
+  // flip) — a graded session's queue/dueCards-seeding must never change
+  // just because a later Repetir switches the UI to ungraded.
+  const [queue] = useState(() => {
+    const seedFromWholeDeck = params.free === '1';
+    if (seedFromWholeDeck) {
+      if (params.verseKey) {
+        const target = cards.find(c => c.verseKey === params.verseKey);
+        if (target) return [target];
+        // Target verse not found (e.g. removed from the deck between
+        // navigating and this mount) — fall back to the whole deck rather
+        // than stranding the user on an instant "session complete".
+      }
+      return [...cards];
+    }
+    return [...dueCards];
+  });
   const [index, setIndex] = useState(0);
   const [revealed, setRevealed] = useState(false);
-  const [mode, setMode] = useState<PracticeMode>('reveal');
+  // Box-1 cards show the full verse in 'reveal' mode (nothing masked), which
+  // is pointless for free practice off-schedule — default to a real recall
+  // mode instead. The user can still switch back to 'reveal' freely. Reads
+  // the initial `isFree` value only (mode shouldn't jump on a later Repetir
+  // flip — "Repetir" keeps the SAME mode the session was already in).
+  const [mode, setMode] = useState<PracticeMode>(
+    params.free === '1' ? 'firstLetter' : 'reveal',
+  );
   const [fillAnswers, setFillAnswers] = useState<string[]>([]);
   const [typedAnswer, setTypedAnswer] = useState('');
   const [guideVisible, setGuideVisible] = useState(false);
@@ -215,7 +257,10 @@ export default function MemoryPracticeScreen() {
   };
 
   const handleGrade = (grade: ReviewGrade) => {
-    if (!card) return;
+    // Free-practice sessions never grade — the UI swaps this whole control
+    // for handleNext below, but guard here too so it's structurally
+    // impossible to reach reviewCard from a free session.
+    if (!card || isFree) return;
     if (grade === 'again') haptics.warning();
     else haptics.success();
     reviewCard(card.verseKey, grade);
@@ -223,6 +268,29 @@ export default function MemoryPracticeScreen() {
     // purpose — see the queue-freeze rationale at the top.
     setIndex(prev => prev + 1);
     setRevealed(false);
+  };
+
+  // Free-practice's ungraded "Siguiente" advance — purely local UI state,
+  // no reviewCard call, no SRS/stats/streak write.
+  const handleNext = () => {
+    haptics.tap();
+    setIndex(prev => prev + 1);
+    setRevealed(false);
+  };
+
+  // "Repetir" — replay the SAME frozen queue, in the SAME recall mode, from
+  // the start. ALWAYS forces free/ungraded mode for the replay — even when
+  // the session that just finished was graded — because reviewCard keys off
+  // verseKey against the LIVE deck, not this frozen queue: grading the same
+  // card again here would silently re-apply a second review to a card
+  // already reviewed this session (see the isFree comment above for the
+  // downstream SRS/ease/retention/streak fallout). The already-applied
+  // first-pass grades are unaffected. Resetting `index` alone handles the
+  // rest: the [index, mode] effect clears revealed/fillAnswers/typedAnswer.
+  const handleRepeat = () => {
+    haptics.tap();
+    setIsFree(true);
+    setIndex(0);
   };
 
   const modeLabel = (m: PracticeMode): string => {
@@ -312,9 +380,22 @@ export default function MemoryPracticeScreen() {
                       String(total),
                     )}
               </Text>
+              {/* "Repetir" — replay this same queue/mode from the start
+                  (graded sessions keep grading; free sessions stay free). */}
+              <TouchableOpacity
+                style={[styles.doneRepeatCta, {borderColor: colors.primary}]}
+                onPress={handleRepeat}
+                accessibilityRole="button">
+                <Ionicons name="refresh" size={18} color={colors.primary} />
+                <Text
+                  style={[styles.doneRepeatCtaText, {color: colors.primary}]}>
+                  {t.memory.practice.repeat}
+                </Text>
+              </TouchableOpacity>
               <TouchableOpacity
                 style={[styles.doneCta, {backgroundColor: colors.primary}]}
-                onPress={() => router.back()}>
+                onPress={() => router.back()}
+                accessibilityRole="button">
                 <Text style={[styles.doneCtaText, {color: colors.onPrimary}]}>
                   {t.memory.practice.doneCta}
                 </Text>
@@ -322,6 +403,32 @@ export default function MemoryPracticeScreen() {
             </View>
           ) : card ? (
             <>
+              {/* Free-practice disclaimer — this session is ungraded and
+                  never touches the SRS schedule/streak/goal. */}
+              {isFree && (
+                <View
+                  style={[
+                    styles.freeBanner,
+                    {
+                      backgroundColor: colors.warning + '15',
+                      borderColor: colors.warning + '40',
+                    },
+                  ]}>
+                  <Ionicons
+                    name="information-circle-outline"
+                    size={16}
+                    color={colors.warning}
+                  />
+                  <Text
+                    style={[
+                      styles.freeBannerText,
+                      {color: colors.textSecondary},
+                    ]}>
+                    {t.memory.practice.freeModeCaption}
+                  </Text>
+                </View>
+              )}
+
               {/* Recall-mode selector */}
               <View style={styles.modeRow}>
                 {MODE_ORDER.map(m => {
@@ -569,28 +676,52 @@ export default function MemoryPracticeScreen() {
                           ? t.memory.practice.promptFullVerse
                           : t.memory.practice.prompt}
                   </Text>
-                  <View style={styles.gradeRow}>
-                    <GradeButton
-                      grade="again"
-                      label={t.memory.practice.again}
-                      onPress={() => handleGrade('again')}
-                    />
-                    <GradeButton
-                      grade="hard"
-                      label={t.memory.practice.hard}
-                      onPress={() => handleGrade('hard')}
-                    />
-                    <GradeButton
-                      grade="good"
-                      label={t.memory.practice.good}
-                      onPress={() => handleGrade('good')}
-                    />
-                    <GradeButton
-                      grade="easy"
-                      label={t.memory.practice.easy}
-                      onPress={() => handleGrade('easy')}
-                    />
-                  </View>
+                  {isFree ? (
+                    // Free practice — no grade, just move on. Never calls
+                    // reviewCard (see handleNext), so the SRS schedule,
+                    // stats, streaks and Firestore are untouched.
+                    <TouchableOpacity
+                      style={[
+                        styles.revealButton,
+                        {backgroundColor: colors.primary},
+                      ]}
+                      onPress={handleNext}
+                      accessibilityRole="button"
+                      accessibilityLabel={t.next}>
+                      <Ionicons
+                        name="arrow-forward"
+                        size={22}
+                        color={colors.onPrimary}
+                      />
+                      <Text
+                        style={[styles.revealText, {color: colors.onPrimary}]}>
+                        {t.next}
+                      </Text>
+                    </TouchableOpacity>
+                  ) : (
+                    <View style={styles.gradeRow}>
+                      <GradeButton
+                        grade="again"
+                        label={t.memory.practice.again}
+                        onPress={() => handleGrade('again')}
+                      />
+                      <GradeButton
+                        grade="hard"
+                        label={t.memory.practice.hard}
+                        onPress={() => handleGrade('hard')}
+                      />
+                      <GradeButton
+                        grade="good"
+                        label={t.memory.practice.good}
+                        onPress={() => handleGrade('good')}
+                      />
+                      <GradeButton
+                        grade="easy"
+                        label={t.memory.practice.easy}
+                        onPress={() => handleGrade('easy')}
+                      />
+                    </View>
+                  )}
                 </>
               )}
             </>
@@ -846,5 +977,33 @@ const styles = StyleSheet.create({
   doneCtaText: {
     fontSize: fontSizes.base,
     fontWeight: '800',
+  },
+  doneRepeatCta: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: spacing.xs,
+    paddingHorizontal: spacing['2xl'],
+    paddingVertical: spacing.lg,
+    borderRadius: borderRadius.full,
+    borderWidth: 1.5,
+  },
+  doneRepeatCtaText: {
+    fontSize: fontSizes.base,
+    fontWeight: '800',
+  },
+  freeBanner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.sm,
+    padding: spacing.sm,
+    borderRadius: borderRadius.md,
+    borderWidth: StyleSheet.hairlineWidth,
+    marginBottom: spacing.md,
+  },
+  freeBannerText: {
+    flex: 1,
+    fontSize: fontSizes.xs,
+    fontWeight: '600',
   },
 });

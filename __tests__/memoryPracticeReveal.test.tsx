@@ -16,6 +16,7 @@ let mockDueCards: ReturnType<typeof createCard>[] = [];
 
 jest.mock('expo-router', () => ({
   useRouter: () => ({back: jest.fn()}),
+  useLocalSearchParams: () => ({}),
   Stack: {Screen: () => null},
 }));
 

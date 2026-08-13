@@ -87,6 +87,7 @@ describe('DeckRow — favorite toggle', () => {
         isFavorited={false}
         onRemove={jest.fn()}
         onToggleFavorite={jest.fn()}
+        onPracticeCard={jest.fn()}
       />,
     );
     expect(getByLabelText(v.addFavorite)).toBeTruthy();
@@ -102,6 +103,7 @@ describe('DeckRow — favorite toggle', () => {
         isFavorited
         onRemove={jest.fn()}
         onToggleFavorite={jest.fn()}
+        onPracticeCard={jest.fn()}
       />,
     );
     expect(getByLabelText(v.removeFavorite)).toBeTruthy();
@@ -119,6 +121,7 @@ describe('DeckRow — favorite toggle', () => {
         isFavorited={false}
         onRemove={onRemove}
         onToggleFavorite={onToggleFavorite}
+        onPracticeCard={jest.fn()}
       />,
     );
 
@@ -139,12 +142,37 @@ describe('DeckRow — favorite toggle', () => {
         isFavorited={false}
         onRemove={onRemove}
         onToggleFavorite={jest.fn()}
+        onPracticeCard={jest.fn()}
       />,
     );
 
     fireEvent.press(getByLabelText(t.memory.removeFromDeck));
 
     expect(onRemove).toHaveBeenCalledTimes(1);
+  });
+
+  it('calls onPracticeCard (not onRemove/onToggleFavorite) when the practice icon is pressed', () => {
+    const onPracticeCard = jest.fn();
+    const onRemove = jest.fn();
+    const onToggleFavorite = jest.fn();
+    const {getByLabelText} = render(
+      <DeckRow
+        card={card}
+        language="es"
+        t={t}
+        colors={colors}
+        isFavorited={false}
+        onRemove={onRemove}
+        onToggleFavorite={onToggleFavorite}
+        onPracticeCard={onPracticeCard}
+      />,
+    );
+
+    fireEvent.press(getByLabelText(t.memory.practiceCardLabel));
+
+    expect(onPracticeCard).toHaveBeenCalledTimes(1);
+    expect(onRemove).not.toHaveBeenCalled();
+    expect(onToggleFavorite).not.toHaveBeenCalled();
   });
 });
 
@@ -197,6 +225,41 @@ describe('memory/index.tsx source wiring — add-verse affordances', () => {
     );
   });
 
+  it('routes the per-card practice icon to handlePracticeCard(card) — the SAME card bound in the map closure, not a stale/shared reference', () => {
+    // MemoryDeckScreen can't be fully rendered under react-test-renderer
+    // here (see the file-header note), so a live "tap row 2's icon, assert
+    // it opened row 2's verse" render isn't possible in this suite. This
+    // source-scan is the cheapest available proxy: it locks in that the
+    // `.map(card => ...)` closure variable — not `sortedCards[0]` or some
+    // other stale binding — is what flows into onPracticeCard, which is
+    // the actual bug class a "wrong card" regression would take.
+    const cardsListBlock = raw.slice(
+      raw.indexOf('{/* Cards list */}'),
+      raw.indexOf('{/* Cards list */}') + 500,
+    );
+    expect(cardsListBlock).toMatch(/sortedCards\.map\(card => \(/);
+    expect(cardsListBlock).toMatch(
+      /onPracticeCard=\{\(\) => handlePracticeCard\(card\)\}/,
+    );
+  });
+
+  it('handlePracticeCard routes to practice.tsx with free=1 and the SPECIFIC card.verseKey, via the object form of router.push (not a hand-built query string)', () => {
+    // A verseKey like "Juan/3/16" contains literal slashes — a hand-built
+    // `?verseKey=${encodeURIComponent(...)}` string previously risked a
+    // mismatch against how useLocalSearchParams decodes it back out. The
+    // object form lets expo-router own the encode/decode round-trip.
+    const handlePracticeCardBlock = raw.slice(
+      raw.indexOf('const handlePracticeCard'),
+      raw.indexOf('const handlePracticeCard') + 400,
+    );
+    expect(handlePracticeCardBlock).toMatch(
+      /pathname:\s*'\/features\/memory\/practice'/,
+    );
+    expect(handlePracticeCardBlock).toMatch(
+      /params:\s*\{free:\s*'1',\s*verseKey:\s*card\.verseKey\}/,
+    );
+  });
+
   it('every referenced i18n key exists for every supported language', () => {
     for (const lang of Object.keys(translations) as Array<
       keyof typeof translations
@@ -206,6 +269,8 @@ describe('memory/index.tsx source wiring — add-verse affordances', () => {
       expect(typeof tr.memory.addedToast).toBe('string');
       expect(typeof tr.memory.addedToastMany).toBe('string');
       expect(typeof tr.memory.alreadyInDeck).toBe('string');
+      expect(typeof tr.memory.freePracticeCta).toBe('string');
+      expect(typeof tr.memory.practiceCardLabel).toBe('string');
       expect(typeof tr.verse.addFavorite).toBe('string');
       expect(typeof tr.verse.removeFavorite).toBe('string');
     }

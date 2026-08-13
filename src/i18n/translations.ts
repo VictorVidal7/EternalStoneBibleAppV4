@@ -507,6 +507,11 @@ export const translations = {
       },
       practiceCta: 'Practicar {{count}} tarjetas',
       practiceCtaSingular: 'Practicar 1 tarjeta',
+      // Free practice — practice any card any time, ungraded, without
+      // touching the SRS schedule. Entry points: a whole-deck link on this
+      // screen (freePracticeCta) and a per-card icon (practiceCardLabel).
+      freePracticeCta: 'Practicar sin calificar',
+      practiceCardLabel: 'Practicar este versículo sin calificar',
       noDueToday: 'No hay tarjetas pendientes',
       noDueHint: 'Vuelve más tarde — tus tarjetas regresan según su intervalo.',
       stats: {
@@ -520,6 +525,9 @@ export const translations = {
       practice: {
         title: 'Práctica',
         progress: '{{current}} de {{total}}',
+        // Free practice — shown while practicing off-schedule (ungraded),
+        // so it's clear this session won't move the streak/goal needle.
+        freeModeCaption: 'Practicando sin calificar — no cuenta para tu racha',
         reveal: 'Mostrar versículo',
         prompt: '¿Cómo te fue?',
         promptFullVerse: 'Léelo y guárdalo. ¿Qué tan bien lo conoces?',
@@ -533,6 +541,9 @@ export const translations = {
         doneBodySingular:
           'Repasaste 1 tarjeta. ¡Que la Palabra habite ricamente en ti!',
         doneCta: 'Volver al mazo',
+        // "Repetir" — replay the SAME queue/mode from the start (graded
+        // session stays graded; free session stays ungraded).
+        repeat: 'Repetir',
         boxLabel: 'Caja {{box}}',
         maskHint: '{{percent}}% oculto',
         maskNone: 'Versículo completo',
@@ -6476,6 +6487,11 @@ export const translations = {
       },
       practiceCta: 'Practice {{count}} cards',
       practiceCtaSingular: 'Practice 1 card',
+      // Free practice — practice any card any time, ungraded, without
+      // touching the SRS schedule. Entry points: a whole-deck link on this
+      // screen (freePracticeCta) and a per-card icon (practiceCardLabel).
+      freePracticeCta: 'Free practice',
+      practiceCardLabel: 'Practice this verse without grading',
       noDueToday: 'No cards due',
       noDueHint:
         'Come back later — cards return on their own scheduled interval.',
@@ -6490,6 +6506,9 @@ export const translations = {
       practice: {
         title: 'Practice',
         progress: '{{current}} of {{total}}',
+        // Free practice — shown while practicing off-schedule (ungraded),
+        // so it's clear this session won't move the streak/goal needle.
+        freeModeCaption: "Free practice — doesn't count toward your streak",
         reveal: 'Show verse',
         prompt: 'How did you do?',
         promptFullVerse: 'Read it and keep it. How well do you know it?',
@@ -6503,6 +6522,9 @@ export const translations = {
         doneBodySingular:
           'You reviewed 1 card. May the Word dwell in you richly!',
         doneCta: 'Back to deck',
+        // "Repeat" — replay the SAME queue/mode from the start (graded
+        // session stays graded; free session stays ungraded).
+        repeat: 'Repeat',
         boxLabel: 'Box {{box}}',
         maskHint: '{{percent}}% hidden',
         maskNone: 'Full verse',
