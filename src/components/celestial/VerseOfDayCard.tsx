@@ -713,7 +713,9 @@ const VerseOfDayCard: React.FC<VerseOfDayCardProps> = ({
                   <Ionicons
                     name={isFavorited ? 'heart' : 'heart-outline'}
                     size={20}
-                    color={isFavorited ? '#ef4444' : theme.colors.text}
+                    color={
+                      isFavorited ? theme.colors.primary : theme.colors.text
+                    }
                   />
                 </TouchableOpacity>
               )}
