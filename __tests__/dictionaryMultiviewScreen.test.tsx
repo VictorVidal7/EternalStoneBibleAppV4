@@ -17,7 +17,6 @@
  * and the sheet itself are mocked the same lightweight way
  * propheticThreadBackAndHeader.test.tsx mocks a heavy child sheet.
  */
-import React from 'react';
 import {render, fireEvent} from '@testing-library/react-native';
 import {ScrollView, StyleSheet} from 'react-native';
 import DictionaryDetailScreen from '../app/features/dictionary/[slug]';

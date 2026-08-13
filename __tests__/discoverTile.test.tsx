@@ -10,7 +10,6 @@
  * ...]` guard — means an arbitrary category hex NEVER reaches the rendered
  * icon while high contrast is on; `colors.primary` wins instead.
  */
-import React from 'react';
 import {render, fireEvent} from '@testing-library/react-native';
 import {Ionicons} from '@expo/vector-icons';
 import {DiscoverTile} from '../src/components/home/DiscoverTile';

@@ -27,11 +27,7 @@
  */
 
 export type PlanPaceStatus =
-  | 'notStarted'
-  | 'ahead'
-  | 'onTrack'
-  | 'behind'
-  | 'complete';
+  'notStarted' | 'ahead' | 'onTrack' | 'behind' | 'complete';
 
 export interface PlanPaceInput {
   /** ISO timestamp of the plan's first interaction; null = never started. */

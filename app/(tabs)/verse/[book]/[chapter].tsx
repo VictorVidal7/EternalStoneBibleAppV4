@@ -2660,7 +2660,7 @@ export default function VerseReadingScreen() {
                     <Animated.View
                       pointerEvents="none"
                       style={[
-                        StyleSheet.absoluteFillObject,
+                        StyleSheet.absoluteFill,
                         styles.verseArrivalPulse,
                         {
                           backgroundColor: effectiveColors.primary,

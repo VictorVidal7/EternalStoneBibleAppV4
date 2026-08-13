@@ -5,7 +5,6 @@
  * `onLockedAction` instead of `onSelect` while locked, and the component
  * never reaches for usePremium()/useOfferingSheet() itself.
  */
-import React from 'react';
 import {render, fireEvent} from '@testing-library/react-native';
 import {PrepExportFormatSheet} from '../src/features/study/PrepExportFormatSheet';
 

@@ -8,7 +8,14 @@ module.exports = {
   testPathIgnorePatterns: ['/node_modules/', '<rootDir>/.claude/'],
   modulePathIgnorePatterns: ['<rootDir>/.claude/'],
   transformIgnorePatterns: [
-    'node_modules/(?!((jest-)?react-native|@react-native(-community)?)|expo(nent)?|@expo(nent)?/.*|@expo-google-fonts/.*|react-navigation|@react-navigation/.*|@unimodules/.*|unimodules|sentry-expo|native-base|react-native-svg|@sentry/.*|@shopify/flash-list)',
+    'node_modules/(?!((jest-)?react-native|@react-native(-community)?)|expo(nent)?|@expo(nent)?/.*|@expo-google-fonts/.*|react-navigation|@react-navigation/.*|@unimodules/.*|unimodules|sentry-expo|native-base|react-native-svg|@sentry/.*|@shopify/flash-list|standard-navigation)',
+    // jest-expo's own preset ships these two extra entries to guard against
+    // "Reentrant plugin detected" Babel errors when the worklets/reanimated
+    // plugin gets loaded twice in one transform pass — our custom regex
+    // above fully replaces (not merges with) the preset's array, so they
+    // have to be restored explicitly here.
+    '/node_modules/react-native-worklets/plugin/',
+    '/node_modules/react-native-reanimated/plugin/',
   ],
   collectCoverageFrom: [
     'src/**/*.{ts,tsx,js,jsx}',

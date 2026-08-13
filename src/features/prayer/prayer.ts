@@ -26,11 +26,7 @@
  * exactly like the feelings taxonomy.
  */
 export type PrayerCategory =
-  | 'praise'
-  | 'confession'
-  | 'thanksgiving'
-  | 'supplication'
-  | 'intercession';
+  'praise' | 'confession' | 'thanksgiving' | 'supplication' | 'intercession';
 
 /** Display order — follows ACTS, with intercession last (prayer for others). */
 export const PRAYER_CATEGORY_ORDER: readonly PrayerCategory[] = [

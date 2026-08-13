@@ -12,7 +12,6 @@
  * and the REAL prepIllustrations store (AsyncStorage's global jest mock) —
  * only offering sheet, navigation/theme plumbing are mocked.
  */
-import React from 'react';
 import {render, fireEvent, waitFor} from '@testing-library/react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as SecureStore from 'expo-secure-store';

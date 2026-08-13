@@ -23,7 +23,7 @@
  * Para la gloria de Dios Todopoderoso ✨
  */
 
-import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {
   View,
   Text,
@@ -156,12 +156,7 @@ type LoadStatus = 'loading' | 'ready' | 'error' | 'empty';
 
 /** T8.4.2 — the "Palabras clave en el idioma original" section's own status. */
 type OriginalsStatus =
-  | 'idle'
-  | 'loading'
-  | 'notInstalled'
-  | 'ready'
-  | 'empty'
-  | 'error';
+  'idle' | 'loading' | 'notInstalled' | 'ready' | 'empty' | 'error';
 
 /**
  * T8.4.3 — "Comparar versiones" section's own status. `onlyOneInstalled` is a
@@ -169,11 +164,7 @@ type OriginalsStatus =
  * link to Settings, not a generic empty state.
  */
 type VersionCompareStatus =
-  | 'idle'
-  | 'loading'
-  | 'onlyOneInstalled'
-  | 'ready'
-  | 'error';
+  'idle' | 'loading' | 'onlyOneInstalled' | 'ready' | 'error';
 
 interface VerseLine {
   verse: number;

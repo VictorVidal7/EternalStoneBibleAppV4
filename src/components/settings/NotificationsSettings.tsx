@@ -9,7 +9,7 @@
  * consolidation: NotificationService's scheduling logic is untouched.
  */
 
-import React, {useCallback, useEffect, useState} from 'react';
+import {useCallback, useEffect, useState} from 'react';
 import {
   View,
   Text,

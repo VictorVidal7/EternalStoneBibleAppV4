@@ -14,7 +14,7 @@
  * This test pins that the button now renders disabled in that narrow state,
  * and stays fully interactive everywhere else (e.g. audio bound but paused).
  */
-import React, {useEffect} from 'react';
+import {useEffect} from 'react';
 import {render, waitFor} from '@testing-library/react-native';
 import Purchases from 'react-native-purchases';
 import * as SecureStore from 'expo-secure-store';

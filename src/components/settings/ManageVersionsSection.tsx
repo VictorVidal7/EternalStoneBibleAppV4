@@ -11,7 +11,7 @@
  * Self-contained section card — drops into the Settings screen. Honors the
  * Settings theme (all colors from useTheme), i18n via useLanguage.
  */
-import React, {useCallback, useEffect, useState} from 'react';
+import {useCallback, useEffect, useState} from 'react';
 import {
   ActivityIndicator,
   StyleSheet,

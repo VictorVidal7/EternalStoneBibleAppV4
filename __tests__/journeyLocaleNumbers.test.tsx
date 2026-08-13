@@ -16,7 +16,6 @@
  * or a native DB. Mirrors quizExitConfirm.test.tsx's full-route mocking
  * pattern for this same app/features/* screen family.
  */
-import React from 'react';
 import {render, fireEvent, act} from '@testing-library/react-native';
 import JourneyScreen from '../app/features/journey/index';
 import {translations} from '../src/i18n/translations';

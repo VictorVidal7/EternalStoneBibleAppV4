@@ -12,7 +12,7 @@
  * Para la gloria de Dios Todopoderoso ✨
  */
 
-import React, {useCallback, useState} from 'react';
+import {useCallback, useState} from 'react';
 import {View, ScrollView, TouchableOpacity, StyleSheet} from 'react-native';
 import {Stack, useRouter, useFocusEffect} from 'expo-router';
 import {Ionicons} from '@expo/vector-icons';

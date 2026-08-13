@@ -11,7 +11,6 @@
  * timer also calls `onDismiss` on its own after `duration`; a `duration`
  * of 0 disables the timer (never calls onDismiss on its own).
  */
-import React from 'react';
 import {render, fireEvent} from '@testing-library/react-native';
 import {AccessibilityInfo, Animated} from 'react-native';
 import {ContextualHintBanner} from '../src/components/hints/ContextualHintBanner';

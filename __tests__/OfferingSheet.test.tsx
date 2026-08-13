@@ -6,7 +6,6 @@
  * actual load → purchase/restore → entitlement-sync chain, not a stubbed one.
  */
 
-import React from 'react';
 import {render, waitFor, fireEvent} from '@testing-library/react-native';
 import {StyleSheet} from 'react-native';
 import Purchases from 'react-native-purchases';

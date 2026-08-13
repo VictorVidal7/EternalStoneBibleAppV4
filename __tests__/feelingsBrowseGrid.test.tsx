@@ -12,7 +12,6 @@
  * the full 2-line allowance, so short and long descriptions occupy identical
  * space.
  */
-import React from 'react';
 import {render} from '@testing-library/react-native';
 import {StyleSheet} from 'react-native';
 import FeelingsBrowseScreen from '../app/features/feelings/index';

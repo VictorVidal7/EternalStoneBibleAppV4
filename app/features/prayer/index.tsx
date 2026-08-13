@@ -15,7 +15,7 @@
  * Para la gloria de Dios Todopoderoso ✨
  */
 
-import React, {useMemo, useState} from 'react';
+import {useMemo, useState} from 'react';
 import {
   View,
   ScrollView,

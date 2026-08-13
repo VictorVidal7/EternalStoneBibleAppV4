@@ -9,7 +9,6 @@
  * "not my theme" on the daily build. This pins that wiring so a refactor can't
  * silently revert to the static white card or re-tint everything with the tier.
  */
-import React from 'react';
 import {render} from '@testing-library/react-native';
 import {StyleSheet} from 'react-native';
 import {AchievementUnlockedModal} from '../src/components/achievements/AchievementUnlockedModal';

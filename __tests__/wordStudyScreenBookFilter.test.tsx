@@ -15,7 +15,6 @@
  * card, KJV premium gating, initial load states) is covered by
  * wordStudyScreenPremiumKjv.test.tsx and untouched here.
  */
-import React from 'react';
 import {render, fireEvent, waitFor} from '@testing-library/react-native';
 import {ActivityIndicator} from 'react-native';
 import * as SecureStore from 'expo-secure-store';

@@ -245,8 +245,7 @@ describe('kidsStories — i18n parity', () => {
         ['en', enStories],
       ] as const) {
         const questions = stories?.[s.id]?.teachQuestions as
-          | string[]
-          | undefined;
+          string[] | undefined;
         if (!Array.isArray(questions) || questions.length < 3) {
           bad.push(`${lang}: ${s.id} needs >=3 teachQuestions`);
         }
@@ -264,8 +263,7 @@ describe('kidsStories — i18n parity', () => {
           ['en', enStories],
         ] as const) {
           const text = (stories?.[s.id]?.scenes as AnyRecord)?.[scene.id] as
-            | AnyRecord
-            | undefined;
+            AnyRecord | undefined;
           if (typeof text?.text !== 'string' || !text.text) {
             bad.push(`${lang}: missing scene text ${scene.id}`);
           }
@@ -284,8 +282,7 @@ describe('kidsStories — i18n parity', () => {
           ['en', enStories],
         ] as const) {
           const entry = (stories?.[s.id]?.quiz as AnyRecord)?.[q.id] as
-            | {question?: string; options?: string[]}
-            | undefined;
+            {question?: string; options?: string[]} | undefined;
           if (typeof entry?.question !== 'string' || !entry.question) {
             bad.push(`${lang}: ${q.id} missing question`);
           }

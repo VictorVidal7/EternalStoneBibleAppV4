@@ -4,7 +4,6 @@
  * (a fresh-device floor was just seeded), dismissible for good.
  */
 
-import React from 'react';
 import {render, fireEvent} from '@testing-library/react-native';
 import MemoryInsightsScreen from '../app/features/memory/insights';
 import {PremiumProvider} from '../src/context/PremiumContext';

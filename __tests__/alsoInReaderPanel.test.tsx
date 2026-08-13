@@ -8,7 +8,6 @@
  * honest unavailable copy, the compare exit and the close button fire their
  * callbacks, and a verseKey change resets the open peek.
  */
-import React from 'react';
 import {render, fireEvent, act} from '@testing-library/react-native';
 import {AlsoInVersionsPanel} from '../src/components/reading/AlsoInVersionsPanel';
 

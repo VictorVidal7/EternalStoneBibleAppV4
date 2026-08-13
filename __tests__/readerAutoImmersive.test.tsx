@@ -5,7 +5,7 @@
  * OFF by default, toggle persists, and hydration of an OLDER stored blob
  * (without the new field) keeps the default instead of crashing or flipping.
  */
-import React, {type ReactNode} from 'react';
+import {type ReactNode} from 'react';
 import {renderHook, act, waitFor} from '@testing-library/react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {

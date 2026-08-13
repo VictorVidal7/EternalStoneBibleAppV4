@@ -7,7 +7,6 @@
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "automatic",
     "scheme": "eternalbible",
-    "newArchEnabled": true,
     "plugins": [
       "expo-router",
       "expo-sqlite",
@@ -49,7 +48,6 @@
         "foregroundImage": "./assets/icon.png",
         "backgroundColor": "#001122"
       },
-      "edgeToEdgeEnabled": true,
       "predictiveBackGestureEnabled": false,
       "googleServicesFile": "./google-services.json",
       "blockedPermissions": ["android.permission.SYSTEM_ALERT_WINDOW"],

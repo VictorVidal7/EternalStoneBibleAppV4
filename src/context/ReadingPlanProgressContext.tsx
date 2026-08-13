@@ -10,7 +10,7 @@
  * opened — no manual check-off required.
  */
 
-import React, {
+import {
   createContext,
   useContext,
   useState,

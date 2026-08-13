@@ -45,7 +45,6 @@
  *    `gradient.headerColors` that can't coincidentally match the
  *    2-stop primary/primaryDark pair.
  */
-import React from 'react';
 import {render, fireEvent, act, waitFor} from '@testing-library/react-native';
 import {View, BackHandler} from 'react-native';
 import PropheticThreadScreen from '../app/features/prophecies/index';

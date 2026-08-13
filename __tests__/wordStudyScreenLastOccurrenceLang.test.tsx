@@ -18,7 +18,6 @@
  * "Última aparición") come out in Spanish, matching the app's Spanish-first
  * fallback used everywhere else (e.g. Home's `bookLang`).
  */
-import React from 'react';
 import {render} from '@testing-library/react-native';
 import * as SecureStore from 'expo-secure-store';
 import Purchases from 'react-native-purchases';

@@ -373,7 +373,7 @@ const styles = StyleSheet.create({
     justifyContent: 'flex-end',
   },
   backdropTouch: {
-    ...StyleSheet.absoluteFillObject,
+    ...StyleSheet.absoluteFill,
   },
   sheet: {
     borderTopLeftRadius: borderRadius.xl,

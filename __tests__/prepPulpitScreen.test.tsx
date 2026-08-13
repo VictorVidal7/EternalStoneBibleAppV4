@@ -5,7 +5,6 @@
  * presenting. Uses the REAL PremiumProvider + REAL prepNotes store (seeded via
  * AsyncStorage's global jest mock), mirroring prepSeriesDetailScreen.test.tsx.
  */
-import React from 'react';
 import {render, waitFor} from '@testing-library/react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as SecureStore from 'expo-secure-store';

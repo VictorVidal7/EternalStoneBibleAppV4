@@ -5,7 +5,6 @@
  * evangelical study scaffold (every outline section), surfaces the gathered
  * helps (a cross-reference parallel), and shows the pastoral guardrail.
  */
-import React from 'react';
 import {render, waitFor} from '@testing-library/react-native';
 import PrepTableScreen from '../app/features/prep/index';
 import {PremiumProvider} from '../src/context/PremiumContext';

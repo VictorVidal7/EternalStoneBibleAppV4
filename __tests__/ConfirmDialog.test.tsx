@@ -12,7 +12,6 @@
  * `buttonText`, or drops the `numberOfLines`/`adjustsFontSizeToFit` guard
  * that stops a long label from truncating, this test catches it.
  */
-import React from 'react';
 import {render, fireEvent} from '@testing-library/react-native';
 import {ConfirmDialog} from '../src/components/ui/ConfirmDialog';
 

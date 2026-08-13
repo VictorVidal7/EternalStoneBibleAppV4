@@ -219,7 +219,7 @@ async function seedFromBundleIfMissing(): Promise<boolean> {
 
     if (!sqliteDir.exists) sqliteDir.create({intermediates: true});
     const sourceFile = new File(sourceUri);
-    sourceFile.copy(targetFile);
+    await sourceFile.copy(targetFile);
     // The JS bulk loader keys "this version is loaded" off AsyncStorage; mark
     // the two BUNDLED versions (RVR1960 + WEB) as loaded so it short-circuits
     // instead of redundantly re-iterating 62k rows just to hit the UNIQUE

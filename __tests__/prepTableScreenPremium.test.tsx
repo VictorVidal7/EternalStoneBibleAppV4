@@ -8,7 +8,6 @@
  * integration-style pattern as the other Originales+ premium tests
  * (OriginalLanguagesSheetPremiumMorphology.test.tsx).
  */
-import React from 'react';
 import {render, waitFor, fireEvent} from '@testing-library/react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as SecureStore from 'expo-secure-store';

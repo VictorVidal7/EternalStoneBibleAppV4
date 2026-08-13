@@ -12,12 +12,7 @@ import bibleDB from '../database';
 
 export type BadgeRarity = 'common' | 'rare' | 'epic' | 'legendary' | 'mythic';
 export type BadgeCategory =
-  | 'reading'
-  | 'streak'
-  | 'completion'
-  | 'knowledge'
-  | 'social'
-  | 'special';
+  'reading' | 'streak' | 'completion' | 'knowledge' | 'social' | 'special';
 
 export interface Badge {
   id: string;

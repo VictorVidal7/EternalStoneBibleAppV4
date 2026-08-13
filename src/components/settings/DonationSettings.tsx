@@ -9,7 +9,7 @@
  * __DEV__ still shows it so the flow stays reachable for local testing.
  */
 
-import React, {useEffect, useState} from 'react';
+import {useEffect, useState} from 'react';
 import {View, StyleSheet, TouchableOpacity} from 'react-native';
 import {AppText as Text} from '@components/ui/AppText';
 import {Ionicons} from '@expo/vector-icons';

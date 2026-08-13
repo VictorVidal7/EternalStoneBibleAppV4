@@ -989,7 +989,7 @@ const styles = StyleSheet.create({
   // (a well-known RN gotcha). Both Image and LinearGradient clip their own
   // painted content to their own borderRadius, so this avoids that trap.
   cardBackgroundLayer: {
-    ...StyleSheet.absoluteFillObject,
+    ...StyleSheet.absoluteFill,
     borderRadius: borderRadius.xl,
   },
   // Own-photo mode always pairs with fixed white text (see `cardTextColor`)

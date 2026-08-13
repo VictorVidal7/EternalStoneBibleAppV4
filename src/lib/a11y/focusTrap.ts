@@ -27,10 +27,7 @@
 
 /** The RN `importantForAccessibility` value union (Android focus control). */
 export type ImportantForAccessibility =
-  | 'auto'
-  | 'yes'
-  | 'no'
-  | 'no-hide-descendants';
+  'auto' | 'yes' | 'no' | 'no-hide-descendants';
 
 /** Props for a modal/sheet CONTENT container so SR focus is trapped inside. */
 export interface FocusTrapProps {

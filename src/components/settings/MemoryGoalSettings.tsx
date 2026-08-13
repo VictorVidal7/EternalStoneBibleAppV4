@@ -7,7 +7,7 @@
  * lives in NotificationsSettings, alongside the other 5 reminder types.
  */
 
-import React, {useCallback, useEffect, useState} from 'react';
+import {useCallback, useEffect, useState} from 'react';
 import {View, Text, StyleSheet, TouchableOpacity} from 'react-native';
 import {Ionicons} from '@expo/vector-icons';
 import {haptics} from '@lib/haptics';

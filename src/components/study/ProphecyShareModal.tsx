@@ -11,7 +11,7 @@
  * Para la gloria de Dios Todopoderoso ✨
  */
 
-import React, {useRef, useState} from 'react';
+import {useRef, useState} from 'react';
 import {
   View,
   Modal,

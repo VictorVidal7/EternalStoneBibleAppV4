@@ -2,7 +2,6 @@
  * Sprint 85 — the ConstancyRings card body. Pins the header summary line, the
  * habit legend, and the all-closed celebration, all driven by the pure summary.
  */
-import React from 'react';
 import {render, fireEvent} from '@testing-library/react-native';
 import {ConstancyRings} from '../src/components/ConstancyRings';
 import {

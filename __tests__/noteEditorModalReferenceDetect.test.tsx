@@ -12,7 +12,6 @@
  * unlike sermon-notes' autosaving editor, this modal's draft only lives in
  * the parent's state until explicitly saved) before jumping the reader.
  */
-import React from 'react';
 import {render, fireEvent} from '@testing-library/react-native';
 import {NoteEditorModal} from '../src/components/reading/NoteEditorModal';
 import {translations} from '../src/i18n/translations';

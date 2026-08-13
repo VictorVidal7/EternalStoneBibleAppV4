@@ -14,11 +14,7 @@
  */
 
 export type AchievementRarity =
-  | 'common'
-  | 'uncommon'
-  | 'rare'
-  | 'epic'
-  | 'legendary';
+  'common' | 'uncommon' | 'rare' | 'epic' | 'legendary';
 
 /**
  * Colours per rarity (gray → green → blue → purple → gold), with a two-stop

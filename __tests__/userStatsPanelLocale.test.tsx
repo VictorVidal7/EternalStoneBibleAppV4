@@ -5,7 +5,6 @@
  * back to the device's system locale. Mirrors nextMilestoneCard.test.tsx's
  * mocking pattern (useTheme/useLanguage as plain jest.mock factories).
  */
-import React from 'react';
 import {render} from '@testing-library/react-native';
 import {UserStatsPanel} from '../src/components/achievements/UserStatsPanel';
 import type {UserStats} from '../src/lib/achievements/types';

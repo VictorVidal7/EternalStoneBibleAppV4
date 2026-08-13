@@ -8,7 +8,6 @@
  * is true, and that a locked tap routes to the offering sheet when it's not,
  * mirroring `premiumShareExtras.test.tsx`'s own coverage of that component.
  */
-import React from 'react';
 import {render, fireEvent} from '@testing-library/react-native';
 import {ChallengeImageModal} from '../src/components/insights/ChallengeImageModal';
 import type {WeeklyChallenge} from '../src/lib/memory/weeklyChallenge';

@@ -26,7 +26,7 @@
  * Crashlytics pattern from Sprint 40).
  */
 
-import React, {
+import {
   createContext,
   useCallback,
   useContext,

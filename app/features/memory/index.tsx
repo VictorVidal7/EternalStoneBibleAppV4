@@ -65,9 +65,7 @@ import {
  * toast text and any future UI that wants it directly.
  */
 export type AddVersesOutcome =
-  | {kind: 'none'}
-  | {kind: 'one'}
-  | {kind: 'many'; count: number};
+  {kind: 'none'} | {kind: 'one'} | {kind: 'many'; count: number};
 
 export function describeAddVersesOutcome(newCount: number): AddVersesOutcome {
   if (newCount <= 0) return {kind: 'none'};

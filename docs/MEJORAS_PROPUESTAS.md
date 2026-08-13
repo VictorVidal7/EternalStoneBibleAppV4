@@ -1172,9 +1172,7 @@ export const PREMIUM_THEMES = {
   celestialNight: {
     name: 'Celestial Night',
     isPremium: true,
-    light: {
-      /* ... */
-    },
+    light: {/* ... */},
     dark: {
       primary: '#667eea',
       secondary: '#764ba2',

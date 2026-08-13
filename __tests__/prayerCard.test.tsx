@@ -9,7 +9,6 @@
  * its data has loaded, with its own inviting copy for the true first-time
  * case.
  */
-import React from 'react';
 import {render} from '@testing-library/react-native';
 import {PrayerCard} from '../src/components/PrayerCard';
 import {translations} from '../src/i18n/translations';

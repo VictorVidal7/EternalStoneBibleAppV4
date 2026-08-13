@@ -16,7 +16,6 @@
  * (`isPremium` permanently false, `openOfferingSheet()` a no-op), not a
  * simulation of it.
  */
-import React from 'react';
 import {render, fireEvent, waitFor} from '@testing-library/react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 

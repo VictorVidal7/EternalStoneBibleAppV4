@@ -11,7 +11,7 @@
  * - Persistencia en SQLite
  */
 
-import React, {
+import {
   createContext,
   useState,
   useContext,
@@ -40,12 +40,7 @@ type FavoriteSourceVerse = Pick<
   Partial<Pick<BibleVerse, 'id' | 'bookNumber' | 'version'>>;
 
 export type FavoriteCategory =
-  | 'promise'
-  | 'prayer'
-  | 'wisdom'
-  | 'encouragement'
-  | 'worship'
-  | 'other';
+  'promise' | 'prayer' | 'wisdom' | 'encouragement' | 'worship' | 'other';
 
 export interface Favorite {
   id: string;

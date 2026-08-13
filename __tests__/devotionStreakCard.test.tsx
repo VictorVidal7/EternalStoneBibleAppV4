@@ -6,7 +6,6 @@
  * devotion, which is exactly how Victor found devotion undiscoverable from
  * Home (batch 3 feedback item 5).
  */
-import React from 'react';
 import {render} from '@testing-library/react-native';
 import {DevotionStreakCard} from '../src/components/DevotionStreakCard';
 import {translations} from '../src/i18n/translations';

@@ -7,7 +7,6 @@
  * theme-aware `colors.onPrimary` ink instead — this pins that wiring so a
  * future refactor can't silently reintroduce the hardcoded white.
  */
-import React from 'react';
 import {render} from '@testing-library/react-native';
 import {StyleSheet} from 'react-native';
 import {SaveComparisonDialog} from '../src/components/comparison/SaveComparisonDialog';

@@ -8,7 +8,6 @@
  * anything and is repeatable, so there's no "already given" state to test.
  */
 
-import React from 'react';
 import {render, waitFor, fireEvent} from '@testing-library/react-native';
 import {StyleSheet} from 'react-native';
 import Purchases from 'react-native-purchases';

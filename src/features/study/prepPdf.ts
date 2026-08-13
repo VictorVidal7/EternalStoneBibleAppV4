@@ -52,10 +52,7 @@ import type {PrepSection} from './prepTable';
  *    the app supplies, never generated theological content.
  */
 export type PrepExportFormat =
-  | 'manuscript'
-  | 'outline'
-  | 'handout'
-  | 'discussion';
+  'manuscript' | 'outline' | 'handout' | 'discussion';
 
 /**
  * The `PrepSection` ids most useful to hand to a congregation on a follow-
