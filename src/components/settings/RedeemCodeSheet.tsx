@@ -57,10 +57,27 @@ interface Props {
   onClose: () => void;
 }
 
-/** Loose shape check for paste-detection only — the server is the real validator. */
-const CODE_SHAPE = /^[A-Z0-9]{4}-[A-Z0-9]{4}$/;
+/**
+ * Real generated-code charset — MUST match scripts/generate-gift-codes.js's
+ * CODE_CHARSET (excludes 0/O, 1/I/L: easily confused when hand-copied).
+ * Used ONLY for the clipboard paste-detection heuristic below, so it stays
+ * strict on purpose: checking the RAW trimmed clipboard text against this
+ * (not a post-formatCodeInput() stripped/reflowed string, which would
+ * happily "match" almost any 8+ alphanumeric-char clipboard content — a
+ * URL, a phone number, a verse reference) is what keeps the paste hint from
+ * firing on unrelated copied text.
+ */
+const CODE_CHARSET = 'ABCDEFGHJKMNPQRSTUVWXYZ23456789';
+const CODE_SHAPE = new RegExp(`^[${CODE_CHARSET}]{4}-[${CODE_CHARSET}]{4}$`);
 
-/** Uppercases, strips non-alphanumerics, and auto-inserts the XXXX-XXXX dash as the user types. */
+/**
+ * Uppercases, strips non-alphanumerics, and auto-inserts the XXXX-XXXX dash
+ * as the user TYPES. Deliberately more lenient than CODE_SHAPE above (any
+ * A-Z0-9 char, not just CODE_CHARSET) — this only shapes what's on screen
+ * as the person types or edits a pasted value; the server is the real
+ * validator either way, so there's no correctness reason to second-guess a
+ * character here.
+ */
 function formatCodeInput(raw: string): string {
   const cleaned = raw
     .toUpperCase()
@@ -103,9 +120,11 @@ export const RedeemCodeSheet: React.FC<Props> = ({visible, onClose}) => {
     setPasteCandidate(null);
     (async () => {
       try {
-        const clip = (await Clipboard.getStringAsync()).trim();
-        const formatted = formatCodeInput(clip);
-        if (CODE_SHAPE.test(formatted)) setPasteCandidate(formatted);
+        // Checks the RAW (trimmed + uppercased) clipboard text against the
+        // strict CODE_SHAPE — see its comment for why this must NOT go
+        // through the lenient formatCodeInput() first.
+        const clip = (await Clipboard.getStringAsync()).trim().toUpperCase();
+        if (CODE_SHAPE.test(clip)) setPasteCandidate(clip);
       } catch {
         // Clipboard unavailable — skip the hint, no harm.
       }

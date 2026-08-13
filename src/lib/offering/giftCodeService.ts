@@ -26,6 +26,7 @@
  */
 
 import {logger} from '@lib/utils/logger';
+import {linkUser} from './offeringService';
 
 /**
  * Deployed Cloud Function URL. This is the standard deterministic URL shape
@@ -51,7 +52,7 @@ export type RedeemOutcome =
   | {status: 'invalid'}
   | {status: 'error'; message: string};
 
-type FirebaseUser = {getIdToken: () => Promise<string>};
+type FirebaseUser = {uid: string; getIdToken: () => Promise<string>};
 type AuthModule = {(): {currentUser: FirebaseUser | null}};
 
 let _authModule: AuthModule | null | undefined;
@@ -169,5 +170,25 @@ export async function redeemGiftCode(code: string): Promise<RedeemOutcome> {
     // generic error mapping below via the empty `body`.
   }
 
-  return outcomeFromResponse(res.status, body);
+  const outcome = outcomeFromResponse(res.status, body);
+  if (outcome.status === 'success') {
+    // Defensive re-link — closes a real gap, not a hypothetical one: on
+    // cold start, AuthContext's onAuthStateChanged can call
+    // offeringService.linkUser(uid) BEFORE offeringService.initialize()
+    // has finished configuring the RevenueCat SDK (linkUser silently
+    // no-ops while `!configured`), so the local RevenueCat SDK session can
+    // end up bound to its own anonymous id instead of this Firebase uid.
+    // The Cloud Function just granted the entitlement to `uid` specifically
+    // (see functions/src/index.ts) — if the local SDK session isn't ALSO
+    // bound to `uid`, refreshEntitlement() below would read back a
+    // different RevenueCat customer that never received the grant. By now
+    // (user navigated to Settings and redeemed a code), offeringService has
+    // almost certainly finished initializing, so this is a near-guaranteed
+    // retry that self-heals the gap for exactly the case that matters here.
+    // Not fixed at the root (AuthContext.tsx / offeringService.ts's own
+    // init-ordering) — that's out of this feature's scope; see the
+    // gift-code-redemption report.
+    await linkUser(currentUser.uid).catch(() => {});
+  }
+  return outcome;
 }

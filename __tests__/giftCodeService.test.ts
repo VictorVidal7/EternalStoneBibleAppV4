@@ -2,13 +2,14 @@
  * giftCodeService unit tests.
  *
  * Mocks @react-native-firebase/auth's lazy require() (same pattern as
- * AuthContext.test.tsx) and global fetch, so every RedeemOutcome the
- * redeemGiftCode Cloud Function can produce (see functions/src/index.ts's
- * RedeemResult) is exercised without a real network call or native module.
+ * AuthContext.test.tsx), offeringService's linkUser (see below), and global
+ * fetch, so every RedeemOutcome the redeemGiftCode Cloud Function can
+ * produce (see functions/src/index.ts's RedeemResult) is exercised without
+ * a real network call or native module.
  */
 
 const mockGetIdToken = jest.fn();
-let mockCurrentUser: {getIdToken: jest.Mock} | null = null;
+let mockCurrentUser: {uid: string; getIdToken: jest.Mock} | null = null;
 
 const mockAuthFn = jest.fn(() => ({
   get currentUser() {
@@ -19,6 +20,14 @@ const mockAuthFn = jest.fn(() => ({
 jest.mock('@react-native-firebase/auth', () => ({
   __esModule: true,
   default: mockAuthFn,
+}));
+
+// Only linkUser is mocked (not refreshEntitlement — giftCodeService doesn't
+// call it, RedeemCodeSheet does) — see redeemGiftCode's defensive re-link
+// comment for why a successful redemption also calls this.
+const mockLinkUser = jest.fn().mockResolvedValue(undefined);
+jest.mock('../src/lib/offering/offeringService', () => ({
+  linkUser: (...args: unknown[]) => mockLinkUser(...args),
 }));
 
 import {
@@ -37,7 +46,8 @@ describe('giftCodeService.redeemGiftCode', () => {
   beforeEach(() => {
     __resetForTests();
     mockGetIdToken.mockReset().mockResolvedValue('fake-id-token');
-    mockCurrentUser = {getIdToken: mockGetIdToken};
+    mockCurrentUser = {uid: 'uid-123', getIdToken: mockGetIdToken};
+    mockLinkUser.mockClear().mockResolvedValue(undefined);
     global.fetch = jest.fn();
   });
 
@@ -74,6 +84,29 @@ describe('giftCodeService.redeemGiftCode', () => {
   it('maps a 200 success response to {status: success}', async () => {
     mockFetchOnce(200, {status: 'success'});
     expect(await redeemGiftCode('ABCD-1234')).toEqual({status: 'success'});
+  });
+
+  it('re-links the RevenueCat App User ID to this uid on success', async () => {
+    // Defensive re-link (see redeemGiftCode's comment): closes the gap
+    // where offeringService.linkUser() may have silently no-op'd earlier
+    // at cold start, before RevenueCat finished configuring.
+    mockFetchOnce(200, {status: 'success'});
+    await redeemGiftCode('ABCD-1234');
+    expect(mockLinkUser).toHaveBeenCalledWith('uid-123');
+  });
+
+  it('does not call linkUser again for a non-success outcome', async () => {
+    mockFetchOnce(409, {status: 'already_redeemed'});
+    await redeemGiftCode('ABCD-1234');
+    expect(mockLinkUser).not.toHaveBeenCalled();
+  });
+
+  it('still reports success even if the defensive re-link itself fails', async () => {
+    mockLinkUser.mockRejectedValue(new Error('offline'));
+    mockFetchOnce(200, {status: 'success'});
+    await expect(redeemGiftCode('ABCD-1234')).resolves.toEqual({
+      status: 'success',
+    });
   });
 
   it('maps a 409 already_redeemed response to {status: already_redeemed}', async () => {

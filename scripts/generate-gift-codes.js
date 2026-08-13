@@ -48,6 +48,8 @@ const COLLECTION = 'giftCodes';
 // Unambiguous, human-typeable charset — excludes 0/O, 1/I/L (easily confused
 // when read aloud or hand-copied). 31 symbols, not power-of-two; randomInt()
 // below is used specifically because it's unbiased for a non-power-of-two range.
+// MUST match RedeemCodeSheet.tsx's CODE_CHARSET (used there for clipboard
+// paste-detection) — keep both in sync by hand if this ever changes.
 const CODE_CHARSET = 'ABCDEFGHJKMNPQRSTUVWXYZ23456789';
 const GROUP_LEN = 4;
 const GROUPS = 2;

@@ -177,10 +177,27 @@ describe('RedeemCodeSheet', () => {
   });
 
   it('does not offer a paste hint for clipboard content that is not a plausible code', async () => {
-    // 7 alphanumeric chars after stripping spaces — one short of the 8
-    // (4+4) formatCodeInput()/CODE_SHAPE need, unlike the 8+-char cases
-    // above that DO reduce to a plausible-looking XXXX-XXXX shape.
     mockGetStringAsync.mockResolvedValue('hi there');
+    const {queryByLabelText} = renderSheet();
+
+    await act(async () => {
+      await Promise.resolve();
+    });
+    expect(
+      queryByLabelText(
+        'Código detectado en el portapapeles. Toca para usarlo.',
+      ),
+    ).toBeNull();
+  });
+
+  it('does not offer a paste hint for unrelated 8+ character clipboard text (e.g. a pasted URL)', async () => {
+    // Regression guard: an earlier version of the paste-detection heuristic
+    // ran clipboard text through the lenient typing formatter (which strips
+    // punctuation, so almost any 8+ alphanumeric-char string "looked" like
+    // an XXXX-XXXX code) before checking the shape. The real check must run
+    // against the RAW clipboard text instead, so unrelated copied content
+    // like a URL never triggers a false-positive hint.
+    mockGetStringAsync.mockResolvedValue('https://example.com/abc12345');
     const {queryByLabelText} = renderSheet();
 
     await act(async () => {

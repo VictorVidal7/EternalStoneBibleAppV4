@@ -31,6 +31,7 @@ const Purchases = {
   purchaseStoreProduct: jest.fn(() => Promise.resolve({customerInfo})),
   restorePurchases: jest.fn(() => Promise.resolve(customerInfo)),
   logIn: jest.fn(() => Promise.resolve({customerInfo})),
+  invalidateCustomerInfoCache: jest.fn(() => Promise.resolve()),
   canMakePayments: jest.fn(() => Promise.resolve(true)),
   setLogHandler: jest.fn(),
   PURCHASES_ERROR_CODE: {PURCHASE_CANCELLED_ERROR: '1'},

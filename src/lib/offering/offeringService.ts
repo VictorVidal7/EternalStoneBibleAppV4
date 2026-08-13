@@ -74,6 +74,7 @@ type PurchasesStatic = {
   ) => Promise<{customerInfo: CustomerInfo}>;
   restorePurchases: () => Promise<CustomerInfo>;
   logIn: (uid: string) => Promise<{customerInfo: CustomerInfo}>;
+  invalidateCustomerInfoCache: () => Promise<void>;
   canMakePayments: () => Promise<boolean>;
   setLogHandler: (handler: (level: string, message: string) => void) => void;
   PURCHASES_ERROR_CODE: {PURCHASE_CANCELLED_ERROR: string};
@@ -320,11 +321,20 @@ export async function restore(): Promise<{unlocked: boolean}> {
  * Reuses the same handleCustomerInfo() the listener itself calls, so this
  * stays the identical single source of truth described at the top of this
  * file — it's just an on-demand trigger for it, not a new state path.
+ *
+ * Explicitly invalidates the SDK's own CustomerInfo cache first —
+ * RevenueCat's docs call this out by name for exactly this situation
+ * ("customer information...updated outside of the app, like if a
+ * promotional subscription is granted through the RevenueCat dashboard"),
+ * which is precisely what a gift-code redemption is. Without this,
+ * getCustomerInfo() can keep serving a pre-grant cached snapshot for its
+ * normal TTL, silently defeating the whole point of this function.
  */
 export async function refreshEntitlement(): Promise<void> {
   const Purchases = getPurchases();
   if (!configured || !Purchases) return;
   try {
+    await Purchases.invalidateCustomerInfoCache();
     const info = await Purchases.getCustomerInfo();
     await handleCustomerInfo(info);
   } catch (err) {
