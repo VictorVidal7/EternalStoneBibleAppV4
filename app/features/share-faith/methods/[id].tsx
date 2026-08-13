@@ -10,11 +10,12 @@
  * header). The header takes the method's accent colour so each outline has
  * its own identity.
  *
- * The app never argues a case here — it only reproduces a well-known outline
- * (Romans Road, Bridge to Life, the Four Spiritual Laws, and a
- * design/brokenness/restoration creation-fall-redemption arc) with its own
- * real Scripture; reading, reflecting, and sharing in their own words is
- * left entirely to the reader.
+ * The app never argues a case here — it only reproduces well-known gospel
+ * verse sequences (a Romans-only route, a bridge image, a four-step
+ * summary, and a design/brokenness/restoration creation-fall-redemption
+ * arc — see [[shareFaithMethods]] for why none is named after any one org's
+ * specific tract) with its own real Scripture; reading, reflecting, and
+ * sharing in their own words is left entirely to the reader.
  *
  * 100% FREE — no `usePremium()` / `useOfferingSheet()` anywhere in this
  * flow. 100% JS: the taxonomy is the pure

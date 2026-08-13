@@ -14,20 +14,19 @@
  * flat, order-insignificant `verseRefs`, this data IS ordered (`steps` is a
  * sequence, step 1 → step N) and each verse DOES carry a one-clause
  * `captionKey` naming what that verse contributes to the outline. That's
- * intentional here — each of the 4 methods below is itself a named,
- * pre-existing outline (Romans Road, Bridge to Life, the Four Spiritual
- * Laws, and a design/brokenness/restoration creation-fall-redemption
- * arc) that churches and ministries across many traditions have used for
- * decades; presenting its steps in order is just faithfully reproducing
- * that outline, not inventing a new sequenced argument. The 4th outline is
- * deliberately NOT named/branded after any one org's specific tract (see
- * `id: 'design-brokenness-restoration'` below) — the underlying
- * creation/fall/redemption shape is ancient and common property, but its
- * best-known modern packaging as "The 3 Circles" is a trademarked
- * evangelism tool published by a specific denomination's mission board,
- * which would misleadingly imply a denominational affiliation this app
- * doesn't have (2026-08 movement-neutrality audit). Captions stay to a
- * single clause naming what the verse
+ * intentional here — each of the 4 methods below reproduces a well-known
+ * VERSE SEQUENCE that churches and ministries across many traditions have
+ * used for decades; presenting its steps in order is just faithfully
+ * reproducing that sequence, not inventing a new sequenced argument. None
+ * of the 4 is named/branded after any one org's specific tract — `id:
+ * 'design-brokenness-restoration'` avoids "The 3 Circles" (NAMB/SBC's
+ * trademarked evangelism tool) for the same reason `id: 'bridge-to-god'`
+ * avoids The Navigators' "The Bridge to Life" and `id: 'four-steps'` avoids
+ * Cru's "The Four Spiritual Laws" — a recognizable, single-org tract name
+ * would misleadingly imply a denominational/organizational affiliation this
+ * app doesn't have (2026-08 movement-neutrality audit; the latter two ids
+ * were renamed in a follow-up pass after the audit's first pass missed
+ * them). Captions stay to a single clause naming what the verse
  * contributes — never connecting "therefore" prose beyond that, and never
  * commentary that argues a case on the reader's behalf.
  *
@@ -103,7 +102,7 @@ export const SHARE_FAITH_METHODS: readonly ShareFaithMethod[] = [
     ],
   },
   {
-    id: 'bridge-to-life',
+    id: 'bridge-to-god',
     icon: 'git-network-outline',
     accent: '#2563EB',
     steps: [
@@ -116,7 +115,7 @@ export const SHARE_FAITH_METHODS: readonly ShareFaithMethod[] = [
     ],
   },
   {
-    id: 'four-laws',
+    id: 'four-steps',
     icon: 'list',
     accent: '#EA580C',
     steps: [

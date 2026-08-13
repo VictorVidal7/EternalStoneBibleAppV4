@@ -6,9 +6,9 @@
  *     questions/objections a believer might face when sharing their faith,
  *     each mapped to a handful of relevant verses ([[shareFaithObjections]]).
  *   - "Cómo compartir el evangelio" — curated, ORDERED gospel-sharing
- *     outlines (Romans Road, Bridge to Life, the Four Laws, the Three
- *     Circles), each verse carrying a one-clause caption
- *     ([[shareFaithMethods]]).
+ *     verse sequences (a Romans-only route, a bridge image, a four-step
+ *     summary, a design/brokenness/restoration arc), each verse carrying a
+ *     one-clause caption ([[shareFaithMethods]]).
  *   - "Mi testimonio" — a guided-but-not-scripted writing surface for the
  *     reader's OWN testimony, shareable as an image ([[faithTestimony]]).
  *
