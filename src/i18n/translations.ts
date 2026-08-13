@@ -3495,6 +3495,9 @@ export const translations = {
       deleteAccountSuccessToast: 'Tu cuenta fue eliminada',
       deleteAccountError:
         'No se pudo eliminar tu cuenta. Inténtalo de nuevo o escríbenos.',
+      supportIdLabel: 'ID de soporte',
+      supportIdCopiedToast: 'ID de soporte copiado',
+      supportIdA11y: 'Copiar tu ID de soporte',
     },
 
     sync: {
@@ -9463,6 +9466,9 @@ export const translations = {
       deleteAccountSuccessToast: 'Your account was deleted',
       deleteAccountError:
         'Could not delete your account. Please try again or contact us.',
+      supportIdLabel: 'Support ID',
+      supportIdCopiedToast: 'Support ID copied',
+      supportIdA11y: 'Copy your support ID',
     },
 
     sync: {
