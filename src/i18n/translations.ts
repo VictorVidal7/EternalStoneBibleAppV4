@@ -2039,13 +2039,13 @@ export const translations = {
             description:
               'Un recorrido, usando solo la carta a los Romanos, que muestra el problema del pecado y la respuesta de la fe.',
           },
-          'bridge-to-life': {
-            title: 'Puente de vida',
+          'bridge-to-god': {
+            title: 'El puente hacia Dios',
             description:
               'Dos orillas separadas por el pecado, unidas por la cruz — una imagen visual del evangelio.',
           },
-          'four-laws': {
-            title: 'Las cuatro leyes',
+          'four-steps': {
+            title: 'Buenas noticias en cuatro pasos',
             description:
               'Cuatro verdades breves y numeradas, pensadas para compartirse en una conversación corta.',
           },
@@ -2069,7 +2069,7 @@ export const translations = {
             'romans-10-9': 'confesar con la boca y creer en el corazón',
             'romans-10-13': 'todo el que invoca el nombre del Señor será salvo',
           },
-          'bridge-to-life': {
+          'bridge-to-god': {
             'isaiah-59-2': 'el pecado nos separa de Dios',
             'romans-6-23':
               'la paga del pecado es muerte; la dádiva de Dios es vida eterna',
@@ -2078,7 +2078,7 @@ export const translations = {
             'ephesians-2-8': 'por gracia somos salvos por medio de la fe',
             'ephesians-2-9': 'no por obras, para que nadie se gloríe',
           },
-          'four-laws': {
+          'four-steps': {
             'john-3-16': 'Dios amó al mundo y dio a su Hijo',
             'romans-3-23': 'todos pecaron',
             'romans-6-23':
@@ -8036,13 +8036,13 @@ export const translations = {
             description:
               'A route through the book of Romans alone, showing the problem of sin and the response of faith.',
           },
-          'bridge-to-life': {
-            title: 'Bridge to Life',
+          'bridge-to-god': {
+            title: 'The Bridge to God',
             description:
               'Two sides separated by sin, joined by the cross — a visual picture of the gospel.',
           },
-          'four-laws': {
-            title: 'The Four Laws',
+          'four-steps': {
+            title: 'Good News in Four Steps',
             description:
               'Four short, numbered truths, meant to be shared in a brief conversation.',
           },
@@ -8067,7 +8067,7 @@ export const translations = {
             'romans-10-13':
               'everyone who calls on the name of the Lord will be saved',
           },
-          'bridge-to-life': {
+          'bridge-to-god': {
             'isaiah-59-2': 'sin separates us from God',
             'romans-6-23':
               'the wages of sin is death; the gift of God is eternal life',
@@ -8076,7 +8076,7 @@ export const translations = {
             'ephesians-2-8': 'by grace we are saved through faith',
             'ephesians-2-9': 'not by works, so that no one may boast',
           },
-          'four-laws': {
+          'four-steps': {
             'john-3-16': 'God loved the world and gave His Son',
             'romans-3-23': 'all have sinned',
             'romans-6-23':
