@@ -80,6 +80,7 @@ export default [
       'DESIGN_EXAMPLES.tsx',
       'scripts/**', // CLI tools (data fetchers, migrations); not user-facing
       'plugins/widget-files/**', // Native Kotlin/XML copied verbatim by the widget plugin
+      'functions/**', // Cloud Functions — separate Node project, own package.json/tsconfig
     ],
   },
 ];
