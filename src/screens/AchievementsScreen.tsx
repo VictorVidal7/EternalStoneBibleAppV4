@@ -12,6 +12,8 @@ import {
   Pressable,
   ScrollView,
   TouchableOpacity,
+  NativeScrollEvent,
+  NativeSyntheticEvent,
 } from 'react-native';
 // react-native's SafeAreaView is deprecated; use the safe-area-context one,
 // matching the rest of the app and silencing the RN deprecation warning.
@@ -196,6 +198,22 @@ export const AchievementsScreen: React.FC = () => {
     AchievementCategory | 'all'
   >('all');
   const [showStats, setShowStats] = useState(false);
+  // Fade-edge scroll affordance for the category chip row (below): tracks
+  // scroll position vs. content/container width so each edge's gradient
+  // only shows when there's actually more to reveal in that direction,
+  // rather than a static hint that's wrong once you've scrolled to an end.
+  const [categoryScrollX, setCategoryScrollX] = useState(0);
+  const [categoryContentWidth, setCategoryContentWidth] = useState(0);
+  const [categoryContainerWidth, setCategoryContainerWidth] = useState(0);
+  const handleCategoryScroll = useCallback(
+    (e: NativeSyntheticEvent<NativeScrollEvent>) => {
+      setCategoryScrollX(e.nativeEvent.contentOffset.x);
+    },
+    [],
+  );
+  const showCategoryLeftFade = categoryScrollX > 4;
+  const showCategoryRightFade =
+    categoryContentWidth - categoryContainerWidth - categoryScrollX > 4;
   // Which "almost there" row has its description revealed (tap to toggle) — so
   // readers can see what an upcoming achievement actually asks for (Sprint 98).
   const [expandedAlmostId, setExpandedAlmostId] = useState<string | null>(null);
@@ -392,7 +410,10 @@ export const AchievementsScreen: React.FC = () => {
               scroll the achievements. A horizontal ScrollView keeps them to a
               single, always-reachable row; mirrors the Home FeelingChips strip
               (no flex on the ScrollView → it sizes to chip height, never
-              stretching under Fabric). */}
+              stretching under Fabric). Fade edges (below) hint that it
+              scrolls — confirmed via live device testing that the row itself
+              already scrolled fine, but nothing signaled that to the reader
+              (33rd-session clipping-bug investigation). */}
           <View
             style={[
               styles.categoryScroll,
@@ -404,7 +425,13 @@ export const AchievementsScreen: React.FC = () => {
             <ScrollView
               horizontal
               showsHorizontalScrollIndicator={false}
-              contentContainerStyle={styles.categoryList}>
+              contentContainerStyle={styles.categoryList}
+              onScroll={handleCategoryScroll}
+              scrollEventThrottle={16}
+              onContentSizeChange={w => setCategoryContentWidth(w)}
+              onLayout={e =>
+                setCategoryContainerWidth(e.nativeEvent.layout.width)
+              }>
               {categories.map(item => {
                 const isActive = selectedCategory === item.id;
                 return (
@@ -435,6 +462,24 @@ export const AchievementsScreen: React.FC = () => {
                 );
               })}
             </ScrollView>
+            {showCategoryLeftFade ? (
+              <LinearGradient
+                pointerEvents="none"
+                colors={[colors.background, 'transparent']}
+                start={{x: 0, y: 0}}
+                end={{x: 1, y: 0}}
+                style={styles.categoryFadeLeft}
+              />
+            ) : null}
+            {showCategoryRightFade ? (
+              <LinearGradient
+                pointerEvents="none"
+                colors={['transparent', colors.background]}
+                start={{x: 0, y: 0}}
+                end={{x: 1, y: 0}}
+                style={styles.categoryFadeRight}
+              />
+            ) : null}
           </View>
 
           {/* Achievements list. The summary + "almost there" cards ride in the
@@ -788,6 +833,23 @@ const styles = StyleSheet.create({
   categoryText: {
     fontSize: fontSize.sm,
     fontWeight: '600',
+  },
+  // Scroll-affordance fades over the category row — width tuned to be wide
+  // enough to read as an intentional edge-fade, narrow enough not to mask a
+  // whole chip.
+  categoryFadeLeft: {
+    position: 'absolute',
+    left: 0,
+    top: 0,
+    bottom: 0,
+    width: 28,
+  },
+  categoryFadeRight: {
+    position: 'absolute',
+    right: 0,
+    top: 0,
+    bottom: 0,
+    width: 28,
   },
   summary: {
     flexDirection: 'row',
