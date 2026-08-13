@@ -1,0 +1,15 @@
+# Compiled output
+lib/
+generated/
+
+# Dependencies
+node_modules/
+
+# Logs
+*.log
+
+# Local env / secrets (never commit — see src/index.ts's REVENUECAT_SECRET_KEY
+# comment; the real secret lives in Cloud Functions Secret Manager, not here)
+.env
+.env.local
+.runtimeconfig.json

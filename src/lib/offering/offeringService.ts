@@ -74,6 +74,7 @@ type PurchasesStatic = {
   ) => Promise<{customerInfo: CustomerInfo}>;
   restorePurchases: () => Promise<CustomerInfo>;
   logIn: (uid: string) => Promise<{customerInfo: CustomerInfo}>;
+  invalidateCustomerInfoCache: () => Promise<void>;
   canMakePayments: () => Promise<boolean>;
   setLogHandler: (handler: (level: string, message: string) => void) => void;
   PURCHASES_ERROR_CODE: {PURCHASE_CANCELLED_ERROR: string};
@@ -306,6 +307,41 @@ export async function restore(): Promise<{unlocked: boolean}> {
       error: err,
     });
     return {unlocked: false};
+  }
+}
+
+/**
+ * Forces an immediate re-sync with RevenueCat's CustomerInfo, bypassing the
+ * wait for its async `addCustomerInfoUpdateListener` push. Used right after
+ * an entitlement was granted out-of-band from a normal in-app purchase —
+ * today that's only gift-code redemption (see giftCodeService.ts's
+ * redeemGiftCode(), which grants the entitlement server-side via the
+ * RevenueCat REST API) — so the UI reflects it immediately instead of
+ * waiting on RevenueCat's next push, which can lag by several seconds.
+ * Reuses the same handleCustomerInfo() the listener itself calls, so this
+ * stays the identical single source of truth described at the top of this
+ * file — it's just an on-demand trigger for it, not a new state path.
+ *
+ * Explicitly invalidates the SDK's own CustomerInfo cache first —
+ * RevenueCat's docs call this out by name for exactly this situation
+ * ("customer information...updated outside of the app, like if a
+ * promotional subscription is granted through the RevenueCat dashboard"),
+ * which is precisely what a gift-code redemption is. Without this,
+ * getCustomerInfo() can keep serving a pre-grant cached snapshot for its
+ * normal TTL, silently defeating the whole point of this function.
+ */
+export async function refreshEntitlement(): Promise<void> {
+  const Purchases = getPurchases();
+  if (!configured || !Purchases) return;
+  try {
+    await Purchases.invalidateCustomerInfoCache();
+    const info = await Purchases.getCustomerInfo();
+    await handleCustomerInfo(info);
+  } catch (err) {
+    logger.warn('offeringService: refreshEntitlement failed', {
+      component: 'offeringService',
+      error: err,
+    });
   }
 }
 

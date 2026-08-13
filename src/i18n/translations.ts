@@ -3500,6 +3500,21 @@ export const translations = {
       supportIdA11y: 'Copiar tu ID de soporte',
     },
 
+    redeemCode: {
+      entryLabel: '¿Tienes un código de regalo?',
+      sheetTitle: 'Canjear código de regalo',
+      sheetIntro:
+        'Ingresa el código que recibiste para desbloquear todo el contenido premium en este dispositivo.',
+      inputPlaceholder: 'XXXX-XXXX',
+      pasteDetected: 'Código detectado en el portapapeles. Toca para usarlo.',
+      submitLabel: 'Canjear',
+      successToast: '¡Código canjeado! Ya tienes todo el contenido premium.',
+      alreadyRedeemedToast: 'Este código ya fue canjeado antes.',
+      notFoundToast: 'No encontramos ese código. Revisa que esté bien escrito.',
+      invalidToast: 'Código inválido.',
+      errorToast: 'No se pudo canjear el código. Inténtalo de nuevo.',
+    },
+
     sync: {
       justNow: 'Sincronizado hace un momento',
       secondsAgo: 'Sincronizado hace {{n}}s',
@@ -9469,6 +9484,22 @@ export const translations = {
       supportIdLabel: 'Support ID',
       supportIdCopiedToast: 'Support ID copied',
       supportIdA11y: 'Copy your support ID',
+    },
+
+    redeemCode: {
+      entryLabel: 'Have a gift code?',
+      sheetTitle: 'Redeem gift code',
+      sheetIntro:
+        'Enter the code you received to unlock all premium content on this device.',
+      inputPlaceholder: 'XXXX-XXXX',
+      pasteDetected: 'Code detected on your clipboard. Tap to use it.',
+      submitLabel: 'Redeem',
+      successToast: 'Code redeemed! You now have all premium content.',
+      alreadyRedeemedToast: 'This code was already redeemed.',
+      notFoundToast:
+        "We couldn't find that code. Check that it's typed correctly.",
+      invalidToast: 'Invalid code.',
+      errorToast: 'Could not redeem the code. Please try again.',
     },
 
     sync: {

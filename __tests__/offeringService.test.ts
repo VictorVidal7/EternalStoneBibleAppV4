@@ -17,6 +17,7 @@ import {
   purchaseUnlock,
   purchaseDonation,
   restore,
+  refreshEntitlement,
   onEntitlementChange,
   getLastKnownEntitlement,
   __resetForTests,
@@ -29,12 +30,14 @@ import {
 
 const mockPurchases = Purchases as unknown as {
   configure: jest.Mock;
+  getCustomerInfo: jest.Mock;
   getOfferings: jest.Mock;
   getProducts: jest.Mock;
   purchasePackage: jest.Mock;
   purchaseStoreProduct: jest.Mock;
   restorePurchases: jest.Mock;
   logIn: jest.Mock;
+  invalidateCustomerInfoCache: jest.Mock;
   canMakePayments: jest.Mock;
   __setCustomerInfo: (info: unknown) => void;
   __setOfferings: (offerings: unknown) => void;
@@ -267,6 +270,51 @@ describe('offeringService', () => {
         new Error('offline'),
       );
       await expect(restore()).resolves.toEqual({unlocked: false});
+    });
+  });
+
+  describe('refreshEntitlement', () => {
+    it('is a no-op when not configured', async () => {
+      await refreshEntitlement();
+      expect(mockPurchases.invalidateCustomerInfoCache).not.toHaveBeenCalled();
+    });
+
+    it('invalidates the SDK cache BEFORE re-reading customer info, and syncs the result', async () => {
+      __setApiKeyForTests('test-key');
+      await initialize();
+      mockPurchases.__setCustomerInfo(noEntitlementInfo);
+      expect(getLastKnownEntitlement()).toBe(false);
+
+      // Simulate an out-of-band grant (a redeemed gift code) landing
+      // between the cache invalidation and the subsequent getCustomerInfo()
+      // read — exactly the case invalidateCustomerInfoCache() exists for.
+      mockPurchases.getCustomerInfo.mockResolvedValueOnce(
+        activeEntitlementInfo,
+      );
+
+      await refreshEntitlement();
+
+      expect(mockPurchases.invalidateCustomerInfoCache).toHaveBeenCalledTimes(
+        1,
+      );
+      const invalidateOrder =
+        mockPurchases.invalidateCustomerInfoCache.mock.invocationCallOrder[0];
+      const getInfoOrder =
+        mockPurchases.getCustomerInfo.mock.invocationCallOrder[
+          mockPurchases.getCustomerInfo.mock.invocationCallOrder.length - 1
+        ];
+      expect(invalidateOrder).toBeLessThan(getInfoOrder);
+      expect(getLastKnownEntitlement()).toBe(true);
+      await expect(getCachedEntitlement()).resolves.toBe(true);
+    });
+
+    it('never throws when the SDK call fails', async () => {
+      __setApiKeyForTests('test-key');
+      await initialize();
+      mockPurchases.invalidateCustomerInfoCache.mockRejectedValueOnce(
+        new Error('offline'),
+      );
+      await expect(refreshEntitlement()).resolves.toBeUndefined();
     });
   });
 });

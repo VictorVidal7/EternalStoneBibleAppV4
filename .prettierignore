@@ -25,3 +25,8 @@ src/features/study/data/hebrewMorphologyCodes.json
 
 # Binary asset bundles (images, fonts, the seeded SQLite db, etc.)
 assets
+
+# Cloud Functions — separate Node project with its own tooling; not part of
+# the main repo's npm run validate (see functions/ setup in the gift-code-
+# redemption feature report for how it's gated instead).
+functions

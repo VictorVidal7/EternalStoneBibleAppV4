@@ -23,5 +23,13 @@
     "noImplicitReturns": true
   },
   "include": ["**/*.ts", "**/*.tsx"],
-  "exclude": ["node_modules", "DESIGN_EXAMPLES.tsx"]
+  "exclude": [
+    "node_modules",
+    "DESIGN_EXAMPLES.tsx",
+    // Cloud Functions — a separate Node project with its own package.json/
+    // tsconfig.json (functions/tsconfig.json) and dependency set
+    // (firebase-functions, a Node-only runtime). `cd functions && npx tsc
+    // --noEmit` is its own gate; see the gift-code-redemption report.
+    "functions/**"
+  ]
 }

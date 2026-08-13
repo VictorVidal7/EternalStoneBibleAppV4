@@ -42,6 +42,7 @@ import ReadingGoalSettings from '@components/settings/ReadingGoalSettings';
 import {useReaderPreferences} from '@context/ReaderPreferencesContext';
 import {useAccessibilityPreferences} from '@context/AccessibilityPreferencesContext';
 import ExtrasSettings from '@components/settings/ExtrasSettings';
+import RedeemCodeSheet from '@components/settings/RedeemCodeSheet';
 import DonationSettings from '@components/settings/DonationSettings';
 import ColorThemeSettings from '@components/settings/ColorThemeSettings';
 import {haptics} from '@lib/haptics';
@@ -91,6 +92,8 @@ export default function SettingsScreen() {
   const [signOutConfirmVisible, setSignOutConfirmVisible] = useState(false);
   const [deleteAccountConfirmVisible, setDeleteAccountConfirmVisible] =
     useState(false);
+  // Gift-code redemption sheet (gift-code-redemption feature).
+  const [redeemCodeSheetVisible, setRedeemCodeSheetVisible] = useState(false);
   const [isDeletingAccount, setIsDeletingAccount] = useState(false);
   // Dev-only Crashlytics smoke test confirm (see the __DEV__ long-press below).
   const [crashConfirmVisible, setCrashConfirmVisible] = useState(false);
@@ -1082,6 +1085,37 @@ export default function SettingsScreen() {
                     color={colors.textTertiary}
                   />
                 </TouchableOpacity>
+                {/* Gift-code redemption entry point — deliberately NOT inside
+                    ExtrasSettings, which returns null entirely in production
+                    when locked + billing unavailable (sideload, exactly the
+                    scenario a gift code is most useful for). Signed-in-only,
+                    same condition as this whole branch — an anonymous uid
+                    isn't stable across reinstalls, so redemption requires a
+                    real account (see giftCodeService.ts). */}
+                <TouchableOpacity
+                  style={[styles.historyRow, {borderColor: colors.border}]}
+                  onPress={() => {
+                    haptics.tap();
+                    setRedeemCodeSheetVisible(true);
+                  }}
+                  accessibilityRole="button"
+                  accessibilityLabel={t.redeemCode.entryLabel}>
+                  <Ionicons
+                    name="gift-outline"
+                    size={18}
+                    color={colors.textSecondary}
+                  />
+                  <Text
+                    style={[styles.historyRowText, {color: colors.text}]}
+                    numberOfLines={1}>
+                    {t.redeemCode.entryLabel}
+                  </Text>
+                  <Ionicons
+                    name="chevron-forward"
+                    size={16}
+                    color={colors.textTertiary}
+                  />
+                </TouchableOpacity>
                 <TouchableOpacity
                   style={[styles.historyRow, {borderColor: colors.border}]}
                   onPress={() => void handleCopySupportId()}
@@ -1285,6 +1319,10 @@ export default function SettingsScreen() {
         onCancel={() => setSignOutConfirmVisible(false)}
         destructive
         icon="log-out-outline"
+      />
+      <RedeemCodeSheet
+        visible={redeemCodeSheetVisible}
+        onClose={() => setRedeemCodeSheetVisible(false)}
       />
       <ConfirmDialog
         visible={deleteAccountConfirmVisible}
