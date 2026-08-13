@@ -46,6 +46,7 @@ import DonationSettings from '@components/settings/DonationSettings';
 import ColorThemeSettings from '@components/settings/ColorThemeSettings';
 import {haptics} from '@lib/haptics';
 import Constants from 'expo-constants';
+import * as Clipboard from 'expo-clipboard';
 
 type ThemeOption = 'light' | 'dark' | 'auto';
 
@@ -302,6 +303,13 @@ export default function SettingsScreen() {
 
   function handleDeleteAccount() {
     setDeleteAccountConfirmVisible(true);
+  }
+
+  async function handleCopySupportId() {
+    if (!user) return;
+    await Clipboard.setStringAsync(user.uid);
+    haptics.success();
+    toast.success(t.auth.supportIdCopiedToast);
   }
 
   async function performDeleteAccount() {
@@ -1075,6 +1083,38 @@ export default function SettingsScreen() {
                   />
                 </TouchableOpacity>
                 <TouchableOpacity
+                  style={[styles.historyRow, {borderColor: colors.border}]}
+                  onPress={() => void handleCopySupportId()}
+                  accessibilityRole="button"
+                  accessibilityLabel={t.auth.supportIdA11y}>
+                  <Ionicons
+                    name="finger-print-outline"
+                    size={18}
+                    color={colors.textSecondary}
+                  />
+                  <View style={styles.supportIdTextGroup}>
+                    <Text
+                      style={[styles.supportIdLabel, {color: colors.text}]}
+                      numberOfLines={1}>
+                      {t.auth.supportIdLabel}
+                    </Text>
+                    <Text
+                      style={[
+                        styles.supportIdValue,
+                        {color: colors.textTertiary},
+                      ]}
+                      numberOfLines={1}
+                      ellipsizeMode="middle">
+                      {user.uid}
+                    </Text>
+                  </View>
+                  <Ionicons
+                    name="copy-outline"
+                    size={16}
+                    color={colors.textTertiary}
+                  />
+                </TouchableOpacity>
+                <TouchableOpacity
                   style={[
                     themedStyles.signOutButton,
                     {borderColor: colors.error},
@@ -1424,6 +1464,17 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: '600',
     flex: 1,
+  },
+  supportIdTextGroup: {
+    flex: 1,
+    gap: 2,
+  },
+  supportIdLabel: {
+    fontSize: 14,
+    fontWeight: '600',
+  },
+  supportIdValue: {
+    fontSize: 12,
   },
   deleteAccountButton: {
     marginTop: 10,
