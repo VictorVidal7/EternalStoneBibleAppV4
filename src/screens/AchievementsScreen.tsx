@@ -463,7 +463,10 @@ export const AchievementsScreen: React.FC = () => {
                         style={[
                           styles.summaryLabel,
                           {color: colors.textSecondary},
-                        ]}>
+                        ]}
+                        numberOfLines={1}
+                        adjustsFontSizeToFit
+                        minimumFontScale={0.7}>
                         {t.achievements.achievementsUnlocked}
                       </Text>
                     </View>
@@ -485,7 +488,10 @@ export const AchievementsScreen: React.FC = () => {
                         style={[
                           styles.summaryLabel,
                           {color: colors.textSecondary},
-                        ]}>
+                        ]}
+                        numberOfLines={1}
+                        adjustsFontSizeToFit
+                        minimumFontScale={0.7}>
                         {t.achievements.totalPoints}
                       </Text>
                     </View>
@@ -503,7 +509,10 @@ export const AchievementsScreen: React.FC = () => {
                         style={[
                           styles.summaryLabel,
                           {color: colors.textSecondary},
-                        ]}>
+                        ]}
+                        numberOfLines={1}
+                        adjustsFontSizeToFit
+                        minimumFontScale={0.7}>
                         {stats.level >= 10
                           ? `👑 ${t.achievements.legend}`
                           : t.achievements.inProgress}
