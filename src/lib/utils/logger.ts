@@ -48,21 +48,47 @@ const SENSITIVE_KEYS = [
 ];
 
 /** Crashlytics native module — loaded lazily so jest + dev hot-reload
- *  don't bomb when the native binding isn't present. */
+ *  don't bomb when the native binding isn't present. Modular API (v26):
+ *  the require() returns named functions taking the instance as the
+ *  first argument, not an instance with its own methods. */
+type CrashlyticsInstance = unknown;
+type CrashlyticsModuleExports = {
+  getCrashlytics: () => CrashlyticsInstance;
+  log: (instance: CrashlyticsInstance, msg: string) => void;
+  recordError: (
+    instance: CrashlyticsInstance,
+    e: Error,
+    jsErrorName?: string,
+  ) => void;
+  setAttributes: (
+    instance: CrashlyticsInstance,
+    attrs: Record<string, string>,
+  ) => void;
+  setUserId: (instance: CrashlyticsInstance, id: string) => void;
+  crash: (instance: CrashlyticsInstance) => void;
+};
 type CrashlyticsModule = {
   log: (msg: string) => void;
   recordError: (e: Error, jsErrorName?: string) => void;
-  setAttribute: (key: string, value: string) => void;
   setAttributes: (attrs: Record<string, string>) => void;
   setUserId: (id: string) => void;
+  crash: () => void;
 };
 let _crashlytics: CrashlyticsModule | null | undefined;
 function getCrashlytics(): CrashlyticsModule | null {
   if (_crashlytics !== undefined) return _crashlytics;
   try {
-    const mod = require('@react-native-firebase/crashlytics');
-    // The default export is a callable that returns the instance.
-    _crashlytics = (mod.default || mod)() as CrashlyticsModule;
+    const mod =
+      require('@react-native-firebase/crashlytics') as CrashlyticsModuleExports;
+    const instance = mod.getCrashlytics();
+    _crashlytics = {
+      log: msg => mod.log(instance, msg),
+      recordError: (e, jsErrorName) =>
+        mod.recordError(instance, e, jsErrorName),
+      setAttributes: attrs => mod.setAttributes(instance, attrs),
+      setUserId: id => mod.setUserId(instance, id),
+      crash: () => mod.crash(instance),
+    };
   } catch {
     _crashlytics = null;
   }
@@ -246,9 +272,6 @@ class Logger {
       );
       return;
     }
-    // @ts-expect-error: `crash()` exists on the native module but isn't
-    // in our minimal type declaration. We only use it from a hidden
-    // debug action, never production code.
     c.crash();
   }
 }

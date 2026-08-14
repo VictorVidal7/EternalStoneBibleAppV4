@@ -62,29 +62,52 @@ const mockLinkWithCredential = jest
 type MockCurrentUser = {
   uid: string;
   isAnonymous: boolean;
-  linkWithCredential: jest.Mock;
+  linkWithCredential?: jest.Mock;
 } | null;
 let mockCurrentUser: MockCurrentUser = null;
 
-const mockAuthFn: any = jest.fn(() => ({
-  onAuthStateChanged: mockOnAuthStateChanged,
-  get currentUser() {
-    return mockCurrentUser;
-  },
-  signInAnonymously: mockSignInAnonymously,
-  signInWithCredential: mockSignInWithCredential,
-  signOut: mockSignOut,
-}));
-mockAuthFn.GoogleAuthProvider = {
-  credential: jest.fn((idToken: string) => ({
-    providerId: 'google.com',
-    idToken,
+// Modular API (v26) — auth() is no longer a callable namespaced instance;
+// getAuth() returns the instance and every verb (onAuthStateChanged,
+// signInAnonymously, signInWithCredential, signOut, linkWithCredential,
+// updateProfile, deleteUser, reauthenticateWithCredential) is a free
+// function taking the instance/user as its first argument. Kept as one
+// `mockAuthFn` object (rather than separate named exports) so the rest
+// of this file's `mockAuthFn.GoogleAuthProvider...` references stay
+// valid — jest.mock below spreads it into the module's named exports.
+const mockUpdateProfile = jest.fn().mockResolvedValue(undefined);
+const mockDeleteUser = jest.fn().mockResolvedValue(undefined);
+const mockReauthenticateWithCredential = jest
+  .fn()
+  .mockResolvedValue({user: {uid: 'reauthed-uid'}});
+
+const mockAuthFn: any = {
+  getAuth: jest.fn(() => ({
+    get currentUser() {
+      return mockCurrentUser;
+    },
   })),
+  onAuthStateChanged: (_auth: unknown, cb: Listener) =>
+    mockOnAuthStateChanged(cb),
+  signInAnonymously: () => mockSignInAnonymously(),
+  signInWithCredential: (_auth: unknown, credential: unknown) =>
+    mockSignInWithCredential(credential),
+  signOut: () => mockSignOut(),
+  linkWithCredential: (_user: MockCurrentUser, credential: unknown) =>
+    mockLinkWithCredential(credential),
+  updateProfile: mockUpdateProfile,
+  deleteUser: mockDeleteUser,
+  reauthenticateWithCredential: mockReauthenticateWithCredential,
+  GoogleAuthProvider: {
+    credential: jest.fn((idToken: string) => ({
+      providerId: 'google.com',
+      idToken,
+    })),
+  },
 };
 
 jest.mock('@react-native-firebase/auth', () => ({
   __esModule: true,
-  default: mockAuthFn,
+  ...mockAuthFn,
 }));
 
 const mockGoogleSignin = {

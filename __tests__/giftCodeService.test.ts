@@ -11,7 +11,9 @@
 const mockGetIdToken = jest.fn();
 let mockCurrentUser: {uid: string; getIdToken: jest.Mock} | null = null;
 
-const mockAuthFn = jest.fn(() => ({
+// Modular API (v26) — getAuth() returns the instance directly (no more
+// callable namespaced default export); currentUser stays a property on it.
+const mockGetAuth = jest.fn(() => ({
   get currentUser() {
     return mockCurrentUser;
   },
@@ -19,7 +21,7 @@ const mockAuthFn = jest.fn(() => ({
 
 jest.mock('@react-native-firebase/auth', () => ({
   __esModule: true,
-  default: mockAuthFn,
+  getAuth: mockGetAuth,
 }));
 
 // Only linkUser is mocked (not refreshEntitlement — giftCodeService doesn't

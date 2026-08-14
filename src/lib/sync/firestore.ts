@@ -6,23 +6,22 @@
  * load time would crash every test. We resolve once, cache the result
  * (or `null` to mark "unavailable"), and gate every public method.
  *
+ * Modular API (v26) — @react-native-firebase/firestore no longer exports
+ * a callable `firestore()` instance with chainable `.collection().doc()`
+ * methods; it exports free functions (`collection`, `doc`, `query`,
+ * `where`, `onSnapshot`, `getDocs`, `setDoc`, ...) that take the
+ * instance/ref as their first argument. Rather than rewrite every
+ * consumer (SyncEngine, memoryStatsSync, retiredBookmarksMigration,
+ * deleteAccountData — 6 files total), this module rebuilds the SAME
+ * chainable CollectionRef/Query/DocumentRef shape on top of the modular
+ * functions internally, so every consumer keeps working unchanged.
+ *
  * The wrapping types stay loose (`unknown`/`any`) so the firestore
  * native types don't leak into the rest of the codebase — the engine
  * only needs the verbs.
  */
 
 import {logger} from '@lib/utils/logger';
-
-type FirestoreFn = (() => FirestoreInstance) & {
-  FieldValue?: {
-    serverTimestamp: () => unknown;
-  };
-};
-
-interface FirestoreInstance {
-  collection: (path: string) => CollectionRef;
-  // Native module also exposes batch, runTransaction etc., not needed yet.
-}
 
 /** Firestore inequality/equality operators we use for cursor queries. */
 type WhereFilterOp =
@@ -90,6 +89,106 @@ interface QuerySnapshot {
   size: number;
 }
 
+interface FirestoreInstance {
+  collection: (path: string) => CollectionRef;
+  // Native module also exposes batch, runTransaction etc., not needed yet.
+}
+
+type FirestoreFn = (() => FirestoreInstance) & {
+  FieldValue?: {
+    serverTimestamp: () => unknown;
+  };
+};
+
+/** Shape of the modular @react-native-firebase/firestore named exports. */
+type FirestoreModuleExports = {
+  getFirestore: () => unknown;
+  collection: (db: unknown, path: string) => unknown;
+  doc: (collectionRef: unknown, id: string) => unknown;
+  query: (queryOrCollection: unknown, constraint: unknown) => unknown;
+  where: (field: string, op: WhereFilterOp, value: unknown) => unknown;
+  orderBy: (field: string, direction?: 'asc' | 'desc') => unknown;
+  limit: (n: number) => unknown;
+  onSnapshot: (
+    query: unknown,
+    onNext: (snapshot: any) => void,
+    onError?: (err: Error) => void,
+  ) => () => void;
+  getDocs: (query: unknown) => Promise<any>;
+  getDoc: (docRef: unknown) => Promise<any>;
+  setDoc: (
+    docRef: unknown,
+    data: object,
+    options?: {merge?: boolean},
+  ) => Promise<void>;
+  deleteDoc: (docRef: unknown) => Promise<void>;
+  serverTimestamp: () => unknown;
+};
+
+/** Normalizes a raw modular DocumentSnapshot into our stable shape. Guards
+ *  against either an `exists` property (namespaced-style) or an
+ *  `exists()` method (firebase-js-sdk-style) — whichever the installed
+ *  version returns — since callers only ever see the wrapped shape. */
+function wrapDocumentSnapshot(raw: any): DocumentSnapshot {
+  return {
+    exists: typeof raw.exists === 'function' ? raw.exists() : !!raw.exists,
+    id: raw.id,
+    data: () => raw.data(),
+  };
+}
+
+function wrapQuerySnapshot(raw: any): QuerySnapshot {
+  return {
+    docChanges: () =>
+      raw.docChanges().map((c: any) => ({
+        type: c.type,
+        doc: wrapDocumentSnapshot(c.doc),
+      })),
+    docs: (raw.docs ?? []).map(wrapDocumentSnapshot),
+    size: raw.size,
+  };
+}
+
+function buildQuery(mod: FirestoreModuleExports, queryRef: unknown): Query {
+  return {
+    where: (field, op, value) =>
+      buildQuery(mod, mod.query(queryRef, mod.where(field, op, value))),
+    orderBy: (field, direction) =>
+      buildQuery(mod, mod.query(queryRef, mod.orderBy(field, direction))),
+    limit: n => buildQuery(mod, mod.query(queryRef, mod.limit(n))),
+    onSnapshot: (onNext, onError) =>
+      mod.onSnapshot(
+        queryRef,
+        snap => onNext(wrapQuerySnapshot(snap)),
+        onError,
+      ),
+    get: async () => wrapQuerySnapshot(await mod.getDocs(queryRef)),
+  };
+}
+
+function buildDocumentRef(
+  mod: FirestoreModuleExports,
+  docRef: unknown,
+): DocumentRef {
+  return {
+    set: (data, options) => mod.setDoc(docRef, data, options),
+    get: async () => wrapDocumentSnapshot(await mod.getDoc(docRef)),
+    delete: () => mod.deleteDoc(docRef),
+  };
+}
+
+function buildCollectionRef(
+  mod: FirestoreModuleExports,
+  db: unknown,
+  path: string,
+): CollectionRef {
+  const collRef = mod.collection(db, path);
+  return {
+    ...buildQuery(mod, collRef),
+    doc: id => buildDocumentRef(mod, mod.doc(collRef, id)),
+  };
+}
+
 let cached: FirestoreFn | null | undefined;
 
 /**
@@ -100,15 +199,19 @@ let cached: FirestoreFn | null | undefined;
 export function getFirestore(): FirestoreFn | null {
   if (cached !== undefined) return cached;
   try {
-    const mod = require('@react-native-firebase/firestore');
-    const fn = (mod.default ?? mod) as FirestoreFn;
-    if (typeof fn !== 'function') {
-      logger.warn('Firestore default export was not callable', {
-        component: 'sync/firestore',
-      });
-      cached = null;
-      return null;
-    }
+    const mod =
+      require('@react-native-firebase/firestore') as FirestoreModuleExports;
+    const db = mod.getFirestore();
+    const fn: FirestoreFn = Object.assign(
+      (): FirestoreInstance => ({
+        collection: (path: string) => buildCollectionRef(mod, db, path),
+      }),
+      {
+        FieldValue: {
+          serverTimestamp: () => mod.serverTimestamp(),
+        },
+      },
+    );
     cached = fn;
     return fn;
   } catch (err) {

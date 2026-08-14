@@ -69,6 +69,39 @@ export interface AuthContextValue {
 
 const AuthContext = createContext<AuthContextValue | undefined>(undefined);
 
+// Modular API (v26) — the require() returns named functions taking the
+// Auth instance as the first argument, plus a GoogleAuthProvider class
+// with a static `.credential()`. currentUser stays a plain property on
+// the instance (unlike the verb methods, which all became free functions).
+type FirebaseAuthInstance = {currentUser: any};
+type FirebaseAuthModuleExports = {
+  getAuth: () => FirebaseAuthInstance;
+  onAuthStateChanged: (
+    auth: FirebaseAuthInstance,
+    cb: (user: any) => void,
+  ) => () => void;
+  signInAnonymously: (auth: FirebaseAuthInstance) => Promise<{user: any}>;
+  signInWithCredential: (
+    auth: FirebaseAuthInstance,
+    credential: any,
+  ) => Promise<{user: any}>;
+  signOut: (auth: FirebaseAuthInstance) => Promise<void>;
+  linkWithCredential: (user: any, credential: any) => Promise<{user: any}>;
+  updateProfile: (
+    user: any,
+    profile: {displayName?: string | null; photoURL?: string | null},
+  ) => Promise<void>;
+  deleteUser: (user: any) => Promise<void>;
+  reauthenticateWithCredential: (
+    user: any,
+    credential: any,
+  ) => Promise<{user: any}>;
+  GoogleAuthProvider: {credential: (idToken: string) => any};
+};
+
+/** Wraps the modular auth module behind the same shape the rest of this
+ *  file used to call directly on the namespaced `auth()` instance, so
+ *  the call sites below stay unchanged. */
 type FirebaseAuthModule = {
   (): {
     onAuthStateChanged: (cb: (user: any) => void) => () => void;
@@ -78,6 +111,16 @@ type FirebaseAuthModule = {
     signOut: () => Promise<void>;
   };
   GoogleAuthProvider: {credential: (idToken: string) => any};
+  linkWithCredential: (user: any, credential: any) => Promise<{user: any}>;
+  updateProfile: (
+    user: any,
+    profile: {displayName?: string | null; photoURL?: string | null},
+  ) => Promise<void>;
+  deleteUser: (user: any) => Promise<void>;
+  reauthenticateWithCredential: (
+    user: any,
+    credential: any,
+  ) => Promise<{user: any}>;
 };
 
 type GoogleSigninApi = {
@@ -94,8 +137,30 @@ let _authModule: FirebaseAuthModule | null | undefined;
 function getAuth(): FirebaseAuthModule | null {
   if (_authModule !== undefined) return _authModule;
   try {
-    const mod = require('@react-native-firebase/auth');
-    _authModule = (mod.default || mod) as FirebaseAuthModule;
+    const mod =
+      require('@react-native-firebase/auth') as FirebaseAuthModuleExports;
+    const instance = mod.getAuth();
+    const wrapped: FirebaseAuthModule = Object.assign(
+      () => ({
+        onAuthStateChanged: (cb: (user: any) => void) =>
+          mod.onAuthStateChanged(instance, cb),
+        get currentUser() {
+          return instance.currentUser;
+        },
+        signInAnonymously: () => mod.signInAnonymously(instance),
+        signInWithCredential: (credential: any) =>
+          mod.signInWithCredential(instance, credential),
+        signOut: () => mod.signOut(instance),
+      }),
+      {
+        GoogleAuthProvider: mod.GoogleAuthProvider,
+        linkWithCredential: mod.linkWithCredential,
+        updateProfile: mod.updateProfile,
+        deleteUser: mod.deleteUser,
+        reauthenticateWithCredential: mod.reauthenticateWithCredential,
+      },
+    );
+    _authModule = wrapped;
   } catch {
     _authModule = null;
   }
@@ -275,7 +340,7 @@ export function AuthProvider({children}: AuthProviderProps) {
     const current = authMod().currentUser;
     if (current && current.isAnonymous) {
       try {
-        await current.linkWithCredential(credential);
+        await authMod.linkWithCredential(current, credential);
 
         // linkWithCredential doesn't copy the Google profile onto the
         // Firebase user the way a fresh signInWithCredential does, so
@@ -285,7 +350,7 @@ export function AuthProvider({children}: AuthProviderProps) {
         const profile = extractGoogleProfile(result);
         if (profile.displayName || profile.photoURL) {
           try {
-            await current.updateProfile(profile);
+            await authMod.updateProfile(current, profile);
           } catch (err) {
             logger.warn('Failed to set profile after linking', {
               component: 'AuthProvider',
@@ -442,7 +507,7 @@ export function AuthProvider({children}: AuthProviderProps) {
     }
 
     try {
-      await current.delete();
+      await authMod.deleteUser(current);
     } catch (err: any) {
       // Cloud data is already gone at this point — the account still
       // exists (Auth delete failed/was cancelled), so resume normal sync
@@ -460,8 +525,8 @@ export function AuthProvider({children}: AuthProviderProps) {
         const idToken = extractIdToken(result);
         if (!idToken) throw err;
         const credential = authMod.GoogleAuthProvider.credential(idToken);
-        await current.reauthenticateWithCredential(credential);
-        await current.delete();
+        await authMod.reauthenticateWithCredential(current, credential);
+        await authMod.deleteUser(current);
       } catch (reauthErr) {
         restoreSync();
         throw reauthErr;
