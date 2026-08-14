@@ -189,9 +189,11 @@ const mockFirestoreFn: jest.Mock & {
 }));
 mockFirestoreFn.FieldValue = {serverTimestamp: () => 'SERVER_TS'};
 
-jest.mock('@react-native-firebase/firestore', () => ({
+jest.mock('../src/lib/sync/firestore', () => ({
   __esModule: true,
-  default: mockFirestoreFn,
+  getFirestore: () => mockFirestoreFn,
+  serverTimestamp: () => mockFirestoreFn.FieldValue!.serverTimestamp(),
+  __resetFirestoreCacheForTests: () => {},
 }));
 
 const mockNetListeners: Array<(s: unknown) => void> = [];

@@ -28,9 +28,11 @@ const mockGet = jest.fn(async () => ({
 const mockDoc = jest.fn(() => ({delete: mockDelete}));
 const mockCollection = jest.fn(() => ({get: mockGet, doc: mockDoc}));
 const mockFirestoreFn = jest.fn(() => ({collection: mockCollection}));
-jest.mock('@react-native-firebase/firestore', () => ({
+jest.mock('../src/lib/sync/firestore', () => ({
   __esModule: true,
-  default: mockFirestoreFn,
+  getFirestore: () => mockFirestoreFn,
+  serverTimestamp: () => Date.now(),
+  __resetFirestoreCacheForTests: () => {},
 }));
 
 // Imports AFTER the mock so the lazy firestore require captures it.

@@ -55,12 +55,22 @@ export type RedeemOutcome =
 type FirebaseUser = {uid: string; getIdToken: () => Promise<string>};
 type AuthModule = {(): {currentUser: FirebaseUser | null}};
 
+// Modular API (v26) — getAuth() returns the instance; currentUser stays
+// a plain property on it. Wrapped to the same callable shape this file
+// used to get from the namespaced default export, so the call site
+// below (getAuthModule()().currentUser) stays unchanged.
+type FirebaseAuthModuleExports = {
+  getAuth: () => {currentUser: FirebaseUser | null};
+};
+
 let _authModule: AuthModule | null | undefined;
 function getAuthModule(): AuthModule | null {
   if (_authModule !== undefined) return _authModule;
   try {
-    const mod = require('@react-native-firebase/auth');
-    _authModule = (mod.default || mod) as AuthModule;
+    const mod =
+      require('@react-native-firebase/auth') as FirebaseAuthModuleExports;
+    const instance = mod.getAuth();
+    _authModule = (() => instance) as AuthModule;
   } catch {
     _authModule = null;
   }

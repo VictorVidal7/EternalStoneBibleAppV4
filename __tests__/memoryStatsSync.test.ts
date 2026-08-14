@@ -10,6 +10,10 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import type {ReviewEvent} from '../src/lib/memory/reviewEvents';
 
 // ---- firestore mock ----
+// Mocks our own sync/firestore.ts wrapper (not the native module
+// directly) — that wrapper's whole job is to hide the
+// namespaced-vs-modular API difference from every consumer, so tests
+// for the consumers only need to know its stable exported shape.
 let mockSummaryDoc: Record<string, unknown> | null = null;
 const mockDocSet = jest.fn(async () => {});
 const mockDocGet = jest.fn(async () => ({
@@ -20,9 +24,11 @@ const mockDocGet = jest.fn(async () => ({
 const mockDoc = {set: mockDocSet, get: mockDocGet, delete: jest.fn()};
 const mockCollection = jest.fn(() => ({doc: jest.fn(() => mockDoc)}));
 const mockFirestoreFn = jest.fn(() => ({collection: mockCollection}));
-jest.mock('@react-native-firebase/firestore', () => ({
+jest.mock('../src/lib/sync/firestore', () => ({
   __esModule: true,
-  default: mockFirestoreFn,
+  getFirestore: () => mockFirestoreFn,
+  serverTimestamp: () => Date.now(),
+  __resetFirestoreCacheForTests: () => {},
 }));
 
 // ---- review-event store mock ----
