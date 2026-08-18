@@ -25,6 +25,8 @@ import {Ionicons} from '@expo/vector-icons';
 import {SaveComparisonDialog} from '../components/comparison/SaveComparisonDialog';
 import {CompareImageModal} from '../components/comparison/CompareImageModal';
 import {ConfirmDialog} from '../components/ui/ConfirmDialog';
+import {FeatureGuideModal} from '../components/FeatureGuideModal';
+import {getFeatureGuideContent} from '../lib/onboarding/featureGuides';
 import {
   buildComparisonCard,
   buildComparisonCards,
@@ -93,6 +95,7 @@ export const VersionComparisonScreen: React.FC<
   const [analysis, setAnalysis] = useState<ComparisonAnalysis | null>(null);
   const [loading, setLoading] = useState(true);
   const [showVersionPicker, setShowVersionPicker] = useState(false);
+  const [showGuide, setShowGuide] = useState(false);
   const [showSaveDialog, setShowSaveDialog] = useState(false);
   const [showSavedComparisons, setShowSavedComparisons] = useState(false);
   const [showVersePicker, setShowVersePicker] = useState(false);
@@ -107,6 +110,7 @@ export const VersionComparisonScreen: React.FC<
   useEffect(() => {
     const anyOpen =
       showVersionPicker ||
+      showGuide ||
       showSaveDialog ||
       showSavedComparisons ||
       showVersePicker ||
@@ -115,6 +119,7 @@ export const VersionComparisonScreen: React.FC<
     return () => setSuppressed(false);
   }, [
     showVersionPicker,
+    showGuide,
     showSaveDialog,
     showSavedComparisons,
     showVersePicker,
@@ -652,6 +657,21 @@ export const VersionComparisonScreen: React.FC<
           </Text>
 
           <View style={styles.headerButtons}>
+            <TouchableOpacity
+              style={styles.iconActionButton}
+              onPress={() => {
+                haptics.tap();
+                setShowGuide(true);
+              }}
+              accessibilityRole="button"
+              accessibilityLabel={t.versionComparison.guide.openLabel}>
+              <Ionicons
+                name="help-circle-outline"
+                size={22}
+                color={colors.textSecondary}
+              />
+            </TouchableOpacity>
+
             <TouchableOpacity
               style={styles.iconActionButton}
               onPress={() => setViewMode(viewMode === 'list' ? 'grid' : 'list')}
@@ -1583,6 +1603,12 @@ export const VersionComparisonScreen: React.FC<
           </View>
         </View>
       </Modal>
+
+      <FeatureGuideModal
+        visible={showGuide}
+        onClose={() => setShowGuide(false)}
+        {...getFeatureGuideContent('versionComparison', t)}
+      />
 
       {/* Themed delete confirm (UX audit, replaces native Alert.alert) */}
       <ConfirmDialog

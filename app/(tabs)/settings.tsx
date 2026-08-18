@@ -44,6 +44,7 @@ import {useAccessibilityPreferences} from '@context/AccessibilityPreferencesCont
 import ExtrasSettings from '@components/settings/ExtrasSettings';
 import RedeemCodeSheet from '@components/settings/RedeemCodeSheet';
 import DonationSettings from '@components/settings/DonationSettings';
+import TipsAndGuidesSettings from '@components/settings/TipsAndGuidesSettings';
 import ColorThemeSettings from '@components/settings/ColorThemeSettings';
 import {haptics} from '@lib/haptics';
 import Constants from 'expo-constants';
@@ -820,6 +821,10 @@ export default function SettingsScreen() {
 
         {/* Separate, repeatable donation — never inside the unlock flow */}
         <DonationSettings />
+
+        {/* Index of full-explainer guides (FeatureGuideModal), openable
+            without being on that feature's own screen first */}
+        <TipsAndGuidesSettings />
 
         {/* New Features V5.1 Section */}
         <View style={themedStyles.section}>
