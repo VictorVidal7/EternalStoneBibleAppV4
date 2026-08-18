@@ -1,0 +1,478 @@
+[
+  {
+    "ref": "Lucas 22:67",
+    "book_id": 42,
+    "chapter": 22,
+    "verse": 67,
+    "quotes": ["Si os lo dijere, no creeréis;"],
+    "note": ""
+  },
+  {
+    "ref": "Lucas 22:70",
+    "book_id": 42,
+    "chapter": 22,
+    "verse": 70,
+    "quotes": ["Vosotros decís que lo soy."],
+    "note": ""
+  },
+  {
+    "ref": "Lucas 23:3",
+    "book_id": 42,
+    "chapter": 23,
+    "verse": 3,
+    "quotes": ["Tú lo dices."],
+    "note": ""
+  },
+  {
+    "ref": "Lucas 23:28",
+    "book_id": 42,
+    "chapter": 23,
+    "verse": 28,
+    "quotes": [
+      "Hijas de Jerusalén, no lloréis por mí, sino llorad por vosotras mismas y por vuestros hijos."
+    ],
+    "note": ""
+  },
+  {
+    "ref": "Lucas 23:34",
+    "book_id": 42,
+    "chapter": 23,
+    "verse": 34,
+    "quotes": ["Padre, perdónalos, porque no saben lo que hacen."],
+    "note": ""
+  },
+  {
+    "ref": "Lucas 23:43",
+    "book_id": 42,
+    "chapter": 23,
+    "verse": 43,
+    "quotes": ["De cierto te digo que hoy estarás conmigo en el paraíso."],
+    "note": ""
+  },
+  {
+    "ref": "Lucas 23:46",
+    "book_id": 42,
+    "chapter": 23,
+    "verse": 46,
+    "quotes": ["Padre, en tus manos encomiendo mi espíritu."],
+    "note": ""
+  },
+  {
+    "ref": "Lucas 24:17",
+    "book_id": 42,
+    "chapter": 24,
+    "verse": 17,
+    "quotes": [
+      "¿Qué pláticas son estas que tenéis entre vosotros mientras camináis, y por qué estáis tristes?"
+    ],
+    "note": ""
+  },
+  {
+    "ref": "Lucas 24:19",
+    "book_id": 42,
+    "chapter": 24,
+    "verse": 19,
+    "quotes": ["¿Qué cosas?"],
+    "note": "El resto del versículo ('Y ellos le dijeron: De Jesús nazareno...') es respuesta de los discípulos, no de Jesús."
+  },
+  {
+    "ref": "Lucas 24:25",
+    "book_id": 42,
+    "chapter": 24,
+    "verse": 25,
+    "quotes": [
+      "¡Oh insensatos, y tardos de corazón para creer todo lo que los profetas han dicho!"
+    ],
+    "note": ""
+  },
+  {
+    "ref": "Lucas 24:36",
+    "book_id": 42,
+    "chapter": 24,
+    "verse": 36,
+    "quotes": ["Paz a vosotros."],
+    "note": ""
+  },
+  {
+    "ref": "Lucas 24:38",
+    "book_id": 42,
+    "chapter": 24,
+    "verse": 38,
+    "quotes": [
+      "¿Por qué estáis turbados, y vienen a vuestro corazón estos pensamientos?"
+    ],
+    "note": ""
+  },
+  {
+    "ref": "Lucas 24:41",
+    "book_id": 42,
+    "chapter": 24,
+    "verse": 41,
+    "quotes": ["¿Tenéis aquí algo de comer?"],
+    "note": ""
+  },
+  {
+    "ref": "Lucas 24:44",
+    "book_id": 42,
+    "chapter": 24,
+    "verse": 44,
+    "quotes": [
+      "Estas son las palabras que os hablé, estando aún con vosotros: que era necesario que se cumpliese todo lo que está escrito de mí en la ley de Moisés, en los profetas y en los salmos."
+    ],
+    "note": ""
+  },
+  {
+    "ref": "Lucas 24:46",
+    "book_id": 42,
+    "chapter": 24,
+    "verse": 46,
+    "quotes": [
+      "Así está escrito, y así fue necesario que el Cristo padeciese, y resucitase de los muertos al tercer día;"
+    ],
+    "note": ""
+  },
+  {
+    "ref": "Juan 1:38",
+    "book_id": 43,
+    "chapter": 1,
+    "verse": 38,
+    "quotes": ["¿Qué buscáis?"],
+    "note": "El resto ('Ellos le dijeron: Rabí...') es habla de los discípulos, no de Jesús."
+  },
+  {
+    "ref": "Juan 1:39",
+    "book_id": 43,
+    "chapter": 1,
+    "verse": 39,
+    "quotes": ["Venid y ved."],
+    "note": ""
+  },
+  {
+    "ref": "Juan 1:42",
+    "book_id": 43,
+    "chapter": 1,
+    "verse": 42,
+    "quotes": ["Tú eres Simón, hijo de Jonás; tú serás llamado Cefas"],
+    "note": "Se excluye la aclaración parentética '(que quiere decir, Pedro)', igual que la WEB excluye su equivalente en inglés."
+  },
+  {
+    "ref": "Juan 1:43",
+    "book_id": 43,
+    "chapter": 1,
+    "verse": 43,
+    "quotes": ["Sígueme."],
+    "note": ""
+  },
+  {
+    "ref": "Juan 1:47",
+    "book_id": 43,
+    "chapter": 1,
+    "verse": 47,
+    "quotes": ["He aquí un verdadero israelita, en quien no hay engaño."],
+    "note": ""
+  },
+  {
+    "ref": "Juan 1:48",
+    "book_id": 43,
+    "chapter": 1,
+    "verse": 48,
+    "quotes": [
+      "Antes que Felipe te llamara, cuando estabas debajo de la higuera, te vi."
+    ],
+    "note": ""
+  },
+  {
+    "ref": "Juan 1:50",
+    "book_id": 43,
+    "chapter": 1,
+    "verse": 50,
+    "quotes": [
+      "¿Porque te dije: Te vi debajo de la higuera, crees? Cosas mayores que estas verás."
+    ],
+    "note": ""
+  },
+  {
+    "ref": "Juan 1:51",
+    "book_id": 43,
+    "chapter": 1,
+    "verse": 51,
+    "quotes": [
+      "De cierto, de cierto os digo: De aquí adelante veréis el cielo abierto, y a los ángeles de Dios que suben y descienden sobre el Hijo del Hombre."
+    ],
+    "note": ""
+  },
+  {
+    "ref": "Juan 2:4",
+    "book_id": 43,
+    "chapter": 2,
+    "verse": 4,
+    "quotes": ["¿Qué tienes conmigo, mujer? Aún no ha venido mi hora."],
+    "note": ""
+  },
+  {
+    "ref": "Juan 2:7",
+    "book_id": 43,
+    "chapter": 2,
+    "verse": 7,
+    "quotes": ["Llenad estas tinajas de agua."],
+    "note": ""
+  },
+  {
+    "ref": "Juan 2:8",
+    "book_id": 43,
+    "chapter": 2,
+    "verse": 8,
+    "quotes": ["Sacad ahora, y llevadlo al maestresala."],
+    "note": ""
+  },
+  {
+    "ref": "Juan 2:16",
+    "book_id": 43,
+    "chapter": 2,
+    "verse": 16,
+    "quotes": [
+      "Quitad de aquí esto, y no hagáis de la casa de mi Padre casa de mercado."
+    ],
+    "note": ""
+  },
+  {
+    "ref": "Juan 2:19",
+    "book_id": 43,
+    "chapter": 2,
+    "verse": 19,
+    "quotes": ["Destruid este templo, y en tres días lo levantaré."],
+    "note": ""
+  },
+  {
+    "ref": "Juan 3:3",
+    "book_id": 43,
+    "chapter": 3,
+    "verse": 3,
+    "quotes": [
+      "De cierto, de cierto te digo, que el que no naciere de nuevo, no puede ver el reino de Dios."
+    ],
+    "note": ""
+  },
+  {
+    "ref": "Juan 3:5",
+    "book_id": 43,
+    "chapter": 3,
+    "verse": 5,
+    "quotes": [
+      "De cierto, de cierto te digo, que el que no naciere de agua y del Espíritu, no puede entrar en el reino de Dios."
+    ],
+    "note": ""
+  },
+  {
+    "ref": "Juan 3:10",
+    "book_id": 43,
+    "chapter": 3,
+    "verse": 10,
+    "quotes": ["¿Eres tú maestro de Israel, y no sabes esto?"],
+    "note": ""
+  },
+  {
+    "ref": "Juan 4:7",
+    "book_id": 43,
+    "chapter": 4,
+    "verse": 7,
+    "quotes": ["Dame de beber."],
+    "note": ""
+  },
+  {
+    "ref": "Juan 4:10",
+    "book_id": 43,
+    "chapter": 4,
+    "verse": 10,
+    "quotes": [
+      "Si conocieras el don de Dios, y quién es el que te dice: Dame de beber; tú le pedirías, y él te daría agua viva."
+    ],
+    "note": ""
+  },
+  {
+    "ref": "Juan 4:13",
+    "book_id": 43,
+    "chapter": 4,
+    "verse": 13,
+    "quotes": ["Cualquiera que bebiere de esta agua, volverá a tener sed;"],
+    "note": ""
+  },
+  {
+    "ref": "Juan 4:16",
+    "book_id": 43,
+    "chapter": 4,
+    "verse": 16,
+    "quotes": ["Ve, llama a tu marido, y ven acá."],
+    "note": ""
+  },
+  {
+    "ref": "Juan 4:17",
+    "book_id": 43,
+    "chapter": 4,
+    "verse": 17,
+    "quotes": ["Bien has dicho: No tengo marido;"],
+    "note": ""
+  },
+  {
+    "ref": "Juan 4:21",
+    "book_id": 43,
+    "chapter": 4,
+    "verse": 21,
+    "quotes": [
+      "Mujer, créeme, que la hora viene cuando ni en este monte ni en Jerusalén adoraréis al Padre."
+    ],
+    "note": ""
+  },
+  {
+    "ref": "Juan 4:26",
+    "book_id": 43,
+    "chapter": 4,
+    "verse": 26,
+    "quotes": ["Yo soy, el que habla contigo."],
+    "note": ""
+  },
+  {
+    "ref": "Juan 4:32",
+    "book_id": 43,
+    "chapter": 4,
+    "verse": 32,
+    "quotes": ["Yo tengo una comida que comer, que vosotros no sabéis."],
+    "note": ""
+  },
+  {
+    "ref": "Juan 4:34",
+    "book_id": 43,
+    "chapter": 4,
+    "verse": 34,
+    "quotes": [
+      "Mi comida es que haga la voluntad del que me envió, y que acabe su obra."
+    ],
+    "note": ""
+  },
+  {
+    "ref": "Juan 4:48",
+    "book_id": 43,
+    "chapter": 4,
+    "verse": 48,
+    "quotes": ["Si no viereis señales y prodigios, no creeréis."],
+    "note": ""
+  },
+  {
+    "ref": "Juan 4:50",
+    "book_id": 43,
+    "chapter": 4,
+    "verse": 50,
+    "quotes": ["Ve, tu hijo vive."],
+    "note": ""
+  },
+  {
+    "ref": "Juan 4:53",
+    "book_id": 43,
+    "chapter": 4,
+    "verse": 53,
+    "quotes": ["Tu hijo vive;"],
+    "note": "El punto y coma cierra la cita antes de la narración ('y creyó él con toda su casa'); se incluyó como puntuación de cierre."
+  },
+  {
+    "ref": "Juan 5:6",
+    "book_id": 43,
+    "chapter": 5,
+    "verse": 6,
+    "quotes": ["¿Quieres ser sano?"],
+    "note": ""
+  },
+  {
+    "ref": "Juan 5:8",
+    "book_id": 43,
+    "chapter": 5,
+    "verse": 8,
+    "quotes": ["Levántate, toma tu lecho, y anda."],
+    "note": ""
+  },
+  {
+    "ref": "Juan 5:11",
+    "book_id": 43,
+    "chapter": 5,
+    "verse": 11,
+    "quotes": ["Toma tu lecho y anda."],
+    "note": "Quien habla es el hombre sanado, pero cita textualmente las palabras que Jesús le dijo (cf. v.8); la WEB marca este fragmento en rojo por ser cita literal de Jesús, así que se siguió esa convención."
+  },
+  {
+    "ref": "Juan 5:12",
+    "book_id": 43,
+    "chapter": 5,
+    "verse": 12,
+    "quotes": ["Toma tu lecho y anda"],
+    "note": "Los judíos citan textualmente las palabras de Jesús dentro de su propia pregunta; se excluyó el signo de interrogación final porque pertenece a la pregunta general, no a la cita, igual que hace la WEB (que tampoco lo incluye dentro de las comillas rojas)."
+  },
+  {
+    "ref": "Juan 5:14",
+    "book_id": 43,
+    "chapter": 5,
+    "verse": 14,
+    "quotes": [
+      "Mira, has sido sanado; no peques más, para que no te venga alguna cosa peor."
+    ],
+    "note": ""
+  },
+  {
+    "ref": "Juan 5:17",
+    "book_id": 43,
+    "chapter": 5,
+    "verse": 17,
+    "quotes": ["Mi Padre hasta ahora trabaja, y yo trabajo."],
+    "note": ""
+  },
+  {
+    "ref": "Juan 5:19",
+    "book_id": 43,
+    "chapter": 5,
+    "verse": 19,
+    "quotes": [
+      "De cierto, de cierto os digo: No puede el Hijo hacer nada por sí mismo, sino lo que ve hacer al Padre; porque todo lo que el Padre hace, también lo hace el Hijo igualmente."
+    ],
+    "note": ""
+  },
+  {
+    "ref": "Juan 6:5",
+    "book_id": 43,
+    "chapter": 6,
+    "verse": 5,
+    "quotes": ["¿De dónde compraremos pan para que coman éstos?"],
+    "note": ""
+  },
+  {
+    "ref": "Juan 6:10",
+    "book_id": 43,
+    "chapter": 6,
+    "verse": 10,
+    "quotes": ["Haced recostar la gente."],
+    "note": ""
+  },
+  {
+    "ref": "Juan 6:12",
+    "book_id": 43,
+    "chapter": 6,
+    "verse": 12,
+    "quotes": ["Recoged los pedazos que sobraron, para que no se pierda nada."],
+    "note": ""
+  },
+  {
+    "ref": "Juan 6:20",
+    "book_id": 43,
+    "chapter": 6,
+    "verse": 20,
+    "quotes": ["Yo soy; no temáis."],
+    "note": ""
+  },
+  {
+    "ref": "Juan 6:26",
+    "book_id": 43,
+    "chapter": 6,
+    "verse": 26,
+    "quotes": [
+      "De cierto, de cierto os digo que me buscáis, no porque habéis visto las señales, sino porque comisteis el pan y os saciasteis."
+    ],
+    "note": ""
+  }
+]

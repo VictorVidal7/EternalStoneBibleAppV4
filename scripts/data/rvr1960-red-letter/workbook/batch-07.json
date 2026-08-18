@@ -1,0 +1,732 @@
+[
+  {
+    "ref": "Lucas 9:18",
+    "book_id": 42,
+    "chapter": 9,
+    "verse": 18,
+    "web_text": "As he was praying alone, the disciples were near him, and he asked them, “Who do the multitudes say that I am?”",
+    "web_red": ["“Who do the multitudes say that I am?”"],
+    "web_spans": [[73, 111]],
+    "rvr_text": "Aconteció que mientras Jesús oraba aparte, estaban con él los discípulos; y les preguntó, diciendo: ¿Quién dice la gente que soy yo?",
+    "rvr_len": 132,
+    "candidate": [[100, 132]]
+  },
+  {
+    "ref": "Lucas 9:20",
+    "book_id": 42,
+    "chapter": 9,
+    "verse": 20,
+    "web_text": "He said to them, “But who do you say that I am?” Peter answered, “The Christ of God.”",
+    "web_red": ["“But who do you say that I am?”"],
+    "web_spans": [[17, 48]],
+    "rvr_text": "El les dijo: ¿Y vosotros, quién decís que soy? Entonces respondiendo Pedro, dijo: El Cristo de Dios.",
+    "rvr_len": 100,
+    "candidate": null
+  },
+  {
+    "ref": "Lucas 9:22",
+    "book_id": 42,
+    "chapter": 9,
+    "verse": 22,
+    "web_text": "saying, “The Son of Man must suffer many things, and be rejected by the elders, chief priests, and scribes, and be killed, and the third day be raised up.”",
+    "web_red": [
+      "“The Son of Man must suffer many things, and be rejected by the elders, chief priests, and scribes, and be killed, and the third day be raised up.”"
+    ],
+    "web_spans": [[8, 155]],
+    "rvr_text": "y diciendo: Es necesario que el Hijo del Hombre padezca muchas cosas, y sea desechado por los ancianos, por los principales sacerdotes y por los escribas, y que sea muerto, y resucite al tercer día.",
+    "rvr_len": 198,
+    "candidate": [[12, 198]]
+  },
+  {
+    "ref": "Lucas 9:23",
+    "book_id": 42,
+    "chapter": 9,
+    "verse": 23,
+    "web_text": "He said to all, “If anyone desires to come after me, let him deny himself, take up his cross, and follow me.",
+    "web_red": [
+      "“If anyone desires to come after me, let him deny himself, take up his cross, and follow me."
+    ],
+    "web_spans": [[16, 108]],
+    "rvr_text": "Y decía a todos: Si alguno quiere venir en pos de mí, niéguese a sí mismo, tome su cruz cada día, y sígame.",
+    "rvr_len": 107,
+    "candidate": [[17, 107]]
+  },
+  {
+    "ref": "Lucas 9:41",
+    "book_id": 42,
+    "chapter": 9,
+    "verse": 41,
+    "web_text": "Jesus answered, “Faithless and perverse generation, how long shall I be with you and bear with you? Bring your son here.”",
+    "web_red": [
+      "“Faithless and perverse generation, how long shall I be with you and bear with you? Bring your son here.”"
+    ],
+    "web_spans": [[16, 121]],
+    "rvr_text": "Respondiendo Jesús, dijo: ¡Oh generación incrédula y perversa! ¿Hasta cuándo he de estar con vosotros, y os he de soportar? Trae acá a tu hijo.",
+    "rvr_len": 143,
+    "candidate": [[26, 143]]
+  },
+  {
+    "ref": "Lucas 9:48",
+    "book_id": 42,
+    "chapter": 9,
+    "verse": 48,
+    "web_text": "and said to them, “Whoever receives this little child in my name receives me. Whoever receives me receives him who sent me. For whoever is least among you all, this one will be great.”",
+    "web_red": [
+      "“Whoever receives this little child in my name receives me. Whoever receives me receives him who sent me. For whoever is least among you all, this one will be great.”"
+    ],
+    "web_spans": [[18, 184]],
+    "rvr_text": "y les dijo: Cualquiera que reciba a este niño en mi nombre, a mí me recibe; y cualquiera que me recibe a mí, recibe al que me envió; porque el que es más pequeño entre todos vosotros, ése es el más grande.",
+    "rvr_len": 205,
+    "candidate": [[12, 205]]
+  },
+  {
+    "ref": "Lucas 9:50",
+    "book_id": 42,
+    "chapter": 9,
+    "verse": 50,
+    "web_text": "Jesus said to him, “Don’t forbid him, for he who is not against us is for us.”",
+    "web_red": ["“Don’t forbid him, for he who is not against us is for us.”"],
+    "web_spans": [[19, 78]],
+    "rvr_text": "Jesús le dijo: No se lo prohibáis; porque el que no es contra nosotros, por nosotros es.",
+    "rvr_len": 88,
+    "candidate": [[15, 88]]
+  },
+  {
+    "ref": "Lucas 9:55",
+    "book_id": 42,
+    "chapter": 9,
+    "verse": 55,
+    "web_text": "But he turned and rebuked them, “You don’t know of what kind of spirit you are.",
+    "web_red": ["“You don’t know of what kind of spirit you are."],
+    "web_spans": [[32, 79]],
+    "rvr_text": "Entonces volviéndose él, los reprendió, diciendo: Vosotros no sabéis de qué espíritu sois;",
+    "rvr_len": 90,
+    "candidate": [[50, 90]]
+  },
+  {
+    "ref": "Lucas 9:56",
+    "book_id": 42,
+    "chapter": 9,
+    "verse": 56,
+    "web_text": "For the Son of Man didn’t come to destroy men’s lives, but to save them.” They went to another village.",
+    "web_red": [
+      "For the Son of Man didn’t come to destroy men’s lives, but to save them.”"
+    ],
+    "web_spans": [[0, 73]],
+    "rvr_text": "porque el Hijo del Hombre no ha venido para perder las almas de los hombres, sino para salvarlas. Y se fueron a otra aldea.",
+    "rvr_len": 123,
+    "candidate": null
+  },
+  {
+    "ref": "Lucas 9:58",
+    "book_id": 42,
+    "chapter": 9,
+    "verse": 58,
+    "web_text": "Jesus said to him, “The foxes have holes and the birds of the sky have nests, but the Son of Man has no place to lay his head.”",
+    "web_red": [
+      "“The foxes have holes and the birds of the sky have nests, but the Son of Man has no place to lay his head.”"
+    ],
+    "web_spans": [[19, 127]],
+    "rvr_text": "Y le dijo Jesús: Las zorras tienen guaridas, y las aves de los cielos nidos; mas el Hijo del Hombre no tiene dónde recostar la cabeza.",
+    "rvr_len": 134,
+    "candidate": [[17, 134]]
+  },
+  {
+    "ref": "Lucas 9:59",
+    "book_id": 42,
+    "chapter": 9,
+    "verse": 59,
+    "web_text": "He said to another, “Follow me!” But he said, “Lord, allow me first to go and bury my father.”",
+    "web_red": ["“Follow me!”"],
+    "web_spans": [[20, 32]],
+    "rvr_text": "Y dijo a otro: Sígueme. Él le dijo: Señor, déjame que primero vaya y entierre a mi padre.",
+    "rvr_len": 89,
+    "candidate": null
+  },
+  {
+    "ref": "Lucas 9:60",
+    "book_id": 42,
+    "chapter": 9,
+    "verse": 60,
+    "web_text": "But Jesus said to him, “Leave the dead to bury their own dead, but you go and announce God’s Kingdom.”",
+    "web_red": [
+      "“Leave the dead to bury their own dead, but you go and announce God’s Kingdom.”"
+    ],
+    "web_spans": [[23, 102]],
+    "rvr_text": "Jesús le dijo: Deja que los muertos entierren a sus muertos; y tú ve, y anuncia el reino de Dios.",
+    "rvr_len": 97,
+    "candidate": [[15, 97]]
+  },
+  {
+    "ref": "Lucas 9:62",
+    "book_id": 42,
+    "chapter": 9,
+    "verse": 62,
+    "web_text": "But Jesus said to him, “No one, having put his hand to the plow and looking back, is fit for God’s Kingdom.”",
+    "web_red": [
+      "“No one, having put his hand to the plow and looking back, is fit for God’s Kingdom.”"
+    ],
+    "web_spans": [[23, 108]],
+    "rvr_text": "Y Jesús le dijo: Ninguno que poniendo su mano en el arado mira hacia atrás, es apto para el reino de Dios.",
+    "rvr_len": 106,
+    "candidate": [[17, 106]]
+  },
+  {
+    "ref": "Lucas 10:2",
+    "book_id": 42,
+    "chapter": 10,
+    "verse": 2,
+    "web_text": "Then he said to them, “The harvest is indeed plentiful, but the laborers are few. Pray therefore to the Lord of the harvest, that he may send out laborers into his harvest.",
+    "web_red": [
+      "“The harvest is indeed plentiful, but the laborers are few. Pray therefore to the Lord of the harvest, that he may send out laborers into his harvest."
+    ],
+    "web_spans": [[22, 172]],
+    "rvr_text": "Y les decía: La mies a la verdad es mucha, mas los obreros pocos; por tanto, rogad al Señor de la mies que envíe obreros a su mies.",
+    "rvr_len": 131,
+    "candidate": [[13, 131]]
+  },
+  {
+    "ref": "Lucas 10:18",
+    "book_id": 42,
+    "chapter": 10,
+    "verse": 18,
+    "web_text": "He said to them, “I saw Satan having fallen like lightning from heaven.",
+    "web_red": ["“I saw Satan having fallen like lightning from heaven."],
+    "web_spans": [[17, 71]],
+    "rvr_text": "Y les dijo: Yo veía a Satanás caer del cielo como un rayo.",
+    "rvr_len": 58,
+    "candidate": [[12, 58]]
+  },
+  {
+    "ref": "Lucas 10:21",
+    "book_id": 42,
+    "chapter": 10,
+    "verse": 21,
+    "web_text": "In that same hour, Jesus rejoiced in the Holy Spirit, and said, “I thank you, O Father, Lord of heaven and earth, that you have hidden these things from the wise and understanding, and revealed them to little children. Yes, Father, for so it was well-pleasing in your sight.”",
+    "web_red": [
+      "“I thank you, O Father, Lord of heaven and earth, that you have hidden these things from the wise and understanding, and revealed them to little children. Yes, Father, for so it was well-pleasing in your sight.”"
+    ],
+    "web_spans": [[64, 275]],
+    "rvr_text": "En aquella misma hora Jesús se regocijó en el Espíritu, y dijo: Yo te alabo, oh Padre, Señor del cielo y de la tierra, porque escondiste estas cosas de los sabios y entendidos, y las has revelado a los niños. Sí, Padre, porque así te agradó.",
+    "rvr_len": 241,
+    "candidate": [[64, 241]]
+  },
+  {
+    "ref": "Lucas 10:22",
+    "book_id": 42,
+    "chapter": 10,
+    "verse": 22,
+    "web_text": "Turning to the disciples, he said, “All things have been delivered to me by my Father. No one knows who the Son is, except the Father, and who the Father is, except the Son, and he to whomever the Son desires to reveal him.”",
+    "web_red": [
+      "“All things have been delivered to me by my Father. No one knows who the Son is, except the Father, and who the Father is, except the Son, and he to whomever the Son desires to reveal him.”"
+    ],
+    "web_spans": [[35, 224]],
+    "rvr_text": "Todas las cosas me fueron entregadas por mi Padre; y nadie conoce quién es el Hijo sino el Padre; ni quién es el Padre, sino el Hijo, y aquel a quien el Hijo lo quiera revelar.",
+    "rvr_len": 176,
+    "candidate": null
+  },
+  {
+    "ref": "Lucas 10:23",
+    "book_id": 42,
+    "chapter": 10,
+    "verse": 23,
+    "web_text": "Turning to the disciples, he said privately, “Blessed are the eyes which see the things that you see,",
+    "web_red": ["“Blessed are the eyes which see the things that you see,"],
+    "web_spans": [[45, 101]],
+    "rvr_text": "Y volviéndose a los discípulos, les dijo aparte: Bienaventurados los ojos que ven lo que vosotros veis;",
+    "rvr_len": 103,
+    "candidate": [[49, 103]]
+  },
+  {
+    "ref": "Lucas 10:26",
+    "book_id": 42,
+    "chapter": 10,
+    "verse": 26,
+    "web_text": "He said to him, “What is written in the law? How do you read it?”",
+    "web_red": ["“What is written in the law? How do you read it?”"],
+    "web_spans": [[16, 65]],
+    "rvr_text": "Él le dijo: ¿Qué está escrito en la ley? ¿Cómo lees?",
+    "rvr_len": 52,
+    "candidate": [[12, 52]]
+  },
+  {
+    "ref": "Lucas 10:28",
+    "book_id": 42,
+    "chapter": 10,
+    "verse": 28,
+    "web_text": "He said to him, “You have answered correctly. Do this, and you will live.”",
+    "web_red": ["“You have answered correctly. Do this, and you will live.”"],
+    "web_spans": [[16, 74]],
+    "rvr_text": "Y le dijo: Bien has respondido; haz esto, y vivirás.",
+    "rvr_len": 52,
+    "candidate": [[11, 52]]
+  },
+  {
+    "ref": "Lucas 10:30",
+    "book_id": 42,
+    "chapter": 10,
+    "verse": 30,
+    "web_text": "Jesus answered, “A certain man was going down from Jerusalem to Jericho, and he fell among robbers, who both stripped him and beat him, and departed, leaving him half dead.",
+    "web_red": [
+      "“A certain man was going down from Jerusalem to Jericho, and he fell among robbers, who both stripped him and beat him, and departed, leaving him half dead."
+    ],
+    "web_spans": [[16, 172]],
+    "rvr_text": "Respondiendo Jesús, dijo: Un hombre descendía de Jerusalén a Jericó, y cayó en manos de ladrones, los cuales le despojaron; e hiriéndole, se fueron, dejándole medio muerto.",
+    "rvr_len": 172,
+    "candidate": [[26, 172]]
+  },
+  {
+    "ref": "Lucas 10:37",
+    "book_id": 42,
+    "chapter": 10,
+    "verse": 37,
+    "web_text": "He said, “He who showed mercy on him.” Then Jesus said to him, “Go and do likewise.”",
+    "web_red": ["“Go and do likewise.”"],
+    "web_spans": [[63, 84]],
+    "rvr_text": "Él dijo: El que usó de misericordia con él. Entonces Jesús le dijo: Ve, y haz tú lo mismo.",
+    "rvr_len": 90,
+    "candidate": [[9, 90]]
+  },
+  {
+    "ref": "Lucas 10:41",
+    "book_id": 42,
+    "chapter": 10,
+    "verse": 41,
+    "web_text": "Jesus answered her, “Martha, Martha, you are anxious and troubled about many things,",
+    "web_red": [
+      "“Martha, Martha, you are anxious and troubled about many things,"
+    ],
+    "web_spans": [[20, 84]],
+    "rvr_text": "Respondiendo Jesús, le dijo: Marta, Marta, afanada y turbada estás con muchas cosas.",
+    "rvr_len": 84,
+    "candidate": [[29, 84]]
+  },
+  {
+    "ref": "Lucas 11:2",
+    "book_id": 42,
+    "chapter": 11,
+    "verse": 2,
+    "web_text": "He said to them, “When you pray, say, ‘Our Father in heaven, may your name be kept holy. May your Kingdom come. May your will be done on earth, as it is in heaven.",
+    "web_red": [
+      "“When you pray, say, ‘Our Father in heaven, may your name be kept holy. May your Kingdom come. May your will be done on earth, as it is in heaven."
+    ],
+    "web_spans": [[17, 163]],
+    "rvr_text": "Y les dijo: Cuando oréis, decid: Padre nuestro que estás en los cielos, santificado sea tu nombre. Venga tu reino. Hágase tu voluntad, como en el cielo, así también en la tierra.",
+    "rvr_len": 178,
+    "candidate": [[12, 178]]
+  },
+  {
+    "ref": "Lucas 11:5",
+    "book_id": 42,
+    "chapter": 11,
+    "verse": 5,
+    "web_text": "He said to them, “Which of you, if you go to a friend at midnight and tell him, ‘Friend, lend me three loaves of bread,",
+    "web_red": [
+      "“Which of you, if you go to a friend at midnight and tell him, ‘Friend, lend me three loaves of bread,"
+    ],
+    "web_spans": [[17, 119]],
+    "rvr_text": "Les dijo también: ¿Quién de vosotros que tenga un amigo, va a él a medianoche y le dice: Amigo, préstame tres panes,",
+    "rvr_len": 116,
+    "candidate": [[18, 116]]
+  },
+  {
+    "ref": "Lucas 11:17",
+    "book_id": 42,
+    "chapter": 11,
+    "verse": 17,
+    "web_text": "But he, knowing their thoughts, said to them, “Every kingdom divided against itself is brought to desolation. A house divided against itself falls.",
+    "web_red": [
+      "“Every kingdom divided against itself is brought to desolation. A house divided against itself falls."
+    ],
+    "web_spans": [[46, 147]],
+    "rvr_text": "Mas él, conociendo los pensamientos de ellos, les dijo: Todo reino dividido contra sí mismo, es asolado; y una casa dividida contra sí misma, cae.",
+    "rvr_len": 146,
+    "candidate": [[56, 146]]
+  },
+  {
+    "ref": "Lucas 11:28",
+    "book_id": 42,
+    "chapter": 11,
+    "verse": 28,
+    "web_text": "But he said, “On the contrary, blessed are those who hear the word of God, and keep it.”",
+    "web_red": [
+      "“On the contrary, blessed are those who hear the word of God, and keep it.”"
+    ],
+    "web_spans": [[13, 88]],
+    "rvr_text": "Y él dijo: Antes bienaventurados los que oyen la palabra de Dios, y la guardan.",
+    "rvr_len": 79,
+    "candidate": [[11, 79]]
+  },
+  {
+    "ref": "Lucas 11:29",
+    "book_id": 42,
+    "chapter": 11,
+    "verse": 29,
+    "web_text": "When the multitudes were gathering together to him, he began to say, “This is an evil generation. It seeks after a sign. No sign will be given to it but the sign of Jonah the prophet.",
+    "web_red": [
+      "“This is an evil generation. It seeks after a sign. No sign will be given to it but the sign of Jonah the prophet."
+    ],
+    "web_spans": [[69, 183]],
+    "rvr_text": "Y apiñándose las multitudes, comenzó a decir: Esta generación es mala; demanda señal, pero señal no le será dada, sino la señal de Jonás.",
+    "rvr_len": 137,
+    "candidate": [[46, 137]]
+  },
+  {
+    "ref": "Lucas 11:39",
+    "book_id": 42,
+    "chapter": 11,
+    "verse": 39,
+    "web_text": "The Lord said to him, “Now you Pharisees cleanse the outside of the cup and of the platter, but your inward part is full of extortion and wickedness.",
+    "web_red": [
+      "“Now you Pharisees cleanse the outside of the cup and of the platter, but your inward part is full of extortion and wickedness."
+    ],
+    "web_spans": [[22, 149]],
+    "rvr_text": "Pero el Señor le dijo: Ahora bien, vosotros los fariseos limpiáis lo de fuera del vaso y del plato, pero por dentro estáis llenos de rapacidad y de maldad.",
+    "rvr_len": 155,
+    "candidate": [[23, 155]]
+  },
+  {
+    "ref": "Lucas 11:46",
+    "book_id": 42,
+    "chapter": 11,
+    "verse": 46,
+    "web_text": "He said, “Woe to you lawyers also! For you load men with burdens that are difficult to carry, and you yourselves won’t even lift one finger to help carry those burdens.",
+    "web_red": [
+      "“Woe to you lawyers also! For you load men with burdens that are difficult to carry, and you yourselves won’t even lift one finger to help carry those burdens."
+    ],
+    "web_spans": [[9, 168]],
+    "rvr_text": "Y él dijo: ¡Ay de vosotros también, intérpretes de la ley! porque cargáis a los hombres con cargas que no pueden llevar, pero vosotros ni aun con un dedo las tocáis.",
+    "rvr_len": 165,
+    "candidate": [[11, 165]]
+  },
+  {
+    "ref": "Lucas 12:1",
+    "book_id": 42,
+    "chapter": 12,
+    "verse": 1,
+    "web_text": "Meanwhile, when a multitude of many thousands had gathered together, so much so that they trampled on each other, he began to tell his disciples first of all, “Beware of the yeast of the Pharisees, which is hypocrisy.",
+    "web_red": ["“Beware of the yeast of the Pharisees, which is hypocrisy."],
+    "web_spans": [[159, 217]],
+    "rvr_text": "En esto, juntándose por millares la multitud, tanto que unos a otros se atropellaban, comenzó a decir a sus discípulos, primeramente: Guardaos de la levadura de los fariseos, que es la hipocresía.",
+    "rvr_len": 196,
+    "candidate": [[134, 196]]
+  },
+  {
+    "ref": "Lucas 12:14",
+    "book_id": 42,
+    "chapter": 12,
+    "verse": 14,
+    "web_text": "But he said to him, “Man, who made me a judge or an arbitrator over you?”",
+    "web_red": ["“Man, who made me a judge or an arbitrator over you?”"],
+    "web_spans": [[20, 73]],
+    "rvr_text": "Mas él le dijo: Hombre, ¿quién me ha puesto sobre vosotros como juez o partidor?",
+    "rvr_len": 80,
+    "candidate": [[16, 80]]
+  },
+  {
+    "ref": "Lucas 12:15",
+    "book_id": 42,
+    "chapter": 12,
+    "verse": 15,
+    "web_text": "He said to them, “Beware! Keep yourselves from covetousness, for a man’s life doesn’t consist of the abundance of the things which he possesses.”",
+    "web_red": [
+      "“Beware! Keep yourselves from covetousness, for a man’s life doesn’t consist of the abundance of the things which he possesses.”"
+    ],
+    "web_spans": [[17, 145]],
+    "rvr_text": "Y les dijo: Mirad, y guardaos de toda avaricia; porque la vida del hombre no consiste en la abundancia de los bienes que posee.",
+    "rvr_len": 127,
+    "candidate": [[12, 127]]
+  },
+  {
+    "ref": "Lucas 12:16",
+    "book_id": 42,
+    "chapter": 12,
+    "verse": 16,
+    "web_text": "He spoke a parable to them, saying, “The ground of a certain rich man produced abundantly.",
+    "web_red": ["“The ground of a certain rich man produced abundantly."],
+    "web_spans": [[36, 90]],
+    "rvr_text": "También les refirió una parábola, diciendo: La heredad de un hombre rico había producido mucho.",
+    "rvr_len": 95,
+    "candidate": [[44, 95]]
+  },
+  {
+    "ref": "Lucas 12:22",
+    "book_id": 42,
+    "chapter": 12,
+    "verse": 22,
+    "web_text": "He said to his disciples, “Therefore I tell you, don’t be anxious for your life, what you will eat, nor yet for your body, what you will wear.",
+    "web_red": [
+      "“Therefore I tell you, don’t be anxious for your life, what you will eat, nor yet for your body, what you will wear."
+    ],
+    "web_spans": [[26, 142]],
+    "rvr_text": "Dijo luego a sus discípulos: Por tanto os digo: No os afanéis por vuestra vida, qué comeréis; ni por el cuerpo, qué vestiréis.",
+    "rvr_len": 126,
+    "candidate": [[29, 126]]
+  },
+  {
+    "ref": "Lucas 12:42",
+    "book_id": 42,
+    "chapter": 12,
+    "verse": 42,
+    "web_text": "The Lord said, “Who then is the faithful and wise steward, whom his lord will set over his household, to give them their portion of food at the right times?",
+    "web_red": [
+      "“Who then is the faithful and wise steward, whom his lord will set over his household, to give them their portion of food at the right times?"
+    ],
+    "web_spans": [[15, 156]],
+    "rvr_text": "Y dijo el Señor: ¿Quién es el mayordomo fiel y prudente al cual su señor pondrá sobre su casa, para que a tiempo les dé su ración?",
+    "rvr_len": 130,
+    "candidate": [[17, 130]]
+  },
+  {
+    "ref": "Lucas 12:54",
+    "book_id": 42,
+    "chapter": 12,
+    "verse": 54,
+    "web_text": "He said to the multitudes also, “When you see a cloud rising from the west, immediately you say, ‘A shower is coming,’ and so it happens.",
+    "web_red": [
+      "“When you see a cloud rising from the west, immediately you say, ‘A shower is coming,’ and so it happens."
+    ],
+    "web_spans": [[32, 137]],
+    "rvr_text": "Decía también a la multitud: Cuando veis la nube que sale del poniente, luego decís: Agua viene; y así sucede.",
+    "rvr_len": 110,
+    "candidate": [[29, 110]]
+  },
+  {
+    "ref": "Lucas 13:2",
+    "book_id": 42,
+    "chapter": 13,
+    "verse": 2,
+    "web_text": "Jesus answered them, “Do you think that these Galileans were worse sinners than all the other Galileans, because they suffered such things?",
+    "web_red": [
+      "“Do you think that these Galileans were worse sinners than all the other Galileans, because they suffered such things?"
+    ],
+    "web_spans": [[21, 139]],
+    "rvr_text": "Respondiendo Jesús, les dijo: ¿Pensáis que estos galileos, porque padecieron tales cosas, eran más pecadores que todos los galileos?",
+    "rvr_len": 132,
+    "candidate": [[30, 132]]
+  },
+  {
+    "ref": "Lucas 13:6",
+    "book_id": 42,
+    "chapter": 13,
+    "verse": 6,
+    "web_text": "He spoke this parable. “A certain man had a fig tree planted in his vineyard, and he came seeking fruit on it and found none.",
+    "web_red": [
+      "“A certain man had a fig tree planted in his vineyard, and he came seeking fruit on it and found none."
+    ],
+    "web_spans": [[23, 125]],
+    "rvr_text": "Dijo también esta parábola: Tenía un hombre una higuera plantada en su viña, y vino a buscar fruto en ella, y no lo halló.",
+    "rvr_len": 122,
+    "candidate": [[28, 122]]
+  },
+  {
+    "ref": "Lucas 13:12",
+    "book_id": 42,
+    "chapter": 13,
+    "verse": 12,
+    "web_text": "When Jesus saw her, he called her and said to her, “Woman, you are freed from your infirmity.”",
+    "web_red": ["“Woman, you are freed from your infirmity.”"],
+    "web_spans": [[51, 94]],
+    "rvr_text": "Cuando Jesús la vio, la llamó y le dijo: Mujer, eres libre de tu enfermedad.",
+    "rvr_len": 76,
+    "candidate": [[41, 76]]
+  },
+  {
+    "ref": "Lucas 13:15",
+    "book_id": 42,
+    "chapter": 13,
+    "verse": 15,
+    "web_text": "Therefore the Lord answered him, “You hypocrites! Doesn’t each one of you free his ox or his donkey from the stall on the Sabbath and lead him away to water?",
+    "web_red": [
+      "“You hypocrites! Doesn’t each one of you free his ox or his donkey from the stall on the Sabbath and lead him away to water?"
+    ],
+    "web_spans": [[33, 157]],
+    "rvr_text": "Entonces el Señor le respondió y dijo: Hipócrita, cada uno de vosotros ¿no desata en el día de reposo su buey o su asno del pesebre y lo lleva a beber?",
+    "rvr_len": 151,
+    "candidate": [[39, 151]]
+  },
+  {
+    "ref": "Lucas 13:18",
+    "book_id": 42,
+    "chapter": 13,
+    "verse": 18,
+    "web_text": "He said, “What is God’s Kingdom like? To what shall I compare it?",
+    "web_red": ["“What is God’s Kingdom like? To what shall I compare it?"],
+    "web_spans": [[9, 65]],
+    "rvr_text": "Y dijo: ¿A qué es semejante el reino de Dios, y con qué lo compararé?",
+    "rvr_len": 69,
+    "candidate": [[8, 69]]
+  },
+  {
+    "ref": "Lucas 13:20",
+    "book_id": 42,
+    "chapter": 13,
+    "verse": 20,
+    "web_text": "Again he said, “To what shall I compare God’s Kingdom?",
+    "web_red": ["“To what shall I compare God’s Kingdom?"],
+    "web_spans": [[15, 54]],
+    "rvr_text": "Y volvió a decir: ¿A qué compararé el reino de Dios?",
+    "rvr_len": 52,
+    "candidate": [[18, 52]]
+  },
+  {
+    "ref": "Lucas 13:32",
+    "book_id": 42,
+    "chapter": 13,
+    "verse": 32,
+    "web_text": "He said to them, “Go and tell that fox, ‘Behold, I cast out demons and perform cures today and tomorrow, and the third day I complete my mission.",
+    "web_red": [
+      "“Go and tell that fox, ‘Behold, I cast out demons and perform cures today and tomorrow, and the third day I complete my mission."
+    ],
+    "web_spans": [[17, 145]],
+    "rvr_text": "Y les dijo: Id, y decid a aquella zorra: He aquí, echo fuera demonios y hago curaciones hoy y mañana, y al tercer día termino mi obra.",
+    "rvr_len": 134,
+    "candidate": [[12, 134]]
+  },
+  {
+    "ref": "Lucas 14:3",
+    "book_id": 42,
+    "chapter": 14,
+    "verse": 3,
+    "web_text": "Jesus, answering, spoke to the lawyers and Pharisees, saying, “Is it lawful to heal on the Sabbath?”",
+    "web_red": ["“Is it lawful to heal on the Sabbath?”"],
+    "web_spans": [[62, 100]],
+    "rvr_text": "Entonces Jesús habló a los intérpretes de la ley y a los fariseos, diciendo: ¿Es lícito sanar en el día de reposo?",
+    "rvr_len": 114,
+    "candidate": [[77, 114]]
+  },
+  {
+    "ref": "Lucas 14:5",
+    "book_id": 42,
+    "chapter": 14,
+    "verse": 5,
+    "web_text": "He answered them, “Which of you, if your son or an ox fell into a well, wouldn’t immediately pull him out on a Sabbath day?”",
+    "web_red": [
+      "“Which of you, if your son or an ox fell into a well, wouldn’t immediately pull him out on a Sabbath day?”"
+    ],
+    "web_spans": [[18, 124]],
+    "rvr_text": "Y dirigiéndose a ellos, dijo: ¿Quién de vosotros, si su asno o su buey cae en algún pozo, no lo sacará inmediatamente, aunque sea en día de reposo?",
+    "rvr_len": 147,
+    "candidate": [[30, 147]]
+  },
+  {
+    "ref": "Lucas 14:12",
+    "book_id": 42,
+    "chapter": 14,
+    "verse": 12,
+    "web_text": "He also said to the one who had invited him, “When you make a dinner or a supper, don’t call your friends, nor your brothers, nor your kinsmen, nor rich neighbors, or perhaps they might also return the favor, and pay you back.",
+    "web_red": [
+      "“When you make a dinner or a supper, don’t call your friends, nor your brothers, nor your kinsmen, nor rich neighbors, or perhaps they might also return the favor, and pay you back."
+    ],
+    "web_spans": [[45, 226]],
+    "rvr_text": "Dijo también al que le había convidado: Cuando hagas comida o cena, no llames a tus amigos, ni a tus hermanos, ni a tus parientes, ni a vecinos ricos; no sea que ellos a su vez te vuelvan a convidar, y seas recompensado.",
+    "rvr_len": 220,
+    "candidate": [[40, 220]]
+  },
+  {
+    "ref": "Lucas 14:16",
+    "book_id": 42,
+    "chapter": 14,
+    "verse": 16,
+    "web_text": "But he said to him, “A certain man made a great supper, and he invited many people.",
+    "web_red": [
+      "“A certain man made a great supper, and he invited many people."
+    ],
+    "web_spans": [[20, 83]],
+    "rvr_text": "Entonces Jesús le dijo: Un hombre hizo una gran cena, y convidó a muchos.",
+    "rvr_len": 73,
+    "candidate": [[24, 73]]
+  },
+  {
+    "ref": "Lucas 15:11",
+    "book_id": 42,
+    "chapter": 15,
+    "verse": 11,
+    "web_text": "He said, “A certain man had two sons.",
+    "web_red": ["“A certain man had two sons."],
+    "web_spans": [[9, 37]],
+    "rvr_text": "También dijo: Un hombre tenía dos hijos;",
+    "rvr_len": 40,
+    "candidate": [[14, 40]]
+  },
+  {
+    "ref": "Lucas 16:1",
+    "book_id": 42,
+    "chapter": 16,
+    "verse": 1,
+    "web_text": "He also said to his disciples, “There was a certain rich man who had a manager. An accusation was made to him that this man was wasting his possessions.",
+    "web_red": [
+      "“There was a certain rich man who had a manager. An accusation was made to him that this man was wasting his possessions."
+    ],
+    "web_spans": [[31, 152]],
+    "rvr_text": "Dijo también a sus discípulos: Había un hombre rico que tenía un mayordomo, y éste fue acusado ante él como disipador de sus bienes.",
+    "rvr_len": 132,
+    "candidate": [[31, 132]]
+  },
+  {
+    "ref": "Lucas 16:15",
+    "book_id": 42,
+    "chapter": 16,
+    "verse": 15,
+    "web_text": "He said to them, “You are those who justify yourselves in the sight of men, but God knows your hearts. For that which is exalted among men is an abomination in the sight of God.",
+    "web_red": [
+      "“You are those who justify yourselves in the sight of men, but God knows your hearts. For that which is exalted among men is an abomination in the sight of God."
+    ],
+    "web_spans": [[17, 177]],
+    "rvr_text": "Entonces les dijo: Vosotros sois los que os justificáis a vosotros mismos delante de los hombres; mas Dios conoce vuestros corazones; porque lo que los hombres tienen por sublime, delante de Dios es abominación.",
+    "rvr_len": 211,
+    "candidate": [[19, 211]]
+  },
+  {
+    "ref": "Lucas 17:1",
+    "book_id": 42,
+    "chapter": 17,
+    "verse": 1,
+    "web_text": "He said to the disciples, “It is impossible that no occasions of stumbling should come, but woe to him through whom they come!",
+    "web_red": [
+      "“It is impossible that no occasions of stumbling should come, but woe to him through whom they come!"
+    ],
+    "web_spans": [[26, 126]],
+    "rvr_text": "Dijo Jesús a sus discípulos: Imposible es que no vengan tropiezos; mas ¡ay de aquel por quien vienen!",
+    "rvr_len": 101,
+    "candidate": [[29, 101]]
+  },
+  {
+    "ref": "Lucas 17:6",
+    "book_id": 42,
+    "chapter": 17,
+    "verse": 6,
+    "web_text": "The Lord said, “If you had faith like a grain of mustard seed, you would tell this sycamore tree, ‘Be uprooted and be planted in the sea,’ and it would obey you.",
+    "web_red": [
+      "“If you had faith like a grain of mustard seed, you would tell this sycamore tree, ‘Be uprooted and be planted in the sea,’ and it would obey you."
+    ],
+    "web_spans": [[15, 161]],
+    "rvr_text": "Entonces el Señor dijo: Si tuvierais fe como un grano de mostaza, podríais decir a este sicómoro: Desarráigate, y plántate en el mar; y os obedecería.",
+    "rvr_len": 150,
+    "candidate": [[24, 150]]
+  },
+  {
+    "ref": "Lucas 17:14",
+    "book_id": 42,
+    "chapter": 17,
+    "verse": 14,
+    "web_text": "When he saw them, he said to them, “Go and show yourselves to the priests.” As they went, they were cleansed.",
+    "web_red": ["“Go and show yourselves to the priests.”"],
+    "web_spans": [[35, 75]],
+    "rvr_text": "Cuando él los vio, les dijo: Id, mostraos a los sacerdotes. Y aconteció que mientras iban, fueron limpiados.",
+    "rvr_len": 108,
+    "candidate": null
+  },
+  {
+    "ref": "Lucas 17:17",
+    "book_id": 42,
+    "chapter": 17,
+    "verse": 17,
+    "web_text": "Jesus answered, “Weren’t the ten cleansed? But where are the nine?",
+    "web_red": ["“Weren’t the ten cleansed? But where are the nine?"],
+    "web_spans": [[16, 66]],
+    "rvr_text": "Respondiendo Jesús, dijo: ¿No son diez los que fueron limpiados? Y los nueve, ¿dónde están?",
+    "rvr_len": 91,
+    "candidate": [[26, 91]]
+  }
+]

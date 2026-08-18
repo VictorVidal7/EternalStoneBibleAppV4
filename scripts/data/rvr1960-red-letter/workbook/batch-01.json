@@ -1,0 +1,718 @@
+[
+  {
+    "ref": "Mateo 3:15",
+    "book_id": 40,
+    "chapter": 3,
+    "verse": 15,
+    "web_text": "But Jesus, answering, said to him, “Allow it now, for this is the fitting way for us to fulfill all righteousness.” Then he allowed him.",
+    "web_red": [
+      "“Allow it now, for this is the fitting way for us to fulfill all righteousness.”"
+    ],
+    "web_spans": [[35, 115]],
+    "rvr_text": "Pero Jesús le respondió: Deja ahora, porque así conviene que cumplamos toda justicia. Entonces le dejó.",
+    "rvr_len": 103,
+    "candidate": null
+  },
+  {
+    "ref": "Mateo 4:4",
+    "book_id": 40,
+    "chapter": 4,
+    "verse": 4,
+    "web_text": "But he answered, “It is written, ‘Man shall not live by bread alone, but by every word that proceeds out of God’s mouth.’”",
+    "web_red": [
+      "“It is written, ‘Man shall not live by bread alone, but by every word that proceeds out of God’s mouth.’”"
+    ],
+    "web_spans": [[17, 122]],
+    "rvr_text": "El respondió y dijo: Escrito está: No sólo de pan vivirá el hombre, sino de toda palabra que sale de la boca de Dios.",
+    "rvr_len": 117,
+    "candidate": [[21, 117]]
+  },
+  {
+    "ref": "Mateo 4:7",
+    "book_id": 40,
+    "chapter": 4,
+    "verse": 7,
+    "web_text": "Jesus said to him, “Again, it is written, ‘You shall not test the Lord, your God.’”",
+    "web_red": [
+      "“Again, it is written, ‘You shall not test the Lord, your God.’”"
+    ],
+    "web_spans": [[19, 83]],
+    "rvr_text": "Jesús le dijo: Escrito está también: No tentarás al Señor tu Dios.",
+    "rvr_len": 66,
+    "candidate": [[15, 66]]
+  },
+  {
+    "ref": "Mateo 4:10",
+    "book_id": 40,
+    "chapter": 4,
+    "verse": 10,
+    "web_text": "Then Jesus said to him, “Get behind me, Satan! For it is written, ‘You shall worship the Lord your God, and you shall serve him only.’”",
+    "web_red": [
+      "“Get behind me, Satan! For it is written, ‘You shall worship the Lord your God, and you shall serve him only.’”"
+    ],
+    "web_spans": [[24, 135]],
+    "rvr_text": "Entonces Jesús le dijo: Vete, Satanás, porque escrito está: Al Señor tu Dios adorarás, y a él sólo servirás.",
+    "rvr_len": 108,
+    "candidate": [[24, 108]]
+  },
+  {
+    "ref": "Mateo 4:17",
+    "book_id": 40,
+    "chapter": 4,
+    "verse": 17,
+    "web_text": "From that time, Jesus began to preach, and to say, “Repent! For the Kingdom of Heaven is at hand.”",
+    "web_red": ["“Repent! For the Kingdom of Heaven is at hand.”"],
+    "web_spans": [[51, 98]],
+    "rvr_text": "Desde entonces comenzó Jesús a predicar, y a decir: Arrepentíos, porque el reino de los cielos se ha acercado.",
+    "rvr_len": 110,
+    "candidate": [[52, 110]]
+  },
+  {
+    "ref": "Mateo 4:19",
+    "book_id": 40,
+    "chapter": 4,
+    "verse": 19,
+    "web_text": "He said to them, “Come after me, and I will make you fishers for men.”",
+    "web_red": ["“Come after me, and I will make you fishers for men.”"],
+    "web_spans": [[17, 70]],
+    "rvr_text": "Y les dijo: Venid en pos de mí, y os haré pescadores de hombres.",
+    "rvr_len": 64,
+    "candidate": [[12, 64]]
+  },
+  {
+    "ref": "Mateo 8:3",
+    "book_id": 40,
+    "chapter": 8,
+    "verse": 3,
+    "web_text": "Jesus stretched out his hand and touched him, saying, “I want to. Be made clean.” Immediately his leprosy was cleansed.",
+    "web_red": ["“I want to. Be made clean.”"],
+    "web_spans": [[54, 81]],
+    "rvr_text": "Jesús extendió la mano y le tocó, diciendo: Quiero; sé limpio. Y al instante su lepra desapareció.",
+    "rvr_len": 98,
+    "candidate": null
+  },
+  {
+    "ref": "Mateo 8:4",
+    "book_id": 40,
+    "chapter": 8,
+    "verse": 4,
+    "web_text": "Jesus said to him, “See that you tell nobody; but go, show yourself to the priest, and offer the gift that Moses commanded, as a testimony to them.”",
+    "web_red": [
+      "“See that you tell nobody; but go, show yourself to the priest, and offer the gift that Moses commanded, as a testimony to them.”"
+    ],
+    "web_spans": [[19, 148]],
+    "rvr_text": "Entonces Jesús le dijo: Mira, no lo digas a nadie; sino ve, muéstrate al sacerdote, y presenta la ofrenda que ordenó Moisés, para testimonio a ellos.",
+    "rvr_len": 149,
+    "candidate": [[24, 149]]
+  },
+  {
+    "ref": "Mateo 8:7",
+    "book_id": 40,
+    "chapter": 8,
+    "verse": 7,
+    "web_text": "Jesus said to him, “I will come and heal him.”",
+    "web_red": ["“I will come and heal him.”"],
+    "web_spans": [[19, 46]],
+    "rvr_text": "Y Jesús le dijo: Yo iré y le sanaré.",
+    "rvr_len": 36,
+    "candidate": [[17, 36]]
+  },
+  {
+    "ref": "Mateo 8:10",
+    "book_id": 40,
+    "chapter": 8,
+    "verse": 10,
+    "web_text": "When Jesus heard it, he marveled and said to those who followed, “Most certainly I tell you, I haven’t found so great a faith, not even in Israel.",
+    "web_red": [
+      "“Most certainly I tell you, I haven’t found so great a faith, not even in Israel."
+    ],
+    "web_spans": [[65, 146]],
+    "rvr_text": "Al oírlo Jesús, se maravilló, y dijo a los que le seguían: De cierto os digo, que ni aun en Israel he hallado tanta fe.",
+    "rvr_len": 119,
+    "candidate": [[59, 119]]
+  },
+  {
+    "ref": "Mateo 8:13",
+    "book_id": 40,
+    "chapter": 8,
+    "verse": 13,
+    "web_text": "Jesus said to the centurion, “Go your way. Let it be done for you as you have believed.” His servant was healed in that hour.",
+    "web_red": ["“Go your way. Let it be done for you as you have believed.”"],
+    "web_spans": [[29, 88]],
+    "rvr_text": "Entonces Jesús dijo al centurión: Ve, y como creíste, te sea hecho. Y su criado fue sanado en aquella misma hora.",
+    "rvr_len": 113,
+    "candidate": null
+  },
+  {
+    "ref": "Mateo 8:20",
+    "book_id": 40,
+    "chapter": 8,
+    "verse": 20,
+    "web_text": "Jesus said to him, “The foxes have holes and the birds of the sky have nests, but the Son of Man has nowhere to lay his head.”",
+    "web_red": [
+      "“The foxes have holes and the birds of the sky have nests, but the Son of Man has nowhere to lay his head.”"
+    ],
+    "web_spans": [[19, 126]],
+    "rvr_text": "Jesús le dijo: Las zorras tienen guaridas, y las aves del cielo nidos; mas el Hijo del Hombre no tiene dónde recostar su cabeza.",
+    "rvr_len": 128,
+    "candidate": [[15, 128]]
+  },
+  {
+    "ref": "Mateo 8:22",
+    "book_id": 40,
+    "chapter": 8,
+    "verse": 22,
+    "web_text": "But Jesus said to him, “Follow me, and leave the dead to bury their own dead.”",
+    "web_red": ["“Follow me, and leave the dead to bury their own dead.”"],
+    "web_spans": [[23, 78]],
+    "rvr_text": "Jesús le dijo: Sígueme; deja que los muertos entierren a sus muertos.",
+    "rvr_len": 69,
+    "candidate": [[15, 69]]
+  },
+  {
+    "ref": "Mateo 8:26",
+    "book_id": 40,
+    "chapter": 8,
+    "verse": 26,
+    "web_text": "He said to them, “Why are you fearful, O you of little faith?” Then he got up, rebuked the wind and the sea, and there was a great calm.",
+    "web_red": ["“Why are you fearful, O you of little faith?”"],
+    "web_spans": [[17, 62]],
+    "rvr_text": "El les dijo: ¿Por qué teméis, hombres de poca fe? Entonces, levantándose, reprendió a los vientos y al mar; y se hizo grande bonanza.",
+    "rvr_len": 133,
+    "candidate": null
+  },
+  {
+    "ref": "Mateo 8:32",
+    "book_id": 40,
+    "chapter": 8,
+    "verse": 32,
+    "web_text": "He said to them, “Go!” They came out and went into the herd of pigs; and behold, the whole herd of pigs rushed down the cliff into the sea and died in the water.",
+    "web_red": ["“Go!”"],
+    "web_spans": [[17, 22]],
+    "rvr_text": "El les dijo: Id. Y ellos salieron, y se fueron a aquel hato de cerdos; y he aquí, todo el hato de cerdos se precipitó en el mar por un despeñadero, y perecieron en las aguas.",
+    "rvr_len": 174,
+    "candidate": null
+  },
+  {
+    "ref": "Mateo 9:2",
+    "book_id": 40,
+    "chapter": 9,
+    "verse": 2,
+    "web_text": "Behold, they brought to him a man who was paralyzed, lying on a bed. Jesus, seeing their faith, said to the paralytic, “Son, cheer up! Your sins are forgiven you.”",
+    "web_red": ["“Son, cheer up! Your sins are forgiven you.”"],
+    "web_spans": [[119, 163]],
+    "rvr_text": "Y sucedió que le trajeron un paralítico, tendido sobre una cama; y al ver Jesús la fe de ellos, dijo al paralítico: Ten ánimo, hijo; tus pecados te son perdonados.",
+    "rvr_len": 163,
+    "candidate": [[116, 163]]
+  },
+  {
+    "ref": "Mateo 9:4",
+    "book_id": 40,
+    "chapter": 9,
+    "verse": 4,
+    "web_text": "Jesus, knowing their thoughts, said, “Why do you think evil in your hearts?",
+    "web_red": ["“Why do you think evil in your hearts?"],
+    "web_spans": [[37, 75]],
+    "rvr_text": "Y conociendo Jesús los pensamientos de ellos, dijo: ¿Por qué pensáis mal en vuestros corazones?",
+    "rvr_len": 95,
+    "candidate": [[52, 95]]
+  },
+  {
+    "ref": "Mateo 9:6",
+    "book_id": 40,
+    "chapter": 9,
+    "verse": 6,
+    "web_text": "But that you may know that the Son of Man has authority on earth to forgive sins—” (then he said to the paralytic), “Get up, and take up your mat, and go to your house.”",
+    "web_red": [
+      "But that you may know that the Son of Man has authority on earth to forgive sins—”",
+      "“Get up, and take up your mat, and go to your house.”"
+    ],
+    "web_spans": [
+      [0, 82],
+      [116, 169]
+    ],
+    "rvr_text": "Pues para que sepáis que el Hijo del Hombre tiene potestad en la tierra para perdonar pecados (dice entonces al paralítico): Levántate, toma tu cama, y vete a tu casa.",
+    "rvr_len": 167,
+    "candidate": null
+  },
+  {
+    "ref": "Mateo 9:9",
+    "book_id": 40,
+    "chapter": 9,
+    "verse": 9,
+    "web_text": "As Jesus passed by from there, he saw a man called Matthew sitting at the tax collection office. He said to him, “Follow me.” He got up and followed him.",
+    "web_red": ["“Follow me.”"],
+    "web_spans": [[113, 125]],
+    "rvr_text": "Pasando Jesús de allí, vio a un hombre llamado Mateo, que estaba sentado al banco de los tributos públicos, y le dijo: Sígueme. Y se levantó y le siguió.",
+    "rvr_len": 153,
+    "candidate": null
+  },
+  {
+    "ref": "Mateo 9:12",
+    "book_id": 40,
+    "chapter": 9,
+    "verse": 12,
+    "web_text": "When Jesus heard it, he said to them, “Those who are healthy have no need for a physician, but those who are sick do.",
+    "web_red": [
+      "“Those who are healthy have no need for a physician, but those who are sick do."
+    ],
+    "web_spans": [[38, 117]],
+    "rvr_text": "Al oír esto Jesús, les dijo: Los sanos no tienen necesidad de médico, sino los enfermos.",
+    "rvr_len": 88,
+    "candidate": [[29, 88]]
+  },
+  {
+    "ref": "Mateo 9:15",
+    "book_id": 40,
+    "chapter": 9,
+    "verse": 15,
+    "web_text": "Jesus said to them, “Can the friends of the bridegroom mourn as long as the bridegroom is with them? But the days will come when the bridegroom will be taken away from them, and then they will fast.",
+    "web_red": [
+      "“Can the friends of the bridegroom mourn as long as the bridegroom is with them? But the days will come when the bridegroom will be taken away from them, and then they will fast."
+    ],
+    "web_spans": [[20, 198]],
+    "rvr_text": "Jesús les dijo: ¿Acaso pueden los que están de bodas tener luto entre tanto que el esposo está con ellos? Pero vendrán días cuando el esposo les será quitado, y entonces ayunarán.",
+    "rvr_len": 179,
+    "candidate": [[16, 179]]
+  },
+  {
+    "ref": "Mateo 9:22",
+    "book_id": 40,
+    "chapter": 9,
+    "verse": 22,
+    "web_text": "But Jesus, turning around and seeing her, said, “Daughter, cheer up! Your faith has made you well.” And the woman was made well from that hour.",
+    "web_red": ["“Daughter, cheer up! Your faith has made you well.”"],
+    "web_spans": [[48, 99]],
+    "rvr_text": "Pero Jesús, volviéndose y mirándola, dijo: Ten ánimo, hija; tu fe te ha salvado. Y la mujer fue salva desde aquella hora.",
+    "rvr_len": 121,
+    "candidate": null
+  },
+  {
+    "ref": "Mateo 9:24",
+    "book_id": 40,
+    "chapter": 9,
+    "verse": 24,
+    "web_text": "he said to them, “Make room, because the girl isn’t dead, but sleeping.” They were ridiculing him.",
+    "web_red": ["“Make room, because the girl isn’t dead, but sleeping.”"],
+    "web_spans": [[17, 72]],
+    "rvr_text": "les dijo: Apartaos, porque la niña no está muerta, sino duerme. Y se burlaban de él.",
+    "rvr_len": 84,
+    "candidate": null
+  },
+  {
+    "ref": "Mateo 9:28",
+    "book_id": 40,
+    "chapter": 9,
+    "verse": 28,
+    "web_text": "When he had come into the house, the blind men came to him. Jesus said to them, “Do you believe that I am able to do this?” They told him, “Yes, Lord.”",
+    "web_red": ["“Do you believe that I am able to do this?”"],
+    "web_spans": [[80, 123]],
+    "rvr_text": "Y llegado a la casa, vinieron a él los ciegos; y Jesús les dijo: ¿Creéis que puedo hacer esto? Ellos dijeron: Sí, Señor.",
+    "rvr_len": 120,
+    "candidate": null
+  },
+  {
+    "ref": "Mateo 9:29",
+    "book_id": 40,
+    "chapter": 9,
+    "verse": 29,
+    "web_text": "Then he touched their eyes, saying, “According to your faith be it done to you.”",
+    "web_red": ["“According to your faith be it done to you.”"],
+    "web_spans": [[36, 80]],
+    "rvr_text": "Entonces les tocó los ojos, diciendo: Conforme a vuestra fe os sea hecho.",
+    "rvr_len": 73,
+    "candidate": [[38, 73]]
+  },
+  {
+    "ref": "Mateo 9:30",
+    "book_id": 40,
+    "chapter": 9,
+    "verse": 30,
+    "web_text": "Then their eyes were opened. Jesus strictly commanded them, saying, “See that no one knows about this.”",
+    "web_red": ["“See that no one knows about this.”"],
+    "web_spans": [[68, 103]],
+    "rvr_text": "Y los ojos de ellos fueron abiertos. Y Jesús les encargó rigurosamente, diciendo: Mirad que nadie lo sepa.",
+    "rvr_len": 106,
+    "candidate": [[82, 106]]
+  },
+  {
+    "ref": "Mateo 9:37",
+    "book_id": 40,
+    "chapter": 9,
+    "verse": 37,
+    "web_text": "Then he said to his disciples, “The harvest indeed is plentiful, but the laborers are few.",
+    "web_red": ["“The harvest indeed is plentiful, but the laborers are few."],
+    "web_spans": [[31, 90]],
+    "rvr_text": "Entonces dijo a sus discípulos: A la verdad la mies es mucha, mas los obreros pocos.",
+    "rvr_len": 84,
+    "candidate": [[32, 84]]
+  },
+  {
+    "ref": "Mateo 10:5",
+    "book_id": 40,
+    "chapter": 10,
+    "verse": 5,
+    "web_text": "Jesus sent these twelve out and commanded them, saying, “Don’t go among the Gentiles, and don’t enter into any city of the Samaritans.",
+    "web_red": [
+      "“Don’t go among the Gentiles, and don’t enter into any city of the Samaritans."
+    ],
+    "web_spans": [[56, 134]],
+    "rvr_text": "A estos doce envió Jesús, y les dio instrucciones, diciendo: Por camino de gentiles no vayáis, y en ciudad de samaritanos no entréis,",
+    "rvr_len": 133,
+    "candidate": [[61, 133]]
+  },
+  {
+    "ref": "Mateo 11:4",
+    "book_id": 40,
+    "chapter": 11,
+    "verse": 4,
+    "web_text": "Jesus answered them, “Go and tell John the things which you hear and see:",
+    "web_red": ["“Go and tell John the things which you hear and see:"],
+    "web_spans": [[21, 73]],
+    "rvr_text": "Respondiendo Jesús, les dijo: Id, y haced saber a Juan las cosas que oís y veis.",
+    "rvr_len": 80,
+    "candidate": [[30, 80]]
+  },
+  {
+    "ref": "Mateo 11:7",
+    "book_id": 40,
+    "chapter": 11,
+    "verse": 7,
+    "web_text": "As these went their way, Jesus began to say to the multitudes concerning John, “What did you go out into the wilderness to see? A reed shaken by the wind?",
+    "web_red": [
+      "“What did you go out into the wilderness to see? A reed shaken by the wind?"
+    ],
+    "web_spans": [[79, 154]],
+    "rvr_text": "Mientras ellos se iban, comenzó Jesús a decir de Juan a la gente: ¿Qué salisteis a ver al desierto? ¿Una caña sacudida por el viento?",
+    "rvr_len": 133,
+    "candidate": [[66, 133]]
+  },
+  {
+    "ref": "Mateo 11:25",
+    "book_id": 40,
+    "chapter": 11,
+    "verse": 25,
+    "web_text": "At that time, Jesus answered, “I thank you, Father, Lord of heaven and earth, that you hid these things from the wise and understanding, and revealed them to infants.",
+    "web_red": [
+      "“I thank you, Father, Lord of heaven and earth, that you hid these things from the wise and understanding, and revealed them to infants."
+    ],
+    "web_spans": [[30, 166]],
+    "rvr_text": "En aquel tiempo, respondiendo Jesús, dijo: Te alabo, Padre, Señor del cielo y de la tierra, porque escondiste estas cosas de los sabios y de los entendidos, y las revelaste a los niños.",
+    "rvr_len": 185,
+    "candidate": [[43, 185]]
+  },
+  {
+    "ref": "Mateo 12:3",
+    "book_id": 40,
+    "chapter": 12,
+    "verse": 3,
+    "web_text": "But he said to them, “Haven’t you read what David did when he was hungry, and those who were with him:",
+    "web_red": [
+      "“Haven’t you read what David did when he was hungry, and those who were with him:"
+    ],
+    "web_spans": [[21, 102]],
+    "rvr_text": "Pero él les dijo: ¿No habéis leído lo que hizo David, cuando él y los que con él estaban tuvieron hambre;",
+    "rvr_len": 105,
+    "candidate": [[18, 105]]
+  },
+  {
+    "ref": "Mateo 12:11",
+    "book_id": 40,
+    "chapter": 12,
+    "verse": 11,
+    "web_text": "He said to them, “What man is there among you who has one sheep, and if this one falls into a pit on the Sabbath day, won’t he grab on to it and lift it out?",
+    "web_red": [
+      "“What man is there among you who has one sheep, and if this one falls into a pit on the Sabbath day, won’t he grab on to it and lift it out?"
+    ],
+    "web_spans": [[17, 157]],
+    "rvr_text": "El les dijo: ¿Qué hombre habrá de vosotros, que tenga una oveja, y si ésta cayere en un hoyo en día de reposo, no le eche mano, y la levante?",
+    "rvr_len": 141,
+    "candidate": [[13, 141]]
+  },
+  {
+    "ref": "Mateo 12:13",
+    "book_id": 40,
+    "chapter": 12,
+    "verse": 13,
+    "web_text": "Then he told the man, “Stretch out your hand.” He stretched it out; and it was restored whole, just like the other.",
+    "web_red": ["“Stretch out your hand.”"],
+    "web_spans": [[22, 46]],
+    "rvr_text": "Entonces dijo a aquel hombre: Extiende tu mano. Y él la extendió, y le fue restaurada sana como la otra.",
+    "rvr_len": 104,
+    "candidate": null
+  },
+  {
+    "ref": "Mateo 12:25",
+    "book_id": 40,
+    "chapter": 12,
+    "verse": 25,
+    "web_text": "Knowing their thoughts, Jesus said to them, “Every kingdom divided against itself is brought to desolation, and every city or house divided against itself will not stand.",
+    "web_red": [
+      "“Every kingdom divided against itself is brought to desolation, and every city or house divided against itself will not stand."
+    ],
+    "web_spans": [[44, 170]],
+    "rvr_text": "Sabiendo Jesús los pensamientos de ellos, les dijo: Todo reino dividido contra sí mismo, es asolado, y toda ciudad o casa dividida contra sí misma, no permanecerá.",
+    "rvr_len": 163,
+    "candidate": [[52, 163]]
+  },
+  {
+    "ref": "Mateo 12:39",
+    "book_id": 40,
+    "chapter": 12,
+    "verse": 39,
+    "web_text": "But he answered them, “An evil and adulterous generation seeks after a sign, but no sign will be given to it but the sign of Jonah the prophet.",
+    "web_red": [
+      "“An evil and adulterous generation seeks after a sign, but no sign will be given to it but the sign of Jonah the prophet."
+    ],
+    "web_spans": [[22, 143]],
+    "rvr_text": "El respondió y les dijo: La generación mala y adúltera demanda señal; pero señal no le será dada, sino la señal del profeta Jonás.",
+    "rvr_len": 130,
+    "candidate": [[25, 130]]
+  },
+  {
+    "ref": "Mateo 12:48",
+    "book_id": 40,
+    "chapter": 12,
+    "verse": 48,
+    "web_text": "But he answered him who spoke to him, “Who is my mother? Who are my brothers?”",
+    "web_red": ["“Who is my mother? Who are my brothers?”"],
+    "web_spans": [[38, 78]],
+    "rvr_text": "Respondiendo él al que le decía esto, dijo: ¿Quién es mi madre, y quiénes son mis hermanos?",
+    "rvr_len": 91,
+    "candidate": [[44, 91]]
+  },
+  {
+    "ref": "Mateo 12:49",
+    "book_id": 40,
+    "chapter": 12,
+    "verse": 49,
+    "web_text": "He stretched out his hand toward his disciples, and said, “Behold, my mother and my brothers!",
+    "web_red": ["“Behold, my mother and my brothers!"],
+    "web_spans": [[58, 93]],
+    "rvr_text": "Y extendiendo su mano hacia sus discípulos, dijo: He aquí mi madre y mis hermanos.",
+    "rvr_len": 82,
+    "candidate": [[50, 82]]
+  },
+  {
+    "ref": "Mateo 13:3",
+    "book_id": 40,
+    "chapter": 13,
+    "verse": 3,
+    "web_text": "He spoke to them many things in parables, saying, “Behold, a farmer went out to sow.",
+    "web_red": ["“Behold, a farmer went out to sow."],
+    "web_spans": [[50, 84]],
+    "rvr_text": "Y les habló muchas cosas por parábolas, diciendo: He aquí, el sembrador salió a sembrar.",
+    "rvr_len": 88,
+    "candidate": [[50, 88]]
+  },
+  {
+    "ref": "Mateo 13:11",
+    "book_id": 40,
+    "chapter": 13,
+    "verse": 11,
+    "web_text": "He answered them, “To you it is given to know the mysteries of the Kingdom of Heaven, but it is not given to them.",
+    "web_red": [
+      "“To you it is given to know the mysteries of the Kingdom of Heaven, but it is not given to them."
+    ],
+    "web_spans": [[18, 114]],
+    "rvr_text": "El respondiendo, les dijo: Porque a vosotros os es dado saber los misterios del reino de los cielos; mas a ellos no les es dado.",
+    "rvr_len": 128,
+    "candidate": [[27, 128]]
+  },
+  {
+    "ref": "Mateo 13:24",
+    "book_id": 40,
+    "chapter": 13,
+    "verse": 24,
+    "web_text": "He set another parable before them, saying, “The Kingdom of Heaven is like a man who sowed good seed in his field,",
+    "web_red": [
+      "“The Kingdom of Heaven is like a man who sowed good seed in his field,"
+    ],
+    "web_spans": [[44, 114]],
+    "rvr_text": "Les refirió otra parábola, diciendo: El reino de los cielos es semejante a un hombre que sembró buena semilla en su campo;",
+    "rvr_len": 122,
+    "candidate": [[37, 122]]
+  },
+  {
+    "ref": "Mateo 13:31",
+    "book_id": 40,
+    "chapter": 13,
+    "verse": 31,
+    "web_text": "He set another parable before them, saying, “The Kingdom of Heaven is like a grain of mustard seed which a man took, and sowed in his field,",
+    "web_red": [
+      "“The Kingdom of Heaven is like a grain of mustard seed which a man took, and sowed in his field,"
+    ],
+    "web_spans": [[44, 140]],
+    "rvr_text": "Otra parábola les refirió, diciendo: El reino de los cielos es semejante al grano de mostaza, que un hombre tomó y sembró en su campo;",
+    "rvr_len": 134,
+    "candidate": [[37, 134]]
+  },
+  {
+    "ref": "Mateo 13:33",
+    "book_id": 40,
+    "chapter": 13,
+    "verse": 33,
+    "web_text": "He spoke another parable to them. “The Kingdom of Heaven is like yeast which a woman took and hid in three measures of meal, until it was all leavened.”",
+    "web_red": [
+      "“The Kingdom of Heaven is like yeast which a woman took and hid in three measures of meal, until it was all leavened.”"
+    ],
+    "web_spans": [[34, 152]],
+    "rvr_text": "Otra parábola les dijo: El reino de los cielos es semejante a la levadura que tomó una mujer, y escondió en tres medidas de harina, hasta que todo fue leudado.",
+    "rvr_len": 159,
+    "candidate": [[24, 159]]
+  },
+  {
+    "ref": "Mateo 13:37",
+    "book_id": 40,
+    "chapter": 13,
+    "verse": 37,
+    "web_text": "He answered them, “He who sows the good seed is the Son of Man,",
+    "web_red": ["“He who sows the good seed is the Son of Man,"],
+    "web_spans": [[18, 63]],
+    "rvr_text": "Respondiendo él, les dijo: El que siembra la buena semilla es el Hijo del Hombre.",
+    "rvr_len": 81,
+    "candidate": [[27, 81]]
+  },
+  {
+    "ref": "Mateo 13:51",
+    "book_id": 40,
+    "chapter": 13,
+    "verse": 51,
+    "web_text": "Jesus said to them, “Have you understood all these things?” They answered him, “Yes, Lord.”",
+    "web_red": ["“Have you understood all these things?”"],
+    "web_spans": [[20, 59]],
+    "rvr_text": "Jesús les dijo: ¿Habéis entendido todas estas cosas? Ellos respondieron: Sí, Señor.",
+    "rvr_len": 83,
+    "candidate": null
+  },
+  {
+    "ref": "Mateo 13:52",
+    "book_id": 40,
+    "chapter": 13,
+    "verse": 52,
+    "web_text": "He said to them, “Therefore every scribe who has been made a disciple in the Kingdom of Heaven is like a man who is a householder, who brings out of his treasure new and old things.”",
+    "web_red": [
+      "“Therefore every scribe who has been made a disciple in the Kingdom of Heaven is like a man who is a householder, who brings out of his treasure new and old things.”"
+    ],
+    "web_spans": [[17, 182]],
+    "rvr_text": "El les dijo: Por eso todo escriba docto en el reino de los cielos es semejante a un padre de familia, que saca de su tesoro cosas nuevas y cosas viejas.",
+    "rvr_len": 152,
+    "candidate": [[13, 152]]
+  },
+  {
+    "ref": "Mateo 13:57",
+    "book_id": 40,
+    "chapter": 13,
+    "verse": 57,
+    "web_text": "They were offended by him. But Jesus said to them, “A prophet is not without honor, except in his own country and in his own house.”",
+    "web_red": [
+      "“A prophet is not without honor, except in his own country and in his own house.”"
+    ],
+    "web_spans": [[51, 132]],
+    "rvr_text": "Y se escandalizaban de él. Pero Jesús les dijo: No hay profeta sin honra, sino en su propia tierra y en su casa.",
+    "rvr_len": 112,
+    "candidate": [[48, 112]]
+  },
+  {
+    "ref": "Mateo 14:16",
+    "book_id": 40,
+    "chapter": 14,
+    "verse": 16,
+    "web_text": "But Jesus said to them, “They don’t need to go away. You give them something to eat.”",
+    "web_red": [
+      "“They don’t need to go away. You give them something to eat.”"
+    ],
+    "web_spans": [[24, 85]],
+    "rvr_text": "Jesús les dijo: No tienen necesidad de irse; dadles vosotros de comer.",
+    "rvr_len": 70,
+    "candidate": [[16, 70]]
+  },
+  {
+    "ref": "Mateo 14:18",
+    "book_id": 40,
+    "chapter": 14,
+    "verse": 18,
+    "web_text": "He said, “Bring them here to me.”",
+    "web_red": ["“Bring them here to me.”"],
+    "web_spans": [[9, 33]],
+    "rvr_text": "El les dijo: Traédmelos acá.",
+    "rvr_len": 28,
+    "candidate": [[13, 28]]
+  },
+  {
+    "ref": "Mateo 14:27",
+    "book_id": 40,
+    "chapter": 14,
+    "verse": 27,
+    "web_text": "But immediately Jesus spoke to them, saying, “Cheer up! It is I! Don’t be afraid.”",
+    "web_red": ["“Cheer up! It is I! Don’t be afraid.”"],
+    "web_spans": [[45, 82]],
+    "rvr_text": "Pero en seguida Jesús les habló, diciendo: ¡Tened ánimo; yo soy, no temáis!",
+    "rvr_len": 75,
+    "candidate": [[43, 75]]
+  },
+  {
+    "ref": "Mateo 14:29",
+    "book_id": 40,
+    "chapter": 14,
+    "verse": 29,
+    "web_text": "He said, “Come!” Peter stepped down from the boat and walked on the waters to come to Jesus.",
+    "web_red": ["“Come!”"],
+    "web_spans": [[9, 16]],
+    "rvr_text": "Y él dijo: Ven. Y descendiendo Pedro de la barca, andaba sobre las aguas para ir a Jesús.",
+    "rvr_len": 89,
+    "candidate": null
+  },
+  {
+    "ref": "Mateo 14:31",
+    "book_id": 40,
+    "chapter": 14,
+    "verse": 31,
+    "web_text": "Immediately Jesus stretched out his hand, took hold of him, and said to him, “You of little faith, why did you doubt?”",
+    "web_red": ["“You of little faith, why did you doubt?”"],
+    "web_spans": [[77, 118]],
+    "rvr_text": "Al momento Jesús, extendiendo la mano, asió de él, y le dijo: ¡Hombre de poca fe! ¿Por qué dudaste?",
+    "rvr_len": 99,
+    "candidate": [[62, 99]]
+  },
+  {
+    "ref": "Mateo 15:3",
+    "book_id": 40,
+    "chapter": 15,
+    "verse": 3,
+    "web_text": "He answered them, “Why do you also disobey the commandment of God because of your tradition?",
+    "web_red": [
+      "“Why do you also disobey the commandment of God because of your tradition?"
+    ],
+    "web_spans": [[18, 92]],
+    "rvr_text": "Respondiendo él, les dijo: ¿Por qué también vosotros quebrantáis el mandamiento de Dios por vuestra tradición?",
+    "rvr_len": 110,
+    "candidate": [[27, 110]]
+  },
+  {
+    "ref": "Mateo 15:10",
+    "book_id": 40,
+    "chapter": 15,
+    "verse": 10,
+    "web_text": "He summoned the multitude, and said to them, “Hear, and understand.",
+    "web_red": ["“Hear, and understand."],
+    "web_spans": [[45, 67]],
+    "rvr_text": "Y llamando a sí a la multitud, les dijo: Oíd, y entended:",
+    "rvr_len": 57,
+    "candidate": [[41, 57]]
+  },
+  {
+    "ref": "Mateo 15:13",
+    "book_id": 40,
+    "chapter": 15,
+    "verse": 13,
+    "web_text": "But he answered, “Every plant which my heavenly Father didn’t plant will be uprooted.",
+    "web_red": [
+      "“Every plant which my heavenly Father didn’t plant will be uprooted."
+    ],
+    "web_spans": [[17, 85]],
+    "rvr_text": "Pero respondiendo él, dijo: Toda planta que no plantó mi Padre celestial, será desarraigada.",
+    "rvr_len": 92,
+    "candidate": [[28, 92]]
+  }
+]
