@@ -432,6 +432,19 @@ export function AuthProvider({children}: AuthProviderProps) {
     const authMod = getAuth();
     const gs = getGoogleSignin();
 
+    // Detach every Firestore onSnapshot listener BEFORE invalidating the
+    // Auth token below. SyncEngineContext also stops the engine reactively
+    // (watching `user` go null), but that round-trips through
+    // onAuthStateChanged + a React re-render — by then the token is
+    // already gone, so a listener still attached in that window gets a
+    // permission-denied error from Firestore and logs it as a real error
+    // (a startling red LogBox toast right as the user signs out, for
+    // something that isn't actually a bug). Stopping synchronously here
+    // closes that race instead of relying on the reactive teardown.
+    // Mirrors deleteAccount's engine.stop()-before-anything-auth-related
+    // ordering below.
+    getSyncEngine()?.stop();
+
     if (gs) {
       try {
         await gs.signOut();

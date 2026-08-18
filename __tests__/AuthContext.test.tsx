@@ -26,9 +26,17 @@ import {act, render, waitFor, fireEvent} from '@testing-library/react-native';
 // is null so the existing tests behave exactly as before.
 const mockExportLocalData = jest.fn().mockResolvedValue([]);
 const mockQueueSkipNextBulkPush = jest.fn();
+// Sign-out race-fix test — records the ORDER stop()/signOut() actually
+// fire in, not just whether they fired, since the bug this guards
+// against is specifically about ordering (see AuthContext.signOut).
+const callOrder: string[] = [];
+const mockEngineStop = jest.fn(() => {
+  callOrder.push('engine.stop');
+});
 let mockEngineStub: {
   exportLocalData: jest.Mock;
   queueSkipNextBulkPush: jest.Mock;
+  stop?: jest.Mock;
 } | null = null;
 jest.mock('@lib/sync', () => ({
   __esModule: true,
@@ -54,7 +62,9 @@ const mockSignInAnonymously = jest
 const mockSignInWithCredential = jest
   .fn()
   .mockResolvedValue({user: {uid: 'google-uid'}});
-const mockSignOut = jest.fn().mockResolvedValue(undefined);
+const mockSignOut = jest.fn(async () => {
+  callOrder.push('firebaseAuth.signOut');
+});
 const mockLinkWithCredential = jest
   .fn()
   .mockResolvedValue({user: {uid: 'anon-uid'}});
@@ -161,6 +171,8 @@ beforeEach(() => {
   mockAuthFn.GoogleAuthProvider.credential.mockClear();
   mockExportLocalData.mockClear();
   mockQueueSkipNextBulkPush.mockClear();
+  mockEngineStop.mockClear();
+  callOrder.length = 0;
   mockEngineStub = null;
 });
 
@@ -504,6 +516,39 @@ describe('AuthProvider', () => {
 
     expect(mockGoogleSignin.signOut).toHaveBeenCalledTimes(1);
     expect(mockSignOut).toHaveBeenCalledTimes(1);
+  });
+
+  it('stops the sync engine BEFORE invalidating the Firebase Auth session (permission-denied race fix)', async () => {
+    // Regression test: a Firestore onSnapshot listener still attached at
+    // the instant the Auth token is invalidated gets a permission-denied
+    // error and flashes a red LogBox toast. The fix is ORDERING — the
+    // engine's listeners must be torn down first — so this test asserts
+    // sequence, not just that both calls happened.
+    const {ref, onReady} = captureAuthApi();
+    mockEngineStub = {
+      exportLocalData: mockExportLocalData,
+      queueSkipNextBulkPush: mockQueueSkipNextBulkPush,
+      stop: mockEngineStop,
+    };
+
+    render(
+      <AuthProvider>
+        <Probe onReady={onReady} />
+      </AuthProvider>,
+    );
+
+    flushListenerWith({uid: 'logged-in', isAnonymous: false});
+    await waitFor(() => expect(ref.current?.user?.uid).toBe('logged-in'));
+
+    await act(async () => {
+      await ref.current!.signOut();
+    });
+
+    expect(mockEngineStop).toHaveBeenCalledTimes(1);
+    expect(mockSignOut).toHaveBeenCalledTimes(1);
+    expect(callOrder).toEqual(['engine.stop', 'firebaseAuth.signOut']);
+
+    mockEngineStub = null;
   });
 
   it('clears the Crashlytics userId when the user becomes null', async () => {

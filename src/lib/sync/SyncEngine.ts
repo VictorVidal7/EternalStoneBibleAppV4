@@ -556,10 +556,11 @@ export class SyncEngine {
     if (this.unsubs.has(adapter.collection)) return; // already attached
     const fn = getFirestore();
     if (!fn) return; // module unavailable — engine is a no-op
+    const uidAtAttach = this.uid;
     let collectionRef: CollectionRef;
     try {
       collectionRef = fn().collection(
-        `users/${this.uid}/${adapter.collection}`,
+        `users/${uidAtAttach}/${adapter.collection}`,
       );
     } catch (err) {
       logger.error(
@@ -578,6 +579,12 @@ export class SyncEngine {
     // '>=', 0)` matches everything — the first attach still pulls full
     // history, exactly as before this change.
     const cursor = await this.loadCursor(adapter.collection);
+    // stop() (sign-out/deleteAccount, or a uid change) can land while the
+    // AsyncStorage read above is in flight. Attaching anyway would put a
+    // live listener into `unsubs` for an engine that's supposed to be
+    // stopped — exactly the listener the ordering fix in
+    // AuthContext.signOut exists to prevent, just via a different path.
+    if (this.uid !== uidAtAttach) return;
     const queryFloor = Math.max(0, cursor - CURSOR_SAFETY_MARGIN_MS);
     let query: Query = collectionRef;
     try {
@@ -598,6 +605,23 @@ export class SyncEngine {
         void this.handleSnapshot(adapter, snapshot.docChanges());
       },
       err => {
+        // AuthContext.signOut/deleteAccount call stop() synchronously
+        // before the Auth token is invalidated, but react-native-firebase's
+        // native unsubscribe isn't guaranteed to land before an in-flight
+        // listen stream observes the now-invalid token — a stray
+        // permission-denied can still reach this callback a beat after
+        // teardown. `unsubs` no longer holding this collection is how we
+        // tell that apart from a genuine permission problem on a listener
+        // we still consider active: only THIS specific case is downgraded,
+        // not permission-denied errors in general.
+        if (!this.unsubs.has(adapter.collection)) {
+          logger.warn('SyncEngine: snapshot error after teardown (ignored)', {
+            component: 'SyncEngine',
+            collection: adapter.collection,
+            error: err.message,
+          });
+          return;
+        }
         logger.error('SyncEngine: snapshot error', err, {
           component: 'SyncEngine',
           collection: adapter.collection,
