@@ -1,0 +1,53 @@
+{
+  "id": "constellation",
+  "listIcon": "sparkles-outline",
+  "headerIcon": "sparkles",
+  "es": {
+    "title": "Cómo explorar la constelación",
+    "rowDescription": "Explora las conexiones de un versículo como un mapa de estrellas interactivo.",
+    "intro": "Descubre cómo un versículo se conecta con otros pasajes de la Biblia: un mapa de estrellas con el versículo que lees en el centro y sus referencias cruzadas orbitando a su alrededor.",
+    "s1Icon": "eye-outline",
+    "s1Title": "Toca una estrella",
+    "s1Body": "Cada estrella es un versículo relacionado con el que estás leyendo. Tócala para ver su texto sin salir del mapa: el color indica si ese versículo apunta al tuyo o si es citado por él.",
+    "s2Icon": "git-network-outline",
+    "s2Title": "Recentra el mapa y sigue el hilo",
+    "s2Body": "Desde el panel de una estrella, toca \"Centrar aquí\" para convertir ese versículo en el nuevo centro y descubrir sus propias conexiones. Tu recorrido queda guardado como una fila de migas de pan arriba; toca cualquiera para volver a ese punto.",
+    "s3Icon": "contract-outline",
+    "s3Title": "Acerca y desplaza con dos dedos",
+    "s3Body": "Pellizca con dos dedos para acercarte al mapa y arrastra con dos dedos para moverte por él. Si te alejas del centro, aparece un botón para restablecer la vista original.",
+    "close": "Entendido"
+  },
+  "en": {
+    "title": "How to explore the constellation",
+    "rowDescription": "Explore a verse's connections as an interactive star map.",
+    "intro": "See how a verse connects to other passages in Scripture — a star map with the verse you're reading at the center and its cross-references orbiting around it.",
+    "s1Icon": "eye-outline",
+    "s1Title": "Tap a star",
+    "s1Body": "Every star is a verse related to the one you're reading. Tap it to read its text without leaving the map — the color tells you whether it points to your verse or is cited by it.",
+    "s2Icon": "git-network-outline",
+    "s2Title": "Recenter and follow the thread",
+    "s2Body": "From a star's panel, tap \"Center here\" to make that verse the new center and uncover its own connections. Your path is saved as a row of breadcrumbs at the top — tap any of them to jump back.",
+    "s3Icon": "contract-outline",
+    "s3Title": "Pinch and drag with two fingers",
+    "s3Body": "Pinch with two fingers to zoom into the map and drag with two fingers to pan around it. If you stray from center, a button appears to reset the view.",
+    "close": "Got it"
+  },
+  "entryPoint": "En el lector, selecciona un versículo, abre el menú de más opciones (•••) en la barra de selección, toca \"Referencias cruzadas\" y, en la hoja que aparece, toca el botón \"Ver constelación\".",
+  "sourceFiles": [
+    "app/(tabs)/verse/[book]/[chapter].tsx:3357-3385 — entry point: select a verse, overflow menu, 'Referencias cruzadas' (git-network-outline icon, t.crossRefs.buttonLabel)",
+    "src/components/reading/CrossReferencesSheet.tsx:211-224 — handleOpenConstellation navigates to /features/constellation with book/chapter/verse params",
+    "src/components/reading/CrossReferencesSheet.tsx:376-393 — 'Ver constelación' button, sparkles-outline icon, t.constellation.open",
+    "app/(tabs)/features/constellation.tsx:1-19 — file header doc: focus verse as central star, merged connections (curated + bundled web) orbiting on concentric rings, strongest links largest/innermost",
+    "app/(tabs)/features/constellation.tsx:203-220 — onSelectNode: tapping a star fetches and shows its verse text in the floating panel",
+    "app/(tabs)/features/constellation.tsx:222-231 — onRecenter calls advanceChain and rebuilds the trail/map centered on the tapped star ('Centrar aquí' button at 817-830, git-network icon)",
+    "app/(tabs)/features/constellation.tsx:233-236, 536-576 — breadcrumb trail (only rendered when trail.length > 1); tapping a breadcrumb truncates the trail back to that step",
+    "app/(tabs)/features/constellation.tsx:264-265, 731-753 — legend: colors.primary = 'direction: out' = cn.legendOut ('Apunta a'), colors.accent = 'direction: in' = cn.legendIn ('Citado por')",
+    "app/(tabs)/features/constellation.tsx:331-397 — pinch (Gesture.Pinch) and two-finger-only pan (Gesture.Pan().minPointers(2).maxPointers(2)) so one-finger scroll of the screen is unaffected",
+    "app/(tabs)/features/constellation.tsx:704-722 — reset-view button (contract-outline icon, cn.resetZoom) shown only once transformed away from default view",
+    "src/features/study/constellation.ts:129-134, 162-187 — layoutConstellation: rank order = strength order, first connections placed largest on the innermost ring, weight decreases outward",
+    "src/features/study/constellationZoom.ts:32-40 — zoom bounds: CONSTELLATION_MIN_SCALE=1 (never below actual size), CONSTELLATION_MAX_SCALE=3",
+    "app/(tabs)/features/constellation.tsx:253-262, 583-602 — 'Abrir en el lector' / tapping the focus verse card both push to the reader route via openInReader",
+    "grep for Premium|premium|paywall|PaywallGate in app/(tabs)/features/constellation.tsx returned no matches — feature is not premium-gated as of 2026-08-18"
+  ],
+  "notes": "La fila de migas de pan (breadcrumbs) recién aparece después de tocar 'Centrar aquí' por primera vez (trail.length > 1) — no está visible en la primera visita a la constelación, así que la sección 2 describe algo que el usuario descubre DESPUÉS de su primer 'Centrar aquí', no de entrada. No encontré ningún límite ni gating premium en esta pantalla (verificado por grep); si eso cambia en el futuro, esta guía necesitaría una nota. Los nombres de color exactos (azul/violeta, etc.) dependen del tema activo (colors.primary / colors.accent), por eso la guía habla de 'el color' en genérico en vez de nombrar un color fijo."
+}
