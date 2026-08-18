@@ -921,6 +921,23 @@ export const translations = {
       recenter: 'Centrar aquí',
       openInReader: 'Abrir en el lector',
       resetZoom: 'Restablecer vista',
+      guide: {
+        title: 'Cómo explorar la constelación',
+        rowDescription:
+          'Explora las conexiones de un versículo como un mapa de estrellas interactivo.',
+        intro:
+          'Descubre cómo un versículo se conecta con otros pasajes de la Biblia: un mapa de estrellas con el versículo que lees en el centro y sus referencias cruzadas orbitando a su alrededor.',
+        s1Title: 'Toca una estrella',
+        s1Body:
+          'Cada estrella es un versículo relacionado con el que estás leyendo. Tócala para ver su texto sin salir del mapa: el color indica si ese versículo apunta al tuyo o si es citado por él.',
+        s2Title: 'Recentra el mapa y sigue el hilo',
+        s2Body:
+          'Desde el panel de una estrella, toca "Centrar aquí" para convertir ese versículo en el nuevo centro y descubrir sus propias conexiones. Tu recorrido queda guardado como una fila de migas de pan arriba; toca cualquiera para volver a ese punto.',
+        s3Title: 'Acerca y desplaza con dos dedos',
+        s3Body:
+          'Pellizca con dos dedos para acercarte al mapa y arrastra con dos dedos para moverte por él. Si te alejas del centro, aparece un botón para restablecer la vista original.',
+        close: 'Entendido',
+      },
     },
 
     periodRecap: {
@@ -1144,6 +1161,23 @@ export const translations = {
           prompt:
             '¿Qué preguntas ayudan a descubrir y vivir esta verdad, a solas o en grupo?',
         },
+      },
+      guide: {
+        title: 'Cómo usar la Mesa de preparación',
+        rowDescription:
+          'Reúne las ayudas de estudio de un pasaje y organiza tu prédica, tu serie y tu presentación.',
+        intro:
+          'La Mesa de preparación junta lo que la app ya sabe de un pasaje — pasajes paralelos, temas y notas sobre Cristo — para que armes tu propio estudio, en tus palabras, en oración.',
+        s1Title: 'Retoma cualquier preparación anterior',
+        s1Body:
+          'Toca el reloj en la parte superior para ver todas tus preparaciones, ordenadas por la más reciente, y buscarlas por pasaje o por lo que escribiste en tus notas.',
+        s2Title: 'Arma una serie de varias semanas',
+        s2Body:
+          'Con el ícono de álbumes agrupa pasajes en una serie, asígnale una fecha a cada uno y exporta la serie completa como un solo PDF cuando la termines.',
+        s3Title: 'Predica en modo púlpito',
+        s3Body:
+          'Cuando termines tus notas, entra en modo púlpito para verlas en pantalla completa con letra grande, un cronómetro en vivo y un modo oscuro de alto contraste para el atril.',
+        close: 'Entendido',
       },
     },
 
@@ -3205,6 +3239,23 @@ export const translations = {
           note: '«No está aquí, pues ha resucitado, como dijo». La tumba vacía es el fundamento de la fe cristiana.',
         },
       },
+      guide: {
+        title: 'Cómo recorrer las rutas bíblicas',
+        rowDescription:
+          'Sigue cinco viajes reales de la Escritura y lee cada parada en el mapa.',
+        intro:
+          'La Biblia sucedió en lugares reales. Elige una de las cinco rutas —Abraham, el Éxodo, el exilio en Babilonia, el ministerio de Jesús o los viajes de Pablo— y recorre sus paradas en orden.',
+        s1Title: 'Cinco rutas para elegir',
+        s1Body:
+          'Desde Explorar → Ver todo → Rutas bíblicas entras al listado completo: Abraham, el Éxodo, el exilio en Babilonia, el ministerio de Jesús y los viajes misioneros de Pablo, cada una con sus propias paradas.',
+        s2Title: 'Toca una parada para leerla',
+        s2Body:
+          'En el mapa de cada ruta, toca un punto o la etiqueta de referencia de una parada para abrir ese pasaje directo en el lector; toca la tarjeta de la parada en cambio para ver un adelanto del versículo sin salir de la pantalla.',
+        s3Title: 'Escucha el recorrido narrado',
+        s3Body:
+          'Pulsa "Recorrido narrado" para que la app lea en voz alta cada parada en orden mientras avanza sola por el mapa; también puedes guardar paradas como favoritas y compartir el mapa de la ruta como imagen.',
+        close: 'Entendido',
+      },
     },
 
     constancy: {
@@ -4013,6 +4064,23 @@ export const translations = {
           'en-IN': 'India',
         },
       },
+      guide: {
+        title: 'Cómo escuchar la Biblia',
+        rowDescription:
+          'Que te lean cualquier capítulo en voz alta, sigue el texto resaltado y prepara un temporizador para dormir.',
+        intro:
+          'Selecciona un versículo y toca "Escuchar desde aquí" para que la Biblia se narre en voz alta a partir de ese punto. Aparece un reproductor flotante que te sigue a cualquier pantalla y que, si tú quieres, sigue avanzando de capítulo en capítulo mientras escuchas.',
+        s1Title: 'Duérmete escuchando la Palabra',
+        s1Body:
+          'Abre el reproductor y toca el ícono de luna para poner un temporizador de sueño: minutos exactos, o simplemente "hasta que termine este capítulo" o "hasta que termine el libro". El audio se detiene solo, sin que tengas que volver a tocar nada.',
+        s2Title: 'El texto se resalta solo, para que no te pierdas',
+        s2Body:
+          'Mientras escuchas, la palabra exacta que se está narrando se ilumina en la pantalla, tanto en la lectura normal como en el modo inmersivo. Así puedes seguir el capítulo con la vista al mismo tiempo que con el oído.',
+        s3Title: 'Gestos rápidos en el reproductor',
+        s3Body:
+          'Desliza la barra del reproductor hacia la izquierda o la derecha para saltar de versículo, y mantenla presionada para guardar tu lugar como marcador. Toca "A continuación" para ver los próximos capítulos de tu sesión o saltar directo a uno de ellos; y desde tus Favoritos, el mismo ícono de audífonos te deja escuchar todos tus versículos guardados, uno tras otro.',
+        close: 'Entendido',
+      },
     },
 
     // Premium (Sprint 50 — local feature flag)
@@ -4683,6 +4751,23 @@ export const translations = {
           description: 'Completa todas las historias de la Biblia para niños',
         },
       },
+      guide: {
+        title: 'Logros y tu racha de lectura',
+        rowDescription:
+          'Desbloquea logros, gana títulos y sigue tu racha de lectura día a día.',
+        intro:
+          'A medida que lees, guardas notas o mantienes tu racha diaria, vas desbloqueando logros e insignias que celebran tu constancia — un empujón para el hábito, no una medida de tu fe.',
+        s1Title: 'Logros por categorías',
+        s1Body:
+          'Los logros se agrupan en categorías como lectura, racha, capítulos, libros completados, destacados, notas, búsquedas y más; cada uno tiene un nivel de bronce a diamante y suma puntos a tu nivel general. En la pestaña Logros puedes filtrar por categoría y revisar "A punto de lograrse" para ver cuáles están más cerca de desbloquearse.',
+        s2Title: 'Insignias y títulos',
+        s2Body:
+          'Toca "Mis títulos" en la parte superior de la pantalla de Logros para abrir una colección aparte de insignias; varias de ellas otorgan un título que puedes equipar y que pasa a mostrarse como tu título activo. Solo puedes tener un título equipado a la vez, y puedes cambiarlo cuando quieras.',
+        s3Title: 'Comparte tus logros',
+        s3Body:
+          'Mantén presionado un logro o un título ya desbloqueado para compartirlo como imagen. Puedes elegir entre varias plantillas y texturas de fondo; algunas se desbloquean con una ofrenda voluntaria.',
+        close: 'Entendido',
+      },
     },
 
     // Empty States
@@ -5076,7 +5161,24 @@ export const translations = {
         step4: 'Mantén presionado el widget y arrástralo a tu pantalla',
         step5: '¡Listo! El verso del día te acompañará cada mañana',
       },
-      note: 'El widget se actualiza una vez al día y se adapta al tema claro u oscuro de tu teléfono.',
+      note: 'El widget se actualiza una vez al día.',
+      guide: {
+        title: 'Cómo usar el widget del Verso del Día',
+        rowDescription:
+          'Agrégalo a tu pantalla de inicio y recibe un versículo distinto cada día.',
+        intro:
+          'Coloca el widget del Verso del Día en la pantalla de inicio de tu teléfono para tener la Palabra siempre a la vista, sin necesidad de abrir la app.',
+        s1Title: 'Agrégalo a tu pantalla de inicio',
+        s1Body:
+          'Mantén presionada un área vacía de tu pantalla de inicio, toca "Widgets", busca "Eternal Stone Bible" en la lista y arrástralo a tu pantalla.',
+        s2Title: 'Un versículo nuevo cada día',
+        s2Body:
+          'El widget muestra el mismo versículo curado que ves en el inicio de la app, y se actualiza solo, una vez al día — nunca tienes que renovarlo a mano.',
+        s3Title: 'Solo en Android, a un toque de la app',
+        s3Body:
+          'Toca el widget en cualquier momento para abrir la app. Por ahora, este widget de pantalla de inicio está disponible únicamente en teléfonos Android.',
+        close: 'Entendido',
+      },
     },
 
     // Settings V5.1 Section
@@ -5153,6 +5255,23 @@ export const translations = {
       shareStudyMessage:
         '📖 Te comparto un estudio de {{passage}}.\n\nÁbrelo en Eternal Stone Bible:\n{{link}}\n\n¿No te abre el enlace? Copia este mensaje y pégalo en Ajustes → Unirme a un grupo.',
       shareStudy: 'Compartir estudio',
+      guide: {
+        title: 'Cómo unirte a un grupo',
+        rowDescription:
+          'Une tu plan de lectura al de tu familia o grupo, para que el "Día 1" de todos caiga el mismo día.',
+        intro:
+          'Cuando alguien te invita a leer un plan junto a él, únete con un enlace o un código para que tu calendario de lectura quede alineado con el suyo, cada uno desde su propio teléfono.',
+        s1Title: 'Dos formas de unirte',
+        s1Body:
+          'Toca el enlace que te compartieron por WhatsApp o correo, o ve a Ajustes → "Unirme a un grupo" e ingresa el código que te dieron (empieza con EB1-). Si ya copiaste una invitación, la app te ofrece pegarla con un solo toque.',
+        s2Title: 'El mismo Día N para todos',
+        s2Body:
+          'Al unirte, tu plan queda con la misma fecha de inicio que acordó el grupo, así tu "Día 5" cae el mismo día que el de los demás. De ahí en más, cada quien marca sus capítulos leídos a su propio ritmo.',
+        s3Title: 'Privado y sin conexión',
+        s3Body:
+          'El enlace o código lleva toda la información necesaria y viaja por el canal que tú elijas: no hay cuentas ni servidores de por medio. No vemos ni guardamos el progreso de nadie más — solo tú ves cuánto llevas leído, y puedes salir del grupo cuando quieras.',
+        close: 'Entendido',
+      },
     },
     sharedStudy: {
       title: 'Estudio compartido',
@@ -5203,6 +5322,23 @@ export const translations = {
       savedSectionTitle: 'Tus devocionales',
       savedMeta: '{{n}} días · Comienza el {{date}}',
       resend: 'Reenviar',
+      guide: {
+        title: 'Cómo crear un devocional',
+        rowDescription:
+          'Arma un versículo por día, compártelo con un enlace y no pierdas lo que ya empezaste.',
+        intro:
+          'Crea tu propio devocional: un versículo para cada día, con una nota corta opcional. Comparte un enlace y quienes lo reciban lo leerán en su propia versión de la Biblia.',
+        s1Title: 'Arma tu calendario día a día',
+        s1Body:
+          'Ponle un título, elige la fecha en que comienza y añade un versículo para cada día. Si quieres, súmale una nota corta a cualquiera de ellos — es totalmente opcional. Puedes armar hasta medio año de devocionales en un solo calendario.',
+        s2Title: 'No se pierde si cierras la app',
+        s2Body:
+          'Lo que vas armando se guarda solo en tu dispositivo mientras lo escribes. Puedes salir de la pantalla, cerrar la app o volver otro día, y encontrarás tu devocional tal como lo dejaste.',
+        s3Title: 'Un enlace, sin cuentas ni servidores',
+        s3Body:
+          'Al compartirlo se crea un enlace que puedes enviar por cualquier app de mensajería; todo el devocional viaja dentro de ese enlace. Cada persona que lo abre lee el mismo versículo del día, pero en su propia versión de la Biblia. Cada devocional que compartes queda guardado en "Tus devocionales", arriba en esta pantalla, para reenviarlo cuando quieras.',
+        close: 'Entendido',
+      },
     },
     planBuilder: {
       title: 'Crear un plan',
@@ -6970,6 +7106,23 @@ export const translations = {
       recenter: 'Center here',
       openInReader: 'Open in reader',
       resetZoom: 'Reset view',
+      guide: {
+        title: 'How to explore the constellation',
+        rowDescription:
+          "Explore a verse's connections as an interactive star map.",
+        intro:
+          "See how a verse connects to other passages in Scripture — a star map with the verse you're reading at the center and its cross-references orbiting around it.",
+        s1Title: 'Tap a star',
+        s1Body:
+          "Every star is a verse related to the one you're reading. Tap it to read its text without leaving the map — the color tells you whether it points to your verse or is cited by it.",
+        s2Title: 'Recenter and follow the thread',
+        s2Body:
+          'From a star\'s panel, tap "Center here" to make that verse the new center and uncover its own connections. Your path is saved as a row of breadcrumbs at the top — tap any of them to jump back.',
+        s3Title: 'Pinch and drag with two fingers',
+        s3Body:
+          'Pinch with two fingers to zoom into the map and drag with two fingers to pan around it. If you stray from center, a button appears to reset the view.',
+        close: 'Got it',
+      },
     },
 
     periodRecap: {
@@ -7193,6 +7346,23 @@ export const translations = {
           prompt:
             'What questions help you discover and live this truth, alone or in a group?',
         },
+      },
+      guide: {
+        title: 'How to use the Prep Table',
+        rowDescription:
+          "Gather a passage's study helps and organize your sermon, series, and delivery.",
+        intro:
+          'The Prep Table brings together what the app already knows about a passage — parallel passages, themes, and notes on Christ — so you can build your own study, in your own words, in prayer.',
+        s1Title: 'Pick up any past preparation',
+        s1Body:
+          "Tap the clock icon at the top to see every preparation you've started, most recent first, and search them by passage or by what you wrote in your notes.",
+        s2Title: 'Build a multi-week series',
+        s2Body:
+          "Use the albums icon to group passages into a series, give each one a date, and export the whole series as a single PDF once it's ready.",
+        s3Title: 'Preach in pulpit mode',
+        s3Body:
+          'Once your notes are ready, open pulpit mode for a full-screen, large-type view with a live timer and a high-contrast dark stage for the pulpit.',
+        close: 'Got it',
       },
     },
 
@@ -9238,6 +9408,23 @@ export const translations = {
           note: "'He is not here, for He has risen, just as He said.' The empty tomb is the foundation of the Christian faith.",
         },
       },
+      guide: {
+        title: 'How to explore the Bible journeys',
+        rowDescription:
+          'Walk five real biblical routes and read every stop along the way.',
+        intro:
+          "Scripture happened in real places. Pick one of five routes — Abraham, the Exodus, the exile in Babylon, the ministry of Jesus, or Paul's journeys — and walk through its stops in order.",
+        s1Title: 'Five routes to choose from',
+        s1Body:
+          "From Explore → View all → Bible Journeys you'll find the full list: Abraham, the Exodus, the exile in Babylon, the ministry of Jesus, and Paul's missionary journeys, each with its own set of stops.",
+        s2Title: 'Tap a stop to read it',
+        s2Body:
+          "On each route's map, tap a dot or a stop's reference tag to open that passage straight in the reader; tap the stop's card instead to preview the verse inline without leaving the screen.",
+        s3Title: 'Listen to the guided route',
+        s3Body:
+          'Tap "Narrated walkthrough" to have the app read every stop aloud in order while it advances on its own; you can also mark stops as favorites and share the route map as an image.',
+        close: 'Got it',
+      },
     },
 
     constancy: {
@@ -10040,6 +10227,23 @@ export const translations = {
           'en-IN': 'India',
         },
       },
+      guide: {
+        title: 'How to listen to the Bible',
+        rowDescription:
+          'Have any chapter read aloud, follow the highlighted text, and set a sleep timer.',
+        intro:
+          'Select a verse and tap "Listen from here" to have the Bible narrated aloud starting there. A floating player follows you to any screen, and keeps rolling from one chapter into the next while you listen, if you want it to.',
+        s1Title: 'Fall asleep to the Word',
+        s1Body:
+          'Open the player and tap the moon icon to set a sleep timer: an exact number of minutes, or simply "until this chapter ends" or "until this book ends." Playback stops on its own — nothing else to do.',
+        s2Title: 'The text highlights itself, so you never lose your place',
+        s2Body:
+          'As you listen, the exact word being narrated lights up on screen, both in normal reading and in immersive mode. You can follow the chapter with your eyes and your ears at once.',
+        s3Title: 'Quick gestures on the player',
+        s3Body:
+          'Swipe the player bar left or right to jump between verses, and hold it down to save your place as a bookmark. Tap "Up next" to see the coming chapters in your session, or jump straight to one; and from Favorites, that same headphone icon lets you listen to all your saved verses back to back.',
+        close: 'Got it',
+      },
     },
 
     // Premium (Sprint 50 — local feature flag)
@@ -10708,6 +10912,23 @@ export const translations = {
           description: 'Complete every Bible story for kids',
         },
       },
+      guide: {
+        title: 'Achievements and your reading streak',
+        rowDescription:
+          'Unlock achievements, earn titles, and keep your daily reading streak going.',
+        intro:
+          'As you read, save notes, or keep up your daily streak, you unlock achievements and badges that celebrate your consistency — a nudge for the habit, not a measure of your faith.',
+        s1Title: 'Achievements by category',
+        s1Body:
+          'Achievements are grouped into categories like reading, streaks, chapters, completed books, highlights, notes, searches and more; each has a tier from bronze to diamond and adds points toward your overall level. On the Achievements tab you can filter by category and check "Almost there" to see which ones you\'re closest to unlocking.',
+        s2Title: 'Badges and titles',
+        s2Body:
+          'Tap "My titles" at the top of the Achievements screen to open a separate badge collection; several badges unlock a title you can equip, which then shows as your active title. You can only equip one title at a time, and you can switch it whenever you like.',
+        s3Title: 'Share your achievements',
+        s3Body:
+          'Long-press an unlocked achievement or title to share it as an image. You can pick from several templates and background textures — a few of them unlock with a voluntary offering.',
+        close: 'Got it',
+      },
     },
 
     // Empty States
@@ -11099,7 +11320,24 @@ export const translations = {
         step4: 'Press and hold the widget, then drag it to your screen',
         step5: 'Done! The daily verse will greet you each morning',
       },
-      note: "The widget refreshes once a day and adapts to your phone's light or dark theme.",
+      note: 'The widget refreshes once a day.',
+      guide: {
+        title: 'How to use the Verse of the Day widget',
+        rowDescription:
+          'Add it to your home screen and get a new verse every day.',
+        intro:
+          "Place the Verse of the Day widget on your phone's home screen to keep God's Word in view without opening the app.",
+        s1Title: 'Add it to your home screen',
+        s1Body:
+          'Long-press an empty spot on your home screen, tap "Widgets," find "Eternal Stone Bible" in the list, and drag it onto your screen.',
+        s2Title: 'A new verse every day',
+        s2Body:
+          "The widget shows the same curated verse you see on the app's home screen, and it refreshes on its own once a day — no manual updates needed.",
+        s3Title: 'Android only, one tap from the app',
+        s3Body:
+          'Tap the widget anytime to jump straight into the app. For now, this home-screen widget is only available on Android phones.',
+        close: 'Got it',
+      },
     },
 
     // Settings V5.1 Section
@@ -11175,6 +11413,23 @@ export const translations = {
       shareStudyMessage:
         '📖 Here is a study of {{passage}} I made.\n\nOpen it in Eternal Stone Bible:\n{{link}}\n\nLink not opening? Copy this message and paste it in Settings → Join a group.',
       shareStudy: 'Share study',
+      guide: {
+        title: 'How to join a group',
+        rowDescription:
+          'Line up your reading plan with your family or group, so everyone\'s "Day 1" falls on the same day.',
+        intro:
+          'When someone invites you to read a plan together, join with a link or a code so your calendar lines up with theirs — each of you reading on your own phone.',
+        s1Title: 'Two ways to join',
+        s1Body:
+          'Tap the invitation link they sent you on WhatsApp or email, or go to Settings → "Join a group" and type in the code they gave you (it starts with EB1-). If you\'ve already copied an invitation, the app offers to paste it for you with one tap.',
+        s2Title: 'The same Day N for everyone',
+        s2Body:
+          "Joining sets your plan's start date to match the group's, so your \"Day 5\" lands on the same day as everyone else's. From there, each person checks off chapters at their own pace.",
+        s3Title: 'Private and offline',
+        s3Body:
+          "The link or code carries everything it needs and travels through whatever channel you choose — no accounts, no servers involved. We never see or store anyone else's progress; only you see how far along you are, and you can leave the group anytime.",
+        close: 'Got it',
+      },
     },
     sharedStudy: {
       title: 'Shared study',
@@ -11225,6 +11480,23 @@ export const translations = {
       savedSectionTitle: 'Your devotionals',
       savedMeta: '{{n}} days · Starts {{date}}',
       resend: 'Resend',
+      guide: {
+        title: 'How to create a devotional',
+        rowDescription:
+          'Plan a verse a day, share it with one link, and never lose what you started.',
+        intro:
+          'Build your own devotional: one verse for each day, with an optional short note. Share a single link, and everyone who opens it reads it in their own Bible version.',
+        s1Title: 'Build your calendar day by day',
+        s1Body:
+          "Give it a title, choose a start date, and add a verse for each day. Add a short note to any day if you'd like — it's completely optional. You can plan up to about six months of devotionals in one calendar.",
+        s2Title: "It won't disappear if you close the app",
+        s2Body:
+          'What you build is saved automatically on your device as you go. You can leave the screen, close the app, or come back another day, and your devotional will be right where you left it.',
+        s3Title: 'One link, no accounts or servers',
+        s3Body:
+          'Sharing creates a link you can send through any messaging app; the whole devotional travels inside that link. Everyone who opens it reads the same verse for that day, in their own Bible version. Every devotional you share is saved under "Your devotionals", at the top of this screen, so you can resend it anytime.',
+        close: 'Got it',
+      },
     },
     planBuilder: {
       title: 'Create a plan',
