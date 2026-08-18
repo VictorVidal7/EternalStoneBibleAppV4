@@ -1,0 +1,445 @@
+[
+  {
+    "ref": "Juan 20:17",
+    "book_id": 43,
+    "chapter": 20,
+    "verse": 17,
+    "quotes": [
+      "No me toques, porque aún no he subido a mi Padre; mas ve a mis hermanos, y diles: Subo a mi Padre y a vuestro Padre, a mi Dios y a vuestro Dios."
+    ],
+    "note": ""
+  },
+  {
+    "ref": "Juan 20:19",
+    "book_id": 43,
+    "chapter": 20,
+    "verse": 19,
+    "quotes": ["Paz a vosotros."],
+    "note": ""
+  },
+  {
+    "ref": "Juan 20:21",
+    "book_id": 43,
+    "chapter": 20,
+    "verse": 21,
+    "quotes": [
+      "Paz a vosotros. Como me envió el Padre, así también yo os envío."
+    ],
+    "note": ""
+  },
+  {
+    "ref": "Juan 20:22",
+    "book_id": 43,
+    "chapter": 20,
+    "verse": 22,
+    "quotes": ["Recibid el Espíritu Santo."],
+    "note": ""
+  },
+  {
+    "ref": "Juan 20:26",
+    "book_id": 43,
+    "chapter": 20,
+    "verse": 26,
+    "quotes": ["Paz a vosotros."],
+    "note": ""
+  },
+  {
+    "ref": "Juan 20:27",
+    "book_id": 43,
+    "chapter": 20,
+    "verse": 27,
+    "quotes": [
+      "Pon aquí tu dedo, y mira mis manos; y acerca tu mano, y métela en mi costado; y no seas incrédulo, sino creyente."
+    ],
+    "note": ""
+  },
+  {
+    "ref": "Juan 20:29",
+    "book_id": 43,
+    "chapter": 20,
+    "verse": 29,
+    "quotes": [
+      "Porque me has visto, Tomás, creíste; bienaventurados los que no vieron, y creyeron."
+    ],
+    "note": ""
+  },
+  {
+    "ref": "Juan 21:5",
+    "book_id": 43,
+    "chapter": 21,
+    "verse": 5,
+    "quotes": ["Hijitos, ¿tenéis algo de comer?"],
+    "note": ""
+  },
+  {
+    "ref": "Juan 21:6",
+    "book_id": 43,
+    "chapter": 21,
+    "verse": 6,
+    "quotes": ["Echad la red a la derecha de la barca, y hallaréis."],
+    "note": ""
+  },
+  {
+    "ref": "Juan 21:10",
+    "book_id": 43,
+    "chapter": 21,
+    "verse": 10,
+    "quotes": ["Traed de los peces que acabáis de pescar."],
+    "note": ""
+  },
+  {
+    "ref": "Juan 21:12",
+    "book_id": 43,
+    "chapter": 21,
+    "verse": 12,
+    "quotes": ["Venid, comed."],
+    "note": ""
+  },
+  {
+    "ref": "Juan 21:15",
+    "book_id": 43,
+    "chapter": 21,
+    "verse": 15,
+    "quotes": [
+      "Simón, hijo de Jonás, ¿me amas más que éstos?",
+      "Apacienta mis corderos."
+    ],
+    "note": ""
+  },
+  {
+    "ref": "Juan 21:16",
+    "book_id": 43,
+    "chapter": 21,
+    "verse": 16,
+    "quotes": ["Simón, hijo de Jonás, ¿me amas?", "Pastorea mis ovejas."],
+    "note": ""
+  },
+  {
+    "ref": "Juan 21:17",
+    "book_id": 43,
+    "chapter": 21,
+    "verse": 17,
+    "quotes": [
+      "Simón, hijo de Jonás, ¿me amas?",
+      "¿Me amas?",
+      "Apacienta mis ovejas."
+    ],
+    "note": "El segundo fragmento ('¿Me amas?') está incrustado dentro de la narración sobre la tristeza de Pedro, pero sigue siendo la repetición de la pregunta de Jesús citada por el narrador (WEB lo marca en rojo); se incluye por fidelidad a web_red."
+  },
+  {
+    "ref": "Juan 21:19",
+    "book_id": 43,
+    "chapter": 21,
+    "verse": 19,
+    "quotes": ["Sígueme."],
+    "note": ""
+  },
+  {
+    "ref": "Juan 21:22",
+    "book_id": 43,
+    "chapter": 21,
+    "verse": 22,
+    "quotes": [
+      "Si quiero que él quede hasta que yo venga, ¿qué a ti? Sígueme tú."
+    ],
+    "note": ""
+  },
+  {
+    "ref": "Juan 21:23",
+    "book_id": 43,
+    "chapter": 21,
+    "verse": 23,
+    "quotes": ["Si quiero que él quede hasta que yo venga, ¿qué a ti?"],
+    "note": ""
+  },
+  {
+    "ref": "Hechos 1:4",
+    "book_id": 44,
+    "chapter": 1,
+    "verse": 4,
+    "quotes": [],
+    "note": "REVISAR: a diferencia de casi todo el batch, este versículo en RVR1960 no tiene una cita directa con dos puntos; está redactado como discurso INDIRECTO ('les mandó que no se fueran... la cual, les dijo, oísteis de mí'), sin comillas ni marcador ':' de atribución seguido de cita textual, aunque WEB sí lo traduce como cita directa. La frase final 'oísteis de mí' es la única huella en primera persona (Jesús refiriéndose a sí mismo), pero no forma una oración autocontenida que se pueda copiar como discurso directo sin fragmentar de forma forzada. Se deja sin marcar por prudencia editorial; un humano debería decidir si marcar 'oísteis de mí' como fragmento mínimo."
+  },
+  {
+    "ref": "Hechos 1:7",
+    "book_id": 44,
+    "chapter": 1,
+    "verse": 7,
+    "quotes": [
+      "No os toca a vosotros saber los tiempos o las sazones, que el Padre puso en su sola potestad;"
+    ],
+    "note": ""
+  },
+  {
+    "ref": "Hechos 9:4",
+    "book_id": 44,
+    "chapter": 9,
+    "verse": 4,
+    "quotes": ["Saulo, Saulo, ¿por qué me persigues?"],
+    "note": ""
+  },
+  {
+    "ref": "Hechos 9:5",
+    "book_id": 44,
+    "chapter": 9,
+    "verse": 5,
+    "quotes": [
+      "Yo soy Jesús, a quien tú persigues; dura cosa te es dar coces contra el aguijón."
+    ],
+    "note": "RVR1960 conserva la cláusula 'dura cosa te es dar coces contra el aguijón' (variante del Textus Receptus) que WEB omite en este versículo por seguir un texto crítico distinto. Se incluye como palabras de Cristo por consistencia con el paralelo Hechos 26:14, donde WEB sí marca esa misma frase en rojo. El offset mecánico de 'candidate' también estaba mal (incluía '¿Quién eres, Señor?', que es pregunta de Pablo, no de Jesús); se corrigió."
+  },
+  {
+    "ref": "Hechos 9:10",
+    "book_id": 44,
+    "chapter": 9,
+    "verse": 10,
+    "quotes": ["Ananías."],
+    "note": ""
+  },
+  {
+    "ref": "Hechos 9:11",
+    "book_id": 44,
+    "chapter": 9,
+    "verse": 11,
+    "quotes": [
+      "Levántate, y ve a la calle que se llama Derecha, y busca en casa de Judas a uno llamado Saulo, de Tarso; porque he aquí, él ora,"
+    ],
+    "note": ""
+  },
+  {
+    "ref": "Hechos 9:15",
+    "book_id": 44,
+    "chapter": 9,
+    "verse": 15,
+    "quotes": [
+      "Ve, porque instrumento escogido me es éste, para llevar mi nombre en presencia de los gentiles, y de reyes, y de los hijos de Israel;"
+    ],
+    "note": ""
+  },
+  {
+    "ref": "Hechos 10:13",
+    "book_id": 44,
+    "chapter": 10,
+    "verse": 13,
+    "quotes": ["Levántate, Pedro, mata y come."],
+    "note": ""
+  },
+  {
+    "ref": "Hechos 10:15",
+    "book_id": 44,
+    "chapter": 10,
+    "verse": 15,
+    "quotes": ["Lo que Dios limpió, no lo llames tú común."],
+    "note": ""
+  },
+  {
+    "ref": "Hechos 11:7",
+    "book_id": 44,
+    "chapter": 11,
+    "verse": 7,
+    "quotes": ["Levántate, Pedro, mata y come."],
+    "note": ""
+  },
+  {
+    "ref": "Hechos 11:9",
+    "book_id": 44,
+    "chapter": 11,
+    "verse": 9,
+    "quotes": ["Lo que Dios limpió, no lo llames tú común."],
+    "note": ""
+  },
+  {
+    "ref": "Hechos 11:16",
+    "book_id": 44,
+    "chapter": 11,
+    "verse": 16,
+    "quotes": [
+      "Juan ciertamente bautizó en agua, mas vosotros seréis bautizados con el Espíritu Santo."
+    ],
+    "note": ""
+  },
+  {
+    "ref": "Hechos 18:9",
+    "book_id": 44,
+    "chapter": 18,
+    "verse": 9,
+    "quotes": ["No temas, sino habla, y no calles;"],
+    "note": ""
+  },
+  {
+    "ref": "Hechos 20:35",
+    "book_id": 44,
+    "chapter": 20,
+    "verse": 35,
+    "quotes": ["Más bienaventurado es dar que recibir."],
+    "note": ""
+  },
+  {
+    "ref": "Hechos 22:7",
+    "book_id": 44,
+    "chapter": 22,
+    "verse": 7,
+    "quotes": ["Saulo, Saulo, ¿por qué me persigues?"],
+    "note": ""
+  },
+  {
+    "ref": "Hechos 22:8",
+    "book_id": 44,
+    "chapter": 22,
+    "verse": 8,
+    "quotes": ["Yo soy Jesús de Nazaret, a quien tú persigues."],
+    "note": "El offset mecánico de 'candidate' incluía también '¿Quién eres, Señor?', que es la pregunta de Pablo, no de Jesús; se corrigió para dejar solo la respuesta del Señor, siguiendo web_red."
+  },
+  {
+    "ref": "Hechos 22:10",
+    "book_id": 44,
+    "chapter": 22,
+    "verse": 10,
+    "quotes": [
+      "Levántate, y ve a Damasco, y allí se te dirá todo lo que está ordenado que hagas."
+    ],
+    "note": "El offset mecánico de 'candidate' incluía también '¿Qué haré, Señor?', pregunta de Pablo; se corrigió para dejar solo la respuesta del Señor."
+  },
+  {
+    "ref": "Hechos 22:18",
+    "book_id": 44,
+    "chapter": 22,
+    "verse": 18,
+    "quotes": [
+      "Date prisa, y sal prontamente de Jerusalén; porque no recibirán tu testimonio acerca de mí."
+    ],
+    "note": ""
+  },
+  {
+    "ref": "Hechos 22:21",
+    "book_id": 44,
+    "chapter": 22,
+    "verse": 21,
+    "quotes": ["Ve, porque yo te enviaré lejos a los gentiles."],
+    "note": ""
+  },
+  {
+    "ref": "Hechos 23:11",
+    "book_id": 44,
+    "chapter": 23,
+    "verse": 11,
+    "quotes": [
+      "Ten ánimo, Pablo, pues como has testificado de mí en Jerusalén, así es necesario que testifiques también en Roma."
+    ],
+    "note": ""
+  },
+  {
+    "ref": "Hechos 26:14",
+    "book_id": 44,
+    "chapter": 26,
+    "verse": 14,
+    "quotes": [
+      "Saulo, Saulo, ¿por qué me persigues? Dura cosa te es dar coces contra el aguijón."
+    ],
+    "note": ""
+  },
+  {
+    "ref": "Hechos 26:15",
+    "book_id": 44,
+    "chapter": 26,
+    "verse": 15,
+    "quotes": ["Yo soy Jesús, a quien tú persigues."],
+    "note": "El offset mecánico de 'candidate' incluía también '¿Quién eres, Señor?', pregunta de Pablo; se corrigió para dejar solo la respuesta del Señor."
+  },
+  {
+    "ref": "1 Corintios 11:24",
+    "book_id": 46,
+    "chapter": 11,
+    "verse": 24,
+    "quotes": [
+      "Tomad, comed; esto es mi cuerpo que por vosotros es partido; haced esto en memoria de mí."
+    ],
+    "note": ""
+  },
+  {
+    "ref": "1 Corintios 11:25",
+    "book_id": 46,
+    "chapter": 11,
+    "verse": 25,
+    "quotes": [
+      "Esta copa es el nuevo pacto en mi sangre; haced esto todas las veces que la bebiereis, en memoria de mí."
+    ],
+    "note": ""
+  },
+  {
+    "ref": "2 Corintios 12:9",
+    "book_id": 47,
+    "chapter": 12,
+    "verse": 9,
+    "quotes": [
+      "Bástate mi gracia; porque mi poder se perfecciona en la debilidad."
+    ],
+    "note": ""
+  },
+  {
+    "ref": "1 Timoteo 5:18",
+    "book_id": 54,
+    "chapter": 5,
+    "verse": 18,
+    "quotes": ["Digno es el obrero de su salario."],
+    "note": "El versículo cita dos fuentes distintas: 'No pondrás bozal al buey que trilla' es cita del Antiguo Testamento (Deuteronomio 25:4, no palabras de Jesús) y 'Digno es el obrero de su salario' es el dicho de Jesús (paralelo Lucas 10:7) que Pablo cita como Escritura junto a la anterior. Solo se marca la segunda; el offset mecánico de 'candidate' fusionaba ambas citas, se corrigió."
+  },
+  {
+    "ref": "Apocalipsis 1:8",
+    "book_id": 66,
+    "chapter": 1,
+    "verse": 8,
+    "quotes": [
+      "Yo soy el Alfa y la Omega, principio y fin,",
+      "el que es y que era y que ha de venir, el Todopoderoso."
+    ],
+    "note": ""
+  },
+  {
+    "ref": "Apocalipsis 1:11",
+    "book_id": 66,
+    "chapter": 1,
+    "verse": 11,
+    "quotes": [
+      "Yo soy el Alfa y la Omega, el primero y el último. Escribe en un libro lo que ves, y envíalo a las siete iglesias que están en Asia: a Efeso, Esmirna, Pérgamo, Tiatira, Sardis, Filadelfia y Laodicea."
+    ],
+    "note": "RVR1960 abre con 'Yo soy el Alfa y la Omega, el primero y el último', cláusula del Textus Receptus que el web_text/web_red de este versículo no incluye (WEB la omite aquí por texto crítico distinto). Se incluye como palabras de Cristo por consistencia con Apocalipsis 1:17 y 21:6, donde la misma autodenominación sí está marcada en rojo por WEB."
+  },
+  {
+    "ref": "Apocalipsis 1:17",
+    "book_id": 66,
+    "chapter": 1,
+    "verse": 17,
+    "quotes": ["No temas; yo soy el primero y el último;"],
+    "note": ""
+  },
+  {
+    "ref": "Apocalipsis 21:5",
+    "book_id": 66,
+    "chapter": 21,
+    "verse": 5,
+    "quotes": [
+      "He aquí, yo hago nuevas todas las cosas.",
+      "Escribe; porque estas palabras son fieles y verdaderas."
+    ],
+    "note": ""
+  },
+  {
+    "ref": "Apocalipsis 21:6",
+    "book_id": 66,
+    "chapter": 21,
+    "verse": 6,
+    "quotes": [
+      "Hecho está. Yo soy el Alfa y la Omega, el principio y el fin. Al que tuviere sed, yo le daré gratuitamente de la fuente del agua de la vida."
+    ],
+    "note": "La frase inicial 'Hecho está.' no está cubierta por el span de web_red dado (que en este dataset empieza directamente en 'I am the Alpha and the Omega'), pero continúa sin interrupción narrativa la misma alocución de Cristo ('Y me dijo:'), y en la WEB estándar esa frase ('It is done!') sí se marca en rojo. Se incluye por continuidad del mismo acto de habla."
+  },
+  {
+    "ref": "Apocalipsis 22:20",
+    "book_id": 66,
+    "chapter": 22,
+    "verse": 20,
+    "quotes": ["Ciertamente vengo en breve."],
+    "note": ""
+  }
+]

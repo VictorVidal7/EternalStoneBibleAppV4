@@ -1,0 +1,50 @@
+{
+  "id": "together",
+  "listIcon": "people-outline",
+  "headerIcon": "people",
+  "es": {
+    "title": "Cómo unirte a un grupo",
+    "rowDescription": "Une tu plan de lectura al de tu familia o grupo, para que el \"Día 1\" de todos caiga el mismo día.",
+    "intro": "Cuando alguien te invita a leer un plan junto a él, únete con un enlace o un código para que tu calendario de lectura quede alineado con el suyo, cada uno desde su propio teléfono.",
+    "s1Icon": "key-outline",
+    "s1Title": "Dos formas de unirte",
+    "s1Body": "Toca el enlace que te compartieron por WhatsApp o correo, o ve a Ajustes → \"Unirme a un grupo\" e ingresa el código que te dieron (empieza con EB1-). Si ya copiaste una invitación, la app te ofrece pegarla con un solo toque.",
+    "s2Icon": "calendar-outline",
+    "s2Title": "El mismo Día N para todos",
+    "s2Body": "Al unirte, tu plan queda con la misma fecha de inicio que acordó el grupo, así tu \"Día 5\" cae el mismo día que el de los demás. De ahí en más, cada quien marca sus capítulos leídos a su propio ritmo.",
+    "s3Icon": "lock-closed-outline",
+    "s3Title": "Privado y sin conexión",
+    "s3Body": "El enlace o código lleva toda la información necesaria y viaja por el canal que tú elijas: no hay cuentas ni servidores de por medio. No vemos ni guardamos el progreso de nadie más — solo tú ves cuánto llevas leído, y puedes salir del grupo cuando quieras.",
+    "close": "Entendido"
+  },
+  "en": {
+    "title": "How to join a group",
+    "rowDescription": "Line up your reading plan with your family or group, so everyone's \"Day 1\" falls on the same day.",
+    "intro": "When someone invites you to read a plan together, join with a link or a code so your calendar lines up with theirs — each of you reading on your own phone.",
+    "s1Icon": "key-outline",
+    "s1Title": "Two ways to join",
+    "s1Body": "Tap the invitation link they sent you on WhatsApp or email, or go to Settings → \"Join a group\" and type in the code they gave you (it starts with EB1-). If you've already copied an invitation, the app offers to paste it for you with one tap.",
+    "s2Icon": "calendar-outline",
+    "s2Title": "The same Day N for everyone",
+    "s2Body": "Joining sets your plan's start date to match the group's, so your \"Day 5\" lands on the same day as everyone else's. From there, each person checks off chapters at their own pace.",
+    "s3Icon": "lock-closed-outline",
+    "s3Title": "Private and offline",
+    "s3Body": "The link or code carries everything it needs and travels through whatever channel you choose — no accounts, no servers involved. We never see or store anyone else's progress; only you see how far along you are, and you can leave the group anytime.",
+    "close": "Got it"
+  },
+  "entryPoint": "Ajustes -> section 'Funcionalidades' -> row 'Unirme a un grupo' (people icon) opens app/features/together, the code/link entry screen; the same screen also opens directly from a tapped invitation link.",
+  "sourceFiles": [
+    "app/(tabs)/settings.tsx:838-859 (Settings row: icon 'people', label t.together.enterCode = 'Unirme a un grupo', pushes /features/together)",
+    "app/features/together/index.tsx:1-14 (module doc: two ways in — deep link or code entry; 100% offline)",
+    "app/features/together/index.tsx:59-70 (decodeJoinInput accepts a full link, a raw payload, or an EB1- code)",
+    "app/features/together/index.tsx:181-208 (clipboard peek + one-tap 'paste detected' hint)",
+    "app/features/together/index.tsx:221-230 (onJoin calls joinPlan + setPlanStart together — this is what aligns Day N)",
+    "src/lib/together/bundle.ts:1-19,555-566,768-792 (EB1-<date>-<PLAN> short code encode/decode; both link and code are self-contained, no backend lookup)",
+    "src/lib/together/types.ts:58-75 (SharedPlanBundle doc: 'members all follow the SAME curated plan... starting on the SAME calendar date, so everyone's Day N lines up — zero runtime data flow')",
+    "src/context/TogetherContext.tsx:1-16 (module doc: membership is local-only, AsyncStorage key '@together_groups'; 'no content of any other user is ever stored or shown')",
+    "app/(tabs)/plan/[id].tsx:775-791 (group chip 'Leyendo con {{group}}' / 'Leyendo en grupo' + 'Salir del grupo' leave button)",
+    "src/i18n/translations.ts:5092-5156 (together.* strings, es); :11110-11165 approx (en mirror) — used to confirm existing tone/wording",
+    "src/lib/onboarding/featureGuides.ts:52-140 (existing guide registry pattern this JSON is meant to slot into: listIcon/headerIcon pairing, 3-section shape)"
+  ],
+  "notes": "1) The assigned feature covers the CURATED-plan join path (t:'plan'), which is the one that creates an ongoing 'group' (chip + leave button). The same join screen also accepts a plain shared CUSTOM plan (t:'cplan') and, if the payload is a shared study or devotional calendar, redirects elsewhere (features/study-shared, features/devotional-shared) — those are one-time imports/viewers, not a 'group' membership, so I did not describe them here; flag if the guide should mention them too. 2) Unlike the other 3 guides in featureGuides.ts (memory, originals, versionComparison), the together join screen (app/features/together/index.tsx) currently has NO in-screen '?' button wired to FeatureGuideModal — today this content would only surface via the Settings 'Tips y guías' index. That's an engineering decision, not a content issue, but worth flagging. 3) 'lock-closed-outline' is a standard Ionicons name but I did not find it already used elsewhere in this codebase (grep came up empty) — verify it renders before shipping; every other icon chosen here (people/people-outline, key-outline, calendar-outline) is already used verbatim in the together feature's own files."
+}
