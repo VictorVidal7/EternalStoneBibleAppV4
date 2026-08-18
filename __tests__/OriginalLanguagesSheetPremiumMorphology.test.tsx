@@ -70,6 +70,7 @@ jest.mock('../src/context/OfferingSheetContext', () => ({
 jest.mock('../src/lib/database/originals-download-service', () => ({
   downloadAndImportOriginals: jest.fn(),
   importLocalOriginalsIfPresent: jest.fn().mockResolvedValue(false),
+  isOriginalsUpdateAvailable: jest.fn().mockResolvedValue(false),
 }));
 
 // John 3:16's ἠγάπησεν ("he loved"): a real bundled grammar code (V-AAI-3S)

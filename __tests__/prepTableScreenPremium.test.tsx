@@ -174,6 +174,7 @@ jest.mock('@lib/database', () => ({
 jest.mock('@lib/database/originals-download-service', () => ({
   downloadAndImportOriginals: jest.fn(),
   importLocalOriginalsIfPresent: jest.fn(async () => false),
+  isOriginalsUpdateAvailable: jest.fn(async () => false),
 }));
 
 // T8.4.3 — the screen now always mounts a "Comparar versiones" section too

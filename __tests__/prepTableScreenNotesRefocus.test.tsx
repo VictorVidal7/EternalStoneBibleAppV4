@@ -125,6 +125,7 @@ jest.mock('@context/OfferingSheetContext', () => ({
 jest.mock('@lib/database/originals-download-service', () => ({
   downloadAndImportOriginals: jest.fn(),
   importLocalOriginalsIfPresent: jest.fn(async () => false),
+  isOriginalsUpdateAvailable: jest.fn(async () => false),
 }));
 
 jest.mock('@lib/database', () => ({

@@ -859,6 +859,7 @@ export const translations = {
         'Texto completo de tu versión, como referencia — el orden de las palabras del original no siempre coincide con el de la traducción.',
       interlinearEmptyDetail: 'Toca una palabra arriba para ver su análisis.',
       interlinearHint: 'Ver análisis de esta palabra',
+      updateAvailable: 'Actualización disponible',
     },
 
     wordStudy: {
@@ -6870,6 +6871,7 @@ export const translations = {
         "Full text of your version, for reference — the original's word order doesn't always match the translation's.",
       interlinearEmptyDetail: 'Tap a word above to see its analysis.',
       interlinearHint: "See this word's analysis",
+      updateAvailable: 'Update available',
     },
 
     wordStudy: {
