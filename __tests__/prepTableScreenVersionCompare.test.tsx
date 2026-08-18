@@ -131,6 +131,7 @@ jest.mock('@lib/database', () => ({
 jest.mock('@lib/database/originals-download-service', () => ({
   downloadAndImportOriginals: jest.fn(),
   importLocalOriginalsIfPresent: jest.fn(async () => false),
+  isOriginalsUpdateAvailable: jest.fn(async () => false),
 }));
 
 // The service under test for this tanda — stubbed directly rather than

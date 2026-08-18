@@ -51,6 +51,7 @@ import {InterlinearSheet} from './InterlinearSheet';
 import {
   downloadAndImportOriginals,
   importLocalOriginalsIfPresent,
+  isOriginalsUpdateAvailable,
 } from '@lib/database/originals-download-service';
 import {
   borderRadius,
@@ -98,6 +99,7 @@ export const OriginalLanguagesSheet: React.FC<Props> = ({
   const [downloading, setDownloading] = useState(false);
   const [progress, setProgress] = useState(0);
   const [interlinearVisible, setInterlinearVisible] = useState(false);
+  const [updateAvailable, setUpdateAvailable] = useState(false);
 
   const loadWords = useCallback(async () => {
     if (sourceVerse == null) return;
@@ -127,11 +129,30 @@ export const OriginalLanguagesSheet: React.FC<Props> = ({
     };
   }, [visible, sourceVerse, loadWords]);
 
+  // Update check — once per sheet open, only when the pack is installed, and
+  // silently skipped when offline. Never re-fetches per verse change while
+  // the sheet stays open (this effect only depends on `visible`).
+  useEffect(() => {
+    if (!visible) return;
+    let cancelled = false;
+    setUpdateAvailable(false);
+    (async () => {
+      const installed = await isOriginalsInstalled();
+      if (!installed || cancelled) return;
+      const stale = await isOriginalsUpdateAvailable();
+      if (!cancelled) setUpdateAvailable(stale);
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [visible]);
+
   const handleDownload = useCallback(async () => {
     setDownloading(true);
     setProgress(0);
     try {
       await downloadAndImportOriginals(setProgress);
+      setUpdateAvailable(false);
       await loadWords();
     } catch {
       setStatus('error');
@@ -436,6 +457,34 @@ export const OriginalLanguagesSheet: React.FC<Props> = ({
             </TouchableOpacity>
           </View>
 
+          {(status === 'ready' || status === 'empty') && updateAvailable ? (
+            <TouchableOpacity
+              style={[
+                styles.updateBanner,
+                {backgroundColor: colors.primary + '14'},
+              ]}
+              onPress={() => {
+                haptics.tap();
+                handleDownload();
+              }}
+              disabled={downloading}
+              accessibilityRole="button"
+              accessibilityLabel={o.updateAvailable}>
+              <Ionicons
+                name="refresh-outline"
+                size={14}
+                color={colors.primary}
+              />
+              <Text style={[styles.updateBannerText, {color: colors.primary}]}>
+                {downloading
+                  ? progress > 0
+                    ? `${o.downloading} ${Math.round(progress * 100)}%`
+                    : o.downloading
+                  : o.updateAvailable}
+              </Text>
+            </TouchableOpacity>
+          ) : null}
+
           {status === 'loading' ? (
             <View style={styles.centerState}>
               <ActivityIndicator color={colors.primary} />
@@ -634,6 +683,18 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
+  updateBanner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    alignSelf: 'flex-start',
+    gap: spacing.xs,
+    marginHorizontal: spacing.lg,
+    marginBottom: spacing.md,
+    paddingVertical: spacing.xs,
+    paddingHorizontal: spacing.sm,
+    borderRadius: borderRadius.full,
+  },
+  updateBannerText: {fontSize: fontSizes.xs, fontWeight: '700'},
   centerState: {
     paddingVertical: spacing['2xl'],
     paddingHorizontal: spacing.lg,
