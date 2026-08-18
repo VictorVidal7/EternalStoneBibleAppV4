@@ -99,7 +99,7 @@ export function parseDevotionalDraft(
     return null;
   }
   if (!Array.isArray(o.days)) return null;
-  const title = o.title.slice(0, 60);
+  const title = o.title.slice(0, CAL_TITLE_MAX);
   const days = o.days
     .filter(isValidDraftDay)
     .map(d => ({...d, note: d.note.slice(0, CAL_NOTE_MAX)}));
