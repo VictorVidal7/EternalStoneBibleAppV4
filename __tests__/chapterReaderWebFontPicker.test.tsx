@@ -90,6 +90,9 @@ jest.mock('@hooks/useBibleVersion', () => ({
   useBibleVersion: () => ({
     selectedVersion: {id: 'RVR1960', language: 'es', abbreviation: 'RVR1960'},
   }),
+  useBibleVersionOptional: () => ({
+    selectedVersion: {id: 'RVR1960', language: 'es', abbreviation: 'RVR1960'},
+  }),
 }));
 
 // Real components — deliberately NOT mocked, per the file header comment.

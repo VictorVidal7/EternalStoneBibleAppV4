@@ -51,6 +51,7 @@ import {
 } from '../../lib/reader/typefaces';
 import {useTheme} from '../../hooks/useTheme';
 import {useLanguage} from '../../hooks/useLanguage';
+import {useBibleVersionOptional} from '../../hooks/useBibleVersion';
 import {usePremium} from '@context/PremiumContext';
 import {useOfferingSheet} from '@context/OfferingSheetContext';
 import {focusTrapProps, a11yHiddenProps} from '@lib/a11y/focusTrap';
@@ -89,6 +90,14 @@ export const ReaderPreferencesSheet: React.FC<ReaderPreferencesSheetProps> = ({
   } = useReaderPreferences();
   const {isPremium, isLoading: premiumLoading} = usePremium();
   const {open: openOfferingSheet} = useOfferingSheet();
+
+  // Red-letter only has real data for WEB today (see WEB_RED_LETTER) — on
+  // any other version the switch would be a silent no-op, so it's disabled
+  // rather than left looking live. `useBibleVersionOptional` degrades to
+  // undefined for the handful of call sites/tests that render this sheet
+  // above/without a BibleVersionProvider, which correctly falls to "not WEB".
+  const {selectedVersion} = useBibleVersionOptional() ?? {};
+  const isRedLetterAvailable = selectedVersion?.id === 'WEB';
 
   // If a premium typeface or reading theme was active and the entitlement is
   // later revoked (e.g. a refund), fall back to the default instead of
@@ -740,7 +749,9 @@ export const ReaderPreferencesSheet: React.FC<ReaderPreferencesSheetProps> = ({
 
             {/* ✝️ Red-letter words (opt-out, default on — a well-known
                 Bible convention). Only visibly takes effect on WEB, the only
-                reading version with the underlying marking today. */}
+                reading version with the underlying marking today — disabled
+                (not hidden, so it stays discoverable) on every other version,
+                with a hint that says how to enable it. */}
             <Section title={t.readerPrefs.redLetterSection} colors={colors}>
               <View style={styles.switchRow}>
                 <View style={styles.switchTextWrap}>
@@ -749,7 +760,9 @@ export const ReaderPreferencesSheet: React.FC<ReaderPreferencesSheetProps> = ({
                   </Text>
                   <Text
                     style={[styles.switchHint, {color: colors.textSecondary}]}>
-                    {t.readerPrefs.redLetterWordsHint}
+                    {isRedLetterAvailable
+                      ? t.readerPrefs.redLetterWordsHint
+                      : t.readerPrefs.redLetterWordsUnavailableHint}
                   </Text>
                 </View>
                 <Switch
@@ -757,6 +770,7 @@ export const ReaderPreferencesSheet: React.FC<ReaderPreferencesSheetProps> = ({
                   onValueChange={tap(() =>
                     setRedLetterWords(!preferences.redLetterWords),
                   )}
+                  disabled={!isRedLetterAvailable}
                   trackColor={{
                     false: colors.border,
                     true: colors.primary + '70',
@@ -767,7 +781,12 @@ export const ReaderPreferencesSheet: React.FC<ReaderPreferencesSheetProps> = ({
                       : colors.surfaceVariant
                   }
                   accessibilityLabel={t.readerPrefs.redLetterWords}
-                  accessibilityHint={t.readerPrefs.redLetterWordsHint}
+                  accessibilityHint={
+                    isRedLetterAvailable
+                      ? t.readerPrefs.redLetterWordsHint
+                      : t.readerPrefs.redLetterWordsUnavailableHint
+                  }
+                  accessibilityState={{disabled: !isRedLetterAvailable}}
                 />
               </View>
             </Section>

@@ -807,6 +807,8 @@ export const translations = {
       redLetterWords: 'Resaltar las palabras de Jesús en rojo',
       redLetterWordsHint:
         'Solo aplica leyendo en inglés (WEB), la única versión con esta marca disponible por ahora.',
+      redLetterWordsUnavailableHint:
+        'Cambiá a la versión WEB (inglés) para activarlo.',
       sampleText:
         'En el principio creó Dios los cielos y la tierra. La tierra estaba desordenada y vacía, y las tinieblas estaban sobre la faz del abismo.',
     },
@@ -6813,6 +6815,8 @@ export const translations = {
       redLetterWords: 'Highlight the words of Jesus in red',
       redLetterWordsHint:
         'Only applies when reading in English (WEB), the only version with this marking available for now.',
+      redLetterWordsUnavailableHint:
+        'Switch to the WEB (English) version to enable it.',
       sampleText:
         'In the beginning God created the heaven and the earth. And the earth was without form, and void; and darkness was upon the face of the deep.',
     },
