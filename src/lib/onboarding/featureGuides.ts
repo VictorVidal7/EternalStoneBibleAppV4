@@ -27,7 +27,18 @@ import type {Ionicons} from '@expo/vector-icons';
 import type {TranslationKeys} from '@/i18n/translations';
 import type {FeatureGuideSection} from '@components/FeatureGuideModal';
 
-export type FeatureGuideId = 'memory' | 'originals' | 'versionComparison';
+export type FeatureGuideId =
+  | 'memory'
+  | 'originals'
+  | 'versionComparison'
+  | 'constellation'
+  | 'audio'
+  | 'achievements'
+  | 'widgets'
+  | 'together'
+  | 'prepTable'
+  | 'journeys'
+  | 'devotionalBuilder';
 
 export interface FeatureGuideContent {
   headerIcon?: keyof typeof Ionicons.glyphMap;
@@ -133,6 +144,238 @@ export const FEATURE_GUIDES: readonly FeatureGuideDefinition[] = [
           icon: 'analytics',
           title: t.versionComparison.guide.analysisTitle,
           body: t.versionComparison.guide.analysisBody,
+        },
+      ],
+    }),
+  },
+  {
+    id: 'constellation',
+    listIcon: 'sparkles-outline',
+    getLabel: t => t.constellation.guide.title,
+    getDescription: t => t.constellation.guide.rowDescription,
+    getContent: t => ({
+      headerIcon: 'sparkles',
+      title: t.constellation.guide.title,
+      intro: t.constellation.guide.intro,
+      closeLabel: t.constellation.guide.close,
+      sections: [
+        {
+          icon: 'eye-outline',
+          title: t.constellation.guide.s1Title,
+          body: t.constellation.guide.s1Body,
+        },
+        {
+          icon: 'git-network-outline',
+          title: t.constellation.guide.s2Title,
+          body: t.constellation.guide.s2Body,
+        },
+        {
+          icon: 'contract-outline',
+          title: t.constellation.guide.s3Title,
+          body: t.constellation.guide.s3Body,
+        },
+      ],
+    }),
+  },
+  {
+    id: 'audio',
+    listIcon: 'headset-outline',
+    getLabel: t => t.audio.guide.title,
+    getDescription: t => t.audio.guide.rowDescription,
+    getContent: t => ({
+      headerIcon: 'headset',
+      title: t.audio.guide.title,
+      intro: t.audio.guide.intro,
+      closeLabel: t.audio.guide.close,
+      sections: [
+        {
+          icon: 'moon-outline',
+          title: t.audio.guide.s1Title,
+          body: t.audio.guide.s1Body,
+        },
+        {
+          icon: 'color-wand-outline',
+          title: t.audio.guide.s2Title,
+          body: t.audio.guide.s2Body,
+        },
+        {
+          icon: 'swap-horizontal-outline',
+          title: t.audio.guide.s3Title,
+          body: t.audio.guide.s3Body,
+        },
+      ],
+    }),
+  },
+  {
+    id: 'achievements',
+    listIcon: 'trophy-outline',
+    getLabel: t => t.achievements.guide.title,
+    getDescription: t => t.achievements.guide.rowDescription,
+    getContent: t => ({
+      headerIcon: 'trophy',
+      title: t.achievements.guide.title,
+      intro: t.achievements.guide.intro,
+      closeLabel: t.achievements.guide.close,
+      sections: [
+        {
+          icon: 'medal-outline',
+          title: t.achievements.guide.s1Title,
+          body: t.achievements.guide.s1Body,
+        },
+        {
+          icon: 'ribbon-outline',
+          title: t.achievements.guide.s2Title,
+          body: t.achievements.guide.s2Body,
+        },
+        {
+          icon: 'share-outline',
+          title: t.achievements.guide.s3Title,
+          body: t.achievements.guide.s3Body,
+        },
+      ],
+    }),
+  },
+  {
+    id: 'widgets',
+    listIcon: 'apps-outline',
+    getLabel: t => t.widgets.guide.title,
+    getDescription: t => t.widgets.guide.rowDescription,
+    getContent: t => ({
+      headerIcon: 'apps',
+      title: t.widgets.guide.title,
+      intro: t.widgets.guide.intro,
+      closeLabel: t.widgets.guide.close,
+      sections: [
+        {
+          icon: 'add-circle-outline',
+          title: t.widgets.guide.s1Title,
+          body: t.widgets.guide.s1Body,
+        },
+        {
+          icon: 'calendar-outline',
+          title: t.widgets.guide.s2Title,
+          body: t.widgets.guide.s2Body,
+        },
+        {
+          icon: 'logo-android',
+          title: t.widgets.guide.s3Title,
+          body: t.widgets.guide.s3Body,
+        },
+      ],
+    }),
+  },
+  {
+    id: 'together',
+    listIcon: 'people-outline',
+    getLabel: t => t.together.guide.title,
+    getDescription: t => t.together.guide.rowDescription,
+    getContent: t => ({
+      headerIcon: 'people',
+      title: t.together.guide.title,
+      intro: t.together.guide.intro,
+      closeLabel: t.together.guide.close,
+      sections: [
+        {
+          icon: 'key-outline',
+          title: t.together.guide.s1Title,
+          body: t.together.guide.s1Body,
+        },
+        {
+          icon: 'calendar-outline',
+          title: t.together.guide.s2Title,
+          body: t.together.guide.s2Body,
+        },
+        {
+          icon: 'lock-closed-outline',
+          title: t.together.guide.s3Title,
+          body: t.together.guide.s3Body,
+        },
+      ],
+    }),
+  },
+  {
+    id: 'prepTable',
+    listIcon: 'reader-outline',
+    getLabel: t => t.prepTable.guide.title,
+    getDescription: t => t.prepTable.guide.rowDescription,
+    getContent: t => ({
+      headerIcon: 'reader',
+      title: t.prepTable.guide.title,
+      intro: t.prepTable.guide.intro,
+      closeLabel: t.prepTable.guide.close,
+      sections: [
+        {
+          icon: 'time-outline',
+          title: t.prepTable.guide.s1Title,
+          body: t.prepTable.guide.s1Body,
+        },
+        {
+          icon: 'albums-outline',
+          title: t.prepTable.guide.s2Title,
+          body: t.prepTable.guide.s2Body,
+        },
+        {
+          icon: 'mic-outline',
+          title: t.prepTable.guide.s3Title,
+          body: t.prepTable.guide.s3Body,
+        },
+      ],
+    }),
+  },
+  {
+    id: 'journeys',
+    listIcon: 'map-outline',
+    getLabel: t => t.journeys.guide.title,
+    getDescription: t => t.journeys.guide.rowDescription,
+    getContent: t => ({
+      headerIcon: 'map',
+      title: t.journeys.guide.title,
+      intro: t.journeys.guide.intro,
+      closeLabel: t.journeys.guide.close,
+      sections: [
+        {
+          icon: 'list-outline',
+          title: t.journeys.guide.s1Title,
+          body: t.journeys.guide.s1Body,
+        },
+        {
+          icon: 'book-outline',
+          title: t.journeys.guide.s2Title,
+          body: t.journeys.guide.s2Body,
+        },
+        {
+          icon: 'play-skip-forward',
+          title: t.journeys.guide.s3Title,
+          body: t.journeys.guide.s3Body,
+        },
+      ],
+    }),
+  },
+  {
+    id: 'devotionalBuilder',
+    listIcon: 'calendar-outline',
+    getLabel: t => t.devotionalBuilder.guide.title,
+    getDescription: t => t.devotionalBuilder.guide.rowDescription,
+    getContent: t => ({
+      headerIcon: 'calendar',
+      title: t.devotionalBuilder.guide.title,
+      intro: t.devotionalBuilder.guide.intro,
+      closeLabel: t.devotionalBuilder.guide.close,
+      sections: [
+        {
+          icon: 'book-outline',
+          title: t.devotionalBuilder.guide.s1Title,
+          body: t.devotionalBuilder.guide.s1Body,
+        },
+        {
+          icon: 'save-outline',
+          title: t.devotionalBuilder.guide.s2Title,
+          body: t.devotionalBuilder.guide.s2Body,
+        },
+        {
+          icon: 'share-social-outline',
+          title: t.devotionalBuilder.guide.s3Title,
+          body: t.devotionalBuilder.guide.s3Body,
         },
       ],
     }),

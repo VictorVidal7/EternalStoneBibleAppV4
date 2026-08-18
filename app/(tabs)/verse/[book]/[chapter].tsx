@@ -34,6 +34,7 @@ import {
 } from '@/lib/references/parseReference';
 import {
   getRedLetterSpans,
+  hasRedLetterData,
   mergeRedLetterSpans,
 } from '@lib/reading/redLetterText';
 import {HighlightColor} from '@lib/highlights';
@@ -2793,7 +2794,8 @@ export default function VerseReadingScreen() {
                         }}>
                         {/* Linkify inline references ("Isaías 53:5",
                           "John 3:16") inside the verse text so they become
-                          tappable jumps, and — reading WEB with the "Palabras
+                          tappable jumps, and — reading a version with
+                          red-letter data (WEB, RVR1960) with the "Palabras
                           de Cristo" preference on — tint Jesus's own words
                           red (Phase 2 of the red-letter feature). A
                           cross-reference link always wins its color/tap
@@ -2803,8 +2805,9 @@ export default function VerseReadingScreen() {
                           const segments = linkifyReferences(verse.text);
                           const redLetterSpans =
                             readerPrefs.redLetterWords &&
-                            selectedVersion.id === 'WEB'
+                            hasRedLetterData(selectedVersion.id)
                               ? getRedLetterSpans(
+                                  selectedVersion.id,
                                   verse.bookNumber,
                                   chapterNum,
                                   verse.verse,

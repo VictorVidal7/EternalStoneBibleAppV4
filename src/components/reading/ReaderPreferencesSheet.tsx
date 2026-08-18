@@ -52,6 +52,7 @@ import {
 import {useTheme} from '../../hooks/useTheme';
 import {useLanguage} from '../../hooks/useLanguage';
 import {useBibleVersionOptional} from '../../hooks/useBibleVersion';
+import {hasRedLetterData} from '@lib/reading/redLetterText';
 import {usePremium} from '@context/PremiumContext';
 import {useOfferingSheet} from '@context/OfferingSheetContext';
 import {focusTrapProps, a11yHiddenProps} from '@lib/a11y/focusTrap';
@@ -91,13 +92,15 @@ export const ReaderPreferencesSheet: React.FC<ReaderPreferencesSheetProps> = ({
   const {isPremium, isLoading: premiumLoading} = usePremium();
   const {open: openOfferingSheet} = useOfferingSheet();
 
-  // Red-letter only has real data for WEB today (see WEB_RED_LETTER) — on
-  // any other version the switch would be a silent no-op, so it's disabled
-  // rather than left looking live. `useBibleVersionOptional` degrades to
-  // undefined for the handful of call sites/tests that render this sheet
-  // above/without a BibleVersionProvider, which correctly falls to "not WEB".
+  // Red-letter has real data for WEB and RVR1960 (see hasRedLetterData /
+  // WEB_RED_LETTER / RVR1960_RED_LETTER) — on any other version the switch
+  // would be a silent no-op, so it's disabled rather than left looking live.
+  // `useBibleVersionOptional` degrades to undefined for the handful of call
+  // sites/tests that render this sheet above/without a BibleVersionProvider,
+  // which correctly falls to "no known version, so unavailable".
   const {selectedVersion} = useBibleVersionOptional() ?? {};
-  const isRedLetterAvailable = selectedVersion?.id === 'WEB';
+  const isRedLetterAvailable =
+    !!selectedVersion && hasRedLetterData(selectedVersion.id);
 
   // If a premium typeface or reading theme was active and the entitlement is
   // later revoked (e.g. a refund), fall back to the default instead of
@@ -748,10 +751,10 @@ export const ReaderPreferencesSheet: React.FC<ReaderPreferencesSheetProps> = ({
             </Section>
 
             {/* ✝️ Red-letter words (opt-out, default on — a well-known
-                Bible convention). Only visibly takes effect on WEB, the only
-                reading version with the underlying marking today — disabled
-                (not hidden, so it stays discoverable) on every other version,
-                with a hint that says how to enable it. */}
+                Bible convention). Only visibly takes effect on WEB and
+                RVR1960, the reading versions with the underlying marking
+                today — disabled (not hidden, so it stays discoverable) on
+                every other version, with a hint that says how to enable it. */}
             <Section title={t.readerPrefs.redLetterSection} colors={colors}>
               <View style={styles.switchRow}>
                 <View style={styles.switchTextWrap}>

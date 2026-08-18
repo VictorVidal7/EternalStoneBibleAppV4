@@ -1,0 +1,50 @@
+{
+  "id": "widgets",
+  "listIcon": "apps-outline",
+  "headerIcon": "apps",
+  "es": {
+    "title": "Cómo usar el widget del Verso del Día",
+    "rowDescription": "Agrégalo a tu pantalla de inicio y recibe un versículo distinto cada día.",
+    "intro": "Coloca el widget del Verso del Día en la pantalla de inicio de tu teléfono para tener la Palabra siempre a la vista, sin necesidad de abrir la app.",
+    "s1Icon": "add-circle-outline",
+    "s1Title": "Agrégalo a tu pantalla de inicio",
+    "s1Body": "Mantén presionada un área vacía de tu pantalla de inicio, toca \"Widgets\", busca \"Eternal Stone Bible\" en la lista y arrástralo a tu pantalla.",
+    "s2Icon": "calendar-outline",
+    "s2Title": "Un versículo nuevo cada día",
+    "s2Body": "El widget muestra el mismo versículo curado que ves en el inicio de la app, y se actualiza solo, una vez al día — nunca tienes que renovarlo a mano.",
+    "s3Icon": "logo-android",
+    "s3Title": "Solo en Android, a un toque de la app",
+    "s3Body": "Toca el widget en cualquier momento para abrir la app. Por ahora, este widget de pantalla de inicio está disponible únicamente en teléfonos Android.",
+    "close": "Entendido"
+  },
+  "en": {
+    "title": "How to use the Verse of the Day widget",
+    "rowDescription": "Add it to your home screen and get a new verse every day.",
+    "intro": "Place the Verse of the Day widget on your phone's home screen to keep God's Word in view without opening the app.",
+    "s1Icon": "add-circle-outline",
+    "s1Title": "Add it to your home screen",
+    "s1Body": "Long-press an empty spot on your home screen, tap \"Widgets,\" find \"Eternal Stone Bible\" in the list, and drag it onto your screen.",
+    "s2Icon": "calendar-outline",
+    "s2Title": "A new verse every day",
+    "s2Body": "The widget shows the same curated verse you see on the app's home screen, and it refreshes on its own once a day — no manual updates needed.",
+    "s3Icon": "logo-android",
+    "s3Title": "Android only, one tap from the app",
+    "s3Body": "Tap the widget anytime to jump straight into the app. For now, this home-screen widget is only available on Android phones.",
+    "close": "Got it"
+  },
+  "entryPoint": "Ajustes > sección 'Funcionalidades' > fila 'Widgets' (icono 'apps') navega a /features/widgets, que renderiza WidgetsDemoScreen.",
+  "sourceFiles": [
+    "app/(tabs)/settings.tsx:899-920 — fila de entrada en Ajustes > Funcionalidades, icono 'apps', navega a /features/widgets",
+    "app/features/widgets.tsx:1-5 — ruta que monta WidgetsDemoScreen",
+    "src/screens/WidgetsDemoScreen.tsx:31-37,64,92-103 — lista de 5 pasos para agregar el widget + nota de actualización/tema mostrada en la app",
+    "src/i18n/translations.ts:5064-5080 (es) y :11088-11106 (en) — copy existente de t.widgets (title, subtitle, howToUseSteps.step1-5, note)",
+    "src/widgets/VerseWidget.tsx:31-72 — vista previa DENTRO de la app; al tocarla llama onPress(book,chapter,verse) que navega al versículo exacto (esto es solo la demo en-app, no el widget nativo real)",
+    "src/widgets/WidgetTaskHandler.ts:36-70 — el verso mostrado en la vista previa se resuelve con getDailyVerseRef() + bibleDB.getVerse(...,'RVR1960'), el mismo verso curado que usa Home",
+    "src/constants/daily-verses.ts:268-277 — getDailyVerseRef(): elección determinística por día del año/calendario, igual para todos los usuarios ese día",
+    "plugins/widget-files/verse_widget_info.xml:3-18 — android:updatePeriodMillis=\"86400000\" (24h): el sistema Android actualiza el widget nativo una vez al día",
+    "plugins/widget-files/VerseWidgetProvider.kt:308-334 — updateWidget(): el widget nativo trae su PROPIA lista de versos inlineados (Kotlin, sin bridge JS) y el tap del widget completo solo abre MainActivity con FLAG_ACTIVITY_NEW_TASK/CLEAR_TOP, SIN deep link al versículo específico",
+    "plugins/with-verse-widget.js:1-16,44-70 — el config plugin de Expo solo escribe archivos dentro de android/ (java/, res/layout, res/drawable, res/xml) y registra un <receiver> en AndroidManifest.xml; no existe ningún plugin ni código equivalente para iOS — confirma que el widget real es exclusivo de Android",
+    "plugins/widget-files/verse_widget_bg.xml:1-15 y verse_widget.xml:1-43 — fondo con gradiente oscuro fijo (#1E1B4B→#3B2566→#7C2D12) y textos en blanco/dorado fijos; no hay drawable-night ni ninguna lógica de tema claro/oscuro en el widget nativo"
+  ],
+  "notes": "Encontré una contradicción entre el copy YA EXISTENTE en la app (t.widgets.note, translations.ts:5079: 'se adapta al tema claro u oscuro de tu teléfono') y el código nativo real: verse_widget_bg.xml y verse_widget.xml usan un único gradiente oscuro y colores de texto fijos, sin ningún recurso drawable-night ni chequeo de tema. Por eso, siguiendo la instrucción de no afirmar nada que no esté respaldado por el código, NO incluí la adaptación de tema en esta guía nueva — pero valdría la pena que alguien revise/corrija esa nota existente en WidgetsDemoScreen, porque hoy le promete algo al usuario que el widget no hace. También noté que el comentario de verse_widget_info.xml menciona un 'WidgetRefresher native module wiring on the JS side' para refrescar al abrir la app, pero no existe tal módulo en el repo (grep sin resultados) — probablemente sea un comentario aspiracional u obsoleto, así que la guía solo promete la actualización automática diaria del sistema Android (la única verificada). Por último, el idioma del texto del widget nativo se aproxima por el idioma del DISPOSITIVO (Locale.getDefault()), no por el idioma elegido dentro de la app — es un detalle menor que no puse en la guía, pero lo dejo documentado por si interesa precisarlo en el futuro. La función es completamente gratuita: el QA existente (DOCS/QA_REVISION_FABLE.md:196) confirma 'Sin premium', y no encontré ningún chequeo de suscripción/premium en WidgetsDemoScreen.tsx ni en VerseWidget.tsx."
+}

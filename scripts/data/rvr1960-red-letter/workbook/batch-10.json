@@ -1,0 +1,728 @@
+[
+  {
+    "ref": "Juan 6:29",
+    "book_id": 43,
+    "chapter": 6,
+    "verse": 29,
+    "web_text": "Jesus answered them, “This is the work of God, that you believe in him whom he has sent.”",
+    "web_red": [
+      "“This is the work of God, that you believe in him whom he has sent.”"
+    ],
+    "web_spans": [[21, 89]],
+    "rvr_text": "Respondió Jesús y les dijo: Esta es la obra de Dios, que creáis en el que él ha enviado.",
+    "rvr_len": 88,
+    "candidate": [[28, 88]]
+  },
+  {
+    "ref": "Juan 6:32",
+    "book_id": 43,
+    "chapter": 6,
+    "verse": 32,
+    "web_text": "Jesus therefore said to them, “Most certainly, I tell you, it wasn’t Moses who gave you the bread out of heaven, but my Father gives you the true bread out of heaven.",
+    "web_red": [
+      "“Most certainly, I tell you, it wasn’t Moses who gave you the bread out of heaven, but my Father gives you the true bread out of heaven."
+    ],
+    "web_spans": [[30, 166]],
+    "rvr_text": "Y Jesús les dijo: De cierto, de cierto os digo: No os dio Moisés el pan del cielo, mas mi Padre os da el verdadero pan del cielo.",
+    "rvr_len": 129,
+    "candidate": [[18, 129]]
+  },
+  {
+    "ref": "Juan 6:35",
+    "book_id": 43,
+    "chapter": 6,
+    "verse": 35,
+    "web_text": "Jesus said to them, “I am the bread of life. Whoever comes to me will not be hungry, and whoever believes in me will never be thirsty.",
+    "web_red": [
+      "“I am the bread of life. Whoever comes to me will not be hungry, and whoever believes in me will never be thirsty."
+    ],
+    "web_spans": [[20, 134]],
+    "rvr_text": "Jesús les dijo: Yo soy el pan de vida; el que a mí viene, nunca tendrá hambre; y el que en mí cree, no tendrá sed jamás.",
+    "rvr_len": 120,
+    "candidate": [[16, 120]]
+  },
+  {
+    "ref": "Juan 6:41",
+    "book_id": 43,
+    "chapter": 6,
+    "verse": 41,
+    "web_text": "The Jews therefore murmured concerning him, because he said, “I am the bread which came down out of heaven.”",
+    "web_red": ["“I am the bread which came down out of heaven.”"],
+    "web_spans": [[61, 108]],
+    "rvr_text": "Murmuraban entonces de él los judíos, porque había dicho: Yo soy el pan que descendió del cielo.",
+    "rvr_len": 96,
+    "candidate": [[58, 96]]
+  },
+  {
+    "ref": "Juan 6:42",
+    "book_id": 43,
+    "chapter": 6,
+    "verse": 42,
+    "web_text": "They said, “Isn’t this Jesus, the son of Joseph, whose father and mother we know? How then does he say, ‘I have come down out of heaven’?”",
+    "web_red": ["‘I have come down out of heaven’?”"],
+    "web_spans": [[104, 138]],
+    "rvr_text": "Y decían: ¿No es éste Jesús, el hijo de José, cuyo padre y madre nosotros conocemos? ¿Cómo, pues, dice éste: Del cielo he descendido?",
+    "rvr_len": 133,
+    "candidate": [[10, 133]]
+  },
+  {
+    "ref": "Juan 6:43",
+    "book_id": 43,
+    "chapter": 6,
+    "verse": 43,
+    "web_text": "Therefore Jesus answered them, “Don’t murmur among yourselves.",
+    "web_red": ["“Don’t murmur among yourselves."],
+    "web_spans": [[31, 62]],
+    "rvr_text": "Jesús respondió y les dijo: No murmuréis entre vosotros.",
+    "rvr_len": 56,
+    "candidate": [[28, 56]]
+  },
+  {
+    "ref": "Juan 6:53",
+    "book_id": 43,
+    "chapter": 6,
+    "verse": 53,
+    "web_text": "Jesus therefore said to them, “Most certainly I tell you, unless you eat the flesh of the Son of Man and drink his blood, you don’t have life in yourselves.",
+    "web_red": [
+      "“Most certainly I tell you, unless you eat the flesh of the Son of Man and drink his blood, you don’t have life in yourselves."
+    ],
+    "web_spans": [[30, 156]],
+    "rvr_text": "Jesús les dijo: De cierto, de cierto os digo: Si no coméis la carne del Hijo del Hombre, y bebéis su sangre, no tenéis vida en vosotros.",
+    "rvr_len": 136,
+    "candidate": [[16, 136]]
+  },
+  {
+    "ref": "Juan 6:61",
+    "book_id": 43,
+    "chapter": 6,
+    "verse": 61,
+    "web_text": "But Jesus knowing in himself that his disciples murmured at this, said to them, “Does this cause you to stumble?",
+    "web_red": ["“Does this cause you to stumble?"],
+    "web_spans": [[80, 112]],
+    "rvr_text": "Sabiendo Jesús en sí mismo que sus discípulos murmuraban de esto, les dijo: ¿Esto os ofende?",
+    "rvr_len": 92,
+    "candidate": [[76, 92]]
+  },
+  {
+    "ref": "Juan 6:64",
+    "book_id": 43,
+    "chapter": 6,
+    "verse": 64,
+    "web_text": "But there are some of you who don’t believe.” For Jesus knew from the beginning who they were who didn’t believe, and who it was who would betray him.",
+    "web_red": ["But there are some of you who don’t believe.”"],
+    "web_spans": [[0, 45]],
+    "rvr_text": "Pero hay algunos de vosotros que no creen. Porque Jesús sabía desde el principio quiénes eran los que no creían, y quién le había de entregar.",
+    "rvr_len": 142,
+    "candidate": null
+  },
+  {
+    "ref": "Juan 6:65",
+    "book_id": 43,
+    "chapter": 6,
+    "verse": 65,
+    "web_text": "He said, “For this cause I have said to you that no one can come to me, unless it is given to him by my Father.”",
+    "web_red": [
+      "“For this cause I have said to you that no one can come to me, unless it is given to him by my Father.”"
+    ],
+    "web_spans": [[9, 112]],
+    "rvr_text": "Y dijo: Por eso os he dicho que ninguno puede venir a mí, si no le fuere dado del Padre.",
+    "rvr_len": 88,
+    "candidate": [[8, 88]]
+  },
+  {
+    "ref": "Juan 6:67",
+    "book_id": 43,
+    "chapter": 6,
+    "verse": 67,
+    "web_text": "Jesus said therefore to the twelve, “You don’t also want to go away, do you?”",
+    "web_red": ["“You don’t also want to go away, do you?”"],
+    "web_spans": [[36, 77]],
+    "rvr_text": "Dijo entonces Jesús a los doce: ¿Queréis acaso iros también vosotros?",
+    "rvr_len": 69,
+    "candidate": [[32, 69]]
+  },
+  {
+    "ref": "Juan 6:70",
+    "book_id": 43,
+    "chapter": 6,
+    "verse": 70,
+    "web_text": "Jesus answered them, “Didn’t I choose you, the twelve, and one of you is a devil?”",
+    "web_red": [
+      "“Didn’t I choose you, the twelve, and one of you is a devil?”"
+    ],
+    "web_spans": [[21, 82]],
+    "rvr_text": "Jesús les respondió: ¿No os he escogido yo a vosotros los doce, y uno de vosotros es diablo?",
+    "rvr_len": 92,
+    "candidate": [[21, 92]]
+  },
+  {
+    "ref": "Juan 7:6",
+    "book_id": 43,
+    "chapter": 7,
+    "verse": 6,
+    "web_text": "Jesus therefore said to them, “My time has not yet come, but your time is always ready.",
+    "web_red": ["“My time has not yet come, but your time is always ready."],
+    "web_spans": [[30, 87]],
+    "rvr_text": "Entonces Jesús les dijo: Mi tiempo aún no ha llegado, mas vuestro tiempo siempre está presto.",
+    "rvr_len": 93,
+    "candidate": [[25, 93]]
+  },
+  {
+    "ref": "Juan 7:16",
+    "book_id": 43,
+    "chapter": 7,
+    "verse": 16,
+    "web_text": "Jesus therefore answered them, “My teaching is not mine, but his who sent me.",
+    "web_red": ["“My teaching is not mine, but his who sent me."],
+    "web_spans": [[31, 77]],
+    "rvr_text": "Jesús les respondió y dijo: Mi doctrina no es mía, sino de aquel que me envió.",
+    "rvr_len": 78,
+    "candidate": [[28, 78]]
+  },
+  {
+    "ref": "Juan 7:21",
+    "book_id": 43,
+    "chapter": 7,
+    "verse": 21,
+    "web_text": "Jesus answered them, “I did one work and you all marvel because of it.",
+    "web_red": ["“I did one work and you all marvel because of it."],
+    "web_spans": [[21, 70]],
+    "rvr_text": "Jesús respondió y les dijo: Una obra hice, y todos os maravilláis.",
+    "rvr_len": 66,
+    "candidate": [[28, 66]]
+  },
+  {
+    "ref": "Juan 7:28",
+    "book_id": 43,
+    "chapter": 7,
+    "verse": 28,
+    "web_text": "Jesus therefore cried out in the temple, teaching and saying, “You both know me, and know where I am from. I have not come of myself, but he who sent me is true, whom you don’t know.",
+    "web_red": [
+      "“You both know me, and know where I am from. I have not come of myself, but he who sent me is true, whom you don’t know."
+    ],
+    "web_spans": [[62, 182]],
+    "rvr_text": "Jesús entonces, enseñando en el templo, alzó la voz y dijo: A mí me conocéis, y sabéis de dónde soy; y no he venido de mí mismo, pero el que me envió es verdadero, a quien vosotros no conocéis.",
+    "rvr_len": 193,
+    "candidate": [[60, 193]]
+  },
+  {
+    "ref": "Juan 7:33",
+    "book_id": 43,
+    "chapter": 7,
+    "verse": 33,
+    "web_text": "Then Jesus said, “I will be with you a little while longer, then I go to him who sent me.",
+    "web_red": [
+      "“I will be with you a little while longer, then I go to him who sent me."
+    ],
+    "web_spans": [[17, 89]],
+    "rvr_text": "Entonces Jesús dijo: Todavía un poco de tiempo estaré con vosotros, e iré al que me envió.",
+    "rvr_len": 90,
+    "candidate": [[21, 90]]
+  },
+  {
+    "ref": "Juan 7:36",
+    "book_id": 43,
+    "chapter": 7,
+    "verse": 36,
+    "web_text": "What is this word that he said, ‘You will seek me, and won’t find me;’ and ‘Where I am, you can’t come’?”",
+    "web_red": [
+      "‘You will seek me, and won’t find me;’",
+      "‘Where I am, you can’t come’"
+    ],
+    "web_spans": [
+      [32, 70],
+      [75, 103]
+    ],
+    "rvr_text": "¿Qué significa esto que dijo: Me buscaréis, y no me hallaréis; y a donde yo estaré, vosotros no podréis venir?",
+    "rvr_len": 110,
+    "candidate": null
+  },
+  {
+    "ref": "Juan 7:37",
+    "book_id": 43,
+    "chapter": 7,
+    "verse": 37,
+    "web_text": "Now on the last and greatest day of the feast, Jesus stood and cried out, “If anyone is thirsty, let him come to me and drink!",
+    "web_red": ["“If anyone is thirsty, let him come to me and drink!"],
+    "web_spans": [[74, 126]],
+    "rvr_text": "En el último y gran día de la fiesta, Jesús se puso en pie y alzó la voz, diciendo: Si alguno tiene sed, venga a mí y beba.",
+    "rvr_len": 123,
+    "candidate": [[84, 123]]
+  },
+  {
+    "ref": "Juan 8:7",
+    "book_id": 43,
+    "chapter": 8,
+    "verse": 7,
+    "web_text": "But when they continued asking him, he looked up and said to them, “He who is without sin among you, let him throw the first stone at her.”",
+    "web_red": [
+      "“He who is without sin among you, let him throw the first stone at her.”"
+    ],
+    "web_spans": [[67, 139]],
+    "rvr_text": "Y como insistieran en preguntarle, se enderezó y les dijo: El que de vosotros esté sin pecado sea el primero en arrojar la piedra contra ella.",
+    "rvr_len": 142,
+    "candidate": [[59, 142]]
+  },
+  {
+    "ref": "Juan 8:10",
+    "book_id": 43,
+    "chapter": 8,
+    "verse": 10,
+    "web_text": "Jesus, standing up, saw her and said, “Woman, where are your accusers? Did no one condemn you?”",
+    "web_red": ["“Woman, where are your accusers? Did no one condemn you?”"],
+    "web_spans": [[38, 95]],
+    "rvr_text": "Enderezándose Jesús, y no viendo a nadie sino a la mujer, le dijo: Mujer, ¿dónde están los que te acusaban? ¿Ninguno te condenó?",
+    "rvr_len": 128,
+    "candidate": [[67, 128]]
+  },
+  {
+    "ref": "Juan 8:11",
+    "book_id": 43,
+    "chapter": 8,
+    "verse": 11,
+    "web_text": "She said, “No one, Lord.” Jesus said, “Neither do I condemn you. Go your way. From now on, sin no more.”",
+    "web_red": [
+      "“Neither do I condemn you. Go your way. From now on, sin no more.”"
+    ],
+    "web_spans": [[38, 104]],
+    "rvr_text": "Ella dijo: Ninguno, Señor. Entonces Jesús le dijo: Ni yo te condeno; vete, y no peques más.",
+    "rvr_len": 91,
+    "candidate": [[11, 91]]
+  },
+  {
+    "ref": "Juan 8:12",
+    "book_id": 43,
+    "chapter": 8,
+    "verse": 12,
+    "web_text": "Again, therefore, Jesus spoke to them, saying, “I am the light of the world. He who follows me will not walk in the darkness, but will have the light of life.”",
+    "web_red": [
+      "“I am the light of the world. He who follows me will not walk in the darkness, but will have the light of life.”"
+    ],
+    "web_spans": [[47, 159]],
+    "rvr_text": "Otra vez Jesús les habló, diciendo: Yo soy la luz del mundo; el que me sigue, no andará en tinieblas, sino que tendrá la luz de la vida.",
+    "rvr_len": 136,
+    "candidate": [[36, 136]]
+  },
+  {
+    "ref": "Juan 8:14",
+    "book_id": 43,
+    "chapter": 8,
+    "verse": 14,
+    "web_text": "Jesus answered them, “Even if I testify about myself, my testimony is true, for I know where I came from, and where I am going; but you don’t know where I came from, or where I am going.",
+    "web_red": [
+      "“Even if I testify about myself, my testimony is true, for I know where I came from, and where I am going; but you don’t know where I came from, or where I am going."
+    ],
+    "web_spans": [[21, 186]],
+    "rvr_text": "Respondió Jesús y les dijo: Aunque yo doy testimonio acerca de mí mismo, mi testimonio es verdadero, porque sé de dónde he venido y a dónde voy; pero vosotros no sabéis de dónde vengo, ni a dónde voy.",
+    "rvr_len": 200,
+    "candidate": [[28, 200]]
+  },
+  {
+    "ref": "Juan 8:19",
+    "book_id": 43,
+    "chapter": 8,
+    "verse": 19,
+    "web_text": "They said therefore to him, “Where is your Father?” Jesus answered, “You know neither me nor my Father. If you knew me, you would know my Father also.”",
+    "web_red": [
+      "“You know neither me nor my Father. If you knew me, you would know my Father also.”"
+    ],
+    "web_spans": [[68, 151]],
+    "rvr_text": "Ellos le dijeron: ¿Dónde está tu Padre? Respondió Jesús: Ni a mí me conocéis, ni a mi Padre; si a mí me conocieseis, también a mi Padre conoceríais.",
+    "rvr_len": 148,
+    "candidate": [[18, 148]]
+  },
+  {
+    "ref": "Juan 8:21",
+    "book_id": 43,
+    "chapter": 8,
+    "verse": 21,
+    "web_text": "Jesus said therefore again to them, “I am going away, and you will seek me, and you will die in your sins. Where I go, you can’t come.”",
+    "web_red": [
+      "“I am going away, and you will seek me, and you will die in your sins. Where I go, you can’t come.”"
+    ],
+    "web_spans": [[36, 135]],
+    "rvr_text": "Otra vez les dijo Jesús: Yo me voy, y me buscaréis, pero en vuestro pecado moriréis; a donde yo voy, vosotros no podéis venir.",
+    "rvr_len": 126,
+    "candidate": [[25, 126]]
+  },
+  {
+    "ref": "Juan 8:22",
+    "book_id": 43,
+    "chapter": 8,
+    "verse": 22,
+    "web_text": "The Jews therefore said, “Will he kill himself, because he says, ‘Where I am going, you can’t come’?”",
+    "web_red": ["‘Where I am going, you can’t come’"],
+    "web_spans": [[65, 99]],
+    "rvr_text": "Decían entonces los judíos: ¿Acaso se matará a sí mismo, que dice: A donde yo voy, vosotros no podéis venir?",
+    "rvr_len": 108,
+    "candidate": null
+  },
+  {
+    "ref": "Juan 8:23",
+    "book_id": 43,
+    "chapter": 8,
+    "verse": 23,
+    "web_text": "He said to them, “You are from beneath. I am from above. You are of this world. I am not of this world.",
+    "web_red": [
+      "“You are from beneath. I am from above. You are of this world. I am not of this world."
+    ],
+    "web_spans": [[17, 103]],
+    "rvr_text": "Y les dijo: Vosotros sois de abajo, yo soy de arriba; vosotros sois de este mundo, yo no soy de este mundo.",
+    "rvr_len": 107,
+    "candidate": [[12, 107]]
+  },
+  {
+    "ref": "Juan 8:25",
+    "book_id": 43,
+    "chapter": 8,
+    "verse": 25,
+    "web_text": "They said therefore to him, “Who are you?” Jesus said to them, “Just what I have been saying to you from the beginning.",
+    "web_red": ["“Just what I have been saying to you from the beginning."],
+    "web_spans": [[63, 119]],
+    "rvr_text": "Entonces le dijeron: ¿Tú quién eres? Entonces Jesús les dijo: Lo que desde el principio os he dicho.",
+    "rvr_len": 100,
+    "candidate": [[21, 100]]
+  },
+  {
+    "ref": "Juan 8:28",
+    "book_id": 43,
+    "chapter": 8,
+    "verse": 28,
+    "web_text": "Jesus therefore said to them, “When you have lifted up the Son of Man, then you will know that I am he, and I do nothing of myself, but as my Father taught me, I say these things.",
+    "web_red": [
+      "“When you have lifted up the Son of Man, then you will know that I am he, and I do nothing of myself, but as my Father taught me, I say these things."
+    ],
+    "web_spans": [[30, 179]],
+    "rvr_text": "Les dijo, pues, Jesús: Cuando hayáis levantado al Hijo del Hombre, entonces conoceréis que yo soy, y que nada hago por mí mismo, sino que según me enseñó el Padre, así hablo.",
+    "rvr_len": 174,
+    "candidate": [[23, 174]]
+  },
+  {
+    "ref": "Juan 8:31",
+    "book_id": 43,
+    "chapter": 8,
+    "verse": 31,
+    "web_text": "Jesus therefore said to those Jews who had believed him, “If you remain in my word, then you are truly my disciples.",
+    "web_red": ["“If you remain in my word, then you are truly my disciples."],
+    "web_spans": [[57, 116]],
+    "rvr_text": "Dijo entonces Jesús a los judíos que habían creído en él: Si vosotros permaneciereis en mi palabra, seréis verdaderamente mis discípulos;",
+    "rvr_len": 137,
+    "candidate": [[58, 137]]
+  },
+  {
+    "ref": "Juan 8:33",
+    "book_id": 43,
+    "chapter": 8,
+    "verse": 33,
+    "web_text": "They answered him, “We are Abraham’s offspring, and have never been in bondage to anyone. How do you say, ‘You will be made free’?”",
+    "web_red": ["‘You will be made free’"],
+    "web_spans": [[106, 129]],
+    "rvr_text": "Le respondieron: Linaje de Abraham somos, y jamás hemos sido esclavos de nadie. ¿Cómo dices tú: Seréis libres?",
+    "rvr_len": 110,
+    "candidate": null
+  },
+  {
+    "ref": "Juan 8:34",
+    "book_id": 43,
+    "chapter": 8,
+    "verse": 34,
+    "web_text": "Jesus answered them, “Most certainly I tell you, everyone who commits sin is the bondservant of sin.",
+    "web_red": [
+      "“Most certainly I tell you, everyone who commits sin is the bondservant of sin."
+    ],
+    "web_spans": [[21, 100]],
+    "rvr_text": "Jesús les respondió: De cierto, de cierto os digo, que todo aquel que hace pecado, esclavo es del pecado.",
+    "rvr_len": 105,
+    "candidate": [[21, 105]]
+  },
+  {
+    "ref": "Juan 8:39",
+    "book_id": 43,
+    "chapter": 8,
+    "verse": 39,
+    "web_text": "They answered him, “Our father is Abraham.” Jesus said to them, “If you were Abraham’s children, you would do the works of Abraham.",
+    "web_red": [
+      "“If you were Abraham’s children, you would do the works of Abraham."
+    ],
+    "web_spans": [[64, 131]],
+    "rvr_text": "Respondieron y le dijeron: Nuestro padre es Abraham. Jesús les dijo: Si fueseis hijos de Abraham, las obras de Abraham haríais.",
+    "rvr_len": 127,
+    "candidate": [[27, 127]]
+  },
+  {
+    "ref": "Juan 8:41",
+    "book_id": 43,
+    "chapter": 8,
+    "verse": 41,
+    "web_text": "You do the works of your father.” They said to him, “We were not born of sexual immorality. We have one Father, God.”",
+    "web_red": ["You do the works of your father.”"],
+    "web_spans": [[0, 33]],
+    "rvr_text": "Vosotros hacéis las obras de vuestro padre. Entonces le dijeron: Nosotros no somos nacidos de fornicación; un padre tenemos, que es Dios.",
+    "rvr_len": 137,
+    "candidate": null
+  },
+  {
+    "ref": "Juan 8:42",
+    "book_id": 43,
+    "chapter": 8,
+    "verse": 42,
+    "web_text": "Therefore Jesus said to them, “If God were your father, you would love me, for I came out and have come from God. For I haven’t come of myself, but he sent me.",
+    "web_red": [
+      "“If God were your father, you would love me, for I came out and have come from God. For I haven’t come of myself, but he sent me."
+    ],
+    "web_spans": [[30, 159]],
+    "rvr_text": "Jesús entonces les dijo: Si vuestro padre fuese Dios, ciertamente me amaríais; porque yo de Dios he salido, y he venido; pues no he venido de mí mismo, sino que él me envió.",
+    "rvr_len": 173,
+    "candidate": [[25, 173]]
+  },
+  {
+    "ref": "Juan 8:49",
+    "book_id": 43,
+    "chapter": 8,
+    "verse": 49,
+    "web_text": "Jesus answered, “I don’t have a demon, but I honor my Father and you dishonor me.",
+    "web_red": [
+      "“I don’t have a demon, but I honor my Father and you dishonor me."
+    ],
+    "web_spans": [[16, 81]],
+    "rvr_text": "Respondió Jesús: Yo no tengo demonio, antes honro a mi Padre; y vosotros me deshonráis.",
+    "rvr_len": 87,
+    "candidate": [[17, 87]]
+  },
+  {
+    "ref": "Juan 8:52",
+    "book_id": 43,
+    "chapter": 8,
+    "verse": 52,
+    "web_text": "Then the Jews said to him, “Now we know that you have a demon. Abraham died, as did the prophets; and you say, ‘If a man keeps my word, he will never taste of death.’",
+    "web_red": ["‘If a man keeps my word, he will never taste of death.’"],
+    "web_spans": [[111, 166]],
+    "rvr_text": "Entonces los judíos le dijeron: Ahora conocemos que tienes demonio. Abraham murió, y los profetas; y tú dices: El que guarda mi palabra, nunca sufrirá muerte.",
+    "rvr_len": 158,
+    "candidate": [[32, 158]]
+  },
+  {
+    "ref": "Juan 8:54",
+    "book_id": 43,
+    "chapter": 8,
+    "verse": 54,
+    "web_text": "Jesus answered, “If I glorify myself, my glory is nothing. It is my Father who glorifies me, of whom you say that he is our God.",
+    "web_red": [
+      "“If I glorify myself, my glory is nothing. It is my Father who glorifies me, of whom you say that he is our God."
+    ],
+    "web_spans": [[16, 128]],
+    "rvr_text": "Respondió Jesús: Si yo me glorifico a mí mismo, mi gloria nada es; mi Padre es el que me glorifica, el que vosotros decís que es vuestro Dios.",
+    "rvr_len": 142,
+    "candidate": [[17, 142]]
+  },
+  {
+    "ref": "Juan 8:58",
+    "book_id": 43,
+    "chapter": 8,
+    "verse": 58,
+    "web_text": "Jesus said to them, “Most certainly, I tell you, before Abraham came into existence, I AM. ”",
+    "web_red": [
+      "“Most certainly, I tell you, before Abraham came into existence, I AM. ”"
+    ],
+    "web_spans": [[20, 92]],
+    "rvr_text": "Jesús les dijo: De cierto, de cierto os digo: Antes que Abraham fuese, yo soy.",
+    "rvr_len": 78,
+    "candidate": [[16, 78]]
+  },
+  {
+    "ref": "Juan 9:3",
+    "book_id": 43,
+    "chapter": 9,
+    "verse": 3,
+    "web_text": "Jesus answered, “This man didn’t sin, nor did his parents, but that the works of God might be revealed in him.",
+    "web_red": [
+      "“This man didn’t sin, nor did his parents, but that the works of God might be revealed in him."
+    ],
+    "web_spans": [[16, 110]],
+    "rvr_text": "Respondió Jesús: No es que pecó éste, ni sus padres, sino para que las obras de Dios se manifiesten en él.",
+    "rvr_len": 106,
+    "candidate": [[17, 106]]
+  },
+  {
+    "ref": "Juan 9:7",
+    "book_id": 43,
+    "chapter": 9,
+    "verse": 7,
+    "web_text": "and said to him, “Go, wash in the pool of Siloam” (which means “Sent”). So he went away, washed, and came back seeing.",
+    "web_red": ["“Go, wash in the pool of Siloam”"],
+    "web_spans": [[17, 49]],
+    "rvr_text": "y le dijo: Ve a lavarte en el estanque de Siloé (que traducido es, Enviado). Fue entonces, y se lavó, y regresó viendo.",
+    "rvr_len": 119,
+    "candidate": null
+  },
+  {
+    "ref": "Juan 9:11",
+    "book_id": 43,
+    "chapter": 9,
+    "verse": 11,
+    "web_text": "He answered, “A man called Jesus made mud, anointed my eyes, and said to me, ‘Go to the pool of Siloam and wash.’ So I went away and washed, and I received sight.”",
+    "web_red": ["‘Go to the pool of Siloam and wash.’"],
+    "web_spans": [[77, 113]],
+    "rvr_text": "Respondió él y dijo: Aquel hombre que se llama Jesús hizo lodo, me untó los ojos, y me dijo: Ve al Siloé, y lávate; y fui, y me lavé, y recibí la vista.",
+    "rvr_len": 152,
+    "candidate": null
+  },
+  {
+    "ref": "Juan 9:35",
+    "book_id": 43,
+    "chapter": 9,
+    "verse": 35,
+    "web_text": "Jesus heard that they had thrown him out, and finding him, he said, “Do you believe in the Son of God?”",
+    "web_red": ["“Do you believe in the Son of God?”"],
+    "web_spans": [[68, 103]],
+    "rvr_text": "Oyó Jesús que le habían expulsado; y hallándole, le dijo: ¿Crees tú en el Hijo de Dios?",
+    "rvr_len": 87,
+    "candidate": [[58, 87]]
+  },
+  {
+    "ref": "Juan 9:37",
+    "book_id": 43,
+    "chapter": 9,
+    "verse": 37,
+    "web_text": "Jesus said to him, “You have both seen him, and it is he who speaks with you.”",
+    "web_red": ["“You have both seen him, and it is he who speaks with you.”"],
+    "web_spans": [[19, 78]],
+    "rvr_text": "Le dijo Jesús: Pues le has visto, y el que habla contigo, él es.",
+    "rvr_len": 64,
+    "candidate": [[15, 64]]
+  },
+  {
+    "ref": "Juan 9:39",
+    "book_id": 43,
+    "chapter": 9,
+    "verse": 39,
+    "web_text": "Jesus said, “I came into this world for judgment, that those who don’t see may see; and that those who see may become blind.”",
+    "web_red": [
+      "“I came into this world for judgment, that those who don’t see may see; and that those who see may become blind.”"
+    ],
+    "web_spans": [[12, 125]],
+    "rvr_text": "Dijo Jesús: Para juicio he venido yo a este mundo; para que los que no ven, vean, y los que ven, sean cegados.",
+    "rvr_len": 110,
+    "candidate": [[12, 110]]
+  },
+  {
+    "ref": "Juan 9:41",
+    "book_id": 43,
+    "chapter": 9,
+    "verse": 41,
+    "web_text": "Jesus said to them, “If you were blind, you would have no sin; but now you say, ‘We see.’ Therefore your sin remains.",
+    "web_red": [
+      "“If you were blind, you would have no sin; but now you say, ‘We see.’ Therefore your sin remains."
+    ],
+    "web_spans": [[20, 117]],
+    "rvr_text": "Jesús les respondió: Si fuerais ciegos, no tendríais pecado; mas ahora, porque decís: Vemos, vuestro pecado permanece.",
+    "rvr_len": 118,
+    "candidate": [[21, 118]]
+  },
+  {
+    "ref": "Juan 10:7",
+    "book_id": 43,
+    "chapter": 10,
+    "verse": 7,
+    "web_text": "Jesus therefore said to them again, “Most certainly, I tell you, I am the sheep’s door.",
+    "web_red": ["“Most certainly, I tell you, I am the sheep’s door."],
+    "web_spans": [[36, 87]],
+    "rvr_text": "Volvió, pues, Jesús a decirles: De cierto, de cierto os digo: Yo soy la puerta de las ovejas.",
+    "rvr_len": 93,
+    "candidate": [[32, 93]]
+  },
+  {
+    "ref": "Juan 10:25",
+    "book_id": 43,
+    "chapter": 10,
+    "verse": 25,
+    "web_text": "Jesus answered them, “I told you, and you don’t believe. The works that I do in my Father’s name, these testify about me.",
+    "web_red": [
+      "“I told you, and you don’t believe. The works that I do in my Father’s name, these testify about me."
+    ],
+    "web_spans": [[21, 121]],
+    "rvr_text": "Jesús les respondió: Os lo he dicho, y no creéis; las obras que yo hago en nombre de mi Padre, ellas dan testimonio de mí;",
+    "rvr_len": 122,
+    "candidate": [[21, 122]]
+  },
+  {
+    "ref": "Juan 10:32",
+    "book_id": 43,
+    "chapter": 10,
+    "verse": 32,
+    "web_text": "Jesus answered them, “I have shown you many good works from my Father. For which of those works do you stone me?”",
+    "web_red": [
+      "“I have shown you many good works from my Father. For which of those works do you stone me?”"
+    ],
+    "web_spans": [[21, 113]],
+    "rvr_text": "Jesús les respondió: Muchas buenas obras os he mostrado de mi Padre; ¿por cuál de ellas me apedreáis?",
+    "rvr_len": 101,
+    "candidate": [[21, 101]]
+  },
+  {
+    "ref": "Juan 10:34",
+    "book_id": 43,
+    "chapter": 10,
+    "verse": 34,
+    "web_text": "Jesus answered them, “Isn’t it written in your law, ‘I said, you are gods’?",
+    "web_red": ["“Isn’t it written in your law, ‘I said, you are gods’?"],
+    "web_spans": [[21, 75]],
+    "rvr_text": "Jesús les respondió: ¿No está escrito en vuestra ley: Yo dije, dioses sois?",
+    "rvr_len": 75,
+    "candidate": [[21, 75]]
+  },
+  {
+    "ref": "Juan 11:4",
+    "book_id": 43,
+    "chapter": 11,
+    "verse": 4,
+    "web_text": "But when Jesus heard it, he said, “This sickness is not to death, but for the glory of God, that God’s Son may be glorified by it.”",
+    "web_red": [
+      "“This sickness is not to death, but for the glory of God, that God’s Son may be glorified by it.”"
+    ],
+    "web_spans": [[34, 131]],
+    "rvr_text": "Oyéndolo Jesús, dijo: Esta enfermedad no es para muerte, sino para la gloria de Dios, para que el Hijo de Dios sea glorificado por ella.",
+    "rvr_len": 136,
+    "candidate": [[22, 136]]
+  },
+  {
+    "ref": "Juan 11:7",
+    "book_id": 43,
+    "chapter": 11,
+    "verse": 7,
+    "web_text": "Then after this he said to the disciples, “Let’s go into Judea again.”",
+    "web_red": ["“Let’s go into Judea again.”"],
+    "web_spans": [[42, 70]],
+    "rvr_text": "Luego, después de esto, dijo a los discípulos: Vamos a Judea otra vez.",
+    "rvr_len": 70,
+    "candidate": [[47, 70]]
+  },
+  {
+    "ref": "Juan 11:9",
+    "book_id": 43,
+    "chapter": 11,
+    "verse": 9,
+    "web_text": "Jesus answered, “Aren’t there twelve hours of daylight? If a man walks in the day, he doesn’t stumble, because he sees the light of this world.",
+    "web_red": [
+      "“Aren’t there twelve hours of daylight? If a man walks in the day, he doesn’t stumble, because he sees the light of this world."
+    ],
+    "web_spans": [[16, 143]],
+    "rvr_text": "Respondió Jesús: ¿No tiene el día doce horas? El que anda de día, no tropieza, porque ve la luz de este mundo;",
+    "rvr_len": 110,
+    "candidate": [[17, 110]]
+  },
+  {
+    "ref": "Juan 11:11",
+    "book_id": 43,
+    "chapter": 11,
+    "verse": 11,
+    "web_text": "He said these things, and after that, he said to them, “Our friend Lazarus has fallen asleep, but I am going so that I may awake him out of sleep.”",
+    "web_red": [
+      "“Our friend Lazarus has fallen asleep, but I am going so that I may awake him out of sleep.”"
+    ],
+    "web_spans": [[55, 147]],
+    "rvr_text": "Dicho esto, les dijo después: Nuestro amigo Lázaro duerme; mas voy para despertarle.",
+    "rvr_len": 84,
+    "candidate": [[30, 84]]
+  }
+]

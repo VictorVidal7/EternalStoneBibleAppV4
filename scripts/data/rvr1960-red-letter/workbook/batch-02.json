@@ -1,0 +1,750 @@
+[
+  {
+    "ref": "Mateo 15:16",
+    "book_id": 40,
+    "chapter": 15,
+    "verse": 16,
+    "web_text": "So Jesus said, “Do you also still not understand?",
+    "web_red": ["“Do you also still not understand?"],
+    "web_spans": [[15, 49]],
+    "rvr_text": "Jesús dijo: ¿También vosotros sois aún sin entendimiento?",
+    "rvr_len": 57,
+    "candidate": [[12, 57]]
+  },
+  {
+    "ref": "Mateo 15:24",
+    "book_id": 40,
+    "chapter": 15,
+    "verse": 24,
+    "web_text": "But he answered, “I wasn’t sent to anyone but the lost sheep of the house of Israel.”",
+    "web_red": [
+      "“I wasn’t sent to anyone but the lost sheep of the house of Israel.”"
+    ],
+    "web_spans": [[17, 85]],
+    "rvr_text": "El respondiendo, dijo: No soy enviado sino a las ovejas perdidas de la casa de Israel.",
+    "rvr_len": 86,
+    "candidate": [[23, 86]]
+  },
+  {
+    "ref": "Mateo 15:26",
+    "book_id": 40,
+    "chapter": 15,
+    "verse": 26,
+    "web_text": "But he answered, “It is not appropriate to take the children’s bread and throw it to the dogs.”",
+    "web_red": [
+      "“It is not appropriate to take the children’s bread and throw it to the dogs.”"
+    ],
+    "web_spans": [[17, 95]],
+    "rvr_text": "Respondiendo él, dijo: No está bien tomar el pan de los hijos, y echarlo a los perrillos.",
+    "rvr_len": 89,
+    "candidate": [[23, 89]]
+  },
+  {
+    "ref": "Mateo 15:28",
+    "book_id": 40,
+    "chapter": 15,
+    "verse": 28,
+    "web_text": "Then Jesus answered her, “Woman, great is your faith! Be it done to you even as you desire.” And her daughter was healed from that hour.",
+    "web_red": [
+      "“Woman, great is your faith! Be it done to you even as you desire.”"
+    ],
+    "web_spans": [[25, 92]],
+    "rvr_text": "Entonces respondiendo Jesús, dijo: Oh mujer, grande es tu fe; hágase contigo como quieres. Y su hija fue sanada desde aquella hora.",
+    "rvr_len": 131,
+    "candidate": null
+  },
+  {
+    "ref": "Mateo 15:32",
+    "book_id": 40,
+    "chapter": 15,
+    "verse": 32,
+    "web_text": "Jesus summoned his disciples and said, “I have compassion on the multitude, because they have continued with me now three days and have nothing to eat. I don’t want to send them away fasting, or they might faint on the way.”",
+    "web_red": [
+      "“I have compassion on the multitude, because they have continued with me now three days and have nothing to eat. I don’t want to send them away fasting, or they might faint on the way.”"
+    ],
+    "web_spans": [[39, 224]],
+    "rvr_text": "Y Jesús, llamando a sus discípulos, dijo: Tengo compasión de la gente, porque ya hace tres días que están conmigo, y no tienen qué comer; y enviarlos en ayunas no quiero, no sea que desmayen en el camino.",
+    "rvr_len": 204,
+    "candidate": [[42, 204]]
+  },
+  {
+    "ref": "Mateo 15:34",
+    "book_id": 40,
+    "chapter": 15,
+    "verse": 34,
+    "web_text": "Jesus said to them, “How many loaves do you have?” They said, “Seven, and a few small fish.”",
+    "web_red": ["“How many loaves do you have?”"],
+    "web_spans": [[20, 50]],
+    "rvr_text": "Jesús les dijo: ¿Cuántos panes tenéis? Y ellos dijeron: Siete, y unos pocos pececillos.",
+    "rvr_len": 87,
+    "candidate": null
+  },
+  {
+    "ref": "Mateo 16:2",
+    "book_id": 40,
+    "chapter": 16,
+    "verse": 2,
+    "web_text": "But he answered them, “When it is evening, you say, ‘It will be fair weather, for the sky is red.’",
+    "web_red": [
+      "“When it is evening, you say, ‘It will be fair weather, for the sky is red.’"
+    ],
+    "web_spans": [[22, 98]],
+    "rvr_text": "Mas él respondiendo, les dijo: Cuando anochece, decís: Buen tiempo; porque el cielo tiene arreboles.",
+    "rvr_len": 100,
+    "candidate": [[31, 100]]
+  },
+  {
+    "ref": "Mateo 16:4",
+    "book_id": 40,
+    "chapter": 16,
+    "verse": 4,
+    "web_text": "An evil and adulterous generation seeks after a sign, and there will be no sign given to it, except the sign of the prophet Jonah.” He left them and departed.",
+    "web_red": [
+      "An evil and adulterous generation seeks after a sign, and there will be no sign given to it, except the sign of the prophet Jonah.”"
+    ],
+    "web_spans": [[0, 131]],
+    "rvr_text": "La generación mala y adúltera demanda señal; pero señal no le será dada, sino la señal del profeta Jonás. Y dejándolos, se fue.",
+    "rvr_len": 127,
+    "candidate": null
+  },
+  {
+    "ref": "Mateo 16:6",
+    "book_id": 40,
+    "chapter": 16,
+    "verse": 6,
+    "web_text": "Jesus said to them, “Take heed and beware of the yeast of the Pharisees and Sadducees.”",
+    "web_red": [
+      "“Take heed and beware of the yeast of the Pharisees and Sadducees.”"
+    ],
+    "web_spans": [[20, 87]],
+    "rvr_text": "Y Jesús les dijo: Mirad, guardaos de la levadura de los fariseos y de los saduceos.",
+    "rvr_len": 83,
+    "candidate": [[18, 83]]
+  },
+  {
+    "ref": "Mateo 16:8",
+    "book_id": 40,
+    "chapter": 16,
+    "verse": 8,
+    "web_text": "Jesus, perceiving it, said, “Why do you reason among yourselves, you of little faith, because you have brought no bread?",
+    "web_red": [
+      "“Why do you reason among yourselves, you of little faith, because you have brought no bread?"
+    ],
+    "web_spans": [[28, 120]],
+    "rvr_text": "Y entendiéndolo Jesús, les dijo: ¿Por qué pensáis dentro de vosotros, hombres de poca fe, que no tenéis pan?",
+    "rvr_len": 108,
+    "candidate": [[33, 108]]
+  },
+  {
+    "ref": "Mateo 16:13",
+    "book_id": 40,
+    "chapter": 16,
+    "verse": 13,
+    "web_text": "Now when Jesus came into the parts of Caesarea Philippi, he asked his disciples, saying, “Who do men say that I, the Son of Man, am?”",
+    "web_red": ["“Who do men say that I, the Son of Man, am?”"],
+    "web_spans": [[89, 133]],
+    "rvr_text": "Viniendo Jesús a la región de Cesarea de Filipo, preguntó a sus discípulos, diciendo: ¿Quién dicen los hombres que es el Hijo del Hombre?",
+    "rvr_len": 137,
+    "candidate": [[86, 137]]
+  },
+  {
+    "ref": "Mateo 16:15",
+    "book_id": 40,
+    "chapter": 16,
+    "verse": 15,
+    "web_text": "He said to them, “But who do you say that I am?”",
+    "web_red": ["“But who do you say that I am?”"],
+    "web_spans": [[17, 48]],
+    "rvr_text": "El les dijo: Y vosotros, ¿quién decís que soy yo?",
+    "rvr_len": 49,
+    "candidate": [[13, 49]]
+  },
+  {
+    "ref": "Mateo 16:17",
+    "book_id": 40,
+    "chapter": 16,
+    "verse": 17,
+    "web_text": "Jesus answered him, “Blessed are you, Simon Bar Jonah, for flesh and blood has not revealed this to you, but my Father who is in heaven.",
+    "web_red": [
+      "“Blessed are you, Simon Bar Jonah, for flesh and blood has not revealed this to you, but my Father who is in heaven."
+    ],
+    "web_spans": [[20, 136]],
+    "rvr_text": "Entonces le respondió Jesús: Bienaventurado eres, Simón, hijo de Jonás, porque no te lo reveló carne ni sangre, sino mi Padre que está en los cielos.",
+    "rvr_len": 149,
+    "candidate": [[29, 149]]
+  },
+  {
+    "ref": "Mateo 16:23",
+    "book_id": 40,
+    "chapter": 16,
+    "verse": 23,
+    "web_text": "But he turned and said to Peter, “Get behind me, Satan! You are a stumbling block to me, for you are not setting your mind on the things of God, but on the things of men.”",
+    "web_red": [
+      "“Get behind me, Satan! You are a stumbling block to me, for you are not setting your mind on the things of God, but on the things of men.”"
+    ],
+    "web_spans": [[33, 171]],
+    "rvr_text": "Pero él, volviéndose, dijo a Pedro: ¡Quítate de delante de mí, Satanás!; me eres tropiezo, porque no pones la mira en las cosas de Dios, sino en las de los hombres.",
+    "rvr_len": 164,
+    "candidate": [[36, 164]]
+  },
+  {
+    "ref": "Mateo 16:24",
+    "book_id": 40,
+    "chapter": 16,
+    "verse": 24,
+    "web_text": "Then Jesus said to his disciples, “If anyone desires to come after me, let him deny himself, take up his cross, and follow me.",
+    "web_red": [
+      "“If anyone desires to come after me, let him deny himself, take up his cross, and follow me."
+    ],
+    "web_spans": [[34, 126]],
+    "rvr_text": "Entonces Jesús dijo a sus discípulos: Si alguno quiere venir en pos de mí, niéguese a sí mismo, y tome su cruz, y sígame.",
+    "rvr_len": 121,
+    "candidate": [[38, 121]]
+  },
+  {
+    "ref": "Mateo 17:7",
+    "book_id": 40,
+    "chapter": 17,
+    "verse": 7,
+    "web_text": "Jesus came and touched them and said, “Get up, and don’t be afraid.”",
+    "web_red": ["“Get up, and don’t be afraid.”"],
+    "web_spans": [[38, 68]],
+    "rvr_text": "Entonces Jesús se acercó y los tocó, y dijo: Levantaos, y no temáis.",
+    "rvr_len": 68,
+    "candidate": [[45, 68]]
+  },
+  {
+    "ref": "Mateo 17:9",
+    "book_id": 40,
+    "chapter": 17,
+    "verse": 9,
+    "web_text": "As they were coming down from the mountain, Jesus commanded them, saying, “Don’t tell anyone what you saw, until the Son of Man has risen from the dead.”",
+    "web_red": [
+      "“Don’t tell anyone what you saw, until the Son of Man has risen from the dead.”"
+    ],
+    "web_spans": [[74, 153]],
+    "rvr_text": "Cuando descendieron del monte, Jesús les mandó, diciendo: No digáis a nadie la visión, hasta que el Hijo del Hombre resucite de los muertos.",
+    "rvr_len": 140,
+    "candidate": [[58, 140]]
+  },
+  {
+    "ref": "Mateo 17:11",
+    "book_id": 40,
+    "chapter": 17,
+    "verse": 11,
+    "web_text": "Jesus answered them, “Elijah indeed comes first, and will restore all things;",
+    "web_red": ["“Elijah indeed comes first, and will restore all things;"],
+    "web_spans": [[21, 77]],
+    "rvr_text": "Respondiendo Jesús, les dijo: A la verdad, Elías viene primero, y restaurará todas las cosas.",
+    "rvr_len": 93,
+    "candidate": [[30, 93]]
+  },
+  {
+    "ref": "Mateo 17:17",
+    "book_id": 40,
+    "chapter": 17,
+    "verse": 17,
+    "web_text": "Jesus answered, “Faithless and perverse generation! How long will I be with you? How long will I bear with you? Bring him here to me.”",
+    "web_red": [
+      "“Faithless and perverse generation! How long will I be with you? How long will I bear with you? Bring him here to me.”"
+    ],
+    "web_spans": [[16, 134]],
+    "rvr_text": "Respondiendo Jesús, dijo: ¡Oh generación incrédula y perversa! ¿Hasta cuándo he de estar con vosotros? ¿Hasta cuándo os he de soportar? Traédmelo acá.",
+    "rvr_len": 150,
+    "candidate": [[26, 150]]
+  },
+  {
+    "ref": "Mateo 17:20",
+    "book_id": 40,
+    "chapter": 17,
+    "verse": 20,
+    "web_text": "He said to them, “Because of your unbelief. For most certainly I tell you, if you have faith as a grain of mustard seed, you will tell this mountain, ‘Move from here to there,’ and it will move; and nothing will be impossible for you.",
+    "web_red": [
+      "“Because of your unbelief. For most certainly I tell you, if you have faith as a grain of mustard seed, you will tell this mountain, ‘Move from here to there,’ and it will move; and nothing will be impossible for you."
+    ],
+    "web_spans": [[17, 234]],
+    "rvr_text": "Jesús les dijo: Por vuestra poca fe; porque de cierto os digo, que si tuviereis fe como un grano de mostaza, diréis a este monte: Pásate de aquí allá, y se pasará; y nada os será imposible.",
+    "rvr_len": 189,
+    "candidate": [[16, 189]]
+  },
+  {
+    "ref": "Mateo 17:22",
+    "book_id": 40,
+    "chapter": 17,
+    "verse": 22,
+    "web_text": "While they were staying in Galilee, Jesus said to them, “The Son of Man is about to be delivered up into the hands of men,",
+    "web_red": [
+      "“The Son of Man is about to be delivered up into the hands of men,"
+    ],
+    "web_spans": [[56, 122]],
+    "rvr_text": "Estando ellos en Galilea, Jesús les dijo: El Hijo del Hombre será entregado en manos de hombres,",
+    "rvr_len": 96,
+    "candidate": [[42, 96]]
+  },
+  {
+    "ref": "Mateo 17:23",
+    "book_id": 40,
+    "chapter": 17,
+    "verse": 23,
+    "web_text": "and they will kill him, and the third day he will be raised up.” They were exceedingly sorry.",
+    "web_red": [
+      "and they will kill him, and the third day he will be raised up.”"
+    ],
+    "web_spans": [[0, 64]],
+    "rvr_text": "y le matarán; mas al tercer día resucitará. Y ellos se entristecieron en gran manera.",
+    "rvr_len": 85,
+    "candidate": null
+  },
+  {
+    "ref": "Mateo 17:25",
+    "book_id": 40,
+    "chapter": 17,
+    "verse": 25,
+    "web_text": "He said, “Yes.” When he came into the house, Jesus anticipated him, saying, “What do you think, Simon? From whom do the kings of the earth receive toll or tribute? From their children, or from strangers?”",
+    "web_red": [
+      "“What do you think, Simon? From whom do the kings of the earth receive toll or tribute? From their children, or from strangers?”"
+    ],
+    "web_spans": [[76, 204]],
+    "rvr_text": "El dijo: Sí. Y al entrar él en casa, Jesús le habló primero, diciendo: ¿Qué te parece, Simón? Los reyes de la tierra, ¿de quiénes cobran los tributos o los impuestos? ¿De sus hijos, o de los extraños?",
+    "rvr_len": 200,
+    "candidate": [[9, 200]]
+  },
+  {
+    "ref": "Mateo 17:26",
+    "book_id": 40,
+    "chapter": 17,
+    "verse": 26,
+    "web_text": "Peter said to him, “From strangers.” Jesus said to him, “Therefore the children are exempt.",
+    "web_red": ["“Therefore the children are exempt."],
+    "web_spans": [[56, 91]],
+    "rvr_text": "Pedro le respondió: De los extraños. Jesús le dijo: Luego los hijos están exentos.",
+    "rvr_len": 82,
+    "candidate": [[20, 82]]
+  },
+  {
+    "ref": "Mateo 18:3",
+    "book_id": 40,
+    "chapter": 18,
+    "verse": 3,
+    "web_text": "and said, “Most certainly I tell you, unless you turn and become as little children, you will in no way enter into the Kingdom of Heaven.",
+    "web_red": [
+      "“Most certainly I tell you, unless you turn and become as little children, you will in no way enter into the Kingdom of Heaven."
+    ],
+    "web_spans": [[10, 137]],
+    "rvr_text": "y dijo: De cierto os digo, que si no os volvéis y os hacéis como niños, no entraréis en el reino de los cielos.",
+    "rvr_len": 111,
+    "candidate": [[8, 111]]
+  },
+  {
+    "ref": "Mateo 18:22",
+    "book_id": 40,
+    "chapter": 18,
+    "verse": 22,
+    "web_text": "Jesus said to him, “I don’t tell you until seven times, but, until seventy times seven.",
+    "web_red": [
+      "“I don’t tell you until seven times, but, until seventy times seven."
+    ],
+    "web_spans": [[19, 87]],
+    "rvr_text": "Jesús le dijo: No te digo hasta siete, sino aun hasta setenta veces siete.",
+    "rvr_len": 74,
+    "candidate": [[15, 74]]
+  },
+  {
+    "ref": "Mateo 19:4",
+    "book_id": 40,
+    "chapter": 19,
+    "verse": 4,
+    "web_text": "He answered, “Haven’t you read that he who made them from the beginning made them male and female,",
+    "web_red": [
+      "“Haven’t you read that he who made them from the beginning made them male and female,"
+    ],
+    "web_spans": [[13, 98]],
+    "rvr_text": "El, respondiendo, les dijo: ¿No habéis leído que el que los hizo al principio, varón y hembra los hizo,",
+    "rvr_len": 103,
+    "candidate": [[28, 103]]
+  },
+  {
+    "ref": "Mateo 19:8",
+    "book_id": 40,
+    "chapter": 19,
+    "verse": 8,
+    "web_text": "He said to them, “Moses, because of the hardness of your hearts, allowed you to divorce your wives, but from the beginning it has not been so.",
+    "web_red": [
+      "“Moses, because of the hardness of your hearts, allowed you to divorce your wives, but from the beginning it has not been so."
+    ],
+    "web_spans": [[17, 142]],
+    "rvr_text": "El les dijo: Por la dureza de vuestro corazón Moisés os permitió repudiar a vuestras mujeres; mas al principio no fue así.",
+    "rvr_len": 122,
+    "candidate": [[13, 122]]
+  },
+  {
+    "ref": "Mateo 19:11",
+    "book_id": 40,
+    "chapter": 19,
+    "verse": 11,
+    "web_text": "But he said to them, “Not all men can receive this saying, but those to whom it is given.",
+    "web_red": [
+      "“Not all men can receive this saying, but those to whom it is given."
+    ],
+    "web_spans": [[21, 89]],
+    "rvr_text": "Entonces él les dijo: No todos son capaces de recibir esto, sino aquellos a quienes es dado.",
+    "rvr_len": 92,
+    "candidate": [[22, 92]]
+  },
+  {
+    "ref": "Mateo 19:14",
+    "book_id": 40,
+    "chapter": 19,
+    "verse": 14,
+    "web_text": "But Jesus said, “Allow the little children, and don’t forbid them to come to me; for the Kingdom of Heaven belongs to ones like these.”",
+    "web_red": [
+      "“Allow the little children, and don’t forbid them to come to me; for the Kingdom of Heaven belongs to ones like these.”"
+    ],
+    "web_spans": [[16, 135]],
+    "rvr_text": "Pero Jesús dijo: Dejad a los niños venir a mí, y no se lo impidáis; porque de los tales es el reino de los cielos.",
+    "rvr_len": 114,
+    "candidate": [[17, 114]]
+  },
+  {
+    "ref": "Mateo 19:17",
+    "book_id": 40,
+    "chapter": 19,
+    "verse": 17,
+    "web_text": "He said to him, “Why do you call me good? No one is good but one, that is, God. But if you want to enter into life, keep the commandments.”",
+    "web_red": [
+      "“Why do you call me good? No one is good but one, that is, God. But if you want to enter into life, keep the commandments.”"
+    ],
+    "web_spans": [[16, 139]],
+    "rvr_text": "El le dijo: ¿Por qué me llamas bueno? Ninguno hay bueno sino uno: Dios. Mas si quieres entrar en la vida, guarda los mandamientos.",
+    "rvr_len": 130,
+    "candidate": [[12, 130]]
+  },
+  {
+    "ref": "Mateo 19:18",
+    "book_id": 40,
+    "chapter": 19,
+    "verse": 18,
+    "web_text": "He said to him, “Which ones?” Jesus said, “‘You shall not murder.’ ‘You shall not commit adultery.’ ‘You shall not steal.’ ‘You shall not offer false testimony.’",
+    "web_red": [
+      "“‘You shall not murder.’ ‘You shall not commit adultery.’ ‘You shall not steal.’ ‘You shall not offer false testimony.’"
+    ],
+    "web_spans": [[42, 161]],
+    "rvr_text": "Le dijo: ¿Cuáles? Y Jesús dijo: No matarás. No adulterarás. No hurtarás. No dirás falso testimonio.",
+    "rvr_len": 99,
+    "candidate": [[9, 99]]
+  },
+  {
+    "ref": "Mateo 19:21",
+    "book_id": 40,
+    "chapter": 19,
+    "verse": 21,
+    "web_text": "Jesus said to him, “If you want to be perfect, go, sell what you have, and give to the poor, and you will have treasure in heaven; and come, follow me.”",
+    "web_red": [
+      "“If you want to be perfect, go, sell what you have, and give to the poor, and you will have treasure in heaven; and come, follow me.”"
+    ],
+    "web_spans": [[19, 152]],
+    "rvr_text": "Jesús le dijo: Si quieres ser perfecto, anda, vende lo que tienes, y dalo a los pobres, y tendrás tesoro en el cielo; y ven y sígueme.",
+    "rvr_len": 134,
+    "candidate": [[15, 134]]
+  },
+  {
+    "ref": "Mateo 19:23",
+    "book_id": 40,
+    "chapter": 19,
+    "verse": 23,
+    "web_text": "Jesus said to his disciples, “Most certainly I say to you, a rich man will enter into the Kingdom of Heaven with difficulty.",
+    "web_red": [
+      "“Most certainly I say to you, a rich man will enter into the Kingdom of Heaven with difficulty."
+    ],
+    "web_spans": [[29, 124]],
+    "rvr_text": "Entonces Jesús dijo a sus discípulos: De cierto os digo, que difícilmente entrará un rico en el reino de los cielos.",
+    "rvr_len": 116,
+    "candidate": [[38, 116]]
+  },
+  {
+    "ref": "Mateo 19:26",
+    "book_id": 40,
+    "chapter": 19,
+    "verse": 26,
+    "web_text": "Looking at them, Jesus said, “With men this is impossible, but with God all things are possible.”",
+    "web_red": [
+      "“With men this is impossible, but with God all things are possible.”"
+    ],
+    "web_spans": [[29, 97]],
+    "rvr_text": "Y mirándolos Jesús, les dijo: Para los hombres esto es imposible; mas para Dios todo es posible.",
+    "rvr_len": 96,
+    "candidate": [[30, 96]]
+  },
+  {
+    "ref": "Mateo 19:28",
+    "book_id": 40,
+    "chapter": 19,
+    "verse": 28,
+    "web_text": "Jesus said to them, “Most certainly I tell you that you who have followed me, in the regeneration when the Son of Man will sit on the throne of his glory, you also will sit on twelve thrones, judging the twelve tribes of Israel.",
+    "web_red": [
+      "“Most certainly I tell you that you who have followed me, in the regeneration when the Son of Man will sit on the throne of his glory, you also will sit on twelve thrones, judging the twelve tribes of Israel."
+    ],
+    "web_spans": [[20, 228]],
+    "rvr_text": "Y Jesús les dijo: De cierto os digo que en la regeneración, cuando el Hijo del Hombre se siente en el trono de su gloria, vosotros que me habéis seguido también os sentaréis sobre doce tronos, para juzgar a las doce tribus de Israel.",
+    "rvr_len": 233,
+    "candidate": [[18, 233]]
+  },
+  {
+    "ref": "Mateo 20:21",
+    "book_id": 40,
+    "chapter": 20,
+    "verse": 21,
+    "web_text": "He said to her, “What do you want?” She said to him, “Command that these, my two sons, may sit, one on your right hand and one on your left hand, in your Kingdom.”",
+    "web_red": ["“What do you want?”"],
+    "web_spans": [[16, 35]],
+    "rvr_text": "El le dijo: ¿Qué quieres? Ella le dijo: Ordena que en tu reino se sienten estos dos hijos míos, el uno a tu derecha, y el otro a tu izquierda.",
+    "rvr_len": 142,
+    "candidate": null
+  },
+  {
+    "ref": "Mateo 20:22",
+    "book_id": 40,
+    "chapter": 20,
+    "verse": 22,
+    "web_text": "But Jesus answered, “You don’t know what you are asking. Are you able to drink the cup that I am about to drink, and be baptized with the baptism that I am baptized with?” They said to him, “We are able.”",
+    "web_red": [
+      "“You don’t know what you are asking. Are you able to drink the cup that I am about to drink, and be baptized with the baptism that I am baptized with?”"
+    ],
+    "web_spans": [[20, 171]],
+    "rvr_text": "Entonces Jesús respondiendo, dijo: No sabéis lo que pedís. ¿Podéis beber del vaso que yo he de beber, y ser bautizados con el bautismo con que yo soy bautizado? Y ellos le dijeron: Podemos.",
+    "rvr_len": 189,
+    "candidate": null
+  },
+  {
+    "ref": "Mateo 20:23",
+    "book_id": 40,
+    "chapter": 20,
+    "verse": 23,
+    "web_text": "He said to them, “You will indeed drink my cup, and be baptized with the baptism that I am baptized with; but to sit on my right hand and on my left hand is not mine to give, but it is for whom it has been prepared by my Father.”",
+    "web_red": [
+      "“You will indeed drink my cup, and be baptized with the baptism that I am baptized with; but to sit on my right hand and on my left hand is not mine to give, but it is for whom it has been prepared by my Father.”"
+    ],
+    "web_spans": [[17, 229]],
+    "rvr_text": "El les dijo: A la verdad, de mi vaso beberéis, y con el bautismo con que yo soy bautizado, seréis bautizados; pero el sentaros a mi derecha y a mi izquierda, no es mío darlo, sino a aquellos para quienes está preparado por mi Padre.",
+    "rvr_len": 232,
+    "candidate": [[13, 232]]
+  },
+  {
+    "ref": "Mateo 20:25",
+    "book_id": 40,
+    "chapter": 20,
+    "verse": 25,
+    "web_text": "But Jesus summoned them, and said, “You know that the rulers of the nations lord it over them, and their great ones exercise authority over them.",
+    "web_red": [
+      "“You know that the rulers of the nations lord it over them, and their great ones exercise authority over them."
+    ],
+    "web_spans": [[35, 145]],
+    "rvr_text": "Entonces Jesús, llamándolos, dijo: Sabéis que los gobernantes de las naciones se enseñorean de ellas, y los que son grandes ejercen sobre ellas potestad.",
+    "rvr_len": 153,
+    "candidate": [[35, 153]]
+  },
+  {
+    "ref": "Mateo 20:32",
+    "book_id": 40,
+    "chapter": 20,
+    "verse": 32,
+    "web_text": "Jesus stood still and called them, and asked, “What do you want me to do for you?”",
+    "web_red": ["“What do you want me to do for you?”"],
+    "web_spans": [[46, 82]],
+    "rvr_text": "Y deteniéndose Jesús, los llamó, y les dijo: ¿Qué queréis que os haga?",
+    "rvr_len": 70,
+    "candidate": [[45, 70]]
+  },
+  {
+    "ref": "Mateo 21:2",
+    "book_id": 40,
+    "chapter": 21,
+    "verse": 2,
+    "web_text": "saying to them, “Go into the village that is opposite you, and immediately you will find a donkey tied, and a colt with her. Untie them and bring them to me.",
+    "web_red": [
+      "“Go into the village that is opposite you, and immediately you will find a donkey tied, and a colt with her. Untie them and bring them to me."
+    ],
+    "web_spans": [[16, 157]],
+    "rvr_text": "diciéndoles: Id a la aldea que está enfrente de vosotros, y luego hallaréis una asna atada, y un pollino con ella; desatadla, y traédmelos.",
+    "rvr_len": 139,
+    "candidate": [[13, 139]]
+  },
+  {
+    "ref": "Mateo 21:13",
+    "book_id": 40,
+    "chapter": 21,
+    "verse": 13,
+    "web_text": "He said to them, “It is written, ‘My house shall be called a house of prayer,’ but you have made it a den of robbers!”",
+    "web_red": [
+      "“It is written, ‘My house shall be called a house of prayer,’ but you have made it a den of robbers!”"
+    ],
+    "web_spans": [[17, 118]],
+    "rvr_text": "y les dijo: Escrito está: Mi casa, casa de oración será llamada; mas vosotros la habéis hecho cueva de ladrones.",
+    "rvr_len": 112,
+    "candidate": [[12, 112]]
+  },
+  {
+    "ref": "Mateo 21:16",
+    "book_id": 40,
+    "chapter": 21,
+    "verse": 16,
+    "web_text": "and said to him, “Do you hear what these are saying?” Jesus said to them, “Yes. Did you never read, ‘Out of the mouth of children and nursing babies, you have perfected praise’?”",
+    "web_red": [
+      "“Yes. Did you never read, ‘Out of the mouth of children and nursing babies, you have perfected praise’?”"
+    ],
+    "web_spans": [[74, 178]],
+    "rvr_text": "y le dijeron: ¿Oyes lo que éstos dicen? Y Jesús les dijo: Sí; ¿nunca leísteis: De la boca de los niños y de los que maman Perfeccionaste la alabanza?",
+    "rvr_len": 149,
+    "candidate": [[14, 149]]
+  },
+  {
+    "ref": "Mateo 21:19",
+    "book_id": 40,
+    "chapter": 21,
+    "verse": 19,
+    "web_text": "Seeing a fig tree by the road, he came to it and found nothing on it but leaves. He said to it, “Let there be no fruit from you forever!” Immediately the fig tree withered away.",
+    "web_red": ["“Let there be no fruit from you forever!”"],
+    "web_spans": [[96, 137]],
+    "rvr_text": "Y viendo una higuera cerca del camino, vino a ella, y no halló nada en ella, sino hojas solamente; y le dijo: Nunca jamás nazca de ti fruto. Y luego se secó la higuera.",
+    "rvr_len": 168,
+    "candidate": null
+  },
+  {
+    "ref": "Mateo 21:21",
+    "book_id": 40,
+    "chapter": 21,
+    "verse": 21,
+    "web_text": "Jesus answered them, “Most certainly I tell you, if you have faith and don’t doubt, you will not only do what was done to the fig tree, but even if you told this mountain, ‘Be taken up and cast into the sea,’ it would be done.",
+    "web_red": [
+      "“Most certainly I tell you, if you have faith and don’t doubt, you will not only do what was done to the fig tree, but even if you told this mountain, ‘Be taken up and cast into the sea,’ it would be done."
+    ],
+    "web_spans": [[21, 226]],
+    "rvr_text": "Respondiendo Jesús, les dijo: De cierto os digo, que si tuviereis fe, y no dudareis, no sólo haréis esto de la higuera, sino que si a este monte dijereis: Quítate y échate en el mar, será hecho.",
+    "rvr_len": 194,
+    "candidate": [[30, 194]]
+  },
+  {
+    "ref": "Mateo 21:24",
+    "book_id": 40,
+    "chapter": 21,
+    "verse": 24,
+    "web_text": "Jesus answered them, “I also will ask you one question, which if you tell me, I likewise will tell you by what authority I do these things.",
+    "web_red": [
+      "“I also will ask you one question, which if you tell me, I likewise will tell you by what authority I do these things."
+    ],
+    "web_spans": [[21, 139]],
+    "rvr_text": "Respondiendo Jesús, les dijo: Yo también os haré una pregunta, y si me la contestáis, también yo os diré con qué autoridad hago estas cosas.",
+    "rvr_len": 140,
+    "candidate": [[30, 140]]
+  },
+  {
+    "ref": "Mateo 21:25",
+    "book_id": 40,
+    "chapter": 21,
+    "verse": 25,
+    "web_text": "The baptism of John, where was it from? From heaven or from men?” They reasoned with themselves, saying, “If we say, ‘From heaven,’ he will ask us, ‘Why then did you not believe him?’",
+    "web_red": [
+      "The baptism of John, where was it from? From heaven or from men?”"
+    ],
+    "web_spans": [[0, 65]],
+    "rvr_text": "El bautismo de Juan, ¿de dónde era? ¿Del cielo, o de los hombres? Ellos entonces discutían entre sí, diciendo: Si decimos, del cielo, nos dirá: ¿Por qué, pues, no le creísteis?",
+    "rvr_len": 176,
+    "candidate": null
+  },
+  {
+    "ref": "Mateo 21:27",
+    "book_id": 40,
+    "chapter": 21,
+    "verse": 27,
+    "web_text": "They answered Jesus, and said, “We don’t know.” He also said to them, “Neither will I tell you by what authority I do these things.",
+    "web_red": [
+      "“Neither will I tell you by what authority I do these things."
+    ],
+    "web_spans": [[70, 131]],
+    "rvr_text": "Y respondiendo a Jesús, dijeron: No sabemos. Y él también les dijo: Tampoco yo os digo con qué autoridad hago estas cosas.",
+    "rvr_len": 122,
+    "candidate": [[33, 122]]
+  },
+  {
+    "ref": "Mateo 21:31",
+    "book_id": 40,
+    "chapter": 21,
+    "verse": 31,
+    "web_text": "Which of the two did the will of his father?” They said to him, “The first.” Jesus said to them, “Most certainly I tell you that the tax collectors and the prostitutes are entering into God’s Kingdom before you.",
+    "web_red": [
+      "Which of the two did the will of his father?”",
+      "“Most certainly I tell you that the tax collectors and the prostitutes are entering into God’s Kingdom before you."
+    ],
+    "web_spans": [
+      [0, 45],
+      [97, 211]
+    ],
+    "rvr_text": "¿Cuál de los dos hizo la voluntad de su padre? Dijeron ellos: El primero. Jesús les dijo: De cierto os digo, que los publicanos y las rameras van delante de vosotros al reino de Dios.",
+    "rvr_len": 183,
+    "candidate": null
+  },
+  {
+    "ref": "Mateo 21:42",
+    "book_id": 40,
+    "chapter": 21,
+    "verse": 42,
+    "web_text": "Jesus said to them, “Did you never read in the Scriptures, ‘The stone which the builders rejected was made the head of the corner. This was from the Lord. It is marvelous in our eyes’?",
+    "web_red": [
+      "“Did you never read in the Scriptures, ‘The stone which the builders rejected was made the head of the corner. This was from the Lord. It is marvelous in our eyes’?"
+    ],
+    "web_spans": [[20, 184]],
+    "rvr_text": "Jesús les dijo: ¿Nunca leísteis en las Escrituras: La piedra que desecharon los edificadores, Ha venido a ser cabeza del ángulo. El Señor ha hecho esto, Y es cosa maravillosa a nuestros ojos?",
+    "rvr_len": 191,
+    "candidate": [[16, 191]]
+  },
+  {
+    "ref": "Mateo 22:18",
+    "book_id": 40,
+    "chapter": 22,
+    "verse": 18,
+    "web_text": "But Jesus perceived their wickedness, and said, “Why do you test me, you hypocrites?",
+    "web_red": ["“Why do you test me, you hypocrites?"],
+    "web_spans": [[48, 84]],
+    "rvr_text": "Pero Jesús, conociendo la malicia de ellos, les dijo: ¿Por qué me tentáis, hipócritas?",
+    "rvr_len": 86,
+    "candidate": [[54, 86]]
+  },
+  {
+    "ref": "Mateo 22:19",
+    "book_id": 40,
+    "chapter": 22,
+    "verse": 19,
+    "web_text": "Show me the tax money.” They brought to him a denarius.",
+    "web_red": ["Show me the tax money.”"],
+    "web_spans": [[0, 23]],
+    "rvr_text": "Mostradme la moneda del tributo. Y ellos le presentaron un denario.",
+    "rvr_len": 67,
+    "candidate": null
+  },
+  {
+    "ref": "Mateo 22:20",
+    "book_id": 40,
+    "chapter": 22,
+    "verse": 20,
+    "web_text": "He asked them, “Whose is this image and inscription?”",
+    "web_red": ["“Whose is this image and inscription?”"],
+    "web_spans": [[15, 53]],
+    "rvr_text": "Entonces les dijo: ¿De quién es esta imagen, y la inscripción?",
+    "rvr_len": 62,
+    "candidate": [[19, 62]]
+  },
+  {
+    "ref": "Mateo 22:21",
+    "book_id": 40,
+    "chapter": 22,
+    "verse": 21,
+    "web_text": "They said to him, “Caesar’s.” Then he said to them, “Give therefore to Caesar the things that are Caesar’s, and to God the things that are God’s.”",
+    "web_red": [
+      "“Give therefore to Caesar the things that are Caesar’s, and to God the things that are God’s.”"
+    ],
+    "web_spans": [[52, 146]],
+    "rvr_text": "Le dijeron: De César. Y les dijo: Dad, pues, a César lo que es de César, y a Dios lo que es de Dios.",
+    "rvr_len": 100,
+    "candidate": [[12, 100]]
+  }
+]

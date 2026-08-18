@@ -1,0 +1,499 @@
+[
+  {
+    "ref": "Marcos 15:34",
+    "book_id": 41,
+    "chapter": 15,
+    "verse": 34,
+    "quotes": [
+      "Eloi, Eloi, ¿lama sabactani?",
+      "Dios mío, Dios mío, ¿por qué me has desamparado?"
+    ],
+    "note": ""
+  },
+  {
+    "ref": "Marcos 16:15",
+    "book_id": 41,
+    "chapter": 16,
+    "verse": 15,
+    "quotes": ["Id por todo el mundo y predicad el evangelio a toda criatura."],
+    "note": ""
+  },
+  {
+    "ref": "Lucas 2:49",
+    "book_id": 42,
+    "chapter": 2,
+    "verse": 49,
+    "quotes": [
+      "¿Por qué me buscabais? ¿No sabíais que en los negocios de mi Padre me es necesario estar?"
+    ],
+    "note": ""
+  },
+  {
+    "ref": "Lucas 4:4",
+    "book_id": 42,
+    "chapter": 4,
+    "verse": 4,
+    "quotes": [
+      "Escrito está: No sólo de pan vivirá el hombre, sino de toda palabra de Dios."
+    ],
+    "note": ""
+  },
+  {
+    "ref": "Lucas 4:8",
+    "book_id": 42,
+    "chapter": 4,
+    "verse": 8,
+    "quotes": [
+      "Vete de mí, Satanás, porque escrito está: Al Señor tu Dios adorarás, y a él solo servirás."
+    ],
+    "note": ""
+  },
+  {
+    "ref": "Lucas 4:12",
+    "book_id": 42,
+    "chapter": 4,
+    "verse": 12,
+    "quotes": ["Dicho está: No tentarás al Señor tu Dios."],
+    "note": ""
+  },
+  {
+    "ref": "Lucas 4:21",
+    "book_id": 42,
+    "chapter": 4,
+    "verse": 21,
+    "quotes": ["Hoy se ha cumplido esta Escritura delante de vosotros."],
+    "note": ""
+  },
+  {
+    "ref": "Lucas 4:23",
+    "book_id": 42,
+    "chapter": 4,
+    "verse": 23,
+    "quotes": [
+      "Sin duda me diréis este refrán: Médico, cúrate a ti mismo; de tantas cosas que hemos oído que se han hecho en Capernaum, haz también aquí en tu tierra."
+    ],
+    "note": ""
+  },
+  {
+    "ref": "Lucas 4:24",
+    "book_id": 42,
+    "chapter": 4,
+    "verse": 24,
+    "quotes": [
+      "De cierto os digo, que ningún profeta es acepto en su propia tierra."
+    ],
+    "note": ""
+  },
+  {
+    "ref": "Lucas 4:35",
+    "book_id": 42,
+    "chapter": 4,
+    "verse": 35,
+    "quotes": ["Cállate, y sal de él."],
+    "note": ""
+  },
+  {
+    "ref": "Lucas 4:43",
+    "book_id": 42,
+    "chapter": 4,
+    "verse": 43,
+    "quotes": [
+      "Es necesario que también a otras ciudades anuncie el evangelio del reino de Dios; porque para esto he sido enviado."
+    ],
+    "note": ""
+  },
+  {
+    "ref": "Lucas 5:4",
+    "book_id": 42,
+    "chapter": 5,
+    "verse": 4,
+    "quotes": ["Boga mar adentro, y echad vuestras redes para pescar."],
+    "note": ""
+  },
+  {
+    "ref": "Lucas 5:10",
+    "book_id": 42,
+    "chapter": 5,
+    "verse": 10,
+    "quotes": ["No temas; desde ahora serás pescador de hombres."],
+    "note": ""
+  },
+  {
+    "ref": "Lucas 5:13",
+    "book_id": 42,
+    "chapter": 5,
+    "verse": 13,
+    "quotes": ["Quiero; sé limpio."],
+    "note": ""
+  },
+  {
+    "ref": "Lucas 5:14",
+    "book_id": 42,
+    "chapter": 5,
+    "verse": 14,
+    "quotes": [
+      "sino ve,",
+      "muéstrate al sacerdote, y ofrece por tu purificación, según mandó Moisés, para testimonio a ellos."
+    ],
+    "note": "Narración 'le dijo,' intercalada partió la cita en dos fragmentos; se incluyó 'sino' porque equivale al 'But' con que WEB abre la cita — revisar."
+  },
+  {
+    "ref": "Lucas 5:20",
+    "book_id": 42,
+    "chapter": 5,
+    "verse": 20,
+    "quotes": ["Hombre, tus pecados te son perdonados."],
+    "note": ""
+  },
+  {
+    "ref": "Lucas 5:22",
+    "book_id": 42,
+    "chapter": 5,
+    "verse": 22,
+    "quotes": ["¿Qué caviláis en vuestros corazones?"],
+    "note": ""
+  },
+  {
+    "ref": "Lucas 5:24",
+    "book_id": 42,
+    "chapter": 5,
+    "verse": 24,
+    "quotes": [
+      "Pues para que sepáis que el Hijo del Hombre tiene potestad en la tierra para perdonar pecados",
+      "A ti te digo: Levántate, toma tu lecho, y vete a tu casa."
+    ],
+    "note": ""
+  },
+  {
+    "ref": "Lucas 5:27",
+    "book_id": 42,
+    "chapter": 5,
+    "verse": 27,
+    "quotes": ["Sígueme."],
+    "note": ""
+  },
+  {
+    "ref": "Lucas 5:31",
+    "book_id": 42,
+    "chapter": 5,
+    "verse": 31,
+    "quotes": [
+      "Los que están sanos no tienen necesidad de médico, sino los enfermos."
+    ],
+    "note": ""
+  },
+  {
+    "ref": "Lucas 5:34",
+    "book_id": 42,
+    "chapter": 5,
+    "verse": 34,
+    "quotes": [
+      "¿Podéis acaso hacer que los que están de bodas ayunen, entre tanto que el esposo está con ellos?"
+    ],
+    "note": ""
+  },
+  {
+    "ref": "Lucas 5:36",
+    "book_id": 42,
+    "chapter": 5,
+    "verse": 36,
+    "quotes": [
+      "Nadie corta un pedazo de un vestido nuevo y lo pone en un vestido viejo; pues si lo hace, no solamente rompe el nuevo, sino que el remiendo sacado de él no armoniza con el viejo."
+    ],
+    "note": ""
+  },
+  {
+    "ref": "Lucas 6:3",
+    "book_id": 42,
+    "chapter": 6,
+    "verse": 3,
+    "quotes": [
+      "¿Ni aun esto habéis leído, lo que hizo David cuando tuvo hambre él, y los que con él estaban;"
+    ],
+    "note": ""
+  },
+  {
+    "ref": "Lucas 6:5",
+    "book_id": 42,
+    "chapter": 6,
+    "verse": 5,
+    "quotes": ["El Hijo del Hombre es Señor aun del día de reposo."],
+    "note": ""
+  },
+  {
+    "ref": "Lucas 6:8",
+    "book_id": 42,
+    "chapter": 6,
+    "verse": 8,
+    "quotes": ["Levántate, y ponte en medio."],
+    "note": ""
+  },
+  {
+    "ref": "Lucas 6:9",
+    "book_id": 42,
+    "chapter": 6,
+    "verse": 9,
+    "quotes": [
+      "Os preguntaré una cosa: ¿Es lícito en día de reposo hacer bien, o hacer mal? ¿salvar la vida, o quitarla?"
+    ],
+    "note": ""
+  },
+  {
+    "ref": "Lucas 6:10",
+    "book_id": 42,
+    "chapter": 6,
+    "verse": 10,
+    "quotes": ["Extiende tu mano."],
+    "note": ""
+  },
+  {
+    "ref": "Lucas 6:20",
+    "book_id": 42,
+    "chapter": 6,
+    "verse": 20,
+    "quotes": [
+      "Bienaventurados vosotros los pobres, porque vuestro es el reino de Dios."
+    ],
+    "note": ""
+  },
+  {
+    "ref": "Lucas 6:39",
+    "book_id": 42,
+    "chapter": 6,
+    "verse": 39,
+    "quotes": [
+      "¿Acaso puede un ciego guiar a otro ciego? ¿No caerán ambos en el hoyo?"
+    ],
+    "note": ""
+  },
+  {
+    "ref": "Lucas 7:9",
+    "book_id": 42,
+    "chapter": 7,
+    "verse": 9,
+    "quotes": ["Os digo que ni aun en Israel he hallado tanta fe."],
+    "note": ""
+  },
+  {
+    "ref": "Lucas 7:13",
+    "book_id": 42,
+    "chapter": 7,
+    "verse": 13,
+    "quotes": ["No llores."],
+    "note": ""
+  },
+  {
+    "ref": "Lucas 7:14",
+    "book_id": 42,
+    "chapter": 7,
+    "verse": 14,
+    "quotes": ["Joven, a ti te digo, levántate."],
+    "note": ""
+  },
+  {
+    "ref": "Lucas 7:22",
+    "book_id": 42,
+    "chapter": 7,
+    "verse": 22,
+    "quotes": [
+      "Id, haced saber a Juan lo que habéis visto y oído: los ciegos ven, los cojos andan, los leprosos son limpiados, los sordos oyen, los muertos son resucitados, y a los pobres es anunciado el evangelio;"
+    ],
+    "note": ""
+  },
+  {
+    "ref": "Lucas 7:24",
+    "book_id": 42,
+    "chapter": 7,
+    "verse": 24,
+    "quotes": [
+      "¿Qué salisteis a ver al desierto? ¿Una caña sacudida por el viento?"
+    ],
+    "note": ""
+  },
+  {
+    "ref": "Lucas 7:40",
+    "book_id": 42,
+    "chapter": 7,
+    "verse": 40,
+    "quotes": ["Simón, una cosa tengo que decirte."],
+    "note": ""
+  },
+  {
+    "ref": "Lucas 7:43",
+    "book_id": 42,
+    "chapter": 7,
+    "verse": 43,
+    "quotes": ["Rectamente has juzgado."],
+    "note": ""
+  },
+  {
+    "ref": "Lucas 7:44",
+    "book_id": 42,
+    "chapter": 7,
+    "verse": 44,
+    "quotes": [
+      "¿Ves esta mujer? Entré en tu casa, y no me diste agua para mis pies; mas ésta ha regado mis pies con lágrimas, y los ha enjugado con sus cabellos."
+    ],
+    "note": ""
+  },
+  {
+    "ref": "Lucas 7:48",
+    "book_id": 42,
+    "chapter": 7,
+    "verse": 48,
+    "quotes": ["Tus pecados te son perdonados."],
+    "note": ""
+  },
+  {
+    "ref": "Lucas 7:50",
+    "book_id": 42,
+    "chapter": 7,
+    "verse": 50,
+    "quotes": ["Tu fe te ha salvado, ve en paz."],
+    "note": ""
+  },
+  {
+    "ref": "Lucas 8:8",
+    "book_id": 42,
+    "chapter": 8,
+    "verse": 8,
+    "quotes": [
+      "Y otra parte cayó en buena tierra, y nació, y llevó fruto a ciento por uno.",
+      "El que tiene oídos para oír, oiga."
+    ],
+    "note": ""
+  },
+  {
+    "ref": "Lucas 8:10",
+    "book_id": 42,
+    "chapter": 8,
+    "verse": 10,
+    "quotes": [
+      "A vosotros os es dado conocer los misterios del reino de Dios; pero a los otros por parábolas, para que viendo no vean, y oyendo no entiendan."
+    ],
+    "note": ""
+  },
+  {
+    "ref": "Lucas 8:21",
+    "book_id": 42,
+    "chapter": 8,
+    "verse": 21,
+    "quotes": [
+      "Mi madre y mis hermanos son los que oyen la palabra de Dios, y la hacen."
+    ],
+    "note": ""
+  },
+  {
+    "ref": "Lucas 8:22",
+    "book_id": 42,
+    "chapter": 8,
+    "verse": 22,
+    "quotes": ["Pasemos al otro lado del lago."],
+    "note": ""
+  },
+  {
+    "ref": "Lucas 8:25",
+    "book_id": 42,
+    "chapter": 8,
+    "verse": 25,
+    "quotes": ["¿Dónde está vuestra fe?"],
+    "note": ""
+  },
+  {
+    "ref": "Lucas 8:30",
+    "book_id": 42,
+    "chapter": 8,
+    "verse": 30,
+    "quotes": ["¿Cómo te llamas?"],
+    "note": ""
+  },
+  {
+    "ref": "Lucas 8:39",
+    "book_id": 42,
+    "chapter": 8,
+    "verse": 39,
+    "quotes": [
+      "Vuélvete a tu casa, y cuenta cuán grandes cosas ha hecho Dios contigo."
+    ],
+    "note": ""
+  },
+  {
+    "ref": "Lucas 8:45",
+    "book_id": 42,
+    "chapter": 8,
+    "verse": 45,
+    "quotes": [
+      "¿Quién es el que me ha tocado?",
+      "¿Quién es el que me ha tocado?"
+    ],
+    "note": "Segunda ocurrencia es Pedro citando las palabras de Jesús; WEB marca ambas en rojo (web_red trae dos fragmentos), se siguió esa convención."
+  },
+  {
+    "ref": "Lucas 8:46",
+    "book_id": 42,
+    "chapter": 8,
+    "verse": 46,
+    "quotes": [
+      "Alguien me ha tocado; porque yo he conocido que ha salido poder de mí."
+    ],
+    "note": ""
+  },
+  {
+    "ref": "Lucas 8:48",
+    "book_id": 42,
+    "chapter": 8,
+    "verse": 48,
+    "quotes": ["Hija, tu fe te ha salvado; ve en paz."],
+    "note": ""
+  },
+  {
+    "ref": "Lucas 8:50",
+    "book_id": 42,
+    "chapter": 8,
+    "verse": 50,
+    "quotes": ["No temas; cree solamente, y será salva."],
+    "note": ""
+  },
+  {
+    "ref": "Lucas 8:52",
+    "book_id": 42,
+    "chapter": 8,
+    "verse": 52,
+    "quotes": ["No lloréis; no está muerta, sino que duerme."],
+    "note": ""
+  },
+  {
+    "ref": "Lucas 8:54",
+    "book_id": 42,
+    "chapter": 8,
+    "verse": 54,
+    "quotes": ["Muchacha, levántate."],
+    "note": ""
+  },
+  {
+    "ref": "Lucas 9:3",
+    "book_id": 42,
+    "chapter": 9,
+    "verse": 3,
+    "quotes": [
+      "No toméis nada para el camino, ni bordón, ni alforja, ni pan, ni dinero; ni llevéis dos túnicas."
+    ],
+    "note": ""
+  },
+  {
+    "ref": "Lucas 9:13",
+    "book_id": 42,
+    "chapter": 9,
+    "verse": 13,
+    "quotes": ["Dadles vosotros de comer."],
+    "note": ""
+  },
+  {
+    "ref": "Lucas 9:14",
+    "book_id": 42,
+    "chapter": 9,
+    "verse": 14,
+    "quotes": ["Hacedlos sentar en grupos, de cincuenta en cincuenta."],
+    "note": ""
+  }
+]

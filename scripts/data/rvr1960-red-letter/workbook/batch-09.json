@@ -1,0 +1,706 @@
+[
+  {
+    "ref": "Lucas 22:67",
+    "book_id": 42,
+    "chapter": 22,
+    "verse": 67,
+    "web_text": "“If you are the Christ, tell us.” But he said to them, “If I tell you, you won’t believe,",
+    "web_red": ["“If I tell you, you won’t believe,"],
+    "web_spans": [[55, 89]],
+    "rvr_text": "¿Eres tú el Cristo? Dínoslo. Y les dijo: Si os lo dijere, no creeréis;",
+    "rvr_len": 70,
+    "candidate": [[41, 70]]
+  },
+  {
+    "ref": "Lucas 22:70",
+    "book_id": 42,
+    "chapter": 22,
+    "verse": 70,
+    "web_text": "They all said, “Are you then the Son of God?” He said to them, “You say it, because I am.”",
+    "web_red": ["“You say it, because I am.”"],
+    "web_spans": [[63, 90]],
+    "rvr_text": "Dijeron todos: ¿Luego eres tú el Hijo de Dios? Y él les dijo: Vosotros decís que lo soy.",
+    "rvr_len": 88,
+    "candidate": [[15, 88]]
+  },
+  {
+    "ref": "Lucas 23:3",
+    "book_id": 42,
+    "chapter": 23,
+    "verse": 3,
+    "web_text": "Pilate asked him, “Are you the King of the Jews?” He answered him, “So you say.”",
+    "web_red": ["“So you say.”"],
+    "web_spans": [[67, 80]],
+    "rvr_text": "Entonces Pilato le preguntó, diciendo: ¿Eres tú el Rey de los judíos? Y respondiéndole él, dijo: Tú lo dices.",
+    "rvr_len": 109,
+    "candidate": [[39, 109]]
+  },
+  {
+    "ref": "Lucas 23:28",
+    "book_id": 42,
+    "chapter": 23,
+    "verse": 28,
+    "web_text": "But Jesus, turning to them, said, “Daughters of Jerusalem, don’t weep for me, but weep for yourselves and for your children.",
+    "web_red": [
+      "“Daughters of Jerusalem, don’t weep for me, but weep for yourselves and for your children."
+    ],
+    "web_spans": [[34, 124]],
+    "rvr_text": "Pero Jesús, vuelto hacia ellas, les dijo: Hijas de Jerusalén, no lloréis por mí, sino llorad por vosotras mismas y por vuestros hijos.",
+    "rvr_len": 134,
+    "candidate": [[42, 134]]
+  },
+  {
+    "ref": "Lucas 23:34",
+    "book_id": 42,
+    "chapter": 23,
+    "verse": 34,
+    "web_text": "Jesus said, “Father, forgive them, for they don’t know what they are doing.” Dividing his garments among them, they cast lots.",
+    "web_red": [
+      "“Father, forgive them, for they don’t know what they are doing.”"
+    ],
+    "web_spans": [[12, 76]],
+    "rvr_text": "Y Jesús decía: Padre, perdónalos, porque no saben lo que hacen. Y repartieron entre sí sus vestidos, echando suertes.",
+    "rvr_len": 117,
+    "candidate": null
+  },
+  {
+    "ref": "Lucas 23:43",
+    "book_id": 42,
+    "chapter": 23,
+    "verse": 43,
+    "web_text": "Jesus said to him, “Assuredly I tell you, today you will be with me in Paradise.”",
+    "web_red": [
+      "“Assuredly I tell you, today you will be with me in Paradise.”"
+    ],
+    "web_spans": [[19, 81]],
+    "rvr_text": "Entonces Jesús le dijo: De cierto te digo que hoy estarás conmigo en el paraíso.",
+    "rvr_len": 80,
+    "candidate": [[24, 80]]
+  },
+  {
+    "ref": "Lucas 23:46",
+    "book_id": 42,
+    "chapter": 23,
+    "verse": 46,
+    "web_text": "Jesus, crying with a loud voice, said, “Father, into your hands I commit my spirit!” Having said this, he breathed his last.",
+    "web_red": ["“Father, into your hands I commit my spirit!”"],
+    "web_spans": [[39, 84]],
+    "rvr_text": "Entonces Jesús, clamando a gran voz, dijo: Padre, en tus manos encomiendo mi espíritu. Y habiendo dicho esto, expiró.",
+    "rvr_len": 117,
+    "candidate": null
+  },
+  {
+    "ref": "Lucas 24:17",
+    "book_id": 42,
+    "chapter": 24,
+    "verse": 17,
+    "web_text": "He said to them, “What are you talking about as you walk, and are sad?”",
+    "web_red": ["“What are you talking about as you walk, and are sad?”"],
+    "web_spans": [[17, 71]],
+    "rvr_text": "Y les dijo: ¿Qué pláticas son estas que tenéis entre vosotros mientras camináis, y por qué estáis tristes?",
+    "rvr_len": 106,
+    "candidate": [[12, 106]]
+  },
+  {
+    "ref": "Lucas 24:19",
+    "book_id": 42,
+    "chapter": 24,
+    "verse": 19,
+    "web_text": "He said to them, “What things?” They said to him, “The things concerning Jesus the Nazarene, who was a prophet mighty in deed and word before God and all the people;",
+    "web_red": ["“What things?”"],
+    "web_spans": [[17, 31]],
+    "rvr_text": "Entonces él les dijo: ¿Qué cosas? Y ellos le dijeron: De Jesús nazareno, que fue varón profeta, poderoso en obra y en palabra delante de Dios y de todo el pueblo;",
+    "rvr_len": 162,
+    "candidate": null
+  },
+  {
+    "ref": "Lucas 24:25",
+    "book_id": 42,
+    "chapter": 24,
+    "verse": 25,
+    "web_text": "He said to them, “Foolish people, and slow of heart to believe in all that the prophets have spoken!",
+    "web_red": [
+      "“Foolish people, and slow of heart to believe in all that the prophets have spoken!"
+    ],
+    "web_spans": [[17, 100]],
+    "rvr_text": "Entonces él les dijo: ¡Oh insensatos, y tardos de corazón para creer todo lo que los profetas han dicho!",
+    "rvr_len": 104,
+    "candidate": [[22, 104]]
+  },
+  {
+    "ref": "Lucas 24:36",
+    "book_id": 42,
+    "chapter": 24,
+    "verse": 36,
+    "web_text": "As they said these things, Jesus himself stood among them, and said to them, “Peace be to you.”",
+    "web_red": ["“Peace be to you.”"],
+    "web_spans": [[77, 95]],
+    "rvr_text": "Mientras ellos aún hablaban de estas cosas, Jesús se puso en medio de ellos, y les dijo: Paz a vosotros.",
+    "rvr_len": 104,
+    "candidate": [[89, 104]]
+  },
+  {
+    "ref": "Lucas 24:38",
+    "book_id": 42,
+    "chapter": 24,
+    "verse": 38,
+    "web_text": "He said to them, “Why are you troubled? Why do doubts arise in your hearts?",
+    "web_red": ["“Why are you troubled? Why do doubts arise in your hearts?"],
+    "web_spans": [[17, 75]],
+    "rvr_text": "Pero él les dijo: ¿Por qué estáis turbados, y vienen a vuestro corazón estos pensamientos?",
+    "rvr_len": 90,
+    "candidate": [[18, 90]]
+  },
+  {
+    "ref": "Lucas 24:41",
+    "book_id": 42,
+    "chapter": 24,
+    "verse": 41,
+    "web_text": "While they still didn’t believe for joy, and wondered, he said to them, “Do you have anything here to eat?”",
+    "web_red": ["“Do you have anything here to eat?”"],
+    "web_spans": [[72, 107]],
+    "rvr_text": "Y como todavía ellos, de gozo, no lo creían, y estaban maravillados, les dijo: ¿Tenéis aquí algo de comer?",
+    "rvr_len": 106,
+    "candidate": [[79, 106]]
+  },
+  {
+    "ref": "Lucas 24:44",
+    "book_id": 42,
+    "chapter": 24,
+    "verse": 44,
+    "web_text": "He said to them, “This is what I told you while I was still with you, that all things which are written in the law of Moses, the prophets, and the psalms concerning me must be fulfilled.”",
+    "web_red": [
+      "“This is what I told you while I was still with you, that all things which are written in the law of Moses, the prophets, and the psalms concerning me must be fulfilled.”"
+    ],
+    "web_spans": [[17, 187]],
+    "rvr_text": "Y les dijo: Estas son las palabras que os hablé, estando aún con vosotros: que era necesario que se cumpliese todo lo que está escrito de mí en la ley de Moisés, en los profetas y en los salmos.",
+    "rvr_len": 194,
+    "candidate": [[12, 194]]
+  },
+  {
+    "ref": "Lucas 24:46",
+    "book_id": 42,
+    "chapter": 24,
+    "verse": 46,
+    "web_text": "He said to them, “Thus it is written, and thus it was necessary for the Christ to suffer and to rise from the dead the third day,",
+    "web_red": [
+      "“Thus it is written, and thus it was necessary for the Christ to suffer and to rise from the dead the third day,"
+    ],
+    "web_spans": [[17, 129]],
+    "rvr_text": "y les dijo: Así está escrito, y así fue necesario que el Cristo padeciese, y resucitase de los muertos al tercer día;",
+    "rvr_len": 117,
+    "candidate": [[12, 117]]
+  },
+  {
+    "ref": "Juan 1:38",
+    "book_id": 43,
+    "chapter": 1,
+    "verse": 38,
+    "web_text": "Jesus turned and saw them following, and said to them, “What are you looking for?” They said to him, “Rabbi” (which is to say, being interpreted, Teacher), “where are you staying?”",
+    "web_red": ["“What are you looking for?”"],
+    "web_spans": [[55, 82]],
+    "rvr_text": "Y volviéndose Jesús, y viendo que le seguían, les dijo: ¿Qué buscáis? Ellos le dijeron: Rabí (que traducido es, Maestro), ¿dónde moras?",
+    "rvr_len": 135,
+    "candidate": null
+  },
+  {
+    "ref": "Juan 1:39",
+    "book_id": 43,
+    "chapter": 1,
+    "verse": 39,
+    "web_text": "He said to them, “Come and see.” They came and saw where he was staying, and they stayed with him that day. It was about the tenth hour.",
+    "web_red": ["“Come and see.”"],
+    "web_spans": [[17, 32]],
+    "rvr_text": "Les dijo: Venid y ved. Fueron, y vieron donde moraba, y se quedaron con él aquel día; porque era como la hora décima.",
+    "rvr_len": 117,
+    "candidate": null
+  },
+  {
+    "ref": "Juan 1:42",
+    "book_id": 43,
+    "chapter": 1,
+    "verse": 42,
+    "web_text": "He brought him to Jesus. Jesus looked at him and said, “You are Simon the son of Jonah. You shall be called Cephas” (which is by interpretation, Peter).",
+    "web_red": ["“You are Simon the son of Jonah. You shall be called Cephas”"],
+    "web_spans": [[55, 115]],
+    "rvr_text": "Y le trajo a Jesús. Y mirándole Jesús, dijo: Tú eres Simón, hijo de Jonás; tú serás llamado Cefas (que quiere decir, Pedro).",
+    "rvr_len": 124,
+    "candidate": null
+  },
+  {
+    "ref": "Juan 1:43",
+    "book_id": 43,
+    "chapter": 1,
+    "verse": 43,
+    "web_text": "On the next day, he was determined to go out into Galilee, and he found Philip. Jesus said to him, “Follow me.”",
+    "web_red": ["“Follow me.”"],
+    "web_spans": [[99, 111]],
+    "rvr_text": "El siguiente día quiso Jesús ir a Galilea, y halló a Felipe, y le dijo: Sígueme.",
+    "rvr_len": 80,
+    "candidate": [[72, 80]]
+  },
+  {
+    "ref": "Juan 1:47",
+    "book_id": 43,
+    "chapter": 1,
+    "verse": 47,
+    "web_text": "Jesus saw Nathanael coming to him, and said about him, “Behold, an Israelite indeed, in whom is no deceit!”",
+    "web_red": ["“Behold, an Israelite indeed, in whom is no deceit!”"],
+    "web_spans": [[55, 107]],
+    "rvr_text": "Cuando Jesús vio a Natanael que se le acercaba, dijo de él: He aquí un verdadero israelita, en quien no hay engaño.",
+    "rvr_len": 115,
+    "candidate": [[60, 115]]
+  },
+  {
+    "ref": "Juan 1:48",
+    "book_id": 43,
+    "chapter": 1,
+    "verse": 48,
+    "web_text": "Nathanael said to him, “How do you know me?” Jesus answered him, “Before Philip called you, when you were under the fig tree, I saw you.”",
+    "web_red": [
+      "“Before Philip called you, when you were under the fig tree, I saw you.”"
+    ],
+    "web_spans": [[65, 137]],
+    "rvr_text": "Le dijo Natanael: ¿De dónde me conoces? Respondió Jesús y le dijo: Antes que Felipe te llamara, cuando estabas debajo de la higuera, te vi.",
+    "rvr_len": 139,
+    "candidate": [[18, 139]]
+  },
+  {
+    "ref": "Juan 1:50",
+    "book_id": 43,
+    "chapter": 1,
+    "verse": 50,
+    "web_text": "Jesus answered him, “Because I told you, ‘I saw you underneath the fig tree,’ do you believe? You will see greater things than these!”",
+    "web_red": [
+      "“Because I told you, ‘I saw you underneath the fig tree,’ do you believe? You will see greater things than these!”"
+    ],
+    "web_spans": [[20, 134]],
+    "rvr_text": "Respondió Jesús y le dijo: ¿Porque te dije: Te vi debajo de la higuera, crees? Cosas mayores que estas verás.",
+    "rvr_len": 109,
+    "candidate": [[27, 109]]
+  },
+  {
+    "ref": "Juan 1:51",
+    "book_id": 43,
+    "chapter": 1,
+    "verse": 51,
+    "web_text": "He said to him, “Most certainly, I tell you all, hereafter you will see heaven opened, and the angels of God ascending and descending on the Son of Man.”",
+    "web_red": [
+      "“Most certainly, I tell you all, hereafter you will see heaven opened, and the angels of God ascending and descending on the Son of Man.”"
+    ],
+    "web_spans": [[16, 153]],
+    "rvr_text": "Y le dijo: De cierto, de cierto os digo: De aquí adelante veréis el cielo abierto, y a los ángeles de Dios que suben y descienden sobre el Hijo del Hombre.",
+    "rvr_len": 155,
+    "candidate": [[11, 155]]
+  },
+  {
+    "ref": "Juan 2:4",
+    "book_id": 43,
+    "chapter": 2,
+    "verse": 4,
+    "web_text": "Jesus said to her, “Woman, what does that have to do with you and me? My hour has not yet come.”",
+    "web_red": [
+      "“Woman, what does that have to do with you and me? My hour has not yet come.”"
+    ],
+    "web_spans": [[19, 96]],
+    "rvr_text": "Jesús le dijo: ¿Qué tienes conmigo, mujer? Aún no ha venido mi hora.",
+    "rvr_len": 68,
+    "candidate": [[15, 68]]
+  },
+  {
+    "ref": "Juan 2:7",
+    "book_id": 43,
+    "chapter": 2,
+    "verse": 7,
+    "web_text": "Jesus said to them, “Fill the water pots with water.” So they filled them up to the brim.",
+    "web_red": ["“Fill the water pots with water.”"],
+    "web_spans": [[20, 53]],
+    "rvr_text": "Jesús les dijo: Llenad estas tinajas de agua. Y las llenaron hasta arriba.",
+    "rvr_len": 74,
+    "candidate": null
+  },
+  {
+    "ref": "Juan 2:8",
+    "book_id": 43,
+    "chapter": 2,
+    "verse": 8,
+    "web_text": "He said to them, “Now draw some out, and take it to the ruler of the feast.” So they took it.",
+    "web_red": ["“Now draw some out, and take it to the ruler of the feast.”"],
+    "web_spans": [[17, 76]],
+    "rvr_text": "Entonces les dijo: Sacad ahora, y llevadlo al maestresala. Y se lo llevaron.",
+    "rvr_len": 76,
+    "candidate": null
+  },
+  {
+    "ref": "Juan 2:16",
+    "book_id": 43,
+    "chapter": 2,
+    "verse": 16,
+    "web_text": "To those who sold the doves, he said, “Take these things out of here! Don’t make my Father’s house a marketplace!”",
+    "web_red": [
+      "“Take these things out of here! Don’t make my Father’s house a marketplace!”"
+    ],
+    "web_spans": [[38, 114]],
+    "rvr_text": "y dijo a los que vendían palomas: Quitad de aquí esto, y no hagáis de la casa de mi Padre casa de mercado.",
+    "rvr_len": 106,
+    "candidate": [[34, 106]]
+  },
+  {
+    "ref": "Juan 2:19",
+    "book_id": 43,
+    "chapter": 2,
+    "verse": 19,
+    "web_text": "Jesus answered them, “Destroy this temple, and in three days I will raise it up.”",
+    "web_red": ["“Destroy this temple, and in three days I will raise it up.”"],
+    "web_spans": [[21, 81]],
+    "rvr_text": "Respondió Jesús y les dijo: Destruid este templo, y en tres días lo levantaré.",
+    "rvr_len": 78,
+    "candidate": [[28, 78]]
+  },
+  {
+    "ref": "Juan 3:3",
+    "book_id": 43,
+    "chapter": 3,
+    "verse": 3,
+    "web_text": "Jesus answered him, “Most certainly I tell you, unless one is born anew, he can’t see God’s Kingdom.”",
+    "web_red": [
+      "“Most certainly I tell you, unless one is born anew, he can’t see God’s Kingdom.”"
+    ],
+    "web_spans": [[20, 101]],
+    "rvr_text": "Respondió Jesús y le dijo: De cierto, de cierto te digo, que el que no naciere de nuevo, no puede ver el reino de Dios.",
+    "rvr_len": 119,
+    "candidate": [[27, 119]]
+  },
+  {
+    "ref": "Juan 3:5",
+    "book_id": 43,
+    "chapter": 3,
+    "verse": 5,
+    "web_text": "Jesus answered, “Most certainly I tell you, unless one is born of water and Spirit, he can’t enter into God’s Kingdom.",
+    "web_red": [
+      "“Most certainly I tell you, unless one is born of water and Spirit, he can’t enter into God’s Kingdom."
+    ],
+    "web_spans": [[16, 118]],
+    "rvr_text": "Respondió Jesús: De cierto, de cierto te digo, que el que no naciere de agua y del Espíritu, no puede entrar en el reino de Dios.",
+    "rvr_len": 129,
+    "candidate": [[17, 129]]
+  },
+  {
+    "ref": "Juan 3:10",
+    "book_id": 43,
+    "chapter": 3,
+    "verse": 10,
+    "web_text": "Jesus answered him, “Are you the teacher of Israel, and don’t understand these things?",
+    "web_red": [
+      "“Are you the teacher of Israel, and don’t understand these things?"
+    ],
+    "web_spans": [[20, 86]],
+    "rvr_text": "Respondió Jesús y le dijo: ¿Eres tú maestro de Israel, y no sabes esto?",
+    "rvr_len": 71,
+    "candidate": [[27, 71]]
+  },
+  {
+    "ref": "Juan 4:7",
+    "book_id": 43,
+    "chapter": 4,
+    "verse": 7,
+    "web_text": "A woman of Samaria came to draw water. Jesus said to her, “Give me a drink.”",
+    "web_red": ["“Give me a drink.”"],
+    "web_spans": [[58, 76]],
+    "rvr_text": "Vino una mujer de Samaria a sacar agua; y Jesús le dijo: Dame de beber.",
+    "rvr_len": 71,
+    "candidate": [[57, 71]]
+  },
+  {
+    "ref": "Juan 4:10",
+    "book_id": 43,
+    "chapter": 4,
+    "verse": 10,
+    "web_text": "Jesus answered her, “If you knew the gift of God, and who it is who says to you, ‘Give me a drink,’ you would have asked him, and he would have given you living water.”",
+    "web_red": [
+      "“If you knew the gift of God, and who it is who says to you, ‘Give me a drink,’ you would have asked him, and he would have given you living water.”"
+    ],
+    "web_spans": [[20, 168]],
+    "rvr_text": "Respondió Jesús y le dijo: Si conocieras el don de Dios, y quién es el que te dice: Dame de beber; tú le pedirías, y él te daría agua viva.",
+    "rvr_len": 139,
+    "candidate": [[27, 139]]
+  },
+  {
+    "ref": "Juan 4:13",
+    "book_id": 43,
+    "chapter": 4,
+    "verse": 13,
+    "web_text": "Jesus answered her, “Everyone who drinks of this water will thirst again,",
+    "web_red": ["“Everyone who drinks of this water will thirst again,"],
+    "web_spans": [[20, 73]],
+    "rvr_text": "Respondió Jesús y le dijo: Cualquiera que bebiere de esta agua, volverá a tener sed;",
+    "rvr_len": 84,
+    "candidate": [[27, 84]]
+  },
+  {
+    "ref": "Juan 4:16",
+    "book_id": 43,
+    "chapter": 4,
+    "verse": 16,
+    "web_text": "Jesus said to her, “Go, call your husband, and come here.”",
+    "web_red": ["“Go, call your husband, and come here.”"],
+    "web_spans": [[19, 58]],
+    "rvr_text": "Jesús le dijo: Ve, llama a tu marido, y ven acá.",
+    "rvr_len": 48,
+    "candidate": [[15, 48]]
+  },
+  {
+    "ref": "Juan 4:17",
+    "book_id": 43,
+    "chapter": 4,
+    "verse": 17,
+    "web_text": "The woman answered, “I have no husband.” Jesus said to her, “You said well, ‘I have no husband,’",
+    "web_red": ["“You said well, ‘I have no husband,’"],
+    "web_spans": [[60, 96]],
+    "rvr_text": "Respondió la mujer y dijo: No tengo marido. Jesús le dijo: Bien has dicho: No tengo marido;",
+    "rvr_len": 91,
+    "candidate": [[27, 91]]
+  },
+  {
+    "ref": "Juan 4:21",
+    "book_id": 43,
+    "chapter": 4,
+    "verse": 21,
+    "web_text": "Jesus said to her, “Woman, believe me, the hour is coming when neither in this mountain nor in Jerusalem will you worship the Father.",
+    "web_red": [
+      "“Woman, believe me, the hour is coming when neither in this mountain nor in Jerusalem will you worship the Father."
+    ],
+    "web_spans": [[19, 133]],
+    "rvr_text": "Jesús le dijo: Mujer, créeme, que la hora viene cuando ni en este monte ni en Jerusalén adoraréis al Padre.",
+    "rvr_len": 107,
+    "candidate": [[15, 107]]
+  },
+  {
+    "ref": "Juan 4:26",
+    "book_id": 43,
+    "chapter": 4,
+    "verse": 26,
+    "web_text": "Jesus said to her, “I am he, the one who speaks to you.”",
+    "web_red": ["“I am he, the one who speaks to you.”"],
+    "web_spans": [[19, 56]],
+    "rvr_text": "Jesús le dijo: Yo soy, el que habla contigo.",
+    "rvr_len": 44,
+    "candidate": [[15, 44]]
+  },
+  {
+    "ref": "Juan 4:32",
+    "book_id": 43,
+    "chapter": 4,
+    "verse": 32,
+    "web_text": "But he said to them, “I have food to eat that you don’t know about.”",
+    "web_red": ["“I have food to eat that you don’t know about.”"],
+    "web_spans": [[21, 68]],
+    "rvr_text": "El les dijo: Yo tengo una comida que comer, que vosotros no sabéis.",
+    "rvr_len": 67,
+    "candidate": [[13, 67]]
+  },
+  {
+    "ref": "Juan 4:34",
+    "book_id": 43,
+    "chapter": 4,
+    "verse": 34,
+    "web_text": "Jesus said to them, “My food is to do the will of him who sent me and to accomplish his work.",
+    "web_red": [
+      "“My food is to do the will of him who sent me and to accomplish his work."
+    ],
+    "web_spans": [[20, 93]],
+    "rvr_text": "Jesús les dijo: Mi comida es que haga la voluntad del que me envió, y que acabe su obra.",
+    "rvr_len": 88,
+    "candidate": [[16, 88]]
+  },
+  {
+    "ref": "Juan 4:48",
+    "book_id": 43,
+    "chapter": 4,
+    "verse": 48,
+    "web_text": "Jesus therefore said to him, “Unless you people see signs and wonders, you will in no way believe.”",
+    "web_red": [
+      "“Unless you people see signs and wonders, you will in no way believe.”"
+    ],
+    "web_spans": [[29, 99]],
+    "rvr_text": "Entonces Jesús le dijo: Si no viereis señales y prodigios, no creeréis.",
+    "rvr_len": 71,
+    "candidate": [[24, 71]]
+  },
+  {
+    "ref": "Juan 4:50",
+    "book_id": 43,
+    "chapter": 4,
+    "verse": 50,
+    "web_text": "Jesus said to him, “Go your way. Your son lives.” The man believed the word that Jesus spoke to him, and he went his way.",
+    "web_red": ["“Go your way. Your son lives.”"],
+    "web_spans": [[19, 49]],
+    "rvr_text": "Jesús le dijo: Ve, tu hijo vive. Y el hombre creyó la palabra que Jesús le dijo, y se fue.",
+    "rvr_len": 90,
+    "candidate": null
+  },
+  {
+    "ref": "Juan 4:53",
+    "book_id": 43,
+    "chapter": 4,
+    "verse": 53,
+    "web_text": "So the father knew that it was at that hour in which Jesus said to him, “Your son lives.” He believed, as did his whole house.",
+    "web_red": ["“Your son lives.”"],
+    "web_spans": [[72, 89]],
+    "rvr_text": "El padre entonces entendió que aquella era la hora en que Jesús le había dicho: Tu hijo vive; y creyó él con toda su casa.",
+    "rvr_len": 122,
+    "candidate": null
+  },
+  {
+    "ref": "Juan 5:6",
+    "book_id": 43,
+    "chapter": 5,
+    "verse": 6,
+    "web_text": "When Jesus saw him lying there, and knew that he had been sick for a long time, he asked him, “Do you want to be made well?”",
+    "web_red": ["“Do you want to be made well?”"],
+    "web_spans": [[94, 124]],
+    "rvr_text": "Cuando Jesús lo vio acostado, y supo que llevaba ya mucho tiempo así, le dijo: ¿Quieres ser sano?",
+    "rvr_len": 97,
+    "candidate": [[79, 97]]
+  },
+  {
+    "ref": "Juan 5:8",
+    "book_id": 43,
+    "chapter": 5,
+    "verse": 8,
+    "web_text": "Jesus said to him, “Arise, take up your mat, and walk.”",
+    "web_red": ["“Arise, take up your mat, and walk.”"],
+    "web_spans": [[19, 55]],
+    "rvr_text": "Jesús le dijo: Levántate, toma tu lecho, y anda.",
+    "rvr_len": 48,
+    "candidate": [[15, 48]]
+  },
+  {
+    "ref": "Juan 5:11",
+    "book_id": 43,
+    "chapter": 5,
+    "verse": 11,
+    "web_text": "He answered them, “He who made me well said to me, ‘Take up your mat and walk.’ ”",
+    "web_red": ["‘Take up your mat and walk.’"],
+    "web_spans": [[51, 79]],
+    "rvr_text": "El les respondió: El que me sanó, él mismo me dijo: Toma tu lecho y anda.",
+    "rvr_len": 73,
+    "candidate": null
+  },
+  {
+    "ref": "Juan 5:12",
+    "book_id": 43,
+    "chapter": 5,
+    "verse": 12,
+    "web_text": "Then they asked him, “Who is the man who said to you, ‘Take up your mat and walk’?”",
+    "web_red": ["‘Take up your mat and walk’"],
+    "web_spans": [[54, 81]],
+    "rvr_text": "Entonces le preguntaron: ¿Quién es el que te dijo: Toma tu lecho y anda?",
+    "rvr_len": 72,
+    "candidate": null
+  },
+  {
+    "ref": "Juan 5:14",
+    "book_id": 43,
+    "chapter": 5,
+    "verse": 14,
+    "web_text": "Afterward Jesus found him in the temple and said to him, “Behold, you are made well. Sin no more, so that nothing worse happens to you.”",
+    "web_red": [
+      "“Behold, you are made well. Sin no more, so that nothing worse happens to you.”"
+    ],
+    "web_spans": [[57, 136]],
+    "rvr_text": "Después le halló Jesús en el templo, y le dijo: Mira, has sido sanado; no peques más, para que no te venga alguna cosa peor.",
+    "rvr_len": 124,
+    "candidate": [[48, 124]]
+  },
+  {
+    "ref": "Juan 5:17",
+    "book_id": 43,
+    "chapter": 5,
+    "verse": 17,
+    "web_text": "But Jesus answered them, “My Father is still working, so I am working, too.”",
+    "web_red": ["“My Father is still working, so I am working, too.”"],
+    "web_spans": [[25, 76]],
+    "rvr_text": "Y Jesús les respondió: Mi Padre hasta ahora trabaja, y yo trabajo.",
+    "rvr_len": 66,
+    "candidate": [[23, 66]]
+  },
+  {
+    "ref": "Juan 5:19",
+    "book_id": 43,
+    "chapter": 5,
+    "verse": 19,
+    "web_text": "Jesus therefore answered them, “Most certainly, I tell you, the Son can do nothing of himself, but what he sees the Father doing. For whatever things he does, these the Son also does likewise.",
+    "web_red": [
+      "“Most certainly, I tell you, the Son can do nothing of himself, but what he sees the Father doing. For whatever things he does, these the Son also does likewise."
+    ],
+    "web_spans": [[31, 192]],
+    "rvr_text": "Respondió entonces Jesús, y les dijo: De cierto, de cierto os digo: No puede el Hijo hacer nada por sí mismo, sino lo que ve hacer al Padre; porque todo lo que el Padre hace, también lo hace el Hijo igualmente.",
+    "rvr_len": 210,
+    "candidate": [[38, 210]]
+  },
+  {
+    "ref": "Juan 6:5",
+    "book_id": 43,
+    "chapter": 6,
+    "verse": 5,
+    "web_text": "Jesus therefore, lifting up his eyes and seeing that a great multitude was coming to him, said to Philip, “Where are we to buy bread, that these may eat?”",
+    "web_red": ["“Where are we to buy bread, that these may eat?”"],
+    "web_spans": [[106, 154]],
+    "rvr_text": "Cuando alzó Jesús los ojos, y vio que había venido a él gran multitud, dijo a Felipe: ¿De dónde compraremos pan para que coman éstos?",
+    "rvr_len": 133,
+    "candidate": [[86, 133]]
+  },
+  {
+    "ref": "Juan 6:10",
+    "book_id": 43,
+    "chapter": 6,
+    "verse": 10,
+    "web_text": "Jesus said, “Have the people sit down.” Now there was much grass in that place. So the men sat down, in number about five thousand.",
+    "web_red": ["“Have the people sit down.”"],
+    "web_spans": [[12, 39]],
+    "rvr_text": "Entonces Jesús dijo: Haced recostar la gente. Y había mucha hierba en aquel lugar; y se recostaron como en número de cinco mil varones.",
+    "rvr_len": 135,
+    "candidate": null
+  },
+  {
+    "ref": "Juan 6:12",
+    "book_id": 43,
+    "chapter": 6,
+    "verse": 12,
+    "web_text": "When they were filled, he said to his disciples, “Gather up the broken pieces which are left over, that nothing be lost.”",
+    "web_red": [
+      "“Gather up the broken pieces which are left over, that nothing be lost.”"
+    ],
+    "web_spans": [[49, 121]],
+    "rvr_text": "Y cuando se hubieron saciado, dijo a sus discípulos: Recoged los pedazos que sobraron, para que no se pierda nada.",
+    "rvr_len": 114,
+    "candidate": [[53, 114]]
+  },
+  {
+    "ref": "Juan 6:20",
+    "book_id": 43,
+    "chapter": 6,
+    "verse": 20,
+    "web_text": "But he said to them, “It is I. Don’t be afraid.”",
+    "web_red": ["“It is I. Don’t be afraid.”"],
+    "web_spans": [[21, 48]],
+    "rvr_text": "Mas él les dijo: Yo soy; no temáis.",
+    "rvr_len": 35,
+    "candidate": [[17, 35]]
+  },
+  {
+    "ref": "Juan 6:26",
+    "book_id": 43,
+    "chapter": 6,
+    "verse": 26,
+    "web_text": "Jesus answered them, “Most certainly I tell you, you seek me, not because you saw signs, but because you ate of the loaves and were filled.",
+    "web_red": [
+      "“Most certainly I tell you, you seek me, not because you saw signs, but because you ate of the loaves and were filled."
+    ],
+    "web_spans": [[21, 139]],
+    "rvr_text": "Respondió Jesús y les dijo: De cierto, de cierto os digo que me buscáis, no porque habéis visto las señales, sino porque comisteis el pan y os saciasteis.",
+    "rvr_len": 154,
+    "candidate": [[28, 154]]
+  }
+]

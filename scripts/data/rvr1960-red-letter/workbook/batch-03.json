@@ -1,0 +1,718 @@
+[
+  {
+    "ref": "Mateo 22:29",
+    "book_id": 40,
+    "chapter": 22,
+    "verse": 29,
+    "web_text": "But Jesus answered them, “You are mistaken, not knowing the Scriptures, nor the power of God.",
+    "web_red": [
+      "“You are mistaken, not knowing the Scriptures, nor the power of God."
+    ],
+    "web_spans": [[25, 93]],
+    "rvr_text": "Entonces respondiendo Jesús, les dijo: Erráis, ignorando las Escrituras y el poder de Dios.",
+    "rvr_len": 91,
+    "candidate": [[39, 91]]
+  },
+  {
+    "ref": "Mateo 22:37",
+    "book_id": 40,
+    "chapter": 22,
+    "verse": 37,
+    "web_text": "Jesus said to him, “‘You shall love the Lord your God with all your heart, with all your soul, and with all your mind.’",
+    "web_red": [
+      "“‘You shall love the Lord your God with all your heart, with all your soul, and with all your mind.’"
+    ],
+    "web_spans": [[19, 119]],
+    "rvr_text": "Jesús le dijo: Amarás al Señor tu Dios con todo tu corazón, y con toda tu alma, y con toda tu mente.",
+    "rvr_len": 100,
+    "candidate": [[15, 100]]
+  },
+  {
+    "ref": "Mateo 22:42",
+    "book_id": 40,
+    "chapter": 22,
+    "verse": 42,
+    "web_text": "saying, “What do you think of the Christ? Whose son is he?” They said to him, “Of David.”",
+    "web_red": ["“What do you think of the Christ? Whose son is he?”"],
+    "web_spans": [[8, 59]],
+    "rvr_text": "diciendo: ¿Qué pensáis del Cristo? ¿De quién es hijo? Le dijeron: De David.",
+    "rvr_len": 75,
+    "candidate": null
+  },
+  {
+    "ref": "Mateo 22:43",
+    "book_id": 40,
+    "chapter": 22,
+    "verse": 43,
+    "web_text": "He said to them, “How then does David in the Spirit call him Lord, saying,",
+    "web_red": ["“How then does David in the Spirit call him Lord, saying,"],
+    "web_spans": [[17, 74]],
+    "rvr_text": "El les dijo: ¿Pues cómo David en el Espíritu le llama Señor, diciendo:",
+    "rvr_len": 70,
+    "candidate": [[13, 70]]
+  },
+  {
+    "ref": "Mateo 23:2",
+    "book_id": 40,
+    "chapter": 23,
+    "verse": 2,
+    "web_text": "saying, “The scribes and the Pharisees sit on Moses’ seat.",
+    "web_red": ["“The scribes and the Pharisees sit on Moses’ seat."],
+    "web_spans": [[8, 58]],
+    "rvr_text": "En la cátedra de Moisés se sientan los escribas y los fariseos.",
+    "rvr_len": 63,
+    "candidate": null
+  },
+  {
+    "ref": "Mateo 24:2",
+    "book_id": 40,
+    "chapter": 24,
+    "verse": 2,
+    "web_text": "But he answered them, “You see all of these things, don’t you? Most certainly I tell you, there will not be left here one stone on another, that will not be thrown down.”",
+    "web_red": [
+      "“You see all of these things, don’t you? Most certainly I tell you, there will not be left here one stone on another, that will not be thrown down.”"
+    ],
+    "web_spans": [[22, 170]],
+    "rvr_text": "Respondiendo él, les dijo: ¿Veis todo esto? De cierto os digo, que no quedará aquí piedra sobre piedra, que no sea derribada.",
+    "rvr_len": 125,
+    "candidate": [[27, 125]]
+  },
+  {
+    "ref": "Mateo 24:4",
+    "book_id": 40,
+    "chapter": 24,
+    "verse": 4,
+    "web_text": "Jesus answered them, “Be careful that no one leads you astray.",
+    "web_red": ["“Be careful that no one leads you astray."],
+    "web_spans": [[21, 62]],
+    "rvr_text": "Respondiendo Jesús, les dijo: Mirad que nadie os engañe.",
+    "rvr_len": 56,
+    "candidate": [[30, 56]]
+  },
+  {
+    "ref": "Mateo 26:10",
+    "book_id": 40,
+    "chapter": 26,
+    "verse": 10,
+    "web_text": "However, knowing this, Jesus said to them, “Why do you trouble the woman? She has done a good work for me.",
+    "web_red": [
+      "“Why do you trouble the woman? She has done a good work for me."
+    ],
+    "web_spans": [[43, 106]],
+    "rvr_text": "Y entendiéndolo Jesús, les dijo: ¿Por qué molestáis a esta mujer? pues ha hecho conmigo una buena obra.",
+    "rvr_len": 103,
+    "candidate": [[33, 103]]
+  },
+  {
+    "ref": "Mateo 26:18",
+    "book_id": 40,
+    "chapter": 26,
+    "verse": 18,
+    "web_text": "He said, “Go into the city to a certain person, and tell him, ‘The Teacher says, “My time is at hand. I will keep the Passover at your house with my disciples.”’”",
+    "web_red": [
+      "“Go into the city to a certain person, and tell him, ‘The Teacher says, “My time is at hand. I will keep the Passover at your house with my disciples.”’”"
+    ],
+    "web_spans": [[9, 162]],
+    "rvr_text": "Y él dijo: Id a la ciudad a cierto hombre, y decidle: El Maestro dice: Mi tiempo está cerca; en tu casa celebraré la pascua con mis discípulos.",
+    "rvr_len": 143,
+    "candidate": [[11, 143]]
+  },
+  {
+    "ref": "Mateo 26:21",
+    "book_id": 40,
+    "chapter": 26,
+    "verse": 21,
+    "web_text": "As they were eating, he said, “Most certainly I tell you that one of you will betray me.”",
+    "web_red": ["“Most certainly I tell you that one of you will betray me.”"],
+    "web_spans": [[30, 89]],
+    "rvr_text": "Y mientras comían, dijo: De cierto os digo, que uno de vosotros me va a entregar.",
+    "rvr_len": 81,
+    "candidate": [[25, 81]]
+  },
+  {
+    "ref": "Mateo 26:23",
+    "book_id": 40,
+    "chapter": 26,
+    "verse": 23,
+    "web_text": "He answered, “He who dipped his hand with me in the dish will betray me.",
+    "web_red": ["“He who dipped his hand with me in the dish will betray me."],
+    "web_spans": [[13, 72]],
+    "rvr_text": "Entonces él respondiendo, dijo: El que mete la mano conmigo en el plato, ése me va a entregar.",
+    "rvr_len": 94,
+    "candidate": [[32, 94]]
+  },
+  {
+    "ref": "Mateo 26:25",
+    "book_id": 40,
+    "chapter": 26,
+    "verse": 25,
+    "web_text": "Judas, who betrayed him, answered, “It isn’t me, is it, Rabbi?” He said to him, “You said it.”",
+    "web_red": ["“You said it.”"],
+    "web_spans": [[80, 94]],
+    "rvr_text": "Entonces respondiendo Judas, el que le entregaba, dijo: ¿Soy yo, Maestro? Le dijo: Tú lo has dicho.",
+    "rvr_len": 99,
+    "candidate": [[56, 99]]
+  },
+  {
+    "ref": "Mateo 26:26",
+    "book_id": 40,
+    "chapter": 26,
+    "verse": 26,
+    "web_text": "As they were eating, Jesus took bread, gave thanks for it, and broke it. He gave to the disciples and said, “Take, eat; this is my body.”",
+    "web_red": ["“Take, eat; this is my body.”"],
+    "web_spans": [[108, 137]],
+    "rvr_text": "Y mientras comían, tomó Jesús el pan, y bendijo, y lo partió, y dio a sus discípulos, y dijo: Tomad, comed; esto es mi cuerpo.",
+    "rvr_len": 126,
+    "candidate": [[94, 126]]
+  },
+  {
+    "ref": "Mateo 26:27",
+    "book_id": 40,
+    "chapter": 26,
+    "verse": 27,
+    "web_text": "He took the cup, gave thanks, and gave to them, saying, “All of you drink it,",
+    "web_red": ["“All of you drink it,"],
+    "web_spans": [[56, 77]],
+    "rvr_text": "Y tomando la copa, y habiendo dado gracias, les dio, diciendo: Bebed de ella todos;",
+    "rvr_len": 83,
+    "candidate": [[63, 83]]
+  },
+  {
+    "ref": "Mateo 26:31",
+    "book_id": 40,
+    "chapter": 26,
+    "verse": 31,
+    "web_text": "Then Jesus said to them, “All of you will be made to stumble because of me tonight, for it is written, ‘I will strike the shepherd, and the sheep of the flock will be scattered.’",
+    "web_red": [
+      "“All of you will be made to stumble because of me tonight, for it is written, ‘I will strike the shepherd, and the sheep of the flock will be scattered.’"
+    ],
+    "web_spans": [[25, 178]],
+    "rvr_text": "Entonces Jesús les dijo: Todos vosotros os escandalizaréis de mí esta noche; porque escrito está: Heriré al pastor, y las ovejas del rebaño serán dispersadas.",
+    "rvr_len": 158,
+    "candidate": [[25, 158]]
+  },
+  {
+    "ref": "Mateo 26:34",
+    "book_id": 40,
+    "chapter": 26,
+    "verse": 34,
+    "web_text": "Jesus said to him, “Most certainly I tell you that tonight, before the rooster crows, you will deny me three times.”",
+    "web_red": [
+      "“Most certainly I tell you that tonight, before the rooster crows, you will deny me three times.”"
+    ],
+    "web_spans": [[19, 116]],
+    "rvr_text": "Jesús le dijo: De cierto te digo que esta noche, antes que el gallo cante, me negarás tres veces.",
+    "rvr_len": 97,
+    "candidate": [[15, 97]]
+  },
+  {
+    "ref": "Mateo 26:36",
+    "book_id": 40,
+    "chapter": 26,
+    "verse": 36,
+    "web_text": "Then Jesus came with them to a place called Gethsemane, and said to his disciples, “Sit here, while I go there and pray.”",
+    "web_red": ["“Sit here, while I go there and pray.”"],
+    "web_spans": [[83, 121]],
+    "rvr_text": "Entonces llegó Jesús con ellos a un lugar que se llama Getsemaní, y dijo a sus discípulos: Sentaos aquí, entre tanto que voy allí y oro.",
+    "rvr_len": 136,
+    "candidate": [[91, 136]]
+  },
+  {
+    "ref": "Mateo 26:38",
+    "book_id": 40,
+    "chapter": 26,
+    "verse": 38,
+    "web_text": "Then Jesus said to them, “My soul is exceedingly sorrowful, even to death. Stay here and watch with me.”",
+    "web_red": [
+      "“My soul is exceedingly sorrowful, even to death. Stay here and watch with me.”"
+    ],
+    "web_spans": [[25, 104]],
+    "rvr_text": "Entonces Jesús les dijo: Mi alma está muy triste, hasta la muerte; quedaos aquí, y velad conmigo.",
+    "rvr_len": 97,
+    "candidate": [[25, 97]]
+  },
+  {
+    "ref": "Mateo 26:39",
+    "book_id": 40,
+    "chapter": 26,
+    "verse": 39,
+    "web_text": "He went forward a little, fell on his face, and prayed, saying, “My Father, if it is possible, let this cup pass away from me; nevertheless, not what I desire, but what you desire.”",
+    "web_red": [
+      "“My Father, if it is possible, let this cup pass away from me; nevertheless, not what I desire, but what you desire.”"
+    ],
+    "web_spans": [[64, 181]],
+    "rvr_text": "Yendo un poco adelante, se postró sobre su rostro, orando y diciendo: Padre mío, si es posible, pase de mí esta copa; pero no sea como yo quiero, sino como tú.",
+    "rvr_len": 159,
+    "candidate": [[70, 159]]
+  },
+  {
+    "ref": "Mateo 26:40",
+    "book_id": 40,
+    "chapter": 26,
+    "verse": 40,
+    "web_text": "He came to the disciples and found them sleeping, and said to Peter, “What, couldn’t you watch with me for one hour?",
+    "web_red": ["“What, couldn’t you watch with me for one hour?"],
+    "web_spans": [[69, 116]],
+    "rvr_text": "Vino luego a sus discípulos, y los halló durmiendo, y dijo a Pedro: ¿Así que no habéis podido velar conmigo una hora?",
+    "rvr_len": 117,
+    "candidate": [[68, 117]]
+  },
+  {
+    "ref": "Mateo 26:42",
+    "book_id": 40,
+    "chapter": 26,
+    "verse": 42,
+    "web_text": "Again, a second time he went away and prayed, saying, “My Father, if this cup can’t pass away from me unless I drink it, your desire be done.”",
+    "web_red": [
+      "“My Father, if this cup can’t pass away from me unless I drink it, your desire be done.”"
+    ],
+    "web_spans": [[54, 142]],
+    "rvr_text": "Otra vez fue, y oró por segunda vez, diciendo: Padre mío, si no puede pasar de mí esta copa sin que yo la beba, hágase tu voluntad.",
+    "rvr_len": 131,
+    "candidate": [[47, 131]]
+  },
+  {
+    "ref": "Mateo 26:45",
+    "book_id": 40,
+    "chapter": 26,
+    "verse": 45,
+    "web_text": "Then he came to his disciples and said to them, “Are you still sleeping and resting? Behold, the hour is at hand, and the Son of Man is betrayed into the hands of sinners.",
+    "web_red": [
+      "“Are you still sleeping and resting? Behold, the hour is at hand, and the Son of Man is betrayed into the hands of sinners."
+    ],
+    "web_spans": [[48, 171]],
+    "rvr_text": "Entonces vino a sus discípulos y les dijo: Dormid ya, y descansad. He aquí ha llegado la hora, y el Hijo del Hombre es entregado en manos de pecadores.",
+    "rvr_len": 151,
+    "candidate": [[43, 151]]
+  },
+  {
+    "ref": "Mateo 26:50",
+    "book_id": 40,
+    "chapter": 26,
+    "verse": 50,
+    "web_text": "Jesus said to him, “Friend, why are you here?” Then they came and laid hands on Jesus, and took him.",
+    "web_red": ["“Friend, why are you here?”"],
+    "web_spans": [[19, 46]],
+    "rvr_text": "Y Jesús le dijo: Amigo, ¿a qué vienes? Entonces se acercaron y echaron mano a Jesús, y le prendieron.",
+    "rvr_len": 101,
+    "candidate": null
+  },
+  {
+    "ref": "Mateo 26:52",
+    "book_id": 40,
+    "chapter": 26,
+    "verse": 52,
+    "web_text": "Then Jesus said to him, “Put your sword back into its place, for all those who take the sword will die by the sword.",
+    "web_red": [
+      "“Put your sword back into its place, for all those who take the sword will die by the sword."
+    ],
+    "web_spans": [[24, 116]],
+    "rvr_text": "Entonces Jesús le dijo: Vuelve tu espada a su lugar; porque todos los que tomen espada, a espada perecerán.",
+    "rvr_len": 107,
+    "candidate": [[24, 107]]
+  },
+  {
+    "ref": "Mateo 26:55",
+    "book_id": 40,
+    "chapter": 26,
+    "verse": 55,
+    "web_text": "In that hour Jesus said to the multitudes, “Have you come out as against a robber with swords and clubs to seize me? I sat daily in the temple teaching, and you didn’t arrest me.",
+    "web_red": [
+      "“Have you come out as against a robber with swords and clubs to seize me? I sat daily in the temple teaching, and you didn’t arrest me."
+    ],
+    "web_spans": [[43, 178]],
+    "rvr_text": "En aquella hora dijo Jesús a la gente: ¿Como contra un ladrón habéis salido con espadas y con palos para prenderme? Cada día me sentaba con vosotros enseñando en el templo, y no me prendisteis.",
+    "rvr_len": 193,
+    "candidate": [[39, 193]]
+  },
+  {
+    "ref": "Mateo 26:56",
+    "book_id": 40,
+    "chapter": 26,
+    "verse": 56,
+    "web_text": "But all this has happened that the Scriptures of the prophets might be fulfilled.” Then all the disciples left him and fled.",
+    "web_red": [
+      "But all this has happened that the Scriptures of the prophets might be fulfilled.”"
+    ],
+    "web_spans": [[0, 82]],
+    "rvr_text": "Mas todo esto sucede, para que se cumplan las Escrituras de los profetas. Entonces todos los discípulos, dejándole, huyeron.",
+    "rvr_len": 124,
+    "candidate": null
+  },
+  {
+    "ref": "Mateo 26:64",
+    "book_id": 40,
+    "chapter": 26,
+    "verse": 64,
+    "web_text": "Jesus said to him, “You have said so. Nevertheless, I tell you, after this you will see the Son of Man sitting at the right hand of Power, and coming on the clouds of the sky.”",
+    "web_red": [
+      "“You have said so. Nevertheless, I tell you, after this you will see the Son of Man sitting at the right hand of Power, and coming on the clouds of the sky.”"
+    ],
+    "web_spans": [[19, 176]],
+    "rvr_text": "Jesús le dijo: Tú lo has dicho; y además os digo, que desde ahora veréis al Hijo del Hombre sentado a la diestra del poder de Dios, y viniendo en las nubes del cielo.",
+    "rvr_len": 166,
+    "candidate": [[15, 166]]
+  },
+  {
+    "ref": "Mateo 26:75",
+    "book_id": 40,
+    "chapter": 26,
+    "verse": 75,
+    "web_text": "Peter remembered the word which Jesus had said to him, “Before the rooster crows, you will deny me three times.” Then he went out and wept bitterly.",
+    "web_red": ["“Before the rooster crows, you will deny me three times.”"],
+    "web_spans": [[55, 112]],
+    "rvr_text": "Entonces Pedro se acordó de las palabras de Jesús, que le había dicho: Antes que cante el gallo, me negarás tres veces. Y saliendo fuera, lloró amargamente.",
+    "rvr_len": 156,
+    "candidate": null
+  },
+  {
+    "ref": "Mateo 27:11",
+    "book_id": 40,
+    "chapter": 27,
+    "verse": 11,
+    "web_text": "Now Jesus stood before the governor; and the governor asked him, saying, “Are you the King of the Jews?” Jesus said to him, “So you say.”",
+    "web_red": ["“So you say.”"],
+    "web_spans": [[124, 137]],
+    "rvr_text": "Jesús, pues, estaba en pie delante del gobernador; y éste le preguntó, diciendo: ¿Eres tú el Rey de los judíos? Y Jesús le dijo: Tú lo dices.",
+    "rvr_len": 141,
+    "candidate": [[81, 141]]
+  },
+  {
+    "ref": "Mateo 27:46",
+    "book_id": 40,
+    "chapter": 27,
+    "verse": 46,
+    "web_text": "About the ninth hour Jesus cried with a loud voice, saying, “Eli, Eli, lima sabachthani?” That is, “My God, my God, why have you forsaken me?”",
+    "web_red": [
+      "“Eli, Eli, lima sabachthani?”",
+      "“My God, my God, why have you forsaken me?”"
+    ],
+    "web_spans": [
+      [60, 89],
+      [99, 142]
+    ],
+    "rvr_text": "Cerca de la hora novena, Jesús clamó a gran voz, diciendo: Elí, Elí, ¿lama sabactani? Esto es: Dios mío, Dios mío, ¿por qué me has desamparado?",
+    "rvr_len": 143,
+    "candidate": null
+  },
+  {
+    "ref": "Mateo 28:9",
+    "book_id": 40,
+    "chapter": 28,
+    "verse": 9,
+    "web_text": "As they went to tell his disciples, behold, Jesus met them, saying, “Rejoice!” They came and took hold of his feet, and worshiped him.",
+    "web_red": ["“Rejoice!”"],
+    "web_spans": [[68, 78]],
+    "rvr_text": "he aquí, Jesús les salió al encuentro, diciendo: ¡Salve! Y ellas, acercándose, abrazaron sus pies, y le adoraron.",
+    "rvr_len": 113,
+    "candidate": null
+  },
+  {
+    "ref": "Mateo 28:10",
+    "book_id": 40,
+    "chapter": 28,
+    "verse": 10,
+    "web_text": "Then Jesus said to them, “Don’t be afraid. Go tell my brothers that they should go into Galilee, and there they will see me.”",
+    "web_red": [
+      "“Don’t be afraid. Go tell my brothers that they should go into Galilee, and there they will see me.”"
+    ],
+    "web_spans": [[25, 125]],
+    "rvr_text": "Entonces Jesús les dijo: No temáis; id, dad las nuevas a mis hermanos, para que vayan a Galilea, y allí me verán.",
+    "rvr_len": 113,
+    "candidate": [[25, 113]]
+  },
+  {
+    "ref": "Mateo 28:18",
+    "book_id": 40,
+    "chapter": 28,
+    "verse": 18,
+    "web_text": "Jesus came to them and spoke to them, saying, “All authority has been given to me in heaven and on earth.",
+    "web_red": ["“All authority has been given to me in heaven and on earth."],
+    "web_spans": [[46, 105]],
+    "rvr_text": "Y Jesús se acercó y les habló diciendo: Toda potestad me es dada en el cielo y en la tierra.",
+    "rvr_len": 92,
+    "candidate": [[40, 92]]
+  },
+  {
+    "ref": "Mateo 28:20",
+    "book_id": 40,
+    "chapter": 28,
+    "verse": 20,
+    "web_text": "teaching them to observe all things that I commanded you. Behold, I am with you always, even to the end of the age.” Amen.",
+    "web_red": [
+      "teaching them to observe all things that I commanded you. Behold, I am with you always, even to the end of the age.”"
+    ],
+    "web_spans": [[0, 116]],
+    "rvr_text": "enseñándoles que guarden todas las cosas que os he mandado; y he aquí yo estoy con vosotros todos los días, hasta el fin del mundo. Amén.",
+    "rvr_len": 137,
+    "candidate": null
+  },
+  {
+    "ref": "Marcos 1:15",
+    "book_id": 41,
+    "chapter": 1,
+    "verse": 15,
+    "web_text": "and saying, “The time is fulfilled, and God’s Kingdom is at hand! Repent, and believe in the Good News.”",
+    "web_red": [
+      "“The time is fulfilled, and God’s Kingdom is at hand! Repent, and believe in the Good News.”"
+    ],
+    "web_spans": [[12, 104]],
+    "rvr_text": "diciendo: El tiempo se ha cumplido, y el reino de Dios se ha acercado; arrepentíos, y creed en el evangelio.",
+    "rvr_len": 108,
+    "candidate": [[10, 108]]
+  },
+  {
+    "ref": "Marcos 1:17",
+    "book_id": 41,
+    "chapter": 1,
+    "verse": 17,
+    "web_text": "Jesus said to them, “Come after me, and I will make you into fishers for men.”",
+    "web_red": ["“Come after me, and I will make you into fishers for men.”"],
+    "web_spans": [[20, 78]],
+    "rvr_text": "Y les dijo Jesús: Venid en pos de mí, y haré que seáis pescadores de hombres.",
+    "rvr_len": 77,
+    "candidate": [[18, 77]]
+  },
+  {
+    "ref": "Marcos 1:25",
+    "book_id": 41,
+    "chapter": 1,
+    "verse": 25,
+    "web_text": "Jesus rebuked him, saying, “Be quiet, and come out of him!”",
+    "web_red": ["“Be quiet, and come out of him!”"],
+    "web_spans": [[27, 59]],
+    "rvr_text": "Pero Jesús le reprendió, diciendo: ¡Cállate, y sal de él!",
+    "rvr_len": 57,
+    "candidate": [[35, 57]]
+  },
+  {
+    "ref": "Marcos 1:38",
+    "book_id": 41,
+    "chapter": 1,
+    "verse": 38,
+    "web_text": "He said to them, “Let’s go elsewhere into the next towns, that I may preach there also, because I came out for this reason.”",
+    "web_red": [
+      "“Let’s go elsewhere into the next towns, that I may preach there also, because I came out for this reason.”"
+    ],
+    "web_spans": [[17, 124]],
+    "rvr_text": "El les dijo: Vamos a los lugares vecinos, para que predique también allí; porque para esto he venido.",
+    "rvr_len": 101,
+    "candidate": [[13, 101]]
+  },
+  {
+    "ref": "Marcos 1:41",
+    "book_id": 41,
+    "chapter": 1,
+    "verse": 41,
+    "web_text": "Being moved with compassion, he stretched out his hand, and touched him, and said to him, “I want to. Be made clean.”",
+    "web_red": ["“I want to. Be made clean.”"],
+    "web_spans": [[90, 117]],
+    "rvr_text": "Y Jesús, teniendo misericordia de él, extendió la mano y le tocó, y le dijo: Quiero, sé limpio.",
+    "rvr_len": 95,
+    "candidate": [[77, 95]]
+  },
+  {
+    "ref": "Marcos 1:44",
+    "book_id": 41,
+    "chapter": 1,
+    "verse": 44,
+    "web_text": "and said to him, “See that you say nothing to anybody, but go show yourself to the priest and offer for your cleansing the things which Moses commanded, for a testimony to them.”",
+    "web_red": [
+      "“See that you say nothing to anybody, but go show yourself to the priest and offer for your cleansing the things which Moses commanded, for a testimony to them.”"
+    ],
+    "web_spans": [[17, 178]],
+    "rvr_text": "y le dijo: Mira, no digas a nadie nada, sino ve, muéstrate al sacerdote, y ofrece por tu purificación lo que Moisés mandó, para testimonio a ellos.",
+    "rvr_len": 147,
+    "candidate": [[11, 147]]
+  },
+  {
+    "ref": "Marcos 2:5",
+    "book_id": 41,
+    "chapter": 2,
+    "verse": 5,
+    "web_text": "Jesus, seeing their faith, said to the paralytic, “Son, your sins are forgiven you.”",
+    "web_red": ["“Son, your sins are forgiven you.”"],
+    "web_spans": [[50, 84]],
+    "rvr_text": "Al ver Jesús la fe de ellos, dijo al paralítico: Hijo, tus pecados te son perdonados.",
+    "rvr_len": 85,
+    "candidate": [[49, 85]]
+  },
+  {
+    "ref": "Marcos 2:8",
+    "book_id": 41,
+    "chapter": 2,
+    "verse": 8,
+    "web_text": "Immediately Jesus, perceiving in his spirit that they so reasoned within themselves, said to them, “Why do you reason these things in your hearts?",
+    "web_red": ["“Why do you reason these things in your hearts?"],
+    "web_spans": [[99, 146]],
+    "rvr_text": "Y conociendo luego Jesús en su espíritu que cavilaban de esta manera dentro de sí mismos, les dijo: ¿Por qué caviláis así en vuestros corazones?",
+    "rvr_len": 144,
+    "candidate": [[100, 144]]
+  },
+  {
+    "ref": "Marcos 2:10",
+    "book_id": 41,
+    "chapter": 2,
+    "verse": 10,
+    "web_text": "But that you may know that the Son of Man has authority on earth to forgive sins”—he said to the paralytic—",
+    "web_red": [
+      "But that you may know that the Son of Man has authority on earth to forgive sins”"
+    ],
+    "web_spans": [[0, 81]],
+    "rvr_text": "Pues para que sepáis que el Hijo del Hombre tiene potestad en la tierra para perdonar pecados (dijo al paralítico):",
+    "rvr_len": 115,
+    "candidate": null
+  },
+  {
+    "ref": "Marcos 2:14",
+    "book_id": 41,
+    "chapter": 2,
+    "verse": 14,
+    "web_text": "As he passed by, he saw Levi the son of Alphaeus sitting at the tax office. He said to him, “Follow me.” And he arose and followed him.",
+    "web_red": ["“Follow me.”"],
+    "web_spans": [[92, 104]],
+    "rvr_text": "Y al pasar, vio a Leví hijo de Alfeo, sentado al banco de los tributos públicos, y le dijo: Sígueme. Y levantándose, le siguió.",
+    "rvr_len": 127,
+    "candidate": null
+  },
+  {
+    "ref": "Marcos 2:17",
+    "book_id": 41,
+    "chapter": 2,
+    "verse": 17,
+    "web_text": "When Jesus heard it, he said to them, “Those who are healthy have no need for a physician, but those who are sick. I came not to call the righteous, but sinners to repentance.”",
+    "web_red": [
+      "“Those who are healthy have no need for a physician, but those who are sick. I came not to call the righteous, but sinners to repentance.”"
+    ],
+    "web_spans": [[38, 176]],
+    "rvr_text": "Al oír esto Jesús, les dijo: Los sanos no tienen necesidad de médico, sino los enfermos. No he venido a llamar a justos, sino a pecadores.",
+    "rvr_len": 138,
+    "candidate": [[29, 138]]
+  },
+  {
+    "ref": "Marcos 2:19",
+    "book_id": 41,
+    "chapter": 2,
+    "verse": 19,
+    "web_text": "Jesus said to them, “Can the groomsmen fast while the bridegroom is with them? As long as they have the bridegroom with them, they can’t fast.",
+    "web_red": [
+      "“Can the groomsmen fast while the bridegroom is with them? As long as they have the bridegroom with them, they can’t fast."
+    ],
+    "web_spans": [[20, 142]],
+    "rvr_text": "Jesús les dijo: ¿Acaso pueden los que están de bodas ayunar mientras está con ellos el esposo? Entre tanto que tienen consigo al esposo, no pueden ayunar.",
+    "rvr_len": 154,
+    "candidate": [[16, 154]]
+  },
+  {
+    "ref": "Marcos 2:25",
+    "book_id": 41,
+    "chapter": 2,
+    "verse": 25,
+    "web_text": "He said to them, “Did you never read what David did when he had need and was hungry—he, and those who were with him?",
+    "web_red": [
+      "“Did you never read what David did when he had need and was hungry—he, and those who were with him?"
+    ],
+    "web_spans": [[17, 116]],
+    "rvr_text": "Pero él les dijo: ¿Nunca leísteis lo que hizo David cuando tuvo necesidad, y sintió hambre, él y los que con él estaban;",
+    "rvr_len": 120,
+    "candidate": [[18, 120]]
+  },
+  {
+    "ref": "Marcos 2:27",
+    "book_id": 41,
+    "chapter": 2,
+    "verse": 27,
+    "web_text": "He said to them, “The Sabbath was made for man, not man for the Sabbath.",
+    "web_red": ["“The Sabbath was made for man, not man for the Sabbath."],
+    "web_spans": [[17, 72]],
+    "rvr_text": "También les dijo: El día de reposo fue hecho por causa del hombre, y no el hombre por causa del día de reposo.",
+    "rvr_len": 110,
+    "candidate": [[18, 110]]
+  },
+  {
+    "ref": "Marcos 3:3",
+    "book_id": 41,
+    "chapter": 3,
+    "verse": 3,
+    "web_text": "He said to the man whose hand was withered, “Stand up.”",
+    "web_red": ["“Stand up.”"],
+    "web_spans": [[44, 55]],
+    "rvr_text": "Entonces dijo al hombre que tenía la mano seca: Levántate y ponte en medio.",
+    "rvr_len": 75,
+    "candidate": [[48, 75]]
+  },
+  {
+    "ref": "Marcos 3:4",
+    "book_id": 41,
+    "chapter": 3,
+    "verse": 4,
+    "web_text": "He said to them, “Is it lawful on the Sabbath day to do good or to do harm? To save a life or to kill?” But they were silent.",
+    "web_red": [
+      "“Is it lawful on the Sabbath day to do good or to do harm? To save a life or to kill?”"
+    ],
+    "web_spans": [[17, 103]],
+    "rvr_text": "Y les dijo: ¿Es lícito en los días de reposo hacer bien, o hacer mal; salvar la vida, o quitarla? Pero ellos callaban.",
+    "rvr_len": 118,
+    "candidate": null
+  },
+  {
+    "ref": "Marcos 3:5",
+    "book_id": 41,
+    "chapter": 3,
+    "verse": 5,
+    "web_text": "When he had looked around at them with anger, being grieved at the hardening of their hearts, he said to the man, “Stretch out your hand.” He stretched it out, and his hand was restored as healthy as the other.",
+    "web_red": ["“Stretch out your hand.”"],
+    "web_spans": [[114, 138]],
+    "rvr_text": "Entonces, mirándolos alrededor con enojo, entristecido por la dureza de sus corazones, dijo al hombre: Extiende tu mano. Y él la extendió, y la mano le fue restaurada sana.",
+    "rvr_len": 172,
+    "candidate": null
+  },
+  {
+    "ref": "Marcos 3:23",
+    "book_id": 41,
+    "chapter": 3,
+    "verse": 23,
+    "web_text": "He summoned them and said to them in parables, “How can Satan cast out Satan?",
+    "web_red": ["“How can Satan cast out Satan?"],
+    "web_spans": [[47, 77]],
+    "rvr_text": "Y habiéndolos llamado, les decía en parábolas: ¿Cómo puede Satanás echar fuera a Satanás?",
+    "rvr_len": 89,
+    "candidate": [[47, 89]]
+  },
+  {
+    "ref": "Marcos 3:33",
+    "book_id": 41,
+    "chapter": 3,
+    "verse": 33,
+    "web_text": "He answered them, “Who are my mother and my brothers?”",
+    "web_red": ["“Who are my mother and my brothers?”"],
+    "web_spans": [[18, 54]],
+    "rvr_text": "El les respondió diciendo: ¿Quién es mi madre y mis hermanos?",
+    "rvr_len": 61,
+    "candidate": [[27, 61]]
+  },
+  {
+    "ref": "Marcos 3:34",
+    "book_id": 41,
+    "chapter": 3,
+    "verse": 34,
+    "web_text": "Looking around at those who sat around him, he said, “Behold, my mother and my brothers!",
+    "web_red": ["“Behold, my mother and my brothers!"],
+    "web_spans": [[53, 88]],
+    "rvr_text": "Y mirando a los que estaban sentados alrededor de él, dijo: He aquí mi madre y mis hermanos.",
+    "rvr_len": 92,
+    "candidate": [[60, 92]]
+  },
+  {
+    "ref": "Marcos 4:9",
+    "book_id": 41,
+    "chapter": 4,
+    "verse": 9,
+    "web_text": "He said, “Whoever has ears to hear, let him hear.”",
+    "web_red": ["“Whoever has ears to hear, let him hear.”"],
+    "web_spans": [[9, 50]],
+    "rvr_text": "Entonces les dijo: El que tiene oídos para oír, oiga.",
+    "rvr_len": 53,
+    "candidate": [[19, 53]]
+  }
+]

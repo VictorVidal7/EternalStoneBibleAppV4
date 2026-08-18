@@ -1,0 +1,734 @@
+[
+  {
+    "ref": "Lucas 17:19",
+    "book_id": 42,
+    "chapter": 17,
+    "verse": 19,
+    "web_text": "Then he said to him, “Get up, and go your way. Your faith has healed you.”",
+    "web_red": ["“Get up, and go your way. Your faith has healed you.”"],
+    "web_spans": [[21, 74]],
+    "rvr_text": "Y le dijo: Levántate, vete; tu fe te ha salvado.",
+    "rvr_len": 48,
+    "candidate": [[11, 48]]
+  },
+  {
+    "ref": "Lucas 17:20",
+    "book_id": 42,
+    "chapter": 17,
+    "verse": 20,
+    "web_text": "Being asked by the Pharisees when God’s Kingdom would come, he answered them, “God’s Kingdom doesn’t come with observation;",
+    "web_red": ["“God’s Kingdom doesn’t come with observation;"],
+    "web_spans": [[78, 123]],
+    "rvr_text": "Preguntado por los fariseos, cuándo había de venir el reino de Dios, les respondió y dijo: El reino de Dios no vendrá con advertencia,",
+    "rvr_len": 134,
+    "candidate": [[91, 134]]
+  },
+  {
+    "ref": "Lucas 17:22",
+    "book_id": 42,
+    "chapter": 17,
+    "verse": 22,
+    "web_text": "He said to the disciples, “The days will come when you will desire to see one of the days of the Son of Man, and you will not see it.",
+    "web_red": [
+      "“The days will come when you will desire to see one of the days of the Son of Man, and you will not see it."
+    ],
+    "web_spans": [[26, 133]],
+    "rvr_text": "Y dijo a sus discípulos: Tiempo vendrá cuando desearéis ver uno de los días del Hijo del Hombre, y no lo veréis.",
+    "rvr_len": 112,
+    "candidate": [[25, 112]]
+  },
+  {
+    "ref": "Lucas 17:37",
+    "book_id": 42,
+    "chapter": 17,
+    "verse": 37,
+    "web_text": "They, answering, asked him, “Where, Lord?” He said to them, “Where the body is, there the vultures will also be gathered together.”",
+    "web_red": [
+      "“Where the body is, there the vultures will also be gathered together.”"
+    ],
+    "web_spans": [[60, 131]],
+    "rvr_text": "Y respondiendo, le dijeron: ¿Dónde, Señor? Él les dijo: Donde estuviere el cuerpo, allí se juntarán también las águilas.",
+    "rvr_len": 120,
+    "candidate": [[28, 120]]
+  },
+  {
+    "ref": "Lucas 18:2",
+    "book_id": 42,
+    "chapter": 18,
+    "verse": 2,
+    "web_text": "saying, “There was a judge in a certain city who didn’t fear God and didn’t respect man.",
+    "web_red": [
+      "“There was a judge in a certain city who didn’t fear God and didn’t respect man."
+    ],
+    "web_spans": [[8, 88]],
+    "rvr_text": "diciendo: Había en una ciudad un juez, que ni temía a Dios, ni respetaba a hombre.",
+    "rvr_len": 82,
+    "candidate": [[10, 82]]
+  },
+  {
+    "ref": "Lucas 18:6",
+    "book_id": 42,
+    "chapter": 18,
+    "verse": 6,
+    "web_text": "The Lord said, “Listen to what the unrighteous judge says.",
+    "web_red": ["“Listen to what the unrighteous judge says."],
+    "web_spans": [[15, 58]],
+    "rvr_text": "Y dijo el Señor: Oíd lo que dijo el juez injusto.",
+    "rvr_len": 49,
+    "candidate": [[17, 49]]
+  },
+  {
+    "ref": "Lucas 18:16",
+    "book_id": 42,
+    "chapter": 18,
+    "verse": 16,
+    "web_text": "Jesus summoned them, saying, “Allow the little children to come to me, and don’t hinder them, for God’s Kingdom belongs to such as these.",
+    "web_red": [
+      "“Allow the little children to come to me, and don’t hinder them, for God’s Kingdom belongs to such as these."
+    ],
+    "web_spans": [[29, 137]],
+    "rvr_text": "Mas Jesús, llamándolos, dijo: Dejad a los niños venir a mí, y no se lo impidáis; porque de los tales es el reino de Dios.",
+    "rvr_len": 121,
+    "candidate": [[30, 121]]
+  },
+  {
+    "ref": "Lucas 18:19",
+    "book_id": 42,
+    "chapter": 18,
+    "verse": 19,
+    "web_text": "Jesus asked him, “Why do you call me good? No one is good, except one: God.",
+    "web_red": ["“Why do you call me good? No one is good, except one: God."],
+    "web_spans": [[17, 75]],
+    "rvr_text": "Jesús le dijo: ¿Por qué me llamas bueno? Ninguno hay bueno, sino sólo Dios.",
+    "rvr_len": 75,
+    "candidate": [[15, 75]]
+  },
+  {
+    "ref": "Lucas 18:22",
+    "book_id": 42,
+    "chapter": 18,
+    "verse": 22,
+    "web_text": "When Jesus heard these things, he said to him, “You still lack one thing. Sell all that you have and distribute it to the poor. Then you will have treasure in heaven; then come, follow me.”",
+    "web_red": [
+      "“You still lack one thing. Sell all that you have and distribute it to the poor. Then you will have treasure in heaven; then come, follow me.”"
+    ],
+    "web_spans": [[47, 189]],
+    "rvr_text": "Jesús, oyendo esto, le dijo: Aún te falta una cosa: vende todo lo que tienes, y dalo a los pobres, y tendrás tesoro en el cielo; y ven, sígueme.",
+    "rvr_len": 144,
+    "candidate": [[29, 144]]
+  },
+  {
+    "ref": "Lucas 18:24",
+    "book_id": 42,
+    "chapter": 18,
+    "verse": 24,
+    "web_text": "Jesus, seeing that he became very sad, said, “How hard it is for those who have riches to enter into God’s Kingdom!",
+    "web_red": [
+      "“How hard it is for those who have riches to enter into God’s Kingdom!"
+    ],
+    "web_spans": [[45, 115]],
+    "rvr_text": "Al ver Jesús que se había entristecido mucho, dijo: ¡Cuán difícilmente entrarán en el reino de Dios los que tienen riquezas!",
+    "rvr_len": 124,
+    "candidate": [[52, 124]]
+  },
+  {
+    "ref": "Lucas 18:27",
+    "book_id": 42,
+    "chapter": 18,
+    "verse": 27,
+    "web_text": "But he said, “The things which are impossible with men are possible with God.”",
+    "web_red": [
+      "“The things which are impossible with men are possible with God.”"
+    ],
+    "web_spans": [[13, 78]],
+    "rvr_text": "Él les dijo: Lo que es imposible para los hombres, es posible para Dios.",
+    "rvr_len": 72,
+    "candidate": [[13, 72]]
+  },
+  {
+    "ref": "Lucas 18:29",
+    "book_id": 42,
+    "chapter": 18,
+    "verse": 29,
+    "web_text": "He said to them, “Most certainly I tell you, there is no one who has left house, or wife, or brothers, or parents, or children, for God’s Kingdom’s sake,",
+    "web_red": [
+      "“Most certainly I tell you, there is no one who has left house, or wife, or brothers, or parents, or children, for God’s Kingdom’s sake,"
+    ],
+    "web_spans": [[17, 153]],
+    "rvr_text": "Y él les dijo: De cierto os digo, que no hay nadie que haya dejado casa, o padres, o hermanos, o mujer, o hijos, por el reino de Dios,",
+    "rvr_len": 134,
+    "candidate": [[15, 134]]
+  },
+  {
+    "ref": "Lucas 18:31",
+    "book_id": 42,
+    "chapter": 18,
+    "verse": 31,
+    "web_text": "He took the twelve aside and said to them, “Behold, we are going up to Jerusalem, and all the things that are written through the prophets concerning the Son of Man will be completed.",
+    "web_red": [
+      "“Behold, we are going up to Jerusalem, and all the things that are written through the prophets concerning the Son of Man will be completed."
+    ],
+    "web_spans": [[43, 183]],
+    "rvr_text": "Tomando Jesús a los doce, les dijo: He aquí subimos a Jerusalén, y se cumplirán todas las cosas escritas por los profetas acerca del Hijo del Hombre.",
+    "rvr_len": 149,
+    "candidate": [[36, 149]]
+  },
+  {
+    "ref": "Lucas 18:41",
+    "book_id": 42,
+    "chapter": 18,
+    "verse": 41,
+    "web_text": "“What do you want me to do?” He said, “Lord, that I may see again.”",
+    "web_red": ["“What do you want me to do?”"],
+    "web_spans": [[0, 28]],
+    "rvr_text": "diciendo: ¿Qué quieres que te haga? Y él dijo: Señor, que reciba la vista.",
+    "rvr_len": 74,
+    "candidate": null
+  },
+  {
+    "ref": "Lucas 18:42",
+    "book_id": 42,
+    "chapter": 18,
+    "verse": 42,
+    "web_text": "Jesus said to him, “Receive your sight. Your faith has healed you.”",
+    "web_red": ["“Receive your sight. Your faith has healed you.”"],
+    "web_spans": [[19, 67]],
+    "rvr_text": "Jesús le dijo: Recíbela, tu fe te ha salvado.",
+    "rvr_len": 45,
+    "candidate": [[15, 45]]
+  },
+  {
+    "ref": "Lucas 19:5",
+    "book_id": 42,
+    "chapter": 19,
+    "verse": 5,
+    "web_text": "When Jesus came to the place, he looked up and saw him, and said to him, “Zacchaeus, hurry and come down, for today I must stay at your house.”",
+    "web_red": [
+      "“Zacchaeus, hurry and come down, for today I must stay at your house.”"
+    ],
+    "web_spans": [[73, 143]],
+    "rvr_text": "Cuando Jesús llegó a aquel lugar, mirando hacia arriba, le vio, y le dijo: Zaqueo, date prisa, desciende, porque hoy es necesario que pose yo en tu casa.",
+    "rvr_len": 153,
+    "candidate": [[75, 153]]
+  },
+  {
+    "ref": "Lucas 19:9",
+    "book_id": 42,
+    "chapter": 19,
+    "verse": 9,
+    "web_text": "Jesus said to him, “Today, salvation has come to this house, because he also is a son of Abraham.",
+    "web_red": [
+      "“Today, salvation has come to this house, because he also is a son of Abraham."
+    ],
+    "web_spans": [[19, 97]],
+    "rvr_text": "Jesús le dijo: Hoy ha venido la salvación a esta casa; por cuanto él también es hijo de Abraham.",
+    "rvr_len": 96,
+    "candidate": [[15, 96]]
+  },
+  {
+    "ref": "Lucas 19:12",
+    "book_id": 42,
+    "chapter": 19,
+    "verse": 12,
+    "web_text": "He said therefore, “A certain nobleman went into a far country to receive for himself a kingdom and to return.",
+    "web_red": [
+      "“A certain nobleman went into a far country to receive for himself a kingdom and to return."
+    ],
+    "web_spans": [[19, 110]],
+    "rvr_text": "Dijo, pues: Un hombre noble se fue a un país lejano, para recibir un reino y volver.",
+    "rvr_len": 84,
+    "candidate": [[12, 84]]
+  },
+  {
+    "ref": "Lucas 19:30",
+    "book_id": 42,
+    "chapter": 19,
+    "verse": 30,
+    "web_text": "saying, “Go your way into the village on the other side, in which, as you enter, you will find a colt tied, which no man has ever sat upon. Untie it and bring it.",
+    "web_red": [
+      "“Go your way into the village on the other side, in which, as you enter, you will find a colt tied, which no man has ever sat upon. Untie it and bring it."
+    ],
+    "web_spans": [[8, 162]],
+    "rvr_text": "diciendo: Id a la aldea de enfrente, y al entrar en ella hallaréis un pollino atado, en el cual ningún hombre ha montado jamás; desatadlo, y traedlo.",
+    "rvr_len": 149,
+    "candidate": [[10, 149]]
+  },
+  {
+    "ref": "Lucas 19:40",
+    "book_id": 42,
+    "chapter": 19,
+    "verse": 40,
+    "web_text": "He answered them, “I tell you that if these were silent, the stones would cry out.”",
+    "web_red": [
+      "“I tell you that if these were silent, the stones would cry out.”"
+    ],
+    "web_spans": [[18, 83]],
+    "rvr_text": "Él, respondiendo, les dijo: Os digo que si éstos callaran, las piedras clamarían.",
+    "rvr_len": 81,
+    "candidate": [[28, 81]]
+  },
+  {
+    "ref": "Lucas 19:42",
+    "book_id": 42,
+    "chapter": 19,
+    "verse": 42,
+    "web_text": "saying, “If you, even you, had known today the things which belong to your peace! But now, they are hidden from your eyes.",
+    "web_red": [
+      "“If you, even you, had known today the things which belong to your peace! But now, they are hidden from your eyes."
+    ],
+    "web_spans": [[8, 122]],
+    "rvr_text": "diciendo: ¡Oh, si también tú conocieses, a lo menos en este tu día, lo que es para tu paz! Mas ahora está encubierto de tus ojos.",
+    "rvr_len": 129,
+    "candidate": [[10, 129]]
+  },
+  {
+    "ref": "Lucas 19:46",
+    "book_id": 42,
+    "chapter": 19,
+    "verse": 46,
+    "web_text": "saying to them, “It is written, ‘My house is a house of prayer,’ but you have made it a ‘den of robbers’!”",
+    "web_red": [
+      "“It is written, ‘My house is a house of prayer,’ but you have made it a ‘den of robbers’!”"
+    ],
+    "web_spans": [[16, 106]],
+    "rvr_text": "diciéndoles: Escrito está: Mi casa es casa de oración; mas vosotros la habéis hecho cueva de ladrones.",
+    "rvr_len": 102,
+    "candidate": [[13, 102]]
+  },
+  {
+    "ref": "Lucas 20:3",
+    "book_id": 42,
+    "chapter": 20,
+    "verse": 3,
+    "web_text": "He answered them, “I also will ask you one question. Tell me:",
+    "web_red": ["“I also will ask you one question. Tell me:"],
+    "web_spans": [[18, 61]],
+    "rvr_text": "Respondiendo Jesús, les dijo: Os haré yo también una pregunta; respondedme:",
+    "rvr_len": 75,
+    "candidate": [[30, 75]]
+  },
+  {
+    "ref": "Lucas 20:8",
+    "book_id": 42,
+    "chapter": 20,
+    "verse": 8,
+    "web_text": "Jesus said to them, “Neither will I tell you by what authority I do these things.”",
+    "web_red": [
+      "“Neither will I tell you by what authority I do these things.”"
+    ],
+    "web_spans": [[20, 82]],
+    "rvr_text": "Entonces Jesús les dijo: Yo tampoco os diré con qué autoridad hago estas cosas.",
+    "rvr_len": 79,
+    "candidate": [[25, 79]]
+  },
+  {
+    "ref": "Lucas 20:9",
+    "book_id": 42,
+    "chapter": 20,
+    "verse": 9,
+    "web_text": "He began to tell the people this parable: “A man planted a vineyard and rented it out to some farmers, and went into another country for a long time.",
+    "web_red": [
+      "“A man planted a vineyard and rented it out to some farmers, and went into another country for a long time."
+    ],
+    "web_spans": [[42, 149]],
+    "rvr_text": "Comenzó luego a decir al pueblo esta parábola: Un hombre plantó una viña, la arrendó a labradores, y se ausentó por mucho tiempo.",
+    "rvr_len": 129,
+    "candidate": [[47, 129]]
+  },
+  {
+    "ref": "Lucas 20:16",
+    "book_id": 42,
+    "chapter": 20,
+    "verse": 16,
+    "web_text": "He will come and destroy these farmers, and will give the vineyard to others.” When they heard that, they said, “May that never be!”",
+    "web_red": [
+      "He will come and destroy these farmers, and will give the vineyard to others.”"
+    ],
+    "web_spans": [[0, 78]],
+    "rvr_text": "Vendrá y destruirá a estos labradores, y dará su viña a otros. Cuando ellos oyeron esto, dijeron: ¡Dios nos libre!",
+    "rvr_len": 114,
+    "candidate": null
+  },
+  {
+    "ref": "Lucas 20:17",
+    "book_id": 42,
+    "chapter": 20,
+    "verse": 17,
+    "web_text": "But he looked at them and said, “Then what is this that is written, ‘The stone which the builders rejected was made the chief cornerstone’?",
+    "web_red": [
+      "“Then what is this that is written, ‘The stone which the builders rejected was made the chief cornerstone’?"
+    ],
+    "web_spans": [[32, 139]],
+    "rvr_text": "Pero él, mirándolos, dijo: ¿Qué, pues, es lo que está escrito: La piedra que desecharon los edificadores Ha venido a ser cabeza del ángulo?",
+    "rvr_len": 139,
+    "candidate": [[27, 139]]
+  },
+  {
+    "ref": "Lucas 20:23",
+    "book_id": 42,
+    "chapter": 20,
+    "verse": 23,
+    "web_text": "But he perceived their craftiness, and said to them, “Why do you test me?",
+    "web_red": ["“Why do you test me?"],
+    "web_spans": [[53, 73]],
+    "rvr_text": "Mas él, comprendiendo la astucia de ellos, les dijo: ¿Por qué me tentáis?",
+    "rvr_len": 73,
+    "candidate": [[53, 73]]
+  },
+  {
+    "ref": "Lucas 20:24",
+    "book_id": 42,
+    "chapter": 20,
+    "verse": 24,
+    "web_text": "Show me a denarius. Whose image and inscription are on it?” They answered, “Caesar’s.”",
+    "web_red": ["Show me a denarius. Whose image and inscription are on it?”"],
+    "web_spans": [[0, 59]],
+    "rvr_text": "Mostradme la moneda. ¿De quién tiene la imagen y la inscripción? Y respondiendo dijeron: De César.",
+    "rvr_len": 98,
+    "candidate": null
+  },
+  {
+    "ref": "Lucas 20:25",
+    "book_id": 42,
+    "chapter": 20,
+    "verse": 25,
+    "web_text": "He said to them, “Then give to Caesar the things that are Caesar’s, and to God the things that are God’s.”",
+    "web_red": [
+      "“Then give to Caesar the things that are Caesar’s, and to God the things that are God’s.”"
+    ],
+    "web_spans": [[17, 106]],
+    "rvr_text": "Entonces les dijo: Pues dad a César lo que es de César, y a Dios lo que es de Dios.",
+    "rvr_len": 83,
+    "candidate": [[19, 83]]
+  },
+  {
+    "ref": "Lucas 20:34",
+    "book_id": 42,
+    "chapter": 20,
+    "verse": 34,
+    "web_text": "Jesus said to them, “The children of this age marry and are given in marriage.",
+    "web_red": ["“The children of this age marry and are given in marriage."],
+    "web_spans": [[20, 78]],
+    "rvr_text": "Entonces respondiendo Jesús, les dijo: Los hijos de este siglo se casan, y se dan en casamiento;",
+    "rvr_len": 96,
+    "candidate": [[39, 96]]
+  },
+  {
+    "ref": "Lucas 20:41",
+    "book_id": 42,
+    "chapter": 20,
+    "verse": 41,
+    "web_text": "He said to them, “Why do they say that the Christ is David’s son?",
+    "web_red": ["“Why do they say that the Christ is David’s son?"],
+    "web_spans": [[17, 65]],
+    "rvr_text": "Entonces él les dijo: ¿Cómo dicen que el Cristo es hijo de David?",
+    "rvr_len": 65,
+    "candidate": [[22, 65]]
+  },
+  {
+    "ref": "Lucas 21:3",
+    "book_id": 42,
+    "chapter": 21,
+    "verse": 3,
+    "web_text": "He said, “Truly I tell you, this poor widow put in more than all of them,",
+    "web_red": [
+      "“Truly I tell you, this poor widow put in more than all of them,"
+    ],
+    "web_spans": [[9, 73]],
+    "rvr_text": "Y dijo: En verdad os digo, que esta viuda pobre echó más que todos.",
+    "rvr_len": 67,
+    "candidate": [[8, 67]]
+  },
+  {
+    "ref": "Lucas 21:8",
+    "book_id": 42,
+    "chapter": 21,
+    "verse": 8,
+    "web_text": "He said, “Watch out that you don’t get led astray, for many will come in my name, saying, ‘I am he ,’ and, ‘The time is at hand.’ Therefore don’t follow them.",
+    "web_red": [
+      "“Watch out that you don’t get led astray, for many will come in my name, saying, ‘I am he ,’ and, ‘The time is at hand.’ Therefore don’t follow them."
+    ],
+    "web_spans": [[9, 158]],
+    "rvr_text": "Él entonces dijo: Mirad que no seáis engañados; porque vendrán muchos en mi nombre, diciendo: Yo soy el Cristo, y: El tiempo está cerca. Mas no vayáis en pos de ellos.",
+    "rvr_len": 167,
+    "candidate": [[18, 167]]
+  },
+  {
+    "ref": "Lucas 21:10",
+    "book_id": 42,
+    "chapter": 21,
+    "verse": 10,
+    "web_text": "Then he said to them, “Nation will rise against nation, and kingdom against kingdom.",
+    "web_red": [
+      "“Nation will rise against nation, and kingdom against kingdom."
+    ],
+    "web_spans": [[22, 84]],
+    "rvr_text": "Entonces les dijo: Se levantará nación contra nación, y reino contra reino;",
+    "rvr_len": 75,
+    "candidate": [[19, 75]]
+  },
+  {
+    "ref": "Lucas 21:29",
+    "book_id": 42,
+    "chapter": 21,
+    "verse": 29,
+    "web_text": "He told them a parable. “See the fig tree and all the trees.",
+    "web_red": ["“See the fig tree and all the trees."],
+    "web_spans": [[24, 60]],
+    "rvr_text": "También les dijo una parábola: Mirad la higuera y todos los árboles.",
+    "rvr_len": 68,
+    "candidate": [[31, 68]]
+  },
+  {
+    "ref": "Lucas 22:8",
+    "book_id": 42,
+    "chapter": 22,
+    "verse": 8,
+    "web_text": "Jesus sent Peter and John, saying, “Go and prepare the Passover for us, that we may eat.”",
+    "web_red": ["“Go and prepare the Passover for us, that we may eat.”"],
+    "web_spans": [[35, 89]],
+    "rvr_text": "Y Jesús envió a Pedro y a Juan, diciendo: Id, preparadnos la pascua para que la comamos.",
+    "rvr_len": 88,
+    "candidate": [[42, 88]]
+  },
+  {
+    "ref": "Lucas 22:10",
+    "book_id": 42,
+    "chapter": 22,
+    "verse": 10,
+    "web_text": "He said to them, “Behold, when you have entered into the city, a man carrying a pitcher of water will meet you. Follow him into the house which he enters.",
+    "web_red": [
+      "“Behold, when you have entered into the city, a man carrying a pitcher of water will meet you. Follow him into the house which he enters."
+    ],
+    "web_spans": [[17, 154]],
+    "rvr_text": "Él les dijo: He aquí, al entrar en la ciudad os saldrá al encuentro un hombre que lleva un cántaro de agua; seguidle hasta la casa donde entrare,",
+    "rvr_len": 145,
+    "candidate": [[13, 145]]
+  },
+  {
+    "ref": "Lucas 22:15",
+    "book_id": 42,
+    "chapter": 22,
+    "verse": 15,
+    "web_text": "He said to them, “I have earnestly desired to eat this Passover with you before I suffer,",
+    "web_red": [
+      "“I have earnestly desired to eat this Passover with you before I suffer,"
+    ],
+    "web_spans": [[17, 89]],
+    "rvr_text": "Y les dijo: ¡Cuánto he deseado comer con vosotros esta pascua antes que padezca!",
+    "rvr_len": 80,
+    "candidate": [[12, 80]]
+  },
+  {
+    "ref": "Lucas 22:17",
+    "book_id": 42,
+    "chapter": 22,
+    "verse": 17,
+    "web_text": "He received a cup, and when he had given thanks, he said, “Take this and share it among yourselves,",
+    "web_red": ["“Take this and share it among yourselves,"],
+    "web_spans": [[58, 99]],
+    "rvr_text": "Y habiendo tomado la copa, dio gracias, y dijo: Tomad esto, y repartidlo entre vosotros;",
+    "rvr_len": 88,
+    "candidate": [[48, 88]]
+  },
+  {
+    "ref": "Lucas 22:19",
+    "book_id": 42,
+    "chapter": 22,
+    "verse": 19,
+    "web_text": "He took bread, and when he had given thanks, he broke and gave it to them, saying, “This is my body which is given for you. Do this in memory of me.”",
+    "web_red": [
+      "“This is my body which is given for you. Do this in memory of me.”"
+    ],
+    "web_spans": [[83, 149]],
+    "rvr_text": "Y tomó el pan y dio gracias, y lo partió y les dio, diciendo: Esto es mi cuerpo, que por vosotros es dado; haced esto en memoria de mí.",
+    "rvr_len": 135,
+    "candidate": [[62, 135]]
+  },
+  {
+    "ref": "Lucas 22:20",
+    "book_id": 42,
+    "chapter": 22,
+    "verse": 20,
+    "web_text": "Likewise, he took the cup after supper, saying, “This cup is the new covenant in my blood, which is poured out for you.",
+    "web_red": [
+      "“This cup is the new covenant in my blood, which is poured out for you."
+    ],
+    "web_spans": [[48, 119]],
+    "rvr_text": "De igual manera, después que hubo cenado, tomó la copa, diciendo: Esta copa es el nuevo pacto en mi sangre, que por vosotros se derrama.",
+    "rvr_len": 136,
+    "candidate": [[66, 136]]
+  },
+  {
+    "ref": "Lucas 22:25",
+    "book_id": 42,
+    "chapter": 22,
+    "verse": 25,
+    "web_text": "He said to them, “The kings of the nations lord it over them, and those who have authority over them are called ‘benefactors.’",
+    "web_red": [
+      "“The kings of the nations lord it over them, and those who have authority over them are called ‘benefactors.’"
+    ],
+    "web_spans": [[17, 126]],
+    "rvr_text": "Pero él les dijo: Los reyes de las naciones se enseñorean de ellas, y los que sobre ellas tienen autoridad son llamados bienhechores;",
+    "rvr_len": 133,
+    "candidate": [[18, 133]]
+  },
+  {
+    "ref": "Lucas 22:31",
+    "book_id": 42,
+    "chapter": 22,
+    "verse": 31,
+    "web_text": "The Lord said, “Simon, Simon, behold, Satan asked to have all of you, that he might sift you as wheat,",
+    "web_red": [
+      "“Simon, Simon, behold, Satan asked to have all of you, that he might sift you as wheat,"
+    ],
+    "web_spans": [[15, 102]],
+    "rvr_text": "Dijo también el Señor: Simón, Simón, he aquí Satanás os ha pedido para zarandearos como a trigo;",
+    "rvr_len": 96,
+    "candidate": [[23, 96]]
+  },
+  {
+    "ref": "Lucas 22:34",
+    "book_id": 42,
+    "chapter": 22,
+    "verse": 34,
+    "web_text": "He said, “I tell you, Peter, the rooster will by no means crow today until you deny that you know me three times.”",
+    "web_red": [
+      "“I tell you, Peter, the rooster will by no means crow today until you deny that you know me three times.”"
+    ],
+    "web_spans": [[9, 114]],
+    "rvr_text": "Y él le dijo: Pedro, te digo que el gallo no cantará hoy antes que tú niegues tres veces que me conoces.",
+    "rvr_len": 104,
+    "candidate": [[14, 104]]
+  },
+  {
+    "ref": "Lucas 22:35",
+    "book_id": 42,
+    "chapter": 22,
+    "verse": 35,
+    "web_text": "He said to them, “When I sent you out without purse, bag, and sandals, did you lack anything?” They said, “Nothing.”",
+    "web_red": [
+      "“When I sent you out without purse, bag, and sandals, did you lack anything?”"
+    ],
+    "web_spans": [[17, 94]],
+    "rvr_text": "Y a ellos dijo: Cuando os envié sin bolsa, sin alforja, y sin calzado, ¿os faltó algo? Ellos dijeron: Nada.",
+    "rvr_len": 107,
+    "candidate": null
+  },
+  {
+    "ref": "Lucas 22:36",
+    "book_id": 42,
+    "chapter": 22,
+    "verse": 36,
+    "web_text": "Then he said to them, “But now, whoever has a purse, let him take it, and likewise a bag. Whoever has none, let him sell his cloak, and buy a sword.",
+    "web_red": [
+      "“But now, whoever has a purse, let him take it, and likewise a bag. Whoever has none, let him sell his cloak, and buy a sword."
+    ],
+    "web_spans": [[22, 148]],
+    "rvr_text": "Y les dijo: Pues ahora, el que tiene bolsa, tómela, y también la alforja; y el que no tiene espada, venda su capa y compre una.",
+    "rvr_len": 127,
+    "candidate": [[12, 127]]
+  },
+  {
+    "ref": "Lucas 22:38",
+    "book_id": 42,
+    "chapter": 22,
+    "verse": 38,
+    "web_text": "They said, “Lord, behold, here are two swords.” He said to them, “That is enough.”",
+    "web_red": ["“That is enough.”"],
+    "web_spans": [[65, 82]],
+    "rvr_text": "Entonces ellos dijeron: Señor, aquí hay dos espadas. Y él les dijo: Basta.",
+    "rvr_len": 74,
+    "candidate": [[24, 74]]
+  },
+  {
+    "ref": "Lucas 22:40",
+    "book_id": 42,
+    "chapter": 22,
+    "verse": 40,
+    "web_text": "When he was at the place, he said to them, “Pray that you don’t enter into temptation.”",
+    "web_red": ["“Pray that you don’t enter into temptation.”"],
+    "web_spans": [[43, 87]],
+    "rvr_text": "Cuando llegó a aquel lugar, les dijo: Orad que no entréis en tentación.",
+    "rvr_len": 71,
+    "candidate": [[38, 71]]
+  },
+  {
+    "ref": "Lucas 22:42",
+    "book_id": 42,
+    "chapter": 22,
+    "verse": 42,
+    "web_text": "saying, “Father, if you are willing, remove this cup from me. Nevertheless, not my will, but yours, be done.”",
+    "web_red": [
+      "“Father, if you are willing, remove this cup from me. Nevertheless, not my will, but yours, be done.”"
+    ],
+    "web_spans": [[8, 109]],
+    "rvr_text": "diciendo: Padre, si quieres, pasa de mí esta copa; pero no se haga mi voluntad, sino la tuya.",
+    "rvr_len": 93,
+    "candidate": [[10, 93]]
+  },
+  {
+    "ref": "Lucas 22:46",
+    "book_id": 42,
+    "chapter": 22,
+    "verse": 46,
+    "web_text": "and said to them, “Why do you sleep? Rise and pray that you may not enter into temptation.”",
+    "web_red": [
+      "“Why do you sleep? Rise and pray that you may not enter into temptation.”"
+    ],
+    "web_spans": [[18, 91]],
+    "rvr_text": "y les dijo: ¿Por qué dormís? Levantaos, y orad para que no entréis en tentación.",
+    "rvr_len": 80,
+    "candidate": [[12, 80]]
+  },
+  {
+    "ref": "Lucas 22:48",
+    "book_id": 42,
+    "chapter": 22,
+    "verse": 48,
+    "web_text": "But Jesus said to him, “Judas, do you betray the Son of Man with a kiss?”",
+    "web_red": ["“Judas, do you betray the Son of Man with a kiss?”"],
+    "web_spans": [[23, 73]],
+    "rvr_text": "Entonces Jesús le dijo: Judas, ¿con un beso entregas al Hijo del Hombre?",
+    "rvr_len": 72,
+    "candidate": [[24, 72]]
+  },
+  {
+    "ref": "Lucas 22:51",
+    "book_id": 42,
+    "chapter": 22,
+    "verse": 51,
+    "web_text": "But Jesus answered, “Let me at least do this”—and he touched his ear and healed him.",
+    "web_red": ["“Let me at least do this”"],
+    "web_spans": [[20, 45]],
+    "rvr_text": "Entonces respondiendo Jesús, dijo: Basta ya; dejad. Y tocando su oreja, le sanó.",
+    "rvr_len": 80,
+    "candidate": null
+  },
+  {
+    "ref": "Lucas 22:52",
+    "book_id": 42,
+    "chapter": 22,
+    "verse": 52,
+    "web_text": "Jesus said to the chief priests, captains of the temple, and elders, who had come against him, “Have you come out as against a robber, with swords and clubs?",
+    "web_red": [
+      "“Have you come out as against a robber, with swords and clubs?"
+    ],
+    "web_spans": [[95, 157]],
+    "rvr_text": "Y Jesús dijo a los principales sacerdotes, a los jefes de la guardia del templo y a los ancianos, que habían venido contra él: ¿Como contra un ladrón habéis salido con espadas y palos?",
+    "rvr_len": 184,
+    "candidate": [[127, 184]]
+  },
+  {
+    "ref": "Lucas 22:61",
+    "book_id": 42,
+    "chapter": 22,
+    "verse": 61,
+    "web_text": "The Lord turned and looked at Peter. Then Peter remembered the Lord’s word, how he said to him, “Before the rooster crows you will deny me three times.”",
+    "web_red": ["“Before the rooster crows you will deny me three times.”"],
+    "web_spans": [[96, 152]],
+    "rvr_text": "Entonces, vuelto el Señor, miró a Pedro; y Pedro se acordó de la palabra del Señor, que le había dicho: Antes que el gallo cante, me negarás tres veces.",
+    "rvr_len": 152,
+    "candidate": [[104, 152]]
+  }
+]

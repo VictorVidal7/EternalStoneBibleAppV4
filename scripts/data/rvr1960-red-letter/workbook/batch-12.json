@@ -1,0 +1,663 @@
+[
+  {
+    "ref": "Juan 20:17",
+    "book_id": 43,
+    "chapter": 20,
+    "verse": 17,
+    "web_text": "Jesus said to her, “Don’t hold me, for I haven’t yet ascended to my Father; but go to my brothers and tell them, ‘I am ascending to my Father and your Father, to my God and your God.’”",
+    "web_red": [
+      "“Don’t hold me, for I haven’t yet ascended to my Father; but go to my brothers and tell them, ‘I am ascending to my Father and your Father, to my God and your God.’”"
+    ],
+    "web_spans": [[19, 184]],
+    "rvr_text": "Jesús le dijo: No me toques, porque aún no he subido a mi Padre; mas ve a mis hermanos, y diles: Subo a mi Padre y a vuestro Padre, a mi Dios y a vuestro Dios.",
+    "rvr_len": 159,
+    "candidate": [[15, 159]]
+  },
+  {
+    "ref": "Juan 20:19",
+    "book_id": 43,
+    "chapter": 20,
+    "verse": 19,
+    "web_text": "When therefore it was evening on that day, the first day of the week, and when the doors were locked where the disciples were assembled, for fear of the Jews, Jesus came and stood in the middle and said to them, “Peace be to you.”",
+    "web_red": ["“Peace be to you.”"],
+    "web_spans": [[212, 230]],
+    "rvr_text": "Cuando llegó la noche de aquel mismo día, el primero de la semana, estando las puertas cerradas en el lugar donde los discípulos estaban reunidos por miedo de los judíos, vino Jesús, y puesto en medio, les dijo: Paz a vosotros.",
+    "rvr_len": 227,
+    "candidate": [[212, 227]]
+  },
+  {
+    "ref": "Juan 20:21",
+    "book_id": 43,
+    "chapter": 20,
+    "verse": 21,
+    "web_text": "Jesus therefore said to them again, “Peace be to you. As the Father has sent me, even so I send you.”",
+    "web_red": [
+      "“Peace be to you. As the Father has sent me, even so I send you.”"
+    ],
+    "web_spans": [[36, 101]],
+    "rvr_text": "Entonces Jesús les dijo otra vez: Paz a vosotros. Como me envió el Padre, así también yo os envío.",
+    "rvr_len": 98,
+    "candidate": [[34, 98]]
+  },
+  {
+    "ref": "Juan 20:22",
+    "book_id": 43,
+    "chapter": 20,
+    "verse": 22,
+    "web_text": "When he had said this, he breathed on them, and said to them, “Receive the Holy Spirit!",
+    "web_red": ["“Receive the Holy Spirit!"],
+    "web_spans": [[62, 87]],
+    "rvr_text": "Y habiendo dicho esto, sopló, y les dijo: Recibid el Espíritu Santo.",
+    "rvr_len": 68,
+    "candidate": [[42, 68]]
+  },
+  {
+    "ref": "Juan 20:26",
+    "book_id": 43,
+    "chapter": 20,
+    "verse": 26,
+    "web_text": "After eight days, again his disciples were inside and Thomas was with them. Jesus came, the doors being locked, and stood in the middle, and said, “Peace be to you.”",
+    "web_red": ["“Peace be to you.”"],
+    "web_spans": [[147, 165]],
+    "rvr_text": "Ocho días después, estaban otra vez sus discípulos dentro, y con ellos Tomás. Llegó Jesús, estando las puertas cerradas, y se puso en medio y les dijo: Paz a vosotros.",
+    "rvr_len": 167,
+    "candidate": [[152, 167]]
+  },
+  {
+    "ref": "Juan 20:27",
+    "book_id": 43,
+    "chapter": 20,
+    "verse": 27,
+    "web_text": "Then he said to Thomas, “Reach here your finger, and see my hands. Reach here your hand, and put it into my side. Don’t be unbelieving, but believing.”",
+    "web_red": [
+      "“Reach here your finger, and see my hands. Reach here your hand, and put it into my side. Don’t be unbelieving, but believing.”"
+    ],
+    "web_spans": [[24, 151]],
+    "rvr_text": "Luego dijo a Tomás: Pon aquí tu dedo, y mira mis manos; y acerca tu mano, y métela en mi costado; y no seas incrédulo, sino creyente.",
+    "rvr_len": 133,
+    "candidate": [[20, 133]]
+  },
+  {
+    "ref": "Juan 20:29",
+    "book_id": 43,
+    "chapter": 20,
+    "verse": 29,
+    "web_text": "Jesus said to him, “Because you have seen me, you have believed. Blessed are those who have not seen and have believed.”",
+    "web_red": [
+      "“Because you have seen me, you have believed. Blessed are those who have not seen and have believed.”"
+    ],
+    "web_spans": [[19, 120]],
+    "rvr_text": "Jesús le dijo: Porque me has visto, Tomás, creíste; bienaventurados los que no vieron, y creyeron.",
+    "rvr_len": 98,
+    "candidate": [[15, 98]]
+  },
+  {
+    "ref": "Juan 21:5",
+    "book_id": 43,
+    "chapter": 21,
+    "verse": 5,
+    "web_text": "Jesus therefore said to them, “Children, have you anything to eat?” They answered him, “No.”",
+    "web_red": ["“Children, have you anything to eat?”"],
+    "web_spans": [[30, 67]],
+    "rvr_text": "Y les dijo: Hijitos, ¿tenéis algo de comer? Le respondieron: No.",
+    "rvr_len": 64,
+    "candidate": null
+  },
+  {
+    "ref": "Juan 21:6",
+    "book_id": 43,
+    "chapter": 21,
+    "verse": 6,
+    "web_text": "He said to them, “Cast the net on the right side of the boat, and you will find some.” They cast it therefore, and now they weren’t able to draw it in for the multitude of fish.",
+    "web_red": [
+      "“Cast the net on the right side of the boat, and you will find some.”"
+    ],
+    "web_spans": [[17, 86]],
+    "rvr_text": "El les dijo: Echad la red a la derecha de la barca, y hallaréis. Entonces la echaron, y ya no la podían sacar, por la gran cantidad de peces.",
+    "rvr_len": 141,
+    "candidate": null
+  },
+  {
+    "ref": "Juan 21:10",
+    "book_id": 43,
+    "chapter": 21,
+    "verse": 10,
+    "web_text": "Jesus said to them, “Bring some of the fish which you have just caught.”",
+    "web_red": ["“Bring some of the fish which you have just caught.”"],
+    "web_spans": [[20, 72]],
+    "rvr_text": "Jesús les dijo: Traed de los peces que acabáis de pescar.",
+    "rvr_len": 57,
+    "candidate": [[16, 57]]
+  },
+  {
+    "ref": "Juan 21:12",
+    "book_id": 43,
+    "chapter": 21,
+    "verse": 12,
+    "web_text": "Jesus said to them, “Come and eat breakfast!” None of the disciples dared inquire of him, “Who are you?” knowing that it was the Lord.",
+    "web_red": ["“Come and eat breakfast!”"],
+    "web_spans": [[20, 45]],
+    "rvr_text": "Les dijo Jesús: Venid, comed. Y ninguno de los discípulos se atrevía a preguntarle: ¿Tú, quién eres? sabiendo que era el Señor.",
+    "rvr_len": 127,
+    "candidate": null
+  },
+  {
+    "ref": "Juan 21:15",
+    "book_id": 43,
+    "chapter": 21,
+    "verse": 15,
+    "web_text": "So when they had eaten their breakfast, Jesus said to Simon Peter, “Simon, son of Jonah, do you love me more than these?” He said to him, “Yes, Lord; you know that I have affection for you.” He said to him, “Feed my lambs.”",
+    "web_red": [
+      "“Simon, son of Jonah, do you love me more than these?”",
+      "“Feed my lambs.”"
+    ],
+    "web_spans": [
+      [67, 121],
+      [207, 223]
+    ],
+    "rvr_text": "Cuando hubieron comido, Jesús dijo a Simón Pedro: Simón, hijo de Jonás, ¿me amas más que éstos? Le respondió: Sí, Señor; tú sabes que te amo. El le dijo: Apacienta mis corderos.",
+    "rvr_len": 177,
+    "candidate": null
+  },
+  {
+    "ref": "Juan 21:16",
+    "book_id": 43,
+    "chapter": 21,
+    "verse": 16,
+    "web_text": "He said to him again a second time, “Simon, son of Jonah, do you love me?” He said to him, “Yes, Lord; you know that I have affection for you.” He said to him, “Tend my sheep.”",
+    "web_red": ["“Simon, son of Jonah, do you love me?”", "“Tend my sheep.”"],
+    "web_spans": [
+      [36, 74],
+      [160, 176]
+    ],
+    "rvr_text": "Volvió a decirle la segunda vez: Simón, hijo de Jonás, ¿me amas? Pedro le respondió: Sí, Señor; tú sabes que te amo. Le dijo: Pastorea mis ovejas.",
+    "rvr_len": 146,
+    "candidate": null
+  },
+  {
+    "ref": "Juan 21:17",
+    "book_id": 43,
+    "chapter": 21,
+    "verse": 17,
+    "web_text": "He said to him the third time, “Simon, son of Jonah, do you have affection for me?” Peter was grieved because he asked him the third time, “Do you have affection for me?” He said to him, “Lord, you know everything. You know that I have affection for you.” Jesus said to him, “Feed my sheep.",
+    "web_red": [
+      "“Simon, son of Jonah, do you have affection for me?”",
+      "“Do you have affection for me?”",
+      "“Feed my sheep."
+    ],
+    "web_spans": [
+      [31, 83],
+      [139, 170],
+      [275, 290]
+    ],
+    "rvr_text": "Le dijo la tercera vez: Simón, hijo de Jonás, ¿me amas? Pedro se entristeció de que le dijese la tercera vez: ¿Me amas? y le respondió: Señor, tú lo sabes todo; tú sabes que te amo. Jesús le dijo: Apacienta mis ovejas.",
+    "rvr_len": 218,
+    "candidate": null
+  },
+  {
+    "ref": "Juan 21:19",
+    "book_id": 43,
+    "chapter": 21,
+    "verse": 19,
+    "web_text": "Now he said this, signifying by what kind of death he would glorify God. When he had said this, he said to him, “Follow me.”",
+    "web_red": ["“Follow me.”"],
+    "web_spans": [[112, 124]],
+    "rvr_text": "Esto dijo, dando a entender con qué muerte había de glorificar a Dios. Y dicho esto, añadió: Sígueme.",
+    "rvr_len": 101,
+    "candidate": [[93, 101]]
+  },
+  {
+    "ref": "Juan 21:22",
+    "book_id": 43,
+    "chapter": 21,
+    "verse": 22,
+    "web_text": "Jesus said to him, “If I desire that he stay until I come, what is that to you? You follow me.”",
+    "web_red": [
+      "“If I desire that he stay until I come, what is that to you? You follow me.”"
+    ],
+    "web_spans": [[19, 95]],
+    "rvr_text": "Jesús le dijo: Si quiero que él quede hasta que yo venga, ¿qué a ti? Sígueme tú.",
+    "rvr_len": 80,
+    "candidate": [[15, 80]]
+  },
+  {
+    "ref": "Juan 21:23",
+    "book_id": 43,
+    "chapter": 21,
+    "verse": 23,
+    "web_text": "This saying therefore went out among the brothers that this disciple wouldn’t die. Yet Jesus didn’t say to him that he wouldn’t die, but, “If I desire that he stay until I come, what is that to you?”",
+    "web_red": [
+      "“If I desire that he stay until I come, what is that to you?”"
+    ],
+    "web_spans": [[138, 199]],
+    "rvr_text": "Este dicho se extendió entonces entre los hermanos, que aquel discípulo no moriría. Pero Jesús no le dijo que no moriría, sino: Si quiero que él quede hasta que yo venga, ¿qué a ti?",
+    "rvr_len": 181,
+    "candidate": [[128, 181]]
+  },
+  {
+    "ref": "Hechos 1:4",
+    "book_id": 44,
+    "chapter": 1,
+    "verse": 4,
+    "web_text": "Being assembled together with them, he commanded them, “Don’t depart from Jerusalem, but wait for the promise of the Father, which you heard from me.",
+    "web_red": [
+      "“Don’t depart from Jerusalem, but wait for the promise of the Father, which you heard from me."
+    ],
+    "web_spans": [[55, 149]],
+    "rvr_text": "Y estando juntos, les mandó que no se fueran de Jerusalén, sino que esperasen la promesa del Padre, la cual, les dijo, oísteis de mí.",
+    "rvr_len": 133,
+    "candidate": null
+  },
+  {
+    "ref": "Hechos 1:7",
+    "book_id": 44,
+    "chapter": 1,
+    "verse": 7,
+    "web_text": "He said to them, “It isn’t for you to know times or seasons which the Father has set within his own authority.",
+    "web_red": [
+      "“It isn’t for you to know times or seasons which the Father has set within his own authority."
+    ],
+    "web_spans": [[17, 110]],
+    "rvr_text": "Y les dijo: No os toca a vosotros saber los tiempos o las sazones, que el Padre puso en su sola potestad;",
+    "rvr_len": 105,
+    "candidate": [[12, 105]]
+  },
+  {
+    "ref": "Hechos 9:4",
+    "book_id": 44,
+    "chapter": 9,
+    "verse": 4,
+    "web_text": "He fell on the earth, and heard a voice saying to him, “Saul, Saul, why do you persecute me?”",
+    "web_red": ["“Saul, Saul, why do you persecute me?”"],
+    "web_spans": [[55, 93]],
+    "rvr_text": "y cayendo en tierra, oyó una voz que le decía: Saulo, Saulo, ¿por qué me persigues?",
+    "rvr_len": 83,
+    "candidate": [[47, 83]]
+  },
+  {
+    "ref": "Hechos 9:5",
+    "book_id": 44,
+    "chapter": 9,
+    "verse": 5,
+    "web_text": "He said, “Who are you, Lord?” The Lord said, “I am Jesus, whom you are persecuting.",
+    "web_red": ["“I am Jesus, whom you are persecuting."],
+    "web_spans": [[45, 83]],
+    "rvr_text": "El dijo: ¿Quién eres, Señor? Y le dijo: Yo soy Jesús, a quien tú persigues; dura cosa te es dar coces contra el aguijón.",
+    "rvr_len": 120,
+    "candidate": [[9, 120]]
+  },
+  {
+    "ref": "Hechos 9:10",
+    "book_id": 44,
+    "chapter": 9,
+    "verse": 10,
+    "web_text": "Now there was a certain disciple at Damascus named Ananias. The Lord said to him in a vision, “Ananias!” He said, “Behold, it’s me, Lord.”",
+    "web_red": ["“Ananias!”"],
+    "web_spans": [[94, 104]],
+    "rvr_text": "Había entonces en Damasco un discípulo llamado Ananías, a quien el Señor dijo en visión: Ananías. Y él respondió: Heme aquí, Señor.",
+    "rvr_len": 131,
+    "candidate": null
+  },
+  {
+    "ref": "Hechos 9:11",
+    "book_id": 44,
+    "chapter": 9,
+    "verse": 11,
+    "web_text": "The Lord said to him, “Arise and go to the street which is called Straight, and inquire in the house of Judah for one named Saul, a man of Tarsus. For behold, he is praying,",
+    "web_red": [
+      "“Arise and go to the street which is called Straight, and inquire in the house of Judah for one named Saul, a man of Tarsus. For behold, he is praying,"
+    ],
+    "web_spans": [[22, 173]],
+    "rvr_text": "Y el Señor le dijo: Levántate, y ve a la calle que se llama Derecha, y busca en casa de Judas a uno llamado Saulo, de Tarso; porque he aquí, él ora,",
+    "rvr_len": 148,
+    "candidate": [[20, 148]]
+  },
+  {
+    "ref": "Hechos 9:15",
+    "book_id": 44,
+    "chapter": 9,
+    "verse": 15,
+    "web_text": "But the Lord said to him, “Go your way, for he is my chosen vessel to bear my name before the nations and kings, and the children of Israel.",
+    "web_red": [
+      "“Go your way, for he is my chosen vessel to bear my name before the nations and kings, and the children of Israel."
+    ],
+    "web_spans": [[26, 140]],
+    "rvr_text": "El Señor le dijo: Ve, porque instrumento escogido me es éste, para llevar mi nombre en presencia de los gentiles, y de reyes, y de los hijos de Israel;",
+    "rvr_len": 151,
+    "candidate": [[18, 151]]
+  },
+  {
+    "ref": "Hechos 10:13",
+    "book_id": 44,
+    "chapter": 10,
+    "verse": 13,
+    "web_text": "A voice came to him, “Rise, Peter, kill and eat!”",
+    "web_red": ["“Rise, Peter, kill and eat!”"],
+    "web_spans": [[21, 49]],
+    "rvr_text": "Y le vino una voz: Levántate, Pedro, mata y come.",
+    "rvr_len": 49,
+    "candidate": [[19, 49]]
+  },
+  {
+    "ref": "Hechos 10:15",
+    "book_id": 44,
+    "chapter": 10,
+    "verse": 15,
+    "web_text": "A voice came to him again the second time, “What God has cleansed, you must not call unclean.”",
+    "web_red": ["“What God has cleansed, you must not call unclean.”"],
+    "web_spans": [[43, 94]],
+    "rvr_text": "Volvió la voz a él la segunda vez: Lo que Dios limpió, no lo llames tú común.",
+    "rvr_len": 77,
+    "candidate": [[35, 77]]
+  },
+  {
+    "ref": "Hechos 11:7",
+    "book_id": 44,
+    "chapter": 11,
+    "verse": 7,
+    "web_text": "I also heard a voice saying to me, ‘Rise, Peter, kill and eat!’",
+    "web_red": ["‘Rise, Peter, kill and eat!’"],
+    "web_spans": [[35, 63]],
+    "rvr_text": "Y oí una voz que me decía: Levántate, Pedro, mata y come.",
+    "rvr_len": 57,
+    "candidate": [[27, 57]]
+  },
+  {
+    "ref": "Hechos 11:9",
+    "book_id": 44,
+    "chapter": 11,
+    "verse": 9,
+    "web_text": "But a voice answered me the second time out of heaven, ‘What God has cleansed, don’t you call unclean.’",
+    "web_red": ["‘What God has cleansed, don’t you call unclean.’"],
+    "web_spans": [[55, 103]],
+    "rvr_text": "Entonces la voz me respondió del cielo por segunda vez: Lo que Dios limpió, no lo llames tú común.",
+    "rvr_len": 98,
+    "candidate": [[56, 98]]
+  },
+  {
+    "ref": "Hechos 11:16",
+    "book_id": 44,
+    "chapter": 11,
+    "verse": 16,
+    "web_text": "I remembered the word of the Lord, how he said, ‘John indeed baptized in water, but you will be baptized in the Holy Spirit.’",
+    "web_red": [
+      "‘John indeed baptized in water, but you will be baptized in the Holy Spirit.’"
+    ],
+    "web_spans": [[48, 125]],
+    "rvr_text": "Entonces me acordé de lo dicho por el Señor, cuando dijo: Juan ciertamente bautizó en agua, mas vosotros seréis bautizados con el Espíritu Santo.",
+    "rvr_len": 145,
+    "candidate": [[58, 145]]
+  },
+  {
+    "ref": "Hechos 18:9",
+    "book_id": 44,
+    "chapter": 18,
+    "verse": 9,
+    "web_text": "The Lord said to Paul in the night by a vision, “Don’t be afraid, but speak and don’t be silent;",
+    "web_red": ["“Don’t be afraid, but speak and don’t be silent;"],
+    "web_spans": [[48, 96]],
+    "rvr_text": "Entonces el Señor dijo a Pablo en visión de noche: No temas, sino habla, y no calles;",
+    "rvr_len": 85,
+    "candidate": [[51, 85]]
+  },
+  {
+    "ref": "Hechos 20:35",
+    "book_id": 44,
+    "chapter": 20,
+    "verse": 35,
+    "web_text": "In all things I gave you an example, that so laboring you ought to help the weak, and to remember the words of the Lord Jesus, that he himself said, ‘It is more blessed to give than to receive.’ ”",
+    "web_red": ["‘It is more blessed to give than to receive.’"],
+    "web_spans": [[149, 194]],
+    "rvr_text": "En todo os he enseñado que, trabajando así, se debe ayudar a los necesitados, y recordar las palabras del Señor Jesús, que dijo: Más bienaventurado es dar que recibir.",
+    "rvr_len": 167,
+    "candidate": null
+  },
+  {
+    "ref": "Hechos 22:7",
+    "book_id": 44,
+    "chapter": 22,
+    "verse": 7,
+    "web_text": "I fell to the ground and heard a voice saying to me, ‘Saul, Saul, why are you persecuting me?’",
+    "web_red": ["‘Saul, Saul, why are you persecuting me?’"],
+    "web_spans": [[53, 94]],
+    "rvr_text": "y caí al suelo, y oí una voz que me decía: Saulo, Saulo, ¿por qué me persigues?",
+    "rvr_len": 79,
+    "candidate": [[43, 79]]
+  },
+  {
+    "ref": "Hechos 22:8",
+    "book_id": 44,
+    "chapter": 22,
+    "verse": 8,
+    "web_text": "I answered, ‘Who are you, Lord?’ He said to me, ‘I am Jesus of Nazareth, whom you persecute.’",
+    "web_red": ["‘I am Jesus of Nazareth, whom you persecute.’"],
+    "web_spans": [[48, 93]],
+    "rvr_text": "Yo entonces respondí: ¿Quién eres, Señor? Y me dijo: Yo soy Jesús de Nazaret, a quien tú persigues.",
+    "rvr_len": 99,
+    "candidate": [[22, 99]]
+  },
+  {
+    "ref": "Hechos 22:10",
+    "book_id": 44,
+    "chapter": 22,
+    "verse": 10,
+    "web_text": "I said, ‘What shall I do, Lord?’ The Lord said to me, ‘Arise, and go into Damascus. There you will be told about all things which are appointed for you to do.’",
+    "web_red": [
+      "‘Arise, and go into Damascus. There you will be told about all things which are appointed for you to do.’"
+    ],
+    "web_spans": [[54, 159]],
+    "rvr_text": "Y dije: ¿Qué haré, Señor? Y el Señor me dijo: Levántate, y ve a Damasco, y allí se te dirá todo lo que está ordenado que hagas.",
+    "rvr_len": 127,
+    "candidate": [[8, 127]]
+  },
+  {
+    "ref": "Hechos 22:18",
+    "book_id": 44,
+    "chapter": 22,
+    "verse": 18,
+    "web_text": "and saw him saying to me, ‘Hurry and get out of Jerusalem quickly, because they will not receive testimony concerning me from you.’",
+    "web_red": [
+      "‘Hurry and get out of Jerusalem quickly, because they will not receive testimony concerning me from you.’"
+    ],
+    "web_spans": [[26, 131]],
+    "rvr_text": "Y le vi que me decía: Date prisa, y sal prontamente de Jerusalén; porque no recibirán tu testimonio acerca de mí.",
+    "rvr_len": 113,
+    "candidate": [[22, 113]]
+  },
+  {
+    "ref": "Hechos 22:21",
+    "book_id": 44,
+    "chapter": 22,
+    "verse": 21,
+    "web_text": "“He said to me, ‘Depart, for I will send you out far from here to the Gentiles.’ ”",
+    "web_red": [
+      "‘Depart, for I will send you out far from here to the Gentiles.’"
+    ],
+    "web_spans": [[16, 80]],
+    "rvr_text": "Pero me dijo: Ve, porque yo te enviaré lejos a los gentiles.",
+    "rvr_len": 60,
+    "candidate": null
+  },
+  {
+    "ref": "Hechos 23:11",
+    "book_id": 44,
+    "chapter": 23,
+    "verse": 11,
+    "web_text": "The following night, the Lord stood by him and said, “Cheer up, Paul, for as you have testified about me at Jerusalem, so you must testify also at Rome.”",
+    "web_red": [
+      "“Cheer up, Paul, for as you have testified about me at Jerusalem, so you must testify also at Rome.”"
+    ],
+    "web_spans": [[53, 153]],
+    "rvr_text": "A la noche siguiente se le presentó el Señor y le dijo: Ten ánimo, Pablo, pues como has testificado de mí en Jerusalén, así es necesario que testifiques también en Roma.",
+    "rvr_len": 169,
+    "candidate": [[56, 169]]
+  },
+  {
+    "ref": "Hechos 26:14",
+    "book_id": 44,
+    "chapter": 26,
+    "verse": 14,
+    "web_text": "When we had all fallen to the earth, I heard a voice saying to me in the Hebrew language, ‘Saul, Saul, why are you persecuting me? It is hard for you to kick against the goads.’",
+    "web_red": [
+      "‘Saul, Saul, why are you persecuting me? It is hard for you to kick against the goads.’"
+    ],
+    "web_spans": [[90, 177]],
+    "rvr_text": "Y habiendo caído todos nosotros en tierra, oí una voz que me hablaba, y decía en lengua hebrea: Saulo, Saulo, ¿por qué me persigues? Dura cosa te es dar coces contra el aguijón.",
+    "rvr_len": 177,
+    "candidate": [[96, 177]]
+  },
+  {
+    "ref": "Hechos 26:15",
+    "book_id": 44,
+    "chapter": 26,
+    "verse": 15,
+    "web_text": "“I said, ‘Who are you, Lord?’ “He said, ‘I am Jesus, whom you are persecuting.",
+    "web_red": ["‘I am Jesus, whom you are persecuting."],
+    "web_spans": [[40, 78]],
+    "rvr_text": "Yo entonces dije: ¿Quién eres, Señor? Y el Señor dijo: Yo soy Jesús, a quien tú persigues.",
+    "rvr_len": 90,
+    "candidate": [[18, 90]]
+  },
+  {
+    "ref": "1 Corintios 11:24",
+    "book_id": 46,
+    "chapter": 11,
+    "verse": 24,
+    "web_text": "When he had given thanks, he broke it and said, “Take, eat. This is my body, which is broken for you. Do this in memory of me.”",
+    "web_red": [
+      "“Take, eat. This is my body, which is broken for you. Do this in memory of me.”"
+    ],
+    "web_spans": [[48, 127]],
+    "rvr_text": "y habiendo dado gracias, lo partió, y dijo: Tomad, comed; esto es mi cuerpo que por vosotros es partido; haced esto en memoria de mí.",
+    "rvr_len": 133,
+    "candidate": [[44, 133]]
+  },
+  {
+    "ref": "1 Corintios 11:25",
+    "book_id": 46,
+    "chapter": 11,
+    "verse": 25,
+    "web_text": "In the same way he also took the cup after supper, saying, “This cup is the new covenant in my blood. Do this, as often as you drink, in memory of me.”",
+    "web_red": [
+      "“This cup is the new covenant in my blood. Do this, as often as you drink, in memory of me.”"
+    ],
+    "web_spans": [[59, 151]],
+    "rvr_text": "Asimismo tomó también la copa, después de haber cenado, diciendo: Esta copa es el nuevo pacto en mi sangre; haced esto todas las veces que la bebiereis, en memoria de mí.",
+    "rvr_len": 170,
+    "candidate": [[66, 170]]
+  },
+  {
+    "ref": "2 Corintios 12:9",
+    "book_id": 47,
+    "chapter": 12,
+    "verse": 9,
+    "web_text": "He has said to me, “My grace is sufficient for you, for my power is made perfect in weakness.” Most gladly therefore I will rather glory in my weaknesses, that the power of Christ may rest on me.",
+    "web_red": [
+      "“My grace is sufficient for you, for my power is made perfect in weakness.”"
+    ],
+    "web_spans": [[19, 94]],
+    "rvr_text": "Y me ha dicho: Bástate mi gracia; porque mi poder se perfecciona en la debilidad. Por tanto, de buena gana me gloriaré más bien en mis debilidades, para que repose sobre mí el poder de Cristo.",
+    "rvr_len": 192,
+    "candidate": null
+  },
+  {
+    "ref": "1 Timoteo 5:18",
+    "book_id": 54,
+    "chapter": 5,
+    "verse": 18,
+    "web_text": "For the Scripture says, “You shall not muzzle the ox when it treads out the grain.” And, “The laborer is worthy of his wages.”",
+    "web_red": ["“The laborer is worthy of his wages.”"],
+    "web_spans": [[89, 126]],
+    "rvr_text": "Pues la Escritura dice: No pondrás bozal al buey que trilla; y: Digno es el obrero de su salario.",
+    "rvr_len": 97,
+    "candidate": [[24, 97]]
+  },
+  {
+    "ref": "Apocalipsis 1:8",
+    "book_id": 66,
+    "chapter": 1,
+    "verse": 8,
+    "web_text": "“I am the Alpha and the Omega, ” says the Lord God, “who is and who was and who is to come, the Almighty.”",
+    "web_red": [
+      "“I am the Alpha and the Omega, ”",
+      "“who is and who was and who is to come, the Almighty.”"
+    ],
+    "web_spans": [
+      [0, 32],
+      [52, 106]
+    ],
+    "rvr_text": "Yo soy el Alfa y la Omega, principio y fin, dice el Señor, el que es y que era y que ha de venir, el Todopoderoso.",
+    "rvr_len": 114,
+    "candidate": null
+  },
+  {
+    "ref": "Apocalipsis 1:11",
+    "book_id": 66,
+    "chapter": 1,
+    "verse": 11,
+    "web_text": "saying, “What you see, write in a book and send to the seven assemblies: to Ephesus, Smyrna, Pergamum, Thyatira, Sardis, Philadelphia, and to Laodicea.”",
+    "web_red": [
+      "“What you see, write in a book and send to the seven assemblies: to Ephesus, Smyrna, Pergamum, Thyatira, Sardis, Philadelphia, and to Laodicea.”"
+    ],
+    "web_spans": [[8, 152]],
+    "rvr_text": "que decía: Yo soy el Alfa y la Omega, el primero y el último. Escribe en un libro lo que ves, y envíalo a las siete iglesias que están en Asia: a Efeso, Esmirna, Pérgamo, Tiatira, Sardis, Filadelfia y Laodicea.",
+    "rvr_len": 210,
+    "candidate": [[11, 210]]
+  },
+  {
+    "ref": "Apocalipsis 1:17",
+    "book_id": 66,
+    "chapter": 1,
+    "verse": 17,
+    "web_text": "When I saw him, I fell at his feet like a dead man. He laid his right hand on me, saying, “Don’t be afraid. I am the first and the last,",
+    "web_red": ["“Don’t be afraid. I am the first and the last,"],
+    "web_spans": [[90, 136]],
+    "rvr_text": "Cuando le vi, caí como muerto a sus pies. Y él puso su diestra sobre mí, diciéndome: No temas; yo soy el primero y el último;",
+    "rvr_len": 125,
+    "candidate": [[85, 125]]
+  },
+  {
+    "ref": "Apocalipsis 21:5",
+    "book_id": 66,
+    "chapter": 21,
+    "verse": 5,
+    "web_text": "He who sits on the throne said, “Behold, I am making all things new.” He said, “Write, for these words of God are faithful and true.”",
+    "web_red": [
+      "“Behold, I am making all things new.”",
+      "“Write, for these words of God are faithful and true.”"
+    ],
+    "web_spans": [
+      [32, 69],
+      [79, 133]
+    ],
+    "rvr_text": "Y el que estaba sentado en el trono dijo: He aquí, yo hago nuevas todas las cosas. Y me dijo: Escribe; porque estas palabras son fieles y verdaderas.",
+    "rvr_len": 149,
+    "candidate": null
+  },
+  {
+    "ref": "Apocalipsis 21:6",
+    "book_id": 66,
+    "chapter": 21,
+    "verse": 6,
+    "web_text": "He said to me, “I am the Alpha and the Omega, the Beginning and the End. I will give freely to him who is thirsty from the spring of the water of life.",
+    "web_red": [
+      "“I am the Alpha and the Omega, the Beginning and the End. I will give freely to him who is thirsty from the spring of the water of life."
+    ],
+    "web_spans": [[15, 151]],
+    "rvr_text": "Y me dijo: Hecho está. Yo soy el Alfa y la Omega, el principio y el fin. Al que tuviere sed, yo le daré gratuitamente de la fuente del agua de la vida.",
+    "rvr_len": 151,
+    "candidate": [[11, 151]]
+  },
+  {
+    "ref": "Apocalipsis 22:20",
+    "book_id": 66,
+    "chapter": 22,
+    "verse": 20,
+    "web_text": "He who testifies these things says, “Yes, I am coming soon.” Amen! Yes, come, Lord Jesus!",
+    "web_red": ["“Yes, I am coming soon.”"],
+    "web_spans": [[36, 60]],
+    "rvr_text": "El que da testimonio de estas cosas dice: Ciertamente vengo en breve. Amén; sí, ven, Señor Jesús.",
+    "rvr_len": 97,
+    "candidate": null
+  }
+]

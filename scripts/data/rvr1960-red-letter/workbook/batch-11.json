@@ -1,0 +1,718 @@
+[
+  {
+    "ref": "Juan 11:14",
+    "book_id": 43,
+    "chapter": 11,
+    "verse": 14,
+    "web_text": "So Jesus said to them plainly then, “Lazarus is dead.",
+    "web_red": ["“Lazarus is dead."],
+    "web_spans": [[36, 53]],
+    "rvr_text": "Entonces Jesús les dijo claramente: Lázaro ha muerto;",
+    "rvr_len": 53,
+    "candidate": [[36, 53]]
+  },
+  {
+    "ref": "Juan 11:23",
+    "book_id": 43,
+    "chapter": 11,
+    "verse": 23,
+    "web_text": "Jesus said to her, “Your brother will rise again.”",
+    "web_red": ["“Your brother will rise again.”"],
+    "web_spans": [[19, 50]],
+    "rvr_text": "Jesús le dijo: Tu hermano resucitará.",
+    "rvr_len": 37,
+    "candidate": [[15, 37]]
+  },
+  {
+    "ref": "Juan 11:25",
+    "book_id": 43,
+    "chapter": 11,
+    "verse": 25,
+    "web_text": "Jesus said to her, “I am the resurrection and the life. He who believes in me will still live, even if he dies.",
+    "web_red": [
+      "“I am the resurrection and the life. He who believes in me will still live, even if he dies."
+    ],
+    "web_spans": [[19, 111]],
+    "rvr_text": "Le dijo Jesús: Yo soy la resurrección y la vida; el que cree en mí, aunque esté muerto, vivirá.",
+    "rvr_len": 95,
+    "candidate": [[15, 95]]
+  },
+  {
+    "ref": "Juan 11:34",
+    "book_id": 43,
+    "chapter": 11,
+    "verse": 34,
+    "web_text": "and said, “Where have you laid him?” They told him, “Lord, come and see.”",
+    "web_red": ["“Where have you laid him?”"],
+    "web_spans": [[10, 36]],
+    "rvr_text": "y dijo: ¿Dónde le pusisteis? Le dijeron: Señor, ven y ve.",
+    "rvr_len": 57,
+    "candidate": null
+  },
+  {
+    "ref": "Juan 11:39",
+    "book_id": 43,
+    "chapter": 11,
+    "verse": 39,
+    "web_text": "Jesus said, “Take away the stone.” Martha, the sister of him who was dead, said to him, “Lord, by this time there is a stench, for he has been dead four days.”",
+    "web_red": ["“Take away the stone.”"],
+    "web_spans": [[12, 34]],
+    "rvr_text": "Dijo Jesús: Quitad la piedra. Marta, la hermana del que había muerto, le dijo: Señor, hiede ya, porque es de cuatro días.",
+    "rvr_len": 121,
+    "candidate": null
+  },
+  {
+    "ref": "Juan 11:40",
+    "book_id": 43,
+    "chapter": 11,
+    "verse": 40,
+    "web_text": "Jesus said to her, “Didn’t I tell you that if you believed, you would see God’s glory?”",
+    "web_red": [
+      "“Didn’t I tell you that if you believed, you would see God’s glory?”"
+    ],
+    "web_spans": [[19, 87]],
+    "rvr_text": "Jesús le dijo: ¿No te he dicho que si crees, verás la gloria de Dios?",
+    "rvr_len": 69,
+    "candidate": [[15, 69]]
+  },
+  {
+    "ref": "Juan 11:41",
+    "book_id": 43,
+    "chapter": 11,
+    "verse": 41,
+    "web_text": "So they took away the stone from the place where the dead man was lying. Jesus lifted up his eyes and said, “Father, I thank you that you listened to me.",
+    "web_red": ["“Father, I thank you that you listened to me."],
+    "web_spans": [[108, 153]],
+    "rvr_text": "Entonces quitaron la piedra de donde había sido puesto el muerto. Y Jesús, alzando los ojos a lo alto, dijo: Padre, gracias te doy por haberme oído.",
+    "rvr_len": 148,
+    "candidate": [[109, 148]]
+  },
+  {
+    "ref": "Juan 11:43",
+    "book_id": 43,
+    "chapter": 11,
+    "verse": 43,
+    "web_text": "When he had said this, he cried with a loud voice, “Lazarus, come out!”",
+    "web_red": ["“Lazarus, come out!”"],
+    "web_spans": [[51, 71]],
+    "rvr_text": "Y habiendo dicho esto, clamó a gran voz: ¡Lázaro, ven fuera!",
+    "rvr_len": 60,
+    "candidate": [[41, 60]]
+  },
+  {
+    "ref": "Juan 11:44",
+    "book_id": 43,
+    "chapter": 11,
+    "verse": 44,
+    "web_text": "He who was dead came out, bound hand and foot with wrappings, and his face was wrapped around with a cloth. Jesus said to them, “Free him, and let him go.”",
+    "web_red": ["“Free him, and let him go.”"],
+    "web_spans": [[128, 155]],
+    "rvr_text": "Y el que había muerto salió, atadas las manos y los pies con vendas, y el rostro envuelto en un sudario. Jesús les dijo: Desatadle, y dejadle ir.",
+    "rvr_len": 145,
+    "candidate": [[121, 145]]
+  },
+  {
+    "ref": "Juan 12:7",
+    "book_id": 43,
+    "chapter": 12,
+    "verse": 7,
+    "web_text": "But Jesus said, “Leave her alone. She has kept this for the day of my burial.",
+    "web_red": [
+      "“Leave her alone. She has kept this for the day of my burial."
+    ],
+    "web_spans": [[16, 77]],
+    "rvr_text": "Entonces Jesús dijo: Déjala; para el día de mi sepultura ha guardado esto.",
+    "rvr_len": 74,
+    "candidate": [[21, 74]]
+  },
+  {
+    "ref": "Juan 12:23",
+    "book_id": 43,
+    "chapter": 12,
+    "verse": 23,
+    "web_text": "Jesus answered them, “The time has come for the Son of Man to be glorified.",
+    "web_red": ["“The time has come for the Son of Man to be glorified."],
+    "web_spans": [[21, 75]],
+    "rvr_text": "Jesús les respondió diciendo: Ha llegado la hora para que el Hijo del Hombre sea glorificado.",
+    "rvr_len": 93,
+    "candidate": [[30, 93]]
+  },
+  {
+    "ref": "Juan 12:28",
+    "book_id": 43,
+    "chapter": 12,
+    "verse": 28,
+    "web_text": "Father, glorify your name!” Then a voice came out of the sky, saying, “I have both glorified it and will glorify it again.”",
+    "web_red": ["Father, glorify your name!”"],
+    "web_spans": [[0, 27]],
+    "rvr_text": "Padre, glorifica tu nombre. Entonces vino una voz del cielo: Lo he glorificado, y lo glorificaré otra vez.",
+    "rvr_len": 106,
+    "candidate": null
+  },
+  {
+    "ref": "Juan 12:30",
+    "book_id": 43,
+    "chapter": 12,
+    "verse": 30,
+    "web_text": "Jesus answered, “This voice hasn’t come for my sake, but for your sakes.",
+    "web_red": ["“This voice hasn’t come for my sake, but for your sakes."],
+    "web_spans": [[16, 72]],
+    "rvr_text": "Respondió Jesús y dijo: No ha venido esta voz por causa mía, sino por causa de vosotros.",
+    "rvr_len": 88,
+    "candidate": [[24, 88]]
+  },
+  {
+    "ref": "Juan 12:34",
+    "book_id": 43,
+    "chapter": 12,
+    "verse": 34,
+    "web_text": "The multitude answered him, “We have heard out of the law that the Christ remains forever. How do you say, ‘The Son of Man must be lifted up’? Who is this Son of Man?”",
+    "web_red": ["‘The Son of Man must be lifted up’"],
+    "web_spans": [[107, 141]],
+    "rvr_text": "Le respondió la gente: Nosotros hemos oído de la ley, que el Cristo permanece para siempre. ¿Cómo, pues, dices tú que es necesario que el Hijo del Hombre sea levantado? ¿Quién es este Hijo del Hombre?",
+    "rvr_len": 200,
+    "candidate": null
+  },
+  {
+    "ref": "Juan 12:35",
+    "book_id": 43,
+    "chapter": 12,
+    "verse": 35,
+    "web_text": "Jesus therefore said to them, “Yet a little while the light is with you. Walk while you have the light, that darkness doesn’t overtake you. He who walks in the darkness doesn’t know where he is going.",
+    "web_red": [
+      "“Yet a little while the light is with you. Walk while you have the light, that darkness doesn’t overtake you. He who walks in the darkness doesn’t know where he is going."
+    ],
+    "web_spans": [[30, 200]],
+    "rvr_text": "Entonces Jesús les dijo: Aún por un poco está la luz entre vosotros; andad entre tanto que tenéis luz, para que no os sorprendan las tinieblas; porque el que anda en tinieblas, no sabe a dónde va.",
+    "rvr_len": 196,
+    "candidate": [[25, 196]]
+  },
+  {
+    "ref": "Juan 12:36",
+    "book_id": 43,
+    "chapter": 12,
+    "verse": 36,
+    "web_text": "While you have the light, believe in the light, that you may become children of light.” Jesus said these things, and he departed and hid himself from them.",
+    "web_red": [
+      "While you have the light, believe in the light, that you may become children of light.”"
+    ],
+    "web_spans": [[0, 87]],
+    "rvr_text": "Entre tanto que tenéis la luz, creed en la luz, para que seáis hijos de luz. Estas cosas habló Jesús, y se fue y se ocultó de ellos.",
+    "rvr_len": 132,
+    "candidate": null
+  },
+  {
+    "ref": "Juan 12:44",
+    "book_id": 43,
+    "chapter": 12,
+    "verse": 44,
+    "web_text": "Jesus cried out and said, “Whoever believes in me, believes not in me, but in him who sent me.",
+    "web_red": [
+      "“Whoever believes in me, believes not in me, but in him who sent me."
+    ],
+    "web_spans": [[26, 94]],
+    "rvr_text": "Jesús clamó y dijo: El que cree en mí, no cree en mí, sino en el que me envió;",
+    "rvr_len": 78,
+    "candidate": [[20, 78]]
+  },
+  {
+    "ref": "Juan 13:7",
+    "book_id": 43,
+    "chapter": 13,
+    "verse": 7,
+    "web_text": "Jesus answered him, “You don’t know what I am doing now, but you will understand later.”",
+    "web_red": [
+      "“You don’t know what I am doing now, but you will understand later.”"
+    ],
+    "web_spans": [[20, 88]],
+    "rvr_text": "Respondió Jesús y le dijo: Lo que yo hago, tú no lo comprendes ahora; mas lo entenderás después.",
+    "rvr_len": 96,
+    "candidate": [[27, 96]]
+  },
+  {
+    "ref": "Juan 13:8",
+    "book_id": 43,
+    "chapter": 13,
+    "verse": 8,
+    "web_text": "Peter said to him, “You will never wash my feet!” Jesus answered him, “If I don’t wash you, you have no part with me.”",
+    "web_red": ["“If I don’t wash you, you have no part with me.”"],
+    "web_spans": [[70, 118]],
+    "rvr_text": "Pedro le dijo: No me lavarás los pies jamás. Jesús le respondió: Si no te lavare, no tendrás parte conmigo.",
+    "rvr_len": 107,
+    "candidate": [[15, 107]]
+  },
+  {
+    "ref": "Juan 13:10",
+    "book_id": 43,
+    "chapter": 13,
+    "verse": 10,
+    "web_text": "Jesus said to him, “Someone who has bathed only needs to have his feet washed, but is completely clean. You are clean, but not all of you.”",
+    "web_red": [
+      "“Someone who has bathed only needs to have his feet washed, but is completely clean. You are clean, but not all of you.”"
+    ],
+    "web_spans": [[19, 139]],
+    "rvr_text": "Jesús le dijo: El que está lavado, no necesita sino lavarse los pies, pues está todo limpio; y vosotros limpios estáis, aunque no todos.",
+    "rvr_len": 136,
+    "candidate": [[15, 136]]
+  },
+  {
+    "ref": "Juan 13:11",
+    "book_id": 43,
+    "chapter": 13,
+    "verse": 11,
+    "web_text": "For he knew him who would betray him; therefore he said, “You are not all clean.”",
+    "web_red": ["“You are not all clean.”"],
+    "web_spans": [[57, 81]],
+    "rvr_text": "Porque sabía quién le iba a entregar; por eso dijo: No estáis limpios todos.",
+    "rvr_len": 76,
+    "candidate": [[52, 76]]
+  },
+  {
+    "ref": "Juan 13:12",
+    "book_id": 43,
+    "chapter": 13,
+    "verse": 12,
+    "web_text": "So when he had washed their feet, put his outer garment back on, and sat down again, he said to them, “Do you know what I have done to you?",
+    "web_red": ["“Do you know what I have done to you?"],
+    "web_spans": [[102, 139]],
+    "rvr_text": "Así que, después que les hubo lavado los pies, tomó su manto, volvió a la mesa, y les dijo: ¿Sabéis lo que os he hecho?",
+    "rvr_len": 119,
+    "candidate": [[92, 119]]
+  },
+  {
+    "ref": "Juan 13:21",
+    "book_id": 43,
+    "chapter": 13,
+    "verse": 21,
+    "web_text": "When Jesus had said this, he was troubled in spirit, and testified, “Most certainly I tell you that one of you will betray me.”",
+    "web_red": ["“Most certainly I tell you that one of you will betray me.”"],
+    "web_spans": [[68, 127]],
+    "rvr_text": "Habiendo dicho Jesús esto, se conmovió en espíritu, y declaró y dijo: De cierto, de cierto os digo, que uno de vosotros me va a entregar.",
+    "rvr_len": 137,
+    "candidate": [[70, 137]]
+  },
+  {
+    "ref": "Juan 13:26",
+    "book_id": 43,
+    "chapter": 13,
+    "verse": 26,
+    "web_text": "Jesus therefore answered, “It is he to whom I will give this piece of bread when I have dipped it.” So when he had dipped the piece of bread, he gave it to Judas, the son of Simon Iscariot.",
+    "web_red": [
+      "“It is he to whom I will give this piece of bread when I have dipped it.”"
+    ],
+    "web_spans": [[26, 99]],
+    "rvr_text": "Respondió Jesús: A quien yo diere el pan mojado, aquél es. Y mojando el pan, lo dio a Judas Iscariote hijo de Simón.",
+    "rvr_len": 116,
+    "candidate": null
+  },
+  {
+    "ref": "Juan 13:27",
+    "book_id": 43,
+    "chapter": 13,
+    "verse": 27,
+    "web_text": "After the piece of bread, then Satan entered into him. Then Jesus said to him, “What you do, do quickly.”",
+    "web_red": ["“What you do, do quickly.”"],
+    "web_spans": [[79, 105]],
+    "rvr_text": "Y después del bocado, Satanás entró en él. Entonces Jesús le dijo: Lo que vas a hacer, hazlo más pronto.",
+    "rvr_len": 104,
+    "candidate": [[67, 104]]
+  },
+  {
+    "ref": "Juan 13:31",
+    "book_id": 43,
+    "chapter": 13,
+    "verse": 31,
+    "web_text": "When he had gone out, Jesus said, “Now the Son of Man has been glorified, and God has been glorified in him.",
+    "web_red": [
+      "“Now the Son of Man has been glorified, and God has been glorified in him."
+    ],
+    "web_spans": [[34, 108]],
+    "rvr_text": "Entonces, cuando hubo salido, dijo Jesús: Ahora es glorificado el Hijo del Hombre, y Dios es glorificado en él.",
+    "rvr_len": 111,
+    "candidate": [[42, 111]]
+  },
+  {
+    "ref": "Juan 13:36",
+    "book_id": 43,
+    "chapter": 13,
+    "verse": 36,
+    "web_text": "Simon Peter said to him, “Lord, where are you going?” Jesus answered, “Where I am going, you can’t follow now, but you will follow afterwards.”",
+    "web_red": [
+      "“Where I am going, you can’t follow now, but you will follow afterwards.”"
+    ],
+    "web_spans": [[70, 143]],
+    "rvr_text": "Le dijo Simón Pedro: Señor, ¿a dónde vas? Jesús le respondió: A donde yo voy, no me puedes seguir ahora; mas me seguirás después.",
+    "rvr_len": 129,
+    "candidate": [[21, 129]]
+  },
+  {
+    "ref": "Juan 13:38",
+    "book_id": 43,
+    "chapter": 13,
+    "verse": 38,
+    "web_text": "Jesus answered him, “Will you lay down your life for me? Most certainly I tell you, the rooster won’t crow until you have denied me three times.",
+    "web_red": [
+      "“Will you lay down your life for me? Most certainly I tell you, the rooster won’t crow until you have denied me three times."
+    ],
+    "web_spans": [[20, 144]],
+    "rvr_text": "Jesús le respondió: ¿Tu vida pondrás por mí? De cierto, de cierto te digo: No cantará el gallo, sin que me hayas negado tres veces.",
+    "rvr_len": 131,
+    "candidate": [[20, 131]]
+  },
+  {
+    "ref": "Juan 14:6",
+    "book_id": 43,
+    "chapter": 14,
+    "verse": 6,
+    "web_text": "Jesus said to him, “I am the way, the truth, and the life. No one comes to the Father, except through me.",
+    "web_red": [
+      "“I am the way, the truth, and the life. No one comes to the Father, except through me."
+    ],
+    "web_spans": [[19, 105]],
+    "rvr_text": "Jesús le dijo: Yo soy el camino, y la verdad, y la vida; nadie viene al Padre, sino por mí.",
+    "rvr_len": 91,
+    "candidate": [[15, 91]]
+  },
+  {
+    "ref": "Juan 14:9",
+    "book_id": 43,
+    "chapter": 14,
+    "verse": 9,
+    "web_text": "Jesus said to him, “Have I been with you such a long time, and do you not know me, Philip? He who has seen me has seen the Father. How do you say, ‘Show us the Father’?",
+    "web_red": [
+      "“Have I been with you such a long time, and do you not know me, Philip? He who has seen me has seen the Father. How do you say, ‘Show us the Father’?"
+    ],
+    "web_spans": [[19, 168]],
+    "rvr_text": "Jesús le dijo: ¿Tanto tiempo hace que estoy con vosotros, y no me has conocido, Felipe? El que me ha visto a mí, ha visto al Padre; ¿cómo, pues, dices tú: Muéstranos el Padre?",
+    "rvr_len": 175,
+    "candidate": [[15, 175]]
+  },
+  {
+    "ref": "Juan 14:23",
+    "book_id": 43,
+    "chapter": 14,
+    "verse": 23,
+    "web_text": "Jesus answered him, “If a man loves me, he will keep my word. My Father will love him, and we will come to him and make our home with him.",
+    "web_red": [
+      "“If a man loves me, he will keep my word. My Father will love him, and we will come to him and make our home with him."
+    ],
+    "web_spans": [[20, 138]],
+    "rvr_text": "Respondió Jesús y le dijo: El que me ama, mi palabra guardará; y mi Padre le amará, y vendremos a él, y haremos morada con él.",
+    "rvr_len": 126,
+    "candidate": [[27, 126]]
+  },
+  {
+    "ref": "Juan 16:17",
+    "book_id": 43,
+    "chapter": 16,
+    "verse": 17,
+    "web_text": "Some of his disciples therefore said to one another, “What is this that he says to us, ‘A little while, and you won’t see me, and again a little while, and you will see me;’ and, ‘Because I go to the Father’?”",
+    "web_red": [
+      "‘A little while, and you won’t see me, and again a little while, and you will see me;’",
+      "‘Because I go to the Father’"
+    ],
+    "web_spans": [
+      [87, 173],
+      [179, 207]
+    ],
+    "rvr_text": "Entonces se dijeron algunos de sus discípulos unos a otros: ¿Qué es esto que nos dice: Todavía un poco y no me veréis; y de nuevo un poco, y me veréis; y, porque yo voy al Padre?",
+    "rvr_len": 178,
+    "candidate": null
+  },
+  {
+    "ref": "Juan 16:18",
+    "book_id": 43,
+    "chapter": 16,
+    "verse": 18,
+    "web_text": "They said therefore, “What is this that he says, ‘A little while’? We don’t know what he is saying.”",
+    "web_red": ["‘A little while’"],
+    "web_spans": [[49, 65]],
+    "rvr_text": "Decían, pues: ¿Qué quiere decir con: Todavía un poco? No entendemos lo que habla.",
+    "rvr_len": 81,
+    "candidate": null
+  },
+  {
+    "ref": "Juan 16:19",
+    "book_id": 43,
+    "chapter": 16,
+    "verse": 19,
+    "web_text": "Therefore Jesus perceived that they wanted to ask him, and he said to them, “Do you inquire among yourselves concerning this, that I said, ‘A little while, and you won’t see me, and again a little while, and you will see me’?",
+    "web_red": [
+      "“Do you inquire among yourselves concerning this, that I said, ‘A little while, and you won’t see me, and again a little while, and you will see me’?"
+    ],
+    "web_spans": [[76, 225]],
+    "rvr_text": "Jesús conoció que querían preguntarle, y les dijo: ¿Preguntáis entre vosotros acerca de esto que dije: Todavía un poco y no me veréis, y de nuevo un poco y me veréis?",
+    "rvr_len": 166,
+    "candidate": [[51, 166]]
+  },
+  {
+    "ref": "Juan 16:31",
+    "book_id": 43,
+    "chapter": 16,
+    "verse": 31,
+    "web_text": "Jesus answered them, “Do you now believe?",
+    "web_red": ["“Do you now believe?"],
+    "web_spans": [[21, 41]],
+    "rvr_text": "Jesús les respondió: ¿Ahora creéis?",
+    "rvr_len": 35,
+    "candidate": [[21, 35]]
+  },
+  {
+    "ref": "Juan 17:1",
+    "book_id": 43,
+    "chapter": 17,
+    "verse": 1,
+    "web_text": "Jesus said these things, then lifting up his eyes to heaven, he said, “Father, the time has come. Glorify your Son, that your Son may also glorify you;",
+    "web_red": [
+      "“Father, the time has come. Glorify your Son, that your Son may also glorify you;"
+    ],
+    "web_spans": [[70, 151]],
+    "rvr_text": "Estas cosas habló Jesús, y levantando los ojos al cielo, dijo: Padre, la hora ha llegado; glorifica a tu Hijo, para que también tu Hijo te glorifique a ti;",
+    "rvr_len": 155,
+    "candidate": [[63, 155]]
+  },
+  {
+    "ref": "Juan 18:4",
+    "book_id": 43,
+    "chapter": 18,
+    "verse": 4,
+    "web_text": "Jesus therefore, knowing all the things that were happening to him, went out and said to them, “Who are you looking for?”",
+    "web_red": ["“Who are you looking for?”"],
+    "web_spans": [[95, 121]],
+    "rvr_text": "Pero Jesús, sabiendo todas las cosas que le habían de sobrevenir, se adelantó y les dijo: ¿A quién buscáis?",
+    "rvr_len": 107,
+    "candidate": [[90, 107]]
+  },
+  {
+    "ref": "Juan 18:5",
+    "book_id": 43,
+    "chapter": 18,
+    "verse": 5,
+    "web_text": "They answered him, “Jesus of Nazareth.” Jesus said to them, “I am he.” Judas also, who betrayed him, was standing with them.",
+    "web_red": ["“I am he.”"],
+    "web_spans": [[60, 70]],
+    "rvr_text": "Le respondieron: A Jesús nazareno. Jesús les dijo: Yo soy. Y estaba también con ellos Judas, el que le entregaba.",
+    "rvr_len": 113,
+    "candidate": null
+  },
+  {
+    "ref": "Juan 18:6",
+    "book_id": 43,
+    "chapter": 18,
+    "verse": 6,
+    "web_text": "When therefore he said to them, “I am he,” they went backward and fell to the ground.",
+    "web_red": ["“I am he,”"],
+    "web_spans": [[32, 42]],
+    "rvr_text": "Cuando les dijo: Yo soy, retrocedieron, y cayeron a tierra.",
+    "rvr_len": 59,
+    "candidate": null
+  },
+  {
+    "ref": "Juan 18:7",
+    "book_id": 43,
+    "chapter": 18,
+    "verse": 7,
+    "web_text": "Again therefore he asked them, “Who are you looking for?” They said, “Jesus of Nazareth.”",
+    "web_red": ["“Who are you looking for?”"],
+    "web_spans": [[31, 57]],
+    "rvr_text": "Volvió, pues, a preguntarles: ¿A quién buscáis? Y ellos dijeron: A Jesús nazareno.",
+    "rvr_len": 82,
+    "candidate": null
+  },
+  {
+    "ref": "Juan 18:8",
+    "book_id": 43,
+    "chapter": 18,
+    "verse": 8,
+    "web_text": "Jesus answered, “I told you that I am he. If therefore you seek me, let these go their way,”",
+    "web_red": [
+      "“I told you that I am he. If therefore you seek me, let these go their way,”"
+    ],
+    "web_spans": [[16, 92]],
+    "rvr_text": "Respondió Jesús: Os he dicho que yo soy; pues si me buscáis a mí, dejad ir a éstos;",
+    "rvr_len": 83,
+    "candidate": [[17, 83]]
+  },
+  {
+    "ref": "Juan 18:9",
+    "book_id": 43,
+    "chapter": 18,
+    "verse": 9,
+    "web_text": "that the word might be fulfilled which he spoke, “Of those whom you have given me, I have lost none.”",
+    "web_red": ["“Of those whom you have given me, I have lost none.”"],
+    "web_spans": [[49, 101]],
+    "rvr_text": "para que se cumpliese aquello que había dicho: De los que me diste, no perdí ninguno.",
+    "rvr_len": 85,
+    "candidate": [[47, 85]]
+  },
+  {
+    "ref": "Juan 18:11",
+    "book_id": 43,
+    "chapter": 18,
+    "verse": 11,
+    "web_text": "Jesus therefore said to Peter, “Put the sword into its sheath. The cup which the Father has given me, shall I not surely drink it?”",
+    "web_red": [
+      "“Put the sword into its sheath. The cup which the Father has given me, shall I not surely drink it?”"
+    ],
+    "web_spans": [[31, 131]],
+    "rvr_text": "Jesús entonces dijo a Pedro: Mete tu espada en la vaina; la copa que el Padre me ha dado, ¿no la he de beber?",
+    "rvr_len": 109,
+    "candidate": [[29, 109]]
+  },
+  {
+    "ref": "Juan 18:20",
+    "book_id": 43,
+    "chapter": 18,
+    "verse": 20,
+    "web_text": "Jesus answered him, “I spoke openly to the world. I always taught in synagogues and in the temple, where the Jews always meet. I said nothing in secret.",
+    "web_red": [
+      "“I spoke openly to the world. I always taught in synagogues and in the temple, where the Jews always meet. I said nothing in secret."
+    ],
+    "web_spans": [[20, 152]],
+    "rvr_text": "Jesús le respondió: Yo públicamente he hablado al mundo; siempre he enseñado en la sinagoga y en el templo, donde se reúnen todos los judíos, y nada he hablado en oculto.",
+    "rvr_len": 170,
+    "candidate": [[20, 170]]
+  },
+  {
+    "ref": "Juan 18:23",
+    "book_id": 43,
+    "chapter": 18,
+    "verse": 23,
+    "web_text": "Jesus answered him, “If I have spoken evil, testify of the evil; but if well, why do you beat me?”",
+    "web_red": [
+      "“If I have spoken evil, testify of the evil; but if well, why do you beat me?”"
+    ],
+    "web_spans": [[20, 98]],
+    "rvr_text": "Jesús le respondió: Si he hablado mal, testifica en qué está el mal; y si bien, ¿por qué me golpeas?",
+    "rvr_len": 100,
+    "candidate": [[20, 100]]
+  },
+  {
+    "ref": "Juan 18:34",
+    "book_id": 43,
+    "chapter": 18,
+    "verse": 34,
+    "web_text": "Jesus answered him, “Do you say this by yourself, or did others tell you about me?”",
+    "web_red": [
+      "“Do you say this by yourself, or did others tell you about me?”"
+    ],
+    "web_spans": [[20, 83]],
+    "rvr_text": "Jesús le respondió: ¿Dices tú esto por ti mismo, o te lo han dicho otros de mí?",
+    "rvr_len": 79,
+    "candidate": [[20, 79]]
+  },
+  {
+    "ref": "Juan 18:36",
+    "book_id": 43,
+    "chapter": 18,
+    "verse": 36,
+    "web_text": "Jesus answered, “My Kingdom is not of this world. If my Kingdom were of this world, then my servants would fight, that I wouldn’t be delivered to the Jews. But now my Kingdom is not from here.”",
+    "web_red": [
+      "“My Kingdom is not of this world. If my Kingdom were of this world, then my servants would fight, that I wouldn’t be delivered to the Jews. But now my Kingdom is not from here.”"
+    ],
+    "web_spans": [[16, 193]],
+    "rvr_text": "Respondió Jesús: Mi reino no es de este mundo; si mi reino fuera de este mundo, mis servidores pelearían para que yo no fuera entregado a los judíos; pero mi reino no es de aquí.",
+    "rvr_len": 178,
+    "candidate": [[17, 178]]
+  },
+  {
+    "ref": "Juan 18:37",
+    "book_id": 43,
+    "chapter": 18,
+    "verse": 37,
+    "web_text": "Pilate therefore said to him, “Are you a king then?” Jesus answered, “You say that I am a king. For this reason I have been born, and for this reason I have come into the world, that I should testify to the truth. Everyone who is of the truth listens to my voice.”",
+    "web_red": [
+      "“You say that I am a king. For this reason I have been born, and for this reason I have come into the world, that I should testify to the truth. Everyone who is of the truth listens to my voice.”"
+    ],
+    "web_spans": [[69, 264]],
+    "rvr_text": "Le dijo entonces Pilato: ¿Luego, eres tú rey? Respondió Jesús: Tú dices que yo soy rey. Yo para esto he nacido, y para esto he venido al mundo, para dar testimonio a la verdad. Todo aquel que es de la verdad, oye mi voz.",
+    "rvr_len": 220,
+    "candidate": [[25, 220]]
+  },
+  {
+    "ref": "Juan 19:11",
+    "book_id": 43,
+    "chapter": 19,
+    "verse": 11,
+    "web_text": "Jesus answered, “You would have no power at all against me, unless it were given to you from above. Therefore he who delivered me to you has greater sin.”",
+    "web_red": [
+      "“You would have no power at all against me, unless it were given to you from above. Therefore he who delivered me to you has greater sin.”"
+    ],
+    "web_spans": [[16, 154]],
+    "rvr_text": "Respondió Jesús: Ninguna autoridad tendrías contra mí, si no te fuese dada de arriba; por tanto, el que a ti me ha entregado, mayor pecado tiene.",
+    "rvr_len": 145,
+    "candidate": [[17, 145]]
+  },
+  {
+    "ref": "Juan 19:26",
+    "book_id": 43,
+    "chapter": 19,
+    "verse": 26,
+    "web_text": "Therefore when Jesus saw his mother, and the disciple whom he loved standing there, he said to his mother, “Woman, behold, your son!”",
+    "web_red": ["“Woman, behold, your son!”"],
+    "web_spans": [[107, 133]],
+    "rvr_text": "Cuando vio Jesús a su madre, y al discípulo a quien él amaba, que estaba presente, dijo a su madre: Mujer, he ahí tu hijo.",
+    "rvr_len": 122,
+    "candidate": [[100, 122]]
+  },
+  {
+    "ref": "Juan 19:27",
+    "book_id": 43,
+    "chapter": 19,
+    "verse": 27,
+    "web_text": "Then he said to the disciple, “Behold, your mother!” From that hour, the disciple took her to his own home.",
+    "web_red": ["“Behold, your mother!”"],
+    "web_spans": [[30, 52]],
+    "rvr_text": "Después dijo al discípulo: He ahí tu madre. Y desde aquella hora el discípulo la recibió en su casa.",
+    "rvr_len": 100,
+    "candidate": null
+  },
+  {
+    "ref": "Juan 19:28",
+    "book_id": 43,
+    "chapter": 19,
+    "verse": 28,
+    "web_text": "After this, Jesus, seeing that all things were now finished, that the Scripture might be fulfilled, said, “I am thirsty!”",
+    "web_red": ["“I am thirsty!”"],
+    "web_spans": [[106, 121]],
+    "rvr_text": "Después de esto, sabiendo Jesús que ya todo estaba consumado, dijo, para que la Escritura se cumpliese: Tengo sed.",
+    "rvr_len": 114,
+    "candidate": [[104, 114]]
+  },
+  {
+    "ref": "Juan 19:30",
+    "book_id": 43,
+    "chapter": 19,
+    "verse": 30,
+    "web_text": "When Jesus therefore had received the vinegar, he said, “It is finished!” Then he bowed his head and gave up his spirit.",
+    "web_red": ["“It is finished!”"],
+    "web_spans": [[56, 73]],
+    "rvr_text": "Cuando Jesús hubo tomado el vinagre, dijo: Consumado es. Y habiendo inclinado la cabeza, entregó el espíritu.",
+    "rvr_len": 109,
+    "candidate": null
+  },
+  {
+    "ref": "Juan 20:15",
+    "book_id": 43,
+    "chapter": 20,
+    "verse": 15,
+    "web_text": "Jesus said to her, “Woman, why are you weeping? Who are you looking for?” She, supposing him to be the gardener, said to him, “Sir, if you have carried him away, tell me where you have laid him, and I will take him away.”",
+    "web_red": ["“Woman, why are you weeping? Who are you looking for?”"],
+    "web_spans": [[19, 73]],
+    "rvr_text": "Jesús le dijo: Mujer, ¿por qué lloras? ¿A quién buscas? Ella, pensando que era el hortelano, le dijo: Señor, si tú lo has llevado, dime dónde lo has puesto, y yo lo llevaré.",
+    "rvr_len": 173,
+    "candidate": null
+  },
+  {
+    "ref": "Juan 20:16",
+    "book_id": 43,
+    "chapter": 20,
+    "verse": 16,
+    "web_text": "Jesus said to her, “Mary.” She turned and said to him, “Rabboni!” which is to say, “Teacher!”",
+    "web_red": ["“Mary.”"],
+    "web_spans": [[19, 26]],
+    "rvr_text": "Jesús le dijo: ¡María! Volviéndose ella, le dijo: ¡Raboni! (que quiere decir, Maestro).",
+    "rvr_len": 87,
+    "candidate": null
+  }
+]

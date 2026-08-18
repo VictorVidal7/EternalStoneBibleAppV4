@@ -1,0 +1,742 @@
+[
+  {
+    "ref": "Marcos 9:39",
+    "book_id": 41,
+    "chapter": 9,
+    "verse": 39,
+    "web_text": "But Jesus said, “Don’t forbid him, for there is no one who will do a mighty work in my name and be able quickly to speak evil of me.",
+    "web_red": [
+      "“Don’t forbid him, for there is no one who will do a mighty work in my name and be able quickly to speak evil of me."
+    ],
+    "web_spans": [[16, 132]],
+    "rvr_text": "Pero Jesús dijo: No se lo prohibáis; porque ninguno hay que haga milagro en mi nombre, que luego pueda decir mal de mí.",
+    "rvr_len": 119,
+    "candidate": [[17, 119]]
+  },
+  {
+    "ref": "Marcos 10:3",
+    "book_id": 41,
+    "chapter": 10,
+    "verse": 3,
+    "web_text": "He answered, “What did Moses command you?”",
+    "web_red": ["“What did Moses command you?”"],
+    "web_spans": [[13, 42]],
+    "rvr_text": "Él, respondiendo, les dijo: ¿Qué os mandó Moisés?",
+    "rvr_len": 49,
+    "candidate": [[28, 49]]
+  },
+  {
+    "ref": "Marcos 10:5",
+    "book_id": 41,
+    "chapter": 10,
+    "verse": 5,
+    "web_text": "But Jesus said to them, “For your hardness of heart, he wrote you this commandment.",
+    "web_red": ["“For your hardness of heart, he wrote you this commandment."],
+    "web_spans": [[24, 83]],
+    "rvr_text": "Y respondiendo Jesús, les dijo: Por la dureza de vuestro corazón os escribió este mandamiento;",
+    "rvr_len": 94,
+    "candidate": [[32, 94]]
+  },
+  {
+    "ref": "Marcos 10:11",
+    "book_id": 41,
+    "chapter": 10,
+    "verse": 11,
+    "web_text": "He said to them, “Whoever divorces his wife and marries another commits adultery against her.",
+    "web_red": [
+      "“Whoever divorces his wife and marries another commits adultery against her."
+    ],
+    "web_spans": [[17, 93]],
+    "rvr_text": "y les dijo: Cualquiera que repudia a su mujer y se casa con otra, comete adulterio contra ella;",
+    "rvr_len": 95,
+    "candidate": [[12, 95]]
+  },
+  {
+    "ref": "Marcos 10:14",
+    "book_id": 41,
+    "chapter": 10,
+    "verse": 14,
+    "web_text": "But when Jesus saw it, he was moved with indignation and said to them, “Allow the little children to come to me! Don’t forbid them, for God’s Kingdom belongs to such as these.",
+    "web_red": [
+      "“Allow the little children to come to me! Don’t forbid them, for God’s Kingdom belongs to such as these."
+    ],
+    "web_spans": [[71, 175]],
+    "rvr_text": "Viéndolo Jesús, se indignó, y les dijo: Dejad a los niños venir a mí, y no se lo impidáis; porque de los tales es el reino de Dios.",
+    "rvr_len": 131,
+    "candidate": [[40, 131]]
+  },
+  {
+    "ref": "Marcos 10:18",
+    "book_id": 41,
+    "chapter": 10,
+    "verse": 18,
+    "web_text": "Jesus said to him, “Why do you call me good? No one is good except one—God.",
+    "web_red": ["“Why do you call me good? No one is good except one—God."],
+    "web_spans": [[19, 75]],
+    "rvr_text": "Jesús le dijo: ¿Por qué me llamas bueno? Ninguno hay bueno, sino sólo uno, Dios.",
+    "rvr_len": 80,
+    "candidate": [[15, 80]]
+  },
+  {
+    "ref": "Marcos 10:21",
+    "book_id": 41,
+    "chapter": 10,
+    "verse": 21,
+    "web_text": "Jesus looking at him loved him, and said to him, “One thing you lack. Go, sell whatever you have and give to the poor, and you will have treasure in heaven; and come, follow me, taking up the cross.”",
+    "web_red": [
+      "“One thing you lack. Go, sell whatever you have and give to the poor, and you will have treasure in heaven; and come, follow me, taking up the cross.”"
+    ],
+    "web_spans": [[49, 199]],
+    "rvr_text": "Entonces Jesús, mirándole, le amó, y le dijo: Una cosa te falta: anda, vende todo lo que tienes, y dalo a los pobres, y tendrás tesoro en el cielo; y ven, sígueme, tomando tu cruz.",
+    "rvr_len": 180,
+    "candidate": [[46, 180]]
+  },
+  {
+    "ref": "Marcos 10:23",
+    "book_id": 41,
+    "chapter": 10,
+    "verse": 23,
+    "web_text": "Jesus looked around and said to his disciples, “How difficult it is for those who have riches to enter into God’s Kingdom!”",
+    "web_red": [
+      "“How difficult it is for those who have riches to enter into God’s Kingdom!”"
+    ],
+    "web_spans": [[47, 123]],
+    "rvr_text": "Entonces Jesús, mirando alrededor, dijo a sus discípulos: ¡Cuán difícilmente entrarán en el reino de Dios los que tienen riquezas!",
+    "rvr_len": 130,
+    "candidate": [[58, 130]]
+  },
+  {
+    "ref": "Marcos 10:24",
+    "book_id": 41,
+    "chapter": 10,
+    "verse": 24,
+    "web_text": "The disciples were amazed at his words. But Jesus answered again, “Children, how hard it is for those who trust in riches to enter into God’s Kingdom!",
+    "web_red": [
+      "“Children, how hard it is for those who trust in riches to enter into God’s Kingdom!"
+    ],
+    "web_spans": [[66, 150]],
+    "rvr_text": "Los discípulos se asombraron de sus palabras; pero Jesús, respondiendo, volvió a decirles: Hijos, ¡cuán difícil les es entrar en el reino de Dios, a los que confían en las riquezas!",
+    "rvr_len": 181,
+    "candidate": [[91, 181]]
+  },
+  {
+    "ref": "Marcos 10:27",
+    "book_id": 41,
+    "chapter": 10,
+    "verse": 27,
+    "web_text": "Jesus, looking at them, said, “With men it is impossible, but not with God, for all things are possible with God.”",
+    "web_red": [
+      "“With men it is impossible, but not with God, for all things are possible with God.”"
+    ],
+    "web_spans": [[30, 114]],
+    "rvr_text": "Entonces Jesús, mirándolos, dijo: Para los hombres es imposible, mas para Dios, no; porque todas las cosas son posibles para Dios.",
+    "rvr_len": 130,
+    "candidate": [[34, 130]]
+  },
+  {
+    "ref": "Marcos 10:29",
+    "book_id": 41,
+    "chapter": 10,
+    "verse": 29,
+    "web_text": "Jesus said, “Most certainly I tell you, there is no one who has left house, or brothers, or sisters, or father, or mother, or wife, or children, or land, for my sake, and for the sake of the Good News,",
+    "web_red": [
+      "“Most certainly I tell you, there is no one who has left house, or brothers, or sisters, or father, or mother, or wife, or children, or land, for my sake, and for the sake of the Good News,"
+    ],
+    "web_spans": [[12, 201]],
+    "rvr_text": "Respondió Jesús y dijo: De cierto os digo que no hay ninguno que haya dejado casa, o hermanos, o hermanas, o padre, o madre, o mujer, o hijos, o tierras, por causa de mí y del evangelio,",
+    "rvr_len": 186,
+    "candidate": [[24, 186]]
+  },
+  {
+    "ref": "Marcos 10:36",
+    "book_id": 41,
+    "chapter": 10,
+    "verse": 36,
+    "web_text": "He said to them, “What do you want me to do for you?”",
+    "web_red": ["“What do you want me to do for you?”"],
+    "web_spans": [[17, 53]],
+    "rvr_text": "Él les dijo: ¿Qué queréis que os haga?",
+    "rvr_len": 38,
+    "candidate": [[13, 38]]
+  },
+  {
+    "ref": "Marcos 10:38",
+    "book_id": 41,
+    "chapter": 10,
+    "verse": 38,
+    "web_text": "But Jesus said to them, “You don’t know what you are asking. Are you able to drink the cup that I drink, and to be baptized with the baptism that I am baptized with?”",
+    "web_red": [
+      "“You don’t know what you are asking. Are you able to drink the cup that I drink, and to be baptized with the baptism that I am baptized with?”"
+    ],
+    "web_spans": [[24, 166]],
+    "rvr_text": "Entonces Jesús les dijo: No sabéis lo que pedís. ¿Podéis beber del vaso que yo bebo, o ser bautizados con el bautismo con que yo soy bautizado?",
+    "rvr_len": 143,
+    "candidate": [[25, 143]]
+  },
+  {
+    "ref": "Marcos 10:39",
+    "book_id": 41,
+    "chapter": 10,
+    "verse": 39,
+    "web_text": "They said to him, “We are able.” Jesus said to them, “You shall indeed drink the cup that I drink, and you shall be baptized with the baptism that I am baptized with;",
+    "web_red": [
+      "“You shall indeed drink the cup that I drink, and you shall be baptized with the baptism that I am baptized with;"
+    ],
+    "web_spans": [[53, 166]],
+    "rvr_text": "Ellos dijeron: Podemos. Jesús les dijo: A la verdad, del vaso que yo bebo, beberéis, y con el bautismo con que yo soy bautizado, seréis bautizados;",
+    "rvr_len": 147,
+    "candidate": [[15, 147]]
+  },
+  {
+    "ref": "Marcos 10:42",
+    "book_id": 41,
+    "chapter": 10,
+    "verse": 42,
+    "web_text": "Jesus summoned them and said to them, “You know that they who are recognized as rulers over the nations lord it over them, and their great ones exercise authority over them.",
+    "web_red": [
+      "“You know that they who are recognized as rulers over the nations lord it over them, and their great ones exercise authority over them."
+    ],
+    "web_spans": [[38, 173]],
+    "rvr_text": "Mas Jesús, llamándolos, les dijo: Sabéis que los que son tenidos por gobernantes de las naciones se enseñorean de ellas, y sus grandes ejercen sobre ellas potestad.",
+    "rvr_len": 164,
+    "candidate": [[34, 164]]
+  },
+  {
+    "ref": "Marcos 10:49",
+    "book_id": 41,
+    "chapter": 10,
+    "verse": 49,
+    "web_text": "Jesus stood still and said, “Call him.” They called the blind man, saying to him, “Cheer up! Get up. He is calling you!”",
+    "web_red": ["“Call him.”"],
+    "web_spans": [[28, 39]],
+    "rvr_text": "Entonces Jesús, deteniéndose, mandó llamarle; y llamaron al ciego, diciéndole: Ten confianza; levántate, te llama.",
+    "rvr_len": 114,
+    "candidate": null
+  },
+  {
+    "ref": "Marcos 10:51",
+    "book_id": 41,
+    "chapter": 10,
+    "verse": 51,
+    "web_text": "Jesus asked him, “What do you want me to do for you?” The blind man said to him, “Rabboni, that I may see again.”",
+    "web_red": ["“What do you want me to do for you?”"],
+    "web_spans": [[17, 53]],
+    "rvr_text": "Respondiendo Jesús, le dijo: ¿Qué quieres que te haga? Y el ciego le dijo: Maestro, que recobre la vista.",
+    "rvr_len": 105,
+    "candidate": null
+  },
+  {
+    "ref": "Marcos 10:52",
+    "book_id": 41,
+    "chapter": 10,
+    "verse": 52,
+    "web_text": "Jesus said to him, “Go your way. Your faith has made you well.” Immediately he received his sight and followed Jesus on the way.",
+    "web_red": ["“Go your way. Your faith has made you well.”"],
+    "web_spans": [[19, 63]],
+    "rvr_text": "Y Jesús le dijo: Vete, tu fe te ha salvado. Y en seguida recobró la vista, y seguía a Jesús en el camino.",
+    "rvr_len": 105,
+    "candidate": null
+  },
+  {
+    "ref": "Marcos 11:2",
+    "book_id": 41,
+    "chapter": 11,
+    "verse": 2,
+    "web_text": "and said to them, “Go your way into the village that is opposite you. Immediately as you enter into it, you will find a young donkey tied, on which no one has sat. Untie him and bring him.",
+    "web_red": [
+      "“Go your way into the village that is opposite you. Immediately as you enter into it, you will find a young donkey tied, on which no one has sat. Untie him and bring him."
+    ],
+    "web_spans": [[18, 188]],
+    "rvr_text": "y les dijo: Id a la aldea que está enfrente de vosotros, y luego que entréis en ella, hallaréis un pollino atado, en el cual ningún hombre ha montado; desatadlo y traedlo.",
+    "rvr_len": 171,
+    "candidate": [[12, 171]]
+  },
+  {
+    "ref": "Marcos 11:14",
+    "book_id": 41,
+    "chapter": 11,
+    "verse": 14,
+    "web_text": "Jesus told it, “May no one ever eat fruit from you again!” and his disciples heard it.",
+    "web_red": ["“May no one ever eat fruit from you again!”"],
+    "web_spans": [[15, 58]],
+    "rvr_text": "Entonces Jesús dijo a la higuera: Nunca jamás coma nadie fruto de ti. Y lo oyeron sus discípulos.",
+    "rvr_len": 97,
+    "candidate": null
+  },
+  {
+    "ref": "Marcos 11:17",
+    "book_id": 41,
+    "chapter": 11,
+    "verse": 17,
+    "web_text": "He taught, saying to them, “Isn’t it written, ‘My house will be called a house of prayer for all the nations’? But you have made it a den of robbers!”",
+    "web_red": [
+      "“Isn’t it written, ‘My house will be called a house of prayer for all the nations’? But you have made it a den of robbers!”"
+    ],
+    "web_spans": [[27, 150]],
+    "rvr_text": "Y les enseñaba, diciendo: ¿No está escrito: Mi casa será llamada casa de oración para todas las naciones? Mas vosotros la habéis hecho cueva de ladrones.",
+    "rvr_len": 153,
+    "candidate": [[26, 153]]
+  },
+  {
+    "ref": "Marcos 11:22",
+    "book_id": 41,
+    "chapter": 11,
+    "verse": 22,
+    "web_text": "Jesus answered them, “Have faith in God.",
+    "web_red": ["“Have faith in God."],
+    "web_spans": [[21, 40]],
+    "rvr_text": "Respondiendo Jesús, les dijo: Tened fe en Dios.",
+    "rvr_len": 47,
+    "candidate": [[30, 47]]
+  },
+  {
+    "ref": "Marcos 11:29",
+    "book_id": 41,
+    "chapter": 11,
+    "verse": 29,
+    "web_text": "Jesus said to them, “I will ask you one question. Answer me, and I will tell you by what authority I do these things.",
+    "web_red": [
+      "“I will ask you one question. Answer me, and I will tell you by what authority I do these things."
+    ],
+    "web_spans": [[20, 117]],
+    "rvr_text": "Jesús, respondiendo, les dijo: Os haré yo también una pregunta; respondedme, y os diré con qué autoridad hago estas cosas:",
+    "rvr_len": 122,
+    "candidate": [[31, 122]]
+  },
+  {
+    "ref": "Marcos 11:33",
+    "book_id": 41,
+    "chapter": 11,
+    "verse": 33,
+    "web_text": "They answered Jesus, “We don’t know.” Jesus said to them, “Neither will I tell you by what authority I do these things.”",
+    "web_red": [
+      "“Neither will I tell you by what authority I do these things.”"
+    ],
+    "web_spans": [[58, 120]],
+    "rvr_text": "Así que, respondiendo, dijeron a Jesús: No sabemos. Entonces respondiendo Jesús, les dijo: Tampoco yo os digo con qué autoridad hago estas cosas.",
+    "rvr_len": 145,
+    "candidate": [[40, 145]]
+  },
+  {
+    "ref": "Marcos 12:1",
+    "book_id": 41,
+    "chapter": 12,
+    "verse": 1,
+    "web_text": "He began to speak to them in parables. “A man planted a vineyard, put a hedge around it, dug a pit for the wine press, built a tower, rented it out to a farmer, and went into another country.",
+    "web_red": [
+      "“A man planted a vineyard, put a hedge around it, dug a pit for the wine press, built a tower, rented it out to a farmer, and went into another country."
+    ],
+    "web_spans": [[39, 191]],
+    "rvr_text": "Entonces comenzó Jesús a decirles por parábolas: Un hombre plantó una viña, la cercó de vallado, cavó un lagar, edificó una torre, y la arrendó a unos labradores, y se fue lejos.",
+    "rvr_len": 178,
+    "candidate": [[49, 178]]
+  },
+  {
+    "ref": "Marcos 12:15",
+    "book_id": 41,
+    "chapter": 12,
+    "verse": 15,
+    "web_text": "Shall we give, or shall we not give?” But he, knowing their hypocrisy, said to them, “Why do you test me? Bring me a denarius, that I may see it.”",
+    "web_red": [
+      "“Why do you test me? Bring me a denarius, that I may see it.”"
+    ],
+    "web_spans": [[85, 146]],
+    "rvr_text": "Mas él, percibiendo la hipocresía de ellos, les dijo: ¿Por qué me tentáis? Traedme la moneda para que la vea.",
+    "rvr_len": 109,
+    "candidate": [[54, 109]]
+  },
+  {
+    "ref": "Marcos 12:16",
+    "book_id": 41,
+    "chapter": 12,
+    "verse": 16,
+    "web_text": "They brought it. He said to them, “Whose is this image and inscription?” They said to him, “Caesar’s.”",
+    "web_red": ["“Whose is this image and inscription?”"],
+    "web_spans": [[34, 72]],
+    "rvr_text": "Ellos se la trajeron; y les dijo: ¿De quién es esta imagen y la inscripción? Ellos le dijeron: De César.",
+    "rvr_len": 104,
+    "candidate": null
+  },
+  {
+    "ref": "Marcos 12:17",
+    "book_id": 41,
+    "chapter": 12,
+    "verse": 17,
+    "web_text": "Jesus answered them, “Give to Caesar the things that are Caesar’s, and to God the things that are God’s.” They marveled greatly at him.",
+    "web_red": [
+      "“Give to Caesar the things that are Caesar’s, and to God the things that are God’s.”"
+    ],
+    "web_spans": [[21, 105]],
+    "rvr_text": "Respondiendo Jesús, les dijo: Dad a César lo que es de César, y a Dios lo que es de Dios. Y se maravillaron de él.",
+    "rvr_len": 114,
+    "candidate": null
+  },
+  {
+    "ref": "Marcos 12:24",
+    "book_id": 41,
+    "chapter": 12,
+    "verse": 24,
+    "web_text": "Jesus answered them, “Isn’t this because you are mistaken, not knowing the Scriptures nor the power of God?",
+    "web_red": [
+      "“Isn’t this because you are mistaken, not knowing the Scriptures nor the power of God?"
+    ],
+    "web_spans": [[21, 107]],
+    "rvr_text": "Entonces respondiendo Jesús, les dijo: ¿No erráis por esto, porque ignoráis las Escrituras, y el poder de Dios?",
+    "rvr_len": 111,
+    "candidate": [[39, 111]]
+  },
+  {
+    "ref": "Marcos 12:29",
+    "book_id": 41,
+    "chapter": 12,
+    "verse": 29,
+    "web_text": "Jesus answered, “The greatest is: ‘Hear, Israel, the Lord our God, the Lord is one.",
+    "web_red": [
+      "“The greatest is: ‘Hear, Israel, the Lord our God, the Lord is one."
+    ],
+    "web_spans": [[16, 83]],
+    "rvr_text": "Jesús le respondió: El primer mandamiento de todos es: Oye, Israel; el Señor nuestro Dios, el Señor uno es.",
+    "rvr_len": 107,
+    "candidate": [[20, 107]]
+  },
+  {
+    "ref": "Marcos 12:34",
+    "book_id": 41,
+    "chapter": 12,
+    "verse": 34,
+    "web_text": "When Jesus saw that he answered wisely, he said to him, “You are not far from God’s Kingdom.” No one dared ask him any question after that.",
+    "web_red": ["“You are not far from God’s Kingdom.”"],
+    "web_spans": [[56, 93]],
+    "rvr_text": "Jesús entonces, viendo que había respondido sabiamente, le dijo: No estás lejos del reino de Dios. Y ya ninguno osaba preguntarle.",
+    "rvr_len": 130,
+    "candidate": null
+  },
+  {
+    "ref": "Marcos 12:35",
+    "book_id": 41,
+    "chapter": 12,
+    "verse": 35,
+    "web_text": "Jesus responded, as he taught in the temple, “How is it that the scribes say that the Christ is the son of David?",
+    "web_red": [
+      "“How is it that the scribes say that the Christ is the son of David?"
+    ],
+    "web_spans": [[45, 113]],
+    "rvr_text": "Enseñando Jesús en el templo, decía: ¿Cómo dicen los escribas que el Cristo es hijo de David?",
+    "rvr_len": 93,
+    "candidate": [[37, 93]]
+  },
+  {
+    "ref": "Marcos 12:37",
+    "book_id": 41,
+    "chapter": 12,
+    "verse": 37,
+    "web_text": "Therefore David himself calls him Lord, so how can he be his son?” The common people heard him gladly.",
+    "web_red": [
+      "Therefore David himself calls him Lord, so how can he be his son?”"
+    ],
+    "web_spans": [[0, 66]],
+    "rvr_text": "David mismo le llama Señor; ¿cómo, pues, es su hijo? Y gran multitud del pueblo le oía de buena gana.",
+    "rvr_len": 101,
+    "candidate": null
+  },
+  {
+    "ref": "Marcos 12:38",
+    "book_id": 41,
+    "chapter": 12,
+    "verse": 38,
+    "web_text": "In his teaching he said to them, “Beware of the scribes, who like to walk in long robes, and to get greetings in the marketplaces,",
+    "web_red": [
+      "“Beware of the scribes, who like to walk in long robes, and to get greetings in the marketplaces,"
+    ],
+    "web_spans": [[33, 130]],
+    "rvr_text": "Y les decía en su doctrina: Guardaos de los escribas, que gustan de andar con largas ropas, y aman las salutaciones en las plazas,",
+    "rvr_len": 130,
+    "candidate": [[28, 130]]
+  },
+  {
+    "ref": "Marcos 12:43",
+    "book_id": 41,
+    "chapter": 12,
+    "verse": 43,
+    "web_text": "He called his disciples to himself and said to them, “Most certainly I tell you, this poor widow gave more than all those who are giving into the treasury,",
+    "web_red": [
+      "“Most certainly I tell you, this poor widow gave more than all those who are giving into the treasury,"
+    ],
+    "web_spans": [[53, 155]],
+    "rvr_text": "Entonces llamando a sus discípulos, les dijo: De cierto os digo que esta viuda pobre echó más que todos los que han echado en el arca;",
+    "rvr_len": 134,
+    "candidate": [[46, 134]]
+  },
+  {
+    "ref": "Marcos 13:2",
+    "book_id": 41,
+    "chapter": 13,
+    "verse": 2,
+    "web_text": "Jesus said to him, “Do you see these great buildings? There will not be left here one stone on another, which will not be thrown down.”",
+    "web_red": [
+      "“Do you see these great buildings? There will not be left here one stone on another, which will not be thrown down.”"
+    ],
+    "web_spans": [[19, 135]],
+    "rvr_text": "Jesús, respondiendo, le dijo: ¿Ves estos grandes edificios? No quedará piedra sobre piedra, que no sea derribada.",
+    "rvr_len": 113,
+    "candidate": [[30, 113]]
+  },
+  {
+    "ref": "Marcos 13:5",
+    "book_id": 41,
+    "chapter": 13,
+    "verse": 5,
+    "web_text": "Jesus, answering, began to tell them, “Be careful that no one leads you astray.",
+    "web_red": ["“Be careful that no one leads you astray."],
+    "web_spans": [[38, 79]],
+    "rvr_text": "Jesús, respondiéndoles, comenzó a decir: Mirad que nadie os engañe;",
+    "rvr_len": 67,
+    "candidate": [[41, 67]]
+  },
+  {
+    "ref": "Marcos 13:14",
+    "book_id": 41,
+    "chapter": 13,
+    "verse": 14,
+    "web_text": "“But when you see the abomination of desolation, spoken of by Daniel the prophet, standing where it ought not” (let the reader understand), “then let those who are in Judea flee to the mountains,",
+    "web_red": [
+      "“But when you see the abomination of desolation, spoken of by Daniel the prophet, standing where it ought not”",
+      "“then let those who are in Judea flee to the mountains,"
+    ],
+    "web_spans": [
+      [0, 110],
+      [140, 195]
+    ],
+    "rvr_text": "Pero cuando veáis la abominación desoladora de que habló el profeta Daniel, puesta donde no debe estar (el que lee, entienda), entonces los que estén en Judea huyan a los montes.",
+    "rvr_len": 178,
+    "candidate": null
+  },
+  {
+    "ref": "Marcos 14:6",
+    "book_id": 41,
+    "chapter": 14,
+    "verse": 6,
+    "web_text": "But Jesus said, “Leave her alone. Why do you trouble her? She has done a good work for me.",
+    "web_red": [
+      "“Leave her alone. Why do you trouble her? She has done a good work for me."
+    ],
+    "web_spans": [[16, 90]],
+    "rvr_text": "Pero Jesús dijo: Dejadla, ¿por qué la molestáis? Buena obra me ha hecho.",
+    "rvr_len": 72,
+    "candidate": [[17, 72]]
+  },
+  {
+    "ref": "Marcos 14:13",
+    "book_id": 41,
+    "chapter": 14,
+    "verse": 13,
+    "web_text": "He sent two of his disciples and said to them, “Go into the city, and there a man carrying a pitcher of water will meet you. Follow him,",
+    "web_red": [
+      "“Go into the city, and there a man carrying a pitcher of water will meet you. Follow him,"
+    ],
+    "web_spans": [[47, 136]],
+    "rvr_text": "Y envió dos de sus discípulos, y les dijo: Id a la ciudad, y os saldrá al encuentro un hombre que lleva un cántaro de agua; seguidle,",
+    "rvr_len": 133,
+    "candidate": [[43, 133]]
+  },
+  {
+    "ref": "Marcos 14:18",
+    "book_id": 41,
+    "chapter": 14,
+    "verse": 18,
+    "web_text": "As they sat and were eating, Jesus said, “Most certainly I tell you, one of you will betray me—he who eats with me.”",
+    "web_red": [
+      "“Most certainly I tell you, one of you will betray me—he who eats with me.”"
+    ],
+    "web_spans": [[41, 116]],
+    "rvr_text": "Y cuando se sentaron a la mesa, mientras comían, dijo Jesús: De cierto os digo que uno de vosotros, que come conmigo, me va a entregar.",
+    "rvr_len": 135,
+    "candidate": [[61, 135]]
+  },
+  {
+    "ref": "Marcos 14:20",
+    "book_id": 41,
+    "chapter": 14,
+    "verse": 20,
+    "web_text": "He answered them, “It is one of the twelve, he who dips with me in the dish.",
+    "web_red": ["“It is one of the twelve, he who dips with me in the dish."],
+    "web_spans": [[18, 76]],
+    "rvr_text": "El, respondiendo, les dijo: Es uno de los doce, el que moja conmigo en el plato.",
+    "rvr_len": 80,
+    "candidate": [[28, 80]]
+  },
+  {
+    "ref": "Marcos 14:22",
+    "book_id": 41,
+    "chapter": 14,
+    "verse": 22,
+    "web_text": "As they were eating, Jesus took bread, and when he had blessed it, he broke it and gave to them, and said, “Take, eat. This is my body.”",
+    "web_red": ["“Take, eat. This is my body.”"],
+    "web_spans": [[107, 136]],
+    "rvr_text": "Y mientras comían, Jesús tomó pan y bendijo, y lo partió y les dio, diciendo: Tomad, esto es mi cuerpo.",
+    "rvr_len": 103,
+    "candidate": [[78, 103]]
+  },
+  {
+    "ref": "Marcos 14:24",
+    "book_id": 41,
+    "chapter": 14,
+    "verse": 24,
+    "web_text": "He said to them, “This is my blood of the new covenant, which is poured out for many.",
+    "web_red": [
+      "“This is my blood of the new covenant, which is poured out for many."
+    ],
+    "web_spans": [[17, 85]],
+    "rvr_text": "Y les dijo: Esto es mi sangre del nuevo pacto, que por muchos es derramada.",
+    "rvr_len": 75,
+    "candidate": [[12, 75]]
+  },
+  {
+    "ref": "Marcos 14:27",
+    "book_id": 41,
+    "chapter": 14,
+    "verse": 27,
+    "web_text": "Jesus said to them, “All of you will be made to stumble because of me tonight, for it is written, ‘I will strike the shepherd, and the sheep will be scattered.’",
+    "web_red": [
+      "“All of you will be made to stumble because of me tonight, for it is written, ‘I will strike the shepherd, and the sheep will be scattered.’"
+    ],
+    "web_spans": [[20, 160]],
+    "rvr_text": "Entonces Jesús les dijo: Todos os escandalizaréis de mí esta noche; porque escrito está: Heriré al pastor, y las ovejas serán dispersadas.",
+    "rvr_len": 138,
+    "candidate": [[25, 138]]
+  },
+  {
+    "ref": "Marcos 14:30",
+    "book_id": 41,
+    "chapter": 14,
+    "verse": 30,
+    "web_text": "Jesus said to him, “Most certainly I tell you that you today, even this night, before the rooster crows twice, you will deny me three times.”",
+    "web_red": [
+      "“Most certainly I tell you that you today, even this night, before the rooster crows twice, you will deny me three times.”"
+    ],
+    "web_spans": [[19, 141]],
+    "rvr_text": "Y le dijo Jesús: De cierto te digo que tú, hoy, en esta noche, antes que el gallo haya cantado dos veces, me negarás tres veces.",
+    "rvr_len": 128,
+    "candidate": [[17, 128]]
+  },
+  {
+    "ref": "Marcos 14:32",
+    "book_id": 41,
+    "chapter": 14,
+    "verse": 32,
+    "web_text": "They came to a place which was named Gethsemane. He said to his disciples, “Sit here while I pray.”",
+    "web_red": ["“Sit here while I pray.”"],
+    "web_spans": [[75, 99]],
+    "rvr_text": "Vinieron, pues, a un lugar que se llama Getsemaní, y dijo a sus discípulos: Sentaos aquí, entre tanto que yo oro.",
+    "rvr_len": 113,
+    "candidate": [[76, 113]]
+  },
+  {
+    "ref": "Marcos 14:34",
+    "book_id": 41,
+    "chapter": 14,
+    "verse": 34,
+    "web_text": "He said to them, “My soul is exceedingly sorrowful, even to death. Stay here and watch.”",
+    "web_red": [
+      "“My soul is exceedingly sorrowful, even to death. Stay here and watch.”"
+    ],
+    "web_spans": [[17, 88]],
+    "rvr_text": "Y les dijo: Mi alma está muy triste, hasta la muerte; quedaos aquí y velad.",
+    "rvr_len": 75,
+    "candidate": [[12, 75]]
+  },
+  {
+    "ref": "Marcos 14:36",
+    "book_id": 41,
+    "chapter": 14,
+    "verse": 36,
+    "web_text": "He said, “Abba, Father, all things are possible to you. Please remove this cup from me. However, not what I desire, but what you desire.”",
+    "web_red": [
+      "“Abba, Father, all things are possible to you. Please remove this cup from me. However, not what I desire, but what you desire.”"
+    ],
+    "web_spans": [[9, 137]],
+    "rvr_text": "Y decía: Abba, Padre, todas las cosas son posibles para ti; aparta de mí esta copa; mas no lo que yo quiero, sino lo que tú.",
+    "rvr_len": 124,
+    "candidate": [[9, 124]]
+  },
+  {
+    "ref": "Marcos 14:37",
+    "book_id": 41,
+    "chapter": 14,
+    "verse": 37,
+    "web_text": "He came and found them sleeping, and said to Peter, “Simon, are you sleeping? Couldn’t you watch one hour?",
+    "web_red": ["“Simon, are you sleeping? Couldn’t you watch one hour?"],
+    "web_spans": [[52, 106]],
+    "rvr_text": "Vino luego y los halló durmiendo; y dijo a Pedro: Simón, ¿duermes? ¿No has podido velar una hora?",
+    "rvr_len": 97,
+    "candidate": [[50, 97]]
+  },
+  {
+    "ref": "Marcos 14:41",
+    "book_id": 41,
+    "chapter": 14,
+    "verse": 41,
+    "web_text": "He came the third time and said to them, “Sleep on now, and take your rest. It is enough. The hour has come. Behold, the Son of Man is betrayed into the hands of sinners.",
+    "web_red": [
+      "“Sleep on now, and take your rest. It is enough. The hour has come. Behold, the Son of Man is betrayed into the hands of sinners."
+    ],
+    "web_spans": [[41, 170]],
+    "rvr_text": "Vino la tercera vez, y les dijo: Dormid ya, y descansad. Basta, la hora ha venido; he aquí, el Hijo del Hombre es entregado en manos de los pecadores.",
+    "rvr_len": 150,
+    "candidate": [[33, 150]]
+  },
+  {
+    "ref": "Marcos 14:48",
+    "book_id": 41,
+    "chapter": 14,
+    "verse": 48,
+    "web_text": "Jesus answered them, “Have you come out, as against a robber, with swords and clubs to seize me?",
+    "web_red": [
+      "“Have you come out, as against a robber, with swords and clubs to seize me?"
+    ],
+    "web_spans": [[21, 96]],
+    "rvr_text": "Y respondiendo Jesús, les dijo: ¿Como contra un ladrón habéis salido con espadas y con palos para prenderme?",
+    "rvr_len": 108,
+    "candidate": [[32, 108]]
+  },
+  {
+    "ref": "Marcos 14:62",
+    "book_id": 41,
+    "chapter": 14,
+    "verse": 62,
+    "web_text": "Jesus said, “I am. You will see the Son of Man sitting at the right hand of Power, and coming with the clouds of the sky.”",
+    "web_red": [
+      "“I am. You will see the Son of Man sitting at the right hand of Power, and coming with the clouds of the sky.”"
+    ],
+    "web_spans": [[12, 122]],
+    "rvr_text": "Y Jesús le dijo: Yo soy; y veréis al Hijo del Hombre sentado a la diestra del poder de Dios, y viniendo en las nubes del cielo.",
+    "rvr_len": 127,
+    "candidate": [[17, 127]]
+  },
+  {
+    "ref": "Marcos 14:72",
+    "book_id": 41,
+    "chapter": 14,
+    "verse": 72,
+    "web_text": "The rooster crowed the second time. Peter remembered the words that Jesus said to him, “Before the rooster crows twice, you will deny me three times.” When he thought about that, he wept.",
+    "web_red": [
+      "“Before the rooster crows twice, you will deny me three times.”"
+    ],
+    "web_spans": [[87, 150]],
+    "rvr_text": "Y el gallo cantó la segunda vez. Entonces Pedro se acordó de las palabras que Jesús le había dicho: Antes que el gallo cante dos veces, me negarás tres veces. Y pensando en esto, lloraba.",
+    "rvr_len": 187,
+    "candidate": null
+  },
+  {
+    "ref": "Marcos 15:2",
+    "book_id": 41,
+    "chapter": 15,
+    "verse": 2,
+    "web_text": "Pilate asked him, “Are you the King of the Jews?” He answered, “So you say.”",
+    "web_red": ["“So you say.”"],
+    "web_spans": [[63, 76]],
+    "rvr_text": "Pilato le preguntó: ¿Eres tú el Rey de los judíos? Respondiendo él, le dijo: Tú lo dices.",
+    "rvr_len": 89,
+    "candidate": [[20, 89]]
+  }
+]

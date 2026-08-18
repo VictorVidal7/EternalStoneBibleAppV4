@@ -1,0 +1,732 @@
+[
+  {
+    "ref": "Marcos 4:11",
+    "book_id": 41,
+    "chapter": 4,
+    "verse": 11,
+    "web_text": "He said to them, “To you is given the mystery of God’s Kingdom, but to those who are outside, all things are done in parables,",
+    "web_red": [
+      "“To you is given the mystery of God’s Kingdom, but to those who are outside, all things are done in parables,"
+    ],
+    "web_spans": [[17, 126]],
+    "rvr_text": "Y les dijo: A vosotros os es dado saber el misterio del reino de Dios; mas a los que están fuera, por parábolas todas las cosas;",
+    "rvr_len": 128,
+    "candidate": [[12, 128]]
+  },
+  {
+    "ref": "Marcos 4:13",
+    "book_id": 41,
+    "chapter": 4,
+    "verse": 13,
+    "web_text": "He said to them, “Don’t you understand this parable? How will you understand all of the parables?",
+    "web_red": [
+      "“Don’t you understand this parable? How will you understand all of the parables?"
+    ],
+    "web_spans": [[17, 97]],
+    "rvr_text": "Y les dijo: ¿No sabéis esta parábola? ¿Cómo, pues, entenderéis todas las parábolas?",
+    "rvr_len": 83,
+    "candidate": [[12, 83]]
+  },
+  {
+    "ref": "Marcos 4:21",
+    "book_id": 41,
+    "chapter": 4,
+    "verse": 21,
+    "web_text": "He said to them, “Is a lamp brought to be put under a basket or under a bed? Isn’t it put on a stand?",
+    "web_red": [
+      "“Is a lamp brought to be put under a basket or under a bed? Isn’t it put on a stand?"
+    ],
+    "web_spans": [[17, 101]],
+    "rvr_text": "También les dijo: ¿Acaso se trae la luz para ponerla debajo del almud, o debajo de la cama? ¿No es para ponerla en el candelero?",
+    "rvr_len": 128,
+    "candidate": [[18, 128]]
+  },
+  {
+    "ref": "Marcos 4:24",
+    "book_id": 41,
+    "chapter": 4,
+    "verse": 24,
+    "web_text": "He said to them, “Take heed what you hear. With whatever measure you measure, it will be measured to you; and more will be given to you who hear.",
+    "web_red": [
+      "“Take heed what you hear. With whatever measure you measure, it will be measured to you; and more will be given to you who hear."
+    ],
+    "web_spans": [[17, 145]],
+    "rvr_text": "Les dijo también: Mirad lo que oís; porque con la medida con que medís, os será medido, y aun se os añadirá a vosotros los que oís.",
+    "rvr_len": 131,
+    "candidate": [[18, 131]]
+  },
+  {
+    "ref": "Marcos 4:26",
+    "book_id": 41,
+    "chapter": 4,
+    "verse": 26,
+    "web_text": "He said, “God’s Kingdom is as if a man should cast seed on the earth,",
+    "web_red": ["“God’s Kingdom is as if a man should cast seed on the earth,"],
+    "web_spans": [[9, 69]],
+    "rvr_text": "Decía además: Así es el reino de Dios, como cuando un hombre echa semilla en la tierra;",
+    "rvr_len": 87,
+    "candidate": [[14, 87]]
+  },
+  {
+    "ref": "Marcos 4:30",
+    "book_id": 41,
+    "chapter": 4,
+    "verse": 30,
+    "web_text": "He said, “How will we liken God’s Kingdom? Or with what parable will we illustrate it?",
+    "web_red": [
+      "“How will we liken God’s Kingdom? Or with what parable will we illustrate it?"
+    ],
+    "web_spans": [[9, 86]],
+    "rvr_text": "Decía también: ¿A qué haremos semejante el reino de Dios, o con qué parábola lo compararemos?",
+    "rvr_len": 93,
+    "candidate": [[15, 93]]
+  },
+  {
+    "ref": "Marcos 4:35",
+    "book_id": 41,
+    "chapter": 4,
+    "verse": 35,
+    "web_text": "On that day, when evening had come, he said to them, “Let’s go over to the other side.”",
+    "web_red": ["“Let’s go over to the other side.”"],
+    "web_spans": [[53, 87]],
+    "rvr_text": "Aquel día, cuando llegó la noche, les dijo: Pasemos al otro lado.",
+    "rvr_len": 65,
+    "candidate": [[44, 65]]
+  },
+  {
+    "ref": "Marcos 4:39",
+    "book_id": 41,
+    "chapter": 4,
+    "verse": 39,
+    "web_text": "He awoke and rebuked the wind, and said to the sea, “Peace! Be still!” The wind ceased and there was a great calm.",
+    "web_red": ["“Peace! Be still!”"],
+    "web_spans": [[52, 70]],
+    "rvr_text": "Y levantándose, reprendió al viento, y dijo al mar: Calla, enmudece. Y cesó el viento, y se hizo grande bonanza.",
+    "rvr_len": 112,
+    "candidate": null
+  },
+  {
+    "ref": "Marcos 4:40",
+    "book_id": 41,
+    "chapter": 4,
+    "verse": 40,
+    "web_text": "He said to them, “Why are you so afraid? How is it that you have no faith?”",
+    "web_red": ["“Why are you so afraid? How is it that you have no faith?”"],
+    "web_spans": [[17, 75]],
+    "rvr_text": "Y les dijo: ¿Por qué estáis así amedrentados? ¿Cómo no tenéis fe?",
+    "rvr_len": 65,
+    "candidate": [[12, 65]]
+  },
+  {
+    "ref": "Marcos 5:8",
+    "book_id": 41,
+    "chapter": 5,
+    "verse": 8,
+    "web_text": "For he said to him, “Come out of the man, you unclean spirit!”",
+    "web_red": ["“Come out of the man, you unclean spirit!”"],
+    "web_spans": [[20, 62]],
+    "rvr_text": "Porque le decía: Sal de este hombre, espíritu inmundo.",
+    "rvr_len": 54,
+    "candidate": [[17, 54]]
+  },
+  {
+    "ref": "Marcos 5:9",
+    "book_id": 41,
+    "chapter": 5,
+    "verse": 9,
+    "web_text": "He asked him, “What is your name?” He said to him, “My name is Legion, for we are many.”",
+    "web_red": ["“What is your name?”"],
+    "web_spans": [[14, 34]],
+    "rvr_text": "Y le preguntó: ¿Cómo te llamas? Y respondió diciendo: Legión me llamo; porque somos muchos.",
+    "rvr_len": 91,
+    "candidate": null
+  },
+  {
+    "ref": "Marcos 5:19",
+    "book_id": 41,
+    "chapter": 5,
+    "verse": 19,
+    "web_text": "He didn’t allow him, but said to him, “Go to your house, to your friends, and tell them what great things the Lord has done for you and how he had mercy on you.”",
+    "web_red": [
+      "“Go to your house, to your friends, and tell them what great things the Lord has done for you and how he had mercy on you.”"
+    ],
+    "web_spans": [[38, 161]],
+    "rvr_text": "Mas Jesús no se lo permitió, sino que le dijo: Vete a tu casa, a los tuyos, y cuéntales cuán grandes cosas el Señor ha hecho contigo, y cómo ha tenido misericordia de ti.",
+    "rvr_len": 170,
+    "candidate": [[47, 170]]
+  },
+  {
+    "ref": "Marcos 5:30",
+    "book_id": 41,
+    "chapter": 5,
+    "verse": 30,
+    "web_text": "Immediately Jesus, perceiving in himself that the power had gone out from him, turned around in the crowd and asked, “Who touched my clothes?”",
+    "web_red": ["“Who touched my clothes?”"],
+    "web_spans": [[117, 142]],
+    "rvr_text": "Luego Jesús, conociendo en sí mismo el poder que había salido de él, volviéndose a la multitud, dijo: ¿Quién ha tocado mis vestidos?",
+    "rvr_len": 132,
+    "candidate": [[102, 132]]
+  },
+  {
+    "ref": "Marcos 5:34",
+    "book_id": 41,
+    "chapter": 5,
+    "verse": 34,
+    "web_text": "He said to her, “Daughter, your faith has made you well. Go in peace, and be cured of your disease.”",
+    "web_red": [
+      "“Daughter, your faith has made you well. Go in peace, and be cured of your disease.”"
+    ],
+    "web_spans": [[16, 100]],
+    "rvr_text": "Y él le dijo: Hija, tu fe te ha hecho salva; ve en paz, y queda sana de tu azote.",
+    "rvr_len": 81,
+    "candidate": [[14, 81]]
+  },
+  {
+    "ref": "Marcos 5:36",
+    "book_id": 41,
+    "chapter": 5,
+    "verse": 36,
+    "web_text": "But Jesus, when he heard the message spoken, immediately said to the ruler of the synagogue, “Don’t be afraid, only believe.”",
+    "web_red": ["“Don’t be afraid, only believe.”"],
+    "web_spans": [[93, 125]],
+    "rvr_text": "Pero Jesús, luego que oyó lo que se decía, dijo al principal de la sinagoga: No temas, cree solamente.",
+    "rvr_len": 102,
+    "candidate": [[77, 102]]
+  },
+  {
+    "ref": "Marcos 5:39",
+    "book_id": 41,
+    "chapter": 5,
+    "verse": 39,
+    "web_text": "When he had entered in, he said to them, “Why do you make an uproar and weep? The child is not dead, but is asleep.”",
+    "web_red": [
+      "“Why do you make an uproar and weep? The child is not dead, but is asleep.”"
+    ],
+    "web_spans": [[41, 116]],
+    "rvr_text": "Y entrando, les dijo: ¿Por qué alborotáis y lloráis? La niña no está muerta, sino duerme.",
+    "rvr_len": 89,
+    "candidate": [[22, 89]]
+  },
+  {
+    "ref": "Marcos 5:41",
+    "book_id": 41,
+    "chapter": 5,
+    "verse": 41,
+    "web_text": "Taking the child by the hand, he said to her, “Talitha cumi!” which means, being interpreted, “Girl, I tell you, get up!”",
+    "web_red": ["“Talitha cumi!”", "“Girl, I tell you, get up!”"],
+    "web_spans": [
+      [46, 61],
+      [94, 121]
+    ],
+    "rvr_text": "Y tomando la mano de la niña, le dijo: Talita cumi; que traducido es: Niña, a ti te digo, levántate.",
+    "rvr_len": 100,
+    "candidate": null
+  },
+  {
+    "ref": "Marcos 6:4",
+    "book_id": 41,
+    "chapter": 6,
+    "verse": 4,
+    "web_text": "Jesus said to them, “A prophet is not without honor, except in his own country, and among his own relatives, and in his own house.”",
+    "web_red": [
+      "“A prophet is not without honor, except in his own country, and among his own relatives, and in his own house.”"
+    ],
+    "web_spans": [[20, 131]],
+    "rvr_text": "Mas Jesús les decía: No hay profeta sin honra sino en su propia tierra, y entre sus parientes, y en su casa.",
+    "rvr_len": 108,
+    "candidate": [[21, 108]]
+  },
+  {
+    "ref": "Marcos 6:10",
+    "book_id": 41,
+    "chapter": 6,
+    "verse": 10,
+    "web_text": "He said to them, “Wherever you enter into a house, stay there until you depart from there.",
+    "web_red": [
+      "“Wherever you enter into a house, stay there until you depart from there."
+    ],
+    "web_spans": [[17, 90]],
+    "rvr_text": "Y les dijo: Dondequiera que entréis en una casa, posad en ella hasta que salgáis de aquel lugar.",
+    "rvr_len": 96,
+    "candidate": [[12, 96]]
+  },
+  {
+    "ref": "Marcos 6:31",
+    "book_id": 41,
+    "chapter": 6,
+    "verse": 31,
+    "web_text": "He said to them, “Come away into a deserted place, and rest awhile.” For there were many coming and going, and they had no leisure so much as to eat.",
+    "web_red": ["“Come away into a deserted place, and rest awhile.”"],
+    "web_spans": [[17, 68]],
+    "rvr_text": "El les dijo: Venid vosotros aparte a un lugar desierto, y descansad un poco. Porque eran muchos los que iban y venían, de manera que ni aun tenían tiempo para comer.",
+    "rvr_len": 165,
+    "candidate": null
+  },
+  {
+    "ref": "Marcos 6:37",
+    "book_id": 41,
+    "chapter": 6,
+    "verse": 37,
+    "web_text": "But he answered them, “You give them something to eat.” They asked him, “Shall we go and buy two hundred denarii worth of bread and give them something to eat?”",
+    "web_red": ["“You give them something to eat.”"],
+    "web_spans": [[22, 55]],
+    "rvr_text": "Respondiendo él, les dijo: Dadles vosotros de comer. Ellos le dijeron: ¿Que vayamos y compremos pan por doscientos denarios, y les demos de comer?",
+    "rvr_len": 146,
+    "candidate": null
+  },
+  {
+    "ref": "Marcos 6:38",
+    "book_id": 41,
+    "chapter": 6,
+    "verse": 38,
+    "web_text": "He said to them, “How many loaves do you have? Go see.” When they knew, they said, “Five, and two fish.”",
+    "web_red": ["“How many loaves do you have? Go see.”"],
+    "web_spans": [[17, 55]],
+    "rvr_text": "El les dijo: ¿Cuántos panes tenéis? Id y vedlo. Y al saberlo, dijeron: Cinco, y dos peces.",
+    "rvr_len": 90,
+    "candidate": null
+  },
+  {
+    "ref": "Marcos 6:50",
+    "book_id": 41,
+    "chapter": 6,
+    "verse": 50,
+    "web_text": "for they all saw him and were troubled. But he immediately spoke with them and said to them, “Cheer up! It is I! Don’t be afraid.”",
+    "web_red": ["“Cheer up! It is I! Don’t be afraid.”"],
+    "web_spans": [[93, 130]],
+    "rvr_text": "porque todos le veían, y se turbaron. Pero en seguida habló con ellos, y les dijo: ¡Tened ánimo; yo soy, no temáis!",
+    "rvr_len": 115,
+    "candidate": [[83, 115]]
+  },
+  {
+    "ref": "Marcos 7:6",
+    "book_id": 41,
+    "chapter": 7,
+    "verse": 6,
+    "web_text": "He answered them, “Well did Isaiah prophesy of you hypocrites, as it is written, ‘This people honors me with their lips, but their heart is far from me.",
+    "web_red": [
+      "“Well did Isaiah prophesy of you hypocrites, as it is written, ‘This people honors me with their lips, but their heart is far from me."
+    ],
+    "web_spans": [[18, 152]],
+    "rvr_text": "Respondiendo él, les dijo: Hipócritas, bien profetizó de vosotros Isaías, como está escrito: Este pueblo de labios me honra, Mas su corazón está lejos de mí.",
+    "rvr_len": 157,
+    "candidate": [[27, 157]]
+  },
+  {
+    "ref": "Marcos 7:9",
+    "book_id": 41,
+    "chapter": 7,
+    "verse": 9,
+    "web_text": "He said to them, “Full well do you reject the commandment of God, that you may keep your tradition.",
+    "web_red": [
+      "“Full well do you reject the commandment of God, that you may keep your tradition."
+    ],
+    "web_spans": [[17, 99]],
+    "rvr_text": "Les decía también: Bien invalidáis el mandamiento de Dios para guardar vuestra tradición.",
+    "rvr_len": 89,
+    "candidate": [[19, 89]]
+  },
+  {
+    "ref": "Marcos 7:11",
+    "book_id": 41,
+    "chapter": 7,
+    "verse": 11,
+    "web_text": "But you say, ‘If a man tells his father or his mother, “Whatever profit you might have received from me is Corban,”’” that is to say, given to God,",
+    "web_red": [
+      "But you say, ‘If a man tells his father or his mother, “Whatever profit you might have received from me is Corban,”’”"
+    ],
+    "web_spans": [[0, 117]],
+    "rvr_text": "Pero vosotros decís: Basta que diga un hombre al padre o a la madre: Es Corbán (que quiere decir, mi ofrenda a Dios) todo aquello con que pudiera ayudarte,",
+    "rvr_len": 155,
+    "candidate": null
+  },
+  {
+    "ref": "Marcos 7:14",
+    "book_id": 41,
+    "chapter": 7,
+    "verse": 14,
+    "web_text": "He called all the multitude to himself and said to them, “Hear me, all of you, and understand.",
+    "web_red": ["“Hear me, all of you, and understand."],
+    "web_spans": [[57, 94]],
+    "rvr_text": "Y llamando a sí a toda la multitud, les dijo: Oídme todos, y entended:",
+    "rvr_len": 70,
+    "candidate": [[46, 70]]
+  },
+  {
+    "ref": "Marcos 7:18",
+    "book_id": 41,
+    "chapter": 7,
+    "verse": 18,
+    "web_text": "He said to them, “Are you also without understanding? Don’t you perceive that whatever goes into the man from outside can’t defile him,",
+    "web_red": [
+      "“Are you also without understanding? Don’t you perceive that whatever goes into the man from outside can’t defile him,"
+    ],
+    "web_spans": [[17, 135]],
+    "rvr_text": "El les dijo: ¿También vosotros estáis así sin entendimiento? ¿No entendéis que todo lo de fuera que entra en el hombre, no le puede contaminar,",
+    "rvr_len": 143,
+    "candidate": [[13, 143]]
+  },
+  {
+    "ref": "Marcos 7:20",
+    "book_id": 41,
+    "chapter": 7,
+    "verse": 20,
+    "web_text": "He said, “That which proceeds out of the man, that defiles the man.",
+    "web_red": ["“That which proceeds out of the man, that defiles the man."],
+    "web_spans": [[9, 67]],
+    "rvr_text": "Pero decía, que lo que del hombre sale, eso contamina al hombre.",
+    "rvr_len": 64,
+    "candidate": null
+  },
+  {
+    "ref": "Marcos 7:27",
+    "book_id": 41,
+    "chapter": 7,
+    "verse": 27,
+    "web_text": "But Jesus said to her, “Let the children be filled first, for it is not appropriate to take the children’s bread and throw it to the dogs.”",
+    "web_red": [
+      "“Let the children be filled first, for it is not appropriate to take the children’s bread and throw it to the dogs.”"
+    ],
+    "web_spans": [[23, 139]],
+    "rvr_text": "Pero Jesús le dijo: Deja primero que se sacien los hijos, porque no está bien tomar el pan de los hijos y echarlo a los perrillos.",
+    "rvr_len": 130,
+    "candidate": [[20, 130]]
+  },
+  {
+    "ref": "Marcos 7:29",
+    "book_id": 41,
+    "chapter": 7,
+    "verse": 29,
+    "web_text": "He said to her, “For this saying, go your way. The demon has gone out of your daughter.”",
+    "web_red": [
+      "“For this saying, go your way. The demon has gone out of your daughter.”"
+    ],
+    "web_spans": [[16, 88]],
+    "rvr_text": "Entonces le dijo: Por esta palabra, ve; el demonio ha salido de tu hija.",
+    "rvr_len": 72,
+    "candidate": [[18, 72]]
+  },
+  {
+    "ref": "Marcos 7:34",
+    "book_id": 41,
+    "chapter": 7,
+    "verse": 34,
+    "web_text": "Looking up to heaven, he sighed, and said to him, “Ephphatha!” that is, “Be opened!”",
+    "web_red": ["“Ephphatha!”", "“Be opened!”"],
+    "web_spans": [
+      [50, 62],
+      [72, 84]
+    ],
+    "rvr_text": "y levantando los ojos al cielo, gimió, y le dijo: Efata, es decir: Sé abierto.",
+    "rvr_len": 78,
+    "candidate": null
+  },
+  {
+    "ref": "Marcos 8:5",
+    "book_id": 41,
+    "chapter": 8,
+    "verse": 5,
+    "web_text": "He asked them, “How many loaves do you have?” They said, “Seven.”",
+    "web_red": ["“How many loaves do you have?”"],
+    "web_spans": [[15, 45]],
+    "rvr_text": "El les preguntó: ¿Cuántos panes tenéis? Ellos dijeron: Siete.",
+    "rvr_len": 61,
+    "candidate": null
+  },
+  {
+    "ref": "Marcos 8:12",
+    "book_id": 41,
+    "chapter": 8,
+    "verse": 12,
+    "web_text": "He sighed deeply in his spirit and said, “Why does this generation seek a sign? Most certainly I tell you, no sign will be given to this generation.”",
+    "web_red": [
+      "“Why does this generation seek a sign? Most certainly I tell you, no sign will be given to this generation.”"
+    ],
+    "web_spans": [[41, 149]],
+    "rvr_text": "Y gimiendo en su espíritu, dijo: ¿Por qué pide señal esta generación? De cierto os digo que no se dará señal a esta generación.",
+    "rvr_len": 127,
+    "candidate": [[33, 127]]
+  },
+  {
+    "ref": "Marcos 8:15",
+    "book_id": 41,
+    "chapter": 8,
+    "verse": 15,
+    "web_text": "He warned them, saying, “Take heed: beware of the yeast of the Pharisees and the yeast of Herod.”",
+    "web_red": [
+      "“Take heed: beware of the yeast of the Pharisees and the yeast of Herod.”"
+    ],
+    "web_spans": [[24, 97]],
+    "rvr_text": "Y él les mandó, diciendo: Mirad, guardaos de la levadura de los fariseos, y de la levadura de Herodes.",
+    "rvr_len": 102,
+    "candidate": [[26, 102]]
+  },
+  {
+    "ref": "Marcos 8:17",
+    "book_id": 41,
+    "chapter": 8,
+    "verse": 17,
+    "web_text": "Jesus, perceiving it, said to them, “Why do you reason that it’s because you have no bread? Don’t you perceive yet or understand? Is your heart still hardened?",
+    "web_red": [
+      "“Why do you reason that it’s because you have no bread? Don’t you perceive yet or understand? Is your heart still hardened?"
+    ],
+    "web_spans": [[36, 159]],
+    "rvr_text": "Y entendiéndolo Jesús, les dijo: ¿Qué discutís, porque no tenéis pan? ¿No entendéis ni comprendéis? ¿Aún tenéis endurecido vuestro corazón?",
+    "rvr_len": 139,
+    "candidate": [[33, 139]]
+  },
+  {
+    "ref": "Marcos 8:19",
+    "book_id": 41,
+    "chapter": 8,
+    "verse": 19,
+    "web_text": "When I broke the five loaves among the five thousand, how many baskets full of broken pieces did you take up?” They told him, “Twelve.”",
+    "web_red": [
+      "When I broke the five loaves among the five thousand, how many baskets full of broken pieces did you take up?”"
+    ],
+    "web_spans": [[0, 110]],
+    "rvr_text": "Cuando partí los cinco panes entre cinco mil, ¿cuántas cestas llenas de los pedazos recogisteis? Y ellos dijeron: Doce.",
+    "rvr_len": 119,
+    "candidate": null
+  },
+  {
+    "ref": "Marcos 8:20",
+    "book_id": 41,
+    "chapter": 8,
+    "verse": 20,
+    "web_text": "“When the seven loaves fed the four thousand, how many baskets full of broken pieces did you take up?” They told him, “Seven.”",
+    "web_red": [
+      "“When the seven loaves fed the four thousand, how many baskets full of broken pieces did you take up?”"
+    ],
+    "web_spans": [[0, 102]],
+    "rvr_text": "Y cuando los siete panes entre cuatro mil, ¿cuántas canastas llenas de los pedazos recogisteis? Y ellos dijeron: Siete.",
+    "rvr_len": 119,
+    "candidate": null
+  },
+  {
+    "ref": "Marcos 8:21",
+    "book_id": 41,
+    "chapter": 8,
+    "verse": 21,
+    "web_text": "He asked them, “Don’t you understand yet?”",
+    "web_red": ["“Don’t you understand yet?”"],
+    "web_spans": [[15, 42]],
+    "rvr_text": "Y les dijo: ¿Cómo aún no entendéis?",
+    "rvr_len": 35,
+    "candidate": [[12, 35]]
+  },
+  {
+    "ref": "Marcos 8:26",
+    "book_id": 41,
+    "chapter": 8,
+    "verse": 26,
+    "web_text": "He sent him away to his house, saying, “Don’t enter into the village, nor tell anyone in the village.”",
+    "web_red": [
+      "“Don’t enter into the village, nor tell anyone in the village.”"
+    ],
+    "web_spans": [[39, 102]],
+    "rvr_text": "Y lo envió a su casa, diciendo: No entres en la aldea, ni lo digas a nadie en la aldea.",
+    "rvr_len": 87,
+    "candidate": [[32, 87]]
+  },
+  {
+    "ref": "Marcos 8:27",
+    "book_id": 41,
+    "chapter": 8,
+    "verse": 27,
+    "web_text": "Jesus went out, with his disciples, into the villages of Caesarea Philippi. On the way he asked his disciples, “Who do men say that I am?”",
+    "web_red": ["“Who do men say that I am?”"],
+    "web_spans": [[111, 138]],
+    "rvr_text": "Salieron Jesús y sus discípulos por las aldeas de Cesarea de Filipo. Y en el camino preguntó a sus discípulos, diciéndoles: ¿Quién dicen los hombres que soy yo?",
+    "rvr_len": 160,
+    "candidate": [[124, 160]]
+  },
+  {
+    "ref": "Marcos 8:29",
+    "book_id": 41,
+    "chapter": 8,
+    "verse": 29,
+    "web_text": "He said to them, “But who do you say that I am?” Peter answered, “You are the Christ.”",
+    "web_red": ["“But who do you say that I am?”"],
+    "web_spans": [[17, 48]],
+    "rvr_text": "Entonces él les dijo: Y vosotros, ¿quién decís que soy? Respondiendo Pedro, le dijo: Tú eres el Cristo.",
+    "rvr_len": 103,
+    "candidate": null
+  },
+  {
+    "ref": "Marcos 8:33",
+    "book_id": 41,
+    "chapter": 8,
+    "verse": 33,
+    "web_text": "But he, turning around and seeing his disciples, rebuked Peter, and said, “Get behind me, Satan! For you have in mind not the things of God, but the things of men.”",
+    "web_red": [
+      "“Get behind me, Satan! For you have in mind not the things of God, but the things of men.”"
+    ],
+    "web_spans": [[74, 164]],
+    "rvr_text": "Pero él, volviéndose y mirando a los discípulos, reprendió a Pedro, diciendo: ¡Quítate de delante de mí, Satanás! porque no pones la mira en las cosas de Dios, sino en las de los hombres.",
+    "rvr_len": 187,
+    "candidate": [[78, 187]]
+  },
+  {
+    "ref": "Marcos 8:34",
+    "book_id": 41,
+    "chapter": 8,
+    "verse": 34,
+    "web_text": "He called the multitude to himself with his disciples and said to them, “Whoever wants to come after me, let him deny himself, and take up his cross, and follow me.",
+    "web_red": [
+      "“Whoever wants to come after me, let him deny himself, and take up his cross, and follow me."
+    ],
+    "web_spans": [[72, 164]],
+    "rvr_text": "Y llamando a la gente y a sus discípulos, les dijo: Si alguno quiere venir en pos de mí, niéguese a sí mismo, y tome su cruz, y sígame.",
+    "rvr_len": 135,
+    "candidate": [[52, 135]]
+  },
+  {
+    "ref": "Marcos 9:1",
+    "book_id": 41,
+    "chapter": 9,
+    "verse": 1,
+    "web_text": "He said to them, “Most certainly I tell you, there are some standing here who will in no way taste death until they see God’s Kingdom come with power.”",
+    "web_red": [
+      "“Most certainly I tell you, there are some standing here who will in no way taste death until they see God’s Kingdom come with power.”"
+    ],
+    "web_spans": [[17, 151]],
+    "rvr_text": "También les dijo: De cierto os digo que hay algunos de los que están aquí, que no gustarán la muerte hasta que hayan visto el reino de Dios venido con poder.",
+    "rvr_len": 157,
+    "candidate": [[18, 157]]
+  },
+  {
+    "ref": "Marcos 9:12",
+    "book_id": 41,
+    "chapter": 9,
+    "verse": 12,
+    "web_text": "He said to them, “Elijah indeed comes first, and restores all things. How is it written about the Son of Man, that he should suffer many things and be despised?",
+    "web_red": [
+      "“Elijah indeed comes first, and restores all things. How is it written about the Son of Man, that he should suffer many things and be despised?"
+    ],
+    "web_spans": [[17, 160]],
+    "rvr_text": "Respondiendo él, les dijo: Elías a la verdad vendrá primero, y restaurará todas las cosas; ¿y cómo está escrito del Hijo del Hombre, que padezca mucho y sea tenido en nada?",
+    "rvr_len": 172,
+    "candidate": [[27, 172]]
+  },
+  {
+    "ref": "Marcos 9:16",
+    "book_id": 41,
+    "chapter": 9,
+    "verse": 16,
+    "web_text": "He asked the scribes, “What are you asking them?”",
+    "web_red": ["“What are you asking them?”"],
+    "web_spans": [[22, 49]],
+    "rvr_text": "El les preguntó: ¿Qué disputáis con ellos?",
+    "rvr_len": 42,
+    "candidate": [[17, 42]]
+  },
+  {
+    "ref": "Marcos 9:19",
+    "book_id": 41,
+    "chapter": 9,
+    "verse": 19,
+    "web_text": "He answered him, “Unbelieving generation, how long shall I be with you? How long shall I bear with you? Bring him to me.”",
+    "web_red": [
+      "“Unbelieving generation, how long shall I be with you? How long shall I bear with you? Bring him to me.”"
+    ],
+    "web_spans": [[17, 121]],
+    "rvr_text": "Y respondiendo él, les dijo: ¡Oh generación incrédula! ¿Hasta cuándo he de estar con vosotros? ¿Hasta cuándo os he de soportar? Traédmelo.",
+    "rvr_len": 138,
+    "candidate": [[29, 138]]
+  },
+  {
+    "ref": "Marcos 9:21",
+    "book_id": 41,
+    "chapter": 9,
+    "verse": 21,
+    "web_text": "He asked his father, “How long has it been since this has been happening to him?” He said, “From childhood.",
+    "web_red": ["“How long has it been since this has been happening to him?”"],
+    "web_spans": [[21, 81]],
+    "rvr_text": "Jesús preguntó al padre: ¿Cuánto tiempo hace que le sucede esto? Y él dijo: Desde niño.",
+    "rvr_len": 87,
+    "candidate": null
+  },
+  {
+    "ref": "Marcos 9:23",
+    "book_id": 41,
+    "chapter": 9,
+    "verse": 23,
+    "web_text": "Jesus said to him, “If you can believe, all things are possible to him who believes.”",
+    "web_red": [
+      "“If you can believe, all things are possible to him who believes.”"
+    ],
+    "web_spans": [[19, 85]],
+    "rvr_text": "Jesús le dijo: Si puedes creer, al que cree todo le es posible.",
+    "rvr_len": 63,
+    "candidate": [[15, 63]]
+  },
+  {
+    "ref": "Marcos 9:25",
+    "book_id": 41,
+    "chapter": 9,
+    "verse": 25,
+    "web_text": "When Jesus saw that a multitude came running together, he rebuked the unclean spirit, saying to him, “You mute and deaf spirit, I command you, come out of him, and never enter him again!”",
+    "web_red": [
+      "“You mute and deaf spirit, I command you, come out of him, and never enter him again!”"
+    ],
+    "web_spans": [[101, 187]],
+    "rvr_text": "Y cuando Jesús vio que la multitud se agolpaba, reprendió al espíritu inmundo, diciéndole: Espíritu mudo y sordo, yo te mando, sal de él, y no entres más en él.",
+    "rvr_len": 160,
+    "candidate": [[91, 160]]
+  },
+  {
+    "ref": "Marcos 9:29",
+    "book_id": 41,
+    "chapter": 9,
+    "verse": 29,
+    "web_text": "He said to them, “This kind can come out by nothing but by prayer and fasting.”",
+    "web_red": [
+      "“This kind can come out by nothing but by prayer and fasting.”"
+    ],
+    "web_spans": [[17, 79]],
+    "rvr_text": "Y les dijo: Este género con nada puede salir, sino con oración y ayuno.",
+    "rvr_len": 71,
+    "candidate": [[12, 71]]
+  },
+  {
+    "ref": "Marcos 9:31",
+    "book_id": 41,
+    "chapter": 9,
+    "verse": 31,
+    "web_text": "for he was teaching his disciples, and said to them, “The Son of Man is being handed over to the hands of men, and they will kill him; and when he is killed, on the third day he will rise again.”",
+    "web_red": [
+      "“The Son of Man is being handed over to the hands of men, and they will kill him; and when he is killed, on the third day he will rise again.”"
+    ],
+    "web_spans": [[53, 195]],
+    "rvr_text": "Porque enseñaba a sus discípulos, y les decía: El Hijo del Hombre será entregado en manos de hombres, y le matarán; pero después de muerto, resucitará al tercer día.",
+    "rvr_len": 165,
+    "candidate": [[47, 165]]
+  },
+  {
+    "ref": "Marcos 9:33",
+    "book_id": 41,
+    "chapter": 9,
+    "verse": 33,
+    "web_text": "He came to Capernaum, and when he was in the house he asked them, “What were you arguing among yourselves on the way?”",
+    "web_red": ["“What were you arguing among yourselves on the way?”"],
+    "web_spans": [[66, 118]],
+    "rvr_text": "Y llegó a Capernaum; y cuando estuvo en casa, les preguntó: ¿Qué disputabais entre vosotros en el camino?",
+    "rvr_len": 105,
+    "candidate": [[60, 105]]
+  },
+  {
+    "ref": "Marcos 9:35",
+    "book_id": 41,
+    "chapter": 9,
+    "verse": 35,
+    "web_text": "He sat down and called the twelve; and he said to them, “If any man wants to be first, he shall be last of all, and servant of all.”",
+    "web_red": [
+      "“If any man wants to be first, he shall be last of all, and servant of all.”"
+    ],
+    "web_spans": [[56, 132]],
+    "rvr_text": "Entonces él se sentó y llamó a los doce, y les dijo: Si alguno quiere ser el primero, será el postrero de todos, y el servidor de todos.",
+    "rvr_len": 136,
+    "candidate": [[53, 136]]
+  }
+]

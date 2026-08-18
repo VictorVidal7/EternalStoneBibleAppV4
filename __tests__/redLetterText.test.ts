@@ -1,31 +1,72 @@
 /**
- * Tests for src/lib/reading/redLetterText.ts — composes the WEB red-letter
- * spans (bible-data-web-redletter.ts) with the inline reference linkifier
- * (parseReference.ts's `linkifyReferences`) into ordered, flagged runs for
- * the reader's verse-rendering loop.
+ * Tests for src/lib/reading/redLetterText.ts — composes version-specific
+ * red-letter spans (WEB_RED_LETTER / RVR1960_RED_LETTER) with the inline
+ * reference linkifier (parseReference.ts's `linkifyReferences`) into
+ * ordered, flagged runs for the reader's verse-rendering loop.
  */
 import {getBookByName} from '../src/constants/bible';
 import {WEB_DATA} from '../src/lib/database/bible-data-web';
+import {RVR1960_DATA} from '../src/lib/database/bible-data-rvr1960';
 import type {LinkifiedSegment} from '../src/lib/references/parseReference';
 import {
   getRedLetterSpans,
+  hasRedLetterData,
   mergeRedLetterSpans,
   type RedLetterRun,
 } from '../src/lib/reading/redLetterText';
 
-const textByKey = new Map(
+const webTextByKey = new Map(
   WEB_DATA.map(r => [`${r.book_id}|${r.chapter}:${r.verse}`, r.text]),
 );
+const rvrTextByKey = new Map(
+  RVR1960_DATA.map(r => [`${r.book_id}|${r.chapter}:${r.verse}`, r.text]),
+);
 
-describe('getRedLetterSpans', () => {
-  it('returns undefined for a verse with no red-letter data (Genesis 1:1)', () => {
-    expect(getRedLetterSpans(1, 1, 1)).toBeUndefined();
+describe('hasRedLetterData', () => {
+  it('is true for WEB and RVR1960, the 2 versions with real data', () => {
+    expect(hasRedLetterData('WEB')).toBe(true);
+    expect(hasRedLetterData('RVR1960')).toBe(true);
   });
 
-  it('returns the correct spans for a known entry (John 3:16 — one continuous span covering the whole verse)', () => {
-    const text = textByKey.get('43|3:16')!;
+  it('is false for a version id with no red-letter data', () => {
+    expect(hasRedLetterData('KJV')).toBe(false);
+    expect(hasRedLetterData('made-up-version-id')).toBe(false);
+  });
+});
+
+describe('getRedLetterSpans', () => {
+  it('returns undefined for a WEB verse with no red-letter data (Genesis 1:1)', () => {
+    expect(getRedLetterSpans('WEB', 1, 1, 1)).toBeUndefined();
+  });
+
+  it('returns undefined for a version id with no red-letter data at all', () => {
+    expect(getRedLetterSpans('KJV', 43, 3, 16)).toBeUndefined();
+  });
+
+  it('returns the correct spans for a known WEB entry (John 3:16 — one continuous span covering the whole verse)', () => {
+    const text = webTextByKey.get('43|3:16')!;
     expect(text).toBeDefined();
-    expect(getRedLetterSpans(43, 3, 16)).toEqual([[0, text.length]]);
+    expect(getRedLetterSpans('WEB', 43, 3, 16)).toEqual([[0, text.length]]);
+  });
+
+  it('returns undefined for an RVR1960 verse with no red-letter data (Génesis 1:1)', () => {
+    expect(getRedLetterSpans('RVR1960', 1, 1, 1)).toBeUndefined();
+  });
+
+  it("returns a multi-span entry for a known RVR1960 verse (Mateo 9:6 — narration in the middle splits Jesus's words into two spans)", () => {
+    const text = rvrTextByKey.get('40|9:6')!;
+    expect(text).toBeDefined();
+    const spans = getRedLetterSpans('RVR1960', 40, 9, 6);
+    expect(spans).toEqual([
+      [0, 93],
+      [125, 167],
+    ]);
+    expect(text.slice(0, 93)).toBe(
+      'Pues para que sepáis que el Hijo del Hombre tiene potestad en la tierra para perdonar pecados',
+    );
+    expect(text.slice(125, 167)).toBe(
+      'Levántate, toma tu cama, y vete a tu casa.',
+    );
   });
 });
 
