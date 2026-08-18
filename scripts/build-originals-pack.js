@@ -222,13 +222,28 @@ function cleanHebrew(w) {
   return w.split('\\')[0].replace(/\//g, '').trim();
 }
 
-/** Parse a STEPBible file into word rows (verified later against the seed). */
+/** Parse a STEPBible file into word rows (verified later against the seed).
+ *  A verse straddling a versification difference between editions (e.g. the
+ *  Pericope Adulterae's Jhn.7.53, or Rom.16.25's doxology-placement variants)
+ *  carries an inline `{altChapter.altVerse}` annotation right after OUR
+ *  verse number, before the `#position` marker — e.g. "Jhn.7.53{8.1}#01".
+ *  Without tolerating it here the row silently fails to match and the whole
+ *  word is dropped, even though it belongs to a real, addressable verse.
+ *  TAHOT also carries an `=X` flag (vs. the normal `=L`, Leningrad Codex) on
+ *  ~130 rows: words that exist ONLY as a Hebrew retroversion of the LXX
+ *  apparatus (per the file's own header note), never in the Masoretic running
+ *  text every version here actually translates. They reuse the verse's own
+ *  1-based position numbering, so importing them both fabricates text that
+ *  isn't in the verse AND collides key-for-key with the real word at that
+ *  position (e.g. Deu.30.16, Jdg.16.14, 2Sa.23.33, 2Ki.25.3). Skip them. */
 function* parseStep(text, lang) {
   const lines = text.split(/\r?\n/);
-  const rowRe = /^([A-Za-z0-9]{2,4})\.(\d+)\.(\d+)#(\d+)/;
+  const rowRe =
+    /^([A-Za-z0-9]{2,4})\.(\d+)\.(\d+)(?:\{[^}]*\})?#(\d+)=([A-Za-z()]+)/;
   for (const line of lines) {
     const m = rowRe.exec(line);
     if (!m) continue;
+    if (lang === 'H' && m[5] === 'X') continue;
     const c = line.split('\t');
     const [, code, chStr, vStr, posStr] = m;
     const bookId = STEP_BOOK_TO_ID[code];
