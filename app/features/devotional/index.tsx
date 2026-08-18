@@ -25,6 +25,8 @@ import {
 import {Stack, useRouter} from 'expo-router';
 import {Ionicons} from '@expo/vector-icons';
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import {useDebouncedCallback} from 'use-debounce';
 
 import {AppText as Text} from '@components/ui/AppText';
 import {useTheme} from '@hooks/useTheme';
@@ -35,14 +37,26 @@ import {haptics} from '@lib/haptics';
 import {centeredMaxWidth} from '@/styles/responsive';
 import {focusTrapProps} from '@lib/a11y/focusTrap';
 import bibleDB from '@lib/database';
+import {logger} from '@lib/utils/logger';
 import {BIBLE_BOOKS, getBookById} from '@/constants/bible';
 import {
   addDaysISO,
+  addSavedDevotional,
   CAL_NOTE_MAX,
+  DEVOTIONAL_DRAFT_KEY,
+  DEVOTIONAL_SAVED_KEY,
   encodeHttpsLink,
+  isDraftWorthSaving,
   makeCalBundle,
   MAX_CAL_DAYS,
+  parseDevotionalDraft,
+  parseSavedDevotionals,
+  serializeDevotionalDraft,
+  serializeSavedDevotionals,
   todayDateISO,
+  type CalBundle,
+  type DevotionalDraft,
+  type SavedDevotional,
 } from '@lib/together';
 
 interface DraftDay {
@@ -90,6 +104,63 @@ export default function DevotionalBuilderScreen() {
   const [chapter, setChapter] = useState(1);
   const [verse, setVerse] = useState(1);
   const [maxVerse, setMaxVerse] = useState(VERSE_FALLBACK_MAX);
+
+  // Local persistence: the in-progress draft (so leaving the screen before
+  // sharing doesn't lose it) + the lightweight "my devotionals" list of
+  // already-shared calendars (see src/lib/together/devotionalDraft.ts).
+  const [draftLoaded, setDraftLoaded] = useState(false);
+  const [savedList, setSavedList] = useState<SavedDevotional[]>([]);
+
+  useEffect(() => {
+    let alive = true;
+    (async () => {
+      try {
+        const [draftRaw, savedRaw] = await Promise.all([
+          AsyncStorage.getItem(DEVOTIONAL_DRAFT_KEY),
+          AsyncStorage.getItem(DEVOTIONAL_SAVED_KEY),
+        ]);
+        if (!alive) return;
+        const draft = parseDevotionalDraft(draftRaw);
+        if (draft) {
+          setTitle(draft.title);
+          setStartDate(draft.startDate);
+          setDays(draft.days);
+        }
+        setSavedList(parseSavedDevotionals(savedRaw));
+      } catch {
+        logger.warn('Could not load devotional builder data', {
+          component: 'DevotionalBuilderScreen',
+        });
+      } finally {
+        if (alive) setDraftLoaded(true);
+      }
+    })();
+    return () => {
+      alive = false;
+    };
+  }, []);
+
+  // Autosave the draft shortly after typing/editing stops — the same
+  // debounce-then-flush-on-unmount discipline used for prep notes (Sprint
+  // 103's autosave). Gated on `draftLoaded` so the just-restored draft isn't
+  // immediately overwritten (or, worse, wiped) before the read resolves.
+  const debouncedSaveDraft = useDebouncedCallback((draft: DevotionalDraft) => {
+    if (isDraftWorthSaving(draft)) {
+      AsyncStorage.setItem(
+        DEVOTIONAL_DRAFT_KEY,
+        serializeDevotionalDraft(draft),
+      ).catch(() => undefined);
+    } else {
+      AsyncStorage.removeItem(DEVOTIONAL_DRAFT_KEY).catch(() => undefined);
+    }
+  }, 600);
+
+  useEffect(() => {
+    if (!draftLoaded) return;
+    debouncedSaveDraft({title, startDate, days});
+  }, [draftLoaded, title, startDate, days, debouncedSaveDraft]);
+
+  useEffect(() => () => debouncedSaveDraft.flush(), [debouncedSaveDraft]);
 
   const bookName = (id: number) => {
     const b = getBookById(id);
@@ -160,7 +231,25 @@ export default function DevotionalBuilderScreen() {
 
   const startDisabledBack = startDate <= today;
 
-  const onShare = async () => {
+  const shareBundleLink = (bundle: CalBundle) => {
+    const link = encodeHttpsLink(bundle);
+    const heading = bundle.ti || db.title;
+    const message = db.shareMessage
+      .replace('{{title}}', heading)
+      .replace('{{link}}', link);
+    Share.share({message}).catch(() => undefined);
+  };
+
+  const persistSavedShare = (bundle: CalBundle) => {
+    const next = addSavedDevotional(savedList, bundle);
+    setSavedList(next);
+    AsyncStorage.setItem(
+      DEVOTIONAL_SAVED_KEY,
+      serializeSavedDevotionals(next),
+    ).catch(() => undefined);
+  };
+
+  const onShare = () => {
     const bundle = makeCalBundle(
       startDate,
       title,
@@ -176,12 +265,20 @@ export default function DevotionalBuilderScreen() {
       return;
     }
     haptics.success();
-    const link = encodeHttpsLink(bundle);
-    const heading = title.trim() || db.title;
-    const message = db.shareMessage
-      .replace('{{title}}', heading)
-      .replace('{{link}}', link);
-    Share.share({message}).catch(() => undefined);
+    shareBundleLink(bundle);
+    persistSavedShare(bundle);
+    // Cancel (not flush) any pending autosave so it can't resurrect the draft
+    // key right after we remove it below — the in-progress form itself is
+    // left untouched, since cancelling the OS share sheet is common and the
+    // user may still want to keep editing.
+    debouncedSaveDraft.cancel();
+    AsyncStorage.removeItem(DEVOTIONAL_DRAFT_KEY).catch(() => undefined);
+  };
+
+  const onResend = (entry: SavedDevotional) => {
+    haptics.tap();
+    shareBundleLink(entry.bundle);
+    persistSavedShare(entry.bundle);
   };
 
   const canShare = days.length > 0;
@@ -248,6 +345,52 @@ export default function DevotionalBuilderScreen() {
         <Text style={[styles.intro, {color: colors.textSecondary}]}>
           {db.intro}
         </Text>
+
+        {/* Already-shared devotionals — reopen to resend the same link. */}
+        {savedList.length > 0 ? (
+          <View style={styles.savedSection}>
+            <Text style={[styles.savedSectionLabel, {color: colors.text}]}>
+              {db.savedSectionTitle}
+            </Text>
+            {savedList.map(entry => (
+              <View
+                key={entry.id}
+                style={[styles.savedRow, {backgroundColor: colors.card}]}>
+                <View style={styles.savedRowText}>
+                  <Text
+                    style={[styles.savedRowTitle, {color: colors.text}]}
+                    numberOfLines={1}>
+                    {entry.bundle.ti || db.title}
+                  </Text>
+                  <Text
+                    style={[
+                      styles.savedRowMeta,
+                      {color: colors.textSecondary},
+                    ]}>
+                    {db.savedMeta
+                      .replace('{{n}}', String(entry.bundle.d.length))
+                      .replace(
+                        '{{date}}',
+                        formatDate(entry.bundle.s, language),
+                      )}
+                  </Text>
+                </View>
+                <TouchableOpacity
+                  onPress={() => onResend(entry)}
+                  style={[styles.savedResendBtn, {borderColor: colors.primary}]}
+                  accessibilityRole="button"
+                  accessibilityLabel={db.resend}
+                  hitSlop={{top: 8, bottom: 8, left: 8, right: 8}}>
+                  <Ionicons
+                    name="share-social-outline"
+                    size={18}
+                    color={colors.primary}
+                  />
+                </TouchableOpacity>
+              </View>
+            ))}
+          </View>
+        ) : null}
 
         {/* Title */}
         <Text style={[styles.label, {color: colors.text}]}>{db.nameLabel}</Text>
@@ -554,6 +697,27 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   startText: {fontSize: 15, fontWeight: '600', textTransform: 'capitalize'},
+  savedSection: {marginBottom: 4},
+  savedSectionLabel: {fontSize: 14, fontWeight: '700', marginBottom: 8},
+  savedRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    borderRadius: 12,
+    padding: 12,
+    marginBottom: 8,
+    gap: 10,
+  },
+  savedRowText: {flex: 1, gap: 2},
+  savedRowTitle: {fontSize: 15, fontWeight: '700'},
+  savedRowMeta: {fontSize: 12.5},
+  savedResendBtn: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    borderWidth: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
   empty: {fontSize: 14, fontStyle: 'italic', marginBottom: 4},
   dayCard: {borderRadius: 12, padding: 14, marginBottom: 8, gap: 8},
   dayCardHead: {flexDirection: 'row', alignItems: 'center', gap: 10},

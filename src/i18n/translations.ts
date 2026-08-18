@@ -5160,6 +5160,9 @@ export const translations = {
       needOneDay: 'Añade al menos un día con un versículo.',
       shareMessage:
         '🗓️ Te comparto un devocional: {{title}}\n\nÁbrelo en Eternal Stone Bible:\n{{link}}',
+      savedSectionTitle: 'Tus devocionales',
+      savedMeta: '{{n}} días · Comienza el {{date}}',
+      resend: 'Reenviar',
     },
     planBuilder: {
       title: 'Crear un plan',
@@ -11139,6 +11142,9 @@ export const translations = {
       needOneDay: 'Add at least one day with a verse.',
       shareMessage:
         '🗓️ A devotional for you: {{title}}\n\nOpen it in Eternal Stone Bible:\n{{link}}',
+      savedSectionTitle: 'Your devotionals',
+      savedMeta: '{{n}} days · Starts {{date}}',
+      resend: 'Resend',
     },
     planBuilder: {
       title: 'Create a plan',
