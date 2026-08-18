@@ -859,6 +859,22 @@ export const translations = {
         'Texto completo de tu versión, como referencia — el orden de las palabras del original no siempre coincide con el de la traducción.',
       interlinearEmptyDetail: 'Toca una palabra arriba para ver su análisis.',
       interlinearHint: 'Ver análisis de esta palabra',
+      guide: {
+        openLabel: 'Cómo leer los idiomas originales',
+        title: 'Cómo leer los idiomas originales',
+        intro:
+          'Cada versículo se muestra también en su hebreo o griego original, palabra por palabra, para que veas exactamente qué dice el texto detrás de la traducción.',
+        wordsTitle: 'Palabra por palabra',
+        wordsBody:
+          'Cada palabra original viene con su transliteración, su traducción (gloss) y su número Strong — el código estándar que identifica esa palabra en el idioma original.',
+        lexiconTitle: 'Léxico y análisis morfológico',
+        lexiconBody:
+          'Toca una palabra para ver su forma léxica y definición completa, además del "Estudio de palabra" con cada otro lugar donde aparece en la Biblia.',
+        interlinearTitle: 'Interlineal visual',
+        interlinearBody:
+          'La vista exclusiva muestra el original completo en su propio orden de palabras, con tu traducción como línea de referencia — como una Biblia interlineal impresa.',
+        close: 'Entendido',
+      },
     },
 
     wordStudy: {
@@ -3651,6 +3667,9 @@ export const translations = {
     settings: {
       title: 'Configuración',
       subtitle: 'Personaliza tu experiencia celestial',
+      tipsAndGuides: 'Tips y guías',
+      tipsAndGuidesDescription:
+        'Explicaciones completas de las funciones más profundas de la app.',
       appearance: 'Apariencia',
       theme: 'Tema',
       themeDescription: 'Elige el tema de la aplicación',
@@ -4771,6 +4790,24 @@ export const translations = {
         kjv: 'Traducción clásica en inglés',
         nlt: 'Inglés moderno y fácil de leer',
         local: 'Versión local cargada en memoria',
+      },
+      guide: {
+        openLabel: 'Cómo comparar versiones',
+        title: 'Cómo comparar versiones',
+        rowDescription:
+          'Compáralas lado a lado, resalta diferencias y mide su similitud.',
+        intro:
+          'Compara cómo distintas versiones traducen el mismo versículo, lado a lado, para entender mejor el texto.',
+        selectTitle: 'Compara hasta 4 versiones',
+        selectBody:
+          'Elige las versiones que quieres comparar con el botón "Agregar" — puedes ver un solo versículo o varios a la vez en modo múltiple.',
+        contrastTitle: 'Resalta las diferencias',
+        contrastBody:
+          'El interruptor "Resaltar diferencias" marca las palabras que no comparten las versiones. Funciona mejor entre versiones del mismo idioma.',
+        analysisTitle: 'Similaridad y observaciones',
+        analysisBody:
+          'El análisis muestra un porcentaje de similaridad, las palabras comunes y únicas, y notas cuando una versión omite el versículo por una variante textual.',
+        close: 'Entendido',
       },
     },
 
@@ -6870,6 +6907,22 @@ export const translations = {
         "Full text of your version, for reference — the original's word order doesn't always match the translation's.",
       interlinearEmptyDetail: 'Tap a word above to see its analysis.',
       interlinearHint: "See this word's analysis",
+      guide: {
+        openLabel: 'How to read the original languages',
+        title: 'How to read the original languages',
+        intro:
+          'Every verse is also shown in its original Hebrew or Greek, word by word, so you can see exactly what the text behind the translation says.',
+        wordsTitle: 'Word by word',
+        wordsBody:
+          "Each original word comes with its transliteration, its gloss, and its Strong's number — the standard code that identifies that word in the original language.",
+        lexiconTitle: 'Lexicon & morphology',
+        lexiconBody:
+          'Tap a word to see its dictionary form and full definition, plus "Word study" with every other place it appears in the Bible.',
+        interlinearTitle: 'Visual interlinear',
+        interlinearBody:
+          'The exclusive view shows the whole original in its own word order, with your translation as a reference line — like a printed interlinear Bible.',
+        close: 'Got it',
+      },
     },
 
     wordStudy: {
@@ -9643,6 +9696,9 @@ export const translations = {
     settings: {
       title: 'Settings',
       subtitle: 'Personalize your celestial experience',
+      tipsAndGuides: 'Tips & guides',
+      tipsAndGuidesDescription:
+        "Full explainers for the app's deepest features.",
       appearance: 'Appearance',
       theme: 'Theme',
       themeDescription: 'Choose the app theme',
@@ -10757,6 +10813,24 @@ export const translations = {
         kjv: 'Classic English translation',
         nlt: 'Modern, easy-to-read English',
         local: 'Local version loaded in memory',
+      },
+      guide: {
+        openLabel: 'How to compare versions',
+        title: 'How to compare versions',
+        rowDescription:
+          'Compare them side by side, highlight differences, and measure similarity.',
+        intro:
+          'Compare how different versions translate the same verse, side by side, to better understand the text.',
+        selectTitle: 'Compare up to 4 versions',
+        selectBody:
+          'Pick the versions you want to compare with the "Add" button — view a single verse or several at once in multiple mode.',
+        contrastTitle: 'Highlight the differences',
+        contrastBody:
+          'The "Highlight differences" toggle marks the words the versions don\'t share. It works best between versions in the same language.',
+        analysisTitle: 'Similarity and observations',
+        analysisBody:
+          'The analysis shows a similarity percentage, common and unique words, and notes when a version omits the verse due to a textual variant.',
+        close: 'Got it',
       },
     },
 

@@ -48,6 +48,8 @@ import {
   describeMorphology,
 } from '@/features/study/morphologyDecoder';
 import {InterlinearSheet} from './InterlinearSheet';
+import {FeatureGuideModal} from '@components/FeatureGuideModal';
+import {getFeatureGuideContent} from '@lib/onboarding/featureGuides';
 import {
   downloadAndImportOriginals,
   importLocalOriginalsIfPresent,
@@ -98,6 +100,7 @@ export const OriginalLanguagesSheet: React.FC<Props> = ({
   const [downloading, setDownloading] = useState(false);
   const [progress, setProgress] = useState(0);
   const [interlinearVisible, setInterlinearVisible] = useState(false);
+  const [guideVisible, setGuideVisible] = useState(false);
 
   const loadWords = useCallback(async () => {
     if (sourceVerse == null) return;
@@ -428,6 +431,20 @@ export const OriginalLanguagesSheet: React.FC<Props> = ({
               </Text>
             </View>
             <TouchableOpacity
+              onPress={() => {
+                haptics.tap();
+                setGuideVisible(true);
+              }}
+              accessibilityRole="button"
+              accessibilityLabel={t.originals.guide.openLabel}
+              style={styles.closeButton}>
+              <Ionicons
+                name="help-circle-outline"
+                size={22}
+                color={colors.textSecondary}
+              />
+            </TouchableOpacity>
+            <TouchableOpacity
               onPress={onClose}
               accessibilityRole="button"
               accessibilityLabel={t.close}
@@ -596,6 +613,12 @@ export const OriginalLanguagesSheet: React.FC<Props> = ({
         version={version}
         words={words}
         onClose={() => setInterlinearVisible(false)}
+      />
+
+      <FeatureGuideModal
+        visible={guideVisible}
+        onClose={() => setGuideVisible(false)}
+        {...getFeatureGuideContent('originals', t)}
       />
     </Modal>
   );

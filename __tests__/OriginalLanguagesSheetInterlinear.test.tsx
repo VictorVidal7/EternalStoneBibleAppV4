@@ -48,6 +48,13 @@ jest.mock('../src/lib/haptics', () => ({
   haptics: {tap: jest.fn()},
 }));
 
+// FeatureGuideModal's "?" guide sheet (also rendered by this screen) needs a
+// SafeAreaProvider ancestor for useSafeAreaInsets() — mocked the same way
+// featureGuideModal.test.tsx / memoryGuideModal.test.tsx do.
+jest.mock('react-native-safe-area-context', () => ({
+  useSafeAreaInsets: () => ({top: 0, bottom: 0, left: 0, right: 0}),
+}));
+
 const mockOpenOfferingSheet = jest.fn();
 jest.mock('../src/context/OfferingSheetContext', () => ({
   useOfferingSheet: () => ({open: mockOpenOfferingSheet}),
