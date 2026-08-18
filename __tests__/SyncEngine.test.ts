@@ -107,6 +107,7 @@ function mockMakeCollection(path: string): MockCollRef {
   if (existing) return existing;
   const docs = new Map<string, MockDocRef>();
   let snapshotCb: ((s: unknown) => void) | null = null;
+  let errorCb: ((err: Error) => void) | null = null;
   let whereClauses: MockWhereClause[] = [];
   const coll: MockCollRef = {
     __path: path,
@@ -138,12 +139,19 @@ function mockMakeCollection(path: string): MockCollRef {
     }),
     orderBy: jest.fn((_field: string, _direction?: string) => coll),
     limit: jest.fn((_n: number) => coll),
-    onSnapshot: jest.fn((cb: (s: unknown) => void) => {
-      snapshotCb = cb;
-      return () => {
-        snapshotCb = null;
-      };
-    }),
+    onSnapshot: jest.fn(
+      (cb: (s: unknown) => void, onError?: (err: Error) => void) => {
+        snapshotCb = cb;
+        errorCb = onError ?? null;
+        return () => {
+          snapshotCb = null;
+          // Deliberately NOT clearing errorCb here — real native teardown
+          // is async, so the JS error closure SyncEngine registered can
+          // still be invoked a beat after this unsub runs. __fireError
+          // below uses that to simulate exactly this race.
+        };
+      },
+    ),
     get: jest.fn(async () => {
       const entries = mockCollDocs.get(path) ?? [];
       const filtered = entries.filter(e =>
@@ -177,6 +185,11 @@ function mockMakeCollection(path: string): MockCollRef {
       docChanges: () => filtered,
       size: filtered.length,
     });
+  };
+  (coll as MockCollRef & {__fireError: (err: Error) => void}).__fireError = (
+    err: Error,
+  ) => {
+    errorCb?.(err);
   };
   mockCollections.set(path, coll);
   return coll;
@@ -221,7 +234,11 @@ import {
 } from '../src/lib/sync/SyncEngine';
 import {__resetFirestoreCacheForTests} from '../src/lib/sync/firestore';
 import {__resetNetInfoCacheForTests} from '../src/lib/sync/netinfo';
+import {logger} from '../src/lib/utils/logger';
 import type {SyncAdapter, SyncEntity} from '../src/lib/sync/types';
+
+const loggerErrorSpy = jest.spyOn(logger, 'error').mockImplementation(() => {});
+const loggerWarnSpy = jest.spyOn(logger, 'warn').mockImplementation(() => {});
 
 interface TestEntity {
   value: string;
@@ -274,6 +291,8 @@ beforeEach(async () => {
   __resetFirestoreCacheForTests();
   __resetNetInfoCacheForTests();
   mockFirestoreFn.mockClear();
+  loggerErrorSpy.mockClear();
+  loggerWarnSpy.mockClear();
 });
 
 describe('queueWrite — inactive engine', () => {
@@ -635,6 +654,12 @@ function fireRemote(uid: string, changes: unknown[]): void {
   (coll as MockCollRef & {__fire: (c: unknown[]) => void}).__fire(changes);
 }
 
+function fireRemoteError(uid: string, err: Error): void {
+  const coll = mockCollections.get(`users/${uid}/test`);
+  if (!coll) throw new Error(`mock collection not registered for ${uid}`);
+  (coll as MockCollRef & {__fireError: (e: Error) => void}).__fireError(err);
+}
+
 describe('conflict detection — within window + differing material fields', () => {
   it('records a conflict instead of applying LWW', async () => {
     const engine = new SyncEngine();
@@ -940,6 +965,114 @@ describe('stop() clears conflicts', () => {
     expect(engine.__getConflictsForTests()).toHaveLength(1);
     engine.stop();
     expect(engine.__getConflictsForTests()).toHaveLength(0);
+  });
+});
+
+describe('onSnapshot error handling — sign-out race (permission-denied downgrade)', () => {
+  // AuthContext.signOut() now calls engine.stop() before invalidating the
+  // Firebase Auth token, but the native listener teardown is still async
+  // under the hood — a permission-denied error can arrive here a beat
+  // after stop() already removed the collection from `unsubs`. That must
+  // be logged quietly (warn), not as a real error, so sign-out doesn't
+  // flash a red LogBox toast for an expected, harmless race.
+  it('downgrades a snapshot error to a warning when the listener was already torn down', async () => {
+    const engine = new SyncEngine();
+    const {adapter} = makeAdapter();
+    engine.register(adapter);
+    await engine.start('uid-race');
+    await flush();
+
+    engine.stop();
+    fireRemoteError(
+      'uid-race',
+      Object.assign(new Error('denied'), {
+        code: 'firestore/permission-denied',
+      }),
+    );
+
+    expect(loggerErrorSpy).not.toHaveBeenCalled();
+    expect(loggerWarnSpy).toHaveBeenCalledWith(
+      expect.stringContaining('after teardown'),
+      expect.objectContaining({collection: 'test'}),
+    );
+  });
+
+  it('still logs as a real error when the listener is genuinely still active', async () => {
+    const engine = new SyncEngine();
+    const {adapter} = makeAdapter();
+    engine.register(adapter);
+    await engine.start('uid-real-error');
+    await flush();
+
+    // No stop() here — the engine still considers this listener live, so
+    // a permission-denied is a genuine problem, not a sign-out artifact.
+    fireRemoteError(
+      'uid-real-error',
+      Object.assign(new Error('denied'), {
+        code: 'firestore/permission-denied',
+      }),
+    );
+
+    expect(loggerErrorSpy).toHaveBeenCalledWith(
+      'SyncEngine: snapshot error',
+      expect.any(Error),
+      expect.objectContaining({collection: 'test'}),
+    );
+    expect(loggerWarnSpy).not.toHaveBeenCalledWith(
+      expect.stringContaining('after teardown'),
+      expect.anything(),
+    );
+  });
+});
+
+describe('attachListener — stop() racing an in-flight cursor load', () => {
+  // register()'s fire-and-forget attachListener() awaits an AsyncStorage
+  // read (loadCursor) before it ever calls onSnapshot(). If stop() lands
+  // during that await, attachListener must not resurrect a live listener
+  // for an engine that's now stopped — that would defeat AuthContext.
+  // signOut's ordering fix via a different path (see SyncEngine.ts
+  // attachListener's `uidAtAttach` check).
+  it('does not attach a listener if stop() runs while loadCursor is pending', async () => {
+    const engine = new SyncEngine();
+    await engine.start('uid-race-attach'); // no adapters registered yet
+
+    const {adapter, remoteUpsertCalls} = makeAdapter();
+
+    // AsyncStorage.getItem is ALREADY a jest.fn() (the official
+    // async-storage jest mock) — wrapping it in jest.spyOn()/mockRestore()
+    // does not cleanly restore its default implementation in this setup.
+    // mockImplementationOnce needs no restore: it self-expires after
+    // exactly one call and the mock's real default implementation (set at
+    // module load) takes back over automatically.
+    let resolveGetItem!: (v: string | null) => void;
+    const pending = new Promise<string | null>(res => {
+      resolveGetItem = res;
+    });
+    (AsyncStorage.getItem as jest.Mock).mockImplementationOnce(() => pending);
+
+    engine.register(adapter); // synchronously reaches the pending getItem
+    await flush();
+
+    engine.stop(); // races the in-flight attach
+    resolveGetItem(null);
+    await flush();
+    await flush();
+
+    // Without the uidAtAttach guard, onSnapshot would have registered a
+    // live callback here and this fire would reach the adapter.
+    fireRemote('uid-race-attach', [
+      {
+        type: 'added',
+        doc: {
+          id: 'doc-after-race',
+          exists: true,
+          data: () => ({value: 'x', updatedAt: 1}),
+        },
+      },
+    ]);
+    await flush();
+
+    expect(remoteUpsertCalls).toHaveLength(0);
   });
 });
 
