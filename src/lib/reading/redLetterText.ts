@@ -2,8 +2,19 @@
  * 🔴 redLetterText — compose red-letter (Words of Christ) spans with the
  * inline Bible-reference linkifier for a single verse's rendered text.
  *
- * `WEB_RED_LETTER` (src/lib/database/bible-data-web-redletter.ts) gives, per
- * WEB verse, the raw character spans that are Jesus's own words.
+ * Red-letter data is version-specific: `WEB_RED_LETTER`
+ * (src/lib/database/bible-data-web-redletter.ts) gives, per WEB verse, the
+ * raw character spans that are Jesus's own words, anchored by construction
+ * from a single USFM parse; `RVR1960_RED_LETTER`
+ * (src/lib/database/bible-data-rvr1960-redletter.ts) gives the equivalent
+ * for RVR1960, generated from a human editorial pass (see that file's header
+ * and scripts/data/rvr1960-red-letter/generate.js) since translations don't
+ * share sentence boundaries. Both arrays share the same `RedLetterVerse`
+ * shape, so `getRedLetterSpans` takes a version id and looks up the matching
+ * map — callers should check `hasRedLetterData(versionId)` first rather than
+ * hardcoding which version ids have data. Any other reading version simply
+ * has no data and this module is not consulted for it.
+ *
  * `linkifyReferences` (src/lib/references/parseReference.ts) independently
  * splits a verse's text into plain vs. tappable-cross-reference segments.
  * The reader needs BOTH signals applied to the same verse text at once, so
@@ -12,9 +23,16 @@
  * reference) its `ref` for the tap handler — with no React/RN import, so it
  * stays unit-testable and reusable outside the reader screen.
  *
+ * NATIVE only — this file statically imports both (small enough) in-repo TS
+ * arrays. The web build has a separate port, redLetterText.web.ts, which
+ * fetches a small JSON pack at runtime instead of bundling the arrays (see
+ * that file's header) — it is a deliberately separate, later piece of work
+ * and is not touched here.
+ *
  * Para la gloria de Dios Todopoderoso ✨
  */
 import {WEB_RED_LETTER} from '@lib/database/bible-data-web-redletter';
+import {RVR1960_RED_LETTER} from '@lib/database/bible-data-rvr1960-redletter';
 import type {LinkifiedSegment} from '@lib/references/parseReference';
 
 export interface RedLetterRun {
@@ -23,20 +41,46 @@ export interface RedLetterRun {
   isRedLetter: boolean;
 }
 
-const redLetterByKey = new Map<string, ReadonlyArray<[number, number]>>();
-for (const entry of WEB_RED_LETTER) {
-  redLetterByKey.set(
-    `${entry.book_id}|${entry.chapter}:${entry.verse}`,
-    entry.spans,
-  );
+type SpanMap = Map<string, ReadonlyArray<[number, number]>>;
+
+function buildSpanMap(
+  entries: ReadonlyArray<{
+    book_id: number;
+    chapter: number;
+    verse: number;
+    spans: [number, number][];
+  }>,
+): SpanMap {
+  const map: SpanMap = new Map();
+  for (const entry of entries) {
+    map.set(`${entry.book_id}|${entry.chapter}:${entry.verse}`, entry.spans);
+  }
+  return map;
+}
+
+const redLetterByVersion = new Map<string, SpanMap>([
+  ['WEB', buildSpanMap(WEB_RED_LETTER)],
+  ['RVR1960', buildSpanMap(RVR1960_RED_LETTER)],
+]);
+
+/**
+ * Whether `versionId` has real red-letter data — the single source of truth
+ * callers (the reader screen, ReaderPreferencesSheet, etc.) should use
+ * instead of hardcoding `=== 'WEB'` / `=== 'RVR1960'` string comparisons.
+ */
+export function hasRedLetterData(versionId: string): boolean {
+  return redLetterByVersion.has(versionId);
 }
 
 export function getRedLetterSpans(
+  versionId: string,
   bookNumber: number,
   chapter: number,
   verse: number,
 ): ReadonlyArray<[number, number]> | undefined {
-  return redLetterByKey.get(`${bookNumber}|${chapter}:${verse}`);
+  return redLetterByVersion
+    .get(versionId)
+    ?.get(`${bookNumber}|${chapter}:${verse}`);
 }
 
 export function mergeRedLetterSpans(

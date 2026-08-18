@@ -70,9 +70,10 @@ export interface ReaderPreferences {
   swipeChapterNavigation: boolean;
   /**
    * Highlight the words of Jesus in red while reading (opt-out, default on —
-   * a well-known Bible convention). Only takes visible effect on WEB, the
-   * only reading version with the underlying marking today; silently inert
-   * on every other version.
+   * a well-known Bible convention). Only takes visible effect on WEB and
+   * RVR1960, the reading versions with the underlying marking today
+   * (see hasRedLetterData in src/lib/reading/redLetterText.ts); silently
+   * inert on every other version.
    */
   redLetterWords: boolean;
 }
