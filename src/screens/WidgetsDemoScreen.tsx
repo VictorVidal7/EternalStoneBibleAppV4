@@ -10,19 +10,29 @@
  * Para la gloria de Dios Todopoderoso ✨
  */
 
-import React from 'react';
-import {View, Text, StyleSheet, ScrollView} from 'react-native';
+import React, {useState} from 'react';
+import {
+  View,
+  Text,
+  StyleSheet,
+  ScrollView,
+  TouchableOpacity,
+} from 'react-native';
 import {useTheme} from '../hooks/useTheme';
 import {useLanguage} from '../hooks/useLanguage';
 import {VerseWidget} from '../widgets/VerseWidget';
 import {useRouter} from 'expo-router';
 import {Ionicons} from '@expo/vector-icons';
+import {haptics} from '@lib/haptics';
 import {ScreenHeaderBack} from '../components/ScreenHeaderBack';
+import {FeatureGuideModal} from '@components/FeatureGuideModal';
+import {getFeatureGuideContent} from '@lib/onboarding/featureGuides';
 
 export const WidgetsDemoScreen: React.FC = () => {
   const {colors} = useTheme();
   const {t} = useLanguage();
   const router = useRouter();
+  const [guideVisible, setGuideVisible] = useState(false);
 
   const handleVersePress = (book: string, chapter: number, verse: number) => {
     router.push(`/verse/${book}/${chapter}?highlight=${verse}`);
@@ -40,7 +50,23 @@ export const WidgetsDemoScreen: React.FC = () => {
     <View style={[styles.container, {backgroundColor: colors.background}]}>
       {/* Header */}
       <View style={styles.header}>
-        <ScreenHeaderBack style={styles.backButton} />
+        <View style={styles.headerTopRow}>
+          <ScreenHeaderBack />
+          <TouchableOpacity
+            onPress={() => {
+              haptics.tap();
+              setGuideVisible(true);
+            }}
+            hitSlop={{top: 10, bottom: 10, left: 10, right: 10}}
+            accessibilityRole="button"
+            accessibilityLabel={t.widgets.guide.openLabel}>
+            <Ionicons
+              name="help-circle-outline"
+              size={24}
+              color={colors.textSecondary}
+            />
+          </TouchableOpacity>
+        </View>
         <Text style={[styles.title, {color: colors.text}]}>
           {t.widgets.title}
         </Text>
@@ -104,6 +130,12 @@ export const WidgetsDemoScreen: React.FC = () => {
 
         <View style={styles.bottomPadding} />
       </ScrollView>
+
+      <FeatureGuideModal
+        visible={guideVisible}
+        onClose={() => setGuideVisible(false)}
+        {...getFeatureGuideContent('widgets', t)}
+      />
     </View>
   );
 };
@@ -117,7 +149,10 @@ const styles = StyleSheet.create({
     paddingTop: 60,
     paddingBottom: 20,
   },
-  backButton: {
+  headerTopRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
     marginBottom: 14,
   },
   title: {

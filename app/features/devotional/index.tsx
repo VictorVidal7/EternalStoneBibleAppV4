@@ -58,6 +58,8 @@ import {
   type DevotionalDraft,
   type SavedDevotional,
 } from '@lib/together';
+import {FeatureGuideModal} from '@components/FeatureGuideModal';
+import {getFeatureGuideContent} from '@lib/onboarding/featureGuides';
 
 interface DraftDay {
   bookId: number;
@@ -110,6 +112,7 @@ export default function DevotionalBuilderScreen() {
   // already-shared calendars (see src/lib/together/devotionalDraft.ts).
   const [draftLoaded, setDraftLoaded] = useState(false);
   const [savedList, setSavedList] = useState<SavedDevotional[]>([]);
+  const [guideVisible, setGuideVisible] = useState(false);
 
   useEffect(() => {
     let alive = true;
@@ -337,6 +340,17 @@ export default function DevotionalBuilderScreen() {
         <Text style={[styles.headerTitle, {color: colors.text}]}>
           {db.title}
         </Text>
+        <TouchableOpacity
+          onPress={() => {
+            haptics.tap();
+            setGuideVisible(true);
+          }}
+          style={[styles.backBtn, {borderColor: colors.border}]}
+          accessibilityRole="button"
+          accessibilityLabel={db.guide.openLabel}
+          hitSlop={{top: 8, bottom: 8, left: 8, right: 8}}>
+          <Ionicons name="help-circle-outline" size={22} color={colors.text} />
+        </TouchableOpacity>
       </View>
 
       <ScrollView
@@ -642,6 +656,12 @@ export default function DevotionalBuilderScreen() {
           </View>
         </View>
       </Modal>
+
+      <FeatureGuideModal
+        visible={guideVisible}
+        onClose={() => setGuideVisible(false)}
+        {...getFeatureGuideContent('devotionalBuilder', t)}
+      />
     </View>
   );
 }

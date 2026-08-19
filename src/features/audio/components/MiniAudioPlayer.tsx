@@ -75,6 +75,8 @@ import {AudioSpeedSelector} from './AudioSpeedSelector';
 import {SleepTimerModal} from './SleepTimerModal';
 import {AudioQueueSheet} from './AudioQueueSheet';
 import {VoiceSelector} from './VoiceSelector';
+import {FeatureGuideModal} from '@components/FeatureGuideModal';
+import {getFeatureGuideContent} from '@lib/onboarding/featureGuides';
 import {
   PLAYER_DIMENSIONS,
   AUDIO_ICONS,
@@ -109,6 +111,7 @@ export const MiniAudioPlayer: React.FC<MiniAudioPlayerProps> = ({
   const insets = useSafeAreaInsets();
   const [sleepTimerModalVisible, setSleepTimerModalVisible] = useState(false);
   const [queueSheetVisible, setQueueSheetVisible] = useState(false);
+  const [guideVisible, setGuideVisible] = useState(false);
 
   const {
     state,
@@ -821,6 +824,22 @@ export const MiniAudioPlayer: React.FC<MiniAudioPlayerProps> = ({
                       color={repeatVerse ? colors.primary : colors.textTertiary}
                     />
                   </TouchableOpacity>
+                  {/* Feature guide — "how does this player work" */}
+                  <TouchableOpacity
+                    style={styles.headerButton}
+                    onPress={() => {
+                      haptics.tap();
+                      setGuideVisible(true);
+                    }}
+                    hitSlop={{top: 10, bottom: 10, left: 10, right: 10}}
+                    accessibilityRole="button"
+                    accessibilityLabel={t.audio.guide.openLabel}>
+                    <Ionicons
+                      name="help-circle-outline"
+                      size={22}
+                      color={colors.textTertiary}
+                    />
+                  </TouchableOpacity>
                   {/* Collapse Button */}
                   <TouchableOpacity
                     style={styles.headerButton}
@@ -1000,6 +1019,12 @@ export const MiniAudioPlayer: React.FC<MiniAudioPlayerProps> = ({
         <AudioQueueSheet
           visible={queueSheetVisible}
           onClose={() => setQueueSheetVisible(false)}
+        />
+
+        <FeatureGuideModal
+          visible={guideVisible}
+          onClose={() => setGuideVisible(false)}
+          {...getFeatureGuideContent('audio', t)}
         />
       </Animated.View>
     </GestureDetector>

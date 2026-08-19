@@ -1,9 +1,10 @@
 /**
  * 🗺️ BIBLE JOURNEY MAPS — "Mapas de viajes bíblicos".
  *
- * A hub listing the app's 3 curated Bible routes ([[journeyMaps]]): the
- * Exodus, Paul's missionary journeys, and the ministry of Jesus. Each route
- * card opens its own tappable rail map + stop list at
+ * A hub listing the app's 5 curated Bible routes ([[journeyMaps]]): Abraham's
+ * journey, the Exodus, the exile and return, the ministry of Jesus, and
+ * Paul's missionary journeys. Each route card opens its own tappable rail
+ * map + stop list at
  * `/features/journeys/[routeId]`.
  *
  * Reached from the Home "Explorar" tile + the deep link
@@ -38,6 +39,8 @@ import {
   spacing,
   staticColors,
 } from '@/styles/designTokens';
+import {FeatureGuideModal} from '@components/FeatureGuideModal';
+import {getFeatureGuideContent} from '@lib/onboarding/featureGuides';
 
 export default function JourneysHubScreen() {
   const router = useRouter();
@@ -50,6 +53,7 @@ export default function JourneysHubScreen() {
     {title: string; subtitle: string; description: string}
   >;
   const [visited, setVisited] = useState<Set<string>>(new Set());
+  const [guideVisible, setGuideVisible] = useState(false);
 
   useFocusEffect(
     useCallback(() => {
@@ -107,6 +111,20 @@ export default function JourneysHubScreen() {
                 {tj.title}
               </AppText>
             </View>
+            <TouchableOpacity
+              onPress={() => {
+                haptics.tap();
+                setGuideVisible(true);
+              }}
+              hitSlop={{top: 10, bottom: 10, left: 10, right: 10}}
+              accessibilityRole="button"
+              accessibilityLabel={tj.guide.openLabel}>
+              <Ionicons
+                name="help-circle-outline"
+                size={24}
+                color={staticColors.white}
+              />
+            </TouchableOpacity>
           </View>
         </LinearGradient>
 
@@ -185,6 +203,12 @@ export default function JourneysHubScreen() {
             );
           })}
         </ScrollView>
+
+        <FeatureGuideModal
+          visible={guideVisible}
+          onClose={() => setGuideVisible(false)}
+          {...getFeatureGuideContent('journeys', t)}
+        />
       </View>
     </>
   );

@@ -75,6 +75,8 @@ import {
   type ChainStep,
 } from '@lib/references/referenceChain';
 import bibleDB from '@lib/database';
+import {FeatureGuideModal} from '@components/FeatureGuideModal';
+import {getFeatureGuideContent} from '@lib/onboarding/featureGuides';
 import {
   borderRadius,
   fontSize as fontSizes,
@@ -127,6 +129,7 @@ export default function ConstellationScreen() {
   const [selected, setSelected] = useState<ConstellationNode | null>(null);
   const [selectedText, setSelectedText] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
+  const [guideVisible, setGuideVisible] = useState(false);
   // Latest selected key, so a slow verse fetch never overwrites a newer tap.
   const selectedKeyRef = useRef<string | null>(null);
 
@@ -529,6 +532,16 @@ export default function ConstellationScreen() {
               {cn.subtitle}
             </Text>
           </View>
+          <TouchableOpacity
+            onPress={() => {
+              haptics.tap();
+              setGuideVisible(true);
+            }}
+            hitSlop={{top: 10, bottom: 10, left: 10, right: 10}}
+            accessibilityRole="button"
+            accessibilityLabel={cn.guide.openLabel}>
+            <Ionicons name="help-circle-outline" size={24} color="#ffffff" />
+          </TouchableOpacity>
         </View>
       </LinearGradient>
 
@@ -845,6 +858,12 @@ export default function ConstellationScreen() {
           </View>
         </View>
       ) : null}
+
+      <FeatureGuideModal
+        visible={guideVisible}
+        onClose={() => setGuideVisible(false)}
+        {...getFeatureGuideContent('constellation', t)}
+      />
     </View>
   );
 }

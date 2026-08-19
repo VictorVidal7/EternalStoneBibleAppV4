@@ -922,6 +922,7 @@ export const translations = {
       openInReader: 'Abrir en el lector',
       resetZoom: 'Restablecer vista',
       guide: {
+        openLabel: 'Cómo explorar la constelación',
         title: 'Cómo explorar la constelación',
         rowDescription:
           'Explora las conexiones de un versículo como un mapa de estrellas interactivo.',
@@ -1163,6 +1164,7 @@ export const translations = {
         },
       },
       guide: {
+        openLabel: 'Cómo usar la Mesa de preparación',
         title: 'Cómo usar la Mesa de preparación',
         rowDescription:
           'Reúne las ayudas de estudio de un pasaje y organiza tu prédica, tu serie y tu presentación.',
@@ -3240,6 +3242,7 @@ export const translations = {
         },
       },
       guide: {
+        openLabel: 'Cómo recorrer las rutas bíblicas',
         title: 'Cómo recorrer las rutas bíblicas',
         rowDescription:
           'Sigue cinco viajes reales de la Escritura y lee cada parada en el mapa.',
@@ -4065,6 +4068,7 @@ export const translations = {
         },
       },
       guide: {
+        openLabel: 'Cómo escuchar la Biblia',
         title: 'Cómo escuchar la Biblia',
         rowDescription:
           'Que te lean cualquier capítulo en voz alta, sigue el texto resaltado y prepara un temporizador para dormir.',
@@ -4752,6 +4756,7 @@ export const translations = {
         },
       },
       guide: {
+        openLabel: 'Logros y tu racha de lectura',
         title: 'Logros y tu racha de lectura',
         rowDescription:
           'Desbloquea logros, gana títulos y sigue tu racha de lectura día a día.',
@@ -5163,6 +5168,7 @@ export const translations = {
       },
       note: 'El widget se actualiza una vez al día.',
       guide: {
+        openLabel: 'Cómo usar el widget del Verso del Día',
         title: 'Cómo usar el widget del Verso del Día',
         rowDescription:
           'Agrégalo a tu pantalla de inicio y recibe un versículo distinto cada día.',
@@ -5256,6 +5262,7 @@ export const translations = {
         '📖 Te comparto un estudio de {{passage}}.\n\nÁbrelo en Eternal Stone Bible:\n{{link}}\n\n¿No te abre el enlace? Copia este mensaje y pégalo en Ajustes → Unirme a un grupo.',
       shareStudy: 'Compartir estudio',
       guide: {
+        openLabel: 'Cómo unirte a un grupo',
         title: 'Cómo unirte a un grupo',
         rowDescription:
           'Une tu plan de lectura al de tu familia o grupo, para que el "Día 1" de todos caiga el mismo día.',
@@ -5323,6 +5330,7 @@ export const translations = {
       savedMeta: '{{n}} días · Comienza el {{date}}',
       resend: 'Reenviar',
       guide: {
+        openLabel: 'Cómo crear un devocional',
         title: 'Cómo crear un devocional',
         rowDescription:
           'Arma un versículo por día, compártelo con un enlace y no pierdas lo que ya empezaste.',
@@ -7107,6 +7115,7 @@ export const translations = {
       openInReader: 'Open in reader',
       resetZoom: 'Reset view',
       guide: {
+        openLabel: 'How to explore the constellation',
         title: 'How to explore the constellation',
         rowDescription:
           "Explore a verse's connections as an interactive star map.",
@@ -7348,6 +7357,7 @@ export const translations = {
         },
       },
       guide: {
+        openLabel: 'How to use the Prep Table',
         title: 'How to use the Prep Table',
         rowDescription:
           "Gather a passage's study helps and organize your sermon, series, and delivery.",
@@ -9409,6 +9419,7 @@ export const translations = {
         },
       },
       guide: {
+        openLabel: 'How to explore the Bible journeys',
         title: 'How to explore the Bible journeys',
         rowDescription:
           'Walk five real biblical routes and read every stop along the way.',
@@ -10228,6 +10239,7 @@ export const translations = {
         },
       },
       guide: {
+        openLabel: 'How to listen to the Bible',
         title: 'How to listen to the Bible',
         rowDescription:
           'Have any chapter read aloud, follow the highlighted text, and set a sleep timer.',
@@ -10913,6 +10925,7 @@ export const translations = {
         },
       },
       guide: {
+        openLabel: 'Achievements and your reading streak',
         title: 'Achievements and your reading streak',
         rowDescription:
           'Unlock achievements, earn titles, and keep your daily reading streak going.',
@@ -11322,6 +11335,7 @@ export const translations = {
       },
       note: 'The widget refreshes once a day.',
       guide: {
+        openLabel: 'How to use the Verse of the Day widget',
         title: 'How to use the Verse of the Day widget',
         rowDescription:
           'Add it to your home screen and get a new verse every day.',
@@ -11414,6 +11428,7 @@ export const translations = {
         '📖 Here is a study of {{passage}} I made.\n\nOpen it in Eternal Stone Bible:\n{{link}}\n\nLink not opening? Copy this message and paste it in Settings → Join a group.',
       shareStudy: 'Share study',
       guide: {
+        openLabel: 'How to join a group',
         title: 'How to join a group',
         rowDescription:
           'Line up your reading plan with your family or group, so everyone\'s "Day 1" falls on the same day.',
@@ -11481,6 +11496,7 @@ export const translations = {
       savedMeta: '{{n}} days · Starts {{date}}',
       resend: 'Resend',
       guide: {
+        openLabel: 'How to create a devotional',
         title: 'How to create a devotional',
         rowDescription:
           'Plan a verse a day, share it with one link, and never lose what you started.',

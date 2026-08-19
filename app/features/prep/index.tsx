@@ -112,6 +112,8 @@ import {
   type BibleVersion,
   type VerseComparison,
 } from '@lib/comparison/VersionComparison';
+import {FeatureGuideModal} from '@components/FeatureGuideModal';
+import {getFeatureGuideContent} from '@lib/onboarding/featureGuides';
 import {encodeHttpsLink, makeStudyBundle} from '@lib/together';
 import {
   buildPrepMarkdown,
@@ -380,6 +382,8 @@ export default function PrepTableScreen() {
       topicQuery.trim().length > 0 ? suggestPassagesForTopic(topicQuery) : [],
     [topicQuery],
   );
+
+  const [guideVisible, setGuideVisible] = useState(false);
 
   // T8.4.2 — "Palabras clave en el idioma original" (entirely premium).
   const [originalsStatus, setOriginalsStatus] =
@@ -806,6 +810,16 @@ export default function PrepTableScreen() {
     },
     [router],
   );
+
+  // Entry point for the topic suggester above — it only renders on the
+  // EMPTY (no-passage) state, but every real navigation into this screen
+  // always seeds a passage, so that state was otherwise unreachable through
+  // the UI. This button re-navigates to the same route with no params,
+  // exactly like handleOpenTopicSuggestion does in reverse.
+  const handleOpenTopicSearch = useCallback(() => {
+    haptics.tap();
+    router.push({pathname: '/features/prep' as never});
+  }, [router]);
 
   // T8.4.1 — the "Historial de preparaciones" entry point. Always navigates
   // (the destination screen itself shows the premium teaser for a free
@@ -1474,6 +1488,36 @@ export default function PrepTableScreen() {
                     />
                   </View>
                 )}
+              </TouchableOpacity>
+              {/* "Buscar por tema" — premium only, matches the topic
+                  suggester's own gate below (no teaser for free readers,
+                  same as that block already being invisible to them). */}
+              {isPremium && (
+                <TouchableOpacity
+                  style={styles.historyButton}
+                  onPress={handleOpenTopicSearch}
+                  accessibilityRole="button"
+                  accessibilityLabel={p.topicSuggestLabel}>
+                  <Ionicons
+                    name="search-outline"
+                    size={22}
+                    color={staticColors.white}
+                  />
+                </TouchableOpacity>
+              )}
+              <TouchableOpacity
+                style={styles.historyButton}
+                onPress={() => {
+                  haptics.tap();
+                  setGuideVisible(true);
+                }}
+                accessibilityRole="button"
+                accessibilityLabel={p.guide.openLabel}>
+                <Ionicons
+                  name="help-circle-outline"
+                  size={22}
+                  color={staticColors.white}
+                />
               </TouchableOpacity>
             </View>
           </View>
@@ -2587,6 +2631,12 @@ export default function PrepTableScreen() {
             openOfferingSheet();
           }}
           onClose={() => setFormatSheetVisible(false)}
+        />
+
+        <FeatureGuideModal
+          visible={guideVisible}
+          onClose={() => setGuideVisible(false)}
+          {...getFeatureGuideContent('prepTable', t)}
         />
       </View>
     </>
