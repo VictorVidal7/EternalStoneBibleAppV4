@@ -216,6 +216,17 @@ export default function DevotionalBuilderScreen() {
     setVerse(1);
   };
 
+  // Android hardware back (and the modal's own "X") should retreat one step
+  // — back to the book list — when a book is already chosen, instead of
+  // closing the whole modal outright.
+  const closeOrStepBack = () => {
+    if (pickBookId != null) {
+      setPickBookId(null);
+    } else {
+      setPickerOpen(false);
+    }
+  };
+
   const confirmDay = () => {
     if (pickBookId == null) return;
     haptics.tap();
@@ -556,7 +567,7 @@ export default function DevotionalBuilderScreen() {
         visible={pickerOpen}
         transparent
         animationType="fade"
-        onRequestClose={() => setPickerOpen(false)}>
+        onRequestClose={closeOrStepBack}>
         <View style={[styles.overlay, {backgroundColor: colors.overlay}]}>
           <View
             style={[
@@ -569,7 +580,7 @@ export default function DevotionalBuilderScreen() {
                 {pickBook ? bookName(pickBook.id) : db.pickVerse}
               </Text>
               <TouchableOpacity
-                onPress={() => setPickerOpen(false)}
+                onPress={closeOrStepBack}
                 accessibilityRole="button"
                 accessibilityLabel={t.close}
                 hitSlop={{top: 10, bottom: 10, left: 10, right: 10}}>
