@@ -401,7 +401,7 @@ export default function GuidedPrayerScreen() {
                 style={[styles.primaryBtn, {backgroundColor: colors.primary}]}
                 onPress={() => {
                   haptics.tap();
-                  router.replace('/features/prayer' as never);
+                  router.replace('/features/prayer?openAdd=1' as never);
                 }}
                 accessibilityRole="button"
                 accessibilityLabel={ta.addToJournal}>
