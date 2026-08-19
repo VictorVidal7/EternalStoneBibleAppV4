@@ -2861,6 +2861,24 @@ export const translations = {
           'El criterio de selección es conservador — solo profecías que el Nuevo Testamento cita como cumplidas, o de aceptación cristiana histórica amplia (ver «Fuentes y método» dentro del hilo). Guarda tus favoritas con la estrella y comparte un paso o el mapa completo del hilo.',
         close: 'Entendido',
       },
+      mapGuide: {
+        openLabel: 'Cómo leer el mapa del hilo',
+        title: 'Cómo leer el mapa del hilo',
+        rowDescription:
+          'Explora el mapa visual de las profecías y su cumplimiento, con hilos que puedes tocar y compartir.',
+        intro:
+          'El mapa muestra todo el hilo profético de un vistazo: las profecías del Antiguo Testamento a la izquierda, su cumplimiento en Cristo a la derecha, unidas por hilos de color según la etapa de su vida.',
+        s1Title: 'Toca un hilo',
+        s1Body:
+          'Toca un hilo, en cualquiera de sus dos extremos, para resaltarlo: el resto se atenúa y aparece un panel con el nombre de la profecía y sus referencias.',
+        s2Title: 'Ábrelo en el recorrido',
+        s2Body:
+          'Con el hilo ya seleccionado, tócalo otra vez (o el botón del panel) para abrirlo en el recorrido paso a paso, justo en ese punto.',
+        s3Title: 'Leyenda y compartir',
+        s3Body:
+          'Los colores de la leyenda indican la etapa de la vida de Cristo — venida, ministerio, pasión y resurrección. Toca el ícono de compartir para guardar el mapa completo como imagen.',
+        close: 'Entendido',
+      },
     },
 
     bibleFacts: {
@@ -9061,6 +9079,24 @@ export const translations = {
         s3Title: 'Sources, favorites, and sharing',
         s3Body:
           'The selection criteria are conservative — only prophecies the New Testament cites as fulfilled, or of broad historical Christian acceptance (see "Sources and method" inside the thread). Save your favorites with the star and share a single step or the whole thread map.',
+        close: 'Got it',
+      },
+      mapGuide: {
+        openLabel: 'How to read the thread map',
+        title: 'How to read the thread map',
+        rowDescription:
+          "Explore the prophecies' visual map, with threads you can tap and share.",
+        intro:
+          'The map shows the whole prophetic thread at a glance: Old Testament prophecies on the left, their fulfillment in Christ on the right, joined by threads colored by the stage of His life.',
+        s1Title: 'Tap a thread',
+        s1Body:
+          'Tap a thread, at either end, to highlight it: the rest dims and a panel appears naming the prophecy and its references.',
+        s2Title: 'Open it in the walk',
+        s2Body:
+          "With the thread already selected, tap it again (or the panel's button) to open it in the step-by-step walk, right at that point.",
+        s3Title: 'Legend and sharing',
+        s3Body:
+          "The legend's colors mark the stage of Christ's life — coming, ministry, passion, and resurrection. Tap the share icon to save the whole map as an image.",
         close: 'Got it',
       },
     },

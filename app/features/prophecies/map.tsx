@@ -41,6 +41,8 @@ import {haptics} from '@lib/haptics';
 import {logger} from '@lib/utils/logger';
 import {shareOrDownloadImage} from '@/features/share/shareOrDownloadImage';
 import {AppText} from '@components/ui/AppText';
+import {FeatureGuideModal} from '@components/FeatureGuideModal';
+import {getFeatureGuideContent} from '@lib/onboarding/featureGuides';
 import {
   PROPHECY_GROUP_ACCENT,
   PROPHECY_GROUP_ORDER,
@@ -75,6 +77,7 @@ export default function PropheciesMapScreen() {
   const [selected, setSelected] = useState<number | null>(null);
   const captureCardRef = useRef<View>(null);
   const [sharing, setSharing] = useState(false);
+  const [guideVisible, setGuideVisible] = useState(false);
 
   const headerGradient = (
     gradient?.headerColors
@@ -154,22 +157,38 @@ export default function PropheciesMapScreen() {
             accessibilityLabel={t.bible.back}>
             <Ionicons name="arrow-back" size={24} color={staticColors.white} />
           </TouchableOpacity>
-          <TouchableOpacity
-            style={styles.iconButton}
-            onPress={() => void handleShareMap()}
-            disabled={sharing}
-            accessibilityRole="button"
-            accessibilityLabel={tp.shareMap}>
-            {sharing ? (
-              <ActivityIndicator color={staticColors.white} />
-            ) : (
+          <View style={styles.headerTopRight}>
+            <TouchableOpacity
+              style={styles.iconButton}
+              onPress={() => {
+                haptics.tap();
+                setGuideVisible(true);
+              }}
+              accessibilityRole="button"
+              accessibilityLabel={tp.mapGuide.openLabel}>
               <Ionicons
-                name="share-outline"
-                size={22}
+                name="help-circle-outline"
+                size={24}
                 color={staticColors.white}
               />
-            )}
-          </TouchableOpacity>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.iconButton}
+              onPress={() => void handleShareMap()}
+              disabled={sharing}
+              accessibilityRole="button"
+              accessibilityLabel={tp.shareMap}>
+              {sharing ? (
+                <ActivityIndicator color={staticColors.white} />
+              ) : (
+                <Ionicons
+                  name="share-outline"
+                  size={22}
+                  color={staticColors.white}
+                />
+              )}
+            </TouchableOpacity>
+          </View>
         </View>
         <AppText scaleRole="display" style={styles.headerTitle}>
           {tp.mapTitle}
@@ -468,6 +487,12 @@ export default function PropheciesMapScreen() {
           </TouchableOpacity>
         </View>
       ) : null}
+
+      <FeatureGuideModal
+        visible={guideVisible}
+        onClose={() => setGuideVisible(false)}
+        {...getFeatureGuideContent('propheticMap', t)}
+      />
     </View>
   );
 }
@@ -485,6 +510,10 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     marginBottom: spacing.xs,
+  },
+  headerTopRight: {
+    flexDirection: 'row',
+    alignItems: 'center',
   },
   iconButton: {
     width: 40,

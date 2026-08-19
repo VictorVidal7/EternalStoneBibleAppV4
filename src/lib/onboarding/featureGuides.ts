@@ -39,7 +39,8 @@ export type FeatureGuideId =
   | 'prepTable'
   | 'journeys'
   | 'devotionalBuilder'
-  | 'propheticThread';
+  | 'propheticThread'
+  | 'propheticMap';
 
 export interface FeatureGuideContent {
   headerIcon?: keyof typeof Ionicons.glyphMap;
@@ -406,6 +407,35 @@ export const FEATURE_GUIDES: readonly FeatureGuideDefinition[] = [
           icon: 'star-outline',
           title: t.prophecies.guide.s3Title,
           body: t.prophecies.guide.s3Body,
+        },
+      ],
+    }),
+  },
+  {
+    id: 'propheticMap',
+    listIcon: 'link-outline',
+    getLabel: t => t.prophecies.mapGuide.title,
+    getDescription: t => t.prophecies.mapGuide.rowDescription,
+    getContent: t => ({
+      headerIcon: 'link',
+      title: t.prophecies.mapGuide.title,
+      intro: t.prophecies.mapGuide.intro,
+      closeLabel: t.prophecies.mapGuide.close,
+      sections: [
+        {
+          icon: 'hand-left-outline',
+          title: t.prophecies.mapGuide.s1Title,
+          body: t.prophecies.mapGuide.s1Body,
+        },
+        {
+          icon: 'arrow-forward-circle-outline',
+          title: t.prophecies.mapGuide.s2Title,
+          body: t.prophecies.mapGuide.s2Body,
+        },
+        {
+          icon: 'color-palette-outline',
+          title: t.prophecies.mapGuide.s3Title,
+          body: t.prophecies.mapGuide.s3Body,
         },
       ],
     }),
