@@ -49,6 +49,9 @@ jest.mock('@hooks/useTheme', () => ({
       text: '#ffffff',
       textSecondary: '#cccccc',
       textTertiary: '#999999',
+      error: '#dc2626',
+      warning: '#ea580c',
+      success: '#059669',
     },
   }),
 }));

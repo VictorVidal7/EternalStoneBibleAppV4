@@ -95,12 +95,16 @@ export default function AboutBookScreen() {
             onPress={() => router.back()}
             accessibilityRole="button"
             accessibilityLabel={t.bible.back}>
-            <Ionicons name="arrow-back" size={24} color="#FFFFFF" />
+            <Ionicons name="arrow-back" size={24} color={staticColors.white} />
           </TouchableOpacity>
 
           <View style={styles.headerTextRow}>
             <View style={styles.headerIcon}>
-              <Ionicons name="information-circle" size={28} color="#FFFFFF" />
+              <Ionicons
+                name="information-circle"
+                size={28}
+                color={staticColors.white}
+              />
             </View>
             <View style={styles.headerInfo}>
               <Text style={styles.headerLabel}>{t.bookIntro.headerTitle}</Text>

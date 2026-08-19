@@ -24,6 +24,7 @@ import {LinearGradient} from 'expo-linear-gradient';
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
 import {haptics} from '@lib/haptics';
 import {useTheme} from '@hooks/useTheme';
+import {contrastRatio} from '@lib/a11y/contrast';
 import {centeredMaxWidth} from '@/styles/responsive';
 import {useLanguage} from '@hooks/useLanguage';
 import {useBibleVersion} from '@hooks/useBibleVersion';
@@ -47,13 +48,6 @@ import {
   spacing,
   staticColors,
 } from '@/styles/designTokens';
-
-const GRADE_COLORS: Record<ReviewGrade, string> = {
-  again: '#EF4444',
-  hard: '#F59E0B',
-  good: '#22C55E',
-  easy: '#3B82F6',
-};
 
 /** The active-recall modes layered on the SRS. */
 type PracticeMode = 'reveal' | 'firstLetter' | 'fill' | 'write' | 'type';
@@ -738,19 +732,42 @@ export default function MemoryPracticeScreen() {
   );
 }
 
+const DARK_INK = '#0f172a';
+
 const GradeButton: React.FC<{
   grade: ReviewGrade;
   label: string;
   onPress: () => void;
-}> = ({grade, label, onPress}) => (
-  <TouchableOpacity
-    style={[styles.gradeButton, {backgroundColor: GRADE_COLORS[grade]}]}
-    onPress={onPress}
-    accessibilityRole="button"
-    accessibilityLabel={label}>
-    <Text style={styles.gradeText}>{label}</Text>
-  </TouchableOpacity>
-);
+}> = ({grade, label, onPress}) => {
+  const {colors} = useTheme();
+  const gradeColors: Record<ReviewGrade, string> = {
+    again: colors.error,
+    hard: colors.warning,
+    good: colors.success,
+    easy: colors.primary,
+  };
+  const backgroundColor = gradeColors[grade];
+  // Theme/high-contrast palettes vary widely in lightness, so pick whichever
+  // ink actually reads best against THIS background instead of assuming
+  // white — same problem `onPrimary` solves per-palette for the primary
+  // color, applied here at render time since error/warning/success have no
+  // precomputed "on" token of their own.
+  const textColor =
+    contrastRatio(backgroundColor, staticColors.white) >=
+    contrastRatio(backgroundColor, DARK_INK)
+      ? staticColors.white
+      : DARK_INK;
+
+  return (
+    <TouchableOpacity
+      style={[styles.gradeButton, {backgroundColor}]}
+      onPress={onPress}
+      accessibilityRole="button"
+      accessibilityLabel={label}>
+      <Text style={[styles.gradeText, {color: textColor}]}>{label}</Text>
+    </TouchableOpacity>
+  );
+};
 
 const styles = StyleSheet.create({
   container: {
@@ -945,7 +962,6 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   gradeText: {
-    color: staticColors.white,
     fontSize: fontSizes.base,
     fontWeight: '800',
   },

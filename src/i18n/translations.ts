@@ -657,6 +657,8 @@ export const translations = {
           'Todo tu historial de repasos, no solo los últimos meses',
         byBookTitle: 'Retención por libro',
         byBookHint: 'Cómo te va en cada libro que has memorizado',
+        byBookEmpty:
+          'Aún no has repasado ningún versículo. Tu retención por libro aparecerá aquí.',
         byBookLocked: 'Se desbloquea con premium',
         monthsShort: [
           'Ene',
@@ -6881,6 +6883,8 @@ export const translations = {
         fullHistoryHint: 'Your entire review history, not just recent months',
         byBookTitle: 'Retention by book',
         byBookHint: 'How you’re doing in each book you’ve memorized',
+        byBookEmpty:
+          "You haven't reviewed any verses yet. Your retention by book will appear here.",
         byBookLocked: 'Unlocked with premium',
         monthsShort: [
           'Jan',

@@ -218,10 +218,10 @@ export default function ReferenceChainScreen() {
           onPress={() => router.back()}
           accessibilityRole="button"
           accessibilityLabel={t.bible.back}>
-          <Ionicons name="arrow-back" size={24} color="#ffffff" />
+          <Ionicons name="arrow-back" size={24} color={staticColors.white} />
         </TouchableOpacity>
         <View style={styles.headerRow}>
-          <Ionicons name="git-network" size={28} color="#ffffff" />
+          <Ionicons name="git-network" size={28} color={staticColors.white} />
           <View style={styles.headerText}>
             <Text style={styles.headerTitle}>{rc.title}</Text>
             <Text style={styles.headerSubtitle} numberOfLines={1}>
@@ -257,7 +257,9 @@ export default function ReferenceChainScreen() {
                           : colors.surface,
                         borderColor: isLast ? colors.primary : colors.border,
                       },
-                    ]}>
+                    ]}
+                    accessibilityRole="button"
+                    accessibilityLabel={`${localize(step.book)} ${step.chapter}:${step.verse}`}>
                     <Text
                       style={[
                         styles.crumbText,
@@ -287,7 +289,9 @@ export default function ReferenceChainScreen() {
           style={[
             styles.currentCard,
             {backgroundColor: colors.surface, borderColor: colors.primary},
-          ]}>
+          ]}
+          accessibilityRole="button"
+          accessibilityLabel={currentRef}>
           <View style={styles.currentHeader}>
             <Text style={[styles.currentRef, {color: colors.primary}]}>
               {currentRef}
@@ -332,7 +336,9 @@ export default function ReferenceChainScreen() {
                   backgroundColor: colors.primary + '0F',
                   borderColor: colors.primary + '33',
                 },
-              ]}>
+              ]}
+              accessibilityRole="button"
+              accessibilityLabel={`${ref.display} ${ref.step.chapter}:${ref.step.verse}`}>
               <View style={styles.nextMain}>
                 <Text
                   style={[styles.nextRef, {color: colors.primary}]}

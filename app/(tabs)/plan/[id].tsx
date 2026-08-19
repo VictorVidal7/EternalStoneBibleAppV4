@@ -652,7 +652,7 @@ export default function ReadingPlanDetailScreen() {
             onPress={() => router.back()}
             accessibilityRole="button"
             accessibilityLabel={t.bible.back}>
-            <Ionicons name="arrow-back" size={24} color="#ffffff" />
+            <Ionicons name="arrow-back" size={24} color={staticColors.white} />
           </TouchableOpacity>
           <View style={styles.headerActions}>
             {plan.custom ? (
@@ -661,7 +661,11 @@ export default function ReadingPlanDetailScreen() {
                 onPress={onEditPlan}
                 accessibilityRole="button"
                 accessibilityLabel={t.planBuilder.editTitle}>
-                <Ionicons name="create-outline" size={21} color="#ffffff" />
+                <Ionicons
+                  name="create-outline"
+                  size={21}
+                  color={staticColors.white}
+                />
               </TouchableOpacity>
             ) : null}
             {plan.custom ? (
@@ -670,7 +674,11 @@ export default function ReadingPlanDetailScreen() {
                 onPress={onDeletePlan}
                 accessibilityRole="button"
                 accessibilityLabel={t.together.deletePlan}>
-                <Ionicons name="trash-outline" size={21} color="#ffffff" />
+                <Ionicons
+                  name="trash-outline"
+                  size={21}
+                  color={staticColors.white}
+                />
               </TouchableOpacity>
             ) : null}
             {/* Restart: available as soon as the plan has ANY progress, not
@@ -682,7 +690,7 @@ export default function ReadingPlanDetailScreen() {
                 onPress={onRestartPlan}
                 accessibilityRole="button"
                 accessibilityLabel={t.readingPlan.restartPlan}>
-                <Ionicons name="refresh" size={21} color="#ffffff" />
+                <Ionicons name="refresh" size={21} color={staticColors.white} />
               </TouchableOpacity>
             ) : null}
             <TouchableOpacity
@@ -700,7 +708,7 @@ export default function ReadingPlanDetailScreen() {
               <Ionicons
                 name={plan.custom ? 'share-social-outline' : 'people-outline'}
                 size={22}
-                color="#ffffff"
+                color={staticColors.white}
               />
             </TouchableOpacity>
           </View>
@@ -774,7 +782,7 @@ export default function ReadingPlanDetailScreen() {
 
         {membership ? (
           <View style={styles.groupChip}>
-            <Ionicons name="people" size={14} color="#ffffff" />
+            <Ionicons name="people" size={14} color={staticColors.white} />
             <Text style={styles.groupChipText} numberOfLines={1}>
               {membership.name
                 ? t.together.readingWith.replace('{{group}}', membership.name)
@@ -785,7 +793,11 @@ export default function ReadingPlanDetailScreen() {
               accessibilityRole="button"
               accessibilityLabel={t.together.leaveGroup}
               hitSlop={{top: 8, bottom: 8, left: 8, right: 8}}>
-              <Ionicons name="close-circle" size={16} color="#ffffff" />
+              <Ionicons
+                name="close-circle"
+                size={16}
+                color={staticColors.white}
+              />
             </TouchableOpacity>
           </View>
         ) : null}

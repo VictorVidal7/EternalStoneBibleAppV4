@@ -10,6 +10,7 @@ import {View, Text, StyleSheet, Switch, TouchableOpacity} from 'react-native';
 import {Ionicons} from '@expo/vector-icons';
 import {useTheme} from '@hooks/useTheme';
 import {useLanguage} from '@hooks/useLanguage';
+import {staticColors} from '@/styles/designTokens';
 
 interface NotificationReminderRowProps {
   icon: React.ComponentProps<typeof Ionicons>['name'];
@@ -63,7 +64,7 @@ export default function NotificationReminderRow({
           onValueChange={onToggle}
           disabled={busy}
           trackColor={{false: colors.border, true: colors.primary}}
-          thumbColor="#ffffff"
+          thumbColor={staticColors.white}
           accessibilityLabel={label}
         />
       </View>
