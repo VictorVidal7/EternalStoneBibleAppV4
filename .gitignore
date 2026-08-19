@@ -12,6 +12,9 @@ expo-env.d.ts
 # Firebase CLI local cache
 .firebase/
 
+# Vercel CLI local project link
+.vercel/
+
 # Native
 .kotlin/
 *.orig.*

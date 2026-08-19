@@ -34,6 +34,7 @@ jest.mock('../src/lib/offering/offeringService', () => ({
 
 import {
   redeemGiftCode,
+  REDEEM_GIFT_CODE_URL,
   __resetForTests,
 } from '../src/lib/offering/giftCodeService';
 
@@ -77,7 +78,7 @@ describe('giftCodeService.redeemGiftCode', () => {
 
     expect(global.fetch).toHaveBeenCalledTimes(1);
     const [url, init] = (global.fetch as jest.Mock).mock.calls[0];
-    expect(url).toEqual(expect.stringContaining('redeemGiftCode'));
+    expect(url).toBe(REDEEM_GIFT_CODE_URL);
     expect(init.method).toBe('POST');
     expect(init.headers.Authorization).toBe('Bearer fake-id-token');
     expect(JSON.parse(init.body)).toEqual({code: 'ABCD-1234'});

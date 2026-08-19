@@ -29,20 +29,19 @@ import {logger} from '@lib/utils/logger';
 import {linkUser} from './offeringService';
 
 /**
- * Deployed Cloud Function URL. This is the standard deterministic URL shape
- * for a 2nd-gen `onRequest` function
- * (`https://<region>-<project-id>.cloudfunctions.net/<name>`), built from
- * this repo's real Firebase project id (see .firebaserc) and the function's
- * declared `region: 'us-central1'` (functions/src/index.ts) — so it should
- * already be correct once deployed. It only resolves AFTER Victor runs
- * `firebase deploy --only functions` (see the gift-code-redemption report's
- * setup steps). Occasionally a 2nd-gen function's deterministic
- * cloudfunctions.net URL fails to provision; if this 404s after deploying,
- * use the Cloud Run-style URL from the `firebase deploy` output instead and
- * update this constant.
+ * Deployed endpoint URL. Points at the Vercel serverless port of this
+ * function (vercel/gift-code-redeem/api/redeem.ts) rather than the Firebase
+ * Cloud Function (functions/src/index.ts, same logic, kept in the repo but
+ * deliberately left undeployed — Cloud Functions requires the Blaze billing
+ * plan, which converts the WHOLE Firebase project to overage-billed; Vercel's
+ * free Hobby tier hard-caps usage with no overage instead). See
+ * vercel/gift-code-redeem/README.md for the deploy steps and project memory
+ * essb-gift-code-redemption for the full decision trail. This only resolves
+ * AFTER that project is deployed to production — update this constant if the
+ * real assigned Vercel URL differs from what's set here.
  */
 export const REDEEM_GIFT_CODE_URL =
-  'https://us-central1-eternal-stone-bible-app-5ad27.cloudfunctions.net/redeemGiftCode';
+  'https://essb-gift-redeem.vercel.app/api/redeem';
 
 /** Mirrors offeringService.ts's PurchaseOutcome shape/style for consistency. */
 export type RedeemOutcome =

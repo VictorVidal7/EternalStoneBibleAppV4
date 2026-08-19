@@ -32,6 +32,9 @@
     // tsconfig.json (functions/tsconfig.json) and dependency set
     // (firebase-functions, a Node-only runtime). `cd functions && npx tsc
     // --noEmit` is its own gate; see the gift-code-redemption report.
-    "functions/**"
+    "functions/**",
+    // Same reasoning — the Vercel serverless fallback for gift-code
+    // redemption is its own Node project (vercel/gift-code-redeem/tsconfig.json).
+    "vercel/**"
   ]
 }
