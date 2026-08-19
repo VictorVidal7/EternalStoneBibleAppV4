@@ -3304,6 +3304,12 @@ export const translations = {
       shareStreakDays: '{{n}} días',
     },
 
+    goals: {
+      title: 'Metas',
+      entryTitle: 'Configurar metas',
+      entryDesc: 'Lectura diaria, repaso y reto semanal de memorización',
+    },
+
     readingGoal: {
       title: 'Meta de lectura',
       settingsTitle: 'Meta de lectura diaria',
@@ -9497,6 +9503,12 @@ export const translations = {
       shareToday: 'Today',
       shareStreakDay: '1 day',
       shareStreakDays: '{{n}} days',
+    },
+
+    goals: {
+      title: 'Goals',
+      entryTitle: 'Configure goals',
+      entryDesc: 'Daily reading, review, and weekly memorization challenge',
     },
 
     readingGoal: {

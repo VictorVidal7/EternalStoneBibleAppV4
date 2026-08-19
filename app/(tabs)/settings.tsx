@@ -36,9 +36,8 @@ import {useSyncEngineOptional, useConflicts} from '@context/SyncEngineContext';
 import {useToast} from '@context/ToastContext';
 import NotificationsSettings from '@components/settings/NotificationsSettings';
 import {ConfirmDialog} from '@components/ui/ConfirmDialog';
-import MemoryGoalSettings from '@components/settings/MemoryGoalSettings';
+import GoalsSettings from '@components/settings/GoalsSettings';
 import ManageVersionsSection from '@components/settings/ManageVersionsSection';
-import ReadingGoalSettings from '@components/settings/ReadingGoalSettings';
 import {useReaderPreferences} from '@context/ReaderPreferencesContext';
 import {useAccessibilityPreferences} from '@context/AccessibilityPreferencesContext';
 import ExtrasSettings from '@components/settings/ExtrasSettings';
@@ -810,11 +809,8 @@ export default function SettingsScreen() {
         {/* Consolidated notification reminders (daily verse, prayer, devotion, prophecy, ¿Sabías qué?, memorization) */}
         <NotificationsSettings />
 
-        {/* Daily reading goal — grades the Leer constancy ring (Sprint 85) */}
-        <ReadingGoalSettings />
-
-        {/* Memorization goal + review reminder (Sprint 47) */}
-        <MemoryGoalSettings />
+        {/* Consolidated goals (reading, memorization review, weekly target) */}
+        <GoalsSettings />
 
         {/* Extras unlocked by a voluntary offering (offering infrastructure tanda) */}
         <ExtrasSettings />
