@@ -143,6 +143,17 @@ export const OfferingSheet: React.FC<Props> = ({visible, onClose}) => {
   }, [onClose]);
 
   // Nothing useful to show — degrade quietly instead of a broken empty sheet.
+  // Also resets `visible` in the parent context (not just local render
+  // state): without this, a second `open()` call after an 'unavailable'
+  // resolution sets an already-true `visible` to true again, React bails on
+  // the no-op update, and the load effect (keyed on `visible`) never reruns
+  // — every tap after the first silently does nothing.
+  useEffect(() => {
+    if (state.kind === 'unavailable') {
+      onClose();
+    }
+  }, [state.kind, onClose]);
+
   if (visible && state.kind === 'unavailable') {
     return null;
   }
