@@ -116,13 +116,15 @@ const withVerseWidget = config => {
       {
         name: 'verse_widget_description',
         value:
-          'Versículo bíblico curado, una rotación distinta cada día. Toca el widget para abrir la app.',
+          'Versículo bíblico curado, una rotación distinta cada día. Toca el widget para abrir ese pasaje en la app.',
       },
     ];
     strings.resources.string = strings.resources.string || [];
     for (const w of wanted) {
-      const exists = strings.resources.string.find(s => s.$.name === w.name);
-      if (!exists) {
+      const existing = strings.resources.string.find(s => s.$.name === w.name);
+      if (existing) {
+        existing._ = w.value;
+      } else {
         strings.resources.string.push({$: {name: w.name}, _: w.value});
       }
     }

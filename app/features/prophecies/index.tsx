@@ -70,6 +70,8 @@ import {
   type ProphecyShareContent,
 } from '@components/study/ProphecyShareModal';
 import {OriginalLanguagesSheet} from '@components/reading/OriginalLanguagesSheet';
+import {FeatureGuideModal} from '@components/FeatureGuideModal';
+import {getFeatureGuideContent} from '@lib/onboarding/featureGuides';
 import {
   borderRadius,
   fontSize as fontSizes,
@@ -112,6 +114,7 @@ export default function PropheticThreadScreen() {
   const [sourcesOpen, setSourcesOpen] = useState(false);
   const [whyOpen, setWhyOpen] = useState(false);
   const [indexOpen, setIndexOpen] = useState(false);
+  const [guideVisible, setGuideVisible] = useState(false);
   const [shareOpen, setShareOpen] = useState(false);
   const [visited, setVisited] = useState<Set<string>>(new Set());
   const [favorites, setFavorites] = useState<Set<string>>(new Set());
@@ -597,21 +600,37 @@ export default function PropheticThreadScreen() {
                 color={staticColors.white}
               />
             </TouchableOpacity>
-            <TouchableOpacity
-              style={styles.backButton}
-              onPress={() => {
-                haptics.tap();
-                setIndexOpen(o => !o);
-              }}
-              accessibilityRole="button"
-              accessibilityLabel={tp.indexTitle}
-              accessibilityState={{expanded: indexOpen}}>
-              <Ionicons
-                name={indexOpen ? 'close' : 'list'}
-                size={24}
-                color={staticColors.white}
-              />
-            </TouchableOpacity>
+            <View style={styles.headerTopRight}>
+              <TouchableOpacity
+                style={styles.backButton}
+                onPress={() => {
+                  haptics.tap();
+                  setGuideVisible(true);
+                }}
+                accessibilityRole="button"
+                accessibilityLabel={tp.guide.openLabel}>
+                <Ionicons
+                  name="help-circle-outline"
+                  size={24}
+                  color={staticColors.white}
+                />
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={styles.backButton}
+                onPress={() => {
+                  haptics.tap();
+                  setIndexOpen(o => !o);
+                }}
+                accessibilityRole="button"
+                accessibilityLabel={tp.indexTitle}
+                accessibilityState={{expanded: indexOpen}}>
+                <Ionicons
+                  name={indexOpen ? 'close' : 'list'}
+                  size={24}
+                  color={staticColors.white}
+                />
+              </TouchableOpacity>
+            </View>
           </View>
           <View style={styles.headerTextRow}>
             <View style={styles.headerIcon}>
@@ -1498,6 +1517,11 @@ export default function PropheticThreadScreen() {
         version={selectedVersion.id}
         onClose={() => setOriginalsVisible(false)}
       />
+      <FeatureGuideModal
+        visible={guideVisible}
+        onClose={() => setGuideVisible(false)}
+        {...getFeatureGuideContent('propheticThread', t)}
+      />
     </>
   );
 }
@@ -1514,6 +1538,10 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
+  },
+  headerTopRight: {
+    flexDirection: 'row',
+    alignItems: 'center',
   },
   backButton: {width: 40, height: 40, justifyContent: 'center'},
   introIndexBtn: {

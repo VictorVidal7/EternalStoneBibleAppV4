@@ -2843,6 +2843,24 @@ export const translations = {
           note: 'Josué dio reposo en la tierra, mas no el definitivo; queda un reposo para el pueblo de Dios, en el que se entra por la fe en Jesús.',
         },
       },
+      guide: {
+        openLabel: 'Cómo recorrer el hilo profético',
+        title: 'Cómo recorrer el hilo profético',
+        rowDescription:
+          'Recorre las profecías mesiánicas del Antiguo Testamento y su cumplimiento en Cristo, paso a paso.',
+        intro:
+          'Toda la Escritura da testimonio de Cristo (Lucas 24:27). Este hilo une cada profecía mesiánica con el pasaje del Nuevo Testamento donde se cumple, en el orden de su vida: venida, ministerio, pasión y resurrección.',
+        s1Title: 'Un paso a la vez',
+        s1Body:
+          'Cada paso muestra la profecía del Antiguo Testamento, una flecha hacia su cumplimiento en el Nuevo Testamento, y una breve nota — toca cualquiera de los dos pasajes para abrirlo completo en el lector. Usa Anterior/Siguiente o el recorrido narrado para avanzar sin prisa.',
+        s2Title: 'Filtra por favoritas o citadas en el NT',
+        s2Body:
+          'El índice deja ver Todas las profecías, solo tus Favoritas, o solo las Citadas — las que el propio Nuevo Testamento menciona de forma explícita como cumplidas, marcadas con el sello «Citado en el NT».',
+        s3Title: 'Fuentes, favoritos y compartir',
+        s3Body:
+          'El criterio de selección es conservador — solo profecías que el Nuevo Testamento cita como cumplidas, o de aceptación cristiana histórica amplia (ver «Fuentes y método» dentro del hilo). Guarda tus favoritas con la estrella y comparte un paso o el mapa completo del hilo.',
+        close: 'Entendido',
+      },
     },
 
     bibleFacts: {
@@ -9020,6 +9038,24 @@ export const translations = {
           label: 'The true rest',
           note: 'Joshua gave rest in the land, but not the final one; there remains a rest for the people of God, entered by faith in Jesus.',
         },
+      },
+      guide: {
+        openLabel: 'How to walk the prophetic thread',
+        title: 'How to walk the prophetic thread',
+        rowDescription:
+          'Walk the Old Testament messianic prophecies and their fulfillment in Christ, step by step.',
+        intro:
+          'All Scripture testifies of Christ (Luke 24:27). This thread joins each messianic prophecy to the New Testament passage where it is fulfilled, in the order of His life: coming, ministry, passion, and resurrection.',
+        s1Title: 'One step at a time',
+        s1Body:
+          'Each step shows the Old Testament prophecy, an arrow to its fulfillment in the New Testament, and a brief note — tap either passage to open it in full in the reader. Use Previous/Next or the narrated walkthrough to move at your own pace.',
+        s2Title: 'Filter by favorites or NT-quoted',
+        s2Body:
+          'The index lets you view All prophecies, only your Favorites, or only the Quoted ones — those the New Testament itself explicitly cites as fulfilled, marked with the "Quoted in the NT" badge.',
+        s3Title: 'Sources, favorites, and sharing',
+        s3Body:
+          'The selection criteria are conservative — only prophecies the New Testament cites as fulfilled, or of broad historical Christian acceptance (see "Sources and method" inside the thread). Save your favorites with the star and share a single step or the whole thread map.',
+        close: 'Got it',
       },
     },
 

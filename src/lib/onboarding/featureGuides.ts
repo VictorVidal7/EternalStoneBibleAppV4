@@ -38,7 +38,8 @@ export type FeatureGuideId =
   | 'together'
   | 'prepTable'
   | 'journeys'
-  | 'devotionalBuilder';
+  | 'devotionalBuilder'
+  | 'propheticThread';
 
 export interface FeatureGuideContent {
   headerIcon?: keyof typeof Ionicons.glyphMap;
@@ -376,6 +377,35 @@ export const FEATURE_GUIDES: readonly FeatureGuideDefinition[] = [
           icon: 'share-social-outline',
           title: t.devotionalBuilder.guide.s3Title,
           body: t.devotionalBuilder.guide.s3Body,
+        },
+      ],
+    }),
+  },
+  {
+    id: 'propheticThread',
+    listIcon: 'git-network-outline',
+    getLabel: t => t.prophecies.guide.title,
+    getDescription: t => t.prophecies.guide.rowDescription,
+    getContent: t => ({
+      headerIcon: 'git-network',
+      title: t.prophecies.guide.title,
+      intro: t.prophecies.guide.intro,
+      closeLabel: t.prophecies.guide.close,
+      sections: [
+        {
+          icon: 'arrow-forward-circle-outline',
+          title: t.prophecies.guide.s1Title,
+          body: t.prophecies.guide.s1Body,
+        },
+        {
+          icon: 'filter-outline',
+          title: t.prophecies.guide.s2Title,
+          body: t.prophecies.guide.s2Body,
+        },
+        {
+          icon: 'star-outline',
+          title: t.prophecies.guide.s3Title,
+          body: t.prophecies.guide.s3Body,
         },
       ],
     }),

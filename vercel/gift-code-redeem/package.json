@@ -1,0 +1,15 @@
+{
+  "name": "gift-code-redeem",
+  "description": "Vercel serverless fallback for the redeemGiftCode endpoint — same logic as functions/src/index.ts, ported off Firebase Cloud Functions (which requires the Blaze billing plan) onto Vercel's free Hobby tier (hard usage cap, no overage billing).",
+  "private": true,
+  "engines": {
+    "node": "22.x"
+  },
+  "dependencies": {
+    "firebase-admin": "^14.2.0"
+  },
+  "devDependencies": {
+    "@vercel/node": "^5.1.13",
+    "typescript": "~5.9.2"
+  }
+}

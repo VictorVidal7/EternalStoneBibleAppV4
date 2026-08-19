@@ -30,3 +30,6 @@ assets
 # the main repo's npm run validate (see functions/ setup in the gift-code-
 # redemption feature report for how it's gated instead).
 functions
+
+# Vercel serverless fallback for gift-code redemption — same reasoning as functions/.
+vercel
