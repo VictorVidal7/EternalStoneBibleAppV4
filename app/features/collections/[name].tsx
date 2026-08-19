@@ -111,11 +111,11 @@ export default function CollectionDetailScreen() {
   const handleRemove = useCallback(
     (id: string, tags: string[]) => {
       haptics.tap();
-      updateFavorite(id, {tags: removeFromCollection(tags, name)}).catch(
-        () => undefined,
+      updateFavorite(id, {tags: removeFromCollection(tags, name)}).catch(() =>
+        toast.error(tc.removeError),
       );
     },
-    [updateFavorite, name],
+    [updateFavorite, name, toast, tc.removeError],
   );
 
   const handleShare = useCallback(() => {
@@ -259,6 +259,25 @@ export default function CollectionDetailScreen() {
         <ScrollView
           contentContainerStyle={styles.content}
           showsVerticalScrollIndicator={false}>
+          {verses.length === 0 ? (
+            <View style={styles.empty}>
+              <Ionicons
+                name="bookmarks-outline"
+                size={48}
+                color={colors.textTertiary}
+              />
+              <AppText
+                scaleRole="display"
+                style={[styles.emptyTitle, {color: colors.text}]}>
+                {tc.emptyCollection}
+              </AppText>
+              <AppText
+                scaleRole="compact"
+                style={[styles.emptyHint, {color: colors.textSecondary}]}>
+                {tc.emptyCollectionHint}
+              </AppText>
+            </View>
+          ) : null}
           {verses.map(fav => (
             <View
               key={fav.id}
@@ -359,6 +378,17 @@ const styles = StyleSheet.create({
     padding: spacing.lg,
     paddingBottom: spacing['2xl'],
     gap: spacing.sm,
+  },
+  empty: {
+    alignItems: 'center',
+    paddingVertical: spacing['2xl'],
+    gap: spacing.sm,
+  },
+  emptyTitle: {fontSize: fontSizes.lg, fontWeight: '700'},
+  emptyHint: {
+    fontSize: fontSizes.sm,
+    textAlign: 'center',
+    paddingHorizontal: spacing.lg,
   },
   card: {
     flexDirection: 'row',

@@ -1947,6 +1947,9 @@ export const translations = {
       empty: 'Aún no tienes colecciones',
       emptyHint:
         'Etiqueta un favorito con el icono de marcador para crear tu primera colección',
+      emptyCollection: 'Esta colección está vacía',
+      emptyCollectionHint:
+        'Toca el icono de marcador en un versículo y agrégalo a esta colección',
       openHint: 'Abrir colección',
       addTitle: 'Añadir a una colección',
       newPlaceholder: 'Nueva colección…',
@@ -1955,6 +1958,7 @@ export const translations = {
       manage: 'Colecciones',
       addAction: 'Añadir a colección',
       removeFromCollection: 'Quitar de la colección',
+      removeError: 'No se pudo quitar el versículo. Intenta de nuevo.',
       share: 'Compartir colección',
       shareImage: 'Compartir como imagen',
       shareHeader: 'Colección',
@@ -8182,6 +8186,9 @@ export const translations = {
       empty: 'No collections yet',
       emptyHint:
         'Tag a favorite with the bookmark icon to create your first collection',
+      emptyCollection: 'This collection is empty',
+      emptyCollectionHint:
+        'Tap the bookmark icon on a verse and add it to this collection',
       openHint: 'Open collection',
       addTitle: 'Add to a collection',
       newPlaceholder: 'New collection…',
@@ -8190,6 +8197,7 @@ export const translations = {
       manage: 'Collections',
       addAction: 'Add to collection',
       removeFromCollection: 'Remove from collection',
+      removeError: 'Could not remove the verse. Try again.',
       share: 'Share collection',
       shareImage: 'Share as image',
       shareHeader: 'Collection',
