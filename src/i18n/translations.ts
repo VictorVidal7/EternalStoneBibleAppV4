@@ -5182,7 +5182,7 @@ export const translations = {
           'El widget muestra el mismo versículo curado que ves en el inicio de la app, y se actualiza solo, una vez al día — nunca tienes que renovarlo a mano.',
         s3Title: 'Solo en Android, a un toque de la app',
         s3Body:
-          'Toca el widget en cualquier momento para abrir la app. Por ahora, este widget de pantalla de inicio está disponible únicamente en teléfonos Android.',
+          'Toca el widget en cualquier momento para abrir directamente el versículo del día en la app. Por ahora, este widget de pantalla de inicio está disponible únicamente en teléfonos Android.',
         close: 'Entendido',
       },
     },
@@ -11349,7 +11349,7 @@ export const translations = {
           "The widget shows the same curated verse you see on the app's home screen, and it refreshes on its own once a day — no manual updates needed.",
         s3Title: 'Android only, one tap from the app',
         s3Body:
-          'Tap the widget anytime to jump straight into the app. For now, this home-screen widget is only available on Android phones.',
+          "Tap the widget anytime to jump straight to today's verse in the app. For now, this home-screen widget is only available on Android phones.",
         close: 'Got it',
       },
     },
