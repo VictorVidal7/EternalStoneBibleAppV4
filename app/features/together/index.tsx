@@ -49,6 +49,8 @@ import {
   type SharedPlanBundle,
 } from '@lib/together';
 import {customPlanFromBundle} from '@lib/reading/customPlans';
+import {FeatureGuideModal} from '@components/FeatureGuideModal';
+import {getFeatureGuideContent} from '@lib/onboarding/featureGuides';
 
 const PLAN_IDS = READING_PLANS.map(p => p.id);
 
@@ -113,6 +115,7 @@ export default function TogetherJoinScreen() {
   const [custom, setCustom] = useState<ReadingPlan | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [codeInput, setCodeInput] = useState('');
+  const [guideVisible, setGuideVisible] = useState(false);
 
   /** Map a decode failure to a friendly, localized message. */
   const messageFor = (reason: DecodeFailure, fromLink: boolean): string => {
@@ -255,6 +258,17 @@ export default function TogetherJoinScreen() {
         <Text style={[styles.headerTitle, {color: colors.text}]}>
           {shared ? tt.importTitle : custom ? tt.customInvitedTo : tt.enterCode}
         </Text>
+        <TouchableOpacity
+          onPress={() => {
+            haptics.tap();
+            setGuideVisible(true);
+          }}
+          style={[styles.backBtn, {borderColor: colors.border}]}
+          accessibilityRole="button"
+          accessibilityLabel={tt.guide.openLabel}
+          hitSlop={{top: 8, bottom: 8, left: 8, right: 8}}>
+          <Ionicons name="help-circle-outline" size={22} color={colors.text} />
+        </TouchableOpacity>
       </View>
 
       <ScrollView
@@ -450,6 +464,12 @@ export default function TogetherJoinScreen() {
           </View>
         ) : null}
       </ScrollView>
+
+      <FeatureGuideModal
+        visible={guideVisible}
+        onClose={() => setGuideVisible(false)}
+        {...getFeatureGuideContent('together', t)}
+      />
     </View>
   );
 }

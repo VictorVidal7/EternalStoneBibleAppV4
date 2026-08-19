@@ -39,6 +39,8 @@ import {
 import {haptics} from '@lib/haptics';
 import {UserStatsPanel} from '../components/achievements/UserStatsPanel';
 import {AchievementUnlockedModal} from '../components/achievements/AchievementUnlockedModal';
+import {FeatureGuideModal} from '@components/FeatureGuideModal';
+import {getFeatureGuideContent} from '@lib/onboarding/featureGuides';
 import {useAchievements} from '../hooks/useAchievements';
 import {useTheme} from '../hooks/useTheme';
 import {useReducedMotion} from '../hooks/useReducedMotion';
@@ -198,6 +200,7 @@ export const AchievementsScreen: React.FC = () => {
     AchievementCategory | 'all'
   >('all');
   const [showStats, setShowStats] = useState(false);
+  const [guideVisible, setGuideVisible] = useState(false);
   // Fade-edge scroll affordance for the category chip row (below): tracks
   // scroll position vs. content/container width so each edge's gradient
   // only shows when there's actually more to reveal in that direction,
@@ -364,20 +367,35 @@ export const AchievementsScreen: React.FC = () => {
               {t.achievements.viewMyTitles}
             </Text>
           </Pressable>
-          <Pressable
-            style={[
-              styles.toggleButton,
-              {backgroundColor: staticColors.glassWhite20},
-            ]}
-            onPress={() => setShowStats(!showStats)}
-            accessibilityRole="button"
-            accessibilityLabel={
-              showStats
-                ? t.achievements.viewAchievements
-                : t.achievements.yourStats
-            }>
-            <Text style={styles.toggleIcon}>{showStats ? '🏅' : '📊'}</Text>
-          </Pressable>
+          <View style={styles.headerTopRight}>
+            <Pressable
+              style={[
+                styles.toggleButton,
+                {backgroundColor: staticColors.glassWhite20},
+              ]}
+              onPress={() => {
+                haptics.tap();
+                setGuideVisible(true);
+              }}
+              accessibilityRole="button"
+              accessibilityLabel={t.achievements.guide.openLabel}>
+              <Ionicons name="help-circle-outline" size={22} color="#ffffff" />
+            </Pressable>
+            <Pressable
+              style={[
+                styles.toggleButton,
+                {backgroundColor: staticColors.glassWhite20},
+              ]}
+              onPress={() => setShowStats(!showStats)}
+              accessibilityRole="button"
+              accessibilityLabel={
+                showStats
+                  ? t.achievements.viewAchievements
+                  : t.achievements.yourStats
+              }>
+              <Text style={styles.toggleIcon}>{showStats ? '🏅' : '📊'}</Text>
+            </Pressable>
+          </View>
         </View>
 
         <View style={styles.headerContentContainer}>
@@ -721,6 +739,12 @@ export const AchievementsScreen: React.FC = () => {
           onClose={() => setShareItem(null)}
         />
       )}
+
+      <FeatureGuideModal
+        visible={guideVisible}
+        onClose={() => setGuideVisible(false)}
+        {...getFeatureGuideContent('achievements', t)}
+      />
     </SafeAreaView>
   );
 };
@@ -755,6 +779,11 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     marginBottom: 16,
+  },
+  headerTopRight: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
   },
   titlesLink: {
     flexDirection: 'row',

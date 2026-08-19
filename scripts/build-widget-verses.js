@@ -149,6 +149,13 @@ function main() {
       referenceEn: `${book ? book.nameEn : '?'} ${ref.chapter}:${ref.verse}`,
       textEs: textEs || '',
       textEn: textEn || '',
+      // English canonical book name + numeric chapter/verse — kept separate
+      // (not just parsed back out of referenceEn) so updateWidget() can build
+      // a real `eternalbible://verse/{book}/{chapter}?highlight={verse}` deep
+      // link, matching the in-app route (app/(tabs)/verse/[book]/[chapter].tsx).
+      bookEn: book ? book.nameEn : '',
+      chapter: ref.chapter,
+      verse: ref.verse,
     };
   });
 
@@ -166,8 +173,9 @@ function main() {
       const en = ktString(e.textEn);
       const refEs = ktString(e.referenceEs);
       const refEn = ktString(e.referenceEn);
+      const bookEn = ktString(e.bookEn);
       return (
-        `            Verse(${refEs}, ${refEn}, ${es}, ${en}), ` +
+        `            Verse(${refEs}, ${refEn}, ${es}, ${en}, ${bookEn}, ${e.chapter}, ${e.verse}), ` +
         `// [${idx}] ${e.referenceEn}`
       );
     })
@@ -181,6 +189,7 @@ import android.appwidget.AppWidgetProvider
 import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
+import android.net.Uri
 import android.widget.RemoteViews
 import java.util.Calendar
 import java.util.Locale
@@ -252,7 +261,10 @@ class VerseWidgetProvider : AppWidgetProvider() {
             val referenceEs: String,
             val referenceEn: String,
             val textEs: String,
-            val textEn: String
+            val textEn: String,
+            val bookEn: String,
+            val chapter: Int,
+            val verse: Int
         )
 
         // BEGIN GENERATED — scripts/build-widget-verses.js. Do not hand-edit.
@@ -296,8 +308,17 @@ ${verseLines}
             views.setTextViewText(R.id.widget_verse_text, "“\${text}”")
             views.setTextViewText(R.id.widget_verse_reference, reference)
 
-            // Whole-widget tap opens the app's main activity.
-            val launchIntent = Intent(context, MainActivity::class.java).apply {
+            // Whole-widget tap deep-links straight to today's verse in the
+            // reader (same route as app/(tabs)/verse/[book]/[chapter].tsx),
+            // instead of just opening the app to whatever screen it last had
+            // open. setPackage pins resolution to this app so it never shows
+            // a chooser even though the scheme's intent-filter has no host.
+            val verseUri = Uri.parse(
+                "eternalbible://verse/" + Uri.encode(verse.bookEn) + "/" + verse.chapter +
+                    "?highlight=" + verse.verse
+            )
+            val launchIntent = Intent(Intent.ACTION_VIEW, verseUri).apply {
+                setPackage(context.packageName)
                 flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP
             }
             val pendingIntent = PendingIntent.getActivity(
