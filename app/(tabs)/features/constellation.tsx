@@ -522,10 +522,10 @@ export default function ConstellationScreen() {
           onPress={() => router.back()}
           accessibilityRole="button"
           accessibilityLabel={t.bible.back}>
-          <Ionicons name="arrow-back" size={24} color="#ffffff" />
+          <Ionicons name="arrow-back" size={24} color={staticColors.white} />
         </TouchableOpacity>
         <View style={styles.headerRow}>
-          <Ionicons name="sparkles" size={28} color="#ffffff" />
+          <Ionicons name="sparkles" size={28} color={staticColors.white} />
           <View style={styles.headerText}>
             <Text style={styles.headerTitle}>{cn.title}</Text>
             <Text style={styles.headerSubtitle} numberOfLines={1}>
@@ -540,7 +540,11 @@ export default function ConstellationScreen() {
             hitSlop={{top: 10, bottom: 10, left: 10, right: 10}}
             accessibilityRole="button"
             accessibilityLabel={cn.guide.openLabel}>
-            <Ionicons name="help-circle-outline" size={24} color="#ffffff" />
+            <Ionicons
+              name="help-circle-outline"
+              size={24}
+              color={staticColors.white}
+            />
           </TouchableOpacity>
         </View>
       </LinearGradient>
@@ -571,7 +575,9 @@ export default function ConstellationScreen() {
                           : colors.surface,
                         borderColor: isLast ? colors.primary : colors.border,
                       },
-                    ]}>
+                    ]}
+                    accessibilityRole="button"
+                    accessibilityLabel={`${localize(step.book)} ${step.chapter}:${step.verse}`}>
                     <Text
                       style={[
                         styles.crumbText,
@@ -600,7 +606,9 @@ export default function ConstellationScreen() {
           style={[
             styles.currentCard,
             {backgroundColor: colors.surface, borderColor: colors.primary},
-          ]}>
+          ]}
+          accessibilityRole="button"
+          accessibilityLabel={currentRef}>
           <View style={styles.currentHeader}>
             <Text style={[styles.currentRef, {color: colors.primary}]}>
               {currentRef}

@@ -1050,57 +1050,65 @@ export default function VerseReadingScreen() {
 
     haptics.tap();
 
-    const existingNote = await bibleDB.getNoteForVerse(
-      selectedVerseForNote.book,
-      selectedVerseForNote.chapter,
-      selectedVerseForNote.verse,
-    );
-
-    let savedNoteId: string | null = null;
-    let savedNote: typeof existingNote = null;
-    if (existingNote) {
-      await bibleDB.updateNote(existingNote.id, noteText.trim());
-      savedNoteId = existingNote.id;
-      savedNote = {
-        ...existingNote,
-        note: noteText.trim(),
-        updatedAt: new Date().toISOString(),
-      };
-    } else {
-      const now = new Date().toISOString();
-      const noteToAdd = {
-        // Canonical book so the stored note and the synced payload match what
-        // getNoteForVerse looks up, across versions/devices (Sprint 58).
-        book: canonicalBookName(selectedVerseForNote.book),
-        chapter: selectedVerseForNote.chapter,
-        verse: selectedVerseForNote.verse,
-        text: selectedVerseForNote.text,
-        note: noteText.trim(),
-        createdAt: now,
-        updatedAt: now,
-      };
-      savedNoteId = await bibleDB.addNote(noteToAdd);
-      savedNote = {id: savedNoteId, ...noteToAdd};
-      // First-note / notes_50 used to unlock only on the NEXT reading event
-      // (nothing checked achievements when a note was created) — check now
-      // and celebrate through the global modal (Sprint 81).
-      achievementService
-        ?.trackNote()
-        .then(notifyAchievements)
-        .catch(() => undefined);
-    }
-
-    if (savedNote && savedNoteId) {
-      getSyncEngine()?.queueWrite(
-        'notes',
-        savedNoteId,
-        buildNoteRemotePayload(savedNote),
+    try {
+      const existingNote = await bibleDB.getNoteForVerse(
+        selectedVerseForNote.book,
+        selectedVerseForNote.chapter,
+        selectedVerseForNote.verse,
       );
-    }
 
-    setNoteModalVisible(false);
-    setNoteText('');
-    toast.success(t.notes.saved);
+      let savedNoteId: string | null = null;
+      let savedNote: typeof existingNote = null;
+      if (existingNote) {
+        await bibleDB.updateNote(existingNote.id, noteText.trim());
+        savedNoteId = existingNote.id;
+        savedNote = {
+          ...existingNote,
+          note: noteText.trim(),
+          updatedAt: new Date().toISOString(),
+        };
+      } else {
+        const now = new Date().toISOString();
+        const noteToAdd = {
+          // Canonical book so the stored note and the synced payload match what
+          // getNoteForVerse looks up, across versions/devices (Sprint 58).
+          book: canonicalBookName(selectedVerseForNote.book),
+          chapter: selectedVerseForNote.chapter,
+          verse: selectedVerseForNote.verse,
+          text: selectedVerseForNote.text,
+          note: noteText.trim(),
+          createdAt: now,
+          updatedAt: now,
+        };
+        savedNoteId = await bibleDB.addNote(noteToAdd);
+        savedNote = {id: savedNoteId, ...noteToAdd};
+        // First-note / notes_50 used to unlock only on the NEXT reading event
+        // (nothing checked achievements when a note was created) — check now
+        // and celebrate through the global modal (Sprint 81).
+        achievementService
+          ?.trackNote()
+          .then(notifyAchievements)
+          .catch(() => undefined);
+      }
+
+      if (savedNote && savedNoteId) {
+        getSyncEngine()?.queueWrite(
+          'notes',
+          savedNoteId,
+          buildNoteRemotePayload(savedNote),
+        );
+      }
+
+      setNoteModalVisible(false);
+      setNoteText('');
+      toast.success(t.notes.saved);
+    } catch (err) {
+      logger.error('Error saving note', err as Error, {
+        component: 'VerseReadingScreen',
+        action: 'saveNote',
+      });
+      toast.error(t.notes.saveError);
+    }
   }
 
   // Auto-scroll a newly SELECTED verse clear of the floating selection

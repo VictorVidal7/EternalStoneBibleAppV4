@@ -90,6 +90,24 @@ describe('deleteSermonNoteSession', () => {
   });
 });
 
+describe('a failed underlying write is not reported as success', () => {
+  it('createSermonNoteSession returns null (not a phantom session) when the write rejects, and does not wedge the queue', async () => {
+    jest
+      .spyOn(AsyncStorage, 'setItem')
+      .mockImplementationOnce(() => Promise.reject(new Error('disk full')));
+
+    const failed = await createSermonNoteSession('Se pierde');
+    expect(failed).toBeNull();
+
+    // The queue must still be usable afterwards — one bad write shouldn't
+    // block every write that comes after it.
+    const created = await createSermonNoteSession('Sí se guarda');
+    expect(created).not.toBeNull();
+    const all = await getAllSermonNotes();
+    expect(Object.keys(all)).toEqual([created!.id]);
+  });
+});
+
 describe('serialized read-modify-write queue', () => {
   it('creating two sessions concurrently keeps both (no lost update)', async () => {
     const [a, b] = await Promise.all([

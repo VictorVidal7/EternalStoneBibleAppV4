@@ -126,7 +126,11 @@ export default function ColorThemeSettings() {
                   end={{x: 1, y: 1}}
                   style={styles.previewCircle}>
                   {isSelected && (
-                    <Ionicons name="checkmark" size={13} color="#FFFFFF" />
+                    <Ionicons
+                      name="checkmark"
+                      size={13}
+                      color={staticColors.white}
+                    />
                   )}
                 </LinearGradient>
                 {isLocked && (

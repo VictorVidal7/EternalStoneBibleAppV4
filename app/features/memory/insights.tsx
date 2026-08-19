@@ -693,7 +693,7 @@ export default function MemoryInsightsScreen() {
                             styles.positiveNote,
                             {color: colors.textSecondary},
                           ]}>
-                          {i.heatmapEmpty}
+                          {i.byBookEmpty}
                         </Text>
                       ) : (
                         topBookRows.map(row => (

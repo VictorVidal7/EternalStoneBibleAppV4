@@ -267,10 +267,10 @@ export default function WordStudyScreen() {
           onPress={() => router.back()}
           accessibilityRole="button"
           accessibilityLabel={t.bible.back}>
-          <Ionicons name="arrow-back" size={24} color="#ffffff" />
+          <Ionicons name="arrow-back" size={24} color={staticColors.white} />
         </TouchableOpacity>
         <View style={styles.headerRow}>
-          <Ionicons name="search" size={26} color="#ffffff" />
+          <Ionicons name="search" size={26} color={staticColors.white} />
           <View style={styles.headerText}>
             <Text style={styles.headerTitle}>{w.title}</Text>
             <Text style={styles.headerSubtitle} numberOfLines={1}>

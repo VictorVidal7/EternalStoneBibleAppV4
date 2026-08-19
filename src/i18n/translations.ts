@@ -274,6 +274,7 @@ export const translations = {
       edit: 'Editar Nota',
       placeholder: 'Escribe tu nota aquí...',
       saved: 'Nota guardada',
+      saveError: 'No se pudo guardar la nota. Intenta de nuevo.',
       goToVerse: 'Ir al versículo',
       navigate: 'Navegar a',
       screenLabel: 'Pantalla de notas',
@@ -657,6 +658,8 @@ export const translations = {
           'Todo tu historial de repasos, no solo los últimos meses',
         byBookTitle: 'Retención por libro',
         byBookHint: 'Cómo te va en cada libro que has memorizado',
+        byBookEmpty:
+          'Aún no has repasado ningún versículo. Tu retención por libro aparecerá aquí.',
         byBookLocked: 'Se desbloquea con premium',
         monthsShort: [
           'Ene',
@@ -1944,6 +1947,9 @@ export const translations = {
       empty: 'Aún no tienes colecciones',
       emptyHint:
         'Etiqueta un favorito con el icono de marcador para crear tu primera colección',
+      emptyCollection: 'Esta colección está vacía',
+      emptyCollectionHint:
+        'Toca el icono de marcador en un versículo y agrégalo a esta colección',
       openHint: 'Abrir colección',
       addTitle: 'Añadir a una colección',
       newPlaceholder: 'Nueva colección…',
@@ -1952,6 +1958,7 @@ export const translations = {
       manage: 'Colecciones',
       addAction: 'Añadir a colección',
       removeFromCollection: 'Quitar de la colección',
+      removeError: 'No se pudo quitar el versículo. Intenta de nuevo.',
       share: 'Compartir colección',
       shareImage: 'Compartir como imagen',
       shareHeader: 'Colección',
@@ -6514,6 +6521,7 @@ export const translations = {
       edit: 'Edit Note',
       placeholder: 'Write your note here...',
       saved: 'Note saved',
+      saveError: 'Could not save the note. Try again.',
       goToVerse: 'Go to verse',
       navigate: 'Navigate to',
       screenLabel: 'Notes screen',
@@ -6881,6 +6889,8 @@ export const translations = {
         fullHistoryHint: 'Your entire review history, not just recent months',
         byBookTitle: 'Retention by book',
         byBookHint: 'How you’re doing in each book you’ve memorized',
+        byBookEmpty:
+          "You haven't reviewed any verses yet. Your retention by book will appear here.",
         byBookLocked: 'Unlocked with premium',
         monthsShort: [
           'Jan',
@@ -8176,6 +8186,9 @@ export const translations = {
       empty: 'No collections yet',
       emptyHint:
         'Tag a favorite with the bookmark icon to create your first collection',
+      emptyCollection: 'This collection is empty',
+      emptyCollectionHint:
+        'Tap the bookmark icon on a verse and add it to this collection',
       openHint: 'Open collection',
       addTitle: 'Add to a collection',
       newPlaceholder: 'New collection…',
@@ -8184,6 +8197,7 @@ export const translations = {
       manage: 'Collections',
       addAction: 'Add to collection',
       removeFromCollection: 'Remove from collection',
+      removeError: 'Could not remove the verse. Try again.',
       share: 'Share collection',
       shareImage: 'Share as image',
       shareHeader: 'Collection',

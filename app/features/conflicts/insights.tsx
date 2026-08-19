@@ -175,12 +175,12 @@ export default function ConflictInsightsScreen() {
             onPress={() => router.back()}
             accessibilityRole="button"
             accessibilityLabel={t.bible.back}>
-            <Ionicons name="arrow-back" size={24} color="#FFFFFF" />
+            <Ionicons name="arrow-back" size={24} color={staticColors.white} />
           </TouchableOpacity>
 
           <View style={styles.headerTextRow}>
             <View style={styles.headerIcon}>
-              <Ionicons name="git-merge" size={26} color="#FFFFFF" />
+              <Ionicons name="git-merge" size={26} color={staticColors.white} />
             </View>
             <View style={styles.headerInfo}>
               <Text style={styles.headerLabel}>{ins.subtitle}</Text>
