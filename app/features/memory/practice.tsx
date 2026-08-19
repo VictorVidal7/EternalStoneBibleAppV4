@@ -449,7 +449,7 @@ export default function MemoryPracticeScreen() {
                       accessibilityLabel={label}>
                       <Ionicons
                         name={MODE_ICON[m]}
-                        size={15}
+                        size={13}
                         color={active ? colors.onPrimary : colors.textSecondary}
                       />
                       <Text
@@ -462,9 +462,11 @@ export default function MemoryPracticeScreen() {
                           },
                         ]}
                         numberOfLines={1}
-                        // Four equal-width tabs leave little room — let a long
+                        // Five equal-width tabs leave little room — let a long
                         // label (e.g. ES "Iniciales") shrink to fit instead of
-                        // clipping to "Primera l…" (UX review #4).
+                        // clipping to "Primera l…" (UX review #4, re-tuned when
+                        // 'type' became the 5th mode — see modeTab's own
+                        // tightened padding/gap below for the matching fix).
                         adjustsFontSizeToFit
                         minimumFontScale={0.8}>
                         {label}
@@ -861,7 +863,10 @@ const styles = StyleSheet.create({
   },
   modeRow: {
     flexDirection: 'row',
-    gap: spacing.xs,
+    // Tighter than spacing.xs on purpose — 5 equal-width tabs (icon + label
+    // each) have little room to spare; every extra px here is a px the
+    // label doesn't get to shrink into on a narrow phone.
+    gap: 4,
     marginBottom: spacing.lg,
   },
   modeTab: {
@@ -869,9 +874,9 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    gap: 4,
+    gap: 3,
     paddingVertical: spacing.sm,
-    paddingHorizontal: spacing.xs,
+    paddingHorizontal: 4,
     borderRadius: borderRadius.full,
     borderWidth: 1,
   },
