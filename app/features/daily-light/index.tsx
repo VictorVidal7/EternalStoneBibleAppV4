@@ -35,7 +35,7 @@ import {useToast} from '@context/ToastContext';
 import {useMemoryDeck} from '@context/MemoryDeckContext';
 import {useServices} from '@context/ServicesContext';
 import bibleDB from '@lib/database';
-import {getBookById, getBookByName} from '@/constants/bible';
+import {getBookById, getBookByName, canonicalBookName} from '@/constants/bible';
 import {DAILY_VERSE_REFS} from '@/constants/daily-verses';
 import {BOOK_INTROS} from '@/constants/book-intros';
 import {getAllThemes} from '@/features/study/themes';
@@ -254,7 +254,11 @@ export default function DailyLightScreen() {
   }, [load]);
 
   const verseKey = content
-    ? buildVerseKey(content.book, content.chapter, content.verse)
+    ? buildVerseKey(
+        canonicalBookName(content.book),
+        content.chapter,
+        content.verse,
+      )
     : '';
   const inDeck = verseKey ? hasCard(verseKey) : false;
 
@@ -271,7 +275,7 @@ export default function DailyLightScreen() {
     haptics.tap();
     const version = (await AsyncStorage.getItem(VERSION_KEY)) ?? 'RVR1960';
     addCard({
-      bookName: content.book,
+      bookName: canonicalBookName(content.book),
       chapter: content.chapter,
       verse: content.verse,
       text: content.text,
