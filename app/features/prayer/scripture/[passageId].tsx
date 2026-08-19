@@ -34,6 +34,7 @@ import {useTheme} from '@hooks/useTheme';
 import {centeredMaxWidth} from '@/styles/responsive';
 import {useLanguage} from '@hooks/useLanguage';
 import {useBibleVersion} from '@hooks/useBibleVersion';
+import {useBackHandlerStep} from '@hooks/useBackHandlerStep';
 import {useToast} from '@context/ToastContext';
 import {usePrayerJournal} from '@hooks/usePrayerJournal';
 import {recordTodayPrayer} from '@/features/prayer/prayerLogStore';
@@ -158,6 +159,17 @@ export default function ScripturePrayerWalkScreen() {
     haptics.tap();
     setPhase(p => Math.max(-1, Math.min(total, p + delta)));
   };
+
+  // Hardware back: retreat one phase (the UI is forward-only, but back
+  // should still step, not exit the whole prayer straight to whatever
+  // route is behind it).
+  useBackHandlerStep(() => {
+    if (phase > -1) {
+      setPhase(p => p - 1);
+      return true;
+    }
+    return false;
+  });
 
   const writtenNotes = Object.entries(notes)
     .filter(([, text]) => text.trim().length > 0)
