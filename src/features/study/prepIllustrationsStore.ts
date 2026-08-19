@@ -64,10 +64,13 @@ function mutate(
       serializePrepIllustrationsMap(next),
     );
   };
-  writeQueue = writeQueue.then(run).catch(error => {
+  // `attempt` reflects the real outcome for the immediate caller; `writeQueue`
+  // always resolves so a failed write never wedges the next one behind it.
+  const attempt = writeQueue.then(run);
+  writeQueue = attempt.catch(error => {
     logger.warn('Failed to save prep illustrations', {error: String(error)});
   });
-  return writeQueue;
+  return attempt;
 }
 
 /**
@@ -82,11 +85,15 @@ export async function createPrepIllustration(
   const id = generateIllustrationId();
   const now = Date.now();
   let created: PrepIllustration | null = null;
-  await mutate(map => {
-    const next = createIllustration(map, now, id, category);
-    created = next[id] ?? null;
-    return next;
-  });
+  try {
+    await mutate(map => {
+      const next = createIllustration(map, now, id, category);
+      created = next[id] ?? null;
+      return next;
+    });
+  } catch {
+    return null;
+  }
   return created;
 }
 
@@ -95,7 +102,9 @@ export function savePrepIllustrationTitle(
   id: string,
   title: string,
 ): Promise<void> {
-  return mutate(map => setIllustrationTitle(map, id, title));
+  return mutate(map => setIllustrationTitle(map, id, title)).catch(
+    () => undefined,
+  );
 }
 
 /** Save an illustration's body. Fire-and-forget safe. */
@@ -103,7 +112,9 @@ export function savePrepIllustrationBody(
   id: string,
   body: string,
 ): Promise<void> {
-  return mutate(map => setIllustrationBody(map, id, body));
+  return mutate(map => setIllustrationBody(map, id, body)).catch(
+    () => undefined,
+  );
 }
 
 /** Save an illustration's category. Fire-and-forget safe. */
@@ -111,10 +122,12 @@ export function savePrepIllustrationCategory(
   id: string,
   category: IllustrationCategory,
 ): Promise<void> {
-  return mutate(map => setIllustrationCategory(map, id, category));
+  return mutate(map => setIllustrationCategory(map, id, category)).catch(
+    () => undefined,
+  );
 }
 
 /** Delete an illustration. Fire-and-forget safe. */
 export function deletePrepIllustration(id: string): Promise<void> {
-  return mutate(map => deleteIllustration(map, id));
+  return mutate(map => deleteIllustration(map, id)).catch(() => undefined);
 }

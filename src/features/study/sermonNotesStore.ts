@@ -59,10 +59,13 @@ function mutate(fn: (map: SermonNotesMap) => SermonNotesMap): Promise<void> {
     const next = fn(parseSermonNotesMap(raw));
     await AsyncStorage.setItem(SERMON_NOTES_KEY, serializeSermonNotesMap(next));
   };
-  writeQueue = writeQueue.then(run).catch(error => {
+  // `attempt` reflects the real outcome for the immediate caller; `writeQueue`
+  // always resolves so a failed write never wedges the next one behind it.
+  const attempt = writeQueue.then(run);
+  writeQueue = attempt.catch(error => {
     logger.warn('Failed to save sermon notes', {error: String(error)});
   });
-  return writeQueue;
+  return attempt;
 }
 
 /**
@@ -78,11 +81,15 @@ export async function createSermonNoteSession(
   const id = generateSermonNoteId();
   const now = Date.now();
   let created: SermonNoteSession | null = null;
-  await mutate(map => {
-    const next = createSession(map, title, source, now, id);
-    created = next[id] ?? null;
-    return next;
-  });
+  try {
+    await mutate(map => {
+      const next = createSession(map, title, source, now, id);
+      created = next[id] ?? null;
+      return next;
+    });
+  } catch {
+    return null;
+  }
   return created;
 }
 
@@ -96,10 +103,10 @@ export function saveSermonNoteSession(
   id: string,
   patch: SermonNoteDraft,
 ): Promise<void> {
-  return mutate(map => updateSession(map, id, patch));
+  return mutate(map => updateSession(map, id, patch)).catch(() => undefined);
 }
 
 /** Delete a whole session. */
 export function deleteSermonNoteSession(id: string): Promise<void> {
-  return mutate(map => deleteSession(map, id));
+  return mutate(map => deleteSession(map, id)).catch(() => undefined);
 }
