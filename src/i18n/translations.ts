@@ -3772,7 +3772,8 @@ export const translations = {
       title: 'Configuración',
       subtitle: 'Personaliza tu experiencia celestial',
       tipsAndGuides: 'Tips y guías',
-      tipsAndGuidesDescription:
+      tipsAndGuidesEntryTitle: 'Ver todas las guías',
+      tipsAndGuidesEntryDesc:
         'Explicaciones completas de las funciones más profundas de la app.',
       appearance: 'Apariencia',
       theme: 'Tema',
@@ -9995,8 +9996,8 @@ export const translations = {
       title: 'Settings',
       subtitle: 'Personalize your celestial experience',
       tipsAndGuides: 'Tips & guides',
-      tipsAndGuidesDescription:
-        "Full explainers for the app's deepest features.",
+      tipsAndGuidesEntryTitle: 'Browse all guides',
+      tipsAndGuidesEntryDesc: "Full explainers for the app's deepest features.",
       appearance: 'Appearance',
       theme: 'Theme',
       themeDescription: 'Choose the app theme',
