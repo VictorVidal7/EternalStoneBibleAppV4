@@ -51,6 +51,7 @@ import {
   fontSize as fontSizes,
   spacing,
   staticColors,
+  verseTextRightSlack,
 } from '@/styles/designTokens';
 
 type FactFilter = 'all' | 'favorites' | FactCategory;
@@ -480,6 +481,22 @@ export default function BibleFactsScreen() {
                             ]}>
                             {item.detail}
                           </AppText>
+                          {info?.text ? (
+                            <View
+                              style={[
+                                styles.factVerseQuote,
+                                {borderLeftColor: colors.primary + '55'},
+                              ]}>
+                              <AppText
+                                scaleRole="body"
+                                style={[
+                                  styles.factVerseText,
+                                  {color: colors.text},
+                                ]}>
+                                {`“${info.text}”`}
+                              </AppText>
+                            </View>
+                          ) : null}
                           <View style={styles.factBottomRow}>
                             <TouchableOpacity
                               style={[
@@ -747,6 +764,16 @@ const styles = StyleSheet.create({
   factDetail: {
     fontSize: fontSizes.sm,
     lineHeight: 20,
+  },
+  factVerseQuote: {
+    borderLeftWidth: 3,
+    paddingLeft: spacing.md,
+  },
+  factVerseText: {
+    fontSize: fontSizes.sm,
+    lineHeight: 20,
+    fontStyle: 'italic',
+    paddingRight: verseTextRightSlack(fontSizes.sm),
   },
   factBottomRow: {
     flexDirection: 'row',
