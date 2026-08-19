@@ -15,7 +15,7 @@
  * Para la gloria de Dios Todopoderoso ✨
  */
 
-import {useMemo, useState} from 'react';
+import {useEffect, useMemo, useRef, useState} from 'react';
 import {
   View,
   ScrollView,
@@ -25,7 +25,7 @@ import {
   ActivityIndicator,
   StyleSheet,
 } from 'react-native';
-import {Stack, useRouter} from 'expo-router';
+import {Stack, useLocalSearchParams, useRouter} from 'expo-router';
 import {Ionicons} from '@expo/vector-icons';
 import {LinearGradient} from 'expo-linear-gradient';
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
@@ -62,6 +62,10 @@ type Filter = PrayerCategory | 'all';
 
 export default function PrayerJournalScreen() {
   const router = useRouter();
+  // `?openAdd=1` auto-opens the add-request form on mount (e.g. from the
+  // finished guided-prayer screen's "Guardar una petición" button) so the
+  // reader lands directly in the form instead of the bare journal list.
+  const params = useLocalSearchParams<{openAdd?: string}>();
   const insets = useSafeAreaInsets();
   const {colors, gradient, highContrast} = useTheme();
   const {t, language} = useLanguage();
@@ -112,6 +116,16 @@ export default function PrayerJournalScreen() {
     setDraftCategory(filter === 'all' ? 'supplication' : filter);
     setFormOpen(true);
   };
+
+  // Auto-open the same add-request form a real tap on the "+" button below
+  // would open, when arriving via `?openAdd=1`. Guarded by a ref so it fires
+  // once per navigation, not on every re-render.
+  const autoOpenHandled = useRef(false);
+  useEffect(() => {
+    if (autoOpenHandled.current || params.openAdd !== '1') return;
+    autoOpenHandled.current = true;
+    openAdd();
+  }, [params.openAdd]);
 
   const openEdit = (r: PrayerRequest) => {
     haptics.tap();
