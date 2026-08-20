@@ -244,4 +244,31 @@ describe('OfferingSheet', () => {
     // a separate JSX branch — must independently use colors.onPrimary.
     expect(colorOf(await findByText('Cerrar'))).toBe(mockColors.onPrimary);
   });
+
+  it('shows what unlocks even when already unlocked, with no pricing/purchase UI', async () => {
+    await SecureStore.setItemAsync(ENTITLEMENT_CACHE_KEY, 'true');
+    __setApiKeyForTests('test-key');
+    await initialize();
+    mockPurchases.__setOfferings({
+      all: {default: {availablePackages: fakePackages}},
+    });
+
+    const {findByText, getByText, queryByText, queryByLabelText} =
+      renderSheet();
+
+    expect(await findByText('Extras desbloqueados')).toBeTruthy();
+    // The same data-driven extras list the tier picker renders — reused, not
+    // duplicated. Spot-check the first and last (newly-added) bullets.
+    expect(getByText('Esto es lo que se desbloquea:')).toBeTruthy();
+    expect(getByText('Mesa de preparación')).toBeTruthy();
+    expect(getByText('Diccionario bíblico')).toBeTruthy();
+    // No tiers, no restore link, no legend — this is informational only.
+    expect(queryByText(/^\$\d+\.\d{2}$/)).toBeNull();
+    expect(queryByLabelText('Restaurar mi ofrenda anterior')).toBeNull();
+    // settingsUnlockedDesc ("Toca para ver todo lo que incluye") is a
+    // tap-to-open hint for the Settings card — false once the reader is
+    // already looking at the opened sheet, so this branch deliberately
+    // doesn't render it (ExtrasSettings.test.tsx covers that string).
+    expect(queryByText(/Gracias por tu ofrenda/)).toBeNull();
+  });
 });

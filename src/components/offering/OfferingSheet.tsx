@@ -148,6 +148,42 @@ export const OfferingSheet: React.FC<Props> = ({visible, onClose}) => {
     onClose();
   }, [onClose]);
 
+  // Shared between the tier-picker ('available'/'purchasing'/'restoring')
+  // and 'alreadyUnlocked' branches so the two never drift out of sync.
+  const renderExtrasList = () => (
+    <>
+      <AppText
+        scaleRole="compact"
+        style={[styles.extrasListTitle, {color: colors.text}]}>
+        {t.offering.extrasListTitle}
+      </AppText>
+      <View style={styles.extrasList}>
+        {t.offering.extras.map((extra, index) => (
+          <View key={index} style={styles.extraRow}>
+            <Ionicons
+              name="checkmark-circle-outline"
+              size={16}
+              color={colors.primary}
+              style={styles.extraIcon}
+            />
+            <View style={styles.extraTextCol}>
+              <AppText
+                scaleRole="compact"
+                style={[styles.extraTitle, {color: colors.text}]}>
+                {extra.title}
+              </AppText>
+              <AppText
+                scaleRole="compact"
+                style={[styles.extraText, {color: colors.textSecondary}]}>
+                {extra.desc}
+              </AppText>
+            </View>
+          </View>
+        ))}
+      </View>
+    </>
+  );
+
   // Nothing useful to show — degrade quietly instead of a broken empty sheet.
   // Also resets `visible` in the parent context (not just local render
   // state): without this, a second `open()` call after an 'unavailable'
@@ -191,24 +227,28 @@ export const OfferingSheet: React.FC<Props> = ({visible, onClose}) => {
           )}
 
           {state.kind === 'alreadyUnlocked' && (
-            <View style={styles.centerState}>
-              <View
-                style={[
-                  styles.badge,
-                  {backgroundColor: colors.primary + '22'},
-                ]}>
-                <Ionicons name="leaf" size={28} color={colors.primary} />
+            <>
+              <View style={styles.centerState}>
+                <View
+                  style={[
+                    styles.badge,
+                    {backgroundColor: colors.primary + '22'},
+                  ]}>
+                  <Ionicons name="leaf" size={28} color={colors.primary} />
+                </View>
+                <AppText
+                  scaleRole="display"
+                  style={[styles.title, {color: colors.text}]}>
+                  {t.offering.settingsUnlockedTitle}
+                </AppText>
               </View>
-              <AppText
-                scaleRole="display"
-                style={[styles.title, {color: colors.text}]}>
-                {t.offering.settingsUnlockedTitle}
-              </AppText>
-              <AppText
-                scaleRole="compact"
-                style={[styles.message, {color: colors.textSecondary}]}>
-                {t.offering.settingsUnlockedDesc}
-              </AppText>
+
+              {/* Full-width, unlike the centered badge/title above — this is
+                  the same informational list the tier picker shows, just
+                  with no pricing/purchase UI since there's nothing left to
+                  unlock. */}
+              {renderExtrasList()}
+
               <TouchableOpacity
                 style={[styles.doneButton, {backgroundColor: colors.primary}]}
                 onPress={handleClose}
@@ -220,7 +260,7 @@ export const OfferingSheet: React.FC<Props> = ({visible, onClose}) => {
                   {t.offering.close}
                 </AppText>
               </TouchableOpacity>
-            </View>
+            </>
           )}
 
           {state.kind === 'success' && (
@@ -271,38 +311,7 @@ export const OfferingSheet: React.FC<Props> = ({visible, onClose}) => {
                 {t.offering.sheetIntro}
               </AppText>
 
-              <AppText
-                scaleRole="compact"
-                style={[styles.extrasListTitle, {color: colors.text}]}>
-                {t.offering.extrasListTitle}
-              </AppText>
-              <View style={styles.extrasList}>
-                {t.offering.extras.map((extra, index) => (
-                  <View key={index} style={styles.extraRow}>
-                    <Ionicons
-                      name="checkmark-circle-outline"
-                      size={16}
-                      color={colors.primary}
-                      style={styles.extraIcon}
-                    />
-                    <View style={styles.extraTextCol}>
-                      <AppText
-                        scaleRole="compact"
-                        style={[styles.extraTitle, {color: colors.text}]}>
-                        {extra.title}
-                      </AppText>
-                      <AppText
-                        scaleRole="compact"
-                        style={[
-                          styles.extraText,
-                          {color: colors.textSecondary},
-                        ]}>
-                        {extra.desc}
-                      </AppText>
-                    </View>
-                  </View>
-                ))}
-              </View>
+              {renderExtrasList()}
 
               {state.kind === 'available' && (
                 <View style={styles.tierRow}>
@@ -463,6 +472,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.xl,
     borderRadius: borderRadius.lg,
     alignItems: 'center',
+    alignSelf: 'center',
     marginTop: spacing.sm,
   },
   doneText: {
