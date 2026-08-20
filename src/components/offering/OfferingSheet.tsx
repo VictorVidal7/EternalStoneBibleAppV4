@@ -83,9 +83,9 @@ export const OfferingSheet: React.FC<Props> = ({visible, onClose}) => {
       setState({kind: 'unavailable'});
       return;
     }
-    // Cheapest first — the lowest tier carries the "simplest option" badge
-    // below (index 0), deliberately not the priciest, so the picker doesn't
-    // read as steering givers toward spending more.
+    // Cheapest first — a predictable reading order, with no tier singled
+    // out or emphasized, so the picker doesn't read as steering givers
+    // toward spending more.
     const sorted = [...packages].sort(
       (a, b) => a.product.price - b.product.price,
     );
@@ -306,27 +306,13 @@ export const OfferingSheet: React.FC<Props> = ({visible, onClose}) => {
 
               {state.kind === 'available' && (
                 <View style={styles.tierRow}>
-                  {state.packages.map((pkg, index) => (
+                  {state.packages.map(pkg => (
                     <Pressable
                       key={pkg.identifier}
                       onPress={() => handlePurchase(pkg)}
                       accessibilityRole="button"
                       accessibilityLabel={pkg.product.priceString}
-                      style={[
-                        styles.tierCard,
-                        {borderColor: colors.border},
-                        index === 0 && [
-                          styles.tierCardSuggested,
-                          {borderColor: colors.primary},
-                        ],
-                      ]}>
-                      {index === 0 && (
-                        <AppText
-                          scaleRole="compact"
-                          style={[styles.suggested, {color: colors.primary}]}>
-                          {t.offering.tierSuggested}
-                        </AppText>
-                      )}
+                      style={[styles.tierCard, {borderColor: colors.border}]}>
                       <AppText
                         scaleRole="display"
                         style={[styles.tierPrice, {color: colors.text}]}>
@@ -461,8 +447,6 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     gap: 4,
   },
-  tierCardSuggested: {borderWidth: 2},
-  suggested: {fontSize: fontSizes.xs, fontWeight: '700'},
   tierPrice: {fontSize: fontSizes.md, fontWeight: '800'},
   legend: {
     fontSize: fontSizes.xs,

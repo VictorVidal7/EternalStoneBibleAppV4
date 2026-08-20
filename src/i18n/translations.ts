@@ -4186,7 +4186,6 @@ export const translations = {
           desc: 'Plantillas de diseño, texturas y estilos guardados para tus versículos.',
         },
       ],
-      tierSuggested: 'Lo más sencillo',
       legend:
         'Los montos son fijos por requisitos de la tienda de aplicaciones; cualquiera de ellos desbloquea exactamente lo mismo.\n\nSi deseas dar una cantidad distinta, el apartado de Donación está siempre abierto para sembrar lo que Dios ponga en tu corazón.',
       transparency:
@@ -10408,7 +10407,6 @@ export const translations = {
           desc: 'Designer templates, textures, and saved styles for your verses.',
         },
       ],
-      tierSuggested: 'Simplest option',
       legend:
         "The amounts are fixed by app-store requirements; any of them unlocks exactly the same thing.\n\nIf you'd like to give a different amount, the Donation section is always open to sow whatever God places on your heart.",
       transparency:

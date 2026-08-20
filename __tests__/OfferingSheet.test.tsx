@@ -117,20 +117,21 @@ describe('OfferingSheet', () => {
     await waitFor(() => expect(toJSON()).toBeNull());
   });
 
-  it('shows the three tiers cheapest-first, cheapest one marked, once configured', async () => {
+  it('shows the three tiers cheapest-first, with no tier singled out, once configured', async () => {
     __setApiKeyForTests('test-key');
     await initialize();
     mockPurchases.__setOfferings({
       all: {default: {availablePackages: fakePackages}},
     });
 
-    const {findByText, getByText, getAllByText} = renderSheet();
+    const {findByText, getByText, getAllByText, queryByText} = renderSheet();
 
     expect(await findByText('Una ofrenda voluntaria')).toBeTruthy();
     expect(getByText('$0.99')).toBeTruthy();
     expect(getByText('$2.99')).toBeTruthy();
     expect(getByText('$6.99')).toBeTruthy();
-    expect(getByText('Lo más sencillo')).toBeTruthy();
+    // No tier is badged/highlighted — all three read as equally valid.
+    expect(queryByText('Lo más sencillo')).toBeNull();
     // Confirms OfferingSheet re-sorts the store's own package order
     // (fakePackages is deliberately given as 6.99/0.99/2.99 above) rather
     // than trusting whatever order the store/offering returns.
