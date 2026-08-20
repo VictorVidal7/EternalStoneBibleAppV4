@@ -65,7 +65,10 @@ type PurchasesStatic = {
   getOfferings: () => Promise<{
     all: Record<string, {availablePackages: PurchasesPackage[]}>;
   }>;
-  getProducts: (ids: string[]) => Promise<PurchasesStoreProduct[]>;
+  getProducts: (
+    ids: string[],
+    type?: 'SUBSCRIPTION' | 'NON_SUBSCRIPTION',
+  ) => Promise<PurchasesStoreProduct[]>;
   purchasePackage: (
     pkg: PurchasesPackage,
   ) => Promise<{customerInfo: CustomerInfo}>;
@@ -233,7 +236,15 @@ export async function getDonationProducts(): Promise<PurchasesStoreProduct[]> {
   const Purchases = getPurchases();
   if (!configured || !Purchases) return [];
   try {
-    return await Purchases.getProducts([...DONATION_PRODUCT_IDS]);
+    // Play Console's donación products are one-time ("Productos únicos"),
+    // not subscriptions — the SDK's getProducts() defaults to querying
+    // SUBSCRIPTION when no type is passed, which silently returned an
+    // empty array for these ids on every real device (confirmed live
+    // 2026-08-19: the sheet auto-closed instantly, no error surfaced).
+    return await Purchases.getProducts(
+      [...DONATION_PRODUCT_IDS],
+      'NON_SUBSCRIPTION',
+    );
   } catch (err) {
     logger.warn('offeringService: getDonationProducts failed', {
       component: 'offeringService',

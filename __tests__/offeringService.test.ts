@@ -173,6 +173,13 @@ describe('offeringService', () => {
       const products = [{identifier: 'donacion_1'}, {identifier: 'donacion_2'}];
       mockPurchases.__setProducts(products);
       await expect(getDonationProducts()).resolves.toEqual(products);
+      // donación products are one-time ("Productos únicos" in Play
+      // Console), not subscriptions — the SDK defaults to SUBSCRIPTION
+      // when no type is passed, which silently returns [] for these ids.
+      expect(mockPurchases.getProducts).toHaveBeenCalledWith(
+        expect.any(Array),
+        'NON_SUBSCRIPTION',
+      );
     });
   });
 
