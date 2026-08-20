@@ -10,10 +10,25 @@
  * offering sheet instead of applying the theme. If the entitlement is later
  * revoked while a premium theme is active, this falls back to Midnight
  * rather than leaving a no-longer-unlocked palette applied.
+ *
+ * Consolidation (settings reorg): the inline grid now shows only the free
+ * themes — plus the user's currently active theme even if it's one of the 4
+ * premium ones, so an already-unlocked selection never disappears from view.
+ * A small "Ver todos los temas" row opens a full-screen modal (same chrome
+ * as NotificationsSettings/GoalsSettings) with the complete 16-theme grid.
+ * Both views share the same swatch-rendering logic (`renderGrid`) so the
+ * gating/selection behavior is defined once.
  */
 
-import {useCallback, useEffect} from 'react';
-import {View, StyleSheet, TouchableOpacity} from 'react-native';
+import {useCallback, useEffect, useState} from 'react';
+import {
+  View,
+  StyleSheet,
+  TouchableOpacity,
+  Modal,
+  ScrollView,
+} from 'react-native';
+import {useSafeAreaInsets} from 'react-native-safe-area-context';
 import {AppText as Text} from '@components/ui/AppText';
 import {Ionicons} from '@expo/vector-icons';
 import {LinearGradient} from 'expo-linear-gradient';
@@ -27,18 +42,25 @@ import {
 import {useLanguage} from '@hooks/useLanguage';
 import {usePremium} from '@context/PremiumContext';
 import {useOfferingSheet} from '@context/OfferingSheetContext';
+import {focusTrapProps} from '@lib/a11y/focusTrap';
 import {staticColors} from '@/styles/designTokens';
+
+const ALL_THEME_KEYS = Object.keys(colorThemes) as ColorTheme[];
 
 export default function ColorThemeSettings() {
   const {colors, isDark, colorTheme, setColorTheme} = useTheme();
   const {t} = useLanguage();
   const {isPremium, isLoading: premiumLoading} = usePremium();
   const {open: openOfferingSheet} = useOfferingSheet();
+  const insets = useSafeAreaInsets();
+
+  const [modalVisible, setModalVisible] = useState(false);
 
   // If a premium theme was active and the entitlement is later revoked (e.g.
   // a refund), fall back to a free theme instead of leaving a
   // no-longer-unlocked palette applied. `!premiumLoading` avoids reverting
-  // during PremiumContext's own brief initial cache read.
+  // during PremiumContext's own brief initial cache read. Runs regardless of
+  // whether the inline grid or the full modal grid is currently showing.
   useEffect(() => {
     if (
       !premiumLoading &&
@@ -63,6 +85,110 @@ export default function ColorThemeSettings() {
     [isPremium, openOfferingSheet, setColorTheme],
   );
 
+  const renderGrid = (themeKeys: ColorTheme[]) => (
+    <View style={styles.grid}>
+      {themeKeys.map(themeKey => {
+        const theme = colorThemes[themeKey];
+        const isSelected = colorTheme === themeKey;
+        const isPremiumTheme = PREMIUM_COLOR_THEMES.includes(themeKey);
+        const isLocked = isPremiumTheme && !isPremium;
+        const themeName = t.settings.colorThemeNames[themeKey];
+        return (
+          <TouchableOpacity
+            key={themeKey}
+            style={[
+              styles.option,
+              isSelected && {backgroundColor: colors.primary + '1a'},
+            ]}
+            onPress={() => handleSelect(themeKey)}
+            accessibilityRole="button"
+            accessibilityLabel={
+              isLocked ? `${themeName} — ${t.offering.badgeA11y}` : themeName
+            }>
+            <View
+              style={[
+                styles.circleWrapper,
+                {borderColor: colors.border},
+                isSelected && {
+                  borderWidth: 2,
+                  borderColor: colors.primary,
+                  backgroundColor: colors.surface,
+                  // A scaled-down local glow, not celestialTheme.shadows.glow
+                  // (shadowRadius 20 / shadowOpacity 0.5 / elevation 10) — that
+                  // was previously scoped to the 4 premium swatches sitting
+                  // alone in their own trailing row. Now that every selected
+                  // swatch gets it (fixing the free-vs-premium asymmetry), a
+                  // radius that size would bleed into neighboring swatches in
+                  // this tightly packed 6-per-row grid, especially the
+                  // Android `elevation` shadow which reads as a plain grey
+                  // smudge rather than a colored glow.
+                  shadowColor: theme.preview[2],
+                  shadowOffset: {width: 0, height: 0},
+                  shadowOpacity: 0.35,
+                  shadowRadius: 8,
+                  elevation: 4,
+                },
+              ]}>
+              <LinearGradient
+                colors={theme.preview as [string, string, string]}
+                start={{x: 0, y: 0}}
+                end={{x: 1, y: 1}}
+                style={styles.previewCircle}>
+                {isSelected && (
+                  <Ionicons
+                    name="checkmark"
+                    size={13}
+                    color={staticColors.white}
+                  />
+                )}
+              </LinearGradient>
+              {isLocked && (
+                <View
+                  style={[styles.lockBadge, {backgroundColor: colors.primary}]}>
+                  <Ionicons
+                    name="leaf-outline"
+                    size={9}
+                    color={colors.onPrimary}
+                  />
+                </View>
+              )}
+            </View>
+            <Text
+              style={[
+                styles.name,
+                {color: colors.textSecondary},
+                isSelected && {color: colors.primary},
+              ]}
+              numberOfLines={1}>
+              {themeName}
+            </Text>
+            {isPremiumTheme && (
+              <View
+                style={[
+                  styles.exclusiveBadge,
+                  {backgroundColor: colors.primary + '26'},
+                ]}>
+                <Text
+                  style={[styles.exclusiveText, {color: colors.primary}]}
+                  numberOfLines={1}
+                  adjustsFontSizeToFit
+                  minimumFontScale={0.75}>
+                  {t.settings.exclusiveThemeLabel}
+                </Text>
+              </View>
+            )}
+          </TouchableOpacity>
+        );
+      })}
+    </View>
+  );
+
+  // Free themes always show inline; a premium theme that's currently active
+  // stays visible too so an already-unlocked selection never disappears.
+  const inlineKeys = ALL_THEME_KEYS.filter(
+    key => !PREMIUM_COLOR_THEMES.includes(key) || key === colorTheme,
+  );
+
   return (
     <View
       style={[
@@ -77,104 +203,50 @@ export default function ColorThemeSettings() {
         {t.settings.colorThemeDescription}
       </Text>
 
-      <View style={styles.grid}>
-        {(Object.keys(colorThemes) as ColorTheme[]).map(themeKey => {
-          const theme = colorThemes[themeKey];
-          const isSelected = colorTheme === themeKey;
-          const isPremiumTheme = PREMIUM_COLOR_THEMES.includes(themeKey);
-          const isLocked = isPremiumTheme && !isPremium;
-          const themeName = t.settings.colorThemeNames[themeKey];
-          return (
+      {renderGrid(inlineKeys)}
+
+      <TouchableOpacity
+        style={styles.viewAllRow}
+        onPress={() => setModalVisible(true)}
+        accessibilityRole="button"
+        accessibilityLabel={t.settings.viewAllThemes}>
+        <Text style={[styles.viewAllText, {color: colors.primary}]}>
+          {t.settings.viewAllThemes}
+        </Text>
+        <Ionicons name="chevron-forward" size={18} color={colors.primary} />
+      </TouchableOpacity>
+
+      <Modal
+        visible={modalVisible}
+        animationType="slide"
+        onRequestClose={() => setModalVisible(false)}>
+        <View
+          style={[modalStyles.container, {backgroundColor: colors.background}]}
+          {...focusTrapProps()}>
+          <View style={[modalStyles.header, {paddingTop: insets.top + 10}]}>
             <TouchableOpacity
-              key={themeKey}
-              style={[
-                styles.option,
-                isSelected && {backgroundColor: colors.primary + '1a'},
-              ]}
-              onPress={() => handleSelect(themeKey)}
+              onPress={() => setModalVisible(false)}
               accessibilityRole="button"
-              accessibilityLabel={
-                isLocked ? `${themeName} — ${t.offering.badgeA11y}` : themeName
-              }>
-              <View
-                style={[
-                  styles.circleWrapper,
-                  {borderColor: colors.border},
-                  isSelected && {
-                    borderWidth: 2,
-                    borderColor: colors.primary,
-                    backgroundColor: colors.surface,
-                    // A scaled-down local glow, not celestialTheme.shadows.glow
-                    // (shadowRadius 20 / shadowOpacity 0.5 / elevation 10) — that
-                    // was previously scoped to the 4 premium swatches sitting
-                    // alone in their own trailing row. Now that every selected
-                    // swatch gets it (fixing the free-vs-premium asymmetry), a
-                    // radius that size would bleed into neighboring swatches in
-                    // this tightly packed 6-per-row grid, especially the
-                    // Android `elevation` shadow which reads as a plain grey
-                    // smudge rather than a colored glow.
-                    shadowColor: theme.preview[2],
-                    shadowOffset: {width: 0, height: 0},
-                    shadowOpacity: 0.35,
-                    shadowRadius: 8,
-                    elevation: 4,
-                  },
-                ]}>
-                <LinearGradient
-                  colors={theme.preview as [string, string, string]}
-                  start={{x: 0, y: 0}}
-                  end={{x: 1, y: 1}}
-                  style={styles.previewCircle}>
-                  {isSelected && (
-                    <Ionicons
-                      name="checkmark"
-                      size={13}
-                      color={staticColors.white}
-                    />
-                  )}
-                </LinearGradient>
-                {isLocked && (
-                  <View
-                    style={[
-                      styles.lockBadge,
-                      {backgroundColor: colors.primary},
-                    ]}>
-                    <Ionicons
-                      name="leaf-outline"
-                      size={9}
-                      color={colors.onPrimary}
-                    />
-                  </View>
-                )}
-              </View>
-              <Text
-                style={[
-                  styles.name,
-                  {color: colors.textSecondary},
-                  isSelected && {color: colors.primary},
-                ]}
-                numberOfLines={1}>
-                {themeName}
-              </Text>
-              {isPremiumTheme && (
-                <View
-                  style={[
-                    styles.exclusiveBadge,
-                    {backgroundColor: colors.primary + '26'},
-                  ]}>
-                  <Text
-                    style={[styles.exclusiveText, {color: colors.primary}]}
-                    numberOfLines={1}
-                    adjustsFontSizeToFit
-                    minimumFontScale={0.75}>
-                    {t.settings.exclusiveThemeLabel}
-                  </Text>
-                </View>
-              )}
+              accessibilityLabel={t.close}>
+              <Ionicons name="close" size={28} color={colors.text} />
             </TouchableOpacity>
-          );
-        })}
-      </View>
+            <Text style={[modalStyles.title, {color: colors.text}]}>
+              {t.settings.colorTheme}
+            </Text>
+            <View style={modalStyles.headerSpacer} />
+          </View>
+          <ScrollView contentContainerStyle={modalStyles.scrollContent}>
+            <View
+              style={[
+                styles.card,
+                isDark ? styles.cardShadowDark : styles.cardShadowLight,
+                {backgroundColor: colors.surface},
+              ]}>
+              {renderGrid(ALL_THEME_KEYS)}
+            </View>
+          </ScrollView>
+        </View>
+      </Modal>
     </View>
   );
 }
@@ -269,5 +341,41 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     letterSpacing: 0.3,
     textTransform: 'uppercase',
+  },
+  viewAllRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginTop: 14,
+    paddingVertical: 8,
+    gap: 4,
+  },
+  viewAllText: {
+    fontSize: 14,
+    fontWeight: '600',
+  },
+});
+
+const modalStyles = StyleSheet.create({
+  container: {
+    flex: 1,
+  },
+  header: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: 20,
+    paddingBottom: 16,
+  },
+  title: {
+    fontSize: 18,
+    fontWeight: '700',
+  },
+  headerSpacer: {
+    width: 28,
+  },
+  scrollContent: {
+    padding: 16,
+    paddingBottom: 40,
   },
 });

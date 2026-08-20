@@ -6,7 +6,6 @@ import {
   StyleSheet,
   ScrollView,
   TouchableOpacity,
-  Switch,
   Image,
   ActivityIndicator,
 } from 'react-native';
@@ -22,14 +21,6 @@ import {useTheme, ThemeColors} from '@hooks/useTheme';
 import {LinearGradient} from 'expo-linear-gradient';
 import {useBibleVersion} from '@hooks/useBibleVersion';
 import {useLanguage} from '@hooks/useLanguage';
-import {initializeBibleData, resetBibleData} from '@lib/database/data-loader';
-import {
-  exportBackup,
-  pickBackupFileUri,
-  readBackupFileFromUri,
-  parseBackupPayload,
-  importBackup,
-} from '@/services/BackupService';
 import {logger} from '@lib/utils/logger';
 import {useAuth} from '@context/AuthContext';
 import {useSyncEngineOptional, useConflicts} from '@context/SyncEngineContext';
@@ -38,13 +29,13 @@ import NotificationsSettings from '@components/settings/NotificationsSettings';
 import {ConfirmDialog} from '@components/ui/ConfirmDialog';
 import GoalsSettings from '@components/settings/GoalsSettings';
 import ManageVersionsSection from '@components/settings/ManageVersionsSection';
-import {useReaderPreferences} from '@context/ReaderPreferencesContext';
-import {useAccessibilityPreferences} from '@context/AccessibilityPreferencesContext';
 import ExtrasSettings from '@components/settings/ExtrasSettings';
 import RedeemCodeSheet from '@components/settings/RedeemCodeSheet';
 import DonationSettings from '@components/settings/DonationSettings';
 import TipsAndGuidesSettings from '@components/settings/TipsAndGuidesSettings';
 import ColorThemeSettings from '@components/settings/ColorThemeSettings';
+import AccessibilitySettings from '@components/settings/AccessibilitySettings';
+import DataSettings from '@components/settings/DataSettings';
 import {haptics} from '@lib/haptics';
 import Constants from 'expo-constants';
 import * as Clipboard from 'expo-clipboard';
@@ -64,30 +55,13 @@ function getReadableTextColor(
 
 export default function SettingsScreen() {
   const router = useRouter();
-  const {
-    mode,
-    setThemeMode,
-    isDark,
-    colors,
-    gradient,
-    highContrast,
-    setHighContrast,
-  } = useTheme();
+  const {mode, setThemeMode, isDark, colors, gradient} = useTheme();
   const {selectedVersion, setVersion, availableVersions} = useBibleVersion();
   const {language, setLanguage, t} = useLanguage();
-  const {preferences: readerPrefs, setKeepScreenAwake} = useReaderPreferences();
-  const {reduceMotionOverride, setReduceMotionOverride} =
-    useAccessibilityPreferences();
   const {user, signInWithGoogle, signOut, deleteAccount} = useAuth();
   const syncCtx = useSyncEngineOptional();
   const conflicts = useConflicts();
   const toast = useToast();
-  const [isResetting, setIsResetting] = useState(false);
-  const [resetConfirmVisible, setResetConfirmVisible] = useState(false);
-  const [isExporting, setIsExporting] = useState(false);
-  const [isImporting, setIsImporting] = useState(false);
-  const [importConfirmVisible, setImportConfirmVisible] = useState(false);
-  const pendingImportUriRef = useRef<string | null>(null);
   const [isAuthenticating, setIsAuthenticating] = useState(false);
   const [signOutConfirmVisible, setSignOutConfirmVisible] = useState(false);
   const [deleteAccountConfirmVisible, setDeleteAccountConfirmVisible] =
@@ -154,105 +128,6 @@ export default function SettingsScreen() {
   async function handleThemeChange(newMode: ThemeOption) {
     haptics.tap();
     await setThemeMode(newMode);
-  }
-
-  function handleResetData() {
-    setResetConfirmVisible(true);
-  }
-
-  async function performResetData() {
-    setResetConfirmVisible(false);
-    setIsResetting(true);
-    try {
-      await resetBibleData();
-      // The reset clears the verse tables and flags; reload right
-      // away so the user lands on a working app instead of having
-      // to close-and-reopen the way the old success copy demanded.
-      await initializeBibleData();
-      toast.success(t.settings.resetSuccessMessage);
-    } catch {
-      toast.error(t.settings.resetError);
-    } finally {
-      setIsResetting(false);
-    }
-  }
-
-  async function handleExportBackup() {
-    setIsExporting(true);
-    try {
-      haptics.press();
-      const result = await exportBackup();
-      // A transient SQLite/AsyncStorage read error during export falls back
-      // to an empty value per-section rather than aborting the whole file —
-      // `degradedSections` is how that's surfaced instead of a backup file
-      // that silently looks complete while actually missing real data.
-      if (result.degradedSections.length > 0) {
-        logger.warn('Backup export completed with degraded sections', {
-          component: 'SettingsScreen',
-          action: 'handleExportBackup',
-          degradedSections: result.degradedSections,
-        });
-        toast.warning(t.settings.exportPartial);
-      }
-    } catch (error) {
-      toast.error(t.settings.exportError);
-      void error;
-    } finally {
-      setIsExporting(false);
-    }
-  }
-
-  async function handlePickImportFile() {
-    if (isImporting) return;
-    try {
-      haptics.press();
-      const uri = await pickBackupFileUri();
-      if (!uri) return; // user cancelled the picker
-      pendingImportUriRef.current = uri;
-      setImportConfirmVisible(true);
-    } catch (error) {
-      toast.error(t.settings.importError);
-      void error;
-    }
-  }
-
-  async function performImport() {
-    setImportConfirmVisible(false);
-    const uri = pendingImportUriRef.current;
-    pendingImportUriRef.current = null;
-    if (!uri) return;
-    setIsImporting(true);
-    try {
-      const raw = await readBackupFileFromUri(uri);
-      const payload = parseBackupPayload(raw);
-      const result = await importBackup(payload);
-      // `importBackup` RESOLVES (never rejects) for the two honest-partial-
-      // failure cases: a corrupted-but-structurally-valid section where
-      // every row failed validation (left untouched rather than wiped), and
-      // the rarer case where SQLite already committed but the subsequent
-      // AsyncStorage write step then failed outright. Either way,
-      // `failedSections` is non-empty and a flat "success" toast would be a
-      // lie — surface the honest, non-alarming partial message instead.
-      if (result.failedSections.length > 0) {
-        logger.warn('Backup import completed with partial failures', {
-          component: 'SettingsScreen',
-          action: 'performImport',
-          failedSections: result.failedSections,
-          asyncStorageWriteFailed: result.asyncStorageWriteFailed,
-        });
-        toast.warning(t.settings.importPartial);
-      } else {
-        toast.success(t.settings.importSuccess);
-      }
-    } catch (error) {
-      logger.error('Backup import failed', error as Error, {
-        component: 'SettingsScreen',
-        action: 'performImport',
-      });
-      toast.error(t.settings.importError);
-    } finally {
-      setIsImporting(false);
-    }
   }
 
   async function handleSignInWithGoogle() {
@@ -368,185 +243,6 @@ export default function SettingsScreen() {
         style={styles.scrollView}
         contentContainerStyle={styles.scrollViewContent}
         showsVerticalScrollIndicator={true}>
-        {/* Appearance Section */}
-        <View style={themedStyles.section}>
-          <View style={themedStyles.sectionHeader}>
-            <Ionicons
-              name="color-palette-outline"
-              size={22}
-              color={colors.primary}
-            />
-            <Text style={themedStyles.sectionTitle}>
-              {t.settings.appearance}
-            </Text>
-          </View>
-
-          <View style={themedStyles.card}>
-            <Text style={themedStyles.settingLabel}>{t.settings.theme}</Text>
-            <Text style={themedStyles.settingDescription}>
-              {t.settings.themeDescription}
-            </Text>
-
-            <View style={themedStyles.themeOptions}>
-              <TouchableOpacity
-                style={[
-                  themedStyles.themeOption,
-                  mode === 'light' && themedStyles.themeOptionActive,
-                ]}
-                onPress={() => handleThemeChange('light')}>
-                <Ionicons
-                  name="sunny"
-                  size={24}
-                  color={mode === 'light' ? themeActiveTextColor : colors.text}
-                />
-                <Text
-                  style={[
-                    themedStyles.themeOptionText,
-                    mode === 'light' && themedStyles.themeOptionTextActive,
-                  ]}>
-                  {t.settings.themeLight}
-                </Text>
-              </TouchableOpacity>
-
-              <TouchableOpacity
-                style={[
-                  themedStyles.themeOption,
-                  mode === 'dark' && themedStyles.themeOptionActive,
-                ]}
-                onPress={() => handleThemeChange('dark')}>
-                <Ionicons
-                  name="moon"
-                  size={24}
-                  color={mode === 'dark' ? themeActiveTextColor : colors.text}
-                />
-                <Text
-                  style={[
-                    themedStyles.themeOptionText,
-                    mode === 'dark' && themedStyles.themeOptionTextActive,
-                  ]}>
-                  {t.settings.themeDark}
-                </Text>
-              </TouchableOpacity>
-
-              <TouchableOpacity
-                style={[
-                  themedStyles.themeOption,
-                  mode === 'auto' && themedStyles.themeOptionActive,
-                ]}
-                onPress={() => handleThemeChange('auto')}>
-                <Ionicons
-                  name="phone-portrait-outline"
-                  size={24}
-                  color={mode === 'auto' ? themeActiveTextColor : colors.text}
-                />
-                <Text
-                  style={[
-                    themedStyles.themeOptionText,
-                    mode === 'auto' && themedStyles.themeOptionTextActive,
-                  ]}>
-                  {t.settings.themeAuto}
-                </Text>
-              </TouchableOpacity>
-            </View>
-          </View>
-
-          {/* Color Theme Selector — extracted to ColorThemeSettings (T6) */}
-          <ColorThemeSettings />
-        </View>
-
-        {/* Accessibility Section (T15 — #17/#9) */}
-        <View style={themedStyles.section}>
-          <View style={themedStyles.sectionHeader}>
-            <Ionicons
-              name="accessibility-outline"
-              size={22}
-              color={colors.primary}
-            />
-            <Text style={themedStyles.sectionTitle}>
-              {t.settings.accessibility}
-            </Text>
-          </View>
-
-          {/* Keep screen on while reading (UX review) — moved from Apariencia */}
-          <View style={themedStyles.card}>
-            <View style={themedStyles.settingRow}>
-              <View style={themedStyles.toggleTextWrap}>
-                <Text style={themedStyles.settingLabel}>
-                  {t.settings.keepAwakeTitle}
-                </Text>
-                <Text style={themedStyles.settingDescription}>
-                  {t.settings.keepAwakeDescription}
-                </Text>
-              </View>
-              <Switch
-                value={readerPrefs.keepScreenAwake}
-                onValueChange={next => {
-                  haptics.tap();
-                  setKeepScreenAwake(next);
-                }}
-                trackColor={{false: colors.border, true: colors.primary}}
-                thumbColor={staticColors.white}
-                accessibilityLabel={t.settings.keepAwakeTitle}
-              />
-            </View>
-          </View>
-
-          {/* App-wide high contrast (T15 — #9) */}
-          <View style={themedStyles.cardWithMargin}>
-            <View style={themedStyles.settingRow}>
-              <View style={themedStyles.toggleTextWrap}>
-                <Text style={themedStyles.settingLabel}>
-                  {t.settings.highContrastTitle}
-                </Text>
-                <Text style={themedStyles.settingDescription}>
-                  {t.settings.highContrastDescription}
-                </Text>
-              </View>
-              <Switch
-                value={highContrast}
-                onValueChange={next => {
-                  haptics.tap();
-                  void setHighContrast(next);
-                }}
-                trackColor={{false: colors.border, true: colors.primary}}
-                thumbColor={staticColors.white}
-                accessibilityLabel={t.settings.highContrastTitle}
-              />
-            </View>
-            <Text
-              style={[
-                themedStyles.settingDescription,
-                styles.highContrastReaderNote,
-              ]}>
-              {t.settings.highContrastReaderNote}
-            </Text>
-          </View>
-
-          {/* Reduce animations override (T15 — #9) */}
-          <View style={themedStyles.cardWithMargin}>
-            <View style={themedStyles.settingRow}>
-              <View style={themedStyles.toggleTextWrap}>
-                <Text style={themedStyles.settingLabel}>
-                  {t.settings.reduceMotionTitle}
-                </Text>
-                <Text style={themedStyles.settingDescription}>
-                  {t.settings.reduceMotionDescription}
-                </Text>
-              </View>
-              <Switch
-                value={reduceMotionOverride}
-                onValueChange={next => {
-                  haptics.tap();
-                  void setReduceMotionOverride(next);
-                }}
-                trackColor={{false: colors.border, true: colors.primary}}
-                thumbColor={staticColors.white}
-                accessibilityLabel={t.settings.reduceMotionTitle}
-              />
-            </View>
-          </View>
-        </View>
-
         {/* Bible Version Section */}
         <View style={themedStyles.section}>
           <View style={themedStyles.sectionHeader}>
@@ -732,95 +428,100 @@ export default function SettingsScreen() {
           </View>
         </View>
 
-        {/* Data Section */}
+        {/* Appearance Section */}
         <View style={themedStyles.section}>
           <View style={themedStyles.sectionHeader}>
-            <Ionicons name="server-outline" size={22} color={colors.primary} />
-            <Text style={themedStyles.sectionTitle}>{t.settings.data}</Text>
+            <Ionicons
+              name="color-palette-outline"
+              size={22}
+              color={colors.primary}
+            />
+            <Text style={themedStyles.sectionTitle}>
+              {t.settings.appearance}
+            </Text>
           </View>
 
-          <TouchableOpacity
-            style={themedStyles.card}
-            onPress={handleExportBackup}
-            disabled={isExporting}
-            accessibilityRole="button"
-            accessibilityLabel={t.settings.exportBackup}>
-            <View style={themedStyles.settingRow}>
-              <View style={styles.settingInfo}>
-                <Text
-                  style={[themedStyles.settingLabel, {color: colors.primary}]}>
-                  {isExporting ? t.settings.exporting : t.settings.exportBackup}
-                </Text>
-                <Text style={themedStyles.settingDescription}>
-                  {t.settings.exportBackupDescription}
-                </Text>
-              </View>
-              <Ionicons
-                name="cloud-upload-outline"
-                size={20}
-                color={colors.primary}
-              />
-            </View>
-          </TouchableOpacity>
+          <View style={themedStyles.card}>
+            <Text style={themedStyles.settingLabel}>{t.settings.theme}</Text>
+            <Text style={themedStyles.settingDescription}>
+              {t.settings.themeDescription}
+            </Text>
 
-          <TouchableOpacity
-            style={themedStyles.card}
-            onPress={handlePickImportFile}
-            disabled={isImporting}
-            accessibilityRole="button"
-            accessibilityLabel={t.settings.importBackup}>
-            <View style={themedStyles.settingRow}>
-              <View style={styles.settingInfo}>
+            <View style={themedStyles.themeOptions}>
+              <TouchableOpacity
+                style={[
+                  themedStyles.themeOption,
+                  mode === 'light' && themedStyles.themeOptionActive,
+                ]}
+                onPress={() => handleThemeChange('light')}>
+                <Ionicons
+                  name="sunny"
+                  size={24}
+                  color={mode === 'light' ? themeActiveTextColor : colors.text}
+                />
                 <Text
-                  style={[themedStyles.settingLabel, {color: colors.primary}]}>
-                  {isImporting ? t.settings.importing : t.settings.importBackup}
+                  style={[
+                    themedStyles.themeOptionText,
+                    mode === 'light' && themedStyles.themeOptionTextActive,
+                  ]}>
+                  {t.settings.themeLight}
                 </Text>
-                <Text style={themedStyles.settingDescription}>
-                  {t.settings.importBackupDescription}
-                </Text>
-              </View>
-              <Ionicons
-                name="cloud-download-outline"
-                size={20}
-                color={colors.primary}
-              />
-            </View>
-          </TouchableOpacity>
+              </TouchableOpacity>
 
-          <TouchableOpacity
-            style={themedStyles.card}
-            onPress={handleResetData}
-            disabled={isResetting}>
-            <View style={themedStyles.settingRow}>
-              <View style={styles.settingInfo}>
+              <TouchableOpacity
+                style={[
+                  themedStyles.themeOption,
+                  mode === 'dark' && themedStyles.themeOptionActive,
+                ]}
+                onPress={() => handleThemeChange('dark')}>
+                <Ionicons
+                  name="moon"
+                  size={24}
+                  color={mode === 'dark' ? themeActiveTextColor : colors.text}
+                />
                 <Text
-                  style={[themedStyles.settingLabel, {color: colors.error}]}>
-                  {isResetting ? t.settings.resetting : t.settings.resetData}
+                  style={[
+                    themedStyles.themeOptionText,
+                    mode === 'dark' && themedStyles.themeOptionTextActive,
+                  ]}>
+                  {t.settings.themeDark}
                 </Text>
-                <Text style={themedStyles.settingDescription}>
-                  {t.settings.resetDescription}
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={[
+                  themedStyles.themeOption,
+                  mode === 'auto' && themedStyles.themeOptionActive,
+                ]}
+                onPress={() => handleThemeChange('auto')}>
+                <Ionicons
+                  name="phone-portrait-outline"
+                  size={24}
+                  color={mode === 'auto' ? themeActiveTextColor : colors.text}
+                />
+                <Text
+                  style={[
+                    themedStyles.themeOptionText,
+                    mode === 'auto' && themedStyles.themeOptionTextActive,
+                  ]}>
+                  {t.settings.themeAuto}
                 </Text>
-              </View>
-              <Ionicons name="trash-outline" size={20} color={colors.error} />
+              </TouchableOpacity>
             </View>
-          </TouchableOpacity>
+          </View>
+
+          {/* Color Theme Selector — extracted to ColorThemeSettings (T6) */}
+          <ColorThemeSettings />
         </View>
+
+        {/* Consolidated accessibility toggles (keep screen on, high contrast, reduce animations) */}
+        <AccessibilitySettings />
 
         {/* Consolidated notification reminders (daily verse, prayer, devotion, prophecy, ¿Sabías qué?, memorization) */}
         <NotificationsSettings />
 
         {/* Consolidated goals (reading, memorization review, weekly target) */}
         <GoalsSettings />
-
-        {/* Extras unlocked by a voluntary offering (offering infrastructure tanda) */}
-        <ExtrasSettings />
-
-        {/* Separate, repeatable donation — never inside the unlock flow */}
-        <DonationSettings />
-
-        {/* Index of full-explainer guides (FeatureGuideModal), openable
-            without being on that feature's own screen first */}
-        <TipsAndGuidesSettings />
 
         {/* New Features V5.1 Section */}
         <View style={themedStyles.section}>
@@ -955,6 +656,16 @@ export default function SettingsScreen() {
             </TouchableOpacity>
           </View>
         </View>
+
+        {/* Index of full-explainer guides (FeatureGuideModal), openable
+            without being on that feature's own screen first */}
+        <TipsAndGuidesSettings />
+
+        {/* Extras unlocked by a voluntary offering (offering infrastructure tanda) */}
+        <ExtrasSettings />
+
+        {/* Separate, repeatable donation — never inside the unlock flow */}
+        <DonationSettings />
 
         {/* Account Section (Sprint 41 — Firebase Auth) */}
         <View style={themedStyles.section}>
@@ -1236,6 +947,12 @@ export default function SettingsScreen() {
           </View>
         </View>
 
+        {/* Consolidated data management (export/import backup, reset Bible
+            data) — deliberately placed near the bottom, away from the
+            reader's day-to-day settings, since it holds the destructive
+            reset action */}
+        <DataSettings />
+
         {/* About Section */}
         <View style={themedStyles.section}>
           <View style={themedStyles.sectionHeader}>
@@ -1286,30 +1003,6 @@ export default function SettingsScreen() {
       </ScrollView>
 
       {/* Themed confirms (UX audit, replace native Alert.alert) */}
-      <ConfirmDialog
-        visible={resetConfirmVisible}
-        title={t.settings.resetTitle}
-        message={t.settings.resetMessage}
-        confirmLabel={t.settings.resetConfirm}
-        cancelLabel={t.cancel}
-        onConfirm={() => void performResetData()}
-        onCancel={() => setResetConfirmVisible(false)}
-        destructive
-      />
-      <ConfirmDialog
-        visible={importConfirmVisible}
-        title={t.settings.importConfirmTitle}
-        message={t.settings.importConfirmMessage}
-        confirmLabel={t.settings.importConfirmCta}
-        cancelLabel={t.cancel}
-        onConfirm={() => void performImport()}
-        onCancel={() => {
-          pendingImportUriRef.current = null;
-          setImportConfirmVisible(false);
-        }}
-        destructive
-        icon="cloud-download-outline"
-      />
       <ConfirmDialog
         visible={signOutConfirmVisible}
         title={t.auth.signOutConfirmTitle}
@@ -1365,7 +1058,6 @@ const styles = StyleSheet.create({
   },
   signInPromptSpacing: {marginBottom: 16, marginTop: 0},
   dimmedWhileBusy: {opacity: 0.6},
-  highContrastReaderNote: {marginTop: 10, fontStyle: 'italic'},
   scrollView: {
     flex: 1,
   },
@@ -1414,9 +1106,6 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: staticColors.glassWhite90,
     fontWeight: '500',
-  },
-  settingInfo: {
-    flex: 1,
   },
   versionOptionContent: {
     flex: 1,
@@ -1559,26 +1248,6 @@ function createThemedStyles(
       shadowOpacity: isDark ? 0.3 : 0.1,
       shadowRadius: 4,
       elevation: 3,
-    },
-    cardWithMargin: {
-      backgroundColor: colors.surface,
-      borderRadius: 12,
-      padding: 16,
-      marginTop: 16,
-      shadowColor: staticColors.black,
-      shadowOffset: {width: 0, height: 2},
-      shadowOpacity: isDark ? 0.3 : 0.1,
-      shadowRadius: 4,
-      elevation: 3,
-    },
-    settingRow: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      justifyContent: 'space-between',
-    },
-    toggleTextWrap: {
-      flex: 1,
-      marginRight: 12,
     },
     settingLabel: {
       fontSize: 16,
