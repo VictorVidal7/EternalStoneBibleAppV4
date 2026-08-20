@@ -191,11 +191,19 @@ export default function PrepHistoryScreen() {
             </View>
             <View style={styles.headerInfo}>
               <View style={styles.headerTitleRow}>
-                <AppText scaleRole="display" style={styles.headerTitle}>
+                <AppText
+                  scaleRole="display"
+                  style={styles.headerTitle}
+                  numberOfLines={1}>
                   {h.title}
                 </AppText>
                 <View style={styles.exclusiveBadge}>
-                  <AppText scaleRole="compact" style={styles.exclusiveText}>
+                  <AppText
+                    scaleRole="compact"
+                    style={styles.exclusiveText}
+                    numberOfLines={1}
+                    adjustsFontSizeToFit
+                    minimumFontScale={0.75}>
                     {h.exclusiveLabel}
                   </AppText>
                 </View>
@@ -403,6 +411,7 @@ const styles = StyleSheet.create({
     color: staticColors.white,
     fontSize: fontSizes.xl,
     fontWeight: '700',
+    flexShrink: 1,
   },
   headerSubtitle: {
     color: staticColors.white,
@@ -415,6 +424,7 @@ const styles = StyleSheet.create({
     paddingVertical: 2,
     borderRadius: borderRadius.full,
     backgroundColor: staticColors.glassWhite25,
+    flexShrink: 0,
   },
   exclusiveText: {
     fontSize: 10,
