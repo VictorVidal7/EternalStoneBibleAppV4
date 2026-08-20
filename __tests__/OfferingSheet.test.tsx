@@ -75,10 +75,21 @@ const activeEntitlementInfo = {
 };
 const noEntitlementInfo = {entitlements: {active: {}, all: {}}};
 
+// Deliberately NOT price-sorted — OfferingSheet must reorder these itself
+// (cheapest first) regardless of what order the store returns them in.
 const fakePackages = [
-  {identifier: 'ofrenda_extras_1', product: {priceString: '$0.99'}},
-  {identifier: 'ofrenda_extras_2', product: {priceString: '$2.99'}},
-  {identifier: 'ofrenda_extras_3', product: {priceString: '$6.99'}},
+  {
+    identifier: 'ofrenda_extras_3',
+    product: {priceString: '$6.99', price: 6.99},
+  },
+  {
+    identifier: 'ofrenda_extras_1',
+    product: {priceString: '$0.99', price: 0.99},
+  },
+  {
+    identifier: 'ofrenda_extras_2',
+    product: {priceString: '$2.99', price: 2.99},
+  },
 ];
 
 function renderSheet(onClose = jest.fn()) {
@@ -106,20 +117,27 @@ describe('OfferingSheet', () => {
     await waitFor(() => expect(toJSON()).toBeNull());
   });
 
-  it('shows the three tiers, middle one marked suggested, once configured', async () => {
+  it('shows the three tiers cheapest-first, cheapest one marked, once configured', async () => {
     __setApiKeyForTests('test-key');
     await initialize();
     mockPurchases.__setOfferings({
       all: {default: {availablePackages: fakePackages}},
     });
 
-    const {findByText, getByText} = renderSheet();
+    const {findByText, getByText, getAllByText} = renderSheet();
 
     expect(await findByText('Una ofrenda voluntaria')).toBeTruthy();
     expect(getByText('$0.99')).toBeTruthy();
     expect(getByText('$2.99')).toBeTruthy();
     expect(getByText('$6.99')).toBeTruthy();
-    expect(getByText('Sugerido')).toBeTruthy();
+    expect(getByText('Lo más sencillo')).toBeTruthy();
+    // Confirms OfferingSheet re-sorts the store's own package order
+    // (fakePackages is deliberately given as 6.99/0.99/2.99 above) rather
+    // than trusting whatever order the store/offering returns.
+    const prices = getAllByText(/^\$\d+\.\d{2}$/).map(
+      node => node.props.children,
+    );
+    expect(prices).toEqual(['$0.99', '$2.99', '$6.99']);
     // The unlocked-extras list is data-driven (t.offering.extras); assert the
     // first grouped benefit renders so a broken/empty map can't slip through.
     expect(getByText('Mesa de preparación')).toBeTruthy();

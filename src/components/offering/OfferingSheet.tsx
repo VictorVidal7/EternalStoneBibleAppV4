@@ -83,7 +83,13 @@ export const OfferingSheet: React.FC<Props> = ({visible, onClose}) => {
       setState({kind: 'unavailable'});
       return;
     }
-    setState({kind: 'available', packages});
+    // Cheapest first — the lowest tier carries the "simplest option" badge
+    // below (index 0), deliberately not the priciest, so the picker doesn't
+    // read as steering givers toward spending more.
+    const sorted = [...packages].sort(
+      (a, b) => a.product.price - b.product.price,
+    );
+    setState({kind: 'available', packages: sorted});
   }, [isPremium]);
 
   // `load` closes over `isPremium`, which changes the instant a purchase
@@ -309,12 +315,12 @@ export const OfferingSheet: React.FC<Props> = ({visible, onClose}) => {
                       style={[
                         styles.tierCard,
                         {borderColor: colors.border},
-                        index === 1 && [
+                        index === 0 && [
                           styles.tierCardSuggested,
                           {borderColor: colors.primary},
                         ],
                       ]}>
-                      {index === 1 && (
+                      {index === 0 && (
                         <AppText
                           scaleRole="compact"
                           style={[styles.suggested, {color: colors.primary}]}>

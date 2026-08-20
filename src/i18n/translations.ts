@@ -4171,11 +4171,11 @@ export const translations = {
         },
         {
           title: 'Audio avanzado',
-          desc: 'Desplázate por versículo, continúa donde lo dejaste (también en el modo inmersivo) y escucha hasta a 2.5x.',
+          desc: 'Continúa donde lo dejaste, desplázate por versículo en el modo inmersivo, y escucha hasta a 2.5x.',
         },
         {
           title: 'Memorización',
-          desc: 'Estadísticas completas de tu repaso, retención por libro y tendencia — más el Quiz contrarreloj y añadir versículos a tu mazo.',
+          desc: 'Estadísticas completas de tu repaso, retención por libro y tendencia — más el Quiz contrarreloj.',
         },
         {
           title: 'Personalización',
@@ -4186,7 +4186,7 @@ export const translations = {
           desc: 'Plantillas de diseño, texturas y estilos guardados para tus versículos.',
         },
       ],
-      tierSuggested: 'Sugerido',
+      tierSuggested: 'Lo más sencillo',
       legend:
         'Los montos son fijos por requisitos de la tienda de aplicaciones; cualquiera de ellos desbloquea exactamente lo mismo.\n\nSi deseas dar una cantidad distinta, el apartado de Donación está siempre abierto para sembrar lo que Dios ponga en tu corazón.',
       transparency:
@@ -10393,11 +10393,11 @@ export const translations = {
         },
         {
           title: 'Advanced audio',
-          desc: 'Scrub by verse, resume where you left off (in immersive mode too), and listen at up to 2.5x.',
+          desc: 'Resume where you left off, scrub by verse in immersive mode, and listen at up to 2.5x.',
         },
         {
           title: 'Memorization',
-          desc: 'Full review stats, retention by book and trend — plus the Quiz’s timed mode and add-to-deck.',
+          desc: 'Full review stats, retention by book and trend — plus the Quiz’s timed mode.',
         },
         {
           title: 'Personalization',
@@ -10408,7 +10408,7 @@ export const translations = {
           desc: 'Designer templates, textures, and saved styles for your verses.',
         },
       ],
-      tierSuggested: 'Suggested',
+      tierSuggested: 'Simplest option',
       legend:
         "The amounts are fixed by app-store requirements; any of them unlocks exactly the same thing.\n\nIf you'd like to give a different amount, the Donation section is always open to sow whatever God places on your heart.",
       transparency:
