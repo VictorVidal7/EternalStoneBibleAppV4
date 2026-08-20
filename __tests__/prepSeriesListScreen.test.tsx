@@ -15,6 +15,7 @@
  * and navigation/theme plumbing are mocked.
  */
 import {render, fireEvent, waitFor} from '@testing-library/react-native';
+import {StyleSheet} from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as SecureStore from 'expo-secure-store';
 import PrepSeriesListScreen from '../app/features/prep/series/index';
@@ -182,6 +183,20 @@ describe('PrepSeriesListScreen — T8.4.4', () => {
       await findByLabelText(`${h.title} — ${offering.badgeA11y}`),
     );
     expect(mockOpenOfferingSheet).toHaveBeenCalledTimes(1);
+  });
+
+  // Header-overflow fix: on a long title the EXCLUSIVO badge must never be
+  // pushed off-screen — the title truncates (numberOfLines) and shrinks
+  // (flexShrink via styles, not asserted here) while the badge always
+  // renders its full text and never shrinks.
+  it('truncates the header title instead of letting it push the EXCLUSIVO badge off-screen', async () => {
+    const {findByText} = renderScreen();
+    const title = await findByText(h.title);
+    expect(title.props.numberOfLines).toBe(1);
+    expect(StyleSheet.flatten(title.props.style).flexShrink).toBe(1);
+    const badge = await findByText(h.exclusiveLabel);
+    expect(badge.props.numberOfLines).toBe(1);
+    expect(badge.props.adjustsFontSizeToFit).toBe(true);
   });
 
   it('shows the empty state for a premium reader with no series', async () => {
