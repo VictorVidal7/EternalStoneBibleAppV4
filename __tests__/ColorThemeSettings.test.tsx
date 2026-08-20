@@ -6,9 +6,17 @@
  * premium-theme gating: a locked swatch opens the offering sheet instead of
  * applying the theme; an unlocked one applies normally; and an entitlement
  * lost after a premium theme was active falls back to a free one.
+ *
+ * Settings reorg: the inline grid now shows only the free themes (plus the
+ * currently active theme even if it's premium); the full 16-theme grid only
+ * appears after tapping "Ver todos los temas", which opens a modal. Both
+ * views share the same gating/selection logic (`renderGrid` inside the
+ * component), so the premium-gating assertions below run against whichever
+ * view currently has the swatch on screen.
  */
 
 import {render, waitFor, fireEvent} from '@testing-library/react-native';
+import type {ReactTestInstance} from 'react-test-renderer';
 import * as SecureStore from 'expo-secure-store';
 import ColorThemeSettings from '../src/components/settings/ColorThemeSettings';
 import {PremiumProvider} from '../src/context/PremiumContext';
@@ -22,6 +30,7 @@ const mockColors = {
   primary: '#1d4ed8',
   primaryDark: '#1e3a8a',
   border: '#cbd5e1',
+  background: '#ffffff',
 };
 
 jest.mock('../src/hooks/useLanguage', () => ({
@@ -33,6 +42,10 @@ jest.mock('../src/hooks/useLanguage', () => ({
 
 jest.mock('../src/lib/haptics', () => ({
   haptics: {tap: jest.fn(), press: jest.fn()},
+}));
+
+jest.mock('react-native-safe-area-context', () => ({
+  useSafeAreaInsets: () => ({top: 0, bottom: 0, left: 0, right: 0}),
 }));
 
 const mockOpenOfferingSheet = jest.fn();
@@ -66,6 +79,12 @@ function renderSettings() {
   );
 }
 
+async function openFullGrid(
+  findByLabelText: (label: string) => Promise<ReactTestInstance>,
+) {
+  fireEvent.press(await findByLabelText('Ver todos los temas'));
+}
+
 describe('ColorThemeSettings', () => {
   beforeEach(async () => {
     __resetForTests();
@@ -75,16 +94,29 @@ describe('ColorThemeSettings', () => {
     await SecureStore.deleteItemAsync(ENTITLEMENT_CACHE_KEY);
   });
 
-  it('shows all 12 free themes plus the 4 premium ones', async () => {
-    const {findByText, getByText} = renderSettings();
+  it('shows only the 12 free themes inline, not the 4 premium ones', async () => {
+    const {findByText, queryByText} = renderSettings();
     expect(await findByText('Océano')).toBeTruthy();
-    expect(getByText('Granate')).toBeTruthy();
-    expect(getByText('Zafiro')).toBeTruthy();
-    expect(getByText('Turquesa')).toBeTruthy();
-    expect(getByText('Orquídea')).toBeTruthy();
+    expect(queryByText('Granate')).toBeNull();
+    expect(queryByText('Zafiro')).toBeNull();
+    expect(queryByText('Turquesa')).toBeNull();
+    expect(queryByText('Orquídea')).toBeNull();
   });
 
-  it('applies a free theme directly on tap, locked or not', async () => {
+  it('opens a full-screen modal with all 16 themes via "Ver todos los temas"', async () => {
+    const {findByText, findAllByText, findByLabelText} = renderSettings();
+    await findByText('Océano');
+    await openFullGrid(findByLabelText);
+    expect(await findByText('Granate')).toBeTruthy();
+    expect(await findByText('Zafiro')).toBeTruthy();
+    expect(await findByText('Turquesa')).toBeTruthy();
+    expect(await findByText('Orquídea')).toBeTruthy();
+    // The free themes are still present (inline grid behind the modal, plus
+    // the full grid inside it — both stay mounted while the modal is open).
+    expect((await findAllByText('Océano')).length).toBeGreaterThanOrEqual(1);
+  });
+
+  it('applies a free theme directly on tap from the inline grid', async () => {
     const {findByLabelText} = renderSettings();
     fireEvent.press(await findByLabelText('Océano'));
     expect(mockSetColorTheme).toHaveBeenCalledWith('ocean');
@@ -92,7 +124,9 @@ describe('ColorThemeSettings', () => {
   });
 
   it('opens the offering sheet instead of applying a locked premium theme', async () => {
-    const {findByLabelText} = renderSettings();
+    const {findByText, findByLabelText} = renderSettings();
+    await findByText('Océano');
+    await openFullGrid(findByLabelText);
     const swatch = await findByLabelText(/^Granate/);
     fireEvent.press(swatch);
     expect(mockOpenOfferingSheet).toHaveBeenCalledTimes(1);
@@ -101,12 +135,23 @@ describe('ColorThemeSettings', () => {
 
   it('applies a premium theme directly once unlocked', async () => {
     await SecureStore.setItemAsync(ENTITLEMENT_CACHE_KEY, 'true');
-    const {findByText} = renderSettings();
-    // Wait for PremiumContext's cache read before asserting the unlocked path.
-    await waitFor(async () => expect(await findByText('Granate')).toBeTruthy());
+    const {findByText, findByLabelText} = renderSettings();
+    // Wait for PremiumContext's cache read before opening the full grid.
+    await waitFor(async () => expect(await findByText('Océano')).toBeTruthy());
+    await openFullGrid(findByLabelText);
     fireEvent.press(await findByText('Granate'));
     expect(mockSetColorTheme).toHaveBeenCalledWith('granate');
     expect(mockOpenOfferingSheet).not.toHaveBeenCalled();
+  });
+
+  it('keeps an active premium theme visible inline even though it is not free', async () => {
+    await SecureStore.setItemAsync(ENTITLEMENT_CACHE_KEY, 'true');
+    mockColorTheme = 'zafiro';
+    const {findByText, queryByText} = renderSettings();
+    // Shows without needing to open "Ver todos los temas".
+    expect(await findByText('Zafiro')).toBeTruthy();
+    // The other 3 premium themes, which aren't active, stay hidden inline.
+    expect(queryByText('Granate')).toBeNull();
   });
 
   it('falls back to Midnight if a premium theme was active and the entitlement is gone', async () => {

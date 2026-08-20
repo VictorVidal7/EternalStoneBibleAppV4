@@ -3786,11 +3786,15 @@ export const translations = {
 
       colorTheme: 'Tema de Color',
       colorThemeDescription: 'Elige el estilo visual de la aplicación',
+      viewAllThemes: 'Ver todos los temas',
       exclusiveThemeLabel: 'Exclusivo',
       keepAwakeTitle: 'Mantener pantalla encendida',
       keepAwakeDescription:
         'Evita que la pantalla se bloquee mientras lees, estudias, memorizas u oras.',
       accessibility: 'Accesibilidad',
+      accessibilityEntryTitle: 'Configurar accesibilidad',
+      accessibilityEntryDesc:
+        'Pantalla encendida, alto contraste y reducir animaciones',
       highContrastTitle: 'Alto contraste (toda la app)',
       highContrastDescription:
         'Fondo negro, texto blanco y acento ámbar en toda la app — máxima legibilidad para baja visión.',
@@ -3856,6 +3860,8 @@ export const translations = {
       webFontSize: 'Tamaño de letra',
 
       data: 'Datos',
+      dataEntryTitle: 'Gestionar datos',
+      dataEntryDesc: 'Exportar, importar o resetear los datos de la Biblia',
       resetData: 'Resetear Datos de la Biblia',
       resetDescription: 'Elimina y recarga todos los versículos',
       resetTitle: 'Resetear Datos',
@@ -10010,11 +10016,15 @@ export const translations = {
 
       colorTheme: 'Color Theme',
       colorThemeDescription: 'Choose the visual style of the app',
+      viewAllThemes: 'See all themes',
       exclusiveThemeLabel: 'Exclusive',
       keepAwakeTitle: 'Keep screen on',
       keepAwakeDescription:
         'Stop the screen from locking while you read, study, memorize or pray.',
       accessibility: 'Accessibility',
+      accessibilityEntryTitle: 'Configure accessibility',
+      accessibilityEntryDesc:
+        'Keep screen on, high contrast, and reduce animations',
       highContrastTitle: 'High contrast (whole app)',
       highContrastDescription:
         'Black background, white text, amber accent everywhere in the app — maximum legibility for low vision.',
@@ -10079,6 +10089,8 @@ export const translations = {
       webFontSize: 'Font size',
 
       data: 'Data',
+      dataEntryTitle: 'Manage data',
+      dataEntryDesc: 'Export, import, or reset your Bible data',
       resetData: 'Reset Bible Data',
       resetDescription: 'Delete and reload all verses',
       resetTitle: 'Reset Data',
