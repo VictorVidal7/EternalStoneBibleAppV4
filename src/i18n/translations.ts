@@ -4185,6 +4185,10 @@ export const translations = {
           title: 'Compartir con estilo',
           desc: 'Plantillas de diseño, texturas y estilos guardados para tus versículos.',
         },
+        {
+          title: 'Diccionario bíblico',
+          desc: 'Artículos completos de cada término, y las distintas posturas doctrinales en temas como el bautismo o el milenio.',
+        },
       ],
       legend:
         'Los montos son fijos por requisitos de la tienda de aplicaciones; cualquiera de ellos desbloquea exactamente lo mismo.\n\nSi deseas dar una cantidad distinta, el apartado de Donación está siempre abierto para sembrar lo que Dios ponga en tu corazón.',
@@ -4203,7 +4207,7 @@ export const translations = {
       settingsSectionTitle: 'Extras',
       settingsUnlockedTitle: 'Extras desbloqueados',
       settingsUnlockedDesc:
-        'Gracias por tu ofrenda — ya tienes acceso a todos los extras.',
+        'Gracias por tu ofrenda. Toca para ver todo lo que incluye.',
       settingsLockedTitle: 'Extras de la app',
       settingsLockedDesc:
         'Algunas funciones adicionales se pueden desbloquear con una ofrenda voluntaria.',
@@ -10406,6 +10410,10 @@ export const translations = {
           title: 'Share with style',
           desc: 'Designer templates, textures, and saved styles for your verses.',
         },
+        {
+          title: 'Bible dictionary',
+          desc: 'Full articles for every term, plus the different doctrinal views on topics like baptism or the millennium.',
+        },
       ],
       legend:
         "The amounts are fixed by app-store requirements; any of them unlocks exactly the same thing.\n\nIf you'd like to give a different amount, the Donation section is always open to sow whatever God places on your heart.",
@@ -10424,7 +10432,7 @@ export const translations = {
       settingsSectionTitle: 'Extras',
       settingsUnlockedTitle: 'Extras unlocked',
       settingsUnlockedDesc:
-        'Thank you for your offering — you now have access to every extra.',
+        'Thank you for your offering. Tap to see everything it includes.',
       settingsLockedTitle: 'App extras',
       settingsLockedDesc:
         'Some additional features can be unlocked with a voluntary offering.',

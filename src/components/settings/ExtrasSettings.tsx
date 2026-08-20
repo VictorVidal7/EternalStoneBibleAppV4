@@ -70,7 +70,22 @@ export default function ExtrasSettings() {
         </Text>
       </View>
 
-      <View
+      <TouchableOpacity
+        activeOpacity={0.8}
+        onPress={open}
+        // Only the unlocked state's card is a single tappable unit for
+        // screen readers — the locked state still has its own nested CTA
+        // button (below) that must stay independently focusable, so the
+        // outer wrapper opts out of the accessibility tree there instead of
+        // grouping the CTA away. Touch handling (onPress) works either way;
+        // `accessible` only affects VoiceOver/TalkBack grouping.
+        accessible={isPremium}
+        accessibilityRole="button"
+        accessibilityLabel={
+          isPremium
+            ? t.offering.settingsUnlockedTitle
+            : t.offering.settingsLockedTitle
+        }
         style={[
           styles.card,
           isDark ? styles.cardShadowDark : styles.cardShadowLight,
@@ -106,7 +121,7 @@ export default function ExtrasSettings() {
             onPress={open}
           />
         )}
-      </View>
+      </TouchableOpacity>
 
       {__DEV__ && (
         <View

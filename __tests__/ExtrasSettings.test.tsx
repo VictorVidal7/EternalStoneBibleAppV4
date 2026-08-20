@@ -100,12 +100,42 @@ describe('ExtrasSettings', () => {
     expect(mockOpenOfferingSheet).toHaveBeenCalledTimes(1);
   });
 
+  it('opens the sheet by tapping the outer card itself when locked (not just the inner CTA)', async () => {
+    __setApiKeyForTests('test-key');
+    await initialize();
+    const {findByLabelText} = renderSettings();
+
+    fireEvent.press(await findByLabelText('Extras de la app'));
+    expect(mockOpenOfferingSheet).toHaveBeenCalledTimes(1);
+  });
+
   it('shows the unlocked status regardless of billing availability', async () => {
     await SecureStore.setItemAsync(ENTITLEMENT_CACHE_KEY, 'true');
     const {findByText, queryByText} = renderSettings();
 
     expect(await findByText('Extras desbloqueados')).toBeTruthy();
     expect(queryByText('Desbloquear con premium')).toBeNull();
+  });
+
+  it('opens the sheet by tapping the card once unlocked, since there is no CTA to reach it anymore', async () => {
+    await SecureStore.setItemAsync(ENTITLEMENT_CACHE_KEY, 'true');
+    const {findByLabelText} = renderSettings();
+
+    fireEvent.press(await findByLabelText('Extras desbloqueados'));
+    expect(mockOpenOfferingSheet).toHaveBeenCalledTimes(1);
+  });
+
+  it('shows the unlocked copy without the old em dash, hinting that the card is tappable', async () => {
+    await SecureStore.setItemAsync(ENTITLEMENT_CACHE_KEY, 'true');
+    const {findByText} = renderSettings();
+
+    // Exact-match on the new string is itself the em-dash-gone assertion —
+    // same style as the tierSuggested copy-fix test in OfferingSheet.test.tsx.
+    expect(
+      await findByText(
+        'Gracias por tu ofrenda. Toca para ver todo lo que incluye.',
+      ),
+    ).toBeTruthy();
   });
 
   it('exposes a __DEV__-only manual toggle alongside the real status', async () => {
