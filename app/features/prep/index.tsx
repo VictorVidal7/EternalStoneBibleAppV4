@@ -792,11 +792,29 @@ export default function PrepTableScreen() {
     setRange(next);
   }, []);
 
-  // Topic suggester — open a suggested passage the SAME way history.tsx's
-  // own handleOpen does (push to this same route with book/chapter/
-  // startVerse params). `suggestPassagesForTopic` only ever returns refs
-  // that already resolve to a real canonical book, but parseThemeRef/
-  // getBookByName are still checked defensively rather than assumed.
+  // Topic suggester — open a suggested passage. Uses `router.setParams`
+  // rather than `router.push`: this screen is ALREADY mounted on
+  // `/features/prep` (that's the only way the topic suggester itself is
+  // reachable — see handleOpenTopicSearch below), so a `push` here doesn't
+  // navigate to a new screen, it stacks a SECOND instance of this same
+  // route on top of the first and plays a full native transition to slide
+  // it in. That transition briefly leaves the incoming screen's touch
+  // targets unresponsive — confirmed live: a tap on the header's
+  // "Banco de ilustraciones" icon landing during that window (e.g. a fast
+  // follow-up tap right after picking a suggestion) was silently swallowed
+  // by the in-flight transition, never even reaching `handleOpenIllustrations`
+  // (its `if (!table) return` guard was NOT the culprit — `table` itself
+  // was already correctly resolved by then). `setParams` updates the
+  // CURRENT screen's params in place with no stack push and no transition,
+  // which removes that dead window entirely and also stops topic-search
+  // round trips from growing the back stack one entry per pick.
+  // `suggestPassagesForTopic` only ever returns refs that already resolve
+  // to a real canonical book, but parseThemeRef/getBookByName are still
+  // checked defensively rather than assumed. `endVerse`/`verse` are
+  // explicitly cleared (unlike `push`, `setParams` merges into the
+  // existing params instead of replacing them wholesale, so a previously
+  // multi-verse range or legacy `verse` param would otherwise leak into
+  // this new single-verse suggestion).
   const handleOpenTopicSuggestion = useCallback(
     (suggestion: TopicPassageSuggestion) => {
       const parsed = parseThemeRef(suggestion.ref);
@@ -804,13 +822,12 @@ export default function PrepTableScreen() {
       const bookInfo = getBookByName(parsed.book);
       if (!bookInfo) return;
       haptics.tap();
-      router.push({
-        pathname: '/features/prep' as never,
-        params: {
-          book: bookInfo.nameEn,
-          chapter: String(parsed.chapter),
-          startVerse: String(parsed.verse),
-        },
+      router.setParams({
+        book: bookInfo.nameEn,
+        chapter: String(parsed.chapter),
+        startVerse: String(parsed.verse),
+        endVerse: undefined,
+        verse: undefined,
       });
     },
     [router],
@@ -819,11 +836,19 @@ export default function PrepTableScreen() {
   // Entry point for the topic suggester above — it only renders on the
   // EMPTY (no-passage) state, but every real navigation into this screen
   // always seeds a passage, so that state was otherwise unreachable through
-  // the UI. This button re-navigates to the same route with no params,
-  // exactly like handleOpenTopicSuggestion does in reverse.
+  // the UI. Clears this same screen's own passage params via `setParams`
+  // (exactly like handleOpenTopicSuggestion does in reverse, and for the
+  // same reason — see its comment above) instead of `push`-ing a second
+  // stacked instance of this route with a native transition.
   const handleOpenTopicSearch = useCallback(() => {
     haptics.tap();
-    router.push({pathname: '/features/prep' as never});
+    router.setParams({
+      book: undefined,
+      chapter: undefined,
+      startVerse: undefined,
+      endVerse: undefined,
+      verse: undefined,
+    });
   }, [router]);
 
   // T8.4.1 — the "Historial de preparaciones" entry point. Always navigates
@@ -2363,9 +2388,19 @@ export default function PrepTableScreen() {
                         size={18}
                         color={colors.primary}
                       />
+                      {/* `flexOne` on the title matches the "Palabras clave"
+                          and "Comparar versiones" cards above — without it
+                          the EXCLUSIVO badge sat right next to the short
+                          "Modo púlpito" title instead of pinned to the
+                          card's right edge like the other two, an
+                          inconsistent shell confirmed live on-device. */}
                       <AppText
                         scaleRole="body"
-                        style={[styles.sectionLabel, {color: colors.text}]}>
+                        style={[
+                          styles.sectionLabel,
+                          styles.flexOne,
+                          {color: colors.text},
+                        ]}>
                         {p.pulpitTitle}
                       </AppText>
                       {!isPremium && (
