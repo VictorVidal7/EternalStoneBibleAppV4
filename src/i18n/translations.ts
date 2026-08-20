@@ -1047,6 +1047,8 @@ export const translations = {
         'Entra para presentar el pasaje en letra grande; tus notas y una estimación de tiempo aparecerán aquí conforme las escribas en el esquema.',
       pulpitEnterButton: 'Entrar en modo púlpito',
       pulpitWpmLabel: 'Palabras por minuto',
+      pulpitBreakdownShow: 'Ver desglose por sección',
+      pulpitBreakdownHide: 'Ocultar desglose por sección',
       // Tanda 3 — el selector de formato de exportación (PrepExportFormatSheet):
       // 'manuscript' (gratis, el documento completo de siempre) y 3 formatos
       // premium nuevos que solo cambian la FORMA de lo ya reunido, sin generar
@@ -7290,6 +7292,8 @@ export const translations = {
         'Enter to present the passage in large type; your notes and a time estimate appear here as you write them in the outline.',
       pulpitEnterButton: 'Enter pulpit mode',
       pulpitWpmLabel: 'Words per minute',
+      pulpitBreakdownShow: 'Show breakdown by section',
+      pulpitBreakdownHide: 'Hide breakdown by section',
       // Tanda 3 — the export format picker (PrepExportFormatSheet):
       // 'manuscript' (free, today's full document) plus 3 new premium
       // formats that only change the SHAPE of what's already gathered,

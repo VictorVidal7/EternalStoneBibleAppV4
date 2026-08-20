@@ -76,6 +76,31 @@ export function estimateMinutes(
   return Math.max(1, Math.round(wordCount / rate));
 }
 
+/** One outline section's own word count + estimated spoken duration. */
+export interface SectionDuration {
+  section: PrepSection;
+  words: number;
+  minutes: number;
+}
+
+/**
+ * Per-section breakdown of `countPrepNotesWords`/`estimateMinutes` — same
+ * arithmetic, just not pre-summed, so a preacher can see which section of
+ * THEIR OWN outline is eating the most time. Returns one entry per section
+ * passed in, in that order, including zero-word ones (the caller filters, the
+ * same way pulpit's own `FilledSection` list already does).
+ */
+export function estimateSectionDurations(
+  notes: PrepNotes,
+  sections: readonly PrepSection[] = PREP_SECTIONS,
+  wordsPerMinute: number = DEFAULT_WORDS_PER_MINUTE,
+): SectionDuration[] {
+  return sections.map(section => {
+    const words = countWords(notes.sections[section]);
+    return {section, words, minutes: estimateMinutes(words, wordsPerMinute)};
+  });
+}
+
 /** Localized strings for a duration label; `aboutMinutes` contains `{{n}}`. */
 export interface DurationLabelStrings {
   lessThanOneMinute: string;

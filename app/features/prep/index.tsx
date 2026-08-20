@@ -33,6 +33,7 @@ import {
   ActivityIndicator,
   StyleSheet,
   Share,
+  LayoutAnimation,
 } from 'react-native';
 import {
   Stack,
@@ -131,6 +132,7 @@ import {
   clampWpm,
   countPrepNotesWords,
   estimateMinutes,
+  estimateSectionDurations,
   formatEstimatedDuration,
 } from '@/features/study/prepTiming';
 import {
@@ -370,6 +372,9 @@ export default function PrepTableScreen() {
 
   // Modo púlpito — configurable words-per-minute for the duration estimate.
   const [pulpitWpm, setPulpitWpm] = useState(DEFAULT_WORDS_PER_MINUTE);
+  // Per-section pacing breakdown, collapsed by default (a preacher wants the
+  // single total most of the time; the breakdown is a deliberate drill-down).
+  const [pulpitBreakdownVisible, setPulpitBreakdownVisible] = useState(false);
 
   // Topic suggester — "I have a topic, not a passage yet" (premium). Only
   // reachable from the EMPTY state (no passage selected), so this never
@@ -2338,6 +2343,11 @@ export default function PrepTableScreen() {
                     aboutMinutes: p.pulpitEstimateLabel,
                   },
                 );
+                const pulpitBreakdown = estimateSectionDurations(
+                  {sections: drafts, updatedAt: 0},
+                  templateSections,
+                  pulpitWpm,
+                ).filter(s => s.words > 0);
                 return (
                   <View
                     style={[
@@ -2456,6 +2466,76 @@ export default function PrepTableScreen() {
                                 />
                               </View>
                             </View>
+                            {pulpitBreakdown.length > 1 && (
+                              <>
+                                <TouchableOpacity
+                                  style={styles.pulpitBreakdownToggle}
+                                  onPress={() => {
+                                    LayoutAnimation.configureNext(
+                                      LayoutAnimation.Presets.easeInEaseOut,
+                                    );
+                                    haptics.tap();
+                                    setPulpitBreakdownVisible(v => !v);
+                                  }}
+                                  accessibilityRole="button"
+                                  accessibilityLabel={
+                                    pulpitBreakdownVisible
+                                      ? p.pulpitBreakdownHide
+                                      : p.pulpitBreakdownShow
+                                  }
+                                  accessibilityState={{
+                                    expanded: pulpitBreakdownVisible,
+                                  }}>
+                                  <Text
+                                    style={[
+                                      styles.pulpitBreakdownToggleText,
+                                      {color: colors.primary},
+                                    ]}>
+                                    {pulpitBreakdownVisible
+                                      ? p.pulpitBreakdownHide
+                                      : p.pulpitBreakdownShow}
+                                  </Text>
+                                  <Ionicons
+                                    name={
+                                      pulpitBreakdownVisible
+                                        ? 'chevron-up'
+                                        : 'chevron-down'
+                                    }
+                                    size={14}
+                                    color={colors.primary}
+                                  />
+                                </TouchableOpacity>
+                                {pulpitBreakdownVisible && (
+                                  <View style={styles.pulpitBreakdownList}>
+                                    {pulpitBreakdown.map(s => (
+                                      <View
+                                        key={s.section}
+                                        style={styles.pulpitBreakdownRow}>
+                                        <Text
+                                          style={[
+                                            styles.pulpitBreakdownLabel,
+                                            {color: colors.textSecondary},
+                                          ]}
+                                          numberOfLines={1}>
+                                          {p.sections[s.section].label}
+                                        </Text>
+                                        <Text
+                                          style={[
+                                            styles.pulpitBreakdownValue,
+                                            {color: colors.text},
+                                          ]}>
+                                          {formatEstimatedDuration(s.minutes, {
+                                            lessThanOneMinute:
+                                              p.pulpitEstimateLessThanMinute,
+                                            aboutMinutes: p.pulpitEstimateLabel,
+                                          })}
+                                        </Text>
+                                      </View>
+                                    ))}
+                                  </View>
+                                )}
+                              </>
+                            )}
                           </>
                         ) : (
                           <Text
@@ -2811,6 +2891,23 @@ const styles = StyleSheet.create({
     minWidth: 40,
     textAlign: 'center',
   },
+  pulpitBreakdownToggle: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    alignSelf: 'flex-start',
+    gap: spacing.xs,
+    marginTop: spacing.md,
+  },
+  pulpitBreakdownToggleText: {fontSize: fontSizes.sm, fontWeight: '600'},
+  pulpitBreakdownList: {marginTop: spacing.sm, gap: spacing.xs},
+  pulpitBreakdownRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    gap: spacing.sm,
+  },
+  pulpitBreakdownLabel: {fontSize: fontSizes.sm, flexShrink: 1},
+  pulpitBreakdownValue: {fontSize: fontSizes.sm, fontWeight: '700'},
   pulpitEnterButton: {
     flexDirection: 'row',
     alignItems: 'center',

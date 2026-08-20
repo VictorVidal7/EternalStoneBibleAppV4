@@ -10,6 +10,7 @@ import {
   countPrepNotesWords,
   countWords,
   estimateMinutes,
+  estimateSectionDurations,
   formatEstimatedDuration,
 } from '../src/features/study/prepTiming';
 import {emptyPrepNotes} from '../src/features/study/prepNotes';
@@ -108,6 +109,49 @@ describe('estimateMinutes', () => {
   it('falls back to the default for a non-positive / non-finite wpm', () => {
     expect(estimateMinutes(1350, 0)).toBe(10);
     expect(estimateMinutes(1350, NaN)).toBe(10);
+  });
+});
+
+describe('estimateSectionDurations', () => {
+  it('returns one entry per section, in the given order, including zero-word ones', () => {
+    const notes = {
+      sections: {context: 'dos palabras', application: ''},
+      updatedAt: 1,
+    };
+    const result = estimateSectionDurations(notes, ['context', 'application']);
+    expect(result).toEqual([
+      {section: 'context', words: 2, minutes: 1},
+      {section: 'application', words: 0, minutes: 0},
+    ]);
+  });
+
+  it('sums to the same total as countPrepNotesWords', () => {
+    const notes = {
+      sections: {
+        context: 'una palabra sola',
+        bigIdea: 'dos tres cuatro cinco',
+        application: 'seis',
+      },
+      updatedAt: 1,
+    };
+    const sections = ['context', 'bigIdea', 'application'] as const;
+    const breakdown = estimateSectionDurations(notes, sections);
+    const totalWords = breakdown.reduce((sum, s) => sum + s.words, 0);
+    expect(totalWords).toBe(countPrepNotesWords(notes, sections));
+  });
+
+  it('honors a custom words-per-minute per section', () => {
+    const notes = {
+      sections: {context: 'a b c d e f g h i j k l'},
+      updatedAt: 1,
+    };
+    const [result] = estimateSectionDurations(notes, ['context'], 12);
+    expect(result.words).toBe(12);
+    expect(result.minutes).toBe(1); // 12 words / 12 wpm = 1 min
+  });
+
+  it('defaults to PREP_SECTIONS and the default wpm when not given', () => {
+    expect(estimateSectionDurations(emptyPrepNotes())).toHaveLength(7);
   });
 });
 
