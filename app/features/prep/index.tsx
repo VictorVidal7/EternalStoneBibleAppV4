@@ -91,6 +91,18 @@ import {
 import {isPrepNotesEmpty} from '@/features/study/prepNotes';
 import {getPrepNotes, savePrepNote} from '@/features/study/prepNotesStore';
 import {
+  PREP_SELF_REVIEW_CATEGORIES,
+  PREP_SELF_REVIEW_QUESTION_IDS,
+  emptyPrepSelfReview,
+  setQuestionChecked,
+  type PrepSelfReview,
+  type PrepSelfReviewQuestionId,
+} from '@/features/study/prepSelfReview';
+import {
+  getPrepSelfReview,
+  setPrepSelfReviewQuestion,
+} from '@/features/study/prepSelfReviewStore';
+import {
   groupOriginalWordsByStrongs,
   type PrepOriginalVerseWords,
 } from '@/features/study/prepOriginalWords';
@@ -267,6 +279,7 @@ export default function PrepTableScreen() {
   const {open: openOfferingSheet} = useOfferingSheet();
   const toast = useToast();
   const p = t.prepTable;
+  const sr = t.prepSelfReview;
   // Contextual hint (T: onboarding-contextual-hints) — the 3 header icons
   // (Historial / Series / Ilustraciones) are icon-only with no visible
   // label, right next to the back button; easy to overlook entirely.
@@ -402,6 +415,17 @@ export default function PrepTableScreen() {
   // Per-section pacing breakdown, collapsed by default (a preacher wants the
   // single total most of the time; the breakdown is a deliberate drill-down).
   const [pulpitBreakdownVisible, setPulpitBreakdownVisible] = useState(false);
+
+  // Autorrevisión antes de predicar — a free, checkbox-only structural
+  // self-check (see prepSelfReview.ts's own guardrail docstring: no free
+  // text, ever). Collapsed by default, same drill-down pattern as the
+  // pulpit breakdown above. Reset to empty on load; `load()`/the focus
+  // effect below don't need to touch this — it's re-fetched per passage the
+  // same way `drafts` is.
+  const [selfReview, setSelfReview] = useState<PrepSelfReview>(
+    emptyPrepSelfReview(),
+  );
+  const [selfReviewVisible, setSelfReviewVisible] = useState(false);
 
   // Topic suggester — "I have a topic, not a passage yet" (premium). Only
   // reachable from the EMPTY state (no passage selected), so this never
@@ -559,12 +583,14 @@ export default function PrepTableScreen() {
       const bookIntro = getBookIntro(table.bookId, lang);
 
       const saved = await getPrepNotes(table.passageKey);
+      const savedSelfReview = await getPrepSelfReview(table.passageKey);
 
       setLines(verseRows);
       setCrossRows(crossResolved);
       setChristRows(christResolved.filter(r => Boolean(r.note)));
       setIntro(bookIntro);
       setDrafts(saved.sections);
+      setSelfReview(savedSelfReview);
       // Unconditional (unlike the narrow refocus effect below): this is a
       // whole-passage (re)load, possibly for a DIFFERENT passageKey than
       // before (the range stepper just moved), so it must always resolve to
@@ -1043,6 +1069,20 @@ export default function PrepTableScreen() {
       setNoteSelections(prev => ({...prev, [section]: sel}));
     },
     [],
+  );
+
+  // Autorrevisión — toggles one question's checked state. Optimistic local
+  // update (mirrors handleNoteChange's own draft-first pattern) + a
+  // fire-and-forget store write (setPrepSelfReviewQuestion is already
+  // serialized/failure-safe, same contract as savePrepNote).
+  const handleToggleSelfReviewQuestion = useCallback(
+    (id: PrepSelfReviewQuestionId, checked: boolean) => {
+      if (!table) return;
+      haptics.tap();
+      setSelfReview(prev => setQuestionChecked(prev, id, checked));
+      setPrepSelfReviewQuestion(table.passageKey, id, checked);
+    },
+    [table],
   );
 
   const headerGradient: readonly [string, string, ...string[]] = highContrast
@@ -2411,6 +2451,153 @@ export default function PrepTableScreen() {
                 );
               })}
 
+              {/* Autorrevisión antes de predicar — free, checkbox-only
+                  structural self-check (see prepSelfReview.ts's own
+                  guardrail docstring: no free text, ever, never graded,
+                  never synced/exported/backed up). Shown ONLY once the
+                  preparer has written something — an empty outline has
+                  nothing yet to self-review. Placed directly above "Modo
+                  púlpito", mirroring its collapsed-by-default drill-down
+                  toggle pattern. */}
+              {!isPrepNotesEmpty({sections: drafts, updatedAt: 0}) && (
+                <View
+                  style={[
+                    styles.sectionCard,
+                    {
+                      backgroundColor: colors.card,
+                      borderColor: colors.border,
+                    },
+                  ]}>
+                  <View style={styles.sectionHeader}>
+                    <Ionicons
+                      name="checkmark-done-outline"
+                      size={18}
+                      color={colors.primary}
+                    />
+                    <AppText
+                      scaleRole="body"
+                      style={[
+                        styles.sectionLabel,
+                        styles.flexOne,
+                        {color: colors.text},
+                      ]}>
+                      {sr.cardTitle}
+                    </AppText>
+                  </View>
+                  <Text
+                    style={[
+                      styles.sectionPrompt,
+                      {color: colors.textSecondary},
+                    ]}>
+                    {sr.cardSubtitle}
+                  </Text>
+                  <TouchableOpacity
+                    style={styles.selfReviewToggleRow}
+                    onPress={() => {
+                      LayoutAnimation.configureNext(
+                        LayoutAnimation.Presets.easeInEaseOut,
+                      );
+                      haptics.tap();
+                      setSelfReviewVisible(v => !v);
+                    }}
+                    accessibilityRole="button"
+                    accessibilityLabel={`${
+                      selfReviewVisible ? sr.hideToggle : sr.showToggle
+                    } · ${sr.progressLabel
+                      .replace(
+                        '{{checked}}',
+                        String(Object.keys(selfReview.checkedIds).length),
+                      )
+                      .replace(
+                        '{{total}}',
+                        String(PREP_SELF_REVIEW_QUESTION_IDS.length),
+                      )}`}
+                    accessibilityState={{expanded: selfReviewVisible}}>
+                    <View style={styles.selfReviewToggleLeft}>
+                      <Text
+                        style={[
+                          styles.pulpitBreakdownToggleText,
+                          {color: colors.primary},
+                        ]}>
+                        {selfReviewVisible ? sr.hideToggle : sr.showToggle}
+                      </Text>
+                      <Ionicons
+                        name={selfReviewVisible ? 'chevron-up' : 'chevron-down'}
+                        size={14}
+                        color={colors.primary}
+                      />
+                    </View>
+                    <Text
+                      style={[
+                        styles.selfReviewProgress,
+                        {color: colors.textSecondary},
+                      ]}>
+                      {sr.progressLabel
+                        .replace(
+                          '{{checked}}',
+                          String(Object.keys(selfReview.checkedIds).length),
+                        )
+                        .replace(
+                          '{{total}}',
+                          String(PREP_SELF_REVIEW_QUESTION_IDS.length),
+                        )}
+                    </Text>
+                  </TouchableOpacity>
+                  {selfReviewVisible && (
+                    <View style={styles.selfReviewList}>
+                      {PREP_SELF_REVIEW_CATEGORIES.map(category => (
+                        <View
+                          key={category.id}
+                          style={styles.selfReviewCategory}>
+                          <Text
+                            style={[
+                              styles.selfReviewCategoryLabel,
+                              {color: colors.textSecondary},
+                            ]}>
+                            {
+                              sr.categories[
+                                category.id as keyof typeof sr.categories
+                              ].label
+                            }
+                          </Text>
+                          {category.questionIds.map(id => {
+                            const checked = Boolean(selfReview.checkedIds[id]);
+                            return (
+                              <TouchableOpacity
+                                key={id}
+                                style={styles.selfReviewQuestionRow}
+                                onPress={() =>
+                                  handleToggleSelfReviewQuestion(id, !checked)
+                                }
+                                accessibilityRole="checkbox"
+                                accessibilityState={{checked}}
+                                accessibilityLabel={sr.questions[id].label}>
+                                <Ionicons
+                                  name={checked ? 'checkbox' : 'square-outline'}
+                                  size={20}
+                                  color={
+                                    checked
+                                      ? colors.primary
+                                      : colors.textSecondary
+                                  }
+                                />
+                                <Text
+                                  style={[
+                                    styles.selfReviewQuestionText,
+                                    {color: colors.text},
+                                  ]}>
+                                  {sr.questions[id].label}
+                                </Text>
+                              </TouchableOpacity>
+                            );
+                          })}
+                        </View>
+                      ))}
+                    </View>
+                  )}
+                </View>
+              )}
+
               {/* Modo púlpito — presenter view + duration estimate (premium). */}
               {(() => {
                 const pulpitWords = countPrepNotesWords(
@@ -3011,6 +3198,38 @@ const styles = StyleSheet.create({
   pulpitEnterText: {
     fontWeight: '700',
     fontSize: fontSizes.md,
+  },
+  selfReviewToggleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: spacing.sm,
+    marginTop: spacing.xs,
+  },
+  selfReviewToggleLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.xs,
+  },
+  selfReviewProgress: {fontSize: fontSizes.sm, fontWeight: '600'},
+  selfReviewList: {marginTop: spacing.md, gap: spacing.md},
+  selfReviewCategory: {gap: spacing.xs},
+  selfReviewCategoryLabel: {
+    fontSize: fontSizes.xs,
+    fontWeight: '700',
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+  },
+  selfReviewQuestionRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: spacing.sm,
+    paddingVertical: spacing.xs,
+  },
+  selfReviewQuestionText: {
+    flex: 1,
+    fontSize: fontSizes.sm,
+    lineHeight: fontSizes.sm * 1.45,
   },
   helpGroup: {marginBottom: spacing.md, gap: spacing.sm},
   helpGroupLabel: {
