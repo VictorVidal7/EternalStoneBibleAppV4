@@ -352,9 +352,13 @@ export default function ChapterReaderWeb() {
           </View>
         </ScrollView>
 
+        {/* `context="reader"` (the default) keeps every section shown here,
+            same as before the dictionary entry screen started reusing this
+            sheet — explicit for clarity at this call site. */}
         <ReaderPreferencesSheet
           visible={readerPrefsVisible}
           onClose={() => setReaderPrefsVisible(false)}
+          context="reader"
         />
       </View>
     </>

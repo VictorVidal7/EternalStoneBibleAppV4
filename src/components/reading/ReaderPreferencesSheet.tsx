@@ -27,6 +27,7 @@ import {Ionicons} from '@expo/vector-icons';
 import {haptics} from '@lib/haptics';
 import {
   useReaderPreferences,
+  DEFAULT_READER_PREFERENCES,
   READER_FONT_SIZE_MIN,
   READER_FONT_SIZE_MAX,
   READER_FONT_SIZE_STEP,
@@ -66,6 +67,22 @@ import {
 interface ReaderPreferencesSheetProps {
   visible: boolean;
   onClose: () => void;
+  /**
+   * Which screen opened the sheet. `'reader'` (the default — every existing
+   * call site keeps its current behavior unchanged) shows every section,
+   * including the ones only meaningful in the actual chapter reader.
+   * `'dictionary'` hides the audio (auto-immersive-on-listen), chapter-swipe
+   * navigation and red-letter sections — a dictionary entry has no audio
+   * playback, no next/previous chapter, and never renders scripture text
+   * with red-letter markup (see `app/features/dictionary/[slug].tsx`).
+   *
+   * Hiding a control here NEVER touches its stored value in
+   * `ReaderPreferencesContext` — only the header's "Restaurar"/reset button
+   * is scoped accordingly (see `handleReset` below), so a preference the
+   * dictionary sheet hides still applies correctly next time the user is
+   * back in the real reader.
+   */
+  context?: 'reader' | 'dictionary';
 }
 
 const LINE_HEIGHT_OPTIONS = [1.2, 1.4, 1.6, 1.8, 2.0];
@@ -73,6 +90,7 @@ const LINE_HEIGHT_OPTIONS = [1.2, 1.4, 1.6, 1.8, 2.0];
 export const ReaderPreferencesSheet: React.FC<ReaderPreferencesSheetProps> = ({
   visible,
   onClose,
+  context = 'reader',
 }) => {
   const {colors, isDark} = useTheme();
   const {t} = useLanguage();
@@ -216,6 +234,28 @@ export const ReaderPreferencesSheet: React.FC<ReaderPreferencesSheetProps> = ({
     fn();
   };
 
+  // Header "Restablecer"/reset button. In the reader context this is the
+  // existing global `reset()` — restores every field, including the
+  // sections shown only there. In the dictionary context only 6 sections are
+  // ever visible (theme/font/size/spacing/alignment/margins), so a reset
+  // here must ONLY touch those 6 — calling the global `reset()` would also
+  // silently clobber autoImmersiveOnListen/swipeChapterNavigation/
+  // redLetterWords, whose controls aren't even on screen, breaking those
+  // preferences the next time the user is back in the real reader.
+  const handleReset =
+    context === 'dictionary'
+      ? () => {
+          setFontFamily(DEFAULT_READER_PREFERENCES.fontFamily);
+          setFontSize(DEFAULT_READER_PREFERENCES.fontSize);
+          setLineHeightMultiplier(
+            DEFAULT_READER_PREFERENCES.lineHeightMultiplier,
+          );
+          setTextAlign(DEFAULT_READER_PREFERENCES.textAlign);
+          setMargin(DEFAULT_READER_PREFERENCES.margin);
+          setTheme(DEFAULT_READER_PREFERENCES.theme);
+        }
+      : reset;
+
   // Lets a screen reader treat the font-size stepper as one "adjustable"
   // control (swipe up/down), mirroring the audio VerseScrubber.
   const onFontSizeAction = (e: AccessibilityActionEvent) => {
@@ -294,7 +334,7 @@ export const ReaderPreferencesSheet: React.FC<ReaderPreferencesSheetProps> = ({
             </Text>
             <View style={styles.headerActions}>
               <TouchableOpacity
-                onPress={tap(reset)}
+                onPress={tap(handleReset)}
                 accessibilityRole="button"
                 accessibilityLabel={t.readerPrefs.reset}>
                 <Text style={[styles.resetText, {color: colors.primary}]}>
@@ -677,122 +717,148 @@ export const ReaderPreferencesSheet: React.FC<ReaderPreferencesSheetProps> = ({
               </View>
             </Section>
 
-            {/* 🎧 Auto-immersive on listen (Sprint 77, opt-in): tapping the
-                reader's Audio button also opens the immersive reader, which
-                binds it to the engine before the first ∞ advance. */}
-            <Section title={t.readerPrefs.audioSection} colors={colors}>
-              <View style={styles.switchRow}>
-                <View style={styles.switchTextWrap}>
-                  <Text style={[styles.optionLabelBold, {color: colors.text}]}>
-                    {t.readerPrefs.autoImmersive}
-                  </Text>
-                  <Text
-                    style={[styles.switchHint, {color: colors.textSecondary}]}>
-                    {t.readerPrefs.autoImmersiveHint}
-                  </Text>
-                </View>
-                <Switch
-                  value={preferences.autoImmersiveOnListen}
-                  onValueChange={tap(() =>
-                    setAutoImmersiveOnListen(
-                      !preferences.autoImmersiveOnListen,
-                    ),
-                  )}
-                  trackColor={{
-                    false: colors.border,
-                    true: colors.primary + '70',
-                  }}
-                  thumbColor={
-                    preferences.autoImmersiveOnListen
-                      ? colors.primary
-                      : colors.surfaceVariant
-                  }
-                  accessibilityLabel={t.readerPrefs.autoImmersive}
-                  accessibilityHint={t.readerPrefs.autoImmersiveHint}
-                />
-              </View>
-            </Section>
+            {/* The next 3 sections only apply in the actual chapter reader —
+                a dictionary entry has no audio/Listen affordance, no
+                next/previous chapter, and never renders scripture text with
+                red-letter markup (see [slug].tsx's doc comment + this file's
+                `context` prop). Hidden, not disabled, for `'dictionary'` —
+                and hiding never touches the underlying preference value
+                (see `handleReset` above for the one related safeguard, the
+                header reset button). */}
+            {context !== 'dictionary' && (
+              <>
+                {/* 🎧 Auto-immersive on listen (Sprint 77, opt-in): tapping the
+                    reader's Audio button also opens the immersive reader, which
+                    binds it to the engine before the first ∞ advance. */}
+                <Section title={t.readerPrefs.audioSection} colors={colors}>
+                  <View style={styles.switchRow}>
+                    <View style={styles.switchTextWrap}>
+                      <Text
+                        style={[styles.optionLabelBold, {color: colors.text}]}>
+                        {t.readerPrefs.autoImmersive}
+                      </Text>
+                      <Text
+                        style={[
+                          styles.switchHint,
+                          {color: colors.textSecondary},
+                        ]}>
+                        {t.readerPrefs.autoImmersiveHint}
+                      </Text>
+                    </View>
+                    <Switch
+                      value={preferences.autoImmersiveOnListen}
+                      onValueChange={tap(() =>
+                        setAutoImmersiveOnListen(
+                          !preferences.autoImmersiveOnListen,
+                        ),
+                      )}
+                      trackColor={{
+                        false: colors.border,
+                        true: colors.primary + '70',
+                      }}
+                      thumbColor={
+                        preferences.autoImmersiveOnListen
+                          ? colors.primary
+                          : colors.surfaceVariant
+                      }
+                      accessibilityLabel={t.readerPrefs.autoImmersive}
+                      accessibilityHint={t.readerPrefs.autoImmersiveHint}
+                    />
+                  </View>
+                </Section>
 
-            {/* 👉 Swipe to change chapter (opt-in, default off): the gesture
-                only claims the middle band of the screen width so it never
-                fights the Android system back-gesture, which owns the outer
-                edge strip (see chapterSwipeGesture). */}
-            <Section title={t.readerPrefs.navigationSection} colors={colors}>
-              <View style={styles.switchRow}>
-                <View style={styles.switchTextWrap}>
-                  <Text style={[styles.optionLabelBold, {color: colors.text}]}>
-                    {t.readerPrefs.swipeChapterNav}
-                  </Text>
-                  <Text
-                    style={[styles.switchHint, {color: colors.textSecondary}]}>
-                    {t.readerPrefs.swipeChapterNavHint}
-                  </Text>
-                </View>
-                <Switch
-                  value={preferences.swipeChapterNavigation}
-                  onValueChange={tap(() =>
-                    setSwipeChapterNavigation(
-                      !preferences.swipeChapterNavigation,
-                    ),
-                  )}
-                  trackColor={{
-                    false: colors.border,
-                    true: colors.primary + '70',
-                  }}
-                  thumbColor={
-                    preferences.swipeChapterNavigation
-                      ? colors.primary
-                      : colors.surfaceVariant
-                  }
-                  accessibilityLabel={t.readerPrefs.swipeChapterNav}
-                  accessibilityHint={t.readerPrefs.swipeChapterNavHint}
-                />
-              </View>
-            </Section>
+                {/* 👉 Swipe to change chapter (opt-in, default off): the gesture
+                    only claims the middle band of the screen width so it never
+                    fights the Android system back-gesture, which owns the outer
+                    edge strip (see chapterSwipeGesture). */}
+                <Section
+                  title={t.readerPrefs.navigationSection}
+                  colors={colors}>
+                  <View style={styles.switchRow}>
+                    <View style={styles.switchTextWrap}>
+                      <Text
+                        style={[styles.optionLabelBold, {color: colors.text}]}>
+                        {t.readerPrefs.swipeChapterNav}
+                      </Text>
+                      <Text
+                        style={[
+                          styles.switchHint,
+                          {color: colors.textSecondary},
+                        ]}>
+                        {t.readerPrefs.swipeChapterNavHint}
+                      </Text>
+                    </View>
+                    <Switch
+                      value={preferences.swipeChapterNavigation}
+                      onValueChange={tap(() =>
+                        setSwipeChapterNavigation(
+                          !preferences.swipeChapterNavigation,
+                        ),
+                      )}
+                      trackColor={{
+                        false: colors.border,
+                        true: colors.primary + '70',
+                      }}
+                      thumbColor={
+                        preferences.swipeChapterNavigation
+                          ? colors.primary
+                          : colors.surfaceVariant
+                      }
+                      accessibilityLabel={t.readerPrefs.swipeChapterNav}
+                      accessibilityHint={t.readerPrefs.swipeChapterNavHint}
+                    />
+                  </View>
+                </Section>
 
-            {/* ✝️ Red-letter words (opt-out, default on — a well-known
-                Bible convention). Only visibly takes effect on WEB and
-                RVR1960, the reading versions with the underlying marking
-                today — disabled (not hidden, so it stays discoverable) on
-                every other version, with a hint that says how to enable it. */}
-            <Section title={t.readerPrefs.redLetterSection} colors={colors}>
-              <View style={styles.switchRow}>
-                <View style={styles.switchTextWrap}>
-                  <Text style={[styles.optionLabelBold, {color: colors.text}]}>
-                    {t.readerPrefs.redLetterWords}
-                  </Text>
-                  <Text
-                    style={[styles.switchHint, {color: colors.textSecondary}]}>
-                    {isRedLetterAvailable
-                      ? t.readerPrefs.redLetterWordsHint
-                      : t.readerPrefs.redLetterWordsUnavailableHint}
-                  </Text>
-                </View>
-                <Switch
-                  value={preferences.redLetterWords}
-                  onValueChange={tap(() =>
-                    setRedLetterWords(!preferences.redLetterWords),
-                  )}
-                  disabled={!isRedLetterAvailable}
-                  trackColor={{
-                    false: colors.border,
-                    true: colors.primary + '70',
-                  }}
-                  thumbColor={
-                    preferences.redLetterWords
-                      ? colors.primary
-                      : colors.surfaceVariant
-                  }
-                  accessibilityLabel={t.readerPrefs.redLetterWords}
-                  accessibilityHint={
-                    isRedLetterAvailable
-                      ? t.readerPrefs.redLetterWordsHint
-                      : t.readerPrefs.redLetterWordsUnavailableHint
-                  }
-                  accessibilityState={{disabled: !isRedLetterAvailable}}
-                />
-              </View>
-            </Section>
+                {/* ✝️ Red-letter words (opt-out, default on — a well-known
+                    Bible convention). Only visibly takes effect on WEB and
+                    RVR1960, the reading versions with the underlying marking
+                    today — disabled (not hidden, so it stays discoverable) on
+                    every other version, with a hint that says how to enable it. */}
+                <Section title={t.readerPrefs.redLetterSection} colors={colors}>
+                  <View style={styles.switchRow}>
+                    <View style={styles.switchTextWrap}>
+                      <Text
+                        style={[styles.optionLabelBold, {color: colors.text}]}>
+                        {t.readerPrefs.redLetterWords}
+                      </Text>
+                      <Text
+                        style={[
+                          styles.switchHint,
+                          {color: colors.textSecondary},
+                        ]}>
+                        {isRedLetterAvailable
+                          ? t.readerPrefs.redLetterWordsHint
+                          : t.readerPrefs.redLetterWordsUnavailableHint}
+                      </Text>
+                    </View>
+                    <Switch
+                      value={preferences.redLetterWords}
+                      onValueChange={tap(() =>
+                        setRedLetterWords(!preferences.redLetterWords),
+                      )}
+                      disabled={!isRedLetterAvailable}
+                      trackColor={{
+                        false: colors.border,
+                        true: colors.primary + '70',
+                      }}
+                      thumbColor={
+                        preferences.redLetterWords
+                          ? colors.primary
+                          : colors.surfaceVariant
+                      }
+                      accessibilityLabel={t.readerPrefs.redLetterWords}
+                      accessibilityHint={
+                        isRedLetterAvailable
+                          ? t.readerPrefs.redLetterWordsHint
+                          : t.readerPrefs.redLetterWordsUnavailableHint
+                      }
+                      accessibilityState={{disabled: !isRedLetterAvailable}}
+                    />
+                  </View>
+                </Section>
+              </>
+            )}
           </ScrollView>
         </View>
       </View>

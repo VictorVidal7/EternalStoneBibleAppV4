@@ -735,10 +735,15 @@ export default function DictionaryDetailScreen() {
         </ScrollView>
 
         {/* Aa reading preferences — same global sheet/store as the verse
-            reader (app/(tabs)/verse/[book]/[chapter].tsx). */}
+            reader (app/(tabs)/verse/[book]/[chapter].tsx). `context=
+            "dictionary"` hides the audio/chapter-swipe/red-letter sections,
+            which don't apply to a dictionary entry (no Listen affordance, no
+            next/previous chapter, no scripture text with red-letter
+            markup) — see ReaderPreferencesSheet's own `context` prop doc. */}
         <ReaderPreferencesSheet
           visible={readerPrefsVisible}
           onClose={() => setReaderPrefsVisible(false)}
+          context="dictionary"
         />
       </View>
     </>

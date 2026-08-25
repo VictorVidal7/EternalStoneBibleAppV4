@@ -3618,10 +3618,14 @@ export default function VerseReadingScreen() {
           />
         </Modal>
 
-        {/* Reader Preferences Sheet — Sprint 31 typography + layout knobs. */}
+        {/* Reader Preferences Sheet — Sprint 31 typography + layout knobs.
+            `context="reader"` (the default) keeps every section shown here,
+            same as before the dictionary entry screen started reusing this
+            sheet — explicit for clarity at this call site. */}
         <ReaderPreferencesSheet
           visible={readerPrefsVisible}
           onClose={() => setReaderPrefsVisible(false)}
+          context="reader"
         />
 
         {/* Bottom Navigation - hides on scroll down or when selection is active */}
