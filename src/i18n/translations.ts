@@ -3901,6 +3901,15 @@ export const translations = {
       footerText: 'Hecho con ❤️ para la gloria de Dios',
       footerVerse:
         '"Toda la Escritura es inspirada por Dios"\n- 2 Timoteo 3:16',
+
+      // Zero-backend bug/feedback entry point — a plain `mailto:` link, not
+      // a Firestore-backed inbox (standing rule: minimize Firestore sync).
+      feedback: {
+        rowLabel: 'Reportar un problema',
+        emailSubject: 'Eternal Stone Bible — Reporte de problema',
+        bodyVersionLabel: 'Versión de la app:',
+        bodyPlatformLabel: 'Plataforma:',
+      },
     },
 
     // Verse Reading Screen
@@ -10134,6 +10143,15 @@ export const translations = {
       viewGitHub: 'View on GitHub',
       footerText: 'Made with ❤️ for the glory of God',
       footerVerse: '"All Scripture is God-breathed"\n- 2 Timothy 3:16',
+
+      // Zero-backend bug/feedback entry point — a plain `mailto:` link, not
+      // a Firestore-backed inbox (standing rule: minimize Firestore sync).
+      feedback: {
+        rowLabel: 'Report a problem',
+        emailSubject: 'Eternal Stone Bible — Issue Report',
+        bodyVersionLabel: 'App version:',
+        bodyPlatformLabel: 'Platform:',
+      },
     },
 
     // Verse Reading Screen

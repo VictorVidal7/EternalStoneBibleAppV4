@@ -37,6 +37,7 @@ import FunctionalidadesSettings from '@components/settings/FunctionalidadesSetti
 import ColorThemeSettings from '@components/settings/ColorThemeSettings';
 import AccessibilitySettings from '@components/settings/AccessibilitySettings';
 import DataSettings from '@components/settings/DataSettings';
+import FeedbackRow from '@components/settings/FeedbackRow';
 import {haptics} from '@lib/haptics';
 import Constants from 'expo-constants';
 import * as Clipboard from 'expo-clipboard';
@@ -851,6 +852,11 @@ export default function SettingsScreen() {
                 {t.settings.description}
               </Text>
             </View>
+
+            {/* Zero-backend bug/feedback entry point — see FeedbackRow's
+                header comment for why this is a plain mailto: link rather
+                than a Firestore-backed inbox. */}
+            <FeedbackRow />
 
             {/* Dev-only Crashlytics smoke test. __DEV__ keeps it out of
                 production builds; the long-press requirement keeps it
