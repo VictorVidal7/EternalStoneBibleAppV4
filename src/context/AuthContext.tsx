@@ -62,7 +62,7 @@ export interface AuthUser {
 export interface AuthContextValue {
   user: AuthUser | null;
   isLoading: boolean;
-  signInWithGoogle: () => Promise<void>;
+  signInWithGoogle: () => Promise<AuthUser | null>;
   signOut: () => Promise<void>;
   deleteAccount: () => Promise<void>;
 }
@@ -361,18 +361,20 @@ export function AuthProvider({children}: AuthProviderProps) {
         }
         // updateProfile() doesn't reliably re-fire onAuthStateChanged, so
         // update local state directly instead of waiting for a listener
-        // event that may never come.
-        setUser(prev =>
-          prev
-            ? {
-                ...prev,
-                isAnonymous: false,
-                displayName: profile.displayName ?? prev.displayName,
-                photoURL: profile.photoURL ?? prev.photoURL,
-              }
-            : prev,
-        );
-        return;
+        // event that may never come. Also RETURN the merged user directly
+        // (rather than relying on a caller's own `user` from context) —
+        // that context value is a stale closure until the next render, so
+        // a caller reading it immediately after this resolves (e.g. for a
+        // "Welcome, {name}!" toast) would see the pre-sign-in value.
+        const mergedUser: AuthUser = {
+          uid: current.uid,
+          isAnonymous: false,
+          displayName: profile.displayName ?? current.displayName ?? null,
+          email: current.email ?? null,
+          photoURL: profile.photoURL ?? current.photoURL ?? null,
+        };
+        setUser(prev => (prev ? mergedUser : prev));
+        return mergedUser;
       } catch (err: any) {
         if (err?.code !== 'auth/credential-already-in-use') {
           throw err;
@@ -426,6 +428,11 @@ export function AuthProvider({children}: AuthProviderProps) {
     }
 
     await authMod().signInWithCredential(credential);
+    // Same reasoning as the linked-anonymous-account return above: return
+    // the fresh user directly instead of making the caller read `user`
+    // from context, which won't reflect this sign-in until the
+    // onAuthStateChanged listener fires and this provider re-renders.
+    return mapFirebaseUser(authMod().currentUser);
   }, [askMigration]);
 
   const signOut = useCallback(async () => {

@@ -137,11 +137,15 @@ export default function SettingsScreen() {
     setIsAuthenticating(true);
     try {
       haptics.press();
-      await signInWithGoogle();
+      const signedInUser = await signInWithGoogle();
       toast.success(
         t.auth.signedInToast.replace(
           '{{name}}',
-          user?.displayName ?? user?.email ?? '',
+          signedInUser?.displayName ??
+            signedInUser?.email ??
+            user?.displayName ??
+            user?.email ??
+            '',
         ),
       );
     } catch (err: any) {

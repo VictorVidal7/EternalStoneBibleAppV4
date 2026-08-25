@@ -137,6 +137,7 @@ import {
   useAuth,
   mapFirebaseUser,
   extractIdToken,
+  type AuthUser,
 } from '../src/context/AuthContext';
 
 // Spy on the real logger — the lazy Crashlytics require returns null
@@ -436,7 +437,7 @@ describe('AuthProvider', () => {
     flushListenerWith(mockCurrentUser);
     await waitFor(() => expect(ref.current?.user?.uid).toBe('anon-decline'));
 
-    let signInPromise!: Promise<void>;
+    let signInPromise!: Promise<AuthUser | null>;
     act(() => {
       signInPromise = ref.current!.signInWithGoogle();
     });
@@ -482,7 +483,7 @@ describe('AuthProvider', () => {
     flushListenerWith(mockCurrentUser);
     await waitFor(() => expect(ref.current?.user?.uid).toBe('anon-accept'));
 
-    let signInPromise!: Promise<void>;
+    let signInPromise!: Promise<AuthUser | null>;
     act(() => {
       signInPromise = ref.current!.signInWithGoogle();
     });
