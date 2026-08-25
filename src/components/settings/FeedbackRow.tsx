@@ -21,9 +21,10 @@ import {useTheme} from '@hooks/useTheme';
 import {useLanguage} from '@hooks/useLanguage';
 import {haptics} from '@lib/haptics';
 
-// Single named constant for the destination address — swap this to a
-// dedicated support alias later without hunting through the codebase.
-export const FEEDBACK_EMAIL = 'victorvdu@gmail.com';
+// Single named constant for the destination address — the app's public
+// contact alias (Play Console store-listing contact), not Victor's raw
+// personal address.
+export const FEEDBACK_EMAIL = 'victorvdu+eternalstone@gmail.com';
 
 export default function FeedbackRow() {
   const {colors} = useTheme();
