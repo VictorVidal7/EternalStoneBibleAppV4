@@ -45,7 +45,12 @@ jest.mock('expo-router', () => {
   };
 });
 
-jest.mock('@expo/vector-icons', () => ({Ionicons: () => null}));
+jest.mock('@expo/vector-icons', () => ({
+  Ionicons: () => null,
+  // The Markdown format toolbar next to each section's note input renders
+  // MaterialCommunityIcons — stub it the same no-op way as Ionicons above.
+  MaterialCommunityIcons: () => null,
+}));
 
 jest.mock('expo-linear-gradient', () => {
   const {View} = require('react-native');

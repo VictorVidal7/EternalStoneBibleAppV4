@@ -2013,6 +2013,13 @@ export const translations = {
       exportDialogTitle: 'Compartir notas de sermón',
       generatedWith: 'Eternal Bible · Notas de sermón',
     },
+    // Markdown format toolbar (shared by sermon notes + prep table notes)
+    markdownToolbar: {
+      bold: 'Negrita',
+      italic: 'Cursiva',
+      bulletList: 'Lista con viñetas',
+      heading: 'Encabezado',
+    },
     shareFaith: {
       cardTitle: 'Comparte tu fe',
       cardSubtitle: 'Preguntas comunes y tu propio testimonio',
@@ -8263,6 +8270,13 @@ export const translations = {
       exportLabel: 'Export as Markdown',
       exportDialogTitle: 'Share sermon notes',
       generatedWith: 'Eternal Bible · Sermon notes',
+    },
+    // Markdown format toolbar (shared by sermon notes + prep table notes)
+    markdownToolbar: {
+      bold: 'Bold',
+      italic: 'Italic',
+      bulletList: 'Bullet list',
+      heading: 'Heading',
     },
     shareFaith: {
       cardTitle: 'Share your faith',
