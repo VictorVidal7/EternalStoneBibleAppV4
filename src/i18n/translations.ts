@@ -1303,6 +1303,82 @@ export const translations = {
       sectionNavHint: 'Ir a esta sección',
     },
 
+    prepSelfReview: {
+      cardTitle: 'Autorrevisión antes de predicar',
+      cardSubtitle:
+        'Un chequeo silencioso para ti mismo: nunca se califica ni se comparte, solo queda en este dispositivo.',
+      showToggle: 'Ver checklist de autorrevisión',
+      hideToggle: 'Ocultar checklist de autorrevisión',
+      progressLabel: '{{checked}}/{{total}} revisadas',
+      categories: {
+        narrativeStructure: {label: 'Estructura narrativa'},
+        textFidelity: {label: 'Fidelidad al texto'},
+        bigIdeaUnity: {label: 'Idea central y unidad'},
+        christCentered: {label: 'Cristocentricidad'},
+        application: {label: 'Aplicación'},
+        discussionQuestions: {label: 'Preguntas para el grupo'},
+        delivery: {label: 'Entrega y ritmo'},
+      },
+      questions: {
+        tensionBeforeResolution: {
+          label:
+            '¿Ya planteaste con claridad la pregunta o necesidad que tu mensaje resuelve ANTES de ofrecer la resolución, o llegaste a la respuesta antes de que tu oyente sintiera la necesidad de ella?',
+        },
+        oneMovement: {
+          label:
+            '¿Tu mensaje avanza en una sola línea de principio a fin, o en algún punto se bifurca en dos caminos que compiten por la atención del oyente?',
+        },
+        pointsTraceToText: {
+          label:
+            '¿Puedes señalar, verso por verso, en qué parte exacta del pasaje se apoya cada punto de tu bosquejo?',
+        },
+        outsideIdeaDependency: {
+          label:
+            'Si quitaras del bosquejo todo lo que no viene directamente del pasaje, ¿cuánto quedaría en pie?',
+        },
+        contextBeforeBigIdea: {
+          label:
+            '¿Revisaste el contexto anterior y posterior del pasaje antes de fijar tu idea central, o la fijaste primero y buscaste apoyo después?',
+        },
+        bigIdeaOneSentence: {
+          label:
+            '¿Puedes decir la idea central de tu mensaje en una sola oración, sin usar "y" para unir dos ideas distintas?',
+        },
+        everySectionServesBigIdea: {
+          label:
+            '¿Cada sección de tu bosquejo apunta a esa misma idea central, o hay alguna que en el fondo predica otro mensaje?',
+        },
+        christConnectionSpecific: {
+          label:
+            'Tu conexión con Cristo en este punto, ¿nace de algo particular de este pasaje, o es una fórmula que podrías pegar igual en cualquier otro mensaje sin cambiar una palabra?',
+        },
+        applicationConcrete: {
+          label:
+            '¿Tu aplicación pide algo que la persona puede identificar haciendo esta semana, o se queda flotando en una idea general?',
+        },
+        applicationTiedToText: {
+          label:
+            'Esa aplicación, ¿depende de la idea central de este pasaje, o funcionaría exactamente igual pegada al final de cualquier otro sermón?',
+        },
+        applyToSelfFirst: {
+          label:
+            '¿Le vas a pedir a tu oyente algo que tú mismo no has examinado primero en tu propia vida esta semana?',
+        },
+        discussionQuestionsOpen: {
+          label:
+            'De las preguntas para el grupo que TÚ redactaste (no el guion de observación-interpretación-aplicación que la app ya te ofrece como punto de partida), ¿dejan espacio real para que el oyente descubra la respuesta, o ya vienen con la respuesta escondida dentro de la propia pregunta?',
+        },
+        rehearsedAloud: {
+          label:
+            '¿Practicaste el mensaje completo en voz alta, cronómetro en mano, al menos una vez antes de subir al púlpito?',
+        },
+        sectionTiming: {
+          label:
+            '¿Sabes cuánto tiempo debería durar cada sección de tu bosquejo, para no quedarte sin minutos antes de llegar a la aplicación?',
+        },
+      },
+    },
+
     prepIllustrations: {
       title: 'Banco de ilustraciones',
       entryLabel: 'Banco de ilustraciones',
@@ -7570,6 +7646,82 @@ export const translations = {
       darkBackgroundToggle: 'Dark background',
       elapsedLabel: 'Elapsed time',
       sectionNavHint: 'Jump to this section',
+    },
+
+    prepSelfReview: {
+      cardTitle: 'Self-review before preaching',
+      cardSubtitle:
+        "A silent check for yourself: it's never graded or shared, it only stays on this device.",
+      showToggle: 'View self-review checklist',
+      hideToggle: 'Hide self-review checklist',
+      progressLabel: '{{checked}}/{{total}} reviewed',
+      categories: {
+        narrativeStructure: {label: 'Narrative structure'},
+        textFidelity: {label: 'Fidelity to the text'},
+        bigIdeaUnity: {label: 'Big idea and unity'},
+        christCentered: {label: 'Christ-centeredness'},
+        application: {label: 'Application'},
+        discussionQuestions: {label: 'Discussion questions'},
+        delivery: {label: 'Delivery and pacing'},
+      },
+      questions: {
+        tensionBeforeResolution: {
+          label:
+            'Have you clearly raised the question or need your message resolves BEFORE offering the resolution, or did you arrive at the answer before your listener felt the need for it?',
+        },
+        oneMovement: {
+          label:
+            "Does your message move in a single line from start to finish, or does it split at some point into two paths competing for the listener's attention?",
+        },
+        pointsTraceToText: {
+          label:
+            'Can you point, verse by verse, to the exact part of the passage each point in your outline rests on?',
+        },
+        outsideIdeaDependency: {
+          label:
+            "If you removed from your outline everything that doesn't come directly from the passage, how much would still be standing?",
+        },
+        contextBeforeBigIdea: {
+          label:
+            "Did you review the passage's surrounding context before settling on your big idea, or did you settle on it first and look for support afterward?",
+        },
+        bigIdeaOneSentence: {
+          label:
+            'Can you state your message\'s big idea in a single sentence, without using "and" to join two distinct ideas?',
+        },
+        everySectionServesBigIdea: {
+          label:
+            'Does every section of your outline point back to that same big idea, or is there one that, underneath, preaches a different message?',
+        },
+        christConnectionSpecific: {
+          label:
+            'Does your connection to Christ at this point arise from something particular to this passage, or is it a formula you could paste into any other message without changing a word?',
+        },
+        applicationConcrete: {
+          label:
+            'Does your application ask for something the person can identify doing this week, or does it stay floating in a general idea?',
+        },
+        applicationTiedToText: {
+          label:
+            "Does that application depend on this passage's big idea, or would it work exactly the same tacked onto the end of any other sermon?",
+        },
+        applyToSelfFirst: {
+          label:
+            'Are you about to ask your listener for something you yourself have not first examined in your own life this week?',
+        },
+        discussionQuestionsOpen: {
+          label:
+            'Of the discussion questions YOU wrote (not the observation-interpretation-application script the app already offers as a starting point), do they leave real room for the listener to discover the answer, or does the answer already come hidden inside the question itself?',
+        },
+        rehearsedAloud: {
+          label:
+            'Did you rehearse the complete message out loud, stopwatch in hand, at least once before stepping into the pulpit?',
+        },
+        sectionTiming: {
+          label:
+            "Do you know how long each section of your outline should take, so you don't run out of minutes before reaching the application?",
+        },
+      },
     },
 
     prepIllustrations: {
