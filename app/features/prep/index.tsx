@@ -58,6 +58,7 @@ import {haptics} from '@lib/haptics';
 import {AppText} from '@components/ui/AppText';
 import {ExpandableVerseText} from '@components/ui/ExpandableVerseText';
 import {OfferingBadge} from '@components/ui/OfferingBadge';
+import {MarkdownFormatToolbar} from '@components/ui/MarkdownFormatToolbar';
 import {ContextualHintBanner} from '@components/hints/ContextualHintBanner';
 import {useContextualHint} from '@hooks/useContextualHint';
 import bibleDB from '@lib/database';
@@ -341,6 +342,32 @@ export default function PrepTableScreen() {
   } | null>(null);
   const [drafts, setDrafts] = useState<Partial<Record<PrepSection, string>>>(
     {},
+  );
+  // Per-section selection range + TextInput ref for the Markdown format
+  // toolbar — keyed by section since `templateSections.map` renders one
+  // note input (and one toolbar) per outline section. Each section gets ONE
+  // stable ref OBJECT (created lazily, memoized for the component's whole
+  // lifetime) rather than a plain `TextInput | null` map — React accepts a
+  // ref object directly on `ref=`, and the SAME object is handed to the
+  // toolbar, so both always see the current instance with no extra plumbing.
+  // A section with no recorded selection yet falls back to the END of its
+  // current draft (not a hardcoded {0, 0}) at each call site below, so
+  // pressing a toolbar button before ever focusing that section's field
+  // inserts after the loaded note, not at its very start.
+  const [noteSelections, setNoteSelections] = useState<
+    Partial<Record<PrepSection, {start: number; end: number}>>
+  >({});
+  const noteInputRefs = useRef<
+    Partial<Record<PrepSection, React.RefObject<TextInput | null>>>
+  >({}).current;
+  const getNoteInputRef = useCallback(
+    (section: PrepSection): React.RefObject<TextInput | null> => {
+      if (!noteInputRefs[section]) {
+        noteInputRefs[section] = {current: null};
+      }
+      return noteInputRefs[section]!;
+    },
+    [noteInputRefs],
   );
   // Tanda "plantillas de sermón" — the CURRENT entry's homiletic structure.
   // Resolved from storage in `load()` (unconditionally, so switching passages
@@ -1009,6 +1036,13 @@ export default function PrepTableScreen() {
       );
     },
     [table, drafts, template],
+  );
+
+  const handleNoteSelectionChange = useCallback(
+    (section: PrepSection, sel: {start: number; end: number}) => {
+      setNoteSelections(prev => ({...prev, [section]: sel}));
+    },
+    [],
   );
 
   const headerGradient: readonly [string, string, ...string[]] = highContrast
@@ -2333,7 +2367,23 @@ export default function PrepTableScreen() {
 
                     {renderHelpsForSection(section)}
 
+                    <MarkdownFormatToolbar
+                      value={drafts[section] ?? ''}
+                      selection={
+                        noteSelections[section] ?? {
+                          start: (drafts[section] ?? '').length,
+                          end: (drafts[section] ?? '').length,
+                        }
+                      }
+                      inputRef={getNoteInputRef(section)}
+                      onChangeText={value => handleNoteChange(section, value)}
+                      onSelectionChange={sel =>
+                        handleNoteSelectionChange(section, sel)
+                      }
+                      style={styles.markdownToolbar}
+                    />
                     <TextInput
+                      ref={getNoteInputRef(section)}
                       style={[
                         styles.noteInput,
                         {
@@ -2344,6 +2394,12 @@ export default function PrepTableScreen() {
                       ]}
                       value={drafts[section] ?? ''}
                       onChangeText={value => handleNoteChange(section, value)}
+                      onSelectionChange={e =>
+                        handleNoteSelectionChange(
+                          section,
+                          e.nativeEvent.selection,
+                        )
+                      }
                       onBlur={() => handleNoteBlur(section)}
                       placeholder={p.notePlaceholder}
                       placeholderTextColor={colors.textTertiary}
@@ -3104,6 +3160,7 @@ const styles = StyleSheet.create({
     textTransform: 'uppercase',
     letterSpacing: 0.3,
   },
+  markdownToolbar: {marginBottom: spacing.xs},
   noteInput: {
     minHeight: 88,
     borderRadius: borderRadius.md,

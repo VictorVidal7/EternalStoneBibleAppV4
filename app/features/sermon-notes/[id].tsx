@@ -24,7 +24,7 @@
  * Para la gloria de Dios Todopoderoso ✨
  */
 
-import {useCallback, useEffect, useMemo, useState} from 'react';
+import {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {
   View,
   Text,
@@ -48,6 +48,7 @@ import {useBibleVersion} from '@hooks/useBibleVersion';
 import {haptics} from '@lib/haptics';
 import {AppText} from '@components/ui/AppText';
 import {ConfirmDialog} from '@components/ui/ConfirmDialog';
+import {MarkdownFormatToolbar} from '@components/ui/MarkdownFormatToolbar';
 import {getBookByName} from '@/constants/bible';
 import {
   getSermonNote,
@@ -91,6 +92,15 @@ export default function SermonNoteEditorScreen() {
   const [title, setTitle] = useState('');
   const [source, setSource] = useState('');
   const [bodyText, setBodyText] = useState('');
+  const bodyInputRef = useRef<TextInput>(null);
+  // Null until the field is first focused/selected (or a toolbar button is
+  // pressed) — falls back to the END of the current text below rather than
+  // a hardcoded {0, 0}, so pressing a toolbar button before ever tapping
+  // into the field inserts after the loaded notes, not at their very start.
+  const [bodySelection, setBodySelection] = useState<{
+    start: number;
+    end: number;
+  } | null>(null);
   const [insertDraft, setInsertDraft] = useState('');
   const [insertError, setInsertError] = useState('');
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
@@ -454,9 +464,21 @@ export default function SermonNoteEditorScreen() {
               )}
             </View>
 
+            <MarkdownFormatToolbar
+              value={bodyText}
+              selection={
+                bodySelection ?? {start: bodyText.length, end: bodyText.length}
+              }
+              inputRef={bodyInputRef}
+              onChangeText={handleBodyChange}
+              onSelectionChange={setBodySelection}
+              style={styles.markdownToolbar}
+            />
             <TextInput
+              ref={bodyInputRef}
               value={bodyText}
               onChangeText={handleBodyChange}
+              onSelectionChange={e => setBodySelection(e.nativeEvent.selection)}
               placeholder={h.bodyPlaceholder}
               placeholderTextColor={colors.textTertiary}
               style={[
@@ -600,6 +622,7 @@ const styles = StyleSheet.create({
     paddingVertical: 4,
   },
   chipText: {fontSize: fontSizes.xs, fontWeight: '600'},
+  markdownToolbar: {marginTop: spacing.md},
   bodyInput: {
     minHeight: 260,
     borderWidth: StyleSheet.hairlineWidth,
