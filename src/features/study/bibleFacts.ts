@@ -97,8 +97,14 @@ export const BIBLE_FACTS: readonly BibleFact[] = [
 
   // ── Comentario (BORRADOR — pendiente de revisión doctrinal, no publicado) ──
   // These 5 entries are placeholder seed data added to prove the feature
-  // shell end-to-end. NOT reviewed/approved by Victor yet — see this
-  // module's file comment + the branch's commit message before shipping.
+  // shell end-to-end. `draft: true` means getFactsByCategory()/
+  // getRotatableFacts() hide them from every real-user-facing surface
+  // (browsable index, "Dato del día", notifications) — un-draft only after
+  // Victor's per-entry doctrinal/editorial sign-off. (Note: commit ac174b4's
+  // message says the prose was reviewed before this catalog was built, but
+  // the sign-off this flag gates is a separate, still-open step — see the
+  // `draft` field doc above. Resolve which record is authoritative with
+  // Victor before ever flipping these to `draft: false`.)
   {
     id: 'gods-costly-gift',
     category: 'commentary',
@@ -172,13 +178,18 @@ export interface FactCategorySection {
 
 /**
  * The catalog grouped by category, in {@link FACT_CATEGORY_ORDER}, each entry
- * carrying its GLOBAL index in {@link BIBLE_FACTS}. Pure.
+ * carrying its GLOBAL index in {@link BIBLE_FACTS}. Excludes BORRADOR/
+ * unreviewed entries (`draft: true`) — same rule as {@link getRotatableFacts}
+ * — so the browsable "¿Sabías qué?" index never surfaces content still
+ * pending Victor's per-entry doctrinal/editorial sign-off to real users. A
+ * category whose only entries are currently draft (e.g. `commentary`, until
+ * reviewed) simply doesn't appear. Pure.
  */
 export function getFactsByCategory(): FactCategorySection[] {
   return FACT_CATEGORY_ORDER.map(category => ({
     category,
     entries: BIBLE_FACTS.map((fact, index) => ({fact, index})).filter(
-      e => e.fact.category === category,
+      e => e.fact.category === category && !e.fact.draft,
     ),
   })).filter(section => section.entries.length > 0);
 }
@@ -186,8 +197,9 @@ export function getFactsByCategory(): FactCategorySection[] {
 /**
  * Facts eligible for "Dato del día" rotation — excludes BORRADOR/unreviewed
  * entries (`draft: true`) so the Home tile subtitle and the hero card NEVER
- * surface unapproved content, even though drafts still appear (clearly
- * marked) in the browsable index. Pure.
+ * surface unapproved content. {@link getFactsByCategory} applies the same
+ * exclusion, so drafts are fully hidden from real users end-to-end (not just
+ * "clearly marked" — see this module's `commentary` block for why). Pure.
  */
 export function getRotatableFacts(): readonly BibleFact[] {
   return BIBLE_FACTS.filter(f => !f.draft);

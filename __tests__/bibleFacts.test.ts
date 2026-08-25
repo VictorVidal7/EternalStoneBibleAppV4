@@ -191,17 +191,50 @@ describe('bibleFacts — commentary entries (BORRADOR, pending doctrinal review)
 });
 
 describe('getFactsByCategory', () => {
-  it('returns the categories in order with correct global indices', () => {
+  it('returns the categories in order with correct global indices, excluding BORRADOR/draft entries', () => {
     const sections = getFactsByCategory();
+    const nonDraftCount = BIBLE_FACTS.filter(f => !f.draft).length;
     const presentCategories: FactCategory[] = FACT_CATEGORY_ORDER.filter(c =>
-      BIBLE_FACTS.some(f => f.category === c),
+      BIBLE_FACTS.some(f => f.category === c && !f.draft),
     );
     expect(sections.map(s => s.category)).toEqual(presentCategories);
     const flat = sections.flatMap(s => s.entries);
-    expect(flat.length).toBe(FACT_COUNT);
-    // Each entry's index points back at the same fact in the catalog.
+    expect(flat.length).toBe(nonDraftCount);
+    expect(flat.length).toBeLessThan(FACT_COUNT); // sanity: drafts really were dropped
+    // Each entry's index points back at the same fact in the catalog, and
+    // none of them are drafts.
     for (const {fact, index} of flat) {
       expect(BIBLE_FACTS[index]).toBe(fact);
+      expect(fact.draft).toBeFalsy();
     }
+  });
+
+  it('never surfaces a draft entry to the browsable index (real users must not see BORRADOR content)', () => {
+    const sections = getFactsByCategory();
+    const visibleIds = new Set(
+      sections.flatMap(s => s.entries.map(e => e.fact.id)),
+    );
+    for (const f of BIBLE_FACTS.filter(f => f.draft)) {
+      expect(visibleIds.has(f.id)).toBe(false);
+    }
+  });
+
+  it('still shows non-draft entries/categories normally (e.g. geography)', () => {
+    const sections = getFactsByCategory();
+    const geo = sections.find(s => s.category === 'geography');
+    expect(geo).toBeDefined();
+    expect(geo!.entries.length).toBeGreaterThan(0);
+  });
+
+  it('drops the "commentary" category entirely while all 5 of its entries are draft', () => {
+    // If Victor un-drafts at least one commentary entry, this test (and the
+    // category's filter chip in app/features/facts/index.tsx) should start
+    // passing/appearing again with no code changes required elsewhere.
+    const allCommentaryAreDraft = BIBLE_FACTS.filter(
+      f => f.category === 'commentary',
+    ).every(f => f.draft);
+    expect(allCommentaryAreDraft).toBe(true); // documents current state
+    const sections = getFactsByCategory();
+    expect(sections.some(s => s.category === 'commentary')).toBe(false);
   });
 });

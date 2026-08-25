@@ -35,7 +35,6 @@ import {
   BIBLE_FACTS,
   FACT_CATEGORY_ACCENT,
   FACT_CATEGORY_ICON,
-  FACT_CATEGORY_ORDER,
   getDailyFact,
   getFactsByCategory,
   type BibleFact,
@@ -169,9 +168,13 @@ export default function BibleFactsScreen() {
     [resolved, router],
   );
 
+  // getFactsByCategory() already excludes BORRADOR/draft entries (see
+  // bibleFacts.ts), so this hub never surfaces unreviewed content — nor the
+  // categories (e.g. `commentary`) that currently have no non-draft entries.
+  const publishedByCategory = useMemo(() => getFactsByCategory(), []);
+
   const sections = useMemo(() => {
-    const grouped = getFactsByCategory();
-    return grouped
+    return publishedByCategory
       .map(section => ({
         category: section.category,
         entries: section.entries.filter(({fact}) => {
@@ -181,7 +184,7 @@ export default function BibleFactsScreen() {
         }),
       }))
       .filter(section => section.entries.length > 0);
-  }, [filter, favorites]);
+  }, [publishedByCategory, filter, favorites]);
 
   const headerGradient: readonly [string, string, ...string[]] = highContrast
     ? (gradient.headerColors as readonly [string, string, ...string[]])
@@ -190,9 +193,13 @@ export default function BibleFactsScreen() {
   const dailyItem = items[dailyFact.id];
   const dailyResolved = resolved[dailyFact.ref];
 
+  // Only categories with at least one PUBLISHED (non-draft) entry get a
+  // filter chip — e.g. `commentary` has none right now, so its chip doesn't
+  // appear until Victor un-drafts at least one entry (no code change needed
+  // then; it reappears automatically).
   const filters: {key: FactFilter; label: string}[] = [
     {key: 'all', label: tf.filterAll},
-    ...FACT_CATEGORY_ORDER.map(c => ({
+    ...publishedByCategory.map(({category: c}) => ({
       key: c as FactFilter,
       label: categoryLabels[c],
     })),
