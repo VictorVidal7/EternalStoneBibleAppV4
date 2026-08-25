@@ -7,6 +7,7 @@ import {
   resolveSpeechLanguage,
   buildStopNarration,
   planNarrationAdvance,
+  applySpanishPronunciationFixes,
 } from '../src/lib/speech/narration';
 
 describe('resolveSpeechLanguage', () => {
@@ -35,6 +36,70 @@ describe('buildStopNarration', () => {
 
   it('returns an empty string when both are missing', () => {
     expect(buildStopNarration(undefined, undefined)).toBe('');
+  });
+});
+
+describe('applySpanishPronunciationFixes', () => {
+  it('fixes "Jacob" (English-phonetics homograph) only for Spanish narration', () => {
+    const verse = 'Y dijeron: No verá JAH, Ni entenderá el Dios de Jacob.';
+    expect(applySpanishPronunciationFixes(verse, 'es-ES')).toBe(
+      'Y dijeron: No verá Yah, Ni entenderá el Dios de Jacób.',
+    );
+    // English narration passes through byte-identical, even if it somehow
+    // contained the same literal words.
+    expect(applySpanishPronunciationFixes(verse, 'en-US')).toBe(verse);
+  });
+
+  it('fixes "JAH" (standalone divine-name abbreviation) without touching "Jehová"', () => {
+    expect(applySpanishPronunciationFixes('JAH es su nombre', 'es-ES')).toBe(
+      'Yah es su nombre',
+    );
+    expect(
+      applySpanishPronunciationFixes('Alaba, oh alma mía, a Jehová', 'es-ES'),
+    ).toBe('Alaba, oh alma mía, a Jehová');
+  });
+
+  it('does NOT match "Jacobo" (James) — the nearest false-positive to "Jacob"', () => {
+    expect(
+      applySpanishPronunciationFixes('Jacobo, siervo de Dios', 'es-ES'),
+    ).toBe('Jacobo, siervo de Dios');
+  });
+
+  it('fixes "estatutos" (Salmos 89:31 dropped-syllable case) case-insensitively', () => {
+    expect(
+      applySpanishPronunciationFixes(
+        'Si profanaren mis estatutos, Y no guardaren mis mandamientos,',
+        'es-ES',
+      ),
+    ).toBe('Si profanaren mis estatútos, Y no guardaren mis mandamientos,');
+    expect(applySpanishPronunciationFixes('Estatutos de Jehová', 'es-ES')).toBe(
+      'Estatútos de Jehová',
+    );
+  });
+
+  it('does NOT touch the singular "estatuto" (never reported, weaker inference)', () => {
+    expect(applySpanishPronunciationFixes('Guarda mi estatuto', 'es-ES')).toBe(
+      'Guarda mi estatuto',
+    );
+  });
+
+  it('is a no-op for English narration even with a matching word', () => {
+    const text = 'Jacob had a dream';
+    expect(applySpanishPronunciationFixes(text, 'en-US')).toBe(text);
+  });
+
+  it('applies for any Spanish-family locale tag, not just es-ES', () => {
+    for (const lang of ['es', 'es-MX', 'es-419', 'es-US', 'ES-ES']) {
+      expect(applySpanishPronunciationFixes('JAH', lang)).toBe('Yah');
+    }
+  });
+
+  it('never changes the total character length (karaoke offset invariant)', () => {
+    const verse =
+      'JAH ha escogido a Jacob para sí; si profanaren mis estatutos.';
+    const fixed = applySpanishPronunciationFixes(verse, 'es-ES');
+    expect(fixed).not.toBe(verse);
+    expect(fixed.length).toBe(verse.length);
   });
 });
 

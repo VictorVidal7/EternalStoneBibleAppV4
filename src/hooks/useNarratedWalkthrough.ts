@@ -23,7 +23,11 @@
 
 import {useEffect, useRef, useState} from 'react';
 import * as Speech from 'expo-speech';
-import {planNarrationAdvance, type SpeechLang} from '@/lib/speech/narration';
+import {
+  applySpanishPronunciationFixes,
+  planNarrationAdvance,
+  type SpeechLang,
+} from '@/lib/speech/narration';
 
 export interface UseNarratedWalkthroughParams {
   /** Total number of steps. */
@@ -119,7 +123,10 @@ export function useNarratedWalkthrough({
         return;
       }
       const text = segs[i++];
-      void Speech.speak(text, {
+      // Same Spanish-only pronunciation fixes as the main Audio Bible player
+      // (see narration.ts) — a no-op for English segments/steps.
+      const textToSpeak = applySpanishPronunciationFixes(text, language);
+      void Speech.speak(textToSpeak, {
         language,
         rate,
         onDone: () => {

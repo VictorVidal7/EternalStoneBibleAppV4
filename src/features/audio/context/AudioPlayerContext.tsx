@@ -53,6 +53,7 @@ import {
   restoreUpcomingOrder,
 } from '../lib/playlistQueueOptions';
 import {resolveNarration, toAudioLanguage} from '../lib/narrationVoice';
+import {applySpanishPronunciationFixes} from '@lib/speech/narration';
 import {reconcileSleepTimer} from '../lib/sleepTimer';
 import {shouldReplayVerse} from '../lib/verseRepeat';
 import {useBibleVersionOptional} from '@hooks/useBibleVersion';
@@ -406,6 +407,14 @@ export const AudioPlayerProvider: React.FC<AudioPlayerProviderProps> = ({
         voice: currentState.selectedVoice,
       });
 
+      // Text-only fix for specific words the Spanish TTS engine mispronounces
+      // even with the correct es-* locale genuinely requested (e.g. "Jacob"
+      // read with English phonetics, "JAH" spelled out letter-by-letter) — a
+      // no-op for English narration. See narration.ts for the word list and
+      // the length-preserving invariant that keeps karaoke highlighting in
+      // sync (it indexes onBoundary against this exact spoken string).
+      const textToSpeak = applySpanishPronunciationFixes(verse.text, language);
+
       logger.info('Attempting to speak verse', {
         index,
         reference: `${verse.book} ${verse.chapter}:${verse.verse}`,
@@ -422,7 +431,7 @@ export const AudioPlayerProvider: React.FC<AudioPlayerProviderProps> = ({
           logger.warn('Error in Speech.stop', {error: String(err)}),
         );
 
-        await Speech.speak(verse.text, {
+        await Speech.speak(textToSpeak, {
           language,
           voice: voiceId,
           rate: currentState.playbackSpeed,
