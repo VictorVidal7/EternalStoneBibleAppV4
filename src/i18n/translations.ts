@@ -3020,7 +3020,6 @@ export const translations = {
           detail:
             'Jacob luchó toda una noche junto al río Jaboc y recibió de Dios un nombre nuevo, "Israel", que terminaría siendo el de todo un pueblo.',
         },
-        // ── BORRADOR — pendiente de revisión doctrinal, no publicado ──
         'gods-costly-gift': {
           label: 'El regalo que costó todo lo más precioso',
           detail:
@@ -9260,7 +9259,6 @@ export const translations = {
           detail:
             'Jacob wrestled all night by the river Jabbok and received from God a new name, "Israel," which would become the name of an entire people.',
         },
-        // ── DRAFT — pending doctrinal review, not published ──
         'gods-costly-gift': {
           label: 'The gift that cost everything most precious',
           detail:

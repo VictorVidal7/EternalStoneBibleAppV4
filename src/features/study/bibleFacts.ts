@@ -23,9 +23,8 @@ export type FactRefKey = string;
 
 /**
  * The kinds of "did you know" facts this catalog curates. `commentary` is a
- * BORRADOR addition (see the block below) — a scholarly/historical paraphrase
- * with an explicit source citation, distinct from the other five categories
- * in that it always carries a `source`.
+ * scholarly/historical paraphrase with an explicit source citation, distinct
+ * from the other five categories in that it always carries a `source`.
  */
 export type FactCategory =
   'geography' | 'numbers' | 'language' | 'history' | 'crossref' | 'commentary';
@@ -53,8 +52,9 @@ export interface BibleFact {
    */
   source?: string;
   /**
-   * BORRADOR flag — true while pending Victor's per-entry doctrinal/editorial
-   * sign-off (see the `commentary` block below). Absent/false = already
+   * True while an entry is pending Victor's per-entry doctrinal/editorial
+   * sign-off — hidden from every real-user-facing surface until then (see
+   * `getFactsByCategory()`/`getRotatableFacts()`). Absent/false = already
    * reviewed and shipped.
    */
   draft?: boolean;
@@ -95,23 +95,13 @@ export const BIBLE_FACTS: readonly BibleFact[] = [
   {id: 'ruth-genealogy', category: 'crossref', ref: 'Matthew/1/5'},
   {id: 'jacob-israel', category: 'crossref', ref: 'Genesis/32/28'},
 
-  // ── Comentario (BORRADOR — pendiente de revisión doctrinal, no publicado) ──
-  // These 5 entries are placeholder seed data added to prove the feature
-  // shell end-to-end. `draft: true` means getFactsByCategory()/
-  // getRotatableFacts() hide them from every real-user-facing surface
-  // (browsable index, "Dato del día", notifications) — un-draft only after
-  // Victor's per-entry doctrinal/editorial sign-off. (Note: commit ac174b4's
-  // message says the prose was reviewed before this catalog was built, but
-  // the sign-off this flag gates is a separate, still-open step — see the
-  // `draft` field doc above. Resolve which record is authoritative with
-  // Victor before ever flipping these to `draft: false`.)
+  // ── Comentario ── Victor reviewed and approved this content 2026-08-25.
   {
     id: 'gods-costly-gift',
     category: 'commentary',
     ref: 'John/3/16',
     source:
       'Paráfrasis basada en Matthew Henry, Comentario Bíblico de Matthew Henry, sección sobre Juan 3 (CCEL).',
-    draft: true,
   },
   {
     id: 'emmanuel-name',
@@ -119,7 +109,6 @@ export const BIBLE_FACTS: readonly BibleFact[] = [
     ref: 'Matthew/1/23',
     source:
       'Dato lingüístico de referencia estándar, verificable en cualquier diccionario bíblico hebreo.',
-    draft: true,
   },
   {
     id: 'father-who-ran',
@@ -127,7 +116,6 @@ export const BIBLE_FACTS: readonly BibleFact[] = [
     ref: 'Luke/15/20',
     source:
       'Kenneth E. Bailey, El hijo pródigo: Lucas 15 a través de la mirada de campesinos de Oriente Medio (Editorial Vida, 2009).',
-    draft: true,
   },
   {
     id: 'my-shepherd',
@@ -135,7 +123,6 @@ export const BIBLE_FACTS: readonly BibleFact[] = [
     ref: 'Psalms/23/1',
     source:
       'Charles H. Spurgeon, El tesoro de David, Vol. I, comentario sobre el Salmo 23 (CCEL).',
-    draft: true,
   },
   {
     id: 'a-denarius-a-days-wage',
@@ -143,7 +130,6 @@ export const BIBLE_FACTS: readonly BibleFact[] = [
     ref: 'Matthew/20/2',
     source:
       'Dato histórico de referencia estándar sobre la economía romana del siglo I.',
-    draft: true,
   },
 ] as const;
 
@@ -154,7 +140,7 @@ export const FACT_CATEGORY_ACCENT: Record<FactCategory, string> = {
   language: '#8b5cf6', // violet
   history: '#0ea5e9', // sky
   crossref: '#6366f1', // indigo
-  commentary: '#d946ef', // fuchsia — distinct from the other 5, flags "attributed/BORRADOR"
+  commentary: '#d946ef', // fuchsia — distinct from the other 5 (attributed/sourced)
 };
 
 /** Ionicons glyph per category, for badges and headers. */
@@ -178,12 +164,11 @@ export interface FactCategorySection {
 
 /**
  * The catalog grouped by category, in {@link FACT_CATEGORY_ORDER}, each entry
- * carrying its GLOBAL index in {@link BIBLE_FACTS}. Excludes BORRADOR/
- * unreviewed entries (`draft: true`) — same rule as {@link getRotatableFacts}
- * — so the browsable "¿Sabías qué?" index never surfaces content still
- * pending Victor's per-entry doctrinal/editorial sign-off to real users. A
- * category whose only entries are currently draft (e.g. `commentary`, until
- * reviewed) simply doesn't appear. Pure.
+ * carrying its GLOBAL index in {@link BIBLE_FACTS}. Excludes unreviewed
+ * entries (`draft: true`) — same rule as {@link getRotatableFacts} — so the
+ * browsable "¿Sabías qué?" index never surfaces content still pending
+ * Victor's per-entry doctrinal/editorial sign-off to real users. A category
+ * whose only entries are currently draft simply doesn't appear. Pure.
  */
 export function getFactsByCategory(): FactCategorySection[] {
   return FACT_CATEGORY_ORDER.map(category => ({
@@ -195,11 +180,10 @@ export function getFactsByCategory(): FactCategorySection[] {
 }
 
 /**
- * Facts eligible for "Dato del día" rotation — excludes BORRADOR/unreviewed
- * entries (`draft: true`) so the Home tile subtitle and the hero card NEVER
- * surface unapproved content. {@link getFactsByCategory} applies the same
- * exclusion, so drafts are fully hidden from real users end-to-end (not just
- * "clearly marked" — see this module's `commentary` block for why). Pure.
+ * Facts eligible for "Dato del día" rotation — excludes unreviewed entries
+ * (`draft: true`) so the Home tile subtitle and the hero card NEVER surface
+ * unapproved content. {@link getFactsByCategory} applies the same exclusion,
+ * so drafts are fully hidden from real users end-to-end. Pure.
  */
 export function getRotatableFacts(): readonly BibleFact[] {
   return BIBLE_FACTS.filter(f => !f.draft);

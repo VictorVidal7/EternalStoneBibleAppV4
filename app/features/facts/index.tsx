@@ -168,9 +168,9 @@ export default function BibleFactsScreen() {
     [resolved, router],
   );
 
-  // getFactsByCategory() already excludes BORRADOR/draft entries (see
-  // bibleFacts.ts), so this hub never surfaces unreviewed content — nor the
-  // categories (e.g. `commentary`) that currently have no non-draft entries.
+  // getFactsByCategory() already excludes draft entries (see bibleFacts.ts),
+  // so this hub never surfaces unreviewed content — nor any category whose
+  // entries are currently all draft.
   const publishedByCategory = useMemo(() => getFactsByCategory(), []);
 
   const sections = useMemo(() => {

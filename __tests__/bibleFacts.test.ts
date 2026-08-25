@@ -136,7 +136,7 @@ describe('getDailyFactIndex', () => {
     }
   });
 
-  it('never lands on a BORRADOR/draft fact (Home + hero must never show unreviewed content)', () => {
+  it('never lands on a draft fact (Home + hero must never show unreviewed content)', () => {
     for (let d = 0; d < 400; d++) {
       const date = new Date(2026, 0, 1 + d);
       expect(getDailyFact(date).draft).toBeFalsy();
@@ -154,10 +154,10 @@ describe('getDailyFactIndex', () => {
   });
 });
 
-describe('bibleFacts — commentary entries (BORRADOR, pending doctrinal review)', () => {
+describe('bibleFacts — commentary entries (reviewed and approved by Victor 2026-08-25)', () => {
   const commentaryFacts = BIBLE_FACTS.filter(f => f.category === 'commentary');
 
-  it('ships the 5 seeded BORRADOR "¿Sabías qué?" entries', () => {
+  it('ships the 5 seeded commentary "¿Sabías qué?" entries', () => {
     expect(commentaryFacts.length).toBe(5);
   });
 
@@ -168,9 +168,9 @@ describe('bibleFacts — commentary entries (BORRADOR, pending doctrinal review)
     }
   });
 
-  it('every commentary entry is flagged as draft (unreviewed placeholder content)', () => {
+  it('no commentary entry is flagged as draft — reviewed and shipped', () => {
     for (const f of commentaryFacts) {
-      expect(f.draft).toBe(true);
+      expect(f.draft).toBeFalsy();
     }
   });
 
@@ -180,10 +180,15 @@ describe('bibleFacts — commentary entries (BORRADOR, pending doctrinal review)
     }
   });
 
-  it('non-commentary entries are not marked draft (only the new seed is unreviewed)', () => {
+  it('no entry in the catalog is currently marked draft', () => {
+    for (const f of BIBLE_FACTS) {
+      expect(f.draft).toBeFalsy();
+    }
+  });
+
+  it('only commentary entries carry a source citation', () => {
     for (const f of BIBLE_FACTS) {
       if (f.category !== 'commentary') {
-        expect(f.draft).toBeFalsy();
         expect(f.source).toBeUndefined();
       }
     }
@@ -191,7 +196,7 @@ describe('bibleFacts — commentary entries (BORRADOR, pending doctrinal review)
 });
 
 describe('getFactsByCategory', () => {
-  it('returns the categories in order with correct global indices, excluding BORRADOR/draft entries', () => {
+  it('returns the categories in order with correct global indices, excluding any draft entries', () => {
     const sections = getFactsByCategory();
     const nonDraftCount = BIBLE_FACTS.filter(f => !f.draft).length;
     const presentCategories: FactCategory[] = FACT_CATEGORY_ORDER.filter(c =>
@@ -200,7 +205,6 @@ describe('getFactsByCategory', () => {
     expect(sections.map(s => s.category)).toEqual(presentCategories);
     const flat = sections.flatMap(s => s.entries);
     expect(flat.length).toBe(nonDraftCount);
-    expect(flat.length).toBeLessThan(FACT_COUNT); // sanity: drafts really were dropped
     // Each entry's index points back at the same fact in the catalog, and
     // none of them are drafts.
     for (const {fact, index} of flat) {
@@ -209,7 +213,7 @@ describe('getFactsByCategory', () => {
     }
   });
 
-  it('never surfaces a draft entry to the browsable index (real users must not see BORRADOR content)', () => {
+  it('never surfaces a draft entry to the browsable index', () => {
     const sections = getFactsByCategory();
     const visibleIds = new Set(
       sections.flatMap(s => s.entries.map(e => e.fact.id)),
@@ -226,15 +230,10 @@ describe('getFactsByCategory', () => {
     expect(geo!.entries.length).toBeGreaterThan(0);
   });
 
-  it('drops the "commentary" category entirely while all 5 of its entries are draft', () => {
-    // If Victor un-drafts at least one commentary entry, this test (and the
-    // category's filter chip in app/features/facts/index.tsx) should start
-    // passing/appearing again with no code changes required elsewhere.
-    const allCommentaryAreDraft = BIBLE_FACTS.filter(
-      f => f.category === 'commentary',
-    ).every(f => f.draft);
-    expect(allCommentaryAreDraft).toBe(true); // documents current state
+  it('shows the "commentary" category now that Victor has reviewed and approved its entries', () => {
     const sections = getFactsByCategory();
-    expect(sections.some(s => s.category === 'commentary')).toBe(false);
+    const commentary = sections.find(s => s.category === 'commentary');
+    expect(commentary).toBeDefined();
+    expect(commentary!.entries.length).toBe(5);
   });
 });
