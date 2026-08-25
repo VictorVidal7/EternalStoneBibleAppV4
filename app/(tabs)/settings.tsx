@@ -33,6 +33,7 @@ import ExtrasSettings from '@components/settings/ExtrasSettings';
 import RedeemCodeSheet from '@components/settings/RedeemCodeSheet';
 import DonationSettings from '@components/settings/DonationSettings';
 import TipsAndGuidesSettings from '@components/settings/TipsAndGuidesSettings';
+import FunctionalidadesSettings from '@components/settings/FunctionalidadesSettings';
 import ColorThemeSettings from '@components/settings/ColorThemeSettings';
 import AccessibilitySettings from '@components/settings/AccessibilitySettings';
 import DataSettings from '@components/settings/DataSettings';
@@ -523,139 +524,12 @@ export default function SettingsScreen() {
         {/* Consolidated goals (reading, memorization review, weekly target) */}
         <GoalsSettings />
 
-        {/* New Features V5.1 Section */}
-        <View style={themedStyles.section}>
-          <View style={themedStyles.sectionHeader}>
-            <Ionicons name="sparkles" size={22} color={colors.accent} />
-            <Text style={themedStyles.sectionTitle}>{t.settingsV51.title}</Text>
-          </View>
-
-          <View style={themedStyles.card}>
-            {/* 🤝 Join a group — shared reading plans (Sprint 107) */}
-            <TouchableOpacity
-              style={themedStyles.featureItem}
-              onPress={async () => {
-                haptics.tap();
-                router.push('/features/together');
-              }}>
-              <View style={styles.featureContent}>
-                <View
-                  style={[
-                    themedStyles.featureIcon,
-                    {backgroundColor: colors.primary + '15'},
-                  ]}>
-                  <Ionicons name="people" size={24} color={colors.primary} />
-                </View>
-                <View style={styles.featureInfo}>
-                  <Text style={themedStyles.featureTitle}>
-                    {t.together.enterCode}
-                  </Text>
-                  <Text style={themedStyles.featureDescription}>
-                    {t.together.joinFeatureDesc}
-                  </Text>
-                </View>
-              </View>
-              <Ionicons
-                name="chevron-forward"
-                size={20}
-                color={colors.textTertiary}
-              />
-            </TouchableOpacity>
-
-            {/* 🗓️ Create a devotional — baked verse-a-day calendar (Sprint 110) */}
-            <TouchableOpacity
-              style={themedStyles.featureItem}
-              onPress={async () => {
-                haptics.tap();
-                router.push('/features/devotional');
-              }}>
-              <View style={styles.featureContent}>
-                <View
-                  style={[
-                    themedStyles.featureIcon,
-                    {backgroundColor: colors.primary + '15'},
-                  ]}>
-                  <Ionicons name="calendar" size={24} color={colors.primary} />
-                </View>
-                <View style={styles.featureInfo}>
-                  <Text style={themedStyles.featureTitle}>
-                    {t.devotionalBuilder.entryTitle}
-                  </Text>
-                  <Text style={themedStyles.featureDescription}>
-                    {t.devotionalBuilder.entryDesc}
-                  </Text>
-                </View>
-              </View>
-              <Ionicons
-                name="chevron-forward"
-                size={20}
-                color={colors.textTertiary}
-              />
-            </TouchableOpacity>
-
-            {/* Widgets */}
-            <TouchableOpacity
-              style={themedStyles.featureItem}
-              onPress={async () => {
-                haptics.tap();
-                router.push('/features/widgets');
-              }}>
-              <View style={styles.featureContent}>
-                <View
-                  style={[
-                    themedStyles.featureIcon,
-                    {backgroundColor: colors.primary + '15'},
-                  ]}>
-                  <Ionicons name="apps" size={24} color={colors.primary} />
-                </View>
-                <View style={styles.featureInfo}>
-                  <Text style={themedStyles.featureTitle}>
-                    {t.settingsV51.widgets}
-                  </Text>
-                  <Text style={themedStyles.featureDescription}>
-                    {t.settingsV51.widgetsDesc}
-                  </Text>
-                </View>
-              </View>
-              <Ionicons
-                name="chevron-forward"
-                size={20}
-                color={colors.textTertiary}
-              />
-            </TouchableOpacity>
-
-            {/* Badges & Titles */}
-            <TouchableOpacity
-              style={themedStyles.featureItemLast}
-              onPress={async () => {
-                haptics.tap();
-                router.push('/features/badges');
-              }}>
-              <View style={styles.featureContent}>
-                <View
-                  style={[
-                    themedStyles.featureIcon,
-                    {backgroundColor: colors.warning + '15'},
-                  ]}>
-                  <Ionicons name="ribbon" size={24} color={colors.warning} />
-                </View>
-                <View style={styles.featureInfo}>
-                  <Text style={themedStyles.featureTitle}>
-                    {t.settingsV51.badges}
-                  </Text>
-                  <Text style={themedStyles.featureDescription}>
-                    {t.settingsV51.badgesDesc}
-                  </Text>
-                </View>
-              </View>
-              <Ionicons
-                name="chevron-forward"
-                size={20}
-                color={colors.textTertiary}
-              />
-            </TouchableOpacity>
-          </View>
-        </View>
+        {/* Index of the "V5.1" features (join a group, devotional builder,
+            widgets), consolidated into a single row + modal so it stops
+            eating vertical space in the main Ajustes scroll (same pattern
+            as TipsAndGuidesSettings). Insignias y Títulos deliberately
+            excluded — the Logros tab already links to it. */}
+        <FunctionalidadesSettings />
 
         {/* Index of full-explainer guides (FeatureGuideModal), openable
             without being on that feature's own screen first */}
@@ -1126,15 +1000,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 12,
   },
-  featureContent: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    flex: 1,
-    gap: 12,
-  },
-  featureInfo: {
-    flex: 1,
-  },
   accountRow: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -1440,38 +1305,6 @@ function createThemedStyles(
       textAlign: 'center',
       fontStyle: 'italic',
       lineHeight: 20,
-    },
-    featureItem: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      justifyContent: 'space-between',
-      paddingVertical: 14,
-      borderBottomWidth: 1,
-      borderBottomColor: colors.border,
-    },
-    featureItemLast: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      justifyContent: 'space-between',
-      paddingVertical: 14,
-      borderBottomWidth: 0,
-    },
-    featureIcon: {
-      width: 48,
-      height: 48,
-      borderRadius: 12,
-      alignItems: 'center',
-      justifyContent: 'center',
-    },
-    featureTitle: {
-      fontSize: 15,
-      fontWeight: '600',
-      color: colors.text,
-      marginBottom: 2,
-    },
-    featureDescription: {
-      fontSize: 13,
-      color: colors.textSecondary,
     },
   });
 }

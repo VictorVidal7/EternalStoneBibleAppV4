@@ -5251,6 +5251,8 @@ export const translations = {
     // Settings V5.1 Section
     settingsV51: {
       title: 'Funcionalidades',
+      entryTitle: 'Ver todas las funcionalidades',
+      entryDesc: 'Grupos de lectura, devocionales y widgets',
       widgets: 'Widgets',
       widgetsDesc: 'Vista previa de widgets para pantalla de inicio',
       versionComparison: 'Comparación de Versiones',
@@ -11478,6 +11480,8 @@ export const translations = {
     // Settings V5.1 Section
     settingsV51: {
       title: 'Features',
+      entryTitle: 'Browse all features',
+      entryDesc: 'Reading groups, devotionals, and widgets',
       widgets: 'Widgets',
       widgetsDesc: 'Home screen widgets preview',
       versionComparison: 'Version Comparison',
