@@ -168,6 +168,18 @@ export default function BibleFactsScreen() {
     [resolved, router],
   );
 
+  // Tap-through to the visual concordance for a fact's Strong's number
+  // (Tanda 8) — same deep-link shape word-study documents/uses elsewhere
+  // (`OriginalLanguagesSheet.handleOpenWordStudy`): `?strongs=<H###/G###>`.
+  // `version`/`gloss` are optional there, so they're omitted here.
+  const openWordStudy = useCallback(
+    (strongs: string) => {
+      haptics.tap();
+      router.push(`/features/word-study?strongs=${strongs}` as never);
+    },
+    [router],
+  );
+
   // getFactsByCategory() already excludes draft entries (see bibleFacts.ts),
   // so this hub never surfaces unreviewed content — nor any category whose
   // entries are currently all draft.
@@ -505,28 +517,54 @@ export default function BibleFactsScreen() {
                             </View>
                           ) : null}
                           <View style={styles.factBottomRow}>
-                            <TouchableOpacity
-                              style={[
-                                styles.verseChip,
-                                {borderColor: colors.border},
-                              ]}
-                              onPress={() => openInReader(fact.ref)}
-                              accessibilityRole="button"
-                              accessibilityLabel={`${tf.openInReader}: ${info?.reference ?? ''}`}>
-                              <Ionicons
-                                name="book-outline"
-                                size={14}
-                                color={colors.primary}
-                              />
-                              <AppText
-                                scaleRole="compact"
+                            <View style={styles.factChipsRow}>
+                              <TouchableOpacity
                                 style={[
-                                  styles.verseChipText,
-                                  {color: colors.primary},
-                                ]}>
-                                {info?.reference ?? tf.missingText}
-                              </AppText>
-                            </TouchableOpacity>
+                                  styles.verseChip,
+                                  {borderColor: colors.border},
+                                ]}
+                                onPress={() => openInReader(fact.ref)}
+                                accessibilityRole="button"
+                                accessibilityLabel={`${tf.openInReader}: ${info?.reference ?? ''}`}>
+                                <Ionicons
+                                  name="book-outline"
+                                  size={14}
+                                  color={colors.primary}
+                                />
+                                <AppText
+                                  scaleRole="compact"
+                                  style={[
+                                    styles.verseChipText,
+                                    {color: colors.primary},
+                                  ]}>
+                                  {info?.reference ?? tf.missingText}
+                                </AppText>
+                              </TouchableOpacity>
+                              {fact.strongs && (
+                                <TouchableOpacity
+                                  style={[
+                                    styles.verseChip,
+                                    {borderColor: colors.border},
+                                  ]}
+                                  onPress={() => openWordStudy(fact.strongs!)}
+                                  accessibilityRole="button"
+                                  accessibilityLabel={`${t.originals.openWordStudy}: ${fact.strongs}`}>
+                                  <Ionicons
+                                    name="language-outline"
+                                    size={14}
+                                    color={colors.primary}
+                                  />
+                                  <AppText
+                                    scaleRole="compact"
+                                    style={[
+                                      styles.verseChipText,
+                                      {color: colors.primary},
+                                    ]}>
+                                    {fact.strongs}
+                                  </AppText>
+                                </TouchableOpacity>
+                              )}
+                            </View>
                             <TouchableOpacity
                               onPress={() => toggleFavorite(fact.id)}
                               hitSlop={{
@@ -786,5 +824,16 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
+  },
+  // Groups the verse chip + optional Strong's chip together on the left of
+  // factBottomRow, so the favorite button stays pinned to the right no
+  // matter how many chips are present. Pure layout — the chips themselves
+  // still reuse verseChip/verseChipText verbatim, no new chip styling.
+  factChipsRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flexWrap: 'wrap',
+    flexShrink: 1,
+    gap: spacing.xs,
   },
 });

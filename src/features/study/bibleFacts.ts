@@ -58,6 +58,22 @@ export interface BibleFact {
    * reviewed and shipped.
    */
   draft?: boolean;
+  /**
+   * Optional Strong's number ("H2617", "G3056") this fact's original-language
+   * point is anchored to — lets the fact card tap through to the visual
+   * concordance (`/features/word-study?strongs=...`). Only ever set on
+   * `language`/`commentary` entries, and only after independently confirming
+   * (via the app's own installed originals pack — `getStrongsOccurrences`
+   * equivalent) that the number actually occurs in the fact's own `ref`.
+   * Left unset rather than guessed — e.g. `selah` has NO `strongs` here
+   * because the live originals pack has zero `original_words` rows for
+   * Psalms 3:2: TAHOT numbers Psalm 3 by Hebrew (Masoretic) versification
+   * with the English-equivalent verse in a trailing `(3.2)`-style
+   * parenthetical, which `scripts/build-originals-pack.js`'s row parser
+   * doesn't currently recognize, so that verse's words never made it into
+   * the pack. That's a pack-build gap, not something to paper over here.
+   */
+  strongs?: string;
 }
 
 /**
@@ -78,10 +94,20 @@ export const BIBLE_FACTS: readonly BibleFact[] = [
   {id: 'thirty-pieces', category: 'numbers', ref: 'Matthew/26/15'},
 
   // ── Idioma original ──
-  {id: 'hesed', category: 'language', ref: 'Psalms/136/1'},
+  // Strong's numbers below were verified against the LIVE installed originals
+  // pack (`https://eternalstonebible.github.io/packs/originals.db`), not
+  // guessed: each one was confirmed to actually occur at the fact's own
+  // `ref` (the same check `getStrongsOccurrences()` powers). `selah`
+  // deliberately carries none — see the `strongs` field doc on `BibleFact`.
+  {id: 'hesed', category: 'language', ref: 'Psalms/136/1', strongs: 'H2617'},
   {id: 'selah', category: 'language', ref: 'Psalms/3/2'},
-  {id: 'logos', category: 'language', ref: 'John/1/1'},
-  {id: 'amen', category: 'language', ref: 'Deuteronomy/27/15'},
+  {id: 'logos', category: 'language', ref: 'John/1/1', strongs: 'G3056'},
+  {
+    id: 'amen',
+    category: 'language',
+    ref: 'Deuteronomy/27/15',
+    strongs: 'H543',
+  },
 
   // ── Historia y cultura ──
   {id: 'tearing-garments', category: 'history', ref: 'Matthew/26/65'},
@@ -107,6 +133,12 @@ export const BIBLE_FACTS: readonly BibleFact[] = [
     id: 'emmanuel-name',
     category: 'commentary',
     ref: 'Matthew/1/23',
+    // G1694 (Ἐμμανουήλ) — the GREEK Strong's entry, not a Hebrew one: this
+    // verse quotes the Hebrew name, but Matthew 1:23 itself is Greek text,
+    // and G1694 is confirmed both (a) tagged on the word at this exact verse
+    // in the live originals pack, and (b) its own lexicon entry independently
+    // reads lemma "Ἐμμανουήλ", kjv_def "Emmanuel".
+    strongs: 'G1694',
     source:
       'Dato lingüístico de referencia estándar, verificable en cualquier diccionario bíblico hebreo.',
   },

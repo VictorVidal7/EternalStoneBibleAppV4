@@ -195,6 +195,53 @@ describe('bibleFacts — commentary entries (reviewed and approved by Victor 202
   });
 });
 
+describe('bibleFacts — strongs (Tanda 8, word-study tap-through)', () => {
+  it("every strongs value looks like a real Strong's number (H### or G###)", () => {
+    for (const f of BIBLE_FACTS) {
+      if (f.strongs !== undefined) {
+        expect(f.strongs).toMatch(/^[HG]\d+$/);
+      }
+    }
+  });
+
+  it('strongs only ever appears on language/commentary entries', () => {
+    for (const f of BIBLE_FACTS) {
+      if (f.strongs !== undefined) {
+        expect(['language', 'commentary']).toContain(f.category);
+      }
+    }
+  });
+
+  // These exact values were verified against the LIVE installed originals
+  // pack (https://eternalstonebible.github.io/packs/originals.db), not
+  // guessed — each one was confirmed present at the fact's own `ref` (the
+  // same check getStrongsOccurrences() powers), and G1694 was additionally
+  // cross-checked against its own lexicon entry (lemma "Ἐμμανουήλ", kjv_def
+  // "Emmanuel"). That verification can't run in CI (a 31 MB download + the
+  // app's DB layer), so this test is where the result persists — don't
+  // "helpfully" fill in `selah` without redoing it.
+  it('carries the specific, independently-verified values', () => {
+    const byId = Object.fromEntries(BIBLE_FACTS.map(f => [f.id, f]));
+    expect(byId.hesed.strongs).toBe('H2617');
+    expect(byId.amen.strongs).toBe('H543');
+    expect(byId.logos.strongs).toBe('G3056');
+    expect(byId['emmanuel-name'].strongs).toBe('G1694');
+  });
+
+  // `selah` (Psalms/3/2) deliberately carries NO strongs: the live originals
+  // pack has ZERO original_words rows for that verse. TAHOT numbers Psalm 3
+  // by Hebrew (Masoretic) versification with a trailing `(3.2)`-style
+  // English-equivalent parenthetical that scripts/build-originals-pack.js's
+  // row parser doesn't recognize, so H5542 (Selah's real number) never made
+  // it into the pack tagged at this verse — assigning it here would produce
+  // a chip that lands on an empty concordance. Fixing the pack build is a
+  // separate, out-of-scope issue; this test just locks the safe choice.
+  it('selah has no strongs (live pack has no original_words for Psalms 3:2 — versification gap)', () => {
+    const selah = BIBLE_FACTS.find(f => f.id === 'selah');
+    expect(selah?.strongs).toBeUndefined();
+  });
+});
+
 describe('getFactsByCategory', () => {
   it('returns the categories in order with correct global indices, excluding any draft entries', () => {
     const sections = getFactsByCategory();
