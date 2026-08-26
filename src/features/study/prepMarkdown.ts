@@ -69,6 +69,8 @@ export interface PrepSeriesMarkdownInput {
   seriesName: string;
   /** The series' passages, in the order to render them. */
   entries: PrepSeriesEntryInput[];
+  /** Localized sermon-type label (e.g. "Expositiva"), already resolved. Absent = uncategorized. */
+  sermonTypeLabel?: string;
   /** Pastoral guardrail line carried once at the foot of the document. */
   guardrail: string;
   /** Optional attribution footer. */
@@ -161,6 +163,11 @@ export function buildPrepMarkdown(input: PrepMarkdownInput): string {
 export function buildSeriesMarkdown(input: PrepSeriesMarkdownInput): string {
   const out: string[] = [];
   out.push(`# ${input.seriesName}`, '');
+
+  const typeLabel = input.sermonTypeLabel?.trim();
+  if (typeLabel) {
+    out.push(`_${typeLabel}_`, '');
+  }
 
   for (const entry of input.entries) {
     const label = entry.passage.versionLabel

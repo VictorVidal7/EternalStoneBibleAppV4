@@ -336,6 +336,9 @@ export default function PrepSeriesDetailScreen() {
         version: selectedVersion.id,
         guardrail: t.prepTable.guardrail,
         generatedWith: t.prepTable.title,
+        sermonTypeLabel: series.sermonType
+          ? h.sermonTypes[series.sermonType]
+          : undefined,
         dateLabelFor: d => formatDateLabel(d, bookLang),
         order,
         onProgress: (done, total) => setExportProgress({done, total}),
