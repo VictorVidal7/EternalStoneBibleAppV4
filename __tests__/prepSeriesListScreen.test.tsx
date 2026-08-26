@@ -21,6 +21,7 @@ import * as SecureStore from 'expo-secure-store';
 import PrepSeriesListScreen from '../app/features/prep/series/index';
 import {PremiumProvider} from '../src/context/PremiumContext';
 import {ENTITLEMENT_CACHE_KEY} from '../src/lib/offering/entitlementCache';
+import {getPrepSeries} from '../src/features/study/prepSeriesStore';
 import {
   MAX_SERIES,
   serializePrepSeriesMap,
@@ -220,6 +221,25 @@ describe('PrepSeriesListScreen — T8.4.4', () => {
     await waitFor(() => expect(mockPush).toHaveBeenCalledTimes(1));
     const [path] = mockPush.mock.calls[0];
     expect(path).toMatch(/^\/features\/prep\/series\/series_/);
+  });
+
+  it('creates a new series with a chosen sermon type', async () => {
+    await unlockPremium();
+    const {findByLabelText, findByPlaceholderText, findByText} = renderScreen();
+    await findByText(h.emptyTitle);
+    fireEvent.press(await findByLabelText(h.newSeries));
+    const input = await findByPlaceholderText(h.namePlaceholder);
+    fireEvent.changeText(input, 'El perdón');
+    fireEvent.press(
+      await findByLabelText(`${h.sermonTypeLabel}: ${h.sermonTypes.tematica}`),
+    );
+    fireEvent.press(await findByText(h.create));
+
+    await waitFor(() => expect(mockPush).toHaveBeenCalledTimes(1));
+    const [path] = mockPush.mock.calls[0] as [string];
+    const id = path.split('/').pop() as string;
+    const created = await getPrepSeries(id);
+    expect(created?.sermonType).toBe('tematica');
   });
 
   it('lists an existing series with its progress', async () => {

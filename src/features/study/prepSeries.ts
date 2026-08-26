@@ -175,6 +175,7 @@ export function createSeries(
   passageKeys: readonly string[] = [],
   now: number = Date.now(),
   id: string = generateSeriesId(),
+  sermonType?: SermonType,
 ): PrepSeriesMap {
   const trimmed = clampName(name);
   if (!trimmed || !canCreateSeries(map)) return map;
@@ -182,6 +183,7 @@ export function createSeries(
     id,
     name: trimmed,
     passageKeys: dedupeKeys(passageKeys).slice(0, MAX_PASSAGES_PER_SERIES),
+    ...(sermonType ? {sermonType} : {}),
     createdAt: now,
     updatedAt: now,
   };

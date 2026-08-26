@@ -116,6 +116,23 @@ describe('createSeries', () => {
     expect(map.id1.passageKeys).toHaveLength(MAX_PASSAGES_PER_SERIES);
   });
 
+  it('accepts an optional sermonType at creation', () => {
+    const map = createSeries(
+      emptySeriesMap(),
+      'El perdón',
+      [],
+      100,
+      'id1',
+      'tematica',
+    );
+    expect(map.id1.sermonType).toBe('tematica');
+  });
+
+  it('leaves sermonType unset when not given', () => {
+    const map = createSeries(emptySeriesMap(), 'Sin tipo', [], 100, 'id1');
+    expect(map.id1.sermonType).toBeUndefined();
+  });
+
   it('is a no-op for a blank name', () => {
     const map = emptySeriesMap();
     expect(createSeries(map, '   ')).toBe(map);

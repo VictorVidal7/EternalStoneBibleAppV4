@@ -79,13 +79,14 @@ function mutate(fn: (map: PrepSeriesMap) => PrepSeriesMap): Promise<void> {
 export async function createPrepSeries(
   name: string,
   passageKeys: readonly string[] = [],
+  sermonType?: SermonType,
 ): Promise<PrepSeries | null> {
   const id = generateSeriesId();
   const now = Date.now();
   let created: PrepSeries | null = null;
   try {
     await mutate(map => {
-      const next = createSeries(map, name, passageKeys, now, id);
+      const next = createSeries(map, name, passageKeys, now, id, sermonType);
       created = next[id] ?? null;
       return next;
     });
