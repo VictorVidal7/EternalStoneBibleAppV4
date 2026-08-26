@@ -3146,6 +3146,91 @@ export const translations = {
           detail:
             'En tiempos de Jesús, un denario romano era lo que se le pagaba a un jornalero por una jornada completa de trabajo: lo justo para que su familia comiera ese día, sin margen para ahorrar. Este detalle ayuda a entender mejor la parábola de los obreros de la viña: recibir "lo justo" no era un tecnicismo económico, sino literalmente el pan del día.',
         },
+        'jericho-city-of-palms': {
+          label: 'Jericó, la ciudad de las palmeras',
+          detail:
+            'Deuteronomio 34:3 llama a Jericó "la ciudad de las palmeras": una ciudad-oasis alimentada por un manantial en pleno desierto de Judea, a unos 258 metros bajo el nivel del mar, en el valle del Jordán, cerca del extremo norte del Mar Muerto.',
+        },
+        'ararat-mountains': {
+          label: 'El arca no reposó en "el" monte Ararat',
+          detail:
+            'Génesis 8:4 dice que el arca reposó sobre "los montes de Ararat", en plural: el texto señala toda una cordillera de la antigua región de Urartu (hoy Turquía/Armenia), no un solo pico específico.',
+        },
+        'armageddon-megiddo': {
+          label: 'Armagedón: un lugar real en el mapa',
+          detail:
+            'Apocalipsis 16:16 explica que "Armagedón" es un nombre hebreo — de "har Meguido", el monte de Meguido, una fortaleza real que dominaba una ruta comercial y militar clave, y escenario de batallas históricas como la muerte del rey Josías (2 Reyes 23:29).',
+        },
+        'the-omer': {
+          label: 'El gomer: una ración diaria definida por el propio texto',
+          detail:
+            'Éxodo 16:36 define su propia unidad de medida: "un gomer es la décima parte del efa" — la cantidad exacta de maná que cada persona debía recoger cada día en el desierto.',
+        },
+        'israel-census-wilderness': {
+          label: '603.550: el primer censo del desierto',
+          detail:
+            'Números 1:46 da la cifra exacta del primer censo de Israel en el desierto: 603.550 varones de veinte años para arriba, aptos para la guerra (Números 1:45) — sin contar a los levitas, dejados fuera de esta cuenta a propósito (Números 1:47).',
+        },
+        'seventh-day-blessed': {
+          label: 'Lo primero que la Biblia llama "santo"',
+          detail:
+            'Génesis 2:3 registra el primer "santo" de toda la Escritura: Dios bendice y santifica el séptimo día, el día de su reposo tras la creación — antes de que existiera cualquier ley, sacerdote o templo.',
+        },
+        ruach: {
+          label: 'Rúaj: viento, aliento y espíritu en una sola palabra',
+          detail:
+            'רוּחַ (rúaj), la palabra hebrea traducida "Espíritu" en Génesis 1:2, significa también "viento" y "aliento" — el mismo término hebreo recorre estos tres sentidos en toda la Biblia.',
+        },
+        shalom: {
+          label: 'Shalom: mucho más que "ausencia de guerra"',
+          detail:
+            'שָׁלוֹם (shalom), la palabra que la bendición sacerdotal de Números 6:26 traduce como "paz", lleva el sentido de plenitud, bienestar integral y prosperidad — no solo la ausencia de conflicto.',
+        },
+        agape: {
+          label: 'Ágape: una de las palabras griegas para "amor"',
+          detail:
+            'ἀγάπη (ágape), la palabra que Pablo repite una y otra vez en 1 Corintios 13, es uno de varios términos distintos que el griego tenía para "amor" — junto a eros (deseo) y filía (amistad) — y aquí describe un amor que no depende de lo que recibe a cambio (1 Corintios 13:4-7).',
+        },
+        parakletos: {
+          label: 'Paráclito: "llamado al lado" para ayudar',
+          detail:
+            'παράκλητος (parákletos), la palabra griega detrás de "Consolador" en Juan 14:26, combina "junto a" y "llamado": describe a alguien llamado para estar al lado de otro y ayudarlo — de ahí que otras traducciones digan "Consejero" o "Abogado".',
+        },
+        'casting-lots': {
+          label: 'Decisiones echadas a la suerte',
+          detail:
+            'Hechos 1:26 narra cómo los apóstoles eligieron al reemplazo de Judas echando suertes — una práctica israelita para buscar la decisión de Dios en un asunto (compárese Levítico 16:8; Proverbios 16:33), no un juego de azar.',
+        },
+        'city-gate-court': {
+          label: 'La puerta de la ciudad, el tribunal del pueblo',
+          detail:
+            'Rut 4:1 muestra a Booz sentado "a la puerta" de Belén para resolver un asunto legal ante testigos: en las ciudades del Israel antiguo, la puerta era el lugar público donde se cerraban negocios, se dictaban sentencias y se resolvían disputas.',
+        },
+        'bind-as-sign': {
+          label: 'El origen de las filacterias',
+          detail:
+            'Deuteronomio 6:8 manda "atar" las palabras de Dios "como señal" en la mano y llevarlas "como frontales" entre los ojos; de este mandato nació la práctica judía —documentada ya en el siglo I— de llevar pequeñas cajas con pasajes de la Escritura (tefilín o filacterias) durante la oración.',
+        },
+        'first-last-adam': {
+          label: 'El primer Adán, el último Adán',
+          detail:
+            '1 Corintios 15:45 pone lado a lado a los dos Adanes: "el primer hombre Adán fue hecho alma viviente" (citando Génesis 2:7); "el postrer Adán, espíritu vivificante" — es el propio Pablo quien traza esta línea entre la creación y Cristo.',
+        },
+        'passover-lamb-unbroken': {
+          label: 'Ni un hueso quebrado',
+          detail:
+            'Juan 19:36 conecta la muerte de Jesús con una regla precisa dada siglos antes para el cordero de la Pascua: "no quebraréis hueso de él" (Éxodo 12:46; Números 9:12; cf. Salmos 34:20) — el evangelio señala el cumplimiento literal de ese detalle en la cruz.',
+        },
+        'bronze-serpent': {
+          label: 'La serpiente de bronce, según el propio Jesús',
+          detail:
+            'Juan 3:14 es el propio Jesús comparando su muerte con la serpiente de bronce que Moisés levantó en el desierto (Números 21:9): quien mirara a la serpiente vivía; quien mire a Jesús levantado, vive.',
+        },
+        'contentment-secret': {
+          label: '"Todo lo puedo": el contexto que casi nadie cita',
+          detail:
+            'El contexto inmediato (Filipenses 4:11-12) muestra que Filipenses 4:13 no es una promesa de éxito ilimitado, sino la conclusión de Pablo tras describir cómo aprendió a estar contento "en cualquier estado": puede soportar tanto la escasez como la abundancia porque Cristo lo fortalece — el versículo habla de contentamiento, no de logros, una lectura que también recoge el comentario de Matthew Henry.',
+        },
       },
     },
 
@@ -9495,6 +9580,91 @@ export const translations = {
           label: "A denarius: a full day's wage",
           detail:
             "In Jesus' day, a Roman denarius was what a day laborer earned for a full day's work: just enough for his family to eat that day, with no margin to save. This detail helps make better sense of the parable of the workers in the vineyard: receiving \"what was fair\" was not an economic technicality — it was literally that day's bread.",
+        },
+        'jericho-city-of-palms': {
+          label: 'Jericho, the city of palm trees',
+          detail:
+            'Deuteronomy 34:3 calls Jericho "the city of palm trees" — an oasis city fed by a desert spring in the Judean wilderness, about 258 meters below sea level, in the Jordan Valley near the northern end of the Dead Sea.',
+        },
+        'ararat-mountains': {
+          label: "The ark didn't land on 'the' Mount Ararat",
+          detail:
+            'Genesis 8:4 says the ark rested on the "mountains of Ararat" — plural: the text points to an entire mountain range in the ancient region of Urartu (modern Turkey/Armenia), not one specific peak.',
+        },
+        'armageddon-megiddo': {
+          label: 'Armageddon: a real place on the map',
+          detail:
+            'Revelation 16:16 explains that "Armageddon" is a Hebrew name — from "har Megiddo," the mount of Megiddo, a real fortress overlooking a major trade and military route, and the site of historic battles like King Josiah\'s death (2 Kings 23:29).',
+        },
+        'the-omer': {
+          label: 'The omer: a daily ration defined by the text itself',
+          detail:
+            'Exodus 16:36 defines its own unit of measure: "an omer is one tenth of an ephah" — the exact amount of manna each person was to gather every day in the wilderness.',
+        },
+        'israel-census-wilderness': {
+          label: '603,550: the wilderness census',
+          detail:
+            "Numbers 1:46 gives the exact total of Israel's first wilderness census: 603,550 men twenty years old and up, fit for war (Numbers 1:45) — not counting the Levites, deliberately left out of this count (Numbers 1:47).",
+        },
+        'seventh-day-blessed': {
+          label: "The first thing Scripture ever calls 'holy'",
+          detail:
+            'Genesis 2:3 records the first "holy" in all of Scripture: God blesses and sanctifies the seventh day, the day of his rest after creation — before any law, priest, or temple existed.',
+        },
+        ruach: {
+          label: 'Ruach: wind, breath, and spirit in one word',
+          detail:
+            'רוּחַ (ruach), the Hebrew word translated "Spirit" in Genesis 1:2, also means "wind" and "breath" — the same Hebrew term moves between all three senses throughout Scripture.',
+        },
+        shalom: {
+          label: 'Shalom: far more than "no conflict"',
+          detail:
+            'שָׁלוֹם (shalom), the word the priestly blessing of Numbers 6:26 translates as "peace," carries the sense of wholeness, well-being, and flourishing — not merely the absence of conflict.',
+        },
+        agape: {
+          label: 'Agape: one of Greek\'s words for "love"',
+          detail:
+            'ἀγάπη (agape), the word Paul repeats again and again in 1 Corinthians 13, is one of several distinct Greek words for "love" — alongside eros (desire) and philia (friendship) — and here it describes a love that isn\'t dependent on what it receives in return (1 Corinthians 13:4-7).',
+        },
+        parakletos: {
+          label: "Paraclete: 'called alongside' to help",
+          detail:
+            'παράκλητος (paraklētos), the Greek word behind "Counselor"/"Comforter" in John 14:26, combines "alongside" and "called": someone called to stand beside another person and help — hence other translations render it "Advocate" or "Helper."',
+        },
+        'casting-lots': {
+          label: 'Decisions settled by lot',
+          detail:
+            "Acts 1:26 describes the apostles choosing Judas's replacement by casting lots — an Israelite practice for seeking God's decision on a matter (compare Leviticus 16:8; Proverbs 16:33), not a game of chance.",
+        },
+        'city-gate-court': {
+          label: "The city gate, the people's courtroom",
+          detail:
+            'Ruth 4:1 shows Boaz sitting "at the gate" of Bethlehem to settle a legal matter before witnesses: in ancient Israelite towns, the gate was the public place where business was transacted, cases were judged, and disputes were settled.',
+        },
+        'bind-as-sign': {
+          label: 'Where phylacteries come from',
+          detail:
+            'Deuteronomy 6:8 commands binding God\'s words "as a sign" on the hand and wearing them "as frontlets" between the eyes; from this instruction grew the Jewish practice — already documented by the first century — of wearing small boxes containing Scripture passages (tefillin, or phylacteries) during prayer.',
+        },
+        'first-last-adam': {
+          label: 'The first Adam, the last Adam',
+          detail:
+            '1 Corinthians 15:45 sets the two Adams side by side: "the first man Adam became a living soul" (quoting Genesis 2:7); "the last Adam became a life-giving spirit" — it\'s Paul himself who draws this line from creation to Christ.',
+        },
+        'passover-lamb-unbroken': {
+          label: 'Not one bone broken',
+          detail:
+            'John 19:36 ties Jesus\' death to a precise rule given centuries earlier for the Passover lamb: "not a bone of it shall be broken" (Exodus 12:46; Numbers 9:12; cf. Psalm 34:20) — the Gospel points to the literal fulfillment of that detail at the cross.',
+        },
+        'bronze-serpent': {
+          label: 'The bronze serpent, according to Jesus himself',
+          detail:
+            'John 3:14 is Jesus himself comparing his death to the bronze serpent Moses lifted up in the wilderness (Numbers 21:9): whoever looked at the serpent lived; whoever looks to Jesus lifted up, lives.',
+        },
+        'contentment-secret': {
+          label: "'I can do all things': the verse's actual context",
+          detail:
+            "The immediate context (Philippians 4:11-12) shows that Philippians 4:13 isn't a promise of unlimited success but Paul's conclusion after describing how he learned to be content \"in whatsoever state\" he was: he can bear both scarcity and abundance because Christ strengthens him — the verse is about contentment, not achievement, a reading also reflected in Matthew Henry's commentary.",
         },
       },
     },
