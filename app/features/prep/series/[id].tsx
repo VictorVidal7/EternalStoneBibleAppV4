@@ -36,6 +36,7 @@ import {
   ActivityIndicator,
   StyleSheet,
   Modal,
+  ScrollView,
 } from 'react-native';
 import {AppText} from '@components/ui/AppText';
 import {
@@ -65,6 +66,7 @@ import {
   removePrepSeriesPassage,
   movePrepSeriesPassage,
   setPrepSeriesPassageDate,
+  setPrepSeriesSermonType,
   deletePrepSeries,
 } from '@/features/study/prepSeriesStore';
 import {getAllPrepNotes} from '@/features/study/prepNotesStore';
@@ -74,7 +76,9 @@ import {
   passageKeyFromReference,
   passagesSortedByDate,
   seriesPassages,
+  SERMON_TYPES,
   type PrepSeries,
+  type SermonType,
 } from '@/features/study/prepSeries';
 import {assembleSeriesExportInput} from '@/features/study/prepSeriesExport';
 import {buildSeriesHtml} from '@/features/study/prepPdf';
@@ -296,6 +300,18 @@ export default function PrepSeriesDetailScreen() {
     setDateModalKey(key);
   }, []);
 
+  const handlePickSermonType = useCallback(
+    async (value: SermonType | 'none') => {
+      if (!series) return;
+      haptics.tap();
+      const next = value === 'none' ? null : value;
+      if (series.sermonType === next) return;
+      await setPrepSeriesSermonType(series.id, next);
+      await load();
+    },
+    [series, load],
+  );
+
   const handlePickDate = useCallback(
     async (date: string | null) => {
       if (!series || !dateModalKey) return;
@@ -509,6 +525,52 @@ export default function PrepSeriesDetailScreen() {
           </View>
         ) : (
           <View style={styles.body}>
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              style={styles.typeRow}
+              contentContainerStyle={[
+                styles.typeRowContent,
+                centeredMaxWidth(),
+              ]}>
+              {(['none', ...SERMON_TYPES] as const).map(value => {
+                const selected =
+                  value === 'none'
+                    ? !series.sermonType
+                    : series.sermonType === value;
+                const label =
+                  value === 'none' ? h.sermonTypeNone : h.sermonTypes[value];
+                return (
+                  <TouchableOpacity
+                    key={value}
+                    style={[
+                      styles.typeChip,
+                      {borderColor: colors.border},
+                      selected && {
+                        backgroundColor: colors.primary,
+                        borderColor: colors.primary,
+                      },
+                    ]}
+                    onPress={() => handlePickSermonType(value)}
+                    accessibilityRole="button"
+                    accessibilityState={{selected}}
+                    accessibilityLabel={`${h.sermonTypeLabel}: ${label}`}>
+                    <Text
+                      style={[
+                        styles.typeChipText,
+                        {
+                          color: selected
+                            ? colors.onPrimary
+                            : colors.textSecondary,
+                        },
+                      ]}>
+                      {label}
+                    </Text>
+                  </TouchableOpacity>
+                );
+              })}
+            </ScrollView>
+
             <View style={centeredMaxWidth()}>
               <View style={styles.addRow}>
                 <TextInput
@@ -1016,6 +1078,18 @@ const styles = StyleSheet.create({
     fontSize: fontSizes.md,
   },
   body: {flex: 1},
+  typeRow: {flexGrow: 0, marginTop: spacing.md},
+  typeRowContent: {
+    paddingHorizontal: spacing.lg,
+    gap: spacing.xs,
+  },
+  typeChip: {
+    borderWidth: StyleSheet.hairlineWidth,
+    borderRadius: borderRadius.full,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.xs,
+  },
+  typeChipText: {fontSize: fontSizes.sm, fontWeight: '600'},
   addRow: {
     flexDirection: 'row',
     alignItems: 'center',

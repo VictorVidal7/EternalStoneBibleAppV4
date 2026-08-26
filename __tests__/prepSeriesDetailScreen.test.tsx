@@ -334,6 +334,27 @@ describe('PrepSeriesDetailScreen — T8.4.4', () => {
     expect(updated?.name).toBe('Efesios — otoño');
   });
 
+  it('sets and clears the sermon type via the type chips', async () => {
+    await unlockPremium();
+    await seedSeries({[SERIES_ID]: series()});
+    const {findByLabelText} = renderScreen();
+    fireEvent.press(
+      await findByLabelText(
+        `${h.sermonTypeLabel}: ${h.sermonTypes.expositiva}`,
+      ),
+    );
+    await waitFor(async () => {
+      expect((await getPrepSeries(SERIES_ID))?.sermonType).toBe('expositiva');
+    });
+
+    fireEvent.press(
+      await findByLabelText(`${h.sermonTypeLabel}: ${h.sermonTypeNone}`),
+    );
+    await waitFor(async () => {
+      expect((await getPrepSeries(SERIES_ID))?.sermonType).toBeUndefined();
+    });
+  });
+
   it('deletes the series via the confirm dialog and goes back', async () => {
     await unlockPremium();
     await seedSeries({[SERIES_ID]: series()});

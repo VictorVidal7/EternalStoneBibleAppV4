@@ -38,6 +38,7 @@ import {
   ActivityIndicator,
   StyleSheet,
   Modal,
+  ScrollView,
 } from 'react-native';
 import {AppText} from '@components/ui/AppText';
 import {
@@ -68,8 +69,10 @@ import {
   canCreateSeries,
   computeSeriesProgress,
   listSeries,
+  SERMON_TYPES,
   type PrepSeries,
   type PrepSeriesMap,
+  type SermonType,
 } from '@/features/study/prepSeries';
 import {parsePassageKey} from '@/features/study/prepHistory';
 import {formatPassageLabel} from '@/features/study/prepTable';
@@ -102,7 +105,9 @@ export default function PrepSeriesListScreen() {
   const [notesMap, setNotesMap] = useState<PrepNotesMap>({});
   const [creating, setCreating] = useState(false);
   const [nameDraft, setNameDraft] = useState('');
+  const [typeDraft, setTypeDraft] = useState<SermonType | undefined>();
   const [attachDismissed, setAttachDismissed] = useState(false);
+  const [typeFilter, setTypeFilter] = useState<SermonType | 'all'>('all');
 
   const load = useCallback(async () => {
     const [series, notes] = await Promise.all([
@@ -115,14 +120,28 @@ export default function PrepSeriesListScreen() {
   }, []);
 
   // Free readers never even read the store — premium stays a pure addition.
+  // Resets the filter on every focus too, so returning from a series whose
+  // type just changed never strands the list on a now-stale filter.
   useFocusEffect(
     useCallback(() => {
       if (!isPremium) return;
+      setTypeFilter('all');
       load();
     }, [isPremium, load]),
   );
 
   const seriesList = useMemo(() => listSeries(seriesMap), [seriesMap]);
+  const hasCategorizedSeries = useMemo(
+    () => seriesList.some(item => item.sermonType),
+    [seriesList],
+  );
+  const visibleSeriesList = useMemo(
+    () =>
+      typeFilter === 'all'
+        ? seriesList
+        : seriesList.filter(item => item.sermonType === typeFilter),
+    [seriesList, typeFilter],
+  );
 
   const pendingPassage = useMemo(
     () => (params.passageKey ? parsePassageKey(params.passageKey) : null),
@@ -145,16 +164,18 @@ export default function PrepSeriesListScreen() {
       return;
     }
     setNameDraft('');
+    setTypeDraft(undefined);
     setCreating(true);
   }, [seriesMap, toast, h.limitReachedTitle, h.limitReachedBody]);
 
   const handleSubmitCreate = useCallback(async () => {
     const name = nameDraft.trim();
     if (!name) return;
-    const created = await createPrepSeries(name);
+    const created = await createPrepSeries(name, [], typeDraft);
     if (!created) return;
     setCreating(false);
     setNameDraft('');
+    setTypeDraft(undefined);
     if (attachActive && params.passageKey) {
       await addPrepSeriesPassage(created.id, params.passageKey);
       haptics.success();
@@ -166,6 +187,7 @@ export default function PrepSeriesListScreen() {
     router.push(`/features/prep/series/${created.id}` as never);
   }, [
     nameDraft,
+    typeDraft,
     attachActive,
     params.passageKey,
     load,
@@ -337,8 +359,55 @@ export default function PrepSeriesListScreen() {
               </View>
             )}
 
+            {hasCategorizedSeries && (
+              <ScrollView
+                horizontal
+                showsHorizontalScrollIndicator={false}
+                style={styles.filterRow}
+                contentContainerStyle={[
+                  styles.filterRowContent,
+                  centeredMaxWidth(),
+                ]}>
+                {(['all', ...SERMON_TYPES] as const).map(value => {
+                  const selected = typeFilter === value;
+                  const label =
+                    value === 'all'
+                      ? h.sermonTypeFilterAll
+                      : h.sermonTypes[value];
+                  return (
+                    <TouchableOpacity
+                      key={value}
+                      style={[
+                        styles.filterChip,
+                        {borderColor: colors.border},
+                        selected && {
+                          backgroundColor: colors.primary,
+                          borderColor: colors.primary,
+                        },
+                      ]}
+                      onPress={() => setTypeFilter(value)}
+                      accessibilityRole="button"
+                      accessibilityState={{selected}}
+                      accessibilityLabel={label}>
+                      <Text
+                        style={[
+                          styles.filterChipText,
+                          {
+                            color: selected
+                              ? colors.onPrimary
+                              : colors.textSecondary,
+                          },
+                        ]}>
+                        {label}
+                      </Text>
+                    </TouchableOpacity>
+                  );
+                })}
+              </ScrollView>
+            )}
+
             <FlatList
-              data={seriesList}
+              data={visibleSeriesList}
               keyExtractor={item => item.id}
               contentContainerStyle={[styles.listContent, centeredMaxWidth()]}
               renderItem={({item}) => {
@@ -363,11 +432,32 @@ export default function PrepSeriesListScreen() {
                     accessibilityLabel={item.name}
                     accessibilityHint={h.openHint}>
                     <View style={styles.rowMain}>
-                      <Text
-                        style={[styles.rowLabel, {color: colors.primary}]}
-                        numberOfLines={1}>
-                        {item.name}
-                      </Text>
+                      <View style={styles.rowTitleLine}>
+                        <Text
+                          style={[styles.rowLabel, {color: colors.primary}]}
+                          numberOfLines={1}>
+                          {item.name}
+                        </Text>
+                        {item.sermonType && (
+                          <View
+                            style={[
+                              styles.typeBadge,
+                              {
+                                backgroundColor: colors.primary + '14',
+                                borderColor: colors.primary + '33',
+                              },
+                            ]}>
+                            <Text
+                              style={[
+                                styles.typeBadgeText,
+                                {color: colors.primary},
+                              ]}
+                              numberOfLines={1}>
+                              {h.sermonTypes[item.sermonType]}
+                            </Text>
+                          </View>
+                        )}
+                      </View>
                       <Text
                         style={[styles.rowMeta, {color: colors.textSecondary}]}>
                         {progressLabel}
@@ -389,11 +479,11 @@ export default function PrepSeriesListScreen() {
                     color={colors.textTertiary}
                   />
                   <Text style={[styles.stateTitle, {color: colors.text}]}>
-                    {h.emptyTitle}
+                    {typeFilter === 'all' ? h.emptyTitle : h.filterEmptyTitle}
                   </Text>
                   <Text
                     style={[styles.stateText, {color: colors.textSecondary}]}>
-                    {h.emptyBody}
+                    {typeFilter === 'all' ? h.emptyBody : h.filterEmptyBody}
                   </Text>
                 </View>
               }
@@ -435,6 +525,47 @@ export default function PrepSeriesListScreen() {
                 returnKeyType="done"
                 onSubmitEditing={handleSubmitCreate}
               />
+              <Text style={[styles.modalFieldLabel, {color: colors.text}]}>
+                {h.sermonTypeLabel}
+              </Text>
+              <View style={styles.modalChipWrap}>
+                {(['none', ...SERMON_TYPES] as const).map(value => {
+                  const selected =
+                    value === 'none' ? !typeDraft : typeDraft === value;
+                  const label =
+                    value === 'none' ? h.sermonTypeNone : h.sermonTypes[value];
+                  return (
+                    <TouchableOpacity
+                      key={value}
+                      style={[
+                        styles.filterChip,
+                        {borderColor: colors.border},
+                        selected && {
+                          backgroundColor: colors.primary,
+                          borderColor: colors.primary,
+                        },
+                      ]}
+                      onPress={() =>
+                        setTypeDraft(value === 'none' ? undefined : value)
+                      }
+                      accessibilityRole="button"
+                      accessibilityState={{selected}}
+                      accessibilityLabel={`${h.sermonTypeLabel}: ${label}`}>
+                      <Text
+                        style={[
+                          styles.filterChipText,
+                          {
+                            color: selected
+                              ? colors.onPrimary
+                              : colors.textSecondary,
+                          },
+                        ]}>
+                        {label}
+                      </Text>
+                    </TouchableOpacity>
+                  );
+                })}
+              </View>
               <View style={styles.modalActions}>
                 <TouchableOpacity
                   style={[styles.modalButton, {borderColor: colors.border}]}
@@ -603,6 +734,18 @@ const styles = StyleSheet.create({
   attachTitle: {fontSize: fontSizes.sm, fontWeight: '700'},
   attachBody: {fontSize: fontSizes.xs, lineHeight: fontSizes.xs * 1.4},
   attachDismiss: {fontSize: fontSizes.xs, fontWeight: '700'},
+  filterRow: {flexGrow: 0, marginTop: spacing.md},
+  filterRowContent: {
+    paddingHorizontal: spacing.lg,
+    gap: spacing.xs,
+  },
+  filterChip: {
+    borderWidth: StyleSheet.hairlineWidth,
+    borderRadius: borderRadius.full,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.xs,
+  },
+  filterChipText: {fontSize: fontSizes.sm, fontWeight: '600'},
   listContent: {padding: spacing.lg, flexGrow: 1},
   row: {
     flexDirection: 'row',
@@ -614,7 +757,16 @@ const styles = StyleSheet.create({
     marginBottom: spacing.sm,
   },
   rowMain: {flex: 1, gap: 2},
-  rowLabel: {fontWeight: '700', fontSize: fontSizes.md},
+  rowTitleLine: {flexDirection: 'row', alignItems: 'center', gap: spacing.xs},
+  rowLabel: {fontWeight: '700', fontSize: fontSizes.md, flexShrink: 1},
+  typeBadge: {
+    borderWidth: StyleSheet.hairlineWidth,
+    borderRadius: borderRadius.full,
+    paddingHorizontal: spacing.xs,
+    paddingVertical: 2,
+    flexShrink: 0,
+  },
+  typeBadgeText: {fontSize: 10, fontWeight: '700'},
   rowMeta: {fontSize: fontSizes.sm},
   modalOverlay: {
     flex: 1,
@@ -639,6 +791,17 @@ const styles = StyleSheet.create({
     borderRadius: borderRadius.md,
     padding: spacing.md,
     fontSize: fontSizes.md,
+    marginBottom: spacing.lg,
+  },
+  modalFieldLabel: {
+    fontSize: fontSizes.sm,
+    fontWeight: '600',
+    marginBottom: spacing.xs,
+  },
+  modalChipWrap: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: spacing.xs,
     marginBottom: spacing.lg,
   },
   modalActions: {flexDirection: 'row', gap: spacing.sm},

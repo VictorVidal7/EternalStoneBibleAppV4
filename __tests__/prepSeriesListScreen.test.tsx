@@ -21,6 +21,7 @@ import * as SecureStore from 'expo-secure-store';
 import PrepSeriesListScreen from '../app/features/prep/series/index';
 import {PremiumProvider} from '../src/context/PremiumContext';
 import {ENTITLEMENT_CACHE_KEY} from '../src/lib/offering/entitlementCache';
+import {getPrepSeries} from '../src/features/study/prepSeriesStore';
 import {
   MAX_SERIES,
   serializePrepSeriesMap,
@@ -222,6 +223,25 @@ describe('PrepSeriesListScreen — T8.4.4', () => {
     expect(path).toMatch(/^\/features\/prep\/series\/series_/);
   });
 
+  it('creates a new series with a chosen sermon type', async () => {
+    await unlockPremium();
+    const {findByLabelText, findByPlaceholderText, findByText} = renderScreen();
+    await findByText(h.emptyTitle);
+    fireEvent.press(await findByLabelText(h.newSeries));
+    const input = await findByPlaceholderText(h.namePlaceholder);
+    fireEvent.changeText(input, 'El perdón');
+    fireEvent.press(
+      await findByLabelText(`${h.sermonTypeLabel}: ${h.sermonTypes.tematica}`),
+    );
+    fireEvent.press(await findByText(h.create));
+
+    await waitFor(() => expect(mockPush).toHaveBeenCalledTimes(1));
+    const [path] = mockPush.mock.calls[0] as [string];
+    const id = path.split('/').pop() as string;
+    const created = await getPrepSeries(id);
+    expect(created?.sermonType).toBe('tematica');
+  });
+
   it('lists an existing series with its progress', async () => {
     await unlockPremium();
     await seedSeries({
@@ -244,6 +264,44 @@ describe('PrepSeriesListScreen — T8.4.4', () => {
         h.progress.replace('{{started}}', '1').replace('{{total}}', '2'),
       ),
     ).toBeTruthy();
+  });
+
+  it('shows the sermon type badge and filters the list by type', async () => {
+    await unlockPremium();
+    await seedSeries({
+      s1: {
+        id: 's1',
+        name: 'Efesios',
+        passageKeys: [],
+        sermonType: 'expositiva',
+        createdAt: 1,
+        updatedAt: 100,
+      },
+      s2: {
+        id: 's2',
+        name: 'El perdón',
+        passageKeys: [],
+        sermonType: 'tematica',
+        createdAt: 1,
+        updatedAt: 50,
+      },
+    });
+
+    const {findByText, findAllByText, findByLabelText, queryByText} =
+      renderScreen();
+    expect(await findByText('Efesios')).toBeTruthy();
+    expect(await findByText('El perdón')).toBeTruthy();
+    // Each type label appears twice: once as the filter chip, once as the
+    // row's own badge.
+    expect(await findAllByText(h.sermonTypes.expositiva)).toHaveLength(2);
+    expect(await findAllByText(h.sermonTypes.tematica)).toHaveLength(2);
+
+    fireEvent.press(await findByLabelText(h.sermonTypes.expositiva));
+    await waitFor(() => expect(queryByText('El perdón')).toBeNull());
+    expect(await findByText('Efesios')).toBeTruthy();
+
+    fireEvent.press(await findByLabelText(h.sermonTypeFilterAll));
+    expect(await findByText('El perdón')).toBeTruthy();
   });
 
   it('shows progressEmpty for a series with no passages', async () => {

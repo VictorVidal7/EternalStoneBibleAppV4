@@ -1284,6 +1284,17 @@ export const translations = {
       exportDialogTitle: 'Compartir serie',
       exportGenerating: 'Generando {{done}} de {{total}}…',
       exportError: 'No se pudo exportar la serie. Inténtalo de nuevo.',
+      sermonTypeLabel: 'Tipo de serie',
+      sermonTypeNone: 'Sin categoría',
+      sermonTypeFilterAll: 'Todas',
+      sermonTypes: {
+        expositiva: 'Expositiva',
+        tematica: 'Temática',
+        narrativa: 'Narrativa/biográfica',
+        doctrinal: 'Doctrinal',
+      },
+      filterEmptyTitle: 'Ninguna serie coincide',
+      filterEmptyBody: 'No tienes series con este tipo todavía.',
     },
 
     prepPulpit: {
@@ -7631,6 +7642,17 @@ export const translations = {
       exportDialogTitle: 'Share series',
       exportGenerating: 'Generating {{done}} of {{total}}…',
       exportError: 'Could not export the series. Please try again.',
+      sermonTypeLabel: 'Series type',
+      sermonTypeNone: 'No category',
+      sermonTypeFilterAll: 'All',
+      sermonTypes: {
+        expositiva: 'Expository',
+        tematica: 'Topical',
+        narrativa: 'Narrative/biographical',
+        doctrinal: 'Doctrinal',
+      },
+      filterEmptyTitle: 'No series match',
+      filterEmptyBody: "You don't have any series of this type yet.",
     },
 
     prepPulpit: {
