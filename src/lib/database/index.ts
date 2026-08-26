@@ -183,6 +183,31 @@ const WEB_TEXT_LOADED_KEY = '@web_text_version';
 /** `updated_at` stamped on every row seeded by seedDictionaryV2IfNeeded. */
 const DICT_V2_UPDATED_AT = '2026-07-21';
 
+/**
+ * Version of the bundled Hebrew Spanish-gloss overlay (Tanda 10, Fase 1 —
+ * see seedHebrewGlossEsIfNeeded). TAHOT (the Hebrew source original_words is
+ * built from) carries no Spanish gloss column at all, unlike TAGNT (Greek) —
+ * `scripts/build-originals-pack.js` writes NULL for every Hebrew row's
+ * gloss_es today (`w.glossEs || null`), though an already-deployed pack
+ * built before that normalization existed may carry '' instead — either
+ * way there's no real Spanish value to read. This small hand-curated,
+ * PER-OCCURRENCE overlay (book_id, chapter, verse, position) supplies the
+ * faithful Spanish gloss
+ * for specific reviewed Hebrew word occurrences only — never app-wide by
+ * Strong's number, which would silently apply one gloss to every occurrence
+ * of that word regardless of context. Bump this whenever the bundled JSON
+ * asset's row set grows or a gloss is corrected, same idea as DICT_V1_VERSION.
+ * v1 = Fase 1 scaffolding (Psa 136:1, Psa 3:2, Deu 27:15, Psa 23:1) — every
+ * row's `glossEs` ships EMPTY pending Victor's actual Spanish-gloss review
+ * (see the Fase 1 review sheet); `seedHebrewGlossEsIfNeeded` skips any row
+ * whose gloss is still empty, so the table stays honestly empty until real
+ * content lands, rather than seeding placeholder blanks that would round-trip
+ * back out through `pickGloss` as if they were real (harmless either way,
+ * since `pickGloss` treats empty as absent, but a wasted table is dishonest
+ * state worth avoiding).
+ */
+const HEBREW_GLOSS_ES_VERSION = 1;
+
 /** Max incoming ("referenced by") rows surfaced for a verse, by votes. */
 const XREF_INCOMING_LIMIT = 25;
 
@@ -260,6 +285,9 @@ class BibleDatabase {
   private static readonly DICT_V1_LOADED_KEY = '@dictionary_v1_loaded_version';
   // Imported VERSION of the bundled v2-doctrinal dictionary entries (Tanda 5).
   private static readonly DICT_V2_LOADED_KEY = '@dictionary_v2_loaded_version';
+  // Imported VERSION of the bundled Hebrew Spanish-gloss overlay (Tanda 10).
+  private static readonly HEBREW_GLOSS_ES_LOADED_KEY =
+    '@hebrew_gloss_es_loaded_version';
 
   async initialize(): Promise<void> {
     // Si ya está inicializado, retornar inmediatamente
@@ -304,6 +332,7 @@ class BibleDatabase {
       // Graceful: a failure just leaves the curated layer doing the work.
       await this.seedCrossReferencesIfMissing();
       await this.seedStrongsDefsIfNeeded();
+      await this.seedHebrewGlossEsIfNeeded();
       await this.seedDictionaryV1IfNeeded();
       await this.seedDictionaryV2IfNeeded();
       await this.seedWebTextIfNeeded();
@@ -536,6 +565,25 @@ class BibleDatabase {
       )
     `);
 
+    // Bundled Hebrew Spanish-gloss overlay (Tanda 10, Fase 1). TAHOT (the
+    // Hebrew source) carries no Spanish gloss at all, unlike TAGNT (Greek);
+    // this small hand-curated, PER-OCCURRENCE table (keyed by the exact word
+    // occurrence, not by Strong's number) supplies the faithful Spanish
+    // gloss for specific reviewed rows only. Populated from the bundled
+    // `hebrew-gloss-es-v1.json` asset (see seedHebrewGlossEsIfNeeded);
+    // overlays original_words.gloss_es at read time in getOriginalWords,
+    // same LEFT JOIN + COALESCE shape as strongs_defs overlays strongs_lexicon.
+    await db.runAsync(`
+      CREATE TABLE IF NOT EXISTS hebrew_gloss_es (
+        book_id INTEGER NOT NULL,
+        chapter INTEGER NOT NULL,
+        verse INTEGER NOT NULL,
+        position INTEGER NOT NULL,
+        gloss_es TEXT NOT NULL,
+        PRIMARY KEY (book_id, chapter, verse, position)
+      )
+    `);
+
     // Bundled Strong's-definitions overlay: the COMPLETE English definition
     // (fixes the openscriptures derivation/strongs_def split) + our faithful
     // Spanish translation. Populated from the bundled `strongs-defs.db` asset
@@ -720,6 +768,69 @@ class BibleDatabase {
       console.log('📖 Strong’s definitions overlay imported from bundle');
     } catch (error) {
       console.warn('⚠️ Strong’s definitions seed failed', error);
+    }
+  }
+
+  /**
+   * Load the bundled Hebrew Spanish-gloss overlay (Tanda 10, Fase 1) into
+   * `hebrew_gloss_es`. Versioned like seedStrongsDefsIfNeeded (re-imports
+   * whenever HEBREW_GLOSS_ES_VERSION is bumped), sourced from a small JSON
+   * array required directly — same "small-JSON seed" shape as
+   * seedDictionaryV1IfNeeded, not the heavier ATTACH-DATABASE overlay
+   * machinery strongs_defs/original_words use, because this dataset is a
+   * few dozen hand-curated rows, not a downloadable pack.
+   *
+   * Rows whose `glossEs` is still empty/whitespace (Fase 1 ships every row
+   * that way, pending Victor's actual Spanish-gloss review) are SKIPPED, not
+   * inserted as blanks — the table stays honestly empty until real content
+   * lands, and a future version bump does real work instead of silently
+   * replacing one set of empty rows with another. Graceful: a failure just
+   * leaves getOriginalWords falling back to the pack's own gloss_es (which,
+   * for Hebrew rows, means no Spanish gloss shows — the pre-existing state).
+   */
+  private async seedHebrewGlossEsIfNeeded(): Promise<void> {
+    const db = this.getDb();
+    try {
+      const loaded = await AsyncStorage.getItem(
+        BibleDatabase.HEBREW_GLOSS_ES_LOADED_KEY,
+      );
+      if (loaded === String(HEBREW_GLOSS_ES_VERSION)) return;
+
+      type SeedEntry = {
+        bookId: number;
+        chapter: number;
+        verse: number;
+        position: number;
+        glossEs: string;
+      };
+      // Bundled JSON asset (Fase 1: ~37 rows across 4 verses) — see
+      // scripts/build-originals-pack.js's TAHOT row-parsing regex, reused by
+      // the one-off extraction that produced this review-sheet data.
+      const entries: SeedEntry[] = require('../../../assets/hebrew-gloss-es-v1.json');
+
+      let inserted = 0;
+      await db.withTransactionAsync(async () => {
+        await db.runAsync('DELETE FROM hebrew_gloss_es');
+        for (const e of entries) {
+          const gloss = (e.glossEs ?? '').trim();
+          if (!gloss) continue; // pending Victor's review — skip, don't seed a blank
+          await db.runAsync(
+            `INSERT INTO hebrew_gloss_es
+               (book_id, chapter, verse, position, gloss_es)
+             VALUES (?, ?, ?, ?, ?)`,
+            [e.bookId, e.chapter, e.verse, e.position, gloss],
+          );
+          inserted++;
+        }
+      });
+
+      await AsyncStorage.setItem(
+        BibleDatabase.HEBREW_GLOSS_ES_LOADED_KEY,
+        String(HEBREW_GLOSS_ES_VERSION),
+      );
+      console.log(`📜 Hebrew Spanish-gloss overlay imported (${inserted})`);
+    } catch (error) {
+      console.warn('⚠️ Hebrew Spanish-gloss overlay seed failed', error);
     }
   }
 
@@ -1045,10 +1156,27 @@ class BibleDatabase {
   ): Promise<OriginalWord[]> {
     await this.initialize();
     return this.getDb().getAllAsync<OriginalWord>(
-      `SELECT position, lang, word, translit, gloss_en, gloss_es, strongs, grammar
-       FROM original_words
-       WHERE book_id = ? AND chapter = ? AND verse = ?
-       ORDER BY position`,
+      // The pack's own gloss_es carries no real value for any Hebrew row
+      // (TAHOT has no Spanish gloss column at all) — NULL today per
+      // build-originals-pack.js (`w.glossEs || null`), possibly '' in a
+      // pack built before that normalization existed. A plain
+      // COALESCE(ow.gloss_es, hg.gloss_es) is still wrong to rely on: the
+      // moment it's '' rather than NULL it never falls through to the
+      // overlay, since '' is NOT NULL. Treat whitespace-only as absent
+      // explicitly (NULLIF(TRIM(...), '')) so the hand-curated
+      // hebrew_gloss_es overlay actually gets a chance to fill in the
+      // specific reviewed occurrences (Tanda 10, Fase 1) regardless of
+      // which shape the pack happens to carry.
+      `SELECT ow.position AS position, ow.lang AS lang, ow.word AS word,
+              ow.translit AS translit, ow.gloss_en AS gloss_en,
+              COALESCE(NULLIF(TRIM(ow.gloss_es), ''), hg.gloss_es) AS gloss_es,
+              ow.strongs AS strongs, ow.grammar AS grammar
+       FROM original_words ow
+       LEFT JOIN hebrew_gloss_es hg
+         ON hg.book_id = ow.book_id AND hg.chapter = ow.chapter
+        AND hg.verse = ow.verse AND hg.position = ow.position
+       WHERE ow.book_id = ? AND ow.chapter = ? AND ow.verse = ?
+       ORDER BY ow.position`,
       [bookId, chapter, verse],
     );
   }

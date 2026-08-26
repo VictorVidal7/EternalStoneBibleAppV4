@@ -611,6 +611,7 @@ describe('createSchema (idempotent bootstrap)', () => {
         'cross_references',
         'original_words',
         'strongs_lexicon',
+        'hebrew_gloss_es',
         'strongs_defs',
         'dictionary_entries',
         'dictionary_multiview_sections',
