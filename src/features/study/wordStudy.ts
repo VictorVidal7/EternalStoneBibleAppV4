@@ -39,9 +39,23 @@ export function bookChartLabel(bookId: number, language: Lang): string {
   return language === 'en' ? book.abbrEn : book.abbr;
 }
 
+/**
+ * Old/new testament for a book id — defaults to `'old'` for an unrecognized
+ * id, matching `bookChartLabel`'s defensive `#id` fallback above. Real
+ * distribution rows always carry a valid canonical book_id (1-66), so this
+ * only matters for malformed/test data.
+ */
+function bookTestament(bookId: number): 'old' | 'new' {
+  return getBookById(bookId)?.testament ?? 'old';
+}
+
 /** A distribution bar tagged with the book it represents (Ficha #14 — tap to filter). */
 export interface BookBarDatum extends BarDatum {
   book_id: number;
+  /** Old/new testament (T: word-study-testament-split) — a pure client-side
+   * derivation from `book_id`; this helper never assigns a color, the screen
+   * maps it to a theme token. */
+  testament: 'old' | 'new';
 }
 
 /**
@@ -63,6 +77,7 @@ export function buildBookBars(
       label: bookChartLabel(d.book_id, language),
       value: d.count,
       book_id: d.book_id,
+      testament: bookTestament(d.book_id),
     }));
 }
 
@@ -71,6 +86,30 @@ export function distinctBookCount(
   distribution: readonly StrongsBookCount[],
 ): number {
   return distribution.length;
+}
+
+/** Old/new testament occurrence totals (T: word-study-testament-split). */
+export interface TestamentTotals {
+  old: number;
+  new: number;
+}
+
+/**
+ * Old/new testament totals summed across the FULL distribution — not just
+ * the top-`max` bars `buildBookBars` charts — so the summary line stays
+ * honest even when most of a word's occurrences fall outside the charted
+ * top books. A Strong's number frequently reads as fully one-testament
+ * (e.g. a Hebrew word: `{old: 248, new: 0}`) — that's a correct result, not
+ * a bug. Pure.
+ */
+export function testamentTotals(
+  distribution: readonly StrongsBookCount[],
+): TestamentTotals {
+  const totals: TestamentTotals = {old: 0, new: 0};
+  for (const d of distribution) {
+    totals[bookTestament(d.book_id)] += d.count;
+  }
+  return totals;
 }
 
 /** Everything the word-study screen needs for one Strong's number. */
@@ -140,4 +179,43 @@ export function getWordStudyBookOccurrences(
   bookId: number,
 ): Promise<StrongsOccurrence[]> {
   return getStrongsOccurrencesByBook(strongs, bookId);
+}
+
+/**
+ * The cache key for one occurrence's resolved verse snippet
+ * (T: word-study-snippets) — stable across re-renders since it's derived
+ * only from the occurrence's own reference fields, never the row's index in
+ * whatever (possibly-truncated) list it came from.
+ */
+export function occurrenceSnippetKey(
+  occ: Pick<StrongsOccurrence, 'book_id' | 'chapter' | 'verse'>,
+): string {
+  return `${occ.book_id}-${occ.chapter}-${occ.verse}`;
+}
+
+/**
+ * The rendered translation text for one occurrence — the snippet shown under
+ * its ref/word row (T: word-study-snippets). Calls `bibleDB.getVerse`
+ * directly with the occurrence's own `book_id` (unlike `originals.ts`'s
+ * `getVerseText`, which round-trips through a book NAME because that's what
+ * its callers have on hand; occurrences already carry the id). Occurrence
+ * lists run 200-500 rows, so the screen calls this for a bounded window only,
+ * never the full list eagerly. Null when the verse/version isn't available;
+ * never throws.
+ */
+export async function getOccurrenceSnippet(
+  occ: Pick<StrongsOccurrence, 'book_id' | 'chapter' | 'verse'>,
+  version: string,
+): Promise<string | null> {
+  try {
+    const row = await bibleDB.getVerse(
+      occ.book_id,
+      occ.chapter,
+      occ.verse,
+      version,
+    );
+    return row?.text ?? null;
+  } catch {
+    return null;
+  }
 }
