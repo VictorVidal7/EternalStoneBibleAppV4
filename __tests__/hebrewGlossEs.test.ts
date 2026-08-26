@@ -1,0 +1,453 @@
+/**
+ * Tanda 10 — Hebrew Spanish-gloss overlay, Fase 1 (infrastructure only; see
+ * project_essb-... in memory for the review-sheet handoff to Victor).
+ *
+ * TAHOT (the Hebrew source `original_words` is built from) carries no
+ * Spanish gloss column at all, unlike TAGNT (Greek) —
+ * `scripts/build-originals-pack.js` writes an empty Hebrew `gloss_es` for
+ * every Hebrew row. This suite exercises the three pieces that make the new
+ * `hebrew_gloss_es` overlay actually work:
+ *
+ *  1. The REAL bundled `assets/hebrew-gloss-es-v1.json` — shape/coverage
+ *     only, plus a non-empty check. Filled in by Claude at Victor's direct
+ *     request as a first-pass translation of each row's already-verified
+ *     `gloss_en` (see the review-sheet report) — worth Victor's own skim
+ *     before this ships live, but no longer an intentionally-empty
+ *     placeholder, so these assertions check structure/keys and presence,
+ *     never the exact wording (that's Victor's call, not this suite's).
+ *  2. `seedHebrewGlossEsIfNeeded` — against a SYNTHETIC fixture (swapped in
+ *     via jest.mock, not the real asset) so we can prove the seeder inserts
+ *     real values and skips empty/whitespace ones, independent of whatever
+ *     Fase 1 actually ships.
+ *  3. `getOriginalWords`'s LEFT JOIN + `COALESCE(NULLIF(TRIM(...), ''), ...)`
+ *     — the one trap that matters: `build-originals-pack.js` writes NULL for
+ *     every Hebrew row's gloss_es today (`w.glossEs || null`, confirmed by
+ *     reading the source), but a plain `COALESCE(ow.gloss_es, hg.gloss_es)`
+ *     is still wrong to rely on — it silently never falls through the
+ *     moment gloss_es is `''` instead of NULL, which is exactly the shape
+ *     an already-deployed pack (built before that normalization existed) or
+ *     a future refactor could produce. NULLIF/TRIM covers both NULL and ''
+ *     (and whitespace) unconditionally, so both are tested here. Exercised
+ *     against a fake handle that actually EVALUATES the trim/coalesce
+ *     semantics per row (not a canned-response stub), plus `pickGloss` on
+ *     the resulting shape to confirm the overlay value wins end-to-end once
+ *     it's flowed through the query.
+ *
+ * `node:sqlite` was considered for a REAL in-memory SQLite test (like
+ * scripts/*.js use), but this repo's CI pins Node 20 and `node:sqlite`
+ * requires Node >= 22.5 (see __tests__/databaseMigrations.test.ts's header
+ * for the same reasoning) — so this follows that file's established
+ * "fake handle, real business logic" idiom instead.
+ */
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import {pickGloss} from '../src/features/study/originals';
+import type {OriginalWord} from '../src/lib/database';
+
+// Synthetic fixture — NOT the real bundled asset (which ships every glossEs
+// empty pending Victor's review). Swapped in so seedHebrewGlossEsIfNeeded can
+// be exercised end-to-end (insert real values, skip empty/whitespace ones)
+// without ever depending on — or fabricating — real Hebrew content.
+const SYNTHETIC_ENTRIES = [
+  {
+    bookId: 19,
+    chapter: 136,
+    verse: 1,
+    position: 7,
+    glossEs: 'fidelidad amorosa',
+  },
+  {bookId: 5, chapter: 27, verse: 15, position: 18, glossEs: 'amén'},
+  {bookId: 19, chapter: 3, verse: 2, position: 8, glossEs: ''}, // pending — must be skipped
+  {bookId: 19, chapter: 23, verse: 1, position: 4, glossEs: '   '}, // whitespace-only — must be skipped
+];
+jest.mock('../assets/hebrew-gloss-es-v1.json', () => SYNTHETIC_ENTRIES);
+
+import {BibleDatabase} from '../src/lib/database';
+
+interface OriginalWordRow {
+  book_id: number;
+  chapter: number;
+  verse: number;
+  position: number;
+  lang: string;
+  word: string;
+  translit: string | null;
+  gloss_en: string | null;
+  gloss_es: string | null;
+  strongs: string | null;
+  grammar: string | null;
+}
+interface HebrewGlossEsRow {
+  book_id: number;
+  chapter: number;
+  verse: number;
+  position: number;
+  gloss_es: string;
+}
+
+/** In-memory stand-in for the SQLite handle. Unlike a canned-response stub,
+ *  `getAllAsync` genuinely EVALUATES the join + `COALESCE(NULLIF(TRIM(...),
+ *  ''), ...)` expression over its row store, so this is a real regression
+ *  test for that exact fallback behavior, not a tautology. */
+class FakeOriginalsHandle {
+  originalWords: OriginalWordRow[] = [];
+  hebrewGlossEs: HebrewGlossEsRow[] = [];
+
+  async runAsync(
+    sql: string,
+    params: unknown[] = [],
+  ): Promise<{changes: number; lastInsertRowId: number}> {
+    const s = sql.trim();
+    if (/^DELETE FROM hebrew_gloss_es/i.test(s)) {
+      this.hebrewGlossEs = [];
+      return {changes: 0, lastInsertRowId: 0};
+    }
+    if (/^INSERT INTO hebrew_gloss_es/i.test(s)) {
+      const [book_id, chapter, verse, position, gloss_es] = params as [
+        number,
+        number,
+        number,
+        number,
+        string,
+      ];
+      this.hebrewGlossEs.push({book_id, chapter, verse, position, gloss_es});
+      return {changes: 1, lastInsertRowId: 0};
+    }
+    throw new Error(
+      `FakeOriginalsHandle.runAsync: unhandled statement: ${s.slice(0, 80)}`,
+    );
+  }
+
+  async getAllAsync<T>(sql: string, params: unknown[] = []): Promise<T[]> {
+    const s = sql.trim();
+    if (/FROM original_words ow\s+LEFT JOIN hebrew_gloss_es/i.test(s)) {
+      const [bookId, chapter, verse] = params as [number, number, number];
+      const rows = this.originalWords
+        .filter(
+          w =>
+            w.book_id === bookId && w.chapter === chapter && w.verse === verse,
+        )
+        .sort((a, b) => a.position - b.position);
+      return rows.map(w => {
+        const hg = this.hebrewGlossEs.find(
+          h =>
+            h.book_id === w.book_id &&
+            h.chapter === w.chapter &&
+            h.verse === w.verse &&
+            h.position === w.position,
+        );
+        // Mirror COALESCE(NULLIF(TRIM(ow.gloss_es), ''), hg.gloss_es) exactly:
+        // NULLIF(TRIM(x), '') is NULL for NULL, '', or whitespace-only x.
+        const trimmed = w.gloss_es === null ? null : w.gloss_es.trim();
+        const gloss_es = trimmed ? trimmed : hg ? hg.gloss_es : null;
+        return {
+          position: w.position,
+          lang: w.lang,
+          word: w.word,
+          translit: w.translit,
+          gloss_en: w.gloss_en,
+          gloss_es,
+          strongs: w.strongs,
+          grammar: w.grammar,
+        } as unknown as T;
+      });
+    }
+    throw new Error(
+      `FakeOriginalsHandle.getAllAsync: unhandled query: ${s.slice(0, 80)}`,
+    );
+  }
+
+  async withTransactionAsync(fn: () => Promise<void>): Promise<void> {
+    await fn();
+  }
+}
+
+function makeDb(): {db: BibleDatabase; fake: FakeOriginalsHandle} {
+  const fake = new FakeOriginalsHandle();
+  const db = new BibleDatabase();
+  (db as unknown as {db: FakeOriginalsHandle; initialized: boolean}).db = fake;
+  (db as unknown as {initialized: boolean}).initialized = true;
+  return {db, fake};
+}
+
+function privateApi(db: BibleDatabase) {
+  return db as unknown as {
+    seedHebrewGlossEsIfNeeded(): Promise<void>;
+  };
+}
+
+const ow = (overrides: Partial<OriginalWordRow>): OriginalWordRow => ({
+  book_id: 19,
+  chapter: 136,
+  verse: 1,
+  position: 1,
+  lang: 'H',
+  word: 'הוֹד֣וּ',
+  translit: 'ho.Du',
+  gloss_en: 'give thanks',
+  gloss_es: null,
+  strongs: 'H3034',
+  grammar: null,
+  ...overrides,
+});
+
+describe('hebrew-gloss-es-v1.json (bundled asset) — Fase 1 shape', () => {
+  // Bypasses the jest.mock above to read the REAL bundled asset.
+  const REAL_ASSET: Array<{
+    bookId: number;
+    chapter: number;
+    verse: number;
+    position: number;
+    glossEs: string;
+  }> = jest.requireActual('../assets/hebrew-gloss-es-v1.json');
+
+  it('has exactly the Fase 1 scope (37 rows), each with a non-empty draft glossEs', () => {
+    // Filled in by Claude at Victor's direct request ("agrega el español")
+    // after the review sheet was handed off — a first-pass translation of
+    // each row's already-verified gloss_en, not independently re-sourced.
+    // Still worth Victor's own skim before this ships live, same spirit as
+    // the commentary entries' explicit "Victor reviewed and approved" mark.
+    expect(REAL_ASSET).toHaveLength(37);
+    for (const row of REAL_ASSET) {
+      expect(Number.isInteger(row.bookId)).toBe(true);
+      expect(Number.isInteger(row.chapter)).toBe(true);
+      expect(Number.isInteger(row.verse)).toBe(true);
+      expect(Number.isInteger(row.position)).toBe(true);
+      expect(row.glossEs.trim().length).toBeGreaterThan(0);
+    }
+  });
+
+  it('covers exactly the 4 approved target verses, with no extra verses (no wider corpus)', () => {
+    const key = (r: {bookId: number; chapter: number; verse: number}) =>
+      `${r.bookId}.${r.chapter}.${r.verse}`;
+    const counts: Record<string, number> = {};
+    for (const r of REAL_ASSET) counts[key(r)] = (counts[key(r)] ?? 0) + 1;
+    expect(counts).toEqual({
+      '5.27.15': 18, // Deuteronomy 27:15 (amen)
+      '19.136.1': 7, // Psalms 136:1 (hesed)
+      '19.3.2': 8, // Psalms 3:2 (selah)
+      '19.23.1': 4, // Psalms 23:1 (my-shepherd)
+    });
+  });
+
+  it('has no duplicate (bookId, chapter, verse, position) keys — per-occurrence, not per-Strong’s', () => {
+    const keys = REAL_ASSET.map(
+      r => `${r.bookId}.${r.chapter}.${r.verse}.${r.position}`,
+    );
+    expect(new Set(keys).size).toBe(keys.length);
+  });
+
+  it('has the exact extracted positions per verse, including the Psalms 23:1 / 3:2 versification gap documented in the report', () => {
+    const positionsFor = (bookId: number, chapter: number, verse: number) =>
+      REAL_ASSET.filter(
+        r => r.bookId === bookId && r.chapter === chapter && r.verse === verse,
+      )
+        .map(r => r.position)
+        .sort((a, b) => a - b);
+
+    expect(positionsFor(5, 27, 15)).toEqual(
+      Array.from({length: 18}, (_, i) => i + 1),
+    );
+    expect(positionsFor(19, 136, 1)).toEqual([1, 2, 3, 4, 5, 6, 7]);
+    expect(positionsFor(19, 3, 2)).toEqual([1, 2, 3, 4, 5, 6, 7, 8]);
+    // Positions 1-2 ("A Psalm of David") belong to the Hebrew superscription,
+    // which maps to our "verse 0" (no such verse exists) — correctly absent.
+    expect(positionsFor(19, 23, 1)).toEqual([3, 4, 5, 6]);
+  });
+});
+
+describe('seedHebrewGlossEsIfNeeded (synthetic fixture)', () => {
+  afterEach(async () => {
+    await AsyncStorage.clear();
+  });
+
+  it('inserts only rows whose glossEs is non-empty after trim, skipping empty/whitespace-only rows', async () => {
+    const {db, fake} = makeDb();
+    await privateApi(db).seedHebrewGlossEsIfNeeded();
+
+    expect(fake.hebrewGlossEs).toHaveLength(2);
+    expect(fake.hebrewGlossEs).toEqual(
+      expect.arrayContaining([
+        {
+          book_id: 19,
+          chapter: 136,
+          verse: 1,
+          position: 7,
+          gloss_es: 'fidelidad amorosa',
+        },
+        {book_id: 5, chapter: 27, verse: 15, position: 18, gloss_es: 'amén'},
+      ]),
+    );
+    // The '' and whitespace-only rows never made it in.
+    expect(fake.hebrewGlossEs.some(r => r.chapter === 3 && r.verse === 2)).toBe(
+      false,
+    );
+    expect(
+      fake.hebrewGlossEs.some(r => r.chapter === 23 && r.verse === 1),
+    ).toBe(false);
+  });
+
+  it('marks the version flag done after seeding', async () => {
+    const {db} = makeDb();
+    await privateApi(db).seedHebrewGlossEsIfNeeded();
+
+    expect(await AsyncStorage.getItem('@hebrew_gloss_es_loaded_version')).toBe(
+      '2',
+    );
+  });
+
+  it('is versioned: a second call is a no-op once the flag is set (does not duplicate or re-touch rows)', async () => {
+    const {db, fake} = makeDb();
+    await privateApi(db).seedHebrewGlossEsIfNeeded();
+    expect(fake.hebrewGlossEs).toHaveLength(2);
+
+    fake.hebrewGlossEs[0].gloss_es = 'stale-marker';
+    await privateApi(db).seedHebrewGlossEsIfNeeded();
+
+    expect(fake.hebrewGlossEs).toHaveLength(2); // not doubled
+    expect(fake.hebrewGlossEs[0].gloss_es).toBe('stale-marker'); // untouched
+  });
+
+  it('re-seeds from scratch when the stored version differs (a future version bump)', async () => {
+    await AsyncStorage.setItem('@hebrew_gloss_es_loaded_version', '0');
+    const {db, fake} = makeDb();
+
+    await privateApi(db).seedHebrewGlossEsIfNeeded();
+
+    expect(fake.hebrewGlossEs).toHaveLength(2);
+    expect(await AsyncStorage.getItem('@hebrew_gloss_es_loaded_version')).toBe(
+      '2',
+    );
+  });
+
+  it('does not throw when the underlying db operation fails (graceful, matches seedStrongsDefsIfNeeded)', async () => {
+    const {db, fake} = makeDb();
+    fake.withTransactionAsync = async () => {
+      throw new Error('simulated failure');
+    };
+
+    await expect(
+      privateApi(db).seedHebrewGlossEsIfNeeded(),
+    ).resolves.not.toThrow();
+    expect(
+      await AsyncStorage.getItem('@hebrew_gloss_es_loaded_version'),
+    ).toBeNull(); // never marked "done" — a future launch can retry
+  });
+});
+
+describe('getOriginalWords — Hebrew Spanish-gloss overlay fallback (the NULLIF/TRIM trap)', () => {
+  it('falls back to the overlay when the pack’s gloss_es is an empty string (the actual production shape for Hebrew rows)', async () => {
+    const {db, fake} = makeDb();
+    fake.originalWords = [ow({gloss_es: ''})];
+    fake.hebrewGlossEs = [
+      {book_id: 19, chapter: 136, verse: 1, position: 1, gloss_es: 'gracias'},
+    ];
+
+    const words = await db.getOriginalWords(19, 136, 1);
+    expect(words).toHaveLength(1);
+    expect(words[0].gloss_es).toBe('gracias');
+  });
+
+  it('falls back to the overlay when the pack’s gloss_es is NULL', async () => {
+    const {db, fake} = makeDb();
+    fake.originalWords = [ow({gloss_es: null})];
+    fake.hebrewGlossEs = [
+      {book_id: 19, chapter: 136, verse: 1, position: 1, gloss_es: 'gracias'},
+    ];
+
+    const words = await db.getOriginalWords(19, 136, 1);
+    expect(words[0].gloss_es).toBe('gracias');
+  });
+
+  it('falls back to the overlay when the pack’s gloss_es is whitespace-only', async () => {
+    const {db, fake} = makeDb();
+    fake.originalWords = [ow({gloss_es: '   '})];
+    fake.hebrewGlossEs = [
+      {book_id: 19, chapter: 136, verse: 1, position: 1, gloss_es: 'gracias'},
+    ];
+
+    const words = await db.getOriginalWords(19, 136, 1);
+    expect(words[0].gloss_es).toBe('gracias');
+  });
+
+  it('prefers the pack’s own real gloss_es over the overlay (Greek rows already carry one)', async () => {
+    const {db, fake} = makeDb();
+    fake.originalWords = [ow({lang: 'G', gloss_es: 'amó', word: 'ἠγάπησεν'})];
+    fake.hebrewGlossEs = [
+      {
+        book_id: 19,
+        chapter: 136,
+        verse: 1,
+        position: 1,
+        gloss_es: 'should-never-win',
+      },
+    ];
+
+    const words = await db.getOriginalWords(19, 136, 1);
+    expect(words[0].gloss_es).toBe('amó');
+  });
+
+  it('stays null when neither the pack nor the overlay has a value', async () => {
+    const {db, fake} = makeDb();
+    fake.originalWords = [ow({gloss_es: ''})];
+    fake.hebrewGlossEs = []; // no overlay row for this occurrence
+
+    const words = await db.getOriginalWords(19, 136, 1);
+    expect(words[0].gloss_es).toBeNull();
+  });
+
+  it('keys per-occurrence: an overlay row for one position does not leak onto a different position with the same word/Strong’s', async () => {
+    const {db, fake} = makeDb();
+    // Two occurrences of the same Strong's (H2617, chesed) in the same verse
+    // at different positions — a Strong's-keyed overlay would wrongly apply
+    // to both; per-occurrence keying must only affect position 7.
+    fake.originalWords = [
+      ow({position: 4, gloss_es: '', strongs: 'H2617', word: 'חֶ֫סֶד'}),
+      ow({position: 7, gloss_es: '', strongs: 'H2617', word: 'חַסְדּֽוֹ'}),
+    ];
+    fake.hebrewGlossEs = [
+      {
+        book_id: 19,
+        chapter: 136,
+        verse: 1,
+        position: 7,
+        gloss_es: 'misericordia',
+      },
+    ];
+
+    const words = await db.getOriginalWords(19, 136, 1);
+    const byPos = Object.fromEntries(words.map(w => [w.position, w.gloss_es]));
+    expect(byPos[7]).toBe('misericordia');
+    expect(byPos[4]).toBeNull(); // NOT "misericordia" — no per-occurrence match
+  });
+
+  it('pickGloss prefers the overlay value once it has flowed through the join, still falling back to gloss_en for a Spanish UI when absent', async () => {
+    const {db, fake} = makeDb();
+    fake.originalWords = [ow({gloss_es: '', gloss_en: 'give thanks'})];
+    fake.hebrewGlossEs = [
+      {book_id: 19, chapter: 136, verse: 1, position: 1, gloss_es: 'alabad'},
+    ];
+
+    const [word]: OriginalWord[] = await db.getOriginalWords(19, 136, 1);
+    expect(pickGloss(word, 'es')).toBe('alabad');
+    // gloss_en wins for an English UI here only because it happens to be
+    // present — pickGloss('en') is `en || es`, so it never reaches the
+    // overlay while gloss_en exists. See the next test for the case where
+    // it's absent.
+    expect(pickGloss(word, 'en')).toBe('give thanks');
+  });
+
+  it('a curated overlay gloss now also surfaces to an ENGLISH UI when gloss_en is absent — a real, intended behavior change from this tanda (some gloss beats none)', async () => {
+    const {db, fake} = makeDb();
+    fake.originalWords = [ow({gloss_es: '', gloss_en: null})];
+    fake.hebrewGlossEs = [
+      {book_id: 19, chapter: 136, verse: 1, position: 1, gloss_es: 'alabad'},
+    ];
+
+    const [word]: OriginalWord[] = await db.getOriginalWords(19, 136, 1);
+    // Before this tanda, an English-UI reader saw null here (Hebrew rows had
+    // no gloss at all). Now the curated Spanish gloss leaks through via
+    // pickGloss's `en || es` fallback. Documented, not fixed — flagged in
+    // the tanda report for Victor's awareness, not changed in pickGloss.
+    expect(pickGloss(word, 'en')).toBe('alabad');
+  });
+});
