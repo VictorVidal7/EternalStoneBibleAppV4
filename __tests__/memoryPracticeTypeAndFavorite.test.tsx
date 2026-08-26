@@ -231,6 +231,48 @@ describe('Memory practice — "type" recall mode', () => {
   });
 });
 
+describe('Memory practice — "fill" mode per-blank coloring', () => {
+  it('colors each blank by its own correctness after checking, and keeps the inputs (not the plain verse text)', () => {
+    mockDueCards = [makeCard(3)];
+    const {getByText, getAllByLabelText, queryByText} = render(
+      <MemoryPracticeScreen />,
+    );
+
+    fireEvent.press(getByText(p.modeFill));
+    // 'Porque de tal manera amó Dios al mundo' blanks every other word
+    // starting with the 2nd: de(0) manera(1) Dios(2) mundo(3).
+    const blanks = getAllByLabelText(p.fillPrompt);
+    expect(blanks).toHaveLength(4);
+    fireEvent.changeText(blanks[0], 'de'); // correct
+    fireEvent.changeText(blanks[1], 'nunca'); // wrong
+    // blanks[2]/[3] left empty — also wrong.
+    fireEvent.press(getByText(p.fillCheck));
+
+    const checked = getAllByLabelText(p.fillPrompt);
+    expect(checked[0].props.style[1].color).toBe('#22c55e'); // colors.success
+    expect(checked[0].props.style[1].borderColor).toBe('#22c55e');
+    expect(checked[1].props.style[1].color).toBe('#ef4444'); // colors.error
+    expect(checked[2].props.style[1].color).toBe('#ef4444');
+    expect(checked[0].props.editable).toBe(false);
+
+    // The fix: fill mode must NOT fall back to plain verse text on reveal.
+    expect(queryByText('Porque de tal manera amó Dios al mundo')).toBeNull();
+  });
+
+  it('still shows the plain verse text on reveal when a verse has no blanks', () => {
+    mockDueCards = [
+      {
+        ...makeCard(3),
+        text: 'Jesús',
+      },
+    ];
+    const {getByText} = render(<MemoryPracticeScreen />);
+    fireEvent.press(getByText(p.modeFill));
+    fireEvent.press(getByText(p.reveal));
+    expect(getByText('Jesús')).toBeTruthy();
+  });
+});
+
 describe('Memory practice — Favorito ↔ Memorizar cross-link', () => {
   it('offers "add to favorites" for the current card when it is not yet favorited', () => {
     mockDueCards = [makeCard(3)];
