@@ -1838,7 +1838,8 @@ export default function VerseReadingScreen() {
     });
 
   // Start Audio Bible playback
-  async function startAudioPlayback() {
+  async function startAudioPlayback(options?: {announceResume?: boolean}) {
+    const announceResume = options?.announceResume ?? true;
     if (verses.length === 0) return;
 
     try {
@@ -1877,7 +1878,12 @@ export default function VerseReadingScreen() {
     if (resumeIndex > 0) {
       goToVerse(resumeIndex);
       const resumeVerse = audioVerses[resumeIndex];
-      if (resumeVerse) {
+      // Silenced for the auto-resume deep link (below): that path fires with
+      // no preceding tap, so the toast's Modal (see the reader-follow-toast
+      // fix above) would block whatever control the user is actually trying
+      // to reach right as playback starts. A direct tap on the play button
+      // keeps the toast — it's the useful, non-redundant case.
+      if (resumeVerse && announceResume) {
         toast.info(
           t.audio.resume.toast.replace(
             '{{ref}}',
@@ -1930,7 +1936,7 @@ export default function VerseReadingScreen() {
       return;
     }
     audioResumeHandledRef.current = true;
-    void startAudioPlayback();
+    void startAudioPlayback({announceResume: false});
   }, [audioResume, isPremium, loading, verses, displayedLocation]);
 
   if (!bookInfo || loading) {
