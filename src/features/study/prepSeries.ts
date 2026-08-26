@@ -39,6 +39,21 @@ export interface SeriesPassageSchedule {
   note?: string;
 }
 
+/**
+ * Homiletical category for a WHOLE series, chosen by Victor — distinct from
+ * the already-shipped per-sermon `template` field (that's per-passage
+ * structure, e.g. narrative vs. expository outline shape; this is a single
+ * tag describing the series as a whole, e.g. "Efesios en 8 semanas" is
+ * Expositiva).
+ */
+export const SERMON_TYPES = [
+  'expositiva',
+  'tematica',
+  'narrativa',
+  'doctrinal',
+] as const;
+export type SermonType = (typeof SERMON_TYPES)[number];
+
 /** One named, ordered group of passages the preparer is planning through. */
 export interface PrepSeries {
   id: string;
@@ -54,6 +69,8 @@ export interface PrepSeries {
    * field, so both directions degrade gracefully.
    */
   schedule?: Record<string, SeriesPassageSchedule>;
+  /** Optional homiletical category for the whole series. Absent = uncategorized. */
+  sermonType?: SermonType;
   createdAt: number;
   updatedAt: number;
 }
@@ -182,6 +199,25 @@ export function renameSeries(
   const trimmed = clampName(name);
   if (!series || !trimmed) return map;
   return {...map, [id]: {...series, name: trimmed, updatedAt: now}};
+}
+
+/**
+ * Set (or clear, with `sermonType === null`) a series' homiletical category.
+ * A no-op for an unknown id.
+ */
+export function setSeriesSermonType(
+  map: PrepSeriesMap,
+  id: string,
+  sermonType: SermonType | null,
+  now: number = Date.now(),
+): PrepSeriesMap {
+  const series = map[id];
+  if (!series) return map;
+  if (sermonType === null) {
+    const {sermonType: _drop, ...rest} = series;
+    return {...map, [id]: {...rest, updatedAt: now}};
+  }
+  return {...map, [id]: {...series, sermonType, updatedAt: now}};
 }
 
 /**
@@ -412,6 +448,14 @@ function coerceSchedule(
   return Object.keys(out).length > 0 ? out : undefined;
 }
 
+const SERMON_TYPE_SET: ReadonlySet<string> = new Set(SERMON_TYPES);
+
+function coerceSermonType(value: unknown): SermonType | undefined {
+  return typeof value === 'string' && SERMON_TYPE_SET.has(value)
+    ? (value as SermonType)
+    : undefined;
+}
+
 function coerceSeries(value: unknown): PrepSeries | null {
   if (!value || typeof value !== 'object') return null;
   const raw = value as {
@@ -419,6 +463,7 @@ function coerceSeries(value: unknown): PrepSeries | null {
     name?: unknown;
     passageKeys?: unknown;
     schedule?: unknown;
+    sermonType?: unknown;
     createdAt?: unknown;
     updatedAt?: unknown;
   };
@@ -431,6 +476,7 @@ function coerceSeries(value: unknown): PrepSeries | null {
       ).slice(0, MAX_PASSAGES_PER_SERIES)
     : [];
   const schedule = coerceSchedule(raw.schedule, passageKeys);
+  const sermonType = coerceSermonType(raw.sermonType);
   const createdAt =
     typeof raw.createdAt === 'number' && Number.isFinite(raw.createdAt)
       ? raw.createdAt
@@ -444,6 +490,7 @@ function coerceSeries(value: unknown): PrepSeries | null {
     name,
     passageKeys,
     ...(schedule ? {schedule} : {}),
+    ...(sermonType ? {sermonType} : {}),
     createdAt,
     updatedAt,
   };

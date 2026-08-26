@@ -29,6 +29,7 @@ import {
   seriesPassages,
   setSeriesPassageDate,
   setSeriesPassageNote,
+  setSeriesSermonType,
   type PrepSeries,
   type PrepSeriesMap,
 } from '../src/features/study/prepSeries';
@@ -155,6 +156,33 @@ describe('renameSeries', () => {
   it('is a no-op for a blank name', () => {
     const map: PrepSeriesMap = {id1: series()};
     expect(renameSeries(map, 'id1', '   ')).toBe(map);
+  });
+});
+
+describe('setSeriesSermonType', () => {
+  it('sets the sermon type and bumps updatedAt', () => {
+    const map: PrepSeriesMap = {id1: series({updatedAt: 1})};
+    const next = setSeriesSermonType(map, 'id1', 'expositiva', 200);
+    expect(next.id1.sermonType).toBe('expositiva');
+    expect(next.id1.updatedAt).toBe(200);
+  });
+
+  it('overwrites an existing sermon type', () => {
+    const map: PrepSeriesMap = {id1: series({sermonType: 'doctrinal'})};
+    const next = setSeriesSermonType(map, 'id1', 'tematica', 200);
+    expect(next.id1.sermonType).toBe('tematica');
+  });
+
+  it('clears the sermon type with null', () => {
+    const map: PrepSeriesMap = {id1: series({sermonType: 'narrativa'})};
+    const next = setSeriesSermonType(map, 'id1', null, 200);
+    expect(next.id1.sermonType).toBeUndefined();
+    expect(next.id1.updatedAt).toBe(200);
+  });
+
+  it('is a no-op for an unknown id', () => {
+    const map: PrepSeriesMap = {id1: series()};
+    expect(setSeriesSermonType(map, 'nope', 'doctrinal')).toBe(map);
   });
 });
 
@@ -649,5 +677,42 @@ describe('parsePrepSeriesMap schedule tolerance', () => {
     });
     const parsed = parsePrepSeriesMap(raw).id1;
     expect(parsed.schedule).toEqual({'John/3/16': {note: 'kept'}});
+  });
+});
+
+describe('parsePrepSeriesMap sermonType tolerance', () => {
+  it('reads a legacy blob (no sermonType field) as uncategorized', () => {
+    const raw = JSON.stringify({
+      id1: {
+        id: 'id1',
+        name: 'Legacy',
+        passageKeys: [],
+        createdAt: 1,
+        updatedAt: 1,
+      },
+    });
+    expect(parsePrepSeriesMap(raw).id1.sermonType).toBeUndefined();
+  });
+
+  it('round-trips a valid sermonType', () => {
+    const map: PrepSeriesMap = {
+      id1: series({id: 'id1', sermonType: 'doctrinal'}),
+    };
+    const parsed = parsePrepSeriesMap(serializePrepSeriesMap(map));
+    expect(parsed.id1.sermonType).toBe('doctrinal');
+  });
+
+  it('drops an unrecognized sermonType value', () => {
+    const raw = JSON.stringify({
+      id1: {
+        id: 'id1',
+        name: 'X',
+        passageKeys: [],
+        sermonType: 'not-a-real-type',
+        createdAt: 1,
+        updatedAt: 1,
+      },
+    });
+    expect(parsePrepSeriesMap(raw).id1.sermonType).toBeUndefined();
   });
 });

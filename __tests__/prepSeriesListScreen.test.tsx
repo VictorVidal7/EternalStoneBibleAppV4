@@ -246,6 +246,44 @@ describe('PrepSeriesListScreen — T8.4.4', () => {
     ).toBeTruthy();
   });
 
+  it('shows the sermon type badge and filters the list by type', async () => {
+    await unlockPremium();
+    await seedSeries({
+      s1: {
+        id: 's1',
+        name: 'Efesios',
+        passageKeys: [],
+        sermonType: 'expositiva',
+        createdAt: 1,
+        updatedAt: 100,
+      },
+      s2: {
+        id: 's2',
+        name: 'El perdón',
+        passageKeys: [],
+        sermonType: 'tematica',
+        createdAt: 1,
+        updatedAt: 50,
+      },
+    });
+
+    const {findByText, findAllByText, findByLabelText, queryByText} =
+      renderScreen();
+    expect(await findByText('Efesios')).toBeTruthy();
+    expect(await findByText('El perdón')).toBeTruthy();
+    // Each type label appears twice: once as the filter chip, once as the
+    // row's own badge.
+    expect(await findAllByText(h.sermonTypes.expositiva)).toHaveLength(2);
+    expect(await findAllByText(h.sermonTypes.tematica)).toHaveLength(2);
+
+    fireEvent.press(await findByLabelText(h.sermonTypes.expositiva));
+    await waitFor(() => expect(queryByText('El perdón')).toBeNull());
+    expect(await findByText('Efesios')).toBeTruthy();
+
+    fireEvent.press(await findByLabelText(h.sermonTypeFilterAll));
+    expect(await findByText('El perdón')).toBeTruthy();
+  });
+
   it('shows progressEmpty for a series with no passages', async () => {
     await unlockPremium();
     await seedSeries({

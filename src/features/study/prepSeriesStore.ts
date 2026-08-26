@@ -17,6 +17,7 @@ import {logger} from '@lib/utils/logger';
 import {
   type PrepSeries,
   type PrepSeriesMap,
+  type SermonType,
   addPassageToSeries,
   createSeries,
   deleteSeries,
@@ -28,6 +29,7 @@ import {
   serializePrepSeriesMap,
   setSeriesPassageDate,
   setSeriesPassageNote,
+  setSeriesSermonType,
 } from './prepSeries';
 
 const PREP_SERIES_KEY = '@prep_series';
@@ -96,6 +98,19 @@ export async function createPrepSeries(
 /** Rename a series. Fire-and-forget safe: failures log and never reject. */
 export function renamePrepSeries(id: string, name: string): Promise<void> {
   return mutate(map => renameSeries(map, id, name)).catch(() => undefined);
+}
+
+/**
+ * Set (or clear, with `sermonType === null`) a series' homiletical category.
+ * Fire-and-forget safe.
+ */
+export function setPrepSeriesSermonType(
+  id: string,
+  sermonType: SermonType | null,
+): Promise<void> {
+  return mutate(map => setSeriesSermonType(map, id, sermonType)).catch(
+    () => undefined,
+  );
 }
 
 /**
