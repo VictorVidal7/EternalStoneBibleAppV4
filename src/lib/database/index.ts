@@ -197,16 +197,16 @@ const DICT_V2_UPDATED_AT = '2026-07-21';
  * Strong's number, which would silently apply one gloss to every occurrence
  * of that word regardless of context. Bump this whenever the bundled JSON
  * asset's row set grows or a gloss is corrected, same idea as DICT_V1_VERSION.
- * v1 = Fase 1 scaffolding (Psa 136:1, Psa 3:2, Deu 27:15, Psa 23:1) — every
- * row's `glossEs` ships EMPTY pending Victor's actual Spanish-gloss review
- * (see the Fase 1 review sheet); `seedHebrewGlossEsIfNeeded` skips any row
- * whose gloss is still empty, so the table stays honestly empty until real
- * content lands, rather than seeding placeholder blanks that would round-trip
- * back out through `pickGloss` as if they were real (harmless either way,
- * since `pickGloss` treats empty as absent, but a wasted table is dishonest
- * state worth avoiding).
+ * v1 = Fase 1 scaffolding (Psa 136:1, Psa 3:2, Deu 27:15, Psa 23:1), every
+ * row shipped EMPTY pending review. v2 = Claude's first-pass Spanish
+ * translation of each row's already-verified `gloss_en`, added directly at
+ * Victor's request — still worth his own skim before this is treated as
+ * final, same spirit as the commentary entries' explicit "Victor reviewed
+ * and approved" mark, but no longer a placeholder. `seedHebrewGlossEsIfNeeded`
+ * still skips any row whose gloss is empty/whitespace, so a future row added
+ * without translation stays honestly excluded rather than seeding a blank.
  */
-const HEBREW_GLOSS_ES_VERSION = 1;
+const HEBREW_GLOSS_ES_VERSION = 2;
 
 /** Max incoming ("referenced by") rows surfaced for a verse, by votes. */
 const XREF_INCOMING_LIMIT = 25;
@@ -780,13 +780,12 @@ class BibleDatabase {
    * machinery strongs_defs/original_words use, because this dataset is a
    * few dozen hand-curated rows, not a downloadable pack.
    *
-   * Rows whose `glossEs` is still empty/whitespace (Fase 1 ships every row
-   * that way, pending Victor's actual Spanish-gloss review) are SKIPPED, not
-   * inserted as blanks — the table stays honestly empty until real content
-   * lands, and a future version bump does real work instead of silently
-   * replacing one set of empty rows with another. Graceful: a failure just
-   * leaves getOriginalWords falling back to the pack's own gloss_es (which,
-   * for Hebrew rows, means no Spanish gloss shows — the pre-existing state).
+   * Rows whose `glossEs` is still empty/whitespace are SKIPPED, not inserted
+   * as blanks — protects any future un-translated row added to the JSON
+   * from seeding a blank, even though v2's 37 rows are all filled in.
+   * Graceful: a failure just leaves getOriginalWords falling back to the
+   * pack's own gloss_es (which, for Hebrew rows, means no Spanish gloss
+   * shows — the pre-existing state).
    */
   private async seedHebrewGlossEsIfNeeded(): Promise<void> {
     const db = this.getDb();

@@ -9,9 +9,12 @@
  * `hebrew_gloss_es` overlay actually work:
  *
  *  1. The REAL bundled `assets/hebrew-gloss-es-v1.json` — shape/coverage
- *     only. Every row's `glossEs` ships intentionally EMPTY in Fase 1
- *     (pending Victor's actual Spanish-gloss review — see the report), so
- *     these assertions check structure/keys, never invented Spanish content.
+ *     only, plus a non-empty check. Filled in by Claude at Victor's direct
+ *     request as a first-pass translation of each row's already-verified
+ *     `gloss_en` (see the review-sheet report) — worth Victor's own skim
+ *     before this ships live, but no longer an intentionally-empty
+ *     placeholder, so these assertions check structure/keys and presence,
+ *     never the exact wording (that's Victor's call, not this suite's).
  *  2. `seedHebrewGlossEsIfNeeded` — against a SYNTHETIC fixture (swapped in
  *     via jest.mock, not the real asset) so we can prove the seeder inserts
  *     real values and skips empty/whitespace ones, independent of whatever
@@ -197,14 +200,19 @@ describe('hebrew-gloss-es-v1.json (bundled asset) — Fase 1 shape', () => {
     glossEs: string;
   }> = jest.requireActual('../assets/hebrew-gloss-es-v1.json');
 
-  it('has exactly the Fase 1 scope (37 rows), every glossEs honestly empty pending Victor’s review', () => {
+  it('has exactly the Fase 1 scope (37 rows), each with a non-empty draft glossEs', () => {
+    // Filled in by Claude at Victor's direct request ("agrega el español")
+    // after the review sheet was handed off — a first-pass translation of
+    // each row's already-verified gloss_en, not independently re-sourced.
+    // Still worth Victor's own skim before this ships live, same spirit as
+    // the commentary entries' explicit "Victor reviewed and approved" mark.
     expect(REAL_ASSET).toHaveLength(37);
     for (const row of REAL_ASSET) {
       expect(Number.isInteger(row.bookId)).toBe(true);
       expect(Number.isInteger(row.chapter)).toBe(true);
       expect(Number.isInteger(row.verse)).toBe(true);
       expect(Number.isInteger(row.position)).toBe(true);
-      expect(row.glossEs).toBe('');
+      expect(row.glossEs.trim().length).toBeGreaterThan(0);
     }
   });
 
@@ -283,7 +291,7 @@ describe('seedHebrewGlossEsIfNeeded (synthetic fixture)', () => {
     await privateApi(db).seedHebrewGlossEsIfNeeded();
 
     expect(await AsyncStorage.getItem('@hebrew_gloss_es_loaded_version')).toBe(
-      '1',
+      '2',
     );
   });
 
@@ -307,7 +315,7 @@ describe('seedHebrewGlossEsIfNeeded (synthetic fixture)', () => {
 
     expect(fake.hebrewGlossEs).toHaveLength(2);
     expect(await AsyncStorage.getItem('@hebrew_gloss_es_loaded_version')).toBe(
-      '1',
+      '2',
     );
   });
 
