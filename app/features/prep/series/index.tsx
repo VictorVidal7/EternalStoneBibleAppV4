@@ -28,7 +28,7 @@
  * Para la gloria de Dios Todopoderoso ✨
  */
 
-import {useCallback, useMemo, useState} from 'react';
+import {useCallback, useEffect, useMemo, useState} from 'react';
 import {
   View,
   Text,
@@ -120,12 +120,9 @@ export default function PrepSeriesListScreen() {
   }, []);
 
   // Free readers never even read the store — premium stays a pure addition.
-  // Resets the filter on every focus too, so returning from a series whose
-  // type just changed never strands the list on a now-stale filter.
   useFocusEffect(
     useCallback(() => {
       if (!isPremium) return;
-      setTypeFilter('all');
       load();
     }, [isPremium, load]),
   );
@@ -135,6 +132,19 @@ export default function PrepSeriesListScreen() {
     () => seriesList.some(item => item.sermonType),
     [seriesList],
   );
+
+  // Reset the filter only once it's gone stale against the FRESHLY loaded
+  // list (never against the pre-navigation snapshot) — so filtering to one
+  // type, editing that series' type elsewhere, and coming back doesn't strand
+  // the reader on a now-empty filter, while a still-valid filter survives a
+  // plain re-focus/reload untouched.
+  useEffect(() => {
+    if (status !== 'ready') return;
+    if (typeFilter === 'all') return;
+    if (seriesList.some(item => item.sermonType === typeFilter)) return;
+    setTypeFilter('all');
+  }, [status, seriesList, typeFilter]);
+
   const visibleSeriesList = useMemo(
     () =>
       typeFilter === 'all'
