@@ -115,11 +115,15 @@
     "postcss": "^8.5.23",
     "@opentelemetry/core": "^2.8.0",
     "@expo/metro": {
+      ".": "56.0.2",
       "ws": "7.5.11"
     },
     "metro": {
+      ".": "0.84.5",
       "ws": "7.5.11"
     },
+    "metro-config": "0.84.5",
+    "metro-transform-worker": "0.84.5",
     "react-devtools-core": {
       "ws": "7.5.11"
     },
