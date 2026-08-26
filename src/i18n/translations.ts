@@ -4199,7 +4199,6 @@ export const translations = {
       },
       playlistRow: 'Lista: {{label}}',
       nextChapterUp: 'Sigue: {{chapter}}',
-      readerFollowToast: '∞ {{chapter}}',
       autoAdvanceOnToast:
         '∞ Avance automático: al terminar seguirá el siguiente capítulo',
       autoAdvanceOffToast:
@@ -10544,7 +10543,6 @@ export const translations = {
       },
       playlistRow: 'List: {{label}}',
       nextChapterUp: 'Up next: {{chapter}}',
-      readerFollowToast: '∞ {{chapter}}',
       autoAdvanceOnToast:
         '∞ Auto-advance: audio will continue into the next chapter',
       autoAdvanceOffToast:

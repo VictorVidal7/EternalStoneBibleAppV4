@@ -1451,7 +1451,6 @@ export default function VerseReadingScreen() {
     followHandledRef.current = audioEngineLocation;
 
     const title = localizedChapterReference(audioEngineVerses[0], language);
-    toast.info(t.audio.readerFollowToast.replace('{{chapter}}', title));
     // A silent route swap isn't announced to screen readers — name the chapter.
     AccessibilityInfo.announceForAccessibility(
       t.audio.immersive.chapterAdvanced.replace('{{chapter}}', title),
