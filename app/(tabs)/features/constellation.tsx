@@ -57,9 +57,13 @@ import {getMergedStudyConnections} from '@/features/study/crossReferences';
 import {
   buildConnections,
   layoutConstellation,
+  expandNode,
+  collapseNode,
+  hasExpandedChildren,
   type ConstellationLayout,
   type ConstellationNode,
 } from '@/features/study/constellation';
+import {useToast} from '@context/ToastContext';
 import {
   clampConstellationScale,
   clampConstellationTranslate,
@@ -96,6 +100,7 @@ export default function ConstellationScreen() {
   const {colors, gradient} = useTheme();
   const {t} = useLanguage();
   const {selectedVersion} = useBibleVersion();
+  const toast = useToast();
   const cn = t.constellation;
   // Book names follow the READING version's language so they match the text.
   const bookLang: 'es' | 'en' = selectedVersion.language === 'es' ? 'es' : 'en';
@@ -130,8 +135,25 @@ export default function ConstellationScreen() {
   const [selectedText, setSelectedText] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [guideVisible, setGuideVisible] = useState(false);
+  // Key of the star currently mid-"Expandir vecinos" fetch, if any — drives
+  // the small spinner on that action and guards against a double-tap.
+  const [expandingKey, setExpandingKey] = useState<string | null>(null);
   // Latest selected key, so a slow verse fetch never overwrites a newer tap.
   const selectedKeyRef = useRef<string | null>(null);
+  // Authoritative CURRENT layout for the expand/collapse handlers below,
+  // mirroring `layout` state but readable synchronously right after an
+  // `await` — React 18 does not run a `setState` updater synchronously, so
+  // a plain read of the `layout` state variable inside an async handler can
+  // observe a value from before a concurrent expansion/collapse finished
+  // (the lost-update race the spec calls out: "multiple stars can be
+  // expanded simultaneously"). Updated at every site that calls
+  // `setLayout`, same rationale as `selectedKeyRef` above.
+  const layoutRef = useRef<ConstellationLayout | null>(null);
+  // Canonical key of the map's TRUE focus (the centre star, never itself a
+  // node) — expand needs it to exclude a cross-reference back to centre
+  // from being drawn as a duplicate satellite. A ref (not state): only read
+  // inside the async expand handler, never rendered.
+  const focusKeyRef = useRef<string | null>(null);
 
   // Deep-link params can arrive after the first render → (re)seed.
   const seedKey = seed ? chainStepKey(seed) : null;
@@ -170,6 +192,7 @@ export default function ConstellationScreen() {
     setLoading(true);
     setSelected(null);
     setSelectedText(null);
+    setExpandingKey(null);
     selectedKeyRef.current = null;
     (async () => {
       await bibleDB.initialize();
@@ -196,6 +219,10 @@ export default function ConstellationScreen() {
       if (cancelled) return;
       setFocusText(text);
       setLayout(placed);
+      // Belongs to THIS new map — expansions are keyed off these refs, see
+      // their doc comments above.
+      layoutRef.current = placed;
+      focusKeyRef.current = web.focus;
       setLoading(false);
     })();
     return () => {
@@ -236,6 +263,63 @@ export default function ConstellationScreen() {
   const onBreadcrumb = (index: number) => {
     haptics.tap();
     setTrail(prev => truncateChainTo(prev, index));
+  };
+
+  // "Expandir vecinos" — fetch the TAPPED star's own connection web and
+  // place a small satellite cluster orbiting THAT star (see expandNode).
+  // Unlike onRecenter this is purely ADDITIVE: the map keeps its current
+  // centre, breadcrumbs, zoom/pan, and every other star exactly as-is.
+  const onExpandNeighbors = async (node: ConstellationNode) => {
+    haptics.tap();
+    setExpandingKey(node.key);
+    const web = await getMergedStudyConnections(
+      node.book,
+      node.chapter,
+      node.verse,
+    );
+    const children = buildConnections(web);
+    const base = layoutRef.current;
+    // The map may have been replaced (re-centre / new verse / version
+    // switch) while this fetch was in flight — that expansion belongs to
+    // the OLD map (see the reset effect below), so discard it rather than
+    // grafting orphaned satellites onto a parent that no longer exists.
+    // Not a "no new connections" case, so no toast either. Re-look-up the
+    // parent from `base` (rather than trusting the captured `node`) too: a
+    // rotation mid-fetch rebuilds the layout at a new `size` with the SAME
+    // keys but different coordinates, which the key-presence check alone
+    // wouldn't catch.
+    const parent = base?.nodes.find(n => n.key === node.key);
+    if (!base || !parent) {
+      setExpandingKey(null);
+      return;
+    }
+    const result = expandNode(base, parent, children, {
+      size,
+      excludeKeys: focusKeyRef.current ? [focusKeyRef.current] : [],
+    });
+    layoutRef.current = result.layout;
+    setLayout(result.layout);
+    setExpandingKey(null);
+    // No silent caps: if the total-node budget truncated the result, say
+    // so; if nothing new resulted at all (empty web, or every candidate was
+    // a duplicate already on-screen), say that instead.
+    if (result.cappedOut > 0) {
+      toast.info(cn.expandCapped.replace('{{n}}', String(result.cappedOut)));
+    } else if (result.added.length === 0) {
+      toast.info(cn.expandNone);
+    }
+  };
+
+  // "Colapsar vecinos" — the inverse: drop a star's own expanded satellites
+  // (transitively, see collapseNode) without touching the star itself or
+  // any other star's independent expansion.
+  const onCollapseNeighbors = (node: ConstellationNode) => {
+    const base = layoutRef.current;
+    if (!base) return;
+    haptics.tap();
+    const next = collapseNode(base, node);
+    layoutRef.current = next;
+    setLayout(next);
   };
 
   // Hardware back: close the selected-star panel first, then retreat one
@@ -452,10 +536,19 @@ export default function ConstellationScreen() {
     ? `${localize(current.book)} ${current.chapter}:${current.verse}`
     : '';
   const count = layout?.nodes.length ?? 0;
+  // The legend's "N conexiones" is meant as the FOCUS verse's own connection
+  // count, a fixed fact about that verse — not the total star count, which
+  // grows as the map is explored via "Expandir vecinos". `count` above still
+  // gates the empty/loading states and the floating panel (those legitimately
+  // care about "is there anything on screen at all").
+  const primaryCount = layout?.nodes.filter(n => !n.parentKey).length ?? count;
   const countLabel =
-    count === 1
+    primaryCount === 1
       ? cn.connectionsOne
-      : cn.connections.replace('{{n}}', String(count));
+      : cn.connections.replace('{{n}}', String(primaryCount));
+  const selectedHasChildren =
+    selected && layout ? hasExpandedChildren(layout, selected.key) : false;
+  const isExpandingSelected = !!selected && expandingKey === selected.key;
 
   // The star map (edges + focus star + orbiting stars + hit targets) is
   // independent of which star is SELECTED, so memoize it: tapping a star then
@@ -463,19 +556,37 @@ export default function ConstellationScreen() {
   // ~100-element SVG — which is what made the screen feel sluggish.
   const baseSvg = useMemo(() => {
     if (!layout) return null;
-    const edges = layout.nodes.map(node => (
-      <Line
-        key={`edge-${node.key}`}
-        x1={layout.center.x}
-        y1={layout.center.y}
-        x2={node.x}
-        y2={node.y}
-        stroke={testamentColor(node)}
-        strokeOpacity={0.1 + node.weight * 0.22}
-        strokeWidth={0.75 + node.weight * 1.5}
-        strokeDasharray={node.direction === 'in' ? '4 3' : undefined}
-      />
-    ));
+    // Satellite ("Expandir vecinos") nodes draw their edge from their OWN
+    // parent star, not the true centre — build a lookup once rather than
+    // re-scanning `layout.nodes` per node (O(n) either way at this node
+    // count, but this keeps it O(n) total instead of O(n²)).
+    const nodeByKey = new Map(layout.nodes.map(n => [n.key, n]));
+    const edges = layout.nodes.map(node => {
+      const parent = node.parentKey ? nodeByKey.get(node.parentKey) : null;
+      const originX = parent ? parent.x : layout.center.x;
+      const originY = parent ? parent.y : layout.center.y;
+      // JUDGMENT CALL — satellite child edges are visually de-emphasised
+      // (lower opacity, thinner, tighter dash) relative to the main radial
+      // edges, so the 1st ring still reads as the primary structure and a
+      // deep expansion doesn't visually compete with it. Direction (solid
+      // vs dashed) still layers on top exactly as it does for the 1st ring.
+      const isSatellite = Boolean(node.parentKey);
+      return (
+        <Line
+          key={`edge-${node.key}`}
+          x1={originX}
+          y1={originY}
+          x2={node.x}
+          y2={node.y}
+          stroke={testamentColor(node)}
+          strokeOpacity={isSatellite ? 0.3 : 0.1 + node.weight * 0.22}
+          strokeWidth={isSatellite ? 1 : 0.75 + node.weight * 1.5}
+          strokeDasharray={
+            node.direction === 'in' ? (isSatellite ? '2 2' : '4 3') : undefined
+          }
+        />
+      );
+    });
     const center = (
       <React.Fragment key="center">
         <Circle
@@ -942,6 +1053,47 @@ export default function ConstellationScreen() {
               </Text>
             </TouchableOpacity>
           </View>
+          {/* "Expandir vecinos" / "Colapsar vecinos" gets its OWN full-width
+              row rather than joining the pair above — JUDGMENT CALL: three
+              flex:1 buttons sharing one row leaves too little width for
+              "Expandir vecinos" to render on one line on a narrow phone, and
+              this project's practice keeps native/device verification out
+              of parallel agent work, so a layout that only "should" fit
+              isn't good enough here. A dedicated row costs one line of
+              vertical space and removes the risk entirely. */}
+          <View style={styles.selectedActionsSecondary}>
+            <TouchableOpacity
+              style={[styles.actionButton, {borderColor: colors.primary}]}
+              onPress={() =>
+                selectedHasChildren
+                  ? onCollapseNeighbors(selected)
+                  : onExpandNeighbors(selected)
+              }
+              disabled={isExpandingSelected}
+              accessibilityRole="button"
+              accessibilityLabel={
+                selectedHasChildren ? cn.collapseNeighbors : cn.expandNeighbors
+              }>
+              {isExpandingSelected ? (
+                <ActivityIndicator size="small" color={colors.primary} />
+              ) : (
+                <Ionicons
+                  name={selectedHasChildren ? 'contract' : 'git-branch-outline'}
+                  size={16}
+                  color={colors.primary}
+                />
+              )}
+              <Text
+                style={[styles.actionText, {color: colors.primary}]}
+                numberOfLines={1}
+                adjustsFontSizeToFit
+                minimumFontScale={0.85}>
+                {selectedHasChildren
+                  ? cn.collapseNeighbors
+                  : cn.expandNeighbors}
+              </Text>
+            </TouchableOpacity>
+          </View>
         </View>
       ) : null}
 
@@ -1092,6 +1244,10 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     gap: spacing.sm,
     marginTop: spacing.base,
+  },
+  selectedActionsSecondary: {
+    flexDirection: 'row',
+    marginTop: spacing.sm,
   },
   actionButton: {
     flex: 1,

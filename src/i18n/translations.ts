@@ -927,6 +927,10 @@ export const translations = {
       recenter: 'Centrar aquí',
       openInReader: 'Abrir en el lector',
       resetZoom: 'Restablecer vista',
+      expandNeighbors: 'Expandir vecinos',
+      collapseNeighbors: 'Colapsar vecinos',
+      expandCapped: '+{{n}} vecinos más no caben en el mapa.',
+      expandNone: 'No hay conexiones nuevas para mostrar aquí.',
       guide: {
         openLabel: 'Cómo explorar la constelación',
         title: 'Cómo explorar la constelación',
@@ -7290,6 +7294,10 @@ export const translations = {
       recenter: 'Center here',
       openInReader: 'Open in reader',
       resetZoom: 'Reset view',
+      expandNeighbors: 'Expand neighbors',
+      collapseNeighbors: 'Collapse neighbors',
+      expandCapped: "+{{n}} more neighbors don't fit on the map.",
+      expandNone: 'No new connections to show here.',
       guide: {
         openLabel: 'How to explore the constellation',
         title: 'How to explore the constellation',
