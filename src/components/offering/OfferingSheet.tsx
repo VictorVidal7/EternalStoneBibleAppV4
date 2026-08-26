@@ -122,6 +122,20 @@ export const OfferingSheet: React.FC<Props> = ({visible, onClose}) => {
       } else if (outcome.status === 'cancelled') {
         // Silence, no guilt — just return to the tier picker.
         await load();
+      } else if (outcome.status === 'alreadyOwned') {
+        // The store already has a record of this entitlement (e.g. a
+        // reinstall or a previous purchase that hasn't synced locally
+        // yet) — restore it directly instead of surfacing a scary
+        // generic error for something that isn't a failure.
+        const {unlocked} = await restoreOffering();
+        if (unlocked) {
+          haptics.success();
+          toast.success(t.offering.restoreSuccess);
+          setState({kind: 'success'});
+        } else {
+          toast.error(t.offering.purchaseError);
+          await load();
+        }
       } else {
         toast.error(t.offering.purchaseError);
         await load();

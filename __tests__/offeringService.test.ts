@@ -219,6 +219,16 @@ describe('offeringService', () => {
       expect(outcome).toEqual({status: 'cancelled'});
     });
 
+    it('reports alreadyOwned when the store reports PRODUCT_ALREADY_PURCHASED_ERROR', async () => {
+      __setApiKeyForTests('test-key');
+      await initialize();
+      mockPurchases.purchasePackage.mockRejectedValueOnce({code: '6'});
+      const outcome = await purchaseUnlock({
+        identifier: 'ofrenda_extras_1',
+      } as never);
+      expect(outcome).toEqual({status: 'alreadyOwned'});
+    });
+
     it('reports a generic error for any other failure', async () => {
       __setApiKeyForTests('test-key');
       await initialize();
