@@ -3715,6 +3715,8 @@ export const translations = {
       pasteDetected: 'Código detectado en el portapapeles. Toca para usarlo.',
       submitLabel: 'Canjear',
       successToast: '¡Código canjeado! Ya tienes todo el contenido premium.',
+      alreadyPremiumToast:
+        'Ya tienes premium activo — no necesitas canjear un código.',
       alreadyRedeemedToast: 'Este código ya fue canjeado antes.',
       notFoundToast: 'No encontramos ese código. Revisa que esté bien escrito.',
       invalidToast: 'Código inválido.',
@@ -10042,6 +10044,8 @@ export const translations = {
       pasteDetected: 'Code detected on your clipboard. Tap to use it.',
       submitLabel: 'Redeem',
       successToast: 'Code redeemed! You now have all premium content.',
+      alreadyPremiumToast:
+        'You already have premium — no need to redeem a code.',
       alreadyRedeemedToast: 'This code was already redeemed.',
       notFoundToast:
         "We couldn't find that code. Check that it's typed correctly.",

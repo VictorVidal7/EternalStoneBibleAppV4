@@ -41,6 +41,11 @@ jest.mock('../src/context/ToastContext', () => ({
   useToast: () => mockToast,
 }));
 
+let mockIsPremium = false;
+jest.mock('../src/context/PremiumContext', () => ({
+  usePremium: () => ({isPremium: mockIsPremium}),
+}));
+
 jest.mock('../src/lib/haptics', () => ({
   haptics: {tap: jest.fn(), success: jest.fn()},
 }));
@@ -69,6 +74,7 @@ function renderSheet(onClose = jest.fn()) {
 describe('RedeemCodeSheet', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockIsPremium = false;
     mockGetStringAsync.mockResolvedValue('');
     mockRefreshEntitlement.mockResolvedValue(undefined);
   });
@@ -113,6 +119,20 @@ describe('RedeemCodeSheet', () => {
       expect(mockRefreshEntitlement).toHaveBeenCalledTimes(1),
     );
     expect(mockToast.success).toHaveBeenCalledTimes(1);
+    expect(onClose).toHaveBeenCalledTimes(1);
+  });
+
+  it('when already premium: never calls the server, informs, and closes', async () => {
+    mockIsPremium = true;
+    const onClose = jest.fn();
+    const {findByLabelText, findByPlaceholderText} = renderSheet(onClose);
+
+    fireEvent.changeText(await findByPlaceholderText('XXXX-XXXX'), 'ABCD1234');
+    fireEvent.press(await findByLabelText('Canjear'));
+
+    await waitFor(() => expect(mockToast.info).toHaveBeenCalledTimes(1));
+    expect(mockRedeemGiftCode).not.toHaveBeenCalled();
+    expect(mockRefreshEntitlement).not.toHaveBeenCalled();
     expect(onClose).toHaveBeenCalledTimes(1);
   });
 
