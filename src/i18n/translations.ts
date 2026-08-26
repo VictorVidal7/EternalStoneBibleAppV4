@@ -915,6 +915,8 @@ export const translations = {
       title: 'Constelación',
       subtitle: 'La red de conexiones del versículo',
       open: 'Ver constelación',
+      legendOld: 'AT',
+      legendNew: 'NT',
       legendOut: 'Apunta a',
       legendIn: 'Citado por',
       tapHint: 'Toca una estrella para verla',
@@ -933,7 +935,7 @@ export const translations = {
           'Descubre cómo un versículo se conecta con otros pasajes de la Biblia: un mapa de estrellas con el versículo que lees en el centro y sus referencias cruzadas orbitando a su alrededor.',
         s1Title: 'Toca una estrella',
         s1Body:
-          'Cada estrella es un versículo relacionado con el que estás leyendo. Tócala para ver su texto sin salir del mapa: el color indica si ese versículo apunta al tuyo o si es citado por él.',
+          'Cada estrella es un versículo relacionado con el que estás leyendo. Tócala para ver su texto sin salir del mapa: el color indica de qué testamento viene (Antiguo o Nuevo) y el trazo de la línea te dice la dirección — sólida si ese versículo apunta al tuyo, punteada si es citado por él.',
         s2Title: 'Recentra el mapa y sigue el hilo',
         s2Body:
           'Desde el panel de una estrella, toca "Centrar aquí" para convertir ese versículo en el nuevo centro y descubrir sus propias conexiones. Tu recorrido queda guardado como una fila de migas de pan arriba; toca cualquiera para volver a ese punto.',
@@ -7275,6 +7277,8 @@ export const translations = {
       title: 'Constellation',
       subtitle: "The verse's web of connections",
       open: 'View constellation',
+      legendOld: 'OT',
+      legendNew: 'NT',
       legendOut: 'Points to',
       legendIn: 'Cited by',
       tapHint: 'Tap a star to reveal it',
@@ -7293,7 +7297,7 @@ export const translations = {
           "See how a verse connects to other passages in Scripture — a star map with the verse you're reading at the center and its cross-references orbiting around it.",
         s1Title: 'Tap a star',
         s1Body:
-          "Every star is a verse related to the one you're reading. Tap it to read its text without leaving the map — the color tells you whether it points to your verse or is cited by it.",
+          "Every star is a verse related to the one you're reading. Tap it to read its text without leaving the map — the color shows which testament it comes from (Old or New), and the line style shows the direction: solid if it points to your verse, dashed if it's cited by it.",
         s2Title: 'Recenter and follow the thread',
         s2Body:
           'From a star\'s panel, tap "Center here" to make that verse the new center and uncover its own connections. Your path is saved as a row of breadcrumbs at the top — tap any of them to jump back.',

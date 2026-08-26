@@ -264,8 +264,18 @@ export default function ConstellationScreen() {
     );
   };
 
-  const nodeColor = (node: ConstellationNode) =>
-    node.direction === 'out' ? colors.primary : colors.accent;
+  // Hue now encodes TESTAMENT (which half of Scripture a connection lives
+  // in), not direction — direction is layered on top as a stroke pattern
+  // (dashed edges + hollow stars for 'in', see baseSvg below). This is a
+  // JUDGMENT CALL change from the original direction-by-color design; see
+  // the guide copy rewrite (cn.guide.s1Body) for the user-facing framing.
+  const testamentColor = useCallback(
+    (node: ConstellationNode) =>
+      getBookByName(node.book)?.testament === 'new'
+        ? colors.accent
+        : colors.secondary,
+    [colors.accent, colors.secondary],
+  );
 
   // ── Pinch-to-zoom / two-finger-pan for the star map ──────────────────────
   // Both the <Svg> canvas AND the per-star hit-target <Pressable> overlay
@@ -460,9 +470,10 @@ export default function ConstellationScreen() {
         y1={layout.center.y}
         x2={node.x}
         y2={node.y}
-        stroke={node.direction === 'out' ? colors.primary : colors.accent}
+        stroke={testamentColor(node)}
         strokeOpacity={0.1 + node.weight * 0.22}
         strokeWidth={0.75 + node.weight * 1.5}
+        strokeDasharray={node.direction === 'in' ? '4 3' : undefined}
       />
     ));
     const center = (
@@ -497,18 +508,29 @@ export default function ConstellationScreen() {
     // ScrollView claims the touch) — which is why "almost no circle responded"
     // (UX review #5). The hit targets are now real RN <Pressable> overlays
     // rendered above the canvas (see hitTargets below).
-    const stars = layout.nodes.map(node => (
-      <Circle
-        key={`star-${node.key}`}
-        cx={node.x}
-        cy={node.y}
-        r={node.r}
-        fill={node.direction === 'out' ? colors.primary : colors.accent}
-        fillOpacity={Math.min(1, 0.34 + node.weight * 0.62)}
-      />
-    ));
+    const stars = layout.nodes.map(node => {
+      const hue = testamentColor(node);
+      const isIncoming = node.direction === 'in';
+      // Weight (connection strength) still needs to read visually on hollow
+      // 'in' stars, which have no fill to carry it — so it rides the ring's
+      // strokeOpacity instead of fillOpacity there.
+      const weightOpacity = Math.min(1, 0.34 + node.weight * 0.62);
+      return (
+        <Circle
+          key={`star-${node.key}`}
+          cx={node.x}
+          cy={node.y}
+          r={node.r}
+          fill={isIncoming ? 'none' : hue}
+          fillOpacity={isIncoming ? undefined : weightOpacity}
+          stroke={isIncoming ? hue : undefined}
+          strokeOpacity={isIncoming ? weightOpacity : undefined}
+          strokeWidth={isIncoming ? 2 : undefined}
+        />
+      );
+    });
     return [...edges, center, ...stars];
-  }, [layout, colors.primary, colors.accent, colors.onPrimary]);
+  }, [layout, testamentColor, colors.primary, colors.onPrimary]);
 
   return (
     <View style={[styles.container, {backgroundColor: colors.background}]}>
@@ -751,26 +773,82 @@ export default function ConstellationScreen() {
                 competing with its text (UX follow-up). */}
             {!selected && (
               <View style={styles.legendRow}>
-                <View style={styles.legendItem}>
-                  <View
-                    style={[
-                      styles.legendDot,
-                      {backgroundColor: colors.primary},
-                    ]}
-                  />
-                  <Text
-                    style={[styles.legendText, {color: colors.textSecondary}]}>
-                    {cn.legendOut}
-                  </Text>
+                {/* Hue group — which testament a connection belongs to. */}
+                <View style={styles.legendGroup}>
+                  <View style={styles.legendItem}>
+                    <View
+                      style={[
+                        styles.legendDot,
+                        {backgroundColor: colors.secondary},
+                      ]}
+                    />
+                    <Text
+                      style={[
+                        styles.legendText,
+                        {color: colors.textSecondary},
+                      ]}>
+                      {cn.legendOld}
+                    </Text>
+                  </View>
+                  <View style={styles.legendItem}>
+                    <View
+                      style={[
+                        styles.legendDot,
+                        {backgroundColor: colors.accent},
+                      ]}
+                    />
+                    <Text
+                      style={[
+                        styles.legendText,
+                        {color: colors.textSecondary},
+                      ]}>
+                      {cn.legendNew}
+                    </Text>
+                  </View>
                 </View>
-                <View style={styles.legendItem}>
-                  <View
-                    style={[styles.legendDot, {backgroundColor: colors.accent}]}
-                  />
-                  <Text
-                    style={[styles.legendText, {color: colors.textSecondary}]}>
-                    {cn.legendIn}
-                  </Text>
+                {/* Line-style group — direction, layered orthogonally on
+                    top of the testament hue (solid = points to yours,
+                    dashed = cited by yours). */}
+                <View style={styles.legendGroup}>
+                  <View style={styles.legendItem}>
+                    <Svg width={16} height={4}>
+                      <Line
+                        x1={0}
+                        y1={2}
+                        x2={16}
+                        y2={2}
+                        stroke={colors.textSecondary}
+                        strokeWidth={2}
+                      />
+                    </Svg>
+                    <Text
+                      style={[
+                        styles.legendText,
+                        {color: colors.textSecondary},
+                      ]}>
+                      {cn.legendOut}
+                    </Text>
+                  </View>
+                  <View style={styles.legendItem}>
+                    <Svg width={16} height={4}>
+                      <Line
+                        x1={0}
+                        y1={2}
+                        x2={16}
+                        y2={2}
+                        stroke={colors.textSecondary}
+                        strokeWidth={2}
+                        strokeDasharray="4 3"
+                      />
+                    </Svg>
+                    <Text
+                      style={[
+                        styles.legendText,
+                        {color: colors.textSecondary},
+                      ]}>
+                      {cn.legendIn}
+                    </Text>
+                  </View>
                 </View>
                 <Text style={[styles.countText, {color: colors.textTertiary}]}>
                   {countLabel}
@@ -800,12 +878,12 @@ export default function ConstellationScreen() {
             {
               bottom: insets.bottom + TAB_BAR_CLEARANCE,
               backgroundColor: colors.surface,
-              borderColor: nodeColor(selected) + '55',
+              borderColor: testamentColor(selected) + '55',
             },
           ]}>
           <View style={styles.floatingHeader}>
             <Text
-              style={[styles.selectedRef, {color: nodeColor(selected)}]}
+              style={[styles.selectedRef, {color: testamentColor(selected)}]}
               numberOfLines={1}>
               {localize(selected.book)} {selected.chapter}:{selected.verse}
             </Text>
@@ -830,7 +908,7 @@ export default function ConstellationScreen() {
             </ExpandableVerseText>
           ) : (
             <ActivityIndicator
-              color={nodeColor(selected)}
+              color={testamentColor(selected)}
               style={styles.selectedLoading}
             />
           )}
@@ -968,10 +1046,12 @@ const styles = StyleSheet.create({
   legendRow: {
     flexDirection: 'row',
     alignItems: 'center',
+    flexWrap: 'wrap',
     gap: spacing.md,
     marginTop: spacing.md,
     alignSelf: 'stretch',
   },
+  legendGroup: {flexDirection: 'row', alignItems: 'center', gap: spacing.md},
   legendItem: {flexDirection: 'row', alignItems: 'center', gap: spacing.xs},
   legendDot: {width: 12, height: 12, borderRadius: 6},
   legendText: {fontSize: fontSizes.xs, fontWeight: '600'},
