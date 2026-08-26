@@ -353,6 +353,13 @@ const DOC_STYLE = `<style>
     font-size: 12px;
     color: #5b6b63;
   }
+  .series-meta {
+    margin: 0 0 14px 0;
+    font-size: 12px;
+    color: #5b6b63;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+  }
   .entry-date {
     font-weight: 700;
     color: #2f6f4f;
@@ -524,9 +531,14 @@ export function buildSeriesHtml(
     .map(entry => renderSeriesEntry(entry, format))
     .join('\n');
   const footerHtml = renderDocFooter(input.guardrail, input.generatedWith);
+  const typeLabel = input.sermonTypeLabel?.trim();
+  const seriesMetaHtml = typeLabel
+    ? `<p class="series-meta">${escapeHtml(typeLabel)}</p>`
+    : '';
 
   const bodyHtml = `<header class="doc-header">
 <h1>${escapeHtml(input.seriesName)}</h1>
+${seriesMetaHtml}
 </header>
 ${entriesHtml}
 ${footerHtml}`;

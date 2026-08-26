@@ -264,6 +264,8 @@ export async function assembleSeriesExportInput(
     version: string;
     guardrail: string;
     generatedWith?: string;
+    /** Localized sermon-type label (e.g. "Expositiva"), already resolved. */
+    sermonTypeLabel?: string;
     /** Optional localized date formatter, e.g. (d) => "12 jul 2026". */
     dateLabelFor?: (date: string) => string;
     /** Order to export in (defaults to the manual passage order). */
@@ -294,6 +296,7 @@ export async function assembleSeriesExportInput(
   return {
     seriesName: series.name,
     entries,
+    sermonTypeLabel: opts.sermonTypeLabel,
     guardrail: opts.guardrail,
     generatedWith: opts.generatedWith,
   };

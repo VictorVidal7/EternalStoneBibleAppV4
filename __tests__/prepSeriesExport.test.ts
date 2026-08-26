@@ -100,6 +100,18 @@ describe('buildSeriesMarkdown', () => {
     expect(md).toContain('# Efesios en 8 semanas');
     expect(md).toContain('---');
   });
+
+  it('shows the sermon-type label in italics right under the title when set', () => {
+    const md = buildSeriesMarkdown(
+      seriesInput({sermonTypeLabel: 'Expositiva'}),
+    );
+    expect(md).toContain('# Efesios en 8 semanas\n\n_Expositiva_');
+  });
+
+  it('omits the sermon-type line when the series is uncategorized', () => {
+    const md = buildSeriesMarkdown(seriesInput());
+    expect(md.startsWith('# Efesios en 8 semanas\n\n_')).toBe(false);
+  });
 });
 
 describe('buildSeriesHtml', () => {
@@ -153,6 +165,24 @@ describe('buildSeriesHtml', () => {
     const html = buildSeriesHtml(seriesInput({entries: []}));
     expect(html).toContain('<h1>Efesios en 8 semanas</h1>');
     expect(html.trimStart().startsWith('<!DOCTYPE html>')).toBe(true);
+  });
+
+  it('renders the sermon-type label under the title when set', () => {
+    const html = buildSeriesHtml(seriesInput({sermonTypeLabel: 'Expositiva'}));
+    expect(html).toContain('<p class="series-meta">Expositiva</p>');
+  });
+
+  it('omits the sermon-type line when the series is uncategorized', () => {
+    const html = buildSeriesHtml(seriesInput());
+    expect(html).not.toContain('class="series-meta"');
+  });
+
+  it('escapes HTML-significant characters in the sermon-type label', () => {
+    const html = buildSeriesHtml(
+      seriesInput({sermonTypeLabel: '<b>Expositiva</b>'}),
+    );
+    expect(html).not.toContain('<b>Expositiva</b>');
+    expect(html).toContain('&lt;b&gt;Expositiva&lt;/b&gt;');
   });
 });
 
@@ -353,6 +383,25 @@ describe('assembleSeriesExportInput', () => {
       [1, 2],
       [2, 2],
     ]);
+  });
+
+  it('threads sermonTypeLabel through when provided', async () => {
+    const out = await assembleSeriesExportInput(series(), {
+      version: 'RVR1960',
+      guardrail: 'g',
+      sermonTypeLabel: 'Expositiva',
+      deps: fakeDeps,
+    });
+    expect(out!.sermonTypeLabel).toBe('Expositiva');
+  });
+
+  it('leaves sermonTypeLabel undefined when not provided (uncategorized)', async () => {
+    const out = await assembleSeriesExportInput(series(), {
+      version: 'RVR1960',
+      guardrail: 'g',
+      deps: fakeDeps,
+    });
+    expect(out!.sermonTypeLabel).toBeUndefined();
   });
 
   it('returns null for a series with no passages', async () => {
