@@ -4,6 +4,7 @@ import {
   normalizeAnswer,
   isBlankCorrect,
   fillScore,
+  fillCheckResults,
   checkTypedVerse,
 } from '../src/lib/memory/recall';
 
@@ -87,6 +88,26 @@ describe('recall — active-recall transforms', () => {
       ).toBe(2);
       expect(fillScore([], ['God'])).toBe(0);
       expect(fillScore(['god', 'LOVED'], ['God', 'loved'])).toBe(2);
+    });
+  });
+
+  describe('fillCheckResults', () => {
+    it('returns one verdict per blank, aligned in order', () => {
+      expect(
+        fillCheckResults(['God', 'loved', 'planet'], ['God', 'loved', 'world']),
+      ).toEqual([true, true, false]);
+    });
+    it('tolerates case/accent/punctuation like isBlankCorrect', () => {
+      expect(fillCheckResults(['senor'], ['Señor,'])).toEqual([true]);
+    });
+    it('treats a missing answer as incorrect', () => {
+      expect(fillCheckResults([], ['God', 'loved'])).toEqual([false, false]);
+    });
+    it("agrees with fillScore's aggregate count", () => {
+      const answers = ['God', 'loved', 'planet', 'so'];
+      const expected = ['God', 'loved', 'world', 'so'];
+      const results = fillCheckResults(answers, expected);
+      expect(results.filter(Boolean).length).toBe(fillScore(answers, expected));
     });
   });
 

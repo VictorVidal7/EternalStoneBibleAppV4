@@ -88,6 +88,18 @@ export function fillScore(
   );
 }
 
+/**
+ * Per-blank verdict of a fill attempt, aligned to the blanks in order — fill
+ * mode's equivalent of {@link checkTypedVerse}'s `wordResults`, so each blank
+ * can be colored individually instead of only showing the aggregate score.
+ */
+export function fillCheckResults(
+  answers: readonly string[],
+  expected: readonly string[],
+): boolean[] {
+  return expected.map((word, i) => isBlankCorrect(answers[i] ?? '', word));
+}
+
 /** Per-word verdict of a full-verse typed attempt, aligned to the verse's words. */
 export interface TypeCheckResult {
   /** One entry per expected word, in order — true when that word matched. */

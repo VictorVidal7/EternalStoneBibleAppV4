@@ -38,6 +38,7 @@ import {
   firstLetterPrompt,
   buildFillLayout,
   fillScore,
+  fillCheckResults,
   checkTypedVerse,
 } from '@lib/memory/recall';
 import {WriteCanvas} from '@/features/memory/WriteCanvas';
@@ -226,6 +227,10 @@ export default function MemoryPracticeScreen() {
     [fillLayout],
   );
   const fillCorrect = fillScore(fillAnswers, fillExpected);
+  const fillResults = useMemo(
+    () => fillCheckResults(fillAnswers, fillExpected),
+    [fillAnswers, fillExpected],
+  );
 
   // 'type' mode — the whole verse is expected words, not just the blanks.
   const typeExpectedWords = useMemo(
@@ -536,7 +541,9 @@ export default function MemoryPracticeScreen() {
                 </Text>
 
                 {/* Body per recall mode */}
-                {showAnswer && mode !== 'type' ? (
+                {showAnswer &&
+                mode !== 'type' &&
+                !(mode === 'fill' && fillLayout.blankCount > 0) ? (
                   <Text style={[styles.verseText, {color: colors.text}]}>
                     {card.text}
                   </Text>
@@ -556,15 +563,28 @@ export default function MemoryPracticeScreen() {
                           key={`tk-${i}`}
                           style={[
                             styles.fillInput,
-                            {color: colors.text, borderColor: colors.primary},
+                            {
+                              color: showAnswer
+                                ? fillResults[tk.blankIndex]
+                                  ? colors.success
+                                  : colors.error
+                                : colors.text,
+                              borderColor: showAnswer
+                                ? fillResults[tk.blankIndex]
+                                  ? colors.success
+                                  : colors.error
+                                : colors.primary,
+                            },
                           ]}
                           value={fillAnswers[tk.blankIndex] ?? ''}
                           onChangeText={v => setFillAnswer(tk.blankIndex, v)}
+                          editable={!showAnswer}
                           autoCapitalize="none"
                           autoCorrect={false}
                           placeholder="·····"
                           placeholderTextColor={colors.textTertiary}
                           accessibilityLabel={t.memory.practice.fillPrompt}
+                          accessibilityState={{disabled: showAnswer}}
                         />
                       ) : (
                         <Text
