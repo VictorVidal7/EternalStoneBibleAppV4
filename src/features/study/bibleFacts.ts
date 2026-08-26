@@ -86,12 +86,45 @@ export const BIBLE_FACTS: readonly BibleFact[] = [
   {id: 'mount-hermon', category: 'geography', ref: 'Deuteronomy/3/9'},
   {id: 'dan-to-beersheba', category: 'geography', ref: 'Judges/20/1'},
   {id: 'eleven-days', category: 'geography', ref: 'Deuteronomy/1/2'},
+  // -- DRAFT, pending Victor's sign-off (added by the content-growth pass) --
+  {
+    id: 'jericho-city-of-palms',
+    category: 'geography',
+    ref: 'Deuteronomy/34/3',
+    draft: true,
+  },
+  {
+    id: 'ararat-mountains',
+    category: 'geography',
+    ref: 'Genesis/8/4',
+    draft: true,
+  },
+  {
+    id: 'armageddon-megiddo',
+    category: 'geography',
+    ref: 'Revelation/16/16',
+    draft: true,
+  },
 
   // ── Números ──
   {id: 'sanctuary-shekel', category: 'numbers', ref: 'Exodus/30/13'},
   {id: 'the-cubit', category: 'numbers', ref: 'Genesis/6/15'},
   {id: 'forty-days', category: 'numbers', ref: 'Matthew/4/2'},
   {id: 'thirty-pieces', category: 'numbers', ref: 'Matthew/26/15'},
+  // -- DRAFT, pending Victor's sign-off (added by the content-growth pass) --
+  {id: 'the-omer', category: 'numbers', ref: 'Exodus/16/36', draft: true},
+  {
+    id: 'israel-census-wilderness',
+    category: 'numbers',
+    ref: 'Numbers/1/46',
+    draft: true,
+  },
+  {
+    id: 'seventh-day-blessed',
+    category: 'numbers',
+    ref: 'Genesis/2/3',
+    draft: true,
+  },
 
   // ── Idioma original ──
   // Strong's numbers below were verified against the LIVE installed originals
@@ -108,18 +141,77 @@ export const BIBLE_FACTS: readonly BibleFact[] = [
     ref: 'Deuteronomy/27/15',
     strongs: 'H543',
   },
+  // -- DRAFT, pending Victor's sign-off (added by the content-growth pass).
+  // These strongs values were verified against a LOCAL rebuild of the
+  // originals pack (`C:\Users\victo\Desktop\originals-pack\originals.db`,
+  // 2026-08-26 — the fix for the Psalms 3:2 / `selah` versification gap
+  // noted above), not the live published pack and not guessed: each one was
+  // confirmed present (`original_words`, matching book_id/chapter/verse) at
+  // the fact's own `ref`, then cross-checked against its own
+  // `strongs_lexicon` row. --
+  {
+    id: 'ruach',
+    category: 'language',
+    ref: 'Genesis/1/2',
+    strongs: 'H7307',
+    draft: true,
+  },
+  {
+    id: 'shalom',
+    category: 'language',
+    ref: 'Numbers/6/26',
+    strongs: 'H7965',
+    draft: true,
+  },
+  {
+    id: 'agape',
+    category: 'language',
+    ref: '1 Corinthians/13/4',
+    strongs: 'G26',
+    draft: true,
+  },
+  {
+    id: 'parakletos',
+    category: 'language',
+    ref: 'John/14/26',
+    strongs: 'G3875',
+    draft: true,
+  },
 
   // ── Historia y cultura ──
   {id: 'tearing-garments', category: 'history', ref: 'Matthew/26/65'},
   {id: 'washing-feet', category: 'history', ref: 'John/13/5'},
   {id: 'unleavened-bread', category: 'history', ref: 'Exodus/12/39'},
   {id: 'seven-day-wedding', category: 'history', ref: 'Judges/14/12'},
+  // -- DRAFT, pending Victor's sign-off (added by the content-growth pass) --
+  {id: 'casting-lots', category: 'history', ref: 'Acts/1/26', draft: true},
+  {id: 'city-gate-court', category: 'history', ref: 'Ruth/4/1', draft: true},
+  {
+    id: 'bind-as-sign',
+    category: 'history',
+    ref: 'Deuteronomy/6/8',
+    draft: true,
+  },
 
   // ── Referencias cruzadas ──
   {id: 'tree-of-life', category: 'crossref', ref: 'Revelation/22/2'},
   {id: 'joshua-jesus-name', category: 'crossref', ref: 'Matthew/1/21'},
   {id: 'ruth-genealogy', category: 'crossref', ref: 'Matthew/1/5'},
   {id: 'jacob-israel', category: 'crossref', ref: 'Genesis/32/28'},
+  // -- DRAFT, pending Victor's sign-off (added by the content-growth pass) --
+  {
+    id: 'first-last-adam',
+    category: 'crossref',
+    ref: '1 Corinthians/15/45',
+    draft: true,
+  },
+  {
+    id: 'passover-lamb-unbroken',
+    category: 'crossref',
+    ref: 'John/19/36',
+    draft: true,
+  },
+  {id: 'bronze-serpent', category: 'crossref', ref: 'John/3/14', draft: true},
 
   // ── Comentario ── Victor reviewed and approved this content 2026-08-25.
   {
@@ -162,6 +254,15 @@ export const BIBLE_FACTS: readonly BibleFact[] = [
     ref: 'Matthew/20/2',
     source:
       'Dato histórico de referencia estándar sobre la economía romana del siglo I.',
+  },
+  // -- DRAFT, pending Victor's sign-off (added by the content-growth pass) --
+  {
+    id: 'contentment-secret',
+    category: 'commentary',
+    ref: 'Philippians/4/13',
+    source:
+      'Paráfrasis basada en Matthew Henry, Comentario Bíblico de Matthew Henry, sección sobre Filipenses 4 (CCEL).',
+    draft: true,
   },
 ] as const;
 

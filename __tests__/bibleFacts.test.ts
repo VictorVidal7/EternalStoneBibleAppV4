@@ -155,7 +155,13 @@ describe('getDailyFactIndex', () => {
 });
 
 describe('bibleFacts — commentary entries (reviewed and approved by Victor 2026-08-25)', () => {
-  const commentaryFacts = BIBLE_FACTS.filter(f => f.category === 'commentary');
+  // Scoped to the already-reviewed (non-draft) commentary entries: this
+  // describe block locks in Victor's 2026-08-25 sign-off on THOSE 5, and
+  // must keep passing even as new draft commentary entries are added by
+  // later content-growth passes (see the "reviewed ids frozen" block below).
+  const commentaryFacts = BIBLE_FACTS.filter(
+    f => f.category === 'commentary' && !f.draft,
+  );
 
   it('ships the 5 seeded commentary "¿Sabías qué?" entries', () => {
     expect(commentaryFacts.length).toBe(5);
@@ -180,10 +186,53 @@ describe('bibleFacts — commentary entries (reviewed and approved by Victor 202
     }
   });
 
-  it('no entry in the catalog is currently marked draft', () => {
+  // Frozen snapshot of the 25 entries reviewed and shipped as of 2026-08-25
+  // (before this session's content-growth pass added new draft entries).
+  // This proves two things at once: (1) none of THESE ids ever got their
+  // `draft` flag touched by a later pass, and (2) the set of currently
+  // non-draft facts is EXACTLY this set — i.e. every newly-added entry is
+  // still draft and none of it is user-visible yet.
+  const REVIEWED_IDS_2026_08_25 = [
+    'dead-sea',
+    'mount-hermon',
+    'dan-to-beersheba',
+    'eleven-days',
+    'sanctuary-shekel',
+    'the-cubit',
+    'forty-days',
+    'thirty-pieces',
+    'hesed',
+    'selah',
+    'logos',
+    'amen',
+    'tearing-garments',
+    'washing-feet',
+    'unleavened-bread',
+    'seven-day-wedding',
+    'tree-of-life',
+    'joshua-jesus-name',
+    'ruth-genealogy',
+    'jacob-israel',
+    'gods-costly-gift',
+    'emmanuel-name',
+    'father-who-ran',
+    'my-shepherd',
+    'a-denarius-a-days-wage',
+  ];
+
+  it('none of the previously-reviewed entries have been marked draft', () => {
     for (const f of BIBLE_FACTS) {
-      expect(f.draft).toBeFalsy();
+      if (REVIEWED_IDS_2026_08_25.includes(f.id)) {
+        expect(f.draft).toBeFalsy();
+      }
     }
+  });
+
+  it('the non-draft (user-visible) set is exactly the reviewed 25 — new entries stay draft', () => {
+    const nonDraftIds = BIBLE_FACTS.filter(f => !f.draft)
+      .map(f => f.id)
+      .sort();
+    expect(nonDraftIds).toEqual([...REVIEWED_IDS_2026_08_25].sort());
   });
 
   it('only commentary entries carry a source citation', () => {
