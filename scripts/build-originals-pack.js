@@ -229,6 +229,33 @@ function cleanHebrew(w) {
  *  verse number, before the `#position` marker — e.g. "Jhn.7.53{8.1}#01".
  *  Without tolerating it here the row silently fails to match and the whole
  *  word is dropped, even though it belongs to a real, addressable verse.
+ *  TAHOT carries an analogous but differently-bracketed annotation — a
+ *  `(ch.v)` parenthetical, not `{...}` — in two distinct situations. As with
+ *  the Greek case, OUR versification (this app's bible-seed.db) is always
+ *  the number BEFORE the annotation, so both forms are parsed identically
+ *  here — only the pre-annotation chapter/verse groups are ever used, and
+ *  the two bracket styles never co-occur on the same row, so accepting
+ *  either in one optional group is safe:
+ *    1. Every superscribed Psalm (any heading like "A psalm of David..."):
+ *       the heading is its own verse 0 (dropped later — bible-seed.db has
+ *       no verse-0 slot to DB-verify it against), and the annotation just
+ *       cross-references that edition's shifted numbering, e.g.
+ *       "Psa.3.0(3.1)#01" and "Psa.3.2(3.3)#08". Positions restart cleanly
+ *       at #01 within each pre-annotation verse — no collision.
+ *    2. A verse where OUR versification's boundary falls mid-sentence
+ *       relative to the Hebrew tradition's own chapter/verse split, so a
+ *       trailing (or leading) clause is filed under the Hebrew edition's
+ *       own next (or previous) chapter.verse but annotated with OUR verse
+ *       as the pre-annotation number, e.g. Num.26.1(25.19) for the "after
+ *       the plague" clause English attaches to Num.26.1, or
+ *       1Sa.20.42(21.1) for the "he arose and went..." clause English
+ *       attaches to the end of 1Sa.20.42. Unlike case 1, here the fragment
+ *       SHARES its pre-annotation chapter.verse with an adjacent row group
+ *       that already has its own #01-based numbering — so its position
+ *       counter also restarts at #01, which WOULD collide key-for-key with
+ *       that group. main() detects and resolves this (renumbers onto the
+ *       end of the existing sequence, preserving file order) since it needs
+ *       a merged, cross-file view of positions per verse to do so safely.
  *  TAHOT also carries an `=X` flag (vs. the normal `=L`, Leningrad Codex) on
  *  ~130 rows: words that exist ONLY as a Hebrew retroversion of the LXX
  *  apparatus (per the file's own header note), never in the Masoretic running
@@ -239,7 +266,7 @@ function cleanHebrew(w) {
 function* parseStep(text, lang) {
   const lines = text.split(/\r?\n/);
   const rowRe =
-    /^([A-Za-z0-9]{2,4})\.(\d+)\.(\d+)(?:\{[^}]*\})?#(\d+)=([A-Za-z()]+)/;
+    /^([A-Za-z0-9]{2,4})\.(\d+)\.(\d+)(?:[{(][^)}]*[)}])?#(\d+)=([A-Za-z()]+)/;
   for (const line of lines) {
     const m = rowRe.exec(line);
     if (!m) continue;
@@ -331,17 +358,35 @@ function main() {
   seed.close();
 
   const rows = [];
-  const stats = {total: 0, deadVerse: 0, noStrongs: 0, books: new Set()};
+  const stats = {
+    total: 0,
+    deadVerse: 0,
+    noStrongs: 0,
+    reposition: 0,
+    books: new Set(),
+  };
+  // Last position assigned per (book,chapter,verse), across ALL files in
+  // canonical order — needed to detect+fix the position collision described
+  // in parseStep's doc comment, case 2: a Hebrew-boundary-split fragment
+  // reusing #01-based numbering on a verse that already has rows.
+  const lastPosByVerse = new Map();
   for (const {f, lang} of STEP_FILES) {
     const text = fs.readFileSync(path.join(CACHE, f), 'utf8');
     for (const w of parseStep(text, lang)) {
       stats.total++;
-      if (!verseSet.has(`${w.bookId}.${w.chapter}.${w.verse}`)) {
+      const vKey = `${w.bookId}.${w.chapter}.${w.verse}`;
+      if (!verseSet.has(vKey)) {
         stats.deadVerse++;
         continue;
       }
       if (!w.strongs) stats.noStrongs++;
       stats.books.add(w.bookId);
+      const lastPos = lastPosByVerse.get(vKey) || 0;
+      if (w.position <= lastPos) {
+        stats.reposition++;
+        w.position = lastPos + 1;
+      }
+      lastPosByVerse.set(vKey, w.position);
       rows.push(w);
     }
   }
@@ -400,6 +445,7 @@ function main() {
       total: stats.total,
       deadVerse: stats.deadVerse,
       noStrongs: stats.noStrongs,
+      reposition: stats.reposition,
     }),
   );
   console.log(
