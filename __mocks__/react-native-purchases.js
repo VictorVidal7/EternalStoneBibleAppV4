@@ -34,7 +34,10 @@ const Purchases = {
   invalidateCustomerInfoCache: jest.fn(() => Promise.resolve()),
   canMakePayments: jest.fn(() => Promise.resolve(true)),
   setLogHandler: jest.fn(),
-  PURCHASES_ERROR_CODE: {PURCHASE_CANCELLED_ERROR: '1'},
+  PURCHASES_ERROR_CODE: {
+    PURCHASE_CANCELLED_ERROR: '1',
+    PRODUCT_ALREADY_PURCHASED_ERROR: '6',
+  },
 
   // --- Test helpers, not part of the real SDK ---
   __setCustomerInfo(info) {

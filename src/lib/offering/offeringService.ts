@@ -55,6 +55,7 @@ export type EntitlementListener = (isUnlocked: boolean) => void;
 export type PurchaseOutcome =
   | {status: 'success'}
   | {status: 'cancelled'}
+  | {status: 'alreadyOwned'}
   | {status: 'error'; message: string};
 
 type PurchasesStatic = {
@@ -80,7 +81,10 @@ type PurchasesStatic = {
   invalidateCustomerInfoCache: () => Promise<void>;
   canMakePayments: () => Promise<boolean>;
   setLogHandler: (handler: (level: string, message: string) => void) => void;
-  PURCHASES_ERROR_CODE: {PURCHASE_CANCELLED_ERROR: string};
+  PURCHASES_ERROR_CODE: {
+    PURCHASE_CANCELLED_ERROR: string;
+    PRODUCT_ALREADY_PURCHASED_ERROR: string;
+  };
 };
 
 let _purchases: PurchasesStatic | null | undefined;
@@ -265,6 +269,12 @@ function outcomeFromError(err: unknown): PurchaseOutcome {
     (Purchases &&
       code === Purchases.PURCHASES_ERROR_CODE.PURCHASE_CANCELLED_ERROR);
   if (cancelled) return {status: 'cancelled'};
+  if (
+    Purchases &&
+    code === Purchases.PURCHASES_ERROR_CODE.PRODUCT_ALREADY_PURCHASED_ERROR
+  ) {
+    return {status: 'alreadyOwned'};
+  }
   return {
     status: 'error',
     message: err instanceof Error ? err.message : String(err),
