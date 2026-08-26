@@ -49,8 +49,11 @@ import {bookLangForVersion} from '@/features/study/christConnections';
 import {
   buildBookBars,
   distinctBookCount,
+  getOccurrenceSnippet,
   getWordStudy,
   getWordStudyBookOccurrences,
+  occurrenceSnippetKey,
+  testamentTotals,
   type WordStudy,
 } from '@/features/study/wordStudy';
 import {
@@ -62,6 +65,13 @@ import {
 } from '@/styles/designTokens';
 
 type Status = 'loading' | 'notInstalled' | 'ready' | 'empty';
+
+// Occurrence lists run 200-500 rows; fetching a verse snippet for every row
+// up front would be 200-500 DB round trips most of which never scroll into
+// view. Instead only this many rows (from the top of whatever list is
+// currently showing) get a resolved snippet, growing by the same amount each
+// time the list is scrolled (see `onMomentumScrollEnd` below).
+const SNIPPET_WINDOW = 30;
 
 export default function WordStudyScreen() {
   const router = useRouter();
@@ -117,6 +127,18 @@ export default function WordStudyScreen() {
     StrongsOccurrence[] | null
   >(null);
   const [filterLoading, setFilterLoading] = useState(false);
+  // How many rows (from the top of whatever occurrence list is currently
+  // showing) have a resolved verse snippet fetched/requested for them —
+  // grows on scroll, resets whenever the underlying list changes wholesale
+  // (a new Strong's number or a new book filter) so it never keeps fetching
+  // against a list that's no longer displayed.
+  const [snippetWindow, setSnippetWindow] = useState(SNIPPET_WINDOW);
+  // Resolved verse text per occurrence, keyed by `occurrenceSnippetKey` —
+  // persists across window growth (a row fetched once is never re-fetched),
+  // cleared alongside the window reset above.
+  const [snippetCache, setSnippetCache] = useState<
+    Record<string, string | null>
+  >({});
 
   useEffect(() => {
     let cancelled = false;
@@ -164,6 +186,16 @@ export default function WordStudyScreen() {
     };
   }, [strongs, bookFilter]);
 
+  // The displayed occurrence list is a wholly different array whenever the
+  // Strong's number or the book filter changes (never a client-side
+  // narrowing of the previous one — see the effect above) — so both the
+  // snippet window and its cache reset here rather than trying to reconcile
+  // stale keys against a new list.
+  useEffect(() => {
+    setSnippetWindow(SNIPPET_WINDOW);
+    setSnippetCache({});
+  }, [strongs, bookFilter]);
+
   const bars = useMemo(
     () => (study ? buildBookBars(study.distribution, bookLang) : []),
     [study, bookLang],
@@ -191,6 +223,62 @@ export default function WordStudyScreen() {
     if (!book) return null;
     return bookLang === 'en' ? book.nameEn : book.name;
   }, [bookFilter, bookLang]);
+
+  // Resolve verse snippets for the rows currently within `snippetWindow` —
+  // never the whole (possibly 200-500-row) list. Already-cached rows are
+  // skipped, so growing the window (scroll) only fetches the newly-exposed
+  // slice, and switching version/strongs/bookFilter starts a fresh window
+  // (see the reset effect above) rather than mixing snippets across lists.
+  useEffect(() => {
+    const windowed = filteredOccurrences.slice(0, snippetWindow);
+    const toFetch = windowed.filter(
+      occ => !(occurrenceSnippetKey(occ) in snippetCache),
+    );
+    if (toFetch.length === 0) return;
+    let cancelled = false;
+    (async () => {
+      const resolvedVersion = version ?? 'RVR1960';
+      const entries = await Promise.all(
+        toFetch.map(
+          async occ =>
+            [
+              occurrenceSnippetKey(occ),
+              await getOccurrenceSnippet(occ, resolvedVersion),
+            ] as const,
+        ),
+      );
+      if (cancelled) return;
+      setSnippetCache(prev => {
+        const next = {...prev};
+        for (const [key, text] of entries) next[key] = text;
+        return next;
+      });
+    })();
+    return () => {
+      cancelled = true;
+    };
+    // `snippetCache` is deliberately NOT a dependency: it's read here only to
+    // skip already-fetched rows, not a trigger — depending on it would
+    // re-run this effect every time it's written, an infinite fetch loop.
+  }, [filteredOccurrences, snippetWindow, version]);
+
+  // Grows the snippet window by one page — a coarse "getting close to the
+  // bottom" heuristic (whole-screen momentum-scroll-end, not a precise
+  // near-the-occurrence-list-end check), matching the task's brief for this
+  // tanda. Capped at `totalForView` (the TRUE total for whatever's showing,
+  // known as soon as `study`/its distribution resolve — unlike
+  // `filteredOccurrences.length`, which is transiently 0 while a book
+  // filter's scoped fetch is still in flight) so a handful of stray flicks
+  // can't balloon the window past the real list size and defeat the whole
+  // point of windowing. Falls back to unclamped growth only while that true
+  // total isn't known yet.
+  const handleOccurrenceListScrollEnd = () => {
+    setSnippetWindow(w =>
+      totalForView > 0
+        ? Math.min(w + SNIPPET_WINDOW, totalForView)
+        : w + SNIPPET_WINDOW,
+    );
+  };
 
   const handleBarPress = (index: number) => {
     const bar = bars[index];
@@ -237,23 +325,62 @@ export default function WordStudyScreen() {
       }`
     : '';
 
-  const renderOccurrence = (occ: StrongsOccurrence, key: string) => (
-    <TouchableOpacity
-      key={key}
-      style={[styles.occRow, {borderTopColor: colors.border}]}
-      onPress={() => openInReader(occ)}
-      accessibilityRole="button"
-      accessibilityLabel={occurrenceRef(occ, bookLang)}>
-      <Text style={[styles.occRef, {color: colors.primary}]} numberOfLines={1}>
-        {occurrenceRef(occ, bookLang)}
-      </Text>
-      <Text
-        style={[styles.occWord, {color: colors.textSecondary}]}
-        numberOfLines={1}>
-        {occ.word}
-      </Text>
-    </TouchableOpacity>
+  // Old/new testament split (T: word-study-testament-split) — summed across
+  // the FULL distribution (never just the top-8 charted bars), so a word
+  // that's charted as mostly-Matthew but also appears twice in Romans still
+  // shows an honest NT total. Reading as fully one-testament (e.g. "AT 248 ·
+  // NT 0" for a Hebrew word) is a correct, expected result, not a bug.
+  const testamentSummary = useMemo(() => {
+    if (!study || study.distribution.length === 0) return null;
+    const totals = testamentTotals(study.distribution);
+    return w.testamentSplit
+      .replace('{{ot}}', String(totals.old))
+      .replace('{{nt}}', String(totals.new));
+  }, [study, w.testamentSplit]);
+
+  // Testament → theme-token color for the distribution chart, mirroring the
+  // same accent/secondary token pair the constellation screen's testament
+  // hues use, for a consistent OT/NT visual vocabulary across the app.
+  const coloredBars = useMemo(
+    () =>
+      bars.map(b => ({
+        ...b,
+        color: b.testament === 'new' ? colors.accent : colors.secondary,
+      })),
+    [bars, colors.accent, colors.secondary],
   );
+
+  const renderOccurrence = (occ: StrongsOccurrence, key: string) => {
+    const snippet = snippetCache[occurrenceSnippetKey(occ)];
+    return (
+      <TouchableOpacity
+        key={key}
+        style={[styles.occRow, {borderTopColor: colors.border}]}
+        onPress={() => openInReader(occ)}
+        accessibilityRole="button"
+        accessibilityLabel={occurrenceRef(occ, bookLang)}>
+        <View style={styles.occHeaderLine}>
+          <Text
+            style={[styles.occRef, {color: colors.primary}]}
+            numberOfLines={1}>
+            {occurrenceRef(occ, bookLang)}
+          </Text>
+          <Text
+            style={[styles.occWord, {color: colors.textSecondary}]}
+            numberOfLines={1}>
+            {occ.word}
+          </Text>
+        </View>
+        {snippet ? (
+          <Text
+            style={[styles.occSnippet, {color: colors.textSecondary}]}
+            numberOfLines={2}>
+            {snippet}
+          </Text>
+        ) : null}
+      </TouchableOpacity>
+    );
+  };
 
   return (
     <View style={[styles.container, {backgroundColor: colors.background}]}>
@@ -310,7 +437,8 @@ export default function WordStudyScreen() {
           contentContainerStyle={[
             styles.body,
             {paddingBottom: insets.bottom + 100},
-          ]}>
+          ]}
+          onMomentumScrollEnd={handleOccurrenceListScrollEnd}>
           {/* Lexicon card: lemma + Strong's + gloss + definition. */}
           <View
             style={[
@@ -461,6 +589,15 @@ export default function WordStudyScreen() {
               <Text style={[styles.sectionTitle, {color: colors.text}]}>
                 {w.distribution}
               </Text>
+              {testamentSummary ? (
+                <Text
+                  style={[
+                    styles.testamentSummary,
+                    {color: colors.textTertiary},
+                  ]}>
+                  {testamentSummary}
+                </Text>
+              ) : null}
               <Text style={[styles.extentRef, {color: colors.primary}]}>
                 {w.distributionSingleBook.replace('{{book}}', singleBookName)}
               </Text>
@@ -474,8 +611,17 @@ export default function WordStudyScreen() {
               <Text style={[styles.sectionTitle, {color: colors.text}]}>
                 {w.distribution}
               </Text>
+              {testamentSummary ? (
+                <Text
+                  style={[
+                    styles.testamentSummary,
+                    {color: colors.textTertiary},
+                  ]}>
+                  {testamentSummary}
+                </Text>
+              ) : null}
               <MiniBarChart
-                data={bars}
+                data={coloredBars}
                 barColor={colors.primary}
                 trackColor={colors.primary + '14'}
                 labelColor={colors.textSecondary}
@@ -748,6 +894,11 @@ const styles = StyleSheet.create({
     gap: spacing.md,
   },
   sectionTitle: {fontSize: fontSizes.base, fontWeight: '800'},
+  testamentSummary: {
+    fontSize: fontSizes.xs,
+    fontWeight: '700',
+    letterSpacing: 0.3,
+  },
   occHeaderRow: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -780,15 +931,27 @@ const styles = StyleSheet.create({
   },
   extentRef: {fontSize: fontSizes.base, fontWeight: '800'},
   occRow: {
+    paddingVertical: spacing.sm,
+    borderTopWidth: StyleSheet.hairlineWidth,
+    gap: 4,
+  },
+  occHeaderLine: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingVertical: spacing.sm,
-    borderTopWidth: StyleSheet.hairlineWidth,
     gap: spacing.sm,
   },
   occRef: {fontSize: fontSizes.sm, fontWeight: '700'},
   occWord: {fontSize: fontSizes.sm, flexShrink: 1, textAlign: 'right'},
+  // The resolved verse snippet (T: word-study-snippets) — a secondary line
+  // under the ref/word row, only rendered once its bounded-window fetch
+  // resolves (see `snippetCache`/`SNIPPET_WINDOW` above); no per-row spinner
+  // while it's pending.
+  occSnippet: {
+    fontSize: fontSizes.xs,
+    lineHeight: 16,
+    paddingRight: verseTextRightSlack(fontSizes.xs),
+  },
   filterLoadingRow: {paddingVertical: spacing.lg, alignItems: 'center'},
   moreNote: {
     fontSize: fontSizes.xs,
