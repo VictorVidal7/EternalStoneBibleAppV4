@@ -41,6 +41,7 @@ import {AppText} from '@components/ui/AppText';
 import {useTheme} from '@hooks/useTheme';
 import {useLanguage} from '@hooks/useLanguage';
 import {useToast} from '@context/ToastContext';
+import {usePremium} from '@context/PremiumContext';
 import {haptics} from '@lib/haptics';
 import {focusTrapProps, a11yHiddenProps} from '@lib/a11y/focusTrap';
 import {redeemGiftCode} from '@lib/offering/giftCodeService';
@@ -93,6 +94,7 @@ export const RedeemCodeSheet: React.FC<Props> = ({visible, onClose}) => {
   const {t} = useLanguage();
   const tr = t.redeemCode;
   const toast = useToast();
+  const {isPremium} = usePremium();
 
   const [code, setCode] = useState('');
   const [submitting, setSubmitting] = useState(false);
@@ -148,6 +150,15 @@ export const RedeemCodeSheet: React.FC<Props> = ({visible, onClose}) => {
   const handleSubmit = useCallback(async () => {
     const trimmed = code.trim();
     if (!trimmed || submitting) return;
+    if (isPremium) {
+      // Don't burn a code that could unlock someone else — the server has
+      // no way to know this ahead of a real request, so catch it here.
+      haptics.tap();
+      toast.info(tr.alreadyPremiumToast);
+      setCode('');
+      onClose();
+      return;
+    }
     haptics.tap();
     setSubmitting(true);
     try {
@@ -176,7 +187,7 @@ export const RedeemCodeSheet: React.FC<Props> = ({visible, onClose}) => {
     } finally {
       setSubmitting(false);
     }
-  }, [code, submitting, toast, tr, onClose]);
+  }, [code, submitting, isPremium, toast, tr, onClose]);
 
   return (
     <Modal
