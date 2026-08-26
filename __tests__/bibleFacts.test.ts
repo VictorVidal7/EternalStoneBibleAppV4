@@ -163,8 +163,8 @@ describe('bibleFacts — commentary entries (reviewed and approved by Victor 202
     f => f.category === 'commentary' && !f.draft,
   );
 
-  it('ships the 5 seeded commentary "¿Sabías qué?" entries', () => {
-    expect(commentaryFacts.length).toBe(5);
+  it('ships the 6 published commentary "¿Sabías qué?" entries', () => {
+    expect(commentaryFacts.length).toBe(6);
   });
 
   it('every commentary entry has a non-empty source citation', () => {
@@ -186,12 +186,13 @@ describe('bibleFacts — commentary entries (reviewed and approved by Victor 202
     }
   });
 
-  // Frozen snapshot of the 25 entries reviewed and shipped as of 2026-08-25
-  // (before this session's content-growth pass added new draft entries).
-  // This proves two things at once: (1) none of THESE ids ever got their
-  // `draft` flag touched by a later pass, and (2) the set of currently
-  // non-draft facts is EXACTLY this set — i.e. every newly-added entry is
-  // still draft and none of it is user-visible yet.
+  // Frozen snapshot of the 42 entries reviewed and shipped as of 2026-08-26:
+  // the original 25 from 2026-08-25 plus 17 more from this session's
+  // content-growth pass, reviewed and approved by Victor the same day. This
+  // proves two things at once: (1) none of THESE ids ever got their `draft`
+  // flag touched by a later pass, and (2) the set of currently non-draft
+  // facts is EXACTLY this set — i.e. any future newly-added entry stays
+  // draft and isn't user-visible until it goes through the same review.
   const REVIEWED_IDS_2026_08_25 = [
     'dead-sea',
     'mount-hermon',
@@ -218,6 +219,23 @@ describe('bibleFacts — commentary entries (reviewed and approved by Victor 202
     'father-who-ran',
     'my-shepherd',
     'a-denarius-a-days-wage',
+    'jericho-city-of-palms',
+    'ararat-mountains',
+    'armageddon-megiddo',
+    'the-omer',
+    'israel-census-wilderness',
+    'seventh-day-blessed',
+    'ruach',
+    'shalom',
+    'agape',
+    'parakletos',
+    'casting-lots',
+    'city-gate-court',
+    'bind-as-sign',
+    'first-last-adam',
+    'passover-lamb-unbroken',
+    'bronze-serpent',
+    'contentment-secret',
   ];
 
   it('none of the previously-reviewed entries have been marked draft', () => {
@@ -228,7 +246,7 @@ describe('bibleFacts — commentary entries (reviewed and approved by Victor 202
     }
   });
 
-  it('the non-draft (user-visible) set is exactly the reviewed 25 — new entries stay draft', () => {
+  it('the non-draft (user-visible) set is exactly the reviewed 42 — new entries stay draft', () => {
     const nonDraftIds = BIBLE_FACTS.filter(f => !f.draft)
       .map(f => f.id)
       .sort();
@@ -330,6 +348,6 @@ describe('getFactsByCategory', () => {
     const sections = getFactsByCategory();
     const commentary = sections.find(s => s.category === 'commentary');
     expect(commentary).toBeDefined();
-    expect(commentary!.entries.length).toBe(5);
+    expect(commentary!.entries.length).toBe(6);
   });
 });

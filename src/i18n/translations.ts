@@ -3142,11 +3142,10 @@ export const translations = {
           detail:
             'En tiempos de Jesús, un denario romano era lo que se le pagaba a un jornalero por una jornada completa de trabajo: lo justo para que su familia comiera ese día, sin margen para ahorrar. Este detalle ayuda a entender mejor la parábola de los obreros de la viña: recibir "lo justo" no era un tecnicismo económico, sino literalmente el pan del día.',
         },
-        // -- DRAFT, pendiente de revisión (añadidos en el pase de crecimiento del catálogo) --
         'jericho-city-of-palms': {
           label: 'Jericó, la ciudad de las palmeras',
           detail:
-            'Deuteronomio 34:3 llama a Jericó "la ciudad de las palmeras": una ciudad-oasis alimentada por un manantial en pleno desierto de Judea, a unos 258 metros bajo el nivel del mar — casi tan baja como el Mar Muerto que la rodea.',
+            'Deuteronomio 34:3 llama a Jericó "la ciudad de las palmeras": una ciudad-oasis alimentada por un manantial en pleno desierto de Judea, a unos 258 metros bajo el nivel del mar, en el valle del Jordán, cerca del extremo norte del Mar Muerto.',
         },
         'ararat-mountains': {
           label: 'El arca no reposó en "el" monte Ararat',
@@ -3216,7 +3215,7 @@ export const translations = {
         'passover-lamb-unbroken': {
           label: 'Ni un hueso quebrado',
           detail:
-            'Juan 19:36 conecta la muerte de Jesús con una regla precisa dada siglos antes para el cordero de la Pascua: "no quebraréis hueso de él" (Éxodo 12:46; Números 9:12) — el evangelio señala el cumplimiento literal de ese detalle en la cruz.',
+            'Juan 19:36 conecta la muerte de Jesús con una regla precisa dada siglos antes para el cordero de la Pascua: "no quebraréis hueso de él" (Éxodo 12:46; Números 9:12; cf. Salmos 34:20) — el evangelio señala el cumplimiento literal de ese detalle en la cruz.',
         },
         'bronze-serpent': {
           label: 'La serpiente de bronce, según el propio Jesús',
@@ -3226,7 +3225,7 @@ export const translations = {
         'contentment-secret': {
           label: '"Todo lo puedo": el contexto que casi nadie cita',
           detail:
-            'Matthew Henry señala que Filipenses 4:13 no es una promesa de éxito ilimitado, sino la conclusión de Pablo tras describir cómo aprendió a estar contento "en cualquier estado" (Filipenses 4:11-12): puede soportar tanto la escasez como la abundancia porque Cristo lo fortalece — el versículo habla de contentamiento, no de logros.',
+            'El contexto inmediato (Filipenses 4:11-12) muestra que Filipenses 4:13 no es una promesa de éxito ilimitado, sino la conclusión de Pablo tras describir cómo aprendió a estar contento "en cualquier estado": puede soportar tanto la escasez como la abundancia porque Cristo lo fortalece — el versículo habla de contentamiento, no de logros, una lectura que también recoge el comentario de Matthew Henry.',
         },
       },
     },
@@ -9575,11 +9574,10 @@ export const translations = {
           detail:
             "In Jesus' day, a Roman denarius was what a day laborer earned for a full day's work: just enough for his family to eat that day, with no margin to save. This detail helps make better sense of the parable of the workers in the vineyard: receiving \"what was fair\" was not an economic technicality — it was literally that day's bread.",
         },
-        // -- DRAFT, pending review (added by the catalog content-growth pass) --
         'jericho-city-of-palms': {
           label: 'Jericho, the city of palm trees',
           detail:
-            'Deuteronomy 34:3 calls Jericho "the city of palm trees" — an oasis city fed by a desert spring in the Judean wilderness, about 258 meters below sea level, almost as low as the Dead Sea beside it.',
+            'Deuteronomy 34:3 calls Jericho "the city of palm trees" — an oasis city fed by a desert spring in the Judean wilderness, about 258 meters below sea level, in the Jordan Valley near the northern end of the Dead Sea.',
         },
         'ararat-mountains': {
           label: "The ark didn't land on 'the' Mount Ararat",
@@ -9649,7 +9647,7 @@ export const translations = {
         'passover-lamb-unbroken': {
           label: 'Not one bone broken',
           detail:
-            'John 19:36 ties Jesus\' death to a precise rule given centuries earlier for the Passover lamb: "not a bone of it shall be broken" (Exodus 12:46; Numbers 9:12) — the Gospel points to the literal fulfillment of that detail at the cross.',
+            'John 19:36 ties Jesus\' death to a precise rule given centuries earlier for the Passover lamb: "not a bone of it shall be broken" (Exodus 12:46; Numbers 9:12; cf. Psalm 34:20) — the Gospel points to the literal fulfillment of that detail at the cross.',
         },
         'bronze-serpent': {
           label: 'The bronze serpent, according to Jesus himself',
@@ -9659,7 +9657,7 @@ export const translations = {
         'contentment-secret': {
           label: "'I can do all things': the verse's actual context",
           detail:
-            'Matthew Henry points out that Philippians 4:13 isn\'t a promise of unlimited success but Paul\'s conclusion after describing how he learned to be content "in whatsoever state" he was (Philippians 4:11-12): he can bear both scarcity and abundance because Christ strengthens him — the verse is about contentment, not achievement.',
+            "The immediate context (Philippians 4:11-12) shows that Philippians 4:13 isn't a promise of unlimited success but Paul's conclusion after describing how he learned to be content \"in whatsoever state\" he was: he can bear both scarcity and abundance because Christ strengthens him — the verse is about contentment, not achievement, a reading also reflected in Matthew Henry's commentary.",
         },
       },
     },
