@@ -304,6 +304,104 @@ describe('PrepSeriesListScreen — T8.4.4', () => {
     expect(await findByText('El perdón')).toBeTruthy();
   });
 
+  it('keeps a still-valid filter across a reload instead of resetting it', async () => {
+    await unlockPremium();
+    await seedSeries({
+      s1: {
+        id: 's1',
+        name: 'Efesios',
+        passageKeys: [],
+        sermonType: 'expositiva',
+        createdAt: 1,
+        updatedAt: 100,
+      },
+      s2: {
+        id: 's2',
+        name: 'El perdón',
+        passageKeys: [],
+        sermonType: 'tematica',
+        createdAt: 1,
+        updatedAt: 50,
+      },
+    });
+
+    const {findByText, findByLabelText, findByPlaceholderText, queryByText} =
+      renderScreen();
+    fireEvent.press(await findByLabelText(h.sermonTypes.expositiva));
+    await waitFor(() => expect(queryByText('El perdón')).toBeNull());
+
+    // Force a reload the same way the screen itself would after any other
+    // in-app change (creating a series calls the same `load()` a real
+    // focus-driven refresh would) — the filter must survive it unchanged.
+    fireEvent.press(await findByLabelText(h.newSeries));
+    const input = await findByPlaceholderText(h.namePlaceholder);
+    fireEvent.changeText(input, 'Génesis en 6 semanas');
+    fireEvent.press(await findByText(h.create));
+    await waitFor(() => expect(mockPush).toHaveBeenCalledTimes(1));
+
+    expect(queryByText('El perdón')).toBeNull();
+    expect(await findByText('Efesios')).toBeTruthy();
+  });
+
+  it('resets the filter to "all" once a reload makes it match nothing', async () => {
+    await unlockPremium();
+    await seedSeries({
+      s1: {
+        id: 's1',
+        name: 'Efesios',
+        passageKeys: [],
+        sermonType: 'expositiva',
+        createdAt: 1,
+        updatedAt: 100,
+      },
+      s2: {
+        id: 's2',
+        name: 'El perdón',
+        passageKeys: [],
+        sermonType: 'tematica',
+        createdAt: 1,
+        updatedAt: 50,
+      },
+    });
+
+    const {findByText, findByLabelText, findByPlaceholderText, queryByText} =
+      renderScreen();
+    fireEvent.press(await findByLabelText(h.sermonTypes.expositiva));
+    await waitFor(() => expect(queryByText('El perdón')).toBeNull());
+
+    // "s1" is re-categorized away from 'expositiva' elsewhere (e.g. the
+    // detail screen) while this list is still mounted — the current filter
+    // is now stale. Creating a series triggers the same reload a real
+    // focus-driven refresh would.
+    await seedSeries({
+      s1: {
+        id: 's1',
+        name: 'Efesios',
+        passageKeys: [],
+        sermonType: 'tematica',
+        createdAt: 1,
+        updatedAt: 100,
+      },
+      s2: {
+        id: 's2',
+        name: 'El perdón',
+        passageKeys: [],
+        sermonType: 'tematica',
+        createdAt: 1,
+        updatedAt: 50,
+      },
+    });
+    fireEvent.press(await findByLabelText(h.newSeries));
+    const input = await findByPlaceholderText(h.namePlaceholder);
+    fireEvent.changeText(input, 'Génesis en 6 semanas');
+    fireEvent.press(await findByText(h.create));
+    await waitFor(() => expect(mockPush).toHaveBeenCalledTimes(1));
+
+    // The filter reset to "all" — both series are visible again.
+    expect(await findByText('El perdón')).toBeTruthy();
+    expect(await findByText('Efesios')).toBeTruthy();
+  });
+
   it('shows progressEmpty for a series with no passages', async () => {
     await unlockPremium();
     await seedSeries({
