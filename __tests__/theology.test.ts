@@ -19,18 +19,39 @@ type AnyRecord = Record<string, unknown>;
 const esT = (translations.es as AnyRecord).theology as AnyRecord;
 const enT = (translations.en as AnyRecord).theology as AnyRecord;
 
-// The 3 original entries (Trinidad/Salvación por gracia/Resurrección),
-// reviewed and approved 2026-07-29 — see theology.ts's file comment and the
-// `2d10c82` commit that flipped their draft flag. Frozen the same way
+// Every entry Victor has actually reviewed and approved so far. The
+// original 3 (Trinidad/Salvación por gracia/Resurrección) were approved
+// 2026-07-29 (`2d10c82`); the 15 "atributos de Dios" entries were approved
+// 2026-08-27 after an advisor pass caught and fixed 8 unverified EN quotes
+// plus a simplicity-doctrine overreach in 'unity'. Frozen the same way
 // bibleFacts.test.ts freezes its reviewed-ids list: proves (1) none of
 // THESE ids have had their `draft` flag touched by a later growth pass, and
 // (2) the published set only grows when Victor actually reviews an entry —
 // a newly-added entry defaults to draft and stays invisible to real users
 // until it's added here too.
-const REVIEWED_IDS = ['trinity', 'grace-salvation', 'resurrection'] as const;
+const REVIEWED_IDS = [
+  'trinity',
+  'grace-salvation',
+  'resurrection',
+  'self-existence',
+  'eternity',
+  'immutability',
+  'omnipresence',
+  'omniscience',
+  'omnipotence',
+  'unity',
+  'love',
+  'holiness',
+  'justice',
+  'mercy-grace',
+  'faithfulness',
+  'goodness',
+  'wisdom',
+  'patience',
+] as const;
 
 describe('theology — catalog shape', () => {
-  it('ships the 3 originally-reviewed entries plus any growth-pass drafts', () => {
+  it('ships at least every reviewed entry (plus any pending growth-pass drafts)', () => {
     expect(THEOLOGY_ENTRIES.length).toBeGreaterThanOrEqual(REVIEWED_IDS.length);
     expect(THEOLOGY_COUNT).toBe(THEOLOGY_ENTRIES.length);
   });

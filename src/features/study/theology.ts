@@ -67,10 +67,12 @@ export const THEOLOGY_ENTRIES: readonly TheologyEntry[] = [
     accent: '#F59E0B',
     draft: false,
   },
-  // ---- Growth pass 2026-08-27: Atributos de Dios (draft, pending Victor's
-  // per-entry doctrinal sign-off — same pattern as the bibleFacts growth
-  // pass). Every anchor ref's quoted text was verified word-for-word
-  // against the app's own shipped RVR1960/WEB databases before drafting.
+  // ---- Growth pass 2026-08-27: Atributos de Dios. Reviewed and approved
+  // by Victor 2026-08-27, same pattern as the original 3 entries above and
+  // the bibleFacts growth passes. Every anchor ref's quoted text was
+  // verified word-for-word against the app's own shipped RVR1960/WEB
+  // databases before drafting; advisor caught 8 unverified EN quotes and a
+  // simplicity-doctrine overreach in 'unity' before sign-off, both fixed.
   // "Incomunicables" (belong to God alone) first, then "comunicables"
   // (reflected, in limited measure, in humanity made in His image) — the
   // classic Reformed/Protestant systematic-theology classification
@@ -80,105 +82,105 @@ export const THEOLOGY_ENTRIES: readonly TheologyEntry[] = [
     refs: ['Exodus/3/14'],
     icon: 'infinite-outline',
     accent: '#8B5CF6',
-    draft: true,
+    draft: false,
   },
   {
     id: 'eternity',
     refs: ['Psalms/90/2'],
     icon: 'time-outline',
     accent: '#3B82F6',
-    draft: true,
+    draft: false,
   },
   {
     id: 'immutability',
     refs: ['Malachi/3/6'],
     icon: 'shield-checkmark-outline',
     accent: '#0EA5E9',
-    draft: true,
+    draft: false,
   },
   {
     id: 'omnipresence',
     refs: ['Psalms/139/7'],
     icon: 'globe-outline',
     accent: '#14B8A6',
-    draft: true,
+    draft: false,
   },
   {
     id: 'omniscience',
     refs: ['Psalms/147/5'],
     icon: 'eye-outline',
     accent: '#06B6D4',
-    draft: true,
+    draft: false,
   },
   {
     id: 'omnipotence',
     refs: ['Jeremiah/32/17'],
     icon: 'flash-outline',
     accent: '#EF4444',
-    draft: true,
+    draft: false,
   },
   {
     id: 'unity',
     refs: ['Deuteronomy/6/4'],
     icon: 'ellipse-outline',
     accent: '#7C3AED',
-    draft: true,
+    draft: false,
   },
   {
     id: 'love',
     refs: ['1 John/4/8'],
     icon: 'heart-outline',
     accent: '#EC4899',
-    draft: true,
+    draft: false,
   },
   {
     id: 'holiness',
     refs: ['1 Peter/1/16'],
     icon: 'sparkles-outline',
     accent: '#FBBF24',
-    draft: true,
+    draft: false,
   },
   {
     id: 'justice',
     refs: ['Deuteronomy/32/4'],
     icon: 'scale-outline',
     accent: '#64748B',
-    draft: true,
+    draft: false,
   },
   {
     id: 'mercy-grace',
     refs: ['Exodus/34/6'],
     icon: 'hand-left-outline',
     accent: '#10B981',
-    draft: true,
+    draft: false,
   },
   {
     id: 'faithfulness',
     refs: ['Lamentations/3/23'],
     icon: 'anchor-outline',
     accent: '#0D9488',
-    draft: true,
+    draft: false,
   },
   {
     id: 'goodness',
     refs: ['Psalms/145/9'],
     icon: 'leaf-outline',
     accent: '#84CC16',
-    draft: true,
+    draft: false,
   },
   {
     id: 'wisdom',
     refs: ['Romans/11/33'],
     icon: 'bulb-outline',
     accent: '#F97316',
-    draft: true,
+    draft: false,
   },
   {
     id: 'patience',
     refs: ['2 Peter/3/9'],
     icon: 'hourglass-outline',
     accent: '#A855F7',
-    draft: true,
+    draft: false,
   },
 ] as const;
 
