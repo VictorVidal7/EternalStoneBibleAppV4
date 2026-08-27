@@ -19,6 +19,12 @@
  * (Conmemorativa, Reformada, Luterana, Católica romana, Ortodoxa) + 1
  * non-doctrinal "Diferencias de práctica" section.
  *
+ * Batch 5 (Elección — Calvinism/Arminianism, also `treatment: 'multi-view'`):
+ * freshly-authored like batch 4, spliced by `scripts/add-eleccion-entry.js`.
+ * 4 sections: a shared history/framing section, one section per tradition
+ * (arminian first, following the Remonstrance 1610 → Synod of Dort 1619
+ * chronology), and a shared common-ground section.
+ *
  * Mirrors dictionaryV1.test.ts's "fake handle, real business logic" idiom.
  * Also covers the cross-tier safety property that motivated scoping both
  * seed functions' DELETE by `source_tier`: seeding one tier must never wipe
@@ -190,13 +196,14 @@ function privateApi(db: BibleDatabase) {
   };
 }
 
-describe('dictionary-v2-es.json (bundled asset, batches 1-4)', () => {
-  it('has exactly the 11 approved entries: 8 annotated + 3 multi-view (Bautismo, Comunión, Milenio)', () => {
-    expect(BUNDLED_V2).toHaveLength(11);
+describe('dictionary-v2-es.json (bundled asset, batches 1-5)', () => {
+  it('has exactly the 12 approved entries: 8 annotated + 4 multi-view (Bautismo, Comunión, Elección, Milenio)', () => {
+    expect(BUNDLED_V2).toHaveLength(12);
     expect(BUNDLED_V2.map(e => e.slug).sort()).toEqual([
       'bautismo',
       'comunion',
       'creacion',
+      'eleccion',
       'espiritu-santo',
       'expiacion',
       'milenio',
@@ -210,6 +217,7 @@ describe('dictionary-v2-es.json (bundled asset, batches 1-4)', () => {
     expect(MULTIVIEW_V2.map(e => e.slug).sort()).toEqual([
       'bautismo',
       'comunion',
+      'eleccion',
       'milenio',
     ]);
   });
@@ -432,6 +440,21 @@ describe('dictionary-v2-es.json (bundled asset, batches 1-4)', () => {
     expect(elementos.bodyEs).toContain('igualmente sinceras');
   });
 
+  it('Elección (batch 5) has exactly 4 sections in order: shared framing, two traditions (arminian first), shared common ground', () => {
+    const eleccion = MULTIVIEW_V2.find(e => e.slug === 'eleccion')!;
+    expect(eleccion.headwordEs).toBe('ELECCIÓN');
+    const sections = eleccion.sections as BundledSection[];
+    expect(sections.map(s => s.labelEs)).toEqual([
+      'El debate',
+      'Arminiana y wesleyana',
+      'Reformada (calvinista)',
+      'Lo que confiesan juntas',
+    ]);
+    // Free gloss frames the debate as being about *how* sovereign election
+    // and the person's response of faith relate, without adjudicating.
+    expect(eleccion.glossEs).toContain('sin arbitrar entre ellas');
+  });
+
   it('does not collide with any v1-factual slug', () => {
     const v1Slugs = new Set(BUNDLED_V1.map(e => e.slug));
     for (const e of BUNDLED_V2) {
@@ -445,11 +468,11 @@ describe('seedDictionaryV2IfNeeded', () => {
     await AsyncStorage.clear();
   });
 
-  it('inserts all 11 bundled entries into dictionary_entries', async () => {
+  it('inserts all 12 bundled entries into dictionary_entries', async () => {
     const {db, fake} = makeDb();
     await privateApi(db).seedDictionaryV2IfNeeded();
 
-    expect(fake.rows).toHaveLength(11);
+    expect(fake.rows).toHaveLength(12);
     expect(fake.rows.map(r => r.slug).sort()).toEqual(
       BUNDLED_V2.map(e => e.slug).sort(),
     );
@@ -465,7 +488,7 @@ describe('seedDictionaryV2IfNeeded', () => {
     }
   });
 
-  it('inserts multiview sections for bautismo, comunion, and milenio, and none for an annotated slug', async () => {
+  it('inserts multiview sections for bautismo, comunion, eleccion, and milenio, and none for an annotated slug', async () => {
     const {db, fake} = makeDb();
     await privateApi(db).seedDictionaryV2IfNeeded();
 
@@ -483,6 +506,14 @@ describe('seedDictionaryV2IfNeeded', () => {
     expect(comunionSections).toHaveLength(6);
     expect(comunionSections.map(r => r.position).sort((a, b) => a - b)).toEqual(
       [1, 2, 3, 4, 5, 6],
+    );
+
+    const eleccionSections = fake.multiviewRows.filter(
+      r => r.slug === 'eleccion',
+    );
+    expect(eleccionSections).toHaveLength(4);
+    expect(eleccionSections.map(r => r.position).sort((a, b) => a - b)).toEqual(
+      [1, 2, 3, 4],
     );
 
     const milenioSections = fake.multiviewRows.filter(
@@ -504,12 +535,12 @@ describe('seedDictionaryV2IfNeeded', () => {
   it('is versioned: a second call is a no-op once the version flag is set', async () => {
     const {db, fake} = makeDb();
     await privateApi(db).seedDictionaryV2IfNeeded();
-    expect(fake.rows).toHaveLength(11);
+    expect(fake.rows).toHaveLength(12);
 
     fake.rows[0].gloss_es = 'stale-marker';
     await privateApi(db).seedDictionaryV2IfNeeded();
 
-    expect(fake.rows).toHaveLength(11);
+    expect(fake.rows).toHaveLength(12);
     expect(fake.rows[0].gloss_es).toBe('stale-marker');
   });
 
@@ -600,11 +631,11 @@ describe('getDictionaryEntry (v2-doctrinal rows)', () => {
     expect((espirituSanto.article_es as string).length).toBeGreaterThan(90000);
   });
 
-  it('returns treatment "multi-view" and a null article_es for bautismo/comunion/milenio', async () => {
+  it('returns treatment "multi-view" and a null article_es for bautismo/comunion/eleccion/milenio', async () => {
     const {db} = makeDb();
     await privateApi(db).seedDictionaryV2IfNeeded();
 
-    for (const slug of ['bautismo', 'comunion', 'milenio']) {
+    for (const slug of ['bautismo', 'comunion', 'eleccion', 'milenio']) {
       const entry = (await db.getDictionaryEntry(slug)) as DictionaryEntry;
       expect(entry).not.toBeNull();
       expect(entry.treatment).toBe('multi-view');

@@ -156,9 +156,13 @@ const DICT_V1_UPDATED_AT = '2026-07-18';
  * Santo's article (Victor approved promoting it from Pattern B to the
  * dominant Pattern A house style), no new entries; v7 = corrected
  * Expiación's "Lv 5:26"->"Lv 5:2" (the 1915 ISBE original used half-verse
- * notation "Lev 5 2b", misread/transcribed as digit "6"), no new entries.
+ * notation "Lev 5 2b", misread/transcribed as digit "6"), no new entries;
+ * v8 = batch 5 (Elección — Calvinism/Arminianism, also `treatment:
+ * 'multi-view'`, entirely freshly-authored, not ISBE-derived; 4 sections:
+ * El debate, Arminiana y wesleyana, Reformada (calvinista), Lo que
+ * confiesan juntas).
  */
-const DICT_V2_VERSION = 7;
+const DICT_V2_VERSION = 8;
 
 /**
  * Version of the bundled WEB reading-version text (see seedWebTextIfNeeded).
@@ -906,9 +910,10 @@ class BibleDatabase {
    *
    * Batch 3 (Bautismo, Milenio) added `treatment: 'multi-view'` rows: their
    * `articleEs` is `null` and their premium content instead ships as a
-   * `sections` array, inserted into `dictionary_multiview_sections`. Batch 4
-   * (Comunión) added a 3rd multi-view entry the same way — freshly-authored,
-   * not ISBE-derived, same shape. That table has no `source_tier` column
+   * `sections` array, inserted into `dictionary_multiview_sections`. Batches
+   * 4 (Comunión) and 5 (Elección) each added another multi-view entry the
+   * same way — freshly-authored, not ISBE-derived, same shape. That table
+   * has no `source_tier` column
    * (only v2-doctrinal entries use multi-view today) so its DELETE below is
    * unconditional — safe only because this function is that table's sole
    * writer; if a future tier ever writes multi-view rows too, scope this the
