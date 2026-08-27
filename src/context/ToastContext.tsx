@@ -10,6 +10,7 @@ import React, {
   useContext,
   useState,
   useCallback,
+  useRef,
   ReactNode,
 } from 'react';
 import {StyleSheet, View} from 'react-native';
@@ -48,10 +49,26 @@ interface ToastProviderProps {
 export const ToastProvider: React.FC<ToastProviderProps> = ({children}) => {
   const [toastConfig, setToastConfig] = useState<ToastOptions | null>(null);
   const [visible, setVisible] = useState(false);
+  // Bumped on every show() and applied as `<Toast key={toastKey}>` below —
+  // forces a fresh Toast instance (fresh Animated values, fresh mount
+  // effect, fresh auto-dismiss timer) per toast. Without this, Toast's own
+  // entrance/timer effect depends only on `visible`: a second toast firing
+  // while the first is still visible is a no-op state-wise, so the timer
+  // never resets and the newer toast can silently inherit the older one's
+  // almost-expired timer — confirmed via BadgeCollectionScreen's staggered
+  // 600ms-apart achievement toasts, where later toasts vanished near-
+  // instantly instead of showing for their own full duration.
+  const [toastKey, setToastKey] = useState(0);
+  // Kept in sync with toastKey on every render (no effect needed — refs
+  // don't trigger re-renders) so handleDismiss can tell a STALE toast
+  // instance's dismiss request apart from the current one, see below.
+  const currentKeyRef = useRef(0);
+  currentKeyRef.current = toastKey;
 
   const show = useCallback((options: ToastOptions) => {
     setToastConfig(options);
     setVisible(true);
+    setToastKey(k => k + 1);
   }, []);
 
   const success = useCallback(
@@ -82,8 +99,16 @@ export const ToastProvider: React.FC<ToastProviderProps> = ({children}) => {
     [show],
   );
 
-  const handleDismiss = useCallback(() => {
-    setVisible(false);
+  // A stale (just-superseded) Toast instance's exit-animation completion
+  // can still fire its onDismiss AFTER a newer toast has already mounted —
+  // unmounting only cancels the old instance's pending auto-dismiss
+  // *timeout*, not an exit animation already in flight when it was
+  // superseded. Ignoring a dismiss that doesn't match the CURRENT key stops
+  // that stale callback from hiding the newer toast out from under it.
+  const handleDismiss = useCallback((forKey: number) => {
+    if (forKey === currentKeyRef.current) {
+      setVisible(false);
+    }
   }, []);
 
   return (
@@ -101,6 +126,7 @@ export const ToastProvider: React.FC<ToastProviderProps> = ({children}) => {
         // if one happens to already be open at the same moment.
         <View style={styles.toastContainer} pointerEvents="box-none">
           <Toast
+            key={toastKey}
             visible={visible}
             message={toastConfig.message}
             variant={toastConfig.variant || 'default'}
@@ -108,7 +134,7 @@ export const ToastProvider: React.FC<ToastProviderProps> = ({children}) => {
             position={toastConfig.position || 'top'}
             action={toastConfig.action}
             numberOfLines={toastConfig.numberOfLines}
-            onDismiss={handleDismiss}
+            onDismiss={() => handleDismiss(toastKey)}
           />
         </View>
       )}

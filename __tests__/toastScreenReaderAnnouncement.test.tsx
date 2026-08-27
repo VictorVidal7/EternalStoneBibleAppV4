@@ -11,7 +11,7 @@
  * whenever a toast becomes visible, for every variant.
  */
 import React from 'react';
-import {render} from '@testing-library/react-native';
+import {act, render} from '@testing-library/react-native';
 import {AccessibilityInfo, Animated} from 'react-native';
 import {Toast} from '../src/components/Toast';
 import {ToastProvider, useToast} from '../src/context/ToastContext';
@@ -50,6 +50,22 @@ function stubAnimations() {
   jest
     .spyOn(Animated, 'timing')
     .mockImplementation((() => ({start: jest.fn()})) as never);
+}
+
+// For the sequential-toast tests below, Toast's exit animation needs to
+// actually invoke its completion callback (which calls onDismiss) after a
+// controllable delay — stubbing `Animated.parallel` directly (rather than
+// spring/timing) is the one call whose *callback* Toast's own hide() cares
+// about, and unlike stubAnimations() above this one fires it, so timer
+// advances can reproduce a stale toast's dismiss racing a newer one.
+function mockParallelWithExitDelay(exitDelayMs: number): void {
+  jest.spyOn(Animated, 'parallel').mockImplementation((() => ({
+    start: (callback?: () => void) => {
+      if (callback) {
+        setTimeout(callback, exitDelayMs);
+      }
+    },
+  })) as never);
 }
 
 // AccessibilityInfo is backed by a native-module mock whose spied method
@@ -148,5 +164,98 @@ describe('ToastContext — end-to-end announcement plumbing', () => {
       </ToastProvider>,
     );
     expect(announceSpy).toHaveBeenCalledWith('No se pudo guardar');
+  });
+});
+
+describe("ToastContext — a superseded toast must not steal a newer one's lifetime", () => {
+  // Regression coverage for the bug `advisor` caught in the global
+  // Modal-removal fix (src/context/ToastContext.tsx): `Toast`'s own
+  // show()/hide() effect depends only on `visible`. Firing a second toast
+  // while the first is still visible is a no-op for that boolean, so
+  // without `key={toastKey}` forcing a fresh `<Toast>` instance per show(),
+  // the newer toast silently inherits whatever's left of the OLDER toast's
+  // already-ticking dismiss timer instead of getting its own full
+  // `duration` — exactly what BadgeCollectionScreen's staggered 600ms-apart
+  // achievement toasts hit in practice.
+  let capturedToast: ReturnType<typeof useToast> | null = null;
+
+  function CaptureHarness() {
+    capturedToast = useToast();
+    return null;
+  }
+
+  beforeEach(() => {
+    jest.useFakeTimers();
+    capturedToast = null;
+    spyOnAnnounce();
+  });
+
+  afterEach(() => {
+    jest.useRealTimers();
+    jest.restoreAllMocks();
+  });
+
+  it("gives the newer toast its own full duration instead of dying on the older one's timer", () => {
+    mockParallelWithExitDelay(250);
+    const {getByText, queryByText} = render(
+      <ToastProvider>
+        <CaptureHarness />
+      </ToastProvider>,
+    );
+
+    act(() => {
+      capturedToast!.success('Toast A', 3000);
+    });
+    expect(getByText('Toast A')).toBeTruthy();
+
+    // A has 100ms left on its ORIGINAL timer when B replaces it.
+    act(() => {
+      jest.advanceTimersByTime(2900);
+    });
+    act(() => {
+      capturedToast!.success('Toast B', 3000);
+    });
+    expect(getByText('Toast B')).toBeTruthy();
+
+    // Past the point A's original timer AND its exit animation would have
+    // fully completed (t=3000 + the 250ms exit delay) — a fresh `key` per
+    // show() means B has its OWN timer, unaffected by A's, and is still
+    // showing here; without it, B would have been dismissed by A's
+    // inherited, already-ticking timer instead of its own full duration.
+    act(() => {
+      jest.advanceTimersByTime(500);
+    });
+    expect(queryByText('Toast B')).toBeTruthy();
+  });
+
+  it('ignores a stale exit-animation dismiss from a toast already superseded', () => {
+    mockParallelWithExitDelay(250);
+    const {getByText, queryByText} = render(
+      <ToastProvider>
+        <CaptureHarness />
+      </ToastProvider>,
+    );
+
+    act(() => {
+      capturedToast!.success('Toast A', 500);
+    });
+    // A's own timer fires -> hide() starts its exit animation, which won't
+    // resolve (and call onDismiss) for another 250ms.
+    act(() => {
+      jest.advanceTimersByTime(500);
+    });
+    // B fires WHILE A's exit animation is still in flight.
+    act(() => {
+      capturedToast!.success('Toast B', 3000);
+    });
+    expect(getByText('Toast B')).toBeTruthy();
+
+    // A's stale exit-animation callback fires now — without the
+    // key-matching guard in ToastContext's handleDismiss, this would hide
+    // B (which never asked to be dismissed) out from under it.
+    act(() => {
+      jest.advanceTimersByTime(250);
+    });
+    expect(queryByText('Toast B')).toBeTruthy();
   });
 });
