@@ -122,7 +122,10 @@ That regenerates `scripts/eleccion-entry.json` from the `.md` (converting
 underscores) **and** splices. Then eyeball the JSON — in particular the
 `labelEs` values: the draft's quoted section titles are long; the short
 display labels live in `SECTION_LABELS` at the top of the script and are
-what get written.
+what get written. `SECTION_LABELS` also carries an `expectInTitle` regex
+per position — if the draft's section order changed and a heading no
+longer matches its label's keyword, the run fails loud rather than
+mislabeling a tradition's section.
 
 ### 2. Re-run the splicer
 
@@ -143,17 +146,29 @@ Only needed if the approved structure differs from the current 4 sections
 `[El debate, Arminiana y wesleyana, Reformada (calvinista), Lo que
 confiesan juntas]`.
 
-- **Swap section 2 vs 3** (Reformed-first instead of Arminian-first): swap
-  the two `position` integers in `scripts/eleccion-entry.json`, re-run. The
-  script's `SECTION_LABELS` are position-keyed, so labels follow.
-- **Different labels / count**: edit `SECTION_LABELS` +
-  `EXPECTED_POSITIONS` in `scripts/add-eleccion-entry.js`, then update
-  `src/lib/database/__tests__/dictionaryV2.test.ts`:
+- **Swap section 2 vs 3** (Reformed-first instead of Arminian-first): in
+  `scripts/eleccion-entry.json`, swap the two `position` integers on the
+  arminian and reformed section objects (each object carries its own
+  `labelEs` beside its `bodyEs`, so label and body move together). Re-run
+  the splicer. Then update the label-order array in
+  `src/lib/database/__tests__/dictionaryV2.test.ts` line ~447-452. If you
+  instead reorder `DOCS/drafts/eleccion-integrated-draft.md` and use
+  `--from-draft`, also reorder the `SECTION_LABELS` entries in
+  `scripts/add-eleccion-entry.js` — the `expectInTitle` guard there will
+  fail loud if the draft heading and the label disagree.
+- **Different labels / count**: edit `labelEs` in
+  `scripts/eleccion-entry.json` (the default path reads only that), then
+  update `src/lib/database/__tests__/dictionaryV2.test.ts`:
   - line ~447-452 — the `sections.map(s => s.labelEs)` array in the
     `Elección (batch 5) has exactly 4 sections in order` test
   - line ~514-516 — `eleccionSections` `toHaveLength(4)` and the
     `[1, 2, 3, 4]` positions array in the
     `inserts multiview sections for ...` test
+
+  Only touch `SECTION_LABELS` / `EXPECTED_POSITIONS` in
+  `scripts/add-eleccion-entry.js` if you will use `--from-draft` — the
+  default JSON path derives contiguity and labels from
+  `scripts/eleccion-entry.json` itself.
 
 ### 4. Version
 

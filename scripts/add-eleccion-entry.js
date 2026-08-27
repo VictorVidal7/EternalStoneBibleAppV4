@@ -69,16 +69,24 @@ const HEADWORD = 'ELECCIÓN';
 // Short display labels for the section chips/tabs, matching the precedent's
 // style (Bautismo: "Bautista"; Comunión: "Conmemorativa"; Milenio:
 // "Premilenialismo"). The draft's own headings quote much longer titles —
-// those don't fit the UI. PROVISIONAL pending Victor's sign-off; keyed by
-// `position`. NOTE: section 2-vs-3 order (arminian-first) follows the newest
-// harmonized draft (da393ad); to flip it, swap the two `position` integers
-// in scripts/eleccion-entry.json and re-run — labels here are position-keyed
-// so they follow automatically.
+// those don't fit the section-chip style Comunión/Milenio use. PROVISIONAL
+// pending Victor's sign-off.
+//
+// Only `--from-draft` reads this table (keyed by the draft's own section
+// number). The default JSON path carries `labelEs` beside `bodyEs` in
+// scripts/eleccion-entry.json, so to flip section 2 vs 3 order there you
+// swap the two `position` integers and label+body travel together.
+//
+// `expectInTitle` guards against a `--from-draft` MISLABEL: section 2-vs-3
+// order is the one open editorial question (both draft docs flag it). If
+// the draft `.md` is reordered, the heading's quoted title must still
+// contain this keyword or the run fails loud instead of attaching e.g.
+// "Arminiana y wesleyana" to the Reformed body.
 const SECTION_LABELS = {
-  1: 'El debate',
-  2: 'Arminiana y wesleyana',
-  3: 'Reformada (calvinista)',
-  4: 'Lo que confiesan juntas',
+  1: {labelEs: 'El debate', expectInTitle: /debate/i},
+  2: {labelEs: 'Arminiana y wesleyana', expectInTitle: /arminiana/i},
+  3: {labelEs: 'Reformada (calvinista)', expectInTitle: /reformada/i},
+  4: {labelEs: 'Lo que confiesan juntas', expectInTitle: /confiesan/i},
 };
 const EXPECTED_POSITIONS = [1, 2, 3, 4];
 
@@ -142,7 +150,8 @@ function assertShippable(label, text) {
 // ── Draft parser (--from-draft) ─────────────────────────────────────────
 
 /** Slice the body under a "## ..." heading that matches `headingRe`, up to
- *  the next "## " heading, a "---" rule, or EOF. */
+ *  the next "## " heading, a "---" rule, or EOF. Returns `{heading, body}`
+ *  (heading = the full matched heading line) or `null`. */
 function sliceHeadingBody(lines, headingRe) {
   const start = lines.findIndex(l => headingRe.test(l));
   if (start === -1) return null;
@@ -153,7 +162,7 @@ function sliceHeadingBody(lines, headingRe) {
       break;
     }
   }
-  return lines.slice(start + 1, end).join('\n');
+  return {heading: lines[start], body: lines.slice(start + 1, end).join('\n')};
 }
 
 function buildEntryFromDraft() {
@@ -165,20 +174,33 @@ function buildEntryFromDraft() {
     .replace(/\r\n/g, '\n')
     .split('\n');
 
-  const glossRaw = sliceHeadingBody(lines, /^##\s+glossEs\b/i);
-  if (glossRaw === null) throw new Error('Draft: no "## glossEs" heading');
-  const glossEs = tidyBody(underscoreItalicToAsterisk(glossRaw));
+  const gloss = sliceHeadingBody(lines, /^##\s+glossEs\b/i);
+  if (gloss === null) throw new Error('Draft: no "## glossEs" heading');
+  const glossEs = tidyBody(underscoreItalicToAsterisk(gloss.body));
 
   const sections = EXPECTED_POSITIONS.map(position => {
     const re = new RegExp(`^##\\s+Secci[oó]n\\s+${position}\\s*[—-]`);
-    const raw = sliceHeadingBody(lines, re);
-    if (raw === null) {
+    const slice = sliceHeadingBody(lines, re);
+    if (slice === null) {
       throw new Error(`Draft: no "## Sección ${position} — ..." heading`);
+    }
+    const {labelEs, expectInTitle} = SECTION_LABELS[position];
+    // Guard against a MISLABEL if the draft's section order is changed
+    // without updating SECTION_LABELS: the heading's quoted title must
+    // still identify the tradition this label names.
+    const quoted = (slice.heading.match(/"([^"]+)"/) || [])[1] || slice.heading;
+    if (!expectInTitle.test(quoted)) {
+      throw new Error(
+        `Draft: "## Sección ${position}" heading is "${quoted}", which does ` +
+          `not match the expected label "${labelEs}" (${expectInTitle}). The ` +
+          `draft section order changed — update SECTION_LABELS to match, or ` +
+          `reorder the draft.`,
+      );
     }
     return {
       position,
-      labelEs: SECTION_LABELS[position],
-      bodyEs: tidyBody(underscoreItalicToAsterisk(raw)),
+      labelEs,
+      bodyEs: tidyBody(underscoreItalicToAsterisk(slice.body)),
     };
   });
 
