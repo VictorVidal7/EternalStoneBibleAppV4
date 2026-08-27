@@ -1,0 +1,147 @@
+---
+name: eleccion-integrated-draft
+status: DRAFT — pending Victor's per-section sign-off + advisor review. NOT for merge.
+slug: eleccion · headwordEs: ELECCIÓN · sourceTier: v2-doctrinal · treatment: multi-view
+titleCaseHeadword("ELECCIÓN") -> "Elección" (no PROPER_NOUN_HEADWORDS override)
+---
+
+# ELECCIÓN — entrada multi-view integrada (borrador 55ª sesión)
+
+## Nota de estado
+
+- Secciones 1 y 4 + gloss: escritas por el orquestador (commit 208ee45), citas verificadas vs bible-seed.db.
+- Sección arminiana: de content/eleccion-arminiana @ 0505853, ARMONIZADA esta sesión (comillas -> solo RVR1960; cierre recortado; 8000->7422 car.).
+- Sección reformada: de content/eleccion-reformada @ 1a12041, ARMONIZADA esta sesión (cierre recortado; cita III/IV.4->III/IV.1,3; 8105->7676 car.).
+- Orden de secciones 2 vs 3: PROPUESTO arminiana primero (Dort 1619 se convocó para juzgar la Remonstrancia de 1610). Pendiente confirmación de Victor. Fácil de invertir.
+- Énfasis: _cursiva_ / **negrita** con asterisco (el parser de la app NO reconoce _guion_bajo_). En este archivo .md prettier puede reescribir * -> _ ; al portear al JSON hay que volver a asterisco.
+- Cambio aplicado en Secc. 4: 2 P 1:10 — se quitaron las comillas de 'hacer firme su vocación y elección' (RVR1960 dice 'vuestra', el texto va en 3ª persona) -> queda como alusión.
+- Correcciones de la revisión (4 agentes, 2026-08-27, todas SOUND/0 bloqueantes):
+  - Secc. 3 (reformada): borrado "no fue un gesto genérico, sino" — caracterizaba peyorativamente la redención universal de la §2 (2 revisores).
+  - Secc. 2 (arminiana): 1 P 1:5 — quitadas las comillas de "guardado" (RVR1960 dice "guardados").
+  - Secc. 1: "pastor y profesor de teología en Leiden" -> "pastor en Ámsterdam y luego profesor de teología en Leiden" (Arminio pastoreó en Ámsterdam 1588-1603).
+  - Secc. 2 (arminiana): Jn 15:6 "es cortado y quemado" -> "es echado fuera, se seca y arde" ("cortado" venía de Jn 15:2).
+- Añadidos aprobados por Victor (55ª sesión):
+  - Orden: arminiana primero (§2), reformada §3 — CONFIRMADO. Cláusula añadida a "Cómo leer lo que sigue": el orden sigue la cronología del debate (Remonstrancia 1610 -> Cánones de Dort 1619).
+  - §2 art. 4: restaurada la cadena de 1610 ("la gracia que previene, asiste, despierta, acompaña y coopera") para anclar el término del subtítulo en el documento.
+  - §2 art. 5: añadido el condicional de 1610 ("con tal que el creyente no se descuide y busque su ayuda").
+  - §1 "Quién sostiene cada postura": frase de teólogos representativos, peso simétrico (reformada: Turretín, Hodge, Boyce; arminiana-wesleyana: Episcopio, Watson, Miley).
+
+---
+
+## glossEs (GRATIS — antes del muro premium)
+
+La elección es la enseñanza bíblica de que la salvación tiene su origen en la libre decisión de Dios, quien "nos escogió en él antes de la fundación del mundo" (Ef 1:4) y llama a los suyos "conforme a su propósito" (Ro 8:28). Toda la iglesia evangélica confiesa que nadie se salva por mérito propio, sino por pura gracia recibida mediante la fe. Sobre _cómo_ se relacionan esa elección soberana y la respuesta de fe de la persona, dos grandes tradiciones protestantes —la reformada (calvinista) y la arminiana y wesleyana— han diferido honestamente desde el siglo XVII: si Dios elige incondicionalmente a quienes ha de salvar, o si su elección contempla de antemano la fe que Él mismo hace posible; y qué se sigue de ello para la gracia, el alcance de la obra de Cristo y la perseverancia del creyente. Esta entrada presenta cada postura en sus propios términos, sin arbitrar entre ellas.
+
+---
+
+## Sección 1 — "El debate: de dónde viene y qué está en juego" (bodyEs)
+
+Para empezar conviene distinguir dos cosas que a menudo se confunden. Que la Escritura habla de _elección_ no está en discusión entre los cristianos evangélicos. Dios escogió a Israel de entre todos los pueblos, no por su grandeza ni sus méritos, sino porque los amó (Dt 7:6-8). El Nuevo Testamento llama a los creyentes "escogidos de Dios" (Ro 8:33; Col 3:12), dice que Dios "nos escogió en él antes de la fundación del mundo" (Ef 1:4) y que en el presente "ha quedado un remanente escogido por gracia" (Ro 11:5). Ninguna tradición protestante niega esto. Lo que se discute es _sobre qué base_ y _de qué manera_ Dios elige, y qué consecuencias tiene esa respuesta para el resto de la vida cristiana.
+
+**Cómo surgió el debate.** La comprensión reformada de la elección tomó forma durante la Reforma del siglo XVI, en obras como _La esclavitud de la voluntad_ de Martín Lutero (1525) y la _Institución de la religión cristiana_ de Juan Calvino, y quedó recogida en las confesiones reformadas. A comienzos del siglo XVII, Jacobo Arminio (1560-1609), pastor en Ámsterdam y luego profesor de teología en Leiden (Países Bajos), llegó a cuestionar la forma en que se enseñaba entonces la predestinación en su propia iglesia reformada. Tras su muerte, quienes compartían sus objeciones —los "remonstrantes"— resumieron su posición en cinco artículos, presentados en 1610 en un documento llamado la _Remonstrancia_.
+
+**El Sínodo de Dort.** Para juzgar la controversia, la iglesia reformada neerlandesa convocó el Sínodo de Dort (1618-1619). El Sínodo rechazó los cinco artículos y expuso su propia respuesta en los Cánones de Dort, ordenados en cinco "capítulos de doctrina"; los ministros remonstrantes fueron destituidos de sus cargos. Desde entonces, la posición reformada se asocia con esos cánones, y la arminiana con los cinco artículos de 1610.
+
+**De Arminio a Wesley.** En el siglo XVIII, el predicador inglés Juan Wesley (1703-1791) retomó y difundió una forma decididamente evangélica del arminianismo a través del movimiento metodista, insistiendo a la vez en la gracia que precede a toda decisión humana y en la responsabilidad real de la persona. Por eso esta tradición suele llamarse "arminiana y wesleyana".
+
+**Quién sostiene cada postura.** Ambas corrientes han sido sostenidas, a lo largo de cuatro siglos, por cristianos que aman la Biblia y se someten a su autoridad. En la línea reformada se hallan la mayoría de las iglesias presbiterianas y reformadas, muchos bautistas y buena parte del movimiento evangélico de raíz puritana. En la línea arminiana y wesleyana se hallan las iglesias metodistas y de santidad, el Ejército de Salvación, gran parte del movimiento pentecostal y muchas iglesias bautistas y libres. Predicadores fieles del evangelio han estado en cada lado. Entre quienes han expuesto cada tradición se cuentan, en la línea reformada, Francisco Turretín, Charles Hodge y —entre los bautistas— James P. Boyce; y en la línea arminiana y wesleyana, Simón Episcopio, Richard Watson y John Miley.
+
+**Cómo leer lo que sigue.** Las dos secciones siguientes presentan cada tradición desde dentro, con sus propios términos y en el orden de sus propios documentos. Se presentan primero los cinco artículos de la Remonstrancia (1610) y después los Cánones de Dort (1619), en el orden en que se dio la controversia. No se responden punto por punto entre sí, ni esta entrada toma partido. Lo que ambas confiesan en común se recoge al final.
+
+---
+
+## Sección 2 — "La tradición arminiana y wesleyana" (bodyEs) — ARMONIZADA + revisada, 7547 car.
+
+La tradición arminiana y wesleyana recibió su forma confesional de los Cinco Artículos de la Remonstrancia, presentados a los Estados de Holanda en 1610 por los seguidores de Jacobo Arminio (1560-1609) y expuestos después por los remonstrantes y por Juan Wesley. Confiesan que la salvación es enteramente obra de la gracia de Dios y que esa gracia se ofrece de verdad a todo ser humano. Lo que sigue expone la postura en el orden de esos cinco artículos.
+
+**Primer artículo: la elección condicional**
+
+Según el primer artículo, Dios determinó, por un propósito eterno e inmutable en Jesucristo su Hijo y antes de la fundación del mundo, salvar en Cristo y por causa de Cristo a quienes, movidos por la gracia del Espíritu Santo, crean en ese Hijo y perseveren en esa fe hasta el fin (Remonstrancia de 1610, art. 1). El decreto de elección es real y anterior a toda obra humana; su fin es la salvación en Cristo.
+
+Se llama condicional porque Dios lo dictó atendiendo a una condición que él mismo establece y él mismo produce en el creyente: la fe. La Escritura llama a los creyentes "elegidos según la presciencia de Dios Padre" (1 P 1:2) y escogidos "en él antes de la fundación del mundo" (Ef 1:4); a los que Dios "antes conoció, también los predestinó" para ser conformes a la imagen de su Hijo (Ro 8:29). Arminio lo llamó el cuarto decreto de Dios: decretó salvar a las personas concretas que, según su presciencia, movidas por su gracia, creerían y perseverarían (_Declaración de sentimientos_). La fe que Dios prevé es ella misma obra de su gracia; por eso toda la gloria de la salvación pertenece a Dios.
+
+**Segundo artículo: la redención universal**
+
+El segundo artículo confiesa que Jesucristo, el Salvador del mundo, murió por todos los hombres y por cada hombre, y que así obtuvo para todos ellos la redención y el perdón de los pecados; pero nadie disfruta de hecho ese perdón sino el creyente (Remonstrancia de 1610, art. 2). La obra de la cruz es de suficiencia universal: hecha por todos, sin excepción.
+
+Cristo es la propiciación "no solamente por los nuestros, sino también por los de todo el mundo" (1 Jn 2:2); se dio a sí mismo "en rescate por todos" (1 Ti 2:6); por todos murió (2 Co 5:15). Dios quiere que todos los hombres sean salvos (1 Ti 2:4) y no quiere que ninguno perezca (2 P 3:9). Es "el Salvador de todos los hombres, mayormente de los que creen" (1 Ti 4:10): de todos por la provisión de la cruz, de los creyentes por la posesión efectiva de la salvación. Por eso el evangelio se ofrece de verdad a cualquiera, y el perdón que la cruz obtuvo para todos se recibe solo por la fe.
+
+**Tercer artículo: la incapacidad total sin la gracia**
+
+El tercer artículo se expresa en los términos más fuertes. El ser humano no tiene la gracia salvadora de sí mismo ni por la fuerza de su libre albedrío, porque en el estado de apostasía y de pecado no puede por sí mismo pensar, querer ni hacer nada verdaderamente bueno; le es necesario nacer de nuevo de Dios en Cristo, por su Espíritu Santo, y ser renovado por entero (Remonstrancia de 1610, art. 3). Esto incluye la fe: nadie puede creer para salvación por sus propias fuerzas.
+
+Arminio no dejó lugar a dudas: enseñó que, en el estado de pecado, el libre albedrío del ser humano para el verdadero bien no solo está herido y debilitado, sino preso, destruido y perdido, y que no le queda poder alguno salvo el que la gracia divina despierta en él (_Disputación XI_).
+
+Jesús lo dice sin rodeos: "separados de mí nada podéis hacer" (Jn 15:5); nadie puede venir a él si el Padre no le trae (Jn 6:44). La salvación empieza con un acto creador de Dios: quitar el corazón de piedra y poner uno nuevo (Ez 36:26). Aun el creer es un don concedido "a causa de Cristo" (Fil 1:29); Dios nos salvó no por obras nuestras, sino "por el lavamiento de la regeneración" del Espíritu Santo (Tit 3:5).
+
+**Cuarto artículo: la gracia preveniente y resistible**
+
+El cuarto artículo confiesa que la gracia es el principio, la continuación y el cumplimiento de todo bien, de modo que ni siquiera el regenerado obra el bien sin la gracia que previene, asiste, despierta, sigue y coopera; toda buena obra se debe a la gracia de Dios en Cristo. Pero en cuanto al modo en que esa gracia obra, el artículo añade que no es irresistible, pues está escrito de muchos que resistieron al Espíritu Santo (Remonstrancia de 1610, art. 4).
+
+La gracia va delante: es _preveniente_ porque precede. Antes de que nadie la busque, Dios ya obra: hay una luz verdadera que alumbra a todo hombre (Jn 1:9), y Cristo, levantado en la cruz, declara: "a todos atraeré a mí mismo" (Jn 12:32). Wesley enseñaba que nadie peca por no tener gracia, sino por no usar la gracia que ya tiene (sermón _Sobre ocuparnos en nuestra propia salvación_).
+
+Esa gracia habilita para responder, pero puede ser rechazada. Esteban reprende a sus oyentes: "vosotros resistís siempre al Espíritu Santo" (Hch 7:51). Jesús llora sobre Jerusalén —"y no quisiste" (Mt 23:37)— y reprocha: "no queréis venir a mí para que tengáis vida" (Jn 5:40). Y la Escritura invita a todos: "el que quiera, tome del agua de la vida gratuitamente" (Ap 22:17).
+
+El creyente obra porque Dios obra primero en él: "ocupaos en vuestra salvación con temor y temblor, porque Dios es el que en vosotros produce así el querer como el hacer" (Fil 2:12-13). Dios obra en nosotros; por tanto podemos y debemos obrar, como colaboradores suyos.
+
+**Quinto artículo: la perseverancia**
+
+El quinto artículo afirma primero la seguridad del creyente: los unidos a Cristo, asistidos por el Espíritu Santo, tienen pleno poder para luchar contra Satanás, el pecado, el mundo y su propia carne, y —con tal que no se descuiden y busquen su ayuda— Cristo mismo los guarda de caer (Remonstrancia de 1610, art. 5). Es la promesa del propio Señor: sus ovejas "no perecerán jamás, ni nadie las arrebatará de mi mano" (Jn 10:28), y el creyente es guardado por el poder de Dios mediante la fe (1 P 1:5).
+
+Sobre una sola cuestión los artículos de 1610 se declararon aún indecisos: si un creyente verdadero podría, por negligencia, abandonar el principio de su vida en Cristo y perder la gracia. Eso, dijeron, debía determinarse con más cuidado a partir de la Sagrada Escritura antes de enseñarlo con plena convicción (art. 5).
+
+Al estudiarlo más, la teología arminiana y wesleyana posterior respondió que sí: un creyente genuino que abandona la fe puede finalmente perderse. Ya en 1618 los remonstrantes declararon que los creyentes verdaderos pueden, por su propia culpa, caer finalmente y perecer (Opiniones de los remonstrantes, 1618), y Wesley enseñó lo mismo. La Escritura pone advertencias ante los creyentes: el pámpano que no permanece en la vid es echado fuera, se seca y arde (Jn 15:6); es posible haber sido iluminado y hecho partícipe del Espíritu Santo y, aun así, recaer (Heb 6:4-6); quien peca voluntariamente y tiene "por inmunda la sangre del pacto en la cual fue santificado" se expone a mayor castigo (Heb 10:26-29); y Pablo mismo disciplinaba su cuerpo para no ser, él mismo, "eliminado" tras haber predicado a otros (1 Co 9:27).
+
+Esta enseñanza no busca sembrar angustia, sino velar por el alma: la misma gracia que comenzó la obra la sostiene, y la promesa de vida es firme para todo el que se mantiene en Cristo por la fe.
+
+Así, de la elección a la perseverancia, esta tradición confiesa una sola gracia: la que Dios ofrece de veras a todos, obra en todos los que creen y guarda a cuantos permanecen en Cristo por la fe; y toda la gloria de la salvación es de Dios.
+
+---
+
+## Sección 3 — "La tradición reformada (calvinista)" (bodyEs) — ARMONIZADA + revisada, 7649 car.
+
+La tradición reformada o calvinista confiesa que la salvación es de principio a fin obra de la pura gracia de Dios, para que toda la gloria sea de Dios y la seguridad del creyente no dependa de sí mismo. Su exposición más ordenada son los Cánones de Dort (1619), con cinco Capítulos de la Doctrina (el tercero y el cuarto unidos); la Confesión de Westminster (1646, caps. 3, 10 y 17) y la _Institución_ de Calvino (libro III) enseñan lo mismo. Lo que sigue los recorre en el orden de Dort.
+
+**Primer punto: la elección divina**
+
+El punto de partida no es la elección, sino la justicia de Dios: por la caída de Adán todo el género humano quedó bajo culpa, y Dios sería justo si dejara a todos en esa ruina (Dort I.1). Que alguien se salve es puro don. Los Cánones definen la elección (griego _eklogḗ_) como el propósito eterno e inmutable por el cual Dios, antes de la fundación del mundo y por sola gracia, según el beneplácito de su voluntad, escogió en Cristo a un número determinado de personas para salvación (Dort I.6-7; cf. Calvino, _Institución_ III.21). No se funda en una fe o una santidad que Dios previera en la criatura: la fe y la santidad son fruto, y no causa, de la elección (Dort I.9; Westminster 3.5). Pablo lo afirma de Jacob y Esaú: el propósito de Dios conforme a la elección permanece "no por las obras sino por el que llama" (Ro 9:11), y no depende del que quiere ni del que corre, sino de Dios que tiene misericordia (Ro 9:16). Dios nos escogió en Cristo y en amor nos predestinó para adopción (Ef 1:4-5; cf. Ef 1:11; 2 Ts 2:13); y la cadena no se rompe: a los que predestinó, los llamó, los justificó y los glorificó (Ro 8:29-30). Jesús lo dice a los suyos: "No me elegisteis vosotros a mí, sino que yo os elegí a vosotros" (Jn 15:16).
+
+La Escritura enseña también que no todos son elegidos, y los Cánones lo dicen con cuidado, sin exagerarlo: Dios, en su beneplácito justo e irreprochable, decretó pasar por alto a algunos y dejarlos en la miseria en que ellos mismos se hundieron por su culpa, sin darles la fe salvadora (Dort I.15; Westminster 3.7). Importa la asimetría: a los suyos Dios los escoge y los lleva activamente a la vida; a los demás los deja en su propio pecado, y los Cánones niegan expresamente que Dios sea autor del pecado (Dort I.15). Y añaden una palabra pastoral: quien tiene una fe débil pero anhela de veras volverse a Dios no debe temer ser reprobado, porque ese anhelo ya es obra de la gracia (Dort I.16). Ante este misterio, lo correcto no es especular, sino adorar: "¿quién eres tú, para que alterques con Dios?" (Ro 9:20); "¡Oh profundidad de las riquezas de la sabiduría y de la ciencia de Dios!" (Ro 11:33).
+
+**Segundo punto: la muerte de Cristo y la redención que ella obtiene**
+
+Los Cánones afirman primero la suficiencia infinita del sacrificio: la muerte del Hijo de Dios es el único y perfecto sacrificio por el pecado, más que suficiente para expiar los pecados del mundo entero (Dort II.3). Por eso el evangelio debe predicarse y ofrecerse sin distinción ni discriminación a todas las naciones (Dort II.5): nadie que venga a Cristo será jamás rechazado (Jn 6:37). Junto a eso, esta tradición subraya la eficacia real de la cruz: por el consejo eterno del Padre, esa muerte redime infaliblemente a todos los escogidos y compra para ellos la fe misma, el Espíritu y todos los dones de la salvación (Dort II.8). A esto la tradición lo llama redención particular o definida (conocida popularmente como _expiación limitada_).
+
+La Escritura lo muestra en su modo de describir la cruz: el buen pastor pone su vida "por las ovejas" (Jn 10:11,15); Cristo "amó a la iglesia, y se entregó a sí mismo por ella" (Ef 5:25); los ancianos de Éfeso han de apacentar "la iglesia del Señor, la cual él ganó por su propia sangre" (Hch 20:28). Y lo que la cruz compra no se pierde: de todo lo que el Padre le ha dado, el Hijo no perderá nada (Jn 6:39). Para esta tradición, la cruz fue el precio pagado, con nombre y rostro, por cada uno de los suyos.
+
+**Tercer y cuarto punto: la corrupción humana y la conversión a Dios**
+
+Dios creó al ser humano bueno, a su imagen; por su propia voluntad el hombre se apartó de Dios y hundió a su naturaleza en la ceguera y la perversión (Dort III/IV.1). Desde entonces todos son concebidos en pecado, "hijos de ira" por naturaleza, muertos en sus delitos e incapaces por sí mismos de todo bien salvador; sin la gracia regeneradora del Espíritu Santo no quieren ni pueden volverse a Dios (Dort III/IV.3; Ef 2:1-3; Ro 3:10-11). El hombre natural no percibe las cosas del Espíritu de Dios (1 Co 2:14), y Jesús declara: "Ninguno puede venir a mí, si el Padre que me envió no le trajere" (Jn 6:44; cf. 6:65). Cuando esta tradición llama a esto "depravación total" no afirma que cada persona sea tan mala como podría ser, sino que el pecado alcanza y daña todas las facultades —mente, voluntad y afectos—: una corrupción que lo abarca todo, no una maldad llevada al extremo (Dort III/IV.1,3).
+
+Por eso la conversión ha de ser obra de Dios. En los elegidos Dios obra de manera sobrenatural: ilumina la mente, abre y ablanda el corazón e infunde vida nueva en la voluntad, cumpliendo la promesa "Os daré corazón nuevo... y quitaré de vuestra carne el corazón de piedra" (Ez 36:26-27). Los Cánones comparan esa regeneración con la creación y la resurrección de los muertos: no es mera persuasión moral y no puede quedar frustrada (Dort III/IV.11-12; Ef 2:4-5). La fe misma es don de Dios, infundida en la persona y no solo puesta a su alcance (Dort III/IV.14; Ef 2:8; Fil 1:29). A esta gracia la tradición la llama llamamiento eficaz o gracia eficaz (conocida popularmente como _gracia irresistible_); pero eficaz no significa forzada: la gracia no violenta la voluntad ni trata a nadie como un tronco o una piedra, sino que la sana y la inclina con dulzura y con poder, de modo que quien antes rehusaba ahora viene libremente y de buena gana (Dort III/IV.16; Westminster 10.1; Sal 110:3). Así, "el Señor abrió el corazón" de Lidia para que atendiera (Hch 16:14), y "creyeron todos los que estaban ordenados para vida eterna" (Hch 13:48).
+
+**Quinto punto: la perseverancia de los santos**
+
+A quienes Dios llama eficazmente y regenera, también los guarda hasta el fin. Los creyentes verdaderos siguen siendo débiles y a veces caen en pecados graves; pero Dios no retira del todo su Espíritu de los suyos, ni les permite perder la adopción ni caer en la perdición definitiva (Dort V.1,3,6). Esta perseverancia no descansa en las fuerzas del creyente, sino en la libre misericordia de Dios, en la inmutabilidad de su propósito, en el mérito y la intercesión permanente de Cristo y en el sello del Espíritu (Dort V.8). Jesús lo promete: sus ovejas "no perecerán jamás, ni nadie las arrebatará de mi mano" (Jn 10:28-29). Y con él los apóstoles: nada podrá separarnos del amor de Dios (Ro 8:38-39); somos guardados por el poder de Dios mediante la fe (1 P 1:5); el que comenzó la buena obra la perfeccionará (Fil 1:6; cf. 1 Co 1:8-9; 2 Ti 2:19).
+
+Esta seguridad no nace de una revelación especial, sino de las promesas de Dios, del testimonio del Espíritu y del anhelo sincero de una buena conciencia y de buenas obras (Dort V.10). Y lejos de volver descuidado al creyente, produce humildad, gratitud y piedad, y lo mueve a usar los medios que Dios señaló —su Palabra, la oración, los sacramentos— por los cuales él sostiene y perfecciona la fe que comenzó (Dort V.12-14). Así, los cinco puntos forman una sola cadena de gracia, de la elección eterna a la gloria final; en ella nadie que de veras se apoye en Cristo tiene por qué temer perderse, y toda la alabanza pertenece a Dios.
+
+---
+
+## Sección 4 — "Lo que ambas tradiciones confiesan juntas" (bodyEs)
+
+Aunque el desacuerdo es real y de peso, se da dentro de un acuerdo mucho mayor. Ambas tradiciones confiesan juntas lo siguiente.
+
+**La salvación es enteramente de gracia.** Nadie se salva por sus obras ni por su bondad natural. "Por gracia sois salvos por medio de la fe; y esto no de vosotros, pues es don de Dios; no por obras, para que nadie se gloríe" (Ef 2:8-9). Ninguna de las dos posturas enseña que la persona se salve a sí misma, y presentar así a la otra es describirla mal.
+
+**El ser humano caído no puede salvarse solo.** Los dos lados afirman que, por causa del pecado, nadie busca a Dios ni viene a Cristo por su propia iniciativa: hace falta que la gracia de Dios lo despierte, lo atraiga y lo capacite (Jn 6:44; Ef 2:1). El arminianismo clásico sostiene esta incapacidad con tanta firmeza como la tradición reformada; la diferencia está en si esa gracia que capacita puede o no ser resistida.
+
+**El nuevo nacimiento es obra del Espíritu Santo.** "El que no naciere de agua y del Espíritu, no puede entrar en el reino de Dios" (Jn 3:5); Dios "nos salvó... por su misericordia, por el lavamiento de la regeneración y por la renovación en el Espíritu Santo" (Tit 3:5). La vida nueva la da Dios; no la produce el esfuerzo humano.
+
+**El evangelio se ofrece de veras a todos.** Los dos lados predican que Dios llama sinceramente a todo el que oye a arrepentirse y creer, y que esa invitación no es fingida.
+
+**La seguridad de la salvación es para consolar, no para envanecer ni desesperar.** Ambas tradiciones advierten contra los dos mismos peligros: presumir de la gracia mientras se vive en pecado, y desconfiar de la bondad de Dios. Las dos llaman al creyente a perseverar en la fe, a usar los medios que Dios ha dado y a hacer firme su vocación y elección (2 P 1:10).
+
+**Lo esencial de la fe cristiana no está en juego.** La Trinidad, la deidad y la resurrección corporal de Cristo, la justificación por la fe, la autoridad de la Escritura: nada de esto se toca en este debate. Es un desacuerdo entre hermanos sobre cómo entender mejor lo que la Biblia enseña acerca de la elección y la gracia, no sobre si confiar o no en Cristo.
+
+Jorge Whitefield y Juan Wesley, amigos y compañeros en el avivamiento del siglo XVIII, discreparon con franqueza sobre este mismo asunto durante toda su vida y, aun así, siguieron reconociéndose como hermanos en Cristo y colaboradores en la predicación del evangelio. Ese es el espíritu con que la iglesia ha sabido llevar esta diferencia en sus mejores momentos.

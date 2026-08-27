@@ -214,6 +214,11 @@ export function parseMarkdownSegments(text: string): MarkdownSegment[] {
  *     "el reino de Dios".
  *   - predestinacion ↔ salvacion: predestinacion's gloss is specifically
  *     about God determining "la salvación del creyente".
+ *   - eleccion ↔ predestinacion, eleccion ↔ salvacion: eleccion's gloss
+ *     frames the whole entry as being about how "esa elección soberana y
+ *     la respuesta de fe de la persona" relate — the same ground both
+ *     predestinacion and salvacion cover, and the two doctrines the
+ *     Calvinism/Arminianism debate turns on.
  * — or, for nazaret ↔ belen only, the well-established, uncontroversial
  * biblical fact that they're Jesus's birthplace and childhood hometown
  * (the one pair here with no in-gloss cross-reference, called out
@@ -241,8 +246,9 @@ export const RELATED_DICTIONARY_SLUGS: Readonly<
   'espiritu-santo': ['bautismo'],
   milenio: ['reino-de-dios'],
   'reino-de-dios': ['milenio'],
-  predestinacion: ['salvacion'],
-  salvacion: ['predestinacion'],
+  eleccion: ['predestinacion', 'salvacion'],
+  predestinacion: ['salvacion', 'eleccion'],
+  salvacion: ['predestinacion', 'eleccion'],
 };
 
 /** Related sibling slugs for a dictionary entry's "Ver también" section, or
