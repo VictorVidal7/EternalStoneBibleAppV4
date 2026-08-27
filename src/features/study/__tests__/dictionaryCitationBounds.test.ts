@@ -73,6 +73,7 @@ interface DictEntry {
   headwordEs?: string;
   glossEs?: string;
   articleEs?: string;
+  sections?: {labelEs?: string; bodyEs?: string}[];
 }
 
 function loadEntries(file: string): DictEntry[] {
@@ -264,9 +265,25 @@ describe('dictionary content — full sweep, every recognized citation across al
       const falsePositives: string[] = [];
 
       for (const entry of entries) {
+        // `articleEs`/`glossEs` cover single-article + annotated entries;
+        // `sections[].bodyEs` covers `treatment: 'multi-view'` entries,
+        // whose premium content lives ONLY in the section bodies
+        // (`articleEs` is null). Missing this field left the most
+        // citation-dense content in the corpus with no bounds check —
+        // added when the "eleccion" multi-view entry landed.
+        const texts: {label: string; text: string}[] = [];
         for (const field of ['articleEs', 'glossEs'] as const) {
-          const text = entry[field];
-          if (!text) continue;
+          if (entry[field]) texts.push({label: field, text: entry[field]!});
+        }
+        (entry.sections ?? []).forEach((s, i) => {
+          if (s.bodyEs)
+            texts.push({
+              label: `sections[${i}]${s.labelEs ? ` (${s.labelEs})` : ''}`,
+              text: s.bodyEs,
+            });
+        });
+
+        for (const {label: field, text} of texts) {
           const segs = linkifyReferences(text);
           for (const seg of segs) {
             if (!seg.ref) continue;
@@ -278,7 +295,7 @@ describe('dictionary content — full sweep, every recognized citation across al
               // the file header).
               if (verses === undefined || verses.size === 0) {
                 falsePositives.push(
-                  `[${entry.slug}] "${seg.text}" resolved but ${book.name} ${chapter} isn't a real chapter`,
+                  `[${entry.slug}.${field}] "${seg.text}" resolved but ${book.name} ${chapter} isn't a real chapter`,
                 );
               }
               continue;
@@ -289,7 +306,7 @@ describe('dictionary content — full sweep, every recognized citation across al
               (verseEnd === undefined || verses.has(verseEnd));
             if (!ok) {
               falsePositives.push(
-                `[${entry.slug}] "${seg.text}" resolved but isn't a real ${book.name} ${chapter} verse`,
+                `[${entry.slug}.${field}] "${seg.text}" resolved but isn't a real ${book.name} ${chapter} verse`,
               );
             }
           }
