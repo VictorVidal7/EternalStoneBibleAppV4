@@ -3234,9 +3234,6 @@ export const translations = {
       },
     },
 
-    // ⚠️ BORRADOR — pendiente de revisión doctrinal, no publicado. Contenido
-    // placeholder para probar el shell de la funcionalidad de punta a punta;
-    // Victor aún no ha dado el visto bueno a este texto exacto.
     theology: {
       cardTitle: 'Teología',
       cardSubtitle: 'Verdades esenciales de la fe cristiana',
@@ -3264,6 +3261,96 @@ export const translations = {
           topic: 'Deidad y resurrección de Cristo',
           body: 'El apóstol Pablo escribe que Jesús murió por nuestros pecados, fue sepultado y resucitó al tercer día — y aclara que no es una historia que él mismo inventó, sino algo que "recibió" de otros testigos, muchos de los cuales seguían con vida cuando escribió esto. Para los primeros cristianos, la tumba vacía no era solo un milagro asombroso: era la confirmación de que Jesús es exactamente quien decía ser.',
           passage: '1 Corintios 15:3-8; Juan 20:28',
+        },
+        'self-existence': {
+          title: 'Dios existe por sí mismo',
+          topic: 'La autoexistencia',
+          body: 'Dios no fue creado, no tiene origen y no necesita de nada ni de nadie para existir: Él es la fuente de su propio ser. Cuando Moisés le preguntó su nombre, Dios respondió simplemente "YO SOY EL QUE SOY", y le dijo que así dijera a los hijos de Israel: "YO SOY me envió a vosotros" — una forma de decir que su existencia no depende de ninguna causa externa, a diferencia de todo lo demás que existe. Esto significa que, aunque el universo entero desapareciera, Dios seguiría siendo exactamente quien es.',
+          passage: 'Éxodo 3:14',
+        },
+        eternity: {
+          title: 'Sin principio ni fin',
+          topic: 'La eternidad de Dios',
+          body: 'Dios no tuvo comienzo y no tendrá final: antes de que existiera el mundo, Él ya era, y cuando todo lo creado llegue a su fin, Él seguirá siendo. El salmista lo expresa así: "Antes que naciesen los montes y formases la tierra y el mundo, desde el siglo y hasta el siglo, tú eres Dios". Esto significa que Dios no está atrapado dentro del tiempo como nosotros; Él ve y sostiene toda la historia a la vez, por lo que podemos confiar en sus promesas sin que el paso del tiempo se las impida cumplir.',
+          passage: 'Salmos 90:2',
+        },
+        immutability: {
+          title: 'El Dios que no cambia',
+          topic: 'La inmutabilidad',
+          body: 'Dios no cambia: su carácter, sus propósitos y sus promesas hoy son exactamente los mismos que ayer y los mismos que serán mañana. Por medio del profeta Malaquías, Dios mismo lo declara: "yo Jehová no cambio; por esto, hijos de Jacob, no habéis sido consumidos" — su fidelidad inmutable es la razón de que su pueblo no haya sido destruido a pesar de sus fallas. En un mundo donde todo se mueve y todo cambia, tenemos un Dios que es la roca fija a la que siempre podemos volver.',
+          passage: 'Malaquías 3:6',
+        },
+        omnipresence: {
+          title: 'En todas partes a la vez',
+          topic: 'La omnipresencia',
+          body: 'Dios no está limitado a un solo lugar: está plenamente presente en todas partes al mismo tiempo, no repartido en pedacitos ni presente solo "un poco" aquí y "un poco" allá. El salmista lo describe con asombro, preguntando "¿A dónde me iré de tu Espíritu? ¿Y a dónde huiré de tu presencia?", para luego reconocer que ni los cielos, ni las profundidades, ni los confines del mar quedan fuera del alcance de Dios. No hay ningún rincón de tu vida, por escondido que parezca, donde Dios no esté ya presente.',
+          passage: 'Salmos 139:7-10',
+        },
+        omniscience: {
+          title: 'Nada se le escapa',
+          topic: 'La omnisciencia',
+          body: 'Dios conoce todas las cosas: el pasado, el presente y el futuro, e incluso los pensamientos más íntimos que nadie más puede ver. El salmo lo resume así: "Grande es el Señor nuestro, y de mucho poder; y su entendimiento es infinito" — su conocimiento no tiene límite ni necesita aprender nada nuevo. Esto puede sonar incómodo cuando pensamos en nuestros errores y secretos, pero también es una fuente enorme de consuelo: Dios entiende perfectamente lo que estamos viviendo, y aun así nos ama.',
+          passage: 'Salmos 147:5',
+        },
+        omnipotence: {
+          title: 'Nada es difícil para Él',
+          topic: 'La omnipotencia',
+          body: 'Dios tiene poder absoluto para hacer todo lo que es coherente con su propia naturaleza: no hay ninguna tarea demasiado grande, ni ningún obstáculo demasiado fuerte para Él. El profeta Jeremías lo confiesa en oración: "¡Oh Señor Jehová! he aquí que tú hiciste el cielo y la tierra con tu gran poder, y con tu brazo extendido, ni hay nada que sea difícil para ti". Cuando la situación se ve sin salida, podemos orar con esa misma confianza: para Dios, nada es demasiado difícil.',
+          passage: 'Jeremías 32:17',
+        },
+        unity: {
+          title: 'Un solo Dios',
+          topic: 'La unidad de Dios',
+          body: 'La Biblia es categórica en cuanto al número de dioses que existen: no hay muchos, sino uno solo. Israel confesaba esta verdad cada día con las palabras del Shemá: "Oye, Israel: Jehová nuestro Dios, Jehová uno es". Esta unidad se refiere a la esencia de Dios —no está dividido en partes ni fragmentado en varios seres—, y por eso no contradice que ese mismo Dios se revele como Padre, Hijo y Espíritu Santo: sigue siendo un solo Dios, no tres.',
+          passage: 'Deuteronomio 6:4',
+        },
+        love: {
+          title: 'No solo ama: es amor',
+          topic: 'El amor de Dios',
+          body: 'La Biblia no dice simplemente que Dios ama; dice que "Dios es amor", como si esa palabra describiera su propia naturaleza y no solo una acción entre muchas. Por eso el amor de Dios no depende de que nos portemos bien ni se agota cuando le fallamos: no nace de un cálculo, sino de quién es Él. Como fuimos creados a su imagen, algo de ese mismo amor —limitado, imperfecto, pero genuino— también puede reflejarse en nosotros cuando amamos a los demás.',
+          passage: '1 Juan 4:8',
+        },
+        holiness: {
+          title: 'Apartado, no distante',
+          topic: 'La santidad de Dios',
+          body: 'Cuando la Biblia llama santo a Dios, no habla de alguien lejano o difícil de alcanzar, sino de Aquel que está completamente aparte del pecado y el mal: en Él no hay mancha, mezcla ni sombra de maldad. Por eso Pedro repite un mandato que ya aparecía en la ley: "Sed santos, porque yo soy santo" — no como una exigencia imposible para ganarnos su favor, sino como una invitación a parecernos cada vez más a Aquel que nos amó primero.',
+          passage: '1 Pedro 1:16',
+        },
+        justice: {
+          title: 'La Roca que no tuerce',
+          topic: 'La justicia de Dios',
+          body: 'Moisés describe a Dios como una Roca —una imagen de solidez y firmeza— y explica por qué: "todos sus caminos son rectitud", y "sin ninguna iniquidad en él; es justo y recto". Esto significa que Dios nunca juzga por favoritismo, nunca se deja comprar y nunca tuerce lo que es correcto para beneficiar a unos sobre otros. Para quienes han sufrido injusticias en este mundo, esta verdad es un ancla real: al final, todo pasa por las manos de Aquel cuya obra es perfecta.',
+          passage: 'Deuteronomio 32:4',
+        },
+        'mercy-grace': {
+          title: 'Tardo para la ira',
+          topic: 'Misericordia y gracia',
+          body: 'Cuando Moisés le pidió a Dios que le mostrara su gloria, Dios no respondió con un despliegue de poder, sino con una descripción de su propio carácter: "misericordioso y piadoso; tardo para la ira, y grande en misericordia y verdad". La misericordia es la compasión de Dios hacia quienes sufren, y la gracia es su generosidad hacia quienes no la merecen — dos caras de un mismo corazón que prefiere perdonar antes que castigar. Dios no está esperando una excusa para condenarnos, sino buscando una razón para tener misericordia.',
+          passage: 'Éxodo 34:6',
+        },
+        faithfulness: {
+          title: 'La fidelidad de Dios: la promesa que nunca falla',
+          topic: 'Fidelidad de Dios',
+          body: 'El libro de Lamentaciones fue escrito en medio de la destrucción de Jerusalén, cuando todo parecía perdido — y es justamente ahí donde el profeta declara que las misericordias de Dios "nunca decayeron" y que "nuevas son cada mañana". No es una fidelidad que depende de que nuestras circunstancias mejoren, sino una que se renueva cada día sin importar cuán oscuro se vea todo, porque Dios no abandona a los suyos, generación tras generación, pase lo que pase.',
+          passage: 'Lamentaciones 3:22-23',
+        },
+        goodness: {
+          title: 'La bondad de Dios: buena con todos, sin excepción',
+          topic: 'Bondad de Dios',
+          body: 'El salmista no dice que Dios es bueno solo con los que lo aman o le obedecen, sino que "Bueno es Jehová para con todos" — su bondad no se limita a un grupo selecto, sino que alcanza a toda su creación. Sus misericordias están "sobre todas sus obras", lo que significa que el sol que sale, la lluvia que cae y el aire que respiramos son expresiones diarias de un carácter que es fundamentalmente bueno.',
+          passage: 'Salmos 145:9',
+        },
+        wisdom: {
+          title: 'La sabiduría de Dios: caminos que no podemos rastrear',
+          topic: 'Sabiduría de Dios',
+          body: 'Después de explicar durante once capítulos el plan de Dios para judíos y gentiles, Pablo no termina con una conclusión ordenada, sino con una explosión de asombro: "¡Oh profundidad de las riquezas de la sabiduría y de la ciencia de Dios!". Reconoce que los juicios de Dios son "insondables" y sus caminos "inescrutables" — no necesitamos entender cada decisión de Dios para confiar en que su sabiduría, a diferencia de la nuestra, nunca se equivoca ni se queda corta.',
+          passage: 'Romanos 11:33',
+        },
+        patience: {
+          title: 'La paciencia de Dios: por qué se toma su tiempo',
+          topic: 'Paciencia de Dios',
+          body: 'Algunos creyentes se preguntaban por qué Jesús no había regresado todavía, y hasta lo interpretaban como que Dios se había tardado o había olvidado su promesa. Pedro corrige esa idea de raíz: Dios "no retarda su promesa" — lo que parece demora es, en realidad, paciencia deliberada, porque Dios "es paciente para con nosotros, no queriendo que ninguno perezca, sino que todos procedan al arrepentimiento".',
+          passage: '2 Pedro 3:9',
         },
       },
     },
@@ -9669,9 +9756,6 @@ export const translations = {
       },
     },
 
-    // ⚠️ DRAFT — pending doctrinal review, not published. Placeholder content
-    // to prove the feature shell end-to-end; Victor has not yet signed off
-    // on this exact text.
     theology: {
       cardTitle: 'Theology',
       cardSubtitle: 'Essential truths of the Christian faith',
@@ -9699,6 +9783,96 @@ export const translations = {
           topic: "Christ's deity and resurrection",
           body: 'The apostle Paul writes that Jesus died for our sins, was buried, and rose on the third day — and makes clear this is not a story he invented himself, but something he "received" from other witnesses, many of whom were still alive when he wrote this. For the first Christians, the empty tomb was not merely an astonishing miracle: it was confirmation that Jesus is exactly who He claimed to be.',
           passage: '1 Corinthians 15:3-8; John 20:28',
+        },
+        'self-existence': {
+          title: 'The God who depends on no one',
+          topic: 'Self-existence',
+          body: 'God was not created, has no origin, and needs nothing and no one in order to exist: He is the source of His own being. When Moses asked for His name, God said, "I AM WHO I AM," and told him to say to the Israelites, "I AM has sent me to you" — a way of saying His existence depends on no outside cause, unlike everything else that exists. Even if the entire universe vanished, God would remain exactly who He is.',
+          passage: 'Exodus 3:14',
+        },
+        eternity: {
+          title: 'No beginning, no end',
+          topic: "God's eternity",
+          body: 'God had no beginning and will have no end: before the world existed, He already was, and when everything created comes to an end, He will still be. The psalmist puts it this way: "Before the mountains were brought forth, or ever you had formed the earth and the world, even from everlasting to everlasting, you are God." God is not trapped inside time the way we are; He sees and sustains all of history at once, which is why we can trust His promises without the passing of time ever standing in the way.',
+          passage: 'Psalm 90:2',
+        },
+        immutability: {
+          title: 'The God who does not change',
+          topic: "God's immutability",
+          body: 'God does not change: His character, His purposes, and His promises are exactly the same today as they were yesterday and will be tomorrow. Through the prophet Malachi, God himself declares it: "I, the LORD, don\'t change; therefore you, sons of Jacob, are not consumed" — His unchanging faithfulness is the very reason His people were not destroyed despite their failures. In a world where everything shifts, we have a God who is the fixed rock we can always return to.',
+          passage: 'Malachi 3:6',
+        },
+        omnipresence: {
+          title: 'Everywhere at once',
+          topic: 'Omnipresence',
+          body: 'God is not confined to a single place: He is fully present everywhere at the same time, not spread thin or present just "a little" here and "a little" there. The psalmist captures this with wonder, asking, "Where could I go from your Spirit? Or where could I flee from your presence?" — then recognizes that neither the heavens, nor the depths, nor the far side of the sea lie beyond God\'s reach. There is no corner of your life, however hidden it may seem, where God is not already present.',
+          passage: 'Psalm 139:7-10',
+        },
+        omniscience: {
+          title: 'Nothing escapes Him',
+          topic: 'Omniscience',
+          body: 'God knows all things: the past, the present, and the future, even the most private thoughts no one else can see. The psalm sums it up: "Great is our Lord, and mighty in power. His understanding is infinite." That can feel uncomfortable when we think of our failures and secrets, but it is also a great source of comfort: God understands perfectly what we are going through, and still loves us.',
+          passage: 'Psalm 147:5',
+        },
+        omnipotence: {
+          title: 'Nothing is too hard for Him',
+          topic: 'Omnipotence',
+          body: 'God has absolute power to do all that is consistent with His own nature: no task is too great and no obstacle too strong for Him. The prophet Jeremiah confesses it in prayer: "Ah Lord GOD! Behold, you have made the heavens and the earth by your great power and by your outstretched arm. There is nothing too hard for you." When a situation looks hopeless, we can pray with that same confidence: for God, nothing is too difficult.',
+          passage: 'Jeremiah 32:17',
+        },
+        unity: {
+          title: 'One God',
+          topic: "God's unity",
+          body: 'Scripture is categorical about how many gods there are: not many, but one. Israel confessed this truth every day in the words of the Shema: "Hear, Israel: The LORD is our God. The LORD is one." This oneness concerns God\'s essence — He is not divided into parts or split into several beings — which is why it does not contradict the truth that this same God has revealed Himself as Father, Son, and Holy Spirit: He remains one God, not three.',
+          passage: 'Deuteronomy 6:4',
+        },
+        love: {
+          title: 'Not just loving — love itself',
+          topic: 'The love of God',
+          body: "Scripture doesn't simply say that God loves — it says that God is love, as though that word describes His very nature rather than just one action among many. That's why God's love doesn't depend on our good behavior or run dry when we fail Him — it isn't born of a calculation, but of who He is. Because we were made in His image, something of that same love — limited, imperfect, but genuine — can also be reflected in us when we love others.",
+          passage: '1 John 4:8',
+        },
+        holiness: {
+          title: 'Set apart, not distant',
+          topic: "God's holiness",
+          body: "When Scripture calls God holy, it isn't describing someone distant or hard to reach — it's describing the One who is completely set apart from sin and evil, without a trace of stain or wrongdoing in Him. That's why Peter repeats a command already found in the law: \"Be holy, for I am holy\" — not as an impossible bar to clear in order to earn His favor, but as an invitation to grow more and more like the One who loved us first.",
+          passage: '1 Peter 1:16',
+        },
+        justice: {
+          title: "The Rock that doesn't bend",
+          topic: "God's justice",
+          body: 'Moses describes God as a Rock — an image of solidity and firmness — and explains why: "all his ways are justice", and there is "no injustice in him; just and right is he". This means God never judges by favoritism, is never bought off, and never twists what is right to benefit some over others. For anyone who has suffered injustice in this world, that truth is a real anchor: in the end, everything passes through the hands of the One whose work is perfect.',
+          passage: 'Deuteronomy 32:4',
+        },
+        'mercy-grace': {
+          title: 'Slow to anger',
+          topic: "God's mercy and grace",
+          body: "When Moses asked God to show him His glory, God didn't respond with a display of power, but with a description of His own character: \"merciful and gracious, slow to anger, and abundant in loving kindness and truth.\" Mercy is God's compassion toward those who suffer, and grace is His generosity toward those who don't deserve it — two sides of the same heart that would rather forgive than punish. God isn't waiting for an excuse to condemn us — He's looking for a reason to show mercy.",
+          passage: 'Exodus 34:6',
+        },
+        faithfulness: {
+          title: "God's faithfulness: the promise that never fails",
+          topic: "God's faithfulness",
+          body: 'The book of Lamentations was written in the middle of Jerusalem\'s destruction, when everything seemed lost — and it\'s precisely there that the prophet declares God\'s mercies "never ceased" and are "new every morning." This isn\'t a faithfulness that depends on our circumstances improving; it renews itself daily no matter how dark things look, because God does not abandon His people, generation after generation, no matter what happens.',
+          passage: 'Lamentations 3:22-23',
+        },
+        goodness: {
+          title: "God's goodness: good to all, without exception",
+          topic: "God's goodness",
+          body: 'The psalmist doesn\'t say God is good only to those who love or obey Him — he says "The LORD is good to all," meaning His goodness isn\'t reserved for a select group but reaches His entire creation. His mercies are "over all His works," which means the sunrise, the rain, and the very air we breathe are daily expressions of a character that is fundamentally good.',
+          passage: 'Psalm 145:9',
+        },
+        wisdom: {
+          title: "God's wisdom: paths beyond our tracing",
+          topic: "God's wisdom",
+          body: 'After spending eleven chapters laying out God\'s plan for Jews and Gentiles, Paul doesn\'t close with a tidy conclusion — he bursts into wonder: "Oh, the depth of the riches both of the wisdom and knowledge of God!" He acknowledges that God\'s judgments are "unsearchable" and His ways "past finding out" — we don\'t need to understand every one of God\'s decisions to trust that His wisdom, unlike ours, never falls short.',
+          passage: 'Romans 11:33',
+        },
+        patience: {
+          title: "God's patience: why He takes His time",
+          topic: "God's patience",
+          body: 'Some believers wondered why Jesus hadn\'t returned yet, even reading it as though God had delayed or forgotten His promise. Peter corrects that idea at the root: God "is not slack concerning his promise" — what looks like delay is actually deliberate patience, because God "is patient with us, not wishing that any should perish, but that all should come to repentance."',
+          passage: '2 Peter 3:9',
         },
       },
     },

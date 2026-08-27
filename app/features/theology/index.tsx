@@ -1,33 +1,33 @@
 /**
- * ✝️ TEOLOGÍA — browsable hub of short, essential doctrine essays
- * (BORRADOR — infrastructure phase, see below).
+ * ✝️ TEOLOGÍA — browsable hub of short, essential doctrine essays.
  *
  * A small, deliberately-narrow catalog scoped to "mere Christianity"
- * consensus (Trinity, salvation by grace, Christ's deity/resurrection),
- * mirroring the visual language of the "¿Sabías qué?" hub
- * (`app/features/facts/index.tsx`) — a header + a list of expandable cards,
- * each showing the full essay + its cited passage(s) + a one-tap jump to the
- * reader for the primary anchor verse. Unlike ¿Sabías qué?, entries here can
- * cite multiple/ranged passages (e.g. "1 Corintios 15:3-8; Juan 20:28"), so
- * there is no daily-rotation hero and no live verse-text resolution for
- * every citation — only the primary anchor (`refs[0]`) resolves to a
- * "Abrir en el lector" jump, the full citation is shown as plain text.
+ * consensus (Trinity, salvation by grace, Christ's deity/resurrection,
+ * attributes of God), mirroring the visual language of the "¿Sabías qué?"
+ * hub (`app/features/facts/index.tsx`) — a header + a list of expandable
+ * cards, each showing the full essay + its cited passage(s) + a one-tap jump
+ * to the reader for the primary anchor verse. Unlike ¿Sabías qué?, entries
+ * here can cite multiple/ranged passages (e.g. "1 Corintios 15:3-8; Juan
+ * 20:28"), so there is no daily-rotation hero and no live verse-text
+ * resolution for every citation — only the primary anchor (`refs[0]`)
+ * resolves to a "Abrir en el lector" jump, the full citation is shown as
+ * plain text.
  *
  * 100% FREE — no `usePremium()` / `useOfferingSheet()` anywhere in this flow
  * (matches the ¿Sabías qué? / sermon-notes free-tier precedent).
  *
- * Reached from the Home "Explorar" tile.
+ * Reached from "Ver todas las funcionalidades".
  *
- * ⚠️ BORRADOR — pendiente de revisión doctrinal, no publicado. The three
- * entries this screen renders (`src/features/study/theology.ts`) are
- * placeholder seed content, NOT yet reviewed or approved by Victor. This
- * screen exists to prove the feature shell works end-to-end — do not treat
- * the content as ship-ready.
+ * Only PUBLISHED entries (`draft: false` in `src/features/study/theology.ts`)
+ * ever render here — see `getPublishedTheologyEntries()`. New entries go in
+ * as `draft: true` pending Victor's per-entry doctrinal sign-off, same
+ * pattern as bibleFacts' growth passes; they're invisible to real users
+ * until flipped, no code change needed here when that happens.
  *
  * Para la gloria de Dios Todopoderoso ✨
  */
 
-import {useCallback, useState} from 'react';
+import {useCallback, useMemo, useState} from 'react';
 import {View, ScrollView, TouchableOpacity, StyleSheet} from 'react-native';
 import {Stack, useRouter} from 'expo-router';
 import {Ionicons} from '@expo/vector-icons';
@@ -39,7 +39,10 @@ import {haptics} from '@lib/haptics';
 import {AppText} from '@components/ui/AppText';
 import {getBookByName} from '@/constants/bible';
 import {parseChristRef} from '@/features/study/christConnections';
-import {THEOLOGY_ENTRIES, type TheologyEntry} from '@/features/study/theology';
+import {
+  getPublishedTheologyEntries,
+  type TheologyEntry,
+} from '@/features/study/theology';
 import {
   borderRadius,
   fontSize as fontSizes,
@@ -63,6 +66,9 @@ export default function TheologyScreen() {
   const items = tt.items as Record<string, TheologyItem>;
 
   const [expanded, setExpanded] = useState<Set<string>>(new Set());
+  // Excludes draft:true entries — never surface unreviewed doctrinal
+  // content to real users, same rule as bibleFacts' getFactsByCategory().
+  const publishedEntries = useMemo(() => getPublishedTheologyEntries(), []);
 
   const toggleExpanded = useCallback((id: string) => {
     haptics.tap();
@@ -134,7 +140,7 @@ export default function TheologyScreen() {
             {tt.browseHint}
           </AppText>
 
-          {THEOLOGY_ENTRIES.map(entry => {
+          {publishedEntries.map(entry => {
             const item = items[entry.id];
             if (!item) return null;
             const isOpen = expanded.has(entry.id);
@@ -240,9 +246,6 @@ export default function TheologyScreen() {
     </>
   );
 }
-
-/** Total entries in the catalog, exported for tests. */
-export const TOTAL_THEOLOGY_ENTRIES = THEOLOGY_ENTRIES.length;
 
 const styles = StyleSheet.create({
   container: {flex: 1},

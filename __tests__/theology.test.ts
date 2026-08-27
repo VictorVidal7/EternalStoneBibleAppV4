@@ -9,6 +9,7 @@ import {
   THEOLOGY_ENTRIES,
   THEOLOGY_COUNT,
   getTheologyEntryById,
+  getPublishedTheologyEntries,
 } from '../src/features/study/theology';
 import {parseChristRef} from '../src/features/study/christConnections';
 import {getBookByName} from '../src/constants/bible';
@@ -18,9 +19,19 @@ type AnyRecord = Record<string, unknown>;
 const esT = (translations.es as AnyRecord).theology as AnyRecord;
 const enT = (translations.en as AnyRecord).theology as AnyRecord;
 
+// The 3 original entries (Trinidad/Salvación por gracia/Resurrección),
+// reviewed and approved 2026-07-29 — see theology.ts's file comment and the
+// `2d10c82` commit that flipped their draft flag. Frozen the same way
+// bibleFacts.test.ts freezes its reviewed-ids list: proves (1) none of
+// THESE ids have had their `draft` flag touched by a later growth pass, and
+// (2) the published set only grows when Victor actually reviews an entry —
+// a newly-added entry defaults to draft and stays invisible to real users
+// until it's added here too.
+const REVIEWED_IDS = ['trinity', 'grace-salvation', 'resurrection'] as const;
+
 describe('theology — catalog shape', () => {
-  it('ships the 3 seeded entries', () => {
-    expect(THEOLOGY_ENTRIES.length).toBe(3);
+  it('ships the 3 originally-reviewed entries plus any growth-pass drafts', () => {
+    expect(THEOLOGY_ENTRIES.length).toBeGreaterThanOrEqual(REVIEWED_IDS.length);
     expect(THEOLOGY_COUNT).toBe(THEOLOGY_ENTRIES.length);
   });
 
@@ -37,8 +48,21 @@ describe('theology — catalog shape', () => {
     }
   });
 
-  it('every entry is cleared of the draft flag (reviewed content)', () => {
-    for (const e of THEOLOGY_ENTRIES) {
+  it('none of the originally-reviewed entries have been marked draft', () => {
+    for (const id of REVIEWED_IDS) {
+      expect(getTheologyEntryById(id)?.draft).toBe(false);
+    }
+  });
+
+  it('the published (user-visible) set is exactly the reviewed ids — new entries stay draft', () => {
+    const publishedIds = getPublishedTheologyEntries()
+      .map(e => e.id)
+      .sort();
+    expect(publishedIds).toEqual([...REVIEWED_IDS].sort());
+  });
+
+  it('getPublishedTheologyEntries never returns a draft entry', () => {
+    for (const e of getPublishedTheologyEntries()) {
       expect(e.draft).toBe(false);
     }
   });

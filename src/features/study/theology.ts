@@ -67,12 +67,134 @@ export const THEOLOGY_ENTRIES: readonly TheologyEntry[] = [
     accent: '#F59E0B',
     draft: false,
   },
+  // ---- Growth pass 2026-08-27: Atributos de Dios (draft, pending Victor's
+  // per-entry doctrinal sign-off — same pattern as the bibleFacts growth
+  // pass). Every anchor ref's quoted text was verified word-for-word
+  // against the app's own shipped RVR1960/WEB databases before drafting.
+  // "Incomunicables" (belong to God alone) first, then "comunicables"
+  // (reflected, in limited measure, in humanity made in His image) — the
+  // classic Reformed/Protestant systematic-theology classification
+  // (Berkhof/Hodge/Strong), not an ecumenically-neutral taxonomy.
+  {
+    id: 'self-existence',
+    refs: ['Exodus/3/14'],
+    icon: 'infinite-outline',
+    accent: '#8B5CF6',
+    draft: true,
+  },
+  {
+    id: 'eternity',
+    refs: ['Psalms/90/2'],
+    icon: 'time-outline',
+    accent: '#3B82F6',
+    draft: true,
+  },
+  {
+    id: 'immutability',
+    refs: ['Malachi/3/6'],
+    icon: 'shield-checkmark-outline',
+    accent: '#0EA5E9',
+    draft: true,
+  },
+  {
+    id: 'omnipresence',
+    refs: ['Psalms/139/7'],
+    icon: 'globe-outline',
+    accent: '#14B8A6',
+    draft: true,
+  },
+  {
+    id: 'omniscience',
+    refs: ['Psalms/147/5'],
+    icon: 'eye-outline',
+    accent: '#06B6D4',
+    draft: true,
+  },
+  {
+    id: 'omnipotence',
+    refs: ['Jeremiah/32/17'],
+    icon: 'flash-outline',
+    accent: '#EF4444',
+    draft: true,
+  },
+  {
+    id: 'unity',
+    refs: ['Deuteronomy/6/4'],
+    icon: 'ellipse-outline',
+    accent: '#7C3AED',
+    draft: true,
+  },
+  {
+    id: 'love',
+    refs: ['1 John/4/8'],
+    icon: 'heart-outline',
+    accent: '#EC4899',
+    draft: true,
+  },
+  {
+    id: 'holiness',
+    refs: ['1 Peter/1/16'],
+    icon: 'sparkles-outline',
+    accent: '#FBBF24',
+    draft: true,
+  },
+  {
+    id: 'justice',
+    refs: ['Deuteronomy/32/4'],
+    icon: 'scale-outline',
+    accent: '#64748B',
+    draft: true,
+  },
+  {
+    id: 'mercy-grace',
+    refs: ['Exodus/34/6'],
+    icon: 'hand-left-outline',
+    accent: '#10B981',
+    draft: true,
+  },
+  {
+    id: 'faithfulness',
+    refs: ['Lamentations/3/23'],
+    icon: 'anchor-outline',
+    accent: '#0D9488',
+    draft: true,
+  },
+  {
+    id: 'goodness',
+    refs: ['Psalms/145/9'],
+    icon: 'leaf-outline',
+    accent: '#84CC16',
+    draft: true,
+  },
+  {
+    id: 'wisdom',
+    refs: ['Romans/11/33'],
+    icon: 'bulb-outline',
+    accent: '#F97316',
+    draft: true,
+  },
+  {
+    id: 'patience',
+    refs: ['2 Peter/3/9'],
+    icon: 'hourglass-outline',
+    accent: '#A855F7',
+    draft: true,
+  },
 ] as const;
 
-/** Total entries in the catalog. */
+/** Total entries in the catalog (draft + published). */
 export const THEOLOGY_COUNT = THEOLOGY_ENTRIES.length;
 
 /** Look up a catalog entry by its stable id. Pure. */
 export function getTheologyEntryById(id: string): TheologyEntry | null {
   return THEOLOGY_ENTRIES.find(e => e.id === id) ?? null;
+}
+
+/**
+ * Entries cleared for real users — excludes `draft: true` so the browsable
+ * hub never surfaces unreviewed doctrinal content. Mirrors
+ * `getFactsByCategory`'s exclusion in bibleFacts.ts. Pure.
+ */
+export function getPublishedTheologyEntries(): readonly TheologyEntry[] {
+  return THEOLOGY_ENTRIES.filter(e => !e.draft);
 }
