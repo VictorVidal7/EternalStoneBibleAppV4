@@ -3301,7 +3301,7 @@ export const translations = {
         unity: {
           title: 'Un solo Dios',
           topic: 'La unidad de Dios',
-          body: 'La Biblia es categórica en cuanto al número de dioses que existen: no hay muchos, sino uno solo. Israel confesaba esta verdad cada día con las palabras del Shemá: "Oye, Israel: Jehová nuestro Dios, Jehová uno es". Esta unidad se refiere a la esencia de Dios —no está dividido en partes ni fragmentado en varios seres—, y por eso no contradice que ese mismo Dios se revele como Padre, Hijo y Espíritu Santo: sigue siendo un solo Dios, no tres.',
+          body: 'La Biblia es categórica en cuanto al número de dioses que existen: no hay muchos, sino uno solo. Israel confesaba esta verdad cada día con las palabras del Shemá: "Oye, Israel: Jehová nuestro Dios, Jehová uno es". La iglesia cristiana siempre ha entendido esta unidad como una unidad de esencia, no como un simple conteo, lo cual es coherente con que ese mismo Dios se revele como Padre, Hijo y Espíritu Santo: sigue siendo un solo Dios, no tres.',
           passage: 'Deuteronomio 6:4',
         },
         love: {
@@ -9823,7 +9823,7 @@ export const translations = {
         unity: {
           title: 'One God',
           topic: "God's unity",
-          body: 'Scripture is categorical about how many gods there are: not many, but one. Israel confessed this truth every day in the words of the Shema: "Hear, Israel: The LORD is our God. The LORD is one." This oneness concerns God\'s essence — He is not divided into parts or split into several beings — which is why it does not contradict the truth that this same God has revealed Himself as Father, Son, and Holy Spirit: He remains one God, not three.',
+          body: 'Scripture is categorical about how many gods there are: not many, but one. Israel confessed this truth every day in the words of the Shema: "Hear, Israel: The LORD is our God. The LORD is one." The Christian church has always understood this oneness as a oneness of essence, not a simple headcount, which is why it does not contradict the truth that this same God has revealed Himself as Father, Son, and Holy Spirit: He remains one God, not three.',
           passage: 'Deuteronomy 6:4',
         },
         love: {
@@ -9835,43 +9835,43 @@ export const translations = {
         holiness: {
           title: 'Set apart, not distant',
           topic: "God's holiness",
-          body: "When Scripture calls God holy, it isn't describing someone distant or hard to reach — it's describing the One who is completely set apart from sin and evil, without a trace of stain or wrongdoing in Him. That's why Peter repeats a command already found in the law: \"Be holy, for I am holy\" — not as an impossible bar to clear in order to earn His favor, but as an invitation to grow more and more like the One who loved us first.",
+          body: "When Scripture calls God holy, it isn't describing someone distant or hard to reach — it's describing the One who is completely set apart from sin and evil, without a trace of stain or wrongdoing in Him. That's why Peter repeats a command already found in the law: \"you shall be holy, for I am holy\" — not as an impossible bar to clear in order to earn His favor, but as an invitation to grow more and more like the One who loved us first.",
           passage: '1 Peter 1:16',
         },
         justice: {
           title: "The Rock that doesn't bend",
           topic: "God's justice",
-          body: 'Moses describes God as a Rock — an image of solidity and firmness — and explains why: "all his ways are justice", and there is "no injustice in him; just and right is he". This means God never judges by favoritism, is never bought off, and never twists what is right to benefit some over others. For anyone who has suffered injustice in this world, that truth is a real anchor: in the end, everything passes through the hands of the One whose work is perfect.',
+          body: 'Moses describes God as a Rock — an image of solidity and firmness — and explains why: "his work is perfect, for all his ways are just," and He is "a God of faithfulness who does no wrong, just and right is he." This means God never judges by favoritism, is never bought off, and never twists what is right to benefit some over others. For anyone who has suffered injustice in this world, that truth is a real anchor: in the end, everything passes through the hands of the One whose work is perfect.',
           passage: 'Deuteronomy 32:4',
         },
         'mercy-grace': {
           title: 'Slow to anger',
           topic: "God's mercy and grace",
-          body: "When Moses asked God to show him His glory, God didn't respond with a display of power, but with a description of His own character: \"merciful and gracious, slow to anger, and abundant in loving kindness and truth.\" Mercy is God's compassion toward those who suffer, and grace is His generosity toward those who don't deserve it — two sides of the same heart that would rather forgive than punish. God isn't waiting for an excuse to condemn us — He's looking for a reason to show mercy.",
+          body: "When Moses asked God to show him His glory, God didn't respond with a display of power, but with a description of His own character: \"a merciful and gracious God, slow to anger, and abundant in loving kindness and truth.\" Mercy is God's compassion toward those who suffer, and grace is His generosity toward those who don't deserve it — two sides of the same heart that would rather forgive than punish. God isn't waiting for an excuse to condemn us — He's looking for a reason to show mercy.",
           passage: 'Exodus 34:6',
         },
         faithfulness: {
           title: "God's faithfulness: the promise that never fails",
           topic: "God's faithfulness",
-          body: 'The book of Lamentations was written in the middle of Jerusalem\'s destruction, when everything seemed lost — and it\'s precisely there that the prophet declares God\'s mercies "never ceased" and are "new every morning." This isn\'t a faithfulness that depends on our circumstances improving; it renews itself daily no matter how dark things look, because God does not abandon His people, generation after generation, no matter what happens.',
+          body: "The book of Lamentations was written in the middle of Jerusalem's destruction, when everything seemed lost — and it's precisely there that the prophet declares God's mercies \"don't fail\" and are \"new every morning.\" This isn't a faithfulness that depends on our circumstances improving; it renews itself daily no matter how dark things look, because God does not abandon His people, generation after generation, no matter what happens.",
           passage: 'Lamentations 3:22-23',
         },
         goodness: {
           title: "God's goodness: good to all, without exception",
           topic: "God's goodness",
-          body: 'The psalmist doesn\'t say God is good only to those who love or obey Him — he says "The LORD is good to all," meaning His goodness isn\'t reserved for a select group but reaches His entire creation. His mercies are "over all His works," which means the sunrise, the rain, and the very air we breathe are daily expressions of a character that is fundamentally good.',
+          body: 'The psalmist doesn\'t say God is good only to those who love or obey Him — he says "the LORD is good to all," meaning His goodness isn\'t reserved for a select group but reaches His entire creation. "His tender mercies are over all his works," which means the sunrise, the rain, and the very air we breathe are daily expressions of a character that is fundamentally good.',
           passage: 'Psalm 145:9',
         },
         wisdom: {
           title: "God's wisdom: paths beyond our tracing",
           topic: "God's wisdom",
-          body: 'After spending eleven chapters laying out God\'s plan for Jews and Gentiles, Paul doesn\'t close with a tidy conclusion — he bursts into wonder: "Oh, the depth of the riches both of the wisdom and knowledge of God!" He acknowledges that God\'s judgments are "unsearchable" and His ways "past finding out" — we don\'t need to understand every one of God\'s decisions to trust that His wisdom, unlike ours, never falls short.',
+          body: 'After spending eleven chapters laying out God\'s plan for Jews and Gentiles, Paul doesn\'t close with a tidy conclusion — he bursts into wonder: "Oh the depth of the riches both of the wisdom and the knowledge of God!" He acknowledges that God\'s judgments are "unsearchable" and His ways "past tracing out" — we don\'t need to understand every one of God\'s decisions to trust that His wisdom, unlike ours, never falls short.',
           passage: 'Romans 11:33',
         },
         patience: {
           title: "God's patience: why He takes His time",
           topic: "God's patience",
-          body: 'Some believers wondered why Jesus hadn\'t returned yet, even reading it as though God had delayed or forgotten His promise. Peter corrects that idea at the root: God "is not slack concerning his promise" — what looks like delay is actually deliberate patience, because God "is patient with us, not wishing that any should perish, but that all should come to repentance."',
+          body: 'Some believers wondered why Jesus hadn\'t returned yet, even reading it as though God had delayed or forgotten His promise. Peter corrects that idea at the root: God "is not slow concerning his promise" — what looks like delay is actually deliberate patience, because God "is patient with us, not wishing that anyone should perish, but that all should come to repentance."',
           passage: '2 Peter 3:9',
         },
       },
