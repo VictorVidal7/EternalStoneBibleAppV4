@@ -76,9 +76,10 @@ One SHOULD-FIX and five NICE-TO-HAVE findings below. Nothing blocks.
 
 ## 2. Confessional accuracy — PASS (one wording note, finding #2)
 
-Each of the Five Articles was checked against the standard English text (Schaff,
-_Creeds of Christendom_ vol. III; cross-checked against crivoice.org,
-evangelicalarminians.org, holyjoys.org).
+Each of the Five Articles was checked against the standard English text retrieved this
+session (Wikipedia "Five Articles of Remonstrance" for full Art. V; ccel.org Schaff
+_Creeds of Christendom_ vol. III / creeds3.iv.xv.html for Arts. IV–V; holyjoys.org for
+Arts. III–IV detail; crivoice.org and evangelicalarminians.org for the I–V summary).
 
 - **Art. 1** (line 49) — "propósito eterno e inmutable en Jesucristo su Hijo… antes de
   la fundación del mundo, salvar en Cristo y por causa de Cristo a quienes, movidos por
@@ -332,11 +333,14 @@ mantiene en Cristo por la fe").
 
 **Location:** line 79.
 **Text:** `Cristo mismo los guarda de caer (Remonstrancia de 1610, art. 5)`.
-**Problem:** Article V's "keeps them from falling" is explicitly conditioned —
-"…and **if only they are ready for the conflict, and desire his help, and are not
-inactive**, keeps them from falling". Dropping the condition makes the 1610 view look
-slightly more monergistic-on-perseverance than it is. (Low weight: the section then
-develops the falling-away possibility at length, so the net picture is not
+**Problem:** Article V's "keeps them from falling" is explicitly conditioned. Verbatim
+(retrieved from en.wikipedia.org/wiki/Five_Articles_of_Remonstrance and confirmed
+against ccel.org Schaff, _Creeds of Christendom_ vol. III, creeds3.iv.xv.html):
+"…and that Jesus Christ assists them through his Spirit in all temptations, extends to
+them his hand, and **if only they are ready for the conflict, and desire his help, and
+are not inactive**, keeps them from falling…". Dropping the condition makes the 1610
+view look slightly more monergistic-on-perseverance than it is. (Low weight: the
+section then develops the falling-away possibility at length, so the net picture is not
 misleading.)
 **Minimal fix:** add the condition:
 
@@ -360,17 +364,29 @@ misleading.)
 
 ## Sources consulted
 
-- `assets/bible-seed.db`, table `verses`, `version='RVR1960'` (all 27 refs).
-- Five Articles of the Remonstrance (1610): crivoice.org/creedremonstrants.html;
-  evangelicalarminians.org/the-five-articles-of-remonstrance/;
-  holyjoys.org/five-point-arminianism/; cross-checked against Schaff, _Creeds of
-  Christendom_ vol. III text.
+- `assets/bible-seed.db`, table `verses`, `version='RVR1960'` — all 27 refs, queried
+  directly via `node:sqlite`.
+- Five Articles of the Remonstrance (1610), text retrieved this session from:
+  en.wikipedia.org/wiki/Five_Articles_of_Remonstrance (full Art. V verbatim);
+  ccel.org/ccel/schaff/creeds3.iv.xv.html (Schaff, _Creeds of Christendom_ vol. III —
+  confirms Arts. IV and V, incl. the "if only they are ready for the conflict" clause);
+  holyjoys.org/five-point-arminianism/ (confirms Art. III's "(such as saving Faith
+  eminently is)" parenthetical + its John 15:5 citation, and Art. IV's "prevenient or
+  assisting, awakening, following and cooperative" adjective chain);
+  crivoice.org/creedremonstrants.html and evangelicalarminians.org (Arts. I–V summary,
+  character-limited). Two earlier Schaff fetches (creeds3.iv.xvi.html,
+  creeds1.ix.iii.iv.html) returned the Canons of Dort / historical apparatus, not the
+  Articles — not relied on.
 - Arminius, "Twenty-Five Public Disputations", XI "On the Free Will of Man and its
-  Powers" — verbatim English via Society of Evangelical Arminians / Works of Arminius.
-- Arminius, _Declaration of Sentiments_ (1608), the four decrees.
-- _Opinions of the Remonstrants_ (Sententiae Remonstrantium, 1618), 5th point on
-  perseverance.
-- Wesley, Sermon 85 "On Working Out Our Own Salvation", §III.4 (wesley.nnu.edu).
+  Powers" — full sentence obtained via web search quoting the Works of Arminius / the
+  Society of Evangelical Arminians; the wesley.nnu.edu primary page 404'd this session.
+- Arminius, _Declaration of Sentiments_ (1608), the four decrees — from prior knowledge,
+  not fetched this session.
+- _Opinions of the Remonstrants_ (Sententiae Remonstrantium, 1618), 5th point — full
+  sentences obtained via web search; primary page not fetched this session.
+- Wesley, Sermon 85 "On Working Out Our Own Salvation", §III.4 — the line "no man sins
+  because he has not grace, but because he does not use the grace which he hath"
+  confirmed via web search of wesley.nnu.edu Sermon 85 (text: Phil 2:12-13).
 
 ## Note on worktree git state
 
