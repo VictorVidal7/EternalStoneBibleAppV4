@@ -20,6 +20,11 @@ titleCaseHeadword("ELECCIÓN") -> "Elección" (no PROPER_NOUN_HEADWORDS override
   - Secc. 2 (arminiana): 1 P 1:5 — quitadas las comillas de "guardado" (RVR1960 dice "guardados").
   - Secc. 1: "pastor y profesor de teología en Leiden" -> "pastor en Ámsterdam y luego profesor de teología en Leiden" (Arminio pastoreó en Ámsterdam 1588-1603).
   - Secc. 2 (arminiana): Jn 15:6 "es cortado y quemado" -> "es echado fuera, se seca y arde" ("cortado" venía de Jn 15:2).
+- Añadidos aprobados por Victor (55ª sesión):
+  - Orden: arminiana primero (§2), reformada §3 — CONFIRMADO. Cláusula añadida a "Cómo leer lo que sigue": el orden sigue la cronología del debate (Remonstrancia 1610 -> Cánones de Dort 1619).
+  - §2 art. 4: restaurada la cadena de 1610 ("la gracia que previene, asiste, despierta, acompaña y coopera") para anclar el término del subtítulo en el documento.
+  - §2 art. 5: añadido el condicional de 1610 ("con tal que el creyente no se descuide y busque su ayuda").
+  - §1 "Quién sostiene cada postura": frase de teólogos representativos, peso simétrico (reformada: Turretín, Hodge, Boyce; arminiana-wesleyana: Episcopio, Watson, Miley).
 
 ---
 
@@ -39,13 +44,13 @@ Para empezar conviene distinguir dos cosas que a menudo se confunden. Que la Esc
 
 **De Arminio a Wesley.** En el siglo XVIII, el predicador inglés Juan Wesley (1703-1791) retomó y difundió una forma decididamente evangélica del arminianismo a través del movimiento metodista, insistiendo a la vez en la gracia que precede a toda decisión humana y en la responsabilidad real de la persona. Por eso esta tradición suele llamarse "arminiana y wesleyana".
 
-**Quién sostiene cada postura.** Ambas corrientes han sido sostenidas, a lo largo de cuatro siglos, por cristianos que aman la Biblia y se someten a su autoridad. En la línea reformada se hallan la mayoría de las iglesias presbiterianas y reformadas, muchos bautistas y buena parte del movimiento evangélico de raíz puritana. En la línea arminiana y wesleyana se hallan las iglesias metodistas y de santidad, el Ejército de Salvación, gran parte del movimiento pentecostal y muchas iglesias bautistas y libres. Predicadores fieles del evangelio han estado en cada lado.
+**Quién sostiene cada postura.** Ambas corrientes han sido sostenidas, a lo largo de cuatro siglos, por cristianos que aman la Biblia y se someten a su autoridad. En la línea reformada se hallan la mayoría de las iglesias presbiterianas y reformadas, muchos bautistas y buena parte del movimiento evangélico de raíz puritana. En la línea arminiana y wesleyana se hallan las iglesias metodistas y de santidad, el Ejército de Salvación, gran parte del movimiento pentecostal y muchas iglesias bautistas y libres. Predicadores fieles del evangelio han estado en cada lado. Entre quienes han expuesto cada tradición se cuentan, en la línea reformada, Francisco Turretín, Charles Hodge y —entre los bautistas— James P. Boyce; y en la línea arminiana y wesleyana, Simón Episcopio, Richard Watson y John Miley.
 
-**Cómo leer lo que sigue.** Las dos secciones siguientes presentan cada tradición desde dentro, con sus propios términos y en el orden de sus propios documentos. No se responden punto por punto entre sí, ni esta entrada toma partido. Lo que ambas confiesan en común se recoge al final.
+**Cómo leer lo que sigue.** Las dos secciones siguientes presentan cada tradición desde dentro, con sus propios términos y en el orden de sus propios documentos. Se presentan primero los cinco artículos de la Remonstrancia (1610) y después los Cánones de Dort (1619), en el orden en que se dio la controversia. No se responden punto por punto entre sí, ni esta entrada toma partido. Lo que ambas confiesan en común se recoge al final.
 
 ---
 
-## Sección 2 — "La tradición arminiana y wesleyana" (bodyEs) — ARMONIZADA, 7422 car.
+## Sección 2 — "La tradición arminiana y wesleyana" (bodyEs) — ARMONIZADA + revisada, 7547 car.
 
 La tradición arminiana y wesleyana recibió su forma confesional de los Cinco Artículos de la Remonstrancia, presentados a los Estados de Holanda en 1610 por los seguidores de Jacobo Arminio (1560-1609) y expuestos después por los remonstrantes y por Juan Wesley. Confiesan que la salvación es enteramente obra de la gracia de Dios y que esa gracia se ofrece de verdad a todo ser humano. Lo que sigue expone la postura en el orden de esos cinco artículos.
 
@@ -71,7 +76,7 @@ Jesús lo dice sin rodeos: "separados de mí nada podéis hacer" (Jn 15:5); nadi
 
 **Cuarto artículo: la gracia preveniente y resistible**
 
-El cuarto artículo confiesa que la gracia es el principio, la continuación y el cumplimiento de todo bien, de modo que ni siquiera el regenerado obra el bien sin ella; toda buena obra se debe a la gracia de Dios en Cristo. Pero en cuanto al modo en que esa gracia obra, el artículo añade que no es irresistible, pues está escrito de muchos que resistieron al Espíritu Santo (Remonstrancia de 1610, art. 4).
+El cuarto artículo confiesa que la gracia es el principio, la continuación y el cumplimiento de todo bien, de modo que ni siquiera el regenerado obra el bien sin la gracia que previene, asiste, despierta, acompaña y coopera; toda buena obra se debe a la gracia de Dios en Cristo. Pero en cuanto al modo en que esa gracia obra, el artículo añade que no es irresistible, pues está escrito de muchos que resistieron al Espíritu Santo (Remonstrancia de 1610, art. 4).
 
 La gracia va delante: es _preveniente_ porque precede. Antes de que nadie la busque, Dios ya obra: hay una luz verdadera que alumbra a todo hombre (Jn 1:9), y Cristo, levantado en la cruz, declara: "a todos atraeré a mí mismo" (Jn 12:32). Wesley enseñaba que nadie peca por no tener gracia, sino por no usar la gracia que ya tiene (sermón _Sobre ocuparnos en nuestra propia salvación_).
 
@@ -81,7 +86,7 @@ El creyente obra porque Dios obra primero en él: "ocupaos en vuestra salvación
 
 **Quinto artículo: la perseverancia**
 
-El quinto artículo afirma primero la seguridad del creyente: los unidos a Cristo, asistidos por el Espíritu Santo, tienen pleno poder para luchar contra Satanás, el pecado, el mundo y su propia carne, y Cristo mismo los guarda de caer (Remonstrancia de 1610, art. 5). Es la promesa del propio Señor: sus ovejas "no perecerán jamás, ni nadie las arrebatará de mi mano" (Jn 10:28), y el creyente es guardado por el poder de Dios mediante la fe (1 P 1:5).
+El quinto artículo afirma primero la seguridad del creyente: los unidos a Cristo, asistidos por el Espíritu Santo, tienen pleno poder para luchar contra Satanás, el pecado, el mundo y su propia carne, y —con tal que el creyente no se descuide y busque su ayuda— Cristo mismo los guarda de caer (Remonstrancia de 1610, art. 5). Es la promesa del propio Señor: sus ovejas "no perecerán jamás, ni nadie las arrebatará de mi mano" (Jn 10:28), y el creyente es guardado por el poder de Dios mediante la fe (1 P 1:5).
 
 Sobre una sola cuestión los artículos de 1610 se declararon aún indecisos: si un creyente verdadero podría, por negligencia, abandonar el principio de su vida en Cristo y perder la gracia. Eso, dijeron, debía determinarse con más cuidado a partir de la Sagrada Escritura antes de enseñarlo con plena convicción (art. 5).
 
@@ -93,7 +98,7 @@ Así, de la elección a la perseverancia, esta tradición confiesa una sola grac
 
 ---
 
-## Sección 3 — "La tradición reformada (calvinista)" (bodyEs) — ARMONIZADA, 7676 car.
+## Sección 3 — "La tradición reformada (calvinista)" (bodyEs) — ARMONIZADA + revisada, 7649 car.
 
 La tradición reformada o calvinista confiesa que la salvación es de principio a fin obra de la pura gracia de Dios, para que toda la gloria sea de Dios y la seguridad del creyente no dependa de sí mismo. Su exposición más ordenada son los Cánones de Dort (1619), con cinco Capítulos de la Doctrina (el tercero y el cuarto unidos); la Confesión de Westminster (1646, caps. 3, 10 y 17) y la _Institución_ de Calvino (libro III) enseñan lo mismo. Lo que sigue los recorre en el orden de Dort.
 
