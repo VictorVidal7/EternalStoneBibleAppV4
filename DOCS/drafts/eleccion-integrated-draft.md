@@ -76,7 +76,7 @@ Jesús lo dice sin rodeos: "separados de mí nada podéis hacer" (Jn 15:5); nadi
 
 **Cuarto artículo: la gracia preveniente y resistible**
 
-El cuarto artículo confiesa que la gracia es el principio, la continuación y el cumplimiento de todo bien, de modo que ni siquiera el regenerado obra el bien sin la gracia que previene, asiste, despierta, acompaña y coopera; toda buena obra se debe a la gracia de Dios en Cristo. Pero en cuanto al modo en que esa gracia obra, el artículo añade que no es irresistible, pues está escrito de muchos que resistieron al Espíritu Santo (Remonstrancia de 1610, art. 4).
+El cuarto artículo confiesa que la gracia es el principio, la continuación y el cumplimiento de todo bien, de modo que ni siquiera el regenerado obra el bien sin la gracia que previene, asiste, despierta, sigue y coopera; toda buena obra se debe a la gracia de Dios en Cristo. Pero en cuanto al modo en que esa gracia obra, el artículo añade que no es irresistible, pues está escrito de muchos que resistieron al Espíritu Santo (Remonstrancia de 1610, art. 4).
 
 La gracia va delante: es _preveniente_ porque precede. Antes de que nadie la busque, Dios ya obra: hay una luz verdadera que alumbra a todo hombre (Jn 1:9), y Cristo, levantado en la cruz, declara: "a todos atraeré a mí mismo" (Jn 12:32). Wesley enseñaba que nadie peca por no tener gracia, sino por no usar la gracia que ya tiene (sermón _Sobre ocuparnos en nuestra propia salvación_).
 
@@ -86,7 +86,7 @@ El creyente obra porque Dios obra primero en él: "ocupaos en vuestra salvación
 
 **Quinto artículo: la perseverancia**
 
-El quinto artículo afirma primero la seguridad del creyente: los unidos a Cristo, asistidos por el Espíritu Santo, tienen pleno poder para luchar contra Satanás, el pecado, el mundo y su propia carne, y —con tal que el creyente no se descuide y busque su ayuda— Cristo mismo los guarda de caer (Remonstrancia de 1610, art. 5). Es la promesa del propio Señor: sus ovejas "no perecerán jamás, ni nadie las arrebatará de mi mano" (Jn 10:28), y el creyente es guardado por el poder de Dios mediante la fe (1 P 1:5).
+El quinto artículo afirma primero la seguridad del creyente: los unidos a Cristo, asistidos por el Espíritu Santo, tienen pleno poder para luchar contra Satanás, el pecado, el mundo y su propia carne, y —con tal que no se descuiden y busquen su ayuda— Cristo mismo los guarda de caer (Remonstrancia de 1610, art. 5). Es la promesa del propio Señor: sus ovejas "no perecerán jamás, ni nadie las arrebatará de mi mano" (Jn 10:28), y el creyente es guardado por el poder de Dios mediante la fe (1 P 1:5).
 
 Sobre una sola cuestión los artículos de 1610 se declararon aún indecisos: si un creyente verdadero podría, por negligencia, abandonar el principio de su vida en Cristo y perder la gracia. Eso, dijeron, debía determinarse con más cuidado a partir de la Sagrada Escritura antes de enseñarlo con plena convicción (art. 5).
 
