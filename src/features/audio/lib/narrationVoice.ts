@@ -70,10 +70,18 @@ export interface NarrationChoice {
  * `es-*` is left to the OS (returns `undefined`, today's behaviour) rather
  * than guessing at a near-miss locale.
  *
- * Tie-break, most to least significant: prefer an offline/embedded voice
- * (Google TTS names its network voices "…-network"), then higher reported
- * quality (rarely disambiguates on-device — every voice reports "Enhanced"
- * on the emulator — but harmless), then first for stability.
+ * Tie-break, most to least significant, then a lexicographic sort on the
+ * identifier so the SAME concrete voice is chosen on every device (not
+ * "whichever the engine happened to enumerate first"):
+ *  1. offline/embedded over network (Google TTS names network voices "…-network");
+ *  2. a concrete voice ("…-x-eee-local") over a generic locale alias
+ *     ("es-ES-language"), which would just hand resolution back to the OS
+ *     inside es-ES;
+ *  3. higher reported quality (rarely disambiguates on-device — every voice
+ *     reports "Enhanced" on the emulator — but harmless);
+ *  4. identifier ascending, for a stable cross-device result.
+ *
+ * On the emulator's Google TTS this resolves to `es-es-x-eea-local`.
  */
 export function pickDefaultSpanishVoiceId(
   voices: readonly VoiceInfo[] | null | undefined,
@@ -90,8 +98,12 @@ export function pickDefaultSpanishVoiceId(
     Default: 0,
   };
   const score = (v: VoiceInfo): number =>
-    (/network/i.test(v.identifier) ? 0 : 100) + qualityRank[v.quality];
-  return [...esEs].sort((a, b) => score(b) - score(a))[0].identifier;
+    (/network/i.test(v.identifier) ? 0 : 1000) +
+    (/-x-\w+-(local|network)$/i.test(v.identifier) ? 100 : 0) +
+    qualityRank[v.quality] * 10;
+  return [...esEs].sort(
+    (a, b) => score(b) - score(a) || a.identifier.localeCompare(b.identifier),
+  )[0].identifier;
 }
 
 /**

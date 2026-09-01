@@ -162,6 +162,9 @@ describe('Spanish-voice pronunciation fixes are applied at speak time', () => {
 describe('es-ES voice auto-selection for Spanish narration (56th session)', () => {
   beforeEach(() => jest.clearAllMocks());
 
+  // Mirrors what the emulator's Google TTS actually reports (57th session):
+  // several concrete es-ES local voices + a -network sibling + an es-ES-language
+  // alias, all quality "Enhanced".
   const systemVoices = [
     {
       identifier: 'es-us-x-esd-local',
@@ -176,8 +179,20 @@ describe('es-ES voice auto-selection for Spanish narration (56th session)', () =
       quality: 'Enhanced',
     },
     {
+      identifier: 'es-ES-language',
+      name: 'es-ES alias',
+      language: 'es-ES',
+      quality: 'Enhanced',
+    },
+    {
       identifier: 'es-es-x-eee-local',
-      name: 'es-ES',
+      name: 'es-ES eee',
+      language: 'es-ES',
+      quality: 'Enhanced',
+    },
+    {
+      identifier: 'es-es-x-eea-local',
+      name: 'es-ES eea',
       language: 'es-ES',
       quality: 'Enhanced',
     },
@@ -189,7 +204,7 @@ describe('es-ES voice auto-selection for Spanish narration (56th session)', () =
     },
   ];
 
-  it('pins the offline es-ES voice when no voice is chosen and Spanish text is loaded', async () => {
+  it('pins the deterministic offline concrete es-ES voice when no voice is chosen and Spanish text is loaded', async () => {
     (Speech.getAvailableVoicesAsync as jest.Mock).mockResolvedValue(
       systemVoices,
     );
@@ -205,7 +220,8 @@ describe('es-ES voice auto-selection for Spanish narration (56th session)', () =
 
     const opts = lastSpeakOptions();
     expect(opts.language).toBe('es-ES');
-    expect(opts.voice).toBe('es-es-x-eee-local'); // offline es-ES, not the -network one
+    // offline concrete es-ES, lowest identifier — not -network, not the alias
+    expect(opts.voice).toBe('es-es-x-eea-local');
   });
 
   it('does not pin a voice for English narration', async () => {

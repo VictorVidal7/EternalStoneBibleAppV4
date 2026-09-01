@@ -39,6 +39,12 @@ const esEsNetwork: VoiceInfo = {
   language: 'es-ES',
   quality: 'Enhanced',
 };
+const esEsLanguageAlias: VoiceInfo = {
+  identifier: 'es-ES-language',
+  name: 'es-ES (locale alias)',
+  language: 'es-ES',
+  quality: 'Enhanced',
+};
 
 describe('toAudioLanguage', () => {
   it('maps a Spanish version tag to es', () => {
@@ -187,6 +193,19 @@ describe('pickDefaultSpanishVoiceId (56th session)', () => {
     expect(pickDefaultSpanishVoiceId([esEsNetwork, esEsLocal])).toBe(
       'es-es-x-eee-local',
     );
+  });
+
+  it('prefers a concrete voice over the generic "es-ES-language" alias', () => {
+    expect(pickDefaultSpanishVoiceId([esEsLanguageAlias, esEsLocal])).toBe(
+      'es-es-x-eee-local',
+    );
+  });
+
+  it('is deterministic across enumeration order — lowest identifier wins the tie', () => {
+    const eea: VoiceInfo = {...esEsLocal, identifier: 'es-es-x-eea-local'};
+    const eee: VoiceInfo = {...esEsLocal, identifier: 'es-es-x-eee-local'};
+    expect(pickDefaultSpanishVoiceId([eee, eea])).toBe('es-es-x-eea-local');
+    expect(pickDefaultSpanishVoiceId([eea, eee])).toBe('es-es-x-eea-local');
   });
 
   it('matches an "es_ES" underscore tag too', () => {
