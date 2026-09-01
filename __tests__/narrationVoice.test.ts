@@ -12,6 +12,7 @@ import {
   resolveNarration,
   voiceSelectorLanguage,
   pickDefaultSpanishVoiceId,
+  shouldPromptForSpainVoice,
 } from '../src/features/audio/lib/narrationVoice';
 import type {VoiceInfo} from '../src/features/audio/types/audio';
 
@@ -222,6 +223,137 @@ describe('pickDefaultSpanishVoiceId (56th session)', () => {
         {...esEsLocal, language: 'es-ESX', identifier: 'near-miss'},
       ]),
     ).toBeUndefined();
+  });
+});
+
+describe('shouldPromptForSpainVoice (58th session)', () => {
+  it('never prompts while the voice list is unresolved (hasSpainVoice null)', () => {
+    expect(
+      shouldPromptForSpainVoice({
+        contentLanguage: 'es',
+        selectedLanguage: 'es',
+        voice: null,
+        hasSpainVoice: null,
+      }),
+    ).toBe(false);
+  });
+
+  it('never prompts for English content', () => {
+    expect(
+      shouldPromptForSpainVoice({
+        contentLanguage: 'en',
+        selectedLanguage: 'es',
+        voice: null,
+        hasSpainVoice: false,
+      }),
+    ).toBe(false);
+  });
+
+  it('does not prompt when a pinnable es-ES voice exists', () => {
+    expect(
+      shouldPromptForSpainVoice({
+        contentLanguage: 'es',
+        selectedLanguage: 'es',
+        voice: null,
+        hasSpainVoice: true,
+      }),
+    ).toBe(false);
+  });
+
+  it('does not prompt when the user explicitly picked a Spanish-family voice', () => {
+    // es-MX is honoured by resolveNarration — the VoiceSelector hint is their
+    // surface, not this prompt.
+    expect(
+      shouldPromptForSpainVoice({
+        contentLanguage: 'es',
+        selectedLanguage: 'es',
+        voice: esVoice,
+        hasSpainVoice: false,
+      }),
+    ).toBe(false);
+  });
+
+  it('prompts on Spanish content with no voice and no Spain voice installed', () => {
+    expect(
+      shouldPromptForSpainVoice({
+        contentLanguage: 'es',
+        selectedLanguage: 'es',
+        voice: null,
+        hasSpainVoice: false,
+      }),
+    ).toBe(true);
+  });
+
+  it('prompts when a non-Spanish voice is selected for Spanish content', () => {
+    expect(
+      shouldPromptForSpainVoice({
+        contentLanguage: 'es',
+        selectedLanguage: 'es',
+        voice: enVoice,
+        hasSpainVoice: false,
+      }),
+    ).toBe(true);
+  });
+
+  it('uses contentLanguage ?? selectedLanguage for the target', () => {
+    // Legacy load (no content language) with the manual pref on Spanish.
+    expect(
+      shouldPromptForSpainVoice({
+        contentLanguage: null,
+        selectedLanguage: 'es',
+        voice: null,
+        hasSpainVoice: false,
+      }),
+    ).toBe(true);
+    expect(
+      shouldPromptForSpainVoice({
+        contentLanguage: null,
+        selectedLanguage: 'en',
+        voice: null,
+        hasSpainVoice: false,
+      }),
+    ).toBe(false);
+  });
+
+  it('cannot drift from resolveNarration: prompts exactly when it yields an es language with no voiceId', () => {
+    const languages: (('es' | 'en') | null)[] = ['es', 'en', null];
+    const voiceOptions: (VoiceInfo | null)[] = [
+      null,
+      enVoice,
+      esVoice,
+      esEsLocal,
+    ];
+    const lists: VoiceInfo[][] = [
+      [],
+      [enVoice, esVoice],
+      [enVoice, esVoice, esEsLocal],
+    ];
+    for (const contentLanguage of languages) {
+      for (const selectedLanguage of ['es', 'en'] as const) {
+        for (const voice of voiceOptions) {
+          for (const availableVoices of lists) {
+            const hasSpainVoice =
+              pickDefaultSpanishVoiceId(availableVoices) !== undefined;
+            const choice = resolveNarration({
+              contentLanguage,
+              selectedLanguage,
+              voice,
+              availableVoices,
+            });
+            const narrationWantsUnpinnedSpanish =
+              choice.voiceId === undefined && choice.language.startsWith('es');
+            expect(
+              shouldPromptForSpainVoice({
+                contentLanguage,
+                selectedLanguage,
+                voice,
+                hasSpainVoice,
+              }),
+            ).toBe(narrationWantsUnpinnedSpanish);
+          }
+        }
+      }
+    }
   });
 });
 

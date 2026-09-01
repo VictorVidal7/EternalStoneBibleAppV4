@@ -63,6 +63,12 @@ import {
   getAudioBookmarks,
   saveAudioBookmarks,
 } from '../lib/audioBookmarksStore';
+import {shouldPromptForSpainVoice} from '../lib/narrationVoice';
+import {openTtsSettings} from '../lib/openTtsSettings';
+import {
+  markSpainVoicePromptShown,
+  wasSpainVoicePromptShown,
+} from '../lib/spainVoicePromptStore';
 import {logger} from '@lib/utils/logger';
 import {useToast} from '../../../context/ToastContext';
 import {useAudioPlayer} from '../context/AudioPlayerContext';
@@ -141,6 +147,7 @@ export const MiniAudioPlayer: React.FC<MiniAudioPlayerProps> = ({
     repeatVerse,
     setRepeatVerse,
     queueInfo,
+    hasSpainVoice,
   } = useAudioPlayer();
   const {isPremium} = usePremium();
   const {favorites, addFavorite, removeFavorite, isFavorite} = useFavorites();
@@ -288,6 +295,56 @@ export const MiniAudioPlayer: React.FC<MiniAudioPlayerProps> = ({
       setBookmarkFlash(false);
     }, BOOKMARK_PIN_FLASH_MS);
   }, [currentVerse, language, t]);
+
+  // 🇪🇸 First Spanish playback on a phone with no pinnable es-ES voice → one
+  // dismissible toast offering to open the OS Text-to-speech settings so the
+  // user can add the "Español (España)" voice. Without a Castilian voice the
+  // archaic vosotros imperatives ("alabadle" …) get mangled and there is NO
+  // text fix (56th/57th session). Android only (iOS has no such deep-link and
+  // its Spanish voices lack the defect); fires at most once per install, gated
+  // by `@audio_spain_voice_prompt_shown`. The ref stops a re-fire within the
+  // session before the async flag write lands.
+  const spainPromptFiredRef = useRef(false);
+  useEffect(() => {
+    if (Platform.OS !== 'android') return;
+    if (spainPromptFiredRef.current) return;
+    if (!state.isPlaying) return;
+    if (
+      !shouldPromptForSpainVoice({
+        contentLanguage: state.contentLanguage,
+        selectedLanguage: state.selectedLanguage,
+        voice: state.selectedVoice,
+        hasSpainVoice,
+      })
+    ) {
+      return;
+    }
+    spainPromptFiredRef.current = true;
+    void (async () => {
+      if (await wasSpainVoicePromptShown()) return;
+      await markSpainVoicePromptShown();
+      toast.show({
+        message: t.audio.spainVoicePrompt,
+        variant: 'info',
+        duration: 9000,
+        numberOfLines: 4,
+        action: {
+          label: t.audio.spainVoicePromptAction,
+          onPress: () => {
+            void openTtsSettings();
+          },
+        },
+      });
+    })();
+  }, [
+    state.isPlaying,
+    state.contentLanguage,
+    state.selectedLanguage,
+    state.selectedVoice,
+    hasSpainVoice,
+    toast,
+    t,
+  ]);
 
   // ♥ Quick-favorite of the verse being heard (Sprint 77): the expanded
   // player gains a one-tap save of the CURRENT verse — favorites canonicalize

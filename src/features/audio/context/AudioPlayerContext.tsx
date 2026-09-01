@@ -52,7 +52,11 @@ import {
   shuffleUpcoming,
   restoreUpcomingOrder,
 } from '../lib/playlistQueueOptions';
-import {resolveNarration, toAudioLanguage} from '../lib/narrationVoice';
+import {
+  pickDefaultSpanishVoiceId,
+  resolveNarration,
+  toAudioLanguage,
+} from '../lib/narrationVoice';
 import {applySpanishPronunciationFixes} from '@lib/speech/narration';
 import {reconcileSleepTimer} from '../lib/sleepTimer';
 import {shouldReplayVerse} from '../lib/verseRepeat';
@@ -203,6 +207,13 @@ export const AudioPlayerProvider: React.FC<AudioPlayerProviderProps> = ({
   // call resolves; a verse spoken before then just uses the OS default.
   const availableVoicesRef = useRef<VoiceInfo[] | undefined>(undefined);
 
+  // Whether the enumerated voice list has an es-ES voice `pickDefaultSpanishVoiceId`
+  // can pin (58th session). `null` until the list resolves; `false` on a phone
+  // with Latin-America Spanish voice data only — the mini player watches this to
+  // show its one-time "install a Spain voice" prompt. State (not a ref) so the
+  // player re-renders when it flips.
+  const [hasSpainVoice, setHasSpainVoice] = useState<boolean | null>(null);
+
   // Gates the premium-only 2.25x/2.5x playback speeds (T24). Optional variant
   // (mirrors useBibleVersionOptional above) so a test tree that mounts
   // AudioPlayerProvider without a PremiumProvider ancestor still works —
@@ -290,17 +301,22 @@ export const AudioPlayerProvider: React.FC<AudioPlayerProviderProps> = ({
     Speech.getAvailableVoicesAsync()
       .then(voices => {
         if (cancelled) return;
-        availableVoicesRef.current = voices.map(v => ({
+        const mapped = voices.map(v => ({
           identifier: v.identifier,
           name: v.name,
           language: v.language,
           quality: (v.quality || 'Default') as VoiceInfo['quality'],
         }));
+        availableVoicesRef.current = mapped;
+        // Does the OS have a pinnable es-ES voice? Drives the mini player's
+        // one-time "install a Spain voice" prompt (58th session).
+        setHasSpainVoice(pickDefaultSpanishVoiceId(mapped) !== undefined);
         // One-shot ground-truth log — the es-* tags/identifiers an engine
         // actually reports vary (es-ES / es_ES / …); useful when diagnosing
         // a wrong-accent narration report.
         logger.info('TTS voices enumerated', {
           count: voices.length,
+          hasSpainVoice: pickDefaultSpanishVoiceId(mapped) !== undefined,
           spanish: availableVoicesRef.current
             .filter(v => v.language.toLowerCase().startsWith('es'))
             .map(v => `${v.identifier}|${v.language}|${v.quality}`),
@@ -1189,6 +1205,8 @@ export const AudioPlayerProvider: React.FC<AudioPlayerProviderProps> = ({
     setQueueRepeat,
 
     subscribeToBoundary,
+
+    hasSpainVoice,
   };
 
   return (

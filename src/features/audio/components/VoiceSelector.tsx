@@ -16,6 +16,7 @@ import {
   StyleSheet,
   ScrollView,
   Modal,
+  Platform,
   Pressable,
 } from 'react-native';
 import {Ionicons} from '@expo/vector-icons';
@@ -26,7 +27,11 @@ import {useLanguage} from '../../../hooks/useLanguage';
 import {focusTrapProps} from '@lib/a11y/focusTrap';
 import {VoiceInfo, AudioLanguage} from '../types/audio';
 import {useVoices} from '../hooks/useVoices';
-import {voiceSelectorLanguage} from '../lib/narrationVoice';
+import {
+  pickDefaultSpanishVoiceId,
+  voiceSelectorLanguage,
+} from '../lib/narrationVoice';
+import {openTtsSettings} from '../lib/openTtsSettings';
 import {LANGUAGE_LABELS, LANGUAGE_FLAGS} from '../constants/audioConstants';
 import {
   groupVoicesByRegion,
@@ -71,6 +76,13 @@ export const VoiceSelector: React.FC<VoiceSelectorProps> = ({
     selectedLanguage: currentLanguage,
   });
   const voices = listLanguage === 'es' ? spanishVoices : englishVoices;
+  // Whether the device has a pinnable es-ES voice — picks which Spanish hint to
+  // show: "elige una voz de España" when one is installed vs "descárgala en los
+  // ajustes de Texto a voz" + a deep-link button when it isn't (58th session).
+  const spainVoiceAvailable = useMemo(
+    () => pickDefaultSpanishVoiceId(spanishVoices) !== undefined,
+    [spanishVoices],
+  );
   const isCompact = variant === 'compact';
   const deviceRegionCode = Localization.getLocales()[0]?.regionCode ?? null;
   const voiceGroups = useMemo(
@@ -105,6 +117,11 @@ export const VoiceSelector: React.FC<VoiceSelectorProps> = ({
   const handleLanguageSwitch = (lang: AudioLanguage) => {
     haptics.tap();
     onLanguageChange(lang);
+  };
+
+  const handleOpenTtsSettings = () => {
+    haptics.tap();
+    void openTtsSettings();
   };
 
   return (
@@ -262,7 +279,9 @@ export const VoiceSelector: React.FC<VoiceSelectorProps> = ({
                   {/* RVR1960 renders archaic vosotros enclitic imperatives
                       ("alabadle" …) that Latin-America voices mispronounce but
                       Castilian ones read correctly (57th session). Steer the
-                      Spanish-list user toward a Spain voice. */}
+                      Spanish-list user toward a Spain voice — and if the phone
+                      has none installed, point them to the OS TTS settings to
+                      download one (58th session). */}
                   {listLanguage === 'es' && (
                     <View
                       style={[
@@ -274,10 +293,34 @@ export const VoiceSelector: React.FC<VoiceSelectorProps> = ({
                         size={15}
                         color={colors.primary}
                       />
-                      <Text
-                        style={[styles.spainHintText, {color: colors.text}]}>
-                        {tv.spainRecommendation}
-                      </Text>
+                      <View style={styles.spainHintBody}>
+                        <Text
+                          style={[styles.spainHintText, {color: colors.text}]}>
+                          {spainVoiceAvailable
+                            ? tv.spainRecommendation
+                            : tv.spainRecommendationNoVoice}
+                        </Text>
+                        {!spainVoiceAvailable && Platform.OS === 'android' && (
+                          <TouchableOpacity
+                            style={styles.spainHintButton}
+                            onPress={handleOpenTtsSettings}
+                            accessibilityRole="button"
+                            accessibilityLabel={tv.openTtsSettings}>
+                            <Ionicons
+                              name="open-outline"
+                              size={13}
+                              color={colors.primary}
+                            />
+                            <Text
+                              style={[
+                                styles.spainHintButtonText,
+                                {color: colors.primary},
+                              ]}>
+                              {tv.openTtsSettings}
+                            </Text>
+                          </TouchableOpacity>
+                        )}
+                      </View>
                     </View>
                   )}
                   {voiceGroups.map(group => (
@@ -508,10 +551,24 @@ const styles = StyleSheet.create({
     marginTop: 4,
     marginBottom: 4,
   },
-  spainHintText: {
+  spainHintBody: {
     flex: 1,
+    gap: 6,
+  },
+  spainHintText: {
     fontSize: 12,
     lineHeight: 16,
+  },
+  spainHintButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    alignSelf: 'flex-start',
+    gap: 4,
+    paddingVertical: 2,
+  },
+  spainHintButtonText: {
+    fontSize: 12,
+    fontWeight: '600',
   },
   regionHeader: {
     flexDirection: 'row',
