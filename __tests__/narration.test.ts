@@ -83,6 +83,72 @@ describe('applySpanishPronunciationFixes', () => {
     );
   });
 
+  it('title-cases ALL-CAPS divine-name / title tokens (JAH-style spell-out)', () => {
+    // "JEHOVÁ" ends in the non-ASCII "Á" — its entry uses a negative
+    // lookahead instead of a trailing \b (which never matches there),
+    // including before a trailing period.
+    expect(
+      applySpanishPronunciationFixes(
+        'grabadura de sello: SANTIDAD A JEHOVÁ.',
+        'es-ES',
+      ),
+    ).toBe('grabadura de sello: Santidad A Jehová.');
+    expect(
+      applySpanishPronunciationFixes(
+        'su causa escrita: ESTE ES JESÚS, EL REY DE LOS JUDÍOS.',
+        'es-ES',
+      ),
+    ).toBe('su causa escrita: ESTE ES Jesús, EL REY DE LOS JUDÍOS.');
+    expect(
+      applySpanishPronunciationFixes(
+        'el altar decía: AL DIOS NO CONOCIDO',
+        'es-ES',
+      ),
+    ).toBe('el altar decía: AL Dios NO CONOCIDO');
+    expect(
+      applySpanishPronunciationFixes(
+        'un Salvador, que es CRISTO el Señor',
+        'es-ES',
+      ),
+    ).toBe('un Salvador, que es Cristo el Señor');
+  });
+
+  it('leaves the already-correct title-case divine names untouched', () => {
+    const text = 'Alaba a Jehová, oh Dios; en Cristo Jesús está la santidad.';
+    expect(applySpanishPronunciationFixes(text, 'es-ES')).toBe(text);
+  });
+
+  it('replaces the hyphen in transliterated compound proper nouns with a space', () => {
+    expect(
+      applySpanishPronunciationFixes(
+        'Y llamó el nombre de aquel lugar Bet-el',
+        'es-ES',
+      ),
+    ).toBe('Y llamó el nombre de aquel lugar Bet el');
+    // multi-hyphen token: both joins handled in a single .replace() pass
+    expect(
+      applySpanishPronunciationFixes(
+        'llama su nombre Maher-salal-hasbaz',
+        'es-ES',
+      ),
+    ).toBe('llama su nombre Maher salal hasbaz');
+    // 1:1 in length — karaoke-safe
+    const v = 'Obed-edom y Quiriat-jearim';
+    expect(applySpanishPronunciationFixes(v, 'es-ES').length).toBe(v.length);
+    // the seed-data artifact in Nm 5:21 is not letter-"-"-letter → left alone
+    expect(
+      applySpanishPronunciationFixes(
+        'dirá el sacerdote a la mujer)--Jehová',
+        'es-ES',
+      ),
+    ).toBe('dirá el sacerdote a la mujer)--Jehová');
+  });
+
+  it('applies the ALL-CAPS and hyphen fixes only for Spanish narration', () => {
+    const verse = 'SANTIDAD A JEHOVÁ, escrito en Bet-el';
+    expect(applySpanishPronunciationFixes(verse, 'en-US')).toBe(verse);
+  });
+
   it('is a no-op for English narration even with a matching word', () => {
     const text = 'Jacob had a dream';
     expect(applySpanishPronunciationFixes(text, 'en-US')).toBe(text);
@@ -95,8 +161,11 @@ describe('applySpanishPronunciationFixes', () => {
   });
 
   it('never changes the total character length (karaoke offset invariant)', () => {
+    // Exercises every entry that changes text — JAH/Jacob/estatutos, the 5
+    // ALL-CAPS tokens, and the hyphen rule — all of which are equal-length.
     const verse =
-      'JAH ha escogido a Jacob para sí; si profanaren mis estatutos.';
+      'JAH ha escogido a Jacob para sí; si profanaren mis estatutos. ' +
+      'SANTIDAD A JEHOVÁ en Bet-el; CRISTO el Señor; AL DIOS NO CONOCIDO.';
     const fixed = applySpanishPronunciationFixes(verse, 'es-ES');
     expect(fixed).not.toBe(verse);
     expect(fixed.length).toBe(verse.length);

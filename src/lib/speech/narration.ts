@@ -58,6 +58,33 @@ export function resolveSpeechLanguage(lang: string): SpeechLang {
  *    by default, so it's harmless either way; it's included only because
  *    it's the literal word Victor reported broken. Deliberately NOT
  *    extended to the singular "estatuto" (same guess, never reported).
+ *  - ALL-CAPS divine-name / title tokens: "JEHOVÁ", "DIOS", "JESÚS",
+ *    "CRISTO", "SANTIDAD" → title case (MEDIUM confidence — INFERRED from
+ *    the "JAH" mechanism; acoustic detail pending a live listen). RVR1960
+ *    renders a handful of inscriptions in full caps: "SANTIDAD A JEHOVÁ"
+ *    (the priestly plate — Éx 28:36 / 39:30, Zac 14:20), "ESTE ES JESÚS,
+ *    EL REY DE LOS JUDÍOS" + "llamarás su nombre JESÚS" (Mt 1:21), "AL DIOS
+ *    NO CONOCIDO" (Hch 17:23), "CRISTO el Señor" (Lc 2:11). A short ALL-CAPS
+ *    token trips the same "unknown acronym, spell it out" heuristic as
+ *    "JAH". This is not a phonetic guess — it normalizes 2–6 outlier tokens
+ *    to the exact title-case form already narrated acceptably thousands of
+ *    times elsewhere ("Jehová" 5811x, "Dios" 3569x, …), so the downside is
+ *    bounded at "no-op". Case-sensitive so the already-correct forms pass
+ *    through untouched. NAMES GOD / Christ — flag any mismatch on a live
+ *    listen before treating these as final. "JEHOVÁ" ends in the non-ASCII
+ *    "Á", after which JS `\b` can never match, so that one entry uses a
+ *    negative lookahead for its trailing edge. All five are equal length.
+ *  - Hyphenated tokens (MEDIUM confidence, pending a live listen): every
+ *    letter-`-`-letter token in RVR1960 is a transliterated compound proper
+ *    noun (204 distinct forms / 627 occurrences — Bet-el 69x, Ben-adad 27x,
+ *    Abed-nego 15x, Maher-salal-hasbaz …). The engine may read the "-" aloud
+ *    as "guión" or mis-join the halves. "-" → " " is exactly 1:1 in length
+ *    AND karaoke-safe: a boundary landing anywhere inside the displayed
+ *    token's span still resolves back to that single token. Applied as one
+ *    generic rule, not 204 entries. (The two seed-data artifacts noted in
+ *    DOCS/TTS_PRONUNCIATION_SWEEP.md — "mujer)--Jehová" in Nm 5:21,
+ *    "Jehová- nisi" in Éx 17:15 — are not letter-`-`-letter, so this rule
+ *    leaves them alone.)
  *
  * INVARIANT: every replacement is the SAME CHARACTER LENGTH as the word it
  * replaces (see the length-preserving test in narration.test.ts) — the audio
@@ -69,6 +96,19 @@ export function resolveSpeechLanguage(lang: string): SpeechLang {
  * length, that desync has to be solved first (an index-mapping layer
  * between the spoken and displayed text) — don't add an unequal-length
  * entry without it.
+ *
+ * NOTE (56th session): the archaic vosotros enclitic-imperative class
+ * ("alabadle", "hacedlo", "decidle" … "-Vd" + clitic, 167 forms) was
+ * investigated and is NOT fixed here. A device A/B proved it is
+ * VOICE-DEPENDENT: an `es-ES` (Castilian) neural voice (`es-es-x-*-local`) pronounces the
+ * whole class correctly with no substitution, while an `es-us` (Latin
+ * America) voice mangles it. The app requests `language:'es-ES'` but the OS
+ * can substitute an es-us voice; the real fix is voice selection (make
+ * [[resolveNarration]] pick an explicit es-ES voice id for Spanish content —
+ * see [[narrationVoice]].pickDefaultSpanishVoiceId), not text. That same
+ * change also removes the "Jacob"→"Jacób" entry, which backfires on the
+ * es-ES voice. See DOCS/TTS_PRONUNCIATION_SWEEP.md (its "build a mapping
+ * layer" recommendation is superseded).
  */
 const SPANISH_PRONUNCIATION_FIXES: ReadonlyArray<{
   pattern: RegExp;
@@ -85,6 +125,20 @@ const SPANISH_PRONUNCIATION_FIXES: ReadonlyArray<{
   // a future sentence-initial "Estatutos" doesn't silently miss the fix.
   {pattern: /\bestatutos\b/g, replacement: 'estatútos'},
   {pattern: /\bEstatutos\b/g, replacement: 'Estatútos'},
+
+  // ALL-CAPS divine-name / title tokens → title case (see the JSDoc bullet).
+  // Equal length: 6→6, 4→4, 5→5, 6→6, 8→8.
+  {pattern: /\bJEHOVÁ(?![A-Za-zÑñÁÉÍÓÚÜáéíóúü])/g, replacement: 'Jehová'},
+  {pattern: /\bDIOS\b/g, replacement: 'Dios'},
+  {pattern: /\bJESÚS\b/g, replacement: 'Jesús'},
+  {pattern: /\bCRISTO\b/g, replacement: 'Cristo'},
+  {pattern: /\bSANTIDAD\b/g, replacement: 'Santidad'},
+
+  // Hyphenated transliterated proper nouns → space (see the JSDoc bullet).
+  // One generic rule; "-" → " " is 1:1 in length. Overlapping matches in a
+  // 3-part token (Maher-salal-hasbaz) are both handled in a single .replace()
+  // pass because the global regex resumes scanning after each match.
+  {pattern: /(\p{L})-(\p{L})/gu, replacement: '$1 $2'},
 ];
 
 /**
