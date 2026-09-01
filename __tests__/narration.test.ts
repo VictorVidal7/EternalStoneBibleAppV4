@@ -85,6 +85,42 @@ describe('applySpanishPronunciationFixes', () => {
     );
   });
 
+  it('replaces the hyphen in transliterated compound proper nouns with a space', () => {
+    expect(
+      applySpanishPronunciationFixes(
+        'Y llamó el nombre de aquel lugar Bet-el',
+        'es-ES',
+      ),
+    ).toBe('Y llamó el nombre de aquel lugar Bet el');
+    // multi-hyphen token: both joins handled in a single .replace() pass
+    expect(
+      applySpanishPronunciationFixes(
+        'llama su nombre Maher-salal-hasbaz',
+        'es-ES',
+      ),
+    ).toBe('llama su nombre Maher salal hasbaz');
+    // exactly 1:1 in length — karaoke-safe
+    const v = 'Obed-edom y Quiriat-jearim';
+    expect(applySpanishPronunciationFixes(v, 'es-ES').length).toBe(v.length);
+  });
+
+  it('leaves a non-letter-hyphen-letter sequence (seed-data artifact) alone', () => {
+    // Nm 5:21 "…dirá el sacerdote a la mujer)--Jehová…" — ")" and "-" before
+    // the "-" are not \p{L}, so the rule does not fire.
+    expect(
+      applySpanishPronunciationFixes(
+        'dirá el sacerdote a la mujer)--Jehová te dé',
+        'es-ES',
+      ),
+    ).toBe('dirá el sacerdote a la mujer)--Jehová te dé');
+  });
+
+  it('does not apply the hyphen fix to English narration', () => {
+    expect(
+      applySpanishPronunciationFixes('the altar at Beth-el', 'en-US'),
+    ).toBe('the altar at Beth-el');
+  });
+
   it('is a no-op for English narration even with a matching word', () => {
     const text = 'JAH is his name and his estatutos endure';
     expect(applySpanishPronunciationFixes(text, 'en-US')).toBe(text);

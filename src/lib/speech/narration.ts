@@ -70,6 +70,20 @@ export function resolveSpeechLanguage(lang: string): SpeechLang {
  *    by default, so it's harmless either way; it's included only because
  *    it's the literal word Victor reported broken. Deliberately NOT
  *    extended to the singular "estatuto" (same guess, never reported).
+ *  - Hyphenated tokens (MEDIUM confidence, pending a live listen): every
+ *    letter-`-`-letter token in RVR1960 is a transliterated compound proper
+ *    noun (204 distinct forms / 627 occurrences — Bet-el 69x, Ben-adad 27x,
+ *    Abed-nego 15x, Maher-salal-hasbaz …). A Spanish TTS engine may read the
+ *    "-" aloud as "guión" or mis-join the halves. "-" → " " is exactly 1:1 in
+ *    length AND karaoke-safe: the space sits at the same offset the hyphen
+ *    did, and both half-word boundaries the engine now emits still land inside
+ *    the ORIGINAL displayed token's span, so `activeTokenIndex` resolves them
+ *    back to that one token (see the "Ja cob" INVARIANT note for why a
+ *    length-CHANGING split would not be safe). Applied as one generic rule,
+ *    not 204 entries. The two seed-data artifacts noted in
+ *    DOCS/TTS_PRONUNCIATION_SWEEP.md — "mujer)--Jehová" (Nm 5:21),
+ *    "Jehová- nisi" (Éx 17:15) — are not letter-`-`-letter, so this leaves
+ *    them alone.
  *
  * INVARIANT: every replacement is the SAME CHARACTER LENGTH as the word it
  * replaces, WITH ONE DELIBERATE EXCEPTION ("Jacob" → "Ja cob", +1). The audio
@@ -107,6 +121,11 @@ const SPANISH_PRONUNCIATION_FIXES: ReadonlyArray<{
   // a future sentence-initial "Estatutos" doesn't silently miss the fix.
   {pattern: /\bestatutos\b/g, replacement: 'estatútos'},
   {pattern: /\bEstatutos\b/g, replacement: 'Estatútos'},
+  // Hyphenated transliterated proper nouns → space (see the JSDoc bullet).
+  // One generic rule; "-" → " " is 1:1 in length. Overlapping matches in a
+  // 3-part token (Maher-salal-hasbaz) are both handled in a single .replace()
+  // pass because the global regex resumes scanning after each match.
+  {pattern: /(\p{L})-(\p{L})/gu, replacement: '$1 $2'},
 ];
 
 /**
