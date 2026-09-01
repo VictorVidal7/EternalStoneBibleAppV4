@@ -7,12 +7,13 @@
  * applying the theme; an unlocked one applies normally; and an entitlement
  * lost after a premium theme was active falls back to a free one.
  *
- * Settings reorg: the inline grid now shows only the free themes (plus the
- * currently active theme even if it's premium); the full 16-theme grid only
- * appears after tapping "Ver todos los temas", which opens a modal. Both
- * views share the same gating/selection logic (`renderGrid` inside the
- * component), so the premium-gating assertions below run against whichever
- * view currently has the swatch on screen.
+ * Settings reorg: the inline grid shows the 12 free themes, expanding to the
+ * full 16 (spacer-padded to 3 rows of 6) once a premium theme is active; the
+ * full 16-theme grid is also always reachable via "Ver todos los temas",
+ * which opens a modal. Both views share the same gating/selection/padding
+ * logic (`renderGrid` inside the component), so the premium-gating
+ * assertions below run against whichever view currently has the swatch on
+ * screen.
  */
 
 import {render, waitFor, fireEvent} from '@testing-library/react-native';
@@ -95,12 +96,16 @@ describe('ColorThemeSettings', () => {
   });
 
   it('shows only the 12 free themes inline, not the 4 premium ones', async () => {
-    const {findByText, queryByText} = renderSettings();
+    const {findByText, queryByText, getAllByTestId} = renderSettings();
     expect(await findByText('Océano')).toBeTruthy();
     expect(queryByText('Granate')).toBeNull();
     expect(queryByText('Zafiro')).toBeNull();
     expect(queryByText('Turquesa')).toBeNull();
     expect(queryByText('Orquídea')).toBeNull();
+    // Exactly the 12 free keys = 2 clean rows of 6, no spacers, no orphan.
+    const cells = getAllByTestId('color-theme-grid-inline-cell');
+    expect(cells).toHaveLength(12);
+    expect(cells.length % 6).toBe(0);
   });
 
   it('opens a full-screen modal with all 16 themes via "Ver todos los temas"', async () => {
@@ -144,14 +149,29 @@ describe('ColorThemeSettings', () => {
     expect(mockOpenOfferingSheet).not.toHaveBeenCalled();
   });
 
-  it('keeps an active premium theme visible inline even though it is not free', async () => {
+  it('expands the inline grid to all 16 themes (padded to a multiple of 6) when a premium theme is active', async () => {
+    // Intent change (Victor's "se ve disparejo" report): previously only the
+    // active premium theme was spliced into the free-12 inline grid, giving
+    // 13 items = 2 rows of 6 + 1 orphan swatch. A user on a premium theme has
+    // unlocked all 4, so the inline grid now shows the full 16 and pads its
+    // trailing row with hidden spacers → 18 cells = 3 tidy rows of 6.
     await SecureStore.setItemAsync(ENTITLEMENT_CACHE_KEY, 'true');
     mockColorTheme = 'zafiro';
-    const {findByText, queryByText} = renderSettings();
-    // Shows without needing to open "Ver todos los temas".
+    const {findByText, getAllByTestId} = renderSettings();
+    // All 4 premium themes are visible inline now, not just the active one,
+    // and without opening "Ver todos los temas".
     expect(await findByText('Zafiro')).toBeTruthy();
-    // The other 3 premium themes, which aren't active, stay hidden inline.
-    expect(queryByText('Granate')).toBeNull();
+    expect(await findByText('Granate')).toBeTruthy();
+    expect(await findByText('Turquesa')).toBeTruthy();
+    expect(await findByText('Orquídea')).toBeTruthy();
+    // includeHiddenElements so the a11y-hidden padding spacers are counted.
+    const cells = getAllByTestId('color-theme-grid-inline-cell', {
+      includeHiddenElements: true,
+    });
+    expect(cells).toHaveLength(18); // 16 real swatches + 2 hidden spacers
+    expect(cells.length % 6).toBe(0); // no orphan row
+    // The real (visible) swatches are exactly the 16 themes.
+    expect(getAllByTestId('color-theme-grid-inline-cell')).toHaveLength(16);
   });
 
   it('falls back to Midnight if a premium theme was active and the entitlement is gone', async () => {

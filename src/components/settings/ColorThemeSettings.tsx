@@ -11,13 +11,15 @@
  * revoked while a premium theme is active, this falls back to Midnight
  * rather than leaving a no-longer-unlocked palette applied.
  *
- * Consolidation (settings reorg): the inline grid now shows only the free
- * themes — plus the user's currently active theme even if it's one of the 4
- * premium ones, so an already-unlocked selection never disappears from view.
+ * Consolidation (settings reorg): the inline grid shows the 12 free themes
+ * (2 rows of 6). Once the active theme is one of the 4 premium palettes the
+ * user has unlocked all of them, so the inline grid expands to the full 16
+ * (a spacer-padded 3rd row of 4) — this keeps the active selection visible
+ * without leaving the lone orphan swatch that splicing in just one produced.
  * A small "Ver todos los temas" row opens a full-screen modal (same chrome
  * as NotificationsSettings/GoalsSettings) with the complete 16-theme grid.
  * Both views share the same swatch-rendering logic (`renderGrid`) so the
- * gating/selection behavior is defined once.
+ * gating/selection/row-padding behavior is defined once.
  */
 
 import {useCallback, useEffect, useState} from 'react';
@@ -42,7 +44,7 @@ import {
 import {useLanguage} from '@hooks/useLanguage';
 import {usePremium} from '@context/PremiumContext';
 import {useOfferingSheet} from '@context/OfferingSheetContext';
-import {focusTrapProps} from '@lib/a11y/focusTrap';
+import {focusTrapProps, a11yHiddenProps} from '@lib/a11y/focusTrap';
 import {staticColors} from '@/styles/designTokens';
 
 const ALL_THEME_KEYS = Object.keys(colorThemes) as ColorTheme[];
@@ -85,8 +87,8 @@ export default function ColorThemeSettings() {
     [isPremium, openOfferingSheet, setColorTheme],
   );
 
-  const renderGrid = (themeKeys: ColorTheme[]) => (
-    <View style={styles.grid}>
+  const renderGrid = (themeKeys: ColorTheme[], gridTestID: string) => (
+    <View style={styles.grid} testID={gridTestID}>
       {themeKeys.map(themeKey => {
         const theme = colorThemes[themeKey];
         const isSelected = colorTheme === themeKey;
@@ -96,6 +98,7 @@ export default function ColorThemeSettings() {
         return (
           <TouchableOpacity
             key={themeKey}
+            testID={`${gridTestID}-cell`}
             style={[
               styles.option,
               isSelected && {backgroundColor: colors.primary + '1a'},
@@ -180,14 +183,37 @@ export default function ColorThemeSettings() {
           </TouchableOpacity>
         );
       })}
+      {/* Pad the last row up to a full 6 cells. With `justifyContent:
+          'space-between'` a partial trailing row (e.g. 16 themes → 6 + 6 + 4)
+          would otherwise stretch its few real swatches edge-to-edge, out of
+          rhythm with the full rows above; the spacers take the right-hand
+          slots so the real swatches stay left-aligned at the same cadence.
+          Empty, non-interactive, hidden from screen readers. */}
+      {Array.from({length: (6 - (themeKeys.length % 6)) % 6}).map((_, i) => (
+        <View
+          key={`spacer-${i}`}
+          testID={`${gridTestID}-cell`}
+          style={styles.option}
+          {...a11yHiddenProps()}
+        />
+      ))}
     </View>
   );
 
-  // Free themes always show inline; a premium theme that's currently active
-  // stays visible too so an already-unlocked selection never disappears.
-  const inlineKeys = ALL_THEME_KEYS.filter(
-    key => !PREMIUM_COLOR_THEMES.includes(key) || key === colorTheme,
-  );
+  // Free themes always show inline. When the active theme is one of the 4
+  // premium palettes the user has necessarily unlocked all of them, so show
+  // the full 16 inline (2 rows of 6 + a spacer-padded row of 4) instead of
+  // splicing in just the active one — 13 items left a lone orphan swatch on a
+  // third row (Victor's "disparejo" report). `isPremium || premiumLoading`
+  // guards the brief window after an entitlement is revoked: once premium
+  // resolves false the grid collapses back to the 12 free themes in the same
+  // render that the fallback-to-Midnight effect is dispatched, so no locked
+  // "exclusive" swatches flash in.
+  const showAllInline =
+    PREMIUM_COLOR_THEMES.includes(colorTheme) && (isPremium || premiumLoading);
+  const inlineKeys = showAllInline
+    ? ALL_THEME_KEYS
+    : ALL_THEME_KEYS.filter(key => !PREMIUM_COLOR_THEMES.includes(key));
 
   return (
     <View
@@ -203,7 +229,7 @@ export default function ColorThemeSettings() {
         {t.settings.colorThemeDescription}
       </Text>
 
-      {renderGrid(inlineKeys)}
+      {renderGrid(inlineKeys, 'color-theme-grid-inline')}
 
       <TouchableOpacity
         style={styles.viewAllRow}
@@ -242,7 +268,7 @@ export default function ColorThemeSettings() {
                 isDark ? styles.cardShadowDark : styles.cardShadowLight,
                 {backgroundColor: colors.surface},
               ]}>
-              {renderGrid(ALL_THEME_KEYS)}
+              {renderGrid(ALL_THEME_KEYS, 'color-theme-grid-all')}
             </View>
           </ScrollView>
         </View>
@@ -278,9 +304,11 @@ const styles = StyleSheet.create({
     flexWrap: 'wrap',
     marginTop: 12,
     rowGap: 12,
-    // 6 swatches per row — the 12 free themes fill 2 tidy rows, and the 4
-    // premium ones (added last, per PREMIUM_COLOR_THEMES) land together in
-    // their own trailing row rather than interleaved with the free ones.
+    // 6 swatches per row. The 12 free themes fill 2 tidy rows; the full
+    // 16-theme grid (modal, and inline once a premium theme is active) adds a
+    // third row of 4 real swatches + 2 hidden spacers so `space-between`
+    // keeps every row on the same cadence instead of stretching a short
+    // trailing row edge-to-edge. See the spacer padding in `renderGrid`.
     justifyContent: 'space-between',
   },
   option: {
