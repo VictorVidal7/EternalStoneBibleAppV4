@@ -40,13 +40,12 @@ describe('buildStopNarration', () => {
 });
 
 describe('applySpanishPronunciationFixes', () => {
-  it('fixes "Jacob" (English-phonetics homograph) only for Spanish narration', () => {
+  it('fixes "JAH" but leaves "Jacob" untouched (the Jacób entry was removed — it backfires on the es-ES voice)', () => {
     const verse = 'Y dijeron: No verá JAH, Ni entenderá el Dios de Jacob.';
     expect(applySpanishPronunciationFixes(verse, 'es-ES')).toBe(
-      'Y dijeron: No verá Yah, Ni entenderá el Dios de Jacób.',
+      'Y dijeron: No verá Yah, Ni entenderá el Dios de Jacob.',
     );
-    // English narration passes through byte-identical, even if it somehow
-    // contained the same literal words.
+    // English narration passes through byte-identical.
     expect(applySpanishPronunciationFixes(verse, 'en-US')).toBe(verse);
   });
 
@@ -57,12 +56,6 @@ describe('applySpanishPronunciationFixes', () => {
     expect(
       applySpanishPronunciationFixes('Alaba, oh alma mía, a Jehová', 'es-ES'),
     ).toBe('Alaba, oh alma mía, a Jehová');
-  });
-
-  it('does NOT match "Jacobo" (James) — the nearest false-positive to "Jacob"', () => {
-    expect(
-      applySpanishPronunciationFixes('Jacobo, siervo de Dios', 'es-ES'),
-    ).toBe('Jacobo, siervo de Dios');
   });
 
   it('fixes "estatutos" (Salmos 89:31 dropped-syllable case) case-insensitively', () => {
@@ -84,7 +77,7 @@ describe('applySpanishPronunciationFixes', () => {
   });
 
   it('is a no-op for English narration even with a matching word', () => {
-    const text = 'Jacob had a dream';
+    const text = 'JAH is his name and his estatutos endure';
     expect(applySpanishPronunciationFixes(text, 'en-US')).toBe(text);
   });
 
@@ -98,7 +91,8 @@ describe('applySpanishPronunciationFixes', () => {
     const verse =
       'JAH ha escogido a Jacob para sí; si profanaren mis estatutos.';
     const fixed = applySpanishPronunciationFixes(verse, 'es-ES');
-    expect(fixed).not.toBe(verse);
+    expect(fixed).not.toBe(verse); // JAH→Yah, estatutos→estatútos
+    expect(fixed).toContain('Jacob'); // untouched
     expect(fixed.length).toBe(verse.length);
   });
 });

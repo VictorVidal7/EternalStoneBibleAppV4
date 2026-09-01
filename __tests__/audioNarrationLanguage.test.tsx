@@ -106,7 +106,7 @@ describe('Spanish-voice pronunciation fixes are applied at speak time', () => {
     },
   ];
 
-  it('respells JAH/Jacob before handing text to the engine (no default voice)', async () => {
+  it('respells JAH before handing text to the engine, leaving Jacob untouched (no default voice)', async () => {
     const {result} = renderHook(() => useAudioPlayer(), {wrapper});
     await act(async () =>
       result.current.loadChapter(versesWithFixWords, {language: 'es'}),
@@ -114,7 +114,7 @@ describe('Spanish-voice pronunciation fixes are applied at speak time', () => {
     await act(async () => result.current.play());
 
     expect(lastSpeakText()).toBe(
-      'Y dijeron: No verá Yah, Ni entenderá el Dios de Jacób.',
+      'Y dijeron: No verá Yah, Ni entenderá el Dios de Jacob.',
     );
   });
 
@@ -136,7 +136,7 @@ describe('Spanish-voice pronunciation fixes are applied at speak time', () => {
     // returns the VOICE's own language tag here, not a bare 'es-ES').
     expect(lastSpeakOptions().language).toBe('es-MX');
     expect(lastSpeakText()).toBe(
-      'Y dijeron: No verá Yah, Ni entenderá el Dios de Jacób.',
+      'Y dijeron: No verá Yah, Ni entenderá el Dios de Jacob.',
     );
   });
 
@@ -156,5 +156,96 @@ describe('Spanish-voice pronunciation fixes are applied at speak time', () => {
     await act(async () => result.current.play());
 
     expect(lastSpeakText()).toBe(englishVerses[0].text);
+  });
+});
+
+describe('es-ES voice auto-selection for Spanish narration (56th session)', () => {
+  beforeEach(() => jest.clearAllMocks());
+
+  const systemVoices = [
+    {
+      identifier: 'es-us-x-esd-local',
+      name: 'es-US',
+      language: 'es-US',
+      quality: 'Enhanced',
+    },
+    {
+      identifier: 'es-es-x-eee-network',
+      name: 'es-ES net',
+      language: 'es-ES',
+      quality: 'Enhanced',
+    },
+    {
+      identifier: 'es-es-x-eee-local',
+      name: 'es-ES',
+      language: 'es-ES',
+      quality: 'Enhanced',
+    },
+    {
+      identifier: 'en-us-x-iom-local',
+      name: 'en-US',
+      language: 'en-US',
+      quality: 'Enhanced',
+    },
+  ];
+
+  it('pins the offline es-ES voice when no voice is chosen and Spanish text is loaded', async () => {
+    (Speech.getAvailableVoicesAsync as jest.Mock).mockResolvedValue(
+      systemVoices,
+    );
+    const {result} = renderHook(() => useAudioPlayer(), {wrapper});
+    // let the mount-time voice enumeration resolve
+    await act(async () => {
+      await Promise.resolve();
+    });
+    await act(async () =>
+      result.current.loadChapter(chapter, {language: 'es'}),
+    );
+    await act(async () => result.current.play());
+
+    const opts = lastSpeakOptions();
+    expect(opts.language).toBe('es-ES');
+    expect(opts.voice).toBe('es-es-x-eee-local'); // offline es-ES, not the -network one
+  });
+
+  it('does not pin a voice for English narration', async () => {
+    (Speech.getAvailableVoicesAsync as jest.Mock).mockResolvedValue(
+      systemVoices,
+    );
+    const {result} = renderHook(() => useAudioPlayer(), {wrapper});
+    await act(async () => {
+      await Promise.resolve();
+    });
+    await act(async () =>
+      result.current.loadChapter(chapter, {language: 'en'}),
+    );
+    await act(async () => result.current.play());
+
+    const opts = lastSpeakOptions();
+    expect(opts.language).toBe('en-US');
+    expect(opts.voice).toBeUndefined();
+  });
+
+  it('falls back to the OS default when the system has no es-ES voice', async () => {
+    (Speech.getAvailableVoicesAsync as jest.Mock).mockResolvedValue([
+      {
+        identifier: 'es-us-x-esd-local',
+        name: 'es-US',
+        language: 'es-US',
+        quality: 'Enhanced',
+      },
+    ]);
+    const {result} = renderHook(() => useAudioPlayer(), {wrapper});
+    await act(async () => {
+      await Promise.resolve();
+    });
+    await act(async () =>
+      result.current.loadChapter(chapter, {language: 'es'}),
+    );
+    await act(async () => result.current.play());
+
+    const opts = lastSpeakOptions();
+    expect(opts.language).toBe('es-ES');
+    expect(opts.voice).toBeUndefined();
   });
 });

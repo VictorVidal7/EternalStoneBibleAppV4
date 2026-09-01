@@ -24,13 +24,14 @@ export function resolveSpeechLanguage(lang: string): SpeechLang {
 
 /**
  * Spanish-voice pronunciation fixes for specific words a Spanish `expo-speech`
- * engine mispronounces even though the correct `es-*` locale IS genuinely
- * being requested (confirmed via [[resolveNarration]]/Sprint 100 — this is
- * NOT a voice/locale bug, so it is fixed here with plain-text respelling
- * rather than by touching language/voice selection). `expo-speech` doesn't
- * reliably support SSML phoneme tags on Android, so every entry below is a
- * plain-text substitution applied to the UTTERANCE ONLY, right before
- * `Speech.speak` — never to the text actually rendered on screen.
+ * engine mispronounces even with the correct `es-*` locale genuinely requested
+ * (confirmed via [[resolveNarration]]/Sprint 100) AND with an es-ES voice
+ * pinned ([[narrationVoice]].pickDefaultSpanishVoiceId, 56th session) — i.e.
+ * the residue that is neither a locale bug nor a voice-substitution bug, but a
+ * true per-token engine quirk. `expo-speech` doesn't reliably support SSML
+ * phoneme tags on Android, so every entry below is a plain-text substitution
+ * applied to the UTTERANCE ONLY, right before `Speech.speak` — never to the
+ * text actually rendered on screen.
  *
  * Root causes observed on real-device RVR1960 narration, confidence noted
  * per entry:
@@ -45,12 +46,14 @@ export function resolveSpeechLanguage(lang: string): SpeechLang {
  *    comes out with an English "yeah" sound or an audible aspirated h,
  *    "Yáh" is the same-length (3-char) fallback to try next — swap just the
  *    replacement string below, the invariant stays intact.
- *  - "Jacob" (MEDIUM confidence) — spelled IDENTICALLY in English and
- *    Spanish RVR1960 text, so the engine's proper-noun lexicon plausibly
- *    reads it with English phonetics. Changing the token (adding an accent)
- *    forces a fallback to default Spanish letter-to-sound rules, which
- *    independently already stress the final syllable for a word ending in a
- *    consonant other than n/s — matching the natural spoken "ha-COB".
+ *  - "Jacob" — a `Jacob`→`Jacób` entry lived here (MEDIUM confidence:
+ *    homograph with English "Jacob", plausibly read with English phonetics).
+ *    REMOVED in the es-ES voice-selection change (56th session): once
+ *    narration pins an explicit es-ES voice for Spanish
+ *    ([[narrationVoice]].pickDefaultSpanishVoiceId), the accented respelling
+ *    BACKFIRES — the es-ES voice forces letter-to-sound and reads "Jacób" as
+ *    "Yacob" (initial /ʝ/). The plain, unaccented "Jacob" is already read
+ *    correctly ("ha-COB") by that voice's default Spanish letter-to-sound.
  *  - "estatutos" (LOW confidence / inferred, not a homograph or an acronym)
  *    — Salmos 89:31 etc. drop a syllable ("estatuos"), plausibly the engine
  *    confusing this rarer word for the much more common "estatuas"
@@ -75,7 +78,6 @@ const SPANISH_PRONUNCIATION_FIXES: ReadonlyArray<{
   replacement: string;
 }> = [
   {pattern: /\bJAH\b/g, replacement: 'Yah'},
-  {pattern: /\bJacob\b/g, replacement: 'Jacób'},
   // Two explicit-case entries rather than a case-insensitive match with a
   // fixed-case replacement — a generic "preserve the match's case" helper
   // would also re-uppercase "JAH" (undoing the point of that fix above), so

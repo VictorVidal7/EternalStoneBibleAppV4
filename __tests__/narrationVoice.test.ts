@@ -11,6 +11,7 @@ import {
   voiceLanguageFamily,
   resolveNarration,
   voiceSelectorLanguage,
+  pickDefaultSpanishVoiceId,
 } from '../src/features/audio/lib/narrationVoice';
 import type {VoiceInfo} from '../src/features/audio/types/audio';
 
@@ -24,6 +25,18 @@ const esVoice: VoiceInfo = {
   identifier: 'es-voice-1',
   name: 'Voz en Español',
   language: 'es-MX',
+  quality: 'Enhanced',
+};
+const esEsLocal: VoiceInfo = {
+  identifier: 'es-es-x-eee-local',
+  name: 'es-ES',
+  language: 'es-ES',
+  quality: 'Enhanced',
+};
+const esEsNetwork: VoiceInfo = {
+  identifier: 'es-es-x-eee-network',
+  name: 'es-ES (network)',
+  language: 'es-ES',
   quality: 'Enhanced',
 };
 
@@ -99,6 +112,41 @@ describe('resolveNarration', () => {
     ).toEqual({language: 'es-ES', voiceId: undefined});
   });
 
+  it('pins an explicit es-ES voice for Spanish content when the list is provided', () => {
+    // No user voice → the OS would otherwise substitute an es-us voice that
+    // mangles "alabadle" etc. (56th session). Pin an es-ES voice instead.
+    expect(
+      resolveNarration({
+        contentLanguage: 'es',
+        selectedLanguage: 'es',
+        voice: null,
+        availableVoices: [enVoice, esVoice, esEsLocal, esEsNetwork],
+      }),
+    ).toEqual({language: 'es-ES', voiceId: 'es-es-x-eee-local'});
+  });
+
+  it('does not pin a voice for English content', () => {
+    expect(
+      resolveNarration({
+        contentLanguage: 'en',
+        selectedLanguage: 'en',
+        voice: null,
+        availableVoices: [enVoice, esVoice, esEsLocal],
+      }),
+    ).toEqual({language: 'en-US', voiceId: undefined});
+  });
+
+  it('does not override the user’s matching voice with the pinned one', () => {
+    expect(
+      resolveNarration({
+        contentLanguage: 'es',
+        selectedLanguage: 'es',
+        voice: esVoice, // es-MX, a valid Spanish-family match
+        availableVoices: [esEsLocal],
+      }),
+    ).toEqual({language: 'es-MX', voiceId: 'es-voice-1'});
+  });
+
   it('falls back to the manual selectedLanguage when content language is unknown', () => {
     // Legacy load (no version info): behaviour is exactly as before.
     expect(
@@ -115,6 +163,46 @@ describe('resolveNarration', () => {
         voice: null,
       }),
     ).toEqual({language: 'es-ES', voiceId: undefined});
+  });
+});
+
+describe('pickDefaultSpanishVoiceId (56th session)', () => {
+  it('returns undefined with no list / an empty list', () => {
+    expect(pickDefaultSpanishVoiceId(undefined)).toBeUndefined();
+    expect(pickDefaultSpanishVoiceId(null)).toBeUndefined();
+    expect(pickDefaultSpanishVoiceId([])).toBeUndefined();
+  });
+
+  it('returns undefined when no es-ES voice exists (leaves it to the OS)', () => {
+    expect(pickDefaultSpanishVoiceId([enVoice, esVoice])).toBeUndefined();
+  });
+
+  it('picks an es-ES voice over es-US / es-MX / English', () => {
+    expect(pickDefaultSpanishVoiceId([enVoice, esVoice, esEsLocal])).toBe(
+      'es-es-x-eee-local',
+    );
+  });
+
+  it('prefers the offline es-ES voice over the "-network" one', () => {
+    expect(pickDefaultSpanishVoiceId([esEsNetwork, esEsLocal])).toBe(
+      'es-es-x-eee-local',
+    );
+  });
+
+  it('matches an "es_ES" underscore tag too', () => {
+    expect(
+      pickDefaultSpanishVoiceId([
+        {...esEsLocal, language: 'es_ES', identifier: 'underscore-tag'},
+      ]),
+    ).toBe('underscore-tag');
+  });
+
+  it('does not match es-ESX or other near-miss tags', () => {
+    expect(
+      pickDefaultSpanishVoiceId([
+        {...esEsLocal, language: 'es-ESX', identifier: 'near-miss'},
+      ]),
+    ).toBeUndefined();
   });
 });
 
