@@ -1,13 +1,13 @@
 {
   "schema": 1,
-  "generated": "2026-07-28",
+  "generated": "2026-09-01",
   "note": "Web-only bootstrap packs (RVR1960 + WEB), byte-identical to the native bundled seed. NOT part of web/packs/versions.json (that catalog is also read by the native download-versions screen, which does not filter bundled versions).",
   "packs": [
     {
       "id": "RVR1960",
       "file": "rvr1960.sqlite",
       "bytes": 4743168,
-      "sha256": "f281f541860da41a27ec822afd83f8cf7f1c9603d13669ff20805a0d43b39e0a",
+      "sha256": "ad3761b4b49a132b69f1c95e6746d28f453afd968deab68202a8020fe2b026ca",
       "verseCount": 31102
     },
     {
