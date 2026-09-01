@@ -41528,7 +41528,7 @@ export const RVR1960_DATA = [
     "book_name": "2 Reyes",
     "chapter": 22,
     "verse": 9,
-    "text": "Viniendo luego el escriba Safán al rey, dio cuenta al rey y dijo: Tus siervos han recogido el dinero que se halló en el templo, y lo han entregado en poder de los que hacen la obra, que tienen a su cargo el arreglo de la casa de Jehová. Claro, aquí tienes el texto continuado de 2 Reyes 22:10-20 de la Biblia Reina-Valera 1960, respetando el formato del ejemplo que compartiste:",
+    "text": "Viniendo luego el escriba Safán al rey, dio cuenta al rey y dijo: Tus siervos han recogido el dinero que se halló en el templo, y lo han entregado en poder de los que hacen la obra, que tienen a su cargo el arreglo de la casa de Jehová.",
     "version": "RVR1960"
   },
   {
