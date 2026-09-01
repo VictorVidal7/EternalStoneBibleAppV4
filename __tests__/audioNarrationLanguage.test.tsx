@@ -106,7 +106,7 @@ describe('Spanish-voice pronunciation fixes are applied at speak time', () => {
     },
   ];
 
-  it('respells JAH before handing text to the engine, leaving Jacob untouched (no default voice)', async () => {
+  it('respells JAH→Yah and splits Jacob→"Ja cob" before handing text to the engine (no default voice)', async () => {
     const {result} = renderHook(() => useAudioPlayer(), {wrapper});
     await act(async () =>
       result.current.loadChapter(versesWithFixWords, {language: 'es'}),
@@ -114,7 +114,7 @@ describe('Spanish-voice pronunciation fixes are applied at speak time', () => {
     await act(async () => result.current.play());
 
     expect(lastSpeakText()).toBe(
-      'Y dijeron: No verá Yah, Ni entenderá el Dios de Jacob.',
+      'Y dijeron: No verá Yah, Ni entenderá el Dios de Ja cob.',
     );
   });
 
@@ -136,7 +136,7 @@ describe('Spanish-voice pronunciation fixes are applied at speak time', () => {
     // returns the VOICE's own language tag here, not a bare 'es-ES').
     expect(lastSpeakOptions().language).toBe('es-MX');
     expect(lastSpeakText()).toBe(
-      'Y dijeron: No verá Yah, Ni entenderá el Dios de Jacob.',
+      'Y dijeron: No verá Yah, Ni entenderá el Dios de Ja cob.',
     );
   });
 

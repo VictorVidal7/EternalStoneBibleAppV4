@@ -46,14 +46,19 @@ export function resolveSpeechLanguage(lang: string): SpeechLang {
  *    comes out with an English "yeah" sound or an audible aspirated h,
  *    "Yáh" is the same-length (3-char) fallback to try next — swap just the
  *    replacement string below, the invariant stays intact.
- *  - "Jacob" — a `Jacob`→`Jacób` entry lived here (MEDIUM confidence:
- *    homograph with English "Jacob", plausibly read with English phonetics).
- *    REMOVED in the es-ES voice-selection change (56th session): once
- *    narration pins an explicit es-ES voice for Spanish
- *    ([[narrationVoice]].pickDefaultSpanishVoiceId), the accented respelling
- *    BACKFIRES — the es-ES voice forces letter-to-sound and reads "Jacób" as
- *    "Yacob" (initial /ʝ/). The plain, unaccented "Jacob" is already read
- *    correctly ("ha-COB") by that voice's default Spanish letter-to-sound.
+ *  - "Jacob" → "Ja cob" (HIGH confidence in the mechanism; 57th session).
+ *    The es-ES voice reads the bare token "Jacob" as "Yacob" (/ʝ/) — device-
+ *    confirmed by Victor. Spanish grapheme-to-phoneme ALWAYS maps "j" → /x/
+ *    (jamón, jefe, joven…); the only way to get /ʝ/ from "j" is a name/loanword
+ *    override on the exact token ("jazz", "Jennifer" → /ʝ/). So "Jacob" is
+ *    being NER-matched as a foreign name. Adding an accent doesn't help
+ *    ("Jacób" → still "Yacob" — the normalizer strips accents before the
+ *    lookup, 56th session). Splitting the token with a space defeats the
+ *    match outright: "Ja" and "cob" are not names, so the engine falls back
+ *    to Spanish g2p → /xa/ + /kob/ = "ha-KOB". Cross-checked against two
+ *    other es-ES engines (MS SAPI Helena/Pablo) via spectrogram, since this
+ *    can't be verified in-repo by ear. THIS ENTRY IS 1 CHAR LONGER than the
+ *    word — the only non-length-preserving entry; see the INVARIANT note.
  *  - "estatutos" (LOW confidence / inferred, not a homograph or an acronym)
  *    — Salmos 89:31 etc. drop a syllable ("estatuos"), plausibly the engine
  *    confusing this rarer word for the much more common "estatuas"
@@ -63,21 +68,32 @@ export function resolveSpeechLanguage(lang: string): SpeechLang {
  *    extended to the singular "estatuto" (same guess, never reported).
  *
  * INVARIANT: every replacement is the SAME CHARACTER LENGTH as the word it
- * replaces (see the length-preserving test in narration.test.ts) — the audio
+ * replaces, WITH ONE DELIBERATE EXCEPTION ("Jacob" → "Ja cob", +1). The audio
  * player's karaoke word-highlight ([[karaoke]]/`KaraokeText`) indexes the
  * TTS engine's `onBoundary.charIndex` (which counts into whatever text was
  * actually SPOKEN) straight against the ORIGINAL displayed text, so a
- * length-changing substitution here would silently desync the highlight
- * from that word onward. If a future fix genuinely can't be done at equal
- * length, that desync has to be solved first (an index-mapping layer
- * between the spoken and displayed text) — don't add an unequal-length
- * entry without it.
+ * length-changing substitution desyncs the highlight from that word onward.
+ * The "Jacob" exception was taken knowingly: (a) no length-preserving respell
+ * defeats the name override (see the "Jacob" bullet); (b) the drift is a
+ * constant +1 within a verse, only in the ~350 verses with "Jacob", and only
+ * downstream of that word; (c) `activeTokenIndex` snaps forward from
+ * inter-word gaps, so a +1 offset lands in the right token in almost every
+ * case. Net cost: an occasional 1-word-early karaoke jump in the immersive
+ * reader. Any NEW non-length-preserving entry still needs the full
+ * spoken↔displayed index-mapping layer first — this exception is not a
+ * precedent to copy.
  */
 const SPANISH_PRONUNCIATION_FIXES: ReadonlyArray<{
   pattern: RegExp;
   replacement: string;
 }> = [
   {pattern: /\bJAH\b/g, replacement: 'Yah'},
+  // "Jacob" → "Ja cob" — split the token so the es-ES voice can't NER-match it
+  // as a foreign name and say "Yacob"; the halves fall back to Spanish g2p
+  // (j→/x/). +1 char — the one deliberate non-length-preserving entry (see the
+  // JSDoc INVARIANT note). "Jacobo" (Santiago/James) is a different word and is
+  // NOT matched (\b…\b stops at the trailing "o").
+  {pattern: /\bJacob\b/g, replacement: 'Ja cob'},
   // Two explicit-case entries rather than a case-insensitive match with a
   // fixed-case replacement — a generic "preserve the match's case" helper
   // would also re-uppercase "JAH" (undoing the point of that fix above), so

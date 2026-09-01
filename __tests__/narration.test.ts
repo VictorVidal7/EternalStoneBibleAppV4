@@ -40,13 +40,22 @@ describe('buildStopNarration', () => {
 });
 
 describe('applySpanishPronunciationFixes', () => {
-  it('fixes "JAH" but leaves "Jacob" untouched (the Jacób entry was removed — it backfires on the es-ES voice)', () => {
+  it('fixes "JAH"→"Yah" and splits "Jacob"→"Ja cob" (so the es-ES voice says "ha-KOB", not "Yacob")', () => {
     const verse = 'Y dijeron: No verá JAH, Ni entenderá el Dios de Jacob.';
     expect(applySpanishPronunciationFixes(verse, 'es-ES')).toBe(
-      'Y dijeron: No verá Yah, Ni entenderá el Dios de Jacob.',
+      'Y dijeron: No verá Yah, Ni entenderá el Dios de Ja cob.',
     );
     // English narration passes through byte-identical.
     expect(applySpanishPronunciationFixes(verse, 'en-US')).toBe(verse);
+  });
+
+  it('does NOT split "Jacobo" (Santiago/James) — the nearest false-positive', () => {
+    expect(
+      applySpanishPronunciationFixes(
+        'Jacobo, siervo de Dios y del Señor',
+        'es-ES',
+      ),
+    ).toBe('Jacobo, siervo de Dios y del Señor');
   });
 
   it('fixes "JAH" (standalone divine-name abbreviation) without touching "Jehová"', () => {
@@ -87,13 +96,18 @@ describe('applySpanishPronunciationFixes', () => {
     }
   });
 
-  it('never changes the total character length (karaoke offset invariant)', () => {
-    const verse =
-      'JAH ha escogido a Jacob para sí; si profanaren mis estatutos.';
-    const fixed = applySpanishPronunciationFixes(verse, 'es-ES');
-    expect(fixed).not.toBe(verse); // JAH→Yah, estatutos→estatútos
-    expect(fixed).toContain('Jacob'); // untouched
-    expect(fixed.length).toBe(verse.length);
+  it('is length-preserving for every entry EXCEPT the deliberate "Jacob"→"Ja cob" (+1)', () => {
+    // No "Jacob": length is exactly preserved (JAH→Yah, estatutos→estatútos).
+    const noJacob = 'JAH exaltó sus estatutos sobre todo pueblo de la tierra.';
+    const fixedNoJacob = applySpanishPronunciationFixes(noJacob, 'es-ES');
+    expect(fixedNoJacob).not.toBe(noJacob);
+    expect(fixedNoJacob.length).toBe(noJacob.length);
+
+    // With "Jacob": exactly +1 per occurrence, and nothing else drifts.
+    const withJacob = 'JAH ha escogido a Jacob, y a Jacob dio sus estatutos.';
+    const fixedWithJacob = applySpanishPronunciationFixes(withJacob, 'es-ES');
+    expect(fixedWithJacob).toContain('Ja cob');
+    expect(fixedWithJacob.length).toBe(withJacob.length + 2); // "Jacob" ×2
   });
 });
 
