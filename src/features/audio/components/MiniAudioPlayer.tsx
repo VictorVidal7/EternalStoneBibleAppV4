@@ -322,12 +322,14 @@ export const MiniAudioPlayer: React.FC<MiniAudioPlayerProps> = ({
     spainPromptFiredRef.current = true;
     void (async () => {
       if (await wasSpainVoicePromptShown()) return;
-      await markSpainVoicePromptShown();
+      // Show first, then persist the flag — if something interrupts between the
+      // two, the friendlier failure is the prompt reappearing once, not being
+      // burned unseen.
       toast.show({
         message: t.audio.spainVoicePrompt,
         variant: 'info',
         duration: 9000,
-        numberOfLines: 4,
+        numberOfLines: 6,
         action: {
           label: t.audio.spainVoicePromptAction,
           onPress: () => {
@@ -335,6 +337,7 @@ export const MiniAudioPlayer: React.FC<MiniAudioPlayerProps> = ({
           },
         },
       });
+      await markSpainVoicePromptShown();
     })();
   }, [
     state.isPlaying,

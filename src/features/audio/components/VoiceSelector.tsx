@@ -25,6 +25,7 @@ import {haptics} from '@lib/haptics';
 import {useTheme} from '../../../hooks/useTheme';
 import {useLanguage} from '../../../hooks/useLanguage';
 import {focusTrapProps} from '@lib/a11y/focusTrap';
+import {hitSlopToMinTarget} from '@lib/a11y/touchTarget';
 import {VoiceInfo, AudioLanguage} from '../types/audio';
 import {useVoices} from '../hooks/useVoices';
 import {
@@ -38,6 +39,11 @@ import {
   friendlyVoiceLabel,
   findFriendlyVoiceLabel,
 } from '../lib/voiceGrouping';
+
+// The "open TTS settings" hint button renders ~34dp tall (8dp padding + a
+// ~18dp line) — expand the tap area to the 48dp minimum without changing the
+// visual (matches the sibling MiniAudioPlayer's hit-slop treatment).
+const SPAIN_HINT_BUTTON_HIT_SLOP = hitSlopToMinTarget(34);
 
 interface VoiceSelectorProps {
   currentVoice: VoiceInfo | null;
@@ -302,19 +308,23 @@ export const VoiceSelector: React.FC<VoiceSelectorProps> = ({
                         </Text>
                         {!spainVoiceAvailable && Platform.OS === 'android' && (
                           <TouchableOpacity
-                            style={styles.spainHintButton}
+                            style={[
+                              styles.spainHintButton,
+                              {backgroundColor: colors.primary},
+                            ]}
+                            hitSlop={SPAIN_HINT_BUTTON_HIT_SLOP}
                             onPress={handleOpenTtsSettings}
                             accessibilityRole="button"
                             accessibilityLabel={tv.openTtsSettings}>
                             <Ionicons
                               name="open-outline"
-                              size={13}
-                              color={colors.primary}
+                              size={14}
+                              color={colors.onPrimary}
                             />
                             <Text
                               style={[
                                 styles.spainHintButtonText,
-                                {color: colors.primary},
+                                {color: colors.onPrimary},
                               ]}>
                               {tv.openTtsSettings}
                             </Text>
@@ -563,11 +573,14 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     alignSelf: 'flex-start',
-    gap: 4,
-    paddingVertical: 2,
+    gap: 6,
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    borderRadius: 8,
+    marginTop: 2,
   },
   spainHintButtonText: {
-    fontSize: 12,
+    fontSize: 13,
     fontWeight: '600',
   },
   regionHeader: {
