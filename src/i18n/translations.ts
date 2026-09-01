@@ -4397,6 +4397,8 @@ export const translations = {
         loading: 'Cargando voces...',
         empty: 'No hay voces disponibles para este idioma',
         regionHint: 'Región según el sistema — toca ▶ para escuchar cada voz',
+        spainRecommendation:
+          'Para la RVR1960, las voces de España pronuncian mejor las formas antiguas como «alabadle».',
         voiceWord: 'Voz',
         regions: {
           'es-ES': 'España',
@@ -10912,6 +10914,8 @@ export const translations = {
         loading: 'Loading voices...',
         empty: 'No voices available for this language',
         regionHint: 'Region reported by the system — tap ▶ to hear each voice',
+        spainRecommendation:
+          'For the RVR1960, Spain voices pronounce archaic forms like “alabadle” more accurately.',
         voiceWord: 'Voice',
         regions: {
           'es-ES': 'Spain',
