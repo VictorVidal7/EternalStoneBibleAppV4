@@ -86,12 +86,6 @@ describe('applySpanishPronunciationFixes', () => {
   });
 
   it('replaces the hyphen in transliterated compound proper nouns with a space', () => {
-    expect(
-      applySpanishPronunciationFixes(
-        'Y llamó el nombre de aquel lugar Bet-el',
-        'es-ES',
-      ),
-    ).toBe('Y llamó el nombre de aquel lugar Bet el');
     // multi-hyphen token: both joins handled in a single .replace() pass
     expect(
       applySpanishPronunciationFixes(
@@ -102,6 +96,31 @@ describe('applySpanishPronunciationFixes', () => {
     // exactly 1:1 in length — karaoke-safe
     const v = 'Obed-edom y Quiriat-jearim';
     expect(applySpanishPronunciationFixes(v, 'es-ES').length).toBe(v.length);
+  });
+
+  it('JOINS a "-el" theophoric ending instead of spacing it (so it reads aguda "be-TEL", not the unstressed article "BÉ-tel")', () => {
+    expect(
+      applySpanishPronunciationFixes(
+        'Y llamó el nombre de aquel lugar Bet-el',
+        'es-ES',
+      ),
+    ).toBe('Y llamó el nombre de aquel lugar Betel');
+    // the other 3 "-el" forms in RVR1960
+    expect(
+      applySpanishPronunciationFixes('la torre de Migdal-el', 'es-ES'),
+    ).toBe('la torre de Migdalel');
+    expect(
+      applySpanishPronunciationFixes('el valle de Jefte-el', 'es-ES'),
+    ).toBe('el valle de Jefteel');
+    // El-bet-el: the terminal "-el" joins, then the leading hyphen spaces
+    expect(applySpanishPronunciationFixes('lo llamó El-bet-el', 'es-ES')).toBe(
+      'lo llamó El betel',
+    );
+    // −1 char per "-el" join (karaoke-safe because it shrinks — see JSDoc)
+    const v = 'subió a Bet-el desde Bet-el';
+    expect(applySpanishPronunciationFixes(v, 'es-ES').length).toBe(
+      v.length - 2,
+    );
   });
 
   it('leaves a non-letter-hyphen-letter sequence (seed-data artifact) alone', () => {

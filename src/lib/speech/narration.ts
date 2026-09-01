@@ -70,36 +70,49 @@ export function resolveSpeechLanguage(lang: string): SpeechLang {
  *    by default, so it's harmless either way; it's included only because
  *    it's the literal word Victor reported broken. Deliberately NOT
  *    extended to the singular "estatuto" (same guess, never reported).
- *  - Hyphenated tokens (MEDIUM confidence, pending a live listen): every
- *    letter-`-`-letter token in RVR1960 is a transliterated compound proper
- *    noun (204 distinct forms / 627 occurrences — Bet-el 69x, Ben-adad 27x,
- *    Abed-nego 15x, Maher-salal-hasbaz …). A Spanish TTS engine may read the
- *    "-" aloud as "guión" or mis-join the halves. "-" → " " is exactly 1:1 in
+ *  - Hyphenated tokens: every letter-`-`-letter token in RVR1960 is a
+ *    transliterated compound proper noun (204 distinct forms / 627 occurrences
+ *    — Bet-el 69x, Ben-adad 27x, Abed-nego 15x, Maher-salal-hasbaz …). A
+ *    Spanish TTS engine may read the "-" aloud as "guión" or mis-join the
+ *    halves. The "-el" ending is device-confirmed by Victor (57th session; see
+ *    the EXCEPTION below); the rest of the class is still MEDIUM confidence /
+ *    pending a listen. "-" → " " is exactly 1:1 in
  *    length AND karaoke-safe: the space sits at the same offset the hyphen
  *    did, and both half-word boundaries the engine now emits still land inside
  *    the ORIGINAL displayed token's span, so `activeTokenIndex` resolves them
- *    back to that one token (see the "Ja cob" INVARIANT note for why a
- *    length-CHANGING split would not be safe). Applied as one generic rule,
- *    not 204 entries. The two seed-data artifacts noted in
- *    DOCS/TTS_PRONUNCIATION_SWEEP.md — "mujer)--Jehová" (Nm 5:21),
- *    "Jehová- nisi" (Éx 17:15) — are not letter-`-`-letter, so this leaves
- *    them alone.
+ *    back to that one token. Applied as one generic rule, not 204 entries. The
+ *    two seed-data artifacts noted in DOCS/TTS_PRONUNCIATION_SWEEP.md —
+ *    "mujer)--Jehová" (Nm 5:21), "Jehová- nisi" (Éx 17:15) — are not
+ *    letter-`-`-letter, so this leaves them alone.
+ *    EXCEPTION — hyphenated names ending in "-el" (the Hebrew theophoric אֵל,
+ *    "God": Bet-el 69x, Migdal-el, Jefte-el, El-bet-el): the generic "-" → " "
+ *    turns the ending into the Spanish UNSTRESSED article "el", so the engine
+ *    says "BÉ-tel" (llana). The correct Spanish reading is aguda — "be-TEL",
+ *    stress on the "-el" — which is also where the Hebrew stress falls (on
+ *    ʾĒl). Device-confirmed by Victor (57th session). So "-el" endings are
+ *    JOINED instead ("Bet-el" → "Betel"), letting Spanish g2p apply its
+ *    default aguda stress for a word ending in a consonant other than n/s.
+ *    This drops 1 char per name (~73 occurrences) — see the INVARIANT note.
  *
  * INVARIANT: every replacement is the SAME CHARACTER LENGTH as the word it
- * replaces, WITH ONE DELIBERATE EXCEPTION ("Jacob" → "Ja cob", +1). The audio
- * player's karaoke word-highlight ([[karaoke]]/`KaraokeText`) indexes the
- * TTS engine's `onBoundary.charIndex` (which counts into whatever text was
- * actually SPOKEN) straight against the ORIGINAL displayed text, so a
- * length-changing substitution desyncs the highlight from that word onward.
- * The "Jacob" exception was taken knowingly: (a) no length-preserving respell
- * defeats the name override (see the "Jacob" bullet); (b) the drift is a
- * constant +1 within a verse, only in the ~350 verses with "Jacob", and only
- * downstream of that word; (c) `activeTokenIndex` snaps forward from
- * inter-word gaps, so a +1 offset lands in the right token in almost every
- * case. Net cost: an occasional 1-word-early karaoke jump in the immersive
- * reader. Any NEW non-length-preserving entry still needs the full
- * spoken↔displayed index-mapping layer first — this exception is not a
- * precedent to copy.
+ * replaces, WITH TWO DELIBERATE EXCEPTIONS: "Jacob" → "Ja cob" (+1) and the
+ * "-el" theophoric join, "Bet-el" → "Betel" (−1 per name). The audio player's
+ * karaoke word-highlight ([[karaoke]]/`KaraokeText`) indexes the TTS engine's
+ * `onBoundary.charIndex` (which counts into whatever text was actually SPOKEN)
+ * straight against the ORIGINAL displayed text, so a length-changing
+ * substitution desyncs the highlight from that word onward.
+ *  - The "Jacob" +1 was taken knowingly: (a) no length-preserving respell
+ *    defeats the name override (see the "Jacob" bullet); (b) the drift is a
+ *    constant +1, only in the ~350 verses with "Jacob", only downstream of it;
+ *    (c) `activeTokenIndex` snaps forward from inter-word gaps, so +1 lands in
+ *    the right token in almost every case (it can overshoot only a 1-char word
+ *    directly after "Jacob" — an occasional 1-word-early karaoke blip). Tests
+ *    in __tests__/karaoke.test.ts pin this exactly.
+ *  - The "-el" −1 is safer than the +1 BECAUSE it shrinks: a −1 drift makes
+ *    each downstream boundary land in the inter-word GAP before its token, and
+ *    `activeTokenIndex` snaps forward from gaps → correct token every time.
+ * Any NEW growing (+n) unequal-length entry still needs the full
+ * spoken↔displayed index-mapping layer first — these are not a precedent.
  */
 const SPANISH_PRONUNCIATION_FIXES: ReadonlyArray<{
   pattern: RegExp;
@@ -121,10 +134,18 @@ const SPANISH_PRONUNCIATION_FIXES: ReadonlyArray<{
   // a future sentence-initial "Estatutos" doesn't silently miss the fix.
   {pattern: /\bestatutos\b/g, replacement: 'estatútos'},
   {pattern: /\bEstatutos\b/g, replacement: 'Estatútos'},
-  // Hyphenated transliterated proper nouns → space (see the JSDoc bullet).
-  // One generic rule; "-" → " " is 1:1 in length. Overlapping matches in a
-  // 3-part token (Maher-salal-hasbaz) are both handled in a single .replace()
-  // pass because the global regex resumes scanning after each match.
+  // Hyphenated names ending in "-el" (Hebrew theophoric, "God") → JOIN, so
+  // Spanish g2p reads them aguda ("Bet-el" → "Betel" → "be-TEL") instead of
+  // the generic "-" → " " rule below making "el" the unstressed article
+  // ("BÉ-tel"). Must run BEFORE the generic rule. −1 char per name; see the
+  // JSDoc INVARIANT note (a shrinking drift is karaoke-safe). Only 4 forms in
+  // RVR1960 (Bet-el, Migdal-el, Jefte-el, El-bet-el) and every one is "X of
+  // God", so no false positive.
+  {pattern: /(\p{L})-el\b/gu, replacement: '$1el'},
+  // Other hyphenated transliterated proper nouns → space (see the JSDoc
+  // bullet). "-" → " " is 1:1 in length. Overlapping matches in a 3-part token
+  // (Maher-salal-hasbaz) are both handled in a single .replace() pass because
+  // the global regex resumes scanning after each match.
   {pattern: /(\p{L})-(\p{L})/gu, replacement: '$1 $2'},
 ];
 
