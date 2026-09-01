@@ -259,6 +259,27 @@ export const VoiceSelector: React.FC<VoiceSelectorProps> = ({
                     ]}>
                     {tv.regionHint}
                   </Text>
+                  {/* RVR1960 renders archaic vosotros enclitic imperatives
+                      ("alabadle" …) that Latin-America voices mispronounce but
+                      Castilian ones read correctly (57th session). Steer the
+                      Spanish-list user toward a Spain voice. */}
+                  {listLanguage === 'es' && (
+                    <View
+                      style={[
+                        styles.spainHint,
+                        {backgroundColor: colors.primaryLight + '20'},
+                      ]}>
+                      <Ionicons
+                        name="information-circle-outline"
+                        size={15}
+                        color={colors.primary}
+                      />
+                      <Text
+                        style={[styles.spainHintText, {color: colors.text}]}>
+                        {tv.spainRecommendation}
+                      </Text>
+                    </View>
+                  )}
                   {voiceGroups.map(group => (
                     <View key={group.key}>
                       <View style={styles.regionHeader}>
@@ -476,6 +497,21 @@ const styles = StyleSheet.create({
     fontSize: 12,
     marginTop: 8,
     marginBottom: 4,
+  },
+  spainHint: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: 6,
+    paddingVertical: 8,
+    paddingHorizontal: 10,
+    borderRadius: 10,
+    marginTop: 4,
+    marginBottom: 4,
+  },
+  spainHintText: {
+    flex: 1,
+    fontSize: 12,
+    lineHeight: 16,
   },
   regionHeader: {
     flexDirection: 'row',
