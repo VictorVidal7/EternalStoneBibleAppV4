@@ -28,6 +28,8 @@ import {
   planNarrationAdvance,
   type SpeechLang,
 } from '@/lib/speech/narration';
+import {pickDefaultSpanishVoiceId} from '@/features/audio/lib/narrationVoice';
+import type {VoiceInfo} from '@/features/audio/types/audio';
 
 export interface UseNarratedWalkthroughParams {
   /** Total number of steps. */
@@ -84,6 +86,34 @@ export function useNarratedWalkthrough({
   // protects against rapid stop/start taps leaving orphaned narration.
   const genRef = useRef(0);
 
+  // System voice list, enumerated once — so Spanish narration gets pinned to
+  // an explicit es-ES voice (same as the main Audio Bible player, 57th
+  // session): a bare `language:'es-ES'` request lets the OS substitute an
+  // es-us voice that mangles the archaic "-dle" imperative forms
+  // ("alabadle" …). undefined until it resolves; the first segment before
+  // then just uses the OS default.
+  const voicesRef = useRef<VoiceInfo[] | undefined>(undefined);
+  useEffect(() => {
+    let cancelled = false;
+    Speech.getAvailableVoicesAsync()
+      .then(voices => {
+        if (!cancelled) {
+          voicesRef.current = voices.map(v => ({
+            identifier: v.identifier,
+            name: v.name,
+            language: v.language,
+            quality: (v.quality || 'Default') as VoiceInfo['quality'],
+          }));
+        }
+      })
+      .catch(() => {
+        /* OS default voice still works */
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
   // Manual navigation (index changed by something other than this hook's
   // own auto-advance) cancels the tour — mirrors Hilo profético's original
   // `[phase]` effect.
@@ -126,8 +156,14 @@ export function useNarratedWalkthrough({
       // Same Spanish-only pronunciation fixes as the main Audio Bible player
       // (see narration.ts) — a no-op for English segments/steps.
       const textToSpeak = applySpanishPronunciationFixes(text, language);
+      // Pin an explicit es-ES voice for Spanish (mirrors the Audio Bible
+      // player); English/other keeps the OS default.
+      const voice = language.toLowerCase().startsWith('es')
+        ? pickDefaultSpanishVoiceId(voicesRef.current)
+        : undefined;
       void Speech.speak(textToSpeak, {
         language,
+        voice,
         rate,
         onDone: () => {
           if (gen === genRef.current) speakNext();

@@ -54,6 +54,59 @@ export interface NarrationChoice {
 }
 
 /**
+ * Pick an explicit **es-ES (Castilian)** voice id for Spanish narration when
+ * the user hasn't chosen a voice (56th-session finding).
+ *
+ * `Speech.speak({language: 'es-ES'})` with no `voice` lets the OS pick — and
+ * on a phone whose system TTS default is a Latin-America voice, that
+ * substitute es-us voice **mangles the archaic vosotros enclitic-imperative
+ * forms** ("alabadle", "hacedlo", "decidle" … "-Vd" + clitic). A genuine
+ * es-ES neural voice pronounces the whole class correctly with no text
+ * patching (device-verified), and Victor confirmed a Castilian accent is fine
+ * for the Bible narration. So we pin an es-ES voice explicitly rather than
+ * trusting the OS default.
+ *
+ * Only `es-ES` is targeted — it is the one variant verified good. Any other
+ * `es-*` is left to the OS (returns `undefined`, today's behaviour) rather
+ * than guessing at a near-miss locale.
+ *
+ * Tie-break, most to least significant, then a lexicographic sort on the
+ * identifier so the SAME concrete voice is chosen on every device (not
+ * "whichever the engine happened to enumerate first"):
+ *  1. offline/embedded over network (Google TTS names network voices "…-network");
+ *  2. a concrete voice ("…-x-eee-local") over a generic locale alias
+ *     ("es-ES-language"), which would just hand resolution back to the OS
+ *     inside es-ES;
+ *  3. higher reported quality (rarely disambiguates on-device — every voice
+ *     reports "Enhanced" on the emulator — but harmless);
+ *  4. identifier ascending, for a stable cross-device result.
+ *
+ * On the emulator's Google TTS this resolves to `es-es-x-eea-local`.
+ */
+export function pickDefaultSpanishVoiceId(
+  voices: readonly VoiceInfo[] | null | undefined,
+): string | undefined {
+  if (!voices || voices.length === 0) return undefined;
+  const esEs = voices.filter(v => {
+    const tag = (v.language || '').toLowerCase().replace(/_/g, '-');
+    return tag === 'es-es' || tag.startsWith('es-es-');
+  });
+  if (esEs.length === 0) return undefined;
+  const qualityRank: Record<VoiceInfo['quality'], number> = {
+    Premium: 2,
+    Enhanced: 1,
+    Default: 0,
+  };
+  const score = (v: VoiceInfo): number =>
+    (/network/i.test(v.identifier) ? 0 : 1000) +
+    (/-x-\w+-(local|network)$/i.test(v.identifier) ? 100 : 0) +
+    qualityRank[v.quality] * 10;
+  return [...esEs].sort(
+    (a, b) => score(b) - score(a) || a.identifier.localeCompare(b.identifier),
+  )[0].identifier;
+}
+
+/**
  * Resolve the TTS language + voice to narrate with, so the VOICE always matches
  * the LANGUAGE OF THE TEXT being read.
  *
@@ -65,20 +118,36 @@ export interface NarrationChoice {
  *   the target language; otherwise it is dropped and the OS default voice for
  *   the target language is used (a mismatched explicit voice is exactly what
  *   produced the garble).
+ * - When no voice is chosen (or the chosen one is dropped) and the target is
+ *   Spanish, an explicit es-ES voice is pinned from `availableVoices` if one
+ *   is present — see {@link pickDefaultSpanishVoiceId}. The `language` stays
+ *   the bare `es-ES` tag either way (never the picked voice's own raw tag),
+ *   so `applySpanishPronunciationFixes`' `startsWith('es')` gate is unaffected.
  */
 export function resolveNarration(params: {
   contentLanguage: AudioLanguage | null;
   selectedLanguage: AudioLanguage;
   voice: VoiceInfo | null;
+  /**
+   * The system's full voice list (`Speech.getAvailableVoicesAsync()`).
+   * Optional: omitted / not yet resolved → the auto-pick is skipped and the
+   * OS default for `language` is used, exactly as before.
+   */
+  availableVoices?: readonly VoiceInfo[] | null;
 }): NarrationChoice {
-  const {contentLanguage, selectedLanguage, voice} = params;
+  const {contentLanguage, selectedLanguage, voice, availableVoices} = params;
   const targetLang = contentLanguage ?? selectedLanguage;
   const voiceMatches =
     !!voice && voiceLanguageFamily(voice.language) === targetLang;
   if (voiceMatches && voice) {
     return {language: voice.language, voiceId: voice.identifier};
   }
-  return {language: SUPPORTED_LANGUAGES[targetLang][0], voiceId: undefined};
+  const language = SUPPORTED_LANGUAGES[targetLang][0];
+  const voiceId =
+    targetLang === 'es'
+      ? pickDefaultSpanishVoiceId(availableVoices)
+      : undefined;
+  return {language, voiceId};
 }
 
 export interface VoiceSelectorLanguage {

@@ -40,14 +40,22 @@ describe('buildStopNarration', () => {
 });
 
 describe('applySpanishPronunciationFixes', () => {
-  it('fixes "Jacob" (English-phonetics homograph) only for Spanish narration', () => {
+  it('fixes "JAH"→"Yah" and splits "Jacob"→"Ja cob" (so the es-ES voice says "ha-KOB", not "Yacob")', () => {
     const verse = 'Y dijeron: No verá JAH, Ni entenderá el Dios de Jacob.';
     expect(applySpanishPronunciationFixes(verse, 'es-ES')).toBe(
-      'Y dijeron: No verá Yah, Ni entenderá el Dios de Jacób.',
+      'Y dijeron: No verá Yah, Ni entenderá el Dios de Ja cob.',
     );
-    // English narration passes through byte-identical, even if it somehow
-    // contained the same literal words.
+    // English narration passes through byte-identical.
     expect(applySpanishPronunciationFixes(verse, 'en-US')).toBe(verse);
+  });
+
+  it('does NOT split "Jacobo" (Santiago/James) — the nearest false-positive', () => {
+    expect(
+      applySpanishPronunciationFixes(
+        'Jacobo, siervo de Dios y del Señor',
+        'es-ES',
+      ),
+    ).toBe('Jacobo, siervo de Dios y del Señor');
   });
 
   it('fixes "JAH" (standalone divine-name abbreviation) without touching "Jehová"', () => {
@@ -57,12 +65,6 @@ describe('applySpanishPronunciationFixes', () => {
     expect(
       applySpanishPronunciationFixes('Alaba, oh alma mía, a Jehová', 'es-ES'),
     ).toBe('Alaba, oh alma mía, a Jehová');
-  });
-
-  it('does NOT match "Jacobo" (James) — the nearest false-positive to "Jacob"', () => {
-    expect(
-      applySpanishPronunciationFixes('Jacobo, siervo de Dios', 'es-ES'),
-    ).toBe('Jacobo, siervo de Dios');
   });
 
   it('fixes "estatutos" (Salmos 89:31 dropped-syllable case) case-insensitively', () => {
@@ -83,8 +85,63 @@ describe('applySpanishPronunciationFixes', () => {
     );
   });
 
+  it('replaces the hyphen in transliterated compound proper nouns with a space', () => {
+    // multi-hyphen token: both joins handled in a single .replace() pass
+    expect(
+      applySpanishPronunciationFixes(
+        'llama su nombre Maher-salal-hasbaz',
+        'es-ES',
+      ),
+    ).toBe('llama su nombre Maher salal hasbaz');
+    // exactly 1:1 in length — karaoke-safe
+    const v = 'Obed-edom y Quiriat-jearim';
+    expect(applySpanishPronunciationFixes(v, 'es-ES').length).toBe(v.length);
+  });
+
+  it('JOINS a "-el" theophoric ending instead of spacing it (so it reads aguda "be-TEL", not the unstressed article "BÉ-tel")', () => {
+    expect(
+      applySpanishPronunciationFixes(
+        'Y llamó el nombre de aquel lugar Bet-el',
+        'es-ES',
+      ),
+    ).toBe('Y llamó el nombre de aquel lugar Betel');
+    // the other 3 "-el" forms in RVR1960
+    expect(
+      applySpanishPronunciationFixes('la torre de Migdal-el', 'es-ES'),
+    ).toBe('la torre de Migdalel');
+    expect(
+      applySpanishPronunciationFixes('el valle de Jefte-el', 'es-ES'),
+    ).toBe('el valle de Jefteel');
+    // El-bet-el: the terminal "-el" joins, then the leading hyphen spaces
+    expect(applySpanishPronunciationFixes('lo llamó El-bet-el', 'es-ES')).toBe(
+      'lo llamó El betel',
+    );
+    // −1 char per "-el" join (karaoke-safe because it shrinks — see JSDoc)
+    const v = 'subió a Bet-el desde Bet-el';
+    expect(applySpanishPronunciationFixes(v, 'es-ES').length).toBe(
+      v.length - 2,
+    );
+  });
+
+  it('leaves a non-letter-hyphen-letter sequence (seed-data artifact) alone', () => {
+    // Nm 5:21 "…dirá el sacerdote a la mujer)--Jehová…" — ")" and "-" before
+    // the "-" are not \p{L}, so the rule does not fire.
+    expect(
+      applySpanishPronunciationFixes(
+        'dirá el sacerdote a la mujer)--Jehová te dé',
+        'es-ES',
+      ),
+    ).toBe('dirá el sacerdote a la mujer)--Jehová te dé');
+  });
+
+  it('does not apply the hyphen fix to English narration', () => {
+    expect(
+      applySpanishPronunciationFixes('the altar at Beth-el', 'en-US'),
+    ).toBe('the altar at Beth-el');
+  });
+
   it('is a no-op for English narration even with a matching word', () => {
-    const text = 'Jacob had a dream';
+    const text = 'JAH is his name and his estatutos endure';
     expect(applySpanishPronunciationFixes(text, 'en-US')).toBe(text);
   });
 
@@ -94,12 +151,18 @@ describe('applySpanishPronunciationFixes', () => {
     }
   });
 
-  it('never changes the total character length (karaoke offset invariant)', () => {
-    const verse =
-      'JAH ha escogido a Jacob para sí; si profanaren mis estatutos.';
-    const fixed = applySpanishPronunciationFixes(verse, 'es-ES');
-    expect(fixed).not.toBe(verse);
-    expect(fixed.length).toBe(verse.length);
+  it('is length-preserving for every entry EXCEPT the deliberate "Jacob"→"Ja cob" (+1)', () => {
+    // No "Jacob": length is exactly preserved (JAH→Yah, estatutos→estatútos).
+    const noJacob = 'JAH exaltó sus estatutos sobre todo pueblo de la tierra.';
+    const fixedNoJacob = applySpanishPronunciationFixes(noJacob, 'es-ES');
+    expect(fixedNoJacob).not.toBe(noJacob);
+    expect(fixedNoJacob.length).toBe(noJacob.length);
+
+    // With "Jacob": exactly +1 per occurrence, and nothing else drifts.
+    const withJacob = 'JAH ha escogido a Jacob, y a Jacob dio sus estatutos.';
+    const fixedWithJacob = applySpanishPronunciationFixes(withJacob, 'es-ES');
+    expect(fixedWithJacob).toContain('Ja cob');
+    expect(fixedWithJacob.length).toBe(withJacob.length + 2); // "Jacob" ×2
   });
 });
 

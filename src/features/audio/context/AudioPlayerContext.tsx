@@ -195,6 +195,14 @@ export const AudioPlayerProvider: React.FC<AudioPlayerProviderProps> = ({
   const versionIdRef = useRef<string | null>(null);
   versionIdRef.current = versionCtx ? versionCtx.selectedVersion.id : null;
 
+  // The system's full TTS voice list, enumerated once on mount. Lets
+  // resolveNarration pin an explicit es-ES (Castilian) voice for Spanish
+  // narration when the user hasn't chosen one — a bare `es-ES` request
+  // otherwise lets the OS substitute a Latin-America voice that mangles the
+  // archaic "-dle" imperative forms ("alabadle" …). undefined until the async
+  // call resolves; a verse spoken before then just uses the OS default.
+  const availableVoicesRef = useRef<VoiceInfo[] | undefined>(undefined);
+
   // Gates the premium-only 2.25x/2.5x playback speeds (T24). Optional variant
   // (mirrors useBibleVersionOptional above) so a test tree that mounts
   // AudioPlayerProvider without a PremiumProvider ancestor still works —
@@ -273,6 +281,37 @@ export const AudioPlayerProvider: React.FC<AudioPlayerProviderProps> = ({
 
   useEffect(() => {
     loadPreferences();
+  }, []);
+
+  // Enumerate the system TTS voices once, so resolveNarration can pin an
+  // explicit es-ES voice for Spanish narration with no user-chosen voice.
+  useEffect(() => {
+    let cancelled = false;
+    Speech.getAvailableVoicesAsync()
+      .then(voices => {
+        if (cancelled) return;
+        availableVoicesRef.current = voices.map(v => ({
+          identifier: v.identifier,
+          name: v.name,
+          language: v.language,
+          quality: (v.quality || 'Default') as VoiceInfo['quality'],
+        }));
+        // One-shot ground-truth log — the es-* tags/identifiers an engine
+        // actually reports vary (es-ES / es_ES / …); useful when diagnosing
+        // a wrong-accent narration report.
+        logger.info('TTS voices enumerated', {
+          count: voices.length,
+          spanish: availableVoicesRef.current
+            .filter(v => v.language.toLowerCase().startsWith('es'))
+            .map(v => `${v.identifier}|${v.language}|${v.quality}`),
+        });
+      })
+      .catch(err =>
+        logger.warn('Error enumerating TTS voices', {error: String(err)}),
+      );
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   const loadPreferences = async () => {
@@ -405,6 +444,7 @@ export const AudioPlayerProvider: React.FC<AudioPlayerProviderProps> = ({
         contentLanguage: contentLanguageRef.current,
         selectedLanguage: currentState.selectedLanguage,
         voice: currentState.selectedVoice,
+        availableVoices: availableVoicesRef.current,
       });
 
       // Text-only fix for specific words the Spanish TTS engine mispronounces
