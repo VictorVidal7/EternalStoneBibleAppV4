@@ -144,6 +144,49 @@ export const VoiceSelector: React.FC<VoiceSelectorProps> = ({
     void openTtsSettings();
   };
 
+  // "Automático" — un-pin the chosen voice and let resolveNarration pick the
+  // best one for the text's language (an es-ES voice for Spanish). Shown
+  // selected while nothing is pinned; tap to reset once one is (58th session).
+  // Mirrors the voiceItem rows' visual language. Rendered in BOTH the populated
+  // and the empty-list states, since a stale pin from the other language is
+  // exactly the case where a user goes looking for the reset. Hidden entirely
+  // when no onVoiceClear is wired (no dead affordance).
+  const automaticRow = onVoiceClear ? (
+    <TouchableOpacity
+      style={[
+        styles.voiceItem,
+        {
+          backgroundColor: currentVoice
+            ? staticColors.transparent
+            : colors.primaryLight + '20',
+          borderColor: currentVoice ? colors.border : colors.primary,
+        },
+      ]}
+      onPress={handleVoiceClear}
+      accessibilityRole="button"
+      accessibilityState={{selected: !currentVoice}}>
+      <Ionicons
+        name="sparkles-outline"
+        size={18}
+        color={currentVoice ? colors.textSecondary : colors.primary}
+        style={styles.automaticIcon}
+      />
+      <View style={styles.voiceInfo}>
+        <Text style={[styles.voiceName, {color: colors.text}]}>
+          {tv.automaticLabel}
+        </Text>
+        <Text style={[styles.automaticHint, {color: colors.textTertiary}]}>
+          {tv.automaticHint}
+        </Text>
+      </View>
+      <View style={styles.voiceActions}>
+        {!currentVoice && (
+          <Ionicons name="checkmark-circle" size={24} color={colors.primary} />
+        )}
+      </View>
+    </TouchableOpacity>
+  ) : null;
+
   return (
     <>
       {/* Trigger Button */}
@@ -276,72 +319,23 @@ export const VoiceSelector: React.FC<VoiceSelectorProps> = ({
                   </Text>
                 </View>
               ) : voices.length === 0 ? (
-                <View style={styles.emptyContainer}>
-                  <Ionicons
-                    name="mic-off"
-                    size={48}
-                    color={colors.textTertiary}
-                  />
-                  <Text
-                    style={[styles.emptyText, {color: colors.textSecondary}]}>
-                    {tv.empty}
-                  </Text>
-                </View>
+                <>
+                  {automaticRow}
+                  <View style={styles.emptyContainer}>
+                    <Ionicons
+                      name="mic-off"
+                      size={48}
+                      color={colors.textTertiary}
+                    />
+                    <Text
+                      style={[styles.emptyText, {color: colors.textSecondary}]}>
+                      {tv.empty}
+                    </Text>
+                  </View>
+                </>
               ) : (
                 <>
-                  {/* "Automático" — un-pin the chosen voice and let
-                      resolveNarration pick the best one for the text's
-                      language (an es-ES voice for Spanish). Shown selected
-                      while nothing is pinned; tap to reset once one is
-                      (58th session). Mirrors the voiceItem rows' visual
-                      language. Hidden entirely when no onVoiceClear is wired. */}
-                  {onVoiceClear && (
-                    <TouchableOpacity
-                      style={[
-                        styles.voiceItem,
-                        {
-                          backgroundColor: currentVoice
-                            ? staticColors.transparent
-                            : colors.primaryLight + '20',
-                          borderColor: currentVoice
-                            ? colors.border
-                            : colors.primary,
-                        },
-                      ]}
-                      onPress={handleVoiceClear}
-                      accessibilityRole="button"
-                      accessibilityState={{selected: !currentVoice}}>
-                      <Ionicons
-                        name="sparkles-outline"
-                        size={18}
-                        color={
-                          currentVoice ? colors.textSecondary : colors.primary
-                        }
-                        style={styles.automaticIcon}
-                      />
-                      <View style={styles.voiceInfo}>
-                        <Text style={[styles.voiceName, {color: colors.text}]}>
-                          {tv.automaticLabel}
-                        </Text>
-                        <Text
-                          style={[
-                            styles.automaticHint,
-                            {color: colors.textTertiary},
-                          ]}>
-                          {tv.automaticHint}
-                        </Text>
-                      </View>
-                      <View style={styles.voiceActions}>
-                        {!currentVoice && (
-                          <Ionicons
-                            name="checkmark-circle"
-                            size={24}
-                            color={colors.primary}
-                          />
-                        )}
-                      </View>
-                    </TouchableOpacity>
-                  )}
+                  {automaticRow}
                   <Text
                     style={[
                       styles.regionListHint,
