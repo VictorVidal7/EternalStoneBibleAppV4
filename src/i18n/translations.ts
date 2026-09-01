@@ -4400,6 +4400,8 @@ export const translations = {
         loading: 'Cargando voces...',
         empty: 'No hay voces disponibles para este idioma',
         regionHint: 'Región según el sistema — toca ▶ para escuchar cada voz',
+        automaticLabel: 'Automático',
+        automaticHint: 'Elige la mejor voz para el idioma del texto',
         spainRecommendation:
           'Para la RVR1960, elige una voz de España: pronuncia mejor las formas antiguas como «alabadle».',
         spainRecommendationNoVoice:
@@ -10923,6 +10925,8 @@ export const translations = {
         loading: 'Loading voices...',
         empty: 'No voices available for this language',
         regionHint: 'Region reported by the system — tap ▶ to hear each voice',
+        automaticLabel: 'Automatic',
+        automaticHint: "Picks the best voice for the text's language",
         spainRecommendation:
           'For the RVR1960, choose a Spain voice: it pronounces archaic forms like "alabadle" more accurately.',
         spainRecommendationNoVoice:

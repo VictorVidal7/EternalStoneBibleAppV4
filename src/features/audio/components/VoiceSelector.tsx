@@ -49,6 +49,13 @@ interface VoiceSelectorProps {
   currentVoice: VoiceInfo | null;
   currentLanguage: AudioLanguage;
   onVoiceSelect: (voice: VoiceInfo) => void;
+  /**
+   * Un-pin the chosen voice and return to the automatic pick (58th session).
+   * When provided, the list shows an "Automático" row at the top — selected
+   * (checkmark) while no voice is pinned, tappable to reset once one is. Omit
+   * it and the row is hidden (no dead affordance).
+   */
+  onVoiceClear?: () => void;
   onLanguageChange: (language: AudioLanguage) => void;
   /**
    * Language of the loaded text (Sprint 100). When set, the narration speaks
@@ -64,6 +71,7 @@ export const VoiceSelector: React.FC<VoiceSelectorProps> = ({
   currentVoice,
   currentLanguage,
   onVoiceSelect,
+  onVoiceClear,
   onLanguageChange,
   contentLanguage = null,
   variant = 'default',
@@ -112,6 +120,12 @@ export const VoiceSelector: React.FC<VoiceSelectorProps> = ({
   const handleVoiceSelect = (voice: VoiceInfo) => {
     haptics.press();
     onVoiceSelect(voice);
+    handleCloseModal();
+  };
+
+  const handleVoiceClear = () => {
+    haptics.press();
+    onVoiceClear?.();
     handleCloseModal();
   };
 
@@ -166,7 +180,7 @@ export const VoiceSelector: React.FC<VoiceSelectorProps> = ({
                 <Text
                   style={[styles.triggerValue, {color: colors.text}]}
                   numberOfLines={1}>
-                  {currentVoiceLabel ?? tv.triggerPlaceholder}
+                  {currentVoiceLabel ?? tv.automaticLabel}
                 </Text>
               </View>
               <Text style={styles.languageFlag}>
@@ -275,6 +289,59 @@ export const VoiceSelector: React.FC<VoiceSelectorProps> = ({
                 </View>
               ) : (
                 <>
+                  {/* "Automático" — un-pin the chosen voice and let
+                      resolveNarration pick the best one for the text's
+                      language (an es-ES voice for Spanish). Shown selected
+                      while nothing is pinned; tap to reset once one is
+                      (58th session). Mirrors the voiceItem rows' visual
+                      language. Hidden entirely when no onVoiceClear is wired. */}
+                  {onVoiceClear && (
+                    <TouchableOpacity
+                      style={[
+                        styles.voiceItem,
+                        {
+                          backgroundColor: currentVoice
+                            ? staticColors.transparent
+                            : colors.primaryLight + '20',
+                          borderColor: currentVoice
+                            ? colors.border
+                            : colors.primary,
+                        },
+                      ]}
+                      onPress={handleVoiceClear}
+                      accessibilityRole="button"
+                      accessibilityState={{selected: !currentVoice}}>
+                      <Ionicons
+                        name="sparkles-outline"
+                        size={18}
+                        color={
+                          currentVoice ? colors.textSecondary : colors.primary
+                        }
+                        style={styles.automaticIcon}
+                      />
+                      <View style={styles.voiceInfo}>
+                        <Text style={[styles.voiceName, {color: colors.text}]}>
+                          {tv.automaticLabel}
+                        </Text>
+                        <Text
+                          style={[
+                            styles.automaticHint,
+                            {color: colors.textTertiary},
+                          ]}>
+                          {tv.automaticHint}
+                        </Text>
+                      </View>
+                      <View style={styles.voiceActions}>
+                        {!currentVoice && (
+                          <Ionicons
+                            name="checkmark-circle"
+                            size={24}
+                            color={colors.primary}
+                          />
+                        )}
+                      </View>
+                    </TouchableOpacity>
+                  )}
                   <Text
                     style={[
                       styles.regionListHint,
@@ -550,6 +617,14 @@ const styles = StyleSheet.create({
     fontSize: 12,
     marginTop: 8,
     marginBottom: 4,
+  },
+  automaticIcon: {
+    marginRight: 12,
+  },
+  automaticHint: {
+    fontSize: 12,
+    lineHeight: 16,
+    marginTop: 2,
   },
   spainHint: {
     flexDirection: 'row',

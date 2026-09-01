@@ -802,6 +802,15 @@ export const AudioPlayerProvider: React.FC<AudioPlayerProviderProps> = ({
     savePreferences({selectedVoiceId: voice.identifier});
   }, []);
 
+  // Un-pin the chosen voice and hand narration back to the automatic pick
+  // (resolveNarration → pickDefaultSpanishVoiceId for Spanish). Mirrors
+  // setVoice; `setLanguage` also clears the voice but that isn't discoverable.
+  const clearVoice = useCallback(() => {
+    haptics.tap();
+    setState(prev => ({...prev, selectedVoice: null}));
+    savePreferences({selectedVoiceId: null});
+  }, []);
+
   const setLanguage = useCallback((language: AudioLanguage) => {
     haptics.tap();
     setState(prev => ({
@@ -1173,6 +1182,7 @@ export const AudioPlayerProvider: React.FC<AudioPlayerProviderProps> = ({
 
     setPlaybackSpeed,
     setVoice,
+    clearVoice,
     setLanguage,
 
     autoAdvanceChapter,
