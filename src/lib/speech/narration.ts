@@ -46,18 +46,22 @@ export function resolveSpeechLanguage(lang: string): SpeechLang {
  *    comes out with an English "yeah" sound or an audible aspirated h,
  *    "Yáh" is the same-length (3-char) fallback to try next — swap just the
  *    replacement string below, the invariant stays intact.
- *  - "Jacob" → "Ja cob" (HIGH confidence in the mechanism; 57th session).
- *    The es-ES voice reads the bare token "Jacob" as "Yacob" (/ʝ/) — device-
- *    confirmed by Victor. Spanish grapheme-to-phoneme ALWAYS maps "j" → /x/
- *    (jamón, jefe, joven…); the only way to get /ʝ/ from "j" is a name/loanword
- *    override on the exact token ("jazz", "Jennifer" → /ʝ/). So "Jacob" is
- *    being NER-matched as a foreign name. Adding an accent doesn't help
- *    ("Jacób" → still "Yacob" — the normalizer strips accents before the
- *    lookup, 56th session). Splitting the token with a space defeats the
- *    match outright: "Ja" and "cob" are not names, so the engine falls back
- *    to Spanish g2p → /xa/ + /kob/ = "ha-KOB". Cross-checked against two
- *    other es-ES engines (MS SAPI Helena/Pablo) via spectrogram, since this
- *    can't be verified in-repo by ear. THIS ENTRY IS 1 CHAR LONGER than the
+ *  - "Jacob" → "Ja cob" (57th session — mechanism HIGH confidence, acoustic
+ *    result NOT yet device-confirmed for the fix). The es-ES voice reads the
+ *    bare token "Jacob" as "Yacob" (/ʝ/) — the BUG is device-confirmed by
+ *    Victor. Spanish grapheme-to-phoneme ALWAYS maps "j" → /x/ (jamón, jefe,
+ *    joven…); the only way to get /ʝ/ from "j" is a name/loanword override on
+ *    the exact token ("jazz", "Jennifer" → /ʝ/). So "Jacob" is being
+ *    NER-matched as a foreign name. Adding an accent doesn't help ("Jacób" →
+ *    still "Yacob" — the normalizer strips accents before the lookup, 56th
+ *    session). Splitting the token with a space should defeat the match: "Ja"
+ *    and "cob" are not names, so the engine falls back to Spanish g2p → /xa/ +
+ *    /kob/ = "ha-KOB". CAVEAT: this was NOT verified against the actual Google
+ *    es-ES engine — MS SAPI (Helena/Pablo) was tried as a proxy and rejected,
+ *    because a name-override table is engine-specific and does not transfer
+ *    between vendors, so SAPI's output tells us nothing about Google's. The
+ *    split still needs one device listen on a "Jacob" verse (Salmos 20:1,
+ *    Isaías 2:3) to confirm it lands. THIS ENTRY IS 1 CHAR LONGER than the
  *    word — the only non-length-preserving entry; see the INVARIANT note.
  *  - "estatutos" (LOW confidence / inferred, not a homograph or an acronym)
  *    — Salmos 89:31 etc. drop a syllable ("estatuos"), plausibly the engine
