@@ -892,7 +892,7 @@ export default function ReadingPlanDetailScreen() {
           <View
             style={[
               styles.celebrateCard,
-              {backgroundColor: colors.card, borderColor: colors.border},
+              {backgroundColor: colors.cardSolid, borderColor: colors.border},
             ]}
             {...focusTrapProps()}>
             <Ionicons name="trophy" size={48} color={colors.primary} />

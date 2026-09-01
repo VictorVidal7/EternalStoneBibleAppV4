@@ -453,7 +453,7 @@ export default function PlanBuilderScreen() {
         onRequestClose={() => setPickerOpen(false)}>
         <View style={styles.overlay}>
           <View
-            style={[styles.modalCard, {backgroundColor: colors.card}]}
+            style={[styles.modalCard, {backgroundColor: colors.cardSolid}]}
             {...focusTrapProps()}>
             <View style={styles.modalHeader}>
               <Text style={[styles.modalTitle, {color: colors.text}]}>

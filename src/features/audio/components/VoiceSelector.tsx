@@ -164,7 +164,10 @@ export const VoiceSelector: React.FC<VoiceSelectorProps> = ({
           <Pressable
             style={[
               styles.modalContent,
-              {backgroundColor: colors.card, borderTopColor: colors.border},
+              {
+                backgroundColor: colors.cardSolid,
+                borderTopColor: colors.border,
+              },
             ]}
             onPress={e => e.stopPropagation()}
             {...focusTrapProps()}>

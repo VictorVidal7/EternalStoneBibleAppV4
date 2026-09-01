@@ -75,7 +75,7 @@ export const ConfirmDialog: React.FC<ConfirmDialogProps> = ({
         <View
           style={[
             styles.card,
-            {backgroundColor: colors.surface, borderColor: colors.border},
+            {backgroundColor: colors.cardSolid, borderColor: colors.border},
           ]}
           {...focusTrapProps()}>
           <View style={[styles.badge, {backgroundColor: accent + '22'}]}>

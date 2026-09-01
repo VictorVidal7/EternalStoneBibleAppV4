@@ -320,7 +320,7 @@ export const ReaderPreferencesSheet: React.FC<ReaderPreferencesSheetProps> = ({
           style={[
             styles.sheet,
             {
-              backgroundColor: colors.surface,
+              backgroundColor: colors.cardSolid,
               borderTopColor: colors.border,
             },
           ]}>

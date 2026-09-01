@@ -1180,7 +1180,10 @@ export const VersionComparisonScreen: React.FC<
           <View
             style={[
               styles.modalContent,
-              {backgroundColor: colors.surface, borderTopColor: colors.border},
+              {
+                backgroundColor: colors.cardSolid,
+                borderTopColor: colors.border,
+              },
             ]}
             {...focusTrapProps()}>
             <View style={styles.modalHeader}>
@@ -1285,7 +1288,10 @@ export const VersionComparisonScreen: React.FC<
           <View
             style={[
               styles.modalContent,
-              {backgroundColor: colors.surface, borderTopColor: colors.border},
+              {
+                backgroundColor: colors.cardSolid,
+                borderTopColor: colors.border,
+              },
             ]}
             {...focusTrapProps()}>
             <View style={styles.modalHeader}>
@@ -1419,7 +1425,10 @@ export const VersionComparisonScreen: React.FC<
           <View
             style={[
               styles.modalContent,
-              {backgroundColor: colors.surface, borderTopColor: colors.border},
+              {
+                backgroundColor: colors.cardSolid,
+                borderTopColor: colors.border,
+              },
             ]}
             {...focusTrapProps()}>
             <View style={styles.modalHeader}>

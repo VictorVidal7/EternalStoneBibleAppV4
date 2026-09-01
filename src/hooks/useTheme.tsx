@@ -885,6 +885,16 @@ export interface ThemeColors {
   surface: string;
   surfaceVariant: string;
   card: string;
+  /**
+   * Fully-opaque sibling of `card`/`surface`, for modal / sheet / dialog
+   * PANELS — anything that floats over a whole screen of content behind a
+   * scrim. `card`/`surface` carry a deliberate ~0.70 (dark) glass alpha for
+   * inline cards over gradient screens; on a floating panel that same alpha
+   * lets the screen behind bleed through and wrecks readability. Panels point
+   * their background here instead; purely decorative inline glass keeps using
+   * `card`/`surface`.
+   */
+  cardSolid: string;
 
   // Text
   text: string;
@@ -956,6 +966,7 @@ export const lightColors: ThemeColors = {
   surface: 'rgba(255, 255, 255, 0.95)',
   surfaceVariant: '#f8f9fc',
   card: 'rgba(255, 255, 255, 0.95)',
+  cardSolid: '#ffffff',
 
   text: '#0f172a', // slate-900
   textSecondary: '#475569', // slate-600
@@ -994,6 +1005,7 @@ export const darkColors: ThemeColors = {
   surface: 'rgba(26, 29, 46, 0.70)',
   surfaceVariant: '#1a1d2e',
   card: 'rgba(26, 29, 46, 0.70)',
+  cardSolid: '#1a1d2e', // solid twin of `card` (rgba(26,29,46,x)) for panels
 
   text: '#f8f9fc', // Casi blanco
   textSecondary: '#cbd5e1', // slate-300
@@ -1044,6 +1056,7 @@ export const HIGH_CONTRAST_COLORS: ThemeColors = {
   surface: '#0A0A0A',
   surfaceVariant: '#141414',
   card: '#0A0A0A',
+  cardSolid: '#0A0A0A', // `card` is already opaque in high contrast
 
   text: '#FFFFFF', // 21:1 on background
   textSecondary: '#EDEDED', // ~18:1

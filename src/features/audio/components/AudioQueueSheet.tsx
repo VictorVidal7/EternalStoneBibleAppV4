@@ -328,7 +328,7 @@ export const AudioQueueSheet: React.FC<AudioQueueSheetProps> = ({
         <Pressable
           style={[
             styles.modalContent,
-            {backgroundColor: colors.card, borderTopColor: colors.border},
+            {backgroundColor: colors.cardSolid, borderTopColor: colors.border},
           ]}
           onPress={e => e.stopPropagation()}
           {...focusTrapProps()}>

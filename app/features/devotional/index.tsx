@@ -572,7 +572,7 @@ export default function DevotionalBuilderScreen() {
           <View
             style={[
               styles.modalCard,
-              {backgroundColor: colors.card, borderColor: colors.border},
+              {backgroundColor: colors.cardSolid, borderColor: colors.border},
             ]}
             {...focusTrapProps()}>
             <View style={styles.modalHeader}>
