@@ -244,7 +244,7 @@ export const CrossReferencesSheet: React.FC<Props> = ({
         <View
           style={[
             styles.sheet,
-            {backgroundColor: colors.surface, borderColor: colors.border},
+            {backgroundColor: colors.cardSolid, borderColor: colors.border},
           ]}
           {...focusTrapProps()}>
           <View style={styles.header}>

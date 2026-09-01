@@ -603,7 +603,7 @@ const MilestoneCelebration: React.FC<{
           style={[
             styles.celebrateCard,
             {
-              backgroundColor: colors.surface,
+              backgroundColor: colors.cardSolid,
               borderColor: colors.border,
               transform: [{scale}],
             },

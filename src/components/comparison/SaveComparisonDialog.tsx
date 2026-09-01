@@ -57,7 +57,7 @@ export const SaveComparisonDialog: React.FC<SaveComparisonDialogProps> = ({
         <View
           style={[
             styles.modalContent,
-            {backgroundColor: colors.surface, borderColor: colors.border},
+            {backgroundColor: colors.cardSolid, borderColor: colors.border},
           ]}
           {...focusTrapProps()}>
           <View style={styles.modalHeader}>

@@ -330,7 +330,7 @@ export default function ConflictsScreen() {
           <View
             style={[
               styles.modalCard,
-              {backgroundColor: colors.surface, borderColor: colors.border},
+              {backgroundColor: colors.cardSolid, borderColor: colors.border},
             ]}
             {...focusTrapProps()}>
             <Text style={[styles.modalTitle, {color: colors.text}]}>

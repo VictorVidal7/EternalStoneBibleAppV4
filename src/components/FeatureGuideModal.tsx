@@ -75,7 +75,7 @@ export const FeatureGuideModal: React.FC<FeatureGuideModalProps> = ({
           style={[
             styles.sheet,
             {
-              backgroundColor: colors.surface,
+              backgroundColor: colors.cardSolid,
               borderTopColor: colors.border,
               paddingBottom: insets.bottom + spacing.lg,
             },

@@ -127,7 +127,7 @@ export const AddToCollectionSheet: React.FC<Props> = ({
         <View
           style={[
             styles.sheet,
-            {backgroundColor: colors.card, borderTopColor: colors.border},
+            {backgroundColor: colors.cardSolid, borderTopColor: colors.border},
           ]}
           {...focusTrapProps()}>
           <View style={styles.handle} />
@@ -229,7 +229,7 @@ export default AddToCollectionSheet;
 const styles = StyleSheet.create({
   backdrop: {
     flex: 1,
-    backgroundColor: staticColors.overlayBlack30,
+    backgroundColor: staticColors.overlayBlack45,
     justifyContent: 'flex-end',
   },
   backdropTouch: {

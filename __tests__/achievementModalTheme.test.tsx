@@ -22,6 +22,7 @@ import {translations} from '../src/i18n/translations';
 
 const mockColors = {
   surface: '#111827',
+  cardSolid: '#111827',
   text: '#f1f5f9',
   textSecondary: '#94a3b8',
   textTertiary: '#64748b',

@@ -98,7 +98,7 @@ export const PrepExportFormatSheet: React.FC<PrepExportFormatSheetProps> = ({
         <View
           style={[
             styles.card,
-            {backgroundColor: colors.surface, borderColor: colors.border},
+            {backgroundColor: colors.cardSolid, borderColor: colors.border},
           ]}
           {...focusTrapProps()}>
           <Text style={[styles.title, {color: colors.text}]}>

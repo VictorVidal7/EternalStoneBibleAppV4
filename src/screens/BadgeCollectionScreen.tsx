@@ -671,7 +671,7 @@ export const BadgeCollectionScreen: React.FC<BadgeCollectionScreenProps> = ({
             <View
               style={[
                 styles.modalContent,
-                {backgroundColor: colors.surface, borderColor: colors.border},
+                {backgroundColor: colors.cardSolid, borderColor: colors.border},
               ]}
               {...focusTrapProps()}>
               <TouchableOpacity
@@ -771,7 +771,7 @@ export const BadgeCollectionScreen: React.FC<BadgeCollectionScreenProps> = ({
             <View
               style={[
                 styles.modalContent,
-                {backgroundColor: colors.surface, borderColor: colors.border},
+                {backgroundColor: colors.cardSolid, borderColor: colors.border},
               ]}
               {...focusTrapProps()}>
               <TouchableOpacity

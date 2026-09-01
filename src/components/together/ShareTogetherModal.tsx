@@ -154,7 +154,7 @@ export function ShareTogetherModal({
         <View
           style={[
             styles.card,
-            {backgroundColor: colors.card, borderColor: colors.border},
+            {backgroundColor: colors.cardSolid, borderColor: colors.border},
           ]}
           {...focusTrapProps()}>
           <View style={styles.headerRow}>

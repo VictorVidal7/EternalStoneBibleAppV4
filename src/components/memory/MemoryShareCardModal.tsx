@@ -110,7 +110,7 @@ export const MemoryShareCardModal: React.FC<Props> = ({
         <View
           style={[
             styles.sheet,
-            {backgroundColor: colors.surface, borderTopColor: colors.border},
+            {backgroundColor: colors.cardSolid, borderTopColor: colors.border},
           ]}
           {...focusTrapProps()}>
           <View style={styles.header}>

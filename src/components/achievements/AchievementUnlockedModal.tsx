@@ -234,8 +234,10 @@ export const AchievementUnlockedModal: React.FC<
             style={[
               styles.card,
               {
-                // Theme surface + theme-primary accent ring (Sprint 83 hybrid).
-                backgroundColor: colors.surface,
+                // Opaque theme surface + theme-primary accent ring (Sprint 83
+                // hybrid); cardSolid keeps the celebration readable over the
+                // screen behind it.
+                backgroundColor: colors.cardSolid,
                 borderColor: colors.primary,
               },
             ]}

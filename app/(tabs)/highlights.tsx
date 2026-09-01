@@ -556,7 +556,10 @@ export default function HighlightsScreen() {
           <View
             style={[
               styles.modalCard,
-              {backgroundColor: colors.surface, borderTopColor: colors.border},
+              {
+                backgroundColor: colors.cardSolid,
+                borderTopColor: colors.border,
+              },
             ]}
             {...focusTrapProps()}>
             <Text style={[styles.modalTitle, {color: colors.text}]}>

@@ -171,7 +171,7 @@ export const NoteEditorModal: React.FC<NoteEditorModalProps> = ({
         <View
           style={[
             styles.content,
-            {backgroundColor: colors.surface, borderTopColor: colors.border},
+            {backgroundColor: colors.cardSolid, borderTopColor: colors.border},
           ]}
           {...focusTrapProps()}>
           <View style={styles.header}>

@@ -20,6 +20,7 @@ const mockColors = {
   textSecondary: '#475569',
   border: '#cbd5e1',
   surface: '#ffffff',
+  cardSolid: '#ffffff',
   primary: '#2563eb',
   onPrimary: '#ffffff',
   error: '#dc2626',
@@ -162,7 +163,7 @@ describe('ConfirmDialog', () => {
     // contrast. The card must now carry an explicit colors.border ring.
     const cardStyle = nearestAncestorStyleWithBackground(
       titleNode,
-      mockColors.surface,
+      mockColors.cardSolid,
     );
     expect(cardStyle?.borderColor).toBe(mockColors.border);
     expect(cardStyle?.borderWidth).toBeGreaterThan(0);
