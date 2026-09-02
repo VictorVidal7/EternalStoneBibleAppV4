@@ -5,12 +5,12 @@ _BORRADOR para la aprobación del propietario. Nada de esto está cableado en la
 
 ## Resumen
 
-|                                                 |                                                                                                                                                              |
-| ----------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| Lemas hebreos usados (total)                    | **8503**                                                                                                                                                     |
-| Entradas en `assets/hebrew-lemma-gloss-es.json` | **8503** (todas, planas, ordenadas)                                                                                                                          |
-| Nombres propios                                 | 2642 (2253 con forma RVR1960 confirmada en un versículo de muestra)                                                                                          |
-| Lemas marcados para revisión                    | **185** (8 partículas · 10 nombres divinos · 50 términos cargados · 68 auto frecuencia media · 48 translit. a mano · 1 discrepancia RVR · 0 sin traducción)_ |
+|                                                 |                                                                                                                                                             |
+| ----------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Lemas hebreos usados (total)                    | **8503**                                                                                                                                                    |
+| Entradas en `assets/hebrew-lemma-gloss-es.json` | **8503** (todas, planas, ordenadas)                                                                                                                         |
+| Nombres propios                                 | 2642 (2253 con forma RVR1960 confirmada en un versículo de muestra)                                                                                         |
+| Lemas marcados para revisión                    | **185** (8 partículas · 10 nombres divinos · 50 términos cargados · 68 auto frecuencia media · 48 translit. a mano · 1 discrepancia RVR · 0 sin traducción) |
 
 Procedencia de la glosa (`fullSource`):
 

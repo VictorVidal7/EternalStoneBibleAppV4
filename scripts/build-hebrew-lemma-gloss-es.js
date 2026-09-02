@@ -3158,7 +3158,7 @@ function writeA3Full({records, totalH}) {
     `| Nombres propios | ${proper.length} (${attestedN} con forma RVR1960 confirmada en un versículo de muestra) |`,
   );
   L.push(
-    `| Lemas marcados para revisión | **${flagged.length}** (${flaggedByKind('particle').length} partículas · ${flaggedByKind('divine').length} nombres divinos · ${flaggedByKind('weighted').length} términos cargados · ${flaggedByKind('low-confidence').length} auto frecuencia media · ${flaggedByKind('proper-fallback').length} translit. a mano · ${flaggedByKind('proper-mismatch').length} discrepancia RVR · ${flaggedByKind('untranslated').length} sin traducción)_ |`,
+    `| Lemas marcados para revisión | **${flagged.length}** (${flaggedByKind('particle').length} partículas · ${flaggedByKind('divine').length} nombres divinos · ${flaggedByKind('weighted').length} términos cargados · ${flaggedByKind('low-confidence').length} auto frecuencia media · ${flaggedByKind('proper-fallback').length} translit. a mano · ${flaggedByKind('proper-mismatch').length} discrepancia RVR · ${flaggedByKind('untranslated').length} sin traducción) |`,
   );
   L.push('');
   L.push('Procedencia de la glosa (`fullSource`):');
