@@ -262,9 +262,6 @@ export default function SettingsScreen() {
             <Text style={themedStyles.settingLabel}>
               {t.settings.selectVersion}
             </Text>
-            <Text style={themedStyles.settingDescription}>
-              {t.settings.versionDescription}
-            </Text>
 
             <View style={themedStyles.versionOptions}>
               {availableVersions.map(version => (
@@ -289,6 +286,15 @@ export default function SettingsScreen() {
                         ]}>
                         {version.abbreviation}
                       </Text>
+                      <Text
+                        style={[
+                          themedStyles.versionName,
+                          selectedVersion.id === version.id &&
+                            themedStyles.versionNameActive,
+                        ]}
+                        numberOfLines={1}>
+                        {version.name}
+                      </Text>
                       {selectedVersion.id === version.id && (
                         <Ionicons
                           name="checkmark-circle"
@@ -299,46 +305,14 @@ export default function SettingsScreen() {
                     </View>
                     <Text
                       style={[
-                        themedStyles.versionName,
+                        themedStyles.versionMetaText,
                         selectedVersion.id === version.id &&
-                          themedStyles.versionNameActive,
-                      ]}>
-                      {version.name}
+                          themedStyles.versionMetaActive,
+                      ]}
+                      numberOfLines={1}>
+                      {version.language === 'es' ? 'Español' : 'English'}
+                      {version.year ? ` · ${version.year}` : ''}
                     </Text>
-                    <View style={styles.versionMeta}>
-                      <Ionicons
-                        name="language-outline"
-                        size={12}
-                        color={
-                          selectedVersion.id === version.id
-                            ? isDark
-                              ? colors.primaryDark
-                              : colors.primary
-                            : colors.textTertiary
-                        }
-                      />
-                      <Text
-                        style={[
-                          themedStyles.versionMetaText,
-                          selectedVersion.id === version.id &&
-                            themedStyles.versionMetaActive,
-                        ]}>
-                        {version.language === 'es' ? 'Español' : 'English'}
-                      </Text>
-                      {version.year && (
-                        <>
-                          <Text style={themedStyles.versionMetaText}> • </Text>
-                          <Text
-                            style={[
-                              themedStyles.versionMetaText,
-                              selectedVersion.id === version.id &&
-                                themedStyles.versionMetaActive,
-                            ]}>
-                            {version.year}
-                          </Text>
-                        </>
-                      )}
-                    </View>
                     {/* Every version listed here comes from `availableVersions`
                         (installed-only — bundled versions + any imported
                         translation pack), so each one is fully readable and
@@ -996,14 +970,9 @@ const styles = StyleSheet.create({
   },
   versionHeader: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 6,
-  },
-  versionMeta: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginTop: 6,
+    gap: 8,
+    marginBottom: 2,
   },
   languageContent: {
     flexDirection: 'row',
@@ -1174,10 +1143,10 @@ function createThemedStyles(
       gap: 12,
     },
     versionOption: {
-      padding: 16,
+      padding: 12,
       borderRadius: 12,
       backgroundColor: colors.surfaceVariant,
-      borderWidth: 2,
+      borderWidth: 1,
       borderColor: colors.border,
     },
     versionOptionActive: {
@@ -1194,9 +1163,9 @@ function createThemedStyles(
       color: colors.primary,
     },
     versionName: {
+      flex: 1,
       fontSize: 14,
       color: colors.textSecondary,
-      marginTop: 4,
     },
     versionNameActive: {
       // Color primario para coincidir con el estilo del botón GitHub
@@ -1206,7 +1175,7 @@ function createThemedStyles(
     versionMetaText: {
       fontSize: 12,
       color: colors.textTertiary,
-      marginLeft: 4,
+      marginTop: 2,
     },
     versionMetaActive: {
       // Color primario para coincidir con el estilo del botón GitHub

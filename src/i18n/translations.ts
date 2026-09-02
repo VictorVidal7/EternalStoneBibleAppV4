@@ -3886,7 +3886,7 @@ export const translations = {
       deleteAccount: 'Eliminar cuenta',
       deleteAccountConfirmTitle: '¿Eliminar tu cuenta?',
       deleteAccountConfirmMessage:
-        'Se borrará tu contenido en la nube (favoritos, notas, resaltados, tarjetas de memoria e historial de repasos) y se cerrará tu sesión. Tu cuenta de Google no se elimina — solo se desvincula de la app, y podrás volver a iniciar sesión cuando quieras. Esto no se puede deshacer. Los datos que ya están guardados en este dispositivo no se borran — usa "Restablecer datos" en Datos si también quieres eliminarlos.',
+        'Se borrará tu contenido en la nube (favoritos, notas, resaltados, tarjetas de memoria e historial de repasos) y se cerrará tu sesión. Tu cuenta de Google no se elimina — solo se desvincula de la app, y podrás volver a iniciar sesión cuando quieras. Esto no se puede deshacer. Los datos que ya están guardados en este dispositivo no se borran — usa "Resetear Datos de la Biblia" en Gestionar datos si también quieres eliminarlos.',
       deleteAccountConfirmCta: 'Eliminar cuenta',
       deleteAccountSuccessToast: 'Tu cuenta fue eliminada',
       deleteAccountError:
@@ -10414,7 +10414,7 @@ export const translations = {
       deleteAccount: 'Delete account',
       deleteAccountConfirmTitle: 'Delete your account?',
       deleteAccountConfirmMessage:
-        'This deletes your cloud content (favorites, notes, highlights, memory cards, and review history) and signs you out. Your Google account itself is not deleted — it\'s only unlinked from the app, and you can sign back in anytime. This can\'t be undone. Data already saved on this device is not removed — use "Reset data" under Data if you want that too.',
+        'This deletes your cloud content (favorites, notes, highlights, memory cards, and review history) and signs you out. Your Google account itself is not deleted — it\'s only unlinked from the app, and you can sign back in anytime. This can\'t be undone. Data already saved on this device is not removed — use "Reset Bible Data" under Manage data if you want that too.',
       deleteAccountConfirmCta: 'Delete account',
       deleteAccountSuccessToast: 'Your account was deleted',
       deleteAccountError:
