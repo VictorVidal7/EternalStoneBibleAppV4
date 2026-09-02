@@ -136,6 +136,9 @@ const STUB_VALUE: AudioPlayerContextValue = {
   setQueueRepeat: noop,
 
   subscribeToBoundary: noopUnsubscribe,
+
+  // No TTS engine on web — the Spain-voice prompt path never runs here.
+  hasSpainVoice: null,
 };
 
 interface AudioPlayerProviderProps {

@@ -225,6 +225,16 @@ export interface AudioPlayerContextValue {
    * never emit boundaries simply never call back (graceful fallback).
    */
   subscribeToBoundary: (cb: (boundary: SpeechBoundary) => void) => () => void;
+
+  /**
+   * Whether the system TTS has an es-ES (Castilian) voice that
+   * `pickDefaultSpanishVoiceId` can pin for Spanish narration (58th session).
+   * Computed once when the voice list resolves: `null` while unresolved,
+   * `false` on a phone with Latin-America Spanish voice data only — the case
+   * where "alabadle" et al. get mangled and the mini player shows the one-time
+   * "install a Spain voice" prompt.
+   */
+  hasSpainVoice: boolean | null;
 }
 
 /** A word boundary voiced by the TTS engine (Sprint 75 — karaoke). */

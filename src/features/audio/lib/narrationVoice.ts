@@ -107,6 +107,39 @@ export function pickDefaultSpanishVoiceId(
 }
 
 /**
+ * Whether to surface the one-time "install a Spain voice" prompt for this
+ * narration (58th session).
+ *
+ * True exactly when {@link resolveNarration} is about to fall back to the OS
+ * default for Spanish with NO es-ES voice available to pin — i.e. the listener
+ * is about to hear the archaic "-dle" imperative class ("alabadle" …) mangled
+ * by a Latin-America voice, and there is no text fix for it (56th session).
+ * Mirrors `resolveNarration`'s own branch so the two cannot drift:
+ *   result === (resolveNarration(...).voiceId === undefined &&
+ *              resolveNarration(...).language starts with 'es')
+ * whenever `hasSpainVoice` is resolved (see the unit test).
+ *
+ * - `hasSpainVoice` is `pickDefaultSpanishVoiceId(list) !== undefined`, computed
+ *   once when the system voice list resolves. `null` = not resolved yet → never
+ *   prompt (don't fire before we know what's installed).
+ * - A user who explicitly picked a Spanish-family voice is honoured by
+ *   `resolveNarration` and the VoiceSelector hint is their surface — don't nag.
+ */
+export function shouldPromptForSpainVoice(params: {
+  contentLanguage: AudioLanguage | null;
+  selectedLanguage: AudioLanguage;
+  voice: VoiceInfo | null;
+  hasSpainVoice: boolean | null;
+}): boolean {
+  const {contentLanguage, selectedLanguage, voice, hasSpainVoice} = params;
+  if (hasSpainVoice === null) return false;
+  const targetLang = contentLanguage ?? selectedLanguage;
+  if (targetLang !== 'es') return false;
+  if (voice && voiceLanguageFamily(voice.language) === 'es') return false;
+  return !hasSpainVoice;
+}
+
+/**
  * Resolve the TTS language + voice to narrate with, so the VOICE always matches
  * the LANGUAGE OF THE TEXT being read.
  *

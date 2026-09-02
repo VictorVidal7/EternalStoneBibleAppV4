@@ -4383,6 +4383,9 @@ export const translations = {
         '🔁 Repetir versículo: este versículo sonará en bucle para memorizarlo',
       repeatVerseOffToast:
         'Repetición desactivada: el audio seguirá con el siguiente versículo',
+      spainVoicePrompt:
+        'Para que la RVR1960 suene bien, descarga una voz de España en los ajustes de texto a voz del sistema.',
+      spainVoicePromptAction: 'Ajustes',
       immersive: {
         listen: 'Escuchar',
         listening: 'Escuchando',
@@ -4398,7 +4401,10 @@ export const translations = {
         empty: 'No hay voces disponibles para este idioma',
         regionHint: 'Región según el sistema — toca ▶ para escuchar cada voz',
         spainRecommendation:
-          'Para la RVR1960, las voces de España pronuncian mejor las formas antiguas como «alabadle».',
+          'Para la RVR1960, elige una voz de España: pronuncia mejor las formas antiguas como «alabadle».',
+        spainRecommendationNoVoice:
+          'Para la RVR1960, una voz de España pronuncia mejor las formas antiguas como «alabadle». Descarga una en los ajustes de texto a voz del sistema. Si ya la instalaste y no aparece aquí, reinicia la app.',
+        openTtsSettings: 'Abrir ajustes de texto a voz',
         voiceWord: 'Voz',
         regions: {
           'es-ES': 'España',
@@ -10900,6 +10906,9 @@ export const translations = {
         '🔁 Repeat verse: this verse will loop so you can memorize it',
       repeatVerseOffToast:
         'Repeat off: audio will continue with the next verse',
+      spainVoicePrompt:
+        'For the RVR1960 to sound right, download a Spain voice in your Text-to-speech settings.',
+      spainVoicePromptAction: 'Settings',
       immersive: {
         listen: 'Listen',
         listening: 'Listening',
@@ -10915,7 +10924,10 @@ export const translations = {
         empty: 'No voices available for this language',
         regionHint: 'Region reported by the system — tap ▶ to hear each voice',
         spainRecommendation:
-          'For the RVR1960, Spain voices pronounce archaic forms like “alabadle” more accurately.',
+          'For the RVR1960, choose a Spain voice: it pronounces archaic forms like "alabadle" more accurately.',
+        spainRecommendationNoVoice:
+          'For the RVR1960, a Spain voice pronounces archaic forms like "alabadle" more accurately. Download one in your Text-to-speech settings. If you already installed one and it is not listed here, restart the app.',
+        openTtsSettings: 'Open Text-to-speech settings',
         voiceWord: 'Voice',
         regions: {
           'es-ES': 'Spain',

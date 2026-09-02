@@ -52,7 +52,11 @@ import {
   shuffleUpcoming,
   restoreUpcomingOrder,
 } from '../lib/playlistQueueOptions';
-import {resolveNarration, toAudioLanguage} from '../lib/narrationVoice';
+import {
+  pickDefaultSpanishVoiceId,
+  resolveNarration,
+  toAudioLanguage,
+} from '../lib/narrationVoice';
 import {applySpanishPronunciationFixes} from '@lib/speech/narration';
 import {reconcileSleepTimer} from '../lib/sleepTimer';
 import {shouldReplayVerse} from '../lib/verseRepeat';
@@ -203,6 +207,13 @@ export const AudioPlayerProvider: React.FC<AudioPlayerProviderProps> = ({
   // call resolves; a verse spoken before then just uses the OS default.
   const availableVoicesRef = useRef<VoiceInfo[] | undefined>(undefined);
 
+  // Whether the enumerated voice list has an es-ES voice `pickDefaultSpanishVoiceId`
+  // can pin (58th session). `null` until the list resolves; `false` on a phone
+  // with Latin-America Spanish voice data only — the mini player watches this to
+  // show its one-time "install a Spain voice" prompt. State (not a ref) so the
+  // player re-renders when it flips.
+  const [hasSpainVoice, setHasSpainVoice] = useState<boolean | null>(null);
+
   // Gates the premium-only 2.25x/2.5x playback speeds (T24). Optional variant
   // (mirrors useBibleVersionOptional above) so a test tree that mounts
   // AudioPlayerProvider without a PremiumProvider ancestor still works —
@@ -283,34 +294,61 @@ export const AudioPlayerProvider: React.FC<AudioPlayerProviderProps> = ({
     loadPreferences();
   }, []);
 
-  // Enumerate the system TTS voices once, so resolveNarration can pin an
-  // explicit es-ES voice for Spanish narration with no user-chosen voice.
+  // Enumerate the system TTS voices, so resolveNarration can pin an explicit
+  // es-ES voice for Spanish narration with no user-chosen voice. Runs on mount
+  // AND every time the app returns to the foreground: the 58th-session
+  // VoiceSelector hint / mini-player prompt sends the user out to the OS
+  // Text-to-speech settings to install a "Español (España)" voice, and without
+  // a refresh on return that freshly-installed voice stays invisible
+  // (availableVoicesRef stale, hasSpainVoice stuck false) until an app restart —
+  // MiniAudioPlayer is a persistent root component, so nothing else remounts
+  // this. Only touches availableVoicesRef + hasSpainVoice; never the chosen
+  // voice, so a refresh can't flip a pin.
   useEffect(() => {
     let cancelled = false;
-    Speech.getAvailableVoicesAsync()
-      .then(voices => {
-        if (cancelled) return;
-        availableVoicesRef.current = voices.map(v => ({
-          identifier: v.identifier,
-          name: v.name,
-          language: v.language,
-          quality: (v.quality || 'Default') as VoiceInfo['quality'],
-        }));
-        // One-shot ground-truth log — the es-* tags/identifiers an engine
-        // actually reports vary (es-ES / es_ES / …); useful when diagnosing
-        // a wrong-accent narration report.
-        logger.info('TTS voices enumerated', {
-          count: voices.length,
-          spanish: availableVoicesRef.current
-            .filter(v => v.language.toLowerCase().startsWith('es'))
-            .map(v => `${v.identifier}|${v.language}|${v.quality}`),
-        });
-      })
-      .catch(err =>
-        logger.warn('Error enumerating TTS voices', {error: String(err)}),
-      );
+    const enumerateVoices = () => {
+      Speech.getAvailableVoicesAsync()
+        .then(voices => {
+          if (cancelled) return;
+          const mapped = voices.map(v => ({
+            identifier: v.identifier,
+            name: v.name,
+            language: v.language,
+            quality: (v.quality || 'Default') as VoiceInfo['quality'],
+          }));
+          availableVoicesRef.current = mapped;
+          // Does the OS have a pinnable es-ES voice? Drives the mini player's
+          // one-time "install a Spain voice" prompt (58th session). An empty
+          // enumeration (TTS engine not yet bound — transient) is "unknown",
+          // NOT "no Spain voice": keep it null so the prompt can't fire on a
+          // false negative and a later foreground refresh still resolves it.
+          const spainVoice =
+            mapped.length === 0
+              ? null
+              : pickDefaultSpanishVoiceId(mapped) !== undefined;
+          setHasSpainVoice(spainVoice);
+          // One-shot ground-truth log — the es-* tags/identifiers an engine
+          // actually reports vary (es-ES / es_ES / …); useful when diagnosing
+          // a wrong-accent narration report.
+          logger.info('TTS voices enumerated', {
+            count: voices.length,
+            hasSpainVoice: spainVoice,
+            spanish: mapped
+              .filter(v => v.language.toLowerCase().startsWith('es'))
+              .map(v => `${v.identifier}|${v.language}|${v.quality}`),
+          });
+        })
+        .catch(err =>
+          logger.warn('Error enumerating TTS voices', {error: String(err)}),
+        );
+    };
+    enumerateVoices();
+    const sub = AppState.addEventListener('change', next => {
+      if (next === 'active') enumerateVoices();
+    });
     return () => {
       cancelled = true;
+      sub.remove();
     };
   }, []);
 
@@ -1189,6 +1227,8 @@ export const AudioPlayerProvider: React.FC<AudioPlayerProviderProps> = ({
     setQueueRepeat,
 
     subscribeToBoundary,
+
+    hasSpainVoice,
   };
 
   return (

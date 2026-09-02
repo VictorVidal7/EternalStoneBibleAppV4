@@ -109,6 +109,9 @@ export const AUDIO_STORAGE_KEYS = {
   selectedVoice: '@audio_selected_voice',
   listeningStats: '@audio_listening_stats',
   bookmarks: '@audio_bookmarks',
+  // One-time flag: the "install a Spain voice" prompt has been shown once on
+  // the first Spanish playback with no es-ES voice available (58th session).
+  spainVoicePromptShown: '@audio_spain_voice_prompt_shown',
 } as const;
 
 // ==================== ICONS ====================

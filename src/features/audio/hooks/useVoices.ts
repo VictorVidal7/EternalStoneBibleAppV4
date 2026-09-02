@@ -7,7 +7,7 @@
  * Para la gloria de Dios - Eternal Stone Bible App
  */
 
-import {useState, useEffect, useCallback} from 'react';
+import {useState, useEffect, useCallback, useRef} from 'react';
 import * as Speech from 'expo-speech';
 import {logger} from '@lib/utils/logger';
 import {VoiceInfo, AudioLanguage} from '../types/audio';
@@ -29,9 +29,14 @@ export const useVoices = (): UseVoicesReturn => {
   const [voices, setVoices] = useState<VoiceInfo[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const hasFetchedRef = useRef(false);
 
   const fetchVoices = useCallback(async () => {
-    setIsLoading(true);
+    // Only surface the loading state on the first fetch. A later `refreshVoices`
+    // (the selector re-opening after the user installed a "Español (España)"
+    // voice — 58th session) swaps the list in silently instead of flashing the
+    // whole modal to a spinner mid-interaction.
+    if (!hasFetchedRef.current) setIsLoading(true);
     setError(null);
 
     try {
@@ -74,6 +79,7 @@ export const useVoices = (): UseVoicesReturn => {
       logger.warn('Error fetching voices', {error: String(err)});
       setError('No se pudieron cargar las voces disponibles');
     } finally {
+      hasFetchedRef.current = true;
       setIsLoading(false);
     }
   }, []);
