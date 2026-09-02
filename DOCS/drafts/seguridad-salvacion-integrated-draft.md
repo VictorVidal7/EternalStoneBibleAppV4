@@ -1,6 +1,6 @@
 ---
 name: seguridad-salvacion-integrated-draft
-status: DRAFT — pendiente de la aprobación por secciones de Victor + revisión advisor. NO fusionar.
+status: APROBADO por Victor (checkpoint de las 4 secciones, 60ª sesión) + revisión advisor. Integrado vía scripts/add-seguridad-salvacion-entry.js.
 slug: seguridad-salvacion · headwordEs: SEGURIDAD DE LA SALVACIÓN · sourceTier: v2-doctrinal · treatment: multi-view
 titleCaseHeadword("SEGURIDAD DE LA SALVACIÓN") -> "Seguridad de la salvación" (sentence-case correcto en español; NO hace falta override en PROPER_NOUN_HEADWORDS)
 ---
