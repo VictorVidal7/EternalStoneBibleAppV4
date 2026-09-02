@@ -1,6 +1,6 @@
 # A3 — Hebrew per-lemma Spanish gloss: scope & quality report
 
-_Generated 2026-09-01 by `scripts/build-hebrew-lemma-gloss-es.js`._
+_Generated 2026-09-02 by `scripts/build-hebrew-lemma-gloss-es.js`._
 _Draft artifact for a scope decision — nothing here is wired into the app._
 
 ## The headline number
