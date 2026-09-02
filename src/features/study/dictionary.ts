@@ -219,6 +219,11 @@ export function parseMarkdownSegments(text: string): MarkdownSegment[] {
  *     la respuesta de fe de la persona" relate — the same ground both
  *     predestinacion and salvacion cover, and the two doctrines the
  *     Calvinism/Arminianism debate turns on.
+ *   - eleccion ↔ seguridad-salvacion: seguridad-salvacion's own gloss
+ *     states "la cuestión está estrechamente unida a la de la elección",
+ *     and its §1 opens by distinguishing the two questions explicitly —
+ *     same Calvinism/Arminianism debate, its perseverance-of-the-saints
+ *     half.
  * — or, for nazaret ↔ belen only, the well-established, uncontroversial
  * biblical fact that they're Jesus's birthplace and childhood hometown
  * (the one pair here with no in-gloss cross-reference, called out
@@ -246,9 +251,10 @@ export const RELATED_DICTIONARY_SLUGS: Readonly<
   'espiritu-santo': ['bautismo'],
   milenio: ['reino-de-dios'],
   'reino-de-dios': ['milenio'],
-  eleccion: ['predestinacion', 'salvacion'],
+  eleccion: ['predestinacion', 'salvacion', 'seguridad-salvacion'],
   predestinacion: ['salvacion', 'eleccion'],
   salvacion: ['predestinacion', 'eleccion'],
+  'seguridad-salvacion': ['eleccion'],
 };
 
 /** Related sibling slugs for a dictionary entry's "Ver también" section, or

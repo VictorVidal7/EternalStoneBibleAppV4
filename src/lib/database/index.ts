@@ -160,9 +160,12 @@ const DICT_V1_UPDATED_AT = '2026-07-18';
  * v8 = batch 5 (Elección — Calvinism/Arminianism, also `treatment:
  * 'multi-view'`, entirely freshly-authored, not ISBE-derived; 4 sections:
  * El debate, Arminiana y wesleyana, Reformada (calvinista), Lo que
- * confiesan juntas).
+ * confiesan juntas); v9 = batch 6 (Seguridad de la salvación — eternal
+ * security/perseverance of the saints, also `treatment: 'multi-view'`,
+ * entirely freshly-authored, not ISBE-derived; 4 sections: El debate,
+ * Arminiana y wesleyana, Reformada (calvinista), Lo que confiesan juntas).
  */
-const DICT_V2_VERSION = 8;
+const DICT_V2_VERSION = 9;
 
 /**
  * Version of the bundled WEB reading-version text (see seedWebTextIfNeeded).

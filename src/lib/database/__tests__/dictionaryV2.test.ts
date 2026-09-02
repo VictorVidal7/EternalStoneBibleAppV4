@@ -197,8 +197,8 @@ function privateApi(db: BibleDatabase) {
 }
 
 describe('dictionary-v2-es.json (bundled asset, batches 1-5)', () => {
-  it('has exactly the 12 approved entries: 8 annotated + 4 multi-view (Bautismo, Comunión, Elección, Milenio)', () => {
-    expect(BUNDLED_V2).toHaveLength(12);
+  it('has exactly the 13 approved entries: 8 annotated + 5 multi-view (Bautismo, Comunión, Elección, Milenio, Seguridad de la salvación)', () => {
+    expect(BUNDLED_V2).toHaveLength(13);
     expect(BUNDLED_V2.map(e => e.slug).sort()).toEqual([
       'bautismo',
       'comunion',
@@ -211,6 +211,7 @@ describe('dictionary-v2-es.json (bundled asset, batches 1-5)', () => {
       'reino-de-dios',
       'sabado',
       'salvacion',
+      'seguridad-salvacion',
       'tabernaculo',
     ]);
     expect(ANNOTATED_V2).toHaveLength(8);
@@ -219,6 +220,7 @@ describe('dictionary-v2-es.json (bundled asset, batches 1-5)', () => {
       'comunion',
       'eleccion',
       'milenio',
+      'seguridad-salvacion',
     ]);
   });
 
@@ -455,6 +457,23 @@ describe('dictionary-v2-es.json (bundled asset, batches 1-5)', () => {
     expect(eleccion.glossEs).toContain('sin arbitrar entre ellas');
   });
 
+  it('Seguridad de la salvación (batch 6) has exactly 4 sections in order: shared framing, two traditions (arminian first), shared common ground', () => {
+    const seguridadSalvacion = MULTIVIEW_V2.find(
+      e => e.slug === 'seguridad-salvacion',
+    )!;
+    expect(seguridadSalvacion.headwordEs).toBe('SEGURIDAD DE LA SALVACIÓN');
+    const sections = seguridadSalvacion.sections as BundledSection[];
+    expect(sections.map(s => s.labelEs)).toEqual([
+      'El debate',
+      'Arminiana y wesleyana',
+      'Reformada (calvinista)',
+      'Lo que confiesan juntas',
+    ]);
+    // Free gloss frames the entry as presenting each tradition on its own
+    // terms, without adjudicating between them.
+    expect(seguridadSalvacion.glossEs).toContain('sin arbitrar entre ellas');
+  });
+
   it('does not collide with any v1-factual slug', () => {
     const v1Slugs = new Set(BUNDLED_V1.map(e => e.slug));
     for (const e of BUNDLED_V2) {
@@ -468,11 +487,11 @@ describe('seedDictionaryV2IfNeeded', () => {
     await AsyncStorage.clear();
   });
 
-  it('inserts all 12 bundled entries into dictionary_entries', async () => {
+  it('inserts all 13 bundled entries into dictionary_entries', async () => {
     const {db, fake} = makeDb();
     await privateApi(db).seedDictionaryV2IfNeeded();
 
-    expect(fake.rows).toHaveLength(12);
+    expect(fake.rows).toHaveLength(13);
     expect(fake.rows.map(r => r.slug).sort()).toEqual(
       BUNDLED_V2.map(e => e.slug).sort(),
     );
@@ -488,7 +507,7 @@ describe('seedDictionaryV2IfNeeded', () => {
     }
   });
 
-  it('inserts multiview sections for bautismo, comunion, eleccion, and milenio, and none for an annotated slug', async () => {
+  it('inserts multiview sections for bautismo, comunion, eleccion, milenio, and seguridad-salvacion, and none for an annotated slug', async () => {
     const {db, fake} = makeDb();
     await privateApi(db).seedDictionaryV2IfNeeded();
 
@@ -521,6 +540,14 @@ describe('seedDictionaryV2IfNeeded', () => {
     );
     expect(milenioSections).toHaveLength(3);
 
+    const seguridadSalvacionSections = fake.multiviewRows.filter(
+      r => r.slug === 'seguridad-salvacion',
+    );
+    expect(seguridadSalvacionSections).toHaveLength(4);
+    expect(
+      seguridadSalvacionSections.map(r => r.position).sort((a, b) => a - b),
+    ).toEqual([1, 2, 3, 4]);
+
     const total = MULTIVIEW_V2.reduce(
       (n, e) => n + (e.sections as BundledSection[]).length,
       0,
@@ -535,12 +562,12 @@ describe('seedDictionaryV2IfNeeded', () => {
   it('is versioned: a second call is a no-op once the version flag is set', async () => {
     const {db, fake} = makeDb();
     await privateApi(db).seedDictionaryV2IfNeeded();
-    expect(fake.rows).toHaveLength(12);
+    expect(fake.rows).toHaveLength(13);
 
     fake.rows[0].gloss_es = 'stale-marker';
     await privateApi(db).seedDictionaryV2IfNeeded();
 
-    expect(fake.rows).toHaveLength(12);
+    expect(fake.rows).toHaveLength(13);
     expect(fake.rows[0].gloss_es).toBe('stale-marker');
   });
 
