@@ -212,8 +212,22 @@ const DICT_V2_UPDATED_AT = '2026-07-21';
  * and approved" mark, but no longer a placeholder. `seedHebrewGlossEsIfNeeded`
  * still skips any row whose gloss is empty/whitespace, so a future row added
  * without translation stays honestly excluded rather than seeding a blank.
+ * v3 = A4-chico positional-overlay batch (60th session): 573 new rows for
+ * the non-dominant TBESH senses of 27 genuinely-polysemous Hebrew lemmas
+ * (e.g. H4853 massa "burden"/"oracle", H2691 chatser "court"/"village"),
+ * built by `scripts/build-hebrew-gloss-es-v2.js` from two independently
+ * verified sources: mechanical (book,chapter,verse,position) keys generated
+ * from raw TAHOT, and hand-cited Spanish translations cross-checked against
+ * `bible-seed.db`. FREE tier (Victor's explicit call — this overlay already
+ * fed the free per-verse word list with no premium gate, and disambiguation
+ * is a quality fix, not new premium content). Known limitation: because
+ * overrides only ever target the NON-dominant sense, lemmas where A3's own
+ * base-lemma default already picked the wrong (non-dominant) sense are only
+ * partially improved by this batch -- the majority-occurrence experience for
+ * those lemmas still needs a separate fix to `hebrew-lemma-gloss-es.json`
+ * itself (tracked, not done here).
  */
-const HEBREW_GLOSS_ES_VERSION = 2;
+const HEBREW_GLOSS_ES_VERSION = 3;
 
 /**
  * Version of the bundled Hebrew PER-LEMMA Spanish-gloss overlay (A3 —

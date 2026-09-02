@@ -1,5 +1,775 @@
 [
   {
+    "bookId": 1,
+    "chapter": 1,
+    "verse": 21,
+    "position": 4,
+    "glossEs": "dragón"
+  },
+  {
+    "bookId": 1,
+    "chapter": 4,
+    "verse": 22,
+    "position": 10,
+    "glossEs": "arar"
+  },
+  {
+    "bookId": 1,
+    "chapter": 8,
+    "verse": 13,
+    "position": 9,
+    "glossEs": "secar"
+  },
+  {
+    "bookId": 1,
+    "chapter": 8,
+    "verse": 13,
+    "position": 20,
+    "glossEs": "secar"
+  },
+  {
+    "bookId": 1,
+    "chapter": 16,
+    "verse": 7,
+    "position": 5,
+    "glossEs": "fuente"
+  },
+  {
+    "bookId": 1,
+    "chapter": 16,
+    "verse": 7,
+    "position": 9,
+    "glossEs": "fuente"
+  },
+  {
+    "bookId": 1,
+    "chapter": 17,
+    "verse": 14,
+    "position": 12,
+    "glossEs": "pariente"
+  },
+  {
+    "bookId": 1,
+    "chapter": 24,
+    "verse": 13,
+    "position": 5,
+    "glossEs": "fuente"
+  },
+  {
+    "bookId": 1,
+    "chapter": 24,
+    "verse": 16,
+    "position": 10,
+    "glossEs": "fuente"
+  },
+  {
+    "bookId": 1,
+    "chapter": 24,
+    "verse": 29,
+    "position": 11,
+    "glossEs": "fuente"
+  },
+  {
+    "bookId": 1,
+    "chapter": 24,
+    "verse": 30,
+    "position": 28,
+    "glossEs": "fuente"
+  },
+  {
+    "bookId": 1,
+    "chapter": 24,
+    "verse": 42,
+    "position": 4,
+    "glossEs": "fuente"
+  },
+  {
+    "bookId": 1,
+    "chapter": 24,
+    "verse": 43,
+    "position": 5,
+    "glossEs": "fuente"
+  },
+  {
+    "bookId": 1,
+    "chapter": 24,
+    "verse": 45,
+    "position": 14,
+    "glossEs": "fuente"
+  },
+  {
+    "bookId": 1,
+    "chapter": 25,
+    "verse": 8,
+    "position": 10,
+    "glossEs": "pariente"
+  },
+  {
+    "bookId": 1,
+    "chapter": 25,
+    "verse": 16,
+    "position": 7,
+    "glossEs": "aldea"
+  },
+  {
+    "bookId": 1,
+    "chapter": 25,
+    "verse": 17,
+    "position": 15,
+    "glossEs": "pariente"
+  },
+  {
+    "bookId": 1,
+    "chapter": 29,
+    "verse": 34,
+    "position": 8,
+    "glossEs": "unir"
+  },
+  {
+    "bookId": 1,
+    "chapter": 35,
+    "verse": 29,
+    "position": 6,
+    "glossEs": "pariente"
+  },
+  {
+    "bookId": 1,
+    "chapter": 42,
+    "verse": 11,
+    "position": 6,
+    "glossEs": "correcto"
+  },
+  {
+    "bookId": 1,
+    "chapter": 42,
+    "verse": 19,
+    "position": 2,
+    "glossEs": "correcto"
+  },
+  {
+    "bookId": 1,
+    "chapter": 42,
+    "verse": 31,
+    "position": 3,
+    "glossEs": "correcto"
+  },
+  {
+    "bookId": 1,
+    "chapter": 42,
+    "verse": 33,
+    "position": 9,
+    "glossEs": "correcto"
+  },
+  {
+    "bookId": 1,
+    "chapter": 42,
+    "verse": 34,
+    "position": 12,
+    "glossEs": "correcto"
+  },
+  {
+    "bookId": 1,
+    "chapter": 49,
+    "verse": 22,
+    "position": 7,
+    "glossEs": "fuente"
+  },
+  {
+    "bookId": 1,
+    "chapter": 49,
+    "verse": 29,
+    "position": 8,
+    "glossEs": "pariente"
+  },
+  {
+    "bookId": 1,
+    "chapter": 49,
+    "verse": 33,
+    "position": 13,
+    "glossEs": "pariente"
+  },
+  {
+    "bookId": 2,
+    "chapter": 7,
+    "verse": 9,
+    "position": 19,
+    "glossEs": "serpiente"
+  },
+  {
+    "bookId": 2,
+    "chapter": 7,
+    "verse": 10,
+    "position": 20,
+    "glossEs": "serpiente"
+  },
+  {
+    "bookId": 2,
+    "chapter": 7,
+    "verse": 12,
+    "position": 5,
+    "glossEs": "serpiente"
+  },
+  {
+    "bookId": 2,
+    "chapter": 8,
+    "verse": 14,
+    "position": 3,
+    "glossEs": "montón"
+  },
+  {
+    "bookId": 2,
+    "chapter": 8,
+    "verse": 14,
+    "position": 4,
+    "glossEs": "montón"
+  },
+  {
+    "bookId": 2,
+    "chapter": 10,
+    "verse": 29,
+    "position": 3,
+    "glossEs": "correcto"
+  },
+  {
+    "bookId": 2,
+    "chapter": 15,
+    "verse": 4,
+    "position": 4,
+    "glossEs": "disparar"
+  },
+  {
+    "bookId": 2,
+    "chapter": 15,
+    "verse": 15,
+    "position": 5,
+    "glossEs": "líder"
+  },
+  {
+    "bookId": 2,
+    "chapter": 15,
+    "verse": 21,
+    "position": 1,
+    "glossEs": "cantar"
+  },
+  {
+    "bookId": 2,
+    "chapter": 15,
+    "verse": 24,
+    "position": 1,
+    "glossEs": "murmurar"
+  },
+  {
+    "bookId": 2,
+    "chapter": 15,
+    "verse": 27,
+    "position": 6,
+    "glossEs": "fuente"
+  },
+  {
+    "bookId": 2,
+    "chapter": 16,
+    "verse": 2,
+    "position": 1,
+    "glossEs": "murmurar"
+  },
+  {
+    "bookId": 2,
+    "chapter": 16,
+    "verse": 7,
+    "position": 14,
+    "glossEs": "murmurar"
+  },
+  {
+    "bookId": 2,
+    "chapter": 16,
+    "verse": 8,
+    "position": 18,
+    "glossEs": "murmurar"
+  },
+  {
+    "bookId": 2,
+    "chapter": 17,
+    "verse": 3,
+    "position": 5,
+    "glossEs": "murmurar"
+  },
+  {
+    "bookId": 2,
+    "chapter": 19,
+    "verse": 13,
+    "position": 9,
+    "glossEs": "disparar"
+  },
+  {
+    "bookId": 2,
+    "chapter": 19,
+    "verse": 13,
+    "position": 10,
+    "glossEs": "disparar"
+  },
+  {
+    "bookId": 2,
+    "chapter": 31,
+    "verse": 14,
+    "position": 20,
+    "glossEs": "pariente"
+  },
+  {
+    "bookId": 2,
+    "chapter": 32,
+    "verse": 11,
+    "position": 1,
+    "glossEs": "suplicar"
+  },
+  {
+    "bookId": 2,
+    "chapter": 32,
+    "verse": 18,
+    "position": 4,
+    "glossEs": "cantar"
+  },
+  {
+    "bookId": 2,
+    "chapter": 32,
+    "verse": 18,
+    "position": 8,
+    "glossEs": "cantar"
+  },
+  {
+    "bookId": 2,
+    "chapter": 32,
+    "verse": 18,
+    "position": 11,
+    "glossEs": "cantar"
+  },
+  {
+    "bookId": 3,
+    "chapter": 7,
+    "verse": 20,
+    "position": 14,
+    "glossEs": "pariente"
+  },
+  {
+    "bookId": 3,
+    "chapter": 7,
+    "verse": 21,
+    "position": 24,
+    "glossEs": "pariente"
+  },
+  {
+    "bookId": 3,
+    "chapter": 7,
+    "verse": 25,
+    "position": 15,
+    "glossEs": "pariente"
+  },
+  {
+    "bookId": 3,
+    "chapter": 7,
+    "verse": 27,
+    "position": 10,
+    "glossEs": "pariente"
+  },
+  {
+    "bookId": 3,
+    "chapter": 17,
+    "verse": 4,
+    "position": 23,
+    "glossEs": "pariente"
+  },
+  {
+    "bookId": 3,
+    "chapter": 17,
+    "verse": 9,
+    "position": 13,
+    "glossEs": "pariente"
+  },
+  {
+    "bookId": 3,
+    "chapter": 17,
+    "verse": 10,
+    "position": 22,
+    "glossEs": "pariente"
+  },
+  {
+    "bookId": 3,
+    "chapter": 18,
+    "verse": 18,
+    "position": 6,
+    "glossEs": "rivalizar"
+  },
+  {
+    "bookId": 3,
+    "chapter": 18,
+    "verse": 29,
+    "position": 12,
+    "glossEs": "pariente"
+  },
+  {
+    "bookId": 3,
+    "chapter": 19,
+    "verse": 8,
+    "position": 12,
+    "glossEs": "pariente"
+  },
+  {
+    "bookId": 3,
+    "chapter": 21,
+    "verse": 1,
+    "position": 15,
+    "glossEs": "pariente"
+  },
+  {
+    "bookId": 3,
+    "chapter": 21,
+    "verse": 4,
+    "position": 4,
+    "glossEs": "pariente"
+  },
+  {
+    "bookId": 3,
+    "chapter": 21,
+    "verse": 14,
+    "position": 12,
+    "glossEs": "pariente"
+  },
+  {
+    "bookId": 3,
+    "chapter": 21,
+    "verse": 15,
+    "position": 4,
+    "glossEs": "pariente"
+  },
+  {
+    "bookId": 3,
+    "chapter": 23,
+    "verse": 29,
+    "position": 11,
+    "glossEs": "pariente"
+  },
+  {
+    "bookId": 3,
+    "chapter": 25,
+    "verse": 31,
+    "position": 2,
+    "glossEs": "aldea"
+  },
+  {
+    "bookId": 3,
+    "chapter": 27,
+    "verse": 16,
+    "position": 12,
+    "glossEs": "homer (medida)"
+  },
+  {
+    "bookId": 4,
+    "chapter": 9,
+    "verse": 13,
+    "position": 14,
+    "glossEs": "pariente"
+  },
+  {
+    "bookId": 4,
+    "chapter": 11,
+    "verse": 23,
+    "position": 7,
+    "glossEs": "congoja"
+  },
+  {
+    "bookId": 4,
+    "chapter": 11,
+    "verse": 32,
+    "position": 17,
+    "glossEs": "homer (medida)"
+  },
+  {
+    "bookId": 4,
+    "chapter": 14,
+    "verse": 2,
+    "position": 1,
+    "glossEs": "murmurar"
+  },
+  {
+    "bookId": 4,
+    "chapter": 14,
+    "verse": 27,
+    "position": 8,
+    "glossEs": "murmurar"
+  },
+  {
+    "bookId": 4,
+    "chapter": 14,
+    "verse": 27,
+    "position": 16,
+    "glossEs": "murmurar"
+  },
+  {
+    "bookId": 4,
+    "chapter": 14,
+    "verse": 29,
+    "position": 14,
+    "glossEs": "murmurar"
+  },
+  {
+    "bookId": 4,
+    "chapter": 14,
+    "verse": 36,
+    "position": 9,
+    "glossEs": "murmurar"
+  },
+  {
+    "bookId": 4,
+    "chapter": 16,
+    "verse": 11,
+    "position": 12,
+    "glossEs": "murmurar"
+  },
+  {
+    "bookId": 4,
+    "chapter": 16,
+    "verse": 41,
+    "position": 1,
+    "glossEs": "murmurar"
+  },
+  {
+    "bookId": 4,
+    "chapter": 17,
+    "verse": 5,
+    "position": 16,
+    "glossEs": "murmurar"
+  },
+  {
+    "bookId": 4,
+    "chapter": 18,
+    "verse": 2,
+    "position": 10,
+    "glossEs": "unir"
+  },
+  {
+    "bookId": 4,
+    "chapter": 18,
+    "verse": 4,
+    "position": 1,
+    "glossEs": "unir"
+  },
+  {
+    "bookId": 4,
+    "chapter": 20,
+    "verse": 24,
+    "position": 4,
+    "glossEs": "pariente"
+  },
+  {
+    "bookId": 4,
+    "chapter": 21,
+    "verse": 4,
+    "position": 11,
+    "glossEs": "congoja"
+  },
+  {
+    "bookId": 4,
+    "chapter": 21,
+    "verse": 17,
+    "position": 9,
+    "glossEs": "cantar"
+  },
+  {
+    "bookId": 4,
+    "chapter": 21,
+    "verse": 30,
+    "position": 1,
+    "glossEs": "disparar"
+  },
+  {
+    "bookId": 4,
+    "chapter": 22,
+    "verse": 3,
+    "position": 1,
+    "glossEs": "temer"
+  },
+  {
+    "bookId": 4,
+    "chapter": 22,
+    "verse": 26,
+    "position": 7,
+    "glossEs": "estrecho"
+  },
+  {
+    "bookId": 4,
+    "chapter": 27,
+    "verse": 7,
+    "position": 1,
+    "glossEs": "correcto"
+  },
+  {
+    "bookId": 4,
+    "chapter": 27,
+    "verse": 13,
+    "position": 5,
+    "glossEs": "pariente"
+  },
+  {
+    "bookId": 4,
+    "chapter": 31,
+    "verse": 2,
+    "position": 10,
+    "glossEs": "pariente"
+  },
+  {
+    "bookId": 4,
+    "chapter": 31,
+    "verse": 3,
+    "position": 6,
+    "glossEs": "armar"
+  },
+  {
+    "bookId": 4,
+    "chapter": 31,
+    "verse": 5,
+    "position": 9,
+    "glossEs": "armar"
+  },
+  {
+    "bookId": 4,
+    "chapter": 32,
+    "verse": 17,
+    "position": 2,
+    "glossEs": "armar"
+  },
+  {
+    "bookId": 4,
+    "chapter": 32,
+    "verse": 20,
+    "position": 10,
+    "glossEs": "armar"
+  },
+  {
+    "bookId": 4,
+    "chapter": 32,
+    "verse": 21,
+    "position": 4,
+    "glossEs": "armar"
+  },
+  {
+    "bookId": 4,
+    "chapter": 32,
+    "verse": 27,
+    "position": 4,
+    "glossEs": "armar"
+  },
+  {
+    "bookId": 4,
+    "chapter": 32,
+    "verse": 29,
+    "position": 14,
+    "glossEs": "armar"
+  },
+  {
+    "bookId": 4,
+    "chapter": 32,
+    "verse": 30,
+    "position": 4,
+    "glossEs": "armar"
+  },
+  {
+    "bookId": 4,
+    "chapter": 32,
+    "verse": 32,
+    "position": 3,
+    "glossEs": "armar"
+  },
+  {
+    "bookId": 4,
+    "chapter": 33,
+    "verse": 9,
+    "position": 8,
+    "glossEs": "fuente"
+  },
+  {
+    "bookId": 4,
+    "chapter": 36,
+    "verse": 5,
+    "position": 10,
+    "glossEs": "correcto"
+  },
+  {
+    "bookId": 5,
+    "chapter": 1,
+    "verse": 17,
+    "position": 9,
+    "glossEs": "temer"
+  },
+  {
+    "bookId": 5,
+    "chapter": 2,
+    "verse": 23,
+    "position": 3,
+    "glossEs": "aldea"
+  },
+  {
+    "bookId": 5,
+    "chapter": 3,
+    "verse": 18,
+    "position": 14,
+    "glossEs": "armar"
+  },
+  {
+    "bookId": 5,
+    "chapter": 4,
+    "verse": 30,
+    "position": 1,
+    "glossEs": "tribulación"
+  },
+  {
+    "bookId": 5,
+    "chapter": 8,
+    "verse": 7,
+    "position": 11,
+    "glossEs": "fuente"
+  },
+  {
+    "bookId": 5,
+    "chapter": 12,
+    "verse": 15,
+    "position": 19,
+    "glossEs": "gacela"
+  },
+  {
+    "bookId": 5,
+    "chapter": 12,
+    "verse": 22,
+    "position": 5,
+    "glossEs": "gacela"
+  },
+  {
+    "bookId": 5,
+    "chapter": 14,
+    "verse": 5,
+    "position": 2,
+    "glossEs": "gacela"
+  },
+  {
+    "bookId": 5,
+    "chapter": 15,
+    "verse": 22,
+    "position": 6,
+    "glossEs": "gacela"
+  },
+  {
+    "bookId": 5,
+    "chapter": 18,
+    "verse": 22,
+    "position": 21,
+    "glossEs": "temer"
+  },
+  {
+    "bookId": 5,
+    "chapter": 22,
+    "verse": 10,
+    "position": 2,
+    "glossEs": "arar"
+  },
+  {
     "bookId": 5,
     "chapter": 27,
     "verse": 15,
@@ -126,6 +896,1413 @@
     "glossEs": "amén"
   },
   {
+    "bookId": 5,
+    "chapter": 32,
+    "verse": 27,
+    "position": 4,
+    "glossEs": "temer"
+  },
+  {
+    "bookId": 5,
+    "chapter": 32,
+    "verse": 33,
+    "position": 2,
+    "glossEs": "serpiente"
+  },
+  {
+    "bookId": 5,
+    "chapter": 32,
+    "verse": 50,
+    "position": 9,
+    "glossEs": "pariente"
+  },
+  {
+    "bookId": 5,
+    "chapter": 32,
+    "verse": 50,
+    "position": 18,
+    "glossEs": "pariente"
+  },
+  {
+    "bookId": 5,
+    "chapter": 33,
+    "verse": 28,
+    "position": 5,
+    "glossEs": "fuente"
+  },
+  {
+    "bookId": 6,
+    "chapter": 2,
+    "verse": 4,
+    "position": 8,
+    "glossEs": "correcto"
+  },
+  {
+    "bookId": 6,
+    "chapter": 4,
+    "verse": 13,
+    "position": 3,
+    "glossEs": "armar"
+  },
+  {
+    "bookId": 6,
+    "chapter": 6,
+    "verse": 7,
+    "position": 8,
+    "glossEs": "armar"
+  },
+  {
+    "bookId": 6,
+    "chapter": 6,
+    "verse": 9,
+    "position": 1,
+    "glossEs": "armar"
+  },
+  {
+    "bookId": 6,
+    "chapter": 6,
+    "verse": 13,
+    "position": 14,
+    "glossEs": "armar"
+  },
+  {
+    "bookId": 6,
+    "chapter": 9,
+    "verse": 18,
+    "position": 13,
+    "glossEs": "murmurar"
+  },
+  {
+    "bookId": 6,
+    "chapter": 13,
+    "verse": 23,
+    "position": 13,
+    "glossEs": "aldea"
+  },
+  {
+    "bookId": 6,
+    "chapter": 13,
+    "verse": 28,
+    "position": 7,
+    "glossEs": "aldea"
+  },
+  {
+    "bookId": 6,
+    "chapter": 15,
+    "verse": 32,
+    "position": 9,
+    "glossEs": "aldea"
+  },
+  {
+    "bookId": 6,
+    "chapter": 15,
+    "verse": 36,
+    "position": 8,
+    "glossEs": "aldea"
+  },
+  {
+    "bookId": 6,
+    "chapter": 15,
+    "verse": 41,
+    "position": 9,
+    "glossEs": "aldea"
+  },
+  {
+    "bookId": 6,
+    "chapter": 15,
+    "verse": 44,
+    "position": 6,
+    "glossEs": "aldea"
+  },
+  {
+    "bookId": 6,
+    "chapter": 15,
+    "verse": 45,
+    "position": 3,
+    "glossEs": "aldea"
+  },
+  {
+    "bookId": 6,
+    "chapter": 15,
+    "verse": 46,
+    "position": 8,
+    "glossEs": "aldea"
+  },
+  {
+    "bookId": 6,
+    "chapter": 15,
+    "verse": 47,
+    "position": 3,
+    "glossEs": "aldea"
+  },
+  {
+    "bookId": 6,
+    "chapter": 15,
+    "verse": 47,
+    "position": 6,
+    "glossEs": "aldea"
+  },
+  {
+    "bookId": 6,
+    "chapter": 15,
+    "verse": 51,
+    "position": 7,
+    "glossEs": "aldea"
+  },
+  {
+    "bookId": 6,
+    "chapter": 15,
+    "verse": 54,
+    "position": 9,
+    "glossEs": "aldea"
+  },
+  {
+    "bookId": 6,
+    "chapter": 15,
+    "verse": 57,
+    "position": 6,
+    "glossEs": "aldea"
+  },
+  {
+    "bookId": 6,
+    "chapter": 15,
+    "verse": 59,
+    "position": 7,
+    "glossEs": "aldea"
+  },
+  {
+    "bookId": 6,
+    "chapter": 15,
+    "verse": 60,
+    "position": 9,
+    "glossEs": "aldea"
+  },
+  {
+    "bookId": 6,
+    "chapter": 15,
+    "verse": 62,
+    "position": 8,
+    "glossEs": "aldea"
+  },
+  {
+    "bookId": 6,
+    "chapter": 16,
+    "verse": 9,
+    "position": 11,
+    "glossEs": "aldea"
+  },
+  {
+    "bookId": 6,
+    "chapter": 18,
+    "verse": 6,
+    "position": 10,
+    "glossEs": "disparar"
+  },
+  {
+    "bookId": 6,
+    "chapter": 18,
+    "verse": 24,
+    "position": 8,
+    "glossEs": "aldea"
+  },
+  {
+    "bookId": 6,
+    "chapter": 18,
+    "verse": 28,
+    "position": 11,
+    "glossEs": "aldea"
+  },
+  {
+    "bookId": 6,
+    "chapter": 19,
+    "verse": 6,
+    "position": 7,
+    "glossEs": "aldea"
+  },
+  {
+    "bookId": 6,
+    "chapter": 19,
+    "verse": 7,
+    "position": 7,
+    "glossEs": "aldea"
+  },
+  {
+    "bookId": 6,
+    "chapter": 19,
+    "verse": 8,
+    "position": 2,
+    "glossEs": "aldea"
+  },
+  {
+    "bookId": 6,
+    "chapter": 19,
+    "verse": 15,
+    "position": 10,
+    "glossEs": "aldea"
+  },
+  {
+    "bookId": 6,
+    "chapter": 19,
+    "verse": 16,
+    "position": 8,
+    "glossEs": "aldea"
+  },
+  {
+    "bookId": 6,
+    "chapter": 19,
+    "verse": 22,
+    "position": 14,
+    "glossEs": "aldea"
+  },
+  {
+    "bookId": 6,
+    "chapter": 19,
+    "verse": 23,
+    "position": 8,
+    "glossEs": "aldea"
+  },
+  {
+    "bookId": 6,
+    "chapter": 19,
+    "verse": 30,
+    "position": 7,
+    "glossEs": "aldea"
+  },
+  {
+    "bookId": 6,
+    "chapter": 19,
+    "verse": 31,
+    "position": 9,
+    "glossEs": "aldea"
+  },
+  {
+    "bookId": 6,
+    "chapter": 19,
+    "verse": 38,
+    "position": 12,
+    "glossEs": "aldea"
+  },
+  {
+    "bookId": 6,
+    "chapter": 19,
+    "verse": 39,
+    "position": 8,
+    "glossEs": "aldea"
+  },
+  {
+    "bookId": 6,
+    "chapter": 19,
+    "verse": 48,
+    "position": 9,
+    "glossEs": "aldea"
+  },
+  {
+    "bookId": 6,
+    "chapter": 21,
+    "verse": 12,
+    "position": 5,
+    "glossEs": "aldea"
+  },
+  {
+    "bookId": 7,
+    "chapter": 5,
+    "verse": 14,
+    "position": 7,
+    "glossEs": "pariente"
+  },
+  {
+    "bookId": 7,
+    "chapter": 5,
+    "verse": 14,
+    "position": 15,
+    "glossEs": "secretario"
+  },
+  {
+    "bookId": 7,
+    "chapter": 10,
+    "verse": 16,
+    "position": 9,
+    "glossEs": "congoja"
+  },
+  {
+    "bookId": 7,
+    "chapter": 11,
+    "verse": 7,
+    "position": 17,
+    "glossEs": "tribulación"
+  },
+  {
+    "bookId": 7,
+    "chapter": 12,
+    "verse": 6,
+    "position": 11,
+    "glossEs": "correcto"
+  },
+  {
+    "bookId": 7,
+    "chapter": 14,
+    "verse": 3,
+    "position": 9,
+    "glossEs": "pariente"
+  },
+  {
+    "bookId": 7,
+    "chapter": 14,
+    "verse": 6,
+    "position": 1,
+    "glossEs": "arremeter"
+  },
+  {
+    "bookId": 7,
+    "chapter": 14,
+    "verse": 18,
+    "position": 19,
+    "glossEs": "arar"
+  },
+  {
+    "bookId": 7,
+    "chapter": 14,
+    "verse": 19,
+    "position": 1,
+    "glossEs": "arremeter"
+  },
+  {
+    "bookId": 7,
+    "chapter": 15,
+    "verse": 14,
+    "position": 8,
+    "glossEs": "arremeter"
+  },
+  {
+    "bookId": 7,
+    "chapter": 16,
+    "verse": 7,
+    "position": 11,
+    "glossEs": "secar"
+  },
+  {
+    "bookId": 7,
+    "chapter": 16,
+    "verse": 8,
+    "position": 10,
+    "glossEs": "secar"
+  },
+  {
+    "bookId": 7,
+    "chapter": 16,
+    "verse": 16,
+    "position": 9,
+    "glossEs": "congoja"
+  },
+  {
+    "bookId": 9,
+    "chapter": 1,
+    "verse": 24,
+    "position": 10,
+    "glossEs": "odre"
+  },
+  {
+    "bookId": 9,
+    "chapter": 2,
+    "verse": 32,
+    "position": 2,
+    "glossEs": "estrecho"
+  },
+  {
+    "bookId": 9,
+    "chapter": 8,
+    "verse": 12,
+    "position": 7,
+    "glossEs": "arar"
+  },
+  {
+    "bookId": 9,
+    "chapter": 10,
+    "verse": 3,
+    "position": 28,
+    "glossEs": "odre"
+  },
+  {
+    "bookId": 9,
+    "chapter": 10,
+    "verse": 6,
+    "position": 1,
+    "glossEs": "arremeter"
+  },
+  {
+    "bookId": 9,
+    "chapter": 10,
+    "verse": 10,
+    "position": 8,
+    "glossEs": "arremeter"
+  },
+  {
+    "bookId": 9,
+    "chapter": 11,
+    "verse": 6,
+    "position": 1,
+    "glossEs": "arremeter"
+  },
+  {
+    "bookId": 9,
+    "chapter": 13,
+    "verse": 6,
+    "position": 5,
+    "glossEs": "tribulación"
+  },
+  {
+    "bookId": 9,
+    "chapter": 13,
+    "verse": 12,
+    "position": 10,
+    "glossEs": "suplicar"
+  },
+  {
+    "bookId": 9,
+    "chapter": 16,
+    "verse": 13,
+    "position": 10,
+    "glossEs": "arremeter"
+  },
+  {
+    "bookId": 9,
+    "chapter": 18,
+    "verse": 7,
+    "position": 1,
+    "glossEs": "cantar"
+  },
+  {
+    "bookId": 9,
+    "chapter": 18,
+    "verse": 10,
+    "position": 3,
+    "glossEs": "arremeter"
+  },
+  {
+    "bookId": 9,
+    "chapter": 18,
+    "verse": 15,
+    "position": 7,
+    "glossEs": "temer"
+  },
+  {
+    "bookId": 9,
+    "chapter": 20,
+    "verse": 20,
+    "position": 5,
+    "glossEs": "disparar"
+  },
+  {
+    "bookId": 9,
+    "chapter": 20,
+    "verse": 36,
+    "position": 10,
+    "glossEs": "disparar"
+  },
+  {
+    "bookId": 9,
+    "chapter": 20,
+    "verse": 36,
+    "position": 14,
+    "glossEs": "disparar"
+  },
+  {
+    "bookId": 9,
+    "chapter": 20,
+    "verse": 37,
+    "position": 7,
+    "glossEs": "disparar"
+  },
+  {
+    "bookId": 9,
+    "chapter": 21,
+    "verse": 11,
+    "position": 12,
+    "glossEs": "cantar"
+  },
+  {
+    "bookId": 9,
+    "chapter": 21,
+    "verse": 13,
+    "position": 5,
+    "glossEs": "enloquecer"
+  },
+  {
+    "bookId": 9,
+    "chapter": 23,
+    "verse": 9,
+    "position": 6,
+    "glossEs": "arar"
+  },
+  {
+    "bookId": 9,
+    "chapter": 25,
+    "verse": 18,
+    "position": 7,
+    "glossEs": "odre"
+  },
+  {
+    "bookId": 9,
+    "chapter": 29,
+    "verse": 1,
+    "position": 9,
+    "glossEs": "fuente"
+  },
+  {
+    "bookId": 9,
+    "chapter": 29,
+    "verse": 5,
+    "position": 5,
+    "glossEs": "cantar"
+  },
+  {
+    "bookId": 9,
+    "chapter": 31,
+    "verse": 3,
+    "position": 6,
+    "glossEs": "disparar"
+  },
+  {
+    "bookId": 9,
+    "chapter": 31,
+    "verse": 3,
+    "position": 11,
+    "glossEs": "disparar"
+  },
+  {
+    "bookId": 10,
+    "chapter": 2,
+    "verse": 18,
+    "position": 13,
+    "glossEs": "gacela"
+  },
+  {
+    "bookId": 10,
+    "chapter": 8,
+    "verse": 17,
+    "position": 9,
+    "glossEs": "secretario"
+  },
+  {
+    "bookId": 10,
+    "chapter": 11,
+    "verse": 20,
+    "position": 17,
+    "glossEs": "disparar"
+  },
+  {
+    "bookId": 10,
+    "chapter": 11,
+    "verse": 24,
+    "position": 1,
+    "glossEs": "disparar"
+  },
+  {
+    "bookId": 10,
+    "chapter": 11,
+    "verse": 24,
+    "position": 2,
+    "glossEs": "disparar"
+  },
+  {
+    "bookId": 10,
+    "chapter": 16,
+    "verse": 1,
+    "position": 21,
+    "glossEs": "odre"
+  },
+  {
+    "bookId": 10,
+    "chapter": 19,
+    "verse": 17,
+    "position": 15,
+    "glossEs": "arremeter"
+  },
+  {
+    "bookId": 10,
+    "chapter": 20,
+    "verse": 25,
+    "position": 2,
+    "glossEs": "secretario"
+  },
+  {
+    "bookId": 10,
+    "chapter": 22,
+    "verse": 7,
+    "position": 1,
+    "glossEs": "tribulación"
+  },
+  {
+    "bookId": 10,
+    "chapter": 24,
+    "verse": 14,
+    "position": 5,
+    "glossEs": "tribulación"
+  },
+  {
+    "bookId": 11,
+    "chapter": 4,
+    "verse": 3,
+    "position": 5,
+    "glossEs": "secretario"
+  },
+  {
+    "bookId": 11,
+    "chapter": 4,
+    "verse": 23,
+    "position": 11,
+    "glossEs": "gacela"
+  },
+  {
+    "bookId": 11,
+    "chapter": 6,
+    "verse": 31,
+    "position": 8,
+    "glossEs": "poste"
+  },
+  {
+    "bookId": 11,
+    "chapter": 7,
+    "verse": 14,
+    "position": 10,
+    "glossEs": "arar"
+  },
+  {
+    "bookId": 11,
+    "chapter": 13,
+    "verse": 6,
+    "position": 7,
+    "glossEs": "suplicar"
+  },
+  {
+    "bookId": 11,
+    "chapter": 13,
+    "verse": 6,
+    "position": 18,
+    "glossEs": "suplicar"
+  },
+  {
+    "bookId": 11,
+    "chapter": 19,
+    "verse": 19,
+    "position": 9,
+    "glossEs": "arar"
+  },
+  {
+    "bookId": 12,
+    "chapter": 4,
+    "verse": 13,
+    "position": 27,
+    "glossEs": "pariente"
+  },
+  {
+    "bookId": 12,
+    "chapter": 6,
+    "verse": 1,
+    "position": 14,
+    "glossEs": "estrecho"
+  },
+  {
+    "bookId": 12,
+    "chapter": 7,
+    "verse": 9,
+    "position": 6,
+    "glossEs": "correcto"
+  },
+  {
+    "bookId": 12,
+    "chapter": 9,
+    "verse": 25,
+    "position": 25,
+    "glossEs": "profecía"
+  },
+  {
+    "bookId": 12,
+    "chapter": 12,
+    "verse": 10,
+    "position": 8,
+    "glossEs": "secretario"
+  },
+  {
+    "bookId": 12,
+    "chapter": 13,
+    "verse": 4,
+    "position": 1,
+    "glossEs": "suplicar"
+  },
+  {
+    "bookId": 12,
+    "chapter": 13,
+    "verse": 17,
+    "position": 8,
+    "glossEs": "disparar"
+  },
+  {
+    "bookId": 12,
+    "chapter": 13,
+    "verse": 17,
+    "position": 9,
+    "glossEs": "disparar"
+  },
+  {
+    "bookId": 12,
+    "chapter": 17,
+    "verse": 9,
+    "position": 7,
+    "glossEs": "correcto"
+  },
+  {
+    "bookId": 12,
+    "chapter": 18,
+    "verse": 18,
+    "position": 13,
+    "glossEs": "secretario"
+  },
+  {
+    "bookId": 12,
+    "chapter": 18,
+    "verse": 37,
+    "position": 9,
+    "glossEs": "secretario"
+  },
+  {
+    "bookId": 12,
+    "chapter": 19,
+    "verse": 2,
+    "position": 8,
+    "glossEs": "secretario"
+  },
+  {
+    "bookId": 12,
+    "chapter": 19,
+    "verse": 24,
+    "position": 6,
+    "glossEs": "secar"
+  },
+  {
+    "bookId": 12,
+    "chapter": 19,
+    "verse": 32,
+    "position": 14,
+    "glossEs": "disparar"
+  },
+  {
+    "bookId": 12,
+    "chapter": 22,
+    "verse": 3,
+    "position": 15,
+    "glossEs": "secretario"
+  },
+  {
+    "bookId": 12,
+    "chapter": 22,
+    "verse": 8,
+    "position": 7,
+    "glossEs": "secretario"
+  },
+  {
+    "bookId": 12,
+    "chapter": 22,
+    "verse": 9,
+    "position": 3,
+    "glossEs": "secretario"
+  },
+  {
+    "bookId": 12,
+    "chapter": 22,
+    "verse": 10,
+    "position": 3,
+    "glossEs": "secretario"
+  },
+  {
+    "bookId": 12,
+    "chapter": 22,
+    "verse": 12,
+    "position": 16,
+    "glossEs": "secretario"
+  },
+  {
+    "bookId": 12,
+    "chapter": 24,
+    "verse": 15,
+    "position": 14,
+    "glossEs": "líder"
+  },
+  {
+    "bookId": 12,
+    "chapter": 25,
+    "verse": 8,
+    "position": 16,
+    "glossEs": "capitán"
+  },
+  {
+    "bookId": 12,
+    "chapter": 25,
+    "verse": 10,
+    "position": 10,
+    "glossEs": "capitán"
+  },
+  {
+    "bookId": 12,
+    "chapter": 25,
+    "verse": 11,
+    "position": 18,
+    "glossEs": "capitán"
+  },
+  {
+    "bookId": 12,
+    "chapter": 25,
+    "verse": 12,
+    "position": 4,
+    "glossEs": "capitán"
+  },
+  {
+    "bookId": 12,
+    "chapter": 25,
+    "verse": 15,
+    "position": 12,
+    "glossEs": "capitán"
+  },
+  {
+    "bookId": 12,
+    "chapter": 25,
+    "verse": 18,
+    "position": 2,
+    "glossEs": "capitán"
+  },
+  {
+    "bookId": 12,
+    "chapter": 25,
+    "verse": 19,
+    "position": 21,
+    "glossEs": "secretario"
+  },
+  {
+    "bookId": 12,
+    "chapter": 25,
+    "verse": 20,
+    "position": 4,
+    "glossEs": "capitán"
+  },
+  {
+    "bookId": 13,
+    "chapter": 2,
+    "verse": 55,
+    "position": 2,
+    "glossEs": "secretario"
+  },
+  {
+    "bookId": 13,
+    "chapter": 6,
+    "verse": 56,
+    "position": 5,
+    "glossEs": "aldea"
+  },
+  {
+    "bookId": 13,
+    "chapter": 9,
+    "verse": 16,
+    "position": 14,
+    "glossEs": "aldea"
+  },
+  {
+    "bookId": 13,
+    "chapter": 9,
+    "verse": 22,
+    "position": 9,
+    "glossEs": "aldea"
+  },
+  {
+    "bookId": 13,
+    "chapter": 9,
+    "verse": 25,
+    "position": 2,
+    "glossEs": "aldea"
+  },
+  {
+    "bookId": 13,
+    "chapter": 10,
+    "verse": 3,
+    "position": 6,
+    "glossEs": "disparar"
+  },
+  {
+    "bookId": 13,
+    "chapter": 10,
+    "verse": 3,
+    "position": 10,
+    "glossEs": "disparar"
+  },
+  {
+    "bookId": 13,
+    "chapter": 12,
+    "verse": 8,
+    "position": 19,
+    "glossEs": "gacela"
+  },
+  {
+    "bookId": 13,
+    "chapter": 12,
+    "verse": 23,
+    "position": 4,
+    "glossEs": "armar"
+  },
+  {
+    "bookId": 13,
+    "chapter": 12,
+    "verse": 24,
+    "position": 10,
+    "glossEs": "armar"
+  },
+  {
+    "bookId": 13,
+    "chapter": 18,
+    "verse": 16,
+    "position": 9,
+    "glossEs": "secretario"
+  },
+  {
+    "bookId": 13,
+    "chapter": 21,
+    "verse": 13,
+    "position": 5,
+    "glossEs": "tribulación"
+  },
+  {
+    "bookId": 13,
+    "chapter": 24,
+    "verse": 6,
+    "position": 5,
+    "glossEs": "secretario"
+  },
+  {
+    "bookId": 13,
+    "chapter": 27,
+    "verse": 32,
+    "position": 7,
+    "glossEs": "secretario"
+  },
+  {
+    "bookId": 14,
+    "chapter": 15,
+    "verse": 4,
+    "position": 2,
+    "glossEs": "tribulación"
+  },
+  {
+    "bookId": 14,
+    "chapter": 17,
+    "verse": 18,
+    "position": 8,
+    "glossEs": "armar"
+  },
+  {
+    "bookId": 14,
+    "chapter": 20,
+    "verse": 21,
+    "position": 12,
+    "glossEs": "armar"
+  },
+  {
+    "bookId": 14,
+    "chapter": 24,
+    "verse": 11,
+    "position": 16,
+    "glossEs": "secretario"
+  },
+  {
+    "bookId": 14,
+    "chapter": 24,
+    "verse": 27,
+    "position": 3,
+    "glossEs": "profecía"
+  },
+  {
+    "bookId": 14,
+    "chapter": 26,
+    "verse": 11,
+    "position": 13,
+    "glossEs": "secretario"
+  },
+  {
+    "bookId": 14,
+    "chapter": 26,
+    "verse": 15,
+    "position": 11,
+    "glossEs": "disparar"
+  },
+  {
+    "bookId": 14,
+    "chapter": 28,
+    "verse": 14,
+    "position": 2,
+    "glossEs": "armar"
+  },
+  {
+    "bookId": 14,
+    "chapter": 32,
+    "verse": 3,
+    "position": 8,
+    "glossEs": "fuente"
+  },
+  {
+    "bookId": 14,
+    "chapter": 33,
+    "verse": 12,
+    "position": 3,
+    "glossEs": "suplicar"
+  },
+  {
+    "bookId": 14,
+    "chapter": 34,
+    "verse": 13,
+    "position": 10,
+    "glossEs": "secretario"
+  },
+  {
+    "bookId": 14,
+    "chapter": 34,
+    "verse": 15,
+    "position": 6,
+    "glossEs": "secretario"
+  },
+  {
+    "bookId": 14,
+    "chapter": 34,
+    "verse": 18,
+    "position": 3,
+    "glossEs": "secretario"
+  },
+  {
+    "bookId": 14,
+    "chapter": 34,
+    "verse": 20,
+    "position": 15,
+    "glossEs": "secretario"
+  },
+  {
+    "bookId": 14,
+    "chapter": 35,
+    "verse": 23,
+    "position": 1,
+    "glossEs": "disparar"
+  },
+  {
+    "bookId": 14,
+    "chapter": 35,
+    "verse": 23,
+    "position": 2,
+    "glossEs": "disparar"
+  },
+  {
+    "bookId": 15,
+    "chapter": 3,
+    "verse": 11,
+    "position": 1,
+    "glossEs": "cantar"
+  },
+  {
+    "bookId": 15,
+    "chapter": 7,
+    "verse": 6,
+    "position": 6,
+    "glossEs": "secretario"
+  },
+  {
+    "bookId": 15,
+    "chapter": 7,
+    "verse": 11,
+    "position": 10,
+    "glossEs": "secretario"
+  },
+  {
+    "bookId": 15,
+    "chapter": 7,
+    "verse": 11,
+    "position": 11,
+    "glossEs": "secretario"
+  },
+  {
+    "bookId": 16,
+    "chapter": 1,
+    "verse": 7,
+    "position": 1,
+    "glossEs": "arruinar"
+  },
+  {
+    "bookId": 16,
+    "chapter": 1,
+    "verse": 7,
+    "position": 2,
+    "glossEs": "arruinar"
+  },
+  {
+    "bookId": 16,
+    "chapter": 8,
+    "verse": 1,
+    "position": 14,
+    "glossEs": "secretario"
+  },
+  {
+    "bookId": 16,
+    "chapter": 8,
+    "verse": 4,
+    "position": 3,
+    "glossEs": "secretario"
+  },
+  {
+    "bookId": 16,
+    "chapter": 8,
+    "verse": 9,
+    "position": 7,
+    "glossEs": "secretario"
+  },
+  {
+    "bookId": 16,
+    "chapter": 8,
+    "verse": 13,
+    "position": 12,
+    "glossEs": "secretario"
+  },
+  {
+    "bookId": 16,
+    "chapter": 11,
+    "verse": 25,
+    "position": 2,
+    "glossEs": "aldea"
+  },
+  {
+    "bookId": 16,
+    "chapter": 11,
+    "verse": 25,
+    "position": 13,
+    "glossEs": "aldea"
+  },
+  {
+    "bookId": 16,
+    "chapter": 11,
+    "verse": 30,
+    "position": 3,
+    "glossEs": "aldea"
+  },
+  {
+    "bookId": 16,
+    "chapter": 12,
+    "verse": 26,
+    "position": 13,
+    "glossEs": "secretario"
+  },
+  {
+    "bookId": 16,
+    "chapter": 12,
+    "verse": 28,
+    "position": 9,
+    "glossEs": "aldea"
+  },
+  {
+    "bookId": 16,
+    "chapter": 12,
+    "verse": 29,
+    "position": 7,
+    "glossEs": "aldea"
+  },
+  {
+    "bookId": 16,
+    "chapter": 12,
+    "verse": 36,
+    "position": 16,
+    "glossEs": "secretario"
+  },
+  {
+    "bookId": 16,
+    "chapter": 13,
+    "verse": 13,
+    "position": 7,
+    "glossEs": "secretario"
+  },
+  {
+    "bookId": 17,
+    "chapter": 1,
+    "verse": 8,
+    "position": 11,
+    "glossEs": "capitán"
+  },
+  {
+    "bookId": 17,
+    "chapter": 7,
+    "verse": 4,
+    "position": 15,
+    "glossEs": "tribulación"
+  },
+  {
+    "bookId": 17,
+    "chapter": 9,
+    "verse": 27,
+    "position": 9,
+    "glossEs": "unir"
+  },
+  {
+    "bookId": 18,
+    "chapter": 1,
+    "verse": 14,
+    "position": 8,
+    "glossEs": "arar"
+  },
+  {
+    "bookId": 18,
+    "chapter": 4,
+    "verse": 8,
+    "position": 3,
+    "glossEs": "arar"
+  },
+  {
+    "bookId": 18,
+    "chapter": 7,
+    "verse": 11,
+    "position": 7,
+    "glossEs": "tribulación"
+  },
+  {
+    "bookId": 18,
+    "chapter": 7,
+    "verse": 12,
+    "position": 4,
+    "glossEs": "dragón"
+  },
+  {
+    "bookId": 18,
+    "chapter": 11,
+    "verse": 19,
+    "position": 4,
+    "glossEs": "suplicar"
+  },
+  {
+    "bookId": 18,
+    "chapter": 12,
+    "verse": 17,
+    "position": 5,
+    "glossEs": "enloquecer"
+  },
+  {
+    "bookId": 18,
+    "chapter": 14,
+    "verse": 11,
+    "position": 6,
+    "glossEs": "secar"
+  },
+  {
+    "bookId": 18,
+    "chapter": 15,
+    "verse": 24,
+    "position": 2,
+    "glossEs": "tribulación"
+  },
+  {
+    "bookId": 18,
+    "chapter": 17,
+    "verse": 1,
+    "position": 2,
+    "glossEs": "arruinar"
+  },
+  {
+    "bookId": 18,
+    "chapter": 19,
+    "verse": 29,
+    "position": 1,
+    "glossEs": "temer"
+  },
+  {
+    "bookId": 18,
+    "chapter": 21,
+    "verse": 4,
+    "position": 7,
+    "glossEs": "congoja"
+  },
+  {
+    "bookId": 18,
+    "chapter": 29,
+    "verse": 3,
+    "position": 1,
+    "glossEs": "brillar"
+  },
+  {
+    "bookId": 18,
+    "chapter": 30,
+    "verse": 19,
+    "position": 1,
+    "glossEs": "disparar"
+  },
+  {
+    "bookId": 18,
+    "chapter": 31,
+    "verse": 26,
+    "position": 5,
+    "glossEs": "brillar"
+  },
+  {
+    "bookId": 18,
+    "chapter": 34,
+    "verse": 31,
+    "position": 7,
+    "glossEs": "arruinar"
+  },
+  {
+    "bookId": 18,
+    "chapter": 36,
+    "verse": 19,
+    "position": 4,
+    "glossEs": "tribulación"
+  },
+  {
+    "bookId": 18,
+    "chapter": 38,
+    "verse": 6,
+    "position": 7,
+    "glossEs": "disparar"
+  },
+  {
+    "bookId": 18,
+    "chapter": 38,
+    "verse": 14,
+    "position": 2,
+    "glossEs": "homer (medida)"
+  },
+  {
+    "bookId": 18,
+    "chapter": 38,
+    "verse": 23,
+    "position": 4,
+    "glossEs": "tribulación"
+  },
+  {
+    "bookId": 18,
+    "chapter": 38,
+    "verse": 37,
+    "position": 5,
+    "glossEs": "odre"
+  },
+  {
+    "bookId": 18,
+    "chapter": 41,
+    "verse": 15,
+    "position": 6,
+    "glossEs": "estrecho"
+  },
+  {
+    "bookId": 18,
+    "chapter": 41,
+    "verse": 18,
+    "position": 2,
+    "glossEs": "brillar"
+  },
+  {
+    "bookId": 18,
+    "chapter": 41,
+    "verse": 25,
+    "position": 2,
+    "glossEs": "temer"
+  },
+  {
     "bookId": 19,
     "chapter": 3,
     "verse": 2,
@@ -183,6 +2360,55 @@
   },
   {
     "bookId": 19,
+    "chapter": 4,
+    "verse": 1,
+    "position": 5,
+    "glossEs": "tribulación"
+  },
+  {
+    "bookId": 19,
+    "chapter": 5,
+    "verse": 5,
+    "position": 3,
+    "glossEs": "enloquecer"
+  },
+  {
+    "bookId": 19,
+    "chapter": 7,
+    "verse": 14,
+    "position": 2,
+    "glossEs": "estar de parto"
+  },
+  {
+    "bookId": 19,
+    "chapter": 10,
+    "verse": 8,
+    "position": 3,
+    "glossEs": "aldea"
+  },
+  {
+    "bookId": 19,
+    "chapter": 11,
+    "verse": 2,
+    "position": 10,
+    "glossEs": "disparar"
+  },
+  {
+    "bookId": 19,
+    "chapter": 18,
+    "verse": 6,
+    "position": 1,
+    "glossEs": "tribulación"
+  },
+  {
+    "bookId": 19,
+    "chapter": 22,
+    "verse": 23,
+    "position": 8,
+    "glossEs": "temer"
+  },
+  {
+    "bookId": 19,
     "chapter": 23,
     "verse": 1,
     "position": 3,
@@ -208,6 +2434,223 @@
     "verse": 1,
     "position": 6,
     "glossEs": "me faltará"
+  },
+  {
+    "bookId": 19,
+    "chapter": 32,
+    "verse": 7,
+    "position": 4,
+    "glossEs": "tribulación"
+  },
+  {
+    "bookId": 19,
+    "chapter": 33,
+    "verse": 8,
+    "position": 6,
+    "glossEs": "temer"
+  },
+  {
+    "bookId": 19,
+    "chapter": 45,
+    "verse": 1,
+    "position": 11,
+    "glossEs": "secretario"
+  },
+  {
+    "bookId": 19,
+    "chapter": 45,
+    "verse": 12,
+    "position": 5,
+    "glossEs": "suplicar"
+  },
+  {
+    "bookId": 19,
+    "chapter": 59,
+    "verse": 15,
+    "position": 7,
+    "glossEs": "murmurar"
+  },
+  {
+    "bookId": 19,
+    "chapter": 59,
+    "verse": 16,
+    "position": 13,
+    "glossEs": "angustiar"
+  },
+  {
+    "bookId": 19,
+    "chapter": 64,
+    "verse": 4,
+    "position": 1,
+    "glossEs": "disparar"
+  },
+  {
+    "bookId": 19,
+    "chapter": 64,
+    "verse": 4,
+    "position": 5,
+    "glossEs": "disparar"
+  },
+  {
+    "bookId": 19,
+    "chapter": 64,
+    "verse": 7,
+    "position": 1,
+    "glossEs": "disparar"
+  },
+  {
+    "bookId": 19,
+    "chapter": 65,
+    "verse": 9,
+    "position": 13,
+    "glossEs": "correcto"
+  },
+  {
+    "bookId": 19,
+    "chapter": 66,
+    "verse": 14,
+    "position": 6,
+    "glossEs": "tribulación"
+  },
+  {
+    "bookId": 19,
+    "chapter": 73,
+    "verse": 3,
+    "position": 3,
+    "glossEs": "enloquecer"
+  },
+  {
+    "bookId": 19,
+    "chapter": 74,
+    "verse": 13,
+    "position": 7,
+    "glossEs": "dragón"
+  },
+  {
+    "bookId": 19,
+    "chapter": 75,
+    "verse": 4,
+    "position": 2,
+    "glossEs": "enloquecer"
+  },
+  {
+    "bookId": 19,
+    "chapter": 75,
+    "verse": 4,
+    "position": 4,
+    "glossEs": "enloquecer"
+  },
+  {
+    "bookId": 19,
+    "chapter": 83,
+    "verse": 8,
+    "position": 3,
+    "glossEs": "unir"
+  },
+  {
+    "bookId": 19,
+    "chapter": 89,
+    "verse": 45,
+    "position": 1,
+    "glossEs": "congoja"
+  },
+  {
+    "bookId": 19,
+    "chapter": 91,
+    "verse": 13,
+    "position": 7,
+    "glossEs": "serpiente"
+  },
+  {
+    "bookId": 19,
+    "chapter": 102,
+    "verse": 2,
+    "position": 6,
+    "glossEs": "angustiar"
+  },
+  {
+    "bookId": 19,
+    "chapter": 102,
+    "verse": 23,
+    "position": 4,
+    "glossEs": "congoja"
+  },
+  {
+    "bookId": 19,
+    "chapter": 106,
+    "verse": 9,
+    "position": 4,
+    "glossEs": "secar"
+  },
+  {
+    "bookId": 19,
+    "chapter": 106,
+    "verse": 44,
+    "position": 2,
+    "glossEs": "tribulación"
+  },
+  {
+    "bookId": 19,
+    "chapter": 107,
+    "verse": 6,
+    "position": 4,
+    "glossEs": "tribulación"
+  },
+  {
+    "bookId": 19,
+    "chapter": 107,
+    "verse": 13,
+    "position": 4,
+    "glossEs": "tribulación"
+  },
+  {
+    "bookId": 19,
+    "chapter": 107,
+    "verse": 19,
+    "position": 4,
+    "glossEs": "tribulación"
+  },
+  {
+    "bookId": 19,
+    "chapter": 107,
+    "verse": 28,
+    "position": 4,
+    "glossEs": "tribulación"
+  },
+  {
+    "bookId": 19,
+    "chapter": 119,
+    "verse": 58,
+    "position": 1,
+    "glossEs": "suplicar"
+  },
+  {
+    "bookId": 19,
+    "chapter": 119,
+    "verse": 143,
+    "position": 1,
+    "glossEs": "tribulación"
+  },
+  {
+    "bookId": 19,
+    "chapter": 119,
+    "verse": 172,
+    "position": 1,
+    "glossEs": "cantar"
+  },
+  {
+    "bookId": 19,
+    "chapter": 129,
+    "verse": 3,
+    "position": 3,
+    "glossEs": "arar"
+  },
+  {
+    "bookId": 19,
+    "chapter": 129,
+    "verse": 3,
+    "position": 4,
+    "glossEs": "arar"
   },
   {
     "bookId": 19,
@@ -257,5 +2700,1573 @@
     "verse": 1,
     "position": 7,
     "glossEs": "misericordia suya"
+  },
+  {
+    "bookId": 19,
+    "chapter": 147,
+    "verse": 7,
+    "position": 1,
+    "glossEs": "cantar"
+  },
+  {
+    "bookId": 19,
+    "chapter": 148,
+    "verse": 7,
+    "position": 6,
+    "glossEs": "dragón"
+  },
+  {
+    "bookId": 20,
+    "chapter": 3,
+    "verse": 29,
+    "position": 2,
+    "glossEs": "arar"
+  },
+  {
+    "bookId": 20,
+    "chapter": 6,
+    "verse": 5,
+    "position": 2,
+    "glossEs": "gacela"
+  },
+  {
+    "bookId": 20,
+    "chapter": 6,
+    "verse": 14,
+    "position": 3,
+    "glossEs": "arar"
+  },
+  {
+    "bookId": 20,
+    "chapter": 6,
+    "verse": 18,
+    "position": 2,
+    "glossEs": "arar"
+  },
+  {
+    "bookId": 20,
+    "chapter": 8,
+    "verse": 28,
+    "position": 5,
+    "glossEs": "fuente"
+  },
+  {
+    "bookId": 20,
+    "chapter": 10,
+    "verse": 27,
+    "position": 7,
+    "glossEs": "congoja"
+  },
+  {
+    "bookId": 20,
+    "chapter": 11,
+    "verse": 19,
+    "position": 1,
+    "glossEs": "correcto"
+  },
+  {
+    "bookId": 20,
+    "chapter": 11,
+    "verse": 25,
+    "position": 7,
+    "glossEs": "disparar"
+  },
+  {
+    "bookId": 20,
+    "chapter": 12,
+    "verse": 20,
+    "position": 3,
+    "glossEs": "arar"
+  },
+  {
+    "bookId": 20,
+    "chapter": 13,
+    "verse": 13,
+    "position": 3,
+    "glossEs": "arruinar"
+  },
+  {
+    "bookId": 20,
+    "chapter": 14,
+    "verse": 22,
+    "position": 3,
+    "glossEs": "arar"
+  },
+  {
+    "bookId": 20,
+    "chapter": 14,
+    "verse": 22,
+    "position": 7,
+    "glossEs": "arar"
+  },
+  {
+    "bookId": 20,
+    "chapter": 15,
+    "verse": 7,
+    "position": 8,
+    "glossEs": "correcto"
+  },
+  {
+    "bookId": 20,
+    "chapter": 19,
+    "verse": 6,
+    "position": 2,
+    "glossEs": "suplicar"
+  },
+  {
+    "bookId": 20,
+    "chapter": 20,
+    "verse": 4,
+    "position": 4,
+    "glossEs": "arar"
+  },
+  {
+    "bookId": 20,
+    "chapter": 23,
+    "verse": 27,
+    "position": 6,
+    "glossEs": "estrecho"
+  },
+  {
+    "bookId": 20,
+    "chapter": 24,
+    "verse": 10,
+    "position": 4,
+    "glossEs": "estrecho"
+  },
+  {
+    "bookId": 20,
+    "chapter": 26,
+    "verse": 18,
+    "position": 2,
+    "glossEs": "disparar"
+  },
+  {
+    "bookId": 20,
+    "chapter": 28,
+    "verse": 2,
+    "position": 8,
+    "glossEs": "correcto"
+  },
+  {
+    "bookId": 21,
+    "chapter": 5,
+    "verse": 6,
+    "position": 20,
+    "glossEs": "arruinar"
+  },
+  {
+    "bookId": 21,
+    "chapter": 8,
+    "verse": 10,
+    "position": 12,
+    "glossEs": "correcto"
+  },
+  {
+    "bookId": 21,
+    "chapter": 8,
+    "verse": 15,
+    "position": 17,
+    "glossEs": "unir"
+  },
+  {
+    "bookId": 22,
+    "chapter": 2,
+    "verse": 7,
+    "position": 5,
+    "glossEs": "gacela"
+  },
+  {
+    "bookId": 22,
+    "chapter": 2,
+    "verse": 9,
+    "position": 3,
+    "glossEs": "gacela"
+  },
+  {
+    "bookId": 22,
+    "chapter": 2,
+    "verse": 15,
+    "position": 6,
+    "glossEs": "arruinar"
+  },
+  {
+    "bookId": 22,
+    "chapter": 2,
+    "verse": 17,
+    "position": 10,
+    "glossEs": "gacela"
+  },
+  {
+    "bookId": 22,
+    "chapter": 3,
+    "verse": 5,
+    "position": 5,
+    "glossEs": "gacela"
+  },
+  {
+    "bookId": 22,
+    "chapter": 8,
+    "verse": 5,
+    "position": 13,
+    "glossEs": "estar de parto"
+  },
+  {
+    "bookId": 22,
+    "chapter": 8,
+    "verse": 5,
+    "position": 16,
+    "glossEs": "estar de parto"
+  },
+  {
+    "bookId": 22,
+    "chapter": 8,
+    "verse": 14,
+    "position": 5,
+    "glossEs": "gacela"
+  },
+  {
+    "bookId": 23,
+    "chapter": 1,
+    "verse": 29,
+    "position": 3,
+    "glossEs": "terebinto"
+  },
+  {
+    "bookId": 23,
+    "chapter": 5,
+    "verse": 10,
+    "position": 9,
+    "glossEs": "homer (medida)"
+  },
+  {
+    "bookId": 23,
+    "chapter": 5,
+    "verse": 28,
+    "position": 9,
+    "glossEs": "aprieto"
+  },
+  {
+    "bookId": 23,
+    "chapter": 5,
+    "verse": 30,
+    "position": 11,
+    "glossEs": "tribulación"
+  },
+  {
+    "bookId": 23,
+    "chapter": 10,
+    "verse": 27,
+    "position": 11,
+    "glossEs": "arruinar"
+  },
+  {
+    "bookId": 23,
+    "chapter": 13,
+    "verse": 1,
+    "position": 1,
+    "glossEs": "profecía"
+  },
+  {
+    "bookId": 23,
+    "chapter": 13,
+    "verse": 5,
+    "position": 9,
+    "glossEs": "arruinar"
+  },
+  {
+    "bookId": 23,
+    "chapter": 13,
+    "verse": 10,
+    "position": 6,
+    "glossEs": "brillar"
+  },
+  {
+    "bookId": 23,
+    "chapter": 13,
+    "verse": 14,
+    "position": 2,
+    "glossEs": "gacela"
+  },
+  {
+    "bookId": 23,
+    "chapter": 14,
+    "verse": 1,
+    "position": 12,
+    "glossEs": "unir"
+  },
+  {
+    "bookId": 23,
+    "chapter": 14,
+    "verse": 28,
+    "position": 6,
+    "glossEs": "profecía"
+  },
+  {
+    "bookId": 23,
+    "chapter": 15,
+    "verse": 1,
+    "position": 1,
+    "glossEs": "profecía"
+  },
+  {
+    "bookId": 23,
+    "chapter": 15,
+    "verse": 4,
+    "position": 10,
+    "glossEs": "armar"
+  },
+  {
+    "bookId": 23,
+    "chapter": 16,
+    "verse": 6,
+    "position": 10,
+    "glossEs": "correcto"
+  },
+  {
+    "bookId": 23,
+    "chapter": 17,
+    "verse": 1,
+    "position": 1,
+    "glossEs": "profecía"
+  },
+  {
+    "bookId": 23,
+    "chapter": 19,
+    "verse": 1,
+    "position": 1,
+    "glossEs": "profecía"
+  },
+  {
+    "bookId": 23,
+    "chapter": 19,
+    "verse": 5,
+    "position": 5,
+    "glossEs": "secar"
+  },
+  {
+    "bookId": 23,
+    "chapter": 19,
+    "verse": 6,
+    "position": 4,
+    "glossEs": "secar"
+  },
+  {
+    "bookId": 23,
+    "chapter": 21,
+    "verse": 1,
+    "position": 1,
+    "glossEs": "profecía"
+  },
+  {
+    "bookId": 23,
+    "chapter": 21,
+    "verse": 11,
+    "position": 1,
+    "glossEs": "profecía"
+  },
+  {
+    "bookId": 23,
+    "chapter": 21,
+    "verse": 13,
+    "position": 1,
+    "glossEs": "profecía"
+  },
+  {
+    "bookId": 23,
+    "chapter": 22,
+    "verse": 1,
+    "position": 1,
+    "glossEs": "profecía"
+  },
+  {
+    "bookId": 23,
+    "chapter": 22,
+    "verse": 24,
+    "position": 17,
+    "glossEs": "odre"
+  },
+  {
+    "bookId": 23,
+    "chapter": 23,
+    "verse": 1,
+    "position": 1,
+    "glossEs": "profecía"
+  },
+  {
+    "bookId": 23,
+    "chapter": 25,
+    "verse": 4,
+    "position": 7,
+    "glossEs": "tribulación"
+  },
+  {
+    "bookId": 23,
+    "chapter": 26,
+    "verse": 16,
+    "position": 2,
+    "glossEs": "tribulación"
+  },
+  {
+    "bookId": 23,
+    "chapter": 27,
+    "verse": 1,
+    "position": 19,
+    "glossEs": "dragón"
+  },
+  {
+    "bookId": 23,
+    "chapter": 27,
+    "verse": 2,
+    "position": 5,
+    "glossEs": "cantar"
+  },
+  {
+    "bookId": 23,
+    "chapter": 28,
+    "verse": 20,
+    "position": 2,
+    "glossEs": "congoja"
+  },
+  {
+    "bookId": 23,
+    "chapter": 28,
+    "verse": 24,
+    "position": 3,
+    "glossEs": "arar"
+  },
+  {
+    "bookId": 23,
+    "chapter": 28,
+    "verse": 24,
+    "position": 4,
+    "glossEs": "arar"
+  },
+  {
+    "bookId": 23,
+    "chapter": 30,
+    "verse": 6,
+    "position": 1,
+    "glossEs": "profecía"
+  },
+  {
+    "bookId": 23,
+    "chapter": 30,
+    "verse": 14,
+    "position": 3,
+    "glossEs": "odre"
+  },
+  {
+    "bookId": 23,
+    "chapter": 30,
+    "verse": 20,
+    "position": 5,
+    "glossEs": "tribulación"
+  },
+  {
+    "bookId": 23,
+    "chapter": 32,
+    "verse": 7,
+    "position": 7,
+    "glossEs": "arruinar"
+  },
+  {
+    "bookId": 23,
+    "chapter": 36,
+    "verse": 3,
+    "position": 10,
+    "glossEs": "secretario"
+  },
+  {
+    "bookId": 23,
+    "chapter": 36,
+    "verse": 22,
+    "position": 9,
+    "glossEs": "secretario"
+  },
+  {
+    "bookId": 23,
+    "chapter": 37,
+    "verse": 2,
+    "position": 9,
+    "glossEs": "secretario"
+  },
+  {
+    "bookId": 23,
+    "chapter": 37,
+    "verse": 25,
+    "position": 5,
+    "glossEs": "secar"
+  },
+  {
+    "bookId": 23,
+    "chapter": 37,
+    "verse": 33,
+    "position": 14,
+    "glossEs": "disparar"
+  },
+  {
+    "bookId": 23,
+    "chapter": 41,
+    "verse": 25,
+    "position": 11,
+    "glossEs": "homer (medida)"
+  },
+  {
+    "bookId": 23,
+    "chapter": 42,
+    "verse": 11,
+    "position": 4,
+    "glossEs": "aldea"
+  },
+  {
+    "bookId": 23,
+    "chapter": 44,
+    "verse": 25,
+    "position": 5,
+    "glossEs": "enloquecer"
+  },
+  {
+    "bookId": 23,
+    "chapter": 44,
+    "verse": 27,
+    "position": 3,
+    "glossEs": "secar"
+  },
+  {
+    "bookId": 23,
+    "chapter": 49,
+    "verse": 20,
+    "position": 6,
+    "glossEs": "estrecho"
+  },
+  {
+    "bookId": 23,
+    "chapter": 50,
+    "verse": 2,
+    "position": 8,
+    "glossEs": "congoja"
+  },
+  {
+    "bookId": 23,
+    "chapter": 50,
+    "verse": 2,
+    "position": 9,
+    "glossEs": "congoja"
+  },
+  {
+    "bookId": 23,
+    "chapter": 50,
+    "verse": 2,
+    "position": 19,
+    "glossEs": "secar"
+  },
+  {
+    "bookId": 23,
+    "chapter": 51,
+    "verse": 9,
+    "position": 18,
+    "glossEs": "dragón"
+  },
+  {
+    "bookId": 23,
+    "chapter": 51,
+    "verse": 10,
+    "position": 4,
+    "glossEs": "secar"
+  },
+  {
+    "bookId": 23,
+    "chapter": 54,
+    "verse": 16,
+    "position": 14,
+    "glossEs": "arruinar"
+  },
+  {
+    "bookId": 23,
+    "chapter": 56,
+    "verse": 3,
+    "position": 5,
+    "glossEs": "unir"
+  },
+  {
+    "bookId": 23,
+    "chapter": 56,
+    "verse": 6,
+    "position": 3,
+    "glossEs": "unir"
+  },
+  {
+    "bookId": 23,
+    "chapter": 57,
+    "verse": 5,
+    "position": 2,
+    "glossEs": "terebinto"
+  },
+  {
+    "bookId": 23,
+    "chapter": 58,
+    "verse": 11,
+    "position": 8,
+    "glossEs": "armar"
+  },
+  {
+    "bookId": 23,
+    "chapter": 59,
+    "verse": 1,
+    "position": 3,
+    "glossEs": "congoja"
+  },
+  {
+    "bookId": 23,
+    "chapter": 59,
+    "verse": 19,
+    "position": 13,
+    "glossEs": "estrecho"
+  },
+  {
+    "bookId": 23,
+    "chapter": 61,
+    "verse": 3,
+    "position": 20,
+    "glossEs": "terebinto"
+  },
+  {
+    "bookId": 23,
+    "chapter": 63,
+    "verse": 9,
+    "position": 4,
+    "glossEs": "tribulación"
+  },
+  {
+    "bookId": 24,
+    "chapter": 8,
+    "verse": 6,
+    "position": 4,
+    "glossEs": "correcto"
+  },
+  {
+    "bookId": 24,
+    "chapter": 8,
+    "verse": 8,
+    "position": 14,
+    "glossEs": "secretario"
+  },
+  {
+    "bookId": 24,
+    "chapter": 13,
+    "verse": 12,
+    "position": 12,
+    "glossEs": "odre"
+  },
+  {
+    "bookId": 24,
+    "chapter": 13,
+    "verse": 12,
+    "position": 22,
+    "glossEs": "odre"
+  },
+  {
+    "bookId": 24,
+    "chapter": 17,
+    "verse": 1,
+    "position": 8,
+    "glossEs": "arar"
+  },
+  {
+    "bookId": 24,
+    "chapter": 23,
+    "verse": 10,
+    "position": 18,
+    "glossEs": "correcto"
+  },
+  {
+    "bookId": 24,
+    "chapter": 23,
+    "verse": 33,
+    "position": 11,
+    "glossEs": "profecía"
+  },
+  {
+    "bookId": 24,
+    "chapter": 23,
+    "verse": 33,
+    "position": 17,
+    "glossEs": "profecía"
+  },
+  {
+    "bookId": 24,
+    "chapter": 23,
+    "verse": 34,
+    "position": 6,
+    "glossEs": "profecía"
+  },
+  {
+    "bookId": 24,
+    "chapter": 23,
+    "verse": 36,
+    "position": 1,
+    "glossEs": "profecía"
+  },
+  {
+    "bookId": 24,
+    "chapter": 23,
+    "verse": 36,
+    "position": 7,
+    "glossEs": "profecía"
+  },
+  {
+    "bookId": 24,
+    "chapter": 23,
+    "verse": 38,
+    "position": 2,
+    "glossEs": "profecía"
+  },
+  {
+    "bookId": 24,
+    "chapter": 23,
+    "verse": 38,
+    "position": 14,
+    "glossEs": "profecía"
+  },
+  {
+    "bookId": 24,
+    "chapter": 23,
+    "verse": 38,
+    "position": 21,
+    "glossEs": "profecía"
+  },
+  {
+    "bookId": 24,
+    "chapter": 25,
+    "verse": 16,
+    "position": 3,
+    "glossEs": "enloquecer"
+  },
+  {
+    "bookId": 24,
+    "chapter": 25,
+    "verse": 30,
+    "position": 23,
+    "glossEs": "cantar"
+  },
+  {
+    "bookId": 24,
+    "chapter": 26,
+    "verse": 18,
+    "position": 21,
+    "glossEs": "arar"
+  },
+  {
+    "bookId": 24,
+    "chapter": 26,
+    "verse": 19,
+    "position": 12,
+    "glossEs": "suplicar"
+  },
+  {
+    "bookId": 24,
+    "chapter": 36,
+    "verse": 10,
+    "position": 13,
+    "glossEs": "secretario"
+  },
+  {
+    "bookId": 24,
+    "chapter": 36,
+    "verse": 12,
+    "position": 6,
+    "glossEs": "secretario"
+  },
+  {
+    "bookId": 24,
+    "chapter": 36,
+    "verse": 12,
+    "position": 13,
+    "glossEs": "secretario"
+  },
+  {
+    "bookId": 24,
+    "chapter": 36,
+    "verse": 20,
+    "position": 10,
+    "glossEs": "secretario"
+  },
+  {
+    "bookId": 24,
+    "chapter": 36,
+    "verse": 21,
+    "position": 11,
+    "glossEs": "secretario"
+  },
+  {
+    "bookId": 24,
+    "chapter": 36,
+    "verse": 23,
+    "position": 9,
+    "glossEs": "secretario"
+  },
+  {
+    "bookId": 24,
+    "chapter": 36,
+    "verse": 26,
+    "position": 18,
+    "glossEs": "secretario"
+  },
+  {
+    "bookId": 24,
+    "chapter": 36,
+    "verse": 32,
+    "position": 10,
+    "glossEs": "secretario"
+  },
+  {
+    "bookId": 24,
+    "chapter": 37,
+    "verse": 15,
+    "position": 13,
+    "glossEs": "secretario"
+  },
+  {
+    "bookId": 24,
+    "chapter": 37,
+    "verse": 20,
+    "position": 14,
+    "glossEs": "secretario"
+  },
+  {
+    "bookId": 24,
+    "chapter": 39,
+    "verse": 9,
+    "position": 18,
+    "glossEs": "capitán"
+  },
+  {
+    "bookId": 24,
+    "chapter": 39,
+    "verse": 10,
+    "position": 10,
+    "glossEs": "capitán"
+  },
+  {
+    "bookId": 24,
+    "chapter": 39,
+    "verse": 11,
+    "position": 9,
+    "glossEs": "capitán"
+  },
+  {
+    "bookId": 24,
+    "chapter": 39,
+    "verse": 13,
+    "position": 3,
+    "glossEs": "capitán"
+  },
+  {
+    "bookId": 24,
+    "chapter": 39,
+    "verse": 13,
+    "position": 14,
+    "glossEs": "capitán"
+  },
+  {
+    "bookId": 24,
+    "chapter": 40,
+    "verse": 1,
+    "position": 12,
+    "glossEs": "capitán"
+  },
+  {
+    "bookId": 24,
+    "chapter": 40,
+    "verse": 2,
+    "position": 2,
+    "glossEs": "capitán"
+  },
+  {
+    "bookId": 24,
+    "chapter": 40,
+    "verse": 5,
+    "position": 30,
+    "glossEs": "capitán"
+  },
+  {
+    "bookId": 24,
+    "chapter": 41,
+    "verse": 1,
+    "position": 12,
+    "glossEs": "capitán"
+  },
+  {
+    "bookId": 24,
+    "chapter": 41,
+    "verse": 10,
+    "position": 20,
+    "glossEs": "capitán"
+  },
+  {
+    "bookId": 24,
+    "chapter": 43,
+    "verse": 6,
+    "position": 16,
+    "glossEs": "capitán"
+  },
+  {
+    "bookId": 24,
+    "chapter": 48,
+    "verse": 5,
+    "position": 10,
+    "glossEs": "tribulación"
+  },
+  {
+    "bookId": 24,
+    "chapter": 48,
+    "verse": 12,
+    "position": 13,
+    "glossEs": "odre"
+  },
+  {
+    "bookId": 24,
+    "chapter": 48,
+    "verse": 30,
+    "position": 7,
+    "glossEs": "correcto"
+  },
+  {
+    "bookId": 24,
+    "chapter": 48,
+    "verse": 30,
+    "position": 10,
+    "glossEs": "correcto"
+  },
+  {
+    "bookId": 24,
+    "chapter": 48,
+    "verse": 41,
+    "position": 13,
+    "glossEs": "angustiar"
+  },
+  {
+    "bookId": 24,
+    "chapter": 49,
+    "verse": 22,
+    "position": 17,
+    "glossEs": "angustiar"
+  },
+  {
+    "bookId": 24,
+    "chapter": 50,
+    "verse": 5,
+    "position": 7,
+    "glossEs": "unir"
+  },
+  {
+    "bookId": 24,
+    "chapter": 50,
+    "verse": 38,
+    "position": 10,
+    "glossEs": "enloquecer"
+  },
+  {
+    "bookId": 24,
+    "chapter": 51,
+    "verse": 7,
+    "position": 14,
+    "glossEs": "enloquecer"
+  },
+  {
+    "bookId": 24,
+    "chapter": 51,
+    "verse": 14,
+    "position": 10,
+    "glossEs": "cantar"
+  },
+  {
+    "bookId": 24,
+    "chapter": 51,
+    "verse": 34,
+    "position": 10,
+    "glossEs": "dragón"
+  },
+  {
+    "bookId": 24,
+    "chapter": 51,
+    "verse": 36,
+    "position": 12,
+    "glossEs": "secar"
+  },
+  {
+    "bookId": 24,
+    "chapter": 52,
+    "verse": 12,
+    "position": 16,
+    "glossEs": "capitán"
+  },
+  {
+    "bookId": 24,
+    "chapter": 52,
+    "verse": 14,
+    "position": 12,
+    "glossEs": "capitán"
+  },
+  {
+    "bookId": 24,
+    "chapter": 52,
+    "verse": 15,
+    "position": 20,
+    "glossEs": "capitán"
+  },
+  {
+    "bookId": 24,
+    "chapter": 52,
+    "verse": 16,
+    "position": 5,
+    "glossEs": "capitán"
+  },
+  {
+    "bookId": 24,
+    "chapter": 52,
+    "verse": 19,
+    "position": 22,
+    "glossEs": "capitán"
+  },
+  {
+    "bookId": 24,
+    "chapter": 52,
+    "verse": 24,
+    "position": 2,
+    "glossEs": "capitán"
+  },
+  {
+    "bookId": 24,
+    "chapter": 52,
+    "verse": 25,
+    "position": 21,
+    "glossEs": "secretario"
+  },
+  {
+    "bookId": 24,
+    "chapter": 52,
+    "verse": 26,
+    "position": 4,
+    "glossEs": "capitán"
+  },
+  {
+    "bookId": 24,
+    "chapter": 52,
+    "verse": 30,
+    "position": 7,
+    "glossEs": "capitán"
+  },
+  {
+    "bookId": 25,
+    "chapter": 1,
+    "verse": 20,
+    "position": 4,
+    "glossEs": "tribulación"
+  },
+  {
+    "bookId": 25,
+    "chapter": 2,
+    "verse": 14,
+    "position": 14,
+    "glossEs": "profecía"
+  },
+  {
+    "bookId": 25,
+    "chapter": 4,
+    "verse": 2,
+    "position": 8,
+    "glossEs": "odre"
+  },
+  {
+    "bookId": 26,
+    "chapter": 9,
+    "verse": 2,
+    "position": 21,
+    "glossEs": "secretario"
+  },
+  {
+    "bookId": 26,
+    "chapter": 9,
+    "verse": 3,
+    "position": 20,
+    "glossEs": "secretario"
+  },
+  {
+    "bookId": 26,
+    "chapter": 12,
+    "verse": 10,
+    "position": 8,
+    "glossEs": "profecía"
+  },
+  {
+    "bookId": 26,
+    "chapter": 17,
+    "verse": 13,
+    "position": 11,
+    "glossEs": "líder"
+  },
+  {
+    "bookId": 26,
+    "chapter": 18,
+    "verse": 18,
+    "position": 13,
+    "glossEs": "pariente"
+  },
+  {
+    "bookId": 26,
+    "chapter": 29,
+    "verse": 3,
+    "position": 12,
+    "glossEs": "dragón"
+  },
+  {
+    "bookId": 26,
+    "chapter": 30,
+    "verse": 16,
+    "position": 11,
+    "glossEs": "tribulación"
+  },
+  {
+    "bookId": 26,
+    "chapter": 31,
+    "verse": 11,
+    "position": 3,
+    "glossEs": "líder"
+  },
+  {
+    "bookId": 26,
+    "chapter": 31,
+    "verse": 14,
+    "position": 18,
+    "glossEs": "terebinto"
+  },
+  {
+    "bookId": 26,
+    "chapter": 32,
+    "verse": 21,
+    "position": 3,
+    "glossEs": "líder"
+  },
+  {
+    "bookId": 26,
+    "chapter": 40,
+    "verse": 9,
+    "position": 7,
+    "glossEs": "poste"
+  },
+  {
+    "bookId": 26,
+    "chapter": 40,
+    "verse": 10,
+    "position": 14,
+    "glossEs": "poste"
+  },
+  {
+    "bookId": 26,
+    "chapter": 40,
+    "verse": 14,
+    "position": 3,
+    "glossEs": "poste"
+  },
+  {
+    "bookId": 26,
+    "chapter": 40,
+    "verse": 14,
+    "position": 7,
+    "glossEs": "poste"
+  },
+  {
+    "bookId": 26,
+    "chapter": 40,
+    "verse": 16,
+    "position": 6,
+    "glossEs": "poste"
+  },
+  {
+    "bookId": 26,
+    "chapter": 40,
+    "verse": 16,
+    "position": 18,
+    "glossEs": "poste"
+  },
+  {
+    "bookId": 26,
+    "chapter": 40,
+    "verse": 21,
+    "position": 6,
+    "glossEs": "poste"
+  },
+  {
+    "bookId": 26,
+    "chapter": 40,
+    "verse": 24,
+    "position": 9,
+    "glossEs": "poste"
+  },
+  {
+    "bookId": 26,
+    "chapter": 40,
+    "verse": 26,
+    "position": 13,
+    "glossEs": "poste"
+  },
+  {
+    "bookId": 26,
+    "chapter": 40,
+    "verse": 29,
+    "position": 2,
+    "glossEs": "poste"
+  },
+  {
+    "bookId": 26,
+    "chapter": 40,
+    "verse": 31,
+    "position": 7,
+    "glossEs": "poste"
+  },
+  {
+    "bookId": 26,
+    "chapter": 40,
+    "verse": 33,
+    "position": 2,
+    "glossEs": "poste"
+  },
+  {
+    "bookId": 26,
+    "chapter": 40,
+    "verse": 34,
+    "position": 6,
+    "glossEs": "poste"
+  },
+  {
+    "bookId": 26,
+    "chapter": 40,
+    "verse": 36,
+    "position": 2,
+    "glossEs": "poste"
+  },
+  {
+    "bookId": 26,
+    "chapter": 40,
+    "verse": 37,
+    "position": 1,
+    "glossEs": "poste"
+  },
+  {
+    "bookId": 26,
+    "chapter": 40,
+    "verse": 37,
+    "position": 6,
+    "glossEs": "poste"
+  },
+  {
+    "bookId": 26,
+    "chapter": 40,
+    "verse": 38,
+    "position": 3,
+    "glossEs": "poste"
+  },
+  {
+    "bookId": 26,
+    "chapter": 40,
+    "verse": 48,
+    "position": 6,
+    "glossEs": "poste"
+  },
+  {
+    "bookId": 26,
+    "chapter": 40,
+    "verse": 49,
+    "position": 15,
+    "glossEs": "poste"
+  },
+  {
+    "bookId": 26,
+    "chapter": 41,
+    "verse": 1,
+    "position": 6,
+    "glossEs": "poste"
+  },
+  {
+    "bookId": 26,
+    "chapter": 41,
+    "verse": 3,
+    "position": 4,
+    "glossEs": "poste"
+  },
+  {
+    "bookId": 26,
+    "chapter": 42,
+    "verse": 5,
+    "position": 3,
+    "glossEs": "congoja"
+  },
+  {
+    "bookId": 26,
+    "chapter": 45,
+    "verse": 11,
+    "position": 8,
+    "glossEs": "homer (medida)"
+  },
+  {
+    "bookId": 26,
+    "chapter": 45,
+    "verse": 11,
+    "position": 11,
+    "glossEs": "homer (medida)"
+  },
+  {
+    "bookId": 26,
+    "chapter": 45,
+    "verse": 11,
+    "position": 14,
+    "glossEs": "homer (medida)"
+  },
+  {
+    "bookId": 26,
+    "chapter": 45,
+    "verse": 13,
+    "position": 7,
+    "glossEs": "homer (medida)"
+  },
+  {
+    "bookId": 26,
+    "chapter": 45,
+    "verse": 13,
+    "position": 11,
+    "glossEs": "homer (medida)"
+  },
+  {
+    "bookId": 26,
+    "chapter": 45,
+    "verse": 14,
+    "position": 11,
+    "glossEs": "homer (medida)"
+  },
+  {
+    "bookId": 26,
+    "chapter": 45,
+    "verse": 14,
+    "position": 15,
+    "glossEs": "homer (medida)"
+  },
+  {
+    "bookId": 27,
+    "chapter": 1,
+    "verse": 3,
+    "position": 4,
+    "glossEs": "capitán"
+  },
+  {
+    "bookId": 27,
+    "chapter": 9,
+    "verse": 13,
+    "position": 12,
+    "glossEs": "suplicar"
+  },
+  {
+    "bookId": 27,
+    "chapter": 11,
+    "verse": 34,
+    "position": 5,
+    "glossEs": "unir"
+  },
+  {
+    "bookId": 28,
+    "chapter": 3,
+    "verse": 2,
+    "position": 6,
+    "glossEs": "homer (medida)"
+  },
+  {
+    "bookId": 28,
+    "chapter": 5,
+    "verse": 15,
+    "position": 10,
+    "glossEs": "tribulación"
+  },
+  {
+    "bookId": 28,
+    "chapter": 6,
+    "verse": 3,
+    "position": 13,
+    "glossEs": "disparar"
+  },
+  {
+    "bookId": 28,
+    "chapter": 10,
+    "verse": 5,
+    "position": 4,
+    "glossEs": "temer"
+  },
+  {
+    "bookId": 28,
+    "chapter": 10,
+    "verse": 11,
+    "position": 13,
+    "glossEs": "arar"
+  },
+  {
+    "bookId": 28,
+    "chapter": 10,
+    "verse": 12,
+    "position": 16,
+    "glossEs": "disparar"
+  },
+  {
+    "bookId": 28,
+    "chapter": 10,
+    "verse": 13,
+    "position": 1,
+    "glossEs": "arar"
+  },
+  {
+    "bookId": 28,
+    "chapter": 13,
+    "verse": 15,
+    "position": 14,
+    "glossEs": "secar"
+  },
+  {
+    "bookId": 30,
+    "chapter": 5,
+    "verse": 6,
+    "position": 6,
+    "glossEs": "arremeter"
+  },
+  {
+    "bookId": 30,
+    "chapter": 6,
+    "verse": 12,
+    "position": 5,
+    "glossEs": "arar"
+  },
+  {
+    "bookId": 30,
+    "chapter": 9,
+    "verse": 13,
+    "position": 7,
+    "glossEs": "arar"
+  },
+  {
+    "bookId": 32,
+    "chapter": 1,
+    "verse": 6,
+    "position": 3,
+    "glossEs": "capitán"
+  },
+  {
+    "bookId": 33,
+    "chapter": 2,
+    "verse": 7,
+    "position": 4,
+    "glossEs": "congoja"
+  },
+  {
+    "bookId": 33,
+    "chapter": 2,
+    "verse": 10,
+    "position": 9,
+    "glossEs": "arruinar"
+  },
+  {
+    "bookId": 33,
+    "chapter": 3,
+    "verse": 12,
+    "position": 5,
+    "glossEs": "arar"
+  },
+  {
+    "bookId": 34,
+    "chapter": 1,
+    "verse": 1,
+    "position": 1,
+    "glossEs": "profecía"
+  },
+  {
+    "bookId": 34,
+    "chapter": 1,
+    "verse": 4,
+    "position": 6,
+    "glossEs": "secar"
+  },
+  {
+    "bookId": 35,
+    "chapter": 1,
+    "verse": 1,
+    "position": 1,
+    "glossEs": "profecía"
+  },
+  {
+    "bookId": 35,
+    "chapter": 3,
+    "verse": 15,
+    "position": 4,
+    "glossEs": "montón"
+  },
+  {
+    "bookId": 38,
+    "chapter": 2,
+    "verse": 11,
+    "position": 1,
+    "glossEs": "unir"
+  },
+  {
+    "bookId": 38,
+    "chapter": 7,
+    "verse": 2,
+    "position": 9,
+    "glossEs": "suplicar"
+  },
+  {
+    "bookId": 38,
+    "chapter": 8,
+    "verse": 21,
+    "position": 9,
+    "glossEs": "suplicar"
+  },
+  {
+    "bookId": 38,
+    "chapter": 8,
+    "verse": 22,
+    "position": 11,
+    "glossEs": "suplicar"
+  },
+  {
+    "bookId": 38,
+    "chapter": 9,
+    "verse": 1,
+    "position": 1,
+    "glossEs": "profecía"
+  },
+  {
+    "bookId": 38,
+    "chapter": 11,
+    "verse": 8,
+    "position": 7,
+    "glossEs": "congoja"
+  },
+  {
+    "bookId": 38,
+    "chapter": 12,
+    "verse": 1,
+    "position": 1,
+    "glossEs": "profecía"
+  },
+  {
+    "bookId": 39,
+    "chapter": 1,
+    "verse": 1,
+    "position": 1,
+    "glossEs": "profecía"
+  },
+  {
+    "bookId": 39,
+    "chapter": 1,
+    "verse": 9,
+    "position": 2,
+    "glossEs": "suplicar"
   }
 ]
