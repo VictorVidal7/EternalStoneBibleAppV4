@@ -10,26 +10,25 @@ _BORRADOR para la aprobación del propietario. Nada de esto está cableado en la
 | Lemas hebreos usados (total)                    | **8503**                                                                                                                                                     |
 | Entradas en `assets/hebrew-lemma-gloss-es.json` | **8503** (todas, planas, ordenadas)                                                                                                                          |
 | Nombres propios                                 | 2642 (2253 con forma RVR1960 confirmada en un versículo de muestra)                                                                                          |
-| Lemas marcados para revisión                    | **193** (8 partículas · 10 nombres divinos · 50 términos cargados · 74 auto frecuencia media · 48 translit. a mano · 1 discrepancia RVR · 2 sin traducción)_ |
+| Lemas marcados para revisión                    | **185** (8 partículas · 10 nombres divinos · 50 términos cargados · 68 auto frecuencia media · 48 translit. a mano · 1 discrepancia RVR · 0 sin traducción)_ |
 
 Procedencia de la glosa (`fullSource`):
 
 | fuente              | lemas |
 | ------------------- | ----- |
-| definition_es-head  | 4569  |
+| definition_es-head  | 4564  |
 | defEs-name          | 2352  |
 | tbesh-map           | 696   |
-| tbesh-head-es       | 474   |
+| tbesh-head-es       | 470   |
 | defEs-gentilic      | 220   |
-| hand-fix            | 50    |
+| hand-fix            | 64    |
 | hand-weighted       | 50    |
 | hand-translit       | 46    |
 | hand-name           | 19    |
 | hand-divine         | 10    |
 | hand-particle       | 8     |
-| definition_es-loose | 5     |
 | auto-translit       | 2     |
-| UNTRANSLATED        | 2     |
+| definition_es-loose | 2     |
 
 - `hand-*` — mapa curado a mano en el script (partículas, nombres divinos, términos cargados, correcciones de alta frecuencia).
 - `defEs-*` — nombre / glosa condensada de `scripts/strongs-defs-es.json` (español ya cotejado).
@@ -56,18 +55,18 @@ Procedencia de la glosa (`fullSource`):
 
 ### Nombre / título divino (10)
 
-| Strong | translit  | ocurr. | glosa propuesta         | TBESH (EN) | definition_es (extracto)                                     | nota                                                                                                  |
-| ------ | --------- | -----: | ----------------------- | ---------- | ------------------------------------------------------------ | ----------------------------------------------------------------------------------------------------- |
-| H3068  | ye.ho.vah |   6516 | **Jehová**              | LORD       | Jehová, el nombre nacional judío de Dios                     | nombre / título divino — debe reflejar RVR1960                                                        |
-| H430   | e.lo.him  |   2600 | **Dios**                | God        | dioses en el sentido ordinario; pero usado específicamente…  | plural; RVR1960 usa «dioses» para dioses falsos y, raras veces, «jueces». ~2.6k ocurrencias.          |
-| H136   | a.do.nai  |    440 | **Señor**               | Lord       | el Señor (usado como nombre propio de Dios únicamente)       | nombre / título divino — debe reflejar RVR1960                                                        |
-| H3069  | ye.ho.vih |    306 | **Jehová**              | YHWH/God   | Jehová (el nombre divino; vocalizado como «Dios» cuando sig… | aparece casi siempre en la pareja «Señor Jehová» (H136 + H3069); por palabra, H3069 imprime «Jehová». |
-| H410   | el        |    241 | **Dios**                | god        | fuerza; como adjetivo, poderoso; especialmente el Todopoder… | RVR1960 casi siempre «Dios»; unas pocas veces «poderoso».                                             |
-| H426   | e.lah     |     95 | **Dios**                | god        | Dios (arameo)                                                | nombre / título divino — debe reflejar RVR1960                                                        |
-| H433   | e.lo.ah   |     57 | **Dios**                | god        | una deidad o la Deidad; Dios                                 | nombre / título divino — debe reflejar RVR1960                                                        |
-| H5945  | el.yon    |     53 | **Altísimo / superior** | Most High  | una elevación, es decir, (adj.) alto (comparativo); como tí… | ~mitad título divino «Altísimo», ~mitad adjetivo común «de arriba / superior» (puerta, estanque…).    |
-| H3050  | yah       |     48 | **JAH**                 | LORD       | Jah, el nombre sagrado                                       | RVR1960 imprime «JAH» (Sal 68:4) pero «Jehová» dentro de compuestos / Éx 15:2.                        |
-| H7706  | shad.day  |     48 | **Todopoderoso**        | Almighty   | el Todopoderoso                                              | RVR1960 alterna «Todopoderoso» (Gn 17:1) y «Omnipotente» (Gn 28:3; 35:11).                            |
+| Strong | translit  | ocurr. | glosa propuesta         | TBESH (EN) | definition_es (extracto)                                     | nota                                                                                                                                                                                                                                                           |
+| ------ | --------- | -----: | ----------------------- | ---------- | ------------------------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| H3068  | ye.ho.vah |   6516 | **Jehová**              | LORD       | Jehová, el nombre nacional judío de Dios                     | YHWH → «Jehová» (decisión 2, NO «Yahvé»). Nota: el overlay por-ocurrencia existente `hebrew-gloss-es-v1.json` imprime «a Yahvé» en Sal 136:1 pos. 2 (previo a esta decisión) y gana en ese versículo por ser tier 2 — conviene alinearlo en una pasada futura. |
+| H430   | e.lo.him  |   2600 | **Dios**                | God        | dioses en el sentido ordinario; pero usado específicamente…  | plural; RVR1960 usa «dioses» para dioses falsos y, raras veces, «jueces». ~2.6k ocurrencias.                                                                                                                                                                   |
+| H136   | a.do.nai  |    440 | **Señor**               | Lord       | el Señor (usado como nombre propio de Dios únicamente)       | nombre / título divino — debe reflejar RVR1960                                                                                                                                                                                                                 |
+| H3069  | ye.ho.vih |    306 | **Jehová**              | YHWH/God   | Jehová (el nombre divino; vocalizado como «Dios» cuando sig… | aparece casi siempre en la pareja «Señor Jehová» (H136 + H3069); por palabra, H3069 imprime «Jehová».                                                                                                                                                          |
+| H410   | el        |    241 | **Dios**                | god        | fuerza; como adjetivo, poderoso; especialmente el Todopoder… | RVR1960 casi siempre «Dios»; unas pocas veces «poderoso».                                                                                                                                                                                                      |
+| H426   | e.lah     |     95 | **Dios**                | god        | Dios (arameo)                                                | nombre / título divino — debe reflejar RVR1960                                                                                                                                                                                                                 |
+| H433   | e.lo.ah   |     57 | **Dios**                | god        | una deidad o la Deidad; Dios                                 | nombre / título divino — debe reflejar RVR1960                                                                                                                                                                                                                 |
+| H5945  | el.yon    |     53 | **Altísimo / superior** | Most High  | una elevación, es decir, (adj.) alto (comparativo); como tí… | ~mitad título divino «Altísimo», ~mitad adjetivo común «de arriba / superior» (puerta, estanque…).                                                                                                                                                             |
+| H3050  | yah       |     48 | **JAH**                 | LORD       | Jah, el nombre sagrado                                       | RVR1960 imprime «JAH» (Sal 68:4) pero «Jehová» dentro de compuestos / Éx 15:2.                                                                                                                                                                                 |
+| H7706  | shad.day  |     48 | **Todopoderoso**        | Almighty   | el Todopoderoso                                              | RVR1960 alterna «Todopoderoso» (Gn 17:1) y «Omnipotente» (Gn 28:3; 35:11).                                                                                                                                                                                     |
 
 ### Término teológicamente cargado (50)
 
@@ -126,151 +125,145 @@ Procedencia de la glosa (`fullSource`):
 
 ---
 
-## 2. Lemas teológicamente cargados / de frecuencia media (139)
+## 2. Lemas teológicamente cargados / de frecuencia media (133)
 
 `conf.` = confianza: **alta** (mapa a mano) · media (auto de `definition_es`) · baja (auto de TBESH / condensación permisiva).
 
-| Strong | translit   | ocurr. | glosa propuesta                         | fuente              | conf. | definition_es (extracto)                                               |
-| ------ | ---------- | -----: | --------------------------------------- | ------------------- | ----- | ---------------------------------------------------------------------- |
-| H853   | et         |  10928 | **introduce el complemento directo**    | hand-particle       | alta  | al parecer contraído de H226 (אוֹת) en el sentido demostrativo de ent… |
-| H5921  | al         |   5754 | **sobre / encima / contra**             | hand-particle       | alta  | encima, sobre, por encima de, o contra (aunque siempre en esta última… |
-| H413   | el         |   5509 | **a / hacia**                           | hand-particle       | alta  | cerca, con o entre; a menudo, en general, a/hacia                      |
-| H834   | a.sher     |   5496 | **que / el cual**                       | hand-particle       | alta  | quien, el cual, lo que, que; también (como adverbio y conjunción) cua… |
-| H3605  | kol        |   5412 | **todo / cada / cualquiera**            | hand-particle       | alta  | o (Jeremías 33:8) כּוֹל; de H3634 (כָּלַל); propiamente, el todo; de…  |
-| H559   | a.mar      |   5306 | **decir**                               | hand-particle       | alta  | decir (usado con gran amplitud)                                        |
-| H3588  | ki         |   4482 | **porque / que / cuando**               | hand-particle       | alta  | (por implicación) muy ampliamente usado como conjunción o adverbio re… |
-| H1961  | ha.yah     |   3559 | **ser / estar / haber / suceder**       | hand-particle       | alta  | existir, es decir, ser o llegar a ser, acontecer (siempre enfático, y… |
-| H430   | e.lo.him   |   2600 | **Dios**                                | hand-divine         | alta  | dioses en el sentido ordinario; pero usado específicamente (así en pl… |
-| H376   | ish        |   1662 | **hombre**                              | tbesh-map           | media | un hombre como individuo o persona varón; a menudo usado como complem… |
-| H1697  | da.var     |   1439 | **palabra / asunto / cosa**             | hand-weighted       | alta  | una palabra; por implicación, un asunto (del que se habla) o cosa; ad… |
-| H7200  | ra.ah      |   1299 | **ver**                                 | tbesh-map           | media | ver, literal o figurativamente (en numerosas aplicaciones, directas e… |
-| H4480  | min        |   1187 | **de / desde**                          | tbesh-head-es       | baja  | o מִנִּי; o מִנֵּי; (plural constructo) (Isaías 30:11); por H4482 (מֵ… |
-| H8085  | sha.ma     |   1159 | **oír / escuchar / obedecer**           | hand-weighted       | alta  | oír con entendimiento (a menudo con implicación de atención, obedienc… |
-| H3427  | ya.shav    |   1079 | **habitar**                             | tbesh-map           | media | una raíz primitiva; propiamente, sentarse (específicamente como juez,… |
-| H518   | im         |   1067 | **si**                                  | tbesh-head-es       | baja  | usado muy ampliamente como demostrativo, ¡he aquí!; interrogativo, ¿a… |
-| H5973  | im         |   1050 | **adverbio o preposición**              | definition_es-loose | baja  | adverbio o preposición, con (es decir, en conjunción con), en aplicac… |
-| H3045  | ya.da      |    945 | **conocer / saber**                     | hand-weighted       | alta  | conocer (propiamente, averiguar viendo); usado en una gran variedad d… |
-| H1571  | gam        |    769 | **también**                             | tbesh-head-es       | baja  | por contracción de una raíz en desuso que significa reunir; propiamen… |
-| H5315  | ne.phesh   |    754 | **alma / vida / ser**                   | hand-weighted       | alta  | de H5314 (נָפַשׁ); propiamente, una criatura que respira, es decir, a… |
-| H7451  | ra         |    661 | **malo / mal / calamidad**              | hand-weighted       | alta  | malo o (como sustantivo) mal (natural o moral)                         |
-| H3820  | lev        |    595 | **corazón / mente**                     | hand-weighted       | alta  | el corazón; también usado (figurativamente) muy ampliamente para los…  |
-| H120   | a.dam      |    550 | **hombre / ser humano**                 | hand-weighted       | alta  | rojizo, es decir, un ser humano (un individuo o la especie, la humani… |
-| H2896  | tov        |    538 | **bueno / bien**                        | hand-weighted       | alta  | bueno (como adjetivo) en el sentido más amplio; usado asimismo como s… |
-| H505   | e.leph     |    505 | **mil**                                 | tbesh-map           | media | de ahí (siendo la cabeza del buey la primera letra del alfabeto, y es… |
-| H6635  | tsa.va     |    484 | **ejército / hueste**                   | hand-weighted       | alta  | una masa de personas (o figurativamente, de cosas), especialmente org… |
-| H6944  | qo.desh    |    469 | **santidad / lo santo**                 | hand-weighted       | alta  | un lugar o cosa sagrada; raramente en abstracto, santidad              |
-| H8104  | sha.mar    |    468 | **guardar**                             | tbesh-head-es       | baja  | una raíz primitiva; propiamente, cercar alrededor (como con espinos),… |
-| H4672  | ma.tsa     |    455 | **hallar**                              | tbesh-map           | media | una raíz primitiva; propiamente, salir al encuentro de, es decir, apa… |
-| H136   | a.do.nai   |    440 | **Señor**                               | hand-divine         | alta  | el Señor (usado como nombre propio de Dios únicamente)                 |
-| H4941  | mish.pat   |    422 | **juicio / derecho / ordenanza**        | hand-weighted       | alta  | de H8199 (שָׁפַט); propiamente, un veredicto (favorable o desfavorabl… |
-| H7307  | ru.ach     |    378 | **espíritu / viento / aliento**         | hand-weighted       | alta  | viento; por semejanza, aliento, es decir, una exhalación perceptible…  |
-| H5046  | na.gad     |    369 | **contar**                              | tbesh-map           | media | una raíz primitiva; propiamente, ponerse al frente, es decir, destaca… |
-| H1768  | di         |    345 | **que / aquel**                         | tbesh-head-es       | baja  | que, usado como conjunción relativa, y especialmente (con preposición… |
-| H6030  | a.nah      |    330 | **responder**                           | tbesh-head-es       | baja  | una raíz primitiva; propiamente, fijar la vista o (en general) atende… |
-| H3372  | ya.re      |    315 | **temer / reverenciar**                 | hand-weighted       | alta  | temer; moralmente, reverenciar; causativamente, atemorizar             |
-| H3966  | me.od      |    300 | **mucho**                               | tbesh-head-es       | baja  | de la misma raíz que H181 (אוּד); propiamente, vehemencia, es decir,…  |
-| H2403  | chat.ta.ah |    295 | **pecado / ofrenda por el pecado**      | hand-weighted       | alta  | una ofensa (a veces pecaminosidad habitual), y su pena, ocasión, sacr… |
-| H5647  | a.vad      |    288 | **servir / trabajar / labrar**          | hand-weighted       | alta  | trabajar (en cualquier sentido); por implicación, servir, labrar, (ca… |
-| H1285  | be.rit     |    284 | **pacto**                               | hand-weighted       | alta  | un pacto (porque se hacía pasando entre trozos de carne)               |
-| H3824  | le.vav     |    252 | **corazón / mente**                     | hand-weighted       | alta  | el corazón (como el órgano más interior);                              |
-| H2617  | che.sed    |    247 | **misericordia / amor leal**            | hand-weighted       | alta  | bondad/misericordia; por implicación (hacia Dios) piedad; raramente (… |
-| H410   | el         |    241 | **Dios**                                | hand-divine         | alta  | fuerza; como adjetivo, poderoso; especialmente el Todopoderoso (pero…  |
-| H2398  | cha.ta     |    238 | **pecar / errar el blanco**             | hand-weighted       | alta  | una raíz primitiva; propiamente, errar el blanco; de ahí (figurativa…  |
-| H7965  | sha.lom    |    237 | **paz / bienestar**                     | hand-weighted       | alta  | a salvo, es decir, (figurativamente) bien, feliz, amistoso; también (… |
-| H5771  | a.van      |    231 | **iniquidad / culpa**                   | hand-weighted       | alta  | perversidad, es decir, mal (moral); iniquidad                          |
-| H2233  | ze.ra      |    229 | **simiente / descendencia**             | hand-weighted       | alta  | semilla / simiente; figurativamente, fruto, planta, tiempo de siembra… |
-| H127   | a.da.mah   |    225 | **tierra / suelo**                      | hand-weighted       | alta  | suelo / tierra (por su rojez general)                                  |
-| H4150  | mo.ed      |    223 | **reunión / asamblea**                  | tbesh-head-es       | baja  | o מֹעֵד; o (femenino) מוֹעָדָה; (2 Crónicas 8:13), de H3259 (יָעַד);…  |
-| H5159  | na.cha.lah |    222 | **heredad / herencia**                  | tbesh-head-es       | baja  | de H5157 (נָחַל) (en su sentido usual); propiamente, algo heredado, e… |
-| H8451  | to.rah     |    219 | **ley / instrucción**                   | hand-weighted       | alta  | un precepto o estatuto, especialmente el Decálogo o el Pentateuco; la… |
-| H3559  | kun        |    217 | **establecer / afirmar**                | tbesh-head-es       | baja  | una raíz primitiva; propiamente, estar erguido (es decir, en pie perp… |
-| H4397  | ma.le.akh  |    214 | **mensajero / ángel**                   | hand-weighted       | alta  | un mensajero; específicamente, de Dios, es decir, un ángel (también u… |
-| H6662  | tsad.diq   |    206 | **justo**                               | hand-weighted       | alta  | justo                                                                  |
-| H3467  | ya.sah     |    205 | **salvar / librar**                     | hand-weighted       | alta  | una raíz primitiva; propiamente, estar abierto, amplio o libre, es de… |
-| H8199  | sha.phat   |    202 | **juzgar / gobernar**                   | hand-weighted       | alta  | juzgar, es decir, pronunciar sentencia (a favor o en contra); por imp… |
-| H3519  | ka.vod     |    200 | **gloria / honra**                      | hand-weighted       | alta  | raramente כָּבֹד; de H3513 (כָּבַד); propiamente, peso, pero solo fig… |
-| H3201  | ya.khol    |    194 | **poder**                               | tbesh-head-es       | baja  | poder, literalmente (poder, podía) o moralmente (tener permitido)      |
-| H929   | be.he.mah  |    190 | **animal**                              | tbesh-map           | media | de una raíz en desuso (probablemente con el sentido de ser mudo); pro… |
-| H352   | a.yil      |    187 | **carnero**                             | tbesh-map           | media | de la misma raíz que H193 (אוּל); propiamente, fuerza; de ahí, cualqu… |
-| H5612  | se.pher    |    186 | **rollo**                               | tbesh-map           | media | o (femenino) סִפְרָה; (Salmo 56:8), de H5608 (סָפַר); propiamente, es… |
-| H6     | a.vad      |    184 | **perecer**                             | tbesh-head-es       | baja  | una raíz primitiva; propiamente, extraviarse, es decir, perderse; por… |
-| H1241  | ba.qar     |    183 | **ganado**                              | tbesh-map           | media | ganado vacuno o un animal de la familia bovina de cualquier sexo (com… |
-| H7223  | ri.shon    |    181 | **primero / anterior**                  | hand-weighted       | alta  | primero, en lugar, tiempo o rango (como adjetivo o sustantivo)         |
-| H7812  | sha.chah   |    172 | **postrarse / adorar**                  | hand-weighted       | alta  | abatir(se), es decir, postrarse (especialmente reflexivo, en homenaje… |
-| H977   | ba.char    |    171 | **escoger**                             | tbesh-head-es       | baja  | una raíz primitiva; propiamente, probar, es decir, (por implicación)…  |
-| H6942  | qa.dash    |    171 | **santificar / consagrar**              | hand-weighted       | alta  | ser (causativamente, hacer, declarar u observar como) limpio/santo (c… |
-| H1755  | dor        |    167 | **generación**                          | tbesh-head-es       | baja  | o (abreviado) דֹּר; de H1752 (דּוּר); propiamente, una revolución de…  |
-| H1875  | da.rash    |    164 | **buscar**                              | tbesh-map           | media | una raíz primitiva; propiamente, pisar o frecuentar; usualmente, segu… |
-| H2351  | chuts      |    164 | **afuera / fuera**                      | tbesh-head-es       | baja  | o (abreviado) חֻץ; de una raíz en desuso que significa separar; propi… |
-| H389   | akh        |    161 | **ciertamente**                         | tbesh-head-es       | baja  | una partícula de afirmación, ciertamente; de ahí (por limitación) sol… |
-| H5608  | sa.phar    |    159 | **recontar / relatar**                  | tbesh-head-es       | baja  | una raíz primitiva; propiamente, hacer una marca como cuenta o regist… |
-| H6666  | tse.da.qah |    157 | **justicia / rectitud**                 | hand-weighted       | alta  | rectitud (en abstracto), subjetivamente (rectitud), objetivamente (ju… |
-| H3680  | ka.sah     |    152 | **cubrir**                              | tbesh-head-es       | baja  | una raíz primitiva; propiamente, rellenar, es decir, llenar huecos; p… |
-| H5060  | na.ga      |    150 | **tocar**                               | tbesh-head-es       | baja  | una raíz primitiva; propiamente, tocar, es decir, poner la mano sobre… |
-| H5265  | na.sa      |    146 | **partir / ponerse en marcha**          | tbesh-head-es       | baja  | una raíz primitiva; propiamente, arrancar, especialmente las estacas…  |
-| H2490  | cha.lal    |    143 | **profanar / comenzar**                 | tbesh-head-es       | baja  | una raíz primitiva (compárese H2470 (חָלָה)); también denominativo (d… |
-| H2583  | cha.nah    |    143 | **campamento / acampar**                | tbesh-head-es       | baja  | una raíz primitiva (compárese H2603 (חָנַן)); propiamente, inclinarse… |
-| H7604  | sha.ar     |    133 | **quedar / permanecer**                 | tbesh-head-es       | baja  | una raíz primitiva; propiamente, hincharse, es decir, ser (causativam… |
-| H7931  | sha.khan   |    129 | **habitar**                             | tbesh-map           | media | residir o permanecer de forma estable (literal o figuradamente); morar |
-| H954   | bush       |    127 | **avergonzarse**                        | tbesh-head-es       | baja  | una raíz primitiva; propiamente, palidecer, es decir, por implicación… |
-| H3581  | ko.ach     |    126 | **fuerza**                              | tbesh-map           | media | vigor, literalmente (fuerza, en buen o mal sentido) o figurativamente… |
-| H2803  | cha.shav   |    124 | **idear / tramar**                      | tbesh-head-es       | baja  | una raíz primitiva; propiamente, trenzar o entrelazar, es decir, (lit… |
-| H982   | ba.tach    |    120 | **confiar**                             | tbesh-head-es       | baja  | una raíz primitiva; propiamente, refugiarse (pero no tan precipitadam… |
-| H6664  | tse.deq    |    119 | **justicia / rectitud**                 | hand-weighted       | alta  | lo justo (natural, moral o legal); también (en abstracto) equidad o (… |
-| H3847  | la.vash    |    110 | **vestir**                              | tbesh-head-es       | baja  | o לָבֵשׁ; una raíz primitiva; propiamente, envolver alrededor, es dec… |
-| H5162  | na.cham    |    108 | **consolar / arrepentirse**             | hand-weighted       | alta  | una raíz primitiva; propiamente, suspirar, es decir, respirar fuertem… |
-| H7489  | ra.a       |    107 | **ser malo**                            | tbesh-head-es       | baja  | una raíz primitiva; propiamente, estropear (literalmente, rompiendo e… |
-| H539   | a.man      |    105 | **creer / confiar / ser fiel**          | hand-weighted       | alta  | una raíz primitiva; propiamente, edificar o sostener; criar como padr… |
-| H1350  | ga.al      |    104 | **redimir / rescatar**                  | hand-weighted       | alta  | ser el pariente más cercano (y como tal redimir la propiedad de un pa… |
-| H8548  | ta.mid     |    104 | **continuamente**                       | tbesh-head-es       | baja  | de una raíz en desuso que significa extender; propiamente, continuida… |
-| H3722  | ki.pher    |    102 | **expiar / hacer expiación**            | hand-weighted       | alta  | cubrir (específicamente con betún); figurativamente, expiar o perdona… |
-| H3282  | ya.an      |     99 | **porque**                              | tbesh-head-es       | baja  | de una raíz en desuso que significa prestar atención; propiamente, at… |
-| H1481  | gur        |     97 | **peregrinar / morar**                  | tbesh-head-es       | baja  | una raíz primitiva; propiamente, apartarse del camino (para alojarse…  |
-| H426   | e.lah      |     95 | **Dios**                                | hand-divine         | alta  | Dios (arameo)                                                          |
-| H4422  | ma.lat     |     95 | **escapar / huida**                     | tbesh-head-es       | baja  | una raíz primitiva; propiamente, ser liso, es decir, (por implicación… |
-| H6588  | pe.sah     |     93 | **transgresión / rebelión**             | hand-weighted       | alta  | una rebelión (nacional, moral o religiosa); transgresión               |
-| H1616  | ger        |     92 | **forastero / peregrino**               | tbesh-head-es       | baja  | o (en forma plena) geyr; de H1481 (גּוּר); propiamente, un huésped; p… |
-| H6285  | pe.ah      |     86 | **lado / costado**                      | tbesh-head-es       | baja  | femenino de H6311 (פֹּה); propiamente, boca en sentido figurado, es d… |
-| H3925  | la.mad     |     85 | **aprender**                            | tbesh-head-es       | baja  | una raíz primitiva; propiamente, aguijonear, es decir, (por implicaci… |
-| H1167  | ba.al      |     84 | **amo / señor**                         | tbesh-head-es       | baja  | un señor / dueño; de ahí, un esposo, o (figurativamente) propietario…  |
-| H3384  | ya.ra      |     80 | **brote / retoño**                      | tbesh-head-es       | baja  | o (2 Crónicas 26:15) יָרָא; una raíz primitiva; propiamente, fluir co… |
-| H4376  | ma.khar    |     80 | **vender**                              | tbesh-map           | media | vender, literalmente (como mercancía, una hija en matrimonio, en escl… |
-| H226   | ot         |     79 | **señal**                               | tbesh-head-es       | baja  | una señal (literal o figurada), como bandera, faro, monumento, presag… |
-| H2603  | cha.nan    |     78 | **tener piedad**                        | tbesh-head-es       | baja  | una raíz primitiva (compárese H2583 (חָנָה)); propiamente, inclinarse… |
-| H3444  | ye.shu.ah  |     78 | **salvación / liberación**              | hand-weighted       | alta  | algo salvado, es decir, (en abstracto) liberación; de ahí, ayuda, vic… |
-| H1486  | go.ral     |     77 | **asignado**                            | tbesh-head-es       | baja  | o (abreviado) גֹּרָל; de una raíz en desuso que significa ser áspero…  |
-| H2470  | cha.lah    |     75 | **debilitarse**                         | tbesh-head-es       | baja  | una raíz primitiva; propiamente, ser frotado o desgastado; de ahí (fi… |
-| H2654  | cha.phets  |     74 | **deleitarse en**                       | tbesh-head-es       | baja  | una raíz primitiva; propiamente, inclinarse a; por implicación (liter… |
-| H6381  | pa.la      |     71 | **maravilla / prodigio**                | tbesh-head-es       | baja  | una raíz primitiva; propiamente, quizá separar, es decir, distinguir…  |
-| H2580  | chen       |     69 | **gracia / favor**                      | hand-weighted       | alta  | gracia, es decir, subjetiva (bondad, favor) u objetiva (hermosura)     |
-| H4116  | ma.har     |     68 | **apresurar**                           | tbesh-head-es       | baja  | una raíz primitiva; propiamente, ser líquido o fluir fácilmente, es d… |
-| H7378  | riv        |     67 | **contender**                           | tbesh-head-es       | baja  | o רוּב; una raíz primitiva; propiamente, lanzar, es decir, forcejear;… |
-| H7495  | ra.pah     |     67 | **sanar**                               | tbesh-map           | media | o רָפָה; una raíz primitiva; propiamente, remendar (cosiendo), es dec… |
-| H801   | ish.shah   |     65 | **ofrenda de alimento**                 | tbesh-head-es       | baja  | lo mismo que H800 (אֶשָּׁה), pero usado en sentido litúrgico; propiam… |
-| H2308  | cha.dal    |     58 | **cesar**                               | tbesh-head-es       | baja  | una raíz primitiva; propiamente, estar flácido, es decir, (por implic… |
-| H2342  | chul       |     58 | **torcer**                              | tbesh-head-es       | baja  | o חִיל; una raíz primitiva; propiamente, torcer o girar (de manera ci… |
-| H433   | e.lo.ah    |     57 | **Dios**                                | hand-divine         | alta  | una deidad o la Deidad; Dios                                           |
-| H7703  | sha.dad    |     57 | **ruina**                               | tbesh-head-es       | baja  | una raíz primitiva; propiamente, ser corpulento, es decir, (figurativ… |
-| H2962  | te.rem     |     56 | **antes / delante**                     | tbesh-head-es       | baja  | de una raíz en desuso que aparentemente significa interrumpir o suspe… |
-| H7522  | ra.tson    |     56 | **voluntad / beneplácito / favor**      | hand-weighted       | alta  | deleite (especialmente como mostrado); buena voluntad, favor           |
-| H1254  | ba.ra      |     55 | **crear**                               | hand-weighted       | alta  | (en sentido absoluto) crear; (matizado) talar (un bosque), selecciona… |
-| H1692  | da.vaq     |     54 | **hender / adherirse**                  | tbesh-head-es       | baja  | una raíz primitiva; propiamente, golpear, es decir, adherirse o pegar… |
-| H7442  | run        |     54 | **vencer**                              | tbesh-head-es       | baja  | raíz primitiva; propiamente, crujir (o emitir un sonido estridente),…  |
-| H8040  | se.mo.l    |     54 | **izquierda**                           | tbesh-head-es       | baja  | una palabra primitiva (quizá más bien de la misma raíz que H8071 (שִׂ… |
-| H4682  | mats.tsah  |     53 | **pan sin levadura**                    | tbesh-head-es       | baja  | de H4711 (מָצַץ) en el sentido de devorar ávidamente por la dulzura;…  |
-| H5945  | el.yon     |     53 | **Altísimo / superior**                 | hand-divine         | alta  | una elevación, es decir, (adj.) alto (comparativo); como título, el A… |
-| H2865  | cha.tat    |     52 | **postrar**                             | definition_es-loose | baja  | una raíz primitiva; propiamente, postrar; de ahí, derribar, sea (lite… |
-| H4058  | ma.dad     |     51 | **medida / medir**                      | tbesh-head-es       | baja  | una raíz primitiva; propiamente, estirar; por implicación, medir (com… |
-| H3119  | yo.mam     |     50 | **de día**                              | tbesh-head-es       | baja  | de día; diariamente                                                    |
-| H3332  | ya.tsaq    |     50 | **derramar**                            | tbesh-map           | media | raíz primitiva; propiamente, derramar (transitivo o intransitivo); po… |
-| H530   | e.mu.nah   |     49 | **fidelidad / fe**                      | hand-weighted       | alta  | o (abreviado) אֱמֻנָה; femenino de H529 (אֵמוּן); literalmente firmez… |
-| H7706  | shad.day   |     48 | **Todopoderoso**                        | hand-divine         | alta  | el Todopoderoso                                                        |
-| H7355  | ra.cham    |     47 | **compadecerse / amar**                 | hand-weighted       | alta  | acariciar; por implicación, amar, especialmente compadecerse           |
-| H7356  | ra.cha.mim |     45 | **misericordia / compasión / entrañas** | hand-weighted       | alta  | compasión (en plural); por extensión, el vientre (como que abriga al…  |
-| H6663  | tsa.daq    |     41 | **ser justo / justificar**              | hand-weighted       | alta  | ser (causativamente, hacer) justo (en sentido moral o forense)         |
-| H4899  | ma.shi.ach |     39 | **ungido**                              | hand-weighted       | alta  | ungido; usualmente una persona consagrada (como rey, sacerdote o sant… |
-| H3468  | ye.sah     |     36 | **salvación / liberación**              | hand-weighted       | alta  | libertad, liberación, prosperidad, salvación                           |
-| H1353  | ge.ul.lah  |     14 | **redención / rescate**                 | hand-weighted       | alta  | redención (incluyendo el derecho y el objeto); por implicación, paren… |
+| Strong | translit   | ocurr. | glosa propuesta                         | fuente        | conf. | definition_es (extracto)                                               |
+| ------ | ---------- | -----: | --------------------------------------- | ------------- | ----- | ---------------------------------------------------------------------- |
+| H853   | et         |  10928 | **introduce el complemento directo**    | hand-particle | alta  | al parecer contraído de H226 (אוֹת) en el sentido demostrativo de ent… |
+| H5921  | al         |   5754 | **sobre / encima / contra**             | hand-particle | alta  | encima, sobre, por encima de, o contra (aunque siempre en esta última… |
+| H413   | el         |   5509 | **a / hacia**                           | hand-particle | alta  | cerca, con o entre; a menudo, en general, a/hacia                      |
+| H834   | a.sher     |   5496 | **que / el cual**                       | hand-particle | alta  | quien, el cual, lo que, que; también (como adverbio y conjunción) cua… |
+| H3605  | kol        |   5412 | **todo / cada / cualquiera**            | hand-particle | alta  | o (Jeremías 33:8) כּוֹל; de H3634 (כָּלַל); propiamente, el todo; de…  |
+| H559   | a.mar      |   5306 | **decir**                               | hand-particle | alta  | decir (usado con gran amplitud)                                        |
+| H3588  | ki         |   4482 | **porque / que / cuando**               | hand-particle | alta  | (por implicación) muy ampliamente usado como conjunción o adverbio re… |
+| H1961  | ha.yah     |   3559 | **ser / estar / haber / suceder**       | hand-particle | alta  | existir, es decir, ser o llegar a ser, acontecer (siempre enfático, y… |
+| H430   | e.lo.him   |   2600 | **Dios**                                | hand-divine   | alta  | dioses en el sentido ordinario; pero usado específicamente (así en pl… |
+| H376   | ish        |   1662 | **hombre**                              | tbesh-map     | media | un hombre como individuo o persona varón; a menudo usado como complem… |
+| H1697  | da.var     |   1439 | **palabra / asunto / cosa**             | hand-weighted | alta  | una palabra; por implicación, un asunto (del que se habla) o cosa; ad… |
+| H7200  | ra.ah      |   1299 | **ver**                                 | tbesh-map     | media | ver, literal o figurativamente (en numerosas aplicaciones, directas e… |
+| H4480  | min        |   1187 | **de / desde**                          | tbesh-head-es | baja  | o מִנִּי; o מִנֵּי; (plural constructo) (Isaías 30:11); por H4482 (מֵ… |
+| H8085  | sha.ma     |   1159 | **oír / escuchar / obedecer**           | hand-weighted | alta  | oír con entendimiento (a menudo con implicación de atención, obedienc… |
+| H3427  | ya.shav    |   1079 | **habitar**                             | tbesh-map     | media | una raíz primitiva; propiamente, sentarse (específicamente como juez,… |
+| H518   | im         |   1067 | **si**                                  | tbesh-head-es | baja  | usado muy ampliamente como demostrativo, ¡he aquí!; interrogativo, ¿a… |
+| H3045  | ya.da      |    945 | **conocer / saber**                     | hand-weighted | alta  | conocer (propiamente, averiguar viendo); usado en una gran variedad d… |
+| H1571  | gam        |    769 | **también**                             | tbesh-head-es | baja  | por contracción de una raíz en desuso que significa reunir; propiamen… |
+| H5315  | ne.phesh   |    754 | **alma / vida / ser**                   | hand-weighted | alta  | de H5314 (נָפַשׁ); propiamente, una criatura que respira, es decir, a… |
+| H7451  | ra         |    661 | **malo / mal / calamidad**              | hand-weighted | alta  | malo o (como sustantivo) mal (natural o moral)                         |
+| H3820  | lev        |    595 | **corazón / mente**                     | hand-weighted | alta  | el corazón; también usado (figurativamente) muy ampliamente para los…  |
+| H120   | a.dam      |    550 | **hombre / ser humano**                 | hand-weighted | alta  | rojizo, es decir, un ser humano (un individuo o la especie, la humani… |
+| H2896  | tov        |    538 | **bueno / bien**                        | hand-weighted | alta  | bueno (como adjetivo) en el sentido más amplio; usado asimismo como s… |
+| H505   | e.leph     |    505 | **mil**                                 | tbesh-map     | media | de ahí (siendo la cabeza del buey la primera letra del alfabeto, y es… |
+| H6635  | tsa.va     |    484 | **ejército / hueste**                   | hand-weighted | alta  | una masa de personas (o figurativamente, de cosas), especialmente org… |
+| H6944  | qo.desh    |    469 | **santidad / lo santo**                 | hand-weighted | alta  | un lugar o cosa sagrada; raramente en abstracto, santidad              |
+| H8104  | sha.mar    |    468 | **guardar**                             | tbesh-head-es | baja  | una raíz primitiva; propiamente, cercar alrededor (como con espinos),… |
+| H4672  | ma.tsa     |    455 | **hallar**                              | tbesh-map     | media | una raíz primitiva; propiamente, salir al encuentro de, es decir, apa… |
+| H136   | a.do.nai   |    440 | **Señor**                               | hand-divine   | alta  | el Señor (usado como nombre propio de Dios únicamente)                 |
+| H4941  | mish.pat   |    422 | **juicio / derecho / ordenanza**        | hand-weighted | alta  | de H8199 (שָׁפַט); propiamente, un veredicto (favorable o desfavorabl… |
+| H7307  | ru.ach     |    378 | **espíritu / viento / aliento**         | hand-weighted | alta  | viento; por semejanza, aliento, es decir, una exhalación perceptible…  |
+| H5046  | na.gad     |    369 | **contar**                              | tbesh-map     | media | una raíz primitiva; propiamente, ponerse al frente, es decir, destaca… |
+| H1768  | di         |    345 | **que / aquel**                         | tbesh-head-es | baja  | que, usado como conjunción relativa, y especialmente (con preposición… |
+| H6030  | a.nah      |    330 | **responder**                           | tbesh-head-es | baja  | una raíz primitiva; propiamente, fijar la vista o (en general) atende… |
+| H3372  | ya.re      |    315 | **temer / reverenciar**                 | hand-weighted | alta  | temer; moralmente, reverenciar; causativamente, atemorizar             |
+| H3966  | me.od      |    300 | **mucho**                               | tbesh-head-es | baja  | de la misma raíz que H181 (אוּד); propiamente, vehemencia, es decir,…  |
+| H2403  | chat.ta.ah |    295 | **pecado / ofrenda por el pecado**      | hand-weighted | alta  | una ofensa (a veces pecaminosidad habitual), y su pena, ocasión, sacr… |
+| H5647  | a.vad      |    288 | **servir / trabajar / labrar**          | hand-weighted | alta  | trabajar (en cualquier sentido); por implicación, servir, labrar, (ca… |
+| H1285  | be.rit     |    284 | **pacto**                               | hand-weighted | alta  | un pacto (porque se hacía pasando entre trozos de carne)               |
+| H3824  | le.vav     |    252 | **corazón / mente**                     | hand-weighted | alta  | el corazón (como el órgano más interior);                              |
+| H2617  | che.sed    |    247 | **misericordia / amor leal**            | hand-weighted | alta  | bondad/misericordia; por implicación (hacia Dios) piedad; raramente (… |
+| H410   | el         |    241 | **Dios**                                | hand-divine   | alta  | fuerza; como adjetivo, poderoso; especialmente el Todopoderoso (pero…  |
+| H2398  | cha.ta     |    238 | **pecar / errar el blanco**             | hand-weighted | alta  | una raíz primitiva; propiamente, errar el blanco; de ahí (figurativa…  |
+| H7965  | sha.lom    |    237 | **paz / bienestar**                     | hand-weighted | alta  | a salvo, es decir, (figurativamente) bien, feliz, amistoso; también (… |
+| H5771  | a.van      |    231 | **iniquidad / culpa**                   | hand-weighted | alta  | perversidad, es decir, mal (moral); iniquidad                          |
+| H2233  | ze.ra      |    229 | **simiente / descendencia**             | hand-weighted | alta  | semilla / simiente; figurativamente, fruto, planta, tiempo de siembra… |
+| H127   | a.da.mah   |    225 | **tierra / suelo**                      | hand-weighted | alta  | suelo / tierra (por su rojez general)                                  |
+| H4150  | mo.ed      |    223 | **reunión / asamblea**                  | tbesh-head-es | baja  | o מֹעֵד; o (femenino) מוֹעָדָה; (2 Crónicas 8:13), de H3259 (יָעַד);…  |
+| H5159  | na.cha.lah |    222 | **heredad / herencia**                  | tbesh-head-es | baja  | de H5157 (נָחַל) (en su sentido usual); propiamente, algo heredado, e… |
+| H8451  | to.rah     |    219 | **ley / instrucción**                   | hand-weighted | alta  | un precepto o estatuto, especialmente el Decálogo o el Pentateuco; la… |
+| H3559  | kun        |    217 | **establecer / afirmar**                | tbesh-head-es | baja  | una raíz primitiva; propiamente, estar erguido (es decir, en pie perp… |
+| H4397  | ma.le.akh  |    214 | **mensajero / ángel**                   | hand-weighted | alta  | un mensajero; específicamente, de Dios, es decir, un ángel (también u… |
+| H6662  | tsad.diq   |    206 | **justo**                               | hand-weighted | alta  | justo                                                                  |
+| H3467  | ya.sah     |    205 | **salvar / librar**                     | hand-weighted | alta  | una raíz primitiva; propiamente, estar abierto, amplio o libre, es de… |
+| H8199  | sha.phat   |    202 | **juzgar / gobernar**                   | hand-weighted | alta  | juzgar, es decir, pronunciar sentencia (a favor o en contra); por imp… |
+| H3519  | ka.vod     |    200 | **gloria / honra**                      | hand-weighted | alta  | raramente כָּבֹד; de H3513 (כָּבַד); propiamente, peso, pero solo fig… |
+| H3201  | ya.khol    |    194 | **poder**                               | tbesh-head-es | baja  | poder, literalmente (poder, podía) o moralmente (tener permitido)      |
+| H929   | be.he.mah  |    190 | **animal**                              | tbesh-map     | media | de una raíz en desuso (probablemente con el sentido de ser mudo); pro… |
+| H352   | a.yil      |    187 | **carnero**                             | tbesh-map     | media | de la misma raíz que H193 (אוּל); propiamente, fuerza; de ahí, cualqu… |
+| H5612  | se.pher    |    186 | **rollo**                               | tbesh-map     | media | o (femenino) סִפְרָה; (Salmo 56:8), de H5608 (סָפַר); propiamente, es… |
+| H6     | a.vad      |    184 | **perecer**                             | tbesh-head-es | baja  | una raíz primitiva; propiamente, extraviarse, es decir, perderse; por… |
+| H1241  | ba.qar     |    183 | **ganado**                              | tbesh-map     | media | ganado vacuno o un animal de la familia bovina de cualquier sexo (com… |
+| H7223  | ri.shon    |    181 | **primero / anterior**                  | hand-weighted | alta  | primero, en lugar, tiempo o rango (como adjetivo o sustantivo)         |
+| H7812  | sha.chah   |    172 | **postrarse / adorar**                  | hand-weighted | alta  | abatir(se), es decir, postrarse (especialmente reflexivo, en homenaje… |
+| H977   | ba.char    |    171 | **escoger**                             | tbesh-head-es | baja  | una raíz primitiva; propiamente, probar, es decir, (por implicación)…  |
+| H6942  | qa.dash    |    171 | **santificar / consagrar**              | hand-weighted | alta  | ser (causativamente, hacer, declarar u observar como) limpio/santo (c… |
+| H1755  | dor        |    167 | **generación**                          | tbesh-head-es | baja  | o (abreviado) דֹּר; de H1752 (דּוּר); propiamente, una revolución de…  |
+| H1875  | da.rash    |    164 | **buscar**                              | tbesh-map     | media | una raíz primitiva; propiamente, pisar o frecuentar; usualmente, segu… |
+| H2351  | chuts      |    164 | **afuera / fuera**                      | tbesh-head-es | baja  | o (abreviado) חֻץ; de una raíz en desuso que significa separar; propi… |
+| H389   | akh        |    161 | **ciertamente**                         | tbesh-head-es | baja  | una partícula de afirmación, ciertamente; de ahí (por limitación) sol… |
+| H5608  | sa.phar    |    159 | **recontar / relatar**                  | tbesh-head-es | baja  | una raíz primitiva; propiamente, hacer una marca como cuenta o regist… |
+| H6666  | tse.da.qah |    157 | **justicia / rectitud**                 | hand-weighted | alta  | rectitud (en abstracto), subjetivamente (rectitud), objetivamente (ju… |
+| H3680  | ka.sah     |    152 | **cubrir**                              | tbesh-head-es | baja  | una raíz primitiva; propiamente, rellenar, es decir, llenar huecos; p… |
+| H5060  | na.ga      |    150 | **tocar**                               | tbesh-head-es | baja  | una raíz primitiva; propiamente, tocar, es decir, poner la mano sobre… |
+| H5265  | na.sa      |    146 | **partir / ponerse en marcha**          | tbesh-head-es | baja  | una raíz primitiva; propiamente, arrancar, especialmente las estacas…  |
+| H2490  | cha.lal    |    143 | **profanar / comenzar**                 | tbesh-head-es | baja  | una raíz primitiva (compárese H2470 (חָלָה)); también denominativo (d… |
+| H2583  | cha.nah    |    143 | **campamento / acampar**                | tbesh-head-es | baja  | una raíz primitiva (compárese H2603 (חָנַן)); propiamente, inclinarse… |
+| H7604  | sha.ar     |    133 | **quedar / permanecer**                 | tbesh-head-es | baja  | una raíz primitiva; propiamente, hincharse, es decir, ser (causativam… |
+| H7931  | sha.khan   |    129 | **habitar**                             | tbesh-map     | media | residir o permanecer de forma estable (literal o figuradamente); morar |
+| H954   | bush       |    127 | **avergonzarse**                        | tbesh-head-es | baja  | una raíz primitiva; propiamente, palidecer, es decir, por implicación… |
+| H3581  | ko.ach     |    126 | **fuerza**                              | tbesh-map     | media | vigor, literalmente (fuerza, en buen o mal sentido) o figurativamente… |
+| H2803  | cha.shav   |    124 | **idear / tramar**                      | tbesh-head-es | baja  | una raíz primitiva; propiamente, trenzar o entrelazar, es decir, (lit… |
+| H982   | ba.tach    |    120 | **confiar**                             | tbesh-head-es | baja  | una raíz primitiva; propiamente, refugiarse (pero no tan precipitadam… |
+| H6664  | tse.deq    |    119 | **justicia / rectitud**                 | hand-weighted | alta  | lo justo (natural, moral o legal); también (en abstracto) equidad o (… |
+| H3847  | la.vash    |    110 | **vestir**                              | tbesh-head-es | baja  | o לָבֵשׁ; una raíz primitiva; propiamente, envolver alrededor, es dec… |
+| H5162  | na.cham    |    108 | **consolar / arrepentirse**             | hand-weighted | alta  | una raíz primitiva; propiamente, suspirar, es decir, respirar fuertem… |
+| H7489  | ra.a       |    107 | **ser malo**                            | tbesh-head-es | baja  | una raíz primitiva; propiamente, estropear (literalmente, rompiendo e… |
+| H539   | a.man      |    105 | **creer / confiar / ser fiel**          | hand-weighted | alta  | una raíz primitiva; propiamente, edificar o sostener; criar como padr… |
+| H1350  | ga.al      |    104 | **redimir / rescatar**                  | hand-weighted | alta  | ser el pariente más cercano (y como tal redimir la propiedad de un pa… |
+| H8548  | ta.mid     |    104 | **continuamente**                       | tbesh-head-es | baja  | de una raíz en desuso que significa extender; propiamente, continuida… |
+| H3722  | ki.pher    |    102 | **expiar / hacer expiación**            | hand-weighted | alta  | cubrir (específicamente con betún); figurativamente, expiar o perdona… |
+| H3282  | ya.an      |     99 | **porque**                              | tbesh-head-es | baja  | de una raíz en desuso que significa prestar atención; propiamente, at… |
+| H1481  | gur        |     97 | **peregrinar / morar**                  | tbesh-head-es | baja  | una raíz primitiva; propiamente, apartarse del camino (para alojarse…  |
+| H426   | e.lah      |     95 | **Dios**                                | hand-divine   | alta  | Dios (arameo)                                                          |
+| H4422  | ma.lat     |     95 | **escapar / huida**                     | tbesh-head-es | baja  | una raíz primitiva; propiamente, ser liso, es decir, (por implicación… |
+| H6588  | pe.sah     |     93 | **transgresión / rebelión**             | hand-weighted | alta  | una rebelión (nacional, moral o religiosa); transgresión               |
+| H1616  | ger        |     92 | **forastero / peregrino**               | tbesh-head-es | baja  | o (en forma plena) geyr; de H1481 (גּוּר); propiamente, un huésped; p… |
+| H6285  | pe.ah      |     86 | **lado / costado**                      | tbesh-head-es | baja  | femenino de H6311 (פֹּה); propiamente, boca en sentido figurado, es d… |
+| H3925  | la.mad     |     85 | **aprender**                            | tbesh-head-es | baja  | una raíz primitiva; propiamente, aguijonear, es decir, (por implicaci… |
+| H1167  | ba.al      |     84 | **amo / señor**                         | tbesh-head-es | baja  | un señor / dueño; de ahí, un esposo, o (figurativamente) propietario…  |
+| H4376  | ma.khar    |     80 | **vender**                              | tbesh-map     | media | vender, literalmente (como mercancía, una hija en matrimonio, en escl… |
+| H226   | ot         |     79 | **señal**                               | tbesh-head-es | baja  | una señal (literal o figurada), como bandera, faro, monumento, presag… |
+| H2603  | cha.nan    |     78 | **tener piedad**                        | tbesh-head-es | baja  | una raíz primitiva (compárese H2583 (חָנָה)); propiamente, inclinarse… |
+| H3444  | ye.shu.ah  |     78 | **salvación / liberación**              | hand-weighted | alta  | algo salvado, es decir, (en abstracto) liberación; de ahí, ayuda, vic… |
+| H1486  | go.ral     |     77 | **asignado**                            | tbesh-head-es | baja  | o (abreviado) גֹּרָל; de una raíz en desuso que significa ser áspero…  |
+| H2470  | cha.lah    |     75 | **debilitarse**                         | tbesh-head-es | baja  | una raíz primitiva; propiamente, ser frotado o desgastado; de ahí (fi… |
+| H2654  | cha.phets  |     74 | **deleitarse en**                       | tbesh-head-es | baja  | una raíz primitiva; propiamente, inclinarse a; por implicación (liter… |
+| H6381  | pa.la      |     71 | **maravilla / prodigio**                | tbesh-head-es | baja  | una raíz primitiva; propiamente, quizá separar, es decir, distinguir…  |
+| H2580  | chen       |     69 | **gracia / favor**                      | hand-weighted | alta  | gracia, es decir, subjetiva (bondad, favor) u objetiva (hermosura)     |
+| H4116  | ma.har     |     68 | **apresurar**                           | tbesh-head-es | baja  | una raíz primitiva; propiamente, ser líquido o fluir fácilmente, es d… |
+| H7378  | riv        |     67 | **contender**                           | tbesh-head-es | baja  | o רוּב; una raíz primitiva; propiamente, lanzar, es decir, forcejear;… |
+| H7495  | ra.pah     |     67 | **sanar**                               | tbesh-map     | media | o רָפָה; una raíz primitiva; propiamente, remendar (cosiendo), es dec… |
+| H2308  | cha.dal    |     58 | **cesar**                               | tbesh-head-es | baja  | una raíz primitiva; propiamente, estar flácido, es decir, (por implic… |
+| H2342  | chul       |     58 | **torcer**                              | tbesh-head-es | baja  | o חִיל; una raíz primitiva; propiamente, torcer o girar (de manera ci… |
+| H433   | e.lo.ah    |     57 | **Dios**                                | hand-divine   | alta  | una deidad o la Deidad; Dios                                           |
+| H7703  | sha.dad    |     57 | **ruina**                               | tbesh-head-es | baja  | una raíz primitiva; propiamente, ser corpulento, es decir, (figurativ… |
+| H7522  | ra.tson    |     56 | **voluntad / beneplácito / favor**      | hand-weighted | alta  | deleite (especialmente como mostrado); buena voluntad, favor           |
+| H1254  | ba.ra      |     55 | **crear**                               | hand-weighted | alta  | (en sentido absoluto) crear; (matizado) talar (un bosque), selecciona… |
+| H1692  | da.vaq     |     54 | **hender / adherirse**                  | tbesh-head-es | baja  | una raíz primitiva; propiamente, golpear, es decir, adherirse o pegar… |
+| H8040  | se.mo.l    |     54 | **izquierda**                           | tbesh-head-es | baja  | una palabra primitiva (quizá más bien de la misma raíz que H8071 (שִׂ… |
+| H4682  | mats.tsah  |     53 | **pan sin levadura**                    | tbesh-head-es | baja  | de H4711 (מָצַץ) en el sentido de devorar ávidamente por la dulzura;…  |
+| H5945  | el.yon     |     53 | **Altísimo / superior**                 | hand-divine   | alta  | una elevación, es decir, (adj.) alto (comparativo); como título, el A… |
+| H4058  | ma.dad     |     51 | **medida / medir**                      | tbesh-head-es | baja  | una raíz primitiva; propiamente, estirar; por implicación, medir (com… |
+| H3119  | yo.mam     |     50 | **de día**                              | tbesh-head-es | baja  | de día; diariamente                                                    |
+| H3332  | ya.tsaq    |     50 | **derramar**                            | tbesh-map     | media | raíz primitiva; propiamente, derramar (transitivo o intransitivo); po… |
+| H530   | e.mu.nah   |     49 | **fidelidad / fe**                      | hand-weighted | alta  | o (abreviado) אֱמֻנָה; femenino de H529 (אֵמוּן); literalmente firmez… |
+| H7706  | shad.day   |     48 | **Todopoderoso**                        | hand-divine   | alta  | el Todopoderoso                                                        |
+| H7355  | ra.cham    |     47 | **compadecerse / amar**                 | hand-weighted | alta  | acariciar; por implicación, amar, especialmente compadecerse           |
+| H7356  | ra.cha.mim |     45 | **misericordia / compasión / entrañas** | hand-weighted | alta  | compasión (en plural); por extensión, el vientre (como que abriga al…  |
+| H6663  | tsa.daq    |     41 | **ser justo / justificar**              | hand-weighted | alta  | ser (causativamente, hacer) justo (en sentido moral o forense)         |
+| H4899  | ma.shi.ach |     39 | **ungido**                              | hand-weighted | alta  | ungido; usualmente una persona consagrada (como rey, sacerdote o sant… |
+| H3468  | ye.sah     |     36 | **salvación / liberación**              | hand-weighted | alta  | libertad, liberación, prosperidad, salvación                           |
+| H1353  | ge.ul.lah  |     14 | **redención / rescate**                 | hand-weighted | alta  | redención (incluyendo el derecho y el objeto); por implicación, paren… |
 
 ---
 
@@ -2925,15 +2918,6 @@ Procedencia de la glosa (`fullSource`):
 
 ---
 
-## 4. Sin traducción automática fiable (2) — glosa provisional = cabeza TBESH limpiada
-
-| Strong | translit | ocurr. | glosa provisional | TBESH (EN) |
-| ------ | -------- | -----: | ----------------- | ---------- |
-| H1831  | de.ma    |      1 | juice             | juice      |
-| H5758  | a.va.yah |      1 | iniquity          | iniquity   |
-
----
-
 ## 5. El grueso mecánico
 
-Las ~7615 glosas restantes (vocabulario concreto, no marcadas) están en `DOCS/drafts/hebrew-lemma-gloss-es-review.csv` — una fila por lema, con `final_gloss`, `final_source`, `definition_es` y `dominant_gloss_share` en columnas contiguas para revisión por muestreo.
+Las ~7606 glosas restantes (vocabulario concreto, no marcadas) están en `DOCS/drafts/hebrew-lemma-gloss-es-review.csv` — una fila por lema, con `final_gloss`, `final_source`, `definition_es` y `dominant_gloss_share` en columnas contiguas para revisión por muestreo.

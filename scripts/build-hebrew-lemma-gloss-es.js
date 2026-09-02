@@ -1109,6 +1109,20 @@ const JUDGMENT_FIX_ES = {
   H5375: 'levantar / llevar / perdonar',
   H6440: 'rostro / delante de',
   H5648: 'hacer (arameo)',
+  H5973: 'con',
+  H801: 'ofrenda encendida',
+  H2865: 'quebrantarse / atemorizarse',
+  H7442: 'gritar de júbilo / cantar',
+  H3384: 'enseñar / arrojar',
+  H2962: 'antes / aún no',
+  H1831: 'savia / jugo',
+  H5758: 'iniquidad',
+  H5974: 'con (arameo)',
+  H3909: 'en secreto / encantamientos',
+  H502: 'aprender / familiarizarse',
+  H6776: 'yunta / par',
+  H546: 'en verdad / ciertamente',
+  H6493: 'vidente / perspicaz',
 };
 
 // ── (proper nouns without any definition_es, 46 hapax) — hand transliteration
@@ -1187,6 +1201,8 @@ for (const s of Object.keys(PROPER_FALLBACK_ES))
 
 // Notes shown verbatim in the review for specific divine / particle calls.
 const A3_NOTES = {
+  H3068:
+    'YHWH → «Jehová» (decisión 2, NO «Yahvé»). Nota: el overlay por-ocurrencia existente `hebrew-gloss-es-v1.json` imprime «a Yahvé» en Sal 136:1 pos. 2 (previo a esta decisión) y gana en ese versículo por ser tier 2 — conviene alinearlo en una pasada futura.',
   H853: 'ʾet: RVR1960 no lo traduce (no tiene forma en español). Opciones: «(objeto directo)» · «—» (omitir del interlineal) · dejar el gloss_en actual. Aparece ~10.9k veces.',
   H3069:
     'aparece casi siempre en la pareja «Señor Jehová» (H136 + H3069); por palabra, H3069 imprime «Jehová».',
@@ -1687,8 +1703,10 @@ const TBESH_HEAD_ES = {
   incision: 'incisión / sajadura',
   incite: 'incitar',
   inheritance: 'heredad / herencia',
+  iniquity: 'iniquidad',
   injunction: 'mandato / precepto',
   innocence: 'inocencia',
+  juice: 'mosto / jugo',
   "isn't?": '¿acaso no?',
   jar: 'cántaro / vasija',
   jasper: 'jaspe',
