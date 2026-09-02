@@ -653,7 +653,7 @@ describe('assets/hebrew-lemma-gloss-es.json — bundled A3 dataset (content swee
   });
 
   it('every value is a non-empty, ≤40-char, markup-free Spanish gloss', () => {
-    for (const [k, v] of Object.entries(REAL)) {
+    for (const v of Object.values(REAL)) {
       expect(typeof v).toBe('string');
       expect(v.trim().length).toBeGreaterThan(0);
       expect(v.length).toBeLessThanOrEqual(40);
