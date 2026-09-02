@@ -1222,7 +1222,7 @@ for (const s of Object.keys(PROPER_FALLBACK_ES))
 const A3_NOTES = {
   H3068:
     'YHWH → «Jehová» (decisión 2, NO «Yahvé»). Nota: el overlay por-ocurrencia existente `hebrew-gloss-es-v1.json` imprime «a Yahvé» en Sal 136:1 pos. 2 (previo a esta decisión) y gana en ese versículo por ser tier 2 — conviene alinearlo en una pasada futura.',
-  H853: 'ʾet: RVR1960 no lo traduce (no tiene forma en español). Opciones: «(objeto directo)» · «—» (omitir del interlineal) · dejar el gloss_en actual. Aparece ~10.9k veces.',
+  H853: 'ʾet: RVR1960 no lo traduce (no tiene forma en español). Opciones: «(objeto directo)» · «marca de OD» · «—» (omitir del interlineal) · dejar el gloss_en actual. Es la palabra MÁS frecuente del AT (~10.9k), así que también es una decisión de UI: la glosa propuesta (32 car.) se muestra bajo UNA palabra hebrea y podría envolver / desbordar la lista de palabras — la media de las glosas es ~9 car.',
   H3069:
     'aparece casi siempre en la pareja «Señor Jehová» (H136 + H3069); por palabra, H3069 imprime «Jehová».',
   H430: 'plural; RVR1960 usa «dioses» para dioses falsos y, raras veces, «jueces». ~2.6k ocurrencias.',
@@ -2611,6 +2611,8 @@ function writeOutputs({records, totalH, nullStrongsH, esDefs, auditSamples}) {
   }
   const json = {
     _comment:
+      'SUPERSEDED pre-decision artifact — the shipped dataset is ' +
+      'assets/hebrew-lemma-gloss-es.json (all used lemmas, Spanish). ' +
       'DRAFT — A3 decision-support artifact, NOT wired into the app. Terse ' +
       "Spanish inline glosses keyed by base Strong's number. Values for keys " +
       'listed in _properNouns are ENGLISH placeholders from TBESH pending an ' +
@@ -2756,6 +2758,14 @@ function writeOutputs({records, totalH, nullStrongsH, esDefs, auditSamples}) {
 
 _Generated ${new Date().toISOString().slice(0, 10)} by \`scripts/build-hebrew-lemma-gloss-es.js\`._
 _Draft artifact for a scope decision — nothing here is wired into the app._
+
+> **SUPERSEDED.** This report + \`hebrew-lemma-gloss-es.draft.json\` are the
+> PRE-decision scope artifacts (mechanical + proper-noun buckets only, 5,832
+> entries, proper-noun values still English). The owner approved full coverage;
+> the shipped dataset is now \`assets/hebrew-lemma-gloss-es.json\` — **all
+> ${records.length} used lemmas, Spanish**, keyed by base Strong's. Its review
+> package is \`hebrew-lemma-gloss-es-REVIEW.md\`. The bucket counts and
+> "held-back" language below still describe the classifier, not the final data.
 
 ## The headline number
 

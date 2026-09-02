@@ -3,6 +3,14 @@
 _Generated 2026-09-02 by `scripts/build-hebrew-lemma-gloss-es.js`._
 _Draft artifact for a scope decision — nothing here is wired into the app._
 
+> **SUPERSEDED.** This report + `hebrew-lemma-gloss-es.draft.json` are the
+> PRE-decision scope artifacts (mechanical + proper-noun buckets only, 5,832
+> entries, proper-noun values still English). The owner approved full coverage;
+> the shipped dataset is now `assets/hebrew-lemma-gloss-es.json` — **all
+> 8503 used lemmas, Spanish**, keyed by base Strong's. Its review
+> package is `hebrew-lemma-gloss-es-REVIEW.md`. The bucket counts and
+> "held-back" language below still describe the classifier, not the final data.
+
 ## The headline number
 
 A reader looking at an average OT verse sees a mix of content words and
@@ -13,10 +21,10 @@ absolute ceiling**, not 100%.
 
 | Scope choice                                                   | Lemmas with a Spanish gloss | Running-token coverage |
 | -------------------------------------------------------------- | --------------------------- | ---------------------- |
-| **mechanical only** (auto-safe, Spanish ready)                 | 3190                        | **19.81%**             |
-| **mechanical + proper-noun** (proper = English placeholder ⚠️) | 5832                        | **31.54%**             |
+| **mechanical only** (auto-safe, Spanish ready)                 | 3189                        | **19.81%**             |
+| **mechanical + proper-noun** (proper = English placeholder ⚠️) | 5831                        | **31.54%**             |
 | all 8503 used lemmas (ceiling)                                 | 8503                        | 98.01%                 |
-| _held back for human drafting_                                 | 2460                        | 66.38% of tokens       |
+| _held back for human drafting_                                 | 2461                        | 66.38% of tokens       |
 
 > The held-back bucket is a minority of _lemmas_ but the **majority of running
 > tokens** (66.38%) — a handful of very high-frequency words
@@ -26,7 +34,7 @@ absolute ceiling**, not 100%.
 ⚠️ **2642 of the values in the draft JSON are English** (TBESH forms like
 "Hezekiah", "Jerusalem", "LORD"). They are listed under `_properNouns` and need
 an RVR1960-conventional Spanish spelling pass (Ezequías, Jerusalén, Jehová/SEÑOR)
-before A3 could ship. Only the 3190 mechanical
+before A3 could ship. Only the 3189 mechanical
 values are Spanish today.
 
 ## Bucket counts
@@ -34,10 +42,10 @@ values are Spanish today.
 | Bucket                                               | Lemmas   | % of used lemmas | Occurrences | % of running tokens |
 | ---------------------------------------------------- | -------- | ---------------- | ----------- | ------------------- |
 | proper-noun                                          | 2642     | 31.1%            | 35,789      | 11.73%              |
-| mechanical                                           | 3401     | 40.0%            | 60,687      | 19.90%              |
-| &nbsp;&nbsp;↳ with a Spanish draft                   | 3190     |                  | 60,423      | 19.81%              |
+| mechanical                                           | 3400     | 40.0%            | 60,686      | 19.90%              |
+| &nbsp;&nbsp;↳ with a Spanish draft                   | 3189     |                  | 60,422      | 19.81%              |
 | &nbsp;&nbsp;↳ blank (no definition_es, untranslated) | 211      |                  | 264         | 0.09%               |
-| judgment / held-back                                 | 2460     | 28.9%            | 202,454     | 66.38%              |
+| judgment / held-back                                 | 2461     | 28.9%            | 202,455     | 66.38%              |
 | **total used lemmas**                                | **8503** | 100%             | **298,930** | 98.01%              |
 
 Classifier:
@@ -59,8 +67,8 @@ Classifier:
 | `strongs IS NULL` rows      | ~6,078          | 6078                           | confirmed                 |
 | Hebrew word rows            | ~305,008        | 305008                         | confirmed                 |
 | proper-noun bucket          | ~2,649          | 2642                           | confirmed (±noise)        |
-| mechanical bucket           | ~2,600          | 3190 ready + 211 pending EN→ES | larger — see method note  |
-| judgment bucket             | ~3,250          | 2460                           | smaller — see method note |
+| mechanical bucket           | ~2,600          | 3189 ready + 211 pending EN→ES | larger — see method note  |
+| judgment bucket             | ~3,250          | 2461                           | smaller — see method note |
 | lemmas with `definition_es` | ~8,193          | 8193                           | confirmed                 |
 | lemmas with NO Spanish      | ~310 (~419 occ) | 310 (419 occ)                  | confirmed                 |
 
@@ -179,13 +187,13 @@ mechanical bucket, either by the denylist or by a structural rule:
   ≥0.85 / ≤3-senses bar: `H136` (lord), `H410` (god), `H430` (god), `H433` (god), `H530` (faithfulness), `H1285` (covenant), `H2580` (favor), `H2896` (good), `H3468` (salvation), `H3820` (heart), `H3824` (heart), `H5771` (iniquity), `H6588` (transgression), `H6662` (righteou), `H6664` (righteousness), `H6666` (righteousness), `H7356` (compassion), `H7706` (almighty), `H7812` (bow down)
 - **function-word rule** (Morph type + ≥ 400 occ) pulled back
   11: `H408`, `H428`, `H589`, `H859`, `H1571`, `H1992`, `H2063`, `H2088`, `H3541`, `H3808`, `H8033`
-- **not-condensable guard** demoted 71 candidate(s) whose
+- **not-condensable guard** demoted 72 candidate(s) whose
   `definition_es` is etymology-first or lexicographer's meta-language with no
   clean terse head (e.g. "partículas ligeras (volátiles)")
 
 ### Draft-gloss provenance (mechanical bucket)
 
-- **2535** condensed from the vetted `definition_es` head
+- **2534** condensed from the vetted `definition_es` head
 - **655** from the in-source curated EN→ES map (`TBESH_EN_ES`) —
   used for concrete common vocabulary and to override an etymology-first
   `definition_es` head that the word never carries in use (e.g. חֶרֶב H2719 →
@@ -205,26 +213,26 @@ mechanical bucket, either by the denylist or by a structural rule:
 
 ## Sample draft glosses (mechanical bucket, spread across the frequency range)
 
-| strongs | translit     | occ  | %tokens | tbesh gloss (EN) | definition_es (head)               | **proposed ES**             | source             |
-| ------- | ------------ | ---- | ------- | ---------------- | ---------------------------------- | --------------------------- | ------------------ |
-| H4428   | me.lekh      | 2525 | 0.828%  | king             | un rey                             | **rey**                     | tbesh-map          |
-| H7243   | re.vi.i      | 56   | 0.018%  | fourth           | cuarto; también (fraccionalmente)… | **cuarto**                  | tbesh-map          |
-| H6490   | piq.qud      | 24   | 0.008%  | precept          | o פִּקֻּד; de H6485 (פָּקַד); pro… | **designado**               | definition_es-head |
-| H2611   | cha.neph     | 13   | 0.004%  | profane          | manchado (es decir, con pecado),…  | **manchado**                | definition_es-head |
-| H3039   | ye.did       | 8    | 0.003%  | beloved          | amado                              | **amado**                   | definition_es-head |
-| H8431   | to.che.let   | 6    | 0.002%  | hope             | esperanza (expectación)            | **esperanza**               | definition_es-head |
-| H5799   | a.za.zel     | 4    | 0.001%  | Azazel           | macho cabrío de partida; el chivo… | **macho cabrío de partida** | definition_es-head |
-| H4947   | mash.qoph    | 3    | 0.001%  | lintel           | un dintel                          | **dintel**                  | definition_es-head |
-| H1781   | day.yan      | 2    | 0.001%  | judge            |                                    | **juez**                    | tbesh-map          |
-| H5235   | ne.kher      | 2    | 0.001%  | misfortune       | algo extraño, es decir calamidad…  | **algo extraño**            | definition_es-head |
-| H8531   | te.lat       | 2    | 0.001%  | third            | (arameo) un rango terciario        | **tercero**                 | tbesh-map          |
-| H1465   | ge.vah       | 1    | 0.000%  | back             | la espalda, es decir (por extensi… | **espalda**                 | definition_es-head |
-| H2476   | cha.lu.shah  | 1    | 0.000%  | weakness         | derrota                            | **derrota**                 | definition_es-head |
-| H3745   | ke.raz       | 1    | 0.000%  | to proclaim      | (arameo) proclamar                 | **proclamar**               | definition_es-head |
-| H4595   | ma.a.ta.phah | 1    | 0.000%  | overtunic        | una capa                           | **capa**                    | definition_es-head |
-| H5451   | sib.bo.let   | 1    | 0.000%  | stream           | una espiga de grano                | **espiga de grano**         | definition_es-head |
-| H6608   | pe.tach      | 1    | 0.000%  | opening          | apertura (figuradamente), es deci… | **apertura**                | definition_es-head |
-| H7571   | re.tach      | 1    | 0.000%  | boiling          | una hervura                        | **hervura**                 | definition_es-head |
+| strongs | translit    | occ  | %tokens | tbesh gloss (EN) | definition_es (head)               | **proposed ES**             | source             |
+| ------- | ----------- | ---- | ------- | ---------------- | ---------------------------------- | --------------------------- | ------------------ |
+| H4428   | me.lekh     | 2525 | 0.828%  | king             | un rey                             | **rey**                     | tbesh-map          |
+| H7243   | re.vi.i     | 56   | 0.018%  | fourth           | cuarto; también (fraccionalmente)… | **cuarto**                  | tbesh-map          |
+| H6490   | piq.qud     | 24   | 0.008%  | precept          | o פִּקֻּד; de H6485 (פָּקַד); pro… | **designado**               | definition_es-head |
+| H2611   | cha.neph    | 13   | 0.004%  | profane          | manchado (es decir, con pecado),…  | **manchado**                | definition_es-head |
+| H3039   | ye.did      | 8    | 0.003%  | beloved          | amado                              | **amado**                   | definition_es-head |
+| H8431   | to.che.let  | 6    | 0.002%  | hope             | esperanza (expectación)            | **esperanza**               | definition_es-head |
+| H5799   | a.za.zel    | 4    | 0.001%  | Azazel           | macho cabrío de partida; el chivo… | **macho cabrío de partida** | definition_es-head |
+| H4947   | mash.qoph   | 3    | 0.001%  | lintel           | un dintel                          | **dintel**                  | definition_es-head |
+| H1781   | day.yan     | 2    | 0.001%  | judge            |                                    | **juez**                    | tbesh-map          |
+| H5235   | ne.kher     | 2    | 0.001%  | misfortune       | algo extraño, es decir calamidad…  | **algo extraño**            | definition_es-head |
+| H8531   | te.lat      | 2    | 0.001%  | third            | (arameo) un rango terciario        | **tercero**                 | tbesh-map          |
+| H1465   | ge.vah      | 1    | 0.000%  | back             | la espalda, es decir (por extensi… | **espalda**                 | definition_es-head |
+| H2476   | cha.lu.shah | 1    | 0.000%  | weakness         | derrota                            | **derrota**                 | definition_es-head |
+| H3750   | kar.kom     | 1    | 0.000%  | saffron          | el azafrán (croco)                 | **azafrán**                 | definition_es-head |
+| H4596   | me.i        | 1    | 0.000%  | heap             | un montón de escombros (retorcido… | **montón de escombros**     | definition_es-head |
+| H5452   | se.var      | 1    | 0.000%  | to intend        | (arameo) tener en mente, es decir… | **tener en mente**          | definition_es-head |
+| H6614   | pe.ti.gil   | 1    | 0.000%  | robe             | probablemente un manto adornado p… | **manto**                   | tbesh-map          |
+| H7573   | ra.tam      | 1    | 0.000%  | to bind          | uncir (al timón de un vehículo)    | **uncir**                   | definition_es-head |
 
 ## Sample proper-noun placeholders (need the RVR1960 spelling pass)
 
@@ -276,8 +284,8 @@ inflates a lemma's dominant share and could mis-file it as mechanical):
 
 ## Files
 
-- `DOCS/drafts/hebrew-lemma-gloss-es.draft.json` — 5832 entries
-  (3190 mechanical Spanish + 2642 proper-noun English placeholders)
+- `DOCS/drafts/hebrew-lemma-gloss-es.draft.json` — 5831 entries
+  (3189 mechanical Spanish + 2642 proper-noun English placeholders)
 - `DOCS/drafts/hebrew-lemma-gloss-es-review.csv` — 8503 rows, one per used lemma
 - `scripts/build-hebrew-lemma-gloss-es.js` — this pipeline
 

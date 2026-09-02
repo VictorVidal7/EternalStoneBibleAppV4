@@ -137,11 +137,17 @@ class FakeOriginalsHandle {
       return {changes: 0, lastInsertRowId: 0};
     }
     if (/^INSERT (?:OR REPLACE )?INTO hebrew_lemma_gloss_es/i.test(s)) {
-      const [strongs, gloss_es] = params as [string, string];
-      const i = this.hebrewLemmaGlossEs.findIndex(r => r.strongs === strongs);
-      if (i >= 0) this.hebrewLemmaGlossEs[i] = {strongs, gloss_es};
-      else this.hebrewLemmaGlossEs.push({strongs, gloss_es});
-      return {changes: 1, lastInsertRowId: 0};
+      // The seeder batches N (strongs, gloss) pairs into one multi-row VALUES
+      // statement — params is a flat [s1, g1, s2, g2, …].
+      const p = params as string[];
+      for (let k = 0; k + 1 < p.length; k += 2) {
+        const strongs = p[k];
+        const gloss_es = p[k + 1];
+        const i = this.hebrewLemmaGlossEs.findIndex(r => r.strongs === strongs);
+        if (i >= 0) this.hebrewLemmaGlossEs[i] = {strongs, gloss_es};
+        else this.hebrewLemmaGlossEs.push({strongs, gloss_es});
+      }
+      return {changes: p.length / 2, lastInsertRowId: 0};
     }
     throw new Error(
       `FakeOriginalsHandle.runAsync: unhandled statement: ${s.slice(0, 80)}`,

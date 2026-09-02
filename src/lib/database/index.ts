@@ -887,6 +887,11 @@ class BibleDatabase {
    * COALESCE prefers the pack's own gloss_es (Greek) and then the
    * per-occurrence `hebrew_gloss_es` overlay before falling back to this
    * per-lemma default, so a curated occurrence gloss always outranks it.
+   *
+   * ~8,500 rows is ~10× seedHebrewGlossEsIfNeeded, so the INSERTs go in
+   * multi-row `VALUES` batches (not one bridge round-trip per row) to keep
+   * this off the first-launch critical path — same skip-empty and
+   * graceful-failure semantics, just fewer `runAsync` calls.
    */
   private async seedHebrewLemmaGlossEsIfNeeded(): Promise<void> {
     const db = this.getDb();
@@ -904,18 +909,26 @@ class BibleDatabase {
         string
       > = require('../../../assets/hebrew-lemma-gloss-es.json');
 
+      const pairs: [string, string][] = [];
+      for (const [strongs, rawGloss] of Object.entries(entries)) {
+        const gloss = (rawGloss ?? '').trim();
+        if (!strongs || !gloss) continue; // never seed a blank
+        pairs.push([strongs, gloss]);
+      }
+
+      const BATCH = 400; // 800 bound params/statement — well under SQLite's limit
       let inserted = 0;
       await db.withTransactionAsync(async () => {
         await db.runAsync('DELETE FROM hebrew_lemma_gloss_es');
-        for (const [strongs, rawGloss] of Object.entries(entries)) {
-          const gloss = (rawGloss ?? '').trim();
-          if (!strongs || !gloss) continue; // never seed a blank
+        for (let i = 0; i < pairs.length; i += BATCH) {
+          const chunk = pairs.slice(i, i + BATCH);
+          const placeholders = chunk.map(() => '(?, ?)').join(', ');
           await db.runAsync(
             `INSERT OR REPLACE INTO hebrew_lemma_gloss_es (strongs, gloss_es)
-             VALUES (?, ?)`,
-            [strongs, gloss],
+             VALUES ${placeholders}`,
+            chunk.flat(),
           );
-          inserted++;
+          inserted += chunk.length;
         }
       });
 
