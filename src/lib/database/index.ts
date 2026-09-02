@@ -227,8 +227,12 @@ const HEBREW_GLOSS_ES_VERSION = 2;
  * Ranks BELOW both the pack's own gloss_es (Greek) and the per-occurrence
  * `hebrew_gloss_es` overlay in getOriginalWords' COALESCE — it is only the
  * fallback default. Bump whenever the bundled JSON changes.
+ *
+ * v2 = Victor's manual review pass over the 185 flagged items in
+ * `DOCS/drafts/hebrew-lemma-gloss-es-REVIEW.md` (7 corrected glosses:
+ * H1148, H1486, H1692, H2313, H2803, H5315, H7703).
  */
-const HEBREW_LEMMA_GLOSS_ES_VERSION = 1;
+const HEBREW_LEMMA_GLOSS_ES_VERSION = 2;
 
 /** Max incoming ("referenced by") rows surfaced for a verse, by votes. */
 const XREF_INCOMING_LIMIT = 25;
