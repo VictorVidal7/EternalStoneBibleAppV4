@@ -1,7 +1,8 @@
 # A3 — Glosa española por lema hebreo · Paquete de revisión
 
 _Generado por `scripts/build-hebrew-lemma-gloss-es.js` · rama `feature/hebrew-lemma-gloss-es`._
-_BORRADOR para la aprobación del propietario. Nada de esto está cableado en la app (eso es P2)._
+_REVISADO por Victor (60ª sesión) — 7 glosas corregidas (H1148, H1486, H1692, H2313, H2803, H5315, H7703),
+aplicadas en `assets/hebrew-lemma-gloss-es.json`. Nada de esto está cableado en la app todavía (eso es P2)._
 
 ## Resumen
 
@@ -1648,7 +1649,7 @@ Procedencia de la glosa (`fullSource`):
 | H2265  | cha.vaq.quq              | Habakkuk               | **Habacuc**                         | Habacuc            |      2 |
 | H2286  | cha.ga.va                | Hagaba                 | **Hagaba**                          | Hagaba             |      2 |
 | H2301  | cha.dad                  | Hadad                  | **Hadad**                           | Hadad              |      2 |
-| H2313  | chid.de.qel              | Tigris                 | **el río Hidekel**                  | río ⚠️             |      2 |
+| H2313  | chid.de.qel              | Tigris                 | **Hidekel / río**                   | río                |      2 |
 | H2332  | chav.vah                 | Eve                    | **Eva**                             | Eva                |      2 |
 | H2343  | chul                     | Hul                    | **Hul**                             | Hul                |      2 |
 | H2362  | chav.ran                 | Hauran                 | **Haurán**                          | Haurán             |      2 |
