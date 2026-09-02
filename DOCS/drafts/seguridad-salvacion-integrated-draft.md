@@ -21,8 +21,10 @@ titleCaseHeadword("SEGURIDAD DE LA SALVACIÓN") -> "Seguridad de la salvación" 
 - **Énfasis.** _cursiva_ / **negrita** con asterisco (el parser de la app NO reconoce _guion_bajo_). Al hacer commit, prettier (vía lint-staged) reescribe `*` -> `_` en este .md; el `--from-draft` del futuro splicer lo revierte, igual que en ELECCIÓN. En el JSON de `assets/` (prettier-ignored) va con asterisco.
 - **`Jud 1:24`, no `Jud 24`.** `parseReference` lee "Jud 24" como capítulo 24 de un libro de 1 capítulo, `getChapterVerseCount` devuelve undefined y falla a texto plano. En la prosa va escrito `Jud 1:24`. Misma regla para cualquier libro de un solo capítulo.
 - **Comillas = solo RVR1960 verbatim y en la misma persona/número.** Donde el texto va en 3ª persona y la RVR1960 está en 2ª (p. ej. "vuestra"/"os"), es alusión sin comillas. Los números de artículo de las confesiones son paráfrasis-con-cita, no verbatim (se citan por rango cuando no hay total certeza del artículo exacto, como hizo ELECCIÓN).
-- **Longitudes:** gloss 1171 car.; §1 ≈ 6,5k; §2 ≈ 7,8k; §3 ≈ 7,4k (peso simétrico §2/§3, gap ~5,5 %, medido en el encabezado como en ELECCIÓN); §4 ≈ 3,2k.
-- **Para Victor, a resolver:** (1) 2 vs 3 secciones; (2) orden §2/§3; (3) en §1, ¿nombrar a Charles Stanley como ejemplo del "free grace", o dejarlo sin nombre propio?; (4) en §4, cierre — ¿mantener el tono cristológico actual o añadir el ejemplo Whitefield/Wesley como en ELECCIÓN? (lo he evitado para no duplicar esa entrada).
+- **Longitudes (tras esta revisión):** gloss 1171 car.; §1 ≈ 3 960 (antes ≈ 6 490; ELECCIÓN §1 = 3 455); §2 ≈ 8 020; §3 ≈ 7 420; §4 ≈ 3 136. Gap §2/§3 ≈ 8 % (la tolerancia declarada era ~5,5 %): el párrafo NUEVO de seguridad + las citas de Ezequiel restauradas + la reescritura de las Opiniones añaden ~1,2k netos a §2, que ya se recortó ~950 en las pilas de prooftexts. Si Victor quiere simetría estricta, §2 admite otro recorte de ~300-400 en §§ "Wesley" / "Las advertencias".
+- **Decisiones editoriales — TODAS aplicadas en esta revisión:** 2 secciones de postura (no 3) · orden arminiana→reformada · etiquetas neutras de tradición en §2 y §3 · SIN nombrar a Charles Stanley en §1 (se mantiene "teología del 'free grace' del siglo XX") · cierre cristológico de §4 intacto, sin el episodio Whitefield/Wesley (para no duplicar ELECCIÓN) · Ez 18:24 y Ez 33:13 restauradas a §2 · Ap 3:5 sigue fuera.
+- **NUEVO — pendiente del visto bueno de Victor:** párrafo "La seguridad del creyente" en §2 (testimonio del Espíritu, Ro 8:16; promesa firme para quien permanece en Cristo por la fe; Opiniones de 1618 pts. 7-8 sobre la certeza presente). Antes §2 no trataba la seguridad de forma positiva pese al título de la entrada.
+- **Correcciones aplicadas esta revisión:** (1) §2, pasaje de las Opiniones de 1618 reescrito sin la atenuación "no ocurre con facilidad ni sin una obstinada resistencia al Espíritu" (no está en el quinto artículo) — ahora en su forma madura y sin matizar; se conserva el contraste con la cautela de Arminio (1608), ya verificada verbatim. (2) §3, dos choques de persona/número resueltos como alusión: Ef 4:30 ("los creyentes «fuisteis sellados»") y 1 Jn 5:13 ("los creyentes «sepáis»"). (3) "enredarse otra vez… terminan peor que al principio" reetiquetado 2 P 2:21 → 2 P 2:20.
 
 ---
 
@@ -50,13 +52,13 @@ Esta pregunta va unida a la de la elección, que este diccionario trata aparte: 
 
 ---
 
-## Sección 2 — "La tradición arminiana y wesleyana" (bodyEs) — 7900 car.
+## Sección 2 — "La tradición arminiana y wesleyana" (bodyEs) — 8020 car.
 
 La tradición arminiana y wesleyana aborda esta cuestión desde el quinto de los cinco artículos de la Remonstrancia (1610), desde las _Opiniones de los Remonstrantes_ (1618) que lo precisaron, y desde la enseñanza posterior de Arminio, de los remonstrantes y de Juan Wesley. Confiesa, con toda la iglesia, que Dios guarda a los suyos y que el creyente tiene amplio motivo de seguridad; y sostiene, además, que la caída final de un creyente verdadero —aunque nunca es necesaria— sigue siendo posible, y que las advertencias del Nuevo Testamento la dan por supuesta.
 
 **El artículo quinto de 1610: la seguridad afirmada, la caída final dejada abierta**
 
-El quinto artículo empieza afirmando la seguridad del creyente: los que están injertados en Cristo por una fe verdadera, y participan de su Espíritu, tienen pleno poder para vencer a Satanás, el pecado, el mundo y su propia carne —siempre por la gracia del Espíritu Santo—, y Jesucristo los asiste en toda tentación y, con tal que no sean negligentes y busquen su ayuda, los guarda de caer (Remonstrancia de 1610, art. 5). Hasta aquí nada separa esta postura de la reformada. Sobre un solo punto los artículos de 1610 se declararon todavía indecisos: si un creyente así podría, por negligencia, abandonar el principio de su vida en Cristo y perder la fe que recibió. Eso —dijeron— debía determinarse con más cuidado a partir de la Escritura antes de enseñarlo con plena convicción (art. 5).
+El quinto artículo empieza afirmando la seguridad del creyente: los injertados en Cristo por una fe verdadera, que participan de su Espíritu, tienen pleno poder para vencer a Satanás, al pecado y al mundo —siempre por la gracia del Espíritu Santo—, y Jesucristo los asiste en toda tentación y, con tal que no sean negligentes, los guarda de caer (Remonstrancia de 1610, art. 5). Hasta aquí nada separa esta postura de la reformada. Sobre un solo punto los artículos de 1610 se declararon indecisos: si un creyente así podría, por negligencia, abandonar su vida en Cristo y perder la fe; eso —dijeron— debía determinarse mejor a partir de la Escritura antes de enseñarlo con plena convicción (art. 5).
 
 **Las Opiniones de los Remonstrantes (1618): la caída final afirmada**
 
@@ -82,7 +84,7 @@ La tradición encuentra el mismo principio ya en el Antiguo Testamento. Por medi
 
 **La seguridad del creyente**
 
-Que la caída sea posible no deja al creyente sin seguridad. Esta tradición —y de forma especialmente marcada Wesley y el metodismo— subraya el testimonio interior del Espíritu: "El Espíritu mismo da testimonio a nuestro espíritu, de que somos hijos de Dios" (Ro 8:16). Quien permanece en Cristo por la fe tiene una promesa firme de vida; y las propias Opiniones de 1618 lo afirman: el creyente verdadero puede y debe estar seguro, en el presente, de su fe y, por tanto, de su salvación y del favor de Dios hacia él, y rechazan expresamente la idea de que tal certeza no sea alcanzable (Opiniones de los Remonstrantes, 1618, quinto artículo, pts. 7-8). Lo que esta tradición no promete es una garantía que vuelva innecesaria la vigilancia.
+Que la caída sea posible no deja al creyente sin seguridad. Esta tradición —y de forma especialmente marcada Wesley y el metodismo— subraya el testimonio interior del Espíritu: "El Espíritu mismo da testimonio a nuestro espíritu, de que somos hijos de Dios" (Ro 8:16). Quien permanece en Cristo por la fe tiene una promesa firme de vida; y las propias Opiniones de 1618 afirman que el creyente verdadero puede y debe estar seguro, en el presente, de su fe y de su salvación, y rechazan la idea de que tal certeza no sea alcanzable (Opiniones de los Remonstrantes, 1618, quinto artículo, pts. 7-8). Lo que esta tradición no promete es una garantía que vuelva innecesaria la vigilancia.
 
 **Ni angustia ni descuido**
 
@@ -90,7 +92,7 @@ La posibilidad de caer no es una probabilidad, ni algo que ocurra por sorpresa o
 
 ---
 
-## Sección 3 — "La tradición reformada (calvinista)" (bodyEs) — 7360 car.
+## Sección 3 — "La tradición reformada (calvinista)" (bodyEs) — 7420 car.
 
 La tradición reformada o calvinista confiesa que la salvación es de principio a fin obra de la pura gracia de Dios, y que por eso la seguridad del creyente no descansa en sus propias fuerzas, sino en Dios. Su exposición más ordenada de esta doctrina es el quinto de los Cánones de Dort (1619), "De la perseverancia de los santos"; la Confesión de Westminster (1646) la enseña en el capítulo 17 ("De la perseverancia de los santos") y trata su fruto pastoral en el capítulo 18 ("De la certeza de la gracia y de la salvación"). Calvino la había fundado en la elección y en la unión con Cristo (_Institución_ III); y las confesiones bautistas reformadas —la Segunda Confesión de Londres (1689) y la de Nueva Hampshire (1833)— la recogen casi con las mismas palabras. Es el quinto de los cinco puntos del calvinismo. Lo que sigue recorre el capítulo quinto de Dort en su propio orden.
 
