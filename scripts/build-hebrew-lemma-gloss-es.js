@@ -1234,6 +1234,32 @@ function capClean(s, max = GLOSS_MAXLEN) {
   return cut.replace(/[\s./;:,/]+$/, '').trim();
 }
 
+/** Name stem for accent/article/number-insensitive comparison. */
+function nameStem(x) {
+  return deaccent(x)
+    .replace(/[^a-z\s-]/g, '')
+    .replace(/^(?:el|la|los|las)\s+/, '')
+    .replace(/e?s$/, '')
+    .trim();
+}
+
+/** Does the RVR1960-attested surface form agree with (any slash-variant of) our
+ *  proposed gloss? Prefix / plural / accent differences count as agreement — the
+ *  ⚠️ flag is only for a materially different spelling. */
+function rvrAgrees(attested, gloss) {
+  const a = nameStem(attested);
+  if (!a || a.length < 3) return true;
+  return String(gloss)
+    .split(/\s*\/\s*/)
+    .some(part => {
+      const v = nameStem(part);
+      if (!v) return false;
+      if (v === a) return true;
+      const [short, long] = v.length <= a.length ? [v, a] : [a, v];
+      return short.length >= 4 && long.startsWith(short);
+    });
+}
+
 /** Drop a leading Spanish etymology / cross-reference clause from a
  *  definition_es (proper-noun path). */
 function stripEsEtymology(s) {
@@ -1262,7 +1288,6 @@ const PROPER_NAME_OVERRIDE = {
   H11: 'Abadón', //     abaddon (def leads "abstracto, una destrucción")
   H8289: 'Sarón', //    sharon  (def leads "llanura")
   H4807: 'Merib-baal', // (def leads "rival de Baal")
-  H4557: 'Milo', //     millo   (H4407) — corrected below
   H4407: 'Milo', //     millo   (def leads "un baluarte")
   H2975: 'Nilo / río', // yeor  (def leads "un canal")
   H5045: 'Neguev / sur', // negev (def leads "el sur")
@@ -1275,6 +1300,8 @@ const PROPER_NAME_OVERRIDE = {
   H5680: 'hebreo', //   ibri    (def leads "un eberita")
   H3383: 'Jordán', //   yarden
   H3844: 'Líbano', //   levanon
+  H6160: 'Arabá / llanura', // arabah (def leads "un desierto")
+  H8219: 'Sefela / llanura', // shephelah (def leads "tierra baja")
 };
 
 const ETY_NAME_RE =
@@ -1305,10 +1332,12 @@ function properNounEs(rec) {
   const raw = raw0 ? stripEsEtymology(raw0) : '';
 
   // 1. gentilic / common-noun gloss: leading "un(a/os/as) X …"
-  const gm = raw.match(/^un[oa]s?\s+([a-záéíóúüñ]+(?:-[a-záéíóúüñ]+)*)\b/i);
+  const gm = raw.match(
+    /^un(?:os?|as?)?\s+([a-záéíóúüñ]+(?:-[a-záéíóúüñ]+)*)\b/i,
+  );
   if (
     gm &&
-    !/^un[oa]s?\s+(?:rey|hijo|ciudad|lugar|monte|r[íi]o|pozo|valle|nombre|t[ée]rmino|pariente|eunuco|ep[íi]teto)\b/i.test(
+    !/^un(?:os?|as?)?\s+(?:rey|hijo|ciudad|lugar|monte|r[íi]o|pozo|valle|nombre|t[ée]rmino|pariente|eunuco|ep[íi]teto|hombre|mujer|dios|deidad|[áa]rbol|animal|ave|planta|piedra|instrumento)\b/i.test(
       raw,
     )
   ) {
@@ -2183,27 +2212,39 @@ function deaccent(s) {
  */
 function attestNameInRvr(verses, candidate) {
   if (!candidate || !verses || !verses.length) return null;
+  // whole slash-variant forms (hyphens kept) — "Bet-el", "Quiriat-jearim"
   const heads = candidate
     .split(/\s*\/\s*|\s+o\s+/i)
-    .map(x => x.trim().split(/[\s-]/)[0])
+    .map(x => x.trim().replace(/^(?:el|la|los|las)\s+/i, ''))
     .filter(x => x && x.length >= 3);
   if (!heads.length) return null;
+  const wordRe = /^[A-Za-zÁÉÍÓÚÜÑáéíóúüñ]+(?:-[A-Za-zÁÉÍÓÚÜÑáéíóúüñ]+)*/;
   for (const [b, c, v] of verses) {
     const text = rvrVerseText(b, c, v);
     if (!text) continue;
     const flat = deaccent(text);
     for (const h of heads) {
       const dh = deaccent(h);
-      const idx = flat.indexOf(dh);
-      if (idx < 0) continue;
-      // whole-word-ish: boundary before, and the match covers a real word start
-      const before = idx === 0 ? ' ' : flat[idx - 1];
-      if (/[a-zñ]/.test(before)) continue;
-      // recover the printed form from the ORIGINAL text at the same offset
-      const m = text
-        .slice(idx)
-        .match(/^[A-Za-zÁÉÍÓÚÜÑáéíóúüñ]+(?:-[A-Za-zÁÉÍÓÚÜÑáéíóúüñ]+)*/);
-      if (m) return m[0];
+      let from = 0;
+      let idx;
+      while ((idx = flat.indexOf(dh, from)) >= 0) {
+        from = idx + 1;
+        const before = idx === 0 ? ' ' : flat[idx - 1];
+        if (/[a-zñ]/.test(before)) continue;
+        const m = text.slice(idx).match(wordRe);
+        if (!m) continue;
+        const printed = m[0];
+        const dp = deaccent(printed);
+        // accept: exact, or our form is a prefix and the printed word is not
+        // dramatically longer (plural / inflection), or printed is a prefix
+        if (
+          dp === dh ||
+          (dp.startsWith(dh) && dp.length - dh.length <= 2) ||
+          dh.startsWith(dp)
+        ) {
+          return printed;
+        }
+      }
     }
   }
   return null;
@@ -2421,12 +2462,9 @@ function assignFullGloss(records) {
       // RVR1960 cross-check (accent-insensitive; a miss = unverified, not wrong)
       const attested = attestNameInRvr(r.verses, gloss);
       r._dbAttested = attested || '';
+      r._dbMismatch = attested ? !rvrAgrees(attested, gloss) : false;
       dbChecked++;
-      if (
-        attested &&
-        deaccent(attested) !== deaccent(gloss) &&
-        deaccent(attested).split('-')[0] !== deaccent(gloss).split(/[ /]/)[0]
-      ) {
+      if (r._dbMismatch) {
         // RVR prints a materially different form — keep ours, flag for review
         flagLemma(
           s,
@@ -3164,12 +3202,7 @@ function writeA3Full({records, totalH}) {
   );
   L.push('|---|---|---|---|---|---:|');
   for (const r of [...proper].sort((a, b) => b.occ - a.occ)) {
-    const mism =
-      r._dbAttested &&
-      deaccent(r._dbAttested).split('-')[0] !==
-        deaccent(r.fullGloss).split(/[ /]/)[0]
-        ? ' ⚠️'
-        : '';
+    const mism = r._dbMismatch ? ' ⚠️' : '';
     L.push(
       `| ${r.strongs} | ${mdCell(r.translit)} | ${mdCell(r.tbeshGloss || r.rawTop)} | **${mdCell(r.fullGloss)}** | ${mdCell(r._dbAttested || '')}${mism} | ${r.occ} |`,
     );
